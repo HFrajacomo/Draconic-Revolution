@@ -20,7 +20,8 @@ public class Chunk : MonoBehaviour
 	public Chunk(int xstart, int zstart){
 		startX = xstart;
 		startZ = zstart;
-
+		GenerateRandomChunk(); 
+		BuildChunk();
 	}
 
 	public void GenerateRandomChunk(){
