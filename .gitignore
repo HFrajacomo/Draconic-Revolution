@@ -4,12 +4,12 @@
 *.exe
 *.o
 *.so
-Temp/
-Obj/
-Library/
-Build/
-Builds/
-/Assets/AssetStoreTools*
+Temp/*
+Obj/*
+Library/*
+Build/*
+Builds/*
+Assets/AssetStoreTools*
 
 # Auto Generated #
 ExportedObj/
