@@ -1,0 +1,6 @@
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
