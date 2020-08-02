@@ -6,7 +6,6 @@ using UnityEngine;
 public class Chunk : MonoBehaviour
 {
 
-	//public VoxelRender render;
 	public VoxelData data;
 	public int startX;
 	public int startZ;
@@ -21,10 +20,6 @@ public class Chunk : MonoBehaviour
 	public Chunk(int xstart, int zstart){
 		startX = xstart;
 		startZ = zstart;
-		//render = GameObject.Find("Voxel Renderer").GetComponent<VoxelRender>();		
-
-		//GenerateRandomChunk();
-		//BuildChunk(); 
 
 	}
 
@@ -63,7 +58,6 @@ public class Chunk : MonoBehaviour
 			    		// Air Check
 			    		if(data.GetNeighbor(x, y, z, (Direction)i) == 0){
 			    			// Make Face
-			     			//MakeFace((Direction)i, cubeScale, cubePos);
 					    	vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
 					    	int vCount = vertices.Count;
 
@@ -73,13 +67,10 @@ public class Chunk : MonoBehaviour
 					    	triangles.Add(vCount -4);
 					    	triangles.Add(vCount -4 +2);
 					    	triangles.Add(vCount -4 +3);
-					    	// Make Face end
 			    		}
 
 			    	}
-			    	// Make Cube End
 
-	    			//MakeCube(0.5f, new Vector3((float)x, (float)y, (float)z), x, y, z, data);
 	    		}
 	    	}
     	}
@@ -91,31 +82,4 @@ public class Chunk : MonoBehaviour
     	GetComponent<MeshFilter>().mesh = mesh;
         GetComponent<MeshCollider>().sharedMesh = mesh;
     }
-    /*
-    void MakeCube(float cubeScale, Vector3 cubePos, int x, int y, int z, VoxelData data){
-    	for(int i=0; i<6; i++){
-    		if(data.GetNeighbor(x, y, z, (Direction)i) == 0){
-     			MakeFace((Direction)i, cubeScale, cubePos);
-    		}
-
-    	}
-    }
-
-    void MakeFace(Direction dir, float faceScale, Vector3 facePos){
-    	vertices.AddRange(CubeMeshData.faceVertices(dir, faceScale, facePos));
-    	int vCount = vertices.Count;
-
-    	triangles.Add(vCount -4);
-    	triangles.Add(vCount -4 +1);
-    	triangles.Add(vCount -4 +2);
-    	triangles.Add(vCount -4);
-    	triangles.Add(vCount -4 +2);
-    	triangles.Add(vCount -4 +3);
-
-    }
-	
-    void UpdateMesh(){
-
-    }
-    */
 }
