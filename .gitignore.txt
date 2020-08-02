@@ -4,3 +4,24 @@
 *.exe
 *.o
 *.so
+Temp/
+Obj/
+Library/
+Build/
+Builds/
+/Assets/AssetStoreTools*
+
+# Auto Generated #
+ExportedObj/
+.consulo/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
