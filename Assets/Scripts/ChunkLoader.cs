@@ -132,7 +132,8 @@ public class ChunkLoader : MonoBehaviour
     		j = 0;
     		for(int z=chunkZ;z<chunkZ+size;z++){
     			// Heightmap Calculation
-    			int height = Mathf.FloorToInt(Chunk.chunkDepth*(Mathf.PerlinNoise((x+i)*hashSeed, (z+j)*hashSeed)));
+    			// 1 + and chunkDepth -1 to make sure that there are no void holes in terrain
+    			int height = 1 + Mathf.FloorToInt((Chunk.chunkDepth-1)*(Perlin.Noise((x+i)*hashSeed, (z+j)*hashSeed)));
 
     			for(int y=0;y<Chunk.chunkDepth;y++){
     				if(y <= height)
