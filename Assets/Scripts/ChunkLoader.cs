@@ -11,9 +11,18 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkPos currentChunk;
 	public ChunkPos newChunk;
 
+	public float worldSeed = 0.1f;
+	public float hashSeed;
+
     // Start is called before the first frame update
     void Start()
     {
+    	/*
+    	hashSeed can also be considered the aggressiveness of a terrain.
+    	Smaller dividers will generate hilly areas, while bigger dividers will generate plains.
+    	*/
+    	hashSeed = LogisticFunction(worldSeed) / 30;
+
 		player = GameObject.Find("Character").GetComponent<Transform>();
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
@@ -30,7 +39,8 @@ public class ChunkLoader : MonoBehaviour
     	Chunk chunk;
     	GameObject chunkGO = Instantiate(prefabChunk, new Vector3(pos.x*Chunk.chunkWidth, 0, pos.z*Chunk.chunkWidth), Quaternion.identity);
     	chunk = chunkGO.GetComponent<Chunk>();
-    	chunk.GenerateRandomChunk();
+    	//chunk.GenerateRandomChunk();
+    	chunk.BuildOnVoxelData(GeneratePerlin2D(pos.x, pos.z));
     	chunk.BuildChunk();
     	chunk.gameObject.SetActive(true);
     	chunks.Add(pos, chunk);
@@ -100,6 +110,43 @@ public class ChunkLoader : MonoBehaviour
 		    }
 		}
 	    currentChunk = newChunk;    
+    }
+
+    // Calculates the logistic function
+    private float LogisticFunction(float t){
+    	return 1/(1+Mathf.Exp(-t));
+    }
+ 
+    /*
+    Generates a Perlian VoxelData for chunks using chunkX and chunkY
+    */
+    private VoxelData GeneratePerlin2D(int chunkX, int chunkZ){
+    	int size = Chunk.chunkWidth;
+    	chunkX *= size;
+    	chunkZ *= size;
+    	int i = 0;
+    	int j = 0;
+    	int[,,] voxdata = new int[size, Chunk.chunkDepth, size];
+
+    	for(int x=chunkX;x<chunkX+size;x++){
+    		j = 0;
+    		for(int z=chunkZ;z<chunkZ+size;z++){
+    			// Heightmap Calculation
+    			int height = Mathf.FloorToInt(Chunk.chunkDepth*(Mathf.PerlinNoise((x+i)*hashSeed, (z+j)*hashSeed)));
+
+    			for(int y=0;y<Chunk.chunkDepth;y++){
+    				if(y <= height)
+    					voxdata[i,y,j] = 1;
+    				else
+    					voxdata[i,y,j] = 0;
+    			}
+    			j++;
+    		}
+    		i++;
+    	}
+
+    	return new VoxelData(voxdata);
+
     }
 
 }

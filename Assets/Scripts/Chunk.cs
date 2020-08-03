@@ -7,23 +7,10 @@ public class Chunk : MonoBehaviour
 {
 
 	public VoxelData data;
-	public int startX;
-	public int startZ;
 	public static int chunkWidth = 16;
-	public static int chunkDepth = 3;
+	public static int chunkDepth = 8;
 
-	public void Start(){
-		GenerateRandomChunk(); 
-		BuildChunk();
-	}
-
-	public Chunk(int xstart, int zstart){
-		startX = xstart;
-		startZ = zstart;
-		GenerateRandomChunk(); 
-		BuildChunk();
-	}
-
+	// Generates random holes in terrain
 	public void GenerateRandomChunk(){
 		int[,,] voxdata = new int[chunkWidth,chunkDepth,chunkWidth];
 		int rnd;
@@ -39,6 +26,10 @@ public class Chunk : MonoBehaviour
 			}
 		}
 		data = new VoxelData(voxdata);
+	}
+
+	public void BuildOnVoxelData(VoxelData vd){
+		this.data = vd;	
 	}
 
 	public void BuildChunk(){
