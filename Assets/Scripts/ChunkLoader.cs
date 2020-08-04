@@ -10,10 +10,14 @@ public class ChunkLoader : MonoBehaviour
 	public Transform player;
 	public ChunkPos currentChunk;
 	public ChunkPos newChunk;
+	public List<ChunkPos> toLoad = new List<ChunkPos>();
+	public List<ChunkPos> toUnload = new List<ChunkPos>();
 
 	public int worldSeed = 1; // 6 number integer
 	public float hashSeed;
 	public float caveSeed;
+
+	public int loadtick = 4;
 
     // Start is called before the first frame update
     void Start()
@@ -33,11 +37,19 @@ public class ChunkLoader : MonoBehaviour
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
 		newChunk = new ChunkPos(playerX, playerZ);
-		LoadChunks(true);
+		GetChunks(true);
     }
 
     void Update(){
-    	LoadChunks(false); 
+    	GetChunks(false); 
+
+    	if(loadtick == 0){
+    		LoadChunk();
+    		UnloadChunk();
+    		loadtick = 5;
+    	}
+    	else
+    		loadtick--;
     }
 
     // Builds Chunk Terrain and adds to active chunks dict
@@ -53,6 +65,7 @@ public class ChunkLoader : MonoBehaviour
     	chunks.Add(pos, chunk);
     }
 
+    // Erases loaded chunks dictionary
     private void ClearAllChunks(){
     	foreach(var item in chunks.Keys){
     		Destroy(chunks[item].gameObject);
@@ -60,7 +73,27 @@ public class ChunkLoader : MonoBehaviour
     	}
     }
 
-    private void LoadChunks(bool reload){
+    // Loads a chunk per frame from the Loading Buffer
+    private void LoadChunk(){
+    	if(toLoad.Count != 0){
+    		BuildChunk(toLoad[0]);
+    		toLoad.RemoveAt(0);
+    	}
+    }
+
+    // Unloads a chunk per frame from the Unloading Buffer
+    private void UnloadChunk(){
+    	if(toUnload.Count != 0){
+    		ChunkPos popChunk = toUnload[0];
+    		Destroy(chunks[popChunk].gameObject);
+    		toUnload.RemoveAt(0);
+    		chunks.Remove(popChunk);    		
+    	}
+    }
+
+    // Gets all chunks around player's render distance
+    // GetChunks automatically rebuilds chunks if reload=True
+    private void GetChunks(bool reload){
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
 		newChunk = new ChunkPos(playerX, playerZ);
@@ -68,6 +101,8 @@ public class ChunkLoader : MonoBehaviour
     	// Reload all Chunks nearby
     	if(reload){
     		ClearAllChunks();
+    		toLoad.Clear();
+    		toUnload.Clear();
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
 					BuildChunk(new ChunkPos(newChunk.x+x, newChunk.z+z));
@@ -88,34 +123,34 @@ public class ChunkLoader : MonoBehaviour
     	if(diff == 0){ // East
     		for(int i=-renderDistance; i <=renderDistance;i++){
     			ChunkPos popChunk = new ChunkPos(newChunk.x-renderDistance-1, newChunk.z+i);
-    			Destroy(chunks[popChunk].gameObject);
-    			chunks.Remove(popChunk);
-    			BuildChunk(new ChunkPos(newChunk.x+renderDistance, newChunk.z+i));
+    			toUnload.Add(popChunk);
+    			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
+    			toLoad.Add(addChunk);
     		}
     	}
     	else if(diff == 2){ // West
     		for(int i=-renderDistance; i <=renderDistance;i++){
     			ChunkPos popChunk = new ChunkPos(newChunk.x+renderDistance+1, newChunk.z+i);
-    			Destroy(chunks[popChunk].gameObject);
-    			chunks.Remove(popChunk);
-    			BuildChunk(new ChunkPos(newChunk.x-renderDistance, newChunk.z+i));
+    			toUnload.Add(popChunk);
+    			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
+    			toLoad.Add(addChunk);    		
     		}
     	}
     	else if(diff == 1){ // South
     		for(int i=-renderDistance; i <=renderDistance;i++){
     			ChunkPos popChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance+1);
-    			Destroy(chunks[popChunk].gameObject);
-    			chunks.Remove(popChunk);
-   				BuildChunk(new ChunkPos(newChunk.x+i, newChunk.z-renderDistance));
-    		}    		
+    			toUnload.Add(popChunk);
+     			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance);
+    			toLoad.Add(addChunk); 
+      		}
     	}
     	else if(diff == 3){ // North
     		for(int i=-renderDistance; i <=renderDistance;i++){
     			ChunkPos popChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance-1);
-    			Destroy(chunks[popChunk].gameObject);
-    			chunks.Remove(popChunk);
-    			BuildChunk(new ChunkPos(newChunk.x+i, newChunk.z+renderDistance));
-    		}    		
+    			toUnload.Add(popChunk);
+      			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
+    			toLoad.Add(addChunk); 
+       		}	
     	}
     	else{
 		    for(int x=-renderDistance; x<=renderDistance;x++){
@@ -341,10 +376,12 @@ public class ChunkLoader : MonoBehaviour
     		return choices[t-6]; 
     }
 
+    // Function to get radius in Caveworms
     private int HashRadius(float t, int min=0, int max=4){
     	return Mathf.FloorToInt((max+1)*t+min);
     }
 
+    // FloodFill operation for Caveworms
     private void FloodFill(int[,,] vd, Coord3D block, int radius, float caveRoughness){
     	List<Coord3D> marked = new List<Coord3D>();
     	List<Coord3D> queue = new List<Coord3D>();

@@ -173,7 +173,7 @@ CharacterController:
   m_Enabled: 1
   serializedVersion: 2
   m_Height: 1
-  m_Radius: 0.2
+  m_Radius: 0.05
   m_SlopeLimit: 45
   m_StepOffset: 0.5
   m_SkinWidth: 0.4
@@ -597,9 +597,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefabChunk: {fileID: 635462392}
   player: {fileID: 0}
-  worldSeed: 0
+  worldSeed: 437281
   hashSeed: 0
   caveSeed: 0
+  loadtick: 5
 --- !u!4 &1192772368
 Transform:
   m_ObjectHideFlags: 0
