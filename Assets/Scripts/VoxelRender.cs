@@ -25,9 +25,9 @@ public class VoxelRender : MonoBehaviour
     	vertices = new List<Vector3>();
     	triangles = new List<int>();
 
-    	for(int x=0; x<data.Width; x++){
-    		for(int y=0; y<data.Height; y++){
-    			for(int z=0; z<data.Depth; z++){
+    	for(int x=0; x<data.GetWidth(); x++){
+    		for(int y=0; y<data.GetHeight(); y++){
+    			for(int z=0; z<data.GetDepth(); z++){
 	    			if(data.GetCell(x,y,z) == 0){
 	    				continue;
 	    			}

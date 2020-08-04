@@ -11,8 +11,9 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkPos currentChunk;
 	public ChunkPos newChunk;
 
-	public float worldSeed = 0.1f;
+	public int worldSeed = 1; // 6 number integer
 	public float hashSeed;
+	public float caveSeed;
 
     // Start is called before the first frame update
     void Start()
@@ -21,7 +22,12 @@ public class ChunkLoader : MonoBehaviour
     	hashSeed can also be considered the aggressiveness of a terrain.
     	Smaller dividers will generate hilly areas, while bigger dividers will generate plains.
     	*/
-    	hashSeed = LogisticFunction(worldSeed) / 30;
+    	if(worldSeed == 0){
+    		worldSeed = 1;
+    	}
+
+    	hashSeed = TerrainSeedFunction(worldSeed);
+    	caveSeed = LogSeedFunction(worldSeed);
 
 		player = GameObject.Find("Character").GetComponent<Transform>();
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
@@ -31,7 +37,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     void Update(){
-    	LoadChunks(false);
+    	LoadChunks(false); 
     }
 
     // Builds Chunk Terrain and adds to active chunks dict
@@ -39,11 +45,19 @@ public class ChunkLoader : MonoBehaviour
     	Chunk chunk;
     	GameObject chunkGO = Instantiate(prefabChunk, new Vector3(pos.x*Chunk.chunkWidth, 0, pos.z*Chunk.chunkWidth), Quaternion.identity);
     	chunk = chunkGO.GetComponent<Chunk>();
-    	//chunk.GenerateRandomChunk();
-    	chunk.BuildOnVoxelData(GeneratePerlin2D(pos.x, pos.z));
+		chunk.BuildOnVoxelData(VoxelData.CutUnderground(GeneratePerlin2D(pos.x, pos.z, groundLevel:20), CaveWorm(pos.x, pos.z, upperY:25)));
+    	//chunk.BuildOnVoxelData(GeneratePerlin2D(pos.x, pos.z, groundLevel:20));
+    	//chunk.BuildOnVoxelData(CaveWorm(pos.x, pos.z));
     	chunk.BuildChunk();
     	chunk.gameObject.SetActive(true);
     	chunks.Add(pos, chunk);
+    }
+
+    private void ClearAllChunks(){
+    	foreach(var item in chunks.Keys){
+    		Destroy(chunks[item].gameObject);
+    		chunks.Remove(item);
+    	}
     }
 
     private void LoadChunks(bool reload){
@@ -53,6 +67,7 @@ public class ChunkLoader : MonoBehaviour
 
     	// Reload all Chunks nearby
     	if(reload){
+    		ClearAllChunks();
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
 					BuildChunk(new ChunkPos(newChunk.x+x, newChunk.z+z));
@@ -112,15 +127,20 @@ public class ChunkLoader : MonoBehaviour
 	    currentChunk = newChunk;    
     }
 
-    // Calculates the logistic function
-    private float LogisticFunction(float t){
-    	return 1/(1+Mathf.Exp(-t));
+    // Calculates the caveSeed of caveworms
+    private float LogSeedFunction(int t){
+    	return Mathf.Log(t+2, 3f)+0.5f;
     }
  
+    // Calculates hashSeed of terrain
+    private float TerrainSeedFunction(int t){
+    	return (0.3f/999999)*t + 0.1f; // a = 0.1, b = 0.15
+    }
+
     /*
     Generates a Perlian VoxelData for chunks using chunkX and chunkY
     */
-    private VoxelData GeneratePerlin2D(int chunkX, int chunkZ){
+    private VoxelData GeneratePerlin2D(int chunkX, int chunkZ, int groundLevel=1){
     	int size = Chunk.chunkWidth;
     	chunkX *= size;
     	chunkZ *= size;
@@ -133,7 +153,7 @@ public class ChunkLoader : MonoBehaviour
     		for(int z=chunkZ;z<chunkZ+size;z++){
     			// Heightmap Calculation
     			// 1 + and chunkDepth -1 to make sure that there are no void holes in terrain
-    			int height = 1 + Mathf.FloorToInt((Chunk.chunkDepth-1)*(Perlin.Noise((x+i)*hashSeed, (z+j)*hashSeed)));
+    			int height = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/20, (z+j)*hashSeed/20)));
 
     			for(int y=0;y<Chunk.chunkDepth;y++){
     				if(y <= height)
@@ -149,6 +169,265 @@ public class ChunkLoader : MonoBehaviour
     	return new VoxelData(voxdata);
 
     }
+
+    /*
+    private VoxelData GeneratePerlin3D(int chunkX, int chunkZ){
+    	int size = Chunk.chunkWidth;
+    	chunkX *= size;
+    	chunkZ *= size;
+    	int i = 0;
+    	int j = 0;
+    	int[,,] voxdata = new int[size, Chunk.chunkDepth, size];
+
+    	for(int x=chunkX;x<chunkX+size;x+8){
+    		j = 0;
+    		for(int z=chunkZ;z<chunkZ+size;z+8){
+
+    			for(int y=0;y<Chunk.chunkDepth;y+4){
+
+       				float val = Perlin.Noise((x+i)*hashSeed3D, y*hashSeed3D, (z+j)*hashSeed3D);
+       				float mask = Perlin.Noise((x+i)*hashSeed3D/x_mask_div, y*hashSeed3D/y_mask_div, (z+j)*hashSeed3D/z_mask_div);
+    				
+    				if(val >= threshold && mask >= thresholdMask)
+    					voxdata[i,y,j] = 1;
+    				else
+    					voxdata[i,y,j] = 0;
+    			}
+    			j++;
+    		}
+    		i++;
+    	}
+
+    	return new VoxelData(voxdata);
+
+    }
+    */
+
+    /*
+    Implementation of a Worm Algorithm to generate Cave-like Terrain
+    */
+    private VoxelData CaveWorm(int chunkX, int chunkZ, int lowerY=0, int upperY=-1, float killChance=0.2f, float recoveryChance=0.8f, int maxRecovery=3, float caveRoughness=0.4f, int lifeLimit=20){
+    	if(upperY == -1)
+    		upperY = Chunk.chunkDepth;
+
+    	bool isAlive = true;
+    	int radius;
+    	int[] directions;
+    	int currentDir = -1;
+    	int recoveries = 0;
+
+    	int[,,] vd = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+
+    	// Picked a random block in chunk
+    	float pickedBlockValue = Perlin.Noise(chunkX*caveSeed, chunkZ*caveSeed);
+    	Coord3D pickedBlock = HashBlock(pickedBlockValue, Chunk.chunkWidth, Chunk.chunkDepth);
+
+    	// Iterating while worm is alive
+    	while(isAlive){
+    		radius = HashRadius(pickedBlockValue, min:2, max:5);
+    		directions = HashDirection(pickedBlockValue, currentDir);
+
+    		foreach(int item in directions){
+    			currentDir = item;
+
+			    // 0 = X+, 1 = X-, 2 = Z+, 3 = Z-, 4 = Y+, 5 = Y-
+				if(item == 0)
+					pickedBlock.x += 1;
+				else if(item == 1)
+					pickedBlock.x -= 1;
+				else if(item == 2)
+					pickedBlock.y += 1;
+				else if(item == 3)
+					pickedBlock.y  -= 1;
+				else if(item == 4)
+					pickedBlock.z  += 1;
+				else if(item == 5)
+					pickedBlock.z  -= 1;
+
+				// Hazard Detection
+				if(pickedBlock.y < lowerY || pickedBlock.y > upperY || pickedBlock.x < 0 || pickedBlock.x >= Chunk.chunkWidth || pickedBlock.y < 0 || pickedBlock.y >= Chunk.chunkDepth || pickedBlock.z < 0 || pickedBlock.z >= Chunk.chunkWidth){
+					// Hazard Recovery System
+					if(recoveries < maxRecovery && Perlin.Noise(chunkX*caveSeed*11.21f, pickedBlock.Sum()*caveSeed*4f, chunkZ*caveSeed*2.42f) <= recoveryChance){
+    					recoveries++;
+    					pickedBlockValue = Perlin.Noise(chunkX*caveSeed, pickedBlock.y*caveSeed*5, chunkZ*caveSeed);
+						break;
+					}
+					else{
+						return new VoxelData(vd);
+					}
+				}
+
+				// Apply flood fill on pickedBlock
+				FloodFill(vd, pickedBlock, radius, caveRoughness);	
+    		}
+    		// Kill Attempt
+    		if(lifeLimit == 0 || Perlin.Noise(chunkX*caveSeed*23.21f, pickedBlock.Sum()*caveSeed*12f, chunkZ*caveSeed) <= killChance){
+    			isAlive = false;
+    			continue;
+    		}
+    		// Renew seed to new block
+    		pickedBlockValue = Perlin.Noise(chunkX*caveSeed, pickedBlock.Sum()*caveSeed*5, chunkZ*caveSeed);
+    		lifeLimit--;
+    	}
+    	return new VoxelData(vd);
+    }
+
+    /*
+    Takes a float and returns an [int, int, int] code for block location in a chunk
+    vOpt is the amount of vertical blocks in a chunk, and hOpt is the same for horizontal
+    */
+    private Coord3D HashBlock(float t, int vOpt, int hOpt){
+    	int newCode = Mathf.FloorToInt(t*1000000);
+    	Coord3D hCode;
+
+    	vOpt = Mathf.FloorToInt(100/vOpt);
+    	hOpt = Mathf.FloorToInt(100/hOpt);
+
+    	hCode.x = Mathf.FloorToInt((newCode / 10000)/hOpt);
+    	newCode = (newCode % 10000);
+    	hCode.y = Mathf.FloorToInt((newCode / 100)/vOpt);
+    	newCode = (newCode % 100);
+    	hCode.z = Mathf.FloorToInt(newCode/hOpt);
+
+    	return hCode;
+    }
+
+    /*
+    Takes a float and returns a [int, int, int, int] code for block direction
+    CurrentDir works on following calls just so the hash knows where the worm was going
+    */
+    private int[] HashDirection(float t, int currentDir=-1){
+    	int[] directions = new int[4];
+    	int newCode = Mathf.FloorToInt(t*10000);
+    	int dir = currentDir;
+    	int dec;
+
+    	for(int i=0; i<4;i++){
+	    	if(dir == -1){
+	    		dec = Mathf.FloorToInt((newCode/Mathf.Pow(10, 3-i))/2);
+	    		newCode = Mathf.FloorToInt(newCode % Mathf.Pow(10, 3-i));
+	    		dir = dec;
+	    		directions[i] = dir;
+	    	} 
+	    	else{
+	    		dec = Mathf.FloorToInt(newCode/Mathf.Pow(10, 3-i));
+	    		newCode = Mathf.FloorToInt(newCode % Mathf.Pow(10, 3-i));
+	    		dir = EasyMapFunction(dec, dir);
+	    		directions[i] = dir;
+	    	}
+   		}
+   		return directions;
+    }
+
+    // Easy mapping used in HashDirection Function
+    /*
+    0 = X+, 1 = X-, 2 = Z+, 3 = Z-, 4 = Y+, 5 = Y-
+    */
+    private int EasyMapFunction(int t, int currentDir){
+    	List<int> choices = new List<int>(){0,1,2,3,4,5};
+
+    	if((currentDir % 2) == 1){
+    		choices.Remove(currentDir+1);
+    		choices.Remove(currentDir);
+    	}
+    	else{
+    		choices.Remove(currentDir);
+    		choices.Remove(currentDir-1);
+    	}
+
+    	if(t <= 5)
+    		return currentDir;
+    	else
+    		return choices[t-6]; 
+    }
+
+    private int HashRadius(float t, int min=0, int max=4){
+    	return Mathf.FloorToInt((max+1)*t+min);
+    }
+
+    private void FloodFill(int[,,] vd, Coord3D block, int radius, float caveRoughness){
+    	List<Coord3D> marked = new List<Coord3D>();
+    	List<Coord3D> queue = new List<Coord3D>();
+    	List<int> radiuses = new List<int>();
+
+    	Coord3D currentBlock;
+    	int currentRadius; 
+
+    	queue.Add(block);
+    	radiuses.Add(radius);
+
+    	while(queue.Count != 0){
+    		currentBlock = queue[0];
+    		queue.RemoveAt(0);
+    		currentRadius = radiuses[0];
+    		radiuses.RemoveAt(0);
+
+    		if(marked.Contains(currentBlock) || currentRadius == 0)
+    			continue;
+
+    		marked.Add(currentBlock);
+
+    		// Set value
+    		if(currentRadius <= 1 && Perlin.Noise(caveSeed*block.Sum()*0.76f, caveSeed*currentBlock.Sum()*0.41f) >= caveRoughness) // 0.9 = Cave Roughness
+    			vd[currentBlock.x, currentBlock.y, currentBlock.z] = 1;
+
+    		// Breadth-First Search
+    		if(currentBlock.x < Chunk.chunkWidth-1){
+    			queue.Add(new Coord3D(currentBlock, x:1));
+    			radiuses.Add(currentRadius-1);
+    		}
+    		if(currentBlock.x > 1){
+	    		queue.Add(new Coord3D(currentBlock, x:-1));
+	    		radiuses.Add(currentRadius-1);
+	    	}
+	    	if(currentBlock.y < Chunk.chunkDepth-1){
+    			queue.Add(new Coord3D(currentBlock, y:1));
+    			radiuses.Add(currentRadius-1);
+    		}
+    		if(currentBlock.y > 1){
+    			queue.Add(new Coord3D(currentBlock, y:-1));
+    			radiuses.Add(currentRadius-1);
+    		}
+    		if(currentBlock.z < Chunk.chunkWidth-1){
+    			queue.Add(new Coord3D(currentBlock, z:1));
+    			radiuses.Add(currentRadius-1);
+    		}
+    		if(currentBlock.z > 1){
+    			queue.Add(new Coord3D(currentBlock, z:-1));
+    			radiuses.Add(currentRadius-1);
+    		}
+
+    		currentRadius -= 1;
+    	}
+
+    }
+
+}
+
+public struct Coord3D{
+	public int x;
+	public int y;
+	public int z;
+
+	public Coord3D(int a, int b, int c){
+		this.x = a;
+		this.y = b;
+		this.z = c;
+	}
+
+	public Coord3D(Coord3D coord, int x=0, int y=0, int z=0){
+		this.x = coord.x + x;
+		this.y = coord.y + y;
+		this.z = coord.z + z;
+	}
+
+	public float Sum(){
+		return this.x + this.y + this.z;
+	}
+
+	public override string ToString(){
+		return "(" + this.x + ", " + this.y + ", " + this.z + ")";
+	}
 
 }
 

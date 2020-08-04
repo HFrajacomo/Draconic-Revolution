@@ -8,7 +8,7 @@ public class Chunk : MonoBehaviour
 
 	public VoxelData data;
 	public static int chunkWidth = 16;
-	public static int chunkDepth = 8;
+	public static int chunkDepth = 32;
 
 	// Generates random holes in terrain
 	public void GenerateRandomChunk(){
@@ -38,9 +38,9 @@ public class Chunk : MonoBehaviour
     	List<Vector3> vertices = new List<Vector3>();
     	List<int> triangles = new List<int>();		
 
-    	for(int x=0; x<data.Width; x++){
-    		for(int y=0; y<data.Height; y++){
-    			for(int z=0; z<data.Depth; z++){
+    	for(int x=0; x<data.GetWidth(); x++){
+    		for(int y=0; y<data.GetHeight(); y++){
+    			for(int z=0; z<data.GetDepth(); z++){
     				// Block Check
 	    			if(data.GetCell(x,y,z) == 0){
 	    				continue;

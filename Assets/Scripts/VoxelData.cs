@@ -14,17 +14,38 @@ public class VoxelData
 		this.data = data;
 	}
 
+	public static VoxelData CutUnderground(VoxelData a, VoxelData b, int upper=-1, int lower=-1){
+		int[,,] vd = new int[a.GetWidth(), a.GetHeight(), a.GetDepth()];
 
-	public int Width{
-		get {return data.GetLength(0);}
+		if(upper == -1)
+			upper = a.GetHeight();
+		if(lower == -1)
+			lower = 0;
+
+		for(int x=0;x<a.GetWidth();x++){
+			for(int y=lower;y<upper;y++){
+				for(int z=0;z<a.GetDepth();z++){
+					if(a.GetCell(x,y,z) == 1 && b.GetCell(x,y,z) == 0)
+						vd[x,y,z] = 1;
+					else
+						vd[x,y,z] = 0;
+				}
+			} 
+		}
+		return new VoxelData(vd);
 	}
 
-	public int Height{
-		get {return data.GetLength(1);}
+
+	public int GetWidth(){
+		return data.GetLength(0);
 	}
 
-	public int Depth{
-		get {return data.GetLength(2);}
+	public int GetHeight(){
+		return data.GetLength(1);
+	}
+
+	public int GetDepth(){
+		return data.GetLength(2);
 	}
 
 	public int GetCell(int x, int y, int z){
@@ -44,7 +65,7 @@ public class VoxelData
 		DataCoordinate offsetToCheck = offsets[(int)dir];
 		DataCoordinate neighborCoord = new DataCoordinate(x + offsetToCheck.x, y + offsetToCheck.y, z + offsetToCheck.z); //Change y for height later
 	
-		if(neighborCoord.x < 0 || neighborCoord.x >= Width || neighborCoord.z < 0 || neighborCoord.z >= Depth || neighborCoord.y < 0 || neighborCoord.y >= Height){
+		if(neighborCoord.x < 0 || neighborCoord.x >= GetWidth() || neighborCoord.z < 0 || neighborCoord.z >= GetDepth() || neighborCoord.y < 0 || neighborCoord.y >= GetHeight()){
 			return 0;
 		} 
 		else{
