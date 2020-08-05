@@ -57,9 +57,8 @@ public class ChunkLoader : MonoBehaviour
     	Chunk chunk;
     	GameObject chunkGO = Instantiate(prefabChunk, new Vector3(pos.x*Chunk.chunkWidth, 0, pos.z*Chunk.chunkWidth), Quaternion.identity);
     	chunk = chunkGO.GetComponent<Chunk>();
-		chunk.BuildOnVoxelData(VoxelData.CutUnderground(GeneratePerlin2D(pos.x, pos.z, groundLevel:20), CaveWorm(pos.x, pos.z, upperY:25)));
-    	//chunk.BuildOnVoxelData(GeneratePerlin2D(pos.x, pos.z, groundLevel:20));
-    	//chunk.BuildOnVoxelData(CaveWorm(pos.x, pos.z));
+		//chunk.BuildOnVoxelData(VoxelData.CutUnderground(GeneratePerlin2D(pos.x, pos.z, groundLevel:20), CaveWorm(pos.x, pos.z, upperY:25)));
+    	chunk.BuildOnVoxelData(NotchInterpolation(pos.x, pos.z));
     	chunk.BuildChunk();
     	chunk.gameObject.SetActive(true);
     	chunks.Add(pos, chunk);
@@ -186,9 +185,9 @@ public class ChunkLoader : MonoBehaviour
     	for(int x=chunkX;x<chunkX+size;x++){
     		j = 0;
     		for(int z=chunkZ;z<chunkZ+size;z++){
-    			// Heightmap Calculation
-    			// 1 + and chunkDepth -1 to make sure that there are no void holes in terrain
-    			int height = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/20, (z+j)*hashSeed/20)));
+
+				// Heightmap calculation
+				int height = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/20, (z+j)*hashSeed/20)));
 
     			for(int y=0;y<Chunk.chunkDepth;y++){
     				if(y <= height)
@@ -204,6 +203,186 @@ public class ChunkLoader : MonoBehaviour
     	return new VoxelData(voxdata);
 
     }
+
+    /*
+    Generates a Perlian VoxelData for chunks using chunkX and chunkY
+    This process has been optimized with "Notch Interpolation". A way of
+    	reducing the amount of Perlin Noise calls, and using linear interpolation
+    	to guess the heights in between Noise samples.
+    The Notch Interpolation also causes terrain to be smoother.
+    */
+    private VoxelData NotchInterpolation(int chunkX, int chunkZ, int groundLevel=1){
+    	int size = Chunk.chunkWidth;
+    	chunkX *= size;
+    	chunkZ *= size;
+    	int i = 0;
+    	int j = 0;
+    	int[,,] voxdata = new int[size, Chunk.chunkDepth, size];
+    	List<int> interpolationValues = new List<int>();
+    	int[,] heightMap = new int[size+1,size+1]; 
+
+
+		// Heightmap Sampling
+		// Chunk Look-ahead implemented as a <= check in for
+    	for(int x=chunkX;x<=chunkX+size;x+=4){
+    		j = 0;
+    		for(int z=chunkZ;z<=chunkZ+size;z+=4){
+				interpolationValues.Add(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/20, (z+j)*hashSeed/20))));
+    			j+=4;
+
+    			// Quick fix for broken corners
+    			if(i == 16 && j == 16){
+    				heightMap[16,16] = interpolationValues[interpolationValues.Count - 1];
+    			}
+    		}
+    		i+=4;
+    	}
+
+    	int interpolationIndex = 0;
+    	int height;
+    	i = 0;
+    	j = 0;
+
+    	// Z Side Interpolation
+    	for(int x=chunkX;x<=chunkX+size;x+=4){
+    		j = 0;
+    		for(int z=chunkZ;z<chunkZ+size;z++){
+    			// If it's a pivot block
+    			if((j%4) == 0){
+
+					// Lookahead Chunk processing
+    				if(i == 16){
+    					for(j=0;j<=size;j+=4){
+    						heightMap[i,j] = interpolationValues[interpolationIndex];
+    						interpolationIndex++;
+    					}
+    					break;
+    				}
+
+    				// Fills it in
+    				heightMap[i,j] = interpolationValues[interpolationIndex];
+
+    				for(int y=0;y<Chunk.chunkDepth;y++){
+    					if(y <= interpolationValues[interpolationIndex]){
+    						voxdata[i,y,j] = 1;
+    					}
+    					else{
+    						voxdata[i,y,j] = 0;
+    					}
+    				}
+    				interpolationIndex++;
+    			}
+    			// If it's NOT a pivot block
+    			else{
+    				// Linear interpolation
+    				height = Mathf.FloorToInt(((interpolationValues[interpolationIndex]-interpolationValues[interpolationIndex-1])/4)*j+interpolationValues[interpolationIndex-1]);
+    				heightMap[i,j] = height;
+
+    				for(int y=0;y<Chunk.chunkDepth;y++){
+    					if(y <= height){
+    						voxdata[i,y,j] = 1;
+    					}
+    					else{
+    						voxdata[i,y,j] = 0;
+    					}
+    				}
+
+    			}
+    			j++;
+    		}
+    		i += 4;
+    		interpolationIndex++;
+    	}
+
+    	interpolationIndex=0;
+
+    	// X Side Interpolation
+    	for(int z=0;z<size;z+=4){
+    		for(int x=0;x<size;x++){
+    			// If it's a pivot block
+    			if((x%4) == 0){
+    				interpolationIndex++;
+    				continue;
+    			}
+
+    			// If it's NOT pivot block
+    			else{
+     				height = Mathf.FloorToInt(((heightMap[interpolationIndex*4, z]-heightMap[(interpolationIndex-1)*4, z])/4)*x+heightMap[(interpolationIndex-1)*4, z]);
+     				heightMap[x,z] = height;
+
+    				for(int y=0;y<Chunk.chunkDepth;y++){
+    					if(y <= height)
+    						voxdata[x,y,z] = 1;
+    					else
+    						voxdata[x,y,z] = 0;
+    				}
+    			}
+    		}
+    		interpolationIndex=0;
+    	}
+
+    	interpolationIndex=0;
+
+
+    	// Lookahead Chunks Interpolation
+    	for(int x=0;x<size;x++){
+    		// Pivot
+    		if(x%4 == 0){
+    			interpolationIndex++;
+    			continue;
+    		}
+
+
+    		// Non Pivot
+     		height = Mathf.FloorToInt(((heightMap[interpolationIndex*4, size]-heightMap[(interpolationIndex-1)*4, size])/4)*x+heightMap[(interpolationIndex-1)*4, size]);
+     		heightMap[x,16] = height;
+    	}
+    	interpolationIndex = 0;
+
+    	for(int x=0;x<size;x++){
+    		// Pivot
+    		if(x%4 == 0){
+    			interpolationIndex++;
+    			continue;
+    		}
+
+    		// Non Pivot
+     		height = Mathf.FloorToInt(((heightMap[size, interpolationIndex*4]-heightMap[size, (interpolationIndex-1)*4])/4)*x+heightMap[size, (interpolationIndex-1)*4]);
+     		heightMap[16,x] = height;
+    	} 
+
+    	interpolationIndex=0;   	
+		
+    	// Central Interpolation 	
+    	for(int z=0;z<size;z++){
+    		for(int x=0;x<size;x++){
+    			// If it's a pivot block
+    			if((x%4) == 0){
+    				interpolationIndex++;
+    				continue;
+    			}
+
+    			// If it's NOT pivot block
+    			else{
+     				height = Mathf.FloorToInt(((heightMap[interpolationIndex*4, z]-heightMap[(interpolationIndex-1)*4, z])/4)*x+heightMap[(interpolationIndex-1)*4, z]);
+    				heightMap[x,z] = height;
+
+    				for(int y=0;y<Chunk.chunkDepth;y++){
+    					if(y <= height)
+    						voxdata[x,y,z] = 1;
+    					else
+    						voxdata[x,y,z] = 0;
+    				}
+    			}
+    		}
+    		interpolationIndex=0;
+    	}
+    	
+    	
+
+    	return new VoxelData(voxdata);
+    }
+
 
     /*
     private VoxelData GeneratePerlin3D(int chunkX, int chunkZ){
