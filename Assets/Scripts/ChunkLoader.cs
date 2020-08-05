@@ -168,7 +168,7 @@ public class ChunkLoader : MonoBehaviour
  
     // Calculates hashSeed of terrain
     private float TerrainSeedFunction(int t){
-    	return (0.3f/999999)*t + 0.1f; // a = 0.1, b = 0.15
+    	return (0.3f/999999)*t + 0.1f;
     }
 
     /*
@@ -227,13 +227,16 @@ public class ChunkLoader : MonoBehaviour
     	for(int x=chunkX;x<=chunkX+size;x+=4){
     		j = 0;
     		for(int z=chunkZ;z<=chunkZ+size;z+=4){
-				interpolationValues.Add(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/20, (z+j)*hashSeed/20))));
+				//interpolationValues.Add(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/20, (z+j)*hashSeed/20))));
+				heightMap[i, j] = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/10, (z+j)*hashSeed/30)));
     			j+=4;
 
+    			/*
     			// Quick fix for broken corners
     			if(i == 16 && j == 16){
     				heightMap[16,16] = interpolationValues[interpolationValues.Count - 1];
     			}
+    			*/
     		}
     		i+=4;
     	}
@@ -242,7 +245,7 @@ public class ChunkLoader : MonoBehaviour
     	int height;
     	i = 0;
     	j = 0;
-
+    	/*
     	// Z Side Interpolation
     	for(int x=chunkX;x<=chunkX+size;x+=4){
     		j = 0;
@@ -275,7 +278,7 @@ public class ChunkLoader : MonoBehaviour
     			// If it's NOT a pivot block
     			else{
     				// Linear interpolation
-    				height = Mathf.FloorToInt(((interpolationValues[interpolationIndex]-interpolationValues[interpolationIndex-1])/4)*j+interpolationValues[interpolationIndex-1]);
+    				height = Mathf.RoundToInt(((interpolationValues[interpolationIndex]-interpolationValues[interpolationIndex-1])/4)*j+interpolationValues[interpolationIndex-1]);
     				heightMap[i,j] = height;
 
     				for(int y=0;y<Chunk.chunkDepth;y++){
@@ -307,15 +310,16 @@ public class ChunkLoader : MonoBehaviour
 
     			// If it's NOT pivot block
     			else{
-     				height = Mathf.FloorToInt(((heightMap[interpolationIndex*4, z]-heightMap[(interpolationIndex-1)*4, z])/4)*x+heightMap[(interpolationIndex-1)*4, z]);
+     				height = Mathf.RoundToInt(((heightMap[interpolationIndex*4, z]-heightMap[(interpolationIndex-1)*4, z])/4)*x+heightMap[(interpolationIndex-1)*4, z]);
      				heightMap[x,z] = height;
-
+     				
     				for(int y=0;y<Chunk.chunkDepth;y++){
     					if(y <= height)
     						voxdata[x,y,z] = 1;
     					else
     						voxdata[x,y,z] = 0;
     				}
+
     			}
     		}
     		interpolationIndex=0;
@@ -323,7 +327,7 @@ public class ChunkLoader : MonoBehaviour
 
     	interpolationIndex=0;
 
-
+    	
     	// Lookahead Chunks Interpolation
     	for(int x=0;x<size;x++){
     		// Pivot
@@ -334,7 +338,7 @@ public class ChunkLoader : MonoBehaviour
 
 
     		// Non Pivot
-     		height = Mathf.FloorToInt(((heightMap[interpolationIndex*4, size]-heightMap[(interpolationIndex-1)*4, size])/4)*x+heightMap[(interpolationIndex-1)*4, size]);
+     		height = Mathf.RoundToInt(((heightMap[interpolationIndex*4, size]-heightMap[(interpolationIndex-1)*4, size])/4)*x+heightMap[(interpolationIndex-1)*4, size]);
      		heightMap[x,16] = height;
     	}
     	interpolationIndex = 0;
@@ -347,13 +351,56 @@ public class ChunkLoader : MonoBehaviour
     		}
 
     		// Non Pivot
-     		height = Mathf.FloorToInt(((heightMap[size, interpolationIndex*4]-heightMap[size, (interpolationIndex-1)*4])/4)*x+heightMap[size, (interpolationIndex-1)*4]);
+     		height = Mathf.RoundToInt(((heightMap[size, interpolationIndex*4]-heightMap[size, (interpolationIndex-1)*4])/4)*x+heightMap[size, (interpolationIndex-1)*4]);
      		heightMap[16,x] = height;
     	} 
+    	*/
 
-    	interpolationIndex=0;   	
+    	interpolationIndex=0; 
+
+    	int interpX = 0;
+    	int interpZ = 0;
+    	float scaleX = 0f;
+    	float scaleZ = 0f;	
 		
-    	// Central Interpolation 	
+    	// Bilinear Interpolation
+    	for(int z=0;z<size;z++){
+    		if(z%4 == 0){
+    			interpZ+=4;
+    			scaleZ = 0.25f;
+    		}
+    		for(int x=0;x<size;x++){
+    			// If is a pivot in X axis
+    			if(x%4 == 0){
+    				interpX+=4;
+    				scaleX = 0.25f;
+    			}
+
+    			heightMap[x,z] = Mathf.RoundToInt(((heightMap[interpX-4, interpZ-4])*(1-scaleX)*(1-scaleZ)) + (heightMap[interpX, interpZ-4]*scaleX*(1-scaleZ)) + (heightMap[interpX-4, interpZ]*scaleZ*(1-scaleX)) + (heightMap[interpX, interpZ]*scaleX*scaleZ));
+    			scaleX += 0.25f;
+
+    		}
+    		interpX = 0;
+    		scaleX = 0;
+    	}
+
+    	// Heightmap Drawing
+    	for(int x=0;x<size;x++){
+    		for(int z=0;z<size;z++){
+    			for(int y=0;y<Chunk.chunkDepth;y++){
+    				if(y <= heightMap[x,z])
+    					voxdata[x,y,z] = 1;
+    				else
+    					voxdata[x,y,z] = 0;
+    			}
+    		}
+    	}
+
+
+    	
+
+    	/*
+    	// Central X Interpolation 	
     	for(int z=0;z<size;z++){
     		for(int x=0;x<size;x++){
     			// If it's a pivot block
@@ -364,23 +411,36 @@ public class ChunkLoader : MonoBehaviour
 
     			// If it's NOT pivot block
     			else{
-     				height = Mathf.FloorToInt(((heightMap[interpolationIndex*4, z]-heightMap[(interpolationIndex-1)*4, z])/4)*x+heightMap[(interpolationIndex-1)*4, z]);
+     				height = Mathf.RoundToInt(((heightMap[interpolationIndex*4, z]-heightMap[(interpolationIndex-1)*4, z])/4)*x+heightMap[(interpolationIndex-1)*4, z]);
     				heightMap[x,z] = height;
-
+    				
     				for(int y=0;y<Chunk.chunkDepth;y++){
     					if(y <= height)
     						voxdata[x,y,z] = 1;
     					else
     						voxdata[x,y,z] = 0;
     				}
+    				
     			}
     		}
     		interpolationIndex=0;
-    	}
-    	
+    	}  	
+    	*/
     	
 
     	return new VoxelData(voxdata);
+    }
+
+    // Debug Feature
+    private void ToFile(int[,] heightMap){
+    	string a = "";
+    	for(int x=16;x>=0;x--){
+    		for(int y=0;y<17;y++){
+    			a += (heightMap[x,y] + "\t");
+    		}
+    		a += "\n";
+    	}
+    	System.IO.File.WriteAllText("test.txt", a);
     }
 
 
