@@ -228,7 +228,7 @@ public class ChunkLoader : MonoBehaviour
     		j = 0;
     		for(int z=chunkZ;z<=chunkZ+size;z+=4){
 				//interpolationValues.Add(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/20, (z+j)*hashSeed/20))));
-				heightMap[i, j] = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/10, (z+j)*hashSeed/30)));
+				heightMap[i, j] = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/10, z*hashSeed/30)));//(Perlin.Noise((x+i)*hashSeed/10, (z+j)*hashSeed/30)));
     			j+=4;
 
     			/*
@@ -382,6 +382,7 @@ public class ChunkLoader : MonoBehaviour
     		}
     		interpX = 0;
     		scaleX = 0;
+    		scaleZ += 0.25f;
     	}
 
     	// Heightmap Drawing
@@ -395,7 +396,7 @@ public class ChunkLoader : MonoBehaviour
     			}
     		}
     	}
-
+    	ToFile(heightMap);
 
     	
 
