@@ -5,7 +5,7 @@ using UnityEngine;
 public class ChunkLoader : MonoBehaviour
 {
 	public GameObject prefabChunk;
-	public const int renderDistance = 2;
+	public int renderDistance = 4;
 	public Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
 	public Transform player;
 	public ChunkPos currentChunk;
@@ -16,6 +16,13 @@ public class ChunkLoader : MonoBehaviour
 	public int worldSeed = 1; // 6 number integer
 	public float hashSeed;
 	public float caveSeed;
+
+	// Cave 3D Generation
+	public float x_mask_div=575;
+	public float y_mask_div=200;
+	public float z_mask_div=575;
+	public float threshold = 0.33f;
+	public float thresholdMask = 0.63f;
 
 	public int loadtick = 4;
 
@@ -41,7 +48,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     void Update(){
-    	GetChunks(false); 
+    	GetChunks(false);
 
     	if(loadtick == 0){
     		LoadChunk();
@@ -57,8 +64,9 @@ public class ChunkLoader : MonoBehaviour
     	Chunk chunk;
     	GameObject chunkGO = Instantiate(prefabChunk, new Vector3(pos.x*Chunk.chunkWidth, 0, pos.z*Chunk.chunkWidth), Quaternion.identity);
     	chunk = chunkGO.GetComponent<Chunk>();
-		//chunk.BuildOnVoxelData(VoxelData.CutUnderground(GeneratePerlin2D(pos.x, pos.z, groundLevel:20), CaveWorm(pos.x, pos.z, upperY:25)));
+		//chunk.BuildOnVoxelData(VoxelData.CutUnderground(NotchInterpolation(pos.x, pos.z, groundLevel:20), GeneratePerlin3D(pos.x, pos.z, groundLevel:35)));
     	chunk.BuildOnVoxelData(NotchInterpolation(pos.x, pos.z));
+    	//chunk.BuildOnVoxelData(GeneratePerlin3D(pos.x, pos.z));
     	chunk.BuildChunk();
     	chunk.gameObject.SetActive(true);
     	chunks.Add(pos, chunk);
@@ -218,7 +226,6 @@ public class ChunkLoader : MonoBehaviour
     	int i = 0;
     	int j = 0;
     	int[,,] voxdata = new int[size, Chunk.chunkDepth, size];
-    	List<int> interpolationValues = new List<int>();
     	int[,] heightMap = new int[size+1,size+1]; 
 
 
@@ -227,136 +234,11 @@ public class ChunkLoader : MonoBehaviour
     	for(int x=chunkX;x<=chunkX+size;x+=4){
     		j = 0;
     		for(int z=chunkZ;z<=chunkZ+size;z+=4){
-				//interpolationValues.Add(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/20, (z+j)*hashSeed/20))));
-				heightMap[i, j] = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/10, z*hashSeed/30)));//(Perlin.Noise((x+i)*hashSeed/10, (z+j)*hashSeed/30)));
+				heightMap[i, j] = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/10, z*hashSeed/30)));
     			j+=4;
-
-    			/*
-    			// Quick fix for broken corners
-    			if(i == 16 && j == 16){
-    				heightMap[16,16] = interpolationValues[interpolationValues.Count - 1];
-    			}
-    			*/
     		}
     		i+=4;
     	}
-
-    	int interpolationIndex = 0;
-    	int height;
-    	i = 0;
-    	j = 0;
-    	/*
-    	// Z Side Interpolation
-    	for(int x=chunkX;x<=chunkX+size;x+=4){
-    		j = 0;
-    		for(int z=chunkZ;z<chunkZ+size;z++){
-    			// If it's a pivot block
-    			if((j%4) == 0){
-
-					// Lookahead Chunk processing
-    				if(i == 16){
-    					for(j=0;j<=size;j+=4){
-    						heightMap[i,j] = interpolationValues[interpolationIndex];
-    						interpolationIndex++;
-    					}
-    					break;
-    				}
-
-    				// Fills it in
-    				heightMap[i,j] = interpolationValues[interpolationIndex];
-
-    				for(int y=0;y<Chunk.chunkDepth;y++){
-    					if(y <= interpolationValues[interpolationIndex]){
-    						voxdata[i,y,j] = 1;
-    					}
-    					else{
-    						voxdata[i,y,j] = 0;
-    					}
-    				}
-    				interpolationIndex++;
-    			}
-    			// If it's NOT a pivot block
-    			else{
-    				// Linear interpolation
-    				height = Mathf.RoundToInt(((interpolationValues[interpolationIndex]-interpolationValues[interpolationIndex-1])/4)*j+interpolationValues[interpolationIndex-1]);
-    				heightMap[i,j] = height;
-
-    				for(int y=0;y<Chunk.chunkDepth;y++){
-    					if(y <= height){
-    						voxdata[i,y,j] = 1;
-    					}
-    					else{
-    						voxdata[i,y,j] = 0;
-    					}
-    				}
-
-    			}
-    			j++;
-    		}
-    		i += 4;
-    		interpolationIndex++;
-    	}
-
-    	interpolationIndex=0;
-
-    	// X Side Interpolation
-    	for(int z=0;z<size;z+=4){
-    		for(int x=0;x<size;x++){
-    			// If it's a pivot block
-    			if((x%4) == 0){
-    				interpolationIndex++;
-    				continue;
-    			}
-
-    			// If it's NOT pivot block
-    			else{
-     				height = Mathf.RoundToInt(((heightMap[interpolationIndex*4, z]-heightMap[(interpolationIndex-1)*4, z])/4)*x+heightMap[(interpolationIndex-1)*4, z]);
-     				heightMap[x,z] = height;
-     				
-    				for(int y=0;y<Chunk.chunkDepth;y++){
-    					if(y <= height)
-    						voxdata[x,y,z] = 1;
-    					else
-    						voxdata[x,y,z] = 0;
-    				}
-
-    			}
-    		}
-    		interpolationIndex=0;
-    	}
-
-    	interpolationIndex=0;
-
-    	
-    	// Lookahead Chunks Interpolation
-    	for(int x=0;x<size;x++){
-    		// Pivot
-    		if(x%4 == 0){
-    			interpolationIndex++;
-    			continue;
-    		}
-
-
-    		// Non Pivot
-     		height = Mathf.RoundToInt(((heightMap[interpolationIndex*4, size]-heightMap[(interpolationIndex-1)*4, size])/4)*x+heightMap[(interpolationIndex-1)*4, size]);
-     		heightMap[x,16] = height;
-    	}
-    	interpolationIndex = 0;
-
-    	for(int x=0;x<size;x++){
-    		// Pivot
-    		if(x%4 == 0){
-    			interpolationIndex++;
-    			continue;
-    		}
-
-    		// Non Pivot
-     		height = Mathf.RoundToInt(((heightMap[size, interpolationIndex*4]-heightMap[size, (interpolationIndex-1)*4])/4)*x+heightMap[size, (interpolationIndex-1)*4]);
-     		heightMap[16,x] = height;
-    	} 
-    	*/
-
-    	interpolationIndex=0; 
 
     	int interpX = 0;
     	int interpZ = 0;
@@ -396,38 +278,7 @@ public class ChunkLoader : MonoBehaviour
     			}
     		}
     	}
-    	ToFile(heightMap);
 
-    	
-
-    	/*
-    	// Central X Interpolation 	
-    	for(int z=0;z<size;z++){
-    		for(int x=0;x<size;x++){
-    			// If it's a pivot block
-    			if((x%4) == 0){
-    				interpolationIndex++;
-    				continue;
-    			}
-
-    			// If it's NOT pivot block
-    			else{
-     				height = Mathf.RoundToInt(((heightMap[interpolationIndex*4, z]-heightMap[(interpolationIndex-1)*4, z])/4)*x+heightMap[(interpolationIndex-1)*4, z]);
-    				heightMap[x,z] = height;
-    				
-    				for(int y=0;y<Chunk.chunkDepth;y++){
-    					if(y <= height)
-    						voxdata[x,y,z] = 1;
-    					else
-    						voxdata[x,y,z] = 0;
-    				}
-    				
-    			}
-    		}
-    		interpolationIndex=0;
-    	}  	
-    	*/
-    	
 
     	return new VoxelData(voxdata);
     }
@@ -445,8 +296,8 @@ public class ChunkLoader : MonoBehaviour
     }
 
 
-    /*
-    private VoxelData GeneratePerlin3D(int chunkX, int chunkZ){
+    
+    private VoxelData GeneratePerlin3D(int chunkX, int chunkZ, int groundLevel=20){
     	int size = Chunk.chunkWidth;
     	chunkX *= size;
     	chunkZ *= size;
@@ -454,16 +305,16 @@ public class ChunkLoader : MonoBehaviour
     	int j = 0;
     	int[,,] voxdata = new int[size, Chunk.chunkDepth, size];
 
-    	for(int x=chunkX;x<chunkX+size;x+8){
+    	for(int x=chunkX;x<chunkX+size;x++){
     		j = 0;
-    		for(int z=chunkZ;z<chunkZ+size;z+8){
+    		for(int z=chunkZ;z<chunkZ+size;z++){
 
-    			for(int y=0;y<Chunk.chunkDepth;y+4){
+    			for(int y=0;y<Chunk.chunkDepth;y++){
 
-       				float val = Perlin.Noise((x+i)*hashSeed3D, y*hashSeed3D, (z+j)*hashSeed3D);
-       				float mask = Perlin.Noise((x+i)*hashSeed3D/x_mask_div, y*hashSeed3D/y_mask_div, (z+j)*hashSeed3D/z_mask_div);
+       				float val = Perlin.Noise(x*caveSeed, y*caveSeed, z*caveSeed);
+       				float mask = (0.2f*Perlin.Noise(x*y*caveSeed) + 0.8f)*Perlin.Noise(x*caveSeed/x_mask_div, y*caveSeed/y_mask_div, z*caveSeed/z_mask_div);
     				
-    				if(val >= threshold && mask >= thresholdMask)
+    				if(val >= threshold && mask >= thresholdMask && y <= groundLevel)
     					voxdata[i,y,j] = 1;
     				else
     					voxdata[i,y,j] = 0;
@@ -476,7 +327,7 @@ public class ChunkLoader : MonoBehaviour
     	return new VoxelData(voxdata);
 
     }
-    */
+    
 
     /*
     Implementation of a Worm Algorithm to generate Cave-like Terrain

@@ -22,7 +22,7 @@ public static class Perlin
         var X = Mathf.FloorToInt(x) & 0xff;
         x -= Mathf.Floor(x);
         var u = Fade(x);
-        return Lerp(u, Grad(perm[X], x), Grad(perm[X+1], x-1)) * 2;
+        return NormalizeOutput(Lerp(u, Grad(perm[X], x), Grad(perm[X+1], x-1)) * 2);
     }
 
     public static float Noise(float x, float y)

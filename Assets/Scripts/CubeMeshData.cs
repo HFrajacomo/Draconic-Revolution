@@ -19,11 +19,22 @@ public static class CubeMeshData {
 
   public static int[][] faceTriangles = {
     new int[] {0,1,2,3 },
-    new int[]{5,0,3,6},
-    new int[]{4,5,6,7},
+    new int[] {5,0,3,6},
+    new int[] {4,5,6,7},
     new int[] {1,4,7,2},
     new int[] {5,4,1,0},
     new int[] {3,2,7,6}
+  };
+
+  public static Vector2[] faceUVs = {
+    new Vector2(1, 1),
+    new Vector2(-1, 1),
+    new Vector2(-1, -1),
+    new Vector2(1, -1),
+    new Vector2(-1, 1),
+    new Vector2(1, 1),
+    new Vector2(1, -1),
+    new Vector2(-1, -1),
   };
 
   public static Vector3[] faceVertices(int dir, float scale, Vector3 pos)
@@ -39,5 +50,20 @@ public static class CubeMeshData {
   public static Vector3[] faceVertices(Direction dir, float scale, Vector3 pos)
   {
     return faceVertices((int)dir, scale, pos);
+  }
+
+  public static Vector2[] GetUVs(int dir, float scale, Vector2 pos)
+  {
+    Vector2[] fuv = new Vector2[4];
+    for (int i = 0; i < fuv.Length; i++)
+    {
+      fuv[i] = (faceUVs[faceTriangles[dir][i]] * scale) + pos;
+    }
+    return fuv;
+  }
+
+  public static Vector2[] GetUVs(Direction dir, float scale, Vector2 pos)
+  {
+    return GetUVs((int)dir, scale, pos);
   }
 }
