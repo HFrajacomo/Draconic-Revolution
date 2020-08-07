@@ -68,12 +68,23 @@ public class Blocks
 	// The actual block encyclopedia
 	public void Block(int blockID){
 		switch(blockID){
-			// Air
 			case 0:
 				Set("Air", new int[3]{0,0,0},false, true, true, false);
 				break;
 			case 1:
 				Set("Grass", new int[3]{1,2,3}, true, false, false, false);
+				break;
+			case 2:
+				Set("Dirt", new int[3]{3,3,3}, true, false, false, false);
+				break;
+			case 3:
+				Set("Stone", new int[3]{4,4,4}, true, false, false, false);
+				break;
+			case 4:
+				Set("Wood", new int[3]{5,6,5}, true, false, false, false);
+				break;
+			case 5:
+				Set("Metal Ore", new int[3]{7,7,7}, true, false, false, false);
 				break;
 
 			default:
