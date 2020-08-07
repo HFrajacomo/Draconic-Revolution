@@ -63,7 +63,7 @@ public class VoxelData
 
 	public int GetNeighbor(int x, int y, int z, Direction dir){
 		DataCoordinate offsetToCheck = offsets[(int)dir];
-		DataCoordinate neighborCoord = new DataCoordinate(x + offsetToCheck.x, y + offsetToCheck.y, z + offsetToCheck.z); //Change y for height later
+		DataCoordinate neighborCoord = new DataCoordinate(x + offsetToCheck.x, y + offsetToCheck.y, z + offsetToCheck.z);
 	
 		if(neighborCoord.x < 0 || neighborCoord.x >= GetWidth() || neighborCoord.z < 0 || neighborCoord.z >= GetDepth() || neighborCoord.y < 0 || neighborCoord.y >= GetHeight()){
 			return 0;
