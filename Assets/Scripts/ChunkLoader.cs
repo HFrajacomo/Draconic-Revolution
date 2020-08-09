@@ -5,7 +5,7 @@ using UnityEngine;
 public class ChunkLoader : MonoBehaviour
 {
 	public GameObject prefabChunk;
-	public int renderDistance = 4;
+	public int renderDistance = 0;
 	public Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
 	public Transform player;
 	public ChunkPos currentChunk;
@@ -65,7 +65,8 @@ public class ChunkLoader : MonoBehaviour
     	GameObject chunkGO = Instantiate(prefabChunk, new Vector3(pos.x*Chunk.chunkWidth, 0, pos.z*Chunk.chunkWidth), Quaternion.identity);
     	chunk = chunkGO.GetComponent<Chunk>();
 		//chunk.BuildOnVoxelData(VoxelData.CutUnderground(NotchInterpolation(pos.x, pos.z, groundLevel:20), GeneratePerlin3D(pos.x, pos.z, groundLevel:35)));
-    	chunk.BuildOnVoxelData(NotchInterpolation(pos.x, pos.z));
+    	//chunk.BuildOnVoxelData(NotchInterpolation(pos.x, pos.z));
+    	chunk.BuildOnVoxelData(GeneratePlainsBiome(pos.x, pos.z));
     	//chunk.BuildOnVoxelData(GeneratePerlin3D(pos.x, pos.z));
     	chunk.BuildChunk();
     	chunk.gameObject.SetActive(true);
@@ -284,15 +285,15 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Debug Feature
-    private void ToFile(int[,] heightMap){
+    private void ToFile(int[,] heightMap, string filename){
     	string a = "";
-    	for(int x=16;x>=0;x--){
-    		for(int y=0;y<17;y++){
+    	for(int x=15;x>=0;x--){
+    		for(int y=0;y<16;y++){
     			a += (heightMap[x,y] + "\t");
     		}
     		a += "\n";
     	}
-    	System.IO.File.WriteAllText("test.txt", a);
+    	System.IO.File.WriteAllText(filename, a);
     }
 
 
@@ -530,7 +531,155 @@ public class ChunkLoader : MonoBehaviour
 
     }
 
+    /*
+    Takes heightmaps of different map layers and combines them into a voxdata
+    Layers are applied sequentially, so the bottom-most layer should be the first one
+    blockCode is the block related to this layer.
+    */
+    private int [,,] ApplyHeightMaps(List<int[,]> heightMapArray, List<int> blockCode){
+    	int size = Chunk.chunkWidth;
+    	int[,,] voxdata = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+   		int[,] prevMap = null;
+   		int i=0;
+
+    	foreach(int[,] heightMap in heightMapArray){
+
+    		// Heightmap Drawing
+	    	for(int x=0;x<size;x++){
+	    		for(int z=0;z<size;z++){
+	    			// If it's the first layer to be added
+	    			if(prevMap == null){
+		    			for(int y=0;y<Chunk.chunkDepth;y++){
+		    				if(y <= heightMap[x,z])
+		    					voxdata[x,y,z] = blockCode[i];
+		    				else
+		    					voxdata[x,y,z] = 0;
+		    			}
+	    			}
+	    			// If is not the first layer
+	    			else{
+		    			for(int y=prevMap[x,z]+1;y<Chunk.chunkDepth;y++){
+		    				if(y <= heightMap[x,z])
+		    					voxdata[x,y,z] = blockCode[i];
+		    				else
+		    					voxdata[x,y,z] = 0;	  
+		    			}  				
+	    			}
+	    		}
+	    	}
+	    	i++;
+	    	prevMap = heightMap;
+	    }
+
+    	return voxdata;
+    }
+
+    // Generates Pivot heightmaps
+    private int[,] GeneratePivots(int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=20, int ceilingLevel=999){
+    	int size = Chunk.chunkWidth;
+    	chunkX *= size;
+    	chunkZ *= size;
+    	int i = 0;
+    	int j = 0;
+    	int[,] heightMap = new int[size+1,size+1];
+
+
+		// Heightmap Sampling
+		// Chunk Look-ahead implemented as a <= check in for
+    	for(int x=chunkX;x<=chunkX+size;x+=4){
+    		j = 0;
+    		for(int z=chunkZ;z<=chunkZ+size;z+=4){
+				heightMap[i, j] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/xhash, z*hashSeed/zhash))), 0, ceilingLevel);
+    			j+=4;
+    		}
+    		i+=4;
+    	}
+
+    	return heightMap;
+    }
+
+
+    // Applies bilinear interpolation to a given pivotmap
+    private void BilinearInterpolateMap(int[,] heightMap){
+    	int size = Chunk.chunkWidth;
+    	int interpX = 0;
+    	int interpZ = 0;
+    	float scaleX = 0f;
+    	float scaleZ = 0f;
+
+		// Bilinear Interpolation
+    	for(int z=0;z<size;z++){
+    		if(z%4 == 0){
+    			interpZ+=4;
+    			scaleZ = 0.25f;
+    		}
+    		for(int x=0;x<size;x++){
+    			// If is a pivot in X axis
+    			if(x%4 == 0){
+    				interpX+=4;
+    				scaleX = 0.25f;
+    			}
+
+    			heightMap[x,z] = Mathf.RoundToInt(((heightMap[interpX-4, interpZ-4])*(1-scaleX)*(1-scaleZ)) + (heightMap[interpX, interpZ-4]*scaleX*(1-scaleZ)) + (heightMap[interpX-4, interpZ]*scaleZ*(1-scaleX)) + (heightMap[interpX, interpZ]*scaleX*scaleZ));
+    			scaleX += 0.25f;
+
+    		}
+    		interpX = 0;
+    		scaleX = 0;
+    		scaleZ += 0.25f;
+    	}	
+    }
+
+    // Quick adds all elements in heightMap
+    // This makes it easy to get a layer below surface blocks
+    private int[,] AddFromMap(int[,] map, int a){
+    	int[,] newMap = new int[Chunk.chunkWidth, Chunk.chunkWidth];
+
+    	for(int x=0;x<Chunk.chunkWidth;x++){
+    		for(int z=0;z<Chunk.chunkWidth;z++){
+    			newMap[x,z] = map[x,z] + a;
+    		}
+    	}
+
+    	return newMap;
+    }
+
+    // Generates plains biome chunk
+    /*
+    Layer 1: Grass groundLevel = 20
+    Layer 2: Dirt groundLevel = 19
+    Layer 3: Stone groundLevel = 17
+    */
+	public VoxelData GeneratePlainsBiome(int chunkX, int chunkZ){
+		List<int[,]> maps = new List<int[,]>();
+		List<int> blockCodes = new List<int>();
+
+		// Hash values for Plains Biomes
+		int xhash = 10;
+		int zhash = 30;
+
+		// Grass
+		int[,] surface = GeneratePivots(chunkX, chunkZ, xhash, zhash, groundLevel:20);
+		BilinearInterpolateMap(surface);
+
+		// Dirt
+		int[,] dirt = AddFromMap(surface, -1);
+
+		// Underground
+		int[,] underground = AddFromMap(surface, -5);
+
+		maps.Add(underground);
+		blockCodes.Add(3);
+		maps.Add(dirt);
+		blockCodes.Add(2);
+		maps.Add(surface);
+		blockCodes.Add(1);
+
+		return new VoxelData(ApplyHeightMaps(maps, blockCodes));
+	}
 }
+
+
 
 public struct Coord3D{
 	public int x;
