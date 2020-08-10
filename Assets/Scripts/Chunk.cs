@@ -8,25 +8,7 @@ public class Chunk : MonoBehaviour
 
 	public VoxelData data;
 	public static int chunkWidth = 16;
-	public static int chunkDepth = 32;
-
-	// Generates random holes in terrain
-	public void GenerateRandomChunk(){
-		int[,,] voxdata = new int[chunkWidth,chunkDepth,chunkWidth];
-		int rnd;
-		for(int x=0; x < chunkWidth;x++){
-			for(int y=0; y < chunkDepth; y++){
-				for(int z=0; z < chunkWidth; z++){
-					rnd = Random.Range(0,4);
-					if(rnd == 0)
-						voxdata[x,y,z] = 0;
-					else
-						voxdata[x,y,z] = 1;
-				}
-			}
-		}
-		data = new VoxelData(voxdata);
-	}
+	public static int chunkDepth = 100;
 
 	public void BuildOnVoxelData(VoxelData vd){
 		this.data = vd;	

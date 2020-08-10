@@ -24,7 +24,8 @@ public class ChunkLoader : MonoBehaviour
 	public float threshold = 0.33f;
 	public float thresholdMask = 0.63f;
 
-	public int loadtick = 4;
+	public int loadtick = 3;
+	private bool isCreatingChunks;
 
     // Start is called before the first frame update
     void Start()
@@ -48,15 +49,22 @@ public class ChunkLoader : MonoBehaviour
     }
 
     void Update(){
-    	GetChunks(false);
+    	GetChunks(false); 
 
-    	if(loadtick == 0){
-    		LoadChunk();
-    		UnloadChunk();
-    		loadtick = 5;
+    	UnloadChunk();
+
+    	if(!isCreatingChunks && toLoad.Count > 0)
+    		StartCoroutine("UpdateChunks");
+    }
+
+    IEnumerator UpdateChunks(){
+    	isCreatingChunks = true;
+    	while(toLoad.Count > 0){
+    		BuildChunk(toLoad[0]);
+    		toLoad.RemoveAt(0);
+    		yield return null;
     	}
-    	else
-    		loadtick--;
+    	isCreatingChunks = false;
     }
 
     // Builds Chunk Terrain and adds to active chunks dict
@@ -180,39 +188,8 @@ public class ChunkLoader : MonoBehaviour
     	return (0.3f/999999)*t + 0.1f;
     }
 
-    /*
-    Generates a Perlian VoxelData for chunks using chunkX and chunkY
-    */
-    private VoxelData GeneratePerlin2D(int chunkX, int chunkZ, int groundLevel=1){
-    	int size = Chunk.chunkWidth;
-    	chunkX *= size;
-    	chunkZ *= size;
-    	int i = 0;
-    	int j = 0;
-    	int[,,] voxdata = new int[size, Chunk.chunkDepth, size];
 
-    	for(int x=chunkX;x<chunkX+size;x++){
-    		j = 0;
-    		for(int z=chunkZ;z<chunkZ+size;z++){
-
-				// Heightmap calculation
-				int height = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise((x+i)*hashSeed/20, (z+j)*hashSeed/20)));
-
-    			for(int y=0;y<Chunk.chunkDepth;y++){
-    				if(y <= height)
-    					voxdata[i,y,j] = 1;
-    				else
-    					voxdata[i,y,j] = 0;
-    			}
-    			j++;
-    		}
-    		i++;
-    	}
-
-    	return new VoxelData(voxdata);
-
-    }
-
+    // DEPRECATED
     /*
     Generates a Perlian VoxelData for chunks using chunkX and chunkY
     This process has been optimized with "Notch Interpolation". A way of
@@ -558,11 +535,8 @@ public class ChunkLoader : MonoBehaviour
 	    			}
 	    			// If is not the first layer
 	    			else{
-		    			for(int y=prevMap[x,z]+1;y<Chunk.chunkDepth;y++){
-		    				if(y <= heightMap[x,z])
-		    					voxdata[x,y,z] = blockCode[i];
-		    				else
-		    					voxdata[x,y,z] = 0;	  
+		    			for(int y=prevMap[x,z]+1;y<=heightMap[x,z];y++){
+		    				voxdata[x,y,z] = blockCode[i];
 		    			}  				
 	    			}
 	    		}
