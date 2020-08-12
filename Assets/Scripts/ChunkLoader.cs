@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ChunkLoader : MonoBehaviour
 {
-	public GameObject prefabChunk;
+	//public GameObject prefabChunk;
 	public int renderDistance = 0;
 	public Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
 	public Transform player;
@@ -24,8 +24,11 @@ public class ChunkLoader : MonoBehaviour
 	public float threshold = 0.33f;
 	public float thresholdMask = 0.63f;
 
-	public int loadtick = 3;
 	private bool isCreatingChunks;
+
+	// Testing
+	public ChunkRenderer rend;
+	private GameObject[] meshArray;
 
     // Start is called before the first frame update
     void Start()
@@ -49,62 +52,45 @@ public class ChunkLoader : MonoBehaviour
     }
 
     void Update(){
-    	GetChunks(false); 
-
+    	GetChunks(false);
     	UnloadChunk();
-
-    	if(!isCreatingChunks && toLoad.Count > 0)
-    		StartCoroutine("UpdateChunks");
+    	LoadChunk();
     }
 
-    IEnumerator UpdateChunks(){
-    	isCreatingChunks = true;
-    	while(toLoad.Count > 0){
-    		BuildChunk(toLoad[0]);
-    		toLoad.RemoveAt(0);
-    		yield return null;
-    	}
-    	isCreatingChunks = false;
-    }
-
-    // Builds Chunk Terrain and adds to active chunks dict
-    private void BuildChunk(ChunkPos pos){
-    	Chunk chunk;
-    	GameObject chunkGO = Instantiate(prefabChunk, new Vector3(pos.x*Chunk.chunkWidth, 0, pos.z*Chunk.chunkWidth), Quaternion.identity);
-    	chunk = chunkGO.GetComponent<Chunk>();
-		//chunk.BuildOnVoxelData(VoxelData.CutUnderground(NotchInterpolation(pos.x, pos.z, groundLevel:20), GeneratePerlin3D(pos.x, pos.z, groundLevel:35)));
-    	//chunk.BuildOnVoxelData(NotchInterpolation(pos.x, pos.z));
-    	chunk.BuildOnVoxelData(GeneratePlainsBiome(pos.x, pos.z));
-    	//chunk.BuildOnVoxelData(GeneratePerlin3D(pos.x, pos.z));
-    	chunk.BuildChunk();
-    	chunk.gameObject.SetActive(true);
-    	chunks.Add(pos, chunk);
-    }
-
+    
     // Erases loaded chunks dictionary
     private void ClearAllChunks(){
     	foreach(var item in chunks.Keys){
-    		Destroy(chunks[item].gameObject);
+    		Destroy(chunks[item].obj);
     		chunks.Remove(item);
     	}
     }
 
     // Loads a chunk per frame from the Loading Buffer
     private void LoadChunk(){
-    	if(toLoad.Count != 0){
-    		BuildChunk(toLoad[0]);
-    		toLoad.RemoveAt(0);
+    	meshArray = new GameObject[toLoad.Count];
+    	
+    	for(int i=0;i<toLoad.Count;i++){
+    		Chunk chunk = new Chunk(toLoad[i], this.rend);
+    		chunk.BuildOnVoxelData(GeneratePlainsBiome(toLoad[i].x, toLoad[i].z));
+    		chunk.BuildChunk();
+    		meshArray[i] = chunk.obj;
+    		chunks.Add(chunk.pos, chunk);
     	}
+    	toLoad.Clear();
+    	StaticBatchingUtility.Combine(meshArray, this.rend.gameObject);
+    	meshArray = null;
     }
 
     // Unloads a chunk per frame from the Unloading Buffer
     private void UnloadChunk(){
-    	if(toUnload.Count != 0){
-    		ChunkPos popChunk = toUnload[0];
-    		Destroy(chunks[popChunk].gameObject);
-    		toUnload.RemoveAt(0);
-    		chunks.Remove(popChunk);    		
+    	for(int i=0; i<toUnload.Count;i++){
+    		Chunk popChunk = chunks[toUnload[i]];
+    		Destroy(popChunk.obj);
+    		chunks.Remove(popChunk.pos);
+    		popChunk = null;   		
     	}
+    	toUnload.Clear();
     }
 
     // Gets all chunks around player's render distance
@@ -119,11 +105,13 @@ public class ChunkLoader : MonoBehaviour
     		ClearAllChunks();
     		toLoad.Clear();
     		toUnload.Clear();
+    		
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
-					BuildChunk(new ChunkPos(newChunk.x+x, newChunk.z+z));
+	        		toLoad.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
 	        	}
 	        }
+	        
 	        currentChunk = newChunk;
 	        return;
 	    }
@@ -149,7 +137,7 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x+renderDistance+1, newChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
-    			toLoad.Add(addChunk);    		
+    			toLoad.Add(addChunk);
     		}
     	}
     	else if(diff == 1){ // South
@@ -157,7 +145,7 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance+1);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance);
-    			toLoad.Add(addChunk); 
+    			toLoad.Add(addChunk);
       		}
     	}
     	else if(diff == 3){ // North
@@ -165,16 +153,9 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance-1);
     			toUnload.Add(popChunk);
       			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
-    			toLoad.Add(addChunk); 
+    			toLoad.Add(addChunk);
        		}	
     	}
-    	else{
-		    for(int x=-renderDistance; x<=renderDistance;x++){
-		      	for(int z=-renderDistance; z< renderDistance;z++){
-					BuildChunk(new ChunkPos(newChunk.x+x, newChunk.z+z));
-		      	}
-		    }
-		}
 	    currentChunk = newChunk;    
     }
 

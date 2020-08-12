@@ -2,13 +2,32 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent (typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
-public class Chunk : MonoBehaviour
+public class Chunk
 {
 
+	// Chunk Settings
 	public VoxelData data;
 	public static int chunkWidth = 16;
 	public static int chunkDepth = 100;
+	public ChunkPos pos;
+
+	// Unity Settings
+	public ChunkRenderer renderer;
+	public MeshFilter meshFilter;
+	public GameObject obj;
+
+	public Chunk(ChunkPos pos, ChunkRenderer r){
+		this.pos = pos;
+		this.renderer = r;
+		this.obj = new GameObject();
+		this.obj.AddComponent<MeshFilter>();
+		this.obj.AddComponent<MeshRenderer>();
+		this.obj.AddComponent<MeshCollider>();
+		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
+		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
+		this.obj.transform.SetParent(this.renderer.transform);
+		this.obj.GetComponent<MeshRenderer>().material = this.renderer.GetComponent<MeshRenderer>().material;
+	}
 
 	public void BuildOnVoxelData(VoxelData vd){
 		this.data = vd;	
@@ -60,13 +79,13 @@ public class Chunk : MonoBehaviour
     	}
 
 
-    	mesh.Clear(); 
+    	mesh.Clear();
     	mesh.vertices = vertices.ToArray();
     	mesh.triangles = triangles.ToArray();
     	mesh.uv = UVs.ToArray();
     	mesh.RecalculateNormals();
 
-    	GetComponent<MeshFilter>().mesh = mesh;
-        GetComponent<MeshCollider>().sharedMesh = mesh;
+    	this.obj.GetComponent<MeshFilter>().sharedMesh = mesh;
+    	this.obj.GetComponent<MeshCollider>().sharedMesh = mesh;
     }
 }
