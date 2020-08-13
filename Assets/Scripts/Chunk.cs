@@ -14,12 +14,18 @@ public class Chunk
 	// Unity Settings
 	public ChunkRenderer renderer;
 	public MeshFilter meshFilter;
-	public GameObject obj;
+	public GameObject obj = new GameObject();
+	public BlockEncyclopedia blockBook;
 
-	public Chunk(ChunkPos pos, ChunkRenderer r){
+	// Cache Information
+    private List<Vector3> vertices = new List<Vector3>();
+    private List<int> triangles = new List<int>();
+    private List<Vector2> UVs = new List<Vector2>();
+    private Mesh mesh;
+
+	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be){
 		this.pos = pos;
 		this.renderer = r;
-		this.obj = new GameObject();
 		this.obj.AddComponent<MeshFilter>();
 		this.obj.AddComponent<MeshRenderer>();
 		this.obj.AddComponent<MeshCollider>();
@@ -27,40 +33,36 @@ public class Chunk
 		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
 		this.obj.transform.SetParent(this.renderer.transform);
 		this.obj.GetComponent<MeshRenderer>().material = this.renderer.GetComponent<MeshRenderer>().material;
+		this.blockBook = be;
 	}
 
 	public void BuildOnVoxelData(VoxelData vd){
-		this.data = vd;	
+		this.data = vd;
 	}
 
 	public void BuildChunk(){
-		Mesh mesh = new Mesh();
-		Blocks thisBlock;
-		Blocks neighborBlock;
-
-
-    	List<Vector3> vertices = new List<Vector3>();
-    	List<int> triangles = new List<int>();
-    	List<Vector2> UVs = new List<Vector2>();
+		mesh = new Mesh();
+		int thisBlock;
+		int neighborBlock;
 
     	for(int x=0; x<data.GetWidth(); x++){
     		for(int y=0; y<data.GetHeight(); y++){
     			for(int z=0; z<data.GetDepth(); z++){
-    				thisBlock = new Blocks(data.GetCell(x,y,z));
+    				thisBlock = data.GetCell(x,y,z);
 
     				// If invisible block
-	    			if(thisBlock.invisible){
+	    			if(blockBook.blocks[thisBlock].invisible){
 	    				continue;
 	    			}
 	    			//Make Cube
 			    	for(int i=0; i<6; i++){
 			    		// Air Check
-			    		neighborBlock = new Blocks(data.GetNeighbor(x, y, z, (Direction)i));
-			    		if(neighborBlock.transparent || neighborBlock.invisible){
+			    		neighborBlock = data.GetNeighbor(x, y, z, (Direction)i);
+			    		if(blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible){
 			    			// Make Face
 					    	vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
 					    	
-					    	UVs.AddRange(thisBlock.AddTexture((Direction)i));
+					    	UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
 					    	
 					    	int vCount = vertices.Count;
 
@@ -84,6 +86,10 @@ public class Chunk
     	mesh.triangles = triangles.ToArray();
     	mesh.uv = UVs.ToArray();
     	mesh.RecalculateNormals();
+
+    	vertices.Clear();
+    	triangles.Clear();
+    	UVs.Clear();
 
     	this.obj.GetComponent<MeshFilter>().sharedMesh = mesh;
     	this.obj.GetComponent<MeshCollider>().sharedMesh = mesh;

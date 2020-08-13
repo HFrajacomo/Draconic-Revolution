@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class ChunkLoader : MonoBehaviour
 {
-	//public GameObject prefabChunk;
+
+	// Basic ChunkLoader Data
 	public int renderDistance = 0;
 	public Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
 	public Transform player;
@@ -12,7 +13,9 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkPos newChunk;
 	public List<ChunkPos> toLoad = new List<ChunkPos>();
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
+	public BlockEncyclopedia blockBook;
 
+	// World Generation
 	public int worldSeed = 1; // 6 number integer
 	public float hashSeed;
 	public float caveSeed;
@@ -24,11 +27,17 @@ public class ChunkLoader : MonoBehaviour
 	public float threshold = 0.33f;
 	public float thresholdMask = 0.63f;
 
-	private bool isCreatingChunks;
-
-	// Testing
+	// Static Batching
 	public ChunkRenderer rend;
-	private GameObject[] meshArray;
+
+	// Cache Information
+	private int[,] cacheHeightMap = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+	private int[,] cacheHeightMap2 = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+	private int[,] cacheHeightMap3 = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+	private int[,] cacheHeightMap4 = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+	private	int[,,] cacheVoxdata = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+	private List<int[,]> cacheMaps = new List<int[,]>();
+	private List<int> cacheBlockCodes = new List<int>();
 
     // Start is called before the first frame update
     void Start()
@@ -56,7 +65,6 @@ public class ChunkLoader : MonoBehaviour
     	UnloadChunk();
     	LoadChunk();
     }
-
     
     // Erases loaded chunks dictionary
     private void ClearAllChunks(){
@@ -66,31 +74,42 @@ public class ChunkLoader : MonoBehaviour
     	}
     }
 
-    // Loads a chunk per frame from the Loading Buffer
     private void LoadChunk(){
-    	meshArray = new GameObject[toLoad.Count];
-    	
-    	for(int i=0;i<toLoad.Count;i++){
-    		Chunk chunk = new Chunk(toLoad[i], this.rend);
-    		chunk.BuildOnVoxelData(GeneratePlainsBiome(toLoad[i].x, toLoad[i].z));
+    	if(toLoad.Count > 0){
+    		// Prevention
+    		if(toUnload.Contains(toLoad[0])){
+    			toUnload.Remove(toLoad[0]);
+    			toLoad.RemoveAt(0);
+    			return;
+    		}
+
+     		Chunk chunk = new Chunk(toLoad[0], this.rend, this.blockBook);
+    		chunk.BuildOnVoxelData(GeneratePlainsBiome(toLoad[0].x, toLoad[0].z));
     		chunk.BuildChunk();
-    		meshArray[i] = chunk.obj;
-    		chunks.Add(chunk.pos, chunk);
+    		chunks.Add(chunk.pos, chunk);  
+    		toLoad.RemoveAt(0);	
     	}
-    	toLoad.Clear();
-    	StaticBatchingUtility.Combine(meshArray, this.rend.gameObject);
-    	meshArray = null;
     }
 
     // Unloads a chunk per frame from the Unloading Buffer
     private void UnloadChunk(){
-    	for(int i=0; i<toUnload.Count;i++){
-    		Chunk popChunk = chunks[toUnload[i]];
-    		Destroy(popChunk.obj);
-    		chunks.Remove(popChunk.pos);
-    		popChunk = null;   		
-    	}
-    	toUnload.Clear();
+    	//for(int i=0; i<toUnload.Count;i++){
+    	if(toUnload.Count > 0){
+
+    		// Prevention
+    		if(toLoad.Contains(toUnload[0])){
+    			toLoad.Remove(toUnload[0]);
+    			toUnload.RemoveAt(0);
+    			return;
+    		}
+
+
+			Chunk popChunk = chunks[toUnload[0]];
+			chunks.Remove(popChunk.pos);    		
+			Destroy(popChunk.obj);
+
+		    toUnload.RemoveAt(0);
+	    }
     }
 
     // Gets all chunks around player's render distance
@@ -156,7 +175,65 @@ public class ChunkLoader : MonoBehaviour
     			toLoad.Add(addChunk);
        		}	
     	}
-	    currentChunk = newChunk;    
+    	else if(diff == 5){ // Southeast
+    		for(int i=-renderDistance; i <= renderDistance; i++){
+    			ChunkPos popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i);
+    			toUnload.Add(popChunk);
+    			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
+    			toLoad.Add(addChunk);
+    		}
+    		for(int i=-renderDistance+1; i <= renderDistance; i++){
+    			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance);
+    			toUnload.Add(popChunk);
+     			ChunkPos addChunk = new ChunkPos(newChunk.x+i-1, newChunk.z-renderDistance);
+    			toLoad.Add(addChunk);
+    		}
+    	}
+    	else if(diff == 6){ // Southwest
+    		for(int i=-renderDistance; i <= renderDistance; i++){
+    			ChunkPos popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i);
+    			toUnload.Add(popChunk);
+    			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
+    			toLoad.Add(addChunk);
+    		}
+    		for(int i=-renderDistance; i < renderDistance; i++){
+    			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance);
+    			toUnload.Add(popChunk);
+     			ChunkPos addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z-renderDistance);
+    			toLoad.Add(addChunk);
+    		}
+    	}
+    	else if(diff == 7){ // Northwest
+    		for(int i=-renderDistance; i <= renderDistance; i++){
+    			ChunkPos popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i);
+    			toUnload.Add(popChunk);
+    			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
+    			toLoad.Add(addChunk);
+    		}
+    		for(int i=-renderDistance; i < renderDistance; i++){
+    			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z-renderDistance);
+    			toUnload.Add(popChunk);
+     			ChunkPos addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z+renderDistance);
+    			toLoad.Add(addChunk);
+    		}
+    	}
+    	else if(diff == 4){ // Northeast
+    		for(int i=-renderDistance; i <= renderDistance; i++){
+    			ChunkPos popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i);
+    			toUnload.Add(popChunk);
+    			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
+    			toLoad.Add(addChunk);
+    		}
+    		for(int i=-renderDistance; i < renderDistance; i++){
+    			ChunkPos popChunk = new ChunkPos(currentChunk.x+i+1, currentChunk.z-renderDistance);
+    			toUnload.Add(popChunk);
+     			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
+    			toLoad.Add(addChunk);
+    		}
+    	}
+
+
+	    currentChunk = newChunk;
     }
 
     // Calculates the caveSeed of caveworms
@@ -184,16 +261,13 @@ public class ChunkLoader : MonoBehaviour
     	chunkZ *= size;
     	int i = 0;
     	int j = 0;
-    	int[,,] voxdata = new int[size, Chunk.chunkDepth, size];
-    	int[,] heightMap = new int[size+1,size+1]; 
-
 
 		// Heightmap Sampling
 		// Chunk Look-ahead implemented as a <= check in for
     	for(int x=chunkX;x<=chunkX+size;x+=4){
     		j = 0;
     		for(int z=chunkZ;z<=chunkZ+size;z+=4){
-				heightMap[i, j] = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/10, z*hashSeed/30)));
+				cacheHeightMap[i, j] = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/10, z*hashSeed/30)));
     			j+=4;
     		}
     		i+=4;
@@ -217,7 +291,7 @@ public class ChunkLoader : MonoBehaviour
     				scaleX = 0.25f;
     			}
 
-    			heightMap[x,z] = Mathf.RoundToInt(((heightMap[interpX-4, interpZ-4])*(1-scaleX)*(1-scaleZ)) + (heightMap[interpX, interpZ-4]*scaleX*(1-scaleZ)) + (heightMap[interpX-4, interpZ]*scaleZ*(1-scaleX)) + (heightMap[interpX, interpZ]*scaleX*scaleZ));
+    			cacheHeightMap[x,z] = Mathf.RoundToInt(((cacheHeightMap[interpX-4, interpZ-4])*(1-scaleX)*(1-scaleZ)) + (cacheHeightMap[interpX, interpZ-4]*scaleX*(1-scaleZ)) + (cacheHeightMap[interpX-4, interpZ]*scaleZ*(1-scaleX)) + (cacheHeightMap[interpX, interpZ]*scaleX*scaleZ));
     			scaleX += 0.25f;
 
     		}
@@ -230,16 +304,16 @@ public class ChunkLoader : MonoBehaviour
     	for(int x=0;x<size;x++){
     		for(int z=0;z<size;z++){
     			for(int y=0;y<Chunk.chunkDepth;y++){
-    				if(y <= heightMap[x,z])
-    					voxdata[x,y,z] = 1;
+    				if(y <= cacheHeightMap[x,z])
+    					cacheVoxdata[x,y,z] = 1;
     				else
-    					voxdata[x,y,z] = 0;
+    					cacheVoxdata[x,y,z] = 0;
     			}
     		}
     	}
 
 
-    	return new VoxelData(voxdata);
+    	return new VoxelData(cacheVoxdata);
     }
 
     // Debug Feature
@@ -262,7 +336,6 @@ public class ChunkLoader : MonoBehaviour
     	chunkZ *= size;
     	int i = 0;
     	int j = 0;
-    	int[,,] voxdata = new int[size, Chunk.chunkDepth, size];
 
     	for(int x=chunkX;x<chunkX+size;x++){
     		j = 0;
@@ -274,16 +347,16 @@ public class ChunkLoader : MonoBehaviour
        				float mask = (0.2f*Perlin.Noise(x*y*caveSeed) + 0.8f)*Perlin.Noise(x*caveSeed/x_mask_div, y*caveSeed/y_mask_div, z*caveSeed/z_mask_div);
     				
     				if(val >= threshold && mask >= thresholdMask && y <= groundLevel)
-    					voxdata[i,y,j] = 1;
+    					cacheVoxdata[i,y,j] = 1;
     				else
-    					voxdata[i,y,j] = 0;
+    					cacheVoxdata[i,y,j] = 0;
     			}
     			j++;
     		}
     		i++;
     	}
 
-    	return new VoxelData(voxdata);
+    	return new VoxelData(cacheVoxdata);
 
     }
     
@@ -490,71 +563,65 @@ public class ChunkLoader : MonoBehaviour
     }
 
     /*
-    Takes heightmaps of different map layers and combines them into a voxdata
+    Takes heightmaps of different map layers and combines them into a cacheVoxdata
     Layers are applied sequentially, so the bottom-most layer should be the first one
     blockCode is the block related to this layer.
     */
-    private int [,,] ApplyHeightMaps(List<int[,]> heightMapArray, List<int> blockCode){
+    // Takes cacheMaps and cacheBlockCodes and returns on cacheVoxdata
+    private void ApplyHeightMaps(){
     	int size = Chunk.chunkWidth;
-    	int[,,] voxdata = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
-   		int[,] prevMap = null;
    		int i=0;
 
-    	foreach(int[,] heightMap in heightMapArray){
-
+   		for(i=0;i<cacheMaps.Count;i++){
     		// Heightmap Drawing
 	    	for(int x=0;x<size;x++){
 	    		for(int z=0;z<size;z++){
 	    			// If it's the first layer to be added
-	    			if(prevMap == null){
+	    			if(i == 0){
 		    			for(int y=0;y<Chunk.chunkDepth;y++){
-		    				if(y <= heightMap[x,z])
-		    					voxdata[x,y,z] = blockCode[i];
+		    				if(y <= cacheMaps[i][x,z])
+		    					cacheVoxdata[x,y,z] = cacheBlockCodes[i];
 		    				else
-		    					voxdata[x,y,z] = 0;
+		    					cacheVoxdata[x,y,z] = 0;
 		    			}
 	    			}
 	    			// If is not the first layer
 	    			else{
-		    			for(int y=prevMap[x,z]+1;y<=heightMap[x,z];y++){
-		    				voxdata[x,y,z] = blockCode[i];
+		    			for(int y=cacheMaps[i-1][x,z]+1;y<=cacheMaps[i][x,z];y++){
+		    				cacheVoxdata[x,y,z] = cacheBlockCodes[i];
 		    			}  				
 	    			}
 	    		}
 	    	}
-	    	i++;
-	    	prevMap = heightMap;
 	    }
-
-    	return voxdata;
+	    cacheMaps.Clear();
+	    cacheBlockCodes.Clear();
     }
 
     // Generates Pivot heightmaps
-    private int[,] GeneratePivots(int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=20, int ceilingLevel=999){
+    // Returns on Cache 1
+    private void GeneratePivots(int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=20, int ceilingLevel=999){
     	int size = Chunk.chunkWidth;
     	chunkX *= size;
     	chunkZ *= size;
     	int i = 0;
     	int j = 0;
-    	int[,] heightMap = new int[size+1,size+1];
-
 
 		// Heightmap Sampling
 		// Chunk Look-ahead implemented as a <= check in for
     	for(int x=chunkX;x<=chunkX+size;x+=4){
     		j = 0;
     		for(int z=chunkZ;z<=chunkZ+size;z+=4){
-				heightMap[i, j] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/xhash, z*hashSeed/zhash))), 0, ceilingLevel);
+				cacheHeightMap[i, j] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/xhash, z*hashSeed/zhash))), 0, ceilingLevel);
     			j+=4;
     		}
     		i+=4;
     	}
-
-    	return heightMap;
     }
 
 
     // Applies bilinear interpolation to a given pivotmap
+    // Takes any cache and returns on itself
     private void BilinearInterpolateMap(int[,] heightMap){
     	int size = Chunk.chunkWidth;
     	int interpX = 0;
@@ -587,16 +654,38 @@ public class ChunkLoader : MonoBehaviour
 
     // Quick adds all elements in heightMap
     // This makes it easy to get a layer below surface blocks
-    private int[,] AddFromMap(int[,] map, int a){
-    	int[,] newMap = new int[Chunk.chunkWidth, Chunk.chunkWidth];
+    // Takes any cache and returns on cacheNumber
+    private void AddFromMap(int[,] map, int val, int cacheNumber=2){
 
-    	for(int x=0;x<Chunk.chunkWidth;x++){
-    		for(int z=0;z<Chunk.chunkWidth;z++){
-    			newMap[x,z] = map[x,z] + a;
-    		}
+    	if(cacheNumber == 1){
+	    	for(int x=0;x<Chunk.chunkWidth;x++){
+	    		for(int z=0;z<Chunk.chunkWidth;z++){
+	    			cacheHeightMap[x,z] = map[x,z] + val;
+	    		}
+	    	}
     	}
 
-    	return newMap;
+    	else if(cacheNumber == 2){
+	    	for(int x=0;x<Chunk.chunkWidth;x++){
+	    		for(int z=0;z<Chunk.chunkWidth;z++){
+	    			cacheHeightMap2[x,z] = map[x,z] + val;
+	    		}
+	    	}
+	    }
+	    else if(cacheNumber == 3){
+	    	for(int x=0;x<Chunk.chunkWidth;x++){
+	    		for(int z=0;z<Chunk.chunkWidth;z++){
+	    			cacheHeightMap3[x,z] = map[x,z] + val;
+	    		}
+	    	}	    	
+	    }
+	    else{
+	    	for(int x=0;x<Chunk.chunkWidth;x++){
+	    		for(int z=0;z<Chunk.chunkWidth;z++){
+	    			cacheHeightMap4[x,z] = map[x,z] + val;
+	    		}
+	    	}
+	    }
     }
 
     // Generates plains biome chunk
@@ -606,31 +695,34 @@ public class ChunkLoader : MonoBehaviour
     Layer 3: Stone groundLevel = 17
     */
 	public VoxelData GeneratePlainsBiome(int chunkX, int chunkZ){
-		List<int[,]> maps = new List<int[,]>();
-		List<int> blockCodes = new List<int>();
-
 		// Hash values for Plains Biomes
 		int xhash = 10;
 		int zhash = 30;
 
-		// Grass
-		int[,] surface = GeneratePivots(chunkX, chunkZ, xhash, zhash, groundLevel:20);
-		BilinearInterpolateMap(surface);
+		// Grass Heightmap is hold on Cache 1
+		GeneratePivots(chunkX, chunkZ, xhash, zhash, groundLevel:20);
+		BilinearInterpolateMap(cacheHeightMap);
 
-		// Dirt
-		int[,] dirt = AddFromMap(surface, -1);
+		// Underground is hold on Cache 2
+		AddFromMap(cacheHeightMap, -5);
 
-		// Underground
-		int[,] underground = AddFromMap(surface, -5);
+		// Adds Cache 2 to pipeline
+		cacheMaps.Add(cacheHeightMap2);
+		cacheBlockCodes.Add(3);
 
-		maps.Add(underground);
-		blockCodes.Add(3);
-		maps.Add(dirt);
-		blockCodes.Add(2);
-		maps.Add(surface);
-		blockCodes.Add(1);
+		// Dirt is hold on Cache 3
+		AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
-		return new VoxelData(ApplyHeightMaps(maps, blockCodes));
+		// Adds rest to pipeline
+		cacheMaps.Add(cacheHeightMap3);
+		cacheBlockCodes.Add(2);
+		cacheMaps.Add(cacheHeightMap);
+		cacheBlockCodes.Add(1);
+
+		// Adds to cacheVoxdata
+		ApplyHeightMaps();
+
+		return new VoxelData(cacheVoxdata);
 	}
 }
 
@@ -708,8 +800,25 @@ public struct ChunkPos{
 	1 = South
 	2 = West
 	3 = North
+
+	4 = Northeast
+	5 = Southeast
+	6 = Southwest
+	7 = Northwest
 	*/
 	public int dir(){
+		if(this.x == 1 && this.z == 1){
+			return 4;
+		}
+		if(this.x == 1 && this.z == -1){
+			return 5;
+		}
+		if(this.x == -1 && this.z == -1){
+			return 6;
+		}
+		if(this.x == -1 && this.z == 1){
+			return 7;
+		}
 		if(this.x == 1){
 			return 0;
 		}

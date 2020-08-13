@@ -5,6 +5,7 @@ using UnityEngine;
 [System.Serializable]
 public class Blocks
 {
+	public static int blockCount = 6;
 	public const int pixelSize = 32;
 	public static int atlasSizeX = 8;
 	public static int atlasSizeY = 2;

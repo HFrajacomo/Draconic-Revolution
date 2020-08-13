@@ -6,10 +6,6 @@ public class VoxelData
 {
 	int[,,] data;
 
-	public VoxelData(){
-		this.data = new int[,,] {{{0,1},{1,1},{1,1}}, {{1,0},{1,0},{1,0}}, {{1,1},{1,1},{0,0}}};
-	}
-
 	public VoxelData(int[,,] data){
 		this.data = data;
 	}
@@ -64,13 +60,14 @@ public class VoxelData
 	public int GetNeighbor(int x, int y, int z, Direction dir){
 		DataCoordinate offsetToCheck = offsets[(int)dir];
 		DataCoordinate neighborCoord = new DataCoordinate(x + offsetToCheck.x, y + offsetToCheck.y, z + offsetToCheck.z);
-	
+		
 		if(neighborCoord.x < 0 || neighborCoord.x >= GetWidth() || neighborCoord.z < 0 || neighborCoord.z >= GetDepth() || neighborCoord.y < 0 || neighborCoord.y >= GetHeight()){
 			return 0;
 		} 
 		else{
 			return GetCell(neighborCoord.x, neighborCoord.y, neighborCoord.z);
 		}
+		
 
 	}
 
