@@ -12,6 +12,11 @@ public class PlayerRaycast : MonoBehaviour
 	private Vector3 direction;
 	private Vector3 cachePos;
 	public CastCoord current;
+	private CastCoord lastCoord;
+
+	// Current player block position
+	private CastCoord playerHead;
+	private CastCoord playerBody;
 
 	/*
 	0 = X+
@@ -29,8 +34,13 @@ public class PlayerRaycast : MonoBehaviour
     	if(!loader.WORLD_GENERATED)
     		return;
 
+    	// Updates player block position
+    	playerHead = new CastCoord(cam.position);
+    	playerBody = new CastCoord(cam.position);
+    	playerBody.blockY -= 1;
+
     	float traveledDistance = 0f;
-    	CastCoord lastCoord = new CastCoord(false);
+    	lastCoord = new CastCoord(false);
     	bool FOUND = false;
 
 
@@ -68,6 +78,10 @@ public class PlayerRaycast : MonoBehaviour
         	BreakBlock();
         }
 
+        // Click to place block
+        if(Input.GetButtonDown("Fire2")){
+        	PlaceBlock(4);
+        }
 
     }
 
@@ -84,17 +98,29 @@ public class PlayerRaycast : MonoBehaviour
     	return false;
     }
 
+    // Block Breaking mechanic
     private void BreakBlock(){
     	if(!current.active){
     		return;
     	}
 
-
     	ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
 
 		loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
-    	print("Updated: " + current.blockX + ", " + current.blockY + ", " + current.blockZ);
     	loader.chunks[toUpdate].BuildChunk();
+    }
+
+    // Block Placing mechanic
+    private void PlaceBlock(int blockCode){
+    	// Won't happen if not raycasting something or if block is in player's body or head
+    	if(!current.active || CastCoord.Eq(lastCoord, playerHead) || CastCoord.Eq(lastCoord, playerBody)){
+    		return;
+    	}
+
+    	ChunkPos toUpdate = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ);
+
+		loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+    	loader.chunks[toUpdate].BuildChunk();    	
     }
 
 
@@ -178,6 +204,13 @@ public class PlayerRaycast : MonoBehaviour
    				return 5;
    			else
    				return -1;
+   		}
+
+   		public static bool Eq(CastCoord a, CastCoord b){
+   			if(a.chunkX != b.chunkX || a.chunkZ != b.chunkZ || a.blockX != b.blockX || a.blockY != b.blockY || a.blockZ != b.blockZ)
+   				return false;
+   			return true;
+
    		}
    }
 
