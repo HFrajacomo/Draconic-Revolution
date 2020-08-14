@@ -42,7 +42,7 @@ public class PlayerMovement : MonoBehaviour
         move = transform.right * x + transform.forward * z;
         controller.Move(move * speed * Time.deltaTime);
 
-        if(Input.GetButtonDown("Jump") && isGrounded){
+        if(Input.GetButton("Jump") && isGrounded){
         	velocity.y = jumpHeight;
             jumpticks = 10;
             controller.skinWidth = 0.4f;

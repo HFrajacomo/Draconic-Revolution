@@ -30,6 +30,9 @@ public class ChunkLoader : MonoBehaviour
 	// Static Batching
 	public ChunkRenderer rend;
 
+	// Flags
+	public bool WORLD_GENERATED = false;
+
 	// Cache Information
 	private int[,] cacheHeightMap = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
 	private int[,] cacheHeightMap2 = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
@@ -42,10 +45,7 @@ public class ChunkLoader : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-    	/*
-    	hashSeed can also be considered the aggressiveness of a terrain.
-    	Smaller dividers will generate hilly areas, while bigger dividers will generate plains.
-    	*/
+
     	if(worldSeed == 0){
     		worldSeed = 1;
     	}
@@ -61,6 +61,11 @@ public class ChunkLoader : MonoBehaviour
     }
 
     void Update(){
+
+    	if(toLoad.Count == 0 && !WORLD_GENERATED){
+    		WORLD_GENERATED = true;
+    	}
+
     	GetChunks(false);
     	UnloadChunk();
     	LoadChunk();
@@ -83,17 +88,18 @@ public class ChunkLoader : MonoBehaviour
     			return;
     		}
 
-     		Chunk chunk = new Chunk(toLoad[0], this.rend, this.blockBook);
-    		chunk.BuildOnVoxelData(GeneratePlainsBiome(toLoad[0].x, toLoad[0].z));
-    		chunk.BuildChunk();
-    		chunks.Add(chunk.pos, chunk);  
+     		//Chunk chunk = new Chunk(toLoad[0], this.rend, this.blockBook);
+    		//chunk.BuildOnVoxelData(GeneratePlainsBiome(toLoad[0].x, toLoad[0].z));
+    		//chunk.BuildChunk();
+    		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook));
+    		chunks[toLoad[0]].BuildOnVoxelData(GeneratePlainsBiome(toLoad[0].x, toLoad[0].z)); 
+    		chunks[toLoad[0]].BuildChunk();
     		toLoad.RemoveAt(0);	
     	}
     }
 
     // Unloads a chunk per frame from the Unloading Buffer
     private void UnloadChunk(){
-    	//for(int i=0; i<toUnload.Count;i++){
     	if(toUnload.Count > 0){
 
     		// Prevention

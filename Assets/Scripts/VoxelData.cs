@@ -7,7 +7,7 @@ public class VoxelData
 	int[,,] data;
 
 	public VoxelData(int[,,] data){
-		this.data = data;
+		this.data = (int[,,])data.Clone();
 	}
 
 	public static VoxelData CutUnderground(VoxelData a, VoxelData b, int upper=-1, int lower=-1){
@@ -46,6 +46,10 @@ public class VoxelData
 
 	public int GetCell(int x, int y, int z){
 		return data[x,y,z];
+	}
+
+	public void SetCell(int x, int y, int z, int blockCode){
+		data[x,y,z] = blockCode;
 	}
 
 	public override string ToString(){

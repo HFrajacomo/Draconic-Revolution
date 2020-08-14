@@ -40,6 +40,10 @@ public class Chunk
 		this.data = vd;
 	}
 
+	//public Chunk Copy(){
+	//	return new Chunk()
+	//}
+
 	public void BuildChunk(){
 		mesh = new Mesh();
 		int thisBlock;
