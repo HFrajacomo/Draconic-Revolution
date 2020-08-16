@@ -6,6 +6,7 @@ public class DayNightCycle : MonoBehaviour
 {
 
 	public Transform skyboxLight;
+	public Light skyDirectionalLight;
 	public Transform counterLight;
 	public Transform counterLight2;
 	public Transform counterLight3;
@@ -15,11 +16,14 @@ public class DayNightCycle : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        skyboxLight.localRotation = Quaternion.Euler(RotationFunction(timer.ToSeconds()), 0, 0);
-        counterLight.localRotation = Quaternion.Euler(RotationAssist(timer.ToSeconds()), 45, 45);
-        counterLight2.localRotation = Quaternion.Euler(RotationAssist(timer.ToSeconds()), 135, 135);
-        counterLight3.localRotation = Quaternion.Euler(RotationAssist(timer.ToSeconds()), 225, 225);
-        counterLight4.localRotation = Quaternion.Euler(RotationAssist(timer.ToSeconds()), 315, 315);
+    	int time = timer.ToSeconds();
+
+        skyboxLight.localRotation = Quaternion.Euler(RotationFunction(time), 0, 0);
+        counterLight.localRotation = Quaternion.Euler(RotationAssist(time), 45, 45);
+        counterLight2.localRotation = Quaternion.Euler(RotationAssist(time), 135, 135);
+        counterLight3.localRotation = Quaternion.Euler(RotationAssist(time), 225, 225);
+        counterLight4.localRotation = Quaternion.Euler(RotationAssist(time), 315, 315);
+		//skyDirectionalLight.intensity = LuminosityFunction(time);
 		}
 
 	// Rotation for main Skybox light
@@ -56,5 +60,29 @@ public class DayNightCycle : MonoBehaviour
 
     	return 0;
     }
+
+    /*
+    // TOO HEAVY ON CPU
+    // Calculates Sunlight Luminosity based on time of day
+    private float LuminosityFunction(int x){
+    	if(x < 360 || x >= 1320)
+    		return 0f;
+    	if(x >= 360 && x < 390)
+    		return 0.016666f*(x-360);
+    	if(x >= 390 && x < 420)
+    		return 0.01f*(x-390) + 0.5f;
+    	if(x >= 420 && x < 720)
+    		return 0.000666f*(x-420) + 0.8f;
+    	if(x >= 720 && x < 960)
+    		return 1.0f;
+    	if(x >= 960 && x < 1260)
+    		return 1-0.000666f*(x-960);
+    	if(x >= 1260 && x < 1290)
+    		return 0.8f-0.01f*(x-1260);
+    	if(x >= 1290 && x < 1320)
+    		return 0.5f-0.016666f*(x-1290);
+    	return 0f;
+    }
+    */
 
 }
