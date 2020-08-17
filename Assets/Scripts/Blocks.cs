@@ -1,9 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class Blocks
+public abstract class Blocks
 {
 	public static int blockCount = 6;
 	public const int pixelSize = 32;
@@ -21,11 +22,50 @@ public class Blocks
 	public int tileSide;
 	public int tileBottom;
 
-	// Default constructor
-	public Blocks(int blockID){
-		Block(blockID);
+	public Type type;
+
+
+	public static Blocks Block(int blockID){
+		// The actual block encyclopedia
+
+			if(blockID == 0){
+				Air_Block aux = new Air_Block();
+				aux.type = aux.GetType();
+				return (Blocks) aux;
+			}
+			else if(blockID == 1){
+				Grass_Block aux = new Grass_Block();
+				aux.type = aux.GetType();
+				return (Blocks) aux;
+			}
+			else if(blockID == 2){
+				Dirt_Block aux = new Dirt_Block();
+				aux.type = aux.GetType();
+				return (Blocks) aux;
+			}
+			else if(blockID == 3){
+				Stone_Block aux = new Stone_Block();
+				aux.type = aux.GetType();
+				return (Blocks) aux;
+			}
+			else if(blockID == 4){
+				Wood_Block aux = new Wood_Block();
+				aux.type = aux.GetType();
+				return (Blocks) aux;
+			}
+			else if(blockID == 5){
+				MetalOre_Block aux = new MetalOre_Block();
+				aux.type = aux.GetType();
+				return (Blocks) aux;
+			}
+			else{
+				Air_Block aux = new Air_Block();
+				aux.type = aux.GetType();
+				return (Blocks) aux;
+			}
 	}
 
+	/*
 	// Easy setter
 	public void Set(string name, int[] tileCode, bool solid, bool transparent, bool invisible, bool liquid){
 		this.name = name;
@@ -38,6 +78,7 @@ public class Blocks
 		this.tileSide = tileCode[1];
 		this.tileBottom = tileCode[2];
 	}
+	*/
 
 	// Sets UV mapping for a direction
 	public Vector2[] AddTexture(Direction dir){
@@ -66,32 +107,5 @@ public class Blocks
 		return UVs;
 	}
 
-	// The actual block encyclopedia
-	public void Block(int blockID){
-		switch(blockID){
-			case 0:
-				Set("Air", new int[3]{0,0,0},false, true, true, false);
-				break;
-			case 1:
-				Set("Grass", new int[3]{1,2,3}, true, false, false, false);
-				break;
-			case 2:
-				Set("Dirt", new int[3]{3,3,3}, true, false, false, false);
-				break;
-			case 3:
-				Set("Stone", new int[3]{4,4,4}, true, false, false, false);
-				break;
-			case 4:
-				Set("Wood", new int[3]{5,6,5}, true, false, false, false);
-				break;
-			case 5:
-				Set("Metal Ore", new int[3]{7,7,7}, true, false, false, false);
-				break;
-
-			default:
-				Set("???", new int[3]{0,0,0}, false, false, true, false);
-				break;
-		}
-	}
 
 }

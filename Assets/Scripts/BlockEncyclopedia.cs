@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,7 +11,7 @@ public class BlockEncyclopedia : MonoBehaviour
     void Start()
     {
         for(int i=0;i<Blocks.blockCount;i++){
-        	blocks[i] = new Blocks(i);
+        	blocks[i] = Blocks.Block(i);
         }
     }
 }

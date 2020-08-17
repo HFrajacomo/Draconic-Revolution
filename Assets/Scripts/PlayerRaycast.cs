@@ -90,9 +90,9 @@ public class PlayerRaycast : MonoBehaviour
     	ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ);
 
     	if(loader.chunks.ContainsKey(ck)){
-			if(loader.blockBook.blocks[loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ)].solid){
-				return true;
-			}
+  			if(loader.blockBook.blocks[loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ)].solid){
+  				return true;
+  			}
 
     	}
     	return false;

@@ -818,6 +818,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skyboxLight: {fileID: 1484502056}
+  skyDirectionalLight: {fileID: 1484502057}
   counterLight: {fileID: 10270560}
   counterLight2: {fileID: 1163925708}
   counterLight3: {fileID: 152208045}
