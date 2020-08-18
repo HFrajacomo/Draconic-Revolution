@@ -240,21 +240,11 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 59614818}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff75839d79bd88f489329cbe7ce04e8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controller: {fileID: 59614820}
-  speed: 5
-  gravity: -19.62
-  jumpHeight: 5.5
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 256
-  isGrounded: 0
-  velocity: {x: 0, y: 0, z: 0}
-  move: {x: 0, y: 0, z: 0}
 --- !u!143 &59614820
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1215,55 +1205,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 299ef2f071bbe3542b46c12f0598becc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blocks:
-  - name: 
-    solid: 0
-    transparent: 0
-    invisible: 0
-    liquid: 0
-    tileTop: 0
-    tileSide: 0
-    tileBottom: 0
-  - name: 
-    solid: 0
-    transparent: 0
-    invisible: 0
-    liquid: 0
-    tileTop: 0
-    tileSide: 0
-    tileBottom: 0
-  - name: 
-    solid: 0
-    transparent: 0
-    invisible: 0
-    liquid: 0
-    tileTop: 0
-    tileSide: 0
-    tileBottom: 0
-  - name: 
-    solid: 0
-    transparent: 0
-    invisible: 0
-    liquid: 0
-    tileTop: 0
-    tileSide: 0
-    tileBottom: 0
-  - name: 
-    solid: 0
-    transparent: 0
-    invisible: 0
-    liquid: 0
-    tileTop: 0
-    tileSide: 0
-    tileBottom: 0
-  - name: 
-    solid: 0
-    transparent: 0
-    invisible: 0
-    liquid: 0
-    tileTop: 0
-    tileSide: 0
-    tileBottom: 0
 --- !u!4 &1668289088
 Transform:
   m_ObjectHideFlags: 0
@@ -1489,8 +1430,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d801250dfbe447349a16c23c03bdd8a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  xSensitivity: 1
-  ySensitivity: 1.5
+  xSensitivity: 0.1
+  ySensitivity: 0.14
   playerBody: {fileID: 59614821}
 --- !u!81 &1912773810
 AudioListener:

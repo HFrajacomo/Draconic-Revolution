@@ -17,6 +17,7 @@ public class PlayerRaycast : MonoBehaviour
 	// Current player block position
 	private CastCoord playerHead;
 	private CastCoord playerBody;
+  public MainControllerManager control;
 
 	/*
 	0 = X+
@@ -74,13 +75,15 @@ public class PlayerRaycast : MonoBehaviour
         }
 
         // Click to break block
-        if(Input.GetButtonDown("Fire1")){
+        if(control.primaryAction){
         	BreakBlock();
+          control.primaryAction = false;
         }
 
         // Click to place block
-        if(Input.GetButtonDown("Fire2")){
+        if(control.secondaryAction){
         	PlaceBlock(4);
+          control.secondaryAction = false;
         }
 
     }

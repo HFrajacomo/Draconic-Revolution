@@ -34,6 +34,7 @@ public class Chunk
 		this.obj.transform.SetParent(this.renderer.transform);
 		this.obj.GetComponent<MeshRenderer>().material = this.renderer.GetComponent<MeshRenderer>().material;
 		this.blockBook = be;
+		this.obj.layer = 8;
 	}
 
 	public void BuildOnVoxelData(VoxelData vd){
