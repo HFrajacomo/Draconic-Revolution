@@ -14,6 +14,11 @@ public class Stone_Block : Blocks
 		this.tileTop = 4;
 		this.tileSide = 4;
 		this.tileBottom = 4;	
-		//this.type = Stone_Block;	
+	}
+
+	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
+		// Changes to Metal
+		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, 5);
+		return 1;
 	}
 }

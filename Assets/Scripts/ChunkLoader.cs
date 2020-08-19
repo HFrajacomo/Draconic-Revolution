@@ -98,6 +98,7 @@ public class ChunkLoader : MonoBehaviour
     	}
     }
 
+
     // Unloads a chunk per frame from the Unloading Buffer
     private void UnloadChunk(){
     	if(toUnload.Count > 0){
@@ -117,6 +118,7 @@ public class ChunkLoader : MonoBehaviour
 		    toUnload.RemoveAt(0);
 	    }
     }
+
 
     // Gets all chunks around player's render distance
     // GetChunks automatically rebuilds chunks if reload=True

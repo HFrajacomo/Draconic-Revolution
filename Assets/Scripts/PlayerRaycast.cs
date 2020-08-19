@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -86,6 +87,12 @@ public class PlayerRaycast : MonoBehaviour
           control.secondaryAction = false;
         }
 
+        // Click for interact
+        if(control.interact){
+          Interact();
+          control.interact = false;
+        }
+
     }
 
     // Detects hit of solid block
@@ -109,7 +116,7 @@ public class PlayerRaycast : MonoBehaviour
 
     	ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
 
-		loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
+		  loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
     	loader.chunks[toUpdate].BuildChunk();
     }
 
@@ -122,9 +129,40 @@ public class PlayerRaycast : MonoBehaviour
 
     	ChunkPos toUpdate = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ);
 
-		loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
     	loader.chunks[toUpdate].BuildChunk();    	
     }
+
+    // Triggers Blocktype.OnInteract()
+    private void Interact(){
+      if(!current.active)
+        return;
+
+      ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
+
+      int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
+      Blocks selectedBlock = loader.blockBook.blocks[blockCode];
+
+      // Actual handling of message
+      int callback = selectedBlock.OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+      CallbackHandler(callback, toUpdate);
+    }
+
+    /*
+    Main Callback function for block interactions
+    (REFER TO THESE CODES WHENEVER ADDING NEW BLOCK INTERACTIONS)
+    (MAY BE NEEDED IN ORDER TO IMPLEMENT NEW POST HANDLERS FOR NEW BLOCKS)
+    */
+    private void CallbackHandler(int code, ChunkPos targetChunk){
+      // 0: No further actions necessary
+      if(code == 0)
+        return;
+      // 1: Interaction forces the target chunk to reload/rebuild
+      else if(code == 1)
+          loader.chunks[targetChunk].BuildChunk();
+
+    }
+
 
 
    public struct CastCoord{

@@ -14,7 +14,8 @@ public class Wood_Block : Blocks
 		this.tileTop = 5;
 		this.tileSide = 6;
 		this.tileBottom = 5;	
-		//this.type = Wood_Block;	
+	} 
+	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
+		return 0;
 	}
-
 }

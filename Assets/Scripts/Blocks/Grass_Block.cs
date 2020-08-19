@@ -15,6 +15,11 @@ public class Grass_Block : Blocks
 		this.tileTop = 1;
 		this.tileSide = 2;
 		this.tileBottom = 3;
-		//this.type = Grass_Block;	
+	}
+
+	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
+		// Changes to Dirt
+		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, 2);
+		return 1;
 	}
 }

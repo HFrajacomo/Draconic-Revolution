@@ -240,11 +240,22 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 59614818}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff75839d79bd88f489329cbe7ce04e8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  controller: {fileID: 59614820}
+  speed: 5
+  gravity: -19.62
+  jumpHeight: 5
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  isGrounded: 0
+  velocity: {x: 0, y: 0, z: 0}
+  move: {x: 0, y: 0, z: 0}
+  controls: {fileID: 1635249984}
 --- !u!143 &59614820
 CharacterController:
   m_ObjectHideFlags: 0
@@ -260,8 +271,8 @@ CharacterController:
   m_Radius: 0.3
   m_SlopeLimit: 45
   m_StepOffset: 0.5
-  m_SkinWidth: 0.4
-  m_MinMoveDistance: 0.0001
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!4 &59614821
 Transform:
@@ -308,6 +319,7 @@ MonoBehaviour:
   cam: {fileID: 1912773808}
   reach: 3.6
   step: 0.2
+  control: {fileID: 1635249984}
   facing: 0
 --- !u!1 &152208044
 GameObject:
@@ -505,7 +517,7 @@ GameObject:
   - component: {fileID: 471797236}
   - component: {fileID: 471797235}
   - component: {fileID: 471797234}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ChunkRenderer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1176,6 +1188,88 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!1 &1635249983
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1635249985}
+  - component: {fileID: 1635249986}
+  - component: {fileID: 1635249984}
+  m_Layer: 0
+  m_Name: MainControlManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1635249984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635249983}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d26d2c3467fcf84b92bfc368659be2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  movementX: 0
+  movementZ: 0
+  jumping: 0
+  mouseX: 0
+  mouseY: 0
+  primaryAction: 0
+  secondaryAction: 0
+--- !u!4 &1635249985
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635249983}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -68.56313, y: -31.245056, z: 14.2086}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 8
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1635249986
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635249983}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: cde34803e5267ae4cb7552c85151c7b0,
+    type: 3}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: Keyboard and Mouse
+  m_DefaultActionMap: Player
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1 &1668289086
 GameObject:
   m_ObjectHideFlags: 0
@@ -1433,6 +1527,7 @@ MonoBehaviour:
   xSensitivity: 0.1
   ySensitivity: 0.14
   playerBody: {fileID: 59614821}
+  controls: {fileID: 1635249984}
 --- !u!81 &1912773810
 AudioListener:
   m_ObjectHideFlags: 0

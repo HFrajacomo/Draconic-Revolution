@@ -14,6 +14,7 @@ public class MainControllerManager : MonoBehaviour
 
 	public bool primaryAction = false;
 	public bool secondaryAction = false;
+	public bool interact = false;
 
 
 	// Jumping
@@ -45,6 +46,10 @@ public class MainControllerManager : MonoBehaviour
 
     public void OnSecondaryAction(){
     	secondaryAction = true;
+    }
+
+    public void OnInteract(){
+    	interact = true;
     }
 
     // Update is called once per frame

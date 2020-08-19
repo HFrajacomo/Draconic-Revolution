@@ -15,6 +15,9 @@ public class Air_Block : Blocks
 		this.tileTop = 0;
 		this.tileSide = 0;
 		this.tileBottom = 0;
-		//this.type = Air_Block;
+	}
+	
+	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
+		return 0;
 	}
 }

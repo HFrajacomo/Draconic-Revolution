@@ -31,39 +31,42 @@ public abstract class Blocks
 			if(blockID == 0){
 				Air_Block aux = new Air_Block();
 				aux.type = aux.GetType();
-				return (Blocks) aux;
+				return aux;
 			}
 			else if(blockID == 1){
 				Grass_Block aux = new Grass_Block();
 				aux.type = aux.GetType();
-				return (Blocks) aux;
+				return aux;
 			}
 			else if(blockID == 2){
 				Dirt_Block aux = new Dirt_Block();
 				aux.type = aux.GetType();
-				return (Blocks) aux;
+				return aux;
 			}
 			else if(blockID == 3){
 				Stone_Block aux = new Stone_Block();
 				aux.type = aux.GetType();
-				return (Blocks) aux;
+				return aux;
 			}
 			else if(blockID == 4){
 				Wood_Block aux = new Wood_Block();
 				aux.type = aux.GetType();
-				return (Blocks) aux;
+				return aux;
 			}
 			else if(blockID == 5){
 				MetalOre_Block aux = new MetalOre_Block();
 				aux.type = aux.GetType();
-				return (Blocks) aux;
+				return aux;
 			}
 			else{
 				Air_Block aux = new Air_Block();
 				aux.type = aux.GetType();
-				return (Blocks) aux;
+				return aux;
 			}
 	}
+
+	//public abstract int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl);
+	public abstract int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl);
 
 	/*
 	// Easy setter
