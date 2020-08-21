@@ -336,20 +336,28 @@ public class ChunkLoader : MonoBehaviour
     /*
     Used for Cave system generation and above ground turbulence
     */
-    private void GenerateRidgeMultiFractal3D(int chunkX, int chunkZ, float xhash, float yhash, float zhash, float threshold, int ceiling=20){
+    private void GenerateRidgedMultiFractal3D(int chunkX, int chunkZ, float xhash, float yhash, float zhash, float threshold, int ceiling=20, float maskThreshold=0f){
     	int size = Chunk.chunkWidth;
     	chunkX *= size;
     	chunkZ *= size;
     	int i = 0;
     	int j = 0;
+        float val;
+        float mask;
 
     	for(int x=chunkX;x<chunkX+size;x++){
     		j = 0;
     		for(int z=chunkZ;z<chunkZ+size;z++){
 
+                mask = Perlin.Noise((x^z)*(xhash*yhash)*1.07f, z*zhash*0.427f);
     			for(int y=0;y<Chunk.chunkDepth;y++){
+                    
+                    if(mask < maskThreshold){
+                        cacheTurbulanceMap[i,y,j] = 0;
+                        continue;
+                    }
 
-       				float val = Perlin.RidgedMultiFractal(x*xhash, y*yhash, z*zhash);
+       				val = Perlin.RidgedMultiFractal(x*xhash, y*yhash, z*zhash);
     				
     				if(val >= threshold && y <= ceiling)
     					cacheTurbulanceMap[i,y,j] = 1;
@@ -789,9 +797,10 @@ public class ChunkLoader : MonoBehaviour
 		int zhash = 30;
 
         
-		// Grass Heightmap is hold on Cache 1
-		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:100);
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:20, ceilingLevel:50);
+		// Grass Heightmap is hold on Cache 1 and first octave on Cache 2
+        
+		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:60);
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:10, ceilingLevel:40);
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
 
 		BilinearInterpolateMap(cacheHeightMap);
@@ -815,20 +824,12 @@ public class ChunkLoader : MonoBehaviour
 		// Adds to cacheVoxdata
 		ApplyHeightMaps();
         
-
         // Cave Systems
-        //GenerateRidgeMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.45f, ceiling:99);
-		return new VoxelData(cacheVoxdata);
-        //return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap));
+        GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:40, maskThreshold:0.7f);
+        //return new VoxelData(cacheTurbulanceMap);
+        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:40);
 	}
 
-
-    private int SmoothTurbulance(float x){
-        if(x < 1)
-            return 0;
-        else
-            return 1;
-    }
 }
 
 

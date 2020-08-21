@@ -10,20 +10,6 @@ public class VoxelData
 		this.data = (int[,,])data.Clone();
 	}
 
-	// Slices edges of turbulanceMaps
-	public static int[,,] SliceTurbulance(int[,,] turbulanceMap){
-		int[,,] newdata = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
-
-		for(int x=0; x<Chunk.chunkWidth;x++){
-			for(int y=0;y<Chunk.chunkDepth;y++){
-				for(int z=0;z<Chunk.chunkWidth;z++){
-					newdata[x,y,z] = turbulanceMap[x,y,z];
-				}
-			}
-		}
-		return newdata;
-	}
-
 	public static VoxelData CutUnderground(VoxelData a, VoxelData b, int upper=-1, int lower=-1){
 		int[,,] vd = new int[a.GetWidth(), a.GetHeight(), a.GetDepth()];
 
