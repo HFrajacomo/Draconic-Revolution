@@ -22,66 +22,44 @@ public abstract class Blocks
 	public int tileSide;
 	public int tileBottom;
 
-	public Type type;
-
-
+	/*
+	Every new block addition must have a scope in the IF tree
+	*/
 	public static Blocks Block(int blockID){
 		// The actual block encyclopedia
 
 			if(blockID == 0){
 				Air_Block aux = new Air_Block();
-				aux.type = aux.GetType();
 				return aux;
 			}
 			else if(blockID == 1){
 				Grass_Block aux = new Grass_Block();
-				aux.type = aux.GetType();
 				return aux;
 			}
 			else if(blockID == 2){
 				Dirt_Block aux = new Dirt_Block();
-				aux.type = aux.GetType();
 				return aux;
 			}
 			else if(blockID == 3){
 				Stone_Block aux = new Stone_Block();
-				aux.type = aux.GetType();
 				return aux;
 			}
 			else if(blockID == 4){
 				Wood_Block aux = new Wood_Block();
-				aux.type = aux.GetType();
 				return aux;
 			}
 			else if(blockID == 5){
 				MetalOre_Block aux = new MetalOre_Block();
-				aux.type = aux.GetType();
 				return aux;
 			}
 			else{
 				Air_Block aux = new Air_Block();
-				aux.type = aux.GetType();
 				return aux;
 			}
 	}
 
 	//public abstract int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl);
 	public abstract int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl);
-
-	/*
-	// Easy setter
-	public void Set(string name, int[] tileCode, bool solid, bool transparent, bool invisible, bool liquid){
-		this.name = name;
-		this.solid = solid;
-		this.transparent = transparent;
-		this.invisible = invisible;
-		this.liquid = liquid;
-
-		this.tileTop = tileCode[0];
-		this.tileSide = tileCode[1];
-		this.tileBottom = tileCode[2];
-	}
-	*/
 
 	// Sets UV mapping for a direction
 	public Vector2[] AddTexture(Direction dir){

@@ -44,6 +44,30 @@ public static class Perlin
         return Noise(coord.x, coord.y);
     }
 
+    // New addition to turbulance generation
+    public static float RidgedMultiFractal(float x, float y, float z)
+    {
+        var X = Mathf.FloorToInt(x) & 0xff;
+        var Y = Mathf.FloorToInt(y) & 0xff;
+        var Z = Mathf.FloorToInt(z) & 0xff;
+        x -= Mathf.Floor(x);
+        y -= Mathf.Floor(y);
+        z -= Mathf.Floor(z);
+        var u = Fade(x);
+        var v = Fade(y);
+        var w = Fade(z);
+        var A  = (perm[X  ] + Y) & 0xff;
+        var B  = (perm[X+1] + Y) & 0xff;
+        var AA = (perm[A  ] + Z) & 0xff;
+        var BA = (perm[B  ] + Z) & 0xff;
+        var AB = (perm[A+1] + Z) & 0xff;
+        var BB = (perm[B+1] + Z) & 0xff;
+        return Mathf.Abs(Lerp(w, Lerp(v, Lerp(u, Grad(perm[AA  ], x, y  , z  ), Grad(perm[BA  ], x-1, y  , z  )),
+                               Lerp(u, Grad(perm[AB  ], x, y-1, z  ), Grad(perm[BB  ], x-1, y-1, z  ))),
+                       Lerp(v, Lerp(u, Grad(perm[AA+1], x, y  , z-1), Grad(perm[BA+1], x-1, y  , z-1)),
+                               Lerp(u, Grad(perm[AB+1], x, y-1, z-1), Grad(perm[BB+1], x-1, y-1, z-1)))));
+    }
+
     public static float Noise(float x, float y, float z)
     {
         var X = Mathf.FloorToInt(x) & 0xff;

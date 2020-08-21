@@ -246,7 +246,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 59614820}
-  speed: 5
+  speed: 10
   gravity: -19.62
   jumpHeight: 5
   layerMask:
@@ -953,11 +953,6 @@ MonoBehaviour:
   worldSeed: 500000
   hashSeed: 0
   caveSeed: 0
-  x_mask_div: 575
-  y_mask_div: 200
-  z_mask_div: 575
-  threshold: 0.33
-  thresholdMask: 0.63
   rend: {fileID: 471797234}
   WORLD_GENERATED: 0
 --- !u!4 &1192772368
@@ -1005,7 +1000,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ticks: 0
   minutes: 0
-  hours: 6
+  hours: 12
   days: 0
   DEBUGTIMEMULT: 1
 --- !u!4 &1322082559
@@ -1225,6 +1220,7 @@ MonoBehaviour:
   mouseY: 0
   primaryAction: 0
   secondaryAction: 0
+  interact: 0
 --- !u!4 &1635249985
 Transform:
   m_ObjectHideFlags: 0

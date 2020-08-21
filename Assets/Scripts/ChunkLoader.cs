@@ -20,13 +20,6 @@ public class ChunkLoader : MonoBehaviour
 	public float hashSeed;
 	public float caveSeed;
 
-	// Cave 3D Generation
-	public float x_mask_div=575;
-	public float y_mask_div=200;
-	public float z_mask_div=575;
-	public float threshold = 0.33f;
-	public float thresholdMask = 0.63f;
-
 	// Static Batching
 	public ChunkRenderer rend;
 
@@ -41,6 +34,8 @@ public class ChunkLoader : MonoBehaviour
 	private	int[,,] cacheVoxdata = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
 	private List<int[,]> cacheMaps = new List<int[,]>();
 	private List<int> cacheBlockCodes = new List<int>();
+    private int[,,] cacheTurbulanceData = new int[Chunk.chunkWidth+1, Chunk.chunkDepth+1, Chunk.chunkWidth+1];
+    private int[,,] cacheTurbulanceMap = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
 
     // Start is called before the first frame update
     void Start()
@@ -262,7 +257,7 @@ public class ChunkLoader : MonoBehaviour
     	reducing the amount of Perlin Noise calls, and using linear interpolation
     	to guess the heights in between Noise samples.
     The Notch Interpolation also causes terrain to be smoother.
-    */
+    
     private VoxelData NotchInterpolation(int chunkX, int chunkZ, int groundLevel=1){
     	int size = Chunk.chunkWidth;
     	chunkX *= size;
@@ -323,6 +318,7 @@ public class ChunkLoader : MonoBehaviour
 
     	return new VoxelData(cacheVoxdata);
     }
+    */
 
     // Debug Feature
     private void ToFile(int[,] heightMap, string filename){
@@ -337,8 +333,10 @@ public class ChunkLoader : MonoBehaviour
     }
 
 
-    
-    private VoxelData GeneratePerlin3D(int chunkX, int chunkZ, int groundLevel=20){
+    /*
+    Used for Cave system generation and above ground turbulence
+    */
+    private void GenerateRidgeMultiFractal3D(int chunkX, int chunkZ, float xhash, float yhash, float zhash, float threshold, int ceiling=20){
     	int size = Chunk.chunkWidth;
     	chunkX *= size;
     	chunkZ *= size;
@@ -351,21 +349,17 @@ public class ChunkLoader : MonoBehaviour
 
     			for(int y=0;y<Chunk.chunkDepth;y++){
 
-       				float val = Perlin.Noise(x*caveSeed, y*caveSeed, z*caveSeed);
-       				float mask = (0.2f*Perlin.Noise(x*y*caveSeed) + 0.8f)*Perlin.Noise(x*caveSeed/x_mask_div, y*caveSeed/y_mask_div, z*caveSeed/z_mask_div);
+       				float val = Perlin.RidgedMultiFractal(x*xhash, y*yhash, z*zhash);
     				
-    				if(val >= threshold && mask >= thresholdMask && y <= groundLevel)
-    					cacheVoxdata[i,y,j] = 1;
+    				if(val >= threshold && y <= ceiling)
+    					cacheTurbulanceMap[i,y,j] = 1;
     				else
-    					cacheVoxdata[i,y,j] = 0;
+    					cacheTurbulanceMap[i,y,j] = 0;
     			}
     			j++;
     		}
     		i++;
     	}
-
-    	return new VoxelData(cacheVoxdata);
-
     }
     
 
@@ -606,9 +600,86 @@ public class ChunkLoader : MonoBehaviour
 	    cacheBlockCodes.Clear();
     }
 
+    /*
+    // Generates a Turbulance map in 3D
+    // Adds information to int[,,] cacheTurbulanceData
+    private void GenerateTurbulancePivots(int chunkX, int chunkZ, float xhash, float zhash, float threshold, float power){
+        int size = Chunk.chunkWidth;
+        chunkX *= size;
+        chunkZ *= size;
+        int i = 0;
+        int j = 0;
+        float noiseValue;
+
+        // Heightmap Sampling
+        // Chunk Look-ahead implemented as a <= check in for
+        for(int x=chunkX;x<=chunkX+size;x+=4){
+            j = 0;
+            for(int z=chunkZ;z<=chunkZ+size;z+=4){
+
+                for(int y=0;y<=Chunk.chunkDepth;y+=4){
+                    noiseValue = Perlin.RidgedMultiFractal(chunkX*xhash, chunkX+chunkZ*(xhash*zhash), chunkZ*zhash);
+                   
+                    if(noiseValue >= threshold)
+                        cacheTurbulanceData[i, y, j] = Mathf.FloorToInt(noiseValue * power);
+                    else
+                        cacheTurbulanceData[i, y, j] = 0;
+
+                }
+                j+=4;
+            }
+            i+=4;
+        }        
+    }
+
+    // Trilinear interpolation for TurbulanceMap
+    private void TrilinearIntepolateTurbulance(int[,,] turbulanceMap){
+        int size = Chunk.chunkWidth;
+        int interpX = 0;
+        int interpZ = 0;
+        int interpY = 0;
+        float scaleX = 0f;
+        float scaleZ = 0f;
+        float scaleY = 0f;
+
+
+        // Bilinear Interpolation
+        for(int z=0;z<size;z++){
+            if(z%4 == 0){
+                interpZ+=4;
+                scaleZ = 0.25f;
+            }
+            for(int x=0;x<size;x++){
+                // If is a pivot in X axis
+                if(x%4 == 0){
+                    interpX+=4;
+                    scaleX = 0.25f;
+                }
+                for(int y=0;y<Chunk.chunkDepth;y++){
+                    if(y%4 == 0){
+                        interpY+=4;
+                        scaleY = 0.25f;
+                    }
+
+                    print(interpX + ", " + interpY + ", " + interpZ);
+                    turbulanceMap[x,y,z] = SmoothTurbulance(turbulanceMap[interpX-4, interpY-4, interpZ-4]*(1-scaleX)*(1-scaleY)*(1-scaleZ) + turbulanceMap[interpX, interpY-4, interpZ-4]*(1-scaleY)*(1-scaleZ) + turbulanceMap[interpX-4, interpY, interpZ-4]*(1-scaleX)*scaleY*(1-scaleZ) + turbulanceMap[interpX-4, interpY-4, interpZ]*(1-scaleX)*(1-scaleY)*scaleZ + turbulanceMap[interpX, interpY-4, interpZ]*scaleX*(1-scaleY)*scaleZ + turbulanceMap[interpX-4, interpY, interpZ]*(1-scaleX)*scaleY+scaleZ + turbulanceMap[interpX, interpY, interpZ-4]*scaleX*scaleY*(1-scaleZ) + turbulanceMap[interpX, interpY, interpZ]*scaleX*scaleY*scaleZ);
+
+                }
+                scaleX += 0.25f;
+                scaleY = 0;
+                interpY = 0;
+
+            }
+            interpX = 0;
+            scaleX = 0;
+            scaleZ += 0.25f;
+        }   
+    }  
+    */
+
     // Generates Pivot heightmaps
     // Returns on Cache 1
-    private void GeneratePivots(int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=20, int ceilingLevel=999){
+    private void GeneratePivots(int[,] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=20, int ceilingLevel=100){
     	int size = Chunk.chunkWidth;
     	chunkX *= size;
     	chunkZ *= size;
@@ -620,7 +691,7 @@ public class ChunkLoader : MonoBehaviour
     	for(int x=chunkX;x<=chunkX+size;x+=4){
     		j = 0;
     		for(int z=chunkZ;z<=chunkZ+size;z+=4){
-				cacheHeightMap[i, j] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/xhash, z*hashSeed/zhash))), 0, ceilingLevel);
+				selectedCache[i, j] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/xhash, z*hashSeed/zhash))), 0, ceilingLevel);
     			j+=4;
     		}
     		i+=4;
@@ -696,6 +767,16 @@ public class ChunkLoader : MonoBehaviour
 	    }
     }
 
+
+    // Applies Octaves to Pivot Map
+    private void CombinePivotMap(int[,] a, int[,] b){
+        for(int x=0;x<=Chunk.chunkWidth;x+=4){
+            for(int z=0;z<=Chunk.chunkWidth;z+=4){
+                a[x,z] = Mathf.FloorToInt((a[x,z] + b[x,z])/2);
+            }
+        }
+    }
+
     // Generates plains biome chunk
     /*
     Layer 1: Grass groundLevel = 20
@@ -707,8 +788,12 @@ public class ChunkLoader : MonoBehaviour
 		int xhash = 10;
 		int zhash = 30;
 
+        
 		// Grass Heightmap is hold on Cache 1
-		GeneratePivots(chunkX, chunkZ, xhash, zhash, groundLevel:20);
+		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:100);
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:20, ceilingLevel:50);
+        CombinePivotMap(cacheHeightMap, cacheHeightMap2);
+
 		BilinearInterpolateMap(cacheHeightMap);
 
 		// Underground is hold on Cache 2
@@ -729,9 +814,21 @@ public class ChunkLoader : MonoBehaviour
 
 		// Adds to cacheVoxdata
 		ApplyHeightMaps();
+        
 
+        // Cave Systems
+        //GenerateRidgeMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.45f, ceiling:99);
 		return new VoxelData(cacheVoxdata);
+        //return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap));
 	}
+
+
+    private int SmoothTurbulance(float x){
+        if(x < 1)
+            return 0;
+        else
+            return 1;
+    }
 }
 
 
