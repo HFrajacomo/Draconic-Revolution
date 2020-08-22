@@ -10,6 +10,7 @@ public class Chunk
 	public static int chunkWidth = 16;
 	public static int chunkDepth = 100;
 	public ChunkPos pos;
+	public string biomeName;
 
 	// Unity Settings
 	public ChunkRenderer renderer;

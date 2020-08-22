@@ -11,24 +11,20 @@ public class VoxelData
 	}
 
 	public static VoxelData CutUnderground(VoxelData a, VoxelData b, int upper=-1, int lower=-1){
-		int[,,] vd = new int[a.GetWidth(), a.GetHeight(), a.GetDepth()];
-
 		if(upper == -1)
-			upper = a.GetHeight();
+			upper = Chunk.chunkDepth;
 		if(lower == -1)
 			lower = 0;
 
-		for(int x=0;x<a.GetWidth();x++){
+		for(int x=0;x<Chunk.chunkWidth;x++){
 			for(int y=lower;y<upper;y++){
-				for(int z=0;z<a.GetDepth();z++){
-					if(a.GetCell(x,y,z) >= 1 && b.GetCell(x,y,z) == 0)
-						vd[x,y,z] = a.data[x,y,z];
-					else
-						vd[x,y,z] = 0;
+				for(int z=0;z<Chunk.chunkWidth;z++){
+					if(!(a.GetCell(x,y,z) >= 1) || !(b.GetCell(x,y,z) == 0))
+						a.SetCell(x,y,z,0);
 				}
 			} 
 		}
-		return new VoxelData(vd);
+		return a;
 	}
 
 

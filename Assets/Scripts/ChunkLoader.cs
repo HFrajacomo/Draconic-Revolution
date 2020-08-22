@@ -19,8 +19,9 @@ public class ChunkLoader : MonoBehaviour
 	public int worldSeed = 1; // 6 number integer
 	public float hashSeed;
 	public float caveSeed;
+    public BiomeHandler biomeHandler = new BiomeHandler();
 
-	// Static Batching
+	// Chunk Rendering
 	public ChunkRenderer rend;
 
 	// Flags
@@ -83,14 +84,23 @@ public class ChunkLoader : MonoBehaviour
     			return;
     		}
 
-     		//Chunk chunk = new Chunk(toLoad[0], this.rend, this.blockBook);
-    		//chunk.BuildOnVoxelData(GeneratePlainsBiome(toLoad[0].x, toLoad[0].z));
-    		//chunk.BuildChunk();
+     		
     		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook));
-    		chunks[toLoad[0]].BuildOnVoxelData(GeneratePlainsBiome(toLoad[0].x, toLoad[0].z)); 
+    		chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
     		chunks[toLoad[0]].BuildChunk();
     		toLoad.RemoveAt(0);	
     	}
+    }
+
+    private VoxelData AssignBiome(ChunkPos pos, float seed){
+        string biome = biomeHandler.Assign(pos, seed);
+        chunks[pos].biomeName = biome;
+        
+        if(biome == "Plains")
+            return GeneratePlainsBiome(pos.x, pos.z);
+        else
+            return GenerateTestBiome(pos.x, pos.z);
+        
     }
 
 
@@ -785,7 +795,7 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Generates plains biome chunk
+    // Generates Plains biome chunk
     /*
     Layer 1: Grass groundLevel = 20
     Layer 2: Dirt groundLevel = 19
@@ -797,8 +807,7 @@ public class ChunkLoader : MonoBehaviour
 		int zhash = 30;
 
         
-		// Grass Heightmap is hold on Cache 1 and first octave on Cache 2
-        
+		// Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
 		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:60);
         GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:10, ceilingLevel:40);
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
@@ -826,9 +835,26 @@ public class ChunkLoader : MonoBehaviour
         
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:40, maskThreshold:0.7f);
-        //return new VoxelData(cacheTurbulanceMap);
         return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:40);
 	}
+
+    // TEST BIOME
+    public VoxelData GenerateTestBiome(int chunkX, int chunkZ){
+        // Hash values for Plains Biomes
+        int xhash = 10;
+        int zhash = 30;
+
+        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:60);
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:10, ceilingLevel:40);
+        CombinePivotMap(cacheHeightMap, cacheHeightMap2);
+        BilinearInterpolateMap(cacheHeightMap);
+
+        cacheMaps.Add(cacheHeightMap);
+        cacheBlockCodes.Add(3);
+
+        ApplyHeightMaps();
+        return new VoxelData(cacheVoxdata);
+    }
 
 }
 
