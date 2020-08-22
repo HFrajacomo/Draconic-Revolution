@@ -5,8 +5,10 @@ using UnityEngine;
 public class BiomeHandler
 {
 	public Dictionary<string, Point4D> dataset = new Dictionary<string, Point4D>();
+	private float dispersionSeed;
 
-	public BiomeHandler(){
+	public BiomeHandler(float seed){
+		dispersionSeed = seed;
 		AddBiome(new Biome("Plains", 0.3f, 0.5f, 0.6f, 1f));
 		AddBiome(new Biome("Grassy Highlands", 0.7f, 0.5f, 0.6f, 0.9f));
 	}
@@ -22,10 +24,10 @@ public class BiomeHandler
 		of the biome distribution.
 	*/
 	public string Assign(ChunkPos pos, float seed){
-		float currentAltitude = Perlin.Noise(pos.x*seed*0.00000072f, pos.z*seed*0.00000023f);
-		float currentHumidity = Perlin.Noise(pos.x*seed*0.00000177f, pos.z*seed*0.00000018f);
-		float currentTemperature = Perlin.Noise(pos.x*seed*0.00000035f, pos.z*seed*0.00000141f);
-		float currentLightning = Perlin.Noise(pos.x*seed*0.00000422f, pos.z*seed*0.00000533f);
+		float currentAltitude = Perlin.Noise(pos.x*dispersionSeed*72.272f+(seed*0.0027f), pos.z*dispersionSeed*23.389f+(seed*0.0027f));
+		float currentHumidity = Perlin.Noise(pos.x*dispersionSeed*177.741f+(seed*0.0027f), pos.z*dispersionSeed*18.864f+(seed*0.0027f));
+		float currentTemperature = Perlin.Noise(pos.x*dispersionSeed*35.524f+(seed*0.0027f), pos.z*dispersionSeed*141.161f+(seed*0.0027f));
+		float currentLightning = Perlin.Noise(pos.x*dispersionSeed*422.271f+(seed*0.0027f), pos.z*dispersionSeed*533.319f+(seed*0.0027f));
 	
 		float lowestDistance = 99;
 		string lowestBiome = "";
@@ -44,6 +46,15 @@ public class BiomeHandler
 		return lowestBiome;
 	}
 
+	public Point4D GetFeatures(ChunkPos pos, float seed){
+		float currentAltitude = Perlin.Noise(pos.x*dispersionSeed*72.272f+(seed*0.0027f), pos.z*dispersionSeed*23.389f+(seed*0.0027f));
+		float currentHumidity = Perlin.Noise(pos.x*dispersionSeed*177.741f+(seed*0.0027f), pos.z*dispersionSeed*18.864f+(seed*0.0027f));
+		float currentTemperature = Perlin.Noise(pos.x*dispersionSeed*35.524f+(seed*0.0027f), pos.z*dispersionSeed*141.161f+(seed*0.0027f));
+		float currentLightning = Perlin.Noise(pos.x*dispersionSeed*422.271f+(seed*0.0027f), pos.z*dispersionSeed*533.319f+(seed*0.0027f));
+	
+
+		return new Point4D(currentAltitude, currentHumidity, currentTemperature, currentLightning);
+	}
 
 }
 
@@ -82,5 +93,9 @@ public struct Point4D{
 	// Calculates the euclidean distance of two Point4D elements 
 	public static float Distance(Point4D first, Point4D second){
 		return Mathf.Sqrt(Mathf.Pow(first.a-second.a, 2) + Mathf.Pow(first.b-second.b, 2) + Mathf.Pow(first.c-second.c, 2) + Mathf.Pow(first.d-second.d, 2));
+	}
+
+	public override string ToString(){
+		return "(" + a.ToString("0.##") + ", " + b.ToString("0.##") + ", " + c.ToString("0.##") + ", " + d.ToString("0.##") + ")";
 	}
 }

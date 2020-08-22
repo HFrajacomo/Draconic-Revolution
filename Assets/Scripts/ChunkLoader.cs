@@ -19,7 +19,7 @@ public class ChunkLoader : MonoBehaviour
 	public int worldSeed = 1; // 6 number integer
 	public float hashSeed;
 	public float caveSeed;
-    public BiomeHandler biomeHandler = new BiomeHandler();
+    public BiomeHandler biomeHandler;
 
 	// Chunk Rendering
 	public ChunkRenderer rend;
@@ -46,6 +46,7 @@ public class ChunkLoader : MonoBehaviour
     		worldSeed = 1;
     	}
 
+        biomeHandler = new BiomeHandler(BiomeSeedFunction(worldSeed));
     	hashSeed = TerrainSeedFunction(worldSeed);
     	caveSeed = LogSeedFunction(worldSeed);
 
@@ -95,11 +96,14 @@ public class ChunkLoader : MonoBehaviour
     private VoxelData AssignBiome(ChunkPos pos, float seed){
         string biome = biomeHandler.Assign(pos, seed);
         chunks[pos].biomeName = biome;
+        chunks[pos].features = biomeHandler.GetFeatures(pos, seed);
         
         if(biome == "Plains")
             return GeneratePlainsBiome(pos.x, pos.z);
-        else
-            return GenerateTestBiome(pos.x, pos.z);
+        else if(biome == "Grassy Highlands")
+            return GenerateGrassyHighLandsBiome(pos.x, pos.z);
+        else 
+            return GeneratePlainsBiome(pos.x, pos.z);
         
     }
 
@@ -259,76 +263,11 @@ public class ChunkLoader : MonoBehaviour
     	return (0.3f/999999)*t + 0.1f;
     }
 
-
-    // DEPRECATED
-    /*
-    Generates a Perlian VoxelData for chunks using chunkX and chunkY
-    This process has been optimized with "Notch Interpolation". A way of
-    	reducing the amount of Perlin Noise calls, and using linear interpolation
-    	to guess the heights in between Noise samples.
-    The Notch Interpolation also causes terrain to be smoother.
-    
-    private VoxelData NotchInterpolation(int chunkX, int chunkZ, int groundLevel=1){
-    	int size = Chunk.chunkWidth;
-    	chunkX *= size;
-    	chunkZ *= size;
-    	int i = 0;
-    	int j = 0;
-
-		// Heightmap Sampling
-		// Chunk Look-ahead implemented as a <= check in for
-    	for(int x=chunkX;x<=chunkX+size;x+=4){
-    		j = 0;
-    		for(int z=chunkZ;z<=chunkZ+size;z+=4){
-				cacheHeightMap[i, j] = groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/10, z*hashSeed/30)));
-    			j+=4;
-    		}
-    		i+=4;
-    	}
-
-    	int interpX = 0;
-    	int interpZ = 0;
-    	float scaleX = 0f;
-    	float scaleZ = 0f;	
-		
-    	// Bilinear Interpolation
-    	for(int z=0;z<size;z++){
-    		if(z%4 == 0){
-    			interpZ+=4;
-    			scaleZ = 0.25f;
-    		}
-    		for(int x=0;x<size;x++){
-    			// If is a pivot in X axis
-    			if(x%4 == 0){
-    				interpX+=4;
-    				scaleX = 0.25f;
-    			}
-
-    			cacheHeightMap[x,z] = Mathf.RoundToInt(((cacheHeightMap[interpX-4, interpZ-4])*(1-scaleX)*(1-scaleZ)) + (cacheHeightMap[interpX, interpZ-4]*scaleX*(1-scaleZ)) + (cacheHeightMap[interpX-4, interpZ]*scaleZ*(1-scaleX)) + (cacheHeightMap[interpX, interpZ]*scaleX*scaleZ));
-    			scaleX += 0.25f;
-
-    		}
-    		interpX = 0;
-    		scaleX = 0;
-    		scaleZ += 0.25f;
-    	}
-
-    	// Heightmap Drawing
-    	for(int x=0;x<size;x++){
-    		for(int z=0;z<size;z++){
-    			for(int y=0;y<Chunk.chunkDepth;y++){
-    				if(y <= cacheHeightMap[x,z])
-    					cacheVoxdata[x,y,z] = 1;
-    				else
-    					cacheVoxdata[x,y,z] = 0;
-    			}
-    		}
-    	}
-
-
-    	return new VoxelData(cacheVoxdata);
+    // Calculates the biomeSeed of BiomeHandler
+    private float BiomeSeedFunction(int t){
+        return 0.04f*(0.03f*Mathf.Sin(t));
     }
-    */
+
 
     // Debug Feature
     private void ToFile(int[,] heightMap, string filename){
@@ -709,7 +648,7 @@ public class ChunkLoader : MonoBehaviour
     	for(int x=chunkX;x<=chunkX+size;x+=4){
     		j = 0;
     		for(int z=chunkZ;z<=chunkZ+size;z+=4){
-				selectedCache[i, j] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((Chunk.chunkDepth-groundLevel)*(Perlin.Noise(x*hashSeed/xhash, z*hashSeed/zhash))), 0, ceilingLevel);
+				selectedCache[i, j] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*hashSeed/xhash, z*hashSeed/zhash))), 0, ceilingLevel);
     			j+=4;
     		}
     		i+=4;
@@ -796,11 +735,6 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Generates Plains biome chunk
-    /*
-    Layer 1: Grass groundLevel = 20
-    Layer 2: Dirt groundLevel = 19
-    Layer 3: Stone groundLevel = 17
-    */
 	public VoxelData GeneratePlainsBiome(int chunkX, int chunkZ){
 		// Hash values for Plains Biomes
 		int xhash = 10;
@@ -808,8 +742,8 @@ public class ChunkLoader : MonoBehaviour
 
         
 		// Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
-		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:60);
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:10, ceilingLevel:40);
+		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:25);
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, groundLevel:18, ceilingLevel:30);
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
 
 		BilinearInterpolateMap(cacheHeightMap);
@@ -834,26 +768,43 @@ public class ChunkLoader : MonoBehaviour
 		ApplyHeightMaps();
         
         // Cave Systems
-        GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:40, maskThreshold:0.7f);
-        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:40);
-	}
+        GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:20, maskThreshold:0.7f);
+        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:20);
+    }
 
-    // TEST BIOME
-    public VoxelData GenerateTestBiome(int chunkX, int chunkZ){
-        // Hash values for Plains Biomes
+    // Generates Grassy Highlands biome chunk
+    public VoxelData GenerateGrassyHighLandsBiome(int chunkX, int chunkZ){
+        // Hash values for Grassy Highlands Biomes
         int xhash = 10;
         int zhash = 30;
 
-        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:60);
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:10, ceilingLevel:40);
+        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:30, ceilingLevel:60);
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:30, ceilingLevel:60);
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
         BilinearInterpolateMap(cacheHeightMap);
 
-        cacheMaps.Add(cacheHeightMap);
+        // Underground is hold on Cache 2
+        AddFromMap(cacheHeightMap, -5);
+
+        // Adds Cache 2 to pipeline
+        cacheMaps.Add(cacheHeightMap2);
         cacheBlockCodes.Add(3);
 
+        // Dirt is hold on Cache 3
+        AddFromMap(cacheHeightMap, -1, cacheNumber:3);
+
+        // Adds rest to pipeline
+        cacheMaps.Add(cacheHeightMap3);
+        cacheBlockCodes.Add(2);
+        cacheMaps.Add(cacheHeightMap);
+        cacheBlockCodes.Add(1);
+
+        // Adds to cacheVoxdata
         ApplyHeightMaps();
-        return new VoxelData(cacheVoxdata);
+
+        // Cave Systems
+        GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:40, maskThreshold:0.7f);
+        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:40);
     }
 
 }
