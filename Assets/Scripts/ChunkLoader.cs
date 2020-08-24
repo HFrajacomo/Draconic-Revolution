@@ -32,10 +32,10 @@ public class ChunkLoader : MonoBehaviour
 	private int[,] cacheHeightMap2 = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
 	private int[,] cacheHeightMap3 = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
 	private int[,] cacheHeightMap4 = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+    private int[,] cachePivotMap = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
 	private	int[,,] cacheVoxdata = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
 	private List<int[,]> cacheMaps = new List<int[,]>();
 	private List<int> cacheBlockCodes = new List<int>();
-    private int[,,] cacheTurbulanceData = new int[Chunk.chunkWidth+1, Chunk.chunkDepth+1, Chunk.chunkWidth+1];
     private int[,,] cacheTurbulanceMap = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
 
     // Start is called before the first frame update
@@ -272,8 +272,8 @@ public class ChunkLoader : MonoBehaviour
     // Debug Feature
     private void ToFile(int[,] heightMap, string filename){
     	string a = "";
-    	for(int x=15;x>=0;x--){
-    		for(int y=0;y<16;y++){
+    	for(int x=16;x>=0;x--){
+    		for(int y=0;y<=16;y++){
     			a += (heightMap[x,y] + "\t");
     		}
     		a += "\n";
@@ -557,102 +557,91 @@ public class ChunkLoader : MonoBehaviour
 	    cacheBlockCodes.Clear();
     }
 
-    /*
-    // Generates a Turbulance map in 3D
-    // Adds information to int[,,] cacheTurbulanceData
-    private void GenerateTurbulancePivots(int chunkX, int chunkZ, float xhash, float zhash, float threshold, float power){
-        int size = Chunk.chunkWidth;
-        chunkX *= size;
-        chunkZ *= size;
-        int i = 0;
-        int j = 0;
-        float noiseValue;
-
-        // Heightmap Sampling
-        // Chunk Look-ahead implemented as a <= check in for
-        for(int x=chunkX;x<=chunkX+size;x+=4){
-            j = 0;
-            for(int z=chunkZ;z<=chunkZ+size;z+=4){
-
-                for(int y=0;y<=Chunk.chunkDepth;y+=4){
-                    noiseValue = Perlin.RidgedMultiFractal(chunkX*xhash, chunkX+chunkZ*(xhash*zhash), chunkZ*zhash);
-                   
-                    if(noiseValue >= threshold)
-                        cacheTurbulanceData[i, y, j] = Mathf.FloorToInt(noiseValue * power);
-                    else
-                        cacheTurbulanceData[i, y, j] = 0;
-
-                }
-                j+=4;
-            }
-            i+=4;
-        }        
-    }
-
-    // Trilinear interpolation for TurbulanceMap
-    private void TrilinearIntepolateTurbulance(int[,,] turbulanceMap){
-        int size = Chunk.chunkWidth;
-        int interpX = 0;
-        int interpZ = 0;
-        int interpY = 0;
-        float scaleX = 0f;
-        float scaleZ = 0f;
-        float scaleY = 0f;
-
-
-        // Bilinear Interpolation
-        for(int z=0;z<size;z++){
-            if(z%4 == 0){
-                interpZ+=4;
-                scaleZ = 0.25f;
-            }
-            for(int x=0;x<size;x++){
-                // If is a pivot in X axis
-                if(x%4 == 0){
-                    interpX+=4;
-                    scaleX = 0.25f;
-                }
-                for(int y=0;y<Chunk.chunkDepth;y++){
-                    if(y%4 == 0){
-                        interpY+=4;
-                        scaleY = 0.25f;
-                    }
-
-                    print(interpX + ", " + interpY + ", " + interpZ);
-                    turbulanceMap[x,y,z] = SmoothTurbulance(turbulanceMap[interpX-4, interpY-4, interpZ-4]*(1-scaleX)*(1-scaleY)*(1-scaleZ) + turbulanceMap[interpX, interpY-4, interpZ-4]*(1-scaleY)*(1-scaleZ) + turbulanceMap[interpX-4, interpY, interpZ-4]*(1-scaleX)*scaleY*(1-scaleZ) + turbulanceMap[interpX-4, interpY-4, interpZ]*(1-scaleX)*(1-scaleY)*scaleZ + turbulanceMap[interpX, interpY-4, interpZ]*scaleX*(1-scaleY)*scaleZ + turbulanceMap[interpX-4, interpY, interpZ]*(1-scaleX)*scaleY+scaleZ + turbulanceMap[interpX, interpY, interpZ-4]*scaleX*scaleY*(1-scaleZ) + turbulanceMap[interpX, interpY, interpZ]*scaleX*scaleY*scaleZ);
-
-                }
-                scaleX += 0.25f;
-                scaleY = 0;
-                interpY = 0;
-
-            }
-            interpX = 0;
-            scaleX = 0;
-            scaleZ += 0.25f;
-        }   
-    }  
-    */
-
     // Generates Pivot heightmaps
-    // Returns on Cache 1
-    private void GeneratePivots(int[,] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=20, int ceilingLevel=100){
+    private void GeneratePivots(int[,] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, int octave=0, int groundLevel=20, int ceilingLevel=100){
     	int size = Chunk.chunkWidth;
-    	chunkX *= size;
-    	chunkZ *= size;
+    	int chunkXmult = chunkX * size;
+    	int chunkZmult = chunkZ * size;
     	int i = 0;
     	int j = 0;
 
 		// Heightmap Sampling
-		// Chunk Look-ahead implemented as a <= check in for
-    	for(int x=chunkX;x<=chunkX+size;x+=4){
+    	for(int x=chunkXmult;x<chunkXmult+size;x+=4){
     		j = 0;
-    		for(int z=chunkZ;z<=chunkZ+size;z+=4){
+    		for(int z=chunkZmult;z<chunkZmult+size;z+=4){
 				selectedCache[i, j] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*hashSeed/xhash, z*hashSeed/zhash))), 0, ceilingLevel);
     			j+=4;
     		}
     		i+=4;
     	}
+
+
+        // Look Ahead to X+
+        switch(biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ), worldSeed)){
+            case "Plains":
+                MixPlainsBorderPivots(selectedCache, chunkX, chunkZ, false, octave);
+                break;
+            case "Grassy Highlands":
+                MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, false, octave);
+                break;
+            default:
+                print("Deu Merda");
+                break;
+        }
+
+        // Look Ahead to Z+
+        switch(biomeHandler.Assign(new ChunkPos(chunkX, chunkZ+1), worldSeed)){
+            case "Plains":
+                MixPlainsBorderPivots(selectedCache, chunkX, chunkZ, true, octave);
+                break;
+            case "Grassy Highlands":
+                MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, true, octave);
+                break;
+            default:
+                print("Deu Merda");
+                break;
+        }
+
+        // Look ahead into XZ+
+        switch(biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ+1), worldSeed)){
+            case "Plains":
+                MixPlainsBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true);
+                break;
+            case "Grassy Highlands":
+                MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true);
+                break;
+            default:
+                print("Deu Merda");
+                break;
+        }        
+    }
+
+    // Builds Lookahead pivots for biome border smoothing
+    public void GenerateLookAheadPivots(int[,] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, bool isSide, int groundLevel=0, int ceilingLevel=99){
+        int size = Chunk.chunkWidth;
+        chunkX *= size;
+        chunkZ *= size;
+        int i = 0;
+
+        // If is looking ahead into X+ Chunk
+        if(isSide){
+            for(int x=chunkX; x<=chunkX+size; x+=4){
+                selectedMap[i, size] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*hashSeed/xhash, (chunkZ+size)*hashSeed/zhash))), 0, ceilingLevel);
+                i+=4;
+            }
+        }
+        // If is looking ahead into Z+ Chunk
+        else{
+            for(int z=chunkZ; z<chunkZ+size; z+=4){ // Don't generate corner twice
+                selectedMap[size, i] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise((chunkX+size)*hashSeed/xhash, z*hashSeed/zhash))), 0, ceilingLevel);
+                i+=4;
+            }
+        }
+    }
+
+    // Builds Lookahead pivot of corner chunk for biome border smoothing
+    public void GenerateLookAheadCorner(int[,] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=0, int ceilingLevel=99){
+        selectedMap[Chunk.chunkWidth, Chunk.chunkWidth] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth)*hashSeed/xhash, ((chunkZ+1)*Chunk.chunkWidth)*hashSeed/zhash))), 0, ceilingLevel);
     }
 
 
@@ -734,6 +723,20 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
+    // Applies Octaves to border pivot maps
+    private void CombineBorderPivots(int[,] selectedMap, int[,] auxMap, bool isSide){
+        if(isSide){
+            for(int x=0; x<=Chunk.chunkWidth; x+=4){
+                selectedMap[Chunk.chunkWidth, x] = Mathf.FloorToInt((selectedMap[Chunk.chunkWidth, x] + auxMap[Chunk.chunkWidth, x])/2);
+            }
+        }
+        else{
+            for(int x=0; x<Chunk.chunkWidth; x+=4){ // < sign to not calculate corner twice
+                selectedMap[x, Chunk.chunkWidth] = Mathf.FloorToInt((selectedMap[x, Chunk.chunkWidth] + auxMap[x, Chunk.chunkWidth])/2);
+            }            
+        }
+    }
+
     // Generates Plains biome chunk
 	public VoxelData GeneratePlainsBiome(int chunkX, int chunkZ){
 		// Hash values for Plains Biomes
@@ -742,8 +745,8 @@ public class ChunkLoader : MonoBehaviour
 
         
 		// Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
-		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:25);
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, groundLevel:18, ceilingLevel:30);
+		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, octave:0, groundLevel:20, ceilingLevel:25);
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, octave:1, groundLevel:18, ceilingLevel:30);
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
 
 		BilinearInterpolateMap(cacheHeightMap);
@@ -772,14 +775,33 @@ public class ChunkLoader : MonoBehaviour
         return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:20);
     }
 
+    // Inserts Plains biome border pivots on another selectedHeightMap
+    private void MixPlainsBorderPivots(int[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
+        int xhash = 10;
+        int zhash = 30;
+
+        if(!corner){
+            if(octave == 0)
+                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:20, ceilingLevel:25);
+            else
+                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, isSide, groundLevel:18, ceilingLevel:30);
+        }
+        else{
+            if(octave == 0)
+                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:25);
+            else
+                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, groundLevel:18, ceilingLevel:30);
+        }
+    }
+
     // Generates Grassy Highlands biome chunk
     public VoxelData GenerateGrassyHighLandsBiome(int chunkX, int chunkZ){
         // Hash values for Grassy Highlands Biomes
         int xhash = 10;
         int zhash = 30;
 
-        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, groundLevel:30, ceilingLevel:60);
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:30, ceilingLevel:60);
+        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, octave:0, groundLevel:30, ceilingLevel:60);
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, octave:1, groundLevel:30, ceilingLevel:60);
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
         BilinearInterpolateMap(cacheHeightMap);
 
@@ -805,6 +827,26 @@ public class ChunkLoader : MonoBehaviour
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:40, maskThreshold:0.7f);
         return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:40);
+    }
+
+    // Inserts Plains biome border pivots on another selectedHeightMap
+    private void MixGrassyHighlandsBorderPivots(int[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
+        int xhash = 10;
+        int zhash = 30;
+
+        if(!corner){
+            if(octave == 0)
+                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:30, ceilingLevel:60);
+            else
+                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, isSide, groundLevel:30, ceilingLevel:60);            
+        }
+        else{
+            if(octave == 0)
+                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:30, ceilingLevel:60);
+            else
+                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:30, ceilingLevel:60);
+
+        }
     }
 
 }

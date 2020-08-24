@@ -636,7 +636,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 5, y: 0}
-  m_SizeDelta: {x: 1000, y: 100}
+  m_SizeDelta: {x: 1500, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &756285225
 MonoBehaviour:
@@ -694,6 +694,7 @@ MonoBehaviour:
   timer: {fileID: 1322082558}
   str: {fileID: 756285225}
   biome: {fileID: 871458469}
+  character: {fileID: 59614821}
   chunkLoader: {fileID: 1192772367}
 --- !u!1 &871458467
 GameObject:
