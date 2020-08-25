@@ -16,7 +16,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   shadows:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 1, z: 1, w: -0.81374323}
+    m_Value: {x: 1, y: 1, z: 1, w: -0.72332734}
   midtones:
     m_OverrideState: 1
     m_Value: {x: 1, y: 1, z: 1, w: 0.32549733}
@@ -342,7 +342,7 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 2
   meteringMode:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 2
   luminanceSource:
     m_OverrideState: 0
@@ -358,7 +358,7 @@ MonoBehaviour:
     m_Value: 0
   limitMax:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: 5
   curveMap:
     m_OverrideState: 1
     m_Value:
@@ -366,16 +366,16 @@ MonoBehaviour:
       m_Curve:
       - serializedVersion: 3
         time: 0.006982781
-        value: -0.59051347
-        inSlope: -6.0879326
-        outSlope: -6.0879326
+        value: -0.46618485
+        inSlope: -6.600292
+        outSlope: -6.600292
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
-        outWeight: 0.0635591
+        outWeight: 0.05833333
       - serializedVersion: 3
-        time: 4.852757
-        value: 15.294855
+        time: 4.932816
+        value: 16.362146
         inSlope: -0.23680729
         outSlope: -0.23680729
         tangentMode: 0
