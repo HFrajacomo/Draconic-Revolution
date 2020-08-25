@@ -7,8 +7,8 @@ public class PlayerRaycast : MonoBehaviour
 {
 	public ChunkLoader loader;
 	public Transform cam;
-	public float reach = 3.6f;
-	public float step = 0.1f;
+	public float reach = 4.0f;
+	public float step = 0.04f;
 	private Vector3 position;
 	private Vector3 direction;
 	private Vector3 cachePos;
@@ -48,50 +48,51 @@ public class PlayerRaycast : MonoBehaviour
 
     	// Raycast Detection
     	position = cam.position;
-        direction = Vector3.Normalize(cam.forward);
+      direction = Vector3.Normalize(cam.forward);
 
-        // Shoots Raycast
-        while(traveledDistance <= reach){
-        	cachePos = position + direction*traveledDistance;
-        	current = new CastCoord(cachePos);
+      // Shoots Raycast
+      while(traveledDistance <= reach){
+      	cachePos = position + direction*traveledDistance;
+      	current = new CastCoord(cachePos);
 
-        	// Out of bounds control
-        	if(current.blockY >= Chunk.chunkDepth || current.blockY < 0f){
-        		return;
-        	}
+      	// Out of bounds control
+      	if(current.blockY >= Chunk.chunkDepth || current.blockY < 0f){
+      		return;
+      	}
 
-        	// Checks for solid block hit
-        	if(HitSolid(current)){
-        		facing = current - lastCoord;
-        		FOUND = true;
-        		break;
-        	}
-        	else{
-        		lastCoord = current;
-        		traveledDistance += step;
-        	}
-        }
-        if(!FOUND){
-        	current = new CastCoord(false);
-        }
+      	// Checks for solid block hit
+      	if(HitSolid(current)){
+      		facing = current - lastCoord;
+      		FOUND = true;
+      		break;
+      	}
+      	else{
+      		lastCoord = current;
+      		traveledDistance += step;
+      	}
+      }
 
-        // Click to break block
-        if(control.primaryAction){
-        	BreakBlock();
-          control.primaryAction = false;
-        }
+      if(!FOUND){
+      	current = new CastCoord(false);
+      }
 
-        // Click to place block
-        if(control.secondaryAction){
-        	PlaceBlock(4);
-          control.secondaryAction = false;
-        }
+      // Click to break block
+      if(control.primaryAction){
+      	BreakBlock();
+        control.primaryAction = false;
+      }
 
-        // Click for interact
-        if(control.interact){
-          Interact();
-          control.interact = false;
-        }
+      // Click to place block
+      if(control.secondaryAction){
+      	PlaceBlock(4);
+        control.secondaryAction = false;
+      }
+
+      // Click for interact
+      if(control.interact){
+        Interact();
+        control.interact = false;
+      }
 
     }
 
