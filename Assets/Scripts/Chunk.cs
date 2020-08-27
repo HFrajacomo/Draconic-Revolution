@@ -21,6 +21,7 @@ public class Chunk
 
 	// Cache Information
     private List<Vector3> vertices = new List<Vector3>();
+    private List<int> transparentTris = new List<int>();
     private List<int> triangles = new List<int>();
     private List<Vector2> UVs = new List<Vector2>();
     private Mesh mesh;
@@ -34,7 +35,7 @@ public class Chunk
 		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
 		this.obj.transform.SetParent(this.renderer.transform);
-		this.obj.GetComponent<MeshRenderer>().material = this.renderer.GetComponent<MeshRenderer>().material;
+		this.obj.GetComponent<MeshRenderer>().materials = this.renderer.GetComponent<MeshRenderer>().materials;
 		this.blockBook = be;
 		this.obj.layer = 8;
 	}
@@ -45,7 +46,6 @@ public class Chunk
 
 
 	public void BuildChunk(){
-		mesh = new Mesh();
 		int thisBlock;
 		int neighborBlock;
 
@@ -54,48 +54,138 @@ public class Chunk
     			for(int z=0; z<data.GetDepth(); z++){
     				thisBlock = data.GetCell(x,y,z);
 
-    				// If invisible block
-	    			if(blockBook.blocks[thisBlock].invisible){
-	    				continue;
-	    			}
-	    			//Make Cube
-			    	for(int i=0; i<6; i++){
-			    		// Air Check
-			    		neighborBlock = data.GetNeighbor(x, y, z, (Direction)i);
-			    		if(blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible){
-			    			// Make Face
-					    	vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
-					    	
-					    	UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
-					    	
-					    	int vCount = vertices.Count;
+    				// If is a full block
+    				if(thisBlock >= 0){
 
-					    	triangles.Add(vCount -4);
-					    	triangles.Add(vCount -4 +1);
-					    	triangles.Add(vCount -4 +2);
-					    	triangles.Add(vCount -4);
-					    	triangles.Add(vCount -4 +2);
-					    	triangles.Add(vCount -4 +3);
-			    		}
+	    				// If invisible block
+		    			if(blockBook.blocks[thisBlock].invisible){
+		    				continue;
+		    			}
+		    			//Make Cube
+				    	for(int i=0; i<6; i++){
+				    		// Air Check
+				    		neighborBlock = data.GetNeighbor(x, y, z, (Direction)i);
 
-			    	}
+				    		// If neighbor is a block
+				    		if(neighborBlock >= 0){
+					    		if(blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible){
+					    			// Make Face
+							    	vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
+							    	
+							    	UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
+							    	
+							    	int vCount = vertices.Count;
 
+							    	triangles.Add(vCount -4);
+							    	triangles.Add(vCount -4 +1);
+							    	triangles.Add(vCount -4 +2);
+							    	triangles.Add(vCount -4);
+							    	triangles.Add(vCount -4 +2);
+							    	triangles.Add(vCount -4 +3);
+					    		}
+					    	}
+					    	// If neighbor is an asset
+					    	else{
+					    		neighborBlock = (neighborBlock * -1) - 1;
+
+					    		if(blockBook.objects[neighborBlock].transparent || blockBook.objects[neighborBlock].invisible){
+					    			// Make Face
+							    	vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
+							    	
+							    	UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
+							    	
+							    	int vCount = vertices.Count;
+
+							    	triangles.Add(vCount -4);
+							    	triangles.Add(vCount -4 +1);
+							    	triangles.Add(vCount -4 +2);
+							    	triangles.Add(vCount -4);
+							    	triangles.Add(vCount -4 +2);
+							    	triangles.Add(vCount -4 +3);
+					    		}
+					    	}					    		
+					    }
+
+				    }
+				    // If is an object-type block
+				    else{
+				    	thisBlock = (thisBlock * -1) - 1;
+
+				    	if(blockBook.objects[thisBlock].invisible){
+				    		continue;
+				    	}
+
+				    	for(int i=0; i<6; i++){
+				    		neighborBlock = data.GetNeighbor(x, y, z, (Direction)i);
+
+				    		// If is a full block
+				    		if(neighborBlock >= 0){
+					    		if(blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible){
+
+					    			int vCount = vertices.Count;
+
+					    			vertices.AddRange(blockBook.objects[neighborBlock].ToWorldSpace(new Vector3(x,y,z)));
+
+					    			foreach(int tri in blockBook.objects[neighborBlock].mesh.triangles)
+					    				transparentTris.Add(tri + vCount);
+
+					    			UVs.AddRange(blockBook.objects[neighborBlock].mesh.uv);
+				    				break;
+				    			}
+				    		}
+
+				    		// If is an object type block
+				    		else{
+					    		neighborBlock = (neighborBlock * -1) - 1;
+
+					    		if(blockBook.objects[neighborBlock].transparent || blockBook.objects[neighborBlock].invisible){
+					    			int vCount = vertices.Count;
+
+					    			vertices.AddRange(blockBook.objects[neighborBlock].ToWorldSpace(new Vector3(x,y,z)));
+					    			
+					    			foreach(int tri in blockBook.objects[neighborBlock].mesh.triangles)
+					    				transparentTris.Add(tri + vCount);
+
+					    			UVs.AddRange(blockBook.objects[neighborBlock].mesh.uv);
+				    				break;
+				    			}				    			
+				    		}
+				    	}
+
+				    }
 	    		}
 	    	}
     	}
 
+		mesh = new Mesh();
 
-    	mesh.Clear();
-    	mesh.vertices = vertices.ToArray();
-    	mesh.triangles = triangles.ToArray();
-    	mesh.uv = UVs.ToArray();
-    	mesh.RecalculateNormals();
+		if(transparentTris.Count > 0){
+	    	mesh.Clear();
+			mesh.subMeshCount = 2;
+	    	mesh.vertices = vertices.ToArray();
+	    	mesh.SetTriangles(triangles.ToArray(), 0);
+	    	this.obj.GetComponent<MeshCollider>().sharedMesh = mesh;
+    		mesh.SetTriangles(transparentTris, 1);
+    		mesh.uv = UVs.ToArray();
+    		mesh.RecalculateNormals();
+
+    	}
+    	else{
+	    	mesh.Clear();
+	    	mesh.subMeshCount = 2;
+	    	mesh.vertices = vertices.ToArray();   
+	    	mesh.SetTriangles(triangles.ToArray(), 0);
+	    	mesh.uv = UVs.ToArray();
+    		mesh.RecalculateNormals();
+	    	this.obj.GetComponent<MeshCollider>().sharedMesh = mesh;
+    	}
+
 
     	vertices.Clear();
     	triangles.Clear();
+    	transparentTris.Clear();
     	UVs.Clear();
 
     	this.obj.GetComponent<MeshFilter>().sharedMesh = mesh;
-    	this.obj.GetComponent<MeshCollider>().sharedMesh = mesh;
     }
 }

@@ -84,7 +84,7 @@ public class PlayerRaycast : MonoBehaviour
 
       // Click to place block
       if(control.secondaryAction){
-      	PlaceBlock(4);
+      	PlaceBlock(-1);
         control.secondaryAction = false;
       }
 
@@ -97,16 +97,28 @@ public class PlayerRaycast : MonoBehaviour
     }
 
     // Detects hit of solid block
-    private bool HitSolid(CastCoord coords){
+    public bool HitSolid(CastCoord coords){
     	ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ);
+      int blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
-    	if(loader.chunks.ContainsKey(ck)){
-  			if(loader.blockBook.blocks[loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ)].solid){
-  				return true;
-  			}
-
-    	}
-    	return false;
+      // If hits a full block
+      if(blockID >= 0){
+      	if(loader.chunks.ContainsKey(ck)){
+    			if(loader.blockBook.blocks[blockID].solid){
+    				return true;
+    			}
+      	}
+      }
+        // If hits an Asset
+      else{
+        if(loader.chunks.ContainsKey(ck)){
+          blockID = (blockID * -1) - 1;
+          if(loader.blockBook.objects[blockID].solid){
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     // Block Breaking mechanic
@@ -123,15 +135,28 @@ public class PlayerRaycast : MonoBehaviour
 
     // Block Placing mechanic
     private void PlaceBlock(int blockCode){
-    	// Won't happen if not raycasting something or if block is in player's body or head
-    	if(!current.active || CastCoord.Eq(lastCoord, playerHead) || CastCoord.Eq(lastCoord, playerBody)){
-    		return;
-    	}
+      int translatedBlockCode;
+
+      // Encodes for Block Mode
+      if(blockCode >= 0){
+        // Won't happen if not raycasting something or if block is in player's body or head
+        if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.blocks[blockCode].solid) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.blocks[blockCode].solid)){
+          return;
+        }
+      }
+      // Encodes for Asset Mode
+      else{
+        translatedBlockCode = (blockCode * -1) - 1;
+        // Won't happen if not raycasting something or if block is in player's body or head
+        if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.objects[translatedBlockCode].solid) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.objects[translatedBlockCode].solid)){
+          return;
+        }
+      }
 
     	ChunkPos toUpdate = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ);
 
 		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-    	loader.chunks[toUpdate].BuildChunk();    	
+      loader.chunks[toUpdate].BuildChunk();
     }
 
     // Triggers Blocktype.OnInteract()

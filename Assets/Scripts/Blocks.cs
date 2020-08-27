@@ -58,7 +58,6 @@ public abstract class Blocks
 			}
 	}
 
-	//public abstract int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl);
 	public abstract int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl);
 
 	// Sets UV mapping for a direction
