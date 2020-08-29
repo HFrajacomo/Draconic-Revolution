@@ -43,7 +43,7 @@ public abstract class BlocklikeObject
 		return newVert;
 	}
 
-	public abstract int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl);
+	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 
 	public void LoadMesh(){
 		GameObject go;

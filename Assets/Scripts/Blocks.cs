@@ -58,7 +58,7 @@ public abstract class Blocks
 			}
 	}
 
-	public abstract int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl);
+	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 
 	// Sets UV mapping for a direction
 	public Vector2[] AddTexture(Direction dir){
