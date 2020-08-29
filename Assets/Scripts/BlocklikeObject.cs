@@ -43,8 +43,6 @@ public abstract class BlocklikeObject
 		return newVert;
 	}
 
-	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
-
 	public void LoadMesh(){
 		GameObject go;
 		Vector3[] newVerts;
@@ -73,4 +71,12 @@ public abstract class BlocklikeObject
 		}
 		this.mesh.vertices = newVerts;
 	}
+
+	/*
+	VIRTUAL METHODS
+	*/
+
+	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
+	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ){return 0;}
+	
 }

@@ -136,17 +136,23 @@ public class PlayerRaycast : MonoBehaviour
     // Block Placing mechanic
     private void PlaceBlock(int blockCode){
       int translatedBlockCode;
+      bool isAsset;
 
       // Encodes for Block Mode
       if(blockCode >= 0){
+        isAsset = false;
+        translatedBlockCode = blockCode;
+
         // Won't happen if not raycasting something or if block is in player's body or head
-        if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.blocks[blockCode].solid) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.blocks[blockCode].solid)){
+        if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.blocks[translatedBlockCode].solid) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.blocks[blockCode].solid)){
           return;
         }
       }
       // Encodes for Asset Mode
       else{
         translatedBlockCode = (blockCode * -1) - 1;
+        isAsset = true;
+
         // Won't happen if not raycasting something or if block is in player's body or head
         if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.objects[translatedBlockCode].solid) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.objects[translatedBlockCode].solid)){
           return;
@@ -155,8 +161,16 @@ public class PlayerRaycast : MonoBehaviour
 
     	ChunkPos toUpdate = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ);
 
+      // Actually places block/asset into terrain
 		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
       loader.chunks[toUpdate].BuildChunk();
+
+      // Applies OnPlace operation for given block
+      if(!isAsset)
+        loader.blockBook.blocks[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ);
+      else
+        loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ);
+      
     }
 
     // Triggers Blocktype.OnInteract()

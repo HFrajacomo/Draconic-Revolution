@@ -58,7 +58,6 @@ public abstract class Blocks
 			}
 	}
 
-	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 
 	// Sets UV mapping for a direction
 	public Vector2[] AddTexture(Direction dir){
@@ -87,5 +86,10 @@ public abstract class Blocks
 		return UVs;
 	}
 
+	/*
+	VIRTUAL METHODS
+	*/
+	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
+	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ){return 0;}
 
 }
