@@ -90,6 +90,7 @@ public abstract class Blocks
 	VIRTUAL METHODS
 	*/
 	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
-	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ){return 0;}
+	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
+	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 
 }

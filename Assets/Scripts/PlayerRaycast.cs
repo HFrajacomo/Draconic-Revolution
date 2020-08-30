@@ -61,7 +61,8 @@ public class PlayerRaycast : MonoBehaviour
       	}
 
       	// Checks for solid block hit
-      	if(HitSolid(current)){
+        // Checks for hit
+      	if(HitAll(current)){ // HitSolid
       		facing = current - lastCoord;
       		FOUND = true;
       		break;
@@ -121,6 +122,18 @@ public class PlayerRaycast : MonoBehaviour
       return false;
     }
 
+    // Detects hit in any block except air
+    public bool HitAll(CastCoord coords){
+      ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ);
+      int blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
+
+      // If hits something
+      if(blockID != 0)
+        if(loader.chunks.ContainsKey(ck))
+          return true;
+      return false;
+    }
+
     // Block Breaking mechanic
     private void BreakBlock(){
     	if(!current.active){
@@ -128,9 +141,17 @@ public class PlayerRaycast : MonoBehaviour
     	}
 
     	ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
+      int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
+
 
 		  loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
     	loader.chunks[toUpdate].BuildChunk();
+
+      // Triggers OnBreak
+      if(blockCode >= 0)
+        loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+      else
+        loader.blockBook.objects[(blockCode*-1)-1].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
     }
 
     // Block Placing mechanic
@@ -167,9 +188,9 @@ public class PlayerRaycast : MonoBehaviour
 
       // Applies OnPlace operation for given block
       if(!isAsset)
-        loader.blockBook.blocks[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ);
+        loader.blockBook.blocks[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, loader);
       else
-        loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ);
+        loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, loader);
       
     }
 
@@ -179,12 +200,16 @@ public class PlayerRaycast : MonoBehaviour
         return;
 
       ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
-
+      int callback;
       int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
-      Blocks selectedBlock = loader.blockBook.blocks[blockCode];
+      
+      
+      if(blockCode >= 0)
+        callback = loader.blockBook.blocks[blockCode].OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+      else
+        callback = loader.blockBook.objects[(blockCode*-1)-1].OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
 
       // Actual handling of message
-      int callback = selectedBlock.OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
       CallbackHandler(callback, toUpdate);
     }
 

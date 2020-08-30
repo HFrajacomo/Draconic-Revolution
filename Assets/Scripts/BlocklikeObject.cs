@@ -10,6 +10,7 @@ public abstract class BlocklikeObject
 	public bool invisible; // Should not render at all
 	public bool liquid;
 	public static int objectCount = 1;
+	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();
 
 	// Texture
 	public string prefabName;
@@ -77,6 +78,7 @@ public abstract class BlocklikeObject
 	*/
 
 	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
-	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ){return 0;}
-	
+	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
+	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
+
 }

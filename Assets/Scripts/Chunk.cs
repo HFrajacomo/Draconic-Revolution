@@ -7,6 +7,7 @@ public class Chunk
 
 	// Chunk Settings
 	public VoxelData data;
+	public VoxelMetadata metadata;
 	public static int chunkWidth = 16;
 	public static int chunkDepth = 100;
 	public ChunkPos pos;
@@ -27,6 +28,7 @@ public class Chunk
     private Mesh mesh;
 
 	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be){
+		this.metadata = new VoxelMetadata(); // May change when chunk loads
 		this.pos = pos;
 		this.renderer = r;
 		this.obj.AddComponent<MeshFilter>();

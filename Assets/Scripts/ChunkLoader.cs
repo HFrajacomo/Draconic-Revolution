@@ -14,6 +14,7 @@ public class ChunkLoader : MonoBehaviour
 	public List<ChunkPos> toLoad = new List<ChunkPos>();
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
 	public BlockEncyclopedia blockBook;
+    public VFXLoader vfx;
 
 	// World Generation
 	public int worldSeed = 1; // 6 number integer
@@ -70,9 +71,10 @@ public class ChunkLoader : MonoBehaviour
     
     // Erases loaded chunks dictionary
     private void ClearAllChunks(){
-    	foreach(var item in chunks.Keys){
+    	foreach(ChunkPos item in chunks.Keys){
     		Destroy(chunks[item].obj);
     		chunks.Remove(item);
+            vfx.RemoveChunk(item);
     	}
     }
 
@@ -89,6 +91,7 @@ public class ChunkLoader : MonoBehaviour
     		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook));
     		chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
     		chunks[toLoad[0]].BuildChunk();
+            vfx.NewChunk(toLoad[0]);
     		toLoad.RemoveAt(0);	
     	}
     }
@@ -123,6 +126,7 @@ public class ChunkLoader : MonoBehaviour
 			Chunk popChunk = chunks[toUnload[0]];
 			chunks.Remove(popChunk.pos);    		
 			Destroy(popChunk.obj);
+            vfx.RemoveChunk(popChunk.pos);
 
 		    toUnload.RemoveAt(0);
 	    }
