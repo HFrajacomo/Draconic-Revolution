@@ -11,6 +11,7 @@ public abstract class BlocklikeObject
 	public bool liquid;
 	public static int objectCount = 1;
 	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();
+	public bool needsRotation = false;
 
 	// Texture
 	public string prefabName;
@@ -44,6 +45,23 @@ public abstract class BlocklikeObject
 		return newVert;
 	}
 
+	// Moves all vertices from local to world space
+	public Vector3[] ToWorldSpace(Vector3 pos, Vector3[] v){
+		if(this.mesh == null){
+			return null;
+		}
+
+		Vector3[] newVert = new Vector3[v.Length];
+
+
+		for(int i=0;i<v.Length;i++){
+			newVert[i] = v[i] + pos;
+		}
+
+		return newVert;
+	}
+
+
 	public void LoadMesh(){
 		GameObject go;
 		Vector3[] newVerts;
@@ -73,6 +91,31 @@ public abstract class BlocklikeObject
 		this.mesh.vertices = newVerts;
 	}
 
+	// Used to Rotate a set of Vector3 that represent mesh.vertices
+	public Vector3[] Rotate(float x=0, float y=0, float z=0){
+		Vector3[] newV = new Vector3[this.mesh.vertices.Length];
+
+		if(x != 0){
+			for(int i=0;i<this.mesh.vertices.Length;i++){
+				newV[i] = Quaternion.AngleAxis(x, Vector3.right) * this.mesh.vertices[i];
+			}
+		}
+		else if(y != 0){
+			for(int i=0;i<this.mesh.vertices.Length;i++){
+				newV[i] = Quaternion.AngleAxis(y, Vector3.up) * this.mesh.vertices[i];
+			}			
+		}
+		else if(z != 0){
+			for(int i=0;i<this.mesh.vertices.Length;i++){
+				newV[i] = Quaternion.AngleAxis(z, Vector3.forward) * this.mesh.vertices[i];
+			}			
+		}
+		else
+			return this.mesh.vertices;
+
+		return newV;
+	}
+
 	// Unassigns metadata from block (use after OnBreak events)
 	public void EraseMetadata(ChunkPos pos, int x, int y, int z, ChunkLoader cl){cl.chunks[pos].metadata.GetMetadata(x,y,z).Reset();}
 	
@@ -91,5 +134,5 @@ public abstract class BlocklikeObject
 	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){return 0;}
 	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader cl){return true;}
-
+	public virtual Vector3[] ApplyRotation(Chunk c, int blockX, int blockY, int blockZ){return this.mesh.vertices;}
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 
 /*
@@ -25,8 +26,9 @@ public class Torch_Object : BlocklikeObject
 		this.invisible = false;
 		this.liquid = false;
 		this.prefabName = "Torch_Object";
-		this.centeringOffset = new Vector3(0f,-0.3f,0f);
+		this.centeringOffset = new Vector3(0f,-0.2f,0.4f);
 		this.scaling = new Vector3(1f, 2f, 1f);
+		this.needsRotation = true;
 
 		this.fireVFX = GameObject.Find("----- PrefabVFX -----/FireVFX");
 	}
@@ -51,13 +53,43 @@ public class Torch_Object : BlocklikeObject
 
 	// Instantiates a FireVFX
 	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){
-		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.2f, pos.z*Chunk.chunkWidth + blockZ), Quaternion.identity);
+		Vector3 fireOffset;
+
+		if(facing == 0)
+			fireOffset = new Vector3(0.15f,0f,0f);
+		else if(facing == 1)
+			fireOffset = new Vector3(0f,0f,-0.15f);
+		else if(facing == 2)
+			fireOffset = new Vector3(-0.15f, 0f, 0f);
+		else if(facing == 3)
+			fireOffset = new Vector3(0f, 0f, 0.15f);
+		else
+			fireOffset = new Vector3(0f,0f,0f);
+
+		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, Quaternion.identity);
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
+		//RotateFire(fire, pos, blockX, blockY, blockZ, cl);
+
 		this.vfx.Add(pos, fire, active:true);
 		
 		cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state = (ushort)(facing + 4);
 
 		return 0;
+	}
+
+	private void RotateFire(GameObject fire, ChunkPos pos, int x, int y, int z, ChunkLoader cl){
+		ushort? state = cl.chunks[pos].metadata.GetMetadata(x,y,z).state;
+		Transform fireT = fire.GetComponent<Transform>();
+
+		if(state == 0 || state == 4)
+			fireT.position += new Vector3(-0.4f,0,0);
+		else if(state == 1 || state == 5)
+			fireT.position += new Vector3(0,0,0.4f);
+		else if(state == 2 || state == 6)
+			fireT.position += new Vector3(0.4f,0,0);
+		else if(state == 3 || state == 7)
+			fireT.position += new Vector3(0,0,-0.4f);
+
 	}
 
 	// Destroys FireVFX
@@ -256,6 +288,25 @@ public class Torch_Object : BlocklikeObject
 				}
 			}
 		}
+	}
+
+	// Applies Rotation to block in Chunk.BuildChunk()
+	public override Vector3[] ApplyRotation(Chunk c, int blockX, int blockY, int blockZ){
+		ushort? state = c.metadata.GetMetadata(blockX, blockY, blockZ).state;
+
+		if(state == 1 || state == 5)
+			return this.Rotate(0,180,0);
+		else if(state == 0 || state == 4){
+			return this.Rotate(0, 90, 0);
+		}
+		else if(state == 2 || state == 6){
+			return this.Rotate(0,-90,0);
+		}
+		else if(state == 3 || state == 7){
+			return this.mesh.vertices;
+		}
+		else
+			return this.mesh.vertices;
 	}
 
 }

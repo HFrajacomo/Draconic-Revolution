@@ -126,12 +126,16 @@ public class Chunk
 
 					    			int vCount = vertices.Count;
 
-					    			vertices.AddRange(blockBook.objects[neighborBlock].ToWorldSpace(new Vector3(x,y,z)));
+					    			// If block has special Rotation Rules
+					    			if(blockBook.objects[thisBlock].needsRotation)
+					    				vertices.AddRange(blockBook.objects[thisBlock].ToWorldSpace(new Vector3(x,y,z), blockBook.objects[thisBlock].ApplyRotation(this, x,y,z)));
+					    			else
+										vertices.AddRange(blockBook.objects[thisBlock].ToWorldSpace(new Vector3(x,y,z)));
 
-					    			foreach(int tri in blockBook.objects[neighborBlock].mesh.triangles)
+					    			foreach(int tri in blockBook.objects[thisBlock].mesh.triangles)
 					    				transparentTris.Add(tri + vCount);
 
-					    			UVs.AddRange(blockBook.objects[neighborBlock].mesh.uv);
+					    			UVs.AddRange(blockBook.objects[thisBlock].mesh.uv);
 				    				break;
 				    			}
 				    		}
@@ -143,12 +147,16 @@ public class Chunk
 					    		if(blockBook.objects[neighborBlock].transparent || blockBook.objects[neighborBlock].invisible){
 					    			int vCount = vertices.Count;
 
-					    			vertices.AddRange(blockBook.objects[neighborBlock].ToWorldSpace(new Vector3(x,y,z)));
+					    			// If block has special Rotation Rules
+					    			if(blockBook.objects[thisBlock].needsRotation)
+					    				vertices.AddRange(blockBook.objects[thisBlock].ToWorldSpace(new Vector3(x,y,z), blockBook.objects[thisBlock].ApplyRotation(this, x,y,z)));
+					    			else
+										vertices.AddRange(blockBook.objects[thisBlock].ToWorldSpace(new Vector3(x,y,z)));
 					    			
-					    			foreach(int tri in blockBook.objects[neighborBlock].mesh.triangles)
+					    			foreach(int tri in blockBook.objects[thisBlock].mesh.triangles)
 					    				transparentTris.Add(tri + vCount);
 
-					    			UVs.AddRange(blockBook.objects[neighborBlock].mesh.uv);
+					    			UVs.AddRange(blockBook.objects[thisBlock].mesh.uv);
 				    				break;
 				    			}				    			
 				    		}

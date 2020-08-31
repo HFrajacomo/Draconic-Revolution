@@ -200,16 +200,16 @@ public class PlayerRaycast : MonoBehaviour
         }
       }
 
-      // Actually places block/asset into terrain
-		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-      loader.chunks[toUpdate].BuildChunk();
-
       // Applies OnPlace operation for given block
       if(!isAsset)
         loader.blockBook.blocks[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
       else
         loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
-      
+ 
+
+      // Actually places block/asset into terrain
+		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+      loader.chunks[toUpdate].BuildChunk();     
     }
 
     // Triggers Blocktype.OnInteract()
