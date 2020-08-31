@@ -31,6 +31,7 @@ public class Torch_Object : BlocklikeObject
 		this.fireVFX = GameObject.Find("----- PrefabVFX -----/FireVFX");
 	}
 
+	// Turns on and off Torch
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
 		ushort? state = cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state;
 
@@ -48,7 +49,8 @@ public class Torch_Object : BlocklikeObject
 		return 0;
 	}
 
-	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl, int facing){
+	// Instantiates a FireVFX
+	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){
 		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.2f, pos.z*Chunk.chunkWidth + blockZ), Quaternion.identity);
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
 		this.vfx.Add(pos, fire, active:true);
@@ -58,6 +60,7 @@ public class Torch_Object : BlocklikeObject
 		return 0;
 	}
 
+	// Destroys FireVFX
 	public override int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader cl){
 		string name = BuildVFXName(pos,x,y,z);
 		GameObject.Destroy(this.vfx.data[pos][name]);
@@ -86,7 +89,6 @@ public class Torch_Object : BlocklikeObject
 	// Only able to place torches on walls and solid blocks
 	public override bool PlacementRule(ChunkPos pos, int x, int y, int z, int direction, ChunkLoader cl){	
 		// If is stuck to walls
-		Debug.Log(x + "," + y + "," + z);
 		if(direction <= 3 && direction >= 0){
 			int blockCode;
 			if(direction == 2){
@@ -211,20 +213,27 @@ public class Torch_Object : BlocklikeObject
 
 	// Breaks Torch if broken
 	public override void OnBlockUpdate(string type, int x, int y, int z, int budX, int budY, int budZ, int facing, ChunkLoader cl){
-		ChunkPos thisPos = new ChunkPos(Mathf.FloorToInt(x/Chunk.chunkWidth), Mathf.FloorToInt(z/Chunk.chunkWidth));
-		int X = x%Chunk.chunkWidth;
-		int Y = y%Chunk.chunkDepth;
-		int Z = z%Chunk.chunkWidth;
-		ChunkPos budPos = new ChunkPos(Mathf.FloorToInt(budX/Chunk.chunkWidth), Mathf.FloorToInt(budZ/Chunk.chunkWidth));
-		int bX = budX%Chunk.chunkWidth;
-		int bY = budY%Chunk.chunkDepth;
-		int bZ = budZ%Chunk.chunkWidth;
+		if(facing >= 4){
+			return;
+		}
+
+		CastCoord aux = new CastCoord(new Vector3(x,y,z));
+		ChunkPos thisPos = aux.GetChunkPos(); //new ChunkPos(Mathf.FloorToInt(x/Chunk.chunkWidth), Mathf.FloorToInt(z/Chunk.chunkWidth));
+		int X = aux.blockX; //x%Chunk.chunkWidth;
+		int Y = aux.blockY; //y%Chunk.chunkDepth;
+		int Z = aux.blockZ; //z%Chunk.chunkWidth;
+		aux = new CastCoord(new Vector3(budX, budY, budZ));
+		ChunkPos budPos = aux.GetChunkPos(); //new ChunkPos(Mathf.FloorToInt(budX/Chunk.chunkWidth), Mathf.FloorToInt(budZ/Chunk.chunkWidth));
+		int bX = aux.blockX; //budX%Chunk.chunkWidth;
+		int bY = aux.blockY; //budY%Chunk.chunkDepth;
+		int bZ = aux.blockZ; //budZ%Chunk.chunkWidth;
 
 		ushort? state = cl.chunks[thisPos].metadata.GetMetadata(X,Y,Z).state;
 
 		// Breaks Torch if broken attached block
-		if(type == "break" && facing == state){
+		if(type == "break" && (facing == state || facing+4 == state)){
 			cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
+			this.OnBreak(thisPos, X, Y, Z, cl);
 			EraseMetadata(thisPos, X, Y, Z, cl);		
 		}
 		// Breaks Torch if changed block is not solid
@@ -235,12 +244,14 @@ public class Torch_Object : BlocklikeObject
 				// If changed block is not solid, break
 				if(!cl.blockBook.blocks[blockCode].solid){
 					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
+					this.OnBreak(thisPos, X, Y, Z, cl);
 					EraseMetadata(thisPos, X, Y, Z, cl);					
 				}
 			}
 			else{
 				if(!cl.blockBook.objects[(blockCode*-1)-1].solid){
 					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
+					this.OnBreak(thisPos, X, Y, Z, cl);
 					EraseMetadata(thisPos, X, Y, Z, cl);					
 				}
 			}

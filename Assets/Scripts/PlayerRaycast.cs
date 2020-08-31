@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,9 +20,6 @@ public class PlayerRaycast : MonoBehaviour
 	private CastCoord playerBody;
   public MainControllerManager control;
 
-  //DEBUG
-  bool debug = false;
-
 	/*
 	0 = X+ => side
 	1 = Z- => side
@@ -33,14 +29,6 @@ public class PlayerRaycast : MonoBehaviour
 	5 = Y+ => ground
 	*/
 	public int facing;
-
-    public void ClearLog()
-    {
-        var assembly = Assembly.GetAssembly(typeof(UnityEditor.Editor));
-        var type = assembly.GetType("UnityEditor.LogEntries");
-        var method = type.GetMethod("Clear");
-        method.Invoke(new object(), null);
-    }
 
     // Update is called once per frame
     void Update()
@@ -109,15 +97,6 @@ public class PlayerRaycast : MonoBehaviour
         control.interact = false;
       }
 
-      if(debug)
-        ClearLog();
-      else{
-        print(current.ToString());
-      }
-
-      Debug.DrawLine(position, cachePos, Color.red);
-      debug = !debug;
-
     }
 
     // Detects hit of solid block
@@ -167,14 +146,18 @@ public class PlayerRaycast : MonoBehaviour
       int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
 
 
-		  loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
-    	loader.chunks[toUpdate].BuildChunk();
-
       // Triggers OnBreak
       if(blockCode >= 0)
         loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
       else
         loader.blockBook.objects[(blockCode*-1)-1].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+    
+      // Passes "break" block update to neighboring blocks
+      EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), loader);
+
+      // Actually breaks new block and updates chunk
+      loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
+      loader.chunks[toUpdate].BuildChunk();
     }
 
     // Block Placing mechanic
@@ -223,9 +206,9 @@ public class PlayerRaycast : MonoBehaviour
 
       // Applies OnPlace operation for given block
       if(!isAsset)
-        loader.blockBook.blocks[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, loader);
+        loader.blockBook.blocks[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
       else
-        loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, loader);
+        loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
       
     }
 
@@ -245,7 +228,7 @@ public class PlayerRaycast : MonoBehaviour
         callback = loader.blockBook.objects[(blockCode*-1)-1].OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
 
       // Actual handling of message
-      CallbackHandler(callback, toUpdate);
+      CallbackHandler(callback, toUpdate, current, facing);
     }
 
     /*
@@ -253,122 +236,55 @@ public class PlayerRaycast : MonoBehaviour
     (REFER TO THESE CODES WHENEVER ADDING NEW BLOCK INTERACTIONS)
     (MAY BE NEEDED IN ORDER TO IMPLEMENT NEW POST HANDLERS FOR NEW BLOCKS)
     */
-    private void CallbackHandler(int code, ChunkPos targetChunk){
+    private void CallbackHandler(int code, ChunkPos targetChunk, CastCoord thisPos, int facing){
       // 0: No further actions necessary
       if(code == 0)
         return;
       // 1: Interaction forces the target chunk to reload/rebuild
       else if(code == 1)
-          loader.chunks[targetChunk].BuildChunk();
+        loader.chunks[targetChunk].BuildChunk();
+      // 2: Emits BUD and forces chunk reload
+      else if(code == 2){
+        EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), loader);
+        loader.chunks[targetChunk].BuildChunk();        
+      }
 
     }
 
+    // Handles the emittion of BUD to neighboring blocks
+    public void EmitBlockUpdate(string type, int x, int y, int z, ChunkLoader cl){
+      CastCoord thisPos = GetCoordinates(x, y, z);
+
+      CastCoord[] neighbors = {
+      thisPos.Add(1,0,0),
+      thisPos.Add(-1,0,0),
+      thisPos.Add(0,1,0),
+      thisPos.Add(0,-1,0),
+      thisPos.Add(0,0,1),
+      thisPos.Add(0,0,-1)
+      };
+
+      int[] facings = {2,0,4,5,1,3};
 
 
-   public struct CastCoord{
-   		public int chunkX;
-   		public int chunkZ;
-   		public int blockX;
-   		public int blockY;
-   		public int blockZ;
-   		public bool active;
+      int blockCode;
+      int faceCounter=0;
 
-   		public CastCoord(bool a){
-   			chunkX = 0;
-   			chunkZ = 0;
-   			blockX = 0;
-   			blockZ = 0;
-   			blockY = 0;
-   			active = false;
-   		}
+      foreach(CastCoord c in neighbors){
+        blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
 
-   		public CastCoord(Vector3 mark){
-        Vector3 nMark = new Vector3(mark.x, mark.y, mark.z);
-
-        // X Processing
-        if(nMark.x >= 0)
-          nMark.x = (int)Math.Round(nMark.x, MidpointRounding.AwayFromZero); //floor
+        if(blockCode >= 0)
+          cl.blockBook.blocks[blockCode].OnBlockUpdate(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter], cl);
         else
-          nMark.x = (int)(nMark.x - 0.5f); // ceil
+          cl.blockBook.objects[(blockCode*-1)-1].OnBlockUpdate(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter], cl);
+      
+        faceCounter++;
+      }
+    }
 
-        chunkX = Mathf.FloorToInt(nMark.x/Chunk.chunkWidth); // floor
-
-
-        if(chunkX >= 0)
-          blockX = Mathf.FloorToInt(nMark.x%Chunk.chunkWidth); // int cast
-        else
-          blockX = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkX)+nMark.x)%Chunk.chunkWidth); // int cast
-
-        // Z Processing
-        if(nMark.z >= 0)
-          nMark.z = (int)Math.Round(nMark.z, MidpointRounding.AwayFromZero);
-        else
-          nMark.z = (int)(nMark.z - 0.5f);
-
-        chunkZ = Mathf.FloorToInt(nMark.z/Chunk.chunkWidth);
-
-        if(chunkZ >= 0)
-          blockZ = Mathf.FloorToInt(nMark.z%Chunk.chunkWidth);
-        else
-          blockZ = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkZ)+nMark.z)%Chunk.chunkWidth);
-
-
-
-        blockY = Mathf.RoundToInt(nMark.y); // Round
-
-     		active = true;
-
-        if(blockZ >= 16)
-          print("Fudeu: " + this.ToString());
-   		}
-
-   		public override string ToString(){
-   			return "ChunkX: " + chunkX + "\tChunkZ: " + chunkZ + "\tX, Y, Z: " + blockX + ", " + blockY + ", " + blockZ;
-   		}
-
-   		public static int operator-(CastCoord a, CastCoord b){
-   			int x,y,z;
-
-   			if(!b.active){
-   				return -1;
-   			}
-
-   			x = (a.chunkX*Chunk.chunkWidth+a.blockX) - (b.chunkX*Chunk.chunkWidth+b.blockX);
-   			z = (a.chunkZ*Chunk.chunkWidth+a.blockZ) - (b.chunkZ*Chunk.chunkWidth+b.blockZ);
-   			y = a.blockY - b.blockY;
-
-			/*
-			0 = X+
-			1 = Z-
-			2 = X-
-			3 = Z+
-			4 = Y-
-			5 = Y+
-			*/
-
-        if(y == -1)
-          return 4;
-        else if(y == 1)
-          return 5;
-   			else if(x == -1)
-   				return 2;
-   			else if(x == 1)
-   				return 0;
-   			else if(z == -1)
-   				return 1;
-   			else if(z == 1)
-   				return 3;
-   			else
-   				return -1;
-   		}
-
-   		public static bool Eq(CastCoord a, CastCoord b){
-   			if(a.chunkX != b.chunkX || a.chunkZ != b.chunkZ || a.blockX != b.blockX || a.blockY != b.blockY || a.blockZ != b.blockZ)
-   				return false;
-   			return true;
-
-   		}
-   }
+    private CastCoord GetCoordinates(int x, int y, int z){
+      return new CastCoord(new Vector3(x ,y ,z));
+    }
 
 
 }

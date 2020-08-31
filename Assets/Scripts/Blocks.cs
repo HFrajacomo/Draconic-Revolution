@@ -95,10 +95,10 @@ public abstract class Blocks
 		"change": When emitting block has been turned into another block or changed properties
 		"trigger": When emitting block has been electrically triggered
 	*/
-	public virtual void OnBlockUpdate(int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){}
+	public virtual void OnBlockUpdate(string type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){}
 
 	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
-	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl, int facing=0){return 0;}
+	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){return 0;}
 	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader cl){return true;}
 
