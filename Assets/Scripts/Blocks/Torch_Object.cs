@@ -2,6 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+/*
+USES STATES:
+	0 = Unlit facing X+
+	1 = Unlit facing Z-
+	2 = Unlit facing X-
+	3 = Unlit facing Z+
+	4 = Lit facing X+
+	5 = Lit facing Z-
+	6 = Lit facing X-
+	7 = Lit facing Z+
+*/
 public class Torch_Object : BlocklikeObject
 {
 	public GameObject fireVFX;
@@ -24,24 +36,24 @@ public class Torch_Object : BlocklikeObject
 
 		if(state == null)
 			return 0;
-		else if(state == 1){
+		else if(state >= 4){
 			ControlFire(pos, blockX, blockY, blockZ, state);
-			cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state = 0;
+			cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state -= 4;
 		}
-		else if(state == 0){
+		else if(state >= 0 && state < 4){
 			ControlFire(pos, blockX, blockY, blockZ, state);
-			cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state = 1;
+			cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state += 4;
 		}
 
 		return 0;
 	}
 
-	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
+	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl, int facing){
 		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.2f, pos.z*Chunk.chunkWidth + blockZ), Quaternion.identity);
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
 		this.vfx.Add(pos, fire, active:true);
 		
-		cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state = 1;
+		cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state = (ushort)(facing + 4);
 
 		return 0;
 	}
@@ -50,6 +62,7 @@ public class Torch_Object : BlocklikeObject
 		string name = BuildVFXName(pos,x,y,z);
 		GameObject.Destroy(this.vfx.data[pos][name]);
 		this.vfx.Remove(pos, name);
+		EraseMetadata(pos,x,y,z,cl);
 
 		return 0;
 	}
@@ -57,10 +70,10 @@ public class Torch_Object : BlocklikeObject
 	// Handles Fire VFX turning on and off
 	private void ControlFire(ChunkPos pos, int x, int y, int z, ushort? state){
 		// Turns off fire when it's on
-		if(state == 1)
+		if(state >= 4)
 			this.vfx.data[pos][BuildVFXName(pos, x, y, z)].SetActive(false);
 		// Turns on fire when it's off
-		else if(state == 0)
+		else if(state < 4)
 			this.vfx.data[pos][BuildVFXName(pos, x, y, z)].SetActive(true);
 	}	
 
@@ -68,6 +81,170 @@ public class Torch_Object : BlocklikeObject
 	private string BuildVFXName(ChunkPos pos, int x, int y, int z){
 		return "Torch (" + pos.x + ", " + pos.z + ") [" + x + ", " + y + ", " + z + "]";
 
+	}
+
+	// Only able to place torches on walls and solid blocks
+	public override bool PlacementRule(ChunkPos pos, int x, int y, int z, int direction, ChunkLoader cl){	
+		// If is stuck to walls
+		Debug.Log(x + "," + y + "," + z);
+		if(direction <= 3 && direction >= 0){
+			int blockCode;
+			if(direction == 2){
+				if(x > 0){
+					blockCode = cl.chunks[pos].data.GetCell(x-1,y,z);
+					if(blockCode >= 0){
+						if(cl.blockBook.blocks[blockCode].solid){
+							return true;
+						}
+					}
+					else{
+						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+							return true;
+						}
+					}
+				}
+				else{
+					ChunkPos newPos = new ChunkPos(pos.x-1, pos.z);
+					blockCode = cl.chunks[newPos].data.GetCell(Chunk.chunkWidth-1,y,z);
+					if(blockCode >= 0){
+						if(cl.blockBook.blocks[blockCode].solid){
+							return true;
+						}
+					}
+					else{
+						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+							return true;
+						}
+					}
+				}
+			}
+			else if(direction == 0){
+				if(x < Chunk.chunkWidth-1){
+					blockCode = cl.chunks[pos].data.GetCell(x+1,y,z);
+					if(blockCode >= 0){
+						if(cl.blockBook.blocks[blockCode].solid){
+							return true;
+						}
+					}
+					else{
+						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+							return true;
+						}
+					}
+				}
+				else{
+					ChunkPos newPos = new ChunkPos(pos.x+1, pos.z);
+					blockCode = cl.chunks[newPos].data.GetCell(0,y,z);
+					if(blockCode >= 0){
+						if(cl.blockBook.blocks[blockCode].solid){
+							return true;
+						}
+					}
+					else{
+						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+							return true;
+						}
+					}
+				}
+			}
+			else if(direction == 3){
+				if(z < Chunk.chunkWidth-1){
+					blockCode = cl.chunks[pos].data.GetCell(x,y,z+1);
+					if(blockCode >= 0){
+						if(cl.blockBook.blocks[blockCode].solid){
+							return true;
+						}
+					}
+					else{
+						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+							return true;
+						}
+					}
+				}
+				else{
+					ChunkPos newPos = new ChunkPos(pos.x, pos.z+1);
+					blockCode = cl.chunks[newPos].data.GetCell(x,y,0);
+					if(blockCode >= 0){
+						if(cl.blockBook.blocks[blockCode].solid){
+							return true;
+						}
+					}
+					else{
+						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+							return true;
+						}
+					}
+				}
+			}
+			else if(direction == 1){
+				if(z > 0){
+					blockCode = cl.chunks[pos].data.GetCell(x,y,z-1);
+					if(blockCode >= 0){
+						if(cl.blockBook.blocks[blockCode].solid){
+							return true;
+						}
+					}
+					else{
+						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+							return true;
+						}
+					}
+				}
+				else{
+					ChunkPos newPos = new ChunkPos(pos.x, pos.z-1);
+					blockCode = cl.chunks[newPos].data.GetCell(x,y,Chunk.chunkWidth-1);
+					if(blockCode >= 0){
+						if(cl.blockBook.blocks[blockCode].solid){
+							return true;
+						}
+					}
+					else{
+						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	// Breaks Torch if broken
+	public override void OnBlockUpdate(string type, int x, int y, int z, int budX, int budY, int budZ, int facing, ChunkLoader cl){
+		ChunkPos thisPos = new ChunkPos(Mathf.FloorToInt(x/Chunk.chunkWidth), Mathf.FloorToInt(z/Chunk.chunkWidth));
+		int X = x%Chunk.chunkWidth;
+		int Y = y%Chunk.chunkDepth;
+		int Z = z%Chunk.chunkWidth;
+		ChunkPos budPos = new ChunkPos(Mathf.FloorToInt(budX/Chunk.chunkWidth), Mathf.FloorToInt(budZ/Chunk.chunkWidth));
+		int bX = budX%Chunk.chunkWidth;
+		int bY = budY%Chunk.chunkDepth;
+		int bZ = budZ%Chunk.chunkWidth;
+
+		ushort? state = cl.chunks[thisPos].metadata.GetMetadata(X,Y,Z).state;
+
+		// Breaks Torch if broken attached block
+		if(type == "break" && facing == state){
+			cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
+			EraseMetadata(thisPos, X, Y, Z, cl);		
+		}
+		// Breaks Torch if changed block is not solid
+		else if(type == "change"){
+			int blockCode = cl.chunks[budPos].data.GetCell(bX,bY,bZ);
+
+			if(blockCode >= 0){
+				// If changed block is not solid, break
+				if(!cl.blockBook.blocks[blockCode].solid){
+					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
+					EraseMetadata(thisPos, X, Y, Z, cl);					
+				}
+			}
+			else{
+				if(!cl.blockBook.objects[(blockCode*-1)-1].solid){
+					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
+					EraseMetadata(thisPos, X, Y, Z, cl);					
+				}
+			}
+		}
 	}
 
 }

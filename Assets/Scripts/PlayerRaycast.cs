@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,7 +9,7 @@ public class PlayerRaycast : MonoBehaviour
 	public ChunkLoader loader;
 	public Transform cam;
 	public float reach = 4.0f;
-	public float step = 0.04f;
+	public float step = 0.025f;
 	private Vector3 position;
 	private Vector3 direction;
 	private Vector3 cachePos;
@@ -20,15 +21,26 @@ public class PlayerRaycast : MonoBehaviour
 	private CastCoord playerBody;
   public MainControllerManager control;
 
+  //DEBUG
+  bool debug = false;
+
 	/*
-	0 = X+
-	1 = Z-
-	2 = X-
-	3 = Z+
-	4 = Y-
-	5 = Y+
+	0 = X+ => side
+	1 = Z- => side
+	2 = X- => side
+	3 = Z+ => side
+	4 = Y- => ceiling
+	5 = Y+ => ground
 	*/
 	public int facing;
+
+    public void ClearLog()
+    {
+        var assembly = Assembly.GetAssembly(typeof(UnityEditor.Editor));
+        var type = assembly.GetType("UnityEditor.LogEntries");
+        var method = type.GetMethod("Clear");
+        method.Invoke(new object(), null);
+    }
 
     // Update is called once per frame
     void Update()
@@ -49,10 +61,11 @@ public class PlayerRaycast : MonoBehaviour
     	// Raycast Detection
     	position = cam.position;
       direction = Vector3.Normalize(cam.forward);
+      cachePos = position;
 
       // Shoots Raycast
       while(traveledDistance <= reach){
-      	cachePos = position + direction*traveledDistance;
+      	cachePos = cachePos + (direction*step);
       	current = new CastCoord(cachePos);
 
       	// Out of bounds control
@@ -63,19 +76,20 @@ public class PlayerRaycast : MonoBehaviour
       	// Checks for solid block hit
         // Checks for hit
       	if(HitAll(current)){ // HitSolid
-      		facing = current - lastCoord;
       		FOUND = true;
       		break;
       	}
-      	else{
-      		lastCoord = current;
-      		traveledDistance += step;
-      	}
+
+        traveledDistance += step;
       }
 
       if(!FOUND){
       	current = new CastCoord(false);
       }
+      else
+        lastCoord = new CastCoord(cachePos - direction*step);
+      
+      facing = current - lastCoord;
 
       // Click to break block
       if(control.primaryAction){
@@ -94,6 +108,15 @@ public class PlayerRaycast : MonoBehaviour
         Interact();
         control.interact = false;
       }
+
+      if(debug)
+        ClearLog();
+      else{
+        print(current.ToString());
+      }
+
+      Debug.DrawLine(position, cachePos, Color.red);
+      debug = !debug;
 
     }
 
@@ -182,6 +205,18 @@ public class PlayerRaycast : MonoBehaviour
 
     	ChunkPos toUpdate = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ);
 
+      // Checks if specific block has specific placement rules that may hinder the placement
+      if(!isAsset){
+        if(!loader.blockBook.blocks[translatedBlockCode].PlacementRule(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader)){
+          return;
+        }
+      }
+      else{
+        if(!loader.blockBook.objects[translatedBlockCode].PlacementRule(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader)){
+          return;
+        }
+      }
+
       // Actually places block/asset into terrain
 		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
       loader.chunks[toUpdate].BuildChunk();
@@ -248,28 +283,43 @@ public class PlayerRaycast : MonoBehaviour
    		}
 
    		public CastCoord(Vector3 mark){
-   			chunkX = Mathf.FloorToInt(mark.x/Chunk.chunkWidth);
-   			chunkZ = Mathf.FloorToInt(mark.z/Chunk.chunkWidth);
+        Vector3 nMark = new Vector3(mark.x, mark.y, mark.z);
 
-   			// X Processing
-   			if(chunkX >= 0)
-   				blockX = Mathf.RoundToInt(mark.x%Chunk.chunkWidth);
-   			else
-   				blockX = Mathf.RoundToInt(((Chunk.chunkWidth*-chunkX)+mark.x)%Chunk.chunkWidth);
-			if(blockX == Chunk.chunkWidth)
-				blockX = 0;
+        // X Processing
+        if(nMark.x >= 0)
+          nMark.x = (int)Math.Round(nMark.x, MidpointRounding.AwayFromZero); //floor
+        else
+          nMark.x = (int)(nMark.x - 0.5f); // ceil
+
+        chunkX = Mathf.FloorToInt(nMark.x/Chunk.chunkWidth); // floor
 
 
-			// Z Processing
-   			if(chunkZ >= 0)
-   				blockZ = Mathf.RoundToInt(mark.z%Chunk.chunkWidth);
-   			else
-   				blockZ = Mathf.RoundToInt(((Chunk.chunkWidth*-chunkZ)+mark.z)%Chunk.chunkWidth);
-			if(blockZ == Chunk.chunkWidth)
-				blockZ = 0;
+        if(chunkX >= 0)
+          blockX = Mathf.FloorToInt(nMark.x%Chunk.chunkWidth); // int cast
+        else
+          blockX = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkX)+nMark.x)%Chunk.chunkWidth); // int cast
 
-   			blockY = Mathf.RoundToInt(mark.y);
-   			active = true;
+        // Z Processing
+        if(nMark.z >= 0)
+          nMark.z = (int)Math.Round(nMark.z, MidpointRounding.AwayFromZero);
+        else
+          nMark.z = (int)(nMark.z - 0.5f);
+
+        chunkZ = Mathf.FloorToInt(nMark.z/Chunk.chunkWidth);
+
+        if(chunkZ >= 0)
+          blockZ = Mathf.FloorToInt(nMark.z%Chunk.chunkWidth);
+        else
+          blockZ = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkZ)+nMark.z)%Chunk.chunkWidth);
+
+
+
+        blockY = Mathf.RoundToInt(nMark.y); // Round
+
+     		active = true;
+
+        if(blockZ >= 16)
+          print("Fudeu: " + this.ToString());
    		}
 
    		public override string ToString(){
@@ -296,7 +346,11 @@ public class PlayerRaycast : MonoBehaviour
 			5 = Y+
 			*/
 
-   			if(x == -1)
+        if(y == -1)
+          return 4;
+        else if(y == 1)
+          return 5;
+   			else if(x == -1)
    				return 2;
    			else if(x == 1)
    				return 0;
@@ -304,10 +358,6 @@ public class PlayerRaycast : MonoBehaviour
    				return 1;
    			else if(z == 1)
    				return 3;
-   			else if(y == -1)
-   				return 4;
-   			else if(y == 1)
-   				return 5;
    			else
    				return -1;
    		}

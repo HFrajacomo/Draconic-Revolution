@@ -152,6 +152,12 @@ public class Metadata{
 	}
 	// --------------------------
 
+	public void Reset(){
+		this.hp = null;
+		this.state = null;
+		this.storage = null;
+	}
+
 	// Checks for Null Metadata entries
 	public bool IsNull(){
 		if(this.hp == null && this.state == null && this.storage == null)

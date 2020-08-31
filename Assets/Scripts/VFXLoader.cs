@@ -19,6 +19,10 @@ public class VFXLoader : MonoBehaviour
 
     // Unregisters a chunk from VFXLoader
     public void RemoveChunk(ChunkPos pos){
+        // Destroy all VFX once chunk is unloaded
+        foreach(string key in this.data[pos].Keys)
+            Destroy(this.data[pos][key]);
+
     	data.Remove(pos);
     }
 

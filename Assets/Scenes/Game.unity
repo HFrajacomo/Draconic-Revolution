@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1484502057}
-  m_IndirectSpecularColor: {r: 131.15695, g: 162.51538, b: 215.08682, a: 1}
+  m_IndirectSpecularColor: {r: 0.006048624, g: 0.0049696285, b: 0.0030795895, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -429,8 +429,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   loader: {fileID: 1192772367}
   cam: {fileID: 1912773808}
-  reach: 3.6
-  step: 0.2
+  reach: 4
+  step: 0.025
   control: {fileID: 1635249984}
   facing: 0
 --- !u!1 &152208044
@@ -1630,6 +1630,7 @@ MonoBehaviour:
   renderDistance: 5
   player: {fileID: 59614821}
   blockBook: {fileID: 1668289087}
+  vfx: {fileID: 1018660373}
   worldSeed: 500000
   hashSeed: 0
   caveSeed: 0
