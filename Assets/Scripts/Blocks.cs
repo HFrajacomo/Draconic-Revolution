@@ -53,6 +53,8 @@ public abstract class Blocks
 				MetalOre_Block aux = new MetalOre_Block();
 				return aux;
 			}
+			else if(blockID == 6)
+				return new Water_Block();
 			else{
 				Air_Block aux = new Air_Block();
 				return aux;
@@ -83,6 +85,18 @@ public abstract class Blocks
 		UVs[1] = new Vector2(x+(1f/Blocks.atlasSizeX),y+(1f/Blocks.atlasSizeY));
 		UVs[2] = new Vector2(x+(1f/Blocks.atlasSizeX),y);
 		UVs[3] = new Vector2(x,y);
+
+		return UVs;
+	}
+
+	// Gets UV Map for Liquid blocks
+	public Vector2[] LiquidTexture(Direction dir){
+		Vector2[] UVs = {
+			new Vector2(0,0),
+			new Vector2(0,1),
+			new Vector2(1,1),
+			new Vector2(1,0)
+		};
 
 		return UVs;
 	}

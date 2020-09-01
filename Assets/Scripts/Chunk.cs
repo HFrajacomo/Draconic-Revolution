@@ -23,6 +23,7 @@ public class Chunk
 	// Cache Information
     private List<Vector3> vertices = new List<Vector3>();
     private List<int> transparentTris = new List<int>();
+    private List<int> liquidTris = new List<int>();
     private List<int> triangles = new List<int>();
     private List<Vector2> UVs = new List<Vector2>();
     private Mesh mesh;
@@ -70,40 +71,72 @@ public class Chunk
 
 				    		// If neighbor is a block
 				    		if(neighborBlock >= 0){
-					    		if(blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible){
-					    			// Make Face
-							    	vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
-							    	
-							    	UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
-							    	
-							    	int vCount = vertices.Count;
 
-							    	triangles.Add(vCount -4);
-							    	triangles.Add(vCount -4 +1);
-							    	triangles.Add(vCount -4 +2);
-							    	triangles.Add(vCount -4);
-							    	triangles.Add(vCount -4 +2);
-							    	triangles.Add(vCount -4 +3);
+				    			// Handles Liquid chunks
+				    			if(blockBook.blocks[thisBlock].liquid && blockBook.blocks[neighborBlock].liquid)
+				    				continue;
+
+					    		if(blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible){
+					    			
+					    			vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
+					    			int vCount = vertices.Count;
+
+					    			// Handling Liquid and non-liquid blocks
+					    			if(!blockBook.blocks[thisBlock].liquid){
+							    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
+								    	triangles.Add(vCount -4);
+								    	triangles.Add(vCount -4 +1);
+								    	triangles.Add(vCount -4 +2);
+								    	triangles.Add(vCount -4);
+								    	triangles.Add(vCount -4 +2);
+								    	triangles.Add(vCount -4 +3);
+					    			}
+							    	else{
+							    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture((Direction)i));
+								    	liquidTris.Add(vCount -4);
+								    	liquidTris.Add(vCount -4 +1);
+								    	liquidTris.Add(vCount -4 +2);
+								    	liquidTris.Add(vCount -4);
+								    	liquidTris.Add(vCount -4 +2);
+								    	liquidTris.Add(vCount -4 +3);							    	
+							    	}
+							    	
+
+
 					    		}
 					    	}
 					    	// If neighbor is an asset
 					    	else{
 					    		neighborBlock = (neighborBlock * -1) - 1;
 
+				    			// Handles Liquid chunks
+				    			if(blockBook.blocks[thisBlock].liquid && blockBook.objects[neighborBlock].liquid)
+				    				continue;
+
 					    		if(blockBook.objects[neighborBlock].transparent || blockBook.objects[neighborBlock].invisible){
 					    			// Make Face
 							    	vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
-							    	
-							    	UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
-							    	
 							    	int vCount = vertices.Count;
 
-							    	triangles.Add(vCount -4);
-							    	triangles.Add(vCount -4 +1);
-							    	triangles.Add(vCount -4 +2);
-							    	triangles.Add(vCount -4);
-							    	triangles.Add(vCount -4 +2);
-							    	triangles.Add(vCount -4 +3);
+			    					// Handling Liquid and non-liquid blocks
+					    			if(!blockBook.blocks[thisBlock].liquid){
+								    	UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
+								    	triangles.Add(vCount -4);
+								    	triangles.Add(vCount -4 +1);
+								    	triangles.Add(vCount -4 +2);
+								    	triangles.Add(vCount -4);
+								    	triangles.Add(vCount -4 +2);
+								    	triangles.Add(vCount -4 +3);
+							  		}
+							  		else{
+							    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture((Direction)i));
+								    	liquidTris.Add(vCount -4);
+								    	liquidTris.Add(vCount -4 +1);
+								    	liquidTris.Add(vCount -4 +2);
+								    	liquidTris.Add(vCount -4);
+								    	liquidTris.Add(vCount -4 +2);
+								    	liquidTris.Add(vCount -4 +3);							  			
+							  		}
 					    		}
 					    	}					    		
 					    }
@@ -122,6 +155,11 @@ public class Chunk
 
 				    		// If is a full block
 				    		if(neighborBlock >= 0){
+
+				    			// Handles Liquid chunks
+				    			if(blockBook.objects[thisBlock].liquid && blockBook.blocks[neighborBlock].liquid)
+				    				continue;
+
 					    		if(blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible){
 
 					    			int vCount = vertices.Count;
@@ -143,6 +181,10 @@ public class Chunk
 				    		// If is an object type block
 				    		else{
 					    		neighborBlock = (neighborBlock * -1) - 1;
+
+				    			// Handles Liquid chunks
+				    			if(blockBook.objects[thisBlock].liquid && blockBook.objects[neighborBlock].liquid)
+				    				continue;
 
 					    		if(blockBook.objects[neighborBlock].transparent || blockBook.objects[neighborBlock].invisible){
 					    			int vCount = vertices.Count;
@@ -167,33 +209,28 @@ public class Chunk
 	    	}
     	}
 
-		mesh = new Mesh();
+		BuildMesh();
+    }
 
-		if(transparentTris.Count > 0){
-	    	mesh.Clear();
-			mesh.subMeshCount = 2;
-	    	mesh.vertices = vertices.ToArray();
-	    	mesh.SetTriangles(triangles.ToArray(), 0);
-	    	this.obj.GetComponent<MeshCollider>().sharedMesh = mesh;
-    		mesh.SetTriangles(transparentTris, 1);
-    		mesh.uv = UVs.ToArray();
-    		mesh.RecalculateNormals();
+    // Builds meshes from verts, UVs and tris from different layers
+    private void BuildMesh(){
+    	mesh = new Mesh();
+    	mesh.Clear();
+    	mesh.subMeshCount = 3;
 
-    	}
-    	else{
-	    	mesh.Clear();
-	    	mesh.subMeshCount = 2;
-	    	mesh.vertices = vertices.ToArray();   
-	    	mesh.SetTriangles(triangles.ToArray(), 0);
-	    	mesh.uv = UVs.ToArray();
-    		mesh.RecalculateNormals();
-	    	this.obj.GetComponent<MeshCollider>().sharedMesh = mesh;
-    	}
+    	mesh.vertices = vertices.ToArray();
+    	mesh.SetTriangles(triangles.ToArray(), 0);
+    	this.obj.GetComponent<MeshCollider>().sharedMesh = mesh;
 
+    	mesh.SetTriangles(transparentTris.ToArray(), 1);
+    	mesh.SetTriangles(liquidTris.ToArray(), 2);
+    	mesh.uv = UVs.ToArray();
+    	mesh.RecalculateNormals();
 
     	vertices.Clear();
     	triangles.Clear();
     	transparentTris.Clear();
+    	liquidTris.Clear();
     	UVs.Clear();
 
     	this.obj.GetComponent<MeshFilter>().sharedMesh = mesh;

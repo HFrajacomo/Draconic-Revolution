@@ -68,28 +68,12 @@ public class Torch_Object : BlocklikeObject
 
 		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, Quaternion.identity);
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
-		//RotateFire(fire, pos, blockX, blockY, blockZ, cl);
 
 		this.vfx.Add(pos, fire, active:true);
 		
 		cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state = (ushort)(facing + 4);
 
 		return 0;
-	}
-
-	private void RotateFire(GameObject fire, ChunkPos pos, int x, int y, int z, ChunkLoader cl){
-		ushort? state = cl.chunks[pos].metadata.GetMetadata(x,y,z).state;
-		Transform fireT = fire.GetComponent<Transform>();
-
-		if(state == 0 || state == 4)
-			fireT.position += new Vector3(-0.4f,0,0);
-		else if(state == 1 || state == 5)
-			fireT.position += new Vector3(0,0,0.4f);
-		else if(state == 2 || state == 6)
-			fireT.position += new Vector3(0.4f,0,0);
-		else if(state == 3 || state == 7)
-			fireT.position += new Vector3(0,0,-0.4f);
-
 	}
 
 	// Destroys FireVFX
