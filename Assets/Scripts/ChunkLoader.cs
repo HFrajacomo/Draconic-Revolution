@@ -89,9 +89,9 @@ public class ChunkLoader : MonoBehaviour
 
      		
     		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook));
+            vfx.NewChunk(toLoad[0]);
     		chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
     		chunks[toLoad[0]].BuildChunk();
-            vfx.NewChunk(toLoad[0]);
     		toLoad.RemoveAt(0);	
     	}
     }
@@ -648,6 +648,18 @@ public class ChunkLoader : MonoBehaviour
         selectedMap[Chunk.chunkWidth, Chunk.chunkWidth] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth)*hashSeed/xhash, ((chunkZ+1)*Chunk.chunkWidth)*hashSeed/zhash))), 0, ceilingLevel);
     }
 
+    // Generates a flat map at Y level ceiling
+    private void GenerateFlatMap(int[,] selectedCache, int ceiling){
+        if(ceiling > Chunk.chunkDepth)
+            ceiling = Chunk.chunkDepth;
+
+        for(int x=0;x<Chunk.chunkWidth;x++){
+            for(int z=0;z<Chunk.chunkWidth;z++){
+                selectedCache[x,z] = ceiling;
+            }
+        }
+    }
+
 
     // Applies bilinear interpolation to a given pivotmap
     // Takes any cache and returns on itself
@@ -765,11 +777,15 @@ public class ChunkLoader : MonoBehaviour
 		// Dirt is hold on Cache 3
 		AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
+        GenerateFlatMap(cacheHeightMap4, 20);
+
 		// Adds rest to pipeline
 		cacheMaps.Add(cacheHeightMap3);
 		cacheBlockCodes.Add(2);
 		cacheMaps.Add(cacheHeightMap);
 		cacheBlockCodes.Add(1);
+        cacheMaps.Add(cacheHeightMap4);
+        cacheBlockCodes.Add(6);
 
 		// Adds to cacheVoxdata
 		ApplyHeightMaps();
@@ -819,11 +835,15 @@ public class ChunkLoader : MonoBehaviour
         // Dirt is hold on Cache 3
         AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
+        GenerateFlatMap(cacheHeightMap4, 42); //35
+
         // Adds rest to pipeline
         cacheMaps.Add(cacheHeightMap3);
         cacheBlockCodes.Add(2);
         cacheMaps.Add(cacheHeightMap);
         cacheBlockCodes.Add(1);
+        cacheMaps.Add(cacheHeightMap4);
+        cacheBlockCodes.Add(6);
 
         // Adds to cacheVoxdata
         ApplyHeightMaps();

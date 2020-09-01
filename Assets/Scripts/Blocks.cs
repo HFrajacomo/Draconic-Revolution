@@ -6,7 +6,7 @@ using UnityEngine;
 [System.Serializable]
 public abstract class Blocks
 {
-	public static int blockCount = 6;
+	public static int blockCount = 7;
 	public const int pixelSize = 32;
 	public static int atlasSizeX = 8;
 	public static int atlasSizeY = 2;
@@ -90,12 +90,15 @@ public abstract class Blocks
 	}
 
 	// Gets UV Map for Liquid blocks
-	public Vector2[] LiquidTexture(Direction dir){
+	public Vector2[] LiquidTexture(int x, int z){
+		int size = Chunk.chunkWidth;
+		int tileSize = 1/size;
+
 		Vector2[] UVs = {
-			new Vector2(0,0),
-			new Vector2(0,1),
-			new Vector2(1,1),
-			new Vector2(1,0)
+			new Vector2(x*tileSize,z*tileSize),
+			new Vector2(x*tileSize,(z+1)*tileSize),
+			new Vector2((x+1)*tileSize,(z+1)*tileSize),
+			new Vector2((x+1)*tileSize,z*tileSize)
 		};
 
 		return UVs;

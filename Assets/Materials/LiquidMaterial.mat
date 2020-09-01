@@ -23,9 +23,9 @@ Material:
     serializedVersion: 3
     m_TexEnvs: []
     m_Floats:
-    - Alpha: 0.75
+    - Alpha: 0.3
     - AnimationSpeed: 1
-    - Density: 5
+    - Density: 3
     m_Colors:
-    - BaseColor: {r: 0.1597099, g: 0.3254902, b: 0.9294118, a: 0}
-    - SecondaryColor: {r: 0.6084906, g: 0.913954, b: 1, a: 0}
+    - BaseColor: {r: 0.1597099, g: 0.3254902, b: 0.9294118, a: 0.1176471}
+    - SecondaryColor: {r: 0.1344889, g: 0.2953211, b: 0.341075, a: 0}

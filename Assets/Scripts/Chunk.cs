@@ -17,6 +17,7 @@ public class Chunk
 	// Unity Settings
 	public ChunkRenderer renderer;
 	public MeshFilter meshFilter;
+	public MeshCollider meshCollider;
 	public GameObject obj = new GameObject();
 	public BlockEncyclopedia blockBook;
 
@@ -29,15 +30,19 @@ public class Chunk
     private Mesh mesh;
 
 	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be){
-		this.metadata = new VoxelMetadata(); // May change when chunk loads
 		this.pos = pos;
+		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
 		this.renderer = r;
+		this.obj.transform.SetParent(this.renderer.transform);
+		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
+
+		this.metadata = new VoxelMetadata(); // May change when chunk loads
+
 		this.obj.AddComponent<MeshFilter>();
 		this.obj.AddComponent<MeshRenderer>();
 		this.obj.AddComponent<MeshCollider>();
-		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
-		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
-		this.obj.transform.SetParent(this.renderer.transform);
+		this.meshFilter = this.obj.GetComponent<MeshFilter>();
+		this.meshCollider = this.obj.GetComponent<MeshCollider>();
 		this.obj.GetComponent<MeshRenderer>().materials = this.renderer.GetComponent<MeshRenderer>().materials;
 		this.blockBook = be;
 		this.obj.layer = 8;
@@ -92,7 +97,7 @@ public class Chunk
 								    	triangles.Add(vCount -4 +3);
 					    			}
 							    	else{
-							    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture((Direction)i));
+							    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(x, z));
 								    	liquidTris.Add(vCount -4);
 								    	liquidTris.Add(vCount -4 +1);
 								    	liquidTris.Add(vCount -4 +2);
@@ -129,7 +134,7 @@ public class Chunk
 								    	triangles.Add(vCount -4 +3);
 							  		}
 							  		else{
-							    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture((Direction)i));
+							    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(x, z));
 								    	liquidTris.Add(vCount -4);
 								    	liquidTris.Add(vCount -4 +1);
 								    	liquidTris.Add(vCount -4 +2);
@@ -220,10 +225,11 @@ public class Chunk
 
     	mesh.vertices = vertices.ToArray();
     	mesh.SetTriangles(triangles.ToArray(), 0);
-    	this.obj.GetComponent<MeshCollider>().sharedMesh = mesh;
+    	this.meshCollider.sharedMesh = mesh;
 
     	mesh.SetTriangles(transparentTris.ToArray(), 1);
     	mesh.SetTriangles(liquidTris.ToArray(), 2);
+
     	mesh.uv = UVs.ToArray();
     	mesh.RecalculateNormals();
 
@@ -233,6 +239,6 @@ public class Chunk
     	liquidTris.Clear();
     	UVs.Clear();
 
-    	this.obj.GetComponent<MeshFilter>().sharedMesh = mesh;
+    	this.meshFilter.sharedMesh = mesh;
     }
 }
