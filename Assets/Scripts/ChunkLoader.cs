@@ -13,6 +13,8 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkPos newChunk;
 	public List<ChunkPos> toLoad = new List<ChunkPos>();
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
+    public List<ChunkPos> toDraw = new List<ChunkPos>();
+    public List<ChunkPos> toRedraw = new List<ChunkPos>();
 	public BlockEncyclopedia blockBook;
     public VFXLoader vfx;
 
@@ -66,7 +68,12 @@ public class ChunkLoader : MonoBehaviour
 
     	GetChunks(false);
     	UnloadChunk();
-    	LoadChunk();
+
+        //if(loadingCount >= 0)
+        if(toLoad.Count > 0)
+            LoadChunk();
+        else
+            DrawChunk();
     }
     
     // Erases loaded chunks dictionary
@@ -78,6 +85,7 @@ public class ChunkLoader : MonoBehaviour
     	}
     }
 
+    // Loads Chunk data, but doesn't draw them
     private void LoadChunk(){
     	if(toLoad.Count > 0){
     		// Prevention
@@ -87,13 +95,78 @@ public class ChunkLoader : MonoBehaviour
     			return;
     		}
 
-     		
-    		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook));
+            if(chunks.ContainsKey(toLoad[0])){
+                toLoad.RemoveAt(0);
+                return;
+            }
+
+    		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
             vfx.NewChunk(toLoad[0]);
     		chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
-    		chunks[toLoad[0]].BuildChunk();
+            toDraw.Add(toLoad[0]);
     		toLoad.RemoveAt(0);	
     	}
+    }
+
+    // Unloads a chunk per frame from the Unloading Buffer
+    private void UnloadChunk(){
+
+        if(toUnload.Count > 0){
+
+            if(toRedraw.Contains(toUnload[0])){
+                toRedraw.Remove(toUnload[0]);
+            }
+
+            // Prevention
+            if(toLoad.Contains(toUnload[0])){
+                toLoad.Remove(toUnload[0]);
+                toUnload.RemoveAt(0);
+                return;
+            }
+
+            if(!chunks.ContainsKey(toUnload[0])){
+                toUnload.RemoveAt(0);
+                return;
+            }
+            
+            
+            Chunk popChunk = chunks[toUnload[0]];
+            chunks.Remove(popChunk.pos);            
+            Destroy(popChunk.obj);
+            vfx.RemoveChunk(popChunk.pos);
+
+            toUnload.RemoveAt(0);
+        }
+    }
+
+
+    // Actually builds the mesh for loaded chunks
+    private void DrawChunk(){
+        if(toDraw.Count > 0){
+
+            // If chunk is still loaded
+            if(chunks.ContainsKey(toDraw[0])){
+                chunks[toDraw[0]].BuildChunk();
+                chunks[toDraw[0]].BuildSideBorder(reload:true);
+            }
+            toDraw.RemoveAt(0);
+        }
+
+        if(toRedraw.Count > 0){
+            if(toDraw.Contains(toRedraw[0])){
+                toRedraw.Add(toRedraw[0]);
+                toRedraw.RemoveAt(0);
+                return;
+            }
+
+            if(chunks.ContainsKey(toRedraw[0])){
+                if(chunks[toRedraw[0]].drawMain){
+                    chunks[toRedraw[0]].BuildSideBorder();
+                }
+                toRedraw.RemoveAt(0);
+            }
+        }
+
     }
 
     private VoxelData AssignBiome(ChunkPos pos, float seed){
@@ -108,28 +181,6 @@ public class ChunkLoader : MonoBehaviour
         else 
             return GeneratePlainsBiome(pos.x, pos.z);
         
-    }
-
-
-    // Unloads a chunk per frame from the Unloading Buffer
-    private void UnloadChunk(){
-    	if(toUnload.Count > 0){
-
-    		// Prevention
-    		if(toLoad.Contains(toUnload[0])){
-    			toLoad.Remove(toUnload[0]);
-    			toUnload.RemoveAt(0);
-    			return;
-    		}
-
-
-			Chunk popChunk = chunks[toUnload[0]];
-			chunks.Remove(popChunk.pos);    		
-			Destroy(popChunk.obj);
-            vfx.RemoveChunk(popChunk.pos);
-
-		    toUnload.RemoveAt(0);
-	    }
     }
 
 
@@ -169,7 +220,9 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x-renderDistance-1, newChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x+renderDistance-1, newChunk.z+i);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
     		}
     	}
     	else if(diff == 2){ // West
@@ -177,7 +230,9 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x+renderDistance+1, newChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x-renderDistance+1, newChunk.z+i);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
     		}
     	}
     	else if(diff == 1){ // South
@@ -185,7 +240,9 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance+1);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance+1);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
       		}
     	}
     	else if(diff == 3){ // North
@@ -193,7 +250,9 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance-1);
     			toUnload.Add(popChunk);
       			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance-1);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
        		}	
     	}
     	else if(diff == 5){ // Southeast
@@ -201,13 +260,17 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
-    			toLoad.Add(addChunk);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x+renderDistance-1, newChunk.z+i);
+       			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
     		}
-    		for(int i=-renderDistance+1; i <= renderDistance; i++){
+    		for(int i=-renderDistance+1; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i-1, newChunk.z-renderDistance);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i-1, newChunk.z-renderDistance+1);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
     		}
     	}
     	else if(diff == 6){ // Southwest
@@ -215,13 +278,17 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x-renderDistance+1, newChunk.z+i);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z-renderDistance);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i+1, newChunk.z-renderDistance+1);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
     		}
     	}
     	else if(diff == 7){ // Northwest
@@ -229,13 +296,17 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x-renderDistance+1, newChunk.z+i);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z-renderDistance);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z+renderDistance);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i+1, newChunk.z+renderDistance-1);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
     		}
     	}
     	else if(diff == 4){ // Northeast
@@ -243,16 +314,19 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x+renderDistance-1, newChunk.z+i);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i+1, currentChunk.z-renderDistance);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
+                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance-1);
     			toLoad.Add(addChunk);
+                toRedraw.Add(refreshChunk);
     		}
     	}
-
 
 	    currentChunk = newChunk;
     }

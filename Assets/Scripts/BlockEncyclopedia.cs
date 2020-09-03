@@ -22,4 +22,12 @@ public class BlockEncyclopedia : MonoBehaviour
         	objects[i].LoadMesh();
         }
     }
+
+    public dynamic Get(int i){
+        if(i >= 0)
+            return (Blocks) blocks[i];
+        else
+            return (BlocklikeObject) objects[(i*-1)-1];
+
+    }
 }

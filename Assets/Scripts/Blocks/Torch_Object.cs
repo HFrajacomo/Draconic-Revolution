@@ -5,7 +5,7 @@ using UnityEngine.Experimental.VFX;
 
 
 /*
-USES STATES:
+STATES:
 	0 = Unlit facing X+
 	1 = Unlit facing Z-
 	2 = Unlit facing X-

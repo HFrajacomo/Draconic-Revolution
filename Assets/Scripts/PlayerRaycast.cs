@@ -45,7 +45,6 @@ public class PlayerRaycast : MonoBehaviour
     	lastCoord = new CastCoord(false);
     	bool FOUND = false;
 
-
     	// Raycast Detection
     	position = cam.position;
       direction = Vector3.Normalize(cam.forward);
@@ -158,6 +157,9 @@ public class PlayerRaycast : MonoBehaviour
       // Actually breaks new block and updates chunk
       loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
       loader.chunks[toUpdate].BuildChunk();
+      loader.chunks[toUpdate].BuildSideBorder(reload:true);
+      UpdateNeighborChunk(toUpdate, current.blockX, current.blockY, current.blockZ);
+
     }
 
     // Block Placing mechanic
@@ -209,7 +211,8 @@ public class PlayerRaycast : MonoBehaviour
 
       // Actually places block/asset into terrain
 		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-      loader.chunks[toUpdate].BuildChunk();     
+      loader.chunks[toUpdate].BuildChunk();   
+      loader.chunks[toUpdate].BuildSideBorder(reload:true);
     }
 
     // Triggers Blocktype.OnInteract()
@@ -241,12 +244,15 @@ public class PlayerRaycast : MonoBehaviour
       if(code == 0)
         return;
       // 1: Interaction forces the target chunk to reload/rebuild
-      else if(code == 1)
+      else if(code == 1){
         loader.chunks[targetChunk].BuildChunk();
+        loader.chunks[targetChunk].BuildSideBorder(reload:true);
+      }
       // 2: Emits BUD and forces chunk reload
       else if(code == 2){
         EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), loader);
-        loader.chunks[targetChunk].BuildChunk();        
+        loader.chunks[targetChunk].BuildChunk();  
+        loader.chunks[targetChunk].BuildSideBorder(reload:true);   
       }
 
     }
@@ -286,5 +292,16 @@ public class PlayerRaycast : MonoBehaviour
       return new CastCoord(new Vector3(x ,y ,z));
     }
 
+    // Checks if neighbor chunk from chunkpos needs to update it's sides
+    private void UpdateNeighborChunk(ChunkPos pos, int x, int y, int z){
+      if(x == 0)
+        loader.chunks[new ChunkPos(pos.x-1, pos.z)].BuildSideBorder(reloadXM:true);
+      else if(x == Chunk.chunkWidth-1)
+        loader.chunks[new ChunkPos(pos.x+1, pos.z)].BuildSideBorder(reloadXm:true);
+      else if(z == 0)
+        loader.chunks[new ChunkPos(pos.x, pos.z-1)].BuildSideBorder(reloadZM:true);
+      else if(z == Chunk.chunkWidth-1)
+        loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder(reloadZm:true);
+    }
 
 }

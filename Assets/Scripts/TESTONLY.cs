@@ -12,3 +12,13 @@ public class TESTONLY : MonoBehaviour
     	print(Math.Round(-0.6f, MidpointRounding.AwayFromZero));
     }
 }
+
+public class test{
+	List<int> rola = new List<int>();
+	List<string> rolinha = new List<string>();
+
+	public test(){
+		this.rola.Add(1);
+		this.rolinha.Add("aa");
+	}
+}
