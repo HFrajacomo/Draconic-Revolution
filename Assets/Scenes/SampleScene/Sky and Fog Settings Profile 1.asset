@@ -92,7 +92,7 @@ MonoBehaviour:
     showEyeDropper: 1
   maxFogDistance:
     m_OverrideState: 0
-    m_Value: 5000
+    m_Value: 2
     min: 0
   mipFogMaxMip:
     m_OverrideState: 0
@@ -121,7 +121,7 @@ MonoBehaviour:
     showEyeDropper: 1
   meanFreePath:
     m_OverrideState: 0
-    m_Value: 400
+    m_Value: 300
     min: 1
   enableVolumetricFog:
     m_OverrideState: 0
@@ -260,7 +260,7 @@ MonoBehaviour:
     max: 1
   numberOfBounces:
     m_OverrideState: 0
-    m_Value: 6
+    m_Value: 2
     min: 1
     max: 10
   groundTint:
@@ -435,7 +435,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   maxShadowDistance:
     m_OverrideState: 1
-    m_Value: 50
+    m_Value: 150
     min: 0
   directionalTransmissionMultiplier:
     m_OverrideState: 1
