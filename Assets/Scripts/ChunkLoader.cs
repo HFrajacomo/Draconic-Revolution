@@ -23,6 +23,11 @@ public class ChunkLoader : MonoBehaviour
 	public float hashSeed;
 	public float caveSeed;
     public BiomeHandler biomeHandler;
+    private bool isBorderXP = false;   // True if the assigned biomes on neighbor chunks are different
+    private bool isBorderZP = false;   // True if the assigned biomes on neighbor chunks are different
+    private bool isBorderXM = false;
+    private bool isBorderZM = false;
+    private bool isBorderXZP = false;
 
 	// Chunk Rendering
 	public ChunkRenderer rend;
@@ -40,6 +45,7 @@ public class ChunkLoader : MonoBehaviour
 	private List<int[,]> cacheMaps = new List<int[,]>();
 	private List<int> cacheBlockCodes = new List<int>();
     private int[,,] cacheTurbulanceMap = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+    private ChunkPos cachePos = new ChunkPos(0,0);
 
     // Start is called before the first frame update
     void Start()
@@ -169,11 +175,47 @@ public class ChunkLoader : MonoBehaviour
 
     }
 
+    // Returns the biome that should be assigned to a given chunk
     private VoxelData AssignBiome(ChunkPos pos, float seed){
         string biome = biomeHandler.Assign(pos, seed);
         chunks[pos].biomeName = biome;
         chunks[pos].features = biomeHandler.GetFeatures(pos, seed);
-        
+
+        // Checks for X+ border
+        cachePos.x = pos.x+1;
+        cachePos.z = pos.z;
+
+        if(biomeHandler.Assign(cachePos, seed) != biome)
+            isBorderXP = true;
+
+        // Checks for Z+ border
+        cachePos.x = pos.x;
+        cachePos.z = pos.z+1;
+
+        if(biomeHandler.Assign(cachePos, seed) != biome)
+            isBorderZP = true;
+
+        // Checks for X- border
+        cachePos.x = pos.x-1;
+        cachePos.z = pos.z;
+
+        if(biomeHandler.Assign(cachePos, seed) != biome)
+            isBorderXM = true;
+
+        // Checks for Z- border
+        cachePos.x = pos.x;
+        cachePos.z = pos.z-1;
+
+        if(biomeHandler.Assign(cachePos, seed) != biome)
+            isBorderZM = true;
+
+        // Checks for XZ+ border
+        cachePos.x = pos.x+1;
+        cachePos.z = pos.z+1;
+
+        if(biomeHandler.Assign(cachePos, seed) != biome)
+            isBorderXZP = true;
+
         if(biome == "Plains")
             return GeneratePlainsBiome(pos.x, pos.z);
         else if(biome == "Grassy Highlands")
@@ -724,13 +766,74 @@ public class ChunkLoader : MonoBehaviour
 
     // Generates a flat map at Y level ceiling
     private void GenerateFlatMap(int[,] selectedCache, int ceiling){
-        if(ceiling > Chunk.chunkDepth)
-            ceiling = Chunk.chunkDepth;
+        int deadZoneXM=0;
+        int deadZoneZM=0;
+        int deadZoneXP=0;
+        int deadZoneZP=0;
 
-        for(int x=0;x<Chunk.chunkWidth;x++){
-            for(int z=0;z<Chunk.chunkWidth;z++){
+        if(ceiling >= Chunk.chunkDepth)
+            ceiling = Chunk.chunkDepth-1;
+
+        if(isBorderZM){
+            deadZoneZM = 4;
+            isBorderZM = false;
+        }
+        if(isBorderXM){
+            deadZoneXM = 4;
+            isBorderXM = false;
+        }
+        if(isBorderZP){
+            deadZoneZP = 4;
+            isBorderZP = false;
+        }
+        if(isBorderXP){
+            deadZoneXP = 4;
+            isBorderXP = false;
+        }
+
+        // Fill with Water
+        for(int x=deadZoneXM;x<Chunk.chunkWidth-deadZoneXP;x++){
+            for(int z=deadZoneZM;z<Chunk.chunkWidth-deadZoneZP;z++){
                 selectedCache[x,z] = ceiling;
             }
+        }
+
+        // Fill X- Deadzone
+        for(int x=0;x<deadZoneXM;x++){
+            for(int z=0;z<Chunk.chunkWidth;z++){
+                selectedCache[x,z] = 0;
+            }
+        }        
+
+        // Fill X+ Deadzone
+        for(int x=Chunk.chunkWidth-deadZoneXP;x<Chunk.chunkWidth;x++){
+            for(int z=0;z<Chunk.chunkWidth;z++){
+                selectedCache[x,z] = 0;
+            }
+        } 
+
+        // Fill Z- Deadzone
+        for(int z=0;z<deadZoneZM;z++){
+            for(int x=0;x<Chunk.chunkWidth;x++){
+                selectedCache[x,z] = 0;
+            }
+        }
+
+        // Fill Z+ Deadzone
+        for(int z=Chunk.chunkWidth-deadZoneZP;z<Chunk.chunkWidth;z++){
+            for(int x=0;x<Chunk.chunkWidth;x++){
+                selectedCache[x,z] = 0;
+            }
+        } 
+
+        // Fill XZ+ Deadzone
+        if(isBorderXZP){
+            for(int x=Chunk.chunkWidth-4; x<Chunk.chunkWidth; x++){
+                for(int z=Chunk.chunkWidth-4; z<Chunk.chunkWidth; z++){
+                    selectedCache[x,z] = 0;
+                }
+            }
+            isBorderXZP = false;
         }
     }
 
@@ -851,7 +954,8 @@ public class ChunkLoader : MonoBehaviour
 		// Dirt is hold on Cache 3
 		AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
-        GenerateFlatMap(cacheHeightMap4, 20);
+        // Add Water
+        GenerateFlatMap(cacheHeightMap4, 22);
 
 		// Adds rest to pipeline
 		cacheMaps.Add(cacheHeightMap3);
@@ -909,6 +1013,7 @@ public class ChunkLoader : MonoBehaviour
         // Dirt is hold on Cache 3
         AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
+        // Add Water
         GenerateFlatMap(cacheHeightMap4, 42); //35
 
         // Adds rest to pipeline

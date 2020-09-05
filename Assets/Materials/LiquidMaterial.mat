@@ -26,10 +26,10 @@ Material:
     - Alpha: 0.3
     - AnimationSpeed: 1
     - Density: 3
-    - FresnelPower: 10
-    - Refraction: 0.2
+    - FresnelPower: 3
+    - Refraction: 1.47
     - Vector1_80E409E7: 3.6
-    - Vector1_9CD39123: 0.15
+    - Vector1_9CD39123: 0.07
     m_Colors:
     - BaseColor: {r: 0.08039216, g: 0.20980392, b: 0.46470588, a: 0.1176471}
     - Color_31C227A5: {r: 0.099480815, g: 0.09184755, b: 0.45283002, a: 0}
