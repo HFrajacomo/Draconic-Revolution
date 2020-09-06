@@ -775,11 +775,11 @@ public class ChunkLoader : MonoBehaviour
             ceiling = Chunk.chunkDepth-1;
 
         if(isBorderZM){
-            deadZoneZM = 4;
+            deadZoneZM = 1;
             isBorderZM = false;
         }
         if(isBorderXM){
-            deadZoneXM = 4;
+            deadZoneXM = 1;
             isBorderXM = false;
         }
         if(isBorderZP){
