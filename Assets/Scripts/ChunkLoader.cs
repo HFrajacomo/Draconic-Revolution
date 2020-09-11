@@ -47,6 +47,8 @@ public class ChunkLoader : MonoBehaviour
 	private List<int> cacheBlockCodes = new List<int>();
     private int[,,] cacheTurbulanceMap = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
     private ChunkPos cachePos = new ChunkPos(0,0);
+    private VoxelMetadata cacheMetadata = new VoxelMetadata();
+    private Dictionary<int, ushort> cacheStateDict = new Dictionary<int, ushort>();
 
     // Start is called before the first frame update
     void Start()
@@ -108,6 +110,8 @@ public class ChunkLoader : MonoBehaviour
             }
 
     		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
+            chunks[toLoad[0]].metadata.Set(cacheMetadata.Clone());
+            cacheMetadata.Clear();
             vfx.NewChunk(toLoad[0]);
     		chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
             toDraw.Add(toLoad[0]);
@@ -648,7 +652,7 @@ public class ChunkLoader : MonoBehaviour
     blockCode is the block related to this layer.
     */
     // Takes cacheMaps and cacheBlockCodes and returns on cacheVoxdata
-    private void ApplyHeightMaps(){
+    private void ApplyHeightMaps(Dictionary<int, ushort> stateDict){
     	int size = Chunk.chunkWidth;
    		int i=0;
 
@@ -659,8 +663,12 @@ public class ChunkLoader : MonoBehaviour
 	    			// If it's the first layer to be added
 	    			if(i == 0){
 		    			for(int y=0;y<Chunk.chunkDepth;y++){
-		    				if(y <= cacheMaps[i][x,z])
-		    					cacheVoxdata[x,y,z] = cacheBlockCodes[i];
+		    				if(y <= cacheMaps[i][x,z]){
+		    					cacheVoxdata[x,y,z] = cacheBlockCodes[i]; // Adds block code
+                                if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
+                                    cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
+                                }
+                            }
 		    				else
 		    					cacheVoxdata[x,y,z] = 0;
 		    			}
@@ -669,6 +677,9 @@ public class ChunkLoader : MonoBehaviour
 	    			else{
 		    			for(int y=cacheMaps[i-1][x,z]+1;y<=cacheMaps[i][x,z];y++){
 		    				cacheVoxdata[x,y,z] = cacheBlockCodes[i];
+                            if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
+                                cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
+                            }
 		    			}  				
 	    			}
 	    		}
@@ -766,7 +777,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Generates a flat map at Y level ceiling
-    private void GenerateFlatMap(int[,] selectedCache, int ceiling){
+    private void GenerateWaterMap(int[,] selectedCache, int ceiling, ushort state=0){
         int deadZoneXM=0;
         int deadZoneZM=0;
         int deadZoneXP=0;
@@ -956,7 +967,7 @@ public class ChunkLoader : MonoBehaviour
 		AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
         // Add Water
-        GenerateFlatMap(cacheHeightMap4, 22);
+        GenerateWaterMap(cacheHeightMap4, 22, state:0);
 
 		// Adds rest to pipeline
 		cacheMaps.Add(cacheHeightMap3);
@@ -966,8 +977,11 @@ public class ChunkLoader : MonoBehaviour
         cacheMaps.Add(cacheHeightMap4);
         cacheBlockCodes.Add(6);
 
+        cacheStateDict = new Dictionary<int, ushort>{{6, 0}};
+
 		// Adds to cacheVoxdata
-		ApplyHeightMaps();
+		ApplyHeightMaps(cacheStateDict);
+        cacheStateDict.Clear();
         
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:20, maskThreshold:0.7f);
@@ -1015,7 +1029,7 @@ public class ChunkLoader : MonoBehaviour
         AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
         // Add Water
-        GenerateFlatMap(cacheHeightMap4, 42); //35
+        GenerateWaterMap(cacheHeightMap4, 42, state:0); //35
 
         // Adds rest to pipeline
         cacheMaps.Add(cacheHeightMap3);
@@ -1025,8 +1039,11 @@ public class ChunkLoader : MonoBehaviour
         cacheMaps.Add(cacheHeightMap4);
         cacheBlockCodes.Add(6);
 
+        cacheStateDict = new Dictionary<int, ushort>{{6, 0}};
+
         // Adds to cacheVoxdata
-        ApplyHeightMaps();
+        ApplyHeightMaps(cacheStateDict);
+        cacheStateDict.Clear();
 
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:40, maskThreshold:0.7f);
