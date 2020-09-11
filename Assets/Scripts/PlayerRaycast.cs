@@ -20,6 +20,9 @@ public class PlayerRaycast : MonoBehaviour
 	private CastCoord playerBody;
   public MainControllerManager control;
 
+  // Cached
+  private BUDSignal cachedBUD;
+
 	/*
 	0 = X+ => side
 	1 = Z- => side
@@ -152,12 +155,11 @@ public class PlayerRaycast : MonoBehaviour
         loader.blockBook.objects[(blockCode*-1)-1].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
     
       // Passes "break" block update to neighboring blocks
-      EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), loader);
+      EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
+      loader.budscheduler.ScheduleReload(toUpdate, 0);
 
       // Actually breaks new block and updates chunk
       loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
-      loader.chunks[toUpdate].BuildChunk();
-      loader.chunks[toUpdate].BuildSideBorder(reload:true);
       UpdateNeighborChunk(toUpdate, current.blockX, current.blockY, current.blockZ);
 
     }
@@ -248,17 +250,21 @@ public class PlayerRaycast : MonoBehaviour
         loader.chunks[targetChunk].BuildChunk();
         loader.chunks[targetChunk].BuildSideBorder(reload:true);
       }
-      // 2: Emits BUD and forces chunk reload
+      // 2: Emits BUD instantly and forces chunk reload
       else if(code == 2){
-        EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), loader);
-        loader.chunks[targetChunk].BuildChunk();  
-        loader.chunks[targetChunk].BuildSideBorder(reload:true);   
+        EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
+        loader.budscheduler.ScheduleReload(targetChunk, 0);  
+      }
+      // 3: Emits BUD in next tick and forces chunk reload
+      else if(code == 2){
+        EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 1, loader);
+        loader.budscheduler.ScheduleReload(targetChunk, 1);
       }
 
     }
 
     // Handles the emittion of BUD to neighboring blocks
-    public void EmitBlockUpdate(string type, int x, int y, int z, ChunkLoader cl){
+    public void EmitBlockUpdate(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
       CastCoord thisPos = GetCoordinates(x, y, z);
 
       CastCoord[] neighbors = {
@@ -279,10 +285,8 @@ public class PlayerRaycast : MonoBehaviour
       foreach(CastCoord c in neighbors){
         blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
 
-        if(blockCode >= 0)
-          cl.blockBook.blocks[blockCode].OnBlockUpdate(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter], cl);
-        else
-          cl.blockBook.objects[(blockCode*-1)-1].OnBlockUpdate(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter], cl);
+        cachedBUD = new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]);
+        cl.budscheduler.ScheduleBUD(cachedBUD, tickOffset);       
       
         faceCounter++;
       }

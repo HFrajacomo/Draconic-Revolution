@@ -16,6 +16,7 @@ public class ChunkLoader : MonoBehaviour
     public List<ChunkPos> toDraw = new List<ChunkPos>();
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
 	public BlockEncyclopedia blockBook;
+    public BUDScheduler budscheduler;
     public VFXLoader vfx;
 
 	// World Generation

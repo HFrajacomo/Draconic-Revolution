@@ -7,9 +7,7 @@ public class TimeOfDay : MonoBehaviour
 	public float ticks = 0f;
 	public int minutes = 0;
 	public int hours = 6;
-
 	public int days = 0;
-
 	public int DEBUGTIMEMULT=1;
 
     void Update()
@@ -41,5 +39,28 @@ public class TimeOfDay : MonoBehaviour
     // Gets current passed seconds in a day
     public int ToSeconds(){
     	return hours*60 + minutes;
+    }
+
+    // Gets full day description with Ticks
+    public string GetBUDTime(){
+        return days.ToString() + ":" + hours.ToString("00") + ":" + minutes.ToString("00") + ((int)ticks).ToString();
+    }
+
+    // Fake Sum to calculate schedule time
+    public string FakeSum(int ticks){
+        float t = this.ticks + ticks;
+        int m = this.minutes;
+        int h = this.hours;
+        int d = this.days;
+
+        m = m + (int)(t/2);
+        t = t%2;
+        h = h + (int)(m/60);
+        m = m%60;
+        d = d + (int)(h/24);
+        h = h%24;
+
+        return d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ((int)t).ToString();
+
     }
 }
