@@ -15,6 +15,9 @@ public class PlayerRaycast : MonoBehaviour
 	public CastCoord current;
 	private CastCoord lastCoord;
 
+  // DEBUG
+  public ushort placeState = 0;
+
 	// Current player block position
 	private CastCoord playerHead;
 	private CastCoord playerBody;
@@ -89,7 +92,7 @@ public class PlayerRaycast : MonoBehaviour
 
       // Click to place block
       if(control.secondaryAction){
-      	PlaceBlock(-1);
+      	PlaceBlock(6, placeState);
         control.secondaryAction = false;
       }
 
@@ -153,19 +156,19 @@ public class PlayerRaycast : MonoBehaviour
         loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
       else
         loader.blockBook.objects[(blockCode*-1)-1].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-    
+
+      // Actually breaks new block and updates chunk
+      loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
+      loader.chunks[toUpdate].metadata.CreateNull(current.blockX, current.blockY, current.blockZ);
+
       // Passes "break" block update to neighboring blocks
       EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
       loader.budscheduler.ScheduleReload(toUpdate, 0);
 
-      // Actually breaks new block and updates chunk
-      loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
-      UpdateNeighborChunk(toUpdate, current.blockX, current.blockY, current.blockZ);
-
     }
 
     // Block Placing mechanic
-    private void PlaceBlock(int blockCode){
+    private void PlaceBlock(int blockCode, ushort? state){
       int translatedBlockCode;
       bool isAsset;
 
@@ -213,6 +216,10 @@ public class PlayerRaycast : MonoBehaviour
 
       // Actually places block/asset into terrain
 		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+      if(state != null){
+        loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
+      }
+
       loader.chunks[toUpdate].BuildChunk();   
       loader.chunks[toUpdate].BuildSideBorder(reload:true);
     }

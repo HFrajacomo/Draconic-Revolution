@@ -57,6 +57,15 @@ public struct CastCoord{
 	 	active = true;
 	}
 
+	public CastCoord(ChunkPos pos, int x, int y, int z){
+		chunkX = pos.x;
+		chunkZ = pos.z;
+		blockX = x;
+		blockY = y;
+		blockZ = z;
+		active = true;
+	}
+
 
 	public int GetWorldX(){
 	  return Chunk.chunkWidth*chunkX+blockX;

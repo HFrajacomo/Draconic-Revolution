@@ -6,14 +6,14 @@ public class BUDScheduler : MonoBehaviour
 {
 	public TimeOfDay schedulerTime;
 	private Dictionary<string, List<BUDSignal>> data = new Dictionary<string, List<BUDSignal>>();
-	private Dictionary<string, bool> reload = new Dictionary<string, bool>();
-	private Dictionary<string, ChunkPos> toReload = new Dictionary<string, ChunkPos>();
+	private Dictionary<string, List<ChunkPos>> toReload = new Dictionary<string, List<ChunkPos>>();
 	private string currentTime;
 	private string newTime;
 	public ChunkLoader loader;
 	public int BUDperFrame;
 	private int currentBUDonFrame;
 
+    private ChunkPos cachePos;
 	private CastCoord cachedCoord;
 	private BUDSignal cachedBUD;
 
@@ -21,7 +21,7 @@ public class BUDScheduler : MonoBehaviour
 		this.currentTime = schedulerTime.GetBUDTime();
 		this.BUDperFrame = 1000;
 		this.data.Add(currentTime, new List<BUDSignal>());
-		this.reload.Add(currentTime, false);
+		this.toReload.Add(currentTime, new List<ChunkPos>());
 	}
 
     // Update is called once per frame
@@ -38,9 +38,8 @@ public class BUDScheduler : MonoBehaviour
     		}
 
     		// Creates new value of reload to newTime if doesn't exist
-    		if(!this.reload.ContainsKey(this.newTime)){
-    			this.reload.Add(this.newTime, false);
-    			this.toReload.Add(this.newTime, new ChunkPos(0,0));
+    		if(!this.toReload.ContainsKey(this.newTime)){
+    			this.toReload.Add(this.newTime, new List<ChunkPos>());
     		}
 
 
@@ -53,7 +52,6 @@ public class BUDScheduler : MonoBehaviour
 
     		// Frees memory of previous BUD Tick
     		this.data.Remove(this.currentTime);
-    		this.reload.Remove(this.currentTime);
     		this.toReload.Remove(this.currentTime);
     		this.currentTime = this.newTime;
 
@@ -79,10 +77,14 @@ public class BUDScheduler : MonoBehaviour
     	}
 
     	// Chunk Reloader
-    	if(this.data[this.currentTime].Count == 0 && this.reload[this.currentTime]){
-    		this.reload[this.currentTime] = false;
-        	loader.chunks[toReload[this.currentTime]].BuildChunk();  
-        	loader.chunks[toReload[this.currentTime]].BuildSideBorder(reload:true);     		
+    	if(this.data[this.currentTime].Count == 0 && this.toReload.ContainsKey(this.currentTime)){
+    		if(this.toReload[this.currentTime].Count > 0){
+                cachePos = this.toReload[this.currentTime][0];
+                this.toReload[this.currentTime].RemoveAt(0);
+
+                loader.chunks[cachePos].BuildChunk();  
+                loader.chunks[cachePos].BuildSideBorder(reload:true); 
+            }    		
     	}
 
 
@@ -111,19 +113,18 @@ public class BUDScheduler : MonoBehaviour
     // Schedules a Chunk.Build() operation 
     public void ScheduleReload(ChunkPos pos, int tickOffset){
     	if(tickOffset == 0){
-    		this.reload[this.currentTime] = true;
-    		this.toReload[this.currentTime] = pos;
+            if(!this.toReload[this.currentTime].Contains(pos))
+    		  this.toReload[this.currentTime].Add(pos);
     	}
     	else{
     		string fakeTime = schedulerTime.FakeSum(tickOffset);
 
-    		if(this.reload.ContainsKey(fakeTime)){
-    			this.reload[fakeTime] = true;
-    			this.toReload[fakeTime] = pos;
+    		if(this.toReload.ContainsKey(fakeTime)){
+    			this.toReload[fakeTime].Add(pos);
     		}
     		else{
-    			this.reload.Add(fakeTime, true);
-    			this.toReload.Add(fakeTime, pos);
+    			this.toReload.Add(fakeTime, new List<ChunkPos>());
+    			this.toReload[fakeTime].Add(pos);
     		}
     	}
 
