@@ -17,6 +17,8 @@ public abstract class Blocks
 	public bool invisible; // Should not render at all
 	public bool liquid;
 	public bool needsRotation = false;
+	public bool customBreak = false;
+	public bool customPlace = false;
 
 	// Texture tile code
 	public int tileTop;

@@ -115,6 +115,8 @@ public class BUDScheduler : MonoBehaviour
     	if(tickOffset == 0){
             if(!this.toReload[this.currentTime].Contains(pos))
     		  this.toReload[this.currentTime].Add(pos);
+            else
+                print("Already has Chunk: " + pos.ToString());
     	}
     	else{
     		string fakeTime = schedulerTime.FakeSum(tickOffset);

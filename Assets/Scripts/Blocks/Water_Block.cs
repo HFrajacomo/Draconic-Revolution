@@ -46,26 +46,41 @@ public class Water_Block : Blocks
 		this.invisible = false;
 		this.liquid = true;
 		this.waterCode = 6;
+		this.customBreak = true;
+		this.customPlace = true;
 
 		
 		this.aroundCodes = new int[8];
 		this.aroundStates = new ushort?[8];
 
 		// Water Spawn Directions
-		this.spawnDirection.Add(3, new List<int>(new int[]{18,11,12}));
-		this.spawnDirection.Add(4, new List<int>(new int[]{11,12,13}));
-		this.spawnDirection.Add(5, new List<int>(new int[]{12,13,14}));
-		this.spawnDirection.Add(6, new List<int>(new int[]{13,14,15}));
-		this.spawnDirection.Add(7, new List<int>(new int[]{14,15,16}));
-		this.spawnDirection.Add(8, new List<int>(new int[]{15,16,17}));
-		this.spawnDirection.Add(9, new List<int>(new int[]{16,17,18}));
-		this.spawnDirection.Add(10, new List<int>(new int[]{17,18,11}));
+		this.spawnDirection.Add(3, new List<int>(new int[]{7,0,1}));
+		this.spawnDirection.Add(4, new List<int>(new int[]{0,1,2}));
+		this.spawnDirection.Add(5, new List<int>(new int[]{1,2,3}));
+		this.spawnDirection.Add(6, new List<int>(new int[]{2,3,4}));
+		this.spawnDirection.Add(7, new List<int>(new int[]{3,4,5}));
+		this.spawnDirection.Add(8, new List<int>(new int[]{4,5,6}));
+		this.spawnDirection.Add(9, new List<int>(new int[]{5,6,7}));
+		this.spawnDirection.Add(10, new List<int>(new int[]{6,7,0}));
 
 	}
 
 	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader cl){
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
 		cl.budscheduler.ScheduleBUD(new BUDSignal("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), 0), 1);
+		cl.budscheduler.ScheduleReload(pos, 0);
+		return 0;
+	}
+
+	// Custom Break operation with Raycasting class overwrite
+	public override int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader cl){
+		cl.chunks[pos].data.SetCell(x, y, z, 0);
+		cl.chunks[pos].metadata.CreateNull(x, y, z);	
+
+		cachedPos = new CastCoord(pos, x, y, z);
+
+		this.EmitBlockUpdate("break", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), 1, cl);
+		cl.budscheduler.ScheduleReload(pos, 0);
 		return 0;
 	}
 
@@ -83,10 +98,7 @@ public class Water_Block : Blocks
 				GetStateAround(myX, myY, myZ, cl);
 				// If lone directional level 1 water
 				if(!CheckHigherLevelWaterAround(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1, cl)){
-					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					cl.chunks[thisPos.GetChunkPos()].metadata.CreateNull(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 					return;
 				}
 			}
@@ -107,10 +119,7 @@ public class Water_Block : Blocks
 					destroy = true;
 
 				if(destroy){
-					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					cl.chunks[thisPos.GetChunkPos()].metadata.CreateNull(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);					
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 					return;
 				}
 			}
@@ -126,8 +135,7 @@ public class Water_Block : Blocks
 
 				// If air below, falls as Still Block
 				else if(below == 0){
-					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					cl.chunks[thisPos.GetChunkPos()].metadata.CreateNull(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
+
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 
 					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
@@ -202,6 +210,9 @@ public class Water_Block : Blocks
 			else if(thisState >= 3 && thisState <= 10){
 				// Fall handler
 				int? below = GetCodeBelow(myX, myY, myZ, cl);
+				GetCodeAround(myX, myY, myZ, cl);
+				GetStateAround(myX, myY, myZ, cl);
+
 				if(below == 0){
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 					cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 20;
@@ -210,6 +221,13 @@ public class Water_Block : Blocks
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 					return;
 				}
+				// Dies if no Still 3 around
+				else if(!CheckHigherLevelWaterAround(myX, myY, myZ, 2, cl)){
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					return;					
+				}
+				
+
 				// Does nothing if it's already a pivot of falling block
 				else if(below == this.waterCode && GetStateBelow(myX, myY, myZ, cl) == 20){
 					return;
@@ -231,8 +249,6 @@ public class Water_Block : Blocks
 
 				// Normal Behaviour
 				else{
-					GetCodeAround(myX, myY, myZ, cl);
-					GetStateAround(myX, myY, myZ, cl);
 					bool found;
 					ushort? newState;
 
@@ -243,44 +259,44 @@ public class Water_Block : Blocks
 						if(!this.spawnDirection[thisState].Contains(i))
 							continue;
 
-						if(this.aroundCodes[i] == 0){
-							if(i == 0){ // North
+						if(this.aroundCodes[i] == 0 || (this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) == 1)){
+							if(i == 0 && (!(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) > 1) && !(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) > 1))){ // North
 								cachedPos = new CastCoord(new Vector3(myX, myY, myZ+1));
 								newState = 11;
 								found = true;
 							}
-							else if(i == 1 && this.aroundCodes[0] == this.waterCode && this.aroundStates[0] <= 1 && this.aroundStates[2] <= 1 && this.aroundCodes[2] == this.waterCode){ // NE
+							else if(i == 1 && (!(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) > 1) && !(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) > 1))){ // NE
 								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ+1));
 								newState = 12;
 								found = true;
 							}
-							else if(i == 2){ // East
+							else if(i == 2 && (!(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) > 1) && !(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) > 1))){ // East
 								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ));
 								newState = 13;
 								found = true;
 							}
-							else if(i == 3 && this.aroundCodes[2] == this.waterCode && this.aroundStates[2] <= 1 && this.aroundStates[4] <= 1 && this.aroundCodes[4] == this.waterCode){ // SE
+							else if(i == 3 && (!(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) > 1) && !(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) > 1))){ // SE
 								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ-1));
 								newState = 14;
 								found = true;
 							}
-							else if(i == 4){ // South
+							else if(i == 4 && (!(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) > 1) && !(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) > 1))){ // South
 								cachedPos = new CastCoord(new Vector3(myX, myY, myZ-1));
 								newState = 15;
 								found = true;
 							}
-							else if(i == 5 && this.aroundCodes[4] == this.waterCode && this.aroundStates[4] <= 1 && this.aroundStates[6] <= 1 && this.aroundCodes[6] == this.waterCode){ // SW
+							else if(i == 5 && (!(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) > 1) && !(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) > 1))){ // SW
 								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ-1));
 								newState = 16;
 								found = true;
 							}
-							else if(i == 6){ // West
+							else if(i == 6 && (!(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) > 1) && !(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) > 1))){ // West
 								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ));
 								newState = 17;
 								found = true;
 							}
-							else if(i == 7 && this.aroundCodes[6] == this.waterCode && this.aroundStates[6] <= 1 && this.aroundStates[0] <= 1 && this.aroundCodes[0] == this.waterCode){ // NW
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ));
+							else if(i == 7 && (!(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) > 1) && !(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) > 1))){ // NW
+								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ+1));
 								newState = 18;
 								found = true;
 							}
@@ -292,8 +308,7 @@ public class Water_Block : Blocks
 								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 								cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = newState;
 								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);	
-								this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
-								cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
+								cl.budscheduler.ScheduleReload(cachedPos.GetChunkPos(), 1);
 							}			
 						}
 					}
@@ -324,13 +339,11 @@ public class Water_Block : Blocks
 						cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 19;
 						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 						this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
-						cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
+						cl.budscheduler.ScheduleReload(cachedPos.GetChunkPos(), 1);
 						return;
 					}
 					// General case of making the block fall
 					else{
-						cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-						cl.chunks[thisPos.GetChunkPos()].metadata.CreateNull(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 
 						cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
@@ -414,8 +427,6 @@ public class Water_Block : Blocks
 
 				// If not alive
 				if(above != this.waterCode){
-					cl.chunks[thisPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 0);
-					cl.chunks[thisPos.GetChunkPos()].metadata.CreateNull(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
 					this.OnBreak(thisPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
@@ -496,8 +507,6 @@ public class Water_Block : Blocks
 
 				// If not alive
 				if(above != this.waterCode){
-					cl.chunks[thisPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 0);
-					cl.chunks[thisPos.GetChunkPos()].metadata.CreateNull(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
 					this.OnBreak(thisPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
@@ -683,9 +692,9 @@ public class Water_Block : Blocks
 			return 0;
 	}
 
-	// Checks if there is any high level water ADJASCENT TO THIS BLOCK
+	// Checks if there is any high level water to this block
 	private bool CheckHigherLevelWaterAround(int myX, int myY, int myZ, int currentWaterLevel, ChunkLoader cl){
-		for(int i=0; i<8; i+=2){
+		for(int i=0; i<8; i++){
 			if(this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) > currentWaterLevel){
 				return true;
 			}				

@@ -12,6 +12,8 @@ public abstract class BlocklikeObject
 	public static int objectCount = 1;
 	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();
 	public bool needsRotation = false;
+	public bool customBreak = false;
+	public bool customPlace = false;
 
 	// Texture
 	public string prefabName;
