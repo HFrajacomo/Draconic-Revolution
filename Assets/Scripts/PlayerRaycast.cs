@@ -136,8 +136,11 @@ public class PlayerRaycast : MonoBehaviour
 
       // If hits something
       if(blockID != 0)
-        if(loader.chunks.ContainsKey(ck))
+        if(loader.chunks.ContainsKey(ck)){
+          print(loader.blockBook.Get(blockID).name + " : " + loader.chunks[ck].metadata.GetMetadata(coords.blockX, coords.blockY, coords.blockZ).state);
+
           return true;
+        }
       return false;
     }
 
@@ -238,7 +241,7 @@ public class PlayerRaycast : MonoBehaviour
         if(state != null){
           loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
         }
-        
+
         loader.blockBook.Get(blockCode).OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
       }
     }

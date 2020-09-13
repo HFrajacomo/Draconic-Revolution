@@ -7,6 +7,14 @@ public class VoxelMetadata
 {
 	public Metadata[,,] metadata = new Metadata[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
 	
+	// Default Constructor
+	public VoxelMetadata(){}
+
+	// Metadata Constructor
+	public VoxelMetadata(Metadata[,,] md){
+		this.metadata = md;
+	}
+
 	// Checks whether the metadata xyz in VoxelMetadata is still unassigned
 	public bool IsUnassigned(int x, int y, int z){
 		if(this.metadata[x,y,z] == null)
@@ -38,8 +46,9 @@ public class VoxelMetadata
 		this.metadata = new Metadata[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
 	}
 
+	
 	// Clones data in Metadata
-	public Metadata[,,] Clone(){
+	public VoxelMetadata Clone(){
 		Metadata[,,] newData = new Metadata[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
 
 		for(int x=0; x<this.metadata.GetLength(0); x++){
@@ -50,12 +59,21 @@ public class VoxelMetadata
 			}
 		}
 
-		return newData;
+		return new VoxelMetadata(newData);
 	}
+	
 
 	// Sets this objects Metadata
-	public void Set(Metadata[,,] inputData){
-		this.metadata = inputData;
+	public void Set(Metadata[,,] md){
+		Metadata[,,] newData = new Metadata[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+
+		for(int x=0; x<this.metadata.GetLength(0); x++){
+			for(int y=0; y<this.metadata.GetLength(1); y++){
+				for(int z=0; z<this.metadata.GetLength(2); z++){
+					this.metadata[x,y,z] = md[x,y,z];
+				}
+			}
+		}
 	}
 }
 
