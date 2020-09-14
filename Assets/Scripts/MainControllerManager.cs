@@ -15,6 +15,7 @@ public class MainControllerManager : MonoBehaviour
 	public bool primaryAction = false;
 	public bool secondaryAction = false;
 	public bool interact = false;
+    public bool gravityHack = false;
 
 
 	// Jumping
@@ -52,8 +53,8 @@ public class MainControllerManager : MonoBehaviour
     	interact = true;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
+    public void OnToggleGravity(){
+        gravityHack = !gravityHack;
     }
+
 }

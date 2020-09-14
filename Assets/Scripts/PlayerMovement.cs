@@ -33,8 +33,8 @@ public class PlayerMovement : MonoBehaviour
             velocity.y += gravity * Time.deltaTime;
         }
 
-        float x = controls.movementX;//playerControls.Player.Movement.ReadValue<Vector2>().x;
-        float z = controls.movementZ;//playerControls.Player.Movement.ReadValue<Vector2>().y;
+        float x = controls.movementX;
+        float z = controls.movementZ;
 
         move = transform.right * x + transform.forward * z;
         controller.Move(move * speed * Time.deltaTime);
@@ -52,6 +52,11 @@ public class PlayerMovement : MonoBehaviour
         }
         else{
             controller.skinWidth = 0f;
+        }
+
+        // If gravity hack is toggled
+        if(controls.gravityHack){
+            velocity.y = 10f;
         }
 
         // Gravity

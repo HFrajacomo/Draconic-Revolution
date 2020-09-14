@@ -15,11 +15,10 @@ public class BUDScheduler : MonoBehaviour
 
     private ChunkPos cachePos;
 	private CastCoord cachedCoord;
-	private BUDSignal cachedBUD;
 
 	void Start(){
 		this.currentTime = schedulerTime.GetBUDTime();
-		this.BUDperFrame = 1000;
+		this.BUDperFrame = 300;
 		this.data.Add(currentTime, new List<BUDSignal>());
 		this.toReload.Add(currentTime, new List<ChunkPos>());
 	}
@@ -47,30 +46,34 @@ public class BUDScheduler : MonoBehaviour
 
     		// Pops all elements of this tick if there is still any
     		if(this.data[this.currentTime].Count > 0){
+                // DEBUG LIMITER TO NOT LET GAME EXPLODE
+                print("BUDScheduler stackoverflow");
+                Debug.Break();
     			PassToNextTick();
     		}
 
     		// Frees memory of previous BUD Tick
+            this.data[this.currentTime] = null;
+            this.toReload[this.currentTime] = null;
     		this.data.Remove(this.currentTime);
     		this.toReload.Remove(this.currentTime);
     		this.currentTime = this.newTime;
 
-    		this.BUDperFrame = (int)this.data[this.newTime].Count/30;
+    		this.BUDperFrame = (int)(this.data[this.newTime].Count/30)+1;
 
     		// Unclogs system if no BUD request incoming
-    		if(this.BUDperFrame < 1000){
-    			this.BUDperFrame = 1000;
+    		if(this.BUDperFrame < 300){
+    			this.BUDperFrame = 300;
     		}
     	}
 
     	// Iterates through frame's list and triggers BUD
     	for(currentBUDonFrame=0;currentBUDonFrame<BUDperFrame;currentBUDonFrame++){
 	    	if(this.data[this.currentTime].Count > 0){
-	    		cachedBUD = this.data[this.currentTime][0];
-	    		this.data[this.currentTime].RemoveAt(0);
-	    		cachedCoord = new CastCoord(new Vector3(cachedBUD.x, cachedBUD.y, cachedBUD.z));
-	    		loader.blockBook.Get(loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ)).OnBlockUpdate(cachedBUD.type, cachedBUD.x, cachedBUD.y, cachedBUD.z, cachedBUD.budX, cachedBUD.budY, cachedBUD.budZ, cachedBUD.facing, loader);
-	    	}
+	    		cachedCoord = new CastCoord(new Vector3(this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z));
+	    		loader.blockBook.Get(loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ)).OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
+	    	    this.data[this.currentTime].RemoveAt(0);
+            }
 	    	else{
 	    		break;
 	    	}

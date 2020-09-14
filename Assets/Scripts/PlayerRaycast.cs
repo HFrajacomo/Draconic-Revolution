@@ -16,6 +16,7 @@ public class PlayerRaycast : MonoBehaviour
 	private CastCoord lastCoord;
 
   // DEBUG
+  public int blockToBePlaced = 6;
   public ushort placeState = 0;
 
 	// Current player block position
@@ -92,7 +93,7 @@ public class PlayerRaycast : MonoBehaviour
 
       // Click to place block
       if(control.secondaryAction){
-      	PlaceBlock(6, placeState);
+      	PlaceBlock(blockToBePlaced, placeState);
         control.secondaryAction = false;
       }
 

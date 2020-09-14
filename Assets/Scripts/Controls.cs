@@ -65,6 +65,14 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""Toggle Gravity"",
+                    ""type"": ""Button"",
+                    ""id"": ""19097fbd-caec-423a-96f3-e008033cbb0f"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -177,6 +185,17 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""action"": ""Mouse Look"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8985a6c9-cc7a-469a-a108-28c55685ecb8"",
+                    ""path"": ""<Keyboard>/h"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Toggle Gravity"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -208,6 +227,7 @@ public class @Controls : IInputActionCollection, IDisposable
         m_Player_SecondaryAction = m_Player.FindAction("Secondary Action", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         m_Player_MouseLook = m_Player.FindAction("Mouse Look", throwIfNotFound: true);
+        m_Player_ToggleGravity = m_Player.FindAction("Toggle Gravity", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -263,6 +283,7 @@ public class @Controls : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_SecondaryAction;
     private readonly InputAction m_Player_Interact;
     private readonly InputAction m_Player_MouseLook;
+    private readonly InputAction m_Player_ToggleGravity;
     public struct PlayerActions
     {
         private @Controls m_Wrapper;
@@ -273,6 +294,7 @@ public class @Controls : IInputActionCollection, IDisposable
         public InputAction @SecondaryAction => m_Wrapper.m_Player_SecondaryAction;
         public InputAction @Interact => m_Wrapper.m_Player_Interact;
         public InputAction @MouseLook => m_Wrapper.m_Player_MouseLook;
+        public InputAction @ToggleGravity => m_Wrapper.m_Player_ToggleGravity;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -300,6 +322,9 @@ public class @Controls : IInputActionCollection, IDisposable
                 @MouseLook.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouseLook;
                 @MouseLook.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouseLook;
                 @MouseLook.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouseLook;
+                @ToggleGravity.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleGravity;
+                @ToggleGravity.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleGravity;
+                @ToggleGravity.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleGravity;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -322,6 +347,9 @@ public class @Controls : IInputActionCollection, IDisposable
                 @MouseLook.started += instance.OnMouseLook;
                 @MouseLook.performed += instance.OnMouseLook;
                 @MouseLook.canceled += instance.OnMouseLook;
+                @ToggleGravity.started += instance.OnToggleGravity;
+                @ToggleGravity.performed += instance.OnToggleGravity;
+                @ToggleGravity.canceled += instance.OnToggleGravity;
             }
         }
     }
@@ -343,5 +371,6 @@ public class @Controls : IInputActionCollection, IDisposable
         void OnSecondaryAction(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
         void OnMouseLook(InputAction.CallbackContext context);
+        void OnToggleGravity(InputAction.CallbackContext context);
     }
 }

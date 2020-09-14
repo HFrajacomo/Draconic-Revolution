@@ -68,6 +68,11 @@ public class Water_Block : Blocks
 	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader cl){
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
 		cl.budscheduler.ScheduleBUD(new BUDSignal("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), 0), 1);
+		
+		// If has been placed by player
+		if(facing >= 0)
+			this.EmitBlockUpdate("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), 0, cl);
+		
 		cl.budscheduler.ScheduleReload(pos, 0);
 		return 0;
 	}
@@ -124,7 +129,7 @@ public class Water_Block : Blocks
 				}
 			}
 
-			/* Stil Level 2 State */
+			/* Still Level 2 State */
 			else if(thisState == 1){
 				int? below = GetCodeBelow(myX, myY, myZ, cl);
 				ushort? newState;
@@ -150,7 +155,7 @@ public class Water_Block : Blocks
 				// If should be upgraded to Still 3
 				if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
 					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 0;
-					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+					//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 					return;
 				}
@@ -198,7 +203,7 @@ public class Water_Block : Blocks
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 					cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = newState;
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+					//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 					}
 				}
@@ -217,7 +222,7 @@ public class Water_Block : Blocks
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 					cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 20;
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+					//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 					return;
 				}
@@ -236,14 +241,14 @@ public class Water_Block : Blocks
 				else if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
 					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 0;
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+					//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 				}
 				// Upgrade if has two Still 2 adjascent
 				else if(GetSameLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
 					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 1;
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+					//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 				}
 
@@ -328,7 +333,7 @@ public class Water_Block : Blocks
 					return;
 
 				// If air below
-				else if(below == 0){
+				else if(below == 0 || (below == this.waterCode && GetCodeBelow(myX, myY, myZ, cl) != 0)){
 					GetCodeAround(myX, myY, myZ, cl);
 
 					// Checks if all adjascent blocks are water, so it should spawn F3 State below
@@ -338,7 +343,7 @@ public class Water_Block : Blocks
 						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 						cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 19;
 						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-						this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+						//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 						cl.budscheduler.ScheduleReload(cachedPos.GetChunkPos(), 1);
 						return;
 					}
@@ -351,7 +356,7 @@ public class Water_Block : Blocks
 						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 						cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 0;
 						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-						this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+						//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 						cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 						return;
 					}
@@ -415,20 +420,19 @@ public class Water_Block : Blocks
 				int? above = GetCodeAbove(myX, myY, myZ, cl);
 
 				// If needs to spawn more falling blocks (no return to check if alive)
-				if(below == 0){
+				if(below == 0 || (below == this.waterCode && GetStateBelow(myX, myY, myZ, cl) != 0)){
 					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 					cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 19;
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 				}
 
 				// If not alive
 				if(above != this.waterCode){
 					this.OnBreak(thisPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+					//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 					return;
 				}
@@ -479,7 +483,7 @@ public class Water_Block : Blocks
 						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 						cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = newState;
 						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-						this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+						//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 						cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 						}
 					}					
@@ -495,20 +499,20 @@ public class Water_Block : Blocks
 				int? above = GetCodeAbove(myX, myY, myZ, cl);
 
 				// If needs to spawn more falling blocks (no return to check if alive)
-				if(below == 0){
+				if(below == 0 || (below == this.waterCode && GetStateBelow(myX, myY, myZ, cl) > 1)){
 					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 					cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 20;
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+					//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 				}
 
 				// If not alive
 				if(above != this.waterCode){
 					this.OnBreak(thisPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-					this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+					//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 					return;
 				}
@@ -559,7 +563,7 @@ public class Water_Block : Blocks
 						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 						cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = newState;
 						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-						this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
+						//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 						cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 						}
 					}					
