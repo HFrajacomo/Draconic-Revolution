@@ -37,6 +37,7 @@ public class Water_Block : Blocks
 	public CastCoord cachedPos;
 	private bool[] surroundingWaterFlag = new bool[8];
 	private BUDSignal cachedBUD;
+	private bool breakFLAG = false;
 
 	public Dictionary<ushort?, List<int>> spawnDirection = new Dictionary<ushort?, List<int>>();
 
@@ -73,12 +74,10 @@ public class Water_Block : Blocks
 		cl.budscheduler.ScheduleBUD(new BUDSignal("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing), 1);
 		
 		// If has been placed by player
-		if(facing >= 0){
-			this.EmitBlockUpdate("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), 0, cl);
-			cl.budscheduler.ScheduleReload(pos, 0);
-		}
-		else
-			cl.budscheduler.ScheduleReload(pos, 0);
+		if(facing >= 0)
+			this.EmitBlockUpdate("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing, cl);
+
+		cl.budscheduler.ScheduleReload(pos, 0);
 
 		return 0;
 	}
@@ -89,8 +88,14 @@ public class Water_Block : Blocks
 		cl.chunks[pos].metadata.CreateNull(x, y, z);	
 
 		cachedPos = new CastCoord(pos, x, y, z);
+
+		// Reloads surrounding data when was manually broken by player
+		if(!this.breakFLAG)
+			GetCodeAround(cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cl);
+		
 		EmitWaterBUD(cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cl);
 		cl.budscheduler.ScheduleReload(pos, 0);
+		this.breakFLAG = false;
 		return 0;
 	}
 
@@ -109,6 +114,7 @@ public class Water_Block : Blocks
 
 				// If lone directional level 1 water
 				if(!CheckHigherLevelWaterAround(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1, cl)){
+					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 					return;
 				}
@@ -129,6 +135,7 @@ public class Water_Block : Blocks
 					destroy = true;
 
 				if(destroy){
+					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);					
 					return;
 				}
@@ -145,7 +152,7 @@ public class Water_Block : Blocks
 
 				// If air below, falls as Still Block
 				else if(below == 0){
-
+					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 
 					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
@@ -223,6 +230,7 @@ public class Water_Block : Blocks
 				}
 				// Dies if no Still 3 around
 				else if(!CheckHigherLevelWaterAround(myX, myY, myZ, 2, cl)){
+					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 					return;					
 				}
@@ -336,6 +344,7 @@ public class Water_Block : Blocks
 					}
 					// General case of making the block fall
 					else{
+						this.breakFLAG = true;
 						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 
 						cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
@@ -412,8 +421,8 @@ public class Water_Block : Blocks
 
 				// If not alive
 				if(above != this.waterCode){
+					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-					//this.EmitBlockUpdate("change", myX, myY, myZ, 1, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 					return;
 				}
@@ -486,6 +495,7 @@ public class Water_Block : Blocks
 
 				// If not alive
 				if(above != this.waterCode){
+					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
 					return;

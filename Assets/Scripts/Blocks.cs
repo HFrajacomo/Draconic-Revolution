@@ -121,13 +121,9 @@ public abstract class Blocks
 
       int[] facings = {2,0,4,5,1,3};
 
-
-      int blockCode;
       int faceCounter=0;
 
       foreach(CastCoord c in neighbors){
-        blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
-
         cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);     
       
         faceCounter++;

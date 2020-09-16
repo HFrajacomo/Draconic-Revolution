@@ -67,12 +67,6 @@ public class BUDScheduler : MonoBehaviour
     		}
     	}
 
-        // DEBUG
-        if(this.data[this.currentTime].Count > 0){
-            //CurrentToFile("test.txt");
-            //Debug.Break();
-        }
-
     	// Iterates through frame's list and triggers BUD
     	for(currentBUDonFrame=0;currentBUDonFrame<BUDperFrame;currentBUDonFrame++){
 	    	if(this.data[this.currentTime].Count > 0){
