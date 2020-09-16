@@ -18,7 +18,7 @@ public class BUDScheduler : MonoBehaviour
 
 	void Start(){
 		this.currentTime = schedulerTime.GetBUDTime();
-		this.BUDperFrame = 300;
+		this.BUDperFrame = 1200;
 		this.data.Add(currentTime, new List<BUDSignal>());
 		this.toReload.Add(currentTime, new List<ChunkPos>());
 	}
@@ -62,15 +62,21 @@ public class BUDScheduler : MonoBehaviour
     		this.BUDperFrame = (int)(this.data[this.newTime].Count/30)+1;
 
     		// Unclogs system if no BUD request incoming
-    		if(this.BUDperFrame < 300){
-    			this.BUDperFrame = 300;
+    		if(this.BUDperFrame < 1200){
+    			this.BUDperFrame = 1200;
     		}
     	}
+
+        // DEBUG
+        if(this.data[this.currentTime].Count > 0){
+            //CurrentToFile("test.txt");
+            //Debug.Break();
+        }
 
     	// Iterates through frame's list and triggers BUD
     	for(currentBUDonFrame=0;currentBUDonFrame<BUDperFrame;currentBUDonFrame++){
 	    	if(this.data[this.currentTime].Count > 0){
-	    		cachedCoord = new CastCoord(new Vector3(this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z));
+                cachedCoord = new CastCoord(new Vector3(this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z));
 	    		loader.blockBook.Get(loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ)).OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
 	    	    this.data[this.currentTime].RemoveAt(0);
             }
@@ -98,13 +104,15 @@ public class BUDScheduler : MonoBehaviour
     // Schedules a BUD request in the system
     public void ScheduleBUD(BUDSignal b, int tickOffset){
     	if(tickOffset == 0){
-    		this.data[this.currentTime].Add(b);
+            if(!this.data[this.currentTime].Contains(b))
+    		  this.data[this.currentTime].Add(b);
     	}
     	else{
     		string fakeTime = schedulerTime.FakeSum(tickOffset);
 
     		if(this.data.ContainsKey(fakeTime)){
-    			this.data[fakeTime].Add(b);
+                if(!this.data[fakeTime].Contains(b))
+                    this.data[fakeTime].Add(b);
     		}
     		else{
     			this.data.Add(fakeTime, new List<BUDSignal>());
@@ -148,6 +156,18 @@ public class BUDScheduler : MonoBehaviour
     		this.data[key].RemoveAll(bud => bud.Equals(b));
     	}
     }
+
+    // DEBUG OPERATION
+    private void CurrentToFile(string filename){
+        string aux = this.currentTime + "\n\n";
+
+        foreach(BUDSignal bud in this.data[this.currentTime]){
+            aux += bud.ToString();
+            aux += "\n";
+        }
+
+        System.IO.File.WriteAllText(filename, aux);
+    }
 }
 
 
@@ -171,6 +191,10 @@ public struct BUDSignal{
 		this.budZ = bZ;
 		this.facing = facing;
 	}
+
+    public override string ToString(){
+        return "(" + x + ", " + y + ", " + z + ")";
+    }
 
 	public bool Equals(BUDSignal b){
 		if(this.x == b.x && this.y == b.y && this.z == b.z)

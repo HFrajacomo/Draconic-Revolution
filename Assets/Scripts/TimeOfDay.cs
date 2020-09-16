@@ -43,7 +43,7 @@ public class TimeOfDay : MonoBehaviour
 
     // Gets full day description with Ticks
     public string GetBUDTime(){
-        return days.ToString() + ":" + hours.ToString("00") + ":" + minutes.ToString("00") + ((int)ticks).ToString();
+        return days.ToString() + ":" + hours.ToString("00") + ":" + minutes.ToString("00") + ":" + ((int)ticks).ToString();
     }
 
     // Fake Sum to calculate schedule time
@@ -60,7 +60,7 @@ public class TimeOfDay : MonoBehaviour
         d = d + (int)(h/24);
         h = h%24;
 
-        return d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ((int)t).ToString();
+        return d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ":" +  ((int)t).ToString();
 
     }
 }
