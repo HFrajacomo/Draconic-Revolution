@@ -18,7 +18,7 @@ public class BUDScheduler : MonoBehaviour
 
 	void Start(){
 		this.currentTime = schedulerTime.GetBUDTime();
-		this.BUDperFrame = 1200;
+		this.BUDperFrame = 900;
 		this.data.Add(currentTime, new List<BUDSignal>());
 		this.toReload.Add(currentTime, new List<ChunkPos>());
 	}
@@ -41,14 +41,10 @@ public class BUDScheduler : MonoBehaviour
     			this.toReload.Add(this.newTime, new List<ChunkPos>());
     		}
 
-
     		this.currentBUDonFrame = 0;
 
     		// Pops all elements of this tick if there is still any
     		if(this.data[this.currentTime].Count > 0){
-                // DEBUG LIMITER TO NOT LET GAME EXPLODE
-                print("BUDScheduler stackoverflow");
-                Debug.Break();
     			PassToNextTick();
     		}
 
@@ -59,13 +55,22 @@ public class BUDScheduler : MonoBehaviour
     		this.toReload.Remove(this.currentTime);
     		this.currentTime = this.newTime;
 
+            // Permits all initial BUD to be processes in current tick
+            // And sets a maximum for BUD generated instantly to be made
     		this.BUDperFrame = (int)(this.data[this.newTime].Count/30)+1;
 
     		// Unclogs system if no BUD request incoming
-    		if(this.BUDperFrame < 1200){
-    			this.BUDperFrame = 1200;
+    		if(this.BUDperFrame < 900){
+    			this.BUDperFrame = 900;
     		}
     	}
+
+        /*
+        if(this.data[this.newTime].Count > 0){
+            CurrentToFile("test.txt");
+            Debug.Break();
+        }
+        */
 
     	// Iterates through frame's list and triggers BUD
     	for(currentBUDonFrame=0;currentBUDonFrame<BUDperFrame;currentBUDonFrame++){
@@ -89,14 +94,11 @@ public class BUDScheduler : MonoBehaviour
                 loader.chunks[cachePos].BuildSideBorder(reload:true); 
             }    		
     	}
-
-
-
     }
 
 
     // Schedules a BUD request in the system
-    public void ScheduleBUD(BUDSignal b, int tickOffset){
+    public void ScheduleBUD(BUDSignal b, float tickOffset){
     	if(tickOffset == 0){
             if(!this.data[this.currentTime].Contains(b))
     		  this.data[this.currentTime].Add(b);
@@ -116,7 +118,7 @@ public class BUDScheduler : MonoBehaviour
     }
 
     // Schedules a Chunk.Build() operation 
-    public void ScheduleReload(ChunkPos pos, int tickOffset){
+    public void ScheduleReload(ChunkPos pos, float tickOffset){
     	if(tickOffset == 0){
             if(!this.toReload[this.currentTime].Contains(pos))
     		  this.toReload[this.currentTime].Add(pos);

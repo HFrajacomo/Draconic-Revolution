@@ -16,7 +16,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   shadows:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 1, z: 1, w: -0.72332734}
+    m_Value: {x: 1, y: 1, z: 1, w: -0.66863275}
   midtones:
     m_OverrideState: 1
     m_Value: {x: 1, y: 1, z: 1, w: 0.32549733}
@@ -265,7 +265,7 @@ MonoBehaviour:
     max: 10
   groundTint:
     m_OverrideState: 1
-    m_Value: {r: 0, g: 0, b: 0, a: 1}
+    m_Value: {r: 0.122641504, g: 0.122063, b: 0.122063, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 0
@@ -449,13 +449,13 @@ MonoBehaviour:
     max: 4
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.08750002
   cascadeShadowSplit1:
     m_OverrideState: 1
-    m_Value: 0.194
+    m_Value: 0.29400003
   cascadeShadowSplit2:
     m_OverrideState: 0
-    m_Value: 0.442
+    m_Value: 0.44200003
   cascadeShadowBorder0:
     m_OverrideState: 0
     m_Value: 0

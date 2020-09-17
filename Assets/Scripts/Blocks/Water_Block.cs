@@ -39,6 +39,8 @@ public class Water_Block : Blocks
 	private BUDSignal cachedBUD;
 	private bool breakFLAG = false;
 
+	private float viscosityDelay = 5f;
+
 	public Dictionary<ushort?, List<int>> spawnDirection = new Dictionary<ushort?, List<int>>();
 
 	// Just loaded block
@@ -71,14 +73,14 @@ public class Water_Block : Blocks
 	// Custom Place operation with Raycasting class overwrite
 	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader cl){
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
-		cl.budscheduler.ScheduleBUD(new BUDSignal("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing), 1);
+		cl.budscheduler.ScheduleBUD(new BUDSignal("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing), this.viscosityDelay);
 		
 		// If has been placed by player
 		if(facing >= 0)
 			this.EmitBlockUpdate("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing, cl);
 
 		cl.budscheduler.ScheduleReload(pos, 0);
-
+		
 		return 0;
 	}
 
@@ -166,7 +168,7 @@ public class Water_Block : Blocks
 				// If should be upgraded to Still 3
 				if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
 					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 0;
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
+					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
 
@@ -240,14 +242,17 @@ public class Water_Block : Blocks
 				else if(below == this.waterCode && GetStateBelow(myX, myY, myZ, cl) == 20){
 					return;
 				}
+
 				// Upgrade if has two Still 3 adjascent
 				else if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
+					cachedPos = new CastCoord(new Vector3(myX, myY, myZ));
 					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 0;
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 					return;
 				}
 				// Upgrade if has two Still 2 adjascent
 				else if(GetSameLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
+					cachedPos = new CastCoord(new Vector3(myX, myY, myZ));
 					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 1;
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 					return;
@@ -326,14 +331,14 @@ public class Water_Block : Blocks
 			else if(thisState == 0){
 				// Falling
 				int? below = GetCodeBelow(myX, myY, myZ, cl);
+				ushort? belowState = GetStateBelow(myX, myY, myZ, cl);
 
 				// If Y chunk end
 				if(below == null)
 					return;
 
 				// If air below
-				else if(below == 0 || (below == this.waterCode && GetCodeBelow(myX, myY, myZ, cl) != 0)){
-
+				else if(below == 0 || (below == this.waterCode && (belowState >= 1 && belowState <= 19))){
 					// Checks if all adjascent blocks are water, so it should spawn F3 State below
 					if(this.aroundCodes[0] == this.waterCode && this.aroundCodes[2] == this.waterCode && this.aroundCodes[4] == this.waterCode && this.aroundCodes[6] == this.waterCode){
 						cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
@@ -366,7 +371,7 @@ public class Water_Block : Blocks
 						found = false;
 
 						if(this.aroundCodes[i] == 0 || (this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) == 1)){
-							if(i == 0 && (!(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) == 3) && !(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) == 3))){ // North
+							if(i == 0 && ((!(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) == 3) && !(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) == 3)) || (this.aroundCodes[0] == 0 || (this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) == 1)))){ // North
 								cachedPos = new CastCoord(new Vector3(myX, myY, myZ+1));
 								newState = 3;
 								found = true;
@@ -376,7 +381,7 @@ public class Water_Block : Blocks
 								newState = 4;
 								found = true;
 							}
-							else if(i == 2 && (!(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) == 3) && !(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) == 3))){ // East
+							else if(i == 2 && ((!(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) == 3) && !(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) == 3)) || (this.aroundCodes[2] == 0 || (this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) == 1)))){ // East
 								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ));
 								newState = 5;
 								found = true;
@@ -386,7 +391,7 @@ public class Water_Block : Blocks
 								newState = 6;
 								found = true;
 							}
-							else if(i == 4 && (!(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) == 3) && !(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) == 3))){ // South
+							else if(i == 4 && ((!(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) == 3) && !(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) == 3)) || (this.aroundCodes[4] == 0 || (this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) == 1)))){ // South
 								cachedPos = new CastCoord(new Vector3(myX, myY, myZ-1));
 								newState = 7;
 								found = true;
@@ -396,7 +401,7 @@ public class Water_Block : Blocks
 								newState = 8;
 								found = true;
 							}
-							else if(i == 6 && (!(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) == 3) && !(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) == 3))){ // West
+							else if(i == 6 && ((!(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) == 3) && !(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) == 3)) || (this.aroundCodes[6] == 0 || (this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) == 1)))){ // West
 								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ));
 								newState = 9;
 								found = true;
@@ -441,7 +446,7 @@ public class Water_Block : Blocks
 				if(above != this.waterCode){
 					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
+					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
 
@@ -512,31 +517,40 @@ public class Water_Block : Blocks
 			Falling 2
 			*/
 			else if(thisState == 20){
-				
+				bool die = false;
 				int? below = GetCodeBelow(myX, myY, myZ, cl);
 				int? above = GetCodeAbove(myX, myY, myZ, cl);
+				ushort? newState = GetStateBelow(myX, myY, myZ, cl);
+
+				// Do nothing if water is above and below
+				if(above == this.waterCode && below == this.waterCode){
+					return;
+				}
 
 				// If needs to spawn more falling blocks (no return to check if alive)
-				if(below == 0 || (below == this.waterCode && GetStateBelow(myX, myY, myZ, cl) > 1)){
+				if(below == 0 || (below == this.waterCode && newState > 1 && newState < 19)){
 					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 					cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 20;
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+					die = true;
 				}
 
 				// If not alive
 				if(above != this.waterCode){
 					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 1);
+					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
+
+				if(die)
+					return;
 
 				// Normal Behaviour
 				if(below != 0){
 					bool found;
-					ushort? newState;
 
 					for(int i=0; i<8; i++){
 						found = false;
@@ -767,12 +781,12 @@ public class Water_Block : Blocks
 	}
 
 	// Emits BUD Signal to Water Blocks around this one
-	private void EmitWaterBUD(int myX, int myY, int myZ, ChunkLoader cl, int delay=1){
+	private void EmitWaterBUD(int myX, int myY, int myZ, ChunkLoader cl){
 		for(int i=0; i<8; i++){
 			if(this.aroundCodes[i] == this.waterCode){
 				cachedPos = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
 				cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
-				cl.budscheduler.ScheduleBUD(cachedBUD, delay);
+				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);
 			}
 		}
 
@@ -780,14 +794,14 @@ public class Water_Block : Blocks
 		cachedPos = new CastCoord(this.GetNeighborBlock(8, myX, myY, myZ));
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode){
 			cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
-			cl.budscheduler.ScheduleBUD(cachedBUD, delay);			
+			cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
 		}
 
 		// Above
 		cachedPos = new CastCoord(this.GetNeighborBlock(9, myX, myY, myZ));
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode){
 			cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
-			cl.budscheduler.ScheduleBUD(cachedBUD, delay);			
+			cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
 		}
 	}
 
