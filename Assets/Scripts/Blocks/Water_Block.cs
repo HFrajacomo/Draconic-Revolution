@@ -166,7 +166,7 @@ public class Water_Block : Blocks
 				}
 
 				// If should be upgraded to Still 3
-				if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
+				if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl, nofalling:true) >= 2){
 					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 0;
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
@@ -244,7 +244,7 @@ public class Water_Block : Blocks
 				}
 
 				// Upgrade if has two Still 3 adjascent
-				else if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
+				else if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl, nofalling:true) >= 2){
 					cachedPos = new CastCoord(new Vector3(myX, myY, myZ));
 					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 0;
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
@@ -736,6 +736,20 @@ public class Water_Block : Blocks
 			return 0;
 	}
 
+	// Gets Water Level based on state table without considering falling blocks a level 3
+	private int TranslateWaterLevelSpec(ushort? state){
+		if(state == null)
+			return 0;
+		else if(state == 2 || (state >= 11 && state <= 18))
+			return 1;
+		else if(state == 1 || (state >= 3 && state <= 10))
+			return 2;
+		else if(state == 0)
+			return 3;
+		else
+			return 0;		
+	}
+
 	// Checks if there is any high level water to this block
 	private bool CheckHigherLevelWaterAround(int myX, int myY, int myZ, int currentWaterLevel, ChunkLoader cl){
 		for(int i=0; i<8; i++){
@@ -747,13 +761,22 @@ public class Water_Block : Blocks
 	}
 
 	// Checks the amount of high level water ONLY IN ADJASCENT blocks
-	private int GetHighLevelAroundCount(int x, int y, int z, int currentWaterLevel, ChunkLoader cl){
+	private int GetHighLevelAroundCount(int x, int y, int z, int currentWaterLevel, ChunkLoader cl, bool nofalling=false){
 		int count=0;
 
-		for(int i=0; i<8; i+=2){
-			if(this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) > currentWaterLevel){
-				count++;
+		if(nofalling){
+			for(int i=0; i<8; i+=2){
+				if(this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) > currentWaterLevel){
+					count++;
+				}
 			}
+		}
+		else{
+			for(int i=0; i<8; i+=2){
+				if(this.aroundCodes[i] == this.waterCode && TranslateWaterLevelSpec(this.aroundStates[i]) > currentWaterLevel){
+					count++;
+				}
+			}			
 		}
 
 		return count;
