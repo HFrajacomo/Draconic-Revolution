@@ -48,8 +48,6 @@ public class TimeOfDay : MonoBehaviour
 
     // Fake Sum to calculate schedule time
     public string FakeSum(float tick){
-        print("Received Tick: " + tick);
-
         float t = this.ticks + tick/10;
         int m = this.minutes;
         int h = this.hours;

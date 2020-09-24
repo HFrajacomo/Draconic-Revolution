@@ -25,6 +25,7 @@ public class Torch_Object : BlocklikeObject
 		this.transparent = true;
 		this.invisible = false;
 		this.liquid = false;
+		this.washable = true;
 		this.prefabName = "Torch_Object";
 		this.centeringOffset = new Vector3(0f,-0.2f,0.4f);
 		this.scaling = new Vector3(1f, 2f, 1f);

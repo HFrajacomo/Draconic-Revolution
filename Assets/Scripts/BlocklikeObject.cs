@@ -11,6 +11,7 @@ public abstract class BlocklikeObject
 	public bool liquid;
 	public static int objectCount = 1;
 	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();
+	public bool washable = false; // Can be destroyed by flowing water
 	public bool needsRotation = false;
 	public bool customBreak = false;
 	public bool customPlace = false;

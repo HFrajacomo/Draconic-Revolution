@@ -16,6 +16,7 @@ public abstract class Blocks
 	public bool transparent; // Should render the back side?
 	public bool invisible; // Should not render at all
 	public bool liquid;
+	public bool washable = false; // Can be destroyed by flowing water
 	public bool needsRotation = false;
 	public bool customBreak = false;
 	public bool customPlace = false;
