@@ -6,11 +6,13 @@ public class BiomeHandler
 {
 	public Dictionary<string, Point4D> dataset = new Dictionary<string, Point4D>();
 	private float dispersionSeed;
+	private float featureModificationConstant = 0.00014f;
 
 	public BiomeHandler(float seed){
 		dispersionSeed = seed;
 		AddBiome(new Biome("Plains", 0.3f, 0.5f, 0.6f, 1f));
 		AddBiome(new Biome("Grassy Highlands", 0.7f, 0.5f, 0.6f, 0.9f));
+		AddBiome(new Biome("Ocean", 0f, 1f, 0.5f, 0.3f));
 	}
 
 	private void AddBiome(Biome b){
@@ -24,11 +26,16 @@ public class BiomeHandler
 		of the biome distribution.
 	*/
 	public string Assign(ChunkPos pos, float seed){
-		float currentAltitude = Perlin.Noise(pos.x*dispersionSeed*72.272f+(seed*0.0027f), pos.z*dispersionSeed*23.389f+(seed*0.1027f));
-		float currentHumidity = Perlin.Noise(pos.x*dispersionSeed*177.741f+(seed*0.0027f), pos.z*dispersionSeed*18.864f+(seed*0.0327f));
-		float currentTemperature = Perlin.Noise(pos.x*dispersionSeed*35.524f+(seed*0.0027f), pos.z*dispersionSeed*141.161f+(seed*0.4027f));
-		float currentLightning = Perlin.Noise(pos.x*dispersionSeed*422.271f+(seed*0.0027f), pos.z*dispersionSeed*533.319f+(seed*0.002702f));
-	
+		//float currentAltitude = Perlin.Noise(pos.x*dispersionSeed*72.272f+(seed*0.0027f), pos.z*dispersionSeed*23.389f+(seed*0.1027f));
+		//float currentHumidity = Perlin.Noise(pos.x*dispersionSeed*177.741f+(seed*0.0027f), pos.z*dispersionSeed*18.864f+(seed*0.0327f));
+		//float currentTemperature = Perlin.Noise(pos.x*dispersionSeed*35.524f+(seed*0.0027f), pos.z*dispersionSeed*141.161f+(seed*0.4027f));
+		//float currentLightning = Perlin.Noise(pos.x*dispersionSeed*422.271f+(seed*0.0027f), pos.z*dispersionSeed*533.319f+(seed*0.002702f));
+		
+		float currentAltitude = Perlin.Noise(pos.x*featureModificationConstant*72.272f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*23.389f+((seed*394.346f)%1000));
+		float currentHumidity = Perlin.Noise(pos.x*featureModificationConstant*51.741f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*18.864f+((seed*224.3823246f)%1000));
+		float currentTemperature = Perlin.Noise(pos.x*featureModificationConstant*35.524f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*141.161f+((seed*584.226f)%1000));
+		float currentLightning = Perlin.Noise(pos.x*featureModificationConstant*42.271f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*533.319f+((seed*705.002702f)%1000));
+
 		float lowestDistance = 99;
 		string lowestBiome = "";
 		float distance;
@@ -47,12 +54,11 @@ public class BiomeHandler
 	}
 
 	public Point4D GetFeatures(ChunkPos pos, float seed){
-		float currentAltitude = Perlin.Noise(pos.x*dispersionSeed*72.272f+(seed*0.0027f), pos.z*dispersionSeed*23.389f+(seed*0.1027f));
-		float currentHumidity = Perlin.Noise(pos.x*dispersionSeed*177.741f+(seed*0.0027f), pos.z*dispersionSeed*18.864f+(seed*0.0327f));
-		float currentTemperature = Perlin.Noise(pos.x*dispersionSeed*35.524f+(seed*0.0027f), pos.z*dispersionSeed*141.161f+(seed*0.4027f));
-		float currentLightning = Perlin.Noise(pos.x*dispersionSeed*422.271f+(seed*0.0027f), pos.z*dispersionSeed*533.319f+(seed*0.002702f));
+		float currentAltitude = Perlin.Noise(pos.x*featureModificationConstant*72.272f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*23.389f+((seed*394.346f)%1000));
+		float currentHumidity = Perlin.Noise(pos.x*featureModificationConstant*51.741f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*18.864f+((seed*224.3823246f)%1000));
+		float currentTemperature = Perlin.Noise(pos.x*featureModificationConstant*35.524f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*141.161f+((seed*584.226f)%1000));
+		float currentLightning = Perlin.Noise(pos.x*featureModificationConstant*42.271f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*533.319f+((seed*705.002702f)%1000));
 	
-
 		return new Point4D(currentAltitude, currentHumidity, currentTemperature, currentLightning);
 	}
 

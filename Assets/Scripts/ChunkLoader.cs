@@ -225,6 +225,8 @@ public class ChunkLoader : MonoBehaviour
             return GeneratePlainsBiome(pos.x, pos.z);
         else if(biome == "Grassy Highlands")
             return GenerateGrassyHighLandsBiome(pos.x, pos.z);
+        else if(biome == "Ocean")
+            return GenerateOceanBiome(pos.x, pos.z);
         else 
             return GeneratePlainsBiome(pos.x, pos.z);
         
@@ -689,7 +691,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Generates Pivot heightmaps
-    private void GeneratePivots(int[,] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, int octave=0, int groundLevel=20, int ceilingLevel=100){
+    private void GeneratePivots(int[,] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, int octave=0, int groundLevel=20, int ceilingLevel=100, string currentBiome=""){
     	int size = Chunk.chunkWidth;
     	int chunkXmult = chunkX * size;
     	int chunkZmult = chunkZ * size;
@@ -715,6 +717,9 @@ public class ChunkLoader : MonoBehaviour
             case "Grassy Highlands":
                 MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, false, octave);
                 break;
+            case "Ocean":
+                MixOceanBorderPivots(selectedCache, chunkX, chunkZ, false, octave, currentBiome:currentBiome);
+                break;
             default:
                 print("Deu Merda");
                 break;
@@ -728,6 +733,9 @@ public class ChunkLoader : MonoBehaviour
             case "Grassy Highlands":
                 MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, true, octave);
                 break;
+            case "Ocean":
+                MixOceanBorderPivots(selectedCache, chunkX, chunkZ, true, octave, currentBiome:currentBiome);
+                break;
             default:
                 print("Deu Merda");
                 break;
@@ -740,6 +748,9 @@ public class ChunkLoader : MonoBehaviour
                 break;
             case "Grassy Highlands":
                 MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true);
+                break;
+            case "Ocean":
+                MixOceanBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true, currentBiome:currentBiome);
                 break;
             default:
                 print("Deu Merda");
@@ -775,8 +786,21 @@ public class ChunkLoader : MonoBehaviour
         selectedMap[Chunk.chunkWidth, Chunk.chunkWidth] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth)*hashSeed/xhash, ((chunkZ+1)*Chunk.chunkWidth)*hashSeed/zhash))), 0, ceilingLevel);
     }
 
-    // Generates a flat map at Y level ceiling
-    private void GenerateWaterMap(int[,] selectedCache, int ceiling, ushort state=0){
+    // Generates Flat Map of something
+    // Consider using this for biomes that are relatively low altitude
+    private void GenerateFlatMap(int[,] selectedCache, int ceiling){
+        if(ceiling >= Chunk.chunkDepth)
+            ceiling = Chunk.chunkDepth-1;
+
+        for(int x=0; x<Chunk.chunkWidth;x++){
+            for(int z=0; z<Chunk.chunkWidth;z++){
+                selectedCache[x,z] = ceiling;
+            }
+        }
+    }
+
+    // Generates a flat map at Y level ceiling with deadzone protection
+    private void GenerateWaterMap(int[,] selectedCache, int ceiling){
         int deadZoneXM=0;
         int deadZoneZM=0;
         int deadZoneXP=0;
@@ -917,7 +941,6 @@ public class ChunkLoader : MonoBehaviour
 	    }
     }
 
-
     // Applies Octaves to Pivot Map
     private void CombinePivotMap(int[,] a, int[,] b){
         for(int x=0;x<=Chunk.chunkWidth;x+=4){
@@ -966,7 +989,7 @@ public class ChunkLoader : MonoBehaviour
 		AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
         // Add Water
-        GenerateWaterMap(cacheHeightMap4, 22, state:0);
+        GenerateWaterMap(cacheHeightMap4, 22);
 
 		// Adds rest to pipeline
 		cacheMaps.Add(cacheHeightMap3);
@@ -1028,7 +1051,7 @@ public class ChunkLoader : MonoBehaviour
         AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
         // Add Water
-        GenerateWaterMap(cacheHeightMap4, 42, state:0); //35
+        GenerateWaterMap(cacheHeightMap4, 42); //35
 
         // Adds rest to pipeline
         cacheMaps.Add(cacheHeightMap3);
@@ -1049,7 +1072,7 @@ public class ChunkLoader : MonoBehaviour
         return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:40);
     }
 
-    // Inserts Plains biome border pivots on another selectedHeightMap
+    // Inserts Grassy Highlands biome border pivots on another selectedHeightMap
     private void MixGrassyHighlandsBorderPivots(int[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
         int xhash = 10;
         int zhash = 30;
@@ -1068,6 +1091,84 @@ public class ChunkLoader : MonoBehaviour
 
         }
     }
+
+    // Generates Ocean biome chunk
+    public VoxelData GenerateOceanBiome(int chunkX, int chunkZ){
+        // Hash values for Ocean Biomes
+        float xhash = 0.58f;
+        float zhash = 0.23f;
+
+        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, octave:0, groundLevel:1, ceilingLevel:19, currentBiome:"Ocean");
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, octave:1, groundLevel:1, ceilingLevel:19, currentBiome:"Ocean");
+        CombinePivotMap(cacheHeightMap, cacheHeightMap2);
+        BilinearInterpolateMap(cacheHeightMap);
+
+        // Adds Cache 2 to pipeline
+        cacheMaps.Add(cacheHeightMap);
+        cacheBlockCodes.Add(2);
+
+        // Add Water
+        GenerateFlatMap(cacheHeightMap4, 20);
+
+        // Adds rest to pipeline
+        cacheMaps.Add(cacheHeightMap4);
+        cacheBlockCodes.Add(6);
+
+        cacheStateDict = new Dictionary<int, ushort>{{6,0}};
+
+        // Adds to cacheVoxdata
+        ApplyHeightMaps(cacheStateDict);
+
+        // Cave Systems
+        GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:10, maskThreshold:0.7f);
+        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:10);
+    }
+
+    // Inserts Ocean border pivots on another selectedHeightMap
+    private void MixOceanBorderPivots(int[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false, string currentBiome=""){
+        float xhash = 0.58f;
+        float zhash = 0.23f;
+
+        if(currentBiome != "Ocean"){
+            if(!corner){
+                if(octave == 0){
+                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:20, ceilingLevel:20);
+                }
+                else{
+                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, isSide, groundLevel:20, ceilingLevel:20);            
+                }
+            }
+            else{
+                if(octave == 0){
+                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:19, ceilingLevel:19);
+                }
+                else{
+                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, groundLevel:19, ceilingLevel:19);
+                }
+
+            }
+        }
+        else{
+            if(!corner){
+                if(octave == 0){
+                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:1, ceilingLevel:20);
+                }
+                else{
+                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, isSide, groundLevel:1, ceilingLevel:20);            
+                }
+            }
+            else{
+                if(octave == 0){
+                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:1, ceilingLevel:20);
+                }
+                else{
+                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, groundLevel:1, ceilingLevel:20);
+                }
+
+            }            
+        }
+    }
+
 
 }
 
