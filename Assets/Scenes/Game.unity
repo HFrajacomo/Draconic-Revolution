@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1484502057}
-  m_IndirectSpecularColor: {r: 0.006806803, g: 0.005470099, b: 0.0033809466, a: 1}
+  m_IndirectSpecularColor: {r: 0.0072313747, g: 0.0058852886, b: 0.0036914942, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -431,6 +431,7 @@ MonoBehaviour:
   cam: {fileID: 1912773808}
   reach: 4
   step: 0.025
+  blockToBePlaced: -1
   placeState: 0
   control: {fileID: 1635249984}
   facing: 0
@@ -2422,6 +2423,7 @@ MonoBehaviour:
   primaryAction: 0
   secondaryAction: 0
   interact: 0
+  gravityHack: 0
 --- !u!4 &1635249985
 Transform:
   m_ObjectHideFlags: 0
