@@ -52,6 +52,14 @@
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "Toggle Gravity",
+                    "type": "Button",
+                    "id": "19097fbd-caec-423a-96f3-e008033cbb0f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -162,6 +170,17 @@
                     "processors": "",
                     "groups": "Keyboard and Mouse",
                     "action": "Mouse Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8985a6c9-cc7a-469a-a108-28c55685ecb8",
+                    "path": "<Keyboard>/h",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Toggle Gravity",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

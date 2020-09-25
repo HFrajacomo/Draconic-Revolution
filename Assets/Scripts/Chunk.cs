@@ -111,11 +111,10 @@ public class Chunk
 						// Full block handler
 						if(thisBlock > 0){
 
-			    			vertices.AddRange(CubeMeshData.faceVertices(Direction.West, 0.5f, new Vector3(0,y,z)));
-			    			int vCount = meshVertCount + vertices.Count;
-
 			    			// Handling Liquid and non-liquid blocks
 			    			if(!blockBook.blocks[thisBlock].liquid){
+			    				vertices.AddRange(CubeMeshData.faceVertices(Direction.West, 0.5f, new Vector3(0,y,z)));
+			    				int vCount = meshVertCount + vertices.Count;
 					    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture(Direction.West));
 						    	triangles.Add(vCount -4);
 						    	triangles.Add(vCount -4 +1);
@@ -125,6 +124,8 @@ public class Chunk
 						    	triangles.Add(vCount -4 +3);
 			    			}
 					    	else{
+			    				vertices.AddRange(LiquidMeshData.VertsByState((int)Direction.West, this.metadata.GetMetadata(0,y,z).state, new Vector3(0,y,z)));
+			    				int vCount = meshVertCount + vertices.Count;
 					    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(0, z));
 						    	liquidTris.Add(vCount -4);
 						    	liquidTris.Add(vCount -4 +1);
@@ -183,11 +184,10 @@ public class Chunk
 						// Full block handler
 						if(thisBlock >= 0){
 
-			    			vertices.AddRange(CubeMeshData.faceVertices(Direction.East, 0.5f, new Vector3(chunkWidth-1,y,z)));
-			    			int vCount = meshVertCount + vertices.Count;
-
 			    			// Handling Liquid and non-liquid blocks
 			    			if(!blockBook.blocks[thisBlock].liquid){
+				    			vertices.AddRange(CubeMeshData.faceVertices(Direction.East, 0.5f, new Vector3(chunkWidth-1,y,z)));
+				    			int vCount = meshVertCount + vertices.Count;
 					    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture(Direction.East));
 						    	triangles.Add(vCount -4);
 						    	triangles.Add(vCount -4 +1);
@@ -197,6 +197,8 @@ public class Chunk
 						    	triangles.Add(vCount -4 +3);
 			    			}
 					    	else{
+			    				vertices.AddRange(LiquidMeshData.VertsByState((int)Direction.East, this.metadata.GetMetadata(chunkWidth-1,y,z).state, new Vector3(chunkWidth-1,y,z)));
+			    				int vCount = meshVertCount + vertices.Count;
 					    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(chunkWidth-1, z));
 						    	liquidTris.Add(vCount -4);
 						    	liquidTris.Add(vCount -4 +1);
@@ -254,11 +256,10 @@ public class Chunk
 						// Full block handler
 						if(thisBlock > 0){
 
-			    			vertices.AddRange(CubeMeshData.faceVertices(Direction.South, 0.5f, new Vector3(x,y,0)));
-			    			int vCount = meshVertCount + vertices.Count;
-
 			    			// Handling Liquid and non-liquid blocks
 			    			if(!blockBook.blocks[thisBlock].liquid){
+			    				vertices.AddRange(CubeMeshData.faceVertices(Direction.South, 0.5f, new Vector3(x,y,0)));
+			    				int vCount = meshVertCount + vertices.Count;
 					    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture(Direction.South));
 						    	triangles.Add(vCount -4);
 						    	triangles.Add(vCount -4 +1);
@@ -268,6 +269,8 @@ public class Chunk
 						    	triangles.Add(vCount -4 +3);
 			    			}
 					    	else{
+			    				vertices.AddRange(LiquidMeshData.VertsByState((int)Direction.South, this.metadata.GetMetadata(x,y,0).state, new Vector3(x,y,0)));
+			    				int vCount = meshVertCount + vertices.Count;
 					    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(x, 0));
 						    	liquidTris.Add(vCount -4);
 						    	liquidTris.Add(vCount -4 +1);
@@ -325,11 +328,10 @@ public class Chunk
 						// Full block handler
 						if(thisBlock > 0){
 
-			    			vertices.AddRange(CubeMeshData.faceVertices(Direction.North, 0.5f, new Vector3(x,y,chunkWidth-1)));
-			    			int vCount = meshVertCount + vertices.Count;
-
 			    			// Handling Liquid and non-liquid blocks
 			    			if(!blockBook.blocks[thisBlock].liquid){
+			    				vertices.AddRange(CubeMeshData.faceVertices(Direction.North, 0.5f, new Vector3(x,y,chunkWidth-1)));
+			    				int vCount = meshVertCount + vertices.Count;
 					    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture(Direction.North));
 						    	triangles.Add(vCount -4);
 						    	triangles.Add(vCount -4 +1);
@@ -339,6 +341,8 @@ public class Chunk
 						    	triangles.Add(vCount -4 +3);
 			    			}
 					    	else{
+			    				vertices.AddRange(LiquidMeshData.VertsByState((int)Direction.North, this.metadata.GetMetadata(x,y,chunkWidth-1).state, new Vector3(x,y,chunkWidth-1)));
+			    				int vCount = meshVertCount + vertices.Count;
 					    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(x, chunkWidth-1));
 						    	liquidTris.Add(vCount -4);
 						    	liquidTris.Add(vCount -4 +1);
@@ -434,12 +438,11 @@ public class Chunk
 				    				continue;
 
 					    		if(blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible){
-					    			
-					    			vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
-					    			int vCount = vertices.Count;
 
 					    			// Handling Liquid and non-liquid blocks
 					    			if(!blockBook.blocks[thisBlock].liquid){
+					    				vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
+					    				int vCount = vertices.Count;
 							    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
 								    	triangles.Add(vCount -4);
 								    	triangles.Add(vCount -4 +1);
@@ -449,6 +452,8 @@ public class Chunk
 								    	triangles.Add(vCount -4 +3);
 					    			}
 							    	else{
+			    						vertices.AddRange(LiquidMeshData.VertsByState(i, this.metadata.GetMetadata(x,y,z).state, new Vector3(x,y,z)));
+			    						int vCount = vertices.Count;
 							    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(x, z));
 								    	liquidTris.Add(vCount -4);
 								    	liquidTris.Add(vCount -4 +1);
@@ -471,12 +476,11 @@ public class Chunk
 				    				continue;
 
 					    		if(blockBook.objects[neighborBlock].transparent || blockBook.objects[neighborBlock].invisible){
-					    			// Make Face
-							    	vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
-							    	int vCount = vertices.Count;
 
 			    					// Handling Liquid and non-liquid blocks
 					    			if(!blockBook.blocks[thisBlock].liquid){
+							    		vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
+							    		int vCount = vertices.Count;
 								    	UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
 								    	triangles.Add(vCount -4);
 								    	triangles.Add(vCount -4 +1);
@@ -486,6 +490,8 @@ public class Chunk
 								    	triangles.Add(vCount -4 +3);
 							  		}
 							  		else{
+			    						vertices.AddRange(LiquidMeshData.VertsByState(i, this.metadata.GetMetadata(x,y,z).state, new Vector3(x,y,z)));
+			    						int vCount = vertices.Count;
 							    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(x, z));
 								    	liquidTris.Add(vCount -4);
 								    	liquidTris.Add(vCount -4 +1);

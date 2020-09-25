@@ -16,7 +16,10 @@ public abstract class Blocks
 	public bool transparent; // Should render the back side?
 	public bool invisible; // Should not render at all
 	public bool liquid;
+	public bool washable = false; // Can be destroyed by flowing water
 	public bool needsRotation = false;
+	public bool customBreak = false;
+	public bool customPlace = false;
 
 	// Texture tile code
 	public int tileTop;
@@ -103,6 +106,30 @@ public abstract class Blocks
 
 		return UVs;
 	}
+
+    // Handles the emittion of BUD to neighboring blocks
+    public void EmitBlockUpdate(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
+      CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
+
+      CastCoord[] neighbors = {
+      thisPos.Add(1,0,0),
+      thisPos.Add(-1,0,0),
+      thisPos.Add(0,1,0),
+      thisPos.Add(0,-1,0),
+      thisPos.Add(0,0,1),
+      thisPos.Add(0,0,-1)
+      };
+
+      int[] facings = {2,0,4,5,1,3};
+
+      int faceCounter=0;
+
+      foreach(CastCoord c in neighbors){
+        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);     
+      
+        faceCounter++;
+      }
+    }	
 
 	/*
 	VIRTUAL METHODS

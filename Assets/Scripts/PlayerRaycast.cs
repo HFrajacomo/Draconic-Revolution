@@ -15,10 +15,17 @@ public class PlayerRaycast : MonoBehaviour
 	public CastCoord current;
 	private CastCoord lastCoord;
 
+  // DEBUG
+  public int blockToBePlaced = 6;
+  public ushort placeState = 0;
+
 	// Current player block position
 	private CastCoord playerHead;
 	private CastCoord playerBody;
   public MainControllerManager control;
+
+  // Cached
+  private BUDSignal cachedBUD;
 
 	/*
 	0 = X+ => side
@@ -86,7 +93,7 @@ public class PlayerRaycast : MonoBehaviour
 
       // Click to place block
       if(control.secondaryAction){
-      	PlaceBlock(-1);
+      	PlaceBlock(blockToBePlaced, placeState);
         control.secondaryAction = false;
       }
 
@@ -130,8 +137,11 @@ public class PlayerRaycast : MonoBehaviour
 
       // If hits something
       if(blockID != 0)
-        if(loader.chunks.ContainsKey(ck))
+        if(loader.chunks.ContainsKey(ck)){
+          //print(loader.blockBook.Get(blockID).name + " : " + loader.chunks[ck].metadata.GetMetadata(coords.blockX, coords.blockY, coords.blockZ).state);
+
           return true;
+        }
       return false;
     }
 
@@ -144,26 +154,31 @@ public class PlayerRaycast : MonoBehaviour
     	ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
       int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
 
+      // If doesn't has special break handling
+      if(!loader.blockBook.Get(blockCode).customBreak){
+        // Triggers OnBreak
+        if(blockCode >= 0)
+          loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+        else
+          loader.blockBook.objects[(blockCode*-1)-1].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
 
-      // Triggers OnBreak
-      if(blockCode >= 0)
-        loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-      else
-        loader.blockBook.objects[(blockCode*-1)-1].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-    
-      // Passes "break" block update to neighboring blocks
-      EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), loader);
+        // Actually breaks new block and updates chunk
+        loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
+        loader.chunks[toUpdate].metadata.CreateNull(current.blockX, current.blockY, current.blockZ);
 
-      // Actually breaks new block and updates chunk
-      loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
-      loader.chunks[toUpdate].BuildChunk();
-      loader.chunks[toUpdate].BuildSideBorder(reload:true);
-      UpdateNeighborChunk(toUpdate, current.blockX, current.blockY, current.blockZ);
+        // Passes "break" block update to neighboring blocks IF object doesn't implement it OnBreak
+        EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
+        loader.budscheduler.ScheduleReload(toUpdate, 0);
+      }
+      // If has special break handlings
+      else{
+        loader.blockBook.Get(blockCode).OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+      }
 
     }
 
     // Block Placing mechanic
-    private void PlaceBlock(int blockCode){
+    private void PlaceBlock(int blockCode, ushort? state){
       int translatedBlockCode;
       bool isAsset;
 
@@ -209,10 +224,27 @@ public class PlayerRaycast : MonoBehaviour
         loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
  
 
-      // Actually places block/asset into terrain
-		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-      loader.chunks[toUpdate].BuildChunk();   
-      loader.chunks[toUpdate].BuildSideBorder(reload:true);
+      // If doesn't have special place handling
+      if(!loader.blockBook.Get(blockCode).customPlace){
+        // Actually places block/asset into terrain
+  		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+        if(state != null){
+          loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
+        }
+
+        loader.budscheduler.ScheduleReload(toUpdate, 0);
+      }
+
+      // If has special handling
+      else{
+        // Actually places block/asset into terrain
+        loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+        if(state != null){
+          loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
+        }
+
+        loader.blockBook.Get(blockCode).OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
+      }
     }
 
     // Triggers Blocktype.OnInteract()
@@ -248,17 +280,21 @@ public class PlayerRaycast : MonoBehaviour
         loader.chunks[targetChunk].BuildChunk();
         loader.chunks[targetChunk].BuildSideBorder(reload:true);
       }
-      // 2: Emits BUD and forces chunk reload
+      // 2: Emits BUD instantly and forces chunk reload
       else if(code == 2){
-        EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), loader);
-        loader.chunks[targetChunk].BuildChunk();  
-        loader.chunks[targetChunk].BuildSideBorder(reload:true);   
+        EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
+        loader.budscheduler.ScheduleReload(targetChunk, 0);  
+      }
+      // 3: Emits BUD in next tick and forces chunk reload
+      else if(code == 2){
+        EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 1, loader);
+        loader.budscheduler.ScheduleReload(targetChunk, 1);
       }
 
     }
 
     // Handles the emittion of BUD to neighboring blocks
-    public void EmitBlockUpdate(string type, int x, int y, int z, ChunkLoader cl){
+    public void EmitBlockUpdate(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
       CastCoord thisPos = GetCoordinates(x, y, z);
 
       CastCoord[] neighbors = {
@@ -279,10 +315,8 @@ public class PlayerRaycast : MonoBehaviour
       foreach(CastCoord c in neighbors){
         blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
 
-        if(blockCode >= 0)
-          cl.blockBook.blocks[blockCode].OnBlockUpdate(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter], cl);
-        else
-          cl.blockBook.objects[(blockCode*-1)-1].OnBlockUpdate(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter], cl);
+        cachedBUD = new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]);
+        cl.budscheduler.ScheduleBUD(cachedBUD, tickOffset);       
       
         faceCounter++;
       }

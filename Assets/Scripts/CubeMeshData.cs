@@ -17,7 +17,7 @@ public static class CubeMeshData {
   };
 
   public static int[][] faceTriangles = {
-    new int[] {0,1,2,3 },
+    new int[] {0,1,2,3},
     new int[] {5,0,3,6},
     new int[] {4,5,6,7},
     new int[] {1,4,7,2},
