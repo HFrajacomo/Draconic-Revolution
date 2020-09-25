@@ -406,7 +406,6 @@ public class ChunkLoader : MonoBehaviour
     	System.IO.File.WriteAllText(filename, a);
     }
 
-
     /*
     Used for Cave system generation and above ground turbulence
     */
