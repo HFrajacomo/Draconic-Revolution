@@ -21,8 +21,6 @@ public class ChunkLoader : MonoBehaviour
 
 	// World Generation
 	public int worldSeed = 1; // 6 number integer
-	public float hashSeed;
-	public float caveSeed;
     public float offsetHash;
     public BiomeHandler biomeHandler;
     private bool isBorderXP = false;   // True if the assigned biomes on neighbor chunks are different
@@ -60,8 +58,6 @@ public class ChunkLoader : MonoBehaviour
     	}
 
         biomeHandler = new BiomeHandler(BiomeSeedFunction(worldSeed));
-    	hashSeed = TerrainSeedFunction(worldSeed);
-    	caveSeed = LogSeedFunction(worldSeed);
         offsetHash = OffsetHashFunction(worldSeed);
 
 		player = GameObject.Find("Character").GetComponent<Transform>();
@@ -382,16 +378,6 @@ public class ChunkLoader : MonoBehaviour
 	    currentChunk = newChunk;
     }
 
-    // Calculates the caveSeed of caveworms
-    private float LogSeedFunction(int t){
-    	return Mathf.Log(t+2, 3f)+0.5f;
-    }
- 
-    // Calculates hashSeed of terrain
-    private float TerrainSeedFunction(int t){
-    	return (0.3f/999999)*t + 0.1f;
-    }
-
     // Calculates the biomeSeed of BiomeHandler
     private float BiomeSeedFunction(int t){
         return 0.04f*(0.03f*Mathf.Sin(t));
@@ -399,7 +385,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Calculates general offset hash
     private float OffsetHashFunction(int t){
-        return (t*0.00071928590287457694671f)%1;
+        return (t*0.71928590287457694671f)%1;
     }
 
 
@@ -1036,7 +1022,7 @@ public class ChunkLoader : MonoBehaviour
         cacheStateDict.Clear();
         
         // Cave Systems
-        GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:20, maskThreshold:0.7f);
+        GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:20, maskThreshold:0.7f);
         return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:20);
     }
 
@@ -1106,7 +1092,7 @@ public class ChunkLoader : MonoBehaviour
         cacheStateDict.Clear();
 
         // Cave Systems
-        GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:40, maskThreshold:0.7f);
+        GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:40, maskThreshold:0.7f);
         return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:40);
     }
 
@@ -1164,7 +1150,7 @@ public class ChunkLoader : MonoBehaviour
         ApplyHeightMaps(cacheStateDict);
 
         // Cave Systems
-        GenerateRidgedMultiFractal3D(chunkX, chunkZ, caveSeed*0.012f, caveSeed*0.007f, caveSeed*0.0089f, 0.35f, ceiling:10, maskThreshold:0.7f);
+        GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:10, maskThreshold:0.7f);
         return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:10);
     }
 
