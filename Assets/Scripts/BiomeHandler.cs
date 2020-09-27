@@ -26,11 +26,6 @@ public class BiomeHandler
 		of the biome distribution.
 	*/
 	public string Assign(ChunkPos pos, float seed){
-		//float currentAltitude = Perlin.Noise(pos.x*dispersionSeed*72.272f+(seed*0.0027f), pos.z*dispersionSeed*23.389f+(seed*0.1027f));
-		//float currentHumidity = Perlin.Noise(pos.x*dispersionSeed*177.741f+(seed*0.0027f), pos.z*dispersionSeed*18.864f+(seed*0.0327f));
-		//float currentTemperature = Perlin.Noise(pos.x*dispersionSeed*35.524f+(seed*0.0027f), pos.z*dispersionSeed*141.161f+(seed*0.4027f));
-		//float currentLightning = Perlin.Noise(pos.x*dispersionSeed*422.271f+(seed*0.0027f), pos.z*dispersionSeed*533.319f+(seed*0.002702f));
-		
 		float currentAltitude = Perlin.Noise(pos.x*featureModificationConstant*72.272f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*23.389f+((seed*394.346f)%1000));
 		float currentHumidity = Perlin.Noise(pos.x*featureModificationConstant*51.741f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*18.864f+((seed*224.3823246f)%1000));
 		float currentTemperature = Perlin.Noise(pos.x*featureModificationConstant*35.524f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*141.161f+((seed*584.226f)%1000));

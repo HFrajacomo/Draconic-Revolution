@@ -239,13 +239,13 @@ MonoBehaviour:
     m_Value: 55261.973
     min: 0
   aerosolDensity:
-    m_OverrideState: 0
-    m_Value: 0.01192826
+    m_OverrideState: 1
+    m_Value: 0.07
     min: 0
     max: 1
   aerosolTint:
-    m_OverrideState: 0
-    m_Value: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+    m_OverrideState: 1
+    m_Value: {r: 0.44455323, g: 0.8490566, b: 0.77471477, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 1
@@ -254,8 +254,8 @@ MonoBehaviour:
     m_Value: 8289.296
     min: 0
   aerosolAnisotropy:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 0.2
     min: -1
     max: 1
   numberOfBounces:
@@ -308,14 +308,14 @@ MonoBehaviour:
     min: 0
     max: 1
   horizonTint:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 0
   zenithTint:
-    m_OverrideState: 0
-    m_Value: {r: 0, g: 0, b: 0, a: 1}
+    m_OverrideState: 1
+    m_Value: {r: 0.2956123, g: 0.84195733, b: 0.8584906, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 0

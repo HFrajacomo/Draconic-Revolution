@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1484502057}
-  m_IndirectSpecularColor: {r: 0.0072313747, g: 0.0058852886, b: 0.0036914942, a: 1}
+  m_IndirectSpecularColor: {r: 0.0032229614, g: 0.004069858, b: 0.0029652345, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -358,7 +358,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 59614820}
-  speed: 10
+  speed: 20
   gravity: -19.62
   jumpHeight: 5
   layerMask:
@@ -1681,7 +1681,7 @@ MonoBehaviour:
   blockBook: {fileID: 1668289087}
   budscheduler: {fileID: 816262494}
   vfx: {fileID: 1018660373}
-  worldSeed: 500000
+  worldSeed: 888888
   hashSeed: 0
   caveSeed: 0
   rend: {fileID: 471797234}
