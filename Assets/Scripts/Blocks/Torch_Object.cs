@@ -26,9 +26,8 @@ public class Torch_Object : BlocklikeObject
 		this.invisible = false;
 		this.liquid = false;
 		this.washable = true;
-		this.prefabName = "Torch_Object";
-		this.centeringOffset = new Vector3(0f,-0.2f,0.4f);
-		this.scaling = new Vector3(1f, 2f, 1f);
+		this.go = GameObject.Find("----- PrefabObjects -----/Torch_Object");
+
 		this.needsRotation = true;
 
 		this.fireVFX = GameObject.Find("----- PrefabVFX -----/FireVFX");
@@ -83,7 +82,7 @@ public class Torch_Object : BlocklikeObject
 		GameObject.Destroy(this.vfx.data[pos][name]);
 		this.vfx.Remove(pos, name);
 		EraseMetadata(pos,x,y,z,cl);
-
+		cl.chunks[pos].assetGrid.Remove(x,y,z);
 		return 0;
 	}
 
@@ -276,22 +275,25 @@ public class Torch_Object : BlocklikeObject
 	}
 
 	// Applies Rotation to block in Chunk.BuildChunk()
-	public override Vector3[] ApplyRotation(Chunk c, int blockX, int blockY, int blockZ){
-		ushort? state = c.metadata.GetMetadata(blockX, blockY, blockZ).state;
+	public override void ApplyRotation(GameObject go, ushort? stt, int blockX, int blockY, int blockZ){
+		ushort? state = stt;
+		Transform t = go.GetComponent<Transform>();
 
-		if(state == 1 || state == 5)
-			return this.Rotate(0,180,0);
-		else if(state == 0 || state == 4){
-			return this.Rotate(0, 90, 0);
-		}
-		else if(state == 2 || state == 6){
-			return this.Rotate(0,-90,0);
+		if(state == 0 || state == 4){
+			t.Rotate(0, -90,0);
+			t.position += new Vector3(0.4f,-0.2f,0f);
 		}
 		else if(state == 3 || state == 7){
-			return this.mesh.vertices;
+			t.Rotate(0, 180, 0);
+			t.position += new Vector3(0f,-0.2f,0.4f);
 		}
-		else
-			return this.mesh.vertices;
+		else if(state == 2 || state == 6){
+			t.Rotate(0, 90, 0);
+			t.position += new Vector3(-0.4f,-0.2f,0f);
+		}
+		else{
+			t.position += new Vector3(0f,-0.2f,-0.4f);
+		}
 	}
 
 }

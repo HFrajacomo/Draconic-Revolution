@@ -6,6 +6,7 @@ public class Stone_Block : Blocks
 {
 	public Stone_Block(){
 		this.name = "Stone";
+		this.materialIndex = 0;
 		this.solid = true;
 		this.transparent = false;
 		this.invisible = false;

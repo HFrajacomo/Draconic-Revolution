@@ -13,8 +13,10 @@ public class BUDScheduler : MonoBehaviour
 	public int BUDperFrame;
 	private int currentBUDonFrame;
 
+
     private ChunkPos cachePos;
 	private CastCoord cachedCoord;
+    private int cachedCode;
 
 	void Start(){
 		this.currentTime = schedulerTime.GetBUDTime();
@@ -76,8 +78,15 @@ public class BUDScheduler : MonoBehaviour
     	for(currentBUDonFrame=0;currentBUDonFrame<BUDperFrame;currentBUDonFrame++){
 	    	if(this.data[this.currentTime].Count > 0){
                 cachedCoord = new CastCoord(new Vector3(this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z));
-	    		loader.blockBook.Get(loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ)).OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
-	    	    this.data[this.currentTime].RemoveAt(0);
+	    		cachedCode = loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+                
+                if(cachedCode >= 0)
+                    loader.blockBook.blocks[cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
+	    	    else{
+                    loader.blockBook.objects[(cachedCode*-1)-1].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);                    
+                }
+
+                this.data[this.currentTime].RemoveAt(0);
             }
 	    	else{
 	    		break;

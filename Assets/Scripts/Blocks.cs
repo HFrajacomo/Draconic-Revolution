@@ -7,10 +7,13 @@ using UnityEngine;
 public abstract class Blocks
 {
 	public static int blockCount = 7;
-	public const int pixelSize = 32;
+	public static int pixelSize = 32;
 	public static int atlasSizeX = 8;
 	public static int atlasSizeY = 2;
+	public static int transparentAtlasSizeX = 8;
+	public static int transparentAtlasSizeY = 4;
 
+	public byte materialIndex = 0; // The material used in the rendering pipeline
 	public string name;
 	public bool solid; // Is collidable
 	public bool transparent; // Should render the back side?
@@ -32,36 +35,23 @@ public abstract class Blocks
 	public static Blocks Block(int blockID){
 		// The actual block encyclopedia
 
-			if(blockID == 0){
-				Air_Block aux = new Air_Block();
-				return aux;
-			}
-			else if(blockID == 1){
-				Grass_Block aux = new Grass_Block();
-				return aux;
-			}
-			else if(blockID == 2){
-				Dirt_Block aux = new Dirt_Block();
-				return aux;
-			}
-			else if(blockID == 3){
-				Stone_Block aux = new Stone_Block();
-				return aux;
-			}
-			else if(blockID == 4){
-				Wood_Block aux = new Wood_Block();
-				return aux;
-			}
-			else if(blockID == 5){
-				MetalOre_Block aux = new MetalOre_Block();
-				return aux;
-			}
+			if(blockID == 0)
+				return new Air_Block();
+			else if(blockID == 1)
+				return new Grass_Block();
+			else if(blockID == 2)
+				return new Dirt_Block();
+			else if(blockID == 3)
+				return new Stone_Block();	
+			else if(blockID == 4)
+				return new Wood_Block();		
+			else if(blockID == 5)
+				return new MetalOre_Block();		
 			else if(blockID == 6)
 				return new Water_Block();
-			else{
-				Air_Block aux = new Air_Block();
-				return aux;
-			}
+			else
+				return new Air_Block();
+			
 	}
 
 
@@ -77,17 +67,34 @@ public abstract class Blocks
 		else
 			textureID = this.tileSide;
 
-		float x = textureID%Blocks.atlasSizeX;
-		float y = Mathf.FloorToInt(textureID/Blocks.atlasSizeX);
- 
-		x *= 1f / Blocks.atlasSizeX;
-		y *= 1f / Blocks.atlasSizeY;
+		// If should use normal atlas
+		if(this.materialIndex == 0){
+			float x = textureID%Blocks.atlasSizeX;
+			float y = Mathf.FloorToInt(textureID/Blocks.atlasSizeX);
+	 
+			x *= 1f / Blocks.atlasSizeX;
+			y *= 1f / Blocks.atlasSizeY;
 
+			UVs[0] = new Vector2(x,y+(1f/Blocks.atlasSizeY));
+			UVs[1] = new Vector2(x+(1f/Blocks.atlasSizeX),y+(1f/Blocks.atlasSizeY));
+			UVs[2] = new Vector2(x+(1f/Blocks.atlasSizeX),y);
+			UVs[3] = new Vector2(x,y);
+		}
+		// If should use transparent atlas
+		else if(this.materialIndex == 2){
+			float x = textureID%Blocks.transparentAtlasSizeX;
+			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeY);
+	 
+			x *= 1f / Blocks.transparentAtlasSizeX;
+			y *= 1f / Blocks.transparentAtlasSizeY;
+
+			UVs[0] = new Vector2(x,y+(1f/Blocks.transparentAtlasSizeY));
+			UVs[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
+			UVs[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
+			UVs[3] = new Vector2(x,y);
+		}
 		
-		UVs[0] = new Vector2(x,y+(1f/Blocks.atlasSizeY));
-		UVs[1] = new Vector2(x+(1f/Blocks.atlasSizeX),y+(1f/Blocks.atlasSizeY));
-		UVs[2] = new Vector2(x+(1f/Blocks.atlasSizeX),y);
-		UVs[3] = new Vector2(x,y);
+
 
 		return UVs;
 	}
@@ -140,7 +147,7 @@ public abstract class Blocks
 		"change": When emitting block has been turned into another block or changed properties
 		"trigger": When emitting block has been electrically triggered
 	*/
-	public virtual void OnBlockUpdate(string type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){}
+	public virtual  void OnBlockUpdate(string type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){}
 
 	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){return 0;}

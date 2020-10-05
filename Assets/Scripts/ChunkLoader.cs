@@ -140,7 +140,8 @@ public class ChunkLoader : MonoBehaviour
             
             
             Chunk popChunk = chunks[toUnload[0]];
-            chunks.Remove(popChunk.pos);            
+            popChunk.Unload();
+            chunks.Remove(popChunk.pos);          
             Destroy(popChunk.obj);
             vfx.RemoveChunk(popChunk.pos);
 
@@ -155,7 +156,7 @@ public class ChunkLoader : MonoBehaviour
 
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
-                chunks[toDraw[0]].BuildChunk();
+                chunks[toDraw[0]].BuildChunk(load:true);
                 chunks[toDraw[0]].BuildSideBorder(reload:true);
             }
             toDraw.RemoveAt(0);
@@ -171,6 +172,9 @@ public class ChunkLoader : MonoBehaviour
             if(chunks.ContainsKey(toRedraw[0])){
                 if(chunks[toRedraw[0]].drawMain){
                     chunks[toRedraw[0]].BuildSideBorder();
+                }
+                else{
+                    toRedraw.Add(toRedraw[0]);
                 }
                 toRedraw.RemoveAt(0);
             }

@@ -4,12 +4,15 @@ using UnityEngine;
 
 public abstract class BlocklikeObject
 {
+	public byte materialIndex = 3; // Assets
 	public string name;
 	public bool solid; // Is collidable
 	public bool transparent; // Should render the back side?
 	public bool invisible; // Should not render at all
 	public bool liquid;
-	public static int objectCount = 1;
+
+	public static int objectCount = 2;
+
 	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();
 	public bool washable = false; // Can be destroyed by flowing water
 	public bool needsRotation = false;
@@ -17,107 +20,29 @@ public abstract class BlocklikeObject
 	public bool customPlace = false;
 
 	// Texture
-	public string prefabName;
-	public Mesh mesh;
-	public Vector3 centeringOffset;
-	public Vector3 scaling;
+	public GameObject go;
 
+	// Block Encyclopedia fill function
 	public static BlocklikeObject Create(int blockID){
-		if(blockID == -1){
-			Torch_Object aux = new Torch_Object();
-			return aux;
-		}
-		else{
+		if(blockID == 0)
 			return new Torch_Object();
-		}
-	}
-
-	// Moves all vertices from local to world space
-	public Vector3[] ToWorldSpace(Vector3 pos){
-		if(this.mesh == null){
-			return null;
-		}
-
-		Vector3[] newVert = new Vector3[this.mesh.vertices.Length];
-
-
-		for(int i=0;i<this.mesh.vertices.Length;i++){
-			newVert[i] = this.mesh.vertices[i] + pos;
-		}
-
-		return newVert;
-	}
-
-	// Moves all vertices from local to world space
-	public Vector3[] ToWorldSpace(Vector3 pos, Vector3[] v){
-		if(this.mesh == null){
-			return null;
-		}
-
-		Vector3[] newVert = new Vector3[v.Length];
-
-
-		for(int i=0;i<v.Length;i++){
-			newVert[i] = v[i] + pos;
-		}
-
-		return newVert;
-	}
-
-
-	public void LoadMesh(){
-		GameObject go;
-		Vector3[] newVerts;
-		Vector3 cachedVector;
-
-		go = GameObject.Find(this.prefabName);
-		this.mesh = go.GetComponent<MeshFilter>().mesh;
-		newVerts = new Vector3[this.mesh.vertices.Length];
-
-		for(int i=0; i<this.mesh.vertices.Length; i++){
-			cachedVector = new Vector3(this.mesh.vertices[i].x, this.mesh.vertices[i].y, this.mesh.vertices[i].z);
-			
-			// Rotation
-			cachedVector = Quaternion.AngleAxis(-90, Vector3.right) * cachedVector;
-			
-			// Whole Scaling
-			cachedVector *= 10f;
-
-			// Scaling
-			cachedVector.x *= this.scaling.x;
-			cachedVector.y *= this.scaling.y;
-			cachedVector.z *= this.scaling.z;
-
-			// Shifting
-			newVerts[i] = cachedVector + this.centeringOffset;
-		}
-		this.mesh.vertices = newVerts;
-	}
-
-	// Used to Rotate a set of Vector3 that represent mesh.vertices
-	public Vector3[] Rotate(float x=0, float y=0, float z=0){
-		Vector3[] newV = new Vector3[this.mesh.vertices.Length];
-
-		if(x != 0){
-			for(int i=0;i<this.mesh.vertices.Length;i++){
-				newV[i] = Quaternion.AngleAxis(x, Vector3.right) * this.mesh.vertices[i];
-			}
-		}
-		else if(y != 0){
-			for(int i=0;i<this.mesh.vertices.Length;i++){
-				newV[i] = Quaternion.AngleAxis(y, Vector3.up) * this.mesh.vertices[i];
-			}			
-		}
-		else if(z != 0){
-			for(int i=0;i<this.mesh.vertices.Length;i++){
-				newV[i] = Quaternion.AngleAxis(z, Vector3.forward) * this.mesh.vertices[i];
-			}			
-		}
+		else if(blockID == 1)
+			return new Leaf_Object();
 		else
-			return this.mesh.vertices;
-
-		return newV;
+			return new Torch_Object();
 	}
+
+	// Adds GameObject with correct offseting in the world and returns it
+	public GameObject PlaceObject(ChunkPos pos, int x, int y, int z, int blockCode, ChunkLoader loader){
+		if(!this.needsRotation)
+			return GameObject.Instantiate(loader.blockBook.objects[(blockCode*-1)-1].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
+		else{
+			GameObject GO = GameObject.Instantiate(loader.blockBook.objects[(blockCode*-1)-1].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
+			loader.blockBook.objects[(blockCode*-1)-1].ApplyRotation(GO, loader.chunks[pos].metadata.GetMetadata(x,y,z).state, x, y, z);
+			return GO;
+		}
+	}
+
 
     // Handles the emittion of BUD to neighboring blocks
     public void EmitBlockUpdate(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
@@ -165,5 +90,5 @@ public abstract class BlocklikeObject
 	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){return 0;}
 	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader cl){return true;}
-	public virtual Vector3[] ApplyRotation(Chunk c, int blockX, int blockY, int blockZ){return this.mesh.vertices;}
+	public virtual void ApplyRotation(GameObject go, ushort? state, int blockX, int blockY, int blockZ){}
 }

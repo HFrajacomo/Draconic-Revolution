@@ -28,10 +28,11 @@ public class Chunk
 	public GameObject obj = new GameObject();
 	public BlockEncyclopedia blockBook;
 	public ChunkLoader loader;
+	public AssetGrid assetGrid;
 
 	// Cache Information
     private List<Vector3> vertices = new List<Vector3>();
-    private List<int> transparentTris = new List<int>();
+    private List<int> specularTris = new List<int>();
     private List<int> liquidTris = new List<int>();
     private List<int> triangles = new List<int>();
     private List<Vector2> UVs = new List<Vector2>();
@@ -39,6 +40,7 @@ public class Chunk
 
 	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader){
 		this.pos = pos;
+		this.assetGrid = new AssetGrid(this.pos);
 		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
 		this.renderer = r;
 		this.obj.transform.SetParent(this.renderer.transform);
@@ -65,6 +67,7 @@ public class Chunk
 	public void BuildSideBorder(bool reload=false, bool reloadXM=false, bool reloadXm=false, bool reloadZM=false, bool reloadZm=false){
 		int thisBlock;
 		int neighborBlock;
+		bool skip;
 		int meshVertCount = this.meshFilter.sharedMesh.vertices.Length;
 
 		if(reload){
@@ -94,6 +97,7 @@ public class Chunk
 
 			for(int y=0; y<data.GetHeight(); y++){
 				for(int z=0; z<data.GetDepth(); z++){
+					skip = false;
 					thisBlock = data.GetCell(0,y,z);
 					neighborBlock = loader.chunks[targetChunk].data.GetCell(chunkWidth-1, y, z);
 
@@ -101,56 +105,16 @@ public class Chunk
 					if(thisBlock == 0)
 						continue;
 
-					// Water Handler
-					if(blockBook.Get(thisBlock).liquid && blockBook.Get(neighborBlock).liquid)
-						continue;
+	    			// Handles Liquid chunks
+	    			if(CheckLiquids(thisBlock, neighborBlock))
+	    				continue;
 
-					// If should write
-					if(blockBook.Get(neighborBlock).transparent || blockBook.Get(neighborBlock).invisible || blockBook.Get(neighborBlock).liquid){
-
-						// Full block handler
-						if(thisBlock > 0){
-
-			    			// Handling Liquid and non-liquid blocks
-			    			if(!blockBook.blocks[thisBlock].liquid){
-			    				vertices.AddRange(CubeMeshData.faceVertices(Direction.West, 0.5f, new Vector3(0,y,z)));
-			    				int vCount = meshVertCount + vertices.Count;
-					    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture(Direction.West));
-						    	triangles.Add(vCount -4);
-						    	triangles.Add(vCount -4 +1);
-						    	triangles.Add(vCount -4 +2);
-						    	triangles.Add(vCount -4);
-						    	triangles.Add(vCount -4 +2);
-						    	triangles.Add(vCount -4 +3);
-			    			}
-					    	else{
-			    				vertices.AddRange(LiquidMeshData.VertsByState((int)Direction.West, this.metadata.GetMetadata(0,y,z).state, new Vector3(0,y,z)));
-			    				int vCount = meshVertCount + vertices.Count;
-					    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(0, z));
-						    	liquidTris.Add(vCount -4);
-						    	liquidTris.Add(vCount -4 +1);
-						    	liquidTris.Add(vCount -4 +2);
-						    	liquidTris.Add(vCount -4);
-						    	liquidTris.Add(vCount -4 +2);
-						    	liquidTris.Add(vCount -4 +3);							    	
-					    	}							
-						}
-						// If it's an asset
-						else{
-			    			int vCount = meshVertCount + vertices.Count;
-
-			    			// If block has special Rotation Rules
-			    			if(blockBook.objects[(thisBlock*-1)-1].needsRotation)
-			    				vertices.AddRange(blockBook.objects[(thisBlock*-1)-1].ToWorldSpace(new Vector3(0,y,z), blockBook.objects[(thisBlock*-1)-1].ApplyRotation(this, 0,y,z)));
-			    			else
-								vertices.AddRange(blockBook.objects[(thisBlock*-1)-1].ToWorldSpace(new Vector3(0,y,z)));
-
-			    			foreach(int tri in blockBook.objects[(thisBlock*-1)-1].mesh.triangles)
-			    				transparentTris.Add(tri + vCount);
-
-			    			UVs.AddRange(blockBook.objects[(thisBlock*-1)-1].mesh.uv);					
-						}
-					}
+	    			// Main Drawing Handling
+		    		if(CheckPlacement(neighborBlock)){
+				    	LoadMesh(0, y, z, (int)Direction.West, thisBlock, false, ref skip, lookahead:meshVertCount);
+				    	if(skip)
+				    		break;
+		    		}	
 				}
 			}
 		}
@@ -167,6 +131,7 @@ public class Chunk
 
 			for(int y=0; y<data.GetHeight(); y++){
 				for(int z=0; z<data.GetDepth(); z++){
+					skip = false;
 					thisBlock = data.GetCell(chunkWidth-1,y,z);
 					neighborBlock = loader.chunks[targetChunk].data.GetCell(0, y, z);
 
@@ -174,56 +139,16 @@ public class Chunk
 					if(thisBlock == 0)
 						continue;
 
-					// Water Handler
-					if(blockBook.Get(thisBlock).liquid && blockBook.Get(neighborBlock).liquid)
-						continue;
+	    			// Handles Liquid chunks
+	    			if(CheckLiquids(thisBlock, neighborBlock))
+	    				continue;
 
-					// If should write
-					if(blockBook.Get(neighborBlock).transparent || blockBook.Get(neighborBlock).invisible || blockBook.Get(neighborBlock).liquid){
-
-						// Full block handler
-						if(thisBlock >= 0){
-
-			    			// Handling Liquid and non-liquid blocks
-			    			if(!blockBook.blocks[thisBlock].liquid){
-				    			vertices.AddRange(CubeMeshData.faceVertices(Direction.East, 0.5f, new Vector3(chunkWidth-1,y,z)));
-				    			int vCount = meshVertCount + vertices.Count;
-					    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture(Direction.East));
-						    	triangles.Add(vCount -4);
-						    	triangles.Add(vCount -4 +1);
-						    	triangles.Add(vCount -4 +2);
-						    	triangles.Add(vCount -4);
-						    	triangles.Add(vCount -4 +2);
-						    	triangles.Add(vCount -4 +3);
-			    			}
-					    	else{
-			    				vertices.AddRange(LiquidMeshData.VertsByState((int)Direction.East, this.metadata.GetMetadata(chunkWidth-1,y,z).state, new Vector3(chunkWidth-1,y,z)));
-			    				int vCount = meshVertCount + vertices.Count;
-					    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(chunkWidth-1, z));
-						    	liquidTris.Add(vCount -4);
-						    	liquidTris.Add(vCount -4 +1);
-						    	liquidTris.Add(vCount -4 +2);
-						    	liquidTris.Add(vCount -4);
-						    	liquidTris.Add(vCount -4 +2);
-						    	liquidTris.Add(vCount -4 +3);							    	
-					    	}							
-						}
-						// If it's an asset
-						else{
-			    			int vCount = meshVertCount + vertices.Count;
-
-			    			// If block has special Rotation Rules
-			    			if(blockBook.objects[(thisBlock*-1)-1].needsRotation)
-			    				vertices.AddRange(blockBook.objects[(thisBlock*-1)-1].ToWorldSpace(new Vector3(chunkWidth-1,y,z), blockBook.objects[(thisBlock*-1)-1].ApplyRotation(this, chunkWidth-1,y,z)));
-			    			else
-								vertices.AddRange(blockBook.objects[(thisBlock*-1)-1].ToWorldSpace(new Vector3(chunkWidth-1,y,z)));
-
-			    			foreach(int tri in blockBook.objects[(thisBlock*-1)-1].mesh.triangles)
-			    				transparentTris.Add(tri + vCount);
-
-			    			UVs.AddRange(blockBook.objects[(thisBlock*-1)-1].mesh.uv);					
-						}
-					}
+	    			// Main Drawing Handling
+		    		if(CheckPlacement(neighborBlock)){
+				    	LoadMesh(chunkWidth-1, y, z, (int)Direction.East, thisBlock, false, ref skip, lookahead:meshVertCount);
+				    	if(skip)
+				    		break;
+		    		}	
 				}
 			}
 		}
@@ -239,6 +164,7 @@ public class Chunk
 
 			for(int y=0; y<data.GetHeight(); y++){
 				for(int x=0; x<data.GetDepth(); x++){
+					skip = false;
 					thisBlock = data.GetCell(x,y,0);
 					neighborBlock = loader.chunks[targetChunk].data.GetCell(x, y, chunkWidth-1);
 
@@ -246,56 +172,16 @@ public class Chunk
 					if(thisBlock == 0)
 						continue;
 
-					// Water Handler
-					if(blockBook.Get(thisBlock).liquid && blockBook.Get(neighborBlock).liquid)
-						continue;
-						
-					// If should write
-					if(blockBook.Get(neighborBlock).transparent || blockBook.Get(neighborBlock).invisible || blockBook.Get(neighborBlock).liquid){
+	    			// Handles Liquid chunks
+	    			if(CheckLiquids(thisBlock, neighborBlock))
+	    				continue;
 
-						// Full block handler
-						if(thisBlock > 0){
-
-			    			// Handling Liquid and non-liquid blocks
-			    			if(!blockBook.blocks[thisBlock].liquid){
-			    				vertices.AddRange(CubeMeshData.faceVertices(Direction.South, 0.5f, new Vector3(x,y,0)));
-			    				int vCount = meshVertCount + vertices.Count;
-					    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture(Direction.South));
-						    	triangles.Add(vCount -4);
-						    	triangles.Add(vCount -4 +1);
-						    	triangles.Add(vCount -4 +2);
-						    	triangles.Add(vCount -4);
-						    	triangles.Add(vCount -4 +2);
-						    	triangles.Add(vCount -4 +3);
-			    			}
-					    	else{
-			    				vertices.AddRange(LiquidMeshData.VertsByState((int)Direction.South, this.metadata.GetMetadata(x,y,0).state, new Vector3(x,y,0)));
-			    				int vCount = meshVertCount + vertices.Count;
-					    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(x, 0));
-						    	liquidTris.Add(vCount -4);
-						    	liquidTris.Add(vCount -4 +1);
-						    	liquidTris.Add(vCount -4 +2);
-						    	liquidTris.Add(vCount -4);
-						    	liquidTris.Add(vCount -4 +2);
-						    	liquidTris.Add(vCount -4 +3);							    	
-					    	}							
-						}
-						// If it's an asset
-						else{
-			    			int vCount = meshVertCount + vertices.Count;
-
-			    			// If block has special Rotation Rules
-			    			if(blockBook.objects[(thisBlock*-1)-1].needsRotation)
-			    				vertices.AddRange(blockBook.objects[(thisBlock*-1)-1].ToWorldSpace(new Vector3(x,y,0), blockBook.objects[(thisBlock*-1)-1].ApplyRotation(this, x,y,0)));
-			    			else
-								vertices.AddRange(blockBook.objects[(thisBlock*-1)-1].ToWorldSpace(new Vector3(x,y,0)));
-
-			    			foreach(int tri in blockBook.objects[(thisBlock*-1)-1].mesh.triangles)
-			    				transparentTris.Add(tri + vCount);
-
-			    			UVs.AddRange(blockBook.objects[(thisBlock*-1)-1].mesh.uv);					
-						}
-					}
+	    			// Main Drawing Handling
+		    		if(CheckPlacement(neighborBlock)){
+				    	LoadMesh(x, y, 0, (int)Direction.South, thisBlock, false, ref skip, lookahead:meshVertCount);
+				    	if(skip)
+				    		break;
+		    		}	
 				}
 			}
 		}	
@@ -311,6 +197,7 @@ public class Chunk
 
 			for(int y=0; y<data.GetHeight(); y++){
 				for(int x=0; x<data.GetDepth(); x++){
+					skip = false;
 					thisBlock = data.GetCell(x,y,chunkWidth-1);
 					neighborBlock = loader.chunks[targetChunk].data.GetCell(x, y, 0);
 
@@ -318,56 +205,16 @@ public class Chunk
 					if(thisBlock == 0)
 						continue;
 
-					// Water Handler
-					if(blockBook.Get(thisBlock).liquid && blockBook.Get(neighborBlock).liquid)
-						continue;
-						
-					// If should write
-					if(blockBook.Get(neighborBlock).transparent || blockBook.Get(neighborBlock).invisible || blockBook.Get(neighborBlock).liquid){
+	    			// Handles Liquid chunks
+	    			if(CheckLiquids(thisBlock, neighborBlock))
+	    				continue;
 
-						// Full block handler
-						if(thisBlock > 0){
-
-			    			// Handling Liquid and non-liquid blocks
-			    			if(!blockBook.blocks[thisBlock].liquid){
-			    				vertices.AddRange(CubeMeshData.faceVertices(Direction.North, 0.5f, new Vector3(x,y,chunkWidth-1)));
-			    				int vCount = meshVertCount + vertices.Count;
-					    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture(Direction.North));
-						    	triangles.Add(vCount -4);
-						    	triangles.Add(vCount -4 +1);
-						    	triangles.Add(vCount -4 +2);
-						    	triangles.Add(vCount -4);
-						    	triangles.Add(vCount -4 +2);
-						    	triangles.Add(vCount -4 +3);
-			    			}
-					    	else{
-			    				vertices.AddRange(LiquidMeshData.VertsByState((int)Direction.North, this.metadata.GetMetadata(x,y,chunkWidth-1).state, new Vector3(x,y,chunkWidth-1)));
-			    				int vCount = meshVertCount + vertices.Count;
-					    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(x, chunkWidth-1));
-						    	liquidTris.Add(vCount -4);
-						    	liquidTris.Add(vCount -4 +1);
-						    	liquidTris.Add(vCount -4 +2);
-						    	liquidTris.Add(vCount -4);
-						    	liquidTris.Add(vCount -4 +2);
-						    	liquidTris.Add(vCount -4 +3);							    	
-					    	}							
-						}
-						// If it's an asset
-						else{
-			    			int vCount = meshVertCount + vertices.Count;
-
-			    			// If block has special Rotation Rules
-			    			if(blockBook.objects[(thisBlock*-1)-1].needsRotation)
-			    				vertices.AddRange(blockBook.objects[(thisBlock*-1)-1].ToWorldSpace(new Vector3(x,y,chunkWidth-1), blockBook.objects[(thisBlock*-1)-1].ApplyRotation(this, x,y,chunkWidth-1)));
-			    			else
-								vertices.AddRange(blockBook.objects[(thisBlock*-1)-1].ToWorldSpace(new Vector3(x,y,chunkWidth-1)));
-
-			    			foreach(int tri in blockBook.objects[(thisBlock*-1)-1].mesh.triangles)
-			    				transparentTris.Add(tri + vCount);
-
-			    			UVs.AddRange(blockBook.objects[(thisBlock*-1)-1].mesh.uv);					
-						}
-					}
+	    			// Main Drawing Handling
+		    		if(CheckPlacement(neighborBlock)){
+				    	LoadMesh(x, y, chunkWidth-1, (int)Direction.North, thisBlock, false, ref skip, lookahead:meshVertCount);
+				    	if(skip)
+				    		break;
+		    		}	
 				}
 			}
 		}						
@@ -378,205 +225,63 @@ public class Chunk
 		else{
 			vertices.Clear();
     		triangles.Clear();
-    		transparentTris.Clear();
+    		specularTris.Clear();
     		liquidTris.Clear();
     		UVs.Clear();
 		}
 	}
 
-	/*
-	TODO: Remove x=0 and z=0 chunk side rendering and place it into a new function
-		that receives the X- and Z- chunks and draws sides based on their side blocks
-
-		Track the loading of the chunks in ChunkLoader WORKS
-	*/
-
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
-	public void BuildChunk(){
+	public void BuildChunk(bool load=false){
 		int thisBlock;
 		int neighborBlock;
+		bool skip;
 
     	for(int x=0; x<data.GetWidth(); x++){
     		for(int y=0; y<data.GetHeight(); y++){
     			for(int z=0; z<data.GetDepth(); z++){
     				thisBlock = data.GetCell(x,y,z);
+    				skip = false;
 
-    				// Special Conditions -------------
-
-    				// If invisible block
-	    			if(blockBook.Get(thisBlock).invisible){
+	    			// If air
+	    			if(thisBlock == 0){
 	    				continue;
 	    			}
 
 	    			// --------------------------------
 
-    				// If is a full block
-    				if(thisBlock >= 0){
+			    	for(int i=0; i<6; i++){
+			    		neighborBlock = data.GetNeighbor(x, y, z, (Direction)i);
+			    		
+			    		// Chunk Border and floor culling here! ----------
+			    		
+			    		if((x == 0 && (int)Direction.West == i) || (z == 0 && (int)Direction.South == i)){
+			    			continue;
+			    		}
+			    		if((x == chunkWidth-1 && (int)Direction.East == i) || (z == chunkWidth-1 && (int)Direction.North == i)){
+			    			continue;
+			    		}
+			    		if(y == 0 && (int)Direction.Down == i){
+			    			continue;
+			    		}
 
-				    	for(int i=0; i<6; i++){
-				    		neighborBlock = data.GetNeighbor(x, y, z, (Direction)i);
+			    		////////// -----------------------------------
 
-				    		
-				    		// Chunk Border and floor culling here! ----------
-				    		
-				    		if((x == 0 && (int)Direction.West == i) || (z == 0 && (int)Direction.South == i)){
-				    			continue;
-				    		}
-				    		if((x == chunkWidth-1 && (int)Direction.East == i) || (z == chunkWidth-1 && (int)Direction.North == i)){
-				    			continue;
-				    		}
-				    		if(y == 0 && (int)Direction.Down == i){
-				    			continue;
-				    		}
-				    		////////// -----------------------------------
+		    			// Handles Liquid chunks
+		    			if(CheckLiquids(thisBlock, neighborBlock))
+		    				continue;
 
-				    		// If neighbor is a block
-				    		if(neighborBlock >= 0){
+		    			// Main Drawing Handling
+			    		if(CheckPlacement(neighborBlock)){
+					    	LoadMesh(x, y, z, i, thisBlock, load, ref skip);
 
-				    			// Handles Liquid chunks
-				    			if(blockBook.blocks[thisBlock].liquid && blockBook.blocks[neighborBlock].liquid)
-				    				continue;
-
-					    		if(blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible){
-
-					    			// Handling Liquid and non-liquid blocks
-					    			if(!blockBook.blocks[thisBlock].liquid){
-					    				vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
-					    				int vCount = vertices.Count;
-							    		UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
-								    	triangles.Add(vCount -4);
-								    	triangles.Add(vCount -4 +1);
-								    	triangles.Add(vCount -4 +2);
-								    	triangles.Add(vCount -4);
-								    	triangles.Add(vCount -4 +2);
-								    	triangles.Add(vCount -4 +3);
-					    			}
-							    	else{
-			    						vertices.AddRange(LiquidMeshData.VertsByState(i, this.metadata.GetMetadata(x,y,z).state, new Vector3(x,y,z)));
-			    						int vCount = vertices.Count;
-							    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(x, z));
-								    	liquidTris.Add(vCount -4);
-								    	liquidTris.Add(vCount -4 +1);
-								    	liquidTris.Add(vCount -4 +2);
-								    	liquidTris.Add(vCount -4);
-								    	liquidTris.Add(vCount -4 +2);
-								    	liquidTris.Add(vCount -4 +3);							    	
-							    	}
-							    	
-
-
-					    		}
-					    	}
-					    	// If neighbor is an asset
-					    	else{
-					    		neighborBlock = (neighborBlock * -1) - 1;
-
-				    			// Handles Liquid chunks
-				    			if(blockBook.blocks[thisBlock].liquid && blockBook.objects[neighborBlock].liquid)
-				    				continue;
-
-					    		if(blockBook.objects[neighborBlock].transparent || blockBook.objects[neighborBlock].invisible){
-
-			    					// Handling Liquid and non-liquid blocks
-					    			if(!blockBook.blocks[thisBlock].liquid){
-							    		vertices.AddRange(CubeMeshData.faceVertices(i, 0.5f, new Vector3(x,y,z)));
-							    		int vCount = vertices.Count;
-								    	UVs.AddRange(blockBook.blocks[thisBlock].AddTexture((Direction)i));
-								    	triangles.Add(vCount -4);
-								    	triangles.Add(vCount -4 +1);
-								    	triangles.Add(vCount -4 +2);
-								    	triangles.Add(vCount -4);
-								    	triangles.Add(vCount -4 +2);
-								    	triangles.Add(vCount -4 +3);
-							  		}
-							  		else{
-			    						vertices.AddRange(LiquidMeshData.VertsByState(i, this.metadata.GetMetadata(x,y,z).state, new Vector3(x,y,z)));
-			    						int vCount = vertices.Count;
-							    		UVs.AddRange(blockBook.blocks[thisBlock].LiquidTexture(x, z));
-								    	liquidTris.Add(vCount -4);
-								    	liquidTris.Add(vCount -4 +1);
-								    	liquidTris.Add(vCount -4 +2);
-								    	liquidTris.Add(vCount -4);
-								    	liquidTris.Add(vCount -4 +2);
-								    	liquidTris.Add(vCount -4 +3);							  			
-							  		}
-					    		}
-					    	}					    		
-					    }
-
-				    }
-				    // If is an object-type block
-				    else{
-				    	thisBlock = (thisBlock * -1) - 1;
-
-				    	for(int i=0; i<6; i++){
-				    		neighborBlock = data.GetNeighbor(x, y, z, (Direction)i);
-
-				    		/*
-				    		Z- and X- Chunk Border culling here
-				    		*/
-				    		if((x == 0 && (int)Direction.West == i) || (z == 0 && (int)Direction.South == i)){
-				    			continue;
-				    		}
-				    		if((x == chunkWidth-1 && (int)Direction.East == i) || (z == chunkWidth-1 && (int)Direction.North == i)){
-				    			continue;
-				    		}
-
-				    		// If is a full block
-				    		if(neighborBlock >= 0){
-
-				    			// Handles Liquid chunks
-				    			if(blockBook.objects[thisBlock].liquid && blockBook.blocks[neighborBlock].liquid)
-				    				continue;
-
-					    		if(blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible){
-
-					    			int vCount = vertices.Count;
-
-					    			// If block has special Rotation Rules
-					    			if(blockBook.objects[thisBlock].needsRotation)
-					    				vertices.AddRange(blockBook.objects[thisBlock].ToWorldSpace(new Vector3(x,y,z), blockBook.objects[thisBlock].ApplyRotation(this, x,y,z)));
-					    			else
-										vertices.AddRange(blockBook.objects[thisBlock].ToWorldSpace(new Vector3(x,y,z)));
-
-					    			foreach(int tri in blockBook.objects[thisBlock].mesh.triangles)
-					    				transparentTris.Add(tri + vCount);
-
-					    			UVs.AddRange(blockBook.objects[thisBlock].mesh.uv);
-				    				break;
-				    			}
-				    		}
-
-				    		// If is an object type block
-				    		else{
-					    		neighborBlock = (neighborBlock * -1) - 1;
-
-				    			// Handles Liquid chunks
-				    			if(blockBook.objects[thisBlock].liquid && blockBook.objects[neighborBlock].liquid)
-				    				continue;
-
-					    		if(blockBook.objects[neighborBlock].transparent || blockBook.objects[neighborBlock].invisible){
-					    			int vCount = vertices.Count;
-
-					    			// If block has special Rotation Rules
-					    			if(blockBook.objects[thisBlock].needsRotation)
-					    				vertices.AddRange(blockBook.objects[thisBlock].ToWorldSpace(new Vector3(x,y,z), blockBook.objects[thisBlock].ApplyRotation(this, x,y,z)));
-					    			else
-										vertices.AddRange(blockBook.objects[thisBlock].ToWorldSpace(new Vector3(x,y,z)));
-					    			
-					    			foreach(int tri in blockBook.objects[thisBlock].mesh.triangles)
-					    				transparentTris.Add(tri + vCount);
-
-					    			UVs.AddRange(blockBook.objects[thisBlock].mesh.uv);
-				    				break;
-				    			}				    			
-				    		}
-				    	}
-
-				    }
-	    		}
-	    	}
-    	}
+					    	if(skip)
+					    		break;
+			    		}	
+				    } // faces loop
+	    		} // z loop
+	    	} // y loop
+    	} // x loop
 
 		BuildMesh();
 		drawMain = true;
@@ -592,7 +297,7 @@ public class Chunk
     	mesh.SetTriangles(triangles.ToArray(), 0);
     	this.meshCollider.sharedMesh = mesh;
 
-    	mesh.SetTriangles(transparentTris.ToArray(), 1);
+    	mesh.SetTriangles(specularTris.ToArray(), 1);
     	mesh.SetTriangles(liquidTris.ToArray(), 2);
 
     	mesh.uv = UVs.ToArray();
@@ -600,7 +305,7 @@ public class Chunk
 
     	vertices.Clear();
     	triangles.Clear();
-    	transparentTris.Clear();
+    	specularTris.Clear();
     	liquidTris.Clear();
     	UVs.Clear();
 
@@ -623,7 +328,7 @@ public class Chunk
 
     	newVerts.AddRange(vertices.ToArray());
     	newTris[0].AddRange(triangles.ToArray());
-    	newTris[1].AddRange(transparentTris.ToArray());
+    	newTris[1].AddRange(specularTris.ToArray());
     	newTris[2].AddRange(liquidTris.ToArray());
     	newUVs.AddRange(UVs.ToArray());
 
@@ -642,9 +347,170 @@ public class Chunk
 
     	vertices.Clear();
     	triangles.Clear();
-    	transparentTris.Clear();
+    	specularTris.Clear();
     	liquidTris.Clear();
     	UVs.Clear();
-    	
     }
+
+    // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
+    // Load is true when Chunk is being loaded and not reloaded
+    private void LoadMesh(int x, int y, int z, int dir, int blockCode, bool load, ref bool skip, int lookahead=0){
+    	byte renderThread;
+
+    	if(blockCode >= 0)
+    		renderThread = blockBook.blocks[blockCode].materialIndex;
+    	else
+    		renderThread = blockBook.objects[Convert(blockCode)].materialIndex;
+    	
+    	// If object is Normal Block
+    	if(renderThread == 0){
+			vertices.AddRange(CubeMeshData.faceVertices(dir, 0.5f, new Vector3(x,y,z)));
+			int vCount = vertices.Count + lookahead;
+    		UVs.AddRange(blockBook.blocks[blockCode].AddTexture((Direction)dir));
+	    	triangles.Add(vCount -4);
+	    	triangles.Add(vCount -4 +1);
+	    	triangles.Add(vCount -4 +2);
+	    	triangles.Add(vCount -4);
+	    	triangles.Add(vCount -4 +2);
+	    	triangles.Add(vCount -4 +3);    		
+    	}
+
+    	// If object is Specular Block
+    	else if(renderThread == 1){
+			vertices.AddRange(CubeMeshData.faceVertices(dir, 0.5f, new Vector3(x,y,z)));
+			int vCount = vertices.Count + lookahead;
+    		UVs.AddRange(blockBook.blocks[blockCode].AddTexture((Direction)dir));
+	    	specularTris.Add(vCount -4);
+	    	specularTris.Add(vCount -4 +1);
+	    	specularTris.Add(vCount -4 +2);
+	    	specularTris.Add(vCount -4);
+	    	specularTris.Add(vCount -4 +2);
+	    	specularTris.Add(vCount -4 +3);     		
+    	}
+
+    	// If object is Liquid
+    	else if(renderThread == 2){
+			vertices.AddRange(LiquidMeshData.VertsByState(dir, this.metadata.GetMetadata(x,y,z).state, new Vector3(x,y,z)));
+			int vCount = vertices.Count + lookahead;
+    		UVs.AddRange(blockBook.blocks[blockCode].LiquidTexture(x, z));
+	    	liquidTris.Add(vCount -4);
+	    	liquidTris.Add(vCount -4 +1);
+	    	liquidTris.Add(vCount -4 +2);
+	    	liquidTris.Add(vCount -4);
+	    	liquidTris.Add(vCount -4 +2);
+	    	liquidTris.Add(vCount -4 +3);	    		
+    	}
+
+    	// If object is an Asset
+    	else{
+    		if(load){
+    			this.assetGrid.Add(x, y, z, blockCode, this.metadata.GetMetadata(x,y,z).state, loader);
+    			skip = true;
+    		}
+    	}
+
+    }
+
+    // Checks if Liquids are side by side
+    private bool CheckLiquids(int thisBlock, int neighborBlock){
+    	bool thisLiquid;
+    	bool neighborLiquid;
+
+    	if(thisBlock >= 0)
+    		thisLiquid = blockBook.blocks[thisBlock].liquid;
+    	else
+    		thisLiquid = blockBook.objects[Convert(thisBlock)].liquid;
+
+    	if(neighborBlock >= 0)
+    		neighborLiquid = blockBook.blocks[neighborBlock].liquid;
+    	else
+    		neighborLiquid = blockBook.objects[Convert(neighborBlock)].liquid;
+
+    	return thisLiquid && neighborLiquid; 
+    }
+
+    // Checks if neighbor is transparent or invisible
+    private bool CheckPlacement(int neighborBlock){
+    	if(neighborBlock >= 0)
+    		return blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible;
+    	else
+			return blockBook.objects[Convert(neighborBlock)].transparent || blockBook.objects[Convert(neighborBlock)].invisible;
+    }
+
+    // Converts negative asset code to index position
+    private int Convert(int code){
+    	return (code*-1)-1;
+    }
+
+    // Deletes all GameObject instances in AssetGrid
+    public void Unload(){
+    	this.assetGrid.Unload();
+    }
+
 }
+
+/* Class that handles GameObjects in Chunk*/
+public class AssetGrid{
+	public Dictionary<Vector3, GameObject> grid;
+	private ChunkPos pos;
+
+	public AssetGrid(ChunkPos position){
+		grid = new Dictionary<Vector3, GameObject>();
+		pos = position;
+	}
+
+	// Adds a new GameObject instance to Grid
+	public void Add(int x, int y, int z, int blockCode, ushort? state, ChunkLoader loader){
+		Vector3 v = new Vector3(x,y,z);
+
+		grid.Add(v, loader.blockBook.objects[(blockCode*-1)-1].PlaceObject(this.pos, x, y, z, blockCode, loader));
+	}
+
+	// Adds and instantly draw element to Grid
+	public void AddDraw(int x, int y, int z, int blockCode, ushort? state, ChunkLoader loader){
+		Vector3 target = new Vector3(x,y,z);
+
+		Add(x, y, z, blockCode, state, loader);
+		grid[target].SetActive(true);	
+	}
+
+	// Gets the GO in Grid
+	public GameObject Get(int x, int y, int z){
+		return grid[new Vector3(x, y, z)];
+	}
+
+	// Removes the GO in Grid
+	public void Remove(int x, int y, int z){
+		Vector3 target = new Vector3(x, y, z);
+
+		if(grid.ContainsKey(target)){
+			GameObject.Destroy(grid[target]);
+			grid.Remove(target);
+		}
+	}
+
+	// Instantiates an element in AssetGrid
+	public void Draw(int x, int y, int z){
+		Vector3 target = new Vector3(x, y, z);
+
+		if(grid.ContainsKey(target)){
+			grid[target].SetActive(true);
+		}
+	}
+
+	// Instantiates all elements in AssetGrid
+	public void DrawAll(){
+		foreach(GameObject go in grid.Values){
+			go.SetActive(true);
+		}
+	}
+
+	// Deletes all instantiation of GOs in AssetGrid
+	public void Unload(){
+		foreach(GameObject go in grid.Values){
+			GameObject.Destroy(go);
+		}
+	}
+
+}
+

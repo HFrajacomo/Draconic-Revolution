@@ -6,6 +6,7 @@ public class MetalOre_Block : Blocks
 {
 	public MetalOre_Block(){
 		this.name = "Metal Ore";
+		this.materialIndex = 0;
 		this.solid = true;
 		this.transparent = false;
 		this.invisible = false;

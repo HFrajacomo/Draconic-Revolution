@@ -19,15 +19,42 @@ public class BlockEncyclopedia : MonoBehaviour
         // Loads all object meshes
         for(int i=0;i<BlocklikeObject.objectCount;i++){
         	objects[i] = BlocklikeObject.Create(i);
-        	objects[i].LoadMesh();
         }
     }
 
-    public dynamic Get(int i){
-        if(i >= 0)
-            return (Blocks) blocks[i];
-        else
-            return (BlocklikeObject) objects[(i*-1)-1];
-
+    // Gets customBreak value from block
+    public bool CheckCustomBreak(int blockCode){
+      if(blockCode >= 0)
+        return blocks[blockCode].customBreak;
+      else
+        return objects[(blockCode*-1)-1].customBreak;
     }
+
+    // Gets customPlace value from block
+    public bool CheckCustomPlace(int blockCode){
+      if(blockCode >= 0)
+        return blocks[blockCode].customPlace;
+      else
+        return objects[(blockCode*-1)-1].customPlace;
+    }
+
+    // Gets solid value from block
+    public bool CheckSolid(int? code){
+        if(code == null)
+            return false;
+
+        if(code >= 0)
+            return blocks[(int)code].solid;
+        else
+            return objects[((int)code*-1)-1].solid;
+    }
+
+    // Gets washable value from block
+    public bool CheckWashable(int code){
+        if(code >= 0)
+            return blocks[code].washable;
+        else
+            return objects[(code*-1)-1].washable;
+    }
+
 }

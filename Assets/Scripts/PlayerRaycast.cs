@@ -155,7 +155,7 @@ public class PlayerRaycast : MonoBehaviour
       int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
 
       // If doesn't has special break handling
-      if(!loader.blockBook.Get(blockCode).customBreak){
+      if(!loader.blockBook.CheckCustomBreak(blockCode)){
         // Triggers OnBreak
         if(blockCode >= 0)
           loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
@@ -168,11 +168,19 @@ public class PlayerRaycast : MonoBehaviour
 
         // Passes "break" block update to neighboring blocks IF object doesn't implement it OnBreak
         EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
-        loader.budscheduler.ScheduleReload(toUpdate, 0);
+        
+        if(blockCode >= 0)
+          loader.budscheduler.ScheduleReload(toUpdate, 0);
+        else
+          loader.chunks[toUpdate].assetGrid.Remove(current.blockX, current.blockY, current.blockZ);
       }
       // If has special break handlings
       else{
-        loader.blockBook.Get(blockCode).OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+
+        if(blockCode >= 0)
+          loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+        else
+          loader.blockBook.objects[(blockCode*-1)-1].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
       }
 
     }
@@ -220,19 +228,26 @@ public class PlayerRaycast : MonoBehaviour
       // Applies OnPlace operation for given block
       if(!isAsset)
         loader.blockBook.blocks[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
-      else
+      else{
         loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
+      }
  
 
       // If doesn't have special place handling
-      if(!loader.blockBook.Get(blockCode).customPlace){
+      if(!loader.blockBook.CheckCustomPlace(blockCode)){
         // Actually places block/asset into terrain
   		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
         if(state != null){
-          loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
+          // SETS STATE
+          //loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
         }
 
-        loader.budscheduler.ScheduleReload(toUpdate, 0);
+        // Sends Reload Request to BUDScheduler
+        if(blockCode >= 0)
+          loader.budscheduler.ScheduleReload(toUpdate, 0);
+        // Sends a AddDraw call to chunk's AssetGrid
+        else
+          loader.chunks[toUpdate].assetGrid.AddDraw(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode, state, loader);
       }
 
       // If has special handling
@@ -243,7 +258,11 @@ public class PlayerRaycast : MonoBehaviour
           loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
         }
 
-        loader.blockBook.Get(blockCode).OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
+        if(blockCode >= 0)
+          loader.blockBook.blocks[blockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
+        else
+          loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
+
       }
     }
 
