@@ -31,6 +31,7 @@ public class ChunkLoader : MonoBehaviour
 
 	// Chunk Rendering
 	public ChunkRenderer rend;
+    public RegionFileHandler regionHandler;
 
 	// Flags
 	public bool WORLD_GENERATED = false;
@@ -64,6 +65,9 @@ public class ChunkLoader : MonoBehaviour
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
 		newChunk = new ChunkPos(playerX, playerZ);
+
+        regionHandler = new RegionFileHandler(worldSeed, renderDistance, newChunk);
+
 		GetChunks(true);
     }
 
@@ -107,11 +111,34 @@ public class ChunkLoader : MonoBehaviour
                 return;
             }
 
-    		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
-            vfx.NewChunk(toLoad[0]);
-    		chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
-            chunks[toLoad[0]].metadata.metadata = cacheMetadata.metadata;
-            cacheMetadata.Clear();
+            // Gets correct region file
+            regionHandler.GetCorrectRegion(toLoad[0]);
+
+            // If current chunk toLoad was already generated
+            if(regionHandler.GetFile().ExistChunk(toLoad[0])){
+                // If chunk is Pre-Generated
+                if(regionHandler.GetsNeedGeneration(toLoad[0])){
+                    //print("ERROR: Tried to Generate pre-generated chunk");
+                    // Does nothing because there is no Prefab System yet
+                }
+                // If it's just a normally generated chunk
+                else{
+                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
+                    vfx.NewChunk(toLoad[0]);
+                    regionHandler.LoadChunk(chunks[toLoad[0]]);
+                }
+            }
+            // If it's a new chunk to be generated
+            else{
+        		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
+                vfx.NewChunk(toLoad[0]);
+        		chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
+                chunks[toLoad[0]].metadata.metadata = cacheMetadata.metadata;
+                cacheMetadata.Clear();
+
+                regionHandler.SaveChunk(chunks[toLoad[0]]);
+            }
+
             toDraw.Add(toLoad[0]);
     		toLoad.RemoveAt(0);	
     	}
@@ -247,10 +274,12 @@ public class ChunkLoader : MonoBehaviour
     		ClearAllChunks();
     		toLoad.Clear();
     		toUnload.Clear();
+            toRedraw.Clear();
     		
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
 	        		toLoad.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
+                    toRedraw.Add(new ChunkPos(newChunk.x+x, newChunk.z+z)); ///
 	        	}
 	        }
 	        

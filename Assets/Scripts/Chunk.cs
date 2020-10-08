@@ -12,6 +12,7 @@ public class Chunk
 	public static int chunkDepth = 100;
 	public ChunkPos pos;
 	public string biomeName;
+	public byte needsGeneration;
 	public Point4D features;
 
 	// Draw Flags
@@ -40,6 +41,7 @@ public class Chunk
 
 	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader){
 		this.pos = pos;
+		this.needsGeneration = 0;
 		this.assetGrid = new AssetGrid(this.pos);
 		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
 		this.renderer = r;
@@ -61,6 +63,10 @@ public class Chunk
 
 	public void BuildOnVoxelData(VoxelData vd){
 		this.data = vd;
+	}
+
+	public void BuildVoxelMetadata(VoxelMetadata vm){
+		this.metadata = vm;
 	}
 
 	// Build the X- or Z- chunk border
@@ -415,6 +421,7 @@ public class Chunk
     private bool CheckLiquids(int thisBlock, int neighborBlock){
     	bool thisLiquid;
     	bool neighborLiquid;
+
 
     	if(thisBlock >= 0)
     		thisLiquid = blockBook.blocks[thisBlock].liquid;

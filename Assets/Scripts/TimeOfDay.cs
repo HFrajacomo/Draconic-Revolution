@@ -6,10 +6,11 @@ using UnityEngine.Rendering;
 public class TimeOfDay : MonoBehaviour
 {
 	public float ticks = 0f;
-	public int minutes = 0;
-	public int hours = 6;
-	public int days = 0;
+	public byte minutes = 0;
+	public byte hours = 6;
+	public uint days = 0;
 	public int DEBUGTIMEMULT=1;
+    private byte[] timeArray = new byte[7];
 
     void Update()
     {
@@ -47,12 +48,26 @@ public class TimeOfDay : MonoBehaviour
         return days.ToString() + ":" + hours.ToString("00") + ":" + minutes.ToString("00") + ":" + ((int)(ticks*5)).ToString();
     }
 
+    // Returns byte array representing current time for Chunk Header in RegionFile
+    // Stored data is in format d:h:m:t
+    public byte[] TimeHeader(){
+        timeArray[0] = (byte)(this.days >> 24);
+        timeArray[1] = (byte)(this.days >> 16);
+        timeArray[2] = (byte)(this.days >> 8);
+        timeArray[3] = (byte)this.days;
+        timeArray[4] = this.hours;
+        timeArray[5] = this.minutes;
+        timeArray[6] = (byte)(this.ticks%2);
+
+        return timeArray;
+    }
+
     // Fake Sum to calculate schedule time
     public string FakeSum(float tick){
         float t = this.ticks + tick/10;
-        int m = this.minutes;
-        int h = this.hours;
-        int d = this.days;
+        byte m = this.minutes;
+        byte h = this.hours;
+        uint d = this.days;
 
         m = m + (int)(t/2);
         t = t%2;

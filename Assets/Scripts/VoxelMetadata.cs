@@ -159,6 +159,10 @@ public class Metadata{
 			this.hp = Convert.ToUInt16(s);
 	}
 
+	public void SetHP(ushort? s){
+		this.hp = s;
+	}
+
 	private void SetState(string s){
 		if(s != "")
 			this.state = Convert.ToUInt16(s);
