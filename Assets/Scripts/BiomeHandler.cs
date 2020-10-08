@@ -4,19 +4,37 @@ using UnityEngine;
 
 public class BiomeHandler
 {
-	public Dictionary<string, Point4D> dataset = new Dictionary<string, Point4D>();
+	public static Dictionary<string, Biome> dataset = new Dictionary<string, Biome>();
+	public static Dictionary<byte, string> codeToBiome = new Dictionary<byte, string>();
 	private float dispersionSeed;
 	private float featureModificationConstant = 0.00014f;
 
+	// Cache Information
+	private static byte[] cachedByte = new byte[1];
+
 	public BiomeHandler(float seed){
 		dispersionSeed = seed;
-		AddBiome(new Biome("Plains", 0.3f, 0.5f, 0.6f, 1f));
-		AddBiome(new Biome("Grassy Highlands", 0.7f, 0.5f, 0.6f, 0.9f));
-		AddBiome(new Biome("Ocean", 0f, 1f, 0.5f, 0.3f));
+		AddBiome(new Biome("Plains", 0, 0.3f, 0.5f, 0.6f, 1f));
+		AddBiome(new Biome("Grassy Highlands", 1, 0.7f, 0.5f, 0.6f, 0.9f));
+		AddBiome(new Biome("Ocean", 2, 0f, 1f, 0.5f, 0.3f));
 	}
 
+	// Gets biome byte code from name
+	public static byte[] BiomeToByte(string biomeName){
+		cachedByte[0] = dataset[biomeName].biomeCode;
+		return cachedByte;
+	}
+
+	// Gets biome name from byte code
+	public static string ByteToBiome(byte code){
+		return codeToBiome[code];
+	}
+
+
+	// Initializes biome in Biome Handler at start of runtime
 	private void AddBiome(Biome b){
-		dataset.Add(b.name, new Point4D(b.altitude, b.humidity, b.temperature, b.lightning));
+		dataset.Add(b.name, b);
+		codeToBiome.Add(b.biomeCode, b.name);
 	}
 
 	/*
@@ -38,7 +56,7 @@ public class BiomeHandler
 		Point4D currentSettings = new Point4D(currentAltitude, currentHumidity, currentTemperature, currentLightning);
 
 		foreach(string s in dataset.Keys){
-			distance = Point4D.Distance(currentSettings, dataset[s]);
+			distance = Point4D.Distance(currentSettings, dataset[s].GetStats());
 
 			if(distance <= lowestDistance){
 				lowestDistance = distance;
@@ -62,17 +80,23 @@ public class BiomeHandler
 
 public struct Biome{
 	public string name;
+	public byte biomeCode;
 	public float altitude;
 	public float humidity;
 	public float temperature;
 	public float lightning;
 
-	public Biome(string n, float a, float h, float t, float l){
+	public Biome(string n, byte code, float a, float h, float t, float l){
 		this.name = n;
+		this.biomeCode = code;
 		this.altitude = a;
 		this.humidity = h;
 		this.temperature = t;
 		this.lightning = l;
+	}
+
+	public Point4D GetStats(){
+		return new Point4D(this.altitude, this.humidity, this.temperature, this.lightning);
 	}
 }
 

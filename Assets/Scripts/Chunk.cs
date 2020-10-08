@@ -14,6 +14,7 @@ public class Chunk
 	public string biomeName;
 	public byte needsGeneration;
 	public Point4D features;
+	public string lastVisitedTime;
 
 	// Draw Flags
 	private bool xPlusDrawn = false;
@@ -49,7 +50,7 @@ public class Chunk
 		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.loader = loader;
 
-		this.metadata = new VoxelMetadata(); // May change when chunk loads
+		this.metadata = new VoxelMetadata();
 
 		this.obj.AddComponent<MeshFilter>();
 		this.obj.AddComponent<MeshRenderer>();

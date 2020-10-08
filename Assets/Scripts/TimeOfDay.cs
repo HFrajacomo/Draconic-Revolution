@@ -62,6 +62,21 @@ public class TimeOfDay : MonoBehaviour
         return timeArray;
     }
 
+    // Reconstructs byte array read from RegionFile to a date string
+    public string DateBytes(byte[] b){
+        uint days;
+
+        days = b[0];
+        days = days << 8;
+        days = days + b[1];
+        days = days << 8;
+        days = days + b[2];
+        days = days << 8;
+        days = days + b[3];
+
+        return days.ToString() + ":" + b[4].ToString("00") + ":" + b[5].ToString("00") + ":" + b[6].ToString();
+    }
+
     // Fake Sum to calculate schedule time
     public string FakeSum(float tick){
         float t = this.ticks + tick/10;

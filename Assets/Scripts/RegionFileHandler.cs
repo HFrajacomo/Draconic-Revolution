@@ -3,11 +3,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+Region Data File Format (.rdf)
+
+| RDF File                                                                      |
+| File Header (2 bytes)|
+| Chunk Header (8 bytes)  || Chunk Data (ChunkDimensions*8 bytes)                |
+-> | Biome (1 byte) LastDay(4 bytes) LastHour(1 byte) LastMinute(1 byte) LastTick(1 byte) NeedGeneration (1 byte) |     -> | BlockData  (ChunkDimensions*4 bytes) || Metadata (ChunkDimensions*4 bytes) | 
+
+*/
+
 public class RegionFileHandler{
 	private RegionFile file;
 	private int seed;
 	private int renderDistance;
 	private static float chunkLength = 32f;
+	public TimeOfDay globalTime;
 
 
 	// Cache Information
@@ -17,6 +28,7 @@ public class RegionFileHandler{
 	private byte[] intArray = new byte[4];
 	private byte[] ushortArray = new byte[2];
 	private byte[] byteArray = new byte[1];
+	private byte[] timeArray = new byte[7];
 
 	// Sizes
 	private static int fileHeader = 2; // Size in bytes of file header
@@ -28,6 +40,7 @@ public class RegionFileHandler{
 	public RegionFileHandler(int seed, int renderDistance, ChunkPos pos){
 		this.seed = seed;
 		this.renderDistance = renderDistance;
+		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
 
 		LoadRegionFile(pos);
 	}
@@ -62,11 +75,19 @@ public class RegionFileHandler{
 	public void LoadChunk(Chunk c){
 		long code = GetLinearRegionCoords(c.pos);
 		long chunkOffset = this.file.index[code];
-		long offset = fileHeader + (chunkHeaderSize + chunkSize)*chunkOffset + chunkHeaderSize;
+		long offset = fileHeader + (chunkHeaderSize + chunkSize)*chunkOffset;
 		ushort? hp;
 		ushort? state;
 
 		this.file.Seek(offset, SeekOrigin.Begin);
+
+		// Reads Header
+		file.file.Read(byteArray, 0, 1);
+		c.biomeName = BiomeHandler.ByteToBiome(byteArray[0]);
+		file.file.Read(timeArray, 0, 7);
+		c.lastVisitedTime = globalTime.DateBytes(timeArray);
+		file.file.Read(byteArray, 0, 1);
+		c.needsGeneration = byteArray[0];
 
 		// Reads VoxelData
 		for(int x=0; x < Chunk.chunkWidth; x++){
@@ -129,7 +150,8 @@ public class RegionFileHandler{
 			file.Seek(0, SeekOrigin.End);
 
 			// Chunk Header
-			file.Write(LongToByte(chunkCode), 0, 8);
+			file.Write(BiomeHandler.BiomeToByte(c.biomeName), 0, 1);
+			file.Write(globalTime.TimeHeader(), 0, 7);
 			file.Write(new byte[]{c.needsGeneration}, 0, 1);
 
 			// Block Data
