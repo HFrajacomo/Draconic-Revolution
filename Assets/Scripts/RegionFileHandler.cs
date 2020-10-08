@@ -35,7 +35,6 @@ public class RegionFileHandler{
 	// Checks if RegionFile represents ChunkPos, and loads correct RegionFile if not
 	public void GetCorrectRegion(ChunkPos pos){
 		if(!file.CheckUsage(pos)){
-			Debug.Log("Change Region Map");
 			this.file.Close();
 			LoadRegionFile(pos);
 		}

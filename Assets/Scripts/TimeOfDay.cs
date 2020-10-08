@@ -69,12 +69,12 @@ public class TimeOfDay : MonoBehaviour
         byte h = this.hours;
         uint d = this.days;
 
-        m = m + (int)(t/2);
+        m = (byte)(m + (t/2));
         t = t%2;
-        h = h + (int)(m/60);
-        m = m%60;
-        d = d + (int)(h/24);
-        h = h%24;
+        h = (byte)(h + (m/60));
+        m = (byte)(m%60);
+        d = (uint)(d + (h/24));
+        h = (byte)(h%24);
 
         return d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ":" +  ((int)(t*5)).ToString();
 

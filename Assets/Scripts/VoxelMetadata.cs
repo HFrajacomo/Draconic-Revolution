@@ -12,7 +12,7 @@ public class VoxelMetadata
 
 	// Metadata Constructor
 	public VoxelMetadata(Metadata[,,] md){
-		this.metadata = md;
+		this.metadata = (Metadata[,,])md.Clone();
 	}
 
 	// Checks whether the metadata xyz in VoxelMetadata is still unassigned
