@@ -40,7 +40,7 @@ public class Chunk
     private List<Vector2> UVs = new List<Vector2>();
     private Mesh mesh;
 
-	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader){
+	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader, bool fromMemory=false){
 		this.pos = pos;
 		this.needsGeneration = 0;
 		this.assetGrid = new AssetGrid(this.pos);
@@ -50,6 +50,8 @@ public class Chunk
 		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.loader = loader;
 
+		if(fromMemory)
+			this.data = new VoxelData();
 		this.metadata = new VoxelMetadata();
 
 		this.obj.AddComponent<MeshFilter>();

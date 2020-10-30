@@ -31,8 +31,8 @@ WATER STATES:
 public class Water_Block : Blocks
 {
 	// Unique
-	public int waterCode;
-	public int[] aroundCodes;
+	public ushort waterCode;
+	public ushort[] aroundCodes;
 	public ushort?[] aroundStates;
 	public CastCoord cachedPos;
 	private bool[] surroundingWaterFlag = new bool[8];
@@ -56,7 +56,7 @@ public class Water_Block : Blocks
 		this.customPlace = true;
 
 		
-		this.aroundCodes = new int[8];
+		this.aroundCodes = new ushort[8];
 		this.aroundStates = new ushort?[8];
 
 		// Water Spawn Directions
@@ -675,7 +675,7 @@ public class Water_Block : Blocks
 
 
 	// Gets Code of block below
-	private int? GetCodeBelow(int myX, int myY, int myZ, ChunkLoader cl){
+	private ushort? GetCodeBelow(int myX, int myY, int myZ, ChunkLoader cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
 		if(myY-1 < 0)
 			return null;

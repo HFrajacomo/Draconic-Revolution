@@ -16,7 +16,7 @@ public class PlayerRaycast : MonoBehaviour
 	private CastCoord lastCoord;
 
   // DEBUG
-  public int blockToBePlaced = 6;
+  public ushort blockToBePlaced = 6;
   public ushort placeState = 0;
 
 	// Current player block position
@@ -108,10 +108,10 @@ public class PlayerRaycast : MonoBehaviour
     // Detects hit of solid block
     public bool HitSolid(CastCoord coords){
     	ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ);
-      int blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
+      ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
       // If hits a full block
-      if(blockID >= 0){
+      if(blockID <= ushort.MaxValue/2){
       	if(loader.chunks.ContainsKey(ck)){
     			if(loader.blockBook.blocks[blockID].solid){
     				return true;
@@ -121,7 +121,7 @@ public class PlayerRaycast : MonoBehaviour
         // If hits an Asset
       else{
         if(loader.chunks.ContainsKey(ck)){
-          blockID = (blockID * -1) - 1;
+          blockID = (ushort)(ushort.MaxValue - blockID);
           if(loader.blockBook.objects[blockID].solid){
             return true;
           }
@@ -133,7 +133,7 @@ public class PlayerRaycast : MonoBehaviour
     // Detects hit in any block except air
     public bool HitAll(CastCoord coords){
       ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ);
-      int blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
+      ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
       // If hits something
       if(blockID != 0)
@@ -152,7 +152,7 @@ public class PlayerRaycast : MonoBehaviour
     	}
 
     	ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
-      int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
+      ushort blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
 
       // If doesn't has special break handling
       if(!loader.blockBook.CheckCustomBreak(blockCode)){
@@ -186,7 +186,7 @@ public class PlayerRaycast : MonoBehaviour
     }
 
     // Block Placing mechanic
-    private void PlaceBlock(int blockCode, ushort? state){
+    private void PlaceBlock(ushort blockCode, ushort? state){
       int translatedBlockCode;
       bool isAsset;
 

@@ -4,10 +4,14 @@ using UnityEngine;
 
 public class VoxelData
 {
-	int[,,] data;
+	ushort[,,] data;
 
-	public VoxelData(int[,,] data){
-		this.data = (int[,,])data.Clone();
+	public VoxelData(){
+		this.data = new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+	}
+
+	public VoxelData(ushort[,,] data){
+		this.data = (ushort[,,])data.Clone();
 	}
 
 	public static VoxelData CutUnderground(VoxelData a, VoxelData b, int upper=-1, int lower=-1){
@@ -40,11 +44,11 @@ public class VoxelData
 		return data.GetLength(2);
 	}
 
-	public int GetCell(int x, int y, int z){
+	public ushort GetCell(int x, int y, int z){
 		return data[x,y,z];
 	}
 
-	public void SetCell(int x, int y, int z, int blockCode){
+	public void SetCell(int x, int y, int z, ushort blockCode){
 		data[x,y,z] = blockCode;
 	}
 
@@ -57,7 +61,7 @@ public class VoxelData
 		return base.ToString() + " -> " + str;
 	}
 
-	public int GetNeighbor(int x, int y, int z, Direction dir){
+	public ushort GetNeighbor(int x, int y, int z, Direction dir){
 		DataCoordinate offsetToCheck = offsets[(int)dir];
 		DataCoordinate neighborCoord = new DataCoordinate(x + offsetToCheck.x, y + offsetToCheck.y, z + offsetToCheck.z);
 		

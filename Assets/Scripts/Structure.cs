@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Structure
 {
-    int[,,] data;
+    ushort[,,] data;
     Metadata[,,] metadata;
     public int stopX, stopY, stopZ;
 
@@ -15,18 +15,18 @@ public class Structure
     */
     public int fitType;
 
-    public Structure(int[,,] data, ushort?[,,] metadata)
+    public Structure(ushort[,,] data, ushort?[,,] metadata)
     {
-        this.data = (int[,,])data.Clone();
+        this.data = (ushort[,,])data.Clone();
         this.metadata = (Metadata[,,])metadata.Clone();
     }
 
-    public void SetCell(int x, int y, int z, int blockCode)
+    public void SetCell(int x, int y, int z, ushort blockCode)
     {
         this.data[x, y, z] = blockCode;
     }
 
-    public int GetCell(int x, int y, int z)
+    public ushort GetCell(int x, int y, int z)
     {
         return this.data[x, y, z];
     }
@@ -36,7 +36,7 @@ public class Structure
         return this.metadata[x, y, z];
     }
 
-    public int[,,] GetData()
+    public ushort[,,] GetData()
     {
         return this.data;
     }
@@ -82,7 +82,7 @@ public class Structure
                 {
                     if (VD.GetCell(i + x, j + y, k + z) == 0)
                     {
-                        int blockCode = this.GetCell(i, j, k);
+                        ushort blockCode = this.GetCell(i, j, k);
                         VD.SetCell(x + i, y + j, z + k, blockCode);
 
                         Metadata blockMeta = this.GetMetaCell(i, j, k);

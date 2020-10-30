@@ -23,38 +23,38 @@ public class BlockEncyclopedia : MonoBehaviour
     }
 
     // Gets customBreak value from block
-    public bool CheckCustomBreak(int blockCode){
-      if(blockCode >= 0)
+    public bool CheckCustomBreak(ushort blockCode){
+      if(blockCode <= ushort.MaxValue/2)
         return blocks[blockCode].customBreak;
       else
-        return objects[(blockCode*-1)-1].customBreak;
+        return objects[ushort.MaxValue - blockCode].customBreak;
     }
 
     // Gets customPlace value from block
-    public bool CheckCustomPlace(int blockCode){
+    public bool CheckCustomPlace(ushort blockCode){
       if(blockCode >= 0)
         return blocks[blockCode].customPlace;
       else
-        return objects[(blockCode*-1)-1].customPlace;
+        return objects[ushort.MaxValue - blockCode].customPlace;
     }
 
     // Gets solid value from block
-    public bool CheckSolid(int? code){
+    public bool CheckSolid(ushort? code){
         if(code == null)
             return false;
 
-        if(code >= 0)
-            return blocks[(int)code].solid;
+        if(code <= ushort.MaxValue/2)
+            return blocks[(ushort)code].solid;
         else
-            return objects[((int)code*-1)-1].solid;
+            return objects[ushort.MaxValue - (ushort)code].solid;
     }
 
     // Gets washable value from block
-    public bool CheckWashable(int code){
+    public bool CheckWashable(ushort code){
         if(code >= 0)
             return blocks[code].washable;
         else
-            return objects[(code*-1)-1].washable;
+            return objects[ushort.MaxValue - code].washable;
     }
 
 }

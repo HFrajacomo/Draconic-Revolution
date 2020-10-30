@@ -20,9 +20,8 @@ public class BiomeHandler
 	}
 
 	// Gets biome byte code from name
-	public static byte[] BiomeToByte(string biomeName){
-		cachedByte[0] = dataset[biomeName].biomeCode;
-		return cachedByte;
+	public static byte BiomeToByte(string biomeName){
+		return dataset[biomeName].biomeCode;
 	}
 
 	// Gets biome name from byte code

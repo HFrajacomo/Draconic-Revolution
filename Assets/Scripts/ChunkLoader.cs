@@ -37,18 +37,18 @@ public class ChunkLoader : MonoBehaviour
 	public bool WORLD_GENERATED = false;
 
 	// Cache Information
-	private int[,] cacheHeightMap = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
-	private int[,] cacheHeightMap2 = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
-	private int[,] cacheHeightMap3 = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
-	private int[,] cacheHeightMap4 = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
-    private int[,] cachePivotMap = new int[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
-	private	int[,,] cacheVoxdata = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
-	private List<int[,]> cacheMaps = new List<int[,]>();
-	private List<int> cacheBlockCodes = new List<int>();
-    private int[,,] cacheTurbulanceMap = new int[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+	private ushort[,] cacheHeightMap = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+	private ushort[,] cacheHeightMap2 = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+	private ushort[,] cacheHeightMap3 = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+	private ushort[,] cacheHeightMap4 = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+    private ushort[,] cachePivotMap = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+	private	ushort[,,] cacheVoxdata = new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+	private List<ushort[,]> cacheMaps = new List<ushort[,]>();
+	private List<ushort> cacheBlockCodes = new List<ushort>();
+    private ushort[,,] cacheTurbulanceMap = new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
     private ChunkPos cachePos = new ChunkPos(0,0);
     private VoxelMetadata cacheMetadata = new VoxelMetadata();
-    private Dictionary<int, ushort> cacheStateDict = new Dictionary<int, ushort>();
+    private Dictionary<ushort, ushort> cacheStateDict = new Dictionary<ushort, ushort>();
 
     // Start is called before the first frame update
     void Start()
@@ -115,7 +115,7 @@ public class ChunkLoader : MonoBehaviour
             regionHandler.GetCorrectRegion(toLoad[0]);
 
             // If current chunk toLoad was already generated
-            if(regionHandler.GetFile().ExistChunk(toLoad[0])){
+            if(regionHandler.GetFile().IsIndexed(toLoad[0])){
                 // If chunk is Pre-Generated
                 if(regionHandler.GetsNeedGeneration(toLoad[0])){
                     //print("ERROR: Tried to Generate pre-generated chunk");
@@ -123,7 +123,7 @@ public class ChunkLoader : MonoBehaviour
                 }
                 // If it's just a normally generated chunk
                 else{
-                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
+                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
                     vfx.NewChunk(toLoad[0]);
                     regionHandler.LoadChunk(chunks[toLoad[0]]);
                 }
@@ -477,7 +477,7 @@ public class ChunkLoader : MonoBehaviour
     blockCode is the block related to this layer.
     */
     // Takes cacheMaps and cacheBlockCodes and returns on cacheVoxdata
-    private void ApplyHeightMaps(Dictionary<int, ushort> stateDict){
+    private void ApplyHeightMaps(Dictionary<ushort, ushort> stateDict){
     	int size = Chunk.chunkWidth;
    		int i=0;
 
@@ -515,7 +515,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Generates Pivot heightmaps
-    private void GeneratePivots(int[,] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, ref bool transitionChecker, int octave=0, int groundLevel=20, int ceilingLevel=100, string currentBiome=""){
+    private void GeneratePivots(ushort[,] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, ref bool transitionChecker, int octave=0, int groundLevel=20, int ceilingLevel=100, string currentBiome=""){
     	int size = Chunk.chunkWidth;
     	int chunkXmult = chunkX * size;
     	int chunkZmult = chunkZ * size;
@@ -526,7 +526,7 @@ public class ChunkLoader : MonoBehaviour
     	for(int x=chunkXmult;x<chunkXmult+size;x+=4){
     		j = 0;
     		for(int z=chunkZmult;z<chunkZmult+size;z+=4){
-				selectedCache[i, j] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x/xhash+offsetHash, z/zhash+offsetHash))), 0, ceilingLevel);
+				selectedCache[i, j] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x/xhash+offsetHash, z/zhash+offsetHash))), 0, ceilingLevel));
     			j+=4;
     		}
     		i+=4;
@@ -601,7 +601,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Builds Lookahead pivots for biome border smoothing
-    public void GenerateLookAheadPivots(int[,] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, bool isSide, int groundLevel=0, int ceilingLevel=99){
+    public void GenerateLookAheadPivots(ushort[,] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, bool isSide, int groundLevel=0, int ceilingLevel=99){
         int size = Chunk.chunkWidth;
         chunkX *= size;
         chunkZ *= size;
@@ -610,29 +610,29 @@ public class ChunkLoader : MonoBehaviour
         // If is looking ahead into X+ Chunk
         if(isSide){
             for(int x=chunkX; x<=chunkX+size; x+=4){
-                selectedMap[i, size] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x/xhash+offsetHash, (chunkZ+size)/zhash+offsetHash))), 0, ceilingLevel);
+                selectedMap[i, size] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x/xhash+offsetHash, (chunkZ+size)/zhash+offsetHash))), 0, ceilingLevel));
                 i+=4;
             }
         }
         // If is looking ahead into Z+ Chunk
         else{
             for(int z=chunkZ; z<chunkZ+size; z+=4){ // Don't generate corner twice
-                selectedMap[size, i] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise((chunkX+size)/xhash+offsetHash, z/zhash+offsetHash))), 0, ceilingLevel);
+                selectedMap[size, i] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise((chunkX+size)/xhash+offsetHash, z/zhash+offsetHash))), 0, ceilingLevel));
                 i+=4;
             }
         }
     }
 
     // Builds Lookahead pivot of corner chunk for biome border smoothing
-    public void GenerateLookAheadCorner(int[,] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=0, int ceilingLevel=99){
-        selectedMap[Chunk.chunkWidth, Chunk.chunkWidth] = Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth)/xhash+offsetHash, ((chunkZ+1)*Chunk.chunkWidth)/zhash+offsetHash))), 0, ceilingLevel);
+    public void GenerateLookAheadCorner(ushort[,] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=0, int ceilingLevel=99){
+        selectedMap[Chunk.chunkWidth, Chunk.chunkWidth] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth)/xhash+offsetHash, ((chunkZ+1)*Chunk.chunkWidth)/zhash+offsetHash))), 0, ceilingLevel));
     }
 
     // Generates Flat Map of something
     // Consider using this for biomes that are relatively low altitude
-    private void GenerateFlatMap(int[,] selectedCache, int ceiling){
+    private void GenerateFlatMap(ushort[,] selectedCache, ushort ceiling){
         if(ceiling >= Chunk.chunkDepth)
-            ceiling = Chunk.chunkDepth-1;
+            ceiling = (ushort)(Chunk.chunkDepth-1);
 
         for(int x=0; x<Chunk.chunkWidth;x++){
             for(int z=0; z<Chunk.chunkWidth;z++){
@@ -642,14 +642,14 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Generates a flat map at Y level ceiling with deadzone protection
-    private void GenerateWaterMap(int[,] selectedCache, int ceiling){
+    private void GenerateWaterMap(ushort[,] selectedCache, ushort ceiling){
         int deadZoneXM=0;
         int deadZoneZM=0;
         int deadZoneXP=0;
         int deadZoneZP=0;
 
         if(ceiling >= Chunk.chunkDepth)
-            ceiling = Chunk.chunkDepth-1;
+            ceiling = (ushort)(Chunk.chunkDepth-1);
 
         if(isBorderZM){
             deadZoneZM = 1;
@@ -717,7 +717,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Applies bilinear interpolation to a given pivotmap
     // Takes any cache and returns on itself
-    private void BilinearInterpolateMap(int[,] heightMap, int interval=4){
+    private void BilinearInterpolateMap(ushort[,] heightMap, int interval=4){
     	int size = Chunk.chunkWidth;
     	int interpX = 0;
     	int interpZ = 0;
@@ -738,7 +738,7 @@ public class ChunkLoader : MonoBehaviour
     				scaleX = step;
     			}
 
-    			heightMap[x,z] = Mathf.RoundToInt(((heightMap[interpX-interval, interpZ-interval])*(1-scaleX)*(1-scaleZ)) + (heightMap[interpX, interpZ-interval]*scaleX*(1-scaleZ)) + (heightMap[interpX-interval, interpZ]*scaleZ*(1-scaleX)) + (heightMap[interpX, interpZ]*scaleX*scaleZ));
+    			heightMap[x,z] = (ushort)(Mathf.RoundToInt(((heightMap[interpX-interval, interpZ-interval])*(1-scaleX)*(1-scaleZ)) + (heightMap[interpX, interpZ-interval]*scaleX*(1-scaleZ)) + (heightMap[interpX-interval, interpZ]*scaleZ*(1-scaleX)) + (heightMap[interpX, interpZ]*scaleX*scaleZ)));
     			scaleX += step;
 
     		}
@@ -751,12 +751,12 @@ public class ChunkLoader : MonoBehaviour
     // Quick adds all elements in heightMap
     // This makes it easy to get a layer below surface blocks
     // Takes any cache and returns on cacheNumber
-    private void AddFromMap(int[,] map, int val, int cacheNumber=2){
+    private void AddFromMap(ushort[,] map, int val, int cacheNumber=2){
 
     	if(cacheNumber == 1){
 	    	for(int x=0;x<Chunk.chunkWidth;x++){
 	    		for(int z=0;z<Chunk.chunkWidth;z++){
-	    			cacheHeightMap[x,z] = map[x,z] + val;
+	    			cacheHeightMap[x,z] = (ushort)(map[x,z] + val);
 	    		}
 	    	}
     	}
@@ -764,31 +764,31 @@ public class ChunkLoader : MonoBehaviour
     	else if(cacheNumber == 2){
 	    	for(int x=0;x<Chunk.chunkWidth;x++){
 	    		for(int z=0;z<Chunk.chunkWidth;z++){
-	    			cacheHeightMap2[x,z] = map[x,z] + val;
+	    			cacheHeightMap2[x,z] = (ushort)(map[x,z] + val);
 	    		}
 	    	}
 	    }
 	    else if(cacheNumber == 3){
 	    	for(int x=0;x<Chunk.chunkWidth;x++){
 	    		for(int z=0;z<Chunk.chunkWidth;z++){
-	    			cacheHeightMap3[x,z] = map[x,z] + val;
+	    			cacheHeightMap3[x,z] = (ushort)(map[x,z] + val);
 	    		}
 	    	}	    	
 	    }
 	    else{
 	    	for(int x=0;x<Chunk.chunkWidth;x++){
 	    		for(int z=0;z<Chunk.chunkWidth;z++){
-	    			cacheHeightMap4[x,z] = map[x,z] + val;
+	    			cacheHeightMap4[x,z] = (ushort)(map[x,z] + val);
 	    		}
 	    	}
 	    }
     }
 
     // Applies Octaves to Pivot Map
-    private void CombinePivotMap(int[,] a, int[,] b){
+    private void CombinePivotMap(ushort[,] a, ushort[,] b){
         for(int x=0;x<=Chunk.chunkWidth;x+=4){
             for(int z=0;z<=Chunk.chunkWidth;z+=4){
-                a[x,z] = Mathf.FloorToInt((a[x,z] + b[x,z])/2);
+                a[x,z] = (ushort)(Mathf.FloorToInt((a[x,z] + b[x,z])/2));
             }
         }
     }
@@ -846,7 +846,7 @@ public class ChunkLoader : MonoBehaviour
         cacheMaps.Add(cacheHeightMap4);
         cacheBlockCodes.Add(6);
 
-        cacheStateDict = new Dictionary<int, ushort>{{6, 0}};
+        cacheStateDict = new Dictionary<ushort, ushort>{{6, 0}};
 
 		// Adds to cacheVoxdata
 		ApplyHeightMaps(cacheStateDict);
@@ -858,7 +858,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Inserts Plains biome border pivots on another selectedHeightMap
-    private void MixPlainsBorderPivots(int[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
+    private void MixPlainsBorderPivots(ushort[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
         float xhash = 41.21f;
         float zhash = 105.243f;
 
@@ -916,7 +916,7 @@ public class ChunkLoader : MonoBehaviour
             cacheBlockCodes.Add(6);
         }
 
-        cacheStateDict = new Dictionary<int, ushort>{{6, 0}};
+        cacheStateDict = new Dictionary<ushort, ushort>{{6, 0}};
 
         // Adds to cacheVoxdata
         ApplyHeightMaps(cacheStateDict);
@@ -928,7 +928,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Inserts Grassy Highlands biome border pivots on another selectedHeightMap
-    private void MixGrassyHighlandsBorderPivots(int[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
+    private void MixGrassyHighlandsBorderPivots(ushort[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
         float xhash = 41.21f;
         float zhash = 105.243f;
 
@@ -975,7 +975,7 @@ public class ChunkLoader : MonoBehaviour
         cacheMaps.Add(cacheHeightMap4);
         cacheBlockCodes.Add(6);
 
-        cacheStateDict = new Dictionary<int, ushort>{{6,0}};
+        cacheStateDict = new Dictionary<ushort, ushort>{{6,0}};
 
         // Adds to cacheVoxdata
         ApplyHeightMaps(cacheStateDict);
@@ -986,7 +986,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Inserts Ocean border pivots on another selectedHeightMap
-    private void MixOceanBorderPivots(int[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false, string currentBiome=""){
+    private void MixOceanBorderPivots(ushort[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false, string currentBiome=""){
         float xhash = 54.7f;
         float zhash = 69.3f;
 
