@@ -118,7 +118,7 @@ public class ChunkLoader : MonoBehaviour
             if(regionHandler.GetFile().IsIndexed(toLoad[0])){
                 // If chunk is Pre-Generated
                 if(regionHandler.GetsNeedGeneration(toLoad[0])){
-                    //print("ERROR: Tried to Generate pre-generated chunk");
+                    print("ERROR: Tried to Generate pre-generated chunk");
                     // Does nothing because there is no Prefab System yet
                 }
                 // If it's just a normally generated chunk

@@ -22,20 +22,14 @@ public class RegionFileHandler{
 
 	// Cache Information
 	private byte[] nullMetadata = new byte[]{255,255};
-	/*
-	private ushort[,,] cachedData = new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
-	private Metadata[,,] cachedMetadata = new Metadata[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
-	private byte[] intArray = new byte[4];
-	private byte[] ushortArray = new byte[2];
-	*/
 
 	private byte[] byteArray = new byte[1];
 	private byte[] timeArray = new byte[7];
 	private byte[] indexArray = new byte[16];
 	private byte[] headerBuffer = new byte[21];
 	private byte[] blockBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer (roughly 0,1 MB)
-	private byte[] hpBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 2]; // Exagerated buffer (roughly 0,05 MB)
-	private byte[] stateBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 2]; // Exagerated buffer (roughly 0,05 MB)
+	private byte[] hpBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer 
+	private byte[] stateBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer
 
 	// Sizes
 	private static int chunkHeaderSize = 21; // Size (in bytes) of header
@@ -47,13 +41,12 @@ public class RegionFileHandler{
 		this.renderDistance = renderDistance;
 		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
 
-		LoadRegionFile(pos);
+		LoadRegionFile(pos, init:true);
 	}
 
 	// Checks if RegionFile represents ChunkPos, and loads correct RegionFile if not
 	public void GetCorrectRegion(ChunkPos pos){
 		if(!region.CheckUsage(pos)){
-			this.region.Close();
 			LoadRegionFile(pos);
 		}
 	}
@@ -64,7 +57,7 @@ public class RegionFileHandler{
 	}
 
 	// Loads RegionFile related to given Chunk
-	public void LoadRegionFile(ChunkPos pos){
+	public void LoadRegionFile(ChunkPos pos, bool init=false){
 		int rfx;
 		int rfz;
 		string name;
@@ -73,10 +66,16 @@ public class RegionFileHandler{
 		rfz = Mathf.FloorToInt(pos.z / RegionFileHandler.chunkLength);
 		name = "r" + rfx.ToString() + "x" + rfz.ToString();
 
+		// Saves current RegionFile and open a new one
+		if(!init){
+			this.region.Close();
+		}
+
 		region = new RegionFile(name, new ChunkPos(rfx, rfz), RegionFileHandler.chunkLength);
 	}
 
-	// New Load algorithm with Compression
+	// Loads a chunk information from RDF file using Pallete-based Decompression
+	// Assumes that the correct Region File has been called
 	public void LoadChunk(Chunk c){
 		byte biome=0;
 		byte gen=0;
@@ -84,17 +83,19 @@ public class RegionFileHandler{
 		int hpdata=0;
 		int statedata=0;
 
-		// If chunk is loaded in current RegionFile
-		if(!region.CheckUsage(c.pos)){
-			LoadRegionFile(c.pos);
-		}
-
 		ReadHeader(c.pos);
 		InterpretHeader(ref biome, ref gen, ref blockdata, ref hpdata, ref statedata);
 		
 		c.biomeName = BiomeHandler.ByteToBiome(biome);
 		c.lastVisitedTime = globalTime.DateBytes(timeArray);
 		c.needsGeneration = gen;
+
+		// DEBUG FOR BUFFER OVERRUN
+		if(blockdata > Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4){
+			Debug.Log("Buffer Overrun on Chunk: " + (int)(GetLinearRegionCoords(c.pos)/16) + " | " + (int)(GetLinearRegionCoords(c.pos)%16));
+			this.region.Close();
+			Debug.Break();
+		}
 
 		this.region.file.Read(blockBuffer, 0, blockdata);
 		this.region.file.Read(hpBuffer, 0, hpdata);
@@ -107,6 +108,7 @@ public class RegionFileHandler{
 	}
 
 	// Saves a chunk to RDF file using Pallete-based Compression
+	// Assumes that the correct Region File has been called
 	public void SaveChunk(Chunk c){
 		int totalSize = 0;
 		long seekPosition = 0;
@@ -115,12 +117,6 @@ public class RegionFileHandler{
 		int stateSize;
 		long chunkCode = GetLinearRegionCoords(c.pos);
 
-		// Loads correct Region File
-		if(!region.CheckUsage(c.pos)){
-			LoadRegionFile(c.pos);
-		}
-
-
 		// Saves data to buffers and gets total size
 		blockSize = Compression.CompressBlocks(c, blockBuffer);
 		hpSize = Compression.CompressMetadataHP(c, hpBuffer);
@@ -128,12 +124,13 @@ public class RegionFileHandler{
 
 		InitializeHeader(c, blockSize, hpSize, stateSize);
 
-		totalSize = chunkHeaderSize + blockSize + hpSize + stateSize; // REMINDER: Add header size too
+		totalSize = chunkHeaderSize + blockSize + hpSize + stateSize;
 
 		// If Chunk was already saved
 		if(region.IsIndexed(c.pos)){
 			region.AddHole(region.index[chunkCode], totalSize);
 			seekPosition = region.FindPosition(totalSize);
+			region.SaveHoles();
 
 			// If position in RegionFile has changed
 			if(seekPosition != region.index[chunkCode]){
@@ -150,19 +147,19 @@ public class RegionFileHandler{
 		// If it's a new Chunk
 		else{
 			seekPosition = region.FindPosition(totalSize);
+			region.SaveHoles();
 
 			// Adds new chunk to Index
 			region.index.Add(chunkCode, seekPosition);
 			AddEntryIndex(chunkCode, seekPosition);
 			region.indexFile.Write(indexArray, 0, 16);
+			region.indexFile.Flush();
 
 			// Saves Chunk
 			region.Write(seekPosition, headerBuffer, chunkHeaderSize);
 			region.Write(seekPosition+chunkHeaderSize, blockBuffer, blockSize);
 			region.Write(seekPosition+chunkHeaderSize+blockSize, hpBuffer, hpSize);
 			region.Write(seekPosition+chunkHeaderSize+blockSize+hpSize, stateBuffer, stateSize);
-		
-
 		}
 
 	}
@@ -263,170 +260,12 @@ public class RegionFileHandler{
 		indexArray[15] = (byte)(val);
 	}
 
-	/*
-	// Loads the Chunk Data to Chunk
-	public void LoadChunk(Chunk c){
-		long code = GetLinearRegionCoords(c.pos);
-		long chunkOffset = this.file.index[code];
-		long offset = fileHeader + (chunkHeaderSize + chunkSize)*chunkOffset;
-		ushort? hp;
-		ushort? state;
-
-		this.file.Seek(offset, SeekOrigin.Begin);
-
-		// Reads Header
-		file.file.Read(byteArray, 0, 1);
-		c.biomeName = BiomeHandler.ByteToBiome(byteArray[0]);
-		file.file.Read(timeArray, 0, 7);
-		c.lastVisitedTime = globalTime.DateBytes(timeArray);
-		file.file.Read(byteArray, 0, 1);
-		c.needsGeneration = byteArray[0];
-
-		// Reads VoxelData
-		for(int x=0; x < Chunk.chunkWidth; x++){
-			for(int y=0; y < Chunk.chunkDepth; y++){
-				for(int z=0; z < Chunk.chunkWidth; z++){
-					cachedData[x,y,z] = this.file.ReadBlock(ushortArray);
-				}
-			}
-		}
-		c.BuildOnVoxelData(new VoxelData(cachedData));
-
-		// Reads VoxelMetadata
-		for(int x=0; x < Chunk.chunkWidth; x++){
-			for(int y=0; y < Chunk.chunkDepth; y++){
-				for(int z=0; z < Chunk.chunkWidth; z++){
-					hp = this.file.ReadUshort(ushortArray);
-					state = this.file.ReadUshort(ushortArray);
-
-					// No Metadata
-					if(hp == null && state == null){
-						cachedMetadata[x,y,z] = new Metadata(); 
-					}
-					// Only State
-					else if(hp == null){
-						cachedMetadata[x,y,z] = new Metadata((ushort)state);
-					}
-					// Only HP
-					else if(state == null){
-						cachedMetadata[x,y,z] = new Metadata();	
-						cachedMetadata[x,y,z].SetHP(hp);	
-					}
-					// All metadata
-					else{
-						cachedMetadata[x,y,z] = new Metadata((ushort)hp, (ushort)state);
-					}
-				}
-			}
-		}
-		c.BuildVoxelMetadata(new VoxelMetadata(cachedMetadata));
-
-	}
-	*/
-
-	// Saves chunk data to RegionFile
-	/*
-	NeedsGeneration in Chunks is a future implementation of Structures pre-generating in chunks
-	0: No needs to generate chunk
-	1: Needs to generate chunk, because it was just pre-generated
-	*/
-	/*
-	public void SaveChunk(Chunk c){
-		// If chunk is loaded in current RegionFile
-		if(!file.CheckUsage(c.pos)){
-			LoadRegionFile(c.pos);
-		}
-
-		long chunkCode = GetLinearRegionCoords(c.pos);
-		ushort entriesInIndex;
-		
-		// If is a newly generated chunk
-		if(!file.index.ContainsKey(chunkCode)){
-			file.Seek(0, SeekOrigin.End);
-
-			// Chunk Header
-			file.Write(BiomeHandler.BiomeToByte(c.biomeName), 0, 1);
-			file.Write(globalTime.TimeHeader(), 0, 7);
-			file.Write(new byte[]{c.needsGeneration}, 0, 1);
-
-			// Block Data
-			for(int x=0; x < Chunk.chunkWidth; x++){
-				for(int y=0; y < Chunk.chunkDepth; y++){
-					for(int z=0; z < Chunk.chunkWidth; z++){
-						file.Write(IntToByte(c.data.GetCell(x,y,z)), 0, 4);
-					}
-				}
-			}
-			// HP and State
-			for(int x=0; x < Chunk.chunkWidth; x++){
-				for(int y=0; y < Chunk.chunkDepth; y++){
-					for(int z=0; z < Chunk.chunkWidth; z++){
-
-						if(c.metadata.metadata[x,y,z] == null){
-							file.Write(nullMetadata, 0, 2);
-							file.Write(nullMetadata, 0, 2);							
-						}
-						else{
-							file.Write(UshortToByte(c.metadata.metadata[x,y,z].hp), 0, 2);
-							file.Write(UshortToByte(c.metadata.metadata[x,y,z].state), 0, 2);
-						}
-					}
-				}
-			}
-
-			entriesInIndex = file.IncrementSaved();
-			file.WriteEntry(chunkCode, entriesInIndex);
-			file.index.Add(chunkCode, entriesInIndex);
-			file.Seek(0, SeekOrigin.End);
-		}
-
-		// If chunk is a pre-generated chunk
-		else{
-			file.Seek(fileHeader + chunkHeaderSize + (chunkSize * file.index[chunkCode]), SeekOrigin.Begin);
-
-			// Chunk Header
-			file.Write(LongToByte(chunkCode), 0, 8);
-			file.Write(new byte[]{c.needsGeneration}, 0, 1);
-
-			// Block Data
-			for(int x=0; x < Chunk.chunkWidth; x++){
-				for(int y=0; y < Chunk.chunkDepth; y++){
-					for(int z=0; z < Chunk.chunkWidth; z++){
-						file.Write(IntToByte(c.data.GetCell(x,y,z)), 0, 4);
-					}
-				}
-			}
-			// HP and State
-			for(int x=0; x < Chunk.chunkWidth; x++){
-				for(int y=0; y < Chunk.chunkDepth; y++){
-					for(int z=0; z < Chunk.chunkWidth; z++){
-
-						if(c.metadata.metadata[x,y,z] == null){
-							file.Write(nullMetadata, 0, 2);
-							file.Write(nullMetadata, 0, 2);							
-						}
-						else{
-							file.Write(UshortToByte(c.metadata.metadata[x,y,z].hp), 0, 2);
-							file.Write(UshortToByte(c.metadata.metadata[x,y,z].state), 0, 2);
-						}
-					}
-				}
-			}
-
-			file.Seek(0, SeekOrigin.End);
-		}
-	}
-	*/
-
 	// Gets NeedGeneration byte from Chunk
 	public bool GetsNeedGeneration(ChunkPos pos){
+		ReadHeader(pos);
 
-		this.region.file.Seek(region.index[GetLinearRegionCoords(pos)] + 8, SeekOrigin.Begin);
-		this.region.file.Read(byteArray, 0, 1);
-
-		if(byteArray[0] == 0)
+		if(headerBuffer[8] == 0)
 			return false;
-
 		return true;
 	}
 
@@ -443,37 +282,38 @@ public struct RegionFile{
 	public ChunkPos regionPos; // Variable to represent Region coordinates, and not Chunk coordinates
 	private float chunkLength;
 
-	// Minimun and Maximum valued Chunks that are contained in this RegionFile
-	private ChunkPos minPos;
-	private ChunkPos maxPos;
-
 	// File Data
 	public Stream file;
 	public Stream indexFile;
+	public Stream holeFile;
 	public Dictionary<long, long> index;
 	public FragmentationHandler fragHandler;
 
 	// Cached Data
 	private byte[] cachedIndex;
+	private byte[] longArray;
+	private byte[] cachedHoles;
 
 	// Opens the file and adds ".rdf" at the end (Region Data File)
 	public RegionFile(string name, ChunkPos pos, float chunkLen){
+		bool isLoaded = true;
+
+		Debug.Log("Loaded: " + name);
+
 		this.name = name;
 		this.regionPos = pos;
 		this.chunkLength = chunkLen;
 		this.index = new Dictionary<long, long>();
 
 		this.cachedIndex = new byte[16384];
-		this.fragHandler = new FragmentationHandler();
-
-		// Calculates min and max pos
-		this.minPos = new ChunkPos(regionPos.x*32, regionPos.z*32);
-		this.maxPos = new ChunkPos(regionPos.x*32+31, regionPos.z*32+31);
+		this.cachedHoles = new byte[16384];
+		this.longArray = new byte[8];
 
 		try{
 			this.file = File.Open(name + ".rdf", FileMode.Open);
 		} 
 		catch (FileNotFoundException){
+			isLoaded = false;
 			this.file = File.Open(name + ".rdf", FileMode.Create);
 		}
 
@@ -481,20 +321,36 @@ public struct RegionFile{
 			this.indexFile = File.Open(name + ".ind", FileMode.Open);
 		} 
 		catch (FileNotFoundException){
+			isLoaded = false;
 			this.indexFile = File.Open(name + ".ind", FileMode.Create);
 		}
 
-		this.indexFile.Seek(0, SeekOrigin.End);
-		//LoadIndex();	
+		try{
+			this.holeFile = File.Open(name + ".hle", FileMode.Open);
+		} 
+		catch (FileNotFoundException){
+			isLoaded = false;
+			this.holeFile = File.Open(name + ".hle", FileMode.Create);
+		}
+
+		this.fragHandler = new FragmentationHandler(isLoaded);
+		
+		if(isLoaded){
+			LoadIndex();
+			LoadHoles();
+		}
 	}
 
 	// Checks if current chunk should be housed in current RegionFile
 	public bool CheckUsage(ChunkPos pos){
-		if(pos.x >= this.minPos.x && pos.x <= this.maxPos.x){
-			if(pos.z >= this.minPos.z && pos.z <= this.maxPos.z){
-				return true;
-			}
-		}
+		int rfx;
+		int rfz;
+
+		rfx = Mathf.FloorToInt(pos.x / this.chunkLength);
+		rfz = Mathf.FloorToInt(pos.z / this.chunkLength);
+
+		if(this.regionPos.x == rfx && this.regionPos.z == rfz)
+			return true;
 		return false;
 	}
 
@@ -511,8 +367,8 @@ public struct RegionFile{
 	}
 
 	// Overload?
-	public void AddHole(long pos, int size){
-		this.fragHandler.AddHole(pos, size);
+	public void AddHole(long pos, int size, bool infinite=false){
+		this.fragHandler.AddHole(pos, size, infinite:infinite);
 	}
 
 	// Overload?
@@ -524,6 +380,91 @@ public struct RegionFile{
 	public void Write(long position, byte[] buffer, int size){
 		this.file.Seek(position, SeekOrigin.Begin);
 		this.file.Write(buffer, 0, size);
+		this.file.Flush();
+	}
+
+	// Reads index data com IND file
+	public void LoadIndex(){
+		this.indexFile.Seek(0, SeekOrigin.Begin);
+
+		ReadIndexEntry();
+		long a;
+		long b;
+
+		for(int i=0; i<this.indexFile.Length; i+=16){
+			a = ReadLong(i);
+			b = ReadLong(i+8);
+
+			this.index[a] = b;
+		}
+	}
+
+	// Save hole data to the HLE file
+	public void SaveHoles(){
+		bool done = false;
+		int offset = 0;
+		int writtenBytes = 0;
+
+		this.holeFile.SetLength(0);
+		writtenBytes = this.fragHandler.CacheHoles(offset, ref done);
+		this.holeFile.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
+		this.holeFile.Flush();
+
+		while(!done){
+			offset++;
+			writtenBytes = this.fragHandler.CacheHoles(offset, ref done);
+			this.holeFile.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
+			this.holeFile.Flush();		
+		}
+	}
+
+	// Loads all DataHole data to Fragment Handlers list
+	public void LoadHoles(){
+		this.holeFile.Seek(0, SeekOrigin.Begin);
+
+		if(this.holeFile.Length <= 16380){
+			this.holeFile.Read(this.cachedHoles, 0, (int)holeFile.Length);
+			AddHolesFromBuffer((int)holeFile.Length);
+		}
+		else{
+			int times = 0;
+
+			this.holeFile.Read(this.cachedHoles, 0, 16380);
+			AddHolesFromBuffer(16380);
+			times++;
+
+			// While there is still data to be read
+			while(holeFile.Length - times*16380 >= 16380){
+				this.holeFile.Read(this.cachedHoles, 0, 16380);
+				AddHolesFromBuffer(16380);
+				times++;
+			}
+
+			// Reads remnants
+			if(holeFile.Length - times*16380 > 0){
+				this.holeFile.Read(this.cachedHoles, 0, (int)(holeFile.Length - times*16380));
+				AddHolesFromBuffer((int)(holeFile.Length - times*16380));
+			}
+
+		}
+	}
+
+	// Adds holes read from buffer data
+	private void AddHolesFromBuffer(int readBytes){
+		long a;
+		int b;
+
+		for(int i=0; i < readBytes; i+= 12){
+			a = ReadLongHole(i);
+			b = ReadIntHole(i+8);
+
+			if(b > 0){
+				AddHole(a, b);
+			}
+			else{
+				AddHole(a, -1, infinite:true);
+			}
+		}
 	}
 
 	// Writes all index data to index file
@@ -537,7 +478,90 @@ public struct RegionFile{
 			position += 8;
 		}
 
+		this.indexFile.SetLength(0);
 		this.indexFile.Write(this.cachedIndex, 0, position);
+		this.indexFile.Flush();
+	}
+
+	// Reads all index file and sends it to cachedIndex
+	private void ReadIndexEntry(){
+		this.indexFile.Read(this.cachedIndex, 0, (int)this.indexFile.Length);
+	}
+
+	// Reads a long in byte[] cachedIndex at position n
+	private long ReadLong(int pos){
+		long a;
+
+		a = cachedIndex[pos];
+		a = a << 8;
+		a += cachedIndex[pos+1];
+		a = a << 8;
+		a += cachedIndex[pos+2];
+		a = a << 8;
+		a += cachedIndex[pos+3];
+		a = a << 8;
+		a += cachedIndex[pos+4];
+		a = a << 8;
+		a += cachedIndex[pos+5];
+		a = a << 8;
+		a += cachedIndex[pos+6];
+		a = a << 8;
+		a += cachedIndex[pos+7];
+
+		return a;
+	}
+
+	// Reads a long in byte[] cachedHoles at position n
+	private long ReadLongHole(int pos){
+		long a;
+
+		a = this.cachedHoles[pos];
+		a = a << 8;
+		a += this.cachedHoles[pos+1];
+		a = a << 8;
+		a += this.cachedHoles[pos+2];
+		a = a << 8;
+		a += this.cachedHoles[pos+3];
+		a = a << 8;
+		a += this.cachedHoles[pos+4];
+		a = a << 8;
+		a += this.cachedHoles[pos+5];
+		a = a << 8;
+		a += this.cachedHoles[pos+6];
+		a = a << 8;
+		a += this.cachedHoles[pos+7];
+
+		return a;
+	}
+
+	// Reads an int in byte[] cachedIndex at position n
+	private int ReadInt(int pos){
+		int a;
+
+		a = cachedIndex[pos];
+		a = a << 8;
+		a += cachedIndex[pos+1];
+		a = a << 8;
+		a += cachedIndex[pos+2];
+		a = a << 8;
+		a += cachedIndex[pos+3];
+
+		return a;
+	}
+
+	// Reads an int in byte[] cachedHoles at position n
+	private int ReadIntHole(int pos){
+		int a;
+
+		a = this.cachedHoles[pos];
+		a = a << 8;
+		a += this.cachedHoles[pos+1];
+		a = a << 8;
+		a += this.cachedHoles[pos+2];
+		a = a << 8;
+		a += this.cachedHoles[pos+3];
+
+		return a;
 	}
 
 	// Adds a long to cached byte array of index
@@ -554,9 +578,12 @@ public struct RegionFile{
 
 	// Closes all Streams
 	public void Close(){
-		this.file.Close();
 		UnloadIndex();
+		SaveHoles();
+
+		this.file.Close();
 		this.indexFile.Close();
+		this.holeFile.Close();
 	}
 
 }
@@ -567,10 +594,13 @@ Handles DataHoles and makes sure there's little fragmentation to disk
 */
 public class FragmentationHandler{
 	private List<DataHole> data;
+	public byte[] cachedHoles = new byte[384]; // 32 Holes per Read
 
-	public FragmentationHandler(byte b=0){
+	public FragmentationHandler(bool loaded){
 		this.data = new List<DataHole>(){};
-		this.data.Add(new DataHole(0, -1, infinite:true));
+
+		if(!loaded)
+			this.data.Add(new DataHole(0, -1, infinite:true));
 	}
 
 	// Finds a position in RegionFile that fits
@@ -579,12 +609,16 @@ public class FragmentationHandler{
 		long output;
 
 		for(int i=0; i < this.data.Count; i++){
-			if(data[i].size >= size){
+			if(data[i].size > size){
 				output = data[i].position;
 				data.Insert(i+1, new DataHole(data[i].position + size, (int)data[i].size - size));
 				data.RemoveAt(i);
-				RemoveZero(data[i]);
 				return output;
+			}
+			else if(data[i].size == size){
+				output = data[i].position;
+				data.RemoveAt(i);
+				return output;				
 			}
 		}
 
@@ -594,8 +628,28 @@ public class FragmentationHandler{
 		return output;
 	}
 
+	// Puts hole data in CachedHoles
+	// Returns the amount of bytes written and a reference bool that serves as a flag
+	// When the flag is true, caching has been completed. If false, more CacheHoles need to be called
+	// Offset is a multiplier of 384 indices
+	public int CacheHoles(int offset, ref bool done){
+		done = this.data.Count - offset*32 <= 32;
+		int index=0;
+
+		for(int i=offset*32; i < this.data.Count; i++){
+			data[i].Bytefy(this.cachedHoles, index);
+			index += 12;
+		}
+		return index;
+	}
+
 	// Adds a DataHole to list in a priority list fashion
-	public void AddHole(long pos, int size){
+	public void AddHole(long pos, int size, bool infinite=false){
+		if(infinite){
+			this.data.Add(new DataHole(pos, -1, infinite:true));
+			return;
+		}
+
 		for(int i=0; i<this.data.Count;i++){
 			if(this.data[i].position > pos){
 				this.data.Insert(i-1, new DataHole(pos, size));
@@ -610,10 +664,16 @@ public class FragmentationHandler{
 	}
 
 	// Removes if hole has no size
-	private void RemoveZero(DataHole dh){
+	private bool RemoveZero(DataHole dh){
 		if(dh.size == 0){
 			this.data.Remove(dh);
+			return true;
 		}
+		return false;
+	}
+
+	public int Count(){
+		return this.data.Count;
 	}
 
 	// Merges DataHoles starting from pos in data list if there's any
@@ -624,12 +684,11 @@ public class FragmentationHandler{
 			// If neighbor hole is infinite
 			if(this.data[index+1].infinite){
 				this.data.RemoveAt(index+1);
-				this.data[index].SetInfinite(true);
-				this.data[index].AddSize(-1);
+				this.data[index] = new DataHole(this.data[index].position, -1, infinite:true);
 			}
 			// If neighbor is a normal hole
 			else{
-				this.data[index].AddSize(this.data[index+1].size);
+				this.data[index] = new DataHole(this.data[index].position, this.data[index].size + this.data[index+1].size);
 				this.data.RemoveAt(index+1);
 			}
 		}
@@ -649,15 +708,19 @@ public struct DataHole{
 		this.size = size;
 	}
 
-	public void AddPos(long pos){
-		this.position += pos;
-	}
-
-	public void AddSize(int size){
-		this.size += size;
-	}
-
-	public void SetInfinite(bool b){
-		this.infinite = b;
+	// Turns DataHole into byte format for HLE files
+	public void Bytefy(byte[] b, int offset){
+		b[offset] = (byte)(this.position >> 56);
+		b[offset+1] = (byte)(this.position >> 48);
+		b[offset+2] = (byte)(this.position >> 40);
+		b[offset+3] = (byte)(this.position >> 32);
+		b[offset+4] = (byte)(this.position >> 24);
+		b[offset+5] = (byte)(this.position >> 16);
+		b[offset+6] = (byte)(this.position >> 8);
+		b[offset+7] = (byte)this.position;
+		b[offset+8] = (byte)(this.size >> 24);
+		b[offset+9] = (byte)(this.size >> 16);
+		b[offset+10] = (byte)(this.size >> 8);
+		b[offset+11] = (byte)this.size;
 	}
 }

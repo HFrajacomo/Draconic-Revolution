@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1484502057}
-  m_IndirectSpecularColor: {r: 0.0032131788, g: 0.0040561417, b: 0.0029541964, a: 1}
+  m_IndirectSpecularColor: {r: 0.0032139611, g: 0.0040568085, b: 0.0029549843, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -358,7 +358,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 59614820}
-  speed: 12
+  speed: 20
   gravity: -19.62
   jumpHeight: 5
   layerMask:
