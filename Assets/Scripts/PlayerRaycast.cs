@@ -133,6 +133,12 @@ public class PlayerRaycast : MonoBehaviour
     // Detects hit in any block except air
     public bool HitAll(CastCoord coords){
       ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ);
+
+      // Exception
+      if(!loader.chunks.ContainsKey(ck)){
+        return false;
+      }
+
       ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
       // If hits something
