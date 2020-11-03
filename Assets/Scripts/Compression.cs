@@ -1,6 +1,7 @@
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 /*
 Class for the compression algorithm of the RDF files to be applied
@@ -182,7 +183,7 @@ public static class Compression{
 						newCode = ushort.MaxValue;
 					}
 					else{
-						metaCode = c.metadata.metadata[x,y,z].hp;
+						metaCode = c.metadata.metadata[x,y,z].state;
 
 						if(metaCode == null){
 							newCode = ushort.MaxValue;
@@ -266,12 +267,11 @@ public static class Compression{
 
 						// If code is contained in Pallete
 						if(palleteList.Contains(blockCode)){
-							bufferedCount = Compression.ReadShort(buffer, readBytes);
+							bufferedCount = (ushort)(Compression.ReadShort(buffer, readBytes) - 1);
 							readBytes += 2;
 						}
 
 						c.data.SetCell(x,y,z, blockCode);
-						bufferedCount--;
 
 					}
 					// If it's filling the buffered data

@@ -85,17 +85,10 @@ public class RegionFileHandler{
 
 		ReadHeader(c.pos);
 		InterpretHeader(ref biome, ref gen, ref blockdata, ref hpdata, ref statedata);
-		
+
 		c.biomeName = BiomeHandler.ByteToBiome(biome);
 		c.lastVisitedTime = globalTime.DateBytes(timeArray);
 		c.needsGeneration = gen;
-
-		// DEBUG FOR BUFFER OVERRUN
-		if(blockdata > Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4){
-			Debug.Log("Buffer Overrun on Chunk: " + (int)(GetLinearRegionCoords(c.pos)/16) + " | " + (int)(GetLinearRegionCoords(c.pos)%16));
-			this.region.Close();
-			Debug.Break();
-		}
 
 		this.region.file.Read(blockBuffer, 0, blockdata);
 		this.region.file.Read(hpBuffer, 0, hpdata);
@@ -116,6 +109,21 @@ public class RegionFileHandler{
 		int hpSize;
 		int stateSize;
 		long chunkCode = GetLinearRegionCoords(c.pos);
+		int lastKnownSize=0;
+
+		// Reads pre-save size if is already indexed
+		if(region.IsIndexed(c.pos)){
+			byte biome=0;
+			byte gen=0;
+			int blockdata=0;
+			int hpdata=0;
+			int statedata=0;
+
+			ReadHeader(c.pos);
+			InterpretHeader(ref biome, ref gen, ref blockdata, ref hpdata, ref statedata);
+			lastKnownSize = chunkHeaderSize + blockdata + hpdata + statedata;
+		}
+
 
 		// Saves data to buffers and gets total size
 		blockSize = Compression.CompressBlocks(c, blockBuffer);
@@ -128,7 +136,7 @@ public class RegionFileHandler{
 
 		// If Chunk was already saved
 		if(region.IsIndexed(c.pos)){
-			region.AddHole(region.index[chunkCode], totalSize);
+			region.AddHole(region.index[chunkCode], lastKnownSize);
 			seekPosition = region.FindPosition(totalSize);
 			region.SaveHoles();
 
@@ -297,8 +305,6 @@ public struct RegionFile{
 	// Opens the file and adds ".rdf" at the end (Region Data File)
 	public RegionFile(string name, ChunkPos pos, float chunkLen){
 		bool isLoaded = true;
-
-		Debug.Log("Loaded: " + name);
 
 		this.name = name;
 		this.regionPos = pos;
@@ -652,14 +658,14 @@ public class FragmentationHandler{
 
 		for(int i=0; i<this.data.Count;i++){
 			if(this.data[i].position > pos){
-				this.data.Insert(i-1, new DataHole(pos, size));
-				MergeHoles(i-1);
+				this.data.Insert(i, new DataHole(pos, size));
+				MergeHoles(i);
 				return;
 			}
 		}
 
-		this.data.Insert(this.data.Count-1, new DataHole(pos, size));
-		MergeHoles(this.data.Count-2);
+		// Adds a hole if there isn't any
+		this.data.Add(new DataHole(pos, size));
 		return;
 	}
 

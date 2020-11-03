@@ -133,7 +133,7 @@ public class ChunkLoader : MonoBehaviour
         		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
                 vfx.NewChunk(toLoad[0]);
         		chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
-                chunks[toLoad[0]].metadata.metadata = cacheMetadata.metadata;
+                chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
                 cacheMetadata.Clear();
 
                 regionHandler.SaveChunk(chunks[toLoad[0]]);

@@ -160,7 +160,7 @@ public class PlayerRaycast : MonoBehaviour
         if(blockCode >= 0)
           loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
         else
-          loader.blockBook.objects[(blockCode*-1)-1].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+          loader.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
 
         // Actually breaks new block and updates chunk
         loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
@@ -180,7 +180,7 @@ public class PlayerRaycast : MonoBehaviour
         if(blockCode >= 0)
           loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
         else
-          loader.blockBook.objects[(blockCode*-1)-1].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+          loader.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
       }
 
     }
@@ -202,7 +202,7 @@ public class PlayerRaycast : MonoBehaviour
       }
       // Encodes for Asset Mode
       else{
-        translatedBlockCode = (blockCode * -1) - 1;
+        translatedBlockCode = ushort.MaxValue - blockCode;
         isAsset = true;
 
         // Won't happen if not raycasting something or if block is in player's body or head
@@ -279,7 +279,7 @@ public class PlayerRaycast : MonoBehaviour
       if(blockCode >= 0)
         callback = loader.blockBook.blocks[blockCode].OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
       else
-        callback = loader.blockBook.objects[(blockCode*-1)-1].OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+        callback = loader.blockBook.objects[ushort.MaxValue - blockCode].OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
 
       // Actual handling of message
       CallbackHandler(callback, toUpdate, current, facing);
@@ -298,6 +298,7 @@ public class PlayerRaycast : MonoBehaviour
       else if(code == 1){
         loader.chunks[targetChunk].BuildChunk();
         loader.chunks[targetChunk].BuildSideBorder(reload:true);
+        loader.regionHandler.SaveChunk(loader.chunks[targetChunk]);
       }
       // 2: Emits BUD instantly and forces chunk reload
       else if(code == 2){
@@ -305,7 +306,7 @@ public class PlayerRaycast : MonoBehaviour
         loader.budscheduler.ScheduleReload(targetChunk, 0);  
       }
       // 3: Emits BUD in next tick and forces chunk reload
-      else if(code == 2){
+      else if(code == 3){
         EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 1, loader);
         loader.budscheduler.ScheduleReload(targetChunk, 1);
       }
