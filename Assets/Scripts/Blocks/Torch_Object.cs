@@ -26,6 +26,7 @@ public class Torch_Object : BlocklikeObject
 		this.invisible = false;
 		this.liquid = false;
 		this.washable = true;
+		this.hasLoadEvent = true;
 		this.go = GameObject.Find("----- PrefabObjects -----/Torch_Object");
 
 		this.needsRotation = true;
@@ -40,15 +41,15 @@ public class Torch_Object : BlocklikeObject
 		if(state == null)
 			return 0;
 		else if(state >= 4){
-			ControlFire(pos, blockX, blockY, blockZ, state);
 			cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state -= 4;
+			ControlFire(pos, blockX, blockY, blockZ, (ushort?)(state-4));
 		}
 		else if(state >= 0 && state < 4){
-			ControlFire(pos, blockX, blockY, blockZ, state);
 			cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state += 4;
+			ControlFire(pos, blockX, blockY, blockZ, (ushort?)(state+4));
 		}
 
-		return 0;
+		return 4;
 	}
 
 	// Instantiates a FireVFX
@@ -71,7 +72,7 @@ public class Torch_Object : BlocklikeObject
 
 		this.vfx.Add(pos, fire, active:true);
 		
-		cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state = (ushort)(facing + 4);
+		cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state = (ushort)facing;
 
 		return 0;
 	}
@@ -84,6 +85,31 @@ public class Torch_Object : BlocklikeObject
 		EraseMetadata(pos,x,y,z,cl);
 		cl.chunks[pos].assetGrid.Remove(x,y,z);
 		return 0;
+	}
+
+	// Creates FireVFX on Load
+	public override int OnLoad(ChunkPos pos, int x, int y, int z, ChunkLoader cl){
+		ushort? state = cl.chunks[pos].metadata.GetMetadata(x,y,z).state;
+		Vector3 fireOffset;
+
+		if(state == 0 || state == 4)
+			fireOffset = new Vector3(0.15f,0f,0f);
+		else if(state == 1 || state == 5)
+			fireOffset = new Vector3(0f,0f,-0.15f);
+		else if(state == 2 || state == 6)
+			fireOffset = new Vector3(-0.15f, 0f, 0f);
+		else if(state == 3 || state == 7)
+			fireOffset = new Vector3(0f, 0f, 0.15f);
+		else
+			fireOffset = new Vector3(0f,0f,0f);	
+
+		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + x, y + 0.35f, pos.z*Chunk.chunkWidth + z) + fireOffset, Quaternion.identity);
+		fire.name = BuildVFXName(pos, x, y, z);
+		this.vfx.Add(pos, fire, active:true);
+
+		ControlFire(pos, x, y, z, state);
+	
+		return 1;
 	}
 
 	// Handles Fire VFX turning on and off

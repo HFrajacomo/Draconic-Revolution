@@ -10,6 +10,7 @@ public class Leaf_Object : BlocklikeObject
 		this.transparent = true;
 		this.invisible = false;
 		this.liquid = false;
+		this.hasLoadEvent = false;
 		this.go = GameObject.Find("----- PrefabObjects -----/Leaf_Object");
 	}
 

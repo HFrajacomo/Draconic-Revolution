@@ -10,6 +10,7 @@ public abstract class BlocklikeObject
 	public bool transparent; // Should render the back side?
 	public bool invisible; // Should not render at all
 	public bool liquid;
+	public bool hasLoadEvent; // Should run code when loaded it's chunk
 
 	public static int objectCount = 2;
 
@@ -33,12 +34,12 @@ public abstract class BlocklikeObject
 	}
 
 	// Adds GameObject with correct offseting in the world and returns it
-	public GameObject PlaceObject(ChunkPos pos, int x, int y, int z, int blockCode, ChunkLoader loader){
+	public GameObject PlaceObject(ChunkPos pos, int x, int y, int z, ushort blockCode, ChunkLoader loader){
 		if(!this.needsRotation)
-			return GameObject.Instantiate(loader.blockBook.objects[(blockCode*-1)-1].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
+			return GameObject.Instantiate(loader.blockBook.objects[ushort.MaxValue - blockCode].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
 		else{
-			GameObject GO = GameObject.Instantiate(loader.blockBook.objects[(blockCode*-1)-1].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
-			loader.blockBook.objects[(blockCode*-1)-1].ApplyRotation(GO, loader.chunks[pos].metadata.GetMetadata(x,y,z).state, x, y, z);
+			GameObject GO = GameObject.Instantiate(loader.blockBook.objects[ushort.MaxValue - blockCode].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
+			loader.blockBook.objects[ushort.MaxValue - blockCode].ApplyRotation(GO, loader.chunks[pos].metadata.GetMetadata(x,y,z).state, x, y, z);
 			return GO;
 		}
 	}
@@ -89,6 +90,7 @@ public abstract class BlocklikeObject
 	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){return 0;}
 	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
+	public virtual int OnLoad(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader cl){return true;}
 	public virtual void ApplyRotation(GameObject go, ushort? state, int blockX, int blockY, int blockZ){}
 }

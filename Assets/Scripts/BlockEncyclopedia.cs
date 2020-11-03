@@ -32,7 +32,7 @@ public class BlockEncyclopedia : MonoBehaviour
 
     // Gets customPlace value from block
     public bool CheckCustomPlace(ushort blockCode){
-      if(blockCode >= 0)
+      if(blockCode <= ushort.MaxValue/2)
         return blocks[blockCode].customPlace;
       else
         return objects[ushort.MaxValue - blockCode].customPlace;

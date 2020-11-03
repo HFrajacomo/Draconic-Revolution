@@ -144,8 +144,8 @@ public class PlayerRaycast : MonoBehaviour
       // If hits something
       if(blockID != 0)
         if(loader.chunks.ContainsKey(ck)){
+          // DEBUG 
           //print(blockID + " : " + loader.chunks[ck].metadata.GetMetadata(coords.blockX, coords.blockY, coords.blockZ).state);
-
           return true;
         }
       return false;
@@ -163,7 +163,7 @@ public class PlayerRaycast : MonoBehaviour
       // If doesn't has special break handling
       if(!loader.blockBook.CheckCustomBreak(blockCode)){
         // Triggers OnBreak
-        if(blockCode >= 0)
+        if(blockCode <= ushort.MaxValue/2)
           loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
         else
           loader.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
@@ -175,18 +175,24 @@ public class PlayerRaycast : MonoBehaviour
         // Passes "break" block update to neighboring blocks IF object doesn't implement it OnBreak
         EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
         
-        if(blockCode >= 0)
+        if(blockCode <= ushort.MaxValue/2){
           loader.budscheduler.ScheduleReload(toUpdate, 0);
-        else
+        }
+        else{
           loader.chunks[toUpdate].assetGrid.Remove(current.blockX, current.blockY, current.blockZ);
+          loader.regionHandler.SaveChunk(loader.chunks[toUpdate]);
+        }
       }
       // If has special break handlings
       else{
 
-        if(blockCode >= 0)
+        if(blockCode <= ushort.MaxValue/2){
           loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-        else
+        }
+        else{
           loader.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
+          loader.regionHandler.SaveChunk(loader.chunks[toUpdate]);
+        }
       }
 
     }
@@ -197,7 +203,7 @@ public class PlayerRaycast : MonoBehaviour
       bool isAsset;
 
       // Encodes for Block Mode
-      if(blockCode >= 0){
+      if(blockCode <= ushort.MaxValue/2){
         isAsset = false;
         translatedBlockCode = blockCode;
 
@@ -244,16 +250,19 @@ public class PlayerRaycast : MonoBehaviour
         // Actually places block/asset into terrain
   		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
         if(state != null){
-          // SETS STATE
+          // DEBUG SETS STATE
           //loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
         }
 
         // Sends Reload Request to BUDScheduler
-        if(blockCode >= 0)
+        if(blockCode <= ushort.MaxValue/2){
           loader.budscheduler.ScheduleReload(toUpdate, 0);
+        }
         // Sends a AddDraw call to chunk's AssetGrid
-        else
+        else{
           loader.chunks[toUpdate].assetGrid.AddDraw(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode, state, loader);
+          loader.regionHandler.SaveChunk(loader.chunks[toUpdate]);
+        }
       }
 
       // If has special handling
@@ -264,10 +273,13 @@ public class PlayerRaycast : MonoBehaviour
           loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
         }
 
-        if(blockCode >= 0)
+        if(blockCode <= ushort.MaxValue/2){
           loader.blockBook.blocks[blockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
-        else
+        }
+        else{
           loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
+          loader.regionHandler.SaveChunk(loader.chunks[toUpdate]);
+        }
 
       }
     }
@@ -282,7 +294,7 @@ public class PlayerRaycast : MonoBehaviour
       int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
       
       
-      if(blockCode >= 0)
+      if(blockCode <= ushort.MaxValue/2)
         callback = loader.blockBook.blocks[blockCode].OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
       else
         callback = loader.blockBook.objects[ushort.MaxValue - blockCode].OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
@@ -315,6 +327,10 @@ public class PlayerRaycast : MonoBehaviour
       else if(code == 3){
         EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 1, loader);
         loader.budscheduler.ScheduleReload(targetChunk, 1);
+      }
+      // 4: Saves chunk to RDF file silently
+      else if(code == 4){
+        loader.regionHandler.SaveChunk(loader.chunks[targetChunk]);
       }
 
     }

@@ -74,8 +74,8 @@ public class Chunk
 
 	// Build the X- or Z- chunk border
 	public void BuildSideBorder(bool reload=false, bool reloadXM=false, bool reloadXm=false, bool reloadZM=false, bool reloadZm=false){
-		int thisBlock;
-		int neighborBlock;
+		ushort thisBlock;
+		ushort neighborBlock;
 		bool skip;
 		int meshVertCount = this.meshFilter.sharedMesh.vertices.Length;
 
@@ -242,8 +242,8 @@ public class Chunk
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
 	public void BuildChunk(bool load=false){
-		int thisBlock;
-		int neighborBlock;
+		ushort thisBlock;
+		ushort neighborBlock;
 		bool skip;
 
     	for(int x=0; x<data.GetWidth(); x++){
@@ -256,6 +256,17 @@ public class Chunk
 	    			if(thisBlock == 0){
 	    				continue;
 	    			}
+
+	    			// Runs OnLoad event
+	    			if(load)
+	    				// If is a block
+		    			if(thisBlock <= ushort.MaxValue/2){
+		    				blockBook.blocks[thisBlock].OnLoad(this.pos, x, y, z, loader);
+		    			}
+		    			// If Asset
+		    			else{
+							blockBook.objects[ushort.MaxValue - thisBlock].OnLoad(this.pos, x, y, z, loader);
+		    			}
 
 	    			// --------------------------------
 
@@ -363,10 +374,10 @@ public class Chunk
 
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
     // Load is true when Chunk is being loaded and not reloaded
-    private void LoadMesh(int x, int y, int z, int dir, int blockCode, bool load, ref bool skip, int lookahead=0){
+    private void LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, ref bool skip, int lookahead=0){
     	byte renderThread;
 
-    	if(blockCode >= 0)
+    	if(blockCode <= ushort.MaxValue/2)
     		renderThread = blockBook.blocks[blockCode].materialIndex;
     	else
     		renderThread = blockBook.objects[Convert(blockCode)].materialIndex;
@@ -426,12 +437,12 @@ public class Chunk
     	bool neighborLiquid;
 
 
-    	if(thisBlock >= 0)
+    	if(thisBlock <= ushort.MaxValue/2)
     		thisLiquid = blockBook.blocks[thisBlock].liquid;
     	else
     		thisLiquid = blockBook.objects[Convert(thisBlock)].liquid;
 
-    	if(neighborBlock >= 0)
+    	if(neighborBlock <= ushort.MaxValue/2)
     		neighborLiquid = blockBook.blocks[neighborBlock].liquid;
     	else
     		neighborLiquid = blockBook.objects[Convert(neighborBlock)].liquid;
@@ -441,7 +452,7 @@ public class Chunk
 
     // Checks if neighbor is transparent or invisible
     private bool CheckPlacement(int neighborBlock){
-    	if(neighborBlock >= 0)
+    	if(neighborBlock <= ushort.MaxValue/2)
     		return blockBook.blocks[neighborBlock].transparent || blockBook.blocks[neighborBlock].invisible;
     	else
 			return blockBook.objects[Convert(neighborBlock)].transparent || blockBook.objects[Convert(neighborBlock)].invisible;
@@ -449,7 +460,7 @@ public class Chunk
 
     // Converts negative asset code to index position
     private int Convert(int code){
-    	return (code*-1)-1;
+    	return ushort.MaxValue - code;
     }
 
     // Deletes all GameObject instances in AssetGrid
@@ -470,14 +481,14 @@ public class AssetGrid{
 	}
 
 	// Adds a new GameObject instance to Grid
-	public void Add(int x, int y, int z, int blockCode, ushort? state, ChunkLoader loader){
+	public void Add(int x, int y, int z, ushort blockCode, ushort? state, ChunkLoader loader){
 		Vector3 v = new Vector3(x,y,z);
 
-		grid.Add(v, loader.blockBook.objects[(blockCode*-1)-1].PlaceObject(this.pos, x, y, z, blockCode, loader));
+		grid.Add(v, loader.blockBook.objects[ushort.MaxValue - blockCode].PlaceObject(this.pos, x, y, z, blockCode, loader));
 	}
 
 	// Adds and instantly draw element to Grid
-	public void AddDraw(int x, int y, int z, int blockCode, ushort? state, ChunkLoader loader){
+	public void AddDraw(int x, int y, int z, ushort blockCode, ushort? state, ChunkLoader loader){
 		Vector3 target = new Vector3(x,y,z);
 
 		Add(x, y, z, blockCode, state, loader);
