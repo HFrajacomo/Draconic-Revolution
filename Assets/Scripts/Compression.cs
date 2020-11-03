@@ -308,7 +308,7 @@ public static class Compression{
 
 						// If code is contained in Pallete
 						if(palleteList.Contains(metaCode)){
-							bufferedCount = Compression.ReadShort(buffer, readBytes);
+							bufferedCount = (ushort)(Compression.ReadShort(buffer, readBytes) - 1);
 							readBytes += 2;
 						}
 
@@ -357,15 +357,13 @@ public static class Compression{
 
 						// If code is contained in Pallete
 						if(palleteList.Contains(metaCode)){
-							bufferedCount = Compression.ReadShort(buffer, readBytes);
+							bufferedCount = (ushort)(Compression.ReadShort(buffer, readBytes) - 1);
 							readBytes += 2;
 						}
 
 						// Creates metadata if not null
 						if(metaCode != ushort.MaxValue){
-							if(c.metadata.metadata[x,y,z] == null)
-								c.metadata.metadata[x,y,z] = new Metadata();
-							c.metadata.metadata[x,y,z].state = metaCode; 
+							c.metadata.GetMetadata(x,y,z).state = metaCode;
 						}
 
 					}
@@ -373,9 +371,7 @@ public static class Compression{
 					else{
 						// Creates metadata if not null
 						if(metaCode != ushort.MaxValue){
-							if(c.metadata.metadata[x,y,z] == null)
-								c.metadata.metadata[x,y,z] = new Metadata();
-							c.metadata.metadata[x,y,z].state = metaCode; 
+							c.metadata.GetMetadata(x,y,z).state = metaCode;
 						}
 						bufferedCount--;
 					}

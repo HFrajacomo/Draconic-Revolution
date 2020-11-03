@@ -138,7 +138,7 @@ public class PlayerRaycast : MonoBehaviour
       // If hits something
       if(blockID != 0)
         if(loader.chunks.ContainsKey(ck)){
-          //print(loader.blockBook.Get(blockID).name + " : " + loader.chunks[ck].metadata.GetMetadata(coords.blockX, coords.blockY, coords.blockZ).state);
+          //print(blockID + " : " + loader.chunks[ck].metadata.GetMetadata(coords.blockX, coords.blockY, coords.blockZ).state);
 
           return true;
         }
