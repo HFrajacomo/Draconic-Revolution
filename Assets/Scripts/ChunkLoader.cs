@@ -496,7 +496,11 @@ public class ChunkLoader : MonoBehaviour
     	    			if(i == 0){
     		    			for(int y=0;y<Chunk.chunkDepth;y++){
     		    				if(y <= cacheMaps[i][x,z]){
-    		    					cacheVoxdata[x,y,z] = cacheBlockCodes[i]; // Adds block code
+                                    // Convertion of pregen air blocks
+                                    if(cacheVoxdata[x,y,z] == (ushort)(ushort.MaxValue/2))
+                                        cacheVoxdata[x,y,z] = 0;
+                                    else
+                                        cacheVoxdata[x,y,z] = cacheBlockCodes[i]; // Adds block code
                                     if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
                                         cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
                                     }
@@ -508,7 +512,12 @@ public class ChunkLoader : MonoBehaviour
     	    			// If is not the first layer
     	    			else{
     		    			for(int y=cacheMaps[i-1][x,z]+1;y<=cacheMaps[i][x,z];y++){
-    		    				cacheVoxdata[x,y,z] = cacheBlockCodes[i];
+                                // Convertion of pregen air blocks
+                                if(cacheVoxdata[x,y,z] == (ushort)(ushort.MaxValue/2))
+                                    cacheVoxdata[x,y,z] = 0;
+                                else
+    		    				  cacheVoxdata[x,y,z] = cacheBlockCodes[i];
+                                  
                                 if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
                                     cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
                                 }

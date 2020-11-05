@@ -174,16 +174,71 @@ public class Structure
 
         // Applies Free Space building rules to existing chunk
         if(this.type == FillType.FreeSpace && exists){
-            if(CheckFreeSpace(VD, posX, posY, posZ)){
+            if(!this.considerAir){
+                if(CheckFreeSpace(VD, posX, posY, posZ)){
+                    for(int y=posY; y < posY + this.blockdata.GetLength(1); y++){
+                        structX = structinitX;
+                        for(int x=posX; x < posX + remainderX; x++){
+                            structZ = structinitZ;
+                            for(int z=posZ; z < posZ + remainderZ; z++){
+                                VD[x,y,z] = this.blockdata[structX, structY, structZ];
+
+                                if(VM.metadata[x,y,z] != null)
+                                    VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                structZ++;
+                            }
+                            structX++;
+                        }
+                        structY++;
+                    }
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+            else{
+                if(CheckFreeSpace(VD, posX, posY, posZ)){
+                    for(int y=posY; y < posY + this.blockdata.GetLength(1); y++){
+                        structX = structinitX;
+                        for(int x=posX; x < posX + remainderX; x++){
+                            structZ = structinitZ;
+                            for(int z=posZ; z < posZ + remainderZ; z++){
+                                if(this.blockdata[structX, structY, structZ] == 0)
+                                    VD[x,y,z] = (ushort)(ushort.MaxValue/2);
+                                else
+                                    VD[x,y,z] = this.blockdata[structX, structY, structZ];
+
+                                if(VM.metadata[x,y,z] != null)
+                                    VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                structZ++;
+                            }
+                            structX++;
+                        }
+                        structY++;
+                    }
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+        }
+
+        // Applies in SpecificOverwrite rule to existing chunk
+        else if(this.type == FillType.SpecificOverwrite && exists){
+            if(!this.considerAir){
                 for(int y=posY; y < posY + this.blockdata.GetLength(1); y++){
                     structX = structinitX;
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
-                            VD[x,y,z] = this.blockdata[structX, structY, structZ];
+                            if(this.overwriteBlocks.Contains(VD[x,y,z])){
+                                VD[x,y,z] = this.blockdata[structX, structY, structZ];
 
-                            if(VM.metadata[x,y,z] != null)
-                                VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                if(VM.metadata[x,y,z] != null)
+                                    VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                            }
                             structZ++;
                         }
                         structX++;
@@ -193,30 +248,28 @@ public class Structure
                 return true;
             }
             else{
-                return false;
-            }
-        }
+                for(int y=posY; y < posY + this.blockdata.GetLength(1); y++){
+                    structX = structinitX;
+                    for(int x=posX; x < posX + remainderX; x++){
+                        structZ = structinitZ;
+                        for(int z=posZ; z < posZ + remainderZ; z++){
+                            if(this.overwriteBlocks.Contains(VD[x,y,z])){
+                                if(this.blockdata[structX, structY, structZ] == 0)
+                                    VD[x,y,z] = (ushort)(ushort.MaxValue/2);
+                                else
+                                    VD[x,y,z] = this.blockdata[structX, structY, structZ];
 
-        // Applies in SpecificOverwrite rule to existing chunk
-        else if(this.type == FillType.SpecificOverwrite && exists){
-            for(int y=posY; y < posY + this.blockdata.GetLength(1); y++){
-                structX = structinitX;
-                for(int x=posX; x < posX + remainderX; x++){
-                    structZ = structinitZ;
-                    for(int z=posZ; z < posZ + remainderZ; z++){
-                        if(this.overwriteBlocks.Contains(VD[x,y,z])){
-                            VD[x,y,z] = this.blockdata[structX, structY, structZ];
-
-                            if(VM.metadata[x,y,z] != null)
-                                VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                if(VM.metadata[x,y,z] != null)
+                                    VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                            }
+                            structZ++;
                         }
-                        structZ++;
+                        structX++;
                     }
-                    structX++;
+                    structY++;
                 }
-                structY++;
+                return true;                
             }
-            return true;
         }
 
         // Applies in OverwriteAll state
@@ -228,7 +281,11 @@ public class Structure
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
-                            VD[x,y,z] = this.blockdata[structX, structY, structZ];
+                            // If air add pregen block
+                            if(this.blockdata[structX, structY, structZ] == 0)
+                                VD[x,y,z] = (ushort)(ushort.MaxValue/2);
+                            else
+                                VD[x,y,z] = this.blockdata[structX, structY, structZ];
 
                             if(VM.metadata[x,y,z] != null)
                                 VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
