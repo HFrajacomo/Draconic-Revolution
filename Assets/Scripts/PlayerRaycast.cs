@@ -15,9 +15,14 @@ public class PlayerRaycast : MonoBehaviour
 	public CastCoord current;
 	private CastCoord lastCoord;
 
+
   // DEBUG
   public ushort blockToBePlaced = 6;
   public ushort placeState = 0;
+
+  // Prefab System
+  private bool prefabSetFlag = false;
+  private CastCoord prefabPos = new CastCoord(false);
 
 	// Current player block position
 	private CastCoord playerHead;
@@ -101,6 +106,14 @@ public class PlayerRaycast : MonoBehaviour
       if(control.interact){
         Interact();
         control.interact = false;
+      }
+
+      if(control.prefabRead || control.prefabReadAir){
+        PrefabRead(control.prefabRead);
+
+        this.prefabSetFlag = !this.prefabSetFlag;
+        control.prefabRead = false;
+        control.prefabReadAir = false;
       }
 
     }
@@ -301,6 +314,148 @@ public class PlayerRaycast : MonoBehaviour
 
       // Actual handling of message
       CallbackHandler(callback, toUpdate, current, facing);
+    }
+
+    // Runs Prefab read and returns the arrays needed to create the prefab
+    private void PrefabRead(bool blockBased){
+      if(!current.active)
+        return;
+
+        Debug.Log(current.RealPos());
+
+      // If first position is not set
+      if(!this.prefabSetFlag){
+        Debug.Log("Maked First Position");
+
+        if(blockBased){
+          this.prefabPos = current.Copy();
+        }
+        else{
+          this.prefabPos = lastCoord.Copy();
+        }
+      }
+
+      // If this is last position to be set
+      else{
+
+        CastCoord finalPos;
+        ChunkPos newPos;
+        string outBlock = "{";
+        string outHp = "{";
+        string outState = "{";
+
+        int xCount = 0;
+        int zCount = 0;
+
+        if(blockBased){
+          finalPos = current.Copy();
+          finalPos = finalPos.Add(1,1,1);
+        }
+        else{
+          finalPos = lastCoord.Copy();
+          finalPos = finalPos.Add(1,1,1);
+        }
+
+        xCount = finalPos.chunkX - current.chunkX;
+        zCount = finalPos.chunkZ - current.chunkZ;
+
+        int x,y,z;
+        int xEnd, zEnd;
+
+        for(y=prefabPos.blockY; y < finalPos.blockY; y++){
+          for(int xChunk=0; xChunk <= xCount; xChunk++){
+
+            // X Spec
+            if(xChunk == 0 && xChunk == xCount){
+              x = prefabPos.blockX;
+              xEnd = finalPos.blockX;
+            }
+            else if(xChunk == 0 && xChunk != xCount){
+              x = prefabPos.blockX;
+              xEnd = Chunk.chunkWidth;
+            }
+            else if(xChunk != xCount){
+              x = 0;
+              xEnd = Chunk.chunkWidth;
+            }
+            else{
+              x = 0;
+              xEnd = finalPos.blockX;
+            }
+
+            for(; x < xEnd; x++){
+              for(int zChunk=0; zChunk <= zCount; zChunk++){
+                newPos = new ChunkPos(prefabPos.chunkX + xChunk, prefabPos.chunkZ + zChunk);
+
+                // Z Spec
+                if(zChunk == 0 && zChunk == zCount){
+                  z = prefabPos.blockZ;
+                  zEnd = finalPos.blockZ;
+                }
+                else if(zChunk == 0 && zChunk != zCount){
+                  z = prefabPos.blockZ;
+                  zEnd = Chunk.chunkWidth;
+                }
+                else if(zChunk != zCount){
+                  z = 0;
+                  zEnd = Chunk.chunkWidth;
+                }
+                else{
+                  z = 0;
+                  zEnd = finalPos.blockZ;
+                }
+
+                for(; z < zEnd; z++){
+                  outBlock += loader.chunks[newPos].data.GetCell(x,y,z).ToString();
+                  outBlock += ",";
+
+                  if(loader.chunks[newPos].metadata.IsUnassigned(x,y,z)){
+                    outHp += "null,";
+                    outState += "null,";
+                  }
+                  else{
+                    if(loader.chunks[newPos].metadata.GetMetadata(x,y,z).hp == null){
+                      outHp += "null,";
+                    }
+                    else{
+                      outHp += loader.chunks[newPos].metadata.GetMetadata(x,y,z).hp;
+                      outHp += ",";
+                    }
+
+                    if(loader.chunks[newPos].metadata.GetMetadata(x,y,z).state == null){
+                      outState += "null,";
+                    }
+                    else{
+                      outState += loader.chunks[newPos].metadata.GetMetadata(x,y,z).state;
+                      outState += ",";
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+      int sizeX, sizeZ;
+
+      // Calculates Struct Size
+      if(xCount >= 1)
+        sizeX = (Chunk.chunkWidth - prefabPos.blockX) + (xCount-1)*Chunk.chunkWidth + (finalPos.blockX+1);
+      else
+        sizeX = finalPos.blockX - prefabPos.blockX;
+
+      if(zCount >= 1)
+        sizeZ = (Chunk.chunkWidth - prefabPos.blockZ) + (zCount-1)*Chunk.chunkWidth + (finalPos.blockZ+1);
+      else
+        sizeZ = finalPos.blockZ - prefabPos.blockZ;
+
+
+      Debug.Log("Blocks: " + outBlock + "}");
+      Debug.Log("HP: " + outHp + "}");
+      Debug.Log("State: " + outState + "}");
+
+      Debug.Log("Sizes: " + sizeX + " | " + (finalPos.blockY - prefabPos.blockY).ToString() + " | " + sizeZ);
+      }
     }
 
     /*

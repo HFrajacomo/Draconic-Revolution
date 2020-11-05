@@ -21,6 +21,17 @@ public struct CastCoord{
 		active = false;
 	}
 
+	public CastCoord Copy(){
+		CastCoord c = new CastCoord(true);
+		c.chunkX = this.chunkX;
+		c.chunkZ = this.chunkZ;
+		c.blockX = this.blockX;
+		c.blockY = this.blockY;
+		c.blockZ = this.blockZ;
+
+		return c;
+	}
+
 	public CastCoord(Vector3 mark){
 	    Vector3 nMark = new Vector3(mark.x, mark.y, mark.z);
 
@@ -90,6 +101,10 @@ public struct CastCoord{
 
 	public override string ToString(){
 		return "ChunkX: " + chunkX + "\tChunkZ: " + chunkZ + "\tX, Y, Z: " + blockX + ", " + blockY + ", " + blockZ;
+	}
+
+	public string RealPos(){
+		return "X: " + (chunkX*Chunk.chunkWidth + blockX).ToString() + "   Y: " + blockY.ToString() + "   Z: " + (chunkZ*Chunk.chunkWidth + blockZ);
 	}
 
 	public static int operator-(CastCoord a, CastCoord b){

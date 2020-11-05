@@ -60,6 +60,22 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "PrefabRead",
+                    "type": "Button",
+                    "id": "b2bf4501-9b98-4164-b0f4-7702b11615db",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "PrefabReadAir",
+                    "type": "Button",
+                    "id": "4f6b10d2-cae0-48e6-8a31-cfcf437ba9fc",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -181,6 +197,28 @@
                     "processors": "",
                     "groups": "Keyboard and Mouse",
                     "action": "Toggle Gravity",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "72dce022-52b3-4940-8198-58778524b85b",
+                    "path": "<Keyboard>/p",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "PrefabRead",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c1c1ad14-407f-4393-b2d2-67e0f048273f",
+                    "path": "<Keyboard>/o",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "PrefabReadAir",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

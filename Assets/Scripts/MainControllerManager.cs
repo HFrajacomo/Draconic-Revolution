@@ -16,6 +16,8 @@ public class MainControllerManager : MonoBehaviour
 	public bool secondaryAction = false;
 	public bool interact = false;
     public bool gravityHack = false;
+    public bool prefabRead = false;
+    public bool prefabReadAir = false;
 
 
 	// Jumping
@@ -55,6 +57,14 @@ public class MainControllerManager : MonoBehaviour
 
     public void OnToggleGravity(){
         gravityHack = !gravityHack;
+    }
+
+    public void OnPrefabRead(){
+        prefabRead = true;
+    }
+
+    public void OnPrefabReadAir(){
+        prefabReadAir = true;
     }
 
 }

@@ -73,6 +73,22 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""PrefabRead"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2bf4501-9b98-4164-b0f4-7702b11615db"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""PrefabReadAir"",
+                    ""type"": ""Button"",
+                    ""id"": ""4f6b10d2-cae0-48e6-8a31-cfcf437ba9fc"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -196,6 +212,28 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""action"": ""Toggle Gravity"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""72dce022-52b3-4940-8198-58778524b85b"",
+                    ""path"": ""<Keyboard>/p"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""PrefabRead"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c1c1ad14-407f-4393-b2d2-67e0f048273f"",
+                    ""path"": ""<Keyboard>/o"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""PrefabReadAir"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -228,6 +266,8 @@ public class @Controls : IInputActionCollection, IDisposable
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         m_Player_MouseLook = m_Player.FindAction("Mouse Look", throwIfNotFound: true);
         m_Player_ToggleGravity = m_Player.FindAction("Toggle Gravity", throwIfNotFound: true);
+        m_Player_PrefabRead = m_Player.FindAction("PrefabRead", throwIfNotFound: true);
+        m_Player_PrefabReadAir = m_Player.FindAction("PrefabReadAir", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -284,6 +324,8 @@ public class @Controls : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_Interact;
     private readonly InputAction m_Player_MouseLook;
     private readonly InputAction m_Player_ToggleGravity;
+    private readonly InputAction m_Player_PrefabRead;
+    private readonly InputAction m_Player_PrefabReadAir;
     public struct PlayerActions
     {
         private @Controls m_Wrapper;
@@ -295,6 +337,8 @@ public class @Controls : IInputActionCollection, IDisposable
         public InputAction @Interact => m_Wrapper.m_Player_Interact;
         public InputAction @MouseLook => m_Wrapper.m_Player_MouseLook;
         public InputAction @ToggleGravity => m_Wrapper.m_Player_ToggleGravity;
+        public InputAction @PrefabRead => m_Wrapper.m_Player_PrefabRead;
+        public InputAction @PrefabReadAir => m_Wrapper.m_Player_PrefabReadAir;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -325,6 +369,12 @@ public class @Controls : IInputActionCollection, IDisposable
                 @ToggleGravity.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleGravity;
                 @ToggleGravity.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleGravity;
                 @ToggleGravity.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleGravity;
+                @PrefabRead.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPrefabRead;
+                @PrefabRead.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPrefabRead;
+                @PrefabRead.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPrefabRead;
+                @PrefabReadAir.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPrefabReadAir;
+                @PrefabReadAir.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPrefabReadAir;
+                @PrefabReadAir.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPrefabReadAir;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -350,6 +400,12 @@ public class @Controls : IInputActionCollection, IDisposable
                 @ToggleGravity.started += instance.OnToggleGravity;
                 @ToggleGravity.performed += instance.OnToggleGravity;
                 @ToggleGravity.canceled += instance.OnToggleGravity;
+                @PrefabRead.started += instance.OnPrefabRead;
+                @PrefabRead.performed += instance.OnPrefabRead;
+                @PrefabRead.canceled += instance.OnPrefabRead;
+                @PrefabReadAir.started += instance.OnPrefabReadAir;
+                @PrefabReadAir.performed += instance.OnPrefabReadAir;
+                @PrefabReadAir.canceled += instance.OnPrefabReadAir;
             }
         }
     }
@@ -372,5 +428,7 @@ public class @Controls : IInputActionCollection, IDisposable
         void OnInteract(InputAction.CallbackContext context);
         void OnMouseLook(InputAction.CallbackContext context);
         void OnToggleGravity(InputAction.CallbackContext context);
+        void OnPrefabRead(InputAction.CallbackContext context);
+        void OnPrefabReadAir(InputAction.CallbackContext context);
     }
 }
