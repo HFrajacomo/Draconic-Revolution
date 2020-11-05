@@ -356,8 +356,9 @@ public class PlayerRaycast : MonoBehaviour
           finalPos = finalPos.Add(1,1,1);
         }
 
-        xCount = finalPos.chunkX - current.chunkX;
-        zCount = finalPos.chunkZ - current.chunkZ;
+        xCount = finalPos.chunkX - prefabPos.chunkX;
+        zCount = finalPos.chunkZ - prefabPos.chunkZ;
+
 
         int x,y,z;
         int xEnd, zEnd;
@@ -436,25 +437,27 @@ public class PlayerRaycast : MonoBehaviour
           }
         }
 
-      int sizeX, sizeZ;
+      int sizeX, sizeZ, sizeY;
 
       // Calculates Struct Size
       if(xCount >= 1)
-        sizeX = (Chunk.chunkWidth - prefabPos.blockX) + (xCount-1)*Chunk.chunkWidth + (finalPos.blockX+1);
+        sizeX = (Chunk.chunkWidth - prefabPos.blockX) + (xCount-1)*Chunk.chunkWidth + finalPos.blockX;
       else
         sizeX = finalPos.blockX - prefabPos.blockX;
 
       if(zCount >= 1)
-        sizeZ = (Chunk.chunkWidth - prefabPos.blockZ) + (zCount-1)*Chunk.chunkWidth + (finalPos.blockZ+1);
+        sizeZ = (Chunk.chunkWidth - prefabPos.blockZ) + (zCount-1)*Chunk.chunkWidth + finalPos.blockZ;
       else
         sizeZ = finalPos.blockZ - prefabPos.blockZ;
+
+      sizeY = finalPos.blockY - prefabPos.blockY;
 
 
       Debug.Log("Blocks: " + outBlock + "}");
       Debug.Log("HP: " + outHp + "}");
       Debug.Log("State: " + outState + "}");
 
-      Debug.Log("Sizes: " + sizeX + " | " + (finalPos.blockY - prefabPos.blockY).ToString() + " | " + sizeZ);
+      Debug.Log("Sizes: " + sizeX + " | " + sizeY + " | " + sizeZ + "    [" + sizeX*sizeY*sizeZ + "]");
       }
     }
 
