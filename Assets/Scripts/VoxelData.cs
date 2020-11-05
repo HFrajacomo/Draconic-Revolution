@@ -52,6 +52,10 @@ public class VoxelData
 		data[x,y,z] = blockCode;
 	}
 
+	public ushort[,,] GetData(){
+		return this.data;
+	}
+
 	public override string ToString(){
 		string str = "";
 		foreach(var item in data){

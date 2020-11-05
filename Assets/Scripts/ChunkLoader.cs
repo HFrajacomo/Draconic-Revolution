@@ -118,8 +118,13 @@ public class ChunkLoader : MonoBehaviour
             if(regionHandler.GetFile().IsIndexed(toLoad[0])){
                 // If chunk is Pre-Generated
                 if(regionHandler.GetsNeedGeneration(toLoad[0])){
-                    print("ERROR: Tried to Generate pre-generated chunk");
-                    // Does nothing because there is no Prefab System yet
+                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
+                    vfx.NewChunk(toLoad[0]);
+                    regionHandler.LoadChunk(chunks[toLoad[0]]);
+
+                    cacheVoxdata = chunks[toLoad[0]].data.GetData();
+                    chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
+                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
                 }
                 // If it's just a normally generated chunk
                 else{
@@ -210,7 +215,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Returns the biome that should be assigned to a given chunk
-    private VoxelData AssignBiome(ChunkPos pos, float seed){
+    private VoxelData AssignBiome(ChunkPos pos, float seed, bool pregen=false){
         string biome = biomeHandler.Assign(pos, seed);
         chunks[pos].biomeName = biome;
         chunks[pos].features = biomeHandler.GetFeatures(pos, seed);
@@ -251,13 +256,13 @@ public class ChunkLoader : MonoBehaviour
             isBorderXZP = true;
 
         if(biome == "Plains")
-            return GeneratePlainsBiome(pos.x, pos.z);
+            return GeneratePlainsBiome(pos.x, pos.z, pregen:pregen);
         else if(biome == "Grassy Highlands")
-            return GenerateGrassyHighLandsBiome(pos.x, pos.z);
+            return GenerateGrassyHighLandsBiome(pos.x, pos.z, pregen:pregen);
         else if(biome == "Ocean")
-            return GenerateOceanBiome(pos.x, pos.z);
+            return GenerateOceanBiome(pos.x, pos.z, pregen:pregen);
         else 
-            return GeneratePlainsBiome(pos.x, pos.z);
+            return GeneratePlainsBiome(pos.x, pos.z, pregen:pregen);
         
     }
 
@@ -477,41 +482,84 @@ public class ChunkLoader : MonoBehaviour
     blockCode is the block related to this layer.
     */
     // Takes cacheMaps and cacheBlockCodes and returns on cacheVoxdata
-    private void ApplyHeightMaps(Dictionary<ushort, ushort> stateDict){
+    private void ApplyHeightMaps(Dictionary<ushort, ushort> stateDict, bool pregen=false){
     	int size = Chunk.chunkWidth;
    		int i=0;
 
-   		for(i=0;i<cacheMaps.Count;i++){
-    		// Heightmap Drawing
-	    	for(int x=0;x<size;x++){
-	    		for(int z=0;z<size;z++){
-	    			// If it's the first layer to be added
-	    			if(i == 0){
-		    			for(int y=0;y<Chunk.chunkDepth;y++){
-		    				if(y <= cacheMaps[i][x,z]){
-		    					cacheVoxdata[x,y,z] = cacheBlockCodes[i]; // Adds block code
+        // Builds the chunk normally
+        if(!pregen){
+       		for(i=0;i<cacheMaps.Count;i++){
+        		// Heightmap Drawing
+    	    	for(int x=0;x<size;x++){
+    	    		for(int z=0;z<size;z++){
+    	    			// If it's the first layer to be added
+    	    			if(i == 0){
+    		    			for(int y=0;y<Chunk.chunkDepth;y++){
+    		    				if(y <= cacheMaps[i][x,z]){
+    		    					cacheVoxdata[x,y,z] = cacheBlockCodes[i]; // Adds block code
+                                    if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
+                                        cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
+                                    }
+                                }
+    		    				else
+    		    					cacheVoxdata[x,y,z] = 0;
+    		    			}
+    	    			}
+    	    			// If is not the first layer
+    	    			else{
+    		    			for(int y=cacheMaps[i-1][x,z]+1;y<=cacheMaps[i][x,z];y++){
+    		    				cacheVoxdata[x,y,z] = cacheBlockCodes[i];
                                 if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
                                     cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
                                 }
+    		    			}  				
+    	    			}
+    	    		}
+    	    	}
+    	    }
+    	    cacheMaps.Clear();
+    	    cacheBlockCodes.Clear();
+        }
+        // Builds chunk ignoring pregen blocks
+        else{
+            for(i=0;i<cacheMaps.Count;i++){
+                // Heightmap Drawing
+                for(int x=0;x<size;x++){
+                    for(int z=0;z<size;z++){
+                        // If it's the first layer to be added
+                        if(i == 0){
+                            for(int y=0;y<Chunk.chunkDepth;y++){
+                                if(y <= cacheMaps[i][x,z]){
+                                    // Only adds to air blocks
+                                    if(cacheVoxdata[x,y,z] == 0){
+                                        cacheVoxdata[x,y,z] = cacheBlockCodes[i]; // Adds block code
+                                        if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
+                                            cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
+                                        }
+                                    }
+                                }
+                                else
+                                    cacheVoxdata[x,y,z] = 0;
                             }
-		    				else
-		    					cacheVoxdata[x,y,z] = 0;
-		    			}
-	    			}
-	    			// If is not the first layer
-	    			else{
-		    			for(int y=cacheMaps[i-1][x,z]+1;y<=cacheMaps[i][x,z];y++){
-		    				cacheVoxdata[x,y,z] = cacheBlockCodes[i];
-                            if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
-                                cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
-                            }
-		    			}  				
-	    			}
-	    		}
-	    	}
-	    }
-	    cacheMaps.Clear();
-	    cacheBlockCodes.Clear();
+                        }
+                        // If is not the first layer
+                        else{
+                            for(int y=cacheMaps[i-1][x,z]+1;y<=cacheMaps[i][x,z];y++){
+                                if(cacheVoxdata[x,y,z] == 0){
+                                    cacheVoxdata[x,y,z] = cacheBlockCodes[i];
+                                    if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
+                                        cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
+                                    }
+                                }
+                            }               
+                        }
+                    }
+                }
+            }
+            cacheMaps.Clear();
+            cacheBlockCodes.Clear();
+        }
+
     }
 
     // Generates Pivot heightmaps
@@ -808,7 +856,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Generates Plains biome chunk
-	public VoxelData GeneratePlainsBiome(int chunkX, int chunkZ){
+	public VoxelData GeneratePlainsBiome(int chunkX, int chunkZ, bool pregen=false){
 		// Hash values for Plains Biomes
         float xhash = 41.21f;
         float zhash = 105.243f;
@@ -849,7 +897,7 @@ public class ChunkLoader : MonoBehaviour
         cacheStateDict = new Dictionary<ushort, ushort>{{6, 0}};
 
 		// Adds to cacheVoxdata
-		ApplyHeightMaps(cacheStateDict);
+		ApplyHeightMaps(cacheStateDict, pregen:pregen);
         cacheStateDict.Clear();
         
         // Cave Systems
@@ -877,7 +925,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Generates Grassy Highlands biome chunk
-    public VoxelData GenerateGrassyHighLandsBiome(int chunkX, int chunkZ){
+    public VoxelData GenerateGrassyHighLandsBiome(int chunkX, int chunkZ, bool pregen=false){
         // Hash values for Grassy Highlands Biomes
         float xhash = 41.21f;
         float zhash = 105.243f;
@@ -919,7 +967,7 @@ public class ChunkLoader : MonoBehaviour
         cacheStateDict = new Dictionary<ushort, ushort>{{6, 0}};
 
         // Adds to cacheVoxdata
-        ApplyHeightMaps(cacheStateDict);
+        ApplyHeightMaps(cacheStateDict, pregen:pregen);
         cacheStateDict.Clear();
 
         // Cave Systems
@@ -948,7 +996,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Generates Ocean biome chunk
-    public VoxelData GenerateOceanBiome(int chunkX, int chunkZ){
+    public VoxelData GenerateOceanBiome(int chunkX, int chunkZ, bool pregen=false){
         // Hash values for Ocean Biomes
         float xhash = 54.7f;
         float zhash = 69.3f;
@@ -978,7 +1026,7 @@ public class ChunkLoader : MonoBehaviour
         cacheStateDict = new Dictionary<ushort, ushort>{{6,0}};
 
         // Adds to cacheVoxdata
-        ApplyHeightMaps(cacheStateDict);
+        ApplyHeightMaps(cacheStateDict, pregen:pregen);
 
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:10, maskThreshold:0.7f);

@@ -12,7 +12,7 @@ public class VoxelMetadata
 
 	// Metadata Constructor
 	public VoxelMetadata(Metadata[,,] md){
-		this.metadata = md;//(Metadata[,,])md;.Clone();
+		this.metadata = md;
 	}
 
 	// Checks whether the metadata xyz in VoxelMetadata is still unassigned
@@ -25,6 +25,10 @@ public class VoxelMetadata
 	// Creates a null metadata xyz
 	public void CreateNull(int x, int y, int z){
 		this.metadata[x,y,z] = new Metadata();
+	}
+
+	public Metadata[,,] GetData(){
+		return this.metadata;
 	}
 
 	// Gets metadata xyz if exists. Creates a null and gets it if doesn't exists.

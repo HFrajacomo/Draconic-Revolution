@@ -64,6 +64,16 @@ public class Chunk
 		this.obj.layer = 8;
 	}
 
+	// Dummy Chunk Generation
+	// CANNOT BE USED TO DRAW, ONLY TO ADD ELEMENTS AND SAVE
+	public Chunk(ChunkPos pos, ushort[,,] blockdata, VoxelMetadata VM){
+		this.pos = pos;
+		this.needsGeneration = 1;
+
+		this.data = new VoxelData(blockdata);
+		this.metadata = new VoxelMetadata(VM.metadata);
+	}
+
 	public void BuildOnVoxelData(VoxelData vd){
 		this.data = vd;
 	}
