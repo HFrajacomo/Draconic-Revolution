@@ -257,10 +257,14 @@ public class Chunk
 	}
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
-	public void BuildChunk(bool load=false){
+	public void BuildChunk(bool load=false, bool pregenReload=false){
 		ushort thisBlock;
 		ushort neighborBlock;
 		bool skip;
+
+		if(pregenReload){
+			this.assetGrid.Unload();
+		}
 
     	for(int x=0; x<data.GetWidth(); x++){
     		for(int y=0; y<data.GetHeight(); y++){
@@ -500,7 +504,8 @@ public class AssetGrid{
 	public void Add(int x, int y, int z, ushort blockCode, ushort? state, ChunkLoader loader){
 		Vector3 v = new Vector3(x,y,z);
 
-		grid.Add(v, loader.blockBook.objects[ushort.MaxValue - blockCode].PlaceObject(this.pos, x, y, z, blockCode, loader));
+		if(!grid.ContainsKey(v))
+			grid.Add(v, loader.blockBook.objects[ushort.MaxValue - blockCode].PlaceObject(this.pos, x, y, z, blockCode, loader));
 	}
 
 	// Adds and instantly draw element to Grid
@@ -547,6 +552,7 @@ public class AssetGrid{
 		foreach(GameObject go in grid.Values){
 			GameObject.Destroy(go);
 		}
+		grid.Clear();
 	}
 
 }

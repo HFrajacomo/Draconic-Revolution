@@ -222,6 +222,9 @@ public class ChunkLoader : MonoBehaviour
     // Returns the biome that should be assigned to a given chunk
     private VoxelData AssignBiome(ChunkPos pos, float seed, bool pregen=false){
         string biome = biomeHandler.Assign(pos, seed);
+
+        structHandler.LoadBiome(BiomeHandler.BiomeToByte(biome));
+
         chunks[pos].biomeName = biome;
         chunks[pos].features = biomeHandler.GetFeatures(pos, seed);
 
@@ -871,6 +874,51 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
+    // Applies Structures to a chunk
+    /*
+    Depth Values represent how deep below heightmap things will go.
+    Range represents if structure always spawn at given Depth, or if it spans below as well
+    */
+    private void GenerateStructures(ChunkPos pos, float xhash, float zhash, byte biome, int structureCode, int depth, bool range=false){
+        // Gets index of amount and percentage
+        int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureCode);
+        int amount = BiomeHandler.GetBiomeAmounts(biome)[index];
+        float percentage = BiomeHandler.GetBiomePercentages(biome)[index];
+
+        int x,y,z;
+        float chance;
+
+        // If structure is static at given heightmap depth
+        if(!range){
+            for(int i=1; i <= amount; i++){
+                chance = Perlin.Noise((pos.x ^ pos.z)*(zhash/xhash)*(i*0.17f)*structureCode);
+
+                if(chance > percentage)
+                    continue;
+
+                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidth);
+                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidth);
+                y = cacheHeightMap[x,z] - depth;
+
+                this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z);
+            }
+        }
+        else{
+            for(int i=1; i <= amount; i++){
+                chance = Perlin.Noise((pos.x ^ pos.z)*(zhash/xhash)*(i*0.17f)*structureCode);
+
+                if(chance > percentage)
+                    continue;
+
+                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidth);
+                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidth);
+                y = Mathf.FloorToInt(Perlin.Noise((pos.x*xhash*0.07f + pos.z*zhash*0.11f)*i*structureCode)*(cacheHeightMap[x,z] - depth));
+
+                this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z);
+            }            
+        }
+    }
+
     // Generates Plains biome chunk
 	public VoxelData GeneratePlainsBiome(int chunkX, int chunkZ, bool pregen=false){
 		// Hash values for Plains Biomes
@@ -916,13 +964,26 @@ public class ChunkLoader : MonoBehaviour
 		ApplyHeightMaps(cacheStateDict, pregen:pregen);
         cacheStateDict.Clear();
 
-        // DEBUG STRUCTURE
-        //Structure s = new TestStruct();
-        //s.Apply(this, new ChunkPos(chunkX, chunkZ), cacheVoxdata, cacheMetadata, 10, 35, 8);
-        
+        // Structures
+        GeneratePlainsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 0);
+
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:20, maskThreshold:0.7f);
         return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:20);
+    }
+
+    // Inserts Structures into Plain Biome
+    private void GeneratePlainsStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode){        
+        foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
+            switch(structCode){
+                case 1:
+                    GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1);
+                    break;
+                case 2:
+                    GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1);
+                    break;
+            }
+        }
     }
 
     // Inserts Plains biome border pivots on another selectedHeightMap
@@ -990,9 +1051,26 @@ public class ChunkLoader : MonoBehaviour
         ApplyHeightMaps(cacheStateDict, pregen:pregen);
         cacheStateDict.Clear();
 
+        // Structures
+        GenerateGrassyHighLandsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 1);
+
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:40, maskThreshold:0.7f);
         return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:40);
+    }
+
+    // Inserts Structures into Plain Biome
+    private void GenerateGrassyHighLandsStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode){
+        foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
+            switch(structCode){
+                case 1:
+                    GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1);
+                    break;
+                case 2:
+                    GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1);
+                    break;
+            }
+        }
     }
 
     // Inserts Grassy Highlands biome border pivots on another selectedHeightMap
@@ -1048,9 +1126,29 @@ public class ChunkLoader : MonoBehaviour
         // Adds to cacheVoxdata
         ApplyHeightMaps(cacheStateDict, pregen:pregen);
 
+        // Structures
+        GenerateOceanStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 2);
+
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:10, maskThreshold:0.7f);
         return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:10);
+    }
+
+    // Inserts Structures into Ocean Biome
+    private void GenerateOceanStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode){
+        /*
+        foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
+            switch(structCode){
+                case 1:
+                    GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1);
+                    break;
+                case 2:
+                    GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1);
+                    break;
+            }
+        }
+        */
+
     }
 
     // Inserts Ocean border pivots on another selectedHeightMap

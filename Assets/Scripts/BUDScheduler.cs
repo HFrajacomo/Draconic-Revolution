@@ -7,7 +7,7 @@ public class BUDScheduler : MonoBehaviour
 	public TimeOfDay schedulerTime;
 	private Dictionary<string, List<BUDSignal>> data = new Dictionary<string, List<BUDSignal>>();
 	private Dictionary<string, List<ChunkPos>> toReload = new Dictionary<string, List<ChunkPos>>();
-	private string currentTime;
+    private string currentTime;
 	private string newTime;
 	public ChunkLoader loader;
 	public int BUDperFrame;
@@ -92,7 +92,7 @@ public class BUDScheduler : MonoBehaviour
                 cachePos = this.toReload[this.currentTime][0];
                 this.toReload[this.currentTime].RemoveAt(0);
 
-                loader.chunks[cachePos].BuildChunk();  
+                loader.chunks[cachePos].BuildChunk(); 
                 loader.chunks[cachePos].BuildSideBorder(reload:true);
                 loader.regionHandler.SaveChunk(loader.chunks[cachePos]);
             }    		

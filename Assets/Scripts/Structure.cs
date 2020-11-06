@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Structure
+public abstract class Structure
 {
-    int code;
+    public int code;
 
-    ushort[,,] blockdata;
-    VoxelMetadata meta;
-    ushort?[,,] hpdata;
-    ushort?[,,] statedata;
+    public ushort[,,] blockdata;
+    public VoxelMetadata meta;
+    public ushort?[,,] hpdata;
+    public ushort?[,,] statedata;
 
     public bool considerAir;
 
@@ -22,7 +22,7 @@ public class Structure
     */
     public FillType type;
 
-    private List<ushort> overwriteBlocks;
+    public List<ushort> overwriteBlocks;
 
 
     /*
@@ -46,29 +46,18 @@ public class Structure
         return Structure.Generate((int)code);
     }
 
-    public Structure(int code, ushort[] data, ushort?[] hp, ushort?[] state, int sizeX, int sizeY, int sizeZ, bool air, FillType t, List<ushort> overwrite)
-    {
-        this.code = code;
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
-        this.type = t;
-        this.overwriteBlocks = overwrite;
-        this.considerAir = air;
-        this.meta = new VoxelMetadata();
 
-        this.sizeX = sizeX;
-        this.sizeY = sizeY;
-        this.sizeZ = sizeZ;
-
+    // Prepares array
+    public virtual void Prepare(ushort[] data, ushort?[] hp, ushort?[] state){
         int i=0;
 
-        for(int y=0; y < sizeY; y++){
-            for(int x=0; x < sizeX; x++){
-                for(int z=0; z < sizeZ; z++){
+        for(int y=0; y < this.sizeY; y++){
+            for(int x=0; x < this.sizeX; x++){
+                for(int z=0; z < this.sizeZ; z++){
                     this.blockdata[x,y,z] = data[i];
 
                     if(hp[i] == null & state[i] == null){
+                        i++;
                         continue;
                     }
 
@@ -85,7 +74,7 @@ public class Structure
 
 
     // Applies this structure to a cachedUshort array and a VoxelMetadata
-    public bool Apply(ChunkLoader cl, ChunkPos pos, ushort[,,] VD, VoxelMetadata VM, int x, int y, int z)
+    public virtual bool Apply(ChunkLoader cl, ChunkPos pos, ushort[,,] VD, VoxelMetadata VM, int x, int y, int z)
     {
         bool retStatus;
         int xChunks = Mathf.FloorToInt((x + this.sizeX - 1)/Chunk.chunkWidth);
@@ -105,7 +94,7 @@ public class Structure
             zRemainder = this.sizeZ;
 
         // Applies Structure to origin chunk
-        retStatus = ApplyToChunk(pos, true, true, cl, VD, VM, x, y, z, xRemainder, zRemainder, 0, 0);
+        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VM, x, y, z, xRemainder, zRemainder, 0, 0);
 
         // Possible failed return if in FreeSpace mode
         if(!retStatus){
@@ -144,14 +133,20 @@ public class Structure
                 }
 
                 // Calculate Remainders
-                if(xCount == xChunks){
+                if(xChunks == 0){
+                    xRemainder = this.sizeX;
+                }
+                else if(xCount == xChunks){
                     xRemainder = (this.sizeX - (Chunk.chunkWidth - x))%Chunk.chunkWidth;
                 }
                 else{
                     xRemainder = (Chunk.chunkWidth - posX);
                 }
 
-                if(zCount == zChunks){
+                if(zChunks == 0){
+                    zRemainder = this.sizeZ;
+                }
+                else if(zCount == zChunks){
                     zRemainder = (this.sizeZ - (Chunk.chunkWidth - z))%Chunk.chunkWidth;
                 }
                 else{
@@ -178,25 +173,26 @@ public class Structure
                 // ACTUAL APPLY FUNCTIONS
                 // Checks if it's a loaded chunk
                 if(cl.chunks.ContainsKey(newPos)){
-                    ApplyToChunk(newPos, false, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);
+                    ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);
                     cl.budscheduler.ScheduleReload(newPos, 1);
+                    continue;
                 }
 
                 // CASE WHERE REGIONFILES NEED TO BE LOOKED UPON
-                cl.regionHandler.GetCorrectRegion(newPos);
                 Chunk c;
+                cl.regionHandler.GetCorrectRegion(newPos);
 
                 // Check if it's an existing chunk
                 if(cl.regionHandler.GetFile().IsIndexed(newPos)){
                     c = new Chunk(newPos, cl.rend, cl.blockBook, cl, fromMemory:true);
                     cl.regionHandler.LoadChunk(c);
-                    ApplyToChunk(newPos, false, true, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);                
+                    ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);                
                     cl.regionHandler.SaveChunk(c);
                 }
                 // Check if it's an ungenerated chunk
                 else{
                     c = new Chunk(newPos);
-                    ApplyToChunk(newPos, false, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);              
+                    ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);              
                     cl.regionHandler.SaveChunk(c);
                 }
             }
@@ -206,7 +202,7 @@ public class Structure
 
     // Applies this structure to a chunk
     // Receives a Chunk reference that will be changed in this function
-    private bool ApplyToChunk(ChunkPos pos, bool initialChunk, bool exist, ChunkLoader cl, ushort[,,] VD, VoxelMetadata VM, int posX, int posY, int posZ, int remainderX, int remainderZ, int structinitX, int structinitZ){
+    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader cl, ushort[,,] VD, VoxelMetadata VM, int posX, int posY, int posZ, int remainderX, int remainderZ, int structinitX, int structinitZ){
         bool exists = exist;
 
         int structX = structinitX;
@@ -214,7 +210,7 @@ public class Structure
         int structY = 0;
 
         // Applies Free Space building rules to existing chunk
-        if(this.type == FillType.FreeSpace && exists){
+        if(this.type == FillType.FreeSpace && exists && initialchunk){
             if(!this.considerAir){
                 if(CheckFreeSpace(VD, posX, posY, posZ)){
                     for(int y=posY; y < posY + this.blockdata.GetLength(1); y++){
@@ -267,7 +263,7 @@ public class Structure
         }
 
         // Applies in SpecificOverwrite rule to existing chunk
-        else if(this.type == FillType.SpecificOverwrite && exists){
+        else if(this.type == FillType.SpecificOverwrite && exists && initialchunk){
             if(!this.considerAir){
                 for(int y=posY; y < posY + this.blockdata.GetLength(1); y++){
                     structX = structinitX;
@@ -314,7 +310,7 @@ public class Structure
         }
 
         // Applies in OverwriteAll state
-        else if(this.type == FillType.OverwriteAll || !exists){
+        else if(this.type == FillType.OverwriteAll || !exists || exists){
             // Handling if air is taken into account in generated chunks
             if(this.considerAir && exists){
                 for(int y=posY; y < posY + this.blockdata.GetLength(1); y++){
@@ -327,6 +323,13 @@ public class Structure
                                 VD[x,y,z] = (ushort)(ushort.MaxValue/2);
                             else
                                 VD[x,y,z] = this.blockdata[structX, structY, structZ];
+
+                            // Draws Object
+                            if(VD[x,y,z] > ushort.MaxValue/2 && loaded && !initialchunk)
+                                if(VM.metadata[x,y,z] != null)
+                                    cl.chunks[pos].assetGrid.AddDraw(x,y,z, VD[x,y,z], VM.metadata[x,y,z].state, cl);
+                                else
+                                    cl.chunks[pos].assetGrid.AddDraw(x,y,z, VD[x,y,z], null, cl);
 
                             if(VM.metadata[x,y,z] != null)
                                 VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
@@ -370,6 +373,13 @@ public class Structure
                             if(this.blockdata[structX, structY, structZ] != 0){
                                 VD[x,y,z] = this.blockdata[structX, structY, structZ];
 
+                                // Draws Object
+                                if(VD[x,y,z] > ushort.MaxValue/2 && loaded && !initialchunk)
+                                    if(VM.metadata[x,y,z] != null)
+                                        cl.chunks[pos].assetGrid.AddDraw(x,y,z, VD[x,y,z], VM.metadata[x,y,z].state, cl);
+                                    else
+                                        cl.chunks[pos].assetGrid.AddDraw(x,y,z, VD[x,y,z], null, cl);
+
                                 if(VM.metadata[x,y,z] != null)
                                     VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
                             }
@@ -402,7 +412,6 @@ public class Structure
             return true;
         }
 
-        Debug.Log("Something went wrong in Structure generation");
         return false;
     } 
 
@@ -435,7 +444,6 @@ public class Structure
             }
             return true;          
         }
-
     }
 
 }

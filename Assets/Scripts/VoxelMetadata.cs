@@ -5,10 +5,17 @@ using UnityEngine;
 
 public class VoxelMetadata
 {
-	public Metadata[,,] metadata = new Metadata[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+	public Metadata[,,] metadata;
 	
 	// Default Constructor
-	public VoxelMetadata(){}
+	public VoxelMetadata(){
+		this.metadata = new Metadata[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+	}
+
+	// Sized Constructor
+	public VoxelMetadata(int x, int y, int z){
+		this.metadata = new Metadata[x,y,z];
+	}
 
 	// Metadata Constructor
 	public VoxelMetadata(Metadata[,,] md){
