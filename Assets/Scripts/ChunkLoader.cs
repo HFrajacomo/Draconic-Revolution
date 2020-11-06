@@ -879,7 +879,7 @@ public class ChunkLoader : MonoBehaviour
     Depth Values represent how deep below heightmap things will go.
     Range represents if structure always spawn at given Depth, or if it spans below as well
     */
-    private void GenerateStructures(ChunkPos pos, float xhash, float zhash, byte biome, int structureCode, int depth, bool range=false){
+    private void GenerateStructures(ChunkPos pos, float xhash, float zhash, byte biome, int structureCode, int depth, int heightlimit=0, bool range=false){
         // Gets index of amount and percentage
         int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureCode);
         int amount = BiomeHandler.GetBiomeAmounts(biome)[index];
@@ -916,6 +916,10 @@ public class ChunkLoader : MonoBehaviour
                 // All <
                 else
                     y = cacheHeightMap[x+offsetX, z+offsetZ] - depth;
+
+                // Ignores structure on hard limit
+                if(y <= heightlimit)
+                    continue;
                 
 
                 this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z);
@@ -948,6 +952,9 @@ public class ChunkLoader : MonoBehaviour
                 else
                     y = cacheHeightMap[x+offsetX, z+offsetZ] - depth;
 
+                // Ignores structure on hard limit
+                if(y <= heightlimit)
+                    continue;
 
                 this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z);
             }            
@@ -958,31 +965,7 @@ public class ChunkLoader : MonoBehaviour
     private int HalfConvolute(ushort[,] heightmap, int x, int z, int offsetX, int offsetZ, bool xAxis=false, bool zAxis=false, bool bothAxis=false){
         int sum=0;
         int amount=0;
-
-        // Handles early change
-        /*
-        if(x > 1 && z > 1 && bothAxis){
-            int xSum;
-            int zSum;
-
-            xSum = (int)((heightmap[x-2, z] - heightmap[x-1, z]) + (heightmap[x-1, z] - heightmap[x, z]));
-            zSum = (int)((heightmap[x, z-2] - heightmap[x, z-1]) + (heightmap[x, z-1] - heightmap[x, z]));
-
-            xSum = (int)((x+offsetX%Chunk.chunkWidth)/2*xSum) + heightmap[x, z];
-            zSum = (int)((z+offsetZ%Chunk.chunkWidth)/2*zSum) + heightmap[x, z];
-            return heightmap[x, z] - Mathf.Min(xSum, zSum);
-        }
-        else if(x > 1 && xAxis){
-            sum = (int)((heightmap[x-2, z] - heightmap[x-1, z]) + (heightmap[x-1, z] - heightmap[x, z]));
-            return heightmap[x, z] - (int)((x+offsetX%Chunk.chunkWidth)/2*sum);
-        }
-        else if(z > 1 && zAxis){
-            sum = (int)((heightmap[x, z-2] - heightmap[x, z-1]) + (heightmap[x, z-1] - heightmap[x, z]));
-            return heightmap[x, z] - (int)((z+offsetZ%Chunk.chunkWidth)/2*sum);
-        }
-        */
         
-        // Having Space option
         if(bothAxis){
             for(int i=x; i < Chunk.chunkWidth; i++){
                 for(int c=z; c < Chunk.chunkWidth; c++){
@@ -1079,11 +1062,11 @@ public class ChunkLoader : MonoBehaviour
             switch(structCode){
                 case 1:
                     if(!transition)
-                        GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1);
+                        GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1, heightlimit:22);
                     break;
                 case 2:
                     if(!transition)
-                        GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1);
+                        GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1, heightlimit:22);
                     break;
             }
         }
@@ -1168,11 +1151,11 @@ public class ChunkLoader : MonoBehaviour
             switch(structCode){
                 case 1:
                     if(!transition)
-                        GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1);
+                        GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1, heightlimit:42);
                     break;
                 case 2:
                     if(!transition)
-                        GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1);
+                        GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1, heightlimit:42);
                     break;
             }
         }
