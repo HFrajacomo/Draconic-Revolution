@@ -15,6 +15,9 @@ public class TestStruct : Structure
 		this.sizeY = 1;
 		this.sizeZ = 2;
 
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
         this.blockdata = new ushort[sizeX, sizeY, sizeZ];
         this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
         this.statedata = new ushort?[sizeX, sizeY, sizeZ];
@@ -42,6 +45,9 @@ public class TreeSmallA : Structure
 		this.sizeY = 7;
 		this.sizeZ = 5;
 
+		this.offsetX = 2;
+		this.offsetZ = 2;
+
         this.blockdata = new ushort[sizeX, sizeY, sizeZ];
         this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
         this.statedata = new ushort?[sizeX, sizeY, sizeZ];
@@ -68,6 +74,9 @@ public class TreeMediumA : Structure
 		this.sizeX = 7;
 		this.sizeY = 9;
 		this.sizeZ = 9;
+
+		this.offsetX = 3;
+		this.offsetZ = 5;
 
         this.blockdata = new ushort[sizeX, sizeY, sizeZ];
         this.hpdata = new ushort?[sizeX, sizeY, sizeZ];

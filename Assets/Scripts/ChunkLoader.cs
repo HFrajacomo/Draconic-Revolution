@@ -886,6 +886,7 @@ public class ChunkLoader : MonoBehaviour
         float percentage = BiomeHandler.GetBiomePercentages(biome)[index];
 
         int x,y,z;
+        int offsetX, offsetZ;
         float chance;
 
         // If structure is static at given heightmap depth
@@ -898,7 +899,24 @@ public class ChunkLoader : MonoBehaviour
 
                 x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidth);
                 z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidth);
-                y = cacheHeightMap[x,z] - depth;
+                
+                // Offset
+                offsetX = structHandler.LoadStructure(structureCode).offsetX;
+                offsetZ = structHandler.LoadStructure(structureCode).offsetZ;
+
+                // All >
+                if(x + offsetX > 15 && z + offsetZ > 15)
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, bothAxis:true) - depth;
+                // X >
+                else if(x + offsetX > 15 && z + offsetZ <= 15)
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, xAxis:true) - depth;
+                // Z >
+                else if(x + offsetX <= 15 && z + offsetZ > 15)
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, zAxis:true) - depth;
+                // All <
+                else
+                    y = cacheHeightMap[x+offsetX, z+offsetZ] - depth;
+                
 
                 this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z);
             }
@@ -912,11 +930,94 @@ public class ChunkLoader : MonoBehaviour
 
                 x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidth);
                 z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidth);
-                y = Mathf.FloorToInt(Perlin.Noise((pos.x*xhash*0.07f + pos.z*zhash*0.11f)*i*structureCode)*(cacheHeightMap[x,z] - depth));
+                
+                // Offset
+                offsetX = structHandler.LoadStructure(structureCode).offsetX;
+                offsetZ = structHandler.LoadStructure(structureCode).offsetZ;
+
+                // All >
+                if(x + offsetX > 15 && z + offsetZ > 15)
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, bothAxis:true) - depth;
+                // X >
+                else if(x + offsetX > 15 && z + offsetZ <= 15)
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, xAxis:true) - depth;
+                // Z >
+                else if(x + offsetX <= 15 && z + offsetZ > 15)
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, zAxis:true) - depth;
+                // All <
+                else
+                    y = cacheHeightMap[x+offsetX, z+offsetZ] - depth;
+
 
                 this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z);
             }            
         }
+    }
+
+    // Returns the mean height for a given structure
+    private int HalfConvolute(ushort[,] heightmap, int x, int z, int offsetX, int offsetZ, bool xAxis=false, bool zAxis=false, bool bothAxis=false){
+        int sum=0;
+        int amount=0;
+
+        // Handles early change
+        /*
+        if(x > 1 && z > 1 && bothAxis){
+            int xSum;
+            int zSum;
+
+            xSum = (int)((heightmap[x-2, z] - heightmap[x-1, z]) + (heightmap[x-1, z] - heightmap[x, z]));
+            zSum = (int)((heightmap[x, z-2] - heightmap[x, z-1]) + (heightmap[x, z-1] - heightmap[x, z]));
+
+            xSum = (int)((x+offsetX%Chunk.chunkWidth)/2*xSum) + heightmap[x, z];
+            zSum = (int)((z+offsetZ%Chunk.chunkWidth)/2*zSum) + heightmap[x, z];
+            return heightmap[x, z] - Mathf.Min(xSum, zSum);
+        }
+        else if(x > 1 && xAxis){
+            sum = (int)((heightmap[x-2, z] - heightmap[x-1, z]) + (heightmap[x-1, z] - heightmap[x, z]));
+            return heightmap[x, z] - (int)((x+offsetX%Chunk.chunkWidth)/2*sum);
+        }
+        else if(z > 1 && zAxis){
+            sum = (int)((heightmap[x, z-2] - heightmap[x, z-1]) + (heightmap[x, z-1] - heightmap[x, z]));
+            return heightmap[x, z] - (int)((z+offsetZ%Chunk.chunkWidth)/2*sum);
+        }
+        */
+        
+        // Having Space option
+        if(bothAxis){
+            for(int i=x; i < Chunk.chunkWidth; i++){
+                for(int c=z; c < Chunk.chunkWidth; c++){
+                    sum += heightmap[i, c];
+                    amount++;
+                }
+            }
+            if(amount > 0)
+                return (int)(sum / amount);
+            else
+                return (int)heightmap[Chunk.chunkWidth-1, Chunk.chunkWidth-1];        
+        }
+        else if(xAxis){
+            for(int i=x; i < Chunk.chunkWidth; i++){
+                sum += heightmap[i, z];
+                amount++;
+            }
+            if(amount > 0)
+                return (int)(sum / amount);
+            else
+                return (int)heightmap[Chunk.chunkWidth-1, Chunk.chunkWidth-1]; 
+        }
+        else if(zAxis){
+            for(int i=z; i < Chunk.chunkWidth; i++){
+                sum += heightmap[x, i];
+                amount++;
+            }
+            if(amount > 0)
+                return (int)(sum / amount);
+            else
+                return (int)heightmap[Chunk.chunkWidth-1, Chunk.chunkWidth-1];         
+        }
+        
+        
+        return heightmap[x,z]-1;
     }
 
     // Generates Plains biome chunk
@@ -965,7 +1066,7 @@ public class ChunkLoader : MonoBehaviour
         cacheStateDict.Clear();
 
         // Structures
-        GeneratePlainsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 0);
+        GeneratePlainsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 0, transition);
 
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:20, maskThreshold:0.7f);
@@ -973,14 +1074,16 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Inserts Structures into Plain Biome
-    private void GeneratePlainsStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode){        
+    private void GeneratePlainsStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){        
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
             switch(structCode){
                 case 1:
-                    GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1);
+                    if(!transition)
+                        GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1);
                     break;
                 case 2:
-                    GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1);
+                    if(!transition)
+                        GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1);
                     break;
             }
         }
@@ -1052,7 +1155,7 @@ public class ChunkLoader : MonoBehaviour
         cacheStateDict.Clear();
 
         // Structures
-        GenerateGrassyHighLandsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 1);
+        GenerateGrassyHighLandsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 1, transition);
 
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:40, maskThreshold:0.7f);
@@ -1060,14 +1163,16 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Inserts Structures into Plain Biome
-    private void GenerateGrassyHighLandsStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode){
+    private void GenerateGrassyHighLandsStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
             switch(structCode){
                 case 1:
-                    GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1);
+                    if(!transition)
+                        GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1);
                     break;
                 case 2:
-                    GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1);
+                    if(!transition)
+                        GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1);
                     break;
             }
         }
@@ -1127,7 +1232,7 @@ public class ChunkLoader : MonoBehaviour
         ApplyHeightMaps(cacheStateDict, pregen:pregen);
 
         // Structures
-        GenerateOceanStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 2);
+        GenerateOceanStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 2, transition);
 
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:10, maskThreshold:0.7f);
@@ -1135,7 +1240,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Inserts Structures into Ocean Biome
-    private void GenerateOceanStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode){
+    private void GenerateOceanStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){
         /*
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
             switch(structCode){

@@ -14,6 +14,7 @@ public abstract class Structure
     public bool considerAir;
 
     public int sizeX, sizeY, sizeZ;
+    public int offsetX, offsetZ;
 
     /*
     0: OverwriteAll
