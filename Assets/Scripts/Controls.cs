@@ -89,6 +89,22 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""ToggleFreeCam"",
+                    ""type"": ""Button"",
+                    ""id"": ""f0052053-ee62-4f4d-9825-efafbc08c16a"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Shifting"",
+                    ""type"": ""Button"",
+                    ""id"": ""40c019f8-c03f-4d59-a503-493579898165"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press(behavior=2)""
                 }
             ],
             ""bindings"": [
@@ -234,6 +250,28 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""action"": ""PrefabReadAir"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""07d1f2b4-2c49-41d8-abe1-ccefcc01869f"",
+                    ""path"": ""<Keyboard>/g"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""ToggleFreeCam"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""02d43d1e-16d0-41bc-abd2-bd2510bcdcac"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Shifting"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -268,6 +306,8 @@ public class @Controls : IInputActionCollection, IDisposable
         m_Player_ToggleGravity = m_Player.FindAction("Toggle Gravity", throwIfNotFound: true);
         m_Player_PrefabRead = m_Player.FindAction("PrefabRead", throwIfNotFound: true);
         m_Player_PrefabReadAir = m_Player.FindAction("PrefabReadAir", throwIfNotFound: true);
+        m_Player_ToggleFreeCam = m_Player.FindAction("ToggleFreeCam", throwIfNotFound: true);
+        m_Player_Shifting = m_Player.FindAction("Shifting", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -326,6 +366,8 @@ public class @Controls : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_ToggleGravity;
     private readonly InputAction m_Player_PrefabRead;
     private readonly InputAction m_Player_PrefabReadAir;
+    private readonly InputAction m_Player_ToggleFreeCam;
+    private readonly InputAction m_Player_Shifting;
     public struct PlayerActions
     {
         private @Controls m_Wrapper;
@@ -339,6 +381,8 @@ public class @Controls : IInputActionCollection, IDisposable
         public InputAction @ToggleGravity => m_Wrapper.m_Player_ToggleGravity;
         public InputAction @PrefabRead => m_Wrapper.m_Player_PrefabRead;
         public InputAction @PrefabReadAir => m_Wrapper.m_Player_PrefabReadAir;
+        public InputAction @ToggleFreeCam => m_Wrapper.m_Player_ToggleFreeCam;
+        public InputAction @Shifting => m_Wrapper.m_Player_Shifting;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -375,6 +419,12 @@ public class @Controls : IInputActionCollection, IDisposable
                 @PrefabReadAir.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPrefabReadAir;
                 @PrefabReadAir.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPrefabReadAir;
                 @PrefabReadAir.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPrefabReadAir;
+                @ToggleFreeCam.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleFreeCam;
+                @ToggleFreeCam.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleFreeCam;
+                @ToggleFreeCam.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleFreeCam;
+                @Shifting.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShifting;
+                @Shifting.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShifting;
+                @Shifting.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShifting;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -406,6 +456,12 @@ public class @Controls : IInputActionCollection, IDisposable
                 @PrefabReadAir.started += instance.OnPrefabReadAir;
                 @PrefabReadAir.performed += instance.OnPrefabReadAir;
                 @PrefabReadAir.canceled += instance.OnPrefabReadAir;
+                @ToggleFreeCam.started += instance.OnToggleFreeCam;
+                @ToggleFreeCam.performed += instance.OnToggleFreeCam;
+                @ToggleFreeCam.canceled += instance.OnToggleFreeCam;
+                @Shifting.started += instance.OnShifting;
+                @Shifting.performed += instance.OnShifting;
+                @Shifting.canceled += instance.OnShifting;
             }
         }
     }
@@ -430,5 +486,7 @@ public class @Controls : IInputActionCollection, IDisposable
         void OnToggleGravity(InputAction.CallbackContext context);
         void OnPrefabRead(InputAction.CallbackContext context);
         void OnPrefabReadAir(InputAction.CallbackContext context);
+        void OnToggleFreeCam(InputAction.CallbackContext context);
+        void OnShifting(InputAction.CallbackContext context);
     }
 }

@@ -642,9 +642,17 @@ public class FragmentationHandler{
 		done = this.data.Count - offset*32 <= 32;
 		int index=0;
 
-		for(int i=offset*32; i < this.data.Count; i++){
-			data[i].Bytefy(this.cachedHoles, index);
-			index += 12;
+		if(done){
+			for(int i=offset*32; i < this.data.Count; i++){
+				data[i].Bytefy(this.cachedHoles, index);
+				index += 12;
+			}
+		}
+		else{
+			for(int i=offset*32; i < (offset+1)*32; i++){
+				data[i].Bytefy(this.cachedHoles, index);
+				index += 12;
+			}			
 		}
 		return index;
 	}

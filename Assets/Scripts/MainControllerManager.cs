@@ -18,6 +18,8 @@ public class MainControllerManager : MonoBehaviour
     public bool gravityHack = false;
     public bool prefabRead = false;
     public bool prefabReadAir = false;
+    public bool freecam = false;
+    public bool shifting = false;
 
 
 	// Jumping
@@ -67,4 +69,16 @@ public class MainControllerManager : MonoBehaviour
         prefabReadAir = true;
     }
 
+    public void OnToggleFreeCam(){
+        freecam = !freecam;
+    }
+
+    public void OnShifting(){
+        if(!shifting){
+            shifting = true;
+        }
+        // If it's release
+        else
+            shifting = false;       
+    }
 }

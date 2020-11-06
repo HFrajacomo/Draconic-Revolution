@@ -19,6 +19,9 @@ public class ChunkLoader : MonoBehaviour
     public BUDScheduler budscheduler;
     public VFXLoader vfx;
 
+    // Prefab System
+    public StructureHandler structHandler;
+
 	// World Generation
 	public int worldSeed = 1; // 6 number integer
     public float offsetHash;
@@ -119,12 +122,14 @@ public class ChunkLoader : MonoBehaviour
                 // If chunk is Pre-Generated
                 if(regionHandler.GetsNeedGeneration(toLoad[0])){
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
+                    chunks[toLoad[0]].needsGeneration = 0;
                     vfx.NewChunk(toLoad[0]);
                     regionHandler.LoadChunk(chunks[toLoad[0]]);
 
                     cacheVoxdata = chunks[toLoad[0]].data.GetData();
                     chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
                     chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
+                    regionHandler.SaveChunk(chunks[toLoad[0]]);
                 }
                 // If it's just a normally generated chunk
                 else{
@@ -496,11 +501,7 @@ public class ChunkLoader : MonoBehaviour
     	    			if(i == 0){
     		    			for(int y=0;y<Chunk.chunkDepth;y++){
     		    				if(y <= cacheMaps[i][x,z]){
-                                    // Convertion of pregen air blocks
-                                    if(cacheVoxdata[x,y,z] == (ushort)(ushort.MaxValue/2))
-                                        cacheVoxdata[x,y,z] = 0;
-                                    else
-                                        cacheVoxdata[x,y,z] = cacheBlockCodes[i]; // Adds block code
+                                    cacheVoxdata[x,y,z] = cacheBlockCodes[i]; // Adds block code
                                     if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
                                         cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
                                     }
@@ -512,12 +513,8 @@ public class ChunkLoader : MonoBehaviour
     	    			// If is not the first layer
     	    			else{
     		    			for(int y=cacheMaps[i-1][x,z]+1;y<=cacheMaps[i][x,z];y++){
-                                // Convertion of pregen air blocks
-                                if(cacheVoxdata[x,y,z] == (ushort)(ushort.MaxValue/2))
-                                    cacheVoxdata[x,y,z] = 0;
-                                else
-    		    				  cacheVoxdata[x,y,z] = cacheBlockCodes[i];
-                                  
+    		    				cacheVoxdata[x,y,z] = cacheBlockCodes[i];
+
                                 if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
                                     cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
                                 }
@@ -542,20 +539,30 @@ public class ChunkLoader : MonoBehaviour
                                     // Only adds to air blocks
                                     if(cacheVoxdata[x,y,z] == 0){
                                         cacheVoxdata[x,y,z] = cacheBlockCodes[i]; // Adds block code
+                                        
                                         if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
                                             cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
                                         }
                                     }
+                                    // Convertion of pregen air blocks
+                                    if(cacheVoxdata[x,y,z] == (ushort)(ushort.MaxValue/2))
+                                        cacheVoxdata[x,y,z] = 0;
                                 }
                                 else
-                                    cacheVoxdata[x,y,z] = 0;
+                                    if(cacheVoxdata[x,y,z] == (ushort)(ushort.MaxValue/2))
+                                        cacheVoxdata[x,y,z] = 0;
                             }
                         }
                         // If is not the first layer
                         else{
                             for(int y=cacheMaps[i-1][x,z]+1;y<=cacheMaps[i][x,z];y++){
                                 if(cacheVoxdata[x,y,z] == 0){
-                                    cacheVoxdata[x,y,z] = cacheBlockCodes[i];
+                                    // Convertion of pregen air blocks
+                                    if(cacheVoxdata[x,y,z] == (ushort)(ushort.MaxValue/2))
+                                        cacheVoxdata[x,y,z] = 0;
+                                    else
+                                        cacheVoxdata[x,y,z] = cacheBlockCodes[i]; // Adds block code
+                                    
                                     if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
                                         cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
                                     }
@@ -908,6 +915,10 @@ public class ChunkLoader : MonoBehaviour
 		// Adds to cacheVoxdata
 		ApplyHeightMaps(cacheStateDict, pregen:pregen);
         cacheStateDict.Clear();
+
+        // DEBUG STRUCTURE
+        //Structure s = new TestStruct();
+        //s.Apply(this, new ChunkPos(chunkX, chunkZ), cacheVoxdata, cacheMetadata, 10, 35, 8);
         
         // Cave Systems
         GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:20, maskThreshold:0.7f);

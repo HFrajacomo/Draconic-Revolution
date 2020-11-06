@@ -14,9 +14,25 @@ public class BiomeHandler
 
 	public BiomeHandler(float seed){
 		dispersionSeed = seed;
-		AddBiome(new Biome("Plains", 0, 0.3f, 0.5f, 0.6f, 1f));
-		AddBiome(new Biome("Grassy Highlands", 1, 0.7f, 0.5f, 0.6f, 0.9f));
-		AddBiome(new Biome("Ocean", 2, 0f, 1f, 0.5f, 0.3f));
+
+		Biome plains = new Biome("Plains", 0, 0.3f, 0.5f, 0.6f, 1f,
+		 new List<int>(){1,2},
+		 new List<int>(){1,1},
+		 new List<float>(){0.2f, 0.1f});
+
+		Biome grassyHighlands = new Biome("Grassy Highlands", 1, 0.7f, 0.5f, 0.6f, 0.9f,
+		 new List<int>(){1,2},
+		 new List<int>(){1,1},
+		 new List<float>(){0.2f, 0.1f});
+
+		Biome ocean = new Biome("Ocean", 2, 0f, 1f, 0.5f, 0.3f,
+		 new List<int>(),
+		 new List<int>(),
+		 new List<float>());
+
+		AddBiome(plains);
+		AddBiome(grassyHighlands);
+		AddBiome(ocean);
 	}
 
 	// Gets biome byte code from name
@@ -34,6 +50,21 @@ public class BiomeHandler
 	private void AddBiome(Biome b){
 		dataset.Add(b.name, b);
 		codeToBiome.Add(b.biomeCode, b.name);
+	}
+
+	// Returns the list of possible Structures in a biome
+	public static List<int> GetBiomeStructs(byte biome){
+		return dataset[BiomeHandler.ByteToBiome(biome)].structCodes;
+	}
+
+	// Returns the list of possible Amounts in a biome
+	public static List<int> GetBiomeAmounts(byte biome){
+		return dataset[BiomeHandler.ByteToBiome(biome)].amountStructs;
+	}
+
+	// Returns the list of possible Percentages in a biome
+	public static List<float> GetBiomePercentages(byte biome){
+		return dataset[BiomeHandler.ByteToBiome(biome)].percentageStructs;
 	}
 
 	/*
@@ -85,13 +116,21 @@ public struct Biome{
 	public float temperature;
 	public float lightning;
 
-	public Biome(string n, byte code, float a, float h, float t, float l){
+	public List<int> structCodes;
+	public List<int> amountStructs;
+	public List<float> percentageStructs;
+
+	public Biome(string n, byte code, float a, float h, float t, float l, List<int> structCodes, List<int> amountStructs, List<float> percentageStructs){
 		this.name = n;
 		this.biomeCode = code;
 		this.altitude = a;
 		this.humidity = h;
 		this.temperature = t;
 		this.lightning = l;
+
+		this.structCodes = structCodes;
+		this.amountStructs = amountStructs;
+		this.percentageStructs = percentageStructs;
 	}
 
 	public Point4D GetStats(){

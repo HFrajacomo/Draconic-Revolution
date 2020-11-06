@@ -1677,7 +1677,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6285e066fcb064e47b45316bd081d2a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderDistance: 5
+  renderDistance: 0
   player: {fileID: 59614821}
   blockBook: {fileID: 1668289087}
   budscheduler: {fileID: 816262494}
@@ -2424,6 +2424,10 @@ MonoBehaviour:
   secondaryAction: 0
   interact: 0
   gravityHack: 0
+  prefabRead: 0
+  prefabReadAir: 0
+  freecam: 0
+  shifting: 0
 --- !u!4 &1635249985
 Transform:
   m_ObjectHideFlags: 0

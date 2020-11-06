@@ -76,6 +76,22 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "ToggleFreeCam",
+                    "type": "Button",
+                    "id": "f0052053-ee62-4f4d-9825-efafbc08c16a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Shifting",
+                    "type": "Button",
+                    "id": "40c019f8-c03f-4d59-a503-493579898165",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
                 }
             ],
             "bindings": [
@@ -219,6 +235,28 @@
                     "processors": "",
                     "groups": "Keyboard and Mouse",
                     "action": "PrefabReadAir",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "07d1f2b4-2c49-41d8-abe1-ccefcc01869f",
+                    "path": "<Keyboard>/g",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "ToggleFreeCam",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "02d43d1e-16d0-41bc-abd2-bd2510bcdcac",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Shifting",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

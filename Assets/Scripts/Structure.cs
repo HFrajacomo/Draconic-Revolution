@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Structure
 {
+    int code;
+
     ushort[,,] blockdata;
     VoxelMetadata meta;
     ushort?[,,] hpdata;
@@ -15,18 +17,38 @@ public class Structure
 
     /*
     0: OverwriteAll
-    1: SpecificOnly
+    1: FreeSpace
     2: SpecificOverwrite
-    3: NeedsFoundation
-    4: GenerateFoundation
     */
     public FillType type;
 
     private List<ushort> overwriteBlocks;
 
 
-    public Structure(ushort[] data, ushort?[] hp, ushort?[] state, int sizeX, int sizeY, int sizeZ, bool air, FillType t, List<ushort> overwrite)
+    /*
+    Overall Structure List
+    ADD TO THIS LIST FOR EVERY STRUCTURE IMPLEMENTED
+    */
+    public static Structure Generate(int code){
+        switch(code){
+            case 0:
+                return new TestStruct();
+            case 1:
+                return new TreeSmallA();
+            case 2:
+                return new TreeMediumA();
+            default:
+                return new TestStruct();
+        }
+    }
+
+    public static Structure Generate(StructureCode code){
+        return Structure.Generate((int)code);
+    }
+
+    public Structure(int code, ushort[] data, ushort?[] hp, ushort?[] state, int sizeX, int sizeY, int sizeZ, bool air, FillType t, List<ushort> overwrite)
     {
+        this.code = code;
         this.blockdata = new ushort[sizeX, sizeY, sizeZ];
         this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
         this.statedata = new ushort?[sizeX, sizeY, sizeZ];
@@ -94,7 +116,8 @@ public class Structure
         ChunkPos newPos;
         int posX = 0;
         int posZ = 0;
-        int sPosX, sPosZ;
+        int sPosX=0;
+        int sPosZ=0;
 
         for(int zCount=0; zCount <= zChunks; zCount++){
             for(int xCount=0; xCount <= xChunks; xCount++){
@@ -108,37 +131,55 @@ public class Structure
 
                 // Calculates Positions
                 if(xCount == 0){
-                    posX = 0;
-                    posZ = z;
-                }
-                if(zCount == 0){
                     posX = x;
                     posZ = 0;
+                }
+                if(zCount == 0){
+                    posX = 0;
+                    posZ = z;
                 }
                 if(xCount != 0 && zCount != 0){
                     posX = 0;
                     posZ = 0;
                 }
 
-                // Calculate remainders
-                if(xCount < xChunks)
-                    xRemainder = 16;
-                if(zCount < zChunks)
-                    zRemainder = 16;
-                if(xCount == xChunks)
+                // Calculate Remainders
+                if(xCount == xChunks){
                     xRemainder = (this.sizeX - (Chunk.chunkWidth - x))%Chunk.chunkWidth;
-                if(zCount == zChunks)
+                }
+                else{
+                    xRemainder = (Chunk.chunkWidth - posX);
+                }
+
+                if(zCount == zChunks){
                     zRemainder = (this.sizeZ - (Chunk.chunkWidth - z))%Chunk.chunkWidth;
+                }
+                else{
+                    zRemainder = (Chunk.chunkWidth - posZ);
+                }
+
 
                 // Struct Position
-                sPosX = (Chunk.chunkWidth - x) + (xCount * Chunk.chunkWidth);
-                sPosZ = (Chunk.chunkWidth - z) + (zCount * Chunk.chunkWidth);
+                if(xCount == 0)
+                    sPosX = 0;
+                else if(xCount < xChunks)
+                    sPosX = (Chunk.chunkWidth - x) + (xCount * Chunk.chunkWidth);
+                else if(xCount == xChunks)
+                    sPosX = this.sizeX - xRemainder;
+
+                if(zCount == 0)
+                    sPosZ = 0;
+                else if(zCount < zChunks)
+                    sPosZ = (Chunk.chunkWidth - z) + (zCount * Chunk.chunkWidth);
+                else if(zCount == zChunks)
+                    sPosZ = this.sizeZ - zRemainder;
+
 
                 // ACTUAL APPLY FUNCTIONS
                 // Checks if it's a loaded chunk
                 if(cl.chunks.ContainsKey(newPos)){
                     ApplyToChunk(newPos, false, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);
-                    cl.budscheduler.ScheduleReload(newPos, 0);
+                    cl.budscheduler.ScheduleReload(newPos, 1);
                 }
 
                 // CASE WHERE REGIONFILES NEED TO BE LOOKED UPON
@@ -154,8 +195,8 @@ public class Structure
                 }
                 // Check if it's an ungenerated chunk
                 else{
-                    c = new Chunk(newPos, new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth], new VoxelMetadata());
-                    ApplyToChunk(newPos, false, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);                
+                    c = new Chunk(newPos);
+                    ApplyToChunk(newPos, false, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);              
                     cl.regionHandler.SaveChunk(c);
                 }
             }

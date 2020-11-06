@@ -27,7 +27,7 @@ public class Chunk
 	public ChunkRenderer renderer;
 	public MeshFilter meshFilter;
 	public MeshCollider meshCollider;
-	public GameObject obj = new GameObject();
+	public GameObject obj;
 	public BlockEncyclopedia blockBook;
 	public ChunkLoader loader;
 	public AssetGrid assetGrid;
@@ -44,11 +44,15 @@ public class Chunk
 		this.pos = pos;
 		this.needsGeneration = 0;
 		this.assetGrid = new AssetGrid(this.pos);
-		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
 		this.renderer = r;
+		this.loader = loader;
+
+		// Game Object Settings
+		this.obj = new GameObject();
+		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
 		this.obj.transform.SetParent(this.renderer.transform);
 		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
-		this.loader = loader;
+
 
 		if(fromMemory)
 			this.data = new VoxelData();
@@ -66,12 +70,14 @@ public class Chunk
 
 	// Dummy Chunk Generation
 	// CANNOT BE USED TO DRAW, ONLY TO ADD ELEMENTS AND SAVE
-	public Chunk(ChunkPos pos, ushort[,,] blockdata, VoxelMetadata VM){
+	public Chunk(ChunkPos pos){
+		this.biomeName = "Plains";
 		this.pos = pos;
 		this.needsGeneration = 1;
 
-		this.data = new VoxelData(blockdata);
-		this.metadata = new VoxelMetadata(VM.metadata);
+		this.data = new VoxelData(new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth]);
+
+		this.metadata = new VoxelMetadata();
 	}
 
 	public void BuildOnVoxelData(VoxelData vd){
