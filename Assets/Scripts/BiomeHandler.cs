@@ -18,7 +18,7 @@ public class BiomeHandler
 		Biome plains = new Biome("Plains", 0, 0.3f, 0.5f, 0.6f, 1f,
 		 new List<int>(){1,2},
 		 new List<int>(){1,1},
-		 new List<float>(){0.2f, 0.1f});
+		 new List<float>(){0.1f, 0.05f});
 
 		Biome grassyHighlands = new Biome("Grassy Highlands", 1, 0.7f, 0.5f, 0.6f, 0.9f,
 		 new List<int>(){1,2},
