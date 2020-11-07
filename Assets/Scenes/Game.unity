@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1484502057}
-  m_IndirectSpecularColor: {r: 0.0032139611, g: 0.0040568085, b: 0.0029549843, a: 1}
+  m_IndirectSpecularColor: {r: 0.0033135754, g: 0.0041516917, b: 0.0029907248, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -394,7 +394,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 59614818}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -242, y: 300, z: 337}
+  m_LocalPosition: {x: -275, y: 300, z: 328}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1091412602}
@@ -431,7 +431,7 @@ MonoBehaviour:
   cam: {fileID: 1912773808}
   reach: 4
   step: 0.025
-  blockToBePlaced: 65534
+  blockToBePlaced: 3
   placeState: 0
   control: {fileID: 1635249984}
   facing: 0
@@ -1677,7 +1677,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6285e066fcb064e47b45316bd081d2a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderDistance: 5
+  renderDistance: 6
   player: {fileID: 59614821}
   blockBook: {fileID: 1668289087}
   budscheduler: {fileID: 816262494}
@@ -2179,7 +2179,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 3.1415927
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -2248,7 +2248,7 @@ MonoBehaviour:
   m_PointlightHDType: 0
   m_SpotLightShape: 0
   m_AreaLightShape: 0
-  m_Intensity: 3.1415927
+  m_Intensity: 3
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
   m_InnerSpotPercent: 0
