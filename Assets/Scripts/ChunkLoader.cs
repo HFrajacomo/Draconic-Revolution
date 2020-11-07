@@ -901,8 +901,8 @@ public class ChunkLoader : MonoBehaviour
                 if(chance > percentage)
                     continue;
 
-                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidth);
-                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidth);
+                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidthMult);
+                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidthMult);
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15)
@@ -932,26 +932,24 @@ public class ChunkLoader : MonoBehaviour
                 if(chance > percentage)
                     continue;
 
-                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidth);
-                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidth);
-                
+                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidthMult);
+                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidthMult);
+                float yMult = Perlin.Noise((i + structureCode + (pos.z & pos.x))*xhash*zhash);              
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15)
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth;
+                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth));
                 // X >
                 else if(x + offsetX > 15 && z + offsetZ <= 15)
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth;
+                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth));
                 // Z >
                 else if(x + offsetX <= 15 && z + offsetZ > 15)
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth;
+                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth));
                 // All <
                 else
-                    y = cacheHeightMap[x+offsetX, z+offsetZ] - depth;
+                    y = (int)(heightlimit + yMult*(cacheHeightMap[x+offsetX, z+offsetZ] - depth));
 
-                // Ignores structure on hard limit
-                if(y <= heightlimit)
-                    continue;
+                //print("final: " + y);
 
                 this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z);
             }            
@@ -978,6 +976,8 @@ public class ChunkLoader : MonoBehaviour
         else if(xAxis){
             int size = structHandler.LoadStructure(code).sizeZ;
 
+            //print("x: " + x);
+            //print("z: " + z);
             for(int i=x; i < Chunk.chunkWidth; i++){
                 for(int c=z; c < Mathf.Min(z+size, Chunk.chunkWidth); c++){
                     sum += heightmap[i, c];
@@ -1064,15 +1064,15 @@ public class ChunkLoader : MonoBehaviour
     // Inserts Structures into Plain Biome
     private void GeneratePlainsStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){        
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
-            switch(structCode){
-                case 1:
-                    if(!transition)
-                        GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1, heightlimit:22);
-                    break;
-                case 2:
-                    if(!transition)
-                        GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1, heightlimit:22);
-                    break;
+            if(structCode == 1 || structCode == 2){ // Trees
+                if(!transition)
+                    GenerateStructures(pos, xhash, zhash, biomeCode, structCode, -1, heightlimit:22);
+            }
+            else if(structCode == 3 || structCode == 4){ // Dirt Piles
+                GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 2, range:true);
+            }
+            else if(structCode == 5){ // Boulder
+                GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 0);
             }
         }
     }
@@ -1153,16 +1153,13 @@ public class ChunkLoader : MonoBehaviour
     // Inserts Structures into Plain Biome
     private void GenerateGrassyHighLandsStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
-            switch(structCode){
-                case 1:
-                    if(!transition)
-                        GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1, heightlimit:42);
-                    break;
-                case 2:
-                    if(!transition)
-                        GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1, heightlimit:42);
-                    break;
-            }
+            if(structCode <= 2) // Trees
+                if(!transition)
+                    GenerateStructures(pos, xhash, zhash, biomeCode, structCode, -1, heightlimit:22);
+            else if(structCode == 3 || structCode == 4) // Dirt Piles
+                    GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 2, range:true);
+            else if(structCode == 5) // Boulder
+                    GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 0);
         }
     }
 
@@ -1231,16 +1228,9 @@ public class ChunkLoader : MonoBehaviour
     private void GenerateOceanStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){
         /*
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
-            switch(structCode){
-                case 1:
-                    GenerateStructures(pos, xhash, zhash, biomeCode, 1, -1);
-                    break;
-                case 2:
-                    GenerateStructures(pos, xhash, zhash, biomeCode, 2, -1);
-                    break;
-            }
         }
         */
+        
 
     }
 

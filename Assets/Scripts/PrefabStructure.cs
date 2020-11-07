@@ -91,6 +91,93 @@ public class TreeMediumA : Structure
 	}
 }
 
+public class DirtPileA : Structure
+{
+	ushort[] blocks = new ushort[126]{0,0,2,2,2,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,2,2,2,0,0,0,0,2,0,2,0,0,0,2,2,2,0,2,2,2,2,2,0,0,2,2,2,2,0,0,2,2,2,2,0,0,2,2,2,2,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,2,2,2,0,0,0,2,2,2,2,0,0,2,2,2,0,0,0,2,2,0,0,0,0,0,0,0,0,0};
+	ushort?[] hps = new ushort?[126]{null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null};
+	ushort?[] states = new ushort?[126]{null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null};
+
+	public DirtPileA(){
+		this.code = 3; 
+
+		this.sizeX = 7;
+		this.sizeY = 3;
+		this.sizeZ = 6;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
+        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
+        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new List<ushort>(){1,3};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class DirtPileB : Structure
+{
+	ushort[] blocks = new ushort[147] {0,0,0,2,2,0,0,0,2,2,2,2,2,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,2,2,2,0,0,0,0,0,2,0,0,0,0,0,0,2,2,2,0,2,2,2,2,2,2,0,2,2,2,2,2,2,0,2,2,2,2,2,2,0,0,2,2,2,2,2,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,2,2,2,2,2,0,2,2,2,2,2,2,0,2,2,2,2,2,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0};
+	ushort?[] hps = new ushort?[147]{null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null};
+	ushort?[] states = new ushort?[147]{null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null};
+
+	public DirtPileB(){
+		this.code = 4; 
+
+		this.sizeX = 7;
+		this.sizeY = 3;
+		this.sizeZ = 7;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
+        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
+        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new List<ushort>(){1,3};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class BoulderNormalA : Structure
+{
+	ushort[] blocks = new ushort[112]{0,0,0,3,3,3,0,0,3,3,3,3,3,3,0,3,3,3,3,3,3,0,0,0,0,0,3,0,0,0,3,3,3,3,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,3,3,3,3,0,0,0,0,3,3,0,0,0,3,3,3,3,3,0,0,3,3,3,3,3,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,0,3,3,3,0,0,0,0,3,3,3,0,0,0,0,0,0,0,0,0};
+	ushort?[] hps = new ushort?[112]{null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null};
+	ushort?[] states = new ushort?[112]{null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null};
+
+	public BoulderNormalA(){
+		this.code = 5; 
+
+		this.sizeX = 4;
+		this.sizeY = 4;
+		this.sizeZ = 7;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
+        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
+        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new List<ushort>();
+
+		Prepare(blocks, hps, states);
+	}
+}
+
 /*
 ADD TO THIS ENUM EVERY NEW STRUCTURE IMPLEMENTED
 */
@@ -98,5 +185,8 @@ ADD TO THIS ENUM EVERY NEW STRUCTURE IMPLEMENTED
 public enum StructureCode{
 	TestStruct,
 	TreeSmallA,
-	TreeMediumA
+	TreeMediumA,
+	DirtPileA,
+	DirtPileB,
+	BoulderNormalA
 }

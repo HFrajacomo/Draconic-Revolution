@@ -16,19 +16,19 @@ public class BiomeHandler
 		dispersionSeed = seed;
 
 		Biome plains = new Biome("Plains", 0, 0.3f, 0.5f, 0.6f, 1f,
-		 new List<int>(){1,2},
-		 new List<int>(){1,1},
-		 new List<float>(){0.1f, 0.05f});
+		 new List<int>(){1,2,3,4,5},
+		 new List<int>(){1,1,3,2,1},
+		 new List<float>(){0.1f, 0.05f, 1f, 1f, 0.01f});
 
 		Biome grassyHighlands = new Biome("Grassy Highlands", 1, 0.7f, 0.5f, 0.6f, 0.9f,
-		 new List<int>(){1,2},
-		 new List<int>(){1,1},
-		 new List<float>(){0.2f, 0.1f});
+		 new List<int>(){1,2,3,4,5},
+		 new List<int>(){1,1,3,2,1},
+		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.02f}); 
 
 		Biome ocean = new Biome("Ocean", 2, 0f, 1f, 0.5f, 0.3f,
-		 new List<int>(),
-		 new List<int>(),
-		 new List<float>());
+		 new List<int>(){},
+		 new List<int>(){},
+		 new List<float>(){});
 
 		AddBiome(plains);
 		AddBiome(grassyHighlands);

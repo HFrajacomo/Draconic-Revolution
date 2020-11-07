@@ -38,6 +38,12 @@ public abstract class Structure
                 return new TreeSmallA();
             case 2:
                 return new TreeMediumA();
+            case 3:
+                return new DirtPileA();
+            case 4:
+                return new DirtPileB();
+            case 5:
+                return new BoulderNormalA();
             default:
                 return new TestStruct();
         }
