@@ -889,8 +889,12 @@ public class ChunkLoader : MonoBehaviour
         int offsetX, offsetZ;
         float chance;
 
+        // Offset
+        offsetX = structHandler.LoadStructure(structureCode).offsetX;
+        offsetZ = structHandler.LoadStructure(structureCode).offsetZ;
+
         // If structure is static at given heightmap depth
-        if(!range){
+        if(!range){            
             for(int i=1; i <= amount; i++){
                 chance = Perlin.Noise((pos.x ^ pos.z)*(zhash/xhash)*(i*0.17f)*structureCode);
 
@@ -899,20 +903,16 @@ public class ChunkLoader : MonoBehaviour
 
                 x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidth);
                 z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidth);
-                
-                // Offset
-                offsetX = structHandler.LoadStructure(structureCode).offsetX;
-                offsetZ = structHandler.LoadStructure(structureCode).offsetZ;
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15)
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, bothAxis:true) - depth;
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth;
                 // X >
                 else if(x + offsetX > 15 && z + offsetZ <= 15)
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, xAxis:true) - depth;
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth;
                 // Z >
                 else if(x + offsetX <= 15 && z + offsetZ > 15)
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, zAxis:true) - depth;
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth;
                 // All <
                 else
                     y = cacheHeightMap[x+offsetX, z+offsetZ] - depth;
@@ -935,19 +935,16 @@ public class ChunkLoader : MonoBehaviour
                 x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidth);
                 z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidth);
                 
-                // Offset
-                offsetX = structHandler.LoadStructure(structureCode).offsetX;
-                offsetZ = structHandler.LoadStructure(structureCode).offsetZ;
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15)
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, bothAxis:true) - depth;
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth;
                 // X >
                 else if(x + offsetX > 15 && z + offsetZ <= 15)
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, xAxis:true) - depth;
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth;
                 // Z >
                 else if(x + offsetX <= 15 && z + offsetZ > 15)
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, zAxis:true) - depth;
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth;
                 // All <
                 else
                     y = cacheHeightMap[x+offsetX, z+offsetZ] - depth;
@@ -962,7 +959,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Returns the mean height for a given structure
-    private int HalfConvolute(ushort[,] heightmap, int x, int z, int offsetX, int offsetZ, bool xAxis=false, bool zAxis=false, bool bothAxis=false){
+    private int HalfConvolute(ushort[,] heightmap, int x, int z, int offsetX, int offsetZ, int code, bool xAxis=false, bool zAxis=false, bool bothAxis=false){
         int sum=0;
         int amount=0;
         
@@ -979,9 +976,13 @@ public class ChunkLoader : MonoBehaviour
                 return (int)heightmap[Chunk.chunkWidth-1, Chunk.chunkWidth-1];        
         }
         else if(xAxis){
+            int size = structHandler.LoadStructure(code).sizeZ;
+
             for(int i=x; i < Chunk.chunkWidth; i++){
-                sum += heightmap[i, z];
-                amount++;
+                for(int c=z; c < Mathf.Min(z+size, Chunk.chunkWidth); c++){
+                    sum += heightmap[i, c];
+                    amount++;
+                }
             }
             if(amount > 0)
                 return (int)(sum / amount);
@@ -989,9 +990,13 @@ public class ChunkLoader : MonoBehaviour
                 return (int)heightmap[Chunk.chunkWidth-1, Chunk.chunkWidth-1]; 
         }
         else if(zAxis){
+            int size = structHandler.LoadStructure(code).sizeX;
+
             for(int i=z; i < Chunk.chunkWidth; i++){
-                sum += heightmap[x, i];
-                amount++;
+                for(int c=x; c < Mathf.Min(x+size, Chunk.chunkWidth); c++){
+                    sum += heightmap[c, i];
+                    amount++; 
+                }
             }
             if(amount > 0)
                 return (int)(sum / amount);
