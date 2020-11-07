@@ -219,6 +219,11 @@ public abstract class Structure
                         for(int x=posX; x < posX + remainderX; x++){
                             structZ = structinitZ;
                             for(int z=posZ; z < posZ + remainderZ; z++){
+                                if(this.blockdata[structX, structY, structZ] == 0){
+                                    structZ++;
+                                    continue;
+                                }
+
                                 VD[x,y,z] = this.blockdata[structX, structY, structZ];
 
                                 if(VM.metadata[x,y,z] != null)

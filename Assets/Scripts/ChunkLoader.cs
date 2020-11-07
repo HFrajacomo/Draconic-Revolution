@@ -971,7 +971,7 @@ public class ChunkLoader : MonoBehaviour
                 }
             }
             if(amount > 0)
-                return (int)(sum / amount);
+                return (int)(sum / amount); 
             else
                 return (int)heightmap[Chunk.chunkWidth-1, Chunk.chunkWidth-1];        
         }
