@@ -29,3 +29,5 @@ ExportedObj/
 *.rdf
 *.hle
 test.txt
+
+SavedStruct.txt

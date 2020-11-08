@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -452,12 +453,26 @@ public class PlayerRaycast : MonoBehaviour
 
       sizeY = finalPos.blockY - prefabPos.blockY;
 
+      StreamWriter file = new StreamWriter("SavedStruct.txt", append:true);
 
-      Debug.Log("Blocks: " + outBlock + "}");
-      Debug.Log("HP: " + outHp + "}");
-      Debug.Log("State: " + outState + "}");
+      /*
+      try{
+        file = File.Open("SavedStruct.txt", FileMode.Open);
+      } 
+      catch (FileNotFoundException){
+        file = File.Open("SavedStruct.txt", FileMode.Create);
+      }
+      */
 
-      Debug.Log("Sizes: " + sizeX + " | " + sizeY + " | " + sizeZ + "    [" + sizeX*sizeY*sizeZ + "]");
+      file.WriteLine("Blocks:\n");
+      file.WriteLine(outBlock + "}");
+      file.WriteLine("\n\nHP:\n");
+      file.WriteLine(outHp + "}");
+      file.WriteLine("\n\nState:\n");
+      file.WriteLine(outState + "}");
+      file.WriteLine("\nSizes: " + sizeX + " | " + sizeY + " | " + sizeZ + "    [" + sizeX*sizeY*sizeZ + "]\n\n\n\n");
+      file.Close();
+
       }
     }
 
