@@ -36,22 +36,22 @@ public abstract class Blocks
 	public static Blocks Block(int blockID){
 		// The actual block encyclopedia
 
-			if(blockID == 0)
-				return new Air_Block();
-			else if(blockID == 1)
-				return new Grass_Block();
-			else if(blockID == 2)
-				return new Dirt_Block();
-			else if(blockID == 3)
-				return new Stone_Block();	
-			else if(blockID == 4)
-				return new Wood_Block();		
-			else if(blockID == 5)
-				return new MetalOre_Block();		
-			else if(blockID == 6)
-				return new Water_Block();
-			else
-				return new Air_Block();
+		if(blockID == 0)
+			return new Air_Block();
+		else if(blockID == 1)
+			return new Grass_Block();
+		else if(blockID == 2)
+			return new Dirt_Block();
+		else if(blockID == 3)
+			return new Stone_Block();	
+		else if(blockID == 4)
+			return new Wood_Block();		
+		else if(blockID == 5)
+			return new MetalOre_Block();		
+		else if(blockID == 6)
+			return new Water_Block();
+		else
+			return new Air_Block();
 			
 	}
 

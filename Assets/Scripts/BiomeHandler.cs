@@ -30,9 +30,15 @@ public class BiomeHandler
 		 new List<int>(){},
 		 new List<float>(){});
 
+		Biome forest = new Biome("Forest", 3, 0.3f, 0.5f, 0.5f, 0.7f,
+		 new List<int>(){6,1,2,7,8},
+		 new List<int>(){1,2,2,1,1},
+		 new List<float>(){0.05f, 1f, 0.5f, 0.1f, 0.3f});
+
 		AddBiome(plains);
 		AddBiome(grassyHighlands);
 		AddBiome(ocean);
+		AddBiome(forest);
 	}
 
 	// Gets biome byte code from name

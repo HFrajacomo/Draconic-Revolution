@@ -455,15 +455,6 @@ public class PlayerRaycast : MonoBehaviour
 
       StreamWriter file = new StreamWriter("SavedStruct.txt", append:true);
 
-      /*
-      try{
-        file = File.Open("SavedStruct.txt", FileMode.Open);
-      } 
-      catch (FileNotFoundException){
-        file = File.Open("SavedStruct.txt", FileMode.Create);
-      }
-      */
-
       file.WriteLine("Blocks:\n");
       file.WriteLine(outBlock + "}");
       file.WriteLine("\n\nHP:\n");

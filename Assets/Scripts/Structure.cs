@@ -44,6 +44,12 @@ public abstract class Structure
                 return new DirtPileB();
             case 5:
                 return new BoulderNormalA();
+            case 6:
+                return new TreeBigA();
+            case 7:
+                return new TreeCrookedMediumA();
+            case 8:
+                return new TreeSmallB();
             default:
                 return new TestStruct();
         }
@@ -109,7 +115,7 @@ public abstract class Structure
         }
 
         // Run loop for multi-chunk structures
-        ChunkPos newPos;
+        ChunkPos newPos; 
         int posX = 0;
         int posZ = 0;
         int sPosX=0;
@@ -144,7 +150,7 @@ public abstract class Structure
                     xRemainder = this.sizeX;
                 }
                 else if(xCount == xChunks){
-                    xRemainder = (this.sizeX - (Chunk.chunkWidth - x))%Chunk.chunkWidth;
+                    xRemainder = (this.sizeX - ((Chunk.chunkWidth - x) + (xCount-1)*Chunk.chunkWidth));
                 }
                 else{
                     xRemainder = (Chunk.chunkWidth - posX);
@@ -154,25 +160,24 @@ public abstract class Structure
                     zRemainder = this.sizeZ;
                 }
                 else if(zCount == zChunks){
-                    zRemainder = (this.sizeZ - (Chunk.chunkWidth - z))%Chunk.chunkWidth;
+                    zRemainder = (this.sizeZ - ((Chunk.chunkWidth - z) + (zCount-1)*Chunk.chunkWidth));
                 }
                 else{
                     zRemainder = (Chunk.chunkWidth - posZ);
                 }
 
-
                 // Struct Position
                 if(xCount == 0)
                     sPosX = 0;
                 else if(xCount < xChunks)
-                    sPosX = (Chunk.chunkWidth - x) + (xCount * Chunk.chunkWidth);
+                    sPosX = (Chunk.chunkWidth - x) + ((xCount-1) * Chunk.chunkWidth);
                 else if(xCount == xChunks)
                     sPosX = this.sizeX - xRemainder;
 
                 if(zCount == 0)
                     sPosZ = 0;
                 else if(zCount < zChunks)
-                    sPosZ = (Chunk.chunkWidth - z) + (zCount * Chunk.chunkWidth);
+                    sPosZ = (Chunk.chunkWidth - z) + ((zCount-1) * Chunk.chunkWidth);
                 else if(zCount == zChunks)
                     sPosZ = this.sizeZ - zRemainder;
 

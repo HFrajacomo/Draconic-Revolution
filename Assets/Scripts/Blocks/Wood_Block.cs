@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Wood_Block : Blocks
 {
+	List<CastCoord> breakList = new List<CastCoord>();
+
 	public Wood_Block(){
 		this.name = "Wood";
 		this.materialIndex = 0;
@@ -16,7 +18,4 @@ public class Wood_Block : Blocks
 		this.tileSide = 6;
 		this.tileBottom = 5;	
 	} 
-	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
-		return 0;
-	}
 }

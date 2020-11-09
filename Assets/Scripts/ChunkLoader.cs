@@ -269,6 +269,8 @@ public class ChunkLoader : MonoBehaviour
             return GenerateGrassyHighLandsBiome(pos.x, pos.z, pregen:pregen);
         else if(biome == "Ocean")
             return GenerateOceanBiome(pos.x, pos.z, pregen:pregen);
+        else if(biome == "Forest")
+            return GenerateForestBiome(pos.x, pos.z, pregen:pregen);
         else 
             return GeneratePlainsBiome(pos.x, pos.z, pregen:pregen);
         
@@ -617,6 +619,11 @@ public class ChunkLoader : MonoBehaviour
                     transitionChecker = true;
                 MixOceanBorderPivots(selectedCache, chunkX, chunkZ, false, octave, currentBiome:currentBiome);
                 break;
+            case "Forest":
+                if("Forest" != currentBiome)
+                    transitionChecker = true;
+                MixForestBorderPivots(selectedCache, chunkX, chunkZ, false, octave); 
+                break;               
             default:
                 print("Deu Merda");
                 break;
@@ -639,6 +646,11 @@ public class ChunkLoader : MonoBehaviour
                     transitionChecker = true;
                 MixOceanBorderPivots(selectedCache, chunkX, chunkZ, true, octave, currentBiome:currentBiome);
                 break;
+            case "Forest":
+                if("Forest" != currentBiome)
+                    transitionChecker = true;
+                MixForestBorderPivots(selectedCache, chunkX, chunkZ, true, octave);
+                break;
             default:
                 print("Deu Merda");
                 break;
@@ -660,6 +672,11 @@ public class ChunkLoader : MonoBehaviour
                 if("Ocean" != currentBiome)
                     transitionChecker = true;
                 MixOceanBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true, currentBiome:currentBiome);
+                break;
+            case "Forest":
+                if("Forest" != currentBiome)
+                    transitionChecker = true;
+                MixForestBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true);
                 break;
             default:
                 print("Deu Merda");
@@ -949,7 +966,6 @@ public class ChunkLoader : MonoBehaviour
                 else
                     y = (int)(heightlimit + yMult*(cacheHeightMap[x+offsetX, z+offsetZ] - depth));
 
-                //print("final: " + y);
 
                 this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z);
             }            
@@ -976,8 +992,6 @@ public class ChunkLoader : MonoBehaviour
         else if(xAxis){
             int size = structHandler.LoadStructure(code).sizeZ;
 
-            //print("x: " + x);
-            //print("z: " + z);
             for(int i=x; i < Chunk.chunkWidth; i++){
                 for(int c=z; c < Mathf.Min(z+size, Chunk.chunkWidth); c++){
                     sum += heightmap[i, c];
@@ -1153,13 +1167,17 @@ public class ChunkLoader : MonoBehaviour
     // Inserts Structures into Plain Biome
     private void GenerateGrassyHighLandsStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
-            if(structCode <= 2) // Trees
-                if(!transition)
+            if(structCode <= 2){ // Trees
+                if(!transition){
                     GenerateStructures(pos, xhash, zhash, biomeCode, structCode, -1, heightlimit:22);
-            else if(structCode == 3 || structCode == 4) // Dirt Piles
+                }
+            }
+            else if(structCode == 3 || structCode == 4){ // Dirt Piles
                     GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 2, range:true);
-            else if(structCode == 5) // Boulder
+            }
+            else if(structCode == 5){ // Boulder
                     GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 0);
+            }
         }
     }
 
@@ -1279,6 +1297,91 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
+    // Generates Forest biome chunk
+    public VoxelData GenerateForestBiome(int chunkX, int chunkZ, bool pregen=false){
+        // Hash values for Plains Biomes
+        float xhash = 72.117f;
+        float zhash = 45.483f;
+        bool transition = false;
+        
+        // Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
+        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, octave:0, groundLevel:25, ceilingLevel:32, currentBiome:"Forest");
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, ref transition, octave:1, groundLevel:25, ceilingLevel:45, currentBiome:"Forest");
+        CombinePivotMap(cacheHeightMap, cacheHeightMap2);
+
+        // Does different interpolation for normal vs transition chunks
+        if(!transition)
+            BilinearInterpolateMap(cacheHeightMap);
+        else
+            BilinearInterpolateMap(cacheHeightMap, interval:16);
+
+        // Underground is hold on Cache 2
+        AddFromMap(cacheHeightMap, -5);
+
+        // Adds Cache 2 to pipeline
+        cacheMaps.Add(cacheHeightMap2);
+        cacheBlockCodes.Add(3);
+
+        // Dirt is hold on Cache 3
+        AddFromMap(cacheHeightMap, -1, cacheNumber:3);
+
+
+        // Adds rest to pipeline
+        cacheMaps.Add(cacheHeightMap3);
+        cacheBlockCodes.Add(2);
+        cacheMaps.Add(cacheHeightMap);
+        cacheBlockCodes.Add(1);
+
+        cacheStateDict = new Dictionary<ushort, ushort>();
+
+        // Adds to cacheVoxdata
+        ApplyHeightMaps(cacheStateDict, pregen:pregen);
+
+        // Structures
+        GenerateForestStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 3, transition);
+
+        // Cave Systems
+        GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:27, maskThreshold:0.7f);
+        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:27);
+    }
+
+    // Inserts Structures into Forest Biome
+    private void GenerateForestStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){
+        foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
+            if(structCode == 6){ // Big Tree
+                if(!transition){
+                    GenerateStructures(pos, xhash, zhash, biomeCode, structCode, -1);
+                }
+            }
+            else if(structCode == 1 || structCode == 2 || structCode == 7 || structCode == 8){
+                if(!transition){
+                    GenerateStructures(pos, xhash, zhash, biomeCode, structCode, -1);
+                }
+            }
+            else if(structCode == 3 || structCode == 4){ // Dirt Piles
+                GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 2, range:true);
+            }
+        }
+    }
+
+    // Inserts Forest biome border pivots on another selectedHeightMap
+    private void MixForestBorderPivots(ushort[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
+        float xhash = 72.117f;
+        float zhash = 45.483f;
+
+        if(!corner){
+            if(octave == 0)
+                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:25, ceilingLevel:32);
+            else
+                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, isSide, groundLevel:25, ceilingLevel:45);
+        }
+        else{
+            if(octave == 0)
+                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:25, ceilingLevel:32);
+            else
+                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, groundLevel:25, ceilingLevel:45);
+        }
+    }
 
 }
 
