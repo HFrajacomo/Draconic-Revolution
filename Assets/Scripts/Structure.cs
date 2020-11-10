@@ -11,6 +11,10 @@ public abstract class Structure
     public ushort?[,,] hpdata;
     public ushort?[,,] statedata;
 
+    private static int cacheX;
+    private static int cacheY;
+    private static int cacheZ;
+
     public bool considerAir;
 
     public int sizeX, sizeY, sizeZ;
@@ -87,8 +91,9 @@ public abstract class Structure
 
 
     // Applies this structure to a cachedUshort array and a VoxelMetadata
-    public virtual bool Apply(ChunkLoader cl, ChunkPos pos, ushort[,,] VD, VoxelMetadata VM, int x, int y, int z)
+    public virtual bool Apply(ChunkLoader cl, ChunkPos pos, ushort[,,] VD, VoxelMetadata VM, int x, int y, int z, int rotation=0)
     {
+
         bool retStatus;
         int xChunks = Mathf.FloorToInt((x + this.sizeX - 1)/Chunk.chunkWidth);
         int zChunks = Mathf.FloorToInt((z + this.sizeZ - 1)/Chunk.chunkWidth);
@@ -185,7 +190,7 @@ public abstract class Structure
                 // ACTUAL APPLY FUNCTIONS
                 // Checks if it's a loaded chunk
                 if(cl.chunks.ContainsKey(newPos)){
-                    ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);
+                    ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);
                     cl.budscheduler.ScheduleReload(newPos, 1);
                     continue;
                 }
@@ -198,13 +203,13 @@ public abstract class Structure
                 if(cl.regionHandler.GetFile().IsIndexed(newPos)){
                     c = new Chunk(newPos, cl.rend, cl.blockBook, cl, fromMemory:true);
                     cl.regionHandler.LoadChunk(c);
-                    ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);                
+                    ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);                
                     cl.regionHandler.SaveChunk(c);
                 }
                 // Check if it's an ungenerated chunk
                 else{
                     c = new Chunk(newPos);
-                    ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ);              
+                    ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);              
                     cl.regionHandler.SaveChunk(c);
                 }
             }
@@ -214,7 +219,7 @@ public abstract class Structure
 
     // Applies this structure to a chunk
     // Receives a Chunk reference that will be changed in this function
-    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader cl, ushort[,,] VD, VoxelMetadata VM, int posX, int posY, int posZ, int remainderX, int remainderZ, int structinitX, int structinitZ){
+    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader cl, ushort[,,] VD, VoxelMetadata VM, int posX, int posY, int posZ, int remainderX, int remainderZ, int structinitX, int structinitZ, int rotation=0){
         bool exists = exist;
 
         int structX = structinitX;
@@ -224,21 +229,24 @@ public abstract class Structure
         // Applies Free Space building rules to existing chunk
         if(this.type == FillType.FreeSpace && exists && initialchunk){
             if(!this.considerAir){
-                if(CheckFreeSpace(VD, posX, posY, posZ)){
+                if(CheckFreeSpace(VD, posX, posY, posZ, rotation)){
                     for(int y=posY; y < posY + this.blockdata.GetLength(1); y++){
                         structX = structinitX;
                         for(int x=posX; x < posX + remainderX; x++){
                             structZ = structinitZ;
                             for(int z=posZ; z < posZ + remainderZ; z++){
-                                if(this.blockdata[structX, structY, structZ] == 0){
+                                RotateData(structX, structY, structZ, rotation);
+                                if(this.blockdata[cacheX, cacheY, cacheZ] == 0){
                                     structZ++;
                                     continue;
                                 }
 
-                                VD[x,y,z] = this.blockdata[structX, structY, structZ];
+
+
+                                VD[x,y,z] = this.blockdata[cacheX, cacheY, cacheZ];
 
                                 if(VM.metadata[x,y,z] != null)
-                                    VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                    VM.metadata[x, y, z] = this.meta.metadata[cacheX, cacheY, cacheZ];
                                 structZ++;
                             }
                             structX++;
@@ -252,19 +260,20 @@ public abstract class Structure
                 }
             }
             else{
-                if(CheckFreeSpace(VD, posX, posY, posZ)){
+                if(CheckFreeSpace(VD, posX, posY, posZ, rotation)){
                     for(int y=posY; y < posY + this.blockdata.GetLength(1); y++){
                         structX = structinitX;
                         for(int x=posX; x < posX + remainderX; x++){
                             structZ = structinitZ;
                             for(int z=posZ; z < posZ + remainderZ; z++){
-                                if(this.blockdata[structX, structY, structZ] == 0)
+                                RotateData(structX, structY, structZ, rotation);
+                                if(this.blockdata[cacheX, cacheY, cacheZ] == 0)
                                     VD[x,y,z] = (ushort)(ushort.MaxValue/2);
                                 else
-                                    VD[x,y,z] = this.blockdata[structX, structY, structZ];
+                                    VD[x,y,z] = this.blockdata[cacheX, cacheY, cacheZ];
 
                                 if(VM.metadata[x,y,z] != null)
-                                    VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                    VM.metadata[x, y, z] = this.meta.metadata[cacheX, cacheY, cacheZ];
                                 structZ++;
                             }
                             structX++;
@@ -288,10 +297,11 @@ public abstract class Structure
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
                             if(this.overwriteBlocks.Contains(VD[x,y,z])){
-                                VD[x,y,z] = this.blockdata[structX, structY, structZ];
+                                RotateData(structX, structY, structZ, rotation);
+                                VD[x,y,z] = this.blockdata[cacheX, cacheY, cacheZ];
 
                                 if(VM.metadata[x,y,z] != null)
-                                    VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                    VM.metadata[x, y, z] = this.meta.metadata[cacheX, cacheY, cacheZ];
                             }
                             structZ++;
                         }
@@ -308,13 +318,14 @@ public abstract class Structure
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
                             if(this.overwriteBlocks.Contains(VD[x,y,z])){
-                                if(this.blockdata[structX, structY, structZ] == 0)
+                                RotateData(structX, structY, structZ, rotation);
+                                if(this.blockdata[cacheX, cacheY, cacheZ] == 0)
                                     VD[x,y,z] = (ushort)(ushort.MaxValue/2);
                                 else
-                                    VD[x,y,z] = this.blockdata[structX, structY, structZ];
+                                    VD[x,y,z] = this.blockdata[cacheX, cacheY, cacheZ];
 
                                 if(VM.metadata[x,y,z] != null)
-                                    VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                    VM.metadata[x, y, z] = this.meta.metadata[cacheX, cacheY, cacheZ];
                             }
                             structZ++;
                         }
@@ -335,11 +346,12 @@ public abstract class Structure
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
+                            RotateData(structX, structY, structZ, rotation);
                             // If air add pregen block
-                            if(this.blockdata[structX, structY, structZ] == 0)
+                            if(this.blockdata[cacheX, cacheY, cacheZ] == 0)
                                 VD[x,y,z] = (ushort)(ushort.MaxValue/2);
                             else
-                                VD[x,y,z] = this.blockdata[structX, structY, structZ];
+                                VD[x,y,z] = this.blockdata[cacheX, cacheY, cacheZ];
 
                             // Draws Object
                             if(VD[x,y,z] > ushort.MaxValue/2 && loaded && !initialchunk)
@@ -349,7 +361,7 @@ public abstract class Structure
                                     cl.chunks[pos].assetGrid.AddDraw(x,y,z, VD[x,y,z], null, cl);
 
                             if(VM.metadata[x,y,z] != null)
-                                VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                VM.metadata[x, y, z] = this.meta.metadata[cacheX, cacheY, cacheZ];
                             structZ++;
                         }
                         structX++;
@@ -364,14 +376,15 @@ public abstract class Structure
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
-                            if(this.blockdata[structX, structY, structZ] == 0){
+                            RotateData(structX, structY, structZ, rotation);
+                            if(this.blockdata[cacheX, cacheY, cacheZ] == 0){
                                 VD[x,y,z] = (ushort)(ushort.MaxValue/2);
                             }
                             else{
-                                VD[x,y,z] = this.blockdata[structX, structY, structZ];
+                                VD[x,y,z] = this.blockdata[cacheX, cacheY, cacheZ];
 
                                 if(VM.metadata[x,y,z] != null)
-                                    VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                    VM.metadata[x, y, z] = this.meta.metadata[cacheX, cacheY, cacheZ];
                             }
                             structZ++;
                         }
@@ -387,8 +400,9 @@ public abstract class Structure
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
-                            if(this.blockdata[structX, structY, structZ] != 0){
-                                VD[x,y,z] = this.blockdata[structX, structY, structZ];
+                            RotateData(structX, structY, structZ, rotation);
+                            if(this.blockdata[cacheX, cacheY, cacheZ] != 0){
+                                VD[x,y,z] = this.blockdata[cacheX, cacheY, cacheZ];
 
                                 // Draws Object
                                 if(VD[x,y,z] > ushort.MaxValue/2 && loaded && !initialchunk)
@@ -398,7 +412,7 @@ public abstract class Structure
                                         cl.chunks[pos].assetGrid.AddDraw(x,y,z, VD[x,y,z], null, cl);
 
                                 if(VM.metadata[x,y,z] != null)
-                                    VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                    VM.metadata[x, y, z] = this.meta.metadata[cacheX, cacheY, cacheZ];
                             }
                             structZ++;
                         }
@@ -414,10 +428,11 @@ public abstract class Structure
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
-                            VD[x,y,z] = this.blockdata[structX, structY, structZ];
+                            RotateData(structX, structY, structZ, rotation);
+                            VD[x,y,z] = this.blockdata[cacheX, cacheY, cacheZ];
 
                             if(VM.metadata[x,y,z] != null)
-                                VM.metadata[x, y, z] = this.meta.metadata[structX, structY, structZ];
+                                VM.metadata[x, y, z] = this.meta.metadata[cacheX, cacheY, cacheZ];
                             structZ++;
                         }
                         structX++;
@@ -433,7 +448,7 @@ public abstract class Structure
     } 
 
     // Checks for valid space in FreeSpace mode
-    private bool CheckFreeSpace(ushort[,,] data, int x, int y, int z){
+    private bool CheckFreeSpace(ushort[,,] data, int x, int y, int z, int rotation){
         int xRemainder = Mathf.Min(Chunk.chunkWidth - x, this.sizeX);
         int zRemainder = Mathf.Min(Chunk.chunkWidth - z, this.sizeZ);
 
@@ -454,13 +469,49 @@ public abstract class Structure
             for(int yCount = 0; yCount < this.blockdata.GetLength(1); yCount++){
                 for(int xCount = 0; xCount < xRemainder; xCount++){
                     for(int zCount = 0; zCount < zRemainder; zCount++){
-                        if(data[x + xCount, y + yCount, z + zCount] != 0 && this.blockdata[xCount, yCount, zCount] != 0)
+                        RotateData(xCount, yCount, zCount, rotation);
+                        if(data[x + xCount, y + yCount, z + zCount] != 0 && this.blockdata[cacheX, cacheY, cacheZ] != 0)
                             return false;
                     }
                 }
             }
             return true;          
         }
+    }
+
+    // Changes the index of rotation torotate Structures at Apply-Time
+    /*
+    Rotation Types:
+    0: No Rotation
+    1: 90º
+    2: 180º
+    3: 270º
+    */
+    private void RotateData(int x, int y, int z, int rotation){
+        cacheY= y;
+
+        // No rotation
+        if(rotation == 0){
+            cacheX = x;
+            cacheZ = z;
+        }
+        else if(rotation == 1){
+            cacheX = (this.sizeX - x) - 1;
+            cacheZ = z;
+        }
+        else if(rotation == 2){
+            cacheX = (this.sizeX - x) - 1;
+            cacheZ = (this.sizeZ - z) - 1;
+        }
+        else if(rotation == 3){
+            cacheX = x;
+            cacheZ = (this.sizeZ - z) - 1;
+        }
+        else{
+            cacheX = x;
+            cacheZ = z;            
+        }
+
     }
 
 }

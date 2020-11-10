@@ -904,6 +904,7 @@ public class ChunkLoader : MonoBehaviour
 
         int x,y,z;
         int offsetX, offsetZ;
+        int rotation = 0;
         float chance;
 
         // Offset
@@ -917,6 +918,8 @@ public class ChunkLoader : MonoBehaviour
 
                 if(chance > percentage)
                     continue;
+
+                rotation = Mathf.FloorToInt(Perlin.Noise((pos.z+pos.x)*xhash*zhash+i)*3.99f);
 
                 x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidthMult);
                 z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidthMult);
@@ -939,7 +942,7 @@ public class ChunkLoader : MonoBehaviour
                     continue;
                 
 
-                this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z);
+                this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z, rotation:rotation);
             }
         }
         else{
@@ -948,6 +951,8 @@ public class ChunkLoader : MonoBehaviour
 
                 if(chance > percentage)
                     continue;
+
+                rotation = Mathf.FloorToInt(Perlin.Noise((pos.z+pos.x)*xhash*zhash+i)*3.99f);
 
                 x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidthMult);
                 z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidthMult);
@@ -967,7 +972,7 @@ public class ChunkLoader : MonoBehaviour
                     y = (int)(heightlimit + yMult*(cacheHeightMap[x+offsetX, z+offsetZ] - depth));
 
 
-                this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z);
+                this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z, rotation:rotation);
             }            
         }
     }

@@ -265,6 +265,7 @@ public class TreeSmallB : Structure
 	}
 }
 
+
 /*
 ADD TO THIS ENUM EVERY NEW STRUCTURE IMPLEMENTED
 */
