@@ -684,7 +684,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Generates Pivot heightmaps
-    private void GeneratePivots(ushort[,] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, ref bool transitionChecker, int octave=0, int groundLevel=20, int ceilingLevel=100, string currentBiome=""){
+    private void GeneratePivots(ushort[,] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, ref bool transitionChecker, ref string transitionBiome, int octave=0, int groundLevel=20, int ceilingLevel=100, string currentBiome=""){
     	int size = Chunk.chunkWidth;
     	int chunkXmult = chunkX * size;
     	int chunkZmult = chunkZ * size;
@@ -705,23 +705,31 @@ public class ChunkLoader : MonoBehaviour
         // Look Ahead to X+
         switch(biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ), worldSeed)){
             case "Plains":
-                if("Plains" != currentBiome)
+                if("Plains" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Plains";
+                }
                 MixPlainsBorderPivots(selectedCache, chunkX, chunkZ, false, octave);
                 break;
             case "Grassy Highlands":
-                if("Grassy Highlands" != currentBiome)
+                if("Grassy Highlands" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Grassy Highlands";
+                }
                 MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, false, octave);
                 break;
             case "Ocean":
-                if("Ocean" != currentBiome)
+                if("Ocean" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Ocean";
+                }
                 MixOceanBorderPivots(selectedCache, chunkX, chunkZ, false, octave, currentBiome:currentBiome);
                 break;
             case "Forest":
-                if("Forest" != currentBiome)
+                if("Forest" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Forest";
+                }
                 MixForestBorderPivots(selectedCache, chunkX, chunkZ, false, octave); 
                 break;               
             default:
@@ -732,23 +740,31 @@ public class ChunkLoader : MonoBehaviour
         // Look Ahead to Z+
         switch(biomeHandler.Assign(new ChunkPos(chunkX, chunkZ+1), worldSeed)){
             case "Plains":
-                if("Plains" != currentBiome)
+                if("Plains" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Plains";
+                }
                 MixPlainsBorderPivots(selectedCache, chunkX, chunkZ, true, octave);
                 break;
             case "Grassy Highlands":
-                if("Grassy Highlands" != currentBiome)
+                if("Grassy Highlands" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Grassy Highlands";
+                }
                 MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, true, octave);
                 break;
             case "Ocean":
-                if("Ocean" != currentBiome)
+                if("Ocean" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Ocean";
+                }
                 MixOceanBorderPivots(selectedCache, chunkX, chunkZ, true, octave, currentBiome:currentBiome);
                 break;
             case "Forest":
-                if("Forest" != currentBiome)
+                if("Forest" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Forest";
+                }
                 MixForestBorderPivots(selectedCache, chunkX, chunkZ, true, octave);
                 break;
             default:
@@ -759,27 +775,34 @@ public class ChunkLoader : MonoBehaviour
         // Look ahead into XZ+
         switch(biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ+1), worldSeed)){
             case "Plains":
-                if("Plains" != currentBiome)
+                if("Plains" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Plains";
+                }
                 MixPlainsBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true);
                 break;
             case "Grassy Highlands":
-                if("Grassy Highlands" != currentBiome)
+                if("Grassy Highlands" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Grassy Highlands";
+                }
                 MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true);
                 break;
             case "Ocean":
-                if("Ocean" != currentBiome)
+                if("Ocean" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Ocean";
+                }
                 MixOceanBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true, currentBiome:currentBiome);
                 break;
             case "Forest":
-                if("Forest" != currentBiome)
+                if("Forest" != currentBiome){
                     transitionChecker = true;
+                    transitionBiome = "Forest";
+                }
                 MixForestBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true);
                 break;
             default:
-                print("Deu Merda");
                 break;
         }        
     }
@@ -1133,10 +1156,11 @@ public class ChunkLoader : MonoBehaviour
         float xhash = 41.21f;
         float zhash = 105.243f;
         bool transition = false;
+        string transitionBiome = "";
         
 		// Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
-		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, octave:0, groundLevel:20, ceilingLevel:25, currentBiome:"Plains");
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, ref transition, octave:1, groundLevel:18, ceilingLevel:30, currentBiome:"Plains");
+		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, ref transitionBiome, octave:0, groundLevel:20, ceilingLevel:25, currentBiome:"Plains");
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, ref transition, ref transitionBiome, octave:1, groundLevel:18, ceilingLevel:30, currentBiome:"Plains");
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
 
         // Does different interpolation for normal vs transition chunks
@@ -1156,7 +1180,12 @@ public class ChunkLoader : MonoBehaviour
 		AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
         // Add Water
-        GenerateWaterMap(cacheHeightMap4, 22);
+        if(!transition){
+            GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel("Plains"));
+        }
+        else if(BiomeHandler.GetWaterLevel("Plains") >= BiomeHandler.GetWaterLevel(transitionBiome)){
+            GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel(transitionBiome));
+        }
 
 		// Adds rest to pipeline
 		cacheMaps.Add(cacheHeightMap3);
@@ -1221,9 +1250,10 @@ public class ChunkLoader : MonoBehaviour
         float xhash = 41.21f;
         float zhash = 105.243f;
         bool transition = false;
+        string transitionBiome = "";
 
-        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, octave:0, groundLevel:30, ceilingLevel:50, currentBiome:"Grassy Highlands");
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, ref transition, octave:1, groundLevel:30, ceilingLevel:70, currentBiome:"Grassy Highlands");
+        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, ref transitionBiome, octave:0, groundLevel:30, ceilingLevel:50, currentBiome:"Grassy Highlands");
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, ref transition, ref transitionBiome, octave:1, groundLevel:30, ceilingLevel:70, currentBiome:"Grassy Highlands");
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
 
         // Does different interpolation for normal vs transition chunks
@@ -1250,7 +1280,12 @@ public class ChunkLoader : MonoBehaviour
 
         // Add Water
         if(!transition){
-            GenerateWaterMap(cacheHeightMap4, 42);
+            GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel("Grassy Highlands"));
+            cacheMaps.Add(cacheHeightMap4);
+            cacheBlockCodes.Add(6);
+        }
+        else if(BiomeHandler.GetWaterLevel("Grassy Highlands") >= BiomeHandler.GetWaterLevel(transitionBiome)){
+            GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel(transitionBiome));
             cacheMaps.Add(cacheHeightMap4);
             cacheBlockCodes.Add(6);
         }
@@ -1312,9 +1347,10 @@ public class ChunkLoader : MonoBehaviour
         float xhash = 54.7f;
         float zhash = 69.3f;
         bool transition = false;
+        string transitionBiome = "";
 
-        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, octave:0, groundLevel:1, ceilingLevel:19, currentBiome:"Ocean");
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, ref transition, octave:1, groundLevel:1, ceilingLevel:19, currentBiome:"Ocean");
+        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, ref transitionBiome, octave:0, groundLevel:1, ceilingLevel:19, currentBiome:"Ocean");
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, ref transition, ref transitionBiome, octave:1, groundLevel:1, ceilingLevel:19, currentBiome:"Ocean");
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
 
         // Does different interpolation for normal vs transition chunks
@@ -1328,7 +1364,7 @@ public class ChunkLoader : MonoBehaviour
         cacheBlockCodes.Add(2);
 
         // Add Water
-        GenerateFlatMap(cacheHeightMap4, 20);
+        GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel("Ocean"));
 
         // Adds rest to pipeline
         cacheMaps.Add(cacheHeightMap4);
@@ -1349,11 +1385,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Inserts Structures into Ocean Biome
     private void GenerateOceanStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){
-        /*
-        foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
-        }
-        */
-        
+        // Nothing Yet
 
     }
 
@@ -1408,10 +1440,11 @@ public class ChunkLoader : MonoBehaviour
         float xhash = 72.117f;
         float zhash = 45.483f;
         bool transition = false;
+        string transitionBiome = "";
         
         // Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
-        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, octave:0, groundLevel:25, ceilingLevel:32, currentBiome:"Forest");
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, ref transition, octave:1, groundLevel:25, ceilingLevel:45, currentBiome:"Forest");
+        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, ref transitionBiome, octave:0, groundLevel:25, ceilingLevel:32, currentBiome:"Forest");
+        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, ref transition, ref transitionBiome, octave:1, groundLevel:25, ceilingLevel:45, currentBiome:"Forest");
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
 
         // Does different interpolation for normal vs transition chunks
@@ -1430,14 +1463,23 @@ public class ChunkLoader : MonoBehaviour
         // Dirt is hold on Cache 3
         AddFromMap(cacheHeightMap, -1, cacheNumber:3);
 
-
         // Adds rest to pipeline
         cacheMaps.Add(cacheHeightMap3);
         cacheBlockCodes.Add(2);
         cacheMaps.Add(cacheHeightMap);
         cacheBlockCodes.Add(1);
 
-        cacheStateDict = new Dictionary<ushort, ushort>();
+
+        // Add Water
+        if(transition){
+            if(BiomeHandler.GetWaterLevel("Forest") >= BiomeHandler.GetWaterLevel(transitionBiome)){
+                GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel(transitionBiome));
+                cacheMaps.Add(cacheHeightMap4);
+                cacheBlockCodes.Add(6);
+            }
+        }
+
+        cacheStateDict = new Dictionary<ushort, ushort>{{6, 0}};
 
         // Adds to cacheVoxdata
         ApplyHeightMaps(cacheStateDict, pregen:pregen);

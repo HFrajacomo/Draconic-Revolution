@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1484502057}
-  m_IndirectSpecularColor: {r: 0.0033188746, g: 0.0041597234, b: 0.0029973, a: 1}
+  m_IndirectSpecularColor: {r: 0.0030921812, g: 0.003903416, b: 0.0028413928, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -393,8 +393,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 59614818}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 220, y: 200, z: 170}
+  m_LocalRotation: {x: 0, y: -0.9984408, z: 0, w: 0.055822074}
+  m_LocalPosition: {x: 1929.6709, y: 200, z: 1943.9713}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1091412602}
@@ -1677,7 +1677,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6285e066fcb064e47b45316bd081d2a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderDistance: 1
+  renderDistance: 5
   player: {fileID: 59614821}
   blockBook: {fileID: 1668289087}
   budscheduler: {fileID: 816262494}

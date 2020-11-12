@@ -15,22 +15,22 @@ public class BiomeHandler
 	public BiomeHandler(float seed){
 		dispersionSeed = seed;
 
-		Biome plains = new Biome("Plains", 0, 0.3f, 0.5f, 0.6f, 1f,
+		Biome plains = new Biome("Plains", 0, 0.3f, 0.5f, 0.6f, 1f, 22,
 		 new List<int>(){1,2,3,4,5},
 		 new List<int>(){1,1,3,2,1},
 		 new List<float>(){0.1f, 0.05f, 1f, 1f, 0.01f});
 
-		Biome grassyHighlands = new Biome("Grassy Highlands", 1, 0.7f, 0.5f, 0.6f, 0.9f,
+		Biome grassyHighlands = new Biome("Grassy Highlands", 1, 0.7f, 0.5f, 0.6f, 0.9f, 42,
 		 new List<int>(){1,2,3,4,5},
 		 new List<int>(){1,1,3,2,1},
 		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.02f}); 
 
-		Biome ocean = new Biome("Ocean", 2, 0f, 1f, 0.5f, 0.3f,
+		Biome ocean = new Biome("Ocean", 2, 0f, 1f, 0.5f, 0.3f, 20,
 		 new List<int>(){},
 		 new List<int>(){},
 		 new List<float>(){});
 
-		Biome forest = new Biome("Forest", 3, 0.3f, 0.5f, 0.5f, 0.7f,
+		Biome forest = new Biome("Forest", 3, 0.3f, 0.5f, 0.5f, 0.7f, 21,
 		 new List<int>(){6,1,2,7,8},
 		 new List<int>(){1,2,2,1,1},
 		 new List<float>(){0.05f, 1f, 0.5f, 0.1f, 0.3f});
@@ -56,6 +56,11 @@ public class BiomeHandler
 	private void AddBiome(Biome b){
 		dataset.Add(b.name, b);
 		codeToBiome.Add(b.biomeCode, b.name);
+	}
+
+	// Returns the Water Level of a biome
+	public static ushort GetWaterLevel(string biome){
+		return dataset[biome].waterLevel;
 	}
 
 	// Returns the list of possible Structures in a biome
@@ -125,14 +130,17 @@ public struct Biome{
 	public List<int> structCodes;
 	public List<int> amountStructs;
 	public List<float> percentageStructs;
+	public ushort waterLevel;
 
-	public Biome(string n, byte code, float a, float h, float t, float l, List<int> structCodes, List<int> amountStructs, List<float> percentageStructs){
+	public Biome(string n, byte code, float a, float h, float t, float l, ushort water, List<int> structCodes, List<int> amountStructs, List<float> percentageStructs){
 		this.name = n;
 		this.biomeCode = code;
 		this.altitude = a;
 		this.humidity = h;
 		this.temperature = t;
 		this.lightning = l;
+
+		this.waterLevel = water;
 
 		this.structCodes = structCodes;
 		this.amountStructs = amountStructs;
