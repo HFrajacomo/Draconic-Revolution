@@ -105,6 +105,14 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""Press(behavior=2)""
+                },
+                {
+                    ""name"": ""Reload"",
+                    ""type"": ""Button"",
+                    ""id"": ""f9c214f8-0c59-4d0c-b22d-fb77c3452af5"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
                 }
             ],
             ""bindings"": [
@@ -272,6 +280,17 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""action"": ""Shifting"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""85e1fcad-506a-4d00-b2c7-157951f6dbe4"",
+                    ""path"": ""<Keyboard>/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Reload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -308,6 +327,7 @@ public class @Controls : IInputActionCollection, IDisposable
         m_Player_PrefabReadAir = m_Player.FindAction("PrefabReadAir", throwIfNotFound: true);
         m_Player_ToggleFreeCam = m_Player.FindAction("ToggleFreeCam", throwIfNotFound: true);
         m_Player_Shifting = m_Player.FindAction("Shifting", throwIfNotFound: true);
+        m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -368,6 +388,7 @@ public class @Controls : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_PrefabReadAir;
     private readonly InputAction m_Player_ToggleFreeCam;
     private readonly InputAction m_Player_Shifting;
+    private readonly InputAction m_Player_Reload;
     public struct PlayerActions
     {
         private @Controls m_Wrapper;
@@ -383,6 +404,7 @@ public class @Controls : IInputActionCollection, IDisposable
         public InputAction @PrefabReadAir => m_Wrapper.m_Player_PrefabReadAir;
         public InputAction @ToggleFreeCam => m_Wrapper.m_Player_ToggleFreeCam;
         public InputAction @Shifting => m_Wrapper.m_Player_Shifting;
+        public InputAction @Reload => m_Wrapper.m_Player_Reload;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -425,6 +447,9 @@ public class @Controls : IInputActionCollection, IDisposable
                 @Shifting.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShifting;
                 @Shifting.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShifting;
                 @Shifting.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShifting;
+                @Reload.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
+                @Reload.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
+                @Reload.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -462,6 +487,9 @@ public class @Controls : IInputActionCollection, IDisposable
                 @Shifting.started += instance.OnShifting;
                 @Shifting.performed += instance.OnShifting;
                 @Shifting.canceled += instance.OnShifting;
+                @Reload.started += instance.OnReload;
+                @Reload.performed += instance.OnReload;
+                @Reload.canceled += instance.OnReload;
             }
         }
     }
@@ -488,5 +516,6 @@ public class @Controls : IInputActionCollection, IDisposable
         void OnPrefabReadAir(InputAction.CallbackContext context);
         void OnToggleFreeCam(InputAction.CallbackContext context);
         void OnShifting(InputAction.CallbackContext context);
+        void OnReload(InputAction.CallbackContext context);
     }
 }

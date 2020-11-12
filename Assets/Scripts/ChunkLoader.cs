@@ -39,6 +39,9 @@ public class ChunkLoader : MonoBehaviour
 	// Flags
 	public bool WORLD_GENERATED = false;
 
+    // DEBUG
+    private ChunkPos debugChunkPos = new ChunkPos(22, 7); 
+
 	// Cache Information
 	private ushort[,] cacheHeightMap = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
 	private ushort[,] cacheHeightMap2 = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
@@ -50,6 +53,7 @@ public class ChunkLoader : MonoBehaviour
 	private List<ushort> cacheBlockCodes = new List<ushort>();
     private ushort[,,] cacheTurbulanceMap = new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
     private ChunkPos cachePos = new ChunkPos(0,0);
+    private Chunk cacheChunk;
     private VoxelMetadata cacheMetadata = new VoxelMetadata();
     private Dictionary<ushort, ushort> cacheStateDict = new Dictionary<ushort, ushort>();
 
@@ -80,12 +84,21 @@ public class ChunkLoader : MonoBehaviour
     		WORLD_GENERATED = true;
     	}
 
-    	GetChunks(false);
+        // DEV TOOLS
+        if(MainControllerManager.reload){
+            GetChunks(true);
+            MainControllerManager.reload = false;
+        }
+        else{
+    	   GetChunks(false);
+        }
+
     	UnloadChunk();
 
-        //if(loadingCount >= 0)
         if(toLoad.Count > 0)
             LoadChunk();
+        else if(Structure.reloadChunks.Count > 0)
+            SavePregenChunk();
         else
             DrawChunk();
     }
@@ -94,9 +107,48 @@ public class ChunkLoader : MonoBehaviour
     private void ClearAllChunks(){
     	foreach(ChunkPos item in chunks.Keys){
     		Destroy(chunks[item].obj);
-    		chunks.Remove(item);
+            chunks[item].assetGrid.Unload();
             vfx.RemoveChunk(item);
     	}
+        chunks.Clear();
+    }
+
+    // Builds Structure data in non-indexed Chunks
+    private void SavePregenChunk(){
+        cacheChunk = Structure.reloadChunks[0];
+
+        // If it's loaded
+        if(chunks.ContainsKey(cacheChunk.pos)){
+
+            cacheChunk.needsGeneration = 0;
+
+            // Rough Application of Structures
+            Structure.RoughApply(chunks[cacheChunk.pos], cacheChunk);
+
+            this.regionHandler.SaveChunk(cacheChunk);
+
+            if(!toDraw.Contains(cacheChunk.pos))
+                toDraw.Add(cacheChunk.pos);
+        }
+
+        // If is in an unloaded indexed chunk
+        else if(this.regionHandler.GetFile().IsIndexed(cacheChunk.pos)){
+        
+            Chunk c = new Chunk(cacheChunk.pos, this.rend, this.blockBook, this, fromMemory:true);
+            this.regionHandler.LoadChunk(c);
+
+            // Rough Application of Structures
+            Structure.RoughApply(c, cacheChunk);
+            this.regionHandler.SaveChunk(c);
+        }
+
+        // If is in an unloaded unknown chunk
+        else{
+            this.regionHandler.SaveChunk(cacheChunk);
+        }
+
+
+        Structure.reloadChunks.RemoveAt(0);
     }
 
     // Loads Chunk data, but doesn't draw them
@@ -114,39 +166,87 @@ public class ChunkLoader : MonoBehaviour
                 return;
             }
 
+            bool isPregen, isStructured;
+
+            isStructured = Structure.Exists(toLoad[0]);
+
             // Gets correct region file
             regionHandler.GetCorrectRegion(toLoad[0]);
 
             // If current chunk toLoad was already generated
             if(regionHandler.GetFile().IsIndexed(toLoad[0])){
-                // If chunk is Pre-Generated
-                if(regionHandler.GetsNeedGeneration(toLoad[0])){
-                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
-                    chunks[toLoad[0]].needsGeneration = 0;
-                    vfx.NewChunk(toLoad[0]);
-                    regionHandler.LoadChunk(chunks[toLoad[0]]);
 
+                isPregen = regionHandler.GetsNeedGeneration(toLoad[0]);
+
+                if(isStructured && isPregen){
+                    chunks.Add(toLoad[0], Structure.GetChunk(toLoad[0]).Clone());
+                    chunks[toLoad[0]].needsGeneration = 1;
+                    vfx.NewChunk(toLoad[0]); 
                     cacheVoxdata = chunks[toLoad[0]].data.GetData();
                     chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
                     chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
+                    chunks[toLoad[0]].needsGeneration = 0;
+                    regionHandler.SaveChunk(chunks[toLoad[0]]);                    
+                    Structure.RemoveChunk(toLoad[0]);
+                }
+
+                // If it's a Structure Update
+                else if(isStructured){
+                    chunks.Add(toLoad[0], Structure.GetChunk(toLoad[0]).Clone());
+                    vfx.NewChunk(toLoad[0]); 
+                    regionHandler.SaveChunk(chunks[toLoad[0]]);
+                    Structure.RemoveChunk(toLoad[0]);
+                }
+
+                // If chunk is Pre-Generated
+                else if(isPregen){
+
+                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
+                    vfx.NewChunk(toLoad[0]);
+                    regionHandler.LoadChunk(chunks[toLoad[0]]);
+                    cacheVoxdata = chunks[toLoad[0]].data.GetData();
+                    cacheMetadata = chunks[toLoad[0]].metadata;
+                    chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
+                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
+                    chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
                 }
                 // If it's just a normally generated chunk
                 else{
+
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
                     vfx.NewChunk(toLoad[0]);
                     regionHandler.LoadChunk(chunks[toLoad[0]]);
+                    chunks[toLoad[0]].needsGeneration = 0;
                 }
             }
             // If it's a new chunk to be generated
             else{
-        		chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
-                vfx.NewChunk(toLoad[0]);
-        		chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
-                chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
-                cacheMetadata.Clear();
+                if(isStructured){
 
-                regionHandler.SaveChunk(chunks[toLoad[0]]);
+                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
+                    vfx.NewChunk(toLoad[0]);
+                    cacheVoxdata = Structure.GetChunk(toLoad[0]).data.GetData();
+                    cacheMetadata = Structure.GetChunk(toLoad[0]).metadata;
+                    chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
+                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
+                    chunks[toLoad[0]].needsGeneration = 0;
+                    regionHandler.SaveChunk(chunks[toLoad[0]]);
+                    Structure.RemoveChunk(toLoad[0]);
+                }
+                else{
+
+                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
+                    vfx.NewChunk(toLoad[0]);
+                    chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
+                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
+                    cacheMetadata.Clear();
+                    chunks[toLoad[0]].needsGeneration = 0;
+                    regionHandler.SaveChunk(chunks[toLoad[0]]);
+                }                 
+
+
+
             }
 
             toDraw.Add(toLoad[0]);

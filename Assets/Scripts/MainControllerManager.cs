@@ -20,6 +20,7 @@ public class MainControllerManager : MonoBehaviour
     public bool prefabReadAir = false;
     public bool freecam = false;
     public bool shifting = false;
+    public static bool reload = false;
 
 
 	// Jumping
@@ -80,5 +81,9 @@ public class MainControllerManager : MonoBehaviour
         // If it's release
         else
             shifting = false;       
+    }
+
+    public void OnReload(){
+        reload = true;
     }
 }

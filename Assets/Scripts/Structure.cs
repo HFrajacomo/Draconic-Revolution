@@ -15,6 +15,8 @@ public abstract class Structure
     private static int cacheY;
     private static int cacheZ;
 
+    public static List<Chunk> reloadChunks = new List<Chunk>();
+
     public bool considerAir;
 
     public int sizeX, sizeY, sizeZ;
@@ -191,7 +193,7 @@ public abstract class Structure
                 // Checks if it's a loaded chunk
                 if(cl.chunks.ContainsKey(newPos)){
                     ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);
-                    cl.budscheduler.ScheduleReload(newPos, 1);
+                    AddChunk(cl.chunks[newPos]);
                     continue;
                 }
 
@@ -201,16 +203,35 @@ public abstract class Structure
 
                 // Check if it's an existing chunk
                 if(cl.regionHandler.GetFile().IsIndexed(newPos)){
-                    c = new Chunk(newPos, cl.rend, cl.blockBook, cl, fromMemory:true);
-                    cl.regionHandler.LoadChunk(c);
-                    ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);                
-                    cl.regionHandler.SaveChunk(c);
+                    if(Structure.Exists(newPos)){
+
+                        c = Structure.GetChunk(newPos);
+                        ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);
+                    }
+                    else{
+
+                        c = new Chunk(newPos, cl.rend, cl.blockBook, cl, fromMemory:true);
+                        cl.regionHandler.LoadChunk(c);
+                        ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);                
+                        AddChunk(c); 
+                    }
                 }
                 // Check if it's an ungenerated chunk
                 else{
-                    c = new Chunk(newPos);
-                    ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);              
-                    cl.regionHandler.SaveChunk(c);
+
+                    if(Structure.Exists(newPos)){
+
+                        c = Structure.GetChunk(newPos);
+                        ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);                        
+                    }
+                    else{
+
+                        c = new Chunk(newPos, cl.rend, cl.blockBook, cl, fromMemory:true);
+                        c.biomeName = "Plains";
+                        c.needsGeneration = 1;
+                        ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata, posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);              
+                        AddChunk(c);
+                    }
                 }
             }
         }
@@ -479,6 +500,66 @@ public abstract class Structure
         }
     }
 
+    // Checks if a chunk pos exists in reloadChunks
+    public static bool Exists(ChunkPos pos){
+        foreach(Chunk c in Structure.reloadChunks){
+            if(c.pos == pos){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Gets the chunk given it's pos
+    public static Chunk GetChunk(ChunkPos pos){
+        foreach(Chunk c in Structure.reloadChunks){
+            if(c.pos == pos){
+                return c;
+            }
+        }
+        return new Chunk(pos);
+    }
+
+    // Removes a chunk from reload static list
+    public static bool RemoveChunk(ChunkPos pos){
+        foreach(Chunk c in Structure.reloadChunks){
+            if(c.pos == pos){
+                Structure.reloadChunks.Remove(c);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Does a Rough apply on synchonization problems when loading a Chunk before applying
+    //  Structure to it
+    public static void RoughApply(Chunk c, Chunk st){
+        ushort block;
+
+        for(int y=0; y < Chunk.chunkDepth; y++){
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    block = st.data.GetCell(x,y,z);
+
+                    // Ignores all air
+                    if(block == 0)
+                        continue;
+
+                    c.data.SetCell(x,y,z,block);
+
+                    if(!st.metadata.IsUnassigned(x,y,z)){
+                        if(st.metadata.metadata[x,y,z].hp != null){
+                            c.metadata.metadata[x,y,z].hp = st.metadata.metadata[x,y,z].hp;
+                        }
+                        if(st.metadata.metadata[x,y,z].state != null){
+                            c.metadata.metadata[x,y,z].state = st.metadata.metadata[x,y,z].state;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Changes the index of rotation torotate Structures at Apply-Time
     /*
     Rotation Types:
@@ -513,6 +594,14 @@ public abstract class Structure
         }
 
     }
+
+    // Adds chunk to reload static list
+    private void AddChunk(Chunk c){
+        if(!Structure.reloadChunks.Contains(c)){
+            Structure.reloadChunks.Add(c);
+        }
+    }
+
 
 }
 

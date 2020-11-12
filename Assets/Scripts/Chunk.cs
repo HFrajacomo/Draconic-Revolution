@@ -81,6 +81,17 @@ public class Chunk
 		this.metadata = new VoxelMetadata();
 	}
 
+	// Clone
+	public Chunk Clone(){
+		Chunk c = new Chunk(this.pos, this.renderer, this.blockBook, this.loader);
+
+		c.biomeName = this.biomeName;
+		c.data = new VoxelData(this.data.GetData());
+		c.metadata = new VoxelMetadata(this.metadata.metadata);
+
+		return c;
+	}
+
 	public void BuildOnVoxelData(VoxelData vd){
 		this.data = vd;
 	}
