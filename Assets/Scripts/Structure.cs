@@ -547,7 +547,7 @@ public abstract class Structure
 
                     c.data.SetCell(x,y,z,block);
 
-                    if(!st.metadata.IsUnassigned(x,y,z)){
+                    if(st.metadata.metadata[x,y,z] != null){
                         if(st.metadata.metadata[x,y,z].hp != null){
                             c.metadata.metadata[x,y,z].hp = st.metadata.metadata[x,y,z].hp;
                         }

@@ -391,6 +391,8 @@ public static class Compression{
 				return Pallete.GRASSLANDS;
 			case "Ocean":
 				return Pallete.OCEAN;
+			case "Forest":
+				return Pallete.FOREST;
 			default:
 				return Pallete.BASIC;
 		}
@@ -407,6 +409,9 @@ public static class Compression{
 
 			case Pallete.OCEAN:
 				return new List<ushort>{0,2,3,6, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone and Water (and pregen air)
+
+			case Pallete.FOREST:
+				return new List<ushort>{0,2,3,6,65534, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone, Water and Leaves (and pregen air)
 
 			// Special Pallete used for Metadata Compression
 			case Pallete.METADATA:
@@ -446,5 +451,6 @@ public enum Pallete
 	BASIC,
 	GRASSLANDS,
 	OCEAN,
+	FOREST,
 	METADATA
 }

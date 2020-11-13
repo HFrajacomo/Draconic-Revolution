@@ -1397,18 +1397,18 @@ public class ChunkLoader : MonoBehaviour
         if(currentBiome != "Ocean"){
             if(!corner){
                 if(octave == 0){
-                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:20, ceilingLevel:20);
+                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:1, ceilingLevel:20);
                 }
                 else{
-                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, isSide, groundLevel:20, ceilingLevel:20);            
+                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, isSide, groundLevel:1, ceilingLevel:20);            
                 }
             }
             else{
                 if(octave == 0){
-                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:19, ceilingLevel:19);
+                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:1, ceilingLevel:20);
                 }
                 else{
-                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, groundLevel:19, ceilingLevel:19);
+                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, groundLevel:1, ceilingLevel:20);
                 }
 
             }
