@@ -52,10 +52,8 @@ public class BUDScheduler : MonoBehaviour
     		}
 
     		// Frees memory of previous BUD Tick
-            this.data[this.currentTime] = null;
-            this.toReload[this.currentTime] = null;
-    		this.data.Remove(this.currentTime);
-    		this.toReload.Remove(this.currentTime);
+            this.data.Remove(this.currentTime);
+            this.toReload.Remove(this.currentTime);
     		this.currentTime = this.newTime;
 
             // Permits all initial BUD to be processes in current tick
@@ -175,6 +173,12 @@ public class BUDScheduler : MonoBehaviour
     		this.data[this.newTime].Insert(i, b);
     		i++;
     	}
+
+        i = 0;
+        foreach(ChunkPos pos in this.toReload[this.currentTime]){
+            this.toReload[this.newTime].Insert(i, pos);
+            i++;
+        }
     }
 
     // Deschedules a BUD request (probably when block is broken or updated)
