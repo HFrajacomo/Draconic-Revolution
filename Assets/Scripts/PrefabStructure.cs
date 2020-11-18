@@ -265,6 +265,92 @@ public class TreeSmallB : Structure
 	}
 }
 
+public class MetalVeinA : Structure
+{
+	ushort[] blocks = new ushort[8]{0,5,5,5,0,0,5,5};
+	ushort?[] hps = new ushort?[8]{null,null,null,null,null,null,null,null};
+	ushort?[] states = new ushort?[8]{null,null,null,null,null,null,null,null};
+
+	public MetalVeinA(){
+		this.code = 9; 
+
+		this.sizeX = 2;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
+        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
+        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new List<ushort>(){3};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class MetalVeinB : Structure
+{
+	ushort[] blocks = new ushort[18]{5,5,0,0,5,5,5,0,0,5,0,0,5,5,0,0,0,0};
+	ushort?[] hps = new ushort?[18]{null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null};
+	ushort?[] states = new ushort?[18]{null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null};
+
+	public MetalVeinB(){
+		this.code = 10; 
+
+		this.sizeX = 3;
+		this.sizeY = 2;
+		this.sizeZ = 3;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
+        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
+        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new List<ushort>(){3};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class MetalVeinC : Structure
+{
+	ushort[] blocks = new ushort[4]{5,5,5,5};
+	ushort?[] hps = new ushort?[4]{null,null,null,null};
+	ushort?[] states = new ushort?[4]{null,null,null,null};
+
+	public MetalVeinC(){
+		this.code = 11; 
+
+		this.sizeX = 2;
+		this.sizeY = 1;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
+        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
+        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new List<ushort>(){3};
+
+		Prepare(blocks, hps, states);
+	}
+}
 
 /*
 ADD TO THIS ENUM EVERY NEW STRUCTURE IMPLEMENTED
@@ -279,5 +365,8 @@ public enum StructureCode{
 	BoulderNormalA,
 	TreeBigA,
 	TreeCrookedMediumA,
-	TreeSmallB
+	TreeSmallB,
+	MetalVeinA,
+	MetalVeinB,
+	MetalVeinC
 }

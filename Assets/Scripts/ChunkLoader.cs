@@ -1109,6 +1109,9 @@ public class ChunkLoader : MonoBehaviour
             else if(structCode == 5){ // Boulder
                 GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 0);
             }
+            else if(structCode >= 9 && structCode <= 11){ // Metal Veins
+                GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 8, range:true);
+            }
         }
     }
 
@@ -1204,6 +1207,9 @@ public class ChunkLoader : MonoBehaviour
             }
             else if(structCode == 5){ // Boulder
                     GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 0);
+            }
+            else if(structCode >= 9 && structCode <= 11){ // Metal Veins
+                GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 8, range:true);
             }
         }
     }
@@ -1394,6 +1400,9 @@ public class ChunkLoader : MonoBehaviour
             }
             else if(structCode == 3 || structCode == 4){ // Dirt Piles
                 GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 2, range:true);
+            }
+            else if(structCode >= 9 && structCode <= 11){ // Metal Veins
+                GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 8, range:true);
             }
         }
     }

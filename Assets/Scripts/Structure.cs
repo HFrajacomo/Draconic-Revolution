@@ -56,6 +56,12 @@ public abstract class Structure
                 return new TreeCrookedMediumA();
             case 8:
                 return new TreeSmallB();
+            case 9:
+                return new MetalVeinA();
+            case 10:
+                return new MetalVeinB();
+            case 11:
+                return new MetalVeinC();
             default:
                 return new TestStruct();
         }
@@ -318,7 +324,13 @@ public abstract class Structure
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
                             if(this.overwriteBlocks.Contains(VD[x,y,z])){
+
                                 RotateData(structX, structY, structZ, rotation);
+
+                                if(this.blockdata[cacheX, cacheY, cacheZ] == 0){
+                                    continue;
+                                }
+                                
                                 VD[x,y,z] = this.blockdata[cacheX, cacheY, cacheZ];
 
                                 if(VM.metadata[x,y,z] != null)
