@@ -190,7 +190,7 @@ public class PlayerRaycast : MonoBehaviour
         EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
         
         if(blockCode <= ushort.MaxValue/2){
-          loader.budscheduler.ScheduleReload(toUpdate, 0);
+          loader.budscheduler.ScheduleReload(toUpdate, 0, x:current.blockX, y:current.blockY, z:current.blockZ);
         }
         else{
           loader.chunks[toUpdate].assetGrid.Remove(current.blockX, current.blockY, current.blockZ);
@@ -519,6 +519,11 @@ public class PlayerRaycast : MonoBehaviour
       int faceCounter=0;
 
       foreach(CastCoord c in neighbors){
+        // Ignores void updates
+        if(c.blockY < 0 || c.blockY > Chunk.chunkDepth-1){
+          continue;
+        }
+
         blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
 
         cachedBUD = new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]);

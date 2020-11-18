@@ -26,11 +26,6 @@ public class ChunkLoader : MonoBehaviour
 	public int worldSeed = 1; // 6 number integer
     public float offsetHash;
     public BiomeHandler biomeHandler;
-    private bool isBorderXP = false;   // True if the assigned biomes on neighbor chunks are different
-    private bool isBorderZP = false;   // True if the assigned biomes on neighbor chunks are different
-    private bool isBorderXM = false;
-    private bool isBorderZM = false;
-    private bool isBorderXZP = false;
 
 	// Chunk Rendering
 	public ChunkRenderer rend;
@@ -328,40 +323,6 @@ public class ChunkLoader : MonoBehaviour
         chunks[pos].biomeName = biome;
         chunks[pos].features = biomeHandler.GetFeatures(pos, seed);
 
-        // Checks for X+ border
-        cachePos.x = pos.x+1;
-        cachePos.z = pos.z;
-
-        if(biomeHandler.Assign(cachePos, seed) != biome)
-            isBorderXP = true;
-
-        // Checks for Z+ border
-        cachePos.x = pos.x;
-        cachePos.z = pos.z+1;
-
-        if(biomeHandler.Assign(cachePos, seed) != biome)
-            isBorderZP = true;
-
-        // Checks for X- border
-        cachePos.x = pos.x-1;
-        cachePos.z = pos.z;
-
-        if(biomeHandler.Assign(cachePos, seed) != biome)
-            isBorderXM = true;
-
-        // Checks for Z- border
-        cachePos.x = pos.x;
-        cachePos.z = pos.z-1;
-
-        if(biomeHandler.Assign(cachePos, seed) != biome)
-            isBorderZM = true;
-
-        // Checks for XZ+ border
-        cachePos.x = pos.x+1;
-        cachePos.z = pos.z+1;
-
-        if(biomeHandler.Assign(cachePos, seed) != biome)
-            isBorderXZP = true;
 
         if(biome == "Plains")
             return GeneratePlainsBiome(pos.x, pos.z, pregen:pregen);
@@ -847,80 +808,6 @@ public class ChunkLoader : MonoBehaviour
             }
         }
     }
-
-    // Generates a flat map at Y level ceiling with deadzone protection
-    private void GenerateWaterMap(ushort[,] selectedCache, ushort ceiling){
-        int deadZoneXM=0;
-        int deadZoneZM=0;
-        int deadZoneXP=0;
-        int deadZoneZP=0;
-
-        if(ceiling >= Chunk.chunkDepth)
-            ceiling = (ushort)(Chunk.chunkDepth-1);
-
-        if(isBorderZM){
-            deadZoneZM = 1;
-            isBorderZM = false;
-        }
-        if(isBorderXM){
-            deadZoneXM = 1;
-            isBorderXM = false;
-        }
-        if(isBorderZP){
-            deadZoneZP = 4;
-            isBorderZP = false;
-        }
-        if(isBorderXP){
-            deadZoneXP = 4;
-            isBorderXP = false;
-        }
-
-        // Fill with Water
-        for(int x=deadZoneXM;x<Chunk.chunkWidth-deadZoneXP;x++){
-            for(int z=deadZoneZM;z<Chunk.chunkWidth-deadZoneZP;z++){
-                selectedCache[x,z] = ceiling;
-            }
-        }
-
-        // Fill X- Deadzone
-        for(int x=0;x<deadZoneXM;x++){
-            for(int z=0;z<Chunk.chunkWidth;z++){
-                selectedCache[x,z] = 0;
-            }
-        }        
-
-        // Fill X+ Deadzone
-        for(int x=Chunk.chunkWidth-deadZoneXP;x<Chunk.chunkWidth;x++){
-            for(int z=0;z<Chunk.chunkWidth;z++){
-                selectedCache[x,z] = 0;
-            }
-        } 
-
-        // Fill Z- Deadzone
-        for(int z=0;z<deadZoneZM;z++){
-            for(int x=0;x<Chunk.chunkWidth;x++){
-                selectedCache[x,z] = 0;
-            }
-        }
-
-        // Fill Z+ Deadzone
-        for(int z=Chunk.chunkWidth-deadZoneZP;z<Chunk.chunkWidth;z++){
-            for(int x=0;x<Chunk.chunkWidth;x++){
-                selectedCache[x,z] = 0;
-            }
-        } 
-
-        // Fill XZ+ Deadzone
-        if(isBorderXZP){
-            for(int x=Chunk.chunkWidth-4; x<Chunk.chunkWidth; x++){
-                for(int z=Chunk.chunkWidth-4; z<Chunk.chunkWidth; z++){
-                    selectedCache[x,z] = 0;
-                }
-            }
-            isBorderXZP = false;
-        }
-    }
-
 
     // Applies bilinear interpolation to a given pivotmap
     // Takes any cache and returns on itself

@@ -876,16 +876,20 @@ public class Water_Block : Blocks
 
 		// Below
 		cachedPos = new CastCoord(this.GetNeighborBlock(8, myX, myY, myZ));
-		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode){
-			cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
-			cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
+		if(cachedPos.blockY > 0){
+			if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode){
+				cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
+			}
 		}
 
 		// Above
 		cachedPos = new CastCoord(this.GetNeighborBlock(9, myX, myY, myZ));
-		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode){
-			cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
-			cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
+		if(cachedPos.blockY < Chunk.chunkDepth){
+			if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode){
+				cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
+			}
 		}
 	}
 

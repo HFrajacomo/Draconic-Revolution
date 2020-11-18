@@ -7,6 +7,7 @@ public class BUDScheduler : MonoBehaviour
 	public TimeOfDay schedulerTime;
 	private Dictionary<string, List<BUDSignal>> data = new Dictionary<string, List<BUDSignal>>();
 	private Dictionary<string, List<ChunkPos>> toReload = new Dictionary<string, List<ChunkPos>>();
+    private List<ChunkPos> cachedList = new List<ChunkPos>();
     private string currentTime;
 	private string newTime;
 	public ChunkLoader loader;
@@ -121,23 +122,50 @@ public class BUDScheduler : MonoBehaviour
     }
 
     // Schedules a Chunk.Build() operation 
-    public void ScheduleReload(ChunkPos pos, float tickOffset){
+    public void ScheduleReload(ChunkPos pos, float tickOffset, int x=1, int y=1, int z=1){
     	if(tickOffset == 0){
-            if(!this.toReload[this.currentTime].Contains(pos))
-    		  this.toReload[this.currentTime].Add(pos);
+            CheckSurroundingChunks(x, y, z, pos);
+
+            foreach(ChunkPos p in cachedList){
+                if(!this.toReload[this.currentTime].Contains(p))
+        		  this.toReload[this.currentTime].Add(p);
+            }
+            cachedList.Clear();
     	}
     	else{
     		string fakeTime = schedulerTime.FakeSum(tickOffset);
 
     		if(this.toReload.ContainsKey(fakeTime)){
-    			this.toReload[fakeTime].Add(pos);
+                CheckSurroundingChunks(x, y, z, pos);
+                foreach(ChunkPos p in cachedList){
+                    this.toReload[fakeTime].Add(p);
+                }
+                cachedList.Clear();
     		}
+
     		else{
-    			this.toReload.Add(fakeTime, new List<ChunkPos>());
-    			this.toReload[fakeTime].Add(pos);
+                CheckSurroundingChunks(x, y, z, pos);
+                foreach(ChunkPos p in cachedList){
+                    this.toReload.Add(fakeTime, new List<ChunkPos>());
+                    this.toReload[fakeTime].Add(pos);
+                }
+                cachedList.Clear();
     		}
     	}
+    }
 
+    // Gets the different Chunks that should be updated
+    private void CheckSurroundingChunks(int x, int y, int z, ChunkPos pos){
+        if(x == 0)
+            cachedList.Add(new ChunkPos(pos.x-1, pos.z));
+        if(x == Chunk.chunkWidth-1)
+            cachedList.Add(new ChunkPos(pos.x+1, pos.z));
+        if(z == 0)
+            cachedList.Add(new ChunkPos(pos.x, pos.z-1));
+        if(z == Chunk.chunkWidth-1)
+            cachedList.Add(new ChunkPos(pos.x, pos.z+1));
+
+        cachedList.Add(pos);
     }
 
     // Passes all elements in a to-be-deleted schedule date to the next tick

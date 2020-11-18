@@ -151,7 +151,7 @@ public class Chunk
 				    	LoadMesh(0, y, z, (int)Direction.West, thisBlock, false, ref skip, lookahead:meshVertCount);
 				    	if(skip)
 				    		break;
-		    		}	
+		    		}
 				}
 			}
 		}
@@ -254,7 +254,7 @@ public class Chunk
 		    		}	
 				}
 			}
-		}						
+		}				
 
 		// Only draw if there's something to draw
 		if(vertices.Count > 0)
