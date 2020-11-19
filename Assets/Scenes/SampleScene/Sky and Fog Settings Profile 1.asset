@@ -343,45 +343,45 @@ MonoBehaviour:
     m_Value: 2
   meteringMode:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 0
   luminanceSource:
     m_OverrideState: 0
     m_Value: 1
   fixedExposure:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 1
   compensation:
     m_OverrideState: 0
-    m_Value: 5
-  limitMin:
-    m_OverrideState: 1
     m_Value: 0
+  limitMin:
+    m_OverrideState: 0
+    m_Value: -10
   limitMax:
-    m_OverrideState: 1
-    m_Value: 5
+    m_OverrideState: 0
+    m_Value: 10
   curveMap:
     m_OverrideState: 1
     m_Value:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: -0.075645775
-        value: -0.9435603
-        inSlope: -0.19181879
-        outSlope: -0.19181879
+        time: -22.335577
+        value: 6.6345577
+        inSlope: 0.0035281423
+        outSlope: 0.0035281423
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0
-        outWeight: 0.4624061
+        inWeight: 0.3002895
+        outWeight: 0.6040859
       - serializedVersion: 3
-        time: 19.925236
-        value: 9.992457
-        inSlope: 0.07500039
-        outSlope: 0.07500039
+        time: 28.418873
+        value: -10.764215
+        inSlope: 0.12938784
+        outSlope: 0.12938784
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.24644737
-        outWeight: 0
+        inWeight: 0.15963535
+        outWeight: 0.08076612
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4

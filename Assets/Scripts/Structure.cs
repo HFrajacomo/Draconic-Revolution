@@ -330,7 +330,7 @@ public abstract class Structure
                                 if(this.blockdata[cacheX, cacheY, cacheZ] == 0){
                                     continue;
                                 }
-                                
+
                                 VD[x,y,z] = this.blockdata[cacheX, cacheY, cacheZ];
 
                                 if(VM.metadata[x,y,z] != null)
@@ -561,9 +561,11 @@ public abstract class Structure
 
                     if(st.metadata.metadata[x,y,z] != null){
                         if(st.metadata.metadata[x,y,z].hp != null){
+                            c.metadata.GetMetadata(x,y,z);
                             c.metadata.metadata[x,y,z].hp = st.metadata.metadata[x,y,z].hp;
                         }
                         if(st.metadata.metadata[x,y,z].state != null){
+                            c.metadata.GetMetadata(x,y,z);
                             c.metadata.metadata[x,y,z].state = st.metadata.metadata[x,y,z].state;
                         }
                     }
