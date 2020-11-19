@@ -34,9 +34,6 @@ public class ChunkLoader : MonoBehaviour
 	// Flags
 	public bool WORLD_GENERATED = false;
 
-    // DEBUG
-    private ChunkPos debugChunkPos = new ChunkPos(22, 7); 
-
 	// Cache Information
 	private ushort[,] cacheHeightMap = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
 	private ushort[,] cacheHeightMap2 = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
