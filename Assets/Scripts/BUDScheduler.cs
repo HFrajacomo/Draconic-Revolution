@@ -34,6 +34,9 @@ public class BUDScheduler : MonoBehaviour
 
     	// Checks if BUD Tick has changed
     	if(this.newTime != this.currentTime){
+            // Saves the World Data every second
+            loader.regionHandler.SaveWorld();
+
     		// Creates new list for newTime if doesn't exist
     		if(!this.data.ContainsKey(this.newTime)){
     			this.data.Add(this.newTime, new List<BUDSignal>());

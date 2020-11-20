@@ -28,6 +28,7 @@ public class ChunkLoader : MonoBehaviour
 	// World Generation
 	public int worldSeed = 1; // 6 number integer
     public float offsetHash;
+    public float generationSeed;
     public BiomeHandler biomeHandler;
 
 	// Chunk Rendering
@@ -35,7 +36,7 @@ public class ChunkLoader : MonoBehaviour
     public RegionFileHandler regionHandler;
 
 	// Flags
-	public bool WORLD_GENERATED = false;
+	public bool WORLD_GENERATED = false; 
 
 	// Cache Information
 	private ushort[,] cacheHeightMap = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
@@ -59,20 +60,20 @@ public class ChunkLoader : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        this.worldSeed = World.worldSeed;
 
-    	if(worldSeed == 0){
-    		worldSeed = 1;
-    	}
+        regionHandler = new RegionFileHandler(renderDistance, newChunk);
+
+        worldSeed = regionHandler.GetRealSeed();
 
         biomeHandler = new BiomeHandler(BiomeSeedFunction(worldSeed));
+
+        generationSeed = GenerationSeedFunction(worldSeed);
         offsetHash = OffsetHashFunction(worldSeed);
 
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
 		newChunk = new ChunkPos(playerX, playerZ);
 
-        regionHandler = new RegionFileHandler(worldSeed, renderDistance, newChunk);
 
 		GetChunks(true);
     }
@@ -506,6 +507,11 @@ public class ChunkLoader : MonoBehaviour
         return (t*0.71928590287457694671f)%1;
     }
 
+    // Calculates the generationSeed used in World Generation
+    private float GenerationSeedFunction(int t){
+        return Perlin.Noise(0.5f+(t/1000000))+0.5f;
+    }
+
 
     // Returns the heightmap value of a generated chunk in block position
     private int GetBlockHeight(ChunkPos pos, int blockX, int blockZ){
@@ -559,7 +565,7 @@ public class ChunkLoader : MonoBehaviour
                         continue;
                     }
 
-       				val = Perlin.RidgedMultiFractal(x*xhash, y*yhash, z*zhash);
+       				val = Perlin.RidgedMultiFractal(x*xhash*generationSeed, y*yhash*generationSeed, z*zhash*generationSeed);
     				
     				if(val >= threshold && y <= ceiling)
     					cacheTurbulanceMap[i,y,j] = 1;
@@ -681,7 +687,7 @@ public class ChunkLoader : MonoBehaviour
     	for(int x=chunkXmult;x<chunkXmult+size;x+=4){
     		j = 0;
     		for(int z=chunkZmult;z<chunkZmult+size;z+=4){
-				selectedCache[i, j] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x/xhash+offsetHash, z/zhash+offsetHash))), 0, ceilingLevel));
+				selectedCache[i, j] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*generationSeed/xhash+offsetHash, z*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
     			j+=4;
     		}
     		i+=4;
@@ -803,14 +809,14 @@ public class ChunkLoader : MonoBehaviour
         // If is looking ahead into X+ Chunk
         if(isSide){
             for(int x=chunkX; x<=chunkX+size; x+=4){
-                selectedMap[i, size] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x/xhash+offsetHash, (chunkZ+size)/zhash+offsetHash))), 0, ceilingLevel));
+                selectedMap[i, size] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*generationSeed/xhash+offsetHash, (chunkZ+size)*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
                 i+=4;
             }
         }
         // If is looking ahead into Z+ Chunk
         else{
             for(int z=chunkZ; z<chunkZ+size; z+=4){ // Don't generate corner twice
-                selectedMap[size, i] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise((chunkX+size)/xhash+offsetHash, z/zhash+offsetHash))), 0, ceilingLevel));
+                selectedMap[size, i] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise((chunkX+size)*generationSeed/xhash+offsetHash, z*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
                 i+=4;
             }
         }
@@ -818,7 +824,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Builds Lookahead pivot of corner chunk for biome border smoothing
     public void GenerateLookAheadCorner(ushort[,] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=0, int ceilingLevel=99){
-        selectedMap[Chunk.chunkWidth, Chunk.chunkWidth] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth)/xhash+offsetHash, ((chunkZ+1)*Chunk.chunkWidth)/zhash+offsetHash))), 0, ceilingLevel));
+        selectedMap[Chunk.chunkWidth, Chunk.chunkWidth] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth*generationSeed)/xhash+offsetHash, ((chunkZ+1)*Chunk.chunkWidth*generationSeed)/zhash+offsetHash))), 0, ceilingLevel));
     }
 
     // Generates Flat Map of something
@@ -954,10 +960,10 @@ public class ChunkLoader : MonoBehaviour
                 if(chance > percentage)
                     continue;
 
-                rotation = Mathf.FloorToInt(Perlin.Noise((pos.z+pos.x)*xhash*zhash+i)*3.99f);
+                rotation = Mathf.FloorToInt(Perlin.Noise((pos.z+pos.x)*xhash*zhash+i*generationSeed)*3.99f);
 
-                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidthMult);
-                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidthMult);
+                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x*generationSeed)*Chunk.chunkWidthMult);
+                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z*generationSeed)*Chunk.chunkWidthMult);
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15)
@@ -987,10 +993,10 @@ public class ChunkLoader : MonoBehaviour
                 if(chance > percentage)
                     continue;
 
-                rotation = Mathf.FloorToInt(Perlin.Noise((pos.z+pos.x)*xhash*zhash+i)*3.99f);
+                rotation = Mathf.FloorToInt(Perlin.Noise((pos.z+pos.x)*xhash*zhash+i*generationSeed)*3.99f);
 
-                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x)*Chunk.chunkWidthMult);
-                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z)*Chunk.chunkWidthMult);
+                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x*generationSeed)*Chunk.chunkWidthMult);
+                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z*generationSeed)*Chunk.chunkWidthMult);
                 float yMult = Perlin.Noise((i + structureCode + (pos.z & pos.x))*xhash*zhash);              
 
                 // All >

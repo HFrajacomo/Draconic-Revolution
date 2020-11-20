@@ -62,6 +62,18 @@ public class TimeOfDay : MonoBehaviour
         return timeArray;
     }
 
+    // Returns byte array representing current time for Chunk Header in RegionFile
+    // Stored data is in format d:h:m:t
+    public void TimeHeader(byte[] b){
+        b[0] = (byte)(this.days >> 24);
+        b[1] = (byte)(this.days >> 16);
+        b[2] = (byte)(this.days >> 8);
+        b[3] = (byte)this.days;
+        b[4] = this.hours;
+        b[5] = this.minutes;
+        b[6] = (byte)(this.ticks%2);
+    }
+
     // Reconstructs byte array read from RegionFile to a date string
     public string DateBytes(byte[] b){
         uint days;
@@ -75,6 +87,25 @@ public class TimeOfDay : MonoBehaviour
         days = days + b[3];
 
         return days.ToString() + ":" + b[4].ToString("00") + ":" + b[5].ToString("00") + ":" + b[6].ToString();
+    }
+
+    // Sets time based on byte[] read from WDAT file
+    public void SetTime(byte[] byteArray){
+        uint days;
+
+        days = byteArray[0];
+        days = days << 8;
+        days = days + byteArray[1];
+        days = days << 8;
+        days = days + byteArray[2];
+        days = days << 8;
+        days = days + byteArray[3];
+
+        this.days = days;
+        this.hours = byteArray[4];
+        this.minutes = byteArray[5];
+        this.ticks = (float)(byteArray[6]);
+
     }
 
     // Fake Sum to calculate schedule time

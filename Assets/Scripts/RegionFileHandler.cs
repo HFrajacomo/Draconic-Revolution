@@ -13,20 +13,29 @@ Region Data File Format (.rdf)
 */
 
 public class RegionFileHandler{
+	private string worldName;
 	private RegionFile region;
 	private int seed;
 	private int renderDistance;
 	private static float chunkLength = 32f;
 	public TimeOfDay globalTime;
 
+	// Data
+	private string saveDir;
+	private string worldDir;
+
+	// File Data
+	public Stream worldFile;
 
 	// Cache Information
 	private byte[] nullMetadata = new byte[]{255,255};
 
 	private byte[] byteArray = new byte[1];
+	private byte[] intArray = new byte[4];
 	private byte[] timeArray = new byte[7];
 	private byte[] indexArray = new byte[16];
 	private byte[] headerBuffer = new byte[21];
+	private byte[] nameBuffer = new byte[256];
 	private byte[] blockBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer (roughly 0,1 MB)
 	private byte[] hpBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer 
 	private byte[] stateBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer
@@ -36,12 +45,42 @@ public class RegionFileHandler{
 	private static int chunkSize = Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 8; // Size in bytes of Chunk payload
 
 	// Builds the file handler and loads it on the ChunkPos of the first player
-	public RegionFileHandler(int seed, int renderDistance, ChunkPos pos){
-		this.seed = seed;
+	public RegionFileHandler(int renderDistance, ChunkPos pos){
+		this.worldName = World.worldName;
+		this.seed = World.worldSeed;
 		this.renderDistance = renderDistance;
 		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
 
+		this.saveDir = "Worlds/";
+		this.worldDir = "Worlds/" + this.worldName + "/";
+
+
+		// If "Worlds/" dir doesn't exist
+		if(!Directory.Exists(this.saveDir)){
+			Directory.CreateDirectory(this.saveDir);
+		}
+
+		// If current world doesn't exist
+		if(!Directory.Exists(this.worldDir)){
+			Directory.CreateDirectory(this.worldDir);
+		}
+
+		// If already has a world data file
+		if(File.Exists(this.worldDir + "world.wdat")){
+			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Open);
+			LoadWorld();
+		}
+		else{
+			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Create);	
+			SaveWorld();			
+		}
+
 		LoadRegionFile(pos, init:true);
+	}
+
+	// Returns initialized seed if world was just generated or returns saved seed if world exists
+	public int GetRealSeed(){
+		return this.seed;
 	}
 
 	// Checks if RegionFile represents ChunkPos, and loads correct RegionFile if not
@@ -49,6 +88,52 @@ public class RegionFileHandler{
 		if(!region.CheckUsage(pos)){
 			LoadRegionFile(pos);
 		}
+	}
+
+	// Saves World Data to wdat File
+	/*
+	WDAT FORMAT
+	SEED(4): int representing seed
+	TIME(7): time data day(4)/hour(1)/minute(1)/tick(1)
+	*/
+	public void SaveWorld(){ 
+		intArray[0] = (byte)(this.seed >> 24);
+		intArray[1] = (byte)(this.seed >> 16);
+		intArray[2] = (byte)(this.seed >> 8);
+		intArray[3] = (byte)this.seed; 
+
+		this.worldFile.SetLength(0);
+		this.worldFile.Write(intArray, 0, 4);
+
+		globalTime.TimeHeader(timeArray);
+
+		this.worldFile.Write(timeArray, 0, 7);
+	}
+
+	// Loads data from WDAT file
+	public void LoadWorld(){
+		int seed = 0;
+
+		this.worldFile.Read(intArray, 0, 4);
+
+		seed += intArray[0];
+		seed = seed << 8;
+		seed += intArray[1];
+		seed = seed << 8;
+		seed += intArray[2];
+		seed = seed << 8;
+		seed += intArray[3];
+
+		if(seed == 0)
+			this.seed = 1;
+		else
+			this.seed = seed;
+
+
+		this.worldFile.Read(timeArray, 0, 7);
+
+		globalTime.SetTime(timeArray);
+
 	}
 
 	// Getter for RegionFile
@@ -289,6 +374,7 @@ public struct RegionFile{
 	public string name;
 	public ChunkPos regionPos; // Variable to represent Region coordinates, and not Chunk coordinates
 	private float chunkLength;
+	private string worldDir;
 
 	// File Data
 	public Stream file;
@@ -310,33 +396,34 @@ public struct RegionFile{
 		this.regionPos = pos;
 		this.chunkLength = chunkLen;
 		this.index = new Dictionary<long, long>();
+		this.worldDir = "Worlds/" + World.worldName + "/";
 
 		this.cachedIndex = new byte[16384];
 		this.cachedHoles = new byte[16384];
 		this.longArray = new byte[8];
 
 		try{
-			this.file = File.Open(name + ".rdf", FileMode.Open);
+			this.file = File.Open(this.worldDir + name + ".rdf", FileMode.Open);
 		} 
 		catch (FileNotFoundException){
 			isLoaded = false;
-			this.file = File.Open(name + ".rdf", FileMode.Create);
+			this.file = File.Open(this.worldDir + name + ".rdf", FileMode.Create);
 		}
 
 		try{
-			this.indexFile = File.Open(name + ".ind", FileMode.Open);
+			this.indexFile = File.Open(this.worldDir + name + ".ind", FileMode.Open);
 		} 
 		catch (FileNotFoundException){
 			isLoaded = false;
-			this.indexFile = File.Open(name + ".ind", FileMode.Create);
+			this.indexFile = File.Open(this.worldDir + name + ".ind", FileMode.Create);
 		}
 
 		try{
-			this.holeFile = File.Open(name + ".hle", FileMode.Open);
+			this.holeFile = File.Open(this.worldDir + name + ".hle", FileMode.Open);
 		} 
 		catch (FileNotFoundException){
 			isLoaded = false;
-			this.holeFile = File.Open(name + ".hle", FileMode.Create);
+			this.holeFile = File.Open(this.worldDir + name + ".hle", FileMode.Create);
 		}
 
 		this.fragHandler = new FragmentationHandler(isLoaded);

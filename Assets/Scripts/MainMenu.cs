@@ -1,6 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+using Random = UnityEngine.Random;
 
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -20,12 +23,15 @@ public class MainMenu : MonoBehaviour
 		}
 
 		if(seedField.text == ""){
-			rn = (int)Random.Range(0, 1000000);
-			seedField.text = rn.ToString();
+			Random.InitState((int)DateTime.Now.Ticks);
+			rn = (int)Random.Range(0, 999999);
+			World.SetWorldSeed(rn.ToString());
+		}
+		else{
+			World.SetWorldSeed(seedField.text);
 		}
 
 		World.SetWorldName(nameField.text);
-		World.SetWorldSeed(seedField.text);
 
 		SceneManager.LoadScene(1);
 	}

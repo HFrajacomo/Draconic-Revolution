@@ -31,3 +31,5 @@ ExportedObj/
 test.txt
 
 SavedStruct.txt
+
+*.wdat
