@@ -22,6 +22,9 @@ public class ChunkLoader : MonoBehaviour
     // Prefab System
     public StructureHandler structHandler;
 
+    // Initialization
+    public GameObject playerCharacter;
+
 	// World Generation
 	public int worldSeed = 1; // 6 number integer
     public float offsetHash;
@@ -49,9 +52,14 @@ public class ChunkLoader : MonoBehaviour
     private VoxelMetadata cacheMetadata = new VoxelMetadata();
     private Dictionary<ushort, ushort> cacheStateDict = new Dictionary<ushort, ushort>();
 
+    void Awake(){
+        this.playerCharacter.SetActive(false);
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+        this.worldSeed = World.worldSeed;
 
     	if(worldSeed == 0){
     		worldSeed = 1;
@@ -60,7 +68,6 @@ public class ChunkLoader : MonoBehaviour
         biomeHandler = new BiomeHandler(BiomeSeedFunction(worldSeed));
         offsetHash = OffsetHashFunction(worldSeed);
 
-		player = GameObject.Find("Character").GetComponent<Transform>();
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
 		newChunk = new ChunkPos(playerX, playerZ);
@@ -72,8 +79,13 @@ public class ChunkLoader : MonoBehaviour
 
     void Update(){
 
-    	if(toLoad.Count == 0 && !WORLD_GENERATED){
+    	if(toLoad.Count == 0 && toDraw.Count == 0 && !WORLD_GENERATED){
     		WORLD_GENERATED = true;
+
+            int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
+            player.position -= new Vector3(0, player.position.y - spawnY, 0);
+
+            playerCharacter.SetActive(true);
     	}
 
         // DEV TOOLS
@@ -494,6 +506,22 @@ public class ChunkLoader : MonoBehaviour
         return (t*0.71928590287457694671f)%1;
     }
 
+
+    // Returns the heightmap value of a generated chunk in block position
+    private int GetBlockHeight(ChunkPos pos, int blockX, int blockZ){
+        for(int i=Chunk.chunkDepth-1; i >= 0 ; i--){
+            if(chunks[pos].data.GetCell(blockX, i, blockZ) != 0){
+                return i+2;
+            }
+        }
+
+        if(blockX < 15)
+            return GetBlockHeight(pos, blockX+1, blockZ);
+        if(blockZ < 15)
+            return GetBlockHeight(pos, blockX, blockZ+1);
+
+        return GetBlockHeight(pos, 0, 0);
+    }
 
     // Debug Feature
     private void ToFile(int[,] heightMap, string filename){

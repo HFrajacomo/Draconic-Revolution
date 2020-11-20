@@ -344,7 +344,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &59614819
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1683,6 +1683,7 @@ MonoBehaviour:
   budscheduler: {fileID: 816262494}
   vfx: {fileID: 1018660373}
   structHandler: {fileID: 2128924710}
+  playerCharacter: {fileID: 59614818}
   worldSeed: 100
   offsetHash: 0
   rend: {fileID: 471797234}
