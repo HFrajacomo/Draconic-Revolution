@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Jobs;
+using Unity.Collections;
+using Unity.Burst;
 
 public class ChunkLoader : MonoBehaviour
 {
@@ -38,7 +41,7 @@ public class ChunkLoader : MonoBehaviour
 	// Flags
 	public bool WORLD_GENERATED = false; 
 
-	// Cache Information
+	// Cache Information 
 	private ushort[,] cacheHeightMap = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
 	private ushort[,] cacheHeightMap2 = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
 	private ushort[,] cacheHeightMap3 = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
@@ -509,7 +512,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Calculates the generationSeed used in World Generation
     private float GenerationSeedFunction(int t){
-        return Perlin.Noise(0.5f+(t/1000000))+0.5f;
+        return Perlin.Noise(t/1000000f)+0.5f;
     }
 
 
@@ -544,15 +547,38 @@ public class ChunkLoader : MonoBehaviour
     /*
     Used for Cave system generation and above ground turbulence
     */
-    private void GenerateRidgedMultiFractal3D(int chunkX, int chunkZ, float xhash, float yhash, float zhash, float threshold, int ceiling=20, float maskThreshold=0f){
-    	int size = Chunk.chunkWidth;
+    private NativeArray<ushort> GenerateRidgedMultiFractal3D(int chunkX, int chunkZ, float xhash, float yhash, float zhash, float threshold, int ceiling=20, float maskThreshold=0f){
+    	/*
+        int size = Chunk.chunkWidth;
     	chunkX *= size;
     	chunkZ *= size;
     	int i = 0;
     	int j = 0;
         float val;
         float mask;
+        */
 
+        NativeArray<ushort> turbulanceMap = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+
+        RidgedMultiFractalJob rmfJob = new RidgedMultiFractalJob{
+            chunkX = chunkX*Chunk.chunkWidth,
+            chunkZ = chunkZ*Chunk.chunkWidth,
+            xhash = xhash,
+            yhash = yhash,
+            zhash = zhash,
+            threshold = threshold,
+            generationSeed = generationSeed,
+            ceiling = ceiling,
+            maskThreshold = maskThreshold,
+            turbulenceMap = turbulanceMap
+        };
+
+        JobHandle handle = rmfJob.Schedule(Chunk.chunkWidth, 2);
+        handle.Complete();
+
+        return turbulanceMap;
+
+        /*
     	for(int x=chunkX;x<chunkX+size;x++){
     		j = 0;
     		for(int z=chunkZ;z<chunkZ+size;z++){
@@ -576,6 +602,7 @@ public class ChunkLoader : MonoBehaviour
     		}
     		i++;
     	}
+        */
     }
 
     /*
@@ -1122,9 +1149,7 @@ public class ChunkLoader : MonoBehaviour
         // Structures
         GeneratePlainsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 0, transition);
 
-        // Cave Systems
-        GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:20, maskThreshold:0.7f);
-        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:20);
+        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:20, maskThreshold:0.64f), upper:20);
     }
 
     // Inserts Structures into Plain Biome
@@ -1220,9 +1245,7 @@ public class ChunkLoader : MonoBehaviour
         // Structures
         GenerateGrassyHighLandsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 1, transition);
 
-        // Cave Systems
-        GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:40, maskThreshold:0.7f);
-        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:40);
+        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:40, maskThreshold:0.64f), upper:40);
     }
 
     // Inserts Structures into Plain Biome
@@ -1302,9 +1325,7 @@ public class ChunkLoader : MonoBehaviour
         // Structures
         GenerateOceanStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 2, transition);
 
-        // Cave Systems
-        GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:10, maskThreshold:0.7f);
-        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:10);
+        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:10, maskThreshold:0.64f), upper:10);
     }
 
     // Inserts Structures into Ocean Biome
@@ -1410,10 +1431,8 @@ public class ChunkLoader : MonoBehaviour
 
         // Structures
         GenerateForestStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 3, transition);
-
-        // Cave Systems
-        GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.12f, 0.07f, 0.089f, 0.35f, ceiling:27, maskThreshold:0.7f);
-        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), new VoxelData(cacheTurbulanceMap), upper:27);
+        
+        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:30, maskThreshold:0.64f), upper:30); //0.271, 0.3, 0.313
     }
 
     // Inserts Structures into Forest Biome
@@ -1571,4 +1590,70 @@ public struct ChunkPos{
 	public static ChunkPos operator-(ChunkPos a, ChunkPos b){
 		return new ChunkPos(a.x - b.x, a.z - b.z);
 	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+MULTITHREADING JOBS
+*/
+[BurstCompile]
+public struct RidgedMultiFractalJob : IJobParallelFor{
+
+    public int chunkX;
+    public int chunkZ;
+    public float xhash;
+    public float yhash;
+    public float zhash;
+    public float threshold;
+    public float generationSeed;
+    public int ceiling; // = 20
+    public float maskThreshold; //=0f
+
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> turbulenceMap;
+
+    public void Execute(int index){
+        int size = Chunk.chunkWidth;
+        int j = 0;
+        float val;
+        float mask;
+
+        int x = chunkX+index;
+
+        j = 0;
+        for(int z=chunkZ;z<chunkZ+size;z++){
+
+            mask = Perlin.Noise((x^z)*(xhash*yhash)*1.07f, z*zhash*0.427f);
+            for(int y=0;y<Chunk.chunkDepth;y++){
+                if(mask < maskThreshold){
+                    turbulenceMap[(index*Chunk.chunkDepth*Chunk.chunkWidth)+y+(j*Chunk.chunkDepth)] = 0;
+                    continue;
+                }
+
+                val = Perlin.RidgedMultiFractal(x*xhash*generationSeed, y*yhash*generationSeed, z*zhash*generationSeed);
+
+                if(val >= threshold && y <= ceiling){
+                    turbulenceMap[(index*Chunk.chunkDepth*Chunk.chunkWidth)+y+(j*Chunk.chunkDepth)] = 1;
+                }
+                else{
+                    turbulenceMap[(index*Chunk.chunkDepth*Chunk.chunkWidth)+y+(j*Chunk.chunkDepth)] = 0;
+                }
+            }
+            j++;
+        }
+    }
 }

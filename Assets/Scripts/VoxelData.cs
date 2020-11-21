@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Collections;
 
 public class VoxelData
 {
@@ -14,6 +15,24 @@ public class VoxelData
 		this.data = (ushort[,,])data.Clone();
 	}
 
+	public static VoxelData CutUnderground(VoxelData a, NativeArray<ushort> b, int upper=-1, int lower=-1){
+		if(upper == -1)
+			upper = Chunk.chunkDepth;
+		if(lower == -1)
+			lower = 0;
+
+		for(int x=0;x<Chunk.chunkWidth;x++){
+			for(int y=lower;y<upper;y++){
+				for(int z=0;z<Chunk.chunkWidth;z++){
+					if(a.GetCell(x,y,z) >= 1 && b[(x*Chunk.chunkWidth*Chunk.chunkDepth)+y+(z*Chunk.chunkDepth)] == 1)
+						a.SetCell(x,y,z,0);
+				}
+			} 
+		}
+		b.Dispose();
+		return a;
+	}
+
 	public static VoxelData CutUnderground(VoxelData a, VoxelData b, int upper=-1, int lower=-1){
 		if(upper == -1)
 			upper = Chunk.chunkDepth;
@@ -23,7 +42,7 @@ public class VoxelData
 		for(int x=0;x<Chunk.chunkWidth;x++){
 			for(int y=lower;y<upper;y++){
 				for(int z=0;z<Chunk.chunkWidth;z++){
-					if(!(a.GetCell(x,y,z) >= 1) || !(b.GetCell(x,y,z) == 0))
+					if(a.GetCell(x,y,z) >= 1 && b.GetCell(x,y,z) == 1)
 						a.SetCell(x,y,z,0);
 				}
 			} 

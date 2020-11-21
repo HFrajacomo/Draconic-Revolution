@@ -8,9 +8,9 @@ public class Chunk
 	// Chunk Settings
 	public VoxelData data;
 	public VoxelMetadata metadata;
-	public static int chunkWidth = 16;
-	public static int chunkDepth = 100;
-	public static float chunkWidthMult = chunkWidth - 0.01f; 
+	public static readonly int chunkWidth = 16;
+	public static readonly int chunkDepth = 100;
+	public static float chunkWidthMult = 15.99f; 
 	public ChunkPos pos;
 	public string biomeName;
 	public byte needsGeneration;
