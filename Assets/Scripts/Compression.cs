@@ -2,6 +2,9 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Jobs;
+using Unity.Burst;
+using Unity.Collections;
 
 /*
 Class for the compression algorithm of the RDF files to be applied
@@ -14,16 +17,57 @@ public static class Compression{
 	// and returns the amount of bytes written
 	public static int CompressBlocks(Chunk c, byte[] buffer){
 		// Preparation Variables
-		int writtenBytes = 0;
+
+		//int writtenBytes=0;
+		//bool contains;
+		
+		int bytes;
 		Pallete p = Compression.BiomeToPallete(c.biomeName);
 		List<ushort> palleteList = Compression.GetPallete(p);
-		bool contains;
+		
+		
+		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
+		NativeArray<ushort> chunkData = Compression.PrepareChunkData(c);
+		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
+		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
 
+		CompressionBlockJob cbJob = new CompressionBlockJob{
+			chunkData = chunkData,
+			buffer = buff,
+			palleteArray = palleteArray,
+			writtenBytes = writtenBytes		
+		};
+
+		JobHandle handle = cbJob.Schedule();
+		handle.Complete();
+
+		// NativeArray to Array convertion
+		buff.CopyTo(buffer);
+
+		// Conversion that actually works
+		/*
+		for(int i=0; i < buff.Length; i++){
+			buffer[i] = buff[i];
+		}
+		*/
+
+		bytes = writtenBytes[0];
+
+		chunkData.Dispose();
+		palleteArray.Dispose();
+		buff.Dispose();
+		writtenBytes.Dispose();
+
+		return bytes;
+		
+
+		/*
 		// Buffer Variables
 		ushort bufferedCount = 0;
 		ushort bufferedBlock = 0;
 		ushort blockCode = 0;
 
+		
 		// Block Data
 		for(int y=0; y<Chunk.chunkDepth; y++){
 			for(int x=0; x<Chunk.chunkWidth; x++){
@@ -68,6 +112,7 @@ public static class Compression{
 				}
 			}
 		}
+
 		// Writes to buffer if chunk ends on a buffered stream
 		if(bufferedCount > 0){
 			Compression.WriteShort(bufferedBlock, buffer, writtenBytes);
@@ -77,6 +122,8 @@ public static class Compression{
 		}
 
 		return writtenBytes;
+		
+	*/	
 	}
 
 	// Writes Chunk c's HP metadata into given buffer
@@ -439,9 +486,23 @@ public static class Compression{
 	}
 
 
+	// Creates the NativeArray for Multithreading
+	private static NativeArray<ushort> PrepareChunkData(Chunk c){
+		ushort[] data = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
+
+		for(int y=0; y < Chunk.chunkDepth; y++){
+			for(int x=0; x < Chunk.chunkWidth; x++){
+				for(int z=0; z < Chunk.chunkWidth; z++){
+					data[z+x*Chunk.chunkWidth+y*Chunk.chunkWidth*Chunk.chunkWidth] = c.data.GetCell(x,y,z);
+				}
+			}
+		}
+
+		return new NativeArray<ushort>(data, Allocator.TempJob);
+	}
+
+
 }
-
-
 
 /*
 Palletes for Region File data compression 
@@ -453,4 +514,93 @@ public enum Pallete
 	OCEAN,
 	FOREST,
 	METADATA
+}
+
+
+
+/*
+MULTITHREADING
+*/
+[BurstCompile]
+public struct CompressionBlockJob : IJob{
+	public NativeArray<ushort> chunkData;
+	public NativeArray<byte> buffer;
+	public NativeArray<ushort> palleteArray;
+	public NativeArray<int> writtenBytes;
+
+	public void Execute(){
+		ushort blockCode;
+		ushort bufferedBlock = 0;
+		ushort bufferedCount = 0;
+		bool contains;
+		int i=0;
+
+		// Block Data
+		for(int y=0; y<Chunk.chunkDepth; y++){
+			for(int x=0; x<Chunk.chunkWidth; x++){
+				for(int z=0; z<Chunk.chunkWidth; z++){
+					blockCode = chunkData[i];
+					contains = Contains(blockCode);
+					i++;
+
+					// Case found block is not in Pallete and not buffered
+					if(!contains && bufferedCount == 0){
+						WriteShort(blockCode, writtenBytes[0]);
+						writtenBytes[0] += 2;
+					}
+					// Case found block is not in Pallete and is buffered
+					else if(!contains){
+						WriteShort(bufferedBlock, writtenBytes[0]);
+						writtenBytes[0] += 2;
+						WriteShort(bufferedCount, writtenBytes[0]);
+						writtenBytes[0] += 2;
+						WriteShort(blockCode, writtenBytes[0]);
+						writtenBytes[0] += 2;
+						bufferedCount = 0;
+					}
+					// Case found block is in Pallete and is the buffered block
+					else if(contains && bufferedBlock == blockCode && bufferedCount > 0){
+						bufferedCount++;
+					}
+					// Case found block is in Pallete and is buffered by another block
+					else if(contains && bufferedBlock != blockCode && bufferedCount > 0){
+						WriteShort(bufferedBlock, writtenBytes[0]);
+						writtenBytes[0] += 2;
+						WriteShort(bufferedCount, writtenBytes[0]);
+						writtenBytes[0] += 2;	
+						bufferedBlock = blockCode;
+						bufferedCount = 1;					
+					}
+					// General case of finding a palleted block that is not buffered
+					else{
+						bufferedBlock = blockCode;
+						bufferedCount = 1;
+					}
+
+				}
+			}
+		}
+		// Writes to buffer if chunk ends on a buffered stream
+		if(bufferedCount > 0){
+			WriteShort(bufferedBlock, writtenBytes[0]);
+			writtenBytes[0] += 2;
+			WriteShort(bufferedCount, writtenBytes[0]);
+			writtenBytes[0] += 2;
+		}
+	}
+
+	// Writes a short block data to a buffer in a certain position
+	private void WriteShort(ushort data, int pos){
+		buffer[pos] = (byte)(data >> 8);
+		buffer[pos+1] = (byte)data;
+	}
+
+	// Checks if a blockCode is in palleteArray
+	private bool Contains(ushort data){
+		for(int i=0; i < palleteArray.Length; i++){
+			if(palleteArray[i] == data)
+				return true;
+		}
+		return false;
+	}
 }
