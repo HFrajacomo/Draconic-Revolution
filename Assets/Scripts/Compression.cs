@@ -16,11 +16,6 @@ public static class Compression{
 	// Writes Chunk c's data using a Pallete's compression into given buffer
 	// and returns the amount of bytes written
 	public static int CompressBlocks(Chunk c, byte[] buffer){
-		// Preparation Variables
-
-		//int writtenBytes=0;
-		//bool contains;
-		
 		int bytes;
 		Pallete p = Compression.BiomeToPallete(c.biomeName);
 		List<ushort> palleteList = Compression.GetPallete(p);
@@ -52,84 +47,17 @@ public static class Compression{
 		writtenBytes.Dispose();
 
 		return bytes;
-		
-
-		/*
-		// Buffer Variables
-		ushort bufferedCount = 0;
-		ushort bufferedBlock = 0;
-		ushort blockCode = 0;
-
-		
-		// Block Data
-		for(int y=0; y<Chunk.chunkDepth; y++){
-			for(int x=0; x<Chunk.chunkWidth; x++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
-					blockCode = c.data.GetCell(x,y,z);
-					contains = palleteList.Contains(blockCode);
-
-					// Case found block is not in Pallete and not buffered
-					if(!contains && bufferedCount == 0){
-						Compression.WriteShort(blockCode, buffer, writtenBytes);
-						writtenBytes += 2;
-					}
-					// Case found block is not in Pallete and is buffered
-					else if(!contains){
-						Compression.WriteShort(bufferedBlock, buffer, writtenBytes);
-						writtenBytes += 2;
-						Compression.WriteShort(bufferedCount, buffer, writtenBytes);
-						writtenBytes += 2;
-						Compression.WriteShort(blockCode, buffer, writtenBytes);
-						writtenBytes += 2;
-						bufferedCount = 0;
-					}
-					// Case found block is in Pallete and is the buffered block
-					else if(contains && bufferedBlock == blockCode && bufferedCount > 0){
-						bufferedCount++;
-					}
-					// Case found block is in Pallete and is buffered by another block
-					else if(contains && bufferedBlock != blockCode && bufferedCount > 0){
-						Compression.WriteShort(bufferedBlock, buffer, writtenBytes);
-						writtenBytes += 2;
-						Compression.WriteShort(bufferedCount, buffer, writtenBytes);
-						writtenBytes += 2;	
-						bufferedBlock = blockCode;
-						bufferedCount = 1;					
-					}
-					// General case of finding a palleted block that is not buffered
-					else{
-						bufferedBlock = blockCode;
-						bufferedCount = 1;
-					}
-
-				}
-			}
-		}
-
-		// Writes to buffer if chunk ends on a buffered stream
-		if(bufferedCount > 0){
-			Compression.WriteShort(bufferedBlock, buffer, writtenBytes);
-			writtenBytes += 2;
-			Compression.WriteShort(bufferedCount, buffer, writtenBytes);
-			writtenBytes += 2;
-		}
-
-		return writtenBytes;
-		
-	*/	
+			
 	}
 
 	// Writes Chunk c's HP metadata into given buffer
 	// and returns the amount of bytes written
 	public static int CompressMetadataHP(Chunk c, byte[] buffer){
-		// Preparation Variables
-		//int writtenBytes = 0;
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
 		int bytes;
-		//bool contains;
 
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = Compression.PrepareChunkMetadata(c, true);
+		NativeArray<ushort> chunkData = new NativeArray<ushort>(c.data.GetData(), Allocator.TempJob);
 		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
 		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
 
@@ -154,92 +82,13 @@ public static class Compression{
 		writtenBytes.Dispose();
 
 		return bytes;
-
-		/*
-		// Buffer Variables
-		ushort bufferedCount = 0;
-		ushort bufferedCode = 0;
-		ushort? metaCode;
-		ushort newCode;
-
-		
-		// Block Data
-		for(int y=0; y<Chunk.chunkDepth; y++){
-			for(int x=0; x<Chunk.chunkWidth; x++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
-					if(c.metadata.metadata[x,y,z] == null){
-						newCode = ushort.MaxValue;
-					}
-					else{
-						metaCode = c.metadata.metadata[x,y,z].hp;
-
-						if(metaCode == null){
-							newCode = ushort.MaxValue;
-						}
-						else{
-							newCode = (ushort)metaCode;
-						}
-					}
-
-					contains = palleteList.Contains(newCode);
-
-					// Case found block is not in Pallete and not buffered
-					if(!contains && bufferedCount == 0){
-						Compression.WriteShort(newCode, buffer, writtenBytes);
-						writtenBytes += 2;
-					}
-					// Case found block is not in Pallete and is buffered
-					else if(!contains){
-						Compression.WriteShort(bufferedCode, buffer, writtenBytes);
-						writtenBytes += 2;
-						Compression.WriteShort(bufferedCount, buffer, writtenBytes);
-						writtenBytes += 2;
-						Compression.WriteShort(newCode, buffer, writtenBytes);
-						writtenBytes += 2;
-						bufferedCount = 0;
-					}
-					// Case found block is in Pallete and is the buffered block
-					else if(contains && bufferedCode == newCode && bufferedCount > 0){
-						bufferedCount++;
-					}
-					// Case found block is in Pallete and is buffered by another block
-					else if(contains && bufferedCode != newCode && bufferedCount > 0){
-						Compression.WriteShort(bufferedCode, buffer, writtenBytes);
-						writtenBytes += 2;
-						Compression.WriteShort(bufferedCount, buffer, writtenBytes);
-						writtenBytes += 2;	
-						bufferedCode = newCode;
-						bufferedCount = 1;					
-					}
-					// General case of finding a palleted block that is not buffered
-					else{
-						bufferedCode = newCode;
-						bufferedCount = 1;
-					}
-
-				}
-			}
-		}
-		// Writes to buffer if chunk ends on a buffered stream
-		if(bufferedCount > 0){
-			Compression.WriteShort(bufferedCode, buffer, writtenBytes);
-			writtenBytes += 2;
-			Compression.WriteShort(bufferedCount, buffer, writtenBytes);
-			writtenBytes += 2;
-		}
-
-		return writtenBytes;
-		*/
 	}
 
 	// Writes Chunk c's state metadata into given buffer
 	// and returns the amount of bytes written
 	public static int CompressMetadataState(Chunk c, byte[] buffer){
-		// Preparation Variables
-		//int writtenBytes = 0;
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
 		int bytes;
-		//bool contains;
 
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
 		NativeArray<ushort> chunkData = Compression.PrepareChunkMetadata(c, false);
@@ -267,86 +116,6 @@ public static class Compression{
 		writtenBytes.Dispose();
 
 		return bytes;
-
-		/*
-		// Preparation Variables
-		int writtenBytes = 0;
-		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
-		bool contains;
-
-		// Buffer Variables
-		ushort bufferedCount = 0;
-		ushort bufferedCode = 0;
-		ushort? metaCode;
-		ushort newCode;
-
-		// Block Data
-		for(int y=0; y<Chunk.chunkDepth; y++){
-			for(int x=0; x<Chunk.chunkWidth; x++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
-					if(c.metadata.metadata[x,y,z] == null){
-						newCode = ushort.MaxValue;
-					}
-					else{
-						metaCode = c.metadata.metadata[x,y,z].state;
-
-						if(metaCode == null){
-							newCode = ushort.MaxValue;
-						}
-						else{
-							newCode = (ushort)metaCode;
-						}
-					}
-
-					contains = palleteList.Contains(newCode);
-
-					// Case found block is not in Pallete and not buffered
-					if(!contains && bufferedCount == 0){
-						Compression.WriteShort(newCode, buffer, writtenBytes);
-						writtenBytes += 2;
-					}
-					// Case found block is not in Pallete and is buffered
-					else if(!contains){
-						Compression.WriteShort(bufferedCode, buffer, writtenBytes);
-						writtenBytes += 2;
-						Compression.WriteShort(bufferedCount, buffer, writtenBytes);
-						writtenBytes += 2;
-						Compression.WriteShort(newCode, buffer, writtenBytes);
-						writtenBytes += 2;
-						bufferedCount = 0;
-					}
-					// Case found block is in Pallete and is the buffered block
-					else if(contains && bufferedCode == newCode && bufferedCount > 0){
-						bufferedCount++;
-					}
-					// Case found block is in Pallete and is buffered by another block
-					else if(contains && bufferedCode != newCode && bufferedCount > 0){
-						Compression.WriteShort(bufferedCode, buffer, writtenBytes);
-						writtenBytes += 2;
-						Compression.WriteShort(bufferedCount, buffer, writtenBytes);
-						writtenBytes += 2;	
-						bufferedCode = newCode;
-						bufferedCount = 1;					
-					}
-					// General case of finding a palleted block that is not buffered
-					else{
-						bufferedCode = newCode;
-						bufferedCount = 1;
-					}
-
-				}
-			}
-		}
-		// Writes to buffer if chunk ends on a buffered stream
-		if(bufferedCount > 0){
-			Compression.WriteShort(bufferedCode, buffer, writtenBytes);
-			writtenBytes += 2;
-			Compression.WriteShort(bufferedCount, buffer, writtenBytes);
-			writtenBytes += 2;
-		}
-
-		return writtenBytes;
-		*/
 	}
 
 
@@ -561,9 +330,6 @@ public static class Compression{
 		}
 
 		return new NativeArray<ushort>(data, Allocator.TempJob);
-		
-		
-		
 	}
 
 	// Creates a NativeArray for Multithreading

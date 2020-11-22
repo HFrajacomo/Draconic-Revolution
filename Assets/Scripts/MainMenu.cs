@@ -13,6 +13,7 @@ public class MainMenu : MonoBehaviour
 
 	public Text nameField;
 	public Text seedField;
+	public Text renderField;
 
 
 	public void StartGame(){
@@ -29,6 +30,13 @@ public class MainMenu : MonoBehaviour
 		}
 		else{
 			World.SetWorldSeed(seedField.text);
+		}
+
+		if(renderField.text == ""){
+			World.SetRenderDistance("5");
+		}
+		else{
+			World.SetRenderDistance(renderField.text);
 		}
 
 		World.SetWorldName(nameField.text);

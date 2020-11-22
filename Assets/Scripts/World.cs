@@ -7,6 +7,7 @@ public static class World
     
     public static string worldName;
     public static int worldSeed;
+    public static int renderDistance;
 
     // Sets world name
     public static void SetWorldName(string name){
@@ -16,6 +17,10 @@ public static class World
     // Sets seed as integer
     public static void SetWorldSeed(string seed){
     	World.worldSeed = Convert.ToInt32(seed);
+    }
+
+    public static void SetRenderDistance(string rd){
+        World.renderDistance = Convert.ToInt32(rd);
     }
 
 }

@@ -215,6 +215,7 @@ public class RegionFileHandler{
 		hpSize = Compression.CompressMetadataHP(c, hpBuffer);
 		stateSize = Compression.CompressMetadataState(c, stateBuffer);
 
+		Debug.Log("Saved");
 		InitializeHeader(c, blockSize, hpSize, stateSize);
 
 		totalSize = chunkHeaderSize + blockSize + hpSize + stateSize;

@@ -5,14 +5,14 @@ using Unity.Collections;
 
 public class VoxelData
 {
-	ushort[,,] data;
+	ushort[] data;
 
 	public VoxelData(){
-		this.data = new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
+		this.data = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
 	}
 
-	public VoxelData(ushort[,,] data){
-		this.data = (ushort[,,])data.Clone();
+	public VoxelData(ushort[] data){
+		this.data = (ushort[])data.Clone();
 	}
 
 	public static VoxelData CutUnderground(VoxelData a, NativeArray<ushort> b, int upper=-1, int lower=-1){
@@ -50,28 +50,15 @@ public class VoxelData
 		return a;
 	}
 
-
-	public int GetWidth(){
-		return data.GetLength(0);
-	}
-
-	public int GetHeight(){
-		return data.GetLength(1);
-	}
-
-	public int GetDepth(){
-		return data.GetLength(2);
-	}
-
 	public ushort GetCell(int x, int y, int z){
-		return data[x,y,z];
+		return data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 	}
 
 	public void SetCell(int x, int y, int z, ushort blockCode){
-		data[x,y,z] = blockCode;
+		data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blockCode;
 	}
 
-	public ushort[,,] GetData(){
+	public ushort[] GetData(){
 		return this.data;
 	}
 
@@ -88,7 +75,7 @@ public class VoxelData
 		DataCoordinate offsetToCheck = offsets[(int)dir];
 		DataCoordinate neighborCoord = new DataCoordinate(x + offsetToCheck.x, y + offsetToCheck.y, z + offsetToCheck.z);
 		
-		if(neighborCoord.x < 0 || neighborCoord.x >= GetWidth() || neighborCoord.z < 0 || neighborCoord.z >= GetDepth() || neighborCoord.y < 0 || neighborCoord.y >= GetHeight()){
+		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
 			return 0;
 		} 
 		else{

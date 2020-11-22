@@ -76,7 +76,7 @@ public class Chunk
 		this.pos = pos;
 		this.needsGeneration = 1;
 
-		this.data = new VoxelData(new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth]);
+		this.data = new VoxelData(new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth]);
 
 		this.metadata = new VoxelMetadata();
 	}
@@ -132,8 +132,8 @@ public class Chunk
 
 			this.xMinusDrawn = true;
 
-			for(int y=0; y<data.GetHeight(); y++){
-				for(int z=0; z<data.GetDepth(); z++){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int z=0; z<Chunk.chunkWidth; z++){
 					skip = false;
 					thisBlock = data.GetCell(0,y,z);
 					neighborBlock = loader.chunks[targetChunk].data.GetCell(chunkWidth-1, y, z);
@@ -166,8 +166,8 @@ public class Chunk
 
 			this.xPlusDrawn = true;
 
-			for(int y=0; y<data.GetHeight(); y++){
-				for(int z=0; z<data.GetDepth(); z++){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int z=0; z<Chunk.chunkWidth; z++){
 					skip = false;
 					thisBlock = data.GetCell(chunkWidth-1,y,z);
 					neighborBlock = loader.chunks[targetChunk].data.GetCell(0, y, z);
@@ -199,8 +199,8 @@ public class Chunk
 
 			this.zMinusDrawn = true;
 
-			for(int y=0; y<data.GetHeight(); y++){
-				for(int x=0; x<data.GetDepth(); x++){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int x=0; x<Chunk.chunkWidth; x++){
 					skip = false;
 					thisBlock = data.GetCell(x,y,0);
 					neighborBlock = loader.chunks[targetChunk].data.GetCell(x, y, chunkWidth-1);
@@ -232,8 +232,8 @@ public class Chunk
 
 			this.zPlusDrawn = true;
 
-			for(int y=0; y<data.GetHeight(); y++){
-				for(int x=0; x<data.GetDepth(); x++){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int x=0; x<Chunk.chunkWidth; x++){
 					skip = false;
 					thisBlock = data.GetCell(x,y,chunkWidth-1);
 					neighborBlock = loader.chunks[targetChunk].data.GetCell(x, y, 0);
@@ -278,9 +278,9 @@ public class Chunk
 			this.assetGrid.Unload();
 		}
 
-    	for(int x=0; x<data.GetWidth(); x++){
-    		for(int y=0; y<data.GetHeight(); y++){
-    			for(int z=0; z<data.GetDepth(); z++){
+    	for(int x=0; x<Chunk.chunkWidth; x++){
+    		for(int y=0; y<Chunk.chunkDepth; y++){
+    			for(int z=0; z<Chunk.chunkWidth; z++){
     				thisBlock = data.GetCell(x,y,z);
     				skip = false;
 
