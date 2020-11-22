@@ -22,11 +22,11 @@ public static class Compression{
 		
 		
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = Compression.PrepareChunkData(c);
+		NativeArray<ushort> chunkData = new NativeArray<ushort>(c.data.GetData(), Allocator.TempJob);
 		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
 		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
 
-		CompressionBlockJob cbJob = new CompressionBlockJob{
+		CompressionJob cbJob = new CompressionJob{
 			chunkData = chunkData,
 			buffer = buff,
 			palleteArray = palleteArray,
@@ -57,11 +57,11 @@ public static class Compression{
 		int bytes;
 
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = new NativeArray<ushort>(c.data.GetData(), Allocator.TempJob);
+		NativeArray<ushort> chunkData = Compression.PrepareChunkMetadata(c, true);
 		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
 		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
 
-		CompressionMetadataJob cmdJob = new CompressionMetadataJob{
+		CompressionJob cmdJob = new CompressionJob{
 			chunkData = chunkData,
 			buffer = buff,
 			palleteArray = palleteArray,
@@ -95,7 +95,7 @@ public static class Compression{
 		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
 		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
 
-		CompressionMetadataJob cmdJob = new CompressionMetadataJob{
+		CompressionJob cmdJob = new CompressionJob{
 			chunkData = chunkData,
 			buffer = buff,
 			palleteArray = palleteArray,
@@ -406,7 +406,7 @@ public enum Pallete
 MULTITHREADING
 */
 [BurstCompile]
-public struct CompressionBlockJob : IJob{
+public struct CompressionJob : IJob{
 	public NativeArray<ushort> chunkData;
 	public NativeArray<byte> buffer;
 	public NativeArray<ushort> palleteArray;
@@ -417,15 +417,13 @@ public struct CompressionBlockJob : IJob{
 		ushort bufferedBlock = 0;
 		ushort bufferedCount = 0;
 		bool contains;
-		int i=0;
 
 		// Block Data
 		for(int y=0; y<Chunk.chunkDepth; y++){
 			for(int x=0; x<Chunk.chunkWidth; x++){
 				for(int z=0; z<Chunk.chunkWidth; z++){
-					blockCode = chunkData[i];
+					blockCode = chunkData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 					contains = Contains(blockCode);
-					i++;
 
 					// Case found block is not in Pallete and not buffered
 					if(!contains && bufferedCount == 0){
@@ -488,90 +486,4 @@ public struct CompressionBlockJob : IJob{
 		return false;
 	}
 
-}
-
-[BurstCompile]
-public struct CompressionMetadataJob : IJob{
-
-	public NativeArray<ushort> chunkData;
-	public NativeArray<byte> buffer;
-	public NativeArray<ushort> palleteArray;
-	public NativeArray<int> writtenBytes;
-
-	public void Execute(){
-		int i=0;
-		ushort newCode;
-		ushort bufferedCount = 0;
-		ushort bufferedCode = 0;
-		bool contains;
-
-		// Block Data
-		for(int y=0; y<Chunk.chunkDepth; y++){
-			for(int x=0; x<Chunk.chunkWidth; x++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
-					newCode = chunkData[i];
-
-					contains = Contains(newCode);
-					i++;
-
-					// Case found block is not in Pallete and not buffered
-					if(!contains && bufferedCount == 0){
-						WriteShort(newCode, writtenBytes[0]);
-						writtenBytes[0] += 2;
-					}
-					// Case found block is not in Pallete and is buffered
-					else if(!contains){
-						WriteShort(bufferedCode, writtenBytes[0]);
-						writtenBytes[0] += 2;
-						WriteShort(bufferedCount, writtenBytes[0]);
-						writtenBytes[0] += 2;
-						WriteShort(newCode, writtenBytes[0]);
-						writtenBytes[0] += 2;
-						bufferedCount = 0;
-					}
-					// Case found block is in Pallete and is the buffered block
-					else if(contains && bufferedCode == newCode && bufferedCount > 0){
-						bufferedCount++;
-					}
-					// Case found block is in Pallete and is buffered by another block
-					else if(contains && bufferedCode != newCode && bufferedCount > 0){
-						WriteShort(bufferedCode, writtenBytes[0]);
-						writtenBytes[0] += 2;
-						WriteShort(bufferedCount, writtenBytes[0]);
-						writtenBytes[0] += 2;	
-						bufferedCode = newCode;
-						bufferedCount = 1;					
-					}
-					// General case of finding a palleted block that is not buffered
-					else{
-						bufferedCode = newCode;
-						bufferedCount = 1;
-					}
-
-				}
-			}
-		}
-		// Writes to buffer if chunk ends on a buffered stream
-		if(bufferedCount > 0){
-			WriteShort(bufferedCode, writtenBytes[0]);
-			writtenBytes[0] += 2;
-			WriteShort(bufferedCount, writtenBytes[0]);
-			writtenBytes[0] += 2;
-		}
-	}
-
-	// Writes a short block data to a buffer in a certain position
-	private void WriteShort(ushort data, int pos){
-		buffer[pos] = (byte)(data >> 8);
-		buffer[pos+1] = (byte)data;
-	}
-
-	// Checks if a blockCode is in palleteArray
-	private bool Contains(ushort data){
-		for(int i=0; i < palleteArray.Length; i++){
-			if(palleteArray[i] == data)
-				return true;
-		}
-		return false;
-	}
 }
