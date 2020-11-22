@@ -44,13 +44,6 @@ public static class Compression{
 		// NativeArray to Array convertion
 		buff.CopyTo(buffer);
 
-		// Conversion that actually works
-		/*
-		for(int i=0; i < buff.Length; i++){
-			buffer[i] = buff[i];
-		}
-		*/
-
 		bytes = writtenBytes[0];
 
 		chunkData.Dispose();
@@ -130,16 +123,46 @@ public static class Compression{
 	// and returns the amount of bytes written
 	public static int CompressMetadataHP(Chunk c, byte[] buffer){
 		// Preparation Variables
-		int writtenBytes = 0;
+		//int writtenBytes = 0;
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
-		bool contains;
+		int bytes;
+		//bool contains;
 
+		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
+		NativeArray<ushort> chunkData = Compression.PrepareChunkMetadata(c, true);
+		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
+		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+
+		CompressionMetadataJob cmdJob = new CompressionMetadataJob{
+			chunkData = chunkData,
+			buffer = buff,
+			palleteArray = palleteArray,
+			writtenBytes = writtenBytes		
+		};
+
+		JobHandle handle = cmdJob.Schedule();
+		handle.Complete();
+
+		// NativeArray to Array convertion
+		buff.CopyTo(buffer);
+
+		bytes = writtenBytes[0];
+
+		chunkData.Dispose();
+		palleteArray.Dispose();
+		buff.Dispose();
+		writtenBytes.Dispose();
+
+		return bytes;
+
+		/*
 		// Buffer Variables
 		ushort bufferedCount = 0;
 		ushort bufferedCode = 0;
 		ushort? metaCode;
 		ushort newCode;
 
+		
 		// Block Data
 		for(int y=0; y<Chunk.chunkDepth; y++){
 			for(int x=0; x<Chunk.chunkWidth; x++){
@@ -206,11 +229,46 @@ public static class Compression{
 		}
 
 		return writtenBytes;
+		*/
 	}
 
 	// Writes Chunk c's state metadata into given buffer
 	// and returns the amount of bytes written
 	public static int CompressMetadataState(Chunk c, byte[] buffer){
+		// Preparation Variables
+		//int writtenBytes = 0;
+		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+		int bytes;
+		//bool contains;
+
+		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
+		NativeArray<ushort> chunkData = Compression.PrepareChunkMetadata(c, false);
+		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
+		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+
+		CompressionMetadataJob cmdJob = new CompressionMetadataJob{
+			chunkData = chunkData,
+			buffer = buff,
+			palleteArray = palleteArray,
+			writtenBytes = writtenBytes		
+		};
+
+		JobHandle handle = cmdJob.Schedule();
+		handle.Complete();
+
+		// NativeArray to Array convertion
+		buff.CopyTo(buffer);
+
+		bytes = writtenBytes[0];
+
+		chunkData.Dispose();
+		palleteArray.Dispose();
+		buff.Dispose();
+		writtenBytes.Dispose();
+
+		return bytes;
+
+		/*
 		// Preparation Variables
 		int writtenBytes = 0;
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
@@ -288,6 +346,7 @@ public static class Compression{
 		}
 
 		return writtenBytes;
+		*/
 	}
 
 
@@ -489,16 +548,75 @@ public static class Compression{
 	// Creates the NativeArray for Multithreading
 	private static NativeArray<ushort> PrepareChunkData(Chunk c){
 		ushort[] data = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
+		
+		int i = 0;
 
 		for(int y=0; y < Chunk.chunkDepth; y++){
 			for(int x=0; x < Chunk.chunkWidth; x++){
 				for(int z=0; z < Chunk.chunkWidth; z++){
-					data[z+x*Chunk.chunkWidth+y*Chunk.chunkWidth*Chunk.chunkWidth] = c.data.GetCell(x,y,z);
+					data[i] = c.data.GetCell(x,y,z);
+					i++;
 				}
 			}
 		}
 
 		return new NativeArray<ushort>(data, Allocator.TempJob);
+		
+		
+		
+	}
+
+	// Creates a NativeArray for Multithreading
+	private static NativeArray<ushort> PrepareChunkMetadata(Chunk c, bool hp){
+		ushort[] data = new ushort[Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth];
+		
+		int i = 0;
+
+		if(hp){
+			for(int y=0; y < Chunk.chunkDepth; y++){
+				for(int x=0; x < Chunk.chunkWidth; x++){
+					for(int z=0; z < Chunk.chunkWidth; z++){
+						if(c.metadata.IsUnassigned(x,y,z)){
+							data[i] = ushort.MaxValue;
+						}
+						else{
+							if(c.metadata.metadata[x,y,z].hp == null){
+								data[i] = ushort.MaxValue;
+							}
+							else{
+								data[i] = (ushort)c.metadata.GetMetadata(x,y,z).hp;								
+							}
+						}
+
+						i++;
+					}
+				}
+			}
+		}
+		else{
+			for(int y=0; y < Chunk.chunkDepth; y++){
+				for(int x=0; x < Chunk.chunkWidth; x++){
+					for(int z=0; z < Chunk.chunkWidth; z++){
+						if(c.metadata.IsUnassigned(x,y,z)){
+							data[i] = ushort.MaxValue;
+						}
+						else{
+							if(c.metadata.metadata[x,y,z].state == null){
+								data[i] = ushort.MaxValue;
+							}
+							else{
+								data[i] = (ushort)c.metadata.GetMetadata(x,y,z).state;								
+							}
+						}
+
+						i++;
+					}
+				}
+			}			
+		}
+
+		return new NativeArray<ushort>(data, Allocator.TempJob);
+		
 	}
 
 
@@ -583,6 +701,93 @@ public struct CompressionBlockJob : IJob{
 		// Writes to buffer if chunk ends on a buffered stream
 		if(bufferedCount > 0){
 			WriteShort(bufferedBlock, writtenBytes[0]);
+			writtenBytes[0] += 2;
+			WriteShort(bufferedCount, writtenBytes[0]);
+			writtenBytes[0] += 2;
+		}
+	}
+
+	// Writes a short block data to a buffer in a certain position
+	private void WriteShort(ushort data, int pos){
+		buffer[pos] = (byte)(data >> 8);
+		buffer[pos+1] = (byte)data;
+	}
+
+	// Checks if a blockCode is in palleteArray
+	private bool Contains(ushort data){
+		for(int i=0; i < palleteArray.Length; i++){
+			if(palleteArray[i] == data)
+				return true;
+		}
+		return false;
+	}
+
+}
+
+[BurstCompile]
+public struct CompressionMetadataJob : IJob{
+
+	public NativeArray<ushort> chunkData;
+	public NativeArray<byte> buffer;
+	public NativeArray<ushort> palleteArray;
+	public NativeArray<int> writtenBytes;
+
+	public void Execute(){
+		int i=0;
+		ushort newCode;
+		ushort bufferedCount = 0;
+		ushort bufferedCode = 0;
+		bool contains;
+
+		// Block Data
+		for(int y=0; y<Chunk.chunkDepth; y++){
+			for(int x=0; x<Chunk.chunkWidth; x++){
+				for(int z=0; z<Chunk.chunkWidth; z++){
+					newCode = chunkData[i];
+
+					contains = Contains(newCode);
+					i++;
+
+					// Case found block is not in Pallete and not buffered
+					if(!contains && bufferedCount == 0){
+						WriteShort(newCode, writtenBytes[0]);
+						writtenBytes[0] += 2;
+					}
+					// Case found block is not in Pallete and is buffered
+					else if(!contains){
+						WriteShort(bufferedCode, writtenBytes[0]);
+						writtenBytes[0] += 2;
+						WriteShort(bufferedCount, writtenBytes[0]);
+						writtenBytes[0] += 2;
+						WriteShort(newCode, writtenBytes[0]);
+						writtenBytes[0] += 2;
+						bufferedCount = 0;
+					}
+					// Case found block is in Pallete and is the buffered block
+					else if(contains && bufferedCode == newCode && bufferedCount > 0){
+						bufferedCount++;
+					}
+					// Case found block is in Pallete and is buffered by another block
+					else if(contains && bufferedCode != newCode && bufferedCount > 0){
+						WriteShort(bufferedCode, writtenBytes[0]);
+						writtenBytes[0] += 2;
+						WriteShort(bufferedCount, writtenBytes[0]);
+						writtenBytes[0] += 2;	
+						bufferedCode = newCode;
+						bufferedCount = 1;					
+					}
+					// General case of finding a palleted block that is not buffered
+					else{
+						bufferedCode = newCode;
+						bufferedCount = 1;
+					}
+
+				}
+			}
+		}
+		// Writes to buffer if chunk ends on a buffered stream
+		if(bufferedCount > 0){
+			WriteShort(bufferedCode, writtenBytes[0]);
 			writtenBytes[0] += 2;
 			WriteShort(bufferedCount, writtenBytes[0]);
 			writtenBytes[0] += 2;
