@@ -1096,6 +1096,12 @@ public class ChunkLoader : MonoBehaviour
 		ApplyHeightMaps(cacheStateDict, pregen:pregen);
         cacheStateDict.Clear();
 
+        // Applies Structs from other chunks
+        if(Structure.Exists(currentChunk)){
+            Structure.RoughApply(cacheVoxdata, cacheMetadataHP, cacheMetadataState, Structure.GetChunk(currentChunk));
+            Structure.RemoveChunk(currentChunk);
+        }
+
         // Structures
         GeneratePlainsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 0, transition);
 
@@ -1192,6 +1198,12 @@ public class ChunkLoader : MonoBehaviour
         ApplyHeightMaps(cacheStateDict, pregen:pregen);
         cacheStateDict.Clear();
 
+        // Applies Structs from other chunks
+        if(Structure.Exists(currentChunk)){
+            Structure.RoughApply(cacheVoxdata, cacheMetadataHP, cacheMetadataState, Structure.GetChunk(currentChunk));
+            Structure.RemoveChunk(currentChunk);
+        }
+
         // Structures
         GenerateGrassyHighLandsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 1, transition);
 
@@ -1271,6 +1283,12 @@ public class ChunkLoader : MonoBehaviour
 
         // Adds to cacheVoxdata
         ApplyHeightMaps(cacheStateDict, pregen:pregen);
+
+        // Applies Structs from other chunks
+        if(Structure.Exists(currentChunk)){
+            Structure.RoughApply(cacheVoxdata, cacheMetadataHP, cacheMetadataState, Structure.GetChunk(currentChunk));
+            Structure.RemoveChunk(currentChunk);
+        }
 
         // Structures
         GenerateOceanStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 2, transition);
