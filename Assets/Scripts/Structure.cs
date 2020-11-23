@@ -119,6 +119,7 @@ public abstract class Structure
         // Applies Structure to origin chunk
         retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, x, y, z, xRemainder, zRemainder, 0, 0);
 
+
         // Possible failed return if in FreeSpace mode
         if(!retStatus){
             return false;
@@ -570,7 +571,7 @@ public abstract class Structure
     3: 270º
     */
     private void RotateData(int x, int y, int z, int rotation){
-        cacheY= y;
+        cacheY = y;
 
         // No rotation
         if(rotation == 0){

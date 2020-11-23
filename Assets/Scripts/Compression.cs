@@ -57,7 +57,7 @@ public static class Compression{
 		int bytes;
 
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = Compression.PrepareChunkMetadata(c, true);
+		NativeArray<ushort> chunkData = new NativeArray<ushort>(c.metadata.GetHPData(), Allocator.TempJob);
 		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
 		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
 
@@ -91,7 +91,7 @@ public static class Compression{
 		int bytes;
 
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = Compression.PrepareChunkMetadata(c, false);
+		NativeArray<ushort> chunkData = new NativeArray<ushort>(c.metadata.GetStateData(), Allocator.TempJob);
 		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
 		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
 
@@ -304,57 +304,6 @@ public static class Compression{
 
 		return (ushort)a;
 	}
-
-
-	// Creates the NativeArray for Multithreading
-	private static NativeArray<ushort> PrepareChunkData(Chunk c){
-		ushort[] data = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
-		
-		int i = 0;
-
-		for(int y=0; y < Chunk.chunkDepth; y++){
-			for(int x=0; x < Chunk.chunkWidth; x++){
-				for(int z=0; z < Chunk.chunkWidth; z++){
-					data[i] = c.data.GetCell(x,y,z);
-					i++;
-				}
-			}
-		}
-
-		return new NativeArray<ushort>(data, Allocator.TempJob);
-	}
-
-	// Creates a NativeArray for Multithreading
-	private static NativeArray<ushort> PrepareChunkMetadata(Chunk c, bool hp){
-		ushort[] data = new ushort[Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth];
-		
-		int i = 0;
-
-		if(hp){
-			for(int y=0; y < Chunk.chunkDepth; y++){
-				for(int x=0; x < Chunk.chunkWidth; x++){
-					for(int z=0; z < Chunk.chunkWidth; z++){
-						data[i] = c.metadata.GetHP(x,y,z);								
-						i++;
-					}
-				}
-			}
-		}
-		else{
-			for(int y=0; y < Chunk.chunkDepth; y++){
-				for(int x=0; x < Chunk.chunkWidth; x++){
-					for(int z=0; z < Chunk.chunkWidth; z++){
-						data[i] = c.metadata.GetState(x,y,z);								
-						i++;
-					}
-				}
-			}		
-		}
-
-		return new NativeArray<ushort>(data, Allocator.TempJob);
-		
-	}
-
 
 }
 

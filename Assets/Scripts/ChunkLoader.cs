@@ -42,15 +42,14 @@ public class ChunkLoader : MonoBehaviour
 	public bool WORLD_GENERATED = false; 
 
 	// Cache Information 
-	private ushort[,] cacheHeightMap = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
-	private ushort[,] cacheHeightMap2 = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
-	private ushort[,] cacheHeightMap3 = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
-	private ushort[,] cacheHeightMap4 = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
-    private ushort[,] cachePivotMap = new ushort[Chunk.chunkWidth+1,Chunk.chunkWidth+1];
+	private ushort[] cacheHeightMap = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
+	private ushort[] cacheHeightMap2 = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
+	private ushort[] cacheHeightMap3 = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
+	private ushort[] cacheHeightMap4 = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
+    private ushort[] cachePivotMap = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
 	private	ushort[] cacheVoxdata = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
-	private List<ushort[,]> cacheMaps = new List<ushort[,]>();
+	private List<ushort[]> cacheMaps = new List<ushort[]>();
 	private List<ushort> cacheBlockCodes = new List<ushort>();
-    private ushort[,,] cacheTurbulanceMap = new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
     private ChunkPos cachePos = new ChunkPos(0,0);
     private Chunk cacheChunk;
     private ushort[] cacheMetadataHP = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
@@ -206,6 +205,7 @@ public class ChunkLoader : MonoBehaviour
                     vfx.NewChunk(toLoad[0]); 
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
                     Structure.RemoveChunk(toLoad[0]);
+
                 }
 
                 // If chunk is Pre-Generated
@@ -221,6 +221,7 @@ public class ChunkLoader : MonoBehaviour
                     chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
+
                 }
                 // If it's just a normally generated chunk
                 else{
@@ -229,12 +230,12 @@ public class ChunkLoader : MonoBehaviour
                     vfx.NewChunk(toLoad[0]);
                     regionHandler.LoadChunk(chunks[toLoad[0]]);
                     chunks[toLoad[0]].needsGeneration = 0;
+
                 }
             }
             // If it's a new chunk to be generated
             else{
                 if(isStructured){
-
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
                     vfx.NewChunk(toLoad[0]);
                     cacheVoxdata = Structure.GetChunk(toLoad[0]).data.GetData();
@@ -245,6 +246,7 @@ public class ChunkLoader : MonoBehaviour
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
                     Structure.RemoveChunk(toLoad[0]);
+
                 }
                 else{
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
@@ -253,6 +255,7 @@ public class ChunkLoader : MonoBehaviour
                     chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
+
                 }                 
 
 
@@ -535,11 +538,11 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Debug Feature
-    private void ToFile(int[,] heightMap, string filename){
+    private void ToFile(ushort[] heightMap, string filename){
     	string a = "";
-    	for(int x=16;x>=0;x--){
-    		for(int y=0;y<=16;y++){
-    			a += (heightMap[x,y] + "\t");
+    	for(int x=Chunk.chunkWidth;x>=0;x--){
+    		for(int y=0;y<=Chunk.chunkWidth;y++){
+    			a += (heightMap[x*(Chunk.chunkWidth+1)+y] + "\t");
     		}
     		a += "\n";
     	}
@@ -550,15 +553,6 @@ public class ChunkLoader : MonoBehaviour
     Used for Cave system generation and above ground turbulence
     */
     private NativeArray<ushort> GenerateRidgedMultiFractal3D(int chunkX, int chunkZ, float xhash, float yhash, float zhash, float threshold, int ceiling=20, float maskThreshold=0f){
-    	/*
-        int size = Chunk.chunkWidth;
-    	chunkX *= size;
-    	chunkZ *= size;
-    	int i = 0;
-    	int j = 0;
-        float val;
-        float mask;
-        */
 
         NativeArray<ushort> turbulanceMap = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 
@@ -579,32 +573,6 @@ public class ChunkLoader : MonoBehaviour
         handle.Complete();
 
         return turbulanceMap;
-
-        /*
-    	for(int x=chunkX;x<chunkX+size;x++){
-    		j = 0;
-    		for(int z=chunkZ;z<chunkZ+size;z++){
-
-                mask = Perlin.Noise((x^z)*(xhash*yhash)*1.07f, z*zhash*0.427f);
-    			for(int y=0;y<Chunk.chunkDepth;y++){
-                    
-                    if(mask < maskThreshold){
-                        cacheTurbulanceMap[i,y,j] = 0;
-                        continue;
-                    }
-
-       				val = Perlin.RidgedMultiFractal(x*xhash*generationSeed, y*yhash*generationSeed, z*zhash*generationSeed);
-    				
-    				if(val >= threshold && y <= ceiling)
-    					cacheTurbulanceMap[i,y,j] = 1;
-    				else
-    					cacheTurbulanceMap[i,y,j] = 0;
-    			}
-    			j++;
-    		}
-    		i++;
-    	}
-        */
     }
 
     /*
@@ -626,7 +594,7 @@ public class ChunkLoader : MonoBehaviour
     	    			// If it's the first layer to be added
     	    			if(i == 0){
     		    			for(int y=0;y<Chunk.chunkDepth;y++){
-    		    				if(y <= cacheMaps[i][x,z]){
+    		    				if(y <= cacheMaps[i][x*(size+1)+z]){
                                     cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
                                     if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
                                         cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
@@ -638,7 +606,7 @@ public class ChunkLoader : MonoBehaviour
     	    			}
     	    			// If is not the first layer
     	    			else{
-    		    			for(int y=cacheMaps[i-1][x,z]+1;y<=cacheMaps[i][x,z];y++){
+    		    			for(int y=cacheMaps[i-1][x*(size+1)+z]+1;y<=cacheMaps[i][x*(size+1)+z];y++){
     		    				cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i];
 
                                 if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
@@ -661,7 +629,7 @@ public class ChunkLoader : MonoBehaviour
                         // If it's the first layer to be added
                         if(i == 0){
                             for(int y=0;y<Chunk.chunkDepth;y++){
-                                if(y <= cacheMaps[i][x,z]){
+                                if(y <= cacheMaps[i][x*(size+1)+z]){
                                     // Only adds to air blocks
                                     if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == 0){
                                         cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
@@ -681,7 +649,7 @@ public class ChunkLoader : MonoBehaviour
                         }
                         // If is not the first layer
                         else{
-                            for(int y=cacheMaps[i-1][x,z]+1;y<=cacheMaps[i][x,z];y++){
+                            for(int y=cacheMaps[i-1][x*(Chunk.chunkWidth+1)+z]+1;y<=cacheMaps[i][x*(size+1)+z];y++){
                                 if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == 0){
                                     // Convertion of pregen air blocks
                                     if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == (ushort)(ushort.MaxValue/2))
@@ -705,7 +673,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Generates Pivot heightmaps
-    private void GeneratePivots(ushort[,] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, ref bool transitionChecker, ref string transitionBiome, int octave=0, int groundLevel=20, int ceilingLevel=100, string currentBiome=""){
+    private void GeneratePivots(ushort[] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, ref bool transitionChecker, ref string transitionBiome, int octave=0, int groundLevel=20, int ceilingLevel=100, string currentBiome=""){
     	int size = Chunk.chunkWidth;
     	int chunkXmult = chunkX * size;
     	int chunkZmult = chunkZ * size;
@@ -716,12 +684,11 @@ public class ChunkLoader : MonoBehaviour
     	for(int x=chunkXmult;x<chunkXmult+size;x+=4){
     		j = 0;
     		for(int z=chunkZmult;z<chunkZmult+size;z+=4){
-				selectedCache[i, j] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*generationSeed/xhash+offsetHash, z*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
+				selectedCache[i*(Chunk.chunkWidth+1)+j] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*generationSeed/xhash+offsetHash, z*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
     			j+=4;
     		}
     		i+=4;
     	}
-
 
         // Look Ahead to X+
         switch(biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ), worldSeed)){
@@ -825,11 +792,11 @@ public class ChunkLoader : MonoBehaviour
                 break;
             default:
                 break;
-        }        
+        }   
     }
 
     // Builds Lookahead pivots for biome border smoothing
-    public void GenerateLookAheadPivots(ushort[,] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, bool isSide, int groundLevel=0, int ceilingLevel=99){
+    public void GenerateLookAheadPivots(ushort[] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, bool isSide, int groundLevel=0, int ceilingLevel=99){
         int size = Chunk.chunkWidth;
         chunkX *= size;
         chunkZ *= size;
@@ -838,40 +805,40 @@ public class ChunkLoader : MonoBehaviour
         // If is looking ahead into X+ Chunk
         if(isSide){
             for(int x=chunkX; x<=chunkX+size; x+=4){
-                selectedMap[i, size] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*generationSeed/xhash+offsetHash, (chunkZ+size)*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
+                selectedMap[i*(Chunk.chunkWidth+1)+size] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*generationSeed/xhash+offsetHash, (chunkZ+size)*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
                 i+=4;
             }
         }
         // If is looking ahead into Z+ Chunk
         else{
             for(int z=chunkZ; z<chunkZ+size; z+=4){ // Don't generate corner twice
-                selectedMap[size, i] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise((chunkX+size)*generationSeed/xhash+offsetHash, z*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
+                selectedMap[size*(Chunk.chunkWidth+1)+i] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise((chunkX+size)*generationSeed/xhash+offsetHash, z*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
                 i+=4;
             }
         }
     }
 
     // Builds Lookahead pivot of corner chunk for biome border smoothing
-    public void GenerateLookAheadCorner(ushort[,] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=0, int ceilingLevel=99){
-        selectedMap[Chunk.chunkWidth, Chunk.chunkWidth] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth*generationSeed)/xhash+offsetHash, ((chunkZ+1)*Chunk.chunkWidth*generationSeed)/zhash+offsetHash))), 0, ceilingLevel));
+    public void GenerateLookAheadCorner(ushort[] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=0, int ceilingLevel=99){
+        selectedMap[selectedMap.Length-1] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth*generationSeed)/xhash+offsetHash, ((chunkZ+1)*Chunk.chunkWidth*generationSeed)/zhash+offsetHash))), 0, ceilingLevel));
     }
 
     // Generates Flat Map of something
     // Consider using this for biomes that are relatively low altitude
-    private void GenerateFlatMap(ushort[,] selectedCache, ushort ceiling){
+    private void GenerateFlatMap(ushort[] selectedCache, ushort ceiling){
         if(ceiling >= Chunk.chunkDepth)
             ceiling = (ushort)(Chunk.chunkDepth-1);
 
         for(int x=0; x<Chunk.chunkWidth;x++){
             for(int z=0; z<Chunk.chunkWidth;z++){
-                selectedCache[x,z] = ceiling;
+                selectedCache[x*Chunk.chunkWidth+z] = ceiling;
             }
         }
     }
 
     // Applies bilinear interpolation to a given pivotmap
     // Takes any cache and returns on itself
-    private void BilinearInterpolateMap(ushort[,] heightMap, int interval=4){
+    private void BilinearInterpolateMap(ushort[] heightMap, int interval=4){
     	int size = Chunk.chunkWidth;
     	int interpX = 0;
     	int interpZ = 0;
@@ -892,7 +859,7 @@ public class ChunkLoader : MonoBehaviour
     				scaleX = step;
     			}
 
-    			heightMap[x,z] = (ushort)(Mathf.RoundToInt(((heightMap[interpX-interval, interpZ-interval])*(1-scaleX)*(1-scaleZ)) + (heightMap[interpX, interpZ-interval]*scaleX*(1-scaleZ)) + (heightMap[interpX-interval, interpZ]*scaleZ*(1-scaleX)) + (heightMap[interpX, interpZ]*scaleX*scaleZ)));
+    			heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.RoundToInt(((heightMap[(interpX-interval)*(Chunk.chunkWidth+1)+(interpZ-interval)])*(1-scaleX)*(1-scaleZ)) + (heightMap[interpX*(Chunk.chunkWidth+1)+(interpZ-interval)]*scaleX*(1-scaleZ)) + (heightMap[(interpX-interval)*(Chunk.chunkWidth+1)+interpZ]*scaleZ*(1-scaleX)) + (heightMap[interpX*(Chunk.chunkWidth+1)+interpZ]*scaleX*scaleZ)));
     			scaleX += step;
 
     		}
@@ -905,12 +872,13 @@ public class ChunkLoader : MonoBehaviour
     // Quick adds all elements in heightMap
     // This makes it easy to get a layer below surface blocks
     // Takes any cache and returns on cacheNumber
-    private void AddFromMap(ushort[,] map, int val, int cacheNumber=2){
+    private void AddFromMap(ushort[] map, int val, int cacheNumber=2){
 
     	if(cacheNumber == 1){
 	    	for(int x=0;x<Chunk.chunkWidth;x++){
 	    		for(int z=0;z<Chunk.chunkWidth;z++){
-	    			cacheHeightMap[x,z] = (ushort)(map[x,z] + val);
+                    int index = x*(Chunk.chunkWidth+1)+z;
+	    			cacheHeightMap[index] = (ushort)(map[index] + val);
 	    		}
 	    	}
     	}
@@ -918,45 +886,51 @@ public class ChunkLoader : MonoBehaviour
     	else if(cacheNumber == 2){
 	    	for(int x=0;x<Chunk.chunkWidth;x++){
 	    		for(int z=0;z<Chunk.chunkWidth;z++){
-	    			cacheHeightMap2[x,z] = (ushort)(map[x,z] + val);
+                    int index = x*(Chunk.chunkWidth+1)+z;
+                    cacheHeightMap2[index] = (ushort)(map[index] + val);
 	    		}
 	    	}
 	    }
 	    else if(cacheNumber == 3){
 	    	for(int x=0;x<Chunk.chunkWidth;x++){
 	    		for(int z=0;z<Chunk.chunkWidth;z++){
-	    			cacheHeightMap3[x,z] = (ushort)(map[x,z] + val);
+                    int index = x*(Chunk.chunkWidth+1)+z;
+                    cacheHeightMap3[index] = (ushort)(map[index] + val);
 	    		}
 	    	}	    	
 	    }
 	    else{
 	    	for(int x=0;x<Chunk.chunkWidth;x++){
 	    		for(int z=0;z<Chunk.chunkWidth;z++){
-	    			cacheHeightMap4[x,z] = (ushort)(map[x,z] + val);
+                    int index = x*(Chunk.chunkWidth+1)+z;
+                    cacheHeightMap4[index] = (ushort)(map[index] + val);
 	    		}
 	    	}
 	    }
     }
 
     // Applies Octaves to Pivot Map
-    private void CombinePivotMap(ushort[,] a, ushort[,] b){
+    private void CombinePivotMap(ushort[] a, ushort[] b){
         for(int x=0;x<=Chunk.chunkWidth;x+=4){
             for(int z=0;z<=Chunk.chunkWidth;z+=4){
-                a[x,z] = (ushort)(Mathf.FloorToInt((a[x,z] + b[x,z])/2));
+                int index = x*(Chunk.chunkWidth+1)+z;
+                a[index] = (ushort)(Mathf.FloorToInt((a[index] + b[index])/2));
             }
         }
     }
 
     // Applies Octaves to border pivot maps
-    private void CombineBorderPivots(int[,] selectedMap, int[,] auxMap, bool isSide){
+    private void CombineBorderPivots(int[] selectedMap, int[] auxMap, bool isSide){
         if(isSide){
             for(int x=0; x<=Chunk.chunkWidth; x+=4){
-                selectedMap[Chunk.chunkWidth, x] = Mathf.FloorToInt((selectedMap[Chunk.chunkWidth, x] + auxMap[Chunk.chunkWidth, x])/2);
+                int index = Chunk.chunkWidth*Chunk.chunkWidth+x;
+                selectedMap[index] = Mathf.FloorToInt((selectedMap[index] + auxMap[index])/2);
             }
         }
         else{
             for(int x=0; x<Chunk.chunkWidth; x+=4){ // < sign to not calculate corner twice
-                selectedMap[x, Chunk.chunkWidth] = Mathf.FloorToInt((selectedMap[x, Chunk.chunkWidth] + auxMap[x, Chunk.chunkWidth])/2);
+                int index = x*Chunk.chunkWidth+Chunk.chunkWidth;
+                selectedMap[index] = Mathf.FloorToInt((selectedMap[index] + auxMap[index])/2);
             }            
         }
     }
@@ -970,6 +944,7 @@ public class ChunkLoader : MonoBehaviour
         // Gets index of amount and percentage
         int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureCode);
         int amount = BiomeHandler.GetBiomeAmounts(biome)[index];
+
         float percentage = BiomeHandler.GetBiomePercentages(biome)[index];
 
         int x,y,z;
@@ -1005,16 +980,16 @@ public class ChunkLoader : MonoBehaviour
                     y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth;
                 // All <
                 else
-                    y = cacheHeightMap[x+offsetX, z+offsetZ] - depth;
+                    y = cacheHeightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth;
 
                 // Ignores structure on hard limit
                 if(y <= heightlimit)
                     continue;
                 
-
                 this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadataHP, cacheMetadataState, x, y, z, rotation:rotation);
             }
         }
+        // If can be placed in a range
         else{
             for(int i=1; i <= amount; i++){
                 chance = Perlin.Noise((pos.x ^ pos.z)*(zhash/xhash)*(i*0.17f)*structureCode);
@@ -1029,18 +1004,21 @@ public class ChunkLoader : MonoBehaviour
                 float yMult = Perlin.Noise((i + structureCode + (pos.z & pos.x))*xhash*zhash);              
 
                 // All >
-                if(x + offsetX > 15 && z + offsetZ > 15)
+                if(x + offsetX > 15 && z + offsetZ > 15){
                     y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth));
+                }
                 // X >
-                else if(x + offsetX > 15 && z + offsetZ <= 15)
+                else if(x + offsetX > 15 && z + offsetZ <= 15){
                     y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth));
+                }
                 // Z >
-                else if(x + offsetX <= 15 && z + offsetZ > 15)
+                else if(x + offsetX <= 15 && z + offsetZ > 15){
                     y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth));
+                }
                 // All <
-                else
-                    y = (int)(heightlimit + yMult*(cacheHeightMap[x+offsetX, z+offsetZ] - depth));
-
+                else{
+                    y = (int)(heightlimit + yMult*(cacheHeightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth));
+                }
 
                 this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadataHP, cacheMetadataState, x, y, z, rotation:rotation);
             }            
@@ -1048,53 +1026,53 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Returns the mean height for a given structure
-    private int HalfConvolute(ushort[,] heightmap, int x, int z, int offsetX, int offsetZ, int code, bool xAxis=false, bool zAxis=false, bool bothAxis=false){
+    private int HalfConvolute(ushort[] heightmap, int x, int z, int offsetX, int offsetZ, int code, bool xAxis=false, bool zAxis=false, bool bothAxis=false){
         int sum=0;
         int amount=0;
         
         if(bothAxis){
             for(int i=x; i < Chunk.chunkWidth; i++){
                 for(int c=z; c < Chunk.chunkWidth; c++){
-                    sum += heightmap[i, c];
+                    sum += heightmap[i*Chunk.chunkWidth+c];
                     amount++;
                 }
             }
             if(amount > 0)
                 return (int)(sum / amount); 
             else
-                return (int)heightmap[Chunk.chunkWidth-1, Chunk.chunkWidth-1];        
+                return (int)heightmap[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)-1];        
         }
         else if(xAxis){
             int size = structHandler.LoadStructure(code).sizeZ;
 
             for(int i=x; i < Chunk.chunkWidth; i++){
                 for(int c=z; c < Mathf.Min(z+size, Chunk.chunkWidth); c++){
-                    sum += heightmap[i, c];
+                    sum += heightmap[i*Chunk.chunkWidth+c];
                     amount++;
                 }
             }
             if(amount > 0)
                 return (int)(sum / amount);
             else
-                return (int)heightmap[Chunk.chunkWidth-1, Chunk.chunkWidth-1]; 
+                return (int)heightmap[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)-1]; 
         }
         else if(zAxis){
             int size = structHandler.LoadStructure(code).sizeX;
 
             for(int i=z; i < Chunk.chunkWidth; i++){
                 for(int c=x; c < Mathf.Min(x+size, Chunk.chunkWidth); c++){
-                    sum += heightmap[c, i];
+                    sum += heightmap[c*Chunk.chunkWidth+i];
                     amount++; 
                 }
             }
             if(amount > 0)
                 return (int)(sum / amount);
             else
-                return (int)heightmap[Chunk.chunkWidth-1, Chunk.chunkWidth-1];         
+                return (int)heightmap[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)-1];         
         }
         
         
-        return heightmap[x,z]-1;
+        return heightmap[x*Chunk.chunkWidth+z]-1;
     }
 
     // Generates Plains biome chunk
@@ -1174,7 +1152,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Inserts Plains biome border pivots on another selectedHeightMap
-    private void MixPlainsBorderPivots(ushort[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
+    private void MixPlainsBorderPivots(ushort[] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
         float xhash = 41.21f;
         float zhash = 105.243f;
 
@@ -1271,7 +1249,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Inserts Grassy Highlands biome border pivots on another selectedHeightMap
-    private void MixGrassyHighlandsBorderPivots(ushort[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
+    private void MixGrassyHighlandsBorderPivots(ushort[] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
         float xhash = 41.21f;
         float zhash = 105.243f;
 
@@ -1337,7 +1315,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Inserts Ocean border pivots on another selectedHeightMap
-    private void MixOceanBorderPivots(ushort[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false, string currentBiome=""){
+    private void MixOceanBorderPivots(ushort[] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false, string currentBiome=""){
         float xhash = 54.7f;
         float zhash = 69.3f;
 
@@ -1394,6 +1372,7 @@ public class ChunkLoader : MonoBehaviour
         GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, ref transition, ref transitionBiome, octave:1, groundLevel:25, ceilingLevel:45, currentBiome:"Forest");
         CombinePivotMap(cacheHeightMap, cacheHeightMap2);
 
+
         // Does different interpolation for normal vs transition chunks
         if(!transition)
             BilinearInterpolateMap(cacheHeightMap);
@@ -1439,6 +1418,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Inserts Structures into Forest Biome
     private void GenerateForestStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){
+
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
             
             if(structCode == 6){ // Big Tree
@@ -1457,11 +1437,12 @@ public class ChunkLoader : MonoBehaviour
             else if(structCode >= 9 && structCode <= 11){ // Metal Veins
                 GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 8, range:true);
             }
+
         }
     }
 
     // Inserts Forest biome border pivots on another selectedHeightMap
-    private void MixForestBorderPivots(ushort[,] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
+    private void MixForestBorderPivots(ushort[] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
         float xhash = 72.117f;
         float zhash = 45.483f;
 
