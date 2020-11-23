@@ -175,9 +175,7 @@ public class ChunkLoader : MonoBehaviour
                 return;
             }
 
-            bool isPregen, isStructured;
-
-            isStructured = Structure.Exists(toLoad[0]);
+            bool isPregen;
 
             // Gets correct region file
             regionHandler.GetCorrectRegion(toLoad[0]);
@@ -187,7 +185,7 @@ public class ChunkLoader : MonoBehaviour
 
                 isPregen = regionHandler.GetsNeedGeneration(toLoad[0]);
 
-                if(isStructured && isPregen){
+                if(!isPregen){
                     chunks.Add(toLoad[0], Structure.GetChunk(toLoad[0]).Clone());
                     chunks[toLoad[0]].needsGeneration = 1;
                     vfx.NewChunk(toLoad[0]); 
@@ -197,15 +195,6 @@ public class ChunkLoader : MonoBehaviour
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);                    
                     Structure.RemoveChunk(toLoad[0]);
-                }
-
-                // If it's a Structure Update
-                else if(isStructured){
-                    chunks.Add(toLoad[0], Structure.GetChunk(toLoad[0]).Clone());
-                    vfx.NewChunk(toLoad[0]); 
-                    regionHandler.SaveChunk(chunks[toLoad[0]]);
-                    Structure.RemoveChunk(toLoad[0]);
-
                 }
 
                 // If chunk is Pre-Generated
@@ -234,32 +223,13 @@ public class ChunkLoader : MonoBehaviour
                 }
             }
             // If it's a new chunk to be generated
-            else{
-                if(isStructured){
-                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
-                    vfx.NewChunk(toLoad[0]);
-                    cacheVoxdata = Structure.GetChunk(toLoad[0]).data.GetData();
-                    cacheMetadataHP = Structure.GetChunk(toLoad[0]).metadata.GetHPData();
-                    cacheMetadataState = Structure.GetChunk(toLoad[0]).metadata.GetStateData();
-                    chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
-                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
-                    chunks[toLoad[0]].needsGeneration = 0;
-                    regionHandler.SaveChunk(chunks[toLoad[0]]);
-                    Structure.RemoveChunk(toLoad[0]);
-
-                }
-                else{
-                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
-                    vfx.NewChunk(toLoad[0]);
-                    chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
-                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
-                    chunks[toLoad[0]].needsGeneration = 0;
-                    regionHandler.SaveChunk(chunks[toLoad[0]]);
-
-                }                 
-
-
-
+            else{ 
+                chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
+                vfx.NewChunk(toLoad[0]);
+                chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
+                chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
+                chunks[toLoad[0]].needsGeneration = 0;
+                regionHandler.SaveChunk(chunks[toLoad[0]]);              
             }
 
             toDraw.Add(toLoad[0]);
@@ -1366,6 +1336,7 @@ public class ChunkLoader : MonoBehaviour
         float zhash = 45.483f;
         bool transition = false;
         string transitionBiome = "";
+        ChunkPos currentChunk = new ChunkPos(chunkX, chunkZ);
         
         // Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
         GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, ref transitionBiome, octave:0, groundLevel:25, ceilingLevel:32, currentBiome:"Forest");
@@ -1409,6 +1380,12 @@ public class ChunkLoader : MonoBehaviour
 
         // Adds to cacheVoxdata
         ApplyHeightMaps(cacheStateDict, pregen:pregen);
+
+        // Applies Structs from other chunks
+        if(Structure.Exists(currentChunk)){
+            Structure.RoughApply(cacheVoxdata, cacheMetadataHP, cacheMetadataState, Structure.GetChunk(currentChunk));
+            Structure.RemoveChunk(currentChunk);
+        }
 
         // Structures
         GenerateForestStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 3, transition);

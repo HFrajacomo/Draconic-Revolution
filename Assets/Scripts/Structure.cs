@@ -119,7 +119,6 @@ public abstract class Structure
         // Applies Structure to origin chunk
         retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, x, y, z, xRemainder, zRemainder, 0, 0);
 
-
         // Possible failed return if in FreeSpace mode
         if(!retStatus){
             return false;
@@ -555,8 +554,29 @@ public abstract class Structure
 
                     c.metadata.SetHP(x,y,z, st.metadata.GetHP(x,y,z));
                     c.metadata.SetState(x,y,z, st.metadata.GetState(x,y,z));
+                }
+            }
+        }
+    }
 
+    // Does a Rough apply on synchonization problems when loading a Chunk before applying
+    //  Structure to it
+    public static void RoughApply(ushort[] cacheVoxdata, ushort[] cacheHP, ushort[] cacheState, Chunk st){
+        ushort block;
 
+        for(int y=0; y < Chunk.chunkDepth; y++){
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    block = st.data.GetCell(x,y,z);
+
+                    // Ignores all air
+                    if(block == 0)
+                        continue;
+
+                    cacheVoxdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = block;
+
+                    cacheHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = st.metadata.GetHP(x,y,z);
+                    cacheState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = st.metadata.GetState(x,y,z);
                 }
             }
         }
