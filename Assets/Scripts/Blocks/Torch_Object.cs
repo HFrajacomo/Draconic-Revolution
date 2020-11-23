@@ -36,16 +36,16 @@ public class Torch_Object : BlocklikeObject
 
 	// Turns on and off Torch
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
-		ushort? state = cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state;
+		ushort state = cl.chunks[pos].metadata.GetState(blockX,blockY,blockZ);
 
-		if(state == null)
+		if(state == ushort.MaxValue)
 			return 0;
 		else if(state >= 4){
-			cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state -= 4;
+			cl.chunks[pos].metadata.AddToState(blockX,blockY,blockZ, -4);
 			ControlFire(pos, blockX, blockY, blockZ, (ushort?)(state-4));
 		}
 		else if(state >= 0 && state < 4){
-			cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state += 4;
+			cl.chunks[pos].metadata.AddToState(blockX,blockY,blockZ, 4);
 			ControlFire(pos, blockX, blockY, blockZ, (ushort?)(state+4));
 		}
 
@@ -72,7 +72,7 @@ public class Torch_Object : BlocklikeObject
 
 		this.vfx.Add(pos, fire, active:true);
 		
-		cl.chunks[pos].metadata.GetMetadata(blockX,blockY,blockZ).state = (ushort)facing;
+		cl.chunks[pos].metadata.SetState(blockX,blockY,blockZ, (ushort)facing);
 
 		return 0;
 	}
@@ -89,7 +89,7 @@ public class Torch_Object : BlocklikeObject
 
 	// Creates FireVFX on Load
 	public override int OnLoad(ChunkPos pos, int x, int y, int z, ChunkLoader cl){
-		ushort? state = cl.chunks[pos].metadata.GetMetadata(x,y,z).state;
+		ushort? state = cl.chunks[pos].metadata.GetState(x,y,z);
 		Vector3 fireOffset;
 
 		if(state == 0 || state == 4)
@@ -270,7 +270,7 @@ public class Torch_Object : BlocklikeObject
 		int bY = aux.blockY; //budY%Chunk.chunkDepth;
 		int bZ = aux.blockZ; //budZ%Chunk.chunkWidth;
 
-		ushort? state = cl.chunks[thisPos].metadata.GetMetadata(X,Y,Z).state;
+		ushort state = cl.chunks[thisPos].metadata.GetState(X,Y,Z);
 
 		// Breaks Torch if broken attached block
 		if(type == "break" && (facing == state || facing+4 == state)){

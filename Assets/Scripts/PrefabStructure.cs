@@ -18,9 +18,7 @@ public class TestStruct : Structure
 		this.offsetX = 0;
 		this.offsetZ = 0;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -48,9 +46,7 @@ public class TreeSmallA : Structure
 		this.offsetX = 2;
 		this.offsetZ = 2;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -78,9 +74,7 @@ public class TreeMediumA : Structure
 		this.offsetX = 3;
 		this.offsetZ = 5;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -107,9 +101,7 @@ public class DirtPileA : Structure
 		this.offsetX = 0;
 		this.offsetZ = 0;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -136,9 +128,7 @@ public class DirtPileB : Structure
 		this.offsetX = 0;
 		this.offsetZ = 0;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -165,9 +155,7 @@ public class BoulderNormalA : Structure
 		this.offsetX = 0;
 		this.offsetZ = 0;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -194,9 +182,7 @@ public class TreeBigA : Structure
 		this.offsetX = 9;
 		this.offsetZ = 10;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -223,9 +209,7 @@ public class TreeCrookedMediumA : Structure
 		this.offsetX = 9;
 		this.offsetZ = 4;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -252,9 +236,7 @@ public class TreeSmallB : Structure
 		this.offsetX = 4;
 		this.offsetZ = 4;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -281,9 +263,7 @@ public class MetalVeinA : Structure
 		this.offsetX = 0;
 		this.offsetZ = 0;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -310,9 +290,7 @@ public class MetalVeinB : Structure
 		this.offsetX = 0;
 		this.offsetZ = 0;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
@@ -339,9 +317,7 @@ public class MetalVeinC : Structure
 		this.offsetX = 0;
 		this.offsetZ = 0;
 
-        this.blockdata = new ushort[sizeX, sizeY, sizeZ];
-        this.hpdata = new ushort?[sizeX, sizeY, sizeZ];
-        this.statedata = new ushort?[sizeX, sizeY, sizeZ];
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;

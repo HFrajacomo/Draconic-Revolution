@@ -53,7 +53,8 @@ public class ChunkLoader : MonoBehaviour
     private ushort[,,] cacheTurbulanceMap = new ushort[Chunk.chunkWidth, Chunk.chunkDepth, Chunk.chunkWidth];
     private ChunkPos cachePos = new ChunkPos(0,0);
     private Chunk cacheChunk;
-    private VoxelMetadata cacheMetadata = new VoxelMetadata();
+    private ushort[] cacheMetadataHP = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
+    private ushort[] cacheMetadataState = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private Dictionary<ushort, ushort> cacheStateDict = new Dictionary<ushort, ushort>();
 
     void Awake(){
@@ -64,7 +65,7 @@ public class ChunkLoader : MonoBehaviour
     void Start()
     {
         this.renderDistance = World.renderDistance;
-        
+
         regionHandler = new RegionFileHandler(renderDistance, newChunk);
 
         worldSeed = regionHandler.GetRealSeed();
@@ -193,7 +194,7 @@ public class ChunkLoader : MonoBehaviour
                     vfx.NewChunk(toLoad[0]); 
                     cacheVoxdata = chunks[toLoad[0]].data.GetData();
                     chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
-                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
+                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);                    
                     Structure.RemoveChunk(toLoad[0]);
@@ -214,9 +215,10 @@ public class ChunkLoader : MonoBehaviour
                     vfx.NewChunk(toLoad[0]);
                     regionHandler.LoadChunk(chunks[toLoad[0]]);
                     cacheVoxdata = chunks[toLoad[0]].data.GetData();
-                    cacheMetadata = chunks[toLoad[0]].metadata;
+                    cacheMetadataHP = chunks[toLoad[0]].metadata.GetHPData();
+                    cacheMetadataState = chunks[toLoad[0]].metadata.GetStateData();
                     chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
-                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
+                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
                 }
@@ -236,20 +238,19 @@ public class ChunkLoader : MonoBehaviour
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
                     vfx.NewChunk(toLoad[0]);
                     cacheVoxdata = Structure.GetChunk(toLoad[0]).data.GetData();
-                    cacheMetadata = Structure.GetChunk(toLoad[0]).metadata;
+                    cacheMetadataHP = Structure.GetChunk(toLoad[0]).metadata.GetHPData();
+                    cacheMetadataState = Structure.GetChunk(toLoad[0]).metadata.GetStateData();
                     chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
-                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
+                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
                     Structure.RemoveChunk(toLoad[0]);
                 }
                 else{
-
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
                     vfx.NewChunk(toLoad[0]);
                     chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
-                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadata.metadata);
-                    cacheMetadata.Clear();
+                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
                 }                 
@@ -628,7 +629,7 @@ public class ChunkLoader : MonoBehaviour
     		    				if(y <= cacheMaps[i][x,z]){
                                     cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
                                     if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
-                                        cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
+                                        cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
                                     }
                                 }
     		    				else
@@ -641,7 +642,7 @@ public class ChunkLoader : MonoBehaviour
     		    				cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i];
 
                                 if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
-                                    cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
+                                    cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
                                 }
     		    			}  				
     	    			}
@@ -666,7 +667,7 @@ public class ChunkLoader : MonoBehaviour
                                         cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
                                         
                                         if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
-                                            cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
+                                            cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
                                         }
                                     }
                                     // Convertion of pregen air blocks
@@ -689,7 +690,7 @@ public class ChunkLoader : MonoBehaviour
                                         cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
                                     
                                     if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
-                                        cacheMetadata.GetMetadata(x,y,z).state = stateDict[cacheBlockCodes[i]];
+                                        cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
                                     }
                                 }
                             }               
@@ -1011,7 +1012,7 @@ public class ChunkLoader : MonoBehaviour
                     continue;
                 
 
-                this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z, rotation:rotation);
+                this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadataHP, cacheMetadataState, x, y, z, rotation:rotation);
             }
         }
         else{
@@ -1041,7 +1042,7 @@ public class ChunkLoader : MonoBehaviour
                     y = (int)(heightlimit + yMult*(cacheHeightMap[x+offsetX, z+offsetZ] - depth));
 
 
-                this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadata, x, y, z, rotation:rotation);
+                this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadataHP, cacheMetadataState, x, y, z, rotation:rotation);
             }            
         }
     }
@@ -1439,6 +1440,7 @@ public class ChunkLoader : MonoBehaviour
     // Inserts Structures into Forest Biome
     private void GenerateForestStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
+            
             if(structCode == 6){ // Big Tree
                 if(!transition){
                     GenerateStructures(pos, xhash, zhash, biomeCode, structCode, -1);

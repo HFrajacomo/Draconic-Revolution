@@ -184,7 +184,7 @@ public class PlayerRaycast : MonoBehaviour
 
         // Actually breaks new block and updates chunk
         loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
-        loader.chunks[toUpdate].metadata.CreateNull(current.blockX, current.blockY, current.blockZ);
+        loader.chunks[toUpdate].metadata.Reset(current.blockX, current.blockY, current.blockZ);
 
         // Passes "break" block update to neighboring blocks IF object doesn't implement it OnBreak
         EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
@@ -212,7 +212,7 @@ public class PlayerRaycast : MonoBehaviour
     }
 
     // Block Placing mechanic
-    private void PlaceBlock(ushort blockCode, ushort? state){
+    private void PlaceBlock(ushort blockCode, ushort state){
       int translatedBlockCode;
       bool isAsset;
 
@@ -263,10 +263,6 @@ public class PlayerRaycast : MonoBehaviour
       if(!loader.blockBook.CheckCustomPlace(blockCode)){
         // Actually places block/asset into terrain
   		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-        if(state != null){
-          // DEBUG SETS STATE
-          //loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
-        }
 
         // Sends Reload Request to BUDScheduler
         if(blockCode <= ushort.MaxValue/2){
@@ -283,9 +279,7 @@ public class PlayerRaycast : MonoBehaviour
       else{
         // Actually places block/asset into terrain
         loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-        if(state != null){
-          loader.chunks[toUpdate].metadata.GetMetadata(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ).state = state;
-        }
+        loader.chunks[toUpdate].metadata.SetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, state);
 
         if(blockCode <= ushort.MaxValue/2){
           loader.blockBook.blocks[blockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
@@ -416,19 +410,19 @@ public class PlayerRaycast : MonoBehaviour
                     outState += "null,";
                   }
                   else{
-                    if(loader.chunks[newPos].metadata.GetMetadata(x,y,z).hp == null){
+                    if(loader.chunks[newPos].metadata.IsHPNull(x,y,z)){
                       outHp += "null,";
                     }
                     else{
-                      outHp += loader.chunks[newPos].metadata.GetMetadata(x,y,z).hp;
+                      outHp += loader.chunks[newPos].metadata.GetHP(x,y,z);
                       outHp += ",";
                     }
 
-                    if(loader.chunks[newPos].metadata.GetMetadata(x,y,z).state == null){
+                    if(loader.chunks[newPos].metadata.IsStateNull(x,y,z)){
                       outState += "null,";
                     }
                     else{
-                      outState += loader.chunks[newPos].metadata.GetMetadata(x,y,z).state;
+                      outState += loader.chunks[newPos].metadata.GetState(x,y,z);
                       outState += ",";
                     }
                   }

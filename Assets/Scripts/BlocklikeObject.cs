@@ -39,7 +39,7 @@ public abstract class BlocklikeObject
 			return GameObject.Instantiate(loader.blockBook.objects[ushort.MaxValue - blockCode].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
 		else{
 			GameObject GO = GameObject.Instantiate(loader.blockBook.objects[ushort.MaxValue - blockCode].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
-			loader.blockBook.objects[ushort.MaxValue - blockCode].ApplyRotation(GO, loader.chunks[pos].metadata.GetMetadata(x,y,z).state, x, y, z);
+			loader.blockBook.objects[ushort.MaxValue - blockCode].ApplyRotation(GO, loader.chunks[pos].metadata.GetState(x,y,z), x, y, z);
 			return GO;
 		}
 	}
@@ -74,7 +74,7 @@ public abstract class BlocklikeObject
     }
 
 	// Unassigns metadata from block (use after OnBreak events)
-	public void EraseMetadata(ChunkPos pos, int x, int y, int z, ChunkLoader cl){cl.chunks[pos].metadata.GetMetadata(x,y,z).Reset();}
+	public void EraseMetadata(ChunkPos pos, int x, int y, int z, ChunkLoader cl){cl.chunks[pos].metadata.Reset(x,y,z);}
 	
 	/*
 	VIRTUAL METHODS

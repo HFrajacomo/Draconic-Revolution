@@ -187,20 +187,12 @@ public static class Compression{
 							readBytes += 2;
 						}
 
-						// Creates metadata if not null
-						if(metaCode != ushort.MaxValue){
-							c.metadata.metadata[x,y,z] = new Metadata();
-							c.metadata.metadata[x,y,z].hp = metaCode; 
-						}
-
+						c.metadata.SetHP(x,y,z,metaCode);
 					}
 					// If it's filling the buffered data
 					else{
 						// Creates metadata if not null
-						if(metaCode != ushort.MaxValue){
-							c.metadata.metadata[x,y,z] = new Metadata();
-							c.metadata.metadata[x,y,z].hp = metaCode; 
-						}
+						c.metadata.SetHP(x,y,z,metaCode);
 						bufferedCount--;
 					}
 
@@ -238,7 +230,7 @@ public static class Compression{
 
 						// Creates metadata if not null
 						if(metaCode != ushort.MaxValue){
-							c.metadata.GetMetadata(x,y,z).state = metaCode;
+							c.metadata.SetState(x,y,z, metaCode);
 						}
 
 					}
@@ -246,7 +238,7 @@ public static class Compression{
 					else{
 						// Creates metadata if not null
 						if(metaCode != ushort.MaxValue){
-							c.metadata.GetMetadata(x,y,z).state = metaCode;
+							c.metadata.SetState(x,y,z,metaCode);
 						}
 						bufferedCount--;
 					}
@@ -342,18 +334,7 @@ public static class Compression{
 			for(int y=0; y < Chunk.chunkDepth; y++){
 				for(int x=0; x < Chunk.chunkWidth; x++){
 					for(int z=0; z < Chunk.chunkWidth; z++){
-						if(c.metadata.IsUnassigned(x,y,z)){
-							data[i] = ushort.MaxValue;
-						}
-						else{
-							if(c.metadata.metadata[x,y,z].hp == null){
-								data[i] = ushort.MaxValue;
-							}
-							else{
-								data[i] = (ushort)c.metadata.GetMetadata(x,y,z).hp;								
-							}
-						}
-
+						data[i] = c.metadata.GetHP(x,y,z);								
 						i++;
 					}
 				}
@@ -363,22 +344,11 @@ public static class Compression{
 			for(int y=0; y < Chunk.chunkDepth; y++){
 				for(int x=0; x < Chunk.chunkWidth; x++){
 					for(int z=0; z < Chunk.chunkWidth; z++){
-						if(c.metadata.IsUnassigned(x,y,z)){
-							data[i] = ushort.MaxValue;
-						}
-						else{
-							if(c.metadata.metadata[x,y,z].state == null){
-								data[i] = ushort.MaxValue;
-							}
-							else{
-								data[i] = (ushort)c.metadata.GetMetadata(x,y,z).state;								
-							}
-						}
-
+						data[i] = c.metadata.GetState(x,y,z);								
 						i++;
 					}
 				}
-			}			
+			}		
 		}
 
 		return new NativeArray<ushort>(data, Allocator.TempJob);

@@ -82,15 +82,17 @@ public class Chunk
 	}
 
 	// Clone
+	
 	public Chunk Clone(){
 		Chunk c = new Chunk(this.pos, this.renderer, this.blockBook, this.loader);
 
 		c.biomeName = this.biomeName;
 		c.data = new VoxelData(this.data.GetData());
-		c.metadata = new VoxelMetadata(this.metadata.metadata);
+		c.metadata = new VoxelMetadata(this.metadata);
 
 		return c;
 	}
+	
 
 	public void BuildOnVoxelData(VoxelData vd){
 		this.data = vd;
@@ -442,7 +444,7 @@ public class Chunk
 
     	// If object is Liquid
     	else if(renderThread == 2){
-			vertices.AddRange(LiquidMeshData.VertsByState(dir, this.metadata.GetMetadata(x,y,z).state, new Vector3(x,y,z)));
+			vertices.AddRange(LiquidMeshData.VertsByState(dir, this.metadata.GetState(x,y,z), new Vector3(x,y,z)));
 			int vCount = vertices.Count + lookahead;
     		UVs.AddRange(blockBook.blocks[blockCode].LiquidTexture(x, z));
 	    	liquidTris.Add(vCount -4);
@@ -456,7 +458,7 @@ public class Chunk
     	// If object is an Asset
     	else{
     		if(load){
-    			this.assetGrid.Add(x, y, z, blockCode, this.metadata.GetMetadata(x,y,z).state, loader);
+    			this.assetGrid.Add(x, y, z, blockCode, this.metadata.GetState(x,y,z), loader);
     			skip = true;
     		}
     	}
@@ -513,7 +515,7 @@ public class AssetGrid{
 	}
 
 	// Adds a new GameObject instance to Grid
-	public void Add(int x, int y, int z, ushort blockCode, ushort? state, ChunkLoader loader){
+	public void Add(int x, int y, int z, ushort blockCode, ushort state, ChunkLoader loader){
 		Vector3 v = new Vector3(x,y,z);
 
 		if(!grid.ContainsKey(v))
@@ -521,7 +523,7 @@ public class AssetGrid{
 	}
 
 	// Adds and instantly draw element to Grid
-	public void AddDraw(int x, int y, int z, ushort blockCode, ushort? state, ChunkLoader loader){
+	public void AddDraw(int x, int y, int z, ushort blockCode, ushort state, ChunkLoader loader){
 		Vector3 target = new Vector3(x,y,z);
 
 		Add(x, y, z, blockCode, state, loader);

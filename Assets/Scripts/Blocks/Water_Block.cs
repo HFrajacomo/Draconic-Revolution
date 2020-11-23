@@ -33,7 +33,7 @@ public class Water_Block : Blocks
 	// Unique
 	public ushort waterCode;
 	public ushort[] aroundCodes;
-	public ushort?[] aroundStates;
+	public ushort[] aroundStates;
 	public CastCoord cachedPos;
 	private bool[] surroundingWaterFlag = new bool[8];
 	private BUDSignal cachedBUD;
@@ -55,9 +55,8 @@ public class Water_Block : Blocks
 		this.customBreak = true;
 		this.customPlace = true;
 
-		
 		this.aroundCodes = new ushort[8];
-		this.aroundStates = new ushort?[8];
+		this.aroundStates = new ushort[8];
 
 		// Water Spawn Directions
 		this.spawnDirection.Add(3, new List<int>(new int[]{7,0,1}));
@@ -88,7 +87,6 @@ public class Water_Block : Blocks
 	// Custom Break operation with Raycasting class overwrite
 	public override int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader cl){
 		cl.chunks[pos].data.SetCell(x, y, z, 0);
-		cl.chunks[pos].metadata.CreateNull(x, y, z);	
 
 		cachedPos = new CastCoord(pos, x, y, z);
 
@@ -106,7 +104,7 @@ public class Water_Block : Blocks
 	public override void OnBlockUpdate(string type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){
 		if(type == "break" || type == "change"){
 			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
-			ushort? thisState = cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state;
+			ushort thisState = cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 			
 			GetCodeAround(myX, myY, myZ, cl);
 			GetStateAround(myX, myY, myZ, cl);
@@ -146,11 +144,11 @@ public class Water_Block : Blocks
 
 			/* Still Level 2 State */
 			else if(thisState == 1){
-				int? below = GetCodeBelow(myX, myY, myZ, cl);
-				ushort? newState;
+				ushort below = GetCodeBelow(myX, myY, myZ, cl);
+				ushort newState;
 
 				// If Y chunk end
-				if(below == null)
+				if(below == ushort.MaxValue)
 					return;
 
 				// If air below, falls as Still Block
@@ -161,14 +159,14 @@ public class Water_Block : Blocks
 					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-					cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 1;
+					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 1);
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 					return;
 				}
 
 				// If should be upgraded to Still 3
 				if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl, nofalling:true) >= 2){
-					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 0;
+					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
@@ -234,7 +232,7 @@ public class Water_Block : Blocks
 							} 
 							
 							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-							cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = newState;
+							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
 
 							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 						}			
@@ -247,12 +245,12 @@ public class Water_Block : Blocks
 			*/
 			else if(thisState >= 3 && thisState <= 10){
 				// Fall handler
-				int? below = GetCodeBelow(myX, myY, myZ, cl);
+				ushort below = GetCodeBelow(myX, myY, myZ, cl);
 
 				// Falling Block
 				if(below == 0){
 					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, this.waterCode);
-					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY-1, thisPos.blockZ).state = 20;
+					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, 20);
 					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, -1, cl);
 					return;
 				}
@@ -271,14 +269,14 @@ public class Water_Block : Blocks
 				// Upgrade if has two Still 3 adjascent
 				else if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl, nofalling:true) >= 2){
 					cachedPos = new CastCoord(new Vector3(myX, myY, myZ));
-					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 0;
+					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 					return;
 				}
 				// Upgrade if has two Still 2 adjascent
 				else if(GetSameLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
 					cachedPos = new CastCoord(new Vector3(myX, myY, myZ));
-					cl.chunks[thisPos.GetChunkPos()].metadata.GetMetadata(thisPos.blockX, thisPos.blockY, thisPos.blockZ).state = 1;
+					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 					return;
 				}
@@ -286,7 +284,7 @@ public class Water_Block : Blocks
 				// Normal Behaviour
 				else{
 					bool found;
-					ushort? newState;
+					ushort newState;
 
 					for(int i=0; i<8; i++){
 						found = false;
@@ -350,7 +348,7 @@ public class Water_Block : Blocks
 								} 
 
 								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-								cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = newState;
+								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
 
 								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 							}			
@@ -364,11 +362,11 @@ public class Water_Block : Blocks
 			*/
 			else if(thisState == 0){
 				// Falling
-				int? below = GetCodeBelow(myX, myY, myZ, cl);
-				ushort? belowState = GetStateBelow(myX, myY, myZ, cl);
+				ushort below = GetCodeBelow(myX, myY, myZ, cl);
+				ushort belowState = GetStateBelow(myX, myY, myZ, cl);
 
 				// If Y chunk end
-				if(below == null)
+				if(below == ushort.MaxValue)
 					return;
 
 				// If air below
@@ -378,7 +376,7 @@ public class Water_Block : Blocks
 						cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-						cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 19;
+						cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 19);
 						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 						return;
 					}
@@ -390,7 +388,7 @@ public class Water_Block : Blocks
 						cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-						cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 0;
+						cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 0);
 						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 						return;
 					}
@@ -399,7 +397,7 @@ public class Water_Block : Blocks
 				// Normal Behaviour
 				else{
 					bool found;
-					ushort? newState;
+					ushort newState;
 
 					for(int i=0; i<8; i++){
 						found = false;
@@ -459,7 +457,7 @@ public class Water_Block : Blocks
 								} 
 
 								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-								cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = newState;
+								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
 
 								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 							}			
@@ -473,15 +471,15 @@ public class Water_Block : Blocks
 			*/
 			else if(thisState == 19){
 				
-				int? below = GetCodeBelow(myX, myY, myZ, cl);
-				int? above = GetCodeAbove(myX, myY, myZ, cl);
+				ushort below = GetCodeBelow(myX, myY, myZ, cl);
+				int above = GetCodeAbove(myX, myY, myZ, cl);
 
 				// If needs to spawn more falling blocks (no return to check if alive)
 				if(below == 0 || (below == this.waterCode && GetStateBelow(myX, myY, myZ, cl) != 0)){
 					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-					cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 19;
+					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 19);
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 				}
 
@@ -496,7 +494,7 @@ public class Water_Block : Blocks
 				// Normal Behaviour
 				if(below != 0){
 					bool found;
-					ushort? newState;
+					ushort newState;
 
 					for(int i=0; i<8; i++){
 						found = false;
@@ -556,7 +554,7 @@ public class Water_Block : Blocks
 								} 
 								
 								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-								cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = newState;
+								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
 
 								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 							}			
@@ -570,9 +568,9 @@ public class Water_Block : Blocks
 			*/
 			else if(thisState == 20){
 				bool die = false;
-				int? below = GetCodeBelow(myX, myY, myZ, cl);
-				int? above = GetCodeAbove(myX, myY, myZ, cl);
-				ushort? newState = GetStateBelow(myX, myY, myZ, cl);
+				ushort below = GetCodeBelow(myX, myY, myZ, cl);
+				int above = GetCodeAbove(myX, myY, myZ, cl);
+				ushort newState = GetStateBelow(myX, myY, myZ, cl);
 
 				// Do nothing if water is above and below
 				if(above == this.waterCode && below == this.waterCode){
@@ -584,7 +582,7 @@ public class Water_Block : Blocks
 					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-					cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = 20;
+					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 20);
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 					die = true;
 				}
@@ -662,7 +660,7 @@ public class Water_Block : Blocks
 								} 
 								
 								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-								cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state = newState;
+								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
 
 								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 							}			
@@ -675,39 +673,39 @@ public class Water_Block : Blocks
 
 
 	// Gets Code of block below
-	private ushort? GetCodeBelow(int myX, int myY, int myZ, ChunkLoader cl){
+	private ushort GetCodeBelow(int myX, int myY, int myZ, ChunkLoader cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
 		if(myY-1 < 0)
-			return null;
+			return ushort.MaxValue;
 
 		return cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 	}
 
 	// Gets State of block below
-	private ushort? GetStateBelow(int myX, int myY, int myZ, ChunkLoader cl){
+	private ushort GetStateBelow(int myX, int myY, int myZ, ChunkLoader cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
 		if(myY-1 < 0)
-			return null;
+			return ushort.MaxValue;
 
-		return cl.chunks[cord.GetChunkPos()].metadata.GetMetadata(cord.blockX, cord.blockY, cord.blockZ).state;
+		return cl.chunks[cord.GetChunkPos()].metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
 	}
 
 	// Gets Code of block above
-	private int? GetCodeAbove(int myX, int myY, int myZ, ChunkLoader cl){
+	private int GetCodeAbove(int myX, int myY, int myZ, ChunkLoader cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
 		if(myY+1 >= Chunk.chunkDepth)
-			return null;
+			return int.MaxValue;
 
 		return cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 	}
 
 	// Gets State of block above
-	private ushort? GetStateAbove(int myX, int myY, int myZ, ChunkLoader cl){
+	private ushort GetStateAbove(int myX, int myY, int myZ, ChunkLoader cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
 		if(myY+1 < 0)
-			return null;
+			return ushort.MaxValue;
 
-		return cl.chunks[cord.GetChunkPos()].metadata.GetMetadata(cord.blockX, cord.blockY, cord.blockZ).state;
+		return cl.chunks[cord.GetChunkPos()].metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
 	}
 
 	// Gets a list of block codes of around blocks
@@ -736,56 +734,56 @@ public class Water_Block : Blocks
 	private void GetStateAround(int myX, int myY, int myZ, ChunkLoader cl){
 		cachedPos = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[0] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state;
+			this.aroundStates[0] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
 		else
-			this.aroundStates[0] = null;
+			this.aroundStates[0] = ushort.MaxValue;
 
 		cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ+1)); // NE
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[1] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state;
+			this.aroundStates[1] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
 		else
-			this.aroundStates[1] = null;
+			this.aroundStates[1] = ushort.MaxValue;
 
 		cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ)); // East
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[2] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state;
+			this.aroundStates[2] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
 		else
-			this.aroundStates[2] = null;
+			this.aroundStates[2] = ushort.MaxValue;
 
 		cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ-1)); // SE
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[3] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state;
+			this.aroundStates[3] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
 		else
-			this.aroundStates[3] = null;
+			this.aroundStates[3] = ushort.MaxValue;
 
 		cachedPos = new CastCoord(new Vector3(myX, myY, myZ-1)); // South
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[4] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state;
+			this.aroundStates[4] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
 		else
-			this.aroundStates[4] = null;
+			this.aroundStates[4] = ushort.MaxValue;
 
 		cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ-1)); // SW
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[5] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state;
+			this.aroundStates[5] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
 		else
-			this.aroundStates[5] = null;
+			this.aroundStates[5] = ushort.MaxValue;
 
 		cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ)); // West
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[6] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state;
+			this.aroundStates[6] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
 		else
-			this.aroundStates[6] = null;
+			this.aroundStates[6] = ushort.MaxValue;
 
 		cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ+1)); // NW
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[7] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetMetadata(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ).state;
+			this.aroundStates[7] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
 		else
-			this.aroundStates[7] = null;	
+			this.aroundStates[7] = ushort.MaxValue;	
 	}
 
 	// Gets Water Level based on state table
-	private int TranslateWaterLevel(ushort? state){
-		if(state == null)
+	private int TranslateWaterLevel(ushort state){
+		if(state == ushort.MaxValue)
 			return 0;
 		else if(state == 2 || (state >= 11 && state <= 18))
 			return 1;
@@ -798,8 +796,8 @@ public class Water_Block : Blocks
 	}
 
 	// Gets Water Level based on state table without considering falling blocks a level 3
-	private int TranslateWaterLevelSpec(ushort? state){
-		if(state == null)
+	private int TranslateWaterLevelSpec(ushort state){
+		if(state == ushort.MaxValue)
 			return 0;
 		else if(state == 2 || (state >= 11 && state <= 18))
 			return 1;
