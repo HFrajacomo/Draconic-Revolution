@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Burst;
 
 public class ChunkLoader : MonoBehaviour
@@ -32,6 +33,7 @@ public class ChunkLoader : MonoBehaviour
 	public int worldSeed = 1; // 6 number integer
     public float offsetHash;
     public float generationSeed;
+    public float dispersionSeed;
     public BiomeHandler biomeHandler;
 
 	// Chunk Rendering
@@ -70,6 +72,7 @@ public class ChunkLoader : MonoBehaviour
         worldSeed = regionHandler.GetRealSeed();
 
         biomeHandler = new BiomeHandler(BiomeSeedFunction(worldSeed));
+        this.dispersionSeed = BiomeSeedFunction(worldSeed);
 
         generationSeed = GenerationSeedFunction(worldSeed);
         offsetHash = OffsetHashFunction(worldSeed);
@@ -185,28 +188,15 @@ public class ChunkLoader : MonoBehaviour
 
                 isPregen = regionHandler.GetsNeedGeneration(toLoad[0]);
 
-                if(!isPregen){
-                    chunks.Add(toLoad[0], Structure.GetChunk(toLoad[0]).Clone());
-                    chunks[toLoad[0]].needsGeneration = 1;
-                    vfx.NewChunk(toLoad[0]); 
-                    cacheVoxdata = chunks[toLoad[0]].data.GetData();
-                    chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
-                    chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
-                    chunks[toLoad[0]].needsGeneration = 0;
-                    regionHandler.SaveChunk(chunks[toLoad[0]]);                    
-                    Structure.RemoveChunk(toLoad[0]);
-                }
-
                 // If chunk is Pre-Generated
-                else if(isPregen){
-
+                if(isPregen){
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
                     vfx.NewChunk(toLoad[0]);
                     regionHandler.LoadChunk(chunks[toLoad[0]]);
                     cacheVoxdata = chunks[toLoad[0]].data.GetData();
                     cacheMetadataHP = chunks[toLoad[0]].metadata.GetHPData();
                     cacheMetadataState = chunks[toLoad[0]].metadata.GetStateData();
-                    chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed, pregen:true));
+                    chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], pregen:true));
                     chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
@@ -214,7 +204,6 @@ public class ChunkLoader : MonoBehaviour
                 }
                 // If it's just a normally generated chunk
                 else{
-
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
                     vfx.NewChunk(toLoad[0]);
                     regionHandler.LoadChunk(chunks[toLoad[0]]);
@@ -226,7 +215,7 @@ public class ChunkLoader : MonoBehaviour
             else{ 
                 chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
                 vfx.NewChunk(toLoad[0]);
-                chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0], worldSeed)); 
+                chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0])); 
                 chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                 chunks[toLoad[0]].needsGeneration = 0;
                 regionHandler.SaveChunk(chunks[toLoad[0]]);              
@@ -303,22 +292,22 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Returns the biome that should be assigned to a given chunk
-    private VoxelData AssignBiome(ChunkPos pos, float seed, bool pregen=false){
-        string biome = biomeHandler.Assign(pos, seed);
+    private VoxelData AssignBiome(ChunkPos pos, bool pregen=false){
+        byte biome = biomeHandler.Assign(pos);
 
-        structHandler.LoadBiome(BiomeHandler.BiomeToByte(biome));
+        structHandler.LoadBiome(biome);
 
-        chunks[pos].biomeName = biome;
-        chunks[pos].features = biomeHandler.GetFeatures(pos, seed);
+        chunks[pos].biomeName = BiomeHandler.ByteToBiome(biome);
+        chunks[pos].features = biomeHandler.GetFeatures(pos);
 
 
-        if(biome == "Plains")
+        if(biome == 0)
             return GeneratePlainsBiome(pos.x, pos.z, pregen:pregen);
-        else if(biome == "Grassy Highlands")
+        else if(biome == 1)
             return GenerateGrassyHighLandsBiome(pos.x, pos.z, pregen:pregen);
-        else if(biome == "Ocean")
+        else if(biome == 2)
             return GenerateOceanBiome(pos.x, pos.z, pregen:pregen);
-        else if(biome == "Forest")
+        else if(biome == 3)
             return GenerateForestBiome(pos.x, pos.z, pregen:pregen);
         else 
             return GeneratePlainsBiome(pos.x, pos.z, pregen:pregen);
@@ -343,7 +332,7 @@ public class ChunkLoader : MonoBehaviour
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
 	        		toLoad.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
-                    toRedraw.Add(new ChunkPos(newChunk.x+x, newChunk.z+z)); ///
+                    toRedraw.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
 	        	}
 	        }
 	        
@@ -494,7 +483,7 @@ public class ChunkLoader : MonoBehaviour
     // Returns the heightmap value of a generated chunk in block position
     private int GetBlockHeight(ChunkPos pos, int blockX, int blockZ){
         for(int i=Chunk.chunkDepth-1; i >= 0 ; i--){
-            if(chunks[pos].data.GetCell(blockX, i, blockZ) != 0){
+            if(chunks[pos].data.GetCell(Mathf.Abs(blockX), i, Mathf.Abs(blockZ)) != 0){
                 return i+2;
             }
         }
@@ -543,366 +532,6 @@ public class ChunkLoader : MonoBehaviour
         handle.Complete();
 
         return turbulanceMap;
-    }
-
-    /*
-    Takes heightmaps of different map layers and combines them into a cacheVoxdata
-    Layers are applied sequentially, so the bottom-most layer should be the first one
-    blockCode is the block related to this layer.
-    */
-    // Takes cacheMaps and cacheBlockCodes and returns on cacheVoxdata
-    private void ApplyHeightMaps(Dictionary<ushort, ushort> stateDict, bool pregen=false){
-    	int size = Chunk.chunkWidth;
-   		int i=0;
-
-        // Builds the chunk normally
-        if(!pregen){
-       		for(i=0;i<cacheMaps.Count;i++){
-        		// Heightmap Drawing
-    	    	for(int x=0;x<size;x++){
-    	    		for(int z=0;z<size;z++){
-    	    			// If it's the first layer to be added
-    	    			if(i == 0){
-    		    			for(int y=0;y<Chunk.chunkDepth;y++){
-    		    				if(y <= cacheMaps[i][x*(size+1)+z]){
-                                    cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
-                                    if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
-                                        cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
-                                    }
-                                }
-    		    				else
-    		    					cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = 0;
-    		    			}
-    	    			}
-    	    			// If is not the first layer
-    	    			else{
-    		    			for(int y=cacheMaps[i-1][x*(size+1)+z]+1;y<=cacheMaps[i][x*(size+1)+z];y++){
-    		    				cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i];
-
-                                if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
-                                    cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
-                                }
-    		    			}  				
-    	    			}
-    	    		}
-    	    	}
-    	    }
-    	    cacheMaps.Clear();
-    	    cacheBlockCodes.Clear();
-        }
-        // Builds chunk ignoring pregen blocks
-        else{
-            for(i=0;i<cacheMaps.Count;i++){
-                // Heightmap Drawing
-                for(int x=0;x<size;x++){
-                    for(int z=0;z<size;z++){
-                        // If it's the first layer to be added
-                        if(i == 0){
-                            for(int y=0;y<Chunk.chunkDepth;y++){
-                                if(y <= cacheMaps[i][x*(size+1)+z]){
-                                    // Only adds to air blocks
-                                    if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == 0){
-                                        cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
-                                        
-                                        if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
-                                            cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
-                                        }
-                                    }
-                                    // Convertion of pregen air blocks
-                                    if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == (ushort)(ushort.MaxValue/2))
-                                        cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = 0;
-                                }
-                                else
-                                    if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == (ushort)(ushort.MaxValue/2))
-                                        cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = 0;
-                            }
-                        }
-                        // If is not the first layer
-                        else{
-                            for(int y=cacheMaps[i-1][x*(Chunk.chunkWidth+1)+z]+1;y<=cacheMaps[i][x*(size+1)+z];y++){
-                                if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == 0){
-                                    // Convertion of pregen air blocks
-                                    if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == (ushort)(ushort.MaxValue/2))
-                                        cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = 0;
-                                    else
-                                        cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
-                                    
-                                    if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
-                                        cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
-                                    }
-                                }
-                            }               
-                        }
-                    }
-                }
-            }
-            cacheMaps.Clear();
-            cacheBlockCodes.Clear();
-        }
-
-    }
-
-    // Generates Pivot heightmaps
-    private void GeneratePivots(ushort[] selectedCache, int chunkX, int chunkZ, float xhash, float zhash, ref bool transitionChecker, ref string transitionBiome, int octave=0, int groundLevel=20, int ceilingLevel=100, string currentBiome=""){
-    	int size = Chunk.chunkWidth;
-    	int chunkXmult = chunkX * size;
-    	int chunkZmult = chunkZ * size;
-    	int i = 0;
-    	int j = 0;
-
-		// Heightmap Sampling
-    	for(int x=chunkXmult;x<chunkXmult+size;x+=4){
-    		j = 0;
-    		for(int z=chunkZmult;z<chunkZmult+size;z+=4){
-				selectedCache[i*(Chunk.chunkWidth+1)+j] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*generationSeed/xhash+offsetHash, z*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
-    			j+=4;
-    		}
-    		i+=4;
-    	}
-
-        // Look Ahead to X+
-        switch(biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ), worldSeed)){
-            case "Plains":
-                if("Plains" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Plains";
-                }
-                MixPlainsBorderPivots(selectedCache, chunkX, chunkZ, false, octave);
-                break;
-            case "Grassy Highlands":
-                if("Grassy Highlands" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Grassy Highlands";
-                }
-                MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, false, octave);
-                break;
-            case "Ocean":
-                if("Ocean" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Ocean";
-                }
-                MixOceanBorderPivots(selectedCache, chunkX, chunkZ, false, octave, currentBiome:currentBiome);
-                break;
-            case "Forest":
-                if("Forest" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Forest";
-                }
-                MixForestBorderPivots(selectedCache, chunkX, chunkZ, false, octave); 
-                break;               
-            default:
-                print("Deu Merda");
-                break;
-        }
-
-        // Look Ahead to Z+
-        switch(biomeHandler.Assign(new ChunkPos(chunkX, chunkZ+1), worldSeed)){
-            case "Plains":
-                if("Plains" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Plains";
-                }
-                MixPlainsBorderPivots(selectedCache, chunkX, chunkZ, true, octave);
-                break;
-            case "Grassy Highlands":
-                if("Grassy Highlands" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Grassy Highlands";
-                }
-                MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, true, octave);
-                break;
-            case "Ocean":
-                if("Ocean" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Ocean";
-                }
-                MixOceanBorderPivots(selectedCache, chunkX, chunkZ, true, octave, currentBiome:currentBiome);
-                break;
-            case "Forest":
-                if("Forest" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Forest";
-                }
-                MixForestBorderPivots(selectedCache, chunkX, chunkZ, true, octave);
-                break;
-            default:
-                print("Deu Merda");
-                break;
-        }
-
-        // Look ahead into XZ+
-        switch(biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ+1), worldSeed)){
-            case "Plains":
-                if("Plains" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Plains";
-                }
-                MixPlainsBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true);
-                break;
-            case "Grassy Highlands":
-                if("Grassy Highlands" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Grassy Highlands";
-                }
-                MixGrassyHighlandsBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true);
-                break;
-            case "Ocean":
-                if("Ocean" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Ocean";
-                }
-                MixOceanBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true, currentBiome:currentBiome);
-                break;
-            case "Forest":
-                if("Forest" != currentBiome){
-                    transitionChecker = true;
-                    transitionBiome = "Forest";
-                }
-                MixForestBorderPivots(selectedCache, chunkX, chunkZ, true, octave, corner:true);
-                break;
-            default:
-                break;
-        }   
-    }
-
-    // Builds Lookahead pivots for biome border smoothing
-    public void GenerateLookAheadPivots(ushort[] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, bool isSide, int groundLevel=0, int ceilingLevel=99){
-        int size = Chunk.chunkWidth;
-        chunkX *= size;
-        chunkZ *= size;
-        int i = 0;
-
-        // If is looking ahead into X+ Chunk
-        if(isSide){
-            for(int x=chunkX; x<=chunkX+size; x+=4){
-                selectedMap[i*(Chunk.chunkWidth+1)+size] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*generationSeed/xhash+offsetHash, (chunkZ+size)*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
-                i+=4;
-            }
-        }
-        // If is looking ahead into Z+ Chunk
-        else{
-            for(int z=chunkZ; z<chunkZ+size; z+=4){ // Don't generate corner twice
-                selectedMap[size*(Chunk.chunkWidth+1)+i] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise((chunkX+size)*generationSeed/xhash+offsetHash, z*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
-                i+=4;
-            }
-        }
-    }
-
-    // Builds Lookahead pivot of corner chunk for biome border smoothing
-    public void GenerateLookAheadCorner(ushort[] selectedMap, int chunkX, int chunkZ, float xhash, float zhash, int groundLevel=0, int ceilingLevel=99){
-        selectedMap[selectedMap.Length-1] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth*generationSeed)/xhash+offsetHash, ((chunkZ+1)*Chunk.chunkWidth*generationSeed)/zhash+offsetHash))), 0, ceilingLevel));
-    }
-
-    // Generates Flat Map of something
-    // Consider using this for biomes that are relatively low altitude
-    private void GenerateFlatMap(ushort[] selectedCache, ushort ceiling){
-        if(ceiling >= Chunk.chunkDepth)
-            ceiling = (ushort)(Chunk.chunkDepth-1);
-
-        for(int x=0; x<Chunk.chunkWidth;x++){
-            for(int z=0; z<Chunk.chunkWidth;z++){
-                selectedCache[x*Chunk.chunkWidth+z] = ceiling;
-            }
-        }
-    }
-
-    // Applies bilinear interpolation to a given pivotmap
-    // Takes any cache and returns on itself
-    private void BilinearInterpolateMap(ushort[] heightMap, int interval=4){
-    	int size = Chunk.chunkWidth;
-    	int interpX = 0;
-    	int interpZ = 0;
-        float step = 1f/interval;
-    	float scaleX = 0f;
-    	float scaleZ = 0f;
-
-		// Bilinear Interpolation
-    	for(int z=0;z<size;z++){
-    		if(z%interval == 0){
-    			interpZ+=interval;
-    			scaleZ = step;
-    		}
-    		for(int x=0;x<size;x++){
-    			// If is a pivot in X axis
-    			if(x%interval == 0){
-    				interpX+=interval;
-    				scaleX = step;
-    			}
-
-    			heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.RoundToInt(((heightMap[(interpX-interval)*(Chunk.chunkWidth+1)+(interpZ-interval)])*(1-scaleX)*(1-scaleZ)) + (heightMap[interpX*(Chunk.chunkWidth+1)+(interpZ-interval)]*scaleX*(1-scaleZ)) + (heightMap[(interpX-interval)*(Chunk.chunkWidth+1)+interpZ]*scaleZ*(1-scaleX)) + (heightMap[interpX*(Chunk.chunkWidth+1)+interpZ]*scaleX*scaleZ)));
-    			scaleX += step;
-
-    		}
-    		interpX = 0;
-    		scaleX = 0;
-    		scaleZ += step;
-    	}	
-    }
-
-    // Quick adds all elements in heightMap
-    // This makes it easy to get a layer below surface blocks
-    // Takes any cache and returns on cacheNumber
-    private void AddFromMap(ushort[] map, int val, int cacheNumber=2){
-
-    	if(cacheNumber == 1){
-	    	for(int x=0;x<Chunk.chunkWidth;x++){
-	    		for(int z=0;z<Chunk.chunkWidth;z++){
-                    int index = x*(Chunk.chunkWidth+1)+z;
-	    			cacheHeightMap[index] = (ushort)(map[index] + val);
-	    		}
-	    	}
-    	}
-
-    	else if(cacheNumber == 2){
-	    	for(int x=0;x<Chunk.chunkWidth;x++){
-	    		for(int z=0;z<Chunk.chunkWidth;z++){
-                    int index = x*(Chunk.chunkWidth+1)+z;
-                    cacheHeightMap2[index] = (ushort)(map[index] + val);
-	    		}
-	    	}
-	    }
-	    else if(cacheNumber == 3){
-	    	for(int x=0;x<Chunk.chunkWidth;x++){
-	    		for(int z=0;z<Chunk.chunkWidth;z++){
-                    int index = x*(Chunk.chunkWidth+1)+z;
-                    cacheHeightMap3[index] = (ushort)(map[index] + val);
-	    		}
-	    	}	    	
-	    }
-	    else{
-	    	for(int x=0;x<Chunk.chunkWidth;x++){
-	    		for(int z=0;z<Chunk.chunkWidth;z++){
-                    int index = x*(Chunk.chunkWidth+1)+z;
-                    cacheHeightMap4[index] = (ushort)(map[index] + val);
-	    		}
-	    	}
-	    }
-    }
-
-    // Applies Octaves to Pivot Map
-    private void CombinePivotMap(ushort[] a, ushort[] b){
-        for(int x=0;x<=Chunk.chunkWidth;x+=4){
-            for(int z=0;z<=Chunk.chunkWidth;z+=4){
-                int index = x*(Chunk.chunkWidth+1)+z;
-                a[index] = (ushort)(Mathf.FloorToInt((a[index] + b[index])/2));
-            }
-        }
-    }
-
-    // Applies Octaves to border pivot maps
-    private void CombineBorderPivots(int[] selectedMap, int[] auxMap, bool isSide){
-        if(isSide){
-            for(int x=0; x<=Chunk.chunkWidth; x+=4){
-                int index = Chunk.chunkWidth*Chunk.chunkWidth+x;
-                selectedMap[index] = Mathf.FloorToInt((selectedMap[index] + auxMap[index])/2);
-            }
-        }
-        else{
-            for(int x=0; x<Chunk.chunkWidth; x+=4){ // < sign to not calculate corner twice
-                int index = x*Chunk.chunkWidth+Chunk.chunkWidth;
-                selectedMap[index] = Mathf.FloorToInt((selectedMap[index] + auxMap[index])/2);
-            }            
-        }
     }
 
     // Applies Structures to a chunk
@@ -1003,7 +632,7 @@ public class ChunkLoader : MonoBehaviour
         if(bothAxis){
             for(int i=x; i < Chunk.chunkWidth; i++){
                 for(int c=z; c < Chunk.chunkWidth; c++){
-                    sum += heightmap[i*Chunk.chunkWidth+c];
+                    sum += heightmap[i*(Chunk.chunkWidth+1)+c];
                     amount++;
                 }
             }
@@ -1017,7 +646,7 @@ public class ChunkLoader : MonoBehaviour
 
             for(int i=x; i < Chunk.chunkWidth; i++){
                 for(int c=z; c < Mathf.Min(z+size, Chunk.chunkWidth); c++){
-                    sum += heightmap[i*Chunk.chunkWidth+c];
+                    sum += heightmap[i*(Chunk.chunkWidth+1)+c];
                     amount++;
                 }
             }
@@ -1031,7 +660,7 @@ public class ChunkLoader : MonoBehaviour
 
             for(int i=z; i < Chunk.chunkWidth; i++){
                 for(int c=x; c < Mathf.Min(x+size, Chunk.chunkWidth); c++){
-                    sum += heightmap[c*Chunk.chunkWidth+i];
+                    sum += heightmap[c*(Chunk.chunkWidth+1)+i];
                     amount++; 
                 }
             }
@@ -1042,70 +671,284 @@ public class ChunkLoader : MonoBehaviour
         }
         
         
-        return heightmap[x*Chunk.chunkWidth+z]-1;
+        return heightmap[x*(Chunk.chunkWidth+1)+z]-1;
     }
+
 
     // Generates Plains biome chunk
 	public VoxelData GeneratePlainsBiome(int chunkX, int chunkZ, bool pregen=false){
-		// Hash values for Plains Biomes
+        // Hash values for Plains Biomes
         float xhash = 41.21f;
         float zhash = 105.243f;
-        bool transition = false;
-        string transitionBiome = "";
+        byte currentBiome = 0;
+        ChunkPos currentChunk = new ChunkPos(chunkX, chunkZ);
+
+        // Checking for Transitions
+        byte xBiome = biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ));
+        byte zBiome = biomeHandler.Assign(new ChunkPos(chunkX, chunkZ+1));
+        byte xzBiome = biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ+1));
+        bool xTransition = false;
+        bool zTransition = false;
+        bool xzTransition = false;
+
+        if(xBiome != currentBiome)
+            xTransition = true;
+        if(zBiome != currentBiome)
+            zTransition = true;
+        if(xzBiome != currentBiome)
+            xzTransition = true;
+
+        // Transition Handlers
+        NativeArray<ushort> waterLevels = new NativeArray<ushort>(BiomeHandlerData.codeToWater, Allocator.TempJob);
+
+        // Metadata and blockdata
+        NativeList<ushort> codes = new NativeList<ushort>(0, Allocator.TempJob);
+        NativeHashMap<ushort, ushort> stateDict = new NativeHashMap<ushort, ushort>(0, Allocator.TempJob);
+        NativeList<ushort> maps = new NativeList<ushort>(0, Allocator.TempJob);
         
-		// Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
-		GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, ref transitionBiome, octave:0, groundLevel:20, ceilingLevel:25, currentBiome:"Plains");
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, ref transition, ref transitionBiome, octave:1, groundLevel:18, ceilingLevel:30, currentBiome:"Plains");
-        CombinePivotMap(cacheHeightMap, cacheHeightMap2);
+        // HeightMaps
+        NativeArray<ushort> map1 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map2 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map3 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map4 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+
+        // The Job Class
+        JobHandle job;
+
+        // Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
+        GeneratePivotsJob gpJob = new GeneratePivotsJob{
+            chunkX = chunkX,
+            chunkZ = chunkZ,
+            xhash = xhash,
+            zhash = zhash,
+            worldSeed = worldSeed,
+            generationSeed = generationSeed,
+            dispersionSeed = dispersionSeed,
+            offsetHash = offsetHash,
+            currentBiome = currentBiome,
+            xBiome = xBiome,
+            zBiome = zBiome,
+            xzBiome = xzBiome,
+
+            selectedCache = map1,
+            groundLevel = 20,
+            ceilingLevel = 25,
+            octave = 0,
+        };
+        job = gpJob.Schedule();
+        job.Complete();
+
+        gpJob = new GeneratePivotsJob{
+            chunkX = chunkX,
+            chunkZ = chunkZ,
+            worldSeed = worldSeed,
+            generationSeed = generationSeed,
+            dispersionSeed = dispersionSeed,
+            offsetHash = offsetHash,
+            currentBiome = currentBiome,
+            xBiome = xBiome,
+            zBiome = zBiome,
+            xzBiome = xzBiome,
+
+            xhash = xhash*1.712f,
+            zhash = zhash*2.511f,
+            selectedCache = map2,
+            groundLevel = 18,
+            ceilingLevel = 30,
+            octave = 1,
+        };
+        job = gpJob.Schedule();
+        job.Complete();
+
+        // Combine Pivot Maps
+        CombinePivotMapJob cpvJob = new CombinePivotMapJob{
+            inMap = map2,
+            outMap = map1
+        };
+        job = cpvJob.Schedule((int)((Chunk.chunkWidth/4)+1), 2);
+        job.Complete();        
 
         // Does different interpolation for normal vs transition chunks
-        if(!transition)
-            BilinearInterpolateMap(cacheHeightMap);
-        else
-            BilinearInterpolateMap(cacheHeightMap, interval:16);
+        if(!xTransition && !zTransition && !xzTransition){
+            BilinearInterpolateJob biJob = new BilinearInterpolateJob{
+                interval = 4,
+                heightMap = map1
+            };
+            job = biJob.Schedule();
+            job.Complete();
+        }
+        else{
+            BilinearInterpolateJob biJob = new BilinearInterpolateJob{
+                interval = Chunk.chunkWidth,
+                heightMap = map1
+            };
+            job = biJob.Schedule();
+            job.Complete();
+        }
 
-		// Underground is hold on Cache 2
-		AddFromMap(cacheHeightMap, -5);
+        // Underground is hold on Cache 2
+        AddFromMapJob afmJob = new AddFromMapJob{
+            inMap = map1,
+            outMap = map2,
+            val = -5
+        };
+        job = afmJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
 
-		// Adds Cache 2 to pipeline
-		cacheMaps.Add(cacheHeightMap2);
-		cacheBlockCodes.Add(3);
 
-		// Dirt is hold on Cache 3
-		AddFromMap(cacheHeightMap, -1, cacheNumber:3);
+        // Dirt is hold on Cache 3
+        afmJob = new AddFromMapJob{
+            inMap = map1,
+            outMap = map3,
+            val = -1
+        };
+        job = afmJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
+
+        // Adds rest to pipeline
+        maps.AddRange(map2);
+        codes.Add(3);
+        maps.AddRange(map3);
+        codes.Add(2);
+        maps.AddRange(map1);
+        codes.Add(1);
 
         // Add Water
-        if(!transition){
-            GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel("Plains"));
+        if(xTransition){
+            if(waterLevels[currentBiome] >= waterLevels[xBiome]){
+                // Water in Cache 4
+                GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                    ceiling = waterLevels[xBiome],
+                    selectedCache = map4
+                };
+                job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+                job.Complete();                
+
+                maps.AddRange(map4);
+                codes.Add(6);
+            }
         }
-        else if(BiomeHandler.GetWaterLevel("Plains") >= BiomeHandler.GetWaterLevel(transitionBiome)){
-            GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel(transitionBiome));
+        if(zTransition){
+            if(waterLevels[currentBiome] >= waterLevels[zBiome]){
+                // Water in Cache 4
+                GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                    ceiling = waterLevels[zBiome],
+                    selectedCache = map4
+                };
+                job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+                job.Complete();                
+
+                maps.AddRange(map4);
+                codes.Add(6);
+            }
+        }
+        // Add Water
+        if(xzTransition){
+            if(waterLevels[currentBiome] >= waterLevels[xzBiome]){
+                // Water in Cache 4
+                GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                    ceiling = waterLevels[xzBiome],
+                    selectedCache = map4
+                };
+                job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+                job.Complete();                
+
+                maps.AddRange(map4);
+                codes.Add(6);
+            }
+        }
+        // Add Water
+        if(!xTransition && !zTransition && !xzTransition){
+            // Water in Cache 4
+            GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                ceiling = waterLevels[currentBiome],
+                selectedCache = map4
+            };
+            job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+            job.Complete();                
+
+            maps.AddRange(map4);
+            codes.Add(6);
         }
 
-		// Adds rest to pipeline
-		cacheMaps.Add(cacheHeightMap3);
-		cacheBlockCodes.Add(2);
-		cacheMaps.Add(cacheHeightMap);
-		cacheBlockCodes.Add(1);
-        cacheMaps.Add(cacheHeightMap4);
-        cacheBlockCodes.Add(6);
+        // Sets state dict
+        stateDict.Add(6, 0);
 
-        cacheStateDict = new Dictionary<ushort, ushort>{{6, 0}};
+        NativeArray<ushort> vox = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
+        NativeArray<ushort> hpdata = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
+        NativeArray<ushort> statedata = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
 
-		// Adds to cacheVoxdata
-		ApplyHeightMaps(cacheStateDict, pregen:pregen);
-        cacheStateDict.Clear();
+        // ApplyHeightMap
+        ApplyMapsJob amJob = new ApplyMapsJob{
+            cacheVoxdata = vox,
+            cacheMetadataHP = hpdata,
+            cacheMetadataState = statedata,
+            cacheMaps = maps.AsArray(),
+            stateDict = stateDict,
+            cacheBlockCodes = codes,
+            pregen = pregen
+        };
+        job = amJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
 
+        // Convert data back
+        cacheVoxdata = vox.ToArray();
+        cacheMetadataHP = hpdata.ToArray();
+        cacheMetadataState = statedata.ToArray();
+        cacheHeightMap = map1.ToArray();
+        
         // Applies Structs from other chunks
         if(Structure.Exists(currentChunk)){
             Structure.RoughApply(cacheVoxdata, cacheMetadataHP, cacheMetadataState, Structure.GetChunk(currentChunk));
             Structure.RemoveChunk(currentChunk);
         }
 
-        // Structures
-        GeneratePlainsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 0, transition);
+        // Pre=Dispose Bin
+        vox.Dispose();
+        hpdata.Dispose();
+        statedata.Dispose();
 
-        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:20, maskThreshold:0.64f), upper:20);
+        // Structures
+        GeneratePlainsStructures(currentChunk, xhash, zhash, currentBiome, (xTransition || zTransition || xzTransition));
+
+        // Cave System
+        NativeArray<ushort> voxCU = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
+        NativeArray<ushort> hpCU = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
+        NativeArray<ushort> stateCU = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> cacheCave = GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:20, maskThreshold:0.64f);
+
+        CutUndergroundJob cuJob = new CutUndergroundJob{
+            cacheVox = voxCU,
+            cacheHP = hpCU,
+            cacheState = stateCU,
+            cacheCave = cacheCave,
+            upper = 20,
+            lower = 1,
+        };
+        job = cuJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
+
+        // Convert Data Back
+        cacheVoxdata = voxCU.ToArray();
+        cacheMetadataHP = hpCU.ToArray();
+        cacheMetadataState = stateCU.ToArray();
+
+        // Dispose Bin
+        voxCU.Dispose();
+        hpCU.Dispose();
+        stateCU.Dispose();
+        codes.Dispose();
+        stateDict.Dispose();
+        maps.Dispose();
+        waterLevels.Dispose();
+        cacheCave.Dispose();
+
+        map1.Dispose();
+        map2.Dispose();
+        map3.Dispose();        
+        map4.Dispose();
+
+        return new VoxelData(cacheVoxdata);
     }
 
     // Inserts Structures into Plain Biome
@@ -1127,87 +970,280 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Inserts Plains biome border pivots on another selectedHeightMap
-    private void MixPlainsBorderPivots(ushort[] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
-        float xhash = 41.21f;
-        float zhash = 105.243f;
-
-        if(!corner){
-            if(octave == 0)
-                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:20, ceilingLevel:25);
-            else
-                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, isSide, groundLevel:18, ceilingLevel:30);
-        }
-        else{
-            if(octave == 0)
-                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:20, ceilingLevel:25);
-            else
-                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, groundLevel:18, ceilingLevel:30);
-        }
-    }
-
     // Generates Grassy Highlands biome chunk
     public VoxelData GenerateGrassyHighLandsBiome(int chunkX, int chunkZ, bool pregen=false){
-        // Hash values for Grassy Highlands Biomes
+        // Hash values for Plains Biomes
         float xhash = 41.21f;
         float zhash = 105.243f;
-        bool transition = false;
-        string transitionBiome = "";
+        byte currentBiome = 1;
+        ChunkPos currentChunk = new ChunkPos(chunkX, chunkZ);
 
-        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, ref transitionBiome, octave:0, groundLevel:30, ceilingLevel:50, currentBiome:"Grassy Highlands");
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, ref transition, ref transitionBiome, octave:1, groundLevel:30, ceilingLevel:70, currentBiome:"Grassy Highlands");
-        CombinePivotMap(cacheHeightMap, cacheHeightMap2);
+        // Checking for Transitions
+        byte xBiome = biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ));
+        byte zBiome = biomeHandler.Assign(new ChunkPos(chunkX, chunkZ+1));
+        byte xzBiome = biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ+1));
+        bool xTransition = false;
+        bool zTransition = false;
+        bool xzTransition = false;
+
+        if(xBiome != currentBiome)
+            xTransition = true;
+        if(zBiome != currentBiome)
+            zTransition = true;
+        if(xzBiome != currentBiome)
+            xzTransition = true;
+
+        // Transition Handlers
+        NativeArray<ushort> waterLevels = new NativeArray<ushort>(BiomeHandlerData.codeToWater, Allocator.TempJob);
+
+        // Metadata and blockdata
+        NativeList<ushort> codes = new NativeList<ushort>(0, Allocator.TempJob);
+        NativeHashMap<ushort, ushort> stateDict = new NativeHashMap<ushort, ushort>(0, Allocator.TempJob);
+        NativeList<ushort> maps = new NativeList<ushort>(0, Allocator.TempJob);
+        
+        // HeightMaps
+        NativeArray<ushort> map1 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map2 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map3 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map4 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+
+        // The Job Class
+        JobHandle job;
+
+        // Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
+        GeneratePivotsJob gpJob = new GeneratePivotsJob{
+            chunkX = chunkX,
+            chunkZ = chunkZ,
+            xhash = xhash,
+            zhash = zhash,
+            worldSeed = worldSeed,
+            generationSeed = generationSeed,
+            dispersionSeed = dispersionSeed,
+            offsetHash = offsetHash,
+            currentBiome = currentBiome,
+            xBiome = xBiome,
+            zBiome = zBiome,
+            xzBiome = xzBiome,
+
+            selectedCache = map1,
+            groundLevel = 30,
+            ceilingLevel = 50,
+            octave = 0,
+        };
+        job = gpJob.Schedule();
+        job.Complete();
+
+        gpJob = new GeneratePivotsJob{
+            chunkX = chunkX,
+            chunkZ = chunkZ,
+            worldSeed = worldSeed,
+            generationSeed = generationSeed,
+            dispersionSeed = dispersionSeed,
+            offsetHash = offsetHash,
+            currentBiome = currentBiome,
+            xBiome = xBiome,
+            zBiome = zBiome,
+            xzBiome = xzBiome,
+
+            xhash = xhash*0.712f,
+            zhash = zhash*0.2511f,
+            selectedCache = map2,
+            groundLevel = 30,
+            ceilingLevel = 70,
+            octave = 1,
+        };
+        job = gpJob.Schedule();
+        job.Complete();
+
+        // Combine Pivot Maps
+        CombinePivotMapJob cpvJob = new CombinePivotMapJob{
+            inMap = map2,
+            outMap = map1
+        };
+        job = cpvJob.Schedule((int)((Chunk.chunkWidth/4)+1), 2);
+        job.Complete();        
 
         // Does different interpolation for normal vs transition chunks
-        if(!transition)
-            BilinearInterpolateMap(cacheHeightMap);
-        else
-            BilinearInterpolateMap(cacheHeightMap, interval:16);
+        if(!xTransition && !zTransition && !xzTransition){
+            BilinearInterpolateJob biJob = new BilinearInterpolateJob{
+                interval = 4,
+                heightMap = map1
+            };
+            job = biJob.Schedule();
+            job.Complete();
+        }
+        else{
+            BilinearInterpolateJob biJob = new BilinearInterpolateJob{
+                interval = Chunk.chunkWidth,
+                heightMap = map1
+            };
+            job = biJob.Schedule();
+            job.Complete();
+        }
 
         // Underground is hold on Cache 2
-        AddFromMap(cacheHeightMap, -5);
+        AddFromMapJob afmJob = new AddFromMapJob{
+            inMap = map1,
+            outMap = map2,
+            val = -5
+        };
+        job = afmJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
 
-        // Adds Cache 2 to pipeline
-        cacheMaps.Add(cacheHeightMap2);
-        cacheBlockCodes.Add(3);
 
         // Dirt is hold on Cache 3
-        AddFromMap(cacheHeightMap, -1, cacheNumber:3);
+        afmJob = new AddFromMapJob{
+            inMap = map1,
+            outMap = map3,
+            val = -1
+        };
+        job = afmJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
 
         // Adds rest to pipeline
-        cacheMaps.Add(cacheHeightMap3);
-        cacheBlockCodes.Add(2);
-        cacheMaps.Add(cacheHeightMap);
-        cacheBlockCodes.Add(1);
+        maps.AddRange(map2);
+        codes.Add(3);
+        maps.AddRange(map3);
+        codes.Add(2);
+        maps.AddRange(map1);
+        codes.Add(1);
 
         // Add Water
-        if(!transition){
-            GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel("Grassy Highlands"));
-            cacheMaps.Add(cacheHeightMap4);
-            cacheBlockCodes.Add(6);
+        if(xTransition){
+            if(waterLevels[currentBiome] >= waterLevels[xBiome]){
+                // Water in Cache 4
+                GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                    ceiling = waterLevels[xBiome],
+                    selectedCache = map4
+                };
+                job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+                job.Complete();                
+
+                maps.AddRange(map4);
+                codes.Add(6);
+            }
         }
-        else if(BiomeHandler.GetWaterLevel("Grassy Highlands") >= BiomeHandler.GetWaterLevel(transitionBiome)){
-            GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel(transitionBiome));
-            cacheMaps.Add(cacheHeightMap4);
-            cacheBlockCodes.Add(6);
+        if(zTransition){
+            if(waterLevels[currentBiome] >= waterLevels[zBiome]){
+                // Water in Cache 4
+                GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                    ceiling = waterLevels[zBiome],
+                    selectedCache = map4
+                };
+                job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+                job.Complete();                
+
+                maps.AddRange(map4);
+                codes.Add(6);
+            }
+        }
+        // Add Water
+        if(xzTransition){
+            if(waterLevels[currentBiome] >= waterLevels[xzBiome]){
+                // Water in Cache 4
+                GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                    ceiling = waterLevels[xzBiome],
+                    selectedCache = map4
+                };
+                job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+                job.Complete();                
+
+                maps.AddRange(map4);
+                codes.Add(6);
+            }
+        }
+        // Add Water
+        if(!xTransition && !zTransition && !xzTransition){
+            // Water in Cache 4
+            GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                ceiling = waterLevels[currentBiome],
+                selectedCache = map4
+            };
+            job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+            job.Complete();                
+
+            maps.AddRange(map4);
+            codes.Add(6);
         }
 
-        cacheStateDict = new Dictionary<ushort, ushort>{{6, 0}};
+        // Sets state dict
+        stateDict.Add(6, 0);
 
-        // Adds to cacheVoxdata
-        ApplyHeightMaps(cacheStateDict, pregen:pregen);
-        cacheStateDict.Clear();
+        NativeArray<ushort> vox = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
+        NativeArray<ushort> hpdata = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
+        NativeArray<ushort> statedata = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
 
+        // ApplyHeightMap
+        ApplyMapsJob amJob = new ApplyMapsJob{
+            cacheVoxdata = vox,
+            cacheMetadataHP = hpdata,
+            cacheMetadataState = statedata,
+            cacheMaps = maps.AsArray(),
+            stateDict = stateDict,
+            cacheBlockCodes = codes,
+            pregen = pregen
+        };
+        job = amJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
+
+        // Convert data back
+        cacheVoxdata = vox.ToArray();
+        cacheMetadataHP = hpdata.ToArray();
+        cacheMetadataState = statedata.ToArray();
+        cacheHeightMap = map1.ToArray();
+        
         // Applies Structs from other chunks
         if(Structure.Exists(currentChunk)){
             Structure.RoughApply(cacheVoxdata, cacheMetadataHP, cacheMetadataState, Structure.GetChunk(currentChunk));
             Structure.RemoveChunk(currentChunk);
         }
 
-        // Structures
-        GenerateGrassyHighLandsStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 1, transition);
+        // Pre=Dispose Bin
+        vox.Dispose();
+        hpdata.Dispose();
+        statedata.Dispose();
 
-        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:40, maskThreshold:0.64f), upper:40);
+        // Structures
+        GenerateGrassyHighLandsStructures(currentChunk, xhash, zhash, currentBiome, (xTransition || zTransition || xzTransition));
+
+        // Cave System
+        NativeArray<ushort> voxCU = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
+        NativeArray<ushort> hpCU = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
+        NativeArray<ushort> stateCU = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> cacheCave = GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:40, maskThreshold:0.64f);
+
+        CutUndergroundJob cuJob = new CutUndergroundJob{
+            cacheVox = voxCU,
+            cacheHP = hpCU,
+            cacheState = stateCU,
+            cacheCave = cacheCave,
+            upper = 40,
+            lower = 1,
+        };
+        job = cuJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
+
+        // Convert Data Back
+        cacheVoxdata = voxCU.ToArray();
+        cacheMetadataHP = hpCU.ToArray();
+        cacheMetadataState = stateCU.ToArray();
+
+        // Dispose Bin
+        voxCU.Dispose();
+        hpCU.Dispose();
+        stateCU.Dispose();
+        codes.Dispose();
+        stateDict.Dispose();
+        maps.Dispose();
+        waterLevels.Dispose();
+        cacheCave.Dispose();
+
+        map1.Dispose();
+        map2.Dispose();
+        map3.Dispose();        
+        map4.Dispose();
+
+        return new VoxelData(cacheVoxdata);
     }
 
     // Inserts Structures into Plain Biome
@@ -1230,121 +1266,216 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Inserts Grassy Highlands biome border pivots on another selectedHeightMap
-    private void MixGrassyHighlandsBorderPivots(ushort[] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
-        float xhash = 41.21f;
-        float zhash = 105.243f;
-
-        if(!corner){
-            if(octave == 0)
-                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:30, ceilingLevel:50);
-            else
-                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, isSide, groundLevel:30, ceilingLevel:70);            
-        }
-        else{
-            if(octave == 0)
-                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:30, ceilingLevel:50);
-            else
-                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*0.712f, zhash*0.2511f, groundLevel:30, ceilingLevel:70);
-
-        }
-    }
-
     // Generates Ocean biome chunk
     public VoxelData GenerateOceanBiome(int chunkX, int chunkZ, bool pregen=false){
-        // Hash values for Ocean Biomes
+        // Hash values for Plains Biomes
         float xhash = 54.7f;
         float zhash = 69.3f;
-        bool transition = false;
-        string transitionBiome = "";
+        byte currentBiome = 2;
+        ChunkPos currentChunk = new ChunkPos(chunkX, chunkZ);
 
-        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, ref transitionBiome, octave:0, groundLevel:1, ceilingLevel:19, currentBiome:"Ocean");
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, ref transition, ref transitionBiome, octave:1, groundLevel:1, ceilingLevel:19, currentBiome:"Ocean");
-        CombinePivotMap(cacheHeightMap, cacheHeightMap2);
+        // Checking for Transitions
+        byte xBiome = biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ));
+        byte zBiome = biomeHandler.Assign(new ChunkPos(chunkX, chunkZ+1));
+        byte xzBiome = biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ+1));
+        bool xTransition = false;
+        bool zTransition = false;
+        bool xzTransition = false;
+
+        if(xBiome != currentBiome)
+            xTransition = true;
+        if(zBiome != currentBiome)
+            zTransition = true;
+        if(xzBiome != currentBiome)
+            xzTransition = true;
+
+        // Transition Handlers
+        NativeArray<ushort> waterLevels = new NativeArray<ushort>(BiomeHandlerData.codeToWater, Allocator.TempJob);
+
+        // Metadata and blockdata
+        NativeList<ushort> codes = new NativeList<ushort>(0, Allocator.TempJob);
+        NativeHashMap<ushort, ushort> stateDict = new NativeHashMap<ushort, ushort>(0, Allocator.TempJob);
+        NativeList<ushort> maps = new NativeList<ushort>(0, Allocator.TempJob);
+        
+        // HeightMaps
+        NativeArray<ushort> map1 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map2 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map3 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map4 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+
+        // The Job Class
+        JobHandle job;
+
+        // Ocean 
+        GeneratePivotsJob gpJob = new GeneratePivotsJob{
+            chunkX = chunkX,
+            chunkZ = chunkZ,
+            xhash = xhash,
+            zhash = zhash,
+            worldSeed = worldSeed,
+            generationSeed = generationSeed,
+            dispersionSeed = dispersionSeed,
+            offsetHash = offsetHash,
+            currentBiome = currentBiome,
+            xBiome = xBiome,
+            zBiome = zBiome,
+            xzBiome = xzBiome,
+
+            selectedCache = map1,
+            groundLevel = 1,
+            ceilingLevel = 19,
+            octave = 0,
+        };
+        job = gpJob.Schedule();
+        job.Complete();
+
+        gpJob = new GeneratePivotsJob{
+            chunkX = chunkX,
+            chunkZ = chunkZ,
+            worldSeed = worldSeed,
+            generationSeed = generationSeed,
+            dispersionSeed = dispersionSeed,
+            offsetHash = offsetHash,
+            currentBiome = currentBiome,
+            xBiome = xBiome,
+            zBiome = zBiome,
+            xzBiome = xzBiome,
+            xhash = xhash*0.112f,
+            zhash = zhash*0.31f,
+
+            selectedCache = map2,
+            groundLevel = 1,
+            ceilingLevel = 19,
+            octave = 1,
+        };
+        job = gpJob.Schedule();
+        job.Complete();
+
+        // Combine Pivot Maps
+        CombinePivotMapJob cpvJob = new CombinePivotMapJob{
+            inMap = map2,
+            outMap = map1
+        };
+        job = cpvJob.Schedule((int)((Chunk.chunkWidth/4)+1), 2);
+        job.Complete();        
 
         // Does different interpolation for normal vs transition chunks
-        if(!transition)
-            BilinearInterpolateMap(cacheHeightMap);
-        else
-            BilinearInterpolateMap(cacheHeightMap, interval:16);
-
-        // Adds Cache 2 to pipeline
-        cacheMaps.Add(cacheHeightMap);
-        cacheBlockCodes.Add(2);
-
-        // Add Water
-        GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel("Ocean"));
+        if(!xTransition && !zTransition && !xzTransition){
+            BilinearInterpolateJob biJob = new BilinearInterpolateJob{
+                interval = 4,
+                heightMap = map1
+            };
+            job = biJob.Schedule();
+            job.Complete();
+        }
+        else{
+            BilinearInterpolateJob biJob = new BilinearInterpolateJob{
+                interval = Chunk.chunkWidth,
+                heightMap = map1
+            };
+            job = biJob.Schedule();
+            job.Complete();
+        }
 
         // Adds rest to pipeline
-        cacheMaps.Add(cacheHeightMap4);
-        cacheBlockCodes.Add(6);
+        maps.AddRange(map1);
+        codes.Add(2);
 
-        cacheStateDict = new Dictionary<ushort, ushort>{{6,0}};
+        // Add Water
+        GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+            ceiling = waterLevels[currentBiome],
+            selectedCache = map2
+        };
+        job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();                
 
-        // Adds to cacheVoxdata
-        ApplyHeightMaps(cacheStateDict, pregen:pregen);
+        maps.AddRange(map2);
+        codes.Add(6);
 
+
+        // Sets state dict
+        stateDict.Add(6, 0);
+
+        NativeArray<ushort> vox = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
+        NativeArray<ushort> hpdata = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
+        NativeArray<ushort> statedata = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+
+        // ApplyHeightMap
+        ApplyMapsJob amJob = new ApplyMapsJob{
+            cacheVoxdata = vox,
+            cacheMetadataHP = hpdata,
+            cacheMetadataState = statedata,
+            cacheMaps = maps.AsArray(),
+            stateDict = stateDict,
+            cacheBlockCodes = codes,
+            pregen = pregen
+        };
+        job = amJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
+
+        // Convert data back
+        cacheVoxdata = vox.ToArray();
+        cacheMetadataHP = hpdata.ToArray();
+        cacheMetadataState = statedata.ToArray();
+        cacheHeightMap = map1.ToArray();
+        
         // Applies Structs from other chunks
         if(Structure.Exists(currentChunk)){
             Structure.RoughApply(cacheVoxdata, cacheMetadataHP, cacheMetadataState, Structure.GetChunk(currentChunk));
             Structure.RemoveChunk(currentChunk);
         }
 
-        // Structures
-        GenerateOceanStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 2, transition);
+        // Pre=Dispose Bin
+        vox.Dispose();
+        hpdata.Dispose();
+        statedata.Dispose();
 
-        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:10, maskThreshold:0.64f), upper:10);
+        // Structures
+        GenerateOceanStructures(currentChunk, xhash, zhash, currentBiome, (xTransition || zTransition || xzTransition));
+
+        // Cave System
+        NativeArray<ushort> voxCU = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
+        NativeArray<ushort> hpCU = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
+        NativeArray<ushort> stateCU = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> cacheCave = GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:10, maskThreshold:0.64f);
+
+        CutUndergroundJob cuJob = new CutUndergroundJob{
+            cacheVox = voxCU,
+            cacheHP = hpCU,
+            cacheState = stateCU,
+            cacheCave = cacheCave,
+            upper = 10,
+            lower = 1,
+        };
+        job = cuJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
+
+        // Convert Data Back
+        cacheVoxdata = voxCU.ToArray();
+        cacheMetadataHP = hpCU.ToArray();
+        cacheMetadataState = stateCU.ToArray();
+
+        // Dispose Bin
+        voxCU.Dispose();
+        hpCU.Dispose();
+        stateCU.Dispose();
+        codes.Dispose();
+        stateDict.Dispose();
+        maps.Dispose();
+        waterLevels.Dispose();
+        cacheCave.Dispose();
+
+        map1.Dispose();
+        map2.Dispose();
+        map3.Dispose();        
+        map4.Dispose();
+
+        return new VoxelData(cacheVoxdata);
     }
 
     // Inserts Structures into Ocean Biome
     private void GenerateOceanStructures(ChunkPos pos, float xhash, float zhash, byte biomeCode, bool transition){
         // Nothing Yet
-
-    }
-
-    // Inserts Ocean border pivots on another selectedHeightMap
-    private void MixOceanBorderPivots(ushort[] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false, string currentBiome=""){
-        float xhash = 54.7f;
-        float zhash = 69.3f;
-
-        if(currentBiome != "Ocean"){
-            if(!corner){
-                if(octave == 0){
-                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:1, ceilingLevel:20);
-                }
-                else{
-                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, isSide, groundLevel:1, ceilingLevel:20);            
-                }
-            }
-            else{
-                if(octave == 0){
-                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:1, ceilingLevel:20);
-                }
-                else{
-                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, groundLevel:1, ceilingLevel:20);
-                }
-
-            }
-        }
-        else{
-            if(!corner){
-                if(octave == 0){
-                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:1, ceilingLevel:20);
-                }
-                else{
-                    GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, isSide, groundLevel:1, ceilingLevel:20);            
-                }
-            }
-            else{
-                if(octave == 0){
-                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:1, ceilingLevel:20);
-                }
-                else{
-                    GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*0.112f, zhash*0.31f, groundLevel:1, ceilingLevel:20);
-                }
-
-            }            
-        }
     }
 
     // Generates Forest biome chunk
@@ -1352,53 +1483,215 @@ public class ChunkLoader : MonoBehaviour
         // Hash values for Plains Biomes
         float xhash = 72.117f;
         float zhash = 45.483f;
-        bool transition = false;
-        string transitionBiome = "";
+        byte currentBiome = 3;
         ChunkPos currentChunk = new ChunkPos(chunkX, chunkZ);
-        
-        // Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
-        GeneratePivots(cacheHeightMap, chunkX, chunkZ, xhash, zhash, ref transition, ref transitionBiome, octave:0, groundLevel:25, ceilingLevel:32, currentBiome:"Forest");
-        GeneratePivots(cacheHeightMap2, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, ref transition, ref transitionBiome, octave:1, groundLevel:25, ceilingLevel:45, currentBiome:"Forest");
-        CombinePivotMap(cacheHeightMap, cacheHeightMap2);
 
+        // Checking for Transitions
+        byte xBiome = biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ));
+        byte zBiome = biomeHandler.Assign(new ChunkPos(chunkX, chunkZ+1));
+        byte xzBiome = biomeHandler.Assign(new ChunkPos(chunkX+1, chunkZ+1));
+        bool xTransition = false;
+        bool zTransition = false;
+        bool xzTransition = false;
+
+        if(xBiome != currentBiome)
+            xTransition = true;
+        if(zBiome != currentBiome)
+            zTransition = true;
+        if(xzBiome != currentBiome)
+            xzTransition = true;
+
+        // Transition Handlers
+        NativeArray<ushort> waterLevels = new NativeArray<ushort>(BiomeHandlerData.codeToWater, Allocator.TempJob);
+
+        // Metadata and blockdata
+        NativeList<ushort> codes = new NativeList<ushort>(0, Allocator.TempJob);
+        NativeHashMap<ushort, ushort> stateDict = new NativeHashMap<ushort, ushort>(0, Allocator.TempJob);
+        NativeList<ushort> maps = new NativeList<ushort>(0, Allocator.TempJob);
+        
+        // HeightMaps
+        NativeArray<ushort> map1 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map2 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map3 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<ushort> map4 = new NativeArray<ushort>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+
+        // The Job Class
+        JobHandle job;
+
+        // Grass Heightmap is hold on Cache 1 and first octave on Cache 2    
+        GeneratePivotsJob gpJob = new GeneratePivotsJob{
+            chunkX = chunkX,
+            chunkZ = chunkZ,
+            xhash = xhash,
+            zhash = zhash,
+            worldSeed = worldSeed,
+            generationSeed = generationSeed,
+            dispersionSeed = dispersionSeed,
+            offsetHash = offsetHash,
+            currentBiome = currentBiome,
+            xBiome = xBiome,
+            zBiome = zBiome,
+            xzBiome = xzBiome,
+
+            selectedCache = map1,
+            groundLevel = 25,
+            ceilingLevel = 32,
+            octave = 0,
+        };
+        job = gpJob.Schedule();
+        job.Complete();
+
+        gpJob = new GeneratePivotsJob{
+            chunkX = chunkX,
+            chunkZ = chunkZ,
+            worldSeed = worldSeed,
+            generationSeed = generationSeed,
+            dispersionSeed = dispersionSeed,
+            offsetHash = offsetHash,
+            currentBiome = currentBiome,
+            xBiome = xBiome,
+            zBiome = zBiome,
+            xzBiome = xzBiome,
+
+            xhash = xhash*1.712f,
+            zhash = zhash*2.511f,
+            selectedCache = map2,
+            groundLevel = 25,
+            ceilingLevel = 45,
+            octave = 1,
+        };
+        job = gpJob.Schedule();
+        job.Complete();
+
+        // Combine Pivot Maps
+        CombinePivotMapJob cpvJob = new CombinePivotMapJob{
+            inMap = map2,
+            outMap = map1
+        };
+        job = cpvJob.Schedule((int)((Chunk.chunkWidth/4)+1), 2);
+        job.Complete();        
 
         // Does different interpolation for normal vs transition chunks
-        if(!transition)
-            BilinearInterpolateMap(cacheHeightMap);
-        else
-            BilinearInterpolateMap(cacheHeightMap, interval:16);
+        if(!xTransition && !zTransition && !xzTransition){
+            BilinearInterpolateJob biJob = new BilinearInterpolateJob{
+                interval = 4,
+                heightMap = map1
+            };
+            job = biJob.Schedule();
+            job.Complete();
+        }
+        else{
+            BilinearInterpolateJob biJob = new BilinearInterpolateJob{
+                interval = Chunk.chunkWidth,
+                heightMap = map1
+            };
+            job = biJob.Schedule();
+            job.Complete();
+        }
 
         // Underground is hold on Cache 2
-        AddFromMap(cacheHeightMap, -5);
+        AddFromMapJob afmJob = new AddFromMapJob{
+            inMap = map1,
+            outMap = map2,
+            val = -5
+        };
+        job = afmJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
 
-        // Adds Cache 2 to pipeline
-        cacheMaps.Add(cacheHeightMap2);
-        cacheBlockCodes.Add(3);
 
         // Dirt is hold on Cache 3
-        AddFromMap(cacheHeightMap, -1, cacheNumber:3);
+        afmJob = new AddFromMapJob{
+            inMap = map1,
+            outMap = map3,
+            val = -1
+        };
+        job = afmJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
 
         // Adds rest to pipeline
-        cacheMaps.Add(cacheHeightMap3);
-        cacheBlockCodes.Add(2);
-        cacheMaps.Add(cacheHeightMap);
-        cacheBlockCodes.Add(1);
-
+        maps.AddRange(map2);
+        codes.Add(3);
+        maps.AddRange(map3);
+        codes.Add(2);
+        maps.AddRange(map1);
+        codes.Add(1);
 
         // Add Water
-        if(transition){
-            if(BiomeHandler.GetWaterLevel("Forest") >= BiomeHandler.GetWaterLevel(transitionBiome)){
-                GenerateFlatMap(cacheHeightMap4, BiomeHandler.GetWaterLevel(transitionBiome));
-                cacheMaps.Add(cacheHeightMap4);
-                cacheBlockCodes.Add(6);
+        if(xTransition){
+            if(waterLevels[currentBiome] >= waterLevels[xBiome]){
+                // Water in Cache 4
+                GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                    ceiling = waterLevels[xBiome],
+                    selectedCache = map4
+                };
+                job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+                job.Complete();                
+
+                maps.AddRange(map4);
+                codes.Add(6);
+            }
+        }
+        if(zTransition){
+            if(waterLevels[currentBiome] >= waterLevels[zBiome]){
+                // Water in Cache 4
+                GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                    ceiling = waterLevels[zBiome],
+                    selectedCache = map4
+                };
+                job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+                job.Complete();                
+
+                maps.AddRange(map4);
+                codes.Add(6);
+            }
+        }
+        // Add Water
+        if(xzTransition){
+            if(waterLevels[currentBiome] >= waterLevels[xzBiome]){
+                // Water in Cache 4
+                GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
+                    ceiling = waterLevels[xzBiome],
+                    selectedCache = map4
+                };
+                job = gfmJob.Schedule(Chunk.chunkWidth, 2);
+                job.Complete();                
+
+                maps.AddRange(map4);
+                codes.Add(6);
             }
         }
 
-        cacheStateDict = new Dictionary<ushort, ushort>{{6, 0}};
+        // Sets state dict
+        stateDict.Add(6, 0);
 
-        // Adds to cacheVoxdata
-        ApplyHeightMaps(cacheStateDict, pregen:pregen);
+        NativeArray<ushort> vox = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
+        NativeArray<ushort> hpdata = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
+        NativeArray<ushort> statedata = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
 
+        // ApplyHeightMap
+        ApplyMapsJob amJob = new ApplyMapsJob{
+            cacheVoxdata = vox,
+            cacheMetadataHP = hpdata,
+            cacheMetadataState = statedata,
+            cacheMaps = maps.AsArray(),
+            stateDict = stateDict,
+            cacheBlockCodes = codes,
+            pregen = pregen
+        };
+        job = amJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
+
+        // Pre-Convert data back
+        cacheVoxdata = vox.ToArray();
+        cacheMetadataHP = hpdata.ToArray();
+        cacheMetadataState = statedata.ToArray();
+        cacheHeightMap = map1.ToArray();
+
+        // Pre=Dispose Bin
+        vox.Dispose();
+        hpdata.Dispose();
+        statedata.Dispose();
+        
         // Applies Structs from other chunks
         if(Structure.Exists(currentChunk)){
             Structure.RoughApply(cacheVoxdata, cacheMetadataHP, cacheMetadataState, Structure.GetChunk(currentChunk));
@@ -1406,9 +1699,48 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // Structures
-        GenerateForestStructures(new ChunkPos(chunkX, chunkZ), xhash, zhash, 3, transition);
+        GenerateForestStructures(currentChunk, xhash, zhash, currentBiome, (xTransition || zTransition || xzTransition));
+
+        // Cave System
+        NativeArray<ushort> voxCU = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
+        NativeArray<ushort> hpCU = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
+        NativeArray<ushort> stateCU = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> cacheCave = GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:30, maskThreshold:0.64f);
+
         
-        return VoxelData.CutUnderground(new VoxelData(cacheVoxdata), GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:30, maskThreshold:0.64f), upper:30); //0.271, 0.3, 0.313
+        CutUndergroundJob cuJob = new CutUndergroundJob{
+            cacheVox = voxCU,
+            cacheHP = hpCU,
+            cacheState = stateCU,
+            cacheCave = cacheCave,
+            upper = 30,
+            lower = 1,
+        };
+        job = cuJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
+
+
+        // Convert Data Back
+        cacheVoxdata = voxCU.ToArray();
+        cacheMetadataHP = hpCU.ToArray();
+        cacheMetadataState = stateCU.ToArray();
+
+        // Dispose Bin
+        voxCU.Dispose();
+        hpCU.Dispose();
+        stateCU.Dispose();
+        codes.Dispose();
+        stateDict.Dispose();
+        maps.Dispose();
+        waterLevels.Dispose();
+        cacheCave.Dispose();
+
+        map1.Dispose();
+        map2.Dispose();
+        map3.Dispose();        
+        map4.Dispose();
+
+        return new VoxelData(cacheVoxdata);
     }
 
     // Inserts Structures into Forest Biome
@@ -1433,25 +1765,6 @@ public class ChunkLoader : MonoBehaviour
                 GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 8, range:true);
             }
 
-        }
-    }
-
-    // Inserts Forest biome border pivots on another selectedHeightMap
-    private void MixForestBorderPivots(ushort[] selectedMap, int chunkX, int chunkZ, bool isSide, int octave, bool corner=false){
-        float xhash = 72.117f;
-        float zhash = 45.483f;
-
-        if(!corner){
-            if(octave == 0)
-                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash, zhash, isSide, groundLevel:25, ceilingLevel:32);
-            else
-                GenerateLookAheadPivots(selectedMap, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, isSide, groundLevel:25, ceilingLevel:45);
-        }
-        else{
-            if(octave == 0)
-                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash, zhash, groundLevel:25, ceilingLevel:32);
-            else
-                GenerateLookAheadCorner(selectedMap, chunkX, chunkZ, xhash*1.712f, zhash*2.511f, groundLevel:25, ceilingLevel:45);
         }
     }
 
@@ -1575,17 +1888,6 @@ public struct ChunkPos{
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 /*
 MULTITHREADING JOBS
 */
@@ -1599,8 +1901,8 @@ public struct RidgedMultiFractalJob : IJobParallelFor{
     public float zhash;
     public float threshold;
     public float generationSeed;
-    public int ceiling; // = 20
-    public float maskThreshold; //=0f
+    public int ceiling; 
+    public float maskThreshold;
 
     [NativeDisableParallelForRestriction]
     public NativeArray<ushort> turbulenceMap;
@@ -1619,20 +1921,502 @@ public struct RidgedMultiFractalJob : IJobParallelFor{
             mask = Perlin.Noise((x^z)*(xhash*yhash)*1.07f, z*zhash*0.427f);
             for(int y=0;y<Chunk.chunkDepth;y++){
                 if(mask < maskThreshold){
-                    turbulenceMap[(index*Chunk.chunkDepth*Chunk.chunkWidth)+y+(j*Chunk.chunkDepth)] = 0;
+                    turbulenceMap[(index*Chunk.chunkDepth*Chunk.chunkWidth)+(y*size)+j] = 0;
                     continue;
                 }
 
                 val = Perlin.RidgedMultiFractal(x*xhash*generationSeed, y*yhash*generationSeed, z*zhash*generationSeed);
 
                 if(val >= threshold && y <= ceiling){
-                    turbulenceMap[(index*Chunk.chunkDepth*Chunk.chunkWidth)+y+(j*Chunk.chunkDepth)] = 1;
+                    turbulenceMap[(index*Chunk.chunkDepth*Chunk.chunkWidth)+(y*size)+j] = 1;
                 }
                 else{
-                    turbulenceMap[(index*Chunk.chunkDepth*Chunk.chunkWidth)+y+(j*Chunk.chunkDepth)] = 0;
+                    turbulenceMap[(index*Chunk.chunkDepth*Chunk.chunkWidth)+(y*size)+j] = 0;
                 }
             }
             j++;
         }
     }
+}
+
+[BurstCompile]
+public struct ApplyMapsJob : IJobParallelFor{
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> cacheVoxdata;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> cacheMetadataHP;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> cacheMetadataState;
+
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> cacheMaps;
+    [ReadOnly]
+    public NativeHashMap<ushort, ushort> stateDict;
+    [ReadOnly]
+    public NativeList<ushort> cacheBlockCodes;
+    [ReadOnly]
+    public bool pregen;
+
+    public void Execute(int index){
+        int size = Chunk.chunkWidth;
+        int i=0;
+
+        // Builds the chunk normally
+        if(!pregen){
+            for(i=0;i<cacheBlockCodes.Length;i++){
+                // Heightmap Drawing
+                int x = index;
+                for(int z=0;z<size;z++){
+                    // If it's the first layer to be added
+                    if(i == 0){
+                        for(int y=0;y<Chunk.chunkDepth;y++){
+                            if(y <= cacheMaps[i*(size+1)*(size+1)+x*(size+1)+z]){
+                                cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
+                                if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
+                                    cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
+                                }
+                            }
+                            else
+                                cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = 0;
+                        }
+                    }
+                    // If is not the first layer
+                    else{
+                        for(int y=cacheMaps[(i-1)*(size+1)*(size+1)+x*(size+1)+z]+1;y<=cacheMaps[i*(size+1)*(size+1)+x*(size+1)+z];y++){
+                            cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i];
+
+                            if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
+                                cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
+                            }
+                        }               
+                    }
+                }
+                
+            }
+        }
+        // Builds chunk ignoring pregen blocks
+        else{
+            for(i=0;i<cacheBlockCodes.Length;i++){
+                // Heightmap Drawing
+                int x = index;
+                for(int z=0;z<size;z++){
+                    // If it's the first layer to be added
+                    if(i == 0){
+                        for(int y=0;y<Chunk.chunkDepth;y++){
+                            if(y <= cacheMaps[i*(size+1)*(size+1)+x*(size+1)+z]){
+                                // Only adds to air blocks
+                                if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == 0){
+                                    cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
+                                    
+                                    if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
+                                        cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
+                                    }
+                                }
+                                // Convertion of pregen air blocks
+                                if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == (ushort)(ushort.MaxValue/2))
+                                    cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = 0;
+                            }
+                            else
+                                if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == (ushort)(ushort.MaxValue/2))
+                                    cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = 0;
+                        }
+                    }
+                    // If is not the first layer
+                    else{
+                        for(int y=cacheMaps[(i-1)*(size+1)*(size+1)+x*(size+1)+z]+1;y<=cacheMaps[i*(size+1)*(size+1)+x*(size+1)+z];y++){
+                            if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == 0){
+                                // Convertion of pregen air blocks
+                                if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == (ushort)(ushort.MaxValue/2))
+                                    cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = 0;
+                                else
+                                    cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
+                                
+                                if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
+                                    cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
+                                }
+                            }
+                        }               
+                    }
+                }
+                
+            }
+        }
+
+    }
+}
+
+
+[BurstCompile]
+public struct AddFromMapJob : IJobParallelFor{
+    [ReadOnly]
+    public NativeArray<ushort> inMap;
+
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> outMap;
+
+    [ReadOnly]
+    public int val;
+
+    // Quick adds all elements in heightMap
+    // This makes it easy to get a layer below surface blocks
+    // Takes any cache and returns on cacheNumber
+    public void Execute(int index){
+        int x = index;
+        int i;
+
+        for(int z=0;z<Chunk.chunkWidth;z++){
+            i = x*(Chunk.chunkWidth+1)+z;
+            outMap[i] = (ushort)(inMap[i] + val);
+        }
+    }
+}
+
+
+[BurstCompile]
+public struct GenerateFlatMapJob : IJobParallelFor{
+    [ReadOnly]
+    public ushort ceiling;
+
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> selectedCache;
+
+    // Generates Flat Map of something
+    // Consider using this for biomes that are relatively low altitude
+    public void Execute(int index){
+        if(ceiling >= Chunk.chunkDepth)
+            ceiling = (ushort)(Chunk.chunkDepth-1);
+
+        int x = index;
+        for(int z=0; z<Chunk.chunkWidth;z++){
+            selectedCache[x*(Chunk.chunkWidth+1)+z] = ceiling;
+        }
+    }
+}
+
+
+[BurstCompile]
+public struct BilinearInterpolateJob : IJob{
+    [ReadOnly]
+    public int interval;
+
+    public NativeArray<ushort> heightMap;
+
+    // Applies bilinear interpolation to a given pivotmap
+    // Takes any cache and returns on itself
+    public void Execute(){
+        int size = Chunk.chunkWidth;
+        int interpX = 0;
+        int interpZ = 0;
+        float step = 1f/interval;
+        float scaleX = 0f;
+        float scaleZ = 0f;
+
+        // Bilinear Interpolation
+        for(int z=0;z<size;z++){
+            if(z%interval == 0){
+                interpZ+=interval;
+                scaleZ = step;
+            }
+            for(int x=0;x<size;x++){
+                // If is a pivot in X axis
+                if(x%interval == 0){
+                    interpX+=interval;
+                    scaleX = step;
+                }
+
+                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.RoundToInt(((heightMap[(interpX-interval)*(Chunk.chunkWidth+1)+(interpZ-interval)])*(1-scaleX)*(1-scaleZ)) + (heightMap[interpX*(Chunk.chunkWidth+1)+(interpZ-interval)]*scaleX*(1-scaleZ)) + (heightMap[(interpX-interval)*(Chunk.chunkWidth+1)+interpZ]*scaleZ*(1-scaleX)) + (heightMap[interpX*(Chunk.chunkWidth+1)+interpZ]*scaleX*scaleZ)));
+                scaleX += step;
+
+            }
+            interpX = 0;
+            scaleX = 0;
+            scaleZ += step;
+        }   
+    }
+}
+
+
+[BurstCompile]
+public struct CombinePivotMapJob : IJobParallelFor{
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> outMap;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> inMap;
+
+    // Applies Octaves to Pivot Map
+    public void Execute(int index){
+        int x = index*4;
+        int i;
+        
+        for(int z=0;z<=Chunk.chunkWidth;z+=4){
+            i = x*(Chunk.chunkWidth+1)+z;
+            outMap[i] = (ushort)(Mathf.FloorToInt((outMap[i] + inMap[i])/2));
+        }  
+    }
+}
+
+
+[BurstCompile]
+public struct CutUndergroundJob : IJobParallelFor{
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> cacheVox;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> cacheHP;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> cacheState;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> cacheCave;
+
+    [ReadOnly]
+    public int lower, upper;
+
+    public void Execute(int index){
+        int x = index;
+
+        for(int y=lower;y<upper;y++){
+            for(int z=0;z<Chunk.chunkWidth;z++){
+                if(cacheVox[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] >= 1 && cacheCave[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] == 1){
+                    cacheVox[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] = 0;
+                    cacheHP[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] = ushort.MaxValue;
+                    cacheState[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] = ushort.MaxValue;
+                }
+            }
+        } 
+    }        
+}
+
+
+[BurstCompile]
+public struct GeneratePivotsJob : IJob{
+    [ReadOnly]
+    public int chunkX, chunkZ;
+    [ReadOnly]
+    public int octave, groundLevel, ceilingLevel;
+    [ReadOnly]
+    public float xhash, zhash, worldSeed, generationSeed, offsetHash, dispersionSeed;
+    [ReadOnly]
+    public byte currentBiome;
+    [ReadOnly]
+    public byte xBiome, zBiome, xzBiome;
+
+    public NativeArray<ushort> selectedCache;
+
+
+    // Generates Pivot heightmaps
+    public void Execute(){
+        int size = Chunk.chunkWidth;
+        int chunkXmult = chunkX * size;
+        int chunkZmult = chunkZ * size;
+        int i = 0;
+        int j = 0;
+
+        // Heightmap Sampling
+        for(int x=chunkXmult;x<chunkXmult+size;x+=4){
+            j = 0;
+            for(int z=chunkZmult;z<chunkZmult+size;z+=4){
+                selectedCache[i*(Chunk.chunkWidth+1)+j] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*generationSeed/xhash+offsetHash, z*generationSeed/zhash+offsetHash))), 0, ceilingLevel));
+                j+=4;
+            }
+            i+=4;
+        }
+
+        // Look Ahead to X+
+        switch(xBiome){
+            case 0:
+                MixPlainsBorderPivots(false, octave);
+                break;
+            case 1:
+                MixGrassyHighlandsBorderPivots(false, octave);
+                break;
+            case 2:
+                MixOceanBorderPivots(false, octave, currentBiome:currentBiome);
+                break;
+            case 3:
+                MixForestBorderPivots(false, octave); 
+                break;               
+            default:
+                MixPlainsBorderPivots(false, octave);
+                break;
+        }
+
+        // Look Ahead to Z+
+        switch(zBiome){
+            case 0:
+                MixPlainsBorderPivots(true, octave);
+                break;
+            case 1:
+                MixGrassyHighlandsBorderPivots(true, octave);
+                break;
+            case 2:
+                MixOceanBorderPivots(true, octave, currentBiome:currentBiome);
+                break;
+            case 3:
+                MixForestBorderPivots(true, octave);
+                break;
+            default:
+                break;
+        }
+
+        // Look ahead into XZ+
+        switch(xzBiome){
+            case 0:
+                MixPlainsBorderPivots(true, octave, corner:true);
+                break;
+            case 1:
+                MixGrassyHighlandsBorderPivots(true, octave, corner:true);
+                break;
+            case 2:
+                MixOceanBorderPivots(true, octave, corner:true, currentBiome:currentBiome);
+                break;
+            case 3:
+                MixForestBorderPivots(true, octave, corner:true);
+                break;
+            default:
+                break;
+        }   
+    }
+
+    // Builds Lookahead pivots for biome border smoothing
+    private void GenerateLookAheadPivots(float xhashs, float zhashs, bool isSide, int groundLevel=0, int ceilingLevel=99){
+        int size = Chunk.chunkWidth;
+        int xSize = chunkX * size;
+        int zSize = chunkZ * size;
+        int i = 0;
+
+        // If is looking ahead into X+ Chunk
+        if(isSide){
+            for(int x=xSize; x<=xSize+size; x+=4){
+                selectedCache[i*(Chunk.chunkWidth+1)+size] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(x*generationSeed/xhashs+offsetHash, (zSize+size)*generationSeed/zhashs+offsetHash))), 0, ceilingLevel));
+                i+=4;
+            }
+        }
+        // If is looking ahead into Z+ Chunk
+        else{
+            for(int z=zSize; z<zSize+size; z+=4){ // Don't generate corner twice
+                selectedCache[size*(Chunk.chunkWidth+1)+i] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise((xSize+size)*generationSeed/xhashs+offsetHash, z*generationSeed/zhashs+offsetHash))), 0, ceilingLevel));
+                i+=4;
+            }
+        }
+    }
+
+    // Builds Lookahead pivot of corner chunk for biome border smoothing
+    private void GenerateLookAheadCorner(float xhashs, float zhashs, int groundLevel=0, int ceilingLevel=99){
+        selectedCache[selectedCache.Length-1] = (ushort)(Mathf.Clamp(groundLevel + Mathf.FloorToInt((ceilingLevel-groundLevel)*(Perlin.Noise(((chunkX+1)*Chunk.chunkWidth*generationSeed)/xhashs+offsetHash, ((chunkZ+1)*Chunk.chunkWidth*generationSeed)/zhashs+offsetHash))), 0, ceilingLevel));
+    }
+
+    /*
+    BIOME SPECIFIC MIX FUNCTIONS FOR BURST COMPILER
+    */
+
+    // Inserts Plains biome border pivots on another selectedHeightMap
+    private void MixPlainsBorderPivots(bool isSide, int octave, bool corner=false){
+        float xhashs = 41.21f;
+        float zhashs = 105.243f;
+        float xmod = 1.712f;
+        float zmod = 2.511f;
+
+        if(!corner){
+            if(octave == 0)
+                GenerateLookAheadPivots(xhashs, zhashs, isSide, groundLevel:20, ceilingLevel:25);
+            else
+                GenerateLookAheadPivots(xhashs*xmod, zhashs*zmod, isSide, groundLevel:18, ceilingLevel:30);
+        }
+        else{
+            if(octave == 0)
+                GenerateLookAheadCorner(xhashs, zhashs, groundLevel:20, ceilingLevel:25);
+            else
+                GenerateLookAheadCorner(xhashs*xmod, zhashs*zmod, groundLevel:18, ceilingLevel:30);
+        }
+    }
+
+    // Inserts Grassy Highlands biome border pivots on another selectedHeightMap
+    private void MixGrassyHighlandsBorderPivots(bool isSide, int octave, bool corner=false){
+        float xhashs = 41.21f;
+        float zhashs = 105.243f;
+        float xmod = 0.712f;
+        float zmod = 0.2511f;
+
+        if(!corner){
+            if(octave == 0)
+                GenerateLookAheadPivots(xhashs, zhashs, isSide, groundLevel:30, ceilingLevel:50);
+            else
+                GenerateLookAheadPivots(xhashs*xmod, zhashs*zmod, isSide, groundLevel:30, ceilingLevel:70);            
+        }
+        else{
+            if(octave == 0)
+                GenerateLookAheadCorner(xhashs, zhashs, groundLevel:30, ceilingLevel:50);
+            else
+                GenerateLookAheadCorner(xhashs*xmod, zhashs*zmod, groundLevel:30, ceilingLevel:70);
+
+        }
+    }
+
+    // Inserts Ocean border pivots on another selectedHeightMap
+    private void MixOceanBorderPivots(bool isSide, int octave, bool corner=false, byte currentBiome=255){
+        float xhashs = 54.7f;
+        float zhashs = 69.3f;
+        float xmod = 0.112f;
+        float zmod = 0.31f;
+
+        if(currentBiome != 2){
+            if(!corner){
+                if(octave == 0){
+                    GenerateLookAheadPivots(xhashs, zhashs, isSide, groundLevel:1, ceilingLevel:20);
+                }
+                else{
+                    GenerateLookAheadPivots(xhashs*xmod, zhashs*zmod, isSide, groundLevel:1, ceilingLevel:20);            
+                }
+            }
+            else{
+                if(octave == 0){
+                    GenerateLookAheadCorner(xhashs, zhashs, groundLevel:1, ceilingLevel:20);
+                }
+                else{
+                    GenerateLookAheadCorner(xhashs*xmod, zhashs*zmod, groundLevel:1, ceilingLevel:20);
+                }
+
+            }
+        }
+        else{
+            if(!corner){
+                if(octave == 0){
+                    GenerateLookAheadPivots(xhashs, zhashs, isSide, groundLevel:1, ceilingLevel:20);
+                }
+                else{
+                    GenerateLookAheadPivots(xhashs*xmod, zhashs*zmod, isSide, groundLevel:1, ceilingLevel:20);          
+                }
+            }
+            else{
+                if(octave == 0){
+                    GenerateLookAheadCorner(xhashs, zhashs, groundLevel:1, ceilingLevel:20);
+                }
+                else{
+                    GenerateLookAheadCorner(xhashs*xmod, zhashs*zmod, groundLevel:1, ceilingLevel:20);
+                }
+
+            }            
+        }
+    }
+
+    // Inserts Forest biome border pivots on another selectedHeightMap
+    private void MixForestBorderPivots(bool isSide, int octave, bool corner=false){
+        float xhashs = 72.117f;
+        float zhashs = 45.483f;
+        float xmod = 1.712f;
+        float zmod = 2.511f;
+
+        if(!corner){
+            if(octave == 0)
+                GenerateLookAheadPivots(xhashs, zhashs, isSide, groundLevel:25, ceilingLevel:32);
+            else
+                GenerateLookAheadPivots(xhashs*xmod, zhashs*zmod, isSide, groundLevel:25, ceilingLevel:45);
+        }
+        else{
+            if(octave == 0)
+                GenerateLookAheadCorner(xhashs, zhashs, groundLevel:25, ceilingLevel:32);
+            else
+                GenerateLookAheadCorner(xhashs*xmod, zhashs*zmod, groundLevel:25, ceilingLevel:45);
+        }
+    }
+
 }

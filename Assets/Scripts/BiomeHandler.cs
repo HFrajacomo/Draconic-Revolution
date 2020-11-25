@@ -1,19 +1,28 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 public class BiomeHandler
 {
-	public static Dictionary<string, Biome> dataset = new Dictionary<string, Biome>();
+	public BiomeHandlerData biomeHandlerData;
+
+	public static Dictionary<byte, Biome> dataset = new Dictionary<byte, Biome>();
 	public static Dictionary<byte, string> codeToBiome = new Dictionary<byte, string>();
+
+	private static int amountOfBiomes;
+	private int currentBiome = 0;
 	private float dispersionSeed;
-	private float featureModificationConstant = 0.00014f;
 
 	// Cache Information
 	private static byte[] cachedByte = new byte[1];
 
 	public BiomeHandler(float seed){
 		dispersionSeed = seed;
+
+		amountOfBiomes = 4; // SET THIS EVERYTIME YOU ADD A NEW BIOME
+
+		biomeHandlerData = new BiomeHandlerData(amountOfBiomes);
 
 		Biome plains = new Biome("Plains", 0, 0.3f, 0.5f, 0.6f, 1f, 22,
 		 new List<int>(){1,2,3,4,5,9,10,11},
@@ -39,11 +48,17 @@ public class BiomeHandler
 		AddBiome(grassyHighlands);
 		AddBiome(ocean);
 		AddBiome(forest);
+
+
 	}
 
 	// Gets biome byte code from name
 	public static byte BiomeToByte(string biomeName){
-		return dataset[biomeName].biomeCode;
+		foreach(Biome b in dataset.Values){
+			if(b.name == biomeName)
+				return b.biomeCode;
+		}
+		return 0;
 	}
 
 	// Gets biome name from byte code
@@ -54,28 +69,36 @@ public class BiomeHandler
 
 	// Initializes biome in Biome Handler at start of runtime
 	private void AddBiome(Biome b){
-		dataset.Add(b.name, b);
+		dataset.Add(b.biomeCode, b);
 		codeToBiome.Add(b.biomeCode, b.name);
+
+		BiomeHandlerData.codeToWater[currentBiome] = b.waterLevel;
+		BiomeHandlerData.codeToStats[currentBiome] = new float4(b.altitude, b.humidity, b.temperature, b.lightning);
+
+		currentBiome++;
 	}
 
 	// Returns the Water Level of a biome
-	public static ushort GetWaterLevel(string biome){
-		return dataset[biome].waterLevel;
+	public static ushort GetWaterLevel(byte biome){
+		if(biome == 255)
+			return 99;
+
+		return BiomeHandlerData.codeToWater[biome];
 	}
 
 	// Returns the list of possible Structures in a biome
 	public static List<int> GetBiomeStructs(byte biome){
-		return dataset[BiomeHandler.ByteToBiome(biome)].structCodes;
+		return dataset[biome].structCodes;
 	}
 
 	// Returns the list of possible Amounts in a biome
 	public static List<int> GetBiomeAmounts(byte biome){
-		return dataset[BiomeHandler.ByteToBiome(biome)].amountStructs;
+		return dataset[biome].amountStructs;
 	}
 
 	// Returns the list of possible Percentages in a biome
 	public static List<float> GetBiomePercentages(byte biome){
-		return dataset[BiomeHandler.ByteToBiome(biome)].percentageStructs;
+		return dataset[biome].percentageStructs;
 	}
 
 	/*
@@ -84,20 +107,20 @@ public class BiomeHandler
 	Play arround with the seed value in each of the 4 biome features to change the behaviour
 		of the biome distribution.
 	*/
-	public string Assign(ChunkPos pos, float seed){
-		float currentAltitude = Perlin.Noise(pos.x*featureModificationConstant*72.272f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*23.389f+((seed*394.346f)%1000));
-		float currentHumidity = Perlin.Noise(pos.x*featureModificationConstant*51.741f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*18.864f+((seed*224.3823246f)%1000));
-		float currentTemperature = Perlin.Noise(pos.x*featureModificationConstant*35.524f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*141.161f+((seed*584.226f)%1000));
-		float currentLightning = Perlin.Noise(pos.x*featureModificationConstant*42.271f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*533.319f+((seed*705.002702f)%1000));
+	public byte Assign(ChunkPos pos){
+		float currentAltitude = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.ax+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.az+((dispersionSeed*BiomeHandlerData.sx)%1000));
+		float currentHumidity = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.bx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.bz+((dispersionSeed*BiomeHandlerData.sy)%1000));
+		float currentTemperature = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.cx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.cz+((dispersionSeed*BiomeHandlerData.sz)%1000));
+		float currentLightning = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.dx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.dz+((dispersionSeed*BiomeHandlerData.sw)%1000));
 
 		float lowestDistance = 99;
-		string lowestBiome = "";
+		byte lowestBiome = 255;
 		float distance;
 
-		Point4D currentSettings = new Point4D(currentAltitude, currentHumidity, currentTemperature, currentLightning);
+		float4 currentSettings = new float4(currentAltitude, currentHumidity, currentTemperature, currentLightning);
 
-		foreach(string s in dataset.Keys){
-			distance = Point4D.Distance(currentSettings, dataset[s].GetStats());
+		for(byte s=0; s < amountOfBiomes; s++){
+			distance = BiomeHandler.Distance(currentSettings, BiomeHandlerData.codeToStats[s]);
 
 			if(distance <= lowestDistance){
 				lowestDistance = distance;
@@ -107,13 +130,19 @@ public class BiomeHandler
 		return lowestBiome;
 	}
 
-	public Point4D GetFeatures(ChunkPos pos, float seed){
-		float currentAltitude = Perlin.Noise(pos.x*featureModificationConstant*72.272f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*23.389f+((seed*394.346f)%1000));
-		float currentHumidity = Perlin.Noise(pos.x*featureModificationConstant*51.741f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*18.864f+((seed*224.3823246f)%1000));
-		float currentTemperature = Perlin.Noise(pos.x*featureModificationConstant*35.524f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*141.161f+((seed*584.226f)%1000));
-		float currentLightning = Perlin.Noise(pos.x*featureModificationConstant*42.271f+((seed*834.3846f)%1000), pos.z*featureModificationConstant*533.319f+((seed*705.002702f)%1000));
-	
-		return new Point4D(currentAltitude, currentHumidity, currentTemperature, currentLightning);
+
+	public float4 GetFeatures(ChunkPos pos){
+		float currentAltitude = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.ax+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.az+((dispersionSeed*BiomeHandlerData.sx)%1000));
+		float currentHumidity = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.bx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.bz+((dispersionSeed*BiomeHandlerData.sy)%1000));
+		float currentTemperature = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.cx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.cz+((dispersionSeed*BiomeHandlerData.sz)%1000));
+		float currentLightning = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.dx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.dz+((dispersionSeed*BiomeHandlerData.sw)%1000));
+
+		return new float4(currentAltitude, currentHumidity, currentTemperature, currentLightning);
+	}
+
+	// Calculates distance between two 4D points
+	public static float Distance(float4 first, float4 second){
+		return Mathf.Sqrt(Mathf.Pow(first.x-second.x, 2) + Mathf.Pow(first.y-second.y, 2) + Mathf.Pow(first.z-second.z, 2) + Mathf.Pow(first.w-second.w, 2));		
 	}
 
 }
@@ -147,32 +176,7 @@ public struct Biome{
 		this.percentageStructs = percentageStructs;
 	}
 
-	public Point4D GetStats(){
-		return new Point4D(this.altitude, this.humidity, this.temperature, this.lightning);
-	}
-}
-
-// Used to represent a biome central features in the 1NN model
-public struct Point4D{
-	public float a;
-	public float b;
-	public float c;
-	public float d;
-
-
-	public Point4D(float x, float y, float z, float w){
-		this.a = x;
-		this.b = y;
-		this.c = z;
-		this.d = w;
-	}
-
-	// Calculates the euclidean distance of two Point4D elements 
-	public static float Distance(Point4D first, Point4D second){
-		return Mathf.Sqrt(Mathf.Pow(first.a-second.a, 2) + Mathf.Pow(first.b-second.b, 2) + Mathf.Pow(first.c-second.c, 2) + Mathf.Pow(first.d-second.d, 2));
-	}
-
-	public override string ToString(){
-		return "(" + a.ToString("0.##") + ", " + b.ToString("0.##") + ", " + c.ToString("0.##") + ", " + d.ToString("0.##") + ")";
+	public float4 GetStats(){
+		return new float4(this.altitude, this.humidity, this.temperature, this.lightning);
 	}
 }

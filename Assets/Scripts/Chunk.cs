@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 public class Chunk
 {
@@ -14,7 +15,7 @@ public class Chunk
 	public ChunkPos pos;
 	public string biomeName;
 	public byte needsGeneration;
-	public Point4D features;
+	public float4 features;
 	public string lastVisitedTime;
 
 	// Draw Flags
@@ -82,7 +83,6 @@ public class Chunk
 	}
 
 	// Clone
-	
 	public Chunk Clone(){
 		Chunk c = new Chunk(this.pos, this.renderer, this.blockBook, this.loader);
 

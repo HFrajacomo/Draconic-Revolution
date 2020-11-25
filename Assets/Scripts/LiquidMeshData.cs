@@ -221,17 +221,11 @@ public static class LiquidMeshData
 	};
 
 	// Gets the vertices of a given state in a liquid
-	public static Vector3[] VertsByState(int dir, ushort? s, Vector3 pos, float scale=0.5f){
+	public static Vector3[] VertsByState(int dir, ushort s, Vector3 pos, float scale=0.5f){
 		Vector3[] fv = new Vector3[4];
 
-		if(s == null){
-		    for (int i = 0; i < fv.Length; i++)
-		    {
-		      fv[i] = (verticesOnState[0][faceTriangles[dir][i]] * scale) + pos;
-		    }
-			return fv;
-		}
-
+        if(s == ushort.MaxValue)
+            s = 0;
 
 		if(s == 19 || s == 20){
 		    for (int i = 0; i < fv.Length; i++)

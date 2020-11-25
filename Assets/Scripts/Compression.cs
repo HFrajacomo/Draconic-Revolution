@@ -200,7 +200,7 @@ public static class Compression{
 				}
 			}
 		}
-	}
+	} 
 
 	// Builds Chunk's State Metadata using Decompression algorithm
 	public static void DecompressMetadataState(Chunk c, byte[] buffer){
