@@ -376,6 +376,13 @@ public class Chunk
 			}
 		}
 
+		// ToLoad() Event Trigger
+		foreach(int3 coord in loadCoordList.ToArray()){
+			ushort assetCode = this.data.GetCell(coord);
+
+			blockBook.objects[ushort.MaxValue-assetCode].OnLoad(this.pos, coord.x, coord.y, coord.z, this.loader);
+		}
+
 
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> meshUVs = new NativeList<Vector2>(0, Allocator.TempJob);
