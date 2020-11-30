@@ -2,10 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 public class VoxelMetadata
 {
-	//public Metadata[,,] metadata;
 	ushort[] hp;
 	ushort[] state;
 
@@ -53,6 +53,11 @@ public class VoxelMetadata
 	// Returns state of a given voxel coordinate
 	public ushort GetState(int x, int y, int z){
 		return this.state[x*zSize*ySize+y*zSize+z];
+	}	
+
+	// Returns state of a given voxel coordinate
+	public ushort GetState(int3 coord){
+		return this.state[coord.x*zSize*ySize+coord.y*zSize+coord.z];
 	}	
 
 	public void SetState(int x, int y, int z, ushort val){

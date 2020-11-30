@@ -12,7 +12,10 @@ public abstract class BlocklikeObject
 	public bool liquid;
 	public bool hasLoadEvent; // Should run code when loaded it's chunk
 
-	public static int objectCount = 2;
+	public Vector3 positionOffset;
+	public Vector3 scaling; 
+
+	public static readonly int objectCount = 2;
 
 	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();
 	public bool washable = false; // Can be destroyed by flowing water
@@ -22,6 +25,7 @@ public abstract class BlocklikeObject
 
 	// Texture
 	public GameObject go;
+	public Mesh mesh;
 
 	// Block Encyclopedia fill function
 	public static BlocklikeObject Create(int blockID){

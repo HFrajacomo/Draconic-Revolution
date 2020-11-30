@@ -382,10 +382,6 @@ public abstract class Structure
                             else
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
-                            // Draws Object
-                            if(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] > ushort.MaxValue/2 && loaded && !initialchunk)
-                                cl.chunks[pos].assetGrid.AddDraw(x,y,z, VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], cl);
-
                             VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
                             VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
                             
@@ -431,10 +427,6 @@ public abstract class Structure
                             RotateData(structX, structY, structZ, rotation);
                             if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] != 0){
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
-
-                                // Draws Object
-                                if(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] > ushort.MaxValue/2 && loaded && !initialchunk)
-                                    cl.chunks[pos].assetGrid.AddDraw(x,y,z, VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], cl);
 
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
                                 VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);

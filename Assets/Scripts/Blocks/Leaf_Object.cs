@@ -12,6 +12,8 @@ public class Leaf_Object : BlocklikeObject
 		this.liquid = false;
 		this.hasLoadEvent = false;
 		this.go = GameObject.Find("----- PrefabObjects -----/Leaf_Object");
+		this.mesh = this.go.GetComponent<MeshFilter>().sharedMesh;
+		this.scaling = new Vector3(50, 50, 50);
 	}
 
 }

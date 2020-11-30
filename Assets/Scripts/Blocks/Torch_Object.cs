@@ -28,6 +28,8 @@ public class Torch_Object : BlocklikeObject
 		this.washable = true;
 		this.hasLoadEvent = true;
 		this.go = GameObject.Find("----- PrefabObjects -----/Torch_Object");
+		this.mesh = this.go.GetComponent<MeshFilter>().sharedMesh;
+		this.scaling = new Vector3(10, 20, 10);
 
 		this.needsRotation = true;
 
@@ -80,10 +82,8 @@ public class Torch_Object : BlocklikeObject
 	// Destroys FireVFX
 	public override int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader cl){
 		string name = BuildVFXName(pos,x,y,z);
-		GameObject.Destroy(this.vfx.data[pos][name]);
 		this.vfx.Remove(pos, name);
 		EraseMetadata(pos,x,y,z,cl);
-		cl.chunks[pos].assetGrid.Remove(x,y,z);
 		return 0;
 	}
 
@@ -142,7 +142,7 @@ public class Torch_Object : BlocklikeObject
 						}
 					}
 					else{
-						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
 							return true;
 						}
 					}
@@ -156,7 +156,7 @@ public class Torch_Object : BlocklikeObject
 						}
 					}
 					else{
-						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
 							return true;
 						}
 					}
@@ -171,7 +171,7 @@ public class Torch_Object : BlocklikeObject
 						}
 					}
 					else{
-						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
 							return true;
 						}
 					}
@@ -185,7 +185,7 @@ public class Torch_Object : BlocklikeObject
 						}
 					}
 					else{
-						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
 							return true;
 						}
 					}
@@ -200,7 +200,7 @@ public class Torch_Object : BlocklikeObject
 						}
 					}
 					else{
-						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
 							return true;
 						}
 					}
@@ -214,7 +214,7 @@ public class Torch_Object : BlocklikeObject
 						}
 					}
 					else{
-						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
 							return true;
 						}
 					}
@@ -229,7 +229,7 @@ public class Torch_Object : BlocklikeObject
 						}
 					}
 					else{
-						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
 							return true;
 						}
 					}
@@ -243,7 +243,7 @@ public class Torch_Object : BlocklikeObject
 						}
 					}
 					else{
-						if(cl.blockBook.objects[(blockCode*-1)-1].solid){
+						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
 							return true;
 						}
 					}

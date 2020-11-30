@@ -8,7 +8,6 @@ using Unity.Burst;
 
 public class ChunkLoader : MonoBehaviour
 {
-
 	// Basic ChunkLoader Data
 	public int renderDistance = 0;
 	public Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
@@ -42,6 +41,7 @@ public class ChunkLoader : MonoBehaviour
 
 	// Flags
 	public bool WORLD_GENERATED = false; 
+    public int reloadMemoryCounter = 30;
 
 	// Cache Information 
 	private ushort[] cacheHeightMap = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
@@ -119,8 +119,8 @@ public class ChunkLoader : MonoBehaviour
     private void ClearAllChunks(){
     	foreach(ChunkPos item in chunks.Keys){
     		Destroy(chunks[item].obj);
-            chunks[item].assetGrid.Unload();
             vfx.RemoveChunk(item);
+            Resources.UnloadUnusedAssets();
     	}
         chunks.Clear();
     }
@@ -249,7 +249,6 @@ public class ChunkLoader : MonoBehaviour
             
             
             Chunk popChunk = chunks[toUnload[0]];
-            popChunk.Unload();
             chunks.Remove(popChunk.pos);          
             Destroy(popChunk.obj);
             vfx.RemoveChunk(popChunk.pos);
@@ -262,6 +261,15 @@ public class ChunkLoader : MonoBehaviour
     // Actually builds the mesh for loaded chunks
     private void DrawChunk(){
         if(toDraw.Count > 0){
+
+            // Runs Unity Garbage Collector
+            if(this.reloadMemoryCounter <= 0){
+                this.reloadMemoryCounter = this.renderDistance-1;
+                Resources.UnloadUnusedAssets();
+            }
+            else{
+                this.reloadMemoryCounter--;
+            }
 
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
