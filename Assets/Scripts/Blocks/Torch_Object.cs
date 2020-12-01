@@ -32,6 +32,7 @@ public class Torch_Object : BlocklikeObject
 		this.scaling = new Vector3(10, 20, 10);
 
 		this.needsRotation = true;
+		this.stateNumber = 8;
 
 		this.fireVFX = GameObject.Find("----- PrefabVFX -----/FireVFX");
 	}
@@ -320,6 +321,30 @@ public class Torch_Object : BlocklikeObject
 		else{
 			t.position += new Vector3(0f,-0.2f,-0.4f);
 		}
+	}
+
+	// Functions for the new Bursting Core Rendering
+	public override Vector3 GetOffsetVector(ushort state){
+		if(state == 0 || state == 4)
+			return new Vector3(0.4f, -0.2f, 0f);
+		else if(state == 3 || state == 7)
+			return new Vector3(0f, -0.2f, 0.4f);
+		else if(state == 2 || state == 6)
+			return new Vector3(-0.4f, -0.2f, 0f);
+		else
+			return new Vector3(0f, -0.2f, -0.4f);
+	}
+
+	// Get rotation in degrees
+	public override int GetRotationValue(ushort state){
+		if(state == 0 || state == 4)
+			return 90;
+		else if(state == 3 || state == 7)
+			return 180;
+		else if(state == 2 || state == 6)
+			return -90;
+		else
+			return 0;
 	}
 
 }

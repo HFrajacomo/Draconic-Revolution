@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Collections;
 
 public class TESTONLY : MonoBehaviour
 {
@@ -9,7 +10,5 @@ public class TESTONLY : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-    	print((int)(-1/32f));
-    	print(Mathf.FloorToInt(-1/32f));
     }
 }

@@ -324,6 +324,7 @@ public class Chunk
 		NativeArray<byte> blockMaterial = new NativeArray<byte>(BlockEncyclopediaECS.blockMaterial, Allocator.TempJob);
 		NativeArray<byte> objectMaterial = new NativeArray<byte>(BlockEncyclopediaECS.objectMaterial, Allocator.TempJob);
 		NativeArray<int3> blockTiles = new NativeArray<int3>(BlockEncyclopediaECS.blockTiles, Allocator.TempJob);
+		NativeArray<bool> objectNeedRotation = new NativeArray<bool>(BlockEncyclopediaECS.objectNeedRotation, Allocator.TempJob);
 
 
 		// Threading Job
@@ -356,10 +357,14 @@ public class Chunk
 		job.Complete();
 
 
-		// MULTITHREADING FOR ASSET LAYER
 		this.indexVert.Add(0);
 		this.indexUV.Add(0);
 		this.indexTris.Add(0);
+
+		// Offseting and Rotation shenanigans
+		NativeHashMap<int, Vector3> scaleOffset = new NativeHashMap<int, Vector3>(0, Allocator.TempJob);
+		NativeHashMap<int, int> rotationOffset = new NativeHashMap<int, int>(0, Allocator.TempJob);
+
 
 		foreach(int3 coord in loadAssetList.ToArray()){
 			ushort assetCode = this.data.GetCell(coord);
@@ -373,6 +378,15 @@ public class Chunk
 				this.indexTris.Add(this.indexTris[indexTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTriangles(0).Length);
 				this.indexUV.Add(this.indexUV[indexUV.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].mesh.uv.Length);
 				this.scalingFactor.Add(BlockEncyclopediaECS.objectScaling[ushort.MaxValue-assetCode]);
+			
+				// If has special offset or rotation
+				// Hash function for Dictionary is blockCode*256 + state. This leaves a maximum of 256 states for every object in the game
+				if(blockBook.objects[ushort.MaxValue - assetCode].needsRotation){
+					for(ushort i=0; i < blockBook.objects[ushort.MaxValue - assetCode].stateNumber; i++){
+						scaleOffset.Add((int)(assetCode*256 + i), blockBook.objects[ushort.MaxValue - assetCode].GetOffsetVector(i));
+						rotationOffset.Add((int)(assetCode*256 + i), blockBook.objects[ushort.MaxValue - assetCode].GetRotationValue(i));
+					}
+				}
 			}
 		}
 
@@ -407,10 +421,14 @@ public class Chunk
 			meshTris = meshTris,
 			meshUVs = meshUVs,
 			scaling = scaling,
+			needRotation = objectNeedRotation,
+			inplaceOffset = scaleOffset,
+			inplaceRotation = rotationOffset,
 
 			coords = loadAssetList,
 			blockCodes = blockCodes,
 			blockdata = blockdata,
+			metadata = statedata,
 
 			vertsOffset = vertsOffset,
 			trisOffset = trisOffset,
@@ -436,10 +454,6 @@ public class Chunk
 		this.UVs.AddRange(UVs.ToArray());
 		this.UVs.AddRange(meshUVs.ToArray());
 
-
-		/*
-		STILL HAS TO TRIGGER ONLOAD EVENTS
-		*/
 
 		// Dispose Bin
 		verts.Dispose();
@@ -476,6 +490,9 @@ public class Chunk
 		scaling.Dispose();
 		UVs.Dispose();
 		meshUVs.Dispose();
+		objectNeedRotation.Dispose();
+		scaleOffset.Dispose();
+		rotationOffset.Dispose();
 
 
 		BuildMesh();
@@ -891,6 +908,8 @@ public struct PrepareAssetsJob : IJob{
 	[ReadOnly]
 	public NativeArray<ushort> blockdata;
 	[ReadOnly]
+	public NativeArray<ushort> metadata;
+	[ReadOnly]
 	public NativeList<int3> coords;
 	[ReadOnly]
 	public NativeList<ushort> blockCodes;
@@ -902,6 +921,12 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<int> UVOffset;
 	[ReadOnly]
 	public NativeArray<Vector3> scaling;
+	[ReadOnly]
+	public NativeArray<bool> needRotation;
+	[ReadOnly]
+	public NativeHashMap<int, Vector3> inplaceOffset;
+	[ReadOnly]
+	public NativeHashMap<int, int> inplaceRotation;
 
 	// Loaded Mesh Data
 	[ReadOnly]
@@ -921,11 +946,26 @@ public struct PrepareAssetsJob : IJob{
 			if(i == -1)
 				continue;
 
-			// Vertices
-			Vector3 vertPos = new Vector3(coords[j].x, coords[j].y, coords[j].z);
-			for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
-				Vector3 resultVert = Vector3Mult(loadedVerts[vertIndex], scaling[i], vertPos);
-				meshVerts.Add(resultVert);
+			// If has special offset or rotation
+			if(needRotation[ushort.MaxValue - blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z]]){
+				int code = blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
+				int state = metadata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
+
+				// Vertices
+				Vector3 vertPos = new Vector3(coords[j].x, coords[j].y, coords[j].z);
+				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
+					Vector3 resultVert = Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
+					meshVerts.Add(resultVert);
+				}			
+
+			}
+			// If doesn't have special rotation
+			else{
+				Vector3 vertPos = new Vector3(coords[j].x, coords[j].y, coords[j].z);
+				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
+					Vector3 resultVert = Vector3Mult(loadedVerts[vertIndex], scaling[i], vertPos);
+					meshVerts.Add(resultVert);
+				}	
 			}
 
 			// UVs
@@ -955,4 +995,14 @@ public struct PrepareAssetsJob : IJob{
 		return new Vector3(a.x * b.x + plus.x, a.y * b.y + plus.y, a.z * b.z + plus.z);
 	}
 
+	private Vector3 Vector3MultOffsetRotate(Vector3 a, Vector3 worldScaling, Vector3 worldOffset, Vector3 localOffset, int rotationDegree){
+		a = Rotate(a, rotationDegree);
+		Vector3 b = Vector3Mult(a, worldScaling, worldOffset);
+
+		return b + localOffset;
+	}
+
+	private Vector3 Rotate(Vector3 a, int degrees){
+		return new Vector3(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad));
+	}
 }

@@ -35,6 +35,7 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.objectInvisible[i] = objects[i].invisible;
             BlockEncyclopediaECS.objectMaterial[i] = objects[i].materialIndex;
             BlockEncyclopediaECS.objectScaling[i] = objects[i].scaling;
+            BlockEncyclopediaECS.objectNeedRotation[i] = objects[i].needsRotation;
         }
     }
 
