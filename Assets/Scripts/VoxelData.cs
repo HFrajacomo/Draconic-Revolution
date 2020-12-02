@@ -43,6 +43,10 @@ public class VoxelData
 		return this.data;
 	}
 
+	public void SetData(ushort[] data){
+		this.data = data;
+	}
+
 	public override string ToString(){
 		string str = "";
 		foreach(var item in data){

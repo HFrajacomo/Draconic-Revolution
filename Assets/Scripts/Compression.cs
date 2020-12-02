@@ -125,40 +125,24 @@ public static class Compression{
 		Pallete p = Compression.BiomeToPallete(c.biomeName);
 		List<ushort> palleteList = Compression.GetPallete(p);
 
-		// Buffer Variables
-		ushort bufferedCount = 0;
-		ushort blockCode = 0;
-		int readBytes = 0;
+		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
+		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
 
-		// Block Data
-		for(int y=0; y<Chunk.chunkDepth; y++){
-			for(int x=0; x<Chunk.chunkWidth; x++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
-					// If not buffered, read
-					if(bufferedCount == 0){
-						// Reads code
-						blockCode = Compression.ReadShort(buffer, readBytes);
-						readBytes += 2;
+		DecompressJob dbJob = new DecompressJob{
+			data = data,
+			readData = readData,
+			pallete = pallete
+		};
+		JobHandle job = dbJob.Schedule();
+		job.Complete();
 
-						// If code is contained in Pallete
-						if(palleteList.Contains(blockCode)){
-							bufferedCount = (ushort)(Compression.ReadShort(buffer, readBytes) - 1);
-							readBytes += 2;
-						}
-
-						c.data.SetCell(x,y,z, blockCode);
-
-					}
-					// If it's filling the buffered data
-					else{
-						c.data.SetCell(x,y,z, blockCode);
-						bufferedCount--;
-					}
+		c.data.SetData(data.ToArray());
 
 
-				}
-			}
-		}
+		data.Dispose();
+		readData.Dispose();
+		pallete.Dispose();
 	}
 
 	// Builds Chunk's HP Metadata using Decompression algorithm
@@ -166,40 +150,23 @@ public static class Compression{
 		// Preparation Variables
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
 
-		// Buffer Variables
-		ushort bufferedCount = 0;
-		ushort metaCode = 0;
-		int readBytes = 0;
+		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
+		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
 
-		// Block Data
-		for(int y=0; y<Chunk.chunkDepth; y++){
-			for(int x=0; x<Chunk.chunkWidth; x++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
-					// If not buffered, read
-					if(bufferedCount == 0){
-						// Reads code
-						metaCode = Compression.ReadShort(buffer, readBytes);
-						readBytes += 2;
+		DecompressJob dbJob = new DecompressJob{
+			data = data,
+			readData = readData,
+			pallete = pallete
+		};
+		JobHandle job = dbJob.Schedule();
+		job.Complete();
 
-						// If code is contained in Pallete
-						if(palleteList.Contains(metaCode)){
-							bufferedCount = (ushort)(Compression.ReadShort(buffer, readBytes) - 1);
-							readBytes += 2;
-						}
+		c.metadata.SetHPData(data.ToArray());
 
-						c.metadata.SetHP(x,y,z,metaCode);
-					}
-					// If it's filling the buffered data
-					else{
-						// Creates metadata if not null
-						c.metadata.SetHP(x,y,z,metaCode);
-						bufferedCount--;
-					}
-
-
-				}
-			}
-		}
+		data.Dispose();
+		readData.Dispose();
+		pallete.Dispose();
 	} 
 
 	// Builds Chunk's State Metadata using Decompression algorithm
@@ -207,46 +174,23 @@ public static class Compression{
 		// Preparation Variables
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
 
-		// Buffer Variables
-		ushort bufferedCount = 0;
-		ushort metaCode = 0;
-		int readBytes = 0;
+		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
+		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
 
-		// Block Data
-		for(int y=0; y<Chunk.chunkDepth; y++){
-			for(int x=0; x<Chunk.chunkWidth; x++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
-					// If not buffered, read
-					if(bufferedCount == 0){
-						// Reads code
-						metaCode = Compression.ReadShort(buffer, readBytes);
-						readBytes += 2;
+		DecompressJob dbJob = new DecompressJob{
+			data = data,
+			readData = readData,
+			pallete = pallete
+		};
+		JobHandle job = dbJob.Schedule();
+		job.Complete();
 
-						// If code is contained in Pallete
-						if(palleteList.Contains(metaCode)){
-							bufferedCount = (ushort)(Compression.ReadShort(buffer, readBytes) - 1);
-							readBytes += 2;
-						}
-
-						// Creates metadata if not null
-						if(metaCode != ushort.MaxValue){
-							c.metadata.SetState(x,y,z, metaCode);
-						}
-
-					}
-					// If it's filling the buffered data
-					else{
-						// Creates metadata if not null
-						if(metaCode != ushort.MaxValue){
-							c.metadata.SetState(x,y,z,metaCode);
-						}
-						bufferedCount--;
-					}
-
-
-				}
-			}
-		}
+		c.metadata.SetStateData(data.ToArray());
+		
+		data.Dispose();
+		readData.Dispose();
+		pallete.Dispose();
 	}
 
 	// Converts Chunk Biome to Pallete
@@ -404,5 +348,70 @@ public struct CompressionJob : IJob{
 		}
 		return false;
 	}
+}
 
+
+[BurstCompile]
+public struct DecompressJob : IJob{
+	[ReadOnly]
+	public NativeArray<ushort> pallete;
+	[ReadOnly]
+	public NativeArray<byte> readData;
+
+	public NativeArray<ushort> data;
+
+
+	public void Execute(){
+		// Buffer Variables
+		ushort bufferedCount = 0;
+		ushort blockCode = 0;
+		int readBytes = 0;
+
+		// Block Data
+		for(int y=0; y<Chunk.chunkDepth; y++){
+			for(int x=0; x<Chunk.chunkWidth; x++){
+				for(int z=0; z<Chunk.chunkWidth; z++){
+					// If not buffered, read
+					if(bufferedCount == 0){
+						// Reads code
+						blockCode = ReadShort(readBytes);
+						readBytes += 2;
+
+						// If code is contained in Pallete
+						if(Contains(blockCode)){
+							bufferedCount = (ushort)(ReadShort(readBytes) - 1);
+							readBytes += 2;
+						}
+
+						data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blockCode;
+
+					}
+					// If it's filling the buffered data
+					else{
+						data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blockCode;
+						bufferedCount--;
+					}
+				}
+			}
+		}	
+	}
+
+	// Reads ushort from a buffer
+	private ushort ReadShort(int pos){
+		int a;
+		a = readData[pos];
+		a = a << 8;
+		a = a ^ readData[pos+1];
+
+		return (ushort)a;
+	}
+
+	// Checks if a element is in pallete
+	private bool Contains(ushort u){
+		for(int i=0; i < pallete.Length; i++){
+			if(pallete[i] == u)
+				return true;
+		}
+		return false;
+	}
 }

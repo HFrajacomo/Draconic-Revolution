@@ -50,6 +50,10 @@ public class VoxelMetadata
 		this.hp[x*zSize*ySize+y*zSize+z] = val;
 	}
 
+	public void SetHPData(ushort[] data){
+		this.hp = data;
+	}
+
 	// Returns state of a given voxel coordinate
 	public ushort GetState(int x, int y, int z){
 		return this.state[x*zSize*ySize+y*zSize+z];
@@ -59,6 +63,10 @@ public class VoxelMetadata
 	public ushort GetState(int3 coord){
 		return this.state[coord.x*zSize*ySize+coord.y*zSize+coord.z];
 	}	
+
+	public void SetStateData(ushort[] data){
+		this.state = data;
+	}
 
 	public void SetState(int x, int y, int z, ushort val){
 		this.state[x*zSize*ySize+y*zSize+z] = val;
