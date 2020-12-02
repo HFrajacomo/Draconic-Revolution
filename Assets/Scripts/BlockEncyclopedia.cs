@@ -2,25 +2,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 public class BlockEncyclopedia : MonoBehaviour
 {
 	public Blocks[] blocks = new Blocks[Blocks.blockCount];
 	public BlocklikeObject[] objects = new BlocklikeObject[BlocklikeObject.objectCount];
+    public BlockEncyclopediaECS data;
 
     // Start is called before the first frame update
-    void Start()
+    public void Awake()
     {
+        data = new BlockEncyclopediaECS(Blocks.blockCount, BlocklikeObject.objectCount);
+
     	// Loads all blocks
         for(int i=0;i<Blocks.blockCount;i++){
         	blocks[i] = Blocks.Block(i);
+            BlockEncyclopediaECS.blockTransparent[i] = blocks[i].transparent;
+            BlockEncyclopediaECS.blockLiquid[i] = blocks[i].liquid;
+            BlockEncyclopediaECS.blockLoad[i] = blocks[i].hasLoadEvent;
+            BlockEncyclopediaECS.blockInvisible[i] = blocks[i].invisible;
+            BlockEncyclopediaECS.blockMaterial[i] = blocks[i].materialIndex;
+            BlockEncyclopediaECS.blockTiles[i] = new int3(blocks[i].tileTop, blocks[i].tileBottom, blocks[i].tileSide);
         }
 
         // Loads all object meshes
         for(int i=0;i<BlocklikeObject.objectCount;i++){
         	objects[i] = BlocklikeObject.Create(i);
+            BlockEncyclopediaECS.objectTransparent[i] = objects[i].transparent;
+            BlockEncyclopediaECS.objectLiquid[i] = objects[i].liquid;
+            BlockEncyclopediaECS.objectLoad[i] = objects[i].hasLoadEvent;
+            BlockEncyclopediaECS.objectInvisible[i] = objects[i].invisible;
+            BlockEncyclopediaECS.objectMaterial[i] = objects[i].materialIndex;
+            BlockEncyclopediaECS.objectScaling[i] = objects[i].scaling;
+            BlockEncyclopediaECS.objectNeedRotation[i] = objects[i].needsRotation;
         }
     }
+
 
     // Gets customBreak value from block
     public bool CheckCustomBreak(ushort blockCode){

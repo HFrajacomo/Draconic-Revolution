@@ -189,13 +189,8 @@ public class PlayerRaycast : MonoBehaviour
         // Passes "break" block update to neighboring blocks IF object doesn't implement it OnBreak
         EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
         
-        if(blockCode <= ushort.MaxValue/2){
-          loader.budscheduler.ScheduleReload(toUpdate, 0, x:current.blockX, y:current.blockY, z:current.blockZ);
-        }
-        else{
-          loader.chunks[toUpdate].assetGrid.Remove(current.blockX, current.blockY, current.blockZ);
-          loader.regionHandler.SaveChunk(loader.chunks[toUpdate]);
-        }
+        loader.budscheduler.ScheduleReload(toUpdate, 0, x:current.blockX, y:current.blockY, z:current.blockZ);
+
       }
       // If has special break handlings
       else{
@@ -263,16 +258,7 @@ public class PlayerRaycast : MonoBehaviour
       if(!loader.blockBook.CheckCustomPlace(blockCode)){
         // Actually places block/asset into terrain
   		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-
-        // Sends Reload Request to BUDScheduler
-        if(blockCode <= ushort.MaxValue/2){
-          loader.budscheduler.ScheduleReload(toUpdate, 0);
-        }
-        // Sends a AddDraw call to chunk's AssetGrid
-        else{
-          loader.chunks[toUpdate].assetGrid.AddDraw(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode, state, loader);
-          loader.regionHandler.SaveChunk(loader.chunks[toUpdate]);
-        }
+        loader.budscheduler.ScheduleReload(toUpdate, 0);
       }
 
       // If has special handling
@@ -536,11 +522,11 @@ public class PlayerRaycast : MonoBehaviour
       if(x == 0)
         loader.chunks[new ChunkPos(pos.x-1, pos.z)].BuildSideBorder(reloadXM:true);
       else if(x == Chunk.chunkWidth-1)
-        loader.chunks[new ChunkPos(pos.x+1, pos.z)].BuildSideBorder(reloadXm:true);
+        loader.chunks[new ChunkPos(pos.x+1, pos.z)].BuildSideBorder(reloadXP:true);
       else if(z == 0)
         loader.chunks[new ChunkPos(pos.x, pos.z-1)].BuildSideBorder(reloadZM:true);
       else if(z == Chunk.chunkWidth-1)
-        loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder(reloadZm:true);
+        loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder(reloadZP:true);
     }
 
 }

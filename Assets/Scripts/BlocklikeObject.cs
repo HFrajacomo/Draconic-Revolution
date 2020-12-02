@@ -12,7 +12,11 @@ public abstract class BlocklikeObject
 	public bool liquid;
 	public bool hasLoadEvent; // Should run code when loaded it's chunk
 
-	public static int objectCount = 2;
+	public Vector3 positionOffset;
+	public Vector3 scaling; 
+
+	public static readonly int objectCount = 2;
+	public int stateNumber; // If needsRotation is true, these objects need to tell the rendering engine their max number of sequential states from 0
 
 	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();
 	public bool washable = false; // Can be destroyed by flowing water
@@ -22,6 +26,7 @@ public abstract class BlocklikeObject
 
 	// Texture
 	public GameObject go;
+	public Mesh mesh;
 
 	// Block Encyclopedia fill function
 	public static BlocklikeObject Create(int blockID){
@@ -93,4 +98,6 @@ public abstract class BlocklikeObject
 	public virtual int OnLoad(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader cl){return true;}
 	public virtual void ApplyRotation(GameObject go, ushort? state, int blockX, int blockY, int blockZ){}
+	public virtual Vector3 GetOffsetVector(ushort state){return new Vector3(0f,0f,0f);}
+	public virtual int GetRotationValue(ushort state){return 0;}
 }

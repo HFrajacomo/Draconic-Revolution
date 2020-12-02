@@ -15,7 +15,8 @@ public class TimerUpdate : MonoBehaviour
     void Update()
     {
     	str.text = timer.ToString();
-    	if(chunkLoader.chunks.ContainsKey(chunkLoader.currentChunk))
+    	if(chunkLoader.chunks.ContainsKey(chunkLoader.currentChunk)){
             biome.text = chunkLoader.chunks[chunkLoader.currentChunk].biomeName + " : " + Mathf.RoundToInt(character.position.x) + ", " + Mathf.CeilToInt(character.position.y) + ", " + Mathf.RoundToInt(character.position.z) + "    (" + Mathf.RoundToInt(Mathf.RoundToInt(character.position.x)/Chunk.chunkWidth) + ", " + Mathf.RoundToInt(Mathf.RoundToInt(character.position.z)/Chunk.chunkWidth) + ")";
+        }
     }
 }

@@ -3,15 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
 public abstract class Blocks
 {
-	public static int blockCount = 7;
-	public static int pixelSize = 32;
-	public static int atlasSizeX = 8;
-	public static int atlasSizeY = 2;
-	public static int transparentAtlasSizeX = 8;
-	public static int transparentAtlasSizeY = 4;
+	public static readonly int blockCount = 7;
+	public static readonly int pixelSize = 32;
+	public static readonly int atlasSizeX = 8;
+	public static readonly int atlasSizeY = 2;
+	public static readonly int transparentAtlasSizeX = 8;
+	public static readonly int transparentAtlasSizeY = 4;
 
 	public byte materialIndex = 0; // The material used in the rendering pipeline
 	public string name;
@@ -94,8 +93,6 @@ public abstract class Blocks
 			UVs[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
 			UVs[3] = new Vector2(x,y);
 		}
-		
-
 
 		return UVs;
 	}

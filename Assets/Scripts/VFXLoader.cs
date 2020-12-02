@@ -35,8 +35,9 @@ public class VFXLoader : MonoBehaviour
     	}
     }
 
-    // Removes and GameObject from Chunk Dict
+    // Removes an GameObject from Chunk Dict
     public void Remove(ChunkPos pos, string name){
+        Destroy(this.data[pos][name]);
     	data[pos].Remove(name);
     }
 

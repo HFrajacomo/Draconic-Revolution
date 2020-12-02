@@ -90,14 +90,14 @@ public class BUDScheduler : MonoBehaviour
 
     	// Chunk Reloader
     	if(this.data[this.currentTime].Count == 0 && this.toReload.ContainsKey(this.currentTime)){
-    		if(this.toReload[this.currentTime].Count > 0){
+            if(this.toReload[this.currentTime].Count > 0){
                 cachePos = this.toReload[this.currentTime][0];
                 this.toReload[this.currentTime].RemoveAt(0);
 
                 loader.chunks[cachePos].BuildChunk(); 
                 loader.chunks[cachePos].BuildSideBorder(reload:true);
                 loader.regionHandler.SaveChunk(loader.chunks[cachePos]);
-            }    		
+            }		
     	}
     }
 
@@ -128,8 +128,10 @@ public class BUDScheduler : MonoBehaviour
             CheckSurroundingChunks(x, y, z, pos);
 
             foreach(ChunkPos p in cachedList){
-                if(!this.toReload[this.currentTime].Contains(p))
-        		  this.toReload[this.currentTime].Add(p);
+                if(!this.toReload[this.currentTime].Contains(p)){
+                    this.toReload[this.currentTime].Add(p);
+                }
+
             }
             cachedList.Clear();
     	}
