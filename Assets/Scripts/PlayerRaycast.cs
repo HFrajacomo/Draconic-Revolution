@@ -522,11 +522,11 @@ public class PlayerRaycast : MonoBehaviour
       if(x == 0)
         loader.chunks[new ChunkPos(pos.x-1, pos.z)].BuildSideBorder(reloadXM:true);
       else if(x == Chunk.chunkWidth-1)
-        loader.chunks[new ChunkPos(pos.x+1, pos.z)].BuildSideBorder(reloadXm:true);
+        loader.chunks[new ChunkPos(pos.x+1, pos.z)].BuildSideBorder(reloadXP:true);
       else if(z == 0)
         loader.chunks[new ChunkPos(pos.x, pos.z-1)].BuildSideBorder(reloadZM:true);
       else if(z == Chunk.chunkWidth-1)
-        loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder(reloadZm:true);
+        loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder(reloadZP:true);
     }
 
 }

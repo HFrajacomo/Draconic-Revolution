@@ -22,12 +22,12 @@ public class Chunk
 	public string lastVisitedTime;
 
 	// Draw Flags
-	/*
+	
 	private bool xPlusDrawn = false;
 	private bool zPlusDrawn = false;
 	private bool xMinusDrawn = false;
 	private bool zMinusDrawn = false;
-	*/
+	
 	public bool drawMain = false;
 
 	// Unity Settings
@@ -119,179 +119,274 @@ public class Chunk
 		this.metadata = vm;
 	}
 
-	public void BuildSideBorder(bool reload=false, bool reloadXM=false, bool reloadXm=false, bool reloadZM=false, bool reloadZm=false){
-
-	}
-
-	// Build the X- or Z- chunk border
-	/*
-	public void BuildSideBorder(bool reload=false, bool reloadXM=false, bool reloadXm=false, bool reloadZM=false, bool reloadZm=false){
-		ushort thisBlock;
-		ushort neighborBlock;
-		bool skip;
-		int meshVertCount = this.meshFilter.sharedMesh.vertices.Length;
-
+	public void BuildSideBorder(bool reload=false, bool reloadXM=false, bool reloadXP=false, bool reloadZM=false, bool reloadZP=false){
 		if(reload){
 			this.xMinusDrawn = false;
 			this.xPlusDrawn = false;
 			this.zMinusDrawn = false;
 			this.zPlusDrawn = false;
 		}
+
 		if(reloadXM)
-			this.xPlusDrawn = false;
-		if(reloadXm)
 			this.xMinusDrawn = false;
+		if(reloadXP)
+			this.xPlusDrawn = false;
 		if(reloadZM)
-			this.zPlusDrawn = false;
-		if(reloadZm)
 			this.zMinusDrawn = false;
+		if(reloadZP)
+			this.zPlusDrawn = false;
+
+		// If current operation CANNOT update borders
+		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
+			return;
+
+		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
+		NativeArray<ushort> metadata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
+
+		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<Vector2> uvs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<int> tris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
+	
+		NativeArray<bool> blockTransparent = new NativeArray<bool>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
+		NativeArray<bool> objectTransparent = new NativeArray<bool>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
+		NativeArray<bool> blockLiquid = new NativeArray<bool>(BlockEncyclopediaECS.blockLiquid, Allocator.TempJob);
+		NativeArray<bool> objectLiquid = new NativeArray<bool>(BlockEncyclopediaECS.objectLiquid, Allocator.TempJob);
+		NativeArray<bool> blockInvisible = new NativeArray<bool>(BlockEncyclopediaECS.blockInvisible, Allocator.TempJob);
+		NativeArray<bool> objectInvisible = new NativeArray<bool>(BlockEncyclopediaECS.objectInvisible, Allocator.TempJob);
+		NativeArray<byte> blockMaterial = new NativeArray<byte>(BlockEncyclopediaECS.blockMaterial, Allocator.TempJob);
+		NativeArray<byte> objectMaterial = new NativeArray<byte>(BlockEncyclopediaECS.objectMaterial, Allocator.TempJob);
+		NativeArray<int3> blockTiles = new NativeArray<int3>(BlockEncyclopediaECS.blockTiles, Allocator.TempJob);
+
+		// Cached
+		NativeArray<Vector3> cacheCubeVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
+		NativeArray<Vector2> cacheUVVerts = new NativeArray<Vector2>(4, Allocator.TempJob);
+
+		// For Init
+		NativeArray<Vector3> disposableVerts = new NativeArray<Vector3>(this.meshFilter.sharedMesh.vertices, Allocator.TempJob);
+		NativeArray<Vector2> disposableUVS = new NativeArray<Vector2>(this.meshFilter.sharedMesh.uv, Allocator.TempJob);
+		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(0), Allocator.TempJob);
+		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(1), Allocator.TempJob);
+		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(2), Allocator.TempJob);
 
 
-		// X- Side analysis
+		JobHandle job;
 
-		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z);
 
-		// Stop immediately if it's a final chunk
+		// Initialize Data
+		verts.AddRange(disposableVerts);
+		uvs.AddRange(disposableUVS);
+		tris.AddRange(disposableTris);
+		specularTris.AddRange(disposableSpecTris);
+		liquidTris.AddRange(disposableLiquidTris);
+
+
+		// Dispose Init
+		disposableVerts.Dispose();
+		disposableUVS.Dispose();
+		disposableTris.Dispose();
+		disposableSpecTris.Dispose();
+		disposableLiquidTris.Dispose();
+
+
+		// X- Analysis
+		
+		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z); 
 		if(loader.chunks.ContainsKey(targetChunk) && !xMinusDrawn){
-
 			this.xMinusDrawn = true;
 
-			for(int y=0; y<Chunk.chunkDepth; y++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
-					skip = false;
-					thisBlock = data.GetCell(0,y,z);
-					neighborBlock = loader.chunks[targetChunk].data.GetCell(chunkWidth-1, y, z);
-
-					// Air handler
-					if(thisBlock == 0)
-						continue;
-
-	    			// Handles Liquid chunks
-	    			if(CheckLiquids(thisBlock, neighborBlock))
-	    				continue;
-
-	    			// Main Drawing Handling
-		    		if(CheckPlacement(neighborBlock)){
-				    	LoadMesh(0, y, z, (int)Direction.West, thisBlock, false, ref skip, lookahead:meshVertCount);
-				    	if(skip)
-				    		break;
-		    		}
-				}
-			}
-		}
-				
+			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 			
-		// X+ Side analysis
+			BuildBorderJob bbJob = new BuildBorderJob{
+				data = blockdata,
+				metadata = metadata,
+				neighbordata = neighbordata,
+				xM = true,
+				xP = false,
+				zP = false,
+				zM = false,
+				verts = verts,
+				uvs = uvs,
+				normalTris = tris,
+				specularTris = specularTris,
+				liquidTris = liquidTris,
 
-		targetChunk = new ChunkPos(this.pos.x+1, this.pos.z);
+				cachedCubeVerts = cacheCubeVerts,
+				cachedUVVerts = cacheUVVerts,
+				blockTransparent = blockTransparent,
+				objectTransparent = objectTransparent,
+				blockLiquid = blockLiquid,
+				objectLiquid = objectLiquid,
+				blockInvisible = blockInvisible,
+				objectInvisible = objectInvisible,
+				blockMaterial = blockMaterial,
+				objectMaterial = objectMaterial,
+				blockTiles = blockTiles
+			};
+			job = bbJob.Schedule();
+			job.Complete();
+			
+			neighbordata.Dispose();
+		}
 
-		// Stop immediately if it's a final chunk
+		// X+ Analysis
+		targetChunk = new ChunkPos(this.pos.x+1, this.pos.z); 
 		if(loader.chunks.ContainsKey(targetChunk) && !xPlusDrawn){
-
 			this.xPlusDrawn = true;
 
-			for(int y=0; y<Chunk.chunkDepth; y++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
-					skip = false;
-					thisBlock = data.GetCell(chunkWidth-1,y,z);
-					neighborBlock = loader.chunks[targetChunk].data.GetCell(0, y, z);
+			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
+			
+			BuildBorderJob bbJob = new BuildBorderJob{
+				data = blockdata,
+				metadata = metadata,
+				neighbordata = neighbordata,
+				xM = false,
+				xP = true,
+				zP = false,
+				zM = false,
+				verts = verts,
+				uvs = uvs,
+				normalTris = tris,
+				specularTris = specularTris,
+				liquidTris = liquidTris,
 
-					// Air handler
-					if(thisBlock == 0)
-						continue;
+				cachedCubeVerts = cacheCubeVerts,
+				cachedUVVerts = cacheUVVerts,
+				blockTransparent = blockTransparent,
+				objectTransparent = objectTransparent,
+				blockLiquid = blockLiquid,
+				objectLiquid = objectLiquid,
+				blockInvisible = blockInvisible,
+				objectInvisible = objectInvisible,
+				blockMaterial = blockMaterial,
+				objectMaterial = objectMaterial,
+				blockTiles = blockTiles
+			};
+			job = bbJob.Schedule();
+			job.Complete();
 
-	    			// Handles Liquid chunks
-	    			if(CheckLiquids(thisBlock, neighborBlock))
-	    				continue;
+			neighbordata.Dispose();
+		}
 
-	    			// Main Drawing Handling
-		    		if(CheckPlacement(neighborBlock)){
-				    	LoadMesh(chunkWidth-1, y, z, (int)Direction.East, thisBlock, false, ref skip, lookahead:meshVertCount);
-				    	if(skip)
-				    		break;
-		    		}	
-				}
-			}
+		// Z- Analysis
+		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1); 
+		if(loader.chunks.ContainsKey(targetChunk) && !zMinusDrawn){
+			this.zMinusDrawn = true;
+
+			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
+			
+			BuildBorderJob bbJob = new BuildBorderJob{
+				data = blockdata,
+				metadata = metadata,
+				neighbordata = neighbordata,
+				xM = false,
+				xP = false,
+				zP = false,
+				zM = true,
+				verts = verts,
+				uvs = uvs,
+				normalTris = tris,
+				specularTris = specularTris,
+				liquidTris = liquidTris,
+
+				cachedCubeVerts = cacheCubeVerts,
+				cachedUVVerts = cacheUVVerts,
+				blockTransparent = blockTransparent,
+				objectTransparent = objectTransparent,
+				blockLiquid = blockLiquid,
+				objectLiquid = objectLiquid,
+				blockInvisible = blockInvisible,
+				objectInvisible = objectInvisible,
+				blockMaterial = blockMaterial,
+				objectMaterial = objectMaterial,
+				blockTiles = blockTiles
+			};
+			job = bbJob.Schedule();
+			job.Complete();
+
+			neighbordata.Dispose();
+		}
+
+		// Z+ Analysis
+		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1); 
+		if(loader.chunks.ContainsKey(targetChunk) && !zPlusDrawn){
+			this.zPlusDrawn = true;
+
+			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
+			
+			BuildBorderJob bbJob = new BuildBorderJob{
+				data = blockdata,
+				metadata = metadata,
+				neighbordata = neighbordata,
+				xM = false,
+				xP = false,
+				zP = true,
+				zM = false,
+				verts = verts,
+				uvs = uvs,
+				normalTris = tris,
+				specularTris = specularTris,
+				liquidTris = liquidTris,
+
+				cachedCubeVerts = cacheCubeVerts,
+				cachedUVVerts = cacheUVVerts,
+				blockTransparent = blockTransparent,
+				objectTransparent = objectTransparent,
+				blockLiquid = blockLiquid,
+				objectLiquid = objectLiquid,
+				blockInvisible = blockInvisible,
+				objectInvisible = objectInvisible,
+				blockMaterial = blockMaterial,
+				objectMaterial = objectMaterial,
+				blockTiles = blockTiles
+			};
+			job = bbJob.Schedule();
+			job.Complete();
+
+			neighbordata.Dispose();
 		}
 		
 
-		// If the side being analyzed is the Z- Side
+		// Convert data back
+		//this.vertices.AddRange(verts.ToArray());
 
-		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1);
-		// Stop immediately if it's a final chunk
-		if(loader.chunks.ContainsKey(targetChunk) && !zMinusDrawn){
+		this.triangles = tris.ToArray();
+		this.specularTris = specularTris.ToArray();
+		this.liquidTris = liquidTris.ToArray();
+		assetTris = this.meshFilter.sharedMesh.GetTriangles(3);
 
-			this.zMinusDrawn = true;
+		//this.UVs.AddRange(uvs.ToArray());
 
-			for(int y=0; y<Chunk.chunkDepth; y++){
-				for(int x=0; x<Chunk.chunkWidth; x++){
-					skip = false;
-					thisBlock = data.GetCell(x,y,0);
-					neighborBlock = loader.chunks[targetChunk].data.GetCell(x, y, chunkWidth-1);
 
-					// Air handler
-					if(thisBlock == 0)
-						continue;
+		BuildMeshSide(verts.ToArray(), uvs.ToArray());
 
-	    			// Handles Liquid chunks
-	    			if(CheckLiquids(thisBlock, neighborBlock))
-	    				continue;
+		blockdata.Dispose();
+		metadata.Dispose();
+		verts.Dispose();
+		uvs.Dispose();
+		tris.Dispose();
+		specularTris.Dispose();
+		liquidTris.Dispose();
+		blockTransparent.Dispose();
+		objectTransparent.Dispose();
+		blockLiquid.Dispose();
+		objectLiquid.Dispose();
+		blockInvisible.Dispose();
+		objectInvisible.Dispose();
+		blockMaterial.Dispose();
+		objectMaterial.Dispose();
+		blockTiles.Dispose();
+		cacheCubeVerts.Dispose();
+		cacheUVVerts.Dispose();
 
-	    			// Main Drawing Handling
-		    		if(CheckPlacement(neighborBlock)){
-				    	LoadMesh(x, y, 0, (int)Direction.South, thisBlock, false, ref skip, lookahead:meshVertCount);
-				    	if(skip)
-				    		break;
-		    		}	
-				}
-			}
-		}	
-
-		// Z+ Side Analysis
-
-		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1);
-
-		// Stop immediately if it's a final chunk
-		if(loader.chunks.ContainsKey(targetChunk) && !zPlusDrawn){
-
-			this.zPlusDrawn = true;
-
-			for(int y=0; y<Chunk.chunkDepth; y++){
-				for(int x=0; x<Chunk.chunkWidth; x++){
-					skip = false;
-					thisBlock = data.GetCell(x,y,chunkWidth-1);
-					neighborBlock = loader.chunks[targetChunk].data.GetCell(x, y, 0);
-
-					// Air handler
-					if(thisBlock == 0)
-						continue;
-
-	    			// Handles Liquid chunks
-	    			if(CheckLiquids(thisBlock, neighborBlock))
-	    				continue;
-
-	    			// Main Drawing Handling
-		    		if(CheckPlacement(neighborBlock)){
-				    	LoadMesh(x, y, chunkWidth-1, (int)Direction.North, thisBlock, false, ref skip, lookahead:meshVertCount);
-				    	if(skip)
-				    		break;
-		    		}	
-				}
-			}
-		}				
-
-		// Only draw if there's something to draw
-		if(vertices.Count > 0)
-			AddToMesh();
-		else{
-			vertices.Clear();
-    		triangles.Clear();
-    		specularTris.Clear();
-    		liquidTris.Clear();
-    		UVs.Clear();
-		}
+    	this.vertices.Clear();
+    	this.triangles = null;
+    	this.specularTris = null;
+    	this.liquidTris = null;
+    	this.assetTris = null;
+    	this.UVs.Clear();
 	}
-	*/
 
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
@@ -507,7 +602,7 @@ public class Chunk
 		indexUV.Clear();
 		indexTris.Clear();
 		scalingFactor.Clear();
-    	this.vertices.Clear(); // May need to change when doing sides
+    	this.vertices.Clear();
     	this.triangles = null;
     	this.specularTris = null;
     	this.liquidTris = null;
@@ -537,6 +632,32 @@ public class Chunk
     	mesh.SetTriangles(assetTris, 3);
 
     	mesh.uv = this.UVs.ToArray();
+
+    	mesh.RecalculateNormals();
+
+    	this.meshFilter.sharedMesh = mesh;
+    }
+
+    // Builds meshes from verts, UVs and tris from different layers
+    private void BuildMeshSide(Vector3[] verts, Vector2[] UV){
+    	mesh.Clear();
+
+    	if(verts.Length >= ushort.MaxValue){
+    		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+    	}
+
+    	mesh.subMeshCount = 4;
+
+    	mesh.vertices = verts;
+    	mesh.SetTriangles(triangles, 0);
+
+    	this.meshCollider.sharedMesh = mesh;
+
+    	mesh.SetTriangles(specularTris, 1);
+    	mesh.SetTriangles(liquidTris, 2);
+    	mesh.SetTriangles(assetTris, 3);
+
+    	mesh.uv = UV;
 
     	mesh.RecalculateNormals();
 
@@ -808,7 +929,7 @@ public struct BuildChunkJob : IJob{
 
     	// If object is Liquid
     	else if(renderThread == 2){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		VertsByState(cacheCubeVert, dir, state[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y,z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -889,6 +1010,25 @@ public struct BuildChunkJob : IJob{
 		for (int i = 0; i < fv.Length; i++)
 		{
 			fv[i] = (CubeMeshData.vertices[CubeMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		}
+	}
+
+	// Gets the vertices of a given state in a liquid
+	public void VertsByState(NativeArray<Vector3> fv, int dir, ushort s, Vector3 pos, float scale=0.5f){
+        if(s == ushort.MaxValue)
+            s = 0;
+
+		if(s == 19 || s == 20){
+		    for (int i = 0; i < fv.Length; i++)
+		    {
+		      fv[i] = (LiquidMeshData.verticesOnState[(19*8)+LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		    }
+		}
+		else{
+		    for (int i = 0; i < fv.Length; i++)
+		    {
+		      fv[i] = (LiquidMeshData.verticesOnState[((int)s*8)+ LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		    }
 		}
 	}
 }
@@ -1005,4 +1145,327 @@ public struct PrepareAssetsJob : IJob{
 	private Vector3 Rotate(Vector3 a, int degrees){
 		return new Vector3(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad));
 	}
+}
+
+
+
+
+[BurstCompile]
+public struct BuildBorderJob : IJob{
+	[ReadOnly]
+	public NativeArray<ushort> data;
+	[ReadOnly]
+	public NativeArray<ushort> metadata;
+	[ReadOnly]
+	public NativeArray<ushort> neighbordata;
+	[ReadOnly]
+	public bool zP, zM, xP, xM;
+
+	// Rendering Primitives
+	public NativeList<Vector3> verts;
+	public NativeList<Vector2> uvs;
+
+	// Render Thread Triangles
+	public NativeList<int> normalTris;
+	public NativeList<int> specularTris;
+	public NativeList<int> liquidTris;
+
+	// Cached
+	public NativeArray<Vector3> cachedCubeVerts;
+	public NativeArray<Vector2> cachedUVVerts;
+
+	// Block Encyclopedia Data
+	[ReadOnly]
+	public NativeArray<bool> blockTransparent;
+	[ReadOnly]
+	public NativeArray<bool> objectTransparent;
+	[ReadOnly]
+	public NativeArray<bool> blockLiquid;
+	[ReadOnly]
+	public NativeArray<bool> objectLiquid;
+	[ReadOnly]
+	public NativeArray<bool> blockInvisible;
+	[ReadOnly]
+	public NativeArray<bool> objectInvisible;
+	[ReadOnly]
+	public NativeArray<byte> blockMaterial;
+	[ReadOnly]
+	public NativeArray<byte> objectMaterial;
+	[ReadOnly]
+	public NativeArray<int3> blockTiles;
+
+
+	public void Execute(){
+		ushort thisBlock;
+		ushort neighborBlock;
+
+		// X- Side
+		if(xM){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int z=0; z<Chunk.chunkWidth; z++){
+					thisBlock = data[y*Chunk.chunkWidth+z];
+					neighborBlock = neighbordata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+				
+					if(thisBlock == 0)
+						continue;
+
+					if(CheckLiquids(thisBlock, neighborBlock)){
+						continue;
+					}
+
+					if(CheckPlacement(neighborBlock)){
+						if(!LoadMesh(0, y, z, 3, thisBlock, true, cachedCubeVerts, cachedUVVerts))
+							break;
+					}
+				}
+			}
+			return;
+		}
+		// X+ Side
+		else if(xP){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int z=0; z<Chunk.chunkWidth; z++){
+					thisBlock = data[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+					neighborBlock = neighbordata[y*Chunk.chunkWidth+z];
+
+					if(thisBlock == 0)
+						continue;
+
+					if(CheckLiquids(thisBlock, neighborBlock)){
+						continue;
+					}
+
+					if(CheckPlacement(neighborBlock)){
+						if(!LoadMesh(Chunk.chunkWidth-1, y, z, 1, thisBlock, true, cachedCubeVerts, cachedUVVerts))
+							break;
+					}
+				}
+			}
+			return;
+		}
+		// Z- Side
+		else if(zM){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int x=0; x<Chunk.chunkWidth; x++){
+					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
+					neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
+
+					if(thisBlock == 0)
+						continue;
+
+					if(CheckLiquids(thisBlock, neighborBlock)){
+						continue;
+					}
+
+					if(CheckPlacement(neighborBlock)){
+						if(!LoadMesh(x, y, 0, 2, thisBlock, true, cachedCubeVerts, cachedUVVerts))
+							break;
+					}
+				}
+			}
+			return;
+		}
+		// Z+ Side
+		else if(zP){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int x=0; x<Chunk.chunkWidth; x++){
+					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
+					neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
+
+					if(thisBlock == 0)
+						continue;
+
+					if(CheckLiquids(thisBlock, neighborBlock)){
+						continue;
+					}
+
+					if(CheckPlacement(neighborBlock)){
+						if(!LoadMesh(x, y, Chunk.chunkWidth-1, 0, thisBlock, true, cachedCubeVerts, cachedUVVerts))
+							break;
+					}
+				}
+			}
+			return;
+		}
+	}
+
+    // Checks if neighbor is transparent or invisible
+    private bool CheckPlacement(int neighborBlock){
+    	if(neighborBlock <= ushort.MaxValue/2)
+    		return blockTransparent[neighborBlock] || blockInvisible[neighborBlock];
+    	else
+			return objectTransparent[ushort.MaxValue-neighborBlock] || objectInvisible[ushort.MaxValue-neighborBlock];
+    }
+
+    // Checks if Liquids are side by side
+    private bool CheckLiquids(int thisBlock, int neighborBlock){
+    	bool thisLiquid;
+    	bool neighborLiquid;
+
+
+    	if(thisBlock <= ushort.MaxValue/2)
+    		thisLiquid = blockLiquid[thisBlock];
+    	else
+    		thisLiquid = objectLiquid[ushort.MaxValue-thisBlock];
+
+    	if(neighborBlock <= ushort.MaxValue/2)
+    		neighborLiquid = blockLiquid[neighborBlock];
+    	else
+    		neighborLiquid = objectLiquid[ushort.MaxValue-neighborBlock];
+
+    	return thisLiquid && neighborLiquid;
+    }
+
+    // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
+    // Load is true when Chunk is being loaded and not reloaded
+    // Returns true if loaded a blocktype mesh and false if it's an asset to be loaded later
+    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, int lookahead=0){
+    	byte renderThread;
+
+    	if(blockCode <= ushort.MaxValue/2)
+    		renderThread = blockMaterial[blockCode];
+    	else
+    		renderThread = objectMaterial[ushort.MaxValue-blockCode];
+    	
+    	// If object is Normal Block
+    	if(renderThread == 0){
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+			verts.AddRange(cacheCubeVert);
+			int vCount = verts.Length + lookahead;
+
+			AddTexture(cacheCubeUV, dir, blockCode);
+    		uvs.AddRange(cacheCubeUV);
+
+    		
+	    	normalTris.Add(vCount -4);
+	    	normalTris.Add(vCount -4 +1);
+	    	normalTris.Add(vCount -4 +2);
+	    	normalTris.Add(vCount -4);
+	    	normalTris.Add(vCount -4 +2);
+	    	normalTris.Add(vCount -4 +3);
+
+	    	return true;
+    	}
+
+    	// If object is Specular Block
+    	else if(renderThread == 1){
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+			verts.AddRange(cacheCubeVert);
+			int vCount = verts.Length + lookahead;
+
+			AddTexture(cacheCubeUV, dir, blockCode);
+    		uvs.AddRange(cacheCubeUV);
+
+    		
+	    	specularTris.Add(vCount -4);
+	    	specularTris.Add(vCount -4 +1);
+	    	specularTris.Add(vCount -4 +2);
+	    	specularTris.Add(vCount -4);
+	    	specularTris.Add(vCount -4 +2);
+	    	specularTris.Add(vCount -4 +3);
+	    	
+	    	return true;   		
+    	}
+
+    	// If object is Liquid
+    	else if(renderThread == 2){
+    		VertsByState(cacheCubeVert, dir, metadata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y,z));
+			verts.AddRange(cacheCubeVert);
+			int vCount = verts.Length + lookahead;
+
+			LiquidTexture(cacheCubeUV, x, z);
+    		uvs.AddRange(cacheCubeUV);
+
+    		
+	    	liquidTris.Add(vCount -4);
+	    	liquidTris.Add(vCount -4 +1);
+	    	liquidTris.Add(vCount -4 +2);
+	    	liquidTris.Add(vCount -4);
+	    	liquidTris.Add(vCount -4 +2);
+	    	liquidTris.Add(vCount -4 +3);
+
+	    	return true;    		
+    	}
+
+    	return false;
+    }
+
+	// Sets UV mapping for a direction
+	private void AddTexture(NativeArray<Vector2> array, int dir, ushort blockCode){
+		int textureID;
+
+		if(dir == 4)
+			textureID = blockTiles[blockCode].x;
+		else if(dir == 5)
+			textureID = blockTiles[blockCode].y;
+		else
+			textureID = blockTiles[blockCode].z;
+
+		// If should use normal atlas
+		if(blockMaterial[blockCode] == 0){
+			float x = textureID%Blocks.atlasSizeX;
+			float y = Mathf.FloorToInt(textureID/Blocks.atlasSizeX);
+	 
+			x *= 1f / Blocks.atlasSizeX;
+			y *= 1f / Blocks.atlasSizeY;
+
+			array[0] = new Vector2(x,y+(1f/Blocks.atlasSizeY));
+			array[1] = new Vector2(x+(1f/Blocks.atlasSizeX),y+(1f/Blocks.atlasSizeY));
+			array[2] = new Vector2(x+(1f/Blocks.atlasSizeX),y);
+			array[3] = new Vector2(x,y);
+		}
+		// If should use transparent atlas
+		else if(blockMaterial[blockCode] == 1){
+			float x = textureID%Blocks.transparentAtlasSizeX;
+			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeY);
+	 
+			x *= 1f / Blocks.transparentAtlasSizeX;
+			y *= 1f / Blocks.transparentAtlasSizeY;
+
+			array[0] = new Vector2(x,y+(1f/Blocks.transparentAtlasSizeY));
+			array[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
+			array[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
+			array[3] = new Vector2(x,y);
+		}
+	}
+
+	// Gets UV Map for Liquid blocks
+	private void LiquidTexture(NativeArray<Vector2> array, int x, int z){
+		int size = Chunk.chunkWidth;
+		int tileSize = 1/size;
+
+		array[0] = new Vector2(x*tileSize,z*tileSize);
+		array[1] = new Vector2(x*tileSize,(z+1)*tileSize);
+		array[2] = new Vector2((x+1)*tileSize,(z+1)*tileSize);
+		array[3] = new Vector2((x+1)*tileSize,z*tileSize);
+	}
+
+	// Cube Mesh Data get verts
+	public void faceVertices(NativeArray<Vector3> fv, int dir, float scale, Vector3 pos)
+	{
+		for (int i = 0; i < fv.Length; i++)
+		{
+			fv[i] = (CubeMeshData.vertices[CubeMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		}
+	}
+
+	// Gets the vertices of a given state in a liquid
+	public void VertsByState(NativeArray<Vector3> fv, int dir, ushort s, Vector3 pos, float scale=0.5f){
+        if(s == ushort.MaxValue)
+            s = 0;
+
+		if(s == 19 || s == 20){
+		    for (int i = 0; i < fv.Length; i++)
+		    {
+		      fv[i] = (LiquidMeshData.verticesOnState[(19*8)+LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		    }
+		}
+		else{
+		    for (int i = 0; i < fv.Length; i++)
+		    {
+		      fv[i] = (LiquidMeshData.verticesOnState[((int)s*8)+ LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		    }
+		}
+	}
+
 }
