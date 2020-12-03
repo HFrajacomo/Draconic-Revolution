@@ -77,6 +77,17 @@ public class ChunkLoader : MonoBehaviour
         generationSeed = GenerationSeedFunction(worldSeed);
         offsetHash = OffsetHashFunction(worldSeed);
 
+
+        // If character is newly spawned
+        if(regionHandler.playerFile.Length == 0){
+            int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
+            player.position -= new Vector3(0, player.position.y - spawnY, 0);
+        }
+        // If character has been loaded
+        else{
+            player.position = regionHandler.LoadPlayer();
+        }
+
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
 		newChunk = new ChunkPos(playerX, playerZ);
@@ -89,9 +100,6 @@ public class ChunkLoader : MonoBehaviour
 
     	if(toLoad.Count == 0 && toDraw.Count == 0 && !WORLD_GENERATED){
     		WORLD_GENERATED = true;
-
-            int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
-            player.position -= new Vector3(0, player.position.y - spawnY, 0);
 
             playerCharacter.SetActive(true);
     	}

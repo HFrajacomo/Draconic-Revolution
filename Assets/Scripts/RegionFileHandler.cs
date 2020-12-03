@@ -26,6 +26,7 @@ public class RegionFileHandler{
 
 	// File Data
 	public Stream worldFile;
+	public Stream playerFile;
 
 	// Cache Information
 	private byte[] nullMetadata = new byte[]{255,255};
@@ -39,6 +40,7 @@ public class RegionFileHandler{
 	private byte[] blockBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer (roughly 0,1 MB)
 	private byte[] hpBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer 
 	private byte[] stateBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer
+	private byte[] playerBuffer = new byte[12];
 
 	// Sizes
 	private static int chunkHeaderSize = 21; // Size (in bytes) of header
@@ -73,6 +75,14 @@ public class RegionFileHandler{
 		else{
 			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Create);	
 			SaveWorld();			
+		}
+
+		// If already has a player data file
+		if(File.Exists(this.worldDir + "player.pdat")){
+			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Open);
+		}
+		else{
+			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Create);	
 		}
 
 		LoadRegionFile(pos, init:true);
@@ -134,6 +144,50 @@ public class RegionFileHandler{
 
 		globalTime.SetTime(timeArray);
 
+	}
+
+	// Saved data to pdat file
+	// DESIGNED FOR SINGLEPLAYER
+	/*
+	POSITION(12): 3 floats containing x, y, z
+	*/
+	public void SavePlayer(Vector3 t){
+		playerBuffer[0] = (byte)((int)t.x >> 24);
+		playerBuffer[1] = (byte)((int)t.x >> 16);
+		playerBuffer[2] = (byte)((int)t.x >> 8);
+		playerBuffer[3] = (byte)((int)t.x);
+		playerBuffer[4] = (byte)((int)t.y >> 24);
+		playerBuffer[5] = (byte)((int)t.y >> 16);
+		playerBuffer[6] = (byte)((int)t.y >> 8);
+		playerBuffer[7] = (byte)((int)t.y);
+		playerBuffer[8] = (byte)((int)t.z >> 24);
+		playerBuffer[9] = (byte)((int)t.z >> 16);
+		playerBuffer[10] = (byte)((int)t.z >> 8);
+		playerBuffer[11] = (byte)((int)t.z);
+
+		this.playerFile.SetLength(0);
+		this.playerFile.Write(playerBuffer, 0, 12);
+	}
+
+	// Loads data from PDAT file
+	public Vector3 LoadPlayer(){
+		this.playerFile.Read(playerBuffer, 0, 12);
+
+		return new Vector3(ReadPos(playerBuffer, 0), ReadPos(playerBuffer, 4) + 1, ReadPos(playerBuffer, 8));
+	}
+
+	private float ReadPos(byte[] buffer, int pos){
+		int f = 0;
+
+		f = f ^ buffer[pos];
+		f = f << 8;
+		f = f ^ buffer[pos+1];
+		f = f << 8;
+		f = f ^ buffer[pos+2];
+		f = f << 8;
+		f = f ^ buffer[pos+3];
+
+		return f;
 	}
 
 	// Getter for RegionFile

@@ -5,6 +5,7 @@ using UnityEngine;
 public class BUDScheduler : MonoBehaviour
 {
 	public TimeOfDay schedulerTime;
+    public Transform playerTransform;
 	private Dictionary<string, List<BUDSignal>> data = new Dictionary<string, List<BUDSignal>>();
 	private Dictionary<string, List<ChunkPos>> toReload = new Dictionary<string, List<ChunkPos>>();
     private List<ChunkPos> cachedList = new List<ChunkPos>();
@@ -36,6 +37,7 @@ public class BUDScheduler : MonoBehaviour
     	if(this.newTime != this.currentTime){
             // Saves the World Data every second
             loader.regionHandler.SaveWorld();
+            loader.regionHandler.SavePlayer(playerTransform.position);
 
     		// Creates new list for newTime if doesn't exist
     		if(!this.data.ContainsKey(this.newTime)){

@@ -1112,6 +1112,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   schedulerTime: {fileID: 1322082558}
+  playerTransform: {fileID: 59614821}
   loader: {fileID: 1192772367}
   BUDperFrame: 0
 --- !u!4 &816262495
