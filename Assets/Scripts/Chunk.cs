@@ -149,6 +149,8 @@ public class Chunk
 		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
 	
+		NativeList<int3> toLoadEvent = new NativeList<int3>(0, Allocator.TempJob);
+
 		NativeArray<bool> blockTransparent = new NativeArray<bool>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
 		NativeArray<bool> objectTransparent = new NativeArray<bool>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
 		NativeArray<bool> blockLiquid = new NativeArray<bool>(BlockEncyclopediaECS.blockLiquid, Allocator.TempJob);
@@ -202,6 +204,7 @@ public class Chunk
 				data = blockdata,
 				metadata = metadata,
 				neighbordata = neighbordata,
+				toLoadEvent = toLoadEvent,
 				xM = true,
 				xP = false,
 				zP = false,
@@ -228,6 +231,21 @@ public class Chunk
 			job.Complete();
 			
 			neighbordata.Dispose();
+
+			// ToLoad() Event Trigger to Border liquids
+			if(this.biomeName != "Ocean"){
+				foreach(int3 coord in toLoadEvent.ToArray()){
+					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
+
+					if(assetCode <= ushort.MaxValue/2){
+						blockBook.blocks[assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
+					}
+					else{
+						blockBook.objects[ushort.MaxValue-assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
+					}
+				}
+				toLoadEvent.Clear();
+			}
 		}
 
 		// X+ Analysis
@@ -241,6 +259,7 @@ public class Chunk
 				data = blockdata,
 				metadata = metadata,
 				neighbordata = neighbordata,
+				toLoadEvent = toLoadEvent,
 				xM = false,
 				xP = true,
 				zP = false,
@@ -267,6 +286,21 @@ public class Chunk
 			job.Complete();
 
 			neighbordata.Dispose();
+
+			// ToLoad() Event Trigger to Border liquids
+			if(this.biomeName != "Ocean"){
+				foreach(int3 coord in toLoadEvent.ToArray()){
+					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
+
+					if(assetCode <= ushort.MaxValue/2){
+						blockBook.blocks[assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
+					}
+					else{
+						blockBook.objects[ushort.MaxValue-assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
+					}
+				}
+				toLoadEvent.Clear();
+			}
 		}
 
 		// Z- Analysis
@@ -280,6 +314,7 @@ public class Chunk
 				data = blockdata,
 				metadata = metadata,
 				neighbordata = neighbordata,
+				toLoadEvent = toLoadEvent,
 				xM = false,
 				xP = false,
 				zP = false,
@@ -306,6 +341,21 @@ public class Chunk
 			job.Complete();
 
 			neighbordata.Dispose();
+
+			// ToLoad() Event Trigger to Border liquids
+			if(this.biomeName != "Ocean"){
+				foreach(int3 coord in toLoadEvent.ToArray()){
+					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
+
+					if(assetCode <= ushort.MaxValue/2){
+						blockBook.blocks[assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
+					}
+					else{
+						blockBook.objects[ushort.MaxValue-assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
+					}
+				}
+				toLoadEvent.Clear();
+			}
 		}
 
 		// Z+ Analysis
@@ -319,6 +369,7 @@ public class Chunk
 				data = blockdata,
 				metadata = metadata,
 				neighbordata = neighbordata,
+				toLoadEvent = toLoadEvent,
 				xM = false,
 				xP = false,
 				zP = true,
@@ -345,19 +396,30 @@ public class Chunk
 			job.Complete();
 
 			neighbordata.Dispose();
+
+			// ToLoad() Event Trigger to Border liquids
+			if(this.biomeName != "Ocean"){
+				foreach(int3 coord in toLoadEvent.ToArray()){
+					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
+
+					if(assetCode <= ushort.MaxValue/2){
+						blockBook.blocks[assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
+					}
+					else{
+						blockBook.objects[ushort.MaxValue-assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
+					}
+				}
+				toLoadEvent.Clear();
+			}
 		}
 		
 
 		// Convert data back
-		//this.vertices.AddRange(verts.ToArray());
 
 		this.triangles = tris.ToArray();
 		this.specularTris = specularTris.ToArray();
 		this.liquidTris = liquidTris.ToArray();
 		assetTris = this.meshFilter.sharedMesh.GetTriangles(3);
-
-		//this.UVs.AddRange(uvs.ToArray());
-
 
 		BuildMeshSide(verts.ToArray(), uvs.ToArray());
 
@@ -379,6 +441,7 @@ public class Chunk
 		blockTiles.Dispose();
 		cacheCubeVerts.Dispose();
 		cacheUVVerts.Dispose();
+		toLoadEvent.Dispose();
 
     	this.vertices.Clear();
     	this.triangles = null;
@@ -1166,6 +1229,9 @@ public struct BuildBorderJob : IJob{
 	[ReadOnly]
 	public bool zP, zM, xP, xM;
 
+	// Border Update
+	public NativeList<int3> toLoadEvent;
+
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
 	public NativeList<Vector2> uvs;
@@ -1214,6 +1280,9 @@ public struct BuildBorderJob : IJob{
 					if(thisBlock == 0)
 						continue;
 
+					// Border Liquid Updates
+					CheckBorderUpdate(Chunk.chunkWidth-1,y,z, neighborBlock);
+
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
 					}
@@ -1235,6 +1304,9 @@ public struct BuildBorderJob : IJob{
 
 					if(thisBlock == 0)
 						continue;
+
+					// Border Liquid Updates
+					CheckBorderUpdate(0,y,z, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
@@ -1258,6 +1330,9 @@ public struct BuildBorderJob : IJob{
 					if(thisBlock == 0)
 						continue;
 
+					// Border Liquid Updates
+					CheckBorderUpdate(x,y,Chunk.chunkWidth-1, neighborBlock);
+
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
 					}
@@ -1280,6 +1355,9 @@ public struct BuildBorderJob : IJob{
 					if(thisBlock == 0)
 						continue;
 
+					// Border Liquid Updates
+					CheckBorderUpdate(x,y,0, neighborBlock);
+
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
 					}
@@ -1293,6 +1371,21 @@ public struct BuildBorderJob : IJob{
 			return;
 		}
 	}
+
+	// Checks if other chunk border block is a liquid and puts it on Border Update List
+	private void CheckBorderUpdate(int x, int y, int z, ushort blockCode){
+
+		if(blockCode <= ushort.MaxValue/2){
+			if(blockLiquid[blockCode]){
+				toLoadEvent.Add(new int3(x,y,z));
+			}
+		}
+		else{
+			if(objectLiquid[ushort.MaxValue-blockCode]){
+				toLoadEvent.Add(new int3(x,y,z));
+			}
+		}
+	} 
 
     // Checks if neighbor is transparent or invisible
     private bool CheckPlacement(int neighborBlock){

@@ -117,10 +117,6 @@ public class PlayerRaycast : MonoBehaviour
         control.prefabReadAir = false;
       }
 
-      // DEBUG
-      if(MainControllerManager.debugKey){
-        GetFakeWater();
-      }
 
     }
 
