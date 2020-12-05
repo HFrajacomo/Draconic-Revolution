@@ -842,11 +842,13 @@ public struct BuildChunkJob : IJob{
 	public void Execute(){
 		ushort thisBlock;
 		ushort neighborBlock;
+		ushort thisState;
 
 		for(int x=0; x<Chunk.chunkWidth; x++){
 			for(int y=0; y<Chunk.chunkDepth; y++){
 				for(int z=0; z<Chunk.chunkWidth; z++){
 					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+					thisState = state[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
 	    			// If air
 	    			if(thisBlock == 0){
@@ -889,7 +891,7 @@ public struct BuildChunkJob : IJob{
 
 			    		
 		    			// Handles Liquid chunks
-		    			if(CheckLiquids(thisBlock, neighborBlock))
+		    			if(CheckLiquids(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i)))
 		    				continue;
 		    			
 
@@ -916,6 +918,17 @@ public struct BuildChunkJob : IJob{
 		return data[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
 	}
 
+    // Gets neighbor state
+	private ushort GetNeighborState(int x, int y, int z, int dir){
+		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
+		
+		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
+			return 0;
+		} 
+
+		return state[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
+	}
+
     // Checks if neighbor is transparent or invisible
     private bool CheckPlacement(int neighborBlock){
     	if(neighborBlock <= ushort.MaxValue/2)
@@ -925,7 +938,7 @@ public struct BuildChunkJob : IJob{
     }
 
     // Checks if Liquids are side by side
-    private bool CheckLiquids(int thisBlock, int neighborBlock){
+    private bool CheckLiquids(int thisBlock, int neighborBlock, ushort thisState, ushort neighborState){
     	bool thisLiquid;
     	bool neighborLiquid;
 
@@ -940,7 +953,7 @@ public struct BuildChunkJob : IJob{
     	else
     		neighborLiquid = objectLiquid[ushort.MaxValue-neighborBlock];
 
-    	return thisLiquid && neighborLiquid;
+    	return thisLiquid && neighborLiquid && (thisState == neighborState);
     }
 
 
