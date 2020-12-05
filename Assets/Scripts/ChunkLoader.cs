@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -22,6 +23,7 @@ public class ChunkLoader : MonoBehaviour
     public BUDScheduler budscheduler;
     public VFXLoader vfx;
     public TimeOfDay time;
+    public GameObject gameUI;
 
     // Prefab System
     public StructureHandler structHandler;
@@ -62,6 +64,7 @@ public class ChunkLoader : MonoBehaviour
 
     void Awake(){
         this.playerCharacter.SetActive(false);
+        this.gameUI.SetActive(false);
     }
 
     // Start is called before the first frame update
@@ -106,6 +109,7 @@ public class ChunkLoader : MonoBehaviour
             }
 
             this.time.SetLock(false);
+            this.gameUI.SetActive(true);
             playerCharacter.SetActive(true);
     	}
 

@@ -1685,6 +1685,7 @@ MonoBehaviour:
   budscheduler: {fileID: 816262494}
   vfx: {fileID: 1018660373}
   time: {fileID: 1322082558}
+  gameUI: {fileID: 1679592122}
   structHandler: {fileID: 2128924710}
   playerCharacter: {fileID: 59614818}
   worldSeed: 100
