@@ -21,6 +21,7 @@ public class MainControllerManager : MonoBehaviour
     public bool freecam = false;
     public bool shifting = false;
     public static bool reload = false;
+    public static bool debugKey = false;
 
 
 	// Jumping
@@ -85,5 +86,9 @@ public class MainControllerManager : MonoBehaviour
 
     public void OnReload(){
         reload = true;
+    }
+
+    public void OnDebugKey(){
+        MainControllerManager.debugKey = true;
     }
 }

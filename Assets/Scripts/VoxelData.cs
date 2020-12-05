@@ -31,6 +31,10 @@ public class VoxelData
 		return data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 	}
 
+	public ushort GetCell(int i){
+		return data[i];
+	}
+
 	public ushort GetCell(int3 coord){
 		return data[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z];
 	}

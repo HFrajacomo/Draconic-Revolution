@@ -54,6 +54,7 @@ public class Water_Block : Blocks
 		this.waterCode = 6;
 		this.customBreak = true;
 		this.customPlace = true;
+		this.hasLoadEvent = true;
 
 		this.aroundCodes = new ushort[8];
 		this.aroundStates = new ushort[8];
@@ -68,6 +69,25 @@ public class Water_Block : Blocks
 		this.spawnDirection.Add(9, new List<int>(new int[]{5,6,7}));
 		this.spawnDirection.Add(10, new List<int>(new int[]{6,7,0}));
 
+	}
+
+	// Moves water down into underground caverns
+	public override int OnLoad(ChunkPos pos, int x, int y, int z, ChunkLoader cl){
+		CastCoord coord = new CastCoord(pos, x, y, z);
+		ushort code = GetCodeBelow(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), cl);
+
+		if(code == 0)
+			this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);
+
+		GetCodeAround(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), cl);
+
+		for(int i=0; i < 8; i++){
+			if(this.aroundCodes[i] == 0){
+				this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);	
+			}
+		}
+
+		return 0;
 	}
 
 	// Custom Place operation with Raycasting class overwrite
@@ -107,6 +127,14 @@ public class Water_Block : Blocks
 			ushort thisState = cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 			
 			GetCodeAround(myX, myY, myZ, cl);
+
+			// Checks if is around unloaded chunks
+			for(int i=0; i < 8; i++){
+				if(this.aroundCodes[i] == (ushort)(ushort.MaxValue/2)){
+					return;
+				}
+			}
+
 			GetStateAround(myX, myY, myZ, cl);
 
 			/* Directional Level 1 State 
@@ -225,10 +253,10 @@ public class Water_Block : Blocks
 						if(found){
 							// If found a washable block in radius
 							if(cl.blockBook.CheckWashable(this.aroundCodes[i])){
-								if(this.aroundCodes[i] >= 0)
+								if(this.aroundCodes[i] <= ushort.MaxValue/2)
 									cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
 								else
-									cl.blockBook.objects[(this.aroundCodes[i]*-1)-1].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
+									cl.blockBook.objects[ushort.MaxValue-this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
 							} 
 							
 							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
@@ -341,10 +369,10 @@ public class Water_Block : Blocks
 							if(found){
 								// If found a washable block in radius
 								if(cl.blockBook.CheckWashable(this.aroundCodes[i])){
-									if(this.aroundCodes[i] >= 0)
+									if(this.aroundCodes[i] <= ushort.MaxValue/2)
 										cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
 									else
-										cl.blockBook.objects[(this.aroundCodes[i]*-1)-1].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
+										cl.blockBook.objects[ushort.MaxValue-this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
 								} 
 
 								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
@@ -450,10 +478,10 @@ public class Water_Block : Blocks
 							if(found){
 								// If found a washable block in radius
 								if(cl.blockBook.CheckWashable(this.aroundCodes[i])){
-									if(this.aroundCodes[i] >= 0)
+									if(this.aroundCodes[i] <= ushort.MaxValue/2)
 										cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
 									else
-										cl.blockBook.objects[(this.aroundCodes[i]*-1)-1].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
+										cl.blockBook.objects[ushort.MaxValue-this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
 								} 
 
 								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
@@ -547,10 +575,10 @@ public class Water_Block : Blocks
 							if(found){
 								// If found a washable block in radius
 								if(cl.blockBook.CheckWashable(this.aroundCodes[i])){
-									if(this.aroundCodes[i] >= 0)
+									if(this.aroundCodes[i] <= ushort.MaxValue/2)
 										cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
 									else
-										cl.blockBook.objects[(this.aroundCodes[i]*-1)-1].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
+										cl.blockBook.objects[ushort.MaxValue-this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
 								} 
 								
 								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
@@ -653,10 +681,10 @@ public class Water_Block : Blocks
 							if(found){
 								// If found a washable block in radius
 								if(cl.blockBook.CheckWashable(this.aroundCodes[i])){
-									if(this.aroundCodes[i] >= 0)
+									if(this.aroundCodes[i] <= ushort.MaxValue/2)
 										cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
 									else
-										cl.blockBook.objects[(this.aroundCodes[i]*-1)-1].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
+										cl.blockBook.objects[ushort.MaxValue-this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
 								} 
 								
 								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
@@ -710,24 +738,65 @@ public class Water_Block : Blocks
 
 	// Gets a list of block codes of around blocks
 	// Order is N Clockwise
+	// The value (ushort)(ushort.MaxValue/2) is considered the error code
 	private void GetCodeAround(int myX, int myY, int myZ, ChunkLoader cl){
 		CastCoord cord;
+
 		cord = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
-		this.aroundCodes[0] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
+			this.aroundCodes[0] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		else
+			this.aroundCodes[0] = (ushort)(ushort.MaxValue/2);
+		
+
 		cord = new CastCoord(new Vector3(myX+1, myY, myZ+1)); // NE
-		this.aroundCodes[1] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
+			this.aroundCodes[1] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		else
+			this.aroundCodes[1] = (ushort)(ushort.MaxValue/2);
+		
+
 		cord = new CastCoord(new Vector3(myX+1, myY, myZ)); // East
-		this.aroundCodes[2] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
+			this.aroundCodes[2] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		else
+			this.aroundCodes[2] = (ushort)(ushort.MaxValue/2);
+		
+		
 		cord = new CastCoord(new Vector3(myX+1, myY, myZ-1)); // SE
-		this.aroundCodes[3] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
+			this.aroundCodes[3] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		else
+			this.aroundCodes[3] = (ushort)(ushort.MaxValue/2);
+		
+		
 		cord = new CastCoord(new Vector3(myX, myY, myZ-1)); // South
-		this.aroundCodes[4] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
+			this.aroundCodes[4] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		else
+			this.aroundCodes[4] = (ushort)(ushort.MaxValue/2);
+		
+
 		cord = new CastCoord(new Vector3(myX-1, myY, myZ-1)); // SW
-		this.aroundCodes[5] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
+			this.aroundCodes[5] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		else
+			this.aroundCodes[5] = (ushort)(ushort.MaxValue/2);
+		
+
 		cord = new CastCoord(new Vector3(myX-1, myY, myZ)); // West
-		this.aroundCodes[6] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
+			this.aroundCodes[6] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		else
+			this.aroundCodes[6] = (ushort)(ushort.MaxValue/2);
+		
+
 		cord = new CastCoord(new Vector3(myX-1, myY, myZ+1)); // NW
-		this.aroundCodes[7] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
+			this.aroundCodes[7] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		else
+			this.aroundCodes[7] = (ushort)(ushort.MaxValue/2);
+
 	}
 
 	// Gets a list of states of around blocks if they are water

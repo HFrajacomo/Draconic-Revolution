@@ -117,6 +117,11 @@ public class PlayerRaycast : MonoBehaviour
         control.prefabReadAir = false;
       }
 
+      // DEBUG
+      if(MainControllerManager.debugKey){
+        GetFakeWater();
+      }
+
     }
 
     // Detects hit of solid block
@@ -159,7 +164,7 @@ public class PlayerRaycast : MonoBehaviour
       if(blockID != 0)
         if(loader.chunks.ContainsKey(ck)){
           // DEBUG 
-          //print(blockID + " : " + loader.chunks[ck].metadata.GetMetadata(coords.blockX, coords.blockY, coords.blockZ).state);
+          //print(blockID + " : " + loader.chunks[ck].metadata.GetState(coords.blockX, coords.blockY, coords.blockZ));
           return true;
         }
       return false;

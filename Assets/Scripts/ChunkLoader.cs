@@ -42,6 +42,7 @@ public class ChunkLoader : MonoBehaviour
 	// Flags
 	public bool WORLD_GENERATED = false; 
     public int reloadMemoryCounter = 30;
+    public bool PLAYERSPAWNED = false;
 
 	// Cache Information 
 	private ushort[] cacheHeightMap = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
@@ -78,14 +79,10 @@ public class ChunkLoader : MonoBehaviour
         offsetHash = OffsetHashFunction(worldSeed);
 
 
-        // If character is newly spawned
-        if(regionHandler.playerFile.Length == 0){
-            int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
-            player.position -= new Vector3(0, player.position.y - spawnY, 0);
-        }
         // If character has been loaded
-        else{
+        if(regionHandler.playerFile.Length > 0){
             player.position = regionHandler.LoadPlayer();
+            PLAYERSPAWNED = true;
         }
 
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
@@ -96,10 +93,16 @@ public class ChunkLoader : MonoBehaviour
 		GetChunks(true);
     }
 
-    void Update(){
+    void Update(){ 
 
     	if(toLoad.Count == 0 && toDraw.Count == 0 && !WORLD_GENERATED){
     		WORLD_GENERATED = true;
+
+            if(!PLAYERSPAWNED){
+                int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
+                player.position -= new Vector3(0, player.position.y - spawnY, 0);
+                PLAYERSPAWNED = true;
+            }
 
             playerCharacter.SetActive(true);
     	}
@@ -226,7 +229,7 @@ public class ChunkLoader : MonoBehaviour
                 chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0])); 
                 chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                 chunks[toLoad[0]].needsGeneration = 0;
-                regionHandler.SaveChunk(chunks[toLoad[0]]);              
+                regionHandler.SaveChunk(chunks[toLoad[0]]);
             }
 
             toDraw.Add(toLoad[0]);
@@ -1226,14 +1229,14 @@ public class ChunkLoader : MonoBehaviour
         NativeArray<ushort> voxCU = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
         NativeArray<ushort> hpCU = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
         NativeArray<ushort> stateCU = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
-        NativeArray<ushort> cacheCave = GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:40, maskThreshold:0.64f);
-
+        NativeArray<ushort> cacheCave = GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:45, maskThreshold:0.64f);
+        
         CutUndergroundJob cuJob = new CutUndergroundJob{
             cacheVox = voxCU,
             cacheHP = hpCU,
             cacheState = stateCU,
             cacheCave = cacheCave,
-            upper = 40,
+            upper = 45,
             lower = 1,
         };
         job = cuJob.Schedule(Chunk.chunkWidth, 2);
@@ -2041,17 +2044,18 @@ public struct ApplyMapsJob : IJobParallelFor{
                     else{
                         for(int y=cacheMaps[(i-1)*(size+1)*(size+1)+x*(size+1)+z]+1;y<=cacheMaps[i*(size+1)*(size+1)+x*(size+1)+z];y++){
                             if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == 0){
-                                // Convertion of pregen air blocks
-                                if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == (ushort)(ushort.MaxValue/2))
-                                    cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = 0;
-                                else
-                                    cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
+                                cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = cacheBlockCodes[i]; // Adds block code
                                 
                                 if(stateDict.ContainsKey(cacheBlockCodes[i])){ // Adds possible state
                                     cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = stateDict[cacheBlockCodes[i]];
                                 }
                             }
-                        }               
+                            // Convertion of pregen air blocks
+                            if(cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] == (ushort)(ushort.MaxValue/2)){
+                                cacheVoxdata[x*size*Chunk.chunkDepth+y*size+z] = 0;
+                                cacheMetadataState[x*size*Chunk.chunkDepth+y*size+z] = ushort.MaxValue;
+                            }
+                        }
                     }
                 }
                 
@@ -2186,12 +2190,13 @@ public struct CutUndergroundJob : IJobParallelFor{
     [ReadOnly]
     public int lower, upper;
 
+    // Ignores water!
     public void Execute(int index){
         int x = index;
 
         for(int y=lower;y<upper;y++){
             for(int z=0;z<Chunk.chunkWidth;z++){
-                if(cacheVox[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] >= 1 && cacheCave[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] == 1){
+                if(cacheVox[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] >= 1 && cacheVox[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] != 6 && cacheCave[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] == 1){
                     cacheVox[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] = 0;
                     cacheHP[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] = ushort.MaxValue;
                     cacheState[(x*Chunk.chunkWidth*Chunk.chunkDepth)+(y*Chunk.chunkWidth)+z] = ushort.MaxValue;

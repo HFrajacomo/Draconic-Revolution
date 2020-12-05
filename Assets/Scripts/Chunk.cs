@@ -489,7 +489,12 @@ public class Chunk
 		foreach(int3 coord in loadCoordList.ToArray()){
 			ushort assetCode = this.data.GetCell(coord);
 
-			blockBook.objects[ushort.MaxValue-assetCode].OnLoad(this.pos, coord.x, coord.y, coord.z, this.loader);
+			if(assetCode <= ushort.MaxValue/2){
+				blockBook.blocks[assetCode].OnLoad(this.pos, coord.x, coord.y, coord.z, this.loader);
+			}
+			else{
+				blockBook.objects[ushort.MaxValue-assetCode].OnLoad(this.pos, coord.x, coord.y, coord.z, this.loader);
+			}
 		}
 
 

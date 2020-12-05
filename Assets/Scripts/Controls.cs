@@ -113,6 +113,14 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""DebugKey"",
+                    ""type"": ""Button"",
+                    ""id"": ""d5e78c4f-e6e3-41f2-917b-39985b5642d5"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
                 }
             ],
             ""bindings"": [
@@ -291,6 +299,17 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""action"": ""Reload"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""572f82ba-0257-4d27-8a3e-1e46495bd67a"",
+                    ""path"": ""<Keyboard>/l"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""DebugKey"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -328,6 +347,7 @@ public class @Controls : IInputActionCollection, IDisposable
         m_Player_ToggleFreeCam = m_Player.FindAction("ToggleFreeCam", throwIfNotFound: true);
         m_Player_Shifting = m_Player.FindAction("Shifting", throwIfNotFound: true);
         m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
+        m_Player_DebugKey = m_Player.FindAction("DebugKey", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -389,6 +409,7 @@ public class @Controls : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_ToggleFreeCam;
     private readonly InputAction m_Player_Shifting;
     private readonly InputAction m_Player_Reload;
+    private readonly InputAction m_Player_DebugKey;
     public struct PlayerActions
     {
         private @Controls m_Wrapper;
@@ -405,6 +426,7 @@ public class @Controls : IInputActionCollection, IDisposable
         public InputAction @ToggleFreeCam => m_Wrapper.m_Player_ToggleFreeCam;
         public InputAction @Shifting => m_Wrapper.m_Player_Shifting;
         public InputAction @Reload => m_Wrapper.m_Player_Reload;
+        public InputAction @DebugKey => m_Wrapper.m_Player_DebugKey;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -450,6 +472,9 @@ public class @Controls : IInputActionCollection, IDisposable
                 @Reload.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
                 @Reload.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
                 @Reload.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
+                @DebugKey.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDebugKey;
+                @DebugKey.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDebugKey;
+                @DebugKey.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDebugKey;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -490,6 +515,9 @@ public class @Controls : IInputActionCollection, IDisposable
                 @Reload.started += instance.OnReload;
                 @Reload.performed += instance.OnReload;
                 @Reload.canceled += instance.OnReload;
+                @DebugKey.started += instance.OnDebugKey;
+                @DebugKey.performed += instance.OnDebugKey;
+                @DebugKey.canceled += instance.OnDebugKey;
             }
         }
     }
@@ -517,5 +545,6 @@ public class @Controls : IInputActionCollection, IDisposable
         void OnToggleFreeCam(InputAction.CallbackContext context);
         void OnShifting(InputAction.CallbackContext context);
         void OnReload(InputAction.CallbackContext context);
+        void OnDebugKey(InputAction.CallbackContext context);
     }
 }

@@ -75,12 +75,16 @@ public class BUDScheduler : MonoBehaviour
     	for(currentBUDonFrame=0;currentBUDonFrame<BUDperFrame;currentBUDonFrame++){
 	    	if(this.data[this.currentTime].Count > 0){
                 cachedCoord = new CastCoord(new Vector3(this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z));
-	    		cachedCode = loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
-                
-                if(cachedCode <= ushort.MaxValue/2)
-                    loader.blockBook.blocks[cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
-	    	    else{
-                    loader.blockBook.objects[ushort.MaxValue - cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);                    
+	    		
+                // If BUDSignal is still in the loaded area
+                if(loader.chunks.ContainsKey(cachedCoord.GetChunkPos())){
+                    cachedCode = loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+                    
+                    if(cachedCode <= ushort.MaxValue/2)
+                        loader.blockBook.blocks[cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
+    	    	    else{
+                        loader.blockBook.objects[ushort.MaxValue - cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);                    
+                    }
                 }
 
                 this.data[this.currentTime].RemoveAt(0);
@@ -96,9 +100,11 @@ public class BUDScheduler : MonoBehaviour
                 cachePos = this.toReload[this.currentTime][0];
                 this.toReload[this.currentTime].RemoveAt(0);
 
-                loader.chunks[cachePos].BuildChunk(); 
-                loader.chunks[cachePos].BuildSideBorder(reload:true);
-                loader.regionHandler.SaveChunk(loader.chunks[cachePos]);
+                if(loader.chunks.ContainsKey(cachePos)){
+                    loader.chunks[cachePos].BuildChunk(); 
+                    loader.chunks[cachePos].BuildSideBorder(reload:true);
+                    loader.regionHandler.SaveChunk(loader.chunks[cachePos]);
+                }
             }		
     	}
     }

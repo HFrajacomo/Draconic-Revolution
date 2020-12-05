@@ -37,13 +37,18 @@ public class VoxelMetadata
 
 	// Metadata Constructor
 	public VoxelMetadata(ushort[] hp, ushort[] state){
-		this.hp = (ushort[])hp.Clone();
-		this.state = (ushort[])hp.Clone();
+		this.hp = hp;
+		this.state = state;
 	}
 
 	// Returns hp of a given voxel coordinate
 	public ushort GetHP(int x, int y, int z){
 		return this.hp[x*zSize*ySize+y*zSize+z];
+	}
+
+	// Returns hp of a given voxel coordinate
+	public ushort GetHP(int i){
+		return this.hp[i];
 	}
 
 	public void SetHP(int x, int y, int z, ushort val){
@@ -57,6 +62,11 @@ public class VoxelMetadata
 	// Returns state of a given voxel coordinate
 	public ushort GetState(int x, int y, int z){
 		return this.state[x*zSize*ySize+y*zSize+z];
+	}
+
+	// Returns state of a given voxel coordinate
+	public ushort GetState(int i){
+		return this.state[i];
 	}	
 
 	// Returns state of a given voxel coordinate
