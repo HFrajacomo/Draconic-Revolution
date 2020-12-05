@@ -1230,7 +1230,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Loading
+  m_Text: 
 --- !u!222 &871458470
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1684,6 +1684,7 @@ MonoBehaviour:
   blockBook: {fileID: 1668289087}
   budscheduler: {fileID: 816262494}
   vfx: {fileID: 1018660373}
+  time: {fileID: 1322082558}
   structHandler: {fileID: 2128924710}
   playerCharacter: {fileID: 59614818}
   worldSeed: 100
@@ -1693,6 +1694,7 @@ MonoBehaviour:
   rend: {fileID: 471797234}
   WORLD_GENERATED: 0
   reloadMemoryCounter: 30
+  PLAYERSPAWNED: 0
 --- !u!4 &1192772368
 Transform:
   m_ObjectHideFlags: 0
@@ -1741,6 +1743,7 @@ MonoBehaviour:
   hours: 15
   days: 0
   DEBUGTIMEMULT: 1
+  LOCKTIME: 1
 --- !u!4 &1322082559
 Transform:
   m_ObjectHideFlags: 0

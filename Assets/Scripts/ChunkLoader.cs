@@ -21,6 +21,7 @@ public class ChunkLoader : MonoBehaviour
 	public BlockEncyclopedia blockBook;
     public BUDScheduler budscheduler;
     public VFXLoader vfx;
+    public TimeOfDay time;
 
     // Prefab System
     public StructureHandler structHandler;
@@ -104,6 +105,7 @@ public class ChunkLoader : MonoBehaviour
                 PLAYERSPAWNED = true;
             }
 
+            this.time.SetLock(false);
             playerCharacter.SetActive(true);
     	}
 

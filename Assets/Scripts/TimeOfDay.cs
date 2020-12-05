@@ -11,26 +11,33 @@ public class TimeOfDay : MonoBehaviour
 	public uint days = 0;
 	public int DEBUGTIMEMULT=1;
     private byte[] timeArray = new byte[7];
+    public bool LOCKTIME = true;
 
     void Update()
     {
-        ticks += Time.deltaTime * DEBUGTIMEMULT;
+        if(!this.LOCKTIME){
+            ticks += Time.deltaTime * DEBUGTIMEMULT;
 
-        if(ticks >= 2){
-        	ticks = 0f;
-        	minutes++;
+            if(ticks >= 2){
+            	ticks = 0f;
+            	minutes++;
+            }
+
+            if(minutes >= 60){
+            	minutes = 0;
+            	hours++;
+            }
+
+            if(hours >= 24){
+            	hours = 0;
+            	days++;
+            }
         }
 
-        if(minutes >= 60){
-        	minutes = 0;
-        	hours++;
-        }
+    }
 
-        if(hours >= 24){
-        	hours = 0;
-        	days++;
-        }
-
+    public void SetLock(bool flag){
+        this.LOCKTIME = flag;
     }
 
     // Gets formatted h:m string
