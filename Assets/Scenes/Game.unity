@@ -1893,7 +1893,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de5e46afe9f8bc345ab7c5141f50588c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightComponent: {fileID: 0}
+  lightComponent: {fileID: 1324502673}
   maxLightLevel: 0
   minLightLevel: 0
   minLightPercentage: 0.7
@@ -1920,7 +1920,7 @@ MonoBehaviour:
   m_PointlightHDType: 0
   m_SpotLightShape: 0
   m_AreaLightShape: 0
-  m_Intensity: 300
+  m_Intensity: 400
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
   m_InnerSpotPercent: 0
@@ -2022,8 +2022,8 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 23.873241
-  m_Range: 10
+  m_Intensity: 31.830988
+  m_Range: 15
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
