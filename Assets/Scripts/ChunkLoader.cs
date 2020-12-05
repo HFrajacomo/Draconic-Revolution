@@ -975,7 +975,7 @@ public class ChunkLoader : MonoBehaviour
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
             if(structCode == 1 || structCode == 2){ // Trees
                 if(!transition)
-                    GenerateStructures(pos, xhash, zhash, biomeCode, structCode, -1, heightlimit:22);
+                    GenerateStructures(pos, xhash, zhash, biomeCode, structCode, -1, heightlimit:23);
             }
             else if(structCode == 3 || structCode == 4){ // Dirt Piles
                 GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 2, range:true);
@@ -1270,7 +1270,7 @@ public class ChunkLoader : MonoBehaviour
         foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
             if(structCode <= 2){ // Trees
                 if(!transition){
-                    GenerateStructures(pos, xhash, zhash, biomeCode, structCode, -1, heightlimit:22);
+                    GenerateStructures(pos, xhash, zhash, biomeCode, structCode, -1, heightlimit:43);
                 }
             }
             else if(structCode == 3 || structCode == 4){ // Dirt Piles

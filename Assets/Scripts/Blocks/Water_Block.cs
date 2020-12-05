@@ -503,7 +503,7 @@ public class Water_Block : Blocks
 				int above = GetCodeAbove(myX, myY, myZ, cl);
 
 				// If needs to spawn more falling blocks (no return to check if alive)
-				if(below == 0 || (below == this.waterCode && GetStateBelow(myX, myY, myZ, cl) != 0)){
+				if(below == 0 || (below == this.waterCode && TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) < 3)){
 					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
@@ -601,12 +601,12 @@ public class Water_Block : Blocks
 				ushort newState = GetStateBelow(myX, myY, myZ, cl);
 
 				// Do nothing if water is above and below
-				if(above == this.waterCode && below == this.waterCode){
+				if(above == this.waterCode && below == this.waterCode && newState == 20){
 					return;
 				}
 
 				// If needs to spawn more falling blocks (no return to check if alive)
-				if(below == 0 || (below == this.waterCode && newState > 1 && newState < 19)){
+				if(below == 0 || (below == this.waterCode && TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) < 3)){
 					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
