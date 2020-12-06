@@ -136,6 +136,11 @@ public abstract class Blocks
       }
     }	
 
+    // Emits a BUD signal with no information about sender
+    public void EmitBUDTo(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
+    	cl.budscheduler.ScheduleBUD(new BUDSignal(type, x, y, z, 0, 0, 0, 0), tickOffset);
+    }
+
 	/*
 	VIRTUAL METHODS
 	*/
@@ -144,6 +149,7 @@ public abstract class Blocks
 		"break": When emitting block is broken
 		"change": When emitting block has been turned into another block or changed properties
 		"trigger": When emitting block has been electrically triggered
+		"decay": When emitting block is wood and wants to decay leaves
 	*/
 	public virtual  void OnBlockUpdate(string type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){}
 

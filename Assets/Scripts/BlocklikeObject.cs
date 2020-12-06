@@ -78,6 +78,11 @@ public abstract class BlocklikeObject
       }
     }
 
+    // Emits a BUD signal with no information about sender
+    public void EmitBUDTo(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
+    	cl.budscheduler.ScheduleBUD(new BUDSignal(type, x, y, z, 0, 0, 0, 0), tickOffset);
+    }
+
 	// Unassigns metadata from block (use after OnBreak events)
 	public void EraseMetadata(ChunkPos pos, int x, int y, int z, ChunkLoader cl){cl.chunks[pos].metadata.Reset(x,y,z);}
 	

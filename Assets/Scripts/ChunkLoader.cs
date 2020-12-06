@@ -504,6 +504,25 @@ public class ChunkLoader : MonoBehaviour
         return Perlin.Noise(t/1000000f)+0.5f;
     }
 
+    // Returns block code of a castcoord
+    public ushort GetBlock(CastCoord c){
+        if(this.chunks.ContainsKey(c.GetChunkPos())){
+            return this.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
+        }
+        else{
+            return (ushort)(ushort.MaxValue/2); // Error Code
+        }
+    }
+
+    // Returns block code of a castcoord
+    public ushort GetState(CastCoord c){
+        if(this.chunks.ContainsKey(c.GetChunkPos())){
+            return this.chunks[c.GetChunkPos()].metadata.GetState(c.blockX, c.blockY, c.blockZ);
+        }
+        else{
+            return (ushort)(ushort.MaxValue/2); // Error Code
+        }
+    }
 
     // Returns the heightmap value of a generated chunk in block position
     private int GetBlockHeight(ChunkPos pos, int blockX, int blockZ){

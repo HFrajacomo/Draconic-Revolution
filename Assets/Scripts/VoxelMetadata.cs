@@ -118,8 +118,8 @@ public class VoxelMetadata
 
 	// Resets a single cell in Metadata
 	public void Reset(int x, int y, int z){
-		this.hp[x*zSize*ySize+y*zSize+z] = ushort.MaxValue;
-		this.state[x*zSize*ySize+y*zSize+z] = ushort.MaxValue;
+		this.hp[x*zSize*ySize+y*zSize+z] = 0;
+		this.state[x*zSize*ySize+y*zSize+z] = 0;
 	}
 
 	// Returns true if HP and State is ushort.MaxValue
