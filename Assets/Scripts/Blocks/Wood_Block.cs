@@ -56,7 +56,7 @@ public class Wood_Block : Blocks
 		}
 
 		// Applies DECAY BUD to around blocks if there's no wood around
-		EmitBlockUpdate("decay", init.GetWorldX(), init.GetWorldY(), init.GetWorldZ(), 1, cl);
+		EmitDelayedBUD("decay", init.GetWorldX(), init.GetWorldY(), init.GetWorldZ(), 2, 15, cl);
 
 		distances.Clear();
 	}
@@ -110,4 +110,23 @@ public class Wood_Block : Blocks
 		}
 		return false;
 	}
+
+    // Handles the emittion of BUD to neighboring blocks
+    public void EmitDelayedBUD(string type, int x, int y, int z, int minOffset, int maxOffset, ChunkLoader cl){
+      CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
+
+      cache.Clear();
+
+      cache.Add(thisPos.Add(1,0,0));
+      cache.Add(thisPos.Add(-1,0,0));
+      cache.Add(thisPos.Add(0,1,0));
+      cache.Add(thisPos.Add(0,-1,0));
+      cache.Add(thisPos.Add(0,0,1));
+      cache.Add(thisPos.Add(0,0,-1));
+
+
+      foreach(CastCoord c in cache){
+        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), 0), Random.Range(minOffset, maxOffset));     
+      }
+    }
 }

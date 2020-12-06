@@ -43,7 +43,7 @@ public class Leaf_Object : BlocklikeObject
 				GetLastSurrounding(thisPos);
 
 				foreach(CastCoord c in cache){
-					EmitBUDTo("decay", c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), 10, cl);
+					EmitBUDTo("decay", c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), Random.Range(3, 12), cl);
 				}
 			}
 
@@ -118,5 +118,4 @@ public class Leaf_Object : BlocklikeObject
 		cache.Add(init.Add(0,1,0)); // Up
 		cache.Add(init.Add(0,-1,0)); // Down
 	}
-
 }
