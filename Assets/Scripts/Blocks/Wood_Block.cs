@@ -8,9 +8,17 @@ assigned leaf_objects and will be used to check whether the leaf is valid
 */
 public class Wood_Block : Blocks
 {
+	// Leaves Checker
 	List<CastCoord> openList = new List<CastCoord>();
 	Dictionary<CastCoord, int> distances = new Dictionary<CastCoord, int>();
 	List<CastCoord> cache = new List<CastCoord>();
+
+	// Wood Checker
+	List<CastCoord> currentList = new List<CastCoord>();
+	List<CastCoord> safeList = new List<CastCoord>();
+	List<CastCoord> validDirections = new List<CastCoord>();
+	List<CastCoord> toDestroy = new List<CastCoord>();
+
 
 	int decayDistance = 7;
 	ushort assignedLeafCode = ushort.MaxValue-1;
@@ -34,8 +42,8 @@ public class Wood_Block : Blocks
 		CastCoord thisCoord = new CastCoord(pos, blockX, blockY, blockZ);
 		EmitBlockUpdate("break", thisCoord.GetWorldX(), thisCoord.GetWorldY(), thisCoord.GetWorldZ(), 0, cl);
 
-		GetSurroundings(thisCoord, decayDistance, cl);
-
+		TreeCheck(thisCoord, cl);
+		GetSurroundingLeaves(thisCoord, decayDistance, cl);
 		RunLeavesRecursion(cl, thisCoord);
 
 		return 0;
@@ -44,7 +52,7 @@ public class Wood_Block : Blocks
 	// Does Search for invalid leaves
 	private void RunLeavesRecursion(ChunkLoader cl, CastCoord init){
 		while(openList.Count > 0){
-			GetSurroundings(openList[0], distances[openList[0]]-1, cl);
+			GetSurroundingLeaves(openList[0], distances[openList[0]]-1, cl);
 			openList.RemoveAt(0);
 		}
 
@@ -62,7 +70,7 @@ public class Wood_Block : Blocks
 	}
 
 	// Returns a filled cache list full of surrounding coords
-	private void GetSurroundings(CastCoord init, int currentDistance, ChunkLoader cl){
+	private void GetSurroundingLeaves(CastCoord init, int currentDistance, ChunkLoader cl){
 		// End
 		if(currentDistance == 0)
 			return;
@@ -111,6 +119,240 @@ public class Wood_Block : Blocks
 		return false;
 	}
 
+
+	// Does the Wood check to break unconnected wood blocks from tree
+	private void TreeCheck(CastCoord pos, ChunkLoader cl){
+		CastCoord aux;
+		validDirections.Clear();
+
+		aux = pos.Add(0,0,1); // N
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
+				validDirections.Add(aux);
+			}
+		}
+
+		aux = pos.Add(1,0,1); // NE
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
+				validDirections.Add(aux);
+			}
+		}
+
+		aux = pos.Add(1,0,0); // E
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
+				validDirections.Add(aux);
+			}
+		}
+
+		aux = pos.Add(1,0,-1); // SE
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
+				validDirections.Add(aux);
+			}
+		}
+
+		aux = pos.Add(0,0,-1); // S
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
+				validDirections.Add(aux);
+			}
+		}
+
+		aux = pos.Add(-1,0,-1); // SW
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
+				validDirections.Add(aux);
+			}
+		}
+
+		aux = pos.Add(-1,0,0); // W
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
+				validDirections.Add(aux);
+			}
+		}
+
+		aux = pos.Add(-1,0,1); // NW
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
+				validDirections.Add(aux);
+			}
+		}
+
+		aux = pos.Add(0,1,0); // UP
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
+				validDirections.Add(aux);
+			}
+		}
+
+		aux = pos.Add(0,-1,0); // DOWN
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
+				validDirections.Add(aux);
+			}
+		}
+
+		RunWoodRecursion(cl);
+	}
+
+	// Handles search of Wood Blocks
+	private void RunWoodRecursion(ChunkLoader cl){
+		CastCoord current;
+
+		currentList.Clear();
+		safeList.Clear();
+		toDestroy.Clear();
+
+		while(validDirections.Count > 0){
+			current = validDirections[0];
+			validDirections.RemoveAt(0);
+
+			// If found to-destroy blocks
+			if(SearchWood(current, cl)){
+				safeList.AddRange(currentList);
+				currentList.Clear();
+			}
+			else{
+				toDestroy.AddRange(currentList);
+				currentList.Clear();
+			}
+		}
+
+		foreach(CastCoord aux in toDestroy){
+			cl.chunks[aux.GetChunkPos()].data.SetCell(aux.blockX, aux.blockY, aux.blockZ, 0);
+			cl.chunks[aux.GetChunkPos()].metadata.Reset(aux.blockX, aux.blockY, aux.blockZ);
+			EmitBlockUpdate("break", aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
+			EmitBlockUpdate("decay", aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
+		}
+
+	}
+
+
+	// Fills toDestroy and Safe list
+	// Returns true if all blocks in currentList are connected to a stem
+	// Returns false if all blocks in currentList doesn't connect to a stem or connects to a to-be-destroyed block
+	private bool SearchWood(CastCoord init, ChunkLoader cl){
+		ushort blockCode;
+		ushort state;
+
+		GetAroundCoords(init, cl);
+
+		// Filters only Leaf blocks
+		for(int i=0; i < currentList.Count; i++){
+			// If it's connected to a marked-to-destroy block
+			if(toDestroy.Contains(currentList[i])){
+				return false;
+			}
+
+			// If it's connected to a safe block
+			if(safeList.Contains(currentList[i])){
+				return true;
+			}
+
+			// If current block is found in initial direction
+			if(validDirections.Contains(currentList[i])){
+				validDirections.Remove(currentList[i]);
+			}
+
+			blockCode = cl.GetBlock(currentList[i]);
+			state = cl.GetState(currentList[i]);
+
+			// If it's a spreadable block
+			if(blockCode == this.thisCode && state == 0){
+				GetAroundCoords(currentList[i], cl);
+			}
+			
+			// Check if it's a root
+			else if(cl.blockBook.CheckSolid(blockCode)){
+				return true;
+			}
+			else{
+				currentList.RemoveAt(i);
+				i--;
+			}
+		}
+		return false;
+	}
+
+	// Adds around coords to currentList
+	private void GetAroundCoords(CastCoord pos, ChunkLoader cl){
+		CastCoord aux;
+
+		aux = pos.Add(0,0,1); // N
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(!currentList.Contains(aux)){
+				currentList.Add(aux);
+			}
+		}
+
+		aux = pos.Add(1,0,1); // NE
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(!currentList.Contains(aux)){
+				currentList.Add(aux);
+			}
+		}
+
+		aux = pos.Add(1,0,0); // E
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(!currentList.Contains(aux)){
+				currentList.Add(aux);
+			}
+		}
+
+		aux = pos.Add(1,0,-1); // SE
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(!currentList.Contains(aux)){
+				currentList.Add(aux);
+			}
+		}
+
+		aux = pos.Add(0,0,-1); // S
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(!currentList.Contains(aux)){
+				currentList.Add(aux);
+			}
+		}
+
+		aux = pos.Add(-1,0,-1); // SW
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(!currentList.Contains(aux)){
+				currentList.Add(aux);
+			}
+		}
+
+		aux = pos.Add(-1,0,0); // W
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(!currentList.Contains(aux)){
+				currentList.Add(aux);
+			}
+		}
+
+		aux = pos.Add(-1,0,1); // NW
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(!currentList.Contains(aux)){
+				currentList.Add(aux);
+			}
+		}
+
+		aux = pos.Add(0,1,0); // UP
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(!currentList.Contains(aux)){
+				currentList.Add(aux);
+			}
+		}
+
+		aux = pos.Add(0,-1,0); // DOWN
+		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
+			if(!currentList.Contains(aux)){
+				currentList.Add(aux);
+			}
+		}	
+	}
+
+
     // Handles the emittion of BUD to neighboring blocks
     public void EmitDelayedBUD(string type, int x, int y, int z, int minOffset, int maxOffset, ChunkLoader cl){
       CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
@@ -129,4 +371,6 @@ public class Wood_Block : Blocks
         cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), 0), Random.Range(minOffset, maxOffset));     
       }
     }
+
+
 }

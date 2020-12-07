@@ -177,15 +177,16 @@ public class PlayerRaycast : MonoBehaviour
 
       // If doesn't has special break handling
       if(!loader.blockBook.CheckCustomBreak(blockCode)){
+
+        // Actually breaks new block and updates chunk
+        loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
+        loader.chunks[toUpdate].metadata.Reset(current.blockX, current.blockY, current.blockZ);
+
         // Triggers OnBreak
         if(blockCode <= ushort.MaxValue/2)
           loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
         else
           loader.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-
-        // Actually breaks new block and updates chunk
-        loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
-        loader.chunks[toUpdate].metadata.Reset(current.blockX, current.blockY, current.blockZ);
 
         // Passes "break" block update to neighboring blocks IF object doesn't implement it OnBreak
         EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);

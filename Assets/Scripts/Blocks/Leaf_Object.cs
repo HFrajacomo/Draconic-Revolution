@@ -15,7 +15,7 @@ public class Leaf_Object : BlocklikeObject
 
 	public Leaf_Object(){
 		this.name = "Leaf";
-		this.solid = true;
+		this.solid = false;
 		this.transparent = true;
 		this.invisible = false;
 		this.liquid = false;
