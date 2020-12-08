@@ -19,6 +19,8 @@ public class Wood_Block : Blocks
 	List<CastCoord> validDirections = new List<CastCoord>();
 	List<CastCoord> toDestroy = new List<CastCoord>();
 
+	int maxAnalysed = 100;
+
 
 	int decayDistance = 7;
 	ushort assignedLeafCode = ushort.MaxValue-1;
@@ -48,6 +50,14 @@ public class Wood_Block : Blocks
 
 		return 0;
 	}
+
+	// Makes Wood Block have state 1 when unnaturally placed
+	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){
+		cl.chunks[pos].metadata.SetState(blockX, blockY, blockZ, 1);
+		return 0;
+	}
+
+
 
 	// Does Search for invalid leaves
 	private void RunLeavesRecursion(ChunkLoader cl, CastCoord init){
@@ -201,6 +211,7 @@ public class Wood_Block : Blocks
 	// Handles search of Wood Blocks
 	private void RunWoodRecursion(ChunkLoader cl){
 		CastCoord current;
+		int exitCode;
 
 		currentList.Clear();
 		safeList.Clear();
@@ -211,13 +222,21 @@ public class Wood_Block : Blocks
 			validDirections.RemoveAt(0);
 
 			// If found to-destroy blocks
-			if(SearchWood(current, cl)){
+			exitCode = SearchWood(current, cl);
+
+			// Safe
+			if(exitCode == 0){
 				safeList.AddRange(currentList);
 				currentList.Clear();
 			}
-			else{
+			// Invalid
+			else if(exitCode == 1){
 				toDestroy.AddRange(currentList);
 				currentList.Clear();
+			}
+			// PANIC
+			else{
+				return;
 			}
 		}
 
@@ -234,7 +253,7 @@ public class Wood_Block : Blocks
 	// Fills toDestroy and Safe list
 	// Returns true if all blocks in currentList are connected to a stem
 	// Returns false if all blocks in currentList doesn't connect to a stem or connects to a to-be-destroyed block
-	private bool SearchWood(CastCoord init, ChunkLoader cl){
+	private int SearchWood(CastCoord init, ChunkLoader cl){
 		ushort blockCode;
 		ushort state;
 
@@ -244,17 +263,23 @@ public class Wood_Block : Blocks
 		for(int i=0; i < currentList.Count; i++){
 			// If it's connected to a marked-to-destroy block
 			if(toDestroy.Contains(currentList[i])){
-				return false;
+				return 1;
 			}
 
 			// If it's connected to a safe block
 			if(safeList.Contains(currentList[i])){
-				return true;
+				return 0;
 			}
 
 			// If current block is found in initial direction
 			if(validDirections.Contains(currentList[i])){
 				validDirections.Remove(currentList[i]);
+			}
+
+			// PANIC if there's too many blocks
+			if(currentList.Count > this.maxAnalysed){
+				currentList.Clear();
+				return 2;
 			}
 
 			blockCode = cl.GetBlock(currentList[i]);
@@ -267,87 +292,118 @@ public class Wood_Block : Blocks
 			
 			// Check if it's a root
 			else if(cl.blockBook.CheckSolid(blockCode)){
-				return true;
+				return 0;
 			}
 			else{
 				currentList.RemoveAt(i);
 				i--;
 			}
 		}
-		return false;
+		return 1;
 	}
 
 	// Adds around coords to currentList
 	private void GetAroundCoords(CastCoord pos, ChunkLoader cl){
 		CastCoord aux;
+		ushort blockCode;
 
 		aux = pos.Add(0,0,1); // N
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
-				currentList.Add(aux);
+				blockCode = cl.GetBlock(aux);
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+					currentList.Add(aux);
+				}
 			}
 		}
 
 		aux = pos.Add(1,0,1); // NE
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
-				currentList.Add(aux);
+				blockCode = cl.GetBlock(aux);
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+					currentList.Add(aux);
+				}
 			}
 		}
 
 		aux = pos.Add(1,0,0); // E
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
-				currentList.Add(aux);
+				blockCode = cl.GetBlock(aux);
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+					currentList.Add(aux);
+				}
 			}
 		}
 
 		aux = pos.Add(1,0,-1); // SE
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
-				currentList.Add(aux);
+				blockCode = cl.GetBlock(aux);
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+					currentList.Add(aux);
+				}
 			}
 		}
 
 		aux = pos.Add(0,0,-1); // S
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
-				currentList.Add(aux);
+				blockCode = cl.GetBlock(aux);
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+					currentList.Add(aux);
+				}
 			}
 		}
 
 		aux = pos.Add(-1,0,-1); // SW
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
-				currentList.Add(aux);
+				blockCode = cl.GetBlock(aux);
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+					currentList.Add(aux);
+				}
 			}
 		}
 
 		aux = pos.Add(-1,0,0); // W
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
-				currentList.Add(aux);
+				blockCode = cl.GetBlock(aux);
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+					currentList.Add(aux);
+				}
 			}
 		}
 
 		aux = pos.Add(-1,0,1); // NW
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
-				currentList.Add(aux);
+				blockCode = cl.GetBlock(aux);
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+					currentList.Add(aux);
+				}
 			}
 		}
 
 		aux = pos.Add(0,1,0); // UP
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
-				currentList.Add(aux);
+				blockCode = cl.GetBlock(aux);
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+					currentList.Add(aux);
+				}
 			}
 		}
 
 		aux = pos.Add(0,-1,0); // DOWN
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
-				currentList.Add(aux);
+				blockCode = cl.GetBlock(aux);
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+					currentList.Add(aux);
+				}
 			}
 		}	
 	}

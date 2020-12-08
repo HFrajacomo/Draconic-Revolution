@@ -25,6 +25,12 @@ public class Leaf_Object : BlocklikeObject
 		this.scaling = new Vector3(50, 50, 50);
 	}
 
+	// Makes Wood Block have state 1 when unnaturally placed
+	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){
+		cl.chunks[pos].metadata.SetState(blockX, blockY, blockZ, 1);
+		return 0;
+	}
+
 	// Triggers DECAY BUD on this block
 	public override void OnBlockUpdate(string type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){
 		if(type == "decay"){
