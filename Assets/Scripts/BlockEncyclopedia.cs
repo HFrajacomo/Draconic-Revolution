@@ -69,7 +69,7 @@ public class BlockEncyclopedia : MonoBehaviour
 
     // Gets washable value from block
     public bool CheckWashable(ushort code){
-        if(code >= 0)
+        if(code <= ushort.MaxValue/2)
             return blocks[code].washable;
         else
             return objects[ushort.MaxValue - code].washable;

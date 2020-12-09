@@ -933,7 +933,16 @@ public class Water_Block : Blocks
 
 	// Emits BUD Signal to Water Blocks around this one
 	private void EmitWaterBUD(int myX, int myY, int myZ, ChunkLoader cl){
-		for(int i=0; i<8; i++){
+		// Diagonals
+		for(int i=1; i<8; i+=2){
+			if(this.aroundCodes[i] == this.waterCode){
+				cachedPos = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
+				cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);
+			}
+		}
+		// Adjascents
+		for(int i=0; i<8; i+=2){
 			if(this.aroundCodes[i] == this.waterCode){
 				cachedPos = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
 				cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);

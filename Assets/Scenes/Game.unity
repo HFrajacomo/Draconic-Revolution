@@ -431,7 +431,7 @@ MonoBehaviour:
   cam: {fileID: 1912773808}
   reach: 4
   step: 0.025
-  blockToBePlaced: 65535
+  blockToBePlaced: 6
   placeState: 0
   control: {fileID: 1635249984}
   facing: 0

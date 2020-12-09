@@ -133,121 +133,73 @@ public class Torch_Object : BlocklikeObject
 	public override bool PlacementRule(ChunkPos pos, int x, int y, int z, int direction, ChunkLoader cl){	
 		// If is stuck to walls
 		if(direction <= 3 && direction >= 0){
-			int blockCode;
+			ushort blockCode;
 			if(direction == 2){
 				if(x > 0){
 					blockCode = cl.chunks[pos].data.GetCell(x-1,y,z);
-					if(blockCode >= 0){
-						if(cl.blockBook.blocks[blockCode].solid){
-							return true;
-						}
-					}
-					else{
-						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
-							return true;
-						}
-					}
+					if(cl.blockBook.CheckSolid(blockCode))
+						return true;
+					else
+						return false;
 				}
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x-1, pos.z);
 					blockCode = cl.chunks[newPos].data.GetCell(Chunk.chunkWidth-1,y,z);
-					if(blockCode >= 0){
-						if(cl.blockBook.blocks[blockCode].solid){
-							return true;
-						}
-					}
-					else{
-						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
-							return true;
-						}
-					}
+					if(cl.blockBook.CheckSolid(blockCode))
+						return true;
+					else
+						return false;
 				}
 			}
 			else if(direction == 0){
 				if(x < Chunk.chunkWidth-1){
 					blockCode = cl.chunks[pos].data.GetCell(x+1,y,z);
-					if(blockCode >= 0){
-						if(cl.blockBook.blocks[blockCode].solid){
-							return true;
-						}
-					}
-					else{
-						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
-							return true;
-						}
-					}
+					if(cl.blockBook.CheckSolid(blockCode))
+						return true;
+					else
+						return false;
 				}
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x+1, pos.z);
 					blockCode = cl.chunks[newPos].data.GetCell(0,y,z);
-					if(blockCode >= 0){
-						if(cl.blockBook.blocks[blockCode].solid){
-							return true;
-						}
-					}
-					else{
-						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
-							return true;
-						}
-					}
+					if(cl.blockBook.CheckSolid(blockCode))
+						return true;
+					else
+						return false;
 				}
 			}
 			else if(direction == 3){
 				if(z < Chunk.chunkWidth-1){
 					blockCode = cl.chunks[pos].data.GetCell(x,y,z+1);
-					if(blockCode >= 0){
-						if(cl.blockBook.blocks[blockCode].solid){
-							return true;
-						}
-					}
-					else{
-						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
-							return true;
-						}
-					}
+					if(cl.blockBook.CheckSolid(blockCode))
+						return true;
+					else
+						return false;
 				}
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x, pos.z+1);
 					blockCode = cl.chunks[newPos].data.GetCell(x,y,0);
-					if(blockCode >= 0){
-						if(cl.blockBook.blocks[blockCode].solid){
-							return true;
-						}
-					}
-					else{
-						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
-							return true;
-						}
-					}
+					if(cl.blockBook.CheckSolid(blockCode))
+						return true;
+					else
+						return false;
 				}
 			}
 			else if(direction == 1){
 				if(z > 0){
 					blockCode = cl.chunks[pos].data.GetCell(x,y,z-1);
-					if(blockCode >= 0){
-						if(cl.blockBook.blocks[blockCode].solid){
-							return true;
-						}
-					}
-					else{
-						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
-							return true;
-						}
-					}
+					if(cl.blockBook.CheckSolid(blockCode))
+						return true;
+					else
+						return false;
 				}
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x, pos.z-1);
 					blockCode = cl.chunks[newPos].data.GetCell(x,y,Chunk.chunkWidth-1);
-					if(blockCode >= 0){
-						if(cl.blockBook.blocks[blockCode].solid){
-							return true;
-						}
-					}
-					else{
-						if(cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
-							return true;
-						}
-					}
+					if(cl.blockBook.CheckSolid(blockCode))
+						return true;
+					else
+						return false;
 				}
 			}
 		}

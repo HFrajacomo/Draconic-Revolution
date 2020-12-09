@@ -1197,6 +1197,7 @@ public class ChunkLoader : MonoBehaviour
             }
         }
         // Add Water
+        
         if(!xTransition && !zTransition && !xzTransition){
             // Water in Cache 4
             GenerateFlatMapJob gfmJob = new GenerateFlatMapJob{
@@ -1661,6 +1662,7 @@ public class ChunkLoader : MonoBehaviour
         codes.Add(1);
 
         // Add Water
+        
         if(xTransition){
             if(waterLevels[currentBiome] >= waterLevels[xBiome]){
                 // Water in Cache 4
@@ -1704,6 +1706,8 @@ public class ChunkLoader : MonoBehaviour
                 codes.Add(6);
             }
         }
+
+
 
         // Sets state dict
         stateDict.Add(6, 0);
