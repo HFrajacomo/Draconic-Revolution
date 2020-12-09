@@ -26,6 +26,7 @@ WATER STATES:
 18: NorthWest1
 19: Falling3
 20: Falling2
+21: Falling1
 */
 
 public class Water_Block : Blocks
@@ -140,6 +141,7 @@ public class Water_Block : Blocks
 			/* Directional Level 1 State 
 			 Deletes if not any highlevel water around */
 			if(thisState >= 11 && thisState <= 18){
+				ushort below = GetCodeBelow(myX, myY, myZ, cl);
 
 				// If lone directional level 1 water
 				if(!CheckHigherLevelWaterAround(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1, cl)){
@@ -147,6 +149,30 @@ public class Water_Block : Blocks
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 					return;
 				}
+
+				// If should be upgraded to Still Level 2
+				else if(GetHighLevelAroundCount(myX, myY, myZ, 1, cl, nofalling:true) >= 2){
+					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
+					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
+					return;
+				}
+
+				// Turns Mid to Low level water below into falling 1
+				else if(below == this.waterCode && (TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) == 2 || TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) == 1)){
+					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 21);
+					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+					return;					
+				}
+
+				// Turns Air below into falling 1
+				else if(below == 0){
+					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, this.waterCode);
+					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, 21);
+					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, -1, cl);
+					return;					
+				}
+
 			}
 
 			/* Still Level 1 State
@@ -282,6 +308,14 @@ public class Water_Block : Blocks
 					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, -1, cl);
 					return;
 				}
+				// If there's is a Directional Level 2 below, turns below into Falling 2
+				else if(below == this.waterCode && (TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) == 2 || TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) == 1)){
+					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 20);
+					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+					return;					
+				}
+
 				// Dies if no Still 3 around
 				else if(!CheckHigherLevelWaterAround(myX, myY, myZ, 2, cl)){
 					this.breakFLAG = true;
@@ -696,6 +730,42 @@ public class Water_Block : Blocks
 					}					
 				}				
 			}
+
+			/*
+			Falling 1
+			*/
+			else if(thisState == 21){
+				bool die = false;
+				ushort below = GetCodeBelow(myX, myY, myZ, cl);
+				int above = GetCodeAbove(myX, myY, myZ, cl);
+				ushort newState = GetStateBelow(myX, myY, myZ, cl);
+
+				// Do nothing if water is above and below
+				if(above == this.waterCode && below == this.waterCode && newState == 1){
+					return;
+				}
+
+				// If needs to spawn more falling blocks (no return to check if alive)
+				if(below == 0 || (below == this.waterCode && TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) < 3)){
+					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+
+					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
+					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 20);
+					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+					die = true;
+				}
+
+				// If not alive
+				if(above != this.waterCode){
+					this.breakFLAG = true;
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
+					return;
+				}
+
+				if(die)
+					return;
+			}
 		}
 	}
 
@@ -718,23 +788,24 @@ public class Water_Block : Blocks
 		return cl.chunks[cord.GetChunkPos()].metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
 	}
 
-	// Gets Code of block above
-	private int GetCodeAbove(int myX, int myY, int myZ, ChunkLoader cl){
-		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
-		if(myY+1 >= Chunk.chunkDepth)
-			return int.MaxValue;
-
-		return cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
-	}
-
 	// Gets State of block above
 	private ushort GetStateAbove(int myX, int myY, int myZ, ChunkLoader cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
-		if(myY+1 < 0)
+		if(myY+1 < Chunk.chunkDepth)
 			return ushort.MaxValue;
 
 		return cl.chunks[cord.GetChunkPos()].metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
 	}
+
+	// Gets Code of block above
+	private ushort GetCodeAbove(int myX, int myY, int myZ, ChunkLoader cl){
+		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
+		if(myY+1 >= Chunk.chunkDepth)
+			return ushort.MaxValue;
+
+		return cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+	}
+
 
 	// Gets a list of block codes of around blocks
 	// Order is N Clockwise
@@ -858,7 +929,7 @@ public class Water_Block : Blocks
 			return 1;
 		else if(state == 1 || (state >= 3 && state <= 10))
 			return 2;
-		else if(state == 0 || state == 19 || state == 20)
+		else if(state == 0 || state == 19 || state == 20 || state == 21)
 			return 3;
 		else
 			return 0;
@@ -892,7 +963,7 @@ public class Water_Block : Blocks
 	private int GetHighLevelAroundCount(int x, int y, int z, int currentWaterLevel, ChunkLoader cl, bool nofalling=false){
 		int count=0;
 
-		if(nofalling){
+		if(!nofalling){
 			for(int i=0; i<8; i+=2){
 				if(this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) > currentWaterLevel){
 					count++;
@@ -910,14 +981,31 @@ public class Water_Block : Blocks
 		return count;
 	}
 
-	// Checks the amount of same level water ONLY IN ADJASCENT blocks
+	// Checks the amount of same level water ONLY IN ADJASCENT blocks disconsidering Falling Blocks
 	private int GetSameLevelAroundCount(int x, int y, int z, int currentWaterLevel, ChunkLoader cl){
 		int count=0;
+		GetStateAround(x,y,z,cl);
 
-		for(int i=0; i<8; i+=2){
-			if(this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) == 3){
-				count++;
-			}				
+		if(currentWaterLevel == 1){
+			for(int i=0; i<8; i+=2){
+				if(this.aroundCodes[i] == this.waterCode && this.aroundStates[i] == 2){
+					count++;
+				}
+			}
+		}
+		if(currentWaterLevel == 2){
+			for(int i=0; i<8; i+=2){
+				if(this.aroundCodes[i] == this.waterCode && this.aroundStates[i] == 1){
+					count++;
+				}
+			}
+		}
+		if(currentWaterLevel == 3){
+			for(int i=0; i<8; i+=2){
+				if(this.aroundCodes[i] == this.waterCode && this.aroundStates[i] == 0){
+					count++;
+				}
+			}
 		}
 
 		return count;
