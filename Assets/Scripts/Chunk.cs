@@ -1565,7 +1565,7 @@ public struct BuildBorderJob : IJob{
         if(s == ushort.MaxValue)
             s = 0;
 
-		if(s == 19 || s == 20){
+		if(s == 19 || s == 20 || s == 21){
 		    for (int i = 0; i < fv.Length; i++)
 		    {
 		      fv[i] = (LiquidMeshData.verticesOnState[(19*8)+LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
