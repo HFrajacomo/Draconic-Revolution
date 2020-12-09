@@ -75,4 +75,12 @@ public class BlockEncyclopedia : MonoBehaviour
             return objects[ushort.MaxValue - code].washable;
     }
 
+    // Gets name of given code
+    public string CheckName(ushort code){
+        if(code <= ushort.MaxValue/2)
+            return blocks[code].name;
+        else
+            return objects[ushort.MaxValue - code].name;
+    }
+
 }

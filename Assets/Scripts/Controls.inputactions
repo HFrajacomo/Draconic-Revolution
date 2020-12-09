@@ -108,6 +108,78 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "Press"
+                },
+                {
+                    "name": "ToggleHUD",
+                    "type": "Button",
+                    "id": "e65e0f1c-4dc0-4fc2-92f3-ae6f3b5148e2",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "Scroll1",
+                    "type": "Button",
+                    "id": "e5a12e99-f7e6-497c-af79-f41b25cbceda",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "Scroll2",
+                    "type": "Button",
+                    "id": "81e7f2d2-5958-45a9-9e56-e35f0629b8c8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "Scroll3",
+                    "type": "Button",
+                    "id": "08576c05-01ac-4c94-b319-3b3e47a753e8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "Scroll4",
+                    "type": "Button",
+                    "id": "bdca2870-ddd3-4079-af4c-3055ba9d80c8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "Scroll5",
+                    "type": "Button",
+                    "id": "53d832f3-3fe0-41c7-bfbd-48323ceff3d7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "Scroll6",
+                    "type": "Button",
+                    "id": "1eec7ff8-febc-4bbb-b03b-f39924d4ff8f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "Scroll7",
+                    "type": "Button",
+                    "id": "ac118276-3d83-48cc-ba46-d1164849a329",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "Scroll8",
+                    "type": "Button",
+                    "id": "cdfdb68f-21e9-483a-90b5-0573e541b500",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
                 }
             ],
             "bindings": [
@@ -295,6 +367,105 @@
                     "processors": "",
                     "groups": "Keyboard and Mouse",
                     "action": "DebugKey",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "65d27db9-ac78-424f-8490-4356089b6d41",
+                    "path": "<Keyboard>/f1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "ToggleHUD",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "dcd5e309-8471-4a49-afcd-6331b35805e4",
+                    "path": "<Keyboard>/1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Scroll1",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1594b20d-6b80-4978-8408-2102d15b614b",
+                    "path": "<Keyboard>/2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Scroll2",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "aac77255-df29-4cf0-baf1-0da125d7ddbf",
+                    "path": "<Keyboard>/3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Scroll3",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8a8888f0-4071-4c75-b1c8-ba0a14e65552",
+                    "path": "<Keyboard>/4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Scroll4",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ef907ebb-6ee7-4929-9d53-6baf42517d65",
+                    "path": "<Keyboard>/5",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Scroll5",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2d6c91d3-6f95-4a6a-90b7-083a47850da8",
+                    "path": "<Keyboard>/6",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Scroll6",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b8794cad-8df8-4107-a1b7-238c830bbb0e",
+                    "path": "<Keyboard>/7",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Scroll7",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b0a9fca5-3d12-4acf-b686-c4d6682dd814",
+                    "path": "<Keyboard>/8",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Scroll8",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

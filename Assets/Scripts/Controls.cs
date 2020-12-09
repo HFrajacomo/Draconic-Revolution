@@ -121,6 +121,78 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""ToggleHUD"",
+                    ""type"": ""Button"",
+                    ""id"": ""e65e0f1c-4dc0-4fc2-92f3-ae6f3b5148e2"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Scroll1"",
+                    ""type"": ""Button"",
+                    ""id"": ""e5a12e99-f7e6-497c-af79-f41b25cbceda"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Scroll2"",
+                    ""type"": ""Button"",
+                    ""id"": ""81e7f2d2-5958-45a9-9e56-e35f0629b8c8"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Scroll3"",
+                    ""type"": ""Button"",
+                    ""id"": ""08576c05-01ac-4c94-b319-3b3e47a753e8"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Scroll4"",
+                    ""type"": ""Button"",
+                    ""id"": ""bdca2870-ddd3-4079-af4c-3055ba9d80c8"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Scroll5"",
+                    ""type"": ""Button"",
+                    ""id"": ""53d832f3-3fe0-41c7-bfbd-48323ceff3d7"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Scroll6"",
+                    ""type"": ""Button"",
+                    ""id"": ""1eec7ff8-febc-4bbb-b03b-f39924d4ff8f"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Scroll7"",
+                    ""type"": ""Button"",
+                    ""id"": ""ac118276-3d83-48cc-ba46-d1164849a329"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Scroll8"",
+                    ""type"": ""Button"",
+                    ""id"": ""cdfdb68f-21e9-483a-90b5-0573e541b500"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
                 }
             ],
             ""bindings"": [
@@ -310,6 +382,105 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""action"": ""DebugKey"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""65d27db9-ac78-424f-8490-4356089b6d41"",
+                    ""path"": ""<Keyboard>/f1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""ToggleHUD"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""dcd5e309-8471-4a49-afcd-6331b35805e4"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Scroll1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1594b20d-6b80-4978-8408-2102d15b614b"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Scroll2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""aac77255-df29-4cf0-baf1-0da125d7ddbf"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Scroll3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8a8888f0-4071-4c75-b1c8-ba0a14e65552"",
+                    ""path"": ""<Keyboard>/4"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Scroll4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ef907ebb-6ee7-4929-9d53-6baf42517d65"",
+                    ""path"": ""<Keyboard>/5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Scroll5"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2d6c91d3-6f95-4a6a-90b7-083a47850da8"",
+                    ""path"": ""<Keyboard>/6"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Scroll6"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b8794cad-8df8-4107-a1b7-238c830bbb0e"",
+                    ""path"": ""<Keyboard>/7"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Scroll7"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b0a9fca5-3d12-4acf-b686-c4d6682dd814"",
+                    ""path"": ""<Keyboard>/8"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Scroll8"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -348,6 +519,15 @@ public class @Controls : IInputActionCollection, IDisposable
         m_Player_Shifting = m_Player.FindAction("Shifting", throwIfNotFound: true);
         m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
         m_Player_DebugKey = m_Player.FindAction("DebugKey", throwIfNotFound: true);
+        m_Player_ToggleHUD = m_Player.FindAction("ToggleHUD", throwIfNotFound: true);
+        m_Player_Scroll1 = m_Player.FindAction("Scroll1", throwIfNotFound: true);
+        m_Player_Scroll2 = m_Player.FindAction("Scroll2", throwIfNotFound: true);
+        m_Player_Scroll3 = m_Player.FindAction("Scroll3", throwIfNotFound: true);
+        m_Player_Scroll4 = m_Player.FindAction("Scroll4", throwIfNotFound: true);
+        m_Player_Scroll5 = m_Player.FindAction("Scroll5", throwIfNotFound: true);
+        m_Player_Scroll6 = m_Player.FindAction("Scroll6", throwIfNotFound: true);
+        m_Player_Scroll7 = m_Player.FindAction("Scroll7", throwIfNotFound: true);
+        m_Player_Scroll8 = m_Player.FindAction("Scroll8", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -410,6 +590,15 @@ public class @Controls : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_Shifting;
     private readonly InputAction m_Player_Reload;
     private readonly InputAction m_Player_DebugKey;
+    private readonly InputAction m_Player_ToggleHUD;
+    private readonly InputAction m_Player_Scroll1;
+    private readonly InputAction m_Player_Scroll2;
+    private readonly InputAction m_Player_Scroll3;
+    private readonly InputAction m_Player_Scroll4;
+    private readonly InputAction m_Player_Scroll5;
+    private readonly InputAction m_Player_Scroll6;
+    private readonly InputAction m_Player_Scroll7;
+    private readonly InputAction m_Player_Scroll8;
     public struct PlayerActions
     {
         private @Controls m_Wrapper;
@@ -427,6 +616,15 @@ public class @Controls : IInputActionCollection, IDisposable
         public InputAction @Shifting => m_Wrapper.m_Player_Shifting;
         public InputAction @Reload => m_Wrapper.m_Player_Reload;
         public InputAction @DebugKey => m_Wrapper.m_Player_DebugKey;
+        public InputAction @ToggleHUD => m_Wrapper.m_Player_ToggleHUD;
+        public InputAction @Scroll1 => m_Wrapper.m_Player_Scroll1;
+        public InputAction @Scroll2 => m_Wrapper.m_Player_Scroll2;
+        public InputAction @Scroll3 => m_Wrapper.m_Player_Scroll3;
+        public InputAction @Scroll4 => m_Wrapper.m_Player_Scroll4;
+        public InputAction @Scroll5 => m_Wrapper.m_Player_Scroll5;
+        public InputAction @Scroll6 => m_Wrapper.m_Player_Scroll6;
+        public InputAction @Scroll7 => m_Wrapper.m_Player_Scroll7;
+        public InputAction @Scroll8 => m_Wrapper.m_Player_Scroll8;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -475,6 +673,33 @@ public class @Controls : IInputActionCollection, IDisposable
                 @DebugKey.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDebugKey;
                 @DebugKey.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDebugKey;
                 @DebugKey.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDebugKey;
+                @ToggleHUD.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleHUD;
+                @ToggleHUD.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleHUD;
+                @ToggleHUD.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnToggleHUD;
+                @Scroll1.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll1;
+                @Scroll1.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll1;
+                @Scroll1.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll1;
+                @Scroll2.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll2;
+                @Scroll2.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll2;
+                @Scroll2.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll2;
+                @Scroll3.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll3;
+                @Scroll3.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll3;
+                @Scroll3.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll3;
+                @Scroll4.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll4;
+                @Scroll4.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll4;
+                @Scroll4.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll4;
+                @Scroll5.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll5;
+                @Scroll5.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll5;
+                @Scroll5.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll5;
+                @Scroll6.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll6;
+                @Scroll6.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll6;
+                @Scroll6.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll6;
+                @Scroll7.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll7;
+                @Scroll7.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll7;
+                @Scroll7.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll7;
+                @Scroll8.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll8;
+                @Scroll8.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll8;
+                @Scroll8.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll8;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -518,6 +743,33 @@ public class @Controls : IInputActionCollection, IDisposable
                 @DebugKey.started += instance.OnDebugKey;
                 @DebugKey.performed += instance.OnDebugKey;
                 @DebugKey.canceled += instance.OnDebugKey;
+                @ToggleHUD.started += instance.OnToggleHUD;
+                @ToggleHUD.performed += instance.OnToggleHUD;
+                @ToggleHUD.canceled += instance.OnToggleHUD;
+                @Scroll1.started += instance.OnScroll1;
+                @Scroll1.performed += instance.OnScroll1;
+                @Scroll1.canceled += instance.OnScroll1;
+                @Scroll2.started += instance.OnScroll2;
+                @Scroll2.performed += instance.OnScroll2;
+                @Scroll2.canceled += instance.OnScroll2;
+                @Scroll3.started += instance.OnScroll3;
+                @Scroll3.performed += instance.OnScroll3;
+                @Scroll3.canceled += instance.OnScroll3;
+                @Scroll4.started += instance.OnScroll4;
+                @Scroll4.performed += instance.OnScroll4;
+                @Scroll4.canceled += instance.OnScroll4;
+                @Scroll5.started += instance.OnScroll5;
+                @Scroll5.performed += instance.OnScroll5;
+                @Scroll5.canceled += instance.OnScroll5;
+                @Scroll6.started += instance.OnScroll6;
+                @Scroll6.performed += instance.OnScroll6;
+                @Scroll6.canceled += instance.OnScroll6;
+                @Scroll7.started += instance.OnScroll7;
+                @Scroll7.performed += instance.OnScroll7;
+                @Scroll7.canceled += instance.OnScroll7;
+                @Scroll8.started += instance.OnScroll8;
+                @Scroll8.performed += instance.OnScroll8;
+                @Scroll8.canceled += instance.OnScroll8;
             }
         }
     }
@@ -546,5 +798,14 @@ public class @Controls : IInputActionCollection, IDisposable
         void OnShifting(InputAction.CallbackContext context);
         void OnReload(InputAction.CallbackContext context);
         void OnDebugKey(InputAction.CallbackContext context);
+        void OnToggleHUD(InputAction.CallbackContext context);
+        void OnScroll1(InputAction.CallbackContext context);
+        void OnScroll2(InputAction.CallbackContext context);
+        void OnScroll3(InputAction.CallbackContext context);
+        void OnScroll4(InputAction.CallbackContext context);
+        void OnScroll5(InputAction.CallbackContext context);
+        void OnScroll6(InputAction.CallbackContext context);
+        void OnScroll7(InputAction.CallbackContext context);
+        void OnScroll8(InputAction.CallbackContext context);
     }
 }

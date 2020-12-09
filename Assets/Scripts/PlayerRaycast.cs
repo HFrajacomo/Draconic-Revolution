@@ -3,6 +3,8 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class PlayerRaycast : MonoBehaviour
 {
@@ -17,9 +19,9 @@ public class PlayerRaycast : MonoBehaviour
 	private CastCoord lastCoord;
 
 
-  // DEBUG
-  public ushort blockToBePlaced = 6;
-  public ushort placeState = 0;
+  // Selected Block
+  public ushort blockToBePlaced = 1;
+  public TextMeshProUGUI blockNameUI;
 
   // Prefab System
   private bool prefabSetFlag = false;
@@ -42,6 +44,12 @@ public class PlayerRaycast : MonoBehaviour
 	5 = Y+ => ground
 	*/
 	public int facing;
+
+
+    public void Start(){
+      this.blockToBePlaced = 1;
+      blockNameUI.text = "Grass";
+    }
 
     // Update is called once per frame
     void Update()
@@ -99,7 +107,7 @@ public class PlayerRaycast : MonoBehaviour
 
       // Click to place block
       if(control.secondaryAction){
-      	PlaceBlock(blockToBePlaced, placeState);
+      	PlaceBlock(blockToBePlaced);
         control.secondaryAction = false;
       }
 
@@ -209,7 +217,7 @@ public class PlayerRaycast : MonoBehaviour
     }
 
     // Block Placing mechanic
-    private void PlaceBlock(ushort blockCode, ushort state){
+    private void PlaceBlock(ushort blockCode){
       int translatedBlockCode;
       bool isAsset;
 
@@ -267,7 +275,6 @@ public class PlayerRaycast : MonoBehaviour
       else{
         // Actually places block/asset into terrain
         loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-        loader.chunks[toUpdate].metadata.SetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, state);
 
         if(blockCode <= ushort.MaxValue/2){
           loader.blockBook.blocks[blockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
@@ -298,6 +305,41 @@ public class PlayerRaycast : MonoBehaviour
       // Actual handling of message
       CallbackHandler(callback, toUpdate, current, facing);
     }
+
+    public void Scroll1(){
+      this.blockToBePlaced = 1;
+      blockNameUI.text = loader.blockBook.CheckName(1);
+    }
+    public void Scroll2(){
+      this.blockToBePlaced = 2;
+      blockNameUI.text = loader.blockBook.CheckName(2);
+    }
+    public void Scroll3(){
+      this.blockToBePlaced = 3;
+      blockNameUI.text = loader.blockBook.CheckName(3);
+    }
+    public void Scroll4(){
+      this.blockToBePlaced = 4;
+      blockNameUI.text = loader.blockBook.CheckName(4);
+    }
+    public void Scroll5(){
+      this.blockToBePlaced = 5;
+      blockNameUI.text = loader.blockBook.CheckName(5);
+    }
+    public void Scroll6(){
+      this.blockToBePlaced = 6;
+      blockNameUI.text = loader.blockBook.CheckName(6);
+    }
+    public void Scroll7(){
+      this.blockToBePlaced = ushort.MaxValue;
+      blockNameUI.text = loader.blockBook.CheckName(ushort.MaxValue);
+    }
+    public void Scroll8(){
+      this.blockToBePlaced = ushort.MaxValue-1;
+      blockNameUI.text = loader.blockBook.CheckName(ushort.MaxValue-1);
+    }
+
+
 
     // Runs Prefab read and returns the arrays needed to create the prefab
     private void PrefabRead(bool blockBased){
