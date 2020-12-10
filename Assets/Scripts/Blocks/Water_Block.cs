@@ -97,8 +97,10 @@ public class Water_Block : Blocks
 		cl.budscheduler.ScheduleBUD(new BUDSignal("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing), this.viscosityDelay);
 		
 		// If has been placed by player
-		if(facing >= 0)
+		if(facing >= 0){
+			cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z);
 			this.EmitBlockUpdate("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing, cl);
+		}
 
 		cl.budscheduler.ScheduleReload(pos, 0);
 		
@@ -548,7 +550,7 @@ public class Water_Block : Blocks
 				// If not alive
 				if(above != this.waterCode){
 					this.breakFLAG = true;
-					this.OnBreak(thisPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+					this.OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}

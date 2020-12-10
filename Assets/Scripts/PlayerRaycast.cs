@@ -256,18 +256,10 @@ public class PlayerRaycast : MonoBehaviour
         }
       }
 
-      // Applies OnPlace operation for given block
-      if(!isAsset)
-        loader.blockBook.blocks[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
-      else{
-        loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
-      }
- 
-
       // If doesn't have special place handling
       if(!loader.blockBook.CheckCustomPlace(blockCode)){
         // Actually places block/asset into terrain
-  		  loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+        loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
         loader.budscheduler.ScheduleReload(toUpdate, 0);
       }
 
@@ -284,6 +276,13 @@ public class PlayerRaycast : MonoBehaviour
           loader.regionHandler.SaveChunk(loader.chunks[toUpdate]);
         }
 
+      }
+
+      // Applies OnPlace operation for given block
+      if(!isAsset)
+        loader.blockBook.blocks[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
+      else{
+        loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
       }
     }
 

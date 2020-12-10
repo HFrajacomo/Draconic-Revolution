@@ -124,7 +124,7 @@ public class ChunkLoader : MonoBehaviour
 
     	UnloadChunk();
 
-        if(toLoad.Count > 0)
+        if(toLoad.Count > 0 && toDraw.Count <= toLoad.Count*3)
             LoadChunk();
         else if(Structure.reloadChunks.Count > 0)
             SavePregenChunk();
