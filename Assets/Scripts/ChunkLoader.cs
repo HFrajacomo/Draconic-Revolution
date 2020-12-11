@@ -124,7 +124,7 @@ public class ChunkLoader : MonoBehaviour
 
     	UnloadChunk();
 
-        if(toLoad.Count > 0 && toDraw.Count <= toLoad.Count*3)
+        if(toLoad.Count > 0 && toDraw.Count <= this.renderDistance*2)
             LoadChunk();
         else if(Structure.reloadChunks.Count > 0)
             SavePregenChunk();
@@ -291,7 +291,10 @@ public class ChunkLoader : MonoBehaviour
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
                 chunks[toDraw[0]].BuildChunk(load:true);
-                chunks[toDraw[0]].BuildSideBorder(reload:true);
+                // If hasn't been drawn entirely, put on Redraw List
+                if(!chunks[toDraw[0]].BuildSideBorder(reload:true)){
+                    toRedraw.Add(toDraw[0]);
+                }
             }
             toDraw.RemoveAt(0);
         }
@@ -305,13 +308,16 @@ public class ChunkLoader : MonoBehaviour
 
             if(chunks.ContainsKey(toRedraw[0])){
                 if(chunks[toRedraw[0]].drawMain){
-                    chunks[toRedraw[0]].BuildSideBorder();
+                    // If hasn't been drawn entirely, put on Redraw again
+                    if(!chunks[toRedraw[0]].BuildSideBorder()){
+                        toRedraw.Add(toRedraw[0]);
+                    }
                 }
                 else{
                     toRedraw.Add(toRedraw[0]);
                 }
-                toRedraw.RemoveAt(0);
             }
+            toRedraw.RemoveAt(0);
         }
 
     }

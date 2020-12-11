@@ -24,22 +24,22 @@ public class BiomeHandler
 
 		biomeHandlerData = new BiomeHandlerData(amountOfBiomes);
 
-		Biome plains = new Biome("Plains", 0, 0f, 0f, 0f, 0f, 22, //0, 0.3f, 0.5f, 0.6f, 1f, 22,
+		Biome plains = new Biome("Plains", 0, 0.3f, 0.5f, 0.6f, 1f, 22,
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,3,2, 4},
 		 new List<float>(){0.1f, 0.05f, 1f, 1f, 0.01f, 1f, 1f, 1f});
 
-		Biome grassyHighlands = new Biome("Grassy Highlands", 1, 1f, 0f, 0f, 0f, 42, //1, 0.7f, 0.5f, 0.6f, 0.9f, 42,
+		Biome grassyHighlands = new Biome("Grassy Highlands", 1, 0.7f, 0.5f, 0.6f, 0.9f, 42,
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,5,4, 8},
 		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.02f, 1f, 1f, 1f});
 
-		Biome ocean = new Biome("Ocean", 2, 0f, 1f, 1f, 0f, 20, //  2, 0f, 1f, 0.5f, 0.3f, 20,
+		Biome ocean = new Biome("Ocean", 2, 0f, 1f, 0.5f, 0.3f, 20,
 		 new List<int>(){},
 		 new List<int>(){},
 		 new List<float>(){});
 
-		Biome forest = new Biome("Forest", 3, 0.5f, 1f, 0f, 1f, 21, // 3, 0.3f, 0.5f, 0.5f, 0.7f, 21,
+		Biome forest = new Biome("Forest", 3, 0.3f, 0.5f, 0.5f, 0.7f, 21,
 		 new List<int>(){6,1,2,7,8,9,10,11},
 		 new List<int>(){1,2,2,1,1,3,2, 4},
 		 new List<float>(){0.05f, 1f, 0.5f, 0.1f, 0.3f, 1f, 1f, 1f});

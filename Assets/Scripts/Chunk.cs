@@ -119,7 +119,8 @@ public class Chunk
 		this.metadata = vm;
 	}
 
-	public void BuildSideBorder(bool reload=false, bool reloadXM=false, bool reloadXP=false, bool reloadZM=false, bool reloadZP=false){
+	// Draws Chunk Borders. Returns true if all borders have been drawn, otherwise, return false.
+	public bool BuildSideBorder(bool reload=false, bool reloadXM=false, bool reloadXP=false, bool reloadZM=false, bool reloadZP=false){
 		if(reload){
 			this.xMinusDrawn = false;
 			this.xPlusDrawn = false;
@@ -138,7 +139,7 @@ public class Chunk
 
 		// If current operation CANNOT update borders
 		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
-			return;
+			return true;
 
 		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
 		NativeArray<ushort> metadata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
@@ -449,6 +450,12 @@ public class Chunk
     	this.liquidTris = null;
     	this.assetTris = null;
     	this.UVs.Clear();
+
+		// If current operation CANNOT update borders
+		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
+			return true;
+		else
+			return false;
 	}
 
 
