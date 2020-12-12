@@ -52,7 +52,7 @@ public class BUDScheduler : MonoBehaviour
     		this.currentBUDonFrame = 0;
 
     		// Pops all elements of this tick if there is still any
-    		if(this.data[this.currentTime].Count > 0){
+    		if(this.data[this.currentTime].Count > 0 || this.toReload[this.currentTime].Count > 0){
     			PassToNextTick();
     		}
 

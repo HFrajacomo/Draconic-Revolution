@@ -196,7 +196,6 @@ public class PlayerRaycast : MonoBehaviour
         else
           loader.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
 
-        // Passes "break" block update to neighboring blocks IF object doesn't implement it OnBreak
         EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
         
         loader.budscheduler.ScheduleReload(toUpdate, 0, x:current.blockX, y:current.blockY, z:current.blockZ);
@@ -227,7 +226,7 @@ public class PlayerRaycast : MonoBehaviour
         translatedBlockCode = blockCode;
 
         // Won't happen if not raycasting something or if block is in player's body or head
-        if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.blocks[translatedBlockCode].solid) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.blocks[blockCode].solid)){
+        if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.CheckSolid(blockCode))){
           return;
         }
       }
@@ -237,7 +236,7 @@ public class PlayerRaycast : MonoBehaviour
         isAsset = true;
 
         // Won't happen if not raycasting something or if block is in player's body or head
-        if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.objects[translatedBlockCode].solid) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.objects[translatedBlockCode].solid)){
+        if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.CheckSolid(blockCode))){
           return;
         }
       }

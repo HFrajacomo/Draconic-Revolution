@@ -46,6 +46,7 @@ public class ChunkLoader : MonoBehaviour
 	public bool WORLD_GENERATED = false; 
     public int reloadMemoryCounter = 30;
     public bool PLAYERSPAWNED = false;
+    public bool DRAWFLAG = false;
 
 	// Cache Information 
 	private ushort[] cacheHeightMap = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
@@ -124,7 +125,16 @@ public class ChunkLoader : MonoBehaviour
 
     	UnloadChunk();
 
-        if(toLoad.Count > 0 && toDraw.Count <= this.renderDistance*2)
+        // Decides whether DRAW Flag should be activates or deactivated
+        if(toDraw.Count > this.renderDistance){
+            this.DRAWFLAG = true;
+        }
+        else if(toDraw.Count == 0){
+            this.DRAWFLAG = false;
+        }
+
+        // Decides what to do for current tick
+        if(toLoad.Count > 0 && !this.DRAWFLAG)
             LoadChunk();
         else if(Structure.reloadChunks.Count > 0)
             SavePregenChunk();

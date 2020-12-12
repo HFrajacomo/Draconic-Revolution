@@ -22,12 +22,10 @@ public class Chunk
 	public string lastVisitedTime;
 
 	// Draw Flags
-	
 	private bool xPlusDrawn = false;
 	private bool zPlusDrawn = false;
 	private bool xMinusDrawn = false;
 	private bool zMinusDrawn = false;
-	
 	public bool drawMain = false;
 
 	// Unity Settings
