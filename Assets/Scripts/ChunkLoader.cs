@@ -48,6 +48,9 @@ public class ChunkLoader : MonoBehaviour
     public bool PLAYERSPAWNED = false;
     public bool DRAWFLAG = false;
 
+    // Debug
+    private ChunkPos debugChunk = new ChunkPos(3, -1);
+
 	// Cache Information 
 	private ushort[] cacheHeightMap = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
 	private ushort[] cacheHeightMap2 = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
@@ -155,29 +158,31 @@ public class ChunkLoader : MonoBehaviour
     // Builds Structure data in non-indexed Chunks
     private void SavePregenChunk(){
         cacheChunk = Structure.reloadChunks[0];
+        regionHandler.GetCorrectRegion(cacheChunk.pos);
 
         // If it's loaded
         if(chunks.ContainsKey(cacheChunk.pos)){
-
             cacheChunk.needsGeneration = 0;
 
             // Rough Application of Structures
             Structure.RoughApply(chunks[cacheChunk.pos], cacheChunk);
+            chunks[cacheChunk.pos] = cacheChunk;
 
             this.regionHandler.SaveChunk(cacheChunk);
 
             if(!toDraw.Contains(cacheChunk.pos))
                 toDraw.Add(cacheChunk.pos);
+            
         }
 
         // If is in an unloaded indexed chunk
         else if(this.regionHandler.GetFile().IsIndexed(cacheChunk.pos)){
-        
             Chunk c = new Chunk(cacheChunk.pos, this.rend, this.blockBook, this, fromMemory:true);
             this.regionHandler.LoadChunk(c);
 
             // Rough Application of Structures
             Structure.RoughApply(c, cacheChunk);
+
             this.regionHandler.SaveChunk(c);
         }
 
@@ -227,7 +232,6 @@ public class ChunkLoader : MonoBehaviour
                     chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
-
                 }
                 // If it's just a normally generated chunk
                 else{
@@ -235,11 +239,10 @@ public class ChunkLoader : MonoBehaviour
                     vfx.NewChunk(toLoad[0]);
                     regionHandler.LoadChunk(chunks[toLoad[0]]);
                     chunks[toLoad[0]].needsGeneration = 0;
-
                 }
             }
             // If it's a new chunk to be generated
-            else{ 
+            else{
                 chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
                 vfx.NewChunk(toLoad[0]);
                 chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0])); 
@@ -1757,10 +1760,12 @@ public class ChunkLoader : MonoBehaviour
         statedata.Dispose();
         
         // Applies Structs from other chunks
+        
         if(Structure.Exists(currentChunk)){
             Structure.RoughApply(cacheVoxdata, cacheMetadataHP, cacheMetadataState, Structure.GetChunk(currentChunk));
             Structure.RemoveChunk(currentChunk);
         }
+        
 
         // Structures
         GenerateForestStructures(currentChunk, xhash, zhash, currentBiome, (xTransition || zTransition || xzTransition));
@@ -1828,7 +1833,6 @@ public class ChunkLoader : MonoBehaviour
             else if(structCode >= 9 && structCode <= 11){ // Metal Veins
                 GenerateStructures(pos, xhash, zhash, biomeCode, structCode, 8, range:true);
             }
-
         }
     }
 

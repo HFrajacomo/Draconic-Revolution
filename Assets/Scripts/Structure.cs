@@ -20,6 +20,9 @@ public abstract class Structure
     public int sizeX, sizeY, sizeZ;
     public int offsetX, offsetZ;
 
+    // Debug
+    private ChunkPos debugChunk = new ChunkPos(3, -1);
+
     /*
     0: OverwriteAll
     1: FreeSpace
@@ -207,28 +210,23 @@ public abstract class Structure
                 // Check if it's an existing chunk
                 if(cl.regionHandler.GetFile().IsIndexed(newPos)){
                     if(Structure.Exists(newPos)){
-
                         c = Structure.GetChunk(newPos);
                         ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);
                     }
                     else{
-
                         c = new Chunk(newPos, cl.rend, cl.blockBook, cl, fromMemory:true);
                         cl.regionHandler.LoadChunk(c);
                         ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);                
-                        AddChunk(c); 
+                        AddChunk(c);
                     }
                 }
                 // Check if it's an ungenerated chunk
                 else{
-
                     if(Structure.Exists(newPos)){
-
                         c = Structure.GetChunk(newPos);
                         ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);                        
                     }
                     else{
-
                         c = new Chunk(newPos, cl.rend, cl.blockBook, cl, fromMemory:true);
                         c.biomeName = "Plains";
                         c.needsGeneration = 1;
