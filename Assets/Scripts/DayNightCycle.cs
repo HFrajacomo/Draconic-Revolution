@@ -18,11 +18,13 @@ public class DayNightCycle : MonoBehaviour
     {
     	int time = timer.ToSeconds();
 
-        skyboxLight.localRotation = Quaternion.Euler(RotationFunction(time), 0, 0);
+        skyboxLight.localRotation = Quaternion.Euler(RotationFunction(time), 270, 0);
+        /*
         counterLight.localRotation = Quaternion.Euler(RotationAssist(time), 45, 45);
         counterLight2.localRotation = Quaternion.Euler(RotationAssist(time), 135, 135);
         counterLight3.localRotation = Quaternion.Euler(RotationAssist(time), 225, 225);
         counterLight4.localRotation = Quaternion.Euler(RotationAssist(time), 315, 315);
+        */
 		//skyDirectionalLight.intensity = LuminosityFunction(time);
 		}
 
