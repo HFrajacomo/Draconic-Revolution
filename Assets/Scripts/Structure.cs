@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Jobs;
+using Unity.Collections;
+using Unity.Burst;
 
 public abstract class Structure
 {
@@ -530,47 +533,42 @@ public abstract class Structure
     // Does a Rough apply on synchonization problems when loading a Chunk before applying
     //  Structure to it
     public static void RoughApply(Chunk c, Chunk st){
-        ushort block;
-
-        for(int y=0; y < Chunk.chunkDepth; y++){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    block = st.data.GetCell(x,y,z);
-
-                    // Ignores all air
-                    if(block == 0)
-                        continue;
-
-                    c.data.SetCell(x,y,z,block);
-
-                    c.metadata.SetHP(x,y,z, st.metadata.GetHP(x,y,z));
-                    c.metadata.SetState(x,y,z, st.metadata.GetState(x,y,z));
-                }
-            }
-        }
+        RoughApply(c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), st);
     }
 
     // Does a Rough apply on synchonization problems when loading a Chunk before applying
     //  Structure to it
     public static void RoughApply(ushort[] cacheVoxdata, ushort[] cacheHP, ushort[] cacheState, Chunk st){
-        ushort block;
+        NativeArray<ushort> blockIn = new NativeArray<ushort>(st.data.GetData(), Allocator.TempJob);
+        NativeArray<ushort> hpIn = new NativeArray<ushort>(st.metadata.GetHPData(), Allocator.TempJob);
+        NativeArray<ushort> stateIn = new NativeArray<ushort>(st.metadata.GetStateData(), Allocator.TempJob);
+        NativeArray<ushort> blockOut = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
+        NativeArray<ushort> hpOut = new NativeArray<ushort>(cacheHP, Allocator.TempJob);
+        NativeArray<ushort> stateOut = new NativeArray<ushort>(cacheState, Allocator.TempJob);
 
-        for(int y=0; y < Chunk.chunkDepth; y++){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    block = st.data.GetCell(x,y,z);
+        RoughApplyJob raJob = new RoughApplyJob{
+            blockIn = blockIn,
+            hpIn = hpIn,
+            stateIn = stateIn,
+            blockOut = blockOut,
+            hpOut = hpOut,
+            stateOut = stateOut
+        };
 
-                    // Ignores all air
-                    if(block == 0)
-                        continue;
+        JobHandle job = raJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
 
-                    cacheVoxdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = block;
+        blockOut.CopyTo(cacheVoxdata);
+        hpOut.CopyTo(cacheHP);
+        stateOut.CopyTo(cacheState);
 
-                    cacheHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = st.metadata.GetHP(x,y,z);
-                    cacheState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = st.metadata.GetState(x,y,z);
-                }
-            }
-        }
+        // Dispose Bin
+        blockIn.Dispose(); 
+        hpIn.Dispose();
+        stateIn.Dispose();
+        blockOut.Dispose();
+        hpOut.Dispose();
+        stateOut.Dispose();
     }
 
     // Changes the index of rotation torotate Structures at Apply-Time
@@ -618,9 +616,46 @@ public abstract class Structure
 
 }
 
-
 public enum FillType{
     OverwriteAll, // Will erase any blocks in selected region
     FreeSpace, // Will need free space to generate, if considerAir is off, disconsiders self air colission
     SpecificOverwrite, // Will generate structure blocks only on specific blocks
+}
+
+
+[BurstCompile]
+public struct RoughApplyJob : IJobParallelFor{
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> blockIn;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> stateIn;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> hpIn;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> blockOut;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> stateOut;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> hpOut;
+
+    public void Execute(int index){
+        ushort block;
+
+        int x = index;
+
+        for(int y=0; y < Chunk.chunkDepth; y++){
+            for(int z=0; z < Chunk.chunkWidth; z++){
+                block = blockIn[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                // Ignores all air
+                if(block == 0)
+                    continue;
+
+                blockOut[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = block;
+
+                hpOut[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = hpIn[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+                stateOut[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = stateIn[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+            }
+        }       
+    }
 }
