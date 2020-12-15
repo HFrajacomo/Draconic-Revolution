@@ -30,19 +30,35 @@ public class DayNightCycle : MonoBehaviour
 
 	// Rotation for main Skybox light
     private float RotationFunction(int x){
-    	if(x == 0){
-    		return 240f;
-    	}
-    	if(x < 360){
-    		return 0.33333333f*x + 240;
-    	}
-    	if(x >= 360 && x < 1320){
-    		return 0.20833333f*(x-360);
-    	}
-    	if(x >= 1320 && x < 1440){
-    		return 0.33333333f*(x-1320) + 200;
-    	}
-    	return 0;
+        if(x > 240 && x <= 720){
+            return Mathf.Lerp(0f, 90f, ClampTime(x));
+        }
+        else if(x > 720 && x < 1200){
+            return Mathf.Lerp(90f, 180f, ClampTime(x));
+        }
+        else{
+            return Mathf.Lerp(180f, 360f, ClampTime(x));
+        }
+    }
+
+    // Clamps the current time to a float[0,1]
+    private float ClampTime(int x){
+        // Zero Lerp if below 4h
+        if(x <= 240){
+            return (x+240)/480f;
+        }
+        // Zero Lerp after 20h
+        else if(x >= 1200){
+            return (x-1200)/480f;
+        }
+        // Inclination until 12h
+        else if(x <= 720){
+            return (x-240)/480f;
+        }
+        // Declination until 20h
+        else{
+            return ((x-720)/480f);
+        }
     }
 
     // Rotation for GI lights
