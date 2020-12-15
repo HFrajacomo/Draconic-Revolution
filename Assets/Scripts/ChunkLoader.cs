@@ -172,7 +172,6 @@ public class ChunkLoader : MonoBehaviour
 
             if(!toDraw.Contains(cacheChunk.pos))
                 toDraw.Add(cacheChunk.pos);
-            
         }
 
         // If is in an unloaded indexed chunk
