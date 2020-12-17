@@ -125,7 +125,12 @@ public class Water_Block : Blocks
 
 	// Applies Water Movement
 	public override void OnBlockUpdate(string type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){
-		if(type == "break" || type == "change"){
+		if(type == "load"){
+			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
+			this.OnLoad(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+		}
+		
+		else if(type == "break" || type == "change"){
 			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
 			ushort thisState = cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 			

@@ -102,7 +102,6 @@ public class BUDScheduler : MonoBehaviour
 
                 if(loader.chunks.ContainsKey(cachePos)){
                     loader.chunks[cachePos].BuildChunk(); 
-                    //loader.chunks[cachePos].BuildSideBorder(reload:true);
                     if(!loader.chunks[cachePos].BuildSideBorder(reload:true))
                         loader.toRedraw.Add(cachePos);
                     

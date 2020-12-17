@@ -53,6 +53,8 @@ public class Chunk
     private List<int> indexUV = new List<int>();
     private List<int> indexTris = new List<int>();
     private List<Vector3> scalingFactor = new List<Vector3>();
+    private List<Vector2> UVaux = new List<Vector2>();
+    private List<Vector3> vertexAux = new List<Vector3>();
 
     private Mesh mesh;
 
@@ -165,8 +167,14 @@ public class Chunk
 		NativeArray<Vector2> cacheUVVerts = new NativeArray<Vector2>(4, Allocator.TempJob);
 
 		// For Init
-		NativeArray<Vector3> disposableVerts = new NativeArray<Vector3>(this.meshFilter.sharedMesh.vertices, Allocator.TempJob);
-		NativeArray<Vector2> disposableUVS = new NativeArray<Vector2>(this.meshFilter.sharedMesh.uv, Allocator.TempJob);
+		this.meshFilter.sharedMesh.GetVertices(vertexAux);
+		NativeArray<Vector3> disposableVerts = new NativeArray<Vector3>(vertexAux.ToArray(), Allocator.TempJob);
+		vertexAux.Clear();
+
+		this.meshFilter.sharedMesh.GetUVs(0, UVaux);
+		NativeArray<Vector2> disposableUVS = new NativeArray<Vector2>(UVaux.ToArray(), Allocator.TempJob);
+		UVaux.Clear();
+
 		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(0), Allocator.TempJob);
 		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(1), Allocator.TempJob);
 		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(2), Allocator.TempJob);
@@ -233,7 +241,9 @@ public class Chunk
 
 			// ToLoad() Event Trigger to Border liquids
 			if(this.biomeName != "Ocean"){
-				foreach(int3 coord in toLoadEvent.ToArray()){
+				int3[] coordArray = toLoadEvent.AsArray().ToArray();
+
+				foreach(int3 coord in coordArray){
 					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
 
 					if(assetCode <= ushort.MaxValue/2){
@@ -253,7 +263,7 @@ public class Chunk
 			this.xPlusDrawn = true;
 
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
-			
+
 			BuildBorderJob bbJob = new BuildBorderJob{
 				data = blockdata,
 				metadata = metadata,
@@ -288,7 +298,9 @@ public class Chunk
 
 			// ToLoad() Event Trigger to Border liquids
 			if(this.biomeName != "Ocean"){
-				foreach(int3 coord in toLoadEvent.ToArray()){
+				int3[] coordArray = toLoadEvent.AsArray().ToArray();
+
+				foreach(int3 coord in coordArray){
 					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
 
 					if(assetCode <= ushort.MaxValue/2){
@@ -343,7 +355,9 @@ public class Chunk
 
 			// ToLoad() Event Trigger to Border liquids
 			if(this.biomeName != "Ocean"){
-				foreach(int3 coord in toLoadEvent.ToArray()){
+				int3[] coordArray = toLoadEvent.AsArray().ToArray();
+
+				foreach(int3 coord in coordArray){
 					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
 
 					if(assetCode <= ushort.MaxValue/2){
@@ -398,7 +412,9 @@ public class Chunk
 
 			// ToLoad() Event Trigger to Border liquids
 			if(this.biomeName != "Ocean"){
-				foreach(int3 coord in toLoadEvent.ToArray()){
+				int3[] coordArray = toLoadEvent.AsArray().ToArray();
+
+				foreach(int3 coord in coordArray){
 					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
 
 					if(assetCode <= ushort.MaxValue/2){
@@ -528,20 +544,24 @@ public class Chunk
 		NativeHashMap<int, Vector3> scaleOffset = new NativeHashMap<int, Vector3>(0, Allocator.TempJob);
 		NativeHashMap<int, int> rotationOffset = new NativeHashMap<int, int>(0, Allocator.TempJob);
 
-
-		foreach(int3 coord in loadAssetList.ToArray()){
+		int3[] coordArray = loadAssetList.AsArray().ToArray();
+		foreach(int3 coord in coordArray){
 			ushort assetCode = this.data.GetCell(coord);
 
 			if(!this.cacheCodes.Contains(assetCode)){
 				this.cacheCodes.Add(assetCode);
-				this.cacheVertsv3.AddRange(blockBook.objects[ushort.MaxValue-assetCode].mesh.vertices);
+				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetVertices(vertexAux);
+				this.cacheVertsv3.AddRange(vertexAux.ToArray());
 				this.cacheTris.AddRange(blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTriangles(0));
-				this.cacheUVv2.AddRange(blockBook.objects[ushort.MaxValue-assetCode].mesh.uv);
-				this.indexVert.Add(this.indexVert[indexVert.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].mesh.vertices.Length);
+				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetUVs(0, UVaux);
+				this.cacheUVv2.AddRange(UVaux.ToArray());
+				this.indexVert.Add(this.indexVert[indexVert.Count-1] + vertexAux.Count);
 				this.indexTris.Add(this.indexTris[indexTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTriangles(0).Length);
-				this.indexUV.Add(this.indexUV[indexUV.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].mesh.uv.Length);
+				this.indexUV.Add(this.indexUV[indexUV.Count-1] + UVaux.Count);
 				this.scalingFactor.Add(BlockEncyclopediaECS.objectScaling[ushort.MaxValue-assetCode]);
-			
+				vertexAux.Clear();
+				UVaux.Clear();
+
 				// If has special offset or rotation
 				// Hash function for Dictionary is blockCode*256 + state. This leaves a maximum of 256 states for every object in the game
 				if(blockBook.objects[ushort.MaxValue - assetCode].needsRotation){
@@ -554,15 +574,9 @@ public class Chunk
 		}
 
 		// ToLoad() Event Trigger
-		foreach(int3 coord in loadCoordList.ToArray()){
-			ushort assetCode = this.data.GetCell(coord);
-
-			if(assetCode <= ushort.MaxValue/2){
-				blockBook.blocks[assetCode].OnLoad(this.pos, coord.x, coord.y, coord.z, this.loader);
-			}
-			else{
-				blockBook.objects[ushort.MaxValue-assetCode].OnLoad(this.pos, coord.x, coord.y, coord.z, this.loader);
-			}
+		coordArray = loadCoordList.AsArray().ToArray();
+		foreach(int3 coord in coordArray){
+			loader.budscheduler.ScheduleBUD(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1), 1);
 		}
 
 
@@ -1306,8 +1320,7 @@ public struct BuildBorderJob : IJob{
 					}
 
 					if(CheckPlacement(neighborBlock)){
-						if(!LoadMesh(0, y, z, 3, thisBlock, true, cachedCubeVerts, cachedUVVerts))
-							break;
+						LoadMesh(0, y, z, 3, thisBlock, true, cachedCubeVerts, cachedUVVerts);
 					}
 				}
 			}
@@ -1331,8 +1344,7 @@ public struct BuildBorderJob : IJob{
 					}
 
 					if(CheckPlacement(neighborBlock)){
-						if(!LoadMesh(Chunk.chunkWidth-1, y, z, 1, thisBlock, true, cachedCubeVerts, cachedUVVerts))
-							break;
+						LoadMesh(Chunk.chunkWidth-1, y, z, 1, thisBlock, true, cachedCubeVerts, cachedUVVerts);
 					}
 				}
 			}
@@ -1356,8 +1368,7 @@ public struct BuildBorderJob : IJob{
 					}
 
 					if(CheckPlacement(neighborBlock)){
-						if(!LoadMesh(x, y, 0, 2, thisBlock, true, cachedCubeVerts, cachedUVVerts))
-							break;
+						LoadMesh(x, y, 0, 2, thisBlock, true, cachedCubeVerts, cachedUVVerts);
 					}
 				}
 			}
@@ -1381,8 +1392,7 @@ public struct BuildBorderJob : IJob{
 					}
 
 					if(CheckPlacement(neighborBlock)){
-						if(!LoadMesh(x, y, Chunk.chunkWidth-1, 0, thisBlock, true, cachedCubeVerts, cachedUVVerts))
-							break;
+						LoadMesh(x, y, Chunk.chunkWidth-1, 0, thisBlock, true, cachedCubeVerts, cachedUVVerts);
 					}
 				}
 			}
