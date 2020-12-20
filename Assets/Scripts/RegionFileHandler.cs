@@ -236,7 +236,6 @@ public class RegionFileHandler{
 		Compression.DecompressBlocks(c, blockBuffer);
 		Compression.DecompressMetadataHP(c, hpBuffer);
 		Compression.DecompressMetadataState(c, stateBuffer);
-
 	}
 
 	// Saves a chunk to RDF file using Pallete-based Compression

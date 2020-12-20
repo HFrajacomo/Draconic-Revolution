@@ -48,9 +48,6 @@ public class ChunkLoader : MonoBehaviour
     public bool PLAYERSPAWNED = false;
     public bool DRAWFLAG = false;
 
-    // Debug
-    private ChunkPos debugChunk = new ChunkPos(3, -1);
-
 	// Cache Information 
 	private ushort[] cacheHeightMap = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
 	private ushort[] cacheHeightMap2 = new ushort[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
@@ -244,14 +241,14 @@ public class ChunkLoader : MonoBehaviour
             else{
                 chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
                 vfx.NewChunk(toLoad[0]);
-                chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0])); 
+                chunks[toLoad[0]].BuildOnVoxelData(AssignBiome(toLoad[0]));
                 chunks[toLoad[0]].metadata = new VoxelMetadata(cacheMetadataHP, cacheMetadataState);
                 chunks[toLoad[0]].needsGeneration = 0;
                 regionHandler.SaveChunk(chunks[toLoad[0]]);
             }
 
             toDraw.Add(toLoad[0]);
-    		toLoad.RemoveAt(0);	
+    		toLoad.RemoveAt(0);
     	}
     }
 
