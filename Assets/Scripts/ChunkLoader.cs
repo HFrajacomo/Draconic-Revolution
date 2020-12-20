@@ -287,7 +287,6 @@ public class ChunkLoader : MonoBehaviour
     // Actually builds the mesh for loaded chunks
     private void DrawChunk(){
         if(toDraw.Count > 0){
-
             // Runs Unity Garbage Collector
             if(this.reloadMemoryCounter <= 0){
                 this.reloadMemoryCounter = this.renderDistance-1;

@@ -394,7 +394,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 59614818}
   m_LocalRotation: {x: 0, y: -0.9984408, z: 0, w: 0.055822074}
-  m_LocalPosition: {x: 40, y: 100, z: 40}
+  m_LocalPosition: {x: 0, y: 100, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1091412602}
@@ -1852,6 +1852,7 @@ MonoBehaviour:
   WORLD_GENERATED: 0
   reloadMemoryCounter: 30
   PLAYERSPAWNED: 0
+  DRAWFLAG: 0
 --- !u!4 &1192772368
 Transform:
   m_ObjectHideFlags: 0
@@ -1897,7 +1898,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ticks: 0
   minutes: 0
-  hours: 15
+  hours: 6
   days: 0
   DEBUGTIMEMULT: 1
   LOCKTIME: 1

@@ -247,14 +247,7 @@ public class Chunk
 				int3[] coordArray = toLoadEvent.AsArray().ToArray();
 
 				foreach(int3 coord in coordArray){
-					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
-
-					if(assetCode <= ushort.MaxValue/2){
-						blockBook.blocks[assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
-					}
-					else{
-						blockBook.objects[ushort.MaxValue-assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
-					}
+					loader.budscheduler.ScheduleBUD(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1), 1);
 				}
 				toLoadEvent.Clear();
 			}
@@ -305,14 +298,7 @@ public class Chunk
 				int3[] coordArray = toLoadEvent.AsArray().ToArray();
 
 				foreach(int3 coord in coordArray){
-					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
-
-					if(assetCode <= ushort.MaxValue/2){
-						blockBook.blocks[assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
-					}
-					else{
-						blockBook.objects[ushort.MaxValue-assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
-					}
+					loader.budscheduler.ScheduleBUD(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1), 1);
 				}
 				toLoadEvent.Clear();
 			}
@@ -363,14 +349,7 @@ public class Chunk
 				int3[] coordArray = toLoadEvent.AsArray().ToArray();
 
 				foreach(int3 coord in coordArray){
-					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
-
-					if(assetCode <= ushort.MaxValue/2){
-						blockBook.blocks[assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
-					}
-					else{
-						blockBook.objects[ushort.MaxValue-assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
-					}
+					loader.budscheduler.ScheduleBUD(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1), 1);
 				}
 				toLoadEvent.Clear();
 			}
@@ -421,14 +400,7 @@ public class Chunk
 				int3[] coordArray = toLoadEvent.AsArray().ToArray();
 
 				foreach(int3 coord in coordArray){
-					ushort assetCode = loader.chunks[targetChunk].data.GetCell(coord);
-
-					if(assetCode <= ushort.MaxValue/2){
-						blockBook.blocks[assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
-					}
-					else{
-						blockBook.objects[ushort.MaxValue-assetCode].OnLoad(targetChunk, coord.x, coord.y, coord.z, this.loader);
-					}
+					loader.budscheduler.ScheduleBUD(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1), 1);
 				}
 				toLoadEvent.Clear();
 			}
@@ -1320,7 +1292,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					// Border Liquid Updates
-					CheckBorderUpdate(Chunk.chunkWidth-1,y,z, neighborBlock);
+					CheckBorderUpdate(0,y,z, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
@@ -1344,7 +1316,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					// Border Liquid Updates
-					CheckBorderUpdate(0,y,z, neighborBlock);
+					CheckBorderUpdate(Chunk.chunkWidth-1,y,z, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
@@ -1368,7 +1340,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					// Border Liquid Updates
-					CheckBorderUpdate(x,y,Chunk.chunkWidth-1, neighborBlock);
+					CheckBorderUpdate(x,y,0, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
@@ -1392,7 +1364,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					// Border Liquid Updates
-					CheckBorderUpdate(x,y,0, neighborBlock);
+					CheckBorderUpdate(x,y,Chunk.chunkWidth-1, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
