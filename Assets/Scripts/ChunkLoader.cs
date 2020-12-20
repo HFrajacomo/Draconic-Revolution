@@ -308,25 +308,27 @@ public class ChunkLoader : MonoBehaviour
             toDraw.RemoveAt(0);
         }
 
-        if(toRedraw.Count > 0){
-            if(toDraw.Contains(toRedraw[0])){
-                toRedraw.Add(toRedraw[0]);
-                toRedraw.RemoveAt(0);
-                return;
-            }
+        for(int i=0; i < 2; i++){
+            if(toRedraw.Count > 0){
+                if(toDraw.Contains(toRedraw[0])){
+                    toRedraw.Add(toRedraw[0]);
+                    toRedraw.RemoveAt(0);
+                    continue;
+                }
 
-            if(chunks.ContainsKey(toRedraw[0])){
-                if(chunks[toRedraw[0]].drawMain){
-                    // If hasn't been drawn entirely, put on Redraw again
-                    if(!chunks[toRedraw[0]].BuildSideBorder()){
+                if(chunks.ContainsKey(toRedraw[0])){
+                    if(chunks[toRedraw[0]].drawMain){
+                        // If hasn't been drawn entirely, put on Redraw again
+                        if(!chunks[toRedraw[0]].BuildSideBorder()){
+                            toRedraw.Add(toRedraw[0]);
+                        }
+                    }
+                    else{
                         toRedraw.Add(toRedraw[0]);
                     }
                 }
-                else{
-                    toRedraw.Add(toRedraw[0]);
-                }
+                toRedraw.RemoveAt(0);
             }
-            toRedraw.RemoveAt(0);
         }
 
     }

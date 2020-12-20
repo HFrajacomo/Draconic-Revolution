@@ -141,6 +141,8 @@ public class Chunk
 		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
 			return true;
 
+		bool changed = false; // Flag is set if any change has been made that requires a redraw
+
 		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
 		NativeArray<ushort> metadata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
 
@@ -204,6 +206,7 @@ public class Chunk
 		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z); 
 		if(loader.chunks.ContainsKey(targetChunk) && !xMinusDrawn){
 			this.xMinusDrawn = true;
+			changed = true;
 
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 			
@@ -261,6 +264,7 @@ public class Chunk
 		targetChunk = new ChunkPos(this.pos.x+1, this.pos.z); 
 		if(loader.chunks.ContainsKey(targetChunk) && !xPlusDrawn){
 			this.xPlusDrawn = true;
+			changed = true;
 
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 
@@ -318,6 +322,7 @@ public class Chunk
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1); 
 		if(loader.chunks.ContainsKey(targetChunk) && !zMinusDrawn){
 			this.zMinusDrawn = true;
+			changed = true;
 
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 			
@@ -375,6 +380,7 @@ public class Chunk
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1); 
 		if(loader.chunks.ContainsKey(targetChunk) && !zPlusDrawn){
 			this.zPlusDrawn = true;
+			changed = true;
 
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 			
@@ -428,15 +434,15 @@ public class Chunk
 			}
 		}
 		
+		// If mesh wasn't redrawn
+		if(changed){
+			this.triangles = tris.ToArray();
+			this.specularTris = specularTris.ToArray();
+			this.liquidTris = liquidTris.ToArray();
+			assetTris = this.meshFilter.sharedMesh.GetTriangles(3);
 
-		// Convert data back
-
-		this.triangles = tris.ToArray();
-		this.specularTris = specularTris.ToArray();
-		this.liquidTris = liquidTris.ToArray();
-		assetTris = this.meshFilter.sharedMesh.GetTriangles(3);
-
-		BuildMeshSide(verts.ToArray(), uvs.ToArray());
+			BuildMeshSide(verts.ToArray(), uvs.ToArray());
+		}
 
 		blockdata.Dispose();
 		metadata.Dispose();
@@ -464,6 +470,7 @@ public class Chunk
     	this.liquidTris = null;
     	this.assetTris = null;
     	this.UVs.Clear();
+
 
 		// If current operation CANNOT update borders
 		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
