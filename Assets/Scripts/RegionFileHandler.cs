@@ -214,13 +214,14 @@ public class RegionFileHandler{
 	}
 
 	// Loads a chunk information from RDF file using Pallete-based Decompression
-	// Assumes that the correct Region File has been called
 	public void LoadChunk(Chunk c){
 		byte biome=0;
 		byte gen=0;
 		int blockdata=0;
 		int hpdata=0;
 		int statedata=0;
+
+		GetCorrectRegion(c.pos);
 
 		ReadHeader(c.pos);
 		InterpretHeader(ref biome, ref gen, ref blockdata, ref hpdata, ref statedata);
@@ -239,7 +240,6 @@ public class RegionFileHandler{
 	}
 
 	// Saves a chunk to RDF file using Pallete-based Compression
-	// Assumes that the correct Region File has been called
 	public void SaveChunk(Chunk c){
 		int totalSize = 0;
 		long seekPosition = 0;
@@ -248,6 +248,8 @@ public class RegionFileHandler{
 		int stateSize;
 		long chunkCode = GetLinearRegionCoords(c.pos);
 		int lastKnownSize=0;
+
+		GetCorrectRegion(c.pos);
 
 		// Reads pre-save size if is already indexed
 		if(region.IsIndexed(c.pos)){
@@ -536,6 +538,8 @@ public struct RegionFile{
 		ReadIndexEntry();
 		long a;
 		long b;
+
+		this.index.Clear();
 
 		for(int i=0; i<this.indexFile.Length; i+=16){
 			a = ReadLong(i);

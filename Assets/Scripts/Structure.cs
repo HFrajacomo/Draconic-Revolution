@@ -23,9 +23,6 @@ public abstract class Structure
     public int sizeX, sizeY, sizeZ;
     public int offsetX, offsetZ;
 
-    // Debug
-    private ChunkPos debugChunk = new ChunkPos(3, -1);
-
     /*
     0: OverwriteAll
     1: FreeSpace

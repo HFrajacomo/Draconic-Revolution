@@ -105,7 +105,6 @@ public class BUDScheduler : MonoBehaviour
                     if(!loader.chunks[cachePos].BuildSideBorder(reload:true))
                         loader.toRedraw.Add(cachePos);
                     
-                    loader.regionHandler.LoadRegionFile(cachePos);
                     loader.regionHandler.SaveChunk(loader.chunks[cachePos]);
                 }
             }		
