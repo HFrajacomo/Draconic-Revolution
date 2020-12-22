@@ -51,7 +51,7 @@ LightmapSettings:
     m_IndirectOutputScale: 1
     m_AlbedoBoost: 1
     m_EnvironmentLightingMode: 0
-    m_EnableBakedLightmaps: 1
+    m_EnableBakedLightmaps: 0
     m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
     serializedVersion: 12
@@ -72,7 +72,7 @@ LightmapSettings:
     m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
-    m_BakeBackend: 1
+    m_BakeBackend: 2
     m_PVRSampling: 1
     m_PVRDirectSampleCount: 32
     m_PVRSampleCount: 512
@@ -840,7 +840,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: ca1ed4a9693c9834e9e1ad283d581f07, type: 2}
   m_StaticLightingSkyUniqueID: 1
-  m_SkySettings: {fileID: 963327664}
+  m_SkySettings: {fileID: 1254409216}
   m_SkySettingsFromProfile: {fileID: 7488742677745068149, guid: ca1ed4a9693c9834e9e1ad283d581f07,
     type: 2}
 --- !u!4 &712513432
@@ -1013,7 +1013,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 915822255}
   m_CullTransparentMesh: 0
---- !u!114 &963327664
+--- !u!114 &1254409216
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

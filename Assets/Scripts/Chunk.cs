@@ -247,7 +247,7 @@ public class Chunk
 				int3[] coordArray = toLoadEvent.AsArray().ToArray();
 
 				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUD(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1), 1);
+					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));
 				}
 				toLoadEvent.Clear();
 			}
@@ -298,7 +298,7 @@ public class Chunk
 				int3[] coordArray = toLoadEvent.AsArray().ToArray();
 
 				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUD(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1), 1);
+					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));
 				}
 				toLoadEvent.Clear();
 			}
@@ -349,7 +349,7 @@ public class Chunk
 				int3[] coordArray = toLoadEvent.AsArray().ToArray();
 
 				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUD(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1), 1);
+					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));
 				}
 				toLoadEvent.Clear();
 			}
@@ -400,7 +400,7 @@ public class Chunk
 				int3[] coordArray = toLoadEvent.AsArray().ToArray();
 
 				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUD(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1), 1);
+					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));
 				}
 				toLoadEvent.Clear();
 			}
@@ -555,8 +555,7 @@ public class Chunk
 		// ToLoad() Event Trigger
 		coordArray = loadCoordList.AsArray().ToArray();
 		foreach(int3 coord in coordArray){
-			loader.budscheduler.ScheduleBUD(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1), 1);
-		}
+loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));		}
 
 
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
@@ -688,7 +687,7 @@ public class Chunk
 
     	mesh.subMeshCount = 4;
 
-    	mesh.vertices = this.vertices.ToArray();
+    	mesh.SetVertices(this.vertices.ToArray());
     	mesh.SetTriangles(triangles, 0);
 
     	this.meshCollider.sharedMesh = mesh;
@@ -697,7 +696,7 @@ public class Chunk
     	mesh.SetTriangles(liquidTris, 2);
     	mesh.SetTriangles(assetTris, 3);
 
-    	mesh.uv = this.UVs.ToArray();
+    	mesh.SetUVs(0, this.UVs.ToArray());
 
     	mesh.RecalculateNormals();
 

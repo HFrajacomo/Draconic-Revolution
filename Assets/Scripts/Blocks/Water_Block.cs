@@ -73,18 +73,18 @@ public class Water_Block : Blocks
 	}
 
 	// Moves water down into underground caverns
-	public override int OnLoad(ChunkPos pos, int x, int y, int z, ChunkLoader cl){
-		CastCoord coord = new CastCoord(pos, x, y, z);
+	public override int OnLoad(CastCoord coord, ChunkLoader cl){
 		ushort code = GetCodeBelow(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), cl);
 
-		if(code == 0)
+		if(code == 0){
 			this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);
+		
+			GetCodeAround(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), cl);
 
-		GetCodeAround(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), cl);
-
-		for(int i=0; i < 8; i++){
-			if(this.aroundCodes[i] == 0){
-				this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);	
+			for(int i=0; i < 8; i++){
+				if(this.aroundCodes[i] == 0){
+					this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);	
+				}
 			}
 		}
 
@@ -127,7 +127,7 @@ public class Water_Block : Blocks
 	public override void OnBlockUpdate(string type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){
 		if(type == "load"){
 			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
-			this.OnLoad(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+			this.OnLoad(thisPos, cl);
 		}
 		
 		else if(type == "break" || type == "change"){

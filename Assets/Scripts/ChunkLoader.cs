@@ -134,12 +134,22 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // Decides what to do for current tick
+        
         if(toLoad.Count > 0 && !this.DRAWFLAG)
             LoadChunk();
         else if(Structure.reloadChunks.Count > 0)
             SavePregenChunk();
         else
             DrawChunk();
+        
+        /*
+        LoadChunk();
+
+        if(Structure.reloadChunks.Count > 0)
+            SavePregenChunk();
+
+        DrawChunk();
+        */
     }
     
     // Erases loaded chunks dictionary
@@ -257,6 +267,16 @@ public class ChunkLoader : MonoBehaviour
 
         if(toUnload.Count > 0){
 
+            // Runs Unity Garbage Collector
+            if(this.reloadMemoryCounter <= 0){
+                this.reloadMemoryCounter = this.renderDistance-1;
+                Resources.UnloadUnusedAssets();
+            }
+            else{
+                this.reloadMemoryCounter--;
+            }
+
+
             if(toRedraw.Contains(toUnload[0])){
                 toRedraw.Remove(toUnload[0]);
             }
@@ -286,25 +306,18 @@ public class ChunkLoader : MonoBehaviour
 
     // Actually builds the mesh for loaded chunks
     private void DrawChunk(){
-        if(toDraw.Count > 0){
-            // Runs Unity Garbage Collector
-            if(this.reloadMemoryCounter <= 0){
-                this.reloadMemoryCounter = this.renderDistance-1;
-                Resources.UnloadUnusedAssets();
-            }
-            else{
-                this.reloadMemoryCounter--;
-            }
-
-            // If chunk is still loaded
-            if(chunks.ContainsKey(toDraw[0])){
-                chunks[toDraw[0]].BuildChunk(load:true);
-                // If hasn't been drawn entirely, put on Redraw List
-                if(!chunks[toDraw[0]].BuildSideBorder(reload:true)){
-                    toRedraw.Add(toDraw[0]);
+        for(int i=0; i < 1; i++){
+            if(toDraw.Count > 0){
+                // If chunk is still loaded
+                if(chunks.ContainsKey(toDraw[0])){
+                    chunks[toDraw[0]].BuildChunk(load:true);
+                    // If hasn't been drawn entirely, put on Redraw List
+                    if(!chunks[toDraw[0]].BuildSideBorder(reload:true)){
+                        toRedraw.Add(toDraw[0]);
+                    }
                 }
+                toDraw.RemoveAt(0);
             }
-            toDraw.RemoveAt(0);
         }
 
         for(int i=0; i < 2; i++){

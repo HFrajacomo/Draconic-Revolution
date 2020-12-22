@@ -22,7 +22,7 @@ public class BUDScheduler : MonoBehaviour
 
 	void Start(){
 		this.currentTime = schedulerTime.GetBUDTime();
-		this.BUDperFrame = 900;
+		this.BUDperFrame = 100;
 		this.data.Add(currentTime, new List<BUDSignal>());
 		this.toReload.Add(currentTime, new List<ChunkPos>());
 	}
@@ -66,8 +66,8 @@ public class BUDScheduler : MonoBehaviour
     		this.BUDperFrame = (int)(this.data[this.newTime].Count/30)+1;
 
     		// Unclogs system if no BUD request incoming
-    		if(this.BUDperFrame < 900){
-    			this.BUDperFrame = 900;
+    		if(this.BUDperFrame < 100){
+    			this.BUDperFrame = 100;
     		}
     	}
 
@@ -130,6 +130,11 @@ public class BUDScheduler : MonoBehaviour
     			this.data[fakeTime].Add(b);
     		}
     	}
+    }
+
+    // Schedules a BUD request in the system in the current tick
+    public void ScheduleBUDNow(BUDSignal b){
+        this.data[this.currentTime].Add(b);
     }
 
     // Schedules a Chunk.Build() operation 
