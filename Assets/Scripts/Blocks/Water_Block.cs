@@ -78,13 +78,15 @@ public class Water_Block : Blocks
 
 		if(code == 0){
 			this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);
-		
-			GetCodeAround(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), cl);
+			return 0;
+		}
 
-			for(int i=0; i < 8; i++){
-				if(this.aroundCodes[i] == 0){
-					this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);	
-				}
+		GetCodeAround(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), cl);
+
+		for(int i=0; i < 8; i++){
+			if(this.aroundCodes[i] == 0){
+				this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);	
+				break;
 			}
 		}
 

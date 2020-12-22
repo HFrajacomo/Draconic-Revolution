@@ -141,15 +141,6 @@ public class ChunkLoader : MonoBehaviour
             SavePregenChunk();
         else
             DrawChunk();
-        
-        /*
-        LoadChunk();
-
-        if(Structure.reloadChunks.Count > 0)
-            SavePregenChunk();
-
-        DrawChunk();
-        */
     }
     
     // Erases loaded chunks dictionary
@@ -306,7 +297,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Actually builds the mesh for loaded chunks
     private void DrawChunk(){
-        for(int i=0; i < 1; i++){
+        for(int i=0; i < 2; i++){
             if(toDraw.Count > 0){
                 // If chunk is still loaded
                 if(chunks.ContainsKey(toDraw[0])){
