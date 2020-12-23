@@ -142,6 +142,7 @@ public class Chunk
 			return true;
 
 		bool changed = false; // Flag is set if any change has been made that requires a redraw
+		int3[] coordArray;
 
 		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
 		NativeArray<ushort> metadata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
@@ -242,15 +243,21 @@ public class Chunk
 			
 			neighbordata.Dispose();
 
-			// ToLoad() Event Trigger to Border liquids
-			if(this.biomeName != "Ocean"){
-				int3[] coordArray = toLoadEvent.AsArray().ToArray();
-
+			// ToLoad() Event Trigger
+			if(this.biomeName == "Ocean"){
+				coordArray = toLoadEvent.AsArray().ToArray();
 				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));
+					if(this.data.GetCell(coord) != 6) // Water
+						loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
 				}
-				toLoadEvent.Clear();
 			}
+			else{
+				coordArray = toLoadEvent.AsArray().ToArray();
+				foreach(int3 coord in coordArray){
+					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				}			
+			}
+			toLoadEvent.Clear();
 		}
 
 		// X+ Analysis
@@ -293,15 +300,21 @@ public class Chunk
 
 			neighbordata.Dispose();
 
-			// ToLoad() Event Trigger to Border liquids
-			if(this.biomeName != "Ocean"){
-				int3[] coordArray = toLoadEvent.AsArray().ToArray();
-
+			// ToLoad() Event Trigger
+			if(this.biomeName == "Ocean"){
+				coordArray = toLoadEvent.AsArray().ToArray();
 				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));
+					if(this.data.GetCell(coord) != 6) // Water
+						loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
 				}
-				toLoadEvent.Clear();
 			}
+			else{
+				coordArray = toLoadEvent.AsArray().ToArray();
+				foreach(int3 coord in coordArray){
+					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				}			
+			}
+			toLoadEvent.Clear();
 		}
 
 		// Z- Analysis
@@ -344,15 +357,21 @@ public class Chunk
 
 			neighbordata.Dispose();
 
-			// ToLoad() Event Trigger to Border liquids
-			if(this.biomeName != "Ocean"){
-				int3[] coordArray = toLoadEvent.AsArray().ToArray();
-
+			// ToLoad() Event Trigger
+			if(this.biomeName == "Ocean"){
+				coordArray = toLoadEvent.AsArray().ToArray();
 				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));
+					if(this.data.GetCell(coord) != 6) // Water
+						loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
 				}
-				toLoadEvent.Clear();
 			}
+			else{
+				coordArray = toLoadEvent.AsArray().ToArray();
+				foreach(int3 coord in coordArray){
+					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				}			
+			}
+			toLoadEvent.Clear();
 		}
 
 		// Z+ Analysis
@@ -395,15 +414,21 @@ public class Chunk
 
 			neighbordata.Dispose();
 
-			// ToLoad() Event Trigger to Border liquids
-			if(this.biomeName != "Ocean"){
-				int3[] coordArray = toLoadEvent.AsArray().ToArray();
-
+			// ToLoad() Event Trigger
+			if(this.biomeName == "Ocean"){
+				coordArray = toLoadEvent.AsArray().ToArray();
 				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));
+					if(this.data.GetCell(coord) != 6) // Water
+						loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
 				}
-				toLoadEvent.Clear();
 			}
+			else{
+				coordArray = toLoadEvent.AsArray().ToArray();
+				foreach(int3 coord in coordArray){
+					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				}			
+			}
+			toLoadEvent.Clear();
 		}
 		
 		// If mesh wasn't redrawn
@@ -553,10 +578,20 @@ public class Chunk
 		}
 
 		// ToLoad() Event Trigger
-		coordArray = loadCoordList.AsArray().ToArray();
-		foreach(int3 coord in coordArray){
-loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));		}
-
+		if(this.biomeName == "Ocean"){
+			coordArray = loadCoordList.AsArray().ToArray();
+			foreach(int3 coord in coordArray){
+				if(this.data.GetCell(coord) != 6) // Water
+					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+			}
+		}
+		else{
+			coordArray = loadCoordList.AsArray().ToArray();
+			foreach(int3 coord in coordArray){
+				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+			}			
+		}
+		loadCoordList.Clear();
 
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> meshUVs = new NativeList<Vector2>(0, Allocator.TempJob);
