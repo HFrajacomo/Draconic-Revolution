@@ -21,6 +21,9 @@ public static class World
 
     public static void SetRenderDistance(string rd){
         World.renderDistance = Convert.ToInt32(rd);
+        if(World.renderDistance > 20){
+            World.renderDistance = 20;
+        }
     }
 
 }
