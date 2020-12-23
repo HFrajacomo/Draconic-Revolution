@@ -100,7 +100,7 @@ public abstract class BlocklikeObject
 	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
 	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){return 0;}
 	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
-	public virtual int OnLoad(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
+	public virtual int OnLoad(CastCoord coord, ChunkLoader cl){return 0;}
 	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader cl){return true;}
 	public virtual void ApplyRotation(GameObject go, ushort? state, int blockX, int blockY, int blockZ){}
 	public virtual Vector3 GetOffsetVector(ushort state){return new Vector3(0f,0f,0f);}

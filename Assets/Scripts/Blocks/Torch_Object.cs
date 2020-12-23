@@ -89,8 +89,8 @@ public class Torch_Object : BlocklikeObject
 	}
 
 	// Creates FireVFX on Load
-	public override int OnLoad(ChunkPos pos, int x, int y, int z, ChunkLoader cl){
-		ushort? state = cl.chunks[pos].metadata.GetState(x,y,z);
+	public override int OnLoad(CastCoord coord, ChunkLoader cl){
+		ushort? state = cl.chunks[coord.GetChunkPos()].metadata.GetState(coord.blockX, coord.blockY, coord.blockZ);
 		Vector3 fireOffset;
 
 		if(state == 0 || state == 4)
@@ -104,11 +104,11 @@ public class Torch_Object : BlocklikeObject
 		else
 			fireOffset = new Vector3(0f,0f,0f);	
 
-		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + x, y + 0.35f, pos.z*Chunk.chunkWidth + z) + fireOffset, Quaternion.identity);
-		fire.name = BuildVFXName(pos, x, y, z);
-		this.vfx.Add(pos, fire, active:true);
+		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(coord.GetChunkPos().x*Chunk.chunkWidth + coord.blockX, coord.blockY + 0.35f, coord.GetChunkPos().z*Chunk.chunkWidth + coord.blockZ) + fireOffset, Quaternion.identity);
+		fire.name = BuildVFXName(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ);
+		this.vfx.Add(coord.GetChunkPos(), fire, active:true);
 
-		ControlFire(pos, x, y, z, state);
+		ControlFire(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ, state);
 	
 		return 1;
 	}
@@ -213,6 +213,11 @@ public class Torch_Object : BlocklikeObject
 		}
 
 		CastCoord aux = new CastCoord(new Vector3(x,y,z));
+
+		if(type == "load"){
+			this.OnLoad(aux, cl);
+		}
+
 		ChunkPos thisPos = aux.GetChunkPos(); //new ChunkPos(Mathf.FloorToInt(x/Chunk.chunkWidth), Mathf.FloorToInt(z/Chunk.chunkWidth));
 		int X = aux.blockX; //x%Chunk.chunkWidth;
 		int Y = aux.blockY; //y%Chunk.chunkDepth;
