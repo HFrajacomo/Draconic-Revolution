@@ -14,7 +14,6 @@ Region Data File Format (.rdf)
 
 public class RegionFileHandler{
 	private string worldName;
-	private RegionFile region;
 	private int seed;
 	private int renderDistance;
 	private static float chunkLength = 32f;
@@ -31,6 +30,10 @@ public class RegionFileHandler{
 	// Cache Information
 	private byte[] nullMetadata = new byte[]{255,255};
 
+	// Region Pool
+	private Dictionary<ChunkPos, RegionFile> pool = new Dictionary<ChunkPos, RegionFile>();
+
+	// Cache
 	private byte[] byteArray = new byte[1];
 	private byte[] intArray = new byte[4];
 	private byte[] timeArray = new byte[7];
@@ -95,7 +98,7 @@ public class RegionFileHandler{
 
 	// Checks if RegionFile represents ChunkPos, and loads correct RegionFile if not
 	public void GetCorrectRegion(ChunkPos pos){
-		if(!region.CheckUsage(pos)){
+		if(!CheckUsage(pos)){
 			LoadRegionFile(pos);
 		}
 	}
@@ -106,11 +109,11 @@ public class RegionFileHandler{
 	SEED(4): int representing seed
 	TIME(7): time data day(4)/hour(1)/minute(1)/tick(1)
 	*/
-	public void SaveWorld(){ 
+	public void SaveWorld(){
 		intArray[0] = (byte)(this.seed >> 24);
 		intArray[1] = (byte)(this.seed >> 16);
 		intArray[2] = (byte)(this.seed >> 8);
-		intArray[3] = (byte)this.seed; 
+		intArray[3] = (byte)this.seed;
 
 		this.worldFile.SetLength(0);
 		this.worldFile.Write(intArray, 0, 4);
@@ -190,10 +193,7 @@ public class RegionFileHandler{
 		return f;
 	}
 
-	// Getter for RegionFile
-	public RegionFile GetFile(){
-		return this.region;
-	}
+
 
 	// Loads RegionFile related to given Chunk
 	public void LoadRegionFile(ChunkPos pos, bool init=false){
@@ -205,12 +205,35 @@ public class RegionFileHandler{
 		rfz = Mathf.FloorToInt(pos.z / RegionFileHandler.chunkLength);
 		name = "r" + rfx.ToString() + "x" + rfz.ToString();
 
-		// Saves current RegionFile and open a new one
-		if(!init){
-			this.region.Close();
-		}
+		ChunkPos newPos = new ChunkPos(rfx, rfz);
 
-		region = new RegionFile(name, new ChunkPos(rfx, rfz), RegionFileHandler.chunkLength);
+		// If Pool is not full
+		if(this.pool.Count < 4){
+			this.pool.Add(newPos, new RegionFile(name, newPos, RegionFileHandler.chunkLength));
+		}
+		// If Pool is full
+		else{
+			FreePool(newPos); // Takes a RegionFile away from Pool
+			this.pool.Add(newPos, new RegionFile(name, newPos, RegionFileHandler.chunkLength));			
+		}
+	}
+
+	// Finds which RegionPos to take away from the pool if full
+	private void FreePool(ChunkPos pos){
+		foreach(ChunkPos p in this.pool.Keys){
+			if(Mathf.Abs(p.x - pos.x) + Mathf.Abs(p.z - pos.z) >= 2){
+				this.pool[p].Close();
+				this.pool.Remove(p);
+				return;
+			}
+		}
+	}
+
+	// Closes all streams in pool
+	public void CloseAll(){
+		foreach(ChunkPos pos in this.pool.Keys){
+			this.pool[pos].Close();
+		}
 	}
 
 	// Loads a chunk information from RDF file using Pallete-based Decompression
@@ -230,9 +253,9 @@ public class RegionFileHandler{
 		c.lastVisitedTime = globalTime.DateBytes(timeArray);
 		c.needsGeneration = gen;
 
-		this.region.file.Read(blockBuffer, 0, blockdata);
-		this.region.file.Read(hpBuffer, 0, hpdata);
-		this.region.file.Read(stateBuffer, 0, statedata);
+		this.pool[ConvertToRegion(c.pos)].file.Read(blockBuffer, 0, blockdata);
+		this.pool[ConvertToRegion(c.pos)].file.Read(hpBuffer, 0, hpdata);
+		this.pool[ConvertToRegion(c.pos)].file.Read(stateBuffer, 0, statedata);
 
 		Compression.DecompressBlocks(c, blockBuffer);
 		Compression.DecompressMetadataHP(c, hpBuffer);
@@ -252,7 +275,7 @@ public class RegionFileHandler{
 		GetCorrectRegion(c.pos);
 
 		// Reads pre-save size if is already indexed
-		if(region.IsIndexed(c.pos)){
+		if(IsIndexed(c.pos)){
 			byte biome=0;
 			byte gen=0;
 			int blockdata=0;
@@ -275,39 +298,43 @@ public class RegionFileHandler{
 		totalSize = chunkHeaderSize + blockSize + hpSize + stateSize;
 
 		// If Chunk was already saved
-		if(region.IsIndexed(c.pos)){
-			region.AddHole(region.index[chunkCode], lastKnownSize);
-			seekPosition = region.FindPosition(totalSize);
-			region.SaveHoles();
+		if(IsIndexed(c.pos)){
+			ChunkPos regionPos = ConvertToRegion(c.pos);
+
+			this.pool[regionPos].AddHole(this.pool[regionPos].index[chunkCode], lastKnownSize);
+			seekPosition = this.pool[regionPos].FindPosition(totalSize);
+			this.pool[regionPos].SaveHoles();
 
 			// If position in RegionFile has changed
-			if(seekPosition != region.index[chunkCode]){
-				region.index[chunkCode] = seekPosition;
-				region.UnloadIndex();
+			if(seekPosition != this.pool[regionPos].index[chunkCode]){
+				this.pool[regionPos].index[chunkCode] = seekPosition;
+				this.pool[regionPos].UnloadIndex();
 			}
 
 			// Saves Chunk
-			region.Write(seekPosition, headerBuffer, chunkHeaderSize);
-			region.Write(seekPosition+chunkHeaderSize, blockBuffer, blockSize);
-			region.Write(seekPosition+chunkHeaderSize+blockSize, hpBuffer, hpSize);
-			region.Write(seekPosition+chunkHeaderSize+blockSize+hpSize, stateBuffer, stateSize);
+			this.pool[regionPos].Write(seekPosition, headerBuffer, chunkHeaderSize);
+			this.pool[regionPos].Write(seekPosition+chunkHeaderSize, blockBuffer, blockSize);
+			this.pool[regionPos].Write(seekPosition+chunkHeaderSize+blockSize, hpBuffer, hpSize);
+			this.pool[regionPos].Write(seekPosition+chunkHeaderSize+blockSize+hpSize, stateBuffer, stateSize);
 		}
 		// If it's a new Chunk
 		else{
-			seekPosition = region.FindPosition(totalSize);
-			region.SaveHoles();
+			ChunkPos regionPos = ConvertToRegion(c.pos);
+
+			seekPosition = this.pool[regionPos].FindPosition(totalSize);
+			this.pool[regionPos].SaveHoles();
 
 			// Adds new chunk to Index
-			region.index.Add(chunkCode, seekPosition);
+			this.pool[regionPos].index.Add(chunkCode, seekPosition);
 			AddEntryIndex(chunkCode, seekPosition);
-			region.indexFile.Write(indexArray, 0, 16);
-			region.indexFile.Flush();
+			this.pool[regionPos].indexFile.Write(indexArray, 0, 16);
+			this.pool[regionPos].indexFile.Flush();
 
 			// Saves Chunk
-			region.Write(seekPosition, headerBuffer, chunkHeaderSize);
-			region.Write(seekPosition+chunkHeaderSize, blockBuffer, blockSize);
-			region.Write(seekPosition+chunkHeaderSize+blockSize, hpBuffer, hpSize);
-			region.Write(seekPosition+chunkHeaderSize+blockSize+hpSize, stateBuffer, stateSize);
+			this.pool[regionPos].Write(seekPosition, headerBuffer, chunkHeaderSize);
+			this.pool[regionPos].Write(seekPosition+chunkHeaderSize, blockBuffer, blockSize);
+			this.pool[regionPos].Write(seekPosition+chunkHeaderSize+blockSize, hpBuffer, hpSize);
+			this.pool[regionPos].Write(seekPosition+chunkHeaderSize+blockSize+hpSize, stateBuffer, stateSize);
 		}
 
 	}
@@ -317,8 +344,8 @@ public class RegionFileHandler{
 	private void ReadHeader(ChunkPos pos){
 		long code = GetLinearRegionCoords(pos);
 
-		this.region.file.Seek(this.region.index[code], SeekOrigin.Begin);
-		this.region.file.Read(headerBuffer, 0, chunkHeaderSize);
+		this.pool[ConvertToRegion(pos)].file.Seek(this.pool[ConvertToRegion(pos)].index[code], SeekOrigin.Begin);
+		this.pool[ConvertToRegion(pos)].file.Read(headerBuffer, 0, chunkHeaderSize);
 	}
 
 	// Interprets header data into ref variables
@@ -408,6 +435,25 @@ public class RegionFileHandler{
 		indexArray[15] = (byte)(val);
 	}
 
+	// Checks if current chunk is in index already
+	// Assumes that correct region has been loaded into pool
+	public bool IsIndexed(ChunkPos pos){
+		if(this.pool[ConvertToRegion(pos)].index.ContainsKey(GetLinearRegionCoords(pos)))
+			return true;
+		return false;
+	}
+
+	// Translates current ChunkPos to RegionPos
+	public ChunkPos ConvertToRegion(ChunkPos pos){
+		int rfx;
+		int rfz;
+
+		rfx = Mathf.FloorToInt(pos.x / RegionFileHandler.chunkLength);
+		rfz = Mathf.FloorToInt(pos.z / RegionFileHandler.chunkLength);
+
+		return new ChunkPos(rfx, rfz);		
+	}
+
 	// Gets NeedGeneration byte from Chunk
 	public bool GetsNeedGeneration(ChunkPos pos){
 		ReadHeader(pos);
@@ -415,6 +461,21 @@ public class RegionFileHandler{
 		if(headerBuffer[8] == 0)
 			return false;
 		return true;
+	}
+
+	// Checks if current chunk should be housed in current RegionFile
+	public bool CheckUsage(ChunkPos pos){
+		int rfx;
+		int rfz;
+
+		rfx = Mathf.FloorToInt(pos.x / RegionFileHandler.chunkLength);
+		rfz = Mathf.FloorToInt(pos.z / RegionFileHandler.chunkLength);
+
+		ChunkPos check = new ChunkPos(rfx, rfz);
+
+		if(this.pool.ContainsKey(check))
+			return true;
+		return false;
 	}
 
 
@@ -489,25 +550,6 @@ public struct RegionFile{
 		}
 	}
 
-	// Checks if current chunk should be housed in current RegionFile
-	public bool CheckUsage(ChunkPos pos){
-		int rfx;
-		int rfz;
-
-		rfx = Mathf.FloorToInt(pos.x / this.chunkLength);
-		rfz = Mathf.FloorToInt(pos.z / this.chunkLength);
-
-		if(this.regionPos.x == rfx && this.regionPos.z == rfz)
-			return true;
-		return false;
-	}
-
-	// Checks if current chunk is in index already
-	public bool IsIndexed(ChunkPos pos){
-		if(index.ContainsKey(GetLinearRegionCoords(pos)))
-			return true;
-		return false;
-	}
 
 	// Convert to linear Region Chunk Coordinates
 	private long GetLinearRegionCoords(ChunkPos pos){

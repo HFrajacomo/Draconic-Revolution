@@ -63,6 +63,11 @@ public class ChunkLoader : MonoBehaviour
     private ushort[] cacheMetadataState = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private Dictionary<ushort, ushort> cacheStateDict = new Dictionary<ushort, ushort>();
 
+
+    void OnApplicationQuit(){
+        regionHandler.CloseAll();
+    }
+
     void Awake(){
         this.playerCharacter.SetActive(false);
         this.gameUI.SetActive(false);
@@ -126,7 +131,7 @@ public class ChunkLoader : MonoBehaviour
     	UnloadChunk();
 
         // Decides whether DRAW Flag should be activates or deactivated
-        if(toDraw.Count > this.renderDistance){
+        if(toDraw.Count > this.renderDistance*2+1){
             this.DRAWFLAG = true;
         }
         else if(toDraw.Count == 0){
@@ -134,7 +139,6 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // Decides what to do for current tick
-        
         if(toLoad.Count > 0 && !this.DRAWFLAG)
             LoadChunk();
         else if(Structure.reloadChunks.Count > 0)
@@ -173,7 +177,7 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // If is in an unloaded indexed chunk
-        else if(this.regionHandler.GetFile().IsIndexed(cacheChunk.pos)){
+        else if(this.regionHandler.IsIndexed(cacheChunk.pos)){
             Chunk c = new Chunk(cacheChunk.pos, this.rend, this.blockBook, this, fromMemory:true);
             this.regionHandler.LoadChunk(c);
 
@@ -213,7 +217,7 @@ public class ChunkLoader : MonoBehaviour
             regionHandler.GetCorrectRegion(toLoad[0]);
 
             // If current chunk toLoad was already generated
-            if(regionHandler.GetFile().IsIndexed(toLoad[0])){
+            if(regionHandler.IsIndexed(toLoad[0])){
 
                 isPregen = regionHandler.GetsNeedGeneration(toLoad[0]);
 
@@ -297,18 +301,16 @@ public class ChunkLoader : MonoBehaviour
 
     // Actually builds the mesh for loaded chunks
     private void DrawChunk(){
-        for(int i=0; i < 2; i++){
-            if(toDraw.Count > 0){
-                // If chunk is still loaded
-                if(chunks.ContainsKey(toDraw[0])){
-                    chunks[toDraw[0]].BuildChunk(load:true);
-                    // If hasn't been drawn entirely, put on Redraw List
-                    if(!chunks[toDraw[0]].BuildSideBorder(reload:true)){
-                        toRedraw.Add(toDraw[0]);
-                    }
+        if(toDraw.Count > 0){
+            // If chunk is still loaded
+            if(chunks.ContainsKey(toDraw[0])){
+                chunks[toDraw[0]].BuildChunk(load:true);
+                // If hasn't been drawn entirely, put on Redraw List
+                if(!chunks[toDraw[0]].BuildSideBorder(reload:true)){
+                    toRedraw.Add(toDraw[0]);
                 }
-                toDraw.RemoveAt(0);
             }
+            toDraw.RemoveAt(0);
         }
 
         for(int i=0; i < 2; i++){

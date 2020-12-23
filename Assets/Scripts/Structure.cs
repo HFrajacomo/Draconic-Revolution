@@ -208,7 +208,7 @@ public abstract class Structure
                 cl.regionHandler.GetCorrectRegion(newPos);
 
                 // Check if it's an existing chunk
-                if(cl.regionHandler.GetFile().IsIndexed(newPos)){
+                if(cl.regionHandler.IsIndexed(newPos)){
                     if(Structure.Exists(newPos)){
                         c = Structure.GetChunk(newPos);
                         ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);
@@ -242,6 +242,7 @@ public abstract class Structure
     // Applies this structure to a chunk
     // Receives a Chunk reference that will be changed in this function
     private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader cl, ushort[] VD, ushort[] VMHP, ushort[] VMState, int posX, int posY, int posZ, int remainderX, int remainderZ, int structinitX, int structinitZ, int rotation=0){
+
         bool exists = exist;
 
         int structX = structinitX;
@@ -494,6 +495,7 @@ public abstract class Structure
             }
             return true;          
         }
+
     }
 
     // Checks if a chunk pos exists in reloadChunks
@@ -526,6 +528,7 @@ public abstract class Structure
         }
         return false;
     }
+    
 
     // Does a Rough apply on synchonization problems when loading a Chunk before applying
     //  Structure to it
