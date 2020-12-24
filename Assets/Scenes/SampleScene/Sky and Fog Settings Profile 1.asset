@@ -121,7 +121,7 @@ MonoBehaviour:
     showEyeDropper: 1
   meanFreePath:
     m_OverrideState: 0
-    m_Value: 300
+    m_Value: 100
     min: 1
   enableVolumetricFog:
     m_OverrideState: 0
@@ -374,13 +374,22 @@ MonoBehaviour:
         inWeight: 0.3002895
         outWeight: 0.6040859
       - serializedVersion: 3
-        time: 28.418873
-        value: -10.764215
-        inSlope: 0.12938784
-        outSlope: 0.12938784
+        time: 1.2307034
+        value: -0.38037825
+        inSlope: -0.0016514782
+        outSlope: -0.0016514782
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.15963535
+        inWeight: 0.33333334
+        outWeight: 0.20238183
+      - serializedVersion: 3
+        time: 9.785746
+        value: -0.3993888
+        inSlope: 0.0019991351
+        outSlope: 0.0019991351
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.15546961
         outWeight: 0.08076612
       m_PreInfinity: 2
       m_PostInfinity: 2
@@ -449,13 +458,13 @@ MonoBehaviour:
     max: 4
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0.08750002
+    m_Value: 0.16666667
   cascadeShadowSplit1:
     m_OverrideState: 1
-    m_Value: 0.29400003
+    m_Value: 0.4
   cascadeShadowSplit2:
-    m_OverrideState: 0
-    m_Value: 0.44200003
+    m_OverrideState: 1
+    m_Value: 0.55738467
   cascadeShadowBorder0:
     m_OverrideState: 0
     m_Value: 0

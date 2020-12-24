@@ -191,7 +191,7 @@ MonoBehaviour:
   m_RenderPipelineSettings:
     supportShadowMask: 1
     supportSSR: 1
-    supportSSAO: 0
+    supportSSAO: 1
     supportSubsurfaceScattering: 1
     increaseSssSampleCount: 0
     supportVolumetrics: 1
@@ -244,7 +244,7 @@ MonoBehaviour:
       maxDecalsOnScreen: 512
       maxPlanarReflectionOnScreen: 16
     hdShadowInitParams:
-      maxShadowRequests: 256
+      maxShadowRequests: 1024
       directionalShadowsDepthBits: 32
       shadowFilteringQuality: 1
       punctualLightShadowAtlas:
@@ -260,17 +260,17 @@ MonoBehaviour:
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionPunctual:
-        m_Values: 20000000800000000001000000020000
+        m_Values: 20000000800000000001000000010000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionArea:
         m_Values: 20000000800000000001000000020000
         m_SchemaId:
           m_Id: With4Levels
-      maxDirectionalShadowMapResolution: 2048
+      maxDirectionalShadowMapResolution: 512
       maxPunctualShadowMapResolution: 512
-      maxAreaShadowMapResolution: 2048
-      supportScreenSpaceShadows: 1
+      maxAreaShadowMapResolution: 512
+      supportScreenSpaceShadows: 0
       maxScreenSpaceShadowSlots: 4
       screenSpaceShadowBufferFormat: 48
     decalSettings:
