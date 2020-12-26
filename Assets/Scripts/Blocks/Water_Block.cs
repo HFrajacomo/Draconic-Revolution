@@ -74,22 +74,7 @@ public class Water_Block : Blocks
 
 	// Moves water down into underground caverns
 	public override int OnLoad(CastCoord coord, ChunkLoader cl){
-		ushort code = GetCodeBelow(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), cl);
-
-		if(code == 0){
-			this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);
-			return 0;
-		}
-
-		GetCodeAround(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), cl);
-
-		for(int i=0; i < 8; i++){
-			if(this.aroundCodes[i] == 0){
-				this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);	
-				break;
-			}
-		}
-
+		this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);	
 		return 0;
 	}
 

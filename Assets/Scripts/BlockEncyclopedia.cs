@@ -24,6 +24,7 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.blockInvisible[i] = blocks[i].invisible;
             BlockEncyclopediaECS.blockMaterial[i] = blocks[i].materialIndex;
             BlockEncyclopediaECS.blockTiles[i] = new int3(blocks[i].tileTop, blocks[i].tileBottom, blocks[i].tileSide);
+            BlockEncyclopediaECS.blockWashable[i] = blocks[i].washable;
         }
 
         // Loads all object meshes
@@ -36,6 +37,7 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.objectMaterial[i] = objects[i].materialIndex;
             BlockEncyclopediaECS.objectScaling[i] = objects[i].scaling;
             BlockEncyclopediaECS.objectNeedRotation[i] = objects[i].needsRotation;
+            BlockEncyclopediaECS.objectWashable[i] = objects[i].washable;
         }
     }
 

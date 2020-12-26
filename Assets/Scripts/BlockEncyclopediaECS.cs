@@ -19,6 +19,8 @@ public class BlockEncyclopediaECS
 	public static int3[] blockTiles; // [tileTop, tileBottom, tileSide]
 	public static Vector3[] objectScaling;
 	public static bool[] objectNeedRotation;
+	public static bool[] blockWashable;
+	public static bool[] objectWashable;
 
 	public BlockEncyclopediaECS(int amountBlocks, int amountObjects){
 		BlockEncyclopediaECS.blockTransparent = new bool[amountBlocks];
@@ -33,6 +35,8 @@ public class BlockEncyclopediaECS
 		BlockEncyclopediaECS.objectMaterial = new byte[amountObjects];
 		BlockEncyclopediaECS.blockTiles = new int3[amountBlocks];
 		BlockEncyclopediaECS.objectScaling = new Vector3[amountObjects];		
-		BlockEncyclopediaECS.objectNeedRotation = new bool[amountBlocks];
+		BlockEncyclopediaECS.objectNeedRotation = new bool[amountObjects];
+		BlockEncyclopediaECS.blockWashable = new bool[amountBlocks];
+		BlockEncyclopediaECS.objectWashable = new bool[amountObjects];
 	}
 }

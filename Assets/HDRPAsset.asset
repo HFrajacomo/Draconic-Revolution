@@ -249,8 +249,8 @@ MonoBehaviour:
       shadowFilteringQuality: 1
       punctualLightShadowAtlas:
         shadowAtlasResolution: 256
-        shadowAtlasDepthBits: 32
-        useDynamicViewportRescale: 0
+        shadowAtlasDepthBits: 16
+        useDynamicViewportRescale: 1
       areaLightShadowAtlas:
         shadowAtlasResolution: 256
         shadowAtlasDepthBits: 32

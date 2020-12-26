@@ -164,6 +164,8 @@ public class Chunk
 		NativeArray<byte> blockMaterial = new NativeArray<byte>(BlockEncyclopediaECS.blockMaterial, Allocator.TempJob);
 		NativeArray<byte> objectMaterial = new NativeArray<byte>(BlockEncyclopediaECS.objectMaterial, Allocator.TempJob);
 		NativeArray<int3> blockTiles = new NativeArray<int3>(BlockEncyclopediaECS.blockTiles, Allocator.TempJob);
+		NativeArray<bool> blockWashable = new NativeArray<bool>(BlockEncyclopediaECS.blockWashable, Allocator.TempJob);
+		NativeArray<bool> objectWashable = new NativeArray<bool>(BlockEncyclopediaECS.objectWashable, Allocator.TempJob);
 
 		// Cached
 		NativeArray<Vector3> cacheCubeVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
@@ -236,6 +238,8 @@ public class Chunk
 				objectInvisible = objectInvisible,
 				blockMaterial = blockMaterial,
 				objectMaterial = objectMaterial,
+				blockWashable = blockWashable,
+				objectWashable = objectWashable,
 				blockTiles = blockTiles
 			};
 			job = bbJob.Schedule();
@@ -293,6 +297,8 @@ public class Chunk
 				objectInvisible = objectInvisible,
 				blockMaterial = blockMaterial,
 				objectMaterial = objectMaterial,
+				blockWashable = blockWashable,
+				objectWashable = objectWashable,
 				blockTiles = blockTiles
 			};
 			job = bbJob.Schedule();
@@ -350,6 +356,8 @@ public class Chunk
 				objectInvisible = objectInvisible,
 				blockMaterial = blockMaterial,
 				objectMaterial = objectMaterial,
+				blockWashable = blockWashable,
+				objectWashable = objectWashable,
 				blockTiles = blockTiles
 			};
 			job = bbJob.Schedule();
@@ -407,6 +415,8 @@ public class Chunk
 				objectInvisible = objectInvisible,
 				blockMaterial = blockMaterial,
 				objectMaterial = objectMaterial,
+				blockWashable = blockWashable,
+				objectWashable = objectWashable,
 				blockTiles = blockTiles
 			};
 			job = bbJob.Schedule();
@@ -456,6 +466,8 @@ public class Chunk
 		objectInvisible.Dispose();
 		blockMaterial.Dispose();
 		objectMaterial.Dispose();
+		blockWashable.Dispose();
+		objectWashable.Dispose();
 		blockTiles.Dispose();
 		cacheCubeVerts.Dispose();
 		cacheUVVerts.Dispose();
@@ -508,7 +520,8 @@ public class Chunk
 		NativeArray<byte> objectMaterial = new NativeArray<byte>(BlockEncyclopediaECS.objectMaterial, Allocator.TempJob);
 		NativeArray<int3> blockTiles = new NativeArray<int3>(BlockEncyclopediaECS.blockTiles, Allocator.TempJob);
 		NativeArray<bool> objectNeedRotation = new NativeArray<bool>(BlockEncyclopediaECS.objectNeedRotation, Allocator.TempJob);
-
+		NativeArray<bool> blockWashable = new NativeArray<bool>(BlockEncyclopediaECS.blockWashable, Allocator.TempJob);
+		NativeArray<bool> objectWashable = new NativeArray<bool>(BlockEncyclopediaECS.objectWashable, Allocator.TempJob);
 
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{
@@ -534,6 +547,8 @@ public class Chunk
 			objectInvisible = objectInvisible,
 			blockMaterial = blockMaterial,
 			objectMaterial = objectMaterial,
+			blockWashable = blockWashable,
+			objectWashable = objectWashable,
 			blockTiles = blockTiles
 		};
 		JobHandle job = bcJob.Schedule();
@@ -669,6 +684,8 @@ public class Chunk
 		blockMaterial.Dispose();
 		objectMaterial.Dispose();
 		blockTiles.Dispose();
+		blockWashable.Dispose();
+		objectWashable.Dispose();
 		cacheCubeVert.Dispose();
 		cacheCubeUV.Dispose();
 		loadCodeList.Dispose();
@@ -808,8 +825,6 @@ public class Chunk
     	this.vertices.Clear();
     	this.UVs.Clear();
     }
-
-
 }
 
 
@@ -868,6 +883,10 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<byte> objectMaterial;
 	[ReadOnly]
 	public NativeArray<int3> blockTiles;
+	[ReadOnly]
+	public NativeArray<bool> blockWashable;
+	[ReadOnly]
+	public NativeArray<bool> objectWashable;
 
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
@@ -875,6 +894,9 @@ public struct BuildChunkJob : IJob{
 		ushort thisBlock;
 		ushort neighborBlock;
 		ushort thisState;
+
+		// Liquid Flags
+		bool liquidToLoad = false;
 
 		for(int x=0; x<Chunk.chunkWidth; x++){
 			for(int y=0; y<Chunk.chunkDepth; y++){
@@ -891,18 +913,20 @@ public struct BuildChunkJob : IJob{
 	    			if(load)
 	    				// If is a block
 		    			if(thisBlock <= ushort.MaxValue/2){
-		    				if(blockLoad[thisBlock]){
+		    				if(blockLoad[thisBlock] && !blockLiquid[thisBlock]){
 		    					loadOutList.Add(new int3(x,y,z));
 		    				}
 		    			}
 		    			// If Asset
 		    			else{
-		    				if(objectLoad[ushort.MaxValue-thisBlock]){
+		    				if(objectLoad[ushort.MaxValue-thisBlock] && !objectLiquid[ushort.MaxValue-thisBlock]){
 		    					loadOutList.Add(new int3(x,y,z));
 		    				}
 		    			}
 
 	    			// --------------------------------
+		    		// Reset Liquid Count for current block
+		    		liquidToLoad = false;
 
 			    	for(int i=0; i<6; i++){
 			    		neighborBlock = GetNeighbor(x, y, z, i);
@@ -921,11 +945,49 @@ public struct BuildChunkJob : IJob{
 
 			    		////////// -----------------------------------
 
-			    		
-		    			// Handles Liquid chunks
-		    			if(CheckLiquids(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i)))
-		    				continue;
+						// Handles Liquid chunks
+			    		if(thisBlock <= ushort.MaxValue/2){
+			    			if(blockLiquid[thisBlock]){
+				    			if(CheckLiquids(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i))){
+				    				continue;
+				    			}
+				    			else if(neighborBlock <= ushort.MaxValue/2 && i != 4){
+				    				if(neighborBlock == 0 || blockWashable[neighborBlock]){
+				    					liquidToLoad = true;
+				    				}
+
+				    			}
+				    			else if(neighborBlock > ushort.MaxValue/2 && i != 4){
+				    				if(objectWashable[ushort.MaxValue-neighborBlock]){
+				    					liquidToLoad = true;
+				    				}
+				    			}
+			    			}
+
+			    		}
+			    		else{
+			    			if(objectLiquid[ushort.MaxValue-thisBlock]){
+				    			if(CheckLiquids(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i))){
+				    				continue;
+				    			}
+				    			else if(neighborBlock <= ushort.MaxValue/2 && i != 4){
+				    				if(neighborBlock == 0 || blockWashable[neighborBlock]){
+				    					liquidToLoad = true;
+				    				}
+
+				    			}
+				    			else if(neighborBlock > ushort.MaxValue/2 && i != 4){
+				    				if(objectWashable[ushort.MaxValue-neighborBlock]){
+				    					liquidToLoad = true;
+				    				}
+				    			}	    				
+			    			}
+			    		}
 		    			
+		    			// Puts liquid into OnLoad list
+		    			if(liquidToLoad){
+		    				loadOutList.Add(new int3(x,y,z));
+		    			}
 
 		    			// Main Drawing Handling
 			    		if(CheckPlacement(neighborBlock)){
@@ -1029,7 +1091,6 @@ public struct BuildChunkJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		UVs.AddRange(cacheCubeUV);
 
-    		
 	    	specularTris.Add(vCount -4);
 	    	specularTris.Add(vCount -4 +1);
 	    	specularTris.Add(vCount -4 +2);
@@ -1261,8 +1322,6 @@ public struct PrepareAssetsJob : IJob{
 }
 
 
-
-
 [BurstCompile]
 public struct BuildBorderJob : IJob{
 	[ReadOnly]
@@ -1309,7 +1368,10 @@ public struct BuildBorderJob : IJob{
 	public NativeArray<byte> objectMaterial;
 	[ReadOnly]
 	public NativeArray<int3> blockTiles;
-
+	[ReadOnly]
+	public NativeArray<bool> blockWashable;
+	[ReadOnly]
+	public NativeArray<bool> objectWashable;
 
 	public void Execute(){
 		ushort thisBlock;
@@ -1326,11 +1388,24 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					// Border Liquid Updates
-					CheckBorderUpdate(0,y,z, neighborBlock);
+					//CheckBorderUpdate(0,y,z, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
 					}
+					else{
+						if(neighborBlock <= ushort.MaxValue/2){
+							if(blockWashable[neighborBlock] || neighborBlock == 0){
+								toLoadEvent.Add(new int3(0,y,z));
+							}
+						}
+						else{
+							if(objectWashable[ushort.MaxValue-neighborBlock]){
+								toLoadEvent.Add(new int3(0,y,z));
+							}
+						}
+					}
+
 
 					if(CheckPlacement(neighborBlock)){
 						LoadMesh(0, y, z, 3, thisBlock, true, cachedCubeVerts, cachedUVVerts);
@@ -1350,10 +1425,22 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					// Border Liquid Updates
-					CheckBorderUpdate(Chunk.chunkWidth-1,y,z, neighborBlock);
+					//CheckBorderUpdate(Chunk.chunkWidth-1,y,z, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
+					}
+					else{
+						if(neighborBlock <= ushort.MaxValue/2){
+							if(blockWashable[neighborBlock] || neighborBlock == 0){
+								toLoadEvent.Add(new int3(Chunk.chunkWidth-1,y,z));
+							}
+						}
+						else{
+							if(objectWashable[ushort.MaxValue-neighborBlock]){
+								toLoadEvent.Add(new int3(Chunk.chunkWidth-1,y,z));
+							}
+						}
 					}
 
 					if(CheckPlacement(neighborBlock)){
@@ -1374,10 +1461,22 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					// Border Liquid Updates
-					CheckBorderUpdate(x,y,0, neighborBlock);
+					//CheckBorderUpdate(x,y,0, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
+					}
+					else{
+						if(neighborBlock <= ushort.MaxValue/2){
+							if(blockWashable[neighborBlock] || neighborBlock == 0){
+								toLoadEvent.Add(new int3(x,y,0));
+							}
+						}
+						else{
+							if(objectWashable[ushort.MaxValue-neighborBlock]){
+								toLoadEvent.Add(new int3(x,y,0));
+							}
+						}
 					}
 
 					if(CheckPlacement(neighborBlock)){
@@ -1398,10 +1497,22 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					// Border Liquid Updates
-					CheckBorderUpdate(x,y,Chunk.chunkWidth-1, neighborBlock);
+					//CheckBorderUpdate(x,y,Chunk.chunkWidth-1, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
+					}
+					else{
+						if(neighborBlock <= ushort.MaxValue/2){
+							if(blockWashable[neighborBlock] || neighborBlock == 0){
+								toLoadEvent.Add(new int3(x,y,Chunk.chunkWidth-1));
+							}
+						}
+						else{
+							if(objectWashable[ushort.MaxValue-neighborBlock]){
+								toLoadEvent.Add(new int3(x,y,Chunk.chunkWidth-1));
+							}
+						}
 					}
 
 					if(CheckPlacement(neighborBlock)){
