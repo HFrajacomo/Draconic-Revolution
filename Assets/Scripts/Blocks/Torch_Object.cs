@@ -249,7 +249,7 @@ public class Torch_Object : BlocklikeObject
 				}
 			}
 			else{
-				if(!cl.blockBook.objects[(blockCode*-1)-1].solid){
+				if(!cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
 					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
 					EraseMetadata(thisPos, X, Y, Z, cl);					

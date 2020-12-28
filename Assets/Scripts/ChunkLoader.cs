@@ -635,21 +635,26 @@ public class ChunkLoader : MonoBehaviour
                 z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z*generationSeed)*Chunk.chunkWidthMult);
 
                 // All >
-                if(x + offsetX > 15 && z + offsetZ > 15)
+                if(x + offsetX > 15 && z + offsetZ > 15){
                     y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth;
+                }
                 // X >
-                else if(x + offsetX > 15 && z + offsetZ <= 15)
+                else if(x + offsetX > 15 && z + offsetZ <= 15){
                     y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth;
+                }
                 // Z >
-                else if(x + offsetX <= 15 && z + offsetZ > 15)
+                else if(x + offsetX <= 15 && z + offsetZ > 15){
                     y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth;
+                }
                 // All <
-                else
+                else{
                     y = cacheHeightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth;
+                }
 
                 // Ignores structure on hard limit
                 if(y <= heightlimit)
                     continue;
+
                 
                 this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadataHP, cacheMetadataState, x, y, z, rotation:rotation);
             }
@@ -684,6 +689,10 @@ public class ChunkLoader : MonoBehaviour
                 else{
                     y = (int)(heightlimit + yMult*(cacheHeightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth));
                 }
+
+                // Ignores structure on hard limit
+                if(y <= heightlimit)
+                    continue;
 
                 this.structHandler.LoadStructure(structureCode).Apply(this, pos, cacheVoxdata, cacheMetadataHP, cacheMetadataState, x, y, z, rotation:rotation);
             }            

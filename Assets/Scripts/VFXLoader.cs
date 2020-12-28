@@ -29,7 +29,8 @@ public class VFXLoader : MonoBehaviour
     // Adds GameObject to Chunk Dict and sets it to active
     public void Add(ChunkPos pos, GameObject go, bool active=true){
     	if(data[pos].ContainsKey(go.name)){
-            return;
+            Destroy(this.data[pos][go.name]);
+            data[pos].Remove(go.name);
         }
 
         data[pos].Add(go.name, go);

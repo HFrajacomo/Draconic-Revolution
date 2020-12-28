@@ -52,7 +52,7 @@ public class TimeOfDay : MonoBehaviour
 
     // Gets full day description with Ticks
     public string GetBUDTime(){
-        return days.ToString() + ":" + hours.ToString("00") + ":" + minutes.ToString("00") + ":" + ((int)(ticks*5)).ToString();
+        return days.ToString() + ":" + hours.ToString("00") + ":" + minutes.ToString("00") + ":" + ((int)(ticks*10)).ToString();
     }
 
     // Returns byte array representing current time for Chunk Header in RegionFile
@@ -117,7 +117,7 @@ public class TimeOfDay : MonoBehaviour
 
     // Fake Sum to calculate schedule time
     public string FakeSum(float tick){
-        float t = this.ticks + tick/10;
+        float t = this.ticks + tick/20;
         byte m = this.minutes;
         byte h = this.hours;
         uint d = this.days;
@@ -129,7 +129,7 @@ public class TimeOfDay : MonoBehaviour
         d = (uint)(d + (h/24));
         h = (byte)(h%24);
 
-        return d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ":" +  ((int)(t*5)).ToString();
+        return d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ":" +  ((int)(t*10)).ToString();
 
     }
 }
