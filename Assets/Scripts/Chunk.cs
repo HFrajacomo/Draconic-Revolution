@@ -214,6 +214,7 @@ public class Chunk
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
+				reload = reload,
 				data = blockdata,
 				metadata = metadata,
 				neighbordata = neighbordata,
@@ -273,6 +274,7 @@ public class Chunk
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 
 			BuildBorderJob bbJob = new BuildBorderJob{
+				reload = reload,
 				data = blockdata,
 				metadata = metadata,
 				neighbordata = neighbordata,
@@ -332,6 +334,7 @@ public class Chunk
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
+				reload = reload,
 				data = blockdata,
 				metadata = metadata,
 				neighbordata = neighbordata,
@@ -391,6 +394,7 @@ public class Chunk
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
+				reload = reload,
 				data = blockdata,
 				metadata = metadata,
 				neighbordata = neighbordata,
@@ -985,7 +989,7 @@ public struct BuildChunkJob : IJob{
 			    		}
 		    			
 		    			// Puts liquid into OnLoad list
-		    			if(liquidToLoad){
+		    			if(liquidToLoad && load){
 		    				loadOutList.Add(new int3(x,y,z));
 		    			}
 
@@ -1325,6 +1329,8 @@ public struct PrepareAssetsJob : IJob{
 [BurstCompile]
 public struct BuildBorderJob : IJob{
 	[ReadOnly]
+	public bool reload;
+	[ReadOnly]
 	public NativeArray<ushort> data;
 	[ReadOnly]
 	public NativeArray<ushort> metadata;
@@ -1387,20 +1393,18 @@ public struct BuildBorderJob : IJob{
 					if(thisBlock == 0)
 						continue;
 
-					// Border Liquid Updates
-					//CheckBorderUpdate(0,y,z, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockWashable[neighborBlock] || neighborBlock == 0){
+							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
 								toLoadEvent.Add(new int3(0,y,z));
 							}
 						}
 						else{
-							if(objectWashable[ushort.MaxValue-neighborBlock]){
+							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
 								toLoadEvent.Add(new int3(0,y,z));
 							}
 						}
@@ -1432,12 +1436,12 @@ public struct BuildBorderJob : IJob{
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockWashable[neighborBlock] || neighborBlock == 0){
+							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
 								toLoadEvent.Add(new int3(Chunk.chunkWidth-1,y,z));
 							}
 						}
 						else{
-							if(objectWashable[ushort.MaxValue-neighborBlock]){
+							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
 								toLoadEvent.Add(new int3(Chunk.chunkWidth-1,y,z));
 							}
 						}
@@ -1468,12 +1472,12 @@ public struct BuildBorderJob : IJob{
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockWashable[neighborBlock] || neighborBlock == 0){
+							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
 								toLoadEvent.Add(new int3(x,y,0));
 							}
 						}
 						else{
-							if(objectWashable[ushort.MaxValue-neighborBlock]){
+							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
 								toLoadEvent.Add(new int3(x,y,0));
 							}
 						}
@@ -1504,12 +1508,12 @@ public struct BuildBorderJob : IJob{
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockWashable[neighborBlock] || neighborBlock == 0){
+							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
 								toLoadEvent.Add(new int3(x,y,Chunk.chunkWidth-1));
 							}
 						}
 						else{
-							if(objectWashable[ushort.MaxValue-neighborBlock]){
+							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
 								toLoadEvent.Add(new int3(x,y,Chunk.chunkWidth-1));
 							}
 						}

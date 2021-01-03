@@ -22,7 +22,7 @@ public class BUDScheduler : MonoBehaviour
 
 	void Start(){
 		this.currentTime = schedulerTime.GetBUDTime();
-		this.BUDperFrame = 100;
+		this.BUDperFrame = 200;
 		this.data.Add(currentTime, new List<BUDSignal>());
 		this.toReload.Add(currentTime, new List<ChunkPos>());
 	}
@@ -63,19 +63,23 @@ public class BUDScheduler : MonoBehaviour
 
             // Permits all initial BUD to be processes in current tick
             // And sets a maximum for BUD generated instantly to be made
+            /*
     		this.BUDperFrame = (int)(this.data[this.newTime].Count/30)+1;
 
     		// Unclogs system if no BUD request incoming
     		if(this.BUDperFrame < 100){
     			this.BUDperFrame = 100;
     		}
+            */
     	}
+
+        Debug.Log(this.data[this.currentTime].Count);
 
     	// Iterates through frame's list and triggers BUD
     	for(currentBUDonFrame=0;currentBUDonFrame<BUDperFrame;currentBUDonFrame++){
 	    	if(this.data[this.currentTime].Count > 0){
                 cachedCoord = new CastCoord(new Vector3(this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z));
-	    		
+
                 // If BUDSignal is still in the loaded area
                 if(loader.chunks.ContainsKey(cachedCoord.GetChunkPos())){
                     cachedCode = loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
@@ -113,7 +117,7 @@ public class BUDScheduler : MonoBehaviour
 
 
     // Schedules a BUD request in the system
-    public void ScheduleBUD(BUDSignal b, float tickOffset){
+    public void ScheduleBUD(BUDSignal b, int tickOffset){
     	if(tickOffset == 0){
             if(!this.data[this.currentTime].Contains(b))
     		  this.data[this.currentTime].Add(b);
@@ -138,7 +142,7 @@ public class BUDScheduler : MonoBehaviour
     }
 
     // Schedules a Chunk.Build() operation 
-    public void ScheduleReload(ChunkPos pos, float tickOffset, int x=1, int y=1, int z=1){
+    public void ScheduleReload(ChunkPos pos, int tickOffset, int x=1, int y=1, int z=1){
     	if(tickOffset == 0){
             CheckSurroundingChunks(x, y, z, pos);
 

@@ -16,9 +16,9 @@ public class TimeOfDay : MonoBehaviour
     void Update()
     {
         if(!this.LOCKTIME){
-            ticks += Time.deltaTime * DEBUGTIMEMULT;
+            ticks += Time.deltaTime * 10 * DEBUGTIMEMULT;
 
-            if(ticks >= 2){
+            if(ticks >= 20){
             	ticks = 0f;
             	minutes++;
             }
@@ -52,7 +52,7 @@ public class TimeOfDay : MonoBehaviour
 
     // Gets full day description with Ticks
     public string GetBUDTime(){
-        return days.ToString() + ":" + hours.ToString("00") + ":" + minutes.ToString("00") + ":" + ((int)(ticks*10)).ToString();
+        return days.ToString() + ":" + hours.ToString("00") + ":" + minutes.ToString("00") + ":" + ((int)this.ticks).ToString();
     }
 
     // Returns byte array representing current time for Chunk Header in RegionFile
@@ -64,7 +64,7 @@ public class TimeOfDay : MonoBehaviour
         timeArray[3] = (byte)this.days;
         timeArray[4] = this.hours;
         timeArray[5] = this.minutes;
-        timeArray[6] = (byte)(this.ticks%2);
+        timeArray[6] = (byte)((int)this.ticks);
 
         return timeArray;
     }
@@ -78,7 +78,7 @@ public class TimeOfDay : MonoBehaviour
         b[3] = (byte)this.days;
         b[4] = this.hours;
         b[5] = this.minutes;
-        b[6] = (byte)(this.ticks%2);
+        b[6] = (byte)((int)this.ticks);
     }
 
     // Reconstructs byte array read from RegionFile to a date string
@@ -116,20 +116,22 @@ public class TimeOfDay : MonoBehaviour
     }
 
     // Fake Sum to calculate schedule time
-    public string FakeSum(float tick){
-        float t = this.ticks + tick/20;
+    public string FakeSum(int tick){
+        float t = this.ticks + tick;
         byte m = this.minutes;
         byte h = this.hours;
         uint d = this.days;
 
-        m = (byte)(m + (t/2));
-        t = t%2;
+        m = (byte)(m + (t/20));
+        t = t%20;
         h = (byte)(h + (m/60));
         m = (byte)(m%60);
         d = (uint)(d + (h/24));
         h = (byte)(h%24);
 
-        return d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ":" +  ((int)(t*10)).ToString();
+        string returnString = d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ":" +  (Mathf.FloorToInt(t)).ToString();
+
+        return returnString;
 
     }
 }

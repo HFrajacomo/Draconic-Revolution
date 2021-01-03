@@ -100,7 +100,7 @@ public struct CastCoord{
 	}
 
 	public override string ToString(){
-		return "ChunkX: " + chunkX + "\tChunkZ: " + chunkZ + "\tX, Y, Z: " + blockX + ", " + blockY + ", " + blockZ;
+		return "ChunkX: " + chunkX + "\tChunkZ: " + chunkZ + "\tX, Y, Z: " + GetWorldX() + ", " + GetWorldY() + ", " + GetWorldZ();
 	}
 
 	public string RealPos(){
