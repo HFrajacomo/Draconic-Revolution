@@ -14,11 +14,13 @@ public class BUDScheduler : MonoBehaviour
 	public ChunkLoader loader;
 	public int BUDperFrame;
 	private int currentBUDonFrame;
+    private byte currentDealocTime;
 
 
     private ChunkPos cachePos;
 	private CastCoord cachedCoord;
     private int cachedCode;
+    private string cachedString;
 
 	void Start(){
 		this.currentTime = schedulerTime.GetBUDTime();
@@ -35,6 +37,40 @@ public class BUDScheduler : MonoBehaviour
 
     	// Checks if BUD Tick has changed
     	if(this.newTime != this.currentTime){
+            bool shouldClean = false;
+
+            this.currentDealocTime++;
+
+            // Removes past queues if frame skipped to prevent Memory Leak
+            if(currentDealocTime == byte.MaxValue){
+                currentDealocTime = 0;
+
+                foreach(string s in this.data.Keys){
+                    if(schedulerTime.IsPast(s)){
+                        cachedString = s;
+                        Debug.Log("a");
+                        shouldClean = true;
+                        break;
+                    }
+                }
+
+                if(shouldClean){
+                    shouldClean = false;
+                    this.data.Remove(cachedString);
+                }
+
+                foreach(string s in this.toReload.Keys){
+                    if(schedulerTime.IsPast(s)){
+                        cachedString = s;
+                        shouldClean = true;
+                    }
+                }
+
+                if(shouldClean){
+                    this.toReload.Remove(cachedString);
+                }             
+            }
+
             // Saves the World Data every second
             loader.regionHandler.SaveWorld();
             loader.regionHandler.SavePlayer(playerTransform.position);

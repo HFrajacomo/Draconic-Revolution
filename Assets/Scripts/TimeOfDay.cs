@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -115,6 +116,43 @@ public class TimeOfDay : MonoBehaviour
 
     }
 
+    // Checks if a given string-formatted time is past compared to current time
+    public bool IsPast(string givenTime){
+        string[] given_split = new string[4];
+        string[] current_split = new string[4];
+
+        float given_t, current_t;
+        byte given_m, current_m, given_h, current_h;
+        uint given_d, current_d;
+
+        given_split = givenTime.Split(':');
+        current_split = this.Serialize().Split(':');
+
+        given_t = (float)Convert.ToDouble(given_split[3]);
+        given_m = (byte)Convert.ToByte(given_split[2]);
+        given_h = (byte)Convert.ToByte(given_split[1]);
+        given_d = (uint)Convert.ToInt32(given_split[0]);
+
+        current_t = (float)Convert.ToDouble(current_split[3]);
+        current_m = (byte)Convert.ToByte(current_split[2]);
+        current_h = (byte)Convert.ToByte(current_split[1]);
+        current_d = (uint)Convert.ToInt32(current_split[0]);
+
+        if(given_d < current_d)
+            return false;
+
+        if(given_h < current_h)
+            return false;
+
+        if(given_m < current_m)
+            return false;
+
+        if(given_t < current_t)
+            return false;
+
+        return true;
+    }
+
     // Fake Sum to calculate schedule time
     public string FakeSum(int tick){
         float t = this.ticks + tick;
@@ -132,6 +170,11 @@ public class TimeOfDay : MonoBehaviour
         string returnString = d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ":" +  (Mathf.FloorToInt(t)).ToString();
 
         return returnString;
+    }
 
+    // Gets currentTime as string
+    public string Serialize(){
+        string returnString = this.days.ToString() + ":" + this.hours.ToString("00") + ":" + this.minutes.ToString("00") + ":" + Mathf.FloorToInt(this.ticks).ToString();
+        return returnString;
     }
 }
