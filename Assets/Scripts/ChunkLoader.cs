@@ -306,7 +306,7 @@ public class ChunkLoader : MonoBehaviour
             if(chunks.ContainsKey(toDraw[0])){
                 chunks[toDraw[0]].BuildChunk(load:true);
                 // If hasn't been drawn entirely, put on Redraw List
-                if(!chunks[toDraw[0]].BuildSideBorder()){
+                if(!chunks[toDraw[0]].BuildSideBorder(reload:true)){
                     toRedraw.Add(toDraw[0]);
                 }
             }
@@ -324,7 +324,7 @@ public class ChunkLoader : MonoBehaviour
                 if(chunks.ContainsKey(toRedraw[0])){
                     if(chunks[toRedraw[0]].drawMain){
                         // If hasn't been drawn entirely, put on Redraw again
-                        if(!chunks[toRedraw[0]].BuildSideBorder(reload:true)){
+                        if(!chunks[toRedraw[0]].BuildSideBorder()){
                             toRedraw.Add(toRedraw[0]);
                         }
                     }

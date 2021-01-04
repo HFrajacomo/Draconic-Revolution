@@ -39,79 +39,64 @@ public class BUDScheduler : MonoBehaviour
             loader.regionHandler.SaveWorld();
             loader.regionHandler.SavePlayer(playerTransform.position);
 
-    		// Creates new list for newTime if doesn't exist
-    		if(!this.data.ContainsKey(this.newTime)){
-    			this.data.Add(this.newTime, new List<BUDSignal>());
-    		}
-
-    		// Creates new value of reload to newTime if doesn't exist
-    		if(!this.toReload.ContainsKey(this.newTime)){
-    			this.toReload.Add(this.newTime, new List<ChunkPos>());
-    		}
-
     		this.currentBUDonFrame = 0;
 
-    		// Pops all elements of this tick if there is still any
-    		if(this.data[this.currentTime].Count > 0 || this.toReload[this.currentTime].Count > 0){
-    			PassToNextTick();
-    		}
+    		// Pops all elements of BUD
+            if(this.data.ContainsKey(this.currentTime)){
+        		if(this.data[this.currentTime].Count > 0){
+        			PassToNextTick(BUD:true);
+        		}
+            }
+
+            if(this.toReload.ContainsKey(this.currentTime)){
+                if(this.toReload[this.currentTime].Count > 0){
+                    PassToNextTick(BUD:false);
+                }
+            }
 
     		// Frees memory of previous BUD Tick
             this.data.Remove(this.currentTime);
             this.toReload.Remove(this.currentTime);
     		this.currentTime = this.newTime;
-
-            // Permits all initial BUD to be processes in current tick
-            // And sets a maximum for BUD generated instantly to be made
-            /*
-    		this.BUDperFrame = (int)(this.data[this.newTime].Count/30)+1;
-
-    		// Unclogs system if no BUD request incoming
-    		if(this.BUDperFrame < 100){
-    			this.BUDperFrame = 100;
-    		}
-            */
     	}
-
-        Debug.Log(this.data[this.currentTime].Count);
 
     	// Iterates through frame's list and triggers BUD
-    	for(currentBUDonFrame=0;currentBUDonFrame<BUDperFrame;currentBUDonFrame++){
-	    	if(this.data[this.currentTime].Count > 0){
-                cachedCoord = new CastCoord(new Vector3(this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z));
+        if(DataCount() > 0){
+        	for(currentBUDonFrame=0;currentBUDonFrame<BUDperFrame;currentBUDonFrame++){
+    	    	if(this.data[this.currentTime].Count > 0){
+                    cachedCoord = new CastCoord(new Vector3(this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z));
 
-                // If BUDSignal is still in the loaded area
-                if(loader.chunks.ContainsKey(cachedCoord.GetChunkPos())){
-                    cachedCode = loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
-                    
-                    if(cachedCode <= ushort.MaxValue/2)
-                        loader.blockBook.blocks[cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
-    	    	    else{
-                        loader.blockBook.objects[ushort.MaxValue - cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);                    
+                    // If BUDSignal is still in the loaded area
+                    if(loader.chunks.ContainsKey(cachedCoord.GetChunkPos())){
+                        cachedCode = loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+                        
+                        if(cachedCode <= ushort.MaxValue/2)
+                            loader.blockBook.blocks[cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
+        	    	    else{
+                            loader.blockBook.objects[ushort.MaxValue - cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);                    
+                        }
                     }
-                }
 
-                this.data[this.currentTime].RemoveAt(0);
-            }
-	    	else{
-	    		break;
-	    	}
-    	}
+                    this.data[this.currentTime].RemoveAt(0);
+                }
+    	    	else{
+    	    		break;
+    	    	}
+        	}
+        }
 
     	// Chunk Reloader
-    	if(this.data[this.currentTime].Count == 0 && this.toReload.ContainsKey(this.currentTime)){
-            if(this.toReload[this.currentTime].Count > 0){
-                cachePos = this.toReload[this.currentTime][0];
-                this.toReload[this.currentTime].RemoveAt(0);
+    	if(DataCount() == 0 && ReloadCount() > 0){
+            cachePos = this.toReload[this.currentTime][0];
+            this.toReload[this.currentTime].RemoveAt(0);
 
-                if(loader.chunks.ContainsKey(cachePos)){
-                    loader.chunks[cachePos].BuildChunk(); 
-                    if(!loader.chunks[cachePos].BuildSideBorder(reload:true))
-                        loader.toRedraw.Add(cachePos);
-                    
-                    loader.regionHandler.SaveChunk(loader.chunks[cachePos]);
-                }
-            }		
+            if(loader.chunks.ContainsKey(cachePos)){
+                loader.chunks[cachePos].BuildChunk(); 
+                if(!loader.chunks[cachePos].BuildSideBorder(reload:true))
+                    loader.toRedraw.Add(cachePos);
+                
+                loader.regionHandler.SaveChunk(loader.chunks[cachePos]);
+            }
     	}
     }
 
@@ -119,8 +104,15 @@ public class BUDScheduler : MonoBehaviour
     // Schedules a BUD request in the system
     public void ScheduleBUD(BUDSignal b, int tickOffset){
     	if(tickOffset == 0){
-            if(!this.data[this.currentTime].Contains(b))
-    		  this.data[this.currentTime].Add(b);
+            if(this.data.ContainsKey(this.currentTime)){
+                if(!this.data[this.currentTime].Contains(b)){
+        		  this.data[this.currentTime].Add(b);
+                }
+            }
+            else{
+                this.data.Add(this.currentTime, new List<BUDSignal>());
+                this.data[this.currentTime].Add(b);
+            }
     	}
     	else{
     		string fakeTime = schedulerTime.FakeSum(tickOffset);
@@ -136,14 +128,40 @@ public class BUDScheduler : MonoBehaviour
     	}
     }
 
+    // Returns the Amount of elements in this.data[currentTime]. Returns 0 if list is not initialized
+    public int DataCount(){
+        if(this.data.ContainsKey(this.currentTime)){
+            return this.data[this.currentTime].Count;
+        }
+        return 0;
+    }
+
+    // Returns the Amount of elements in this.reload[currentTime]. Returns 0 if list is not initialized
+    public int ReloadCount(){
+        if(this.toReload.ContainsKey(this.currentTime)){
+            return this.toReload[this.currentTime].Count;
+        }
+        return 0;
+    }
+
     // Schedules a BUD request in the system in the current tick
     public void ScheduleBUDNow(BUDSignal b){
-        this.data[this.currentTime].Add(b);
+        if(this.data.ContainsKey(this.currentTime)){ 
+            this.data[this.currentTime].Add(b);
+        }
+        else{
+            this.data.Add(this.currentTime, new List<BUDSignal>());
+            this.data[this.currentTime].Add(b);
+        }
     }
 
     // Schedules a Chunk.Build() operation 
     public void ScheduleReload(ChunkPos pos, int tickOffset, int x=1, int y=1, int z=1){
     	if(tickOffset == 0){
+            if(!this.toReload.ContainsKey(this.currentTime)){
+                this.toReload.Add(this.currentTime, new List<ChunkPos>());
+            }
+
             CheckSurroundingChunks(x, y, z, pos);
 
             foreach(ChunkPos p in cachedList){
@@ -191,17 +209,33 @@ public class BUDScheduler : MonoBehaviour
     }
 
     // Passes all elements in a to-be-deleted schedule date to the next tick
-    private void PassToNextTick(){
+    private void PassToNextTick(bool BUD=true){
     	int i=0;
-    	foreach(BUDSignal b in this.data[this.currentTime]){
-    		this.data[this.newTime].Insert(i, b);
-    		i++;
-    	}
+        if(BUD){
+            // If current tick has/had BUD
+            if(this.data.ContainsKey(this.currentTime)){
+                if(!this.data.ContainsKey(this.newTime)){
+                    this.data.Add(this.newTime, new List<BUDSignal>());
+                }
 
-        i = 0;
-        foreach(ChunkPos pos in this.toReload[this.currentTime]){
-            this.toReload[this.newTime].Insert(i, pos);
-            i++;
+            	foreach(BUDSignal b in this.data[this.currentTime]){
+            		this.data[this.newTime].Insert(i, b);
+            		i++;
+            	}
+            }
+        }
+
+        else{
+            if(this.toReload.ContainsKey(this.currentTime)){
+                if(!this.toReload.ContainsKey(this.newTime)){
+                    this.toReload.Add(this.newTime, new List<ChunkPos>());
+                }
+
+                foreach(ChunkPos pos in this.toReload[this.currentTime]){
+                    this.toReload[this.newTime].Insert(i, pos);
+                    i++;
+                }
+            }
         }
     }
 

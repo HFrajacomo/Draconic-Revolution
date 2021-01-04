@@ -138,11 +138,18 @@ public class Chunk
 			this.zPlusDrawn = false;
 
 		// If current operation CANNOT update borders
-		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
+		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn){
 			return true;
+		}
+
+		// Fast check if current border is at the edge of render distance
+		if(!this.ShouldRun()){
+			return true;
+		}
 
 		bool changed = false; // Flag is set if any change has been made that requires a redraw
 		int3[] coordArray;
+		int3[] budArray;
 
 		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
 		NativeArray<ushort> metadata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
@@ -154,6 +161,7 @@ public class Chunk
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
 	
 		NativeList<int3> toLoadEvent = new NativeList<int3>(0, Allocator.TempJob);
+		NativeList<int3> toBUD = new NativeList<int3>(0, Allocator.TempJob);
 
 		NativeArray<bool> blockTransparent = new NativeArray<bool>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
 		NativeArray<bool> objectTransparent = new NativeArray<bool>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
@@ -205,7 +213,6 @@ public class Chunk
 
 
 		// X- Analysis
-		
 		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z); 
 		if(loader.chunks.ContainsKey(targetChunk) && !xMinusDrawn){
 			this.xMinusDrawn = true;
@@ -214,6 +221,8 @@ public class Chunk
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
+				pos = this.pos,
+				toBUD = toBUD,
 				reload = reload,
 				data = blockdata,
 				metadata = metadata,
@@ -249,19 +258,10 @@ public class Chunk
 			neighbordata.Dispose();
 
 			// ToLoad() Event Trigger
-			if(this.biomeName == "Ocean"){
-				coordArray = toLoadEvent.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					if(this.data.GetCell(coord) != 6) // Water
-						loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-				}
-			}
-			else{
-				coordArray = toLoadEvent.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-				}			
-			}
+			coordArray = toLoadEvent.AsArray().ToArray();
+			foreach(int3 coord in coordArray){
+				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+			}			
 			toLoadEvent.Clear();
 		}
 
@@ -274,6 +274,8 @@ public class Chunk
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 
 			BuildBorderJob bbJob = new BuildBorderJob{
+				pos = this.pos,
+				toBUD = toBUD,
 				reload = reload,
 				data = blockdata,
 				metadata = metadata,
@@ -309,19 +311,10 @@ public class Chunk
 			neighbordata.Dispose();
 
 			// ToLoad() Event Trigger
-			if(this.biomeName == "Ocean"){
-				coordArray = toLoadEvent.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					if(this.data.GetCell(coord) != 6) // Water
-						loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-				}
-			}
-			else{
-				coordArray = toLoadEvent.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-				}			
-			}
+			coordArray = toLoadEvent.AsArray().ToArray();
+			foreach(int3 coord in coordArray){
+				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+			}			
 			toLoadEvent.Clear();
 		}
 
@@ -334,6 +327,8 @@ public class Chunk
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
+				pos = this.pos,
+				toBUD = toBUD,
 				reload = reload,
 				data = blockdata,
 				metadata = metadata,
@@ -369,19 +364,10 @@ public class Chunk
 			neighbordata.Dispose();
 
 			// ToLoad() Event Trigger
-			if(this.biomeName == "Ocean"){
-				coordArray = toLoadEvent.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					if(this.data.GetCell(coord) != 6) // Water
-						loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-				}
-			}
-			else{
-				coordArray = toLoadEvent.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-				}			
-			}
+			coordArray = toLoadEvent.AsArray().ToArray();
+			foreach(int3 coord in coordArray){
+				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+			}			
 			toLoadEvent.Clear();
 		}
 
@@ -394,6 +380,8 @@ public class Chunk
 			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
+				pos = this.pos,
+				toBUD = toBUD,
 				reload = reload,
 				data = blockdata,
 				metadata = metadata,
@@ -429,20 +417,17 @@ public class Chunk
 			neighbordata.Dispose();
 
 			// ToLoad() Event Trigger
-			if(this.biomeName == "Ocean"){
-				coordArray = toLoadEvent.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					if(this.data.GetCell(coord) != 6) // Water
-						loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-				}
-			}
-			else{
-				coordArray = toLoadEvent.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-				}			
-			}
+			coordArray = toLoadEvent.AsArray().ToArray();
+			foreach(int3 coord in coordArray){
+				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+			}			
 			toLoadEvent.Clear();
+		}
+
+		// Runs BUD in neighbor chunks
+		budArray = toBUD.AsArray().ToArray();
+		foreach(int3 bu in budArray){
+			loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", bu.x, bu.y, bu.z, 0, 0, 0, -1));
 		}
 		
 		// If mesh wasn't redrawn
@@ -476,6 +461,7 @@ public class Chunk
 		cacheCubeVerts.Dispose();
 		cacheUVVerts.Dispose();
 		toLoadEvent.Dispose();
+		toBUD.Dispose();
 
     	this.vertices.Clear();
     	this.triangles = null;
@@ -483,7 +469,6 @@ public class Chunk
     	this.liquidTris = null;
     	this.assetTris = null;
     	this.UVs.Clear();
-
 
 		// If current operation CANNOT update borders
 		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
@@ -597,6 +582,7 @@ public class Chunk
 		}
 
 		// ToLoad() Event Trigger
+		/*
 		if(this.biomeName == "Ocean"){
 			coordArray = loadCoordList.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
@@ -605,11 +591,12 @@ public class Chunk
 			}
 		}
 		else{
-			coordArray = loadCoordList.AsArray().ToArray();
-			foreach(int3 coord in coordArray){
-				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-			}			
-		}
+		*/
+		coordArray = loadCoordList.AsArray().ToArray();
+		foreach(int3 coord in coordArray){
+			loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+		}			
+		//}
 		loadCoordList.Clear();
 
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
@@ -731,6 +718,33 @@ public class Chunk
     	this.UVs.Clear();
 
 		this.drawMain = true;
+    }
+
+    // Checks if current BuildChunkSide call should be calculated
+    private bool ShouldRun(){
+    	ChunkPos targetChunk;
+
+    	targetChunk = new ChunkPos(this.pos.x-1, this.pos.z);
+
+    	if(loader.chunks.ContainsKey(targetChunk) && !this.xMinusDrawn)
+    		return true;
+
+    	targetChunk = new ChunkPos(this.pos.x+1, this.pos.z);
+
+    	if(loader.chunks.ContainsKey(targetChunk) && !this.xPlusDrawn)
+    		return true;
+
+    	targetChunk = new ChunkPos(this.pos.x, this.pos.z-1);
+
+    	if(loader.chunks.ContainsKey(targetChunk) && !this.zMinusDrawn)
+    		return true;
+
+    	targetChunk = new ChunkPos(this.pos.x, this.pos.z+1);
+
+    	if(loader.chunks.ContainsKey(targetChunk) && !this.zPlusDrawn)
+    		return true;
+
+    	return false;
     }
 
     // Builds meshes from verts, UVs and tris from different layers
@@ -1338,9 +1352,12 @@ public struct BuildBorderJob : IJob{
 	public NativeArray<ushort> neighbordata;
 	[ReadOnly]
 	public bool zP, zM, xP, xM;
+	[ReadOnly]
+	public ChunkPos pos;
 
 	// Border Update
 	public NativeList<int3> toLoadEvent;
+	public NativeList<int3> toBUD;
 
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
@@ -1379,6 +1396,7 @@ public struct BuildBorderJob : IJob{
 	[ReadOnly]
 	public NativeArray<bool> objectWashable;
 
+
 	public void Execute(){
 		ushort thisBlock;
 		ushort neighborBlock;
@@ -1389,27 +1407,36 @@ public struct BuildBorderJob : IJob{
 				for(int z=0; z<Chunk.chunkWidth; z++){
 					thisBlock = data[y*Chunk.chunkWidth+z];
 					neighborBlock = neighbordata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-				
-					if(thisBlock == 0)
-						continue;
 
+					if(thisBlock == 0 && neighborBlock == 0)
+						continue;
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
+							if(blockLiquid[neighborBlock]){
+								toBUD.Add(new int3((pos.x-1)*Chunk.chunkWidth+Chunk.chunkWidth-1, y, pos.z*Chunk.chunkWidth+z));
+							}
+
 							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
 								toLoadEvent.Add(new int3(0,y,z));
 							}
 						}
 						else{
+							if(objectLiquid[ushort.MaxValue-neighborBlock]){
+								toBUD.Add(new int3((pos.x-1)*Chunk.chunkWidth+Chunk.chunkWidth-1, y, pos.z*Chunk.chunkWidth+z));
+							}
+
 							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
 								toLoadEvent.Add(new int3(0,y,z));
 							}
 						}
 					}
 
+					if(thisBlock == 0)
+						continue;
 
 					if(CheckPlacement(neighborBlock)){
 						LoadMesh(0, y, z, 3, thisBlock, true, cachedCubeVerts, cachedUVVerts);
@@ -1425,27 +1452,35 @@ public struct BuildBorderJob : IJob{
 					thisBlock = data[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 					neighborBlock = neighbordata[y*Chunk.chunkWidth+z];
 
-					if(thisBlock == 0)
+					if(thisBlock == 0 && neighborBlock == 0)
 						continue;
-
-					// Border Liquid Updates
-					//CheckBorderUpdate(Chunk.chunkWidth-1,y,z, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
+							if(blockLiquid[neighborBlock]){
+								toBUD.Add(new int3((pos.x+1)*Chunk.chunkWidth, y, pos.z*Chunk.chunkWidth+z));
+							}
+
 							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
 								toLoadEvent.Add(new int3(Chunk.chunkWidth-1,y,z));
 							}
 						}
 						else{
+							if(objectLiquid[ushort.MaxValue-neighborBlock]){
+								toBUD.Add(new int3((pos.x+1)*Chunk.chunkWidth, y, pos.z*Chunk.chunkWidth+z));
+							}
+
 							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
 								toLoadEvent.Add(new int3(Chunk.chunkWidth-1,y,z));
 							}
 						}
 					}
+
+					if(thisBlock == 0)
+						continue;
 
 					if(CheckPlacement(neighborBlock)){
 						LoadMesh(Chunk.chunkWidth-1, y, z, 1, thisBlock, true, cachedCubeVerts, cachedUVVerts);
@@ -1460,28 +1495,36 @@ public struct BuildBorderJob : IJob{
 				for(int x=0; x<Chunk.chunkWidth; x++){
 					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
 					neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
-
-					if(thisBlock == 0)
+					
+					if(thisBlock == 0 && neighborBlock == 0)
 						continue;
-
-					// Border Liquid Updates
-					//CheckBorderUpdate(x,y,0, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
+							if(blockLiquid[neighborBlock]){
+								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z-1)*Chunk.chunkWidth+Chunk.chunkWidth-1));
+							}
+
 							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
-								toLoadEvent.Add(new int3(x,y,0));
+								toLoadEvent.Add(new int3(x, y, 0));
 							}
 						}
 						else{
+							if(objectLiquid[ushort.MaxValue-neighborBlock]){
+								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z-1)*Chunk.chunkWidth+Chunk.chunkWidth-1));
+							}
+
 							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
 								toLoadEvent.Add(new int3(x,y,0));
 							}
 						}
 					}
+
+					if(thisBlock == 0)
+						continue;
 
 					if(CheckPlacement(neighborBlock)){
 						LoadMesh(x, y, 0, 2, thisBlock, true, cachedCubeVerts, cachedUVVerts);
@@ -1497,27 +1540,35 @@ public struct BuildBorderJob : IJob{
 					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
 					neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
 
-					if(thisBlock == 0)
+					if(thisBlock == 0 && neighborBlock == 0)
 						continue;
-
-					// Border Liquid Updates
-					//CheckBorderUpdate(x,y,Chunk.chunkWidth-1, neighborBlock);
 
 					if(CheckLiquids(thisBlock, neighborBlock)){
 						continue;
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
+							if(blockLiquid[neighborBlock]){
+								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z+1)*Chunk.chunkWidth));
+							}
+
 							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
-								toLoadEvent.Add(new int3(x,y,Chunk.chunkWidth-1));
+								toLoadEvent.Add(new int3(x, y, Chunk.chunkWidth-1));
 							}
 						}
 						else{
+							if(objectLiquid[ushort.MaxValue-neighborBlock]){
+								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z+1)*Chunk.chunkWidth));
+							}
+
 							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
-								toLoadEvent.Add(new int3(x,y,Chunk.chunkWidth-1));
+								toLoadEvent.Add(new int3(x, y, Chunk.chunkWidth-1));
 							}
 						}
 					}
+
+					if(thisBlock == 0)
+						continue;
 
 					if(CheckPlacement(neighborBlock)){
 						LoadMesh(x, y, Chunk.chunkWidth-1, 0, thisBlock, true, cachedCubeVerts, cachedUVVerts);
