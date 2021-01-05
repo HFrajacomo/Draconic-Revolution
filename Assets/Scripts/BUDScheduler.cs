@@ -48,7 +48,6 @@ public class BUDScheduler : MonoBehaviour
                 foreach(string s in this.data.Keys){
                     if(schedulerTime.IsPast(s)){
                         cachedString = s;
-                        Debug.Log("a");
                         shouldClean = true;
                         break;
                     }
