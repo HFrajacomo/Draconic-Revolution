@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,19 +13,19 @@ public class DayNightCycle : MonoBehaviour
 	public Transform counterLight4;
 	public TimeOfDay timer;
 
+    public float dayLuminosity = 4f;
+    public float nightLuminosity = 0.5f;
+
+
     // Update is called once per frame
     void Update()
     {
     	int time = timer.ToSeconds();
 
         skyboxLight.localRotation = Quaternion.Euler(RotationFunction(time), 270, 0);
-        /*
-        counterLight.localRotation = Quaternion.Euler(RotationAssist(time), 45, 45);
-        counterLight2.localRotation = Quaternion.Euler(RotationAssist(time), 135, 135);
-        counterLight3.localRotation = Quaternion.Euler(RotationAssist(time), 225, 225);
-        counterLight4.localRotation = Quaternion.Euler(RotationAssist(time), 315, 315);
-        */
-		//skyDirectionalLight.intensity = LuminosityFunction(time);
+        this.SetLightColor(time);
+        this.SetIntensity(time);
+
 		}
 
 	// Rotation for main Skybox light
@@ -36,8 +36,11 @@ public class DayNightCycle : MonoBehaviour
         else if(x > 720 && x < 1200){
             return Mathf.Lerp(90f, 180f, ClampTime(x));
         }
+        else if(x <= 240){
+            return Mathf.Lerp(90f, 180f, ClampTime(x));
+        }
         else{
-            return Mathf.Lerp(180f, 360f, ClampTime(x));
+            return Mathf.Lerp(0f, 90f, ClampTime(x));
         }
     }
 
@@ -45,11 +48,11 @@ public class DayNightCycle : MonoBehaviour
     private float ClampTime(int x){
         // Zero Lerp if below 4h
         if(x <= 240){
-            return (x+240)/480f;
+            return x/240f;
         }
         // Zero Lerp after 20h
         else if(x >= 1200){
-            return (x-1200)/480f;
+            return (x-1200)/240f;
         }
         // Inclination until 12h
         else if(x <= 720){
@@ -61,46 +64,28 @@ public class DayNightCycle : MonoBehaviour
         }
     }
 
-    // Rotation for GI lights
-    private float RotationAssist(int x){
-    	if(x < 360 || x >= 1320)
-    		return 272f;
-    	if(x >= 360 && x < 420)
-    		return 1.466666f*(x-360) + 272;
-    	if(x >= 420 && x < 720)
-    		return 0.166666f*(x-420);
-    	if(x >= 720 && x < 960)
-    		return 50f;
-    	if(x >= 960 && x < 1260)
-    		return 50-(0.166666f*(x-960));
-    	if(x >= 1260 && x < 1320)
-    		return 360 - (1.466666f*(x-1260));
-
-    	return 0;
+    // Sets color intensity based on current time
+    private void SetIntensity(int x){
+        // If day
+        if(x > 240 && x < 1200){
+            skyDirectionalLight.intensity = this.dayLuminosity;
+        }
+        else if(x >= 1200){
+            skyDirectionalLight.intensity = Mathf.Lerp(this.dayLuminosity, this.nightLuminosity, Mathf.Pow((x-1200f)/240f, 1f/3f));
+        }
+        else{
+            skyDirectionalLight.intensity = Mathf.Lerp(this.nightLuminosity, this.dayLuminosity, Mathf.Pow(x/240f, 3f));
+        }
     }
 
-    /*
-    // TOO HEAVY ON CPU
-    // Calculates Sunlight Luminosity based on time of day
-    private float LuminosityFunction(int x){
-    	if(x < 360 || x >= 1320)
-    		return 0f;
-    	if(x >= 360 && x < 390)
-    		return 0.016666f*(x-360);
-    	if(x >= 390 && x < 420)
-    		return 0.01f*(x-390) + 0.5f;
-    	if(x >= 420 && x < 720)
-    		return 0.000666f*(x-420) + 0.8f;
-    	if(x >= 720 && x < 960)
-    		return 1.0f;
-    	if(x >= 960 && x < 1260)
-    		return 1-0.000666f*(x-960);
-    	if(x >= 1260 && x < 1290)
-    		return 0.8f-0.01f*(x-1260);
-    	if(x >= 1290 && x < 1320)
-    		return 0.5f-0.016666f*(x-1290);
-    	return 0f;
+    // Sets color of Directional Light given the time of the day it is now
+    private void SetLightColor(int time){
+        if(time <= 240 || time >= 1200){
+            skyDirectionalLight.color = new Color(0.27f, 0.57f, 1f, 1f);
+        }
+        else{
+            skyDirectionalLight.color = new Color(1f,1f,1f,1f);
+        }
     }
-    */
 
 }

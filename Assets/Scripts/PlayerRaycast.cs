@@ -257,6 +257,8 @@ public class PlayerRaycast : MonoBehaviour
 				// Actually places block/asset into terrain
 				loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
 				loader.budscheduler.ScheduleReload(toUpdate, 0);
+				EmitBlockUpdate("change", lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ(), 0, loader);
+
 
 				// Applies OnPlace Event
 				if(blockCode <= ushort.MaxValue/2)
