@@ -375,7 +375,7 @@ public class @Controls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""572f82ba-0257-4d27-8a3e-1e46495bd67a"",
-                    ""path"": ""<Keyboard>/l"",
+                    ""path"": ""<Keyboard>/z"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard and Mouse"",
