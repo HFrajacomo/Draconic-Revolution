@@ -64,8 +64,7 @@ Right now, the development of the game is being separated into 4 different Dev P
  - Campaign Quest Writing
  - Campaign Voice Acting
  - Character Development
- - Custom Dungeons and Cities
- - 
+ - Custom Dungeons and Cities 
 ![](RepoImages/Night1.png)
 
 # In-depth Technical Analysis
