@@ -3,11 +3,11 @@
 If you are here, you are probably very curious about Procedural Generation. I don't blame you. This game pretty much started because of my curiosity on this topic. So let's go!
 
 ## Procedural vs Random Generation
-There is a very common misconceptional about what Procedural Generation actually is. As a programmer, it's common to think that using a simple *Random()* function a lot of times will eventually generate you a very good world in which you can play. That is, indeed, true. And this is what we call 'Random Generation'.
+There is a very common misconception about what Procedural Generation actually is. As a programmer, it's common to think that using a simple *Random()* function a lot of times will eventually generate you a very good world in which you can play. That is, indeed, true if you have a lot of free time to generate stuff. And this is what we call 'Random Generation'.
 
 Now, for this generation to become *Procedural*, you need to be able to regenerate the same data everytime, given an initial condition. A *seed* is a common term for defining a Key value that serves as a global Randomness controller. You can replicate an entire world if you just happen to know it's seed.
 
-**In short, every world has a seed value**. Currently, the World Generator supports seeds numbers from 1 to 1 million.
+**In short, every world has a seed value**. Currently, the World Generator supports seed numbers from 1 to 1 million.
 
 Now that we have the World Seed, we can start doing actual Procedural Generation. But what are we generating? **We are generating the Heightmaps!** Whenever we use our *Random()* function to generate something, we are generating the height of a certain column of blocks. You can see that it's pretty easy to generate a terribly chaotic terrain with that. A column of blocks can generate at height 0, while the one just by it's side can be at height 99. How do we balance it to generate a smoothly transitioned terrain?
 
@@ -19,7 +19,7 @@ The answer to this question is...
 
 This right here is the visual representation of a 2-dimensional Perlin Noise function. Pretty neat, right? But what does it do?
 
-Perlin Noise is a considerably fast and smooth noise function very suitable to the task of generating heightmaps. Imagine that we are sampling a pixel in that image everytime we call our custom *Random()* function. If the pixel we picked is darker, it's value is closer to height 0. If it's brighter, then it's closer to height 99. All we have to do now, is use the Chunk coordinates and World Seed in our custom *Random()* function to offset the Perlin Noise just enough to get an interesting heightmap curve.
+Perlin Noise is a considerably fast and smooth noise function very suitable to the task of generating heightmaps. Imagine that we are sampling a pixel in that image everytime we call our custom *Random()* function. If the pixel we picked is darker, it's value is closer to height 0. If it's brighter, then it's closer to height 99. All we have to do now, is to use the Chunk coordinates and World Seed in our custom *Random()* function to offset the Perlin Noise just enough to get an interesting heightmap curve.
 
 Normally, the terrain will be hilly and somewhat smooth, but we can still do more! We can generate a new layer of Perlin Noise (using a different multiplier inside our custom *Random()* function) and get the mean of those together. Here, we are adding turbulance to the terrain. Those layers that are added and taken their mean are called **octaves**.
 
@@ -68,13 +68,13 @@ A write condition is the answer to the question *I'm trying to generate a struct
  2. **Free Space**:  Is there a block in my way? ABORT THE WHOLE OPERATION!
  3. **Specific Overwrite**: So I see that you hate Grass Blocks... You can take their place.
 
-Some structures also have the possibility of disconsidering the Air Blocks in them. Metal Ore veins are an example of that. Trees should consider their Air block information, since you don't want free space below tree branches for players to walk.
+Some structures also have the possibility of disconsidering the Air Blocks in them. Metal Ore veins are an example of that. Trees should consider their Air block information, since you want free space below tree branches for players to walk.
 
 ### The Pre-Generation problem
 
-In wide structures, it's common to see it taking more than one chunk. There we have a big problem called *The Pre-generation problem*. Let's say that we are generating a structure in a chunk, but the other half of it is in a undiscovered chunk. How do we tell the undiscovered chunk to build the rest of the structure whenever it generates? Difficult, eh?
+In wide structures, it's common to see it taking more than one chunk. There we have a big problem called *The Pre-generation problem*. Let's say that we are generating a structure in a chunk, but the other half of it is in an undiscovered chunk. How do we tell the undiscovered chunk to build the rest of the structure whenever it generates? Difficult, eh?
 
-Infortunately, the solution to this problem only came after implementing the World Saves. In short, to save pregenerated information to an unexisting chunk, you gotta make it partially exist. Generate a whole chunk that only has the half-structure block information, mark this chunk as pre-generated and save it. Once the ChunkLoader tries to load it, it will realize this chunk exists, but is pregenerated. So the ChunkLoader should generate this chunk as it would any other, right? **Wrong!**
+Unfortunately, the solution to this problem only came after implementing the World Saves. In short, to save pregenerated information to an unexisting chunk, you gotta make it partially exist. Generate a whole chunk that only has the half-structure block information, mark this chunk as pre-generated and save it. Once the ChunkLoader tries to load it, it will realize this chunk exists, but is pregenerated. So the ChunkLoader should generate this chunk as it would any other, right? **Wrong!**
 The ChunkLoader cannot generate it normally, because it would *erase the structure data pre-generated into it*. So this post-generation must ignore already placed blocks.
 
 ## Making Big Holes
