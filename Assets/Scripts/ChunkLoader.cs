@@ -2144,10 +2144,21 @@ public struct AddFromMapJob : IJobParallelFor{
     public void Execute(int index){
         int x = index;
         int i;
+        int height;
 
         for(int z=0;z<Chunk.chunkWidth;z++){
             i = x*(Chunk.chunkWidth+1)+z;
-            outMap[i] = (ushort)(inMap[i] + val);
+            height = inMap[i] + val;
+
+            if(height > Chunk.chunkDepth){
+                outMap[i] = (ushort)Chunk.chunkDepth;
+            }
+            else if(height < 0){
+                outMap[i] = 0;
+            }
+            else{
+                outMap[i] = (ushort)(inMap[i] + val);
+            }
         }
     }
 }
