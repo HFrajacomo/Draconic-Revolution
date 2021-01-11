@@ -15,7 +15,7 @@ The answer to this question is...
 
 ## Perlin Noise
 
-![](RepoImages/Perlin.png)
+![](../RepoImages/Perlin.png)
 
 This right here is the visual representation of a 2-dimensional Perlin Noise function. Pretty neat, right? But what does it do?
 
@@ -39,7 +39,7 @@ Great! Now we have Procedural terrain being generated given the World Seed, the 
 
 How do we fix these problems though? With the power of Mathematics! More specifically, **Billinear Interpolation**! 
 
-![](RepoImages/Bilinear.png) 
+![](../RepoImages/Bilinear.png) 
 
 In short, billinear interpolation is like 'filling in-between' of 4 pivot points set in a 2D plane. 
 To make our code faster, we don't need to sample 16x16 block columns for every chunk. We can sample only 4x4 of them, evenly spaced, and use Billinear Interpolation to fill in the blanks around them.
@@ -57,7 +57,7 @@ In order to do that, we simply generate all of these different heightmaps and th
 
 I know, I know... we don't have fancy cities or dungeons. So what are these Structures? They are our trees, dirt patches on the Underground, boulders on the surface and Metal Ore veins... in the current Phase 1 of development, of course.
 
-![](RepoImages/Day1.png)
+![](../RepoImages/Day1.png)
 
 Generating these is quite a pain, not gonna lie. So let's go.
 First of all, every structure is procedurally rotated. Of course, you don't want your whole forest to always be facing north, right? Also, your structure needs to have a center point and a write condition. Let's go through the write conditions first.
@@ -81,7 +81,7 @@ The ChunkLoader cannot generate it normally, because it would *erase the structu
 
 Cave Systems are a big part of exploration games. Ours couldn't be different. In short, to do cave systems, we used a different design of the *Perlin Noise*, it's the **Ridged-MultiFractal Noise**.
 
-![](RepoImages/ridged.jpg)
+![](../RepoImages/ridged.jpg)
 
 This noise, is the **squared version of the Perlin Noise 3D**. Why do we need it to be squared? Because it draws those very bright tunnels through the noise. It's perfect for tunnel based caves, and the inputs can be tweaked to make all sorts of procedural cave shapes.
 
