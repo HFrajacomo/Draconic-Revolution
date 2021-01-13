@@ -8,6 +8,7 @@
     "com.unity.inputsystem": "1.0.1",
     "com.unity.jobs": "0.7.0-preview.17",
     "com.unity.memoryprofiler": "0.2.7-preview.1",
+    "com.unity.multiplayer-hlapi": "1.0.8",
     "com.unity.render-pipelines.high-definition": "8.2.0",
     "com.unity.render-pipelines.high-definition-config": "file:../LocalPackages/com.unity.render-pipelines.high-definition-config",
     "com.unity.test-framework": "1.1.16",

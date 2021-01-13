@@ -193,6 +193,22 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Scroll9"",
+                    ""type"": ""Button"",
+                    ""id"": ""3b7188cf-173d-46a0-b468-ea006cea0f6c"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""MouseScroll"",
+                    ""type"": ""Value"",
+                    ""id"": ""290c46cd-5ca4-40ce-9f59-7704ea6951ce"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
                 }
             ],
             ""bindings"": [
@@ -481,6 +497,28 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""action"": ""Scroll8"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""406d11c5-c798-4f4a-a06b-88ab4389cabc"",
+                    ""path"": ""<Keyboard>/9"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Scroll9"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8dbeba68-82ef-43dc-b6f0-794a5bab0a68"",
+                    ""path"": ""<Mouse>/scroll"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""MouseScroll"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -528,6 +566,8 @@ public class @Controls : IInputActionCollection, IDisposable
         m_Player_Scroll6 = m_Player.FindAction("Scroll6", throwIfNotFound: true);
         m_Player_Scroll7 = m_Player.FindAction("Scroll7", throwIfNotFound: true);
         m_Player_Scroll8 = m_Player.FindAction("Scroll8", throwIfNotFound: true);
+        m_Player_Scroll9 = m_Player.FindAction("Scroll9", throwIfNotFound: true);
+        m_Player_MouseScroll = m_Player.FindAction("MouseScroll", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -599,6 +639,8 @@ public class @Controls : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_Scroll6;
     private readonly InputAction m_Player_Scroll7;
     private readonly InputAction m_Player_Scroll8;
+    private readonly InputAction m_Player_Scroll9;
+    private readonly InputAction m_Player_MouseScroll;
     public struct PlayerActions
     {
         private @Controls m_Wrapper;
@@ -625,6 +667,8 @@ public class @Controls : IInputActionCollection, IDisposable
         public InputAction @Scroll6 => m_Wrapper.m_Player_Scroll6;
         public InputAction @Scroll7 => m_Wrapper.m_Player_Scroll7;
         public InputAction @Scroll8 => m_Wrapper.m_Player_Scroll8;
+        public InputAction @Scroll9 => m_Wrapper.m_Player_Scroll9;
+        public InputAction @MouseScroll => m_Wrapper.m_Player_MouseScroll;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -700,6 +744,12 @@ public class @Controls : IInputActionCollection, IDisposable
                 @Scroll8.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll8;
                 @Scroll8.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll8;
                 @Scroll8.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll8;
+                @Scroll9.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll9;
+                @Scroll9.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll9;
+                @Scroll9.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnScroll9;
+                @MouseScroll.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouseScroll;
+                @MouseScroll.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouseScroll;
+                @MouseScroll.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouseScroll;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -770,6 +820,12 @@ public class @Controls : IInputActionCollection, IDisposable
                 @Scroll8.started += instance.OnScroll8;
                 @Scroll8.performed += instance.OnScroll8;
                 @Scroll8.canceled += instance.OnScroll8;
+                @Scroll9.started += instance.OnScroll9;
+                @Scroll9.performed += instance.OnScroll9;
+                @Scroll9.canceled += instance.OnScroll9;
+                @MouseScroll.started += instance.OnMouseScroll;
+                @MouseScroll.performed += instance.OnMouseScroll;
+                @MouseScroll.canceled += instance.OnMouseScroll;
             }
         }
     }
@@ -807,5 +863,7 @@ public class @Controls : IInputActionCollection, IDisposable
         void OnScroll6(InputAction.CallbackContext context);
         void OnScroll7(InputAction.CallbackContext context);
         void OnScroll8(InputAction.CallbackContext context);
+        void OnScroll9(InputAction.CallbackContext context);
+        void OnMouseScroll(InputAction.CallbackContext context);
     }
 }

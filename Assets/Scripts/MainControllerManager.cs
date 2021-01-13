@@ -127,4 +127,10 @@ public class MainControllerManager : MonoBehaviour
     public void OnScroll8(){
         raycast.Scroll8();
     }
+    public void OnScroll9(){
+        raycast.Scroll9();
+    }
+    public void OnMouseScroll(InputValue val){
+        raycast.MouseScroll((int)val.Get<Vector2>().y);
+    }
 }
