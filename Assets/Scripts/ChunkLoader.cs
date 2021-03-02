@@ -68,16 +68,12 @@ public class ChunkLoader : MonoBehaviour
         this.client = new Client(this);
 
         // Checks if is connected to server
-        while(!CONNECTEDTOSERVER){
-            StartCoroutine(Wait());
-        }
+        StartCoroutine(WaitConnection());
 
         this.renderDistance = World.renderDistance;
         this.client.Send(playerInformation.GetMessage());
 
-        while(!PLAYERSPAWNED){
-            StartCoroutine(Wait());
-        }
+        StartCoroutine(WaitSpawn());
 
 		newChunk = new ChunkPos(playerX/Chunk.chunkWidth, playerZ/Chunk.chunkWidth);
 
@@ -85,8 +81,12 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Sleep function
-    IEnumerator Wait(){
-        yield return new WaitForSeconds(1);
+    IEnumerator WaitConnection(){
+        yield return new WaitUntil(() => this.CONNECTEDTOSERVER);
+    }
+
+    IEnumerator WaitSpawn(){
+        yield return new WaitUntil(() => this.PLAYERSPAWNED);
     }
 
     void Update(){ 

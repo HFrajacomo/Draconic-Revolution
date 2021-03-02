@@ -57,10 +57,8 @@ public class ChunkLoader_Server : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
-        while(!RECEIVEDWORLDDATA){
-            StartCoroutine(Wait());
-        }
+        
+        StartCoroutine(Wait());
 
         regionHandler = new RegionFileHandler();
         worldSeed = regionHandler.GetRealSeed();
@@ -71,7 +69,8 @@ public class ChunkLoader_Server : MonoBehaviour
         Vector3 playerPos = this.regionHandler.LoadPlayer();
         NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
         message.SendServerInfo((int)playerPos.x, (int)playerPos.y, (int)playerPos.z);
-        this.server.Send(message.GetMessage(), this.server.GetCurrentCode());    
+        this.server.Send(message.GetMessage(), this.server.GetCurrentCode()); 
+
     }
 
     void Update(){ 
@@ -84,7 +83,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
     // Sleep function
     IEnumerator Wait(){
-        yield return new WaitForSeconds(1);
+        yield return new WaitUntil(() => this.RECEIVEDWORLDDATA);
     }
 
     // Builds Structure data in non-indexed Chunks

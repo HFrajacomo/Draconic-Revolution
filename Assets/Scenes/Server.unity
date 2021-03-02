@@ -155,7 +155,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxPlayers: 8
   port: 33000
-  cl: {fileID: 0}
+  cl: {fileID: 1745085831}
 --- !u!114 &628441619
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -261,6 +261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 299ef2f071bbe3542b46c12f0598becc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isClient: 0
 --- !u!4 &1093614812
 Transform:
   m_ObjectHideFlags: 0
@@ -444,9 +445,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df219a532db6fbe4392733b261eecc54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  schedulerTime: {fileID: 0}
-  playerTransform: {fileID: 0}
-  loader: {fileID: 0}
+  schedulerTime: {fileID: 988338119}
+  loader: {fileID: 1745085831}
   BUDperFrame: 0
 --- !u!4 &1993653638
 Transform:

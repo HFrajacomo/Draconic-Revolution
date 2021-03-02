@@ -18,7 +18,7 @@ public class Client
 	private byte[] receiveBuffer;
 
 	// Address Information
-	public string ip = "127.0.0.1";
+	public string ip = "192.168.0.3";
 	public int port = 33000;
 
 	// Unity References
