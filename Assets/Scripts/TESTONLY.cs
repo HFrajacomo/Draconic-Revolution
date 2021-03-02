@@ -6,6 +6,7 @@ using Unity.Collections;
 
 public class TESTONLY : MonoBehaviour
 {
+	public Client client;
 	
     // Start is called before the first frame update
     void Start()

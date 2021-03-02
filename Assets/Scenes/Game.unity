@@ -1347,7 +1347,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   schedulerTime: {fileID: 1322082558}
   playerTransform: {fileID: 59614821}
-  loader: {fileID: 1192772367}
+  loader: {fileID: 0}
   BUDperFrame: 0
 --- !u!4 &816262495
 Transform:
@@ -2056,18 +2056,20 @@ MonoBehaviour:
   renderDistance: 0
   player: {fileID: 59614821}
   blockBook: {fileID: 1668289087}
-  budscheduler: {fileID: 816262494}
   vfx: {fileID: 1018660373}
   time: {fileID: 1322082558}
   gameUI: {fileID: 1679592122}
   structHandler: {fileID: 2128924710}
+  playerX: 0
+  playerZ: 0
+  playerY: 0
   playerCharacter: {fileID: 59614818}
-  worldSeed: 100
   rend: {fileID: 471797234}
   WORLD_GENERATED: 0
   reloadMemoryCounter: 30
   PLAYERSPAWNED: 0
   DRAWFLAG: 0
+  CONNECTEDTOSERVER: 0
 --- !u!4 &1192772368
 Transform:
   m_ObjectHideFlags: 0
@@ -3003,6 +3005,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 299ef2f071bbe3542b46c12f0598becc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isClient: 1
 --- !u!4 &1668289088
 Transform:
   m_ObjectHideFlags: 0

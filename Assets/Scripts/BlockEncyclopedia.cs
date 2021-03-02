@@ -9,6 +9,7 @@ public class BlockEncyclopedia : MonoBehaviour
 	public Blocks[] blocks = new Blocks[Blocks.blockCount];
 	public BlocklikeObject[] objects = new BlocklikeObject[BlocklikeObject.objectCount];
     public BlockEncyclopediaECS data;
+    public bool isClient;
 
     // Start is called before the first frame update
     public void Awake()
@@ -29,7 +30,7 @@ public class BlockEncyclopedia : MonoBehaviour
 
         // Loads all object meshes
         for(int i=0;i<BlocklikeObject.objectCount;i++){
-        	objects[i] = BlocklikeObject.Create(i);
+        	objects[i] = BlocklikeObject.Create(i, isClient);
             BlockEncyclopediaECS.objectTransparent[i] = objects[i].transparent;
             BlockEncyclopediaECS.objectLiquid[i] = objects[i].liquid;
             BlockEncyclopediaECS.objectLoad[i] = objects[i].hasLoadEvent;

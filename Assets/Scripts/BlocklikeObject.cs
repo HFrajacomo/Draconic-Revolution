@@ -29,17 +29,17 @@ public abstract class BlocklikeObject
 	public Mesh mesh;
 
 	// Block Encyclopedia fill function
-	public static BlocklikeObject Create(int blockID){
+	public static BlocklikeObject Create(int blockID, bool isClient){
 		if(blockID == 0)
-			return new Torch_Object();
+			return new Torch_Object(isClient);
 		else if(blockID == 1)
-			return new Leaf_Object();
+			return new Leaf_Object(isClient);
 		else
-			return new Torch_Object();
+			return new Torch_Object(isClient);
 	}
 
 	// Adds GameObject with correct offseting in the world and returns it
-	public GameObject PlaceObject(ChunkPos pos, int x, int y, int z, ushort blockCode, ChunkLoader loader){
+	public GameObject PlaceObject(ChunkPos pos, int x, int y, int z, ushort blockCode, ChunkLoader_Server loader){
 		if(!this.needsRotation)
 			return GameObject.Instantiate(loader.blockBook.objects[ushort.MaxValue - blockCode].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
 		else{
@@ -51,7 +51,7 @@ public abstract class BlocklikeObject
 
 
     // Handles the emittion of BUD to neighboring blocks
-    public void EmitBlockUpdate(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
+    public void EmitBlockUpdate(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
       CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
 
       CastCoord[] neighbors = {
@@ -79,12 +79,12 @@ public abstract class BlocklikeObject
     }
 
     // Emits a BUD signal with no information about sender
-    public void EmitBUDTo(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
+    public void EmitBUDTo(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
     	cl.budscheduler.ScheduleBUD(new BUDSignal(type, x, y, z, 0, 0, 0, 0), tickOffset);
     }
 
 	// Unassigns metadata from block (use after OnBreak events)
-	public void EraseMetadata(ChunkPos pos, int x, int y, int z, ChunkLoader cl){cl.chunks[pos].metadata.Reset(x,y,z);}
+	public void EraseMetadata(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){cl.chunks[pos].metadata.Reset(x,y,z);}
 	
 	/*
 	VIRTUAL METHODS
@@ -95,13 +95,13 @@ public abstract class BlocklikeObject
 		"change": When emitting block has been turned into another block or changed properties
 		"trigger": When emitting block has been electrically triggered
 	*/
-	public virtual void OnBlockUpdate(string budType, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){}
+	public virtual void OnBlockUpdate(BUDCode budType, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){}
 
-	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
-	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){return 0;}
-	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
-	public virtual int OnLoad(CastCoord coord, ChunkLoader cl){return 0;}
-	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader cl){return true;}
+	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){return 0;}
+	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){return 0;}
+	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){return 0;}
+	public virtual int OnLoad(CastCoord coord, ChunkLoader_Server cl){return 0;}
+	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader_Server cl){return true;}
 	public virtual void ApplyRotation(GameObject go, ushort? state, int blockX, int blockY, int blockZ){}
 	public virtual Vector3 GetOffsetVector(ushort state){return new Vector3(0f,0f,0f);}
 	public virtual int GetRotationValue(ushort state){return 0;}

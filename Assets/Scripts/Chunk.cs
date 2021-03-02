@@ -58,7 +58,7 @@ public class Chunk
 
     private Mesh mesh;
 
-	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader, bool fromMemory=false){
+	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader){
 		this.pos = pos;
 		this.needsGeneration = 0;
 		this.renderer = r;
@@ -70,9 +70,7 @@ public class Chunk
 		this.obj.transform.SetParent(this.renderer.transform);
 		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 
-
-		if(fromMemory)
-			this.data = new VoxelData();
+		this.data = new VoxelData();
 		this.metadata = new VoxelMetadata();
 
 		this.obj.AddComponent<MeshFilter>();
@@ -89,12 +87,15 @@ public class Chunk
 
 	// Dummy Chunk Generation
 	// CANNOT BE USED TO DRAW, ONLY TO ADD ELEMENTS AND SAVE
-	public Chunk(ChunkPos pos){
+	public Chunk(ChunkPos pos, bool server=false){
 		this.biomeName = "Plains";
 		this.pos = pos;
 		this.needsGeneration = 1;
 
-		this.data = new VoxelData(new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth]);
+		if(!server)
+			this.data = new VoxelData(new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth]);
+		else
+			this.data = new VoxelData();
 
 		this.metadata = new VoxelMetadata();
 	}
@@ -260,7 +261,8 @@ public class Chunk
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				// SEND BUD
+				//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
 			}			
 			toLoadEvent.Clear();
 		}
@@ -313,7 +315,8 @@ public class Chunk
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				// SEND BUD
+				//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
 			}			
 			toLoadEvent.Clear();
 		}
@@ -366,7 +369,8 @@ public class Chunk
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				// SEND BUD
+				//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
 			}			
 			toLoadEvent.Clear();
 		}
@@ -419,7 +423,8 @@ public class Chunk
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				// SEND BUD
+				//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
 			}			
 			toLoadEvent.Clear();
 		}
@@ -427,7 +432,8 @@ public class Chunk
 		// Runs BUD in neighbor chunks
 		budArray = toBUD.AsArray().ToArray();
 		foreach(int3 bu in budArray){
-			loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", bu.x, bu.y, bu.z, 0, 0, 0, -1));
+			// SEND BUD
+			//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", bu.x, bu.y, bu.z, 0, 0, 0, -1));
 		}
 		
 		// If mesh wasn't redrawn
@@ -594,7 +600,8 @@ public class Chunk
 		*/
 		coordArray = loadCoordList.AsArray().ToArray();
 		foreach(int3 coord in coordArray){
-			loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+			// SENDS BUD TO SERVER
+			//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
 		}			
 		//}
 		loadCoordList.Clear();

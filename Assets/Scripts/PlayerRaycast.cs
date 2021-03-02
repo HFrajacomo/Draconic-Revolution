@@ -53,6 +53,7 @@ public class PlayerRaycast : MonoBehaviour
 			blockNameUI.text = "Grass";
 		}
 
+		
 		// Update is called once per frame
 		void Update()
 		{
@@ -184,42 +185,18 @@ public class PlayerRaycast : MonoBehaviour
 
 			ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
 			ushort blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
+			ushort state = loader.chunks[toUpdate].metadata.GetState(current.blockX, current.blockY, current.blockZ);
+			ushort hp = loader.chunks[toUpdate].metadata.GetHP(current.blockX, current.blockY, current.blockZ);
 
-			// If doesn't has special break handling
-			if(!loader.blockBook.CheckCustomBreak(blockCode)){
-
-				// Actually breaks new block and updates chunk
-				loader.chunks[toUpdate].data.SetCell(current.blockX, current.blockY, current.blockZ, 0);
-				loader.chunks[toUpdate].metadata.Reset(current.blockX, current.blockY, current.blockZ);
-
-				// Triggers OnBreak
-				if(blockCode <= ushort.MaxValue/2)
-					loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-				else
-					loader.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-
-				EmitBlockUpdate("break", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
-				
-				loader.budscheduler.ScheduleReload(toUpdate, 0, x:current.blockX, y:current.blockY, z:current.blockZ);
-
-			}
-			// If has special break handlings
-			else{
-
-				if(blockCode <= ushort.MaxValue/2){
-					loader.blockBook.blocks[blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-				}
-				else{
-					loader.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-					loader.regionHandler.SaveChunk(loader.chunks[toUpdate]);
-				}
-			}
+			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+			message.DirectBlockUpdate(BUDCode.BREAK, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, state, hp);
+			this.loader.client.Send(message.GetMessage());
 
 		}
 
 		// Block Placing mechanic
 		private void PlaceBlock(ushort blockCode){
-			int translatedBlockCode;
+			ushort translatedBlockCode;
 
 			// Encodes for Block Mode
 			if(blockCode <= ushort.MaxValue/2){
@@ -232,7 +209,7 @@ public class PlayerRaycast : MonoBehaviour
 			}
 			// Encodes for Asset Mode
 			else{
-				translatedBlockCode = ushort.MaxValue - blockCode;
+				translatedBlockCode = (ushort)(ushort.MaxValue - blockCode);
 
 				// Won't happen if not raycasting something or if block is in player's body or head
 				if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.CheckSolid(blockCode))){
@@ -240,51 +217,9 @@ public class PlayerRaycast : MonoBehaviour
 				}
 			}
 
-			ChunkPos toUpdate = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ);
-
-			// Checks if specific block has specific placement rules that may hinder the placement
-			if(blockCode <= ushort.MaxValue/2){
-				if(!loader.blockBook.blocks[translatedBlockCode].PlacementRule(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader)){
-					return;
-				}
-			}
-			else{
-				if(!loader.blockBook.objects[translatedBlockCode].PlacementRule(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader)){
-					return;
-				}
-			}
-
-			// If doesn't have special place handling
-			if(!loader.blockBook.CheckCustomPlace(blockCode)){
-				// Actually places block/asset into terrain
-				loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-				loader.budscheduler.ScheduleReload(toUpdate, 0);
-				EmitBlockUpdate("change", lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ(), 0, loader);
-
-
-				// Applies OnPlace Event
-				if(blockCode <= ushort.MaxValue/2)
-					loader.blockBook.blocks[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
-				else{
-					loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
-				}
-			}
-
-			// If has special handling
-			else{
-				// Actually places block/asset into terrain
-				loader.chunks[toUpdate].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-
-				if(blockCode <= ushort.MaxValue/2){
-					loader.blockBook.blocks[blockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
-				}
-				else{
-					loader.blockBook.objects[translatedBlockCode].OnPlace(toUpdate, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, loader);
-				}
-
-			}
-		
-
+			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+			message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, translatedBlockCode, ushort.MaxValue, ushort.MaxValue);
+			this.loader.client.Send(message.GetMessage());
 		}
 
 		// Triggers Blocktype.OnInteract()
@@ -293,19 +228,13 @@ public class PlayerRaycast : MonoBehaviour
 				return;
 
 			ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
-			int callback;
 			int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
 			
-			
-			if(blockCode <= ushort.MaxValue/2)
-				callback = loader.blockBook.blocks[blockCode].OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-			else
-				callback = loader.blockBook.objects[ushort.MaxValue - blockCode].OnInteract(toUpdate, current.blockX, current.blockY, current.blockZ, loader);
-
-			// Actual handling of message
-			CallbackHandler(callback, toUpdate, current, facing);
+			NetMessage message = new NetMessage(NetCode.INTERACT);
+			message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);
+			this.loader.client.Send(message.GetMessage());
 		}
-
+		
 		// Selects a new item in hotbar
 		public void Scroll1(){
 			this.blockSelected = 1;
@@ -377,7 +306,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(this.blockSelected-1), 50);
 		}
-
+		
 
 
 		// Runs Prefab read and returns the arrays needed to create the prefab
@@ -530,75 +459,6 @@ public class PlayerRaycast : MonoBehaviour
 			}
 		}
 
-		/*
-		Main Callback function for block interactions
-		(REFER TO THESE CODES WHENEVER ADDING NEW BLOCK INTERACTIONS)
-		(MAY BE NEEDED IN ORDER TO IMPLEMENT NEW POST HANDLERS FOR NEW BLOCKS)
-		*/
-		private void CallbackHandler(int code, ChunkPos targetChunk, CastCoord thisPos, int facing){
-			// 0: No further actions necessary
-			if(code == 0)
-				return;
-			// 1: Interaction forces the target chunk to reload/rebuild
-			else if(code == 1){
-				loader.chunks[targetChunk].BuildChunk();
-				loader.chunks[targetChunk].BuildSideBorder(reload:true);
-				loader.regionHandler.SaveChunk(loader.chunks[targetChunk]);
-			}
-			// 2: Emits BUD instantly and forces chunk reload
-			else if(code == 2){
-				EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 0, loader);
-				loader.budscheduler.ScheduleReload(targetChunk, 0);	
-			}
-			// 3: Emits BUD in next tick and forces chunk reload
-			else if(code == 3){
-				EmitBlockUpdate("change", current.GetWorldX(), current.GetWorldY(), current.GetWorldZ(), 1, loader);
-				loader.budscheduler.ScheduleReload(targetChunk, 1);
-			}
-			// 4: Saves chunk to RDF file silently
-			else if(code == 4){
-				loader.regionHandler.SaveChunk(loader.chunks[targetChunk]);
-			}
-
-		}
-
-		// Handles the emittion of BUD to neighboring blocks
-		public void EmitBlockUpdate(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
-			CastCoord thisPos = GetCoordinates(x, y, z);
-
-			CastCoord[] neighbors = {
-			thisPos.Add(1,0,0),
-			thisPos.Add(-1,0,0),
-			thisPos.Add(0,1,0),
-			thisPos.Add(0,-1,0),
-			thisPos.Add(0,0,1),
-			thisPos.Add(0,0,-1)
-			};
-
-			int[] facings = {2,0,4,5,1,3};
-
-
-			int blockCode;
-			int faceCounter=0;
-
-			foreach(CastCoord c in neighbors){
-				// Ignores void updates
-				if(c.blockY < 0 || c.blockY > Chunk.chunkDepth-1){
-					continue;
-				}
-
-				blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
-
-				cachedBUD = new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]);
-				cl.budscheduler.ScheduleBUD(cachedBUD, tickOffset);			 
-			
-				faceCounter++;
-			}
-		}
-
-		private CastCoord GetCoordinates(int x, int y, int z){
-			return new CastCoord(new Vector3(x ,y ,z));
-		}
 
 		// Checks if neighbor chunk from chunkpos needs to update it's sides
 		private void UpdateNeighborChunk(ChunkPos pos, int x, int y, int z){
@@ -611,10 +471,10 @@ public class PlayerRaycast : MonoBehaviour
 			else if(z == Chunk.chunkWidth-1)
 				loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder(reloadZP:true);
 		}
-
+		
 		// Calculates correct X position for the selected hotbar spot
 		public int GetSelectionX(int pos){
 			return 78*pos-312;
 		}
-
+		
 }

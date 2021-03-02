@@ -15,9 +15,11 @@ Region Data File Format (.rdf)
 public class RegionFileHandler{
 	private string worldName;
 	private int seed;
-	private int renderDistance;
 	private static float chunkLength = 32f;
 	public TimeOfDay globalTime;
+
+	// Unity Reference
+	private ChunkLoader_Server cl;
 
 	// Data
 	private string saveDir;
@@ -49,11 +51,54 @@ public class RegionFileHandler{
 	private static int chunkHeaderSize = 21; // Size (in bytes) of header
 	private static int chunkSize = Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 8; // Size in bytes of Chunk payload
 
+	public RegionFileHandler(){}
+
 	// Builds the file handler and loads it on the ChunkPos of the first player
-	public RegionFileHandler(int renderDistance, ChunkPos pos){
+	public RegionFileHandler(ChunkPos pos, ChunkLoader_Server cl){
+		this.cl = cl;
 		this.worldName = World.worldName;
 		this.seed = World.worldSeed;
-		this.renderDistance = renderDistance;
+		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
+
+		this.saveDir = "Worlds/";
+		this.worldDir = "Worlds/" + this.worldName + "/";
+
+
+		// If "Worlds/" dir doesn't exist
+		if(!Directory.Exists(this.saveDir)){
+			Directory.CreateDirectory(this.saveDir);
+		}
+
+		// If current world doesn't exist
+		if(!Directory.Exists(this.worldDir)){
+			Directory.CreateDirectory(this.worldDir);
+		}
+
+		// If already has a world data file
+		if(File.Exists(this.worldDir + "world.wdat")){
+			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Open);
+			LoadWorld();
+		}
+		else{
+			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Create);	
+			SaveWorld();			
+		}
+
+		// If already has a player data file
+		if(File.Exists(this.worldDir + "player.pdat")){
+			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Open);
+		}
+		else{
+			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Create);	
+		}
+
+		LoadRegionFile(pos, init:true);
+	}
+
+	// Start RegionFileHandler on a given ChunkPos
+	public void Start(ChunkPos pos){
+		this.worldName = World.worldName;
+		this.seed = World.worldSeed;
 		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
 
 		this.saveDir = "Worlds/";
@@ -174,6 +219,10 @@ public class RegionFileHandler{
 
 	// Loads data from PDAT file
 	public Vector3 LoadPlayer(){
+		if(this.playerFile.Length == 0){
+			return new Vector3(0, this.cl.GetBlockHeight(new ChunkPos(0,0),0, 0), 0);
+		}
+
 		this.playerFile.Read(playerBuffer, 0, 12);
 
 		return new Vector3(ReadPos(playerBuffer, 0), ReadPos(playerBuffer, 4) + 1, ReadPos(playerBuffer, 8));
@@ -192,7 +241,6 @@ public class RegionFileHandler{
 
 		return f;
 	}
-
 
 
 	// Loads RegionFile related to given Chunk

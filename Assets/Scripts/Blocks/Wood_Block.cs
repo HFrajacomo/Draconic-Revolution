@@ -40,9 +40,9 @@ public class Wood_Block : Blocks
 	}
 
 	// Activates OnBreak event -> Emits normal BUD, emits special BUD to breadt-first search leaves
-	public override int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
+	public override int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
 		CastCoord thisCoord = new CastCoord(pos, blockX, blockY, blockZ);
-		EmitBlockUpdate("break", thisCoord.GetWorldX(), thisCoord.GetWorldY(), thisCoord.GetWorldZ(), 0, cl);
+		EmitBlockUpdate(BUDCode.BREAK, thisCoord.GetWorldX(), thisCoord.GetWorldY(), thisCoord.GetWorldZ(), 0, cl);
 
 		TreeCheck(thisCoord, cl);
 		GetSurroundingLeaves(thisCoord, decayDistance, cl);
@@ -52,7 +52,7 @@ public class Wood_Block : Blocks
 	}
 
 	// Makes Wood Block have state 1 when unnaturally placed
-	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){
+	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
 		cl.chunks[pos].metadata.SetState(blockX, blockY, blockZ, 1);
 		return 0;
 	}
@@ -60,7 +60,7 @@ public class Wood_Block : Blocks
 
 
 	// Does Search for invalid leaves
-	private void RunLeavesRecursion(ChunkLoader cl, CastCoord init){
+	private void RunLeavesRecursion(ChunkLoader_Server cl, CastCoord init){
 		while(openList.Count > 0){
 			GetSurroundingLeaves(openList[0], distances[openList[0]]-1, cl);
 			openList.RemoveAt(0);
@@ -69,18 +69,18 @@ public class Wood_Block : Blocks
 		// Applies DECAY BUD to distant leaves
 		foreach(CastCoord c in distances.Keys){
 			if(distances[c] == 0){
-				EmitBUDTo("decay", c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), 1, cl);
+				EmitBUDTo(BUDCode.DECAY, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), 1, cl);
 			}
 		}
 
 		// Applies DECAY BUD to around blocks if there's no wood around
-		EmitDelayedBUD("decay", init.GetWorldX(), init.GetWorldY(), init.GetWorldZ(), 2, 15, cl);
+		EmitDelayedBUD(BUDCode.DECAY, init.GetWorldX(), init.GetWorldY(), init.GetWorldZ(), 2, 15, cl);
 
 		distances.Clear();
 	}
 
 	// Returns a filled cache list full of surrounding coords
-	private void GetSurroundingLeaves(CastCoord init, int currentDistance, ChunkLoader cl){
+	private void GetSurroundingLeaves(CastCoord init, int currentDistance, ChunkLoader_Server cl){
 		// End
 		if(currentDistance == 0)
 			return;
@@ -112,7 +112,7 @@ public class Wood_Block : Blocks
 	}
 
 	// Check if there's any wood block around this block
-	private bool CheckWoodAround(CastCoord init, ChunkLoader cl){
+	private bool CheckWoodAround(CastCoord init, ChunkLoader_Server cl){
 		cache.Clear();
 		cache.Add(init.Add(0,0,1)); // North
 		cache.Add(init.Add(0,0,-1)); // South
@@ -131,7 +131,7 @@ public class Wood_Block : Blocks
 
 
 	// Does the Wood check to break unconnected wood blocks from tree
-	private void TreeCheck(CastCoord pos, ChunkLoader cl){
+	private void TreeCheck(CastCoord pos, ChunkLoader_Server cl){
 		CastCoord aux;
 		validDirections.Clear();
 
@@ -209,7 +209,7 @@ public class Wood_Block : Blocks
 	}
 
 	// Handles search of Wood Blocks
-	private void RunWoodRecursion(ChunkLoader cl){
+	private void RunWoodRecursion(ChunkLoader_Server cl){
 		CastCoord current;
 		int exitCode;
 
@@ -243,8 +243,8 @@ public class Wood_Block : Blocks
 		foreach(CastCoord aux in toDestroy){
 			cl.chunks[aux.GetChunkPos()].data.SetCell(aux.blockX, aux.blockY, aux.blockZ, 0);
 			cl.chunks[aux.GetChunkPos()].metadata.Reset(aux.blockX, aux.blockY, aux.blockZ);
-			EmitBlockUpdate("break", aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
-			EmitBlockUpdate("decay", aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
+			EmitBlockUpdate(BUDCode.BREAK, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
+			EmitBlockUpdate(BUDCode.DECAY, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
 		}
 
 	}
@@ -253,7 +253,7 @@ public class Wood_Block : Blocks
 	// Fills toDestroy and Safe list
 	// Returns true if all blocks in currentList are connected to a stem
 	// Returns false if all blocks in currentList doesn't connect to a stem or connects to a to-be-destroyed block
-	private int SearchWood(CastCoord init, ChunkLoader cl){
+	private int SearchWood(CastCoord init, ChunkLoader_Server cl){
 		ushort blockCode;
 		ushort state;
 
@@ -303,7 +303,7 @@ public class Wood_Block : Blocks
 	}
 
 	// Adds around coords to currentList
-	private void GetAroundCoords(CastCoord pos, ChunkLoader cl){
+	private void GetAroundCoords(CastCoord pos, ChunkLoader_Server cl){
 		CastCoord aux;
 		ushort blockCode;
 
@@ -410,7 +410,7 @@ public class Wood_Block : Blocks
 
 
     // Handles the emittion of BUD to neighboring blocks
-    public void EmitDelayedBUD(string type, int x, int y, int z, int minOffset, int maxOffset, ChunkLoader cl){
+    public void EmitDelayedBUD(BUDCode type, int x, int y, int z, int minOffset, int maxOffset, ChunkLoader_Server cl){
       CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
 
       cache.Clear();

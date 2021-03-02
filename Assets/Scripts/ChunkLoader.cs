@@ -20,69 +20,73 @@ public class ChunkLoader : MonoBehaviour
     public List<ChunkPos> toDraw = new List<ChunkPos>();
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
 	public BlockEncyclopedia blockBook;
-    public BUDScheduler budscheduler;
     public VFXLoader vfx;
     public TimeOfDay time;
     public GameObject gameUI;
-    public WorldGenerator worldGen;
     public StructureHandler structHandler;
+    public Client client;
+
+    // Receoved from Server
+    public int playerX;
+    public int playerZ;
+    public int playerY;
 
     // Initialization
     public GameObject playerCharacter;
 
-	// World Generation
-	public int worldSeed = 1; // 6 number integer
-    public BiomeHandler biomeHandler;
-
 	// Chunk Rendering
 	public ChunkRenderer rend;
-    public RegionFileHandler regionHandler;
 
 	// Flags
 	public bool WORLD_GENERATED = false; 
     public int reloadMemoryCounter = 30;
     public bool PLAYERSPAWNED = false;
     public bool DRAWFLAG = false;
+    public bool CONNECTEDTOSERVER = false;
 
     // Cache Data
     private ChunkPos cachePos = new ChunkPos(0,0);
     private Chunk cacheChunk;
 
 
-    void OnApplicationQuit(){
-        regionHandler.CloseAll();
-    }
-
     void Awake(){
         this.playerCharacter.SetActive(false);
         this.gameUI.SetActive(false);
     }
 
+    void OnApplicationQuit(){
+        NetMessage message = new NetMessage(NetCode.DISCONNECT);
+        this.client.Send(message.GetMessage());
+    }
+
     // Start is called before the first frame update
     void Start()
     {
-        this.renderDistance = World.renderDistance;
+        NetMessage playerInformation = new NetMessage(NetCode.SENDCLIENTINFO);
+        playerInformation.SendClientInfo(World.renderDistance, World.worldSeed, World.worldName);
 
-        regionHandler = new RegionFileHandler(renderDistance, newChunk);
+        this.client = new Client(this);
 
-        worldSeed = regionHandler.GetRealSeed();
-
-        biomeHandler = new BiomeHandler(BiomeSeedFunction(worldSeed));
-
-        this.worldGen = new WorldGenerator(worldSeed, BiomeSeedFunction(worldSeed), OffsetHashFunction(worldSeed), GenerationSeedFunction(worldSeed), biomeHandler, structHandler, this);
-
-        // If character has been loaded
-        if(regionHandler.playerFile.Length > 0){
-            player.position = regionHandler.LoadPlayer();
-            PLAYERSPAWNED = true;
+        // Checks if is connected to server
+        while(!CONNECTEDTOSERVER){
+            StartCoroutine(Wait());
         }
 
-		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
-		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
-		newChunk = new ChunkPos(playerX, playerZ);
+        this.renderDistance = World.renderDistance;
+        this.client.Send(playerInformation.GetMessage());
 
+        while(!PLAYERSPAWNED){
+            StartCoroutine(Wait());
+        }
+
+		newChunk = new ChunkPos(playerX/Chunk.chunkWidth, playerZ/Chunk.chunkWidth);
 
 		GetChunks(true);
+    }
+
+    // Sleep function
+    IEnumerator Wait(){
+        yield return new WaitForSeconds(1);
     }
 
     void Update(){ 
@@ -121,12 +125,10 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // Decides what to do for current tick
-        if(toLoad.Count > 0 && !this.DRAWFLAG)
+        if(toLoad.Count > 0)
             LoadChunk();
-        else if(Structure.reloadChunks.Count > 0)
-            SavePregenChunk();
-        else
-            DrawChunk();
+
+        DrawChunk();
     }
     
     // Erases loaded chunks dictionary
@@ -139,44 +141,17 @@ public class ChunkLoader : MonoBehaviour
         chunks.Clear();
     }
 
-    // Builds Structure data in non-indexed Chunks
-    private void SavePregenChunk(){
-        cacheChunk = Structure.reloadChunks[0];
-        regionHandler.GetCorrectRegion(cacheChunk.pos);
-
-        // If it's loaded
-        if(chunks.ContainsKey(cacheChunk.pos)){
-            cacheChunk.needsGeneration = 0;
-
-            // Rough Application of Structures
-            Structure.RoughApply(chunks[cacheChunk.pos], cacheChunk);
-            chunks[cacheChunk.pos] = cacheChunk;
-
-            this.regionHandler.SaveChunk(cacheChunk);
-
-            if(!toDraw.Contains(cacheChunk.pos))
-                toDraw.Add(cacheChunk.pos);
+    // Adds chunk to Draw List with priority
+    public void AddToDraw(ChunkPos pos){
+        if(!toDraw.Contains(pos)){
+            toDraw.Insert(0, pos);
         }
-
-        // If is in an unloaded indexed chunk
-        else if(this.regionHandler.IsIndexed(cacheChunk.pos)){
-            Chunk c = new Chunk(cacheChunk.pos, this.rend, this.blockBook, this, fromMemory:true);
-            this.regionHandler.LoadChunk(c);
-
-            // Rough Application of Structures
-            Structure.RoughApply(c, cacheChunk);
-
-            this.regionHandler.SaveChunk(c);
-        }
-
-        // If is in an unloaded unknown chunk
         else{
-            this.regionHandler.SaveChunk(cacheChunk);
+            toDraw.Remove(pos);
+            toDraw.Insert(0, pos);
         }
-
-
-        Structure.reloadChunks.RemoveAt(0);
     }
+
 
     // Loads Chunk data, but doesn't draw them
     private void LoadChunk(){
@@ -193,46 +168,7 @@ public class ChunkLoader : MonoBehaviour
                 return;
             }
 
-            bool isPregen;
-
-            // Gets correct region file
-            regionHandler.GetCorrectRegion(toLoad[0]);
-
-            // If current chunk toLoad was already generated
-            if(regionHandler.IsIndexed(toLoad[0])){
-
-                isPregen = regionHandler.GetsNeedGeneration(toLoad[0]);
-
-                // If chunk is Pre-Generated
-                if(isPregen){
-                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
-                    vfx.NewChunk(toLoad[0]);
-                    regionHandler.LoadChunk(chunks[toLoad[0]]);
-                    this.worldGen.SetVoxdata(chunks[toLoad[0]].data.GetData());
-                    this.worldGen.SetCacheHP(chunks[toLoad[0]].metadata.GetHPData());
-                    this.worldGen.SetCacheState(chunks[toLoad[0]].metadata.GetStateData());
-                    chunks[toLoad[0]].BuildOnVoxelData(this.worldGen.AssignBiome(toLoad[0], pregen:true));
-                    chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
-                    chunks[toLoad[0]].needsGeneration = 0;
-                    regionHandler.SaveChunk(chunks[toLoad[0]]);
-                }
-                // If it's just a normally generated chunk
-                else{
-                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
-                    vfx.NewChunk(toLoad[0]);
-                    regionHandler.LoadChunk(chunks[toLoad[0]]);
-                    chunks[toLoad[0]].needsGeneration = 0;
-                }
-            }
-            // If it's a new chunk to be generated
-            else{
-                chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
-                vfx.NewChunk(toLoad[0]);
-                chunks[toLoad[0]].BuildOnVoxelData(this.worldGen.AssignBiome(toLoad[0]));
-                chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
-                chunks[toLoad[0]].needsGeneration = 0;
-                regionHandler.SaveChunk(chunks[toLoad[0]]);
-            }
+           // Asks server to hand over chunk info
 
             toDraw.Add(toLoad[0]);
     		toLoad.RemoveAt(0);

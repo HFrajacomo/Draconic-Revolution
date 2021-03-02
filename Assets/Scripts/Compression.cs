@@ -11,11 +11,11 @@ Class for the compression algorithm of the RDF files to be applied
 */
 
 public static class Compression{
-	private static int[] cachedData = new int[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth];
+	private static byte[] cachedData = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth];
 
 	// Writes Chunk c's data using a Pallete's compression into given buffer
 	// and returns the amount of bytes written
-	public static int CompressBlocks(Chunk c, byte[] buffer){
+	public static int CompressBlocks(Chunk c, byte[] buffer, int targetPos=0){
 		int bytes;
 		Pallete p = Compression.BiomeToPallete(c.biomeName);
 		List<ushort> palleteList = Compression.GetPallete(p);
@@ -37,7 +37,8 @@ public static class Compression{
 		handle.Complete();
 
 		// NativeArray to Array convertion
-		buff.CopyTo(buffer);
+		buff.CopyTo(cachedData);
+		cachedData.CopyTo(buffer, targetPos);
 
 		bytes = writtenBytes[0];
 
@@ -46,13 +47,12 @@ public static class Compression{
 		buff.Dispose();
 		writtenBytes.Dispose();
 
-		return bytes;
-			
+		return bytes;		
 	}
 
 	// Writes Chunk c's HP metadata into given buffer
 	// and returns the amount of bytes written
-	public static int CompressMetadataHP(Chunk c, byte[] buffer){
+	public static int CompressMetadataHP(Chunk c, byte[] buffer, int targetPos=0){
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
 		int bytes;
 
@@ -72,7 +72,8 @@ public static class Compression{
 		handle.Complete();
 
 		// NativeArray to Array convertion
-		buff.CopyTo(buffer);
+		buff.CopyTo(cachedData);
+		cachedData.CopyTo(buffer, targetPos);
 
 		bytes = writtenBytes[0];
 
@@ -86,7 +87,7 @@ public static class Compression{
 
 	// Writes Chunk c's state metadata into given buffer
 	// and returns the amount of bytes written
-	public static int CompressMetadataState(Chunk c, byte[] buffer){
+	public static int CompressMetadataState(Chunk c, byte[] buffer, int targetPos=0){
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
 		int bytes;
 
@@ -106,7 +107,8 @@ public static class Compression{
 		handle.Complete();
 
 		// NativeArray to Array convertion
-		buff.CopyTo(buffer);
+		buff.CopyTo(cachedData);
+		cachedData.CopyTo(buffer, targetPos);
 
 		bytes = writtenBytes[0];
 
@@ -132,13 +134,42 @@ public static class Compression{
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
 			readData = readData,
-			pallete = pallete
+			pallete = pallete,
+			initialPos = 0
 		};
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
 
 		c.data.SetData(data.ToArray());
 
+
+		data.Dispose();
+		readData.Dispose();
+		pallete.Dispose();
+	}
+
+	// Builds byte message from Server using Decompression algorithm
+	public static void DecompressBlocksClient(Chunk c, byte[] buffer, int initialPos){
+		// Preparation Variables
+		Pallete p = Compression.BiomeToPallete(c.biomeName);
+		List<ushort> palleteList = Compression.GetPallete(p);
+
+
+
+		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
+		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+
+		DecompressJob dbJob = new DecompressJob{
+			data = data,
+			readData = readData,
+			pallete = pallete,
+			initialPos = initialPos
+		};
+		JobHandle job = dbJob.Schedule();
+		job.Complete();
+
+		c.data.SetData(data.ToArray());
 
 		data.Dispose();
 		readData.Dispose();
@@ -157,7 +188,33 @@ public static class Compression{
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
 			readData = readData,
-			pallete = pallete
+			pallete = pallete,
+			initialPos = 0
+		};
+		JobHandle job = dbJob.Schedule();
+		job.Complete();
+
+		c.metadata.SetHPData(data.ToArray());
+
+		data.Dispose();
+		readData.Dispose();
+		pallete.Dispose();
+	} 
+
+	// Builds Chunk's HP Metadata using Decompression algorithm
+	public static void DecompressMetadataHPClient(Chunk c, byte[] buffer, int initialPos){
+		// Preparation Variables
+		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+
+		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
+		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+
+		DecompressJob dbJob = new DecompressJob{
+			data = data,
+			readData = readData,
+			pallete = pallete,
+			initialPos = initialPos
 		};
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
@@ -181,7 +238,33 @@ public static class Compression{
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
 			readData = readData,
-			pallete = pallete
+			pallete = pallete,
+			initialPos = 0
+		};
+		JobHandle job = dbJob.Schedule();
+		job.Complete();
+
+		c.metadata.SetStateData(data.ToArray());
+		
+		data.Dispose();
+		readData.Dispose();
+		pallete.Dispose();
+	}
+
+	// Builds Chunk's State Metadata using Decompression algorithm
+	public static void DecompressMetadataStateClient(Chunk c, byte[] buffer, int initialPos){
+		// Preparation Variables
+		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+
+		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
+		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+
+		DecompressJob dbJob = new DecompressJob{
+			data = data,
+			readData = readData,
+			pallete = pallete,
+			initialPos = initialPos
 		};
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
@@ -360,12 +443,15 @@ public struct DecompressJob : IJob{
 
 	public NativeArray<ushort> data;
 
+	[ReadOnly]
+	public int initialPos; 
+
 
 	public void Execute(){
 		// Buffer Variables
 		ushort bufferedCount = 0;
 		ushort blockCode = 0;
-		int readBytes = 0;
+		int readBytes = initialPos;
 
 		// Block Data
 		for(int y=0; y<Chunk.chunkDepth; y++){

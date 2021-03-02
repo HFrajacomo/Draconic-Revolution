@@ -15,7 +15,7 @@ public class WorldGenerator
 	public float offsetHash;
 	public float generationSeed;
 	public BiomeHandler biomeHandler;
-	public ChunkLoader cl;
+	public ChunkLoader_Server cl;
 
     // Prefab System
     public StructureHandler structHandler;
@@ -36,7 +36,7 @@ public class WorldGenerator
     private Dictionary<ushort, ushort> cacheStateDict = new Dictionary<ushort, ushort>();
 
 
-    public WorldGenerator(int worldSeed, float dispersionSeed, float offsetHash, float generationSeed, BiomeHandler biomeReference, StructureHandler structHandler, ChunkLoader reference){
+    public WorldGenerator(int worldSeed, float dispersionSeed, float offsetHash, float generationSeed, BiomeHandler biomeReference, StructureHandler structHandler, ChunkLoader_Server reference){
     	this.worldSeed = worldSeed;
     	this.dispersionSeed = dispersionSeed;
     	this.biomeHandler = biomeReference;
