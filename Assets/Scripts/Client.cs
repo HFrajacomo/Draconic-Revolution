@@ -9,8 +9,7 @@ using UnityEngine.SceneManagement;
 public class Client
 {
 	// Internet Objects
-	public TcpClient socket;
-	private NetworkStream stream;
+	private Socket socket;
 
 	// Data Management
 	private const int sendBufferSize = 4096; // 4KB
@@ -23,10 +22,9 @@ public class Client
 
 	// Unity References
 	public ChunkLoader cl;
-
 	
 	public Client(ChunkLoader cl){
-		socket = new TcpClient();
+		socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
 		receiveBuffer = new byte[receiveBufferSize];
 		this.cl = cl;
 		this.Connect();	
@@ -34,26 +32,14 @@ public class Client
 	
 	
 	public void Connect(){
-		socket.BeginConnect(this.ip, this.port, ConnectCallback, socket);		
-
-	}
-
-	// Connection call handling
-	private void ConnectCallback(IAsyncResult result){
-		//socket.EndConnect(result);
-
-		if(!socket.Connected)
-			return;
-
-		stream = socket.GetStream();
-
-		stream.BeginRead(receiveBuffer, 0, receiveBufferSize, ReceiveCallback, null);
+		socket.Connect(this.ip, this.port, ConnectCallback, socket);
+		socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, new SocketError(), ReceiveCallback, null);		
 	}
 
 	// Receive call handling
 	private void ReceiveCallback(IAsyncResult result){
 		try{
-			int bytesReceived = stream.EndRead(result);
+			int bytesReceived = socket.EndReceive(result);
 
 			if(bytesReceived <= 0){
 				return;
@@ -65,7 +51,7 @@ public class Client
 			this.HandleReceivedMessage(data);
 			Debug.Log("Received: " + (NetCode)data[0]);
 
-			stream.BeginRead(receiveBuffer, 0, receiveBufferSize, ReceiveCallback, null);
+			socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, new SocketError(), ReceiveCallback, null);
 		}
 		catch(Exception e){
 			Debug.Log(e.ToString());
@@ -75,7 +61,7 @@ public class Client
 	// Sends a byte[] to the server
 	public bool Send(byte[] data){
 		try{
-			this.stream.BeginWrite(data, 0, data.Length, null, null);
+			this.socket.BeginSend(data, 0, data.Length, null, null, SendCallback, null);
 			return true;
 		}
 		catch(Exception e){
@@ -84,7 +70,13 @@ public class Client
 		}
 	}
 
-	/* ===========================================================================
+	// Send callback to end package
+	public void SendCallback(IAsyncResult result){
+		this.socket.EndSend(result);
+	}
+
+	/* ==
+	=========================================================================
 	Handling of NetMessages
 	*/
 
