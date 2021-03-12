@@ -41,8 +41,11 @@ public class ChunkLoader : MonoBehaviour
 	public bool WORLD_GENERATED = false; 
     public int reloadMemoryCounter = 30;
     public bool PLAYERSPAWNED = false;
+    public bool PLAYERLOADED = false;
+    public bool REQUESTEDCHUNKS = false;
     public bool DRAWFLAG = false;
     public bool CONNECTEDTOSERVER = false;
+    public bool SENTINFOTOSERVER = false;
 
     // Cache Data
     private ChunkPos cachePos = new ChunkPos(0,0);
@@ -52,6 +55,7 @@ public class ChunkLoader : MonoBehaviour
     void Awake(){
         this.playerCharacter.SetActive(false);
         this.gameUI.SetActive(false);
+        this.client = new Client(this); 
     }
 
     void OnApplicationQuit(){
@@ -59,76 +63,70 @@ public class ChunkLoader : MonoBehaviour
         this.client.Send(message.GetMessage());
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        NetMessage playerInformation = new NetMessage(NetCode.SENDCLIENTINFO);
-        playerInformation.SendClientInfo(World.renderDistance, World.worldSeed, World.worldName);
+    void Update(){
+        // If hasn't connected to the server yet
+        if(this.CONNECTEDTOSERVER && !this.SENTINFOTOSERVER){
+            NetMessage playerInformation = new NetMessage(NetCode.SENDCLIENTINFO);
+            playerInformation.SendClientInfo(World.renderDistance, World.worldSeed, World.worldName);
 
-        this.client = new Client(this);
-
-        // Checks if is connected to server
-        StartCoroutine(WaitConnection());
-
-        this.renderDistance = World.renderDistance;
-        this.client.Send(playerInformation.GetMessage());
-
-        StartCoroutine(WaitSpawn());
-
-		newChunk = new ChunkPos(playerX/Chunk.chunkWidth, playerZ/Chunk.chunkWidth);
-
-		GetChunks(true);
-    }
-
-    // Sleep function
-    IEnumerator WaitConnection(){
-        yield return new WaitUntil(() => this.CONNECTEDTOSERVER);
-    }
-
-    IEnumerator WaitSpawn(){
-        yield return new WaitUntil(() => this.PLAYERSPAWNED);
-    }
-
-    void Update(){ 
-
-    	if(toLoad.Count == 0 && toDraw.Count == 0 && !WORLD_GENERATED){
-    		WORLD_GENERATED = true;
-
-            if(!PLAYERSPAWNED){
-                int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
-                player.position -= new Vector3(0, player.position.y - spawnY, 0);
-                PLAYERSPAWNED = true;
-            }
-
-            this.time.SetLock(false);
-            this.gameUI.SetActive(true);
-            playerCharacter.SetActive(true);
-    	}
-
-        // DEV TOOLS
-        if(MainControllerManager.reload){
-            GetChunks(true);
-            MainControllerManager.reload = false;
+            this.renderDistance = World.renderDistance;
+            this.client.Send(playerInformation.GetMessage());
+            this.SENTINFOTOSERVER = true;
         }
         else{
-    	   GetChunks(false);
+            return;
         }
 
-    	UnloadChunk();
-
-        // Decides whether DRAW Flag should be activates or deactivated
-        if(toDraw.Count > this.renderDistance*2+1){
-            this.DRAWFLAG = true;
+        // If client hasn't received player data from server yet 
+        if(!this.PLAYERSPAWNED){}
+        // If has received chunks and needs to load them
+        else if(this.PLAYERSPAWNED && !this.REQUESTEDCHUNKS){
+            newChunk = new ChunkPos(playerX/Chunk.chunkWidth, playerZ/Chunk.chunkWidth);
+            GetChunks(true);  
+            this.REQUESTEDCHUNKS = true;          
         }
-        else if(toDraw.Count == 0){
-            this.DRAWFLAG = false;
+
+        else{
+            // If current chunk is drawn and world is generated
+        	if(CheckChunkDrawn(this.playerX, this.playerZ) && !WORLD_GENERATED){
+        		WORLD_GENERATED = true;
+
+                if(!this.PLAYERLOADED){
+                    int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
+                    player.position -= new Vector3(0, player.position.y - spawnY, 0);
+                    this.PLAYERLOADED = true;
+                }
+
+                this.time.SetLock(false);
+                this.gameUI.SetActive(true);
+                playerCharacter.SetActive(true);
+        	}
+
+            // DEV TOOLS
+            if(MainControllerManager.reload){
+                GetChunks(true);
+                MainControllerManager.reload = false;
+            }
+            else{
+        	   GetChunks(false);
+            }
+
+        	UnloadChunk();
+
+            // Decides whether DRAW Flag should be activates or deactivated
+            if(toDraw.Count > this.renderDistance*2+1){
+                this.DRAWFLAG = true;
+            }
+            else if(toDraw.Count == 0){
+                this.DRAWFLAG = false;
+            }
+
+            // Decides what to do for current tick
+            if(toLoad.Count > 0)
+                LoadChunk();
+
+            DrawChunk();
         }
-
-        // Decides what to do for current tick
-        if(toLoad.Count > 0)
-            LoadChunk();
-
-        DrawChunk();
     }
     
     // Erases loaded chunks dictionary
@@ -139,6 +137,16 @@ public class ChunkLoader : MonoBehaviour
             Resources.UnloadUnusedAssets();
     	}
         chunks.Clear();
+    }
+
+    // Check if the chunkpos in a given (x,z) position is loaded and drawn
+    private bool CheckChunkDrawn(float x, float z){
+        ChunkPos pos = new ChunkPos(Mathf.FloorToInt(x/Chunk.chunkWidth), Mathf.FloorToInt(z/Chunk.chunkWidth));
+    
+        if(this.chunks.ContainsKey(pos)){
+            return this.chunks[pos].drawMain;
+        }
+        return false;
     }
 
     // Adds chunk to Draw List with priority

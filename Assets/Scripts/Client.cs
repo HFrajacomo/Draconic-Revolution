@@ -10,6 +10,7 @@ public class Client
 {
 	// Internet Objects
 	private Socket socket;
+	private SocketError err;
 
 	// Data Management
 	private const int sendBufferSize = 4096; // 4KB
@@ -17,14 +18,14 @@ public class Client
 	private byte[] receiveBuffer;
 
 	// Address Information
-	public string ip = "192.168.0.3";
+	public IPAddress ip = new IPAddress(0x0100007F);
 	public int port = 33000;
 
 	// Unity References
 	public ChunkLoader cl;
 	
 	public Client(ChunkLoader cl){
-		socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+		this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
 		receiveBuffer = new byte[receiveBufferSize];
 		this.cl = cl;
 		this.Connect();	
@@ -32,14 +33,15 @@ public class Client
 	
 	
 	public void Connect(){
-		socket.Connect(this.ip, this.port, ConnectCallback, socket);
-		socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, new SocketError(), ReceiveCallback, null);		
+		this.socket.Connect(this.ip, this.port);
+		this.socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), this.socket);		
 	}
 
 	// Receive call handling
 	private void ReceiveCallback(IAsyncResult result){
 		try{
-			int bytesReceived = socket.EndReceive(result);
+
+			int bytesReceived = this.socket.EndReceive(result);
 
 			if(bytesReceived <= 0){
 				return;
@@ -51,7 +53,7 @@ public class Client
 			this.HandleReceivedMessage(data);
 			Debug.Log("Received: " + (NetCode)data[0]);
 
-			socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, new SocketError(), ReceiveCallback, null);
+			this.socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), this.socket);
 		}
 		catch(Exception e){
 			Debug.Log(e.ToString());
@@ -61,7 +63,7 @@ public class Client
 	// Sends a byte[] to the server
 	public bool Send(byte[] data){
 		try{
-			this.socket.BeginSend(data, 0, data.Length, null, null, SendCallback, null);
+			this.socket.BeginSend(data, 0, data.Length, 0, out this.err, new AsyncCallback(SendCallback), this.socket);
 			return true;
 		}
 		catch(Exception e){
@@ -107,6 +109,7 @@ public class Client
 	// Permits the loading of Game Scene
 	private void AcceptConnect(){
 		this.cl.CONNECTEDTOSERVER = true;
+		Debug.Log("Connected to Server at " + this.socket.RemoteEndPoint.ToString());
 	}
 
 	// Receives Player Information as int on startup
@@ -143,7 +146,6 @@ public class Client
 
 	// Receives a disconnect call from server
 	private void Disconnect(){
-		this.stream.Close();
 		this.socket.Close();
 		SceneManager.LoadScene(0);
 	}

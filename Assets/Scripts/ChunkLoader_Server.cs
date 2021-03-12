@@ -40,6 +40,7 @@ public class ChunkLoader_Server : MonoBehaviour
 	// Flags
     public int reloadMemoryCounter = 30;
     public bool RECEIVEDWORLDDATA = false;
+    public bool INITIALIZEDWORLD = false;
 
     // Cache Data
     private ChunkPos cachePos = new ChunkPos(0,0);
@@ -50,40 +51,40 @@ public class ChunkLoader_Server : MonoBehaviour
         regionHandler.CloseAll();
     }
 
-    void Awake(){
-        this.server = new Server();
+    void Start(){
+        this.server = new Server(this, true);
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-        StartCoroutine(Wait());
+    void Update(){ 
+        if(this.RECEIVEDWORLDDATA && this.INITIALIZEDWORLD){
+            // Decides what to do for current tick
+            if(toLoad.Count > 0)
+                LoadChunk();
+            else if(Structure.reloadChunks.Count > 0)
+                SavePregenChunk();
+        }
+        else if(!this.INITIALIZEDWORLD && this.RECEIVEDWORLDDATA){
+            InitWorld();
+        }
+    }
 
-        regionHandler = new RegionFileHandler();
+    private void InitWorld(){
+        print("Initializing World");
+
+        this.regionHandler = new RegionFileHandler(this);
         worldSeed = regionHandler.GetRealSeed();
         biomeHandler = new BiomeHandler(BiomeSeedFunction(worldSeed));
         this.worldGen = new WorldGenerator(worldSeed, BiomeSeedFunction(worldSeed), OffsetHashFunction(worldSeed), GenerationSeedFunction(worldSeed), biomeHandler, structHandler, this);
     
         // Sends the first player it's information
         Vector3 playerPos = this.regionHandler.LoadPlayer();
+
+        this.regionHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth)));
+
         NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
         message.SendServerInfo((int)playerPos.x, (int)playerPos.y, (int)playerPos.z);
         this.server.Send(message.GetMessage(), this.server.GetCurrentCode()); 
-
-    }
-
-    void Update(){ 
-        // Decides what to do for current tick
-        if(toLoad.Count > 0)
-            LoadChunk();
-        else if(Structure.reloadChunks.Count > 0)
-            SavePregenChunk();
-    }
-
-    // Sleep function
-    IEnumerator Wait(){
-        yield return new WaitUntil(() => this.RECEIVEDWORLDDATA);
+        this.INITIALIZEDWORLD = true;
     }
 
     // Builds Structure data in non-indexed Chunks

@@ -51,13 +51,20 @@ public class RegionFileHandler{
 	private static int chunkHeaderSize = 21; // Size (in bytes) of header
 	private static int chunkSize = Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 8; // Size in bytes of Chunk payload
 
-	public RegionFileHandler(){}
+	public RegionFileHandler(ChunkLoader_Server cl){
+		InitWorldFiles(cl);
+	}
 
-	// Builds the file handler and loads it on the ChunkPos of the first player
-	public RegionFileHandler(ChunkPos pos, ChunkLoader_Server cl){
-		this.cl = cl;
+	// Initializes all files after received first player
+	public void InitDataFiles(ChunkPos pos){
 		this.worldName = World.worldName;
 		this.seed = World.worldSeed;
+		LoadRegionFile(pos, init:true);
+	}
+
+	// Initializes World Files
+	public void InitWorldFiles(ChunkLoader_Server cl){
+		this.cl = cl;
 		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
 
 		this.saveDir = "Worlds/";
@@ -90,9 +97,7 @@ public class RegionFileHandler{
 		}
 		else{
 			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Create);	
-		}
-
-		LoadRegionFile(pos, init:true);
+		}		
 	}
 
 	// Start RegionFileHandler on a given ChunkPos

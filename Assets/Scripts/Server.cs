@@ -6,38 +6,65 @@ using System.Net.Sockets;
 using UnityEngine;
 using Unity.Mathematics;
 
-public class Server : MonoBehaviour
+public class Server
 {
 	public int maxPlayers = 8;
 	public int port = 33000;
-	private TcpListener listener;
 	private bool isLocal = true;
-	public Dictionary<int, TcpClient> connections;
+	public Socket masterSocket;
+	public Dictionary<int, Socket> connections;
+	private IPEndPoint serverIP;
 	private int currentCode = 0;
 	private const int receiveBufferSize = 4096*4096;
 	private byte[] receiveBuffer = new byte[receiveBufferSize];
 	public Dictionary<int, int> playerRenderDistances = new Dictionary<int, int>();
+	private SocketError err = new SocketError();
 
 	// Unity Reference
 	public ChunkLoader_Server cl;
 
-	public void Start(){
-    	connections = new Dictionary<int, TcpClient>();
+	public Server(ChunkLoader_Server cl, bool isLocal){
+    	connections = new Dictionary<int, Socket>();
+    	this.cl = cl;
+    	this.isLocal = isLocal;
 
-    	if(!this.isLocal)
-        	this.listener = new TcpListener(IPAddress.Any, this.port);
-        else
-        	this.listener = new TcpListener(IPAddress.Loopback, this.port);
+    	if(!this.isLocal){
+        	this.masterSocket = new Socket(IPAddress.Any.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+    		this.serverIP = new IPEndPoint(0, this.port);
+    	}
+        else{
+        	this.masterSocket = new Socket(IPAddress.Loopback.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        	this.serverIP = new IPEndPoint(0x0100007F, this.port);
+        }
+
 
         Debug.Log("Starting Server");
-        listener.Start();
-        listener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
+
+        this.masterSocket.Bind(this.serverIP);
+        this.masterSocket.Listen(byte.MaxValue);
+
+        this.masterSocket.BeginAccept(new AsyncCallback(ConnectCallback), this.masterSocket);
 	}
+
+    // Callback for connections received
+    private void ConnectCallback(IAsyncResult result){
+    	Socket client = this.masterSocket.EndAccept(result);
+
+    	this.connections[currentCode] = client;
+
+    	Debug.Log(client.RemoteEndPoint.ToString() + " has connected");
+    	this.Send(new byte[]{1}, this.currentCode);
+
+    	this.connections[currentCode].BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), this.currentCode);
+    	this.masterSocket.BeginAccept(new AsyncCallback(ConnectCallback), null);
+    	this.currentCode++;
+    }
 
 	// Sends a byte[] to the a client given it's ID
 	public bool Send(byte[] data, int id){
 		try{
-			connections[id].GetStream().BeginWrite(data, 0, data.Length, null, null);
+			IAsyncResult result = connections[id].BeginSend(data, 0, data.Length, 0, out this.err, null, null);
+			connections[id].EndSend(result);
 			return true;
 		}
 		catch(Exception e){
@@ -46,25 +73,20 @@ public class Server : MonoBehaviour
 		}
 	}
 
+	/*
+	// Send callback to end package
+	public void SendCallback(IAsyncResult result){
+		this.masterSocket.EndSend(result);
+	}
+	*/
 
-    // Callback function for TCPConnect
-    private void TCPConnectCallback(IAsyncResult result){
-    	TcpClient client = this.listener.EndAcceptTcpClient(result);
-    	this.connections[currentCode] = client;
-    	this.currentCode++;
-
-    	Debug.Log(client.ToString() + " has connected");
-    	this.Send(new byte[]{1}, this.currentCode-1);
-
-    	client.GetStream().BeginRead(receiveBuffer, 0, receiveBufferSize, ReceiveCallback, this.currentCode-1);
-    	listener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
-    }
 
 	// Receive call handling
 	private void ReceiveCallback(IAsyncResult result){
+		Debug.Log("Triggered Receive");
 		try{
 			int currentID = (int)result.AsyncState;
-			int bytesReceived = this.connections[currentID].GetStream().EndRead(result);
+			int bytesReceived = this.connections[currentID].EndReceive(result);
 
 			if(bytesReceived <= 0){
 				return;
@@ -76,10 +98,10 @@ public class Server : MonoBehaviour
 			Debug.Log("Received: " + (NetCode)data[0]);
 			this.HandleReceivedMessage(data, currentID);
 
-			this.connections[currentID].GetStream().BeginRead(receiveBuffer, 0, receiveBufferSize, ReceiveCallback, currentID);
+    		this.connections[currentID].BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
 		}
-		catch(Exception e){
-			Debug.Log(e.ToString());
+		catch(SocketException e){
+			Debug.Log(e.Message + "\n" + e.StackTrace);
 		}
 	}
 
