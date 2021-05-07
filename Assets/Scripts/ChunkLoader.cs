@@ -55,12 +55,13 @@ public class ChunkLoader : MonoBehaviour
     void Awake(){
         this.playerCharacter.SetActive(false);
         this.gameUI.SetActive(false);
-        this.client = new Client(this); 
+        this.client = new Client(this);
+        this.player.position = new Vector3(0,0,0);
     }
 
     void OnApplicationQuit(){
         NetMessage message = new NetMessage(NetCode.DISCONNECT);
-        this.client.Send(message.GetMessage());
+        this.client.Send(message.GetMessage(), message.size);
     }
 
     void Update(){
@@ -68,12 +69,11 @@ public class ChunkLoader : MonoBehaviour
         if(this.CONNECTEDTOSERVER && !this.SENTINFOTOSERVER){
             NetMessage playerInformation = new NetMessage(NetCode.SENDCLIENTINFO);
             playerInformation.SendClientInfo(World.renderDistance, World.worldSeed, World.worldName);
-
             this.renderDistance = World.renderDistance;
-            this.client.Send(playerInformation.GetMessage());
+            this.client.Send(playerInformation.GetMessage(), playerInformation.size);
             this.SENTINFOTOSERVER = true;
         }
-        else{
+        else if(!this.CONNECTEDTOSERVER){
             return;
         }
 
@@ -81,9 +81,10 @@ public class ChunkLoader : MonoBehaviour
         if(!this.PLAYERSPAWNED){}
         // If has received chunks and needs to load them
         else if(this.PLAYERSPAWNED && !this.REQUESTEDCHUNKS){
+            this.player.position = new Vector3(playerX, playerY, playerZ);
             newChunk = new ChunkPos(playerX/Chunk.chunkWidth, playerZ/Chunk.chunkWidth);
             GetChunks(true);  
-            this.REQUESTEDCHUNKS = true;          
+            this.REQUESTEDCHUNKS = true;  
         }
 
         else{

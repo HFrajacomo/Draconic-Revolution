@@ -18,11 +18,12 @@ public class Client
 	private byte[] receiveBuffer;
 
 	// Address Information
-	public IPAddress ip = new IPAddress(0x0100007F);
+	public IPAddress ip = new IPAddress(0x1800A8C0);
 	public int port = 33000;
 
 	// Unity References
 	public ChunkLoader cl;
+
 	
 	public Client(ChunkLoader cl){
 		this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -34,13 +35,12 @@ public class Client
 	
 	public void Connect(){
 		this.socket.Connect(this.ip, this.port);
-		this.socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), this.socket);		
+		this.socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), null);		
 	}
 
 	// Receive call handling
 	private void ReceiveCallback(IAsyncResult result){
 		try{
-
 			int bytesReceived = this.socket.EndReceive(result);
 
 			if(bytesReceived <= 0){
@@ -50,10 +50,11 @@ public class Client
 			byte[] data = new byte[bytesReceived];
 			Array.Copy(receiveBuffer, data, bytesReceived);
 
-			this.HandleReceivedMessage(data);
-			Debug.Log("Received: " + (NetCode)data[0]);
+			Debug.Log("Received: " + (NetCode)data[0] + " > " + bytesReceived);
 
-			this.socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), this.socket);
+			this.HandleReceivedMessage(data);
+
+			this.socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
 		}
 		catch(Exception e){
 			Debug.Log(e.ToString());
@@ -61,9 +62,10 @@ public class Client
 	}
 
 	// Sends a byte[] to the server
-	public bool Send(byte[] data){
+	public bool Send(byte[] data, int length){
 		try{
-			this.socket.BeginSend(data, 0, data.Length, 0, out this.err, new AsyncCallback(SendCallback), this.socket);
+			this.socket.BeginSend(data, 0, length, 0, out this.err, new AsyncCallback(SendCallback), this.socket);
+			Debug.Log("Sent: " + (NetCode)data[0]);
 			return true;
 		}
 		catch(Exception e){
@@ -77,7 +79,7 @@ public class Client
 		this.socket.EndSend(result);
 	}
 
-	/* ==
+	/* 
 	=========================================================================
 	Handling of NetMessages
 	*/
@@ -101,7 +103,7 @@ public class Client
 				DirectBlockUpdate(data);
 				break;
 			default:
-				Debug.Log("UNKNOWN NETMESSAGE RECEIVED");
+				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
 		}
 	}
@@ -119,7 +121,6 @@ public class Client
 		x = NetDecoder.ReadInt(data, 1);
 		y = NetDecoder.ReadInt(data, 5);
 		z = NetDecoder.ReadInt(data, 9);
-		this.cl.player.position = new Vector3(x, y, z);
 
 		this.cl.PLAYERSPAWNED = true;
 		this.cl.playerX = x;

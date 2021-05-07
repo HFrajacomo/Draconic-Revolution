@@ -119,9 +119,6 @@ public class Server
 	// Discovers what to do with a Message received from Server
 	private void HandleReceivedMessage(byte[] data, int id){
 		switch((NetCode)data[0]){
-			case NetCode.REQUESTCONNECT:
-				RequestConnect(id);
-				break;
 			case NetCode.SENDCLIENTINFO:
 				SendClientInfo(data, id);
 				break;
@@ -151,12 +148,6 @@ public class Server
 				break;
 		}
 	}	
-
-	// Detects when Client wants to connect and sends server data back
-	private void RequestConnect(int id){
-		NetMessage message = new NetMessage(NetCode.ACCEPTEDCONNECT);
-		this.Send(message.GetMessage(), id);
-	}
 
 	// Captures client info
 	private void SendClientInfo(byte[] data, int id){

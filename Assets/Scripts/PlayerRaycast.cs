@@ -190,7 +190,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 			message.DirectBlockUpdate(BUDCode.BREAK, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, state, hp);
-			this.loader.client.Send(message.GetMessage());
+			this.loader.client.Send(message.GetMessage(), message.size);
 
 		}
 
@@ -219,7 +219,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 			message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, translatedBlockCode, ushort.MaxValue, ushort.MaxValue);
-			this.loader.client.Send(message.GetMessage());
+			this.loader.client.Send(message.GetMessage(), message.size);
 		}
 
 		// Triggers Blocktype.OnInteract()
@@ -232,7 +232,7 @@ public class PlayerRaycast : MonoBehaviour
 			
 			NetMessage message = new NetMessage(NetCode.INTERACT);
 			message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);
-			this.loader.client.Send(message.GetMessage());
+			this.loader.client.Send(message.GetMessage(), message.size);
 		}
 		
 		// Selects a new item in hotbar
