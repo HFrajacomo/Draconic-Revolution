@@ -34,6 +34,7 @@ public class RegionFileHandler{
 
 	// Region Pool
 	private Dictionary<ChunkPos, RegionFile> pool = new Dictionary<ChunkPos, RegionFile>();
+	private int maxPoolSize = 4;
 
 	// Cache
 	private byte[] byteArray = new byte[1];
@@ -57,14 +58,15 @@ public class RegionFileHandler{
 
 	// Initializes all files after received first player
 	public void InitDataFiles(ChunkPos pos){
-		this.worldName = World.worldName;
-		this.seed = World.worldSeed;
 		LoadRegionFile(pos, init:true);
 	}
 
 	// Initializes World Files
 	public void InitWorldFiles(ChunkLoader_Server cl){
 		this.cl = cl;
+		this.worldName = World.worldName;
+		this.seed = World.worldSeed;
+
 		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
 
 		this.saveDir = "Worlds/";
@@ -100,6 +102,7 @@ public class RegionFileHandler{
 		}		
 	}
 
+	/*
 	// Start RegionFileHandler on a given ChunkPos
 	public void Start(ChunkPos pos){
 		this.worldName = World.worldName;
@@ -140,6 +143,7 @@ public class RegionFileHandler{
 
 		LoadRegionFile(pos, init:true);
 	}
+	*/
 
 	// Returns initialized seed if world was just generated or returns saved seed if world exists
 	public int GetRealSeed(){
@@ -260,8 +264,12 @@ public class RegionFileHandler{
 
 		ChunkPos newPos = new ChunkPos(rfx, rfz);
 
+		// If Pool already has that region
+		if(this.pool.ContainsKey(newPos))
+			return;
+
 		// If Pool is not full
-		if(this.pool.Count < 4){
+		if(this.pool.Count < this.maxPoolSize){
 			this.pool.Add(newPos, new RegionFile(name, newPos, RegionFileHandler.chunkLength));
 		}
 		// If Pool is full

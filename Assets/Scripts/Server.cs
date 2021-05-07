@@ -33,8 +33,9 @@ public class Server
     		this.serverIP = new IPEndPoint(0, this.port);
     	}
         else{
+        	// TESTING
         	this.masterSocket = new Socket(IPAddress.Loopback.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        	this.serverIP = new IPEndPoint(0x0100007F, this.port);
+        	this.serverIP = new IPEndPoint(0x1800A8C0, this.port);
         }
 
 
@@ -52,8 +53,9 @@ public class Server
 
     	this.connections[currentCode] = client;
 
-    	Debug.Log(client.RemoteEndPoint.ToString() + " has connected");
-    	this.Send(new byte[]{1}, this.currentCode);
+    	Debug.Log(client.RemoteEndPoint.ToString() + " has connected with ID " + currentCode);
+    	NetMessage message = new NetMessage(NetCode.ACCEPTEDCONNECT);
+    	this.Send(message.GetMessage(), message.size, this.currentCode);
 
     	this.connections[currentCode].BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), this.currentCode);
     	this.masterSocket.BeginAccept(new AsyncCallback(ConnectCallback), null);
@@ -61,10 +63,11 @@ public class Server
     }
 
 	// Sends a byte[] to the a client given it's ID
-	public bool Send(byte[] data, int id){
+	public bool Send(byte[] data, int length, int id){
 		try{
-			IAsyncResult result = connections[id].BeginSend(data, 0, data.Length, 0, out this.err, null, null);
+			IAsyncResult result = connections[id].BeginSend(data, 0, length, 0, out this.err, null, null);
 			connections[id].EndSend(result);
+			Debug.Log("Sent: " + (NetCode)data[0] + " | " + id);
 			return true;
 		}
 		catch(Exception e){
@@ -73,17 +76,9 @@ public class Server
 		}
 	}
 
-	/*
-	// Send callback to end package
-	public void SendCallback(IAsyncResult result){
-		this.masterSocket.EndSend(result);
-	}
-	*/
-
 
 	// Receive call handling
 	private void ReceiveCallback(IAsyncResult result){
-		Debug.Log("Triggered Receive");
 		try{
 			int currentID = (int)result.AsyncState;
 			int bytesReceived = this.connections[currentID].EndReceive(result);
@@ -95,7 +90,8 @@ public class Server
 			byte[] data = new byte[bytesReceived];
 			Array.Copy(receiveBuffer, data, bytesReceived);
 
-			Debug.Log("Received: " + (NetCode)data[0]);
+			Debug.Log("Received: " + (NetCode)data[0] + " | " + currentID);
+
 			this.HandleReceivedMessage(data, currentID);
 
     		this.connections[currentID].BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
@@ -170,7 +166,7 @@ public class Server
 		if(this.cl.RECEIVEDWORLDDATA){
 			Vector3 playerPos = this.cl.regionHandler.LoadPlayer();
 			message.SendServerInfo((int)playerPos.x, (int)playerPos.y, (int)playerPos.z);
-			this.Send(message.GetMessage(), id);
+			this.Send(message.GetMessage(), message.size, id);
 		}
 	}
 
@@ -185,7 +181,7 @@ public class Server
 			NetMessage message = new NetMessage(NetCode.SENDCHUNK);
 			message.SendChunk(this.cl.chunks[pos]);
 
-			this.Send(message.GetMessage(), id);
+			this.Send(message.GetMessage(), message.size, id);
 		}
 		else{
 			// If it's not to be loaded yet
@@ -430,7 +426,7 @@ public class Server
 	// Send input message to all Clients connected to a given Chunk
 	private void SendToClients(ChunkPos pos, NetMessage message){
 		foreach(int i in this.cl.loadedChunks[pos]){
-			this.Send(message.GetMessage(), i);
+			this.Send(message.GetMessage(), message.size, i);
 		}
 	}
 
