@@ -11,7 +11,7 @@ Class for the compression algorithm of the RDF files to be applied
 */
 
 public static class Compression{
-	private static byte[] cachedData = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth];
+	private static byte[] cachedData = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 4];
 
 	// Writes Chunk c's data using a Pallete's compression into given buffer
 	// and returns the amount of bytes written
