@@ -83,7 +83,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
         NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
         message.SendServerInfo((int)playerPos.x, (int)playerPos.y, (int)playerPos.z);
-        this.server.Send(message.GetMessage(), this.server.GetCurrentCode()); 
+        this.server.Send(message.GetMessage(), message.size, 0); 
         this.INITIALIZEDWORLD = true;
     }
 
@@ -202,10 +202,14 @@ public class ChunkLoader_Server : MonoBehaviour
     private void SendChunkToRequestingClients(ChunkPos pos){
         NetMessage message;
 
+        // If there was no request for this chunk yet
+        if(!this.loadedChunks.ContainsKey(pos))
+            return;
+
         foreach(int id in this.loadedChunks[pos]){
             message = new NetMessage(NetCode.SENDCHUNK);
             message.SendChunk(this.chunks[pos]);
-            this.server.Send(message.GetMessage(), id);
+            this.server.Send(message.GetMessage(), message.size, id);
         }
     }
 
@@ -246,6 +250,11 @@ public class ChunkLoader_Server : MonoBehaviour
 
     // Returns the heightmap value of a generated chunk in block position
     public int GetBlockHeight(ChunkPos pos, int blockX, int blockZ){
+        // Checks if chunk doesn't exist
+        if(!chunks.ContainsKey(pos)){
+            this.toLoad.Add(pos);
+            this.LoadChunk();
+        }
         for(int i=Chunk.chunkDepth-1; i >= 0 ; i--){
             if(chunks[pos].data.GetCell(Mathf.Abs(blockX), i, Mathf.Abs(blockZ)) != 0){
                 return i+2;

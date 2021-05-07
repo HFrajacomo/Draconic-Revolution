@@ -128,7 +128,6 @@ public struct NetMessage
 }
 
 public enum NetCode{
-	REQUESTCONNECT, // No call
 	ACCEPTEDCONNECT, // No call
 	SENDCLIENTINFO,
 	SENDSERVERINFO,

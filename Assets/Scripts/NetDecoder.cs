@@ -69,7 +69,7 @@ public static class NetDecoder
 	}
 
 	public static string ReadString(byte[] data, int pos, int size){
-		string result = Convert.ToBase64String(data, pos, size);
+		string result = System.Text.Encoding.UTF8.GetString(data, pos, size);
 		return result;
 	}
 
