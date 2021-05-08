@@ -6,13 +6,24 @@ public struct NetMessage
 {
 	public NetCode code;
 	public int size;
-	private static byte[] buffer = new byte[4096*4096]; // 2MB
+	public int id;
+	private static byte[] buffer = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 5]; // 2MB
+	private byte[] data;
 
 	// Constructor
 	public NetMessage(NetCode code){
 		this.code = code;
+		this.id = 0;
+		this.data = null;
 		NetMessage.buffer[0] = (byte)code;
 		this.size = 1;
+	}
+
+	public NetMessage(byte[] data, int id){
+		this.code = (NetCode)data[0];
+		this.data = data;
+		this.size = data.Length;
+		this.id = id;
 	}
 
 	// Gets the buffer
@@ -25,6 +36,15 @@ public struct NetMessage
 		return this.size;
 	}
 
+	// Gets the ID for server communication
+	public int GetID(){
+		return this.id;
+	}
+
+	// Gets the data in Server-sided messages
+	public byte[] GetData(){
+		return this.data;
+	}
 
 	/*
 	Individual Building of NetMessages
@@ -128,6 +148,7 @@ public struct NetMessage
 }
 
 public enum NetCode{
+	TEST,
 	ACCEPTEDCONNECT, // No call
 	SENDCLIENTINFO,
 	SENDSERVERINFO,

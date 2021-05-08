@@ -11,7 +11,7 @@ Class for the compression algorithm of the RDF files to be applied
 */
 
 public static class Compression{
-	private static byte[] cachedData = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 4];
+	private static byte[] cachedData = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 5];
 
 	// Writes Chunk c's data using a Pallete's compression into given buffer
 	// and returns the amount of bytes written
@@ -37,8 +37,9 @@ public static class Compression{
 		handle.Complete();
 
 		// NativeArray to Array convertion
-		buff.CopyTo(cachedData);
-		cachedData.CopyTo(buffer, targetPos);
+		//buff.CopyTo(cachedData);
+		//cachedData.CopyTo(buffer, targetPos);
+		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, buff.Length);
 
 		bytes = writtenBytes[0];
 
@@ -72,8 +73,9 @@ public static class Compression{
 		handle.Complete();
 
 		// NativeArray to Array convertion
-		buff.CopyTo(cachedData);
-		cachedData.CopyTo(buffer, targetPos);
+		//buff.CopyTo(cachedData);
+		//cachedData.CopyTo(buffer, targetPos);
+		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, buff.Length);
 
 		bytes = writtenBytes[0];
 
@@ -107,8 +109,9 @@ public static class Compression{
 		handle.Complete();
 
 		// NativeArray to Array convertion
-		buff.CopyTo(cachedData);
-		cachedData.CopyTo(buffer, targetPos);
+		//buff.CopyTo(cachedData);
+		//cachedData.CopyTo(buffer, targetPos);
+		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, buff.Length);
 
 		bytes = writtenBytes[0];
 
