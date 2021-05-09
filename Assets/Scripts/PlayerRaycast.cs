@@ -189,7 +189,7 @@ public class PlayerRaycast : MonoBehaviour
 			ushort hp = loader.chunks[toUpdate].metadata.GetHP(current.blockX, current.blockY, current.blockZ);
 
 			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-			message.DirectBlockUpdate(BUDCode.BREAK, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, state, hp);
+			message.DirectBlockUpdate(BUDCode.BREAK, current.GetChunkPos(), current.blockX, current.blockY, current.blockZ, facing, blockCode, state, hp);
 			this.loader.client.Send(message.GetMessage(), message.size);
 
 		}

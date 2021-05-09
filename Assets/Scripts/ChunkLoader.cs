@@ -17,6 +17,7 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkPos newChunk;
 	public List<ChunkPos> toRequest = new List<ChunkPos>();
     public List<byte[]> toLoad = new List<byte[]>();
+    public List<ChunkPos> toUpdate = new List<ChunkPos>();
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
     public List<ChunkPos> toDraw = new List<ChunkPos>();
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
@@ -96,7 +97,7 @@ public class ChunkLoader : MonoBehaviour
 
         else{
             // If current chunk is drawn and world is generated
-        	if(CheckChunkDrawn(this.playerX, this.playerZ) && !WORLD_GENERATED){
+        	if(CheckChunkDrawn(this.playerX, this.playerZ) && !WORLD_GENERATED && toLoad.Count == 0){
                 HandleClientCommunication();
         		WORLD_GENERATED = true;
 
@@ -137,6 +138,7 @@ public class ChunkLoader : MonoBehaviour
                 
             RequestChunk();
             DrawChunk();
+            UpdateChunk();
         }
     }
     
@@ -172,14 +174,14 @@ public class ChunkLoader : MonoBehaviour
         return false;
     }
 
-    // Adds chunk to Draw List with priority
-    public void AddToDraw(ChunkPos pos){
-        if(!toDraw.Contains(pos)){
-            toDraw.Insert(0, pos);
+    // Adds chunk to Update queue
+    public void AddToUpdate(ChunkPos pos){
+        if(!toUpdate.Contains(pos)){
+            toUpdate.Add(pos);
         }
         else{
-            toDraw.Remove(pos);
-            toDraw.Insert(0, pos);
+            toUpdate.Remove(pos);
+            toUpdate.Add(pos);
         }
     }
 
@@ -223,6 +225,7 @@ public class ChunkLoader : MonoBehaviour
                 byte[] data = toLoad[0];
 
                 int headerSize = RegionFileHandler.chunkHeaderSize;
+
                 ChunkPos cp = NetDecoder.ReadChunkPos(data, 1);
                 int blockDataSize = NetDecoder.ReadInt(data, 9);
                 int hpDataSize = NetDecoder.ReadInt(data, 13);
@@ -322,6 +325,27 @@ public class ChunkLoader : MonoBehaviour
             }
         }
 
+    }
+
+    // Reload a chunk in toUpdate
+    private void UpdateChunk(){
+        int min;
+
+        // Gets the minimum operational value
+        if(3 < toUpdate.Count)
+            min = 3;
+        else
+            min = toUpdate.Count;
+
+        if(toUpdate.Count > 0){
+            for(int i=0; i<min; i++){
+                chunks[toUpdate[0]].BuildChunk();
+                if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
+                    toRedraw.Add(toUpdate[0]);
+                
+                toUpdate.RemoveAt(0);
+            }
+        }
     }
 
 

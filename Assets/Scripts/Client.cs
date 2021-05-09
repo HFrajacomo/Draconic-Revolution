@@ -186,8 +186,6 @@ public class Client
 		z = NetDecoder.ReadInt(data, 17);
 		int facing = NetDecoder.ReadInt(data, 21);
 
-		CastCoord current = new CastCoord(new Vector3(x,y,z));
-
 		blockCode = NetDecoder.ReadUshort(data, 25);
 		state = NetDecoder.ReadUshort(data, 27);
 		hp = NetDecoder.ReadUshort(data, 29);
@@ -199,7 +197,7 @@ public class Client
 					this.cl.chunks[pos].data.SetCell(x, y, z, blockCode);
 					this.cl.chunks[pos].metadata.SetState(x, y, z, state);
 					this.cl.chunks[pos].metadata.SetHP(x, y, z, hp);
-					this.cl.AddToDraw(pos);
+					this.cl.AddToUpdate(pos);
 				}
 				break;
 			case BUDCode.BREAK:
@@ -207,7 +205,7 @@ public class Client
 					this.cl.chunks[pos].data.SetCell(x, y, z, 0);
 					this.cl.chunks[pos].metadata.SetState(x, y, z, ushort.MaxValue);
 					this.cl.chunks[pos].metadata.SetHP(x, y, z, ushort.MaxValue);
-					this.cl.AddToDraw(pos);
+					this.cl.AddToUpdate(pos);
 				}	
 				break;
 			case BUDCode.CHANGE:
@@ -215,7 +213,7 @@ public class Client
 					this.cl.chunks[pos].data.SetCell(x, y, z, blockCode);
 					this.cl.chunks[pos].metadata.SetState(x, y, z, state);
 					this.cl.chunks[pos].metadata.SetHP(x, y, z, hp);
-					this.cl.AddToDraw(pos);
+					this.cl.AddToUpdate(pos);
 				}
 				break;
 			default:
