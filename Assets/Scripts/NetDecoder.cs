@@ -92,37 +92,37 @@ public static class NetDecoder
 	}
 
 	public static void WriteUshort(ushort a, byte[] data, int pos){
-		data[pos] = (byte)(a << 8);
+		data[pos] = (byte)(a >> 8);
 		data[pos+1] = (byte)a;
 	}
 
 	public static void WriteShort(short a, byte[] data, int pos){
-		data[pos] = (byte)(a << 8);
+		data[pos] = (byte)(a >> 8);
 		data[pos+1] = (byte)a;
 	}
 
 	public static void WriteInt(int a, byte[] data, int pos){
-		data[pos] = (byte)(a << 24);
-		data[pos+1] = (byte)(a << 16);
-		data[pos+2] = (byte)(a << 8);
+		data[pos] = (byte)(a >> 24);
+		data[pos+1] = (byte)(a >> 16);
+		data[pos+2] = (byte)(a >> 8);
 		data[pos+3] = (byte)a;
 	}
 
 	public static void WriteUint(uint a, byte[] data, int pos){
-		data[pos] = (byte)(a << 24);
-		data[pos+1] = (byte)(a << 16);
-		data[pos+2] = (byte)(a << 8);
+		data[pos] = (byte)(a >> 24);
+		data[pos+1] = (byte)(a >> 16);
+		data[pos+2] = (byte)(a >> 8);
 		data[pos+3] = (byte)a;
 	}
 
 	public static void WriteLong(long a, byte[] data, int pos){
-		data[pos] = (byte)(a << 56);
-		data[pos+1] = (byte)(a << 48);
-		data[pos+2] = (byte)(a << 40);
-		data[pos+3] = (byte)(a << 32);
-		data[pos+4] = (byte)(a << 24);
-		data[pos+5] = (byte)(a << 16);
-		data[pos+6] = (byte)(a << 8);
+		data[pos] = (byte)(a >> 56);
+		data[pos+1] = (byte)(a >> 48);
+		data[pos+2] = (byte)(a >> 40);
+		data[pos+3] = (byte)(a >> 32);
+		data[pos+4] = (byte)(a >> 24);
+		data[pos+5] = (byte)(a >> 16);
+		data[pos+6] = (byte)(a >> 8);
 		data[pos+7] = (byte)a;
 	}
 

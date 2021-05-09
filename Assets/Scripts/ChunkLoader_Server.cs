@@ -121,6 +121,8 @@ public class ChunkLoader_Server : MonoBehaviour
             chunks[cacheChunk.pos] = cacheChunk;
 
             this.regionHandler.SaveChunk(cacheChunk);
+
+            SendChunkToRequestingClients(cacheChunk.pos);
         }
 
         // If is in an unloaded indexed chunk
