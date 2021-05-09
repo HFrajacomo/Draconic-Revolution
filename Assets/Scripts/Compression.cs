@@ -39,7 +39,7 @@ public static class Compression{
 		// NativeArray to Array convertion
 		//buff.CopyTo(cachedData);
 		//cachedData.CopyTo(buffer, targetPos);
-		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, buff.Length);
+		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, writtenBytes[0]);
 
 		bytes = writtenBytes[0];
 
@@ -75,7 +75,7 @@ public static class Compression{
 		// NativeArray to Array convertion
 		//buff.CopyTo(cachedData);
 		//cachedData.CopyTo(buffer, targetPos);
-		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, buff.Length);
+		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, writtenBytes[0]);
 
 		bytes = writtenBytes[0];
 
@@ -111,7 +111,7 @@ public static class Compression{
 		// NativeArray to Array convertion
 		//buff.CopyTo(cachedData);
 		//cachedData.CopyTo(buffer, targetPos);
-		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, buff.Length);
+		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, writtenBytes[0]);
 
 		bytes = writtenBytes[0];
 

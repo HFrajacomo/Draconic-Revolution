@@ -11,10 +11,23 @@ public struct NetMessage
 	private static byte[] buffer = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 5]; // 2MB
 	private byte[] data;
 
+	private static bool broadcastReceived = false;
+	private static bool broadcastSent = false;
+	private static bool broadcastProcessed = false;
+
 	// Constructor
 	public NetMessage(NetCode code){
 		this.code = code;
 		this.id = 0;
+		this.data = null;
+		NetMessage.buffer[0] = (byte)code;
+		this.size = 1;
+	}
+
+	// Constructor
+	public NetMessage(NetCode code, int id){
+		this.code = code;
+		this.id = id;
 		this.data = null;
 		NetMessage.buffer[0] = (byte)code;
 		this.size = 1;
@@ -45,6 +58,19 @@ public struct NetMessage
 	// Gets the data in Server-sided messages
 	public byte[] GetData(){
 		return this.data;
+	}
+
+	// Broadcasts message to stdout
+	public static void Broadcast(NetBroadcast bc, byte netcode, int id, int length){
+		if(bc == NetBroadcast.RECEIVED && NetMessage.broadcastReceived)
+			Debug.Log("Received: " + (NetCode)netcode + " | " + id + " > " + length);
+		else if(bc == NetBroadcast.SENT && NetMessage.broadcastSent)
+			Debug.Log("Sent: " + (NetCode)netcode + " | " + id + " > " + length);
+		else if(bc == NetBroadcast.PROCESSED && NetMessage.broadcastProcessed)
+			Debug.Log("Processed: " + (NetCode)netcode + " | " + id);
+		else if(bc == NetBroadcast.TEST){
+			Debug.Log("TESTING: " + (NetCode)netcode + " | " + id + " > " + length);
+		}
 	}
 
 	/*
@@ -166,4 +192,11 @@ public enum NetCode{
 	INTERACT,
 	CLIENTPLAYERPOSITION,
 	DISCONNECT  // No call
+}
+
+public enum NetBroadcast{
+	TEST,
+	RECEIVED,
+	SENT,
+	PROCESSED
 }

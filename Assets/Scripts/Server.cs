@@ -86,7 +86,7 @@ public class Server
 			IAsyncResult result = this.connections[id].BeginSend(data, 0, length, 0, out this.err, null, id);
 			this.connections[id].EndSend(result);
 
-			Debug.Log("Sent: " + (NetCode)data[0] + " | " + id + " > " + length);
+			NetMessage.Broadcast(NetBroadcast.SENT, data[0], id, length);
 		}
 		catch(Exception e){
 			Debug.Log("SEND ERROR: " + e.ToString());
@@ -121,7 +121,8 @@ public class Server
 			// If has received the entire package
 			Array.Copy(receiveBuffer, 0, this.dataBuffer[currentID], this.packetIndex[currentID], bytesReceived);
 
-			Debug.Log("Received: " + (NetCode)this.dataBuffer[currentID][0] + " | " + currentID + " > " + this.packetSize[currentID]);
+			NetMessage.Broadcast(NetBroadcast.RECEIVED, this.dataBuffer[currentID][0], currentID, this.packetSize[currentID]);
+
 			NetMessage receivedMessage = new NetMessage(this.dataBuffer[currentID], currentID);
 			this.queue.Add(receivedMessage);
 
@@ -149,7 +150,7 @@ public class Server
 
 	// Discovers what to do with a Message received from Server
 	public void HandleReceivedMessage(byte[] data, int id){
-		Debug.Log("Processing: " + (NetCode)data[0]);
+		NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], id, 0);
 		switch((NetCode)data[0]){
 			case NetCode.SENDCLIENTINFO:
 				SendClientInfo(data, id);
