@@ -429,7 +429,7 @@ public class Server
 					toRemove.Add(item.Key);
 				}
 				else{
-					this.cl.loadedChunks.Remove(item.Key);
+					this.cl.loadedChunks[item.Key].Remove(id);
 				}
 			}
 
