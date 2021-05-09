@@ -72,7 +72,7 @@ public class Client
 
 			Array.Copy(receiveBuffer, 0, this.dataBuffer, this.packetIndex, bytesReceived);
 
-			Debug.Log("Received: " + (NetCode)dataBuffer[0] + " > " + bytesReceived);
+			NetMessage.Broadcast(NetBroadcast.RECEIVED, dataBuffer[0], 0, this.packetSize);
 
 			NetMessage receivedMessage = new NetMessage(this.dataBuffer, 0);
 			this.queue.Add(receivedMessage);
@@ -96,7 +96,8 @@ public class Client
 
 			IAsyncResult result = this.socket.BeginSend(data, 0, length, 0, out this.err, null, null);
 			this.socket.EndSend(result);
-			Debug.Log("Sent: " + (NetCode)data[0] + " > " + length);
+
+			NetMessage.Broadcast(NetBroadcast.SENT, data[0], 0, length);
 			return true;
 		}
 		catch(Exception e){
@@ -117,7 +118,8 @@ public class Client
 
 	// Discovers what to do with a Message received from Server
 	public void HandleReceivedMessage(byte[] data){
-		Debug.Log("Processed: " + (NetCode)data[0]);
+		NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], 0, 0);
+
 		switch((NetCode)data[0]){
 			case NetCode.ACCEPTEDCONNECT:
 				AcceptConnect();
@@ -162,21 +164,7 @@ public class Client
 
 	// Receives a Chunk
 	private void SendChunk(byte[] data){
-		int headerSize = RegionFileHandler.chunkHeaderSize;
-		ChunkPos cp = NetDecoder.ReadChunkPos(data, 1);
-		int blockDataSize = NetDecoder.ReadInt(data, 9);
-		int hpDataSize = NetDecoder.ReadInt(data, 13);
-		int stateDataSize = NetDecoder.ReadInt(data, 17);
-
-		this.cl.chunks[cp] = new Chunk(cp, this.cl.rend, this.cl.blockBook, this.cl);
-		this.cl.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[21]);
-
-		Compression.DecompressBlocksClient(this.cl.chunks[cp], data, initialPos:21+headerSize);
-		Compression.DecompressMetadataHPClient(this.cl.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
-		Compression.DecompressMetadataStateClient(this.cl.chunks[cp], data, initialPos:21+headerSize+blockDataSize+hpDataSize);
-	
-		if(!this.cl.toDraw.Contains(cp))
-			this.cl.toDraw.Add(cp);
+		this.cl.toLoad.Add(data);
 	}
 
 	// Receives a disconnect call from server
