@@ -111,6 +111,26 @@ public class Chunk
 		return c;
 	}
 	
+	// Returns the chunk's header in byte array format
+	public byte[] GetHeader(){
+		byte[] output = new byte[RegionFileHandler.chunkHeaderSize];
+
+		output[0] = BiomeHandler.BiomeToByte(this.biomeName);
+		// CURRENTLY ONLY OUTPUTTING LAST VISITED TIME AS 0
+		output[1] = 0;
+		output[2] = 0;
+		output[3] = 0;
+		output[4] = 0;
+		output[5] = 0;
+		output[6] = 0;
+		output[7] = 0;
+
+		output[8] = this.needsGeneration;
+
+		// The next 12 bytes are size information and don't need to be presented
+		return output;
+	}
+
 
 	public void BuildOnVoxelData(VoxelData vd){
 		this.data = vd;

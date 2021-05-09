@@ -49,8 +49,8 @@ public class RegionFileHandler{
 	private byte[] playerBuffer = new byte[12];
 
 	// Sizes
-	private static int chunkHeaderSize = 21; // Size (in bytes) of header
-	private static int chunkSize = Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 8; // Size in bytes of Chunk payload
+	public static int chunkHeaderSize = 21; // Size (in bytes) of header
+	public static int chunkSize = Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 8; // Size in bytes of Chunk payload
 
 	public RegionFileHandler(ChunkLoader_Server cl){
 		InitWorldFiles(cl);
@@ -233,7 +233,6 @@ public class RegionFileHandler{
 		}
 
 		this.playerFile.Read(playerBuffer, 0, 12);
-
 		return new Vector3(ReadPos(playerBuffer, 0), ReadPos(playerBuffer, 4) + 1, ReadPos(playerBuffer, 8));
 	}
 

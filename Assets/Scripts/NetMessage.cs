@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -84,16 +85,21 @@ public struct NetMessage
 	// Server sending chunk information to Client
 	public void SendChunk(Chunk c){
 		// {CODE} [ChunkPos] [blockSize] [hpSize] [stateSize] | Respective data
-		int blockDataSize = Compression.CompressBlocks(c, NetMessage.buffer, 21);
-		int hpDataSize = Compression.CompressMetadataHP(c, NetMessage.buffer, 21+blockDataSize);
-		int stateDataSize = Compression.CompressMetadataState(c, NetMessage.buffer, 21+blockDataSize+hpDataSize);
+		
+		int headerSize = RegionFileHandler.chunkHeaderSize;
+		int blockDataSize = Compression.CompressBlocks(c, NetMessage.buffer, 21+headerSize);
+		int hpDataSize = Compression.CompressMetadataHP(c, NetMessage.buffer, 21+headerSize+blockDataSize);
+		int stateDataSize = Compression.CompressMetadataState(c, NetMessage.buffer, 21+headerSize+blockDataSize+hpDataSize);
 		
 		NetDecoder.WriteChunkPos(c.pos, NetMessage.buffer, 1);
 		NetDecoder.WriteInt(blockDataSize, NetMessage.buffer, 9);
 		NetDecoder.WriteInt(hpDataSize, NetMessage.buffer, 13);
 		NetDecoder.WriteInt(stateDataSize, NetMessage.buffer, 17);
 
-		this.size = 21+blockDataSize+hpDataSize+stateDataSize;
+		byte[] header = c.GetHeader();
+		Array.Copy(header, 0, NetMessage.buffer, 21, headerSize);
+
+		this.size = 21+headerSize+blockDataSize+hpDataSize+stateDataSize;
 	}
 
 	// Sends a BUD packet to the server

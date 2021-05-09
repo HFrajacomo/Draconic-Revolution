@@ -12,7 +12,13 @@ public class Server
 	public int port = 33000;
 	private bool isLocal = true;
 	public Socket masterSocket;
+
 	public Dictionary<int, Socket> connections;
+	public Dictionary<int, bool> lengthPacket;
+	public Dictionary<int, int> packetIndex;
+	public Dictionary<int, int> packetSize;
+	public Dictionary<int, byte[]> dataBuffer;
+
 	private IPEndPoint serverIP;
 	private int currentCode = 0;
 	private const int receiveBufferSize = 4096*4096;
@@ -20,11 +26,18 @@ public class Server
 	public Dictionary<int, int> playerRenderDistances = new Dictionary<int, int>();
 	private SocketError err = new SocketError();
 
+	public List<NetMessage> queue = new List<NetMessage>();
+
 	// Unity Reference
 	public ChunkLoader_Server cl;
 
 	public Server(ChunkLoader_Server cl, bool isLocal){
     	connections = new Dictionary<int, Socket>();
+    	lengthPacket = new Dictionary<int, bool>();
+    	packetIndex = new Dictionary<int, int>();
+    	packetSize = new Dictionary<int, int>();
+    	dataBuffer = new Dictionary<int, byte[]>();
+
     	this.cl = cl;
     	this.isLocal = isLocal;
 
@@ -35,7 +48,7 @@ public class Server
         else{
         	// TESTING
         	this.masterSocket = new Socket(IPAddress.Loopback.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        	this.serverIP = new IPEndPoint(0x1800A8C0, this.port);
+        	this.serverIP = new IPEndPoint(0x0800A8C0, this.port); 
         }
 
 
@@ -52,30 +65,33 @@ public class Server
     	Socket client = this.masterSocket.EndAccept(result);
 
     	this.connections[currentCode] = client;
+    	this.lengthPacket[currentCode] = true;
+    	this.packetIndex[currentCode] = 0;
 
     	Debug.Log(client.RemoteEndPoint.ToString() + " has connected with ID " + currentCode);
     	NetMessage message = new NetMessage(NetCode.ACCEPTEDCONNECT);
     	this.Send(message.GetMessage(), message.size, this.currentCode);
 
-    	this.connections[currentCode].BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), this.currentCode);
+    	this.connections[currentCode].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), this.currentCode);
     	this.masterSocket.BeginAccept(new AsyncCallback(ConnectCallback), null);
     	this.currentCode++;
     }
 
 	// Sends a byte[] to the a client given it's ID
-	public bool Send(byte[] data, int length, int id){
+	public void Send(byte[] data, int length, int id){
 		try{
-			IAsyncResult result = connections[id].BeginSend(data, 0, length, 0, out this.err, null, null);
-			connections[id].EndSend(result);
-			Debug.Log("Sent: " + (NetCode)data[0] + " | " + id);
-			return true;
+			IAsyncResult lenResult = this.connections[id].BeginSend(this.LengthPacket(length), 0, 4, 0, out this.err, null, id);
+			this.connections[id].EndSend(lenResult);
+
+			IAsyncResult result = this.connections[id].BeginSend(data, 0, length, 0, out this.err, null, id);
+			this.connections[id].EndSend(result);
+
+			Debug.Log("Sent: " + (NetCode)data[0] + " | " + id + " > " + length);
 		}
 		catch(Exception e){
 			Debug.Log("SEND ERROR: " + e.ToString());
-			return false;
 		}
 	}
-
 
 	// Receive call handling
 	private void ReceiveCallback(IAsyncResult result){
@@ -83,18 +99,37 @@ public class Server
 			int currentID = (int)result.AsyncState;
 			int bytesReceived = this.connections[currentID].EndReceive(result);
 
-			if(bytesReceived <= 0){
+			// If has received a size packet
+			if(this.lengthPacket[currentID]){
+				int size = NetDecoder.ReadInt(receiveBuffer, 0);
+				this.dataBuffer[currentID] = new byte[size];
+				this.packetSize[currentID] = size;
+				this.lengthPacket[currentID] = false;
+				this.packetIndex[currentID] = 0;
+				this.connections[currentID].BeginReceive(receiveBuffer, 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
 				return;
 			}
 
-			byte[] data = new byte[bytesReceived];
-			Array.Copy(receiveBuffer, data, bytesReceived);
+			// If has received a segmented packet
+			if(bytesReceived+this.packetIndex[currentID] < this.packetSize[currentID]){
+				Array.Copy(receiveBuffer, 0, this.dataBuffer[currentID], this.packetIndex[currentID], bytesReceived);
+				this.packetIndex[currentID] = this.packetIndex[currentID] + bytesReceived;
+    			this.connections[currentID].BeginReceive(receiveBuffer, 0, this.packetSize[currentID]-this.packetIndex[currentID], 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
+				return;
+			}
 
-			Debug.Log("Received: " + (NetCode)data[0] + " | " + currentID);
+			// If has received the entire package
+			Array.Copy(receiveBuffer, 0, this.dataBuffer[currentID], this.packetIndex[currentID], bytesReceived);
 
-			this.HandleReceivedMessage(data, currentID);
+			Debug.Log("Received: " + (NetCode)this.dataBuffer[currentID][0] + " | " + currentID + " > " + this.packetSize[currentID]);
+			NetMessage receivedMessage = new NetMessage(this.dataBuffer[currentID], currentID);
+			this.queue.Add(receivedMessage);
 
-    		this.connections[currentID].BeginReceive(receiveBuffer, 0, receiveBufferSize, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
+			this.lengthPacket[currentID] = true;
+			this.packetIndex[currentID] = 0;
+			this.packetSize[currentID] = 0;
+
+    		this.connections[currentID].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
 		}
 		catch(SocketException e){
 			Debug.Log(e.Message + "\n" + e.StackTrace);
@@ -113,7 +148,8 @@ public class Server
 	*/
 
 	// Discovers what to do with a Message received from Server
-	private void HandleReceivedMessage(byte[] data, int id){
+	public void HandleReceivedMessage(byte[] data, int id){
+		Debug.Log("Processing: " + (NetCode)data[0]);
 		switch((NetCode)data[0]){
 			case NetCode.SENDCLIENTINFO:
 				SendClientInfo(data, id);
@@ -154,7 +190,6 @@ public class Server
 		string worldName = NetDecoder.ReadString(data, 13, stringSize);
 
 		playerRenderDistances[id] = renderDistance;
-		this.cl.RECEIVEDWORLDDATA = true;
 
 		// If World Seed hasn't been set yet
 		if(this.cl.worldSeed == -1)
@@ -168,6 +203,8 @@ public class Server
 			message.SendServerInfo((int)playerPos.x, (int)playerPos.y, (int)playerPos.z);
 			this.Send(message.GetMessage(), message.size, id);
 		}
+
+		this.cl.RECEIVEDWORLDDATA = true;
 	}
 
 	// Gets chunk information to player
@@ -176,6 +213,9 @@ public class Server
 
 		// If is loaded
 		if(this.cl.chunks.ContainsKey(pos)){
+			if(!this.cl.loadedChunks.ContainsKey(pos))
+				this.cl.loadedChunks.Add(pos, new List<int>());
+
 			this.cl.loadedChunks[pos].Add(id);
 
 			NetMessage message = new NetMessage(NetCode.SENDCHUNK);
@@ -501,6 +541,18 @@ public class Server
 
 	private CastCoord GetCoordinates(int x, int y, int z){
 		return new CastCoord(new Vector3(x ,y ,z));
+	}
+
+	// Returns an int-sized byte[] with the length packet
+	private byte[] LengthPacket(int a){
+		byte[] output = new byte[4];
+
+		output[0] = (byte)(a >> 24);
+		output[1] = (byte)(a >> 16);
+		output[2] = (byte)(a >> 8);
+		output[3] = (byte)a;
+
+		return output;
 	}
 
 }

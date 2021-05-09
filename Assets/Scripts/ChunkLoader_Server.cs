@@ -58,6 +58,8 @@ public class ChunkLoader_Server : MonoBehaviour
     void Update(){ 
         if(this.RECEIVEDWORLDDATA && this.INITIALIZEDWORLD){
             // Decides what to do for current tick
+            HandleServerCommunication();
+
             if(toLoad.Count > 0)
                 LoadChunk();
             else if(Structure.reloadChunks.Count > 0)
@@ -65,6 +67,9 @@ public class ChunkLoader_Server : MonoBehaviour
         }
         else if(!this.INITIALIZEDWORLD && this.RECEIVEDWORLDDATA){
             InitWorld();
+        }
+        else{
+            HandleServerCommunication();
         }
     }
 
@@ -81,11 +86,26 @@ public class ChunkLoader_Server : MonoBehaviour
 
         this.regionHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth)));
 
+        HandleServerCommunication();
         NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
         message.SendServerInfo((int)playerPos.x, (int)playerPos.y, (int)playerPos.z);
         this.server.Send(message.GetMessage(), message.size, 0); 
         this.INITIALIZEDWORLD = true;
     }
+
+    // Deals with the handling of Server received information
+    private void HandleServerCommunication(){
+        // If NetMessage queue is not empty
+        int queueCount = this.server.queue.Count;
+
+        if(queueCount > 0){
+            for(int i=0; i<queueCount; i++){
+                this.server.HandleReceivedMessage(this.server.queue[0].GetData(), this.server.queue[0].GetID());
+                this.server.queue.RemoveAt(0);
+            }
+        }
+    }
+
 
     // Builds Structure data in non-indexed Chunks
     private void SavePregenChunk(){
@@ -254,6 +274,7 @@ public class ChunkLoader_Server : MonoBehaviour
         if(!chunks.ContainsKey(pos)){
             this.toLoad.Add(pos);
             this.LoadChunk();
+            return GetBlockHeight(pos, blockX, blockZ);
         }
         for(int i=Chunk.chunkDepth-1; i >= 0 ; i--){
             if(chunks[pos].data.GetCell(Mathf.Abs(blockX), i, Mathf.Abs(blockZ)) != 0){
