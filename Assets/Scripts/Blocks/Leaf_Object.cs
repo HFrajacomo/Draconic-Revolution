@@ -45,7 +45,7 @@ public class Leaf_Object : BlocklikeObject
 				if(cl.chunks.ContainsKey(thisPos.GetChunkPos())){
 					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
 					cl.chunks[thisPos.GetChunkPos()].metadata.Reset(thisPos.blockX, thisPos.blockY, thisPos.blockZ);					
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 0, x:thisPos.blockX, y:thisPos.blockY, z:thisPos.blockZ);
+					//cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 0, x:thisPos.blockX, y:thisPos.blockY, z:thisPos.blockZ);
 				}
 
 				// Applies Decay BUD to surrounding leaves if this one is invalid

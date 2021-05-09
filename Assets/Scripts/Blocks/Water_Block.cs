@@ -39,6 +39,7 @@ public class Water_Block : Blocks
 	private bool[] surroundingWaterFlag = new bool[8];
 	private BUDSignal cachedBUD;
 	private bool breakFLAG = false;
+	private static NetMessage reloadMessage;
 
 	private int viscosityDelay;
 
@@ -90,7 +91,7 @@ public class Water_Block : Blocks
 			this.EmitBlockUpdate(BUDCode.CHANGE, thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), this.viscosityDelay, cl);
 		}
 
-		cl.budscheduler.ScheduleReload(pos, 0);
+		//cl.budscheduler.ScheduleReload(pos, 0);
 		
 		return 0;
 	}
@@ -106,7 +107,7 @@ public class Water_Block : Blocks
 			GetCodeAround(cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cl);
 		
 		EmitWaterBUD(cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cl);
-		cl.budscheduler.ScheduleReload(pos, 0);
+		//cl.budscheduler.ScheduleReload(pos, 0);
 		this.breakFLAG = false;
 
 		return 0;
@@ -149,7 +150,7 @@ public class Water_Block : Blocks
 				// If should be upgraded to Still Level 2
 				else if(GetHighLevelAroundCount(myX, myY, myZ, 1, cl, nofalling:true) >= 2){
 					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
+					//cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
 
@@ -217,7 +218,7 @@ public class Water_Block : Blocks
 				// If should be upgraded to Still 3
 				if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl, nofalling:true) >= 2){
 					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
+					//cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
 
@@ -570,7 +571,7 @@ public class Water_Block : Blocks
 				if(above != this.waterCode){
 					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
+					//cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
 
@@ -664,7 +665,7 @@ public class Water_Block : Blocks
 				if(above != this.waterCode){
 					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
+					//cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
 
@@ -782,7 +783,7 @@ public class Water_Block : Blocks
 				if(above != this.waterCode){
 					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
+					//cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
 

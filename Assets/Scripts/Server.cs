@@ -285,7 +285,7 @@ public class Server
 		hp = NetDecoder.ReadUshort(data, 29);
 		type = (BUDCode)NetDecoder.ReadInt(data, 31);
 
-		CastCoord lastCoord = new CastCoord(new Vector3(x, y, z));
+		CastCoord lastCoord = new CastCoord(pos, x, y, z);
 
 		switch(type){
 			case BUDCode.PLACE:
@@ -310,7 +310,7 @@ public class Server
 					if(!cl.blockBook.CheckCustomPlace(blockCode)){
 						// Actually places block/asset into terrain
 						cl.chunks[lastCoord.GetChunkPos()].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-						cl.budscheduler.ScheduleReload(lastCoord.GetChunkPos(), 0);
+						//cl.budscheduler.ScheduleReload(lastCoord.GetChunkPos(), 0);
 						EmitBlockUpdate(BUDCode.CHANGE, lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ(), 0, cl);
 
 
