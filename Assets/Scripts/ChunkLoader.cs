@@ -25,6 +25,7 @@ public class ChunkLoader : MonoBehaviour
     public GameObject gameUI;
     public StructureHandler structHandler;
     public Client client;
+    public BiomeHandler biomeHandler = new BiomeHandler(0);
 
     // Receoved from Server
     public int playerX;
@@ -56,6 +57,7 @@ public class ChunkLoader : MonoBehaviour
         this.playerCharacter.SetActive(false);
         this.gameUI.SetActive(false);
         this.client = new Client(this);
+        HandleClientCommunication();
         this.player.position = new Vector3(0,0,0);
     }
 
@@ -74,22 +76,27 @@ public class ChunkLoader : MonoBehaviour
             this.SENTINFOTOSERVER = true;
         }
         else if(!this.CONNECTEDTOSERVER){
+            HandleClientCommunication();
             return;
         }
 
         // If client hasn't received player data from server yet 
-        if(!this.PLAYERSPAWNED){}
+        if(!this.PLAYERSPAWNED){
+            HandleClientCommunication();
+        }
         // If has received chunks and needs to load them
         else if(this.PLAYERSPAWNED && !this.REQUESTEDCHUNKS){
             this.player.position = new Vector3(playerX, playerY, playerZ);
             newChunk = new ChunkPos(playerX/Chunk.chunkWidth, playerZ/Chunk.chunkWidth);
             GetChunks(true);  
-            this.REQUESTEDCHUNKS = true;  
+            this.REQUESTEDCHUNKS = true;
+            HandleClientCommunication();
         }
 
         else{
             // If current chunk is drawn and world is generated
         	if(CheckChunkDrawn(this.playerX, this.playerZ) && !WORLD_GENERATED){
+                HandleClientCommunication();
         		WORLD_GENERATED = true;
 
                 if(!this.PLAYERLOADED){
@@ -112,6 +119,7 @@ public class ChunkLoader : MonoBehaviour
         	   GetChunks(false);
             }
 
+            HandleClientCommunication();
         	UnloadChunk();
 
             // Decides whether DRAW Flag should be activates or deactivated
@@ -130,6 +138,18 @@ public class ChunkLoader : MonoBehaviour
         }
     }
     
+    // Handles communication received from Server
+    private void HandleClientCommunication(){
+        int queueCount = this.client.queue.Count;
+
+        if(queueCount > 0){
+            for(int i=0; i<queueCount; i++){
+                this.client.HandleReceivedMessage(this.client.queue[0].GetData());
+                this.client.queue.RemoveAt(0);
+            }
+        }
+    }
+
     // Erases loaded chunks dictionary
     private void ClearAllChunks(){
     	foreach(ChunkPos item in chunks.Keys){
@@ -178,6 +198,9 @@ public class ChunkLoader : MonoBehaviour
             }
 
            // Asks server to hand over chunk info
+            NetMessage message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
+            message.RequestChunkLoad(toLoad[0]);
+            this.client.Send(message.GetMessage(), message.size);
 
             toDraw.Add(toLoad[0]);
     		toLoad.RemoveAt(0);

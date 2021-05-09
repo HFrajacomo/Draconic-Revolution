@@ -30,7 +30,7 @@ public static class Compression{
 			chunkData = chunkData,
 			buffer = buff,
 			palleteArray = palleteArray,
-			writtenBytes = writtenBytes		
+			writtenBytes = writtenBytes	
 		};
 
 		JobHandle handle = cbJob.Schedule();
@@ -156,7 +156,6 @@ public static class Compression{
 		// Preparation Variables
 		Pallete p = Compression.BiomeToPallete(c.biomeName);
 		List<ushort> palleteList = Compression.GetPallete(p);
-
 
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
