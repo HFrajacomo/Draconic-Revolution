@@ -176,9 +176,8 @@ public class ChunkLoader : MonoBehaviour
 
     // Adds chunk to Update queue
     public void AddToUpdate(ChunkPos pos){
-        if(!toUpdate.Contains(pos)){
+        if(!toUpdate.Contains(pos))
             toUpdate.Add(pos);
-        }
         else{
             toUpdate.Remove(pos);
             toUpdate.Add(pos);

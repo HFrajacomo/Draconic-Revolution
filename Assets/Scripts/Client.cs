@@ -203,8 +203,7 @@ public class Client
 			case BUDCode.BREAK:
 				if(this.cl.chunks.ContainsKey(pos)){
 					this.cl.chunks[pos].data.SetCell(x, y, z, 0);
-					this.cl.chunks[pos].metadata.SetState(x, y, z, ushort.MaxValue);
-					this.cl.chunks[pos].metadata.SetHP(x, y, z, ushort.MaxValue);
+					this.cl.chunks[pos].metadata.Reset(x,y,z);
 					this.cl.AddToUpdate(pos);
 				}	
 				break;

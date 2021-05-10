@@ -142,7 +142,7 @@ public struct NetMessage
 		this.size = 37;
 	}
 
-	// Client or Server a single voxel data to each other
+	// Client or Server send a single voxel data to each other
 	public void DirectBlockUpdate(BUDCode type, ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state, ushort hp){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
 		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
