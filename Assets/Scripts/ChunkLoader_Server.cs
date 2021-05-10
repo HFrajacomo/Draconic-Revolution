@@ -91,6 +91,7 @@ public class ChunkLoader_Server : MonoBehaviour
         message.SendServerInfo((int)playerPos.x, (int)playerPos.y, (int)playerPos.z);
         this.server.Send(message.GetMessage(), message.size, 0); 
         this.INITIALIZEDWORLD = true;
+        this.time.SetLock(false);
     }
 
     // Deals with the handling of Server received information

@@ -130,7 +130,11 @@ public abstract class Blocks
       int faceCounter=0;
 
       foreach(CastCoord c in neighbors){
-        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);     
+		if(c.blockY < 0 || c.blockY > Chunk.chunkDepth-1){
+			continue;
+		}
+		
+        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);
       
         faceCounter++;
       }

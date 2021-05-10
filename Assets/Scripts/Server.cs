@@ -374,8 +374,8 @@ public class Server
 					}
 					else{
 						this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(pos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, this.cl);
-						this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
 					}
+					this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
 				}
 
 				// Sends the updated voxel to loaded clients
@@ -465,7 +465,7 @@ public class Server
 	// Auxiliary Functions
 
 	// Send input message to all Clients connected to a given Chunk
-	private void SendToClients(ChunkPos pos, NetMessage message){
+	public void SendToClients(ChunkPos pos, NetMessage message){
 		foreach(int i in this.cl.loadedChunks[pos]){
 			this.Send(message.GetMessage(), message.size, i);
 		}
@@ -522,7 +522,7 @@ public class Server
 		int[] facings = {2,0,4,5,1,3};
 
 
-		int blockCode;
+		//int blockCode;
 		int faceCounter=0;
 
 		foreach(CastCoord c in neighbors){
@@ -531,7 +531,7 @@ public class Server
 				continue;
 			}
 
-			blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
+			//blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
 
 			cachedBUD = new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]);
 			cl.budscheduler.ScheduleBUD(cachedBUD, tickOffset);			 
