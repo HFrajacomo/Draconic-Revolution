@@ -1131,8 +1131,8 @@ public class Water_Block : Blocks
 		return false;
 	}
 
-	// Sends a DirectBlockUpdate call to users
-	private void Update(CastCoord c, BUDCode type, int facing, ChunkLoader_Server cl){
+    // Sends a DirectBlockUpdate call to users
+	public void Update(CastCoord c, BUDCode type, int facing, ChunkLoader_Server cl){
 		this.reloadMessage = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		this.reloadMessage.DirectBlockUpdate(type, c.GetChunkPos(), c.blockX, c.blockY, c.blockZ, facing, this.waterCode, cl.GetState(c), ushort.MaxValue);
 		cl.server.SendToClients(c.GetChunkPos(), this.reloadMessage);

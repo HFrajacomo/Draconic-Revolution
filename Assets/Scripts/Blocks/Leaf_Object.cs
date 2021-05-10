@@ -12,6 +12,7 @@ public class Leaf_Object : BlocklikeObject
 	int decayDistance = 7;
 	ushort assignedWoodCode = 4;
 	ushort thisCode = ushort.MaxValue-1;
+	NetMessage reloadMessage;
 
 	public Leaf_Object(bool isClient){
 		this.name = "Leaf";
@@ -45,7 +46,7 @@ public class Leaf_Object : BlocklikeObject
 				if(cl.chunks.ContainsKey(thisPos.GetChunkPos())){
 					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
 					cl.chunks[thisPos.GetChunkPos()].metadata.Reset(thisPos.blockX, thisPos.blockY, thisPos.blockZ);					
-					//cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), 0, x:thisPos.blockX, y:thisPos.blockY, z:thisPos.blockZ);
+					this.Update(thisPos, BUDCode.BREAK, facing, cl);
 				}
 
 				// Applies Decay BUD to surrounding leaves if this one is invalid
@@ -126,5 +127,12 @@ public class Leaf_Object : BlocklikeObject
 		cache.Add(init.Add(-1,0,0)); // West
 		cache.Add(init.Add(0,1,0)); // Up
 		cache.Add(init.Add(0,-1,0)); // Down
+	}
+
+    // Sends a DirectBlockUpdate call to users
+	public void Update(CastCoord c, BUDCode type, int facing, ChunkLoader_Server cl){
+		this.reloadMessage = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+		this.reloadMessage.DirectBlockUpdate(type, c.GetChunkPos(), c.blockX, c.blockY, c.blockZ, facing, 0, cl.GetState(c), ushort.MaxValue);
+		cl.server.SendToClients(c.GetChunkPos(), this.reloadMessage);
 	}
 }

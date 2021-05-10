@@ -21,7 +21,7 @@ public class Wood_Block : Blocks
 
 	int maxAnalysed = 100;
 
-
+	NetMessage reloadMessage;
 	int decayDistance = 7;
 	ushort assignedLeafCode = ushort.MaxValue-1;
 	ushort thisCode = 4;
@@ -243,6 +243,7 @@ public class Wood_Block : Blocks
 		foreach(CastCoord aux in toDestroy){
 			cl.chunks[aux.GetChunkPos()].data.SetCell(aux.blockX, aux.blockY, aux.blockZ, 0);
 			cl.chunks[aux.GetChunkPos()].metadata.Reset(aux.blockX, aux.blockY, aux.blockZ);
+			this.Update(aux, BUDCode.BREAK, 0, -1, cl);
 			EmitBlockUpdate(BUDCode.BREAK, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
 			EmitBlockUpdate(BUDCode.DECAY, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
 		}
@@ -428,5 +429,10 @@ public class Wood_Block : Blocks
       }
     }
 
-
+    // Sends a DirectBlockUpdate call to users
+	public void Update(CastCoord c, BUDCode type, ushort code, int facing, ChunkLoader_Server cl){
+		this.reloadMessage = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+		this.reloadMessage.DirectBlockUpdate(type, c.GetChunkPos(), c.blockX, c.blockY, c.blockZ, facing, code, cl.GetState(c), ushort.MaxValue);
+		cl.server.SendToClients(c.GetChunkPos(), this.reloadMessage);
+	}
 }
