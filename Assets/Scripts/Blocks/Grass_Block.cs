@@ -19,8 +19,7 @@ public class Grass_Block : Blocks
 	}
 
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
-		// Changes to Dirt and emits BUD
 		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, 2);
-		return 2;
+		return 1;
 	}
 }

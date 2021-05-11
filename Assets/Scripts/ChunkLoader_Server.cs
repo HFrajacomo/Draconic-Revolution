@@ -272,6 +272,16 @@ public class ChunkLoader_Server : MonoBehaviour
         }
     }
 
+    // Returns block code of a castcoord
+    public ushort GetHP(CastCoord c){
+        if(this.chunks.ContainsKey(c.GetChunkPos())){
+            return this.chunks[c.GetChunkPos()].metadata.GetHP(c.blockX, c.blockY, c.blockZ);
+        }
+        else{
+            return (ushort)(ushort.MaxValue/2); // Error Code
+        }
+    }
+
     // Returns the heightmap value of a generated chunk in block position
     public int GetBlockHeight(ChunkPos pos, int blockX, int blockZ){
         // Checks if chunk doesn't exist

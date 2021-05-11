@@ -65,7 +65,7 @@ public class Torch_Object : BlocklikeObject
 		message.VFXChange(pos, blockX, blockY, blockZ, 0, ushort.MaxValue, newState);
 		cl.server.SendToClients(pos, message);
 
-		return 4;
+		return 0;
 	}
 
 	// Instantiates a FireVFX

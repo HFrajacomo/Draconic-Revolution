@@ -464,7 +464,7 @@ public class Server
 			callback = this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnInteract(pos, current.blockX, current.blockY, current.blockZ, this.cl);
 
 		// Actual handling of message
-		//CallbackHandler(callback, pos, current, facing);		
+		CallbackHandler(callback, pos, current, facing);		
 	}
 
 	// Auxiliary Functions
@@ -485,27 +485,16 @@ public class Server
 		// 0: No further actions necessary
 		if(code == 0)
 			return;
-		// 1: Interaction forces the target chunk to reload/rebuild
+		// 1: Saves chunk and sends a DIRECTBLOCKUPDATE to all connected clients
 		else if(code == 1){
+			ushort blockCode = this.cl.GetBlock(thisPos);
+			ushort state = this.cl.GetState(thisPos);
+			ushort hp = this.cl.GetHP(thisPos);
+
 			this.cl.regionHandler.SaveChunk(this.cl.chunks[targetChunk]);
-			NetMessage message = new NetMessage(NetCode.SENDCHUNK);
-			message.SendChunk(this.cl.chunks[targetChunk]);
+			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+			message.DirectBlockUpdate(BUDCode.CHANGE, targetChunk, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, blockCode, state, hp);
 			SendToClients(targetChunk, message);
-		}
-		// 2: Emits BUD instantly and forces chunk reload
-		else if(code == 2){
-			EmitBlockUpdate(BUDCode.CHANGE, thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), 0, this.cl);
-			NetMessage message = new NetMessage(NetCode.SENDCHUNK);
-			message.SendChunk(this.cl.chunks[targetChunk]);
-			SendToClients(targetChunk, message);
-		}
-		// 3: Emits BUD in next tick and forces chunk reload
-		else if(code == 3){
-			//Unused
-		}
-		// 4: Saves chunk to RDF file silently
-		else if(code == 4){
-			this.cl.regionHandler.SaveChunk(this.cl.chunks[targetChunk]);
 		}
 
 	}
