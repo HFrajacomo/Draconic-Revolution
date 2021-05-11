@@ -387,6 +387,8 @@ public class Server
 				break;
 
 			case BUDCode.LOAD:
+				lastCoord = new CastCoord(new Vector3(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
+				blockCode = this.cl.GetBlock(lastCoord);
 
 				if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos())){
 					
@@ -394,7 +396,7 @@ public class Server
 						this.cl.blockBook.blocks[blockCode].OnLoad(lastCoord, this.cl);
 					}
 					else{
-						this.cl.blockBook.objects[blockCode].OnLoad(lastCoord, this.cl);
+						this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnLoad(lastCoord, this.cl);
 					}
 				}
 				break;
