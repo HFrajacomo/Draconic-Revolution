@@ -127,26 +127,19 @@ public class Torch_Object : BlocklikeObject
 
 	// Creates FireVFX on Load
 	public override int OnLoad(CastCoord coord, ChunkLoader_Server cl){
-		ushort? state = cl.chunks[coord.GetChunkPos()].metadata.GetState(coord.blockX, coord.blockY, coord.blockZ);
-		Vector3 fireOffset;
+		ushort state = cl.chunks[coord.GetChunkPos()].metadata.GetState(coord.blockX, coord.blockY, coord.blockZ);
+		int facing;
 
-		if(state == 0 || state == 4)
-			fireOffset = new Vector3(0.15f,0f,0f);
-		else if(state == 1 || state == 5)
-			fireOffset = new Vector3(0f,0f,-0.15f);
-		else if(state == 2 || state == 6)
-			fireOffset = new Vector3(-0.15f, 0f, 0f);
-		else if(state == 3 || state == 7)
-			fireOffset = new Vector3(0f, 0f, 0.15f);
+		if(state >= 4)
+			facing = state-4;
 		else
-			fireOffset = new Vector3(0f,0f,0f);	
+			facing = state;
 
-		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(coord.GetChunkPos().x*Chunk.chunkWidth + coord.blockX, coord.blockY + 0.35f, coord.GetChunkPos().z*Chunk.chunkWidth + coord.blockZ) + fireOffset, Quaternion.identity);
-		fire.name = BuildVFXName(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ);
-		this.vfx.Add(coord.GetChunkPos(), fire, active:true);
-
-		ControlFire(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ, state);
-	
+		NetMessage message = new NetMessage(NetCode.VFXDATA);
+		message.VFXData(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ, facing, ushort.MaxValue, state);
+		
+		cl.vfx.Add(coord.GetChunkPos(), BuildVFXName(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ), message);
+		cl.server.SendToClients(coord.GetChunkPos(), message);
 		return 1;
 	}
 
@@ -271,6 +264,11 @@ public class Torch_Object : BlocklikeObject
 		if(type == BUDCode.BREAK && (facing == state || facing+4 == state)){
 			cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
 			this.OnBreak(thisPos, X, Y, Z, cl);
+
+			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+			message.DirectBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, facing, ushort.MaxValue, state, 0);
+			cl.server.SendToClients(thisPos, message);
+
 			EraseMetadata(thisPos, X, Y, Z, cl);		
 		}
 		// Breaks Torch if changed block is not solid
@@ -282,6 +280,11 @@ public class Torch_Object : BlocklikeObject
 				if(!cl.blockBook.blocks[blockCode].solid){
 					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
+
+					NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+					message.DirectBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, facing, ushort.MaxValue, state, 0);
+					cl.server.SendToClients(thisPos, message);
+
 					EraseMetadata(thisPos, X, Y, Z, cl);					
 				}
 			}
@@ -289,6 +292,11 @@ public class Torch_Object : BlocklikeObject
 				if(!cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
 					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
+
+					NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+					message.DirectBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, facing, ushort.MaxValue, state, 0);
+					cl.server.SendToClients(thisPos, message);
+
 					EraseMetadata(thisPos, X, Y, Z, cl);					
 				}
 			}
