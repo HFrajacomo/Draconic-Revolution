@@ -64,8 +64,10 @@ public class VFXLoader : MonoBehaviour
             this.serverVFX[pos].Remove(name);
         }
         else{
-            Destroy(this.data[pos][name]);
-        	data[pos].Remove(name);
+            if(this.data[pos].ContainsKey(name)){
+                Destroy(this.data[pos][name]);
+            	data[pos].Remove(name);
+            }
         }
     }
 
