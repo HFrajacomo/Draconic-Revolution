@@ -60,6 +60,14 @@ public struct NetMessage
 		return this.data;
 	}
 
+	// Returns a copy of the previously instanced NetMessage but passing the info in NetMessage.buffer to this.data
+	public NetMessage CopyAsInternal(NetMessage m){
+		byte[] data = new byte[m.GetSize()];
+		Array.Copy(NetMessage.buffer, 0, data, 0, data.Length);
+
+		return new NetMessage(data, -1);
+	}
+
 	// Broadcasts message to stdout
 	public static void Broadcast(NetBroadcast bc, byte netcode, int id, int length){
 		if(bc == NetBroadcast.RECEIVED && NetMessage.broadcastReceived)
@@ -177,6 +185,18 @@ public struct NetMessage
 		this.size = 25;
 	}
 
+	// Server sends VFX data to Client
+	public void VFXData(ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state, bool isServer=false){
+		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
+		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
+		NetDecoder.WriteInt(facing, NetMessage.buffer, 21);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 25);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, 27);
+		this.size = 29;
+	}
+
 }
 
 public enum NetCode{
@@ -191,6 +211,7 @@ public enum NetCode{
 	DIRECTBLOCKUPDATE,
 	INTERACT,
 	CLIENTPLAYERPOSITION,
+	VFXDATA,
 	DISCONNECT  // No call
 }
 

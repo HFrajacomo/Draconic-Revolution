@@ -82,6 +82,12 @@ public static class NetDecoder
 		return result;
 	}
 
+	public static bool ReadBool(byte[] data, int pos){
+		if(data[pos] == 0)
+			return false;
+		return true;
+	}
+
 	public static void WriteFloat(float a, byte[] data, int pos){
 		NetDecoder.floatBuffer = BitConverter.GetBytes(a);
 
@@ -89,6 +95,13 @@ public static class NetDecoder
 		data[pos+1] = floatBuffer[1];
 		data[pos+2] = floatBuffer[2];
 		data[pos+3] = floatBuffer[3];
+	}
+
+	public static void WriteBool(bool a, byte[] data, int pos){
+		if(a)
+			data[pos] = 1;
+		else
+			data[pos] = 0;
 	}
 
 	public static void WriteUshort(ushort a, byte[] data, int pos){

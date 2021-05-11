@@ -110,7 +110,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			// Click to place block
 			if(control.secondaryAction){
-				PlaceBlock(blockToBePlaced);
+				PlaceBlock(this.blockToBePlaced);
 				control.secondaryAction = false;
 			}
 
@@ -196,29 +196,13 @@ public class PlayerRaycast : MonoBehaviour
 
 		// Block Placing mechanic
 		private void PlaceBlock(ushort blockCode){
-			ushort translatedBlockCode;
-
-			// Encodes for Block Mode
-			if(blockCode <= ushort.MaxValue/2){
-				translatedBlockCode = blockCode;
-
-				// Won't happen if not raycasting something or if block is in player's body or head
-				if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.CheckSolid(blockCode))){
-					return;
-				}
-			}
-			// Encodes for Asset Mode
-			else{
-				translatedBlockCode = (ushort)(ushort.MaxValue - blockCode);
-
-				// Won't happen if not raycasting something or if block is in player's body or head
-				if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.CheckSolid(blockCode))){
-					return;
-				}
+			// Won't happen if not raycasting something or if block is in player's body or head
+			if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.CheckSolid(blockCode))){
+				return;
 			}
 
 			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-			message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, translatedBlockCode, ushort.MaxValue, ushort.MaxValue);
+			message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, ushort.MaxValue, ushort.MaxValue);
 			this.loader.client.Send(message.GetMessage(), message.size);
 		}
 

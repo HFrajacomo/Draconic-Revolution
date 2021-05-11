@@ -234,6 +234,9 @@ public class ChunkLoader : MonoBehaviour
                 Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
                 Compression.DecompressMetadataStateClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize+hpDataSize);
             
+                this.vfx.RemoveChunk(cp);
+                this.vfx.NewChunk(cp);
+
                 if(!this.toDraw.Contains(cp))
                     this.toDraw.Add(cp);
 
@@ -276,7 +279,7 @@ public class ChunkLoader : MonoBehaviour
             Chunk popChunk = chunks[toUnload[0]];
             Destroy(popChunk.obj);
             chunks.Remove(popChunk.pos);      
-            //vfx.RemoveChunk(popChunk.pos);
+            vfx.RemoveChunk(popChunk.pos);
 
             toUnload.RemoveAt(0);
         }
