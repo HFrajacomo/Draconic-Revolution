@@ -334,10 +334,11 @@ public class ChunkLoader : MonoBehaviour
 
         if(toUpdate.Count > 0){
             for(int i=0; i<min; i++){
-                chunks[toUpdate[0]].BuildChunk();
-                if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
-                    toRedraw.Add(toUpdate[0]);
-                
+                if(this.chunks.ContainsKey(toUpdate[0])){
+                    chunks[toUpdate[0]].BuildChunk();
+                    if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
+                        toRedraw.Add(toUpdate[0]);
+                }
                 toUpdate.RemoveAt(0);
             }
         }

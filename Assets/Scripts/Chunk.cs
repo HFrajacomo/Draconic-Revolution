@@ -21,6 +21,9 @@ public class Chunk
 	public float4 features;
 	public string lastVisitedTime;
 
+	// Multiplayer Settings
+	private NetMessage message;
+
 	// Draw Flags
 	private bool xPlusDrawn = false;
 	private bool zPlusDrawn = false;
@@ -283,7 +286,9 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
 				// SEND BUD
-				//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}			
 			toLoadEvent.Clear();
 		}
@@ -337,7 +342,9 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
 				// SEND BUD
-				//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}			
 			toLoadEvent.Clear();
 		}
@@ -391,7 +398,9 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
 				// SEND BUD
-				//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}			
 			toLoadEvent.Clear();
 		}
@@ -445,7 +454,9 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
 				// SEND BUD
-				//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}			
 			toLoadEvent.Clear();
 		}
@@ -454,7 +465,9 @@ public class Chunk
 		budArray = toBUD.AsArray().ToArray();
 		foreach(int3 bu in budArray){
 			// SEND BUD
-			//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", bu.x, bu.y, bu.z, 0, 0, 0, -1));
+			this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+			this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, bu.x, bu.y, bu.z, 0, 0, 0, ushort.MaxValue);
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 		}
 		
 		// If mesh wasn't redrawn
@@ -609,22 +622,27 @@ public class Chunk
 		}
 
 		// ToLoad() Event Trigger
-		/*
+		
 		if(this.biomeName == "Ocean"){
 			coordArray = loadCoordList.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				if(this.data.GetCell(coord) != 6) // Water
-					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				if(this.data.GetCell(coord) != 6){ // Water
+					this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+					this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+					this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+				}
 			}
 		}
 		else{
-		*/
-		coordArray = loadCoordList.AsArray().ToArray();
-		foreach(int3 coord in coordArray){
-			// SENDS BUD TO SERVER
-			//loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-		}			
-		//}
+		
+			coordArray = loadCoordList.AsArray().ToArray();
+			foreach(int3 coord in coordArray){
+				// SENDS BUD TO SERVER
+				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+			}			
+		}
 		loadCoordList.Clear();
 
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
