@@ -46,17 +46,24 @@ public class Torch_Object : BlocklikeObject
 	// Turns on and off Torch
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
 		ushort state = cl.chunks[pos].metadata.GetState(blockX,blockY,blockZ);
+		ushort newState = 0;
 
 		if(state == ushort.MaxValue)
 			return 0;
 		else if(state >= 4){
 			cl.chunks[pos].metadata.AddToState(blockX,blockY,blockZ, -4);
-			ControlFire(pos, blockX, blockY, blockZ, (ushort?)(state-4));
+			newState = (ushort)(state-4);
+			//ControlFire(pos, blockX, blockY, blockZ, (ushort?)(state-4));
 		}
 		else if(state >= 0 && state < 4){
 			cl.chunks[pos].metadata.AddToState(blockX,blockY,blockZ, 4);
-			ControlFire(pos, blockX, blockY, blockZ, (ushort?)(state+4));
+			newState = (ushort)(state+4);
+			//ControlFire(pos, blockX, blockY, blockZ, (ushort?)(state+4));
 		}
+
+		NetMessage message = new NetMessage(NetCode.VFXCHANGE);
+		message.VFXChange(pos, blockX, blockY, blockZ, 0, ushort.MaxValue, newState);
+		cl.server.SendToClients(pos, message);
 
 		return 4;
 	}
@@ -98,10 +105,22 @@ public class Torch_Object : BlocklikeObject
 		return 0;		
 	}
 
+	public override int OnVFXChange(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
+		ControlFire(pos, blockX, blockY, blockZ, state);
+		return 0;
+	}
+
+	public override int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
+		this.vfx.Remove(pos, BuildVFXName(pos, blockX, blockY, blockZ));
+		return 0;
+	}
+
 	// Destroys FireVFX
 	public override int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){
-		string name = BuildVFXName(pos,x,y,z);
-		this.vfx.Remove(pos, name);
+		NetMessage message = new NetMessage(NetCode.VFXBREAK);
+		message.VFXBreak(pos, x, y, z, ushort.MaxValue, 0);
+		cl.server.SendToClients(pos, message);
+
 		EraseMetadata(pos,x,y,z,cl);
 		return 0;
 	}

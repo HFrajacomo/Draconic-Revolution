@@ -186,7 +186,7 @@ public struct NetMessage
 	}
 
 	// Server sends VFX data to Client
-	public void VFXData(ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state, bool isServer=false){
+	public void VFXData(ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
 		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
 		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
@@ -195,6 +195,29 @@ public struct NetMessage
 		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 25);
 		NetDecoder.WriteUshort(state, NetMessage.buffer, 27);
 		this.size = 29;
+	}
+
+	// Server sends VFX change of state to Client
+	public void VFXChange(ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state){
+		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
+		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
+		NetDecoder.WriteInt(facing, NetMessage.buffer, 21);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 25);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, 27);
+		this.size = 29;
+	}
+
+	// Server sends VFX deletion information to Client
+	public void VFXBreak(ChunkPos pos, int x, int y, int z, ushort blockCode, ushort state){
+		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
+		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 21);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, 23);
+		this.size = 25;
 	}
 
 }
@@ -212,6 +235,8 @@ public enum NetCode{
 	INTERACT,
 	CLIENTPLAYERPOSITION,
 	VFXDATA,
+	VFXCHANGE,
+	VFXBREAK,
 	DISCONNECT  // No call
 }
 

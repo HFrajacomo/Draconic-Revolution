@@ -464,7 +464,7 @@ public class Server
 			callback = this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnInteract(pos, current.blockX, current.blockY, current.blockZ, this.cl);
 
 		// Actual handling of message
-		CallbackHandler(callback, pos, current, facing);		
+		//CallbackHandler(callback, pos, current, facing);		
 	}
 
 	// Auxiliary Functions
