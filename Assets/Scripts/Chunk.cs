@@ -165,8 +165,9 @@ public class Chunk
 
 		// Fast check if current border is at the edge of render distance
 		if(!this.ShouldRun()){
-			return true;
+			return false;
 		}
+
 
 		bool changed = false; // Flag is set if any change has been made that requires a redraw
 		int3[] coordArray;
@@ -769,6 +770,9 @@ public class Chunk
     	targetChunk = new ChunkPos(this.pos.x, this.pos.z+1);
 
     	if(loader.chunks.ContainsKey(targetChunk) && !this.zPlusDrawn)
+    		return true;
+
+    	if(loader.chunks.Count <= 2)
     		return true;
 
     	return false;
@@ -1716,7 +1720,7 @@ public struct BuildBorderJob : IJob{
 	    	liquidTris.Add(vCount -4 +2);
 	    	liquidTris.Add(vCount -4 +3);
 
-	    	return true;    		
+	    	return true;
     	}
 
     	return false;

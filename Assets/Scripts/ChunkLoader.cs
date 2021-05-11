@@ -218,8 +218,8 @@ public class ChunkLoader : MonoBehaviour
 
                 // Prevention
                 if(this.chunks.ContainsKey(cp)){
-                    toLoad.RemoveAt(0);
-                    continue;
+                    Destroy(this.chunks[cp].obj);
+                    this.chunks.Remove(cp);
                 }
 
 
