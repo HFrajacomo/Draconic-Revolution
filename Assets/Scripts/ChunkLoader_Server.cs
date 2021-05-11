@@ -175,7 +175,7 @@ public class ChunkLoader_Server : MonoBehaviour
                     // If chunk is Pre-Generated
                     if(isPregen){
                         chunks.Add(toLoad[0], new Chunk(toLoad[0], server:true));
-                        vfx.NewChunk(toLoad[0]);
+                        vfx.NewChunk(toLoad[0], isServer:true);
                         regionHandler.LoadChunk(chunks[toLoad[0]]);
                         this.worldGen.SetVoxdata(chunks[toLoad[0]].data.GetData());
                         this.worldGen.SetCacheHP(chunks[toLoad[0]].metadata.GetHPData());
@@ -188,7 +188,7 @@ public class ChunkLoader_Server : MonoBehaviour
                     // If it's just a normally generated chunk
                     else{
                         chunks.Add(toLoad[0], new Chunk(toLoad[0], server:true));
-                        vfx.NewChunk(toLoad[0]);
+                        vfx.NewChunk(toLoad[0], isServer:true);
                         regionHandler.LoadChunk(chunks[toLoad[0]]);
                         chunks[toLoad[0]].needsGeneration = 0;
                     }
@@ -196,7 +196,7 @@ public class ChunkLoader_Server : MonoBehaviour
                 // If it's a new chunk to be generated
                 else{
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], server:true));
-                    vfx.NewChunk(toLoad[0]);
+                    vfx.NewChunk(toLoad[0], isServer:true);
                     chunks[toLoad[0]].BuildOnVoxelData(this.worldGen.AssignBiome(toLoad[0]));
                     chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
                     chunks[toLoad[0]].needsGeneration = 0;
@@ -218,6 +218,7 @@ public class ChunkLoader_Server : MonoBehaviour
         if(this.loadedChunks[pos].Count == 0){
             this.loadedChunks.Remove(pos);
             this.chunks.Remove(pos);
+            this.vfx.RemoveChunk(pos, isServer:true);
         }
     }
 

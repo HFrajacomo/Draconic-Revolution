@@ -67,36 +67,15 @@ public class Torch_Object : BlocklikeObject
 
 		NetMessage message = new NetMessage(NetCode.VFXDATA);
 		message.VFXData(pos, blockX, blockY, blockZ, facing, ushort.MaxValue, (ushort)facing);
+		
+		cl.vfx.Add(pos, BuildVFXName(pos, blockX, blockY, blockZ), message);
 		cl.server.SendToClients(pos, message);
 
 		return 0;
-		/*
-		Vector3 fireOffset;
-
-		if(facing == 0)
-			fireOffset = new Vector3(0.15f,0f,0f);
-		else if(facing == 1)
-			fireOffset = new Vector3(0f,0f,-0.15f);
-		else if(facing == 2)
-			fireOffset = new Vector3(-0.15f, 0f, 0f);
-		else if(facing == 3)
-			fireOffset = new Vector3(0f, 0f, 0.15f);
-		else
-			fireOffset = new Vector3(0f,0f,0f);
-
-		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, Quaternion.identity);
-		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
-
-		this.vfx.Add(pos, fire, active:true);
-		
-		cl.chunks[pos].metadata.SetState(blockX,blockY,blockZ, (ushort)facing);
-
-		return 0;
-		*/
 	}
 
 	// Client handling the creation of the VFX
-	public override int OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){
+	public override int OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
 		Vector3 fireOffset;
 
 		if(facing == 0)
@@ -114,8 +93,7 @@ public class Torch_Object : BlocklikeObject
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
 
 		this.vfx.Add(pos, fire, active:true);
-		
-		cl.chunks[pos].metadata.SetState(blockX,blockY,blockZ, (ushort)facing);
+		ControlFire(pos, blockX, blockY, blockZ, state);
 
 		return 0;		
 	}
