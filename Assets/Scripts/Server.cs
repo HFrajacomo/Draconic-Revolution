@@ -387,7 +387,10 @@ public class Server
 				break;
 
 			case BUDCode.LOAD:
-				lastCoord = new CastCoord(new Vector3(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
+				// HP is set as the Chunk Coordinates vs World Coordinates flag
+				if(hp == ushort.MaxValue)
+					lastCoord = new CastCoord(new Vector3(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
+				
 				blockCode = this.cl.GetBlock(lastCoord);
 
 				if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos())){
