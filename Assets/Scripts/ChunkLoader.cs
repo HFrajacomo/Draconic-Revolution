@@ -46,7 +46,6 @@ public class ChunkLoader : MonoBehaviour
     public bool PLAYERSPAWNED = false;
     public bool PLAYERLOADED = false;
     public bool REQUESTEDCHUNKS = false;
-    public bool DRAWFLAG = false;
     public bool CONNECTEDTOSERVER = false;
     public bool SENTINFOTOSERVER = false;
 
@@ -118,23 +117,13 @@ public class ChunkLoader : MonoBehaviour
                 MainControllerManager.reload = false;
             }
             else{
-        	   GetChunks(false);
+                GetChunks(false);
             }
 
             HandleClientCommunication();
         	UnloadChunk();
 
-            // Decides whether DRAW Flag should be activates or deactivated
-            if(toDraw.Count > this.renderDistance*2+1){
-                this.DRAWFLAG = true;
-            }
-            else if(toDraw.Count == 0){
-                this.DRAWFLAG = false;
-            }
-
-            // Decides what to do for current tick
-            if(toLoad.Count > 0)
-                LoadChunk();
+            LoadChunk();
                 
             RequestChunk();
             DrawChunk();
@@ -226,6 +215,14 @@ public class ChunkLoader : MonoBehaviour
                 int headerSize = RegionFileHandler.chunkHeaderSize;
 
                 ChunkPos cp = NetDecoder.ReadChunkPos(data, 1);
+
+                // Prevention
+                if(this.chunks.ContainsKey(cp)){
+                    toLoad.RemoveAt(0);
+                    continue;
+                }
+
+
                 int blockDataSize = NetDecoder.ReadInt(data, 9);
                 int hpDataSize = NetDecoder.ReadInt(data, 13);
                 int stateDataSize = NetDecoder.ReadInt(data, 17);
@@ -276,10 +273,9 @@ public class ChunkLoader : MonoBehaviour
                 return;
             }
             
-            
             Chunk popChunk = chunks[toUnload[0]];
-            chunks.Remove(popChunk.pos);      
             Destroy(popChunk.obj);
+            chunks.Remove(popChunk.pos);      
             //vfx.RemoveChunk(popChunk.pos);
 
             toUnload.RemoveAt(0);
