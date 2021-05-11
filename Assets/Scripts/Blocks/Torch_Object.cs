@@ -110,7 +110,7 @@ public class Torch_Object : BlocklikeObject
 		return 0;
 	}
 
-	public override int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
+	public override int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
 		this.vfx.Remove(pos, BuildVFXName(pos, blockX, blockY, blockZ));
 		return 0;
 	}

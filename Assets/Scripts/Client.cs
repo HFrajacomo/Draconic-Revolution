@@ -276,7 +276,7 @@ public class Client
 	// Receives a deletion of a VFX
 	private void VFXBreak(byte[] data){
 		ChunkPos pos;
-		int x,y,z,facing;
+		int x,y,z;
 		ushort blockCode, state;
 
 		pos = NetDecoder.ReadChunkPos(data, 1);
