@@ -234,7 +234,9 @@ public class ChunkLoader : MonoBehaviour
                 Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
                 Compression.DecompressMetadataStateClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize+hpDataSize);
             
-                this.vfx.RemoveChunk(cp);
+                if(this.vfx.data.ContainsKey(cp))
+                    this.vfx.RemoveChunk(cp);
+                    
                 this.vfx.NewChunk(cp);
 
                 if(!this.toDraw.Contains(cp))

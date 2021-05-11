@@ -136,6 +136,15 @@ public class Client
 			case NetCode.DIRECTBLOCKUPDATE:
 				DirectBlockUpdate(data);
 				break;
+			case NetCode.VFXDATA:
+				VFXData(data);
+				break;
+			case NetCode.VFXCHANGE:
+				VFXChange(data);
+				break;
+			case NetCode.VFXBREAK:
+				VFXBreak(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -218,8 +227,71 @@ public class Client
 			default:
 				break;
 		}
+	}
 
+	// Receives data on a VFX operation
+	private void VFXData(byte[] data){
+		ChunkPos pos;
+		int x,y,z,facing;
+		ushort blockCode, state;
 
+		pos = NetDecoder.ReadChunkPos(data, 1);
+		x = NetDecoder.ReadInt(data, 9);
+		y = NetDecoder.ReadInt(data, 13);
+		z = NetDecoder.ReadInt(data, 17);
+		facing = NetDecoder.ReadInt(data, 21);
+		blockCode = NetDecoder.ReadUshort(data, 25);
+		state = NetDecoder.ReadUshort(data, 27);
+
+		if(blockCode <= ushort.MaxValue/2){
+			this.cl.blockBook.blocks[blockCode].OnVFXBuild(pos, x, y, z, facing, state, cl);
+		}
+		else{
+			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnVFXBuild(pos, x, y, z, facing, state, cl);
+		}
+	}
+
+	// Receives change in state of a VFX
+	private void VFXChange(byte[] data){
+		ChunkPos pos;
+		int x,y,z,facing;
+		ushort blockCode, state;
+
+		pos = NetDecoder.ReadChunkPos(data, 1);
+		x = NetDecoder.ReadInt(data, 9);
+		y = NetDecoder.ReadInt(data, 13);
+		z = NetDecoder.ReadInt(data, 17);
+		facing = NetDecoder.ReadInt(data, 21);
+		blockCode = NetDecoder.ReadUshort(data, 25);
+		state = NetDecoder.ReadUshort(data, 27);
+
+		if(blockCode <= ushort.MaxValue/2){
+			this.cl.blockBook.blocks[blockCode].OnVFXChange(pos, x, y, z, facing, state, cl);
+		}
+		else{
+			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnVFXChange(pos, x, y, z, facing, state, cl);
+		}
+	}
+
+	// Receives a deletion of a VFX
+	private void VFXBreak(byte[] data){
+		ChunkPos pos;
+		int x,y,z,facing;
+		ushort blockCode, state;
+
+		pos = NetDecoder.ReadChunkPos(data, 1);
+		x = NetDecoder.ReadInt(data, 9);
+		y = NetDecoder.ReadInt(data, 13);
+		z = NetDecoder.ReadInt(data, 17);
+		blockCode = NetDecoder.ReadUshort(data, 21);
+		state = NetDecoder.ReadUshort(data, 23);
+
+		if(blockCode <= ushort.MaxValue/2){
+			this.cl.blockBook.blocks[blockCode].OnVFXBreak(pos, x, y, z, state, cl);
+		}
+		else{
+			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnVFXBreak(pos, x, y, z, state, cl);
+		}
 	}
 
 	// Returns a byte array representation of a int
