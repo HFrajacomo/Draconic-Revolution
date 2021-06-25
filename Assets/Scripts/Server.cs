@@ -449,6 +449,8 @@ public class Server
 		foreach(ChunkPos pos in toRemove){
 			this.cl.UnloadChunk(pos, id);
 		}
+
+		this.connections.Remove(id);
 	}
 
 	// Receives an Interaction command from client

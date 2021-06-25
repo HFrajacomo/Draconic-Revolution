@@ -53,6 +53,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
     void Start(){
         this.server = new Server(this, true);
+        this.time.SetServer(this.server);
     }
 
     void Update(){ 

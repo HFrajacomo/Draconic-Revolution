@@ -72,7 +72,7 @@ public class BUDScheduler : MonoBehaviour
             }
 
             // Saves the World Data every second
-            loader.regionHandler.SaveWorld();
+            //loader.regionHandler.SaveWorld();
 
             //loader.regionHandler.SavePlayer(playerTransform.position);
 

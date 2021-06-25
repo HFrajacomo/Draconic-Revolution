@@ -60,6 +60,10 @@ public class TimeOfDay : MonoBehaviour
         this.LOCKTIME = flag;
     }
 
+    public void SetServer(Server sv){
+        this.server = sv;
+    }
+
     // Sets current time. Used to set time in client through a server force message
     // Currently sets ticks to 0 in client
     public void SetTime(uint days, byte hours, byte minutes){

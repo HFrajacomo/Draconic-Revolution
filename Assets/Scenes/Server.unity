@@ -157,7 +157,8 @@ MonoBehaviour:
   hours: 6
   days: 0
   DEBUGTIMEMULT: 1
-  LOCKTIME: 1
+  LOCKTIME: 0
+  isClient: 0
 --- !u!4 &988338120
 Transform:
   m_ObjectHideFlags: 0

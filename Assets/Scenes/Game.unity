@@ -2123,7 +2123,6 @@ MonoBehaviour:
   PLAYERSPAWNED: 0
   PLAYERLOADED: 0
   REQUESTEDCHUNKS: 0
-  DRAWFLAG: 0
   CONNECTEDTOSERVER: 0
   SENTINFOTOSERVER: 0
 --- !u!4 &1192772368
@@ -2175,6 +2174,7 @@ MonoBehaviour:
   days: 0
   DEBUGTIMEMULT: 1
   LOCKTIME: 1
+  isClient: 1
 --- !u!4 &1322082559
 Transform:
   m_ObjectHideFlags: 0
