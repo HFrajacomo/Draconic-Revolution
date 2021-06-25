@@ -25,7 +25,7 @@ public class Client
 	private byte[] dataBuffer;
 
 	// Address Information
-	public IPAddress ip = new IPAddress(0x0800A8C0);
+	public IPAddress ip = new IPAddress(0x0F00A8C0);
 	public int port = 33000;
 
 	// Unity References
@@ -144,6 +144,9 @@ public class Client
 				break;
 			case NetCode.VFXBREAK:
 				VFXBreak(data);
+				break;
+			case NetCode.SENDGAMETIME:
+				SendGameTime(data);
 				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
@@ -293,6 +296,17 @@ public class Client
 			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnVFXBreak(pos, x, y, z, state, cl);
 		}
 	}
+
+	// Receives dd:hh:mm from server
+	private void SendGameTime(byte[] data){
+		uint days = NetDecoder.ReadUint(data, 1);
+		byte hours = data[5];
+		byte minutes = data[6];
+
+		//this.cl.time.SetTime(days, hours, minutes);
+	}
+
+
 
 	// Returns a byte array representation of a int
 	private byte[] LengthPacket(int a){

@@ -237,6 +237,7 @@ public enum NetCode{
 	VFXDATA,
 	VFXCHANGE,
 	VFXBREAK,
+	SENDGAMETIME,
 	DISCONNECT  // No call
 }
 
