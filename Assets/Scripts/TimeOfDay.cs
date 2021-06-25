@@ -21,6 +21,11 @@ public class TimeOfDay : MonoBehaviour
     void Update()
     {
         if(!this.LOCKTIME && !isClient){
+
+            // If there are no players in the server, don't run
+            if(this.server.connections.Count == 0)
+                return;
+
             ticks += Time.deltaTime * 10 * DEBUGTIMEMULT;
 
             if(ticks >= 20){
