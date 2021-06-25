@@ -156,7 +156,15 @@ public class Server
 
 	// Discovers what to do with a Message received from Server
 	public void HandleReceivedMessage(byte[] data, int id){
-		NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], id, 0);
+		try{
+			NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], id, 0);
+		}
+		catch(Exception e){
+			if(data == null)
+				Debug.Log("NULL DATA");
+
+			Debug.Log("Exception: " + e.ToString());
+		}
 		switch((NetCode)data[0]){
 			case NetCode.SENDCLIENTINFO:
 				SendClientInfo(data, id);
@@ -339,15 +347,16 @@ public class Server
 						else{
 							cl.blockBook.objects[ushort.MaxValue-blockCode].OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 						}
-
-						this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);				
+				
 					}
 
 					// Sends the updated voxel to loaded clients
 					message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 					message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ), this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetHP(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
-
 					SendToClients(lastCoord.GetChunkPos(), message);
+					
+					this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
+
 				}
 				break;
 			case BUDCode.SETSTATE:
@@ -381,15 +390,14 @@ public class Server
 					else{
 						this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(pos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, this.cl);
 					}
-					this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
 				}
 
 				// Sends the updated voxel to loaded clients
 				message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 				message.DirectBlockUpdate(BUDCode.BREAK, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, 0, ushort.MaxValue, ushort.MaxValue);
-
 				SendToClients(lastCoord.GetChunkPos(), message);				
-
+				this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
+				
 				break;
 
 			case BUDCode.LOAD:

@@ -47,6 +47,7 @@ public class Leaf_Object : BlocklikeObject
 					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
 					cl.chunks[thisPos.GetChunkPos()].metadata.Reset(thisPos.blockX, thisPos.blockY, thisPos.blockZ);					
 					this.Update(thisPos, BUDCode.BREAK, facing, cl);
+					cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
 				}
 
 				// Applies Decay BUD to surrounding leaves if this one is invalid

@@ -6,7 +6,7 @@ public class BUDScheduler : MonoBehaviour
 {
 	public TimeOfDay schedulerTime;
 	private Dictionary<string, List<BUDSignal>> data = new Dictionary<string, List<BUDSignal>>();
-	//private Dictionary<string, List<BUDSignal>> toReload = new Dictionary<string, List<BUDSignal>>();
+	private Dictionary<string, HashSet<ChunkPos>> toSave = new Dictionary<string, HashSet<ChunkPos>>();
     private List<ChunkPos> cachedList = new List<ChunkPos>();
     private string currentTime;
 	private string newTime;
@@ -25,7 +25,7 @@ public class BUDScheduler : MonoBehaviour
 		this.currentTime = schedulerTime.GetBUDTime();
 		this.BUDperFrame = 200;
 		this.data.Add(currentTime, new List<BUDSignal>());
-		//this.toReload.Add(currentTime, new List<ChunkPos>());
+		this.toSave.Add(currentTime, new HashSet<ChunkPos>());
 	}
 
     // Update is called once per frame
@@ -56,24 +56,21 @@ public class BUDScheduler : MonoBehaviour
                     shouldClean = false;
                     this.data.Remove(cachedString);
                 }
-                /*
-                foreach(string s in this.toReload.Keys){
-                    if(schedulerTime.IsPast(s)){
-                        cachedString = s;
-                        shouldClean = true;
-                    }
-                }
-
-
-                if(shouldClean){
-                    this.toReload.Remove(cachedString);
-                }
-                */             
+            
             }
 
             // Saves the World Data every second
             if(loader.regionHandler != null)
                 loader.regionHandler.SaveWorld();
+
+            // Batch Chunk Saver
+            if(SaveCount() > 0){
+                foreach(ChunkPos pos in this.toSave[this.currentTime]){
+                    if(loader.chunks.ContainsKey(cachePos)){
+                        loader.regionHandler.SaveChunk(loader.chunks[pos]);
+                    }
+                }
+            }
 
             //loader.regionHandler.SavePlayer(playerTransform.position);
 
@@ -82,20 +79,13 @@ public class BUDScheduler : MonoBehaviour
     		// Pops all elements of BUD
             if(this.data.ContainsKey(this.currentTime)){
         		if(this.data[this.currentTime].Count > 0){
-        			PassToNextTick(BUD:true);
+        			PassToNextTick();
         		}
             }
-            /*
-            if(this.toReload.ContainsKey(this.currentTime)){
-                if(this.toReload[this.currentTime].Count > 0){
-                    PassToNextTick(BUD:false);
-                }
-            }
-            */
 
     		// Frees memory of previous BUD Tick
             this.data.Remove(this.currentTime);
-            //this.toReload.Remove(this.currentTime);
+            this.toSave.Remove(this.currentTime);
     		this.currentTime = this.newTime;
     	}
 
@@ -123,25 +113,6 @@ public class BUDScheduler : MonoBehaviour
     	    	}
         	}
         }
-
-    	// Chunk Reloader
-        /*
-    	if(DataCount() == 0 && ReloadCount() > 0){
-            cachePos = this.toReload[this.currentTime][0];
-            this.toReload[this.currentTime].RemoveAt(0);
-
-            if(loader.chunks.ContainsKey(cachePos)){
-                loader.chunks[cachePos].BuildChunk(); 
-                if(!loader.chunks[cachePos].BuildSideBorder(reload:true))
-                    
-                    TODO: Send to Client
-                    
-                    //loader.toRedraw.Add(cachePos);
-                
-                loader.regionHandler.SaveChunk(loader.chunks[cachePos]);
-            }
-    	}
-        */
     }
 
 
@@ -180,15 +151,15 @@ public class BUDScheduler : MonoBehaviour
         return 0;
     }
 
-    /*
-    // Returns the Amount of elements in this.reload[currentTime]. Returns 0 if list is not initialized
-    public int ReloadCount(){
-        if(this.toReload.ContainsKey(this.currentTime)){
-            return this.toReload[this.currentTime].Count;
+
+    // Returns the Amount of elements in this.save[currentTime]. Returns 0 if list is not initialized
+    public int SaveCount(){
+        if(this.toSave.ContainsKey(this.currentTime)){
+            return this.toSave[this.currentTime].Count;
         }
         return 0;
     }
-    */
+
 
     // Schedules a BUD request in the system in the current tick
     public void ScheduleBUDNow(BUDSignal b){
@@ -201,47 +172,20 @@ public class BUDScheduler : MonoBehaviour
         }
     }
 
-    // Schedules a Chunk.Build() operation 
-    /*
-    public void ScheduleReload(ChunkPos pos, int tickOffset, int x=1, int y=1, int z=1){
+    // Schedules a SaveChunk() operation 
 
-    	if(tickOffset == 0){
-            if(!this.toReload.ContainsKey(this.currentTime)){
-                this.toReload.Add(this.currentTime, new List<ChunkPos>());
-            }
+    public void ScheduleSave(ChunkPos pos){
+        string fakeTime = schedulerTime.FakeSum(1);
 
-            CheckSurroundingChunks(x, y, z, pos);
+        if(!this.toSave.ContainsKey(fakeTime))
+            this.toSave.Add(fakeTime, new HashSet<ChunkPos>());
 
-            foreach(ChunkPos p in cachedList){
-                if(!this.toReload[this.currentTime].Contains(p)){
-                    this.toReload[this.currentTime].Add(p);
-                }
+        if(this.toSave[fakeTime].Contains(pos))
+            return;
 
-            }
-            cachedList.Clear();
-    	}
-    	else{
-    		string fakeTime = schedulerTime.FakeSum(tickOffset);
-
-    		if(this.toReload.ContainsKey(fakeTime)){
-                CheckSurroundingChunks(x, y, z, pos);
-                foreach(ChunkPos p in cachedList){
-                    this.toReload[fakeTime].Add(p);
-                }
-                cachedList.Clear();
-    		}
-
-    		else{
-                CheckSurroundingChunks(x, y, z, pos);
-                foreach(ChunkPos p in cachedList){
-                    this.toReload.Add(fakeTime, new List<ChunkPos>());
-                    this.toReload[fakeTime].Add(pos);
-                }
-                cachedList.Clear();
-    		}
-    	}
+        this.toSave[fakeTime].Add(pos);
     }
-    */
+
 
     // Gets the different Chunks that should be updated
     private void CheckSurroundingChunks(int x, int y, int z, ChunkPos pos){
@@ -258,35 +202,20 @@ public class BUDScheduler : MonoBehaviour
     }
 
     // Passes all elements in a to-be-deleted schedule date to the next tick
-    private void PassToNextTick(bool BUD=true){
+    private void PassToNextTick(){
     	int i=0;
-        if(BUD){
-            // If current tick has/had BUD
-            if(this.data.ContainsKey(this.currentTime)){
-                if(!this.data.ContainsKey(this.newTime)){
-                    this.data.Add(this.newTime, new List<BUDSignal>());
-                }
 
-            	foreach(BUDSignal b in this.data[this.currentTime]){
-            		this.data[this.newTime].Insert(i, b);
-            		i++;
-            	}
+        // If current tick has/had BUD
+        if(this.data.ContainsKey(this.currentTime)){
+            if(!this.data.ContainsKey(this.newTime)){
+                this.data.Add(this.newTime, new List<BUDSignal>());
             }
-        }
-        /*
-        else{
-            if(this.toReload.ContainsKey(this.currentTime)){
-                if(!this.toReload.ContainsKey(this.newTime)){
-                    this.toReload.Add(this.newTime, new List<ChunkPos>());
-                }
 
-                foreach(ChunkPos pos in this.toReload[this.currentTime]){
-                    this.toReload[this.newTime].Insert(i, pos);
-                    i++;
-                }
-            }
+        	foreach(BUDSignal b in this.data[this.currentTime]){
+        		this.data[this.newTime].Insert(i, b);
+        		i++;
+        	}
         }
-        */
     }
 
     // Deschedules a BUD request (probably when block is broken or updated)

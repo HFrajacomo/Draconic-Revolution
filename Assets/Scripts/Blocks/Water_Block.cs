@@ -107,6 +107,7 @@ public class Water_Block : Blocks
 			GetCodeAround(cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cl);
 		
 		this.Update(cachedPos, BUDCode.BREAK, -1, cl);
+		cl.budscheduler.ScheduleSave(cachedPos.GetChunkPos());
 		EmitWaterBUD(cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cl);
 		this.breakFLAG = false;
 
