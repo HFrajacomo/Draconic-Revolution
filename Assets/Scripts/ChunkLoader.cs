@@ -106,7 +106,6 @@ public class ChunkLoader : MonoBehaviour
                     this.PLAYERLOADED = true;
                 }
 
-                //this.time.SetLock(false);
                 this.gameUI.SetActive(true);
                 playerCharacter.SetActive(true);
         	}

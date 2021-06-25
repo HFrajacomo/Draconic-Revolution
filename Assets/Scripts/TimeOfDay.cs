@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 
 public class TimeOfDay : MonoBehaviour
 {
+    public Server server;
 	public float ticks = 0f;
 	public byte minutes = 0;
 	public byte hours = 6;
@@ -14,13 +15,12 @@ public class TimeOfDay : MonoBehaviour
     private byte[] timeArray = new byte[7];
     public bool LOCKTIME = true;
     public bool isClient;
-    public Server server;
 
     private bool SENDTIMEFLAG = false;
 
     void Update()
     {
-        if(!this.LOCKTIME){
+        if(!this.LOCKTIME && !isClient){
             ticks += Time.deltaTime * 10 * DEBUGTIMEMULT;
 
             if(ticks >= 20){
