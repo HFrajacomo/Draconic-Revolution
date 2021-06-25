@@ -13,6 +13,10 @@ public class TimeOfDay : MonoBehaviour
 	public int DEBUGTIMEMULT=1;
     private byte[] timeArray = new byte[7];
     public bool LOCKTIME = true;
+    public bool isClient;
+    public Server server;
+
+    private bool SENDTIMEFLAG = false;
 
     void Update()
     {
@@ -22,6 +26,7 @@ public class TimeOfDay : MonoBehaviour
             if(ticks >= 20){
             	ticks = 0f;
             	minutes++;
+                this.SENDTIMEFLAG = true;
             }
 
             if(minutes >= 60){
@@ -32,6 +37,14 @@ public class TimeOfDay : MonoBehaviour
             if(hours >= 24){
             	hours = 0;
             	days++;
+            }
+
+            if(this.SENDTIMEFLAG && !this.isClient){
+                NetMessage message = new NetMessage(NetCode.SENDGAMETIME);
+                message.SendGameTime(this.days, this.hours, this.minutes);
+                this.server.SendAll(message.GetMessage(), message.size);
+
+                this.SENDTIMEFLAG = false;
             }
         }
 
@@ -45,6 +58,15 @@ public class TimeOfDay : MonoBehaviour
 
     public void SetLock(bool flag){
         this.LOCKTIME = flag;
+    }
+
+    // Sets current time. Used to set time in client through a server force message
+    // Currently sets ticks to 0 in client
+    public void SetTime(uint days, byte hours, byte minutes){
+        this.days = days;
+        this.hours = hours;
+        this.minutes = minutes;
+        this.ticks = 0;
     }
 
     // Gets formatted h:m string

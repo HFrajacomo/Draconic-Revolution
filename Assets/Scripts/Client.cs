@@ -303,7 +303,7 @@ public class Client
 		byte hours = data[5];
 		byte minutes = data[6];
 
-		//this.cl.time.SetTime(days, hours, minutes);
+		this.cl.time.SetTime(days, hours, minutes);
 	}
 
 

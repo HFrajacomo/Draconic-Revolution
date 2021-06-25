@@ -220,6 +220,14 @@ public struct NetMessage
 		this.size = 25;
 	}
 
+	// Sends time data to Client
+	public void SendGameTime(uint day, byte hour, byte minute){
+		NetDecoder.WriteUint(day, NetMessage.buffer, 1);
+		NetDecoder.WriteByte(hour, NetMessage.buffer, 5);
+		NetDecoder.WriteByte(minute, NetMessage.buffer, 6);
+		this.size = 7;
+	}
+
 }
 
 public enum NetCode{

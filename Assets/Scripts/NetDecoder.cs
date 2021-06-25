@@ -139,6 +139,10 @@ public static class NetDecoder
 		data[pos+7] = (byte)a;
 	}
 
+	public static void WriteByte(byte a, byte[] data, int pos){
+		data[pos] = a;
+	}
+
 	public static void WriteString(string a, byte[] data, int pos){
 		for(int i=0; i < a.Length; i++){
 			data[pos+i] = (byte)a[i];

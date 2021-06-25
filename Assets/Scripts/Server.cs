@@ -48,7 +48,7 @@ public class Server
         else{
         	// TESTING
         	this.masterSocket = new Socket(IPAddress.Loopback.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        	this.serverIP = new IPEndPoint(0x0800A8C0, this.port); 
+        	this.serverIP = new IPEndPoint(0x0F00A8C0, this.port); 
         }
 
 
@@ -91,6 +91,12 @@ public class Server
 		catch(Exception e){
 			Debug.Log("SEND ERROR: " + e.ToString());
 		}
+	}
+
+	// Sends a message to all IDs connected
+	public void SendAll(byte[] data, int length){
+		foreach(int code in this.connections.Keys)
+			this.Send(data, length, code);
 	}
 
 	// Receive call handling
