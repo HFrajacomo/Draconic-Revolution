@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 public static class NetDecoder
 {
@@ -102,6 +103,10 @@ public static class NetDecoder
 		return result;
 	}
 
+	public static float3 ReadFloat3(byte[] data, int pos){
+		return new float3(NetDecoder.ReadFloat(data, pos), NetDecoder.ReadFloat(data, pos+4), NetDecoder.ReadFloat(data, pos+8));
+	}
+
 	public static bool ReadBool(byte[] data, int pos){
 		if(data[pos] == 0)
 			return false;
@@ -115,6 +120,18 @@ public static class NetDecoder
 		data[pos+1] = floatBuffer[1];
 		data[pos+2] = floatBuffer[2];
 		data[pos+3] = floatBuffer[3];
+	}
+
+	public static void WriteFloat3(float3 f, byte[] data, int pos){
+		NetDecoder.WriteFloat(f.x, data, pos);
+		NetDecoder.WriteFloat(f.y, data, pos+4);
+		NetDecoder.WriteFloat(f.z, data, pos+8);
+	}
+
+	public static void WriteFloat3(Vector3 v, byte[] data, int pos){
+		NetDecoder.WriteFloat(v.x, data, pos);
+		NetDecoder.WriteFloat(v.y, data, pos+4);
+		NetDecoder.WriteFloat(v.z, data, pos+8);		
 	}
 
 	public static void WriteBool(bool a, byte[] data, int pos){
