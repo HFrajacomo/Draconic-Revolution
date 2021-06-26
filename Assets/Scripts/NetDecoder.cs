@@ -68,6 +68,26 @@ public static class NetDecoder
 		return result;
 	}
 
+	public static ulong ReadUlong(byte[] data, int pos){
+		ulong result = data[pos];
+		result = result << 8;
+		result += data[pos+1];
+		result = result << 8;
+		result += data[pos+2];
+		result = result << 8;
+		result += data[pos+3];
+		result = result << 8;
+		result += data[pos+4];
+		result = result << 8;
+		result += data[pos+5];
+		result = result << 8;
+		result += data[pos+6];
+		result = result << 8;
+		result += data[pos+7];
+
+		return result;
+	}
+
 	public static string ReadString(byte[] data, int pos, int size){
 		string result = System.Text.Encoding.UTF8.GetString(data, pos, size);
 		return result;
@@ -129,6 +149,17 @@ public static class NetDecoder
 	}
 
 	public static void WriteLong(long a, byte[] data, int pos){
+		data[pos] = (byte)(a >> 56);
+		data[pos+1] = (byte)(a >> 48);
+		data[pos+2] = (byte)(a >> 40);
+		data[pos+3] = (byte)(a >> 32);
+		data[pos+4] = (byte)(a >> 24);
+		data[pos+5] = (byte)(a >> 16);
+		data[pos+6] = (byte)(a >> 8);
+		data[pos+7] = (byte)a;
+	}
+
+	public static void WriteLong(ulong a, byte[] data, int pos){
 		data[pos] = (byte)(a >> 56);
 		data[pos+1] = (byte)(a >> 48);
 		data[pos+2] = (byte)(a >> 40);

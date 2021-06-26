@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 /*
 Region Data File Format (.rdf)
@@ -29,12 +30,20 @@ public class RegionFileHandler{
 	public Stream worldFile;
 	public Stream playerFile;
 
+	// Player Data
+	public Dictionary<ulong, PlayerData> allPlayerData = new Dictionary<ulong, PlayerData>();
+
 	// Cache Information
 	private byte[] nullMetadata = new byte[]{255,255};
 
 	// Region Pool
 	private Dictionary<ChunkPos, RegionFile> pool = new Dictionary<ChunkPos, RegionFile>();
 	private int maxPoolSize = 4;
+
+	// Sizes
+	public static int chunkHeaderSize = 21; // Size (in bytes) of header
+	public static int chunkSize = Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 8; // Size in bytes of Chunk payload
+	public static int pdatEntrySize = 32;
 
 	// Cache
 	private byte[] byteArray = new byte[1];
@@ -46,11 +55,7 @@ public class RegionFileHandler{
 	private byte[] blockBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer (roughly 0,1 MB)
 	private byte[] hpBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer 
 	private byte[] stateBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer
-	private byte[] playerBuffer = new byte[12];
-
-	// Sizes
-	public static int chunkHeaderSize = 21; // Size (in bytes) of header
-	public static int chunkSize = Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 8; // Size in bytes of Chunk payload
+	private byte[] playerBuffer = new byte[RegionFileHandler.pdatEntrySize];
 
 	public RegionFileHandler(ChunkLoader_Server cl){
 		InitWorldFiles(cl);
@@ -96,10 +101,11 @@ public class RegionFileHandler{
 		// If already has a player data file
 		if(File.Exists(this.worldDir + "player.pdat")){
 			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Open);
+			LoadAllPlayers();
 		}
 		else{
 			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Create);	
-		}		
+		}	
 	}
 
 	/*
@@ -204,36 +210,40 @@ public class RegionFileHandler{
 	}
 
 	// Saved data to pdat file
-	// DESIGNED FOR SINGLEPLAYER
+	// DESIGNED FOR NON-VALIDATED MULTIPLAYER
 	/*
+	ACCOUNTID(8): The account's ulong ID
 	POSITION(12): 3 floats containing x, y, z
+	DIRECTION(12): 3 floats containing x, y, z
 	*/
-	public void SavePlayer(Vector3 t){
-		playerBuffer[0] = (byte)((int)t.x >> 24);
-		playerBuffer[1] = (byte)((int)t.x >> 16);
-		playerBuffer[2] = (byte)((int)t.x >> 8);
-		playerBuffer[3] = (byte)((int)t.x);
-		playerBuffer[4] = (byte)((int)t.y >> 24);
-		playerBuffer[5] = (byte)((int)t.y >> 16);
-		playerBuffer[6] = (byte)((int)t.y >> 8);
-		playerBuffer[7] = (byte)((int)t.y);
-		playerBuffer[8] = (byte)((int)t.z >> 24);
-		playerBuffer[9] = (byte)((int)t.z >> 16);
-		playerBuffer[10] = (byte)((int)t.z >> 8);
-		playerBuffer[11] = (byte)((int)t.z);
-
+	public void SavePlayers(){
+		int count = 0;
 		this.playerFile.SetLength(0);
-		this.playerFile.Write(playerBuffer, 0, 12);
+
+		foreach(PlayerData pdat in this.allPlayerData.Values){
+			this.playerFile.Write(pdat.ToByteArray(), 0, RegionFileHandler.pdatEntrySize);
+			count++;
+		}
 	}
 
 	// Loads data from PDAT file
-	public Vector3 LoadPlayer(){
-		if(this.playerFile.Length == 0){
-			return new Vector3(0, this.cl.GetBlockHeight(new ChunkPos(0,0),0, 0), 0);
-		}
+	public PlayerData LoadPlayer(ulong ID){
+		if(!this.allPlayerData.ContainsKey(ID))
+			this.allPlayerData.Add(ID, new PlayerData(ID, new float3(0, this.cl.GetBlockHeight(new ChunkPos(0,0),0, 0), 0), new float3(0, 0, 0)));
 
-		this.playerFile.Read(playerBuffer, 0, 12);
-		return new Vector3(ReadPos(playerBuffer, 0), ReadPos(playerBuffer, 4) + 1, ReadPos(playerBuffer, 8));
+		return this.allPlayerData[ID];
+	}
+
+	// Loads all data from PDAT file and puts into the allPlayerData dict
+	private void LoadAllPlayers(){
+		for(int i=0; i < this.playerFile.Length / RegionFileHandler.pdatEntrySize; i++){
+			this.playerFile.Seek(i*RegionFileHandler.pdatEntrySize, SeekOrigin.Begin);
+			this.playerFile.Read(playerBuffer, 0, RegionFileHandler.pdatEntrySize);
+
+			PlayerData pdata = new PlayerData(playerBuffer);
+			this.allPlayerData.Add(pdata.ID, pdata);
+			Debug.Log(pdata.ID);
+		}
 	}
 
 	private float ReadPos(byte[] buffer, int pos){
@@ -294,6 +304,9 @@ public class RegionFileHandler{
 		foreach(ChunkPos pos in this.pool.Keys){
 			this.pool[pos].Close();
 		}
+
+		this.playerFile.Close();
+		this.worldFile.Close();
 	}
 
 	// Loads a chunk information from RDF file using Pallete-based Decompression

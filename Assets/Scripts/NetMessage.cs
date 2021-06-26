@@ -7,7 +7,7 @@ public struct NetMessage
 {
 	public NetCode code;
 	public int size;
-	public int id;
+	public ulong id;
 	private static byte[] buffer = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 5]; // 2MB
 	private byte[] data;
 
@@ -25,7 +25,7 @@ public struct NetMessage
 	}
 
 	// Constructor
-	public NetMessage(NetCode code, int id){
+	public NetMessage(NetCode code, ulong id){
 		this.code = code;
 		this.id = id;
 		this.data = null;
@@ -33,7 +33,7 @@ public struct NetMessage
 		this.size = 1;
 	}
 
-	public NetMessage(byte[] data, int id){
+	public NetMessage(byte[] data, ulong id){
 		this.code = (NetCode)data[0];
 		this.data = data;
 		this.size = data.Length;
@@ -51,7 +51,7 @@ public struct NetMessage
 	}
 
 	// Gets the ID for server communication
-	public int GetID(){
+	public ulong GetID(){
 		return this.id;
 	}
 
@@ -65,11 +65,11 @@ public struct NetMessage
 		byte[] data = new byte[m.GetSize()];
 		Array.Copy(NetMessage.buffer, 0, data, 0, data.Length);
 
-		return new NetMessage(data, -1);
+		return new NetMessage(data, ulong.MaxValue);
 	}
 
 	// Broadcasts message to stdout
-	public static void Broadcast(NetBroadcast bc, byte netcode, int id, int length){
+	public static void Broadcast(NetBroadcast bc, byte netcode, ulong id, int length){
 		if(bc == NetBroadcast.RECEIVED && NetMessage.broadcastReceived)
 			Debug.Log("Received: " + (NetCode)netcode + " | " + id + " > " + length);
 		else if(bc == NetBroadcast.SENT && NetMessage.broadcastSent)
@@ -86,22 +86,26 @@ public struct NetMessage
 	*/
 
 	// Client sending initial information to server after connection was accepted
-	public void SendClientInfo(int playerRenderDistance, int seed, string worldName){
+	public void SendClientInfo(ulong accountID, int playerRenderDistance, int seed, string worldName){
 		// TODO: Add character name to here
-		// {CODE}[Render] [Seed] [stringSize (int)] [worldName]
-		NetDecoder.WriteInt(playerRenderDistance, NetMessage.buffer, 1);
-		NetDecoder.WriteInt(seed, NetMessage.buffer, 5);
-		NetDecoder.WriteInt(worldName.Length, NetMessage.buffer, 9);
-		NetDecoder.WriteString(worldName, NetMessage.buffer, 13);
-		this.size = 13 + worldName.Length;
+		// {CODE}[AccountID][Render] [Seed] [stringSize (int)] [worldName]
+		NetDecoder.WriteLong(accountID, NetMessage.buffer, 1);
+		NetDecoder.WriteInt(playerRenderDistance, NetMessage.buffer, 9);
+		NetDecoder.WriteInt(seed, NetMessage.buffer, 13);
+		NetDecoder.WriteInt(worldName.Length, NetMessage.buffer, 17);
+		NetDecoder.WriteString(worldName, NetMessage.buffer, 21);
+		this.size = 21 + worldName.Length;
 	}
 
 	// Server sending player character position
-	public void SendServerInfo(int x, int y, int z){
-		NetDecoder.WriteInt(x, NetMessage.buffer, 1);
-		NetDecoder.WriteInt(y, NetMessage.buffer, 5);
-		NetDecoder.WriteInt(z, NetMessage.buffer, 9);
-		this.size = 13;
+	public void SendServerInfo(float xPos, float yPos, float zPos, float xDir, float yDir, float zDir){
+		NetDecoder.WriteFloat(xPos, NetMessage.buffer, 1);
+		NetDecoder.WriteFloat(yPos, NetMessage.buffer, 5);
+		NetDecoder.WriteFloat(zPos, NetMessage.buffer, 9);
+		NetDecoder.WriteFloat(xDir, NetMessage.buffer, 13);
+		NetDecoder.WriteFloat(yDir, NetMessage.buffer, 17);
+		NetDecoder.WriteFloat(zDir, NetMessage.buffer, 21);
+		this.size = 25;
 	}
 
 	// Client asking for a chunk information to Server

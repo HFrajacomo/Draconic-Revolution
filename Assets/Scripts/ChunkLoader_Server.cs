@@ -23,12 +23,12 @@ public class ChunkLoader_Server : MonoBehaviour
     public Server server;
 
     // Entity Handlers
-    public Dictionary<int, float3> playerPositions = new Dictionary<int, float3>();
+    //public Dictionary<ulong, PlayerData> playerData = new Dictionary<ulong, PlayerData>();
 
     // Queues
     public List<ChunkPos> toLoad = new List<ChunkPos>();
     public List<ChunkPos> toUnload = new List<ChunkPos>();
-    public Dictionary<ChunkPos, List<int>> loadedChunks = new Dictionary<ChunkPos, List<int>>();
+    public Dictionary<ChunkPos, List<ulong>> loadedChunks = new Dictionary<ChunkPos, List<ulong>>();
 
 	// World Generation
 	public int worldSeed = -1; // 6 number integer
@@ -83,14 +83,16 @@ public class ChunkLoader_Server : MonoBehaviour
         this.worldGen = new WorldGenerator(worldSeed, BiomeSeedFunction(worldSeed), OffsetHashFunction(worldSeed), GenerationSeedFunction(worldSeed), biomeHandler, structHandler, this);
     
         // Sends the first player it's information
-        Vector3 playerPos = this.regionHandler.LoadPlayer();
+        PlayerData pdat = this.regionHandler.LoadPlayer(this.server.firstConnectedID); // CHANGE TO OTHER ACCOUNTID
+        Vector3 playerPos = pdat.GetPosition();
+        Vector3 playerDir = pdat.GetDirection();
 
         this.regionHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth)));
 
         HandleServerCommunication();
         NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
-        message.SendServerInfo((int)playerPos.x, (int)playerPos.y, (int)playerPos.z);
-        this.server.Send(message.GetMessage(), message.size, 0); 
+        message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z);
+        this.server.Send(message.GetMessage(), message.size, this.server.firstConnectedID); 
         this.INITIALIZEDWORLD = true;
         this.time.SetLock(false);
     }
@@ -101,7 +103,7 @@ public class ChunkLoader_Server : MonoBehaviour
         int queueCount = this.server.queue.Count;
 
         if(queueCount > 0){
-            for(int i=0; i<queueCount; i++){
+            for(ulong i=0; i<(ulong)queueCount; i++){
                 this.server.HandleReceivedMessage(this.server.queue[0].GetData(), this.server.queue[0].GetID());
                 this.server.queue.RemoveAt(0);
             }
@@ -212,7 +214,7 @@ public class ChunkLoader_Server : MonoBehaviour
     }
 
     // Severs the connection of a Client to a chunk
-    public void UnloadChunk(ChunkPos pos, int id){
+    public void UnloadChunk(ChunkPos pos, ulong id){
         this.loadedChunks[pos].Remove(id);
 
         // If connected clients to this chunk are none
@@ -231,7 +233,7 @@ public class ChunkLoader_Server : MonoBehaviour
         if(!this.loadedChunks.ContainsKey(pos))
             return;
 
-        foreach(int id in this.loadedChunks[pos]){
+        foreach(ulong id in this.loadedChunks[pos]){
             message = new NetMessage(NetCode.SENDCHUNK);
             message.SendChunk(this.chunks[pos]);
             this.server.Send(message.GetMessage(), message.size, id);

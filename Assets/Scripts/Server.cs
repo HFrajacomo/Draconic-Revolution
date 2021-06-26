@@ -13,30 +13,34 @@ public class Server
 	private bool isLocal = true;
 	public Socket masterSocket;
 
-	public Dictionary<int, Socket> connections;
-	public Dictionary<int, bool> lengthPacket;
-	public Dictionary<int, int> packetIndex;
-	public Dictionary<int, int> packetSize;
-	public Dictionary<int, byte[]> dataBuffer;
+	public Dictionary<ulong, Socket> connections;
+	public Dictionary<ulong, Socket> temporaryConnections;
+	public Dictionary<ulong, bool> lengthPacket;
+	public Dictionary<ulong, int> packetIndex;
+	public Dictionary<ulong, int> packetSize;
+	public Dictionary<ulong, byte[]> dataBuffer;
 
 	private IPEndPoint serverIP;
-	private int currentCode = 0;
+	private ulong currentCode = ulong.MaxValue-1;
 	private const int receiveBufferSize = 4096*4096;
 	private byte[] receiveBuffer = new byte[receiveBufferSize];
-	public Dictionary<int, int> playerRenderDistances = new Dictionary<int, int>();
+	public Dictionary<ulong, int> playerRenderDistances = new Dictionary<ulong, int>();
 	private SocketError err = new SocketError();
 
 	public List<NetMessage> queue = new List<NetMessage>();
+
+	public ulong firstConnectedID = ulong.MaxValue;
 
 	// Unity Reference
 	public ChunkLoader_Server cl;
 
 	public Server(ChunkLoader_Server cl, bool isLocal){
-    	connections = new Dictionary<int, Socket>();
-    	lengthPacket = new Dictionary<int, bool>();
-    	packetIndex = new Dictionary<int, int>();
-    	packetSize = new Dictionary<int, int>();
-    	dataBuffer = new Dictionary<int, byte[]>();
+    	connections = new Dictionary<ulong, Socket>();
+    	temporaryConnections = new Dictionary<ulong, Socket>();
+    	lengthPacket = new Dictionary<ulong, bool>();
+    	packetIndex = new Dictionary<ulong, int>();
+    	packetSize = new Dictionary<ulong, int>();
+    	dataBuffer = new Dictionary<ulong, byte[]>();
 
     	this.cl = cl;
     	this.isLocal = isLocal;
@@ -63,30 +67,41 @@ public class Server
     // Callback for connections received
     private void ConnectCallback(IAsyncResult result){
     	Socket client = this.masterSocket.EndAccept(result);
+    	ulong temporaryCode = GetCurrentCode();
 
-    	this.connections[currentCode] = client;
-    	this.lengthPacket[currentCode] = true;
-    	this.packetIndex[currentCode] = 0;
+    	this.temporaryConnections[temporaryCode] = client;
+    	this.lengthPacket[temporaryCode] = true;
+    	this.packetIndex[temporaryCode] = 0;
 
-    	Debug.Log(client.RemoteEndPoint.ToString() + " has connected with ID " + currentCode);
+    	Debug.Log(client.RemoteEndPoint.ToString() + " has connected with temporary ID " + currentCode);
     	NetMessage message = new NetMessage(NetCode.ACCEPTEDCONNECT);
-    	this.Send(message.GetMessage(), message.size, this.currentCode);
+    	this.Send(message.GetMessage(), message.size, temporaryCode, temporary:true);
 
-    	this.connections[currentCode].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), this.currentCode);
+    	this.temporaryConnections[temporaryCode].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), temporaryCode);
     	this.masterSocket.BeginAccept(new AsyncCallback(ConnectCallback), null);
-    	this.currentCode++;
     }
 
 	// Sends a byte[] to the a client given it's ID
-	public void Send(byte[] data, int length, int id){
+	public void Send(byte[] data, int length, ulong id, bool temporary=false){
 		try{
-			IAsyncResult lenResult = this.connections[id].BeginSend(this.LengthPacket(length), 0, 4, 0, out this.err, null, id);
-			this.connections[id].EndSend(lenResult);
+			if(!temporary){
+				IAsyncResult lenResult = this.connections[id].BeginSend(this.LengthPacket(length), 0, 4, 0, out this.err, null, id);
+				this.connections[id].EndSend(lenResult);
 
-			IAsyncResult result = this.connections[id].BeginSend(data, 0, length, 0, out this.err, null, id);
-			this.connections[id].EndSend(result);
+				IAsyncResult result = this.connections[id].BeginSend(data, 0, length, 0, out this.err, null, id);
+				this.connections[id].EndSend(result);
 
-			NetMessage.Broadcast(NetBroadcast.SENT, data[0], id, length);
+				NetMessage.Broadcast(NetBroadcast.SENT, data[0], id, length);
+			}
+			else{
+				IAsyncResult lenResult = this.temporaryConnections[id].BeginSend(this.LengthPacket(length), 0, 4, 0, out this.err, null, id);
+				this.temporaryConnections[id].EndSend(lenResult);
+
+				IAsyncResult result = this.temporaryConnections[id].BeginSend(data, 0, length, 0, out this.err, null, id);
+				this.temporaryConnections[id].EndSend(result);
+
+				NetMessage.Broadcast(NetBroadcast.SENT, data[0], id, length);				
+			}
 		}
 		catch(Exception e){
 			Debug.Log("SEND ERROR: " + e.ToString());
@@ -95,15 +110,27 @@ public class Server
 
 	// Sends a message to all IDs connected
 	public void SendAll(byte[] data, int length){
-		foreach(int code in this.connections.Keys)
+		foreach(ulong code in this.connections.Keys)
 			this.Send(data, length, code);
 	}
 
 	// Receive call handling
 	private void ReceiveCallback(IAsyncResult result){
 		try{
-			int currentID = (int)result.AsyncState;
-			int bytesReceived = this.connections[currentID].EndReceive(result);
+			ulong currentID = (ulong)result.AsyncState;
+			bool isTemporary = false;
+			int bytesReceived;
+
+			// If receives something before attributing AccountID
+			if(this.temporaryConnections.ContainsKey(currentID))
+				isTemporary = true;
+
+			// Gets packet size
+			if(isTemporary)
+				bytesReceived = this.temporaryConnections[currentID].EndReceive(result);
+			else
+				bytesReceived = this.connections[currentID].EndReceive(result);
+
 
 			// If has received a size packet
 			if(this.lengthPacket[currentID]){
@@ -112,7 +139,11 @@ public class Server
 				this.packetSize[currentID] = size;
 				this.lengthPacket[currentID] = false;
 				this.packetIndex[currentID] = 0;
-				this.connections[currentID].BeginReceive(receiveBuffer, 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
+
+				if(isTemporary)
+					this.temporaryConnections[currentID].BeginReceive(receiveBuffer, 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
+				else
+					this.connections[currentID].BeginReceive(receiveBuffer, 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
 				return;
 			}
 
@@ -120,7 +151,11 @@ public class Server
 			if(bytesReceived+this.packetIndex[currentID] < this.packetSize[currentID]){
 				Array.Copy(receiveBuffer, 0, this.dataBuffer[currentID], this.packetIndex[currentID], bytesReceived);
 				this.packetIndex[currentID] = this.packetIndex[currentID] + bytesReceived;
-    			this.connections[currentID].BeginReceive(receiveBuffer, 0, this.packetSize[currentID]-this.packetIndex[currentID], 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
+    			
+    			if(isTemporary)
+    				this.temporaryConnections[currentID].BeginReceive(receiveBuffer, 0, this.packetSize[currentID]-this.packetIndex[currentID], 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
+    			else
+    				this.connections[currentID].BeginReceive(receiveBuffer, 0, this.packetSize[currentID]-this.packetIndex[currentID], 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
 				return;
 			}
 
@@ -136,18 +171,22 @@ public class Server
 			this.packetIndex[currentID] = 0;
 			this.packetSize[currentID] = 0;
 
-    		this.connections[currentID].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
+			if(!isTemporary)
+    			this.connections[currentID].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
 		}
 		catch(SocketException e){
 			Debug.Log(e.Message + "\n" + e.StackTrace);
 		}
 	}
 
-	// Gets the current code and advances the variable ahead
-	public int GetCurrentCode(){
-		int current = this.currentCode;
-		this.currentCode++;
-		return current;
+	// Gets the first valid temporary ID
+	public ulong GetCurrentCode(){
+		ulong code = ulong.MaxValue-1;
+
+		while(this.temporaryConnections.ContainsKey(code))
+			code--;
+
+		return code;
 	}
 
 	/* ===========================
@@ -155,16 +194,14 @@ public class Server
 	*/
 
 	// Discovers what to do with a Message received from Server
-	public void HandleReceivedMessage(byte[] data, int id){
+	public void HandleReceivedMessage(byte[] data, ulong id){
 		try{
 			NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], id, 0);
 		}
-		catch(Exception e){
-			if(data == null)
-				Debug.Log("NULL DATA");
-
-			Debug.Log("Exception: " + e.ToString());
+		catch{
+			return;
 		}
+
 		switch((NetCode)data[0]){
 			case NetCode.SENDCLIENTINFO:
 				SendClientInfo(data, id);
@@ -197,14 +234,15 @@ public class Server
 	}	
 
 	// Captures client info
-	private void SendClientInfo(byte[] data, int id){
+	private void SendClientInfo(byte[] data, ulong id){
 		NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
-		int renderDistance = NetDecoder.ReadInt(data, 1); 
-		int seed = NetDecoder.ReadInt(data, 5);
-		int stringSize = NetDecoder.ReadInt(data, 9);
-		string worldName = NetDecoder.ReadString(data, 13, stringSize);
+		ulong accountID = NetDecoder.ReadUlong(data, 1);
+		int renderDistance = NetDecoder.ReadInt(data, 9); 
+		int seed = NetDecoder.ReadInt(data, 13);
+		int stringSize = NetDecoder.ReadInt(data, 17);
+		string worldName = NetDecoder.ReadString(data, 21, stringSize);
 
-		playerRenderDistances[id] = renderDistance;
+		playerRenderDistances[accountID] = renderDistance;
 
 		// If World Seed hasn't been set yet
 		if(this.cl.worldSeed == -1)
@@ -214,22 +252,35 @@ public class Server
 
 		// Sends Player Info
 		if(this.cl.RECEIVEDWORLDDATA){
-			Vector3 playerPos = this.cl.regionHandler.LoadPlayer();
-			message.SendServerInfo((int)playerPos.x, (int)playerPos.y, (int)playerPos.z);
-			this.Send(message.GetMessage(), message.size, id);
+			PlayerData pdat = this.cl.regionHandler.LoadPlayer(accountID);
+			Vector3 playerPos = pdat.GetPosition();
+			Vector3 playerDir = pdat.GetDirection();
+			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z);
+			this.Send(message.GetMessage(), message.size, id, temporary:true);
 		}
 
+		// Assigns a fixed ID
+		this.connections.Add(accountID, this.temporaryConnections[id]);
+		this.temporaryConnections.Remove(id);
+    	this.lengthPacket[accountID] = true;
+    	this.packetIndex[accountID] = 0;
+
 		this.cl.RECEIVEDWORLDDATA = true;
+
+		if(this.firstConnectedID == ulong.MaxValue)
+			this.firstConnectedID = accountID;
+
+    	this.connections[accountID].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), accountID);
 	}
 
 	// Gets chunk information to player
-	private void RequestChunkLoad(byte[] data, int id){
+	private void RequestChunkLoad(byte[] data, ulong id){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 
 		// If is loaded
 		if(this.cl.chunks.ContainsKey(pos)){
 			if(!this.cl.loadedChunks.ContainsKey(pos))
-				this.cl.loadedChunks.Add(pos, new List<int>());
+				this.cl.loadedChunks.Add(pos, new List<ulong>());
 
 			this.cl.loadedChunks[pos].Add(id);
 
@@ -248,13 +299,13 @@ public class Server
 				this.cl.loadedChunks[pos].Add(id);
 			}
 			else{
-				this.cl.loadedChunks.Add(pos, new List<int>(){id});
+				this.cl.loadedChunks.Add(pos, new List<ulong>(){id});
 			}
 		}
 	}
 
 	// Deletes the connection between a client and a chunk
-	private void RequestChunkUnload(byte[] data, int id){
+	private void RequestChunkUnload(byte[] data, ulong id){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 		this.cl.UnloadChunk(pos, id);
 	}
@@ -281,7 +332,7 @@ public class Server
 	}
 
 	// Sends a direct action BUD to a block
-	private void DirectBlockUpdate(byte[] data, int id){
+	private void DirectBlockUpdate(byte[] data, ulong id){
 		ChunkPos pos;
 		int x, y, z, facing;
 		ushort blockCode, state, hp;
@@ -397,7 +448,7 @@ public class Server
 				message.DirectBlockUpdate(BUDCode.BREAK, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, 0, ushort.MaxValue, ushort.MaxValue);
 				SendToClients(lastCoord.GetChunkPos(), message);				
 				this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
-				
+
 				break;
 
 			case BUDCode.LOAD:
@@ -424,25 +475,22 @@ public class Server
 	}
 
 	// Receives player position and adds it to PlayerPositions Dict
-	private void ClientPlayerPosition(byte[] data, int id){
+	private void ClientPlayerPosition(byte[] data, ulong id){
 		float x, y, z;
 	
 		x = NetDecoder.ReadFloat(data, 1);
 		y = NetDecoder.ReadFloat(data, 5);
 		z = NetDecoder.ReadFloat(data, 9);
 
-		this.cl.playerPositions[id] = new float3(x, y, z);
+		this.cl.regionHandler.allPlayerData[id].SetPosition(x, y, z);
 	}
 
 	// Receives a disconnect call from client
-	private void Disconnect(int id){
+	private void Disconnect(ulong id){
 		List<ChunkPos> toRemove = new List<ChunkPos>();
 
-		/* TODO: Save player data to Disk */
-		this.cl.playerPositions.Remove(id);
-
 		// Captures and removes all
-		foreach(KeyValuePair<ChunkPos, List<int>> item in this.cl.loadedChunks){
+		foreach(KeyValuePair<ChunkPos, List<ulong>> item in this.cl.loadedChunks){
 			if(this.cl.loadedChunks[item.Key].Contains(id)){
 				if(this.cl.loadedChunks[item.Key].Count == 1){
 					toRemove.Add(item.Key);
@@ -459,6 +507,7 @@ public class Server
 		}
 
 		this.connections.Remove(id);
+		this.cl.regionHandler.SavePlayers();
 	}
 
 	// Receives an Interaction command from client
@@ -487,7 +536,7 @@ public class Server
 
 	// Send input message to all Clients connected to a given Chunk
 	public void SendToClients(ChunkPos pos, NetMessage message){
-		foreach(int i in this.cl.loadedChunks[pos]){
+		foreach(ulong i in this.cl.loadedChunks[pos]){
 			this.Send(message.GetMessage(), message.size, i);
 		}
 	}
