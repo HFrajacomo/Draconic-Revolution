@@ -29,10 +29,11 @@ public class ChunkLoader : MonoBehaviour
     public Client client;
     public BiomeHandler biomeHandler = new BiomeHandler(0);
 
-    // Receoved from Server
-    public int playerX;
-    public int playerZ;
-    public int playerY;
+    // Received from Server
+    public float playerX;
+    public float playerZ;
+    public float playerY;
+    public float playerDirX, playerDirY, playerDirZ;
 
     // Initialization
     public GameObject playerCharacter;
@@ -53,6 +54,9 @@ public class ChunkLoader : MonoBehaviour
     private ChunkPos cachePos = new ChunkPos(0,0);
     private Chunk cacheChunk;
 
+    // DEBUG
+    public ulong testAccountID = 1;
+
 
     void Awake(){
         this.playerCharacter.SetActive(false);
@@ -71,7 +75,7 @@ public class ChunkLoader : MonoBehaviour
         // If hasn't connected to the server yet
         if(this.CONNECTEDTOSERVER && !this.SENTINFOTOSERVER){
             NetMessage playerInformation = new NetMessage(NetCode.SENDCLIENTINFO);
-            playerInformation.SendClientInfo(World.renderDistance, World.worldSeed, World.worldName);
+            playerInformation.SendClientInfo(this.testAccountID, World.renderDistance, World.worldSeed, World.worldName);
             this.renderDistance = World.renderDistance;
             this.client.Send(playerInformation.GetMessage(), playerInformation.size);
             this.SENTINFOTOSERVER = true;
@@ -88,7 +92,8 @@ public class ChunkLoader : MonoBehaviour
         // If has received chunks and needs to load them
         else if(this.PLAYERSPAWNED && !this.REQUESTEDCHUNKS){
             this.player.position = new Vector3(playerX, playerY, playerZ);
-            newChunk = new ChunkPos(playerX/Chunk.chunkWidth, playerZ/Chunk.chunkWidth);
+            this.player.rotation = Quaternion.Euler(playerDirX, playerDirY, playerDirZ);
+            newChunk = new ChunkPos((int)(playerX/Chunk.chunkWidth), (int)(playerZ/Chunk.chunkWidth));
             GetChunks(true);  
             this.REQUESTEDCHUNKS = true;
             HandleClientCommunication();

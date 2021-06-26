@@ -107,9 +107,7 @@ public class Client
 	}
 
 	// Send callback to end package
-	public void SendCallback(IAsyncResult result){
-		
-	}
+	public void SendCallback(IAsyncResult result){}
 
 	/* 
 	=========================================================================
@@ -118,6 +116,9 @@ public class Client
 
 	// Discovers what to do with a Message received from Server
 	public void HandleReceivedMessage(byte[] data){
+		if(data.Length == 0)
+			return;
+
 		NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], 0, 0);
 
 		switch((NetCode)data[0]){
@@ -162,16 +163,22 @@ public class Client
 
 	// Receives Player Information as int on startup
 	private void SendServerInfo(byte[] data){
-		int x, y, z;
+		float x, y, z, xDir, yDir, zDir;
 
-		x = NetDecoder.ReadInt(data, 1);
-		y = NetDecoder.ReadInt(data, 5);
-		z = NetDecoder.ReadInt(data, 9);
+		x = NetDecoder.ReadFloat(data, 1);
+		y = NetDecoder.ReadFloat(data, 5);
+		z = NetDecoder.ReadFloat(data, 9);
+		xDir = NetDecoder.ReadFloat(data, 13);
+		yDir = NetDecoder.ReadFloat(data, 17);
+		zDir = NetDecoder.ReadFloat(data, 21);
 
 		this.cl.PLAYERSPAWNED = true;
 		this.cl.playerX = x;
 		this.cl.playerY = y;
 		this.cl.playerZ = z;
+		this.cl.playerDirX = xDir;
+		this.cl.playerDirY = yDir;
+		this.cl.playerDirZ = zDir;
 	}
 
 	// Receives a Chunk
