@@ -55,7 +55,7 @@ public class ChunkLoader : MonoBehaviour
     private Chunk cacheChunk;
 
     // DEBUG
-    public ulong testAccountID = 1;
+    private ulong testAccountID = 1;
 
 
     void Awake(){
@@ -92,7 +92,9 @@ public class ChunkLoader : MonoBehaviour
         // If has received chunks and needs to load them
         else if(this.PLAYERSPAWNED && !this.REQUESTEDCHUNKS){
             this.player.position = new Vector3(playerX, playerY, playerZ);
-            this.player.rotation = Quaternion.Euler(playerDirX, playerDirY, playerDirZ);
+
+            this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
+
             newChunk = new ChunkPos((int)(playerX/Chunk.chunkWidth), (int)(playerZ/Chunk.chunkWidth));
             GetChunks(true);  
             this.REQUESTEDCHUNKS = true;

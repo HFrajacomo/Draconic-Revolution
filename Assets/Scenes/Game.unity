@@ -375,6 +375,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 59614820}
+  cl: {fileID: 1192772367}
   speed: 10
   gravity: -19.62
   jumpHeight: 5
@@ -2116,6 +2117,9 @@ MonoBehaviour:
   playerX: 0
   playerZ: 0
   playerY: 0
+  playerDirX: 0
+  playerDirY: 0
+  playerDirZ: 0
   playerCharacter: {fileID: 59614818}
   rend: {fileID: 471797234}
   WORLD_GENERATED: 0
@@ -3321,6 +3325,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d801250dfbe447349a16c23c03bdd8a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cl: {fileID: 1192772367}
   xSensitivity: 0.1
   ySensitivity: 0.14
   playerBody: {fileID: 59614821}

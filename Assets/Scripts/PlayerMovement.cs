@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
 {
 
 	public CharacterController controller;
+    public ChunkLoader cl;
 	public float speed = 5f;
 	public float gravity = -19.62f;
 	public float jumpHeight = 5f;
@@ -18,6 +19,11 @@ public class PlayerMovement : MonoBehaviour
     private int jumpticks = 6; // Amount of ticks the skinWidth will stick to new blocks
     public MainControllerManager controls;
 
+    // Cache
+    private NetMessage movementMessage;
+    private Vector3 position;
+    private Vector3 rotation;
+
 
     // Update is called once per frame
     void Update()
@@ -28,7 +34,7 @@ public class PlayerMovement : MonoBehaviour
 
             // If is Grounded
         	if(isGrounded){
-        		velocity.y = -1f;
+        		velocity.y = -0.1f;
         	}
             // If not, gravity affects
             else{
@@ -84,10 +90,19 @@ public class PlayerMovement : MonoBehaviour
                 controller.Move(velocity * Time.deltaTime);
                 velocity.y = 0;
             }
-
-            
-
         }
+
+        // Movement detection
+        // Sends location to server
+        if((move.sqrMagnitude > 0.01f || velocity.sqrMagnitude > 0.012f) && !MouseLook.SENTFRAMEDATA){
+            this.position = this.controller.transform.position;
+            this.rotation = this.controller.transform.eulerAngles;
+
+            this.movementMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
+            this.movementMessage.ClientPlayerPosition(this.position.x, this.position.y, this.position.z, this.rotation.x, this.rotation.y, this.rotation.z);
+            this.cl.client.Send(this.movementMessage.GetMessage(), this.movementMessage.size);
+        }
+
     }
 
 }
