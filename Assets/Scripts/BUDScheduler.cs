@@ -72,8 +72,6 @@ public class BUDScheduler : MonoBehaviour
                 }
             }
 
-            //loader.regionHandler.SavePlayer(playerTransform.position);
-
     		this.currentBUDonFrame = 0;
 
     		// Pops all elements of BUD

@@ -242,7 +242,6 @@ public class RegionFileHandler{
 
 			PlayerData pdata = new PlayerData(playerBuffer);
 			this.allPlayerData.Add(pdata.ID, pdata);
-			Debug.Log(pdata.ID);
 		}
 	}
 
@@ -305,6 +304,7 @@ public class RegionFileHandler{
 			this.pool[pos].Close();
 		}
 
+		SavePlayers();
 		this.playerFile.Close();
 		this.worldFile.Close();
 	}

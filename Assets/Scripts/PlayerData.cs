@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
 
-public struct PlayerData
+public class PlayerData
 {
 	public ulong ID;
 	public float posX, posY, posZ, dirX, dirY, dirZ;
@@ -60,5 +60,9 @@ public struct PlayerData
 		this.dirX = x;
 		this.dirY = y;
 		this.dirZ = z;
+	}
+
+	public void SetID(ulong newID){
+		this.ID = newID;
 	}
 }

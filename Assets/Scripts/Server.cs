@@ -262,6 +262,7 @@ public class Server
 		// Assigns a fixed ID
 		this.connections.Add(accountID, this.temporaryConnections[id]);
 		this.temporaryConnections.Remove(id);
+
     	this.lengthPacket[accountID] = true;
     	this.packetIndex[accountID] = 0;
 
@@ -269,6 +270,8 @@ public class Server
 
 		if(this.firstConnectedID == ulong.MaxValue)
 			this.firstConnectedID = accountID;
+
+		Debug.Log("Temporary ID: " + id + " was assigned to ID: " + accountID);
 
     	this.connections[accountID].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), accountID);
 	}
@@ -476,13 +479,13 @@ public class Server
 
 	// Receives player position and adds it to PlayerPositions Dict
 	private void ClientPlayerPosition(byte[] data, ulong id){
-		float x, y, z;
+		float3 pos, dir;
 	
-		x = NetDecoder.ReadFloat(data, 1);
-		y = NetDecoder.ReadFloat(data, 5);
-		z = NetDecoder.ReadFloat(data, 9);
+		pos = NetDecoder.ReadFloat3(data, 1);
+		dir = NetDecoder.ReadFloat3(data, 13);
 
-		this.cl.regionHandler.allPlayerData[id].SetPosition(x, y, z);
+		this.cl.regionHandler.allPlayerData[id].SetPosition(pos.x, pos.y, pos.z);
+		this.cl.regionHandler.allPlayerData[id].SetDirection(dir.x, dir.y, dir.z);
 	}
 
 	// Receives a disconnect call from client
