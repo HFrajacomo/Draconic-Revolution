@@ -285,7 +285,8 @@ public class Server
 			if(!this.cl.loadedChunks.ContainsKey(pos))
 				this.cl.loadedChunks.Add(pos, new List<ulong>());
 
-			this.cl.loadedChunks[pos].Add(id);
+			if(!this.cl.loadedChunks[pos].Contains(id))
+				this.cl.loadedChunks[pos].Add(id);
 
 			NetMessage message = new NetMessage(NetCode.SENDCHUNK);
 			message.SendChunk(this.cl.chunks[pos]);
@@ -293,13 +294,14 @@ public class Server
 			this.Send(message.GetMessage(), message.size, id);
 		}
 		else{
-			// If it's not to be loaded yet
+			// If it's not loaded yet
 			if(!this.cl.toLoad.Contains(pos))
 				this.cl.toLoad.Add(pos);
 
 			// If was already issued a SendChunk call
 			if(this.cl.loadedChunks.ContainsKey(pos)){
-				this.cl.loadedChunks[pos].Add(id);
+				if(!this.cl.loadedChunks[pos].Contains(id))
+					this.cl.loadedChunks[pos].Add(id);
 			}
 			else{
 				this.cl.loadedChunks.Add(pos, new List<ulong>(){id});
@@ -310,7 +312,8 @@ public class Server
 	// Deletes the connection between a client and a chunk
 	private void RequestChunkUnload(byte[] data, ulong id){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
-		this.cl.UnloadChunk(pos, id);
+		Debug.Log("UnloadRequest");
+        this.cl.UnloadChunk(pos, id);
 	}
 
 	// Processes a simple BUD request
@@ -495,12 +498,7 @@ public class Server
 		// Captures and removes all
 		foreach(KeyValuePair<ChunkPos, List<ulong>> item in this.cl.loadedChunks){
 			if(this.cl.loadedChunks[item.Key].Contains(id)){
-				if(this.cl.loadedChunks[item.Key].Count == 1){
-					toRemove.Add(item.Key);
-				}
-				else{
-					this.cl.loadedChunks[item.Key].Remove(id);
-				}
+				toRemove.Add(item.Key);
 			}
 
 		}
@@ -539,8 +537,12 @@ public class Server
 
 	// Send input message to all Clients connected to a given Chunk
 	public void SendToClients(ChunkPos pos, NetMessage message){
+		if(message.code == NetCode.VFXDATA)
+			Debug.Log(pos);
 		foreach(ulong i in this.cl.loadedChunks[pos]){
 			this.Send(message.GetMessage(), message.size, i);
+			if(message.code == NetCode.VFXDATA)
+				Debug.Log(i);
 		}
 	}
 

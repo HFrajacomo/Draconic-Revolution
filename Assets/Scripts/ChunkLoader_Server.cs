@@ -213,7 +213,7 @@ public class ChunkLoader_Server : MonoBehaviour
         }
     }
 
-    // Severs the connection of a Client to a chunk
+    // Post-processing of all deletes chunks from cl.chunks
     public void UnloadChunk(ChunkPos pos, ulong id){
         this.loadedChunks[pos].Remove(id);
 
@@ -223,6 +223,7 @@ public class ChunkLoader_Server : MonoBehaviour
             this.chunks.Remove(pos);
             this.vfx.RemoveChunk(pos, isServer:true);
         }
+
     }
 
     // Sends chunk information to all requesting clients
