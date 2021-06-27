@@ -286,8 +286,12 @@ public class ChunkLoader : MonoBehaviour
             
             Chunk popChunk = chunks[toUnload[0]];
             Destroy(popChunk.obj);
-            chunks.Remove(popChunk.pos);      
+            chunks.Remove(popChunk.pos);
             vfx.RemoveChunk(popChunk.pos);
+
+            NetMessage message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
+            message.RequestChunkUnload(toUnload[0]);
+            this.client.Send(message.GetMessage(), message.size);
 
             toUnload.RemoveAt(0);
         }
