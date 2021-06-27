@@ -11,6 +11,8 @@ public class Client
 	// Internet Objects
 	private Socket socket;
 	private SocketError err;
+	private DateTime lastMessageTime;
+	private int timeoutSeconds = 5;
 
 	// Data Management
 	private const int sendBufferSize = 4096; // 4KB
@@ -48,6 +50,9 @@ public class Client
 	// Receive call handling
 	private void ReceiveCallback(IAsyncResult result){
 		try{
+			// Resets timeout timer
+			this.lastMessageTime = DateTime.Now;
+
 			int bytesReceived = this.socket.EndReceive(result);
 
 			// If has received a length Packet
@@ -108,6 +113,16 @@ public class Client
 
 	// Send callback to end package
 	public void SendCallback(IAsyncResult result){}
+
+	// Checks if timeout has occured on server
+	public void CheckTimeout(){
+		if((DateTime.Now - this.lastMessageTime).Seconds > this.timeoutSeconds){
+	        this.socket.Close();
+	        Debug.Log("Timeout");
+
+	        SceneManager.LoadScene(0);
+		}
+	}
 
 	/* 
 	=========================================================================

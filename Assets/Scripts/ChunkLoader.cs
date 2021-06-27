@@ -126,11 +126,12 @@ public class ChunkLoader : MonoBehaviour
                 GetChunks(false);
             }
 
-            HandleClientCommunication();
-        	UnloadChunk();
 
+            HandleClientCommunication();
+            this.client.CheckTimeout();
+            
+        	UnloadChunk();
             LoadChunk();
-                
             RequestChunk();
             DrawChunk();
             UpdateChunk();
