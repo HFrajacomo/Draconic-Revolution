@@ -5,6 +5,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class Client
 {
@@ -117,10 +118,9 @@ public class Client
 	// Checks if timeout has occured on server
 	public void CheckTimeout(){
 		if((DateTime.Now - this.lastMessageTime).Seconds > this.timeoutSeconds){
-	        this.socket.Close();
 	        Debug.Log("Timeout");
 
-	        SceneManager.LoadScene(0);
+	        Disconnect();
 		}
 	}
 
@@ -204,7 +204,11 @@ public class Client
 	// Receives a disconnect call from server
 	private void Disconnect(){
 		this.socket.Close();
-		SceneManager.LoadScene(0);
+		Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        
+
+        SceneManager.LoadScene("Menu");
 	}
 
 	// Receives a Direct Block Update from server

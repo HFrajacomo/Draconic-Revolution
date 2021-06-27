@@ -16,6 +16,11 @@ public class MainMenu : MonoBehaviour
 	public Text renderField;
 
 
+	public void Start(){
+		Resources.UnloadUnusedAssets();
+		System.GC.Collect();
+	}
+
 	public void StartGame(){
 		int rn;
 

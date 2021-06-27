@@ -51,7 +51,7 @@ public class ChunkLoader : MonoBehaviour
     public bool SENTINFOTOSERVER = false;
 
     // Timer
-    private ubyte timer = 0;
+    private byte timer = 0;
 
     // Cache Data
     private ChunkPos cachePos = new ChunkPos(0,0);
@@ -72,6 +72,10 @@ public class ChunkLoader : MonoBehaviour
     void OnApplicationQuit(){
         NetMessage message = new NetMessage(NetCode.DISCONNECT);
         this.client.Send(message.GetMessage(), message.size);
+    }
+
+    void OnDisable(){
+        this.biomeHandler.Clear();
     }
 
     void Update(){
