@@ -11,12 +11,12 @@ public class TimeOfDay : MonoBehaviour
 	public byte minutes = 0;
 	public byte hours = 6;
 	public uint days = 0;
-	public int DEBUGTIMEMULT=1;
     private byte[] timeArray = new byte[7];
     public bool LOCKTIME = true;
     public bool isClient;
 
     private bool SENDTIMEFLAG = false;
+    private bool CHECKTIMEOUT = false;
 
     void Update()
     {
@@ -26,12 +26,13 @@ public class TimeOfDay : MonoBehaviour
             if(this.server.connections.Count == 0)
                 return;
 
-            ticks += Time.deltaTime * 10 * DEBUGTIMEMULT;
+            ticks += Time.deltaTime * 10;
 
             if(ticks >= 20){
             	ticks = 0f;
             	minutes++;
                 this.SENDTIMEFLAG = true;
+                this.CHECKTIMEOUT = true;
             }
 
             if(minutes >= 60){
@@ -44,6 +45,7 @@ public class TimeOfDay : MonoBehaviour
             	days++;
             }
 
+            // If server, sends time update to client
             if(this.SENDTIMEFLAG && !this.isClient){
                 NetMessage message = new NetMessage(NetCode.SENDGAMETIME);
                 message.SendGameTime(this.days, this.hours, this.minutes);
@@ -51,6 +53,13 @@ public class TimeOfDay : MonoBehaviour
 
                 this.SENDTIMEFLAG = false;
             }
+
+            // If server, checks for timeouts
+            if(this.CHECKTIMEOUT && !this.isClient){
+                this.server.CheckTimeout();
+                this.CHECKTIMEOUT = false;
+            }
+
         }
 
         // Debug to advance time

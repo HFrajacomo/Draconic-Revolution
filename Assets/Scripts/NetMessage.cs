@@ -250,6 +250,7 @@ public enum NetCode{
 	VFXCHANGE,
 	VFXBREAK,
 	SENDGAMETIME,
+	HEARTBEAT, // No call
 	DISCONNECT  // No call
 }
 

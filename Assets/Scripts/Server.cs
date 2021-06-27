@@ -19,6 +19,7 @@ public class Server
 	public Dictionary<ulong, int> packetIndex;
 	public Dictionary<ulong, int> packetSize;
 	public Dictionary<ulong, byte[]> dataBuffer;
+	public Dictionary<ulong, DateTime> timeoutTimers;
 
 	private IPEndPoint serverIP;
 	private ulong currentCode = ulong.MaxValue-1;
@@ -30,6 +31,7 @@ public class Server
 	public List<NetMessage> queue = new List<NetMessage>();
 
 	public ulong firstConnectedID = ulong.MaxValue;
+	private int timeoutSeconds = 5;
 
 	// Unity Reference
 	public ChunkLoader_Server cl;
@@ -37,6 +39,7 @@ public class Server
 	public Server(ChunkLoader_Server cl, bool isLocal){
     	connections = new Dictionary<ulong, Socket>();
     	temporaryConnections = new Dictionary<ulong, Socket>();
+    	timeoutTimers = new Dictionary<ulong, DateTime>();
     	lengthPacket = new Dictionary<ulong, bool>();
     	packetIndex = new Dictionary<ulong, int>();
     	packetSize = new Dictionary<ulong, int>();
@@ -227,6 +230,9 @@ public class Server
 			case NetCode.INTERACT:
 				Interact(data);
 				break;
+			case NetCode.HEARTBEAT:
+				Heartbeat(id);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED");
 				break;
@@ -271,6 +277,8 @@ public class Server
 		if(this.firstConnectedID == ulong.MaxValue)
 			this.firstConnectedID = accountID;
 
+		this.timeoutTimers.Add(accountID, DateTime.Now);
+
 		Debug.Log("Temporary ID: " + id + " was assigned to ID: " + accountID);
 
     	this.connections[accountID].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), accountID);
@@ -312,7 +320,6 @@ public class Server
 	// Deletes the connection between a client and a chunk
 	private void RequestChunkUnload(byte[] data, ulong id){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
-		Debug.Log("UnloadRequest");
         this.cl.UnloadChunk(pos, id);
 	}
 
@@ -507,8 +514,17 @@ public class Server
 			this.cl.UnloadChunk(pos, id);
 		}
 
+		this.connections[id].Close();
 		this.connections.Remove(id);
+		this.timeoutTimers.Remove(id);
+		this.lengthPacket.Remove(id);
+		this.dataBuffer.Remove(id);
+		this.packetIndex.Remove(id);
+		this.packetSize.Remove(id);
+		
 		this.cl.regionHandler.SavePlayers();
+
+		Debug.Log("ID: " + id + " has disconnected");
 	}
 
 	// Receives an Interaction command from client
@@ -531,6 +547,11 @@ public class Server
 
 		// Actual handling of message
 		CallbackHandler(callback, pos, current, facing);		
+	}
+
+	// Receives a heartbeat from a client to reset it's timeoutTimers
+	private void Heartbeat(ulong id){
+		this.timeoutTimers[id] = DateTime.Now;
 	}
 
 	// Auxiliary Functions
@@ -618,6 +639,15 @@ public class Server
 		output[3] = (byte)a;
 
 		return output;
+	}
+
+	// Checks timeout in all sockets
+	public void CheckTimeout(){
+		foreach(ulong id in this.timeoutTimers.Keys){
+			if((DateTime.Now - this.timeoutTimers[id]).Seconds > this.timeoutSeconds){
+				Disconnect(id);
+			}
+		}
 	}
 
 }
