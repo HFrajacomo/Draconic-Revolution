@@ -499,7 +499,7 @@ public class Server
 	}
 
 	// Receives a disconnect call from client
-	private void Disconnect(ulong id){
+	private void Disconnect(ulong id, bool voluntary=true){
 		List<ChunkPos> toRemove = new List<ChunkPos>();
 
 		// Captures and removes all
@@ -524,7 +524,10 @@ public class Server
 		
 		this.cl.regionHandler.SavePlayers();
 
-		Debug.Log("ID: " + id + " has disconnected");
+		if(voluntary)
+			Debug.Log("ID: " + id + " has disconnected");
+		else
+			Debug.Log("ID: " + id + " has lost connection");
 	}
 
 	// Receives an Interaction command from client
@@ -643,11 +646,16 @@ public class Server
 
 	// Checks timeout in all sockets
 	public void CheckTimeout(){
+		List<ulong> toRemove = new List<ulong>();
+
 		foreach(ulong id in this.timeoutTimers.Keys){
 			if((DateTime.Now - this.timeoutTimers[id]).Seconds > this.timeoutSeconds){
-				Disconnect(id);
+				toRemove.Add(id);
 			}
 		}
+
+		foreach(ulong id in toRemove)
+			Disconnect(id, voluntary:false);
 	}
 
 }

@@ -11,7 +11,7 @@ public struct NetMessage
 	private static byte[] buffer = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 5]; // 2MB
 	private byte[] data;
 
-	private static bool broadcastReceived = true;
+	private static bool broadcastReceived = false;
 	private static bool broadcastSent = false;
 	private static bool broadcastProcessed = false;
 
