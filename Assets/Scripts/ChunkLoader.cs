@@ -50,12 +50,15 @@ public class ChunkLoader : MonoBehaviour
     public bool CONNECTEDTOSERVER = false;
     public bool SENTINFOTOSERVER = false;
 
+    // Timer
+    private ubyte timer = 0;
+
     // Cache Data
     private ChunkPos cachePos = new ChunkPos(0,0);
     private Chunk cacheChunk;
 
     // DEBUG
-    private ulong testAccountID = 1;
+    private ulong testAccountID = 2;
 
 
     void Awake(){
@@ -128,8 +131,8 @@ public class ChunkLoader : MonoBehaviour
 
 
             HandleClientCommunication();
-            this.client.CheckTimeout();
-            
+            RunTimerFunctions();
+
         	UnloadChunk();
             LoadChunk();
             RequestChunk();
@@ -137,6 +140,20 @@ public class ChunkLoader : MonoBehaviour
             UpdateChunk();
         }
     }
+
+    // Run attached messages to a 30 tick timer
+    private void RunTimerFunctions(){
+        if(this.timer < 30)
+            this.timer++;
+        else{
+            this.client.CheckTimeout();
+            NetMessage heartbeat = new NetMessage(NetCode.HEARTBEAT);
+            this.client.Send(heartbeat.GetMessage(), heartbeat.size);
+
+            this.timer = 0;
+        }
+    }
+
     
     // Handles communication received from Server
     private void HandleClientCommunication(){
