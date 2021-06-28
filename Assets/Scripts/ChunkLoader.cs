@@ -34,6 +34,9 @@ public class ChunkLoader : MonoBehaviour
     public float playerZ;
     public float playerY;
     public float playerDirX, playerDirY, playerDirZ;
+    
+    // Unity Reference
+    public PlayerMovement playerMovement;
 
     // Initialization
     public GameObject playerCharacter;

@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
+using Unity.Mathematics;
 
 public class Client
 {
@@ -14,6 +15,9 @@ public class Client
 	private SocketError err;
 	private DateTime lastMessageTime;
 	private int timeoutSeconds = 5;
+
+	// Entity Handler
+	public EntityHandler entityHandler = new EntityHandler();
 
 	// Data Management
 	private const int sendBufferSize = 4096; // 4KB
@@ -164,6 +168,12 @@ public class Client
 			case NetCode.SENDGAMETIME:
 				SendGameTime(data);
 				break;
+			case NetCode.ENTITYDATA:
+				EntityData(data);
+				break;
+			case NetCode.ENTITYDELETE:
+				EntityDelete(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -176,9 +186,10 @@ public class Client
 		Debug.Log("Connected to Server at " + this.socket.RemoteEndPoint.ToString());
 	}
 
-	// Receives Player Information as int on startup
+	// Receives Player Information saved on server on startup
 	private void SendServerInfo(byte[] data){
 		float x, y, z, xDir, yDir, zDir;
+		CastCoord initialCoord;
 
 		x = NetDecoder.ReadFloat(data, 1);
 		y = NetDecoder.ReadFloat(data, 5);
@@ -194,6 +205,11 @@ public class Client
 		this.cl.playerDirX = xDir;
 		this.cl.playerDirY = yDir;
 		this.cl.playerDirZ = zDir;
+
+		// Finds current Chunk and sends position data
+		initialCoord = new CastCoord(x, y, z);
+		this.cl.playerMovement.SetCurrentChunkPos(initialCoord.GetChunkPos());
+		this.cl.playerMovement.SendChunkPosMessage();
 	}
 
 	// Receives a Chunk
@@ -206,7 +222,6 @@ public class Client
 		this.socket.Close();
 		Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        
 
         SceneManager.LoadScene("Menu");
 	}
@@ -332,6 +347,26 @@ public class Client
 		this.cl.time.SetTime(days, hours, minutes);
 	}
 
+	// Receives data regarding an entity
+	private void EntityData(byte[] data){
+		EntityType type = (EntityType)data[1];
+		ulong code = NetDecoder.ReadUlong(data, 2);
+		float3 pos = NetDecoder.ReadFloat3(data, 10);
+		float3 dir = NetDecoder.ReadFloat3(data, 22);
+
+		if(this.entityHandler.Contains(type, code))
+			this.entityHandler.Move(type, code, pos, dir);
+		else
+			this.entityHandler.Add(type, code, pos, dir);
+	}
+
+	// Receives entity deletion command
+	private void EntityDelete(byte[] data){
+		EntityType type = (EntityType)data[1];
+		ulong code = NetDecoder.ReadUlong(data, 2);
+
+		this.entityHandler.Remove(type, code);	
+	}
 
 
 	// Returns a byte array representation of a int

@@ -5,19 +5,25 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-
-	public CharacterController controller;
+    // Unity Reference
     public ChunkLoader cl;
+
+    // Movement properties
+	public CharacterController controller;
 	public float speed = 5f;
 	public float gravity = -19.62f;
 	public float jumpHeight = 5f;
     public LayerMask layerMask;
     public bool isGrounded;
 	public Vector3 velocity;
-
     public Vector3 move;
     private int jumpticks = 6; // Amount of ticks the skinWidth will stick to new blocks
     public MainControllerManager controls;
+
+    // Position properties
+    private ChunkPos currentPos;
+    private ChunkPos lastPos;
+    private CastCoord cacheCoord;
 
     // Cache
     private NetMessage movementMessage;
@@ -101,8 +107,30 @@ public class PlayerMovement : MonoBehaviour
             this.movementMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
             this.movementMessage.ClientPlayerPosition(this.position.x, this.position.y, this.position.z, this.rotation.x, this.rotation.y, this.rotation.z);
             this.cl.client.Send(this.movementMessage.GetMessage(), this.movementMessage.size);
+        
+            // Sends ClientChunk Message
+            this.cacheCoord = new CastCoord(this.position);
+            if(this.currentPos == null){
+                this.currentPos = this.cacheCoord.GetChunkPos();
+                this.lastPos = this.cacheCoord.GetChunkPos();
+            }
+            else if(this.currentPos != this.cacheCoord.GetChunkPos()){
+                this.currentPos = this.cacheCoord.GetChunkPos();
+                SendChunkPosMessage();
+                this.lastPos = this.currentPos;
+            }
         }
 
     }
 
+    public void SetCurrentChunkPos(ChunkPos pos){
+        this.currentPos = pos;
+        this.lastPos = pos;
+    }
+
+    public void SendChunkPosMessage(){
+        NetMessage message = new NetMessage(NetCode.CLIENTCHUNK);
+        message.ClientChunk(this.lastPos, this.currentPos);
+        this.cl.client.Send(message.GetMessage(), message.size);
+    }
 }
