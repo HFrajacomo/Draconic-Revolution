@@ -232,6 +232,32 @@ public struct NetMessage
 		this.size = 7;
 	}
 
+	// Server sends entity data to Client
+	public void EntityData(EntityType type, ulong code, float posX, float posY, float posZ, float dirX, float dirY, float dirZ){
+		NetDecoder.WriteByte((byte)type, NetMessage.buffer, 1);
+		NetDecoder.WriteLong(code, NetMessage.buffer, 2);
+		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 10);
+		NetDecoder.WriteFloat3(dirX, dirY, dirZ, NetMessage.buffer, 22);
+		this.size = 34;
+	}
+	public void EntityData(PlayerData pdat){
+		EntityData(EntityType.PLAYER, pdat.GetID(), pdat.posX, pdat.posY, pdat.posZ, pdat.dirX, pdat.dirY, pdat.dirZ);
+	}
+
+	// Server sends a deletion command to out-of-bounds entities to Client
+	public void EntityDelete(EntityType type, ulong code){
+		NetDecoder.WriteByte((byte)type, NetMessage.buffer, 1);
+		NetDecoder.WriteLong(code, NetMessage.buffer, 2);
+		this.size = 10;
+	}
+
+	// Client sends the chunk the player is currently in
+	public void ClientChunk(ChunkPos lastPos, ChunkPos newPos){
+		NetDecoder.WriteChunkPos(lastPos, NetMessage.buffer, 1);
+		NetDecoder.WriteChunkPos(newPos, NetMessage.buffer, 9);
+		this.size = 17;
+	}
+
 }
 
 public enum NetCode{
@@ -251,6 +277,9 @@ public enum NetCode{
 	VFXBREAK,
 	SENDGAMETIME,
 	HEARTBEAT, // No call
+	ENTITYDATA,
+	ENTITYDELETE,
+	CLIENTCHUNK,
 	DISCONNECT  // No call
 }
 
@@ -259,4 +288,12 @@ public enum NetBroadcast{
 	RECEIVED,
 	SENT,
 	PROCESSED
+}
+
+public enum EntityType{
+	PLAYER,
+	NPC,
+	MOB,
+	OBJECT,
+	DROP
 }

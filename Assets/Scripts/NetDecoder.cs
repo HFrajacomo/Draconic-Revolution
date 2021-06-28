@@ -128,6 +128,12 @@ public static class NetDecoder
 		NetDecoder.WriteFloat(f.z, data, pos+8);
 	}
 
+	public static void WriteFloat3(float f, float f2, float f3, byte[] data, int pos){
+		NetDecoder.WriteFloat(f, data, pos);
+		NetDecoder.WriteFloat(f2, data, pos+4);
+		NetDecoder.WriteFloat(f3, data, pos+8);
+	}
+
 	public static void WriteFloat3(Vector3 v, byte[] data, int pos){
 		NetDecoder.WriteFloat(v.x, data, pos);
 		NetDecoder.WriteFloat(v.y, data, pos+4);

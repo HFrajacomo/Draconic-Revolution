@@ -21,6 +21,8 @@ public class Server
 	public Dictionary<ulong, byte[]> dataBuffer;
 	public Dictionary<ulong, DateTime> timeoutTimers;
 
+	public Dictionary<ulong, HashSet<ulong>> connectionGraph;
+
 	private IPEndPoint serverIP;
 	private ulong currentCode = ulong.MaxValue-1;
 	private const int receiveBufferSize = 4096*4096;
@@ -44,6 +46,7 @@ public class Server
     	packetIndex = new Dictionary<ulong, int>();
     	packetSize = new Dictionary<ulong, int>();
     	dataBuffer = new Dictionary<ulong, byte[]>();
+    	connectionGraph = new Dictionary<ulong, HashSet<ulong>>();
 
     	this.cl = cl;
     	this.isLocal = isLocal;
@@ -233,6 +236,9 @@ public class Server
 			case NetCode.HEARTBEAT:
 				Heartbeat(id);
 				break;
+			case NetCode.CLIENTCHUNK:
+				ClientChunk(data, id);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED");
 				break;
@@ -313,6 +319,18 @@ public class Server
 			}
 			else{
 				this.cl.loadedChunks.Add(pos, new List<ulong>(){id});
+			}
+		}
+
+		NetMessage playerMessage = new NetMessage(NetCode.ENTITYDATA);
+
+		// Sends logged in players data
+		if(PlayerData.playersInChunk.ContainsKey(pos)){
+			foreach(ulong code in PlayerData.playersInChunk[pos]){
+				if(this.cl.regionHandler.allPlayerData[code].IsOnline()){
+					playerMessage.EntityData(this.cl.regionHandler.allPlayerData[code]);
+					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
+				}
 			}
 		}
 	}
@@ -490,12 +508,19 @@ public class Server
 	// Receives player position and adds it to PlayerPositions Dict
 	private void ClientPlayerPosition(byte[] data, ulong id){
 		float3 pos, dir;
+		NetMessage graphMessage = new NetMessage(NetCode.ENTITYDATA);
 	
 		pos = NetDecoder.ReadFloat3(data, 1);
 		dir = NetDecoder.ReadFloat3(data, 13);
 
 		this.cl.regionHandler.allPlayerData[id].SetPosition(pos.x, pos.y, pos.z);
 		this.cl.regionHandler.allPlayerData[id].SetDirection(dir.x, dir.y, dir.z);
+
+		// Propagates data to all network
+		foreach(ulong code in this.connectionGraph[id]){
+			graphMessage.EntityData(this.cl.regionHandler.allPlayerData[id]);
+			this.Send(graphMessage.GetMessage(), graphMessage.size, code);
+		}
 	}
 
 	// Receives a disconnect call from client
@@ -521,8 +546,20 @@ public class Server
 		this.dataBuffer.Remove(id);
 		this.packetIndex.Remove(id);
 		this.packetSize.Remove(id);
+		this.playerRenderDistances.Remove(id);
+		this.connectionGraph.Remove(id);
 		
+		foreach(ulong code in this.cl.regionHandler.allPlayerData.Keys){
+			// If iterates through non-online user
+			if(!this.cl.regionHandler.allPlayerData[code].IsOnline())
+				continue;
+			// If finds connection to it, erase
+			if(this.connectionGraph[code].Contains(id))
+				this.connectionGraph[code].Remove(id);
+		}
+
 		this.cl.regionHandler.SavePlayers();
+		this.cl.regionHandler.allPlayerData[id].SetOnline(false);
 
 		if(voluntary)
 			Debug.Log("ID: " + id + " has disconnected");
@@ -557,16 +594,67 @@ public class Server
 		this.timeoutTimers[id] = DateTime.Now;
 	}
 
+	// Receives the client's current chunk and finds the connections it has with other players
+	private void ClientChunk(byte[] data, ulong id){
+		ChunkPos lastPos = NetDecoder.ReadChunkPos(data, 1);
+		ChunkPos newPos = NetDecoder.ReadChunkPos(data, 9);
+
+		// Removes last ChunkPos if exists
+		if(PlayerData.playersInChunk[lastPos].Count > 1)
+			PlayerData.playersInChunk[lastPos].Remove(id);
+		else
+			PlayerData.playersInChunk.Remove(lastPos);
+
+		// Add new ChunkPos
+		if(!PlayerData.playersInChunk.ContainsKey(newPos))
+			PlayerData.playersInChunk.Add(newPos, new HashSet<ulong>(){id});
+		else
+			PlayerData.playersInChunk[newPos].Add(id);
+
+		// Finds the connections
+		ChunkPos targetPos;
+		HashSet<ulong> disconnectedSet = new HashSet<ulong>();
+		NetMessage killMessage = new NetMessage(NetCode.ENTITYDELETE);
+		this.connectionGraph[id].Clear();
+
+		foreach(ulong code in this.cl.regionHandler.allPlayerData.Keys){
+			// If iterates through itself
+			if(code == id)
+				continue;
+			// If iterates through non-online user
+			if(!this.cl.regionHandler.allPlayerData[code].IsOnline())
+				continue;
+			// If finds connection to it, erase
+			if(this.connectionGraph[code].Contains(id)){
+				this.connectionGraph[code].Remove(id);
+				disconnectedSet.Add(code);
+			}
+
+			// Finds a match
+			targetPos = this.cl.regionHandler.allPlayerData[code].GetChunkPos();
+			if(Mathf.Abs(newPos.x - targetPos.x) <= this.playerRenderDistances[id] && Mathf.Abs(newPos.z - targetPos.z) <= this.playerRenderDistances[id]){
+				this.connectionGraph[code].Add(id);
+				this.connectionGraph[id].Add(code);
+
+				if(disconnectedSet.Contains(code))
+					disconnectedSet.Remove(code);
+			}
+		}
+
+		// Send Kill entity message to run-out players
+		foreach(ulong code in disconnectedSet){
+			killMessage.EntityDelete(EntityType.PLAYER, id);
+			this.Send(killMessage.GetMessage(), killMessage.size, code);
+		}
+	}
+
+
 	// Auxiliary Functions
 
 	// Send input message to all Clients connected to a given Chunk
 	public void SendToClients(ChunkPos pos, NetMessage message){
-		if(message.code == NetCode.VFXDATA)
-			Debug.Log(pos);
 		foreach(ulong i in this.cl.loadedChunks[pos]){
 			this.Send(message.GetMessage(), message.size, i);
-			if(message.code == NetCode.VFXDATA)
-				Debug.Log(i);
 		}
 	}
 
@@ -609,8 +697,6 @@ public class Server
 
 		int[] facings = {2,0,4,5,1,3};
 
-
-		//int blockCode;
 		int faceCounter=0;
 
 		foreach(CastCoord c in neighbors){
@@ -618,8 +704,6 @@ public class Server
 			if(c.blockY < 0 || c.blockY > Chunk.chunkDepth-1){
 				continue;
 			}
-
-			//blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
 
 			cachedBUD = new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]);
 			cl.budscheduler.ScheduleBUD(cachedBUD, tickOffset);			 
