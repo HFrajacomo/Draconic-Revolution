@@ -31,6 +31,7 @@ public class EntityHandler
 
 	// ...
 	public void Remove(EntityType type, ulong code){
+		this.playerObject[code].SetActive(false);
 		GameObject.Destroy(this.playerObject[code]);
 		this.playerObject.Remove(code);
 	}

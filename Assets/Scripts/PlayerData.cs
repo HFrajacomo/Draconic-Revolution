@@ -6,8 +6,6 @@ using Unity.Mathematics;
 
 public class PlayerData
 {
-	public static Dictionary<ChunkPos, HashSet<ulong>> playersInChunk = new Dictionary<ChunkPos, HashSet<ulong>>(); 
-
 	public ulong ID;
 	public float posX, posY, posZ, dirX, dirY, dirZ;
 	private ChunkPos pos;
@@ -26,12 +24,6 @@ public class PlayerData
 		this.isOnline = true;
 
 		this.pos = this.GetChunkPos();
-
-		if(!PlayerData.playersInChunk.ContainsKey(this.pos))
-			PlayerData.playersInChunk.Add(this.pos, new HashSet<ulong>(){this.ID});
-		else
-			PlayerData.playersInChunk[this.pos].Add(this.ID);
-
 	}
 
 	// Loads PlayerData from pdat file
@@ -49,13 +41,6 @@ public class PlayerData
 		this.pos = this.GetChunkPos();
 	}
 
-	// Removes data from static dict if destroyed
-	~PlayerData(){
-		if(PlayerData.playersInChunk[this.pos].Count > 1)
-			PlayerData.playersInChunk[this.pos].Remove(this.ID);
-		else
-			PlayerData.playersInChunk.Remove(this.pos);
-	}
 
 	public ChunkPos GetChunkPos(){
 		CastCoord coord = new CastCoord(this.posX, this.posY, this.posZ);

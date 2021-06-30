@@ -28,7 +28,7 @@ public class ChunkLoader_Server : MonoBehaviour
     // Queues
     public List<ChunkPos> toLoad = new List<ChunkPos>();
     public List<ChunkPos> toUnload = new List<ChunkPos>();
-    public Dictionary<ChunkPos, List<ulong>> loadedChunks = new Dictionary<ChunkPos, List<ulong>>();
+    public Dictionary<ChunkPos, HashSet<ulong>> loadedChunks = new Dictionary<ChunkPos, HashSet<ulong>>();
 
 	// World Generation
 	public int worldSeed = -1; // 6 number integer
@@ -86,6 +86,7 @@ public class ChunkLoader_Server : MonoBehaviour
         PlayerData pdat = this.regionHandler.LoadPlayer(this.server.firstConnectedID); // CHANGE TO OTHER ACCOUNTID
         Vector3 playerPos = pdat.GetPosition();
         Vector3 playerDir = pdat.GetDirection();
+        pdat.SetOnline(true);
 
         this.regionHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth)));
 
