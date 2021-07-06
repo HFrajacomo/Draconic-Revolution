@@ -10,6 +10,8 @@ public class PlayerData
 	public float posX, posY, posZ, dirX, dirY, dirZ;
 	private ChunkPos pos;
 	private bool isOnline;
+	private const float playerSkin = 0.4f;
+	private const float blockSkin = 0.5f;
 
 	// Loads PlayerData from positional information.
 	// Used when loading online players
@@ -39,6 +41,27 @@ public class PlayerData
 		this.isOnline = false;
 
 		this.pos = this.GetChunkPos();
+	}
+
+	// Considering players are two block tall
+	public bool CheckValidPlacement(int x, int y, int z){
+		Debug.Log("X = " + this.posX + " | " + x);
+		Debug.Log("Z = " + this.posZ + " | " + z);
+		Debug.Log("Y = " + this.posY + " | " + y + "\n");
+
+
+		if(this.posX - playerSkin <= x + blockSkin && this.posX + playerSkin >= x - blockSkin){
+			Debug.Log("X OK");
+			if(this.posZ - playerSkin <= z + blockSkin && this.posZ + playerSkin >= z - blockSkin){
+				Debug.Log("Z OK");
+				if(Mathf.Abs(y - this.posY) <= 1){
+					Debug.Log("Y OK");
+					return false;
+				}
+			}
+		}
+		return true;
+
 	}
 
 

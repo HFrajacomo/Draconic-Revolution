@@ -425,6 +425,17 @@ public class Server
 						}
 					}
 
+					// Check if is trying to put block on players
+					if(this.playersInChunk.ContainsKey(pos)){
+						foreach(ulong code in this.playersInChunk[pos]){
+							if(code == id)
+								continue;
+
+							if(!this.cl.regionHandler.allPlayerData[code].CheckValidPlacement(x, y, z))
+								return;
+						}
+					}
+
 					// If doesn't have special place handling
 					if(!cl.blockBook.CheckCustomPlace(blockCode)){
 						// Actually places block/asset into terrain

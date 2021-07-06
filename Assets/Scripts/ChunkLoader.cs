@@ -61,7 +61,7 @@ public class ChunkLoader : MonoBehaviour
     private Chunk cacheChunk;
 
     // DEBUG
-    private ulong testAccountID = 1;
+    private ulong testAccountID = 2;
 
 
     void Awake(){
