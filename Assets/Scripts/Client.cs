@@ -6,6 +6,7 @@ using Debug = UnityEngine.Debug;
 
 using UnityEngine;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine.SceneManagement;
@@ -58,12 +59,24 @@ public class Client
 			this.lanServerProcess = new Process();
 			this.lanServerProcess.StartInfo.Arguments = "-Local";
 
+			// Debug Unity edition only
 			#if UNITY_EDITOR
-				this.lanServerProcess.StartInfo.FileName = "C:\\Users\\User\\Draconic Revolution\\Build\\Server\\Server.exe";
+				// Main PC
+				if(File.Exists("C:\\Users\\User\\Draconic Revolution\\Build\\Server\\Server.exe"))
+					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\User\\Draconic Revolution\\Build\\Server\\Server.exe";
+				// Support Notebook
+				else
+					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";					
+			// Standalone edition
 			#else
-				this.lanServerProcess.StartInfo.UseShellExecute = false;
-				this.lanServerProcess.StartInfo.CreateNoWindow = true;
-				this.lanServerProcess.StartInfo.FileName = "..\\Server\\Server.exe";
+				if(File.Exists("..\\Server\\Server.exe")){
+					this.lanServerProcess.StartInfo.UseShellExecute = false;
+					this.lanServerProcess.StartInfo.CreateNoWindow = true;
+					this.lanServerProcess.StartInfo.FileName = "..\\Server\\Server.exe";
+				}
+				else{
+					Panic();
+				}
 			#endif
 
 
