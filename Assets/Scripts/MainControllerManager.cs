@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -21,10 +22,7 @@ public class MainControllerManager : MonoBehaviour
     public bool prefabReadAir = false;
     public bool freecam = false;
     public bool shifting = false;
-    public static bool reload = false;
-    public static bool debugKey = false;
     private bool HUDActive = true;
-
 
     // Unity Reference
     public GameObject mainHUD;
@@ -70,11 +68,11 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnPrefabRead(){
-        prefabRead = true;
+        //prefabRead = true;
     }
 
     public void OnPrefabReadAir(){
-        prefabReadAir = true;
+        //prefabReadAir = true;
     }
 
     public void OnToggleFreeCam(){
@@ -90,12 +88,8 @@ public class MainControllerManager : MonoBehaviour
             shifting = false;       
     }
 
-    public void OnReload(){
-        reload = true;
-    }
-
     public void OnDebugKey(){
-        MainControllerManager.debugKey = true;
+        SceneManager.LoadScene("Menu");
     }
 
     public void OnToggleHUD(){

@@ -89,12 +89,18 @@ public struct NetMessage
 	public void SendClientInfo(ulong accountID, int playerRenderDistance, int seed, string worldName){
 		// TODO: Add character name to here
 		// {CODE}[AccountID][Render] [Seed] [stringSize (int)] [worldName]
+		int len;
+		if(World.isClient)
+			len = worldName.Length;
+		else
+			len = 0;
+
 		NetDecoder.WriteLong(accountID, NetMessage.buffer, 1);
 		NetDecoder.WriteInt(playerRenderDistance, NetMessage.buffer, 9);
 		NetDecoder.WriteInt(seed, NetMessage.buffer, 13);
-		NetDecoder.WriteInt(worldName.Length, NetMessage.buffer, 17);
+		NetDecoder.WriteInt(len, NetMessage.buffer, 17);
 		NetDecoder.WriteString(worldName, NetMessage.buffer, 21);
-		this.size = 21 + worldName.Length;
+		this.size = 21 + len;
 	}
 
 	// Server sending player character position

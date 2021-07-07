@@ -128,18 +128,27 @@ public class Client
 	public void Connect(){
 		int attempts = 0;
 
-		while(attempts < this.connectionTimeout){
+		if(World.isClient){
+			while(attempts < this.connectionTimeout){
+				try{
+					this.socket.Connect(this.ip, this.port);
+					break;
+				} catch {
+					attempts++;
+					continue;
+				}
+			}
+
+			if(attempts == this.connectionTimeout)
+				Panic();
+		}
+		else{
 			try{
 				this.socket.Connect(this.ip, this.port);
-				break;
-			} catch {
-				attempts++;
-				continue;
+			} catch{
+				Panic();
 			}
 		}
-
-		if(attempts == this.connectionTimeout)
-			Panic();
 
 
 		this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), null);		

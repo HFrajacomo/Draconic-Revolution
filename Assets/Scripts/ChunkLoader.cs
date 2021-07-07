@@ -70,6 +70,7 @@ public class ChunkLoader : MonoBehaviour
         this.client = new Client(this);
         HandleClientCommunication();
         this.player.position = new Vector3(0,0,0);
+        this.testAccountID = World.accountID;
     }
 
     void OnApplicationQuit(){
@@ -79,13 +80,22 @@ public class ChunkLoader : MonoBehaviour
 
     void OnDisable(){
         this.biomeHandler.Clear();
+        NetMessage message = new NetMessage(NetCode.DISCONNECT);
+        this.client.Send(message.GetMessage(), message.size);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     void Update(){
         // If hasn't connected to the server yet
         if(this.CONNECTEDTOSERVER && !this.SENTINFOTOSERVER){
             NetMessage playerInformation = new NetMessage(NetCode.SENDCLIENTINFO);
-            playerInformation.SendClientInfo(this.testAccountID, World.renderDistance, World.worldSeed, World.worldName);
+            
+            if(World.isClient)
+                playerInformation.SendClientInfo(this.testAccountID, World.renderDistance, World.worldSeed, World.worldName);
+            else
+                playerInformation.SendClientInfo(this.testAccountID, World.renderDistance, 0, "a");
+
             this.renderDistance = World.renderDistance;
             this.client.Send(playerInformation.GetMessage(), playerInformation.size);
             this.SENTINFOTOSERVER = true;
@@ -101,7 +111,7 @@ public class ChunkLoader : MonoBehaviour
         }
         // If has received chunks and needs to load them
         else if(this.PLAYERSPAWNED && !this.REQUESTEDCHUNKS){
-            this.player.position = new Vector3(playerX, playerY, playerZ);
+            this.player.position = new Vector3(playerX, playerY+0.8f, playerZ);
 
             this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
 
@@ -126,16 +136,6 @@ public class ChunkLoader : MonoBehaviour
                 this.gameUI.SetActive(true);
                 playerCharacter.SetActive(true);
         	}
-
-            // DEV TOOLS
-            if(MainControllerManager.reload){
-                GetChunks(true);
-                MainControllerManager.reload = false;
-            }
-            else{
-                GetChunks(false);
-            }
-
 
             HandleClientCommunication();
             RunTimerFunctions();

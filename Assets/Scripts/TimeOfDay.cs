@@ -61,13 +61,6 @@ public class TimeOfDay : MonoBehaviour
             }
 
         }
-
-        // Debug to advance time
-        if(MainControllerManager.debugKey){
-            this.hours++;
-            MainControllerManager.debugKey = false;
-        }
-
     }
 
     public void SetLock(bool flag){

@@ -107,14 +107,6 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""interactions"": ""Press(behavior=2)""
                 },
                 {
-                    ""name"": ""Reload"",
-                    ""type"": ""Button"",
-                    ""id"": ""f9c214f8-0c59-4d0c-b22d-fb77c3452af5"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": ""Press""
-                },
-                {
                     ""name"": ""DebugKey"",
                     ""type"": ""Button"",
                     ""id"": ""d5e78c4f-e6e3-41f2-917b-39985b5642d5"",
@@ -379,19 +371,8 @@ public class @Controls : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""85e1fcad-506a-4d00-b2c7-157951f6dbe4"",
-                    ""path"": ""<Keyboard>/y"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard and Mouse"",
-                    ""action"": ""Reload"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""572f82ba-0257-4d27-8a3e-1e46495bd67a"",
-                    ""path"": ""<Keyboard>/z"",
+                    ""path"": ""<Keyboard>/numpad0"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard and Mouse"",
@@ -555,7 +536,6 @@ public class @Controls : IInputActionCollection, IDisposable
         m_Player_PrefabReadAir = m_Player.FindAction("PrefabReadAir", throwIfNotFound: true);
         m_Player_ToggleFreeCam = m_Player.FindAction("ToggleFreeCam", throwIfNotFound: true);
         m_Player_Shifting = m_Player.FindAction("Shifting", throwIfNotFound: true);
-        m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
         m_Player_DebugKey = m_Player.FindAction("DebugKey", throwIfNotFound: true);
         m_Player_ToggleHUD = m_Player.FindAction("ToggleHUD", throwIfNotFound: true);
         m_Player_Scroll1 = m_Player.FindAction("Scroll1", throwIfNotFound: true);
@@ -628,7 +608,6 @@ public class @Controls : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_PrefabReadAir;
     private readonly InputAction m_Player_ToggleFreeCam;
     private readonly InputAction m_Player_Shifting;
-    private readonly InputAction m_Player_Reload;
     private readonly InputAction m_Player_DebugKey;
     private readonly InputAction m_Player_ToggleHUD;
     private readonly InputAction m_Player_Scroll1;
@@ -656,7 +635,6 @@ public class @Controls : IInputActionCollection, IDisposable
         public InputAction @PrefabReadAir => m_Wrapper.m_Player_PrefabReadAir;
         public InputAction @ToggleFreeCam => m_Wrapper.m_Player_ToggleFreeCam;
         public InputAction @Shifting => m_Wrapper.m_Player_Shifting;
-        public InputAction @Reload => m_Wrapper.m_Player_Reload;
         public InputAction @DebugKey => m_Wrapper.m_Player_DebugKey;
         public InputAction @ToggleHUD => m_Wrapper.m_Player_ToggleHUD;
         public InputAction @Scroll1 => m_Wrapper.m_Player_Scroll1;
@@ -711,9 +689,6 @@ public class @Controls : IInputActionCollection, IDisposable
                 @Shifting.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShifting;
                 @Shifting.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShifting;
                 @Shifting.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShifting;
-                @Reload.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
-                @Reload.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
-                @Reload.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
                 @DebugKey.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDebugKey;
                 @DebugKey.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDebugKey;
                 @DebugKey.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDebugKey;
@@ -787,9 +762,6 @@ public class @Controls : IInputActionCollection, IDisposable
                 @Shifting.started += instance.OnShifting;
                 @Shifting.performed += instance.OnShifting;
                 @Shifting.canceled += instance.OnShifting;
-                @Reload.started += instance.OnReload;
-                @Reload.performed += instance.OnReload;
-                @Reload.canceled += instance.OnReload;
                 @DebugKey.started += instance.OnDebugKey;
                 @DebugKey.performed += instance.OnDebugKey;
                 @DebugKey.canceled += instance.OnDebugKey;
@@ -852,7 +824,6 @@ public class @Controls : IInputActionCollection, IDisposable
         void OnPrefabReadAir(InputAction.CallbackContext context);
         void OnToggleFreeCam(InputAction.CallbackContext context);
         void OnShifting(InputAction.CallbackContext context);
-        void OnReload(InputAction.CallbackContext context);
         void OnDebugKey(InputAction.CallbackContext context);
         void OnToggleHUD(InputAction.CallbackContext context);
         void OnScroll1(InputAction.CallbackContext context);

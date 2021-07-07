@@ -23,6 +23,7 @@ public class MainMenu : MonoBehaviour
 	public Text single_renderField;
 	public Text multi_IPField;
 	public Text multi_renderField;
+	public Text multi_accountField;
 
 	public void Start(){
 		Resources.UnloadUnusedAssets();
@@ -60,9 +61,14 @@ public class MainMenu : MonoBehaviour
 	}
 
 	public void StartGameMultiplayer(){
-		if(multi_IPField.text == ""){
+		if(multi_IPField.text == "")
 			return;
-		}
+		if(multi_accountField.text == "")
+			return;
+
+		World.SetAccountID(multi_accountField.text);
+
+		World.SetIP(multi_IPField.text);
 
 		if(multi_renderField.text == ""){
 			World.SetRenderDistance("5");
@@ -90,6 +96,10 @@ public class MainMenu : MonoBehaviour
 
 	public void OpenOptionsMenu(){
 		ChangeVisibleMenu(this.optionsMenu);
+	}
+
+	public void ExitGame(){
+		Application.Quit();
 	}
 
 	private void ChangeVisibleMenu(GameObject go){
