@@ -74,8 +74,21 @@ public class RegionFileHandler{
 
 		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
 
-		this.saveDir = "Worlds/";
-		this.worldDir = "Worlds/" + this.worldName + "/";
+		#if UNITY_EDITOR
+			this.saveDir = "Worlds/";
+			this.worldDir = "Worlds/" + this.worldName + "/";
+		#else
+			// If is in Dedicated Server
+			if(!World.isClient){
+				this.saveDir = "Worlds/";
+				this.worldDir = "Worlds/" + this.worldName + "/";
+			}
+			// If it's a Local Server
+			else{
+				this.saveDir = "../Windows/Worlds/";
+				this.worldDir = "../Windows/Worlds/" + this.worldName + "/";			
+			}
+		#endif
 
 
 		// If "Worlds/" dir doesn't exist
@@ -107,49 +120,6 @@ public class RegionFileHandler{
 			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Create);	
 		}	
 	}
-
-	/*
-	// Start RegionFileHandler on a given ChunkPos
-	public void Start(ChunkPos pos){
-		this.worldName = World.worldName;
-		this.seed = World.worldSeed;
-		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
-
-		this.saveDir = "Worlds/";
-		this.worldDir = "Worlds/" + this.worldName + "/";
-
-
-		// If "Worlds/" dir doesn't exist
-		if(!Directory.Exists(this.saveDir)){
-			Directory.CreateDirectory(this.saveDir);
-		}
-
-		// If current world doesn't exist
-		if(!Directory.Exists(this.worldDir)){
-			Directory.CreateDirectory(this.worldDir);
-		}
-
-		// If already has a world data file
-		if(File.Exists(this.worldDir + "world.wdat")){
-			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Open);
-			LoadWorld();
-		}
-		else{
-			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Create);	
-			SaveWorld();			
-		}
-
-		// If already has a player data file
-		if(File.Exists(this.worldDir + "player.pdat")){
-			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Open);
-		}
-		else{
-			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Create);	
-		}
-
-		LoadRegionFile(pos, init:true);
-	}
-	*/
 
 	// Returns initialized seed if world was just generated or returns saved seed if world exists
 	public int GetRealSeed(){

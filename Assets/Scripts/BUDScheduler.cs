@@ -66,7 +66,7 @@ public class BUDScheduler : MonoBehaviour
             // Batch Chunk Saver
             if(SaveCount() > 0){
                 foreach(ChunkPos pos in this.toSave[this.currentTime]){
-                    if(loader.chunks.ContainsKey(cachePos)){
+                    if(loader.chunks.ContainsKey(pos)){
                         loader.regionHandler.SaveChunk(loader.chunks[pos]);
                     }
                 }

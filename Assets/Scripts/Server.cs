@@ -1,4 +1,6 @@
 using System;
+using System.Text;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using static System.Environment;
@@ -6,6 +8,8 @@ using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
 using Unity.Mathematics;
+
+using Random = UnityEngine.Random;
 
 public class Server
 {
@@ -41,6 +45,14 @@ public class Server
 	public ChunkLoader_Server cl;
 
 	public Server(ChunkLoader_Server cl){
+    	ParseArguments();
+
+    	// Parses config file if is a Dedicated Server
+    	if(!this.isLocal){
+    		ParseConfigFile();
+    	}
+
+		// Initiates Server data
     	connections = new Dictionary<ulong, Socket>();
     	temporaryConnections = new Dictionary<ulong, Socket>();
     	timeoutTimers = new Dictionary<ulong, DateTime>();
@@ -52,8 +64,6 @@ public class Server
     	playersInChunk = new Dictionary<ChunkPos, HashSet<ulong>>();
 
     	this.cl = cl;
-
-    	ParseArguments();
 
     	if(!this.isLocal){
         	this.masterSocket = new Socket(IPAddress.Any.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -87,6 +97,67 @@ public class Server
 					break;
 			}
 		}
+	}
+
+	// Deals with the reading/writing of config file on Dedicated Servers
+	private void ParseConfigFile(){
+		Stream file;
+		byte[] allBytes;
+
+		// If there is a config file
+		if(File.Exists("server.cfg")){
+			string text;
+			string[] temp;
+			Dictionary<string, string> argsDictionary = new Dictionary<string, string>();
+
+			// Parses all arguments
+			file = File.Open("server.cfg", FileMode.Open);
+			allBytes = new byte[file.Length];
+			file.Read(allBytes, 0, (int)file.Length);
+			text = System.Text.Encoding.Default.GetString(allBytes);
+
+			foreach(string argument in text.Split('\n')){
+				if(argument == "")
+					continue;
+
+				temp = argument.Split('=');
+				argsDictionary.Add(temp[0], temp[1]);
+			}
+
+			if(argsDictionary.ContainsKey("world_name")){
+				// If it's not filled, generate a new name
+				if(argsDictionary["world_name"] == ""){
+					argsDictionary["world_name"] = GenerateRandomName();
+					file.Seek(0, SeekOrigin.End);
+					allBytes = System.Text.Encoding.ASCII.GetBytes(argsDictionary["world_name"]);
+					file.Write(allBytes, 0, allBytes.Length);
+				}
+
+				World.SetWorldName(argsDictionary["world_name"]);
+				World.SetWorldSeed(Random.Range(1,999999));
+			}
+
+			file.Close();
+		}
+		// If a config file needs tto be created
+		else{
+			file = File.Open("server.cfg", FileMode.Create);
+			allBytes = System.Text.Encoding.ASCII.GetBytes("world_name=");
+			file.Write(allBytes, 0, allBytes.Length);
+			file.Close();
+			Application.Quit();
+		}
+	}
+
+	// Generates a random 8 letter code
+	private string GenerateRandomName(){
+		StringBuilder sb = new StringBuilder();
+
+		for(int i=0; i<8; i++){
+			sb.Append((char)Random.Range(65, 122));
+		}
+
+		return sb.ToString();
 	}
 
     // Callback for connections received
@@ -279,7 +350,8 @@ public class Server
 		if(this.cl.worldSeed == -1)
 			World.worldSeed = seed;
 		
-		World.worldName = worldName;
+		if(this.isLocal)
+			World.worldName = worldName;
 
 		// Sends Player Info
 		if(this.cl.RECEIVEDWORLDDATA){
@@ -289,6 +361,11 @@ public class Server
 			Vector3 playerDir = pdat.GetDirection();
 			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z);
 			this.Send(message.GetMessage(), message.size, id, temporary:true);
+		}
+
+		// If AccountID is already online, erase all memory from that connection
+		if(this.connections.ContainsKey(accountID)){
+			Disconnect(accountID);
 		}
 
 		// Assigns a fixed ID
@@ -467,6 +544,13 @@ public class Server
 						else{
 							cl.blockBook.objects[ushort.MaxValue-blockCode].OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 						}
+
+						// Sends the updated voxel to loaded clients
+						message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+						message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ), this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetHP(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
+						SendToClients(lastCoord.GetChunkPos(), message);
+						
+						this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
 					}
 
 					// If has special handling
@@ -482,13 +566,6 @@ public class Server
 						}
 				
 					}
-
-					// Sends the updated voxel to loaded clients
-					message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-					message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ), this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetHP(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
-					SendToClients(lastCoord.GetChunkPos(), message);
-					
-					this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
 
 				}
 				break;

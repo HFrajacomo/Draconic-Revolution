@@ -24,6 +24,11 @@ public static class World
         World.worldSeed = Mathf.Abs(World.worldSeed);
     }
 
+    // Sets seed as integer
+    public static void SetWorldSeed(int seed){
+        World.worldSeed = seed;
+    }
+
     // Sets accountID in client to join a server
     public static void SetAccountID(ulong code){
         World.accountID = code;

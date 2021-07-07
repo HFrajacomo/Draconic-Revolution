@@ -92,6 +92,7 @@ public class Water_Block : Blocks
 		}
 
 		this.Update(thisPos, BUDCode.CHANGE, -1, cl);
+		cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
 		return 0;
 	}
 
