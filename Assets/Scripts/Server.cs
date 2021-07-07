@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using static System.Environment;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
@@ -10,7 +11,7 @@ public class Server
 {
 	public int maxPlayers = 8;
 	public int port = 33000;
-	private bool isLocal = true;
+	private bool isLocal = false;
 	public Socket masterSocket;
 
 	public Dictionary<ulong, Socket> connections;
@@ -39,7 +40,7 @@ public class Server
 	// Unity Reference
 	public ChunkLoader_Server cl;
 
-	public Server(ChunkLoader_Server cl, bool isLocal){
+	public Server(ChunkLoader_Server cl){
     	connections = new Dictionary<ulong, Socket>();
     	temporaryConnections = new Dictionary<ulong, Socket>();
     	timeoutTimers = new Dictionary<ulong, DateTime>();
@@ -51,16 +52,17 @@ public class Server
     	playersInChunk = new Dictionary<ChunkPos, HashSet<ulong>>();
 
     	this.cl = cl;
-    	this.isLocal = isLocal;
+
+    	ParseArguments();
 
     	if(!this.isLocal){
         	this.masterSocket = new Socket(IPAddress.Any.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
     		this.serverIP = new IPEndPoint(0, this.port);
     	}
         else{
-        	// TESTING
+        	Debug.Log("Received Local");
         	this.masterSocket = new Socket(IPAddress.Loopback.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        	this.serverIP = new IPEndPoint(0x0F00A8C0, this.port); 
+        	this.serverIP = new IPEndPoint(0x0100007F, this.port);
         }
 
 
@@ -70,6 +72,21 @@ public class Server
         this.masterSocket.Listen(byte.MaxValue);
 
         this.masterSocket.BeginAccept(new AsyncCallback(ConnectCallback), this.masterSocket);
+	}
+
+	// Receives command line args and parses them
+	private void ParseArguments(){
+		string[] args = GetCommandLineArgs();
+
+		foreach(string arg in args){
+			switch(arg){
+				case "-Local":
+					this.isLocal = true;
+					break;
+				default:
+					break;
+			}
+		}
 	}
 
     // Callback for connections received
@@ -611,6 +628,9 @@ public class Server
 			Debug.Log("ID: " + id + " has disconnected");
 		else
 			Debug.Log("ID: " + id + " has lost connection");
+
+		if(this.isLocal)
+			Application.Quit();
 	}
 
 	// Receives an Interaction command from client

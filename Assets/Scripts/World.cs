@@ -9,6 +9,8 @@ public static class World
     public static string worldName;
     public static int worldSeed;
     public static int renderDistance;
+    public static bool isClient;
+    public static string IP;
 
     // Sets world name
     public static void SetWorldName(string name){
@@ -33,6 +35,14 @@ public static class World
         if(World.renderDistance > 20){
             World.renderDistance = 20;
         }
+    }
+
+    public static void SetToClient(){
+        World.isClient = true;
+    }
+
+    public static void SetToServer(){
+        World.isClient = false;
     }
 
 }

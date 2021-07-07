@@ -22,9 +22,6 @@ public class ChunkLoader_Server : MonoBehaviour
     public StructureHandler structHandler;
     public Server server;
 
-    // Entity Handlers
-    //public Dictionary<ulong, PlayerData> playerData = new Dictionary<ulong, PlayerData>();
-
     // Queues
     public List<ChunkPos> toLoad = new List<ChunkPos>();
     public List<ChunkPos> toUnload = new List<ChunkPos>();
@@ -52,7 +49,7 @@ public class ChunkLoader_Server : MonoBehaviour
     }
 
     void Start(){
-        this.server = new Server(this, true);
+        this.server = new Server(this);
         this.time.SetServer(this.server);
     }
 

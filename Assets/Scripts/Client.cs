@@ -1,5 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+
+using Debug = UnityEngine.Debug;
+
 using UnityEngine;
 using System;
 using System.Net;
@@ -15,6 +19,7 @@ public class Client
 	private SocketError err;
 	private DateTime lastMessageTime;
 	private int timeoutSeconds = 5;
+	private int connectionTimeout = 100;
 
 	// Entity Handler
 	public EntityHandler entityHandler = new EntityHandler();
@@ -38,17 +43,92 @@ public class Client
 	// Unity References
 	public ChunkLoader cl;
 
+	// Windows External Process
+	public Process lanServerProcess;
+
 	
 	public Client(ChunkLoader cl){
 		this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
 		receiveBuffer = new byte[receiveBufferSize];
 		this.cl = cl;
+
+		// If game world is in client
+		if(World.isClient){
+			// Startup local server
+			this.lanServerProcess = new Process();
+			this.lanServerProcess.StartInfo.Arguments = "-Local";
+
+			#if UNITY_EDITOR
+				this.lanServerProcess.StartInfo.FileName = "C:\\Users\\User\\Draconic Revolution\\Build\\Server\\Server.exe";
+			#else
+				this.lanServerProcess.StartInfo.UseShellExecute = false;
+				this.lanServerProcess.StartInfo.CreateNoWindow = true;
+				this.lanServerProcess.StartInfo.FileName = "..\\Server\\Server.exe";
+			#endif
+
+
+
+			try{
+				this.lanServerProcess.Start();
+			}
+			catch(Exception e){
+				Debug.Log(e);
+				Panic();
+			}
+
+			this.ip = new IPAddress(new byte[4]{127, 0, 0, 1});
+		}
+
+		// If game world is in server
+		else{
+			string[] segmentedIP = World.IP.Split('.');
+			byte[] connectionIP = new byte[4];
+
+			// If it's not a valid IPv4
+			if(segmentedIP.Length != 4)
+				Panic();
+			// Tailors the IP
+			else{
+				for(int i=0; i < 4; i++){
+					try{
+						connectionIP[i] = (byte)Convert.ToInt16(segmentedIP[i]);
+					}
+					catch(Exception e){
+						Debug.Log(e);
+						Panic();
+					}
+				}
+
+				this.ip = new IPAddress(connectionIP);
+			}
+		}
+
 		this.Connect();	
+	}
+
+	// Triggers hazard protection and sends user back to menu screen
+	public void Panic(){
+        SceneManager.LoadScene("Menu");
 	}
 	
 	
 	public void Connect(){
-		this.socket.Connect(this.ip, this.port);
+		int attempts = 0;
+
+		while(attempts < this.connectionTimeout){
+			try{
+				this.socket.Connect(this.ip, this.port);
+				break;
+			} catch {
+				attempts++;
+				continue;
+			}
+		}
+
+		if(attempts == this.connectionTimeout)
+			Panic();
+
+
 		this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), null);		
 	}
 
