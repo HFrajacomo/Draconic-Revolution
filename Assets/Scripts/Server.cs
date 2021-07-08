@@ -70,7 +70,6 @@ public class Server
     		this.serverIP = new IPEndPoint(0, this.port);
     	}
         else{
-        	Debug.Log("Received Local");
         	this.masterSocket = new Socket(IPAddress.Loopback.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         	this.serverIP = new IPEndPoint(0x0100007F, this.port);
         }
@@ -134,7 +133,9 @@ public class Server
 				}
 
 				World.SetWorldName(argsDictionary["world_name"]);
-				World.SetWorldSeed(Random.Range(1,999999));
+				Random.InitState((int)(DateTime.Now.Ticks % 999999));
+				int seed = Random.Range(1,999999);
+				World.SetWorldSeed(seed);
 			}
 
 			file.Close();
@@ -145,7 +146,13 @@ public class Server
 			allBytes = System.Text.Encoding.ASCII.GetBytes("world_name=");
 			file.Write(allBytes, 0, allBytes.Length);
 			file.Close();
-			Application.Quit();
+			Debug.Log("Generated .cfg file. Please restart!");
+
+			#if UNITY_EDITOR
+				UnityEditor.EditorApplication.isPlaying = false;
+			#else
+				Application.Quit();
+			#endif
 		}
 	}
 
@@ -345,13 +352,11 @@ public class Server
 		string worldName = NetDecoder.ReadString(data, 21, stringSize);
 
 		playerRenderDistances[accountID] = renderDistance;
-
-		// If World Seed hasn't been set yet
-		if(this.cl.worldSeed == -1)
-			World.worldSeed = seed;
 		
-		if(this.isLocal)
+		if(this.isLocal){
 			World.worldName = worldName;
+			World.worldSeed = seed;
+		}
 
 		// Sends Player Info
 		if(this.cl.RECEIVEDWORLDDATA){
@@ -653,6 +658,9 @@ public class Server
 
 	// Receives a disconnect call from client
 	private void Disconnect(ulong id, bool voluntary=true){
+		if(!this.connections.ContainsKey(id))
+			return;
+
 		List<ChunkPos> toRemove = new List<ChunkPos>();
 		NetMessage killMessage = new NetMessage(NetCode.ENTITYDELETE);
 		killMessage.EntityDelete(EntityType.PLAYER, id);
