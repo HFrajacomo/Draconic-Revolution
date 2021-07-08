@@ -694,7 +694,6 @@ public class Server
 				continue;
 			// If finds connection to it, erase
 			if(this.connectionGraph[code].Contains(id)){
-				Debug.Log("Removed connection " + code + " <- " + id + " [589]");
 				this.connectionGraph[code].Remove(id);
 				this.Send(killMessage.GetMessage(), killMessage.size, code);
 			}
@@ -840,6 +839,10 @@ public class Server
 			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 			message.DirectBlockUpdate(BUDCode.CHANGE, targetChunk, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, blockCode, state, hp);
 			SendToClients(targetChunk, message);
+		}
+		// 2: Saves Chunk only
+		else if(code == 2){
+			this.cl.budscheduler.ScheduleSave(targetChunk);
 		}
 
 	}

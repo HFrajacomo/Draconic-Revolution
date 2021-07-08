@@ -53,19 +53,17 @@ public class Torch_Object : BlocklikeObject
 		else if(state >= 4){
 			cl.chunks[pos].metadata.AddToState(blockX,blockY,blockZ, -4);
 			newState = (ushort)(state-4);
-			//ControlFire(pos, blockX, blockY, blockZ, (ushort?)(state-4));
 		}
 		else if(state >= 0 && state < 4){
 			cl.chunks[pos].metadata.AddToState(blockX,blockY,blockZ, 4);
 			newState = (ushort)(state+4);
-			//ControlFire(pos, blockX, blockY, blockZ, (ushort?)(state+4));
 		}
 
 		NetMessage message = new NetMessage(NetCode.VFXCHANGE);
 		message.VFXChange(pos, blockX, blockY, blockZ, 0, ushort.MaxValue, newState);
 		cl.server.SendToClients(pos, message);
 
-		return 0;
+		return 2;
 	}
 
 	// Instantiates a FireVFX
