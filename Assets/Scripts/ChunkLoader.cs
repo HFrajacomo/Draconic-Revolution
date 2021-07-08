@@ -140,6 +140,8 @@ public class ChunkLoader : MonoBehaviour
             HandleClientCommunication();
             RunTimerFunctions();
 
+            GetChunks(false);
+
         	UnloadChunk();
             LoadChunk();
             RequestChunk();
@@ -203,7 +205,6 @@ public class ChunkLoader : MonoBehaviour
             toUpdate.Add(pos);
         }
     }
-
 
     // Asks the Server to send chunk information
     private void RequestChunk(){

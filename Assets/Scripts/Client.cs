@@ -116,11 +116,12 @@ public class Client
 			}
 		}
 
-		this.Connect();	
+		this.Connect();
 	}
 
 	// Triggers hazard protection and sends user back to menu screen
 	public void Panic(){
+		Debug.Log("Panic");
         SceneManager.LoadScene("Menu");
 	}
 	
@@ -360,6 +361,7 @@ public class Client
 					this.cl.chunks[pos].data.SetCell(x, y, z, 0);
 					this.cl.chunks[pos].metadata.Reset(x,y,z);
 					this.cl.AddToUpdate(pos);
+					CheckReload(pos, x, y, z);
 				}	
 				break;
 			case BUDCode.CHANGE:
@@ -481,6 +483,35 @@ public class Client
 		output[3] = (byte)a;
 
 		return output;
+	}
+
+	// Signals to a neighbor chunk to be reloaded after a BUD
+	private void CheckReload(ChunkPos pos, int x, int y, int z){
+		ChunkPos temp;
+
+		if(x == 0){
+			temp = new ChunkPos(pos.x-1, pos.z);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
+
+		if(x == Chunk.chunkWidth-1){
+			temp = new ChunkPos(pos.x+1, pos.z);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
+
+		if(z == 0){
+			temp = new ChunkPos(pos.x, pos.z-1);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);			
+		}
+
+		if(z == Chunk.chunkWidth-1){
+			temp = new ChunkPos(pos.x, pos.z+1);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
 	}
 
 }
