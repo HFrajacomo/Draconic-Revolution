@@ -70,7 +70,6 @@ public class RegionFileHandler{
 	public void InitWorldFiles(ChunkLoader_Server cl){
 		this.cl = cl;
 		this.worldName = World.worldName;
-		Debug.Log("Assigning Seed to RegionFileHandler");
 		this.seed = World.worldSeed;
 
 		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();

@@ -69,10 +69,14 @@ public class Client
 					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";					
 			// Standalone edition
 			#else
-				if(File.Exists("..\\Server\\Server.exe")){
+				string dir = Directory.GetParent(Directory.GetCurrentDirectory()).ToString();
+				dir = dir + "\\Server\\Server.exe";
+
+
+				if(File.Exists(dir)){
 					this.lanServerProcess.StartInfo.UseShellExecute = false;
 					this.lanServerProcess.StartInfo.CreateNoWindow = true;
-					this.lanServerProcess.StartInfo.FileName = "..\\Server\\Server.exe";
+					this.lanServerProcess.StartInfo.FileName = dir;
 				}
 				else{
 					Panic();
