@@ -799,7 +799,7 @@ public class Server
 			if(this.connectionGraph[id].Contains(code)){
 				targetPos = this.cl.regionHandler.allPlayerData[code].GetChunkPos();
 				if(!this.cl.loadedChunks.ContainsKey(newPos)){
-					this.cl.loadedChunks.Add(newPos, new HashSet<ulong>())
+					this.cl.loadedChunks.Add(newPos, new HashSet<ulong>());
 				}
 				if(!this.cl.loadedChunks[newPos].Contains(code)){
 					this.connectionGraph[id].Remove(code);
