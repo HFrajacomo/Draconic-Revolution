@@ -88,8 +88,7 @@ public class Client
 			try{
 				this.lanServerProcess.Start();
 			}
-			catch(Exception e){
-				Debug.Log(e);
+			catch{
 				Panic();
 			}
 
@@ -102,8 +101,9 @@ public class Client
 			byte[] connectionIP = new byte[4];
 
 			// If it's not a valid IPv4
-			if(segmentedIP.Length != 4)
+			if(segmentedIP.Length != 4){
 				Panic();
+			}
 			// Tailors the IP
 			else{
 				for(int i=0; i < 4; i++){
