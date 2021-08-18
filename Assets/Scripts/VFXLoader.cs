@@ -14,6 +14,13 @@ public class VFXLoader : MonoBehaviour
         serverVFX = new Dictionary<ChunkPos, Dictionary<string, NetMessage>>();
     }
 
+    public bool Contains(ChunkPos pos, bool isServer=false){
+        if(isServer)
+            return serverVFX.ContainsKey(pos);
+        else
+            return data.ContainsKey(pos);
+    }
+
     // Registers a new chunk to VFXLoader
     public void NewChunk(ChunkPos pos, bool isServer=false){
         if(isServer)

@@ -38,7 +38,7 @@ public class Server
 	public List<NetMessage> queue = new List<NetMessage>();
 
 	public ulong firstConnectedID = ulong.MaxValue;
-	private int timeoutSeconds = 10;
+	private const int timeoutSeconds = 10;
 
 	// Unity Reference
 	public ChunkLoader_Server cl;
@@ -247,6 +247,12 @@ public class Server
 			// If has received a size packet
 			if(this.lengthPacket[currentID]){
 				int size = NetDecoder.ReadInt(receiveBuffer, 0);
+
+				// DEBUG
+				if(bytesReceived < 4)
+					Debug.Log("RECEIVED FRAGMENTED SIZE PACKET IN ID " + currentID);
+				//
+
 				this.dataBuffer[currentID] = new byte[size];
 				this.packetSize[currentID] = size;
 				this.lengthPacket[currentID] = false;
@@ -343,7 +349,7 @@ public class Server
 				ClientPlayerPosition(data, id);
 				break;
 			case NetCode.DISCONNECT:
-				Disconnect(id);
+				Disconnect(id, DisconnectType.QUIT);
 				break;
 			case NetCode.INTERACT:
 				Interact(data);
@@ -388,7 +394,7 @@ public class Server
 
 		// If AccountID is already online, erase all memory from that connection
 		if(this.connections.ContainsKey(accountID)){
-			Disconnect(accountID);
+			Disconnect(accountID, DisconnectType.LOGINOVERWRITE);
 		}
 
 		// Assigns a fixed ID
@@ -675,7 +681,7 @@ public class Server
 	}
 
 	// Receives a disconnect call from client
-	private void Disconnect(ulong id, bool voluntary=true){
+	private void Disconnect(ulong id, DisconnectType type){
 		if(!this.connections.ContainsKey(id))
 			return;
 
@@ -720,16 +726,23 @@ public class Server
 		this.cl.regionHandler.SavePlayers();
 		this.cl.regionHandler.allPlayerData[id].SetOnline(false);
 
-		if(this.playersInChunk[this.cl.regionHandler.allPlayerData[id].GetChunkPos()].Count > 1)
-			this.playersInChunk[this.cl.regionHandler.allPlayerData[id].GetChunkPos()].Remove(id);
-		else
-			this.playersInChunk.Remove(this.cl.regionHandler.allPlayerData[id].GetChunkPos());
+		if(this.playersInChunk.ContainsKey(this.cl.regionHandler.allPlayerData[id].GetChunkPos())){
+			if(this.playersInChunk[this.cl.regionHandler.allPlayerData[id].GetChunkPos()].Count > 1)
+				this.playersInChunk[this.cl.regionHandler.allPlayerData[id].GetChunkPos()].Remove(id);
+			else
+				this.playersInChunk.Remove(this.cl.regionHandler.allPlayerData[id].GetChunkPos());
+		}
 
-
-		if(voluntary)
+		if(type == DisconnectType.QUIT)
 			Debug.Log("ID: " + id + " has disconnected");
-		else
+		else if(type == DisconnectType.LOSTCONNECTION)
 			Debug.Log("ID: " + id + " has lost connection");
+		else if(type == DisconnectType.TIMEDOUT)
+			Debug.Log("ID: " + id + " has timed out");
+		else if(type == DisconnectType.LOGINOVERWRITE)
+			Debug.Log("ID: " + id + " has overwritten it's login");
+		else
+			Debug.Log("ID: " + id + " has quit due to unknown issue");
 
 		if(this.isLocal)
 			Application.Quit();
@@ -803,18 +816,22 @@ public class Server
 				}
 				if(!this.cl.loadedChunks[newPos].Contains(code)){
 					this.connectionGraph[id].Remove(code);
-					Debug.Log("Removed connection " + id + " <- " + code + " [675]");
+					Debug.Log("Removed connection " + id + " <- " + code);
 					killMessage.EntityDelete(EntityType.PLAYER, id);
 					this.Send(killMessage.GetMessage(), killMessage.size, code);
 				}
 			}
 			// Check if code should be connected
 			else{
+				if(!this.cl.loadedChunks.ContainsKey(newPos)){
+					this.cl.loadedChunks.Add(newPos, new HashSet<ulong>());
+				}
+
 				if(this.cl.loadedChunks[newPos].Contains(code)){
 					NetMessage liveMessage = new NetMessage(NetCode.ENTITYDATA);
 
 					this.connectionGraph[id].Add(code);
-					Debug.Log("Added connection " + code + " <- " + id + " [684]");
+					Debug.Log("Added connection " + code + " <- " + id);
 					liveMessage.EntityData(this.cl.regionHandler.allPlayerData[id]);
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);					
 				}				
@@ -920,13 +937,20 @@ public class Server
 		List<ulong> toRemove = new List<ulong>();
 
 		foreach(ulong id in this.timeoutTimers.Keys){
-			if((DateTime.Now - this.timeoutTimers[id]).Seconds > this.timeoutSeconds){
+			if((DateTime.Now - this.timeoutTimers[id]).Seconds > Server.timeoutSeconds){
 				toRemove.Add(id);
 			}
 		}
 
 		foreach(ulong id in toRemove)
-			Disconnect(id, voluntary:false);
+			Disconnect(id, DisconnectType.TIMEDOUT);
 	}
 
+}
+
+public enum DisconnectType{
+	QUIT, // Voluntarily quit
+	LOSTCONNECTION, // Exceptions
+	TIMEDOUT, // CheckTimeout() has detected a timeout
+	LOGINOVERWRITE // Logged into an already logged in session
 }

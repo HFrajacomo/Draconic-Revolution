@@ -213,6 +213,16 @@ public class ChunkLoader_Server : MonoBehaviour
 
     // Post-processing of all deletes chunks from cl.chunks
     public void UnloadChunk(ChunkPos pos, ulong id){
+        // If chunk is already gone
+        if(!this.loadedChunks.ContainsKey(pos)){
+            if(this.chunks.ContainsKey(pos)){
+                this.chunks.Remove(pos);
+            }
+            if(this.vfx.Contains(pos, isServer:true)){
+                this.vfx.RemoveChunk(pos, isServer:true);
+            }
+        }
+
         this.loadedChunks[pos].Remove(id);
 
         // If connected clients to this chunk are none
