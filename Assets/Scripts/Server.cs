@@ -17,6 +17,9 @@ public class Server
 	public int port = 33000;
 	private bool isLocal = false;
 	public Socket masterSocket;
+	private IPEndPoint serverIP;
+
+	private const int receiveBufferSize = 512*512;
 
 	public Dictionary<ulong, Socket> connections;
 	public Dictionary<ulong, Socket> temporaryConnections;
@@ -25,13 +28,12 @@ public class Server
 	public Dictionary<ulong, int> packetSize;
 	public Dictionary<ulong, byte[]> dataBuffer;
 	public Dictionary<ulong, DateTime> timeoutTimers;
+	private Dictionary<ulong, byte[]> receiveBuffer;
+
 
 	public Dictionary<ulong, HashSet<ulong>> connectionGraph;
 	private Dictionary<ChunkPos, HashSet<ulong>> playersInChunk;
 
-	private IPEndPoint serverIP;
-	private const int receiveBufferSize = 4096*4096;
-	private byte[] receiveBuffer = new byte[receiveBufferSize];
 	public Dictionary<ulong, int> playerRenderDistances = new Dictionary<ulong, int>();
 	private SocketError err = new SocketError();
 
@@ -61,6 +63,7 @@ public class Server
     	dataBuffer = new Dictionary<ulong, byte[]>();
     	connectionGraph = new Dictionary<ulong, HashSet<ulong>>();
     	playersInChunk = new Dictionary<ChunkPos, HashSet<ulong>>();
+    	receiveBuffer = new Dictionary<ulong, byte[]>();
 
     	this.cl = cl;
     	
@@ -175,19 +178,20 @@ public class Server
     	this.temporaryConnections[temporaryCode] = client;
     	this.lengthPacket[temporaryCode] = true;
     	this.packetIndex[temporaryCode] = 0;
+    	this.receiveBuffer[temporaryCode] = new byte[receiveBufferSize];
 
     	Debug.Log(client.RemoteEndPoint.ToString() + " has connected with temporary ID " + temporaryCode);
 
     	// Check if there's trash in the network then flush it
     	if(client.Available > 0){
     		Debug.Log("Removed trash from: " + temporaryCode);
-    		client.Receive(receiveBuffer, client.Available, 0);
+    		client.Receive(this.receiveBuffer[temporaryCode], client.Available, 0);
     	}
 
     	NetMessage message = new NetMessage(NetCode.ACCEPTEDCONNECT);
     	this.Send(message.GetMessage(), message.size, temporaryCode, temporary:true);
 
-    	this.temporaryConnections[temporaryCode].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), temporaryCode);
+    	this.temporaryConnections[temporaryCode].BeginReceive(this.receiveBuffer[temporaryCode], 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), temporaryCode);
     	this.masterSocket.BeginAccept(new AsyncCallback(ConnectCallback), null);
     }
 
@@ -246,12 +250,7 @@ public class Server
 
 			// If has received a size packet
 			if(this.lengthPacket[currentID]){
-				int size = NetDecoder.ReadInt(receiveBuffer, 0);
-
-				// DEBUG
-				if(bytesReceived < 4)
-					Debug.Log("RECEIVED FRAGMENTED SIZE PACKET IN ID " + currentID);
-				//
+				int size = NetDecoder.ReadInt(this.receiveBuffer[currentID], 0);
 
 				this.dataBuffer[currentID] = new byte[size];
 				this.packetSize[currentID] = size;
@@ -259,35 +258,26 @@ public class Server
 				this.packetIndex[currentID] = 0;
 
 				if(isTemporary)
-					this.temporaryConnections[currentID].BeginReceive(receiveBuffer, 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
+					this.temporaryConnections[currentID].BeginReceive(this.receiveBuffer[currentID], 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
 				else
-					this.connections[currentID].BeginReceive(receiveBuffer, 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
+					this.connections[currentID].BeginReceive(this.receiveBuffer[currentID], 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
 				return;
 			}
 
 			// If has received a segmented packet
 			if(bytesReceived+this.packetIndex[currentID] < this.packetSize[currentID]){
-				Array.Copy(receiveBuffer, 0, this.dataBuffer[currentID], this.packetIndex[currentID], bytesReceived);
+				Array.Copy(this.receiveBuffer[currentID], 0, this.dataBuffer[currentID], this.packetIndex[currentID], bytesReceived);
 				this.packetIndex[currentID] = this.packetIndex[currentID] + bytesReceived;
     			
     			if(isTemporary)
-    				this.temporaryConnections[currentID].BeginReceive(receiveBuffer, 0, this.packetSize[currentID]-this.packetIndex[currentID], 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
+    				this.temporaryConnections[currentID].BeginReceive(this.receiveBuffer[currentID], 0, this.packetSize[currentID]-this.packetIndex[currentID], 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
     			else
-    				this.connections[currentID].BeginReceive(receiveBuffer, 0, this.packetSize[currentID]-this.packetIndex[currentID], 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
-				return;
-			}
-
-			// If temporary connection has sent trash
-			if(isTemporary && (NetCode)receiveBuffer[0] != NetCode.SENDCLIENTINFO){
-				this.lengthPacket[currentID] = true;
-				this.packetIndex[currentID] = 0;
-				this.packetSize[currentID] = 0;
-				Debug.Log("Trash message discarded");
+    				this.connections[currentID].BeginReceive(this.receiveBuffer[currentID], 0, this.packetSize[currentID]-this.packetIndex[currentID], 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
 				return;
 			}
 
 			// If has received the entire package
-			Array.Copy(receiveBuffer, 0, this.dataBuffer[currentID], this.packetIndex[currentID], bytesReceived);
+			Array.Copy(this.receiveBuffer[currentID], 0, this.dataBuffer[currentID], this.packetIndex[currentID], bytesReceived);
 
 			NetMessage.Broadcast(NetBroadcast.RECEIVED, this.dataBuffer[currentID][0], currentID, this.packetSize[currentID]);
 
@@ -299,7 +289,7 @@ public class Server
 			this.packetSize[currentID] = 0;
 
 			if(!isTemporary)
-    			this.connections[currentID].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
+    			this.connections[currentID].BeginReceive(this.receiveBuffer[currentID], 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
 		}
 		catch(SocketException e){
 			Debug.Log(e.Message + "\n" + e.StackTrace);
@@ -405,6 +395,9 @@ public class Server
     	this.packetIndex[accountID] = 0;
     	this.connectionGraph.Add(accountID, new HashSet<ulong>());
 
+    	this.receiveBuffer.Add(accountID, new byte[receiveBufferSize]);
+    	this.receiveBuffer.Remove(id);
+
 		this.cl.RECEIVEDWORLDDATA = true;
 
 		if(this.firstConnectedID == ulong.MaxValue)
@@ -414,7 +407,7 @@ public class Server
 
 		Debug.Log("Temporary ID: " + id + " was assigned to ID: " + accountID);
 
-    	this.connections[accountID].BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), accountID);
+    	this.connections[accountID].BeginReceive(this.receiveBuffer[accountID], 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), accountID);
 	}
 
 	// Gets chunk information to player
@@ -709,6 +702,7 @@ public class Server
 		this.packetSize.Remove(id);
 		this.playerRenderDistances.Remove(id);
 		this.connectionGraph.Remove(id);
+		this.receiveBuffer.Remove(id);
 		
 		foreach(ulong code in this.cl.regionHandler.allPlayerData.Keys){
 			if(code == id)

@@ -222,14 +222,15 @@ public class ChunkLoader_Server : MonoBehaviour
                 this.vfx.RemoveChunk(pos, isServer:true);
             }
         }
+        else{
+            this.loadedChunks[pos].Remove(id);
 
-        this.loadedChunks[pos].Remove(id);
-
-        // If connected clients to this chunk are none
-        if(this.loadedChunks[pos].Count == 0){
-            this.loadedChunks.Remove(pos);
-            this.chunks.Remove(pos);
-            this.vfx.RemoveChunk(pos, isServer:true);
+            // If connected clients to this chunk are none
+            if(this.loadedChunks[pos].Count == 0){
+                this.loadedChunks.Remove(pos);
+                this.chunks.Remove(pos);
+                this.vfx.RemoveChunk(pos, isServer:true);
+            }
         }
 
     }
