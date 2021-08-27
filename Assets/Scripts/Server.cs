@@ -547,7 +547,7 @@ public class Server
 							if(code == id)
 								continue;
 
-							if(!this.cl.regionHandler.allPlayerData[code].CheckValidPlacement(x, y, z))
+							if(!this.cl.regionHandler.allPlayerData[code].CheckValidPlacement(lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ()))
 								return;
 						}
 					}
