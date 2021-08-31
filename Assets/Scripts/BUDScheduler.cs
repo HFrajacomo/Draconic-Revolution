@@ -222,16 +222,4 @@ public class BUDScheduler : MonoBehaviour
     		this.data[key].RemoveAll(bud => bud.Equals(b));
     	}
     }
-
-    // DEBUG OPERATION
-    private void CurrentToFile(string filename){
-        string aux = this.currentTime + "\n\n";
-
-        foreach(BUDSignal bud in this.data[this.currentTime]){
-            aux += bud.ToString();
-            aux += "\n";
-        }
-
-        System.IO.File.WriteAllText(filename, aux);
-    }
 }

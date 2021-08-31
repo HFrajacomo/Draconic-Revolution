@@ -60,7 +60,6 @@ public class ChunkLoader : MonoBehaviour
     private ChunkPos cachePos = new ChunkPos(0,0);
     private Chunk cacheChunk;
 
-    // DEBUG
     private ulong testAccountID = 1;
 
 

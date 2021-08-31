@@ -59,7 +59,7 @@ public class Client
 			this.lanServerProcess = new Process();
 			this.lanServerProcess.StartInfo.Arguments = "-Local";
 
-			// Debug Unity edition only
+			// Unity edition only
 			#if UNITY_EDITOR
 				// Main PC
 				if(File.Exists("C:\\Users\\User\\Draconic Revolution\\Build\\Server\\Server.exe"))
