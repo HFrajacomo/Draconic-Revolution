@@ -15,120 +15,167 @@ public class ChunkLoader : MonoBehaviour
 	public Transform player;
 	public ChunkPos currentChunk;
 	public ChunkPos newChunk;
-	public List<ChunkPos> toLoad = new List<ChunkPos>();
+	public List<ChunkPos> toRequest = new List<ChunkPos>();
+    public List<byte[]> toLoad = new List<byte[]>();
+    public List<ChunkPos> toUpdate = new List<ChunkPos>();
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
     public List<ChunkPos> toDraw = new List<ChunkPos>();
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
 	public BlockEncyclopedia blockBook;
-    public BUDScheduler budscheduler;
     public VFXLoader vfx;
     public TimeOfDay time;
     public GameObject gameUI;
-    public WorldGenerator worldGen;
     public StructureHandler structHandler;
+    public Client client;
+    public BiomeHandler biomeHandler = new BiomeHandler(0);
+
+    // Received from Server
+    public float playerX;
+    public float playerZ;
+    public float playerY;
+    public float playerDirX, playerDirY, playerDirZ;
+    
+    // Unity Reference
+    public PlayerMovement playerMovement;
 
     // Initialization
     public GameObject playerCharacter;
 
-	// World Generation
-	public int worldSeed = 1; // 6 number integer
-    public BiomeHandler biomeHandler;
-
 	// Chunk Rendering
 	public ChunkRenderer rend;
-    public RegionFileHandler regionHandler;
 
 	// Flags
 	public bool WORLD_GENERATED = false; 
     public int reloadMemoryCounter = 30;
     public bool PLAYERSPAWNED = false;
-    public bool DRAWFLAG = false;
+    public bool PLAYERLOADED = false;
+    public bool REQUESTEDCHUNKS = false;
+    public bool CONNECTEDTOSERVER = false;
+    public bool SENTINFOTOSERVER = false;
+
+    // Timer
+    private byte timer = 0;
 
     // Cache Data
     private ChunkPos cachePos = new ChunkPos(0,0);
     private Chunk cacheChunk;
 
+    // DEBUG
+    private ulong testAccountID = 1;
 
-    void OnApplicationQuit(){
-        regionHandler.CloseAll();
-    }
 
     void Awake(){
         this.playerCharacter.SetActive(false);
         this.gameUI.SetActive(false);
+        this.client = new Client(this);
+        HandleClientCommunication();
+        this.player.position = new Vector3(0,0,0);
+        this.testAccountID = World.accountID;
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        this.renderDistance = World.renderDistance;
-
-        regionHandler = new RegionFileHandler(renderDistance, newChunk);
-
-        worldSeed = regionHandler.GetRealSeed();
-
-        biomeHandler = new BiomeHandler(BiomeSeedFunction(worldSeed));
-
-        this.worldGen = new WorldGenerator(worldSeed, BiomeSeedFunction(worldSeed), OffsetHashFunction(worldSeed), GenerationSeedFunction(worldSeed), biomeHandler, structHandler, this);
-
-        // If character has been loaded
-        if(regionHandler.playerFile.Length > 0){
-            player.position = regionHandler.LoadPlayer();
-            PLAYERSPAWNED = true;
-        }
-
-		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
-		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
-		newChunk = new ChunkPos(playerX, playerZ);
-
-
-		GetChunks(true);
+    void OnApplicationQuit(){
+        NetMessage message = new NetMessage(NetCode.DISCONNECT);
+        this.client.Send(message.GetMessage(), message.size);
     }
 
-    void Update(){ 
+    void OnDisable(){
+        this.biomeHandler.Clear();
+        NetMessage message = new NetMessage(NetCode.DISCONNECT);
+        this.client.Send(message.GetMessage(), message.size);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
 
-    	if(toLoad.Count == 0 && toDraw.Count == 0 && !WORLD_GENERATED){
-    		WORLD_GENERATED = true;
+    void Update(){
+        // If hasn't connected to the server yet
+        if(this.CONNECTEDTOSERVER && !this.SENTINFOTOSERVER){
+            NetMessage playerInformation = new NetMessage(NetCode.SENDCLIENTINFO);
+            
+            if(World.isClient)
+                playerInformation.SendClientInfo(this.testAccountID, World.renderDistance, World.worldSeed, World.worldName);
+            else
+                playerInformation.SendClientInfo(this.testAccountID, World.renderDistance, 0, "a");
 
-            if(!PLAYERSPAWNED){
-                int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
-                player.position -= new Vector3(0, player.position.y - spawnY, 0);
-                PLAYERSPAWNED = true;
-            }
-
-            this.time.SetLock(false);
-            this.gameUI.SetActive(true);
-            playerCharacter.SetActive(true);
-    	}
-
-        // DEV TOOLS
-        if(MainControllerManager.reload){
-            GetChunks(true);
-            MainControllerManager.reload = false;
+            this.renderDistance = World.renderDistance;
+            this.client.Send(playerInformation.GetMessage(), playerInformation.size);
+            this.SENTINFOTOSERVER = true;
         }
+        else if(!this.CONNECTEDTOSERVER){
+            HandleClientCommunication();
+            return;
+        }
+
+        // If client hasn't received player data from server yet 
+        if(!this.PLAYERSPAWNED){
+            HandleClientCommunication();
+        }
+        // If has received chunks and needs to load them
+        else if(this.PLAYERSPAWNED && !this.REQUESTEDCHUNKS){
+            this.player.position = new Vector3(playerX, playerY+0.8f, playerZ);
+
+            this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
+
+            newChunk = new ChunkPos((int)(playerX/Chunk.chunkWidth), (int)(playerZ/Chunk.chunkWidth));
+            GetChunks(true);  
+            this.REQUESTEDCHUNKS = true;
+            HandleClientCommunication();
+        }
+
         else{
-    	   GetChunks(false);
-        }
+            // If current chunk is drawn and world is generated
+        	if(CheckChunkDrawn(this.playerX, this.playerZ) && !WORLD_GENERATED && toLoad.Count == 0){
+                HandleClientCommunication();
+        		WORLD_GENERATED = true;
 
-    	UnloadChunk();
+                if(!this.PLAYERLOADED){
+                    int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
+                    player.position -= new Vector3(0, player.position.y - spawnY, 0);
+                    this.PLAYERLOADED = true;
+                }
 
-        // Decides whether DRAW Flag should be activates or deactivated
-        if(toDraw.Count > this.renderDistance*2+1){
-            this.DRAWFLAG = true;
-        }
-        else if(toDraw.Count == 0){
-            this.DRAWFLAG = false;
-        }
+                this.gameUI.SetActive(true);
+                playerCharacter.SetActive(true);
+        	}
 
-        // Decides what to do for current tick
-        if(toLoad.Count > 0 && !this.DRAWFLAG)
+            HandleClientCommunication();
+            RunTimerFunctions();
+
+            GetChunks(false);
+
+        	UnloadChunk();
             LoadChunk();
-        else if(Structure.reloadChunks.Count > 0)
-            SavePregenChunk();
-        else
+            RequestChunk();
             DrawChunk();
+            UpdateChunk();
+        }
     }
+
+    // Run attached messages to a 30 tick timer
+    private void RunTimerFunctions(){
+        if(this.timer < 30)
+            this.timer++;
+        else{
+            this.client.CheckTimeout();
+            NetMessage heartbeat = new NetMessage(NetCode.HEARTBEAT);
+            this.client.Send(heartbeat.GetMessage(), heartbeat.size);
+
+            this.timer = 0;
+        }
+    }
+
     
+    // Handles communication received from Server
+    private void HandleClientCommunication(){
+        int queueCount = this.client.queue.Count;
+
+        if(queueCount > 0){
+            for(int i=0; i<queueCount; i++){
+                this.client.HandleReceivedMessage(this.client.queue[0].GetData());
+                this.client.queue.RemoveAt(0);
+            }
+        }
+    }
+
     // Erases loaded chunks dictionary
     private void ClearAllChunks(){
     	foreach(ChunkPos item in chunks.Keys){
@@ -139,104 +186,97 @@ public class ChunkLoader : MonoBehaviour
         chunks.Clear();
     }
 
-    // Builds Structure data in non-indexed Chunks
-    private void SavePregenChunk(){
-        cacheChunk = Structure.reloadChunks[0];
-        regionHandler.GetCorrectRegion(cacheChunk.pos);
-
-        // If it's loaded
-        if(chunks.ContainsKey(cacheChunk.pos)){
-            cacheChunk.needsGeneration = 0;
-
-            // Rough Application of Structures
-            Structure.RoughApply(chunks[cacheChunk.pos], cacheChunk);
-            chunks[cacheChunk.pos] = cacheChunk;
-
-            this.regionHandler.SaveChunk(cacheChunk);
-
-            if(!toDraw.Contains(cacheChunk.pos))
-                toDraw.Add(cacheChunk.pos);
+    // Check if the chunkpos in a given (x,z) position is loaded and drawn
+    private bool CheckChunkDrawn(float x, float z){
+        ChunkPos pos = new ChunkPos(Mathf.FloorToInt(x/Chunk.chunkWidth), Mathf.FloorToInt(z/Chunk.chunkWidth));
+    
+        if(this.chunks.ContainsKey(pos)){
+            return this.chunks[pos].drawMain;
         }
-
-        // If is in an unloaded indexed chunk
-        else if(this.regionHandler.IsIndexed(cacheChunk.pos)){
-            Chunk c = new Chunk(cacheChunk.pos, this.rend, this.blockBook, this, fromMemory:true);
-            this.regionHandler.LoadChunk(c);
-
-            // Rough Application of Structures
-            Structure.RoughApply(c, cacheChunk);
-
-            this.regionHandler.SaveChunk(c);
-        }
-
-        // If is in an unloaded unknown chunk
-        else{
-            this.regionHandler.SaveChunk(cacheChunk);
-        }
-
-
-        Structure.reloadChunks.RemoveAt(0);
+        return false;
     }
 
-    // Loads Chunk data, but doesn't draw them
-    private void LoadChunk(){
-    	if(toLoad.Count > 0){
+    // Adds chunk to Update queue
+    public void AddToUpdate(ChunkPos pos){
+        if(!toUpdate.Contains(pos))
+            toUpdate.Add(pos);
+        else{
+            toUpdate.Remove(pos);
+            toUpdate.Add(pos);
+        }
+    }
+
+    // Asks the Server to send chunk information
+    private void RequestChunk(){
+    	if(toRequest.Count > 0){
     		// Prevention
-    		if(toUnload.Contains(toLoad[0])){
-    			toUnload.Remove(toLoad[0]);
-    			toLoad.RemoveAt(0);
+    		if(toUnload.Contains(toRequest[0])){
+    			toUnload.Remove(toRequest[0]);
+    			toRequest.RemoveAt(0);
     			return;
     		}
 
-            if(chunks.ContainsKey(toLoad[0])){
-                toLoad.RemoveAt(0);
+            if(chunks.ContainsKey(toRequest[0])){
+                toRequest.RemoveAt(0);
                 return;
             }
 
-            bool isPregen;
+           // Asks server to hand over chunk info
+            NetMessage message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
+            message.RequestChunkLoad(toRequest[0]);
+            this.client.Send(message.GetMessage(), message.size);
 
-            // Gets correct region file
-            regionHandler.GetCorrectRegion(toLoad[0]);
-
-            // If current chunk toLoad was already generated
-            if(regionHandler.IsIndexed(toLoad[0])){
-
-                isPregen = regionHandler.GetsNeedGeneration(toLoad[0]);
-
-                // If chunk is Pre-Generated
-                if(isPregen){
-                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
-                    vfx.NewChunk(toLoad[0]);
-                    regionHandler.LoadChunk(chunks[toLoad[0]]);
-                    this.worldGen.SetVoxdata(chunks[toLoad[0]].data.GetData());
-                    this.worldGen.SetCacheHP(chunks[toLoad[0]].metadata.GetHPData());
-                    this.worldGen.SetCacheState(chunks[toLoad[0]].metadata.GetStateData());
-                    chunks[toLoad[0]].BuildOnVoxelData(this.worldGen.AssignBiome(toLoad[0], pregen:true));
-                    chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
-                    chunks[toLoad[0]].needsGeneration = 0;
-                    regionHandler.SaveChunk(chunks[toLoad[0]]);
-                }
-                // If it's just a normally generated chunk
-                else{
-                    chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this, fromMemory:true));
-                    vfx.NewChunk(toLoad[0]);
-                    regionHandler.LoadChunk(chunks[toLoad[0]]);
-                    chunks[toLoad[0]].needsGeneration = 0;
-                }
-            }
-            // If it's a new chunk to be generated
-            else{
-                chunks.Add(toLoad[0], new Chunk(toLoad[0], this.rend, this.blockBook, this));
-                vfx.NewChunk(toLoad[0]);
-                chunks[toLoad[0]].BuildOnVoxelData(this.worldGen.AssignBiome(toLoad[0]));
-                chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
-                chunks[toLoad[0]].needsGeneration = 0;
-                regionHandler.SaveChunk(chunks[toLoad[0]]);
-            }
-
-            toDraw.Add(toLoad[0]);
-    		toLoad.RemoveAt(0);
+    		toRequest.RemoveAt(0);
     	}
+    }
+
+    // Loads the chunk into the Chunkloader
+    private void LoadChunk(){
+        if(toLoad.Count > 0){
+            int min;
+
+            // Sets the current iteration amount
+            if(3 <= toLoad.Count)
+                min = 3;
+            else
+                min = toLoad.Count;
+
+            for(int i=0; i < min; i++){
+                byte[] data = toLoad[0];
+
+                int headerSize = RegionFileHandler.chunkHeaderSize;
+
+                ChunkPos cp = NetDecoder.ReadChunkPos(data, 1);
+
+                // Prevention
+                if(this.chunks.ContainsKey(cp)){
+                    Destroy(this.chunks[cp].obj);
+                    this.chunks.Remove(cp);
+                }
+
+
+                int blockDataSize = NetDecoder.ReadInt(data, 9);
+                int hpDataSize = NetDecoder.ReadInt(data, 13);
+                int stateDataSize = NetDecoder.ReadInt(data, 17);
+
+                this.chunks[cp] = new Chunk(cp, this.rend, this.blockBook, this);
+                this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[21]);
+
+                Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:21+headerSize);
+                Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
+                Compression.DecompressMetadataStateClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize+hpDataSize);
+            
+                if(this.vfx.data.ContainsKey(cp))
+                    this.vfx.RemoveChunk(cp);
+                    
+                this.vfx.NewChunk(cp);
+
+                if(!this.toDraw.Contains(cp))
+                    this.toDraw.Add(cp);
+
+                toLoad.RemoveAt(0);            
+            }
+        }
     }
 
     // Unloads a chunk per frame from the Unloading Buffer
@@ -259,8 +299,8 @@ public class ChunkLoader : MonoBehaviour
             }
 
             // Prevention
-            if(toLoad.Contains(toUnload[0])){
-                toLoad.Remove(toUnload[0]);
+            if(toRequest.Contains(toUnload[0])){
+                toRequest.Remove(toUnload[0]);
                 toUnload.RemoveAt(0);
                 return;
             }
@@ -270,11 +310,14 @@ public class ChunkLoader : MonoBehaviour
                 return;
             }
             
-            
             Chunk popChunk = chunks[toUnload[0]];
-            chunks.Remove(popChunk.pos);          
             Destroy(popChunk.obj);
+            chunks.Remove(popChunk.pos);
             vfx.RemoveChunk(popChunk.pos);
+
+            NetMessage message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
+            message.RequestChunkUnload(toUnload[0]);
+            this.client.Send(message.GetMessage(), message.size);
 
             toUnload.RemoveAt(0);
         }
@@ -320,6 +363,28 @@ public class ChunkLoader : MonoBehaviour
 
     }
 
+    // Reload a chunk in toUpdate
+    private void UpdateChunk(){
+        int min;
+
+        // Gets the minimum operational value
+        if(3 < toUpdate.Count)
+            min = 3;
+        else
+            min = toUpdate.Count;
+
+        if(toUpdate.Count > 0){
+            for(int i=0; i<min; i++){
+                if(this.chunks.ContainsKey(toUpdate[0])){
+                    chunks[toUpdate[0]].BuildChunk();
+                    if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
+                        toRedraw.Add(toUpdate[0]);
+                }
+                toUpdate.RemoveAt(0);
+            }
+        }
+    }
+
 
     // Gets all chunks around player's render distance
     // GetChunks automatically rebuilds chunks if reload=True
@@ -331,13 +396,13 @@ public class ChunkLoader : MonoBehaviour
     	// Reload all Chunks nearby
     	if(reload){
     		ClearAllChunks();
-    		toLoad.Clear();
+    		toRequest.Clear();
     		toUnload.Clear();
             toRedraw.Clear();
     		
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
-	        		toLoad.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
+	        		toRequest.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
                     toRedraw.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
 	        	}
 	        }
@@ -360,7 +425,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x+renderDistance-1, newChunk.z+i);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
     		}
     	}
@@ -370,7 +435,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x-renderDistance+1, newChunk.z+i);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
     		}
     	}
@@ -380,7 +445,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance+1);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
       		}
     	}
@@ -390,7 +455,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
       			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance-1);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
        		}	
     	}
@@ -400,7 +465,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x+renderDistance-1, newChunk.z+i);
-       			toLoad.Add(addChunk);
+       			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
     		}
     		for(int i=-renderDistance+1; i < renderDistance; i++){
@@ -408,7 +473,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i-1, newChunk.z-renderDistance);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x+i-1, newChunk.z-renderDistance+1);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
     		}
     	}
@@ -418,7 +483,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x-renderDistance+1, newChunk.z+i);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
@@ -426,7 +491,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z-renderDistance);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x+i+1, newChunk.z-renderDistance+1);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
     		}
     	}
@@ -436,7 +501,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x-renderDistance+1, newChunk.z+i);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
@@ -444,7 +509,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z+renderDistance);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x+i+1, newChunk.z+renderDistance-1);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
     		}
     	}
@@ -454,7 +519,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x+renderDistance-1, newChunk.z+i);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
@@ -462,7 +527,7 @@ public class ChunkLoader : MonoBehaviour
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
                 ChunkPos refreshChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance-1);
-    			toLoad.Add(addChunk);
+    			toRequest.Add(addChunk);
                 toRedraw.Add(refreshChunk);
     		}
     	}

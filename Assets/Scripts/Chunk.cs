@@ -21,6 +21,9 @@ public class Chunk
 	public float4 features;
 	public string lastVisitedTime;
 
+	// Multiplayer Settings
+	private NetMessage message;
+
 	// Draw Flags
 	private bool xPlusDrawn = false;
 	private bool zPlusDrawn = false;
@@ -58,7 +61,7 @@ public class Chunk
 
     private Mesh mesh;
 
-	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader, bool fromMemory=false){
+	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader){
 		this.pos = pos;
 		this.needsGeneration = 0;
 		this.renderer = r;
@@ -70,9 +73,7 @@ public class Chunk
 		this.obj.transform.SetParent(this.renderer.transform);
 		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 
-
-		if(fromMemory)
-			this.data = new VoxelData();
+		this.data = new VoxelData();
 		this.metadata = new VoxelMetadata();
 
 		this.obj.AddComponent<MeshFilter>();
@@ -89,12 +90,15 @@ public class Chunk
 
 	// Dummy Chunk Generation
 	// CANNOT BE USED TO DRAW, ONLY TO ADD ELEMENTS AND SAVE
-	public Chunk(ChunkPos pos){
+	public Chunk(ChunkPos pos, bool server=false){
 		this.biomeName = "Plains";
 		this.pos = pos;
 		this.needsGeneration = 1;
 
-		this.data = new VoxelData(new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth]);
+		if(!server)
+			this.data = new VoxelData(new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth]);
+		else
+			this.data = new VoxelData();
 
 		this.metadata = new VoxelMetadata();
 	}
@@ -110,6 +114,26 @@ public class Chunk
 		return c;
 	}
 	
+	// Returns the chunk's header in byte array format
+	public byte[] GetHeader(){
+		byte[] output = new byte[RegionFileHandler.chunkHeaderSize];
+
+		output[0] = BiomeHandler.BiomeToByte(this.biomeName);
+		// CURRENTLY ONLY OUTPUTTING LAST VISITED TIME AS 0
+		output[1] = 0;
+		output[2] = 0;
+		output[3] = 0;
+		output[4] = 0;
+		output[5] = 0;
+		output[6] = 0;
+		output[7] = 0;
+
+		output[8] = this.needsGeneration;
+
+		// The next 12 bytes are size information and don't need to be presented
+		return output;
+	}
+
 
 	public void BuildOnVoxelData(VoxelData vd){
 		this.data = vd;
@@ -144,8 +168,9 @@ public class Chunk
 
 		// Fast check if current border is at the edge of render distance
 		if(!this.ShouldRun()){
-			return true;
+			return false;
 		}
+
 
 		bool changed = false; // Flag is set if any change has been made that requires a redraw
 		int3[] coordArray;
@@ -260,7 +285,10 @@ public class Chunk
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				// SEND BUD
+				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}			
 			toLoadEvent.Clear();
 		}
@@ -313,7 +341,10 @@ public class Chunk
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				// SEND BUD
+				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}			
 			toLoadEvent.Clear();
 		}
@@ -366,7 +397,10 @@ public class Chunk
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				// SEND BUD
+				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}			
 			toLoadEvent.Clear();
 		}
@@ -419,7 +453,10 @@ public class Chunk
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				// SEND BUD
+				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}			
 			toLoadEvent.Clear();
 		}
@@ -427,7 +464,10 @@ public class Chunk
 		// Runs BUD in neighbor chunks
 		budArray = toBUD.AsArray().ToArray();
 		foreach(int3 bu in budArray){
-			loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", bu.x, bu.y, bu.z, 0, 0, 0, -1));
+			// SEND BUD
+			this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+			this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, bu.x, bu.y, bu.z, 0, 0, 0, ushort.MaxValue);
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 		}
 		
 		// If mesh wasn't redrawn
@@ -582,21 +622,27 @@ public class Chunk
 		}
 
 		// ToLoad() Event Trigger
-		/*
+		
 		if(this.biomeName == "Ocean"){
 			coordArray = loadCoordList.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				if(this.data.GetCell(coord) != 6) // Water
-					loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
+				if(this.data.GetCell(coord) != 6){ // Water
+					this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+					this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+					this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+				}
 			}
 		}
 		else{
-		*/
-		coordArray = loadCoordList.AsArray().ToArray();
-		foreach(int3 coord in coordArray){
-			loader.budscheduler.ScheduleBUDNow(new BUDSignal("load", this.pos.x*Chunk.chunkWidth+coord.x, coord.y, this.pos.z*Chunk.chunkWidth+coord.z, 0, 0, 0, -1));	
-		}			
-		//}
+		
+			coordArray = loadCoordList.AsArray().ToArray();
+			foreach(int3 coord in coordArray){
+				// SENDS BUD TO SERVER
+				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+			}			
+		}
 		loadCoordList.Clear();
 
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
@@ -742,6 +788,9 @@ public class Chunk
     	targetChunk = new ChunkPos(this.pos.x, this.pos.z+1);
 
     	if(loader.chunks.ContainsKey(targetChunk) && !this.zPlusDrawn)
+    		return true;
+
+    	if(loader.chunks.Count <= 2)
     		return true;
 
     	return false;
@@ -1689,7 +1738,7 @@ public struct BuildBorderJob : IJob{
 	    	liquidTris.Add(vCount -4 +2);
 	    	liquidTris.Add(vCount -4 +3);
 
-	    	return true;    		
+	    	return true;
     	}
 
     	return false;

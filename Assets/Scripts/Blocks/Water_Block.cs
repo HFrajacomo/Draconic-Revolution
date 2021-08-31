@@ -39,6 +39,7 @@ public class Water_Block : Blocks
 	private bool[] surroundingWaterFlag = new bool[8];
 	private BUDSignal cachedBUD;
 	private bool breakFLAG = false;
+	private NetMessage reloadMessage;
 
 	private int viscosityDelay;
 
@@ -73,31 +74,32 @@ public class Water_Block : Blocks
 	}
 
 	// Moves water down into underground caverns
-	public override int OnLoad(CastCoord coord, ChunkLoader cl){
-		this.OnBlockUpdate("change", coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);	
+	public override int OnLoad(CastCoord coord, ChunkLoader_Server cl){
+		this.OnBlockUpdate(BUDCode.CHANGE, coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);	
 		return 0;
 	}
 
 	// Custom Place operation with Raycasting class overwrite
-	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader cl){
+	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader_Server cl){
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
 
-		cl.budscheduler.ScheduleBUD(new BUDSignal("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing), this.viscosityDelay);
+		cl.budscheduler.ScheduleBUD(new BUDSignal(BUDCode.CHANGE, thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing), this.viscosityDelay);
 
 		// If has been placed by player
 		if(facing >= 0){
 			cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z);
-			this.EmitBlockUpdate("change", thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), this.viscosityDelay, cl);
+			return 0;
 		}
 
-		cl.budscheduler.ScheduleReload(pos, 0);
-		
+		this.Update(thisPos, BUDCode.CHANGE, -1, cl);
+		cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
 		return 0;
 	}
 
 	// Custom Break operation with Raycasting class overwrite
-	public override int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader cl){
+	public override int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){
 		cl.chunks[pos].data.SetCell(x, y, z, 0);
+		cl.chunks[pos].metadata.Reset(x,y,z);
 
 		cachedPos = new CastCoord(pos, x, y, z);
 
@@ -105,21 +107,22 @@ public class Water_Block : Blocks
 		if(!this.breakFLAG)
 			GetCodeAround(cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cl);
 		
+		this.Update(cachedPos, BUDCode.BREAK, -1, cl);
+		cl.budscheduler.ScheduleSave(cachedPos.GetChunkPos());
 		EmitWaterBUD(cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cl);
-		cl.budscheduler.ScheduleReload(pos, 0);
 		this.breakFLAG = false;
 
 		return 0;
 	}
 
 	// Applies Water Movement
-	public override void OnBlockUpdate(string type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){
-		if(type == "load"){
+	public override void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){
+		if(type == BUDCode.LOAD){
 			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
 			this.OnLoad(thisPos, cl);
 		}
 		
-		else if(type == "break" || type == "change"){
+		else if(type == BUDCode.BREAK || type == BUDCode.CHANGE){
 			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
 			ushort thisState = cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 			
@@ -149,7 +152,7 @@ public class Water_Block : Blocks
 				// If should be upgraded to Still Level 2
 				else if(GetHighLevelAroundCount(myX, myY, myZ, 1, cl, nofalling:true) >= 2){
 					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
+					this.Update(thisPos, BUDCode.CHANGE, -1, cl);
 					return;
 				}
 
@@ -217,7 +220,7 @@ public class Water_Block : Blocks
 				// If should be upgraded to Still 3
 				if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl, nofalling:true) >= 2){
 					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
+					this.Update(thisPos, BUDCode.CHANGE, -1, cl);
 					return;
 				}
 
@@ -570,7 +573,6 @@ public class Water_Block : Blocks
 				if(above != this.waterCode){
 					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
 
@@ -664,7 +666,6 @@ public class Water_Block : Blocks
 				if(above != this.waterCode){
 					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
 
@@ -782,7 +783,6 @@ public class Water_Block : Blocks
 				if(above != this.waterCode){
 					this.breakFLAG = true;
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.budscheduler.ScheduleReload(thisPos.GetChunkPos(), this.viscosityDelay);
 					return;
 				}
 
@@ -813,7 +813,7 @@ public class Water_Block : Blocks
 
 
 	// Gets Code of block below
-	private ushort GetCodeBelow(int myX, int myY, int myZ, ChunkLoader cl){
+	private ushort GetCodeBelow(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
 		if(myY-1 < 0)
 			return (ushort)(ushort.MaxValue/2);
@@ -822,7 +822,7 @@ public class Water_Block : Blocks
 	}
 
 	// Gets State of block below
-	private ushort GetStateBelow(int myX, int myY, int myZ, ChunkLoader cl){
+	private ushort GetStateBelow(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
 		if(myY-1 < 0)
 			return (ushort)(ushort.MaxValue/2);
@@ -831,7 +831,7 @@ public class Water_Block : Blocks
 	}
 
 	// Gets State of block above
-	private ushort GetStateAbove(int myX, int myY, int myZ, ChunkLoader cl){
+	private ushort GetStateAbove(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
 		if(myY+1 < Chunk.chunkDepth)
 			return (ushort)(ushort.MaxValue/2);
@@ -840,7 +840,7 @@ public class Water_Block : Blocks
 	}
 
 	// Gets Code of block above
-	private ushort GetCodeAbove(int myX, int myY, int myZ, ChunkLoader cl){
+	private ushort GetCodeAbove(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
 		if(myY+1 >= Chunk.chunkDepth)
 			return (ushort)(ushort.MaxValue/2);
@@ -852,7 +852,7 @@ public class Water_Block : Blocks
 	// Gets a list of block codes of around blocks
 	// Order is N Clockwise
 	// The value (ushort)(ushort.MaxValue/2) is considered the error code
-	private void GetCodeAround(int myX, int myY, int myZ, ChunkLoader cl){
+	private void GetCodeAround(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		CastCoord cord;
 
 		cord = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
@@ -913,7 +913,7 @@ public class Water_Block : Blocks
 	}
 
 	// Gets a list of states of around blocks if they are water
-	private void GetStateAround(int myX, int myY, int myZ, ChunkLoader cl){
+	private void GetStateAround(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		cachedPos = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
 		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
 			this.aroundStates[0] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
@@ -992,7 +992,7 @@ public class Water_Block : Blocks
 	}
 
 	// Checks if there is any high level water to this block
-	private bool CheckHigherLevelWaterAround(int myX, int myY, int myZ, int currentWaterLevel, ChunkLoader cl){
+	private bool CheckHigherLevelWaterAround(int myX, int myY, int myZ, int currentWaterLevel, ChunkLoader_Server cl){
 		for(int i=0; i<8; i++){
 			if(this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) > currentWaterLevel){
 				return true;
@@ -1002,7 +1002,7 @@ public class Water_Block : Blocks
 	}
 
 	// Checks the amount of high level water ONLY IN ADJASCENT blocks
-	private int GetHighLevelAroundCount(int x, int y, int z, int currentWaterLevel, ChunkLoader cl, bool nofalling=false){
+	private int GetHighLevelAroundCount(int x, int y, int z, int currentWaterLevel, ChunkLoader_Server cl, bool nofalling=false){
 		int count=0;
 
 		if(!nofalling){
@@ -1024,7 +1024,7 @@ public class Water_Block : Blocks
 	}
 
 	// Checks the amount of same level water ONLY IN ADJASCENT blocks disconsidering Falling Blocks
-	private int GetSameLevelAroundCount(int x, int y, int z, int currentWaterLevel, ChunkLoader cl){
+	private int GetSameLevelAroundCount(int x, int y, int z, int currentWaterLevel, ChunkLoader_Server cl){
 		int count=0;
 		GetStateAround(x,y,z,cl);
 
@@ -1054,7 +1054,7 @@ public class Water_Block : Blocks
 	}
 
 	// Gets the ground blockCode of a direction
-	private int GetGroundCode(int dir, int myX, int myY, int myZ, ChunkLoader cl){
+	private int GetGroundCode(int dir, int myX, int myY, int myZ, ChunkLoader_Server cl){
 		cachedPos = new CastCoord(GetNeighborBlock(dir, myX, myY, myZ));
 		cachedPos = cachedPos.Add(0, -1, 0);
 
@@ -1062,12 +1062,12 @@ public class Water_Block : Blocks
 	}
 
 	// Emits BUD Signal to Water Blocks around this one
-	private void EmitWaterBUD(int myX, int myY, int myZ, ChunkLoader cl){
+	private void EmitWaterBUD(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		// Diagonals
 		for(int i=1; i<8; i+=2){
 			if(this.aroundCodes[i] == this.waterCode){
 				cachedPos = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
-				cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);
 			}
 		}
@@ -1075,7 +1075,7 @@ public class Water_Block : Blocks
 		for(int i=0; i<8; i+=2){
 			if(this.aroundCodes[i] == this.waterCode){
 				cachedPos = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
-				cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);
 			}
 		}
@@ -1084,7 +1084,7 @@ public class Water_Block : Blocks
 		cachedPos = new CastCoord(this.GetNeighborBlock(8, myX, myY, myZ));
 		if(cachedPos.blockY >= 0){
 			if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode){
-				cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
 			}
 		}
@@ -1093,7 +1093,7 @@ public class Water_Block : Blocks
 		cachedPos = new CastCoord(this.GetNeighborBlock(9, myX, myY, myZ));
 		if(cachedPos.blockY < Chunk.chunkDepth){
 			if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode){
-				cachedBUD = new BUDSignal("change", cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
 			}
 		}
@@ -1131,5 +1131,12 @@ public class Water_Block : Blocks
 		if(state >= 4 && state <= 18 && state%2 == 0)
 			return true;
 		return false;
+	}
+
+    // Sends a DirectBlockUpdate call to users
+	public void Update(CastCoord c, BUDCode type, int facing, ChunkLoader_Server cl){
+		this.reloadMessage = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+		this.reloadMessage.DirectBlockUpdate(type, c.GetChunkPos(), c.blockX, c.blockY, c.blockZ, facing, this.waterCode, cl.GetState(c), ushort.MaxValue);
+		cl.server.SendToClients(c.GetChunkPos(), this.reloadMessage);
 	}
 }

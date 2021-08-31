@@ -35,3 +35,14 @@ SavedStruct.txt
 *.wdat
 
 *.pdat
+
+Logs/
+
+Draconic Revolution_Data/
+MonoBleedingEdge/
+
+server.cfg
+
+ProjectSettings/EditorBuildSettings.asset
+
+Draconic_Revolution_multiplayer.zip

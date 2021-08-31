@@ -78,6 +78,12 @@ public class BiomeHandler
 		currentBiome++;
 	}
 
+	// Clears everything in BiomeHandler
+	public void Clear(){
+		BiomeHandler.dataset.Clear();
+		BiomeHandler.codeToBiome.Clear();
+	}
+
 	// Returns the Water Level of a biome
 	public static ushort GetWaterLevel(byte biome){
 		if(biome == 255)

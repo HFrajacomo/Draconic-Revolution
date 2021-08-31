@@ -100,7 +100,7 @@ public abstract class Structure
 
 
     // Applies this structure to a cachedUshort array and a VoxelMetadata
-    public virtual bool Apply(ChunkLoader cl, ChunkPos pos, ushort[] VD, ushort[] VMHP, ushort[] VMState, int x, int y, int z, int rotation=0)
+    public virtual bool Apply(ChunkLoader_Server cl, ChunkPos pos, ushort[] VD, ushort[] VMHP, ushort[] VMState, int x, int y, int z, int rotation=0)
     {
         bool retStatus;
         int xChunks = Mathf.FloorToInt((x + this.sizeX - 1)/Chunk.chunkWidth);
@@ -214,7 +214,7 @@ public abstract class Structure
                         ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);
                     }
                     else{
-                        c = new Chunk(newPos, cl.rend, cl.blockBook, cl, fromMemory:true);
+                        c = new Chunk(newPos, server:true);
                         cl.regionHandler.LoadChunk(c);
                         ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);                
                         AddChunk(c);
@@ -227,7 +227,7 @@ public abstract class Structure
                         ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);                        
                     }
                     else{
-                        c = new Chunk(newPos, cl.rend, cl.blockBook, cl, fromMemory:true);
+                        c = new Chunk(newPos, server:true);
                         c.biomeName = "Plains";
                         c.needsGeneration = 1;
                         ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);              
@@ -241,7 +241,7 @@ public abstract class Structure
 
     // Applies this structure to a chunk
     // Receives a Chunk reference that will be changed in this function
-    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader cl, ushort[] VD, ushort[] VMHP, ushort[] VMState, int posX, int posY, int posZ, int remainderX, int remainderZ, int structinitX, int structinitZ, int rotation=0){
+    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader_Server cl, ushort[] VD, ushort[] VMHP, ushort[] VMState, int posX, int posY, int posZ, int remainderX, int remainderZ, int structinitX, int structinitZ, int rotation=0){
 
         bool exists = exist;
 

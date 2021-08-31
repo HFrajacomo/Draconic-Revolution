@@ -18,9 +18,8 @@ public class Grass_Block : Blocks
 		this.tileBottom = 3;
 	}
 
-	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
-		// Changes to Dirt and emits BUD
+	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
 		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, 2);
-		return 2;
+		return 1;
 	}
 }

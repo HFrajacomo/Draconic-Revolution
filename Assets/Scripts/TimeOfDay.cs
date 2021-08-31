@@ -6,22 +6,33 @@ using UnityEngine.Rendering;
 
 public class TimeOfDay : MonoBehaviour
 {
+    public Server server;
 	public float ticks = 0f;
 	public byte minutes = 0;
 	public byte hours = 6;
 	public uint days = 0;
-	public int DEBUGTIMEMULT=1;
     private byte[] timeArray = new byte[7];
     public bool LOCKTIME = true;
+    public bool isClient;
+
+    private bool SENDTIMEFLAG = false;
+    private bool CHECKTIMEOUT = false;
 
     void Update()
     {
-        if(!this.LOCKTIME){
-            ticks += Time.deltaTime * 10 * DEBUGTIMEMULT;
+        if(!this.LOCKTIME && !isClient){
+
+            // If there are no players in the server, don't run
+            if(this.server.connections.Count == 0)
+                return;
+
+            ticks += Time.deltaTime * 10;
 
             if(ticks >= 20){
             	ticks = 0f;
             	minutes++;
+                this.SENDTIMEFLAG = true;
+                this.CHECKTIMEOUT = true;
             }
 
             if(minutes >= 60){
@@ -33,18 +44,40 @@ public class TimeOfDay : MonoBehaviour
             	hours = 0;
             	days++;
             }
-        }
 
-        // Debug to advance time
-        if(MainControllerManager.debugKey){
-            this.hours++;
-            MainControllerManager.debugKey = false;
-        }
+            // If server, sends time update to client
+            if(this.SENDTIMEFLAG && !this.isClient){
+                NetMessage message = new NetMessage(NetCode.SENDGAMETIME);
+                message.SendGameTime(this.days, this.hours, this.minutes);
+                this.server.SendAll(message.GetMessage(), message.size);
 
+                this.SENDTIMEFLAG = false;
+            }
+
+            // If server, checks for timeouts
+            if(this.CHECKTIMEOUT && !this.isClient){
+                this.server.CheckTimeout();
+                this.CHECKTIMEOUT = false;
+            }
+
+        }
     }
 
     public void SetLock(bool flag){
         this.LOCKTIME = flag;
+    }
+
+    public void SetServer(Server sv){
+        this.server = sv;
+    }
+
+    // Sets current time. Used to set time in client through a server force message
+    // Currently sets ticks to 0 in client
+    public void SetTime(uint days, byte hours, byte minutes){
+        this.days = days;
+        this.hours = hours;
+        this.minutes = minutes;
+        this.ticks = 0;
     }
 
     // Gets formatted h:m string

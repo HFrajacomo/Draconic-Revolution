@@ -17,7 +17,7 @@ public class Stone_Block : Blocks
 		this.tileBottom = 4;	
 	}
 
-	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){
+	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
 		// Changes to Metal
 		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, 5);
 		return 1;

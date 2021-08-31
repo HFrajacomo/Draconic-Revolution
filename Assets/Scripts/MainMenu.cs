@@ -11,37 +11,102 @@ using UnityEngine.SceneManagement;
 public class MainMenu : MonoBehaviour
 {
 
-	public Text nameField;
-	public Text seedField;
-	public Text renderField;
+	// Unity Reference
+	public GameObject mainMenu;
+	public GameObject singleplayerMenu;
+	public GameObject multiplayerMenu;
+	public GameObject optionsMenu;
 
+	// Input
+	public Text single_nameField;
+	public Text single_seedField;
+	public Text single_renderField;
+	public Text multi_IPField;
+	public Text multi_renderField;
+	public Text multi_accountField;
 
-	public void StartGame(){
+	public void Start(){
+		Resources.UnloadUnusedAssets();
+		System.GC.Collect();
+		OpenMainMenu();
+	}
+
+	public void StartGameSingleplayer(){
 		int rn;
 
-		if(nameField.text == ""){
+		if(single_nameField.text == ""){
 			return;
 		}
 
-		if(seedField.text == ""){
+		if(single_seedField.text == ""){
 			Random.InitState((int)DateTime.Now.Ticks);
 			rn = (int)Random.Range(0, 999999);
 			World.SetWorldSeed(rn.ToString());
 		}
 		else{
-			World.SetWorldSeed(seedField.text);
+			World.SetWorldSeed(single_seedField.text);
 		}
 
-		if(renderField.text == ""){
+		if(single_renderField.text == ""){
 			World.SetRenderDistance("5");
 		}
 		else{
-			World.SetRenderDistance(renderField.text);
+			World.SetRenderDistance(single_renderField.text);
 		}
 
-		World.SetWorldName(nameField.text);
+		World.SetWorldName(single_nameField.text);
+		World.SetToClient();
 
 		SceneManager.LoadScene(1);
 	}
 
+	public void StartGameMultiplayer(){
+		if(multi_IPField.text == "")
+			return;
+		if(multi_accountField.text == "")
+			return;
+
+		World.SetAccountID(multi_accountField.text);
+
+		World.SetIP(multi_IPField.text);
+
+		if(multi_renderField.text == ""){
+			World.SetRenderDistance("5");
+		}
+		else{
+			World.SetRenderDistance(multi_renderField.text);
+		}
+
+		World.SetToServer();
+
+		SceneManager.LoadScene(1);
+	}
+
+	public void OpenMainMenu(){
+		ChangeVisibleMenu(this.mainMenu);
+	}
+
+	public void OpenSingleplayerMenu(){
+		ChangeVisibleMenu(this.singleplayerMenu);
+	}
+
+	public void OpenMultiplayerMenu(){
+		ChangeVisibleMenu(this.multiplayerMenu);
+	}
+
+	public void OpenOptionsMenu(){
+		ChangeVisibleMenu(this.optionsMenu);
+	}
+
+	public void ExitGame(){
+		Application.Quit();
+	}
+
+	private void ChangeVisibleMenu(GameObject go){
+		this.mainMenu.SetActive(false);
+		this.singleplayerMenu.SetActive(false);
+		this.multiplayerMenu.SetActive(false);
+		this.optionsMenu.SetActive(false);
+		go.SetActive(true);
+	}
 }

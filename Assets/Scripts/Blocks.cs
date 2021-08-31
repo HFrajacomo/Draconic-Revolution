@@ -113,7 +113,7 @@ public abstract class Blocks
 	}
 
     // Handles the emittion of BUD to neighboring blocks
-    public void EmitBlockUpdate(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
+    public void EmitBlockUpdate(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
       CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
 
       CastCoord[] neighbors = {
@@ -130,14 +130,18 @@ public abstract class Blocks
       int faceCounter=0;
 
       foreach(CastCoord c in neighbors){
-        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);     
+		if(c.blockY < 0 || c.blockY > Chunk.chunkDepth-1){
+			continue;
+		}
+		
+        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);
       
         faceCounter++;
       }
     }	
 
     // Emits a BUD signal with no information about sender
-    public void EmitBUDTo(string type, int x, int y, int z, int tickOffset, ChunkLoader cl){
+    public void EmitBUDTo(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
     	cl.budscheduler.ScheduleBUD(new BUDSignal(type, x, y, z, 0, 0, 0, 0), tickOffset);
     }
 
@@ -151,12 +155,15 @@ public abstract class Blocks
 		"trigger": When emitting block has been electrically triggered
 		"decay": When emitting block is wood and wants to decay leaves
 	*/
-	public virtual  void OnBlockUpdate(string type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader cl){}
+	public virtual  void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){}
 
-	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
-	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader cl){return 0;}
-	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader cl){return 0;}
-	public virtual int OnLoad(CastCoord coord, ChunkLoader cl){return 0;}
-	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader cl){return true;}
+	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){return 0;}
+	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){return 0;}
+	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){return 0;}
+	public virtual int OnLoad(CastCoord coord, ChunkLoader_Server cl){return 0;}
+	public virtual int OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){return 0;}
+	public virtual int OnVFXChange(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){return 0;}
+	public virtual int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){return 0;}
+	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader_Server cl){return true;}
 
 }

@@ -68,6 +68,40 @@ public struct CastCoord{
 	 	active = true;
 	}
 
+	public CastCoord(float x, float y, float z){
+	    // X Processing
+	    if(x >= 0)
+	      x = (int)Math.Round(x, MidpointRounding.AwayFromZero);
+	    else
+	      x = (int)(x - 0.5f);
+
+	    chunkX = Mathf.FloorToInt(x/Chunk.chunkWidth);
+
+
+	    if(chunkX >= 0)
+	      blockX = Mathf.FloorToInt(x%Chunk.chunkWidth);
+	    else
+	      blockX = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkX)+x)%Chunk.chunkWidth); 
+
+	    // Z Processing
+	    if(z >= 0)
+	      z = (int)Math.Round(z, MidpointRounding.AwayFromZero);
+	    else
+	      z = (int)(z - 0.5f);
+
+	    chunkZ = Mathf.FloorToInt(z/Chunk.chunkWidth);
+
+	    if(chunkZ >= 0)
+	      blockZ = Mathf.FloorToInt(z%Chunk.chunkWidth);
+	    else
+	      blockZ = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkZ)+z)%Chunk.chunkWidth);
+
+
+
+	    blockY = Mathf.RoundToInt(y);
+	 	active = true;
+	}
+
 	public CastCoord(ChunkPos pos, int x, int y, int z){
 		chunkX = pos.x;
 		chunkZ = pos.z;
