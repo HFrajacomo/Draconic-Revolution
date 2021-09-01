@@ -2884,7 +2884,7 @@ MonoBehaviour:
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
   m_AngularDiameter: 1
-  m_FlareSize: 5
+  m_FlareSize: 0
   m_FlareTint: {r: 1, g: 0.71797156, b: 0.4764151, a: 1}
   m_FlareFalloff: 4
   m_SurfaceTexture: {fileID: 0}
@@ -2950,7 +2950,7 @@ MonoBehaviour:
   m_ShadowVariant: 0
   m_ShadowPrecision: 0
   useOldInspector: 0
-  useVolumetric: 0
+  useVolumetric: 1
   featuresFoldout: 1
   showAdditionalSettings: 0
   m_AreaLightEmissiveMeshShadowCastingMode: 0
