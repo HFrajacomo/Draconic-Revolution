@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: iconAtlas
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 1
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings: []
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 0
+      enableTightPacking: 0
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 6934086728263231946, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+    - {fileID: -229256013063241344, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+    - {fileID: -3885610455112514396, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+    - {fileID: -7441382367286639308, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+    - {fileID: 1618293649664528702, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+    - {fileID: 8049885976776599914, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+    - {fileID: 4014287730522540239, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 8049885976776599914, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+  - {fileID: 1618293649664528702, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+  - {fileID: 4014287730522540239, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+  - {fileID: -229256013063241344, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+  - {fileID: 6934086728263231946, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+  - {fileID: -7441382367286639308, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+  - {fileID: -3885610455112514396, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - icon_5
+  - icon_4
+  - icon_6
+  - icon_1
+  - icon_0
+  - icon_3
+  - icon_2
+  m_RenderDataMap: {}
+  m_Tag: iconAtlas
+  m_IsVariant: 0
