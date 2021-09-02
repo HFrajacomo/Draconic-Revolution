@@ -58,10 +58,10 @@ public class PlayerRaycast : MonoBehaviour
 		this.blockToBePlaced = 1;
 		blockNameUI.text = "Grass";
 
-		hotbarIcon1.sprite = iconAtlas.GetSprite("icon_0");
-		hotbarIcon2.sprite = iconAtlas.GetSprite("icon_4");
+		hotbarIcon1.sprite = iconAtlas.GetSprite("icon_6");
+		hotbarIcon2.sprite = iconAtlas.GetSprite("icon_7");
 		// Make transparent
-		hotbarIcon2.color = new Color(hotbarIcon2.color.r, hotbarIcon2.color.g, hotbarIcon2.color.b, 0);
+		//hotbarIcon2.color = new Color(hotbarIcon2.color.r, hotbarIcon2.color.g, hotbarIcon2.color.b, 0);
 	}
 
 	

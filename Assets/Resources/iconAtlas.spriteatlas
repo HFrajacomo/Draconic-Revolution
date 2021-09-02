@@ -39,6 +39,7 @@ SpriteAtlas:
     - {fileID: 1618293649664528702, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
     - {fileID: 8049885976776599914, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
     - {fileID: 4014287730522540239, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+    - {fileID: 4743126897691936252, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
     bindAsDefault: 1
     isAtlasV2: 0
     cachedData: {fileID: 0}
@@ -46,6 +47,7 @@ SpriteAtlas:
   m_PackedSprites:
   - {fileID: 8049885976776599914, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
   - {fileID: 1618293649664528702, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+  - {fileID: 4743126897691936252, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
   - {fileID: 4014287730522540239, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
   - {fileID: -229256013063241344, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
   - {fileID: 6934086728263231946, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
@@ -54,6 +56,7 @@ SpriteAtlas:
   m_PackedSpriteNamesToIndex:
   - icon_5
   - icon_4
+  - icon_7
   - icon_6
   - icon_1
   - icon_0

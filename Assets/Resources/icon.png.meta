@@ -44,6 +44,12 @@ TextureImporter:
   - first:
       213: 4014287730522540239
     second: icon_6
+  - first:
+      213: 4743126897691936252
+    second: icon_7
+  - first:
+      213: -4764484233546665588
+    second: icon_8
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -148,7 +154,7 @@ TextureImporter:
       name: icon_0
       rect:
         serializedVersion: 2
-        x: 32
+        x: 0
         y: 0
         width: 32
         height: 32
@@ -169,7 +175,7 @@ TextureImporter:
       name: icon_1
       rect:
         serializedVersion: 2
-        x: 64
+        x: 32
         y: 0
         width: 32
         height: 32
@@ -190,7 +196,7 @@ TextureImporter:
       name: icon_2
       rect:
         serializedVersion: 2
-        x: 96
+        x: 64
         y: 0
         width: 32
         height: 32
@@ -211,7 +217,7 @@ TextureImporter:
       name: icon_3
       rect:
         serializedVersion: 2
-        x: 128
+        x: 96
         y: 0
         width: 32
         height: 32
@@ -232,7 +238,7 @@ TextureImporter:
       name: icon_4
       rect:
         serializedVersion: 2
-        x: 160
+        x: 128
         y: 0
         width: 32
         height: 32
@@ -253,7 +259,7 @@ TextureImporter:
       name: icon_5
       rect:
         serializedVersion: 2
-        x: 192
+        x: 160
         y: 0
         width: 32
         height: 32
@@ -274,7 +280,7 @@ TextureImporter:
       name: icon_6
       rect:
         serializedVersion: 2
-        x: 224
+        x: 192
         y: 0
         width: 32
         height: 32
@@ -287,6 +293,27 @@ TextureImporter:
       bones: []
       spriteID: fc8410c1c6d95b730800000000000000
       internalID: 4014287730522540239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon_7
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 0
+        width: 32
+        height: 32
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cf5478588c8f2d140800000000000000
+      internalID: 4743126897691936252
       vertices: []
       indices: 
       edges: []

@@ -69,7 +69,7 @@ public class Client
 					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";					
 				// Lyxo PC
 				else
-					this.lanServerProcess.StartInfo.FileName = "E:\\Pasta\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";					
+					this.lanServerProcess.StartInfo.FileName = "E:\\Pasta\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";
 
 			// Standalone edition
 			#else

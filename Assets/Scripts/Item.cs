@@ -4,42 +4,30 @@ using UnityEngine;
 
 public abstract class Item
 {
-	// Image
-	public static readonly int atlasSizeX = 16;
-	public static readonly int atlasSizeY = 1;
-
-	public uint itemAtlasPosX;
-	public uint itemAtlasPosY;
+	// INCREMENT THIS EVERYTIME A NEW ITEM IS ADDED
+	public static readonly ushort totalItems = 8;
+	public static readonly ushort iconAtlasSizeX = 16;
 
 	// Basic Identification
 	public string name;
 	public string description;
 	public ItemID id;
+	public uint iconID;
 
 	// Inventory
 	public byte stacksize;
 	public uint price;
 	public uint priceVariation;
 
-	// Thaumic Aspects
+	public Dictionary<ThaumicAspect, byte> aspects;
 	public HashSet<ItemTag> tags;
 	public bool hasDurability;
 
 
+
 	// Returns the item's Icon as UVs
-	public Vector2[] GetItemIcon(){
-		Vector2[] UVs = new Vector2[4];
-		float x,y;
- 
-		x = this.itemAtlasPosX * (1f / Item.atlasSizeX);
-		y = this.itemAtlasPosY * (1f / Item.atlasSizeY);
-
-		UVs[0] = new Vector2(x,y+(1f/Item.atlasSizeY));
-		UVs[1] = new Vector2(x+(1f/Item.atlasSizeX),y+(1f/Item.atlasSizeY));
-		UVs[2] = new Vector2(x+(1f/Item.atlasSizeX),y);
-		UVs[3] = new Vector2(x,y);
-
-		return UVs;
+	public string GetItemIconName(){
+		return "icon_" + this.iconID.ToString();
 	}
 
 	// Checks if this item contains a given tag
@@ -51,15 +39,33 @@ public abstract class Item
 	public List<ItemTag> GetTags(){
 		return new List<ItemTag>(this.tags);
 	}
+
+	public virtual void SetName(string s){this.name = s;}
+	public virtual void SetDescription(string s){this.description = s;}
+	public virtual void SetID(ItemID i){this.id = i;}
+	public virtual void SetIconID(ushort atlasX, ushort atlasY){this.iconID = (uint)(atlasY*Item.iconAtlasSizeX + atlasX);}
+	public virtual void SetStackSize(byte b){this.stacksize = b;}
+	public virtual void SetPrice(uint u){this.price = u;}
+	public virtual void SetPriceVar(uint u){this.priceVariation = u;}
+	public virtual void SetAspects(Dictionary<ThaumicAspect, byte> d){this.aspects = d;}
+	public virtual void SetTags(List<ItemTag> lit){this.tags = new HashSet<ItemTag>(lit);}
+	public virtual void SetDurability(bool b){this.hasDurability = b;}
+
+
+	/*
+	ADD TO THIS LIST EVERYTIME A NEW ITEM IS ADDED
+	*/
+	public static Item PopulateEncyclopedia(ushort code){
+		ItemID codeID = (ItemID)code; // DEBUG ItemID.Parse(typeof(ItemID), code.ToString());
+
+		switch(codeID){
+			case ItemID.GRASSBLOCK:
+				return new Grassblock_Item();
+			case ItemID.DIRTBLOCK:
+				return new Dirtblock_Item();
+			default:
+				return null;
+		}
+	}
 }
 
-public enum ItemID : ushort {
-	GRASSBLOCK,
-	DIRTBLOCK,
-	STONEBLOCK,
-	WOODBLOCK,
-	METALBLOCK,
-	LEAFBLOCK,
-	WATERBLOCK,
-	TORCH
-}
