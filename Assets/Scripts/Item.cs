@@ -55,7 +55,7 @@ public abstract class Item
 	/*
 	ADD TO THIS LIST EVERYTIME A NEW ITEM IS ADDED
 	*/
-	public static Item PopulateEncyclopedia(ushort code){
+	public static Item GenerateItem(ushort code){
 		ItemID codeID = (ItemID)code; // DEBUG ItemID.Parse(typeof(ItemID), code.ToString());
 
 		switch(codeID){
@@ -63,6 +63,18 @@ public abstract class Item
 				return new Grassblock_Item();
 			case ItemID.DIRTBLOCK:
 				return new Dirtblock_Item();
+			case ItemID.STONEBLOCK:
+				return new Stoneblock_Item();
+			case ItemID.WOODBLOCK:
+				return new Woodblock_Item();
+			case ItemID.METALBLOCK:
+				return new Metalblock_Item();
+			case ItemID.WATERBLOCK:
+				return new Waterblock_Item();
+			case ItemID.TORCH:
+				return new Torch_Item();
+			case ItemID.LEAFBLOCK:
+				return new Leafblock_Item();
 			default:
 				return null;
 		}

@@ -9,7 +9,7 @@ public class ItemEncyclopedia : MonoBehaviour
     void Awake()
     {
     	for(ushort i=0; i<Item.totalItems; i++)
-    		this.items[i] = Item.PopulateEncyclopedia(i);
+    		this.items[i] = Item.GenerateItem(i);
     }
 
 
