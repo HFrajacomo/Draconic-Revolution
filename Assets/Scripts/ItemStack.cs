@@ -27,9 +27,10 @@ public class ItemStack
 		return this.amount;
 	}
 
-	// Hard Sets the amount. MUST BE PRIVATE
-	private void SetAmount(byte amount){
+	// Hard Sets the amount
+	public void SetAmount(byte amount){
 		this.amount = amount;
+		this.SetFull(this.amount >= this.item.stacksize);
 	}
 
 	// Returns the item ID
