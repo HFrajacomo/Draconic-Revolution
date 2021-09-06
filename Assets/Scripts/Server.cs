@@ -531,12 +531,16 @@ public class Server
 					if(blockCode <= ushort.MaxValue/2){
 						// if placement rules fail
 						if(!cl.blockBook.blocks[blockCode].PlacementRule(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl)){
+							NetMessage denied = new NetMessage(NetCode.PLACEMENTDENIED);
+							this.Send(denied.GetMessage(), denied.size, id);
 							return;
 						}
 					}
 					// if it's an object
 					else{
 						if(!cl.blockBook.objects[ushort.MaxValue-blockCode].PlacementRule(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl)){
+							NetMessage denied = new NetMessage(NetCode.PLACEMENTDENIED);
+							this.Send(denied.GetMessage(), denied.size, id);
 							return;
 						}
 					}
@@ -547,8 +551,11 @@ public class Server
 							if(code == id)
 								continue;
 
-							if(!this.cl.regionHandler.allPlayerData[code].CheckValidPlacement(lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ()))
+							if(!this.cl.regionHandler.allPlayerData[code].CheckValidPlacement(lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ())){
+								NetMessage denied = new NetMessage(NetCode.PLACEMENTDENIED);
+								this.Send(denied.GetMessage(), denied.size, id);
 								return;
+							}
 						}
 					}
 

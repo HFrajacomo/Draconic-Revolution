@@ -134,6 +134,7 @@ public class ChunkLoader : MonoBehaviour
 
                 this.gameUI.SetActive(true);
                 playerCharacter.SetActive(true);
+                this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
         	}
 
             HandleClientCommunication();

@@ -70,7 +70,12 @@ public class Inventory
 	// Returns true if there's an empty inventory slot for the split stack
 	// Outputs newSlot as the slot occupied by the new Split
 	public bool AddFromSplit(ItemStack its, ushort ignoreIndex, out ushort newSlot){
-		if(this.IsFull() || its.GetStacksize() == 1 || its.GetAmount() == 1){
+		if(its == null){
+			newSlot = 0;
+			return false;
+		}
+
+		if(this.IsFull()){
 			newSlot = 0;
 			return false;
 		}
@@ -80,16 +85,10 @@ public class Inventory
 				continue;
 
 			if(this.slots[i] == null){
-				this.slots[i] = its.Clone();
-				this.slots[i].SetAmount((byte)(its.GetAmount()/2));
-
-				if(its.GetAmount()%2 == 1)
-					its.SetAmount((byte)((its.GetAmount()/2)+1));
-				else
-					its.SetAmount((byte)(its.GetAmount()/2));
-
+				this.slots[i] = its;
 				newSlot = i;
 				this.FindLastEmptySlot();
+				this.SetFull();
 				return true;
 			}
 		}
@@ -279,8 +278,8 @@ public class Inventory
 	}
 
 	// Iterates until it finds the first empty slot
-	private void FindLastEmptySlot(){
-		for(ushort i=(ushort)(this.lastEmptySlot+1); i < this.limit; i++){
+	public void FindLastEmptySlot(){
+		for(ushort i=0; i < this.limit; i++){
 			if(this.slots[i] == null){
 				this.lastEmptySlot = (short)i;
 				return;

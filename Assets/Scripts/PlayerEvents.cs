@@ -28,11 +28,12 @@ public class PlayerEvents : MonoBehaviour
     	ItemStack its = new ItemStack(ItemID.STONEBLOCK, 40);
     	inventory.AddStack(its, inventory.CanFit(its));
     	hotbar.AddStack(its, hotbar.CanFit(its));
+    	this.Scroll1();
 
 
         InventoryStaticMessage.SetPlayerInventory(inventory);
         InventoryStaticMessage.SetInventory(hotbar);
-        invUIPlayer.OpenInventory();
+        invUIPlayer.OpenInventory(inventory, hotbar);
 
         this.DrawHotbar();
     }
@@ -41,39 +42,39 @@ public class PlayerEvents : MonoBehaviour
 	// Selects a new item in hotbar
 	public void Scroll1(){
 		PlayerEvents.hotbarSlot = 0;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(-1), 34);
 	}
 	public void Scroll2(){
 		PlayerEvents.hotbarSlot = 1;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 34);
 	}
 	public void Scroll3(){
 		PlayerEvents.hotbarSlot = 2;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 34);
 	}
 	public void Scroll4(){
 		PlayerEvents.hotbarSlot = 3;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 34);
 	}
 	public void Scroll5(){
 		PlayerEvents.hotbarSlot = 4;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 34);
 	}
 	public void Scroll6(){
 		PlayerEvents.hotbarSlot = 5;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 34);
 	}
 	public void Scroll7(){
 		PlayerEvents.hotbarSlot = 6;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 34);
 	}
 	public void Scroll8(){
 		PlayerEvents.hotbarSlot = 7;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 34);
 	}
 	public void Scroll9(){
 		PlayerEvents.hotbarSlot = 8;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 34);
 	}
 	public void MouseScroll(int val){
 		if(val < 0){

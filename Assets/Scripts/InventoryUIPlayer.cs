@@ -27,11 +27,19 @@ public class InventoryUIPlayer : MonoBehaviour
 	private readonly Color WHITE = new Color(1f,1f,1f,1f);
 	private readonly Color RED = new Color(1f, 0.5f, 0.5f, 1f);
 
-    public void OpenInventory(){
-		this.inv1 = InventoryStaticMessage.playerInventory;
-		this.inv2 = InventoryStaticMessage.GetInventory();
+    public void OpenInventory(Inventory inventory, Inventory hotbar){
+		this.inv1 = inventory;//InventoryStaticMessage.playerInventory;
+		this.inv2 = hotbar;//InventoryStaticMessage.GetInventory();
 
 		this.DrawStacks();
+        this.inv1.FindLastEmptySlot();
+        this.inv2.FindLastEmptySlot();
+    }
+
+    public void ReloadInventory(){
+        this.DrawStacks();
+        this.inv1.FindLastEmptySlot();
+        this.inv2.FindLastEmptySlot();        
     }
 
     // Draws the ItemStacks into the Inventory Screen
@@ -65,7 +73,7 @@ public class InventoryUIPlayer : MonoBehaviour
     }
 
     // Redraws a specific slot
-    private void DrawSlot(byte inventoryCode, ushort slot){
+    public void DrawSlot(byte inventoryCode, ushort slot){
     	ItemStack its;
 
     	if(inventoryCode == 0){
@@ -191,16 +199,20 @@ public class InventoryUIPlayer : MonoBehaviour
     		ushort newSlot;
 
     		if(inventoryCode == 0){
-    			if(inv1.AddFromSplit(inv1.GetSlot(slot), slot, out newSlot)){
-    				this.DrawSlot(inventoryCode, slot);
-    				this.DrawSlot(inventoryCode, newSlot);
-    			}
+                if(!inv1.IsFull()){
+        			if(inv1.AddFromSplit(inv1.GetSlot(slot).Split(), slot, out newSlot)){
+        				this.DrawSlot(inventoryCode, slot);
+        				this.DrawSlot(inventoryCode, newSlot);
+        			}
+                }
     		}
     		else{
-    			if(inv2.AddFromSplit(inv2.GetSlot(slot), slot, out newSlot)){
-    				this.DrawSlot(inventoryCode, slot);
-    				this.DrawSlot(inventoryCode, newSlot);
-    			}    			
+                if(!inv2.IsFull()){
+        			if(inv2.AddFromSplit(inv2.GetSlot(slot).Split(), slot, out newSlot)){
+        				this.DrawSlot(inventoryCode, slot);
+        				this.DrawSlot(inventoryCode, newSlot);
+        			}    
+                }			
     		}
     	}
     	// If there's a selection, then unselect
@@ -220,6 +232,11 @@ public class InventoryUIPlayer : MonoBehaviour
 				return true;
 		}
 		return false;
+    }
+
+    // Nulls a slot in Hotbar
+    public void SetNull(ushort slot){
+        inv2.SetNull(slot);
     }
 
     // Resets selection

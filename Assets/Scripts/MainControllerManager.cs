@@ -14,9 +14,6 @@ public class MainControllerManager : MonoBehaviour
 	public float mouseX = 0f;
 	public float mouseY = 0f;
 
-	public bool primaryAction = false;
-	public bool secondaryAction = false;
-	public bool interact = false;
     public bool gravityHack = false;
     public bool prefabRead = false;
     public bool prefabReadAir = false;
@@ -37,6 +34,7 @@ public class MainControllerManager : MonoBehaviour
     public GameObject inventoryGUI;
     public InventoryUIPlayer invUIPlayer;
     public GameObject hotbar;
+    public PlayerRaycast raycast;
 
 	// Jumping
     public void OnJump(){
@@ -62,15 +60,18 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnPrimaryAction(){
-    	primaryAction = true;
+    	if(!MainControllerManager.InUI)
+            raycast.BreakBlock();
     }
 
     public void OnSecondaryAction(){
-    	secondaryAction = true;
+    	if(!MainControllerManager.InUI)
+            raycast.UseItem();
     }
 
     public void OnInteract(){
-    	interact = true;
+        if(!MainControllerManager.InUI)
+            raycast.Interact();
     }
 
     public void OnToggleGravity(){
@@ -141,6 +142,10 @@ public class MainControllerManager : MonoBehaviour
         bool newState = !MainControllerManager.InUI;
         this.inventoryGUI.SetActive(newState);
         MainControllerManager.InUI = newState;
+
+        if(newState)
+            invUIPlayer.ReloadInventory();
+
         this.invUIPlayer.ResetSelection();
         hotbar.SetActive(!newState);
         MouseLook.ToggleMouseCursor(newState);

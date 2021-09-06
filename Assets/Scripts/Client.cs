@@ -43,6 +43,7 @@ public class Client
 
 	// Unity References
 	public ChunkLoader cl;
+	public PlayerRaycast raycast;
 
 	// Windows External Process
 	public Process lanServerProcess;
@@ -131,6 +132,10 @@ public class Client
 	public void Panic(){
 		Debug.Log("Panic");
         SceneManager.LoadScene("Menu");
+	}
+
+	public void SetRaycast(PlayerRaycast raycast){
+		this.raycast = raycast;
 	}
 	
 	
@@ -284,6 +289,9 @@ public class Client
 				break;
 			case NetCode.ENTITYDELETE:
 				EntityDelete(data);
+				break;
+			case NetCode.PLACEMENTDENIED:
+				PlacementDenied();
 				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
@@ -522,4 +530,10 @@ public class Client
 		}
 	}
 
+	// Signals Raycast to giveback the last placed item
+	private void PlacementDenied(){
+		ItemStack its = new ItemStack(PlayerRaycast.lastBlockPlaced, 1);
+		this.raycast.playerEvents.hotbar.AddStack(its, this.raycast.playerEvents.hotbar.CanFit(its));
+		this.raycast.playerEvents.DrawHotbar();
+	}
 }

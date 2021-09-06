@@ -51,6 +51,8 @@ public abstract class Item
 	public virtual void SetTags(List<ItemTag> lit){this.tags = new HashSet<ItemTag>(lit);}
 	public virtual void SetDurability(bool b){this.hasDurability = b;}
 
+	public virtual int Use(){return 0;}
+	public void Hold(){}
 
 	/*
 	ADD TO THIS LIST EVERYTIME A NEW ITEM IS ADDED

@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Dirtblock_Item : Item
+public class Dirtblock_Item : Item, IPlaceable
 {
+	public ushort placeableBlockID {get; set;}
+
 	public Dirtblock_Item(){
 		this.SetName("Dirt Block");
 		this.SetDescription("There may be worms");
@@ -14,5 +16,10 @@ public class Dirtblock_Item : Item
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Terra, 2}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable});
 		this.SetDurability(false);
+		this.placeableBlockID = 3;
+	}
+
+	public override int Use(){
+		return this.placeableBlockID;
 	}
 }

@@ -183,7 +183,7 @@ public class ItemStack
 	// Splits the stack into a new one
 	public ItemStack Split(){
 		// If stack only has one element
-		if(this.GetAmount() <= 1)
+		if(this.GetAmount() <= 1 || this.GetStacksize() == 1 || this.GetAmount() == 1)
 			return null;
 		
 		// If stack is even
@@ -198,9 +198,19 @@ public class ItemStack
 			this.SetAmount(newStackValue);
 			this.SetFull(false);
 			ItemStack newStack = this.Clone();
-			this.SetAmount((byte)(newStackValue + 1));
+			this.SetAmount((byte)(newStackValue+1));
+
 			return newStack;
 		}
+	}
+
+	public override string ToString(){
+		return this.GetID().ToString() + " " + this.GetAmount();
+	}
+
+	// Returns the Item associated
+	public Item GetItem(){
+		return this.item;
 	}
 
 }

@@ -29,6 +29,8 @@ public class PlayerRaycast : MonoBehaviour
 	public MainControllerManager control;
 
 	public static ushort blockToBePlaced;
+	public static ItemID lastBlockPlaced = (ItemID)0;
+	public PlayerEvents playerEvents;
 
 	// Cached
 	private BUDSignal cachedBUD;
@@ -79,7 +81,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			// Checks for solid block hit
 			// Checks for hit
-			if(HitAll(current)){ // HitSolid
+			if(HitSolid(current)){ // HitSolid
 				FOUND = true;
 				break;
 			}
@@ -95,23 +97,6 @@ public class PlayerRaycast : MonoBehaviour
 		
 		facing = current - lastCoord;
 
-		// Click to break block
-		if(control.primaryAction){
-			BreakBlock();
-			control.primaryAction = false;
-		}
-
-		// Click to place block
-		if(control.secondaryAction){
-			PlaceBlock(PlayerRaycast.blockToBePlaced);
-			control.secondaryAction = false;
-		}
-
-		// Click for interact
-		if(control.interact){
-			Interact();
-			control.interact = false;
-		}
 
 		if(control.prefabRead || control.prefabReadAir){
 			PrefabRead(control.prefabRead);
@@ -171,7 +156,7 @@ public class PlayerRaycast : MonoBehaviour
 	}
 
 	// Block Breaking mechanic
-	private void BreakBlock(){
+	public void BreakBlock(){
 		if(!current.active){
 			return;
 		}
@@ -184,23 +169,53 @@ public class PlayerRaycast : MonoBehaviour
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.BREAK, current.GetChunkPos(), current.blockX, current.blockY, current.blockZ, facing, blockCode, state, hp);
 		this.loader.client.Send(message.GetMessage(), message.size);
+	}
 
+	// Uses item in hand
+	public void UseItem(){
+		// If ain't aiming at anything
+		if(!current.active)
+			return;
+
+		ItemStack its = playerEvents.GetSlotStack();
+
+		// If is holding no items
+		if(its == null){
+			return;
+		}
+
+		Item it = its.GetItem();
+
+		// If is a placeable item
+		if(it is IPlaceable){
+			IPlaceable itPlaceable = it as IPlaceable;
+			// If block placement was successful in client
+			if(this.PlaceBlock(itPlaceable.placeableBlockID)){
+				PlayerRaycast.lastBlockPlaced = it.id;
+				if(its.Decrement()){
+					playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
+				}
+				playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
+				playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);
+			}
+		}
 	}
 
 	// Block Placing mechanic
-	private void PlaceBlock(ushort blockCode){
+	private bool PlaceBlock(ushort blockCode){
 		// Won't happen if not raycasting something or if block is in player's body or head
 		if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.CheckSolid(blockCode))){
-			return;
+			return false;
 		}
 
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, ushort.MaxValue, ushort.MaxValue);
 		this.loader.client.Send(message.GetMessage(), message.size);
+		return true;
 	}
 
 	// Triggers Blocktype.OnInteract()
-	private void Interact(){
+	public void Interact(){
 		if(!current.active)
 			return;
 
