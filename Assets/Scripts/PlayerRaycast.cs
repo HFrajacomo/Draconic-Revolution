@@ -19,18 +19,6 @@ public class PlayerRaycast : MonoBehaviour
 	public CastCoord current;
 	private CastCoord lastCoord;
 
-
-	// Selected Block
-	public ushort blockToBePlaced = 1;
-	public int blockSelected = 1;
-	public TextMeshProUGUI blockNameUI;
-	public RectTransform hotbar_selected;
-
-	// Hotbar icons
-	public SpriteAtlas iconAtlas;
-	public Image hotbarIcon1;
-	public Image hotbarIcon2;
-
 	// Prefab System
 	private bool prefabSetFlag = false;
 	private CastCoord prefabPos = new CastCoord(false);
@@ -39,6 +27,8 @@ public class PlayerRaycast : MonoBehaviour
 	private CastCoord playerHead;
 	private CastCoord playerBody;
 	public MainControllerManager control;
+
+	public static ushort blockToBePlaced;
 
 	// Cached
 	private BUDSignal cachedBUD;
@@ -54,15 +44,7 @@ public class PlayerRaycast : MonoBehaviour
 	public int facing;
 
 
-	public void Start(){
-		this.blockToBePlaced = 1;
-		blockNameUI.text = "Grass";
-
-		hotbarIcon1.sprite = iconAtlas.GetSprite("icon_6");
-		hotbarIcon2.sprite = iconAtlas.GetSprite("icon_7");
-		// Make transparent
-		//hotbarIcon2.color = new Color(hotbarIcon2.color.r, hotbarIcon2.color.g, hotbarIcon2.color.b, 0);
-	}
+	public void Start(){}
 
 	
 	// Update is called once per frame
@@ -121,7 +103,7 @@ public class PlayerRaycast : MonoBehaviour
 
 		// Click to place block
 		if(control.secondaryAction){
-			PlaceBlock(this.blockToBePlaced);
+			PlaceBlock(PlayerRaycast.blockToBePlaced);
 			control.secondaryAction = false;
 		}
 
@@ -230,79 +212,6 @@ public class PlayerRaycast : MonoBehaviour
 		this.loader.client.Send(message.GetMessage(), message.size);
 	}
 	
-	// Selects a new item in hotbar
-	public void Scroll1(){
-		this.blockSelected = 1;
-		this.blockToBePlaced = 1;
-		blockNameUI.text = loader.blockBook.CheckName(1);
-		hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 50);
-	}
-	public void Scroll2(){
-		this.blockSelected = 2;
-		this.blockToBePlaced = 2;
-		blockNameUI.text = loader.blockBook.CheckName(2);
-		hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 50);
-	}
-	public void Scroll3(){
-		this.blockSelected = 3;
-		this.blockToBePlaced = 3;
-		blockNameUI.text = loader.blockBook.CheckName(3);
-		hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 50);
-	}
-	public void Scroll4(){
-		this.blockSelected = 4;
-		this.blockToBePlaced = 4;
-		blockNameUI.text = loader.blockBook.CheckName(4);
-		hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 50);
-	}
-	public void Scroll5(){
-		this.blockSelected = 5;
-		this.blockToBePlaced = 5;
-		blockNameUI.text = loader.blockBook.CheckName(5);
-		hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 50);
-	}
-	public void Scroll6(){
-		this.blockSelected = 6;
-		this.blockToBePlaced = 6;
-		blockNameUI.text = loader.blockBook.CheckName(6);
-		hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 50);
-	}
-	public void Scroll7(){
-		this.blockSelected = 7;
-		this.blockToBePlaced = ushort.MaxValue;
-		blockNameUI.text = loader.blockBook.CheckName(ushort.MaxValue);
-		hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 50);
-	}
-	public void Scroll8(){
-		this.blockSelected = 8;
-		this.blockToBePlaced = ushort.MaxValue-1;
-		blockNameUI.text = loader.blockBook.CheckName(ushort.MaxValue-1);
-		hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 50);
-	}
-	public void Scroll9(){
-		this.blockSelected = 9;
-		hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 50);
-	}
-	public void MouseScroll(int val){
-		if(val > 0){
-			if(this.blockSelected == 9)
-				this.blockSelected = 1;
-			else
-				this.blockSelected++;
-		}
-		else if(val < 0){
-			if(this.blockSelected == 1)
-				this.blockSelected = 9;
-			else
-				this.blockSelected--;				
-		}
-		else
-			return;
-
-		hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(this.blockSelected-1), 50);
-	}
-	
-
 
 	// Runs Prefab read and returns the arrays needed to create the prefab
 	private void PrefabRead(bool blockBased){
@@ -465,11 +374,5 @@ public class PlayerRaycast : MonoBehaviour
 			loader.chunks[new ChunkPos(pos.x, pos.z-1)].BuildSideBorder(reloadZM:true);
 		else if(z == Chunk.chunkWidth-1)
 			loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder(reloadZP:true);
-	}
-	
-	// Calculates correct X position for the selected hotbar spot
-	public int GetSelectionX(int pos){
-		return 78*pos-312;
-	}
-		
+	}	
 }

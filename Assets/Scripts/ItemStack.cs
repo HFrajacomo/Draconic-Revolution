@@ -38,9 +38,9 @@ public class ItemStack
 		return item.id;
 	}
 
-	// Returns the icon associated to this ItemStack
-	public uint GetIconID(){
-		return item.iconID;
+	// Returns the item's Icon
+	public string GetItemIconName(){
+		return "icon_" + item.iconID.ToString();
 	}
 
 	// Returns the stacksize of the item
@@ -78,16 +78,15 @@ public class ItemStack
 	}
 
 	// Compares two stacks to check whether they have the same ItemID
-	public static bool operator==(ItemStack th, ItemStack its){
-		if(th.GetID() == its.GetID())
+	public bool IsEqual(ItemStack its){
+		if(this == null && its == null)
 			return true;
-		return false;
-	}
-	// Compares two stacks to check whether they have the same ItemID
-	public static bool operator!=(ItemStack th, ItemStack its){
-		if(th == its)
+		else if(its == null)
 			return false;
-		return true;
+		if(this != null && its != null)
+			if(this.GetID() == its.GetID())
+				return true;
+		return false;
 	}
 	public override int GetHashCode(){
 		return (int)this.GetID();
@@ -103,7 +102,7 @@ public class ItemStack
 	// Moves items from an inventory to another in Inventory
 	// RETURNS TRUE IF MOVER SHOULD BE DESTROYED IN INVENTORY
 	#nullable enable
-	public bool MoveTo(ItemStack its){
+	public bool MoveTo(ref ItemStack its){
 		// In case moving stack into an empty space
 		if(its == null){
 			its = this.Clone();
@@ -111,7 +110,7 @@ public class ItemStack
 		}
 
 		// If stacks are different (have different items in them)
-		if(this != its)
+		if(!this.IsEqual(its))
 			return false;
 
 

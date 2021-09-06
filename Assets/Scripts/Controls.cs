@@ -201,6 +201,30 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""OpenInventory"",
+                    ""type"": ""Button"",
+                    ""id"": ""1ad81ed1-cc4b-413d-9040-cd1243197b09"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Ctrl"",
+                    ""type"": ""Button"",
+                    ""id"": ""088d8d1c-b3a4-4c99-b0cf-bf2a8f7ab271"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Drop"",
+                    ""type"": ""Button"",
+                    ""id"": ""b4f31072-d67b-454a-bc61-482b58c6a476"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
                 }
             ],
             ""bindings"": [
@@ -500,6 +524,50 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""action"": ""MouseScroll"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2c4d8684-3183-48e0-8525-9ddab894d77e"",
+                    ""path"": ""<Keyboard>/i"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""OpenInventory"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5d091f03-e88d-4462-94fe-74b4ac8a619e"",
+                    ""path"": ""<Mouse>/backButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""OpenInventory"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""622b2a1d-1cd3-415a-a03c-db4a0150e474"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Ctrl"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""317abd14-8f6e-43cd-af6f-cfa879d6e844"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Drop"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -548,6 +616,9 @@ public class @Controls : IInputActionCollection, IDisposable
         m_Player_Scroll8 = m_Player.FindAction("Scroll8", throwIfNotFound: true);
         m_Player_Scroll9 = m_Player.FindAction("Scroll9", throwIfNotFound: true);
         m_Player_MouseScroll = m_Player.FindAction("MouseScroll", throwIfNotFound: true);
+        m_Player_OpenInventory = m_Player.FindAction("OpenInventory", throwIfNotFound: true);
+        m_Player_Ctrl = m_Player.FindAction("Ctrl", throwIfNotFound: true);
+        m_Player_Drop = m_Player.FindAction("Drop", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -620,6 +691,9 @@ public class @Controls : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_Scroll8;
     private readonly InputAction m_Player_Scroll9;
     private readonly InputAction m_Player_MouseScroll;
+    private readonly InputAction m_Player_OpenInventory;
+    private readonly InputAction m_Player_Ctrl;
+    private readonly InputAction m_Player_Drop;
     public struct PlayerActions
     {
         private @Controls m_Wrapper;
@@ -647,6 +721,9 @@ public class @Controls : IInputActionCollection, IDisposable
         public InputAction @Scroll8 => m_Wrapper.m_Player_Scroll8;
         public InputAction @Scroll9 => m_Wrapper.m_Player_Scroll9;
         public InputAction @MouseScroll => m_Wrapper.m_Player_MouseScroll;
+        public InputAction @OpenInventory => m_Wrapper.m_Player_OpenInventory;
+        public InputAction @Ctrl => m_Wrapper.m_Player_Ctrl;
+        public InputAction @Drop => m_Wrapper.m_Player_Drop;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -725,6 +802,15 @@ public class @Controls : IInputActionCollection, IDisposable
                 @MouseScroll.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouseScroll;
                 @MouseScroll.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouseScroll;
                 @MouseScroll.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouseScroll;
+                @OpenInventory.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnOpenInventory;
+                @OpenInventory.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnOpenInventory;
+                @OpenInventory.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnOpenInventory;
+                @Ctrl.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnCtrl;
+                @Ctrl.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnCtrl;
+                @Ctrl.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnCtrl;
+                @Drop.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrop;
+                @Drop.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrop;
+                @Drop.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrop;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -798,6 +884,15 @@ public class @Controls : IInputActionCollection, IDisposable
                 @MouseScroll.started += instance.OnMouseScroll;
                 @MouseScroll.performed += instance.OnMouseScroll;
                 @MouseScroll.canceled += instance.OnMouseScroll;
+                @OpenInventory.started += instance.OnOpenInventory;
+                @OpenInventory.performed += instance.OnOpenInventory;
+                @OpenInventory.canceled += instance.OnOpenInventory;
+                @Ctrl.started += instance.OnCtrl;
+                @Ctrl.performed += instance.OnCtrl;
+                @Ctrl.canceled += instance.OnCtrl;
+                @Drop.started += instance.OnDrop;
+                @Drop.performed += instance.OnDrop;
+                @Drop.canceled += instance.OnDrop;
             }
         }
     }
@@ -836,5 +931,8 @@ public class @Controls : IInputActionCollection, IDisposable
         void OnScroll8(InputAction.CallbackContext context);
         void OnScroll9(InputAction.CallbackContext context);
         void OnMouseScroll(InputAction.CallbackContext context);
+        void OnOpenInventory(InputAction.CallbackContext context);
+        void OnCtrl(InputAction.CallbackContext context);
+        void OnDrop(InputAction.CallbackContext context);
     }
 }

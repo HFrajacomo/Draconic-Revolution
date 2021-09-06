@@ -21,12 +21,22 @@ public class MainControllerManager : MonoBehaviour
     public bool prefabRead = false;
     public bool prefabReadAir = false;
     public bool freecam = false;
-    public bool shifting = false;
     private bool HUDActive = true;
+
+    // Static
+    public static bool shifting = false;
+    public static bool inventory = false;
+    public static bool ctrl = false;
+
+    // Player State
+    public static bool InUI = false;
 
     // Unity Reference
     public GameObject mainHUD;
-    public PlayerRaycast raycast;
+    public PlayerEvents playerEvents;
+    public GameObject inventoryGUI;
+    public InventoryUIPlayer invUIPlayer;
+    public GameObject hotbar;
 
 	// Jumping
     public void OnJump(){
@@ -80,12 +90,12 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnShifting(){
-        if(!shifting){
-            shifting = true;
+        if(!MainControllerManager.shifting){
+            MainControllerManager.shifting = true;
         }
         // If it's release
         else
-            shifting = false;       
+            MainControllerManager.shifting = false;       
     }
 
     public void OnDebugKey(){
@@ -98,33 +108,74 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnScroll1(){
-        raycast.Scroll1();
+        playerEvents.Scroll1();
     }
     public void OnScroll2(){
-        raycast.Scroll2();
+        playerEvents.Scroll2();
     }
     public void OnScroll3(){
-        raycast.Scroll3();
+        playerEvents.Scroll3();
     }
     public void OnScroll4(){
-        raycast.Scroll4();
+        playerEvents.Scroll4();
     }
     public void OnScroll5(){
-        raycast.Scroll5();
+        playerEvents.Scroll5();
     }
     public void OnScroll6(){
-        raycast.Scroll6();
+        playerEvents.Scroll6();
     }
     public void OnScroll7(){
-        raycast.Scroll7();
+        playerEvents.Scroll7();
     }
     public void OnScroll8(){
-        raycast.Scroll8();
+        playerEvents.Scroll8();
     }
     public void OnScroll9(){
-        raycast.Scroll9();
+        playerEvents.Scroll9();
     }
     public void OnMouseScroll(InputValue val){
-        raycast.MouseScroll((int)val.Get<Vector2>().y);
+        playerEvents.MouseScroll((int)val.Get<Vector2>().y);
+    }
+    public void OnOpenInventory(){
+        bool newState = !MainControllerManager.InUI;
+        this.inventoryGUI.SetActive(newState);
+        MainControllerManager.InUI = newState;
+        this.invUIPlayer.ResetSelection();
+        hotbar.SetActive(!newState);
+        MouseLook.ToggleMouseCursor(newState);
+
+        // If closing, refresh the hotbar
+        if(newState == false){
+            playerEvents.DrawHotbar();
+        }
+    }
+    public void CloseInventory(){
+        this.inventoryGUI.SetActive(false);
+        MainControllerManager.InUI = false;
+        this.invUIPlayer.ResetSelection();
+        MouseLook.ToggleMouseCursor(false);
+        hotbar.SetActive(true);
+        playerEvents.DrawHotbar();
+    }
+    public void OnCtrl(){
+        if(!MainControllerManager.ctrl){
+            MainControllerManager.ctrl = true;
+        }
+        // If it's release
+        else
+            MainControllerManager.ctrl = false;    
+    }
+    public void OnDrop(){
+        ItemStack its = playerEvents.GetSlotStack();
+
+        if(its == null)
+            return;
+
+        if(!MainControllerManager.ctrl){
+            if(its.Decrement()){
+                its = null;
+            }
+        }
     }
 }

@@ -36,6 +36,9 @@ public class MouseLook : MonoBehaviour
     {
         MouseLook.SENTFRAMEDATA = false;
 
+        if(MainControllerManager.InUI)
+            return;
+
         float mouseX = controls.mouseX * xSensitivity;
         float mouseY = controls.mouseY * ySensitivity;
 
@@ -56,6 +59,16 @@ public class MouseLook : MonoBehaviour
 
             MouseLook.SENTFRAMEDATA = true;
         }
+    }
 
+    public static void ToggleMouseCursor(bool b){
+        if(b){
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;       
+        }
+        else{
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;     
+        }
     }
 }

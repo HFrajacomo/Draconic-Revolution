@@ -25,7 +25,7 @@ public abstract class Item
 
 
 
-	// Returns the item's Icon as UVs
+	// Returns the item's Icon
 	public string GetItemIconName(){
 		return "icon_" + this.iconID.ToString();
 	}

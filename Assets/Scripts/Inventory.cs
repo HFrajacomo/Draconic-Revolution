@@ -42,12 +42,13 @@ public class Inventory
 			return 0;
 
 		byte receivedAmount = 0;
+		ItemID id = its.GetID();
 
 		foreach(InventoryTransaction t in spots){
-			if(its.MoveTo(this.slots[t.slotNumber])){
+			if(its.MoveTo(ref this.slots[t.slotNumber])){
 				its = null;
 				receivedAmount += t.amount;
-				return receivedAmount;
+				break;
 			}
 
 			receivedAmount += t.amount;
@@ -58,8 +59,8 @@ public class Inventory
 			this.SetFull();
 		}
 
-		if(!this.itemInInventory.Contains(its.GetID())){
-			this.itemInInventory.Add(its.GetID());
+		if(!this.itemInInventory.Contains(id)){
+			this.itemInInventory.Add(id);
 		}
 
 		return receivedAmount;
@@ -67,32 +68,44 @@ public class Inventory
 
 	// Adds an ItemStack from a Split operation. Basically adds a new stack ignoring the originating stack
 	// Returns true if there's an empty inventory slot for the split stack
-	public bool AddFromSplit(ItemStack its, ushort ignoreIndex){
-		if(this.IsFull())
+	// Outputs newSlot as the slot occupied by the new Split
+	public bool AddFromSplit(ItemStack its, ushort ignoreIndex, out ushort newSlot){
+		if(this.IsFull() || its.GetStacksize() == 1 || its.GetAmount() == 1){
+			newSlot = 0;
 			return false;
+		}
 
-		for(int i=0; i < this.limit; i++){
+		for(ushort i=0; i < this.limit; i++){
 			if(i == ignoreIndex)
 				continue;
 
 			if(this.slots[i] == null){
-				this.slots[i] = its;
+				this.slots[i] = its.Clone();
+				this.slots[i].SetAmount((byte)(its.GetAmount()/2));
+
+				if(its.GetAmount()%2 == 1)
+					its.SetAmount((byte)((its.GetAmount()/2)+1));
+				else
+					its.SetAmount((byte)(its.GetAmount()/2));
+
+				newSlot = i;
 				this.FindLastEmptySlot();
 				return true;
 			}
 		}
+		newSlot = 0;
 		return false;
 	}
 
-	// Switch slots in an one or two inventories and returns true if the change was made
+	// Switch slots in an one or two inventories
 	public static bool SwitchSlots(Inventory inv1, ushort slot1, Inventory inv2, ushort slot2){
-		// If selected an empty slot first
-		if(inv1 == null)
+		// If clicked twice in the same slot
+		if(inv1 == inv2 && slot1 == slot2)
 			return false;
 
 		// If destination slot is empty
-		if(inv2 == null){
-			inv2.slots[slot2] = inv1.slots[slot1];
+		if(inv2.slots[slot2] == null){
+			inv2.slots[slot2] = inv1.slots[slot1].Clone();
 			inv1.slots[slot1] = null;
 
 			if(inv1.GetLastEmptySlot() > slot1)
@@ -104,28 +117,34 @@ public class Inventory
 			inv2.SetFull();
 
 			if(inv1 != inv2){
-				if(!inv1.Contains(inv2.slots[slot2]))
+				if(!inv1.Contains(inv2.slots[slot2].GetID()))
 					inv1.itemInInventory.Remove(inv2.slots[slot2].GetID());
-				if(!inv2.Contains(inv1.slots[slot1]))
-					inv2.itemInInventory.Remove(inv1.slots[slot1].GetID());
 			}
 
 			return true;
 		}
 
-		// If both slots have elements
-		ItemStack aux = inv1.slots[slot1].Clone();
-		inv1.slots[slot1] = inv2.slots[slot2];
-		inv2.slots[slot2] = aux;
-
-		if(inv1 != inv2){
-			if(!inv1.Contains(inv2.slots[slot2]))
-				inv1.itemInInventory.Remove(inv2.slots[slot2].GetID());
-			if(!inv2.Contains(inv1.slots[slot1]))
-				inv2.itemInInventory.Remove(inv1.slots[slot1].GetID());
+		// If both slots have the same elements
+		if(inv1.slots[slot1].GetID() == inv2.slots[slot2].GetID()){
+			if(inv1.slots[slot1].MoveTo(ref inv2.slots[slot2]))
+				inv1.slots[slot1] = null;
+			return true;
 		}
+		// If slots are different
+		else{
+			ItemStack aux = inv1.slots[slot1].Clone();
+			inv1.slots[slot1] = inv2.slots[slot2];
+			inv2.slots[slot2] = aux;
 
-		return true;
+			if(inv1 != inv2){
+				if(!inv1.Contains(inv2.slots[slot2].GetID()))
+					inv1.itemInInventory.Remove(inv2.slots[slot2].GetID());
+				if(!inv2.Contains(inv1.slots[slot1].GetID()))
+					inv2.itemInInventory.Remove(inv1.slots[slot1].GetID());
+			}
+
+			return true;
+		}
 	}
 
 
@@ -222,19 +241,25 @@ public class Inventory
 			byte remainder = its.GetAmount();
 			byte difference;
 			byte stacksize = its.GetStacksize();
+			InventoryTransaction trans;
 
 			for(ushort i=0; i < this.limit; i++){
-				if(this.slots[i] == its){
+				if(this.slots[i] == null)
+					continue;
+
+				if(this.slots[i].IsEqual(its)){
 					if(this.slots[i].IsFull())
 						continue;
 
 					difference = (byte)(stacksize - this.slots[i].GetAmount());
 					if(difference >= remainder){
-						transactions.Add(new InventoryTransaction(i, remainder));
+						trans = new InventoryTransaction(i, remainder);
+						transactions.Add(trans);
 						return transactions;
 					}
 					else{
-						transactions.Add(new InventoryTransaction(i, difference));
+						trans = new InventoryTransaction(i, difference);
+						transactions.Add(trans);
 						remainder = (byte)(remainder - difference);
 					}
 				}
@@ -255,9 +280,9 @@ public class Inventory
 
 	// Iterates until it finds the first empty slot
 	private void FindLastEmptySlot(){
-		for(short i=(short)(this.lastEmptySlot+1); i < this.limit; i++){
+		for(ushort i=(ushort)(this.lastEmptySlot+1); i < this.limit; i++){
 			if(this.slots[i] == null){
-				this.lastEmptySlot = i;
+				this.lastEmptySlot = (short)i;
 				return;
 			}
 		}
@@ -266,7 +291,7 @@ public class Inventory
 	}
 
 	// Sets the lastEmptySlot
-	private void SetLastEmptySlot(short a){
+	public void SetLastEmptySlot(short a){
 		this.lastEmptySlot = a;
 	}
 
@@ -275,14 +300,33 @@ public class Inventory
 		return this.isFull;
 	}
 
+	// Sets an ItemStack as null
+	public void SetNull(ushort slot){
+		this.slots[slot] = null;
+	}
+
 	// Sets this.isFull when lastEmptyIndex = -1
 	public void SetFull(){
 		this.isFull = (this.GetLastEmptySlot() == -1);
 	}
 
 	// Returns this.lastEmptySlot
-	private short GetLastEmptySlot(){
+	public short GetLastEmptySlot(){
 		return this.lastEmptySlot;
+	}
+
+	// Returns the limit of Inventory
+	public ushort GetLimit(){return this.limit;}
+
+	// Return the ItemStack at position pos
+	public ItemStack GetSlot(ushort pos){
+		return this.slots[pos];
+	}
+
+	// Removes an element from itemInInventory
+	public void RemoveFromRecords(ItemID id){
+		if(!this.Contains(id))
+			itemInInventory.Remove(id);
 	}
 
 	// Discovers whether an item is contained in the inventory manually
@@ -305,6 +349,10 @@ public struct InventoryTransaction{
 	public InventoryTransaction(ushort slot, byte x){
 		this.slotNumber = slot;
 		this.amount = x;
+	}
+
+	public override string ToString(){
+		return "Slot: " + this.slotNumber.ToString() + " | Amount: " + this.amount.ToString();
 	}
 }
 

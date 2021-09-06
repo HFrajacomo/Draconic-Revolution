@@ -50,8 +50,11 @@ public class PlayerMovement : MonoBehaviour
             float x = controls.movementX;
             float z = controls.movementZ;
 
-            move = transform.right * x + transform.forward * z;
-            controller.Move(move * speed * Time.deltaTime);
+            // Only move if not in menu
+            if(!MainControllerManager.InUI){
+                move = transform.right * x + transform.forward * z;
+                controller.Move(move * speed * Time.deltaTime);
+            }
 
 
             if(controls.jumping && isGrounded){
@@ -91,7 +94,7 @@ public class PlayerMovement : MonoBehaviour
                 controller.Move(velocity * Time.deltaTime);
                 velocity.y = 0;
             }
-            else if(controls.shifting){
+            else if(MainControllerManager.shifting && !MainControllerManager.InUI){
                 velocity.y = -5;
                 controller.Move(velocity * Time.deltaTime);
                 velocity.y = 0;
