@@ -70,10 +70,10 @@ public class Client
 					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";					
 				// Lyxo PC
 				else if(File.Exists("E:\\Pasta\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe"))
-					this.lanServerProcess.StartInfo.FileName = "E:\\Pasta\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";
+					this.lanServerProcess.StartInfo.FileName = "E:\\Pasta\\Draconic-Revolution\\Build\\Server\\Server.exe";
 				// Roh PC
 				else
-					this.lanServerProcess.StartInfo.FileName = "D:\\GitHub\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";
+					this.lanServerProcess.StartInfo.FileName = "D:\\GitHub\\Draconic-Revolution\\Build\\Server\\Server.exe";
 
 
 
