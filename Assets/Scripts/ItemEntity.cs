@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class ItemEntity
 {
@@ -17,6 +18,7 @@ public class ItemEntity
 		this.go.AddComponent<MeshFilter>();
 		this.go.AddComponent<MeshRenderer>();
 		this.meshFilter = this.go.GetComponent<MeshFilter>();
+		this.go.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
 		this.renderer = renderer;
 		this.go.GetComponent<MeshRenderer>().materials = this.renderer.GetComponent<MeshRenderer>().materials;
 		this.mesh = new Mesh();
