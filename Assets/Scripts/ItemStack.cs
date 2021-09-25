@@ -38,6 +38,11 @@ public class ItemStack
 		return item.id;
 	}
 
+	// Returns the item iconID
+	public uint GetIconID(){
+		return item.iconID;
+	}
+
 	// Returns the item's Icon
 	public string GetItemIconName(){
 		return "icon_" + item.iconID.ToString();

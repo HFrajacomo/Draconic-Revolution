@@ -40,6 +40,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Initialization
     public GameObject playerCharacter;
+    public PlayerEvents playerEvents;
 
 	// Chunk Rendering
 	public ChunkRenderer rend;
@@ -134,6 +135,7 @@ public class ChunkLoader : MonoBehaviour
 
                 this.gameUI.SetActive(true);
                 playerCharacter.SetActive(true);
+                this.playerEvents.SetPlayerObject(playerCharacter);
                 this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
         	}
 

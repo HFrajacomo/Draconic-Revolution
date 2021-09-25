@@ -30,7 +30,7 @@ public static class Compression{
 			chunkData = chunkData,
 			buffer = buff,
 			palleteArray = palleteArray,
-			writtenBytes = writtenBytes	
+			writtenBytes = writtenBytes
 		};
 
 		JobHandle handle = cbJob.Schedule();

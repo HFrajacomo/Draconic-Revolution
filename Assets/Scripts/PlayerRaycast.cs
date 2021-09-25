@@ -28,7 +28,6 @@ public class PlayerRaycast : MonoBehaviour
 	private CastCoord playerBody;
 	public MainControllerManager control;
 
-	public static ushort blockToBePlaced;
 	public static ItemID lastBlockPlaced = (ItemID)0;
 	public PlayerEvents playerEvents;
 
@@ -112,6 +111,10 @@ public class PlayerRaycast : MonoBehaviour
 	// Detects hit of solid block
 	public bool HitSolid(CastCoord coords){
 		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ);
+
+		if(!loader.chunks.ContainsKey(ck))
+			return false;
+
 		ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
 		// If hits a full block

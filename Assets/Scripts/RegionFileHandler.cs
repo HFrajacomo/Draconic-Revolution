@@ -181,7 +181,6 @@ public class RegionFileHandler{
 	}
 
 	// Saved data to pdat file
-	// DESIGNED FOR NON-VALIDATED MULTIPLAYER
 	/*
 	ACCOUNTID(8): The account's ulong ID
 	POSITION(12): 3 floats containing x, y, z

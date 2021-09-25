@@ -6,7 +6,6 @@ public abstract class Item
 {
 	// INCREMENT THIS EVERYTIME A NEW ITEM IS ADDED
 	public static readonly ushort totalItems = 8;
-	public static readonly ushort iconAtlasSizeX = 16;
 
 	// Basic Identification
 	public string name;
@@ -43,7 +42,7 @@ public abstract class Item
 	public virtual void SetName(string s){this.name = s;}
 	public virtual void SetDescription(string s){this.description = s;}
 	public virtual void SetID(ItemID i){this.id = i;}
-	public virtual void SetIconID(ushort atlasX, ushort atlasY){this.iconID = (uint)(atlasY*Item.iconAtlasSizeX + atlasX);}
+	public virtual void SetIconID(ushort atlasX, ushort atlasY){this.iconID = (uint)(atlasY*Icon.iconAtlasX + atlasX);}
 	public virtual void SetStackSize(byte b){this.stacksize = b;}
 	public virtual void SetPrice(uint u){this.price = u;}
 	public virtual void SetPriceVar(uint u){this.priceVariation = u;}
