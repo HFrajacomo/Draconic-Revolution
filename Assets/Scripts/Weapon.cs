@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 public abstract class Weapon : Item
 {
@@ -11,7 +12,7 @@ public abstract class Weapon : Item
 	public WeaponType type;
 	public byte refineLevel;
 	public EnchantmentType extraEffect;
-	
+
 
 	public virtual void SetDamage(ushort damage){this.damage = damage;}
 	public virtual void SetMaxDurability(uint dur){this.maxDurability = dur;}
@@ -21,6 +22,25 @@ public abstract class Weapon : Item
 	public virtual void SetWeaponType(WeaponType type){this.type = type;}
 	public virtual void SetRefineLevel(byte level){this.refineLevel = level;}
 	public virtual void SetExtraEffects(EnchantmentType enchant){this.extraEffect = enchant;}
+	public override string[] GetDetails(){return new string[2]{this.name, this.GetStats()};}
+
+	public virtual string GetStats(){
+		StringBuilder sb = new StringBuilder();
+
+		sb.Append("Damage: ");
+		sb.Append(this.damage.ToString());
+		sb.Append("\nDurability: ");
+		sb.Append(this.currentDurability.ToString());
+		sb.Append("\nImpact: ");
+		sb.Append(this.impact.ToString());
+		sb.Append("\nRefinement: ");
+		sb.Append(this.refineLevel.ToString());
+		sb.Append("\nExtra: ");
+		sb.Append(this.extraEffect.ToString());
+
+		return sb.ToString();
+	}
+
 
 	// Returns false if item should be broken
 	public virtual bool LowerDurability(ushort damage){
@@ -32,6 +52,7 @@ public abstract class Weapon : Item
 		currentDurability -= damage;
 		return true;
 	}
+
 }
 
 public enum WeaponType : byte{

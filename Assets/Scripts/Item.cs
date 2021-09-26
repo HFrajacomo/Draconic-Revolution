@@ -4,9 +4,6 @@ using UnityEngine;
 
 public abstract class Item
 {
-	// INCREMENT THIS EVERYTIME A NEW ITEM IS ADDED
-	public static readonly ushort totalItems = 8;
-
 	// Basic Identification
 	public string name;
 	public string description;
@@ -37,6 +34,11 @@ public abstract class Item
 		return new List<ItemTag>(this.tags);
 	}
 
+	// Returns a string array with name and description to use in Details UI
+	public virtual string[] GetDetails(){
+		return new string[2]{this.name, this.description};
+	}
+
 	public virtual void SetName(string s){this.name = s;}
 	public virtual void SetDescription(string s){this.description = s;}
 	public virtual void SetID(ItemID i){this.id = i;}
@@ -47,10 +49,9 @@ public abstract class Item
 	public virtual void SetAspects(Dictionary<ThaumicAspect, byte> d){this.aspects = d;}
 	public virtual void SetTags(List<ItemTag> lit){this.tags = new HashSet<ItemTag>(lit);}
 	public virtual void SetDurability(bool b){this.hasDurability = b;}
-
 	public virtual int Use(){return 0;}
-	public void Hold(){}
-
+	public virtual void Hold(){}
+	public virtual string GetIconName(){return "icon_" + this.iconID.ToString();}
 	/*
 	ADD TO THIS LIST EVERYTIME A NEW ITEM IS ADDED
 	*/

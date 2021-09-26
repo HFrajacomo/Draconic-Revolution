@@ -1,14 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class ItemEncyclopedia : MonoBehaviour
+public class ItemEncyclopedia
 {
-	public Item[] items = new Item[Item.totalItems];
+	public Item[] items = new Item[ItemID.GetNames(typeof(ushort)).Length];
 
     void Awake()
     {
-    	for(ushort i=0; i<Item.totalItems; i++)
+    	for(ushort i=0; i<items.Length; i++)
     		this.items[i] = Item.GenerateItem(i);
     }
 
@@ -22,7 +21,7 @@ public class ItemEncyclopedia : MonoBehaviour
 
     // Checks if code input is in bounds of ItemEncyclopedia.items
     private bool ValidateCode(ushort code){
-    	if(code >= Item.totalItems)
+    	if(code >= items.Length)
     		return false;
     	return true;
     }

@@ -3,9 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.U2D;
+using TMPro;
 
 public class InventoryUIPlayer : MonoBehaviour
 {
+    // Unity Reference
+    public GameObject detailsPanel;
+    public Image detailsImage;
+    public TextMeshProUGUI detailsName;
+    public TextMeshProUGUI detailsDescription;
+    public TextMeshProUGUI detailsStats;
+
 	// Inventory data and draw info
 	private Inventory inv1;
 	private Inventory inv2;
@@ -28,8 +36,8 @@ public class InventoryUIPlayer : MonoBehaviour
 	private readonly Color RED = new Color(1f, 0.5f, 0.5f, 1f);
 
     public void OpenInventory(Inventory inventory, Inventory hotbar){
-		this.inv1 = inventory;//InventoryStaticMessage.playerInventory;
-		this.inv2 = hotbar;//InventoryStaticMessage.GetInventory();
+		this.inv1 = inventory;
+		this.inv2 = hotbar;
 
 		this.DrawStacks();
         this.inv1.FindLastEmptySlot();
@@ -114,10 +122,31 @@ public class InventoryUIPlayer : MonoBehaviour
     		if(this.IsNullSlot(inventoryCode, slot))
     			return;
 
+            Item item;
+            string[] details; 
+
     		// Selects slot
     		this.selectedInventory = inventoryCode;
     		this.selectedSlot = slot;
     		this.ToggleHighlight(true);
+            ResetDetails();
+            this.detailsPanel.SetActive(true);
+
+            // Finds the item selected
+            if(inventoryCode == 0)
+                item = inv1.GetSlot(this.selectedSlot).GetItem();
+            else
+                item = inv2.GetSlot(this.selectedSlot).GetItem();
+
+            details = item.GetDetails();
+            this.detailsName.text = details[0];
+
+            if(item is Weapon)
+                this.detailsStats.text = details[1];
+            else if(item is Item)
+                this.detailsDescription.text = details[1];
+
+            this.detailsImage.sprite = this.iconAtlas.GetSprite(item.GetIconName());
     	}
     	// If has no slot selected and shift clicked
     	else if(this.selectedSlot == byte.MaxValue && MainControllerManager.shifting){
@@ -244,7 +273,17 @@ public class InventoryUIPlayer : MonoBehaviour
     	this.ToggleHighlight(false);
 		this.selectedSlot = byte.MaxValue;
 		this.selectedInventory = byte.MaxValue;
+        this.detailsPanel.SetActive(false);
+        this.ResetDetails();
 	}
+
+    // Resets text in details panel
+    private void ResetDetails(){
+        this.detailsName.text = "";
+        this.detailsDescription.text = "";
+        this.detailsStats.text = "";
+        this.detailsImage.sprite = null;
+    }
 
 	// Toggles selection highlighting
 	private void ToggleHighlight(bool b){
