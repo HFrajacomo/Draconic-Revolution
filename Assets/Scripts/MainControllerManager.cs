@@ -153,6 +153,7 @@ public class MainControllerManager : MonoBehaviour
         // If closing, refresh the hotbar
         if(newState == false){
             playerEvents.DrawHotbar();
+            playerEvents.DrawItemEntity(playerEvents.GetSlotStack());
         }
     }
     public void CloseInventory(){
@@ -162,6 +163,7 @@ public class MainControllerManager : MonoBehaviour
         MouseLook.ToggleMouseCursor(false);
         hotbar.SetActive(true);
         playerEvents.DrawHotbar();
+        playerEvents.DrawItemEntity(playerEvents.GetSlotStack());
     }
     public void OnCtrl(){
         if(!MainControllerManager.ctrl){

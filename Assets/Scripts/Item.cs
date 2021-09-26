@@ -22,8 +22,6 @@ public abstract class Item
 	public HashSet<ItemTag> tags;
 	public bool hasDurability;
 
-
-
 	// Returns the item's Icon
 	public string GetItemIconName(){
 		return "icon_" + this.iconID.ToString();
