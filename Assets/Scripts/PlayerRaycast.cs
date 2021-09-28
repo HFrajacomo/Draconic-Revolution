@@ -197,6 +197,7 @@ public class PlayerRaycast : MonoBehaviour
 				PlayerRaycast.lastBlockPlaced = it.id;
 				if(its.Decrement()){
 					playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
+					playerEvents.DestroyItemEntity();
 				}
 				playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
 				playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);

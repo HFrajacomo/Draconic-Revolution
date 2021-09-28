@@ -1,54 +1,139 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class ItemEntity
+using Random = System.Random;
+
+
+public class ItemEntity : MonoBehaviour
 {
-	public GameObject go;
+	private static string NAME = "DroppedItem";
+	private static Random rng = new Random();
+	private static float mass = 0.2f;
+
+	public TimeOfDay time;
 	public MeshFilter meshFilter;
-	public ChunkRenderer renderer;
 	private Mesh mesh;
-	public uint iconID;
-	public ItemID id;
+	private ItemStack its;
+	private GameObject go;
+	private Rigidbody rb;
+    public GameObject droppedItemHierarchy;
+	private Vector3 initialForce = new Vector3(0f, 0f, 0f);
+	private string timeToRelease;
 
-	public ItemEntity(ItemID id, uint iconID, ChunkRenderer renderer, bool playerHand=true){
-		this.go = new GameObject();
-		this.go.name = "item";
-		this.go.AddComponent<MeshFilter>();
-		this.go.AddComponent<MeshRenderer>();
+	void Start(){
+		this.go = this.gameObject;
+		this.rb = this.go.GetComponent<Rigidbody>();
+		this.rb.mass = ItemEntity.mass;
+		this.go.transform.parent = this.droppedItemHierarchy.transform;
 		this.meshFilter = this.go.GetComponent<MeshFilter>();
-		this.go.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
-		this.renderer = renderer;
-		this.go.GetComponent<MeshRenderer>().materials = this.renderer.GetComponent<MeshRenderer>().materials;
+		this.go.name = ItemEntity.NAME;
 		this.mesh = new Mesh();
-		this.id = id;
-		this.iconID = iconID;
 
-		this.BuildMesh();
+		BuildMesh();
+		ApplyForce();
 	}
 
+	public void RandomForce(){
+		float x = ItemEntity.rng.Next(-100, 100)*0.01f;
+		float y = ItemEntity.rng.Next(0, 100)*0.01f;
+		float z = ItemEntity.rng.Next(-100, 100)*0.01f;
+
+		this.initialForce = new Vector3(x, y, z);
+	}
+
+	public void AddForce(Vector3 force){
+		this.initialForce = force;
+	}
+
+	private void ApplyForce(){
+		this.rb.useGravity = true;
+		this.rb.AddForce(this.initialForce);
+	}
+
+	public void SetItemStack(ItemStack its){
+		this.its = its;
+	}
+
+	public void SetTime(){
+		this.timeToRelease = time.FakeSum(30);
+	}
+
+
 	public void BuildMesh(){
+		if(this.its == null)
+			return;
+
 		this.mesh.subMeshCount = 2;
 		this.mesh.SetVertices(ItemMeshData.vertices);
 		this.mesh.SetTriangles(ItemMeshData.imageTris, 0);
 		this.mesh.SetTriangles(ItemMeshData.materialTris, 1);
-		UpdateMeshUV(this.iconID);
+
+		UpdateMeshUV(this.its.GetIconID());
 
 		this.meshFilter.sharedMesh = this.mesh;
 	}
 
 	public void ChangeItem(Item item){
-		this.id = item.id;
-		this.iconID = item.iconID;
-		UpdateMeshUV(this.iconID);
+		UpdateMeshUV(item.iconID);
 	}
 
 	private void UpdateMeshUV(uint iconID){
-		this.mesh.SetUVs(0, Icon.GetItemEntityUV(this.iconID));
+		this.mesh.SetUVs(0, Icon.GetItemEntityUV(iconID));
 	}
 
-	public void Destroy(){
-		GameObject.Destroy(this.go);
+	public ItemStack GetItemStack(){
+		return this.its;
+	}
+
+	private void OnTriggerEnter(Collider other){
+		if(this.its == null)
+			return;
+
+		byte itemsTaken = 0;
+
+		if(other.tag == "Player"){
+			if(this.timeToRelease != null){
+				if(!time.IsPast(this.timeToRelease)){
+					return;
+				}
+			}
+
+			PlayerEvents pe = other.GetComponent<PlayerEvents>();
+
+			itemsTaken = pe.hotbar.AddStack(this.its, pe.hotbar.CanFit(this.its));
+			if(itemsTaken >= 0)
+				pe.DrawHotbar();
+
+			if(CheckDestroy(itemsTaken))
+				return;
+
+			itemsTaken += pe.inventory.AddStack(this.its, pe.inventory.CanFit(this.its));
+
+			if(CheckDestroy(itemsTaken))
+				return;
+		}
+		else if(other.tag == "DroppedItem"){
+			if(this.rb.IsSleeping() == false)
+				return;
+
+			ItemEntity ie = other.GetComponent<ItemEntity>();
+			ItemStack itemStack = ie.GetItemStack();
+
+			if(this.its.MoveTo(ref itemStack)){
+				this.its = null;
+				GameObject.Destroy(this.go);
+			}
+		}
+	}
+
+	private bool CheckDestroy(byte itemsTaken){
+		if(itemsTaken >= this.its.GetAmount()){
+			GameObject.Destroy(this.go);
+			return true;
+		}
+		return false;
 	}
 }

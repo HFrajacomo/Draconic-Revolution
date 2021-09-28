@@ -21,7 +21,7 @@ public class PlayerEvents : MonoBehaviour
 
 	// Hotbar
 	public static byte hotbarSlot = 0;
-	public static ItemEntity itemInHand;
+	public static ItemEntityHand itemInHand;
 
 	// Unity Reference
 	private GameObject character;
@@ -146,6 +146,13 @@ public class PlayerEvents : MonoBehaviour
 	public void DrawHotbar(){
 		for(byte i=0; i < hotbar.GetLimit(); i++)
 			this.DrawHotbarSlot(i);
+
+		DrawItemEntity(GetSlotStack());
+	}
+
+	public void DestroyItemEntity(){
+		PlayerEvents.itemInHand.Destroy();
+		PlayerEvents.itemInHand = null;	
 	}
 
 	// Updates ItemEntity in Player's hand
@@ -158,13 +165,12 @@ public class PlayerEvents : MonoBehaviour
 			return;
 		// If had something and switched to nothing
 		if(its == null){
-			PlayerEvents.itemInHand.Destroy();
-			PlayerEvents.itemInHand = null;
+			DestroyItemEntity();
 			return;
 		}
 		// If had nothing and switched to something
 		if(PlayerEvents.itemInHand == null){
-			PlayerEvents.itemInHand = new ItemEntity(its.GetID(), its.GetIconID(), this.iconRenderer);
+			PlayerEvents.itemInHand = new ItemEntityHand(its.GetID(), its.GetIconID(), this.iconRenderer);
 			this.handItem = PlayerEvents.itemInHand.go;
 			this.handItem.name = "HandItem";
 			this.handItem.transform.parent = this.character.transform;

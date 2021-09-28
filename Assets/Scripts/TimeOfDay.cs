@@ -178,18 +178,15 @@ public class TimeOfDay : MonoBehaviour
         current_d = (uint)Convert.ToInt32(current_split[0]);
 
         if(given_d < current_d)
-            return false;
+            return true;
+        else if(given_h < current_h)
+            return true;
+        else if(given_m < current_m)
+            return true;
+        else if(given_t < current_t)
+            return true;
 
-        if(given_h < current_h)
-            return false;
-
-        if(given_m < current_m)
-            return false;
-
-        if(given_t < current_t)
-            return false;
-
-        return true;
+        return false;
     }
 
     // Fake Sum to calculate schedule time

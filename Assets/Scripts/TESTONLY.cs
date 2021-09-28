@@ -11,6 +11,6 @@ public class TESTONLY : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-    	ItemEntity ie = new ItemEntity(ItemID.DIRTBLOCK, 0, rend);
+    	ItemEntityHand ie = new ItemEntityHand(ItemID.DIRTBLOCK, 0, rend);
     }
 }

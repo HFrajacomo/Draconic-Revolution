@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class MainControllerManager : MonoBehaviour
 {
+    private float dropForce = 45f;
+    private Vector3 cachedForce;
+
 	// Public passed variables
 	public float movementX = 0f;
 	public float movementZ = 0f;
@@ -35,6 +38,8 @@ public class MainControllerManager : MonoBehaviour
     public InventoryUIPlayer invUIPlayer;
     public GameObject hotbar;
     public PlayerRaycast raycast;
+    public GameObject droppedItemBase;
+    public Transform playerCamera;
 
 	// Jumping
     public void OnJump(){
@@ -174,15 +179,33 @@ public class MainControllerManager : MonoBehaviour
             MainControllerManager.ctrl = false;    
     }
     public void OnDrop(){
-        ItemStack its = playerEvents.GetSlotStack();
-
-        if(its == null)
+        if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot) == null)
             return;
 
+        ItemEntity newItemEntity = GameObject.Instantiate(this.droppedItemBase, this.playerCamera.position, this.playerCamera.rotation).GetComponent<ItemEntity>();
+
+        ItemID id = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetID();
+
         if(!MainControllerManager.ctrl){
-            if(its.Decrement()){
-                its = null;
+            if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).Decrement()){
+                playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
             }
+
+            newItemEntity.SetItemStack(new ItemStack(id, 1));
         }
+        else{
+            byte amount = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetAmount();
+            playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
+
+            newItemEntity.SetItemStack(new ItemStack(id, amount));
+        }
+
+        this.cachedForce = playerCamera.forward * this.dropForce;
+        newItemEntity.AddForce(this.cachedForce);
+        newItemEntity.SetTime();
+
+        playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
+        playerEvents.DrawItemEntity(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot));
+        playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);
     }
 }
