@@ -11,7 +11,8 @@
                     "id": "a863e12e-ecb2-4281-a057-d30f54a44935",
                     "expectedControlType": "Vector2",
                     "processors": "NormalizeVector2",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Jump",
@@ -19,7 +20,8 @@
                     "id": "2555b908-176c-4cab-aea7-e79359628764",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press(behavior=2)"
+                    "interactions": "Press(behavior=2)",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Primary Action",
@@ -27,7 +29,8 @@
                     "id": "eaeb59d7-ca2b-458d-9c46-67fd0f7f3f11",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Secondary Action",
@@ -35,7 +38,8 @@
                     "id": "710f1945-d1a2-451f-a52a-bfea220cd792",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Interact",
@@ -43,7 +47,8 @@
                     "id": "2130e78c-cdaa-4174-a62a-8d8958facd7e",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Mouse Look",
@@ -51,7 +56,8 @@
                     "id": "6f61dff5-6a91-4041-b888-22ef7d85d4b0",
                     "expectedControlType": "Vector2",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Toggle Gravity",
@@ -59,7 +65,8 @@
                     "id": "19097fbd-caec-423a-96f3-e008033cbb0f",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "PrefabRead",
@@ -67,7 +74,8 @@
                     "id": "b2bf4501-9b98-4164-b0f4-7702b11615db",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "PrefabReadAir",
@@ -75,7 +83,8 @@
                     "id": "4f6b10d2-cae0-48e6-8a31-cfcf437ba9fc",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "ToggleFreeCam",
@@ -83,7 +92,8 @@
                     "id": "f0052053-ee62-4f4d-9825-efafbc08c16a",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Shifting",
@@ -91,7 +101,8 @@
                     "id": "40c019f8-c03f-4d59-a503-493579898165",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press(behavior=2)"
+                    "interactions": "Press(behavior=2)",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "DebugKey",
@@ -99,7 +110,8 @@
                     "id": "d5e78c4f-e6e3-41f2-917b-39985b5642d5",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "ToggleHUD",
@@ -107,7 +119,8 @@
                     "id": "e65e0f1c-4dc0-4fc2-92f3-ae6f3b5148e2",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Scroll1",
@@ -115,7 +128,8 @@
                     "id": "e5a12e99-f7e6-497c-af79-f41b25cbceda",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Scroll2",
@@ -123,7 +137,8 @@
                     "id": "81e7f2d2-5958-45a9-9e56-e35f0629b8c8",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Scroll3",
@@ -131,7 +146,8 @@
                     "id": "08576c05-01ac-4c94-b319-3b3e47a753e8",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Scroll4",
@@ -139,7 +155,8 @@
                     "id": "bdca2870-ddd3-4079-af4c-3055ba9d80c8",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Scroll5",
@@ -147,7 +164,8 @@
                     "id": "53d832f3-3fe0-41c7-bfbd-48323ceff3d7",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Scroll6",
@@ -155,7 +173,8 @@
                     "id": "1eec7ff8-febc-4bbb-b03b-f39924d4ff8f",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Scroll7",
@@ -163,7 +182,8 @@
                     "id": "ac118276-3d83-48cc-ba46-d1164849a329",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Scroll8",
@@ -171,7 +191,8 @@
                     "id": "cdfdb68f-21e9-483a-90b5-0573e541b500",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Scroll9",
@@ -179,7 +200,8 @@
                     "id": "3b7188cf-173d-46a0-b468-ea006cea0f6c",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "MouseScroll",
@@ -187,7 +209,8 @@
                     "id": "290c46cd-5ca4-40ce-9f59-7704ea6951ce",
                     "expectedControlType": "Vector2",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "OpenInventory",
@@ -195,7 +218,8 @@
                     "id": "1ad81ed1-cc4b-413d-9040-cd1243197b09",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Ctrl",
@@ -203,7 +227,8 @@
                     "id": "088d8d1c-b3a4-4c99-b0cf-bf2a8f7ab271",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Drop",
@@ -211,7 +236,8 @@
                     "id": "b4f31072-d67b-454a-bc61-482b58c6a476",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [

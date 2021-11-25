@@ -1,19 +1,13 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
 
-public static class LiquidMeshData
-{
-
-	/*
-	all vertices of all possible states in a liquid mesh
-	*/
-	public static readonly Vector3[] verticesOnState = 
-
-		// State 0 (Still 3)
-		new Vector3[]{new Vector3(1, 1, 1),
+public static class LiquidMeshData {
+	public static readonly Vector3[] verticesOnState = new Vector3[]{
+		new Vector3(1, 1, 1),
     	new Vector3(-1, 1, 1),
     	new Vector3(-1, -1, 1),
     	new Vector3(1, -1, 1),
@@ -164,15 +158,7 @@ public static class LiquidMeshData
         new Vector3(-1, -0.5f, -1),
         new Vector3(1, 0, -1),
         new Vector3(1, -1, -1),
-        new Vector3(-1, -1, -1),
-        new Vector3(1, 1, 1),
-    	new Vector3(-1, 1, 1),
-    	new Vector3(-1, -1, 1),
-    	new Vector3(1, -1, 1),
-    	new Vector3(-1, 1, -1),
-    	new Vector3(1, 1, -1),
-    	new Vector3(1, -1, -1),
-    	new Vector3(-1, -1, -1)
+        new Vector3(-1, -1, -1)
 	};
 
 	public static readonly int[] faceTriangles = new int[]{0,1,2,3,5,0,3,6,4,5,6,7,1,4,7,2,5,4,1,0,3,2,7,6};

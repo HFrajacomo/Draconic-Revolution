@@ -65,6 +65,7 @@ public class ChunkLoader : MonoBehaviour
 
 
     void Awake(){
+        Debug.Log("Started ChunkLoader");
         this.playerCharacter.SetActive(false);
         this.gameUI.SetActive(false);
         this.client = new Client(this);
@@ -90,7 +91,6 @@ public class ChunkLoader : MonoBehaviour
         // If hasn't connected to the server yet
         if(this.CONNECTEDTOSERVER && !this.SENTINFOTOSERVER){
             NetMessage playerInformation = new NetMessage(NetCode.SENDCLIENTINFO);
-            
             if(World.isClient)
                 playerInformation.SendClientInfo(this.testAccountID, World.renderDistance, World.worldSeed, World.worldName);
             else

@@ -1255,23 +1255,25 @@ public struct BuildChunkJob : IJob{
 	}
 
 	// Gets the vertices of a given state in a liquid
-	public void VertsByState(NativeArray<Vector3> fv, int dir, ushort s, Vector3 pos, float scale=0.5f){
+	
+	public static void VertsByState(NativeArray<Vector3> fv, int dir, ushort s, Vector3 pos, float scale=0.5f){
         if(s == ushort.MaxValue)
             s = 0;
 
 		if(s == 19 || s == 20 || s == 21){
 		    for (int i = 0; i < fv.Length; i++)
 		    {
-		      fv[i] = (LiquidMeshData.verticesOnState[(19*8)+LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		    	fv[i] = (LiquidMeshData.verticesOnState[LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
 		    }
 		}
 		else{
 		    for (int i = 0; i < fv.Length; i++)
 		    {
-		      fv[i] = (LiquidMeshData.verticesOnState[((int)s*8)+ LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		    	fv[i] = (LiquidMeshData.verticesOnState[((int)s*8)+ LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
 		    }
 		}
 	}
+
 }
 
 
@@ -1811,7 +1813,7 @@ public struct BuildBorderJob : IJob{
 		if(s == 19 || s == 20 || s == 21){
 		    for (int i = 0; i < fv.Length; i++)
 		    {
-		      fv[i] = (LiquidMeshData.verticesOnState[(19*8)+LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		      fv[i] = (LiquidMeshData.verticesOnState[LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
 		    }
 		}
 		else{

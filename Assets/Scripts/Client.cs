@@ -63,8 +63,8 @@ public class Client
 			// Unity edition only
 			#if UNITY_EDITOR
 				// Main PC
-				if(File.Exists("C:\\Users\\User\\Draconic Revolution\\Build\\Server\\Server.exe"))
-					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\User\\Draconic Revolution\\Build\\Server\\Server.exe";
+				if(File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe"))
+					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe";
 				// Support Notebook
 				else if(File.Exists("C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe"))
 					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";					
@@ -72,9 +72,11 @@ public class Client
 				else if(File.Exists("E:\\Pasta\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe"))
 					this.lanServerProcess.StartInfo.FileName = "E:\\Pasta\\Draconic-Revolution\\Build\\Server\\Server.exe";
 				// Roh PC
-				else
+				else if(File.Exists("D:\\GitHub\\Draconic-Revolution\\Build\\Server\\Server.exe"))
 					this.lanServerProcess.StartInfo.FileName = "D:\\GitHub\\Draconic-Revolution\\Build\\Server\\Server.exe";
-
+				else{
+					Panic();
+				}
 
 
 			// Standalone edition

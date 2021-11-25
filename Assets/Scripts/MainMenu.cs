@@ -32,6 +32,7 @@ public class MainMenu : MonoBehaviour
 	}
 
 	public void StartGameSingleplayer(){
+		Debug.Log("Clicked");
 		int rn;
 
 		if(single_nameField.text == ""){
@@ -57,7 +58,10 @@ public class MainMenu : MonoBehaviour
 		World.SetWorldName(single_nameField.text);
 		World.SetToClient();
 
+
+		Debug.Log("Clicked Single");
 		SceneManager.LoadScene(1);
+		Debug.Log("Changed Scene");
 	}
 
 	public void StartGameMultiplayer(){
