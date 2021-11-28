@@ -72,6 +72,7 @@ public class ChunkLoader : MonoBehaviour
         HandleClientCommunication();
         this.player.position = new Vector3(0,0,0);
         this.testAccountID = World.accountID;
+        this.time.SetClient(this.client);
     }
 
     void OnApplicationQuit(){
@@ -135,6 +136,7 @@ public class ChunkLoader : MonoBehaviour
 
                 this.gameUI.SetActive(true);
                 playerCharacter.SetActive(true);
+                this.time.SetPlayer(playerCharacter.GetComponent<PlayerMovement>());
                 this.playerEvents.SetPlayerObject(playerCharacter);
                 this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
         	}
@@ -152,7 +154,7 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Run attached messages to a 30 tick timer
+    // Run attached messages to a 30 frame timer
     private void RunTimerFunctions(){
         if(this.timer < 30)
             this.timer++;

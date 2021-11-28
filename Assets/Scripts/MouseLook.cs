@@ -18,12 +18,8 @@ public class MouseLook : MonoBehaviour
     private Vector3 position;
     private Vector3 rotation;
 
-    // Static lock to not send too many messages to server
-    public static bool SENTFRAMEDATA = false;
+	private float xRotation = 0f;
 
-
-
-	float xRotation = 0f;
 
     void Start(){
         Cursor.lockState = CursorLockMode.Locked;
@@ -34,8 +30,6 @@ public class MouseLook : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        MouseLook.SENTFRAMEDATA = false;
-
         if(MainControllerManager.InUI)
             return;
 
@@ -47,18 +41,6 @@ public class MouseLook : MonoBehaviour
 
         transform.localRotation = Quaternion.Euler(xRotation, 0, 0);
         playerBody.Rotate(Vector3.up * mouseX);
-
-        // Movement detection
-        if(mouseX != 0 || mouseY != 0){
-            this.position = this.playerBody.transform.position;
-            this.rotation = this.playerBody.transform.eulerAngles;
-
-            this.mouseMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
-            this.mouseMessage.ClientPlayerPosition(this.position.x, this.position.y, this.position.z, this.rotation.x, this.rotation.y, this.rotation.z);
-            this.cl.client.Send(this.mouseMessage.GetMessage(), this.mouseMessage.size);
-
-            MouseLook.SENTFRAMEDATA = true;
-        }
     }
 
     public static void ToggleMouseCursor(bool b){

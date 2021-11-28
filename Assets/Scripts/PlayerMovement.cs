@@ -100,30 +100,6 @@ public class PlayerMovement : MonoBehaviour
                 velocity.y = 0;
             }
         }
-
-        // Movement detection
-        // Sends location to server
-        if((move.sqrMagnitude > 0.01f || velocity.sqrMagnitude > 0.012f) && !MouseLook.SENTFRAMEDATA){
-            this.position = this.controller.transform.position;
-            this.rotation = this.controller.transform.eulerAngles;
-
-            this.movementMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
-            this.movementMessage.ClientPlayerPosition(this.position.x, this.position.y, this.position.z, this.rotation.x, this.rotation.y, this.rotation.z);
-            this.cl.client.Send(this.movementMessage.GetMessage(), this.movementMessage.size);
-        
-            // Sends ClientChunk Message
-            this.cacheCoord = new CastCoord(this.position);
-            if(this.currentPos == null){
-                this.currentPos = this.cacheCoord.GetChunkPos();
-                this.lastPos = this.cacheCoord.GetChunkPos();
-            }
-            else if(this.currentPos != this.cacheCoord.GetChunkPos()){
-                this.currentPos = this.cacheCoord.GetChunkPos();
-                SendChunkPosMessage();
-                this.lastPos = this.currentPos;
-            }
-        }
-
     }
 
     public void SetCurrentChunkPos(ChunkPos pos){

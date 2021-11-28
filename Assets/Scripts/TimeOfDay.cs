@@ -7,6 +7,10 @@ using UnityEngine.Rendering;
 public class TimeOfDay : MonoBehaviour
 {
     public Server server;
+    public Client client;
+    private static byte tickRate = 20;
+
+    private float faketicks = 0f;
 	public float ticks = 0f;
 	public byte minutes = 0;
 	public byte hours = 6;
@@ -15,8 +19,18 @@ public class TimeOfDay : MonoBehaviour
     public bool LOCKTIME = true;
     public bool isClient;
 
+    private PlayerMovement player;
+
     private bool SENDTIMEFLAG = false;
     private bool CHECKTIMEOUT = false;
+
+    // Position properties
+    private NetMessage movementMessage;
+    private Vector3 position;
+    private Vector3 rotation;
+    private ChunkPos currentPos;
+    private ChunkPos lastPos;
+    private CastCoord cacheCoord;
 
     void Update()
     {
@@ -28,7 +42,7 @@ public class TimeOfDay : MonoBehaviour
 
             ticks += Time.deltaTime * 10;
 
-            if(ticks >= 20){
+            if(ticks >= TimeOfDay.tickRate){
             	ticks = 0f;
             	minutes++;
                 this.SENDTIMEFLAG = true;
@@ -61,6 +75,14 @@ public class TimeOfDay : MonoBehaviour
             }
 
         }
+        else if(isClient){
+            faketicks += Time.deltaTime * 10;
+
+            if(faketicks >= TimeOfDay.tickRate){
+                SendPlayerPosition();
+                faketicks = 0f;
+            }
+        }
     }
 
     public void SetLock(bool flag){
@@ -69,6 +91,51 @@ public class TimeOfDay : MonoBehaviour
 
     public void SetServer(Server sv){
         this.server = sv;
+    }
+
+    public void SetClient(Client cli){
+        this.client = cli;
+    }
+
+    public void SetPlayer(PlayerMovement player){
+        this.player = player;
+    }
+
+    // When on client, sends player position to Server whenever there's movement
+    private void SendPlayerPosition(){
+        if(position == null)
+            position = this.player.controller.transform.position;
+        if(rotation == null)
+            rotation = this.player.controller.transform.eulerAngles;
+
+        if(this.player.controller.transform.position != position || this.player.controller.transform.eulerAngles != rotation){
+            SendPositionMessage();
+            position = this.player.controller.transform.position;
+            rotation = this.player.controller.transform.eulerAngles;
+
+            this.cacheCoord = new CastCoord(this.position);
+            if(this.currentPos == null){
+                this.currentPos = this.cacheCoord.GetChunkPos();
+                this.lastPos = this.cacheCoord.GetChunkPos();
+            }
+            else if(this.currentPos != this.cacheCoord.GetChunkPos()){
+                this.currentPos = this.cacheCoord.GetChunkPos();
+                SendChunkPosMessage();
+                this.lastPos = this.currentPos;
+            }            
+        }
+    }
+
+    private void SendPositionMessage(){
+        this.movementMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
+        this.movementMessage.ClientPlayerPosition(this.position.x, this.position.y, this.position.z, this.rotation.x, this.rotation.y, this.rotation.z);
+        this.client.Send(this.movementMessage.GetMessage(), this.movementMessage.size);
+    }
+
+    private void SendChunkPosMessage(){
+        NetMessage message = new NetMessage(NetCode.CLIENTCHUNK);
+        message.ClientChunk(this.lastPos, this.currentPos);
+        this.client.Send(message.GetMessage(), message.size);
     }
 
     // Sets current time. Used to set time in client through a server force message
