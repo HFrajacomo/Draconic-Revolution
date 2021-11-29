@@ -101,15 +101,4 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
-
-    public void SetCurrentChunkPos(ChunkPos pos){
-        this.currentPos = pos;
-        this.lastPos = pos;
-    }
-
-    public void SendChunkPosMessage(){
-        NetMessage message = new NetMessage(NetCode.CLIENTCHUNK);
-        message.ClientChunk(this.lastPos, this.currentPos);
-        this.cl.client.Send(message.GetMessage(), message.size);
-    }
 }

@@ -141,9 +141,9 @@ public class ChunkLoader : MonoBehaviour
                 this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
         	}
 
+            MoveEntities();
             HandleClientCommunication();
             RunTimerFunctions();
-
             GetChunks(false);
 
         	UnloadChunk();
@@ -165,6 +165,11 @@ public class ChunkLoader : MonoBehaviour
 
             this.timer = 0;
         }
+    }
+
+    // Moves all entities with SmoothMovement
+    private void MoveEntities(){
+        this.client.MoveEntities();
     }
 
     

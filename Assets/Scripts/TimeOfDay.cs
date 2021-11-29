@@ -8,7 +8,9 @@ public class TimeOfDay : MonoBehaviour
 {
     public Server server;
     public Client client;
-    private static byte tickRate = 20;
+    public static byte tickRate = 20;
+    private static float timeRate = 1f/TimeOfDay.tickRate;
+    private static byte ticksForMinute = (byte)(TimeOfDay.tickRate << 1); // two seconds worth of ticks
 
     private float faketicks = 0f;
 	public float ticks = 0f;
@@ -31,6 +33,7 @@ public class TimeOfDay : MonoBehaviour
     private ChunkPos currentPos;
     private ChunkPos lastPos;
     private CastCoord cacheCoord;
+    private byte sendZeroNotification = 2;
 
     void Update()
     {
@@ -40,9 +43,9 @@ public class TimeOfDay : MonoBehaviour
             if(this.server.connections.Count == 0)
                 return;
 
-            ticks += Time.deltaTime * 10;
+            ticks += Time.deltaTime * TimeOfDay.tickRate;
 
-            if(ticks >= TimeOfDay.tickRate){
+            if(ticks >= TimeOfDay.ticksForMinute){
             	ticks = 0f;
             	minutes++;
                 this.SENDTIMEFLAG = true;
@@ -76,9 +79,9 @@ public class TimeOfDay : MonoBehaviour
 
         }
         else if(isClient){
-            faketicks += Time.deltaTime * 10;
+            faketicks += Time.deltaTime;
 
-            if(faketicks >= TimeOfDay.tickRate){
+            if(faketicks >= TimeOfDay.timeRate){
                 SendPlayerPosition();
                 faketicks = 0f;
             }
@@ -103,11 +106,14 @@ public class TimeOfDay : MonoBehaviour
 
     // When on client, sends player position to Server whenever there's movement
     private void SendPlayerPosition(){
+        if(this.player == null)
+            return;
         if(position == null)
             position = this.player.controller.transform.position;
         if(rotation == null)
             rotation = this.player.controller.transform.eulerAngles;
 
+        // If has moved
         if(this.player.controller.transform.position != position || this.player.controller.transform.eulerAngles != rotation){
             SendPositionMessage();
             position = this.player.controller.transform.position;
@@ -122,8 +128,20 @@ public class TimeOfDay : MonoBehaviour
                 this.currentPos = this.cacheCoord.GetChunkPos();
                 SendChunkPosMessage();
                 this.lastPos = this.currentPos;
-            }            
+            }
+
+            this.sendZeroNotification = 2;            
         }
+        // If hasn't moved but notification must be sent
+        else if(this.sendZeroNotification > 0){
+            this.sendZeroNotification -= 1;
+            SendPositionMessage();
+        }
+    }
+
+    public void SetCurrentChunkPos(ChunkPos pos){
+        this.currentPos = pos;
+        this.lastPos = pos;
     }
 
     private void SendPositionMessage(){
@@ -132,7 +150,7 @@ public class TimeOfDay : MonoBehaviour
         this.client.Send(this.movementMessage.GetMessage(), this.movementMessage.size);
     }
 
-    private void SendChunkPosMessage(){
+    public void SendChunkPosMessage(){
         NetMessage message = new NetMessage(NetCode.CLIENTCHUNK);
         message.ClientChunk(this.lastPos, this.currentPos);
         this.client.Send(message.GetMessage(), message.size);

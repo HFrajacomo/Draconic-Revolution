@@ -24,6 +24,7 @@ public class Client
 
 	// Entity Handler
 	public EntityHandler entityHandler = new EntityHandler();
+	public SmoothMovement smoothMovement;
 
 	// Data Management
 	private const int sendBufferSize = 4096; // 4KB
@@ -51,6 +52,7 @@ public class Client
 	
 	public Client(ChunkLoader cl){
 		this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+		this.smoothMovement = new SmoothMovement(this.entityHandler);
 		receiveBuffer = new byte[receiveBufferSize];
 		this.cl = cl;
 
@@ -334,8 +336,8 @@ public class Client
 
 		// Finds current Chunk and sends position data
 		initialCoord = new CastCoord(x, y, z);
-		this.cl.playerMovement.SetCurrentChunkPos(initialCoord.GetChunkPos());
-		this.cl.playerMovement.SendChunkPosMessage();
+		this.cl.time.SetCurrentChunkPos(initialCoord.GetChunkPos());
+		this.cl.time.SendChunkPosMessage();
 	}
 
 	// Receives a Chunk
@@ -481,10 +483,14 @@ public class Client
 		float3 pos = NetDecoder.ReadFloat3(data, 10);
 		float3 dir = NetDecoder.ReadFloat3(data, 22);
 
-		if(this.entityHandler.Contains(type, code))
-			this.entityHandler.Move(type, code, pos, dir);
-		else
+		if(this.entityHandler.Contains(type, code)){
+			this.entityHandler.NudgeLastPos(type, code, pos, dir);
+			this.smoothMovement.DefineMovement(code, pos, dir);
+		}
+		else{
 			this.entityHandler.Add(type, code, pos, dir);
+			this.smoothMovement.Add(code);
+		}
 	}
 
 	// Receives entity deletion command
@@ -492,7 +498,8 @@ public class Client
 		EntityType type = (EntityType)data[1];
 		ulong code = NetDecoder.ReadUlong(data, 2);
 
-		this.entityHandler.Remove(type, code);	
+		this.entityHandler.Remove(type, code);
+		this.smoothMovement.Remove(code);
 	}
 
 
@@ -542,5 +549,10 @@ public class Client
 		ItemStack its = new ItemStack(PlayerRaycast.lastBlockPlaced, 1);
 		this.raycast.playerEvents.hotbar.AddStack(its, this.raycast.playerEvents.hotbar.CanFit(its));
 		this.raycast.playerEvents.DrawHotbar();
+	}
+
+	// Activates SmoothMovement in Entities for the current frame
+	public void MoveEntities(){
+		this.smoothMovement.MoveEntities();
 	}
 }
