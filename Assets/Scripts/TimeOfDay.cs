@@ -8,9 +8,9 @@ public class TimeOfDay : MonoBehaviour
 {
     public Server server;
     public Client client;
-    public static byte tickRate = 20;
+    public static byte tickRate = 40;
     private static float timeRate = 1f/TimeOfDay.tickRate;
-    private static byte ticksForMinute = (byte)(TimeOfDay.tickRate << 1); // two seconds worth of ticks
+    private static byte ticksForMinute = (byte)(TimeOfDay.tickRate * 2); // two seconds worth of ticks
 
     private float faketicks = 0f;
 	public float ticks = 0f;
@@ -44,6 +44,7 @@ public class TimeOfDay : MonoBehaviour
                 return;
 
             ticks += Time.deltaTime * TimeOfDay.tickRate;
+            faketicks += Time.deltaTime;
 
             if(ticks >= TimeOfDay.ticksForMinute){
             	ticks = 0f;
@@ -75,6 +76,12 @@ public class TimeOfDay : MonoBehaviour
             if(this.CHECKTIMEOUT && !this.isClient){
                 this.server.CheckTimeout();
                 this.CHECKTIMEOUT = false;
+            }
+
+            if(faketicks >= TimeOfDay.timeRate){
+                if(this.server != null)
+                    this.server.entityHandler.RunEntities();
+                faketicks = 0f;
             }
 
         }
@@ -281,11 +288,11 @@ public class TimeOfDay : MonoBehaviour
         byte h = this.hours;
         uint d = this.days;
 
-        m = (byte)(m + (t/20));
-        t = t%20;
+        m = (byte)(m + (t/TimeOfDay.ticksForMinute));
+        t = t%TimeOfDay.ticksForMinute;
         h = (byte)(h + (m/60));
         m = (byte)(m%60);
-        d = (uint)(d + (h/24));
+        d = (uint)(d + (h/24)); 
         h = (byte)(h%24);
 
         string returnString = d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ":" +  (Mathf.FloorToInt(t)).ToString();

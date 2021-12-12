@@ -9,6 +9,8 @@ public class Leaf_Object : BlocklikeObject
 	Dictionary<CastCoord, int> distances = new Dictionary<CastCoord, int>();
 	List<CastCoord> cache = new List<CastCoord>();
 
+	int minDecayTime = 8;
+	int maxDecayTime = 30;
 	int decayDistance = 7;
 	ushort assignedWoodCode = 4;
 	ushort thisCode = ushort.MaxValue-1;
@@ -54,7 +56,7 @@ public class Leaf_Object : BlocklikeObject
 				GetLastSurrounding(thisPos);
 
 				foreach(CastCoord c in cache){
-					EmitBUDTo(BUDCode.DECAY, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), Random.Range(3, 12), cl);
+					EmitBUDTo(BUDCode.DECAY, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), Random.Range(minDecayTime, maxDecayTime), cl);
 				}
 			}
 

@@ -30,6 +30,8 @@ public class Server
 	public Dictionary<ulong, DateTime> timeoutTimers;
 	private Dictionary<ulong, byte[]> receiveBuffer;
 
+	public EntityHandler_Server entityHandler = new EntityHandler_Server();
+
 
 	public Dictionary<ulong, HashSet<ulong>> connectionGraph;
 	private Dictionary<ChunkPos, HashSet<ulong>> playersInChunk;
@@ -451,7 +453,6 @@ public class Server
 					continue;
 				if(this.cl.regionHandler.allPlayerData[code].IsOnline()){
 					this.connectionGraph[code].Add(id);
-					Debug.Log("Added connection " + code + " <- " + id + " [338]");
 					playerMessage.EntityData(this.cl.regionHandler.allPlayerData[code]);
 					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
 				}
@@ -470,7 +471,6 @@ public class Server
 	        		continue;
 
 	        	this.connectionGraph[code].Remove(id);
-				Debug.Log("Removed connection " + code + " <- " + id + " [357]");
 
 	        	killMessage.EntityDelete(EntityType.PLAYER, code);
 	        	this.Send(killMessage.GetMessage(), killMessage.size, id);
@@ -665,6 +665,7 @@ public class Server
 	// Receives player position and adds it to PlayerPositions Dict
 	private void ClientPlayerPosition(byte[] data, ulong id){
 		float3 pos, dir;
+		ChunkPos cp;
 		NetMessage graphMessage = new NetMessage(NetCode.ENTITYDATA);
 	
 		pos = NetDecoder.ReadFloat3(data, 1);
@@ -672,6 +673,15 @@ public class Server
 
 		this.cl.regionHandler.allPlayerData[id].SetPosition(pos.x, pos.y, pos.z);
 		this.cl.regionHandler.allPlayerData[id].SetDirection(dir.x, dir.y, dir.z);
+
+		cp = this.cl.regionHandler.allPlayerData[id].GetChunkPos();
+
+		if(!this.entityHandler.Contains(EntityType.PLAYER, cp, id))
+			this.entityHandler.Add(EntityType.PLAYER, cp, id, pos, dir);
+
+		this.entityHandler.SetPosition(EntityType.PLAYER, id, cp, pos);
+		this.entityHandler.SetRotation(EntityType.PLAYER, id, cp, dir);
+
 
 		// Propagates data to all network
 		foreach(ulong code in this.connectionGraph[id]){
@@ -710,6 +720,8 @@ public class Server
 		this.playerRenderDistances.Remove(id);
 		this.connectionGraph.Remove(id);
 		this.receiveBuffer.Remove(id);
+
+		this.entityHandler.Remove(EntityType.PLAYER, this.cl.regionHandler.allPlayerData[id].GetChunkPos(), id);
 		
 		foreach(ulong code in this.cl.regionHandler.allPlayerData.Keys){
 			if(code == id)
@@ -784,10 +796,15 @@ public class Server
 		// Removes last ChunkPos if exists
 		if(lastPos != newPos){
 			if(this.playersInChunk.ContainsKey(lastPos)){
-				if(this.playersInChunk[lastPos].Count > 1)
+				if(this.playersInChunk[lastPos].Count > 1){
 					this.playersInChunk[lastPos].Remove(id);
-				else
+				}
+				else{
 					this.playersInChunk.Remove(lastPos);
+				}
+
+				if(this.entityHandler.Contains(EntityType.PLAYER, lastPos, id))
+					this.entityHandler.Remove(EntityType.PLAYER, lastPos, id);
 			}
 		}
 
@@ -817,7 +834,6 @@ public class Server
 				}
 				if(!this.cl.loadedChunks[newPos].Contains(code)){
 					this.connectionGraph[id].Remove(code);
-					Debug.Log("Removed connection " + id + " <- " + code);
 					killMessage.EntityDelete(EntityType.PLAYER, id);
 					this.Send(killMessage.GetMessage(), killMessage.size, code);
 				}
@@ -832,7 +848,6 @@ public class Server
 					NetMessage liveMessage = new NetMessage(NetCode.ENTITYDATA);
 
 					this.connectionGraph[id].Add(code);
-					Debug.Log("Added connection " + code + " <- " + id);
 					liveMessage.EntityData(this.cl.regionHandler.allPlayerData[id]);
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);					
 				}				

@@ -25,6 +25,8 @@ public class Wood_Block : Blocks
 	int decayDistance = 7;
 	ushort assignedLeafCode = ushort.MaxValue-1;
 	ushort thisCode = 4;
+	int minDecayTime = 8;
+	int maxDecayTime = 30;
 
 	public Wood_Block(){
 		this.name = "Wood";
@@ -74,7 +76,7 @@ public class Wood_Block : Blocks
 		}
 
 		// Applies DECAY BUD to around blocks if there's no wood around
-		EmitDelayedBUD(BUDCode.DECAY, init.GetWorldX(), init.GetWorldY(), init.GetWorldZ(), 2, 15, cl);
+		EmitDelayedBUD(BUDCode.DECAY, init.GetWorldX(), init.GetWorldY(), init.GetWorldZ(), minDecayTime, maxDecayTime, cl);
 
 		distances.Clear();
 	}

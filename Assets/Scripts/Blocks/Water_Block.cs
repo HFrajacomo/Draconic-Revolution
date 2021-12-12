@@ -57,7 +57,7 @@ public class Water_Block : Blocks
 		this.customBreak = true;
 		this.customPlace = true;
 		this.hasLoadEvent = true;
-		this.viscosityDelay = 3;
+		this.viscosityDelay = 12;
 
 		this.aroundCodes = new ushort[8];
 		this.aroundStates = new ushort[8];
@@ -82,17 +82,22 @@ public class Water_Block : Blocks
 	// Custom Place operation with Raycasting class overwrite
 	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader_Server cl){
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
-
+		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
+		message.DirectBlockUpdate(BUDCode.PLACE, pos, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, this.waterCode, cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ), cl.chunks[thisPos.GetChunkPos()].metadata.GetHP(thisPos.blockX, thisPos.blockY, thisPos.blockZ));
+		
 		cl.budscheduler.ScheduleBUD(new BUDSignal(BUDCode.CHANGE, thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing), this.viscosityDelay);
 
 		// If has been placed by player
 		if(facing >= 0){
 			cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z);
+			cl.server.SendToClients(thisPos.GetChunkPos(), message);
+			Debug.Log("Placed at: " + cl.time.GetBUDTime());
 			return 0;
 		}
 
 		this.Update(thisPos, BUDCode.CHANGE, -1, cl);
 		cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
+		Debug.Log("Moved at: " + cl.time.GetBUDTime());
 		return 0;
 	}
 

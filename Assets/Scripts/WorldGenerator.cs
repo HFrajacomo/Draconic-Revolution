@@ -1523,7 +1523,6 @@ public struct ApplyMapsJob : IJobParallelFor{
                 
             }
         }
-
     }
 }
 

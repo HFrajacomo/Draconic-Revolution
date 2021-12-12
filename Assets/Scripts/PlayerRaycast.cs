@@ -80,7 +80,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			// Checks for solid block hit
 			// Checks for hit
-			if(HitSolid(current)){ // HitSolid
+			if(HitAll(current)){ // HitSolid
 				FOUND = true;
 				break;
 			}

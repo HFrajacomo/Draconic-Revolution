@@ -316,4 +316,88 @@ public class ChunkLoader_Server : MonoBehaviour
 
         return GetBlockHeight(pos, 0, 0);
     }
+
+    // Returns two Voxeldata-like array of blocks and states respectively
+    public bool GetField(CastCoord c, int2 radius, ref ushort[] blocks, ref ushort[] states){
+        if(!this.chunks.ContainsKey(c.GetChunkPos()))
+            return false;
+
+        int minX, minZ;
+        int cX, cY, cZ;
+        int minBoundsX, minBoundsY, minBoundsZ;
+        ChunkPos pos;
+        ChunkPos middleChunk = c.GetChunkPos();
+    
+        // Set affected chunks
+        minX = ChunkOperation(c.blockX, radius.x, Chunk.chunkWidth);
+        minZ = ChunkOperation(c.blockZ, radius.x, Chunk.chunkWidth);
+
+        // Set border chunk bounds
+        minBoundsX = NegativeFlip(c.blockX - radius.x, Chunk.chunkWidth);
+        minBoundsZ = NegativeFlip(c.blockZ - radius.x, Chunk.chunkWidth);
+        minBoundsY = c.blockY - radius.y;
+
+        // Initial Pos
+        pos = new ChunkPos(middleChunk.x + minX, middleChunk.z + minZ);
+        cX = minBoundsX;
+        
+        for(int x=0; x < (radius.x*2+1); x++){
+            // If X goes to another chunk
+            if(cX >= Chunk.chunkWidth){
+                pos = new ChunkPos(pos.x+1, middleChunk.z);
+                cX = 0;
+            }
+            // If chunk doesn't exist
+            if(!this.chunks.ContainsKey(pos)){
+                cX++;
+                continue;
+            }
+            cY = minBoundsY;
+            for(int y=0; y < (radius.y*2+1); y++){
+                cZ = minBoundsZ;
+                // Set Y Limits
+                if(cY < 0 || cY >= Chunk.chunkDepth){
+                    cY++;
+                    pos = new ChunkPos(pos.x, middleChunk.z);
+                    continue;
+                }
+
+                for(int z=0; z < (radius.x*2+1); z++){
+                    // If Z goes to another chunk
+                    if(cZ >= Chunk.chunkWidth){
+                        pos = new ChunkPos(pos.x, pos.z+1);
+                        cZ = 0;
+                    }
+                    // If chunk doesn't exist
+                    if(!this.chunks.ContainsKey(pos)){
+                        cZ++;
+                        continue;
+                    }
+
+                    blocks[x*(radius.x*2+1)*(radius.y*2+1)+y*(radius.x*2+1)+z] = this.chunks[pos].data.GetCell(cX, cY, cZ);
+                    states[x*(radius.x*2+1)*(radius.y*2+1)+y*(radius.x*2+1)+z] = this.chunks[pos].metadata.GetState(cX, cY, cZ);
+                    cZ++;
+                }
+                pos = new ChunkPos(pos.x, middleChunk.z);
+                cY++;
+            }
+            cX++;
+        }
+
+        return true;
+    }
+
+    private int ChunkOperation(int x, int y, int div){
+        if((float)x-y > 0)
+            return 0;
+        else
+            return Mathf.FloorToInt(((float)x-y)/div);
+    }
+
+    private int NegativeFlip(int sub, int mod){
+        if(sub > 0)
+            return sub%mod;
+        else
+            return (sub%mod)+mod;
+    }
 }

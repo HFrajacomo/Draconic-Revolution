@@ -7,23 +7,34 @@ public class EntityHandler
 {
 	private Dictionary<ulong, GameObject> playerObject;
 	private Dictionary<ulong, DeltaMove> playerCurrentPositions;
+	private Dictionary<ulong, GameObject> dropObject;
+	private Dictionary<ulong, DeltaMove> dropCurrentPositions;
+
 
 	public EntityHandler(){
 		this.playerObject = new Dictionary<ulong, GameObject>();
 		this.playerCurrentPositions = new Dictionary<ulong, DeltaMove>();
+		this.dropObject = new Dictionary<ulong, GameObject>();
+		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
 	}
 
 	// Only works while there is no other EntityTypes here other than player
 	public bool Contains(EntityType type, ulong code){
-		return this.playerObject.ContainsKey(code);
+		if(type == EntityType.PLAYER)
+			return this.playerObject.ContainsKey(code);
+		else if(type == EntityType.DROP)
+			return this.dropObject.ContainsKey(code);
+		return false;
 	}
 
 	// Only works while there is no other EntityType
 	public void Add(EntityType type, ulong code, float3 pos, float3 dir){
-		GameObject go = GameObject.Instantiate(GameObject.Find("----- PrefabModels -----/PlayerModel"), new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(dir.x, dir.y, dir.z));
-		go.name = "Player_" + code;
-		this.playerObject.Add(code, go);
-		this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
+		if(type == EntityType.PLAYER){
+			GameObject go = GameObject.Instantiate(GameObject.Find("----- PrefabModels -----/PlayerModel"), new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(dir.x, dir.y, dir.z));
+			go.name = "Player_" + code;
+			this.playerObject.Add(code, go);
+			this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
+		}
 	}
 
 	// Triggers whenever a t(x) position is received. Moves entity to t(x-1) position received

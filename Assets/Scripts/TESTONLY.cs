@@ -11,6 +11,9 @@ public class TESTONLY : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-    	ItemEntityHand ie = new ItemEntityHand(ItemID.DIRTBLOCK, 0, rend);
+    	print(-1%16);
+        print(-16%16);
+        print(Mathf.FloorToInt(-1f/16));
+        print(Mathf.FloorToInt(-16f/16));
     }
 }
