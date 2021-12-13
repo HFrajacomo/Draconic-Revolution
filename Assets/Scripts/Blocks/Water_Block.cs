@@ -91,13 +91,11 @@ public class Water_Block : Blocks
 		if(facing >= 0){
 			cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z);
 			cl.server.SendToClients(thisPos.GetChunkPos(), message);
-			Debug.Log("Placed at: " + cl.time.GetBUDTime());
 			return 0;
 		}
 
 		this.Update(thisPos, BUDCode.CHANGE, -1, cl);
 		cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
-		Debug.Log("Moved at: " + cl.time.GetBUDTime());
 		return 0;
 	}
 

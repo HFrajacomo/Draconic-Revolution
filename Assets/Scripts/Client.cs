@@ -293,14 +293,17 @@ public class Client
 			case NetCode.SENDGAMETIME:
 				SendGameTime(data);
 				break;
-			case NetCode.ENTITYDATA:
-				EntityData(data);
+			case NetCode.PLAYERDATA:
+				PlayerData(data);
 				break;
 			case NetCode.ENTITYDELETE:
 				EntityDelete(data);
 				break;
 			case NetCode.PLACEMENTDENIED:
 				PlacementDenied();
+				break;
+			case NetCode.ITEMENTITYDATA:
+				ItemEntityData(data);
 				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
@@ -477,19 +480,18 @@ public class Client
 	}
 
 	// Receives data regarding an entity
-	private void EntityData(byte[] data){
-		EntityType type = (EntityType)data[1];
-		ulong code = NetDecoder.ReadUlong(data, 2);
-		float3 pos = NetDecoder.ReadFloat3(data, 10);
-		float3 dir = NetDecoder.ReadFloat3(data, 22);
+	private void PlayerData(byte[] data){
+		ulong code = NetDecoder.ReadUlong(data, 1);
+		float3 pos = NetDecoder.ReadFloat3(data, 9);
+		float3 dir = NetDecoder.ReadFloat3(data, 21);
 
-		if(this.entityHandler.Contains(type, code)){
-			this.entityHandler.NudgeLastPos(type, code, pos, dir);
-			this.smoothMovement.DefineMovement(code, pos, dir);
+		if(this.entityHandler.Contains(EntityType.PLAYER, code)){
+			this.entityHandler.NudgeLastPos(EntityType.PLAYER, code, pos, dir);
+			this.smoothMovement.DefineMovement(EntityType.PLAYER, code, pos, dir);
 		}
 		else{
-			this.entityHandler.Add(type, code, pos, dir);
-			this.smoothMovement.Add(code);
+			this.entityHandler.AddPlayer(code, pos, dir);
+			this.smoothMovement.AddPlayer(code);
 		}
 	}
 
@@ -499,7 +501,7 @@ public class Client
 		ulong code = NetDecoder.ReadUlong(data, 2);
 
 		this.entityHandler.Remove(type, code);
-		this.smoothMovement.Remove(code);
+		this.smoothMovement.Remove(type, code);
 	}
 
 
@@ -550,6 +552,30 @@ public class Client
 		this.raycast.playerEvents.hotbar.AddStack(its, this.raycast.playerEvents.hotbar.CanFit(its));
 		this.raycast.playerEvents.DrawHotbar();
 	}
+
+	// Received information on an Item Entity
+	private void ItemEntityData(byte[] data){
+		ItemStack its;
+		float3 pos, rot;
+		ulong code;
+
+		pos = NetDecoder.ReadFloat3(data, 1);
+		rot = NetDecoder.ReadFloat3(data, 13);
+		its = new ItemStack((ItemID)NetDecoder.ReadUshort(data, 25), data[27]);
+		code = NetDecoder.ReadUlong(data, 28);
+
+		if(this.entityHandler.Contains(EntityType.DROP, code)){
+			this.entityHandler.NudgeLastPos(EntityType.DROP, code, pos, rot);
+			this.smoothMovement.DefineMovement(EntityType.DROP, code, pos, rot);
+		}
+		else{
+			this.entityHandler.AddItem(code, pos, rot, its);
+			this.smoothMovement.AddItem(code);
+		}
+	}
+
+
+	/* ================================================================================ */
 
 	// Activates SmoothMovement in Entities for the current frame
 	public void MoveEntities(){

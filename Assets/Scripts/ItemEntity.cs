@@ -11,13 +11,12 @@ public class ItemEntity : MonoBehaviour
 {
 	private static string NAME = "DroppedItem";
 	private static Random rng = new Random();
-	private static float mass = 0.2f;
 
 	public TimeOfDay time;
 	public MeshFilter meshFilter;
 	private Mesh mesh;
 	private ItemStack its;
-	private GameObject go;
+	public GameObject go;
 	private Rigidbody rb;
     public GameObject droppedItemHierarchy;
 	private Vector3 initialForce = new Vector3(0f, 0f, 0f);
@@ -25,15 +24,12 @@ public class ItemEntity : MonoBehaviour
 
 	void Start(){
 		this.go = this.gameObject;
-		this.rb = this.go.GetComponent<Rigidbody>();
-		this.rb.mass = ItemEntity.mass;
 		this.go.transform.parent = this.droppedItemHierarchy.transform;
 		this.meshFilter = this.go.GetComponent<MeshFilter>();
 		this.go.name = ItemEntity.NAME;
 		this.mesh = new Mesh();
 
 		BuildMesh();
-		ApplyForce();
 	}
 
 	public void RandomForce(){
@@ -66,6 +62,9 @@ public class ItemEntity : MonoBehaviour
 		if(this.its == null)
 			return;
 
+		if(this.mesh == null)
+			return;
+
 		this.mesh.subMeshCount = 2;
 		this.mesh.SetVertices(ItemMeshData.vertices);
 		this.mesh.SetTriangles(ItemMeshData.imageTris, 0);
@@ -88,6 +87,7 @@ public class ItemEntity : MonoBehaviour
 		return this.its;
 	}
 
+	/*
 	private void OnTriggerEnter(Collider other){
 		if(this.its == null)
 			return;
@@ -128,6 +128,7 @@ public class ItemEntity : MonoBehaviour
 			}
 		}
 	}
+	*/
 
 	private bool CheckDestroy(byte itemsTaken){
 		if(itemsTaken >= this.its.GetAmount()){

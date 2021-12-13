@@ -10,16 +10,16 @@ public struct EntityHitbox
     public static EntityHitbox SAMPLE_PROJECTILE = new EntityHitbox(new float3(0.2f, 0.2f, 0.2f), 0.05f);
     public static EntityHitbox PLAYER = new EntityHitbox(new float3(0.8f, 1.8f, 0.8f), 0.08f);
 
-    public float3 hitboxRadius;
+    public float3 hitboxDiameter;
     public float skinWidth;
 
     public EntityHitbox(float3 hitbox, float skin){
-        this.hitboxRadius = hitbox;
+        this.hitboxDiameter = hitbox;
         this.skinWidth = skin;
     }
 
-    public float3 GetRadius(){
-        return this.hitboxRadius;
+    public float3 GetDiameter(){
+        return this.hitboxDiameter;
     }
 
     public float GetSkin(){

@@ -4,8 +4,25 @@ using UnityEngine;
 
 public abstract class Behaviour
 {
-    public Transform transform;
+    public Vector3 position;
+    public Vector3 rotation;
+    protected EntityEvent cacheEvent;
 
-    public abstract byte HandleBehaviour(EntityEvent ev);
-    public void SetTransform(Transform tr){this.transform = tr;}
+    public abstract byte HandleBehaviour(ref List<EntityEvent> inboundEventQueue);
+
+    public void SetTransform(Vector3 pos, Vector3 rot){
+        this.position = pos;
+        this.rotation = rot;
+    }
+
+    protected virtual bool PopEventAndContinue(ref List<EntityEvent> inboundEventQueue){
+        if(inboundEventQueue[0].zeroCost){
+            inboundEventQueue.RemoveAt(0);
+            return true;
+        }
+        else{
+            inboundEventQueue.RemoveAt(0);
+            return false;
+        }
+    }
 }

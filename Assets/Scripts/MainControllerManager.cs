@@ -7,7 +7,6 @@ using UnityEngine.UI;
 
 public class MainControllerManager : MonoBehaviour
 {
-    private float dropForce = 45f;
     private Vector3 cachedForce;
 
 	// Public passed variables
@@ -38,8 +37,8 @@ public class MainControllerManager : MonoBehaviour
     public InventoryUIPlayer invUIPlayer;
     public GameObject hotbar;
     public PlayerRaycast raycast;
-    public GameObject droppedItemBase;
     public Transform playerCamera;
+    public ChunkLoader cl;
 
 	// Jumping
     public void OnJump(){
@@ -179,6 +178,7 @@ public class MainControllerManager : MonoBehaviour
             MainControllerManager.ctrl = false;    
     }
     public void OnDrop(){
+        /*
         if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot) == null)
             return;
 
@@ -203,6 +203,42 @@ public class MainControllerManager : MonoBehaviour
         this.cachedForce = playerCamera.forward * this.dropForce;
         newItemEntity.AddForce(this.cachedForce);
         newItemEntity.SetTime();
+
+        playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
+        playerEvents.DrawItemEntity(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot));
+        playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);
+        */
+
+        if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot) == null)
+            return;
+
+        ItemID id = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetID();
+        ItemStack its;
+        byte amount;
+
+        if(!MainControllerManager.ctrl){
+            if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).Decrement()){
+                playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
+            }
+
+            amount = 1;
+            its = new ItemStack(id, amount);
+        }
+        else{
+            amount = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetAmount();
+            playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
+
+            its = new ItemStack(id, amount);
+        }  
+
+
+        Vector3 force = new Vector3(this.playerCamera.rotation.x, this.playerCamera.rotation.y, this.playerCamera.rotation.z);
+        force = force.normalized;
+        force = force*2;
+
+        NetMessage message = new NetMessage(NetCode.DROPITEM);
+        message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, this.playerCamera.rotation.x, this.playerCamera.rotation.y, this.playerCamera.rotation.z, force.x, force.y, force.z, (ushort)id, amount);       
+        this.cl.client.Send(message.GetMessage(), message.size);
 
         playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
         playerEvents.DrawItemEntity(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot));

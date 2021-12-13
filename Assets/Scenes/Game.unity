@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1484502057}
-  m_IndirectSpecularColor: {r: 0.055939734, g: 0.07278991, b: 0.06593633, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3419,9 +3419,6 @@ GameObject:
   - component: {fileID: 607620838}
   - component: {fileID: 607620837}
   - component: {fileID: 607620836}
-  - component: {fileID: 607620841}
-  - component: {fileID: 607620840}
-  - component: {fileID: 607620839}
   m_Layer: 10
   m_Name: DroppedItemBase
   m_TagString: DroppedItem
@@ -3458,6 +3455,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   time: {fileID: 1322082558}
   meshFilter: {fileID: 607620838}
+  go: {fileID: 0}
   droppedItemHierarchy: {fileID: 1427935633}
 --- !u!23 &607620837
 MeshRenderer:
@@ -3510,48 +3508,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 607620834}
   m_Mesh: {fileID: 0}
---- !u!54 &607620839
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 607620834}
-  serializedVersion: 2
-  m_Mass: 0.5
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!65 &607620840
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 607620834}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 2, y: 2, z: 2}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!65 &607620841
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 607620834}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &610304420
 GameObject:
   m_ObjectHideFlags: 0
@@ -11111,8 +11067,8 @@ MonoBehaviour:
   invUIPlayer: {fileID: 638012052}
   hotbar: {fileID: 740596934}
   raycast: {fileID: 59614823}
-  droppedItemBase: {fileID: 607620834}
   playerCamera: {fileID: 1912773808}
+  cl: {fileID: 1192772367}
 --- !u!4 &1635249985
 Transform:
   m_ObjectHideFlags: 0

@@ -239,15 +239,14 @@ public struct NetMessage
 	}
 
 	// Server sends entity data to Client
-	public void EntityData(EntityType type, ulong code, float posX, float posY, float posZ, float dirX, float dirY, float dirZ){
-		NetDecoder.WriteByte((byte)type, NetMessage.buffer, 1);
-		NetDecoder.WriteLong(code, NetMessage.buffer, 2);
-		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 10);
-		NetDecoder.WriteFloat3(dirX, dirY, dirZ, NetMessage.buffer, 22);
-		this.size = 34;
+	public void PlayerData(ulong code, float posX, float posY, float posZ, float dirX, float dirY, float dirZ){
+		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
+		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 9);
+		NetDecoder.WriteFloat3(dirX, dirY, dirZ, NetMessage.buffer, 21);
+		this.size = 33;
 	}
-	public void EntityData(PlayerData pdat){
-		EntityData(EntityType.PLAYER, pdat.GetID(), pdat.posX, pdat.posY, pdat.posZ, pdat.dirX, pdat.dirY, pdat.dirZ);
+	public void PlayerData(PlayerData pdat){
+		PlayerData(pdat.GetID(), pdat.posX, pdat.posY, pdat.posZ, pdat.dirX, pdat.dirY, pdat.dirZ);
 	}
 
 	// Server sends a deletion command to out-of-bounds entities to Client
@@ -262,6 +261,26 @@ public struct NetMessage
 		NetDecoder.WriteChunkPos(lastPos, NetMessage.buffer, 1);
 		NetDecoder.WriteChunkPos(newPos, NetMessage.buffer, 9);
 		this.size = 17;
+	}
+
+	// Client sends item information for server to create a Dropped Item Entity
+	public void DropItem(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float moveX, float moveY, float moveZ, ushort itemCode, byte amount){
+		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 1);
+		NetDecoder.WriteFloat3(rotX, rotY, rotZ, NetMessage.buffer, 13);
+		NetDecoder.WriteFloat3(moveX, moveY, moveZ, NetMessage.buffer, 25);
+		NetDecoder.WriteUshort(itemCode, NetMessage.buffer, 37);
+		NetDecoder.WriteByte(amount, NetMessage.buffer, 39);
+		this.size = 40;
+	}
+
+	// Item Entity Data
+	public void ItemEntityData(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, ushort itemCode, byte amount, ulong entityCode){
+		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 1);
+		NetDecoder.WriteFloat3(rotX, rotY, rotZ, NetMessage.buffer, 13);
+		NetDecoder.WriteUshort(itemCode, NetMessage.buffer, 25);
+		NetDecoder.WriteByte(amount, NetMessage.buffer, 27);
+		NetDecoder.WriteLong(entityCode, NetMessage.buffer, 28);
+		this.size = 36;
 	}
 
 }
@@ -283,10 +302,12 @@ public enum NetCode{
 	VFXBREAK,
 	SENDGAMETIME,
 	HEARTBEAT, // No call
-	ENTITYDATA,
+	PLAYERDATA,
 	ENTITYDELETE,
 	CLIENTCHUNK,
-	PLACEMENTDENIED,
+	PLACEMENTDENIED, // No call
+	DROPITEM,
+	ITEMENTITYDATA,
 	DISCONNECT  // No call
 }
 

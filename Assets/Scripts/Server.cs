@@ -13,7 +13,6 @@ using Random = UnityEngine.Random;
 
 public class Server
 {
-	public int maxPlayers = 8;
 	public int port = 33000;
 	private bool isLocal = false;
 	public Socket masterSocket;
@@ -352,6 +351,9 @@ public class Server
 			case NetCode.CLIENTCHUNK:
 				ClientChunk(data, id);
 				break;
+			case NetCode.DROPITEM:
+				DropItem(data, id);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED");
 				break;
@@ -444,7 +446,7 @@ public class Server
 			}
 		}
 
-		NetMessage playerMessage = new NetMessage(NetCode.ENTITYDATA);
+		NetMessage playerMessage = new NetMessage(NetCode.PLAYERDATA);
 
 		// Sends logged in players data
 		if(this.playersInChunk.ContainsKey(pos)){
@@ -453,9 +455,18 @@ public class Server
 					continue;
 				if(this.cl.regionHandler.allPlayerData[code].IsOnline()){
 					this.connectionGraph[code].Add(id);
-					playerMessage.EntityData(this.cl.regionHandler.allPlayerData[code]);
+					playerMessage.PlayerData(this.cl.regionHandler.allPlayerData[code]);
 					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
 				}
+			}
+		}
+
+		NetMessage itemMessage = new NetMessage(NetCode.ITEMENTITYDATA);
+
+		// Connects new Dropped items to player
+		if(this.entityHandler.Contains(EntityType.DROP, pos)){
+			foreach(ulong itemCode in this.entityHandler.dropObject[pos].Keys){
+				itemMessage.ItemEntityData(this.entityHandler.dropObject[pos][itemCode].position.x, this.entityHandler.dropObject[pos][itemCode].position.y, this.entityHandler.dropObject[pos][itemCode].position.z, this.entityHandler.dropObject[pos][itemCode].rotation.x, this.entityHandler.dropObject[pos][itemCode].rotation.y, this.entityHandler.dropObject[pos][itemCode].rotation.z, (ushort)this.entityHandler.dropObject[pos][itemCode].its.GetID(), this.entityHandler.dropObject[pos][itemCode].its.GetAmount(), itemCode);
 			}
 		}
 	}
@@ -473,6 +484,13 @@ public class Server
 	        	this.connectionGraph[code].Remove(id);
 
 	        	killMessage.EntityDelete(EntityType.PLAYER, code);
+	        	this.Send(killMessage.GetMessage(), killMessage.size, id);
+	        }
+	    }
+
+        if(this.entityHandler.Contains(EntityType.DROP, pos)){
+	        foreach(ulong itemCode in this.entityHandler.dropObject[pos].Keys){
+	        	killMessage.EntityDelete(EntityType.DROP, itemCode);
 	        	this.Send(killMessage.GetMessage(), killMessage.size, id);
 	        }
 	    }
@@ -596,11 +614,16 @@ public class Server
 				
 					}
 
+					// Make entities in this chunk update their TerrainVision
+					this.entityHandler.SetRefreshVision(EntityType.DROP, lastCoord.GetChunkPos());
+
 				}
 				break;
 			case BUDCode.SETSTATE:
-				if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos()))
+				if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos())){
 					this.cl.chunks[lastCoord.GetChunkPos()].metadata.SetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+					this.entityHandler.SetRefreshVision(EntityType.DROP, lastCoord.GetChunkPos());
+				}
 				break;
 
 			case BUDCode.BREAK:
@@ -632,6 +655,7 @@ public class Server
 				}
 
 				// Sends the updated voxel to loaded clients
+				this.entityHandler.SetRefreshVision(EntityType.DROP, lastCoord.GetChunkPos());
 				message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 				message.DirectBlockUpdate(BUDCode.BREAK, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, 0, ushort.MaxValue, ushort.MaxValue);
 				SendToClients(lastCoord.GetChunkPos(), message);				
@@ -666,7 +690,7 @@ public class Server
 	private void ClientPlayerPosition(byte[] data, ulong id){
 		float3 pos, dir;
 		ChunkPos cp;
-		NetMessage graphMessage = new NetMessage(NetCode.ENTITYDATA);
+		NetMessage graphMessage = new NetMessage(NetCode.PLAYERDATA);
 	
 		pos = NetDecoder.ReadFloat3(data, 1);
 		dir = NetDecoder.ReadFloat3(data, 13);
@@ -677,7 +701,7 @@ public class Server
 		cp = this.cl.regionHandler.allPlayerData[id].GetChunkPos();
 
 		if(!this.entityHandler.Contains(EntityType.PLAYER, cp, id))
-			this.entityHandler.Add(EntityType.PLAYER, cp, id, pos, dir);
+			this.entityHandler.AddPlayer(cp, id, pos, dir);
 
 		this.entityHandler.SetPosition(EntityType.PLAYER, id, cp, pos);
 		this.entityHandler.SetRotation(EntityType.PLAYER, id, cp, dir);
@@ -685,7 +709,7 @@ public class Server
 
 		// Propagates data to all network
 		foreach(ulong code in this.connectionGraph[id]){
-			graphMessage.EntityData(this.cl.regionHandler.allPlayerData[id]);
+			graphMessage.PlayerData(this.cl.regionHandler.allPlayerData[id]);
 			this.Send(graphMessage.GetMessage(), graphMessage.size, code);
 		}
 	}
@@ -845,14 +869,36 @@ public class Server
 				}
 
 				if(this.cl.loadedChunks[newPos].Contains(code)){
-					NetMessage liveMessage = new NetMessage(NetCode.ENTITYDATA);
+					NetMessage liveMessage = new NetMessage(NetCode.PLAYERDATA);
 
 					this.connectionGraph[id].Add(code);
-					liveMessage.EntityData(this.cl.regionHandler.allPlayerData[id]);
+					liveMessage.PlayerData(this.cl.regionHandler.allPlayerData[id]);
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);					
 				}				
 			}
 		}
+	}
+
+	// Receives a Drop Item notification and creates the DropItemAI Entity
+	private void DropItem(byte[] data, ulong id){
+		float3 pos, rot, move;
+		ushort itemCode;
+		byte amount;
+		NetMessage message = new NetMessage(NetCode.ITEMENTITYDATA);
+
+		pos = NetDecoder.ReadFloat3(data, 1);
+		rot = NetDecoder.ReadFloat3(data, 13);
+		move = NetDecoder.ReadFloat3(data, 25);
+		itemCode = NetDecoder.ReadUshort(data, 37);
+		amount = data[39];
+
+		CastCoord coord = new CastCoord(pos);
+		ChunkPos cp = coord.GetChunkPos();
+
+		ulong code = this.entityHandler.AddItem(pos, rot, move, itemCode, amount, id, this.cl);
+
+		message.ItemEntityData(pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, itemCode, amount, code);
+		this.SendToClients(cp, message);
 	}
 
 

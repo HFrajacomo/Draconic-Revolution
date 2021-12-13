@@ -11,7 +11,7 @@ public class PlayerData
 	private ChunkPos pos;
 	private bool isOnline;
 	private const float playerSkin = 0.4f;
-	private const float blockSkin = 0.5f;
+	
 
 	// Loads PlayerData from positional information.
 	// Used when loading online players
@@ -45,8 +45,8 @@ public class PlayerData
 
 	// Considering players are two block tall
 	public bool CheckValidPlacement(int x, int y, int z){
-		if(this.posX - playerSkin <= x + blockSkin && this.posX + playerSkin >= x - blockSkin){
-			if(this.posZ - playerSkin <= z + blockSkin && this.posZ + playerSkin >= z - blockSkin){
+		if(this.posX - playerSkin <= x + Constants.BLOCK_SKIN && this.posX + playerSkin >= x - Constants.BLOCK_SKIN){
+			if(this.posZ - playerSkin <= z + Constants.BLOCK_SKIN && this.posZ + playerSkin >= z - Constants.BLOCK_SKIN){
 				if(Mathf.Abs(y - this.posY) <= 1){
 					return false;
 				}

@@ -7,6 +7,7 @@ public abstract class AbstractAI
 {
     // EntityHandler Reference
     protected EntityHandler_Server entityHandler;
+    protected ChunkLoader_Server cl;
 
     public Vector3 position;
     public Vector3 rotation;
@@ -30,15 +31,20 @@ public abstract class AbstractAI
         this.rotation = new Vector3(rot.x, rot.y, rot.z);
     }
 
+    // Forces a TerrainVision.RefreshView() operation
+    public void SetRefreshVision(){
+        this.terrainVision.SetRefresh();
+    }
+
     // TerrainVision operation
     protected void RefreshView(){
         if(this.terrainVision != null)
             this.terrainVision.RefreshView(this.coords);
     }
 
-    protected byte HandleBehaviour(EntityEvent ev){
+    protected byte HandleBehaviour(){
         if(this.behaviour != null)
-            return this.behaviour.HandleBehaviour(ev);
+            return this.behaviour.HandleBehaviour(ref this.inboundEventQueue);
         return 0;
     }
 
@@ -46,8 +52,13 @@ public abstract class AbstractAI
         this.entityHandler = handler;
     }
 
+    protected void SetChunkloader(ChunkLoader_Server cl){
+        this.cl = cl;
+    }
+
     protected void Install(TerrainVision tv){
         this.terrainVision = tv;
+        tv.SetHitbox(this.hitbox);
     }
 
     protected void Install(Behaviour b){
