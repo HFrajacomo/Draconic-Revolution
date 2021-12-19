@@ -10,7 +10,7 @@ public abstract class Behaviour
 
     public abstract byte HandleBehaviour(ref List<EntityEvent> inboundEventQueue);
 
-    public void SetTransform(Vector3 pos, Vector3 rot){
+    public void SetTransform(ref Vector3 pos, ref Vector3 rot){
         this.position = pos;
         this.rotation = rot;
     }

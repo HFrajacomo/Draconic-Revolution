@@ -906,6 +906,9 @@ public class Server
 
 	// Send input message to all Clients connected to a given Chunk
 	public void SendToClients(ChunkPos pos, NetMessage message){
+		if(!this.cl.loadedChunks.ContainsKey(pos))
+			return;
+
 		foreach(ulong i in this.cl.loadedChunks[pos]){
 			this.Send(message.GetMessage(), message.size, i);
 		}
@@ -913,6 +916,9 @@ public class Server
 
 	// Send input message to all Clients connected to a given Chunk except the given one
 	public void SendToClientsExcept(ChunkPos pos, NetMessage message, ulong exception){
+		if(!this.cl.loadedChunks.ContainsKey(pos))
+			return;
+
 		foreach(ulong i in this.cl.loadedChunks[pos]){
 			if(i == exception)
 				continue;

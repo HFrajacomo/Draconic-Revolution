@@ -9,7 +9,7 @@ public class TimeOfDay : MonoBehaviour
     public Server server;
     public Client client;
     public static byte tickRate = 40;
-    private static float timeRate = 1f/TimeOfDay.tickRate;
+    public static float timeRate = 1f/TimeOfDay.tickRate;
     private static byte ticksForMinute = (byte)(TimeOfDay.tickRate * 2); // two seconds worth of ticks
 
     private float faketicks = 0f;

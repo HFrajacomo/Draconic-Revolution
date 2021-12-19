@@ -141,7 +141,7 @@ public class ChunkLoader : MonoBehaviour
                 this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
         	}
 
-            MoveEntities();
+            //MoveEntities();
             HandleClientCommunication();
             RunTimerFunctions();
             GetChunks(false);

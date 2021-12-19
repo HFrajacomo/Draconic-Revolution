@@ -63,12 +63,12 @@ public class EntityHandler
 	// Fine movement of entity in frame deltas
 	public void Nudge(EntityType type, ulong code, Vector3 dPos, Vector3 dRot){
 		if(type == EntityType.PLAYER){
-			this.playerObject[code].transform.position = this.playerObject[code].transform.position + (dPos * (Time.deltaTime * TimeOfDay.tickRate));
-			this.playerObject[code].transform.eulerAngles = this.playerObject[code].transform.eulerAngles + (dRot * (Time.deltaTime * TimeOfDay.tickRate));
+			this.playerObject[code].transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
+			this.playerObject[code].transform.eulerAngles += (dRot * (Time.deltaTime / TimeOfDay.timeRate));
 		}
 		else if(type == EntityType.DROP){
-			this.dropObject[code].go.transform.position = this.dropObject[code].go.transform.position + (dPos * (Time.deltaTime * TimeOfDay.tickRate));
-			this.dropObject[code].go.transform.eulerAngles = this.dropObject[code].go.transform.eulerAngles + (dRot * (Time.deltaTime * TimeOfDay.tickRate));			
+			this.dropObject[code].go.transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
+			this.dropObject[code].go.transform.eulerAngles += (dRot * (Time.deltaTime / TimeOfDay.timeRate));			
 		}
 	}
 

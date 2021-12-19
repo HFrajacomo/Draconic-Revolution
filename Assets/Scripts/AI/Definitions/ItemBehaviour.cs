@@ -10,18 +10,18 @@ public class ItemBehaviour : Behaviour
     private NetMessage message = new NetMessage(NetCode.ITEMENTITYDATA);
 
     public ItemBehaviour(Vector3 pos, Vector3 rot, float3 move){
-        this.SetTransform(pos, rot);
+        this.SetTransform(ref pos, ref rot);
         this.deltaPos = new Vector3(move.x, move.y, move.z);
-        this.weight = 1f;
+        this.weight = 0.5f;
     }
 
     public override byte HandleBehaviour(ref List<EntityEvent> ieq){
         if(ieq.Count == 0){
-            this.position += deltaPos * Time.deltaTime;
+            this.position += this.deltaPos; 
             this.rotation = this.deltaPos.normalized;
 
-            this.deltaPos = this.deltaPos + (Constants.GRAVITY_VECTOR * Time.deltaTime * weight);
-            return 1;           
+            this.deltaPos = this.deltaPos + (Constants.GRAVITY_VECTOR * TimeOfDay.timeRate * weight);
+            return 1;
         }
 
         this.cacheEvent = ieq[0];
@@ -31,14 +31,14 @@ public class ItemBehaviour : Behaviour
                 if(PopEventAndContinue(ref ieq))
                     return HandleBehaviour(ref ieq);
                 else
-                    return 2;
+                    return 3;
             }
 
             this.deltaPos -= new Vector3(0f, this.deltaPos.y, 0f);
 
-            this.position += deltaPos * Time.deltaTime;
+            this.position += this.deltaPos;
 
-            this.deltaPos = this.deltaPos * Time.deltaTime * Constants.PHYSICS_ITEM_DRAG_MULTIPLIER;   
+            this.deltaPos = this.deltaPos * Constants.PHYSICS_ITEM_DRAG_MULTIPLIER;   
 
             if(PopEventAndContinue(ref ieq))
                 return HandleBehaviour(ref ieq);

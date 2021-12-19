@@ -83,7 +83,7 @@ public class SmoothMovement
                 continue;
             }
 
-            this.handler.Nudge(EntityType.PLAYER, id, this.items[id].deltaPos, this.items[id].deltaRot);
+            this.handler.Nudge(EntityType.DROP, id, this.items[id].deltaPos, this.items[id].deltaRot);
         }
     }
 }

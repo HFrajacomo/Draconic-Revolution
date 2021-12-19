@@ -260,7 +260,10 @@ public class Client
 
 	// Discovers what to do with a Message received from Server
 	public void HandleReceivedMessage(byte[] data){
-		if(data.Length == 0 || data == null)
+		if(data == null)
+			return;
+
+		if(data.Length == 0)
 			return;
 
 		NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], 0, 0);

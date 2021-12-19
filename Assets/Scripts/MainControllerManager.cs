@@ -178,37 +178,6 @@ public class MainControllerManager : MonoBehaviour
             MainControllerManager.ctrl = false;    
     }
     public void OnDrop(){
-        /*
-        if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot) == null)
-            return;
-
-        ItemEntity newItemEntity = GameObject.Instantiate(this.droppedItemBase, this.playerCamera.position, this.playerCamera.rotation).GetComponent<ItemEntity>();
-
-        ItemID id = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetID();
-
-        if(!MainControllerManager.ctrl){
-            if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).Decrement()){
-                playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
-            }
-
-            newItemEntity.SetItemStack(new ItemStack(id, 1));
-        }
-        else{
-            byte amount = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetAmount();
-            playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
-
-            newItemEntity.SetItemStack(new ItemStack(id, amount));
-        }
-
-        this.cachedForce = playerCamera.forward * this.dropForce;
-        newItemEntity.AddForce(this.cachedForce);
-        newItemEntity.SetTime();
-
-        playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
-        playerEvents.DrawItemEntity(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot));
-        playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);
-        */
-
         if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot) == null)
             return;
 
@@ -232,9 +201,7 @@ public class MainControllerManager : MonoBehaviour
         }  
 
 
-        Vector3 force = new Vector3(this.playerCamera.rotation.x, this.playerCamera.rotation.y, this.playerCamera.rotation.z);
-        force = force.normalized;
-        force = force*2;
+        Vector3 force = this.playerCamera.forward / 5f;
 
         NetMessage message = new NetMessage(NetCode.DROPITEM);
         message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, this.playerCamera.rotation.x, this.playerCamera.rotation.y, this.playerCamera.rotation.z, force.x, force.y, force.z, (ushort)id, amount);       
