@@ -29,4 +29,5 @@ public enum EntityEventType : ushort {
     NOTHING,
     BLOCKHIT, // Has hit something
     ISSTANDING, // Is not falling
+    AIRBORN
 }

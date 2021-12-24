@@ -16,24 +16,24 @@ public abstract class TerrainVision
     /*
     Function to gather the view area containing blocks and states that the mob will have the knowledge of
     */
-    public bool RefreshView(CastCoord coord){
+    public byte RefreshView(CastCoord coord){
         if(this.viewFieldBlocks == null)
-            return false;
+            return 0;
 
         if(coord.Equals(null)){
             this.REFRESH_VISION = false;
             this.cl.GetField(coord, viewDistance, ref viewFieldBlocks, ref viewFieldStates);
-            return true;
+            return 1;
         }
 
         if(!CastCoord.Eq(this.coord, coord) || this.REFRESH_VISION){
             this.REFRESH_VISION = false;
             this.cl.GetField(coord, viewDistance, ref viewFieldBlocks, ref viewFieldStates);
             this.coord = coord;
-            return true;            
+            return 2;            
         }
 
-        return false;
+        return 0;
     }
 
     public void Start(ChunkLoader_Server cl){
@@ -81,16 +81,10 @@ public abstract class TerrainVision
     }
 
     // Is in the ground
-    public bool GroundCollision(Vector3 entityPos){
-        if(cl.blockBook.CheckSolid(this.GetBlockBelow())){
-            if(entityPos.y - (int)(this.hitbox.GetDiameter().y/2) <= GetBelowCollisionThreshold(entityPos))
+    public virtual bool GroundCollision(Vector3 entityPos){
+        if(cl.blockBook.CheckSolid(this.GetBlockBelow()))
+            if(cl.blockBook.CheckSolid(this.GetBlockContained()))
                 return true;
-        }
         return false;
-    }
-
-    // Gets the CastCoord of block below
-    private float GetBelowCollisionThreshold(Vector3 entityPos){
-        return new CastCoord(entityPos.x, entityPos.y - (int)(this.hitbox.GetDiameter().y/2), entityPos.z).GetWorldY()+1;
     }
 }

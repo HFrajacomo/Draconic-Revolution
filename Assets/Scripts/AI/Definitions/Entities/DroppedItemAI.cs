@@ -45,9 +45,11 @@ public class DroppedItemAI : AbstractAI
         byte moveCode;
 
         // Refresh Vision
-        if(this.terrainVision.RefreshView(this.coords))
-            if(this.terrainVision.GroundCollision(this.position))
+        if(this.terrainVision.RefreshView(this.coords) != 0)
+            if(this.terrainVision.GroundCollision(this.position)){
+                Debug.Log("Collided");
                 this.inboundEventQueue.Add(new EntityEvent(EntityEventType.ISSTANDING));
+            }
             
         moveCode = this.behaviour.HandleBehaviour(ref this.inboundEventQueue);
 

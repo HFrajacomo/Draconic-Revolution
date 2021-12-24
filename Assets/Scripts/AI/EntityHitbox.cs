@@ -6,9 +6,9 @@ using Unity.Mathematics;
 public struct EntityHitbox
 {
     public static EntityHitbox BLOCK = new EntityHitbox(new float3(1,1,1), 0f);
-    public static EntityHitbox ITEM = new EntityHitbox(new float3(0.5f, 0.1f, 0.5f), 0.05f);
-    public static EntityHitbox SAMPLE_PROJECTILE = new EntityHitbox(new float3(0.2f, 0.2f, 0.2f), 0.05f);
-    public static EntityHitbox PLAYER = new EntityHitbox(new float3(0.8f, 1.8f, 0.8f), 0.08f);
+    public static EntityHitbox ITEM = new EntityHitbox(new float3(0.5f, 0.1f, 0.5f), 0.1f);
+    public static EntityHitbox SAMPLE_PROJECTILE = new EntityHitbox(new float3(0.2f, 0.2f, 0.2f), 0.1f);
+    public static EntityHitbox PLAYER = new EntityHitbox(new float3(0.8f, 1.8f, 0.8f), 0.1f); // just Sample
 
     public float3 hitboxDiameter;
     public float skinWidth;

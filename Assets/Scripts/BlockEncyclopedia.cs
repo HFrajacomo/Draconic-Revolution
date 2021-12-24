@@ -78,6 +78,17 @@ public class BlockEncyclopedia : MonoBehaviour
             return objects[ushort.MaxValue - code].washable;
     }
 
+    // Gets washable value from block
+    public bool CheckLiquid(ushort code){
+        if(code == null)
+            return false;
+            
+        if(code <= ushort.MaxValue/2)
+            return blocks[code].liquid;
+        else
+            return objects[ushort.MaxValue - code].liquid;
+    }
+
     // Gets name of given code
     public string CheckName(ushort code){
         if(code <= ushort.MaxValue/2)

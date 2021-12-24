@@ -16,6 +16,9 @@ public abstract class Behaviour
     }
 
     protected virtual bool PopEventAndContinue(ref List<EntityEvent> inboundEventQueue){
+        if(inboundEventQueue.Count == 0)
+            return false;
+
         if(inboundEventQueue[0].zeroCost){
             inboundEventQueue.RemoveAt(0);
             return true;
