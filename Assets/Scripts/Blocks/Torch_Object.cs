@@ -97,7 +97,7 @@ public class Torch_Object : BlocklikeObject
 		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, Quaternion.identity);
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
 
-		this.vfx.Add(pos, fire, active:true);
+		this.vfx.Add(pos, fire, active:true, isOnDemandLight:true);
 		ControlFire(pos, blockX, blockY, blockZ, state);
 
 		return 0;		
@@ -109,7 +109,7 @@ public class Torch_Object : BlocklikeObject
 	}
 
 	public override int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
-		this.vfx.Remove(pos, BuildVFXName(pos, blockX, blockY, blockZ));
+		this.vfx.Remove(pos, BuildVFXName(pos, blockX, blockY, blockZ), isOnDemandLight:true);
 		return 0;
 	}
 

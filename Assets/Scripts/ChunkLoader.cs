@@ -141,7 +141,7 @@ public class ChunkLoader : MonoBehaviour
                 this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
         	}
 
-            //MoveEntities();
+            MoveEntities();
             HandleClientCommunication();
             RunTimerFunctions();
             GetChunks(false);
@@ -343,6 +343,10 @@ public class ChunkLoader : MonoBehaviour
                 if(!chunks[toDraw[0]].BuildSideBorder(reload:true)){
                     toRedraw.Add(toDraw[0]);
                 }
+                else{
+                    if(this.WORLD_GENERATED)
+                        this.vfx.UpdateLights(toDraw[0]);
+                }
             }
             toDraw.RemoveAt(0);
         }
@@ -360,6 +364,10 @@ public class ChunkLoader : MonoBehaviour
                         // If hasn't been drawn entirely, put on Redraw again
                         if(!chunks[toRedraw[0]].BuildSideBorder()){
                             toRedraw.Add(toRedraw[0]);
+                        }
+                        else{
+                            if(this.WORLD_GENERATED)
+                                this.vfx.UpdateLights(toRedraw[0]);
                         }
                     }
                     else{
@@ -388,6 +396,10 @@ public class ChunkLoader : MonoBehaviour
                     chunks[toUpdate[0]].BuildChunk();
                     if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
                         toRedraw.Add(toUpdate[0]);
+                    else{
+                        if(this.WORLD_GENERATED)
+                            this.vfx.UpdateLights(toUpdate[0]);
+                    }
                 }
                 toUpdate.RemoveAt(0);
             }
