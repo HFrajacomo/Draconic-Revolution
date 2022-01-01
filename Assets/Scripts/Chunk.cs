@@ -6,6 +6,7 @@ using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
+using UnityEngine.Rendering;
 
 public class Chunk
 {
@@ -46,18 +47,22 @@ public class Chunk
     private int[] assetTris;
     private int[] triangles;
   	private List<Vector2> UVs = new List<Vector2>();
+  	private List<Vector3> normals = new List<Vector3>();
 
     // Assets Cache
     private List<ushort> cacheCodes = new List<ushort>();
     private List<Vector3> cacheVertsv3 = new List<Vector3>();
     private List<int> cacheTris = new List<int>();
     private List<Vector2> cacheUVv2 = new List<Vector2>();
+    private List<Vector3> cacheNormals = new List<Vector3>();
     private List<int> indexVert = new List<int>();
     private List<int> indexUV = new List<int>();
     private List<int> indexTris = new List<int>();
+    private List<int> indexNormals = new List<int>();
     private List<Vector3> scalingFactor = new List<Vector3>();
     private List<Vector2> UVaux = new List<Vector2>();
     private List<Vector3> vertexAux = new List<Vector3>();
+    private List<Vector3> normalAux = new List<Vector3>();
 
     private Mesh mesh;
 
@@ -77,8 +82,11 @@ public class Chunk
 		this.metadata = new VoxelMetadata();
 
 		this.obj.AddComponent<MeshFilter>();
-		this.obj.AddComponent<MeshRenderer>();
+		MeshRenderer msr = this.obj.AddComponent<MeshRenderer>() as MeshRenderer;
 		this.obj.AddComponent<MeshCollider>();
+
+		//msr.shadowCastingMode = ShadowCastingMode.TwoSided;
+
 		this.meshFilter = this.obj.GetComponent<MeshFilter>();
 		this.meshCollider = this.obj.GetComponent<MeshCollider>();
 		this.obj.GetComponent<MeshRenderer>().materials = this.renderer.GetComponent<MeshRenderer>().materials;
@@ -181,6 +189,7 @@ public class Chunk
 
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> uvs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<int> tris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
@@ -201,8 +210,9 @@ public class Chunk
 		NativeArray<bool> objectWashable = new NativeArray<bool>(BlockEncyclopediaECS.objectWashable, Allocator.TempJob);
 
 		// Cached
-		NativeArray<Vector3> cacheCubeVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
+		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector2> cacheUVVerts = new NativeArray<Vector2>(4, Allocator.TempJob);
+		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
 		// For Init
 		this.meshFilter.sharedMesh.GetVertices(vertexAux);
@@ -212,6 +222,10 @@ public class Chunk
 		this.meshFilter.sharedMesh.GetUVs(0, UVaux);
 		NativeArray<Vector2> disposableUVS = new NativeArray<Vector2>(UVaux.ToArray(), Allocator.TempJob);
 		UVaux.Clear();
+
+		this.meshFilter.sharedMesh.GetNormals(normalAux);
+		NativeArray<Vector3> disposableNormals = new NativeArray<Vector3>(normalAux.ToArray(), Allocator.TempJob);
+		normalAux.Clear();
 
 		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(0), Allocator.TempJob);
 		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(1), Allocator.TempJob);
@@ -227,6 +241,7 @@ public class Chunk
 		tris.AddRange(disposableTris);
 		specularTris.AddRange(disposableSpecTris);
 		liquidTris.AddRange(disposableLiquidTris);
+		normals.AddRange(disposableNormals);
 
 
 		// Dispose Init
@@ -235,6 +250,7 @@ public class Chunk
 		disposableTris.Dispose();
 		disposableSpecTris.Dispose();
 		disposableLiquidTris.Dispose();
+		disposableNormals.Dispose();
 
 
 		// X- Analysis
@@ -259,12 +275,14 @@ public class Chunk
 				zM = false,
 				verts = verts,
 				uvs = uvs,
+				normals = normals,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
 
-				cachedCubeVerts = cacheCubeVerts,
+				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
+				cachedCubeNormal = cacheCubeNormal,
 				blockTransparent = blockTransparent,
 				objectTransparent = objectTransparent,
 				blockLiquid = blockLiquid,
@@ -315,12 +333,14 @@ public class Chunk
 				zM = false,
 				verts = verts,
 				uvs = uvs,
+				normals = normals,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
 
-				cachedCubeVerts = cacheCubeVerts,
+				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
+				cachedCubeNormal = cacheCubeNormal,
 				blockTransparent = blockTransparent,
 				objectTransparent = objectTransparent,
 				blockLiquid = blockLiquid,
@@ -371,12 +391,14 @@ public class Chunk
 				zM = true,
 				verts = verts,
 				uvs = uvs,
+				normals = normals,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
 
-				cachedCubeVerts = cacheCubeVerts,
+				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
+				cachedCubeNormal = cacheCubeNormal,
 				blockTransparent = blockTransparent,
 				objectTransparent = objectTransparent,
 				blockLiquid = blockLiquid,
@@ -427,12 +449,14 @@ public class Chunk
 				zM = false,
 				verts = verts,
 				uvs = uvs,
+				normals = normals,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
 
-				cachedCubeVerts = cacheCubeVerts,
+				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
+				cachedCubeNormal = cacheCubeNormal,
 				blockTransparent = blockTransparent,
 				objectTransparent = objectTransparent,
 				blockLiquid = blockLiquid,
@@ -477,13 +501,14 @@ public class Chunk
 			this.liquidTris = liquidTris.ToArray();
 			assetTris = this.meshFilter.sharedMesh.GetTriangles(3);
 
-			BuildMeshSide(verts.ToArray(), uvs.ToArray());
+			BuildMeshSide(verts.ToArray(), uvs.ToArray(), normals.ToArray());
 		}
 
 		blockdata.Dispose();
 		metadata.Dispose();
 		verts.Dispose();
 		uvs.Dispose();
+		normals.Dispose();
 		tris.Dispose();
 		specularTris.Dispose();
 		liquidTris.Dispose();
@@ -498,8 +523,9 @@ public class Chunk
 		blockWashable.Dispose();
 		objectWashable.Dispose();
 		blockTiles.Dispose();
-		cacheCubeVerts.Dispose();
+		cacheCubeVert.Dispose();
 		cacheUVVerts.Dispose();
+		cacheCubeNormal.Dispose();
 		toLoadEvent.Dispose();
 		toBUD.Dispose();
 
@@ -533,8 +559,10 @@ public class Chunk
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector2> cacheCubeUV = new NativeArray<Vector2>(4, Allocator.TempJob);
+		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
 		// Cached from Block Encyclopedia ECS
 		NativeArray<bool> blockTransparent = new NativeArray<bool>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
@@ -561,11 +589,13 @@ public class Chunk
 			loadAssetList = loadAssetList,
 			verts = verts,
 			UVs = UVs,
+			normals = normals,
 			normalTris = normalTris,
 			specularTris = specularTris,
 			liquidTris = liquidTris,
 			cacheCubeVert = cacheCubeVert,
 			cacheCubeUV = cacheCubeUV,
+			cacheCubeNormal = cacheCubeNormal,
 			blockTransparent = blockTransparent,
 			objectTransparent = objectTransparent,
 			blockLiquid = blockLiquid,
@@ -606,6 +636,8 @@ public class Chunk
 				this.indexVert.Add(this.indexVert[indexVert.Count-1] + vertexAux.Count);
 				this.indexTris.Add(this.indexTris[indexTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTriangles(0).Length);
 				this.indexUV.Add(this.indexUV[indexUV.Count-1] + UVaux.Count);
+				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetNormals(normalAux);
+				this.cacheNormals.AddRange(normalAux.ToArray());
 				this.scalingFactor.Add(BlockEncyclopediaECS.objectScaling[ushort.MaxValue-assetCode]);
 				vertexAux.Clear();
 				UVaux.Clear();
@@ -647,6 +679,7 @@ public class Chunk
 
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> meshUVs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector3> meshNormals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<int> meshTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<ushort> blockCodes = new NativeList<ushort>(0, Allocator.TempJob);
 		blockCodes.CopyFrom(this.cacheCodes.ToArray());
@@ -658,6 +691,7 @@ public class Chunk
 		UVOffset.CopyFrom(this.indexUV.ToArray());
 		NativeArray<Vector3> loadedVerts = new NativeArray<Vector3>(this.cacheVertsv3.ToArray(), Allocator.TempJob);
 		NativeArray<Vector2> loadedUV = new NativeArray<Vector2>(this.cacheUVv2.ToArray(), Allocator.TempJob);
+		NativeArray<Vector3> loadedNormals = new NativeArray<Vector3>(this.cacheNormals.ToArray(), Allocator.TempJob);
 		NativeArray<int> loadedTris = new NativeArray<int>(this.cacheTris.ToArray(), Allocator.TempJob);
 		NativeArray<Vector3> scaling = new NativeArray<Vector3>(this.scalingFactor.ToArray(), Allocator.TempJob);
 
@@ -667,6 +701,7 @@ public class Chunk
 			meshVerts = meshVerts,
 			meshTris = meshTris,
 			meshUVs = meshUVs,
+			meshNormals = meshNormals,
 			scaling = scaling,
 			needRotation = objectNeedRotation,
 			inplaceOffset = scaleOffset,
@@ -683,7 +718,8 @@ public class Chunk
 
 			loadedVerts = loadedVerts,
 			loadedUV = loadedUV,
-			loadedTris = loadedTris
+			loadedTris = loadedTris,
+			loadedNormals = loadedNormals
 		};
 		job = paJob.Schedule();
 		job.Complete();
@@ -700,6 +736,9 @@ public class Chunk
 
 		this.UVs.AddRange(UVs.ToArray());
 		this.UVs.AddRange(meshUVs.ToArray());
+
+		this.normals.AddRange(normals.ToArray());
+		this.normals.AddRange(meshNormals.ToArray()); 
 
 
 		// Dispose Bin
@@ -724,6 +763,7 @@ public class Chunk
 		blockWashable.Dispose();
 		objectWashable.Dispose();
 		cacheCubeVert.Dispose();
+		cacheCubeNormal.Dispose();
 		cacheCubeUV.Dispose();
 		loadCodeList.Dispose();
 		meshVerts.Dispose();
@@ -735,10 +775,13 @@ public class Chunk
 		loadedVerts.Dispose();
 		loadedTris.Dispose();
 		loadedUV.Dispose();
+		loadedNormals.Dispose();
 		loadAssetList.Dispose();
 		scaling.Dispose();
 		UVs.Dispose();
+		normals.Dispose();
 		meshUVs.Dispose();
+		meshNormals.Dispose();
 		objectNeedRotation.Dispose();
 		scaleOffset.Dispose();
 		rotationOffset.Dispose();
@@ -752,6 +795,7 @@ public class Chunk
 		cacheVertsv3.Clear();
 		cacheTris.Clear();
 		cacheUVv2.Clear();
+		cacheNormals.Clear();
 		indexVert.Clear();
 		indexUV.Clear();
 		indexTris.Clear();
@@ -762,6 +806,7 @@ public class Chunk
     	this.liquidTris = null;
     	this.assetTris = null;
     	this.UVs.Clear();
+    	this.normals.Clear();
 
 		this.drawMain = true;
     }
@@ -816,14 +861,16 @@ public class Chunk
     	mesh.SetTriangles(assetTris, 3);
 
     	mesh.SetUVs(0, this.UVs.ToArray());
+    	//mesh.SetNormals(this.normals.ToArray());
 
-    	mesh.RecalculateNormals();
+    	// Debug
+    	mesh.RecalculateNormals(); 
 
     	this.meshFilter.sharedMesh = mesh;
     }
 
     // Builds meshes from verts, UVs and tris from different layers
-    private void BuildMeshSide(Vector3[] verts, Vector2[] UV){
+    private void BuildMeshSide(Vector3[] verts, Vector2[] UV, Vector3[] normals){
     	mesh.Clear();
 
     	if(verts.Length >= ushort.MaxValue){
@@ -842,59 +889,13 @@ public class Chunk
     	mesh.SetTriangles(assetTris, 3);
 
     	mesh.uv = UV;
+    	//mesh.SetNormals(normals);
 
     	mesh.RecalculateNormals();
 
     	this.meshFilter.sharedMesh = mesh;
-    }
-
-    // Adds verts, UVs and tris to meshes
-    private void AddToMesh(){
-    	List<Vector3> newVerts = new List<Vector3>();
-    	List<int>[] newTris = {new List<int>(), new List<int>(), new List<int>(), new List<int>()};
-    	List<Vector2> newUVs = new List<Vector2>();
-    	mesh = new Mesh();
-    	mesh.subMeshCount = 4;
-
-    	// Add to buffer the current mesh data
-    	newVerts.AddRange(this.meshFilter.sharedMesh.vertices);
-    	newTris[0].AddRange(this.meshFilter.sharedMesh.GetTriangles(0));
-    	newTris[1].AddRange(this.meshFilter.sharedMesh.GetTriangles(1));
-    	newTris[2].AddRange(this.meshFilter.sharedMesh.GetTriangles(2));
-    	//newTris[3].AddRange()
-    	newUVs.AddRange(this.meshFilter.sharedMesh.uv);
-
-    	// Add to buffer the data received from side analysis
-    	newVerts.AddRange(this.vertices.ToArray());
-
-
-    	newTris[0].AddRange(triangles);
-    	newTris[1].AddRange(specularTris);
-    	newTris[2].AddRange(liquidTris);
-
-    	foreach(float2 f in this.UVs){
-    		newUVs.Add((Vector2)f);
-    	}
-
-    	mesh.vertices = newVerts.ToArray();
-    	mesh.SetTriangles(newTris[0].ToArray(), 0);
-    	mesh.uv = newUVs.ToArray();
-
-    	this.meshCollider.sharedMesh = mesh;
-
-    	mesh.SetTriangles(newTris[1].ToArray(), 1);
-    	mesh.SetTriangles(newTris[2].ToArray(), 2);
-
-    	mesh.RecalculateNormals();
-
-    	this.meshFilter.sharedMesh = mesh;
-
-    	this.vertices.Clear();
-    	this.UVs.Clear();
     }
 }
-
-
 
 /*
 MULTITHREADING
@@ -917,6 +918,7 @@ public struct BuildChunkJob : IJob{
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
 	public NativeList<Vector2> UVs;
+	public NativeList<Vector3> normals;
 
 	// Render Thread Triangles
 	public NativeList<int> normalTris;
@@ -926,6 +928,7 @@ public struct BuildChunkJob : IJob{
 	// Cache
 	public NativeArray<Vector3> cacheCubeVert;
 	public NativeArray<Vector2> cacheCubeUV;
+	public NativeArray<Vector3> cacheCubeNormal;
 
 	// Block Encyclopedia Data
 	[ReadOnly]
@@ -1058,7 +1061,7 @@ public struct BuildChunkJob : IJob{
 
 		    			// Main Drawing Handling
 			    		if(CheckPlacement(neighborBlock)){
-					    	if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV)){
+					    	if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
 					    		break;
 					    	}
 			    		}
@@ -1121,7 +1124,7 @@ public struct BuildChunkJob : IJob{
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
     // Load is true when Chunk is being loaded and not reloaded
     // Returns true if loaded a blocktype mesh and false if it's an asset to be loaded later
-    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, int lookahead=0){
+    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, NativeArray<Vector3> cacheCubeNormal, int lookahead=0){
     	byte renderThread;
 
     	if(blockCode <= ushort.MaxValue/2)
@@ -1138,6 +1141,8 @@ public struct BuildChunkJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		UVs.AddRange(cacheCubeUV);
 
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
     		
 	    	normalTris.Add(vCount -4);
 	    	normalTris.Add(vCount -4 +1);
@@ -1158,6 +1163,9 @@ public struct BuildChunkJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		UVs.AddRange(cacheCubeUV);
 
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
+
 	    	specularTris.Add(vCount -4);
 	    	specularTris.Add(vCount -4 +1);
 	    	specularTris.Add(vCount -4 +2);
@@ -1177,6 +1185,8 @@ public struct BuildChunkJob : IJob{
 			LiquidTexture(cacheCubeUV, x, z);
     		UVs.AddRange(cacheCubeUV);
 
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
     		
 	    	liquidTris.Add(vCount -4);
 	    	liquidTris.Add(vCount -4 +1);
@@ -1274,6 +1284,28 @@ public struct BuildChunkJob : IJob{
 		}
 	}
 
+
+	public void CalculateNormal(NativeArray<Vector3> normals, int dir){
+		Vector3 normal;
+
+		if(dir == 0)
+			normal = new Vector3(0, 0, 1);
+		else if(dir == 1)
+			normal = new Vector3(1, 0, 0);
+		else if(dir == 2)
+			normal = new Vector3(0, 0, -1);
+		else if(dir == 3)
+			normal = new Vector3(-1, 0, 0);
+		else if(dir == 4)
+			normal = new Vector3(0, 1, 0);
+		else
+			normal = new Vector3(0, -1, 0);
+
+		normals[0] = normal;
+		normals[1] = normal;
+		normals[2] = normal;
+		normals[3] = normal;
+	}
 }
 
 
@@ -1283,6 +1315,7 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<Vector3> meshVerts;
 	public NativeList<Vector2> meshUVs;
 	public NativeList<int> meshTris;
+	public NativeList<Vector3> meshNormals;
 
 	[ReadOnly]
 	public int vCount;
@@ -1318,6 +1351,8 @@ public struct PrepareAssetsJob : IJob{
 	public NativeArray<Vector2> loadedUV;
 	[ReadOnly]
 	public NativeArray<int> loadedTris;
+	[ReadOnly]
+	public NativeArray<Vector3> loadedNormals;
 
 	public void Execute(){
 		int i;
@@ -1339,7 +1374,8 @@ public struct PrepareAssetsJob : IJob{
 				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
 					Vector3 resultVert = Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
 					meshVerts.Add(resultVert);
-				}			
+					meshNormals.Add(GetNormalRotation(loadedNormals[vertIndex], inplaceRotation[code*256+state]));
+				}
 
 			}
 			// If doesn't have special rotation
@@ -1348,6 +1384,7 @@ public struct PrepareAssetsJob : IJob{
 				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
 					Vector3 resultVert = Vector3Mult(loadedVerts[vertIndex], scaling[i], vertPos);
 					meshVerts.Add(resultVert);
+					meshNormals.Add(loadedNormals[vertIndex]);
 				}	
 			}
 
@@ -1385,6 +1422,10 @@ public struct PrepareAssetsJob : IJob{
 		return b + localOffset;
 	}
 
+	private Vector3 GetNormalRotation(Vector3 normal, int rotation){
+		return Rotate(normal, rotation);
+	}
+
 	private Vector3 Rotate(Vector3 a, int degrees){
 		return new Vector3(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad));
 	}
@@ -1413,6 +1454,7 @@ public struct BuildBorderJob : IJob{
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
 	public NativeList<Vector2> uvs;
+	public NativeList<Vector3> normals;
 
 	// Render Thread Triangles
 	public NativeList<int> normalTris;
@@ -1422,6 +1464,7 @@ public struct BuildBorderJob : IJob{
 	// Cached
 	public NativeArray<Vector3> cachedCubeVerts;
 	public NativeArray<Vector2> cachedUVVerts;
+	public NativeArray<Vector3> cachedCubeNormal;
 
 	// Block Encyclopedia Data
 	[ReadOnly]
@@ -1490,7 +1533,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(0, y, z, 3, thisBlock, true, cachedCubeVerts, cachedUVVerts);
+						LoadMesh(0, y, z, 3, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
 					}
 				}
 			}
@@ -1534,7 +1577,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(Chunk.chunkWidth-1, y, z, 1, thisBlock, true, cachedCubeVerts, cachedUVVerts);
+						LoadMesh(Chunk.chunkWidth-1, y, z, 1, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
 					}
 				}
 			}
@@ -1578,7 +1621,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(x, y, 0, 2, thisBlock, true, cachedCubeVerts, cachedUVVerts);
+						LoadMesh(x, y, 0, 2, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
 					}
 				}
 			}
@@ -1622,7 +1665,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(x, y, Chunk.chunkWidth-1, 0, thisBlock, true, cachedCubeVerts, cachedUVVerts);
+						LoadMesh(x, y, Chunk.chunkWidth-1, 0, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
 					}
 				}
 			}
@@ -1675,7 +1718,7 @@ public struct BuildBorderJob : IJob{
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
     // Load is true when Chunk is being loaded and not reloaded
     // Returns true if loaded a blocktype mesh and false if it's an asset to be loaded later
-    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, int lookahead=0){
+    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, NativeArray<Vector3> cacheCubeNormal, int lookahead=0){
     	byte renderThread;
 
     	if(blockCode <= ushort.MaxValue/2)
@@ -1692,6 +1735,8 @@ public struct BuildBorderJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		uvs.AddRange(cacheCubeUV);
 
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
     		
 	    	normalTris.Add(vCount -4);
 	    	normalTris.Add(vCount -4 +1);
@@ -1712,7 +1757,9 @@ public struct BuildBorderJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		uvs.AddRange(cacheCubeUV);
 
-    		
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
+
 	    	specularTris.Add(vCount -4);
 	    	specularTris.Add(vCount -4 +1);
 	    	specularTris.Add(vCount -4 +2);
@@ -1732,7 +1779,9 @@ public struct BuildBorderJob : IJob{
 			LiquidTexture(cacheCubeUV, x, z);
     		uvs.AddRange(cacheCubeUV);
 
-    		
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);    		
+
 	    	liquidTris.Add(vCount -4);
 	    	liquidTris.Add(vCount -4 +1);
 	    	liquidTris.Add(vCount -4 +2);
@@ -1822,6 +1871,28 @@ public struct BuildBorderJob : IJob{
 		      fv[i] = (LiquidMeshData.verticesOnState[((int)s*8)+ LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
 		    }
 		}
+	}
+
+	public void CalculateNormal(NativeArray<Vector3> normals, int dir){
+		Vector3 normal;
+
+		if(dir == 0)
+			normal = new Vector3(0, 0, 1);
+		else if(dir == 1)
+			normal = new Vector3(1, 0, 0);
+		else if(dir == 2)
+			normal = new Vector3(0, 0, -1);
+		else if(dir == 3)
+			normal = new Vector3(-1, 0, 0);
+		else if(dir == 4)
+			normal = new Vector3(0, 1, 0);
+		else
+			normal = new Vector3(0, -1, 0);
+
+		normals[0] = normal;
+		normals[1] = normal;
+		normals[2] = normal;
+		normals[3] = normal;
 	}
 
 }

@@ -101,7 +101,6 @@ public class VFXLoader : MonoBehaviour
         // Updates all lights in current chunk
         foreach(HDAdditionalLightData light in this.lightReference[pos]){
             light.RequestShadowMapRendering();
-            Debug.Log("Updating: " + light);
         }
 
         if(adjascent){

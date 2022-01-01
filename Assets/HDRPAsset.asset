@@ -27,13 +27,13 @@ MonoBehaviour:
     supportVolumetricClouds: 0
     supportLightLayers: 0
     supportDistortion: 1
-    supportTransparentBackface: 1
+    supportTransparentBackface: 0
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
     colorBufferFormat: 74
     supportCustomPass: 1
     customBufferFormat: 12
-    supportedLitShaderMode: 3
+    supportedLitShaderMode: 2
     planarReflectionResolution:
       m_Values: 800000008000000080000000
       m_SchemaId:
@@ -46,11 +46,11 @@ MonoBehaviour:
     supportMotionVectors: 1
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
-    supportTerrainHole: 1
+    supportTerrainHole: 0
     supportProbeVolume: 0
     probeVolumeMemoryBudget: 1024
     probeVolumeSHBands: 1
-    supportRayTracing: 1
+    supportRayTracing: 0
     supportedRayTracingMode: 3
     lightLoopSettings:
       cookieAtlasSize: 128
