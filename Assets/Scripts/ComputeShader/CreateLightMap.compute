@@ -1,0 +1,11 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CreateLightMap
+
+RWStructuredBuffer<uint> lightMap;
+RWStructuredBuffer<uint> shadowMap;
+
+[numthreads(8,8,1)]
+void CreateLightMap (uint3 id : SV_DispatchThreadID)
+{
+    lightMap[id.x] = 1;
+}

@@ -32,9 +32,10 @@ public class Wood_Block : Blocks
 		this.name = "Wood";
 		this.materialIndex = 0;
 		this.solid = true;
-		this.transparent = false;
+		this.transparent = 0;
 		this.invisible = false;
 		this.liquid = false;
+		this.affectLight = true;
 
 		this.tileTop = 5;
 		this.tileSide = 6;

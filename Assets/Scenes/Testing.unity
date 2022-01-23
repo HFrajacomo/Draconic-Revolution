@@ -889,7 +889,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46f0fcf8fc91d334cbdd3f4c0f6b1a4b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rend: {fileID: 1391554644}
+  shader: {fileID: 7200000, guid: 52e274b1f74ce8a4f9b4d8bf4eab64db, type: 3}
 --- !u!4 &1811884362
 Transform:
   m_ObjectHideFlags: 0

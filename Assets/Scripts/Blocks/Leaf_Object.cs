@@ -19,10 +19,11 @@ public class Leaf_Object : BlocklikeObject
 	public Leaf_Object(bool isClient){
 		this.name = "Leaf";
 		this.solid = false;
-		this.transparent = true;
+		this.transparent = 1;
 		this.invisible = false;
 		this.liquid = false;
 		this.hasLoadEvent = false;
+		this.affectLight = false;
 
 		if(isClient){
 			this.go = GameObject.Find("----- PrefabObjects -----/Leaf_Object");

@@ -26,6 +26,7 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.blockMaterial[i] = blocks[i].materialIndex;
             BlockEncyclopediaECS.blockTiles[i] = new int3(blocks[i].tileTop, blocks[i].tileBottom, blocks[i].tileSide);
             BlockEncyclopediaECS.blockWashable[i] = blocks[i].washable;
+            BlockEncyclopediaECS.blockAffectLight[i] = blocks[i].affectLight;
         }
 
         // Loads all object meshes
@@ -39,6 +40,7 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.objectScaling[i] = objects[i].scaling;
             BlockEncyclopediaECS.objectNeedRotation[i] = objects[i].needsRotation;
             BlockEncyclopediaECS.objectWashable[i] = objects[i].washable;
+            BlockEncyclopediaECS.objectAffectLight[i] = objects[i].affectLight;
         }
     }
 
@@ -95,6 +97,14 @@ public class BlockEncyclopedia : MonoBehaviour
             return blocks[code].name;
         else
             return objects[ushort.MaxValue - code].name;
+    }
+
+    // Gets affectLight from given code
+    public bool CheckAffectLight(ushort code){
+        if(code <= ushort.MaxValue/2)
+            return blocks[code].affectLight;
+        else
+            return objects[ushort.MaxValue - code].affectLight;
     }
 
 }

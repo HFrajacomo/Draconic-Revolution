@@ -22,11 +22,12 @@ public class Torch_Object : BlocklikeObject
 	public Torch_Object(bool isClient){
 		this.name = "Torch";
 		this.solid = false;
-		this.transparent = true;
+		this.transparent = 1;
 		this.invisible = false;
 		this.liquid = false;
 		this.washable = true;
 		this.hasLoadEvent = true;
+		this.affectLight = false;
 
 		if(isClient){
 			this.go = GameObject.Find("----- PrefabObjects -----/Torch_Object");

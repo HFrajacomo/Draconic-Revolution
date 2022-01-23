@@ -50,13 +50,14 @@ public class Water_Block : Blocks
 		this.materialIndex = 2; // Liquid
 		this.name = "Water";
 		this.solid = false;
-		this.transparent = true;
+		this.transparent = 1;
 		this.invisible = false;
 		this.liquid = true;
 		this.waterCode = 6;
 		this.customBreak = true;
 		this.customPlace = true;
 		this.hasLoadEvent = true;
+		this.affectLight = true;
 		this.viscosityDelay = 12;
 
 		this.aroundCodes = new ushort[8];

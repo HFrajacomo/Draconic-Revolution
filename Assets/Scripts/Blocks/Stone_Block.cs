@@ -8,9 +8,10 @@ public class Stone_Block : Blocks
 		this.name = "Stone";
 		this.materialIndex = 0;
 		this.solid = true;
-		this.transparent = false;
+		this.transparent = 0;
 		this.invisible = false;
 		this.liquid = false;
+		this.affectLight = true;
 
 		this.tileTop = 4;
 		this.tileSide = 4;

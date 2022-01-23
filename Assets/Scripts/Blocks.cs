@@ -15,8 +15,9 @@ public abstract class Blocks
 	public byte materialIndex = 0; // The material used in the rendering pipeline
 	public string name;
 	public bool solid; // Is collidable
-	public bool transparent; // Should render the back side?
+	public byte transparent; // Should render the back side?
 	public bool invisible; // Should not render at all
+	public bool affectLight; // Should drain light level
 	public bool liquid;
 	public bool hasLoadEvent = false;
 	public bool washable = false; // Can be destroyed by flowing water

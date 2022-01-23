@@ -8,7 +8,10 @@ using Unity.Mathematics;
 
 public class VoxelData
 {
-	ushort[] data;
+	private static bool CONFIGURED_SHADER;
+	private ushort[] data;
+	private byte[] heightMap;
+	private byte[] lightMap;
 
 	public static readonly int3[] offsets = new int3[]{
 		new int3(0,0,1),
@@ -25,6 +28,90 @@ public class VoxelData
 
 	public VoxelData(ushort[] data){
 		this.data = (ushort[])data.Clone();
+		this.heightMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth];
+		CalculateHeightMap();
+	}
+
+	/*
+	Currently unused because unbursted option is faster
+	*/
+	/*
+	public void CalculateHeightMap_BURST(){
+		if(this.data == null)
+			return;
+
+		NativeArray<ushort> nativeData = new NativeArray<ushort>(data, Allocator.TempJob);
+		NativeArray<byte> nativeHeightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
+		NativeArray<bool> blockAffectLightECS = new NativeArray<bool>(BlockEncyclopediaECS.blockAffectLight, Allocator.TempJob);
+		NativeArray<bool> objectAffectLightECS = new NativeArray<bool>(BlockEncyclopediaECS.objectAffectLight, Allocator.TempJob);
+
+		JobHandle job;
+
+		GetHeightMapJob hmJob = new GetHeightMapJob{
+			heightMap = nativeHeightMap,
+			data = nativeData,
+			chunkWidth = Chunk.chunkWidth,
+			chunkDepth = Chunk.chunkDepth,
+			blockAffectLight = blockAffectLightECS,
+			objectAffectLight = objectAffectLightECS
+		};
+
+        job = hmJob.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
+
+        this.data = nativeData.ToArray();
+        this.heightMap = nativeHeightMap.ToArray();
+
+        nativeData.Dispose();
+        nativeHeightMap.Dispose();
+        blockAffectLightECS.Dispose();
+        objectAffectLightECS.Dispose();
+	}
+	*/
+
+	public void CalculateHeightMap(){
+		if(this.data == null)
+			return;
+
+		ushort blockCode;
+		bool found;
+
+		for(int x=0; x < Chunk.chunkWidth; x++){
+	    	for(int z=0; z < Chunk.chunkWidth; z++){
+	    		found = false;
+	    		for(int y=Chunk.chunkDepth-1; y >= 0; y--){
+	    			blockCode = this.data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+	    			// If is a block
+	    			if(blockCode <= ushort.MaxValue/2){
+	    				if(BlockEncyclopediaECS.blockAffectLight[blockCode]){
+	    					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+	    					found = true;
+	    					break;
+	    				}
+	    			}
+	    			// If it's an object
+	    			else{
+	    				if(BlockEncyclopediaECS.objectAffectLight[ushort.MaxValue - blockCode]){
+	    					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+	    					found = true;
+	    					break;
+	    				}		
+	    			}
+	    		}
+
+	    		if(!found){
+	    			this.heightMap[x*Chunk.chunkWidth+z] = 0;
+	    		}
+	    	}
+		}
+	}
+
+	public ushort GetHeight(byte x, byte z){
+		if(x < 0 || z < 0 || x > Chunk.chunkWidth || z > Chunk.chunkWidth)
+			return ushort.MaxValue;
+		else
+			return this.heightMap[x*Chunk.chunkWidth + z];
 	}
 
 	public ushort GetCell(int x, int y, int z){
@@ -69,6 +156,47 @@ public class VoxelData
 
 		return GetCell(neighborCoord.x, neighborCoord.y, neighborCoord.z);
 	}
+}
+
+[BurstCompile]
+public struct GetHeightMapJob : IJobParallelFor{
+    [NativeDisableParallelForRestriction]
+    public NativeArray<byte> heightMap;
+    [ReadOnly]
+    public NativeArray<ushort> data;
+    [ReadOnly]
+    public int chunkWidth;
+    [ReadOnly]
+    public int chunkDepth;
+    [ReadOnly]
+    public NativeArray<bool> blockAffectLight;
+    [ReadOnly]
+    public NativeArray<bool> objectAffectLight;
+
+    public void Execute(int index){
+    	ushort blockCode;
+
+    	for(int z=0; z < chunkWidth; z++){
+    		for(int y=chunkDepth-1; y >= 0; y--){
+    			blockCode = data[index*chunkWidth*chunkDepth+y*chunkWidth+z];
+
+    			// If is a block
+    			if(blockCode <= ushort.MaxValue/2){
+    				if(blockAffectLight[blockCode]){
+    					this.heightMap[index*chunkWidth+z] = (byte)y;
+    					break;
+    				}
+    			}
+    			// If it's an object
+    			else{
+    				if(objectAffectLight[ushort.MaxValue - blockCode]){
+    					this.heightMap[index*chunkWidth+z] = (byte)y;
+    					break;
+    				}		
+    			}
+    		}
+    	}
+    }
 }
 
 public enum Direction{

@@ -8,9 +8,10 @@ public class MetalOre_Block : Blocks
 		this.name = "Metal Ore";
 		this.materialIndex = 0;
 		this.solid = true;
-		this.transparent = false;
+		this.transparent = 0;
 		this.invisible = false;
 		this.liquid = false;
+		this.affectLight = true;
 
 		this.tileTop = 7;
 		this.tileSide = 7;

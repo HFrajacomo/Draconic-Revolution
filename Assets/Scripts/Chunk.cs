@@ -85,11 +85,9 @@ public class Chunk
 		MeshRenderer msr = this.obj.AddComponent<MeshRenderer>() as MeshRenderer;
 		this.obj.AddComponent<MeshCollider>();
 
-		//msr.shadowCastingMode = ShadowCastingMode.TwoSided;
-
 		this.meshFilter = this.obj.GetComponent<MeshFilter>();
 		this.meshCollider = this.obj.GetComponent<MeshCollider>();
-		this.obj.GetComponent<MeshRenderer>().materials = this.renderer.GetComponent<MeshRenderer>().materials;
+		this.obj.GetComponent<MeshRenderer>().sharedMaterials = this.renderer.GetComponent<MeshRenderer>().sharedMaterials;
 		this.blockBook = be;
 		this.obj.layer = 8;
 
@@ -197,8 +195,8 @@ public class Chunk
 		NativeList<int3> toLoadEvent = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int3> toBUD = new NativeList<int3>(0, Allocator.TempJob);
 
-		NativeArray<bool> blockTransparent = new NativeArray<bool>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
-		NativeArray<bool> objectTransparent = new NativeArray<bool>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
+		NativeArray<byte> blockTransparent = new NativeArray<byte>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
+		NativeArray<byte> objectTransparent = new NativeArray<byte>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
 		NativeArray<bool> blockLiquid = new NativeArray<bool>(BlockEncyclopediaECS.blockLiquid, Allocator.TempJob);
 		NativeArray<bool> objectLiquid = new NativeArray<bool>(BlockEncyclopediaECS.objectLiquid, Allocator.TempJob);
 		NativeArray<bool> blockInvisible = new NativeArray<bool>(BlockEncyclopediaECS.blockInvisible, Allocator.TempJob);
@@ -565,8 +563,8 @@ public class Chunk
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
 		// Cached from Block Encyclopedia ECS
-		NativeArray<bool> blockTransparent = new NativeArray<bool>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
-		NativeArray<bool> objectTransparent = new NativeArray<bool>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
+		NativeArray<byte> blockTransparent = new NativeArray<byte>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
+		NativeArray<byte> objectTransparent = new NativeArray<byte>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
 		NativeArray<bool> blockLiquid = new NativeArray<bool>(BlockEncyclopediaECS.blockLiquid, Allocator.TempJob);
 		NativeArray<bool> objectLiquid = new NativeArray<bool>(BlockEncyclopediaECS.objectLiquid, Allocator.TempJob);
 		NativeArray<bool> blockLoad = new NativeArray<bool>(BlockEncyclopediaECS.blockLoad, Allocator.TempJob);
@@ -932,9 +930,9 @@ public struct BuildChunkJob : IJob{
 
 	// Block Encyclopedia Data
 	[ReadOnly]
-	public NativeArray<bool> blockTransparent;
+	public NativeArray<byte> blockTransparent;
 	[ReadOnly]
-	public NativeArray<bool> objectTransparent;
+	public NativeArray<byte> objectTransparent;
 	[ReadOnly]
 	public NativeArray<bool> blockLiquid;
 	[ReadOnly]
@@ -1077,7 +1075,7 @@ public struct BuildChunkJob : IJob{
 		
 		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
 			return 0;
-		} 
+		}
 
 		return data[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
 	}
@@ -1096,9 +1094,9 @@ public struct BuildChunkJob : IJob{
     // Checks if neighbor is transparent or invisible
     private bool CheckPlacement(int neighborBlock){
     	if(neighborBlock <= ushort.MaxValue/2)
-    		return blockTransparent[neighborBlock] || blockInvisible[neighborBlock];
+    		return Boolean(blockTransparent[neighborBlock]) || blockInvisible[neighborBlock];
     	else
-			return objectTransparent[ushort.MaxValue-neighborBlock] || objectInvisible[ushort.MaxValue-neighborBlock];
+			return Boolean(objectTransparent[ushort.MaxValue-neighborBlock]) || objectInvisible[ushort.MaxValue-neighborBlock];
     }
 
     // Checks if Liquids are side by side
@@ -1118,6 +1116,12 @@ public struct BuildChunkJob : IJob{
     		neighborLiquid = objectLiquid[ushort.MaxValue-neighborBlock];
 
     	return thisLiquid && neighborLiquid && (thisState == neighborState);
+    }
+
+    private bool Boolean(byte a){
+    	if(a == 0)
+    		return false;
+    	return true;
     }
 
 
@@ -1468,9 +1472,9 @@ public struct BuildBorderJob : IJob{
 
 	// Block Encyclopedia Data
 	[ReadOnly]
-	public NativeArray<bool> blockTransparent;
+	public NativeArray<byte> blockTransparent;
 	[ReadOnly]
-	public NativeArray<bool> objectTransparent;
+	public NativeArray<byte> objectTransparent;
 	[ReadOnly]
 	public NativeArray<bool> blockLiquid;
 	[ReadOnly]
@@ -1691,9 +1695,9 @@ public struct BuildBorderJob : IJob{
     // Checks if neighbor is transparent or invisible
     private bool CheckPlacement(int neighborBlock){
     	if(neighborBlock <= ushort.MaxValue/2)
-    		return blockTransparent[neighborBlock] || blockInvisible[neighborBlock];
+    		return Boolean(blockTransparent[neighborBlock]) || blockInvisible[neighborBlock];
     	else
-			return objectTransparent[ushort.MaxValue-neighborBlock] || objectInvisible[ushort.MaxValue-neighborBlock];
+			return Boolean(objectTransparent[ushort.MaxValue-neighborBlock]) || objectInvisible[ushort.MaxValue-neighborBlock];
     }
 
     // Checks if Liquids are side by side
@@ -1713,6 +1717,12 @@ public struct BuildBorderJob : IJob{
     		neighborLiquid = objectLiquid[ushort.MaxValue-neighborBlock];
 
     	return thisLiquid && neighborLiquid;
+    }
+
+    private bool Boolean(byte a){
+    	if(a == 0)
+    		return false;
+    	return true;
     }
 
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
