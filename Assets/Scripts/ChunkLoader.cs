@@ -65,7 +65,6 @@ public class ChunkLoader : MonoBehaviour
 
 
     void Awake(){
-        Debug.Log("Started ChunkLoader");
         this.playerCharacter.SetActive(false);
         this.gameUI.SetActive(false);
         this.client = new Client(this);
@@ -274,7 +273,7 @@ public class ChunkLoader : MonoBehaviour
                 Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:21+headerSize);
                 Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
                 Compression.DecompressMetadataStateClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize+hpDataSize);
-            
+
                 if(this.vfx.data.ContainsKey(cp))
                     this.vfx.RemoveChunk(cp);
                     
@@ -338,6 +337,8 @@ public class ChunkLoader : MonoBehaviour
         if(toDraw.Count > 0){
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
+                chunks[toDraw[0]].data.CalculateShadowMap_BURST();
+
                 chunks[toDraw[0]].BuildChunk(load:true);
                 // If hasn't been drawn entirely, put on Redraw List
                 if(!chunks[toDraw[0]].BuildSideBorder(reload:true)){
@@ -393,6 +394,8 @@ public class ChunkLoader : MonoBehaviour
         if(toUpdate.Count > 0){
             for(int i=0; i<min; i++){
                 if(this.chunks.ContainsKey(toUpdate[0])){
+                    chunks[toUpdate[0]].data.CalculateShadowMap_BURST();
+
                     chunks[toUpdate[0]].BuildChunk();
                     if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
                         toRedraw.Add(toUpdate[0]);

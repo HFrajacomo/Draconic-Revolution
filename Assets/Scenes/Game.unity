@@ -5095,7 +5095,7 @@ Transform:
   - {fileID: 7817743614057326969}
   - {fileID: 6180416320529972814}
   m_Father: {fileID: 0}
-  m_RootOrder: 16
+  m_RootOrder: 17
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &859394500
 GameObject:
@@ -6140,7 +6140,7 @@ Transform:
   m_Children:
   - {fileID: 1324502670}
   m_Father: {fileID: 0}
-  m_RootOrder: 17
+  m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &943616501
 GameObject:
@@ -8374,6 +8374,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1195401123}
   m_CullTransparentMesh: 1
+--- !u!1 &1244063407
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1244063409}
+  - component: {fileID: 1244063408}
+  m_Layer: 0
+  m_Name: ShaderReferences
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!114 &1244063408
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1244063407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66b86940212edb7438a6fad4a1fe9140, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowMapCalculator: {fileID: 7200000, guid: 52e274b1f74ce8a4f9b4d8bf4eab64db, type: 3}
+--- !u!4 &1244063409
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1244063407}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 20.8981, y: 37.732357, z: -73.059555}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 16
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1246718550
 GameObject:
   m_ObjectHideFlags: 0
@@ -9375,7 +9420,7 @@ Transform:
   - {fileID: 1049375644}
   - {fileID: 607620835}
   m_Father: {fileID: 0}
-  m_RootOrder: 18
+  m_RootOrder: 19
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1340896697
 GameObject:
@@ -9948,7 +9993,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 19
+  m_RootOrder: 20
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1428896521
 GameObject:
@@ -10881,7 +10926,7 @@ MonoBehaviour:
         overrideMaterial: {fileID: 2100000, guid: 64109670eb3361f4bb0873e0c9ac8701,
           type: 2}
         overrideMaterialPassIndex: 0
-        overrideMaterialPassName: 
+        overrideMaterialPassName: ShadowCaster
         overrideDepthState: 0
         depthCompareFunction: 4
         depthWrite: 1

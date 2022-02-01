@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
@@ -8,10 +9,12 @@ using Unity.Mathematics;
 
 public class VoxelData
 {
-	private static bool CONFIGURED_SHADER;
+	private static ShaderReferences shaderReferences;
+	private static ComputeShader shadowMapShader;
+
 	private ushort[] data;
 	private byte[] heightMap;
-	private byte[] lightMap;
+	private byte[] shadowMap;
 
 	public static readonly int3[] offsets = new int3[]{
 		new int3(0,0,1),
@@ -35,12 +38,11 @@ public class VoxelData
 	/*
 	Currently unused because unbursted option is faster
 	*/
-	/*
 	public void CalculateHeightMap_BURST(){
 		if(this.data == null)
 			return;
 
-		NativeArray<ushort> nativeData = new NativeArray<ushort>(data, Allocator.TempJob);
+		NativeArray<ushort> nativeData = new NativeArray<ushort>(this.data, Allocator.TempJob);
 		NativeArray<byte> nativeHeightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
 		NativeArray<bool> blockAffectLightECS = new NativeArray<bool>(BlockEncyclopediaECS.blockAffectLight, Allocator.TempJob);
 		NativeArray<bool> objectAffectLightECS = new NativeArray<bool>(BlockEncyclopediaECS.objectAffectLight, Allocator.TempJob);
@@ -67,11 +69,74 @@ public class VoxelData
         blockAffectLightECS.Dispose();
         objectAffectLightECS.Dispose();
 	}
+
+	/*
+	Burst compiler function
 	*/
+	public void CalculateShadowMap_BURST(){		
+		if(this.heightMap == null)
+			CalculateHeightMap();
+
+		NativeArray<byte> shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+		NativeArray<byte> heightMap = new NativeArray<byte>(this.heightMap, Allocator.TempJob);
+		NativeArray<ushort> data = new NativeArray<ushort>(this.data, Allocator.TempJob);
+		NativeArray<byte> isTransparentBlock = new NativeArray<byte>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
+		NativeArray<byte> isTransparentObj = new NativeArray<byte>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
+
+		JobHandle job;
+
+		CalculateLightJob clJob = new CalculateLightJob{
+			shadowMap = shadowMap,
+			heightMap = heightMap,
+			data = data,
+			chunkWidth = Chunk.chunkWidth,
+			chunkDepth = Chunk.chunkDepth,
+			isTransparentObj = isTransparentObj,
+			isTransparentBlock = isTransparentBlock
+		};
+
+        job = clJob.Schedule();
+        job.Complete();
+
+        this.shadowMap = shadowMap.ToArray();
+
+        shadowMap.Dispose();
+        heightMap.Dispose();
+        data.Dispose();
+        isTransparentBlock.Dispose();
+        isTransparentObj.Dispose();
+	}
+
+	/*
+	ComputeShader Accelerated Function
+	*/
+	public void CalculateShadowMap_GPU(){
+        ComputeBuffer voxelDataBuffer = new ComputeBuffer(data.Length/2, sizeof(int));
+        ComputeBuffer heightMapBuffer = new ComputeBuffer(heightMap.Length/4, sizeof(int));
+        ComputeBuffer shadowMapBuffer = new ComputeBuffer(data.Length/4, sizeof(int));
+
+        voxelDataBuffer.SetData(data);
+        heightMapBuffer.SetData(heightMap);
+        shadowMapBuffer.SetData(shadowMap);
+
+        VoxelData.shadowMapShader.SetBuffer(0, "data", voxelDataBuffer);
+        VoxelData.shadowMapShader.SetBuffer(0, "heightMap", heightMapBuffer);
+        VoxelData.shadowMapShader.SetBuffer(0, "shadowMap", shadowMapBuffer);
+
+        VoxelData.shadowMapShader.Dispatch(0, 25, 1, 1);
+
+        shadowMapBuffer.GetData(this.shadowMap);
+
+        voxelDataBuffer.Dispose();
+        heightMapBuffer.Dispose();
+        shadowMapBuffer.Dispose();
+	}
 
 	public void CalculateHeightMap(){
 		if(this.data == null)
 			return;
+		if(this.heightMap == null)
+			this.heightMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth];
 
 		ushort blockCode;
 		bool found;
@@ -107,6 +172,29 @@ public class VoxelData
 		}
 	}
 
+	public void CalculateHeightMap(int x, int z){
+		ushort blockCode;
+
+		for(int y=Chunk.chunkDepth-1; y >= 0; y--){
+			blockCode = this.data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+			// If is a block
+			if(blockCode <= ushort.MaxValue/2){
+				if(BlockEncyclopediaECS.blockAffectLight[blockCode]){
+					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+					return;
+				}
+			}
+			// If it's an object
+			else{
+				if(BlockEncyclopediaECS.objectAffectLight[ushort.MaxValue - blockCode]){
+					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+					return;
+				}		
+			}
+		}
+	}
+
 	public ushort GetHeight(byte x, byte z){
 		if(x < 0 || z < 0 || x > Chunk.chunkWidth || z > Chunk.chunkWidth)
 			return ushort.MaxValue;
@@ -126,8 +214,16 @@ public class VoxelData
 		return data[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z];
 	}
 
+	public ushort GetShadow(int3 coord){
+		return shadowMap[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z];
+	}
+
 	public void SetCell(int x, int y, int z, ushort blockCode){
 		data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blockCode;
+	}
+
+	public byte[] GetShadowMap(){
+		return this.shadowMap;
 	}
 
 	public ushort[] GetData(){
@@ -136,6 +232,14 @@ public class VoxelData
 
 	public void SetData(ushort[] data){
 		this.data = data;
+
+		if(VoxelData.shaderReferences == null){
+			VoxelData.shaderReferences = GameObject.Find("ShaderReferences").GetComponent<ShaderReferences>();
+			VoxelData.shadowMapShader = VoxelData.shaderReferences.GetShadowMapShader();
+		}
+
+		if(this.heightMap == null)
+			CalculateHeightMap();
 	}
 
 	public override string ToString(){
@@ -155,6 +259,27 @@ public class VoxelData
 		} 
 
 		return GetCell(neighborCoord.x, neighborCoord.y, neighborCoord.z);
+	}
+
+	// DEBUG
+	public void PrintShadow(){
+		StringBuilder sb = new StringBuilder();
+		foreach(byte b in this.shadowMap){
+			sb.Append(b.ToString());
+			sb.Append(" ");
+		}
+
+		Debug.Log(sb.ToString());
+	}
+
+	public void PrintHeight(){
+		StringBuilder sb = new StringBuilder();
+		foreach(byte b in this.heightMap){
+			sb.Append(b.ToString());
+			sb.Append(" ");
+		}
+
+		Debug.Log(sb.ToString());
 	}
 }
 
@@ -197,6 +322,62 @@ public struct GetHeightMapJob : IJobParallelFor{
     		}
     	}
     }
+}
+
+[BurstCompile]
+public struct CalculateLightJob : IJob{
+	public NativeArray<byte> shadowMap;
+	[ReadOnly]
+	public NativeArray<byte> heightMap;
+	[ReadOnly]
+	public NativeArray<ushort> data;
+	[ReadOnly]
+	public int chunkWidth;
+	[ReadOnly]
+	public int chunkDepth;
+	[ReadOnly]
+	public NativeArray<byte> isTransparentBlock;
+	[ReadOnly]
+	public NativeArray<byte> isTransparentObj;
+
+	public void Execute(){
+		bool isBlock;
+		ushort blockCode;
+		int index;
+
+		for(int z=0; z < chunkWidth; z++){
+			for(int y=chunkDepth-1; y >= 0; y--){
+				for(int x=0; x < chunkWidth; x++){
+					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+					blockCode = data[index];
+					isBlock = blockCode <= ushort.MaxValue/2;
+
+					// If is above heightMap
+					if(y > heightMap[x*chunkWidth+z]){
+						shadowMap[index] = 2;
+						continue;
+					}
+					// If is transparent
+					if(isBlock){
+						if(isTransparentBlock[blockCode] == 1){
+							shadowMap[index] = 1;
+						}
+						else{
+							shadowMap[index] = 0;
+						}
+					}
+					else{
+						if(isTransparentObj[ushort.MaxValue - blockCode] == 1){
+							shadowMap[index] = 1;
+						}
+						else{
+							shadowMap[index] = 0;
+						}						
+					}
+				}
+			}
+		}
+	}
 }
 
 public enum Direction{

@@ -47,11 +47,13 @@ public class Chunk
     private int[] assetTris;
     private int[] triangles;
   	private List<Vector2> UVs = new List<Vector2>();
+  	private List<Vector2> lightUVMain = new List<Vector2>();
   	private List<Vector3> normals = new List<Vector3>();
 
     // Assets Cache
     private List<ushort> cacheCodes = new List<ushort>();
     private List<Vector3> cacheVertsv3 = new List<Vector3>();
+    private List<Vector2> cacheLightUV = new List<Vector2>();
     private List<int> cacheTris = new List<int>();
     private List<Vector2> cacheUVv2 = new List<Vector2>();
     private List<Vector3> cacheNormals = new List<Vector3>();
@@ -184,9 +186,11 @@ public class Chunk
 
 		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
 		NativeArray<ushort> metadata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
+		NativeArray<byte> lightdata = new NativeArray<byte>(this.data.GetShadowMap(), Allocator.TempJob);
 
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> uvs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector2> lightUV = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<int> tris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
@@ -221,6 +225,10 @@ public class Chunk
 		NativeArray<Vector2> disposableUVS = new NativeArray<Vector2>(UVaux.ToArray(), Allocator.TempJob);
 		UVaux.Clear();
 
+		this.meshFilter.sharedMesh.GetUVs(3, UVaux);
+		NativeArray<Vector2> disposableLight = new NativeArray<Vector2>(UVaux.ToArray(), Allocator.TempJob);
+		UVaux.Clear();
+
 		this.meshFilter.sharedMesh.GetNormals(normalAux);
 		NativeArray<Vector3> disposableNormals = new NativeArray<Vector3>(normalAux.ToArray(), Allocator.TempJob);
 		normalAux.Clear();
@@ -236,6 +244,7 @@ public class Chunk
 		// Initialize Data
 		verts.AddRange(disposableVerts);
 		uvs.AddRange(disposableUVS);
+		lightUV.AddRange(disposableLight);
 		tris.AddRange(disposableTris);
 		specularTris.AddRange(disposableSpecTris);
 		liquidTris.AddRange(disposableLiquidTris);
@@ -249,6 +258,7 @@ public class Chunk
 		disposableSpecTris.Dispose();
 		disposableLiquidTris.Dispose();
 		disposableNormals.Dispose();
+		disposableLight.Dispose();
 
 
 		// X- Analysis
@@ -265,6 +275,7 @@ public class Chunk
 				reload = reload,
 				data = blockdata,
 				metadata = metadata,
+				lightdata = lightdata,
 				neighbordata = neighbordata,
 				toLoadEvent = toLoadEvent,
 				xM = true,
@@ -277,6 +288,7 @@ public class Chunk
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
+				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
@@ -323,6 +335,7 @@ public class Chunk
 				reload = reload,
 				data = blockdata,
 				metadata = metadata,
+				lightdata = lightdata,
 				neighbordata = neighbordata,
 				toLoadEvent = toLoadEvent,
 				xM = false,
@@ -335,6 +348,7 @@ public class Chunk
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
+				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
@@ -381,6 +395,7 @@ public class Chunk
 				reload = reload,
 				data = blockdata,
 				metadata = metadata,
+				lightdata = lightdata,
 				neighbordata = neighbordata,
 				toLoadEvent = toLoadEvent,
 				xM = false,
@@ -393,6 +408,7 @@ public class Chunk
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
+				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
@@ -439,6 +455,7 @@ public class Chunk
 				reload = reload,
 				data = blockdata,
 				metadata = metadata,
+				lightdata = lightdata,
 				neighbordata = neighbordata,
 				toLoadEvent = toLoadEvent,
 				xM = false,
@@ -451,6 +468,7 @@ public class Chunk
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
+				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
@@ -499,7 +517,7 @@ public class Chunk
 			this.liquidTris = liquidTris.ToArray();
 			assetTris = this.meshFilter.sharedMesh.GetTriangles(3);
 
-			BuildMeshSide(verts.ToArray(), uvs.ToArray(), normals.ToArray());
+			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray());
 		}
 
 		blockdata.Dispose();
@@ -526,6 +544,8 @@ public class Chunk
 		cacheCubeNormal.Dispose();
 		toLoadEvent.Dispose();
 		toBUD.Dispose();
+		lightUV.Dispose();
+		lightdata.Dispose();
 
     	this.vertices.Clear();
     	this.triangles = null;
@@ -533,6 +553,7 @@ public class Chunk
     	this.liquidTris = null;
     	this.assetTris = null;
     	this.UVs.Clear();
+    	this.lightUVMain.Clear();
 
 		// If current operation CANNOT update borders
 		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
@@ -544,9 +565,9 @@ public class Chunk
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
 	public void BuildChunk(bool load=false, bool pregenReload=false){
-
 		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
 		NativeArray<ushort> statedata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
+		NativeArray<byte> lightdata = new NativeArray<byte>(this.data.GetShadowMap(), Allocator.TempJob);
 		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<ushort> loadCodeList = new NativeList<ushort>(0, Allocator.TempJob);
@@ -557,6 +578,7 @@ public class Chunk
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector2> lightUV = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector2> cacheCubeUV = new NativeArray<Vector2>(4, Allocator.TempJob);
@@ -583,10 +605,12 @@ public class Chunk
 			load = load,
 			data = blockdata,
 			state = statedata,
+			lightdata = lightdata,
 			loadOutList = loadCoordList,
 			loadAssetList = loadAssetList,
 			verts = verts,
 			UVs = UVs,
+			lightUV = lightUV,
 			normals = normals,
 			normalTris = normalTris,
 			specularTris = specularTris,
@@ -619,7 +643,7 @@ public class Chunk
 		// Offseting and Rotation shenanigans
 		NativeHashMap<int, Vector3> scaleOffset = new NativeHashMap<int, Vector3>(0, Allocator.TempJob);
 		NativeHashMap<int, int> rotationOffset = new NativeHashMap<int, int>(0, Allocator.TempJob);
-
+		
 		int3[] coordArray = loadAssetList.AsArray().ToArray();
 		foreach(int3 coord in coordArray){
 			ushort assetCode = this.data.GetCell(coord);
@@ -640,6 +664,7 @@ public class Chunk
 				vertexAux.Clear();
 				UVaux.Clear();
 
+
 				// If has special offset or rotation
 				// Hash function for Dictionary is blockCode*256 + state. This leaves a maximum of 256 states for every object in the game
 				if(blockBook.objects[ushort.MaxValue - assetCode].needsRotation){
@@ -650,6 +675,7 @@ public class Chunk
 				}
 			}
 		}
+
 
 		// ToLoad() Event Trigger
 		
@@ -674,9 +700,11 @@ public class Chunk
 			}			
 		}
 		loadCoordList.Clear();
+		
 
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> meshUVs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector2> meshLightUV = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector3> meshNormals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<int> meshTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<ushort> blockCodes = new NativeList<ushort>(0, Allocator.TempJob);
@@ -699,6 +727,7 @@ public class Chunk
 			meshVerts = meshVerts,
 			meshTris = meshTris,
 			meshUVs = meshUVs,
+			meshLightUV = meshLightUV,
 			meshNormals = meshNormals,
 			scaling = scaling,
 			needRotation = objectNeedRotation,
@@ -709,6 +738,7 @@ public class Chunk
 			blockCodes = blockCodes,
 			blockdata = blockdata,
 			metadata = statedata,
+			lightdata = lightdata,
 
 			vertsOffset = vertsOffset,
 			trisOffset = trisOffset,
@@ -734,6 +764,9 @@ public class Chunk
 
 		this.UVs.AddRange(UVs.ToArray());
 		this.UVs.AddRange(meshUVs.ToArray());
+
+		this.lightUVMain.AddRange(lightUV.ToArray());
+		this.lightUVMain.AddRange(meshLightUV.ToArray());
 
 		this.normals.AddRange(normals.ToArray());
 		this.normals.AddRange(meshNormals.ToArray()); 
@@ -783,6 +816,9 @@ public class Chunk
 		objectNeedRotation.Dispose();
 		scaleOffset.Dispose();
 		rotationOffset.Dispose();
+		lightUV.Dispose();
+		lightdata.Dispose();
+		meshLightUV.Dispose();
 
 
 		BuildMesh();
@@ -798,7 +834,9 @@ public class Chunk
 		indexUV.Clear();
 		indexTris.Clear();
 		scalingFactor.Clear();
+		this.cacheLightUV.Clear();
     	this.vertices.Clear();
+    	this.lightUVMain.Clear();
     	this.triangles = null;
     	this.specularTris = null;
     	this.liquidTris = null;
@@ -839,6 +877,15 @@ public class Chunk
     	return false;
     }
 
+    // Returns n ShadowUVs to a list
+    private void FillShadowUV(ref List<Vector2> l, int3 coord, int n){
+    	float light = this.data.GetShadow(coord)*0.5f;
+
+    	for(int i = 0; i < n; i++){
+    		l.Add(new Vector2(light, 1));
+    	}
+    }
+
     // Builds meshes from verts, UVs and tris from different layers
     private void BuildMesh(){
     	mesh.Clear();
@@ -859,16 +906,16 @@ public class Chunk
     	mesh.SetTriangles(assetTris, 3);
 
     	mesh.SetUVs(0, this.UVs.ToArray());
-    	//mesh.SetNormals(this.normals.ToArray());
-
-    	// Debug
-    	mesh.RecalculateNormals(); 
+    	//mesh.uv = this.UVs.ToArray();
+    	//mesh.uv4 = this.lightUVMain.ToArray();
+    	mesh.SetUVs(3, this.lightUVMain.ToArray());
+    	mesh.SetNormals(this.normals.ToArray());
 
     	this.meshFilter.sharedMesh = mesh;
     }
 
     // Builds meshes from verts, UVs and tris from different layers
-    private void BuildMeshSide(Vector3[] verts, Vector2[] UV, Vector3[] normals){
+    private void BuildMeshSide(Vector3[] verts, Vector2[] UV, Vector2[] lightUV, Vector3[] normals){
     	mesh.Clear();
 
     	if(verts.Length >= ushort.MaxValue){
@@ -887,9 +934,8 @@ public class Chunk
     	mesh.SetTriangles(assetTris, 3);
 
     	mesh.uv = UV;
-    	//mesh.SetNormals(normals);
-
-    	mesh.RecalculateNormals();
+    	mesh.uv4 = lightUV;
+    	mesh.SetNormals(normals);
 
     	this.meshFilter.sharedMesh = mesh;
     }
@@ -908,6 +954,8 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<ushort> data; // Voxeldata
 	[ReadOnly]
 	public NativeArray<ushort> state; // VoxelMetadata.state
+	[ReadOnly]
+	public NativeArray<byte> lightdata;
 
 	// OnLoad Event Trigger List
 	public NativeList<int3> loadOutList;
@@ -916,6 +964,7 @@ public struct BuildChunkJob : IJob{
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
 	public NativeList<Vector2> UVs;
+	public NativeList<Vector2> lightUV;
 	public NativeList<Vector3> normals;
 
 	// Render Thread Triangles
@@ -1091,6 +1140,17 @@ public struct BuildChunkJob : IJob{
 		return state[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
 	}
 
+	// Gets neighbor light level
+	private int GetNeighborLight(int x, int y, int z, int dir){
+		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
+
+		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
+			return 0;
+		} 
+
+		return lightdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
+	}
+
     // Checks if neighbor is transparent or invisible
     private bool CheckPlacement(int neighborBlock){
     	if(neighborBlock <= ushort.MaxValue/2)
@@ -1145,6 +1205,9 @@ public struct BuildChunkJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		UVs.AddRange(cacheCubeUV);
 
+    		AddShadowUV(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
+
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);
     		
@@ -1166,6 +1229,9 @@ public struct BuildChunkJob : IJob{
 
 			AddTexture(cacheCubeUV, dir, blockCode);
     		UVs.AddRange(cacheCubeUV);
+
+    		AddShadowUV(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
 
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);
@@ -1189,6 +1255,9 @@ public struct BuildChunkJob : IJob{
 			LiquidTexture(cacheCubeUV, x, z);
     		UVs.AddRange(cacheCubeUV);
 
+    		AddShadowUV(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
+
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);
     		
@@ -1207,6 +1276,14 @@ public struct BuildChunkJob : IJob{
 			loadAssetList.Add(new int3(x,y,z));
     		return false;
     	}
+    }
+
+    // Sets the secondary UV to ShadowMap
+    private void AddShadowUV(NativeArray<Vector2> array, int x, int y, int z, int dir){
+    	array[0] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
+    	array[1] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
+    	array[2] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
+    	array[3] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
     }
 
 	// Sets UV mapping for a direction
@@ -1320,6 +1397,7 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<Vector2> meshUVs;
 	public NativeList<int> meshTris;
 	public NativeList<Vector3> meshNormals;
+	public NativeList<Vector2> meshLightUV;
 
 	[ReadOnly]
 	public int vCount;
@@ -1329,6 +1407,8 @@ public struct PrepareAssetsJob : IJob{
 	public NativeArray<ushort> blockdata;
 	[ReadOnly]
 	public NativeArray<ushort> metadata;
+	[ReadOnly]
+	public NativeArray<byte> lightdata;
 	[ReadOnly]
 	public NativeList<int3> coords;
 	[ReadOnly]
@@ -1379,6 +1459,7 @@ public struct PrepareAssetsJob : IJob{
 					Vector3 resultVert = Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
 					meshVerts.Add(resultVert);
 					meshNormals.Add(GetNormalRotation(loadedNormals[vertIndex], inplaceRotation[code*256+state]));
+					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), 1));
 				}
 
 			}
@@ -1389,6 +1470,7 @@ public struct PrepareAssetsJob : IJob{
 					Vector3 resultVert = Vector3Mult(loadedVerts[vertIndex], scaling[i], vertPos);
 					meshVerts.Add(resultVert);
 					meshNormals.Add(loadedNormals[vertIndex]);
+					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), 1));
 				}	
 			}
 
@@ -1433,6 +1515,12 @@ public struct PrepareAssetsJob : IJob{
 	private Vector3 Rotate(Vector3 a, int degrees){
 		return new Vector3(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad));
 	}
+
+	// Gets neighbor light level
+	private int GetLight(int x, int y, int z){
+		int3 coord = new int3(x, y, z);
+		return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z];
+	}
 }
 
 
@@ -1444,6 +1532,8 @@ public struct BuildBorderJob : IJob{
 	public NativeArray<ushort> data;
 	[ReadOnly]
 	public NativeArray<ushort> metadata;
+	[ReadOnly]
+	public NativeArray<byte> lightdata;
 	[ReadOnly]
 	public NativeArray<ushort> neighbordata;
 	[ReadOnly]
@@ -1458,6 +1548,7 @@ public struct BuildBorderJob : IJob{
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
 	public NativeList<Vector2> uvs;
+	public NativeList<Vector2> lightUV;
 	public NativeList<Vector3> normals;
 
 	// Render Thread Triangles
@@ -1745,6 +1836,9 @@ public struct BuildBorderJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		uvs.AddRange(cacheCubeUV);
 
+    		AddShadowUV(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
+
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);
     		
@@ -1766,6 +1860,9 @@ public struct BuildBorderJob : IJob{
 
 			AddTexture(cacheCubeUV, dir, blockCode);
     		uvs.AddRange(cacheCubeUV);
+
+    		AddShadowUV(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
 
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);
@@ -1789,6 +1886,9 @@ public struct BuildBorderJob : IJob{
 			LiquidTexture(cacheCubeUV, x, z);
     		uvs.AddRange(cacheCubeUV);
 
+    		AddShadowUV(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
+
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);    		
 
@@ -1803,6 +1903,14 @@ public struct BuildBorderJob : IJob{
     	}
 
     	return false;
+    }
+
+    // Sets the secondary UV to ShadowMap
+    private void AddShadowUV(NativeArray<Vector2> array, int x, int y, int z, int dir){
+    	array[0] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
+    	array[1] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
+    	array[2] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
+    	array[3] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
     }
 
 	// Sets UV mapping for a direction
@@ -1842,6 +1950,17 @@ public struct BuildBorderJob : IJob{
 			array[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
 			array[3] = new Vector2(x,y);
 		}
+	}
+
+	// Gets neighbor light level
+	private int GetNeighborLight(int x, int y, int z, int dir){
+		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
+
+		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
+			return 0;
+		} 
+
+		return lightdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
 	}
 
 	// Gets UV Map for Liquid blocks

@@ -4,14 +4,14 @@ RWStructuredBuffer<uint> debugBuffer;
 
 uint3 GetXYZ (uint i, uint offset){
     uint j = i*2+offset;
-    uint chunkWidth = 2;
-    uint chunkDepth = 2;
+    uint chunkWidth = 16;
+    uint chunkDepth = 100;
     
     return uint3(uint(j/(chunkWidth*chunkDepth)), uint((j/chunkWidth)%chunkDepth), uint(j%chunkWidth));
 }
 
 uint GetXZIndex (uint i, uint offset){
-    uint chunkWidth = 2;
+    uint chunkWidth = 16;
     uint3 coords = GetXYZ(i, offset);
     return uint(coords.x*chunkWidth+coords.z);
 }
@@ -83,7 +83,7 @@ uint ByteOffsetToMaskedValue(uint value, uint blockCode){
     }
 }
 
-[numthreads(2,1,1)]
+[numthreads(256,1,1)]
 void CreateShadowMap (uint3 id : SV_DispatchThreadID)
 {
     uint idx = id.x*2;

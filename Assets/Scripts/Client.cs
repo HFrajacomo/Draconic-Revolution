@@ -384,6 +384,7 @@ public class Client
 					this.cl.chunks[pos].data.SetCell(x, y, z, blockCode);
 					this.cl.chunks[pos].metadata.SetState(x, y, z, state);
 					this.cl.chunks[pos].metadata.SetHP(x, y, z, hp);
+					this.cl.chunks[pos].data.CalculateHeightMap(x, z);
 					this.cl.AddToUpdate(pos);
 				}
 				break;
@@ -391,6 +392,7 @@ public class Client
 				if(this.cl.chunks.ContainsKey(pos)){
 					this.cl.chunks[pos].data.SetCell(x, y, z, 0);
 					this.cl.chunks[pos].metadata.Reset(x,y,z);
+					this.cl.chunks[pos].data.CalculateHeightMap(x, z);
 					this.cl.AddToUpdate(pos);
 					CheckReload(pos, x, y, z);
 				}	

@@ -15,7 +15,8 @@ public class TESTONLY : MonoBehaviour
 
     public ComputeBuffer debugBuffer;
 
-    private ushort[] data = new ushort[8]{1, 1, 0, 1, 0, 0, 0, 65535}; // {1, 1, 0, 1, 0, 0, 0, 1}
+    private VoxelData vd;
+    private ushort[] data = new ushort[8]{1, 1, 0, 1, 0, 0, 0, 1}; // {1, 1, 0, 1, 0, 0, 0, 1}
     private byte[] heightMap = new byte[]{0, 1, 0, 1};
     private byte[] isTransparentBlock = {1, 0, 0, 0};
     private byte[] isTransparentObj = {1, 1, 1, 1};
@@ -25,9 +26,11 @@ public class TESTONLY : MonoBehaviour
 
     void Start(){
         this.shadowMap = new byte[this.data.Length];
-        RunShader(1,1,1);
+        vd = new VoxelData(this.data);
+        vd.CalculateShadowMap_BURST();
 
-        UnityEditor.EditorApplication.isPlaying = false;
+        vd.PrintHeight();
+        vd.PrintShadow();
     }
 
     private void RunShader(int x, int y, int z){
