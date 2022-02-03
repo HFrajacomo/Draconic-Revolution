@@ -337,7 +337,7 @@ public class ChunkLoader : MonoBehaviour
         if(toDraw.Count > 0){
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
-                chunks[toDraw[0]].data.CalculateShadowMap_BURST();
+                chunks[toDraw[0]].data.CalculateLightMap();
 
                 chunks[toDraw[0]].BuildChunk(load:true);
                 // If hasn't been drawn entirely, put on Redraw List
@@ -394,7 +394,7 @@ public class ChunkLoader : MonoBehaviour
         if(toUpdate.Count > 0){
             for(int i=0; i<min; i++){
                 if(this.chunks.ContainsKey(toUpdate[0])){
-                    chunks[toUpdate[0]].data.CalculateShadowMap_BURST();
+                    chunks[toUpdate[0]].data.CalculateLightMap();
 
                     chunks[toUpdate[0]].BuildChunk();
                     if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))

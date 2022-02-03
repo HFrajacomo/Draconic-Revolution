@@ -186,7 +186,7 @@ public class Chunk
 
 		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
 		NativeArray<ushort> metadata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
-		NativeArray<byte> lightdata = new NativeArray<byte>(this.data.GetShadowMap(), Allocator.TempJob);
+		NativeArray<byte> lightdata = new NativeArray<byte>(this.data.GetLightMap(), Allocator.TempJob);
 
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> uvs = new NativeList<Vector2>(0, Allocator.TempJob);
@@ -567,7 +567,7 @@ public class Chunk
 	public void BuildChunk(bool load=false, bool pregenReload=false){
 		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
 		NativeArray<ushort> statedata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
-		NativeArray<byte> lightdata = new NativeArray<byte>(this.data.GetShadowMap(), Allocator.TempJob);
+		NativeArray<byte> lightdata = new NativeArray<byte>(this.data.GetLightMap(), Allocator.TempJob);
 		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<ushort> loadCodeList = new NativeList<ushort>(0, Allocator.TempJob);
@@ -879,7 +879,7 @@ public class Chunk
 
     // Returns n ShadowUVs to a list
     private void FillShadowUV(ref List<Vector2> l, int3 coord, int n){
-    	float light = this.data.GetShadow(coord)*0.5f;
+    	float light = this.data.GetLight(coord);
 
     	for(int i = 0; i < n; i++){
     		l.Add(new Vector2(light, 1));
@@ -906,9 +906,8 @@ public class Chunk
     	mesh.SetTriangles(assetTris, 3);
 
     	mesh.SetUVs(0, this.UVs.ToArray());
-    	//mesh.uv = this.UVs.ToArray();
-    	//mesh.uv4 = this.lightUVMain.ToArray();
     	mesh.SetUVs(3, this.lightUVMain.ToArray());
+
     	mesh.SetNormals(this.normals.ToArray());
 
     	this.meshFilter.sharedMesh = mesh;
@@ -1280,10 +1279,10 @@ public struct BuildChunkJob : IJob{
 
     // Sets the secondary UV to ShadowMap
     private void AddShadowUV(NativeArray<Vector2> array, int x, int y, int z, int dir){
-    	array[0] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
-    	array[1] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
-    	array[2] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
-    	array[3] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
+    	array[0] = new Vector2(GetNeighborLight(x, y, z, dir), 1);
+    	array[1] = new Vector2(GetNeighborLight(x, y, z, dir), 1);
+    	array[2] = new Vector2(GetNeighborLight(x, y, z, dir), 1);
+    	array[3] = new Vector2(GetNeighborLight(x, y, z, dir), 1);
     }
 
 	// Sets UV mapping for a direction
@@ -1907,10 +1906,10 @@ public struct BuildBorderJob : IJob{
 
     // Sets the secondary UV to ShadowMap
     private void AddShadowUV(NativeArray<Vector2> array, int x, int y, int z, int dir){
-    	array[0] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
-    	array[1] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
-    	array[2] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
-    	array[3] = new Vector2(GetNeighborLight(x, y, z, dir)*0.5f, 1);
+    	array[0] = new Vector2(GetNeighborLight(x, y, z, dir), 1);
+    	array[1] = new Vector2(GetNeighborLight(x, y, z, dir), 1);
+    	array[2] = new Vector2(GetNeighborLight(x, y, z, dir), 1);
+    	array[3] = new Vector2(GetNeighborLight(x, y, z, dir), 1);
     }
 
 	// Sets UV mapping for a direction
