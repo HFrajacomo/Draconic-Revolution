@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RenderPipelineSettings:
     supportShadowMask: 1
-    supportSSR: 1
+    supportSSR: 0
     supportSSRTransparent: 0
     supportSSAO: 1
     supportSSGI: 1
@@ -43,7 +43,7 @@ MonoBehaviour:
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
     msaaSampleCount: 2
-    supportMotionVectors: 1
+    supportMotionVectors: 0
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
@@ -60,7 +60,7 @@ MonoBehaviour:
       planarReflectionAtlasSize: 128
       reflectionProbeCacheSize: 32
       reflectionCubemapSize: 128
-      reflectionCacheCompressed: 1
+      reflectionCacheCompressed: 0
       reflectionProbeFormat: 74
       skyReflectionSize: 128
       skyLightingOverrideLayerMask:
@@ -77,11 +77,11 @@ MonoBehaviour:
       maxLocalVolumetricFogSize: 32
       maxLocalVolumetricFogOnScreen: 64
     hdShadowInitParams:
-      maxShadowRequests: 1024
+      maxShadowRequests: 4096
       directionalShadowsDepthBits: 32
-      shadowFilteringQuality: 1
+      shadowFilteringQuality: 2
       punctualLightShadowAtlas:
-        shadowAtlasResolution: 256
+        shadowAtlasResolution: 2048
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 1
       areaLightShadowAtlas:
@@ -95,11 +95,11 @@ MonoBehaviour:
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionPunctual:
-        m_Values: 20000000800000000001000000010000
+        m_Values: 10000000200000002000000000010000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionArea:
-        m_Values: 20000000800000000001000000020000
+        m_Values: 20000000400000004000000000020000
         m_SchemaId:
           m_Id: With4Levels
       maxDirectionalShadowMapResolution: 512
@@ -181,7 +181,7 @@ MonoBehaviour:
       AOMaximumRadiusPixels: 200000002800000050000000
       AOBilateralUpsample: 000101
       AODirectionCount: 010000000200000004000000
-      ContactShadowSampleCount: 060000000a00000010000000
+      ContactShadowSampleCount: 040000000400000008000000
       SSRMaxRaySteps: 100000002000000040000000
       SSGIRaySteps: 200000004000000080000000
       SSGIDenoise: 010101

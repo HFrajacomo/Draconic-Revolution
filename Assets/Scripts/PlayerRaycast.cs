@@ -222,7 +222,7 @@ public class PlayerRaycast : MonoBehaviour
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
 		// DEBUG
-		print(loader.chunks[this.playerBody.GetChunkPos()].data.GetLight(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ));
+		print(loader.chunks[this.playerBody.GetChunkPos()].data.GetLight(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ, isNatural:false));
 		
 		if(!current.active)
 			return;

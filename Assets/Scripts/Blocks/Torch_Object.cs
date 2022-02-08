@@ -28,6 +28,7 @@ public class Torch_Object : BlocklikeObject
 		this.washable = true;
 		this.hasLoadEvent = true;
 		this.affectLight = false;
+		this.luminosity = 8;
 
 		if(isClient){
 			this.go = GameObject.Find("----- PrefabObjects -----/Torch_Object");

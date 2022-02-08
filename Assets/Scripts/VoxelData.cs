@@ -9,8 +9,10 @@ using Unity.Mathematics;
 
 public class VoxelData
 {
+	/*
 	private static ShaderReferences shaderReferences;
 	private static ComputeShader shadowMapShader;
+	*/
 
 	private ushort[] data;
 	private byte[] heightMap;
@@ -71,45 +73,9 @@ public class VoxelData
 	}
 
 	/*
-	Burst compiler function
-	*/
-	private void CalculateShadowMap_BURST(){		
-		if(this.heightMap == null)
-			CalculateHeightMap();
-
-		NativeArray<byte> shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> heightMap = new NativeArray<byte>(this.heightMap, Allocator.TempJob);
-		NativeArray<ushort> data = new NativeArray<ushort>(this.data, Allocator.TempJob);
-		NativeArray<byte> isTransparentBlock = new NativeArray<byte>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
-		NativeArray<byte> isTransparentObj = new NativeArray<byte>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
-
-		JobHandle job;
-
-		CalculateShadowMapJob csmJob = new CalculateShadowMapJob{
-			shadowMap = shadowMap,
-			heightMap = heightMap,
-			data = data,
-			chunkWidth = Chunk.chunkWidth,
-			chunkDepth = Chunk.chunkDepth,
-			isTransparentObj = isTransparentObj,
-			isTransparentBlock = isTransparentBlock
-		};
-
-        job = csmJob.Schedule();
-        job.Complete();
-
-        this.lightMap = shadowMap.ToArray();
-
-        shadowMap.Dispose();
-        heightMap.Dispose();
-        data.Dispose();
-        isTransparentBlock.Dispose();
-        isTransparentObj.Dispose();
-	}
-
-	/*
 	ComputeShader Accelerated Function
 	*/
+	/*
 	private void CalculateShadowMap_GPU(){
         ComputeBuffer voxelDataBuffer = new ComputeBuffer(data.Length/2, sizeof(int));
         ComputeBuffer heightMapBuffer = new ComputeBuffer(heightMap.Length/4, sizeof(int));
@@ -131,38 +97,83 @@ public class VoxelData
         heightMapBuffer.Dispose();
         shadowMapBuffer.Dispose();
 	}
+	*/
 
 	/*
 	Burst Compiled
 	*/
-	public void CalculateLightMap(){
-		CalculateShadowMap_BURST();
+	public void CalculateLightMap(bool withExtraLight=false){
+		if(this.heightMap == null)
+			CalculateHeightMap();
 
-		NativeArray<byte> lightMap = new NativeArray<byte>(this.lightMap, Allocator.TempJob);
+		NativeArray<byte> lightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+		NativeList<int4> lightSources = new NativeList<int4>(0, Allocator.TempJob);
 		NativeArray<byte> heightMap = new NativeArray<byte>(this.heightMap, Allocator.TempJob);
-		NativeList<int3> bfsq = new NativeList<int3>(0, Allocator.TempJob);
-		NativeHashSet<int3> visited = new NativeHashSet<int3>(0, Allocator.TempJob);
 
 		JobHandle job;
 
+		NativeArray<ushort> blockData = new NativeArray<ushort>(this.data, Allocator.TempJob);
+		NativeArray<byte> isTransparentBlock = new NativeArray<byte>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
+		NativeArray<byte> isTransparentObj = new NativeArray<byte>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
+		NativeArray<byte> blockLuminosity = new NativeArray<byte>(BlockEncyclopediaECS.blockLuminosity, Allocator.TempJob);
+		NativeArray<byte> objectLuminosity = new NativeArray<byte>(BlockEncyclopediaECS.objectLuminosity, Allocator.TempJob);
+
+		CalculateShadowMapJob csmJob = new CalculateShadowMapJob{
+			shadowMap = lightMap,
+			lightSources = lightSources,
+			heightMap = heightMap,
+			data = blockData,
+			chunkWidth = Chunk.chunkWidth,
+			chunkDepth = Chunk.chunkDepth,
+			isTransparentObj = isTransparentObj,
+			isTransparentBlock = isTransparentBlock,
+			blockLuminosity = blockLuminosity,
+			objectLuminosity = objectLuminosity,
+			withExtraLight = withExtraLight
+		};
+
+        job = csmJob.Schedule();
+        job.Complete();
+
+
+		NativeList<int3> bfsq = new NativeList<int3>(0, Allocator.TempJob);
+		NativeList<int4> bfsqExtra = new NativeList<int4>(0, Allocator.TempJob);
+		NativeHashSet<int3> visited = new NativeHashSet<int3>(0, Allocator.TempJob);
+
+
 		CalculateLightMapJob clmJob = new CalculateLightMapJob{
 			lightMap = lightMap,
+			lightSources = lightSources,
 			heightMap = heightMap,
 			chunkWidth = Chunk.chunkWidth,
 			chunkDepth = Chunk.chunkDepth,
 			bfsq = bfsq,
-			visited = visited
+			bfsqExtra = bfsqExtra,
+			visited = visited,
+			withExtraLight = withExtraLight
 		};
 
         job = clmJob.Schedule();
         job.Complete();
 
+
         this.lightMap = lightMap.ToArray();
 
+
+        blockData.Dispose();
+        isTransparentBlock.Dispose();
+        isTransparentObj.Dispose();
+        blockLuminosity.Dispose();
+        objectLuminosity.Dispose();
+
+        bfsq.Dispose();
+        bfsqExtra.Dispose();
+        visited.Dispose();
+        lightSources.Dispose();
         lightMap.Dispose();
         heightMap.Dispose();
-        bfsq.Dispose();
-        visited.Dispose();
+
+        //Debug.Log("LightMap: " + this.GetLight(13, 22, 2, isNatural:false).ToString());
 	}
 
 	public void CalculateHeightMap(){
@@ -247,12 +258,18 @@ public class VoxelData
 		return data[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z];
 	}
 
-	public ushort GetLight(int3 coord){
-		return lightMap[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z];
+	public ushort GetLight(int3 coord, bool isNatural=true){
+		if(isNatural)
+			return (ushort)(lightMap[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F);
+		else
+			return (ushort)(lightMap[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4);
 	}
 
-	public ushort GetLight(int x, int y, int z){
-		return lightMap[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+	public ushort GetLight(int x, int y, int z, bool isNatural=true){
+		if(isNatural)
+			return (ushort)(lightMap[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F);
+		else
+			return (ushort)(lightMap[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4);
 	}
 
 	public void SetCell(int x, int y, int z, ushort blockCode){
@@ -270,10 +287,12 @@ public class VoxelData
 	public void SetData(ushort[] data){
 		this.data = data;
 
+		/*
 		if(VoxelData.shaderReferences == null){
 			VoxelData.shaderReferences = GameObject.Find("ShaderReferences").GetComponent<ShaderReferences>();
 			VoxelData.shadowMapShader = VoxelData.shaderReferences.GetShadowMapShader();
 		}
+		*/
 
 		if(this.heightMap == null)
 			CalculateHeightMap();
@@ -343,6 +362,7 @@ public struct GetHeightMapJob : IJobParallelFor{
 [BurstCompile]
 public struct CalculateShadowMapJob : IJob{
 	public NativeArray<byte> shadowMap;
+	public NativeList<int4> lightSources;
 	[ReadOnly]
 	public NativeArray<byte> heightMap;
 	[ReadOnly]
@@ -355,6 +375,12 @@ public struct CalculateShadowMapJob : IJob{
 	public NativeArray<byte> isTransparentBlock;
 	[ReadOnly]
 	public NativeArray<byte> isTransparentObj;
+	[ReadOnly]
+	public NativeArray<byte> blockLuminosity;
+	[ReadOnly]
+	public NativeArray<byte> objectLuminosity;
+	[ReadOnly]
+	public bool withExtraLight;
 
 	public void Execute(){
 		bool isBlock;
@@ -370,25 +396,52 @@ public struct CalculateShadowMapJob : IJob{
 
 					// If is above heightMap
 					if(y > heightMap[x*chunkWidth+z]){
-						shadowMap[index] = 2;
+						if(withExtraLight)
+							shadowMap[index] = 18;
+						else
+							shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 2);
+
+						// Gets lightsource
+						if(withExtraLight){
+							if(isBlock){
+								if(blockLuminosity[blockCode] > 0)
+									lightSources.Add(new int4(x, y, z, blockLuminosity[blockCode]));
+							}
+							else{
+								if(objectLuminosity[ushort.MaxValue - blockCode] > 0)
+									lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode]));							
+							}
+						}
 						continue;
 					}
 					// If is transparent
 					if(isBlock){
 						if(isTransparentBlock[blockCode] == 1){
-							shadowMap[index] = 1;
+							if(withExtraLight)
+								shadowMap[index] = 17;
+							else
+								shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 1);
 						}
 						else{
-							shadowMap[index] = 0;
+							if(!withExtraLight)
+								shadowMap[index] = (byte)(shadowMap[index] & 0xF0);
 						}
+						if(blockLuminosity[blockCode] > 0 && withExtraLight)
+							lightSources.Add(new int4(x, y, z, blockLuminosity[blockCode]));
 					}
 					else{
 						if(isTransparentObj[ushort.MaxValue - blockCode] == 1){
-							shadowMap[index] = 1;
+							if(withExtraLight)
+								shadowMap[index] = 17;
+							else
+								shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 1);
 						}
 						else{
-							shadowMap[index] = 0;
-						}						
+							if(!withExtraLight)
+								shadowMap[index] = (byte)(shadowMap[index] & 0xF0);
+						}
+						if(objectLuminosity[ushort.MaxValue - blockCode] > 0  && withExtraLight)
+							lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode]));			
 					}
 				}
 			}
@@ -402,7 +455,9 @@ Takes the ShadowMap and turns it into a progressive lightmap
 [BurstCompile]
 public struct CalculateLightMapJob : IJob{
 	public NativeArray<byte> lightMap;
+	public NativeArray<int4> lightSources;
 	public NativeList<int3> bfsq; // Breadth-first search queue
+	public NativeList<int4> bfsqExtra;
 	public NativeHashSet<int3> visited;
 
 	[ReadOnly]
@@ -411,11 +466,17 @@ public struct CalculateLightMapJob : IJob{
 	public int chunkWidth;
 	[ReadOnly]
 	public int chunkDepth;
+	[ReadOnly]
+	public bool withExtraLight;
 
 
 	public void Execute(){
 		int3 current;
+		int4 currentExtra;
 
+		/***************************************
+		Natural Light
+		***************************************/
 		DetectSunlight();
 		
 		// Iterates through queue
@@ -427,18 +488,87 @@ public struct CalculateLightMapJob : IJob{
 				continue;
 			}
 
-			ScanSurroudings(current, lightMap[GetIndex(current)]);
+			ScanSurroundings(current, (byte)(lightMap[GetIndex(current)] & 0x0F), true);
 
 			visited.Add(current);
 			bfsq.RemoveAt(0);
 		}
 
 		CleanUnlit();
+		visited.Clear();
+
+		/***************************************
+		Extra Lights
+		***************************************/
+		if(withExtraLight){
+
+			QuickSort();
+			
+			int currentLevel = 15;
+			bool searchedCurrentLevel = false;
+			bool initiateExtraLightSearch = false;
+			int lastIndex = lightSources.Length - 1;
+			int index = 0;
+
+			if(lightSources.Length == 0) 
+				return;
+
+			while(bfsqExtra.Length > 0 || !initiateExtraLightSearch || lastIndex >= 0){
+				initiateExtraLightSearch = true;
+
+				if(bfsqExtra.Length > 0 && currentLevel == -1){
+					searchedCurrentLevel = true;
+					currentLevel = bfsqExtra[0].w;
+				}
+				else if(bfsqExtra.Length == 0 && lastIndex >= 0){
+					searchedCurrentLevel = false;
+					currentLevel = lightSources[lastIndex].w;
+				}
+				else if(bfsqExtra.Length == 0 && lastIndex == -1)
+					break;
+
+				if(!searchedCurrentLevel){
+					for(int i=lastIndex; i >= -1; i--){
+						if(i == -1){
+							searchedCurrentLevel = true;
+							currentLevel = -1;
+							lastIndex = -1;
+							break;
+						}
+
+						if(lightSources[i].w == currentLevel){
+							index = GetIndex(lightSources[i].xyz);
+
+							if(lightSources[i].w > lightMap[index] >> 4){
+								bfsqExtra.Add(lightSources[i]);
+								lightMap[index] = (byte)((lightMap[index] & 0x0F) + (lightSources[i].w << 4));
+							}
+						}
+						else{
+							searchedCurrentLevel = true;
+							currentLevel = lightSources[i].w;
+							lastIndex = i;
+							break;
+						}
+					}
+				}
+
+				currentExtra = bfsqExtra[0];
+				bfsqExtra.RemoveAt(0);
+
+				if(currentExtra.w == currentLevel && lastIndex >= 0)
+					searchedCurrentLevel = false;
+
+				ScanSurroundings(currentExtra.xyz, (byte)currentExtra.w, false);
+			} 
+		}
 	}
 
 	// Checks the surroundings and adds light fallout
-	public void ScanSurroudings(int3 c, byte currentLight){
-		if(currentLight == 0)
+	public void ScanSurroundings(int3 c, byte currentLight, bool isNatural){
+		if(currentLight == 1)
+			return;
+		if(isNatural && currentLight == 2)
 			return;
 
 		int3 aux;
@@ -451,9 +581,17 @@ public struct CalculateLightMapJob : IJob{
 			if(!visited.Contains(aux)){
 				index = GetIndex(aux);
 
-				if(lightMap[index] < currentLight && lightMap[index] != 0){
-					lightMap[index] = (byte)(currentLight-1);
-					bfsq.Add(aux);
+				if(isNatural){
+					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						bfsq.Add(aux);
+					}
+				}
+				else{
+					if((lightMap[index] >> 4) < currentLight-1 && (lightMap[index] >> 4) > 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
+						bfsqExtra.Add(new int4(aux, (currentLight-1)));
+					}					
 				}
 			}
 		}
@@ -465,9 +603,17 @@ public struct CalculateLightMapJob : IJob{
 			if(!visited.Contains(aux)){
 				index = GetIndex(aux);
 
-				if(lightMap[index] < currentLight && lightMap[index] != 0){
-					lightMap[index] = (byte)(currentLight-1);
-					bfsq.Add(aux);
+				if(isNatural){
+					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						bfsq.Add(aux);
+					}
+				}
+				else{
+					if((lightMap[index] >> 4) < currentLight-1 && (lightMap[index] >> 4) > 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
+						bfsqExtra.Add(new int4(aux, (currentLight-1)));
+					}					
 				}
 			}
 		}	
@@ -479,9 +625,17 @@ public struct CalculateLightMapJob : IJob{
 			if(!visited.Contains(aux)){
 				index = GetIndex(aux);
 
-				if(lightMap[index] < currentLight && lightMap[index] != 0){
-					lightMap[index] = (byte)(currentLight-1);
-					bfsq.Add(aux);
+				if(isNatural){
+					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						bfsq.Add(aux);
+					}
+				}
+				else{
+					if((lightMap[index] >> 4) < currentLight-1 && (lightMap[index] >> 4) > 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
+						bfsqExtra.Add(new int4(aux, (currentLight-1)));
+					}					
 				}
 			}
 		}	
@@ -493,9 +647,17 @@ public struct CalculateLightMapJob : IJob{
 			if(!visited.Contains(aux)){
 				index = GetIndex(aux);
 
-				if(lightMap[index] < currentLight && lightMap[index] != 0){
-					lightMap[index] = (byte)(currentLight-1);
-					bfsq.Add(aux);
+				if(isNatural){
+					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						bfsq.Add(aux);
+					}
+				}
+				else{
+					if((lightMap[index] >> 4) < currentLight-1 && (lightMap[index] >> 4) > 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
+						bfsqExtra.Add(new int4(aux, (currentLight-1)));
+					}					
 				}
 			}
 		}
@@ -507,9 +669,17 @@ public struct CalculateLightMapJob : IJob{
 			if(!visited.Contains(aux)){
 				index = GetIndex(aux);
 
-				if(lightMap[index] < currentLight && lightMap[index] != 0){
-					lightMap[index] = (byte)(currentLight-1);
-					bfsq.Add(aux);
+				if(isNatural){
+					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						bfsq.Add(aux);
+					}
+				}
+				else{
+					if((lightMap[index] >> 4) < currentLight-1 && (lightMap[index] >> 4) > 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
+						bfsqExtra.Add(new int4(aux, (currentLight-1)));
+					}					
 				}
 			}
 		}
@@ -521,11 +691,57 @@ public struct CalculateLightMapJob : IJob{
 			if(!visited.Contains(aux)){
 				index = GetIndex(aux);
 
-				if(lightMap[index] < currentLight && lightMap[index] != 0){
-					lightMap[index] = (byte)(currentLight-1);
-					bfsq.Add(aux);
+				if(isNatural){
+					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						bfsq.Add(aux);
+					}
+				}
+				else{
+					if((lightMap[index] >> 4) < currentLight-1 && (lightMap[index] >> 4) > 0){
+						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
+						bfsqExtra.Add(new int4(aux, (currentLight-1)));
+					}					
 				}
 			}
+		}
+	}
+
+	private void QuickSort(){
+		int init = 0;
+		int end = lightSources.Length -1;
+
+		if(lightSources.Length == 0)
+			return;
+
+		QuickSort(init, end);
+	}
+
+	private void QuickSort(int init, int end){
+		if(init < end){
+			int4 val = lightSources[init];
+			int i = init +1;
+			int e = end;
+
+			while(i <= e){
+				if(lightSources[i].w <= val.w)
+					i++;
+				else if(val.w < lightSources[e].w)
+					e--;
+				else{
+					int4 swap = lightSources[i];
+					lightSources[i] = lightSources[e];
+					lightSources[e] = swap;
+					i++;
+					e--;
+				}
+			}
+
+			lightSources[init] = lightSources[e];
+			lightSources[e] = val;
+
+			QuickSort(init, e - 1);
+			QuickSort(e + 1, end);
 		}
 	}
 
@@ -553,15 +769,15 @@ public struct CalculateLightMapJob : IJob{
 
 				index = x*chunkWidth*chunkDepth+height*chunkWidth+z;
 
-				if(lightMap[index] == 2){
+				if((lightMap[index] & maxLightLevel) == 2){
 					bfsq.Add(new int3(x, height, z));
-					lightMap[index] = maxLightLevel;
+					lightMap[index] = (byte)((lightMap[index] & 0xF0) | maxLightLevel);
 				}
 
 				// Sets the remaining skylight above to max
 				for(int y=height+1; y < chunkDepth; y++){
 					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
-					lightMap[index] = maxLightLevel;
+					lightMap[index] = (byte)((lightMap[index] & 0xF0) | maxLightLevel);
 
 					AnalyzeSunShaft(x, y, z);
 				}
@@ -590,26 +806,26 @@ public struct CalculateLightMapJob : IJob{
 			zp = true;
 		}
 
-		if(xm){// && heightMap[(x-1)*chunkWidth+z] >= y){
-			if(lightMap[GetIndex(x-1, y, z)] == 1){
+		if(xm){
+			if((lightMap[GetIndex(x-1, y, z)] & 0x0F) == 1){
 				bfsq.Add(new int3(x, y, z));
 				return true;
 			}
 		}
-		if(xp){// && heightMap[(x+1)*chunkWidth+z] >= y){
-			if(lightMap[GetIndex(x+1, y, z)] == 1){
+		if(xp){
+			if((lightMap[GetIndex(x+1, y, z)] & 0x0F) == 1){
 				bfsq.Add(new int3(x, y, z));
 				return true;
 			}
 		}
-		if(zm){// && heightMap[x*chunkWidth+(z-1)] >= y){
-			if(lightMap[GetIndex(x, y, z-1)] == 1){
+		if(zm){
+			if((lightMap[GetIndex(x, y, z-1)] & 0x0F) == 1){
 				bfsq.Add(new int3(x, y, z));
 				return true;
 			}
 		}
-		if(zp){// && heightMap[x*chunkWidth+(z+1)] >= y){
-			if(lightMap[GetIndex(x, y, z+1)] == 1){
+		if(zp){
+			if((lightMap[GetIndex(x, y, z+1)] & 0x0F) == 1){
 				bfsq.Add(new int3(x, y, z));
 				return true;
 			}
@@ -629,8 +845,8 @@ public struct CalculateLightMapJob : IJob{
 					pos = new int3(x, y, z);
 					index = GetIndex(pos);
 
-					if(lightMap[index] == 1 && !visited.Contains(pos)){
-						lightMap[index] = 0;
+					if((lightMap[index] & 0x0F) == 1 && !visited.Contains(pos)){
+						lightMap[index] = (byte)(lightMap[index] & 0xF0);
 					}
 				}
 			}
@@ -647,16 +863,25 @@ public enum Direction{
 	Down
 }
 
-
 /*
 LIGHT DOCUMENTATION:
 
 Natural Light Level [0-16]
 
-0: Blocked by solid
-1: Completely dark
-2-14: Light 
+0: Blocked by solid/Dark
+1-14: Light 
 15: Completely lit up
+
+
+Extra Light Level [0-16 << 4]
+
+0: Blocked by Solid
+1: Dark
+2-14: Light
+15: Completely lit up (which is slightly less than Natural Light)
+
+
+
 
 Use the first hexadecimal for natural light and he second for light sources
 0xFF

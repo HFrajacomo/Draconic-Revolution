@@ -24,7 +24,7 @@ public class VFXLoader : MonoBehaviour
             return data.ContainsKey(pos);
     }
 
-    public bool ContainsLight(ChunkPos pos){
+    public bool ContainsLight(ChunkPos pos){ 
         return lightReference.ContainsKey(pos);
     }
 
@@ -62,7 +62,7 @@ public class VFXLoader : MonoBehaviour
 
         data[pos].Add(go.name, go);
 
-        if(isOnDemandLight){
+        if(isOnDemandLight && Settings.EXTRALIGHTSHADOWS){
             lightReference[pos].Add(go.GetComponent<HDAdditionalLightData>());
         }
 
@@ -87,7 +87,7 @@ public class VFXLoader : MonoBehaviour
         else{
             if(this.data[pos].ContainsKey(name)){
 
-                if(isOnDemandLight)
+                if(isOnDemandLight && Settings.EXTRALIGHTSHADOWS) 
                     lightReference[pos].Remove(this.data[pos][name].GetComponent<HDAdditionalLightData>());
                 
                 Destroy(this.data[pos][name]);
@@ -98,6 +98,9 @@ public class VFXLoader : MonoBehaviour
 
     // Redraws lights in current and adjascent chunks in scene on Demand
     public void UpdateLights(ChunkPos pos, bool adjascent=true){
+        if(!Settings.EXTRALIGHTSHADOWS)
+            return;
+
         // Updates all lights in current chunk
         foreach(HDAdditionalLightData light in this.lightReference[pos]){
             light.RequestShadowMapRendering();

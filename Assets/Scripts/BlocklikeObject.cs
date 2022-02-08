@@ -12,6 +12,7 @@ public abstract class BlocklikeObject
 	public bool affectLight; // Should drain light
 	public bool liquid;
 	public bool hasLoadEvent; // Should run code when loaded it's chunk
+	public byte luminosity = 0; // Emits VoxelLight
 
 	public Vector3 positionOffset;
 	public Vector3 scaling; 

@@ -1139,15 +1139,21 @@ public struct BuildChunkJob : IJob{
 	}
 
 	// Gets neighbor light level
-	private int GetNeighborLight(int x, int y, int z, int dir){
-		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
-		return lightdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
+	private int GetNeighborLight(int x, int y, int z, int dir, bool isNatural=true){
+		int3 coord = new int3(x, y, z) + VoxelData.offsets[dir];
+		if(isNatural)
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+		else
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
 	}
 
 	// Gets neighbor light level
-	private int GetNeighborLight(int x, int y, int z, int3 dir){
-		int3 neighborCoord = new int3(x, y, z) + dir;
-		return lightdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
+	private int GetNeighborLight(int x, int y, int z, int3 dir, bool isNatural=true){
+		int3 coord = new int3(x, y, z) + dir;
+		if(isNatural)
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+		else
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
 	}
 
     // Checks if neighbor is transparent or invisible
@@ -1205,6 +1211,7 @@ public struct BuildChunkJob : IJob{
     		UVs.AddRange(cacheCubeUV);
 
     		AddLightUV(cacheCubeUV, x, y, z, dir);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir);
     		lightUV.AddRange(cacheCubeUV);
 
     		CalculateNormal(cacheCubeNormal, dir);
@@ -1230,6 +1237,7 @@ public struct BuildChunkJob : IJob{
     		UVs.AddRange(cacheCubeUV);
 
     		AddLightUV(cacheCubeUV, x, y, z, dir);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir);
     		lightUV.AddRange(cacheCubeUV);
 
     		CalculateNormal(cacheCubeNormal, dir);
@@ -1255,6 +1263,7 @@ public struct BuildChunkJob : IJob{
     		UVs.AddRange(cacheCubeUV);
 
     		AddLightUV(cacheCubeUV, x, y, z, dir);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir);
     		lightUV.AddRange(cacheCubeUV);
 
     		CalculateNormal(cacheCubeNormal, dir);
@@ -1323,15 +1332,60 @@ public struct BuildChunkJob : IJob{
 
     	CalculateLightCorners(auxPos, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
 
-		// DEBUG
-		//if(array[0].x != 15 && array[0].x != 0 && array[0].x == array[1].x && array[0].x == array[2].x && array[0].x == array[3].x)
-		//	Debug.Log("Equals?");
+    }
+
+    // Sets the secondary UV of ExtraLights Lightmaps
+    private void AddLightUVExtra(NativeArray<Vector2> array, int x, int y, int z, int dir){
+    	int maxLightLevel = 15;
+    	int currentLightLevel = GetNeighborLight(x, y, z, dir, isNatural:false);
+
+    	// If light is full blown
+    	if(currentLightLevel == maxLightLevel){
+	    	array[0] = new Vector2(array[0].x, maxLightLevel);
+	    	array[1] = new Vector2(array[1].x, maxLightLevel);
+	    	array[2] = new Vector2(array[2].x, maxLightLevel);
+	    	array[3] = new Vector2(array[3].x, maxLightLevel);
+	    	return;
+    	}
+    	// If there's no light
+    	if(currentLightLevel <= 1){
+	    	array[0] = new Vector2(array[0].x, 0);
+	    	array[1] = new Vector2(array[1].x, 0);
+	    	array[2] = new Vector2(array[2].x, 0);
+	    	array[3] = new Vector2(array[3].x, 0);
+	    	return;
+    	}
+
+    	bool xm = true;
+    	bool xp = true;
+    	bool zm = true;
+    	bool zp = true;
+    	bool ym = true;
+    	bool yp = true;
+
+    	if(x > 0)
+    		xm = false;
+    	if(x < Chunk.chunkWidth-1)
+    		xp = false;
+    	if(z > 0)
+    		zm = false;
+    	if(z < Chunk.chunkWidth-1)
+    		zp = false;
+    	if(y > 0)
+    		ym = false;
+    	if(y < Chunk.chunkDepth-1)
+    		yp = false;
+
+    	int3 auxPos = new int3(x,y,z) + VoxelData.offsets[dir];
+
+    	CalculateLightCornersExtra(auxPos, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
+
     }
 
     private void CalculateLightCorners(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
     	// North
     	if(dir == 0)
-    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp); // 1534
+    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp);
     	// East
     	else if(dir == 1)
     		SetCorner(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp);
@@ -1347,7 +1401,27 @@ public struct BuildChunkJob : IJob{
     	// Down
      	else
     		SetCorner(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp);
+    }
 
+    private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    	// North
+    	if(dir == 0)
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp);
+    	// East
+    	else if(dir == 1)
+    		SetCornerExtra(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp);
+    	// South
+     	else if(dir == 2)
+    		SetCornerExtra(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp);
+    	// West
+      	else if(dir == 3)
+    		SetCornerExtra(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp);
+      	// Up
+    	else if(dir == 4)
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp);
+    	// Down
+     	else
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp);
     }
 
     private bool CheckBorder(int dir, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
@@ -1441,9 +1515,82 @@ public struct BuildChunkJob : IJob{
 		array[1] = new Vector2(Max(light2, light3, light6, currentLightLevel), 1);
 		array[2] = new Vector2(Max(light3, light4, light7, currentLightLevel), 1);
 		array[3] = new Vector2(Max(light4, light1, light8, currentLightLevel), 1);
+    }
 
-		//if(array[0].x ==  14 && array[3].x == 14 && array[1].x == 15 && array[2].x == 15)
-			//Debug.Log("Correct East side");
+    private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    	int light1, light2, light3, light4, light5, light6, light7, light8;
+    	int3 diagonal = new int3(0,0,0);
+
+    	if(xm || xp || zm || zp || ym || yp){
+	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
+	    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1, isNatural:false);
+	    	else
+	    		light1 = currentLightLevel;
+	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
+	    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2, isNatural:false);
+	    	else
+	    		light2 = currentLightLevel;
+	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
+	    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3, isNatural:false);
+	    	else
+	    		light3 = currentLightLevel;
+	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
+	    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4, isNatural:false);
+	    	else
+	    		light4 = currentLightLevel;
+
+	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+	    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light5 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+	    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light6 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+	    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light7 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+	    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light8 = currentLightLevel;
+	    	}  	
+    	}
+    	else{
+    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1, isNatural:false);
+    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2, isNatural:false);
+    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3, isNatural:false);
+    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4, isNatural:false);
+
+    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+
+		array[0] = new Vector2(array[0].x, Max(light1, light2, light5, currentLightLevel));
+		array[1] = new Vector2(array[1].x, Max(light2, light3, light6, currentLightLevel));
+		array[2] = new Vector2(array[2].x, Max(light3, light4, light7, currentLightLevel));
+		array[3] = new Vector2(array[3].x, Max(light4, light1, light8, currentLightLevel));
     }
 
     /*
@@ -1641,7 +1788,7 @@ public struct PrepareAssetsJob : IJob{
 					Vector3 resultVert = Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
 					meshVerts.Add(resultVert);
 					meshNormals.Add(GetNormalRotation(loadedNormals[vertIndex], inplaceRotation[code*256+state]));
-					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), 1));
+					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false)));
 				}
 
 			}
@@ -1652,7 +1799,7 @@ public struct PrepareAssetsJob : IJob{
 					Vector3 resultVert = Vector3Mult(loadedVerts[vertIndex], scaling[i], vertPos);
 					meshVerts.Add(resultVert);
 					meshNormals.Add(loadedNormals[vertIndex]);
-					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), 1));
+					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false)));
 				}	
 			}
 
@@ -1699,9 +1846,13 @@ public struct PrepareAssetsJob : IJob{
 	}
 
 	// Gets neighbor light level
-	private int GetLight(int x, int y, int z){
+	private int GetLight(int x, int y, int z, bool isNatural=true){
 		int3 coord = new int3(x, y, z);
-		return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z];
+
+		if(isNatural)
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+		else
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0xF0;
 	}
 }
 
@@ -2243,14 +2394,17 @@ public struct BuildBorderJob : IJob{
 	}
 
 	// Gets neighbor light level
-	private int GetNeighborLight(int x, int y, int z, int dir){
+	private int GetNeighborLight(int x, int y, int z, int dir, bool isNatural=true){
 		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
 
 		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
 			return 0;
 		} 
 
-		return lightdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
+		if(isNatural)
+			return lightdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z] & 0x0F;
+		else
+			return lightdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z] >> 4;
 	}
 
 	// Gets UV Map for Liquid blocks

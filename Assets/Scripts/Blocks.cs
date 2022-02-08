@@ -19,6 +19,7 @@ public abstract class Blocks
 	public bool invisible; // Should not render at all
 	public bool affectLight; // Should drain light level
 	public bool liquid;
+	public byte luminosity = 0; // Emits VoxelLight
 	public bool hasLoadEvent = false;
 	public bool washable = false; // Can be destroyed by flowing water
 	public bool needsRotation = false;

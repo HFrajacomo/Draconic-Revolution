@@ -23,6 +23,8 @@ public class BlockEncyclopediaECS
 	public static bool[] objectWashable;
 	public static bool[] blockAffectLight;
 	public static bool[] objectAffectLight;
+	public static byte[] blockLuminosity;
+	public static byte[] objectLuminosity;
 
 	public BlockEncyclopediaECS(int amountBlocks, int amountObjects){
 		BlockEncyclopediaECS.blockTransparent = new byte[amountBlocks];
@@ -42,5 +44,7 @@ public class BlockEncyclopediaECS
 		BlockEncyclopediaECS.objectWashable = new bool[amountObjects];
 		BlockEncyclopediaECS.blockAffectLight = new bool[amountBlocks];
 		BlockEncyclopediaECS.objectAffectLight = new bool[amountObjects];
+		BlockEncyclopediaECS.blockLuminosity = new byte[amountBlocks];
+		BlockEncyclopediaECS.objectLuminosity = new byte[amountObjects];
 	}
 }
