@@ -277,6 +277,10 @@ public class VoxelData
 	}
 
 	public byte[] GetLightMap(){
+		if(this.lightMap == null){
+			this.CalculateLightMap();
+		}
+
 		return this.lightMap;
 	}
 
