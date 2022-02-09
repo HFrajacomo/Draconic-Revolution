@@ -386,6 +386,7 @@ public class Client
 					this.cl.chunks[pos].metadata.SetHP(x, y, z, hp);
 					this.cl.chunks[pos].data.CalculateHeightMap(x, z);
 					this.cl.AddToUpdate(pos);
+					CheckReload(pos, x, y, z);
 				}
 				break;
 			case BUDCode.BREAK:

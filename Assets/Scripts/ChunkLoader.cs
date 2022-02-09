@@ -397,6 +397,7 @@ public class ChunkLoader : MonoBehaviour
                     chunks[toUpdate[0]].data.CalculateLightMap(withExtraLight:true);
 
                     chunks[toUpdate[0]].BuildChunk();
+                    
                     if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
                         toRedraw.Add(toUpdate[0]);
                     else{
