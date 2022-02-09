@@ -184,9 +184,9 @@ public class Chunk
 		int3[] coordArray;
 		int3[] budArray;
 
-		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
-		NativeArray<ushort> metadata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
-		NativeArray<byte> lightdata = new NativeArray<byte>(this.data.GetLightMap(), Allocator.TempJob);
+		NativeArray<ushort> blockdata = NativeTools.CopyToNative(this.data.GetData());
+		NativeArray<ushort> metadata = NativeTools.CopyToNative(this.metadata.GetStateData());
+		NativeArray<byte> lightdata = NativeTools.CopyToNative(this.data.GetLightMap());
 
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> uvs = new NativeList<Vector2>(0, Allocator.TempJob);
@@ -199,17 +199,17 @@ public class Chunk
 		NativeList<int3> toLoadEvent = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int3> toBUD = new NativeList<int3>(0, Allocator.TempJob);
 
-		NativeArray<byte> blockTransparent = new NativeArray<byte>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
-		NativeArray<byte> objectTransparent = new NativeArray<byte>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
-		NativeArray<bool> blockLiquid = new NativeArray<bool>(BlockEncyclopediaECS.blockLiquid, Allocator.TempJob);
-		NativeArray<bool> objectLiquid = new NativeArray<bool>(BlockEncyclopediaECS.objectLiquid, Allocator.TempJob);
-		NativeArray<bool> blockInvisible = new NativeArray<bool>(BlockEncyclopediaECS.blockInvisible, Allocator.TempJob);
-		NativeArray<bool> objectInvisible = new NativeArray<bool>(BlockEncyclopediaECS.objectInvisible, Allocator.TempJob);
-		NativeArray<byte> blockMaterial = new NativeArray<byte>(BlockEncyclopediaECS.blockMaterial, Allocator.TempJob);
-		NativeArray<byte> objectMaterial = new NativeArray<byte>(BlockEncyclopediaECS.objectMaterial, Allocator.TempJob);
-		NativeArray<int3> blockTiles = new NativeArray<int3>(BlockEncyclopediaECS.blockTiles, Allocator.TempJob);
-		NativeArray<bool> blockWashable = new NativeArray<bool>(BlockEncyclopediaECS.blockWashable, Allocator.TempJob);
-		NativeArray<bool> objectWashable = new NativeArray<bool>(BlockEncyclopediaECS.objectWashable, Allocator.TempJob);
+		NativeArray<byte> blockTransparent = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTransparent);
+		NativeArray<byte> objectTransparent = NativeTools.CopyToNative(BlockEncyclopediaECS.objectTransparent);
+		NativeArray<bool> blockLiquid = NativeTools.CopyToNative(BlockEncyclopediaECS.blockLiquid);
+		NativeArray<bool> objectLiquid = NativeTools.CopyToNative(BlockEncyclopediaECS.objectLiquid);
+		NativeArray<bool> blockInvisible = NativeTools.CopyToNative(BlockEncyclopediaECS.blockInvisible);
+		NativeArray<bool> objectInvisible = NativeTools.CopyToNative(BlockEncyclopediaECS.objectInvisible);
+		NativeArray<byte> blockMaterial = NativeTools.CopyToNative(BlockEncyclopediaECS.blockMaterial);
+		NativeArray<byte> objectMaterial = NativeTools.CopyToNative(BlockEncyclopediaECS.objectMaterial);
+		NativeArray<int3> blockTiles = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTiles);
+		NativeArray<bool> blockWashable = NativeTools.CopyToNative(BlockEncyclopediaECS.blockWashable);
+		NativeArray<bool> objectWashable = NativeTools.CopyToNative(BlockEncyclopediaECS.objectWashable);
 
 		// Cached
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
@@ -218,19 +218,19 @@ public class Chunk
 
 		// For Init
 		this.meshFilter.sharedMesh.GetVertices(vertexAux);
-		NativeArray<Vector3> disposableVerts = new NativeArray<Vector3>(vertexAux.ToArray(), Allocator.TempJob);
+		NativeArray<Vector3> disposableVerts = NativeTools.CopyToNative<Vector3>(vertexAux.ToArray());
 		vertexAux.Clear();
 
 		this.meshFilter.sharedMesh.GetUVs(0, UVaux);
-		NativeArray<Vector2> disposableUVS = new NativeArray<Vector2>(UVaux.ToArray(), Allocator.TempJob);
+		NativeArray<Vector2> disposableUVS = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
 		UVaux.Clear();
 
 		this.meshFilter.sharedMesh.GetUVs(3, UVaux);
-		NativeArray<Vector2> disposableLight = new NativeArray<Vector2>(UVaux.ToArray(), Allocator.TempJob);
+		NativeArray<Vector2> disposableLight = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
 		UVaux.Clear();
 
 		this.meshFilter.sharedMesh.GetNormals(normalAux);
-		NativeArray<Vector3> disposableNormals = new NativeArray<Vector3>(normalAux.ToArray(), Allocator.TempJob);
+		NativeArray<Vector3> disposableNormals = NativeTools.CopyToNative<Vector3>(normalAux.ToArray());
 		normalAux.Clear();
 
 		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(0), Allocator.TempJob);
@@ -267,8 +267,8 @@ public class Chunk
 			this.xMinusDrawn = true;
 			changed = true;
 
-			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
-			NativeArray<byte> neighborlight = new NativeArray<byte>(loader.chunks[targetChunk].data.GetLightMap(), Allocator.TempJob);
+			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
@@ -330,8 +330,8 @@ public class Chunk
 			this.xPlusDrawn = true;
 			changed = true;
 
-			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
-			NativeArray<byte> neighborlight = new NativeArray<byte>(loader.chunks[targetChunk].data.GetLightMap(), Allocator.TempJob);
+			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
 
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
@@ -393,8 +393,8 @@ public class Chunk
 			this.zMinusDrawn = true;
 			changed = true;
 
-			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
-			NativeArray<byte> neighborlight = new NativeArray<byte>(loader.chunks[targetChunk].data.GetLightMap(), Allocator.TempJob);
+			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
@@ -456,8 +456,8 @@ public class Chunk
 			this.zPlusDrawn = true;
 			changed = true;
 
-			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
-			NativeArray<byte> neighborlight = new NativeArray<byte>(loader.chunks[targetChunk].data.GetLightMap(), Allocator.TempJob);
+			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
@@ -577,9 +577,9 @@ public class Chunk
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
 	public void BuildChunk(bool load=false, bool pregenReload=false){
-		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
-		NativeArray<ushort> statedata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
-		NativeArray<byte> lightdata = new NativeArray<byte>(this.data.GetLightMap(), Allocator.TempJob);
+		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
+		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
+		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap());
 		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<ushort> loadCodeList = new NativeList<ushort>(0, Allocator.TempJob);
@@ -597,20 +597,20 @@ public class Chunk
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
 		// Cached from Block Encyclopedia ECS
-		NativeArray<byte> blockTransparent = new NativeArray<byte>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
-		NativeArray<byte> objectTransparent = new NativeArray<byte>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
-		NativeArray<bool> blockLiquid = new NativeArray<bool>(BlockEncyclopediaECS.blockLiquid, Allocator.TempJob);
-		NativeArray<bool> objectLiquid = new NativeArray<bool>(BlockEncyclopediaECS.objectLiquid, Allocator.TempJob);
-		NativeArray<bool> blockLoad = new NativeArray<bool>(BlockEncyclopediaECS.blockLoad, Allocator.TempJob);
-		NativeArray<bool> objectLoad = new NativeArray<bool>(BlockEncyclopediaECS.objectLoad, Allocator.TempJob);
-		NativeArray<bool> blockInvisible = new NativeArray<bool>(BlockEncyclopediaECS.blockInvisible, Allocator.TempJob);
-		NativeArray<bool> objectInvisible = new NativeArray<bool>(BlockEncyclopediaECS.objectInvisible, Allocator.TempJob);
-		NativeArray<byte> blockMaterial = new NativeArray<byte>(BlockEncyclopediaECS.blockMaterial, Allocator.TempJob);
-		NativeArray<byte> objectMaterial = new NativeArray<byte>(BlockEncyclopediaECS.objectMaterial, Allocator.TempJob);
-		NativeArray<int3> blockTiles = new NativeArray<int3>(BlockEncyclopediaECS.blockTiles, Allocator.TempJob);
-		NativeArray<bool> objectNeedRotation = new NativeArray<bool>(BlockEncyclopediaECS.objectNeedRotation, Allocator.TempJob);
-		NativeArray<bool> blockWashable = new NativeArray<bool>(BlockEncyclopediaECS.blockWashable, Allocator.TempJob);
-		NativeArray<bool> objectWashable = new NativeArray<bool>(BlockEncyclopediaECS.objectWashable, Allocator.TempJob);
+		NativeArray<byte> blockTransparent = NativeTools.CopyToNative<byte>(BlockEncyclopediaECS.blockTransparent);
+		NativeArray<byte> objectTransparent = NativeTools.CopyToNative<byte>(BlockEncyclopediaECS.objectTransparent);
+		NativeArray<bool> blockLiquid = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockLiquid);
+		NativeArray<bool> objectLiquid = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectLiquid);
+		NativeArray<bool> blockLoad = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockLoad);
+		NativeArray<bool> objectLoad = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectLoad);
+		NativeArray<bool> blockInvisible = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockInvisible);
+		NativeArray<bool> objectInvisible = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectInvisible);
+		NativeArray<byte> blockMaterial = NativeTools.CopyToNative<byte>(BlockEncyclopediaECS.blockMaterial);
+		NativeArray<byte> objectMaterial = NativeTools.CopyToNative<byte>(BlockEncyclopediaECS.objectMaterial);
+		NativeArray<int3> blockTiles = NativeTools.CopyToNative<int3>(BlockEncyclopediaECS.blockTiles);
+		NativeArray<bool> objectNeedRotation = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectNeedRotation);
+		NativeArray<bool> blockWashable = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockWashable);
+		NativeArray<bool> objectWashable = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectWashable);
 
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{

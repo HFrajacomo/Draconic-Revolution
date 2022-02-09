@@ -22,9 +22,9 @@ public static class Compression{
 		
 		
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = new NativeArray<ushort>(c.data.GetData(), Allocator.TempJob);
-		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
-		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.data.GetData());
+		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);
+		NativeArray<ushort> palleteArray = NativeTools.CopyToNative(palleteList.ToArray());
 
 		CompressionJob cbJob = new CompressionJob{
 			chunkData = chunkData,
@@ -58,9 +58,9 @@ public static class Compression{
 		int bytes;
 
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = new NativeArray<ushort>(c.metadata.GetHPData(), Allocator.TempJob);
-		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
-		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.metadata.GetHPData());
+		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);
+		NativeArray<ushort> palleteArray = NativeTools.CopyToNative(palleteList.ToArray());
 
 		CompressionJob cmdJob = new CompressionJob{
 			chunkData = chunkData,
@@ -94,9 +94,9 @@ public static class Compression{
 		int bytes;
 
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = new NativeArray<ushort>(c.metadata.GetStateData(), Allocator.TempJob);
-		NativeArray<byte> buff = new NativeArray<byte>(buffer, Allocator.TempJob);
-		NativeArray<ushort> palleteArray = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.metadata.GetStateData());
+		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);
+		NativeArray<ushort> palleteArray = NativeTools.CopyToNative(palleteList.ToArray());
 
 		CompressionJob cmdJob = new CompressionJob{
 			chunkData = chunkData,
@@ -131,8 +131,8 @@ public static class Compression{
 		List<ushort> palleteList = Compression.GetPallete(p);
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
-		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
+		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
@@ -159,8 +159,8 @@ public static class Compression{
 
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
-		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
+		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
@@ -184,8 +184,8 @@ public static class Compression{
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
-		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
+		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
@@ -209,8 +209,8 @@ public static class Compression{
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
-		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
+		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
@@ -234,8 +234,8 @@ public static class Compression{
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
-		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
+		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
@@ -259,8 +259,8 @@ public static class Compression{
 		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = new NativeArray<byte>(buffer, Allocator.TempJob);
-		NativeArray<ushort> pallete = new NativeArray<ushort>(palleteList.ToArray(), Allocator.TempJob);
+		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
+		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,

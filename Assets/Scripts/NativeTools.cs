@@ -22,20 +22,6 @@ public static class NativeTools
         UnsafeUtility.MemCpy(inputBuffer, outBuffer, byteSize);
         return outputArray;
     }
-    /*
-    public static unsafe List<T> CopyToManaged<T>(NativeList<T> list) where T: struct{
-        int size = list.Length;
-        int byteSize = size * UnsafeUtility.SizeOf<T>();
-
-        List<T> outputList = new List<T>();
-    
-        void* inputBuffer = UnsafeUtility.AddressOf(ref outputList);
-        void* outBuffer = list.GetUnsafePtr();
-
-        UnsafeUtility.MemCpy(inputBuffer, outBuffer, byteSize);
-        return outputList;
-    }
-    */
 
     /*
     Uses unsafe code to copy all elements in NativeArray to a normal array

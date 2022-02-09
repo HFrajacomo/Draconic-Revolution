@@ -6,33 +6,6 @@ using Unity.Collections;
 
 public class TESTONLY : MonoBehaviour
 {   
-    /*
-    ushort[] uArray = new ushort[16*16*256];
-
-    void Start(){
-        Array.Fill<ushort>(uArray, 1);
-
-    }
-
-    void Update(){
-        NativeArray<ushort> testArray;
-        NativeArray<ushort> testFastArray;
-
-        testArray = new NativeArray<ushort>(uArray, Allocator.TempJob);
-        testFastArray = NativeTools.CopyToNative(uArray);
-
-        ushort[] output = testArray.ToArray();
-        ushort[] normalTest = NativeTools.CopyToManaged(testFastArray);
-
-        testArray.Dispose();
-        testFastArray.Dispose();
-
-        print("done");       
-    }
-    */
-
-
-
 
 
     private void PrintAll(ushort[] a){

@@ -38,41 +38,6 @@ public class VoxelData
 	}
 
 	/*
-	Currently unused because unbursted option is faster
-	*/
-	public void CalculateHeightMap_BURST(){
-		if(this.data == null)
-			return;
-
-		NativeArray<ushort> nativeData = new NativeArray<ushort>(this.data, Allocator.TempJob);
-		NativeArray<byte> nativeHeightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
-		NativeArray<bool> blockAffectLightECS = new NativeArray<bool>(BlockEncyclopediaECS.blockAffectLight, Allocator.TempJob);
-		NativeArray<bool> objectAffectLightECS = new NativeArray<bool>(BlockEncyclopediaECS.objectAffectLight, Allocator.TempJob);
-
-		JobHandle job;
-
-		GetHeightMapJob hmJob = new GetHeightMapJob{
-			heightMap = nativeHeightMap,
-			data = nativeData,
-			chunkWidth = Chunk.chunkWidth,
-			chunkDepth = Chunk.chunkDepth,
-			blockAffectLight = blockAffectLightECS,
-			objectAffectLight = objectAffectLightECS
-		};
-
-        job = hmJob.Schedule(Chunk.chunkWidth, 2);
-        job.Complete();
-
-        this.data = nativeData.ToArray();
-        this.heightMap = nativeHeightMap.ToArray();
-
-        nativeData.Dispose();
-        nativeHeightMap.Dispose();
-        blockAffectLightECS.Dispose();
-        objectAffectLightECS.Dispose();
-	}
-
-	/*
 	ComputeShader Accelerated Function
 	*/
 	/*
@@ -108,21 +73,15 @@ public class VoxelData
 
 		NativeArray<byte> lightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		NativeList<int4> lightSources = new NativeList<int4>(0, Allocator.TempJob);
-		//NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
-		NativeArray<byte> heightMap = new NativeArray<byte>(this.heightMap, Allocator.TempJob);
+		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
 
 		JobHandle job;
 
-		//NativeArray<ushort> blockData = NativeTools.CopyToNative(this.data);
-		NativeArray<ushort> blockData = new NativeArray<ushort>(this.data, Allocator.TempJob);
-		//NativeArray<byte> isTransparentBlock = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTransparent);
-		NativeArray<byte> isTransparentBlock = new NativeArray<byte>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
-		//NativeArray<byte> isTransparentObj = NativeTools.CopyToNative(BlockEncyclopediaECS.objectTransparent);
-		NativeArray<byte> isTransparentObj = new NativeArray<byte>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
-		//NativeArray<byte> blockLuminosity = NativeTools.CopyToNative(BlockEncyclopediaECS.blockLuminosity);
-		NativeArray<byte> blockLuminosity = new NativeArray<byte>(BlockEncyclopediaECS.blockLuminosity, Allocator.TempJob);
-		//NativeArray<byte> objectLuminosity = NativeTools.CopyToNative(BlockEncyclopediaECS.objectLuminosity);
-		NativeArray<byte> objectLuminosity = new NativeArray<byte>(BlockEncyclopediaECS.objectLuminosity, Allocator.TempJob);
+		NativeArray<ushort> blockData = NativeTools.CopyToNative(this.data);
+		NativeArray<byte> isTransparentBlock = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTransparent);
+		NativeArray<byte> isTransparentObj = NativeTools.CopyToNative(BlockEncyclopediaECS.objectTransparent);
+		NativeArray<byte> blockLuminosity = NativeTools.CopyToNative(BlockEncyclopediaECS.blockLuminosity);
+		NativeArray<byte> objectLuminosity = NativeTools.CopyToNative(BlockEncyclopediaECS.objectLuminosity);
 
 		CalculateShadowMapJob csmJob = new CalculateShadowMapJob{
 			shadowMap = lightMap,
@@ -163,7 +122,7 @@ public class VoxelData
         job.Complete();
 
 
-        this.lightMap = lightMap.ToArray(); //NativeTools.CopyToManaged(lightMap);
+        this.lightMap = NativeTools.CopyToManaged(lightMap);
 
 
         blockData.Dispose();
@@ -324,47 +283,6 @@ public class VoxelData
 
 		return GetCell(neighborCoord.x, neighborCoord.y, neighborCoord.z);
 	}
-}
-
-[BurstCompile]
-public struct GetHeightMapJob : IJobParallelFor{
-    [NativeDisableParallelForRestriction]
-    public NativeArray<byte> heightMap;
-    [ReadOnly]
-    public NativeArray<ushort> data;
-    [ReadOnly]
-    public int chunkWidth;
-    [ReadOnly]
-    public int chunkDepth;
-    [ReadOnly]
-    public NativeArray<bool> blockAffectLight;
-    [ReadOnly]
-    public NativeArray<bool> objectAffectLight;
-
-    public void Execute(int index){
-    	ushort blockCode;
-
-    	for(int z=0; z < chunkWidth; z++){
-    		for(int y=chunkDepth-1; y >= 0; y--){
-    			blockCode = data[index*chunkWidth*chunkDepth+y*chunkWidth+z];
-
-    			// If is a block
-    			if(blockCode <= ushort.MaxValue/2){
-    				if(blockAffectLight[blockCode]){
-    					this.heightMap[index*chunkWidth+z] = (byte)y;
-    					break;
-    				}
-    			}
-    			// If it's an object
-    			else{
-    				if(objectAffectLight[ushort.MaxValue - blockCode]){
-    					this.heightMap[index*chunkWidth+z] = (byte)y;
-    					break;
-    				}		
-    			}
-    		}
-    	}
-    }
 }
 
 [BurstCompile]
