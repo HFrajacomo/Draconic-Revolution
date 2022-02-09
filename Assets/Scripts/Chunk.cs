@@ -1941,6 +1941,7 @@ public struct BuildBorderJob : IJob{
 		if(xM){
 			for(int y=0; y<Chunk.chunkDepth; y++){
 				for(int z=0; z<Chunk.chunkWidth; z++){
+
 					thisBlock = data[y*Chunk.chunkWidth+z];
 					neighborBlock = neighbordata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
@@ -2277,47 +2278,120 @@ public struct BuildBorderJob : IJob{
 	    	return;
     	}
 
-    	CalculateLightCorners(neighborIndex, dir, array, currentLightLevel);
+    	bool xm = true;
+    	bool xp = true;
+    	bool zm = true;
+    	bool zp = true;
+    	bool ym = true;
+    	bool yp = true;
+
+    	if(x > 0)
+    		xm = false;
+    	if(x < Chunk.chunkWidth-1)
+    		xp = false;
+    	if(z > 0)
+    		zm = false;
+    	if(z < Chunk.chunkWidth-1)
+    		zp = false;
+    	if(y > 0)
+    		ym = false;
+    	if(y < Chunk.chunkDepth-1)
+    		yp = false;
+
+    	CalculateLightCorners(neighborIndex, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
     }
 
-    private void CalculateLightCorners(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel){
+    private void CalculateLightCorners(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
     	// North
     	if(dir == 0)
-    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5);
+    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp);
     	// East
     	else if(dir == 1)
-    		SetCorner(array, pos, currentLightLevel, 2, 4, 0, 5);
+    		SetCorner(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp);
     	// South
      	else if(dir == 2)
-    		SetCorner(array, pos, currentLightLevel, 3, 4, 1, 5);
+    		SetCorner(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp);
     	// West
       	else if(dir == 3)
-    		SetCorner(array, pos, currentLightLevel, 0, 4, 2, 5);
+    		SetCorner(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp);
       	// Up
     	else if(dir == 4)
-    		SetCorner(array, pos, currentLightLevel, 1, 2, 3, 0);
+    		SetCorner(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp);
     	// Down
      	else
-    		SetCorner(array, pos, currentLightLevel, 1, 0, 3, 2);
+    		SetCorner(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp);
     }
 
-    private void SetCorner(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4){
+    private bool CheckBorder(int dir, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    	if(xm && dir == 3)
+    		return false;
+    	else if(xp && dir == 1)
+    		return false;
+    	else if(zm && dir == 2)
+    		return false;
+    	else if(zp && dir == 0)
+    		return false;
+    	else if(ym && dir == 5)
+    		return false;
+    	else if(yp && dir == 4)
+    		return false;
+    	else
+    		return true;
+    }
+
+    private void SetCorner(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
     	int light1, light2, light3, light4, light5, light6, light7, light8;
     	int3 diagonal = new int3(0,0,0);
 
-		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1);
-		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2);
-		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3);
-		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4);
 
-		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
-		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
-		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
-		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
-		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
-		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
-		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
-		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
+    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
+    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1);
+    	else
+    		light1 = currentLightLevel;
+    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
+    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2);
+    	else
+    		light2 = currentLightLevel;
+    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
+    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3);
+    	else
+    		light3 = currentLightLevel;
+    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
+    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4);
+    	else
+    		light4 = currentLightLevel;
+
+    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
+    	}
+    	else{
+    		light5 = currentLightLevel;
+    	}
+
+    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
+    	}
+    	else{
+    		light6 = currentLightLevel;
+    	}
+
+    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
+    	}
+    	else{
+    		light7 = currentLightLevel;
+    	}
+
+    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
+    	}
+    	else{
+    		light8 = currentLightLevel;
+    	}  	
 
 
 		array[0] = new Vector2(Max(light1, light2, light5, currentLightLevel), 1);
@@ -2329,7 +2403,7 @@ public struct BuildBorderJob : IJob{
     // Sets the secondary UV of Lightmaps
     private void AddLightUVExtra(NativeArray<Vector2> array, int x, int y, int z, int dir, int3 neighborIndex){
     	int maxLightLevel = 15;
-    	int currentLightLevel = GetOtherLight(neighborIndex, isNatural:false);
+    	int currentLightLevel = GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z, isNatural:false);
 
     	// If light is full blown
     	if(currentLightLevel == maxLightLevel){
@@ -2348,52 +2422,109 @@ public struct BuildBorderJob : IJob{
 	    	return;
     	}
 
-    	CalculateLightCornersExtra(neighborIndex, dir, array, currentLightLevel);
+    	bool xm = true;
+    	bool xp = true;
+    	bool zm = true;
+    	bool zp = true;
+    	bool ym = true;
+    	bool yp = true;
+
+    	if(x > 0)
+    		xm = false;
+    	if(x < Chunk.chunkWidth-1)
+    		xp = false;
+    	if(z > 0)
+    		zm = false;
+    	if(z < Chunk.chunkWidth-1)
+    		zp = false;
+    	if(y > 0)
+    		ym = false;
+    	if(y < Chunk.chunkDepth-1)
+    		yp = false;
+
+    	CalculateLightCornersExtra(neighborIndex, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
     }
 
-    private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel){
+    private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
     	// North
     	if(dir == 0)
-    		SetCornerExtra(array, pos, currentLightLevel, 1, 4, 3, 5);
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp);
     	// East
     	else if(dir == 1)
-    		SetCornerExtra(array, pos, currentLightLevel, 2, 4, 0, 5);
+    		SetCornerExtra(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp);
     	// South
      	else if(dir == 2)
-    		SetCornerExtra(array, pos, currentLightLevel, 3, 4, 1, 5);
+    		SetCornerExtra(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp);
     	// West
       	else if(dir == 3)
-    		SetCornerExtra(array, pos, currentLightLevel, 0, 4, 2, 5);
+    		SetCornerExtra(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp);
       	// Up
     	else if(dir == 4)
-    		SetCornerExtra(array, pos, currentLightLevel, 1, 2, 3, 0);
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp);
     	// Down
      	else
-    		SetCornerExtra(array, pos, currentLightLevel, 1, 0, 3, 2);
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp);
     }
 
-    private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4){
+    private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
     	int light1, light2, light3, light4, light5, light6, light7, light8;
     	int3 diagonal = new int3(0,0,0);
 
-		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1, isNatural:false);
-		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:false);
-		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:false);
-		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:false);
 
-		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
-		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
-		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
-		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
-		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
-		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
-		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
-		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
+    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1, isNatural:false);
+    	else
+    		light1 = currentLightLevel;
+    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
+    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:false);
+    	else
+    		light2 = currentLightLevel;
+    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
+    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:false);
+    	else
+    		light3 = currentLightLevel;
+    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
+    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:false);
+    	else
+    		light4 = currentLightLevel;
+
+    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else{
+    		light5 = currentLightLevel;
+    	}
+
+    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else{
+    		light6 = currentLightLevel;
+    	}
+
+    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else{
+    		light7 = currentLightLevel;
+    	}
+
+    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else{
+    		light8 = currentLightLevel;
+    	}  	
+
 
 		array[0] = new Vector2(array[0].x, Max(light1, light2, light5, currentLightLevel));
-		array[1] = new Vector2(array[1].x, Max(light1, light2, light5, currentLightLevel));
-		array[2] = new Vector2(array[2].x, Max(light1, light2, light5, currentLightLevel));
-		array[3] = new Vector2(array[3].x, Max(light1, light2, light5, currentLightLevel));
+		array[1] = new Vector2(array[1].x, Max(light2, light3, light6, currentLightLevel));
+		array[2] = new Vector2(array[2].x, Max(light3, light4, light7, currentLightLevel));
+		array[3] = new Vector2(array[3].x, Max(light4, light1, light8, currentLightLevel));
     }
 
     /*

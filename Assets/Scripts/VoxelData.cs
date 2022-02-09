@@ -108,14 +108,20 @@ public class VoxelData
 
 		NativeArray<byte> lightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		NativeList<int4> lightSources = new NativeList<int4>(0, Allocator.TempJob);
+		//NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
 		NativeArray<byte> heightMap = new NativeArray<byte>(this.heightMap, Allocator.TempJob);
 
 		JobHandle job;
 
+		//NativeArray<ushort> blockData = NativeTools.CopyToNative(this.data);
 		NativeArray<ushort> blockData = new NativeArray<ushort>(this.data, Allocator.TempJob);
+		//NativeArray<byte> isTransparentBlock = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTransparent);
 		NativeArray<byte> isTransparentBlock = new NativeArray<byte>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
+		//NativeArray<byte> isTransparentObj = NativeTools.CopyToNative(BlockEncyclopediaECS.objectTransparent);
 		NativeArray<byte> isTransparentObj = new NativeArray<byte>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
+		//NativeArray<byte> blockLuminosity = NativeTools.CopyToNative(BlockEncyclopediaECS.blockLuminosity);
 		NativeArray<byte> blockLuminosity = new NativeArray<byte>(BlockEncyclopediaECS.blockLuminosity, Allocator.TempJob);
+		//NativeArray<byte> objectLuminosity = NativeTools.CopyToNative(BlockEncyclopediaECS.objectLuminosity);
 		NativeArray<byte> objectLuminosity = new NativeArray<byte>(BlockEncyclopediaECS.objectLuminosity, Allocator.TempJob);
 
 		CalculateShadowMapJob csmJob = new CalculateShadowMapJob{
@@ -157,7 +163,7 @@ public class VoxelData
         job.Complete();
 
 
-        this.lightMap = lightMap.ToArray();
+        this.lightMap = lightMap.ToArray(); //NativeTools.CopyToManaged(lightMap);
 
 
         blockData.Dispose();
@@ -172,8 +178,6 @@ public class VoxelData
         lightSources.Dispose();
         lightMap.Dispose();
         heightMap.Dispose();
-
-        //Debug.Log("LightMap: " + this.GetLight(13, 22, 2, isNatural:false).ToString());
 	}
 
 	public void CalculateHeightMap(){
