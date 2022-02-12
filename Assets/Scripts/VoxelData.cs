@@ -568,8 +568,6 @@ public struct CalculateLightMapJob : IJob{
 		int3 current;
 		int4 currentExtra;
 
-		FindShadow(3);
-
 		/***************************************
 		Natural Light
 		***************************************/
@@ -584,7 +582,7 @@ public struct CalculateLightMapJob : IJob{
 				continue;
 			}
 
-			ScanSurroundings(current, (byte)(lightMap[GetIndex(current)] & 0x0F), (byte)(shadowMap[GetIndex(current)] & 0x0F), true);
+			ScanSurroundings(current, (byte)(lightMap[GetIndex(current)] & 0x0F), true);
 
 			visited.Add(current);
 			bfsq.RemoveAt(0);
@@ -655,13 +653,13 @@ public struct CalculateLightMapJob : IJob{
 				if(currentExtra.w == currentLevel && lastIndex >= 0)
 					searchedCurrentLevel = false;
 
-				ScanSurroundings(currentExtra.xyz, (byte)currentExtra.w, 0, false); // ALTER THAT ZERO LATER
+				ScanSurroundings(currentExtra.xyz, (byte)currentExtra.w, false); // ALTER THAT ZERO LATER
 			} 
 		}
 	}
 
 	// Checks the surroundings and adds light fallout
-	public void ScanSurroundings(int3 c, byte currentLight, byte currentShadow, bool isNatural){
+	public void ScanSurroundings(int3 c, byte currentLight, bool isNatural){
 		if(currentLight == 1)
 			return;
 		if(isNatural && currentLight == 2)
@@ -1132,7 +1130,7 @@ public struct CalculateLightPropagationJob : IJob{
 	public void ProcessShadowCode(int a, int b, int index1, int index2, byte borderCode){
 		int shadowCode = a+b;
 		int aux;
-		bool order = a >= b;
+		bool order = a <= b;
 
 		if(b < a){
 			aux = b;
