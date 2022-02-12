@@ -21,6 +21,7 @@ public class ChunkLoader : MonoBehaviour
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
     public List<ChunkPos> toDraw = new List<ChunkPos>();
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
+    public List<ChunkPos> toUpdateNoLight = new List<ChunkPos>();
 	public BlockEncyclopedia blockBook;
     public VFXLoader vfx;
     public TimeOfDay time;
@@ -205,12 +206,21 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Adds chunk to Update queue
-    public void AddToUpdate(ChunkPos pos){
-        if(!toUpdate.Contains(pos))
-            toUpdate.Add(pos);
+    public void AddToUpdate(ChunkPos pos, bool noLight=false){
+        if(!noLight)
+            if(!toUpdate.Contains(pos))
+                toUpdate.Add(pos);
+            else{
+                toUpdate.Remove(pos);
+                toUpdate.Add(pos);
+            }
         else{
-            toUpdate.Remove(pos);
-            toUpdate.Add(pos);
+            if(!toUpdateNoLight.Contains(pos))
+                toUpdateNoLight.Add(pos);
+            else{
+                toUpdateNoLight.Remove(pos);
+                toUpdateNoLight.Add(pos);
+            }            
         }
     }
 
@@ -338,6 +348,7 @@ public class ChunkLoader : MonoBehaviour
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
                 chunks[toDraw[0]].data.CalculateLightMap(withExtraLight:true);
+                CheckLightPropagation(toDraw[0]);
 
                 chunks[toDraw[0]].BuildChunk(load:true);
                 // If hasn't been drawn entirely, put on Redraw List
@@ -386,8 +397,8 @@ public class ChunkLoader : MonoBehaviour
         int min;
 
         // Gets the minimum operational value
-        if(3 < toUpdate.Count)
-            min = 3;
+        if(2 < toUpdate.Count)
+            min = 2;
         else
             min = toUpdate.Count;
 
@@ -395,9 +406,10 @@ public class ChunkLoader : MonoBehaviour
             for(int i=0; i<min; i++){
                 if(this.chunks.ContainsKey(toUpdate[0])){
                     chunks[toUpdate[0]].data.CalculateLightMap(withExtraLight:true);
+                    CheckLightPropagation(toUpdate[0]);
 
                     chunks[toUpdate[0]].BuildChunk();
-                    
+
                     if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
                         toRedraw.Add(toUpdate[0]);
                     else{
@@ -408,6 +420,107 @@ public class ChunkLoader : MonoBehaviour
                 toUpdate.RemoveAt(0);
             }
         }
+
+        if(toUpdateNoLight.Count > 0){
+            if(this.chunks.ContainsKey(toUpdateNoLight[0])){
+                chunks[toUpdateNoLight[0]].BuildChunk();
+
+                if(!chunks[toUpdateNoLight[0]].BuildSideBorder(reload:true))
+                    toRedraw.Add(toUpdateNoLight[0]);
+                else{
+                    if(this.WORLD_GENERATED)
+                        this.vfx.UpdateLights(toUpdateNoLight[0]);
+                }
+            }
+            toUpdateNoLight.RemoveAt(0);
+        }
+    }
+
+    // Checks if neighbor chunks should have light propagated
+    // MUST BE USED AFTER THE CalculateLightMap FUNCTION
+    // Returns true if should update current chunk and false if not
+    private bool CheckLightPropagation(ChunkPos pos, byte flag=128){
+        byte propagationFlag;
+        ChunkPos neighbor;
+        bool updateCurrent = false;
+        byte updateCode = 0;
+
+        if(flag == 128)
+            propagationFlag = this.chunks[pos].data.GetPropagationFlag();
+        else
+            propagationFlag = flag;
+
+        // None
+        if(propagationFlag == 0)
+            return false;
+
+        // xm
+        if((propagationFlag & 1) != 0){
+            neighbor = new ChunkPos(pos.x-1, pos.z);
+
+            if(this.chunks.ContainsKey(neighbor)){
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 0);
+                if(updateCode == 1 || updateCode == 3)
+                    updateCurrent = true;
+                if(updateCode == 2 || updateCode == 3)
+                    AddToUpdate(neighbor, noLight:true);
+                if((updateCode & 4) == 4)
+                    AddToUpdate(neighbor, noLight:false);
+                if(updateCode >= 8)
+                    CheckLightPropagation(neighbor, (byte)(updateCode >> 3));
+
+            }
+        }
+        // xp
+        if((propagationFlag & 2) != 0){
+            neighbor = new ChunkPos(pos.x+1, pos.z);
+
+            if(this.chunks.ContainsKey(neighbor)){
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 1);
+                if(updateCode == 1 || updateCode == 3)
+                    updateCurrent = true;
+                if(updateCode == 2 || updateCode == 3)
+                    AddToUpdate(neighbor, noLight:true);
+                if((updateCode & 4) == 4)
+                    AddToUpdate(neighbor, noLight:false);
+                if(updateCode >= 8)
+                    CheckLightPropagation(neighbor, (byte)(updateCode >> 3));
+            }
+        }
+        // zm
+        if((propagationFlag & 4) != 0){
+            neighbor = new ChunkPos(pos.x, pos.z-1);
+
+            if(this.chunks.ContainsKey(neighbor)){
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 2);
+                if(updateCode == 1 || updateCode == 3)
+                    updateCurrent = true;
+                if(updateCode == 2 || updateCode == 3)
+                    AddToUpdate(neighbor, noLight:true);
+                if((updateCode & 4) == 4)
+                    AddToUpdate(neighbor, noLight:false);
+                if(updateCode >= 8)
+                    CheckLightPropagation(neighbor, (byte)(updateCode >> 3));
+            }
+        }
+        // zp
+        if((propagationFlag & 8) != 0){
+            neighbor = new ChunkPos(pos.x, pos.z+1);
+
+            if(this.chunks.ContainsKey(neighbor)){
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 3);
+                if(updateCode == 1 || updateCode == 3)
+                    updateCurrent = true;
+                if(updateCode == 2 || updateCode == 3)
+                    AddToUpdate(neighbor, noLight:true);
+                if((updateCode & 4) == 4)
+                    AddToUpdate(neighbor, noLight:false);
+                if(updateCode >= 8)
+                    CheckLightPropagation(neighbor, (byte)(updateCode >> 3));
+            }
+        }
+
+        return updateCurrent;
     }
 
 

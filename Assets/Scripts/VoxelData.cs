@@ -16,7 +16,10 @@ public class VoxelData
 
 	private ushort[] data;
 	private byte[] heightMap;
+	private byte[] shadowMap;
 	private byte[] lightMap;
+
+	private byte PROPAGATE_LIGHT_FLAG = 0; // 0 = no; 1 = xm; 2 = xp, 4 = zm, 8 = zp
 
 	public static readonly int3[] offsets = new int3[]{
 		new int3(0,0,1),
@@ -66,6 +69,84 @@ public class VoxelData
 
 	/*
 	Burst Compiled
+
+	Return byte = {
+	0: Shouldn't update any chunk
+	1: Update the current chunk
+	2: Update the neighbor chunk
+	3: Update both chunks
+	}
+	*/
+	public static byte PropagateLight(VoxelData a, VoxelData b, byte borderCode){
+		NativeArray<byte> lightMap1 = NativeTools.CopyToNative(a.GetLightMap());
+		NativeArray<byte> lightMap2 = NativeTools.CopyToNative(b.GetLightMap());
+		NativeArray<byte> shadowMap1 = NativeTools.CopyToNative(a.GetShadowMap());
+		NativeArray<byte> shadowMap2 = NativeTools.CopyToNative(b.GetShadowMap());
+
+		NativeList<int3> bfsq1 = new NativeList<int3>(0, Allocator.TempJob);
+		NativeList<int3> bfsq2 = new NativeList<int3>(0, Allocator.TempJob);
+		NativeList<int3> bfsqr1 = new NativeList<int3>(0, Allocator.TempJob);
+		NativeList<int3> bfsqr2 = new NativeList<int3>(0, Allocator.TempJob);
+		NativeHashSet<int3> visited1 = new NativeHashSet<int3>(0, Allocator.TempJob);
+		NativeHashSet<int3> visited2 = new NativeHashSet<int3>(0, Allocator.TempJob);
+		NativeHashSet<int3> visitedr1 = new NativeHashSet<int3>(0, Allocator.TempJob);
+		NativeHashSet<int3> visitedr2 = new NativeHashSet<int3>(0, Allocator.TempJob);
+		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0, 0, 0, 0}, Allocator.TempJob);
+		byte updateFlag = 0;
+
+		JobHandle job;
+
+		CalculateLightPropagationJob clpJob = new CalculateLightPropagationJob{
+			lightMap1 = lightMap1,
+			lightMap2 = lightMap2,
+			shadowMap1 = shadowMap1,
+			shadowMap2 = shadowMap2,
+			bfsq1 = bfsq1,
+			bfsq2 = bfsq2,
+			bfsqr1 = bfsqr1,
+			bfsqr2 = bfsqr2,
+			visited1 = visited1,
+			visited2 = visited2,
+			visitedr1 = visitedr1,
+			visitedr2 = visitedr2,
+			chunkWidth = Chunk.chunkWidth,
+			chunkDepth = Chunk.chunkDepth,
+			borderCode = borderCode,
+			changed = changed
+		};
+
+        job = clpJob.Schedule();
+        job.Complete();
+
+        a.SetLightMap(NativeTools.CopyToManaged(lightMap1));
+        b.SetLightMap(NativeTools.CopyToManaged(lightMap2));
+        a.SetShadowMap(NativeTools.CopyToManaged(shadowMap1));
+        b.SetShadowMap(NativeTools.CopyToManaged(shadowMap2));
+        
+        updateFlag += changed[0];
+        updateFlag += (byte)(changed[1] << 1);
+        updateFlag += (byte)(changed[2] << 2);
+        updateFlag += (byte)(changed[3] << 3);
+
+        lightMap1.Dispose();
+        lightMap2.Dispose();
+        shadowMap1.Dispose();
+        shadowMap2.Dispose();
+        bfsq1.Dispose();
+        bfsq2.Dispose();
+        bfsqr1.Dispose();
+        bfsqr2.Dispose();
+        visited1.Dispose();
+        visited2.Dispose();
+        visitedr1.Dispose();
+        visitedr2.Dispose();
+        changed.Dispose();
+
+        return updateFlag;
+    }
+
+	/*
+	Burst Compiled
 	*/
 	public void CalculateLightMap(bool withExtraLight=false){
 		if(this.heightMap == null)
@@ -74,6 +155,8 @@ public class VoxelData
 		NativeArray<byte> lightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		NativeList<int4> lightSources = new NativeList<int4>(0, Allocator.TempJob);
 		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
+		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0}, Allocator.TempJob);
+		NativeArray<byte> shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 
 		JobHandle job;
 
@@ -82,6 +165,8 @@ public class VoxelData
 		NativeArray<byte> isTransparentObj = NativeTools.CopyToNative(BlockEncyclopediaECS.objectTransparent);
 		NativeArray<byte> blockLuminosity = NativeTools.CopyToNative(BlockEncyclopediaECS.blockLuminosity);
 		NativeArray<byte> objectLuminosity = NativeTools.CopyToNative(BlockEncyclopediaECS.objectLuminosity);
+
+		// SHADOWMAPPING =========================================================
 
 		CalculateShadowMapJob csmJob = new CalculateShadowMapJob{
 			shadowMap = lightMap,
@@ -94,20 +179,26 @@ public class VoxelData
 			isTransparentBlock = isTransparentBlock,
 			blockLuminosity = blockLuminosity,
 			objectLuminosity = objectLuminosity,
-			withExtraLight = withExtraLight
+			withExtraLight = withExtraLight,
+			changed = changed
 		};
 
         job = csmJob.Schedule();
         job.Complete();
+
+        lightMap.CopyTo(shadowMap);
+        this.PROPAGATE_LIGHT_FLAG = changed[0];
 
 
 		NativeList<int3> bfsq = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int4> bfsqExtra = new NativeList<int4>(0, Allocator.TempJob);
 		NativeHashSet<int3> visited = new NativeHashSet<int3>(0, Allocator.TempJob);
 
+		// LIGHTMAPPING =========================================================
 
 		CalculateLightMapJob clmJob = new CalculateLightMapJob{
 			lightMap = lightMap,
+			shadowMap = shadowMap,
 			lightSources = lightSources,
 			heightMap = heightMap,
 			chunkWidth = Chunk.chunkWidth,
@@ -121,8 +212,8 @@ public class VoxelData
         job = clmJob.Schedule();
         job.Complete();
 
-
         this.lightMap = NativeTools.CopyToManaged(lightMap);
+        this.shadowMap = NativeTools.CopyToManaged(shadowMap);
 
 
         blockData.Dispose();
@@ -137,6 +228,8 @@ public class VoxelData
         lightSources.Dispose();
         lightMap.Dispose();
         heightMap.Dispose();
+        shadowMap.Dispose();
+        changed.Dispose();
 	}
 
 	public void CalculateHeightMap(){
@@ -179,7 +272,7 @@ public class VoxelData
 		}
 	}
 
-	public void CalculateHeightMap(int x, int z){
+	public bool CalculateHeightMap(int x, int z){
 		ushort blockCode;
 
 		for(int y=Chunk.chunkDepth-1; y >= 0; y--){
@@ -189,17 +282,19 @@ public class VoxelData
 			if(blockCode <= ushort.MaxValue/2){
 				if(BlockEncyclopediaECS.blockAffectLight[blockCode]){
 					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
-					return;
+					return true;
 				}
 			}
 			// If it's an object
 			else{
 				if(BlockEncyclopediaECS.objectAffectLight[ushort.MaxValue - blockCode]){
 					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
-					return;
+					return true;
 				}		
 			}
 		}
+
+		return false;
 	}
 
 	public ushort GetHeight(byte x, byte z){
@@ -207,6 +302,10 @@ public class VoxelData
 			return ushort.MaxValue;
 		else
 			return this.heightMap[x*Chunk.chunkWidth + z];
+	}
+
+	public byte GetPropagationFlag(){
+		return this.PROPAGATE_LIGHT_FLAG;
 	}
 
 	public ushort GetCell(int x, int y, int z){
@@ -235,6 +334,13 @@ public class VoxelData
 			return (ushort)(lightMap[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4);
 	}
 
+	public ushort GetShadow(int x, int y, int z, bool isNatural=true){
+		if(isNatural)
+			return (ushort)(shadowMap[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F);
+		else
+			return (ushort)(shadowMap[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4);
+	}
+
 	public void SetCell(int x, int y, int z, ushort blockCode){
 		data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blockCode;
 	}
@@ -245,6 +351,22 @@ public class VoxelData
 		}
 
 		return this.lightMap;
+	}
+
+	public void SetLightMap(byte[] lm){
+		this.lightMap = lm;
+	}
+
+	public void SetShadowMap(byte[] sm){
+		this.shadowMap = sm;
+	}
+
+	public byte[] GetShadowMap(){
+		if(this.shadowMap == null){
+			this.CalculateLightMap();
+		}
+
+		return this.shadowMap;
 	}
 
 	public ushort[] GetData(){
@@ -289,6 +411,7 @@ public class VoxelData
 public struct CalculateShadowMapJob : IJob{
 	public NativeArray<byte> shadowMap;
 	public NativeList<int4> lightSources;
+	public NativeArray<byte> changed;
 	[ReadOnly]
 	public NativeArray<byte> heightMap;
 	[ReadOnly]
@@ -373,6 +496,31 @@ public struct CalculateShadowMapJob : IJob{
 			}
 		}
 	}
+
+	// Checks if chunk has empty space in neighborhood
+	public void CheckChanged(int x, int z){
+		if(x == 0)
+			changed[0] = (byte)(changed[0] | 1);
+		else if(x == chunkWidth-1)
+			changed[0] = (byte)(changed[0] | 2);
+
+		if(z == 0)
+			changed[0] = (byte)(changed[0] | 4);
+		else if(z == chunkWidth-1)
+			changed[0] = (byte)(changed[0] | 8);
+	}
+
+	// Checks if propagation needs to be stopped
+	public bool CheckPropagation(int x, int z, byte shadowLevel){
+		if(x <= 0 || x >= chunkWidth-1)
+			if(shadowLevel == 3)
+				return true;
+		if(z <= 0 || z >= chunkWidth-1)
+			if(shadowLevel == 3)
+				return true;
+		return false;
+	}
+
 }
 
 /*
@@ -381,6 +529,7 @@ Takes the ShadowMap and turns it into a progressive lightmap
 [BurstCompile]
 public struct CalculateLightMapJob : IJob{
 	public NativeArray<byte> lightMap;
+	public NativeArray<byte> shadowMap;
 	public NativeArray<int4> lightSources;
 	public NativeList<int3> bfsq; // Breadth-first search queue
 	public NativeList<int4> bfsqExtra;
@@ -510,6 +659,7 @@ public struct CalculateLightMapJob : IJob{
 				if(isNatural){
 					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
@@ -532,6 +682,7 @@ public struct CalculateLightMapJob : IJob{
 				if(isNatural){
 					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
@@ -554,6 +705,7 @@ public struct CalculateLightMapJob : IJob{
 				if(isNatural){
 					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
@@ -576,6 +728,7 @@ public struct CalculateLightMapJob : IJob{
 				if(isNatural){
 					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
@@ -598,6 +751,7 @@ public struct CalculateLightMapJob : IJob{
 				if(isNatural){
 					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
@@ -620,6 +774,7 @@ public struct CalculateLightMapJob : IJob{
 				if(isNatural){
 					if((lightMap[index] & 0x0F) < currentLight && (lightMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
@@ -780,6 +935,574 @@ public struct CalculateLightMapJob : IJob{
 	}
 }
 
+
+[BurstCompile]
+public struct CalculateLightPropagationJob : IJob{
+	public NativeArray<byte> lightMap1;
+	public NativeArray<byte> lightMap2;
+	public NativeArray<byte> shadowMap1;
+	public NativeArray<byte> shadowMap2;
+
+	public NativeList<int3> bfsq1; // Breadth-first search queue
+	public NativeList<int3> bfsq2;
+	public NativeList<int3> bfsqr1;
+	public NativeList<int3> bfsqr2;
+	public NativeHashSet<int3> visited1;
+	public NativeHashSet<int3> visited2;
+	public NativeHashSet<int3> visitedr1;
+	public NativeHashSet<int3> visitedr2;
+
+	public NativeArray<byte> changed; // [0] = Update current Chunk, [1] = Update neighbor Chunk, [2] = Update neighbor with lights, [3] = Xm,Xp,Zm,Zp flags of chunk of neighbor to calculate borders
+
+	[ReadOnly]
+	public int chunkWidth;
+	[ReadOnly]
+	public int chunkDepth;
+	[ReadOnly]
+	public byte borderCode; // 0 = xm, 1 = xp, 2 = zm, 3 = zp
+
+
+	public void Execute(){
+		int index1, index2;
+
+		// xm
+		if(borderCode == 0){
+			for(int y=0; y < chunkDepth; y++){
+				for(int z=0; z < chunkWidth; z++){
+					index1 = y*chunkWidth+z;
+					index2 = (chunkWidth-1)*chunkDepth*chunkWidth+y*chunkWidth+z;
+
+					ProcessShadowCode(shadowMap1[index1] & 0x0F, shadowMap2[index2] & 0x0F, index1, index2, borderCode);
+				}
+			}
+		}
+		// xp
+		else if(borderCode == 1){
+			for(int y=0; y < chunkDepth; y++){
+				for(int z=0; z < chunkWidth; z++){
+					index1 = (chunkWidth-1)*chunkDepth*chunkDepth+y*chunkWidth+z;
+					index2 = y*chunkWidth+z;
+
+					ProcessShadowCode(shadowMap1[index1] & 0x0F, shadowMap2[index2] & 0x0F, index1, index2, borderCode);
+				}
+			}			
+		}
+		// zm
+		else if(borderCode == 2){
+			for(int y=0; y < chunkDepth; y++){
+				for(int x=0; x < chunkWidth; x++){
+					index1 = x*chunkDepth*chunkWidth*y*chunkWidth;
+					index2 = x*chunkDepth*chunkWidth+y*chunkWidth+(chunkWidth-1);
+
+					ProcessShadowCode(shadowMap1[index1] & 0x0F, shadowMap2[index2] & 0x0F, index1, index2, borderCode);
+				}
+			}
+		}
+		// zp
+		else if(borderCode == 3){
+			for(int y=0; y < chunkDepth; y++){
+				for(int x=0; x < chunkWidth; x++){
+					index1 = x*chunkDepth*chunkWidth+y*chunkWidth+(chunkWidth-1);
+					index2 = x*chunkDepth*chunkWidth*y*chunkWidth;
+
+					ProcessShadowCode(shadowMap1[index1] & 0x0F, shadowMap2[index2] & 0x0F, index1, index2, borderCode);
+				}
+			}			
+		}
+
+		int3 current;
+
+		// CURRENT CHUNK LIGHT DELETE ====================================
+		while(bfsqr1.Length > 0){
+			changed[0] = 1;
+
+			current = bfsqr1[0];
+
+			if(visitedr1.Contains(current)){
+				bfsqr1.RemoveAt(0);
+				continue;
+			}
+
+			ScanDeletes(current, (byte)(lightMap1[GetIndex(current)] & 0x0F), (byte)(shadowMap1[GetIndex(current)] & 0x0F), lightMap1, shadowMap1, bfsqr1, visitedr1, borderCode);
+
+			visitedr1.Add(current);
+			bfsqr1.RemoveAt(0);
+		}
+
+		// NEIGHBOR CHUNK LIGHT DELETE ====================================
+		while(bfsqr2.Length > 0){
+			changed[1] = 1;
+
+			current = bfsqr2[0];
+
+			if(visitedr2.Contains(current)){
+				bfsqr2.RemoveAt(0);
+				continue;
+			}
+
+			ScanDeletes(current, (byte)(lightMap2[GetIndex(current)] & 0x0F), (byte)(shadowMap2[GetIndex(current)] & 0x0F), lightMap2, shadowMap2, bfsqr2, visitedr2, borderCode);
+
+			visitedr2.Add(current);
+			bfsqr2.RemoveAt(0);
+		}
+
+		// CURRENT CHUNK LIGHT PROPAG =====================================
+		while(bfsq1.Length > 0){
+			changed[0] = 1;
+
+			current = bfsq1[0];
+
+			if(visited1.Contains(current)){
+				bfsq1.RemoveAt(0);
+				continue;
+			}
+
+			ScanSurroundings(current, (byte)(lightMap1[GetIndex(current)] & 0x0F), true, true, lightMap1, shadowMap1, bfsq1, visited1, borderCode);
+
+			visited1.Add(current);
+			bfsq1.RemoveAt(0);
+		}
+
+		// NEIGHBOR CHUNK LIGHT PROPAG ====================================
+
+		while(bfsq2.Length > 0){
+			changed[1] = 1;
+
+			current = bfsq2[0];
+
+			if(visited2.Contains(current)){
+				bfsq2.RemoveAt(0);
+				continue;
+			}
+
+			ScanSurroundings(current, (byte)(lightMap2[GetIndex(current)] & 0x0F), true, false, lightMap2, shadowMap2, bfsq2, visited2, borderCode);
+
+			visited2.Add(current);
+			bfsq2.RemoveAt(0);
+		}
+	}
+
+	// Finds out which light processing the given shadow border must go through
+	public void ProcessShadowCode(int a, int b, int index1, int index2, byte borderCode){
+		int shadowCode = a+b;
+		int aux;
+
+		if(b < a){
+			aux = b;
+			b = a;
+			a = aux;
+		}
+
+		// 0-2, 0-3, 
+		if((shadowCode == 2 || shadowCode == 3) && a == 0)
+			ApplyShadowWork(1, a > b, index1, index2, borderCode);
+
+		// 0-7, 0-8, 0-9, 0-10
+		else if(shadowCode >= 7 && a == 0)
+			ApplyShadowWork(5, a > b, index1, index2, borderCode);
+
+		// 1-2, 1-3
+		else if(a == 1 && (b == 2 || b == 3))
+			ApplyShadowWork(2, a > b, index1, index2, borderCode);
+
+		// 3-3
+		else if(shadowCode == 6 && a == 3)
+			ApplyShadowWork(3, a > b, index1, index2, borderCode);
+		
+		// 1-7, 1-8, 1-9, 1-10
+		else if(b >= 7 && a == 1)
+			ApplyShadowWork(4, a > b, index1, index2, borderCode);
+
+		// All directionals linked to a 2 or 3 (e.g. 2-7, 3-7, 2-8, 3-8, etc.)
+		else if(b >= 7 && (a == 2 || a == 3))
+			ApplyShadowWork(5, a > b, index1, index2, borderCode);
+	}
+
+	// Applies propagation of light 
+	public void ApplyShadowWork(int workCode, bool normalOrder, int index1, int index2, byte borderCode){
+		// Update border UVs only
+		if(workCode == 1){
+			if(normalOrder)
+				changed[1] = 1;
+			else
+				changed[0] = 1;
+		}
+
+		// Propagate normally and sets the correct shadow direction
+		else if(workCode == 2){
+			if(normalOrder){
+				if((lightMap2[index2] & 0x0F) < ((lightMap1[index1] & 0x0F) -1)){
+					lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) -1));
+					shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+					bfsq2.Add(GetCoord(index2));
+				}
+			}
+			else{
+				if((lightMap1[index1] & 0x0F) < ((lightMap2[index2] & 0x0F) -1)){
+					lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) -1));
+					shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+					bfsq1.Add(GetCoord(index1));
+				}				
+			}
+		}
+
+		// Find which side to propagate
+		else if(workCode == 3){
+			if((lightMap2[index2] & 0x0F) < ((lightMap1[index1] & 0x0F) -1)){
+				lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) -1));
+				shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+				bfsq2.Add(GetCoord(index2));			
+			}
+			else if((lightMap1[index1] & 0x0F) < ((lightMap2[index2] & 0x0F) -1)){
+				lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) -1));
+				shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+				bfsq1.Add(GetCoord(index1));				
+			}
+		}
+
+		// Propagate to a third chunk or dies because of lack of transmitter
+		else if(workCode == 4){
+			if(normalOrder){
+				// If is the same direction, delete
+				if(GetShadowDirection(borderCode, normalOrder) == (shadowMap2[index2] & 0x0F)){
+					bfsqr2.Add(GetCoord(index2));
+				}
+				// If not same direction, propagate
+				else{
+					// If actually can propagate some light
+					if(((lightMap1[index1] & 0xF0) - 1) > 0){
+						lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) - 1));
+						shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | (shadowMap1[index1] & 0x0F));
+						bfsq2.Add(GetCoord(index2));
+					}
+				}
+			}
+			else{
+				// If is the same direction, delete
+				if(GetShadowDirection(borderCode, normalOrder) == (shadowMap1[index1] & 0x0F)){
+					bfsqr1.Add(GetCoord(index1));
+				}
+				// If not same direction, propagate
+				else{
+					// If actually can propagate some light
+					if(((lightMap2[index2] & 0xF0) - 1) > 0){
+						lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) - 1));
+						shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | (shadowMap2[index2] & 0x0F));
+						bfsq1.Add(GetCoord(index1));
+					}
+				}
+			}
+		}
+
+		// If directionals hit transmitters
+		else if(workCode == 5){
+			if(normalOrder){
+				// If not the same direction, try to expand
+				if(GetShadowDirection(borderCode, normalOrder) != (shadowMap2[index2] & 0x0F)){
+					if((lightMap2[index2] & 0x0F) < (lightMap1[index1] & 0x0F) - 1){
+						lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) - 1));
+						shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+					}
+				}
+			}
+			else{
+				// If not the same direction, try to expand
+				if(GetShadowDirection(borderCode, normalOrder) != (shadowMap1[index1] & 0x0F)){
+					if((lightMap1[index1] & 0x0F) < (lightMap1[index2] & 0x0F) - 1){
+						lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) - 1));
+						shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+					}
+				}				
+			}
+		}
+	}
+
+	public byte GetShadowDirection(byte borderCode, bool normalOrder){
+		if(normalOrder)
+			return (byte)(borderCode + 7);
+		else{
+			if(borderCode == 0)
+				return 8;
+			if(borderCode == 1)
+				return 7;
+			if(borderCode == 2)
+				return 10;
+			else
+				return 9;
+		}
+	}
+
+	public int3 GetCoord(int index){
+		int x = index / (chunkWidth*chunkDepth);
+		int y = (index/chunkWidth)%chunkDepth;
+		int z = index%chunkWidth;
+
+		return new int3(x, y, z);
+	}
+
+
+	// Checks the surroundings and adds light fallout
+	public void ScanSurroundings(int3 c, byte currentLight, bool isNatural, bool normalOrder, NativeArray<byte> selectedMap, NativeArray<byte> selectedShadow, NativeList<int3> bfsq, NativeHashSet<int3> visited, byte borderCode){
+		if(currentLight == 1)
+			return;
+
+		int3 aux;
+		int index;
+
+		// East
+		aux = new int3(c.x+1, c.y, c.z);
+
+		if(aux.x < chunkWidth){
+			index = GetIndex(aux);
+
+			if(isNatural){
+				if((selectedMap[index] & 0x0F) < currentLight){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0xF0) + (currentLight-1)));
+					bfsq.Add(aux);
+					selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+					WriteLightUpdateFlag(aux, borderCode);
+				}
+			}
+			else{
+				if((selectedMap[index] >> 4) < currentLight-1){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0x0F) + ((currentLight-1) << 4)));
+					//bfsqExtra.Add(new int4(aux, (currentLight-1)));
+				}					
+			}
+		}
+
+		// West
+		aux = new int3(c.x-1, c.y, c.z);
+
+		if(aux.x >= 0){
+			index = GetIndex(aux);
+
+			if(isNatural){
+				if((selectedMap[index] & 0x0F) < currentLight){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0xF0) + (currentLight-1)));
+					bfsq.Add(aux);
+					selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+					WriteLightUpdateFlag(aux, borderCode);
+				}
+			}
+			else{
+				if((selectedMap[index] >> 4) < currentLight-1){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0x0F) + ((currentLight-1) << 4)));
+					//bfsqExtra.Add(new int4(aux, (currentLight-1)));
+				}					
+			}
+		}	
+
+		// North
+		aux = new int3(c.x, c.y, c.z+1);
+
+		if(aux.z < chunkWidth){
+			index = GetIndex(aux);
+
+			if(isNatural){
+				if((selectedMap[index] & 0x0F) < currentLight){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0xF0) + (currentLight-1)));
+					bfsq.Add(aux);
+					selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+					WriteLightUpdateFlag(aux, borderCode);
+				}
+			}
+			else{
+				if((selectedMap[index] >> 4) < currentLight-1){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0x0F) + ((currentLight-1) << 4)));
+					//bfsqExtra.Add(new int4(aux, (currentLight-1)));
+				}					
+			}
+		}	
+
+		// South
+		aux = new int3(c.x, c.y, c.z-1);
+
+		if(aux.z >= 0){
+			index = GetIndex(aux);
+
+			if(isNatural){
+				if((selectedMap[index] & 0x0F) < currentLight){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0xF0) + (currentLight-1)));
+					bfsq.Add(aux);
+					selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+					WriteLightUpdateFlag(aux, borderCode);
+				}
+			}
+			else{
+				if((selectedMap[index] >> 4) < currentLight-1){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0x0F) + ((currentLight-1) << 4)));
+					//bfsqExtra.Add(new int4(aux, (currentLight-1)));
+				}					
+			}
+		}
+
+		// Up
+		aux = new int3(c.x, c.y+1, c.z);
+
+		if(aux.y < chunkDepth){
+			index = GetIndex(aux);
+
+			if(isNatural){
+				if((selectedMap[index] & 0x0F) < currentLight){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0xF0) + (currentLight-1)));
+					bfsq.Add(aux);
+					selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+					WriteLightUpdateFlag(aux, borderCode);
+				}
+			}
+			else{
+				if((selectedMap[index] >> 4) < currentLight-1){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0x0F) + ((currentLight-1) << 4)));
+					//bfsqExtra.Add(new int4(aux, (currentLight-1)));
+				}					
+			}
+		}
+
+		// Down
+		aux = new int3(c.x, c.y-1, c.z);
+
+		if(aux.y >= 0){
+			index = GetIndex(aux);
+
+			if(isNatural){
+				if((selectedMap[index] & 0x0F) < currentLight){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0xF0) + (currentLight-1)));
+					bfsq.Add(aux);
+					selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
+					WriteLightUpdateFlag(aux, borderCode);
+				}
+			}
+			else{
+				if((selectedMap[index] >> 4) < currentLight-1){
+					selectedMap[index] = (byte)(((selectedMap[index] & 0x0F) + ((currentLight-1) << 4)));
+					//bfsqExtra.Add(new int4(aux, (currentLight-1)));
+				}					
+			}
+		}
+	}
+
+	public void	ScanDeletes(int3 c, byte currentLight, byte currentShadow, NativeArray<byte> selectedMap, NativeArray<byte> selectedShadow, NativeList<int3> bfsqr, NativeHashSet<int3> visitedr, byte borderCode){
+		if(currentLight == 1)
+			return;
+
+		int3 aux;
+		int index;
+
+		// East
+		aux = new int3(c.x+1, c.y, c.z);
+
+		if(aux.x < chunkWidth){
+			index = GetIndex(aux);
+
+			if((selectedMap[index] & 0x0F) == currentLight + 1 && currentShadow == (selectedShadow[index] & 0x0F)){
+				selectedMap[index] = (byte)(selectedMap[index] & 0xF0);
+				selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | 1);
+				bfsqr.Add(aux);
+				WriteLightUpdateFlag(aux, borderCode);
+			}
+		}
+
+		// West
+		aux = new int3(c.x-1, c.y, c.z);
+
+		if(aux.x >= 0){
+			index = GetIndex(aux);
+
+			if((selectedMap[index] & 0x0F) == currentLight + 1 && currentShadow == (selectedShadow[index] & 0x0F)){
+				selectedMap[index] = (byte)(selectedMap[index] & 0xF0);
+				selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | 1);
+				bfsqr.Add(aux);
+				WriteLightUpdateFlag(aux, borderCode);
+			}
+		}
+
+		// North
+		aux = new int3(c.x, c.y, c.z+1);
+
+		if(aux.z < chunkWidth-1){
+			index = GetIndex(aux);
+
+			if((selectedMap[index] & 0x0F) == currentLight + 1 && currentShadow == (selectedShadow[index] & 0x0F)){
+				selectedMap[index] = (byte)(selectedMap[index] & 0xF0);
+				selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | 1);
+				bfsqr.Add(aux);
+				WriteLightUpdateFlag(aux, borderCode);
+			}
+		}
+
+		// South
+		aux = new int3(c.x, c.y, c.z-1);
+
+		if(aux.z >= 0){
+			index = GetIndex(aux);
+
+			if((selectedMap[index] & 0x0F) == currentLight + 1 && currentShadow == (selectedShadow[index] & 0x0F)){
+				selectedMap[index] = (byte)(selectedMap[index] & 0xF0);
+				selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | 1);
+				bfsqr.Add(aux);
+				WriteLightUpdateFlag(aux, borderCode);
+			}
+		}
+
+		// Up
+		aux = new int3(c.x, c.y+1, c.z);
+
+		if(aux.y < chunkDepth-1){
+			index = GetIndex(aux);
+
+			if((selectedMap[index] & 0x0F) == currentLight + 1 && currentShadow == (selectedShadow[index] & 0x0F)){
+				selectedMap[index] = (byte)(selectedMap[index] & 0xF0);
+				selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | 1);
+				bfsqr.Add(aux);
+				WriteLightUpdateFlag(aux, borderCode);
+			}
+		}
+
+		// Down
+		aux = new int3(c.x, c.y-1, c.z);
+
+		if(aux.y >= 0){
+			index = GetIndex(aux);
+
+			if((selectedMap[index] & 0x0F) == currentLight + 1 && currentShadow == (selectedShadow[index] & 0x0F)){
+				selectedMap[index] = (byte)(selectedMap[index] & 0xF0);
+				selectedShadow[index] = (byte)((selectedShadow[index] & 0xF0) | 1);
+				bfsqr.Add(aux);
+				WriteLightUpdateFlag(aux, borderCode);
+			}
+		}
+	}
+
+
+
+	// Adds to further light update flag if playing with directionals
+	public void WriteLightUpdateFlag(int3 aux, byte borderCode){
+		// zp
+		if((borderCode == 0 || borderCode == 1) && (aux.z == chunkWidth-1))
+			changed[3] = (byte)(changed[3] | (1 << 3));
+		// zm
+		else if((borderCode == 0 || borderCode == 1) && (aux.z == 0))
+			changed[3] = (byte)(changed[3] | (1 << 2));
+
+		// xp
+		if((borderCode == 2 || borderCode == 2) && (aux.x == chunkWidth-1))
+			changed[3] = (byte)(changed[3] | (1 << 1));
+		// xm
+		else if((borderCode == 2 || borderCode == 3) && (aux.x == 0))
+			changed[3] = (byte)(changed[3] | (1));
+	}
+
+	public int GetIndex(int3 c){
+		return c.x*chunkWidth*chunkDepth+c.y*chunkWidth+c.z;
+	}
+	public int GetIndex(int x, int y, int z){
+		return x*chunkWidth*chunkDepth+y*chunkWidth+z;
+	}
+
+}
+
+
 public enum Direction{
 	North,
 	East,
@@ -807,8 +1530,20 @@ Extra Light Level [0-16 << 4]
 15: Completely lit up (which is slightly less than Natural Light)
 
 
-
-
 Use the first hexadecimal for natural light and he second for light sources
 0xFF
+*/
+
+/*
+SHADOW DOCUMENTATION
+
+0: Solid
+1: Empty
+2: Direct Sunlight
+3: Transmitted Sunlight
+4-6: [UNUSED]
+7: Received from neighbor chunk in a XM propagation
+8: Received from neighbor chunk in a XP propagation
+9: Received from neighbor chunk in a ZM propagation
+10: Received from neighbor chunk in a ZP propagation
 */
