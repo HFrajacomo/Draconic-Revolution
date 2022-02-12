@@ -460,14 +460,14 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 0);
-                if(updateCode == 1 || updateCode == 3)
+                if((updateCode & 1) == 1 || (updateCode & 3) == 3)
                     updateCurrent = true;
-                if(updateCode == 2 || updateCode == 3)
+                if((updateCode & 2) == 2 || (updateCode & 3) == 3)
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
-                    CheckLightPropagation(neighbor, (byte)(updateCode >> 3));
+                    CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
 
             }
         }
@@ -477,14 +477,14 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 1);
-                if(updateCode == 1 || updateCode == 3)
+                if((updateCode & 1) == 1 || (updateCode & 3) == 3)
                     updateCurrent = true;
-                if(updateCode == 2 || updateCode == 3)
+                if((updateCode & 2) == 2 || (updateCode & 3) == 3)
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
-                    CheckLightPropagation(neighbor, (byte)(updateCode >> 3));
+                    CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // zm
@@ -493,14 +493,14 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 2);
-                if(updateCode == 1 || updateCode == 3)
+                if((updateCode & 1) == 1 || (updateCode & 3) == 3)
                     updateCurrent = true;
-                if(updateCode == 2 || updateCode == 3)
+                if((updateCode & 2) == 2 || (updateCode & 3) == 3)
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
-                    CheckLightPropagation(neighbor, (byte)(updateCode >> 3));
+                    CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // zp
@@ -509,14 +509,14 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 3);
-                if(updateCode == 1 || updateCode == 3)
+                if((updateCode & 1) == 1 || (updateCode & 3) == 3)
                     updateCurrent = true;
-                if(updateCode == 2 || updateCode == 3)
+                if((updateCode & 2) == 2 || (updateCode & 3) == 3)
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
-                    CheckLightPropagation(neighbor, (byte)(updateCode >> 3));
+                    CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
 
