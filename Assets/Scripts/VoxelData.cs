@@ -75,6 +75,7 @@ public class VoxelData
 	1: Update the current chunk
 	2: Update the neighbor chunk
 	3: Update both chunks
+	4: Update Lights in neighbor chunk
 	}
 	*/
 	public static byte PropagateLight(VoxelData a, VoxelData b, byte borderCode){
@@ -451,6 +452,7 @@ public struct CalculateShadowMapJob : IJob{
 					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 					blockCode = data[index];
 					isBlock = blockCode <= ushort.MaxValue/2;
+					shadowMap[index] = (byte)(shadowMap[index] & 0xF0);
 
 					// If is above heightMap
 					if(y > heightMap[x*chunkWidth+z]){
@@ -479,6 +481,9 @@ public struct CalculateShadowMapJob : IJob{
 					if((shadowMap[index] & 0x0F) >= 7){
 						CheckChanged(x, z);
 						continue;
+					}
+					else{
+						shadowMap[index] = (byte)(shadowMap[index] & 0xF0);
 					}
 
 					// If is transparent
@@ -562,6 +567,8 @@ public struct CalculateLightMapJob : IJob{
 	public void Execute(){
 		int3 current;
 		int4 currentExtra;
+
+		FindShadow(3);
 
 		/***************************************
 		Natural Light
@@ -797,6 +804,24 @@ public struct CalculateLightMapJob : IJob{
 						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
 						bfsqExtra.Add(new int4(aux, (currentLight-1)));
 					}					
+				}
+			}
+		}
+	}
+
+	// DEBUG
+	public void FindShadow(int level){
+		int index;
+		int3 pos;
+
+		for(int x=0; x < chunkWidth; x++){
+			for(int y=0; y < chunkDepth; y++){
+				for(int z=0; z < chunkWidth; z++){
+					pos = new int3(x, y, z);
+					index = GetIndex(pos);
+
+					if((shadowMap[index] & 0x0F) == level)
+						Debug.Log("level");
 				}
 			}
 		}
@@ -1107,6 +1132,7 @@ public struct CalculateLightPropagationJob : IJob{
 	public void ProcessShadowCode(int a, int b, int index1, int index2, byte borderCode){
 		int shadowCode = a+b;
 		int aux;
+		bool order = a >= b;
 
 		if(b < a){
 			aux = b;
@@ -1116,31 +1142,31 @@ public struct CalculateLightPropagationJob : IJob{
 
 		// 0-1, 0-2, 0-3, 
 		if((shadowCode == 1 || shadowCode == 2 || shadowCode == 3) && a == 0)
-			ApplyShadowWork(1, a > b, index1, index2, borderCode);
+			ApplyShadowWork(1, order, index1, index2, borderCode);
 
 		// 0-7, 0-8, 0-9, 0-10
 		else if(shadowCode >= 7 && a == 0)
-			ApplyShadowWork(1, a > b, index1, index2, borderCode);
+			ApplyShadowWork(1, order, index1, index2, borderCode);
 
 		// 1-2, 1-3
 		else if(a == 1 && (b == 2 || b == 3))
-			ApplyShadowWork(2, a > b, index1, index2, borderCode);
+			ApplyShadowWork(2, order, index1, index2, borderCode);
 
 		// 3-3
 		else if(shadowCode == 6 && a == 3)
-			ApplyShadowWork(3, a > b, index1, index2, borderCode);
+			ApplyShadowWork(3, order, index1, index2, borderCode);
 		
 		// 1-7, 1-8, 1-9, 1-10
 		else if(b >= 7 && a == 1)
-			ApplyShadowWork(4, a > b, index1, index2, borderCode);
+			ApplyShadowWork(4, order, index1, index2, borderCode);
 
 		// All directionals linked to a 2 or 3 (e.g. 2-7, 3-7, 2-8, 3-8, etc.)
 		else if(b >= 7 && (a == 2 || a == 3))
-			ApplyShadowWork(5, a > b, index1, index2, borderCode);
+			ApplyShadowWork(5, order, index1, index2, borderCode);
 
 		// 2-3
 		else if(a == 2 && b == 3)
-			ApplyShadowWork(6, a > b, index1, index2, borderCode);
+			ApplyShadowWork(6, order, index1, index2, borderCode);
 	}
 
 	// Applies propagation of light 
