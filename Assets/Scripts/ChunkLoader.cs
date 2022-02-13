@@ -447,8 +447,10 @@ public class ChunkLoader : MonoBehaviour
 
         if(flag == 128)
             propagationFlag = this.chunks[pos].data.GetPropagationFlag();
-        else
+        else{
             propagationFlag = flag;
+        }
+
 
         // None
         if(propagationFlag == 0)
@@ -522,7 +524,6 @@ public class ChunkLoader : MonoBehaviour
 
         return updateCurrent;
     }
-
 
     // Gets all chunks around player's render distance
     // GetChunks automatically rebuilds chunks if reload=True
