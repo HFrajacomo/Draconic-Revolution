@@ -439,18 +439,17 @@ public class ChunkLoader : MonoBehaviour
     // Checks if neighbor chunks should have light propagated
     // MUST BE USED AFTER THE CalculateLightMap FUNCTION
     // Returns true if should update current chunk and false if not
-    private bool CheckLightPropagation(ChunkPos pos, byte flag=128){
+    private bool CheckLightPropagation(ChunkPos pos, byte flag=255){
         byte propagationFlag;
         ChunkPos neighbor;
         bool updateCurrent = false;
         byte updateCode = 0;
 
-        if(flag == 128)
+        if(flag == 255)
             propagationFlag = this.chunks[pos].data.GetPropagationFlag();
         else{
             propagationFlag = flag;
         }
-
 
         // None
         if(propagationFlag == 0)
