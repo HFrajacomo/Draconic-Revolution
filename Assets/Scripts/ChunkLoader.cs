@@ -467,8 +467,8 @@ public class ChunkLoader : MonoBehaviour
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
-                //if(updateCode >= 8)
-                    //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
+                if(updateCode >= 8)
+                    CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // xp
@@ -483,8 +483,8 @@ public class ChunkLoader : MonoBehaviour
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
-                //if(updateCode >= 8)
-                    //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
+                if(updateCode >= 8)
+                    CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // zm
@@ -499,8 +499,8 @@ public class ChunkLoader : MonoBehaviour
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
-                //if(updateCode >= 8)
-                    //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
+                if(updateCode >= 8)
+                    CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // zp
@@ -515,8 +515,8 @@ public class ChunkLoader : MonoBehaviour
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
-                //if(updateCode >= 8)
-                   // CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
+                if(updateCode >= 8)
+                   CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
 
