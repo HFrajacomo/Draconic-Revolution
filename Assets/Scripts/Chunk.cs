@@ -955,7 +955,7 @@ public class Chunk
 /*
 MULTITHREADING
 */
-[BurstCompile]
+//[BurstCompile]
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public bool load;
@@ -1397,22 +1397,22 @@ public struct BuildChunkJob : IJob{
     private void CalculateLightCorners(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
     	// North
     	if(dir == 0)
-    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp);
+    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp, 0);
     	// East
     	else if(dir == 1)
-    		SetCorner(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp);
+    		SetCorner(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp, 1);
     	// South
      	else if(dir == 2)
-    		SetCorner(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp);
+    		SetCorner(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp, 2);
     	// West
       	else if(dir == 3)
-    		SetCorner(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp);
+    		SetCorner(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp, 3);
       	// Up
     	else if(dir == 4)
-    		SetCorner(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp);
+    		SetCorner(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp, 4);
     	// Down
      	else
-    		SetCorner(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp);
+    		SetCorner(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp, 5);
     }
 
     private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
@@ -1453,34 +1453,149 @@ public struct BuildChunkJob : IJob{
     		return true;
     }
 
-    private void SetCorner(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    private bool CheckTransient(int facing, bool xm, bool zm, bool xp, bool zp){
+    	if((facing == 0 || facing == 2) && (xm || xp))
+    		return true;
+    	if((facing == 1 || facing == 3) && (zm || zp))
+    		return true;
+    	if((facing == 4 || facing == 5) && (xm || zm || xp || zp))
+    		return true;
+    	return false;
+    }
+
+    private int GetVertexLight(int current, int n, int e, int s, int ne, int se){
+    	int val = 0;
+
+    	// Light from left scenario
+    	if(current < e && e - current == 1){
+    		if(current > n)
+    			val = current << 24;
+    		else
+    			val = n << 24;
+
+    		if(current > s)
+    			val += current;
+    		else
+    			val += s;
+    	}
+    	// Light from right scenario
+    	else if(current > e && current - e == 1){
+    		if(current > n)
+    			val = (current+1) << 24;
+    		else
+    			val = (n+1) << 24;
+
+    		if(current > s)
+    			val += current+1;
+    		else
+    			val += s+1;
+    	}
+    	// Light from above or bottom
+    	else if(current == e){
+    		if(current > n)
+    			val = n << 24;
+    		else
+    			val = current << 24;
+
+    		if(current > s)
+    			val += s;
+    		else
+    			val += current;
+    	}
+
+    	// Enclosed space
+    	else if(n == 0 && s == 0 && e == 0){
+    		val = (current+1) << 24;
+    		val += current+1;
+    	}
+
+    	// No recorded case
+    	else{
+    		val = current << 24;
+    		val += current;
+    	}
+
+
+    	// Populate outer values
+    	val += (Max(current, n, e, ne) << 16);
+    	val += (Max(current, e, s, se) << 8);
+
+    	return val;
+    }
+
+    private int ProcessTransient(int facing, bool xm, bool zm, bool xp, bool zp, int currentLight, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8){
+    	if(facing == 0 && xm)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l1, l4, l5, l8), xm, zm, xp, zp);
+    	if(facing == 0 && xp)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l3, l4, l6, l7), xm, zm, xp, zp);
+    	if(facing == 1 && zm)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l3, l4, l6, l7), xm, zm, xp, zp);
+    	if(facing == 1 && zp)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l1, l4, l5, l8), xm, zm, xp, zp);
+    	if(facing == 2 && xm)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l3, l4, l6, l7), xm, zm, xp, zp);
+    	if(facing == 2 && xp)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l1, l4, l5, l8), xm, zm, xp, zp);
+    	if(facing == 3 && zm)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l1, l4, l5, l8), xm, zm, xp, zp);
+    	if(facing == 3 && zp)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l3, l4, l6, l7), xm, zm, xp, zp);
+    	if(facing == 4 && xm)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l4, l1, l2, l8, l5), xm, zm, xp, zp);
+    	if(facing == 4 && zm)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l1, l2, l3, l5, l6), xm, zm, xp, zp);
+    	if(facing == 5 && xm)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l1, l4, l5, l8), xm, zm, xp, zp);
+    	if(facing == 5 && zm)
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l1, l4, l3, l8, l7), xm, zm, xp, zp);
+    	return 0;
+    }
+
+    // Converts all values to final vertex index
+    private int TransformTransientVertex(int facing, int transientValue, bool xm, bool zm, bool xp, bool zp){
+    	if(facing == 0 || facing == 3 || (facing == 5 && xm))
+    		return ((transientValue >> 8) + (transientValue & 0x000000FF) << 24);
+    	else if(facing == 1 || facing == 2)
+    		return transientValue;
+    	else if(facing == 4 && zm)
+    		return (int)((transientValue & 0xFF000000) + ((transientValue & 0x000000FF) << 16) + (transientValue & 0x0000FF00) + ((transientValue & 0x00FF0000) >> 16));
+    	else if(facing == 4 && xm)
+    		return ((transientValue >> 16) + (transientValue << 16));
+    	else if(facing == 5 && zm)
+    		return (int)((transientValue << 8) + ((transientValue & 0xFF000000) >> 24));
+
+    	return 0;
+    }
+
+    private void SetCorner(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
     	int light1, light2, light3, light4, light5, light6, light7, light8;
     	int3 diagonal = new int3(0,0,0);
+    	int transientValue;
 
     	if(xm || xp || zm || zp || ym || yp){
 	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
 	    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1);
 	    	else
-	    		light1 = currentLightLevel;
+	    		light1 = 0;
 	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
 	    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2);
 	    	else
-	    		light2 = currentLightLevel;
+	    		light2 = 0;
 	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
 	    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3);
 	    	else
-	    		light3 = currentLightLevel;
+	    		light3 = 0;
 	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
 	    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4);
 	    	else
-	    		light4 = currentLightLevel;
+	    		light4 = 0;
 
 	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
 	    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
 	    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
-	    		light5 = currentLightLevel;
+	    		light5 = 0;
 	    	}
 
 	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
@@ -1488,7 +1603,7 @@ public struct BuildChunkJob : IJob{
 	    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
-	    		light6 = currentLightLevel;
+	    		light6 = 0;
 	    	}
 
 	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
@@ -1496,7 +1611,7 @@ public struct BuildChunkJob : IJob{
 	    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
-	    		light7 = currentLightLevel;
+	    		light7 = 0;
 	    	}
 
 	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
@@ -1504,7 +1619,7 @@ public struct BuildChunkJob : IJob{
 	    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
-	    		light8 = currentLightLevel;
+	    		light8 = 0;
 	    	}  	
     	}
     	else{
@@ -1522,6 +1637,15 @@ public struct BuildChunkJob : IJob{
     		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
     		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
     	}
+
+
+		if(CheckTransient(facing, xm, zm, xp, zp)){
+			transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
+			array[0] = new Vector2(transientValue >> 24, 1);
+			array[1] = new Vector2(((transientValue >> 16) & 0x000000FF), 1);
+			array[2] = new Vector2(((transientValue >> 8) & 0x000000FF), 1);
+			array[3] = new Vector2((transientValue & 0x000000FF), 1);
+		}
 
 		array[0] = new Vector2(Max(light1, light2, light5, currentLightLevel), 1);
 		array[1] = new Vector2(Max(light2, light3, light6, currentLightLevel), 1);
@@ -1609,6 +1733,31 @@ public struct BuildChunkJob : IJob{
     Returns the maximum between light levels
     */
     private int Max(int a, int b, int c, int d){
+    	int maximum = a;
+
+    	if(maximum - b < 0)
+    		maximum = b;
+    	if(maximum - c < 0)
+    		maximum = c;
+    	if(maximum - d < 0)
+    		maximum = d;
+    	return maximum;
+    }
+
+    private int MaxBorder(int a, int b, int c, int d, int facing, int index, bool xm, bool zm){
+    	if((facing == 0 || facing == 3) && (index == 1 || index == 2))
+    		return d;
+    	else if((facing == 1 || facing == 2) && (index == 0 || index == 3))
+    		return d;
+    	else if(facing == 4 && zm && (index == 0 || index == 1))
+    		return d;
+    	else if(facing == 4 && xm && (index == 1 || index == 2))
+    		return d;
+    	else if(facing == 5 && xm && (index == 1 || index == 2))
+    		return d;
+    	else if(facing == 5 && zm && (index == 2 || index == 3))
+    		return d;
+
     	int maximum = a;
 
     	if(maximum - b < 0)
