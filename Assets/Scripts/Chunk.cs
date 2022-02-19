@@ -955,7 +955,7 @@ public class Chunk
 /*
 MULTITHREADING
 */
-//[BurstCompile]
+[BurstCompile]
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public bool load;
@@ -1311,14 +1311,6 @@ public struct BuildChunkJob : IJob{
 	    	array[3] = new Vector2(maxLightLevel, 1);
 	    	return;
     	}
-    	// If there's no light
-    	if(currentLightLevel <= 1){
-	    	array[0] = Vector2.zero;
-	    	array[1] = Vector2.zero;
-	    	array[2] = Vector2.zero;
-	    	array[3] = Vector2.zero;
-	    	return;
-    	}
 
     	bool xm = true;
     	bool xp = true;
@@ -1339,6 +1331,33 @@ public struct BuildChunkJob : IJob{
     		ym = false;
     	if(y < Chunk.chunkDepth-1)
     		yp = false;
+
+
+    	// If there's no light
+    	if(currentLightLevel <= 1){
+    		bool found = false;
+
+    		if(!xm && !(dir == 3 && x <= 1))
+    			if(GetNeighborLight(x-1, y, z, dir) > 0)
+    				found = true;
+    		if(!xp && !(dir == 1 && x >= Chunk.chunkWidth-2))
+    			if(GetNeighborLight(x+1, y, z, dir) > 0)
+    				found = true;
+    		if(!zm && !(dir == 2 && z <= 1))
+    			if(GetNeighborLight(x, y, z-1, dir) > 0)
+    				found = true;    		
+    		if(!zp && !(dir == 0 && z >= Chunk.chunkWidth-2))
+    			if(GetNeighborLight(x, y, z+1, dir) > 0)
+    				found = true;  
+
+    		if(!found){
+		    	array[0] = Vector2.zero;
+		    	array[1] = Vector2.zero;
+		    	array[2] = Vector2.zero;
+		    	array[3] = Vector2.zero;
+		    	return;
+		    }
+    	}
 
     	int3 auxPos = new int3(x,y,z) + VoxelData.offsets[dir];
 
@@ -1562,13 +1581,13 @@ public struct BuildChunkJob : IJob{
     // Converts all values to final vertex index
     private int TransformTransientVertex(int facing, int transientValue, bool xm, bool zm, bool xp, bool zp){
     	if(facing == 3)
-    		return transientValue; //return ((transientValue >> 8) + (transientValue & 0x000000FF) << 24);
-    	else if(facing == 5)
     		return transientValue;
     	else if(facing == 0)
     		return transientValue;
-    	else if(facing == 1 || (facing == 2 && xm))
+    	else if(facing == 1)
     		return transientValue;
+    	else if(facing == 2 && xm)
+    		return (transientValue << 24) + (transientValue >> 8);
     	else if(facing == 2 && xp)
     		return (int)((transientValue << 8) + ((transientValue & 0xFF000000) >> 24));
     	else if(facing == 4 && (zm || zp))
@@ -1576,7 +1595,11 @@ public struct BuildChunkJob : IJob{
     	else if(facing == 4 && (xm || xp))
     		return ((transientValue >> 16) + (transientValue << 16));
     	else if(facing == 5 && zm)
-    		return (int)((transientValue << 8) + ((transientValue & 0xFF000000) >> 24));
+    		return transientValue;
+    	else if(facing == 5 && (xm || xp))
+    		return (transientValue << 24) + (transientValue >> 8);
+    	else if(facing == 5 && zp)
+    		return transientValue;
 
     	return 0;
     }
@@ -2433,14 +2456,6 @@ public struct BuildBorderJob : IJob{
 	    	array[3] = new Vector2(maxLightLevel, 1);
 	    	return;
     	}
-    	// If there's no light
-    	if(currentLightLevel <= 1){
-	    	array[0] = Vector2.zero;
-	    	array[1] = Vector2.zero;
-	    	array[2] = Vector2.zero;
-	    	array[3] = Vector2.zero;
-	    	return;
-    	}
 
     	bool xm = true;
     	bool xp = true;
@@ -2461,6 +2476,38 @@ public struct BuildBorderJob : IJob{
     		ym = false;
     	if(y < Chunk.chunkDepth-1)
     		yp = false;
+
+    	// If there's no light
+    	if(currentLightLevel <= 1){
+    		bool found = false;
+
+    		if(dir != 1 && neighborIndex.x != 0)
+    			if(GetOtherLight(neighborIndex.x-1, neighborIndex.y, neighborIndex.z, dir) > 0)
+    				found = true;
+    		if(dir != 3 && neighborIndex.x != Chunk.chunkWidth-1)
+    			if(GetOtherLight(neighborIndex.x+1, neighborIndex.y, neighborIndex.z, dir) > 0)
+    				found = true;
+    		if(dir != 0 && neighborIndex.z != 0)
+    			if(GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z-1, dir) > 0)
+    				found = true;    		
+    		if(dir != 2 && neighborIndex.z != Chunk.chunkWidth)
+    			if(GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z+1, dir) > 0)
+    				found = true;
+    		if(dir != 4 && neighborIndex.y != 0)
+    			if(GetOtherLight(neighborIndex.x, neighborIndex.y-1, neighborIndex.z, dir) > 0)
+    				found = true;
+    		if(dir != 5 && neighborIndex.y != Chunk.chunkDepth-1)
+    			if(GetOtherLight(neighborIndex.x, neighborIndex.y+1, neighborIndex.z, dir) > 0)
+    				found = true;
+
+    		if(!found){
+		    	array[0] = Vector2.zero;
+		    	array[1] = Vector2.zero;
+		    	array[2] = Vector2.zero;
+		    	array[3] = Vector2.zero;
+		    	return;
+		    }
+    	}
 
     	CalculateLightCorners(neighborIndex, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
     }
@@ -2612,13 +2659,15 @@ public struct BuildBorderJob : IJob{
     // Converts all values to final vertex index
     private int TransformTransientVertex(int facing, int transientValue, bool xm, bool zm, bool xp, bool zp){
     	if(facing == 3)
-    		return transientValue; //return ((transientValue >> 8) + (transientValue & 0x000000FF) << 24);
+    		return transientValue;
     	else if(facing == 5)
     		return transientValue;
     	else if(facing == 0)
     		return transientValue;
-    	else if(facing == 1 || (facing == 2 && xm))
+    	else if((facing == 1 && zm) || (facing == 2 && xm))
     		return transientValue;
+    	else if(facing == 1 && zp)
+    		return (transientValue >> 16) + (transientValue << 16);
     	else if(facing == 2 && xp)
     		return (int)((transientValue << 8) + ((transientValue & 0xFF000000) >> 24));
     	else if(facing == 4 && (zm || zp))
@@ -2638,25 +2687,25 @@ public struct BuildBorderJob : IJob{
 
     	if(xm || xp || zm || zp || ym || yp){
 	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
-	    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1);
+	    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1);
 	    	else
 	    		light1 = 0;
 	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
-	    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2);
+	    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2);
 	    	else
 	    		light2 = 0;
 	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
-	    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3);
+	    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3);
 	    	else
 	    		light3 = 0;
 	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
-	    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4);
+	    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4);
 	    	else
 	    		light4 = 0;
 
 	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
 	    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
-	    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
+	    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
 	    		light5 = 0;
@@ -2664,7 +2713,7 @@ public struct BuildBorderJob : IJob{
 
 	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
 	    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
-	    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
+	    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
 	    		light6 = 0;
@@ -2672,7 +2721,7 @@ public struct BuildBorderJob : IJob{
 
 	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
 	    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
-	    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
+	    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
 	    		light7 = 0;
@@ -2680,26 +2729,26 @@ public struct BuildBorderJob : IJob{
 
 	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
 	    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
-	    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
+	    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
 	    		light8 = 0;
 	    	}  	
     	}
     	else{
-    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1);
-    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2);
-    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3);
-    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4);
+    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1);
+    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2);
+    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3);
+    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4);
 
     		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
-    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
+    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
     		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
-    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
+    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
     		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
-    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
+    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
     		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
-    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
+    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal);
     	}
 
 
