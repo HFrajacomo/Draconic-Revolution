@@ -22,6 +22,7 @@ public class ChunkLoader : MonoBehaviour
     public List<ChunkPos> toDraw = new List<ChunkPos>();
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
     public List<ChunkPos> toUpdateNoLight = new List<ChunkPos>();
+    public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 	public BlockEncyclopedia blockBook;
     public VFXLoader vfx;
     public TimeOfDay time;
@@ -468,7 +469,8 @@ public class ChunkLoader : MonoBehaviour
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
-                    CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
+                    //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // xp
@@ -484,7 +486,8 @@ public class ChunkLoader : MonoBehaviour
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
-                    CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
+                    //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // zm
@@ -500,7 +503,8 @@ public class ChunkLoader : MonoBehaviour
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
-                    CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
+                    //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // zp
@@ -516,12 +520,24 @@ public class ChunkLoader : MonoBehaviour
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
-                   CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
+                   //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
+        }
+
+        while(toCallLightCascade.Count > 0){
+            ChunkLightPropagInfo info = toCallLightCascade[0];
+            toCallLightCascade.RemoveAt(0);
+
+            CheckLightPropagation(info);
         }
 
         return updateCurrent;
     }
+    private bool CheckLightPropagation(ChunkLightPropagInfo info){
+        return CheckLightPropagation(info.pos, info.propagationFlag);
+    }
+
 
     // Gets all chunks around player's render distance
     // GetChunks automatically rebuilds chunks if reload=True
@@ -837,3 +853,12 @@ public struct ChunkPos{
 	}
 }
 
+public struct ChunkLightPropagInfo{
+    public ChunkPos pos;
+    public byte propagationFlag;
+
+    public ChunkLightPropagInfo(ChunkPos a, byte flag){
+        this.pos = a;
+        this.propagationFlag = flag;
+    }
+}
