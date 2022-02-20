@@ -1582,10 +1582,14 @@ public struct BuildChunkJob : IJob{
     private int TransformTransientVertex(int facing, int transientValue, bool xm, bool zm, bool xp, bool zp){
     	if(facing == 3)
     		return transientValue;
-    	else if(facing == 0)
+    	else if(facing == 0 && xp)
     		return transientValue;
-    	else if(facing == 1)
+    	else if(facing == 0 && xm)
+    		return (transientValue << 16) + (transientValue >> 16);
+    	else if(facing == 1 && zm)
     		return transientValue;
+    	else if(facing == 1 && zp)
+    		return (transientValue << 16) + (transientValue >> 16);
     	else if(facing == 2 && xm)
     		return (transientValue << 24) + (transientValue >> 8);
     	else if(facing == 2 && xp)
@@ -1595,11 +1599,13 @@ public struct BuildChunkJob : IJob{
     	else if(facing == 4 && (xm || xp))
     		return ((transientValue >> 16) + (transientValue << 16));
     	else if(facing == 5 && zm)
-    		return transientValue;
-    	else if(facing == 5 && (xm || xp))
-    		return (transientValue << 24) + (transientValue >> 8);
+    		return (transientValue >> 8) + (transientValue << 24);
+    	else if(facing == 5 && xp)
+    		return (transientValue << 8) + (transientValue >> 24);
+    	else if(facing == 5 && xm)
+    		return (transientValue >> 8) + (transientValue << 24);
     	else if(facing == 5 && zp)
-    		return transientValue;
+    		return (transientValue >> 24) + (transientValue << 8);
 
     	return 0;
     }
