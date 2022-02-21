@@ -470,7 +470,6 @@ public class ChunkLoader : MonoBehaviour
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
-                    //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // xp
@@ -487,7 +486,6 @@ public class ChunkLoader : MonoBehaviour
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
-                    //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // zm
@@ -504,7 +502,6 @@ public class ChunkLoader : MonoBehaviour
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
-                    //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
         // zp
@@ -521,7 +518,6 @@ public class ChunkLoader : MonoBehaviour
                     AddToUpdate(neighbor, noLight:false);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
-                   //CheckLightPropagation(neighbor, flag:(byte)(updateCode >> 3));
             }
         }
 

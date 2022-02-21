@@ -19,7 +19,7 @@ public class VoxelData
 	private byte[] shadowMap;
 	private byte[] lightMap;
 
-	private byte PROPAGATE_LIGHT_FLAG = 0; // 0 = no; 1 = xm; 2 = xp, 4 = zm, 8 = zp
+	private byte PROPAGATE_LIGHT_FLAG = 0; // 0 = no, 1 = xm, 2 = xp, 4 = zm, 8 = zp
 
 	public static readonly int3[] offsets = new int3[]{
 		new int3(0,0,1),
@@ -163,9 +163,8 @@ public class VoxelData
 			shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		else
 			shadowMap = NativeTools.CopyToNative(this.shadowMap);
-		if(this.lightMap == null){
+		if(this.lightMap == null)
 			lightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		}
 		else
 			lightMap = NativeTools.CopyToNative(this.lightMap);
 
@@ -453,7 +452,6 @@ public struct CalculateShadowMapJob : IJob{
 					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 					blockCode = data[index];
 					isBlock = blockCode <= ushort.MaxValue/2;
-					shadowMap[index] = (byte)(shadowMap[index] & 0xF0);
 
 					// If is above heightMap
 					if(y > heightMap[x*chunkWidth+z]){
@@ -661,8 +659,6 @@ public struct CalculateLightMapJob : IJob{
 	// Checks the surroundings and adds light fallout
 	public void ScanSurroundings(int3 c, byte currentLight, bool isNatural){
 		if(currentLight == 1)
-			return;
-		if(isNatural && currentLight == 2)
 			return;
 
 		int3 aux;
@@ -909,28 +905,28 @@ public struct CalculateLightMapJob : IJob{
 
 		if(xm){
 			shadow = (byte)(shadowMap[GetIndex(x-1, y, z)] & 0x0F);
-			if(shadow != 2){
+			if(shadow != 2 && shadow != 0){
 				bfsq.Add(new int3(x, y, z));
 				return true;
 			}
 		}
 		if(xp){
 			shadow = (byte)(shadowMap[GetIndex(x+1, y, z)] & 0x0F);
-			if(shadow != 2){
+			if(shadow != 2 && shadow != 0){
 				bfsq.Add(new int3(x, y, z));
 				return true;
 			}
 		}
 		if(zm){
 			shadow = (byte)(shadowMap[GetIndex(x, y, z-1)] & 0x0F);
-			if(shadow != 2){
+			if(shadow != 2 && shadow != 0){
 				bfsq.Add(new int3(x, y, z));
 				return true;
 			}
 		}
 		if(zp){
 			shadow = (byte)(shadowMap[GetIndex(x, y, z+1)] & 0x0F);
-			if(shadow != 2){
+			if(shadow != 2 && shadow != 0){
 				bfsq.Add(new int3(x, y, z));
 				return true;
 			}
@@ -938,6 +934,7 @@ public struct CalculateLightMapJob : IJob{
 
 		return false;
 	}
+
 }
 
 
@@ -1033,11 +1030,11 @@ public struct CalculateLightPropagationJob : IJob{
 					continue;
 				}
 
-				lightMap1[GetIndex(current)] = (byte)(lightMap1[GetIndex(current)] & 0xF0);
 				WriteLightUpdateFlag(current, borderCode);
 
 				ScanDeletes(current, (byte)(lightMap1[GetIndex(current)] & 0x0F), (byte)(shadowMap1[GetIndex(current)] & 0x0F), lightMap1, shadowMap1, bfsqr1, visitedr1, borderCode);
 
+				lightMap1[GetIndex(current)] = (byte)(lightMap1[GetIndex(current)] & 0xF0);
 				shadowMap1[GetIndex(current)] = (byte)((shadowMap1[GetIndex(current)] & 0xF0) | 1);
 
 				visitedr1.Add(current);
@@ -1056,11 +1053,11 @@ public struct CalculateLightPropagationJob : IJob{
 					continue;
 				}
 
-				lightMap2[GetIndex(current)] = (byte)(lightMap2[GetIndex(current)] & 0xF0);
 				WriteLightUpdateFlag(current, borderCode);
 
 				ScanDeletes(current, (byte)(lightMap2[GetIndex(current)] & 0x0F), (byte)(shadowMap2[GetIndex(current)] & 0x0F), lightMap2, shadowMap2, bfsqr2, visitedr2, borderCode);
 
+				lightMap2[GetIndex(current)] = (byte)(lightMap2[GetIndex(current)] & 0xF0);
 				shadowMap2[GetIndex(current)] = (byte)((shadowMap2[GetIndex(current)] & 0xF0) | 1);
 
 				visitedr2.Add(current);
