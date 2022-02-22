@@ -440,7 +440,7 @@ public class ChunkLoader : MonoBehaviour
     // Checks if neighbor chunks should have light propagated
     // MUST BE USED AFTER THE CalculateLightMap FUNCTION
     // Returns true if should update current chunk and false if not
-    private bool CheckLightPropagation(ChunkPos pos, byte flag=255){
+    public bool CheckLightPropagation(ChunkPos pos, byte flag=255){
         byte propagationFlag;
         ChunkPos neighbor;
         bool updateCurrent = false;
@@ -462,12 +462,13 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 0);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    updateCurrent = true;
                 if((updateCode & 7) == 2 || (updateCode & 7) == 3)
                     AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 4) == 4)
+                if((updateCode & 4) == 4){
                     AddToUpdate(neighbor, noLight:false);
+                }
+                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+                    AddToUpdate(pos, noLight:false);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
             }
@@ -478,12 +479,13 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 1);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    updateCurrent = true;
                 if((updateCode & 7) == 2 || (updateCode & 7) == 3)
                     AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 4) == 4)
+                if((updateCode & 4) == 4){
                     AddToUpdate(neighbor, noLight:false);
+                }
+                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+                    AddToUpdate(pos, noLight:false);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
             }
@@ -494,15 +496,17 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 2);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    updateCurrent = true;
                 if((updateCode & 7) == 2 || (updateCode & 7) == 3)
                     AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 4) == 4)
+                if((updateCode & 4) == 4){
                     AddToUpdate(neighbor, noLight:false);
+                }
+                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+                    AddToUpdate(pos, noLight:false);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
             }
+
         }
         // zp
         if((propagationFlag & 8) != 0){
@@ -510,12 +514,13 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 3);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    updateCurrent = true;
                 if((updateCode & 7) == 2 || (updateCode & 7) == 3)
                     AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 4) == 4)
+                if((updateCode & 4) == 4){
                     AddToUpdate(neighbor, noLight:false);
+                }
+                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+                    AddToUpdate(pos, noLight:false);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
             }

@@ -1599,11 +1599,11 @@ public struct BuildChunkJob : IJob{
     	else if(facing == 4 && (xm || xp))
     		return ((transientValue >> 16) + (transientValue << 16));
     	else if(facing == 5 && zm)
-    		return (transientValue >> 8) + (transientValue << 24);
+    		return (int)(((transientValue & 0xFF000000) >> 8) + ((transientValue & 0x00FF0000) << 8) + ((transientValue & 0x0000FF00) >> 8) + ((transientValue & 0x000000FF) << 8));
     	else if(facing == 5 && xp)
     		return (transientValue << 8) + (transientValue >> 24);
     	else if(facing == 5 && xm)
-    		return (transientValue >> 8) + (transientValue << 24);
+    		return (transientValue << 8) + (transientValue >> 24);//(transientValue >> 8) + (transientValue << 24);
     	else if(facing == 5 && zp)
     		return (transientValue >> 24) + (transientValue << 8);
 
