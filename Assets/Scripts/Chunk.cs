@@ -955,7 +955,7 @@ public class Chunk
 /*
 MULTITHREADING
 */
-[BurstCompile]
+//[BurstCompile]
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public bool load;
@@ -1509,8 +1509,27 @@ public struct BuildChunkJob : IJob{
     		else
     			val += s+1;
     	}
+    	// If everything around is the same light level
+    	else if((current == e && current == n && current == ne) || (current == e && current == se && current == s)){
+    		val = current;
+    		val <<= 8;
+    		val += current;
+    		val <<= 8;
+    		val += current;
+    		val <<= 8;
+    		val += current;
+    		return val;
+    	}
     	// Light from above or bottom
     	else if(current == e){
+    		// hotfix
+    		if(current > 1){
+    			if(n == 0)
+    				n = current;
+    			if(s == 0)
+    				s = current;
+    		}
+
     		if(current > n)
     			val = n << 24;
     		else
@@ -1591,7 +1610,7 @@ public struct BuildChunkJob : IJob{
     	else if(facing == 1 && zp)
     		return (transientValue << 16) + (transientValue >> 16);
     	else if(facing == 2 && xm)
-    		return (transientValue << 24) + (transientValue >> 8);
+    		return (transientValue << 16) + (transientValue >> 16);
     	else if(facing == 2 && xp)
     		return (int)((transientValue << 8) + ((transientValue & 0xFF000000) >> 24));
     	else if(facing == 4 && (zm || zp))
@@ -1603,7 +1622,7 @@ public struct BuildChunkJob : IJob{
     	else if(facing == 5 && xp)
     		return (transientValue << 8) + (transientValue >> 24);
     	else if(facing == 5 && xm)
-    		return (transientValue << 8) + (transientValue >> 24);//(transientValue >> 8) + (transientValue << 24);
+    		return (transientValue << 8) + (transientValue >> 24);
     	else if(facing == 5 && zp)
     		return (transientValue >> 24) + (transientValue << 8);
 
@@ -1619,26 +1638,26 @@ public struct BuildChunkJob : IJob{
 	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
 	    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1);
 	    	else
-	    		light1 = 0;
+	    		light1 = currentLightLevel;
 	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
 	    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2);
 	    	else
-	    		light2 = 0;
+	    		light2 = currentLightLevel;
 	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
 	    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3);
 	    	else
-	    		light3 = 0;
+	    		light3 = currentLightLevel;
 	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
 	    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4);
 	    	else
-	    		light4 = 0;
+	    		light4 = currentLightLevel;
 
 	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
 	    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
 	    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
-	    		light5 = 0;
+	    		light5 = currentLightLevel;
 	    	}
 
 	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
@@ -1646,7 +1665,7 @@ public struct BuildChunkJob : IJob{
 	    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
-	    		light6 = 0;
+	    		light6 = currentLightLevel;
 	    	}
 
 	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
@@ -1654,7 +1673,7 @@ public struct BuildChunkJob : IJob{
 	    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
-	    		light7 = 0;
+	    		light7 = currentLightLevel;
 	    	}
 
 	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
@@ -1662,7 +1681,7 @@ public struct BuildChunkJob : IJob{
 	    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
 	    	}
 	    	else{
-	    		light8 = 0;
+	    		light8 = currentLightLevel;
 	    	}  	
     	}
     	else{
