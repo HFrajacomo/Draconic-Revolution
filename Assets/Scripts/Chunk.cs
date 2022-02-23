@@ -1591,9 +1591,9 @@ public struct BuildChunkJob : IJob{
     	if(facing == 5 && xp)
     		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l3, l4, l6, l7), xm, zm, xp, zp);
     	if(facing == 5 && zm)
-    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l1, l4, l3, l8, l7), xm, zm, xp, zp);
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l1, l4, l5, l8), xm, zm, xp, zp);
     	if(facing == 5 && zp)
-    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l1, l2, l3, l5, l6), xm, zm, xp, zp);
+    		return TransformTransientVertex(facing, GetVertexLight(currentLight, l2, l3, l4, l6, l7), xm, zm, xp, zp);
     	return 0;
     }
 
@@ -1618,13 +1618,13 @@ public struct BuildChunkJob : IJob{
     	else if(facing == 4 && (xm || xp))
     		return ((transientValue >> 16) + (transientValue << 16));
     	else if(facing == 5 && zm)
-    		return (transientValue << 8) + (transientValue >> 24);//(int)(((transientValue & 0xFF000000) >> 24) + ((transientValue & 0x0000FF00) << 8) + ((transientValue & 0x000000FF) << 24) + ((transientValue & 0x00FF0000) >> 16));
+    		return (int)(((transientValue & 0xFF000000) >> 8) + ((transientValue & 0x00FF0000) << 8) + ((transientValue & 0x0000FF00) >> 8) + ((transientValue & 0x000000FF) << 8));
+    	else if(facing == 5 && zp)
+    		return 0;//(int)(((transientValue & 0xFF000000) >> 8) + ((transientValue & 0x00FF0000) << 8) + ((transientValue & 0x0000FF00) >> 8) + ((transientValue & 0x000000FF) << 8));
     	else if(facing == 5 && xp)
     		return transientValue;
     	else if(facing == 5 && xm)
     		return (transientValue << 8) + (transientValue >> 24);
-    	else if(facing == 5 && zp)
-    		return (transientValue >> 24) + (transientValue << 8);
 
     	return 0;
     }
@@ -1699,7 +1699,6 @@ public struct BuildChunkJob : IJob{
     		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
     		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal);
     	}
-
 
 		if(CheckTransient(facing, xm, zm, xp, zp)){
 			transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
