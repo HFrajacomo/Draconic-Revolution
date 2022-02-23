@@ -1610,17 +1610,17 @@ public struct BuildChunkJob : IJob{
     	else if(facing == 1 && zp)
     		return (transientValue << 16) + (transientValue >> 16);
     	else if(facing == 2 && xm)
-    		return (transientValue << 16) + (transientValue >> 16);
+    		return transientValue;
     	else if(facing == 2 && xp)
-    		return (int)((transientValue << 8) + ((transientValue & 0xFF000000) >> 24));
+    		return (int)((transientValue >> 8) + (transientValue << 24));
     	else if(facing == 4 && (zm || zp))
     		return (int)((transientValue & 0xFF000000) + ((transientValue & 0x000000FF) << 16) + (transientValue & 0x0000FF00) + ((transientValue & 0x00FF0000) >> 16));
     	else if(facing == 4 && (xm || xp))
     		return ((transientValue >> 16) + (transientValue << 16));
     	else if(facing == 5 && zm)
-    		return (int)(((transientValue & 0xFF000000) >> 8) + ((transientValue & 0x00FF0000) << 8) + ((transientValue & 0x0000FF00) >> 8) + ((transientValue & 0x000000FF) << 8));
+    		return (transientValue << 8) + (transientValue >> 24);//(int)(((transientValue & 0xFF000000) >> 24) + ((transientValue & 0x0000FF00) << 8) + ((transientValue & 0x000000FF) << 24) + ((transientValue & 0x00FF0000) >> 16));
     	else if(facing == 5 && xp)
-    		return (transientValue << 8) + (transientValue >> 24);
+    		return transientValue;
     	else if(facing == 5 && xm)
     		return (transientValue << 8) + (transientValue >> 24);
     	else if(facing == 5 && zp)
