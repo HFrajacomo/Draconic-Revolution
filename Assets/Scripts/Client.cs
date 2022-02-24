@@ -226,6 +226,7 @@ public class Client
 	// Sends a byte[] to the server
 	public bool Send(byte[] data, int length){
 		try{
+			
 			IAsyncResult lenResult = this.socket.BeginSend(this.LengthPacket(length), 0, 4, 0, out this.err, null, null);
 			this.socket.EndSend(lenResult);
 
@@ -234,6 +235,12 @@ public class Client
 
 			NetMessage.Broadcast(NetBroadcast.SENT, data[0], 0, length);
 			return true;
+			
+			/*
+			this.socket.Send(this.LengthPacket(length), 4, SocketFlags.None);
+			this.socket.Send(data, length, SocketFlags.None);
+			return true;
+			*/
 		}
 		catch(Exception e){
 			Debug.Log("SEND ERROR: " + e.ToString());
