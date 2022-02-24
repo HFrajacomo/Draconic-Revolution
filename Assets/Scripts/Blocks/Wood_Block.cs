@@ -30,7 +30,6 @@ public class Wood_Block : Blocks
 
 	public Wood_Block(){
 		this.name = "Wood";
-		this.materialIndex = 0;
 		this.solid = true;
 		this.transparent = 0;
 		this.invisible = false;

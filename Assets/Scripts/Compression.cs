@@ -301,20 +301,20 @@ public static class Compression{
 				return new List<ushort>{0,3,6, (ushort)(ushort.MaxValue/2)}; // Air, Stone and Water (and pregen air)
 
 			case Pallete.GRASSLANDS:
-				return new List<ushort>{0,1,2,3,6,ushort.MaxValue-2, (ushort)(ushort.MaxValue/2)}; // Air, Grass, Dirt, Stone, Water and Leaves (and pregen air)
+				return new List<ushort>{0,1,2,3,6,7, (ushort)(ushort.MaxValue/2)}; // Air, Grass, Dirt, Stone, Water and Leaves (and pregen air)
 
 			case Pallete.OCEAN:
 				return new List<ushort>{0,2,3,6, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone and Water (and pregen air)
 
 			case Pallete.FOREST:
-				return new List<ushort>{0,2,3,6,65534, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone, Water and Leaves (and pregen air)
+				return new List<ushort>{0,2,3,6,7, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone, Water and Leaves (and pregen air)
 
 			// Special Pallete used for Metadata Compression
 			case Pallete.METADATA:
 				return new List<ushort>{0,1,ushort.MaxValue};
 
 			default:
-				return new List<ushort>{0,3,6,ushort.MaxValue-2, (ushort)(ushort.MaxValue/2)}; // Returns Pallete.BASIC
+				return new List<ushort>{0,3,6, (ushort)(ushort.MaxValue/2)}; // Returns Pallete.BASIC
 		}
 	}
 

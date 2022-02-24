@@ -8,14 +8,14 @@ public class BlockEncyclopediaECS
 {
 	public static byte[] blockTransparent;
 	public static byte[] objectTransparent;
-	public static bool[] blockLiquid;
-	public static bool[] objectLiquid;
+	public static bool[] blockSeamless;
+	public static bool[] objectSeamless;
 	public static bool[] blockLoad;
 	public static bool[] objectLoad;
 	public static bool[] blockInvisible;
 	public static bool[] objectInvisible;
-	public static byte[] blockMaterial;
-	public static byte[] objectMaterial;
+	public static ShaderIndex[] blockShader;
+	public static ShaderIndex[] objectShader;
 	public static int3[] blockTiles; // [tileTop, tileBottom, tileSide]
 	public static Vector3[] objectScaling;
 	public static bool[] objectNeedRotation;
@@ -29,14 +29,14 @@ public class BlockEncyclopediaECS
 	public BlockEncyclopediaECS(int amountBlocks, int amountObjects){
 		BlockEncyclopediaECS.blockTransparent = new byte[amountBlocks];
 		BlockEncyclopediaECS.objectTransparent = new byte[amountObjects];
-		BlockEncyclopediaECS.blockLiquid = new bool[amountBlocks];
-		BlockEncyclopediaECS.objectLiquid = new bool[amountObjects];
+		BlockEncyclopediaECS.blockSeamless = new bool[amountBlocks];
+		BlockEncyclopediaECS.objectSeamless = new bool[amountObjects];
 		BlockEncyclopediaECS.blockLoad = new bool[amountBlocks];
 		BlockEncyclopediaECS.objectLoad = new bool[amountObjects];
 		BlockEncyclopediaECS.blockInvisible = new bool[amountBlocks];
 		BlockEncyclopediaECS.objectInvisible = new bool[amountObjects];
-		BlockEncyclopediaECS.blockMaterial = new byte[amountBlocks];
-		BlockEncyclopediaECS.objectMaterial = new byte[amountObjects];
+		BlockEncyclopediaECS.blockShader = new ShaderIndex[amountBlocks];
+		BlockEncyclopediaECS.objectShader = new ShaderIndex[amountObjects];
 		BlockEncyclopediaECS.blockTiles = new int3[amountBlocks];
 		BlockEncyclopediaECS.objectScaling = new Vector3[amountObjects];		
 		BlockEncyclopediaECS.objectNeedRotation = new bool[amountObjects];

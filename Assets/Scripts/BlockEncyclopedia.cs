@@ -20,10 +20,10 @@ public class BlockEncyclopedia : MonoBehaviour
         for(int i=0;i<Blocks.blockCount;i++){
         	blocks[i] = Blocks.Block(i);
             BlockEncyclopediaECS.blockTransparent[i] = blocks[i].transparent;
-            BlockEncyclopediaECS.blockLiquid[i] = blocks[i].liquid;
+            BlockEncyclopediaECS.blockSeamless[i] = blocks[i].seamless;
             BlockEncyclopediaECS.blockLoad[i] = blocks[i].hasLoadEvent;
             BlockEncyclopediaECS.blockInvisible[i] = blocks[i].invisible;
-            BlockEncyclopediaECS.blockMaterial[i] = blocks[i].materialIndex;
+            BlockEncyclopediaECS.blockShader[i] = blocks[i].shaderIndex;
             BlockEncyclopediaECS.blockTiles[i] = new int3(blocks[i].tileTop, blocks[i].tileBottom, blocks[i].tileSide);
             BlockEncyclopediaECS.blockWashable[i] = blocks[i].washable;
             BlockEncyclopediaECS.blockAffectLight[i] = blocks[i].affectLight;
@@ -34,10 +34,10 @@ public class BlockEncyclopedia : MonoBehaviour
         for(int i=0;i<BlocklikeObject.objectCount;i++){
         	objects[i] = BlocklikeObject.Create(i, isClient);
             BlockEncyclopediaECS.objectTransparent[i] = objects[i].transparent;
-            BlockEncyclopediaECS.objectLiquid[i] = objects[i].liquid;
+            BlockEncyclopediaECS.objectSeamless[i] = objects[i].seamless;
             BlockEncyclopediaECS.objectLoad[i] = objects[i].hasLoadEvent;
             BlockEncyclopediaECS.objectInvisible[i] = objects[i].invisible;
-            BlockEncyclopediaECS.objectMaterial[i] = objects[i].materialIndex;
+            BlockEncyclopediaECS.objectShader[i] = objects[i].shaderIndex;
             BlockEncyclopediaECS.objectScaling[i] = objects[i].scaling;
             BlockEncyclopediaECS.objectNeedRotation[i] = objects[i].needsRotation;
             BlockEncyclopediaECS.objectWashable[i] = objects[i].washable;

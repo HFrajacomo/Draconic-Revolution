@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Leaf_Object : BlocklikeObject
+public class Leaf_Block : Blocks
 {
 
 	List<CastCoord> openList = new List<CastCoord>();
@@ -13,23 +13,19 @@ public class Leaf_Object : BlocklikeObject
 	int maxDecayTime = 30;
 	int decayDistance = 7;
 	ushort assignedWoodCode = 4;
-	ushort thisCode = ushort.MaxValue-1;
+	ushort thisCode = 7;
 	NetMessage reloadMessage;
 
-	public Leaf_Object(bool isClient){
+	public Leaf_Block(){
 		this.name = "Leaf";
+		this.shaderIndex = ShaderIndex.LEAVES;
 		this.solid = false;
 		this.transparent = 1;
 		this.invisible = false;
 		this.liquid = false;
 		this.hasLoadEvent = false;
 		this.affectLight = false;
-
-		if(isClient){
-			this.go = GameObject.Find("----- PrefabObjects -----/Leaf_Object");
-			this.mesh = this.go.GetComponent<MeshFilter>().sharedMesh;
-			this.scaling = new Vector3(50, 50, 50);
-		}
+		this.seamless = true;
 	}
 
 	// Makes Wood Block have state 1 when unnaturally placed

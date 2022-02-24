@@ -7,7 +7,6 @@ public class Air_Block : Blocks
 	// Just loaded block
 	public Air_Block(){
 		this.name = "Air";
-		this.materialIndex = 0;
 		this.solid = false;
 		this.transparent = 1;
 		this.invisible = true;

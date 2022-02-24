@@ -47,7 +47,7 @@ public class Water_Block : Blocks
 
 	// Just loaded block
 	public Water_Block(){
-		this.materialIndex = 2; // Liquid
+		this.shaderIndex = ShaderIndex.WATER; // Liquid
 		this.name = "Water";
 		this.solid = false;
 		this.transparent = 1;
@@ -58,6 +58,7 @@ public class Water_Block : Blocks
 		this.customPlace = true;
 		this.hasLoadEvent = true;
 		this.affectLight = true;
+		this.seamless = true;
 		this.viscosityDelay = 12;
 
 		this.aroundCodes = new ushort[8];
