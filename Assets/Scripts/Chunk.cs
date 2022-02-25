@@ -321,12 +321,13 @@ public class Chunk
 
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
+			this.message = new NetMessage(NetCode.BATCHLOADBUD);
+			this.message.BatchLoadBUD(this.pos);
+
 			foreach(int3 coord in coordArray){
-				// SEND BUD
-				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 			}			
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			toLoadEvent.Clear();
 		}
 
@@ -385,12 +386,13 @@ public class Chunk
 
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
+			this.message = new NetMessage(NetCode.BATCHLOADBUD);
+			this.message.BatchLoadBUD(this.pos);
 			foreach(int3 coord in coordArray){
-				// SEND BUD
-				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}			
+				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			}
+
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			toLoadEvent.Clear();
 		}
 
@@ -449,12 +451,12 @@ public class Chunk
 
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
+			this.message = new NetMessage(NetCode.BATCHLOADBUD);
+			this.message.BatchLoadBUD(this.pos);
 			foreach(int3 coord in coordArray){
-				// SEND BUD
-				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}			
+				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			}
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			toLoadEvent.Clear();
 		}
 
@@ -513,23 +515,27 @@ public class Chunk
 
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
+			this.message = new NetMessage(NetCode.BATCHLOADBUD);
+			this.message.BatchLoadBUD(this.pos);
 			foreach(int3 coord in coordArray){
-				// SEND BUD
-				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}			
+				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			}
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			toLoadEvent.Clear();
 		}
 
+		this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+
 		// Runs BUD in neighbor chunks
 		budArray = toBUD.AsArray().ToArray();
+		this.message = new NetMessage(NetCode.BATCHLOADBUD);
+		this.message.BatchLoadBUD(this.pos);
+
 		foreach(int3 bu in budArray){
-			// SEND BUD
-			this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-			this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, bu.x, bu.y, bu.z, 0, 0, 0, ushort.MaxValue);
-			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+			this.message.AddBatchLoad(bu.x, bu.y, bu.z, 0, 0, 0, ushort.MaxValue);
 		}
+
+		this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 		
 		// If mesh wasn't redrawn
 		if(changed){
@@ -703,26 +709,26 @@ public class Chunk
 
 
 		// ToLoad() Event Trigger
-		
+		this.message = new NetMessage(NetCode.BATCHLOADBUD);
+		this.message.BatchLoadBUD(this.pos);
+
 		if(this.biomeName == "Ocean"){
 			coordArray = loadCoordList.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
 				if(this.data.GetCell(coord) != 6){ // Water
-					this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-					this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
-					this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 				}
 			}
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+
 		}
 		else{
-		
 			coordArray = loadCoordList.AsArray().ToArray();
 			foreach(int3 coord in coordArray){
-				// SENDS BUD TO SERVER
-				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}			
+				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			}	
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+
 		}
 		loadCoordList.Clear();
 		
