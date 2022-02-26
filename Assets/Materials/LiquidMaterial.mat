@@ -26,21 +26,21 @@ Material:
   m_Name: LiquidMaterial
   m_Shader: {fileID: -6465566751694194690, guid: be29db4696e2043499cab14deeaad7e5,
     type: 3}
-  m_ShaderKeywords: _DISABLE_DECALS _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT
-    _SURFACE_TYPE_TRANSPARENT
+  m_ShaderKeywords: _ALPHATEST_ON _DISABLE_DECALS _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
+    _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 1
-  m_DoubleSidedGI: 1
+  m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2750
   stringTagMap:
     MotionVector: User
     RenderType: Transparent
   disabledShaderPasses:
+  - RayTracingPrepass
   - MOTIONVECTORS
-  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - RayTracingPrepass
+  - TransparentDepthPrepass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -95,7 +95,7 @@ Material:
     - Vector1_D703212C: 1
     - Vector1_DB139B43: 0.124
     - _AddPrecomputedVelocity: 0
-    - _AlphaCutoffEnable: 0
+    - _AlphaCutoffEnable: 1
     - _AlphaDstBlend: 10
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
@@ -107,17 +107,21 @@ Material:
     - _DepthOffsetEnable: 0
     - _DisplacementY: 0.35
     - _DoubleSidedEnable: 1
-    - _DoubleSidedGIMode: 0
+    - _DoubleSidedGIMode: 2
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 10
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
+    - _HDWater: 0
     - _NoiseAngleOffset: 1
     - _NoiseCellDensity: 1
+    - _NormalStrength: 0.223
     - _OpaqueCullMode: 2
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
+    - _RefractionGradientScale: 0.2
+    - _RefractionLOD: 5
     - _RefractionModel: 0
     - _RenderQueueType: 3
     - _RequireSplitLighting: 0
@@ -134,25 +138,26 @@ Material:
     - _StencilWriteMaskMV: 40
     - _SupportDecals: 0
     - _SurfaceType: 1
+    - _TestVertex: 0
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
     - _TransparentWritingMotionVec: 0
-    - _TransparentZWrite: 0
+    - _TransparentZWrite: 1
     - _UseShadowThreshold: 0
     - _WaveringX: 0.023
     - _WaveringZ: 0.119
-    - _ZTestDepthEqualForOpaque: 4
-    - _ZTestGBuffer: 4
-    - _ZTestTransparent: 4
-    - _ZWrite: 0
+    - _ZTestDepthEqualForOpaque: 2
+    - _ZTestGBuffer: 3
+    - _ZTestTransparent: 2
+    - _ZWrite: 1
     m_Colors:
     - BaseColor: {r: 0.08039216, g: 0.20980392, b: 0.46470588, a: 0.1176471}
     - Color_31C227A5: {r: 0.099480815, g: 0.09184755, b: 0.45283002, a: 0}
-    - Color_55706E16: {r: 0.4575472, g: 0.9681627, b: 1, a: 0}
-    - Color_9412C8D4: {r: 0.063412204, g: 0.34635198, b: 0.53773576, a: 0}
+    - Color_55706E16: {r: 0.33285868, g: 0.8301887, b: 0.8301887, a: 0.74509805}
+    - Color_9412C8D4: {r: 0.06341218, g: 0.34635195, b: 0.5377357, a: 0.74509805}
     - SecondaryColor: {r: 0.1344889, g: 0.2953211, b: 0.341075, a: 0}
     - Vector2_826BAFAC: {r: -0.037, g: -0.093, b: 0, a: 0}
     - Vector2_A6922FD5: {r: 0.1, g: 0.076, b: 0, a: 0}
