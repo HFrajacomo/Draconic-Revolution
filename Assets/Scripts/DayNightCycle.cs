@@ -1,35 +1,49 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 public class DayNightCycle : MonoBehaviour
 {
 
 	public Transform skyboxLight;
 	public Light skyDirectionalLight;
-	public Transform counterLight;
-	public Transform counterLight2;
-	public Transform counterLight3;
-	public Transform counterLight4;
 	public TimeOfDay timer;
 
     public float dayLuminosity = 4f;
     public float nightLuminosity = 0.5f;
 
+    public float delta = 0;
+    public int previousFrameSeconds = 0;
+
+    public bool UPDATELIGHT_FLAG = true;
+    private static float FRAME_TIME_DIFF_MULTIPLIER = 0.7f;
 
     // Update is called once per frame
     void Update()
     {
     	int time = timer.ToSeconds();
+        this.delta += Time.deltaTime;
 
-        skyboxLight.localRotation = Quaternion.Euler(RotationFunction(time), 270, 0);
-        this.SetLightColor(time);
-        this.SetIntensity(time);
+        if(this.previousFrameSeconds != time){
+            this.delta = 0;
+            this.previousFrameSeconds = time;
+            this.SetLightColor(time);
+            this.SetIntensity(time);
+        }
 
-		}
+        if(UPDATELIGHT_FLAG){
+            skyboxLight.localRotation = Quaternion.Euler(RotationFunction(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)), 270, 0);
+            this.UPDATELIGHT_FLAG = false;
+        }
+        else{
+            this.UPDATELIGHT_FLAG = true;
+        }
+
+	}
 
 	// Rotation for main Skybox light
-    private float RotationFunction(int x){
+    private float RotationFunction(float x){
         if(x > 240 && x <= 720){
             return Mathf.Lerp(0f, 90f, ClampTime(x));
         }
@@ -45,7 +59,7 @@ public class DayNightCycle : MonoBehaviour
     }
 
     // Clamps the current time to a float[0,1]
-    private float ClampTime(int x){
+    private float ClampTime(float x){
         // Zero Lerp if below 4h
         if(x <= 240){
             return x/240f;
