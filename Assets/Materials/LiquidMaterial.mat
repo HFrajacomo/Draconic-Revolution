@@ -115,13 +115,13 @@ Material:
     - _HDWater: 0
     - _NoiseAngleOffset: 1
     - _NoiseCellDensity: 1
-    - _NormalStrength: 0.223
+    - _NormalStrength: 0.03
     - _OpaqueCullMode: 2
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
-    - _RefractionGradientScale: 0.2
-    - _RefractionLOD: 5
+    - _RefractionGradientScale: 1
+    - _RefractionLOD: 1
     - _RefractionModel: 0
     - _RenderQueueType: 3
     - _RequireSplitLighting: 0
