@@ -8,16 +8,23 @@ public class DayNightCycle : MonoBehaviour
 
 	public Transform skyboxLight;
 	public Light skyDirectionalLight;
+    public HDAdditionalLightData hdLight;
 	public TimeOfDay timer;
 
-    public float dayLuminosity = 4f;
-    public float nightLuminosity = 0.5f;
+    // Luminosity
+    private float dayLuminosity = 3f;
+    private float nightLuminosity = 0.5f;
 
+    // Shadow Dimmer
+    private float maxShadowDimmer = 1f;
+    private float minShadowDimmer = 0.575f;
+
+    // Update detectors
     public float delta = 0;
     public int previousFrameSeconds = 0;
-
     public bool UPDATELIGHT_FLAG = true;
     private static float FRAME_TIME_DIFF_MULTIPLIER = 0.7f;
+
 
     // Update is called once per frame
     void Update()
@@ -34,6 +41,7 @@ public class DayNightCycle : MonoBehaviour
 
         if(UPDATELIGHT_FLAG){
             skyboxLight.localRotation = Quaternion.Euler(RotationFunction(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)), 270, 0);
+            this.SetShadowDimmer(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER));
             this.UPDATELIGHT_FLAG = false;
         }
         else{
@@ -75,6 +83,22 @@ public class DayNightCycle : MonoBehaviour
         // Declination until 20h
         else{
             return ((x-720)/480f);
+        }
+    }
+
+    // Sets the ShadowDimmer of the main light
+    private void SetShadowDimmer(float x){
+        if(x > 240 && x < 660){
+            hdLight.volumetricShadowDimmer  = Mathf.Lerp(this.minShadowDimmer, this.maxShadowDimmer, (x-240)/420);
+        }
+        else if(x >= 660 && x < 900){
+            hdLight.volumetricShadowDimmer  = this.maxShadowDimmer;
+        }
+        else if(x >= 900 && x < 1200){
+            hdLight.volumetricShadowDimmer  = Mathf.Lerp(this.maxShadowDimmer, this.minShadowDimmer, (x-900)/300);
+        }
+        else if(x >= 1200 || x <= 240){
+            hdLight.volumetricShadowDimmer  = this.minShadowDimmer;
         }
     }
 

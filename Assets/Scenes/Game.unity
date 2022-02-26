@@ -7056,9 +7056,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skyboxLight: {fileID: 1484502056}
   skyDirectionalLight: {fileID: 1484502057}
+  hdLight: {fileID: 1484502058}
   timer: {fileID: 1322082558}
-  dayLuminosity: 4
-  nightLuminosity: 0.5
   delta: 0
   previousFrameSeconds: 0
   UPDATELIGHT_FLAG: 1
