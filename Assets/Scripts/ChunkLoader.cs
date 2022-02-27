@@ -41,8 +41,8 @@ public class ChunkLoader : MonoBehaviour
     
     // Unity Reference
     public PlayerMovement playerMovement;
-    public Volume globalVolume;
-    public VolumeProfile volumeProfile;
+    public VolumeProfile volume;
+    public GameObject mainControllerManager;
     public Fog fog;
 
     // Initialization
@@ -72,6 +72,7 @@ public class ChunkLoader : MonoBehaviour
 
     void Awake(){
         this.playerCharacter.SetActive(false);
+        this.mainControllerManager.SetActive(false);
         this.gameUI.SetActive(false);
         this.client = new Client(this);
         HandleClientCommunication();
@@ -79,9 +80,7 @@ public class ChunkLoader : MonoBehaviour
         this.testAccountID = World.accountID;
         this.time.SetClient(this.client);
 
-        this.volumeProfile = this.globalVolume.sharedProfile;
-        this.volumeProfile.TryGet<Fog>(out this.fog);
-
+        this.volume.TryGet<Fog>(out this.fog);
         this.fog.meanFreePath.value = World.renderDistance * 12;
     }
 
@@ -141,6 +140,7 @@ public class ChunkLoader : MonoBehaviour
 
                 this.gameUI.SetActive(true);
                 playerCharacter.SetActive(true);
+                this.mainControllerManager.SetActive(true);
                 this.time.SetPlayer(playerCharacter.GetComponent<PlayerMovement>());
                 this.playerEvents.SetPlayerObject(playerCharacter);
                 this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
