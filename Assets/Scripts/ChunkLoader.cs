@@ -298,6 +298,7 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
+
     // Unloads a chunk per frame from the Unloading Buffer
     private void UnloadChunk(){
 
@@ -311,7 +312,6 @@ public class ChunkLoader : MonoBehaviour
             else{
                 this.reloadMemoryCounter--;
             }
-
 
             if(toRedraw.Contains(toUnload[0])){
                 toRedraw.Remove(toUnload[0]);

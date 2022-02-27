@@ -25,7 +25,6 @@ public class DayNightCycle : MonoBehaviour
     public bool UPDATELIGHT_FLAG = true;
     private static float FRAME_TIME_DIFF_MULTIPLIER = 0.7f;
 
-
     // Update is called once per frame
     void Update()
     {
