@@ -134,7 +134,7 @@ public class ChunkLoader : MonoBehaviour
 
         else{
             // If current chunk is drawn and world is generated
-        	if(CheckChunkDrawn(this.playerX, this.playerZ) && !WORLD_GENERATED && toLoad.Count == 0){
+        	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ) && toLoad.Count == 0){
                 HandleClientCommunication();
         		WORLD_GENERATED = true;
 
@@ -202,7 +202,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Check if the chunkpos in a given (x,z) position is loaded and drawn
     private bool CheckChunkDrawn(float x, float z){
-        ChunkPos pos = new ChunkPos(Mathf.FloorToInt(x/Chunk.chunkWidth), Mathf.FloorToInt(z/Chunk.chunkWidth));
+        ChunkPos pos = new ChunkPos(Mathf.FloorToInt((x+0.5f)/Chunk.chunkWidth), Mathf.FloorToInt((z+0.5f)/Chunk.chunkWidth));
     
         if(this.chunks.ContainsKey(pos)){
             return this.chunks[pos].drawMain;
