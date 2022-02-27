@@ -6,6 +6,8 @@ using Unity.Jobs;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 public class ChunkLoader : MonoBehaviour
 {
@@ -39,6 +41,9 @@ public class ChunkLoader : MonoBehaviour
     
     // Unity Reference
     public PlayerMovement playerMovement;
+    public Volume globalVolume;
+    public VolumeProfile volumeProfile;
+    public Fog fog;
 
     // Initialization
     public GameObject playerCharacter;
@@ -74,6 +79,11 @@ public class ChunkLoader : MonoBehaviour
         this.player.position = new Vector3(0,0,0);
         this.testAccountID = World.accountID;
         this.time.SetClient(this.client);
+
+        this.volumeProfile = this.globalVolume.sharedProfile;
+        this.volumeProfile.TryGet<Fog>(out this.fog);
+
+        this.fog.meanFreePath.value = World.renderDistance * 12;
     }
 
     void OnApplicationQuit(){

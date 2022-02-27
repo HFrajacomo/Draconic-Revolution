@@ -7383,6 +7383,7 @@ MonoBehaviour:
   playerDirY: 0
   playerDirZ: 0
   playerMovement: {fileID: 59614819}
+  globalVolume: {fileID: 1588378840}
   playerCharacter: {fileID: 59614818}
   playerEvents: {fileID: 59614824}
   rend: {fileID: 471797234}
