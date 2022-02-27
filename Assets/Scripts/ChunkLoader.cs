@@ -56,7 +56,6 @@ public class ChunkLoader : MonoBehaviour
 	public bool WORLD_GENERATED = false; 
     public int reloadMemoryCounter = 30;
     public bool PLAYERSPAWNED = false;
-    public bool PLAYERLOADED = false;
     public bool REQUESTEDCHUNKS = false;
     public bool CONNECTEDTOSERVER = false;
     public bool SENTINFOTOSERVER = false;
@@ -139,11 +138,6 @@ public class ChunkLoader : MonoBehaviour
                 HandleClientCommunication();
         		WORLD_GENERATED = true;
 
-                if(!this.PLAYERLOADED){
-                    int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
-                    player.position -= new Vector3(0, player.position.y - spawnY, 0);
-                    this.PLAYERLOADED = true;
-                }
 
                 this.gameUI.SetActive(true);
                 playerCharacter.SetActive(true);

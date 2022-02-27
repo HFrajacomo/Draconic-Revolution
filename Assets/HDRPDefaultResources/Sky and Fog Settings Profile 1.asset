@@ -241,10 +241,10 @@ MonoBehaviour:
     m_Value: 0.5
   mipFogNear:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 60
   mipFogFar:
     m_OverrideState: 0
-    m_Value: 1000
+    m_Value: 60
   baseHeight:
     m_OverrideState: 1
     m_Value: 10
@@ -253,7 +253,7 @@ MonoBehaviour:
     m_Value: 200
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 120
+    m_Value: 144
   enableVolumetricFog:
     m_OverrideState: 0
     m_Value: 1
@@ -265,13 +265,13 @@ MonoBehaviour:
     m_Value: 0.582
   depthExtent:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 72
   denoisingMode:
     m_OverrideState: 0
     m_Value: 2
   anisotropy:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 1
   sliceDistributionUniformity:
     m_OverrideState: 0
     m_Value: 0.75
