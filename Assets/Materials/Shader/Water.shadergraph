@@ -65,15 +65,6 @@
         },
         {
             "m_Id": "93e8a2c10b6f408897a355af841dad27"
-        },
-        {
-            "m_Id": "9be476b36c304f9ea9a25a1fd4888928"
-        },
-        {
-            "m_Id": "0abb105ac2fb4d91a32627106c28d153"
-        },
-        {
-            "m_Id": "4f8c7614d7a54bc79bdb6a9cc2aec931"
         }
     ],
     "m_Keywords": [],
@@ -2211,33 +2202,6 @@
     "m_Labels": [
         "X"
     ]
-}
-
-{
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
-    "m_ObjectId": "0abb105ac2fb4d91a32627106c28d153",
-    "m_Guid": {
-        "m_GuidSerialized": "10912015-d690-47e9-892b-9307eb4af6c9"
-    },
-    "m_Name": "NormalStrength",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "NormalStrength",
-    "m_DefaultReferenceName": "_NormalStrength",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_Value": 0.05000000074505806,
-    "m_FloatType": 1,
-    "m_RangeValues": {
-        "x": 0.0,
-        "y": 1.0
-    }
 }
 
 {
@@ -4885,33 +4849,6 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
-}
-
-{
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
-    "m_ObjectId": "4f8c7614d7a54bc79bdb6a9cc2aec931",
-    "m_Guid": {
-        "m_GuidSerialized": "61914320-9f59-4b93-9cfb-783f974d9a8e"
-    },
-    "m_Name": "RefractionLOD",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "RefractionLOD",
-    "m_DefaultReferenceName": "_RefractionLOD",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_Value": 0.0,
-    "m_FloatType": 1,
-    "m_RangeValues": {
-        "x": 0.0,
-        "y": 5.0
     }
 }
 
@@ -7873,15 +7810,6 @@
         },
         {
             "m_Id": "93e8a2c10b6f408897a355af841dad27"
-        },
-        {
-            "m_Id": "9be476b36c304f9ea9a25a1fd4888928"
-        },
-        {
-            "m_Id": "0abb105ac2fb4d91a32627106c28d153"
-        },
-        {
-            "m_Id": "4f8c7614d7a54bc79bdb6a9cc2aec931"
         }
     ]
 }
@@ -7932,33 +7860,6 @@
     "m_Position": {
         "x": -1290.9998779296875,
         "y": -689.0
-    }
-}
-
-{
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
-    "m_ObjectId": "9be476b36c304f9ea9a25a1fd4888928",
-    "m_Guid": {
-        "m_GuidSerialized": "39d8c3b6-3a66-45aa-82c0-0cfc0076faad"
-    },
-    "m_Name": "RefractionGradientScale",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "RefractionGradientScale",
-    "m_DefaultReferenceName": "_RefractionGradientScale",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_Value": 5.0,
-    "m_FloatType": 1,
-    "m_RangeValues": {
-        "x": 1.0,
-        "y": 50.0
     }
 }
 
