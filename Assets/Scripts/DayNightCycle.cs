@@ -19,6 +19,11 @@ public class DayNightCycle : MonoBehaviour
     private float maxShadowDimmer = 1f;
     private float minShadowDimmer = 0.575f;
 
+    // Shader Parameters
+    private float lightMultiplier = 0f;
+    private float lightValueAtDay = 1f;
+    private float lightValueAtNight = 0.7f;
+
     // Update detectors
     public float delta = 0;
     public int previousFrameSeconds = 0;
@@ -41,6 +46,7 @@ public class DayNightCycle : MonoBehaviour
         if(UPDATELIGHT_FLAG){
             skyboxLight.localRotation = Quaternion.Euler(RotationFunction(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)), 270, 0);
             this.SetShadowDimmer(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER));
+            Shader.SetGlobalFloat("_SkyLightMultiplier", this.lightMultiplier);
             this.UPDATELIGHT_FLAG = false;
         }
         else{
@@ -106,12 +112,15 @@ public class DayNightCycle : MonoBehaviour
         // If day
         if(x > 240 && x < 1200){
             skyDirectionalLight.intensity = this.dayLuminosity;
+            lightMultiplier = this.lightValueAtDay;
         }
         else if(x >= 1200){
             skyDirectionalLight.intensity = Mathf.Lerp(this.dayLuminosity, this.nightLuminosity, Mathf.Pow((x-1200f)/240f, 1f/3f));
+            lightMultiplier = Mathf.Lerp(this.lightValueAtDay, this.lightValueAtNight, Mathf.Pow((x-1200f)/240f, 1f/3f));
         }
         else{
             skyDirectionalLight.intensity = Mathf.Lerp(this.nightLuminosity, this.dayLuminosity, Mathf.Pow(x/240f, 3f));
+            lightMultiplier = Mathf.Lerp(this.lightValueAtNight, this.lightValueAtDay, Mathf.Pow(x/240f, 3f));
         }
     }
 
