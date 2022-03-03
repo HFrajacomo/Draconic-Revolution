@@ -1665,12 +1665,12 @@ public struct BuildChunkJob : IJob{
     	}
     	if(facing == 4 && xp)
     		return GetVertexLight(currentLight, l3, l4, l1, l7, l8);
-
-
-	   	if(facing == 4 && zm)
-    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
+	   	if(facing == 4 && zm){
+    		int transientValue = GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    		return (transientValue << 16) + (transientValue >> 16);
+	   	}
 	   	if(facing == 4 && zp)
-    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    		return GetVertexLight(currentLight, l4, l3, l2, l7, l6);
     	if(facing == 5 && xm)
     		return GetVertexLight(currentLight, l1, l4, l3, l8, l7);
     	if(facing == 5 && xp)
@@ -2843,11 +2843,12 @@ public struct BuildBorderJob : IJob{
     	}
     	if(facing == 4 && xp)
     		return GetVertexLight(currentLight, l3, l4, l1, l7, l8);
-    		
-	   	if(facing == 4 && zm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l5, l6);
+	   	if(facing == 4 && zm){
+    		int transientValue = GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    		return (transientValue << 16) + (transientValue >> 16);
+	   	}
 	   	if(facing == 4 && zp)
-    		return GetVertexLight(currentLight, l1, l4, l3, l8, l7);
+    		return GetVertexLight(currentLight, l4, l3, l2, l7, l6);
     	if(facing == 5 && xm)
     		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
     	if(facing == 5 && xp)
