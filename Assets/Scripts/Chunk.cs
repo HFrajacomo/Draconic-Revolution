@@ -1681,27 +1681,27 @@ public struct BuildChunkJob : IJob{
     		int transientValue = GetVertexLight(currentLight, l2, l1, l4, l5, l8, ref fromOutsideBorder, ref flipDirection);
 	   		if(fromOutsideBorder)
 	   			if(!flipDirection)
-	   				return transientValue; //READY
+	   				return transientValue;
 	   			else
-    				return (transientValue << 16) + (transientValue >> 16); //READY
+    				return (transientValue << 16) + (transientValue >> 16);
     		else
     			if(!flipDirection)
     				return (transientValue << 16) + (transientValue >> 16);
     			else
-    				return transientValue; //READY
+    				return transientValue;
 	   	}
 	   	if(facing == 4 && zp){
 	   		int transientValue = GetVertexLight(currentLight, l4, l3, l2, l7, l6, ref fromOutsideBorder, ref flipDirection);
 	   		if(fromOutsideBorder)
 	   			if(flipDirection)
-	   				return transientValue; //READY
+	   				return transientValue;
 	   			else
-    				return (transientValue << 16) + (transientValue >> 16); //READY
+    				return (transientValue << 16) + (transientValue >> 16);
     		else
     			if(flipDirection)
-    				return (transientValue << 16) + (transientValue >> 16); //READY
+    				return (transientValue << 16) + (transientValue >> 16);
     			else
-    				return transientValue; //READY
+    				return transientValue;
 	   	}
 
 
