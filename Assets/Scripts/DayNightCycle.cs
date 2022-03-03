@@ -22,7 +22,7 @@ public class DayNightCycle : MonoBehaviour
     // Shader Parameters
     private float lightMultiplier = 0f;
     private float lightValueAtDay = 1f;
-    private float lightValueAtNight = 0.7f;
+    private float lightValueAtNight = 0.3f;
 
     // Update detectors
     public float delta = 0;
@@ -41,6 +41,7 @@ public class DayNightCycle : MonoBehaviour
             this.previousFrameSeconds = time;
             this.SetLightColor(time);
             this.SetIntensity(time);
+            this.SetFloorIntensity(time);
         }
 
         if(UPDATELIGHT_FLAG){
@@ -112,14 +113,25 @@ public class DayNightCycle : MonoBehaviour
         // If day
         if(x > 240 && x < 1200){
             skyDirectionalLight.intensity = this.dayLuminosity;
-            lightMultiplier = this.lightValueAtDay;
         }
         else if(x >= 1200){
             skyDirectionalLight.intensity = Mathf.Lerp(this.dayLuminosity, this.nightLuminosity, Mathf.Pow((x-1200f)/240f, 1f/3f));
-            lightMultiplier = Mathf.Lerp(this.lightValueAtDay, this.lightValueAtNight, Mathf.Pow((x-1200f)/240f, 1f/3f));
         }
         else{
             skyDirectionalLight.intensity = Mathf.Lerp(this.nightLuminosity, this.dayLuminosity, Mathf.Pow(x/240f, 3f));
+        }
+    }
+
+    // Sets floor intensity
+    private void SetFloorIntensity(int x){
+        // If day
+        if(x > 240 && x < 1080){
+            lightMultiplier = this.lightValueAtDay;
+        }
+        else if(x >= 1080){
+            lightMultiplier = Mathf.Lerp(this.lightValueAtDay, this.lightValueAtNight, Mathf.Pow((x-1080f)/360f, 1f/3f));
+        }
+        else{
             lightMultiplier = Mathf.Lerp(this.lightValueAtNight, this.lightValueAtDay, Mathf.Pow(x/240f, 3f));
         }
     }
