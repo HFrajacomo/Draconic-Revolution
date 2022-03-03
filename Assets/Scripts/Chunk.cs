@@ -979,7 +979,7 @@ public class Chunk
 /*
 MULTITHREADING
 */
-[BurstCompile]
+//[BurstCompile]
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public bool load;
@@ -1370,17 +1370,17 @@ public struct BuildChunkJob : IJob{
     	bool ym = true;
     	bool yp = true;
 
-    	if(x > 1 && dir != 3)
+    	if(x > 1 || (x == 1 && dir != 3) || (x == 0 && dir == 1))
     		xm = false;
-    	if(x < Chunk.chunkWidth-2 && dir != 1)
+    	if(x < Chunk.chunkWidth-2 || (x == Chunk.chunkWidth-2 && dir != 1) || (x == Chunk.chunkWidth-1 && dir == 3))
     		xp = false;
-    	if(z > 1 && dir != 2)
+    	if(z > 1 || (z == 1 && dir != 2) || (z == 0 && dir == 0))
     		zm = false;
-    	if(z < Chunk.chunkWidth-2 && dir != 0)
+    	if(z < Chunk.chunkWidth-2 || (z == Chunk.chunkWidth-2 && dir != 0) || (z == Chunk.chunkWidth-1 && dir == 2))
     		zp = false;
-    	if(y > 1)
+    	if(y > 1 || (y == 1 && dir != 5) || (y == 0 && dir == 4))
     		ym = false;
-    	if(y < Chunk.chunkDepth-2)
+    	if(y < Chunk.chunkDepth-2 || (y == Chunk.chunkDepth-2 && dir != 4) || (y == Chunk.chunkDepth-1 && dir == 5))
     		yp = false;
 
 
@@ -1388,18 +1388,24 @@ public struct BuildChunkJob : IJob{
     	if(currentLightLevel <= 1){
     		bool found = false;
 
-    		if(!xm && !(dir == 3 && x <= 1))
+    		if(x > 0 && !xm)
     			if(GetNeighborLight(x-1, y, z, dir) > 0)
     				found = true;
-    		if(!xp && !(dir == 1 && x >= Chunk.chunkWidth-2))
+    		if(x < Chunk.chunkWidth-1 && !xp)
     			if(GetNeighborLight(x+1, y, z, dir) > 0)
     				found = true;
-    		if(!zm && !(dir == 2 && z <= 1))
+    		if(z > 0 && !zm)
     			if(GetNeighborLight(x, y, z-1, dir) > 0)
     				found = true;    		
-    		if(!zp && !(dir == 0 && z >= Chunk.chunkWidth-2))
+    		if(z < Chunk.chunkWidth-1 && !zp)
     			if(GetNeighborLight(x, y, z+1, dir) > 0)
-    				found = true;  
+    				found = true;
+    		if(y > 0 && !ym)
+    			if(GetNeighborLight(x, y-1, z, dir) > 0)
+    				found = true;
+    		if(y < Chunk.chunkDepth-1 && !yp)
+    			if(GetNeighborLight(x, y+1, z, dir) > 0)
+    				found = true;
 
     		if(!found){
 		    	array[0] = Vector2.zero;
@@ -1437,35 +1443,42 @@ public struct BuildChunkJob : IJob{
     	bool ym = true;
     	bool yp = true;
 
-    	if(x > 1 && dir != 3)
+    	if(x > 1 || (x == 1 && dir != 3) || (x == 0 && dir == 1))
     		xm = false;
-    	if(x < Chunk.chunkWidth-2 && dir != 1)
+    	if(x < Chunk.chunkWidth-2 || (x == Chunk.chunkWidth-2 && dir != 1) || (x == Chunk.chunkWidth-1 && dir == 3))
     		xp = false;
-    	if(z > 1 && dir != 2)
+    	if(z > 1 || (z == 1 && dir != 2) || (z == 0 && dir == 0))
     		zm = false;
-    	if(z < Chunk.chunkWidth-2 && dir != 0)
+    	if(z < Chunk.chunkWidth-2 || (z == Chunk.chunkWidth-2 && dir != 0) || (z == Chunk.chunkWidth-1 && dir == 2))
     		zp = false;
-    	if(y > 1)
+    	if(y > 1 || (y == 1 && dir != 5) || (y == 0 && dir == 4))
     		ym = false;
-    	if(y < Chunk.chunkDepth-2)
+    	if(y < Chunk.chunkDepth-2 || (y == Chunk.chunkDepth-2 && dir != 4) || (y == Chunk.chunkDepth-1 && dir == 5))
     		yp = false;
+
 
     	// If there's no light
     	if(currentLightLevel <= 1){
     		bool found = false;
 
-    		if(!xm && !(dir == 3 && x <= 1))
+    		if(x > 0 && !xm)
     			if(GetNeighborLight(x-1, y, z, dir) > 0)
     				found = true;
-    		if(!xp && !(dir == 1 && x >= Chunk.chunkWidth-2))
+    		if(x < Chunk.chunkWidth-1 && !xp)
     			if(GetNeighborLight(x+1, y, z, dir) > 0)
     				found = true;
-    		if(!zm && !(dir == 2 && z <= 1))
+    		if(z > 0 && !zm)
     			if(GetNeighborLight(x, y, z-1, dir) > 0)
     				found = true;    		
-    		if(!zp && !(dir == 0 && z >= Chunk.chunkWidth-2))
+    		if(z < Chunk.chunkWidth-1 && !zp)
     			if(GetNeighborLight(x, y, z+1, dir) > 0)
-    				found = true;  
+    				found = true;
+    		if(y > 0 && !ym)
+    			if(GetNeighborLight(x, y-1, z, dir) > 0)
+    				found = true;
+    		if(y < Chunk.chunkDepth-1 && !yp)
+    			if(GetNeighborLight(x, y+1, z, dir) > 0)
+    				found = true;
 
     		if(!found){
 		    	array[0] = new Vector2(array[0].x, 0);
@@ -2535,40 +2548,41 @@ public struct BuildBorderJob : IJob{
     	bool ym = true;
     	bool yp = true;
 
-    	if(neighborIndex.x > 0 && dir != 3)
+    	if(neighborIndex.x > 1 || (neighborIndex.x == 1 && dir != 3) || (neighborIndex.x == 0 && dir == 1))
     		xm = false;
-    	if(neighborIndex.x < Chunk.chunkWidth-1 && dir != 1)
+    	if(neighborIndex.x < Chunk.chunkWidth-2 || (neighborIndex.x == Chunk.chunkWidth-2 && dir != 1) || (neighborIndex.x == Chunk.chunkWidth-1 && dir == 3))
     		xp = false;
-    	if(neighborIndex.z > 0 && dir != 2)
+    	if(neighborIndex.z > 1 || (neighborIndex.z == 1 && dir != 2) || (neighborIndex.z == 0 && dir == 0))
     		zm = false;
-    	if(neighborIndex.z < Chunk.chunkWidth-1 && dir == 0)
+    	if(neighborIndex.z < Chunk.chunkWidth-2 || (neighborIndex.z == Chunk.chunkWidth-2 && dir != 0) || (neighborIndex.z == Chunk.chunkWidth-1 && dir == 2))
     		zp = false;
-    	if(neighborIndex.y > 0)
+    	if(neighborIndex.y > 1 || (neighborIndex.y == 1 && dir != 5) || (neighborIndex.y == 0 && dir == 4))
     		ym = false;
-    	if(neighborIndex.y < Chunk.chunkDepth-1)
+    	if(neighborIndex.y < Chunk.chunkDepth-2 || (neighborIndex.y == Chunk.chunkDepth-2 && dir != 4) || (neighborIndex.y == Chunk.chunkDepth-1 && dir == 5))
     		yp = false;
+
 
     	// If there's no light
     	if(currentLightLevel <= 1){
     		bool found = false;
 
-    		if(dir != 1 && neighborIndex.x != 0)
-    			if(GetOtherLight(neighborIndex.x-1, neighborIndex.y, neighborIndex.z, dir) > 0)
+    		if(neighborIndex.x > 0 && !xm)
+    			if(GetNeighborLight(neighborIndex.x-1, neighborIndex.y, neighborIndex.z, dir) > 0)
     				found = true;
-    		if(dir != 3 && neighborIndex.x != Chunk.chunkWidth-1)
-    			if(GetOtherLight(neighborIndex.x+1, neighborIndex.y, neighborIndex.z, dir) > 0)
+    		if(neighborIndex.x < Chunk.chunkWidth-1 && !xp)
+    			if(GetNeighborLight(neighborIndex.x+1, neighborIndex.y, neighborIndex.z, dir) > 0)
     				found = true;
-    		if(dir != 0 && neighborIndex.z != 0)
-    			if(GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z-1, dir) > 0)
+    		if(neighborIndex.z > 0 && !zm)
+    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y, neighborIndex.z-1, dir) > 0)
     				found = true;    		
-    		if(dir != 2 && neighborIndex.z != Chunk.chunkWidth)
-    			if(GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z+1, dir) > 0)
+    		if(neighborIndex.z < Chunk.chunkWidth-1 && !zp)
+    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y, neighborIndex.z+1, dir) > 0)
     				found = true;
-    		if(dir != 4 && neighborIndex.y != 0)
-    			if(GetOtherLight(neighborIndex.x, neighborIndex.y-1, neighborIndex.z, dir) > 0)
+    		if(neighborIndex.y > 0 && !ym)
+    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y-1, neighborIndex.z, dir) > 0)
     				found = true;
-    		if(dir != 5 && neighborIndex.y != Chunk.chunkDepth-1)
-    			if(GetOtherLight(neighborIndex.x, neighborIndex.y+1, neighborIndex.z, dir) > 0)
+    		if(neighborIndex.y < Chunk.chunkDepth-1 && !yp)
+    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y+1, neighborIndex.z, dir) > 0)
     				found = true;
 
     		if(!found){
@@ -2612,7 +2626,7 @@ public struct BuildBorderJob : IJob{
     		zm = false;
     	if(neighborIndex.z < Chunk.chunkWidth-1)
     		zp = false;
-    	if(neighborIndex.y > 0)
+    	if(neighborIndex.y > 0 || (neighborIndex.y == 0 && dir == 4))
     		ym = false;
     	if(neighborIndex.y < Chunk.chunkDepth-1)
     		yp = false;
