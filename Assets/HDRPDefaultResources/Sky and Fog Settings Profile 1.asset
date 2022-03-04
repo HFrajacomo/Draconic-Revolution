@@ -49,7 +49,7 @@ MonoBehaviour:
   active: 1
   opacity:
     m_OverrideState: 1
-    m_Value: 0.902
+    m_Value: 0.9
   upperHemisphereOnly:
     m_OverrideState: 0
     m_Value: 1
@@ -371,7 +371,7 @@ MonoBehaviour:
     m_Value: 0
   aerosolTint:
     m_OverrideState: 1
-    m_Value: {r: 0.7122642, g: 1, b: 0.96889347, a: 1}
+    m_Value: {r: 0.7137255, g: 1, b: 0.96862745, a: 1}
   aerosolMaximumAltitude:
     m_OverrideState: 0
     m_Value: 8289.296
@@ -409,17 +409,17 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   alphaSaturation:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0.74934345
   alphaMultiplier:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   horizonTint:
-    m_OverrideState: 0
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_OverrideState: 1
+    m_Value: {r: 0.4053272, g: 0.08161736, b: 0.9908295, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0.38020647, g: 0.8926327, b: 0.9056604, a: 1}
+    m_Value: {r: 1, g: 0, b: 0.4834404, a: 1}
   horizonZenithShift:
     m_OverrideState: 0
     m_Value: 1

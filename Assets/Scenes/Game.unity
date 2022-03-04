@@ -7054,10 +7054,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 067043ef174e9a44996c8fe12b9189df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lightObject: {fileID: 1484502055}
   skyboxLight: {fileID: 1484502056}
   skyDirectionalLight: {fileID: 1484502057}
   hdLight: {fileID: 1484502058}
   timer: {fileID: 1322082558}
+  volume: {fileID: 11400000, guid: d74700023676aee41bc60f65c5f83bf2, type: 2}
   delta: 0
   previousFrameSeconds: 0
   UPDATELIGHT_FLAG: 1
