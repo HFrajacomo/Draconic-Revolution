@@ -223,6 +223,6 @@ public class DayNightCycle : MonoBehaviour
         if(x == 1200)
             this.clouds.opacity.value = 0f;
         else
-            this.clouds.opacity.value = 0.9f;
+            this.clouds.opacity.value = 0.2f;
     }
 }
