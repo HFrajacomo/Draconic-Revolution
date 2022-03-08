@@ -32,9 +32,8 @@ public class DayNightCycle : MonoBehaviour
     private CloudLayer clouds;
     private Color horizonColor = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonDay = new Color(0.26f, 0.89f, 0.9f);
-    private Color horizonSunset = new Color(0.42f, 0f, 1f);
     private Color horizonNight = new Color(1f, 1f, 1f);
-    private Color horizonSunrise = new Color(0.97f, 0.57f, 0.33f);
+    private Color horizonSunriseAndSet = new Color(0.97f, 0.57f, 0.33f);
     private float currentSaturation = 1f;
 
     // Update detectors
@@ -47,6 +46,7 @@ public class DayNightCycle : MonoBehaviour
         this.volume.TryGet<PhysicallyBasedSky>(out this.pbsky);
         this.volume.TryGet<CloudLayer>(out this.clouds);
         this.pbsky.horizonTint.value = this.horizonColor;
+
     }
 
     // Update is called once per frame
@@ -67,7 +67,8 @@ public class DayNightCycle : MonoBehaviour
         }
 
         if(UPDATELIGHT_FLAG){
-            skyboxLight.localRotation = Quaternion.Euler(RotationFunction(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)), 270, 0);
+            skyboxLight.localEulerAngles = new Vector3(RotationFunction(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)), 270, 0);
+
             this.SetShadowDimmer(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER));
             Shader.SetGlobalFloat("_SkyLightMultiplier", this.lightMultiplier);
             this.pbsky.horizonTint.value = this.horizonColor;
@@ -182,22 +183,22 @@ public class DayNightCycle : MonoBehaviour
             horizonColor = horizonNight;
         }
         else if(x > 180 && x <= 300){
-            horizonColor = Color.Lerp(this.horizonNight, this.horizonSunrise, Mathf.Pow((x-180)/120f, 1/3f));
+            horizonColor = Color.Lerp(this.horizonNight, this.horizonSunriseAndSet, Mathf.Pow((x-180)/120f, 1/3f));
         }
         else if(x > 300 && x <= 360){
-            horizonColor = Color.Lerp(this.horizonSunrise, this.horizonDay, (x-300)/60f);
+            horizonColor = Color.Lerp(this.horizonSunriseAndSet, this.horizonDay, (x-300)/60f);
         }
         else if(x > 360 && x <= 1080){
             horizonColor = horizonDay;
         }
         else if(x > 1080 && x < 1200){
-            horizonColor = Color.Lerp(this.horizonDay, this.horizonSunset, Mathf.Pow((x-1080f)/120f, 1f/2f));
+            horizonColor = Color.Lerp(this.horizonDay, this.horizonSunriseAndSet, Mathf.Pow((x-1080f)/120f, 1f/2f));
         }
         else if(x == 1200){
             horizonColor = Color.black;
         }
         else if(x > 1200 && x <= 1260){
-            horizonColor = Color.Lerp(this.horizonSunset, this.horizonNight, Mathf.Pow((x-1200)/60f, 1f/2f));
+            horizonColor = Color.Lerp(this.horizonSunriseAndSet, this.horizonNight, Mathf.Pow((x-1200)/60f, 1f/2f));
         }
         else{
             horizonColor = horizonNight;

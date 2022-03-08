@@ -1793,6 +1793,11 @@ public struct CalculateLightPropagationJob : IJob{
 							bfsq2.Add(GetCoord(index2));
 							visited1.Add(GetCoord(index1));
 						}
+						// If transmitter hits directional in border of extra light, try expand directionals
+						else{
+							bfsq2.Add(GetCoord(index2));
+							visited1.Add(GetCoord(index1));
+						} 
 					}
 				}
 			}
@@ -1831,6 +1836,11 @@ public struct CalculateLightPropagationJob : IJob{
 							bfsq1.Add(GetCoord(index1));
 							visited2.Add(GetCoord(index2));
 						}
+						// If transmitter hits directional in border of extra light, try expand directionals
+						else{
+							bfsq1.Add(GetCoord(index1));
+							visited2.Add(GetCoord(index2));
+						} 
 					}			
 				}
 			}

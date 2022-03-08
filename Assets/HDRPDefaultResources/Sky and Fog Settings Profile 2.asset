@@ -288,7 +288,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Sky and Fog Settings Profile 1
+  m_Name: Sky and Fog Settings Profile 2
   m_EditorClassIdentifier: 
   components:
   - {fileID: 7119475325220557768}
@@ -724,13 +724,13 @@ MonoBehaviour:
     m_Value: 1
   cascadeShadowSplitCount:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 2
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0.001
+    m_Value: 0.24645385
   cascadeShadowSplit1:
     m_OverrideState: 1
-    m_Value: 0.11824579
+    m_Value: 0.6046401
   cascadeShadowSplit2:
     m_OverrideState: 1
     m_Value: 0.74175996
@@ -739,10 +739,10 @@ MonoBehaviour:
     m_Value: 1
   cascadeShadowBorder1:
     m_OverrideState: 1
-    m_Value: 0.8438698
+    m_Value: 0.42890498
   cascadeShadowBorder2:
     m_OverrideState: 1
-    m_Value: 0.59631294
+    m_Value: 0.5422588
   cascadeShadowBorder3:
     m_OverrideState: 0
     m_Value: 0

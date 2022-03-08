@@ -62,7 +62,7 @@ MonoBehaviour:
       reflectionCubemapSize: 128
       reflectionCacheCompressed: 0
       reflectionProbeFormat: 74
-      skyReflectionSize: 128
+      skyReflectionSize: 512
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0
