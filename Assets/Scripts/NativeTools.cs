@@ -10,7 +10,7 @@ public static class NativeTools
     /*
     Uses unsafe code to copy all elements in NativeArray to a normal array
     */
-    public static unsafe T[] CopyToManaged<T>(NativeArray<T> array) where T: struct{
+    public static unsafe T[] CopyToManaged<T>(NativeArray<T> array) where T: unmanaged{
         int size = array.Length;
         int byteSize = size * UnsafeUtility.SizeOf<T>();
 

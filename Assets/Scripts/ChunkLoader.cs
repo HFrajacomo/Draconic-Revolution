@@ -212,13 +212,14 @@ public class ChunkLoader : MonoBehaviour
 
     // Adds chunk to Update queue
     public void AddToUpdate(ChunkPos pos, bool noLight=false){
-        if(!noLight)
+        if(!noLight){
             if(!toUpdate.Contains(pos))
                 toUpdate.Add(pos);
             else{
                 toUpdate.Remove(pos);
                 toUpdate.Add(pos);
             }
+        }
         else{
             if(!toUpdateNoLight.Contains(pos))
                 toUpdateNoLight.Add(pos);
@@ -352,7 +353,7 @@ public class ChunkLoader : MonoBehaviour
         if(toDraw.Count > 0){
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
-                chunks[toDraw[0]].data.CalculateLightMap(withExtraLight:true);
+                chunks[toDraw[0]].data.CalculateLightMap();
                 CheckLightPropagation(toDraw[0]);
 
                 chunks[toDraw[0]].BuildChunk(load:true);
@@ -410,7 +411,7 @@ public class ChunkLoader : MonoBehaviour
         if(toUpdate.Count > 0){
             for(int i=0; i<min; i++){
                 if(this.chunks.ContainsKey(toUpdate[0])){
-                    chunks[toUpdate[0]].data.CalculateLightMap(withExtraLight:true);
+                    chunks[toUpdate[0]].data.CalculateLightMap();
                     CheckLightPropagation(toUpdate[0]);
 
                     chunks[toUpdate[0]].BuildChunk();
@@ -444,11 +445,14 @@ public class ChunkLoader : MonoBehaviour
     // Checks if neighbor chunks should have light propagated
     // MUST BE USED AFTER THE CalculateLightMap FUNCTION
     // Returns true if should update current chunk and false if not
-    public bool CheckLightPropagation(ChunkPos pos, byte flag=255){
+    public bool CheckLightPropagation(ChunkPos pos, byte flag=255, int recursionDepth=0){
         byte propagationFlag;
         ChunkPos neighbor;
         bool updateCurrent = false;
         byte updateCode = 0;
+
+        if(recursionDepth >= 5)
+            return false;
 
         if(flag == 255)
             propagationFlag = this.chunks[pos].data.GetPropagationFlag();
@@ -466,15 +470,14 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 0);
-                if((updateCode & 7) == 2 || (updateCode & 7) == 3)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 4) == 4){
+                if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
-                }
+                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+                    AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:false);
+                    AddToUpdate(pos, noLight:true);
                 if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
             }
         }
         // xp
@@ -483,15 +486,14 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 1);
-                if((updateCode & 7) == 2 || (updateCode & 7) == 3)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 4) == 4){
+                if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
-                }
+                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+                    AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 7) == 1 || (updateCode & 7) == 3)
                     AddToUpdate(pos, noLight:false);
                 if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
             }
         }
         // zm
@@ -500,15 +502,14 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 2);
-                if((updateCode & 7) == 2 || (updateCode & 7) == 3)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 4) == 4){
+                if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
-                }
+                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+                    AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 7) == 1 || (updateCode & 7) == 3)
                     AddToUpdate(pos, noLight:false);
                 if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
             }
 
         }
@@ -518,15 +519,14 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 3);
-                if((updateCode & 7) == 2 || (updateCode & 7) == 3)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 4) == 4){
+                if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
-                }
+                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+                    AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 7) == 1 || (updateCode & 7) == 3)
                     AddToUpdate(pos, noLight:false);
                 if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3)));
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
             }
         }
 
@@ -540,7 +540,7 @@ public class ChunkLoader : MonoBehaviour
         return updateCurrent;
     }
     private bool CheckLightPropagation(ChunkLightPropagInfo info){
-        return CheckLightPropagation(info.pos, info.propagationFlag);
+        return CheckLightPropagation(info.pos, info.propagationFlag, info.recursionDepth);
     }
 
 
@@ -861,9 +861,11 @@ public struct ChunkPos{
 public struct ChunkLightPropagInfo{
     public ChunkPos pos;
     public byte propagationFlag;
+    public int recursionDepth;
 
-    public ChunkLightPropagInfo(ChunkPos a, byte flag){
+    public ChunkLightPropagInfo(ChunkPos a, byte flag, int recursionDepth){
         this.pos = a;
         this.propagationFlag = flag;
+        this.recursionDepth = recursionDepth;
     }
 }

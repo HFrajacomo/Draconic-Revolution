@@ -246,7 +246,7 @@ public class PlayerRaycast : MonoBehaviour
 		if(!current.active)
 			return;
 
-			Debug.Log(current.RealPos());
+		Debug.Log(current.RealPos());
 
 		// If first position is not set
 		if(!this.prefabSetFlag){

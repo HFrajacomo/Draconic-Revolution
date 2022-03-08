@@ -49,7 +49,7 @@ MonoBehaviour:
   active: 1
   opacity:
     m_OverrideState: 1
-    m_Value: 0.9
+    m_Value: 0.2
   upperHemisphereOnly:
     m_OverrideState: 0
     m_Value: 1
@@ -60,7 +60,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1024
   shadowMultiplier:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 2
   shadowTint:
     m_OverrideState: 1
@@ -69,7 +69,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 256
   shadowSize:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 500
   layerA:
     cloudMap:
@@ -118,7 +118,7 @@ MonoBehaviour:
       m_Value: {fileID: 0}
     lighting:
       m_OverrideState: 1
-      m_Value: 1
+      m_Value: 0
     steps:
       m_OverrideState: 0
       m_Value: 3
@@ -410,13 +410,13 @@ MonoBehaviour:
     m_Value: 1
   alphaSaturation:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   alphaMultiplier:
     m_OverrideState: 1
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.26, g: 0.89, b: 0.9, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   zenithTint:
     m_OverrideState: 1
     m_Value: {r: 1, g: 0, b: 0.4834404, a: 1}
@@ -601,10 +601,10 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   windOrientation:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   windSpeed:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 100
   fogType:
     m_OverrideState: 1
