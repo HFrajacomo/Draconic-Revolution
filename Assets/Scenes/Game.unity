@@ -9695,9 +9695,9 @@ MonoBehaviour:
   m_AngularDiameter: 1
   m_FlareSize: 0
   m_FlareTint: {r: 1, g: 0.71797156, b: 0.4764151, a: 1}
-  m_FlareFalloff: 4
+  m_FlareFalloff: 2000000
   m_SurfaceTexture: {fileID: 0}
-  m_SurfaceTint: {r: 1, g: 0.98036194, b: 0.9198113, a: 1}
+  m_SurfaceTint: {r: 1, g: 0.92941177, b: 0.72156864, a: 1}
   m_Distance: 1.5e+11
   m_UseRayTracedShadows: 0
   m_NumRayTracingSamples: 4
@@ -9733,7 +9733,7 @@ MonoBehaviour:
     m_UseOverride: 0
     m_Level: 2
   m_RayTracedContactShadow: 0
-  m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
+  m_ShadowTint: {r: 0.26666668, g: 0.26666668, b: 0.26666668, a: 1}
   m_PenumbraTint: 0
   m_NormalBias: 0.75
   m_SlopeBias: 0.5
@@ -9793,8 +9793,6 @@ MonoBehaviour:
   delta: 0
   previousFrameSeconds: 0
   UPDATELIGHT_FLAG: 1
-  lightincrement: 0.2
-  axis: {x: 1, y: 0, z: 1}
 --- !u!1 &1581889484
 GameObject:
   m_ObjectHideFlags: 0
