@@ -1199,7 +1199,7 @@ public struct CalculateLightMapJob : IJob{
 }
 
 
-//[BurstCompile]
+[BurstCompile]
 public struct CalculateLightPropagationJob : IJob{
 	public NativeArray<byte> lightMap1;
 	public NativeArray<byte> lightMap2;

@@ -9722,8 +9722,8 @@ MonoBehaviour:
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
   m_ShadowResolution:
-    m_Override: 512
-    m_UseOverride: 0
+    m_Override: 4096
+    m_UseOverride: 1
     m_Level: 3
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
@@ -9793,6 +9793,8 @@ MonoBehaviour:
   delta: 0
   previousFrameSeconds: 0
   UPDATELIGHT_FLAG: 1
+  lightincrement: 0.2
+  axis: {x: 1, y: 0, z: 1}
 --- !u!1 &1581889484
 GameObject:
   m_ObjectHideFlags: 0
@@ -12245,7 +12247,7 @@ MonoBehaviour:
   dithering: 0
   stopNaNs: 0
   taaSharpenStrength: 0.6
-  TAAQuality: 1
+  TAAQuality: 2
   taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0

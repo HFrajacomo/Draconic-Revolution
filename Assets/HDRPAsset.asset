@@ -24,7 +24,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    supportVolumetricClouds: 0
+    supportVolumetricClouds: 1
     supportLightLayers: 0
     supportDistortion: 1
     supportTransparentBackface: 0
@@ -43,7 +43,7 @@ MonoBehaviour:
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
     msaaSampleCount: 2
-    supportMotionVectors: 0
+    supportMotionVectors: 1
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
@@ -102,7 +102,7 @@ MonoBehaviour:
         m_Values: 20000000400000004000000000020000
         m_SchemaId:
           m_Id: With4Levels
-      maxDirectionalShadowMapResolution: 1024
+      maxDirectionalShadowMapResolution: 4096
       maxPunctualShadowMapResolution: 512
       maxAreaShadowMapResolution: 512
       supportScreenSpaceShadows: 0

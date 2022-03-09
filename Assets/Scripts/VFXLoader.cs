@@ -9,6 +9,8 @@ public class VFXLoader : MonoBehaviour
     public Dictionary<ChunkPos, List<HDAdditionalLightData>> lightReference;
     public Dictionary<ChunkPos, Dictionary<string, NetMessage>> serverVFX;
 
+    public static bool EXTRALIGHTSHADOWS = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -62,7 +64,7 @@ public class VFXLoader : MonoBehaviour
 
         data[pos].Add(go.name, go);
 
-        if(isOnDemandLight && Settings.EXTRALIGHTSHADOWS){
+        if(isOnDemandLight && VFXLoader.EXTRALIGHTSHADOWS){
             lightReference[pos].Add(go.GetComponent<HDAdditionalLightData>());
         }
 
@@ -87,7 +89,7 @@ public class VFXLoader : MonoBehaviour
         else{
             if(this.data[pos].ContainsKey(name)){
 
-                if(isOnDemandLight && Settings.EXTRALIGHTSHADOWS) 
+                if(isOnDemandLight && VFXLoader.EXTRALIGHTSHADOWS) 
                     lightReference[pos].Remove(this.data[pos][name].GetComponent<HDAdditionalLightData>());
                 
                 Destroy(this.data[pos][name]);
@@ -98,7 +100,7 @@ public class VFXLoader : MonoBehaviour
 
     // Redraws lights in current and adjascent chunks in scene on Demand
     public void UpdateLights(ChunkPos pos, bool adjascent=true){
-        if(!Settings.EXTRALIGHTSHADOWS)
+        if(!VFXLoader.EXTRALIGHTSHADOWS)
             return;
 
         // Updates all lights in current chunk

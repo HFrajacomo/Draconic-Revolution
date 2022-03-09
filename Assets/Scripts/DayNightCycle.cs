@@ -67,7 +67,7 @@ public class DayNightCycle : MonoBehaviour
         }
 
         if(UPDATELIGHT_FLAG){
-            skyboxLight.localEulerAngles = new Vector3(RotationFunction(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)), 270, 0);
+            skyboxLight.rotation = Quaternion.Euler(RotationFunction(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)), 270, RotateZ(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)));
 
             this.SetShadowDimmer(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER));
             Shader.SetGlobalFloat("_SkyLightMultiplier", this.lightMultiplier);
@@ -95,6 +95,18 @@ public class DayNightCycle : MonoBehaviour
         else{
             return Mathf.Lerp(0f, 90f, ClampTime(x));
         }
+    }
+
+    // Rotation for Z component of Skybox Light
+    private float RotateZ(float x){
+        if(x > 240 && x <= 720)
+            return Mathf.Lerp(0f, 30f, (x-240)/480);
+        else if(x > 720 && x <= 1200)
+            return Mathf.Lerp(30f, 0f, (x-720)/480);
+        else if(x > 1200)
+            return Mathf.Lerp(0f, 30f, (x-1200)/1440);
+        else
+            return Mathf.Lerp(30f, 0f, x/240);
     }
 
     // Clamps the current time to a float[0,1]
