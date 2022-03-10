@@ -41,8 +41,8 @@ public class DayNightCycle : MonoBehaviour
     public int previousFrameSeconds = 0;
     public bool UPDATELIGHT_FLAG = true;
     private static float FRAME_TIME_DIFF_MULTIPLIER = 0.7f;
-    public int updateTimer = 5;
-    private int timerFrameSize = 5;
+    public int updateTimer = 10;
+    private int timerFrameSize = 10;
 
     void Start(){
         this.volume.TryGet<PhysicallyBasedSky>(out this.pbsky);
