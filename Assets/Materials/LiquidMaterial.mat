@@ -108,7 +108,7 @@ Material:
     - _DisplacementY: 0.35
     - _DoubleSidedEnable: 1
     - _DoubleSidedGIMode: 2
-    - _DoubleSidedNormalMode: 2
+    - _DoubleSidedNormalMode: 0
     - _DstBlend: 10
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
@@ -161,7 +161,7 @@ Material:
     - SecondaryColor: {r: 0.1344889, g: 0.2953211, b: 0.341075, a: 0}
     - Vector2_826BAFAC: {r: -0.037, g: -0.093, b: 0, a: 0}
     - Vector2_A6922FD5: {r: 0.1, g: 0.076, b: 0, a: 0}
-    - _DoubleSidedConstants: {r: 1, g: 1, b: 1, a: 0}
+    - _DoubleSidedConstants: {r: -1, g: -1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _VertexTiling: {r: 16, g: 16, b: 0, a: 0}
   m_BuildTextureStacks: []

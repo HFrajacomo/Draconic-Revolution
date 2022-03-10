@@ -41,6 +41,8 @@ public class DayNightCycle : MonoBehaviour
     public int previousFrameSeconds = 0;
     public bool UPDATELIGHT_FLAG = true;
     private static float FRAME_TIME_DIFF_MULTIPLIER = 0.7f;
+    public int updateTimer = 5;
+    private int timerFrameSize = 5;
 
     void Start(){
         this.volume.TryGet<PhysicallyBasedSky>(out this.pbsky);
@@ -54,6 +56,7 @@ public class DayNightCycle : MonoBehaviour
     {
     	int time = timer.ToSeconds();
         this.delta += Time.deltaTime;
+        this.updateTimer--;
 
         if(this.previousFrameSeconds != time){
             this.delta = 0;
@@ -67,8 +70,6 @@ public class DayNightCycle : MonoBehaviour
         }
 
         if(UPDATELIGHT_FLAG){
-            skyboxLight.rotation = Quaternion.Euler(RotationFunction(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)), 270, RotateZ(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)));
-
             this.SetShadowDimmer(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER));
             Shader.SetGlobalFloat("_SkyLightMultiplier", this.lightMultiplier);
             this.pbsky.horizonTint.value = this.horizonColor;
@@ -78,6 +79,12 @@ public class DayNightCycle : MonoBehaviour
         else{
             this.UPDATELIGHT_FLAG = true;
         }
+
+        if(this.updateTimer <= 0){
+            skyboxLight.rotation = Quaternion.Euler(RotationFunction(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)), 270, RotateZ(time + (this.delta*DayNightCycle.FRAME_TIME_DIFF_MULTIPLIER)));
+            this.updateTimer = this.timerFrameSize;
+        }
+
 
 	}
 

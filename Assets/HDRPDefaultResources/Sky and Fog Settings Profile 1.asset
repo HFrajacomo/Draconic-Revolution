@@ -220,7 +220,7 @@ MonoBehaviour:
       m_Value: 0.1
     castShadows:
       m_OverrideState: 1
-      m_Value: 1
+      m_Value: 0
   layerB:
     cloudMap:
       m_OverrideState: 0
@@ -718,16 +718,16 @@ MonoBehaviour:
   active: 1
   maxShadowDistance:
     m_OverrideState: 1
-    m_Value: 600
+    m_Value: 100
   directionalTransmissionMultiplier:
     m_OverrideState: 1
     m_Value: 1
   cascadeShadowSplitCount:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 3
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0.025
+    m_Value: 0.14243773
   cascadeShadowSplit1:
     m_OverrideState: 1
     m_Value: 0.45
@@ -736,7 +736,7 @@ MonoBehaviour:
     m_Value: 0.74175996
   cascadeShadowBorder0:
     m_OverrideState: 1
-    m_Value: 0.2
+    m_Value: 0.45000005
   cascadeShadowBorder1:
     m_OverrideState: 1
     m_Value: 0.72042996

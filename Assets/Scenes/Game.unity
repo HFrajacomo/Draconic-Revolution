@@ -9793,6 +9793,7 @@ MonoBehaviour:
   delta: 0
   previousFrameSeconds: 0
   UPDATELIGHT_FLAG: 1
+  updateTimer: 5
 --- !u!1 &1581889484
 GameObject:
   m_ObjectHideFlags: 0
