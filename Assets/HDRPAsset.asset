@@ -68,7 +68,7 @@ MonoBehaviour:
         m_Bits: 0
       supportFabricConvolution: 0
       maxDirectionalLightsOnScreen: 1
-      maxPunctualLightsOnScreen: 512
+      maxPunctualLightsOnScreen: 1024
       maxAreaLightsOnScreen: 64
       maxEnvLightsOnScreen: 64
       maxDecalsOnScreen: 512
@@ -91,7 +91,7 @@ MonoBehaviour:
       cachedPunctualLightShadowAtlas: 4096
       cachedAreaLightShadowAtlas: 1024
       shadowResolutionDirectional:
-        m_Values: 00040000000800000010000000100000
+        m_Values: 0004000000080000000c000000100000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionPunctual:
@@ -99,7 +99,7 @@ MonoBehaviour:
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionArea:
-        m_Values: 20000000400000004000000000020000
+        m_Values: 20000000000400004000000000020000
         m_SchemaId:
           m_Id: With4Levels
       maxDirectionalShadowMapResolution: 4096

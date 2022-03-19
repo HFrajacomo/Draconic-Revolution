@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Text;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -358,7 +359,7 @@ public class ChunkLoader : MonoBehaviour
 
                 chunks[toDraw[0]].BuildChunk(load:true);
                 // If hasn't been drawn entirely, put on Redraw List
-                if(!chunks[toDraw[0]].BuildSideBorder(reload:true)){
+                if(!chunks[toDraw[0]].BuildSideBorder(reload:false, loadBUD:true)){
                     toRedraw.Add(toDraw[0]);
                 }
                 else{
@@ -380,7 +381,7 @@ public class ChunkLoader : MonoBehaviour
                 if(chunks.ContainsKey(toRedraw[0])){
                     if(chunks[toRedraw[0]].drawMain){
                         // If hasn't been drawn entirely, put on Redraw again
-                        if(!chunks[toRedraw[0]].BuildSideBorder()){
+                        if(!chunks[toRedraw[0]].BuildSideBorder(loadBUD:true)){
                             toRedraw.Add(toRedraw[0]);
                         }
                         else{
@@ -491,7 +492,7 @@ public class ChunkLoader : MonoBehaviour
                 if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:false);
+                    AddToUpdate(pos, noLight:true);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
             }
@@ -507,7 +508,7 @@ public class ChunkLoader : MonoBehaviour
                 if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:false);
+                    AddToUpdate(pos, noLight:true);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
             }
@@ -524,7 +525,7 @@ public class ChunkLoader : MonoBehaviour
                 if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
                     AddToUpdate(neighbor, noLight:true);
                 if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:false);
+                    AddToUpdate(pos, noLight:true);
                 if(updateCode >= 8)
                     toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
             }

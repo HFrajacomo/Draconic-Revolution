@@ -153,7 +153,7 @@ public class Chunk
 	}
 
 	// Draws Chunk Borders. Returns true if all borders have been drawn, otherwise, return false.
-	public bool BuildSideBorder(bool reload=false, bool reloadXM=false, bool reloadXP=false, bool reloadZM=false, bool reloadZP=false){
+	public bool BuildSideBorder(bool reload=false, bool loadBUD=false, bool reloadXM=false, bool reloadXP=false, bool reloadZM=false, bool reloadZP=false){
 		if(reload){
 			this.xMinusDrawn = false;
 			this.xPlusDrawn = false;
@@ -278,7 +278,7 @@ public class Chunk
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
 				toBUD = toBUD,
-				reload = reload,
+				reload = loadBUD,
 				data = blockdata,
 				metadata = metadata,
 				lightdata = lightdata,
@@ -324,10 +324,12 @@ public class Chunk
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
 
-			foreach(int3 coord in coordArray){
-				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-			}			
-			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+			if(loadBUD){
+				foreach(int3 coord in coordArray){
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				}			
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+			}
 			toLoadEvent.Clear();
 		}
 
@@ -343,7 +345,7 @@ public class Chunk
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
 				toBUD = toBUD,
-				reload = reload,
+				reload = loadBUD,
 				data = blockdata,
 				metadata = metadata,
 				lightdata = lightdata,
@@ -388,11 +390,14 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
-			foreach(int3 coord in coordArray){
-				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-			}
 
-			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+			if(loadBUD){
+				foreach(int3 coord in coordArray){
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				}
+
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+			}
 			toLoadEvent.Clear();
 		}
 
@@ -408,7 +413,7 @@ public class Chunk
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
 				toBUD = toBUD,
-				reload = reload,
+				reload = loadBUD,
 				data = blockdata,
 				metadata = metadata,
 				lightdata = lightdata,
@@ -453,10 +458,12 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
-			foreach(int3 coord in coordArray){
-				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			if(loadBUD){
+				foreach(int3 coord in coordArray){
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				}
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}
-			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			toLoadEvent.Clear();
 		}
 
@@ -472,7 +479,7 @@ public class Chunk
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
 				toBUD = toBUD,
-				reload = reload,
+				reload = loadBUD,
 				data = blockdata,
 				metadata = metadata,
 				lightdata = lightdata,
@@ -517,25 +524,29 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
-			foreach(int3 coord in coordArray){
-				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			if(loadBUD){
+				foreach(int3 coord in coordArray){
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				}
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}
-			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			toLoadEvent.Clear();
 		}
 
 		this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 
 		// Runs BUD in neighbor chunks
-		budArray = toBUD.AsArray().ToArray();
-		this.message = new NetMessage(NetCode.BATCHLOADBUD);
-		this.message.BatchLoadBUD(this.pos);
+		if(loadBUD){
+			budArray = toBUD.AsArray().ToArray();
+			this.message = new NetMessage(NetCode.BATCHLOADBUD);
+			this.message.BatchLoadBUD(this.pos);
 
-		foreach(int3 bu in budArray){
-			this.message.AddBatchLoad(bu.x, bu.y, bu.z, 0, 0, 0, ushort.MaxValue);
+			foreach(int3 bu in budArray){
+				this.message.AddBatchLoad(bu.x, bu.y, bu.z, 0, 0, 0, ushort.MaxValue);
+			}
+
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 		}
-
-		this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 		
 		// If mesh wasn't redrawn
 		if(changed){
@@ -712,23 +723,25 @@ public class Chunk
 		this.message = new NetMessage(NetCode.BATCHLOADBUD);
 		this.message.BatchLoadBUD(this.pos);
 
-		if(this.biomeName == "Ocean"){
-			coordArray = loadCoordList.AsArray().ToArray();
-			foreach(int3 coord in coordArray){
-				if(this.data.GetCell(coord) != 6){ // Water
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+		if(load){
+			if(this.biomeName == "Ocean"){
+				coordArray = loadCoordList.AsArray().ToArray();
+				foreach(int3 coord in coordArray){
+					if(this.data.GetCell(coord) != 6){ // Water
+						this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+					}
 				}
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+
 			}
-			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+			else{
+				coordArray = loadCoordList.AsArray().ToArray();
+				foreach(int3 coord in coordArray){
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				}	
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 
-		}
-		else{
-			coordArray = loadCoordList.AsArray().ToArray();
-			foreach(int3 coord in coordArray){
-				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-			}	
-			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-
+			}
 		}
 		loadCoordList.Clear();
 		

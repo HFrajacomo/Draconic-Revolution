@@ -157,7 +157,7 @@ MonoBehaviour:
     m_Value: 2
   shadowTint:
     m_OverrideState: 1
-    m_Value: {r: 0, g: 0, b: 0, a: 1}
+    m_Value: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   shadowResolution:
     m_OverrideState: 0
     m_Value: 256
@@ -220,7 +220,7 @@ MonoBehaviour:
       m_Value: 0.1
     castShadows:
       m_OverrideState: 1
-      m_Value: 0
+      m_Value: 1
   layerB:
     cloudMap:
       m_OverrideState: 0
@@ -347,7 +347,7 @@ MonoBehaviour:
     m_Value: 200
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 60
+    m_Value: 144
   enableVolumetricFog:
     m_OverrideState: 0
     m_Value: 1
@@ -504,13 +504,13 @@ MonoBehaviour:
     m_Value: 1
   alphaSaturation:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   alphaMultiplier:
     m_OverrideState: 1
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.26, g: 0.89, b: 0.9, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   zenithTint:
     m_OverrideState: 1
     m_Value: {r: 1, g: 0, b: 0.4834404, a: 1}

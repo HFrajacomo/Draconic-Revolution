@@ -147,7 +147,7 @@ Material:
     - _TransparentWritingMotionVec: 0
     - _TransparentZWrite: 1
     - _UseShadowThreshold: 0
-    - _WaveringX: 0.023
+    - _WaveringX: 0.09
     - _WaveringZ: 0.119
     - _ZTestDepthEqualForOpaque: 2
     - _ZTestGBuffer: 3
@@ -156,7 +156,7 @@ Material:
     m_Colors:
     - BaseColor: {r: 0.08039216, g: 0.20980392, b: 0.46470588, a: 0.1176471}
     - Color_31C227A5: {r: 0.099480815, g: 0.09184755, b: 0.45283002, a: 0}
-    - Color_55706E16: {r: 0.33285868, g: 0.8301887, b: 0.8301887, a: 0.74509805}
+    - Color_55706E16: {r: 0.33333334, g: 0.7009114, b: 0.83137256, a: 0.74509805}
     - Color_9412C8D4: {r: 0.06341218, g: 0.34635195, b: 0.5377357, a: 0.74509805}
     - SecondaryColor: {r: 0.1344889, g: 0.2953211, b: 0.341075, a: 0}
     - Vector2_826BAFAC: {r: -0.037, g: -0.093, b: 0, a: 0}
