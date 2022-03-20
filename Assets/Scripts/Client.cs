@@ -58,14 +58,14 @@ public class Client
 
 		// If game world is in client
 		if(World.isClient){
-			// Startup local server
-			this.lanServerProcess = new Process();
-			this.lanServerProcess.StartInfo.Arguments = "-Local";
-
 			// Unity edition only
 			#if UNITY_EDITOR
+				// Startup local server
+				this.lanServerProcess = new Process();
+				this.lanServerProcess.StartInfo.Arguments = "-Local";
+
 				// Main PC
-				if(File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe"))
+				if(File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe") && File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\invisLaunchHelper.bat"))
 					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe";
 				// Support Notebook
 				else if(File.Exists("C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe"))
@@ -80,31 +80,15 @@ public class Client
 					Panic();
 				}
 
-
 			// Standalone edition
 			#else
-				string dir = Directory.GetParent(Directory.GetCurrentDirectory()).ToString();
-				dir = dir + "\\Server\\Server.exe";
-
-
-				if(File.Exists(dir)){
-					this.lanServerProcess.StartInfo.UseShellExecute = false;
-					this.lanServerProcess.StartInfo.CreateNoWindow = true;
-					this.lanServerProcess.StartInfo.FileName = dir;
+				if(File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe") && File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\invisLaunchHelper.bat")){
+					Application.OpenURL("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\invisLaunchHelper.bat");
 				}
 				else{
 					Panic();
 				}
 			#endif
-
-
-
-			try{
-				this.lanServerProcess.Start();
-			}
-			catch{
-				Panic();
-			}
 
 			this.ip = new IPAddress(new byte[4]{127, 0, 0, 1});
 		}

@@ -94,6 +94,7 @@ public class Server
 			switch(arg){
 				case "-Local":
 					this.isLocal = true;
+					Debug.Log("local");
 					break;
 				default:
 
