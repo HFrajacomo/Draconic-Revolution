@@ -15,7 +15,13 @@ public static class EnvironmentVariablesCentral
     public static void Start(){
         clientDir = GetClientDir();
         clientExeDir = GetClientExeDir();
-        compiledServerDir = clientDir + "Build\\Server";
+
+        #if UNITY_EDITOR
+            compiledServerDir = clientDir + "Build\\Server";
+        #else
+            compiledServerDir = GetParent(clientExeDir) + "\\Server";
+        #endif
+
         gameDir = GetAppdataDir() + "\\DraconicRevolution\\";
         serverDir = gameDir + "Server\\";
 
@@ -31,8 +37,8 @@ public static class EnvironmentVariablesCentral
         }
 
         if(!Directory.Exists(serverDir)){
-            if(Directory.Exists(clientDir + "\\Build\\Server")){
-                Directory.Move(clientDir + "\\Build\\Server", serverDir);
+            if(Directory.Exists(compiledServerDir)){
+                Directory.Move(compiledServerDir, serverDir);
             }
             else{
                 Application.Quit();
