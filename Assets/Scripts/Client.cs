@@ -49,6 +49,10 @@ public class Client
 	// Windows External Process
 	public Process lanServerProcess;
 
+	// Const Strings
+	private string serverFile = "Server.exe";
+	private string invisLauncher = "invisLaunchHelper.bat";
+
 	
 	public Client(ChunkLoader cl){
 		this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -58,53 +62,37 @@ public class Client
 
 		// If game world is in client
 		if(World.isClient){
-			// Startup local server
-			this.lanServerProcess = new Process();
-			this.lanServerProcess.StartInfo.Arguments = "-Local";
-
 			// Unity edition only
 			#if UNITY_EDITOR
-				// Main PC
-				if(File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe"))
-					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe";
-				// Support Notebook
-				else if(File.Exists("C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe"))
-					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";					
-				// Lyxo PC
-				else if(File.Exists("E:\\Pasta\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe"))
-					this.lanServerProcess.StartInfo.FileName = "E:\\Pasta\\Draconic-Revolution\\Build\\Server\\Server.exe";
-				// Roh PC
-				else if(File.Exists("D:\\GitHub\\Draconic-Revolution\\Build\\Server\\Server.exe"))
-					this.lanServerProcess.StartInfo.FileName = "D:\\GitHub\\Draconic-Revolution\\Build\\Server\\Server.exe";
-				else{
+				// Startup local server
+				this.lanServerProcess = new Process();
+				this.lanServerProcess.StartInfo.Arguments = "-Local";
+
+				if(!File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
+					EnvironmentVariablesCentral.WriteInvisLaunchScript();
+
+				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
+					this.lanServerProcess.StartInfo.FileName = EnvironmentVariablesCentral.serverDir + serverFile;
+				else
+					Panic();
+
+				try{
+					this.lanServerProcess.Start();
+				}
+				catch{
 					Panic();
 				}
-
 
 			// Standalone edition
 			#else
-				string dir = Directory.GetParent(Directory.GetCurrentDirectory()).ToString();
-				dir = dir + "\\Server\\Server.exe";
+				if(!File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
+					EnvironmentVariablesCentral.WriteInvisLaunchScript();
 
-
-				if(File.Exists(dir)){
-					this.lanServerProcess.StartInfo.UseShellExecute = false;
-					this.lanServerProcess.StartInfo.CreateNoWindow = true;
-					this.lanServerProcess.StartInfo.FileName = dir;
-				}
-				else{
+				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
+					Application.OpenURL(EnvironmentVariablesCentral.serverDir + invisLauncher);
+				else
 					Panic();
-				}
 			#endif
-
-
-
-			try{
-				this.lanServerProcess.Start();
-			}
-			catch{
-				Panic();
-			}
 
 			this.ip = new IPAddress(new byte[4]{127, 0, 0, 1});
 		}
@@ -226,13 +214,8 @@ public class Client
 	// Sends a byte[] to the server
 	public bool Send(byte[] data, int length){
 		try{
-			IAsyncResult lenResult = this.socket.BeginSend(this.LengthPacket(length), 0, 4, 0, out this.err, null, null);
-			this.socket.EndSend(lenResult);
-
-			IAsyncResult result = this.socket.BeginSend(data, 0, length, 0, out this.err, null, null);
-			this.socket.EndSend(result);
-
-			NetMessage.Broadcast(NetBroadcast.SENT, data[0], 0, length);
+			this.socket.Send(this.LengthPacket(length), 4, SocketFlags.None);
+			this.socket.Send(data, length, SocketFlags.None);
 			return true;
 		}
 		catch(Exception e){
@@ -240,9 +223,6 @@ public class Client
 			return false;
 		}
 	}
-
-	// Send callback to end package
-	public void SendCallback(IAsyncResult result){}
 
 	// Checks if timeout has occured on server
 	public void CheckTimeout(){
@@ -384,13 +364,16 @@ public class Client
 					this.cl.chunks[pos].data.SetCell(x, y, z, blockCode);
 					this.cl.chunks[pos].metadata.SetState(x, y, z, state);
 					this.cl.chunks[pos].metadata.SetHP(x, y, z, hp);
+					this.cl.chunks[pos].data.CalculateHeightMap(x, z);
 					this.cl.AddToUpdate(pos);
+					CheckReload(pos, x, y, z);
 				}
 				break;
 			case BUDCode.BREAK:
 				if(this.cl.chunks.ContainsKey(pos)){
 					this.cl.chunks[pos].data.SetCell(x, y, z, 0);
 					this.cl.chunks[pos].metadata.Reset(x,y,z);
+					this.cl.chunks[pos].data.CalculateHeightMap(x, z);
 					this.cl.AddToUpdate(pos);
 					CheckReload(pos, x, y, z);
 				}	

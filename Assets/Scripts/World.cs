@@ -46,7 +46,7 @@ public static class World
         World.renderDistance = Convert.ToInt32(rd);
 
         // If negative
-        if(World.renderDistance < 0){
+        if(World.renderDistance <= 0){
             World.renderDistance = 5;
         }
 

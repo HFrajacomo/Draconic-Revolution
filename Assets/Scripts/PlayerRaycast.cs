@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.U2D;
@@ -220,6 +221,14 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
+		// DEBUG
+		print(loader.chunks[this.playerBody.GetChunkPos()].data.GetLight(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ, isNatural:true).ToString()
+			 + "   " + loader.chunks[this.playerBody.GetChunkPos()].data.GetLight(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ, isNatural:false).ToString()
+			 + "   " + loader.chunks[this.playerBody.GetChunkPos()].data.GetShadow(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ, isNatural:false).ToString()
+			 + "   " + this.playerBody.GetChunkPos().ToString()
+			 + "   " + loader.chunks[this.playerBody.GetChunkPos()].data.GetPropagationFlag()
+			 );
+		
 		if(!current.active)
 			return;
 
@@ -237,7 +246,7 @@ public class PlayerRaycast : MonoBehaviour
 		if(!current.active)
 			return;
 
-			Debug.Log(current.RealPos());
+		Debug.Log(current.RealPos());
 
 		// If first position is not set
 		if(!this.prefabSetFlag){

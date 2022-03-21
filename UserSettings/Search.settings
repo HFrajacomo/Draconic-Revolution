@@ -2,13 +2,12 @@ trackSelection = true
 fetchPreview = true
 wantsMore = false
 keepOpen = false
-itemIconSize = 1
 queryFolder = "Assets"
 onBoardingDoNotAskAgain = true
 showPackageIndexes = false
 showStatusBar = false
 scopes = {
-	"last_search.785D90A9" = "Wizard"
+	"last_search.785D90A9" = "Motion Vector"
 	"asset.785D90A9" = "True"
 	"menu.785D90A9" = "True"
 	"scene.785D90A9" = "True"
@@ -17,6 +16,7 @@ scopes = {
 	"m_SideBarSplitter.785D90A9" = "180"
 	"m_DetailsPanelSplitter.785D90A9" = "700"
 	"currentGroup.785D90A9" = "all"
+	"OpenInspectorPreview.785D90A9" = "0"
 }
 providers = {
 	asset = {
@@ -54,8 +54,29 @@ providers = {
 		priority = 100
 		defaultAction = null
 	}
+	adb = {
+		active = false
+		priority = 2500
+		defaultAction = null
+	}
+	performance = {
+		active = false
+		priority = 100
+		defaultAction = null
+	}
 }
 recentSearches = [
+	"M"
+	"R"
 	"hdrp"
 ]
+searchItemFavorites = [
+]
 savedSearchesSortOrder = 0
+showSavedSearchPanel = false
+expandedQueries = [
+]
+queryBuilder = false
+ignoredProperties = "id;name;classname;imagecontentshash"
+helperWidgetCurrentArea = "all"
+disabledIndexers = ""

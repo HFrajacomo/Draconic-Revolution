@@ -2,8 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Torch_Item : Item
+public class Torch_Item : Item, IPlaceable
 {
+	public ushort placeableBlockID {get; set;}
+	
 	public Torch_Item(){
 		this.SetName("Torch");
 		this.SetDescription("Lights the way");
@@ -15,5 +17,10 @@ public class Torch_Item : Item
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Lux, 1}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Light});
 		this.SetDurability(false);
+		this.placeableBlockID = ushort.MaxValue;
+	}
+
+	public override int Use(){
+		return this.placeableBlockID;
 	}
 }

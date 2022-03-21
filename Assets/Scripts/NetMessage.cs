@@ -60,6 +60,18 @@ public struct NetMessage
 		return this.data;
 	}
 
+	// Adds a new block information to BatchLoadBUD message
+	public void AddBatchLoad(int x, int y, int z, int facing, ushort blockCode, ushort state, ushort hp){
+		NetDecoder.WriteInt(x, NetMessage.buffer, this.size);
+		NetDecoder.WriteInt(y, NetMessage.buffer, this.size+4);
+		NetDecoder.WriteInt(z, NetMessage.buffer, this.size+8);
+		NetDecoder.WriteInt(facing, NetMessage.buffer, this.size+12);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, this.size+16);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, this.size+18);
+		NetDecoder.WriteUshort(hp, NetMessage.buffer, this.size+20);
+		this.size += 22;
+	}
+
 	// Returns a copy of the previously instanced NetMessage but passing the info in NetMessage.buffer to this.data
 	public NetMessage CopyAsInternal(NetMessage m){
 		byte[] data = new byte[m.GetSize()];
@@ -182,7 +194,7 @@ public struct NetMessage
 		NetDecoder.WriteFloat(rotX, NetMessage.buffer, 13);
 		NetDecoder.WriteFloat(rotY, NetMessage.buffer, 17);
 		NetDecoder.WriteFloat(rotZ, NetMessage.buffer, 21);
-		this.size = 25;
+		this.size = 25; 
 	}
 
 	// Client sends a voxel coordinate to trigger OnInteraction in server
@@ -283,6 +295,12 @@ public struct NetMessage
 		this.size = 36;
 	}
 
+	// Clients sends list of blocks that require a LOAD BUD operation
+	public void BatchLoadBUD(ChunkPos pos){
+		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
+		this.size = 9;	
+	}
+
 }
 
 public enum NetCode{
@@ -295,6 +313,7 @@ public enum NetCode{
 	SENDCHUNK,
 	SENDBUD,
 	DIRECTBLOCKUPDATE,
+	BATCHLOADBUD,
 	INTERACT,
 	CLIENTPLAYERPOSITION,
 	VFXDATA,

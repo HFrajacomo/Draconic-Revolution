@@ -1,0 +1,116 @@
+#pragma kernel CreateShadowMap
+
+RWStructuredBuffer<uint> debugBuffer;
+
+uint3 GetXYZ (uint i, uint offset){
+    uint j = i*2+offset;
+    uint chunkWidth = 16;
+    uint chunkDepth = 100;
+    
+    return uint3(uint(j/(chunkWidth*chunkDepth)), uint((j/chunkWidth)%chunkDepth), uint(j%chunkWidth));
+}
+
+uint GetXZIndex (uint i, uint offset){
+    uint chunkWidth = 16;
+    uint3 coords = GetXYZ(i, offset);
+    return uint(coords.x*chunkWidth+coords.z);
+}
+
+StructuredBuffer<uint> data;
+StructuredBuffer<uint> heightMap;
+StructuredBuffer<uint> isTransparentBlock;
+StructuredBuffer<uint> isTransparentObj;
+RWStructuredBuffer<uint> shadowMap;
+
+
+uint GenerateShadow(uint idx, uint i, uint blockNumber, uint height, uint blockTrans){
+    uint shadowLevel;
+
+    // If is above heightMap
+    if(GetXYZ(idx, i).y > height){
+        shadowLevel = 2; // 2
+    }
+    // If is transparent
+    else if(blockTrans == 1){
+        shadowLevel = 1; // 1
+    }
+    // If is solid
+    else{
+        shadowLevel = 0; // 0
+    }
+
+    return (shadowLevel << (8*blockNumber));
+} 
+
+uint ByteOffsetToMaskedValue(uint value, uint blockCode){
+    uint remainder;
+
+    // If is a block
+    if(blockCode <= 32767){
+
+        remainder = blockCode%4;
+
+        if(remainder == 0){
+            return (isTransparentBlock[uint(blockCode/4)] & 0x000000FF);
+        }
+        else if(remainder == 1){
+            return (isTransparentBlock[uint(blockCode/4)] & 0x0000FF00) >> 8;
+        }
+        else if(remainder == 2){
+            return (isTransparentBlock[uint(blockCode/4)] & 0x00FF0000) >> 16;
+        }
+        else{
+            return (isTransparentBlock[uint(blockCode/4)] & 0xFF000000) >> 24;
+        }
+    }
+    // If is an object
+    else{
+        uint newCode = (65535 - blockCode);
+        remainder = newCode%4;
+
+        if(remainder == 0){
+            return (isTransparentObj[uint(newCode/4)] & 0x000000FF);
+        }
+        else if(remainder == 1){
+            return (isTransparentObj[uint(newCode/4)] & 0x0000FF00) >> 8;
+        }
+        else if(remainder == 2){
+            return (isTransparentObj[uint(newCode/4)] & 0x00FF0000) >> 16;
+        }
+        else{
+            return (isTransparentObj[uint(newCode/4)] & 0xFF000000) >> 24;
+        }        
+    }
+}
+
+[numthreads(256,1,1)]
+void CreateShadowMap (uint3 id : SV_DispatchThreadID)
+{
+    uint idx = id.x*2;
+
+    uint block1 = data[idx] & 0x0000FFFF;
+    uint block2 = (data[idx] & 0xFFFF0000) >> 16;
+    uint block3 = data[idx+1] & 0x0000FFFF;
+    uint block4 = (data[idx+1] & 0xFFFF0000) >> 16;
+
+    uint height1, height2, height3, height4;
+    uint isTransparent1, isTransparent2, isTransparent3, isTransparent4;
+    uint shadowOffset;
+
+    height1 = (heightMap[uint(GetXZIndex(id.x, 0)/4)] & 0x000000FF);
+    height2 = (heightMap[uint(GetXZIndex(id.x, 1)/4)] & 0x0000FF00) >> 8;
+    height3 = (heightMap[uint(GetXZIndex(id.x, 0)/4)] & 0x00FF0000) >> 16;
+    height4 = (heightMap[uint(GetXZIndex(id.x, 1)/4)] & 0xFF000000) >> 24;    
+
+    isTransparent1 = ByteOffsetToMaskedValue(isTransparentBlock[uint(block1/4)], block1);
+    isTransparent2 = ByteOffsetToMaskedValue(isTransparentBlock[uint(block2/4)], block2);
+    isTransparent3 = ByteOffsetToMaskedValue(isTransparentBlock[uint(block3/4)], block3);
+    isTransparent4 = ByteOffsetToMaskedValue(isTransparentBlock[uint(block4/4)], block4);
+
+    shadowOffset = GenerateShadow(idx, 0, 0, height1, isTransparent1);
+    shadowOffset += GenerateShadow(idx, 1, 1, height2, isTransparent2);
+    shadowOffset += GenerateShadow(idx+1, 0, 2, height3, isTransparent3);
+    shadowOffset += GenerateShadow(idx+1, 1, 3, height4, isTransparent4);
+
+    shadowMap[id.x] = shadowOffset;
+}

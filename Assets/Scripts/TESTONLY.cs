@@ -5,15 +5,30 @@ using UnityEngine;
 using Unity.Collections;
 
 public class TESTONLY : MonoBehaviour
-{
-	public ChunkRenderer rend;
+{   
 
-    // Start is called before the first frame update
-    void Start()
-    {
-    	print(-1%16);
-        print(-16%16);
-        print(Mathf.FloorToInt(-1f/16));
-        print(Mathf.FloorToInt(-16f/16));
+
+    private void PrintAll(ushort[] a){
+        string output = "";
+        foreach(ushort u in a)
+            output += u.ToString() + " ";
+        print(output);
+    }
+
+    private void PrintAll(NativeArray<ushort> a){
+        string output = "";
+        foreach(ushort u in a)
+            output += u.ToString() + " ";
+        print(output);
+    }
+
+    private void PopulateArray(ushort[] a){
+        for(ushort i=0; i < a.Length; i++)
+            a[i] = i;
+    }
+
+    private void PopulateArray(NativeArray<ushort> a){
+        for(ushort i=0; i < a.Length; i++)
+            a[i] = i;
     }
 }

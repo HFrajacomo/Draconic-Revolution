@@ -7,10 +7,10 @@ public class Dirt_Block : Blocks
 	public Dirt_Block(){
 		this.name = "Dirt";
 		this.solid = true;
-		this.materialIndex = 0;
-		this.transparent = false;
+		this.transparent = 0;
 		this.invisible = false;
 		this.liquid = false;
+		this.affectLight = true;
 
 		this.tileTop = 3;
 		this.tileSide = 3;

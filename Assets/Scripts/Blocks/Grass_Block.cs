@@ -7,11 +7,11 @@ public class Grass_Block : Blocks
 	// Just loaded block
 	public Grass_Block(){
 		this.name = "Grass";
-		this.materialIndex = 0;
 		this.solid = true;
-		this.transparent = false;
+		this.transparent = 0;
 		this.invisible = false;
 		this.liquid = false;
+		this.affectLight = true;
 
 		this.tileTop = 1;
 		this.tileSide = 2;

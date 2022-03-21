@@ -34,7 +34,7 @@ public class PlayerEvents : MonoBehaviour
     {
     	ItemStack its = new ItemStack(ItemID.STONEBLOCK, 40);
     	ItemStack its2 = new ItemStack(ItemID.WOODBLOCK, 40);
-    	ItemStack its3 = new ItemStack(ItemID.WATERBLOCK, 10);
+    	ItemStack its3 = new ItemStack(ItemID.TORCH, 50);
     	inventory.AddStack(its, inventory.CanFit(its));
     	hotbar.AddStack(its, hotbar.CanFit(its));
        	hotbar.AddStack(its2, hotbar.CanFit(its2));

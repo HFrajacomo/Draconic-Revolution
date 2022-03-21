@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Text;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,6 +7,8 @@ using Unity.Jobs;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 public class ChunkLoader : MonoBehaviour
 {
@@ -21,6 +24,8 @@ public class ChunkLoader : MonoBehaviour
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
     public List<ChunkPos> toDraw = new List<ChunkPos>();
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
+    public List<ChunkPos> toUpdateNoLight = new List<ChunkPos>();
+    public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 	public BlockEncyclopedia blockBook;
     public VFXLoader vfx;
     public TimeOfDay time;
@@ -37,6 +42,9 @@ public class ChunkLoader : MonoBehaviour
     
     // Unity Reference
     public PlayerMovement playerMovement;
+    public VolumeProfile volume;
+    public GameObject mainControllerManager;
+    public Fog fog;
 
     // Initialization
     public GameObject playerCharacter;
@@ -49,7 +57,6 @@ public class ChunkLoader : MonoBehaviour
 	public bool WORLD_GENERATED = false; 
     public int reloadMemoryCounter = 30;
     public bool PLAYERSPAWNED = false;
-    public bool PLAYERLOADED = false;
     public bool REQUESTEDCHUNKS = false;
     public bool CONNECTEDTOSERVER = false;
     public bool SENTINFOTOSERVER = false;
@@ -65,14 +72,17 @@ public class ChunkLoader : MonoBehaviour
 
 
     void Awake(){
-        Debug.Log("Started ChunkLoader");
         this.playerCharacter.SetActive(false);
+        this.mainControllerManager.SetActive(false);
         this.gameUI.SetActive(false);
         this.client = new Client(this);
         HandleClientCommunication();
         this.player.position = new Vector3(0,0,0);
         this.testAccountID = World.accountID;
         this.time.SetClient(this.client);
+
+        this.volume.TryGet<Fog>(out this.fog);
+        this.fog.meanFreePath.value = World.renderDistance * 12;
     }
 
     void OnApplicationQuit(){
@@ -124,24 +134,20 @@ public class ChunkLoader : MonoBehaviour
 
         else{
             // If current chunk is drawn and world is generated
-        	if(CheckChunkDrawn(this.playerX, this.playerZ) && !WORLD_GENERATED && toLoad.Count == 0){
+        	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ) && toLoad.Count == 0){
                 HandleClientCommunication();
         		WORLD_GENERATED = true;
 
-                if(!this.PLAYERLOADED){
-                    int spawnY = GetBlockHeight(new ChunkPos(Mathf.FloorToInt(player.position.x / Chunk.chunkWidth), Mathf.FloorToInt(player.position.z / Chunk.chunkWidth)), (int)(player.position.x%Chunk.chunkWidth), (int)(player.position.z%Chunk.chunkWidth));
-                    player.position -= new Vector3(0, player.position.y - spawnY, 0);
-                    this.PLAYERLOADED = true;
-                }
 
                 this.gameUI.SetActive(true);
                 playerCharacter.SetActive(true);
+                this.mainControllerManager.SetActive(true);
                 this.time.SetPlayer(playerCharacter.GetComponent<PlayerMovement>());
                 this.playerEvents.SetPlayerObject(playerCharacter);
                 this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
         	}
 
-            //MoveEntities();
+            MoveEntities();
             HandleClientCommunication();
             RunTimerFunctions();
             GetChunks(false);
@@ -197,7 +203,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Check if the chunkpos in a given (x,z) position is loaded and drawn
     private bool CheckChunkDrawn(float x, float z){
-        ChunkPos pos = new ChunkPos(Mathf.FloorToInt(x/Chunk.chunkWidth), Mathf.FloorToInt(z/Chunk.chunkWidth));
+        ChunkPos pos = new ChunkPos(Mathf.FloorToInt((x+0.5f)/Chunk.chunkWidth), Mathf.FloorToInt((z+0.5f)/Chunk.chunkWidth));
     
         if(this.chunks.ContainsKey(pos)){
             return this.chunks[pos].drawMain;
@@ -206,12 +212,22 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Adds chunk to Update queue
-    public void AddToUpdate(ChunkPos pos){
-        if(!toUpdate.Contains(pos))
-            toUpdate.Add(pos);
+    public void AddToUpdate(ChunkPos pos, bool noLight=false){
+        if(!noLight){
+            if(!toUpdate.Contains(pos))
+                toUpdate.Add(pos);
+            else{
+                toUpdate.Remove(pos);
+                toUpdate.Add(pos);
+            }
+        }
         else{
-            toUpdate.Remove(pos);
-            toUpdate.Add(pos);
+            if(!toUpdateNoLight.Contains(pos))
+                toUpdateNoLight.Add(pos);
+            else{
+                toUpdateNoLight.Remove(pos);
+                toUpdateNoLight.Add(pos);
+            }            
         }
     }
 
@@ -274,7 +290,7 @@ public class ChunkLoader : MonoBehaviour
                 Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:21+headerSize);
                 Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
                 Compression.DecompressMetadataStateClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize+hpDataSize);
-            
+
                 if(this.vfx.data.ContainsKey(cp))
                     this.vfx.RemoveChunk(cp);
                     
@@ -287,6 +303,7 @@ public class ChunkLoader : MonoBehaviour
             }
         }
     }
+
 
     // Unloads a chunk per frame from the Unloading Buffer
     private void UnloadChunk(){
@@ -301,7 +318,6 @@ public class ChunkLoader : MonoBehaviour
             else{
                 this.reloadMemoryCounter--;
             }
-
 
             if(toRedraw.Contains(toUnload[0])){
                 toRedraw.Remove(toUnload[0]);
@@ -338,10 +354,17 @@ public class ChunkLoader : MonoBehaviour
         if(toDraw.Count > 0){
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
+                chunks[toDraw[0]].data.CalculateLightMap();
+                CheckLightPropagation(toDraw[0]);
+
                 chunks[toDraw[0]].BuildChunk(load:true);
                 // If hasn't been drawn entirely, put on Redraw List
-                if(!chunks[toDraw[0]].BuildSideBorder(reload:true)){
+                if(!chunks[toDraw[0]].BuildSideBorder(reload:false, loadBUD:true)){
                     toRedraw.Add(toDraw[0]);
+                }
+                else{
+                    if(this.WORLD_GENERATED)
+                        this.vfx.UpdateLights(toDraw[0]);
                 }
             }
             toDraw.RemoveAt(0);
@@ -358,8 +381,12 @@ public class ChunkLoader : MonoBehaviour
                 if(chunks.ContainsKey(toRedraw[0])){
                     if(chunks[toRedraw[0]].drawMain){
                         // If hasn't been drawn entirely, put on Redraw again
-                        if(!chunks[toRedraw[0]].BuildSideBorder()){
+                        if(!chunks[toRedraw[0]].BuildSideBorder(loadBUD:true)){
                             toRedraw.Add(toRedraw[0]);
+                        }
+                        else{
+                            if(this.WORLD_GENERATED)
+                                this.vfx.UpdateLights(toRedraw[0]);
                         }
                     }
                     else{
@@ -377,21 +404,144 @@ public class ChunkLoader : MonoBehaviour
         int min;
 
         // Gets the minimum operational value
-        if(3 < toUpdate.Count)
-            min = 3;
+        if(2 < toUpdate.Count)
+            min = 2;
         else
             min = toUpdate.Count;
 
         if(toUpdate.Count > 0){
             for(int i=0; i<min; i++){
                 if(this.chunks.ContainsKey(toUpdate[0])){
+                    chunks[toUpdate[0]].data.CalculateLightMap();
+                    CheckLightPropagation(toUpdate[0]);
+
                     chunks[toUpdate[0]].BuildChunk();
+
                     if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
                         toRedraw.Add(toUpdate[0]);
+                    else{
+                        if(this.WORLD_GENERATED)
+                            this.vfx.UpdateLights(toUpdate[0]);
+                    }
                 }
                 toUpdate.RemoveAt(0);
             }
         }
+
+        if(toUpdateNoLight.Count > 0){
+            if(this.chunks.ContainsKey(toUpdateNoLight[0])){
+                chunks[toUpdateNoLight[0]].BuildChunk();
+
+                if(!chunks[toUpdateNoLight[0]].BuildSideBorder(reload:true))
+                    toRedraw.Add(toUpdateNoLight[0]);
+                else{
+                    if(this.WORLD_GENERATED)
+                        this.vfx.UpdateLights(toUpdateNoLight[0]);
+                }
+            }
+            toUpdateNoLight.RemoveAt(0);
+        }
+    }
+
+    // Checks if neighbor chunks should have light propagated
+    // MUST BE USED AFTER THE CalculateLightMap FUNCTION
+    // Returns true if should update current chunk and false if not
+    public bool CheckLightPropagation(ChunkPos pos, byte flag=255, int recursionDepth=0){
+        byte propagationFlag;
+        ChunkPos neighbor;
+        bool updateCurrent = false;
+        byte updateCode = 0;
+
+        if(recursionDepth >= 5)
+            return false;
+
+        if(flag == 255)
+            propagationFlag = this.chunks[pos].data.GetPropagationFlag();
+        else{
+            propagationFlag = flag;
+        }
+
+        // None
+        if(propagationFlag == 0)
+            return false;
+
+        // xm
+        if((propagationFlag & 1) != 0){
+            neighbor = new ChunkPos(pos.x-1, pos.z);
+
+            if(this.chunks.ContainsKey(neighbor)){
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 0);
+                if((updateCode & 4) == 4)
+                    AddToUpdate(neighbor, noLight:false);
+                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+                    AddToUpdate(neighbor, noLight:true);
+                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+                    AddToUpdate(pos, noLight:true);
+                if(updateCode >= 8)
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
+            }
+        }
+        // xp
+        if((propagationFlag & 2) != 0){
+            neighbor = new ChunkPos(pos.x+1, pos.z);
+
+            if(this.chunks.ContainsKey(neighbor)){
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 1);
+                if((updateCode & 4) == 4)
+                    AddToUpdate(neighbor, noLight:false);
+                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+                    AddToUpdate(neighbor, noLight:true);
+                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+                    AddToUpdate(pos, noLight:true);
+                if(updateCode >= 8)
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
+            }
+        }
+        // zm
+        if((propagationFlag & 4) != 0){
+            neighbor = new ChunkPos(pos.x, pos.z-1);
+
+            if(this.chunks.ContainsKey(neighbor)){
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 2);
+                if((updateCode & 4) == 4)
+                    AddToUpdate(neighbor, noLight:false);
+                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+                    AddToUpdate(neighbor, noLight:true);
+                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+                    AddToUpdate(pos, noLight:true);
+                if(updateCode >= 8)
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
+            }
+
+        }
+        // zp
+        if((propagationFlag & 8) != 0){
+            neighbor = new ChunkPos(pos.x, pos.z+1);
+
+            if(this.chunks.ContainsKey(neighbor)){
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 3);
+                if((updateCode & 4) == 4)
+                    AddToUpdate(neighbor, noLight:false);
+                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+                    AddToUpdate(neighbor, noLight:true);
+                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+                    AddToUpdate(pos, noLight:true);
+                if(updateCode >= 8)
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
+            }
+        }
+
+        while(toCallLightCascade.Count > 0){
+            ChunkLightPropagInfo info = toCallLightCascade[0];
+            toCallLightCascade.RemoveAt(0);
+
+            CheckLightPropagation(info);
+        }
+
+        return updateCurrent;
+    }
+    private bool CheckLightPropagation(ChunkLightPropagInfo info){
+        return CheckLightPropagation(info.pos, info.propagationFlag, info.recursionDepth);
     }
 
 
@@ -709,3 +859,14 @@ public struct ChunkPos{
 	}
 }
 
+public struct ChunkLightPropagInfo{
+    public ChunkPos pos;
+    public byte propagationFlag;
+    public int recursionDepth;
+
+    public ChunkLightPropagInfo(ChunkPos a, byte flag, int recursionDepth){
+        this.pos = a;
+        this.propagationFlag = flag;
+        this.recursionDepth = recursionDepth;
+    }
+}

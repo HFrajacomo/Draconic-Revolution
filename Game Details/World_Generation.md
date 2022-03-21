@@ -57,7 +57,7 @@ In order to do that, we simply generate all of these different heightmaps and th
 
 I know, I know... we don't have fancy cities or dungeons. So what are these Structures? They are our trees, dirt patches on the Underground, boulders on the surface and Metal Ore veins... in the current Phase 1 of development, of course.
 
-![](../RepoImages/Day1.png)
+![](../RepoImages/LightUpdate1.png)
 
 Generating these is quite a pain, not gonna lie. So let's go.
 First of all, every structure is procedurally rotated. Of course, you don't want your whole forest to always be facing north, right? Also, your structure needs to have a center point and a write condition. Let's go through the write conditions first.

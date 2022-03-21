@@ -4,18 +4,21 @@ using UnityEngine;
 
 public abstract class BlocklikeObject
 {
-	public byte materialIndex = 3; // Assets
+	public ShaderIndex shaderIndex = ShaderIndex.ASSETS; // Assets
 	public string name;
 	public bool solid; // Is collidable
-	public bool transparent; // Should render the back side?
+	public byte transparent; // Should render the back side?
 	public bool invisible; // Should not render at all
+	public bool affectLight; // Should drain light
 	public bool liquid;
+	public bool seamless;
 	public bool hasLoadEvent; // Should run code when loaded it's chunk
+	public byte luminosity = 0; // Emits VoxelLight
 
 	public Vector3 positionOffset;
 	public Vector3 scaling; 
 
-	public static readonly int objectCount = 2;
+	public static readonly int objectCount = 1;
 	public int stateNumber; // If needsRotation is true, these objects need to tell the rendering engine their max number of sequential states from 0
 
 	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();
@@ -32,8 +35,6 @@ public abstract class BlocklikeObject
 	public static BlocklikeObject Create(int blockID, bool isClient){
 		if(blockID == 0)
 			return new Torch_Object(isClient);
-		else if(blockID == 1)
-			return new Leaf_Object(isClient);
 		else
 			return new Torch_Object(isClient);
 	}

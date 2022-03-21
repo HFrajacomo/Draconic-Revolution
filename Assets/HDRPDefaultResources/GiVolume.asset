@@ -15,13 +15,13 @@ MonoBehaviour:
   active: 1
   indirectDiffuseLightingMultiplier:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 1
   indirectDiffuseLightingLayers:
     m_OverrideState: 0
     m_Value: 255
   reflectionLightingMultiplier:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 2
   reflectionLightingLayers:
     m_OverrideState: 0
     m_Value: 255
@@ -76,7 +76,7 @@ MonoBehaviour:
     m_Value: 0.15
   m_SampleCount:
     m_OverrideState: 0
-    m_Value: 10
+    m_Value: 4
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -281,7 +281,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   skyType:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
   cloudType:
     m_OverrideState: 0
@@ -313,9 +313,9 @@ MonoBehaviour:
   active: 1
   mode:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
   meteringMode:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 2
   luminanceSource:
     m_OverrideState: 0
@@ -333,27 +333,36 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 10
   curveMap:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: -10
-        value: -10
-        inSlope: 0
+        time: 0.035723686
+        value: 0.03572464
+        inSlope: 1
         outSlope: 1
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0
-        outWeight: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 5.7556653
+        value: 11.611816
+        inSlope: 1.1674805
+        outSlope: 1.1674805
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.86137664
+        outWeight: 0.35313985
       - serializedVersion: 3
         time: 20
         value: 20
-        inSlope: 1
-        outSlope: 0
+        inSlope: -0.08937434
+        outSlope: -0.08937434
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0
+        inWeight: 0.5205498
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
@@ -414,8 +423,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   adaptationSpeedDarkToLight:
-    m_OverrideState: 0
-    m_Value: 3
+    m_OverrideState: 1
+    m_Value: 1
   adaptationSpeedLightToDark:
     m_OverrideState: 0
     m_Value: 1

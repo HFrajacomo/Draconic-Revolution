@@ -29,6 +29,10 @@ Interestingly enough, the Garbage Collection optimization is meant to decrease t
 
 When working with Native Data Structures, disposing of them correctly and accessing their data as non-Native structures without burdening the GC is a good thing.
 
+## Incremental Garbage Collector (Incremental GC) (CPU)
+
+It's very hard to avoid lag spikes using the standard GC. These lag spikes were constant when playing in high render distances. The Incremental GC makes everything simpler. It distributes the memory flagging stage to multiple frames, making the GC load less noticeable, and lag spikes rare.+
+
 # Burst Compiler
 
 Okay, now this is the actual big boy. 
@@ -37,6 +41,17 @@ The Burst Compiler is a LLVM based compiler that pre-compiles Unity Job function
 
 Right now, Burst is in every critical operation of the game. Every Chunk Generation is made with Burst, every Chunk rendering is made with Burst. Even the compression algorithm is sped up by Burst. Without Burst, the game wouldn't be able to run smoothly with a render distance bigger than 5. Burst is a **necessity** to this game, and by far the **most important addition to optimization in the history of Unity**.
 
+# NativeTools using unsafe C
+
+C# lets you use C language inside a unsafe scope. C language's memcpy was used to convert NativeArray and NativeLists to their managed counterpart using a single memwrite operation.
+
+# IL2CPP Scripting Backend
+
+This is a big one. Why having C# VM mono code running if you can have an intermediate C++ build?
+Although converting to IL2CPP makes everything way faster, build time and poor Unity support for native libs is daunting.
+Be aware that Unity won't be capable of using every single lib or dll the underlying C language uses. Normally, Unity Documentation says that PInvoking is the way to go, but PInvoking didn't work for me in ANY case. PInvoking is difficult to set up and requires some advanced C# knowledge. If you are interested in switching to IL2CPP, be aware that you must have to find a workaround to half of System libraries.
+
+\*PInvoking = Building manual support for underlying dll/syscall imports inside C# code.
 
 # Congratulations
 

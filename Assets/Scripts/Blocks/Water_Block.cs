@@ -47,16 +47,18 @@ public class Water_Block : Blocks
 
 	// Just loaded block
 	public Water_Block(){
-		this.materialIndex = 2; // Liquid
+		this.shaderIndex = ShaderIndex.WATER; // Liquid
 		this.name = "Water";
 		this.solid = false;
-		this.transparent = true;
+		this.transparent = 1;
 		this.invisible = false;
 		this.liquid = true;
 		this.waterCode = 6;
 		this.customBreak = true;
 		this.customPlace = true;
 		this.hasLoadEvent = true;
+		this.affectLight = true;
+		this.seamless = true;
 		this.viscosityDelay = 12;
 
 		this.aroundCodes = new ushort[8];
@@ -291,6 +293,7 @@ public class Water_Block : Blocks
 							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
 
 							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+							return;
 						}		
 					}
 				}
@@ -413,6 +416,7 @@ public class Water_Block : Blocks
 								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
 
 								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+								return;
 							}	
 						}
 					}
@@ -540,6 +544,7 @@ public class Water_Block : Blocks
 								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
 
 								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+								return;
 							}			
 						}
 					}
@@ -570,6 +575,7 @@ public class Water_Block : Blocks
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 19);
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+					return;
 				}
 
 				// If not alive
@@ -645,6 +651,7 @@ public class Water_Block : Blocks
 								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
 
 								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+								return;
 							}			
 						}
 					}					
@@ -763,6 +770,7 @@ public class Water_Block : Blocks
 								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
 
 								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+								return;
 							}			
 						}
 					}					
@@ -809,6 +817,7 @@ public class Water_Block : Blocks
 					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
 					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 20);
 					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+					return;
 				}
 			}
 		}

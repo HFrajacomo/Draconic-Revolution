@@ -8,6 +8,8 @@ using Random = UnityEngine.Random;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+using static System.IO.Path;
+
 public class MainMenu : MonoBehaviour
 {
 
@@ -28,11 +30,11 @@ public class MainMenu : MonoBehaviour
 	public void Start(){
 		Resources.UnloadUnusedAssets();
 		System.GC.Collect();
+		EnvironmentVariablesCentral.Start();
 		OpenMainMenu();
 	}
 
 	public void StartGameSingleplayer(){
-		Debug.Log("Clicked");
 		int rn;
 
 		if(single_nameField.text == ""){
@@ -59,9 +61,7 @@ public class MainMenu : MonoBehaviour
 		World.SetToClient();
 
 
-		Debug.Log("Clicked Single");
 		SceneManager.LoadScene(1);
-		Debug.Log("Changed Scene");
 	}
 
 	public void StartGameMultiplayer(){

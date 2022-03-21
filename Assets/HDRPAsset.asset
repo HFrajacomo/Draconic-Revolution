@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RenderPipelineSettings:
     supportShadowMask: 1
-    supportSSR: 1
+    supportSSR: 0
     supportSSRTransparent: 0
     supportSSAO: 1
     supportSSGI: 1
@@ -24,16 +24,16 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    supportVolumetricClouds: 0
+    supportVolumetricClouds: 1
     supportLightLayers: 0
     supportDistortion: 1
-    supportTransparentBackface: 1
+    supportTransparentBackface: 0
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
     colorBufferFormat: 74
     supportCustomPass: 1
     customBufferFormat: 12
-    supportedLitShaderMode: 3
+    supportedLitShaderMode: 2
     planarReflectionResolution:
       m_Values: 800000008000000080000000
       m_SchemaId:
@@ -46,29 +46,29 @@ MonoBehaviour:
     supportMotionVectors: 1
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
-    supportTerrainHole: 1
+    supportTerrainHole: 0
     supportProbeVolume: 0
     probeVolumeMemoryBudget: 1024
     probeVolumeSHBands: 1
-    supportRayTracing: 1
+    supportRayTracing: 0
     supportedRayTracingMode: 3
     lightLoopSettings:
-      cookieAtlasSize: 128
+      cookieAtlasSize: 4096
       cookieFormat: 74
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 1
       planarReflectionAtlasSize: 128
       reflectionProbeCacheSize: 32
       reflectionCubemapSize: 128
-      reflectionCacheCompressed: 1
+      reflectionCacheCompressed: 0
       reflectionProbeFormat: 74
-      skyReflectionSize: 128
+      skyReflectionSize: 512
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0
       supportFabricConvolution: 0
-      maxDirectionalLightsOnScreen: 16
-      maxPunctualLightsOnScreen: 512
+      maxDirectionalLightsOnScreen: 1
+      maxPunctualLightsOnScreen: 1024
       maxAreaLightsOnScreen: 64
       maxEnvLightsOnScreen: 64
       maxDecalsOnScreen: 512
@@ -77,32 +77,32 @@ MonoBehaviour:
       maxLocalVolumetricFogSize: 32
       maxLocalVolumetricFogOnScreen: 64
     hdShadowInitParams:
-      maxShadowRequests: 1024
+      maxShadowRequests: 4096
       directionalShadowsDepthBits: 32
-      shadowFilteringQuality: 1
+      shadowFilteringQuality: 2
       punctualLightShadowAtlas:
-        shadowAtlasResolution: 256
+        shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 1
       areaLightShadowAtlas:
         shadowAtlasResolution: 256
         shadowAtlasDepthBits: 32
         useDynamicViewportRescale: 1
-      cachedPunctualLightShadowAtlas: 2048
+      cachedPunctualLightShadowAtlas: 4096
       cachedAreaLightShadowAtlas: 1024
       shadowResolutionDirectional:
-        m_Values: 20000000800000000001000000020000
+        m_Values: 0004000000080000000c000000100000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionPunctual:
-        m_Values: 20000000800000000001000000010000
+        m_Values: 10000000200000002000000000010000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionArea:
-        m_Values: 20000000800000000001000000020000
+        m_Values: 20000000000400004000000000020000
         m_SchemaId:
           m_Id: With4Levels
-      maxDirectionalShadowMapResolution: 512
+      maxDirectionalShadowMapResolution: 4096
       maxPunctualShadowMapResolution: 512
       maxAreaShadowMapResolution: 512
       supportScreenSpaceShadows: 0
@@ -140,6 +140,7 @@ MonoBehaviour:
       singlePass: 1
       occlusionMesh: 1
       cameraJitter: 0
+      allowMotionBlur: 1
     postProcessQualitySettings:
       NearBlurSampleCount: 030000000500000008000000
       NearBlurMaxRadius:
@@ -181,7 +182,7 @@ MonoBehaviour:
       AOMaximumRadiusPixels: 200000002800000050000000
       AOBilateralUpsample: 000101
       AODirectionCount: 010000000200000004000000
-      ContactShadowSampleCount: 060000000a00000010000000
+      ContactShadowSampleCount: 040000000400000008000000
       SSRMaxRaySteps: 100000002000000040000000
       SSGIRaySteps: 200000004000000080000000
       SSGIDenoise: 010101

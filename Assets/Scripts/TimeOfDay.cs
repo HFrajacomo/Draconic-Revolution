@@ -247,6 +247,10 @@ public class TimeOfDay : MonoBehaviour
 
     }
 
+    public float GetTicks(){
+        return this.ticks;
+    }
+
     // Checks if a given string-formatted time is past compared to current time
     public bool IsPast(string givenTime){
         string[] given_split = new string[4];

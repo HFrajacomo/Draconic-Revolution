@@ -289,7 +289,7 @@ public class WorldGenerator
             xzTransition = true;
 
         // Transition Handlers
-        NativeArray<ushort> waterLevels = new NativeArray<ushort>(BiomeHandlerData.codeToWater, Allocator.TempJob);
+        NativeArray<ushort> waterLevels = NativeTools.CopyToNative<ushort>(BiomeHandlerData.codeToWater);
 
         // Metadata and blockdata
         NativeList<ushort> codes = new NativeList<ushort>(0, Allocator.TempJob);
@@ -464,9 +464,9 @@ public class WorldGenerator
         // Sets state dict
         stateDict.Add(6, 0);
 
-        NativeArray<ushort> vox = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
-        NativeArray<ushort> hpdata = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
-        NativeArray<ushort> statedata = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> vox = NativeTools.CopyToNative<ushort>(cacheVoxdata);
+        NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(cacheMetadataHP);
+        NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(cacheMetadataState);
 
         // ApplyHeightMap
         ApplyMapsJob amJob = new ApplyMapsJob{
@@ -502,9 +502,9 @@ public class WorldGenerator
         GeneratePlainsStructures(currentChunk, xhash, zhash, currentBiome, (xTransition || zTransition || xzTransition));
 
         // Cave System
-        NativeArray<ushort> voxCU = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
-        NativeArray<ushort> hpCU = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
-        NativeArray<ushort> stateCU = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> voxCU = NativeTools.CopyToNative<ushort>(cacheVoxdata);
+        NativeArray<ushort> hpCU = NativeTools.CopyToNative<ushort>(cacheMetadataHP);
+        NativeArray<ushort> stateCU = NativeTools.CopyToNative<ushort>(cacheMetadataState);
         NativeArray<ushort> cacheCave = GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:20, maskThreshold:0.64f);
 
         CutUndergroundJob cuJob = new CutUndergroundJob{
@@ -584,7 +584,7 @@ public class WorldGenerator
             xzTransition = true;
 
         // Transition Handlers
-        NativeArray<ushort> waterLevels = new NativeArray<ushort>(BiomeHandlerData.codeToWater, Allocator.TempJob);
+        NativeArray<ushort> waterLevels = NativeTools.CopyToNative<ushort>(BiomeHandlerData.codeToWater);
 
         // Metadata and blockdata
         NativeList<ushort> codes = new NativeList<ushort>(0, Allocator.TempJob);
@@ -760,9 +760,9 @@ public class WorldGenerator
         // Sets state dict
         stateDict.Add(6, 0);
 
-        NativeArray<ushort> vox = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
-        NativeArray<ushort> hpdata = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
-        NativeArray<ushort> statedata = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> vox = NativeTools.CopyToNative<ushort>(cacheVoxdata);
+        NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(cacheMetadataHP);
+        NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(cacheMetadataState);
 
         // ApplyHeightMap
         ApplyMapsJob amJob = new ApplyMapsJob{
@@ -798,9 +798,9 @@ public class WorldGenerator
         GenerateGrassyHighLandsStructures(currentChunk, xhash, zhash, currentBiome, (xTransition || zTransition || xzTransition));
 
         // Cave System
-        NativeArray<ushort> voxCU = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
-        NativeArray<ushort> hpCU = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
-        NativeArray<ushort> stateCU = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> voxCU = NativeTools.CopyToNative<ushort>(cacheVoxdata);
+        NativeArray<ushort> hpCU = NativeTools.CopyToNative<ushort>(cacheMetadataHP);
+        NativeArray<ushort> stateCU = NativeTools.CopyToNative<ushort>(cacheMetadataState);
         NativeArray<ushort> cacheCave = GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:45, maskThreshold:0.64f);
         
         CutUndergroundJob cuJob = new CutUndergroundJob{
@@ -881,7 +881,7 @@ public class WorldGenerator
             xzTransition = true;
 
         // Transition Handlers
-        NativeArray<ushort> waterLevels = new NativeArray<ushort>(BiomeHandlerData.codeToWater, Allocator.TempJob);
+        NativeArray<ushort> waterLevels = NativeTools.CopyToNative<ushort>(BiomeHandlerData.codeToWater);
 
         // Metadata and blockdata
         NativeList<ushort> codes = new NativeList<ushort>(0, Allocator.TempJob);
@@ -987,9 +987,9 @@ public class WorldGenerator
         // Sets state dict
         stateDict.Add(6, 0);
 
-        NativeArray<ushort> vox = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
-        NativeArray<ushort> hpdata = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
-        NativeArray<ushort> statedata = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> vox = NativeTools.CopyToNative<ushort>(cacheVoxdata);
+        NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(cacheMetadataHP);
+        NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(cacheMetadataState);
 
         // ApplyHeightMap
         ApplyMapsJob amJob = new ApplyMapsJob{
@@ -1025,9 +1025,9 @@ public class WorldGenerator
         GenerateOceanStructures(currentChunk, xhash, zhash, currentBiome, (xTransition || zTransition || xzTransition));
 
         // Cave System
-        NativeArray<ushort> voxCU = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
-        NativeArray<ushort> hpCU = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
-        NativeArray<ushort> stateCU = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> voxCU = NativeTools.CopyToNative<ushort>(cacheVoxdata);
+        NativeArray<ushort> hpCU = NativeTools.CopyToNative<ushort>(cacheMetadataHP);
+        NativeArray<ushort> stateCU = NativeTools.CopyToNative<ushort>(cacheMetadataState);
         NativeArray<ushort> cacheCave = GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:10, maskThreshold:0.64f);
 
         CutUndergroundJob cuJob = new CutUndergroundJob{
@@ -1093,7 +1093,7 @@ public class WorldGenerator
             xzTransition = true;
 
         // Transition Handlers
-        NativeArray<ushort> waterLevels = new NativeArray<ushort>(BiomeHandlerData.codeToWater, Allocator.TempJob);
+        NativeArray<ushort> waterLevels = NativeTools.CopyToNative<ushort>(BiomeHandlerData.codeToWater);
 
         // Metadata and blockdata
         NativeList<ushort> codes = new NativeList<ushort>(0, Allocator.TempJob);
@@ -1258,9 +1258,9 @@ public class WorldGenerator
         // Sets state dict
         stateDict.Add(6, 0);
 
-        NativeArray<ushort> vox = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
-        NativeArray<ushort> hpdata = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
-        NativeArray<ushort> statedata = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> vox = NativeTools.CopyToNative<ushort>(cacheVoxdata);
+        NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(cacheMetadataHP);
+        NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(cacheMetadataState);
 
         // ApplyHeightMap
         ApplyMapsJob amJob = new ApplyMapsJob{
@@ -1298,9 +1298,9 @@ public class WorldGenerator
         GenerateForestStructures(currentChunk, xhash, zhash, currentBiome, (xTransition || zTransition || xzTransition));
 
         // Cave System
-        NativeArray<ushort> voxCU = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
-        NativeArray<ushort> hpCU = new NativeArray<ushort>(cacheMetadataHP, Allocator.TempJob);
-        NativeArray<ushort> stateCU = new NativeArray<ushort>(cacheMetadataState, Allocator.TempJob);
+        NativeArray<ushort> voxCU = NativeTools.CopyToNative<ushort>(cacheVoxdata);
+        NativeArray<ushort> hpCU = NativeTools.CopyToNative<ushort>(cacheMetadataHP);
+        NativeArray<ushort> stateCU = NativeTools.CopyToNative<ushort>(cacheMetadataState);
         NativeArray<ushort> cacheCave = GenerateRidgedMultiFractal3D(chunkX, chunkZ, 0.07f, 0.073f, 0.067f, 0.45f, ceiling:30, maskThreshold:0.64f);
 
         

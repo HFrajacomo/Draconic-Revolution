@@ -94,6 +94,7 @@ public class Server
 			switch(arg){
 				case "-Local":
 					this.isLocal = true;
+					Debug.Log("local");
 					break;
 				default:
 
@@ -353,6 +354,9 @@ public class Server
 				break;
 			case NetCode.DROPITEM:
 				DropItem(data, id);
+				break;
+			case NetCode.BATCHLOADBUD:
+				BatchLoadBUD(data, id);
 				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED");
@@ -899,6 +903,48 @@ public class Server
 
 		message.ItemEntityData(pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, itemCode, amount, code);
 		this.SendToClients(cp, message);
+	}
+
+	// Receives a BatchLoadBUD request from client, with plenty of block coordinates in a chunk
+	private void BatchLoadBUD(byte[] data, ulong id){
+		ChunkPos pos;
+		int x, y, z, facing;
+		ushort blockCode, state, hp;
+
+		int currentByte = 9;
+		CastCoord lastCoord;
+
+		pos = NetDecoder.ReadChunkPos(data, 1);
+
+		while(data.Length > currentByte){
+			x = NetDecoder.ReadInt(data, currentByte);
+			y = NetDecoder.ReadInt(data, currentByte+4);
+			z = NetDecoder.ReadInt(data, currentByte+8);
+			facing = NetDecoder.ReadInt(data, currentByte+12);	
+			blockCode = NetDecoder.ReadUshort(data, currentByte+16);
+			state = NetDecoder.ReadUshort(data, currentByte+18);
+			hp = NetDecoder.ReadUshort(data, currentByte+20);
+			currentByte += 22;	
+
+			lastCoord = new CastCoord(pos, x, y, z);
+
+
+			// HP is set as the Chunk Coordinates vs World Coordinates flag
+			if(hp == ushort.MaxValue)
+				lastCoord = new CastCoord(new Vector3(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
+			
+			blockCode = this.cl.GetBlock(lastCoord);
+
+			if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos())){
+				
+				if(blockCode <= ushort.MaxValue/2){
+					this.cl.blockBook.blocks[blockCode].OnLoad(lastCoord, this.cl);
+				}
+				else{
+					this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnLoad(lastCoord, this.cl);
+				}
+			}	
+		}
 	}
 
 

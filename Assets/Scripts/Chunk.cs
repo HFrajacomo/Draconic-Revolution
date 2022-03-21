@@ -6,6 +6,7 @@ using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
+using UnityEngine.Rendering;
 
 public class Chunk
 {
@@ -45,19 +46,26 @@ public class Chunk
     private int[] liquidTris;
     private int[] assetTris;
     private int[] triangles;
+    private int[] leavesTris;
   	private List<Vector2> UVs = new List<Vector2>();
+  	private List<Vector2> lightUVMain = new List<Vector2>();
+  	private List<Vector3> normals = new List<Vector3>();
 
     // Assets Cache
     private List<ushort> cacheCodes = new List<ushort>();
     private List<Vector3> cacheVertsv3 = new List<Vector3>();
+    private List<Vector2> cacheLightUV = new List<Vector2>();
     private List<int> cacheTris = new List<int>();
     private List<Vector2> cacheUVv2 = new List<Vector2>();
+    private List<Vector3> cacheNormals = new List<Vector3>();
     private List<int> indexVert = new List<int>();
     private List<int> indexUV = new List<int>();
     private List<int> indexTris = new List<int>();
+    private List<int> indexNormals = new List<int>();
     private List<Vector3> scalingFactor = new List<Vector3>();
     private List<Vector2> UVaux = new List<Vector2>();
     private List<Vector3> vertexAux = new List<Vector3>();
+    private List<Vector3> normalAux = new List<Vector3>();
 
     private Mesh mesh;
 
@@ -77,11 +85,12 @@ public class Chunk
 		this.metadata = new VoxelMetadata();
 
 		this.obj.AddComponent<MeshFilter>();
-		this.obj.AddComponent<MeshRenderer>();
+		MeshRenderer msr = this.obj.AddComponent<MeshRenderer>() as MeshRenderer;
 		this.obj.AddComponent<MeshCollider>();
+
 		this.meshFilter = this.obj.GetComponent<MeshFilter>();
 		this.meshCollider = this.obj.GetComponent<MeshCollider>();
-		this.obj.GetComponent<MeshRenderer>().materials = this.renderer.GetComponent<MeshRenderer>().materials;
+		this.obj.GetComponent<MeshRenderer>().sharedMaterials = this.renderer.GetComponent<MeshRenderer>().sharedMaterials;
 		this.blockBook = be;
 		this.obj.layer = 8;
 
@@ -144,7 +153,7 @@ public class Chunk
 	}
 
 	// Draws Chunk Borders. Returns true if all borders have been drawn, otherwise, return false.
-	public bool BuildSideBorder(bool reload=false, bool reloadXM=false, bool reloadXP=false, bool reloadZM=false, bool reloadZP=false){
+	public bool BuildSideBorder(bool reload=false, bool loadBUD=false, bool reloadXM=false, bool reloadXP=false, bool reloadZM=false, bool reloadZP=false){
 		if(reload){
 			this.xMinusDrawn = false;
 			this.xPlusDrawn = false;
@@ -176,46 +185,60 @@ public class Chunk
 		int3[] coordArray;
 		int3[] budArray;
 
-		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
-		NativeArray<ushort> metadata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
+		NativeArray<ushort> blockdata = NativeTools.CopyToNative(this.data.GetData());
+		NativeArray<ushort> metadata = NativeTools.CopyToNative(this.metadata.GetStateData());
+		NativeArray<byte> lightdata = NativeTools.CopyToNative(this.data.GetLightMap());
 
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> uvs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector2> lightUV = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<int> tris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> leavesTris = new NativeList<int>(0, Allocator.TempJob);
 	
 		NativeList<int3> toLoadEvent = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int3> toBUD = new NativeList<int3>(0, Allocator.TempJob);
 
-		NativeArray<bool> blockTransparent = new NativeArray<bool>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
-		NativeArray<bool> objectTransparent = new NativeArray<bool>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
-		NativeArray<bool> blockLiquid = new NativeArray<bool>(BlockEncyclopediaECS.blockLiquid, Allocator.TempJob);
-		NativeArray<bool> objectLiquid = new NativeArray<bool>(BlockEncyclopediaECS.objectLiquid, Allocator.TempJob);
-		NativeArray<bool> blockInvisible = new NativeArray<bool>(BlockEncyclopediaECS.blockInvisible, Allocator.TempJob);
-		NativeArray<bool> objectInvisible = new NativeArray<bool>(BlockEncyclopediaECS.objectInvisible, Allocator.TempJob);
-		NativeArray<byte> blockMaterial = new NativeArray<byte>(BlockEncyclopediaECS.blockMaterial, Allocator.TempJob);
-		NativeArray<byte> objectMaterial = new NativeArray<byte>(BlockEncyclopediaECS.objectMaterial, Allocator.TempJob);
-		NativeArray<int3> blockTiles = new NativeArray<int3>(BlockEncyclopediaECS.blockTiles, Allocator.TempJob);
-		NativeArray<bool> blockWashable = new NativeArray<bool>(BlockEncyclopediaECS.blockWashable, Allocator.TempJob);
-		NativeArray<bool> objectWashable = new NativeArray<bool>(BlockEncyclopediaECS.objectWashable, Allocator.TempJob);
+		NativeArray<byte> blockTransparent = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTransparent);
+		NativeArray<byte> objectTransparent = NativeTools.CopyToNative(BlockEncyclopediaECS.objectTransparent);
+		NativeArray<bool> blockSeamless = NativeTools.CopyToNative(BlockEncyclopediaECS.blockSeamless);
+		NativeArray<bool> objectSeamless = NativeTools.CopyToNative(BlockEncyclopediaECS.objectSeamless);
+		NativeArray<bool> blockInvisible = NativeTools.CopyToNative(BlockEncyclopediaECS.blockInvisible);
+		NativeArray<bool> objectInvisible = NativeTools.CopyToNative(BlockEncyclopediaECS.objectInvisible);
+		NativeArray<ShaderIndex> blockMaterial = NativeTools.CopyToNative(BlockEncyclopediaECS.blockShader);
+		NativeArray<ShaderIndex> objectMaterial = NativeTools.CopyToNative(BlockEncyclopediaECS.objectShader);
+		NativeArray<int3> blockTiles = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTiles);
+		NativeArray<bool> blockWashable = NativeTools.CopyToNative(BlockEncyclopediaECS.blockWashable);
+		NativeArray<bool> objectWashable = NativeTools.CopyToNative(BlockEncyclopediaECS.objectWashable);
 
 		// Cached
-		NativeArray<Vector3> cacheCubeVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
+		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector2> cacheUVVerts = new NativeArray<Vector2>(4, Allocator.TempJob);
+		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
 		// For Init
 		this.meshFilter.sharedMesh.GetVertices(vertexAux);
-		NativeArray<Vector3> disposableVerts = new NativeArray<Vector3>(vertexAux.ToArray(), Allocator.TempJob);
+		NativeArray<Vector3> disposableVerts = NativeTools.CopyToNative<Vector3>(vertexAux.ToArray());
 		vertexAux.Clear();
 
 		this.meshFilter.sharedMesh.GetUVs(0, UVaux);
-		NativeArray<Vector2> disposableUVS = new NativeArray<Vector2>(UVaux.ToArray(), Allocator.TempJob);
+		NativeArray<Vector2> disposableUVS = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
 		UVaux.Clear();
+
+		this.meshFilter.sharedMesh.GetUVs(3, UVaux);
+		NativeArray<Vector2> disposableLight = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
+		UVaux.Clear();
+
+		this.meshFilter.sharedMesh.GetNormals(normalAux);
+		NativeArray<Vector3> disposableNormals = NativeTools.CopyToNative<Vector3>(normalAux.ToArray());
+		normalAux.Clear();
 
 		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(0), Allocator.TempJob);
 		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(1), Allocator.TempJob);
 		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(2), Allocator.TempJob);
+		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(4), Allocator.TempJob);
 
 
 		JobHandle job;
@@ -224,9 +247,12 @@ public class Chunk
 		// Initialize Data
 		verts.AddRange(disposableVerts);
 		uvs.AddRange(disposableUVS);
+		lightUV.AddRange(disposableLight);
 		tris.AddRange(disposableTris);
 		specularTris.AddRange(disposableSpecTris);
 		liquidTris.AddRange(disposableLiquidTris);
+		leavesTris.AddRange(disposableLeavesTris);
+		normals.AddRange(disposableNormals);
 
 
 		// Dispose Init
@@ -235,6 +261,9 @@ public class Chunk
 		disposableTris.Dispose();
 		disposableSpecTris.Dispose();
 		disposableLiquidTris.Dispose();
+		disposableNormals.Dispose();
+		disposableLight.Dispose();
+		disposableLeavesTris.Dispose();
 
 
 		// X- Analysis
@@ -243,15 +272,18 @@ public class Chunk
 			this.xMinusDrawn = true;
 			changed = true;
 
-			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
+			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
 				toBUD = toBUD,
-				reload = reload,
+				reload = loadBUD,
 				data = blockdata,
 				metadata = metadata,
+				lightdata = lightdata,
 				neighbordata = neighbordata,
+				neighborlight = neighborlight,
 				toLoadEvent = toLoadEvent,
 				xM = true,
 				xP = false,
@@ -259,16 +291,20 @@ public class Chunk
 				zM = false,
 				verts = verts,
 				uvs = uvs,
+				normals = normals,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
+				leavesTris = leavesTris,
+				lightUV = lightUV,
 
-				cachedCubeVerts = cacheCubeVerts,
+				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
+				cachedCubeNormal = cacheCubeNormal,
 				blockTransparent = blockTransparent,
 				objectTransparent = objectTransparent,
-				blockLiquid = blockLiquid,
-				objectLiquid = objectLiquid,
+				blockSeamless = blockSeamless,
+				objectSeamless = objectSeamless,
 				blockInvisible = blockInvisible,
 				objectInvisible = objectInvisible,
 				blockMaterial = blockMaterial,
@@ -281,15 +317,19 @@ public class Chunk
 			job.Complete();
 			
 			neighbordata.Dispose();
+			neighborlight.Dispose();
 
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
-			foreach(int3 coord in coordArray){
-				// SEND BUD
-				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			this.message = new NetMessage(NetCode.BATCHLOADBUD);
+			this.message.BatchLoadBUD(this.pos);
+
+			if(loadBUD){
+				foreach(int3 coord in coordArray){
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				}			
 				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}			
+			}
 			toLoadEvent.Clear();
 		}
 
@@ -299,15 +339,18 @@ public class Chunk
 			this.xPlusDrawn = true;
 			changed = true;
 
-			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
+			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
 
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
 				toBUD = toBUD,
-				reload = reload,
+				reload = loadBUD,
 				data = blockdata,
 				metadata = metadata,
+				lightdata = lightdata,
 				neighbordata = neighbordata,
+				neighborlight = neighborlight,
 				toLoadEvent = toLoadEvent,
 				xM = false,
 				xP = true,
@@ -315,16 +358,20 @@ public class Chunk
 				zM = false,
 				verts = verts,
 				uvs = uvs,
+				normals = normals,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
+				leavesTris = leavesTris,
+				lightUV = lightUV,
 
-				cachedCubeVerts = cacheCubeVerts,
+				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
+				cachedCubeNormal = cacheCubeNormal,
 				blockTransparent = blockTransparent,
 				objectTransparent = objectTransparent,
-				blockLiquid = blockLiquid,
-				objectLiquid = objectLiquid,
+				blockSeamless = blockSeamless,
+				objectSeamless = objectSeamless,
 				blockInvisible = blockInvisible,
 				objectInvisible = objectInvisible,
 				blockMaterial = blockMaterial,
@@ -337,15 +384,20 @@ public class Chunk
 			job.Complete();
 
 			neighbordata.Dispose();
+			neighborlight.Dispose();
 
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
-			foreach(int3 coord in coordArray){
-				// SEND BUD
-				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			this.message = new NetMessage(NetCode.BATCHLOADBUD);
+			this.message.BatchLoadBUD(this.pos);
+
+			if(loadBUD){
+				foreach(int3 coord in coordArray){
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				}
+
 				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}			
+			}
 			toLoadEvent.Clear();
 		}
 
@@ -355,15 +407,18 @@ public class Chunk
 			this.zMinusDrawn = true;
 			changed = true;
 
-			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
+			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
 				toBUD = toBUD,
-				reload = reload,
+				reload = loadBUD,
 				data = blockdata,
 				metadata = metadata,
+				lightdata = lightdata,
 				neighbordata = neighbordata,
+				neighborlight = neighborlight,
 				toLoadEvent = toLoadEvent,
 				xM = false,
 				xP = false,
@@ -371,16 +426,20 @@ public class Chunk
 				zM = true,
 				verts = verts,
 				uvs = uvs,
+				normals = normals,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
+				leavesTris = leavesTris,
+				lightUV = lightUV,
 
-				cachedCubeVerts = cacheCubeVerts,
+				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
+				cachedCubeNormal = cacheCubeNormal,
 				blockTransparent = blockTransparent,
 				objectTransparent = objectTransparent,
-				blockLiquid = blockLiquid,
-				objectLiquid = objectLiquid,
+				blockSeamless = blockSeamless,
+				objectSeamless = objectSeamless,
 				blockInvisible = blockInvisible,
 				objectInvisible = objectInvisible,
 				blockMaterial = blockMaterial,
@@ -393,15 +452,18 @@ public class Chunk
 			job.Complete();
 
 			neighbordata.Dispose();
+			neighborlight.Dispose();
 
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
-			foreach(int3 coord in coordArray){
-				// SEND BUD
-				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			this.message = new NetMessage(NetCode.BATCHLOADBUD);
+			this.message.BatchLoadBUD(this.pos);
+			if(loadBUD){
+				foreach(int3 coord in coordArray){
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				}
 				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}			
+			}
 			toLoadEvent.Clear();
 		}
 
@@ -411,15 +473,18 @@ public class Chunk
 			this.zPlusDrawn = true;
 			changed = true;
 
-			NativeArray<ushort> neighbordata = new NativeArray<ushort>(loader.chunks[targetChunk].data.GetData(), Allocator.TempJob);
+			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
 				toBUD = toBUD,
-				reload = reload,
+				reload = loadBUD,
 				data = blockdata,
 				metadata = metadata,
+				lightdata = lightdata,
 				neighbordata = neighbordata,
+				neighborlight = neighborlight,
 				toLoadEvent = toLoadEvent,
 				xM = false,
 				xP = false,
@@ -427,16 +492,20 @@ public class Chunk
 				zM = false,
 				verts = verts,
 				uvs = uvs,
+				normals = normals,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
+				leavesTris = leavesTris,
+				lightUV = lightUV,
 
-				cachedCubeVerts = cacheCubeVerts,
+				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
+				cachedCubeNormal = cacheCubeNormal,
 				blockTransparent = blockTransparent,
 				objectTransparent = objectTransparent,
-				blockLiquid = blockLiquid,
-				objectLiquid = objectLiquid,
+				blockSeamless = blockSeamless,
+				objectSeamless = objectSeamless,
 				blockInvisible = blockInvisible,
 				objectInvisible = objectInvisible,
 				blockMaterial = blockMaterial,
@@ -449,24 +518,33 @@ public class Chunk
 			job.Complete();
 
 			neighbordata.Dispose();
+			neighborlight.Dispose();
 
 			// ToLoad() Event Trigger
 			coordArray = toLoadEvent.AsArray().ToArray();
-			foreach(int3 coord in coordArray){
-				// SEND BUD
-				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			this.message = new NetMessage(NetCode.BATCHLOADBUD);
+			this.message.BatchLoadBUD(this.pos);
+			if(loadBUD){
+				foreach(int3 coord in coordArray){
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				}
 				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}			
+			}
 			toLoadEvent.Clear();
 		}
 
+		this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+
 		// Runs BUD in neighbor chunks
-		budArray = toBUD.AsArray().ToArray();
-		foreach(int3 bu in budArray){
-			// SEND BUD
-			this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-			this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, bu.x, bu.y, bu.z, 0, 0, 0, ushort.MaxValue);
+		if(loadBUD){
+			budArray = toBUD.AsArray().ToArray();
+			this.message = new NetMessage(NetCode.BATCHLOADBUD);
+			this.message.BatchLoadBUD(this.pos);
+
+			foreach(int3 bu in budArray){
+				this.message.AddBatchLoad(bu.x, bu.y, bu.z, 0, 0, 0, ushort.MaxValue);
+			}
+
 			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 		}
 		
@@ -475,22 +553,25 @@ public class Chunk
 			this.triangles = tris.ToArray();
 			this.specularTris = specularTris.ToArray();
 			this.liquidTris = liquidTris.ToArray();
+			this.leavesTris = leavesTris.ToArray();
 			assetTris = this.meshFilter.sharedMesh.GetTriangles(3);
 
-			BuildMeshSide(verts.ToArray(), uvs.ToArray());
+			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray());
 		}
 
 		blockdata.Dispose();
 		metadata.Dispose();
 		verts.Dispose();
 		uvs.Dispose();
+		normals.Dispose();
 		tris.Dispose();
 		specularTris.Dispose();
 		liquidTris.Dispose();
+		leavesTris.Dispose();
 		blockTransparent.Dispose();
 		objectTransparent.Dispose();
-		blockLiquid.Dispose();
-		objectLiquid.Dispose();
+		blockSeamless.Dispose();
+		objectSeamless.Dispose();
 		blockInvisible.Dispose();
 		objectInvisible.Dispose();
 		blockMaterial.Dispose();
@@ -498,10 +579,13 @@ public class Chunk
 		blockWashable.Dispose();
 		objectWashable.Dispose();
 		blockTiles.Dispose();
-		cacheCubeVerts.Dispose();
+		cacheCubeVert.Dispose();
 		cacheUVVerts.Dispose();
+		cacheCubeNormal.Dispose();
 		toLoadEvent.Dispose();
 		toBUD.Dispose();
+		lightUV.Dispose();
+		lightdata.Dispose();
 
     	this.vertices.Clear();
     	this.triangles = null;
@@ -509,6 +593,7 @@ public class Chunk
     	this.liquidTris = null;
     	this.assetTris = null;
     	this.UVs.Clear();
+    	this.lightUVMain.Clear();
 
 		// If current operation CANNOT update borders
 		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
@@ -520,9 +605,9 @@ public class Chunk
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
 	public void BuildChunk(bool load=false, bool pregenReload=false){
-
-		NativeArray<ushort> blockdata = new NativeArray<ushort>(this.data.GetData(), Allocator.TempJob);
-		NativeArray<ushort> statedata = new NativeArray<ushort>(this.metadata.GetStateData(), Allocator.TempJob);
+		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
+		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
+		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap());
 		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<ushort> loadCodeList = new NativeList<ushort>(0, Allocator.TempJob);
@@ -531,45 +616,54 @@ public class Chunk
 		NativeList<int> normalTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> leavesTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector2> lightUV = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector2> cacheCubeUV = new NativeArray<Vector2>(4, Allocator.TempJob);
+		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
 		// Cached from Block Encyclopedia ECS
-		NativeArray<bool> blockTransparent = new NativeArray<bool>(BlockEncyclopediaECS.blockTransparent, Allocator.TempJob);
-		NativeArray<bool> objectTransparent = new NativeArray<bool>(BlockEncyclopediaECS.objectTransparent, Allocator.TempJob);
-		NativeArray<bool> blockLiquid = new NativeArray<bool>(BlockEncyclopediaECS.blockLiquid, Allocator.TempJob);
-		NativeArray<bool> objectLiquid = new NativeArray<bool>(BlockEncyclopediaECS.objectLiquid, Allocator.TempJob);
-		NativeArray<bool> blockLoad = new NativeArray<bool>(BlockEncyclopediaECS.blockLoad, Allocator.TempJob);
-		NativeArray<bool> objectLoad = new NativeArray<bool>(BlockEncyclopediaECS.objectLoad, Allocator.TempJob);
-		NativeArray<bool> blockInvisible = new NativeArray<bool>(BlockEncyclopediaECS.blockInvisible, Allocator.TempJob);
-		NativeArray<bool> objectInvisible = new NativeArray<bool>(BlockEncyclopediaECS.objectInvisible, Allocator.TempJob);
-		NativeArray<byte> blockMaterial = new NativeArray<byte>(BlockEncyclopediaECS.blockMaterial, Allocator.TempJob);
-		NativeArray<byte> objectMaterial = new NativeArray<byte>(BlockEncyclopediaECS.objectMaterial, Allocator.TempJob);
-		NativeArray<int3> blockTiles = new NativeArray<int3>(BlockEncyclopediaECS.blockTiles, Allocator.TempJob);
-		NativeArray<bool> objectNeedRotation = new NativeArray<bool>(BlockEncyclopediaECS.objectNeedRotation, Allocator.TempJob);
-		NativeArray<bool> blockWashable = new NativeArray<bool>(BlockEncyclopediaECS.blockWashable, Allocator.TempJob);
-		NativeArray<bool> objectWashable = new NativeArray<bool>(BlockEncyclopediaECS.objectWashable, Allocator.TempJob);
+		NativeArray<byte> blockTransparent = NativeTools.CopyToNative<byte>(BlockEncyclopediaECS.blockTransparent);
+		NativeArray<byte> objectTransparent = NativeTools.CopyToNative<byte>(BlockEncyclopediaECS.objectTransparent);
+		NativeArray<bool> blockSeamless = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockSeamless);
+		NativeArray<bool> objectSeamless = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectSeamless);
+		NativeArray<bool> blockLoad = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockLoad);
+		NativeArray<bool> objectLoad = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectLoad);
+		NativeArray<bool> blockInvisible = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockInvisible);
+		NativeArray<bool> objectInvisible = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectInvisible);
+		NativeArray<ShaderIndex> blockMaterial = NativeTools.CopyToNative<ShaderIndex>(BlockEncyclopediaECS.blockShader);
+		NativeArray<ShaderIndex> objectMaterial = NativeTools.CopyToNative<ShaderIndex>(BlockEncyclopediaECS.objectShader);
+		NativeArray<int3> blockTiles = NativeTools.CopyToNative<int3>(BlockEncyclopediaECS.blockTiles);
+		NativeArray<bool> objectNeedRotation = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectNeedRotation);
+		NativeArray<bool> blockWashable = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockWashable);
+		NativeArray<bool> objectWashable = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectWashable);
 
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{
 			load = load,
 			data = blockdata,
 			state = statedata,
+			lightdata = lightdata,
 			loadOutList = loadCoordList,
 			loadAssetList = loadAssetList,
 			verts = verts,
 			UVs = UVs,
+			lightUV = lightUV,
+			normals = normals,
 			normalTris = normalTris,
 			specularTris = specularTris,
 			liquidTris = liquidTris,
+			leavesTris = leavesTris,
 			cacheCubeVert = cacheCubeVert,
 			cacheCubeUV = cacheCubeUV,
+			cacheCubeNormal = cacheCubeNormal,
 			blockTransparent = blockTransparent,
 			objectTransparent = objectTransparent,
-			blockLiquid = blockLiquid,
-			objectLiquid = objectLiquid,
+			blockSeamless = blockSeamless,
+			objectSeamless = objectSeamless,
 			blockLoad = blockLoad,
 			objectLoad = objectLoad,
 			blockInvisible = blockInvisible,
@@ -591,7 +685,7 @@ public class Chunk
 		// Offseting and Rotation shenanigans
 		NativeHashMap<int, Vector3> scaleOffset = new NativeHashMap<int, Vector3>(0, Allocator.TempJob);
 		NativeHashMap<int, int> rotationOffset = new NativeHashMap<int, int>(0, Allocator.TempJob);
-
+		
 		int3[] coordArray = loadAssetList.AsArray().ToArray();
 		foreach(int3 coord in coordArray){
 			ushort assetCode = this.data.GetCell(coord);
@@ -606,9 +700,12 @@ public class Chunk
 				this.indexVert.Add(this.indexVert[indexVert.Count-1] + vertexAux.Count);
 				this.indexTris.Add(this.indexTris[indexTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTriangles(0).Length);
 				this.indexUV.Add(this.indexUV[indexUV.Count-1] + UVaux.Count);
+				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetNormals(normalAux);
+				this.cacheNormals.AddRange(normalAux.ToArray());
 				this.scalingFactor.Add(BlockEncyclopediaECS.objectScaling[ushort.MaxValue-assetCode]);
 				vertexAux.Clear();
 				UVaux.Clear();
+
 
 				// If has special offset or rotation
 				// Hash function for Dictionary is blockCode*256 + state. This leaves a maximum of 256 states for every object in the game
@@ -621,32 +718,38 @@ public class Chunk
 			}
 		}
 
+
 		// ToLoad() Event Trigger
-		
-		if(this.biomeName == "Ocean"){
-			coordArray = loadCoordList.AsArray().ToArray();
-			foreach(int3 coord in coordArray){
-				if(this.data.GetCell(coord) != 6){ // Water
-					this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-					this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
-					this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+		this.message = new NetMessage(NetCode.BATCHLOADBUD);
+		this.message.BatchLoadBUD(this.pos);
+
+		if(load){
+			if(this.biomeName == "Ocean"){
+				coordArray = loadCoordList.AsArray().ToArray();
+				foreach(int3 coord in coordArray){
+					if(this.data.GetCell(coord) != 6){ // Water
+						this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+					}
 				}
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+
+			}
+			else{
+				coordArray = loadCoordList.AsArray().ToArray();
+				foreach(int3 coord in coordArray){
+					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+				}	
+				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+
 			}
 		}
-		else{
-		
-			coordArray = loadCoordList.AsArray().ToArray();
-			foreach(int3 coord in coordArray){
-				// SENDS BUD TO SERVER
-				this.message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-				this.message.DirectBlockUpdate(BUDCode.LOAD, this.pos, coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}			
-		}
 		loadCoordList.Clear();
+		
 
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> meshUVs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector2> meshLightUV = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector3> meshNormals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<int> meshTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<ushort> blockCodes = new NativeList<ushort>(0, Allocator.TempJob);
 		blockCodes.CopyFrom(this.cacheCodes.ToArray());
@@ -658,6 +761,7 @@ public class Chunk
 		UVOffset.CopyFrom(this.indexUV.ToArray());
 		NativeArray<Vector3> loadedVerts = new NativeArray<Vector3>(this.cacheVertsv3.ToArray(), Allocator.TempJob);
 		NativeArray<Vector2> loadedUV = new NativeArray<Vector2>(this.cacheUVv2.ToArray(), Allocator.TempJob);
+		NativeArray<Vector3> loadedNormals = new NativeArray<Vector3>(this.cacheNormals.ToArray(), Allocator.TempJob);
 		NativeArray<int> loadedTris = new NativeArray<int>(this.cacheTris.ToArray(), Allocator.TempJob);
 		NativeArray<Vector3> scaling = new NativeArray<Vector3>(this.scalingFactor.ToArray(), Allocator.TempJob);
 
@@ -667,6 +771,8 @@ public class Chunk
 			meshVerts = meshVerts,
 			meshTris = meshTris,
 			meshUVs = meshUVs,
+			meshLightUV = meshLightUV,
+			meshNormals = meshNormals,
 			scaling = scaling,
 			needRotation = objectNeedRotation,
 			inplaceOffset = scaleOffset,
@@ -676,6 +782,7 @@ public class Chunk
 			blockCodes = blockCodes,
 			blockdata = blockdata,
 			metadata = statedata,
+			lightdata = lightdata,
 
 			vertsOffset = vertsOffset,
 			trisOffset = trisOffset,
@@ -683,7 +790,8 @@ public class Chunk
 
 			loadedVerts = loadedVerts,
 			loadedUV = loadedUV,
-			loadedTris = loadedTris
+			loadedTris = loadedTris,
+			loadedNormals = loadedNormals
 		};
 		job = paJob.Schedule();
 		job.Complete();
@@ -697,9 +805,16 @@ public class Chunk
 
 		this.specularTris = specularTris.ToArray();
 		this.liquidTris = liquidTris.ToArray();
+		this.leavesTris = leavesTris.ToArray();
 
 		this.UVs.AddRange(UVs.ToArray());
 		this.UVs.AddRange(meshUVs.ToArray());
+
+		this.lightUVMain.AddRange(lightUV.ToArray());
+		this.lightUVMain.AddRange(meshLightUV.ToArray());
+
+		this.normals.AddRange(normals.ToArray());
+		this.normals.AddRange(meshNormals.ToArray()); 
 
 
 		// Dispose Bin
@@ -707,13 +822,14 @@ public class Chunk
 		normalTris.Dispose();
 		specularTris.Dispose();
 		liquidTris.Dispose();
+		leavesTris.Dispose();
 		blockdata.Dispose();
 		statedata.Dispose();
 		loadCoordList.Dispose();
 		blockTransparent.Dispose();
 		objectTransparent.Dispose();
-		blockLiquid.Dispose();
-		objectLiquid.Dispose();
+		blockSeamless.Dispose();
+		objectSeamless.Dispose();
 		blockLoad.Dispose();
 		objectLoad.Dispose();
 		blockInvisible.Dispose();
@@ -724,6 +840,7 @@ public class Chunk
 		blockWashable.Dispose();
 		objectWashable.Dispose();
 		cacheCubeVert.Dispose();
+		cacheCubeNormal.Dispose();
 		cacheCubeUV.Dispose();
 		loadCodeList.Dispose();
 		meshVerts.Dispose();
@@ -735,13 +852,19 @@ public class Chunk
 		loadedVerts.Dispose();
 		loadedTris.Dispose();
 		loadedUV.Dispose();
+		loadedNormals.Dispose();
 		loadAssetList.Dispose();
 		scaling.Dispose();
 		UVs.Dispose();
+		normals.Dispose();
 		meshUVs.Dispose();
+		meshNormals.Dispose();
 		objectNeedRotation.Dispose();
 		scaleOffset.Dispose();
 		rotationOffset.Dispose();
+		lightUV.Dispose();
+		lightdata.Dispose();
+		meshLightUV.Dispose();
 
 
 		BuildMesh();
@@ -752,16 +875,21 @@ public class Chunk
 		cacheVertsv3.Clear();
 		cacheTris.Clear();
 		cacheUVv2.Clear();
+		cacheNormals.Clear();
 		indexVert.Clear();
 		indexUV.Clear();
 		indexTris.Clear();
 		scalingFactor.Clear();
+		this.cacheLightUV.Clear();
     	this.vertices.Clear();
+    	this.lightUVMain.Clear();
     	this.triangles = null;
     	this.specularTris = null;
     	this.liquidTris = null;
     	this.assetTris = null;
+    	this.leavesTris = null;
     	this.UVs.Clear();
+    	this.normals.Clear();
 
 		this.drawMain = true;
     }
@@ -796,6 +924,15 @@ public class Chunk
     	return false;
     }
 
+    // Returns n ShadowUVs to a list
+    private void FillShadowUV(ref List<Vector2> l, int3 coord, int n){
+    	float light = this.data.GetLight(coord);
+
+    	for(int i = 0; i < n; i++){
+    		l.Add(new Vector2(light, 1));
+    	}
+    }
+
     // Builds meshes from verts, UVs and tris from different layers
     private void BuildMesh(){
     	mesh.Clear();
@@ -804,104 +941,59 @@ public class Chunk
     		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	mesh.subMeshCount = 4;
+    	mesh.subMeshCount = 5;
 
     	mesh.SetVertices(this.vertices.ToArray());
     	mesh.SetTriangles(triangles, 0);
 
     	this.meshCollider.sharedMesh = mesh;
 
-    	mesh.SetTriangles(specularTris, 1);
-    	mesh.SetTriangles(liquidTris, 2);
-    	mesh.SetTriangles(assetTris, 3);
+    	mesh.SetTriangles(this.specularTris, 1);
+    	mesh.SetTriangles(this.liquidTris, 2);
+    	mesh.SetTriangles(this.assetTris, 3);
+ 	    mesh.SetTriangles(this.leavesTris, 4);
 
     	mesh.SetUVs(0, this.UVs.ToArray());
+    	mesh.SetUVs(3, this.lightUVMain.ToArray());
 
-    	mesh.RecalculateNormals();
+    	mesh.SetNormals(this.normals.ToArray());
 
     	this.meshFilter.sharedMesh = mesh;
     }
 
     // Builds meshes from verts, UVs and tris from different layers
-    private void BuildMeshSide(Vector3[] verts, Vector2[] UV){
+    private void BuildMeshSide(Vector3[] verts, Vector2[] UV, Vector2[] lightUV, Vector3[] normals){
     	mesh.Clear();
 
     	if(verts.Length >= ushort.MaxValue){
     		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	mesh.subMeshCount = 4;
+    	mesh.subMeshCount = 5;
 
     	mesh.vertices = verts;
     	mesh.SetTriangles(triangles, 0);
 
     	this.meshCollider.sharedMesh = mesh;
 
-    	mesh.SetTriangles(specularTris, 1);
-    	mesh.SetTriangles(liquidTris, 2);
-    	mesh.SetTriangles(assetTris, 3);
+    	mesh.SetTriangles(this.specularTris, 1);
+    	mesh.SetTriangles(this.liquidTris, 2);
+    	mesh.SetTriangles(this.assetTris, 3);
+    	mesh.SetTriangles(this.leavesTris, 4);
 
     	mesh.uv = UV;
-
-    	mesh.RecalculateNormals();
-
-    	this.meshFilter.sharedMesh = mesh;
-    }
-
-    // Adds verts, UVs and tris to meshes
-    private void AddToMesh(){
-    	List<Vector3> newVerts = new List<Vector3>();
-    	List<int>[] newTris = {new List<int>(), new List<int>(), new List<int>(), new List<int>()};
-    	List<Vector2> newUVs = new List<Vector2>();
-    	mesh = new Mesh();
-    	mesh.subMeshCount = 4;
-
-    	// Add to buffer the current mesh data
-    	newVerts.AddRange(this.meshFilter.sharedMesh.vertices);
-    	newTris[0].AddRange(this.meshFilter.sharedMesh.GetTriangles(0));
-    	newTris[1].AddRange(this.meshFilter.sharedMesh.GetTriangles(1));
-    	newTris[2].AddRange(this.meshFilter.sharedMesh.GetTriangles(2));
-    	//newTris[3].AddRange()
-    	newUVs.AddRange(this.meshFilter.sharedMesh.uv);
-
-    	// Add to buffer the data received from side analysis
-    	newVerts.AddRange(this.vertices.ToArray());
-
-
-    	newTris[0].AddRange(triangles);
-    	newTris[1].AddRange(specularTris);
-    	newTris[2].AddRange(liquidTris);
-
-    	foreach(float2 f in this.UVs){
-    		newUVs.Add((Vector2)f);
-    	}
-
-    	mesh.vertices = newVerts.ToArray();
-    	mesh.SetTriangles(newTris[0].ToArray(), 0);
-    	mesh.uv = newUVs.ToArray();
-
-    	this.meshCollider.sharedMesh = mesh;
-
-    	mesh.SetTriangles(newTris[1].ToArray(), 1);
-    	mesh.SetTriangles(newTris[2].ToArray(), 2);
-
-    	mesh.RecalculateNormals();
+    	mesh.uv4 = lightUV;
+    	mesh.SetNormals(normals);
 
     	this.meshFilter.sharedMesh = mesh;
-
-    	this.vertices.Clear();
-    	this.UVs.Clear();
     }
 }
-
-
 
 /*
 MULTITHREADING
 */
-[BurstCompile]
+//[BurstCompile]
 public struct BuildChunkJob : IJob{
-	// BuildChunk() input vars
 	[ReadOnly]
 	public bool load;
 
@@ -909,6 +1001,8 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<ushort> data; // Voxeldata
 	[ReadOnly]
 	public NativeArray<ushort> state; // VoxelMetadata.state
+	[ReadOnly]
+	public NativeArray<byte> lightdata;
 
 	// OnLoad Event Trigger List
 	public NativeList<int3> loadOutList;
@@ -917,25 +1011,29 @@ public struct BuildChunkJob : IJob{
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
 	public NativeList<Vector2> UVs;
+	public NativeList<Vector2> lightUV;
+	public NativeList<Vector3> normals;
 
 	// Render Thread Triangles
 	public NativeList<int> normalTris;
 	public NativeList<int> specularTris;
 	public NativeList<int> liquidTris;
+	public NativeList<int> leavesTris;
 
 	// Cache
 	public NativeArray<Vector3> cacheCubeVert;
 	public NativeArray<Vector2> cacheCubeUV;
+	public NativeArray<Vector3> cacheCubeNormal;
 
 	// Block Encyclopedia Data
 	[ReadOnly]
-	public NativeArray<bool> blockTransparent;
+	public NativeArray<byte> blockTransparent;
 	[ReadOnly]
-	public NativeArray<bool> objectTransparent;
+	public NativeArray<byte> objectTransparent;
 	[ReadOnly]
-	public NativeArray<bool> blockLiquid;
+	public NativeArray<bool> blockSeamless;
 	[ReadOnly]
-	public NativeArray<bool> objectLiquid;
+	public NativeArray<bool> objectSeamless;
 	[ReadOnly]
 	public NativeArray<bool> blockLoad;
 	[ReadOnly]
@@ -945,9 +1043,9 @@ public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public NativeArray<bool> objectInvisible;
 	[ReadOnly]
-	public NativeArray<byte> blockMaterial;
+	public NativeArray<ShaderIndex> blockMaterial;
 	[ReadOnly]
-	public NativeArray<byte> objectMaterial;
+	public NativeArray<ShaderIndex> objectMaterial;
 	[ReadOnly]
 	public NativeArray<int3> blockTiles;
 	[ReadOnly]
@@ -980,13 +1078,13 @@ public struct BuildChunkJob : IJob{
 	    			if(load)
 	    				// If is a block
 		    			if(thisBlock <= ushort.MaxValue/2){
-		    				if(blockLoad[thisBlock] && !blockLiquid[thisBlock]){
+		    				if(blockLoad[thisBlock] && !blockSeamless[thisBlock]){
 		    					loadOutList.Add(new int3(x,y,z));
 		    				}
 		    			}
 		    			// If Asset
 		    			else{
-		    				if(objectLoad[ushort.MaxValue-thisBlock] && !objectLiquid[ushort.MaxValue-thisBlock]){
+		    				if(objectLoad[ushort.MaxValue-thisBlock] && !objectSeamless[ushort.MaxValue-thisBlock]){
 		    					loadOutList.Add(new int3(x,y,z));
 		    				}
 		    			}
@@ -1014,8 +1112,8 @@ public struct BuildChunkJob : IJob{
 
 						// Handles Liquid chunks
 			    		if(thisBlock <= ushort.MaxValue/2){
-			    			if(blockLiquid[thisBlock]){
-				    			if(CheckLiquids(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i))){
+			    			if(blockSeamless[thisBlock]){
+				    			if(CheckSeams(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i))){
 				    				continue;
 				    			}
 				    			else if(neighborBlock <= ushort.MaxValue/2 && i != 4){
@@ -1033,8 +1131,8 @@ public struct BuildChunkJob : IJob{
 
 			    		}
 			    		else{
-			    			if(objectLiquid[ushort.MaxValue-thisBlock]){
-				    			if(CheckLiquids(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i))){
+			    			if(objectSeamless[ushort.MaxValue-thisBlock]){
+				    			if(CheckSeams(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i))){
 				    				continue;
 				    			}
 				    			else if(neighborBlock <= ushort.MaxValue/2 && i != 4){
@@ -1058,7 +1156,7 @@ public struct BuildChunkJob : IJob{
 
 		    			// Main Drawing Handling
 			    		if(CheckPlacement(neighborBlock)){
-					    	if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV)){
+					    	if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
 					    		break;
 					    	}
 			    		}
@@ -1074,7 +1172,7 @@ public struct BuildChunkJob : IJob{
 		
 		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
 			return 0;
-		} 
+		}
 
 		return data[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
 	}
@@ -1090,39 +1188,63 @@ public struct BuildChunkJob : IJob{
 		return state[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
 	}
 
+	// Gets neighbor light level
+	private int GetNeighborLight(int x, int y, int z, int dir, bool isNatural=true){
+		int3 coord = new int3(x, y, z) + VoxelData.offsets[dir];
+		if(isNatural)
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+		else
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
+	}
+
+	// Gets neighbor light level
+	private int GetNeighborLight(int x, int y, int z, int3 dir, bool isNatural=true){
+		int3 coord = new int3(x, y, z) + dir;
+		if(isNatural)
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+		else
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
+	}
+
     // Checks if neighbor is transparent or invisible
     private bool CheckPlacement(int neighborBlock){
     	if(neighborBlock <= ushort.MaxValue/2)
-    		return blockTransparent[neighborBlock] || blockInvisible[neighborBlock];
+    		return Boolean(blockTransparent[neighborBlock]) || blockInvisible[neighborBlock];
     	else
-			return objectTransparent[ushort.MaxValue-neighborBlock] || objectInvisible[ushort.MaxValue-neighborBlock];
+			return Boolean(objectTransparent[ushort.MaxValue-neighborBlock]) || objectInvisible[ushort.MaxValue-neighborBlock];
     }
 
-    // Checks if Liquids are side by side
-    private bool CheckLiquids(int thisBlock, int neighborBlock, ushort thisState, ushort neighborState){
-    	bool thisLiquid;
-    	bool neighborLiquid;
+    // Checks if seamlesses are side by side
+    private bool CheckSeams(int thisBlock, int neighborBlock, ushort thisState, ushort neighborState){
+    	bool thisSeamless;
+    	bool neighborSeamless;
 
 
     	if(thisBlock <= ushort.MaxValue/2)
-    		thisLiquid = blockLiquid[thisBlock];
+    		thisSeamless = blockSeamless[thisBlock];
     	else
-    		thisLiquid = objectLiquid[ushort.MaxValue-thisBlock];
+    		thisSeamless = objectSeamless[ushort.MaxValue-thisBlock];
 
     	if(neighborBlock <= ushort.MaxValue/2)
-    		neighborLiquid = blockLiquid[neighborBlock];
+    		neighborSeamless = blockSeamless[neighborBlock];
     	else
-    		neighborLiquid = objectLiquid[ushort.MaxValue-neighborBlock];
+    		neighborSeamless = objectSeamless[ushort.MaxValue-neighborBlock];
 
-    	return thisLiquid && neighborLiquid && (thisState == neighborState);
+    	return thisSeamless && neighborSeamless && (thisState == neighborState);
+    }
+
+    private bool Boolean(byte a){
+    	if(a == 0)
+    		return false;
+    	return true;
     }
 
 
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
     // Load is true when Chunk is being loaded and not reloaded
     // Returns true if loaded a blocktype mesh and false if it's an asset to be loaded later
-    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, int lookahead=0){
-    	byte renderThread;
+    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, NativeArray<Vector3> cacheCubeNormal, int lookahead=0){
+    	ShaderIndex renderThread;
 
     	if(blockCode <= ushort.MaxValue/2)
     		renderThread = blockMaterial[blockCode];
@@ -1130,7 +1252,7 @@ public struct BuildChunkJob : IJob{
     		renderThread = objectMaterial[ushort.MaxValue-blockCode];
     	
     	// If object is Normal Block
-    	if(renderThread == 0){
+    	if(renderThread == ShaderIndex.OPAQUE){
     		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
@@ -1138,6 +1260,12 @@ public struct BuildChunkJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		UVs.AddRange(cacheCubeUV);
 
+    		AddLightUV(cacheCubeUV, x, y, z, dir);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
     		
 	    	normalTris.Add(vCount -4);
 	    	normalTris.Add(vCount -4 +1);
@@ -1150,13 +1278,20 @@ public struct BuildChunkJob : IJob{
     	}
 
     	// If object is Specular Block
-    	else if(renderThread == 1){
+    	else if(renderThread == ShaderIndex.SPECULAR){
     		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
 			AddTexture(cacheCubeUV, dir, blockCode);
     		UVs.AddRange(cacheCubeUV);
+
+    		AddLightUV(cacheCubeUV, x, y, z, dir);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
 
 	    	specularTris.Add(vCount -4);
 	    	specularTris.Add(vCount -4 +1);
@@ -1169,7 +1304,7 @@ public struct BuildChunkJob : IJob{
     	}
 
     	// If object is Liquid
-    	else if(renderThread == 2){
+    	else if(renderThread == ShaderIndex.WATER){
     		VertsByState(cacheCubeVert, dir, state[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y,z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
@@ -1177,6 +1312,12 @@ public struct BuildChunkJob : IJob{
 			LiquidTexture(cacheCubeUV, x, z);
     		UVs.AddRange(cacheCubeUV);
 
+    		AddLightUV(cacheCubeUV, x, y, z, dir);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
     		
 	    	liquidTris.Add(vCount -4);
 	    	liquidTris.Add(vCount -4 +1);
@@ -1188,11 +1329,591 @@ public struct BuildChunkJob : IJob{
 	    	return true;    		
     	}
 
+    	// If object is Leaves
+    	else if(renderThread == ShaderIndex.LEAVES){
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+			verts.AddRange(cacheCubeVert);
+			int vCount = verts.Length + lookahead;
+
+			AddTexture(cacheCubeUV, dir, blockCode);
+			UVs.AddRange(cacheCubeUV);
+
+    		AddLightUV(cacheCubeUV, x, y, z, dir);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
+
+	    	leavesTris.Add(vCount -4);
+	    	leavesTris.Add(vCount -4 +1);
+	    	leavesTris.Add(vCount -4 +2);
+	    	leavesTris.Add(vCount -4);
+	    	leavesTris.Add(vCount -4 +2);
+	    	leavesTris.Add(vCount -4 +3);
+
+	    	return true;
+    	}
+
     	// If object is an Asset
     	else{
 			loadAssetList.Add(new int3(x,y,z));
     		return false;
     	}
+    }
+
+    // Sets the secondary UV of Lightmaps
+    private void AddLightUV(NativeArray<Vector2> array, int x, int y, int z, int dir){
+    	int maxLightLevel = 15;
+    	int currentLightLevel = GetNeighborLight(x, y, z, dir);
+
+    	// If light is full blown
+    	if(currentLightLevel == maxLightLevel){
+	    	array[0] = new Vector2(maxLightLevel, 1);
+	    	array[1] = new Vector2(maxLightLevel, 1);
+	    	array[2] = new Vector2(maxLightLevel, 1);
+	    	array[3] = new Vector2(maxLightLevel, 1);
+	    	return;
+    	}
+
+    	bool xm = true;
+    	bool xp = true;
+    	bool zm = true;
+    	bool zp = true;
+    	bool ym = true;
+    	bool yp = true;
+
+    	if(x > 1 || (x == 1 && dir != 3) || (x == 0 && dir == 1))
+    		xm = false;
+    	if(x < Chunk.chunkWidth-2 || (x == Chunk.chunkWidth-2 && dir != 1) || (x == Chunk.chunkWidth-1 && dir == 3))
+    		xp = false;
+    	if(z > 1 || (z == 1 && dir != 2) || (z == 0 && dir == 0))
+    		zm = false;
+    	if(z < Chunk.chunkWidth-2 || (z == Chunk.chunkWidth-2 && dir != 0) || (z == Chunk.chunkWidth-1 && dir == 2))
+    		zp = false;
+    	if(y > 1 || (y == 1 && dir != 5) || (y == 0 && dir == 4))
+    		ym = false;
+    	if(y < Chunk.chunkDepth-2 || (y == Chunk.chunkDepth-2 && dir != 4) || (y == Chunk.chunkDepth-1 && dir == 5))
+    		yp = false;
+
+
+    	// If there's no light
+    	if(currentLightLevel <= 1){
+    		bool found = false;
+
+    		if(x > 0 && !xm)
+    			if(GetNeighborLight(x-1, y, z, dir) > 0)
+    				found = true;
+    		if(x < Chunk.chunkWidth-1 && !xp)
+    			if(GetNeighborLight(x+1, y, z, dir) > 0)
+    				found = true;
+    		if(z > 0 && !zm)
+    			if(GetNeighborLight(x, y, z-1, dir) > 0)
+    				found = true;    		
+    		if(z < Chunk.chunkWidth-1 && !zp)
+    			if(GetNeighborLight(x, y, z+1, dir) > 0)
+    				found = true;
+    		if(y > 0 && !ym)
+    			if(GetNeighborLight(x, y-1, z, dir) > 0)
+    				found = true;
+    		if(y < Chunk.chunkDepth-1 && !yp)
+    			if(GetNeighborLight(x, y+1, z, dir) > 0)
+    				found = true;
+
+    		if(!found){
+		    	array[0] = Vector2.zero;
+		    	array[1] = Vector2.zero;
+		    	array[2] = Vector2.zero;
+		    	array[3] = Vector2.zero;
+		    	return;
+		    }
+    	}
+
+    	int3 auxPos = new int3(x,y,z) + VoxelData.offsets[dir];
+
+    	CalculateLightCorners(auxPos, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
+
+    }
+
+    // Sets the secondary UV of ExtraLights Lightmaps
+    private void AddLightUVExtra(NativeArray<Vector2> array, int x, int y, int z, int dir){
+    	int maxLightLevel = 15;
+    	int currentLightLevel = GetNeighborLight(x, y, z, dir, isNatural:false);
+
+    	// If light is full blown
+    	if(currentLightLevel == maxLightLevel){
+	    	array[0] = new Vector2(array[0].x, maxLightLevel);
+	    	array[1] = new Vector2(array[1].x, maxLightLevel);
+	    	array[2] = new Vector2(array[2].x, maxLightLevel);
+	    	array[3] = new Vector2(array[3].x, maxLightLevel);
+	    	return;
+    	}
+
+    	bool xm = true;
+    	bool xp = true;
+    	bool zm = true;
+    	bool zp = true;
+    	bool ym = true;
+    	bool yp = true;
+
+    	if(x > 1 || (x == 1 && dir != 3) || (x == 0 && dir == 1))
+    		xm = false;
+    	if(x < Chunk.chunkWidth-2 || (x == Chunk.chunkWidth-2 && dir != 1) || (x == Chunk.chunkWidth-1 && dir == 3))
+    		xp = false;
+    	if(z > 1 || (z == 1 && dir != 2) || (z == 0 && dir == 0))
+    		zm = false;
+    	if(z < Chunk.chunkWidth-2 || (z == Chunk.chunkWidth-2 && dir != 0) || (z == Chunk.chunkWidth-1 && dir == 2))
+    		zp = false;
+    	if(y > 1 || (y == 1 && dir != 5) || (y == 0 && dir == 4))
+    		ym = false;
+    	if(y < Chunk.chunkDepth-2 || (y == Chunk.chunkDepth-2 && dir != 4) || (y == Chunk.chunkDepth-1 && dir == 5))
+    		yp = false;
+
+
+    	// If there's no light
+    	if(currentLightLevel <= 1){
+    		bool found = false;
+
+    		if(x > 0 && !xm)
+    			if(GetNeighborLight(x-1, y, z, dir) > 0)
+    				found = true;
+    		if(x < Chunk.chunkWidth-1 && !xp)
+    			if(GetNeighborLight(x+1, y, z, dir) > 0)
+    				found = true;
+    		if(z > 0 && !zm)
+    			if(GetNeighborLight(x, y, z-1, dir) > 0)
+    				found = true;    		
+    		if(z < Chunk.chunkWidth-1 && !zp)
+    			if(GetNeighborLight(x, y, z+1, dir) > 0)
+    				found = true;
+    		if(y > 0 && !ym)
+    			if(GetNeighborLight(x, y-1, z, dir) > 0)
+    				found = true;
+    		if(y < Chunk.chunkDepth-1 && !yp)
+    			if(GetNeighborLight(x, y+1, z, dir) > 0)
+    				found = true;
+
+    		if(!found){
+		    	array[0] = new Vector2(array[0].x, 0);
+		    	array[1] = new Vector2(array[1].x, 0);
+		    	array[2] = new Vector2(array[2].x, 0);
+		    	array[3] = new Vector2(array[3].x, 0);
+		    	return;
+		    }
+    	}
+
+    	int3 auxPos = new int3(x,y,z) + VoxelData.offsets[dir];
+
+    	CalculateLightCornersExtra(auxPos, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
+    }
+
+    private void CalculateLightCorners(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    	// North
+    	if(dir == 0)
+    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp, 0);
+    	// East
+    	else if(dir == 1)
+    		SetCorner(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp, 1);
+    	// South
+     	else if(dir == 2)
+    		SetCorner(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp, 2);
+    	// West
+      	else if(dir == 3)
+    		SetCorner(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp, 3);
+      	// Up
+    	else if(dir == 4)
+    		SetCorner(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp, 4);
+    	// Down
+     	else
+     		SetCorner(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp, 5);
+    }
+
+    private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    	// North
+    	if(dir == 0)
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp, 0);
+    	// East
+    	else if(dir == 1)
+    		SetCornerExtra(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp, 1);
+    	// South
+     	else if(dir == 2)
+    		SetCornerExtra(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp, 2);
+    	// West
+      	else if(dir == 3)
+    		SetCornerExtra(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp, 3);
+      	// Up
+    	else if(dir == 4)
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp, 4);
+    	// Down
+     	else
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp, 5);
+    }
+
+    private bool CheckBorder(int dir, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    	if(xm && dir == 3)
+    		return false;
+    	else if(xp && dir == 1)
+    		return false;
+    	else if(zm && dir == 2)
+    		return false;
+    	else if(zp && dir == 0)
+    		return false;
+    	else if(ym && dir == 5)
+    		return false;
+    	else if(yp && dir == 4)
+    		return false;
+    	else
+    		return true;
+    }
+
+    private bool CheckTransient(int facing, bool xm, bool zm, bool xp, bool zp){
+    	if((facing == 0 || facing == 2) && (xm || xp))
+    		return true;
+    	if((facing == 1 || facing == 3) && (zm || zp))
+    		return true;
+    	if((facing == 4 || facing == 5) && (xm || zm || xp || zp))
+    		return true;
+    	return false;
+    }
+
+    private int GetVertexLight(int current, int n, int e, int s, int ne, int se, ref bool lightFromBorder, ref bool flipDirection){
+    	int val = 0;
+
+    	// Light from inside scenario
+    	if(current < e && e - current == 1){
+    		if(current > n)
+    			val = current << 24;
+    		else
+    			val = n << 24;
+
+    		if(current > s)
+    			val += current;
+    		else
+    			val += s;
+
+    		if(s > current || se > current || current > n)
+    			flipDirection = true;
+    	}
+    	// Light from outside scenario
+    	else if(current > e && current - e == 1){
+    		if(current > n)
+    			val = (current+1) << 24;
+    		else
+    			val = (n+1) << 24;
+
+    		if(current > s)
+    			val += current+1;
+    		else
+    			val += s+1;
+
+    		lightFromBorder = true;
+    		if(s > current || se > current || current > n)
+    			flipDirection = true;
+    	}
+    	// If everything around is the same light level
+    	else if((current == e && current == n && current == ne) || (current == e && current == se && current == s)){
+    		val = current;
+    		val <<= 8;
+    		val += current;
+    		val <<= 8;
+    		val += current;
+    		val <<= 8;
+    		val += current;
+    		return val;
+    	}
+    	// Light from above or bottom
+    	else if(current == e){
+    		// hotfix
+    		if(current > 1){
+    			if(n == 0)
+    				n = current;
+    			if(s == 0)
+    				s = current;
+    		}
+
+    		if(current > n)
+    			val = n << 24;
+    		else
+    			val = current << 24;
+
+    		if(current > s)
+    			val += s;
+    		else
+    			val += current;
+    	}
+
+    	// Enclosed space
+    	else if(n == 0 && s == 0 && e == 0){
+    		val = (current+1) << 24;
+    		val += current+1;
+    	}
+
+    	// No recorded case
+    	else{
+    		val = current << 24;
+    		val += current;
+    	}
+
+
+    	// Populate outer values
+    	val += (Max(current, n, e, ne) << 16);
+    	val += (Max(current, e, s, se) << 8);
+
+    	return val;
+    }
+
+    private int ProcessTransient(int facing, bool xm, bool zm, bool xp, bool zp, int currentLight, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8){
+    	bool fromOutsideBorder = false;
+    	bool flipDirection = false;
+
+    	if(facing == 0 && xm)
+    		return GetVertexLight(currentLight, l1, l4, l3, l8, l7, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 0 && xp)
+    		return GetVertexLight(currentLight, l1, l2, l3, l5, l6, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 1 && zm)
+    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 1 && zp)
+    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 2 && xm)
+    		return GetVertexLight(currentLight, l1, l4, l3, l8, l7, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 2 && xp)
+    		return GetVertexLight(currentLight, l1, l2, l3, l5, l6, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 3 && zm)
+    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 3 && zp)
+    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 4 && xm){
+    		int transientValue = GetVertexLight(currentLight, l1, l2, l3, l5, l6, ref fromOutsideBorder, ref flipDirection);
+    		return (transientValue << 16) + (transientValue >> 16);
+    	}
+    	if(facing == 4 && xp)
+    		return GetVertexLight(currentLight, l3, l4, l1, l7, l8, ref fromOutsideBorder, ref flipDirection);
+
+
+	   	if(facing == 4 && zm){
+    		int transientValue = GetVertexLight(currentLight, l2, l1, l4, l5, l8, ref fromOutsideBorder, ref flipDirection);
+	   		if(fromOutsideBorder)
+	   			if(!flipDirection)
+	   				return transientValue;
+	   			else
+    				return (transientValue << 16) + (transientValue >> 16);
+    		else
+    			if(!flipDirection)
+    				return (transientValue << 16) + (transientValue >> 16);
+    			else
+    				return transientValue;
+	   	}
+	   	if(facing == 4 && zp){
+	   		int transientValue = GetVertexLight(currentLight, l4, l3, l2, l7, l6, ref fromOutsideBorder, ref flipDirection);
+	   		if(fromOutsideBorder)
+	   			if(flipDirection)
+	   				return transientValue;
+	   			else
+    				return (transientValue << 16) + (transientValue >> 16);
+    		else
+    			if(flipDirection)
+    				return (transientValue << 16) + (transientValue >> 16);
+    			else
+    				return transientValue;
+	   	}
+
+
+    	if(facing == 5 && xm)
+    		return GetVertexLight(currentLight, l1, l4, l3, l8, l7, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 5 && xp)
+    		return GetVertexLight(currentLight, l1, l2, l3, l5, l6, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 5 && zm)
+    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7, ref fromOutsideBorder, ref flipDirection);
+    	if(facing == 5 && zp)
+    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8, ref fromOutsideBorder, ref flipDirection);
+    	return 0;
+    }
+
+    private void SetCorner(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
+    	int light1, light2, light3, light4, light5, light6, light7, light8;
+    	int3 diagonal = new int3(0,0,0);
+    	int transientValue;
+
+    	if(xm || xp || zm || zp || ym || yp){
+	    	if(CheckBorder(0, xm, xp, zm, zp, ym, yp))
+	    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, 0, isNatural:true);
+	    	else
+	    		light1 = currentLightLevel;
+	    	if(CheckBorder(1, xm, xp, zm, zp, ym, yp))
+	    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, 1, isNatural:true);
+	    	else
+	    		light2 = currentLightLevel;
+	    	if(CheckBorder(2, xm, xp, zm, zp, ym, yp))
+	    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, 2, isNatural:true);
+	    	else
+	    		light3 = currentLightLevel;
+	    	if(CheckBorder(3, xm, xp, zm, zp, ym, yp))
+	    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, 3, isNatural:true);
+	    	else
+	    		light4 = currentLightLevel;
+
+	    	if(CheckBorder(0, xm, xp, zm, zp, ym, yp) && CheckBorder(1, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[0] + VoxelData.offsets[1];
+	    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    	}
+	    	else{
+	    		light5 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(1, xm, xp, zm, zp, ym, yp) && CheckBorder(2, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[1] + VoxelData.offsets[2];
+	    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    	}
+	    	else{
+	    		light6 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(2, xm, xp, zm, zp, ym, yp) && CheckBorder(3, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[2] + VoxelData.offsets[3];
+	    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    	}
+	    	else{
+	    		light7 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(3, xm, xp, zm, zp, ym, yp) && CheckBorder(0, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[3] + VoxelData.offsets[0];
+	    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    	}
+	    	else{
+	    		light8 = currentLightLevel;
+	    	}  	
+    	}
+    	else{
+    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1, isNatural:true);
+    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2, isNatural:true);
+    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3, isNatural:true);
+    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4, isNatural:true);
+
+    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    	}
+
+		if(CheckTransient(facing, xm, zm, xp, zp)){
+			transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
+			array[0] = new Vector2(transientValue >> 24, 1);
+			array[1] = new Vector2(((transientValue >> 16) & 0x000000FF), 1);
+			array[2] = new Vector2(((transientValue >> 8) & 0x000000FF), 1);
+			array[3] = new Vector2((transientValue & 0x000000FF), 1);
+			return;
+		}
+
+		array[0] = new Vector2(Max(light1, light2, light5, currentLightLevel), 1);
+		array[1] = new Vector2(Max(light2, light3, light6, currentLightLevel), 1);
+		array[2] = new Vector2(Max(light3, light4, light7, currentLightLevel), 1);
+		array[3] = new Vector2(Max(light4, light1, light8, currentLightLevel), 1);
+    }
+
+    private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
+    	int light1, light2, light3, light4, light5, light6, light7, light8;
+    	int3 diagonal = new int3(0,0,0);
+    	int transientValue;
+
+    	if(xm || xp || zm || zp || ym || yp){
+	    	if(CheckBorder(0, xm, xp, zm, zp, ym, yp))
+	    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, 0, isNatural:false);
+	    	else
+	    		light1 = currentLightLevel;
+	    	if(CheckBorder(1, xm, xp, zm, zp, ym, yp))
+	    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, 1, isNatural:false);
+	    	else
+	    		light2 = currentLightLevel;
+	    	if(CheckBorder(2, xm, xp, zm, zp, ym, yp))
+	    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, 2, isNatural:false);
+	    	else
+	    		light3 = currentLightLevel;
+	    	if(CheckBorder(3, xm, xp, zm, zp, ym, yp))
+	    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, 3, isNatural:false);
+	    	else
+	    		light4 = currentLightLevel;
+
+	    	if(CheckBorder(0, xm, xp, zm, zp, ym, yp) && CheckBorder(1, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[0] + VoxelData.offsets[1];
+	    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light5 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(1, xm, xp, zm, zp, ym, yp) && CheckBorder(2, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[1] + VoxelData.offsets[2];
+	    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light6 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(2, xm, xp, zm, zp, ym, yp) && CheckBorder(3, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[2] + VoxelData.offsets[3];
+	    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light7 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(3, xm, xp, zm, zp, ym, yp) && CheckBorder(0, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[3] + VoxelData.offsets[0];
+	    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light8 = currentLightLevel;
+	    	}  	
+    	}
+    	else{
+    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1, isNatural:false);
+    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2, isNatural:false);
+    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3, isNatural:false);
+    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4, isNatural:false);
+
+    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+
+		if(CheckTransient(facing, xm, zm, xp, zp)){
+			transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
+			array[0] = new Vector2(array[0].x, transientValue >> 24);
+			array[1] = new Vector2(array[1].x, ((transientValue >> 16) & 0x000000FF));
+			array[2] = new Vector2(array[2].x, ((transientValue >> 8) & 0x000000FF));
+			array[3] = new Vector2(array[3].x, (transientValue & 0x000000FF));
+			return;
+		}
+
+		array[0] = new Vector2(array[0].x, Max(light1, light2, light5, currentLightLevel));
+		array[1] = new Vector2(array[1].x, Max(light2, light3, light6, currentLightLevel));
+		array[2] = new Vector2(array[2].x, Max(light3, light4, light7, currentLightLevel));
+		array[3] = new Vector2(array[3].x, Max(light4, light1, light8, currentLightLevel));
+    }
+
+    /*
+    Returns the maximum between light levels
+    */
+    private int Max(int a, int b, int c, int d){
+    	int maximum = a;
+
+    	if(maximum - b < 0)
+    		maximum = b;
+    	if(maximum - c < 0)
+    		maximum = c;
+    	if(maximum - d < 0)
+    		maximum = d;
+    	return maximum;
     }
 
 	// Sets UV mapping for a direction
@@ -1207,7 +1928,7 @@ public struct BuildChunkJob : IJob{
 			textureID = blockTiles[blockCode].z;
 
 		// If should use normal atlas
-		if(blockMaterial[blockCode] == 0){
+		if(blockMaterial[blockCode] == ShaderIndex.OPAQUE){
 			float x = textureID%Blocks.atlasSizeX;
 			float y = Mathf.FloorToInt(textureID/Blocks.atlasSizeX);
 	 
@@ -1220,7 +1941,7 @@ public struct BuildChunkJob : IJob{
 			array[3] = new Vector2(x,y);
 		}
 		// If should use transparent atlas
-		else if(blockMaterial[blockCode] == 1){
+		else if(blockMaterial[blockCode] == ShaderIndex.SPECULAR){
 			float x = textureID%Blocks.transparentAtlasSizeX;
 			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeY);
 	 
@@ -1231,6 +1952,13 @@ public struct BuildChunkJob : IJob{
 			array[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
 			array[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
 			array[3] = new Vector2(x,y);
+		}
+		// If should use Leaves atlas
+		else if(blockMaterial[blockCode] == ShaderIndex.LEAVES){
+			array[0] = new Vector2(0,1);
+			array[1] = new Vector2(1,1);
+			array[2] = new Vector2(1,0);
+			array[3] = new Vector2(0,0);
 		}
 	}
 
@@ -1274,6 +2002,28 @@ public struct BuildChunkJob : IJob{
 		}
 	}
 
+
+	public void CalculateNormal(NativeArray<Vector3> normals, int dir){
+		Vector3 normal;
+
+		if(dir == 0)
+			normal = new Vector3(0, 0, 1);
+		else if(dir == 1)
+			normal = new Vector3(1, 0, 0);
+		else if(dir == 2)
+			normal = new Vector3(0, 0, -1);
+		else if(dir == 3)
+			normal = new Vector3(-1, 0, 0);
+		else if(dir == 4)
+			normal = new Vector3(0, 1, 0);
+		else
+			normal = new Vector3(0, -1, 0);
+
+		normals[0] = normal;
+		normals[1] = normal;
+		normals[2] = normal;
+		normals[3] = normal;
+	}
 }
 
 
@@ -1283,6 +2033,8 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<Vector3> meshVerts;
 	public NativeList<Vector2> meshUVs;
 	public NativeList<int> meshTris;
+	public NativeList<Vector3> meshNormals;
+	public NativeList<Vector2> meshLightUV;
 
 	[ReadOnly]
 	public int vCount;
@@ -1292,6 +2044,8 @@ public struct PrepareAssetsJob : IJob{
 	public NativeArray<ushort> blockdata;
 	[ReadOnly]
 	public NativeArray<ushort> metadata;
+	[ReadOnly]
+	public NativeArray<byte> lightdata;
 	[ReadOnly]
 	public NativeList<int3> coords;
 	[ReadOnly]
@@ -1318,6 +2072,8 @@ public struct PrepareAssetsJob : IJob{
 	public NativeArray<Vector2> loadedUV;
 	[ReadOnly]
 	public NativeArray<int> loadedTris;
+	[ReadOnly]
+	public NativeArray<Vector3> loadedNormals;
 
 	public void Execute(){
 		int i;
@@ -1339,7 +2095,9 @@ public struct PrepareAssetsJob : IJob{
 				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
 					Vector3 resultVert = Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
 					meshVerts.Add(resultVert);
-				}			
+					meshNormals.Add(GetNormalRotation(loadedNormals[vertIndex], inplaceRotation[code*256+state]));
+					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false)));
+				}
 
 			}
 			// If doesn't have special rotation
@@ -1348,6 +2106,8 @@ public struct PrepareAssetsJob : IJob{
 				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
 					Vector3 resultVert = Vector3Mult(loadedVerts[vertIndex], scaling[i], vertPos);
 					meshVerts.Add(resultVert);
+					meshNormals.Add(loadedNormals[vertIndex]);
+					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false)));
 				}	
 			}
 
@@ -1385,11 +2145,24 @@ public struct PrepareAssetsJob : IJob{
 		return b + localOffset;
 	}
 
+	private Vector3 GetNormalRotation(Vector3 normal, int rotation){
+		return Rotate(normal, rotation);
+	}
+
 	private Vector3 Rotate(Vector3 a, int degrees){
 		return new Vector3(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad));
 	}
-}
 
+	// Gets neighbor light level
+	private int GetLight(int x, int y, int z, bool isNatural=true){
+		int3 coord = new int3(x, y, z);
+
+		if(isNatural)
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+		else
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0xF0;
+	}
+}
 
 [BurstCompile]
 public struct BuildBorderJob : IJob{
@@ -1400,7 +2173,11 @@ public struct BuildBorderJob : IJob{
 	[ReadOnly]
 	public NativeArray<ushort> metadata;
 	[ReadOnly]
+	public NativeArray<byte> lightdata;
+	[ReadOnly]
 	public NativeArray<ushort> neighbordata;
+	[ReadOnly]
+	public NativeArray<byte> neighborlight;
 	[ReadOnly]
 	public bool zP, zM, xP, xM;
 	[ReadOnly]
@@ -1413,33 +2190,37 @@ public struct BuildBorderJob : IJob{
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
 	public NativeList<Vector2> uvs;
+	public NativeList<Vector2> lightUV;
+	public NativeList<Vector3> normals;
 
 	// Render Thread Triangles
 	public NativeList<int> normalTris;
 	public NativeList<int> specularTris;
 	public NativeList<int> liquidTris;
+	public NativeList<int> leavesTris;
 
 	// Cached
 	public NativeArray<Vector3> cachedCubeVerts;
 	public NativeArray<Vector2> cachedUVVerts;
+	public NativeArray<Vector3> cachedCubeNormal;
 
 	// Block Encyclopedia Data
 	[ReadOnly]
-	public NativeArray<bool> blockTransparent;
+	public NativeArray<byte> blockTransparent;
 	[ReadOnly]
-	public NativeArray<bool> objectTransparent;
+	public NativeArray<byte> objectTransparent;
 	[ReadOnly]
-	public NativeArray<bool> blockLiquid;
+	public NativeArray<bool> blockSeamless;
 	[ReadOnly]
-	public NativeArray<bool> objectLiquid;
+	public NativeArray<bool> objectSeamless;
 	[ReadOnly]
 	public NativeArray<bool> blockInvisible;
 	[ReadOnly]
 	public NativeArray<bool> objectInvisible;
 	[ReadOnly]
-	public NativeArray<byte> blockMaterial;
+	public NativeArray<ShaderIndex> blockMaterial;
 	[ReadOnly]
-	public NativeArray<byte> objectMaterial;
+	public NativeArray<ShaderIndex> objectMaterial;
 	[ReadOnly]
 	public NativeArray<int3> blockTiles;
 	[ReadOnly]
@@ -1456,18 +2237,19 @@ public struct BuildBorderJob : IJob{
 		if(xM){
 			for(int y=0; y<Chunk.chunkDepth; y++){
 				for(int z=0; z<Chunk.chunkWidth; z++){
+
 					thisBlock = data[y*Chunk.chunkWidth+z];
 					neighborBlock = neighbordata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
 					if(thisBlock == 0 && neighborBlock == 0)
 						continue;
 
-					if(CheckLiquids(thisBlock, neighborBlock)){
+					if(CheckSeams(thisBlock, neighborBlock)){
 						continue;
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockLiquid[neighborBlock]){
+							if(blockSeamless[neighborBlock]){
 								toBUD.Add(new int3((pos.x-1)*Chunk.chunkWidth+Chunk.chunkWidth-1, y, pos.z*Chunk.chunkWidth+z));
 							}
 
@@ -1476,7 +2258,7 @@ public struct BuildBorderJob : IJob{
 							}
 						}
 						else{
-							if(objectLiquid[ushort.MaxValue-neighborBlock]){
+							if(objectSeamless[ushort.MaxValue-neighborBlock]){
 								toBUD.Add(new int3((pos.x-1)*Chunk.chunkWidth+Chunk.chunkWidth-1, y, pos.z*Chunk.chunkWidth+z));
 							}
 
@@ -1490,7 +2272,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(0, y, z, 3, thisBlock, true, cachedCubeVerts, cachedUVVerts);
+						LoadMesh(0, y, z, 3, new int3(Chunk.chunkWidth-1, y, z), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
 					}
 				}
 			}
@@ -1506,12 +2288,12 @@ public struct BuildBorderJob : IJob{
 					if(thisBlock == 0 && neighborBlock == 0)
 						continue;
 
-					if(CheckLiquids(thisBlock, neighborBlock)){
+					if(CheckSeams(thisBlock, neighborBlock)){
 						continue;
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockLiquid[neighborBlock]){
+							if(blockSeamless[neighborBlock]){
 								toBUD.Add(new int3((pos.x+1)*Chunk.chunkWidth, y, pos.z*Chunk.chunkWidth+z));
 							}
 
@@ -1520,7 +2302,7 @@ public struct BuildBorderJob : IJob{
 							}
 						}
 						else{
-							if(objectLiquid[ushort.MaxValue-neighborBlock]){
+							if(objectSeamless[ushort.MaxValue-neighborBlock]){
 								toBUD.Add(new int3((pos.x+1)*Chunk.chunkWidth, y, pos.z*Chunk.chunkWidth+z));
 							}
 
@@ -1534,7 +2316,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(Chunk.chunkWidth-1, y, z, 1, thisBlock, true, cachedCubeVerts, cachedUVVerts);
+						LoadMesh(Chunk.chunkWidth-1, y, z, 1, new int3(0, y, z), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
 					}
 				}
 			}
@@ -1550,12 +2332,12 @@ public struct BuildBorderJob : IJob{
 					if(thisBlock == 0 && neighborBlock == 0)
 						continue;
 
-					if(CheckLiquids(thisBlock, neighborBlock)){
+					if(CheckSeams(thisBlock, neighborBlock)){
 						continue;
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockLiquid[neighborBlock]){
+							if(blockSeamless[neighborBlock]){
 								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z-1)*Chunk.chunkWidth+Chunk.chunkWidth-1));
 							}
 
@@ -1564,7 +2346,7 @@ public struct BuildBorderJob : IJob{
 							}
 						}
 						else{
-							if(objectLiquid[ushort.MaxValue-neighborBlock]){
+							if(objectSeamless[ushort.MaxValue-neighborBlock]){
 								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z-1)*Chunk.chunkWidth+Chunk.chunkWidth-1));
 							}
 
@@ -1578,7 +2360,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(x, y, 0, 2, thisBlock, true, cachedCubeVerts, cachedUVVerts);
+						LoadMesh(x, y, 0, 2, new int3(x, y, Chunk.chunkWidth-1), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
 					}
 				}
 			}
@@ -1594,12 +2376,12 @@ public struct BuildBorderJob : IJob{
 					if(thisBlock == 0 && neighborBlock == 0)
 						continue;
 
-					if(CheckLiquids(thisBlock, neighborBlock)){
+					if(CheckSeams(thisBlock, neighborBlock)){
 						continue;
 					}
 					else{
 						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockLiquid[neighborBlock]){
+							if(blockSeamless[neighborBlock]){
 								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z+1)*Chunk.chunkWidth));
 							}
 
@@ -1608,7 +2390,7 @@ public struct BuildBorderJob : IJob{
 							}
 						}
 						else{
-							if(objectLiquid[ushort.MaxValue-neighborBlock]){
+							if(objectSeamless[ushort.MaxValue-neighborBlock]){
 								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z+1)*Chunk.chunkWidth));
 							}
 
@@ -1622,7 +2404,7 @@ public struct BuildBorderJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(x, y, Chunk.chunkWidth-1, 0, thisBlock, true, cachedCubeVerts, cachedUVVerts);
+						LoadMesh(x, y, Chunk.chunkWidth-1, 0, new int3(x, y, 0), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
 					}
 				}
 			}
@@ -1634,12 +2416,12 @@ public struct BuildBorderJob : IJob{
 	private void CheckBorderUpdate(int x, int y, int z, ushort blockCode){
 
 		if(blockCode <= ushort.MaxValue/2){
-			if(blockLiquid[blockCode]){
+			if(blockSeamless[blockCode]){
 				toLoadEvent.Add(new int3(x,y,z));
 			}
 		}
 		else{
-			if(objectLiquid[ushort.MaxValue-blockCode]){
+			if(objectSeamless[ushort.MaxValue-blockCode]){
 				toLoadEvent.Add(new int3(x,y,z));
 			}
 		}
@@ -1648,35 +2430,41 @@ public struct BuildBorderJob : IJob{
     // Checks if neighbor is transparent or invisible
     private bool CheckPlacement(int neighborBlock){
     	if(neighborBlock <= ushort.MaxValue/2)
-    		return blockTransparent[neighborBlock] || blockInvisible[neighborBlock];
+    		return Boolean(blockTransparent[neighborBlock]) || blockInvisible[neighborBlock];
     	else
-			return objectTransparent[ushort.MaxValue-neighborBlock] || objectInvisible[ushort.MaxValue-neighborBlock];
+			return Boolean(objectTransparent[ushort.MaxValue-neighborBlock]) || objectInvisible[ushort.MaxValue-neighborBlock];
     }
 
     // Checks if Liquids are side by side
-    private bool CheckLiquids(int thisBlock, int neighborBlock){
-    	bool thisLiquid;
-    	bool neighborLiquid;
+    private bool CheckSeams(int thisBlock, int neighborBlock){
+    	bool thisSeamless;
+    	bool neighborSeamless;
 
 
     	if(thisBlock <= ushort.MaxValue/2)
-    		thisLiquid = blockLiquid[thisBlock];
+    		thisSeamless = blockSeamless[thisBlock];
     	else
-    		thisLiquid = objectLiquid[ushort.MaxValue-thisBlock];
+    		thisSeamless = objectSeamless[ushort.MaxValue-thisBlock];
 
     	if(neighborBlock <= ushort.MaxValue/2)
-    		neighborLiquid = blockLiquid[neighborBlock];
+    		neighborSeamless = blockSeamless[neighborBlock];
     	else
-    		neighborLiquid = objectLiquid[ushort.MaxValue-neighborBlock];
+    		neighborSeamless = objectSeamless[ushort.MaxValue-neighborBlock];
 
-    	return thisLiquid && neighborLiquid;
+    	return thisSeamless && neighborSeamless;
+    }
+
+    private bool Boolean(byte a){
+    	if(a == 0)
+    		return false;
+    	return true;
     }
 
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
     // Load is true when Chunk is being loaded and not reloaded
     // Returns true if loaded a blocktype mesh and false if it's an asset to be loaded later
-    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, int lookahead=0){
-    	byte renderThread;
+    private bool LoadMesh(int x, int y, int z, int dir, int3 neighborIndex, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, NativeArray<Vector3> cacheCubeNormal, int lookahead=0){
+    	ShaderIndex renderThread;
 
     	if(blockCode <= ushort.MaxValue/2)
     		renderThread = blockMaterial[blockCode];
@@ -1684,7 +2472,7 @@ public struct BuildBorderJob : IJob{
     		renderThread = objectMaterial[ushort.MaxValue-blockCode];
     	
     	// If object is Normal Block
-    	if(renderThread == 0){
+    	if(renderThread == ShaderIndex.OPAQUE){
     		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
@@ -1692,6 +2480,12 @@ public struct BuildBorderJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		uvs.AddRange(cacheCubeUV);
 
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
     		
 	    	normalTris.Add(vCount -4);
 	    	normalTris.Add(vCount -4 +1);
@@ -1704,7 +2498,7 @@ public struct BuildBorderJob : IJob{
     	}
 
     	// If object is Specular Block
-    	else if(renderThread == 1){
+    	else if(renderThread == ShaderIndex.SPECULAR){
     		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
@@ -1712,7 +2506,13 @@ public struct BuildBorderJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		uvs.AddRange(cacheCubeUV);
 
-    		
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
+
 	    	specularTris.Add(vCount -4);
 	    	specularTris.Add(vCount -4 +1);
 	    	specularTris.Add(vCount -4 +2);
@@ -1724,7 +2524,7 @@ public struct BuildBorderJob : IJob{
     	}
 
     	// If object is Liquid
-    	else if(renderThread == 2){
+    	else if(renderThread == ShaderIndex.WATER){
     		VertsByState(cacheCubeVert, dir, metadata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y,z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
@@ -1732,7 +2532,13 @@ public struct BuildBorderJob : IJob{
 			LiquidTexture(cacheCubeUV, x, z);
     		uvs.AddRange(cacheCubeUV);
 
-    		
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);    		
+
 	    	liquidTris.Add(vCount -4);
 	    	liquidTris.Add(vCount -4 +1);
 	    	liquidTris.Add(vCount -4 +2);
@@ -1743,7 +2549,528 @@ public struct BuildBorderJob : IJob{
 	    	return true;
     	}
 
+    	// If object is Leaves
+    	else if(renderThread == ShaderIndex.LEAVES){
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+			verts.AddRange(cacheCubeVert);
+			int vCount = verts.Length + lookahead;
+
+			AddTexture(cacheCubeUV, dir, blockCode);
+			uvs.AddRange(cacheCubeUV);
+
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
+
+	    	leavesTris.Add(vCount -4);
+	    	leavesTris.Add(vCount -4 +1);
+	    	leavesTris.Add(vCount -4 +2);
+	    	leavesTris.Add(vCount -4);
+	    	leavesTris.Add(vCount -4 +2);
+	    	leavesTris.Add(vCount -4 +3);
+
+	    	return true;
+    	}
+
     	return false;
+    }
+
+    // Sets the secondary UV of Lightmaps
+    private void AddLightUV(NativeArray<Vector2> array, int x, int y, int z, int dir, int3 neighborIndex){
+    	int maxLightLevel = 15;
+    	int currentLightLevel = GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z);
+
+    	// If light is full blown
+    	if(currentLightLevel == maxLightLevel){
+	    	array[0] = new Vector2(maxLightLevel, 1);
+	    	array[1] = new Vector2(maxLightLevel, 1);
+	    	array[2] = new Vector2(maxLightLevel, 1);
+	    	array[3] = new Vector2(maxLightLevel, 1);
+	    	return;
+    	}
+
+    	bool xm = true;
+    	bool xp = true;
+    	bool zm = true;
+    	bool zp = true;
+    	bool ym = true;
+    	bool yp = true;
+
+    	if(neighborIndex.x > 1 || (neighborIndex.x == 1 && dir != 3) || (neighborIndex.x == 0 && dir == 1))
+    		xm = false;
+    	if(neighborIndex.x < Chunk.chunkWidth-2 || (neighborIndex.x == Chunk.chunkWidth-2 && dir != 1) || (neighborIndex.x == Chunk.chunkWidth-1 && dir == 3))
+    		xp = false;
+    	if(neighborIndex.z > 1 || (neighborIndex.z == 1 && dir != 2) || (neighborIndex.z == 0 && dir == 0))
+    		zm = false;
+    	if(neighborIndex.z < Chunk.chunkWidth-2 || (neighborIndex.z == Chunk.chunkWidth-2 && dir != 0) || (neighborIndex.z == Chunk.chunkWidth-1 && dir == 2))
+    		zp = false;
+    	if(neighborIndex.y > 1 || (neighborIndex.y == 1 && dir != 5) || (neighborIndex.y == 0 && dir == 4))
+    		ym = false;
+    	if(neighborIndex.y < Chunk.chunkDepth-2 || (neighborIndex.y == Chunk.chunkDepth-2 && dir != 4) || (neighborIndex.y == Chunk.chunkDepth-1 && dir == 5))
+    		yp = false;
+
+
+    	// If there's no light
+    	if(currentLightLevel <= 1){
+    		bool found = false;
+
+    		if(neighborIndex.x > 0 && !xm)
+    			if(GetNeighborLight(neighborIndex.x-1, neighborIndex.y, neighborIndex.z, dir) > 0)
+    				found = true;
+    		if(neighborIndex.x < Chunk.chunkWidth-1 && !xp)
+    			if(GetNeighborLight(neighborIndex.x+1, neighborIndex.y, neighborIndex.z, dir) > 0)
+    				found = true;
+    		if(neighborIndex.z > 0 && !zm)
+    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y, neighborIndex.z-1, dir) > 0)
+    				found = true;    		
+    		if(neighborIndex.z < Chunk.chunkWidth-1 && !zp)
+    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y, neighborIndex.z+1, dir) > 0)
+    				found = true;
+    		if(neighborIndex.y > 0 && !ym)
+    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y-1, neighborIndex.z, dir) > 0)
+    				found = true;
+    		if(neighborIndex.y < Chunk.chunkDepth-1 && !yp)
+    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y+1, neighborIndex.z, dir) > 0)
+    				found = true;
+
+    		if(!found){
+		    	array[0] = Vector2.zero;
+		    	array[1] = Vector2.zero;
+		    	array[2] = Vector2.zero;
+		    	array[3] = Vector2.zero;
+		    	return;
+		    }
+    	}
+
+    	CalculateLightCorners(neighborIndex, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
+    }
+
+    // Sets the secondary UV of Lightmaps
+    private void AddLightUVExtra(NativeArray<Vector2> array, int x, int y, int z, int dir, int3 neighborIndex){
+    	int maxLightLevel = 15;
+    	int currentLightLevel = GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z, isNatural:false);
+
+    	// If light is full blown
+    	if(currentLightLevel == maxLightLevel){
+	    	array[0] = new Vector2(array[0].x, maxLightLevel);
+	    	array[1] = new Vector2(array[1].x, maxLightLevel);
+	    	array[2] = new Vector2(array[2].x, maxLightLevel);
+	    	array[3] = new Vector2(array[3].x, maxLightLevel);
+	    	return;
+    	}
+
+    	bool xm = true;
+    	bool xp = true;
+    	bool zm = true;
+    	bool zp = true;
+    	bool ym = true;
+    	bool yp = true;
+
+    	if(neighborIndex.x > 0)
+    		xm = false;
+    	if(neighborIndex.x < Chunk.chunkWidth-1)
+    		xp = false;
+    	if(neighborIndex.z > 0)
+    		zm = false;
+    	if(neighborIndex.z < Chunk.chunkWidth-1)
+    		zp = false;
+    	if(neighborIndex.y > 0 || (neighborIndex.y == 0 && dir == 4))
+    		ym = false;
+    	if(neighborIndex.y < Chunk.chunkDepth-1)
+    		yp = false;
+
+    	// If there's no light
+    	if(currentLightLevel <= 1){
+    		bool found = false;
+
+    		if(dir != 1 && neighborIndex.x != 0)
+    			if(GetOtherLight(neighborIndex.x-1, neighborIndex.y, neighborIndex.z, dir, isNatural:false) > 0)
+    				found = true;
+    		if(dir != 3 && neighborIndex.x != Chunk.chunkWidth-1)
+    			if(GetOtherLight(neighborIndex.x+1, neighborIndex.y, neighborIndex.z, dir, isNatural:false) > 0)
+    				found = true;
+    		if(dir != 0 && neighborIndex.z != 0)
+    			if(GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z-1, dir, isNatural:false) > 0)
+    				found = true;    		
+    		if(dir != 2 && neighborIndex.z != Chunk.chunkWidth)
+    			if(GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z+1, dir, isNatural:false) > 0)
+    				found = true;
+    		if(dir != 4 && neighborIndex.y != 0)
+    			if(GetOtherLight(neighborIndex.x, neighborIndex.y-1, neighborIndex.z, dir, isNatural:false) > 0)
+    				found = true;
+    		if(dir != 5 && neighborIndex.y != Chunk.chunkDepth-1)
+    			if(GetOtherLight(neighborIndex.x, neighborIndex.y+1, neighborIndex.z, dir, isNatural:false) > 0)
+    				found = true;
+
+    		if(!found){
+		    	array[0] = new Vector2(array[0].x, 0);
+		    	array[1] = new Vector2(array[1].x, 0);
+		    	array[2] = new Vector2(array[2].x, 0);
+		    	array[3] = new Vector2(array[3].x, 0);
+		    	return;
+		    }
+    	}
+
+    	CalculateLightCornersExtra(neighborIndex, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
+    }
+
+    private void CalculateLightCorners(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    	// North
+    	if(dir == 0)
+    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp, 0);
+    	// East
+    	else if(dir == 1)
+    		SetCorner(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp, 1);
+    	// South
+     	else if(dir == 2)
+    		SetCorner(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp, 2);
+    	// West
+      	else if(dir == 3)
+    		SetCorner(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp, 3);
+      	// Up
+    	else if(dir == 4)
+    		SetCorner(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp, 4);
+    	// Down
+     	else
+    		SetCorner(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp, 5);
+    }
+
+    private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    	// North
+    	if(dir == 0)
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp, 0);
+    	// East
+    	else if(dir == 1)
+    		SetCornerExtra(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp, 1);
+    	// South
+     	else if(dir == 2)
+    		SetCornerExtra(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp, 2);
+    	// West
+      	else if(dir == 3)
+    		SetCornerExtra(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp, 3);
+      	// Up
+    	else if(dir == 4)
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp, 4);
+    	// Down
+     	else
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp, 5);
+    }
+
+    private bool CheckBorder(int dir, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    	if(xm && dir == 3)
+    		return false;
+    	else if(xp && dir == 1)
+    		return false;
+    	else if(zm && dir == 2)
+    		return false;
+    	else if(zp && dir == 0)
+    		return false;
+    	else if(ym && dir == 5)
+    		return false;
+    	else if(yp && dir == 4)
+    		return false;
+    	else
+    		return true;
+    }
+
+    private bool CheckTransient(int facing, bool xm, bool zm, bool xp, bool zp){
+    	if((facing == 0 || facing == 2) && (xm || xp))
+    		return true;
+    	if((facing == 1 || facing == 3) && (zm || zp))
+    		return true;
+    	if((facing == 4 || facing == 5) && (xm || zm || xp || zp))
+    		return true;
+    	return false;
+    }
+
+    private int GetVertexLight(int current, int n, int e, int s, int ne, int se){
+    	int val = 0;
+
+    	// Light from left scenario
+    	if(current < e && e - current == 1){
+    		if(current > n)
+    			val = current << 24;
+    		else
+    			val = n << 24;
+
+    		if(current > s)
+    			val += current;
+    		else
+    			val += s;
+    	}
+    	// Light from right scenario
+    	else if(current > e && current - e == 1){
+    		if(current > n)
+    			val = (current+1) << 24;
+    		else
+    			val = (n+1) << 24;
+
+    		if(current > s)
+    			val += current+1;
+    		else
+    			val += s+1;
+    	}
+    	// Light from above or bottom
+    	else if(current == e){
+    		if(current > n)
+    			val = n << 24;
+    		else
+    			val = current << 24;
+
+    		if(current > s)
+    			val += s;
+    		else
+    			val += current;
+    	}
+
+    	// Enclosed space
+    	else if(n == 0 && s == 0 && e == 0){
+    		val = (current+1) << 24;
+    		val += current+1;
+    	}
+
+    	// No recorded case
+    	else{
+    		val = current << 24;
+    		val += current;
+    	}
+
+
+    	// Populate outer values
+    	val += (Max(current, n, e, ne) << 16);
+    	val += (Max(current, e, s, se) << 8);
+
+    	return val;
+    }
+
+    private int ProcessTransient(int facing, bool xm, bool zm, bool xp, bool zp, int currentLight, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8){
+    	if(facing == 0 && xm)
+    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    	if(facing == 0 && xp)
+    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
+    	if(facing == 1 && zm)
+    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
+    	if(facing == 1 && zp)
+    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    	if(facing == 2 && xm)
+    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
+    	if(facing == 2 && xp)
+    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    	if(facing == 3 && zm)
+    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    	if(facing == 3 && zp)
+    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
+    	if(facing == 4 && xm){
+    		int transientValue = GetVertexLight(currentLight, l1, l2, l3, l5, l6);
+    		return (transientValue << 16) + (transientValue >> 16);
+    	}
+    	if(facing == 4 && xp)
+    		return GetVertexLight(currentLight, l3, l4, l1, l7, l8);
+	   	if(facing == 4 && zm){
+    		int transientValue = GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    		return (transientValue << 16) + (transientValue >> 16);
+	   	}
+	   	if(facing == 4 && zp)
+    		return GetVertexLight(currentLight, l4, l3, l2, l7, l6);
+    	if(facing == 5 && xm)
+    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    	if(facing == 5 && xp)
+    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
+    	if(facing == 5 && zm)
+    		return GetVertexLight(currentLight, l1, l4, l3, l8, l7);
+    	if(facing == 5 && zp)
+    		return GetVertexLight(currentLight, l1, l2, l3, l5, l6);
+    	return 0;
+    }
+
+    private void SetCorner(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
+    	int light1, light2, light3, light4, light5, light6, light7, light8;
+    	int3 diagonal = new int3(0,0,0);
+    	int transientValue;
+
+    	if(xm || xp || zm || zp || ym || yp){
+	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
+	    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1, isNatural:true);
+	    	else
+	    		light1 = currentLightLevel;
+	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
+	    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:true);
+	    	else
+	    		light2 = currentLightLevel;
+	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
+	    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:true);
+	    	else
+	    		light3 = currentLightLevel;
+	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
+	    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:true);
+	    	else
+	    		light4 = currentLightLevel;
+
+	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+	    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    	}
+	    	else{
+	    		light5 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+	    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    	}
+	    	else{
+	    		light6 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+	    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    	}
+	    	else{
+	    		light7 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+	    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    	}
+	    	else{
+	    		light8 = currentLightLevel;
+	    	}  	
+    	}
+    	else{
+    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1, isNatural:true);
+    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:true);
+    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:true);
+    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:true);
+
+    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    	}
+
+		if(CheckTransient(facing, xm, zm, xp, zp)){
+			transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
+			array[0] = new Vector2(transientValue >> 24, 1);
+			array[1] = new Vector2(((transientValue >> 16) & 0x000000FF), 1);
+			array[2] = new Vector2(((transientValue >> 8) & 0x000000FF), 1);
+			array[3] = new Vector2((transientValue & 0x000000FF), 1);
+			return;
+		}
+
+		array[0] = new Vector2(Max(light1, light2, light5, currentLightLevel), 1);
+		array[1] = new Vector2(Max(light2, light3, light6, currentLightLevel), 1);
+		array[2] = new Vector2(Max(light3, light4, light7, currentLightLevel), 1);
+		array[3] = new Vector2(Max(light4, light1, light8, currentLightLevel), 1);
+    }
+
+    private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
+    	int light1, light2, light3, light4, light5, light6, light7, light8;
+    	int3 diagonal = new int3(0,0,0);
+    	int transientValue;
+
+    	if(xm || xp || zm || zp || ym || yp){
+	    	if(CheckBorder(0, xm, xp, zm, zp, ym, yp))
+	    		light1 = GetOtherLight(pos.x, pos.y, pos.z, 0, isNatural:false);
+	    	else
+	    		light1 = currentLightLevel;
+	    	if(CheckBorder(1, xm, xp, zm, zp, ym, yp))
+	    		light2 = GetOtherLight(pos.x, pos.y, pos.z, 1, isNatural:false);
+	    	else
+	    		light2 = currentLightLevel;
+	    	if(CheckBorder(2, xm, xp, zm, zp, ym, yp))
+	    		light3 = GetOtherLight(pos.x, pos.y, pos.z, 2, isNatural:false);
+	    	else
+	    		light3 = currentLightLevel;
+	    	if(CheckBorder(3, xm, xp, zm, zp, ym, yp))
+	    		light4 = GetOtherLight(pos.x, pos.y, pos.z, 3, isNatural:false);
+	    	else
+	    		light4 = currentLightLevel;
+
+	    	if(CheckBorder(0, xm, xp, zm, zp, ym, yp) && CheckBorder(1, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[0] + VoxelData.offsets[1];
+	    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light5 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(1, xm, xp, zm, zp, ym, yp) && CheckBorder(2, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[1] + VoxelData.offsets[2];
+	    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light6 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(2, xm, xp, zm, zp, ym, yp) && CheckBorder(3, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[2] + VoxelData.offsets[3];
+	    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light7 = currentLightLevel;
+	    	}
+
+	    	if(CheckBorder(3, xm, xp, zm, zp, ym, yp) && CheckBorder(0, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[3] + VoxelData.offsets[0];
+	    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+	    	}
+	    	else{
+	    		light8 = currentLightLevel;
+	    	}  	
+    	}
+    	else{
+    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1, isNatural:false);
+    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:false);
+    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:false);
+    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:false);
+
+    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+
+		if(CheckTransient(facing, xm, zm, xp, zp)){
+			transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
+			array[0] = new Vector2(array[0].x, transientValue >> 24);
+			array[1] = new Vector2(array[1].x, ((transientValue >> 16) & 0x000000FF));
+			array[2] = new Vector2(array[2].x, ((transientValue >> 8) & 0x000000FF));
+			array[3] = new Vector2(array[3].x, (transientValue & 0x000000FF));
+			return;
+		}
+
+		array[0] = new Vector2(array[0].x, Max(light1, light2, light5, currentLightLevel));
+		array[1] = new Vector2(array[1].x, Max(light2, light3, light6, currentLightLevel));
+		array[2] = new Vector2(array[2].x, Max(light3, light4, light7, currentLightLevel));
+		array[3] = new Vector2(array[3].x, Max(light4, light1, light8, currentLightLevel));
+    }
+
+    /*
+    Returns the maximum between light levels
+    */
+    private int Max(int a, int b, int c, int d){
+    	int maximum = a;
+
+    	if(maximum - b < 0)
+    		maximum = b;
+    	if(maximum - c < 0)
+    		maximum = c;
+    	if(maximum - d < 0)
+    		maximum = d;
+    	return maximum;
     }
 
 	// Sets UV mapping for a direction
@@ -1758,7 +3085,7 @@ public struct BuildBorderJob : IJob{
 			textureID = blockTiles[blockCode].z;
 
 		// If should use normal atlas
-		if(blockMaterial[blockCode] == 0){
+		if(blockMaterial[blockCode] == ShaderIndex.OPAQUE){
 			float x = textureID%Blocks.atlasSizeX;
 			float y = Mathf.FloorToInt(textureID/Blocks.atlasSizeX);
 	 
@@ -1771,7 +3098,7 @@ public struct BuildBorderJob : IJob{
 			array[3] = new Vector2(x,y);
 		}
 		// If should use transparent atlas
-		else if(blockMaterial[blockCode] == 1){
+		else if(blockMaterial[blockCode] == ShaderIndex.SPECULAR){
 			float x = textureID%Blocks.transparentAtlasSizeX;
 			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeY);
 	 
@@ -1783,6 +3110,72 @@ public struct BuildBorderJob : IJob{
 			array[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
 			array[3] = new Vector2(x,y);
 		}
+		// If should use Leaves atlas
+		else if(blockMaterial[blockCode] == ShaderIndex.LEAVES){
+			array[0] = new Vector2(0,1);
+			array[1] = new Vector2(1,1);
+			array[2] = new Vector2(1,0);
+			array[3] = new Vector2(0,0);
+		}
+	}
+
+	// Gets neighbor light level
+	private int GetNeighborLight(int x, int y, int z, int dir, bool isNatural=true){
+		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
+
+		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
+			return 0;
+		} 
+
+		if(isNatural)
+			return lightdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z] & 0x0F;
+		else
+			return lightdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z] >> 4;
+	}
+
+	// Gets neighbor light level
+	private int GetNeighborLight(int x, int y, int z, int3 dir, bool isNatural=true){
+		int3 coord = new int3(x, y, z) + dir;
+		if(isNatural)
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+		else
+			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
+	}
+
+	// Gets neighbor light level
+	private int GetOtherLight(int x, int y, int z, int dir, bool isNatural=true){
+		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
+
+		if(isNatural)
+			return neighborlight[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z] & 0x0F;
+		else
+			return neighborlight[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z] >> 4;
+	}
+
+	// Gets neighbor light level
+	private int GetOtherLight(int x, int y, int z, bool isNatural=true){
+		if(isNatural)
+			return neighborlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+		else
+			return neighborlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+	}
+
+	// Gets neighbor light level
+	private int GetOtherLight(int x, int y, int z, int3 dir, bool isNatural=true){
+		int3 coord = new int3(x, y, z) + dir;
+
+		if(isNatural)
+			return neighborlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+		else
+			return neighborlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
+	}
+
+	// Gets neighbor light level
+	private int GetOtherLight(int3 coord, bool isNatural=true){
+		if(isNatural)
+			return neighborlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+		else
+			return neighborlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
 	}
 
 	// Gets UV Map for Liquid blocks
@@ -1822,6 +3215,28 @@ public struct BuildBorderJob : IJob{
 		      fv[i] = (LiquidMeshData.verticesOnState[((int)s*8)+ LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
 		    }
 		}
+	}
+
+	public void CalculateNormal(NativeArray<Vector3> normals, int dir){
+		Vector3 normal;
+
+		if(dir == 0)
+			normal = new Vector3(0, 0, 1);
+		else if(dir == 1)
+			normal = new Vector3(1, 0, 0);
+		else if(dir == 2)
+			normal = new Vector3(0, 0, -1);
+		else if(dir == 3)
+			normal = new Vector3(-1, 0, 0);
+		else if(dir == 4)
+			normal = new Vector3(0, 1, 0);
+		else
+			normal = new Vector3(0, -1, 0);
+
+		normals[0] = normal;
+		normals[1] = normal;
+		normals[2] = normal;
+		normals[3] = normal;
 	}
 
 }
