@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.01067701, g: 0.015210514, b: 0.016055867, a: 1}
+  m_IndirectSpecularColor: {r: 0.010684816, g: 0.015220813, b: 0.016066432, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2021,6 +2021,7 @@ MonoBehaviour:
   multi_IPField: {fileID: 1785120497}
   multi_renderField: {fileID: 768086474}
   multi_accountField: {fileID: 970462386}
+  placeholder: {fileID: 141993427}
 --- !u!4 &877167325
 Transform:
   m_ObjectHideFlags: 0

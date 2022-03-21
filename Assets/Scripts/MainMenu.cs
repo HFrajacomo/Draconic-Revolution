@@ -8,6 +8,8 @@ using Random = UnityEngine.Random;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+using static System.IO.Path;
+
 public class MainMenu : MonoBehaviour
 {
 
@@ -28,6 +30,7 @@ public class MainMenu : MonoBehaviour
 	public void Start(){
 		Resources.UnloadUnusedAssets();
 		System.GC.Collect();
+		EnvironmentVariablesCentral.Start();
 		OpenMainMenu();
 	}
 

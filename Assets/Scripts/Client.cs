@@ -49,6 +49,10 @@ public class Client
 	// Windows External Process
 	public Process lanServerProcess;
 
+	// Const Strings
+	private string serverFile = "Server.exe";
+	private string invisLauncher = "invisLaunchHelper.bat";
+
 	
 	public Client(ChunkLoader cl){
 		this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -64,30 +68,24 @@ public class Client
 				this.lanServerProcess = new Process();
 				this.lanServerProcess.StartInfo.Arguments = "-Local";
 
-				// Main PC
-				if(File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe") && File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\invisLaunchHelper.bat"))
-					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe";
-				// Support Notebook
-				else if(File.Exists("C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe"))
-					this.lanServerProcess.StartInfo.FileName = "C:\\Users\\henri\\Desktop\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe";					
-				// Lyxo PC
-				else if(File.Exists("E:\\Pasta\\-Unity-Draconic-Revolution-RPG\\Build\\Server\\Server.exe"))
-					this.lanServerProcess.StartInfo.FileName = "E:\\Pasta\\Draconic-Revolution\\Build\\Server\\Server.exe";
-				// Roh PC
-				else if(File.Exists("D:\\GitHub\\Draconic-Revolution\\Build\\Server\\Server.exe"))
-					this.lanServerProcess.StartInfo.FileName = "D:\\GitHub\\Draconic-Revolution\\Build\\Server\\Server.exe";
-				else{
+				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile) && File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
+					this.lanServerProcess.StartInfo.FileName = EnvironmentVariablesCentral.serverDir + serverFile;
+				else
+					Panic();
+
+				try{
+					this.lanServerProcess.Start();
+				}
+				catch{
 					Panic();
 				}
 
 			// Standalone edition
 			#else
-				if(File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\Server.exe") && File.Exists("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\invisLaunchHelper.bat")){
-					Application.OpenURL("C:\\Users\\Miroba\\Desktop\\Draconic-Revolution\\Build\\Server\\invisLaunchHelper.bat");
-				}
-				else{
+				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile) && File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
+					Application.OpenURL(EnvironmentVariablesCentral.serverDir + invisLauncher);
+				else
 					Panic();
-				}
 			#endif
 
 			this.ip = new IPAddress(new byte[4]{127, 0, 0, 1});
