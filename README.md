@@ -1,7 +1,7 @@
 # Draconic Revolution
 Draconic Revolution is a procedural voxel-based sandbox online RPG currently in development. This game was inspired in my very own Homebrew table RPG System, created in 2016 and played by multiple parties up until today. This game is meant to be a digital version that fully implements all core mechanics and the main campaign of the system. Draconic Revolution was made using the Unity Engine. 
 
-![](RepoImages/Day3.png)
+![](RepoImages/LightUpdate1.png)
 
 ## Development
 Right now, the development of the game is being separated into 4 different Dev Phases. Each of them will be listed down below, as well as their content. We are projecting all the content we intend to add into our game in this list.
@@ -23,12 +23,13 @@ Right now, the development of the game is being separated into 4 different Dev P
  - Complex Water Shader
  - VisualFX Support
 
-![](RepoImages/Night2.png)
+![](RepoImages/LightUpdate8.png)
 
 ### Phase 2 (Currently InDev) [Alpha]
 
  - Dedicated and Local Server Multiplayer
  - Multiplayer Party System
+ - Voxel Lighting Engine
  - Inventory, Items and Crafting
  - Character and Enemy models
  - Character Creation
@@ -41,7 +42,7 @@ Right now, the development of the game is being separated into 4 different Dev P
  - Multi-Tier Core Chunk Generation
  - Audio Engine
 
-![](RepoImages/Day2.png)
+![](RepoImages/LightUpdate2.png)
 
 ### Phase 3 [Beta]
 
@@ -55,7 +56,7 @@ Right now, the development of the game is being separated into 4 different Dev P
  - Multiple Races and Races Regions
  - Multiple Game Dimensions
 
-![](RepoImages/Day1.png)
+![](RepoImages/LightUpdate5.png)
 
 ### Phase 4 [Release]
 
@@ -66,7 +67,7 @@ Right now, the development of the game is being separated into 4 different Dev P
  - Character Development
  - Custom Dungeons and Cities 
  
-![](RepoImages/Night1.png)
+![](RepoImages/LightUpdate7.png)
 
 # In-depth Technical Analysis
 
@@ -86,4 +87,4 @@ I'm thankful enough if you have read up until here. If you wanna contribute to t
 
 Feel free to download the latest release at [this link](https://github.com/HFrajacomo/-Unity-Draconic-Revolution-RPG/releases)
 
-![](RepoImages/Day5.png)
+![](RepoImages/LightUpdate6.png)
