@@ -68,7 +68,10 @@ public class Client
 				this.lanServerProcess = new Process();
 				this.lanServerProcess.StartInfo.Arguments = "-Local";
 
-				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile) && File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
+				if(!File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
+					EnvironmentVariablesCentral.WriteInvisLaunchScript();
+
+				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
 					this.lanServerProcess.StartInfo.FileName = EnvironmentVariablesCentral.serverDir + serverFile;
 				else
 					Panic();
@@ -82,7 +85,10 @@ public class Client
 
 			// Standalone edition
 			#else
-				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile) && File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
+				if(!File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
+					EnvironmentVariablesCentral.WriteInvisLaunchScript();
+
+				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
 					Application.OpenURL(EnvironmentVariablesCentral.serverDir + invisLauncher);
 				else
 					Panic();
