@@ -6,13 +6,15 @@ using UnityEngine;
 public static class EnvironmentVariablesCentral
 {
     public static string clientDir;
+    public static string clientExeDir;
     public static string gameDir;
     public static string serverDir;
     public static string compiledServerDir;
     private static string invisScript = "start /min powershell \"start-process $env:APPDATA\\DraconicRevolution\\Server\\Server.exe -Arg -Local -WindowStyle hidden\"";
 
     public static void Start(){
-        clientDir = EnvironmentVariablesCentral.GetClientDir();
+        clientDir = GetClientDir();
+        clientExeDir = GetClientExeDir();
         compiledServerDir = clientDir + "Build\\Server";
         gameDir = GetAppdataDir() + "\\DraconicRevolution\\";
         serverDir = gameDir + "Server\\";
@@ -61,6 +63,20 @@ public static class EnvironmentVariablesCentral
             if(splittedDir[i] == "Draconic-Revolution")
                 break;
 
+            i++;
+        }
+
+        return accumulatedDir;
+    }
+
+    private static string GetClientExeDir(){
+        string workDir = Application.dataPath;
+        string[] splittedDir = workDir.Split("/");
+        string accumulatedDir = "";
+        int i = 0;
+
+        while(i < splittedDir.Length-1){
+            accumulatedDir += splittedDir[i] + "\\";
             i++;
         }
 
