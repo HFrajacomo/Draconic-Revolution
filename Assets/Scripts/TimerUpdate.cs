@@ -10,24 +10,28 @@ public class TimerUpdate : MonoBehaviour
 	public Text str;
 	public Text biome;
     public Transform character;
-	public ChunkLoader chunkLoader;
+	public ChunkLoader cl;
     private StringBuilder sb = new StringBuilder();
+
+    private CastCoord currentPos;
 
     // Update is called once per frame
     void Update()
     {
+        if(!cl.PLAYERSPAWNED)
+            return;
+
+        this.currentPos = new CastCoord(character.position.x, character.position.y, character.position.z);
+
     	str.text = timer.ToString();
-    	if(chunkLoader.chunks.ContainsKey(chunkLoader.currentChunk)){
-            // Biome, ChunkPos and XYZ 
+
+    	if(cl.chunks.ContainsKey(this.currentPos.GetChunkPos())){
+            // Biome, ChunkPos
             /*
-            sb.Append(Mathf.RoundToInt(character.position.x));
-            sb.Append(", ");
-            sb.Append(Mathf.RoundToInt(character.position.z));
-            sb.Append("    (");
-            sb.Append(Mathf.FloorToInt(character.position.x/Chunk.chunkWidth));
-            sb.Append(", ");
-            sb.Append(Mathf.FloorToInt(character.position.z/Chunk.chunkWidth));
-            sb.Append(")");
+            sb.Append(cl.chunks[this.currentPos.GetChunkPos()].biomeName);
+            sb.Append(" | ");
+            sb.Append(this.currentPos.GetChunkPos().ToString());
+            sb.Append("  ");
             */
             
             // XYZ only

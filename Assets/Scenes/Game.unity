@@ -3852,7 +3852,7 @@ MonoBehaviour:
   str: {fileID: 756285225}
   biome: {fileID: 871458469}
   character: {fileID: 59614821}
-  chunkLoader: {fileID: 1192772367}
+  cl: {fileID: 1192772367}
 --- !u!1 &760596209
 GameObject:
   m_ObjectHideFlags: 0

@@ -286,6 +286,7 @@ public class ChunkLoader : MonoBehaviour
 
                 this.chunks[cp] = new Chunk(cp, this.rend, this.blockBook, this);
                 this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[21]);
+                Debug.Log(this.chunks[cp].biomeName);
 
                 Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:21+headerSize);
                 Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
