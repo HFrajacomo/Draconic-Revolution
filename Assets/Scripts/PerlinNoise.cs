@@ -38,6 +38,7 @@ public static class Perlin
     */
     private static int FindSplineHeight(float noiseValue){
         int index = World.baseNoiseSplineX.Length-2;
+        
         for(int i=1; i < World.baseNoiseSplineX.Length; i++){
             if(World.baseNoiseSplineX[i] >= noiseValue){
                 index = i-1;
@@ -47,7 +48,10 @@ public static class Perlin
 
         float inverseLerp = (noiseValue - World.baseNoiseSplineX[index])/(World.baseNoiseSplineX[index+1] - World.baseNoiseSplineX[index]);
 
-        return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], inverseLerp));
+        if(World.baseNoiseSplineY[index] > World.baseNoiseSplineY[index+1])
+            return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+        else
+            return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
     }
 
     #region Noise functions

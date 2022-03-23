@@ -252,83 +252,16 @@ public struct GenerateChunkJob: IJob{
     public NativeArray<ushort> blockData;
 
     public void Execute(){
-        int waterLevel = 25;
-        GenerateAllPerlinSplinedOctaved(waterLevel);
+        int waterLevel = 80;
+        GeneratePerlin(waterLevel);
     }
 
-
-    public void GenerateFlat(int height){
-        for(int x=0; x < Chunk.chunkWidth; x++){
-            for(int y=0; y < Chunk.chunkDepth; y++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    if(y >= height)
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                    else
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;                        
-                }
-            }
-        }
-    }
-
-    public void GenerateSine(int height){
-        int baseHeight = height;
-
-        for(int x=0; x < Chunk.chunkWidth; x++){
-            height = baseHeight + Mathf.FloorToInt(Mathf.Sin((chunkX*Chunk.chunkWidth+x)*0.2f)*10);
-
-            for(int y=0; y < Chunk.chunkDepth; y++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    if(y >= height)
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                    else
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;                        
-                }
-            }
-        }
-    }
-
-    public void GenerateDoubleSine(int height){
-        int xOffset, zOffset;
-
-        for(int x=0; x < Chunk.chunkWidth; x++){
-            xOffset = Mathf.FloorToInt(Mathf.Sin((chunkX*Chunk.chunkWidth+x)*0.1f)*10);
-
-            for(int y=0; y < Chunk.chunkDepth; y++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    zOffset = Mathf.FloorToInt(Mathf.Sin((chunkZ*Chunk.chunkWidth+z)*0.1f)*10);
-
-                    if(y >= height + xOffset + zOffset)
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                    else
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;                        
-                }
-            }
-        }
-    }
-
-    public void GenerateAllPerlin(int height){
-        int noiseModifier;
-
-        for(int x=0; x < Chunk.chunkWidth; x++){
-            for(int z=0; z < Chunk.chunkWidth; z++){
-                noiseModifier = Mathf.FloorToInt(Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.01f, (chunkZ*Chunk.chunkWidth+z)*0.01f) * 20);
-
-                for(int y=0; y < Chunk.chunkDepth; y++){
-                    if(y >= height + noiseModifier)
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                    else
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;                        
-                }
-            }
-        }        
-    }
-
-    public void GenerateAllPerlinSplinedOctaved(int waterLevel){
+    public void GeneratePerlin(int waterLevel){
         int height;
 
         for(int x=0; x < Chunk.chunkWidth; x++){
             for(int z=0; z < Chunk.chunkWidth; z++){
-                height = FindSplineHeight(Mathf.Clamp(Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.01f, (chunkZ*Chunk.chunkWidth+z)*0.01f)+Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.037f, (chunkZ*Chunk.chunkWidth+z)*0.037f), -1, 1));
+                height = FindSplineHeight((Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.005f, (chunkZ*Chunk.chunkWidth+z)*0.005f)+Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.017f, (chunkZ*Chunk.chunkWidth+z)*0.017f))/2f);
 
                 for(int y=0; y < Chunk.chunkDepth; y++){
                     if(y >= height){
@@ -355,6 +288,9 @@ public struct GenerateChunkJob: IJob{
 
         float inverseLerp = (noiseValue - World.baseNoiseSplineX[index])/(World.baseNoiseSplineX[index+1] - World.baseNoiseSplineX[index]) ;
 
-        return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], inverseLerp));
+        if(World.baseNoiseSplineY[index] > World.baseNoiseSplineY[index+1])
+            return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+        else
+            return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
     }
 }

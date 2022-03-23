@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,8 +16,43 @@ public static class World
     public static ulong accountID;
 
     public static readonly int[] baseNoise = new int[257];
-    public static readonly float[] baseNoiseSplineX = new float[]{-1, -0.7f, -0.3f, 0, 0.4f, 0.65f, 1};
-    public static readonly int[] baseNoiseSplineY = new int[]{    10, 20,    35,   50,60,  75,   90};
+    public static readonly float[] baseNoiseSplineX = new float[]{-1, -0.7f, -0.3f, 0, 0.4f, 0.65f, 0.8f, 1};
+    public static readonly int[] baseNoiseSplineY = new int[]{    30, 50,    80,   100,120,  150,    210, 250};
+
+    /*
+    TESTING PURPOSES ONLY
+    */
+    public static void DrawSplines(){
+        Texture2D image = new Texture2D(512, 512);
+        int index = World.baseNoiseSplineX.Length-2;
+        float analogX;
+        float inverseLerp;
+        int y;
+
+        for(int x = 0; x < 512; x++){
+            analogX = Mathf.Lerp(-1, 1, x/512f);
+
+            for(int i=1; i < baseNoiseSplineX.Length; i++){
+                if(World.baseNoiseSplineX[i] >= analogX){
+                    index = i-1;
+                    break;
+                }
+            }
+
+            inverseLerp = (analogX - World.baseNoiseSplineX[index])/(World.baseNoiseSplineX[index+1] - World.baseNoiseSplineX[index]);
+            if(World.baseNoiseSplineY[index] > World.baseNoiseSplineY[index+1])
+                y = Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+            else
+                y = Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
+
+
+            image.SetPixel(x, y, Color.red);
+        }
+
+        image.Apply();
+
+        File.WriteAllBytes("spline.png", ImageConversion.EncodeToPNG(image));        
+    }
 
     // Sets world name
     public static void SetWorldName(string name){
@@ -86,8 +122,4 @@ public static class World
         baseNoise[256] = baseNoise[0];
     }
 
-    // Apply Spline point interpolation to BaseNoiseMap
-    private static void BaseMapSplineInterpolation(){
-
-    }
 }
