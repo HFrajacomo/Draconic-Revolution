@@ -179,10 +179,11 @@ public class ChunkLoader_Server : MonoBehaviour
                         chunks.Add(toLoad[0], new Chunk(toLoad[0], server:true));
                         vfx.NewChunk(toLoad[0], isServer:true);
                         regionHandler.LoadChunk(chunks[toLoad[0]]);
+                        this.worldGen.ClearCaches();
                         this.worldGen.SetVoxdata(chunks[toLoad[0]].data.GetData());
                         this.worldGen.SetCacheHP(chunks[toLoad[0]].metadata.GetHPData());
                         this.worldGen.SetCacheState(chunks[toLoad[0]].metadata.GetStateData());
-                        chunks[toLoad[0]].BuildOnVoxelData(this.worldGen.AssignBiome(toLoad[0], pregen:true));
+                        chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata()));
                         chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
                         chunks[toLoad[0]].needsGeneration = 0;
                         regionHandler.SaveChunk(chunks[toLoad[0]]);
@@ -199,7 +200,10 @@ public class ChunkLoader_Server : MonoBehaviour
                 else{
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], server:true));
                     vfx.NewChunk(toLoad[0], isServer:true);
-                    chunks[toLoad[0]].BuildOnVoxelData(this.worldGen.AssignBiome(toLoad[0]));
+
+                    this.worldGen.ClearCaches();
+                    this.worldGen.GenerateChunk(toLoad[0]);
+                    chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata()));
                     chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
                     chunks[toLoad[0]].needsGeneration = 0;
                     regionHandler.SaveChunk(chunks[toLoad[0]]);

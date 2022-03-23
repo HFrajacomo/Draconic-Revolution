@@ -14,7 +14,7 @@ public static class World
     public static string IP;
     public static ulong accountID;
 
-    public static readonly int[] baseNoise = new int[256];
+    public static readonly int[] baseNoise = new int[257];
 
     // Sets world name
     public static void SetWorldName(string name){
@@ -81,5 +81,6 @@ public static class World
         for(int i=0; i < 256; i++){
             baseNoise[i] = rng.Next(0, 256);
         }
+        baseNoise[256] = baseNoise[0];
     }
 }

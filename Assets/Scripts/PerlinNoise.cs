@@ -28,10 +28,6 @@ public static class Perlin
         File.WriteAllBytes("noise.png", ImageConversion.EncodeToPNG(noiseImage));
     }
 
-	public static float NormalizeOutput(float output){
-		return (float)(0.5 * output + 0.5);
-	}
-
     #region Noise functions
 
     public static float Noise(float x)
@@ -39,7 +35,7 @@ public static class Perlin
         int X = Mathf.FloorToInt(x) & 0xff;
         x -= Mathf.Floor(x);
         float u = Fade(x);
-        return NormalizeOutput(Lerp(u, Grad(perm[X], x), Grad(perm[X+1], x-1)) * 2);
+        return Lerp(u, Grad(perm[X], x), Grad(perm[X+1], x-1)) * 2;
     }
 
     public static float Noise(float x, float y)
@@ -52,8 +48,8 @@ public static class Perlin
         float v = Fade(y);
         int A = (perm[X  ] + Y) & 0xff;
         int B = (perm[X+1] + Y) & 0xff;
-        return NormalizeOutput(Lerp(v, Lerp(u, Grad(perm[A  ], x, y  ), Grad(perm[B  ], x-1, y  )),
-                       Lerp(u, Grad(perm[A+1], x, y-1), Grad(perm[B+1], x-1, y-1))));
+        return Lerp(v, Lerp(u, Grad(perm[A  ], x, y  ), Grad(perm[B  ], x-1, y  )),
+                       Lerp(u, Grad(perm[A+1], x, y-1), Grad(perm[B+1], x-1, y-1)));
     }
 
     public static float Noise(Vector2 coord)
@@ -102,10 +98,10 @@ public static class Perlin
         int BA = (perm[B  ] + Z) & 0xff;
         int AB = (perm[A+1] + Z) & 0xff;
         int BB = (perm[B+1] + Z) & 0xff;
-        return NormalizeOutput(Lerp(w, Lerp(v, Lerp(u, Grad(perm[AA  ], x, y  , z  ), Grad(perm[BA  ], x-1, y  , z  )),
+        return Lerp(w, Lerp(v, Lerp(u, Grad(perm[AA  ], x, y  , z  ), Grad(perm[BA  ], x-1, y  , z  )),
                                Lerp(u, Grad(perm[AB  ], x, y-1, z  ), Grad(perm[BB  ], x-1, y-1, z  ))),
                        Lerp(v, Lerp(u, Grad(perm[AA+1], x, y  , z-1), Grad(perm[BA+1], x-1, y  , z-1)),
-                               Lerp(u, Grad(perm[AB+1], x, y-1, z-1), Grad(perm[BB+1], x-1, y-1, z-1)))));
+                               Lerp(u, Grad(perm[AB+1], x, y-1, z-1), Grad(perm[BB+1], x-1, y-1, z-1))));
     }
 
     public static float Noise(Vector3 coord)
