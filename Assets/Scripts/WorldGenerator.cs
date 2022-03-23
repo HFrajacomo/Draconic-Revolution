@@ -65,7 +65,6 @@ public class WorldGenerator
     	return this.cacheMetadataState;
     }
 
-
     // Returns the biome that should be assigned to a given chunk
     public VoxelData AssignBiome(ChunkPos pos, bool pregen=false){
         byte biome = biomeHandler.Assign(pos);

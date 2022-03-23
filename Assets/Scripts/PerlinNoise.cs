@@ -7,9 +7,26 @@
 // http://mrl.nyu.edu/~perlin/noise/
 //
 using UnityEngine;
+using System.IO;
 
 public static class Perlin
 {
+    public static void FillImage(){
+        Texture2D noiseImage = new Texture2D(512, 512);
+        float noise;
+        Color c;
+        for(int x = 0; x < 512; x++){
+            for(int z = 0; z < 512; z++){
+                noise = Noise(x/192f, z/192f);
+                c = new Color(noise, noise, noise);
+                noiseImage.SetPixel(x, z, c);
+            }
+        }
+
+        noiseImage.Apply();
+
+        File.WriteAllBytes("noise.png", ImageConversion.EncodeToPNG(noiseImage));
+    }
 
 	public static float NormalizeOutput(float output){
 		return (float)(0.5 * output + 0.5);
@@ -178,6 +195,7 @@ public static class Perlin
         return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
     }
 
+    /*
     static readonly int[] perm = {
         151,160,137,91,90,15,
         131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
@@ -194,6 +212,14 @@ public static class Perlin
         138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180,
         151
     };
+    */
+
+    static readonly int[] perm;
+    
+    static Perlin(){
+        perm = World.baseNoise;
+    }
 
     #endregion
 }
+
