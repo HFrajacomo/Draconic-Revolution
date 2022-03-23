@@ -15,6 +15,8 @@ public static class World
     public static ulong accountID;
 
     public static readonly int[] baseNoise = new int[257];
+    public static readonly float[] baseNoiseSplineX = new float[]{-1, -0.7f, -0.3f, 0, 0.4f, 0.65f, 1};
+    public static readonly int[] baseNoiseSplineY = new int[]{    10, 20,    35,   50,60,  75,   90};
 
     // Sets world name
     public static void SetWorldName(string name){
@@ -82,5 +84,10 @@ public static class World
             baseNoise[i] = rng.Next(0, 256);
         }
         baseNoise[256] = baseNoise[0];
+    }
+
+    // Apply Spline point interpolation to BaseNoiseMap
+    private static void BaseMapSplineInterpolation(){
+
     }
 }

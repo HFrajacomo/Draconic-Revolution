@@ -17,8 +17,9 @@ public static class Perlin
         Color c;
         for(int x = 0; x < 512; x++){
             for(int z = 0; z < 512; z++){
-                noise = Noise(x/192f, z/192f);
-                c = new Color(noise, noise, noise);
+                noise = Noise(x*0.01f, z*0.01f);
+                noise = FindSplineHeight(noise);
+                c = new Color(noise/256f, noise/256f, noise/256f);
                 noiseImage.SetPixel(x, z, c);
             }
         }
@@ -26,6 +27,27 @@ public static class Perlin
         noiseImage.Apply();
 
         File.WriteAllBytes("noise.png", ImageConversion.EncodeToPNG(noiseImage));
+    }
+
+    private static float Normalize(float val){
+        return (val+1f)/2f;
+    }
+
+    /*
+    For Debbuging purposes
+    */
+    private static int FindSplineHeight(float noiseValue){
+        int index = World.baseNoiseSplineX.Length-2;
+        for(int i=1; i < World.baseNoiseSplineX.Length; i++){
+            if(World.baseNoiseSplineX[i] >= noiseValue){
+                index = i-1;
+                break;
+            }
+        }
+
+        float inverseLerp = (noiseValue - World.baseNoiseSplineX[index])/(World.baseNoiseSplineX[index+1] - World.baseNoiseSplineX[index]);
+
+        return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], inverseLerp));
     }
 
     #region Noise functions

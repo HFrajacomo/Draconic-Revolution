@@ -252,7 +252,8 @@ public struct GenerateChunkJob: IJob{
     public NativeArray<ushort> blockData;
 
     public void Execute(){
-        GenerateAllPerlin(40);
+        int waterLevel = 25;
+        GenerateAllPerlinSplinedOctaved(waterLevel);
     }
 
 
@@ -320,5 +321,40 @@ public struct GenerateChunkJob: IJob{
                 }
             }
         }        
+    }
+
+    public void GenerateAllPerlinSplinedOctaved(int waterLevel){
+        int height;
+
+        for(int x=0; x < Chunk.chunkWidth; x++){
+            for(int z=0; z < Chunk.chunkWidth; z++){
+                height = FindSplineHeight(Mathf.Clamp(Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.01f, (chunkZ*Chunk.chunkWidth+z)*0.01f)+Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.037f, (chunkZ*Chunk.chunkWidth+z)*0.037f), -1, 1));
+
+                for(int y=0; y < Chunk.chunkDepth; y++){
+                    if(y >= height){
+                        if(y <= waterLevel)
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 6;
+                        else
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                    }
+                    else
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;                        
+                }
+            }
+        }        
+    }
+
+    private int FindSplineHeight(float noiseValue){
+        int  index = World.baseNoiseSplineX.Length-2;
+        for(int i=1; i < World.baseNoiseSplineX.Length; i++){
+            if(World.baseNoiseSplineX[i] >= noiseValue){
+                index = i-1;
+                break;
+            }
+        }
+
+        float inverseLerp = (noiseValue - World.baseNoiseSplineX[index])/(World.baseNoiseSplineX[index+1] - World.baseNoiseSplineX[index]) ;
+
+        return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], inverseLerp));
     }
 }

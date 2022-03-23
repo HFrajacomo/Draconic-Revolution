@@ -7,28 +7,13 @@ using Unity.Collections;
 public class TESTONLY : MonoBehaviour
 {   
 
+    public void Start(){
+        World.SetWorldSeed(845);
+        Perlin.FillImage();
 
-    private void PrintAll(ushort[] a){
-        string output = "";
-        foreach(ushort u in a)
-            output += u.ToString() + " ";
-        print(output);
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #endif
     }
 
-    private void PrintAll(NativeArray<ushort> a){
-        string output = "";
-        foreach(ushort u in a)
-            output += u.ToString() + " ";
-        print(output);
-    }
-
-    private void PopulateArray(ushort[] a){
-        for(ushort i=0; i < a.Length; i++)
-            a[i] = i;
-    }
-
-    private void PopulateArray(NativeArray<ushort> a){
-        for(ushort i=0; i < a.Length; i++)
-            a[i] = i;
-    }
 }
