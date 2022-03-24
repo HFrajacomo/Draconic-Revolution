@@ -694,21 +694,6 @@ public class ChunkLoader : MonoBehaviour
 	    currentChunk = newChunk;
     }
 
-    // Calculates the biomeSeed of BiomeHandler
-    private float BiomeSeedFunction(int t){
-        return 0.04f*(0.03f*Mathf.Sin(t));
-    }
-
-    // Calculates general offset hash
-    private float OffsetHashFunction(int t){
-        return (t*0.71928590287457694671f)%1;
-    }
-
-    // Calculates the generationSeed used in World Generation
-    private float GenerationSeedFunction(int t){
-        return Perlin.Noise(t/1000000f)+0.5f;
-    }
-
     // Returns block code of a castcoord
     public ushort GetBlock(CastCoord c){
         if(this.chunks.ContainsKey(c.GetChunkPos())){

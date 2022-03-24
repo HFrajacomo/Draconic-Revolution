@@ -113,6 +113,7 @@ public class BiomeHandler
 	Play arround with the seed value in each of the 4 biome features to change the behaviour
 		of the biome distribution.
 	*/
+		/*
 	public byte Assign(ChunkPos pos){
 		float currentAltitude = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.ax+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.az+((dispersionSeed*BiomeHandlerData.sx)%1000));
 		float currentHumidity = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.bx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.bz+((dispersionSeed*BiomeHandlerData.sy)%1000));
@@ -150,6 +151,7 @@ public class BiomeHandler
 	public static float Distance(float4 first, float4 second){
 		return Mathf.Sqrt(Mathf.Pow(first.x-second.x, 2) + Mathf.Pow(first.y-second.y, 2) + Mathf.Pow(first.z-second.z, 2) + Mathf.Pow(first.w-second.w, 2));		
 	}
+	*/
 
 }
 

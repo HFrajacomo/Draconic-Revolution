@@ -121,5 +121,8 @@ public static class World
         }
         baseNoise[256] = baseNoise[0];
     }
+}
 
+public enum NoiseMap : byte{
+    BASE
 }

@@ -74,6 +74,7 @@ public class WorldGenerator
     Depth Values represent how deep below heightmap things will go.
     Range represents if structure always spawn at given Depth, or if it spans below as well
     */
+    /*
     private void GenerateStructures(ChunkPos pos, float xhash, float zhash, byte biome, int structureCode, int depth, int heightlimit=0, bool range=false){
         // Gets index of amount and percentage
         int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureCode);
@@ -217,6 +218,7 @@ public class WorldGenerator
         
         return heightmap[x*(Chunk.chunkWidth+1)+z]-1;
     }
+    */
 
 
     // Generates a Chunk
@@ -261,7 +263,7 @@ public struct GenerateChunkJob: IJob{
 
         for(int x=0; x < Chunk.chunkWidth; x++){
             for(int z=0; z < Chunk.chunkWidth; z++){
-                height = FindSplineHeight((Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.005f, (chunkZ*Chunk.chunkWidth+z)*0.005f)+Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.017f, (chunkZ*Chunk.chunkWidth+z)*0.017f))/2f);
+                height = FindSplineHeight((Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.005f, (chunkZ*Chunk.chunkWidth+z)*0.005f, NoiseMap.BASE)+Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.017f, (chunkZ*Chunk.chunkWidth+z)*0.017f, NoiseMap.BASE))/2f, NoiseMap.BASE);
 
                 for(int y=0; y < Chunk.chunkDepth; y++){
                     if(y >= height){
@@ -277,20 +279,38 @@ public struct GenerateChunkJob: IJob{
         }        
     }
 
-    private int FindSplineHeight(float noiseValue){
+    private int FindSplineHeight(float noiseValue, NoiseMap type){
         int  index = World.baseNoiseSplineX.Length-2;
-        for(int i=1; i < World.baseNoiseSplineX.Length; i++){
-            if(World.baseNoiseSplineX[i] >= noiseValue){
-                index = i-1;
-                break;
+
+        if(type == NoiseMap.BASE){
+            for(int i=1; i < World.baseNoiseSplineX.Length; i++){
+                if(World.baseNoiseSplineX[i] >= noiseValue){
+                    index = i-1;
+                    break;
+                }
             }
+
+            float inverseLerp = (noiseValue - World.baseNoiseSplineX[index])/(World.baseNoiseSplineX[index+1] - World.baseNoiseSplineX[index]) ;
+
+            if(World.baseNoiseSplineY[index] > World.baseNoiseSplineY[index+1])
+                return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+            else
+                return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
         }
+        else{
+            for(int i=1; i < World.baseNoiseSplineX.Length; i++){
+                if(World.baseNoiseSplineX[i] >= noiseValue){
+                    index = i-1;
+                    break;
+                }
+            }
 
-        float inverseLerp = (noiseValue - World.baseNoiseSplineX[index])/(World.baseNoiseSplineX[index+1] - World.baseNoiseSplineX[index]) ;
+            float inverseLerp = (noiseValue - World.baseNoiseSplineX[index])/(World.baseNoiseSplineX[index+1] - World.baseNoiseSplineX[index]) ;
 
-        if(World.baseNoiseSplineY[index] > World.baseNoiseSplineY[index+1])
-            return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
-        else
-            return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
+            if(World.baseNoiseSplineY[index] > World.baseNoiseSplineY[index+1])
+                return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+            else
+                return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));            
+        }
     }
 }

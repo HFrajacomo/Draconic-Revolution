@@ -77,8 +77,8 @@ public class ChunkLoader_Server : MonoBehaviour
         this.regionHandler = new RegionFileHandler(this);
         worldSeed = regionHandler.GetRealSeed();
         World.SetWorldSeed(worldSeed);
-        biomeHandler = new BiomeHandler(BiomeSeedFunction(worldSeed));
-        this.worldGen = new WorldGenerator(worldSeed, BiomeSeedFunction(worldSeed), OffsetHashFunction(worldSeed), GenerationSeedFunction(worldSeed), biomeHandler, structHandler, this);
+        biomeHandler = new BiomeHandler(worldSeed);
+        this.worldGen = new WorldGenerator(worldSeed, worldSeed, worldSeed, worldSeed, biomeHandler, structHandler, this);
     
         // Sends the first player it's information
         PlayerData pdat = this.regionHandler.LoadPlayer(this.server.firstConnectedID); // CHANGE TO OTHER ACCOUNTID
@@ -253,21 +253,6 @@ public class ChunkLoader_Server : MonoBehaviour
             message.SendChunk(this.chunks[pos]);
             this.server.Send(message.GetMessage(), message.size, id);
         }
-    }
-
-    // Calculates the biomeSeed of BiomeHandler
-    private float BiomeSeedFunction(int t){
-        return 0.04f*(0.03f*Mathf.Sin(t));
-    }
-
-    // Calculates general offset hash
-    private float OffsetHashFunction(int t){
-        return (t*0.71928590287457694671f)%1;
-    }
-
-    // Calculates the generationSeed used in World Generation
-    private float GenerationSeedFunction(int t){
-        return Perlin.Noise(t/1000000f)+0.5f;
     }
 
     // Returns block code of a castcoord
