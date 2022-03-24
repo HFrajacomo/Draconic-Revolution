@@ -15,16 +15,22 @@ public static class World
     public static string IP;
     public static ulong accountID;
 
+    // Base Noise
     public static readonly int[] baseNoise = new int[257];
-    public static readonly float[] baseNoiseSplineX = new float[]{-1, -0.7f, -0.3f, 0, 0.4f, 0.65f, 0.8f, 1};
-    public static readonly int[] baseNoiseSplineY = new int[]{    30, 50,    80,   100,120,  150,    210, 250};
+    public static readonly float[] baseNoiseSplineX = new float[]{-1, -0.7f, -0.67f -0.3f, 0, 0.4f, 0.65f, 0.7f, 0.8f, 1};
+    public static readonly int[] baseNoiseSplineY = new int[]{30, 40, 80, 90, 120, 170, 200, 220, 240, 250};
+
+    // Erosion Noise
+    public static readonly int[] erosionNoise = new int[257];
+    public static readonly float[] erosionNoiseSplineX = new float[]{-1, -0.6f, -0.5f, -0.2f, 0.5f, 1};
+    public static readonly float[] erosionNoiseSplineY = new float[]{0.2f, 0.67f, 0.7f,  0.8f, 1f, 1f};
 
     /*
     TESTING PURPOSES ONLY
     */
     public static void DrawSplines(){
         Texture2D image = new Texture2D(512, 512);
-        int index = World.baseNoiseSplineX.Length-2;
+        int index = World.erosionNoiseSplineX.Length-2;
         float analogX;
         float inverseLerp;
         int y;
@@ -32,18 +38,18 @@ public static class World
         for(int x = 0; x < 512; x++){
             analogX = Mathf.Lerp(-1, 1, x/512f);
 
-            for(int i=1; i < baseNoiseSplineX.Length; i++){
-                if(World.baseNoiseSplineX[i] >= analogX){
+            for(int i=1; i < erosionNoiseSplineX.Length; i++){
+                if(World.erosionNoiseSplineX[i] >= analogX){
                     index = i-1;
                     break;
                 }
             }
 
-            inverseLerp = (analogX - World.baseNoiseSplineX[index])/(World.baseNoiseSplineX[index+1] - World.baseNoiseSplineX[index]);
-            if(World.baseNoiseSplineY[index] > World.baseNoiseSplineY[index+1])
-                y = Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+            inverseLerp = (analogX - World.erosionNoiseSplineX[index])/(World.erosionNoiseSplineX[index+1] - World.erosionNoiseSplineX[index]);
+            if(World.erosionNoiseSplineY[index] > World.erosionNoiseSplineY[index+1])
+                y = Mathf.CeilToInt(Mathf.Lerp(World.erosionNoiseSplineY[index]*256, World.erosionNoiseSplineY[index+1]*256, Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
             else
-                y = Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
+                y = Mathf.CeilToInt(Mathf.Lerp(World.erosionNoiseSplineY[index]*256, World.erosionNoiseSplineY[index+1]*256, Mathf.Pow(inverseLerp, 0.8f)));
 
 
             image.SetPixel(x, y, Color.red);
@@ -65,6 +71,7 @@ public static class World
         World.worldSeed = Mathf.Abs(World.worldSeed);
 
         BuildBaseNoiseMap(World.worldSeed);
+        BuildErosionNoiseMap(World.worldSeed);
     }
 
     // Sets seed as integer
@@ -121,8 +128,19 @@ public static class World
         }
         baseNoise[256] = baseNoise[0];
     }
+
+    // Constructs erosionNoise map
+    private static void BuildErosionNoiseMap(int seed){
+        Random rng = new Random((seed << 2) + 3);
+
+        for(int i=0; i < 256; i++){
+            erosionNoise[i] = rng.Next(0, 256);
+        }
+        erosionNoise[256] = erosionNoise[0];        
+    }
 }
 
 public enum NoiseMap : byte{
-    BASE
+    BASE,
+    EROSION
 }

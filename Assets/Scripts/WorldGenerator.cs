@@ -259,14 +259,16 @@ public struct GenerateChunkJob: IJob{
     }
 
     public void GeneratePerlin(int waterLevel){
-        int height;
+        float height;
+        float erosionMultiplier;
 
         for(int x=0; x < Chunk.chunkWidth; x++){
             for(int z=0; z < Chunk.chunkWidth; z++){
-                height = FindSplineHeight((Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.005f, (chunkZ*Chunk.chunkWidth+z)*0.005f, NoiseMap.BASE)+Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.017f, (chunkZ*Chunk.chunkWidth+z)*0.017f, NoiseMap.BASE))/2f, NoiseMap.BASE);
+                height = FindSplineHeight((Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.0023f, (chunkZ*Chunk.chunkWidth+z)*0.0023f, NoiseMap.BASE)+Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.017f, (chunkZ*Chunk.chunkWidth+z)*0.017f, NoiseMap.BASE))/2f, NoiseMap.BASE);
+                erosionMultiplier = FindSplineHeight((Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.001f, (chunkZ*Chunk.chunkWidth+z)*0.001f, NoiseMap.EROSION) + Perlin.Noise((chunkX*Chunk.chunkWidth+x)*0.007f, (chunkZ*Chunk.chunkWidth+z)*0.007f, NoiseMap.EROSION))/2f, NoiseMap.EROSION);
 
                 for(int y=0; y < Chunk.chunkDepth; y++){
-                    if(y >= height){
+                    if(y >= height*erosionMultiplier){
                         if(y <= waterLevel)
                             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 6;
                         else
@@ -279,7 +281,7 @@ public struct GenerateChunkJob: IJob{
         }        
     }
 
-    private int FindSplineHeight(float noiseValue, NoiseMap type){
+    private float FindSplineHeight(float noiseValue, NoiseMap type){
         int  index = World.baseNoiseSplineX.Length-2;
 
         if(type == NoiseMap.BASE){
@@ -297,9 +299,24 @@ public struct GenerateChunkJob: IJob{
             else
                 return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
         }
+        else if(type == NoiseMap.EROSION){
+            for(int i=1; i < World.erosionNoiseSplineX.Length; i++){
+                if(World.erosionNoiseSplineX[i] >= noiseValue){
+                    index = i-1;
+                    break;
+                }
+            }
+
+            float inverseLerp = (noiseValue - World.erosionNoiseSplineX[index])/(World.erosionNoiseSplineX[index+1] - World.erosionNoiseSplineX[index]) ;
+
+            if(World.erosionNoiseSplineY[index] > World.erosionNoiseSplineY[index+1])
+                return Mathf.Lerp(World.erosionNoiseSplineY[index], World.erosionNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+            else
+                return Mathf.Lerp(World.erosionNoiseSplineY[index], World.erosionNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
+        }
         else{
-            for(int i=1; i < World.baseNoiseSplineX.Length; i++){
-                if(World.baseNoiseSplineX[i] >= noiseValue){
+            for(int i=1; i < World.erosionNoiseSplineX.Length; i++){
+                if(World.erosionNoiseSplineX[i] >= noiseValue){
                     index = i-1;
                     break;
                 }

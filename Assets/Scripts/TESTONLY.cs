@@ -9,8 +9,8 @@ public class TESTONLY : MonoBehaviour
 
     public void Start(){
         World.SetWorldSeed(845);
-        //Perlin.FillImage();
-        World.DrawSplines();
+        Perlin.FillImage();
+        //World.DrawSplines();
 
         #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;

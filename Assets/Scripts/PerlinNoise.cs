@@ -14,16 +14,16 @@ public static class Perlin
     /*
     Testing purposes only
     */
-    /*
+    
     public static void FillImage(){
         Texture2D noiseImage = new Texture2D(512, 512);
         float noise;
         Color c;
         for(int x = 0; x < 512; x++){
             for(int z = 0; z < 512; z++){
-                noise = Noise(x*0.01f, z*0.01f, NoiseMap.BASE);
+                noise = (Noise(x*0.008f, z*0.008f, NoiseMap.EROSION) - (Noise(x*0.0464f, z*0.0464f, NoiseMap.EROSION)/2f)/1.5f);
                 noise = FindSplineHeight(noise);
-                c = new Color(noise/256f, noise/256f, noise/256f);
+                c = new Color(noise, noise, noise);
                 noiseImage.SetPixel(x, z, c);
             }
         }
@@ -32,7 +32,6 @@ public static class Perlin
 
         File.WriteAllBytes("noise.png", ImageConversion.EncodeToPNG(noiseImage));
     }
-    */
 
     private static float Normalize(float val){
         return (val+1f)/2f;
@@ -41,25 +40,27 @@ public static class Perlin
     /*
     For Debbuging purposes
     */
-    /*
-    private static int FindSplineHeight(float noiseValue){
-        int index = World.baseNoiseSplineX.Length-2;
+    
+    private static float FindSplineHeight(float noiseValue){
+        int index = World.erosionNoiseSplineX.Length-2;
         
-        for(int i=1; i < World.baseNoiseSplineX.Length; i++){
-            if(World.baseNoiseSplineX[i] >= noiseValue){
+        for(int i=1; i < World.erosionNoiseSplineX.Length; i++){
+            if(World.erosionNoiseSplineX[i] >= noiseValue){
                 index = i-1;
                 break;
             }
         }
 
-        float inverseLerp = (noiseValue - World.baseNoiseSplineX[index])/(World.baseNoiseSplineX[index+1] - World.baseNoiseSplineX[index]);
+        float inverseLerp = (noiseValue - World.erosionNoiseSplineX[index])/(World.erosionNoiseSplineX[index+1] - World.erosionNoiseSplineX[index]);
 
-        if(World.baseNoiseSplineY[index] > World.baseNoiseSplineY[index+1])
-            return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+        if(World.erosionNoiseSplineY[index] > World.erosionNoiseSplineY[index+1])
+            return Mathf.Lerp(World.erosionNoiseSplineY[index], World.erosionNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+            //return Mathf.CeilToInt(Mathf.Lerp(World.erosionNoiseSplineY[index], World.erosionNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
         else
-            return Mathf.CeilToInt(Mathf.Lerp(World.baseNoiseSplineY[index], World.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
+            return Mathf.Lerp(World.erosionNoiseSplineY[index], World.erosionNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
+            //return Mathf.CeilToInt(Mathf.Lerp(World.erosionNoiseSplineY[index], World.erosionNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
     }
-    */
+    
 
     #region Noise functions
 
@@ -71,6 +72,8 @@ public static class Perlin
 
         if(type == NoiseMap.BASE)
             return Lerp(u, Grad(World.baseNoise[X], x), Grad(World.baseNoise[X+1], x-1)) * 2;
+        else if(type == NoiseMap.EROSION)
+            return Lerp(u, Grad(World.erosionNoise[X], x), Grad(World.erosionNoise[X+1], x-1)) * 2;
         else
             return Lerp(u, Grad(World.baseNoise[X], x), Grad(World.baseNoise[X+1], x-1)) * 2;
     }
@@ -89,6 +92,12 @@ public static class Perlin
             int B = (World.baseNoise[X+1] + Y) & 0xff;
             return Lerp(v, Lerp(u, Grad(World.baseNoise[A  ], x, y  ), Grad(World.baseNoise[B  ], x-1, y  )),
                            Lerp(u, Grad(World.baseNoise[A+1], x, y-1), Grad(World.baseNoise[B+1], x-1, y-1)));
+        }
+        else if(type == NoiseMap.EROSION){
+            int A = (World.erosionNoise[X  ] + Y) & 0xff;
+            int B = (World.erosionNoise[X+1] + Y) & 0xff;
+            return Lerp(v, Lerp(u, Grad(World.erosionNoise[A  ], x, y  ), Grad(World.erosionNoise[B  ], x-1, y  )),
+                           Lerp(u, Grad(World.erosionNoise[A+1], x, y-1), Grad(World.erosionNoise[B+1], x-1, y-1)));
         }
         else{
             int A = (World.baseNoise[X  ] + Y) & 0xff;
@@ -121,6 +130,18 @@ public static class Perlin
                                    Lerp(u, Grad(World.baseNoise[AB  ], x, y-1, z  ), Grad(World.baseNoise[BB  ], x-1, y-1, z  ))),
                            Lerp(v, Lerp(u, Grad(World.baseNoise[AA+1], x, y  , z-1), Grad(World.baseNoise[BA+1], x-1, y  , z-1)),
                                    Lerp(u, Grad(World.baseNoise[AB+1], x, y-1, z-1), Grad(World.baseNoise[BB+1], x-1, y-1, z-1))));
+        }
+        else if(type == NoiseMap.EROSION){        
+            int A  = (World.erosionNoise[X  ] + Y) & 0xff;
+            int B  = (World.erosionNoise[X+1] + Y) & 0xff;
+            int AA = (World.erosionNoise[A  ] + Z) & 0xff;
+            int BA = (World.erosionNoise[B  ] + Z) & 0xff;
+            int AB = (World.erosionNoise[A+1] + Z) & 0xff;
+            int BB = (World.erosionNoise[B+1] + Z) & 0xff;
+            return Lerp(w, Lerp(v, Lerp(u, Grad(World.erosionNoise[AA  ], x, y  , z  ), Grad(World.erosionNoise[BA  ], x-1, y  , z  )),
+                                   Lerp(u, Grad(World.erosionNoise[AB  ], x, y-1, z  ), Grad(World.erosionNoise[BB  ], x-1, y-1, z  ))),
+                           Lerp(v, Lerp(u, Grad(World.erosionNoise[AA+1], x, y  , z-1), Grad(World.erosionNoise[BA+1], x-1, y  , z-1)),
+                                   Lerp(u, Grad(World.erosionNoise[AB+1], x, y-1, z-1), Grad(World.erosionNoise[BB+1], x-1, y-1, z-1))));
         }
         else{
             int A  = (World.baseNoise[X  ] + Y) & 0xff;
