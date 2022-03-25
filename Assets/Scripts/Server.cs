@@ -138,9 +138,6 @@ public class Server
 				}
 
 				World.SetWorldName(argsDictionary["world_name"]);
-				Random.InitState((int)(DateTime.Now.Ticks % 999999));
-				int seed = Random.Range(1,999999);
-				World.SetWorldSeed(seed);
 			}
 
 			file.Close();

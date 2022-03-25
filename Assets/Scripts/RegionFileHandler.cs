@@ -1,8 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
+using Random = System.Random;
 
 /*
 Region Data File Format (.rdf)
@@ -70,7 +72,6 @@ public class RegionFileHandler{
 	public void InitWorldFiles(ChunkLoader_Server cl){
 		this.cl = cl;
 		this.worldName = World.worldName;
-		this.seed = World.worldSeed;
 
 		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
 
@@ -105,10 +106,16 @@ public class RegionFileHandler{
 		if(File.Exists(this.worldDir + "world.wdat")){
 			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Open);
 			LoadWorld();
+			World.SetWorldSeed(this.seed);
+
 		}
 		else{
+			Random rnd = new Random((int)(DateTime.Now.Ticks % 999999));
+			this.seed = rnd.Next(1,999999);
+
 			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Create);	
-			SaveWorld();			
+			SaveWorld();
+			World.SetWorldSeed(this.seed);		
 		}
 
 		// If already has a player data file
@@ -123,7 +130,6 @@ public class RegionFileHandler{
 
 	// Returns initialized seed if world was just generated or returns saved seed if world exists
 	public int GetRealSeed(){
-		this.seed = World.worldSeed;
 		return this.seed;
 	}
 

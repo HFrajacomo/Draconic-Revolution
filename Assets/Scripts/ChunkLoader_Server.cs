@@ -46,11 +46,17 @@ public class ChunkLoader_Server : MonoBehaviour
 
     void OnApplicationQuit(){
         regionHandler.CloseAll();
+        this.worldGen.DestroyNativeMemory();
     }
 
     void Start(){
         this.server = new Server(this);
         this.time.SetServer(this.server);
+
+        this.regionHandler = new RegionFileHandler(this);
+        worldSeed = regionHandler.GetRealSeed();
+        biomeHandler = new BiomeHandler(worldSeed);
+        this.worldGen = new WorldGenerator(worldSeed, worldSeed, worldSeed, worldSeed, biomeHandler, structHandler, this);
     }
 
     void Update(){ 
@@ -73,12 +79,6 @@ public class ChunkLoader_Server : MonoBehaviour
 
     private void InitWorld(){
         print("Initializing World");
-
-        this.regionHandler = new RegionFileHandler(this);
-        worldSeed = regionHandler.GetRealSeed();
-        World.SetWorldSeed(worldSeed);
-        biomeHandler = new BiomeHandler(worldSeed);
-        this.worldGen = new WorldGenerator(worldSeed, worldSeed, worldSeed, worldSeed, biomeHandler, structHandler, this);
     
         // Sends the first player it's information
         PlayerData pdat = this.regionHandler.LoadPlayer(this.server.firstConnectedID); // CHANGE TO OTHER ACCOUNTID
