@@ -31,6 +31,7 @@ public class WorldGenerator
     // Native Noise Maps
     private NativeArray<byte> baseMap;
     private NativeArray<byte> erosionMap;
+    private NativeArray<byte> peakMap;
 
     public WorldGenerator(int worldSeed, float dispersionSeed, float offsetHash, float generationSeed, BiomeHandler biomeReference, StructureHandler structHandler, ChunkLoader_Server reference){
     	this.worldSeed = worldSeed;
@@ -43,6 +44,15 @@ public class WorldGenerator
 
         baseMap = new NativeArray<byte>(GenerationSeed.baseNoise, Allocator.Persistent);
         erosionMap = new NativeArray<byte>(GenerationSeed.erosionNoise, Allocator.Persistent);
+        peakMap = new NativeArray<byte>(GenerationSeed.peakNoise, Allocator.Persistent);
+    }
+
+    public WorldGenerator(int seed){
+        this.worldSeed = seed;
+
+        baseMap = new NativeArray<byte>(GenerationSeed.baseNoise, Allocator.Persistent);
+        erosionMap = new NativeArray<byte>(GenerationSeed.erosionNoise, Allocator.Persistent);
+        peakMap = new NativeArray<byte>(GenerationSeed.peakNoise, Allocator.Persistent);
     }
 
     public void SetVoxdata(ushort[] data){
@@ -73,6 +83,7 @@ public class WorldGenerator
     public void DestroyNativeMemory(){
         this.baseMap.Dispose();
         this.erosionMap.Dispose();
+        this.peakMap.Dispose();
     }
 
 
@@ -243,7 +254,8 @@ public class WorldGenerator
             hpData = hpData,
             heightMap = heightMap,
             baseNoise = baseMap,
-            erosionNoise = erosionMap
+            erosionNoise = erosionMap,
+            peakNoise = peakMap
         };
         JobHandle job = gcj.Schedule();
         job.Complete();
@@ -261,18 +273,155 @@ public class WorldGenerator
     /*
     Testing only
     */
-    private void PrintMap(NativeArray<ushort> heightMap){
-        StringBuilder sb = new StringBuilder();
 
-        for(int x=0; x < Chunk.chunkWidth; x++){
-            for(int z=0; z < Chunk.chunkWidth ; z++){
-                sb.Append(heightMap[x*Chunk.chunkWidth+z]);
-                sb.Append("  ");
+    public float Noise(float x, float y, NoiseMap type)
+    {
+        int X = Mathf.FloorToInt(x) & 0xff;
+        int Y = Mathf.FloorToInt(y) & 0xff;
+        x -= Mathf.Floor(x);
+        y -= Mathf.Floor(y);
+
+        float u = Fade(x);
+        float v = Fade(y);
+
+        if(type == NoiseMap.BASE){
+            int A = (baseMap[X  ] + Y) & 0xff;
+            int B = (baseMap[X+1] + Y) & 0xff;
+            return Lerp(v, Lerp(u, Grad(baseMap[A  ], x, y  ), Grad(baseMap[B  ], x-1, y  )),
+                           Lerp(u, Grad(baseMap[A+1], x, y-1), Grad(baseMap[B+1], x-1, y-1)));
+        
+        }
+        else if(type == NoiseMap.EROSION){
+            int A = (erosionMap[X  ] + Y) & 0xff;
+            int B = (erosionMap[X+1] + Y) & 0xff;
+            return Lerp(v, Lerp(u, Grad(erosionMap[A  ], x, y  ), Grad(erosionMap[B  ], x-1, y  )),
+                           Lerp(u, Grad(erosionMap[A+1], x, y-1), Grad(erosionMap[B+1], x-1, y-1)));
+        }
+        else if(type == NoiseMap.PEAK){
+            int A = (peakMap[X  ] + Y) & 0xff;
+            int B = (peakMap[X+1] + Y) & 0xff;
+            return Lerp(v, Lerp(u, Grad(peakMap[A  ], x, y  ), Grad(peakMap[B  ], x-1, y  )),
+                           Lerp(u, Grad(peakMap[A+1], x, y-1), Grad(peakMap[B+1], x-1, y-1)));
+        }
+        else{
+            int A = (baseMap[X  ] + Y) & 0xff;
+            int B = (baseMap[X+1] + Y) & 0xff;
+            return Lerp(v, Lerp(u, Grad(baseMap[A  ], x, y  ), Grad(baseMap[B  ], x-1, y  )),
+                           Lerp(u, Grad(baseMap[A+1], x, y-1), Grad(baseMap[B+1], x-1, y-1)));
+        }
+        
+    }
+
+    public void PrintMap(){
+        Texture2D image = new Texture2D(512, 512);
+        int index = this.peakMap.Length-2;
+        float color;
+        float y;
+
+        for(int x = 0; x < 512; x++){
+            for(int z = 0; z < 512; z++){
+                y = FindSplineHeight((Noise(x*0.013f, z*0.013f, NoiseMap.PEAK) + (Noise(x*0.0237f, z*0.0237f, NoiseMap.PEAK)))/2f, NoiseMap.PEAK);
+                color = (y+40)/90f;
+                image.SetPixel(x, z, new Color(color, color, color));
             }
-            sb.Append("\n");
         }
 
-        File.WriteAllBytes("testNB.txt", Encoding.ASCII.GetBytes(sb.ToString()));
+        image.Apply();
+
+        File.WriteAllBytes("spline.png", ImageConversion.EncodeToPNG(image));          
+    }
+
+    private float FindSplineHeight(float noiseValue, NoiseMap type){
+        int  index = GenerationSeed.baseNoiseSplineX.Length-2;
+
+        if(type == NoiseMap.BASE){
+            for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){
+                if(GenerationSeed.baseNoiseSplineX[i] >= noiseValue){
+                    index = i-1;
+                    break;
+                }
+            }
+
+            float inverseLerp = (noiseValue - GenerationSeed.baseNoiseSplineX[index])/(GenerationSeed.baseNoiseSplineX[index+1] - GenerationSeed.baseNoiseSplineX[index]) ;
+
+            if(GenerationSeed.baseNoiseSplineY[index] > GenerationSeed.baseNoiseSplineY[index+1])
+                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+            else
+                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
+        }
+        else if(type == NoiseMap.EROSION){
+            for(int i=1; i < GenerationSeed.erosionNoiseSplineX.Length; i++){
+                if(GenerationSeed.erosionNoiseSplineX[i] >= noiseValue){
+                    index = i-1;
+                    break;
+                }
+            }
+
+            float inverseLerp = (noiseValue - GenerationSeed.erosionNoiseSplineX[index])/(GenerationSeed.erosionNoiseSplineX[index+1] - GenerationSeed.erosionNoiseSplineX[index]) ;
+
+            if(GenerationSeed.erosionNoiseSplineY[index] > GenerationSeed.erosionNoiseSplineY[index+1])
+                return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+            else
+                return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
+        }
+        else if(type == NoiseMap.PEAK){
+            for(int i=1; i < GenerationSeed.peakNoiseSplineX.Length; i++){
+                if(GenerationSeed.peakNoiseSplineX[i] >= noiseValue){
+                    index = i-1;
+                    break;
+                }
+            }
+
+            float inverseLerp = (noiseValue - GenerationSeed.peakNoiseSplineX[index])/(GenerationSeed.peakNoiseSplineX[index+1] - GenerationSeed.peakNoiseSplineX[index]) ;
+
+            if(GenerationSeed.peakNoiseSplineY[index] > GenerationSeed.peakNoiseSplineY[index+1])
+                return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+            else
+                return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
+        }
+        else{
+            for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){
+                if(GenerationSeed.baseNoiseSplineX[i] >= noiseValue){
+                    index = i-1;
+                    break;
+                }
+            }
+
+            float inverseLerp = (noiseValue - GenerationSeed.baseNoiseSplineX[index])/(GenerationSeed.baseNoiseSplineX[index+1] - GenerationSeed.baseNoiseSplineX[index]) ;
+
+            if(GenerationSeed.baseNoiseSplineY[index] > GenerationSeed.baseNoiseSplineY[index+1])
+                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+            else
+                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));            
+        }
+    }
+
+    private float Fade(float t)
+    {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+
+    private float Lerp(float t, float a, float b)
+    {
+        return a + t * (b - a);
+    }
+
+    private float Grad(int hash, float x)
+    {
+        return (hash & 1) == 0 ? x : -x;
+    }
+
+    private float Grad(int hash, float x, float y)
+    {
+        return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);
+    }
+
+    private float Grad(int hash, float x, float y, float z)
+    {
+        int h = hash & 15;
+        float u = h < 8 ? x : y;
+        float v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
+        return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
     }
 }
 
@@ -298,26 +447,30 @@ public struct GenerateChunkJob: IJob{
     public NativeArray<byte> baseNoise;
     [ReadOnly]
     public NativeArray<byte> erosionNoise;
+    [ReadOnly]
+    public NativeArray<byte> peakNoise;
 
     public void Execute(){
         int waterLevel = 80;
         GeneratePivots();
         BilinearIntepolateMap();
         ApplyMap(waterLevel);
-        //GeneratePerlin(80);
     }
+
 
     public void GeneratePerlin(int waterLevel){
         float height;
         float erosionMultiplier;
+        float peakAdd;
 
         for(int x=0; x < Chunk.chunkWidth; x++){
             for(int z=0; z < Chunk.chunkWidth; z++){
                 height = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.0023f, (chunkZ*Chunk.chunkWidth+z)*0.0023f, NoiseMap.BASE) + Noise((chunkX*Chunk.chunkWidth+x)*0.017f, (chunkZ*Chunk.chunkWidth+z)*0.017f, NoiseMap.BASE))/2f, NoiseMap.BASE);
                 erosionMultiplier = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.001f, (chunkZ*Chunk.chunkWidth+z)*0.001f, NoiseMap.EROSION) + Noise((chunkX*Chunk.chunkWidth+x)*0.007f, (chunkZ*Chunk.chunkWidth+z)*0.007f, NoiseMap.EROSION))/2f, NoiseMap.EROSION);
+                peakAdd = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.013f, (chunkZ*Chunk.chunkWidth+z)*0.013f, NoiseMap.PEAK) + (Noise((chunkX*Chunk.chunkWidth+x)*0.0237f, (chunkZ*Chunk.chunkWidth+z)*0.0237f, NoiseMap.PEAK)))/2f, NoiseMap.PEAK);
 
                 for(int y=0; y < Chunk.chunkDepth; y++){
-                    if(y >= height * erosionMultiplier){
+                    if(y >= ((height + peakAdd) * erosionMultiplier)){
                         if(y <= waterLevel){
                             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 6;
                         }
@@ -339,13 +492,15 @@ public struct GenerateChunkJob: IJob{
     public void GeneratePivots(){
         float height;
         float erosionMultiplier;
+        float peakAdd;
 
         for(int x=0; x <= Chunk.chunkWidth; x+=4){
             for(int z=0; z <= Chunk.chunkWidth; z+=4){
-                height = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.0023f, (chunkZ*Chunk.chunkWidth+z)*0.0023f, NoiseMap.BASE)+Noise((chunkX*Chunk.chunkWidth+x)*0.017f, (chunkZ*Chunk.chunkWidth+z)*0.017f, NoiseMap.BASE))/2f, NoiseMap.BASE);
+                height = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.0023f, (chunkZ*Chunk.chunkWidth+z)*0.0023f, NoiseMap.BASE) + Noise((chunkX*Chunk.chunkWidth+x)*0.017f, (chunkZ*Chunk.chunkWidth+z)*0.017f, NoiseMap.BASE))/2f, NoiseMap.BASE);
                 erosionMultiplier = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.001f, (chunkZ*Chunk.chunkWidth+z)*0.001f, NoiseMap.EROSION) + Noise((chunkX*Chunk.chunkWidth+x)*0.007f, (chunkZ*Chunk.chunkWidth+z)*0.007f, NoiseMap.EROSION))/2f, NoiseMap.EROSION);
-            
-                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.CeilToInt(height * erosionMultiplier));
+                peakAdd = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.013f, (chunkZ*Chunk.chunkWidth+z)*0.013f, NoiseMap.PEAK) + (Noise((chunkX*Chunk.chunkWidth+x)*0.0237f, (chunkZ*Chunk.chunkWidth+z)*0.0237f, NoiseMap.PEAK)))/2f, NoiseMap.PEAK);
+
+                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.CeilToInt((height + peakAdd) * erosionMultiplier));
             }
         }
     }
@@ -419,9 +574,24 @@ public struct GenerateChunkJob: IJob{
             else
                 return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
         }
+        else if(type == NoiseMap.PEAK){
+            for(int i=1; i < GenerationSeed.peakNoiseSplineX.Length; i++){
+                if(GenerationSeed.peakNoiseSplineX[i] >= noiseValue){
+                    index = i-1;
+                    break;
+                }
+            }
+
+            float inverseLerp = (noiseValue - GenerationSeed.peakNoiseSplineX[index])/(GenerationSeed.peakNoiseSplineX[index+1] - GenerationSeed.peakNoiseSplineX[index]) ;
+
+            if(GenerationSeed.peakNoiseSplineY[index] > GenerationSeed.peakNoiseSplineY[index+1])
+                return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+            else
+                return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
+        }
         else{
-            for(int i=1; i < GenerationSeed.erosionNoiseSplineX.Length; i++){
-                if(GenerationSeed.erosionNoiseSplineX[i] >= noiseValue){
+            for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){
+                if(GenerationSeed.baseNoiseSplineX[i] >= noiseValue){
                     index = i-1;
                     break;
                 }
@@ -451,6 +621,8 @@ public struct GenerateChunkJob: IJob{
             return Lerp(u, Grad(GenerationSeed.baseNoise[X], x), Grad(GenerationSeed.baseNoise[X+1], x-1)) * 2;
         else if(type == NoiseMap.EROSION)
             return Lerp(u, Grad(GenerationSeed.erosionNoise[X], x), Grad(GenerationSeed.erosionNoise[X+1], x-1)) * 2;
+        else if(type == NoiseMap.PEAK)
+            return Lerp(u, Grad(GenerationSeed.peakNoise[X], x), Grad(GenerationSeed.peakNoise[X+1], x-1)) * 2;
         else
             return Lerp(u, Grad(GenerationSeed.baseNoise[X], x), Grad(GenerationSeed.baseNoise[X+1], x-1)) * 2;
     }
@@ -477,6 +649,12 @@ public struct GenerateChunkJob: IJob{
             int B = (erosionNoise[X+1] + Y) & 0xff;
             return Lerp(v, Lerp(u, Grad(erosionNoise[A  ], x, y  ), Grad(erosionNoise[B  ], x-1, y  )),
                            Lerp(u, Grad(erosionNoise[A+1], x, y-1), Grad(erosionNoise[B+1], x-1, y-1)));
+        }
+        else if(type == NoiseMap.PEAK){
+            int A = (peakNoise[X  ] + Y) & 0xff;
+            int B = (peakNoise[X+1] + Y) & 0xff;
+            return Lerp(v, Lerp(u, Grad(peakNoise[A  ], x, y  ), Grad(peakNoise[B  ], x-1, y  )),
+                           Lerp(u, Grad(peakNoise[A+1], x, y-1), Grad(peakNoise[B+1], x-1, y-1)));
         }
         else{
             int A = (baseNoise[X  ] + Y) & 0xff;
@@ -522,6 +700,18 @@ public struct GenerateChunkJob: IJob{
                                    Lerp(u, Grad(GenerationSeed.erosionNoise[AB  ], x, y-1, z  ), Grad(GenerationSeed.erosionNoise[BB  ], x-1, y-1, z  ))),
                            Lerp(v, Lerp(u, Grad(GenerationSeed.erosionNoise[AA+1], x, y  , z-1), Grad(GenerationSeed.erosionNoise[BA+1], x-1, y  , z-1)),
                                    Lerp(u, Grad(GenerationSeed.erosionNoise[AB+1], x, y-1, z-1), Grad(GenerationSeed.erosionNoise[BB+1], x-1, y-1, z-1))));
+        }
+        else if(type == NoiseMap.PEAK){        
+            int A  = (GenerationSeed.peakNoise[X  ] + Y) & 0xff;
+            int B  = (GenerationSeed.peakNoise[X+1] + Y) & 0xff;
+            int AA = (GenerationSeed.peakNoise[A  ] + Z) & 0xff;
+            int BA = (GenerationSeed.peakNoise[B  ] + Z) & 0xff;
+            int AB = (GenerationSeed.peakNoise[A+1] + Z) & 0xff;
+            int BB = (GenerationSeed.peakNoise[B+1] + Z) & 0xff;
+            return Lerp(w, Lerp(v, Lerp(u, Grad(GenerationSeed.peakNoise[AA  ], x, y  , z  ), Grad(GenerationSeed.peakNoise[BA  ], x-1, y  , z  )),
+                                   Lerp(u, Grad(GenerationSeed.peakNoise[AB  ], x, y-1, z  ), Grad(GenerationSeed.peakNoise[BB  ], x-1, y-1, z  ))),
+                           Lerp(v, Lerp(u, Grad(GenerationSeed.peakNoise[AA+1], x, y  , z-1), Grad(GenerationSeed.peakNoise[BA+1], x-1, y  , z-1)),
+                                   Lerp(u, Grad(GenerationSeed.peakNoise[AB+1], x, y-1, z-1), Grad(GenerationSeed.peakNoise[BB+1], x-1, y-1, z-1))));
         }
         else{
             int A  = (GenerationSeed.baseNoise[X  ] + Y) & 0xff;

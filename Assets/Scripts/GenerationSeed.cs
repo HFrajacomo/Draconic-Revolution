@@ -16,12 +16,17 @@ public static class GenerationSeed
     // Base Noise
     public static byte[] baseNoise = new byte[257];
     public static readonly float[] baseNoiseSplineX = new float[]{-1, -0.7f, -0.67f -0.3f, 0, 0.4f, 0.65f, 0.7f, 0.8f, 1};
-    public static readonly int[] baseNoiseSplineY = new int[]{30, 40, 80, 90, 120, 170, 200, 220, 240, 250};
+    public static readonly int[] baseNoiseSplineY = new int[]{50, 55, 70, 90, 100, 120, 130, 160, 180, 200};
 
     // Erosion Noise
     public static byte[] erosionNoise = new byte[257];
     public static readonly float[] erosionNoiseSplineX = new float[]{-1, -0.6f, -0.5f, -0.2f, 0.5f, 1};
     public static readonly float[] erosionNoiseSplineY = new float[]{0.2f, 0.67f, 0.7f,  0.8f, 1f, 1f};
+
+    // Peaks Noise
+    public static byte[] peakNoise = new byte[257];
+    public static readonly float[] peakNoiseSplineX = new float[]{-1, -0.5f, -0.2f, 0, 0.2f, 0.7f, 1};
+    public static readonly int[] peakNoiseSplineY = new int[]{-40, -10, 0, 0, 10, 20, 50};
 
     public static void Initialize(int sed){
         seed = sed;
@@ -39,7 +44,14 @@ public static class GenerationSeed
         for(int i=0; i < 256; i++){
             erosionNoise[i] = (byte)World.NextRandom(0, 256);
         }
-        erosionNoise[256] = erosionNoise[0];  
+        erosionNoise[256] = erosionNoise[0];
+
+        // Peak Noise
+        World.SetRNG((int)((seed >> 2) | 0xc0000000));
+        for(int i=0; i < 256; i++){
+            peakNoise[i] = (byte)World.NextRandom(0, 256);
+        }
+        peakNoise[256] = peakNoise[0];
     }
 
 
@@ -47,8 +59,8 @@ public static class GenerationSeed
     TESTING PURPOSES ONLY
     */
     public static void DrawSplines(){
-        Texture2D image = new Texture2D(512, 512);
-        int index = erosionNoiseSplineX.Length-2;
+        Texture2D image = new Texture2D(512, 100);
+        int index = peakNoise.Length-2;
         float analogX;
         float inverseLerp;
         int y;
@@ -56,18 +68,18 @@ public static class GenerationSeed
         for(int x = 0; x < 512; x++){
             analogX = Mathf.Lerp(-1, 1, x/512f);
 
-            for(int i=1; i < erosionNoiseSplineX.Length; i++){
-                if(erosionNoiseSplineX[i] >= analogX){
+            for(int i=1; i < peakNoiseSplineX.Length; i++){
+                if(peakNoiseSplineX[i] >= analogX){
                     index = i-1;
                     break;
                 }
             }
 
-            inverseLerp = (analogX - erosionNoiseSplineX[index])/(erosionNoiseSplineX[index+1] - erosionNoiseSplineX[index]);
-            if(erosionNoiseSplineY[index] > erosionNoiseSplineY[index+1])
-                y = Mathf.CeilToInt(Mathf.Lerp(erosionNoiseSplineY[index]*256, erosionNoiseSplineY[index+1]*256, Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+            inverseLerp = (analogX - peakNoiseSplineX[index])/(peakNoiseSplineX[index+1] - peakNoiseSplineX[index]);
+            if(peakNoiseSplineY[index] > peakNoiseSplineY[index+1])
+                y = Mathf.CeilToInt(Mathf.Lerp(peakNoiseSplineY[index], peakNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2))) + 40;
             else
-                y = Mathf.CeilToInt(Mathf.Lerp(erosionNoiseSplineY[index]*256, erosionNoiseSplineY[index+1]*256, Mathf.Pow(inverseLerp, 0.8f)));
+                y = Mathf.CeilToInt(Mathf.Lerp(peakNoiseSplineY[index], peakNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f))) + 40;
 
 
             image.SetPixel(x, y, Color.red);
@@ -82,5 +94,6 @@ public static class GenerationSeed
 
 public enum NoiseMap : byte{
     BASE,
-    EROSION
+    EROSION,
+    PEAK
 }
