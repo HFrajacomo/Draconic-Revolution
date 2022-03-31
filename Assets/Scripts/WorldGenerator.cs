@@ -8,6 +8,7 @@ using Unity.Mathematics;
 using Unity.Burst;
 using System.IO;
 using System.Text;
+using System.Windows.Forms.DataVisualization.Charting;
 
 
 public class WorldGenerator
@@ -457,38 +458,6 @@ public struct GenerateChunkJob: IJob{
         ApplyMap(waterLevel);
     }
 
-
-    public void GeneratePerlin(int waterLevel){
-        float height;
-        float erosionMultiplier;
-        float peakAdd;
-
-        for(int x=0; x < Chunk.chunkWidth; x++){
-            for(int z=0; z < Chunk.chunkWidth; z++){
-                height = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.0023f, (chunkZ*Chunk.chunkWidth+z)*0.0023f, NoiseMap.BASE) + Noise((chunkX*Chunk.chunkWidth+x)*0.017f, (chunkZ*Chunk.chunkWidth+z)*0.017f, NoiseMap.BASE))/2f, NoiseMap.BASE);
-                erosionMultiplier = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.001f, (chunkZ*Chunk.chunkWidth+z)*0.001f, NoiseMap.EROSION) + Noise((chunkX*Chunk.chunkWidth+x)*0.007f, (chunkZ*Chunk.chunkWidth+z)*0.007f, NoiseMap.EROSION))/2f, NoiseMap.EROSION);
-                peakAdd = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.013f, (chunkZ*Chunk.chunkWidth+z)*0.013f, NoiseMap.PEAK) + (Noise((chunkX*Chunk.chunkWidth+x)*0.0237f, (chunkZ*Chunk.chunkWidth+z)*0.0237f, NoiseMap.PEAK)))/2f, NoiseMap.PEAK);
-
-                for(int y=0; y < Chunk.chunkDepth; y++){
-                    if(y >= ((height + peakAdd) * erosionMultiplier)){
-                        if(y <= waterLevel){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 6;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                        }
-                    }
-                    else{
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;                        
-                    }
-
-                    stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                    hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;
-                }
-            }
-        }
-    }
-    
     public void GeneratePivots(){
         float height;
         float erosionMultiplier;
@@ -496,9 +465,9 @@ public struct GenerateChunkJob: IJob{
 
         for(int x=0; x <= Chunk.chunkWidth; x+=4){
             for(int z=0; z <= Chunk.chunkWidth; z+=4){
-                height = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.0023f, (chunkZ*Chunk.chunkWidth+z)*0.0023f, NoiseMap.BASE) + Noise((chunkX*Chunk.chunkWidth+x)*0.017f, (chunkZ*Chunk.chunkWidth+z)*0.017f, NoiseMap.BASE))/2f, NoiseMap.BASE);
-                erosionMultiplier = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.001f, (chunkZ*Chunk.chunkWidth+z)*0.001f, NoiseMap.EROSION) + Noise((chunkX*Chunk.chunkWidth+x)*0.007f, (chunkZ*Chunk.chunkWidth+z)*0.007f, NoiseMap.EROSION))/2f, NoiseMap.EROSION);
-                peakAdd = FindSplineHeight((Noise((chunkX*Chunk.chunkWidth+x)*0.013f, (chunkZ*Chunk.chunkWidth+z)*0.013f, NoiseMap.PEAK) + (Noise((chunkX*Chunk.chunkWidth+x)*0.0237f, (chunkZ*Chunk.chunkWidth+z)*0.0237f, NoiseMap.PEAK)))/2f, NoiseMap.PEAK);
+                height = FindSplineHeight(TransformOctaves(Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.baseNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.baseNoiseStep1, NoiseMap.BASE), (Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.baseNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.baseNoiseStep2, NoiseMap.BASE))), NoiseMap.BASE);
+                erosionMultiplier = FindSplineHeight(TransformOctaves(Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.erosionNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.erosionNoiseStep1, NoiseMap.EROSION), Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.erosionNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.erosionNoiseStep2, NoiseMap.EROSION)), NoiseMap.EROSION);
+                peakAdd = FindSplineHeight(TransformOctaves(Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep1, NoiseMap.PEAK), (Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep2, NoiseMap.PEAK))), NoiseMap.PEAK);
 
                 heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.CeilToInt((height + peakAdd) * erosionMultiplier));
             }
@@ -540,6 +509,12 @@ public struct GenerateChunkJob: IJob{
         } 
     }
     
+    // Calculates the cumulative distribution function of a Normal Distribution
+    private float TransformOctaves(float a, float b){
+        float c = (a+b)/2f;
+
+        return (2f/(1f + Mathf.Exp(-c*4.1f)))-1;
+    }
 
     private float FindSplineHeight(float noiseValue, NoiseMap type){
         int  index = GenerationSeed.baseNoiseSplineX.Length-2;
