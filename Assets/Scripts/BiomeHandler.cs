@@ -5,51 +5,50 @@ using Unity.Mathematics;
 
 public class BiomeHandler
 {
-	public BiomeHandlerData biomeHandlerData;
-
 	public static Dictionary<byte, Biome> dataset = new Dictionary<byte, Biome>();
 	public static Dictionary<byte, string> codeToBiome = new Dictionary<byte, string>();
 
-	private static int amountOfBiomes;
 	private int currentBiome = 0;
-	private float dispersionSeed;
 
 	// Cache Information
 	private static byte[] cachedByte = new byte[1];
 
-	public BiomeHandler(float seed){
-		dispersionSeed = seed;
-
-		amountOfBiomes = 4; // SET THIS EVERYTIME YOU ADD A NEW BIOME
-
-		biomeHandlerData = new BiomeHandlerData(amountOfBiomes);
-
-		Biome plains = new Biome("Plains", 0, 0f, 0f, 0f, 0f, 22, //0.3f, 0.5f, 0.6f, 1f, 22,
+	public BiomeHandler(){
+		Biome plains = new Biome("Plains", BiomeCode.PLAINS,
+		 new BiomeRange(0, 3), new BiomeRange(1, 3), new BiomeRange(0f, 0.4f), new BiomeRange(-0.5f, 0), new BiomeRange(-1, 0.4f), 
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,3,2, 4},
 		 new List<float>(){0.07f, 0.05f, 1f, 1f, 0.01f, 1f, 1f, 1f});
 
-		Biome grassyHighlands = new Biome("Grassy Highlands", 1, 0f, 0f, 1f, 1f, 42, //0.7f, 0.5f, 0.6f, 0.9f, 42,
+		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS,
+		 new BiomeRange(0, 6), new BiomeRange(0, 6), new BiomeRange(0.4f, 1f), new BiomeRange(0, 1), new BiomeRange(0.4f, 1), 
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,5,4, 8},
 		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.02f, 1f, 1f, 1f});
 
-		Biome ocean = new Biome("Ocean", 2, 1f, 1f, 1f, 1f, 20, //0f, 1f, 0.5f, 0.3f, 20,
+		Biome ocean = new Biome("Ocean", BiomeCode.OCEAN,
+		 new BiomeRange(0, 6), new BiomeRange(0, 6), new BiomeRange(-1f, 0f), new BiomeRange(-1f, -0.5f), new BiomeRange(-1, 1f), 
 		 new List<int>(){},
 		 new List<int>(){},
 		 new List<float>(){});
 
-		Biome forest = new Biome("Forest", 3, 1f, 1f, 0f, 0f, 21, //0.3f, 0.5f, 0.5f, 0.7f, 21,
+		Biome forest = new Biome("Forest", BiomeCode.FOREST,
+		 new BiomeRange(0, 6), new BiomeRange(4, 6), new BiomeRange(0f, 0.4f), new BiomeRange(-0.5f, 0), new BiomeRange(-1, 0.4f), 
 		 new List<int>(){6,1,2,7,8,9,10,11},
 		 new List<int>(){1,2,2,1,1,3,2, 4},
 		 new List<float>(){0.05f, 1f, 0.5f, 0.1f, 0.3f, 1f, 1f, 1f});
+
+		Biome desert = new Biome("Desert", BiomeCode.DESERT,
+		 new BiomeRange(4, 6), new BiomeRange(0, 3), new BiomeRange(0f, 0.4f), new BiomeRange(-0.5f, 0), new BiomeRange(-1, 0.4f), 
+		 new List<int>(){5,9,10,11},
+		 new List<int>(){1,3,2, 4},
+		 new List<float>(){0.01f, 1f, 1f, 1f});
 
 		AddBiome(plains);
 		AddBiome(grassyHighlands);
 		AddBiome(ocean);
 		AddBiome(forest);
-
-
+		AddBiome(desert);
 	}
 
 	// Gets biome byte code from name
@@ -72,9 +71,6 @@ public class BiomeHandler
 		dataset.Add(b.biomeCode, b);
 		codeToBiome.Add(b.biomeCode, b.name);
 
-		BiomeHandlerData.codeToWater[currentBiome] = b.waterLevel;
-		BiomeHandlerData.codeToStats[currentBiome] = new float4(b.altitude, b.humidity, b.temperature, b.lightning);
-
 		currentBiome++;
 	}
 
@@ -82,14 +78,6 @@ public class BiomeHandler
 	public void Clear(){
 		BiomeHandler.dataset.Clear();
 		BiomeHandler.codeToBiome.Clear();
-	}
-
-	// Returns the Water Level of a biome
-	public static ushort GetWaterLevel(byte biome){
-		if(biome == 255)
-			return 99;
-
-		return BiomeHandlerData.codeToWater[biome];
 	}
 
 	// Returns the list of possible Structures in a biome
@@ -108,50 +96,92 @@ public class BiomeHandler
 	}
 
 	/*
-	BiomeHandler's main function
-	Used to assign a biome to a new chunk.
-	Play arround with the seed value in each of the 4 biome features to change the behaviour
-		of the biome distribution.
+	Main Function, assigns biome based on 
 	*/
-		/*
-	public byte Assign(ChunkPos pos){
-		float currentAltitude = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.ax+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.az+((dispersionSeed*BiomeHandlerData.sx)%1000));
-		float currentHumidity = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.bx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.bz+((dispersionSeed*BiomeHandlerData.sy)%1000));
-		float currentTemperature = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.cx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.cz+((dispersionSeed*BiomeHandlerData.sz)%1000));
-		float currentLightning = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.dx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.dz+((dispersionSeed*BiomeHandlerData.sw)%1000));
+	public byte AssignBiome(float[] data){
+		List<Biome> biomes = new List<Biome>();
+		List<int> toRemove = new List<int>();
 
-		float lowestDistance = 99;
-		byte lowestBiome = 255;
-		float distance;
+		foreach(Biome b in dataset.Values)
+			biomes.Add(b);
 
-		float4 currentSettings = new float4(currentAltitude, currentHumidity, currentTemperature, currentLightning);
-
-		for(byte s=0; s < amountOfBiomes; s++){
-			distance = BiomeHandler.Distance(currentSettings, BiomeHandlerData.codeToStats[s]);
-
-			if(distance <= lowestDistance){
-				lowestDistance = distance;
-				lowestBiome = s;
+		// Temp
+		for(int i=0; i < biomes.Count; i++){
+			if(biomes[i].temperatureRange.GetLower() > data[0] || biomes[i].temperatureRange.GetUpper() < data[0]){
+				toRemove.Add(i);
 			}
 		}
-		return lowestBiome;
+
+		for(int d = toRemove.Count-1; d > 0; d--){
+			if(biomes.Count == 1)
+				return biomes[0].biomeCode;
+
+			biomes.RemoveAt(toRemove[d]);
+			toRemove.RemoveAt(d);
+		}
+
+		// Humidity
+		for(int i=0; i < biomes.Count; i++){
+			if(biomes[i].humidityRange.GetLower() > data[1] || biomes[i].humidityRange.GetUpper() < data[1]){
+				toRemove.Add(i);
+			}
+		}
+
+		for(int d = toRemove.Count-1; d > 0; d--){
+			if(biomes.Count == 1)
+				return biomes[0].biomeCode;
+				
+			biomes.RemoveAt(toRemove[d]);
+			toRemove.RemoveAt(d);
+		}
+
+		// Base
+		for(int i=0; i < biomes.Count; i++){
+			if(biomes[i].baseRange.GetLower() > data[2] || biomes[i].baseRange.GetUpper() < data[2]){
+				toRemove.Add(i);
+			}
+		}
+
+		for(int d = toRemove.Count-1; d > 0; d--){
+			if(biomes.Count == 1)
+				return biomes[0].biomeCode;
+				
+			biomes.RemoveAt(toRemove[d]);
+			toRemove.RemoveAt(d);
+		}
+
+		// Erosion
+		for(int i=0; i < biomes.Count; i++){
+			if(biomes[i].erosionRange.GetLower() > data[3] || biomes[i].erosionRange.GetUpper() < data[3]){
+				toRemove.Add(i);
+			}
+		}
+
+		for(int d = toRemove.Count-1; d > 0; d--){
+			if(biomes.Count == 1)
+				return biomes[0].biomeCode;
+				
+			biomes.RemoveAt(toRemove[d]);
+			toRemove.RemoveAt(d);
+		}
+
+		// Peak
+		for(int i=0; i < biomes.Count; i++){
+			if(biomes[i].peakRange.GetLower() > data[4] || biomes[i].peakRange.GetUpper() < data[4]){
+				toRemove.Add(i);
+			}
+		}
+
+		for(int d = toRemove.Count-1; d > 0; d--){
+			if(biomes.Count == 1)
+				return biomes[0].biomeCode;
+				
+			biomes.RemoveAt(toRemove[d]);
+			toRemove.RemoveAt(d);
+		}
+
+		return biomes[0].biomeCode;
 	}
-
-
-	public float4 GetFeatures(ChunkPos pos){
-		float currentAltitude = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.ax+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.az+((dispersionSeed*BiomeHandlerData.sx)%1000));
-		float currentHumidity = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.bx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.bz+((dispersionSeed*BiomeHandlerData.sy)%1000));
-		float currentTemperature = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.cx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.cz+((dispersionSeed*BiomeHandlerData.sz)%1000));
-		float currentLightning = Perlin.Noise(pos.x*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.dx+((dispersionSeed*BiomeHandlerData.ss)%1000), pos.z*BiomeHandlerData.featureModificationConstant*BiomeHandlerData.dz+((dispersionSeed*BiomeHandlerData.sw)%1000));
-
-		return new float4(currentAltitude, currentHumidity, currentTemperature, currentLightning);
-	}
-
-	// Calculates distance between two 4D points
-	public static float Distance(float4 first, float4 second){
-		return Mathf.Sqrt(Mathf.Pow(first.x-second.x, 2) + Mathf.Pow(first.y-second.y, 2) + Mathf.Pow(first.z-second.z, 2) + Mathf.Pow(first.w-second.w, 2));		
-	}
-	*/
 
 }
 
@@ -159,32 +189,50 @@ public class BiomeHandler
 public struct Biome{
 	public string name;
 	public byte biomeCode;
-	public float altitude;
-	public float humidity;
-	public float temperature;
-	public float lightning;
+
+	public BiomeRange temperatureRange;
+	public BiomeRange humidityRange;
+	public BiomeRange baseRange;
+	public BiomeRange erosionRange;
+	public BiomeRange peakRange;
 
 	public List<int> structCodes;
 	public List<int> amountStructs;
 	public List<float> percentageStructs;
-	public ushort waterLevel;
 
-	public Biome(string n, byte code, float a, float h, float t, float l, ushort water, List<int> structCodes, List<int> amountStructs, List<float> percentageStructs){
+	public Biome(string n, BiomeCode code, BiomeRange t, BiomeRange h, BiomeRange b, BiomeRange e, BiomeRange p, List<int> structCodes, List<int> amountStructs, List<float> percentageStructs){
 		this.name = n;
-		this.biomeCode = code;
-		this.altitude = a;
-		this.humidity = h;
-		this.temperature = t;
-		this.lightning = l;
-
-		this.waterLevel = water;
+		this.biomeCode = (byte)code;
+		
+		this.temperatureRange = t;
+		this.humidityRange = h;
+		this.baseRange = b;
+		this.erosionRange = e;
+		this.peakRange = p;
 
 		this.structCodes = structCodes;
 		this.amountStructs = amountStructs;
 		this.percentageStructs = percentageStructs;
 	}
+}
 
-	public float4 GetStats(){
-		return new float4(this.altitude, this.humidity, this.temperature, this.lightning);
-	}
+public struct BiomeRange{
+	public float x;
+	public float y;
+
+	public BiomeRange(float x, float y){
+		this.x = x;
+		this.y = y;
+	} 
+
+	public float GetLower(){return this.x;}
+	public float GetUpper(){return this.y;}
+}
+
+public enum BiomeCode : byte{
+	PLAINS,
+	GRASSY_HIGHLANDS,
+	OCEAN,
+	FOREST,
+	DESERT
 }

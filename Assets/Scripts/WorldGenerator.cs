@@ -33,19 +33,20 @@ public class WorldGenerator
     private NativeArray<byte> baseMap;
     private NativeArray<byte> erosionMap;
     private NativeArray<byte> peakMap;
+    private NativeArray<byte> temperatureMap;
+    private NativeArray<byte> humidityMap;
 
-    public WorldGenerator(int worldSeed, float dispersionSeed, float offsetHash, float generationSeed, BiomeHandler biomeReference, StructureHandler structHandler, ChunkLoader_Server reference){
+    public WorldGenerator(int worldSeed, BiomeHandler biomeReference, StructureHandler structHandler, ChunkLoader_Server reference){
     	this.worldSeed = worldSeed;
-    	this.dispersionSeed = dispersionSeed;
     	this.biomeHandler = biomeReference;
-    	this.offsetHash = offsetHash;
-    	this.generationSeed = generationSeed;
     	this.cl = reference;
     	this.structHandler = structHandler;
 
         baseMap = new NativeArray<byte>(GenerationSeed.baseNoise, Allocator.Persistent);
         erosionMap = new NativeArray<byte>(GenerationSeed.erosionNoise, Allocator.Persistent);
         peakMap = new NativeArray<byte>(GenerationSeed.peakNoise, Allocator.Persistent);
+        temperatureMap = new NativeArray<byte>(GenerationSeed.temperatureNoise, Allocator.Persistent);
+        humidityMap = new NativeArray<byte>(GenerationSeed.humidityNoise, Allocator.Persistent);
     }
 
     public WorldGenerator(int seed){
@@ -54,6 +55,8 @@ public class WorldGenerator
         baseMap = new NativeArray<byte>(GenerationSeed.baseNoise, Allocator.Persistent);
         erosionMap = new NativeArray<byte>(GenerationSeed.erosionNoise, Allocator.Persistent);
         peakMap = new NativeArray<byte>(GenerationSeed.peakNoise, Allocator.Persistent);
+        temperatureMap = new NativeArray<byte>(GenerationSeed.temperatureNoise, Allocator.Persistent);
+        humidityMap = new NativeArray<byte>(GenerationSeed.humidityNoise, Allocator.Persistent);
     }
 
     public void SetVoxdata(ushort[] data){
@@ -85,6 +88,8 @@ public class WorldGenerator
         this.baseMap.Dispose();
         this.erosionMap.Dispose();
         this.peakMap.Dispose();
+        this.temperatureMap.Dispose();
+        this.humidityMap.Dispose();
     }
 
 
@@ -272,11 +277,13 @@ public class WorldGenerator
     }
 
     /*
-    Testing only
+    Biome Generation
     */
 
-    public float Noise(float x, float y, NoiseMap type)
+    public float[] BiomeNoise(float x, float y)
     {
+        float[] biomeVector = new float[5];
+
         int X = Mathf.FloorToInt(x) & 0xff;
         int Y = Mathf.FloorToInt(y) & 0xff;
         x -= Mathf.Floor(x);
@@ -285,116 +292,37 @@ public class WorldGenerator
         float u = Fade(x);
         float v = Fade(y);
 
-        if(type == NoiseMap.BASE){
-            int A = (baseMap[X  ] + Y) & 0xff;
-            int B = (baseMap[X+1] + Y) & 0xff;
-            return Lerp(v, Lerp(u, Grad(baseMap[A  ], x, y  ), Grad(baseMap[B  ], x-1, y  )),
-                           Lerp(u, Grad(baseMap[A+1], x, y-1), Grad(baseMap[B+1], x-1, y-1)));
+        // Base Noise
+        int A = (baseMap[X  ] + Y) & 0xff;
+        int B = (baseMap[X+1] + Y) & 0xff;
+        biomeVector[0] = Lerp(v, Lerp(u, Grad(baseMap[A  ], x, y  ), Grad(baseMap[B  ], x-1, y  )),
+                       Lerp(u, Grad(baseMap[A+1], x, y-1), Grad(baseMap[B+1], x-1, y-1)));
         
-        }
-        else if(type == NoiseMap.EROSION){
-            int A = (erosionMap[X  ] + Y) & 0xff;
-            int B = (erosionMap[X+1] + Y) & 0xff;
-            return Lerp(v, Lerp(u, Grad(erosionMap[A  ], x, y  ), Grad(erosionMap[B  ], x-1, y  )),
-                           Lerp(u, Grad(erosionMap[A+1], x, y-1), Grad(erosionMap[B+1], x-1, y-1)));
-        }
-        else if(type == NoiseMap.PEAK){
-            int A = (peakMap[X  ] + Y) & 0xff;
-            int B = (peakMap[X+1] + Y) & 0xff;
-            return Lerp(v, Lerp(u, Grad(peakMap[A  ], x, y  ), Grad(peakMap[B  ], x-1, y  )),
-                           Lerp(u, Grad(peakMap[A+1], x, y-1), Grad(peakMap[B+1], x-1, y-1)));
-        }
-        else{
-            int A = (baseMap[X  ] + Y) & 0xff;
-            int B = (baseMap[X+1] + Y) & 0xff;
-            return Lerp(v, Lerp(u, Grad(baseMap[A  ], x, y  ), Grad(baseMap[B  ], x-1, y  )),
-                           Lerp(u, Grad(baseMap[A+1], x, y-1), Grad(baseMap[B+1], x-1, y-1)));
-        }
+        // Erosion Noise
+        A = (erosionMap[X  ] + Y) & 0xff;
+        B = (erosionMap[X+1] + Y) & 0xff;
+        biomeVector[1] = Lerp(v, Lerp(u, Grad(erosionMap[A  ], x, y  ), Grad(erosionMap[B  ], x-1, y  )),
+                       Lerp(u, Grad(erosionMap[A+1], x, y-1), Grad(erosionMap[B+1], x-1, y-1)));
+
+        // Peak Noise
+        A = (peakMap[X  ] + Y) & 0xff;
+        B = (peakMap[X+1] + Y) & 0xff;
+        biomeVector[2] =  Lerp(v, Lerp(u, Grad(peakMap[A  ], x, y  ), Grad(peakMap[B  ], x-1, y  )),
+                       Lerp(u, Grad(peakMap[A+1], x, y-1), Grad(peakMap[B+1], x-1, y-1)));
+
+        // Temperature Noise
+        A = (temperatureMap[X  ] + Y) & 0xff;
+        B = (temperatureMap[X+1] + Y) & 0xff;
+        biomeVector[3] = Lerp(v, Lerp(u, Grad(temperatureMap[A  ], x, y  ), Grad(temperatureMap[B  ], x-1, y  )),
+                       Lerp(u, Grad(temperatureMap[A+1], x, y-1), Grad(temperatureMap[B+1], x-1, y-1)));
         
-    }
+        // Humidity Noise
+        A = (humidityMap[X  ] + Y) & 0xff;
+        B = (humidityMap[X+1] + Y) & 0xff;
+        biomeVector[4] = Lerp(v, Lerp(u, Grad(humidityMap[A  ], x, y  ), Grad(humidityMap[B  ], x-1, y  )),
+                       Lerp(u, Grad(humidityMap[A+1], x, y-1), Grad(humidityMap[B+1], x-1, y-1)));
 
-    public void PrintMap(){
-        Texture2D image = new Texture2D(512, 512);
-        int index = this.peakMap.Length-2;
-        float color;
-        float y;
-
-        for(int x = 0; x < 512; x++){
-            for(int z = 0; z < 512; z++){
-                y = FindSplineHeight((Noise(x*0.013f, z*0.013f, NoiseMap.PEAK) + (Noise(x*0.0237f, z*0.0237f, NoiseMap.PEAK)))/2f, NoiseMap.PEAK);
-                color = (y+40)/90f;
-                image.SetPixel(x, z, new Color(color, color, color));
-            }
-        }
-
-        image.Apply();
-
-        File.WriteAllBytes("spline.png", ImageConversion.EncodeToPNG(image));          
-    }
-
-    private float FindSplineHeight(float noiseValue, NoiseMap type){
-        int  index = GenerationSeed.baseNoiseSplineX.Length-2;
-
-        if(type == NoiseMap.BASE){
-            for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){
-                if(GenerationSeed.baseNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
-                }
-            }
-
-            float inverseLerp = (noiseValue - GenerationSeed.baseNoiseSplineX[index])/(GenerationSeed.baseNoiseSplineX[index+1] - GenerationSeed.baseNoiseSplineX[index]) ;
-
-            if(GenerationSeed.baseNoiseSplineY[index] > GenerationSeed.baseNoiseSplineY[index+1])
-                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
-            else
-                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
-        }
-        else if(type == NoiseMap.EROSION){
-            for(int i=1; i < GenerationSeed.erosionNoiseSplineX.Length; i++){
-                if(GenerationSeed.erosionNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
-                }
-            }
-
-            float inverseLerp = (noiseValue - GenerationSeed.erosionNoiseSplineX[index])/(GenerationSeed.erosionNoiseSplineX[index+1] - GenerationSeed.erosionNoiseSplineX[index]) ;
-
-            if(GenerationSeed.erosionNoiseSplineY[index] > GenerationSeed.erosionNoiseSplineY[index+1])
-                return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
-            else
-                return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
-        }
-        else if(type == NoiseMap.PEAK){
-            for(int i=1; i < GenerationSeed.peakNoiseSplineX.Length; i++){
-                if(GenerationSeed.peakNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
-                }
-            }
-
-            float inverseLerp = (noiseValue - GenerationSeed.peakNoiseSplineX[index])/(GenerationSeed.peakNoiseSplineX[index+1] - GenerationSeed.peakNoiseSplineX[index]) ;
-
-            if(GenerationSeed.peakNoiseSplineY[index] > GenerationSeed.peakNoiseSplineY[index+1])
-                return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
-            else
-                return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
-        }
-        else{
-            for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){
-                if(GenerationSeed.baseNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
-                }
-            }
-
-            float inverseLerp = (noiseValue - GenerationSeed.baseNoiseSplineX[index])/(GenerationSeed.baseNoiseSplineX[index+1] - GenerationSeed.baseNoiseSplineX[index]) ;
-
-            if(GenerationSeed.baseNoiseSplineY[index] > GenerationSeed.baseNoiseSplineY[index+1])
-                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
-            else
-                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));            
-        }
+        return biomeVector;
     }
 
     private float Fade(float t)

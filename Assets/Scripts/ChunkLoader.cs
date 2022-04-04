@@ -34,7 +34,7 @@ public class ChunkLoader : MonoBehaviour
     public GameObject gameUI;
     public StructureHandler structHandler;
     public Client client;
-    public BiomeHandler biomeHandler = new BiomeHandler(0);
+    public BiomeHandler biomeHandler = new BiomeHandler();
 
     // Received from Server
     public float playerX;
@@ -184,7 +184,6 @@ public class ChunkLoader : MonoBehaviour
 
         // Fix Unloaded Chunks
         if(this.timer % 2400 == 0){
-            Debug.Log("Fixing unloaded");
             FixUnloaded();
         }
     }
