@@ -97,7 +97,6 @@ public class Server
 					Debug.Log("local");
 					break;
 				default:
-
 					break;
 			}
 		}

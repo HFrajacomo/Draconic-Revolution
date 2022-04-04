@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
@@ -77,12 +78,12 @@ public class RegionFileHandler{
 
 		#if UNITY_EDITOR
 			this.saveDir = "Worlds/";
-			this.worldDir = "Worlds/" + this.worldName + "/";
+			this.worldDir = this.saveDir + this.worldName + "/";
 		#else
 			// If is in Dedicated Server
 			if(!World.isClient){
 				this.saveDir = "Worlds/";
-				this.worldDir = "Worlds/" + this.worldName + "/";
+				this.worldDir = this.saveDir + this.worldName + "/";
 			}
 			// If it's a Local Server
 			else{
@@ -90,7 +91,6 @@ public class RegionFileHandler{
 				this.worldDir = this.saveDir + this.worldName + "\\";			
 			}
 		#endif
-
 
 		// If "Worlds/" dir doesn't exist
 		if(!Directory.Exists(this.saveDir)){
@@ -533,6 +533,11 @@ public class RegionFileHandler{
 		return (long)(pos.z*chunkLength + pos.x);
 	}
 
+	// Sets the name of the world
+	public void SetWorldName(){
+
+	}
+
 }
 
 public struct RegionFile{
@@ -540,6 +545,7 @@ public struct RegionFile{
 	public ChunkPos regionPos; // Variable to represent Region coordinates, and not Chunk coordinates
 	private float chunkLength;
 	private string worldDir;
+	private string saveDir;
 
 	// File Data
 	public Stream file;
@@ -561,11 +567,27 @@ public struct RegionFile{
 		this.regionPos = pos;
 		this.chunkLength = chunkLen;
 		this.index = new Dictionary<long, long>();
-		this.worldDir = "Worlds/" + World.worldName + "/";
 
 		this.cachedIndex = new byte[16384];
 		this.cachedHoles = new byte[16384];
 		this.longArray = new byte[8];
+
+
+		#if UNITY_EDITOR
+			this.saveDir = "Worlds/";
+			this.worldDir = this.saveDir + World.worldName + "/";
+		#else
+			// If is in Dedicated Server
+			if(!World.isClient){
+				this.saveDir = "Worlds/";
+				this.worldDir = this.saveDir + World.worldName + "/";
+			}
+			// If it's a Local Server
+			else{
+				this.saveDir = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\";
+				this.worldDir = this.saveDir + World.worldName + "\\";			
+			}
+		#endif
 
 		try{
 			this.file = File.Open(this.worldDir + name + ".rdf", FileMode.Open);

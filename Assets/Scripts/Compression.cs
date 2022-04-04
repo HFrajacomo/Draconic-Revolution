@@ -36,9 +36,6 @@ public static class Compression{
 		JobHandle handle = cbJob.Schedule();
 		handle.Complete();
 
-		// NativeArray to Array convertion
-		//buff.CopyTo(cachedData);
-		//cachedData.CopyTo(buffer, targetPos);
 		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, writtenBytes[0]);
 
 		bytes = writtenBytes[0];
@@ -72,9 +69,6 @@ public static class Compression{
 		JobHandle handle = cmdJob.Schedule();
 		handle.Complete();
 
-		// NativeArray to Array convertion
-		//buff.CopyTo(cachedData);
-		//cachedData.CopyTo(buffer, targetPos);
 		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, writtenBytes[0]);
 
 		bytes = writtenBytes[0];
@@ -108,9 +102,6 @@ public static class Compression{
 		JobHandle handle = cmdJob.Schedule();
 		handle.Complete();
 
-		// NativeArray to Array convertion
-		//buff.CopyTo(cachedData);
-		//cachedData.CopyTo(buffer, targetPos);
 		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, writtenBytes[0]);
 
 		bytes = writtenBytes[0];
@@ -363,7 +354,7 @@ public struct CompressionJob : IJob{
 	public void Execute(){
 		ushort blockCode;
 		ushort bufferedBlock = 0;
-		ushort bufferedCount = 0;
+		int bufferedCount = 0;
 		bool contains;
 
 		// Block Data
@@ -382,7 +373,7 @@ public struct CompressionJob : IJob{
 					else if(!contains){
 						WriteShort(bufferedBlock, writtenBytes[0]);
 						writtenBytes[0] += 2;
-						WriteShort(bufferedCount, writtenBytes[0]);
+						WriteShort((ushort)bufferedCount, writtenBytes[0]);
 						writtenBytes[0] += 2;
 						WriteShort(blockCode, writtenBytes[0]);
 						writtenBytes[0] += 2;
@@ -396,7 +387,7 @@ public struct CompressionJob : IJob{
 					else if(contains && bufferedBlock != blockCode && bufferedCount > 0){
 						WriteShort(bufferedBlock, writtenBytes[0]);
 						writtenBytes[0] += 2;
-						WriteShort(bufferedCount, writtenBytes[0]);
+						WriteShort((ushort)bufferedCount, writtenBytes[0]);
 						writtenBytes[0] += 2;	
 						bufferedBlock = blockCode;
 						bufferedCount = 1;					
@@ -414,7 +405,7 @@ public struct CompressionJob : IJob{
 		if(bufferedCount > 0){
 			WriteShort(bufferedBlock, writtenBytes[0]);
 			writtenBytes[0] += 2;
-			WriteShort(bufferedCount, writtenBytes[0]);
+			WriteShort((ushort)bufferedCount, writtenBytes[0]);
 			writtenBytes[0] += 2;
 		}
 	}

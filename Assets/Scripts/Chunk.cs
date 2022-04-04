@@ -26,10 +26,10 @@ public class Chunk
 	private NetMessage message;
 
 	// Draw Flags
-	private bool xPlusDrawn = false;
-	private bool zPlusDrawn = false;
-	private bool xMinusDrawn = false;
-	private bool zMinusDrawn = false;
+	public bool xPlusDrawn = false;
+	public bool zPlusDrawn = false;
+	public bool xMinusDrawn = false;
+	public bool zMinusDrawn = false;
 	public bool drawMain = false;
 
 	// Unity Settings

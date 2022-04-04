@@ -20,10 +20,12 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkPos newChunk;
 	public List<ChunkPos> toRequest = new List<ChunkPos>();
     public List<byte[]> toLoad = new List<byte[]>();
+    public List<ChunkPos> toLoadChunk = new List<ChunkPos>();
     public List<ChunkPos> toUpdate = new List<ChunkPos>();
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
     public List<ChunkPos> toDraw = new List<ChunkPos>();
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
+    public List<ChunkPos> toRedrawFix = new List<ChunkPos>();
     public List<ChunkPos> toUpdateNoLight = new List<ChunkPos>();
     public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 	public BlockEncyclopedia blockBook;
@@ -62,7 +64,7 @@ public class ChunkLoader : MonoBehaviour
     public bool SENTINFOTOSERVER = false;
 
     // Timer
-    private byte timer = 0;
+    private ushort timer = 0;
 
     // Cache Data
     private ChunkPos cachePos = new ChunkPos(0,0);
@@ -160,16 +162,30 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Run attached messages to a 30 frame timer
+    // Run attached messages to a 600 frame timer
+    /*
+    Registered Events:
+
+    Heartbeart:         30 ticks
+    FixUnloadedChunks:  2400 ticks
+    */
     private void RunTimerFunctions(){
-        if(this.timer < 30)
+        if(this.timer < 2400)
             this.timer++;
-        else{
+        else
+            this.timer = 1;
+
+        // Heartbeat
+        if(this.timer % 30 == 0){
             this.client.CheckTimeout();
             NetMessage heartbeat = new NetMessage(NetCode.HEARTBEAT);
             this.client.Send(heartbeat.GetMessage(), heartbeat.size);
+        }
 
-            this.timer = 0;
+        // Fix Unloaded Chunks
+        if(this.timer % 2400 == 0){
+            Debug.Log("Fixing unloaded");
+            FixUnloaded();
         }
     }
 
@@ -299,7 +315,8 @@ public class ChunkLoader : MonoBehaviour
                 if(!this.toDraw.Contains(cp))
                     this.toDraw.Add(cp);
 
-                toLoad.RemoveAt(0);            
+                toLoad.RemoveAt(0);
+                toLoadChunk.RemoveAt(0);        
             }
         }
     }
@@ -351,6 +368,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Actually builds the mesh for loaded chunks
     private void DrawChunk(){
+        // toDRAW
         if(toDraw.Count > 0){
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
@@ -370,6 +388,7 @@ public class ChunkLoader : MonoBehaviour
             toDraw.RemoveAt(0);
         }
 
+        // toREDRAW
         for(int i=0; i < 2; i++){
             if(toRedraw.Count > 0){
                 if(toDraw.Contains(toRedraw[0])){
@@ -395,6 +414,27 @@ public class ChunkLoader : MonoBehaviour
                 }
                 toRedraw.RemoveAt(0);
             }
+        }
+
+        //toREDRAWFIX
+        if(toRedrawFix.Count > 0){
+            if(toRedraw.Contains(toRedrawFix[0])){
+                toRedrawFix.Add(toRedrawFix[0]);
+                toRedrawFix.RemoveAt(0);
+                return;
+            }
+
+            if(chunks.ContainsKey(toRedrawFix[0])){
+                if(chunks[toRedrawFix[0]].drawMain){
+                    if(!chunks[toRedrawFix[0]].BuildSideBorder(loadBUD:false)){
+                        toRedrawFix.Add(toRedrawFix[0]);
+                    }
+                }
+                else{
+                    toRedrawFix.Add(toRedrawFix[0]);
+                }
+            }
+            toRedrawFix.RemoveAt(0);
         }
 
     }
@@ -728,6 +768,38 @@ public class ChunkLoader : MonoBehaviour
             return GetBlockHeight(pos, blockX, blockZ+1);
 
         return GetBlockHeight(pos, 0, 0);
+    }
+
+    // Re-acquires every chunk that is possibly not loaded and adds all chunks that need redraw (except borders) to redraw list
+    private void FixUnloaded(){
+        ChunkPos newChunk;
+        NetMessage message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
+
+        for(int x=-World.renderDistance; x < World.renderDistance; x++){
+            for(int z=-World.renderDistance; z < World.renderDistance; z++){
+                newChunk = new ChunkPos(this.currentChunk.x+x, this.currentChunk.z+z);
+
+                if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk)){
+                    message.RequestChunkLoad(newChunk);
+                    client.Send(message.GetMessage(), message.size);
+                    continue;
+                }
+
+                if(this.chunks.ContainsKey(newChunk)){
+                    if(!this.chunks[newChunk].drawMain && !this.toDraw.Contains(newChunk))
+                        this.toDraw.Add(newChunk);
+                }
+
+                if(this.chunks.ContainsKey(newChunk)){
+                    Chunk c = this.chunks[newChunk];
+
+                    // If is not a border chunk
+                    if((!c.xPlusDrawn || !c.xMinusDrawn || !c.zPlusDrawn || !c.zMinusDrawn) && (Mathf.Abs(this.currentChunk.x - c.pos.x) < World.renderDistance || Mathf.Abs(this.currentChunk.z - c.pos.z) < World.renderDistance)){
+                        this.toRedrawFix.Add(newChunk);
+                    }
+                }
+            }
+        }
     }
 }
 
