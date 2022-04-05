@@ -535,7 +535,7 @@ public struct GenerateChunkJob: IJob{
                 erosionMultiplier = FindSplineHeight(TransformOctaves(Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.erosionNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.erosionNoiseStep1, NoiseMap.EROSION), Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.erosionNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.erosionNoiseStep2, NoiseMap.EROSION)), NoiseMap.EROSION);
                 peakAdd = FindSplineHeight(TransformOctaves(Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep1, NoiseMap.PEAK), (Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep2, NoiseMap.PEAK))), NoiseMap.PEAK);
 
-                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.CeilToInt((height + peakAdd) * erosionMultiplier));
+                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.CeilToInt((height + PeakErosion(peakAdd, erosionMultiplier)) * erosionMultiplier));
             }
         }
     }
@@ -798,6 +798,11 @@ public struct GenerateChunkJob: IJob{
         float u = h < 8 ? x : y;
         float v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
         return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
+    }
+    private float PeakErosion(float peak, float erosion){
+        if(peak > 0)
+            return peak*(erosion*erosion);
+        return peak;
     }
 }
 
