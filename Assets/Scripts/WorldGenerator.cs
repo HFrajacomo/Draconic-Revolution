@@ -298,43 +298,152 @@ public class WorldGenerator
     {
         float[] biomeVector = new float[5];
 
-        int X = Mathf.FloorToInt(x) & 0xff;
-        int Y = Mathf.FloorToInt(y) & 0xff;
-        x -= Mathf.Floor(x);
-        y -= Mathf.Floor(y);
-
+        // Base Noise
+        x *= GenerationSeed.baseNoiseStep1;
+        x -= Mathf.Floor(x*GenerationSeed.baseNoiseStep1);
+        y *= GenerationSeed.baseNoiseStep1;
+        y -= Mathf.Floor(y*GenerationSeed.baseNoiseStep1);
         float u = Fade(x);
         float v = Fade(y);
 
-        // Base Noise
+        float x2 = x*GenerationSeed.baseNoiseStep2;
+        x2 -= Mathf.Floor(x*GenerationSeed.baseNoiseStep2);
+        float y2 = y*GenerationSeed.baseNoiseStep2;
+        y2 -= Mathf.Floor(y*GenerationSeed.baseNoiseStep2);
+
+        float u2 = Fade(x2);
+        float v2 = Fade(y2);
+
+        int X = Mathf.FloorToInt(x*GenerationSeed.baseNoiseStep1) & 0xff;
+        int Y = Mathf.FloorToInt(y*GenerationSeed.baseNoiseStep1) & 0xff;
+        int X2 = Mathf.FloorToInt(x*GenerationSeed.baseNoiseStep2) & 0xff;
+        int Y2 = Mathf.FloorToInt(y*GenerationSeed.baseNoiseStep2) & 0xff;
         int A = (baseMap[X  ] + Y) & 0xff;
         int B = (baseMap[X+1] + Y) & 0xff;
-        biomeVector[0] = Lerp(v, Lerp(u, Grad(baseMap[A  ], x, y  ), Grad(baseMap[B  ], x-1, y  )),
-                       Lerp(u, Grad(baseMap[A+1], x, y-1), Grad(baseMap[B+1], x-1, y-1)));
+        int A2 = (baseMap[X2  ] + Y2) & 0xff;
+        int B2 = (baseMap[X2+1] + Y2) & 0xff;
+
+        biomeVector[0] = TransformOctaves(Lerp(v, Lerp(u, Grad(baseMap[A  ], x, y  ), Grad(baseMap[B  ], x-1, y  )),
+                       Lerp(u, Grad(baseMap[A+1], x, y-1), Grad(baseMap[B+1], x-1, y-1))), 
+                        Lerp(v2, Lerp(u2, Grad(baseMap[A2  ], x2, y2  ), Grad(baseMap[B2  ], x2-1, y2  )),
+                       Lerp(u2, Grad(baseMap[A2+1], x2, y2-1), Grad(baseMap[B2+1], x2-1, y2-1))));
         
         // Erosion Noise
+        x *= GenerationSeed.erosionNoiseStep1;
+        x -= Mathf.Floor(x*GenerationSeed.erosionNoiseStep1);
+        y *= GenerationSeed.erosionNoiseStep1;
+        y -= Mathf.Floor(y*GenerationSeed.erosionNoiseStep1);
+        u = Fade(x);
+        v = Fade(y);
+
+        x2 = x*GenerationSeed.erosionNoiseStep2;
+        x2 -= Mathf.Floor(x*GenerationSeed.erosionNoiseStep2);
+        y2 = y*GenerationSeed.erosionNoiseStep2;
+        y2 -= Mathf.Floor(y*GenerationSeed.erosionNoiseStep2);
+        
+        u2 = Fade(x2);
+        v2 = Fade(y2);
+
+        X = Mathf.FloorToInt(x*GenerationSeed.erosionNoiseStep1) & 0xff;
+        Y = Mathf.FloorToInt(y*GenerationSeed.erosionNoiseStep1) & 0xff;
+        X2 = Mathf.FloorToInt(x*GenerationSeed.erosionNoiseStep2) & 0xff;
+        Y2 = Mathf.FloorToInt(y*GenerationSeed.erosionNoiseStep2) & 0xff;
         A = (erosionMap[X  ] + Y) & 0xff;
         B = (erosionMap[X+1] + Y) & 0xff;
-        biomeVector[1] = Lerp(v, Lerp(u, Grad(erosionMap[A  ], x, y  ), Grad(erosionMap[B  ], x-1, y  )),
-                       Lerp(u, Grad(erosionMap[A+1], x, y-1), Grad(erosionMap[B+1], x-1, y-1)));
+        A2 = (erosionMap[X2  ] + Y2) & 0xff;
+        B2 = (erosionMap[X2+1] + Y2) & 0xff;
+
+        biomeVector[1] = TransformOctaves(Lerp(v, Lerp(u, Grad(erosionMap[A  ], x, y  ), Grad(erosionMap[B  ], x-1, y  )),
+                       Lerp(u, Grad(erosionMap[A+1], x, y-1), Grad(erosionMap[B+1], x-1, y-1))), 
+                        Lerp(v2, Lerp(u2, Grad(erosionMap[A2  ], x2, y2  ), Grad(erosionMap[B2  ], x2-1, y2  )),
+                       Lerp(u2, Grad(erosionMap[A2+1], x2, y2-1), Grad(erosionMap[B2+1], x2-1, y2-1))));
 
         // Peak Noise
+        x *= GenerationSeed.peakNoiseStep1;
+        x -= Mathf.Floor(x*GenerationSeed.peakNoiseStep1);
+        y *= GenerationSeed.peakNoiseStep1;
+        y -= Mathf.Floor(y*GenerationSeed.peakNoiseStep1);
+        u = Fade(x);
+        v = Fade(y);
+
+        x2 = x*GenerationSeed.peakNoiseStep2;
+        x2 -= Mathf.Floor(x*GenerationSeed.peakNoiseStep2);
+        y2 = y*GenerationSeed.peakNoiseStep2;
+        y2 -= Mathf.Floor(y*GenerationSeed.peakNoiseStep2);
+        
+        u2 = Fade(x2);
+        v2 = Fade(y2);
+
+        X = Mathf.FloorToInt(x*GenerationSeed.peakNoiseStep1) & 0xff;
+        Y = Mathf.FloorToInt(y*GenerationSeed.peakNoiseStep1) & 0xff;
+        X2 = Mathf.FloorToInt(x*GenerationSeed.peakNoiseStep2) & 0xff;
+        Y2 = Mathf.FloorToInt(y*GenerationSeed.peakNoiseStep2) & 0xff;
         A = (peakMap[X  ] + Y) & 0xff;
         B = (peakMap[X+1] + Y) & 0xff;
-        biomeVector[2] =  Lerp(v, Lerp(u, Grad(peakMap[A  ], x, y  ), Grad(peakMap[B  ], x-1, y  )),
-                       Lerp(u, Grad(peakMap[A+1], x, y-1), Grad(peakMap[B+1], x-1, y-1)));
+        A2 = (peakMap[X2  ] + Y2) & 0xff;
+        B2 = (peakMap[X2+1] + Y2) & 0xff;
+        biomeVector[2] =  TransformOctaves(Lerp(v, Lerp(u, Grad(peakMap[A  ], x, y  ), Grad(peakMap[B  ], x-1, y  )),
+                       Lerp(u, Grad(peakMap[A+1], x, y-1), Grad(peakMap[B+1], x-1, y-1))), 
+                        Lerp(v2, Lerp(u2, Grad(peakMap[A2  ], x2, y2  ), Grad(peakMap[B2  ], x2-1, y2  )),
+                       Lerp(u2, Grad(peakMap[A2+1], x2, y2-1), Grad(peakMap[B2+1], x2-1, y2-1))));
 
         // Temperature Noise
+        x *= GenerationSeed.temperatureNoiseStep1;
+        x -= Mathf.Floor(x*GenerationSeed.temperatureNoiseStep1);
+        y *= GenerationSeed.temperatureNoiseStep1;
+        y -= Mathf.Floor(y*GenerationSeed.temperatureNoiseStep1);
+        u = Fade(x);
+        v = Fade(y);
+
+        x2 = x*GenerationSeed.temperatureNoiseStep2;
+        x2 -= Mathf.Floor(x*GenerationSeed.temperatureNoiseStep2);
+        y2 = y*GenerationSeed.temperatureNoiseStep2;
+        y2 -= Mathf.Floor(y*GenerationSeed.temperatureNoiseStep2);
+        
+        u2 = Fade(x2);
+        v2 = Fade(y2);
+
+        X = Mathf.FloorToInt(x*GenerationSeed.temperatureNoiseStep1) & 0xff;
+        Y = Mathf.FloorToInt(y*GenerationSeed.temperatureNoiseStep1) & 0xff;
+        X2 = Mathf.FloorToInt(x*GenerationSeed.temperatureNoiseStep2) & 0xff;
+        Y2 = Mathf.FloorToInt(y*GenerationSeed.temperatureNoiseStep2) & 0xff;
         A = (temperatureMap[X  ] + Y) & 0xff;
         B = (temperatureMap[X+1] + Y) & 0xff;
-        biomeVector[3] = Lerp(v, Lerp(u, Grad(temperatureMap[A  ], x, y  ), Grad(temperatureMap[B  ], x-1, y  )),
-                       Lerp(u, Grad(temperatureMap[A+1], x, y-1), Grad(temperatureMap[B+1], x-1, y-1)));
+        A2 = (temperatureMap[X2  ] + Y2) & 0xff;
+        B2 = (temperatureMap[X2+1] + Y2) & 0xff;
+        biomeVector[3] = TransformOctaves(Lerp(v, Lerp(u, Grad(temperatureMap[A  ], x, y  ), Grad(temperatureMap[B  ], x-1, y  )),
+                       Lerp(u, Grad(temperatureMap[A+1], x, y-1), Grad(temperatureMap[B+1], x-1, y-1))), 
+                        Lerp(v2, Lerp(u2, Grad(temperatureMap[A2  ], x2, y2  ), Grad(temperatureMap[B2  ], x2-1, y2  )),
+                       Lerp(u2, Grad(temperatureMap[A2+1], x2, y2-1), Grad(temperatureMap[B2+1], x2-1, y2-1))));
         
         // Humidity Noise
+        x *= GenerationSeed.humidityNoiseStep1;
+        x -= Mathf.Floor(x*GenerationSeed.humidityNoiseStep1);
+        y *= GenerationSeed.humidityNoiseStep1;
+        y -= Mathf.Floor(y*GenerationSeed.humidityNoiseStep1);
+        u = Fade(x);
+        v = Fade(y);
+
+        x2 = x*GenerationSeed.humidityNoiseStep2;
+        x2 -= Mathf.Floor(x*GenerationSeed.humidityNoiseStep2);
+        y2 = y*GenerationSeed.humidityNoiseStep2;
+        y2 -= Mathf.Floor(y*GenerationSeed.humidityNoiseStep2);
+        
+        u2 = Fade(x2);
+        v2 = Fade(y2);
+
+        X = Mathf.FloorToInt(x*GenerationSeed.humidityNoiseStep1) & 0xff;
+        Y = Mathf.FloorToInt(y*GenerationSeed.humidityNoiseStep1) & 0xff;
+        X2 = Mathf.FloorToInt(x*GenerationSeed.humidityNoiseStep2) & 0xff;
+        Y2 = Mathf.FloorToInt(y*GenerationSeed.humidityNoiseStep2) & 0xff;
         A = (humidityMap[X  ] + Y) & 0xff;
         B = (humidityMap[X+1] + Y) & 0xff;
-        biomeVector[4] = Lerp(v, Lerp(u, Grad(humidityMap[A  ], x, y  ), Grad(humidityMap[B  ], x-1, y  )),
-                       Lerp(u, Grad(humidityMap[A+1], x, y-1), Grad(humidityMap[B+1], x-1, y-1)));
+        A2 = (humidityMap[X2  ] + Y2) & 0xff;
+        B2 = (humidityMap[X2+1] + Y2) & 0xff;
+        biomeVector[4] = TransformOctaves(Lerp(v, Lerp(u, Grad(humidityMap[A  ], x, y  ), Grad(humidityMap[B  ], x-1, y  )),
+                       Lerp(u, Grad(humidityMap[A+1], x, y-1), Grad(humidityMap[B+1], x-1, y-1))), 
+                        Lerp(v2, Lerp(u, Grad(humidityMap[A2  ], x2, y2  ), Grad(humidityMap[B2  ], x2-1, y2  )),
+                       Lerp(u2, Grad(humidityMap[A2+1], x2, y2-1), Grad(humidityMap[B2+1], x2-1, y2-1))));
 
         return biomeVector;
     }
@@ -365,6 +474,12 @@ public class WorldGenerator
         float u = h < 8 ? x : y;
         float v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
         return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
+    }
+    // Calculates the cumulative distribution function of a Normal Distribution
+    private float TransformOctaves(float a, float b){
+        float c = (a+b)/2f;
+
+        return (2f/(1f + Mathf.Exp(-c*4.1f)))-1;
     }
 }
 
@@ -439,8 +554,9 @@ public struct GenerateChunkJob: IJob{
             for(int z=0; z < Chunk.chunkWidth; z++){
                 for(int y=0; y < Chunk.chunkDepth; y++){ 
                     if(y >= heightMap[x*(Chunk.chunkWidth+1)+z]){
-                        if(y <= waterLevel)
+                        if(y <= waterLevel){
                             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 6;
+                        }
                         else
                             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
                     } 
@@ -699,7 +815,7 @@ public struct PopulateChunkJob : IJob{
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
                     depth = 0;
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]; y > 0; y--){
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
                         if(blockCode == 6)
@@ -723,7 +839,7 @@ public struct PopulateChunkJob : IJob{
         else if(code == BiomeCode.GRASSY_HIGHLANDS){
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
-                    int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z];
+                    int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
                     blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
                     if(blockCode != 6)
@@ -731,10 +847,31 @@ public struct PopulateChunkJob : IJob{
                 }
             }       
         }
+        else if(code == BiomeCode.OCEAN){
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    depth = 0;
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                        if(blockCode == 6)
+                            depth++;
+                        else{
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 8;
+                            depth++; 
+                        }
+
+                        if(depth == 5){
+                            break;
+                        }
+                    }
+                }
+            }             
+        }
         else if(code == BiomeCode.FOREST){
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
-                    int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z];
+                    int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
                     blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
                     if(blockCode != 6)
@@ -746,7 +883,7 @@ public struct PopulateChunkJob : IJob{
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
                     depth = 0;
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]; y > 0; y--){
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
                         if(blockCode == 6)
@@ -769,22 +906,28 @@ public struct PopulateChunkJob : IJob{
         int depth = 0;
         int finalDepth = 2;
         ushort blockCode;
+        int height;
 
         for(int x=0; x < Chunk.chunkWidth; x++){
             for(int z=0; z < Chunk.chunkWidth; z++){
-                for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]; y > 0; y--){
-                    blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+                depth = 0;
+                height = (int)heightMap[x*(Chunk.chunkWidth+1)+z];
 
-                    if(blockCode == 6)
-                        continue;
-                    else{
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 8;
-                        depth++; 
-                    }
+                blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+height*Chunk.chunkWidth+z];
 
-                    if(depth == finalDepth){
-                        depth = 0;
-                        break;
+                if(blockCode != 6)
+                    continue;
+                else{
+                    for(int y=height-1; y > 0; y--){
+                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                        if(blockCode != 6){
+                            depth++;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 8;
+                        }
+
+                        if(depth == finalDepth)
+                            break;
                     }
                 }
             }
