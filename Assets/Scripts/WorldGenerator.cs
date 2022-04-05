@@ -272,6 +272,13 @@ public class WorldGenerator
 
         this.cacheBiome = this.biomeHandler.AssignBiome(this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth));
 
+        PopulateChunkJob pcj = new PopulateChunkJob{
+            heightMap = heightMap,
+            blockData = voxelData,
+            biome = this.cacheBiome
+        };
+        job = pcj.Schedule();
+        job.Complete();
 
         cacheVoxdata = NativeTools.CopyToManaged(voxelData);
         cacheMetadataState = NativeTools.CopyToManaged(stateData);
@@ -455,7 +462,7 @@ public struct GenerateChunkJob: IJob{
     }
 
     private float FindSplineHeight(float noiseValue, NoiseMap type){
-        int  index = GenerationSeed.baseNoiseSplineX.Length-2;
+        int index = GenerationSeed.baseNoiseSplineX.Length-2;
 
         if(type == NoiseMap.BASE){
             for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){
@@ -666,5 +673,121 @@ public struct GenerateChunkJob: IJob{
         float u = h < 8 ? x : y;
         float v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
         return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
+    }
+}
+
+[BurstCompile]
+public struct PopulateChunkJob : IJob{
+    public NativeArray<ushort> blockData;
+    [ReadOnly]
+    public NativeArray<float> heightMap;
+
+    [ReadOnly]
+    public byte biome;
+
+    public void Execute(){
+        ApplySurfaceDecoration(biome);
+        ApplyWaterBodyFloor();
+    }
+
+    public void ApplySurfaceDecoration(byte biome){
+        BiomeCode code = (BiomeCode)biome;
+        ushort blockCode;
+        int depth = 0;
+
+        if(code == BiomeCode.PLAINS){
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    depth = 0;
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]; y > 0; y--){
+                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                        if(blockCode == 6)
+                            depth++;
+                        else if(depth == 0){
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 1;
+                            depth++;
+                        }
+                        else{
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 2;
+                            depth++;
+                        }
+
+                        if(depth == 5){
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        else if(code == BiomeCode.GRASSY_HIGHLANDS){
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z];
+                    blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                    if(blockCode != 6)
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;
+                }
+            }       
+        }
+        else if(code == BiomeCode.FOREST){
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z];
+                    blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                    if(blockCode != 6)
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 4;
+                }
+            }         
+        }
+        else if(code == BiomeCode.DESERT){
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    depth = 0;
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]; y > 0; y--){
+                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                        if(blockCode == 6)
+                            depth++;
+                        else{
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 8;
+                            depth++; 
+                        }
+
+                        if(depth == 5){
+                            break;
+                        }
+                    }
+                }
+            }          
+        }
+    }
+
+    public void ApplyWaterBodyFloor(){
+        int depth = 0;
+        int finalDepth = 2;
+        ushort blockCode;
+
+        for(int x=0; x < Chunk.chunkWidth; x++){
+            for(int z=0; z < Chunk.chunkWidth; z++){
+                for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]; y > 0; y--){
+                    blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                    if(blockCode == 6)
+                        continue;
+                    else{
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 8;
+                        depth++; 
+                    }
+
+                    if(depth == finalDepth){
+                        depth = 0;
+                        break;
+                    }
+                }
+            }
+        }          
     }
 }
