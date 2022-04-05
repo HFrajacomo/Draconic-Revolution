@@ -28,6 +28,7 @@ public class WorldGenerator
 	private	ushort[] cacheVoxdata = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private ushort[] cacheMetadataHP = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private ushort[] cacheMetadataState = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
+    private byte cacheBiome;
 
     // Native Noise Maps
     private NativeArray<byte> baseMap;
@@ -76,6 +77,9 @@ public class WorldGenerator
     }
     public ushort[] GetCacheState(){
     	return this.cacheMetadataState;
+    }
+    public string GetCacheBiome(){
+        return BiomeHandler.ByteToBiome(this.cacheBiome);
     }
 
     public void ClearCaches(){
@@ -265,6 +269,9 @@ public class WorldGenerator
         };
         JobHandle job = gcj.Schedule();
         job.Complete();
+
+        this.cacheBiome = this.biomeHandler.AssignBiome(this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth));
+
 
         cacheVoxdata = NativeTools.CopyToManaged(voxelData);
         cacheMetadataState = NativeTools.CopyToManaged(stateData);
