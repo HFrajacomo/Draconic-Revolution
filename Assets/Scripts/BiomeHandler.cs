@@ -7,39 +7,39 @@ public class BiomeHandler
 {
 	public static Dictionary<byte, Biome> dataset = new Dictionary<byte, Biome>();
 	public static Dictionary<byte, string> codeToBiome = new Dictionary<byte, string>();
+	private BiomeTable biomeTable;
 
 	private int currentBiome = 0;
 
 	// Cache Information
 	private static byte[] cachedByte = new byte[1];
+	private Dictionary<Biome, int> score = new Dictionary<Biome, int>();
+
 
 	public BiomeHandler(){
-		Biome plains = new Biome("Plains", BiomeCode.PLAINS,
-		 new BiomeRange(0, 3), new BiomeRange(1, 3), new BiomeRange(0f, 0.4f), new BiomeRange(-0.5f, 0), new BiomeRange(-1, 0.4f), 
+		this.biomeTable = new BiomeTable();
+
+		Biome plains = new Biome("Plains", BiomeCode.PLAINS, BiomeType.LOW,
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,3,2, 4},
 		 new List<float>(){0.07f, 0.05f, 1f, 1f, 0.01f, 1f, 1f, 1f});
 
-		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS,
-		 new BiomeRange(0, 6), new BiomeRange(0, 6), new BiomeRange(0.4f, 1f), new BiomeRange(0, 1), new BiomeRange(0.4f, 1), 
+		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS, BiomeType.PEAK,
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,5,4, 8},
 		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.02f, 1f, 1f, 1f});
 
-		Biome ocean = new Biome("Ocean", BiomeCode.OCEAN,
-		 new BiomeRange(0, 6), new BiomeRange(0, 6), new BiomeRange(-1f, 0f), new BiomeRange(-1f, -0.5f), new BiomeRange(-1, 1f), 
+		Biome ocean = new Biome("Ocean", BiomeCode.OCEAN, BiomeType.OCEAN,
 		 new List<int>(){},
 		 new List<int>(){},
 		 new List<float>(){});
 
-		Biome forest = new Biome("Forest", BiomeCode.FOREST,
-		 new BiomeRange(0, 6), new BiomeRange(4, 6), new BiomeRange(0f, 0.4f), new BiomeRange(-0.5f, 0), new BiomeRange(-1, 0.4f), 
+		Biome forest = new Biome("Forest", BiomeCode.FOREST, BiomeType.MID,
 		 new List<int>(){6,1,2,7,8,9,10,11},
 		 new List<int>(){1,2,2,1,1,3,2, 4},
 		 new List<float>(){0.05f, 1f, 0.5f, 0.1f, 0.3f, 1f, 1f, 1f});
 
-		Biome desert = new Biome("Desert", BiomeCode.DESERT,
-		 new BiomeRange(4, 6), new BiomeRange(0, 3), new BiomeRange(0f, 0.4f), new BiomeRange(-0.5f, 0), new BiomeRange(-1, 0.4f), 
+		Biome desert = new Biome("Desert", BiomeCode.DESERT, BiomeType.LOW,
 		 new List<int>(){5,9,10,11},
 		 new List<int>(){1,3,2, 4},
 		 new List<float>(){0.01f, 1f, 1f, 1f});
@@ -99,88 +99,9 @@ public class BiomeHandler
 	Main Function, assigns biome based on 
 	*/
 	public byte AssignBiome(float[] data){
-		List<Biome> biomes = new List<Biome>();
-		List<int> toRemove = new List<int>();
-
-		foreach(Biome b in dataset.Values)
-			biomes.Add(b);
-
-		// Temp
-		for(int i=0; i < biomes.Count; i++){
-			if(biomes[i].temperatureRange.GetLower() > data[0] || biomes[i].temperatureRange.GetUpper() < data[0]){
-				toRemove.Add(i);
-			}
-		}
-
-		for(int d = toRemove.Count-1; d > 0; d--){
-			if(biomes.Count == 1)
-				return biomes[0].biomeCode;
-
-			biomes.RemoveAt(toRemove[d]);
-			toRemove.RemoveAt(d);
-		}
-
-		// Humidity
-		for(int i=0; i < biomes.Count; i++){
-			if(biomes[i].humidityRange.GetLower() > data[1] || biomes[i].humidityRange.GetUpper() < data[1]){
-				toRemove.Add(i);
-			}
-		}
-
-		for(int d = toRemove.Count-1; d > 0; d--){
-			if(biomes.Count == 1)
-				return biomes[0].biomeCode;
-				
-			biomes.RemoveAt(toRemove[d]);
-			toRemove.RemoveAt(d);
-		}
-
-		// Base
-		for(int i=0; i < biomes.Count; i++){
-			if(biomes[i].baseRange.GetLower() > data[2] || biomes[i].baseRange.GetUpper() < data[2]){
-				toRemove.Add(i);
-			}
-		}
-
-		for(int d = toRemove.Count-1; d > 0; d--){
-			if(biomes.Count == 1)
-				return biomes[0].biomeCode;
-				
-			biomes.RemoveAt(toRemove[d]);
-			toRemove.RemoveAt(d);
-		}
-
-		// Erosion
-		for(int i=0; i < biomes.Count; i++){
-			if(biomes[i].erosionRange.GetLower() > data[3] || biomes[i].erosionRange.GetUpper() < data[3]){
-				toRemove.Add(i);
-			}
-		}
-
-		for(int d = toRemove.Count-1; d > 0; d--){
-			if(biomes.Count == 1)
-				return biomes[0].biomeCode;
-				
-			biomes.RemoveAt(toRemove[d]);
-			toRemove.RemoveAt(d);
-		}
-
-		// Peak
-		for(int i=0; i < biomes.Count; i++){
-			if(biomes[i].peakRange.GetLower() > data[4] || biomes[i].peakRange.GetUpper() < data[4]){
-				toRemove.Add(i);
-			}
-		}
-
-		for(int d = toRemove.Count-1; d > 0; d--){
-			if(biomes.Count == 1)
-				return biomes[0].biomeCode;
-				
-			biomes.RemoveAt(toRemove[d]);
-			toRemove.RemoveAt(d);
-		}
-
-		return biomes[0].biomeCode;
+		float5 biomeInfo = new float5(data[0], data[1], data[2], data[3], data[4]);
+		
+		return (byte)this.biomeTable.GetBiome(biomeInfo);
 	}
 
 }
@@ -189,44 +110,44 @@ public class BiomeHandler
 public struct Biome{
 	public string name;
 	public byte biomeCode;
-
-	public BiomeRange temperatureRange;
-	public BiomeRange humidityRange;
-	public BiomeRange baseRange;
-	public BiomeRange erosionRange;
-	public BiomeRange peakRange;
+	public byte biomeType;
 
 	public List<int> structCodes;
 	public List<int> amountStructs;
 	public List<float> percentageStructs;
 
-	public Biome(string n, BiomeCode code, BiomeRange t, BiomeRange h, BiomeRange b, BiomeRange e, BiomeRange p, List<int> structCodes, List<int> amountStructs, List<float> percentageStructs){
+	public Biome(string n, BiomeCode code, BiomeType type, List<int> structCodes, List<int> amountStructs, List<float> percentageStructs){
 		this.name = n;
 		this.biomeCode = (byte)code;
+		this.biomeType = (byte)type;
 		
-		this.temperatureRange = t;
-		this.humidityRange = h;
-		this.baseRange = b;
-		this.erosionRange = e;
-		this.peakRange = p;
-
 		this.structCodes = structCodes;
 		this.amountStructs = amountStructs;
 		this.percentageStructs = percentageStructs;
 	}
 }
 
-public struct BiomeRange{
-	public float x;
-	public float y;
+public struct float5{
+	public int t;
+	public int h;
+	public int b;
+	public int e;
+	public int p;
 
-	public BiomeRange(float x, float y){
-		this.x = x;
-		this.y = y;
-	} 
+	public float5(float x, float y, float z, float w, float k){
+		this.t = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (x+1)/2f));
+		this.h = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (y+1)/2f));
+		this.b = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (z+1)/2f));
+		this.e = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (w+1)/2f));
+		this.p = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (k+1)/2f));
+	}
+}
 
-	public float GetLower(){return this.x;}
-	public float GetUpper(){return this.y;}
+public enum BiomeType : byte{
+	OCEAN,
+	LOW,
+	MID,
+	PEAK
 }
 
 public enum BiomeCode : byte{

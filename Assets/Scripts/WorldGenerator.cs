@@ -270,7 +270,9 @@ public class WorldGenerator
         JobHandle job = gcj.Schedule();
         job.Complete();
 
-        this.cacheBiome = this.biomeHandler.AssignBiome(this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth));
+        float[] debugVector = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
+        Debug.Log("Chunk: " + pos.ToString() + " -> " + debugVector[0] + ", " + debugVector[1] + ", " + debugVector[2] + ", " + debugVector[3] + ", " + debugVector[4]);
+        this.cacheBiome = this.biomeHandler.AssignBiome(debugVector);
 
         PopulateChunkJob pcj = new PopulateChunkJob{
             heightMap = heightMap,
@@ -296,154 +298,161 @@ public class WorldGenerator
 
     public float[] BiomeNoise(float x, float y)
     {
+        x += 8;
+        y += 8;
+        float initialX = x;
+        float initialY = y;
+
+
         float[] biomeVector = new float[5];
 
-        // Base Noise
-        x *= GenerationSeed.baseNoiseStep1;
-        x -= Mathf.Floor(x*GenerationSeed.baseNoiseStep1);
-        y *= GenerationSeed.baseNoiseStep1;
-        y -= Mathf.Floor(y*GenerationSeed.baseNoiseStep1);
+
+        // Temperature Noise
+        x = initialX*GenerationSeed.temperatureNoiseStep1;
+        x -= Mathf.Floor(x);
+        y = initialY*GenerationSeed.temperatureNoiseStep1;
+        y -= Mathf.Floor(y);
         float u = Fade(x);
         float v = Fade(y);
 
-        float x2 = x*GenerationSeed.baseNoiseStep2;
-        x2 -= Mathf.Floor(x*GenerationSeed.baseNoiseStep2);
-        float y2 = y*GenerationSeed.baseNoiseStep2;
-        y2 -= Mathf.Floor(y*GenerationSeed.baseNoiseStep2);
-
+        float x2 = initialX*GenerationSeed.temperatureNoiseStep2;
+        x2 -= Mathf.Floor(x2);
+        float y2 = initialY*GenerationSeed.temperatureNoiseStep2;
+        y2 -= Mathf.Floor(y2);
+        
         float u2 = Fade(x2);
         float v2 = Fade(y2);
 
-        int X = Mathf.FloorToInt(x*GenerationSeed.baseNoiseStep1) & 0xff;
-        int Y = Mathf.FloorToInt(y*GenerationSeed.baseNoiseStep1) & 0xff;
-        int X2 = Mathf.FloorToInt(x*GenerationSeed.baseNoiseStep2) & 0xff;
-        int Y2 = Mathf.FloorToInt(y*GenerationSeed.baseNoiseStep2) & 0xff;
-        int A = (baseMap[X  ] + Y) & 0xff;
-        int B = (baseMap[X+1] + Y) & 0xff;
-        int A2 = (baseMap[X2  ] + Y2) & 0xff;
-        int B2 = (baseMap[X2+1] + Y2) & 0xff;
-
-        biomeVector[0] = TransformOctaves(Lerp(v, Lerp(u, Grad(baseMap[A  ], x, y  ), Grad(baseMap[B  ], x-1, y  )),
-                       Lerp(u, Grad(baseMap[A+1], x, y-1), Grad(baseMap[B+1], x-1, y-1))), 
-                        Lerp(v2, Lerp(u2, Grad(baseMap[A2  ], x2, y2  ), Grad(baseMap[B2  ], x2-1, y2  )),
-                       Lerp(u2, Grad(baseMap[A2+1], x2, y2-1), Grad(baseMap[B2+1], x2-1, y2-1))));
-        
-        // Erosion Noise
-        x *= GenerationSeed.erosionNoiseStep1;
-        x -= Mathf.Floor(x*GenerationSeed.erosionNoiseStep1);
-        y *= GenerationSeed.erosionNoiseStep1;
-        y -= Mathf.Floor(y*GenerationSeed.erosionNoiseStep1);
-        u = Fade(x);
-        v = Fade(y);
-
-        x2 = x*GenerationSeed.erosionNoiseStep2;
-        x2 -= Mathf.Floor(x*GenerationSeed.erosionNoiseStep2);
-        y2 = y*GenerationSeed.erosionNoiseStep2;
-        y2 -= Mathf.Floor(y*GenerationSeed.erosionNoiseStep2);
-        
-        u2 = Fade(x2);
-        v2 = Fade(y2);
-
-        X = Mathf.FloorToInt(x*GenerationSeed.erosionNoiseStep1) & 0xff;
-        Y = Mathf.FloorToInt(y*GenerationSeed.erosionNoiseStep1) & 0xff;
-        X2 = Mathf.FloorToInt(x*GenerationSeed.erosionNoiseStep2) & 0xff;
-        Y2 = Mathf.FloorToInt(y*GenerationSeed.erosionNoiseStep2) & 0xff;
-        A = (erosionMap[X  ] + Y) & 0xff;
-        B = (erosionMap[X+1] + Y) & 0xff;
-        A2 = (erosionMap[X2  ] + Y2) & 0xff;
-        B2 = (erosionMap[X2+1] + Y2) & 0xff;
-
-        biomeVector[1] = TransformOctaves(Lerp(v, Lerp(u, Grad(erosionMap[A  ], x, y  ), Grad(erosionMap[B  ], x-1, y  )),
-                       Lerp(u, Grad(erosionMap[A+1], x, y-1), Grad(erosionMap[B+1], x-1, y-1))), 
-                        Lerp(v2, Lerp(u2, Grad(erosionMap[A2  ], x2, y2  ), Grad(erosionMap[B2  ], x2-1, y2  )),
-                       Lerp(u2, Grad(erosionMap[A2+1], x2, y2-1), Grad(erosionMap[B2+1], x2-1, y2-1))));
-
-        // Peak Noise
-        x *= GenerationSeed.peakNoiseStep1;
-        x -= Mathf.Floor(x*GenerationSeed.peakNoiseStep1);
-        y *= GenerationSeed.peakNoiseStep1;
-        y -= Mathf.Floor(y*GenerationSeed.peakNoiseStep1);
-        u = Fade(x);
-        v = Fade(y);
-
-        x2 = x*GenerationSeed.peakNoiseStep2;
-        x2 -= Mathf.Floor(x*GenerationSeed.peakNoiseStep2);
-        y2 = y*GenerationSeed.peakNoiseStep2;
-        y2 -= Mathf.Floor(y*GenerationSeed.peakNoiseStep2);
-        
-        u2 = Fade(x2);
-        v2 = Fade(y2);
-
-        X = Mathf.FloorToInt(x*GenerationSeed.peakNoiseStep1) & 0xff;
-        Y = Mathf.FloorToInt(y*GenerationSeed.peakNoiseStep1) & 0xff;
-        X2 = Mathf.FloorToInt(x*GenerationSeed.peakNoiseStep2) & 0xff;
-        Y2 = Mathf.FloorToInt(y*GenerationSeed.peakNoiseStep2) & 0xff;
-        A = (peakMap[X  ] + Y) & 0xff;
-        B = (peakMap[X+1] + Y) & 0xff;
-        A2 = (peakMap[X2  ] + Y2) & 0xff;
-        B2 = (peakMap[X2+1] + Y2) & 0xff;
-        biomeVector[2] =  TransformOctaves(Lerp(v, Lerp(u, Grad(peakMap[A  ], x, y  ), Grad(peakMap[B  ], x-1, y  )),
-                       Lerp(u, Grad(peakMap[A+1], x, y-1), Grad(peakMap[B+1], x-1, y-1))), 
-                        Lerp(v2, Lerp(u2, Grad(peakMap[A2  ], x2, y2  ), Grad(peakMap[B2  ], x2-1, y2  )),
-                       Lerp(u2, Grad(peakMap[A2+1], x2, y2-1), Grad(peakMap[B2+1], x2-1, y2-1))));
-
-        // Temperature Noise
-        x *= GenerationSeed.temperatureNoiseStep1;
-        x -= Mathf.Floor(x*GenerationSeed.temperatureNoiseStep1);
-        y *= GenerationSeed.temperatureNoiseStep1;
-        y -= Mathf.Floor(y*GenerationSeed.temperatureNoiseStep1);
-        u = Fade(x);
-        v = Fade(y);
-
-        x2 = x*GenerationSeed.temperatureNoiseStep2;
-        x2 -= Mathf.Floor(x*GenerationSeed.temperatureNoiseStep2);
-        y2 = y*GenerationSeed.temperatureNoiseStep2;
-        y2 -= Mathf.Floor(y*GenerationSeed.temperatureNoiseStep2);
-        
-        u2 = Fade(x2);
-        v2 = Fade(y2);
-
-        X = Mathf.FloorToInt(x*GenerationSeed.temperatureNoiseStep1) & 0xff;
-        Y = Mathf.FloorToInt(y*GenerationSeed.temperatureNoiseStep1) & 0xff;
-        X2 = Mathf.FloorToInt(x*GenerationSeed.temperatureNoiseStep2) & 0xff;
-        Y2 = Mathf.FloorToInt(y*GenerationSeed.temperatureNoiseStep2) & 0xff;
-        A = (temperatureMap[X  ] + Y) & 0xff;
-        B = (temperatureMap[X+1] + Y) & 0xff;
-        A2 = (temperatureMap[X2  ] + Y2) & 0xff;
-        B2 = (temperatureMap[X2+1] + Y2) & 0xff;
-        biomeVector[3] = TransformOctaves(Lerp(v, Lerp(u, Grad(temperatureMap[A  ], x, y  ), Grad(temperatureMap[B  ], x-1, y  )),
-                       Lerp(u, Grad(temperatureMap[A+1], x, y-1), Grad(temperatureMap[B+1], x-1, y-1))), 
-                        Lerp(v2, Lerp(u2, Grad(temperatureMap[A2  ], x2, y2  ), Grad(temperatureMap[B2  ], x2-1, y2  )),
-                       Lerp(u2, Grad(temperatureMap[A2+1], x2, y2-1), Grad(temperatureMap[B2+1], x2-1, y2-1))));
+        int X = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep1) & 0xff;
+        int Y = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep1) & 0xff;
+        int X2 = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep2) & 0xff;
+        int Y2 = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep2) & 0xff;
+        int A = (GenerationSeed.temperatureNoise[X  ] + Y) & 0xff;
+        int B = (GenerationSeed.temperatureNoise[X+1] + Y) & 0xff;
+        int A2 = (GenerationSeed.temperatureNoise[X2  ] + Y2) & 0xff;
+        int B2 = (GenerationSeed.temperatureNoise[X2+1] + Y2) & 0xff;
+        biomeVector[0] = TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.temperatureNoise[A  ], x, y  ), Grad(GenerationSeed.temperatureNoise[B  ], x-1, y  )),
+                       Lerp(u, Grad(GenerationSeed.temperatureNoise[A+1], x, y-1), Grad(GenerationSeed.temperatureNoise[B+1], x-1, y-1))), 
+                        Lerp(v2, Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2  ], x2, y2  ), Grad(GenerationSeed.temperatureNoise[B2  ], x2-1, y2  )),
+                       Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2+1], x2, y2-1), Grad(GenerationSeed.temperatureNoise[B2+1], x2-1, y2-1))));
         
         // Humidity Noise
-        x *= GenerationSeed.humidityNoiseStep1;
-        x -= Mathf.Floor(x*GenerationSeed.humidityNoiseStep1);
-        y *= GenerationSeed.humidityNoiseStep1;
-        y -= Mathf.Floor(y*GenerationSeed.humidityNoiseStep1);
+        x = initialX*GenerationSeed.humidityNoiseStep1;
+        x -= Mathf.Floor(x);
+        y = initialY*GenerationSeed.humidityNoiseStep1;
+        y -= Mathf.Floor(y);
         u = Fade(x);
         v = Fade(y);
 
-        x2 = x*GenerationSeed.humidityNoiseStep2;
-        x2 -= Mathf.Floor(x*GenerationSeed.humidityNoiseStep2);
-        y2 = y*GenerationSeed.humidityNoiseStep2;
-        y2 -= Mathf.Floor(y*GenerationSeed.humidityNoiseStep2);
+        x2 = initialX*GenerationSeed.humidityNoiseStep2;
+        x2 -= Mathf.Floor(x2);
+        y2 = initialY*GenerationSeed.humidityNoiseStep2;
+        y2 -= Mathf.Floor(y2);
         
         u2 = Fade(x2);
         v2 = Fade(y2);
 
-        X = Mathf.FloorToInt(x*GenerationSeed.humidityNoiseStep1) & 0xff;
-        Y = Mathf.FloorToInt(y*GenerationSeed.humidityNoiseStep1) & 0xff;
-        X2 = Mathf.FloorToInt(x*GenerationSeed.humidityNoiseStep2) & 0xff;
-        Y2 = Mathf.FloorToInt(y*GenerationSeed.humidityNoiseStep2) & 0xff;
-        A = (humidityMap[X  ] + Y) & 0xff;
-        B = (humidityMap[X+1] + Y) & 0xff;
-        A2 = (humidityMap[X2  ] + Y2) & 0xff;
-        B2 = (humidityMap[X2+1] + Y2) & 0xff;
-        biomeVector[4] = TransformOctaves(Lerp(v, Lerp(u, Grad(humidityMap[A  ], x, y  ), Grad(humidityMap[B  ], x-1, y  )),
-                       Lerp(u, Grad(humidityMap[A+1], x, y-1), Grad(humidityMap[B+1], x-1, y-1))), 
-                        Lerp(v2, Lerp(u, Grad(humidityMap[A2  ], x2, y2  ), Grad(humidityMap[B2  ], x2-1, y2  )),
-                       Lerp(u2, Grad(humidityMap[A2+1], x2, y2-1), Grad(humidityMap[B2+1], x2-1, y2-1))));
+        X = Mathf.FloorToInt(initialX*GenerationSeed.humidityNoiseStep1) & 0xff;
+        Y = Mathf.FloorToInt(initialY*GenerationSeed.humidityNoiseStep1) & 0xff;
+        X2 = Mathf.FloorToInt(initialX*GenerationSeed.humidityNoiseStep2) & 0xff;
+        Y2 = Mathf.FloorToInt(initialY*GenerationSeed.humidityNoiseStep2) & 0xff;
+        A = (GenerationSeed.humidityNoise[X  ] + Y) & 0xff;
+        B = (GenerationSeed.humidityNoise[X+1] + Y) & 0xff;
+        A2 = (GenerationSeed.humidityNoise[X2  ] + Y2) & 0xff;
+        B2 = (GenerationSeed.humidityNoise[X2+1] + Y2) & 0xff;
+        biomeVector[1] = TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.humidityNoise[A  ], x, y  ), Grad(GenerationSeed.humidityNoise[B  ], x-1, y  )),
+                       Lerp(u, Grad(GenerationSeed.humidityNoise[A+1], x, y-1), Grad(GenerationSeed.humidityNoise[B+1], x-1, y-1))), 
+                        Lerp(v2, Lerp(u, Grad(GenerationSeed.humidityNoise[A2  ], x2, y2  ), Grad(GenerationSeed.humidityNoise[B2  ], x2-1, y2  )),
+                       Lerp(u2, Grad(GenerationSeed.humidityNoise[A2+1], x2, y2-1), Grad(GenerationSeed.humidityNoise[B2+1], x2-1, y2-1))));
+
+        // Base Noise
+        x = initialX*GenerationSeed.baseNoiseStep1;
+        x -= Mathf.Floor(x);
+        y = initialY*GenerationSeed.baseNoiseStep1;
+        y -= Mathf.Floor(y);
+        u = Fade(x);
+        v = Fade(y);
+
+        x2 = initialX*GenerationSeed.baseNoiseStep2;
+        x2 -= Mathf.Floor(x2);
+        y2 = initialY*GenerationSeed.baseNoiseStep2;
+        y2 -= Mathf.Floor(y2);
+
+        u2 = Fade(x2);
+        v2 = Fade(y2);
+
+        X = Mathf.FloorToInt(initialX*GenerationSeed.baseNoiseStep1) & 0xff;
+        Y = Mathf.FloorToInt(initialY*GenerationSeed.baseNoiseStep1) & 0xff;
+        X2 = Mathf.FloorToInt(initialX*GenerationSeed.baseNoiseStep2) & 0xff;
+        Y2 = Mathf.FloorToInt(initialY*GenerationSeed.baseNoiseStep2) & 0xff;
+        A = (GenerationSeed.baseNoise[X  ] + Y) & 0xff;
+        B = (GenerationSeed.baseNoise[X+1] + Y) & 0xff;
+        A2 = (GenerationSeed.baseNoise[X2  ] + Y2) & 0xff;
+        B2 = (GenerationSeed.baseNoise[X2+1] + Y2) & 0xff;
+
+        biomeVector[2] = TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.baseNoise[A  ], x, y  ), Grad(GenerationSeed.baseNoise[B  ], x-1, y  )),
+                       Lerp(u, Grad(GenerationSeed.baseNoise[A+1], x, y-1), Grad(GenerationSeed.baseNoise[B+1], x-1, y-1))), 
+                        Lerp(v2, Lerp(u2, Grad(GenerationSeed.baseNoise[A2  ], x2, y2  ), Grad(GenerationSeed.baseNoise[B2  ], x2-1, y2  )),
+                       Lerp(u2, Grad(GenerationSeed.baseNoise[A2+1], x2, y2-1), Grad(GenerationSeed.baseNoise[B2+1], x2-1, y2-1))));
+
+        // Erosion Noise
+        x = initialX*GenerationSeed.erosionNoiseStep1;
+        x -= Mathf.Floor(x);
+        y = initialY*GenerationSeed.erosionNoiseStep1;
+        y -= Mathf.Floor(y);
+        u = Fade(x);
+        v = Fade(y);
+
+        x2 = initialX*GenerationSeed.erosionNoiseStep2;
+        x2 -= Mathf.Floor(x2);
+        y2 = initialY*GenerationSeed.erosionNoiseStep2;
+        y2 -= Mathf.Floor(y2);
+        
+        u2 = Fade(x2);
+        v2 = Fade(y2);
+
+        X = Mathf.FloorToInt(initialX*GenerationSeed.erosionNoiseStep1) & 0xff;
+        Y = Mathf.FloorToInt(initialY*GenerationSeed.erosionNoiseStep1) & 0xff;
+        X2 = Mathf.FloorToInt(initialX*GenerationSeed.erosionNoiseStep2) & 0xff;
+        Y2 = Mathf.FloorToInt(initialY*GenerationSeed.erosionNoiseStep2) & 0xff;
+        A = (GenerationSeed.erosionNoise[X  ] + Y) & 0xff;
+        B = (GenerationSeed.erosionNoise[X+1] + Y) & 0xff;
+        A2 = (GenerationSeed.erosionNoise[X2  ] + Y2) & 0xff;
+        B2 = (GenerationSeed.erosionNoise[X2+1] + Y2) & 0xff;
+
+        biomeVector[3] = TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.erosionNoise[A  ], x, y  ), Grad(GenerationSeed.erosionNoise[B  ], x-1, y  )),
+                       Lerp(u, Grad(GenerationSeed.erosionNoise[A+1], x, y-1), Grad(GenerationSeed.erosionNoise[B+1], x-1, y-1))), 
+                        Lerp(v2, Lerp(u2, Grad(GenerationSeed.erosionNoise[A2  ], x2, y2  ), Grad(GenerationSeed.erosionNoise[B2  ], x2-1, y2  )),
+                       Lerp(u2, Grad(GenerationSeed.erosionNoise[A2+1], x2, y2-1), Grad(GenerationSeed.erosionNoise[B2+1], x2-1, y2-1))));
+
+        // Peak Noise
+        x = initialX*GenerationSeed.peakNoiseStep1;
+        x -= Mathf.Floor(x);
+        y = initialY*GenerationSeed.peakNoiseStep1;
+        y -= Mathf.Floor(y);
+        u = Fade(x);
+        v = Fade(y);
+
+        x2 = initialX*GenerationSeed.peakNoiseStep2;
+        x2 -= Mathf.Floor(x2);
+        y2 = initialY*GenerationSeed.peakNoiseStep2;
+        y2 -= Mathf.Floor(y2);
+        
+        u2 = Fade(x2);
+        v2 = Fade(y2);
+
+        X = Mathf.FloorToInt(initialX*GenerationSeed.peakNoiseStep1) & 0xff;
+        Y = Mathf.FloorToInt(initialY*GenerationSeed.peakNoiseStep1) & 0xff;
+        X2 = Mathf.FloorToInt(initialX*GenerationSeed.peakNoiseStep2) & 0xff;
+        Y2 = Mathf.FloorToInt(initialY*GenerationSeed.peakNoiseStep2) & 0xff;
+        A = (GenerationSeed.peakNoise[X  ] + Y) & 0xff;
+        B = (GenerationSeed.peakNoise[X+1] + Y) & 0xff;
+        A2 = (GenerationSeed.peakNoise[X2  ] + Y2) & 0xff;
+        B2 = (GenerationSeed.peakNoise[X2+1] + Y2) & 0xff;
+        biomeVector[4] =  TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.peakNoise[A  ], x, y  ), Grad(GenerationSeed.peakNoise[B  ], x-1, y  )),
+                       Lerp(u, Grad(GenerationSeed.peakNoise[A+1], x, y-1), Grad(GenerationSeed.peakNoise[B+1], x-1, y-1))), 
+                        Lerp(v2, Lerp(u2, Grad(GenerationSeed.peakNoise[A2  ], x2, y2  ), Grad(GenerationSeed.peakNoise[B2  ], x2-1, y2  )),
+                       Lerp(u2, Grad(GenerationSeed.peakNoise[A2+1], x2, y2-1), Grad(GenerationSeed.peakNoise[B2+1], x2-1, y2-1))));
 
         return biomeVector;
     }
