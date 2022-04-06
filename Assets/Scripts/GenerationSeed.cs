@@ -38,15 +38,15 @@ public static class GenerationSeed
     public static byte[] temperatureNoise = new byte[257];
     public static readonly float[] temperatureNoiseSplineX = new float[]{-1, -0.7f, -0.69f, -0.4f, -0.39f, -0.1f, -0.09f, 0.2f, 0.21f, 0.5f, 0.51f, 0.8f, 0.81f, 1};
     public static readonly int[] temperatureNoiseSplineY = new int[]{0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6};
-    public static readonly float temperatureNoiseStep1 = 0.00031f;
-    public static readonly float temperatureNoiseStep2 = 0.0067f;
+    public static readonly float temperatureNoiseStep1 = 0.000093f;
+    public static readonly float temperatureNoiseStep2 = 0.000127f;
 
     // Humidity Noise
     public static byte[] humidityNoise = new byte[257];
     public static readonly float[] humidityNoiseSplineX = new float[]{-1, -0.7f, -0.69f, -0.4f, -0.39f, -0.1f, -0.09f, 0.2f, 0.21f, 0.5f, 0.51f, 0.8f, 0.81f, 1};
     public static readonly int[] humidityNoiseSplineY = new int[]{0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6};
-    public static readonly float humidityNoiseStep1 = 0.0061f;
-    public static readonly float humidityNoiseStep2 = 0.00027f;
+    public static readonly float humidityNoiseStep1 = 0.000121f;
+    public static readonly float humidityNoiseStep2 = 0.000057f;
 
     public static void Initialize(int sed){
         seed = sed;
@@ -74,7 +74,7 @@ public static class GenerationSeed
         peakNoise[256] = peakNoise[0];
 
         // Temperature Noise
-        World.SetRNG((int)((seed >> 16) + (seed << 16)));
+        World.SetRNG((int)((seed >> 1) | 0x80000000));
         for(int i=0; i < 256; i++){
             temperatureNoise[i] = (byte)World.NextRandom(0, 256);
         }
