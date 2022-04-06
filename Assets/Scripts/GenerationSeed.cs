@@ -16,21 +16,21 @@ public static class GenerationSeed
     // Base Noise
     public static byte[] baseNoise = new byte[257];
     public static readonly float[] baseNoiseSplineX = new float[]{-1, -0.6f, -0.5f, -0.1f, 0, 0.4f, 0.5f, 0.8f, 1};
-    public static readonly int[] baseNoiseSplineY = new int[]{60, 60, 80, 90, 110, 120, 130, 160, 185};
-    public static readonly float baseNoiseStep1 = 0.00029f;
-    public static readonly float baseNoiseStep2 = 0.0023f;
+    public static readonly int[] baseNoiseSplineY = new int[]{60, 60, 80, 90, 110, 120, 140, 170, 200};
+    public static readonly float baseNoiseStep1 = 0.00019f;
+    public static readonly float baseNoiseStep2 = 0.0013f;
 
     // Erosion Noise
     public static byte[] erosionNoise = new byte[257];
     public static readonly float[] erosionNoiseSplineX = new float[]{-1, -0.6f, -0.5f, -0.2f, 0.5f, 1};
     public static readonly float[] erosionNoiseSplineY = new float[]{0.2f, 0.3f, 0.5f,  0.9f, 1f, 1f};
-    public static readonly float erosionNoiseStep1 = 0.00117f;
-    public static readonly float erosionNoiseStep2 = 0.00143f;
+    public static readonly float erosionNoiseStep1 = 0.0087f;
+    public static readonly float erosionNoiseStep2 = 0.00113f;
 
     // Peaks Noise
     public static byte[] peakNoise = new byte[257];
-    public static readonly float[] peakNoiseSplineX = new float[]{-1, -0.7f, -0.45f -0.2f, 0, 0.2f, 0.7f, 1};
-    public static readonly int[] peakNoiseSplineY = new int[]{-59, -40, -30, 0, 0, 20, 40, 70};
+    public static readonly float[] peakNoiseSplineX = new float[]{-1, -0.7f, -0.45f -0.2f, 0, 0.2f, 0.5f, 0.7f, 1};
+    public static readonly int[] peakNoiseSplineY = new int[]{-59, -40, -30, 0, 0, 10, 35, 40, 50};
     public static readonly float peakNoiseStep1 = 0.00671f;
     public static readonly float peakNoiseStep2 = 0.00817f;
 
@@ -38,15 +38,15 @@ public static class GenerationSeed
     public static byte[] temperatureNoise = new byte[257];
     public static readonly float[] temperatureNoiseSplineX = new float[]{-1, -0.7f, -0.69f, -0.4f, -0.39f, -0.1f, -0.09f, 0.2f, 0.21f, 0.5f, 0.51f, 0.8f, 0.81f, 1};
     public static readonly int[] temperatureNoiseSplineY = new int[]{0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6};
-    public static readonly float temperatureNoiseStep1 = 0.00071f;
-    public static readonly float temperatureNoiseStep2 = 0.00117f;
+    public static readonly float temperatureNoiseStep1 = 0.00031f;
+    public static readonly float temperatureNoiseStep2 = 0.0067f;
 
     // Humidity Noise
     public static byte[] humidityNoise = new byte[257];
     public static readonly float[] humidityNoiseSplineX = new float[]{-1, -0.7f, -0.69f, -0.4f, -0.39f, -0.1f, -0.09f, 0.2f, 0.21f, 0.5f, 0.51f, 0.8f, 0.81f, 1};
     public static readonly int[] humidityNoiseSplineY = new int[]{0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6};
-    public static readonly float humidityNoiseStep1 = 0.00121f;
-    public static readonly float humidityNoiseStep2 = 0.00057f;
+    public static readonly float humidityNoiseStep1 = 0.0061f;
+    public static readonly float humidityNoiseStep2 = 0.00027f;
 
     public static void Initialize(int sed){
         seed = sed;

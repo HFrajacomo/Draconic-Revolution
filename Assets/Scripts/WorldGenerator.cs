@@ -800,7 +800,7 @@ public struct GenerateChunkJob: IJob{
         return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
     }
     private float PeakErosion(float peak, float erosion){
-        if(peak > 0)
+        if(peak > -0.4f)
             return peak*(erosion*erosion);
         return peak;
     }
