@@ -48,6 +48,11 @@ public static class GenerationSeed
     public static readonly float humidityNoiseStep1 = 0.000121f;
     public static readonly float humidityNoiseStep2 = 0.000057f;
 
+    // Patch Noise
+    public static byte[] patchNoise = new byte[257];
+    public static readonly float patchNoiseStep1 = 0.6721f;
+    public static readonly float patchNoiseStep2 = 0.4299f;
+
     public static void Initialize(int sed){
         seed = sed;
 
@@ -86,6 +91,13 @@ public static class GenerationSeed
             humidityNoise[i] = (byte)World.NextRandom(0, 256);
         }
         humidityNoise[256] = humidityNoise[0];
+
+        // Patch Noise
+        World.SetRNG(seed);
+        for(int i=0; i < 256; i++){
+            patchNoise[i] = (byte)World.NextRandom(0, 256);
+        }
+        patchNoise[256] = patchNoise[0];
     }
 
 

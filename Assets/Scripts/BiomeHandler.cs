@@ -5,8 +5,13 @@ using Unity.Mathematics;
 
 public class BiomeHandler
 {
+	// Main References
+	public WorldGenerator generator;
+
+	// Biome Information
 	public static Dictionary<byte, Biome> dataset = new Dictionary<byte, Biome>();
 	public static Dictionary<byte, string> codeToBiome = new Dictionary<byte, string>();
+	public ushort[] biomeBlendingValue;
 	private BiomeTable biomeTable;
 
 	private int currentBiome = 0;
@@ -20,26 +25,31 @@ public class BiomeHandler
 		this.biomeTable = new BiomeTable();
 
 		Biome plains = new Biome("Plains", BiomeCode.PLAINS, BiomeType.LOW,
+		 1,
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,3,2, 4},
 		 new List<float>(){0.07f, 0.05f, 1f, 1f, 0.01f, 1f, 1f, 1f});
 
 		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS, BiomeType.PEAK,
+		 3,
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,5,4, 8},
 		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.02f, 1f, 1f, 1f});
 
 		Biome ocean = new Biome("Ocean", BiomeCode.OCEAN, BiomeType.OCEAN,
+		 8,
 		 new List<int>(){},
 		 new List<int>(){},
 		 new List<float>(){});
 
 		Biome forest = new Biome("Forest", BiomeCode.FOREST, BiomeType.MID,
+		 4,
 		 new List<int>(){6,1,2,7,8,9,10,11},
 		 new List<int>(){1,2,2,1,1,3,2, 4},
 		 new List<float>(){0.05f, 1f, 0.5f, 0.1f, 0.3f, 1f, 1f, 1f});
 
 		Biome desert = new Biome("Desert", BiomeCode.DESERT, BiomeType.LOW,
+		 8,
 		 new List<int>(){5,9,10,11},
 		 new List<int>(){1,3,2, 4},
 		 new List<float>(){0.01f, 1f, 1f, 1f});
@@ -49,6 +59,17 @@ public class BiomeHandler
 		AddBiome(ocean);
 		AddBiome(forest);
 		AddBiome(desert);
+
+		this.biomeBlendingValue = new ushort[this.currentBiome];
+
+		for(byte i=0; i < this.currentBiome; i++)
+			this.biomeBlendingValue[i] = dataset[i].blendingBlock; 
+	}
+
+	// Sets the WorldGenerator obj reference
+	public void SetWorldGenerator(WorldGenerator wgen){
+		this.generator = wgen;
+		this.generator.SetBiomeBlending(this.biomeBlendingValue);
 	}
 
 	// Gets biome byte code from name
@@ -112,14 +133,18 @@ public struct Biome{
 	public byte biomeCode;
 	public byte biomeType;
 
+	public ushort blendingBlock;
+
 	public List<int> structCodes;
 	public List<int> amountStructs;
 	public List<float> percentageStructs;
 
-	public Biome(string n, BiomeCode code, BiomeType type, List<int> structCodes, List<int> amountStructs, List<float> percentageStructs){
+	public Biome(string n, BiomeCode code, BiomeType type, ushort blendingBlock, List<int> structCodes, List<int> amountStructs, List<float> percentageStructs){
 		this.name = n;
 		this.biomeCode = (byte)code;
 		this.biomeType = (byte)type;
+
+		this.blendingBlock = blendingBlock;
 		
 		this.structCodes = structCodes;
 		this.amountStructs = amountStructs;

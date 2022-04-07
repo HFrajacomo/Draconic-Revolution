@@ -77,6 +77,7 @@ public class ChunkLoader_Server : MonoBehaviour
         worldSeed = regionHandler.GetRealSeed();
         biomeHandler = new BiomeHandler();
         this.worldGen = new WorldGenerator(worldSeed, biomeHandler, structHandler, this);
+        biomeHandler.SetWorldGenerator(this.worldGen);
         
         print("Initializing World");
     

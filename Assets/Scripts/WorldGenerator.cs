@@ -36,6 +36,10 @@ public class WorldGenerator
     private NativeArray<byte> peakMap;
     private NativeArray<byte> temperatureMap;
     private NativeArray<byte> humidityMap;
+    private NativeArray<byte> patchMap;
+
+    // Biome Blending Map
+    private NativeArray<ushort> biomeBlendingBlock;
 
     public WorldGenerator(int worldSeed, BiomeHandler biomeReference, StructureHandler structHandler, ChunkLoader_Server reference){
     	this.worldSeed = worldSeed;
@@ -48,6 +52,7 @@ public class WorldGenerator
         peakMap = new NativeArray<byte>(GenerationSeed.peakNoise, Allocator.Persistent);
         temperatureMap = new NativeArray<byte>(GenerationSeed.temperatureNoise, Allocator.Persistent);
         humidityMap = new NativeArray<byte>(GenerationSeed.humidityNoise, Allocator.Persistent);
+        patchMap = new NativeArray<byte>(GenerationSeed.patchNoise, Allocator.Persistent);
     }
 
     public WorldGenerator(int seed){
@@ -58,6 +63,11 @@ public class WorldGenerator
         peakMap = new NativeArray<byte>(GenerationSeed.peakNoise, Allocator.Persistent);
         temperatureMap = new NativeArray<byte>(GenerationSeed.temperatureNoise, Allocator.Persistent);
         humidityMap = new NativeArray<byte>(GenerationSeed.humidityNoise, Allocator.Persistent);
+        patchMap = new NativeArray<byte>(GenerationSeed.patchNoise, Allocator.Persistent);
+    }
+
+    public void SetBiomeBlending(ushort[] blendingArray){
+        this.biomeBlendingBlock = new NativeArray<ushort>(blendingArray, Allocator.Persistent);
     }
 
     public void SetVoxdata(ushort[] data){
@@ -94,6 +104,8 @@ public class WorldGenerator
         this.peakMap.Dispose();
         this.temperatureMap.Dispose();
         this.humidityMap.Dispose();
+        this.patchMap.Dispose();
+        this.biomeBlendingBlock.Dispose();
     }
 
 
@@ -270,14 +282,38 @@ public class WorldGenerator
         JobHandle job = gcj.Schedule();
         job.Complete();
 
-        float[] debugVector = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
-        Debug.Log("Chunk: " + pos.ToString() + " -> " + debugVector[0] + ", " + debugVector[1] + ", " + debugVector[2] + ", " + debugVector[3] + ", " + debugVector[4]);
-        this.cacheBiome = this.biomeHandler.AssignBiome(debugVector);
+        /*
+        Figuring out the neighboring biomes
+        */
+
+        byte xpBiome, zpBiome, xzpBiome;
+
+        // This Chunk
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
+        this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo);
+
+        // X+ Chunk
+        float[] xPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
+        xpBiome = this.biomeHandler.AssignBiome(xPlusInfo);
+
+        // Z+ Chunk
+        float[] zPlusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
+        zpBiome = this.biomeHandler.AssignBiome(zPlusInfo);
+
+        // XZ+ Chunk
+        float[] xzPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
+        xzpBiome = this.biomeHandler.AssignBiome(xzPlusInfo);
 
         PopulateChunkJob pcj = new PopulateChunkJob{
             heightMap = heightMap,
             blockData = voxelData,
-            biome = this.cacheBiome
+            patchNoise = patchMap,
+            pos = pos,
+            blendingBlock = biomeBlendingBlock,
+            biome = this.cacheBiome,
+            xpBiome = xpBiome,
+            zpBiome = zpBiome,
+            xzpBiome = xzpBiome
         };
         job = pcj.Schedule();
         job.Complete();
@@ -811,12 +847,21 @@ public struct PopulateChunkJob : IJob{
     public NativeArray<ushort> blockData;
     [ReadOnly]
     public NativeArray<float> heightMap;
+    [ReadOnly]
+    public NativeArray<byte> patchNoise;
+    [ReadOnly]
+    public NativeArray<ushort> blendingBlock;
 
     [ReadOnly]
+    public ChunkPos pos;
+    [ReadOnly]
     public byte biome;
+    [ReadOnly]
+    public byte xpBiome, zpBiome, xzpBiome;
 
     public void Execute(){
         ApplySurfaceDecoration(biome);
+        ApplyBiomeBlending();
         ApplyWaterBodyFloor();
     }
 
@@ -946,5 +991,82 @@ public struct PopulateChunkJob : IJob{
                 }
             }
         }          
+    }
+
+    public void ApplyBiomeBlending(){
+        if(biome == xpBiome && xpBiome == zpBiome && zpBiome == xzpBiome)
+            return;
+        
+        int y;
+
+
+        // XZP Side
+        if(biome != xzpBiome && blendingBlock[biome] != blendingBlock[xzpBiome]){
+            for(int z=Chunk.chunkWidth-1; z > 0; z--){
+                for(int x=Chunk.chunkWidth-1; x > 0; x--){
+                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) > 12/(x+z+1)){
+                        y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
+
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xzpBiome];
+                    }
+                }
+            }
+        }
+
+        // XP Side
+        if(biome != xpBiome && blendingBlock[biome] != blendingBlock[xpBiome]){
+            for(int x=Chunk.chunkWidth-1; x > 0; x--){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) > 6/(x+1)){
+                        y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
+
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
+                    }
+                }
+            }
+        }
+
+        // ZP Side
+        if(biome != zpBiome && blendingBlock[biome] != blendingBlock[zpBiome]){
+            for(int z=Chunk.chunkWidth-1; z > 0; z--){
+                for(int x=0; x < Chunk.chunkWidth; x++){
+                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) > 6/(z+1)){
+                        y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
+
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
+                    }
+                }
+            }
+        }
+    }
+
+    private float Noise(float x, float y)
+    {
+        int X = Mathf.FloorToInt(x) & 0xff;
+        int Y = Mathf.FloorToInt(y) & 0xff;
+        x -= Mathf.Floor(x);
+        y -= Mathf.Floor(y);
+
+        float u = Fade(x);
+        float v = Fade(y);
+
+        int A = (patchNoise[X  ] + Y) & 0xff;
+        int B = (patchNoise[X+1] + Y) & 0xff;
+        return Lerp(v, Lerp(u, Grad(patchNoise[A  ], x, y  ), Grad(patchNoise[B  ], x-1, y  )),
+                       Lerp(u, Grad(patchNoise[A+1], x, y-1), Grad(patchNoise[B+1], x-1, y-1)));        
+    }
+
+    private float Fade(float t)
+    {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+
+    private float Lerp(float t, float a, float b)
+    {
+        return a + t * (b - a);
+    }
+    private float Grad(int hash, float x, float y)
+    {
+        return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);
     }
 }
