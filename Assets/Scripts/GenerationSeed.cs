@@ -50,8 +50,8 @@ public static class GenerationSeed
 
     // Patch Noise
     public static byte[] patchNoise = new byte[257];
-    public static readonly float patchNoiseStep1 = 0.6721f;
-    public static readonly float patchNoiseStep2 = 0.4299f;
+    public static readonly float patchNoiseStep1 = 0.4121f;
+    public static readonly float patchNoiseStep2 = 0.2299f;
 
     public static void Initialize(int sed){
         seed = sed;

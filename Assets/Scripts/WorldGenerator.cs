@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -286,7 +286,7 @@ public class WorldGenerator
         Figuring out the neighboring biomes
         */
 
-        byte xpBiome, zpBiome, xzpBiome;
+        byte xpBiome, zpBiome, zmBiome, xzpBiome, xpzmBiome, xmzpBiome;
 
         // This Chunk
         float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
@@ -300,9 +300,21 @@ public class WorldGenerator
         float[] zPlusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
         zpBiome = this.biomeHandler.AssignBiome(zPlusInfo);
 
+        // Z- Chunk
+        float[] zMinusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth);
+        zmBiome = this.biomeHandler.AssignBiome(zMinusInfo);
+
         // XZ+ Chunk
         float[] xzPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
         xzpBiome = this.biomeHandler.AssignBiome(xzPlusInfo);
+
+        // X+Z- Chunk
+        float[] xpzmMinusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth);
+        xpzmBiome = this.biomeHandler.AssignBiome(xpzmMinusInfo);
+
+        // X-Z+ Chunk
+        float[] xmzpMinusInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
+        xmzpBiome = this.biomeHandler.AssignBiome(xmzpMinusInfo);
 
         PopulateChunkJob pcj = new PopulateChunkJob{
             heightMap = heightMap,
@@ -313,7 +325,10 @@ public class WorldGenerator
             biome = this.cacheBiome,
             xpBiome = xpBiome,
             zpBiome = zpBiome,
-            xzpBiome = xzpBiome
+            zmBiome = zmBiome,
+            xzpBiome = xzpBiome,
+            xpzmBiome = xpzmBiome,
+            xmzpBiome = xmzpBiome
         };
         job = pcj.Schedule();
         job.Complete();
@@ -857,7 +872,9 @@ public struct PopulateChunkJob : IJob{
     [ReadOnly]
     public byte biome;
     [ReadOnly]
-    public byte xpBiome, zpBiome, xzpBiome;
+    public byte xpBiome, zpBiome, zmBiome;
+    [ReadOnly]
+    public byte xzpBiome, xpzmBiome, xmzpBiome;
 
     public void Execute(){
         ApplySurfaceDecoration(biome);
@@ -994,50 +1011,120 @@ public struct PopulateChunkJob : IJob{
     }
 
     public void ApplyBiomeBlending(){
-        if(biome == xpBiome && xpBiome == zpBiome && zpBiome == xzpBiome)
+        int blendingAmount = Chunk.chunkWidth - 3;
+        int exageratedBlendingAmount = blendingAmount - (Chunk.chunkWidth - blendingAmount);
+        float blendingSafety = 0f;
+
+        if(biome == xpBiome && biome == zpBiome)
             return;
         
         int y;
 
+        // X+ Side
+        if(blendingBlock[biome] != blendingBlock[xpBiome]){
+            // If needs rounded borders at the top
+            if(biome != xpBiome && xpBiome != xzpBiome){
+                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
+                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
+                        if(x-z > 0 && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
+                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
 
-        // XZP Side
-        if(biome != xzpBiome && blendingBlock[biome] != blendingBlock[xzpBiome]){
-            for(int z=Chunk.chunkWidth-1; z > 0; z--){
-                for(int x=Chunk.chunkWidth-1; x > 0; x--){
-                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) > 12/(x+z+1)){
-                        y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
+                        }
+                    }
+                }                
+            }
+            // If needs rounded borders at the bottom
+            else if(biome != xpBiome && xpBiome != xpzmBiome){
+                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
+                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
+                        if(x+z >= Chunk.chunkWidth && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
+                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
 
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xzpBiome];
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
+                        }
                     }
                 }
             }
-        }
+            // Both edges are rounded
+            else if(biome != xpBiome && xpBiome != xzpBiome && xpBiome != xpzmBiome){
+                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
+                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
+                        if(x+z <= blendingAmount*2 && x-z <= blendingAmount && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
+                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
 
-        // XP Side
-        if(biome != xpBiome && blendingBlock[biome] != blendingBlock[xpBiome]){
-            for(int x=Chunk.chunkWidth-1; x > 0; x--){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) > 6/(x+1)){
-                        y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
+                        }
                     }
                 }
             }
+
+            // "Straight" line through border
+            else{
+                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
+                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
+                        if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
+                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
+
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
+                        }
+                    }
+                }                
+            }
         }
 
-        // ZP Side
-        if(biome != zpBiome && blendingBlock[biome] != blendingBlock[zpBiome]){
-            for(int z=Chunk.chunkWidth-1; z > 0; z--){
-                for(int x=0; x < Chunk.chunkWidth; x++){
-                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) > 6/(z+1)){
-                        y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
+        // Z+ Side
+        if(blendingBlock[biome] != blendingBlock[zpBiome]){
+            // If needs rounded borders at the right
+            if(biome != zpBiome && zpBiome != xzpBiome){
+                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
+                    for(int x=0; x < Chunk.chunkWidth; x++){
+                        if(x-z <= blendingAmount - Chunk.chunkWidth && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
+                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
 
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
+                        }
+                    }
+                }                
+            }
+            // If needs rounded borders at the left
+            else if(biome != zpBiome && zpBiome != xmzpBiome){
+                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
+                    for(int x=0; x < Chunk.chunkWidth; x++){
+                        if(x+z >= Chunk.chunkWidth-1 && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
+                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
+
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
+                        }
                     }
                 }
             }
+            // Both ends are rounded
+            else if(biome != zpBiome && zpBiome != xzpBiome && zpBiome != xmzpBiome){
+                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
+                    for(int x=0; x < Chunk.chunkWidth; x++){
+                        if(x-z <= blendingAmount - Chunk.chunkWidth && x+z >= Chunk.chunkWidth-1 && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
+                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
+
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
+                        }
+                    }
+                }                
+            }
+            // "Straight" line through border
+            else{
+                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
+                    for(int x=Chunk.chunkWidth-1; x >= 0; x--){
+                        if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
+                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
+
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
+                        }
+                    }
+                }               
+            }
         }
+
     }
 
     private float Noise(float x, float y)
