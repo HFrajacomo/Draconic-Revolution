@@ -40,6 +40,11 @@ public class WorldGenerator
     private NativeArray<byte> patchMap;
     private NativeArray<byte> caveMap;
 
+    // Other Native Objects
+    private NativeHashSet<ushort> caveFreeBlocks;
+    private ushort[] caveFreeBlocksArray = new ushort[]{6};
+
+
     // Biome Blending Map
     private NativeArray<ushort> biomeBlendingBlock;
 
@@ -58,6 +63,9 @@ public class WorldGenerator
         humidityMap = new NativeArray<byte>(GenerationSeed.humidityNoise, Allocator.Persistent);
         patchMap = new NativeArray<byte>(GenerationSeed.patchNoise, Allocator.Persistent);
         caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
+
+        caveFreeBlocks = new NativeHashSet<ushort>(0, Allocator.Persistent);
+        FillCaveFreeBlocks();
     }
 
     public WorldGenerator(int seed){
@@ -70,6 +78,9 @@ public class WorldGenerator
         humidityMap = new NativeArray<byte>(GenerationSeed.humidityNoise, Allocator.Persistent);
         patchMap = new NativeArray<byte>(GenerationSeed.patchNoise, Allocator.Persistent);
         caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
+
+        caveFreeBlocks = new NativeHashSet<ushort>(0, Allocator.Persistent);
+        FillCaveFreeBlocks();
     }
 
     public void SetBiomeBlending(ushort[] blendingArray){
@@ -98,6 +109,12 @@ public class WorldGenerator
         return BiomeHandler.ByteToBiome(this.cacheBiome);
     }
 
+    public void FillCaveFreeBlocks(){
+        foreach(ushort block in this.caveFreeBlocksArray){
+            this.caveFreeBlocks.Add(block);
+        }
+    }
+
     public void ClearCaches(){
         Array.Clear(this.cacheVoxdata, 0, this.cacheVoxdata.Length);
         Array.Clear(this.cacheMetadataHP, 0, this.cacheMetadataHP.Length);
@@ -113,6 +130,8 @@ public class WorldGenerator
         this.patchMap.Dispose();
         this.caveMap.Dispose();
         this.biomeBlendingBlock.Dispose();
+
+        this.caveFreeBlocks.Dispose();
     }
 
 
@@ -345,7 +364,8 @@ public class WorldGenerator
             blockData = voxelData,
             stateData = stateData,
             heightMap = heightMap,
-            caveNoise = caveMap
+            caveNoise = caveMap,
+            caveFreeBlocks = caveFreeBlocks
         };
         job = gcavej.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
@@ -1129,6 +1149,9 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
     [ReadOnly]
     public NativeArray<byte> caveNoise;
 
+    [ReadOnly]
+    public NativeHashSet<ushort> caveFreeBlocks;
+
     public void Execute(int index){
         GenerateNoiseTunnel(index);
     }
@@ -1146,6 +1169,18 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
         for(int z=0; z < Chunk.chunkWidth; z++){ 
             firstRun = true;
             for(int y=(int)heightMap[x*(Chunk.chunkWidth+1)+z]+upperCompensation; y > bottomLimit; y--){
+                if(caveFreeBlocks.Contains(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
+                    firstRun = true;
+                    continue;
+                }
+
+                if(y < Chunk.chunkDepth-1){
+                    if(caveFreeBlocks.Contains(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+(y+1)*Chunk.chunkWidth+z])){
+                        firstRun = true;
+                        continue;
+                    }
+                }
+
                 val = TransformOctaves(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.caveNoiseStep1, y*GenerationSeed.caveYStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.caveNoiseStep1), Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.caveNoiseStep2, y*GenerationSeed.caveYStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.caveNoiseStep2));
             
                 if(firstRun){

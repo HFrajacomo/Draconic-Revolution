@@ -57,8 +57,8 @@ public static class GenerationSeed
     public static byte[] caveNoise = new byte[257];
     public static readonly float caveNoiseStep1 = 0.0161f;
     public static readonly float caveNoiseStep2 = 0.02213f;
-    public static readonly float caveYStep1 = 0.0221f;//0.0073f;
-    public static readonly float caveYStep2 = 0.0377f;//0.0117f;
+    public static readonly float caveYStep1 = 0.0221f;
+    public static readonly float caveYStep2 = 0.0377f;
 
     public static void Initialize(int sed){
         seed = sed;
