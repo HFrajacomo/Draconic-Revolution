@@ -53,6 +53,13 @@ public static class GenerationSeed
     public static readonly float patchNoiseStep1 = 0.4121f;
     public static readonly float patchNoiseStep2 = 0.2299f;
 
+    // Cave Noise
+    public static byte[] caveNoise = new byte[257];
+    public static readonly float caveNoiseStep1 = 0.0161f;
+    public static readonly float caveNoiseStep2 = 0.02213f;
+    public static readonly float caveYStep1 = 0.0221f;//0.0073f;
+    public static readonly float caveYStep2 = 0.0377f;//0.0117f;
+
     public static void Initialize(int sed){
         seed = sed;
 
@@ -98,6 +105,13 @@ public static class GenerationSeed
             patchNoise[i] = (byte)World.NextRandom(0, 256);
         }
         patchNoise[256] = patchNoise[0];
+
+        // Cave Noise
+        World.SetRNG(~seed);
+        for(int i=0; i < 256; i++){
+            caveNoise[i] = (byte)World.NextRandom(0, 256);
+        }
+        caveNoise[256] = caveNoise[0];
     }
 
 
@@ -143,5 +157,6 @@ public enum NoiseMap : byte{
     EROSION,
     PEAK,
     TEMPERATURE,
-    HUMIDITY
+    HUMIDITY,
+    CAVE
 }

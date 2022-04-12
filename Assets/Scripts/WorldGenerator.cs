@@ -28,6 +28,7 @@ public class WorldGenerator
 	private	ushort[] cacheVoxdata = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private ushort[] cacheMetadataHP = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private ushort[] cacheMetadataState = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
+
     private byte cacheBiome;
 
     // Native Noise Maps
@@ -37,9 +38,12 @@ public class WorldGenerator
     private NativeArray<byte> temperatureMap;
     private NativeArray<byte> humidityMap;
     private NativeArray<byte> patchMap;
+    private NativeArray<byte> caveMap;
 
     // Biome Blending Map
     private NativeArray<ushort> biomeBlendingBlock;
+
+
 
     public WorldGenerator(int worldSeed, BiomeHandler biomeReference, StructureHandler structHandler, ChunkLoader_Server reference){
     	this.worldSeed = worldSeed;
@@ -53,6 +57,7 @@ public class WorldGenerator
         temperatureMap = new NativeArray<byte>(GenerationSeed.temperatureNoise, Allocator.Persistent);
         humidityMap = new NativeArray<byte>(GenerationSeed.humidityNoise, Allocator.Persistent);
         patchMap = new NativeArray<byte>(GenerationSeed.patchNoise, Allocator.Persistent);
+        caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
     }
 
     public WorldGenerator(int seed){
@@ -64,6 +69,7 @@ public class WorldGenerator
         temperatureMap = new NativeArray<byte>(GenerationSeed.temperatureNoise, Allocator.Persistent);
         humidityMap = new NativeArray<byte>(GenerationSeed.humidityNoise, Allocator.Persistent);
         patchMap = new NativeArray<byte>(GenerationSeed.patchNoise, Allocator.Persistent);
+        caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
     }
 
     public void SetBiomeBlending(ushort[] blendingArray){
@@ -105,6 +111,7 @@ public class WorldGenerator
         this.temperatureMap.Dispose();
         this.humidityMap.Dispose();
         this.patchMap.Dispose();
+        this.caveMap.Dispose();
         this.biomeBlendingBlock.Dispose();
     }
 
@@ -331,6 +338,16 @@ public class WorldGenerator
             xmzpBiome = xmzpBiome
         };
         job = pcj.Schedule();
+        job.Complete();
+
+        GenerateCaveJob gcavej = new GenerateCaveJob{
+            pos = pos,
+            blockData = voxelData,
+            stateData = stateData,
+            heightMap = heightMap,
+            caveNoise = caveMap
+        };
+        job = gcavej.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
 
         cacheVoxdata = NativeTools.CopyToManaged(voxelData);
@@ -761,68 +778,6 @@ public struct GenerateChunkJob: IJob{
         
     }
 
-    public float Noise(float x, float y, float z, NoiseMap type)
-    {
-        int X = Mathf.FloorToInt(x) & 0xff;
-        int Y = Mathf.FloorToInt(y) & 0xff;
-        int Z = Mathf.FloorToInt(z) & 0xff;
-        x -= Mathf.Floor(x);
-        y -= Mathf.Floor(y);
-        z -= Mathf.Floor(z);
-        float u = Fade(x);
-        float v = Fade(y);
-        float w = Fade(z);
-
-        if(type == NoiseMap.BASE){        
-            int A  = (GenerationSeed.baseNoise[X  ] + Y) & 0xff;
-            int B  = (GenerationSeed.baseNoise[X+1] + Y) & 0xff;
-            int AA = (GenerationSeed.baseNoise[A  ] + Z) & 0xff;
-            int BA = (GenerationSeed.baseNoise[B  ] + Z) & 0xff;
-            int AB = (GenerationSeed.baseNoise[A+1] + Z) & 0xff;
-            int BB = (GenerationSeed.baseNoise[B+1] + Z) & 0xff;
-            return Lerp(w, Lerp(v, Lerp(u, Grad(GenerationSeed.baseNoise[AA  ], x, y  , z  ), Grad(GenerationSeed.baseNoise[BA  ], x-1, y  , z  )),
-                                   Lerp(u, Grad(GenerationSeed.baseNoise[AB  ], x, y-1, z  ), Grad(GenerationSeed.baseNoise[BB  ], x-1, y-1, z  ))),
-                           Lerp(v, Lerp(u, Grad(GenerationSeed.baseNoise[AA+1], x, y  , z-1), Grad(GenerationSeed.baseNoise[BA+1], x-1, y  , z-1)),
-                                   Lerp(u, Grad(GenerationSeed.baseNoise[AB+1], x, y-1, z-1), Grad(GenerationSeed.baseNoise[BB+1], x-1, y-1, z-1))));
-        }
-        else if(type == NoiseMap.EROSION){        
-            int A  = (GenerationSeed.erosionNoise[X  ] + Y) & 0xff;
-            int B  = (GenerationSeed.erosionNoise[X+1] + Y) & 0xff;
-            int AA = (GenerationSeed.erosionNoise[A  ] + Z) & 0xff;
-            int BA = (GenerationSeed.erosionNoise[B  ] + Z) & 0xff;
-            int AB = (GenerationSeed.erosionNoise[A+1] + Z) & 0xff;
-            int BB = (GenerationSeed.erosionNoise[B+1] + Z) & 0xff;
-            return Lerp(w, Lerp(v, Lerp(u, Grad(GenerationSeed.erosionNoise[AA  ], x, y  , z  ), Grad(GenerationSeed.erosionNoise[BA  ], x-1, y  , z  )),
-                                   Lerp(u, Grad(GenerationSeed.erosionNoise[AB  ], x, y-1, z  ), Grad(GenerationSeed.erosionNoise[BB  ], x-1, y-1, z  ))),
-                           Lerp(v, Lerp(u, Grad(GenerationSeed.erosionNoise[AA+1], x, y  , z-1), Grad(GenerationSeed.erosionNoise[BA+1], x-1, y  , z-1)),
-                                   Lerp(u, Grad(GenerationSeed.erosionNoise[AB+1], x, y-1, z-1), Grad(GenerationSeed.erosionNoise[BB+1], x-1, y-1, z-1))));
-        }
-        else if(type == NoiseMap.PEAK){        
-            int A  = (GenerationSeed.peakNoise[X  ] + Y) & 0xff;
-            int B  = (GenerationSeed.peakNoise[X+1] + Y) & 0xff;
-            int AA = (GenerationSeed.peakNoise[A  ] + Z) & 0xff;
-            int BA = (GenerationSeed.peakNoise[B  ] + Z) & 0xff;
-            int AB = (GenerationSeed.peakNoise[A+1] + Z) & 0xff;
-            int BB = (GenerationSeed.peakNoise[B+1] + Z) & 0xff;
-            return Lerp(w, Lerp(v, Lerp(u, Grad(GenerationSeed.peakNoise[AA  ], x, y  , z  ), Grad(GenerationSeed.peakNoise[BA  ], x-1, y  , z  )),
-                                   Lerp(u, Grad(GenerationSeed.peakNoise[AB  ], x, y-1, z  ), Grad(GenerationSeed.peakNoise[BB  ], x-1, y-1, z  ))),
-                           Lerp(v, Lerp(u, Grad(GenerationSeed.peakNoise[AA+1], x, y  , z-1), Grad(GenerationSeed.peakNoise[BA+1], x-1, y  , z-1)),
-                                   Lerp(u, Grad(GenerationSeed.peakNoise[AB+1], x, y-1, z-1), Grad(GenerationSeed.peakNoise[BB+1], x-1, y-1, z-1))));
-        }
-        else{
-            int A  = (GenerationSeed.baseNoise[X  ] + Y) & 0xff;
-            int B  = (GenerationSeed.baseNoise[X+1] + Y) & 0xff;
-            int AA = (GenerationSeed.baseNoise[A  ] + Z) & 0xff;
-            int BA = (GenerationSeed.baseNoise[B  ] + Z) & 0xff;
-            int AB = (GenerationSeed.baseNoise[A+1] + Z) & 0xff;
-            int BB = (GenerationSeed.baseNoise[B+1] + Z) & 0xff;
-            return Lerp(w, Lerp(v, Lerp(u, Grad(GenerationSeed.baseNoise[AA  ], x, y  , z  ), Grad(GenerationSeed.baseNoise[BA  ], x-1, y  , z  )),
-                                   Lerp(u, Grad(GenerationSeed.baseNoise[AB  ], x, y-1, z  ), Grad(GenerationSeed.baseNoise[BB  ], x-1, y-1, z  ))),
-                           Lerp(v, Lerp(u, Grad(GenerationSeed.baseNoise[AA+1], x, y  , z-1), Grad(GenerationSeed.baseNoise[BA+1], x-1, y  , z-1)),
-                                   Lerp(u, Grad(GenerationSeed.baseNoise[AB+1], x, y-1, z-1), Grad(GenerationSeed.baseNoise[BB+1], x-1, y-1, z-1))));            
-        }
-    }
-
     private float Fade(float t)
     {
         return t * t * t * (t * (t * 6 - 15) + 10);
@@ -1155,5 +1110,133 @@ public struct PopulateChunkJob : IJob{
     private float Grad(int hash, float x, float y)
     {
         return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);
+    }
+}
+
+[BurstCompile]
+public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Schedule call
+    [ReadOnly]
+    public ChunkPos pos;
+
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> blockData;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> stateData;
+
+    [ReadOnly]
+    public NativeArray<float> heightMap;
+
+    [ReadOnly]
+    public NativeArray<byte> caveNoise;
+
+    public void Execute(int index){
+        GenerateNoiseTunnel(index);
+    }
+
+    public void GenerateNoiseTunnel(int x){
+        float val;
+        float lowerCaveLimit = 0.62f;
+        float upperCaveLimit = 0.68f;
+        int bottomLimit = 10;
+        float safetyMargin = 0.06f;
+        int upperCompensation = 2;
+        bool drawingCave = false;
+        bool firstRun;
+
+        for(int z=0; z < Chunk.chunkWidth; z++){ 
+            firstRun = true;
+            for(int y=(int)heightMap[x*(Chunk.chunkWidth+1)+z]+upperCompensation; y > bottomLimit; y--){
+                val = TransformOctaves(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.caveNoiseStep1, y*GenerationSeed.caveYStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.caveNoiseStep1), Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.caveNoiseStep2, y*GenerationSeed.caveYStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.caveNoiseStep2));
+            
+                if(firstRun){
+                    if(lowerCaveLimit - safetyMargin <= val && val <= upperCaveLimit + safetyMargin){
+                        drawingCave = true;
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                        stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;                         
+                    }
+                }
+
+                if(lowerCaveLimit <= val && val <= upperCaveLimit){
+                    drawingCave = true;
+                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                    stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                }
+                else if(drawingCave){
+                    if(lowerCaveLimit - safetyMargin <= val && val <= upperCaveLimit + safetyMargin){
+                        drawingCave = true;
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                        stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;                        
+                    }
+                    else{
+                        drawingCave = false;
+                    }
+                }
+                else{
+                    drawingCave = false;
+                }
+
+                firstRun = false;
+            }
+        }
+    }
+
+    // Calculates 3D Noise for Cave System procedural generation
+    public float Noise(float x, float y, float z)
+    {
+        int X = Mathf.FloorToInt(x) & 0xff;
+        int Y = Mathf.FloorToInt(y) & 0xff;
+        int Z = Mathf.FloorToInt(z) & 0xff;
+        x -= Mathf.Floor(x);
+        y -= Mathf.Floor(y);
+        z -= Mathf.Floor(z);
+        float u = Fade(x);
+        float v = Fade(y);
+        float w = Fade(z);
+      
+        int A  = (caveNoise[X  ] + Y) & 0xff;
+        int B  = (caveNoise[X+1] + Y) & 0xff;
+        int AA = (caveNoise[A  ] + Z) & 0xff;
+        int BA = (caveNoise[B  ] + Z) & 0xff;
+        int AB = (caveNoise[A+1] + Z) & 0xff;
+        int BB = (caveNoise[B+1] + Z) & 0xff;
+        return Lerp(w, Lerp(v, Lerp(u, Grad(caveNoise[AA  ], x, y  , z  ), Grad(caveNoise[BA  ], x-1, y  , z  )),
+                               Lerp(u, Grad(caveNoise[AB  ], x, y-1, z  ), Grad(caveNoise[BB  ], x-1, y-1, z  ))),
+                       Lerp(v, Lerp(u, Grad(caveNoise[AA+1], x, y  , z-1), Grad(caveNoise[BA+1], x-1, y  , z-1)),
+                               Lerp(u, Grad(caveNoise[AB+1], x, y-1, z-1), Grad(caveNoise[BB+1], x-1, y-1, z-1))));
+    }
+
+    // Calculates the cumulative distribution function of a Normal Distribution
+    private float TransformOctaves(float a, float b){
+        float c = (a+b)/2f;
+
+        return (2f/(1f + Mathf.Exp(-c*4.1f)))-1;
+    }
+
+    private float Fade(float t)
+    {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+
+    private float Lerp(float t, float a, float b)
+    {
+        return a + t * (b - a);
+    }
+
+    private float Grad(int hash, float x)
+    {
+        return (hash & 1) == 0 ? x : -x;
+    }
+
+    private float Grad(int hash, float x, float y)
+    {
+        return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);
+    }
+
+    private float Grad(int hash, float x, float y, float z)
+    {
+        int h = hash & 15;
+        float u = h < 8 ? x : y;
+        float v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
+        return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
     }
 }
