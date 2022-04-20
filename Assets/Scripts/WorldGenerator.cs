@@ -370,6 +370,21 @@ public class WorldGenerator
         job = gcavej.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
 
+        /*
+        NativeList<int3> queue = new NativeList<int3>(0, Allocator.TempJob);
+        NativeHashSet<int3> visited = new NativeHashSet<int3>(0, Allocator.TempJob);
+
+        DestroySurfaceRocksJob dsrJob = new DestroySurfaceRocksJob{
+            blockData = voxelData,
+            stateData = stateData,
+            heightMap = heightMap,
+            queue = queue,
+            visited = visited
+        };
+        job = dsrJob.Schedule();
+        job.Complete();
+        */
+
         cacheVoxdata = NativeTools.CopyToManaged(voxelData);
         cacheMetadataState = NativeTools.CopyToManaged(stateData);
         cacheMetadataHP = NativeTools.CopyToManaged(hpData);
@@ -378,6 +393,8 @@ public class WorldGenerator
         stateData.Dispose();
         hpData.Dispose();
         heightMap.Dispose();
+        //queue.Dispose();
+        //visited.Dispose();
     }
 
     /*
@@ -1133,7 +1150,7 @@ public struct PopulateChunkJob : IJob{
     }
 }
 
-[BurstCompile]
+//[BurstCompile]
 public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Schedule call
     [ReadOnly]
     public ChunkPos pos;
@@ -1142,8 +1159,7 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
     public NativeArray<ushort> blockData;
     [NativeDisableParallelForRestriction]
     public NativeArray<ushort> stateData;
-
-    [ReadOnly]
+    [NativeDisableParallelForRestriction]
     public NativeArray<float> heightMap;
 
     [ReadOnly]
@@ -1156,64 +1172,209 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
         GenerateNoiseTunnel(index);
     }
 
+    // Creates a Noise Tunnels in the Chunk
     public void GenerateNoiseTunnel(int x){
+        // Dig Caves and destroy underground rocks variables
         float val;
-        float lowerCaveLimit = 0.62f;
-        float upperCaveLimit = 0.68f;
+        float lowerCaveLimit = 0.5f;
+        float upperCaveLimit = 0.53f;
         int bottomLimit = 10;
-        float safetyMargin = 0.06f;
-        int upperCompensation = 2;
+        int upperCompensation = -1;
         bool drawingCave = false;
-        bool firstRun;
+        int drawingStart = -1;
+
+        // Surface floating rock variables
+        int maxFloatingDistance = 3;
+        int maxFloatingDepth = 16;
+        int maxCaveInDepth = 25;
+        int floaterSize = 0;
+        int caveSize = 0;
+        bool offLimits = false;
+
+        // Terrain Smoothness variable
+        int maxSmoothDistance = 3;
+        int currentNextDiff = 0;
+        int currentPrevDiff = 0;
+        int prevNextDiff = 0;
 
         for(int z=0; z < Chunk.chunkWidth; z++){ 
-            firstRun = true;
+            drawingStart = -1;
+            drawingCave = false;
+            floaterSize = 0;
+            caveSize = 0;
+            offLimits = false;
+
+            /*
+            // State Machine for digging caves and removing floating underground rocks
+            */
             for(int y=(int)heightMap[x*(Chunk.chunkWidth+1)+z]+upperCompensation; y > bottomLimit; y--){
                 if(caveFreeBlocks.Contains(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
-                    firstRun = true;
                     continue;
                 }
 
                 if(y < Chunk.chunkDepth-1){
                     if(caveFreeBlocks.Contains(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+(y+1)*Chunk.chunkWidth+z])){
-                        firstRun = true;
                         continue;
                     }
                 }
 
                 val = TransformOctaves(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.caveNoiseStep1, y*GenerationSeed.caveYStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.caveNoiseStep1), Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.caveNoiseStep2, y*GenerationSeed.caveYStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.caveNoiseStep2));
             
-                if(firstRun){
-                    if(lowerCaveLimit - safetyMargin <= val && val <= upperCaveLimit + safetyMargin){
-                        drawingCave = true;
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                        stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;                         
-                    }
-                }
 
-                if(lowerCaveLimit <= val && val <= upperCaveLimit){
-                    drawingCave = true;
-                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                    stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                }
-                else if(drawingCave){
-                    if(lowerCaveLimit - safetyMargin <= val && val <= upperCaveLimit + safetyMargin){
+                if(!drawingCave){
+                    if(lowerCaveLimit <= val && val <= upperCaveLimit){
                         drawingCave = true;
                         blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                        stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;                        
+                        stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
                     }
                     else{
                         drawingCave = false;
                     }
                 }
                 else{
-                    drawingCave = false;
+                    if(lowerCaveLimit <= val && val <= upperCaveLimit){
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                        stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                    }
+                    else if(drawingStart != -1){
+                        BreakFloatingRocks(x, z, drawingStart, y);
+                        drawingCave = false;
+                        drawingStart = -1;
+                    }
+                    else{
+                        drawingStart = y;
+                        drawingCave = false;
+                    }
                 }
+            }
+            
+            SetHeightMapData(x, z);
+            drawingCave = false;
 
-                firstRun = false;
+            /*
+            // State Machine to remove and cave-in floating rocks at surface
+            */
+            for(int y=(int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > bottomLimit; y--){
+                if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != 0 && !drawingCave){
+                    floaterSize++;
+
+                    if(floaterSize > maxFloatingDepth)
+                        offLimits = true;
+                    if(floaterSize > maxCaveInDepth)
+                        break;
+                    
+                }
+                else if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 0){
+                    drawingCave = true;
+                    caveSize++;
+                }
+                else{
+                    if(offLimits && caveSize <= 2){
+                        AddPillar(x, z, y+1, y);
+                    }
+                    if(!offLimits && caveSize <= maxFloatingDistance){
+                        BreakPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z], y+caveSize);
+                        heightMap[x*(Chunk.chunkWidth+1)+z] = y+caveSize;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        /*
+        // State Machine to smoothen heightMap spikes
+        */
+        for(int z=1; z < Chunk.chunkWidth-2; z++){
+            currentNextDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[x*(Chunk.chunkWidth+1)+z+1];
+            currentPrevDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[x*(Chunk.chunkWidth+1)+z-1];
+            prevNextDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z-1] - (int)heightMap[x*(Chunk.chunkWidth+1)+z+1];
+
+            // If current is spike
+            if(Abs(currentNextDiff) > maxSmoothDistance && Abs(currentPrevDiff) > maxSmoothDistance){
+                // If current is spike up
+                if(currentNextDiff > 0){
+                    BreakPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z], (int)heightMap[x*(Chunk.chunkWidth+1)+z+1]);
+                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[x*(Chunk.chunkWidth+1)+z+1] + 1;                    
+                }
+                // If current is spike down
+                else{
+                    AddPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z+1]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
+                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[x*(Chunk.chunkWidth+1)+z+1];                    
+                }
+            }
+            // Avoid random holes
+            else if(Abs(currentPrevDiff) > maxSmoothDistance){
+                if(currentPrevDiff > 0){
+                    AddPillar(x, z-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z-1]);
+                    heightMap[x*(Chunk.chunkWidth+1)+z-1] = heightMap[x*(Chunk.chunkWidth+1)+z];                 
+                }
+            }
+        }
+
+        // Smooth process for z=0 and z=15
+        SmoothenProcessForBorder(x, 0, 1, 2, maxSmoothDistance);
+        SmoothenProcessForBorder(x, Chunk.chunkWidth-1, Chunk.chunkWidth-2, Chunk.chunkWidth-3, maxSmoothDistance);
+    }
+
+    private void SmoothenProcessForBorder(int x, int z, int targetZ, int targetZ2, int smoothFactor){
+        int currentToZDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[x*(Chunk.chunkWidth+1)+targetZ];
+        int currentToZ2Diff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[x*(Chunk.chunkWidth+1)+targetZ2];
+
+        if(Abs(currentToZDiff) > smoothFactor && Abs(currentToZ2Diff) > smoothFactor){
+            if(currentToZDiff > 0){
+                BreakPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z], (int)heightMap[x*(Chunk.chunkWidth+1)+targetZ]);
+                heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[x*(Chunk.chunkWidth+1)+targetZ] + 1;                  
+            }
+            else{
+                AddPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+targetZ]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
+                heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[x*(Chunk.chunkWidth+1)+targetZ];                  
+            }
+        }
+        else if(Abs(currentToZDiff) > smoothFactor){
+            if(currentToZDiff > 0){
+                AddPillar(x, z-1, (int)heightMap[x*(Chunk.chunkWidth+1)+targetZ]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
+                heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[x*(Chunk.chunkWidth+1)+targetZ];                 
             }
         }
     }
+
+    private void SetHeightMapData(int x, int z){
+        for(int y = Chunk.chunkDepth-1; y > 0; y--){
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != 0){
+                heightMap[x*(Chunk.chunkWidth+1)+z] = y+1;
+                return;
+            }
+        }            
+    }
+
+    // Breaks down underground massive floating rocks using State Machine analysis
+    private void BreakFloatingRocks(int x, int z, int initialY, int endY){
+        int maxDigAmount = 20;
+
+        if(initialY - endY > maxDigAmount)
+            return;
+
+        for(int y=initialY; y > endY; y--){
+            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+            stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;  
+        }
+    }
+
+    private void BreakPillar(int x, int z, int initialY, int endY){
+        for(int y=initialY; y > endY; y--){
+            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+            stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;  
+        }
+    }
+
+    private void AddPillar(int x, int z, int initialY, int endY){
+        for(int y=initialY; y >= endY; y--){
+            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;
+            stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;  
+        }        
+    }
+
 
     // Calculates 3D Noise for Cave System procedural generation
     public float Noise(float x, float y, float z)
@@ -1238,6 +1399,13 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
                                Lerp(u, Grad(caveNoise[AB  ], x, y-1, z  ), Grad(caveNoise[BB  ], x-1, y-1, z  ))),
                        Lerp(v, Lerp(u, Grad(caveNoise[AA+1], x, y  , z-1), Grad(caveNoise[BA+1], x-1, y  , z-1)),
                                Lerp(u, Grad(caveNoise[AB+1], x, y-1, z-1), Grad(caveNoise[BB+1], x-1, y-1, z-1))));
+    }
+
+    private int Abs(int x){
+        if(x > 0)
+            return x;
+        else
+            return -x;
     }
 
     // Calculates the cumulative distribution function of a Normal Distribution

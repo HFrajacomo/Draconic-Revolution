@@ -27,8 +27,8 @@ public class TimerUpdate : MonoBehaviour
 
     	if(cl.chunks.ContainsKey(this.currentPos.GetChunkPos())){
             // Biome, ChunkPos
-            sb.Append(cl.chunks[this.currentPos.GetChunkPos()].biomeName);
-            sb.Append(" | ");
+            //sb.Append(cl.chunks[this.currentPos.GetChunkPos()].biomeName);
+            //sb.Append(" | ");
             sb.Append(this.currentPos.GetChunkPos().ToString());
             sb.Append("  //  ");
             
