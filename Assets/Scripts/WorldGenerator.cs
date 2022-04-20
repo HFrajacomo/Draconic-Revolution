@@ -370,20 +370,13 @@ public class WorldGenerator
         job = gcavej.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
 
-        /*
-        NativeList<int3> queue = new NativeList<int3>(0, Allocator.TempJob);
-        NativeHashSet<int3> visited = new NativeHashSet<int3>(0, Allocator.TempJob);
-
-        DestroySurfaceRocksJob dsrJob = new DestroySurfaceRocksJob{
+        RemoveSpikesJob rsJob = new RemoveSpikesJob{
             blockData = voxelData,
             stateData = stateData,
-            heightMap = heightMap,
-            queue = queue,
-            visited = visited
+            heightMap = heightMap
         };
-        job = dsrJob.Schedule();
+        job = rsJob.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
-        */
 
         cacheVoxdata = NativeTools.CopyToManaged(voxelData);
         cacheMetadataState = NativeTools.CopyToManaged(stateData);
@@ -393,8 +386,6 @@ public class WorldGenerator
         stateData.Dispose();
         hpData.Dispose();
         heightMap.Dispose();
-        //queue.Dispose();
-        //visited.Dispose();
     }
 
     /*
@@ -1150,7 +1141,7 @@ public struct PopulateChunkJob : IJob{
     }
 }
 
-//[BurstCompile]
+[BurstCompile]
 public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Schedule call
     [ReadOnly]
     public ChunkPos pos;
@@ -1279,13 +1270,13 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
 
                     break;
                 }
-            }
+            }  
         }
 
         /*
         // State Machine to smoothen heightMap spikes
-        */
-        for(int z=1; z < Chunk.chunkWidth-2; z++){
+        */      
+        for(int z=1; z < Chunk.chunkWidth-1; z++){
             currentNextDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[x*(Chunk.chunkWidth+1)+z+1];
             currentPrevDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[x*(Chunk.chunkWidth+1)+z-1];
             prevNextDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z-1] - (int)heightMap[x*(Chunk.chunkWidth+1)+z+1];
@@ -1303,11 +1294,24 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
                     heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[x*(Chunk.chunkWidth+1)+z+1];                    
                 }
             }
-            // Avoid random holes
-            else if(Abs(currentPrevDiff) > maxSmoothDistance){
-                if(currentPrevDiff > 0){
-                    AddPillar(x, z-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z-1]);
-                    heightMap[x*(Chunk.chunkWidth+1)+z-1] = heightMap[x*(Chunk.chunkWidth+1)+z];                 
+        }
+
+        for(int z=Chunk.chunkWidth-2; z >= 1; z--){
+            currentNextDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[x*(Chunk.chunkWidth+1)+z+1];
+            currentPrevDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[x*(Chunk.chunkWidth+1)+z-1];
+            prevNextDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z-1] - (int)heightMap[x*(Chunk.chunkWidth+1)+z+1];
+
+            // If current is spike
+            if(Abs(currentNextDiff) > maxSmoothDistance && Abs(currentPrevDiff) > maxSmoothDistance){
+                // If current is spike up
+                if(currentNextDiff > 0){
+                    BreakPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z], (int)heightMap[x*(Chunk.chunkWidth+1)+z+1]);
+                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[x*(Chunk.chunkWidth+1)+z+1] + 1;                    
+                }
+                // If current is spike down
+                else{
+                    AddPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z+1]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
+                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[x*(Chunk.chunkWidth+1)+z+1];                    
                 }
             }
         }
@@ -1315,6 +1319,7 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
         // Smooth process for z=0 and z=15
         SmoothenProcessForBorder(x, 0, 1, 2, maxSmoothDistance);
         SmoothenProcessForBorder(x, Chunk.chunkWidth-1, Chunk.chunkWidth-2, Chunk.chunkWidth-3, maxSmoothDistance);
+        
     }
 
     private void SmoothenProcessForBorder(int x, int z, int targetZ, int targetZ2, int smoothFactor){
@@ -1329,12 +1334,6 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
             else{
                 AddPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+targetZ]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
                 heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[x*(Chunk.chunkWidth+1)+targetZ];                  
-            }
-        }
-        else if(Abs(currentToZDiff) > smoothFactor){
-            if(currentToZDiff > 0){
-                AddPillar(x, z-1, (int)heightMap[x*(Chunk.chunkWidth+1)+targetZ]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
-                heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[x*(Chunk.chunkWidth+1)+targetZ];                 
             }
         }
     }
@@ -1363,6 +1362,9 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
 
     private void BreakPillar(int x, int z, int initialY, int endY){
         for(int y=initialY; y > endY; y--){
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 6)
+                continue;
+
             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
             stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;  
         }
@@ -1370,6 +1372,9 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
 
     private void AddPillar(int x, int z, int initialY, int endY){
         for(int y=initialY; y >= endY; y--){
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 6)
+                continue;
+
             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;
             stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;  
         }        
@@ -1441,5 +1446,114 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
         float u = h < 8 ? x : y;
         float v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
         return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
+    }
+}
+
+[BurstCompile]
+public struct RemoveSpikesJob : IJobParallelFor{
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> blockData;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<ushort> stateData;
+    [NativeDisableParallelForRestriction]
+    public NativeArray<float> heightMap;
+
+    public void Execute(int index){
+        RemoveSpikes(index);
+    }
+
+    public void RemoveSpikes(int z){
+        int currentNextDiff = 0;
+        int currentPrevDiff = 0;
+        int prevNextDiff = 0;
+        int maxSmoothDistance = 3;
+
+        for(int x=1; x < Chunk.chunkWidth-1; x++){
+            currentNextDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z];
+            currentPrevDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[(x-1)*(Chunk.chunkWidth+1)+z];
+            prevNextDiff = (int)heightMap[(x-1)*(Chunk.chunkWidth+1)+z] - (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z];
+
+            // If current is spike
+            if(Abs(currentNextDiff) > maxSmoothDistance && Abs(currentPrevDiff) > maxSmoothDistance){
+                // If current is spike up
+                if(currentNextDiff > 0){
+                    BreakPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z], (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z]);
+                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[(x+1)*(Chunk.chunkWidth+1)+z] + 1;                    
+                }
+                // If current is spike down
+                else{
+                    AddPillar(x, z, (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
+                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[(x+1)*(Chunk.chunkWidth+1)+z];                    
+                }
+            }
+        }
+
+        for(int x=Chunk.chunkWidth-2; x >= 1 ; x--){
+            currentNextDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z];
+            currentPrevDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[(x-1)*(Chunk.chunkWidth+1)+z];
+            prevNextDiff = (int)heightMap[(x-1)*(Chunk.chunkWidth+1)+z] - (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z];
+
+            // If current is spike
+            if(Abs(currentNextDiff) > maxSmoothDistance && Abs(currentPrevDiff) > maxSmoothDistance){
+                // If current is spike up
+                if(currentNextDiff > 0){
+                    BreakPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z], (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z]);
+                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[(x+1)*(Chunk.chunkWidth+1)+z] + 1;                    
+                }
+                // If current is spike down
+                else{
+                    AddPillar(x, z, (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
+                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[(x+1)*(Chunk.chunkWidth+1)+z];                    
+                }
+            }
+        }
+
+        // Smooth process for z=0 and z=15
+        SmoothenProcessForBorder(0, z, 1, 2, maxSmoothDistance);
+        SmoothenProcessForBorder(Chunk.chunkWidth-1, z, Chunk.chunkWidth-2, Chunk.chunkWidth-3, maxSmoothDistance);
+        
+    }
+
+    private void SmoothenProcessForBorder(int x, int z, int targetX, int targetX2, int smoothFactor){
+        int currentToZDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[targetX*(Chunk.chunkWidth+1)+z];
+        int currentToZ2Diff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[targetX2*(Chunk.chunkWidth+1)+z];
+
+        if(Abs(currentToZDiff) > smoothFactor && Abs(currentToZ2Diff) > smoothFactor){
+            if(currentToZDiff > 0){
+                BreakPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z], (int)heightMap[targetX*(Chunk.chunkWidth+1)+z]);
+                heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[targetX*(Chunk.chunkWidth+1)+z] + 1;                  
+            }
+            else{
+                AddPillar(x, z, (int)heightMap[targetX*(Chunk.chunkWidth+1)+z]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
+                heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[targetX*(Chunk.chunkWidth+1)+z];                  
+            }
+        }
+    }
+
+    private int Abs(int x){
+        if(x > 0)
+            return x;
+        else
+            return -x;
+    }
+
+    private void BreakPillar(int x, int z, int initialY, int endY){
+        for(int y=initialY; y > endY; y--){
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 6)
+                continue;
+
+            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+            stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;  
+        }
+    }
+
+    private void AddPillar(int x, int z, int initialY, int endY){
+        for(int y=initialY; y >= endY; y--){
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 6)
+                continue;
+
+            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;
+            stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;  
+        }        
     }
 }
