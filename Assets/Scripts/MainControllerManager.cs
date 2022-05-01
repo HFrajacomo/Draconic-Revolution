@@ -107,6 +107,10 @@ public class MainControllerManager : MonoBehaviour
         SceneManager.LoadScene("Menu");
     }
 
+    public void OnDebugKey2(){
+        cl.InitConfigurationFunctions();
+    }
+
     public void OnToggleHUD(){
         this.HUDActive = !this.HUDActive;
         this.mainHUD.SetActive(this.HUDActive);

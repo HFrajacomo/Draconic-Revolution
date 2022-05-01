@@ -45,9 +45,6 @@ public class PlayerRaycast : MonoBehaviour
 	*/
 	public int facing;
 
-
-	public void Start(){}
-
 	
 	// Update is called once per frame
 	void Update()
@@ -221,13 +218,6 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
-		// DEBUG
-		print(loader.chunks[this.playerBody.GetChunkPos()].data.GetLight(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ, isNatural:true).ToString()
-			 + "   " + loader.chunks[this.playerBody.GetChunkPos()].data.GetLight(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ, isNatural:false).ToString()
-			 + "   " + loader.chunks[this.playerBody.GetChunkPos()].data.GetShadow(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ, isNatural:false).ToString()
-			 + "   " + this.playerBody.GetChunkPos().ToString()
-			 + "   " + loader.chunks[this.playerBody.GetChunkPos()].data.GetPropagationFlag()
-			 );
 		
 		if(!current.active)
 			return;

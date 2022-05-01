@@ -238,6 +238,15 @@
                     "processors": "",
                     "interactions": "Press",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "DebugKey2",
+                    "type": "Button",
+                    "id": "80f1eaea-30be-44ae-9644-5c1315133356",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -579,6 +588,17 @@
                     "processors": "",
                     "groups": "Keyboard and Mouse",
                     "action": "Drop",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3778e228-3052-40c6-acd8-c461046c0e49",
+                    "path": "<Keyboard>/numpad1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "DebugKey2",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

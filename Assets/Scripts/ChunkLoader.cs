@@ -124,6 +124,8 @@ public class ChunkLoader : MonoBehaviour
         }
         // If has received chunks and needs to load them
         else if(this.PLAYERSPAWNED && !this.REQUESTEDCHUNKS){
+            InitConfigurationFunctions();
+
             this.player.position = new Vector3(playerX, playerY+0.8f, playerZ);
 
             this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
@@ -186,6 +188,10 @@ public class ChunkLoader : MonoBehaviour
         if(this.timer % 2400 == 0){
             FixUnloaded();
         }
+    }
+
+    public void InitConfigurationFunctions(){
+        this.rend.rend.sharedMaterials[0].SetFloat("_Fullbright", Configurations.GetFullbright());
     }
 
     // Moves all entities with SmoothMovement
