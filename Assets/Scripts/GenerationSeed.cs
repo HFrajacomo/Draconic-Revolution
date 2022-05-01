@@ -55,10 +55,17 @@ public static class GenerationSeed
 
     // Cave Noise
     public static byte[] caveNoise = new byte[257];
-    public static readonly float caveNoiseStep1 = 0.0161f;
-    public static readonly float caveNoiseStep2 = 0.02213f;
-    public static readonly float caveYStep1 = 0.0221f;
-    public static readonly float caveYStep2 = 0.0377f;
+    public static readonly float caveNoiseStep1 = 0.00181f;
+    public static readonly float caveNoiseStep2 = 0.00233f;
+    public static readonly float caveYStep1 = 0.0171f;
+    public static readonly float caveYStep2 = 0.0277f;
+
+    // Cave Mask Noise
+    public static byte[] cavemaskNoise = new byte[257];
+    public static readonly float cavemaskNoiseStep1 = 0.0363f;
+    public static readonly float cavemaskNoiseStep2 = 0.0427f;
+    public static readonly float cavemaskYStep1 = 0.01721f;
+    public static readonly float cavemaskYStep2 = 0.0277f;
 
     public static void Initialize(int sed){
         seed = sed;
@@ -112,6 +119,13 @@ public static class GenerationSeed
             caveNoise[i] = (byte)World.NextRandom(0, 256);
         }
         caveNoise[256] = caveNoise[0];
+
+        // Cave Noise
+        World.SetRNG(seed*5+48);
+        for(int i=0; i < 256; i++){
+            cavemaskNoise[i] = (byte)World.NextRandom(0, 256);
+        }
+        cavemaskNoise[256] = cavemaskNoise[0];
     }
 
 
