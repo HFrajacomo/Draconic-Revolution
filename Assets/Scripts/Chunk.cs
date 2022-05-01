@@ -201,18 +201,6 @@ public class Chunk
 		NativeList<int3> toLoadEvent = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int3> toBUD = new NativeList<int3>(0, Allocator.TempJob);
 
-		NativeArray<byte> blockTransparent = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTransparent);
-		NativeArray<byte> objectTransparent = NativeTools.CopyToNative(BlockEncyclopediaECS.objectTransparent);
-		NativeArray<bool> blockSeamless = NativeTools.CopyToNative(BlockEncyclopediaECS.blockSeamless);
-		NativeArray<bool> objectSeamless = NativeTools.CopyToNative(BlockEncyclopediaECS.objectSeamless);
-		NativeArray<bool> blockInvisible = NativeTools.CopyToNative(BlockEncyclopediaECS.blockInvisible);
-		NativeArray<bool> objectInvisible = NativeTools.CopyToNative(BlockEncyclopediaECS.objectInvisible);
-		NativeArray<ShaderIndex> blockMaterial = NativeTools.CopyToNative(BlockEncyclopediaECS.blockShader);
-		NativeArray<ShaderIndex> objectMaterial = NativeTools.CopyToNative(BlockEncyclopediaECS.objectShader);
-		NativeArray<int3> blockTiles = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTiles);
-		NativeArray<bool> blockWashable = NativeTools.CopyToNative(BlockEncyclopediaECS.blockWashable);
-		NativeArray<bool> objectWashable = NativeTools.CopyToNative(BlockEncyclopediaECS.objectWashable);
-
 		// Cached
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector2> cacheUVVerts = new NativeArray<Vector2>(4, Allocator.TempJob);
@@ -301,17 +289,17 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockTransparent = blockTransparent,
-				objectTransparent = objectTransparent,
-				blockSeamless = blockSeamless,
-				objectSeamless = objectSeamless,
-				blockInvisible = blockInvisible,
-				objectInvisible = objectInvisible,
-				blockMaterial = blockMaterial,
-				objectMaterial = objectMaterial,
-				blockWashable = blockWashable,
-				objectWashable = objectWashable,
-				blockTiles = blockTiles
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				blockSeamless = BlockEncyclopediaECS.blockSeamless,
+				objectSeamless = BlockEncyclopediaECS.objectSeamless,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockMaterial = BlockEncyclopediaECS.blockMaterial,
+				objectMaterial = BlockEncyclopediaECS.objectMaterial,
+				blockWashable = BlockEncyclopediaECS.blockWashable,
+				objectWashable = BlockEncyclopediaECS.objectWashable,
+				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
 			job = bbJob.Schedule();
 			job.Complete();
@@ -368,17 +356,17 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockTransparent = blockTransparent,
-				objectTransparent = objectTransparent,
-				blockSeamless = blockSeamless,
-				objectSeamless = objectSeamless,
-				blockInvisible = blockInvisible,
-				objectInvisible = objectInvisible,
-				blockMaterial = blockMaterial,
-				objectMaterial = objectMaterial,
-				blockWashable = blockWashable,
-				objectWashable = objectWashable,
-				blockTiles = blockTiles
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				blockSeamless = BlockEncyclopediaECS.blockSeamless,
+				objectSeamless = BlockEncyclopediaECS.objectSeamless,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockMaterial = BlockEncyclopediaECS.blockMaterial,
+				objectMaterial = BlockEncyclopediaECS.objectMaterial,
+				blockWashable = BlockEncyclopediaECS.blockWashable,
+				objectWashable = BlockEncyclopediaECS.objectWashable,
+				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
 			job = bbJob.Schedule();
 			job.Complete();
@@ -436,17 +424,17 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockTransparent = blockTransparent,
-				objectTransparent = objectTransparent,
-				blockSeamless = blockSeamless,
-				objectSeamless = objectSeamless,
-				blockInvisible = blockInvisible,
-				objectInvisible = objectInvisible,
-				blockMaterial = blockMaterial,
-				objectMaterial = objectMaterial,
-				blockWashable = blockWashable,
-				objectWashable = objectWashable,
-				blockTiles = blockTiles
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				blockSeamless = BlockEncyclopediaECS.blockSeamless,
+				objectSeamless = BlockEncyclopediaECS.objectSeamless,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockMaterial = BlockEncyclopediaECS.blockMaterial,
+				objectMaterial = BlockEncyclopediaECS.objectMaterial,
+				blockWashable = BlockEncyclopediaECS.blockWashable,
+				objectWashable = BlockEncyclopediaECS.objectWashable,
+				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
 			job = bbJob.Schedule();
 			job.Complete();
@@ -502,17 +490,17 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockTransparent = blockTransparent,
-				objectTransparent = objectTransparent,
-				blockSeamless = blockSeamless,
-				objectSeamless = objectSeamless,
-				blockInvisible = blockInvisible,
-				objectInvisible = objectInvisible,
-				blockMaterial = blockMaterial,
-				objectMaterial = objectMaterial,
-				blockWashable = blockWashable,
-				objectWashable = objectWashable,
-				blockTiles = blockTiles
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				blockSeamless = BlockEncyclopediaECS.blockSeamless,
+				objectSeamless = BlockEncyclopediaECS.objectSeamless,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockMaterial = BlockEncyclopediaECS.blockMaterial,
+				objectMaterial = BlockEncyclopediaECS.objectMaterial,
+				blockWashable = BlockEncyclopediaECS.blockWashable,
+				objectWashable = BlockEncyclopediaECS.objectWashable,
+				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
 			job = bbJob.Schedule();
 			job.Complete();
@@ -568,17 +556,6 @@ public class Chunk
 		specularTris.Dispose();
 		liquidTris.Dispose();
 		leavesTris.Dispose();
-		blockTransparent.Dispose();
-		objectTransparent.Dispose();
-		blockSeamless.Dispose();
-		objectSeamless.Dispose();
-		blockInvisible.Dispose();
-		objectInvisible.Dispose();
-		blockMaterial.Dispose();
-		objectMaterial.Dispose();
-		blockWashable.Dispose();
-		objectWashable.Dispose();
-		blockTiles.Dispose();
 		cacheCubeVert.Dispose();
 		cacheUVVerts.Dispose();
 		cacheCubeNormal.Dispose();
@@ -625,22 +602,6 @@ public class Chunk
 		NativeArray<Vector2> cacheCubeUV = new NativeArray<Vector2>(4, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
-		// Cached from Block Encyclopedia ECS
-		NativeArray<byte> blockTransparent = NativeTools.CopyToNative<byte>(BlockEncyclopediaECS.blockTransparent);
-		NativeArray<byte> objectTransparent = NativeTools.CopyToNative<byte>(BlockEncyclopediaECS.objectTransparent);
-		NativeArray<bool> blockSeamless = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockSeamless);
-		NativeArray<bool> objectSeamless = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectSeamless);
-		NativeArray<bool> blockLoad = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockLoad);
-		NativeArray<bool> objectLoad = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectLoad);
-		NativeArray<bool> blockInvisible = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockInvisible);
-		NativeArray<bool> objectInvisible = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectInvisible);
-		NativeArray<ShaderIndex> blockMaterial = NativeTools.CopyToNative<ShaderIndex>(BlockEncyclopediaECS.blockShader);
-		NativeArray<ShaderIndex> objectMaterial = NativeTools.CopyToNative<ShaderIndex>(BlockEncyclopediaECS.objectShader);
-		NativeArray<int3> blockTiles = NativeTools.CopyToNative<int3>(BlockEncyclopediaECS.blockTiles);
-		NativeArray<bool> objectNeedRotation = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectNeedRotation);
-		NativeArray<bool> blockWashable = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockWashable);
-		NativeArray<bool> objectWashable = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectWashable);
-
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{
 			load = load,
@@ -660,19 +621,19 @@ public class Chunk
 			cacheCubeVert = cacheCubeVert,
 			cacheCubeUV = cacheCubeUV,
 			cacheCubeNormal = cacheCubeNormal,
-			blockTransparent = blockTransparent,
-			objectTransparent = objectTransparent,
-			blockSeamless = blockSeamless,
-			objectSeamless = objectSeamless,
-			blockLoad = blockLoad,
-			objectLoad = objectLoad,
-			blockInvisible = blockInvisible,
-			objectInvisible = objectInvisible,
-			blockMaterial = blockMaterial,
-			objectMaterial = objectMaterial,
-			blockWashable = blockWashable,
-			objectWashable = objectWashable,
-			blockTiles = blockTiles
+			blockTransparent = BlockEncyclopediaECS.blockTransparent,
+			objectTransparent = BlockEncyclopediaECS.objectTransparent,
+			blockSeamless = BlockEncyclopediaECS.blockSeamless,
+			objectSeamless = BlockEncyclopediaECS.objectSeamless,
+			blockLoad = BlockEncyclopediaECS.blockLoad,
+			objectLoad = BlockEncyclopediaECS.objectLoad,
+			blockInvisible = BlockEncyclopediaECS.blockInvisible,
+			objectInvisible = BlockEncyclopediaECS.objectInvisible,
+			blockMaterial = BlockEncyclopediaECS.blockMaterial,
+			objectMaterial = BlockEncyclopediaECS.objectMaterial,
+			blockWashable = BlockEncyclopediaECS.blockWashable,
+			objectWashable = BlockEncyclopediaECS.objectWashable,
+			blockTiles = BlockEncyclopediaECS.blockTiles
 		};
 		JobHandle job = bcJob.Schedule();
 		job.Complete();
@@ -774,7 +735,7 @@ public class Chunk
 			meshLightUV = meshLightUV,
 			meshNormals = meshNormals,
 			scaling = scaling,
-			needRotation = objectNeedRotation,
+			needRotation = BlockEncyclopediaECS.objectNeedRotation,
 			inplaceOffset = scaleOffset,
 			inplaceRotation = rotationOffset,
 
@@ -826,19 +787,6 @@ public class Chunk
 		blockdata.Dispose();
 		statedata.Dispose();
 		loadCoordList.Dispose();
-		blockTransparent.Dispose();
-		objectTransparent.Dispose();
-		blockSeamless.Dispose();
-		objectSeamless.Dispose();
-		blockLoad.Dispose();
-		objectLoad.Dispose();
-		blockInvisible.Dispose();
-		objectInvisible.Dispose();
-		blockMaterial.Dispose();
-		objectMaterial.Dispose();
-		blockTiles.Dispose();
-		blockWashable.Dispose();
-		objectWashable.Dispose();
 		cacheCubeVert.Dispose();
 		cacheCubeNormal.Dispose();
 		cacheCubeUV.Dispose();
@@ -859,7 +807,6 @@ public class Chunk
 		normals.Dispose();
 		meshUVs.Dispose();
 		meshNormals.Dispose();
-		objectNeedRotation.Dispose();
 		scaleOffset.Dispose();
 		rotationOffset.Dispose();
 		lightUV.Dispose();

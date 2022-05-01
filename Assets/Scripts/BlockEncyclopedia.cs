@@ -23,7 +23,7 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.blockSeamless[i] = blocks[i].seamless;
             BlockEncyclopediaECS.blockLoad[i] = blocks[i].hasLoadEvent;
             BlockEncyclopediaECS.blockInvisible[i] = blocks[i].invisible;
-            BlockEncyclopediaECS.blockShader[i] = blocks[i].shaderIndex;
+            BlockEncyclopediaECS.blockMaterial[i] = blocks[i].shaderIndex;
             BlockEncyclopediaECS.blockTiles[i] = new int3(blocks[i].tileTop, blocks[i].tileBottom, blocks[i].tileSide);
             BlockEncyclopediaECS.blockWashable[i] = blocks[i].washable;
             BlockEncyclopediaECS.blockAffectLight[i] = blocks[i].affectLight;
@@ -37,7 +37,7 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.objectSeamless[i] = objects[i].seamless;
             BlockEncyclopediaECS.objectLoad[i] = objects[i].hasLoadEvent;
             BlockEncyclopediaECS.objectInvisible[i] = objects[i].invisible;
-            BlockEncyclopediaECS.objectShader[i] = objects[i].shaderIndex;
+            BlockEncyclopediaECS.objectMaterial[i] = objects[i].shaderIndex;
             BlockEncyclopediaECS.objectScaling[i] = objects[i].scaling;
             BlockEncyclopediaECS.objectNeedRotation[i] = objects[i].needsRotation;
             BlockEncyclopediaECS.objectWashable[i] = objects[i].washable;
