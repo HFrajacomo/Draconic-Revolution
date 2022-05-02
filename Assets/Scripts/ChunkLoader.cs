@@ -90,7 +90,6 @@ public class ChunkLoader : MonoBehaviour
     void OnApplicationQuit(){
         NetMessage message = new NetMessage(NetCode.DISCONNECT);
         this.client.Send(message.GetMessage(), message.size);
-        BlockEncyclopediaECS.Destroy();
     }
 
     void OnDisable(){
@@ -99,7 +98,6 @@ public class ChunkLoader : MonoBehaviour
         this.client.Send(message.GetMessage(), message.size);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        BlockEncyclopediaECS.Destroy();
     }
 
     void Update(){

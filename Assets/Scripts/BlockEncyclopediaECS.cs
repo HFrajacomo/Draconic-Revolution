@@ -4,7 +4,7 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
 
-public class BlockEncyclopediaECS
+public static class BlockEncyclopediaECS
 {
 	public static NativeArray<byte> blockTransparent;
 	public static NativeArray<byte> objectTransparent;
@@ -26,47 +26,47 @@ public class BlockEncyclopediaECS
 	public static NativeArray<byte> blockLuminosity;
 	public static NativeArray<byte> objectLuminosity;
 
-	public BlockEncyclopediaECS(int amountBlocks, int amountObjects){ 
-		BlockEncyclopediaECS.blockTransparent = new NativeArray<byte>(amountBlocks, Allocator.Persistent);
-		BlockEncyclopediaECS.objectTransparent = new NativeArray<byte>(amountObjects, Allocator.Persistent);
-		BlockEncyclopediaECS.blockSeamless = new NativeArray<bool>(amountBlocks, Allocator.Persistent);
-		BlockEncyclopediaECS.objectSeamless = new NativeArray<bool>(amountObjects, Allocator.Persistent);
-		BlockEncyclopediaECS.blockLoad = new NativeArray<bool>(amountBlocks, Allocator.Persistent);
-		BlockEncyclopediaECS.objectLoad = new NativeArray<bool>(amountObjects, Allocator.Persistent);
-		BlockEncyclopediaECS.blockInvisible = new NativeArray<bool>(amountBlocks, Allocator.Persistent);
-		BlockEncyclopediaECS.objectInvisible = new NativeArray<bool>(amountObjects, Allocator.Persistent);
-		BlockEncyclopediaECS.blockMaterial = new NativeArray<ShaderIndex>(amountBlocks, Allocator.Persistent);
-		BlockEncyclopediaECS.objectMaterial = new NativeArray<ShaderIndex>(amountObjects, Allocator.Persistent);
-		BlockEncyclopediaECS.blockTiles = new NativeArray<int3>(amountBlocks, Allocator.Persistent);
-		BlockEncyclopediaECS.objectScaling = new NativeArray<Vector3>(amountObjects, Allocator.Persistent);		
-		BlockEncyclopediaECS.objectNeedRotation = new NativeArray<bool>(amountObjects, Allocator.Persistent);
-		BlockEncyclopediaECS.blockWashable = new NativeArray<bool>(amountBlocks, Allocator.Persistent);
-		BlockEncyclopediaECS.objectWashable = new NativeArray<bool>(amountObjects, Allocator.Persistent);
-		BlockEncyclopediaECS.blockAffectLight = new NativeArray<bool>(amountBlocks, Allocator.Persistent);
-		BlockEncyclopediaECS.objectAffectLight = new NativeArray<bool>(amountObjects, Allocator.Persistent);
-		BlockEncyclopediaECS.blockLuminosity = new NativeArray<byte>(amountBlocks, Allocator.Persistent);
-		BlockEncyclopediaECS.objectLuminosity = new NativeArray<byte>(amountObjects, Allocator.Persistent);
+	static BlockEncyclopediaECS(){ 
+		BlockEncyclopediaECS.blockTransparent = new NativeArray<byte>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectTransparent = new NativeArray<byte>(BlocklikeObject.objectCount, Allocator.Persistent);
+		BlockEncyclopediaECS.blockSeamless = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectSeamless = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
+		BlockEncyclopediaECS.blockLoad = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectLoad = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
+		BlockEncyclopediaECS.blockInvisible = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectInvisible = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
+		BlockEncyclopediaECS.blockMaterial = new NativeArray<ShaderIndex>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectMaterial = new NativeArray<ShaderIndex>(BlocklikeObject.objectCount, Allocator.Persistent);
+		BlockEncyclopediaECS.blockTiles = new NativeArray<int3>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectScaling = new NativeArray<Vector3>(BlocklikeObject.objectCount, Allocator.Persistent);		
+		BlockEncyclopediaECS.objectNeedRotation = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
+		BlockEncyclopediaECS.blockWashable = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectWashable = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
+		BlockEncyclopediaECS.blockAffectLight = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectAffectLight = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
+		BlockEncyclopediaECS.blockLuminosity = new NativeArray<byte>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectLuminosity = new NativeArray<byte>(BlocklikeObject.objectCount, Allocator.Persistent);
 	}
 
 	public static void Destroy(){
-		blockTransparent.Dispose();
-		objectTransparent.Dispose();
-		blockSeamless.Dispose();
-		objectSeamless.Dispose();
-		blockLoad.Dispose();
-		objectLoad.Dispose();
-		blockInvisible.Dispose();
-		objectInvisible.Dispose();
-		blockMaterial.Dispose();
-		objectMaterial.Dispose();
-		blockTiles.Dispose();
-		objectScaling.Dispose();
-		objectNeedRotation.Dispose();
-		blockWashable.Dispose();
-		objectWashable.Dispose();
-		blockAffectLight.Dispose();
-		objectAffectLight.Dispose();
-		blockLuminosity.Dispose();
-		objectLuminosity.Dispose();
+		BlockEncyclopediaECS.blockTransparent.Dispose();
+		BlockEncyclopediaECS.objectTransparent.Dispose();
+		BlockEncyclopediaECS.blockSeamless.Dispose();
+		BlockEncyclopediaECS.objectSeamless.Dispose();
+		BlockEncyclopediaECS.blockLoad.Dispose();
+		BlockEncyclopediaECS.objectLoad.Dispose();
+		BlockEncyclopediaECS.blockInvisible.Dispose();
+		BlockEncyclopediaECS.objectInvisible.Dispose();
+		BlockEncyclopediaECS.blockMaterial.Dispose();
+		BlockEncyclopediaECS.objectMaterial.Dispose();
+		BlockEncyclopediaECS.blockTiles.Dispose();
+		BlockEncyclopediaECS.objectScaling.Dispose();
+		BlockEncyclopediaECS.objectNeedRotation.Dispose();
+		BlockEncyclopediaECS.blockWashable.Dispose();
+		BlockEncyclopediaECS.objectWashable.Dispose();
+		BlockEncyclopediaECS.blockAffectLight.Dispose();
+		BlockEncyclopediaECS.objectAffectLight.Dispose();
+		BlockEncyclopediaECS.blockLuminosity.Dispose();
+		BlockEncyclopediaECS.objectLuminosity.Dispose();
 	}
 }

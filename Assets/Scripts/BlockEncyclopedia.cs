@@ -8,14 +8,11 @@ public class BlockEncyclopedia : MonoBehaviour
 {
 	public Blocks[] blocks = new Blocks[Blocks.blockCount];
 	public BlocklikeObject[] objects = new BlocklikeObject[BlocklikeObject.objectCount];
-    public BlockEncyclopediaECS data;
     public bool isClient;
 
     // Start is called before the first frame update
     public void Awake()
     {
-        data = new BlockEncyclopediaECS(Blocks.blockCount, BlocklikeObject.objectCount);
-
     	// Loads all blocks
         for(int i=0;i<Blocks.blockCount;i++){
         	blocks[i] = Blocks.Block(i);
@@ -44,6 +41,10 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.objectAffectLight[i] = objects[i].affectLight;
             BlockEncyclopediaECS.objectLuminosity[i] = objects[i].luminosity;
         }
+    }
+
+    public void OnApplicationQuit(){
+        BlockEncyclopediaECS.Destroy();
     }
 
 

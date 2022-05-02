@@ -49,8 +49,6 @@ public class WorldGenerator
     // Biome Blending Map
     private NativeArray<ushort> biomeBlendingBlock;
 
-
-
     public WorldGenerator(int worldSeed, BiomeHandler biomeReference, StructureHandler structHandler, ChunkLoader_Server reference){
     	this.worldSeed = worldSeed;
     	this.biomeHandler = biomeReference;
@@ -903,13 +901,39 @@ public struct PopulateChunkJob : IJob{
             }
         }
         else if(code == BiomeCode.GRASSY_HIGHLANDS){
+            float stoneThreshold = -0.3f;
+            bool isStoneFloor = false;
+
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
-                    int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-                    blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+                    isStoneFloor = false;
+                    depth = 0;
 
-                    if(blockCode != (ushort)BlockID.WATER)
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
+                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) >= stoneThreshold)
+                        isStoneFloor = true;
+
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                        if(blockCode == (ushort)BlockID.WATER)
+                            depth++;
+                        else if(isStoneFloor && depth < 5){
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
+                            depth++;
+                        } 
+                        else if(depth == 0){
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.GRASS;
+                            depth++;
+                        }
+                        else{
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.DIRT;
+                            depth++;
+                        }
+
+                        if(depth == 5){
+                            break;
+                        }
+                    }
                 }
             }       
         }
@@ -937,11 +961,25 @@ public struct PopulateChunkJob : IJob{
         else if(code == BiomeCode.FOREST){
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
-                    int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-                    blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+                    depth = 0;
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                    if(blockCode != (ushort)BlockID.WATER)
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.WOOD;
+                        if(blockCode == (ushort)BlockID.WATER)
+                            depth++;
+                        else if(depth == 0){
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.GRASS;
+                            depth++;
+                        }
+                        else{
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.DIRT;
+                            depth++;
+                        }
+
+                        if(depth == 5){
+                            break;
+                        }
+                    }
                 }
             }         
         }

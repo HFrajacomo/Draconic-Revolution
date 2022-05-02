@@ -25,13 +25,13 @@ public class BiomeHandler
 		this.biomeTable = new BiomeTable();
 
 		Biome plains = new Biome("Plains", BiomeCode.PLAINS, BiomeType.LOW,
-		 1,
+		 1, 
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,3,2, 4},
 		 new List<float>(){0.07f, 0.05f, 1f, 1f, 0.01f, 1f, 1f, 1f});
 
 		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS, BiomeType.PEAK,
-		 3,
+		 1,
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,5,4, 8},
 		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.02f, 1f, 1f, 1f});
@@ -43,7 +43,7 @@ public class BiomeHandler
 		 new List<float>(){});
 
 		Biome forest = new Biome("Forest", BiomeCode.FOREST, BiomeType.MID,
-		 4,
+		 1,
 		 new List<int>(){6,1,2,7,8,9,10,11},
 		 new List<int>(){1,2,2,1,1,3,2, 4},
 		 new List<float>(){0.05f, 1f, 0.5f, 0.1f, 0.3f, 1f, 1f, 1f});
