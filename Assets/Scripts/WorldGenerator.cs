@@ -884,14 +884,14 @@ public struct PopulateChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == 6)
+                        if(blockCode == (ushort)BlockID.WATER)
                             depth++;
                         else if(depth == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 1;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.GRASS;
                             depth++;
                         }
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 2;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.DIRT;
                             depth++;
                         }
 
@@ -908,8 +908,8 @@ public struct PopulateChunkJob : IJob{
                     int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
                     blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                    if(blockCode != 6)
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;
+                    if(blockCode != (ushort)BlockID.WATER)
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
                 }
             }       
         }
@@ -920,10 +920,10 @@ public struct PopulateChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == 6)
+                        if(blockCode == (ushort)BlockID.WATER)
                             depth++;
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 8;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
                             depth++; 
                         }
 
@@ -940,8 +940,8 @@ public struct PopulateChunkJob : IJob{
                     int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
                     blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                    if(blockCode != 6)
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 4;
+                    if(blockCode != (ushort)BlockID.WATER)
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.WOOD;
                 }
             }         
         }
@@ -952,10 +952,10 @@ public struct PopulateChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == 6)
+                        if(blockCode == (ushort)BlockID.WATER)
                             depth++;
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 8;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
                             depth++; 
                         }
 
@@ -981,15 +981,15 @@ public struct PopulateChunkJob : IJob{
 
                 blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+height*Chunk.chunkWidth+z];
 
-                if(blockCode != 6)
+                if(blockCode != (ushort)BlockID.WATER)
                     continue;
                 else{
                     for(int y=height-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode != 6){
+                        if(blockCode != (ushort)BlockID.WATER){
                             depth++;
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 8;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
                         }
 
                         if(depth == finalDepth)
@@ -1399,7 +1399,7 @@ public struct RemoveSpikesJob : IJobParallelFor{
 
     private void BreakPillar(int x, int z, int initialY, int endY){
         for(int y=initialY; y > endY; y--){
-            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 6)
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == (ushort)BlockID.WATER)
                 continue;
 
             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
@@ -1409,10 +1409,10 @@ public struct RemoveSpikesJob : IJobParallelFor{
 
     private void AddPillar(int x, int z, int initialY, int endY){
         for(int y=initialY; y >= endY; y--){
-            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 6)
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == (ushort)BlockID.WATER)
                 continue;
 
-            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;
+            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
             stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;  
         }        
     }

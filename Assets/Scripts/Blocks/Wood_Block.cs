@@ -29,8 +29,8 @@ public class Wood_Block : Blocks
 
 	NetMessage reloadMessage;
 	int decayDistance = 7;
-	ushort assignedLeafCode = ushort.MaxValue-1;
-	ushort thisCode = 4;
+	ushort assignedLeafCode = (ushort)BlockID.LEAF;
+	ushort thisCode = (ushort)BlockID.WOOD;
 	int minDecayTime = 8;
 	int maxDecayTime = 30;
 

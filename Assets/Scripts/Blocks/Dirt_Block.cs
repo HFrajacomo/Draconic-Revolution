@@ -19,7 +19,7 @@ public class Dirt_Block : Blocks
 
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
 		// Changes to Grass
-		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, 1);
+		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, (ushort)BlockID.GRASS);
 		return 1;
 	}
 }

@@ -53,7 +53,7 @@ public class Water_Block : Blocks
 		this.transparent = 1;
 		this.invisible = false;
 		this.liquid = true;
-		this.waterCode = 6;
+		this.waterCode = (ushort)BlockID.WATER;
 		this.customBreak = true;
 		this.customPlace = true;
 		this.hasLoadEvent = true;

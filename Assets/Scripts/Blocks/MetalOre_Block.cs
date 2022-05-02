@@ -19,7 +19,7 @@ public class MetalOre_Block : Blocks
 
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
 		// Changes to Stone
-		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, 3);
+		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, (ushort)BlockID.STONE);
 		return 1;
 	}
 
