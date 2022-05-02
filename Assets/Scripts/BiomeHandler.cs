@@ -31,7 +31,7 @@ public class BiomeHandler
 		 new List<float>(){0.07f, 0.05f, 1f, 1f, 0.01f, 1f, 1f, 1f});
 
 		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS, BiomeType.PEAK,
-		 1,
+		 3,
 		 new List<int>(){1,2,3,4,5,9,10,11},
 		 new List<int>(){1,1,3,2,1,5,4, 8},
 		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.02f, 1f, 1f, 1f});
