@@ -45,8 +45,11 @@ public class ChunkLoader_Server : MonoBehaviour
 
 
     void OnApplicationQuit(){
-        regionHandler.CloseAll();
-        this.worldGen.DestroyNativeMemory();
+        if(regionHandler != null)
+            regionHandler.CloseAll();
+        
+        if(this.worldGen != null)
+            this.worldGen.DestroyNativeMemory();
     }
 
     void Start(){
