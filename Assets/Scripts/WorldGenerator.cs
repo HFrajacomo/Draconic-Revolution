@@ -23,11 +23,13 @@ public class WorldGenerator
 
     // Prefab System
     public StructureHandler structHandler;
+    public StructureGenerator structureGenerator;
 
 	// Cached Data
 	private	ushort[] cacheVoxdata = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private ushort[] cacheMetadataHP = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private ushort[] cacheMetadataState = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
+    private float[] cacheHeightMap = new float[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
 
     private byte cacheBiome;
 
@@ -54,6 +56,7 @@ public class WorldGenerator
     	this.biomeHandler = biomeReference;
     	this.cl = reference;
     	this.structHandler = structHandler;
+        this.structureGenerator = new StructureGenerator(this);
 
         baseMap = new NativeArray<byte>(GenerationSeed.baseNoise, Allocator.Persistent);
         erosionMap = new NativeArray<byte>(GenerationSeed.erosionNoise, Allocator.Persistent);
@@ -142,8 +145,7 @@ public class WorldGenerator
     Depth Values represent how deep below heightmap things will go.
     Range represents if structure always spawn at given Depth, or if it spans below as well
     */
-    /*
-    private void GenerateStructures(ChunkPos pos, float xhash, float zhash, byte biome, int structureCode, int depth, int heightlimit=0, bool range=false){
+    public void GenerateStructures(ChunkPos pos, BiomeCode biome, int structureCode, int depth, ushort[] blockdata, ushort[] statedata, ushort[] hpdata, float[] heightMap, int heightlimit=0, bool range=false){
         // Gets index of amount and percentage
         int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureCode);
         int amount = BiomeHandler.GetBiomeAmounts(biome)[index];
@@ -162,31 +164,31 @@ public class WorldGenerator
         // If structure is static at given heightmap depth
         if(!range){            
             for(int i=1; i <= amount; i++){
-                chance = Perlin.Noise((pos.x ^ pos.z)*(zhash/xhash)*(i*0.17f)*structureCode);
+                chance = PatchNoise(pos.x*Chunk.chunkWidth*GenerationSeed.patchNoiseStep1, pos.z*Chunk.chunkWidth*GenerationSeed.patchNoiseStep2);
 
                 if(chance > percentage)
                     continue;
 
-                rotation = Mathf.FloorToInt(Perlin.Noise((pos.z+pos.x)*xhash*zhash+i*generationSeed)*3.99f);
+                rotation = Mathf.FloorToInt(PatchNoise((pos.z+pos.x)*Chunk.chunkWidth*i*GenerationSeed.patchNoiseStep3)*3.99f);
 
-                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x*generationSeed)*Chunk.chunkWidthMult);
-                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z*generationSeed)*Chunk.chunkWidthMult);
+                x = Mathf.FloorToInt(PatchNoise((i+structureCode+pos.z)*GenerationSeed.patchNoiseStep3)*Chunk.chunkWidthMult);
+                z = Mathf.FloorToInt(PatchNoise((i+structureCode+pos.x)*GenerationSeed.patchNoiseStep4)*Chunk.chunkWidthMult);
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15){
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth;
+                    y = HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth;
                 }
                 // X >
                 else if(x + offsetX > 15 && z + offsetZ <= 15){
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth;
+                    y = HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth;
                 }
                 // Z >
                 else if(x + offsetX <= 15 && z + offsetZ > 15){
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth;
+                    y = HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth;
                 }
                 // All <
                 else{
-                    y = cacheHeightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth;
+                    y = (int)heightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth;
                 }
 
                 // Ignores structure on hard limit
@@ -194,22 +196,22 @@ public class WorldGenerator
                     continue;
 
                 
-                this.structHandler.LoadStructure(structureCode).Apply(this.cl, pos, cacheVoxdata, cacheMetadataHP, cacheMetadataState, x, y, z, rotation:rotation);
+                this.structHandler.LoadStructure(structureCode).Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);
             }
         }
         // If can be placed in a range
         else{
             for(int i=1; i <= amount; i++){
-                chance = Perlin.Noise((pos.x ^ pos.z)*(zhash/xhash)*(i*0.17f)*structureCode);
+                chance = PatchNoise(pos.x*Chunk.chunkWidth*GenerationSeed.patchNoiseStep1, pos.z*Chunk.chunkWidth*GenerationSeed.patchNoiseStep2);
 
                 if(chance > percentage)
                     continue;
 
-                rotation = Mathf.FloorToInt(Perlin.Noise((pos.z+pos.x)*xhash*zhash+i*generationSeed)*3.99f);
+                rotation = Mathf.FloorToInt(PatchNoise((pos.z+pos.x)*Chunk.chunkWidth*i*GenerationSeed.patchNoiseStep3)*3.99f);
 
-                x = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.z)*xhash*pos.x*generationSeed)*Chunk.chunkWidthMult);
-                z = Mathf.FloorToInt(Perlin.Noise((i+structureCode+pos.x)*zhash*pos.z*generationSeed)*Chunk.chunkWidthMult);
-                float yMult = Perlin.Noise((i + structureCode + (pos.z & pos.x))*xhash*zhash);              
+                x = Mathf.FloorToInt(PatchNoise((i+structureCode+pos.z)*GenerationSeed.patchNoiseStep3)*Chunk.chunkWidthMult);
+                z = Mathf.FloorToInt(PatchNoise((i+structureCode+pos.x)*GenerationSeed.patchNoiseStep4)*Chunk.chunkWidthMult);
+                float yMult = PatchNoise((i + structureCode + (pos.z & pos.x))*GenerationSeed.patchNoiseStep3);   
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15){
@@ -232,20 +234,20 @@ public class WorldGenerator
                 if(y <= heightlimit)
                     continue;
 
-                this.structHandler.LoadStructure(structureCode).Apply(this.cl, pos, cacheVoxdata, cacheMetadataHP, cacheMetadataState, x, y, z, rotation:rotation);
+                this.structHandler.LoadStructure(structureCode).Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);
             }            
         }
     }
 
     // Returns the mean height for a given structure
-    private int HalfConvolute(ushort[] heightmap, int x, int z, int offsetX, int offsetZ, int code, bool xAxis=false, bool zAxis=false, bool bothAxis=false){
+    private int HalfConvolute(float[] heightmap, int x, int z, int offsetX, int offsetZ, int code, bool xAxis=false, bool zAxis=false, bool bothAxis=false){
         int sum=0;
         int amount=0;
         
         if(bothAxis){
             for(int i=x; i < Chunk.chunkWidth; i++){
                 for(int c=z; c < Chunk.chunkWidth; c++){
-                    sum += heightmap[i*(Chunk.chunkWidth+1)+c];
+                    sum += (int)heightmap[i*(Chunk.chunkWidth+1)+c];
                     amount++;
                 }
             }
@@ -259,7 +261,7 @@ public class WorldGenerator
 
             for(int i=x; i < Chunk.chunkWidth; i++){
                 for(int c=z; c < Mathf.Min(z+size, Chunk.chunkWidth); c++){
-                    sum += heightmap[i*(Chunk.chunkWidth+1)+c];
+                    sum += (int)heightmap[i*(Chunk.chunkWidth+1)+c];
                     amount++;
                 }
             }
@@ -273,7 +275,7 @@ public class WorldGenerator
 
             for(int i=z; i < Chunk.chunkWidth; i++){
                 for(int c=x; c < Mathf.Min(x+size, Chunk.chunkWidth); c++){
-                    sum += heightmap[c*(Chunk.chunkWidth+1)+i];
+                    sum += (int)heightmap[c*(Chunk.chunkWidth+1)+i];
                     amount++; 
                 }
             }
@@ -284,9 +286,8 @@ public class WorldGenerator
         }
         
         
-        return heightmap[x*(Chunk.chunkWidth+1)+z]-1;
+        return (int)heightmap[x*(Chunk.chunkWidth+1)+z]-1;
     }
-    */
 
 
     // Generates a Chunk
@@ -373,24 +374,46 @@ public class WorldGenerator
         job = gcavej.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
 
-        /*
-        RemoveSpikesJob rsJob = new RemoveSpikesJob{
-            blockData = voxelData,
-            stateData = stateData,
-            heightMap = heightMap
-        };
-        job = rsJob.Schedule(Chunk.chunkWidth, 2);
-        job.Complete();
-        */
-
         cacheVoxdata = NativeTools.CopyToManaged(voxelData);
         cacheMetadataState = NativeTools.CopyToManaged(stateData);
         cacheMetadataHP = NativeTools.CopyToManaged(hpData);
+        cacheHeightMap = NativeTools.CopyToManaged(heightMap);
+
+        structureGenerator.GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP, cacheHeightMap);
 
         voxelData.Dispose();
         stateData.Dispose();
         hpData.Dispose();
         heightMap.Dispose();
+    }
+
+
+    public float PatchNoise(float x)
+    {
+        int X = Mathf.FloorToInt(x) & 0xff;
+        x -= Mathf.Floor(x);
+        float u = Fade(x);
+
+        return Normalize(Lerp(u, Grad(GenerationSeed.patchNoise[X], x), Grad(GenerationSeed.patchNoise[X+1], x-1)));
+    }
+
+    public float PatchNoise(float x, float y){
+        int X = Mathf.FloorToInt(x) & 0xff;
+        int Y = Mathf.FloorToInt(y) & 0xff;
+        x -= Mathf.Floor(x);
+        y -= Mathf.Floor(y);
+
+        float u = Fade(x);
+        float v = Fade(y);
+
+        int A = (GenerationSeed.patchNoise[X  ] + Y) & 0xff;
+        int B = (GenerationSeed.patchNoise[X+1] + Y) & 0xff;
+        return Normalize(Lerp(v, Lerp(u, Grad(GenerationSeed.patchNoise[A  ], x, y  ), Grad(GenerationSeed.patchNoise[B  ], x-1, y  )),
+                       Lerp(u, Grad(GenerationSeed.patchNoise[A+1], x, y-1), Grad(GenerationSeed.patchNoise[B+1], x-1, y-1))));
+    }
+
+    private float Normalize(float x){
+        return (1 + x)/2;
     }
 
     /*

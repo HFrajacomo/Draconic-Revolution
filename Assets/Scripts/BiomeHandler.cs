@@ -102,18 +102,18 @@ public class BiomeHandler
 	}
 
 	// Returns the list of possible Structures in a biome
-	public static List<int> GetBiomeStructs(byte biome){
-		return dataset[biome].structCodes;
+	public static List<int> GetBiomeStructs(BiomeCode biome){
+		return dataset[(byte)biome].structCodes;
 	}
 
 	// Returns the list of possible Amounts in a biome
-	public static List<int> GetBiomeAmounts(byte biome){
-		return dataset[biome].amountStructs;
+	public static List<int> GetBiomeAmounts(BiomeCode biome){
+		return dataset[(byte)biome].amountStructs;
 	}
 
 	// Returns the list of possible Percentages in a biome
-	public static List<float> GetBiomePercentages(byte biome){
-		return dataset[biome].percentageStructs;
+	public static List<float> GetBiomePercentages(BiomeCode biome){
+		return dataset[(byte)biome].percentageStructs;
 	}
 
 	/*

@@ -45,7 +45,7 @@ public class StructureHandler : MonoBehaviour
     		loadedBiomes.Add(code);
     		RemoveQueue();
 
-    		foreach(int structCode in BiomeHandler.GetBiomeStructs(code)){
+    		foreach(int structCode in BiomeHandler.GetBiomeStructs((BiomeCode)code)){
     			if(loadQueue.Contains(structCode) || structs.ContainsKey(structCode)){
     				continue;
     			}
@@ -70,12 +70,12 @@ public class StructureHandler : MonoBehaviour
     		loadedBiomes.RemoveAt(0);
 
     		// For every Struct in removed biome
-    		foreach(int s in BiomeHandler.GetBiomeStructs(biome)){
+    		foreach(int s in BiomeHandler.GetBiomeStructs((BiomeCode)biome)){
     			found = false;
 
     			// For every biome in loaded biomes
 	    		foreach(byte b in loadedBiomes){
-	    			if(BiomeHandler.GetBiomeStructs(b).Contains(s)){
+	    			if(BiomeHandler.GetBiomeStructs((BiomeCode)b).Contains(s)){
 	    				found = true;
 	    				break;
 	    			}
