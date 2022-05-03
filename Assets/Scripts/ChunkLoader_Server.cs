@@ -126,7 +126,7 @@ public class ChunkLoader_Server : MonoBehaviour
             // Rough Application of Structures
             Structure.RoughApply(chunks[cacheChunk.pos], cacheChunk);
 
-            this.regionHandler.SaveChunk(cacheChunk);
+            this.regionHandler.SaveChunk(chunks[cacheChunk.pos]);
 
             SendChunkToRequestingClients(cacheChunk.pos);
         }
