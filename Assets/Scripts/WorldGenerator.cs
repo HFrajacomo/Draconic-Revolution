@@ -171,8 +171,8 @@ public class WorldGenerator
 
                 rotation = Mathf.FloorToInt(PatchNoise((pos.z+pos.x)*Chunk.chunkWidth*i*GenerationSeed.patchNoiseStep3)*3.99f);
 
-                x = Mathf.FloorToInt(PatchNoise((i+structureCode+pos.z)*GenerationSeed.patchNoiseStep3)*Chunk.chunkWidthMult);
-                z = Mathf.FloorToInt(PatchNoise((i+structureCode+pos.x)*GenerationSeed.patchNoiseStep4)*Chunk.chunkWidthMult);
+                x = Mathf.FloorToInt(PatchNoise((structureCode+pos.z)*i*GenerationSeed.patchNoiseStep3)*Chunk.chunkWidthMult);
+                z = Mathf.FloorToInt(PatchNoise((structureCode+pos.x)*i*GenerationSeed.patchNoiseStep4)*Chunk.chunkWidthMult);
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15){
@@ -209,8 +209,8 @@ public class WorldGenerator
 
                 rotation = Mathf.FloorToInt(PatchNoise((pos.z+pos.x)*Chunk.chunkWidth*i*GenerationSeed.patchNoiseStep3)*3.99f);
 
-                x = Mathf.FloorToInt(PatchNoise((i+structureCode+pos.z)*GenerationSeed.patchNoiseStep3)*Chunk.chunkWidthMult);
-                z = Mathf.FloorToInt(PatchNoise((i+structureCode+pos.x)*GenerationSeed.patchNoiseStep4)*Chunk.chunkWidthMult);
+                x = Mathf.FloorToInt(PatchNoise((structureCode+pos.z)*i*GenerationSeed.patchNoiseStep3)*Chunk.chunkWidthMult);
+                z = Mathf.FloorToInt(PatchNoise((structureCode+pos.x)*i*GenerationSeed.patchNoiseStep4)*Chunk.chunkWidthMult);
                 float yMult = PatchNoise((i + structureCode + (pos.z & pos.x))*GenerationSeed.patchNoiseStep3);   
 
                 // All >
@@ -291,10 +291,11 @@ public class WorldGenerator
 
 
     // Generates a Chunk
-    public void GenerateChunk(ChunkPos pos){
-        NativeArray<ushort> voxelData = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-        NativeArray<ushort> stateData = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-        NativeArray<ushort> hpData = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+    public void GenerateChunk(ChunkPos pos, bool isPregen=false){
+        //NativeArray<ushort> voxelData = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+        NativeArray<ushort> voxelData = NativeTools.CopyToNative(cacheVoxdata);
+        NativeArray<ushort> stateData = NativeTools.CopyToNative(cacheMetadataState);
+        NativeArray<ushort> hpData = NativeTools.CopyToNative(cacheMetadataHP);
         NativeArray<float> heightMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
 
         GenerateChunkJob gcj = new GenerateChunkJob{
@@ -306,7 +307,8 @@ public class WorldGenerator
             heightMap = heightMap,
             baseNoise = baseMap,
             erosionNoise = erosionMap,
-            peakNoise = peakMap
+            peakNoise = peakMap,
+            pregen = isPregen
         };
         JobHandle job = gcj.Schedule();
         job.Complete();
@@ -632,6 +634,7 @@ public struct GenerateChunkJob: IJob{
     public NativeArray<ushort> stateData;
     public NativeArray<ushort> hpData;
     public NativeArray<float> heightMap;
+    public bool pregen;
 
     // Noises
     [ReadOnly]
@@ -683,24 +686,46 @@ public struct GenerateChunkJob: IJob{
     }
 
     public void ApplyMap(int waterLevel){
-        for(int x=0; x < Chunk.chunkWidth; x++){
-            for(int z=0; z < Chunk.chunkWidth; z++){
-                for(int y=0; y < Chunk.chunkDepth; y++){ 
-                    if(y >= heightMap[x*(Chunk.chunkWidth+1)+z]){
-                        if(y <= waterLevel){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 6;
-                        }
+        if(!pregen){
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    for(int y=0; y < Chunk.chunkDepth; y++){ 
+                        if(y >= heightMap[x*(Chunk.chunkWidth+1)+z]){
+                            if(y <= waterLevel){
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 6;
+                            }
+                            else
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                        } 
                         else
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                    } 
-                    else
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;
 
-                    stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                    hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;       
+                        stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                        hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;       
+                    }
                 }
-            }
-        } 
+            } 
+        }
+        else{
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    for(int y=0; y < Chunk.chunkDepth; y++){ 
+                        if(y >= heightMap[x*(Chunk.chunkWidth+1)+z]){
+                            if(y <= waterLevel && blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 0){
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 6;
+                                stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                                hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;
+                            }
+                        } 
+                        else if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 0){
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;     
+                            stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                            hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;
+                        }
+                    }
+                }
+            }             
+        }
     }
     
     // Calculates the cumulative distribution function of a Normal Distribution
