@@ -6,6 +6,7 @@ using Unity.Jobs;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
+using Random = System.Random;
 using System.IO;
 using System.Text;
 using System.Windows.Forms.DataVisualization.Charting;
@@ -15,11 +16,9 @@ public class WorldGenerator
 {
 	// World Gen Settings
 	public int worldSeed;
-	public float dispersionSeed;
-	public float offsetHash;
-	public float generationSeed;
 	public BiomeHandler biomeHandler;
 	public ChunkLoader_Server cl;
+    private Random rng;
 
     // Prefab System
     public StructureHandler structHandler;
@@ -29,8 +28,7 @@ public class WorldGenerator
 	private	ushort[] cacheVoxdata = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private ushort[] cacheMetadataHP = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private ushort[] cacheMetadataState = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
-    private float[] cacheHeightMap = new float[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
-
+    private float[] cacheHeightMap = new float[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
     private byte cacheBiome;
 
     // Native Noise Maps
@@ -47,9 +45,9 @@ public class WorldGenerator
     private NativeHashSet<ushort> caveFreeBlocks;
     private ushort[] caveFreeBlocksArray = new ushort[]{6};
 
-
     // Biome Blending Map
     private NativeArray<ushort> biomeBlendingBlock;
+
 
     public WorldGenerator(int worldSeed, BiomeHandler biomeReference, StructureHandler structHandler, ChunkLoader_Server reference){
     	this.worldSeed = worldSeed;
@@ -156,23 +154,24 @@ public class WorldGenerator
         int offsetX, offsetZ;
         int rotation = 0;
         float chance;
+        this.rng = new Random((int)(int.MaxValue * PatchNoise((pos.z^(pos.x * pos.x))*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3)));
 
         // Offset
         offsetX = structHandler.LoadStructure(structureCode).offsetX;
         offsetZ = structHandler.LoadStructure(structureCode).offsetZ;
 
         // If structure is static at given heightmap depth
-        if(!range){            
+        if(!range){
             for(int i=1; i <= amount; i++){
-                chance = PatchNoise(pos.x*Chunk.chunkWidth*GenerationSeed.patchNoiseStep1, pos.z*Chunk.chunkWidth*GenerationSeed.patchNoiseStep2);
+                chance = (float)this.rng.NextDouble();
 
                 if(chance > percentage)
                     continue;
 
-                rotation = Mathf.FloorToInt(PatchNoise((pos.z+pos.x)*Chunk.chunkWidth*i*GenerationSeed.patchNoiseStep3)*3.99f);
+                rotation = this.rng.Next(0, 4);
 
-                x = Mathf.FloorToInt(PatchNoise((structureCode+pos.z)*i*GenerationSeed.patchNoiseStep3)*Chunk.chunkWidthMult);
-                z = Mathf.FloorToInt(PatchNoise((structureCode+pos.x)*i*GenerationSeed.patchNoiseStep4)*Chunk.chunkWidthMult);
+                x = this.rng.Next(0, Chunk.chunkWidth);
+                z = this.rng.Next(0, Chunk.chunkWidth);
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15){
@@ -195,47 +194,51 @@ public class WorldGenerator
                 if(y <= heightlimit)
                     continue;
 
-                
-                this.structHandler.LoadStructure(structureCode).Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);
+                Structure structure = this.structHandler.LoadStructure(structureCode);
+
+                if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z]))
+                    structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation); 
             }
         }
         // If can be placed in a range
         else{
             for(int i=1; i <= amount; i++){
-                chance = PatchNoise(pos.x*Chunk.chunkWidth*GenerationSeed.patchNoiseStep1, pos.z*Chunk.chunkWidth*GenerationSeed.patchNoiseStep2);
+                chance = (float)this.rng.NextDouble();
 
                 if(chance > percentage)
                     continue;
 
-                rotation = Mathf.FloorToInt(PatchNoise((pos.z+pos.x)*Chunk.chunkWidth*i*GenerationSeed.patchNoiseStep3)*3.99f);
+                rotation = this.rng.Next(0, 4);
 
-                x = Mathf.FloorToInt(PatchNoise((structureCode+pos.z)*i*GenerationSeed.patchNoiseStep3)*Chunk.chunkWidthMult);
-                z = Mathf.FloorToInt(PatchNoise((structureCode+pos.x)*i*GenerationSeed.patchNoiseStep4)*Chunk.chunkWidthMult);
-                float yMult = PatchNoise((i + structureCode + (pos.z & pos.x))*GenerationSeed.patchNoiseStep3);   
+                x = this.rng.Next(0, Chunk.chunkWidth);
+                z = this.rng.Next(0, Chunk.chunkWidth);
+                float yMult = (float)this.rng.NextDouble(); 
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15){
-                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth));
+                    y = (int)(heightlimit + yMult*(HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth));
                 }
                 // X >
                 else if(x + offsetX > 15 && z + offsetZ <= 15){
-                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth));
+                    y = (int)(heightlimit + yMult*(HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth));
                 }
                 // Z >
                 else if(x + offsetX <= 15 && z + offsetZ > 15){
-                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth));
+                    y = (int)(heightlimit + yMult*(HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth));
                 }
                 // All <
                 else{
-                    y = (int)(heightlimit + yMult*(cacheHeightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth));
+                    y = (int)(heightlimit + yMult*(heightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth));
                 }
 
                 // Ignores structure on hard limit
                 if(y <= heightlimit)
                     continue;
 
-                this.structHandler.LoadStructure(structureCode).Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);
-            }            
+                Structure structure = this.structHandler.LoadStructure(structureCode);
+
+                if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z]))
+                    structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);             }            
         }
     }
 
@@ -949,7 +952,7 @@ public struct PopulateChunkJob : IJob{
             }
         }
         else if(code == BiomeCode.GRASSY_HIGHLANDS){
-            float stoneThreshold = -0.3f;
+            float stoneThreshold = 0.1f;
             bool isStoneFloor = false;
 
             for(int x=0; x < Chunk.chunkWidth; x++){
@@ -1298,7 +1301,7 @@ public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Sched
 
     private void SetHeightMapData(int x, int z){
         for(int y = Chunk.chunkDepth-1; y > 0; y--){
-            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != 0){
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != 0 && blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != (ushort)BlockID.WATER){
                 heightMap[x*(Chunk.chunkWidth+1)+z] = y+1;
                 return;
             }

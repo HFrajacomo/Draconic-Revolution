@@ -19,6 +19,7 @@ public abstract class Structure
     public static List<Chunk> reloadChunks = new List<Chunk>();
 
     public bool considerAir;
+    public bool needsBase;
 
     public int sizeX, sizeY, sizeZ;
     public int offsetX, offsetZ;
@@ -30,7 +31,8 @@ public abstract class Structure
     */
     public FillType type;
 
-    public List<ushort> overwriteBlocks;
+    public HashSet<ushort> overwriteBlocks;
+    public HashSet<BlockID> acceptableBaseBlocks;
 
 
     /*
@@ -96,6 +98,16 @@ public abstract class Structure
                 }
             }
         }
+    }
+
+    public bool AcceptBaseBlock(ushort baseBlock){
+        if(!this.needsBase)
+            return true;
+
+        if(this.acceptableBaseBlocks.Contains((BlockID)baseBlock))
+            return true;
+
+        return false;
     }
 
 
@@ -618,7 +630,7 @@ public abstract class Structure
 
 public enum FillType{
     OverwriteAll, // Will erase any blocks in selected region
-    FreeSpace, // Will need free space to generate, if considerAir is off, disconsiders self air colission
+    FreeSpace, // Will need free space to generate, if considerAir is off, disconsiders self air colision
     SpecificOverwrite, // Will generate structure blocks only on specific blocks
 }
 
