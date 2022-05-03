@@ -27,14 +27,14 @@ public class BiomeHandler
 		Biome plains = new Biome("Plains", BiomeCode.PLAINS, BiomeType.LOW,
 		 1, 
 		 new List<int>(){1,2,3,4,5,9,10,11},
-		 new List<int>(){1,1,3,2,1,3,2, 4},
-		 new List<float>(){0.07f, 0.05f, 1f, 1f, 0.01f, 1f, 1f, 1f});
+		 new List<int>(){1,1,3,2,1,6,5, 5},
+		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.01f, 1f, 1f, 1f});
 
 		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS, BiomeType.PEAK,
 		 3,
 		 new List<int>(){1,2,3,4,5,9,10,11},
-		 new List<int>(){1,1,3,2,1,5,4, 8},
-		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.02f, 1f, 1f, 1f});
+		 new List<int>(){1,1,3,2,1,10,8, 14},
+		 new List<float>(){0.3f, 0.2f, 1f, 1f, 0.02f, 1f, 1f, 1f});
 
 		Biome ocean = new Biome("Ocean", BiomeCode.OCEAN, BiomeType.OCEAN,
 		 8,
@@ -45,14 +45,14 @@ public class BiomeHandler
 		Biome forest = new Biome("Forest", BiomeCode.FOREST, BiomeType.MID,
 		 1,
 		 new List<int>(){6,1,2,7,8,9,10,11},
-		 new List<int>(){1,2,2,1,1,3,2, 4},
+		 new List<int>(){1,3,3,1,1,7,7, 7},
 		 new List<float>(){0.05f, 1f, 0.5f, 0.1f, 0.3f, 1f, 1f, 1f});
 
 		Biome desert = new Biome("Desert", BiomeCode.DESERT, BiomeType.LOW,
 		 8,
-		 new List<int>(){5,9,10,11},
-		 new List<int>(){1,3,2, 4},
-		 new List<float>(){0.01f, 1f, 1f, 1f});
+		 new List<int>(){5,9,10,11,7},
+		 new List<int>(){1,6,6, 6, 1},
+		 new List<float>(){0.01f, 1f, 1f, 1f, 0.05f});
 
 		AddBiome(plains);
 		AddBiome(grassyHighlands);

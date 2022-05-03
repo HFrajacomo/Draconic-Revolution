@@ -226,7 +226,7 @@ public class TreeCrookedMediumA : Structure
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
 		this.needsBase = true;
-		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT};
+		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT, BlockID.SAND};
 
 		Prepare(blocks, hps, states);
 	}
