@@ -50,10 +50,9 @@ public static class GenerationSeed
 
     // Patch Noise
     public static byte[] patchNoise = new byte[257];
-    public static readonly float patchNoiseStep1 = 0.4121f;
-    public static readonly float patchNoiseStep2 = 0.2299f;
+    public static readonly float patchNoiseStep1 = 0.1121f;
+    public static readonly float patchNoiseStep2 = 0.0799f;
     public static readonly float patchNoiseStep3 = 1.279f;
-    public static readonly float patchNoiseStep4 = 1.421f;
 
     // Cave Noise
     public static byte[] caveNoise = new byte[257];
