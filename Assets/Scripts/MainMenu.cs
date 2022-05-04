@@ -33,6 +33,10 @@ public class MainMenu : MonoBehaviour
 	private Color GREEN = new Color(0.3f, 0.9f, 0.2f);
 	private Color RED = new Color(0.3f, 0.0f, 0.0f);
 
+	public void OnApplicationQuit(){
+		BlockEncyclopediaECS.Destroy();
+	}
+
 	public void Start(){
 		Resources.UnloadUnusedAssets();
 		System.GC.Collect();

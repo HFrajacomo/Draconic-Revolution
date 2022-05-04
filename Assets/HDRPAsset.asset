@@ -17,7 +17,7 @@ MonoBehaviour:
     supportSSR: 0
     supportSSRTransparent: 0
     supportSSAO: 1
-    supportSSGI: 1
+    supportSSGI: 0
     supportSubsurfaceScattering: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000
@@ -147,7 +147,7 @@ MonoBehaviour:
       - 2
       - 4
       - 7
-      FarBlurSampleCount: 04000000070000000e000000
+      FarBlurSampleCount: 040000000700000010000000
       FarBlurMaxRadius:
       - 5
       - 8
