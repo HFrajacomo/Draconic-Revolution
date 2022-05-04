@@ -227,7 +227,7 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 1.5
   directLightingStrength:
     m_OverrideState: 0
     m_Value: 0
@@ -721,7 +721,7 @@ MonoBehaviour:
     m_Value: 0.74175996
   cascadeShadowBorder0:
     m_OverrideState: 1
-    m_Value: 0.45000005
+    m_Value: 0.45
   cascadeShadowBorder1:
     m_OverrideState: 1
     m_Value: 0.72042996

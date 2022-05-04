@@ -75,7 +75,7 @@ MonoBehaviour:
       maxPlanarReflectionOnScreen: 16
       maxLightsPerClusterCell: 8
       maxLocalVolumetricFogSize: 32
-      maxLocalVolumetricFogOnScreen: 64
+      maxLocalVolumetricFogOnScreen: 128
     hdShadowInitParams:
       maxShadowRequests: 4096
       directionalShadowsDepthBits: 32
@@ -166,14 +166,14 @@ MonoBehaviour:
         m_SchemaId:
           m_Id: 
     maximumLODLevel:
-      m_Values: 000000000000000000000000
+      m_Values: 010000000200000003000000
       m_SchemaId:
         m_Id: With3Levels
     lodBias:
       m_Values:
       - 1
-      - 1
-      - 1
+      - 2
+      - 3
       m_SchemaId:
         m_Id: With3Levels
     lightingQualitySettings:
