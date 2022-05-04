@@ -46,7 +46,6 @@ public class ChunkLoader : MonoBehaviour
     public PlayerMovement playerMovement;
     public VolumeProfile volume;
     public GameObject mainControllerManager;
-    public Fog fog;
 
     // Initialization
     public GameObject playerCharacter;
@@ -82,9 +81,6 @@ public class ChunkLoader : MonoBehaviour
         this.player.position = new Vector3(0,0,0);
         this.testAccountID = World.accountID;
         this.time.SetClient(this.client);
-
-        this.volume.TryGet<Fog>(out this.fog);
-        this.fog.meanFreePath.value = World.renderDistance * 12;
     }
 
     void OnApplicationQuit(){

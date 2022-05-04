@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class Configurations
 {
-    public static bool FULLBRIGHT = true;
+    public static bool FULLBRIGHT = false;
 
     public static int GetFullbright(){
         if(Configurations.FULLBRIGHT)

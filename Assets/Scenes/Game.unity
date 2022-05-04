@@ -7333,7 +7333,6 @@ MonoBehaviour:
   playerMovement: {fileID: 59614819}
   volume: {fileID: 11400000, guid: d74700023676aee41bc60f65c5f83bf2, type: 2}
   mainControllerManager: {fileID: 1635249983}
-  fog: {fileID: 0}
   playerCharacter: {fileID: 59614818}
   playerEvents: {fileID: 59614824}
   rend: {fileID: 471797234}
@@ -9668,7 +9667,7 @@ MonoBehaviour:
   m_InnerSpotPercent: 0
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 1
-  m_VolumetricDimmer: 4
+  m_VolumetricDimmer: 10
   m_LightUnit: 2
   m_FadeDistance: 10000
   m_VolumetricFadeDistance: 10000

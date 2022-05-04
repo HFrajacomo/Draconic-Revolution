@@ -31,15 +31,19 @@ public class DayNightCycle : MonoBehaviour
     private PhysicallyBasedSky pbsky;
     private CloudLayer clouds;
     private WhiteBalance whiteBalance;
+    private Fog fog;
     private Color horizonColor = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonDay = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonNight = new Color(1f, 1f, 1f);
     private Color horizonSunriseAndSet = new Color(0.97f, 0.57f, 0.33f);
     private float normalTint = 0f;
     private float sunTint = 30f;
+    private float minNaturalFog = 20f;
+    private float maxNaturalFog = 60f;
 
     private float currentSaturation = 1f;
     private float currentTint = 0f;
+    private float currentFog = 0f;
 
     // Update detectors
     public float delta = 0;
@@ -53,6 +57,7 @@ public class DayNightCycle : MonoBehaviour
         this.volume.TryGet<PhysicallyBasedSky>(out this.pbsky);
         this.volume.TryGet<CloudLayer>(out this.clouds);
         this.volume.TryGet<WhiteBalance>(out this.whiteBalance);
+        this.volume.TryGet<Fog>(out this.fog);
         this.pbsky.horizonTint.value = this.horizonColor;
 
     }
@@ -72,6 +77,7 @@ public class DayNightCycle : MonoBehaviour
             this.SetFloorIntensity(time);
             this.SetHorizonColor(time);
             this.SetTintColor(time);
+            this.SetFog(time);
             this.SetAlphaSaturation(time);
             this.ToggleClouds(time);
         }
@@ -82,6 +88,7 @@ public class DayNightCycle : MonoBehaviour
             this.pbsky.horizonTint.value = this.horizonColor;
             this.pbsky.alphaSaturation.value = this.currentSaturation;
             this.whiteBalance.temperature.value = this.currentTint;
+            this.fog.meanFreePath.value = this.currentFog;
             this.UPDATELIGHT_FLAG = false;
         }
         else{
@@ -252,6 +259,23 @@ public class DayNightCycle : MonoBehaviour
         else{
             currentTint = normalTint;
         }
+    }
+
+    // Sets Fog distance
+    private void SetFog(int x){
+        if(x >= 360 && x < 480){
+            currentFog = Mathf.Lerp(minNaturalFog, maxNaturalFog, (x-360)/120f);
+        }
+        else if(x >= 480 && x < 1080){
+            currentFog = maxNaturalFog;
+        }
+        else if(x >= 1080 && x < 1200){
+            currentFog = Mathf.Lerp(maxNaturalFog, minNaturalFog, (x-1080)/120f);
+        }
+        else{
+            currentFog = minNaturalFog;
+        }
+
     }
 
     // Sets the Alpha Saturation
