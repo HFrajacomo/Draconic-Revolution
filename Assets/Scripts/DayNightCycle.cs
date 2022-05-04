@@ -30,11 +30,16 @@ public class DayNightCycle : MonoBehaviour
     public VolumeProfile volume;
     private PhysicallyBasedSky pbsky;
     private CloudLayer clouds;
+    private WhiteBalance whiteBalance;
     private Color horizonColor = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonDay = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonNight = new Color(1f, 1f, 1f);
     private Color horizonSunriseAndSet = new Color(0.97f, 0.57f, 0.33f);
+    private float normalTint = 0f;
+    private float sunTint = 30f;
+
     private float currentSaturation = 1f;
+    private float currentTint = 0f;
 
     // Update detectors
     public float delta = 0;
@@ -47,6 +52,7 @@ public class DayNightCycle : MonoBehaviour
     void Start(){
         this.volume.TryGet<PhysicallyBasedSky>(out this.pbsky);
         this.volume.TryGet<CloudLayer>(out this.clouds);
+        this.volume.TryGet<WhiteBalance>(out this.whiteBalance);
         this.pbsky.horizonTint.value = this.horizonColor;
 
     }
@@ -65,6 +71,7 @@ public class DayNightCycle : MonoBehaviour
             this.SetIntensity(time);
             this.SetFloorIntensity(time);
             this.SetHorizonColor(time);
+            this.SetTintColor(time);
             this.SetAlphaSaturation(time);
             this.ToggleClouds(time);
         }
@@ -74,6 +81,7 @@ public class DayNightCycle : MonoBehaviour
             Shader.SetGlobalFloat("_SkyLightMultiplier", this.lightMultiplier);
             this.pbsky.horizonTint.value = this.horizonColor;
             this.pbsky.alphaSaturation.value = this.currentSaturation;
+            this.whiteBalance.temperature.value = this.currentTint;
             this.UPDATELIGHT_FLAG = false;
         }
         else{
@@ -138,7 +146,7 @@ public class DayNightCycle : MonoBehaviour
 
     // Sets the ShadowDimmer of the main light
     private void SetShadowDimmer(float x){
-        if(x > 240 && x < 660){
+        if(x >= 240 && x < 660){
             hdLight.volumetricShadowDimmer = Mathf.Lerp(this.minShadowDimmer, this.maxShadowDimmer, (x-240)/420);
         }
         else if(x >= 660 && x < 900){
@@ -147,7 +155,7 @@ public class DayNightCycle : MonoBehaviour
         else if(x >= 900 && x < 1200){
             hdLight.volumetricShadowDimmer = Mathf.Lerp(this.maxShadowDimmer, this.minShadowDimmer, (x-900)/300);
         }
-        else if(x >= 1200 || x <= 240){
+        else if(x >= 1200 || x < 240){
             hdLight.volumetricShadowDimmer = this.minShadowDimmer;
         }
     }
@@ -155,7 +163,7 @@ public class DayNightCycle : MonoBehaviour
     // Sets color intensity based on current time
     private void SetIntensity(int x){
         // If day
-        if(x > 240 && x < 1080){
+        if(x >= 240 && x < 1080){
             skyDirectionalLight.intensity = this.dayLuminosity;
         }
         else if(x >= 1080 && x < 1200){
@@ -175,7 +183,7 @@ public class DayNightCycle : MonoBehaviour
     // Sets floor intensity
     private void SetFloorIntensity(int x){
         // If day
-        if(x > 240 && x < 1080){
+        if(x >= 240 && x < 1080){
             lightMultiplier = this.lightValueAtDay;
         }
         else if(x >= 1080){
@@ -188,7 +196,7 @@ public class DayNightCycle : MonoBehaviour
 
     // Sets color of Directional Light given the time of the day it is now
     private void SetLightColor(int time){
-        if(time <= 240 || time > 1200){
+        if(time < 240 || time > 1200){
             skyDirectionalLight.color = new Color(0.27f, 0.57f, 1f, 1f);
         }
         else{
@@ -222,6 +230,28 @@ public class DayNightCycle : MonoBehaviour
         else{
             horizonColor = horizonNight;
         }        
+    }
+
+    // Sets the Sun tint color
+    private void SetTintColor(int x){
+        if(x < 240){
+            currentTint = normalTint;
+        }
+        else if(x >= 240 && x < 360){
+            currentTint = sunTint;
+        }
+        else if(x >= 360 && x < 600){
+            currentTint = Mathf.Lerp(sunTint, normalTint, (x-360)/240f);
+        }
+        else if(x >= 600 && x < 960){
+            currentTint = normalTint;
+        }
+        else if(x >= 960 && x < 1200){
+            currentTint = Mathf.Lerp(normalTint, sunTint, (x-960)/240f);
+        }
+        else{
+            currentTint = normalTint;
+        }
     }
 
     // Sets the Alpha Saturation
