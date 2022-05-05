@@ -15,7 +15,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 10.5
+    m_Value: 0
   tint:
     m_OverrideState: 0
     m_Value: 0
@@ -226,6 +226,7 @@ MonoBehaviour:
   - {fileID: -1579254765989175805}
   - {fileID: 177915345658955727}
   - {fileID: -7190900373026344887}
+  - {fileID: 3806030274292936299}
 --- !u!114 &177915345658955727
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -247,22 +248,22 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 1.5
+    m_Value: 1
   directLightingStrength:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 0.5
   radius:
     m_OverrideState: 0
     m_Value: 2
   spatialBilateralAggressiveness:
     m_OverrideState: 0
-    m_Value: 0.15
+    m_Value: 0.694
   temporalAccumulation:
     m_OverrideState: 0
     m_Value: 1
   ghostingReduction:
-    m_OverrideState: 0
-    m_Value: 0.5
+    m_OverrideState: 1
+    m_Value: 1
   blurSharpness:
     m_OverrideState: 0
     m_Value: 0.1
@@ -352,7 +353,7 @@ MonoBehaviour:
     m_Value: 200
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 80
+    m_Value: 60
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -525,6 +526,52 @@ MonoBehaviour:
   m_SkyVersion: 1
   m_ObsoleteEarthPreset:
     m_OverrideState: 0
+    m_Value: 1
+--- !u!114 &3806030274292936299
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24f077503be6ae942a1e1245dbd53ea9, type: 3}
+  m_Name: Bloom
+  m_EditorClassIdentifier: 
+  active: 1
+  quality:
+    m_OverrideState: 1
+    m_Value: 1
+  threshold:
+    m_OverrideState: 1
+    m_Value: 0.6
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.5
+  scatter:
+    m_OverrideState: 1
+    m_Value: 0.7
+  tint:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  dirtTexture:
+    m_OverrideState: 0
+    m_Value: {fileID: 2800000, guid: bf69fe7bc0f403c4a87f786040e07ecb, type: 3}
+  dirtIntensity:
+    m_OverrideState: 0
+    m_Value: 200
+  anamorphic:
+    m_OverrideState: 0
+    m_Value: 1
+  m_Resolution:
+    m_OverrideState: 1
+    m_Value: 2
+  m_HighQualityPrefiltering:
+    m_OverrideState: 1
+    m_Value: 0
+  m_HighQualityFiltering:
+    m_OverrideState: 1
     m_Value: 1
 --- !u!114 &4069005222247652958
 MonoBehaviour:
