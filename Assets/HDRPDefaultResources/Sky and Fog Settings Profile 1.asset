@@ -15,7 +15,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 22.75
   tint:
     m_OverrideState: 0
     m_Value: 0
@@ -353,7 +353,7 @@ MonoBehaviour:
     m_Value: 200
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 60
+    m_Value: 39.333332
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -510,7 +510,7 @@ MonoBehaviour:
     m_Value: 1
   alphaSaturation:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.03296441
   alphaMultiplier:
     m_OverrideState: 1
     m_Value: 1

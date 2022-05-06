@@ -207,26 +207,26 @@ public class Chunk
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
 		// For Init
-		this.meshFilter.sharedMesh.GetVertices(vertexAux);
+		this.meshFilter.mesh.GetVertices(vertexAux);
 		NativeArray<Vector3> disposableVerts = NativeTools.CopyToNative<Vector3>(vertexAux.ToArray());
 		vertexAux.Clear();
 
-		this.meshFilter.sharedMesh.GetUVs(0, UVaux);
+		this.meshFilter.mesh.GetUVs(0, UVaux);
 		NativeArray<Vector2> disposableUVS = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
 		UVaux.Clear();
 
-		this.meshFilter.sharedMesh.GetUVs(3, UVaux);
+		this.meshFilter.mesh.GetUVs(3, UVaux);
 		NativeArray<Vector2> disposableLight = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
 		UVaux.Clear();
 
-		this.meshFilter.sharedMesh.GetNormals(normalAux);
+		this.meshFilter.mesh.GetNormals(normalAux);
 		NativeArray<Vector3> disposableNormals = NativeTools.CopyToNative<Vector3>(normalAux.ToArray());
 		normalAux.Clear();
 
-		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(0), Allocator.TempJob);
-		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(1), Allocator.TempJob);
-		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(2), Allocator.TempJob);
-		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(4), Allocator.TempJob);
+		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(0), Allocator.TempJob);
+		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(1), Allocator.TempJob);
+		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(2), Allocator.TempJob);
+		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(4), Allocator.TempJob);
 
 
 		JobHandle job;
@@ -252,7 +252,6 @@ public class Chunk
 		disposableNormals.Dispose();
 		disposableLight.Dispose();
 		disposableLeavesTris.Dispose();
-
 
 		// X- Analysis
 		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z); 
@@ -542,7 +541,7 @@ public class Chunk
 			this.specularTris = specularTris.ToArray();
 			this.liquidTris = liquidTris.ToArray();
 			this.leavesTris = leavesTris.ToArray();
-			assetTris = this.meshFilter.sharedMesh.GetTriangles(3);
+			assetTris = this.meshFilter.mesh.GetTriangles(3);
 
 			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray());
 		}
@@ -905,7 +904,7 @@ public class Chunk
 
     	mesh.SetNormals(this.normals.ToArray());
 
-    	this.meshFilter.sharedMesh = mesh;
+    	this.meshFilter.mesh = mesh;
     }
 
     // Builds meshes from verts, UVs and tris from different layers
@@ -932,7 +931,7 @@ public class Chunk
     	mesh.uv4 = lightUV;
     	mesh.SetNormals(normals);
 
-    	this.meshFilter.sharedMesh = mesh;
+    	this.meshFilter.mesh = mesh;
     }
 }
 
