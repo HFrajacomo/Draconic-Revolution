@@ -26,6 +26,7 @@ public abstract class Blocks
 	public bool needsRotation = false;
 	public bool customBreak = false;
 	public bool customPlace = false;
+	public bool drawTopRegardless = false;
 
 	// Texture tile code
 	public int tileTop;

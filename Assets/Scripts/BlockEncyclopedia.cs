@@ -25,6 +25,7 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.blockWashable[i] = blocks[i].washable;
             BlockEncyclopediaECS.blockAffectLight[i] = blocks[i].affectLight;
             BlockEncyclopediaECS.blockLuminosity[i] = blocks[i].luminosity;
+            BlockEncyclopediaECS.blockDrawTopRegardless[i] = blocks[i].drawTopRegardless;
         }
 
         // Loads all object meshes

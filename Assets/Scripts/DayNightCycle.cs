@@ -7,11 +7,14 @@ using UnityEngine.Rendering;
 public class DayNightCycle : MonoBehaviour
 {
 
+    // Unity References
     public GameObject lightObject;
 	public Transform skyboxLight;
 	public Light skyDirectionalLight;
     public HDAdditionalLightData hdLight;
 	public TimeOfDay timer;
+    public LensFlareComponentSRP dayFlare;
+    public LensFlareComponentSRP nightFlare;
 
     // Luminosity
     private float dayLuminosity = 3f;
@@ -26,6 +29,14 @@ public class DayNightCycle : MonoBehaviour
     private float lightValueAtDay = 1f;
     private float lightValueAtNight = 0.3f;
 
+    // Tint and Fog
+    private float normalTint = 0f;
+    private float sunTint = 30f;
+    private float minNaturalFog = 20f;
+    private float maxNaturalFog = 60f;
+    private float currentTint = 0f;
+    private float currentFog = 0f;
+
     // Skybox Parameters
     public VolumeProfile volume;
     private PhysicallyBasedSky pbsky;
@@ -36,14 +47,8 @@ public class DayNightCycle : MonoBehaviour
     private Color horizonDay = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonNight = new Color(1f, 1f, 1f);
     private Color horizonSunriseAndSet = new Color(0.97f, 0.57f, 0.33f);
-    private float normalTint = 0f;
-    private float sunTint = 30f;
-    private float minNaturalFog = 20f;
-    private float maxNaturalFog = 60f;
-
     private float currentSaturation = 1f;
-    private float currentTint = 0f;
-    private float currentFog = 0f;
+
 
     // Update detectors
     public float delta = 0;
@@ -59,7 +64,6 @@ public class DayNightCycle : MonoBehaviour
         this.volume.TryGet<WhiteBalance>(out this.whiteBalance);
         this.volume.TryGet<Fog>(out this.fog);
         this.pbsky.horizonTint.value = this.horizonColor;
-
     }
 
     // Update is called once per frame
@@ -276,6 +280,18 @@ public class DayNightCycle : MonoBehaviour
             currentFog = minNaturalFog;
         }
 
+    }
+
+    // Sets the current Lens Flare
+    private void SetFlare(int x){
+        if(x >= 240 && x <= 1200){
+            this.dayFlare.enabled = true;
+            this.nightFlare.enabled = false;
+        }
+        else{
+            this.dayFlare.enabled = false;
+            this.nightFlare.enabled = true;
+        }
     }
 
     // Sets the Alpha Saturation

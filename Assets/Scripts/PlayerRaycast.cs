@@ -218,9 +218,11 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
-		
 		if(!current.active)
 			return;
+
+		// DEBUG
+		Debug.Log(loader.chunks[playerHead.GetChunkPos()].metadata.GetState(playerHead.blockX, playerHead.blockY, playerHead.blockZ));
 
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
 		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);

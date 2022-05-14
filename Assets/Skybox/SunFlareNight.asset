@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
-  m_Name: SunFlare
+  m_Name: SunFlareNight
   m_EditorClassIdentifier: 
   elements:
   - visible: 1
@@ -18,7 +18,7 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    m_LocalIntensity: 0.2
+    m_LocalIntensity: 0.1
     lensFlareTexture: {fileID: 0}
     uniformScale: 1
     sizeXY: {x: 1, y: 1}
@@ -86,16 +86,16 @@ MonoBehaviour:
     colorGradient:
       serializedVersion: 2
       key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 0.2794144, g: 0.8584906, b: 0.5582902, a: 1}
-      key2: {r: 0.27941442, g: 0.8584906, b: 0.5582902, a: 0}
+      key1: {r: 0.14017446, g: 0.46666667, b: 0.6603774, a: 1}
+      key2: {r: 0.2794144, g: 0.8584906, b: 0.5582902, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
       key5: {r: 0, g: 0, b: 0, a: 0}
       key6: {r: 0, g: 0, b: 0, a: 0}
       key7: {r: 0, g: 0, b: 0, a: 0}
       ctime0: 11180
-      ctime1: 47609
-      ctime2: 50308
+      ctime1: 47417
+      ctime2: 47417
       ctime3: 0
       ctime4: 0
       ctime5: 0
@@ -110,7 +110,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
-      m_NumColorKeys: 3
+      m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0.7
     positionVariation: {x: 1, y: 0}
@@ -178,7 +178,7 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    m_LocalIntensity: 0.12
+    m_LocalIntensity: 0.06
     lensFlareTexture: {fileID: 10300, guid: 0000000000000000f000000000000000, type: 0}
     uniformScale: 8
     sizeXY: {x: 1, y: 1}
@@ -338,7 +338,7 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    m_LocalIntensity: 0.02
+    m_LocalIntensity: 0.01
     lensFlareTexture: {fileID: 0}
     uniformScale: 0.4
     sizeXY: {x: 1, y: 1}
@@ -346,7 +346,7 @@ MonoBehaviour:
     m_Count: 3
     preserveAspectRatio: 0
     rotation: 0
-    tint: {r: 1, g: 1, b: 1, a: 0.5}
+    tint: {r: 0.6062656, g: 0.93300307, b: 0.9811321, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 2

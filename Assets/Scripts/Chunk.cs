@@ -632,7 +632,8 @@ public class Chunk
 			objectMaterial = BlockEncyclopediaECS.objectMaterial,
 			blockWashable = BlockEncyclopediaECS.blockWashable,
 			objectWashable = BlockEncyclopediaECS.objectWashable,
-			blockTiles = BlockEncyclopediaECS.blockTiles
+			blockTiles = BlockEncyclopediaECS.blockTiles,
+			blockDrawTop = BlockEncyclopediaECS.blockDrawTopRegardless
 		};
 		JobHandle job = bcJob.Schedule();
 		job.Complete();
@@ -684,24 +685,11 @@ public class Chunk
 		this.message.BatchLoadBUD(this.pos);
 
 		if(load){
-			if(this.biomeName == "Ocean"){
-				coordArray = loadCoordList.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					if(this.data.GetCell(coord) != 6){ // Water
-						this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-					}
-				}
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-
-			}
-			else{
-				coordArray = loadCoordList.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				}	
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-
-			}
+			coordArray = loadCoordList.AsArray().ToArray();
+			foreach(int3 coord in coordArray){
+				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			}	
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 		}
 		loadCoordList.Clear();
 		
@@ -998,6 +986,8 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<bool> blockWashable;
 	[ReadOnly]
 	public NativeArray<bool> objectWashable;
+	[ReadOnly]
+	public NativeArray<bool> blockDrawTop;
 
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
@@ -1005,9 +995,6 @@ public struct BuildChunkJob : IJob{
 		ushort thisBlock;
 		ushort neighborBlock;
 		ushort thisState;
-
-		// Liquid Flags
-		bool liquidToLoad = false;
 
 		for(int x=0; x<Chunk.chunkWidth; x++){
 			for(int y=0; y<Chunk.chunkDepth; y++){
@@ -1036,8 +1023,6 @@ public struct BuildChunkJob : IJob{
 		    			}
 
 	    			// --------------------------------
-		    		// Reset Liquid Count for current block
-		    		liquidToLoad = false;
 
 			    	for(int i=0; i<6; i++){
 			    		neighborBlock = GetNeighbor(x, y, z, i);
@@ -1064,13 +1049,11 @@ public struct BuildChunkJob : IJob{
 				    			}
 				    			else if(neighborBlock <= ushort.MaxValue/2 && i != 4){
 				    				if(neighborBlock == 0 || blockWashable[neighborBlock]){
-				    					liquidToLoad = true;
 				    				}
 
 				    			}
 				    			else if(neighborBlock > ushort.MaxValue/2 && i != 4){
 				    				if(objectWashable[ushort.MaxValue-neighborBlock]){
-				    					liquidToLoad = true;
 				    				}
 				    			}
 			    			}
@@ -1083,28 +1066,28 @@ public struct BuildChunkJob : IJob{
 				    			}
 				    			else if(neighborBlock <= ushort.MaxValue/2 && i != 4){
 				    				if(neighborBlock == 0 || blockWashable[neighborBlock]){
-				    					liquidToLoad = true;
 				    				}
 
 				    			}
 				    			else if(neighborBlock > ushort.MaxValue/2 && i != 4){
 				    				if(objectWashable[ushort.MaxValue-neighborBlock]){
-				    					liquidToLoad = true;
 				    				}
 				    			}	    				
 			    			}
 			    		}
-		    			
-		    			// Puts liquid into OnLoad list
-		    			if(liquidToLoad && load){
-		    				loadOutList.Add(new int3(x,y,z));
-		    			}
 
 		    			// Main Drawing Handling
 			    		if(CheckPlacement(neighborBlock)){
 					    	if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
 					    		break;
 					    	}
+			    		}
+			    		else if(thisBlock <= ushort.MaxValue/2){
+			    			if(blockDrawTop[thisBlock] && i == 4){
+						    	if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
+						    		break;
+						    	}
+						    }
 			    		}
 				    } // faces loop
 	    		} // z loop
