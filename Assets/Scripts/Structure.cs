@@ -324,6 +324,8 @@ public abstract class Structure
 
         // Applies in SpecificOverwrite rule to existing chunk
         else if(this.type == FillType.SpecificOverwrite && exists && initialchunk){
+            bool shouldDrawNeighbors = false;
+
             if(!this.considerAir){
                 for(int y=posY; y < posY + this.sizeY; y++){
                     structX = structinitX;
@@ -338,6 +340,7 @@ public abstract class Structure
                                     continue;
                                 }
 
+                                shouldDrawNeighbors = true;
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
@@ -349,7 +352,7 @@ public abstract class Structure
                     }
                     structY++;
                 }
-                return true;
+                return shouldDrawNeighbors;
             }
             else{
                 for(int y=posY; y < posY + this.sizeY; y++){
@@ -364,6 +367,7 @@ public abstract class Structure
                                 else
                                     VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
+                                shouldDrawNeighbors = true;
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
                                 VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
                             }
@@ -373,7 +377,7 @@ public abstract class Structure
                     }
                     structY++;
                 }
-                return true;                
+                return shouldDrawNeighbors;                
             }
         }
 
