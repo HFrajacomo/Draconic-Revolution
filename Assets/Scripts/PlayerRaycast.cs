@@ -385,12 +385,12 @@ public class PlayerRaycast : MonoBehaviour
 	// Checks if neighbor chunk from chunkpos needs to update it's sides
 	private void UpdateNeighborChunk(ChunkPos pos, int x, int y, int z){
 		if(x == 0)
-			loader.chunks[new ChunkPos(pos.x-1, pos.z)].BuildSideBorder(reloadXM:true);
+			loader.chunks[new ChunkPos(pos.x-1, pos.z)].BuildSideBorder();
 		else if(x == Chunk.chunkWidth-1)
-			loader.chunks[new ChunkPos(pos.x+1, pos.z)].BuildSideBorder(reloadXP:true);
+			loader.chunks[new ChunkPos(pos.x+1, pos.z)].BuildSideBorder();
 		else if(z == 0)
-			loader.chunks[new ChunkPos(pos.x, pos.z-1)].BuildSideBorder(reloadZM:true);
+			loader.chunks[new ChunkPos(pos.x, pos.z-1)].BuildSideBorder();
 		else if(z == Chunk.chunkWidth-1)
-			loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder(reloadZP:true);
+			loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder();
 	}	
 }

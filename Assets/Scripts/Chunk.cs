@@ -26,10 +26,6 @@ public class Chunk
 	private NetMessage message;
 
 	// Draw Flags
-	public bool xPlusDrawn = false;
-	public bool zPlusDrawn = false;
-	public bool xMinusDrawn = false;
-	public bool zMinusDrawn = false;
 	public bool drawMain = false;
 
 	// Unity Settings
@@ -153,35 +149,10 @@ public class Chunk
 	}
 
 	// Draws Chunk Borders. Returns true if all borders have been drawn, otherwise, return false.
-	public bool BuildSideBorder(bool reload=false, bool loadBUD=false, bool reloadXM=false, bool reloadXP=false, bool reloadZM=false, bool reloadZP=false){
-		if(reload){
-			this.xMinusDrawn = false;
-			this.xPlusDrawn = false;
-			this.zMinusDrawn = false;
-			this.zPlusDrawn = false;
-		}
-
-		if(reloadXM)
-			this.xMinusDrawn = false;
-		if(reloadXP)
-			this.xPlusDrawn = false;
-		if(reloadZM)
-			this.zMinusDrawn = false;
-		if(reloadZP)
-			this.zPlusDrawn = false;
-
-		// If current operation CANNOT update borders
-		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn){
-			return true;
-		}
-
-		// Fast check if current border is at the edge of render distance
-		if(!this.ShouldRun()){
-			return false;
-		}
-
-
+	public bool BuildSideBorder(bool reload=false, bool loadBUD=false){
 		bool changed = false; // Flag is set if any change has been made that requires a redraw
+		bool doneRendering = true;
+
 		int3[] coordArray;
 		int3[] budArray;
 
@@ -255,8 +226,7 @@ public class Chunk
 
 		// X- Analysis
 		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z); 
-		if(loader.chunks.ContainsKey(targetChunk) && !xMinusDrawn){
-			this.xMinusDrawn = true;
+		if(loader.chunks.ContainsKey(targetChunk)){
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -319,11 +289,14 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
+		else{
+			doneRendering = false;
+		}
+
 
 		// X+ Analysis
 		targetChunk = new ChunkPos(this.pos.x+1, this.pos.z); 
-		if(loader.chunks.ContainsKey(targetChunk) && !xPlusDrawn){
-			this.xPlusDrawn = true;
+		if(loader.chunks.ContainsKey(targetChunk)){
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -387,11 +360,13 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
+		else{
+			doneRendering = false;
+		}
 
 		// Z- Analysis
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1); 
-		if(loader.chunks.ContainsKey(targetChunk) && !zMinusDrawn){
-			this.zMinusDrawn = true;
+		if(loader.chunks.ContainsKey(targetChunk)){
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -453,11 +428,13 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
+		else{
+			doneRendering = false;
+		}
 
 		// Z+ Analysis
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1); 
-		if(loader.chunks.ContainsKey(targetChunk) && !zPlusDrawn){
-			this.zPlusDrawn = true;
+		if(loader.chunks.ContainsKey(targetChunk)){
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -519,6 +496,9 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
+		else{
+			doneRendering = false;
+		}
 
 		this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 
@@ -571,11 +551,7 @@ public class Chunk
     	this.UVs.Clear();
     	this.lightUVMain.Clear();
 
-		// If current operation CANNOT update borders
-		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
-			return true;
-		else
-			return false;
+		return doneRendering;
 	}
 
 
@@ -826,36 +802,6 @@ public class Chunk
     	this.normals.Clear();
 
 		this.drawMain = true;
-    }
-
-    // Checks if current BuildChunkSide call should be calculated
-    private bool ShouldRun(){
-    	ChunkPos targetChunk;
-
-    	targetChunk = new ChunkPos(this.pos.x-1, this.pos.z);
-
-    	if(loader.chunks.ContainsKey(targetChunk) && !this.xMinusDrawn)
-    		return true;
-
-    	targetChunk = new ChunkPos(this.pos.x+1, this.pos.z);
-
-    	if(loader.chunks.ContainsKey(targetChunk) && !this.xPlusDrawn)
-    		return true;
-
-    	targetChunk = new ChunkPos(this.pos.x, this.pos.z-1);
-
-    	if(loader.chunks.ContainsKey(targetChunk) && !this.zMinusDrawn)
-    		return true;
-
-    	targetChunk = new ChunkPos(this.pos.x, this.pos.z+1);
-
-    	if(loader.chunks.ContainsKey(targetChunk) && !this.zPlusDrawn)
-    		return true;
-
-    	if(loader.chunks.Count <= 2)
-    		return true;
-
-    	return false;
     }
 
     // Returns n ShadowUVs to a list

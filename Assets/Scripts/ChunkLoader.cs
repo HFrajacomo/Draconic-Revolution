@@ -25,7 +25,6 @@ public class ChunkLoader : MonoBehaviour
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
     public List<ChunkPos> toDraw = new List<ChunkPos>();
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
-    public List<ChunkPos> toRedrawFix = new List<ChunkPos>();
     public List<ChunkPos> toUpdateNoLight = new List<ChunkPos>();
     public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 	public BlockEncyclopedia blockBook;
@@ -416,28 +415,6 @@ public class ChunkLoader : MonoBehaviour
                 toRedraw.RemoveAt(0);
             }
         }
-
-        //toREDRAWFIX
-        if(toRedrawFix.Count > 0){
-            if(toRedraw.Contains(toRedrawFix[0])){
-                toRedrawFix.Add(toRedrawFix[0]);
-                toRedrawFix.RemoveAt(0);
-                return;
-            }
-
-            if(chunks.ContainsKey(toRedrawFix[0])){
-                if(chunks[toRedrawFix[0]].drawMain){
-                    if(!chunks[toRedrawFix[0]].BuildSideBorder(loadBUD:false)){
-                        toRedrawFix.Add(toRedrawFix[0]);
-                    }
-                }
-                else{
-                    toRedrawFix.Add(toRedrawFix[0]);
-                }
-            }
-            toRedrawFix.RemoveAt(0);
-        }
-
     }
 
     // Reload a chunk in toUpdate
@@ -789,15 +766,6 @@ public class ChunkLoader : MonoBehaviour
                 if(this.chunks.ContainsKey(newChunk)){
                     if(!this.chunks[newChunk].drawMain && !this.toDraw.Contains(newChunk))
                         this.toDraw.Add(newChunk);
-                }
-
-                if(this.chunks.ContainsKey(newChunk)){
-                    Chunk c = this.chunks[newChunk];
-
-                    // If is not a border chunk
-                    if((!c.xPlusDrawn || !c.xMinusDrawn || !c.zPlusDrawn || !c.zMinusDrawn) && (Mathf.Abs(this.currentChunk.x - c.pos.x) < World.renderDistance || Mathf.Abs(this.currentChunk.z - c.pos.z) < World.renderDistance)){
-                        this.toRedrawFix.Add(newChunk);
-                    }
                 }
             }
         }
