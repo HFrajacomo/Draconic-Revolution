@@ -47,6 +47,10 @@ public class DayNightCycle : MonoBehaviour
     private Color horizonDay = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonNight = new Color(1f, 1f, 1f);
     private Color horizonSunriseAndSet = new Color(0.97f, 0.57f, 0.33f);
+    private Color cloudTintCurrent = new Color(0.66f, 0.94f, 1f);
+    private Color cloudTintNormal = new Color(0.66f, 0.94f, 1f);
+    private Color cloudTintSunrise = new Color(1f, 0.52f, 0.08f);
+    private Color cloudTintSunset = new Color(1f, 0.19f, 0.32f);
     private float currentSaturation = 1f;
 
 
@@ -80,9 +84,11 @@ public class DayNightCycle : MonoBehaviour
             this.SetIntensity(time);
             this.SetFloorIntensity(time);
             this.SetHorizonColor(time);
+            this.SetFlare(time);
             this.SetTintColor(time);
             this.SetFog(time);
             this.SetAlphaSaturation(time);
+            this.SetCloudTint(time);
             this.ToggleClouds(time);
         }
 
@@ -93,6 +99,7 @@ public class DayNightCycle : MonoBehaviour
             this.pbsky.alphaSaturation.value = this.currentSaturation;
             this.whiteBalance.temperature.value = this.currentTint;
             this.fog.meanFreePath.value = this.currentFog;
+            this.clouds.layerA.tint.value = this.cloudTintCurrent;
             this.UPDATELIGHT_FLAG = false;
         }
         else{
@@ -314,5 +321,17 @@ public class DayNightCycle : MonoBehaviour
             this.clouds.opacity.value = 0f;
         else
             this.clouds.opacity.value = 0.2f;
+    }
+
+    // Sets Clouds color
+    private void SetCloudTint(int x){
+        if(x >= 240 && x < 360)
+            cloudTintCurrent = cloudTintSunrise;
+        else if(x >= 360  && x < 600)
+            cloudTintCurrent = Color.Lerp(cloudTintSunrise, cloudTintNormal, (x-360)/240f);
+        else if(x >= 1140 && x < 1200)
+            cloudTintCurrent = Color.Lerp(cloudTintNormal, cloudTintSunset, (x-1140)/60f);
+        else
+            cloudTintCurrent = cloudTintNormal;
     }
 }
