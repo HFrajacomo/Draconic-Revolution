@@ -58,8 +58,8 @@ public static class GenerationSeed
     public static byte[] caveNoise = new byte[257];
     public static readonly float caveNoiseStep1 = 0.00181f;
     public static readonly float caveNoiseStep2 = 0.00233f;
-    public static readonly float caveYStep1 = 0.0171f;
-    public static readonly float caveYStep2 = 0.0277f;
+    public static readonly float caveYStep1 = 0.0131f;
+    public static readonly float caveYStep2 = 0.0237f;
 
     // Cave Mask Noise
     public static byte[] cavemaskNoise = new byte[257];
