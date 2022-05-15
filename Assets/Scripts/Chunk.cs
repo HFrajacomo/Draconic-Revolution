@@ -926,7 +926,7 @@ public class Chunk
 /*
 MULTITHREADING
 */
-//[BurstCompile]
+[BurstCompile]
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public bool load;
