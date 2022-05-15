@@ -143,7 +143,7 @@ public class WorldGenerator
     Depth Values represent how deep below heightmap things will go.
     Range represents if structure always spawn at given Depth, or if it spans below as well
     */
-    public void GenerateStructures(ChunkPos pos, BiomeCode biome, int structureCode, int depth, ushort[] blockdata, ushort[] statedata, ushort[] hpdata, float[] heightMap, int heightlimit=0, bool range=false){
+    public void GenerateStructures(ChunkPos pos, BiomeCode biome, int structureCode, int depth, ushort[] blockdata, ushort[] statedata, ushort[] hpdata, int heightlimit=0, bool range=false){
         // Gets index of amount and percentage
         int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureCode);
         int amount = BiomeHandler.GetBiomeAmounts(biome)[index];
@@ -175,19 +175,19 @@ public class WorldGenerator
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15){
-                    y = HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth;
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth;
                 }
                 // X >
                 else if(x + offsetX > 15 && z + offsetZ <= 15){
-                    y = HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth;
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth;
                 }
                 // Z >
                 else if(x + offsetX <= 15 && z + offsetZ > 15){
-                    y = HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth;
+                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth;
                 }
                 // All <
                 else{
-                    y = (int)heightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth;
+                    y = (int)cacheHeightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth;
                 }
 
                 // Ignores structure on hard limit
@@ -216,19 +216,19 @@ public class WorldGenerator
 
                 // All >
                 if(x + offsetX > 15 && z + offsetZ > 15){
-                    y = (int)(heightlimit + yMult*(HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth));
+                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth));
                 }
                 // X >
                 else if(x + offsetX > 15 && z + offsetZ <= 15){
-                    y = (int)(heightlimit + yMult*(HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth));
+                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth));
                 }
                 // Z >
                 else if(x + offsetX <= 15 && z + offsetZ > 15){
-                    y = (int)(heightlimit + yMult*(HalfConvolute(heightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth));
+                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth));
                 }
                 // All <
                 else{
-                    y = (int)(heightlimit + yMult*(heightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth));
+                    y = (int)(heightlimit + yMult*(cacheHeightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth));
                 }
 
                 // Ignores structure on hard limit
@@ -238,7 +238,8 @@ public class WorldGenerator
                 Structure structure = this.structHandler.LoadStructure(structureCode);
 
                 if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z]))
-                    structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);             }            
+                    structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);
+            }            
         }
     }
 
@@ -384,7 +385,7 @@ public class WorldGenerator
         cacheMetadataHP = NativeTools.CopyToManaged(hpData);
         cacheHeightMap = NativeTools.CopyToManaged(heightMap);
 
-        structureGenerator.GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP, cacheHeightMap);
+        structureGenerator.GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
 
         voxelData.Dispose();
         stateData.Dispose();
