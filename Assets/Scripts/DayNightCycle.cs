@@ -90,6 +90,7 @@ public class DayNightCycle : MonoBehaviour
             this.SetAlphaSaturation(time);
             this.SetCloudTint(time);
             this.ToggleClouds(time);
+            this.SetLensFlareIntensity(time);
         }
 
         if(UPDATELIGHT_FLAG){
@@ -325,7 +326,9 @@ public class DayNightCycle : MonoBehaviour
 
     // Sets Clouds color
     private void SetCloudTint(int x){
-        if(x >= 240 && x < 360)
+        if(x >= 180 && x < 240)
+            cloudTintCurrent = Color.Lerp(cloudTintNormal, cloudTintSunrise, (x-180)/60f);
+        else if(x >= 240 && x < 360)
             cloudTintCurrent = cloudTintSunrise;
         else if(x >= 360  && x < 600)
             cloudTintCurrent = Color.Lerp(cloudTintSunrise, cloudTintNormal, (x-360)/240f);
@@ -333,5 +336,28 @@ public class DayNightCycle : MonoBehaviour
             cloudTintCurrent = Color.Lerp(cloudTintNormal, cloudTintSunset, (x-1140)/60f);
         else
             cloudTintCurrent = cloudTintNormal;
+    }
+
+    // Sets Lens Flare intensity
+    private void SetLensFlareIntensity(int x){
+        if(x >= 180 && x < 240){
+            nightFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-180)/60f);
+        }
+        else if(x >= 1200 && x < 1260){
+            nightFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-1200)/60f);
+        }
+        else{
+            nightFlare.intensity = 1f;
+        }
+
+        if(x >= 240 && x <= 300){
+            dayFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-240)/60f);
+        }
+        else if(x >= 1140 && x < 1200){
+            dayFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-1140)/60f);
+        }
+        else{
+            dayFlare.intensity = 1f;
+        }
     }
 }
