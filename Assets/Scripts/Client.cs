@@ -162,7 +162,7 @@ public class Client
 		}
 
 
-		this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), null);		
+		this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
 	}
 
 	// Receive call handling
@@ -328,7 +328,10 @@ public class Client
 
 	// Receives a Chunk
 	private void SendChunk(byte[] data){
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+
 		this.cl.toLoad.Add(data);
+		this.cl.toLoadChunk.Add(pos);
 	}
 
 	// Receives a disconnect call from server

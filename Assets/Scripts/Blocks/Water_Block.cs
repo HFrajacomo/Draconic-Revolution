@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -53,12 +53,13 @@ public class Water_Block : Blocks
 		this.transparent = 1;
 		this.invisible = false;
 		this.liquid = true;
-		this.waterCode = 6;
+		this.waterCode = (ushort)BlockID.WATER;
 		this.customBreak = true;
 		this.customPlace = true;
-		this.hasLoadEvent = true;
+		this.hasLoadEvent = false;
 		this.affectLight = true;
 		this.seamless = true;
+		this.drawTopRegardless = true;
 		this.viscosityDelay = 12;
 
 		this.aroundCodes = new ushort[8];
@@ -73,12 +74,6 @@ public class Water_Block : Blocks
 		this.spawnDirection.Add(8, new List<int>(new int[]{4,5,6}));
 		this.spawnDirection.Add(9, new List<int>(new int[]{5,6,7}));
 		this.spawnDirection.Add(10, new List<int>(new int[]{6,7,0}));
-	}
-
-	// Moves water down into underground caverns
-	public override int OnLoad(CastCoord coord, ChunkLoader_Server cl){
-		this.OnBlockUpdate(BUDCode.CHANGE, coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, 0, 0, 0, cl);	
-		return 0;
 	}
 
 	// Custom Place operation with Raycasting class overwrite
@@ -122,15 +117,9 @@ public class Water_Block : Blocks
 
 	// Applies Water Movement
 	public override void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){
-		if(type == BUDCode.LOAD){
-			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
-			this.OnLoad(thisPos, cl);
-		}
-		
-		else if(type == BUDCode.BREAK || type == BUDCode.CHANGE){
+		if(type == BUDCode.BREAK || type == BUDCode.CHANGE){
 			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
 			ushort thisState = cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
-			
 			GetCodeAround(myX, myY, myZ, cl);
 
 			// Checks if is around unloaded chunks
@@ -558,6 +547,13 @@ public class Water_Block : Blocks
 				
 				ushort below = GetCodeBelow(myX, myY, myZ, cl);
 				int above = GetCodeAbove(myX, myY, myZ, cl);
+
+				// If should be upgraded to Still Level 3
+				if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl, nofalling:true) >= 2){
+					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
+					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
+					return;
+				}
 
 				// If needs to spawn more falling blocks (no return to check if alive)
 				if(below == 0 || (below == this.waterCode && TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) < 3) || cl.blockBook.CheckWashable(below)){

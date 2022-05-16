@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = System.Random;
 
 public static class World
 {
@@ -13,6 +15,9 @@ public static class World
     public static string IP;
     public static ulong accountID;
 
+    private static Random rng;
+
+
     // Sets world name
     public static void SetWorldName(string name){
     	World.worldName = name;
@@ -22,11 +27,13 @@ public static class World
     public static void SetWorldSeed(string seed){
     	World.worldSeed = Convert.ToInt32(seed);
         World.worldSeed = Mathf.Abs(World.worldSeed);
+
+        GenerationSeed.Initialize(World.worldSeed);
     }
 
     // Sets seed as integer
     public static void SetWorldSeed(int seed){
-        World.worldSeed = seed;
+        SetWorldSeed(seed.ToString());
     }
 
     // Sets accountID in client to join a server
@@ -69,4 +76,15 @@ public static class World
         World.isClient = false;
     }
 
+    public static int GetWorldSeed(){
+        return World.worldSeed;
+    }
+
+    public static void SetRNG(int seed){
+        rng = new Random(seed);
+    }
+
+    public static int NextRandom(int min, int max){
+        return rng.Next(min, max);
+    }
 }

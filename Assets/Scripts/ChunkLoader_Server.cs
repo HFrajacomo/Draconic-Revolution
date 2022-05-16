@@ -45,7 +45,11 @@ public class ChunkLoader_Server : MonoBehaviour
 
 
     void OnApplicationQuit(){
-        regionHandler.CloseAll();
+        if(regionHandler != null)
+            regionHandler.CloseAll();
+        
+        if(this.worldGen != null)
+            this.worldGen.DestroyNativeMemory();
     }
 
     void Start(){
@@ -72,12 +76,13 @@ public class ChunkLoader_Server : MonoBehaviour
     }
 
     private void InitWorld(){
-        print("Initializing World");
-
         this.regionHandler = new RegionFileHandler(this);
         worldSeed = regionHandler.GetRealSeed();
-        biomeHandler = new BiomeHandler(BiomeSeedFunction(worldSeed));
-        this.worldGen = new WorldGenerator(worldSeed, BiomeSeedFunction(worldSeed), OffsetHashFunction(worldSeed), GenerationSeedFunction(worldSeed), biomeHandler, structHandler, this);
+        biomeHandler = new BiomeHandler();
+        this.worldGen = new WorldGenerator(worldSeed, biomeHandler, structHandler, this);
+        biomeHandler.SetWorldGenerator(this.worldGen);
+        
+        print("Initializing World");
     
         // Sends the first player it's information
         PlayerData pdat = this.regionHandler.LoadPlayer(this.server.firstConnectedID); // CHANGE TO OTHER ACCOUNTID
@@ -120,9 +125,8 @@ public class ChunkLoader_Server : MonoBehaviour
 
             // Rough Application of Structures
             Structure.RoughApply(chunks[cacheChunk.pos], cacheChunk);
-            chunks[cacheChunk.pos] = cacheChunk;
 
-            this.regionHandler.SaveChunk(cacheChunk);
+            this.regionHandler.SaveChunk(chunks[cacheChunk.pos]);
 
             SendChunkToRequestingClients(cacheChunk.pos);
         }
@@ -178,10 +182,12 @@ public class ChunkLoader_Server : MonoBehaviour
                         chunks.Add(toLoad[0], new Chunk(toLoad[0], server:true));
                         vfx.NewChunk(toLoad[0], isServer:true);
                         regionHandler.LoadChunk(chunks[toLoad[0]]);
+                        this.worldGen.ClearCaches();
                         this.worldGen.SetVoxdata(chunks[toLoad[0]].data.GetData());
                         this.worldGen.SetCacheHP(chunks[toLoad[0]].metadata.GetHPData());
                         this.worldGen.SetCacheState(chunks[toLoad[0]].metadata.GetStateData());
-                        chunks[toLoad[0]].BuildOnVoxelData(this.worldGen.AssignBiome(toLoad[0], pregen:true));
+                        this.worldGen.GenerateChunk(toLoad[0], isPregen:true);
+                        chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata()));
                         chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
                         chunks[toLoad[0]].needsGeneration = 0;
                         regionHandler.SaveChunk(chunks[toLoad[0]]);
@@ -198,9 +204,13 @@ public class ChunkLoader_Server : MonoBehaviour
                 else{
                     chunks.Add(toLoad[0], new Chunk(toLoad[0], server:true));
                     vfx.NewChunk(toLoad[0], isServer:true);
-                    chunks[toLoad[0]].BuildOnVoxelData(this.worldGen.AssignBiome(toLoad[0]));
+
+                    this.worldGen.ClearCaches();
+                    this.worldGen.GenerateChunk(toLoad[0]);
+                    chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata()));
                     chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
                     chunks[toLoad[0]].needsGeneration = 0;
+                    chunks[toLoad[0]].biomeName = this.worldGen.GetCacheBiome();
                     regionHandler.SaveChunk(chunks[toLoad[0]]);
                 }
 
@@ -248,21 +258,6 @@ public class ChunkLoader_Server : MonoBehaviour
             message.SendChunk(this.chunks[pos]);
             this.server.Send(message.GetMessage(), message.size, id);
         }
-    }
-
-    // Calculates the biomeSeed of BiomeHandler
-    private float BiomeSeedFunction(int t){
-        return 0.04f*(0.03f*Mathf.Sin(t));
-    }
-
-    // Calculates general offset hash
-    private float OffsetHashFunction(int t){
-        return (t*0.71928590287457694671f)%1;
-    }
-
-    // Calculates the generationSeed used in World Generation
-    private float GenerationSeedFunction(int t){
-        return Perlin.Noise(t/1000000f)+0.5f;
     }
 
     // Returns block code of a castcoord

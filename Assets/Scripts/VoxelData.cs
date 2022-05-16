@@ -177,10 +177,6 @@ public class VoxelData
 		JobHandle job;
 
 		NativeArray<ushort> blockData = NativeTools.CopyToNative(this.data);
-		NativeArray<byte> isTransparentBlock = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTransparent);
-		NativeArray<byte> isTransparentObj = NativeTools.CopyToNative(BlockEncyclopediaECS.objectTransparent);
-		NativeArray<byte> blockLuminosity = NativeTools.CopyToNative(BlockEncyclopediaECS.blockLuminosity);
-		NativeArray<byte> objectLuminosity = NativeTools.CopyToNative(BlockEncyclopediaECS.objectLuminosity);
 
 		// SHADOWMAPPING =========================================================
 
@@ -192,10 +188,10 @@ public class VoxelData
 			data = blockData,
 			chunkWidth = Chunk.chunkWidth,
 			chunkDepth = Chunk.chunkDepth,
-			isTransparentObj = isTransparentObj,
-			isTransparentBlock = isTransparentBlock,
-			blockLuminosity = blockLuminosity,
-			objectLuminosity = objectLuminosity
+			isTransparentObj = BlockEncyclopediaECS.objectTransparent,
+			isTransparentBlock = BlockEncyclopediaECS.blockTransparent,
+			blockLuminosity = BlockEncyclopediaECS.blockLuminosity,
+			objectLuminosity = BlockEncyclopediaECS.objectLuminosity
 		};
 
         job = csmJob.Schedule();
@@ -229,10 +225,6 @@ public class VoxelData
 
 
         blockData.Dispose();
-        isTransparentBlock.Dispose();
-        isTransparentObj.Dispose();
-        blockLuminosity.Dispose();
-        objectLuminosity.Dispose();
 
         bfsq.Dispose();
         bfsqExtra.Dispose();

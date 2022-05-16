@@ -6,6 +6,12 @@ using UnityEngine;
 Wood Block triggers a special BUD message called "decay". This is received by 
 assigned leaf_objects and will be used to check whether the leaf is valid
 */
+/*
+States Chart
+
+0: Naturally placed
+1: Unnaturally placed
+*/
 public class Wood_Block : Blocks
 {
 	// Leaves Checker
@@ -23,8 +29,8 @@ public class Wood_Block : Blocks
 
 	NetMessage reloadMessage;
 	int decayDistance = 7;
-	ushort assignedLeafCode = ushort.MaxValue-1;
-	ushort thisCode = 4;
+	ushort assignedLeafCode = (ushort)BlockID.LEAF;
+	ushort thisCode = (ushort)BlockID.WOOD;
 	int minDecayTime = 8;
 	int maxDecayTime = 30;
 

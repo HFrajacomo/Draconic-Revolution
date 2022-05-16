@@ -45,9 +45,6 @@ public class PlayerRaycast : MonoBehaviour
 	*/
 	public int facing;
 
-
-	public void Start(){}
-
 	
 	// Update is called once per frame
 	void Update()
@@ -221,16 +218,9 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
-		// DEBUG
-		print(loader.chunks[this.playerBody.GetChunkPos()].data.GetLight(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ, isNatural:true).ToString()
-			 + "   " + loader.chunks[this.playerBody.GetChunkPos()].data.GetLight(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ, isNatural:false).ToString()
-			 + "   " + loader.chunks[this.playerBody.GetChunkPos()].data.GetShadow(this.playerBody.blockX, this.playerBody.blockY, this.playerBody.blockZ, isNatural:false).ToString()
-			 + "   " + this.playerBody.GetChunkPos().ToString()
-			 + "   " + loader.chunks[this.playerBody.GetChunkPos()].data.GetPropagationFlag()
-			 );
-		
 		if(!current.active)
 			return;
+
 
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
 		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
@@ -395,12 +385,12 @@ public class PlayerRaycast : MonoBehaviour
 	// Checks if neighbor chunk from chunkpos needs to update it's sides
 	private void UpdateNeighborChunk(ChunkPos pos, int x, int y, int z){
 		if(x == 0)
-			loader.chunks[new ChunkPos(pos.x-1, pos.z)].BuildSideBorder(reloadXM:true);
+			loader.chunks[new ChunkPos(pos.x-1, pos.z)].BuildSideBorder();
 		else if(x == Chunk.chunkWidth-1)
-			loader.chunks[new ChunkPos(pos.x+1, pos.z)].BuildSideBorder(reloadXP:true);
+			loader.chunks[new ChunkPos(pos.x+1, pos.z)].BuildSideBorder();
 		else if(z == 0)
-			loader.chunks[new ChunkPos(pos.x, pos.z-1)].BuildSideBorder(reloadZM:true);
+			loader.chunks[new ChunkPos(pos.x, pos.z-1)].BuildSideBorder();
 		else if(z == Chunk.chunkWidth-1)
-			loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder(reloadZP:true);
+			loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder();
 	}	
 }

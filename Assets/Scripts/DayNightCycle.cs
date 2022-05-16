@@ -7,11 +7,14 @@ using UnityEngine.Rendering;
 public class DayNightCycle : MonoBehaviour
 {
 
+    // Unity References
     public GameObject lightObject;
 	public Transform skyboxLight;
 	public Light skyDirectionalLight;
     public HDAdditionalLightData hdLight;
 	public TimeOfDay timer;
+    public LensFlareComponentSRP dayFlare;
+    public LensFlareComponentSRP nightFlare;
 
     // Luminosity
     private float dayLuminosity = 3f;
@@ -26,15 +29,30 @@ public class DayNightCycle : MonoBehaviour
     private float lightValueAtDay = 1f;
     private float lightValueAtNight = 0.3f;
 
+    // Tint and Fog
+    private float normalTint = 0f;
+    private float sunTint = 30f;
+    private float minNaturalFog = 20f;
+    private float maxNaturalFog = 60f;
+    private float currentTint = 0f;
+    private float currentFog = 0f;
+
     // Skybox Parameters
     public VolumeProfile volume;
     private PhysicallyBasedSky pbsky;
     private CloudLayer clouds;
+    private WhiteBalance whiteBalance;
+    private Fog fog;
     private Color horizonColor = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonDay = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonNight = new Color(1f, 1f, 1f);
     private Color horizonSunriseAndSet = new Color(0.97f, 0.57f, 0.33f);
+    private Color cloudTintCurrent = new Color(0.66f, 0.94f, 1f);
+    private Color cloudTintNormal = new Color(0.66f, 0.94f, 1f);
+    private Color cloudTintSunrise = new Color(1f, 0.52f, 0.08f);
+    private Color cloudTintSunset = new Color(1f, 0.19f, 0.32f);
     private float currentSaturation = 1f;
+
 
     // Update detectors
     public float delta = 0;
@@ -47,8 +65,9 @@ public class DayNightCycle : MonoBehaviour
     void Start(){
         this.volume.TryGet<PhysicallyBasedSky>(out this.pbsky);
         this.volume.TryGet<CloudLayer>(out this.clouds);
+        this.volume.TryGet<WhiteBalance>(out this.whiteBalance);
+        this.volume.TryGet<Fog>(out this.fog);
         this.pbsky.horizonTint.value = this.horizonColor;
-
     }
 
     // Update is called once per frame
@@ -65,8 +84,13 @@ public class DayNightCycle : MonoBehaviour
             this.SetIntensity(time);
             this.SetFloorIntensity(time);
             this.SetHorizonColor(time);
+            this.SetFlare(time);
+            this.SetTintColor(time);
+            this.SetFog(time);
             this.SetAlphaSaturation(time);
+            this.SetCloudTint(time);
             this.ToggleClouds(time);
+            this.SetLensFlareIntensity(time);
         }
 
         if(UPDATELIGHT_FLAG){
@@ -74,6 +98,9 @@ public class DayNightCycle : MonoBehaviour
             Shader.SetGlobalFloat("_SkyLightMultiplier", this.lightMultiplier);
             this.pbsky.horizonTint.value = this.horizonColor;
             this.pbsky.alphaSaturation.value = this.currentSaturation;
+            this.whiteBalance.temperature.value = this.currentTint;
+            this.fog.meanFreePath.value = this.currentFog;
+            this.clouds.layerA.tint.value = this.cloudTintCurrent;
             this.UPDATELIGHT_FLAG = false;
         }
         else{
@@ -138,7 +165,7 @@ public class DayNightCycle : MonoBehaviour
 
     // Sets the ShadowDimmer of the main light
     private void SetShadowDimmer(float x){
-        if(x > 240 && x < 660){
+        if(x >= 240 && x < 660){
             hdLight.volumetricShadowDimmer = Mathf.Lerp(this.minShadowDimmer, this.maxShadowDimmer, (x-240)/420);
         }
         else if(x >= 660 && x < 900){
@@ -147,7 +174,7 @@ public class DayNightCycle : MonoBehaviour
         else if(x >= 900 && x < 1200){
             hdLight.volumetricShadowDimmer = Mathf.Lerp(this.maxShadowDimmer, this.minShadowDimmer, (x-900)/300);
         }
-        else if(x >= 1200 || x <= 240){
+        else if(x >= 1200 || x < 240){
             hdLight.volumetricShadowDimmer = this.minShadowDimmer;
         }
     }
@@ -155,7 +182,7 @@ public class DayNightCycle : MonoBehaviour
     // Sets color intensity based on current time
     private void SetIntensity(int x){
         // If day
-        if(x > 240 && x < 1080){
+        if(x >= 240 && x < 1080){
             skyDirectionalLight.intensity = this.dayLuminosity;
         }
         else if(x >= 1080 && x < 1200){
@@ -175,7 +202,7 @@ public class DayNightCycle : MonoBehaviour
     // Sets floor intensity
     private void SetFloorIntensity(int x){
         // If day
-        if(x > 240 && x < 1080){
+        if(x >= 240 && x < 1080){
             lightMultiplier = this.lightValueAtDay;
         }
         else if(x >= 1080){
@@ -188,7 +215,7 @@ public class DayNightCycle : MonoBehaviour
 
     // Sets color of Directional Light given the time of the day it is now
     private void SetLightColor(int time){
-        if(time <= 240 || time > 1200){
+        if(time < 240 || time > 1200){
             skyDirectionalLight.color = new Color(0.27f, 0.57f, 1f, 1f);
         }
         else{
@@ -224,6 +251,57 @@ public class DayNightCycle : MonoBehaviour
         }        
     }
 
+    // Sets the Sun tint color
+    private void SetTintColor(int x){
+        if(x < 240){
+            currentTint = normalTint;
+        }
+        else if(x >= 240 && x < 360){
+            currentTint = sunTint;
+        }
+        else if(x >= 360 && x < 600){
+            currentTint = Mathf.Lerp(sunTint, normalTint, (x-360)/240f);
+        }
+        else if(x >= 600 && x < 960){
+            currentTint = normalTint;
+        }
+        else if(x >= 960 && x < 1200){
+            currentTint = Mathf.Lerp(normalTint, sunTint, (x-960)/240f);
+        }
+        else{
+            currentTint = normalTint;
+        }
+    }
+
+    // Sets Fog distance
+    private void SetFog(int x){
+        if(x >= 360 && x < 480){
+            currentFog = Mathf.Lerp(minNaturalFog, maxNaturalFog, (x-360)/120f);
+        }
+        else if(x >= 480 && x < 1080){
+            currentFog = maxNaturalFog;
+        }
+        else if(x >= 1080 && x < 1200){
+            currentFog = Mathf.Lerp(maxNaturalFog, minNaturalFog, (x-1080)/120f);
+        }
+        else{
+            currentFog = minNaturalFog;
+        }
+
+    }
+
+    // Sets the current Lens Flare
+    private void SetFlare(int x){
+        if(x >= 240 && x <= 1200){
+            this.dayFlare.enabled = true;
+            this.nightFlare.enabled = false;
+        }
+        else{
+            this.dayFlare.enabled = false;
+            this.nightFlare.enabled = true;
+        }
+    }
+
     // Sets the Alpha Saturation
     private void SetAlphaSaturation(int x){
         if(x < 240 || x >= 1200)
@@ -244,5 +322,42 @@ public class DayNightCycle : MonoBehaviour
             this.clouds.opacity.value = 0f;
         else
             this.clouds.opacity.value = 0.2f;
+    }
+
+    // Sets Clouds color
+    private void SetCloudTint(int x){
+        if(x >= 180 && x < 240)
+            cloudTintCurrent = Color.Lerp(cloudTintNormal, cloudTintSunrise, (x-180)/60f);
+        else if(x >= 240 && x < 360)
+            cloudTintCurrent = cloudTintSunrise;
+        else if(x >= 360  && x < 600)
+            cloudTintCurrent = Color.Lerp(cloudTintSunrise, cloudTintNormal, (x-360)/240f);
+        else if(x >= 1140 && x < 1200)
+            cloudTintCurrent = Color.Lerp(cloudTintNormal, cloudTintSunset, (x-1140)/60f);
+        else
+            cloudTintCurrent = cloudTintNormal;
+    }
+
+    // Sets Lens Flare intensity
+    private void SetLensFlareIntensity(int x){
+        if(x >= 180 && x < 240){
+            nightFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-180)/60f);
+        }
+        else if(x >= 1200 && x < 1260){
+            nightFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-1200)/60f);
+        }
+        else{
+            nightFlare.intensity = 1f;
+        }
+
+        if(x >= 240 && x <= 300){
+            dayFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-240)/60f);
+        }
+        else if(x >= 1140 && x < 1200){
+            dayFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-1140)/60f);
+        }
+        else{
+            dayFlare.intensity = 1f;
+        }
     }
 }

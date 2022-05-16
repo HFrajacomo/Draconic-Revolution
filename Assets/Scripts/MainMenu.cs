@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 using static System.IO.Path;
+using TMPro;
 
 public class MainMenu : MonoBehaviour
 {
@@ -26,6 +27,15 @@ public class MainMenu : MonoBehaviour
 	public Text multi_IPField;
 	public Text multi_renderField;
 	public Text multi_accountField;
+	public TextMeshProUGUI fullbrightText;
+
+	// Color Constants
+	private Color GREEN = new Color(0.3f, 0.9f, 0.2f);
+	private Color RED = new Color(0.3f, 0.0f, 0.0f);
+
+	public void OnApplicationQuit(){
+		BlockEncyclopediaECS.Destroy();
+	}
 
 	public void Start(){
 		Resources.UnloadUnusedAssets();
@@ -99,6 +109,7 @@ public class MainMenu : MonoBehaviour
 	}
 
 	public void OpenOptionsMenu(){
+		SetFullBrightColor();
 		ChangeVisibleMenu(this.optionsMenu);
 	}
 
@@ -112,5 +123,17 @@ public class MainMenu : MonoBehaviour
 		this.multiplayerMenu.SetActive(false);
 		this.optionsMenu.SetActive(false);
 		go.SetActive(true);
+	}
+
+	public void ToogleFullbright(){
+		Configurations.FULLBRIGHT = !Configurations.FULLBRIGHT;
+		SetFullBrightColor();
+	}
+
+	private void SetFullBrightColor(){
+		if(Configurations.FULLBRIGHT)
+			fullbrightText.color = GREEN;
+		else
+			fullbrightText.color = RED;		
 	}
 }

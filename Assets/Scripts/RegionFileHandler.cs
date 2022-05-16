@@ -1,8 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.Text;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
+using Random = System.Random;
 
 /*
 Region Data File Format (.rdf)
@@ -70,18 +73,17 @@ public class RegionFileHandler{
 	public void InitWorldFiles(ChunkLoader_Server cl){
 		this.cl = cl;
 		this.worldName = World.worldName;
-		this.seed = World.worldSeed;
 
 		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
 
 		#if UNITY_EDITOR
 			this.saveDir = "Worlds/";
-			this.worldDir = "Worlds/" + this.worldName + "/";
+			this.worldDir = this.saveDir + this.worldName + "/";
 		#else
 			// If is in Dedicated Server
 			if(!World.isClient){
 				this.saveDir = "Worlds/";
-				this.worldDir = "Worlds/" + this.worldName + "/";
+				this.worldDir = this.saveDir + this.worldName + "/";
 			}
 			// If it's a Local Server
 			else{
@@ -89,7 +91,6 @@ public class RegionFileHandler{
 				this.worldDir = this.saveDir + this.worldName + "\\";			
 			}
 		#endif
-
 
 		// If "Worlds/" dir doesn't exist
 		if(!Directory.Exists(this.saveDir)){
@@ -105,10 +106,16 @@ public class RegionFileHandler{
 		if(File.Exists(this.worldDir + "world.wdat")){
 			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Open);
 			LoadWorld();
+			World.SetWorldSeed(this.seed);
+
 		}
 		else{
+			Random rnd = new Random((int)(DateTime.Now.Ticks % 999999));
+			this.seed = rnd.Next(1,999999);
+
 			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Create);	
-			SaveWorld();			
+			SaveWorld();
+			World.SetWorldSeed(this.seed);		
 		}
 
 		// If already has a player data file
@@ -123,7 +130,6 @@ public class RegionFileHandler{
 
 	// Returns initialized seed if world was just generated or returns saved seed if world exists
 	public int GetRealSeed(){
-		this.seed = World.worldSeed;
 		return this.seed;
 	}
 
@@ -527,6 +533,11 @@ public class RegionFileHandler{
 		return (long)(pos.z*chunkLength + pos.x);
 	}
 
+	// Sets the name of the world
+	public void SetWorldName(){
+
+	}
+
 }
 
 public struct RegionFile{
@@ -534,6 +545,7 @@ public struct RegionFile{
 	public ChunkPos regionPos; // Variable to represent Region coordinates, and not Chunk coordinates
 	private float chunkLength;
 	private string worldDir;
+	private string saveDir;
 
 	// File Data
 	public Stream file;
@@ -555,11 +567,27 @@ public struct RegionFile{
 		this.regionPos = pos;
 		this.chunkLength = chunkLen;
 		this.index = new Dictionary<long, long>();
-		this.worldDir = "Worlds/" + World.worldName + "/";
 
 		this.cachedIndex = new byte[16384];
 		this.cachedHoles = new byte[16384];
 		this.longArray = new byte[8];
+
+
+		#if UNITY_EDITOR
+			this.saveDir = "Worlds/";
+			this.worldDir = this.saveDir + World.worldName + "/";
+		#else
+			// If is in Dedicated Server
+			if(!World.isClient){
+				this.saveDir = "Worlds/";
+				this.worldDir = this.saveDir + World.worldName + "/";
+			}
+			// If it's a Local Server
+			else{
+				this.saveDir = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\";
+				this.worldDir = this.saveDir + World.worldName + "\\";			
+			}
+		#endif
 
 		try{
 			this.file = File.Open(this.worldDir + name + ".rdf", FileMode.Open);

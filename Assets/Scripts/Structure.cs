@@ -19,6 +19,7 @@ public abstract class Structure
     public static List<Chunk> reloadChunks = new List<Chunk>();
 
     public bool considerAir;
+    public bool needsBase;
 
     public int sizeX, sizeY, sizeZ;
     public int offsetX, offsetZ;
@@ -30,7 +31,8 @@ public abstract class Structure
     */
     public FillType type;
 
-    public List<ushort> overwriteBlocks;
+    public HashSet<ushort> overwriteBlocks;
+    public HashSet<BlockID> acceptableBaseBlocks;
 
 
     /*
@@ -96,6 +98,16 @@ public abstract class Structure
                 }
             }
         }
+    }
+
+    public bool AcceptBaseBlock(ushort baseBlock){
+        if(!this.needsBase)
+            return true;
+
+        if(this.acceptableBaseBlocks.Contains((BlockID)baseBlock))
+            return true;
+
+        return false;
     }
 
 
@@ -312,6 +324,8 @@ public abstract class Structure
 
         // Applies in SpecificOverwrite rule to existing chunk
         else if(this.type == FillType.SpecificOverwrite && exists && initialchunk){
+            bool shouldDrawNeighbors = false;
+
             if(!this.considerAir){
                 for(int y=posY; y < posY + this.sizeY; y++){
                     structX = structinitX;
@@ -326,6 +340,7 @@ public abstract class Structure
                                     continue;
                                 }
 
+                                shouldDrawNeighbors = true;
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
@@ -337,7 +352,7 @@ public abstract class Structure
                     }
                     structY++;
                 }
-                return true;
+                return shouldDrawNeighbors;
             }
             else{
                 for(int y=posY; y < posY + this.sizeY; y++){
@@ -352,6 +367,7 @@ public abstract class Structure
                                 else
                                     VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
+                                shouldDrawNeighbors = true;
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
                                 VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
                             }
@@ -361,7 +377,7 @@ public abstract class Structure
                     }
                     structY++;
                 }
-                return true;                
+                return shouldDrawNeighbors;                
             }
         }
 
@@ -618,7 +634,7 @@ public abstract class Structure
 
 public enum FillType{
     OverwriteAll, // Will erase any blocks in selected region
-    FreeSpace, // Will need free space to generate, if considerAir is off, disconsiders self air colission
+    FreeSpace, // Will need free space to generate, if considerAir is off, disconsiders self air colision
     SpecificOverwrite, // Will generate structure blocks only on specific blocks
 }
 

@@ -8,5 +8,6 @@ public enum ItemID : ushort {
 	METALBLOCK,
 	WATERBLOCK,
 	TORCH,
-	LEAFBLOCK
+	LEAFBLOCK,
+	SANDBLOCK
 }

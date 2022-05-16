@@ -17,7 +17,7 @@ MonoBehaviour:
     supportSSR: 0
     supportSSRTransparent: 0
     supportSSAO: 1
-    supportSSGI: 1
+    supportSSGI: 0
     supportSubsurfaceScattering: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000
@@ -75,7 +75,7 @@ MonoBehaviour:
       maxPlanarReflectionOnScreen: 16
       maxLightsPerClusterCell: 8
       maxLocalVolumetricFogSize: 32
-      maxLocalVolumetricFogOnScreen: 64
+      maxLocalVolumetricFogOnScreen: 128
     hdShadowInitParams:
       maxShadowRequests: 4096
       directionalShadowsDepthBits: 32
@@ -147,7 +147,7 @@ MonoBehaviour:
       - 2
       - 4
       - 7
-      FarBlurSampleCount: 04000000070000000e000000
+      FarBlurSampleCount: 040000000700000010000000
       FarBlurMaxRadius:
       - 5
       - 8
@@ -166,14 +166,14 @@ MonoBehaviour:
         m_SchemaId:
           m_Id: 
     maximumLODLevel:
-      m_Values: 000000000000000000000000
+      m_Values: 010000000200000003000000
       m_SchemaId:
         m_Id: With3Levels
     lodBias:
       m_Values:
       - 1
-      - 1
-      - 1
+      - 2
+      - 3
       m_SchemaId:
         m_Id: With3Levels
     lightingQualitySettings:

@@ -20,6 +20,7 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkPos newChunk;
 	public List<ChunkPos> toRequest = new List<ChunkPos>();
     public List<byte[]> toLoad = new List<byte[]>();
+    public List<ChunkPos> toLoadChunk = new List<ChunkPos>();
     public List<ChunkPos> toUpdate = new List<ChunkPos>();
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
     public List<ChunkPos> toDraw = new List<ChunkPos>();
@@ -32,7 +33,7 @@ public class ChunkLoader : MonoBehaviour
     public GameObject gameUI;
     public StructureHandler structHandler;
     public Client client;
-    public BiomeHandler biomeHandler = new BiomeHandler(0);
+    public BiomeHandler biomeHandler = new BiomeHandler();
 
     // Received from Server
     public float playerX;
@@ -44,7 +45,6 @@ public class ChunkLoader : MonoBehaviour
     public PlayerMovement playerMovement;
     public VolumeProfile volume;
     public GameObject mainControllerManager;
-    public Fog fog;
 
     // Initialization
     public GameObject playerCharacter;
@@ -62,7 +62,7 @@ public class ChunkLoader : MonoBehaviour
     public bool SENTINFOTOSERVER = false;
 
     // Timer
-    private byte timer = 0;
+    private ushort timer = 0;
 
     // Cache Data
     private ChunkPos cachePos = new ChunkPos(0,0);
@@ -80,9 +80,6 @@ public class ChunkLoader : MonoBehaviour
         this.player.position = new Vector3(0,0,0);
         this.testAccountID = World.accountID;
         this.time.SetClient(this.client);
-
-        this.volume.TryGet<Fog>(out this.fog);
-        this.fog.meanFreePath.value = World.renderDistance * 12;
     }
 
     void OnApplicationQuit(){
@@ -122,6 +119,8 @@ public class ChunkLoader : MonoBehaviour
         }
         // If has received chunks and needs to load them
         else if(this.PLAYERSPAWNED && !this.REQUESTEDCHUNKS){
+            InitConfigurationFunctions();
+
             this.player.position = new Vector3(playerX, playerY+0.8f, playerZ);
 
             this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
@@ -160,17 +159,34 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Run attached messages to a 30 frame timer
+    // Run attached messages to a 600 frame timer
+    /*
+    Registered Events:
+
+    Heartbeart:         30 ticks
+    FixUnloadedChunks:  2400 ticks
+    */
     private void RunTimerFunctions(){
-        if(this.timer < 30)
+        if(this.timer < 2400)
             this.timer++;
-        else{
+        else
+            this.timer = 1;
+
+        // Heartbeat
+        if(this.timer % 30 == 0){
             this.client.CheckTimeout();
             NetMessage heartbeat = new NetMessage(NetCode.HEARTBEAT);
             this.client.Send(heartbeat.GetMessage(), heartbeat.size);
-
-            this.timer = 0;
         }
+
+        // Fix Unloaded Chunks
+        if(this.timer % 2400 == 0){
+            FixUnloaded();
+        }
+    }
+
+    public void InitConfigurationFunctions(){
+        this.rend.rend.sharedMaterials[0].SetFloat("_Fullbright", Configurations.GetFullbright());
     }
 
     // Moves all entities with SmoothMovement
@@ -299,7 +315,8 @@ public class ChunkLoader : MonoBehaviour
                 if(!this.toDraw.Contains(cp))
                     this.toDraw.Add(cp);
 
-                toLoad.RemoveAt(0);            
+                toLoad.RemoveAt(0);
+                toLoadChunk.RemoveAt(0);        
             }
         }
     }
@@ -351,6 +368,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Actually builds the mesh for loaded chunks
     private void DrawChunk(){
+        // toDRAW
         if(toDraw.Count > 0){
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
@@ -370,6 +388,7 @@ public class ChunkLoader : MonoBehaviour
             toDraw.RemoveAt(0);
         }
 
+        // toREDRAW
         for(int i=0; i < 2; i++){
             if(toRedraw.Count > 0){
                 if(toDraw.Contains(toRedraw[0])){
@@ -396,7 +415,6 @@ public class ChunkLoader : MonoBehaviour
                 toRedraw.RemoveAt(0);
             }
         }
-
     }
 
     // Reload a chunk in toUpdate
@@ -694,21 +712,6 @@ public class ChunkLoader : MonoBehaviour
 	    currentChunk = newChunk;
     }
 
-    // Calculates the biomeSeed of BiomeHandler
-    private float BiomeSeedFunction(int t){
-        return 0.04f*(0.03f*Mathf.Sin(t));
-    }
-
-    // Calculates general offset hash
-    private float OffsetHashFunction(int t){
-        return (t*0.71928590287457694671f)%1;
-    }
-
-    // Calculates the generationSeed used in World Generation
-    private float GenerationSeedFunction(int t){
-        return Perlin.Noise(t/1000000f)+0.5f;
-    }
-
     // Returns block code of a castcoord
     public ushort GetBlock(CastCoord c){
         if(this.chunks.ContainsKey(c.GetChunkPos())){
@@ -743,6 +746,29 @@ public class ChunkLoader : MonoBehaviour
             return GetBlockHeight(pos, blockX, blockZ+1);
 
         return GetBlockHeight(pos, 0, 0);
+    }
+
+    // Re-acquires every chunk that is possibly not loaded and adds all chunks that need redraw (except borders) to redraw list
+    private void FixUnloaded(){
+        ChunkPos newChunk;
+        NetMessage message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
+
+        for(int x=-World.renderDistance; x < World.renderDistance; x++){
+            for(int z=-World.renderDistance; z < World.renderDistance; z++){
+                newChunk = new ChunkPos(this.currentChunk.x+x, this.currentChunk.z+z);
+
+                if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk)){
+                    message.RequestChunkLoad(newChunk);
+                    client.Send(message.GetMessage(), message.size);
+                    continue;
+                }
+
+                if(this.chunks.ContainsKey(newChunk)){
+                    if(!this.chunks[newChunk].drawMain && !this.toDraw.Contains(newChunk))
+                        this.toDraw.Add(newChunk);
+                }
+            }
+        }
     }
 }
 

@@ -14,7 +14,7 @@ public class Chunk
 	public VoxelData data;
 	public VoxelMetadata metadata;
 	public static readonly int chunkWidth = 16;
-	public static readonly int chunkDepth = 100;
+	public static readonly int chunkDepth = 256;
 	public static float chunkWidthMult = 15.99f; 
 	public ChunkPos pos;
 	public string biomeName;
@@ -26,10 +26,6 @@ public class Chunk
 	private NetMessage message;
 
 	// Draw Flags
-	private bool xPlusDrawn = false;
-	private bool zPlusDrawn = false;
-	private bool xMinusDrawn = false;
-	private bool zMinusDrawn = false;
 	public bool drawMain = false;
 
 	// Unity Settings
@@ -153,35 +149,10 @@ public class Chunk
 	}
 
 	// Draws Chunk Borders. Returns true if all borders have been drawn, otherwise, return false.
-	public bool BuildSideBorder(bool reload=false, bool loadBUD=false, bool reloadXM=false, bool reloadXP=false, bool reloadZM=false, bool reloadZP=false){
-		if(reload){
-			this.xMinusDrawn = false;
-			this.xPlusDrawn = false;
-			this.zMinusDrawn = false;
-			this.zPlusDrawn = false;
-		}
-
-		if(reloadXM)
-			this.xMinusDrawn = false;
-		if(reloadXP)
-			this.xPlusDrawn = false;
-		if(reloadZM)
-			this.zMinusDrawn = false;
-		if(reloadZP)
-			this.zPlusDrawn = false;
-
-		// If current operation CANNOT update borders
-		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn){
-			return true;
-		}
-
-		// Fast check if current border is at the edge of render distance
-		if(!this.ShouldRun()){
-			return false;
-		}
-
-
+	public bool BuildSideBorder(bool reload=false, bool loadBUD=false){
 		bool changed = false; // Flag is set if any change has been made that requires a redraw
+		bool doneRendering = true;
+
 		int3[] coordArray;
 		int3[] budArray;
 
@@ -201,44 +172,32 @@ public class Chunk
 		NativeList<int3> toLoadEvent = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int3> toBUD = new NativeList<int3>(0, Allocator.TempJob);
 
-		NativeArray<byte> blockTransparent = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTransparent);
-		NativeArray<byte> objectTransparent = NativeTools.CopyToNative(BlockEncyclopediaECS.objectTransparent);
-		NativeArray<bool> blockSeamless = NativeTools.CopyToNative(BlockEncyclopediaECS.blockSeamless);
-		NativeArray<bool> objectSeamless = NativeTools.CopyToNative(BlockEncyclopediaECS.objectSeamless);
-		NativeArray<bool> blockInvisible = NativeTools.CopyToNative(BlockEncyclopediaECS.blockInvisible);
-		NativeArray<bool> objectInvisible = NativeTools.CopyToNative(BlockEncyclopediaECS.objectInvisible);
-		NativeArray<ShaderIndex> blockMaterial = NativeTools.CopyToNative(BlockEncyclopediaECS.blockShader);
-		NativeArray<ShaderIndex> objectMaterial = NativeTools.CopyToNative(BlockEncyclopediaECS.objectShader);
-		NativeArray<int3> blockTiles = NativeTools.CopyToNative(BlockEncyclopediaECS.blockTiles);
-		NativeArray<bool> blockWashable = NativeTools.CopyToNative(BlockEncyclopediaECS.blockWashable);
-		NativeArray<bool> objectWashable = NativeTools.CopyToNative(BlockEncyclopediaECS.objectWashable);
-
 		// Cached
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector2> cacheUVVerts = new NativeArray<Vector2>(4, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
 		// For Init
-		this.meshFilter.sharedMesh.GetVertices(vertexAux);
+		this.meshFilter.mesh.GetVertices(vertexAux);
 		NativeArray<Vector3> disposableVerts = NativeTools.CopyToNative<Vector3>(vertexAux.ToArray());
 		vertexAux.Clear();
 
-		this.meshFilter.sharedMesh.GetUVs(0, UVaux);
+		this.meshFilter.mesh.GetUVs(0, UVaux);
 		NativeArray<Vector2> disposableUVS = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
 		UVaux.Clear();
 
-		this.meshFilter.sharedMesh.GetUVs(3, UVaux);
+		this.meshFilter.mesh.GetUVs(3, UVaux);
 		NativeArray<Vector2> disposableLight = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
 		UVaux.Clear();
 
-		this.meshFilter.sharedMesh.GetNormals(normalAux);
+		this.meshFilter.mesh.GetNormals(normalAux);
 		NativeArray<Vector3> disposableNormals = NativeTools.CopyToNative<Vector3>(normalAux.ToArray());
 		normalAux.Clear();
 
-		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(0), Allocator.TempJob);
-		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(1), Allocator.TempJob);
-		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(2), Allocator.TempJob);
-		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.meshFilter.sharedMesh.GetTriangles(4), Allocator.TempJob);
+		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(0), Allocator.TempJob);
+		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(1), Allocator.TempJob);
+		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(2), Allocator.TempJob);
+		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(4), Allocator.TempJob);
 
 
 		JobHandle job;
@@ -265,11 +224,9 @@ public class Chunk
 		disposableLight.Dispose();
 		disposableLeavesTris.Dispose();
 
-
 		// X- Analysis
 		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z); 
-		if(loader.chunks.ContainsKey(targetChunk) && !xMinusDrawn){
-			this.xMinusDrawn = true;
+		if(loader.chunks.ContainsKey(targetChunk)){
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -301,17 +258,17 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockTransparent = blockTransparent,
-				objectTransparent = objectTransparent,
-				blockSeamless = blockSeamless,
-				objectSeamless = objectSeamless,
-				blockInvisible = blockInvisible,
-				objectInvisible = objectInvisible,
-				blockMaterial = blockMaterial,
-				objectMaterial = objectMaterial,
-				blockWashable = blockWashable,
-				objectWashable = objectWashable,
-				blockTiles = blockTiles
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				blockSeamless = BlockEncyclopediaECS.blockSeamless,
+				objectSeamless = BlockEncyclopediaECS.objectSeamless,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockMaterial = BlockEncyclopediaECS.blockMaterial,
+				objectMaterial = BlockEncyclopediaECS.objectMaterial,
+				blockWashable = BlockEncyclopediaECS.blockWashable,
+				objectWashable = BlockEncyclopediaECS.objectWashable,
+				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
 			job = bbJob.Schedule();
 			job.Complete();
@@ -332,11 +289,14 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
+		else{
+			doneRendering = false;
+		}
+
 
 		// X+ Analysis
 		targetChunk = new ChunkPos(this.pos.x+1, this.pos.z); 
-		if(loader.chunks.ContainsKey(targetChunk) && !xPlusDrawn){
-			this.xPlusDrawn = true;
+		if(loader.chunks.ContainsKey(targetChunk)){
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -368,17 +328,17 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockTransparent = blockTransparent,
-				objectTransparent = objectTransparent,
-				blockSeamless = blockSeamless,
-				objectSeamless = objectSeamless,
-				blockInvisible = blockInvisible,
-				objectInvisible = objectInvisible,
-				blockMaterial = blockMaterial,
-				objectMaterial = objectMaterial,
-				blockWashable = blockWashable,
-				objectWashable = objectWashable,
-				blockTiles = blockTiles
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				blockSeamless = BlockEncyclopediaECS.blockSeamless,
+				objectSeamless = BlockEncyclopediaECS.objectSeamless,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockMaterial = BlockEncyclopediaECS.blockMaterial,
+				objectMaterial = BlockEncyclopediaECS.objectMaterial,
+				blockWashable = BlockEncyclopediaECS.blockWashable,
+				objectWashable = BlockEncyclopediaECS.objectWashable,
+				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
 			job = bbJob.Schedule();
 			job.Complete();
@@ -400,11 +360,13 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
+		else{
+			doneRendering = false;
+		}
 
 		// Z- Analysis
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1); 
-		if(loader.chunks.ContainsKey(targetChunk) && !zMinusDrawn){
-			this.zMinusDrawn = true;
+		if(loader.chunks.ContainsKey(targetChunk)){
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -436,17 +398,17 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockTransparent = blockTransparent,
-				objectTransparent = objectTransparent,
-				blockSeamless = blockSeamless,
-				objectSeamless = objectSeamless,
-				blockInvisible = blockInvisible,
-				objectInvisible = objectInvisible,
-				blockMaterial = blockMaterial,
-				objectMaterial = objectMaterial,
-				blockWashable = blockWashable,
-				objectWashable = objectWashable,
-				blockTiles = blockTiles
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				blockSeamless = BlockEncyclopediaECS.blockSeamless,
+				objectSeamless = BlockEncyclopediaECS.objectSeamless,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockMaterial = BlockEncyclopediaECS.blockMaterial,
+				objectMaterial = BlockEncyclopediaECS.objectMaterial,
+				blockWashable = BlockEncyclopediaECS.blockWashable,
+				objectWashable = BlockEncyclopediaECS.objectWashable,
+				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
 			job = bbJob.Schedule();
 			job.Complete();
@@ -466,11 +428,13 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
+		else{
+			doneRendering = false;
+		}
 
 		// Z+ Analysis
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1); 
-		if(loader.chunks.ContainsKey(targetChunk) && !zPlusDrawn){
-			this.zPlusDrawn = true;
+		if(loader.chunks.ContainsKey(targetChunk)){
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -502,17 +466,17 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockTransparent = blockTransparent,
-				objectTransparent = objectTransparent,
-				blockSeamless = blockSeamless,
-				objectSeamless = objectSeamless,
-				blockInvisible = blockInvisible,
-				objectInvisible = objectInvisible,
-				blockMaterial = blockMaterial,
-				objectMaterial = objectMaterial,
-				blockWashable = blockWashable,
-				objectWashable = objectWashable,
-				blockTiles = blockTiles
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				blockSeamless = BlockEncyclopediaECS.blockSeamless,
+				objectSeamless = BlockEncyclopediaECS.objectSeamless,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockMaterial = BlockEncyclopediaECS.blockMaterial,
+				objectMaterial = BlockEncyclopediaECS.objectMaterial,
+				blockWashable = BlockEncyclopediaECS.blockWashable,
+				objectWashable = BlockEncyclopediaECS.objectWashable,
+				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
 			job = bbJob.Schedule();
 			job.Complete();
@@ -531,6 +495,9 @@ public class Chunk
 				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}
 			toLoadEvent.Clear();
+		}
+		else{
+			doneRendering = false;
 		}
 
 		this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
@@ -554,7 +521,7 @@ public class Chunk
 			this.specularTris = specularTris.ToArray();
 			this.liquidTris = liquidTris.ToArray();
 			this.leavesTris = leavesTris.ToArray();
-			assetTris = this.meshFilter.sharedMesh.GetTriangles(3);
+			assetTris = this.meshFilter.mesh.GetTriangles(3);
 
 			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray());
 		}
@@ -568,17 +535,6 @@ public class Chunk
 		specularTris.Dispose();
 		liquidTris.Dispose();
 		leavesTris.Dispose();
-		blockTransparent.Dispose();
-		objectTransparent.Dispose();
-		blockSeamless.Dispose();
-		objectSeamless.Dispose();
-		blockInvisible.Dispose();
-		objectInvisible.Dispose();
-		blockMaterial.Dispose();
-		objectMaterial.Dispose();
-		blockWashable.Dispose();
-		objectWashable.Dispose();
-		blockTiles.Dispose();
 		cacheCubeVert.Dispose();
 		cacheUVVerts.Dispose();
 		cacheCubeNormal.Dispose();
@@ -595,11 +551,7 @@ public class Chunk
     	this.UVs.Clear();
     	this.lightUVMain.Clear();
 
-		// If current operation CANNOT update borders
-		if(xMinusDrawn && xPlusDrawn && zMinusDrawn && zPlusDrawn)
-			return true;
-		else
-			return false;
+		return doneRendering;
 	}
 
 
@@ -625,22 +577,6 @@ public class Chunk
 		NativeArray<Vector2> cacheCubeUV = new NativeArray<Vector2>(4, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
-		// Cached from Block Encyclopedia ECS
-		NativeArray<byte> blockTransparent = NativeTools.CopyToNative<byte>(BlockEncyclopediaECS.blockTransparent);
-		NativeArray<byte> objectTransparent = NativeTools.CopyToNative<byte>(BlockEncyclopediaECS.objectTransparent);
-		NativeArray<bool> blockSeamless = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockSeamless);
-		NativeArray<bool> objectSeamless = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectSeamless);
-		NativeArray<bool> blockLoad = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockLoad);
-		NativeArray<bool> objectLoad = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectLoad);
-		NativeArray<bool> blockInvisible = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockInvisible);
-		NativeArray<bool> objectInvisible = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectInvisible);
-		NativeArray<ShaderIndex> blockMaterial = NativeTools.CopyToNative<ShaderIndex>(BlockEncyclopediaECS.blockShader);
-		NativeArray<ShaderIndex> objectMaterial = NativeTools.CopyToNative<ShaderIndex>(BlockEncyclopediaECS.objectShader);
-		NativeArray<int3> blockTiles = NativeTools.CopyToNative<int3>(BlockEncyclopediaECS.blockTiles);
-		NativeArray<bool> objectNeedRotation = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectNeedRotation);
-		NativeArray<bool> blockWashable = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.blockWashable);
-		NativeArray<bool> objectWashable = NativeTools.CopyToNative<bool>(BlockEncyclopediaECS.objectWashable);
-
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{
 			load = load,
@@ -660,19 +596,20 @@ public class Chunk
 			cacheCubeVert = cacheCubeVert,
 			cacheCubeUV = cacheCubeUV,
 			cacheCubeNormal = cacheCubeNormal,
-			blockTransparent = blockTransparent,
-			objectTransparent = objectTransparent,
-			blockSeamless = blockSeamless,
-			objectSeamless = objectSeamless,
-			blockLoad = blockLoad,
-			objectLoad = objectLoad,
-			blockInvisible = blockInvisible,
-			objectInvisible = objectInvisible,
-			blockMaterial = blockMaterial,
-			objectMaterial = objectMaterial,
-			blockWashable = blockWashable,
-			objectWashable = objectWashable,
-			blockTiles = blockTiles
+			blockTransparent = BlockEncyclopediaECS.blockTransparent,
+			objectTransparent = BlockEncyclopediaECS.objectTransparent,
+			blockSeamless = BlockEncyclopediaECS.blockSeamless,
+			objectSeamless = BlockEncyclopediaECS.objectSeamless,
+			blockLoad = BlockEncyclopediaECS.blockLoad,
+			objectLoad = BlockEncyclopediaECS.objectLoad,
+			blockInvisible = BlockEncyclopediaECS.blockInvisible,
+			objectInvisible = BlockEncyclopediaECS.objectInvisible,
+			blockMaterial = BlockEncyclopediaECS.blockMaterial,
+			objectMaterial = BlockEncyclopediaECS.objectMaterial,
+			blockWashable = BlockEncyclopediaECS.blockWashable,
+			objectWashable = BlockEncyclopediaECS.objectWashable,
+			blockTiles = BlockEncyclopediaECS.blockTiles,
+			blockDrawTop = BlockEncyclopediaECS.blockDrawTopRegardless
 		};
 		JobHandle job = bcJob.Schedule();
 		job.Complete();
@@ -724,24 +661,11 @@ public class Chunk
 		this.message.BatchLoadBUD(this.pos);
 
 		if(load){
-			if(this.biomeName == "Ocean"){
-				coordArray = loadCoordList.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					if(this.data.GetCell(coord) != 6){ // Water
-						this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-					}
-				}
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-
-			}
-			else{
-				coordArray = loadCoordList.AsArray().ToArray();
-				foreach(int3 coord in coordArray){
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				}	
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-
-			}
+			coordArray = loadCoordList.AsArray().ToArray();
+			foreach(int3 coord in coordArray){
+				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
+			}	
+			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 		}
 		loadCoordList.Clear();
 		
@@ -774,7 +698,7 @@ public class Chunk
 			meshLightUV = meshLightUV,
 			meshNormals = meshNormals,
 			scaling = scaling,
-			needRotation = objectNeedRotation,
+			needRotation = BlockEncyclopediaECS.objectNeedRotation,
 			inplaceOffset = scaleOffset,
 			inplaceRotation = rotationOffset,
 
@@ -826,19 +750,6 @@ public class Chunk
 		blockdata.Dispose();
 		statedata.Dispose();
 		loadCoordList.Dispose();
-		blockTransparent.Dispose();
-		objectTransparent.Dispose();
-		blockSeamless.Dispose();
-		objectSeamless.Dispose();
-		blockLoad.Dispose();
-		objectLoad.Dispose();
-		blockInvisible.Dispose();
-		objectInvisible.Dispose();
-		blockMaterial.Dispose();
-		objectMaterial.Dispose();
-		blockTiles.Dispose();
-		blockWashable.Dispose();
-		objectWashable.Dispose();
 		cacheCubeVert.Dispose();
 		cacheCubeNormal.Dispose();
 		cacheCubeUV.Dispose();
@@ -859,7 +770,6 @@ public class Chunk
 		normals.Dispose();
 		meshUVs.Dispose();
 		meshNormals.Dispose();
-		objectNeedRotation.Dispose();
 		scaleOffset.Dispose();
 		rotationOffset.Dispose();
 		lightUV.Dispose();
@@ -892,36 +802,6 @@ public class Chunk
     	this.normals.Clear();
 
 		this.drawMain = true;
-    }
-
-    // Checks if current BuildChunkSide call should be calculated
-    private bool ShouldRun(){
-    	ChunkPos targetChunk;
-
-    	targetChunk = new ChunkPos(this.pos.x-1, this.pos.z);
-
-    	if(loader.chunks.ContainsKey(targetChunk) && !this.xMinusDrawn)
-    		return true;
-
-    	targetChunk = new ChunkPos(this.pos.x+1, this.pos.z);
-
-    	if(loader.chunks.ContainsKey(targetChunk) && !this.xPlusDrawn)
-    		return true;
-
-    	targetChunk = new ChunkPos(this.pos.x, this.pos.z-1);
-
-    	if(loader.chunks.ContainsKey(targetChunk) && !this.zMinusDrawn)
-    		return true;
-
-    	targetChunk = new ChunkPos(this.pos.x, this.pos.z+1);
-
-    	if(loader.chunks.ContainsKey(targetChunk) && !this.zPlusDrawn)
-    		return true;
-
-    	if(loader.chunks.Count <= 2)
-    		return true;
-
-    	return false;
     }
 
     // Returns n ShadowUVs to a list
@@ -958,7 +838,7 @@ public class Chunk
 
     	mesh.SetNormals(this.normals.ToArray());
 
-    	this.meshFilter.sharedMesh = mesh;
+    	this.meshFilter.mesh = mesh;
     }
 
     // Builds meshes from verts, UVs and tris from different layers
@@ -985,14 +865,14 @@ public class Chunk
     	mesh.uv4 = lightUV;
     	mesh.SetNormals(normals);
 
-    	this.meshFilter.sharedMesh = mesh;
+    	this.meshFilter.mesh = mesh;
     }
 }
 
 /*
 MULTITHREADING
 */
-//[BurstCompile]
+[BurstCompile]
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public bool load;
@@ -1052,6 +932,8 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<bool> blockWashable;
 	[ReadOnly]
 	public NativeArray<bool> objectWashable;
+	[ReadOnly]
+	public NativeArray<bool> blockDrawTop;
 
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
@@ -1059,9 +941,6 @@ public struct BuildChunkJob : IJob{
 		ushort thisBlock;
 		ushort neighborBlock;
 		ushort thisState;
-
-		// Liquid Flags
-		bool liquidToLoad = false;
 
 		for(int x=0; x<Chunk.chunkWidth; x++){
 			for(int y=0; y<Chunk.chunkDepth; y++){
@@ -1090,8 +969,6 @@ public struct BuildChunkJob : IJob{
 		    			}
 
 	    			// --------------------------------
-		    		// Reset Liquid Count for current block
-		    		liquidToLoad = false;
 
 			    	for(int i=0; i<6; i++){
 			    		neighborBlock = GetNeighbor(x, y, z, i);
@@ -1118,13 +995,11 @@ public struct BuildChunkJob : IJob{
 				    			}
 				    			else if(neighborBlock <= ushort.MaxValue/2 && i != 4){
 				    				if(neighborBlock == 0 || blockWashable[neighborBlock]){
-				    					liquidToLoad = true;
 				    				}
 
 				    			}
 				    			else if(neighborBlock > ushort.MaxValue/2 && i != 4){
 				    				if(objectWashable[ushort.MaxValue-neighborBlock]){
-				    					liquidToLoad = true;
 				    				}
 				    			}
 			    			}
@@ -1137,28 +1012,28 @@ public struct BuildChunkJob : IJob{
 				    			}
 				    			else if(neighborBlock <= ushort.MaxValue/2 && i != 4){
 				    				if(neighborBlock == 0 || blockWashable[neighborBlock]){
-				    					liquidToLoad = true;
 				    				}
 
 				    			}
 				    			else if(neighborBlock > ushort.MaxValue/2 && i != 4){
 				    				if(objectWashable[ushort.MaxValue-neighborBlock]){
-				    					liquidToLoad = true;
 				    				}
 				    			}	    				
 			    			}
 			    		}
-		    			
-		    			// Puts liquid into OnLoad list
-		    			if(liquidToLoad && load){
-		    				loadOutList.Add(new int3(x,y,z));
-		    			}
 
 		    			// Main Drawing Handling
 			    		if(CheckPlacement(neighborBlock)){
 					    	if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
 					    		break;
 					    	}
+			    		}
+			    		else if(thisBlock <= ushort.MaxValue/2){
+			    			if(blockDrawTop[thisBlock] && i == 4){
+						    	if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
+						    		break;
+						    	}
+						    }
 			    		}
 				    } // faces loop
 	    		} // z loop

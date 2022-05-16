@@ -22,8 +22,9 @@ public class TestStruct : Structure
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
+		this.needsBase = false;
 		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new List<ushort>();
+		this.overwriteBlocks = new HashSet<ushort>();
 
 		Prepare(blocks, hps, states);
 	}
@@ -51,7 +52,9 @@ public class TreeSmallA : Structure
 
 		this.considerAir = false;
 		this.type = FillType.FreeSpace;
-		this.overwriteBlocks = new List<ushort>();
+		this.overwriteBlocks = new HashSet<ushort>();
+		this.needsBase = true;
+		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT};
 
 		Prepare(blocks, hps, states);
 	}
@@ -79,7 +82,9 @@ public class TreeMediumA : Structure
 
 		this.considerAir = false;
 		this.type = FillType.FreeSpace;
-		this.overwriteBlocks = new List<ushort>();
+		this.overwriteBlocks = new HashSet<ushort>();
+		this.needsBase = true;
+		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT};
 
 		Prepare(blocks, hps, states);
 	}
@@ -105,8 +110,9 @@ public class DirtPileA : Structure
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
+		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new List<ushort>(){1,3};
+		this.overwriteBlocks = new HashSet<ushort>(){1,3};
 
 		Prepare(blocks, hps, states);
 	}
@@ -132,8 +138,9 @@ public class DirtPileB : Structure
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
+		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new List<ushort>(){1,3};
+		this.overwriteBlocks = new HashSet<ushort>(){1,3};
 
 		Prepare(blocks, hps, states);
 	}
@@ -159,8 +166,9 @@ public class BoulderNormalA : Structure
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
+		this.needsBase = false;
 		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new List<ushort>();
+		this.overwriteBlocks = new HashSet<ushort>();
 
 		Prepare(blocks, hps, states);
 	} 
@@ -187,7 +195,9 @@ public class TreeBigA : Structure
 
 		this.considerAir = false;
 		this.type = FillType.FreeSpace;
-		this.overwriteBlocks = new List<ushort>();
+		this.overwriteBlocks = new HashSet<ushort>();
+		this.needsBase = true;
+		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT};
 
 		Prepare(blocks, hps, states);
 	}
@@ -214,7 +224,9 @@ public class TreeCrookedMediumA : Structure
 
 		this.considerAir = false;
 		this.type = FillType.FreeSpace;
-		this.overwriteBlocks = new List<ushort>();
+		this.overwriteBlocks = new HashSet<ushort>();
+		this.needsBase = true;
+		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT, BlockID.SAND};
 
 		Prepare(blocks, hps, states);
 	}
@@ -241,7 +253,9 @@ public class TreeSmallB : Structure
 
 		this.considerAir = false;
 		this.type = FillType.FreeSpace;
-		this.overwriteBlocks = new List<ushort>();
+		this.overwriteBlocks = new HashSet<ushort>();
+		this.needsBase = true;
+		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT};
 
 		Prepare(blocks, hps, states);
 	}
@@ -267,8 +281,9 @@ public class MetalVeinA : Structure
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
+		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new List<ushort>(){3};
+		this.overwriteBlocks = new HashSet<ushort>(){3};
 
 		Prepare(blocks, hps, states);
 	}
@@ -294,8 +309,9 @@ public class MetalVeinB : Structure
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
+		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new List<ushort>(){3};
+		this.overwriteBlocks = new HashSet<ushort>(){3};
 
 		Prepare(blocks, hps, states);
 	}
@@ -321,8 +337,9 @@ public class MetalVeinC : Structure
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
 		this.considerAir = false;
+		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new List<ushort>(){3};
+		this.overwriteBlocks = new HashSet<ushort>(){3};
 
 		Prepare(blocks, hps, states);
 	}

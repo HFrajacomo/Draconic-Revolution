@@ -7,28 +7,7 @@ using Unity.Collections;
 public class TESTONLY : MonoBehaviour
 {   
 
-
-    private void PrintAll(ushort[] a){
-        string output = "";
-        foreach(ushort u in a)
-            output += u.ToString() + " ";
-        print(output);
+    public void Start(){
     }
 
-    private void PrintAll(NativeArray<ushort> a){
-        string output = "";
-        foreach(ushort u in a)
-            output += u.ToString() + " ";
-        print(output);
-    }
-
-    private void PopulateArray(ushort[] a){
-        for(ushort i=0; i < a.Length; i++)
-            a[i] = i;
-    }
-
-    private void PopulateArray(NativeArray<ushort> a){
-        for(ushort i=0; i < a.Length; i++)
-            a[i] = i;
-    }
 }

@@ -8,14 +8,11 @@ public class BlockEncyclopedia : MonoBehaviour
 {
 	public Blocks[] blocks = new Blocks[Blocks.blockCount];
 	public BlocklikeObject[] objects = new BlocklikeObject[BlocklikeObject.objectCount];
-    public BlockEncyclopediaECS data;
     public bool isClient;
 
     // Start is called before the first frame update
     public void Awake()
     {
-        data = new BlockEncyclopediaECS(Blocks.blockCount, BlocklikeObject.objectCount);
-
     	// Loads all blocks
         for(int i=0;i<Blocks.blockCount;i++){
         	blocks[i] = Blocks.Block(i);
@@ -23,11 +20,12 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.blockSeamless[i] = blocks[i].seamless;
             BlockEncyclopediaECS.blockLoad[i] = blocks[i].hasLoadEvent;
             BlockEncyclopediaECS.blockInvisible[i] = blocks[i].invisible;
-            BlockEncyclopediaECS.blockShader[i] = blocks[i].shaderIndex;
+            BlockEncyclopediaECS.blockMaterial[i] = blocks[i].shaderIndex;
             BlockEncyclopediaECS.blockTiles[i] = new int3(blocks[i].tileTop, blocks[i].tileBottom, blocks[i].tileSide);
             BlockEncyclopediaECS.blockWashable[i] = blocks[i].washable;
             BlockEncyclopediaECS.blockAffectLight[i] = blocks[i].affectLight;
             BlockEncyclopediaECS.blockLuminosity[i] = blocks[i].luminosity;
+            BlockEncyclopediaECS.blockDrawTopRegardless[i] = blocks[i].drawTopRegardless;
         }
 
         // Loads all object meshes
@@ -37,13 +35,17 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.objectSeamless[i] = objects[i].seamless;
             BlockEncyclopediaECS.objectLoad[i] = objects[i].hasLoadEvent;
             BlockEncyclopediaECS.objectInvisible[i] = objects[i].invisible;
-            BlockEncyclopediaECS.objectShader[i] = objects[i].shaderIndex;
+            BlockEncyclopediaECS.objectMaterial[i] = objects[i].shaderIndex;
             BlockEncyclopediaECS.objectScaling[i] = objects[i].scaling;
             BlockEncyclopediaECS.objectNeedRotation[i] = objects[i].needsRotation;
             BlockEncyclopediaECS.objectWashable[i] = objects[i].washable;
             BlockEncyclopediaECS.objectAffectLight[i] = objects[i].affectLight;
             BlockEncyclopediaECS.objectLuminosity[i] = objects[i].luminosity;
         }
+    }
+
+    public void OnApplicationQuit(){
+        BlockEncyclopediaECS.Destroy();
     }
 
 
