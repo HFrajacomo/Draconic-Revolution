@@ -55,7 +55,6 @@ public class ChunkLoader : MonoBehaviour
 
 	// Flags
 	public bool WORLD_GENERATED = false; 
-    public int reloadMemoryCounter = 30;
     public bool PLAYERSPAWNED = false;
     public bool REQUESTEDCHUNKS = false;
     public bool CONNECTEDTOSERVER = false;
@@ -85,6 +84,7 @@ public class ChunkLoader : MonoBehaviour
     void OnApplicationQuit(){
         NetMessage message = new NetMessage(NetCode.DISCONNECT);
         this.client.Send(message.GetMessage(), message.size);
+        Resources.UnloadUnusedAssets();
     }
 
     void OnDisable(){
@@ -93,6 +93,7 @@ public class ChunkLoader : MonoBehaviour
         this.client.Send(message.GetMessage(), message.size);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+        Resources.UnloadUnusedAssets();
     }
 
     void Update(){
@@ -177,6 +178,11 @@ public class ChunkLoader : MonoBehaviour
             this.client.CheckTimeout();
             NetMessage heartbeat = new NetMessage(NetCode.HEARTBEAT);
             this.client.Send(heartbeat.GetMessage(), heartbeat.size);
+        }
+
+        // Garbage Collect Unity Assets
+        if(this.timer % 600 == 0){
+            Resources.UnloadUnusedAssets();
         }
 
         // Fix Unloaded Chunks
@@ -326,15 +332,6 @@ public class ChunkLoader : MonoBehaviour
     private void UnloadChunk(){
 
         if(toUnload.Count > 0){
-
-            // Runs Unity Garbage Collector
-            if(this.reloadMemoryCounter <= 0){
-                this.reloadMemoryCounter = this.renderDistance-1;
-                Resources.UnloadUnusedAssets();
-            }
-            else{
-                this.reloadMemoryCounter--;
-            }
 
             if(toRedraw.Contains(toUnload[0])){
                 toRedraw.Remove(toUnload[0]);
