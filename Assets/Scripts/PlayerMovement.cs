@@ -30,6 +30,9 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 position;
     private Vector3 rotation;
 
+    void OnDestroy(){
+        this.controller = null;
+    }
 
     // Update is called once per frame
     void Update()

@@ -10,6 +10,11 @@ public class BlockEncyclopedia : MonoBehaviour
 	public BlocklikeObject[] objects = new BlocklikeObject[BlocklikeObject.objectCount];
     public bool isClient;
 
+    public void OnDestroy(){
+        this.blocks = null;
+        this.objects = null;
+    }
+
     // Start is called before the first frame update
     public void Awake()
     {

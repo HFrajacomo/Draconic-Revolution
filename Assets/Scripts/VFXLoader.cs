@@ -11,6 +11,13 @@ public class VFXLoader : MonoBehaviour
 
     public static bool EXTRALIGHTSHADOWS = false;
 
+    void OnDestroy(){
+        RemoveAll();
+        this.data = null;
+        this.lightReference = null;
+        this.serverVFX = null;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -42,6 +49,9 @@ public class VFXLoader : MonoBehaviour
 
     // Unregisters a chunk from VFXLoader
     public void RemoveChunk(ChunkPos pos, bool isServer=false){
+        if(this.data == null)
+            return;
+
         // Destroy all VFX once chunk is unloaded
         if(isServer){
             serverVFX.Remove(pos);
@@ -51,8 +61,23 @@ public class VFXLoader : MonoBehaviour
                 Destroy(this.data[pos][key]);
 
         	data.Remove(pos);
+            lightReference[pos] = null;
             lightReference.Remove(pos);
         }
+    }
+
+    // Removes all data from VFXLoader
+    private void RemoveAll(){
+        if(this.data == null)
+            return;
+
+        List<ChunkPos> removeChunks = new List<ChunkPos>();
+
+        foreach(ChunkPos pos in this.data.Keys)
+            removeChunks.Add(pos);
+
+        foreach(ChunkPos pos in removeChunks)
+            RemoveChunk(pos);
     }
 
     // Adds GameObject to Chunk Dict and sets it to active

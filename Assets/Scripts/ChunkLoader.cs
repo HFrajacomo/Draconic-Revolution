@@ -82,18 +82,41 @@ public class ChunkLoader : MonoBehaviour
     }
 
     void OnApplicationQuit(){
-        NetMessage message = new NetMessage(NetCode.DISCONNECT);
-        this.client.Send(message.GetMessage(), message.size);
-        Resources.UnloadUnusedAssets();
+        Cleanup();
     }
 
-    void OnDisable(){
-        this.biomeHandler.Clear();
+    void OnDestroy(){
+        Cleanup();
+    }
+
+    public void Cleanup(){
         NetMessage message = new NetMessage(NetCode.DISCONNECT);
         this.client.Send(message.GetMessage(), message.size);
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        this.biomeHandler.Clear();
+        this.biomeHandler = null;
+        this.structHandler = null;
+        this.mainControllerManager = null;
+        this.volume = null;
+        this.rend = null;
+        this.playerEvents = null;
+        this.time = null;
+        this.blockBook = null;
+        this.client = null;
+        ClearAllChunks();
+
+        foreach (GameObject o in Object.FindObjectsOfType<GameObject>()){
+            if(o.name == "ChunkLoader")
+                continue;
+            Destroy(o);
+        }
+
         Resources.UnloadUnusedAssets();
+        System.GC.Collect();
+        Destroy(this);
     }
 
     void Update(){
@@ -134,7 +157,7 @@ public class ChunkLoader : MonoBehaviour
 
         else{
             // If current chunk is drawn and world is generated
-        	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ) && toLoad.Count == 0){
+        	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ) && toLoad.Count == 0){ //Debug
                 HandleClientCommunication();
         		WORLD_GENERATED = true;
 
@@ -216,7 +239,7 @@ public class ChunkLoader : MonoBehaviour
     // Erases loaded chunks dictionary
     private void ClearAllChunks(){
     	foreach(ChunkPos item in chunks.Keys){
-    		Destroy(chunks[item].obj);
+    		chunks[item].Destroy();
             vfx.RemoveChunk(item);
             Resources.UnloadUnusedAssets();
     	}
@@ -297,7 +320,7 @@ public class ChunkLoader : MonoBehaviour
 
                 // Prevention
                 if(this.chunks.ContainsKey(cp)){
-                    Destroy(this.chunks[cp].obj);
+                    this.chunks[cp].Destroy();
                     this.chunks.Remove(cp);
                 }
 
@@ -350,7 +373,7 @@ public class ChunkLoader : MonoBehaviour
             }
             
             Chunk popChunk = chunks[toUnload[0]];
-            Destroy(popChunk.obj);
+            popChunk.Destroy();
             chunks.Remove(popChunk.pos);
             vfx.RemoveChunk(popChunk.pos);
 
@@ -385,8 +408,14 @@ public class ChunkLoader : MonoBehaviour
             toDraw.RemoveAt(0);
         }
 
+        int redrawMaxRecursion = 5;
+        int redrawAttempt = 0;
+
         // toREDRAW
         for(int i=0; i < 2; i++){
+            if(redrawAttempt >= redrawMaxRecursion)
+                return;
+
             if(toRedraw.Count > 0){
                 if(toDraw.Contains(toRedraw[0])){
                     toRedraw.Add(toRedraw[0]);
@@ -399,6 +428,8 @@ public class ChunkLoader : MonoBehaviour
                         // If hasn't been drawn entirely, put on Redraw again
                         if(!chunks[toRedraw[0]].BuildSideBorder(loadBUD:true)){
                             toRedraw.Add(toRedraw[0]);
+                            redrawAttempt++;
+                            i--;
                         }
                         else{
                             if(this.WORLD_GENERATED)

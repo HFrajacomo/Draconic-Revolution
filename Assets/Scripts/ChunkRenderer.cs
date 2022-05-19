@@ -7,4 +7,9 @@ public class ChunkRenderer : MonoBehaviour
 {
 	public MeshRenderer rend;
 	public MeshFilter filter;
+
+	void OnDestroy(){
+		this.rend = null;
+		this.filter = null;
+	}
 }

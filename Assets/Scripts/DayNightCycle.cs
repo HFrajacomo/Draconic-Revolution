@@ -62,6 +62,20 @@ public class DayNightCycle : MonoBehaviour
     public int updateTimer = 10;
     private int timerFrameSize = 10;
 
+    void OnDestroy(){
+        GameObject.Destroy(this.lightObject);
+        this.lightObject = null;
+        this.skyDirectionalLight = null;
+        this.hdLight = null;
+        this.timer = null;
+        this.dayFlare = null;
+        this.nightFlare = null;
+        this.volume = null;
+        this.pbsky = null;
+        this.clouds = null;
+        this.whiteBalance = null;
+    }
+
     void Start(){
         this.volume.TryGet<PhysicallyBasedSky>(out this.pbsky);
         this.volume.TryGet<CloudLayer>(out this.clouds);

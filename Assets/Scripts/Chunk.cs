@@ -27,6 +27,10 @@ public class Chunk
 
 	// Draw Flags
 	public bool drawMain = false;
+	public bool xpDraw = false;
+	public bool zpDraw = false;
+	public bool xmDraw = false;
+	public bool zmDraw = false;
 
 	// Unity Settings
 	public ChunkRenderer renderer;
@@ -91,6 +95,8 @@ public class Chunk
 		this.obj.layer = 8;
 
 		this.mesh = new Mesh();
+		this.meshFilter.mesh = this.mesh;
+		this.meshCollider.sharedMesh = this.mesh;
 	}
 
 	// Dummy Chunk Generation
@@ -117,6 +123,19 @@ public class Chunk
 		c.metadata = new VoxelMetadata(this.metadata);
 
 		return c;
+	}
+
+	public void Destroy(){
+		GameObject.Destroy(this.obj);
+		this.obj = null;
+		this.meshFilter = null;
+		this.meshCollider = null; 
+		this.loader = null;
+		this.blockBook = null;
+		this.data = null;
+		this.metadata = null;
+		this.ClearMesh();
+		this.mesh = null;
 	}
 	
 	// Returns the chunk's header in byte array format
@@ -148,10 +167,51 @@ public class Chunk
 		this.metadata = vm;
 	}
 
+	private void ClearMesh(){
+		this.mesh.Clear();
+	}
+
+	// Checks if a Chunk can be redrawn
+    private bool CheckRedraw(){
+        ChunkPos position;
+
+        position = new ChunkPos(pos.x-1, pos.z);
+
+        if(!xmDraw && loader.chunks.ContainsKey(position))
+            return true;
+            
+        position = new ChunkPos(pos.x+1, pos.z);
+
+        if(!xpDraw && loader.chunks.ContainsKey(position))
+            return true;
+
+        position = new ChunkPos(pos.x, pos.z-1);
+
+        if(!zmDraw && loader.chunks.ContainsKey(position))
+            return true;
+
+        position = new ChunkPos(pos.x, pos.z+1);
+
+        if(!zpDraw && loader.chunks.ContainsKey(position))
+            return true;
+
+        return false;
+    }
+
 	// Draws Chunk Borders. Returns true if all borders have been drawn, otherwise, return false.
 	public bool BuildSideBorder(bool reload=false, bool loadBUD=false){
 		bool changed = false; // Flag is set if any change has been made that requires a redraw
 		bool doneRendering = true;
+
+		if(reload){
+			xmDraw = false;
+			zmDraw = false;
+			xpDraw = false;
+			zpDraw = false;
+		}
+
+		if(!CheckRedraw())
+			return false;
 
 		int3[] coordArray;
 		int3[] budArray;
@@ -227,6 +287,7 @@ public class Chunk
 		// X- Analysis
 		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z); 
 		if(loader.chunks.ContainsKey(targetChunk)){
+			xmDraw = true;
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -297,6 +358,7 @@ public class Chunk
 		// X+ Analysis
 		targetChunk = new ChunkPos(this.pos.x+1, this.pos.z); 
 		if(loader.chunks.ContainsKey(targetChunk)){
+			xpDraw = true;
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -367,6 +429,7 @@ public class Chunk
 		// Z- Analysis
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1); 
 		if(loader.chunks.ContainsKey(targetChunk)){
+			zmDraw = true;
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -435,6 +498,7 @@ public class Chunk
 		// Z+ Analysis
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1); 
 		if(loader.chunks.ContainsKey(targetChunk)){
+			zpDraw = true;
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
@@ -815,57 +879,57 @@ public class Chunk
 
     // Builds meshes from verts, UVs and tris from different layers
     private void BuildMesh(){
-    	mesh.Clear();
+    	this.meshCollider.sharedMesh.Clear();
+    	this.meshFilter.mesh.Clear();
 
     	if(this.vertices.Count >= ushort.MaxValue){
-    		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+    		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	mesh.subMeshCount = 5;
+    	this.meshFilter.mesh.subMeshCount = 5;
 
-    	mesh.SetVertices(this.vertices.ToArray());
-    	mesh.SetTriangles(triangles, 0);
+    	this.meshFilter.mesh.SetVertices(this.vertices.ToArray());
+    	this.meshFilter.mesh.SetTriangles(triangles, 0);
 
-    	this.meshCollider.sharedMesh = mesh;
+    	this.meshCollider.sharedMesh = null;
+    	this.meshCollider.sharedMesh = this.meshFilter.mesh;
 
-    	mesh.SetTriangles(this.specularTris, 1);
-    	mesh.SetTriangles(this.liquidTris, 2);
-    	mesh.SetTriangles(this.assetTris, 3);
- 	    mesh.SetTriangles(this.leavesTris, 4);
+    	this.meshFilter.mesh.SetTriangles(this.specularTris, 1);
+    	this.meshFilter.mesh.SetTriangles(this.liquidTris, 2);
+    	this.meshFilter.mesh.SetTriangles(this.assetTris, 3);
+ 	    this.meshFilter.mesh.SetTriangles(this.leavesTris, 4);
 
-    	mesh.SetUVs(0, this.UVs.ToArray());
-    	mesh.SetUVs(3, this.lightUVMain.ToArray());
+    	this.meshFilter.mesh.SetUVs(0, this.UVs.ToArray());
+    	this.meshFilter.mesh.SetUVs(3, this.lightUVMain.ToArray());
 
-    	mesh.SetNormals(this.normals.ToArray());
-
-    	this.meshFilter.mesh = mesh;
+    	this.meshFilter.mesh.SetNormals(this.normals.ToArray());
     }
 
     // Builds meshes from verts, UVs and tris from different layers
     private void BuildMeshSide(Vector3[] verts, Vector2[] UV, Vector2[] lightUV, Vector3[] normals){
-    	mesh.Clear();
+    	this.meshCollider.sharedMesh.Clear();
+    	this.meshFilter.mesh.Clear();
 
     	if(verts.Length >= ushort.MaxValue){
-    		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+    		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	mesh.subMeshCount = 5;
+    	this.meshFilter.mesh.subMeshCount = 5;
 
-    	mesh.vertices = verts;
-    	mesh.SetTriangles(triangles, 0);
+    	this.meshFilter.mesh.vertices = verts;
+    	this.meshFilter.mesh.SetTriangles(triangles, 0);
 
-    	this.meshCollider.sharedMesh = mesh;
+    	this.meshCollider.sharedMesh = null;
+    	this.meshCollider.sharedMesh = this.meshFilter.mesh;;
 
-    	mesh.SetTriangles(this.specularTris, 1);
-    	mesh.SetTriangles(this.liquidTris, 2);
-    	mesh.SetTriangles(this.assetTris, 3);
-    	mesh.SetTriangles(this.leavesTris, 4);
+    	this.meshFilter.mesh.SetTriangles(this.specularTris, 1);
+    	this.meshFilter.mesh.SetTriangles(this.liquidTris, 2);
+    	this.meshFilter.mesh.SetTriangles(this.assetTris, 3);
+    	this.meshFilter.mesh.SetTriangles(this.leavesTris, 4);
 
-    	mesh.uv = UV;
-    	mesh.uv4 = lightUV;
-    	mesh.SetNormals(normals);
-
-    	this.meshFilter.mesh = mesh;
+    	this.meshFilter.mesh.uv = UV;
+    	this.meshFilter.mesh.uv4 = lightUV;
+    	this.meshFilter.mesh.SetNormals(normals);
     }
 }
 

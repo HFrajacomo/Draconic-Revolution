@@ -9,6 +9,12 @@ public class StructureHandler : MonoBehaviour
 	private List<byte> loadedBiomes = new List<byte>();
 	public byte maxBiomesActive = 4;
 
+	void OnDestroy(){
+		this.loadQueue = null;
+		this.structs = null;
+		this.loadedBiomes = null;
+	}
+
     // Update is called once per frame
     void Update()
     {
