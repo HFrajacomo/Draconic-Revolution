@@ -15,6 +15,8 @@ public static class World
     public static string IP;
     public static ulong accountID;
 
+    public static bool isInGame = false;
+
     private static Random rng;
 
 
@@ -87,4 +89,12 @@ public static class World
     public static int NextRandom(int min, int max){
         return rng.Next(min, max);
     }
+
+    public static void SetGameSceneFlag(bool b){
+        World.isInGame = b;
+    }
+
+    public static bool GetSceneFlag(){
+        return World.isInGame;
+    } 
 }

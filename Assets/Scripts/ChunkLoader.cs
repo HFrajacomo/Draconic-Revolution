@@ -79,19 +79,14 @@ public class ChunkLoader : MonoBehaviour
         this.player.position = new Vector3(0,0,0);
         this.testAccountID = World.accountID;
         this.time.SetClient(this.client);
+        World.SetGameSceneFlag(true);
     }
 
-    void OnApplicationQuit(){
-        Cleanup();
-    }
-
-    void OnDestroy(){
-        Cleanup();
-    }
-
-    public void Cleanup(){
-        NetMessage message = new NetMessage(NetCode.DISCONNECT);
-        this.client.Send(message.GetMessage(), message.size);
+    public void Cleanup(bool comesFromClient=false){
+        if(!comesFromClient){
+            NetMessage message = new NetMessage(NetCode.DISCONNECT);
+            this.client.Send(message.GetMessage(), message.size);
+        }
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -108,14 +103,14 @@ public class ChunkLoader : MonoBehaviour
         this.client = null;
         ClearAllChunks();
 
+        /*
         foreach (GameObject o in Object.FindObjectsOfType<GameObject>()){
             if(o.name == "ChunkLoader")
                 continue;
             Destroy(o);
         }
+        */
 
-        Resources.UnloadUnusedAssets();
-        System.GC.Collect();
         Destroy(this);
     }
 
@@ -241,8 +236,8 @@ public class ChunkLoader : MonoBehaviour
     	foreach(ChunkPos item in chunks.Keys){
     		chunks[item].Destroy();
             vfx.RemoveChunk(item);
-            Resources.UnloadUnusedAssets();
     	}
+
         chunks.Clear();
     }
 

@@ -104,7 +104,8 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnDebugKey(){
-        SceneManager.LoadScene("Menu");
+        this.cl.Cleanup();
+        SceneManager.LoadScene("Blank");
     }
 
     public void OnDebugKey2(){

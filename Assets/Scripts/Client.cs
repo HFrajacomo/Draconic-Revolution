@@ -340,7 +340,8 @@ public class Client
 		Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        SceneManager.LoadScene("Menu");
+        this.cl.Cleanup(comesFromClient:true);
+        SceneManager.LoadScene("Blank");
 	}
 
 	// Receives a Direct Block Update from server

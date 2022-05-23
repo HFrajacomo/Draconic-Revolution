@@ -38,9 +38,10 @@ public class MainMenu : MonoBehaviour
 	}
 
 	public void Start(){
-		Resources.UnloadUnusedAssets();
 		System.GC.Collect();
+		Resources.UnloadUnusedAssets();
 		EnvironmentVariablesCentral.Start();
+		World.SetGameSceneFlag(false);
 		OpenMainMenu();
 	}
 

@@ -7,6 +7,7 @@ using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 public class Chunk
 {
@@ -128,13 +129,15 @@ public class Chunk
 	public void Destroy(){
 		GameObject.Destroy(this.obj);
 		this.obj = null;
+		Object.Destroy(this.mesh);
+		Object.Destroy(this.meshFilter);
+		Object.Destroy(this.meshCollider);
 		this.meshFilter = null;
 		this.meshCollider = null; 
 		this.loader = null;
 		this.blockBook = null;
 		this.data = null;
 		this.metadata = null;
-		this.ClearMesh();
 		this.mesh = null;
 	}
 	
