@@ -144,7 +144,7 @@ public class ChunkLoader : MonoBehaviour
 
         else{
             // If current chunk is drawn and world is generated
-        	if(!WORLD_GENERATED){// && CheckChunkDrawn(this.playerX, this.playerZ) && toLoad.Count == 0){ //Debug
+        	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ) && toLoad.Count == 0){
                 HandleClientCommunication();
         		WORLD_GENERATED = true;
 
@@ -197,7 +197,7 @@ public class ChunkLoader : MonoBehaviour
 
         // Fix Unloaded Chunks
         if(this.timer % 2400 == 0){
-            //FixUnloaded(); //Debug
+            FixUnloaded();
         }
     }
 

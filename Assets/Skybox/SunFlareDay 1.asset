@@ -596,25 +596,34 @@ MonoBehaviour:
     positionVariation: {x: 0, y: 0}
     scaleVariation: 0.27
     rotationVariation: 0
-    enableRadialDistortion: 0
-    targetSizeDistortion: {x: 1, y: 1}
+    enableRadialDistortion: 1
+    targetSizeDistortion: {x: 5, y: 5}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 1
-        outSlope: 1
+        inSlope: 0.06367924
+        outSlope: 0.06367924
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
-        outWeight: 0
+        outWeight: 0.6040409
+      - serializedVersion: 3
+        time: 0.54767334
+        value: 0.17487359
+        inSlope: 0.7718889
+        outSlope: 0.7718889
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.35065603
+        outWeight: 0.3367625
       - serializedVersion: 3
         time: 1
         value: 1
         inSlope: 1
-        outSlope: -1
+        outSlope: 1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -622,7 +631,7 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    distortionRelativeToCenter: 0
+    distortionRelativeToCenter: 1
     m_FallOff: 0.3
     m_EdgeOffset: 1
     m_SideCount: 6
