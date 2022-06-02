@@ -66,6 +66,7 @@ public class ChunkLoader : MonoBehaviour
     // Cache Data
     private ChunkPos cachePos = new ChunkPos(0,0);
     private Chunk cacheChunk;
+    private NetMessage message;
 
     private ulong testAccountID = 1;
 
@@ -84,8 +85,8 @@ public class ChunkLoader : MonoBehaviour
 
     public void Cleanup(bool comesFromClient=false){
         if(!comesFromClient){
-            NetMessage message = new NetMessage(NetCode.DISCONNECT);
-            this.client.Send(message.GetMessage(), message.size);
+            this.message = new NetMessage(NetCode.DISCONNECT);
+            this.client.Send(this.message.GetMessage(), this.message.size);
         }
 
         Cursor.lockState = CursorLockMode.None;
@@ -102,29 +103,20 @@ public class ChunkLoader : MonoBehaviour
         this.blockBook = null;
         this.client = null;
         ClearAllChunks();
-
-        /*
-        foreach (GameObject o in Object.FindObjectsOfType<GameObject>()){
-            if(o.name == "ChunkLoader")
-                continue;
-            Destroy(o);
-        }
-        */
-
         Destroy(this);
     }
 
     void Update(){
         // If hasn't connected to the server yet
         if(this.CONNECTEDTOSERVER && !this.SENTINFOTOSERVER){
-            NetMessage playerInformation = new NetMessage(NetCode.SENDCLIENTINFO);
+            this.message = new NetMessage(NetCode.SENDCLIENTINFO);
             if(World.isClient)
-                playerInformation.SendClientInfo(this.testAccountID, World.renderDistance, World.worldSeed, World.worldName);
+                this.message.SendClientInfo(this.testAccountID, World.renderDistance, World.worldSeed, World.worldName);
             else
-                playerInformation.SendClientInfo(this.testAccountID, World.renderDistance, 0, "a");
+                this.message.SendClientInfo(this.testAccountID, World.renderDistance, 0, "a");
 
             this.renderDistance = World.renderDistance;
-            this.client.Send(playerInformation.GetMessage(), playerInformation.size);
+            this.client.Send(this.message.GetMessage(), this.message.size);
             this.SENTINFOTOSERVER = true;
         }
         else if(!this.CONNECTEDTOSERVER){
@@ -144,7 +136,7 @@ public class ChunkLoader : MonoBehaviour
 
             this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
 
-            newChunk = new ChunkPos((int)(playerX/Chunk.chunkWidth), (int)(playerZ/Chunk.chunkWidth));
+            this.cachePos = new ChunkPos((int)(playerX/Chunk.chunkWidth), (int)(playerZ/Chunk.chunkWidth));
             GetChunks(true);  
             this.REQUESTEDCHUNKS = true;
             HandleClientCommunication();
@@ -152,7 +144,7 @@ public class ChunkLoader : MonoBehaviour
 
         else{
             // If current chunk is drawn and world is generated
-        	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ) && toLoad.Count == 0){ //Debug
+        	if(!WORLD_GENERATED){// && CheckChunkDrawn(this.playerX, this.playerZ) && toLoad.Count == 0){ //Debug
                 HandleClientCommunication();
         		WORLD_GENERATED = true;
 
@@ -194,8 +186,8 @@ public class ChunkLoader : MonoBehaviour
         // Heartbeat
         if(this.timer % 30 == 0){
             this.client.CheckTimeout();
-            NetMessage heartbeat = new NetMessage(NetCode.HEARTBEAT);
-            this.client.Send(heartbeat.GetMessage(), heartbeat.size);
+            this.message = new NetMessage(NetCode.HEARTBEAT);
+            this.client.Send(this.message.GetMessage(), this.message.size);
         }
 
         // Garbage Collect Unity Assets
@@ -205,7 +197,7 @@ public class ChunkLoader : MonoBehaviour
 
         // Fix Unloaded Chunks
         if(this.timer % 2400 == 0){
-            FixUnloaded();
+            //FixUnloaded(); //Debug
         }
     }
 
@@ -243,10 +235,10 @@ public class ChunkLoader : MonoBehaviour
 
     // Check if the chunkpos in a given (x,z) position is loaded and drawn
     private bool CheckChunkDrawn(float x, float z){
-        ChunkPos pos = new ChunkPos(Mathf.FloorToInt((x+0.5f)/Chunk.chunkWidth), Mathf.FloorToInt((z+0.5f)/Chunk.chunkWidth));
+        this.cachePos = new ChunkPos(Mathf.FloorToInt((x+0.5f)/Chunk.chunkWidth), Mathf.FloorToInt((z+0.5f)/Chunk.chunkWidth));
     
-        if(this.chunks.ContainsKey(pos)){
-            return this.chunks[pos].drawMain;
+        if(this.chunks.ContainsKey(this.cachePos)){
+            return this.chunks[this.cachePos].drawMain;
         }
         return false;
     }
@@ -287,9 +279,9 @@ public class ChunkLoader : MonoBehaviour
             }
 
            // Asks server to hand over chunk info
-            NetMessage message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
-            message.RequestChunkLoad(toRequest[0]);
-            this.client.Send(message.GetMessage(), message.size);
+            this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
+            this.message.RequestChunkLoad(toRequest[0]);
+            this.client.Send(this.message.GetMessage(), this.message.size);
 
     		toRequest.RemoveAt(0);
     	}
@@ -372,9 +364,9 @@ public class ChunkLoader : MonoBehaviour
             chunks.Remove(popChunk.pos);
             vfx.RemoveChunk(popChunk.pos);
 
-            NetMessage message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
-            message.RequestChunkUnload(toUnload[0]);
-            this.client.Send(message.GetMessage(), message.size);
+            this.message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
+            this.message.RequestChunkUnload(toUnload[0]);
+            this.client.Send(this.message.GetMessage(), this.message.size);
 
             toUnload.RemoveAt(0);
         }
@@ -774,15 +766,15 @@ public class ChunkLoader : MonoBehaviour
     // Re-acquires every chunk that is possibly not loaded and adds all chunks that need redraw (except borders) to redraw list
     private void FixUnloaded(){
         ChunkPos newChunk;
-        NetMessage message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
+        this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
 
         for(int x=-World.renderDistance; x < World.renderDistance; x++){
             for(int z=-World.renderDistance; z < World.renderDistance; z++){
                 newChunk = new ChunkPos(this.currentChunk.x+x, this.currentChunk.z+z);
 
                 if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk)){
-                    message.RequestChunkLoad(newChunk);
-                    client.Send(message.GetMessage(), message.size);
+                    this.message.RequestChunkLoad(newChunk);
+                    client.Send(this.message.GetMessage(), this.message.size);
                     continue;
                 }
 

@@ -40,6 +40,13 @@ public class VoxelData
 		CalculateHeightMap();
 	}
 
+	public void Destroy(){
+		this.data = null;
+		this.heightMap = null;
+		this.shadowMap = null;
+		this.lightMap = null;
+	}
+
 	/*
 	ComputeShader Accelerated Function
 	*/

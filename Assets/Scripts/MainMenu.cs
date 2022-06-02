@@ -15,6 +15,8 @@ public class MainMenu : MonoBehaviour
 {
 
 	// Unity Reference
+	public GameObject skybox;
+
 	public GameObject mainMenu;
 	public GameObject singleplayerMenu;
 	public GameObject multiplayerMenu;
@@ -29,6 +31,9 @@ public class MainMenu : MonoBehaviour
 	public Text multi_accountField;
 	public TextMeshProUGUI fullbrightText;
 
+	// Flags
+	private static bool firstLoad = true;
+
 	// Color Constants
 	private Color GREEN = new Color(0.3f, 0.9f, 0.2f);
 	private Color RED = new Color(0.3f, 0.0f, 0.0f);
@@ -38,11 +43,22 @@ public class MainMenu : MonoBehaviour
 	}
 
 	public void Start(){
-		System.GC.Collect();
-		Resources.UnloadUnusedAssets();
+		if(MainMenu.firstLoad)
+			GameObject.DontDestroyOnLoad(this.skybox);
+		else
+			UnloadMemory();
+
 		EnvironmentVariablesCentral.Start();
 		World.SetGameSceneFlag(false);
+
+		MainMenu.firstLoad = false;
+
 		OpenMainMenu();
+	}
+
+	public void UnloadMemory(){
+		System.GC.Collect();
+		Resources.UnloadUnusedAssets();		
 	}
 
 	public void StartGameSingleplayer(){

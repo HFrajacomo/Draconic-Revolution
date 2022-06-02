@@ -38,18 +38,6 @@ public static class NativeTools
         UnsafeUtility.MemCpy(inputBuffer, outBuffer, byteSize);
         return outputArray;
     }
-    public static unsafe NativeList<T> CopyToNative<T>(List<T> list) where T: struct{
-        int size = list.Count;
-        int byteSize = size * UnsafeUtility.SizeOf<T>();
-
-        NativeList<T> outputList = new NativeList<T>(0, Allocator.TempJob);
-    
-        void* inputBuffer = outputList.GetUnsafePtr();
-        void* outBuffer = UnsafeUtility.AddressOf(ref outputList);
-
-        UnsafeUtility.MemCpy(inputBuffer, outBuffer, byteSize);
-        return outputList;
-    }
     public static unsafe NativeArray<T> Copy<T>(NativeArray<T> array) where T: struct{
         int size = array.Length;
         int byteSize = size* UnsafeUtility.SizeOf<T>();

@@ -41,6 +41,11 @@ public class VoxelMetadata
 		this.state = state;
 	}
 
+	public void Destroy(){
+		this.hp = null;
+		this.state = null;
+	}
+
 	// Returns hp of a given voxel coordinate
 	public ushort GetHP(int x, int y, int z){
 		return this.hp[x*zSize*ySize+y*zSize+z];

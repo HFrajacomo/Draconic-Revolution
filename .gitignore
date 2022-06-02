@@ -10,6 +10,7 @@ Library/*
 Build/*
 Builds/*
 Assets/AssetStoreTools*
+MemoryCaptures/*
 
 # Auto Generated #
 ExportedObj/

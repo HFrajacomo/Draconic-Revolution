@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.010684816, g: 0.015220813, b: 0.016066432, a: 1}
+  m_IndirectSpecularColor: {r: 0.010603009, g: 0.015100485, b: 0.016066432, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2147,6 +2147,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aea1f2184ff6b24fb72bf1a18d8235f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  skybox: {fileID: 2012244600}
   mainMenu: {fileID: 1287091074}
   singleplayerMenu: {fileID: 1350346720}
   multiplayerMenu: {fileID: 2141315212}

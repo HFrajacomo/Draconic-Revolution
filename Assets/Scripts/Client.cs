@@ -49,6 +49,9 @@ public class Client
 	// Windows External Process
 	public Process lanServerProcess;
 
+	// Const values
+	private static int maxBufferSize = 327680;
+
 	// Const Strings
 	private string serverFile = "Server.exe";
 	private string invisLauncher = "invisLaunchHelper.bat";
@@ -128,7 +131,7 @@ public class Client
 	// Triggers hazard protection and sends user back to menu screen
 	public void Panic(){
 		Debug.Log("Panic");
-        SceneManager.LoadScene("Menu");
+        SceneManager.LoadScene("Blank");
 	}
 
 	public void SetRaycast(PlayerRaycast raycast){
@@ -176,6 +179,13 @@ public class Client
 			// If has received a length Packet
 			if(this.lengthPacket){
 				int size = NetDecoder.ReadInt(receiveBuffer, 0);
+
+				// Ignores packets that are way too big
+				if(size > Client.maxBufferSize){
+					this.socket.BeginReceive(receiveBuffer, 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
+					return;
+				}
+
 				this.dataBuffer = new byte[size];
 				this.packetSize = size;
 				this.packetIndex = 0;

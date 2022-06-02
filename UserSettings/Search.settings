@@ -17,6 +17,9 @@ scopes = {
 	"m_DetailsPanelSplitter.785D90A9" = "700"
 	"currentGroup.785D90A9" = "all"
 	"OpenInspectorPreview.785D90A9" = "0"
+	"last_search.665D90A9" = "Large02 t:Texture2D"
+	"OpenInspectorPreview.665D90A9" = "0"
+	"currentGroup.665D90A9" = "all"
 }
 providers = {
 	asset = {

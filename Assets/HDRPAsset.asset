@@ -53,7 +53,7 @@ MonoBehaviour:
     supportRayTracing: 0
     supportedRayTracingMode: 3
     lightLoopSettings:
-      cookieAtlasSize: 4096
+      cookieAtlasSize: 256
       cookieFormat: 74
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 1

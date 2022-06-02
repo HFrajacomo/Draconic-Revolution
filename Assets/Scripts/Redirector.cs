@@ -11,10 +11,12 @@ public class Redirector : MonoBehaviour
         System.GC.Collect();
         Resources.UnloadUnusedAssets();
 
-        if(World.GetSceneFlag())
+        if(World.GetSceneFlag()){
             SceneManager.LoadScene("Menu");
-        else
+        }
+        else{
             SceneManager.LoadScene("Game");
+        }
     }
 
 }

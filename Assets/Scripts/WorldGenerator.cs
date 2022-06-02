@@ -9,7 +9,6 @@ using Unity.Burst;
 using Random = System.Random;
 using System.IO;
 using System.Text;
-using System.Windows.Forms.DataVisualization.Charting;
 
 
 public class WorldGenerator
@@ -296,7 +295,6 @@ public class WorldGenerator
 
     // Generates a Chunk
     public void GenerateChunk(ChunkPos pos, bool isPregen=false){
-        //NativeArray<ushort> voxelData = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
         NativeArray<ushort> voxelData = NativeTools.CopyToNative(cacheVoxdata);
         NativeArray<ushort> stateData = NativeTools.CopyToNative(cacheMetadataState);
         NativeArray<ushort> hpData = NativeTools.CopyToNative(cacheMetadataHP);
