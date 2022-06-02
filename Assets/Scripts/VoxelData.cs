@@ -532,7 +532,7 @@ public struct CalculateShadowMapJob : IJob{
 /*
 Takes the ShadowMap and turns it into a progressive lightmap
 */
-[BurstCompile]
+//[BurstCompile]
 public struct CalculateLightMapJob : IJob{
 	public NativeArray<byte> lightMap;
 	public NativeArray<byte> shadowMap;
@@ -677,6 +677,11 @@ public struct CalculateLightMapJob : IJob{
 			}
 
 			ScanDirectionals(current, (byte)(lightMap[index] >> 4), false, (byte)(shadowMap[index] >> 4));
+			/*
+			if((byte)(lightMap[index] >> 4) <= 5){
+				Debug.Log((byte)(lightMap[index] >> 4));
+			}
+			*/
 
 			visited.Add(current);
 			bfsq.RemoveAt(0);				
