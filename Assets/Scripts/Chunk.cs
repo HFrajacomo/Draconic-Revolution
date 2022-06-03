@@ -8,7 +8,7 @@ using Unity.Burst;
 using Unity.Collections;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
-//using Unity.Collections.NotBurstCompatible;
+using Unity.Collections.NotBurstCompatible;
 
 public class Chunk
 {
@@ -748,13 +748,13 @@ public class Chunk
 		NativeList<Vector3> meshNormals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<int> meshTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<ushort> blockCodes = new NativeList<ushort>(0, Allocator.TempJob);
-		blockCodes.CopyFrom(this.cacheCodes.ToArray());
+		blockCodes.CopyFromNBC(this.cacheCodes.ToArray());
 		NativeList<int> vertsOffset = new NativeList<int>(0, Allocator.TempJob);
-		vertsOffset.CopyFrom(this.indexVert.ToArray());
+		vertsOffset.CopyFromNBC(this.indexVert.ToArray());
 		NativeList<int> trisOffset = new NativeList<int>(0, Allocator.TempJob);
-		trisOffset.CopyFrom(this.indexTris.ToArray());
+		trisOffset.CopyFromNBC(this.indexTris.ToArray());
 		NativeList<int> UVOffset = new NativeList<int>(0, Allocator.TempJob);
-		UVOffset.CopyFrom(this.indexUV.ToArray());
+		UVOffset.CopyFromNBC(this.indexUV.ToArray());
 		NativeArray<Vector3> loadedVerts = new NativeArray<Vector3>(this.cacheVertsv3.ToArray(), Allocator.TempJob);
 		NativeArray<Vector2> loadedUV = new NativeArray<Vector2>(this.cacheUVv2.ToArray(), Allocator.TempJob);
 		NativeArray<Vector3> loadedNormals = new NativeArray<Vector3>(this.cacheNormals.ToArray(), Allocator.TempJob);

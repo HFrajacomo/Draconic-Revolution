@@ -532,7 +532,7 @@ public struct CalculateShadowMapJob : IJob{
 /*
 Takes the ShadowMap and turns it into a progressive lightmap
 */
-//[BurstCompile]
+[BurstCompile]
 public struct CalculateLightMapJob : IJob{
 	public NativeArray<byte> lightMap;
 	public NativeArray<byte> shadowMap;
@@ -554,18 +554,21 @@ public struct CalculateLightMapJob : IJob{
 	public void Execute(){
 		int3 current;
 		int4 currentExtra;
+		int bfsqSize;
 
 		/***************************************
 		Natural Light
 		***************************************/
 		DetectSunlight();
+		bfsqSize = bfsq.Length;	
 		
 		// Iterates through queue
-		while(bfsq.Length > 0){
+		while(bfsqSize > 0){
 			current = bfsq[0];
 
 			if(visited.Contains(current)){
 				bfsq.RemoveAt(0);
+				bfsqSize = bfsq.Length;	
 				continue;
 			}
 
@@ -573,17 +576,19 @@ public struct CalculateLightMapJob : IJob{
 
 			visited.Add(current);
 			bfsq.RemoveAt(0);
+			bfsqSize = bfsq.Length;	
 		}
 
 		DetectDirectionals();
+		bfsqSize = bfsq.Length;	
 
 		// Iterates through queue
-		
-		while(bfsq.Length > 0){
+		while(bfsqSize > 0){
 			current = bfsq[0];
 
 			if(visited.Contains(current)){
 				bfsq.RemoveAt(0);
+				bfsqSize = bfsq.Length;	
 				continue;
 			}
 
@@ -591,6 +596,7 @@ public struct CalculateLightMapJob : IJob{
 
 			visited.Add(current);
 			bfsq.RemoveAt(0);
+			bfsqSize = bfsq.Length;	
 		}
 		
 
@@ -607,12 +613,12 @@ public struct CalculateLightMapJob : IJob{
 		bool initiateExtraLightSearch = false;
 		int lastIndex = lightSources.Length - 1;
 		int index = 0;
-
+		bfsqSize = 0;
 
 		if(lightSources.Length > 0){
-			while(bfsqExtra.Length > 0 || !initiateExtraLightSearch || lastIndex >= 0){
+			while(bfsqSize > 0 || !initiateExtraLightSearch || lastIndex >= 0){
 				initiateExtraLightSearch = true;
-
+ 
 				if(bfsqExtra.Length > 0 && currentLevel == -1){
 					searchedCurrentLevel = true;
 					currentLevel = bfsqExtra[0].w;
@@ -621,8 +627,9 @@ public struct CalculateLightMapJob : IJob{
 					searchedCurrentLevel = false;
 					currentLevel = lightSources[lastIndex].w;
 				}
-				else if(bfsqExtra.Length == 0 && lastIndex == -1)
+				else if(bfsqExtra.Length == 0 && lastIndex == -1){
 					break;
+				}
 
 				if(!searchedCurrentLevel){
 					for(int i=lastIndex; i >= -1; i--){
@@ -651,8 +658,9 @@ public struct CalculateLightMapJob : IJob{
 					}
 				}
 
-				if(bfsqExtra.Length == 0)
+				if(bfsqExtra.Length == 0){
 					continue;
+				}
 
 				currentExtra = bfsqExtra[0];
 				bfsqExtra.RemoveAt(0);
@@ -660,31 +668,33 @@ public struct CalculateLightMapJob : IJob{
 				if(currentExtra.w == currentLevel && lastIndex >= 0)
 					searchedCurrentLevel = false;
 
+				int size = bfsqExtra.Length;
+
 				ScanSurroundings(currentExtra.xyz, (byte)currentExtra.w, false);
-			} 
+
+				bfsqSize = bfsqExtra.Length;
+			}
 		}
 
 		DetectDirectionals(extraLight:true);
+		bfsqSize = bfsq.Length;
 
 		// Fills propagations from outside chunks
-		while(bfsq.Length > 0){
+		while(bfsqSize > 0){
 			current = bfsq[0];
 			index = GetIndex(current);
 
 			if(visited.Contains(current)){
 				bfsq.RemoveAt(0);
+				bfsqSize = bfsq.Length;	
 				continue;
 			}
 
 			ScanDirectionals(current, (byte)(lightMap[index] >> 4), false, (byte)(shadowMap[index] >> 4));
-			/*
-			if((byte)(lightMap[index] >> 4) <= 5){
-				Debug.Log((byte)(lightMap[index] >> 4));
-			}
-			*/
 
 			visited.Add(current);
-			bfsq.RemoveAt(0);				
+			bfsq.RemoveAt(0);	
+			bfsqSize = bfsq.Length;			
 		}
 
 		CheckBorders();
@@ -1296,11 +1306,14 @@ public struct CalculateLightPropagationJob : IJob{
 		int3 current;
 
 		// CURRENT CHUNK LIGHT PROPAG =====================================
-		while(bfsq1.Length > 0){
+		int bfsq1Size = bfsq1.Length;
+
+		while(bfsq1Size > 0){
 			current = bfsq1[0];
 
 			if(visited1.Contains(current)){
 				bfsq1.RemoveAt(0);
+				bfsq1Size = bfsq1.Length;
 				continue;
 			}
 
@@ -1309,17 +1322,20 @@ public struct CalculateLightPropagationJob : IJob{
 
 			visited1.Add(current);
 			bfsq1.RemoveAt(0);
+			bfsq1Size = bfsq1.Length;
 		}
 
 		// NEIGHBOR CHUNK LIGHT PROPAG ====================================
+		int bfsq2Size = bfsq2.Length;
 
-		while(bfsq2.Length > 0){
+		while(bfsq2Size > 0){
 			changed[1] = 1;
 
 			current = bfsq2[0];
 
 			if(visited2.Contains(current)){
 				bfsq2.RemoveAt(0);
+				bfsq2Size = bfsq2.Length;
 				continue;
 			}
 
@@ -1328,14 +1344,18 @@ public struct CalculateLightPropagationJob : IJob{
 
 			visited2.Add(current);
 			bfsq2.RemoveAt(0);
+			bfsq2Size = bfsq2.Length;
 		}
 
 		// CURRENT CHUNK EXTRA LIGHT PROPAG =====================================
-		while(bfsqe1.Length > 0){
+		int bfsqe1Size = bfsqe1.Length;
+
+		while(bfsqe1Size > 0){
 			current = bfsqe1[0];
 
 			if(visitede1.Contains(current)){
 				bfsqe1.RemoveAt(0);
+				bfsqe1Size = bfsqe1.Length;
 				continue;
 			}
 
@@ -1344,15 +1364,19 @@ public struct CalculateLightPropagationJob : IJob{
 
 			visitede1.Add(current);
 			bfsqe1.RemoveAt(0);
+			bfsqe1Size = bfsqe1.Length;
 		}
 
 		// NEIGHBOR CHUNK EXTRA LIGHT PROPAG ====================================
-		while(bfsqe2.Length > 0){
+		int bfsqe2Size = bfsqe2.Length;
+
+		while(bfsqe2Size > 0){
 
 			current = bfsqe2[0];
 
 			if(visitede2.Contains(current)){
 				bfsqe2.RemoveAt(0);
+				bfsqe2Size = bfsqe2.Length;
 				continue;
 			}
 
@@ -1361,6 +1385,7 @@ public struct CalculateLightPropagationJob : IJob{
 
 			visitede2.Add(current);
 			bfsqe2.RemoveAt(0);
+			bfsqe2Size = bfsqe2.Length;
 		}
 	}
 
@@ -1377,17 +1402,21 @@ public struct CalculateLightPropagationJob : IJob{
 		if(currentShadow < 7)
 			return;
 
+
 		if(!extraLight)
 			aux.Add(new int4(pos, (selectedLightMap[index] & 0x0F)+1));
 		else
 			aux.Add(new int4(pos, (selectedLightMap[index] >> 4)+1));
 
-		while(aux.Length > 0){
+		int auxSize = aux.Length;
+
+		while(auxSize > 0){
 			current = aux[0];
 			index = GetIndex(current.xyz);
 
 			if(hashAux.Contains(current)){
 				aux.RemoveAt(0);
+				auxSize = aux.Length;
 				continue;
 			}
 
@@ -1453,6 +1482,7 @@ public struct CalculateLightPropagationJob : IJob{
 			}
 
 			aux.RemoveAt(0);
+			auxSize = aux.Length;
 			firstIteration = false;
 		}
 
