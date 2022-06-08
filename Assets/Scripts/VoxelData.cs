@@ -198,7 +198,8 @@ public class VoxelData
 			isTransparentObj = BlockEncyclopediaECS.objectTransparent,
 			isTransparentBlock = BlockEncyclopediaECS.blockTransparent,
 			blockLuminosity = BlockEncyclopediaECS.blockLuminosity,
-			objectLuminosity = BlockEncyclopediaECS.objectLuminosity
+			objectLuminosity = BlockEncyclopediaECS.objectLuminosity,
+			changed = changed
 		};
 
         job = csmJob.Schedule();
@@ -229,7 +230,6 @@ public class VoxelData
         this.lightMap = NativeTools.CopyToManaged(lightMap);
         this.shadowMap = NativeTools.CopyToManaged(shadowMap);
         this.PROPAGATE_LIGHT_FLAG = changed[0];
-
 
         blockData.Dispose();
 
@@ -439,11 +439,13 @@ public struct CalculateShadowMapJob : IJob{
 	public NativeArray<byte> blockLuminosity;
 	[ReadOnly]
 	public NativeArray<byte> objectLuminosity;
+	public NativeArray<byte> changed;
 
 	public void Execute(){
 		bool isBlock;
 		ushort blockCode;
 		int index;
+		byte border;
 
 		for(int z=0; z < chunkWidth; z++){
 			for(int y=chunkDepth-1; y >= 0; y--){
@@ -475,14 +477,25 @@ public struct CalculateShadowMapJob : IJob{
 						if(isTransparentBlock[blockCode] == 1){
 							if((shadowMap[index] >> 4) >= 7){
 								if((shadowMap[index] & 0x0F) < 7){
+									// Set darken flag
+									border = CheckBorder(x, y, z);
+									if((shadowMap[index] & 0x0F) == 3 && border > 0)
+										changed[0] = (byte)(changed[0] | border);
+
 									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);
 								}
 							}
 							else{
 								if((shadowMap[index] & 0x0F) >= 7)
 									shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | 16);
-								else
+								else{
+									// Set darken flag
+									border = CheckBorder(x, y, z);
+									if((shadowMap[index] & 0x0F) == 3 && border > 0)
+										changed[0] = (byte)(changed[0] | border);
+
 									shadowMap[index] = 17;
+								}
 							}
 						}
 						else
@@ -495,14 +508,25 @@ public struct CalculateShadowMapJob : IJob{
 						if(isTransparentObj[ushort.MaxValue - blockCode] == 1){
 							if((shadowMap[index] >> 4) >= 7){
 								if((shadowMap[index] & 0x0F) < 7){
+									// Set darken flag
+									border = CheckBorder(x, y, z);
+									if((shadowMap[index] & 0x0F) == 3 && border > 0)
+										changed[0] = (byte)(changed[0] | border);
+
 									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);
 								}
 							}
 							else{
 								if((shadowMap[index] & 0x0F) >= 7)
 									shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | 16);
-								else
+								else{
+									// Set darken flag
+									border = CheckBorder(x, y, z);
+									if((shadowMap[index] & 0x0F) == 3 && border > 0)
+										changed[0] = (byte)(changed[0] | border);
+
 									shadowMap[index] = 17;
+								}
 							}
 						}
 						else
@@ -526,6 +550,19 @@ public struct CalculateShadowMapJob : IJob{
 
 	public int GetIndex(int3 c){
 		return c.x*chunkWidth*chunkDepth+c.y*chunkWidth+c.z;
+	}
+
+	public byte CheckBorder(int x, int y, int z){
+		if(x == 0)
+			return 1;
+		else if(x == chunkWidth-1)
+			return 2;
+		else if(z == 0)
+			return 4;
+		else if(z == chunkWidth-1)
+			return 8;
+		else
+			return 0;
 	}
 }
 
@@ -709,14 +746,24 @@ public struct CalculateLightMapJob : IJob{
 				for(int z=0; z < chunkWidth; z++){
 					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 
-					if(x == 0 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2)))
+					if(x == 0 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2) || (changed[0] & 1) == 1))
 						changed[0] = (byte)(changed[0] | 1);
-					else if(x == chunkWidth-1 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2)))
+					else if(x == chunkWidth-1 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2) || (changed[0] & 2) == 2))
 						changed[0] = (byte)(changed[0] | 2);
-					if(z == 0 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2)))
+					if(z == 0 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2) || (changed[0] & 4) == 4))
 						changed[0] = (byte)(changed[0] | 4);
-					else if(z == chunkWidth-1 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2)))
-						changed[0] = (byte)(changed[0] | 8);				
+					else if(z == chunkWidth-1 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2) || (changed[0] & 8) == 8))
+						changed[0] = (byte)(changed[0] | 8);
+
+					if(x == 0 && ((lightMap[index] & 0x0F) == 0 && (shadowMap[index] & 0x0F) == 1))
+						changed[0] = (byte)(changed[0] | 1);
+					else if(x == chunkWidth-1 && ((lightMap[index] & 0x0F) == 0 && (shadowMap[index] & 0x0F) == 1))
+						changed[0] = (byte)(changed[0] | 2);
+					if(z == 0 && ((lightMap[index] & 0x0F) == 0 && (shadowMap[index] & 0x0F) == 1))
+						changed[0] = (byte)(changed[0] | 4);
+					else if(z == chunkWidth-1 && ((lightMap[index] & 0x0F) == 0 && (shadowMap[index] & 0x0F) == 1))
+						changed[0] = (byte)(changed[0] | 8);
+						
 				}
 			}
 		}
@@ -1401,7 +1448,6 @@ public struct CalculateLightPropagationJob : IJob{
 
 		if(currentShadow < 7)
 			return;
-
 
 		if(!extraLight)
 			aux.Add(new int4(pos, (selectedLightMap[index] & 0x0F)+1));

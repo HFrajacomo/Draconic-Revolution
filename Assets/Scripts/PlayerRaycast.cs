@@ -218,7 +218,7 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
-		Debug.Log(loader.chunks[playerBody.GetChunkPos()].data.GetShadow(playerBody.blockX, playerBody.blockY, playerBody.blockZ, isNatural:true));
+		//Debug.Log(loader.chunks[playerBody.GetChunkPos()].data.GetShadow(playerBody.blockX, playerBody.blockY, playerBody.blockZ, isNatural:true));
 
 		if(!current.active)
 			return;
