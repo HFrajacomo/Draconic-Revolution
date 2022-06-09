@@ -452,7 +452,7 @@ public class ChunkLoader : MonoBehaviour
 
                     if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
                         toRedraw.Add(toUpdate[0]);
-                    else{
+                    else{ 
                         if(this.WORLD_GENERATED)
                             this.vfx.UpdateLights(toUpdate[0]);
                     }

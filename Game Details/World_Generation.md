@@ -1,15 +1,18 @@
+
 # World Generation
 
 If you are here, you are probably very curious about Procedural Generation. I don't blame you. This game pretty much started because of my curiosity on this topic. So let's go!
+
+![](../RepoImages/WorldGeneration.png)
 
 ## Procedural vs Random Generation
 There is a very common misconception about what Procedural Generation actually is. As a programmer, it's common to think that using a simple *Random()* function a lot of times will eventually generate you a very good world in which you can play. That is, indeed, true if you have a lot of free time to generate stuff. And this is what we call 'Random Generation'.
 
 Now, for this generation to become *Procedural*, you need to be able to regenerate the same data everytime, given an initial condition. A *seed* is a common term for defining a Key value that serves as a global Randomness controller. You can replicate an entire world if you just happen to know it's seed.
 
-**In short, every world has a seed value**. Currently, the World Generator supports seed numbers from 1 to 1 million.
+**In short, every world has a seed value**!
 
-Now that we have the World Seed, we can start doing actual Procedural Generation. But what are we generating? **We are generating the Heightmaps!** Whenever we use our *Random()* function to generate something, we are generating the height of a certain column of blocks. You can see that it's pretty easy to generate a terribly chaotic terrain with that. A column of blocks can generate at height 0, while the one just by it's side can be at height 99. How do we balance it to generate a smoothly transitioned terrain?
+Now that we have the World Seed, we can start doing actual Procedural Generation. But what are we generating? **We are generating the Heightmaps!** Whenever we use our *Random()* function to generate something, we are generating the height of a certain column of blocks. You can see that it's pretty easy to generate a terribly chaotic terrain with that. A column of blocks can generate at height 0, while the one just by it's side can be at height 255. How do we balance it to generate a smoothly transitioned terrain?
 
 The answer to this question is...
 
@@ -19,20 +22,68 @@ The answer to this question is...
 
 This right here is the visual representation of a 2-dimensional Perlin Noise function. Pretty neat, right? But what does it do?
 
-Perlin Noise is a considerably fast and smooth noise function very suitable to the task of generating heightmaps. Imagine that we are sampling a pixel in that image everytime we call our custom *Random()* function. If the pixel we picked is darker, it's value is closer to height 0. If it's brighter, then it's closer to height 99. All we have to do now, is to use the Chunk coordinates and World Seed in our custom *Random()* function to offset the Perlin Noise just enough to get an interesting heightmap curve.
+Perlin Noise is a considerably fast and smooth noise function, very suitable to the task of generating heightmaps. Imagine that we are sampling a pixel in that image everytime we call our custom *Random()* function. If the pixel we picked is darker, it's value is closer to height 0. If it's brighter, then it's closer to height 255. All we have to do now, is to use the Chunk coordinates and World Seed in our custom *Random()* function to offset the Perlin Noise just enough to get an interesting heightmap curve.
 
-Normally, the terrain will be hilly and somewhat smooth, but we can still do more! We can generate a new layer of Perlin Noise (using a different multiplier inside our custom *Random()* function) and get the mean of those together. Here, we are adding turbulance to the terrain. Those layers that are added and taken their mean are called **octaves**.
+## Noise Maps
+Okay, we have procedurally generated numbers now. What is next? 
+**Noise Maps**, of course!
 
-Right now, what we've been calling **our Random() function**, is actually the return value of the **Perlin Noise 2D function** given the keys we have set as input.
+We can consistently generate noise fields to generate and mix different terrain traits!
+We have a total of 8 Noise Maps:
 
-## Height Sampling
+ 1. Base Map (a.k.a. base height map)
+ 2. Erosion Map
+ 3. Peaks Map
+ 4. Temperature Map
+ 5. Humidity Map
+ 6. Patch Map
+ 7. Cave Map
+ 8. Cave Mask Map
 
-It's common to see different biomes with different base heights. We can add that!
-Given that the *Perlin Noise* is limited between 0 and 1, we can add a multiplier of the desired max and minimum height easily. Thus, we have taken the first step towards controllable heightmapping.
+### The Surface
+To generate the surface terrain, **Base, Erosion** and **Peaks** maps are used. High base values make the terrain higher or lower. Higher erosion makes the terrain more flat and lower, while high erosion makes it higher and more prone to microchanges. High peak values make sudden high lands and low peak values dig out water ways like rivers.
+
+### The Biomes
+To figure out what biome should be placed in what given chunk, the **Base, Erosion, Temperature** and **Humidity** maps are used.
+
+The biomes are categorized in height types first, like **Ocean-like, Low, Mid, Peak** and put up against a value table comparing Base and Erosion maps.
+
+|Base vs Erosion|0.0| 0.2| 0.4 |0.6|0.8|1|
+|--|--|--|--|--|--|--|
+|0.0|Ocean|Ocean|Ocean|Ocean|Ocean|Ocean|
+|0.2|Ocean|Ocean|Ocean|Ocean|Ocean|Ocean|
+|0.4|Ocean|Ocean|Ocean|Ocean|Low|Low|
+|0.6|Ocean|Ocean|Ocean|Low|Low|Mid|
+|0.8|Ocean|Mid|Mid|Peak|Peak|Peak|
+|1|Ocean|Mid|Peak|Peak|Peak|Peak|
+
+Once the type of biome is resolved, every biome type has a Temperature vs Humidity table similar to the above to define what biome it is.
+
+### The Underground
+To dig out caves, lots of techniques were planned: **simple 3D perlin subtraction, Topology Analysis State Machine Cluster™** (TASMC, which was discarded, but deserved a Game Detail document of its own!) **and Conditional Noise Slices**. None of them achieved the desired result.
+
+So the solution was simpler than all of those complex solutions... just add another noise map!
+So now, to dig out caves, we use the **Cave** and **Cave Mask** maps.
+
+Noise Maps are 2D, but the caves are dug in a 3D fashion. It works nicely because both of these noises are the only ones that accept an *(x, y, z)* input. While the Cave Noise shapes the caves, the Cave Mask Noise drives the digging towards a certain, procedually chosen, area.
+
+### The Structures
+For that, the **Patch** Map is used. Its idea is to be the noise that defines where structures and mini-structures should be placed around the chunks.
+
+## Spline Interpolation
+In order to make the terrain more interesting and have more variation and more *controlled* variation, spline interpolation was chosen to modify the Noise Maps. So now, every Noise Field has a Spline Interpolated function that defines how the values are spread in the Field, basically shaping the Noise Map to have whatever distribution we want.
+
+![](../RepoImages/SplineInterpolation.png)
+
+## Octaves and Sigmoid Approximation Transformation
+Sampling multiple Noise Maps that apply different traits to a terrain can generate interesting terrain. But having multiple different samplings from the same map can add even more detail. These additional samplings are called ***Octaves***.
+Currently, the maps have the base sampling and one octave.
+
+Since we use the mean of the sum of the samples, the Random() function's distribution goes from Uniform to Normal. To transform the octave sum result back to a Uniform distribution, we use Sigmoid Approximation, which is the computationally fastest and closest we can get to a Normal transformation.
 
 ## Bilinear Interpolation
 
-Great! Now we have Procedural terrain being generated given the World Seed, the chunk coordinates and some other key values you may want to put in (In our case, we also use a hash value in every biome). We probably won't trip into any trouble, will we? **Wrong!**
+Great! Now we have Procedural terrain being generated given the Seed and chunk coordinates. We probably won't trip into any trouble, will we? **Wrong!**
 
  1. Sampling all block columns using Perlin Noise can be very slow
  2. If you want to generate a more chaotic biome, the results may be dissapointing. Extremely non-smooth terrain is a big no no.
@@ -51,7 +102,13 @@ Now that we have a very smooth terrain, you probably wanna know how we managed t
 
 When we are generating a chunk, every biome has a set of layers that it needs. A Plains biome has a low altitude grass layer, that is immediately followed by a Dirt layer 1 block below it. After that, there's a Stone Layer 5 blocks below the Grass layer.... and so on.
 
-In order to do that, we simply generate all of these different heightmaps and then add them together into a 3D Voxeldata class. **The order in which the maps are added to the generation queue means everything!!**. The first layer will always be the lowest of them all, while the second layer will generate itself until it's generation hits the layer below, and so on. You may think that the biggest layers height-wise would be the last ones in the queue. You are partially right. The last layer is usually the Water layer. Since it only generates below a certain treshold, it's common for the algorithm to just stop for entire columns right away if the terrain is not low enough. It's a pretty neat algorithm, if I might say!
+So the first step is to generate the terrain using only stone and air blocks.
+
+After it has been done, we add Surface Decoration to it. Surface decoration is any base surface block that populates a biome. 
+
+After that, we apply biome blending to biome borders. For example, whenever we have a transition between plains and desert, some sand blocks will get into the plains biome side and some grass will get into the desert biome. That's a way of smoothing out the biome transition.
+
+After that, water is applied at sea level and caves are dug out.
 
 ## Generating Structures
 
@@ -76,16 +133,6 @@ In wide structures, it's common to see it taking more than one chunk. There we h
 
 Unfortunately, the solution to this problem only came after implementing the World Saves. In short, to save pregenerated information to an unexisting chunk, you gotta make it partially exist. Generate a whole chunk that only has the half-structure block information, mark this chunk as pre-generated and save it. Once the ChunkLoader tries to load it, it will realize this chunk exists, but is pregenerated. So the ChunkLoader should generate this chunk as it would any other, right? **Wrong!**
 The ChunkLoader cannot generate it normally, because it would *erase the structure data pre-generated into it*. So this post-generation must ignore already placed blocks.
-
-## Making Big Holes
-
-Cave Systems are a big part of exploration games. Ours couldn't be different. In short, to do cave systems, we used a different design of the *Perlin Noise*, it's the **Ridged-MultiFractal Noise**.
-
-![](../RepoImages/ridged.jpg)
-
-This noise, is the **squared version of the Perlin Noise 3D**. Why do we need it to be squared? Because it draws those very bright tunnels through the noise. It's perfect for tunnel based caves, and the inputs can be tweaked to make all sorts of procedural cave shapes.
-
-So we create a turbulance map and delete all the blocks the *RidgedMultiFractal3D()* flagged as a cave block. Of course, we also set height limits to the caves, so that we don't have sky caves, for example.
 
 # Congratulations
 
