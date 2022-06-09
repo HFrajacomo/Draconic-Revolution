@@ -54,11 +54,25 @@ public class BiomeHandler
 		 new List<int>(){1,6,6, 6, 1},
 		 new List<float>(){0.01f, 1f, 1f, 1f, 0.05f});
 
+		Biome snowPlains = new Biome("Snowy Plains", BiomeCode.SNOWY_PLAINS, BiomeType.LOW,
+		 9,
+		 new List<int>(){1,2,3,4,5,9,10,11},
+		 new List<int>(){1,1,3,2,1,6,5, 5},
+		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.01f, 1f, 1f, 1f});
+
+		Biome snowyHighlands = new Biome("Snowy Highlands", BiomeCode.SNOWY_HIGHLANDS, BiomeType.PEAK,
+		 9,
+		 new List<int>(){1,2,3,4,5,9,10,11},
+		 new List<int>(){1,1,3,2,1,10,8, 14},
+		 new List<float>(){0.3f, 0.2f, 1f, 1f, 0.02f, 1f, 1f, 1f});
+
 		AddBiome(plains);
 		AddBiome(grassyHighlands);
 		AddBiome(ocean);
 		AddBiome(forest);
 		AddBiome(desert);
+		AddBiome(snowPlains);
+		AddBiome(snowyHighlands);
 
 		this.biomeBlendingValue = new ushort[this.currentBiome];
 
@@ -180,5 +194,7 @@ public enum BiomeCode : byte{
 	GRASSY_HIGHLANDS,
 	OCEAN,
 	FOREST,
-	DESERT
+	DESERT,
+	SNOWY_PLAINS,
+	SNOWY_HIGHLANDS
 }

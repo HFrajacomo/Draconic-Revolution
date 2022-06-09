@@ -68,6 +68,7 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
@@ -111,6 +112,7 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
+  swizzle: 50462976
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -159,7 +161,7 @@ TextureImporter:
         y: 0
         width: 32
         height: 32
-      alignment: 6
+      alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
@@ -180,7 +182,7 @@ TextureImporter:
         y: 0
         width: 32
         height: 32
-      alignment: 6
+      alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
@@ -201,7 +203,7 @@ TextureImporter:
         y: 0
         width: 32
         height: 32
-      alignment: 6
+      alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
@@ -222,7 +224,7 @@ TextureImporter:
         y: 0
         width: 32
         height: 32
-      alignment: 6
+      alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
@@ -243,7 +245,7 @@ TextureImporter:
         y: 0
         width: 32
         height: 32
-      alignment: 6
+      alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
@@ -264,7 +266,7 @@ TextureImporter:
         y: 0
         width: 32
         height: 32
-      alignment: 6
+      alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
@@ -285,7 +287,7 @@ TextureImporter:
         y: 0
         width: 32
         height: 32
-      alignment: 6
+      alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
@@ -306,7 +308,7 @@ TextureImporter:
         y: 0
         width: 32
         height: 32
-      alignment: 6
+      alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
@@ -315,6 +317,48 @@ TextureImporter:
       bones: []
       spriteID: cf5478588c8f2d140800000000000000
       internalID: 4743126897691936252
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon_8
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 30a9e685f84b3434bbe6e7f720a54184
+      internalID: -1845810795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon_9
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ca6a4bfd08867ff4dba89dd2511b61d2
+      internalID: 162643048
       vertices: []
       indices: 
       edges: []
@@ -336,11 +380,12 @@ TextureImporter:
       icon_5: 8049885976776599914
       icon_2: -3885610455112514396
       icon_7: 4743126897691936252
+      icon_9: 162643048
+      icon_8: -1845810795
       icon_1: -229256013063241344
       icon_6: 4014287730522540239
   spritePackingTag: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

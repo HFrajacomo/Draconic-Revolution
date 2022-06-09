@@ -54,7 +54,7 @@ public class TreeSmallA : Structure
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
 		this.needsBase = true;
-		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT};
+		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT, BlockID.SNOW};
 
 		Prepare(blocks, hps, states);
 	}
@@ -84,7 +84,7 @@ public class TreeMediumA : Structure
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
 		this.needsBase = true;
-		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT};
+		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT, BlockID.SNOW};
 
 		Prepare(blocks, hps, states);
 	}
@@ -255,7 +255,7 @@ public class TreeSmallB : Structure
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
 		this.needsBase = true;
-		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT};
+		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT, BlockID.SNOW};
 
 		Prepare(blocks, hps, states);
 	}

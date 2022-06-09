@@ -40,11 +40,15 @@ SpriteAtlas:
     - {fileID: 8049885976776599914, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
     - {fileID: 4014287730522540239, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
     - {fileID: 4743126897691936252, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+    - {fileID: -1845810795, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+    - {fileID: 162643048, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
     bindAsDefault: 1
     isAtlasV2: 0
     cachedData: {fileID: 0}
   m_MasterAtlas: {fileID: 0}
   m_PackedSprites:
+  - {fileID: 162643048, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
+  - {fileID: -1845810795, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
   - {fileID: 8049885976776599914, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
   - {fileID: 1618293649664528702, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
   - {fileID: 4743126897691936252, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
@@ -54,6 +58,8 @@ SpriteAtlas:
   - {fileID: -7441382367286639308, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
   - {fileID: -3885610455112514396, guid: b5199558207035a4e9836d98d0231dd5, type: 3}
   m_PackedSpriteNamesToIndex:
+  - icon_9
+  - icon_8
   - icon_5
   - icon_4
   - icon_7

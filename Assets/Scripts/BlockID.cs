@@ -13,6 +13,7 @@ public enum BlockID : ushort
     WATER = 6,
     LEAF = 7,
     SAND = 8,
+    SNOW = 9,
 
 
     /*

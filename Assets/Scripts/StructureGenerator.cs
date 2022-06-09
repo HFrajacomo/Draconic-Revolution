@@ -26,6 +26,12 @@ public class StructureGenerator
             case BiomeCode.DESERT:
                 GenerateDesertStructures(cl, pos, blockdata, statedata, hpdata);
                 break;
+            case BiomeCode.SNOWY_PLAINS:
+                GenerateSnowyPlainsStructures(cl, pos, blockdata, statedata, hpdata);
+                break;
+            case BiomeCode.SNOWY_HIGHLANDS:
+                GenerateSnowyHighlandsStructures(cl, pos, blockdata, statedata, hpdata);
+                break;
             default:
                 break;
         }
@@ -72,6 +78,32 @@ public class StructureGenerator
         foreach(int structCode in BiomeHandler.GetBiomeStructs(BiomeCode.DESERT)){
             if(structCode >= 9 && structCode <= 11) // Metal veins
                 wgen.GenerateStructures(pos, BiomeCode.DESERT, structCode, 9, blockdata, statedata, hpdata, range:true);           
+        }   
+    }
+
+    public void GenerateSnowyPlainsStructures(ChunkLoader_Server cl, ChunkPos pos, ushort[] blockdata, ushort[] statedata, ushort[] hpdata){
+        foreach(int structCode in BiomeHandler.GetBiomeStructs(BiomeCode.SNOWY_PLAINS)){
+            if(structCode == 1 || structCode == 2) // Trees
+                wgen.GenerateStructures(pos, BiomeCode.SNOWY_PLAINS, structCode, 0, blockdata, statedata, hpdata);
+            else if(structCode == 3 || structCode == 4) // Dirt Piles
+                wgen.GenerateStructures(pos, BiomeCode.SNOWY_PLAINS, structCode, 3, blockdata, statedata, hpdata, range:true);
+            else if(structCode == 5) // Boulder
+                wgen.GenerateStructures(pos, BiomeCode.SNOWY_PLAINS, structCode, 1, blockdata, statedata, hpdata);
+            else if(structCode >= 9 && structCode <= 11) // Metal veins
+                wgen.GenerateStructures(pos, BiomeCode.SNOWY_PLAINS, structCode, 9, blockdata, statedata, hpdata, range:true);                
+        }   
+    }
+
+    public void GenerateSnowyHighlandsStructures(ChunkLoader_Server cl, ChunkPos pos, ushort[] blockdata, ushort[] statedata, ushort[] hpdata){
+        foreach(int structCode in BiomeHandler.GetBiomeStructs(BiomeCode.SNOWY_HIGHLANDS)){
+            if(structCode == 2) // Tree
+                wgen.GenerateStructures(pos, BiomeCode.SNOWY_HIGHLANDS, structCode, 0, blockdata, statedata, hpdata);
+            else if(structCode == 3 || structCode == 4) // Dirt Piles
+                wgen.GenerateStructures(pos, BiomeCode.SNOWY_HIGHLANDS, structCode, 3, blockdata, statedata, hpdata, range:true);
+            else if(structCode == 5) // Boulder
+                wgen.GenerateStructures(pos, BiomeCode.SNOWY_HIGHLANDS, structCode, 1, blockdata, statedata, hpdata);
+            else if(structCode >= 9 && structCode <= 11) // Metal veins
+                wgen.GenerateStructures(pos, BiomeCode.SNOWY_HIGHLANDS, structCode, 9, blockdata, statedata, hpdata, range:true);                
         }   
     }
 }

@@ -1054,6 +1054,60 @@ public struct PopulateChunkJob : IJob{
                 }
             }          
         }
+        else if(code == BiomeCode.SNOWY_PLAINS){
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    depth = 0;
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                        if(blockCode == (ushort)BlockID.WATER)
+                            depth++;
+                        else{
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
+                            depth++; 
+                        }
+
+                        if(depth == 5){
+                            break;
+                        }
+                    }
+                }
+            }              
+        }
+        else if(code == BiomeCode.SNOWY_HIGHLANDS){
+            float stoneThreshold = 0.1f;
+            bool isStoneFloor = false;
+
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    isStoneFloor = false;
+                    depth = 0;
+
+                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) >= stoneThreshold)
+                        isStoneFloor = true;
+
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                        if(blockCode == (ushort)BlockID.WATER)
+                            depth++;
+                        else if(isStoneFloor && depth < 5){
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
+                            depth++;
+                        } 
+                        else{
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
+                            depth++;
+                        }
+
+                        if(depth == 5){
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public void ApplyWaterBodyFloor(){
