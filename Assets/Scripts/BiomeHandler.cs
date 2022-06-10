@@ -66,6 +66,12 @@ public class BiomeHandler
 		 new List<int>(){1,1,3,2,1,10,8, 14},
 		 new List<float>(){0.3f, 0.2f, 1f, 1f, 0.02f, 1f, 1f, 1f});
 
+		Biome iceOcean = new Biome("Ice Ocean", BiomeCode.ICE_OCEAN, BiomeType.OCEAN,
+		 9,
+		 new List<int>(){},
+		 new List<int>(){},
+		 new List<float>(){});
+
 		AddBiome(plains);
 		AddBiome(grassyHighlands);
 		AddBiome(ocean);
@@ -73,6 +79,7 @@ public class BiomeHandler
 		AddBiome(desert);
 		AddBiome(snowPlains);
 		AddBiome(snowyHighlands);
+		AddBiome(iceOcean);
 
 		this.biomeBlendingValue = new ushort[this.currentBiome];
 
@@ -139,6 +146,13 @@ public class BiomeHandler
 		return (byte)this.biomeTable.GetBiome(biomeInfo);
 	}
 
+	// DEBUG
+	public void SeeNoiseValues(float[] data){
+		float5 noiseValues = new float5(data[0], data[1], data[2], data[3], data[4]);
+
+		Debug.Log("(" + data[0] + " -> " + noiseValues.t + ", " + data[1] + " -> " + noiseValues.h + ")");
+	}
+
 }
 
 
@@ -174,11 +188,11 @@ public struct float5{
 	public int p;
 
 	public float5(float x, float y, float z, float w, float k){
-		this.t = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (x+1)/2f));
-		this.h = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (y+1)/2f));
-		this.b = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (z+1)/2f));
-		this.e = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (w+1)/2f));
-		this.p = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (k+1)/2f));
+		this.t = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize+1, (x+1)/2.001f));
+		this.h = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize+1, (y+1)/2.001f));
+		this.b = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize+1, (z+1)/2.001f));
+		this.e = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize+1, (w+1)/2.001f));
+		this.p = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize+1, (k+1)/2.001f));
 	}
 }
 
@@ -196,5 +210,6 @@ public enum BiomeCode : byte{
 	FOREST,
 	DESERT,
 	SNOWY_PLAINS,
-	SNOWY_HIGHLANDS
+	SNOWY_HIGHLANDS,
+	ICE_OCEAN
 }

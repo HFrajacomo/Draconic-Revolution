@@ -28,9 +28,9 @@ public class BiomeTable
         };
 
         this.oceanTempHumidTable = new BiomeCode[,]{
-            {BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN},
-            {BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN},
-            {BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN},
+            {BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN},
+            {BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN},
+            {BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN, BiomeCode.ICE_OCEAN},
             {BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN},
             {BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN},
             {BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN, BiomeCode.OCEAN},
@@ -41,16 +41,16 @@ public class BiomeTable
         };
 
         this.lowTempHumidTable = new BiomeCode[,]{
-            {BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT},
-            {BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT},
-            {BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT},
-            {BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT},
-            {BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT},
-            {BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT},
+            {BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS},
+            {BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS},
+            {BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS, BiomeCode.SNOWY_PLAINS},
             {BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS},
             {BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS},
             {BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS},
             {BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS},
+            {BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS, BiomeCode.PLAINS},
+            {BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT},
+            {BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT, BiomeCode.DESERT},
         };
 
         this.midTempHumidTable = new BiomeCode[,]{
@@ -67,16 +67,16 @@ public class BiomeTable
         };
 
         this.peakTempHumidTable = new BiomeCode[,]{
-            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
-            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
-            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
-            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
-            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
-            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
-            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
-            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
-            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
-            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
+            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS},
+            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS},
+            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS},
+            {BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS, BiomeCode.SNOWY_HIGHLANDS},
+            {BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
+            {BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
+            {BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
+            {BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
+            {BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
+            {BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
         };
     }
 

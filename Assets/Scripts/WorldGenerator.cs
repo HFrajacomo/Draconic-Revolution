@@ -323,6 +323,7 @@ public class WorldGenerator
 
         // This Chunk
         float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
+        this.biomeHandler.SeeNoiseValues(chunkInfo);
         this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo);
 
         // X+ Chunk
@@ -1107,6 +1108,27 @@ public struct PopulateChunkJob : IJob{
                     }
                 }
             }
+        }
+        else if(code == BiomeCode.ICE_OCEAN){
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    depth = 0;
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                        if(blockCode == (ushort)BlockID.WATER)
+                            depth++;
+                        else{
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
+                            depth++; 
+                        }
+
+                        if(depth == 5){
+                            break;
+                        }
+                    }
+                }
+            }        
         }
     }
 

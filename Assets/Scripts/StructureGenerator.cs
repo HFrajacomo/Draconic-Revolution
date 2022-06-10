@@ -32,6 +32,8 @@ public class StructureGenerator
             case BiomeCode.SNOWY_HIGHLANDS:
                 GenerateSnowyHighlandsStructures(cl, pos, blockdata, statedata, hpdata);
                 break;
+            case BiomeCode.ICE_OCEAN:
+                break;
             default:
                 break;
         }
