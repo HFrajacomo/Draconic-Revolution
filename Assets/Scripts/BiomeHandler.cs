@@ -145,14 +145,6 @@ public class BiomeHandler
 		
 		return (byte)this.biomeTable.GetBiome(biomeInfo);
 	}
-
-	// DEBUG
-	public void SeeNoiseValues(float[] data){
-		float5 noiseValues = new float5(data[0], data[1], data[2], data[3], data[4]);
-
-		Debug.Log("(" + data[0] + " -> " + noiseValues.t + ", " + data[1] + " -> " + noiseValues.h + ")");
-	}
-
 }
 
 

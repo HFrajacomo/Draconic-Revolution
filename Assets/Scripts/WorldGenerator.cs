@@ -323,7 +323,6 @@ public class WorldGenerator
 
         // This Chunk
         float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
-        this.biomeHandler.SeeNoiseValues(chunkInfo);
         this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo);
 
         // X+ Chunk
@@ -437,25 +436,25 @@ public class WorldGenerator
 
 
         // Temperature Noise
-        x = initialX*GenerationSeed.temperatureNoiseStep1;
+        x = initialX*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetX[0];
         x -= Mathf.Floor(x);
-        y = initialY*GenerationSeed.temperatureNoiseStep1;
+        y = initialY*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetY[0];
         y -= Mathf.Floor(y);
         float u = Fade(x);
         float v = Fade(y);
 
-        float x2 = initialX*GenerationSeed.temperatureNoiseStep2;
+        float x2 = initialX*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetX[0];
         x2 -= Mathf.Floor(x2);
-        float y2 = initialY*GenerationSeed.temperatureNoiseStep2;
+        float y2 = initialY*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetY[0];
         y2 -= Mathf.Floor(y2);
         
         float u2 = Fade(x2);
         float v2 = Fade(y2);
 
-        int X = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep1) & 0xff;
-        int Y = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep1) & 0xff;
-        int X2 = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep2) & 0xff;
-        int Y2 = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep2) & 0xff;
+        int X = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
+        int Y = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
+        int X2 = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
+        int Y2 = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
         int A = (GenerationSeed.temperatureNoise[X  ] + Y) & 0xff;
         int B = (GenerationSeed.temperatureNoise[X+1] + Y) & 0xff;
         int A2 = (GenerationSeed.temperatureNoise[X2  ] + Y2) & 0xff;
@@ -466,25 +465,25 @@ public class WorldGenerator
                        Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2+1], x2, y2-1), Grad(GenerationSeed.temperatureNoise[B2+1], x2-1, y2-1))));
         
         // Humidity Noise
-        x = initialX*GenerationSeed.humidityNoiseStep1;
+        x = initialX*GenerationSeed.humidityNoiseStep1 + GenerationSeed.humidityOffsetX[0];
         x -= Mathf.Floor(x);
-        y = initialY*GenerationSeed.humidityNoiseStep1;
+        y = initialY*GenerationSeed.humidityNoiseStep1 + GenerationSeed.humidityOffsetY[0];
         y -= Mathf.Floor(y);
         u = Fade(x);
         v = Fade(y);
 
-        x2 = initialX*GenerationSeed.humidityNoiseStep2;
+        x2 = initialX*GenerationSeed.humidityNoiseStep2 + GenerationSeed.humidityOffsetX[0];
         x2 -= Mathf.Floor(x2);
-        y2 = initialY*GenerationSeed.humidityNoiseStep2;
+        y2 = initialY*GenerationSeed.humidityNoiseStep2 + GenerationSeed.humidityOffsetY[0];
         y2 -= Mathf.Floor(y2);
         
         u2 = Fade(x2);
         v2 = Fade(y2);
 
-        X = Mathf.FloorToInt(initialX*GenerationSeed.humidityNoiseStep1) & 0xff;
-        Y = Mathf.FloorToInt(initialY*GenerationSeed.humidityNoiseStep1) & 0xff;
-        X2 = Mathf.FloorToInt(initialX*GenerationSeed.humidityNoiseStep2) & 0xff;
-        Y2 = Mathf.FloorToInt(initialY*GenerationSeed.humidityNoiseStep2) & 0xff;
+        X = Mathf.FloorToInt(initialX*GenerationSeed.humidityNoiseStep1 + GenerationSeed.humidityOffsetX[0]) & 0xff;
+        Y = Mathf.FloorToInt(initialY*GenerationSeed.humidityNoiseStep1 + GenerationSeed.humidityOffsetY[0]) & 0xff;
+        X2 = Mathf.FloorToInt(initialX*GenerationSeed.humidityNoiseStep2 + GenerationSeed.humidityOffsetX[0]) & 0xff;
+        Y2 = Mathf.FloorToInt(initialY*GenerationSeed.humidityNoiseStep2 + GenerationSeed.humidityOffsetY[0]) & 0xff;
         A = (GenerationSeed.humidityNoise[X  ] + Y) & 0xff;
         B = (GenerationSeed.humidityNoise[X+1] + Y) & 0xff;
         A2 = (GenerationSeed.humidityNoise[X2  ] + Y2) & 0xff;

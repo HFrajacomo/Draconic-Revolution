@@ -90,6 +90,10 @@ public static class World
         return rng.Next(min, max);
     }
 
+    public static float NextFloat(){
+        return (float)rng.NextDouble();
+    }
+
     public static void SetGameSceneFlag(bool b){
         World.isInGame = b;
     }

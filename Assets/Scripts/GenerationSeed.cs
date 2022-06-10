@@ -13,6 +13,8 @@ public static class GenerationSeed
 {
     public static int seed;
 
+    public static int multiplier = 19;
+
     // Base Noise
     public static byte[] baseNoise = new byte[257];
     public static readonly float[] baseNoiseSplineX = new float[]{-1, -0.6f, -0.5f, -0.1f, 0, 0.4f, 0.5f, 0.8f, 1};
@@ -36,15 +38,15 @@ public static class GenerationSeed
 
     // Temperature Noise
     public static byte[] temperatureNoise = new byte[257];
-    public static readonly float[] temperatureNoiseSplineX = new float[]{-1, -0.7f, -0.69f, -0.4f, -0.39f, -0.1f, -0.09f, 0.2f, 0.21f, 0.5f, 0.51f, 0.8f, 0.81f, 1};
-    public static readonly int[] temperatureNoiseSplineY = new int[]{0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6};
+    public static readonly float[] temperatureOffsetX = new float[1];
+    public static readonly float[] temperatureOffsetY = new float[1];
     public static readonly float temperatureNoiseStep1 = 0.000093f;
     public static readonly float temperatureNoiseStep2 = 0.000127f;
 
     // Humidity Noise
     public static byte[] humidityNoise = new byte[257];
-    public static readonly float[] humidityNoiseSplineX = new float[]{-1, -0.7f, -0.69f, -0.4f, -0.39f, -0.1f, -0.09f, 0.2f, 0.21f, 0.5f, 0.51f, 0.8f, 0.81f, 1};
-    public static readonly int[] humidityNoiseSplineY = new int[]{0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6};
+    public static readonly float[] humidityOffsetX = new float[1];
+    public static readonly float[] humidityOffsetY = new float[1];
     public static readonly float humidityNoiseStep1 = 0.000121f;
     public static readonly float humidityNoiseStep2 = 0.000057f;
 
@@ -99,6 +101,8 @@ public static class GenerationSeed
             temperatureNoise[i] = (byte)World.NextRandom(0, 256);
         }
         temperatureNoise[256] = temperatureNoise[0];
+        temperatureOffsetX[0] = World.NextFloat() * multiplier;
+        temperatureOffsetY[0] = World.NextFloat() * multiplier;
 
         // Humidity Noise
         World.SetRNG(seed);
@@ -106,6 +110,8 @@ public static class GenerationSeed
             humidityNoise[i] = (byte)World.NextRandom(0, 256);
         }
         humidityNoise[256] = humidityNoise[0];
+        humidityOffsetX[0] = World.NextFloat() * multiplier;
+        humidityOffsetY[0] = World.NextFloat() * multiplier;
 
         // Patch Noise
         World.SetRNG(seed);
