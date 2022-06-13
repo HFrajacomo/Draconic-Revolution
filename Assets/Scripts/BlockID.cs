@@ -14,6 +14,7 @@ public enum BlockID : ushort
     LEAF = 7,
     SAND = 8,
     SNOW = 9,
+    ICE = 10,
 
 
     /*

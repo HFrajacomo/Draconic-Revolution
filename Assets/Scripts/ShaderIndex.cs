@@ -8,5 +8,6 @@ public enum ShaderIndex : byte
     SPECULAR,
     WATER,
     ASSETS,
-    LEAVES
+    LEAVES,
+    ICE
 }

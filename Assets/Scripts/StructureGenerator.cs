@@ -34,6 +34,9 @@ public class StructureGenerator
                 break;
             case BiomeCode.ICE_OCEAN:
                 break;
+            case BiomeCode.SNOWY_FOREST:
+                GenerateSnowyForestStructures(cl, pos, blockdata, statedata, hpdata);
+                break;
             default:
                 break;
         }
@@ -106,6 +109,17 @@ public class StructureGenerator
                 wgen.GenerateStructures(pos, BiomeCode.SNOWY_HIGHLANDS, structCode, 1, blockdata, statedata, hpdata);
             else if(structCode >= 9 && structCode <= 11) // Metal veins
                 wgen.GenerateStructures(pos, BiomeCode.SNOWY_HIGHLANDS, structCode, 9, blockdata, statedata, hpdata, range:true);                
+        }   
+    }
+
+    public void GenerateSnowyForestStructures(ChunkLoader_Server cl, ChunkPos pos, ushort[] blockdata, ushort[] statedata, ushort[] hpdata){
+        foreach(int structCode in BiomeHandler.GetBiomeStructs(BiomeCode.FOREST)){
+            if(structCode == 1 || structCode == 2 || structCode == 8) // Trees
+                wgen.GenerateStructures(pos, BiomeCode.FOREST, structCode, 0, blockdata, statedata, hpdata);
+            else if(structCode == 3 || structCode == 4) // Dirt Piles
+                wgen.GenerateStructures(pos, BiomeCode.FOREST, structCode, 3, blockdata, statedata, hpdata, range:true);
+            else if(structCode >= 9 && structCode <= 11) // Metal veins
+                wgen.GenerateStructures(pos, BiomeCode.FOREST, structCode, 9, blockdata, statedata, hpdata, range:true);           
         }   
     }
 }

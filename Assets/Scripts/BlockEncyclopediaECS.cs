@@ -6,6 +6,8 @@ using Unity.Mathematics;
 
 public static class BlockEncyclopediaECS
 {
+	public static NativeArray<bool> blockSolid;
+	public static NativeArray<bool> objectSolid;
 	public static NativeArray<byte> blockTransparent;
 	public static NativeArray<byte> objectTransparent;
 	public static NativeArray<bool> blockSeamless;
@@ -28,6 +30,8 @@ public static class BlockEncyclopediaECS
 	public static NativeArray<bool> blockDrawTopRegardless;
 
 	static BlockEncyclopediaECS(){ 
+		BlockEncyclopediaECS.blockSolid = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectSolid = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
 		BlockEncyclopediaECS.blockTransparent = new NativeArray<byte>(Blocks.blockCount, Allocator.Persistent);
 		BlockEncyclopediaECS.objectTransparent = new NativeArray<byte>(BlocklikeObject.objectCount, Allocator.Persistent);
 		BlockEncyclopediaECS.blockSeamless = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
@@ -52,6 +56,8 @@ public static class BlockEncyclopediaECS
 	}
 
 	public static void Destroy(){
+		BlockEncyclopediaECS.blockSolid.Dispose();
+		BlockEncyclopediaECS.objectSolid.Dispose();
 		BlockEncyclopediaECS.blockTransparent.Dispose();
 		BlockEncyclopediaECS.objectTransparent.Dispose();
 		BlockEncyclopediaECS.blockSeamless.Dispose();

@@ -54,9 +54,9 @@ public class BiomeTable
         };
 
         this.midTempHumidTable = new BiomeCode[,]{
-            {BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST},
-            {BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST},
-            {BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST},
+            {BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST},
+            {BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST},
+            {BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST, BiomeCode.SNOWY_FOREST},
             {BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST},
             {BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST},
             {BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST, BiomeCode.FOREST},

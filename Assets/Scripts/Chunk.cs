@@ -49,6 +49,7 @@ public class Chunk
     private int[] assetTris;
     private int[] triangles;
     private int[] leavesTris;
+    private int[] iceTris;
   	private List<Vector2> UVs = new List<Vector2>();
   	private List<Vector2> lightUVMain = new List<Vector2>();
   	private List<Vector3> normals = new List<Vector3>();
@@ -236,6 +237,7 @@ public class Chunk
 		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> leavesTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> iceTris = new NativeList<int>(0, Allocator.TempJob);
 	
 		NativeList<int3> toLoadEvent = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int3> toBUD = new NativeList<int3>(0, Allocator.TempJob);
@@ -266,6 +268,7 @@ public class Chunk
 		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(1), Allocator.TempJob);
 		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(2), Allocator.TempJob);
 		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(4), Allocator.TempJob);
+		NativeArray<int> disposableIceTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(5), Allocator.TempJob);
 
 
 		JobHandle job;
@@ -279,6 +282,7 @@ public class Chunk
 		specularTris.AddRange(disposableSpecTris);
 		liquidTris.AddRange(disposableLiquidTris);
 		leavesTris.AddRange(disposableLeavesTris);
+		iceTris.AddRange(disposableIceTris);
 		normals.AddRange(disposableNormals);
 
 
@@ -291,6 +295,7 @@ public class Chunk
 		disposableNormals.Dispose();
 		disposableLight.Dispose();
 		disposableLeavesTris.Dispose();
+		disposableIceTris.Dispose();
 
 		// X- Analysis
 		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z); 
@@ -322,11 +327,14 @@ public class Chunk
 				specularTris = specularTris,
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
+				iceTris = iceTris,
 				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				blockSolid = BlockEncyclopediaECS.blockSolid,
+				objectSolid = BlockEncyclopediaECS.objectSolid,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -393,11 +401,14 @@ public class Chunk
 				specularTris = specularTris,
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
+				iceTris = iceTris,
 				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				blockSolid = BlockEncyclopediaECS.blockSolid,
+				objectSolid = BlockEncyclopediaECS.objectSolid,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -464,11 +475,14 @@ public class Chunk
 				specularTris = specularTris,
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
+				iceTris = iceTris,
 				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				blockSolid = BlockEncyclopediaECS.blockSolid,
+				objectSolid = BlockEncyclopediaECS.objectSolid,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -533,11 +547,14 @@ public class Chunk
 				specularTris = specularTris,
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
+				iceTris = iceTris,
 				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				blockSolid = BlockEncyclopediaECS.blockSolid,
+				objectSolid = BlockEncyclopediaECS.objectSolid,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -593,6 +610,7 @@ public class Chunk
 			this.specularTris = specularTris.ToArray();
 			this.liquidTris = liquidTris.ToArray();
 			this.leavesTris = leavesTris.ToArray();
+			this.iceTris = iceTris.ToArray();
 			assetTris = this.meshFilter.mesh.GetTriangles(3);
 
 			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray());
@@ -607,6 +625,7 @@ public class Chunk
 		specularTris.Dispose();
 		liquidTris.Dispose();
 		leavesTris.Dispose();
+		iceTris.Dispose();
 		cacheCubeVert.Dispose();
 		cacheUVVerts.Dispose();
 		cacheCubeNormal.Dispose();
@@ -619,6 +638,7 @@ public class Chunk
     	this.triangles = null;
     	this.specularTris = null;
     	this.liquidTris = null;
+    	this.iceTris = null;
     	this.assetTris = null;
     	this.UVs.Clear();
     	this.lightUVMain.Clear();
@@ -641,6 +661,7 @@ public class Chunk
 		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> leavesTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> iceTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector2> lightUV = new NativeList<Vector2>(0, Allocator.TempJob);
@@ -665,9 +686,12 @@ public class Chunk
 			specularTris = specularTris,
 			liquidTris = liquidTris,
 			leavesTris = leavesTris,
+			iceTris = iceTris,
 			cacheCubeVert = cacheCubeVert,
 			cacheCubeUV = cacheCubeUV,
 			cacheCubeNormal = cacheCubeNormal,
+			blockSolid = BlockEncyclopediaECS.blockSolid,
+			objectSolid = BlockEncyclopediaECS.objectSolid,
 			blockTransparent = BlockEncyclopediaECS.blockTransparent,
 			objectTransparent = BlockEncyclopediaECS.objectTransparent,
 			blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -802,6 +826,7 @@ public class Chunk
 		this.specularTris = specularTris.ToArray();
 		this.liquidTris = liquidTris.ToArray();
 		this.leavesTris = leavesTris.ToArray();
+		this.iceTris = iceTris.ToArray();
 
 		this.UVs.AddRange(UVs.ToArray());
 		this.UVs.AddRange(meshUVs.ToArray());
@@ -819,6 +844,7 @@ public class Chunk
 		specularTris.Dispose();
 		liquidTris.Dispose();
 		leavesTris.Dispose();
+		iceTris.Dispose();
 		blockdata.Dispose();
 		statedata.Dispose();
 		loadCoordList.Dispose();
@@ -870,6 +896,7 @@ public class Chunk
     	this.liquidTris = null;
     	this.assetTris = null;
     	this.leavesTris = null;
+    	this.iceTris = null;
     	this.UVs.Clear();
     	this.normals.Clear();
 
@@ -894,10 +921,11 @@ public class Chunk
     		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	this.meshFilter.mesh.subMeshCount = 5;
+    	this.meshFilter.mesh.subMeshCount = 6;
 
     	this.meshFilter.mesh.SetVertices(this.vertices.ToArray());
     	this.meshFilter.mesh.SetTriangles(triangles, 0);
+ 	    this.meshFilter.mesh.SetTriangles(this.iceTris, 5);
 
     	this.meshCollider.sharedMesh = null;
     	this.meshCollider.sharedMesh = this.meshFilter.mesh;
@@ -922,10 +950,11 @@ public class Chunk
     		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	this.meshFilter.mesh.subMeshCount = 5;
+    	this.meshFilter.mesh.subMeshCount = 6;
 
     	this.meshFilter.mesh.vertices = verts;
     	this.meshFilter.mesh.SetTriangles(triangles, 0);
+    	this.meshFilter.mesh.SetTriangles(this.iceTris, 5);
 
     	this.meshCollider.sharedMesh = null;
     	this.meshCollider.sharedMesh = this.meshFilter.mesh;;
@@ -971,6 +1000,7 @@ public struct BuildChunkJob : IJob{
 	public NativeList<int> specularTris;
 	public NativeList<int> liquidTris;
 	public NativeList<int> leavesTris;
+	public NativeList<int> iceTris;
 
 	// Cache
 	public NativeArray<Vector3> cacheCubeVert;
@@ -978,6 +1008,10 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<Vector3> cacheCubeNormal;
 
 	// Block Encyclopedia Data
+	[ReadOnly]
+	public NativeArray<bool> blockSolid;
+	[ReadOnly]
+	public NativeArray<bool> objectSolid;
 	[ReadOnly]
 	public NativeArray<byte> blockTransparent;
 	[ReadOnly]
@@ -1102,9 +1136,21 @@ public struct BuildChunkJob : IJob{
 			    		}
 			    		else if(thisBlock <= ushort.MaxValue/2){
 			    			if(blockDrawTop[thisBlock] && i == 4){
-						    	if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
-						    		break;
-						    	}
+			    				if(neighborBlock <= ushort.MaxValue/2){
+			    					if(blockTransparent[neighborBlock] == 0){
+			    						if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
+						    				break;
+						    			}
+			    					}
+			    				}
+			    				else{
+			    					if(objectTransparent[neighborBlock] == 0){
+			    						if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
+						    				break;
+						    			}
+			    					}			    					
+			    				}
+
 						    }
 			    		}
 				    } // faces loop
@@ -1156,9 +1202,9 @@ public struct BuildChunkJob : IJob{
     // Checks if neighbor is transparent or invisible
     private bool CheckPlacement(int neighborBlock){
     	if(neighborBlock <= ushort.MaxValue/2)
-    		return Boolean(blockTransparent[neighborBlock]) || blockInvisible[neighborBlock];
+    		return (Boolean(blockTransparent[neighborBlock]) || blockInvisible[neighborBlock]);
     	else
-			return Boolean(objectTransparent[ushort.MaxValue-neighborBlock]) || objectInvisible[ushort.MaxValue-neighborBlock];
+			return (Boolean(objectTransparent[ushort.MaxValue-neighborBlock]) || objectInvisible[ushort.MaxValue-neighborBlock]);
     }
 
     // Checks if seamlesses are side by side
@@ -1177,7 +1223,7 @@ public struct BuildChunkJob : IJob{
     	else
     		neighborSeamless = objectSeamless[ushort.MaxValue-neighborBlock];
 
-    	return thisSeamless && neighborSeamless && (thisState == neighborState);
+    	return thisSeamless && neighborSeamless && (thisState == neighborState) && (thisBlock == neighborBlock);
     }
 
     private bool Boolean(byte a){
@@ -1298,6 +1344,32 @@ public struct BuildChunkJob : IJob{
 	    	leavesTris.Add(vCount -4);
 	    	leavesTris.Add(vCount -4 +2);
 	    	leavesTris.Add(vCount -4 +3);
+
+	    	return true;
+    	}
+
+    	// If object is Ice
+    	else if(renderThread == ShaderIndex.ICE){
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+			verts.AddRange(cacheCubeVert);
+			int vCount = verts.Length + lookahead;
+
+			AddTexture(cacheCubeUV, dir, blockCode);
+			UVs.AddRange(cacheCubeUV);
+
+    		AddLightUV(cacheCubeUV, x, y, z, dir);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
+
+	    	iceTris.Add(vCount -4);
+	    	iceTris.Add(vCount -4 +1);
+	    	iceTris.Add(vCount -4 +2);
+	    	iceTris.Add(vCount -4);
+	    	iceTris.Add(vCount -4 +2);
+	    	iceTris.Add(vCount -4 +3);
 
 	    	return true;
     	}
@@ -2111,7 +2183,7 @@ public struct PrepareAssetsJob : IJob{
 	}
 }
 
-[BurstCompile]
+//[BurstCompile]
 public struct BuildBorderJob : IJob{
 	[ReadOnly]
 	public bool reload;
@@ -2145,6 +2217,7 @@ public struct BuildBorderJob : IJob{
 	public NativeList<int> specularTris;
 	public NativeList<int> liquidTris;
 	public NativeList<int> leavesTris;
+	public NativeList<int> iceTris;
 
 	// Cached
 	public NativeArray<Vector3> cachedCubeVerts;
@@ -2152,6 +2225,10 @@ public struct BuildBorderJob : IJob{
 	public NativeArray<Vector3> cachedCubeNormal;
 
 	// Block Encyclopedia Data
+	[ReadOnly]
+	public NativeArray<bool> blockSolid;
+	[ReadOnly]
+	public NativeArray<bool> objectSolid;
 	[ReadOnly]
 	public NativeArray<byte> blockTransparent;
 	[ReadOnly]
@@ -2387,7 +2464,6 @@ public struct BuildBorderJob : IJob{
     	bool thisSeamless;
     	bool neighborSeamless;
 
-
     	if(thisBlock <= ushort.MaxValue/2)
     		thisSeamless = blockSeamless[thisBlock];
     	else
@@ -2398,7 +2474,7 @@ public struct BuildBorderJob : IJob{
     	else
     		neighborSeamless = objectSeamless[ushort.MaxValue-neighborBlock];
 
-    	return thisSeamless && neighborSeamless;
+    	return thisSeamless && neighborSeamless && (thisBlock == neighborBlock);
     }
 
     private bool Boolean(byte a){
@@ -2518,6 +2594,32 @@ public struct BuildBorderJob : IJob{
 	    	leavesTris.Add(vCount -4);
 	    	leavesTris.Add(vCount -4 +2);
 	    	leavesTris.Add(vCount -4 +3);
+
+	    	return true;
+    	}
+
+    	// If object is Ice
+    	else if(renderThread == ShaderIndex.ICE){
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+			verts.AddRange(cacheCubeVert);
+			int vCount = verts.Length + lookahead;
+
+			AddTexture(cacheCubeUV, dir, blockCode);
+			uvs.AddRange(cacheCubeUV);
+
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
+
+	    	iceTris.Add(vCount -4);
+	    	iceTris.Add(vCount -4 +1);
+	    	iceTris.Add(vCount -4 +2);
+	    	iceTris.Add(vCount -4);
+	    	iceTris.Add(vCount -4 +2);
+	    	iceTris.Add(vCount -4 +3);
 
 	    	return true;
     	}

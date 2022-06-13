@@ -30,8 +30,8 @@ public class TimerUpdate : MonoBehaviour
             //sb.Append(cl.chunks[this.currentPos.GetChunkPos()].biomeName);
             //sb.Append(" | ");
             // ChunkPos
-            //sb.Append(this.currentPos.GetChunkPos().ToString());
-            //sb.Append("  //  ");
+            sb.Append(this.currentPos.GetChunkPos().ToString());
+            sb.Append("  //  ");
             
             // XYZ only
             sb.Append(Mathf.RoundToInt(character.position.x));

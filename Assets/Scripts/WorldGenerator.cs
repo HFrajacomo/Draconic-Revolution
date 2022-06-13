@@ -647,7 +647,7 @@ public struct GenerateChunkJob: IJob{
     public NativeArray<byte> peakNoise;
 
     public void Execute(){
-        int waterLevel = 80;
+        int waterLevel = Constants.WORLD_WATER_LEVEL;
         GeneratePivots();
         BilinearIntepolateMap();
         ApplyMap(waterLevel);
@@ -1055,14 +1055,29 @@ public struct PopulateChunkJob : IJob{
             }          
         }
         else if(code == BiomeCode.SNOWY_PLAINS){
+            float iceThreshold = -0.2f;
+            bool isIceFloor = false;
+
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
                     depth = 0;
+                    isIceFloor = false;
+
+                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) >= iceThreshold){
+                        isIceFloor = true;
+                    }
+
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER)
+                        if(blockCode == (ushort)BlockID.WATER){
                             depth++;
+                        }
+                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
+                            if(isIceFloor)
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
+                            break;
+                        }
                         else{
                             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
                             depth++; 
@@ -1078,20 +1093,31 @@ public struct PopulateChunkJob : IJob{
         else if(code == BiomeCode.SNOWY_HIGHLANDS){
             float stoneThreshold = 0.1f;
             bool isStoneFloor = false;
+            float iceThreshold = -0.2f;
+            bool isIceFloor = false;
+            float patchNoise;
 
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
                     isStoneFloor = false;
+                    isIceFloor = false;
                     depth = 0;
 
-                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) >= stoneThreshold)
-                        isStoneFloor = true;
+                    patchNoise = Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2);
+                    isStoneFloor = patchNoise >= stoneThreshold;
+                    isIceFloor = patchNoise >= iceThreshold;
 
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER)
+                        if(blockCode == (ushort)BlockID.WATER){
                             depth++;
+                        }
+                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
+                            if(isIceFloor)
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
+                            break;
+                        }
                         else if(isStoneFloor && depth < 5){
                             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
                             depth++;
@@ -1109,14 +1135,28 @@ public struct PopulateChunkJob : IJob{
             }
         }
         else if(code == BiomeCode.ICE_OCEAN){
+            float iceThreshold = 0f; // 0f
+            bool isIceFloor = false;
+
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
                     depth = 0;
+                    isIceFloor = false;
+
+                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) >= iceThreshold)
+                        isIceFloor = true;
+
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER)
+                        if(blockCode == (ushort)BlockID.WATER){
                             depth++;
+                        }
+                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
+                            if(isIceFloor)
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
+                            break;
+                        }
                         else{
                             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
                             depth++; 
@@ -1128,6 +1168,39 @@ public struct PopulateChunkJob : IJob{
                     }
                 }
             }        
+        }
+        else if(code == BiomeCode.SNOWY_FOREST){
+            float iceThreshold = -0.2f;
+            bool isIceFloor = false;
+
+            for(int x=0; x < Chunk.chunkWidth; x++){
+                for(int z=0; z < Chunk.chunkWidth; z++){
+                    depth = 0;
+                    isIceFloor = false;
+
+                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) >= iceThreshold)
+                        isIceFloor = true;
+
+                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+                        if(blockCode == (ushort)BlockID.WATER){
+                            if(depth == 0 && isIceFloor)
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
+
+                            depth++;
+                        }
+                        else{
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
+                            depth++;
+                        }
+
+                        if(depth == 5){
+                            break;
+                        }
+                    }
+                }
+            }  
         }
     }
 

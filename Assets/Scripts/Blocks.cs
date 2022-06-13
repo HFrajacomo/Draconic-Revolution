@@ -5,7 +5,7 @@ using UnityEngine;
 
 public abstract class Blocks
 {
-	public static readonly int blockCount = 10;
+	public static readonly int blockCount = 11;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
 	public static readonly int atlasSizeY = 2;
@@ -59,6 +59,8 @@ public abstract class Blocks
 			return new Sand_Block();
 		else if(blockID == 9)
 			return new Snow_Block();
+		else if(blockID == 10)
+			return new Ice_Block();
 		else
 			return new Air_Block();
 			
