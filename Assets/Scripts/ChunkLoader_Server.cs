@@ -187,6 +187,7 @@ public class ChunkLoader_Server : MonoBehaviour
                         this.worldGen.SetCacheHP(chunks[toLoad[0]].metadata.GetHPData());
                         this.worldGen.SetCacheState(chunks[toLoad[0]].metadata.GetStateData());
                         this.worldGen.GenerateChunk(toLoad[0], isPregen:true);
+                        chunks[toLoad[0]].biomeName = this.worldGen.GetCacheBiome();
                         chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata()));
                         chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
                         chunks[toLoad[0]].needsGeneration = 0;

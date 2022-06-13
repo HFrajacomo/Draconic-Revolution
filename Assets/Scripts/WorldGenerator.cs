@@ -1135,7 +1135,7 @@ public struct PopulateChunkJob : IJob{
             }
         }
         else if(code == BiomeCode.ICE_OCEAN){
-            float iceThreshold = 0f; // 0f
+            float iceThreshold = 0f;
             bool isIceFloor = false;
 
             for(int x=0; x < Chunk.chunkWidth; x++){
@@ -1185,10 +1185,12 @@ public struct PopulateChunkJob : IJob{
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
                         if(blockCode == (ushort)BlockID.WATER){
-                            if(depth == 0 && isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
-
                             depth++;
+                        }
+                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
+                            if(isIceFloor)
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
+                            break;
                         }
                         else{
                             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
