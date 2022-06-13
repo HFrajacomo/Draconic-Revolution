@@ -333,8 +333,6 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockSolid = BlockEncyclopediaECS.blockSolid,
-				objectSolid = BlockEncyclopediaECS.objectSolid,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -407,8 +405,6 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockSolid = BlockEncyclopediaECS.blockSolid,
-				objectSolid = BlockEncyclopediaECS.objectSolid,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -481,8 +477,6 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockSolid = BlockEncyclopediaECS.blockSolid,
-				objectSolid = BlockEncyclopediaECS.objectSolid,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -553,8 +547,6 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
-				blockSolid = BlockEncyclopediaECS.blockSolid,
-				objectSolid = BlockEncyclopediaECS.objectSolid,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -690,8 +682,6 @@ public class Chunk
 			cacheCubeVert = cacheCubeVert,
 			cacheCubeUV = cacheCubeUV,
 			cacheCubeNormal = cacheCubeNormal,
-			blockSolid = BlockEncyclopediaECS.blockSolid,
-			objectSolid = BlockEncyclopediaECS.objectSolid,
 			blockTransparent = BlockEncyclopediaECS.blockTransparent,
 			objectTransparent = BlockEncyclopediaECS.objectTransparent,
 			blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1008,10 +998,6 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<Vector3> cacheCubeNormal;
 
 	// Block Encyclopedia Data
-	[ReadOnly]
-	public NativeArray<bool> blockSolid;
-	[ReadOnly]
-	public NativeArray<bool> objectSolid;
 	[ReadOnly]
 	public NativeArray<byte> blockTransparent;
 	[ReadOnly]
@@ -2225,10 +2211,6 @@ public struct BuildBorderJob : IJob{
 	public NativeArray<Vector3> cachedCubeNormal;
 
 	// Block Encyclopedia Data
-	[ReadOnly]
-	public NativeArray<bool> blockSolid;
-	[ReadOnly]
-	public NativeArray<bool> objectSolid;
 	[ReadOnly]
 	public NativeArray<byte> blockTransparent;
 	[ReadOnly]
