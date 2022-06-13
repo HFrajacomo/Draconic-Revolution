@@ -31,6 +31,9 @@ public static class NativeTools
         int byteSize = size * UnsafeUtility.SizeOf<T>();
 
         NativeArray<T> outputArray = new NativeArray<T>(size, Allocator.TempJob);
+
+        if(size <= 0)
+            return outputArray;
     
         void* inputBuffer = outputArray.GetUnsafePtr();
         void* outBuffer = UnsafeUtility.AddressOf(ref array[0]);
