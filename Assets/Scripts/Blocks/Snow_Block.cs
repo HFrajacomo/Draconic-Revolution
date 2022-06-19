@@ -15,5 +15,7 @@ public class Snow_Block : Blocks
         this.tileTop = 9;
         this.tileSide = 9;
         this.tileBottom = 9;
+
+        this.maxHP = 50;
     }
 }

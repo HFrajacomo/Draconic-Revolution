@@ -44,7 +44,9 @@ public class Wood_Block : Blocks
 
 		this.tileTop = 5;
 		this.tileSide = 6;
-		this.tileBottom = 5;	
+		this.tileBottom = 5;
+
+		this.maxHP = 180;
 	}
 
 	// Activates OnBreak event -> Emits normal BUD, emits special BUD to breadt-first search leaves

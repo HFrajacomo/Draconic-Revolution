@@ -61,6 +61,8 @@ public class Water_Block : Blocks
 		this.seamless = true;
 		this.drawTopRegardless = true;
 		this.viscosityDelay = 12;
+		this.maxHP = 1;
+		this.flags = new HashSet<BlockFlags>(){BlockFlags.IMMUNE};
 
 		this.aroundCodes = new ushort[8];
 		this.aroundStates = new ushort[8];

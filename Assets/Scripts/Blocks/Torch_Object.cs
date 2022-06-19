@@ -30,6 +30,8 @@ public class Torch_Object : BlocklikeObject
 		this.affectLight = false;
 		this.luminosity = 8;
 
+		this.maxHP = 1;
+
 		if(isClient){
 			this.go = GameObject.Find("----- PrefabObjects -----/Torch_Object");
 			this.mesh = this.go.GetComponent<MeshFilter>().sharedMesh;

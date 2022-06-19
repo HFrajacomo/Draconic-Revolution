@@ -27,6 +27,9 @@ public abstract class BlocklikeObject
 	public bool customBreak = false;
 	public bool customPlace = false;
 
+	public ushort maxHP;
+	public HashSet<BlockFlags> flags;
+
 	// Texture
 	public GameObject go;
 	public Mesh mesh;

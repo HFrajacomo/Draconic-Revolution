@@ -2106,6 +2106,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rend: {fileID: 0}
   filter: {fileID: 0}
+  decalMaterial: {fileID: 0}
 --- !u!33 &471249772
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2205,6 +2206,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rend: {fileID: 471797236}
   filter: {fileID: 471797235}
+  decalMaterial: {fileID: 2100000, guid: f16adf3f8d1fb254f828efe83af44ca3, type: 2}
 --- !u!33 &471797235
 MeshFilter:
   m_ObjectHideFlags: 0

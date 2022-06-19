@@ -21,6 +21,7 @@ public class BlockEncyclopedia : MonoBehaviour
     	// Loads all blocks
         for(int i=0;i<Blocks.blockCount;i++){
         	blocks[i] = Blocks.Block(i);
+            BlockEncyclopediaECS.blockHP[i] = blocks[i].maxHP;
             BlockEncyclopediaECS.blockSolid[i] = blocks[i].solid;
             BlockEncyclopediaECS.blockTransparent[i] = blocks[i].transparent;
             BlockEncyclopediaECS.blockSeamless[i] = blocks[i].seamless;
@@ -37,6 +38,7 @@ public class BlockEncyclopedia : MonoBehaviour
         // Loads all object meshes
         for(int i=0;i<BlocklikeObject.objectCount;i++){
         	objects[i] = BlocklikeObject.Create(i, isClient);
+            BlockEncyclopediaECS.objectHP[i] = objects[i].maxHP;
             BlockEncyclopediaECS.objectSolid[i] = objects[i].solid;
             BlockEncyclopediaECS.objectTransparent[i] = objects[i].transparent;
             BlockEncyclopediaECS.objectSeamless[i] = objects[i].seamless;

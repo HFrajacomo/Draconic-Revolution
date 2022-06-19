@@ -14,7 +14,9 @@ public class MetalOre_Block : Blocks
 
 		this.tileTop = 7;
 		this.tileSide = 7;
-		this.tileBottom = 7;	
+		this.tileBottom = 7;
+
+		this.maxHP = 350;
 	}
 
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){

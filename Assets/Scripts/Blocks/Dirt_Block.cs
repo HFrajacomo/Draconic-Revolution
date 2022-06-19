@@ -11,6 +11,7 @@ public class Dirt_Block : Blocks
 		this.invisible = false;
 		this.liquid = false;
 		this.affectLight = true;
+		this.maxHP = 100;
 
 		this.tileTop = 3;
 		this.tileSide = 3;

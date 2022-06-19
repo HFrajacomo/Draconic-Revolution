@@ -13,5 +13,7 @@ public class Ice_Block : Blocks
 		this.liquid = false;
 		this.affectLight = true;
 		this.seamless = true;
+		
+		this.maxHP = 30;
 	}
 }

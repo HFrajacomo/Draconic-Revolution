@@ -12,6 +12,7 @@ public class Grass_Block : Blocks
 		this.invisible = false;
 		this.liquid = false;
 		this.affectLight = true;
+		this.maxHP = 150;
 
 		this.tileTop = 1;
 		this.tileSide = 2;

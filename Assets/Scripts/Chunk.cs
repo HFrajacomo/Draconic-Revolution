@@ -34,13 +34,20 @@ public class Chunk
 	public bool xmDraw = false;
 	public bool zmDraw = false;
 
-	// Unity Settings
+	/*
+		Unity Settings
+	*/
+	// Block Chunks 
 	public ChunkRenderer renderer;
 	public MeshFilter meshFilter;
 	public MeshCollider meshCollider;
 	public GameObject obj;
 	public BlockEncyclopedia blockBook;
 	public ChunkLoader loader;
+
+	// Decal Chunk
+	public MeshFilter meshFilterDecal;
+	public GameObject objDecal;
 
 	// Cache Information
     private List<Vector3> vertices = new List<Vector3>();
@@ -70,7 +77,9 @@ public class Chunk
     private List<Vector3> vertexAux = new List<Vector3>();
     private List<Vector3> normalAux = new List<Vector3>();
 
+    // Decals Cache
     private Mesh mesh;
+    private Mesh meshDecal;
 
 	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader){
 		this.pos = pos;
@@ -83,6 +92,10 @@ public class Chunk
 		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
 		this.obj.transform.SetParent(this.renderer.transform);
 		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
+		this.objDecal = new GameObject();
+		this.objDecal.name = "Decals " + pos.x + ", " + pos.z;
+		this.objDecal.transform.SetParent(this.obj.transform);
+		this.objDecal.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 
 		this.data = new VoxelData();
 		this.metadata = new VoxelMetadata();
@@ -90,16 +103,24 @@ public class Chunk
 		this.obj.AddComponent<MeshFilter>();
 		MeshRenderer msr = this.obj.AddComponent<MeshRenderer>() as MeshRenderer;
 		this.obj.AddComponent<MeshCollider>();
+		this.objDecal.AddComponent<MeshFilter>();
+		MeshRenderer msrDecal = this.objDecal.AddComponent<MeshRenderer>() as MeshRenderer;
+		msrDecal.shadowCastingMode = ShadowCastingMode.Off;
+
 
 		this.meshFilter = this.obj.GetComponent<MeshFilter>();
 		this.meshCollider = this.obj.GetComponent<MeshCollider>();
+		this.meshFilterDecal = this.objDecal.GetComponent<MeshFilter>();
 		this.obj.GetComponent<MeshRenderer>().sharedMaterials = this.renderer.GetComponent<MeshRenderer>().sharedMaterials;
+		this.objDecal.GetComponent<MeshRenderer>().material = this.renderer.decalMaterial;
 		this.blockBook = be;
 		this.obj.layer = 8;
 
 		this.mesh = new Mesh();
 		this.meshFilter.mesh = this.mesh;
 		this.meshCollider.sharedMesh = this.mesh;
+		this.meshDecal = new Mesh();
+		this.meshFilterDecal.mesh = this.meshDecal;
 	}
 
 	// Dummy Chunk Generation
@@ -130,6 +151,7 @@ public class Chunk
 
 	public void Destroy(){
 		GameObject.Destroy(this.obj);
+		GameObject.Destroy(this.objDecal);
 		this.obj = null;
 		Object.Destroy(this.mesh);
 		Object.Destroy(this.meshFilter);
@@ -145,6 +167,8 @@ public class Chunk
 		this.data = null;
 		this.metadata = null;
 		this.mesh = null;
+		this.meshDecal = null;
+		this.meshFilterDecal = null;
 	}
 	
 	// Returns the chunk's header in byte array format
@@ -890,7 +914,46 @@ public class Chunk
     	this.UVs.Clear();
     	this.normals.Clear();
 
+    	BuildAllDecals();
+
 		this.drawMain = true;
+    }
+
+    public void BuildAllDecals(){
+    	NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
+    	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
+
+		NativeList<int> triangles = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeArray<Vector3> cacheVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
+
+		BuildDecalJob bdj = new BuildDecalJob{
+			blockdata = blockdata,
+			verts = verts,
+			UV = UVs,
+			triangles = triangles,
+			hpdata = hpdata,
+			blockHP = BlockEncyclopediaECS.blockHP,
+			objectHP = BlockEncyclopediaECS.objectHP,
+			blockInvisible = BlockEncyclopediaECS.blockInvisible,
+			objectInvisible = BlockEncyclopediaECS.objectInvisible,
+			blockTransparent = BlockEncyclopediaECS.blockTransparent,
+			objectTransparent = BlockEncyclopediaECS.objectTransparent,
+			cacheCubeVerts = cacheVerts
+		};
+		JobHandle job = bdj.Schedule();
+		job.Complete();
+
+		BuildDecalMesh(verts.ToArray(), UVs.ToArray(), triangles.ToArray());
+
+		// Dispose Bin
+		blockdata.Dispose();
+		hpdata.Dispose();
+		triangles.Dispose();
+		verts.Dispose();
+		UVs.Dispose();
+		cacheVerts.Dispose();
     }
 
     // Returns n ShadowUVs to a list
@@ -947,7 +1010,7 @@ public class Chunk
     	this.meshFilter.mesh.SetTriangles(this.iceTris, 5);
 
     	this.meshCollider.sharedMesh = null;
-    	this.meshCollider.sharedMesh = this.meshFilter.mesh;;
+    	this.meshCollider.sharedMesh = this.meshFilter.mesh;
 
     	this.meshFilter.mesh.SetTriangles(this.specularTris, 1);
     	this.meshFilter.mesh.SetTriangles(this.liquidTris, 2);
@@ -957,6 +1020,19 @@ public class Chunk
     	this.meshFilter.mesh.uv = UV;
     	this.meshFilter.mesh.uv4 = lightUV;
     	this.meshFilter.mesh.SetNormals(normals);
+    }
+
+    // Builds the decal mesh
+    private void BuildDecalMesh(Vector3[] verts, Vector2[] UV, int[] triangles){
+    	this.meshFilterDecal.mesh.Clear();
+
+    	if(verts.Length >= ushort.MaxValue){
+    		this.meshFilterDecal.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+    	}
+
+    	this.meshFilterDecal.mesh.vertices = verts;
+    	this.meshFilterDecal.mesh.SetTriangles(triangles, 0);
+    	this.meshFilterDecal.mesh.uv = UV;
     }
 }
 
@@ -3270,4 +3346,172 @@ public struct BuildBorderJob : IJob{
 		normals[3] = normal;
 	}
 
+}
+
+[BurstCompile]
+public struct BuildDecalJob : IJob{
+	[ReadOnly]
+	public NativeArray<ushort> blockdata;
+	public NativeList<Vector3> verts;
+	public NativeList<Vector2> UV; 
+	public NativeList<int> triangles;
+	[ReadOnly]
+	public NativeArray<ushort> hpdata;
+	[ReadOnly]
+	public NativeArray<ushort> blockHP;
+	[ReadOnly]
+	public NativeArray<ushort> objectHP;
+	[ReadOnly]
+	public NativeArray<bool> blockInvisible;
+	[ReadOnly]
+	public NativeArray<bool> objectInvisible;
+	[ReadOnly]
+	public NativeArray<byte> blockTransparent;
+	[ReadOnly]
+	public NativeArray<byte> objectTransparent;
+	public NativeArray<Vector3> cacheCubeVerts;
+
+	public void Execute(){
+		ushort block;
+		ushort hp;
+		int decalCode;
+		ushort neighborBlock;
+
+		for(int x=0; x < Chunk.chunkWidth; x++){
+			for(int y=0; y < Chunk.chunkDepth; y++){
+				for(int z=0; z < Chunk.chunkWidth; z++){
+
+			    	for(int i=0; i<6; i++){
+			    		block = blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+			    		neighborBlock = GetNeighbor(x, y, z, i);
+			    		hp = hpdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+			    		
+			    		// Chunk Border and floor culling here! ----------
+			    		
+			    		if((x == 0 && 3 == i) || (z == 0 && 2 == i)){
+			    			continue;
+			    		}
+			    		if((x == Chunk.chunkWidth-1 && 1 == i) || (z == Chunk.chunkWidth-1 && 0 == i)){
+			    			continue;
+			    		}
+			    		if(y == 0 && 5 == i){
+			    			continue;
+			    		}
+
+			    		if(block <= ushort.MaxValue){
+			    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[block])
+			    				continue;
+			    		}
+			    		else{
+			    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[block])
+			    				continue;			    			
+			    		}
+
+			    		if(CheckTransparentOrInvisible(neighborBlock)){
+			    			decalCode = GetDecalStage(block, hp);
+
+			    			if(decalCode >= 0)
+			    				BuildDecal(x, y, z, i, decalCode);
+			    		}
+
+			    	}
+				}
+			}
+		}
+	}
+
+	public void BuildDecal(int x, int y, int z, int dir, int decal){
+		FaceVertices(cacheCubeVerts, dir, 0.5f, GetDecalPosition(x, y, z, dir));
+		verts.AddRange(cacheCubeVerts);
+		int vCount = verts.Length;
+
+		FillUV(decal);
+		
+    	triangles.Add(vCount -4);
+    	triangles.Add(vCount -4 +1);
+    	triangles.Add(vCount -4 +2);
+    	triangles.Add(vCount -4);
+    	triangles.Add(vCount -4 +2);
+    	triangles.Add(vCount -4 +3); 
+	}
+
+	public void FillUV(int decal){
+		float xSize = 1 / Constants.DECAL_STAGE_SIZE;
+		float xMin = decal * xSize;
+
+		UV.Add(new Vector2(xMin, 0));
+		UV.Add(new Vector2(xMin, 1));
+		UV.Add(new Vector2(xMin + xSize, 1));
+		UV.Add(new Vector2(xMin + xSize, 0));
+	}
+
+	// Cube Mesh Data get verts
+	public void FaceVertices(NativeArray<Vector3> fv, int dir, float scale, Vector3 pos)
+	{
+		for (int i = 0; i < fv.Length; i++)
+		{
+			fv[i] = (CubeMeshData.vertices[CubeMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		}
+	}
+
+	public bool CheckTransparentOrInvisible(ushort block){
+		if(block <= ushort.MaxValue)
+			return Boolean(blockTransparent[block]) || blockInvisible[block];
+		else
+			return objectInvisible[ushort.MaxValue - block] || Boolean(objectTransparent[ushort.MaxValue - block]);
+	}
+
+	public int GetDecalStage(ushort block, ushort hp){
+		float hpPercentage;
+
+		if(block <= ushort.MaxValue)
+			hpPercentage = hp / blockHP[block];
+		else
+			hpPercentage = hp / objectHP[ushort.MaxValue - block];
+		
+
+
+	    for(int i=0; i < Constants.DECAL_STAGE_SIZE; i++){
+			if(hpPercentage <= Constants.DECAL_STAGE_PERCENTAGE[i])
+				return (Constants.DECAL_STAGE_SIZE - 1) - i;
+		}
+
+		return -1;
+	}
+
+	// Gets neighbor element
+	private ushort GetNeighbor(int x, int y, int z, int dir){
+		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
+		
+		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
+			return 0;
+		}
+
+		return blockdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
+	}
+
+	private bool Boolean(byte b){
+		if(b == 0)
+			return false;
+		return true;
+	}
+
+	public Vector3 GetDecalPosition(int x, int y, int z, int dir){
+		Vector3 normal;
+
+		if(dir == 0)
+			normal = new Vector3(0, 0, Constants.DECAL_OFFSET);
+		else if(dir == 1)
+			normal = new Vector3(Constants.DECAL_OFFSET, 0, 0);
+		else if(dir == 2)
+			normal = new Vector3(0, 0, -Constants.DECAL_OFFSET);
+		else if(dir == 3)
+			normal = new Vector3(-Constants.DECAL_OFFSET, 0, 0);
+		else if(dir == 4)
+			normal = new Vector3(0, Constants.DECAL_OFFSET, 0);
+		else
+			normal = new Vector3(0, -Constants.DECAL_OFFSET, 0);
+
+		return new Vector3(x + normal.x, y + normal.y, z + normal.z);
+	}
 }

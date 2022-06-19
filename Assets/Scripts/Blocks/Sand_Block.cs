@@ -14,6 +14,8 @@ public class Sand_Block : Blocks
 
         this.tileTop = 8;
         this.tileSide = 8;
-        this.tileBottom = 8;    
+        this.tileBottom = 8;
+
+        this.maxHP = 70; 
     }
 }
