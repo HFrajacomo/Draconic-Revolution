@@ -250,6 +250,7 @@ public class Chunk
 		int3[] budArray;
 
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative(this.data.GetData());
+		NativeArray<ushort> hpdata = NativeTools.CopyToNative(this.metadata.GetHPData());
 		NativeArray<ushort> metadata = NativeTools.CopyToNative(this.metadata.GetStateData());
 		NativeArray<byte> lightdata = NativeTools.CopyToNative(this.data.GetLightMap());
 
@@ -271,6 +272,13 @@ public class Chunk
 		NativeArray<Vector2> cacheUVVerts = new NativeArray<Vector2>(4, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 
+		// Decals
+		NativeList<Vector3> vertsDecal = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<Vector2> UVDecal = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<int> trisDecal = new NativeList<int>(0, Allocator.TempJob); 
+		NativeArray<Vector3> cacheCubeVertsDecal = new NativeArray<Vector3>(4, Allocator.TempJob);
+
+
 		// For Init
 		this.meshFilter.mesh.GetVertices(vertexAux);
 		NativeArray<Vector3> disposableVerts = NativeTools.CopyToNative<Vector3>(vertexAux.ToArray());
@@ -288,14 +296,26 @@ public class Chunk
 		NativeArray<Vector3> disposableNormals = NativeTools.CopyToNative<Vector3>(normalAux.ToArray());
 		normalAux.Clear();
 
+		// Decals
+		this.meshFilterDecal.mesh.GetVertices(vertexAux);
+		NativeArray<Vector3> disposableVertsDecal = NativeTools.CopyToNative<Vector3>(vertexAux.ToArray());
+		vertexAux.Clear();
+
+		this.meshFilterDecal.mesh.GetUVs(0, UVaux);
+		NativeArray<Vector2> disposableUVSDecal = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
+		UVaux.Clear();
+
+
 		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(0), Allocator.TempJob);
 		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(1), Allocator.TempJob);
 		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(2), Allocator.TempJob);
 		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(4), Allocator.TempJob);
 		NativeArray<int> disposableIceTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(5), Allocator.TempJob);
+		NativeArray<int> disposableDecalTris = new NativeArray<int>(this.meshFilterDecal.mesh.GetTriangles(0), Allocator.TempJob);
 
 
 		JobHandle job;
+		JobHandle jobDecal;
 
 
 		// Initialize Data
@@ -308,11 +328,16 @@ public class Chunk
 		leavesTris.AddRange(disposableLeavesTris);
 		iceTris.AddRange(disposableIceTris);
 		normals.AddRange(disposableNormals);
+		vertsDecal.AddRange(disposableVertsDecal);
+		UVDecal.AddRange(disposableUVSDecal);
+		trisDecal.AddRange(disposableDecalTris);
 
 
 		// Dispose Init
 		disposableVerts.Dispose();
+		disposableVertsDecal.Dispose();
 		disposableUVS.Dispose();
+		disposableUVSDecal.Dispose();
 		disposableTris.Dispose();
 		disposableSpecTris.Dispose();
 		disposableLiquidTris.Dispose();
@@ -320,6 +345,7 @@ public class Chunk
 		disposableLight.Dispose();
 		disposableLeavesTris.Dispose();
 		disposableIceTris.Dispose();
+		disposableDecalTris.Dispose();
 
 		// X- Analysis
 		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z); 
@@ -369,8 +395,32 @@ public class Chunk
 				objectWashable = BlockEncyclopediaECS.objectWashable,
 				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
+
+			BuildDecalSideJob bdsj = new BuildDecalSideJob{
+				blockdata = blockdata,
+				neighbordata = neighbordata,
+				hpdata = hpdata,
+				xm = true,
+				zm = false,
+				xp = false,
+				zp = false,
+				verts = vertsDecal,
+				UV = UVDecal,
+				triangles = trisDecal,
+				blockHP = BlockEncyclopediaECS.blockHP,
+				objectHP = BlockEncyclopediaECS.objectHP,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				cacheCubeVerts = cacheCubeVertsDecal
+			};
+
 			job = bbJob.Schedule();
+			jobDecal = bdsj.Schedule();
+
 			job.Complete();
+			jobDecal.Complete();
 			
 			neighbordata.Dispose();
 			neighborlight.Dispose();
@@ -441,8 +491,32 @@ public class Chunk
 				objectWashable = BlockEncyclopediaECS.objectWashable,
 				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
+
+			BuildDecalSideJob bdsj = new BuildDecalSideJob{
+				blockdata = blockdata,
+				neighbordata = neighbordata,
+				hpdata = hpdata,
+				xm = false,
+				zm = false,
+				xp = true,
+				zp = false,
+				verts = vertsDecal,
+				UV = UVDecal,
+				triangles = trisDecal,
+				blockHP = BlockEncyclopediaECS.blockHP,
+				objectHP = BlockEncyclopediaECS.objectHP,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				cacheCubeVerts = cacheCubeVertsDecal
+			};
+
 			job = bbJob.Schedule();
+			jobDecal = bdsj.Schedule();
+
 			job.Complete();
+			jobDecal.Complete();
 
 			neighbordata.Dispose();
 			neighborlight.Dispose();
@@ -513,8 +587,32 @@ public class Chunk
 				objectWashable = BlockEncyclopediaECS.objectWashable,
 				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
+
+			BuildDecalSideJob bdsj = new BuildDecalSideJob{
+				blockdata = blockdata,
+				neighbordata = neighbordata,
+				hpdata = hpdata,
+				xm = false,
+				zm = true,
+				xp = false,
+				zp = false,
+				verts = vertsDecal,
+				UV = UVDecal,
+				triangles = trisDecal,
+				blockHP = BlockEncyclopediaECS.blockHP,
+				objectHP = BlockEncyclopediaECS.objectHP,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				cacheCubeVerts = cacheCubeVertsDecal
+			};
+
 			job = bbJob.Schedule();
+			jobDecal = bdsj.Schedule();
+
 			job.Complete();
+			jobDecal.Complete();
 
 			neighbordata.Dispose();
 			neighborlight.Dispose();
@@ -583,8 +681,32 @@ public class Chunk
 				objectWashable = BlockEncyclopediaECS.objectWashable,
 				blockTiles = BlockEncyclopediaECS.blockTiles
 			};
+
+			BuildDecalSideJob bdsj = new BuildDecalSideJob{
+				blockdata = blockdata,
+				neighbordata = neighbordata,
+				hpdata = hpdata,
+				xm = false,
+				zm = false,
+				xp = false,
+				zp = true,
+				verts = vertsDecal,
+				UV = UVDecal,
+				triangles = trisDecal,
+				blockHP = BlockEncyclopediaECS.blockHP,
+				objectHP = BlockEncyclopediaECS.objectHP,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				cacheCubeVerts = cacheCubeVertsDecal
+			};
+
 			job = bbJob.Schedule();
+			jobDecal = bdsj.Schedule();
+
 			job.Complete();
+			jobDecal.Complete();
 
 			neighbordata.Dispose();
 			neighborlight.Dispose();
@@ -630,6 +752,7 @@ public class Chunk
 			assetTris = this.meshFilter.mesh.GetTriangles(3);
 
 			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray());
+			BuildDecalMesh(vertsDecal.ToArray(), UVDecal.ToArray(), trisDecal.ToArray());
 		}
 
 		blockdata.Dispose();
@@ -649,6 +772,11 @@ public class Chunk
 		toBUD.Dispose();
 		lightUV.Dispose();
 		lightdata.Dispose();
+		hpdata.Dispose();
+		vertsDecal.Dispose();
+		UVDecal.Dispose();
+		trisDecal.Dispose();
+		cacheCubeVertsDecal.Dispose();
 
     	this.vertices.Clear();
     	this.triangles = null;
@@ -722,6 +850,9 @@ public class Chunk
 			blockDrawTop = BlockEncyclopediaECS.blockDrawTopRegardless
 		};
 		JobHandle job = bcJob.Schedule();
+
+		BuildAllDecals(blockdata);
+
 		job.Complete();
 
 
@@ -914,13 +1045,10 @@ public class Chunk
     	this.UVs.Clear();
     	this.normals.Clear();
 
-    	BuildAllDecals();
-
 		this.drawMain = true;
     }
 
-    public void BuildAllDecals(){
-    	NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
+    public void BuildAllDecals(NativeArray<ushort> blockdata){
     	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
 
 		NativeList<int> triangles = new NativeList<int>(0, Allocator.TempJob);
@@ -948,7 +1076,6 @@ public class Chunk
 		BuildDecalMesh(verts.ToArray(), UVs.ToArray(), triangles.ToArray());
 
 		// Dispose Bin
-		blockdata.Dispose();
 		hpdata.Dispose();
 		triangles.Dispose();
 		verts.Dispose();
@@ -2245,7 +2372,7 @@ public struct PrepareAssetsJob : IJob{
 	}
 }
 
-//[BurstCompile]
+[BurstCompile]
 public struct BuildBorderJob : IJob{
 	[ReadOnly]
 	public bool reload;
@@ -3415,6 +3542,254 @@ public struct BuildDecalJob : IJob{
 			    		}
 
 			    	}
+				}
+			}
+		}
+	}
+
+	public void BuildDecal(int x, int y, int z, int dir, int decal){
+		FaceVertices(cacheCubeVerts, dir, 0.5f, GetDecalPosition(x, y, z, dir));
+		verts.AddRange(cacheCubeVerts);
+		int vCount = verts.Length;
+
+		FillUV(decal);
+		
+    	triangles.Add(vCount -4);
+    	triangles.Add(vCount -4 +1);
+    	triangles.Add(vCount -4 +2);
+    	triangles.Add(vCount -4);
+    	triangles.Add(vCount -4 +2);
+    	triangles.Add(vCount -4 +3); 
+	}
+
+	public void FillUV(int decal){
+		float xSize = 1 / Constants.DECAL_STAGE_SIZE;
+		float xMin = decal * xSize;
+
+		UV.Add(new Vector2(xMin, 0));
+		UV.Add(new Vector2(xMin, 1));
+		UV.Add(new Vector2(xMin + xSize, 1));
+		UV.Add(new Vector2(xMin + xSize, 0));
+	}
+
+	// Cube Mesh Data get verts
+	public void FaceVertices(NativeArray<Vector3> fv, int dir, float scale, Vector3 pos)
+	{
+		for (int i = 0; i < fv.Length; i++)
+		{
+			fv[i] = (CubeMeshData.vertices[CubeMeshData.faceTriangles[dir*4+i]] * scale) + pos;
+		}
+	}
+
+	public bool CheckTransparentOrInvisible(ushort block){
+		if(block <= ushort.MaxValue)
+			return Boolean(blockTransparent[block]) || blockInvisible[block];
+		else
+			return objectInvisible[ushort.MaxValue - block] || Boolean(objectTransparent[ushort.MaxValue - block]);
+	}
+
+	public int GetDecalStage(ushort block, ushort hp){
+		float hpPercentage;
+
+		if(block <= ushort.MaxValue)
+			hpPercentage = hp / blockHP[block];
+		else
+			hpPercentage = hp / objectHP[ushort.MaxValue - block];
+		
+
+
+	    for(int i=0; i < Constants.DECAL_STAGE_SIZE; i++){
+			if(hpPercentage <= Constants.DECAL_STAGE_PERCENTAGE[i])
+				return (Constants.DECAL_STAGE_SIZE - 1) - i;
+		}
+
+		return -1;
+	}
+
+	// Gets neighbor element
+	private ushort GetNeighbor(int x, int y, int z, int dir){
+		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
+		
+		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
+			return 0;
+		}
+
+		return blockdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
+	}
+
+	private bool Boolean(byte b){
+		if(b == 0)
+			return false;
+		return true;
+	}
+
+	public Vector3 GetDecalPosition(int x, int y, int z, int dir){
+		Vector3 normal;
+
+		if(dir == 0)
+			normal = new Vector3(0, 0, Constants.DECAL_OFFSET);
+		else if(dir == 1)
+			normal = new Vector3(Constants.DECAL_OFFSET, 0, 0);
+		else if(dir == 2)
+			normal = new Vector3(0, 0, -Constants.DECAL_OFFSET);
+		else if(dir == 3)
+			normal = new Vector3(-Constants.DECAL_OFFSET, 0, 0);
+		else if(dir == 4)
+			normal = new Vector3(0, Constants.DECAL_OFFSET, 0);
+		else
+			normal = new Vector3(0, -Constants.DECAL_OFFSET, 0);
+
+		return new Vector3(x + normal.x, y + normal.y, z + normal.z);
+	}
+}
+
+[BurstCompile]
+public struct BuildDecalSideJob : IJob{
+	[ReadOnly]
+	public NativeArray<ushort> blockdata;
+	[ReadOnly]
+	public NativeArray<ushort> neighbordata;
+
+	public NativeList<Vector3> verts;
+	public NativeList<Vector2> UV; 
+	public NativeList<int> triangles;
+	[ReadOnly]
+	public NativeArray<ushort> hpdata;
+	[ReadOnly]
+	public NativeArray<ushort> blockHP;
+	[ReadOnly]
+	public NativeArray<ushort> objectHP;
+	[ReadOnly]
+	public NativeArray<bool> blockInvisible;
+	[ReadOnly]
+	public NativeArray<bool> objectInvisible;
+	[ReadOnly]
+	public NativeArray<byte> blockTransparent;
+	[ReadOnly]
+	public NativeArray<byte> objectTransparent;
+	public NativeArray<Vector3> cacheCubeVerts;
+
+	public bool xp, xm, zp, zm;
+
+	public void Execute(){
+		ushort thisBlock;
+		ushort neighborBlock;
+		ushort hp;
+		int dir;
+		int decalCode;
+
+		if(xm){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int z=0; z<Chunk.chunkWidth; z++){
+
+					thisBlock = blockdata[y*Chunk.chunkWidth+z];
+					neighborBlock = neighbordata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+		    		hp = hpdata[y*Chunk.chunkWidth+z];
+		    		dir = 3;
+
+		    		if(thisBlock <= ushort.MaxValue){
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[thisBlock])
+		    				continue;
+		    		}
+		    		else{
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[thisBlock])
+		    				continue;			    			
+		    		}
+
+		    		if(CheckTransparentOrInvisible(neighborBlock)){
+		    			decalCode = GetDecalStage(thisBlock, hp);
+
+		    			if(decalCode >= 0)
+		    				BuildDecal(0, y, z, dir, decalCode);
+		    		}
+
+				}
+			}
+			return;
+		}
+		// X+ Side
+		else if(xp){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int z=0; z<Chunk.chunkWidth; z++){
+					thisBlock = blockdata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+					neighborBlock = neighbordata[y*Chunk.chunkWidth+z];
+		    		hp = hpdata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+		    		dir = 1;
+
+		    		if(thisBlock <= ushort.MaxValue){
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[thisBlock])
+		    				continue;
+		    		}
+		    		else{
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[thisBlock])
+		    				continue;			    			
+		    		}
+
+		    		if(CheckTransparentOrInvisible(neighborBlock)){
+		    			decalCode = GetDecalStage(thisBlock, hp);
+
+		    			if(decalCode >= 0)
+		    				BuildDecal(Chunk.chunkWidth-1, y, z, dir, decalCode);
+		    		}
+
+				}
+			}
+			return;
+		}
+		// Z- Side
+		else if(zm){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int x=0; x<Chunk.chunkWidth; x++){
+					thisBlock = blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
+					neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
+		    		hp = hpdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
+		    		dir = 2;
+
+		    		if(thisBlock <= ushort.MaxValue){
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[thisBlock])
+		    				continue;
+		    		}
+		    		else{
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[thisBlock])
+		    				continue;			    			
+		    		}
+
+		    		if(CheckTransparentOrInvisible(neighborBlock)){
+		    			decalCode = GetDecalStage(thisBlock, hp);
+
+		    			if(decalCode >= 0)
+		    				BuildDecal(x, y, 0, dir, decalCode);
+		    		}
+
+				}
+			}
+			return;
+		}
+		// Z+ Side
+		else if(zp){
+			for(int y=0; y<Chunk.chunkDepth; y++){
+				for(int x=0; x<Chunk.chunkWidth; x++){
+					thisBlock = blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
+					neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
+		    		hp = hpdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
+		    		dir = 0;
+
+		    		if(thisBlock <= ushort.MaxValue){
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[thisBlock])
+		    				continue;
+		    		}
+		    		else{
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[thisBlock])
+		    				continue;			    			
+		    		}
+
+		    		if(CheckTransparentOrInvisible(neighborBlock)){
+		    			decalCode = GetDecalStage(thisBlock, hp);
+
+		    			if(decalCode >= 0)
+		    				BuildDecal(x, y, Chunk.chunkWidth-1, dir, decalCode);
+		    		}
+
 				}
 			}
 		}
