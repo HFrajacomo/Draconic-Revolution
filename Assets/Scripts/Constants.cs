@@ -15,5 +15,5 @@ public static class Constants
 
     public static readonly float[] DECAL_STAGE_PERCENTAGE = new float[]{0.2f, 0.4f, 0.6f, 0.8f};
     public static readonly int DECAL_STAGE_SIZE = 4;
-    public static readonly float DECAL_OFFSET = 0.01f;
+    public static readonly float DECAL_OFFSET = 0.001f;
 }

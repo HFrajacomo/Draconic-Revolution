@@ -3727,7 +3727,7 @@ public struct BuildDecalSideJob : IJob{
 		    				continue;
 		    		}
 		    		else{
-		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[thisBlock])
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[ushort.MaxValue - thisBlock])
 		    				continue;			    			
 		    		}
 
@@ -3756,7 +3756,7 @@ public struct BuildDecalSideJob : IJob{
 		    				continue;
 		    		}
 		    		else{
-		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[thisBlock])
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[ushort.MaxValue - thisBlock])
 		    				continue;			    			
 		    		}
 
@@ -3785,7 +3785,7 @@ public struct BuildDecalSideJob : IJob{
 		    				continue;
 		    		}
 		    		else{
-		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[thisBlock])
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[ushort.MaxValue - thisBlock])
 		    				continue;			    			
 		    		}
 
@@ -3814,7 +3814,7 @@ public struct BuildDecalSideJob : IJob{
 		    				continue;
 		    		}
 		    		else{
-		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[thisBlock])
+		    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[ushort.MaxValue - thisBlock])
 		    				continue;			    			
 		    		}
 
@@ -3846,8 +3846,8 @@ public struct BuildDecalSideJob : IJob{
 	}
 
 	public void FillUV(int decal){
-		float xSize = 1 / Constants.DECAL_STAGE_SIZE;
-		float xMin = decal * xSize;
+		float xSize = 1 / (float)Constants.DECAL_STAGE_SIZE;
+		float xMin = (float)decal * xSize;
 
 		UV.Add(new Vector2(xMin, 0));
 		UV.Add(new Vector2(xMin, 1));
