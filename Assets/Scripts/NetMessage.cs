@@ -301,6 +301,18 @@ public struct NetMessage
 		this.size = 9;	
 	}
 
+	// Client or server sends a block damage operation to server
+	// TODO: Add Damage Type
+	public void BlockDamage(ChunkPos pos, int x, int y, int z, ushort newHPOrDamage, bool shouldRedrawChunk){
+		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
+		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
+		NetDecoder.WriteUshort(newHPOrDamage, NetMessage.buffer, 21);
+		NetDecoder.WriteBool(shouldRedrawChunk, NetMessage.buffer, 23);
+		this.size = 24;
+	}
+
 }
 
 public enum NetCode{
@@ -327,6 +339,7 @@ public enum NetCode{
 	PLACEMENTDENIED, // No call
 	DROPITEM,
 	ITEMENTITYDATA,
+	BLOCKDAMAGE,
 	DISCONNECT  // No call
 }
 

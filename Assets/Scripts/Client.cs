@@ -298,6 +298,9 @@ public class Client
 			case NetCode.ITEMENTITYDATA:
 				ItemEntityData(data);
 				break;
+			case NetCode.BLOCKDAMAGE:
+				BlockDamage(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -571,6 +574,32 @@ public class Client
 		else{
 			this.entityHandler.AddItem(code, pos, rot, its);
 			this.smoothMovement.AddItem(code);
+		}
+	}
+
+	// Receives block damage information from server
+	private void BlockDamage(byte[] data){
+		ChunkPos pos;
+		int x,y,z;
+		ushort newHP;
+		bool shouldRedraw;
+		Chunk c;
+
+		pos = NetDecoder.ReadChunkPos(data, 1);
+		x = NetDecoder.ReadInt(data, 9);
+		y = NetDecoder.ReadInt(data, 13);
+		z = NetDecoder.ReadInt(data, 17);
+		newHP = NetDecoder.ReadUshort(data, 21);
+		shouldRedraw = NetDecoder.ReadBool(data, 23);
+
+		if(this.cl.chunks.ContainsKey(pos)){
+			c = this.cl.chunks[pos];
+			c.metadata.SetHP(x, y, z, newHP);
+
+			if(shouldRedraw){
+				this.cl.AddToUpdate(pos);
+				CheckReload(pos, x, y, z);
+			}
 		}
 	}
 

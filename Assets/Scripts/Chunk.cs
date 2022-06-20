@@ -94,7 +94,7 @@ public class Chunk
 		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objDecal = new GameObject();
 		this.objDecal.name = "Decals " + pos.x + ", " + pos.z;
-		this.objDecal.transform.SetParent(this.obj.transform);
+		this.objDecal.transform.SetParent(this.renderer.transform);
 		this.objDecal.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 
 		this.data = new VoxelData();
@@ -1083,6 +1083,42 @@ public class Chunk
 		cacheVerts.Dispose();
     }
 
+    public void BuildAllDecals(){
+    	NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
+    	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
+
+		NativeList<int> triangles = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeArray<Vector3> cacheVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
+
+		BuildDecalJob bdj = new BuildDecalJob{
+			blockdata = blockdata,
+			verts = verts,
+			UV = UVs,
+			triangles = triangles,
+			hpdata = hpdata,
+			blockHP = BlockEncyclopediaECS.blockHP,
+			objectHP = BlockEncyclopediaECS.objectHP,
+			blockInvisible = BlockEncyclopediaECS.blockInvisible,
+			objectInvisible = BlockEncyclopediaECS.objectInvisible,
+			blockTransparent = BlockEncyclopediaECS.blockTransparent,
+			objectTransparent = BlockEncyclopediaECS.objectTransparent,
+			cacheCubeVerts = cacheVerts
+		};
+		JobHandle job = bdj.Schedule();
+		job.Complete();
+
+		BuildDecalMesh(verts.ToArray(), UVs.ToArray(), triangles.ToArray());
+
+		// Dispose Bin
+		hpdata.Dispose();
+		triangles.Dispose();
+		verts.Dispose();
+		UVs.Dispose();
+		cacheVerts.Dispose();
+    }
+
     // Returns n ShadowUVs to a list
     private void FillShadowUV(ref List<Vector2> l, int3 coord, int n){
     	float light = this.data.GetLight(coord);
@@ -1160,6 +1196,7 @@ public class Chunk
     	this.meshFilterDecal.mesh.vertices = verts;
     	this.meshFilterDecal.mesh.SetTriangles(triangles, 0);
     	this.meshFilterDecal.mesh.uv = UV;
+    	this.meshFilterDecal.mesh.RecalculateNormals();
     }
 }
 
@@ -3475,7 +3512,7 @@ public struct BuildBorderJob : IJob{
 
 }
 
-[BurstCompile]
+//[BurstCompile]
 public struct BuildDecalJob : IJob{
 	[ReadOnly]
 	public NativeArray<ushort> blockdata;
@@ -3525,7 +3562,7 @@ public struct BuildDecalJob : IJob{
 			    			continue;
 			    		}
 
-			    		if(block <= ushort.MaxValue){
+			    		if(block <= ushort.MaxValue/2){
 			    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[block])
 			    				continue;
 			    		}
@@ -3563,8 +3600,8 @@ public struct BuildDecalJob : IJob{
 	}
 
 	public void FillUV(int decal){
-		float xSize = 1 / Constants.DECAL_STAGE_SIZE;
-		float xMin = decal * xSize;
+		float xSize = 1 / (float)Constants.DECAL_STAGE_SIZE;
+		float xMin = (float)decal * xSize;
 
 		UV.Add(new Vector2(xMin, 0));
 		UV.Add(new Vector2(xMin, 1));
@@ -3592,11 +3629,9 @@ public struct BuildDecalJob : IJob{
 		float hpPercentage;
 
 		if(block <= ushort.MaxValue)
-			hpPercentage = hp / blockHP[block];
+			hpPercentage = (float)hp / (float)blockHP[block];
 		else
-			hpPercentage = hp / objectHP[ushort.MaxValue - block];
-		
-
+			hpPercentage = (float)hp / (float)objectHP[ushort.MaxValue - block];
 
 	    for(int i=0; i < Constants.DECAL_STAGE_SIZE; i++){
 			if(hpPercentage <= Constants.DECAL_STAGE_PERCENTAGE[i])
@@ -3623,7 +3658,7 @@ public struct BuildDecalJob : IJob{
 		return true;
 	}
 
-	public Vector3 GetDecalPosition(int x, int y, int z, int dir){
+	public Vector3 GetDecalPosition(float x, float y, float z, int dir){
 		Vector3 normal;
 
 		if(dir == 0)
@@ -3687,7 +3722,7 @@ public struct BuildDecalSideJob : IJob{
 		    		hp = hpdata[y*Chunk.chunkWidth+z];
 		    		dir = 3;
 
-		    		if(thisBlock <= ushort.MaxValue){
+		    		if(thisBlock <= ushort.MaxValue/2){
 		    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[thisBlock])
 		    				continue;
 		    		}
@@ -3716,7 +3751,7 @@ public struct BuildDecalSideJob : IJob{
 		    		hp = hpdata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 		    		dir = 1;
 
-		    		if(thisBlock <= ushort.MaxValue){
+		    		if(thisBlock <= ushort.MaxValue/2){
 		    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[thisBlock])
 		    				continue;
 		    		}
@@ -3745,7 +3780,7 @@ public struct BuildDecalSideJob : IJob{
 		    		hp = hpdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
 		    		dir = 2;
 
-		    		if(thisBlock <= ushort.MaxValue){
+		    		if(thisBlock <= ushort.MaxValue/2){
 		    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[thisBlock])
 		    				continue;
 		    		}
@@ -3774,7 +3809,7 @@ public struct BuildDecalSideJob : IJob{
 		    		hp = hpdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
 		    		dir = 0;
 
-		    		if(thisBlock <= ushort.MaxValue){
+		    		if(thisBlock <= ushort.MaxValue/2){
 		    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[thisBlock])
 		    				continue;
 		    		}
@@ -3830,7 +3865,7 @@ public struct BuildDecalSideJob : IJob{
 	}
 
 	public bool CheckTransparentOrInvisible(ushort block){
-		if(block <= ushort.MaxValue)
+		if(block <= ushort.MaxValue/2)
 			return Boolean(blockTransparent[block]) || blockInvisible[block];
 		else
 			return objectInvisible[ushort.MaxValue - block] || Boolean(objectTransparent[ushort.MaxValue - block]);
@@ -3839,10 +3874,10 @@ public struct BuildDecalSideJob : IJob{
 	public int GetDecalStage(ushort block, ushort hp){
 		float hpPercentage;
 
-		if(block <= ushort.MaxValue)
-			hpPercentage = hp / blockHP[block];
+		if(block <= ushort.MaxValue/2)
+			hpPercentage = (float)hp / (float)blockHP[block];
 		else
-			hpPercentage = hp / objectHP[ushort.MaxValue - block];
+			hpPercentage = (float)hp / (float)objectHP[ushort.MaxValue - block];
 		
 
 

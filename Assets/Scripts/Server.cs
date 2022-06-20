@@ -46,6 +46,9 @@ public class Server
 	// Unity Reference
 	public ChunkLoader_Server cl;
 
+	// Cache
+	private byte[] cacheBreakData = new byte[35];
+
 	public Server(ChunkLoader_Server cl){
     	ParseArguments();
 
@@ -354,6 +357,9 @@ public class Server
 			case NetCode.BATCHLOADBUD:
 				BatchLoadBUD(data, id);
 				break;
+			case NetCode.BLOCKDAMAGE:
+				BlockDamage(data, id);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED");
 				break;
@@ -520,7 +526,8 @@ public class Server
 	}
 
 	// Sends a direct action BUD to a block
-	private void DirectBlockUpdate(byte[] data, ulong id){
+	// ComesFromMessage flag is used to call this function from within the Server Code and not triggered by any message
+	private void DirectBlockUpdate(byte[] data, ulong id, bool comesFromMessage=true){
 		ChunkPos pos;
 		int x, y, z, facing;
 		ushort blockCode, state, hp;
@@ -532,11 +539,19 @@ public class Server
 		y = NetDecoder.ReadInt(data, 13);
 		z = NetDecoder.ReadInt(data, 17);
 		facing = NetDecoder.ReadInt(data, 21);
-
 		blockCode = NetDecoder.ReadUshort(data, 25);
-		state = NetDecoder.ReadUshort(data, 27);
-		hp = NetDecoder.ReadUshort(data, 29);
-		type = (BUDCode)NetDecoder.ReadInt(data, 31);
+		state = 0;
+		hp = 0;
+
+
+		if(comesFromMessage){
+			state = NetDecoder.ReadUshort(data, 27);
+			hp = NetDecoder.ReadUshort(data, 29);
+			type = (BUDCode)NetDecoder.ReadInt(data, 31);
+		}
+		else{
+			type = (BUDCode)NetDecoder.ReadInt(data, 27);
+		}
 
 		CastCoord lastCoord = new CastCoord(pos, x, y, z);
 
@@ -943,8 +958,86 @@ public class Server
 		}
 	}
 
+	// Receives a block damage from client and processes block HP
+	private void BlockDamage(byte[] data, ulong id){
+		// Loaded from message
+		ChunkPos pos;
+		int x, y, z;
+		ushort blockDamage;
+		Chunk c;
 
+		// Auxiliary
+		int currentHP, actualDamage;
+		ushort block;
+		int decalBefore, decalAfter;
+		bool isBlock;
+		NetMessage message;
+
+		pos = NetDecoder.ReadChunkPos(data, 1);
+		x = NetDecoder.ReadInt(data, 9);
+		y = NetDecoder.ReadInt(data, 13);
+		z = NetDecoder.ReadInt(data, 17);
+		blockDamage = NetDecoder.ReadUshort(data, 21);
+
+		if(this.cl.chunks.ContainsKey(pos)){
+			c = this.cl.chunks[pos];
+
+			block = c.data.GetCell(x, y, z);
+			currentHP = c.metadata.GetHP(x, y, z);
+
+			if(block <= ushort.MaxValue/2){
+				isBlock = true;
+			}
+			else{
+				isBlock = false;
+			}
+
+			if(currentHP == 0 || currentHP == ushort.MaxValue){
+				if(isBlock){
+					currentHP = BlockEncyclopediaECS.blockHP[block];
+				}
+				else{
+					currentHP = BlockEncyclopediaECS.objectHP[ushort.MaxValue - block];
+				}
+			}
+
+			actualDamage = this.cl.blockBook.GetDamageReceived(block, blockDamage);
+
+			if(actualDamage == 0)
+				return;
+
+			decalBefore = GetDecalCode(block, currentHP);
+			currentHP -= actualDamage;
+			decalAfter = GetDecalCode(block, currentHP);
+
+			// If block has broken
+			if(currentHP <= 0){
+				this.cacheBreakData[0] = 0;
+				NetDecoder.WriteChunkPos(pos, this.cacheBreakData, 1);
+				NetDecoder.WriteInt(x, this.cacheBreakData, 9);
+				NetDecoder.WriteInt(y, this.cacheBreakData, 13);
+				NetDecoder.WriteInt(z, this.cacheBreakData, 17);
+				NetDecoder.WriteInt(0, this.cacheBreakData, 21);
+				NetDecoder.WriteUshort(block, this.cacheBreakData, 25);
+				NetDecoder.WriteInt((int)BUDCode.BREAK, this.cacheBreakData, 27);
+
+				this.DirectBlockUpdate(this.cacheBreakData, id, comesFromMessage:false);
+			}
+			// If damage wasn't significant enough for a decal change
+			else{
+				c.metadata.SetHP(x, y, z, (ushort)currentHP);
+
+				message = new NetMessage(NetCode.BLOCKDAMAGE);
+				message.BlockDamage(pos, x, y, z, (ushort)currentHP, decalBefore != decalAfter);
+				SendToClients(pos, message);
+				this.cl.regionHandler.SaveChunk(c);
+			}
+		}
+	}
+
+	/*
 	// Auxiliary Functions
+	*/
 
 	// Send input message to all Clients connected to a given Chunk
 	public void SendToClients(ChunkPos pos, NetMessage message){
@@ -1054,6 +1147,26 @@ public class Server
 
 		foreach(ulong id in toRemove)
 			Disconnect(id, DisconnectType.TIMEDOUT);
+	}
+
+	// Returns the decal code for a given block and HP
+	public int GetDecalCode(ushort block, int hp){
+		ushort maxHP;
+		float lifePercentage;
+
+		if(block <= ushort.MaxValue/2)
+			maxHP = BlockEncyclopediaECS.blockHP[block];
+		else
+			maxHP = BlockEncyclopediaECS.objectHP[ushort.MaxValue - block];
+
+		lifePercentage = (float)hp / (float)maxHP;
+
+	    for(int i=0; i < Constants.DECAL_STAGE_SIZE; i++){
+			if(lifePercentage <= Constants.DECAL_STAGE_PERCENTAGE[i])
+				return (Constants.DECAL_STAGE_SIZE - 1) - i;
+		}
+
+		return -1;
 	}
 
 }

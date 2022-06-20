@@ -20,6 +20,9 @@ public class PlayerRaycast : MonoBehaviour
 	public CastCoord current;
 	private CastCoord lastCoord;
 
+	// Decal Specifics Test
+	private ushort blockDamage = 400;
+
 	// Prefab System
 	private bool prefabSetFlag = false;
 	private CastCoord prefabPos = new CastCoord(false);
@@ -167,8 +170,8 @@ public class PlayerRaycast : MonoBehaviour
 		ushort state = loader.chunks[toUpdate].metadata.GetState(current.blockX, current.blockY, current.blockZ);
 		ushort hp = loader.chunks[toUpdate].metadata.GetHP(current.blockX, current.blockY, current.blockZ);
 
-		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.BREAK, current.GetChunkPos(), current.blockX, current.blockY, current.blockZ, facing, blockCode, state, hp);
+		NetMessage message = new NetMessage(NetCode.BLOCKDAMAGE);
+		message.BlockDamage(current.GetChunkPos(), current.blockX, current.blockY, current.blockZ, this.blockDamage, false);
 		this.loader.client.Send(message.GetMessage(), message.size);
 	}
 

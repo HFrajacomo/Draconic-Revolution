@@ -120,4 +120,12 @@ public class BlockEncyclopedia : MonoBehaviour
             return objects[ushort.MaxValue - code].affectLight;
     }
 
+    // Get the damage received by a given block/object
+    public int GetDamageReceived(ushort block, ushort blockDamage){
+        if(block <= ushort.MaxValue/2)
+            return this.blocks[block].CalculateDamage(blockDamage);
+        else
+            return this.objects[ushort.MaxValue - block].CalculateDamage(blockDamage);
+    }
+
 }

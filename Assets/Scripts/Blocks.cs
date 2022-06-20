@@ -136,35 +136,51 @@ public abstract class Blocks
 
     // Handles the emittion of BUD to neighboring blocks
     public void EmitBlockUpdate(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
-      CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
+    	CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
 
-      CastCoord[] neighbors = {
-      thisPos.Add(1,0,0),
-      thisPos.Add(-1,0,0),
-      thisPos.Add(0,1,0),
-      thisPos.Add(0,-1,0),
-      thisPos.Add(0,0,1),
-      thisPos.Add(0,0,-1)
-      };
+    	CastCoord[] neighbors = {
+	    	thisPos.Add(1,0,0),
+	    	thisPos.Add(-1,0,0),
+	    	thisPos.Add(0,1,0),
+	    	thisPos.Add(0,-1,0),
+	    	thisPos.Add(0,0,1),
+	    	thisPos.Add(0,0,-1)
+    	};
 
-      int[] facings = {2,0,4,5,1,3};
+		int[] facings = {2,0,4,5,1,3};
 
-      int faceCounter=0;
+		int faceCounter=0;
 
-      foreach(CastCoord c in neighbors){
-		if(c.blockY < 0 || c.blockY > Chunk.chunkDepth-1){
-			continue;
-		}
-		
-        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);
-      
-        faceCounter++;
-      }
+    	foreach(CastCoord c in neighbors){
+			if(c.blockY < 0 || c.blockY > Chunk.chunkDepth-1){
+				continue;
+			}
+			
+	        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);
+	      
+	        faceCounter++;
+    	}
     }	
 
     // Emits a BUD signal with no information about sender
     public void EmitBUDTo(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
     	cl.budscheduler.ScheduleBUD(new BUDSignal(type, x, y, z, 0, 0, 0, 0), tickOffset);
+    }
+
+    /*
+    Calculates how damage should be calculated for a block
+	based on damage, damage type and damange flags on blocks
+    */
+    public int CalculateDamage(ushort blockDamage){
+    	if(blockDamage <= 0)
+    		return 0;
+
+    	if(this.flags != null){
+	    	if(this.flags.Contains(BlockFlags.IMMUNE))
+	    		return 0;
+    	}
+
+    	return Mathf.CeilToInt(Mathf.Sqrt(blockDamage));
     }
 
 	/*

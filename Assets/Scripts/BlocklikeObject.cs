@@ -56,30 +56,29 @@ public abstract class BlocklikeObject
 
     // Handles the emittion of BUD to neighboring blocks
     public void EmitBlockUpdate(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
-      CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
+    	CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
 
-      CastCoord[] neighbors = {
-      thisPos.Add(1,0,0),
-      thisPos.Add(-1,0,0),
-      thisPos.Add(0,1,0),
-      thisPos.Add(0,-1,0),
-      thisPos.Add(0,0,1),
-      thisPos.Add(0,0,-1)
-      };
+    	CastCoord[] neighbors = {
+	    	thisPos.Add(1,0,0),
+	    	thisPos.Add(-1,0,0),
+	    	thisPos.Add(0,1,0),
+	    	thisPos.Add(0,-1,0),
+	    	thisPos.Add(0,0,1),
+	    	thisPos.Add(0,0,-1)
+    	};
 
-      int[] facings = {2,0,4,5,1,3};
+	    int[] facings = {2,0,4,5,1,3};
 
+	    int blockCode;
+	    int faceCounter=0;
 
-      int blockCode;
-      int faceCounter=0;
+	    foreach(CastCoord c in neighbors){
+	        blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
 
-      foreach(CastCoord c in neighbors){
-        blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
-
-        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);     
-      
-        faceCounter++;
-      }
+	        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);     
+	      
+	        faceCounter++;
+	    }
     }
 
     // Emits a BUD signal with no information about sender
@@ -90,6 +89,20 @@ public abstract class BlocklikeObject
 	// Unassigns metadata from block (use after OnBreak events)
 	public void EraseMetadata(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){cl.chunks[pos].metadata.Reset(x,y,z);}
 	
+    /*
+    Calculates how damage should be calculated for a block
+	based on damage, damage type and damange flags on blocks
+    */
+    public int CalculateDamage(ushort blockDamage){
+    	if(blockDamage <= 0)
+    		return 0;
+
+    	if(this.flags.Contains(BlockFlags.IMMUNE))
+    		return 0;
+
+    	return Mathf.CeilToInt(Mathf.Sqrt(blockDamage));
+    }
+
 	/*
 	VIRTUAL METHODS
 	*/
