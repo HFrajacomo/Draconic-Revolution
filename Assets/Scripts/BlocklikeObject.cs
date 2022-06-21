@@ -97,8 +97,10 @@ public abstract class BlocklikeObject
     	if(blockDamage <= 0)
     		return 0;
 
-    	if(this.flags.Contains(BlockFlags.IMMUNE))
-    		return 0;
+    	if(this.flags != null){
+	    	if(this.flags.Contains(BlockFlags.IMMUNE))
+	    		return 0;
+    	}
 
     	return Mathf.CeilToInt(Mathf.Sqrt(blockDamage));
     }

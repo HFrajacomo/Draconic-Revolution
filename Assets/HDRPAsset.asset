@@ -38,7 +38,7 @@ MonoBehaviour:
       m_Values: 800000008000000080000000
       m_SchemaId:
         m_Id: With3Levels
-    supportDecals: 1
+    supportDecals: 0
     supportDecalLayers: 0
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
@@ -49,6 +49,7 @@ MonoBehaviour:
     supportTerrainHole: 0
     supportProbeVolume: 0
     probeVolumeMemoryBudget: 1024
+    supportProbeVolumeStreaming: 0
     probeVolumeSHBands: 1
     supportRayTracing: 0
     supportedRayTracingMode: 3
@@ -90,6 +91,7 @@ MonoBehaviour:
         useDynamicViewportRescale: 1
       cachedPunctualLightShadowAtlas: 4096
       cachedAreaLightShadowAtlas: 1024
+      allowDirectionalMixedCachedShadows: 0
       shadowResolutionDirectional:
         m_Values: 0004000000080000000c000000100000
         m_SchemaId:
