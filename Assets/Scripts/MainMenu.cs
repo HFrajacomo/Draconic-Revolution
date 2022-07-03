@@ -20,6 +20,7 @@ public class MainMenu : MonoBehaviour
 	public GameObject skybox;
 	public GameObject mainMenu;
 	public GameObject singleplayerMenu;
+	public GameObject singleplayerNewMenu;
 	public GameObject multiplayerMenu;
 	public GameObject optionsMenu;
 
@@ -40,7 +41,6 @@ public class MainMenu : MonoBehaviour
 
 	// Initial Button
 	public Button singleplayerButton;
-	public Button singleplayerPlayButton;
 	public Button multiplayerPlayButton;
 
 	// Sliders
@@ -128,6 +128,7 @@ public class MainMenu : MonoBehaviour
 		}
 
 		World.SetWorldName(world);
+		World.SetWorldSeed(0);
 		World.SetToClient();
 
 
@@ -151,18 +152,10 @@ public class MainMenu : MonoBehaviour
 			World.SetWorldSeed(single_seedField.text);
 		}
 
-		if(single_renderField.text == ""){
-			World.SetRenderDistance("5");
-		}
-		else{
-			World.SetRenderDistance(single_renderField.text);
-		}
-
 		World.SetWorldName(single_nameField.text);
-		World.SetToClient();
-
-
-		SceneManager.LoadScene(1);
+		
+		if(RegionFileHandler.CreateWorldFile(World.worldName, World.worldSeed))
+			OpenSingleplayerMenu();
 	}
 
 	public void StartGameMultiplayer(){
@@ -202,6 +195,14 @@ public class MainMenu : MonoBehaviour
 		ListWorldFolders();
 	}
 
+	public void OpenSingleplayerNewMenu(){
+		ChangeVisibleMenu(this.singleplayerNewMenu);
+		single_nameInput.text = "";
+		single_seedInput.text = "";
+		this.currentSelection = 0;
+		MainMenu.code = MenuCode.SINGLEPLAYER_NEW;
+	}
+
 	public void OpenMultiplayerMenu(){
 		ChangeVisibleMenu(this.multiplayerMenu);
 		this.currentSelection = 0;
@@ -225,6 +226,7 @@ public class MainMenu : MonoBehaviour
 		this.singleplayerMenu.SetActive(false);
 		this.multiplayerMenu.SetActive(false);
 		this.optionsMenu.SetActive(false);
+		this.singleplayerNewMenu.SetActive(false);
 		go.SetActive(true);
 	}
 
@@ -244,7 +246,6 @@ public class MainMenu : MonoBehaviour
 		this.singlePlayerMap.Add(0, single_nameInput);
 		this.singlePlayerMap.Add(1, single_seedInput);
 		this.singlePlayerMap.Add(2, single_renderInput);
-		this.singlePlayerMap.Add(3, singleplayerPlayButton);
 	}
 
 	private void CreateMultiPlayerMap(){
@@ -282,6 +283,8 @@ public class MainMenu : MonoBehaviour
 				if(this.currentSelection >= this.optionsMap.Count)
 					this.currentSelection = 0;
 				return true;
+			case MenuCode.SINGLEPLAYER_NEW:
+				return false;
 			default:
 				return false;
 		}
@@ -289,6 +292,9 @@ public class MainMenu : MonoBehaviour
 
 	private bool ListWorldFolders(){
 		string worldName;
+
+		this.worldsList.Clear();
+		DeleteChildGameObjects(this.singleplayer_sliderList);
 
 		this.worldNames = Directory.GetDirectories(this.worldsDir);
 
@@ -307,6 +313,12 @@ public class MainMenu : MonoBehaviour
 		return false;
 	}
 
+	private void DeleteChildGameObjects(ScrollRect go){
+		foreach(RectTransform child in go.content.transform){
+			GameObject.Destroy(child.gameObject);
+		}
+	}
+
 	private string GetDirectoryName(string path){
 		string[] pathList = path.Split("\\");
 		return pathList[pathList.Length-1];
@@ -316,6 +328,7 @@ public class MainMenu : MonoBehaviour
 public enum MenuCode : byte{
 	MAIN,
 	SINGLEPLAYER,
+	SINGLEPLAYER_NEW,
 	MULTIPLAYER,
 	OPTIONS
 }
