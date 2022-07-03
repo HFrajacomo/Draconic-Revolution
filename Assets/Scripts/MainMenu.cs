@@ -42,6 +42,8 @@ public class MainMenu : MonoBehaviour
 	// Initial Button
 	public Button singleplayerButton;
 	public Button multiplayerPlayButton;
+	public Button singleplayerCreateButton;
+	public Button singleplayerNewButton;
 
 	// Sliders
 	public ScrollRect singleplayer_sliderList;
@@ -58,7 +60,7 @@ public class MainMenu : MonoBehaviour
 
 	// Menu Maps
 	private int currentSelection = 0;
-	private Dictionary<int, Selectable> singlePlayerMap = new Dictionary<int, Selectable>();
+	private Dictionary<int, Selectable> singlePlayerNewMap = new Dictionary<int, Selectable>();
 	private Dictionary<int, Selectable> multiPlayerMap = new Dictionary<int, Selectable>();
 	private Dictionary<int, Selectable> optionsMap = new Dictionary<int, Selectable>();
 
@@ -84,7 +86,7 @@ public class MainMenu : MonoBehaviour
 		MainMenu.firstLoad = false;
 		this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\";
 
-		CreateSinglePlayerMap();
+		CreateSinglePlayerNewMap();
 		CreateMultiPlayerMap();
 		OpenMainMenu();
 	}
@@ -95,8 +97,6 @@ public class MainMenu : MonoBehaviour
 				case MenuCode.MAIN:
 					break;
 				case MenuCode.SINGLEPLAYER:
-					if(IncrementTab())
-						singlePlayerMap[this.currentSelection].Select();
 					break;
 				case MenuCode.MULTIPLAYER:
 					if(IncrementTab())
@@ -105,6 +105,10 @@ public class MainMenu : MonoBehaviour
 				case MenuCode.OPTIONS:
 					if(IncrementTab())
 						optionsMap[this.currentSelection].Select();
+					break;
+				case MenuCode.SINGLEPLAYER_NEW:
+					if(IncrementTab())
+						singlePlayerNewMap[this.currentSelection].Select();
 					break;
 				default:
 					break;
@@ -188,8 +192,8 @@ public class MainMenu : MonoBehaviour
 
 	public void OpenSingleplayerMenu(){
 		ChangeVisibleMenu(this.singleplayerMenu);
+		singleplayerNewButton.Select();
 		this.currentSelection = 0;
-		single_nameInput.Select();
 		MainMenu.code = MenuCode.SINGLEPLAYER;
 
 		ListWorldFolders();
@@ -199,6 +203,7 @@ public class MainMenu : MonoBehaviour
 		ChangeVisibleMenu(this.singleplayerNewMenu);
 		single_nameInput.text = "";
 		single_seedInput.text = "";
+		single_nameInput.Select();
 		this.currentSelection = 0;
 		MainMenu.code = MenuCode.SINGLEPLAYER_NEW;
 	}
@@ -242,10 +247,10 @@ public class MainMenu : MonoBehaviour
 			fullbrightText.color = RED;		
 	}
 
-	private void CreateSinglePlayerMap(){
-		this.singlePlayerMap.Add(0, single_nameInput);
-		this.singlePlayerMap.Add(1, single_seedInput);
-		this.singlePlayerMap.Add(2, single_renderInput);
+	private void CreateSinglePlayerNewMap(){
+		this.singlePlayerNewMap.Add(0, single_nameInput);
+		this.singlePlayerNewMap.Add(1, single_seedInput);
+		this.singlePlayerNewMap.Add(2, singleplayerCreateButton);
 	}
 
 	private void CreateMultiPlayerMap(){
@@ -260,13 +265,7 @@ public class MainMenu : MonoBehaviour
 			case MenuCode.MAIN:
 				return false;
 			case MenuCode.SINGLEPLAYER:
-				if(this.singlePlayerMap.Count == 0)
-					return false;
-
-				this.currentSelection++;
-				if(this.currentSelection >= this.singlePlayerMap.Count)
-					this.currentSelection = 0;
-				return true;
+				return false;
 			case MenuCode.MULTIPLAYER:
 				if(this.multiPlayerMap.Count == 0)
 					return false;
@@ -284,7 +283,13 @@ public class MainMenu : MonoBehaviour
 					this.currentSelection = 0;
 				return true;
 			case MenuCode.SINGLEPLAYER_NEW:
-				return false;
+				if(this.singlePlayerNewMap.Count == 0)
+					return false;
+
+				this.currentSelection++;
+				if(this.currentSelection >= this.singlePlayerNewMap.Count)
+					this.currentSelection = 0;
+				return true;
 			default:
 				return false;
 		}
