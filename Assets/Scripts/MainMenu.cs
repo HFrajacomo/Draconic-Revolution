@@ -134,8 +134,8 @@ public class MainMenu : MonoBehaviour
 		SceneManager.LoadScene(1);
 	}
 
-	/*
-	public void StartGameSingleplayer(){
+	
+	public void CreateNewWorld(){
 		int rn;
 
 		if(single_nameField.text == ""){
@@ -144,7 +144,7 @@ public class MainMenu : MonoBehaviour
 
 		if(single_seedField.text == ""){
 			Random.InitState((int)DateTime.Now.Ticks);
-			rn = (int)Random.Range(0, 999999);
+			rn = (int)Random.Range(0, int.MaxValue);
 			World.SetWorldSeed(rn.ToString());
 		}
 		else{
@@ -164,7 +164,6 @@ public class MainMenu : MonoBehaviour
 
 		SceneManager.LoadScene(1);
 	}
-	*/
 
 	public void StartGameMultiplayer(){
 		if(multi_IPField.text == "")

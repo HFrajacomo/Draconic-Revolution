@@ -20,11 +20,14 @@ public class ButtonClickUtils : MonoBehaviour, IPointerClickHandler
 
     void OnSingleClick()
     {
-        this.worldName = this.gameObject.GetComponentInParent<Button>().GetComponentInChildren<TextMeshPro>().text;
+        this.worldName = this.gameObject.GetComponent<Button>().GetComponentInChildren<TextMeshProUGUI>().text;
     }
 
     void OnDoubleClick()
     {
+        if(this.worldName == null || this.worldName == "")
+            return;
+            
         mainMenu.StartGameSingleplayer(worldName);
     }
 }
