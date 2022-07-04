@@ -49,6 +49,7 @@ public class MainMenu : MonoBehaviour
 	public ScrollRect singleplayer_sliderList;
 	public GameObject worldButtonPrefab;
 	private GameObject cacheObj;
+	public Slider renderDistanceSlider;
 
 	// Flags
 	private static bool firstLoad = true;
@@ -81,6 +82,7 @@ public class MainMenu : MonoBehaviour
 			UnloadMemory();
 
 		EnvironmentVariablesCentral.Start();
+		Configurations.LoadConfigFile();
 		World.SetGameSceneFlag(false);
 
 		MainMenu.firstLoad = false;
@@ -124,13 +126,6 @@ public class MainMenu : MonoBehaviour
 	}
 
 	public void StartGameSingleplayer(string world){
-		if(single_renderField.text == ""){
-			World.SetRenderDistance("5");
-		}
-		else{
-			World.SetRenderDistance(single_renderField.text);
-		}
-
 		World.SetWorldName(world);
 		World.SetWorldSeed(0);
 		World.SetToClient();
@@ -219,6 +214,7 @@ public class MainMenu : MonoBehaviour
 		SetFullBrightColor();
 		ChangeVisibleMenu(this.optionsMenu);
 		this.currentSelection = 0;
+		this.renderDistanceSlider.value = World.renderDistance;
 		MainMenu.code = MenuCode.OPTIONS;
 	}
 
@@ -238,6 +234,10 @@ public class MainMenu : MonoBehaviour
 	public void ToogleFullbright(){
 		Configurations.FULLBRIGHT = !Configurations.FULLBRIGHT;
 		SetFullBrightColor();
+	}
+
+	public void SaveConfigs(){
+		Configurations.SaveConfigFile();
 	}
 
 	private void SetFullBrightColor(){
