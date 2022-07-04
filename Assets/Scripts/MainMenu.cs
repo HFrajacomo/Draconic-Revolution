@@ -27,17 +27,14 @@ public class MainMenu : MonoBehaviour
 	// Input
 	public Text single_nameField;
 	public Text single_seedField;
-	public Text single_renderField;
 	public Text multi_IPField;
-	public Text multi_renderField;
-	public Text multi_accountField;
 	public TextMeshProUGUI fullbrightText;
 	public InputField single_nameInput;
 	public InputField single_seedInput;
-	public InputField single_renderInput;
 	public InputField multi_ipInput;
 	public InputField multi_accountInput;
 	public InputField multi_renderInput;
+	public TMP_InputField options_accountIDInput;
 
 	// Initial Button
 	public Button singleplayerButton;
@@ -160,19 +157,10 @@ public class MainMenu : MonoBehaviour
 	public void StartGameMultiplayer(){
 		if(multi_IPField.text == "")
 			return;
-		if(multi_accountField.text == "")
-			return;
 
-		World.SetAccountID(multi_accountField.text);
+		World.SetAccountID(Configurations.accountID);
 
 		World.SetIP(multi_IPField.text);
-
-		if(multi_renderField.text == ""){
-			World.SetRenderDistance("5");
-		}
-		else{
-			World.SetRenderDistance(multi_renderField.text);
-		}
 
 		World.SetToServer();
 
@@ -215,6 +203,7 @@ public class MainMenu : MonoBehaviour
 		ChangeVisibleMenu(this.optionsMenu);
 		this.currentSelection = 0;
 		this.renderDistanceSlider.value = World.renderDistance;
+		this.options_accountIDInput.text = Configurations.accountID.ToString();
 		MainMenu.code = MenuCode.OPTIONS;
 	}
 
@@ -255,9 +244,7 @@ public class MainMenu : MonoBehaviour
 
 	private void CreateMultiPlayerMap(){
 		this.multiPlayerMap.Add(0, multi_ipInput);
-		this.multiPlayerMap.Add(1, multi_accountInput);
-		this.multiPlayerMap.Add(2, multi_renderInput);
-		this.multiPlayerMap.Add(3, multiplayerPlayButton);
+		this.multiPlayerMap.Add(1, multiplayerPlayButton);
 	}
 
 	private bool IncrementTab(){
@@ -300,6 +287,9 @@ public class MainMenu : MonoBehaviour
 
 		this.worldsList.Clear();
 		DeleteChildGameObjects(this.singleplayer_sliderList);
+
+		if(!Directory.Exists(this.worldsDir))
+			return false;
 
 		this.worldNames = Directory.GetDirectories(this.worldsDir);
 
