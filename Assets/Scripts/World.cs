@@ -52,16 +52,21 @@ public static class World
     }
 
     public static void SetRenderDistance(string rd){
-        World.renderDistance = Convert.ToInt32(rd);
+        int renderDistance = Convert.ToInt32(rd);
+        World.SetRenderDistance(renderDistance);
+    }
 
+    public static void SetRenderDistance(int rd){
         // If negative
-        if(World.renderDistance <= 0){
+        if(rd <= 0){
             World.renderDistance = 5;
         }
-
-        // If bigger than 20
-        if(World.renderDistance > 20){
-            World.renderDistance = 20;
+        // If bigger than 32
+        else if(rd > 32){
+            World.renderDistance = 32;
+        }
+        else{
+            World.renderDistance = rd;
         }
     }
 

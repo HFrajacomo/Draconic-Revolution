@@ -274,6 +274,36 @@ public class RegionFileHandler{
 		}
 	}
 
+	// Creates a world folder with only a .wdat file inside
+	public static bool CreateWorldFile(string worldName, int seed){
+		string worldFolder = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\" + worldName + "\\";
+		Stream file;
+		byte[] byteArray = new byte[11];
+
+		if(Directory.Exists(worldFolder))
+			return false;
+
+		byteArray[0] = (byte)(seed >> 24);
+		byteArray[1] = (byte)(seed >> 16);
+		byteArray[2] = (byte)(seed >> 8);
+		byteArray[3] = (byte)seed;
+
+		byteArray[4] = 0;
+		byteArray[5] = 0;
+		byteArray[6] = 0;
+		byteArray[7] = 0;
+		byteArray[8] = 6;
+		byteArray[9] = 0;
+		byteArray[10] = 0;
+
+		Directory.CreateDirectory(worldFolder);
+		file = File.Open(worldFolder + "world.wdat", FileMode.Create);
+		file.Write(byteArray, 0, 11);
+		file.Close();
+
+		return true;
+	}
+
 	// Closes all streams in pool
 	public void CloseAll(){
 		foreach(ChunkPos pos in this.pool.Keys){

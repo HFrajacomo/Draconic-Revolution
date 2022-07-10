@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,6 +7,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 using static System.IO.Path;
@@ -18,28 +20,33 @@ public class MainMenu : MonoBehaviour
 	public GameObject skybox;
 	public GameObject mainMenu;
 	public GameObject singleplayerMenu;
+	public GameObject singleplayerNewMenu;
 	public GameObject multiplayerMenu;
 	public GameObject optionsMenu;
 
 	// Input
 	public Text single_nameField;
 	public Text single_seedField;
-	public Text single_renderField;
 	public Text multi_IPField;
-	public Text multi_renderField;
-	public Text multi_accountField;
 	public TextMeshProUGUI fullbrightText;
 	public InputField single_nameInput;
 	public InputField single_seedInput;
-	public InputField single_renderInput;
 	public InputField multi_ipInput;
 	public InputField multi_accountInput;
 	public InputField multi_renderInput;
+	public TMP_InputField options_accountIDInput;
 
 	// Initial Button
 	public Button singleplayerButton;
-	public Button singleplayerPlayButton;
 	public Button multiplayerPlayButton;
+	public Button singleplayerCreateButton;
+	public Button singleplayerNewButton;
+
+	// Sliders
+	public ScrollRect singleplayer_sliderList;
+	public GameObject worldButtonPrefab;
+	private GameObject cacheObj;
+	public Slider renderDistanceSlider;
 
 	// Flags
 	private static bool firstLoad = true;
@@ -51,9 +58,15 @@ public class MainMenu : MonoBehaviour
 
 	// Menu Maps
 	private int currentSelection = 0;
-	private Dictionary<int, Selectable> singlePlayerMap = new Dictionary<int, Selectable>();
+	private Dictionary<int, Selectable> singlePlayerNewMap = new Dictionary<int, Selectable>();
 	private Dictionary<int, Selectable> multiPlayerMap = new Dictionary<int, Selectable>();
 	private Dictionary<int, Selectable> optionsMap = new Dictionary<int, Selectable>();
+
+	// Directories
+	private string[] worldNames;
+	private string worldsDir;
+	private List<string> worldsList = new List<string>();
+
 
 	public void OnApplicationQuit(){
 		BlockEncyclopediaECS.Destroy();
@@ -66,11 +79,13 @@ public class MainMenu : MonoBehaviour
 			UnloadMemory();
 
 		EnvironmentVariablesCentral.Start();
+		Configurations.LoadConfigFile();
 		World.SetGameSceneFlag(false);
 
 		MainMenu.firstLoad = false;
+		this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\";
 
-		CreateSinglePlayerMap();
+		CreateSinglePlayerNewMap();
 		CreateMultiPlayerMap();
 		OpenMainMenu();
 	}
@@ -81,8 +96,6 @@ public class MainMenu : MonoBehaviour
 				case MenuCode.MAIN:
 					break;
 				case MenuCode.SINGLEPLAYER:
-					if(IncrementTab())
-						singlePlayerMap[this.currentSelection].Select();
 					break;
 				case MenuCode.MULTIPLAYER:
 					if(IncrementTab())
@@ -91,6 +104,10 @@ public class MainMenu : MonoBehaviour
 				case MenuCode.OPTIONS:
 					if(IncrementTab())
 						optionsMap[this.currentSelection].Select();
+					break;
+				case MenuCode.SINGLEPLAYER_NEW:
+					if(IncrementTab())
+						singlePlayerNewMap[this.currentSelection].Select();
 					break;
 				default:
 					break;
@@ -105,7 +122,17 @@ public class MainMenu : MonoBehaviour
 		Resources.UnloadUnusedAssets();		
 	}
 
-	public void StartGameSingleplayer(){
+	public void StartGameSingleplayer(string world){
+		World.SetWorldName(world);
+		World.SetWorldSeed(0);
+		World.SetToClient();
+
+
+		SceneManager.LoadScene(1);
+	}
+
+	
+	public void CreateNewWorld(){
 		int rn;
 
 		if(single_nameField.text == ""){
@@ -114,43 +141,26 @@ public class MainMenu : MonoBehaviour
 
 		if(single_seedField.text == ""){
 			Random.InitState((int)DateTime.Now.Ticks);
-			rn = (int)Random.Range(0, 999999);
+			rn = (int)Random.Range(0, int.MaxValue);
 			World.SetWorldSeed(rn.ToString());
 		}
 		else{
 			World.SetWorldSeed(single_seedField.text);
 		}
 
-		if(single_renderField.text == ""){
-			World.SetRenderDistance("5");
-		}
-		else{
-			World.SetRenderDistance(single_renderField.text);
-		}
-
 		World.SetWorldName(single_nameField.text);
-		World.SetToClient();
-
-
-		SceneManager.LoadScene(1);
+		
+		if(RegionFileHandler.CreateWorldFile(World.worldName, World.worldSeed))
+			OpenSingleplayerMenu();
 	}
 
 	public void StartGameMultiplayer(){
 		if(multi_IPField.text == "")
 			return;
-		if(multi_accountField.text == "")
-			return;
 
-		World.SetAccountID(multi_accountField.text);
+		World.SetAccountID(Configurations.accountID);
 
 		World.SetIP(multi_IPField.text);
-
-		if(multi_renderField.text == ""){
-			World.SetRenderDistance("5");
-		}
-		else{
-			World.SetRenderDistance(multi_renderField.text);
-		}
 
 		World.SetToServer();
 
@@ -165,9 +175,20 @@ public class MainMenu : MonoBehaviour
 
 	public void OpenSingleplayerMenu(){
 		ChangeVisibleMenu(this.singleplayerMenu);
+		singleplayerNewButton.Select();
 		this.currentSelection = 0;
-		single_nameInput.Select();
 		MainMenu.code = MenuCode.SINGLEPLAYER;
+
+		ListWorldFolders();
+	}
+
+	public void OpenSingleplayerNewMenu(){
+		ChangeVisibleMenu(this.singleplayerNewMenu);
+		single_nameInput.text = "";
+		single_seedInput.text = "";
+		single_nameInput.Select();
+		this.currentSelection = 0;
+		MainMenu.code = MenuCode.SINGLEPLAYER_NEW;
 	}
 
 	public void OpenMultiplayerMenu(){
@@ -181,6 +202,8 @@ public class MainMenu : MonoBehaviour
 		SetFullBrightColor();
 		ChangeVisibleMenu(this.optionsMenu);
 		this.currentSelection = 0;
+		this.renderDistanceSlider.value = World.renderDistance;
+		this.options_accountIDInput.text = Configurations.accountID.ToString();
 		MainMenu.code = MenuCode.OPTIONS;
 	}
 
@@ -193,12 +216,17 @@ public class MainMenu : MonoBehaviour
 		this.singleplayerMenu.SetActive(false);
 		this.multiplayerMenu.SetActive(false);
 		this.optionsMenu.SetActive(false);
+		this.singleplayerNewMenu.SetActive(false);
 		go.SetActive(true);
 	}
 
 	public void ToogleFullbright(){
 		Configurations.FULLBRIGHT = !Configurations.FULLBRIGHT;
 		SetFullBrightColor();
+	}
+
+	public void SaveConfigs(){
+		Configurations.SaveConfigFile();
 	}
 
 	private void SetFullBrightColor(){
@@ -208,18 +236,15 @@ public class MainMenu : MonoBehaviour
 			fullbrightText.color = RED;		
 	}
 
-	private void CreateSinglePlayerMap(){
-		this.singlePlayerMap.Add(0, single_nameInput);
-		this.singlePlayerMap.Add(1, single_seedInput);
-		this.singlePlayerMap.Add(2, single_renderInput);
-		this.singlePlayerMap.Add(3, singleplayerPlayButton);
+	private void CreateSinglePlayerNewMap(){
+		this.singlePlayerNewMap.Add(0, single_nameInput);
+		this.singlePlayerNewMap.Add(1, single_seedInput);
+		this.singlePlayerNewMap.Add(2, singleplayerCreateButton);
 	}
 
 	private void CreateMultiPlayerMap(){
 		this.multiPlayerMap.Add(0, multi_ipInput);
-		this.multiPlayerMap.Add(1, multi_accountInput);
-		this.multiPlayerMap.Add(2, multi_renderInput);
-		this.multiPlayerMap.Add(3, multiplayerPlayButton);
+		this.multiPlayerMap.Add(1, multiplayerPlayButton);
 	}
 
 	private bool IncrementTab(){
@@ -227,13 +252,7 @@ public class MainMenu : MonoBehaviour
 			case MenuCode.MAIN:
 				return false;
 			case MenuCode.SINGLEPLAYER:
-				if(this.singlePlayerMap.Count == 0)
-					return false;
-
-				this.currentSelection++;
-				if(this.currentSelection >= this.singlePlayerMap.Count)
-					this.currentSelection = 0;
-				return true;
+				return false;
 			case MenuCode.MULTIPLAYER:
 				if(this.multiPlayerMap.Count == 0)
 					return false;
@@ -250,15 +269,61 @@ public class MainMenu : MonoBehaviour
 				if(this.currentSelection >= this.optionsMap.Count)
 					this.currentSelection = 0;
 				return true;
+			case MenuCode.SINGLEPLAYER_NEW:
+				if(this.singlePlayerNewMap.Count == 0)
+					return false;
+
+				this.currentSelection++;
+				if(this.currentSelection >= this.singlePlayerNewMap.Count)
+					this.currentSelection = 0;
+				return true;
 			default:
 				return false;
 		}
+	}
+
+	private bool ListWorldFolders(){
+		string worldName;
+
+		this.worldsList.Clear();
+		DeleteChildGameObjects(this.singleplayer_sliderList);
+
+		if(!Directory.Exists(this.worldsDir))
+			return false;
+
+		this.worldNames = Directory.GetDirectories(this.worldsDir);
+
+		foreach(string world in this.worldNames){
+			worldName = GetDirectoryName(world);
+
+			this.worldsList.Add(worldName);
+
+			this.cacheObj = GameObject.Instantiate(this.worldButtonPrefab);
+			this.cacheObj.transform.SetParent(this.singleplayer_sliderList.content.transform);
+			this.cacheObj.GetComponentInChildren<TextMeshProUGUI>().text = worldName;
+		}
+
+		if(this.worldNames.Length > 0)
+			return true;
+		return false;
+	}
+
+	private void DeleteChildGameObjects(ScrollRect go){
+		foreach(RectTransform child in go.content.transform){
+			GameObject.Destroy(child.gameObject);
+		}
+	}
+
+	private string GetDirectoryName(string path){
+		string[] pathList = path.Split("\\");
+		return pathList[pathList.Length-1];
 	}
 }
 
 public enum MenuCode : byte{
 	MAIN,
 	SINGLEPLAYER,
+	SINGLEPLAYER_NEW,
 	MULTIPLAYER,
 	OPTIONS
 }
