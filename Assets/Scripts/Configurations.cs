@@ -180,7 +180,7 @@ public static class Configurations
         Configurations.file.Write(nameBytes, 0, nameBytes.Length);
         Configurations.AddSeparator();
         Configurations.file.Write(valueBytes, 0, valueBytes.Length);
-        Configurations.AddNewLine();        
+        Configurations.AddNewLine();       
     }
 
     private static void CreateUlongField(string name, ulong value){
