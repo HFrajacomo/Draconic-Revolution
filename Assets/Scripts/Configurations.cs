@@ -16,6 +16,8 @@ public static class Configurations
     private static Stream file;
     private static Dictionary<string, DATATYPE> arguments = new Dictionary<string, DATATYPE>();
     private static Dictionary<string, Object> defaults = new Dictionary<string, Object>();
+    private static HashSet<string> allArguments = new HashSet<string>();
+    private static HashSet<string> readArguments = new HashSet<string>();
 
 
     private static void Start(){
@@ -62,48 +64,69 @@ public static class Configurations
         Configurations.file = File.Open(Configurations.configFilePath, FileMode.Create);
 
         foreach(string entry in arguments.Keys){
-            // Creates fields
-            switch(arguments[entry]){
-                case DATATYPE.STRING:
-                    CreateStringField(entry, (string)defaults[entry]);
-                    break;
-                case DATATYPE.ULONG:
-                    CreateUlongField(entry, (ulong)defaults[entry]);
-                    break;
-                case DATATYPE.BOOL:
-                    CreateBoolField(entry, (bool)defaults[entry]);
-                    break;
-                case DATATYPE.INT:
-                    CreateIntField(entry, (int)defaults[entry]);
-                    break;
-                default:
-                    break;
-            }
-
-            HandleConfigDefaults(entry);
+            GenerateConfigFile(entry);
         }
 
         Configurations.file.Close();
+    }
+
+    private static void GenerateConfigFile(string entry){
+        switch(arguments[entry]){
+            case DATATYPE.STRING:
+                CreateStringField(entry, (string)defaults[entry]);
+                break;
+            case DATATYPE.ULONG:
+                CreateUlongField(entry, (ulong)defaults[entry]);
+                break;
+            case DATATYPE.BOOL:
+                CreateBoolField(entry, (bool)defaults[entry]);
+                break;
+            case DATATYPE.INT:
+                CreateIntField(entry, (int)defaults[entry]);
+                break;
+            default:
+                break;
+        }        
+
+        HandleConfigDefaults(entry);
     }
 
     private static void ParseConfigFile(){
         string[] separatedEntries;
         string[] entries = File.ReadAllLines(Configurations.configFilePath);
 
-        try{
-            for(int i=0; i < entries.Length; i++){
-                if(entries[i] == "")
-                    continue;
+        for(int i=0; i < entries.Length; i++){
+            if(entries[i] == "")
+                continue;
 
-                separatedEntries = entries[i].Split(':');
-                
-                HandleConfigField(separatedEntries[0], separatedEntries[1]);
+            if(!entries[i].Contains(':'))
+                continue;
+
+            separatedEntries = entries[i].Split(':');
+            
+            HandleConfigField(separatedEntries[0], separatedEntries[1]);
+
+            if(allArguments.Contains(separatedEntries[0]))
+                readArguments.Add(separatedEntries[0]);
+        }
+
+        if(!readArguments.Equals(allArguments))
+            FillInMissingConfig();
+
+        readArguments.Clear();
+    }
+
+    private static void FillInMissingConfig(){
+        Configurations.file = File.Open(Configurations.configFilePath, FileMode.Open);
+        Configurations.file.Seek(0, SeekOrigin.End);
+
+        foreach(string arg in allArguments){
+            if(!readArguments.Contains(arg)){
+                GenerateConfigFile(arg);
             }
         }
-        catch{
-            GenerateConfigFile();
-            return;
-        }
+
+        Configurations.file.Close();
     }
 
     private static void HandleConfigDefaults(string entry){
@@ -225,7 +248,8 @@ public static class Configurations
 
     private static void AddToDictEntry(string name, DATATYPE type, Object value){
         arguments.Add(name, type);
-        defaults.Add(name, value);        
+        defaults.Add(name, value);
+        allArguments.Add(name);
     }
 
 
