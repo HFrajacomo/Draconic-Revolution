@@ -32,8 +32,6 @@ public class MainMenu : MonoBehaviour
 	public InputField single_nameInput;
 	public InputField single_seedInput;
 	public InputField multi_ipInput;
-	public InputField multi_accountInput;
-	public InputField multi_renderInput;
 	public TMP_InputField options_accountIDInput;
 
 	// Initial Button

@@ -78,7 +78,7 @@ public class ChunkLoader : MonoBehaviour
         this.client = new Client(this);
         HandleClientCommunication();
         this.player.position = new Vector3(0,0,0);
-        this.testAccountID = World.accountID;
+        this.testAccountID = Configurations.accountID;
         this.time.SetClient(this.client);
         World.SetGameSceneFlag(true);
     }
