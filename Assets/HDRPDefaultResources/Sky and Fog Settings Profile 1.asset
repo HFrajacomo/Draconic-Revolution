@@ -15,7 +15,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 15.25
   tint:
     m_OverrideState: 0
     m_Value: 0
@@ -111,7 +111,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.66, g: 0.94, b: 1, a: 1}
+      m_Value: {r: 0.83283335, g: 0.7265, b: 0.5323333, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 2
@@ -335,7 +335,7 @@ MonoBehaviour:
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   maxFogDistance:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 70
   mipFogMaxMip:
     m_OverrideState: 0
     m_Value: 0.5
@@ -353,7 +353,7 @@ MonoBehaviour:
     m_Value: 200
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 60
+    m_Value: 59.333336
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -365,7 +365,7 @@ MonoBehaviour:
     m_Value: 0.25
   depthExtent:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 1000
   denoisingMode:
     m_OverrideState: 0
     m_Value: 1
