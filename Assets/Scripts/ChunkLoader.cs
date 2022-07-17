@@ -395,14 +395,8 @@ public class ChunkLoader : MonoBehaviour
             toDraw.RemoveAt(0);
         }
 
-        int redrawMaxRecursion = 5;
-        int redrawAttempt = 0;
-
         // toREDRAW
         for(int i=0; i < 2; i++){
-            if(redrawAttempt >= redrawMaxRecursion)
-                return;
-
             if(toRedraw.Count > 0){
                 if(toDraw.Contains(toRedraw[0])){
                     toRedraw.Add(toRedraw[0]);
@@ -413,10 +407,8 @@ public class ChunkLoader : MonoBehaviour
                 if(chunks.ContainsKey(toRedraw[0])){
                     if(chunks[toRedraw[0]].drawMain){
                         // If hasn't been drawn entirely, put on Redraw again
-                        if(!chunks[toRedraw[0]].BuildSideBorder(loadBUD:true)){
+                        if(!chunks[toRedraw[0]].BuildSideBorder(reload:true, loadBUD:true)){
                             toRedraw.Add(toRedraw[0]);
-                            redrawAttempt++;
-                            i--;
                         }
                         else{
                             if(this.WORLD_GENERATED)

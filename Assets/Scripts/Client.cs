@@ -301,6 +301,9 @@ public class Client
 			case NetCode.BLOCKDAMAGE:
 				BlockDamage(data);
 				break;
+			case NetCode.FAILEDCHUNKREQUEST:
+				FailedChunkRequest(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -601,6 +604,15 @@ public class Client
 				CheckReload(pos, x, y, z);
 			}
 		}
+	}
+
+	// Receives a failed request notification from server and immediately re-tries
+	private void FailedChunkRequest(byte[] data){
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+
+		NetMessage message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
+		message.RequestChunkLoad(pos);
+		this.Send(message.GetMessage(), message.size);
 	}
 
 

@@ -187,11 +187,17 @@ public struct float5{
 	public int p;
 
 	public float5(float x, float y, float z, float w, float k){
-		this.t = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize+1, (x+1)/2.001f));
-		this.h = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize+1, (y+1)/2.001f));
-		this.b = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize+1, (z+1)/2.001f));
-		this.e = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize+1, (w+1)/2.001f));
-		this.p = Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize+1, (k+1)/2.001f));
+		this.t = LimitValue(Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (x+1)/2f)));
+		this.h = LimitValue(Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (y+1)/2f)));
+		this.b = LimitValue(Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (z+1)/2f)));
+		this.e = LimitValue(Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (w+1)/2f)));
+		this.p = LimitValue(Mathf.FloorToInt(Mathf.Lerp(0, BiomeTable.separatorSize, (k+1)/2f)));
+
+		int LimitValue(int x){
+			if(x > BiomeTable.separatorSize-1)
+				return BiomeTable.separatorSize-1;
+			return x;
+		}
 	}
 }
 

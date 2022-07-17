@@ -425,7 +425,7 @@ public class Server
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 
 		// If is loaded
-		if(this.cl.chunks.ContainsKey(pos)){
+		if(this.cl.chunks.ContainsKey(pos) && this.cl.chunks[pos].needsGeneration == 0){
 			if(!this.cl.loadedChunks.ContainsKey(pos))
 				this.cl.loadedChunks.Add(pos, new HashSet<ulong>());
 
@@ -442,14 +442,11 @@ public class Server
 			if(!this.cl.toLoad.Contains(pos))
 				this.cl.toLoad.Add(pos);
 
-			// If was already issued a SendChunk call
-			if(this.cl.loadedChunks.ContainsKey(pos)){
-				if(!this.cl.loadedChunks[pos].Contains(id))
-					this.cl.loadedChunks[pos].Add(id);
-			}
-			else{
-				this.cl.loadedChunks.Add(pos, new HashSet<ulong>(){id});
-			}
+			NetMessage message = new NetMessage(NetCode.FAILEDCHUNKREQUEST);
+			message.FailedChunkRequest(pos);
+			this.Send(message.GetMessage(), message.size, id);
+
+			return;
 		}
 
 		NetMessage playerMessage = new NetMessage(NetCode.PLAYERDATA);

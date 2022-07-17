@@ -191,6 +191,13 @@ public class Chunk
 		return output;
 	}
 
+	public void PrintDrawStage(){
+		Debug.Log("XP: " + this.xpDraw);
+		Debug.Log("XM: " + this.xmDraw);
+		Debug.Log("ZP: " + this.zpDraw);
+		Debug.Log("ZM: " + this.zmDraw);
+	}
+
 
 	public void BuildOnVoxelData(VoxelData vd){
 		this.data = vd;
@@ -547,7 +554,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
 			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
-			
+
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
 				toBUD = toBUD,
@@ -641,7 +648,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
 			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
-			
+
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
 				toBUD = toBUD,
