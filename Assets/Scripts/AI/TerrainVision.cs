@@ -30,7 +30,7 @@ public abstract class TerrainVision
             this.REFRESH_VISION = false;
             this.cl.GetField(coord, viewDistance, ref viewFieldBlocks, ref viewFieldStates);
             this.coord = coord;
-            return 2;            
+            return 2;
         }
 
         return 0;
