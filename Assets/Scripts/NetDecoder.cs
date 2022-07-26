@@ -113,6 +113,10 @@ public static class NetDecoder
 		return true;
 	}
 
+	public static byte ReadByte(byte[] data, int pos){
+		return data[pos];
+	}
+
 	public static void WriteFloat(float a, byte[] data, int pos){
 		NetDecoder.floatBuffer = BitConverter.GetBytes(a);
 
