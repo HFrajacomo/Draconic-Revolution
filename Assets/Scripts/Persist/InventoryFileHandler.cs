@@ -183,6 +183,11 @@ public class InventoryFileHandler{
         this.holeFile.Close();
     }
 
+    // Checks if a playerId exists in index
+    public bool IsIndexed(ulong playerId){
+        return this.index.ContainsKey(playerId);
+    }
+
     // Reads header information and adds it to intBuffer
     private void ReadHeader(long filePosition){
         this.file.Read(this.intBuffer, (int)filePosition, (int)filePosition+4);

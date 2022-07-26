@@ -104,6 +104,10 @@ public class ItemPlayerInventorySlot : PlayerServerInventorySlot {
 		NetDecoder.WriteByte(this.quantity, buffer, init+3);
 		return this.slotMemorySize;
 	}
+
+	public void SetQuantity(byte quantity){
+		this.quantity = quantity;
+	}
 }
 
 /*
@@ -132,6 +136,10 @@ public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
 		NetDecoder.WriteByte(this.refineLevel, buffer, init+7);
 		NetDecoder.WriteByte((byte)this.enchant, buffer, init+8);
 		return this.slotMemorySize;
+	}
+
+	public void SetDurability(uint dur){
+		this.currentDurability = dur;
 	}
 }
 

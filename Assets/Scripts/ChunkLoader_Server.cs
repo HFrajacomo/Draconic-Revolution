@@ -31,8 +31,9 @@ public class ChunkLoader_Server : MonoBehaviour
 	public int worldSeed = -1; // 6 number integer
     public BiomeHandler biomeHandler;
 
-	// Chunk Rendering
+	// Persistence
     public RegionFileHandler regionHandler;
+    public InventoryFileHandler inventoryHandler;
 
 	// Flags
     public int reloadMemoryCounter = 30;
@@ -50,11 +51,14 @@ public class ChunkLoader_Server : MonoBehaviour
         
         if(this.worldGen != null)
             this.worldGen.DestroyNativeMemory();
+
+        this.inventoryHandler.Close();
     }
 
     void Start(){
         this.server = new Server(this);
         this.time.SetServer(this.server);
+        this.inventoryHandler = new InventoryFileHandler();
     }
 
     void Update(){ 
