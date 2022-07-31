@@ -36,6 +36,7 @@ public class Inventory
 		this.itemInInventory = new HashSet<ItemID>();
 	}
 
+
 	// Adds an ItemStack to Inventory
 	public byte AddStack(ItemStack its, List<InventoryTransaction> spots){
 		if(spots.Count == 0)
@@ -64,6 +65,24 @@ public class Inventory
 		}
 
 		return receivedAmount;
+	}
+
+	// Forcefully adds a Stack to a slot in inventory, overwriting whatever was there before
+	public void ForceAddStack(ItemStack its, ushort slot){
+		ItemStack previousIts;
+
+		if(slot >= this.GetLimit())
+			return;
+
+
+		previousIts = this.DropStack((short)slot);
+		this.slots[slot] = its;
+
+		this.FindLastEmptySlot();
+
+		if(this.slots[this.GetLastEmptySlot()] != null){
+			this.SetFull();
+		}
 	}
 
 	// Adds an ItemStack from a Split operation. Basically adds a new stack ignoring the originating stack
