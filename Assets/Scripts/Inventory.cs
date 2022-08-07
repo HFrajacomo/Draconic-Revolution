@@ -337,9 +337,11 @@ public class Inventory
 	public ushort GetLimit(){return this.limit;}
 
 	// Return the ItemStack at position pos
-	public ItemStack GetSlot(ushort pos){
+	#nullable enable
+	public ItemStack? GetSlot(ushort pos){
 		return this.slots[pos];
 	}
+	#nullable disable
 
 	// Removes an element from itemInInventory
 	public void RemoveFromRecords(ItemID id){

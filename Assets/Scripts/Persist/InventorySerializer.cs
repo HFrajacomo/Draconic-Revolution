@@ -4,6 +4,9 @@ using UnityEngine;
 
 public static class InventorySerializer
 {
+    public static byte[] buffer = new byte[30000];
+
+
     // Creates Inventory and Hotbar given a byte[] received from server
     // out are the output inventories
     public static void BuildPlayerInventory(byte[] data, int init, out Inventory hotbar, out Inventory inv){
@@ -70,6 +73,33 @@ public static class InventorySerializer
             currentSlot++;
         }
         
+    }
+
+    public static int SerializePlayerInventory(Inventory hotbar, Inventory inv){
+        ItemStack its;
+        int bytesWritten = 0;
+
+        for(ushort i=0; i < hotbar.GetLimit(); i++){
+            if(hotbar.GetSlot(i) == null){
+                InventorySerializer.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
+            }
+            else{
+                its = hotbar.GetSlot(i);
+                bytesWritten += its.ConvertToMemory(InventorySerializer.buffer, bytesWritten);
+            }
+        }
+
+        for(ushort i=0; i < inv.GetLimit(); i++){
+            if(inv.GetSlot(i) == null){
+                InventorySerializer.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
+            }
+            else{
+                its = inv.GetSlot(i);
+                bytesWritten += its.ConvertToMemory(InventorySerializer.buffer, bytesWritten);
+            }
+        }        
+
+        return bytesWritten;
     }
 
     public static void AddToInventory(ItemStack its, Inventory hotbar, Inventory inv, int currentSlot){
