@@ -64,6 +64,7 @@ public class InventoryFileHandler{
     
         LoadFiles();
         LoadIndex();
+        this.fragmentationHandler = new FragmentationHandler(this.holeFile.Length > 0);
     }
 
 
@@ -83,8 +84,10 @@ public class InventoryFileHandler{
         if(!this.index.ContainsKey(playerId)){
             filePosition = this.fragmentationHandler.FindPosition(bytesWritten);
             this.index.Add(playerId, (ulong)filePosition);
+            UnloadIndex();
 
             this.file.Write(this.buffer, 0, bytesWritten);
+            this.file.Flush();
         }
         // If inventory was already saved
         else{
@@ -104,6 +107,7 @@ public class InventoryFileHandler{
 
             // Saves inventory
             this.file.Write(this.buffer, (int)filePosition, (int)(filePosition+bytesWritten));
+            this.file.Flush();
         }
     }
 
@@ -171,6 +175,8 @@ public class InventoryFileHandler{
         this.indexFile.SetLength(0);
         this.indexFile.Write(this.indexBuffer, 0, position);
         this.indexFile.Flush();
+        Debug.Log("saving index 1");
+
     }
 
     // Closes all streams and saves index and holes

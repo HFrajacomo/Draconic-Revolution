@@ -6,6 +6,7 @@ public class PlayerServerInventory{
     public static int playerInventorySize = 45;
     private Dictionary<ulong, PlayerServerInventorySlot[]> inventories = new Dictionary<ulong, PlayerServerInventorySlot[]>();
     private InventoryFileHandler inventoryHandler;
+    private byte[] buffer = new byte[16000];
     
     public PlayerServerInventory(){
         this.inventoryHandler = new InventoryFileHandler();
@@ -28,7 +29,31 @@ public class PlayerServerInventory{
             this.inventories.Add(playerId, PlayerServerInventorySlot.BuildInventory(data, 0, playerInventorySize, ref refVoid));
             this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
         }
-        
+    }
+
+    public void AddInventory(ulong playerId, PlayerServerInventorySlot[] inv){
+        // If it's a pre-existing inventory in RAM that is being changed
+        if(this.inventories.ContainsKey(playerId)){
+            this.inventories[playerId] = inv;
+            this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
+        }
+        // If player doesn't exist yet
+        else{
+            this.inventories.Add(playerId, inv);
+            this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
+        }
+    }
+
+    public int ConvertInventoryToBytes(ulong playerId){
+        int bytesRead = 0;
+
+        if(this.inventories.ContainsKey(playerId)){
+            for(int i=0; i < playerInventorySize; i++){
+                bytesRead += this.inventories[playerId][i].SaveToBuffer(this.buffer, bytesRead);
+            }
+        }
+
+        return bytesRead;
     }
 
     /*
@@ -50,6 +75,10 @@ public class PlayerServerInventory{
         if(this.inventories.ContainsKey(playerId)){
             ((WeaponPlayerInventorySlot)this.inventories[playerId][slotId]).SetDurability(durability);
         }        
+    }
+
+    public byte[] GetBuffer(){
+        return this.buffer;
     }
 
     public void Destroy(){

@@ -33,7 +33,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
 	// Persistence
     public RegionFileHandler regionHandler;
-    public InventoryFileHandler inventoryHandler;
+    public PlayerServerInventory playerServerInventory;
 
 	// Flags
     public int reloadMemoryCounter = 30;
@@ -52,13 +52,12 @@ public class ChunkLoader_Server : MonoBehaviour
         if(this.worldGen != null)
             this.worldGen.DestroyNativeMemory();
 
-        this.inventoryHandler.Close();
+        this.playerServerInventory.Destroy();
     }
 
     void Start(){
         this.server = new Server(this);
         this.time.SetServer(this.server);
-        this.inventoryHandler = new InventoryFileHandler();
     }
 
     void Update(){ 
@@ -81,6 +80,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
     private void InitWorld(){
         this.regionHandler = new RegionFileHandler(this);
+        this.playerServerInventory = new PlayerServerInventory();
         worldSeed = regionHandler.GetRealSeed();
         biomeHandler = new BiomeHandler();
         this.worldGen = new WorldGenerator(worldSeed, biomeHandler, structHandler, this);
@@ -399,5 +399,27 @@ public class ChunkLoader_Server : MonoBehaviour
             return sub%mod;
         else
             return (sub%mod)+mod;
+    }
+
+    public void TestInventoryReceive(){
+        PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[45];
+        NetMessage message;
+        int length;
+
+        for(int i=0; i < 45; i++){
+            if(i == 1){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.STONEBLOCK, 3);
+            }
+            else{
+                slots[i] = new EmptyPlayerInventorySlot();
+            }
+        }
+
+        this.playerServerInventory.AddInventory(0, slots);
+        length = this.playerServerInventory.ConvertInventoryToBytes(0);
+
+        message = new NetMessage(NetCode.SENDINVENTORY);
+        message.SendInventory(this.playerServerInventory.GetBuffer(), length);
+        this.server.Send(message.GetMessage(), message.size, 0);
     }
 }

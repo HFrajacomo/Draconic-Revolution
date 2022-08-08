@@ -799,6 +799,9 @@ public class Server
 
 	// Receives an Interaction command from client
 	private void Interact(byte[] data){
+		// DEBUG
+		this.cl.TestInventoryReceive();
+
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 		int x = NetDecoder.ReadInt(data, 9);
 		int y = NetDecoder.ReadInt(data, 13);

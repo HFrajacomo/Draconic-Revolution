@@ -32,6 +32,7 @@ public class PlayerEvents : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+    	/*
     	ItemStack its = new ItemStack(ItemID.STONEBLOCK, 40);
     	ItemStack its2 = new ItemStack(ItemID.WOODBLOCK, 40);
     	ItemStack its3 = new ItemStack(ItemID.TORCH, 50);
@@ -39,6 +40,7 @@ public class PlayerEvents : MonoBehaviour
     	hotbar.AddStack(its, hotbar.CanFit(its));
        	hotbar.AddStack(its2, hotbar.CanFit(its2));
        	hotbar.AddStack(its3, hotbar.CanFit(its3));
+       	*/
     	this.Scroll1();
 
 
