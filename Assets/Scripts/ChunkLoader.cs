@@ -155,6 +155,7 @@ public class ChunkLoader : MonoBehaviour
                 this.time.SetPlayer(playerCharacter.GetComponent<PlayerMovement>());
                 this.playerEvents.SetPlayerObject(playerCharacter);
                 this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
+                this.client.SetPlayerEvents(this.playerEvents);
         	}
 
             MoveEntities();

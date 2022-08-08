@@ -45,6 +45,7 @@ public class Client
 	// Unity References
 	public ChunkLoader cl;
 	public PlayerRaycast raycast;
+	public PlayerEvents playerEvents;
 
 	// Windows External Process
 	public Process lanServerProcess;
@@ -136,6 +137,10 @@ public class Client
 
 	public void SetRaycast(PlayerRaycast raycast){
 		this.raycast = raycast;
+	}
+
+	public void SetPlayerEvents(PlayerEvents events){
+		this.playerEvents = events;
 	}
 	
 	
@@ -303,6 +308,9 @@ public class Client
 				break;
 			case NetCode.FAILEDCHUNKREQUEST:
 				FailedChunkRequest(data);
+				break;
+			case NetCode.SENDINVENTORY:
+				SendInventory(data);
 				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
@@ -613,6 +621,18 @@ public class Client
 		NetMessage message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
 		message.RequestChunkLoad(pos);
 		this.Send(message.GetMessage(), message.size);
+	}
+
+	// Receives player inventory information from server and builds into player inventory
+	private void SendInventory(byte[] data){
+		Inventory newInv = new Inventory(InventoryType.PLAYER);
+		Inventory newHot = new Inventory(InventoryType.HOTBAR);
+
+		InventorySerializer.BuildPlayerInventory(data, 0, out newHot, out newInv);
+
+		this.playerEvents.inventory = newInv;
+		this.playerEvents.hotbar = newHot;
+		this.playerEvents.DrawHotbar();
 	}
 
 

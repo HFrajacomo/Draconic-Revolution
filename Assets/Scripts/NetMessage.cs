@@ -319,6 +319,12 @@ public struct NetMessage
 		this.size = 9;
 	}
 
+	// Server sends inventory information to client
+	public void SendInventory(byte[] data, int length){
+		Array.Copy(data, 0, NetMessage.buffer, 1, length);
+		this.size = 1 + length;
+	}
+
 }
 
 public enum NetCode{
@@ -347,6 +353,7 @@ public enum NetCode{
 	ITEMENTITYDATA,
 	BLOCKDAMAGE,
 	FAILEDCHUNKREQUEST,
+	SENDINVENTORY,
 	DISCONNECT  // No call
 }
 

@@ -75,13 +75,10 @@ public static class InventorySerializer
         
     }
 
-<<<<<<< HEAD
     /*
     Turns player inventory into a serialized version in InventorySerializer.buffer
     and returns the amount of written bytes
     */
-=======
->>>>>>> ItemPersistence
     public static int SerializePlayerInventory(Inventory hotbar, Inventory inv){
         ItemStack its;
         int bytesWritten = 0;
@@ -104,20 +101,11 @@ public static class InventorySerializer
                 its = inv.GetSlot(i);
                 bytesWritten += its.ConvertToMemory(InventorySerializer.buffer, bytesWritten);
             }
-<<<<<<< HEAD
-        }
-=======
-        }        
->>>>>>> ItemPersistence
-
+        }   
         return bytesWritten;
     }
 
-<<<<<<< HEAD
     private static void AddToInventory(ItemStack its, Inventory hotbar, Inventory inv, int currentSlot){
-=======
-    public static void AddToInventory(ItemStack its, Inventory hotbar, Inventory inv, int currentSlot){
->>>>>>> ItemPersistence
         if(currentSlot < 9)
             hotbar.ForceAddStack(its, (ushort)currentSlot);
         else
