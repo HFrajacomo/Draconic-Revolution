@@ -415,11 +415,12 @@ public class ChunkLoader_Server : MonoBehaviour
             }
         }
 
-        this.playerServerInventory.AddInventory(0, slots);
-        length = this.playerServerInventory.ConvertInventoryToBytes(0);
-
-        message = new NetMessage(NetCode.SENDINVENTORY);
-        message.SendInventory(this.playerServerInventory.GetBuffer(), length);
-        this.server.Send(message.GetMessage(), message.size, 0);
+        for(ulong i=0; i < 3; i++){
+            this.playerServerInventory.AddInventory(i, slots);
+            length = this.playerServerInventory.ConvertInventoryToBytes(i);
+            message = new NetMessage(NetCode.SENDINVENTORY);
+            message.SendInventory(this.playerServerInventory.GetBuffer(), length);
+            this.server.Send(message.GetMessage(), message.size, i);
+        }
     }
 }

@@ -64,7 +64,15 @@ public class InventoryFileHandler{
     
         LoadFiles();
         LoadIndex();
-        this.fragmentationHandler = new FragmentationHandler(this.holeFile.Length > 0);
+
+        if(this.holeFile.Length > 0){
+            this.fragmentationHandler = new FragmentationHandler(true);
+            LoadHoles();
+        }
+        else{
+            this.fragmentationHandler = new FragmentationHandler(false);
+        }
+        
     }
 
 
@@ -82,10 +90,12 @@ public class InventoryFileHandler{
 
         // If inventory is new to the file
         if(!this.index.ContainsKey(playerId)){
-            filePosition = this.fragmentationHandler.FindPosition(bytesWritten);
+            filePosition = this.fragmentationHandler.FindPosition(bytesWritten+headerSize);
             this.index.Add(playerId, (ulong)filePosition);
             UnloadIndex();
 
+            WriteInt(slots.Length);
+            this.file.Write(this.intBuffer, 0, 4);
             this.file.Write(this.buffer, 0, bytesWritten);
             this.file.Flush();
         }
@@ -106,6 +116,8 @@ public class InventoryFileHandler{
             }
 
             // Saves inventory
+            WriteInt(slots.Length);
+            this.file.Write(this.intBuffer, 0, 4);
             this.file.Write(this.buffer, (int)filePosition, (int)(filePosition+bytesWritten));
             this.file.Flush();
         }
@@ -338,5 +350,13 @@ public class InventoryFileHandler{
         a += buff[pos+3];
 
         return a;
+    }
+
+    // Writes an int to the intArray
+    private void WriteInt(int a){
+        this.intBuffer[0] = (byte)(a >> 24);
+        this.intBuffer[1] = (byte)(a >> 16);
+        this.intBuffer[2] = (byte)(a >> 8);
+        this.intBuffer[3] = (byte)a;
     }
 }
