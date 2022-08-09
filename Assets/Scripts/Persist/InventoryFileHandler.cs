@@ -8,7 +8,7 @@ using UnityEngine;
 /*
 INVENTORY FILE (.invf) encapsulates all of users inventory
 
-SCHEMA: [InventorySize (4)][Inventories (variable size)]*
+SCHEMA: [InventoriesSize (4)][Inventories (variable size)]*
 
 */
 public class InventoryFileHandler{
@@ -82,7 +82,7 @@ public class InventoryFileHandler{
     public void SaveInventory(ulong playerId, PlayerServerInventorySlot[] slots){
         int bytesWritten = 0;
         long filePosition;
-        int inventorySize;
+        int inventorySize = 0;
 
         for(int i=0; i < slots.Length; i++){
             bytesWritten += slots[i].SaveToBuffer(this.buffer, bytesWritten);
@@ -94,9 +94,10 @@ public class InventoryFileHandler{
             this.index.Add(playerId, (ulong)filePosition);
             UnloadIndex();
 
-            WriteInt(slots.Length);
+            WriteInt(bytesWritten);
+            this.file.Seek(filePosition, SeekOrigin.Begin);
             this.file.Write(this.intBuffer, 0, 4);
-            this.file.Write(this.buffer, 0, bytesWritten);
+            this.file.Write(this.buffer, 0, bytesWritten+headerSize);
             this.file.Flush();
         }
         // If inventory was already saved
@@ -106,7 +107,7 @@ public class InventoryFileHandler{
             inventorySize = ReadInt(this.intBuffer, 0);
 
             this.fragmentationHandler.AddHole(filePosition, inventorySize+headerSize);
-            filePosition = this.fragmentationHandler.FindPosition(bytesWritten);
+            filePosition = this.fragmentationHandler.FindPosition(bytesWritten+headerSize);
             SaveHoles();
 
             // Changes index
@@ -116,9 +117,10 @@ public class InventoryFileHandler{
             }
 
             // Saves inventory
-            WriteInt(slots.Length);
+            WriteInt(bytesWritten);
+            this.file.Seek(filePosition, SeekOrigin.Begin);
             this.file.Write(this.intBuffer, 0, 4);
-            this.file.Write(this.buffer, (int)filePosition, (int)(filePosition+bytesWritten));
+            this.file.Write(this.buffer, 0, bytesWritten+headerSize);
             this.file.Flush();
         }
     }
@@ -221,7 +223,6 @@ public class InventoryFileHandler{
             a = ReadUlong(indexBuffer, i*8);
             b = ReadUlong(indexBuffer, (i+1)*8);
 
-            Debug.Log("inserted key: " + a);
             this.index.Add(a, b);
         }
     }
