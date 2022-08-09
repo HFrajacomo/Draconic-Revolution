@@ -45,9 +45,15 @@ public class InventoryUIPlayer : MonoBehaviour
     }
 
     public void ReloadInventory(){
-        this.DrawStacks();
         this.inv1.FindLastEmptySlot();
-        this.inv2.FindLastEmptySlot();        
+        this.inv2.FindLastEmptySlot();  
+
+        for(ushort i=0; i < this.inv1.GetLimit(); i++){
+        	this.DrawSlot(0, i);
+        }
+        for(ushort i=0; i < this.inv2.GetLimit(); i++){
+        	this.DrawSlot(1, i);
+        }
     }
 
     // Draws the ItemStacks into the Inventory Screen

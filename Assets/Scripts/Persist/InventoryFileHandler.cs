@@ -175,8 +175,6 @@ public class InventoryFileHandler{
         this.indexFile.SetLength(0);
         this.indexFile.Write(this.indexBuffer, 0, position);
         this.indexFile.Flush();
-        Debug.Log("saving index 1");
-
     }
 
     // Closes all streams and saves index and holes

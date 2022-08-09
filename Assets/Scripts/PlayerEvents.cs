@@ -154,6 +154,11 @@ public class PlayerEvents : MonoBehaviour
 		DrawItemEntity(GetSlotStack());
 	}
 
+	// Updates inventory in UI
+	public void UpdateInventory(){
+		invUIPlayer.OpenInventory(this.inventory, this.hotbar);
+	}
+
 	public void DestroyItemEntity(){
 		PlayerEvents.itemInHand.Destroy();
 		PlayerEvents.itemInHand = null;	

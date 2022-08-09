@@ -633,6 +633,7 @@ public class Client
 		this.playerEvents.inventory = newInv;
 		this.playerEvents.hotbar = newHot;
 		this.playerEvents.DrawHotbar();
+		this.playerEvents.UpdateInventory();
 	}
 
 

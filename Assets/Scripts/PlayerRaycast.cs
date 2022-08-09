@@ -221,8 +221,6 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
-		loader.chunks[playerBody.GetChunkPos()].PrintDrawStage();
-
 		if(!current.active)
 			return;
 
