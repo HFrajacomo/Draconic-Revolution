@@ -214,13 +214,14 @@ public class InventoryFileHandler{
         ulong a, b;
 
         this.indexFile.Seek(0, SeekOrigin.Begin);
-
         byte[] indexBuffer = new byte[this.indexFile.Length];
+        this.indexFile.Read(indexBuffer, 0, (int)this.indexFile.Length);
         
         for(int i=0; i < this.indexFile.Length/8; i+=2){
             a = ReadUlong(indexBuffer, i*8);
             b = ReadUlong(indexBuffer, (i+1)*8);
 
+            Debug.Log("inserted key: " + a);
             this.index.Add(a, b);
         }
     }

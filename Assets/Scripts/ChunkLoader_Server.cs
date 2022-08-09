@@ -415,7 +415,8 @@ public class ChunkLoader_Server : MonoBehaviour
             }
         }
 
-        for(ulong i=0; i < 3; i++){
+
+        for(ulong i=16; i < 17; i++){
             this.playerServerInventory.AddInventory(i, slots);
             length = this.playerServerInventory.ConvertInventoryToBytes(i);
             message = new NetMessage(NetCode.SENDINVENTORY);
