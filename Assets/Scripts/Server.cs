@@ -369,6 +369,9 @@ public class Server
 	// Captures client info
 	private void SendClientInfo(byte[] data, ulong id){
 		NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
+		NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
+		int inventoryLength;
+		bool isEmptyInventory;
 		ulong accountID = NetDecoder.ReadUlong(data, 1);
 		int renderDistance = NetDecoder.ReadInt(data, 9); 
 		int seed = NetDecoder.ReadInt(data, 13);
@@ -384,12 +387,22 @@ public class Server
 
 		// Sends Player Info
 		if(this.cl.RECEIVEDWORLDDATA){
+			// Sends player data
 			PlayerData pdat = this.cl.regionHandler.LoadPlayer(accountID);
 			pdat.SetOnline(true);
 			Vector3 playerPos = pdat.GetPosition();
 			Vector3 playerDir = pdat.GetDirection();
 			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z);
 			this.Send(message.GetMessage(), message.size, id, temporary:true);
+
+			// Sends player inventory data
+			inventoryLength = this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmptyInventory);
+			if(!isEmptyInventory)
+				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetBuffer(), inventoryLength);
+			else
+				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetEmptyBuffer(), inventoryLength);
+
+			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id, temporary:true);
 		}
 
 		// If AccountID is already online, erase all memory from that connection

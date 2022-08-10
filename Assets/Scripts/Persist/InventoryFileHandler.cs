@@ -136,7 +136,8 @@ public class InventoryFileHandler{
         ReadHeader(filePosition);
         readSize = ReadInt(intBuffer, 0);
 
-        this.file.Read(this.buffer, filePosition+4, filePosition+4+readSize);
+        this.file.Seek(filePosition+headerSize, SeekOrigin.Begin);
+        this.file.Read(this.buffer, 0, readSize);
 
         return PlayerServerInventorySlot.BuildInventory(buffer, 0, PlayerServerInventory.playerInventorySize, ref refVoid);
     }
@@ -208,7 +209,8 @@ public class InventoryFileHandler{
 
     // Reads header information and adds it to intBuffer
     private void ReadHeader(long filePosition){
-        this.file.Read(this.intBuffer, (int)filePosition, (int)filePosition+4);
+        this.file.Seek((int)filePosition, SeekOrigin.Begin);
+        this.file.Read(this.intBuffer, 0, 4);
     }
 
     // Loads the (.iind) file to the actual index in RAM
