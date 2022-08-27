@@ -51,6 +51,15 @@ public class PlayerEvents : MonoBehaviour
         this.DrawHotbar();
     }
 
+    public void SetInventories(Inventory inv, Inventory hotbar){
+    	this.inventory = inv;
+    	this.hotbar = hotbar;
+        InventoryStaticMessage.SetPlayerInventory(inventory);
+        InventoryStaticMessage.SetInventory(hotbar);
+        invUIPlayer.OpenInventory(inventory, hotbar);
+
+        this.DrawHotbar();
+    }
 
 	// Selects a new item in hotbar
 	public void Scroll1(){

@@ -631,16 +631,11 @@ public class Client
 		InventorySerializer.BuildPlayerInventory(data, 0, out newHot, out newInv);
 
 		if(this.playerEvents != null){
-			this.playerEvents.inventory = newInv;
-			this.playerEvents.hotbar = newHot;
-			this.playerEvents.DrawHotbar();
-			this.playerEvents.UpdateInventory();
+			this.playerEvents.SetInventories(newInv, newHot);
 		}
 		else{
-			this.cl.playerEvents.inventory = newInv;
-			this.cl.playerEvents.hotbar = newHot;
-			this.cl.playerEvents.DrawHotbar();
-			this.cl.playerEvents.UpdateInventory();		
+			this.cl.playerEvents.SetInventories(newInv, newHot);
+			this.playerEvents = this.cl.playerEvents;
 		}
 	}
 

@@ -369,7 +369,6 @@ public class Server
 	// Captures client info
 	private void SendClientInfo(byte[] data, ulong id){
 		NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
-		NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
 		int inventoryLength;
 		bool isEmptyInventory;
 		ulong accountID = NetDecoder.ReadUlong(data, 1);
@@ -396,6 +395,7 @@ public class Server
 			this.Send(message.GetMessage(), message.size, id, temporary:true);
 
 			// Sends player inventory data
+			NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
 			inventoryLength = this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmptyInventory);
 			if(!isEmptyInventory)
 				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetBuffer(), inventoryLength);
