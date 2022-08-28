@@ -28,12 +28,12 @@ public class PlayerServerInventory{
 
         // If it's a pre-existing inventory in RAM that is being changed
         if(this.inventories.ContainsKey(playerId)){
-            this.inventories[playerId] = PlayerServerInventorySlot.BuildInventory(data, 0, playerInventorySize, ref refVoid);
+            this.inventories[playerId] = PlayerServerInventorySlot.BuildInventory(data, 1, playerInventorySize, ref refVoid);
             this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
         }
         // If player doesn't exist yet
         else{
-            this.inventories.Add(playerId, PlayerServerInventorySlot.BuildInventory(data, 0, playerInventorySize, ref refVoid));
+            this.inventories.Add(playerId, PlayerServerInventorySlot.BuildInventory(data, 1, playerInventorySize, ref refVoid));
             this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
         }
     }

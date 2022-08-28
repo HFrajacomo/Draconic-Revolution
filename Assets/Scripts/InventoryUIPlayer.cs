@@ -13,6 +13,7 @@ public class InventoryUIPlayer : MonoBehaviour
     public TextMeshProUGUI detailsName;
     public TextMeshProUGUI detailsDescription;
     public TextMeshProUGUI detailsStats;
+    public ChunkLoader cl;
 
 	// Inventory data and draw info
 	private Inventory inv1;
@@ -48,12 +49,7 @@ public class InventoryUIPlayer : MonoBehaviour
         this.inv1.FindLastEmptySlot();
         this.inv2.FindLastEmptySlot();  
 
-        for(ushort i=0; i < this.inv1.GetLimit(); i++){
-        	this.DrawSlot(0, i);
-        }
-        for(ushort i=0; i < this.inv2.GetLimit(); i++){
-        	this.DrawSlot(1, i);
-        }
+        this.DrawStacks();
     }
 
     // Draws the ItemStacks into the Inventory Screen
@@ -206,6 +202,12 @@ public class InventoryUIPlayer : MonoBehaviour
     		}
 
     		this.DrawSlot(inventoryCode, slot);
+
+    		int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
+    		
+    		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
+    		message.SendInventory(InventorySerializer.buffer, inventorySize);
+    		this.cl.client.Send(message.GetMessage(), message.size);
     	}
     	// If has a selected slot
     	else{
@@ -221,6 +223,12 @@ public class InventoryUIPlayer : MonoBehaviour
     		this.DrawSlot(this.selectedInventory, this.selectedSlot);
     		this.DrawSlot(inventoryCode, slot);
     		this.ResetSelection();
+
+    		int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
+
+    		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
+    		message.SendInventory(InventorySerializer.buffer, inventorySize);
+    		this.cl.client.Send(message.GetMessage(), message.size);
     	}
     }
 
@@ -249,6 +257,13 @@ public class InventoryUIPlayer : MonoBehaviour
         			}    
                 }			
     		}
+
+    		int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
+    		
+    		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
+    		message.SendInventory(InventorySerializer.buffer, inventorySize);
+    		this.cl.client.Send(message.GetMessage(), message.size);
+
     	}
     	// If there's a selection, then unselect
     	else{

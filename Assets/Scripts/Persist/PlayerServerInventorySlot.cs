@@ -9,10 +9,10 @@ public abstract class PlayerServerInventorySlot{
 	public int GetSlotMemorySize(){return this.slotMemorySize;}
 	public abstract int SaveToBuffer(byte[] buffer, int init);
 
-	public static PlayerServerInventorySlot[] BuildInventory(byte[] data, int init, int inventorySlotAmount, ref int bytesWritten){
+	public static PlayerServerInventorySlot[] BuildInventory(byte[] data, int init, int inventorySlotAmount, ref int bytesWritten, int initialSlot=0){
 		PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[inventorySlotAmount];
-		int currentPosition = 0;
-		int currentSlot = 0;
+		int currentPosition = init;
+		int currentSlot = initialSlot;
 
 		MemoryStorageType cachedType;
 		ItemID cachedId;
@@ -53,7 +53,7 @@ public abstract class PlayerServerInventorySlot{
 					currentPosition += 2;
 					cachedInventorySize = NetDecoder.ReadByte(data, currentPosition);
 					currentPosition++;
-					cachedInventory = BuildInventory(data, currentPosition, 30, ref bytesWritten);
+					cachedInventory = BuildInventory(data, currentPosition, 30, ref bytesWritten, initialSlot:currentSlot);
 					currentPosition += bytesWritten;
 					break;
 			}

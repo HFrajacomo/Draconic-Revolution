@@ -424,8 +424,7 @@ public class ChunkLoader_Server : MonoBehaviour
         int length;
 
         for(int i=0; i < 45; i++){
-            //if(i == 1){
-            if(i == 1 || i == 5){
+            if(i == 0){
                 slots[i] = new ItemPlayerInventorySlot(ItemID.STONEBLOCK, 3);
             }
             else{
@@ -433,9 +432,7 @@ public class ChunkLoader_Server : MonoBehaviour
             }
         }
 
-        //for(ulong i=0; i < 3; i++){
         for(ulong i=0; i < 1; i++){
-        //for(ulong i=16; i < 17; i++){
             this.playerServerInventory.AddInventory(i, slots);
             length = this.playerServerInventory.ConvertInventoryToBytes(i);
             message = new NetMessage(NetCode.SENDINVENTORY);

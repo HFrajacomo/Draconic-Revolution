@@ -72,6 +72,53 @@ public static class InventorySerializer
 
             currentSlot++;
         }
+
+        while(currentSlot < hotbar.GetLimit() + inv.GetLimit()){
+            mst = (MemoryStorageType)data[init+bytesRead];
+            bytesRead++;
+
+            switch(mst){
+                case MemoryStorageType.EMPTY:
+                    break;
+                case MemoryStorageType.ITEM:
+                    id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
+                    bytesRead += 2;
+                    quantity = data[init+bytesRead];
+                    bytesRead++;
+                    item = Item.GenerateItem((ushort)id);
+                    its = new ItemStack(item, quantity);
+                    AddToInventory(its, hotbar, inv, currentSlot);
+                    break;
+                case MemoryStorageType.WEAPON:
+                    id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
+                    bytesRead += 2;
+                    currentDur = NetDecoder.ReadUlong(data, init+bytesRead);
+                    bytesRead += 8;
+                    refineLv = data[init+bytesRead];
+                    bytesRead++;
+                    enchant = (EnchantmentType)data[init+bytesRead];
+                    weapon = (Weapon)Item.GenerateItem((ushort)id);
+                    weapon.SetDurability(currentDur);
+                    weapon.SetExtraEffects(enchant);
+                    weapon.SetRefineLevel(refineLv);
+                    its = new ItemStack(weapon, 1);
+                    AddToInventory(its, hotbar, inv, currentSlot);
+                    break;
+                case MemoryStorageType.STORAGE:
+                    //id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
+                    //bytesRead += 2;
+                    //inventorySize = NetDecoder.ReadUshort(data, init+bytesRead);
+                    /*
+                    Create inventory Items first
+                    Add inventory byte size to bytesRead
+                    Create ItemStack
+                    AddToInventory
+                    */
+                    break;
+            }
+
+            currentSlot++;
+        }
         
     }
 
@@ -86,6 +133,7 @@ public static class InventorySerializer
         for(ushort i=0; i < hotbar.GetLimit(); i++){
             if(hotbar.GetSlot(i) == null){
                 InventorySerializer.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
+                bytesWritten++;
             }
             else{
                 its = hotbar.GetSlot(i);
@@ -96,6 +144,7 @@ public static class InventorySerializer
         for(ushort i=0; i < inv.GetLimit(); i++){
             if(inv.GetSlot(i) == null){
                 InventorySerializer.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
+                bytesWritten++;
             }
             else{
                 its = inv.GetSlot(i);
@@ -109,6 +158,6 @@ public static class InventorySerializer
         if(currentSlot < 9)
             hotbar.ForceAddStack(its, (ushort)currentSlot);
         else
-            inv.ForceAddStack(its, (ushort)currentSlot);
+            inv.ForceAddStack(its, (ushort)(currentSlot-9));
     }
 }

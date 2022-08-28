@@ -628,7 +628,7 @@ public class Client
 		Inventory newInv = new Inventory(InventoryType.PLAYER);
 		Inventory newHot = new Inventory(InventoryType.HOTBAR);
 
-		InventorySerializer.BuildPlayerInventory(data, 0, out newHot, out newInv);
+		InventorySerializer.BuildPlayerInventory(data, 1, out newHot, out newInv);
 
 		if(this.playerEvents != null){
 			this.playerEvents.SetInventories(newInv, newHot);

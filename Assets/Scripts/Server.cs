@@ -360,6 +360,9 @@ public class Server
 			case NetCode.BLOCKDAMAGE:
 				BlockDamage(data, id);
 				break;
+			case NetCode.SENDINVENTORY:
+				SendInventory(data, id);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED");
 				break;
@@ -733,9 +736,11 @@ public class Server
 
 
 		// Propagates data to all network
-		foreach(ulong code in this.connectionGraph[id]){
-			graphMessage.PlayerData(this.cl.regionHandler.allPlayerData[id]);
-			this.Send(graphMessage.GetMessage(), graphMessage.size, code);
+		if(this.connectionGraph.ContainsKey(id)){
+			foreach(ulong code in this.connectionGraph[id]){
+				graphMessage.PlayerData(this.cl.regionHandler.allPlayerData[id]);
+				this.Send(graphMessage.GetMessage(), graphMessage.size, code);
+			}
 		}
 	}
 
@@ -1046,6 +1051,11 @@ public class Server
 				this.cl.regionHandler.SaveChunk(c);
 			}
 		}
+	}
+
+	// Receives the inventory of client and saves it
+	private void SendInventory(byte[] data, ulong id){
+		this.cl.playerServerInventory.AddInventory(id, data);
 	}
 
 	/*
