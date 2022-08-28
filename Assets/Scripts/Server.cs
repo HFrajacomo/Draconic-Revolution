@@ -544,6 +544,7 @@ public class Server
 		ChunkPos pos;
 		int x, y, z, facing;
 		ushort blockCode, state, hp;
+		byte slot, newQuantity;
 		BUDCode type;
 		NetMessage message;
 
@@ -565,6 +566,9 @@ public class Server
 		else{
 			type = (BUDCode)NetDecoder.ReadInt(data, 27);
 		}
+
+		slot = data[35];
+		newQuantity = data[36];
 
 		CastCoord lastCoord = new CastCoord(pos, x, y, z);
 
@@ -620,6 +624,8 @@ public class Server
 							cl.blockBook.objects[ushort.MaxValue-blockCode].OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 						}
 
+						this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
+
 						// Sends the updated voxel to loaded clients
 						message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 						message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ), this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetHP(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
@@ -641,6 +647,8 @@ public class Server
 						}
 				
 					}
+
+					this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
 
 					// Make entities in this chunk update their TerrainVision
 					this.entityHandler.SetRefreshVision(EntityType.DROP, lastCoord.GetChunkPos());

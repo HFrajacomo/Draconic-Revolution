@@ -96,7 +96,10 @@ public class PlayerServerInventory{
 
     public void ChangeQuantity(ulong playerId, byte slotId, byte quantity){
         if(this.inventories.ContainsKey(playerId)){
-            ((ItemPlayerInventorySlot)this.inventories[playerId][slotId]).SetQuantity(quantity);
+            if(quantity == 0)
+                this.inventories[playerId][slotId] = new EmptyPlayerInventorySlot();
+            else
+                ((ItemPlayerInventorySlot)this.inventories[playerId][slotId]).SetQuantity(quantity);
         }
     }
 
