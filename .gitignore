@@ -57,3 +57,9 @@ config.cfg
 *.iind
 
 *.invf
+
+*.mp3
+
+Assets/StreamingAssets/Audio/
+
+Assets/Scripts/Audio/rainfall.mp3.meta
