@@ -6,7 +6,7 @@ A few decades later, Voxel Lighting made a new appearence on the realm of games.
 
 It's no secret that Draconic Revolution is a Voxel-based game. Yet it was using the famous Polygonal model of lighting. Using Polygonal Lighting in a Voxel world generates all sorts of lighting and shading artifacts. Sometimes, places were simply too dark or too lit up. There was no middle ground and definitely the transitions were way too noticeable.
 
-The whole idea of this document is to explain how Draconic Revolution not only had a brand-new implementation of Voxel Lighting, but also had it implemented on-top of the current Polygonal model with all of it's perks and realism features.
+The whole idea of this document is to explain how Draconic Revolution not only had a brand-new implementation of Voxel Lighting, but also had it implemented on-top of the current Polygonal model with all of its perks and realism features.
 
 ### Topics
 
@@ -23,7 +23,7 @@ In the real world, light floods into a room, and will bounce around and to other
 
 I knew that to make the perfect lighting, I would need to fix most of the inherent problems that came with the nature of the game. So Voxel Lighting was my way out!
 
-Voxel Lighting doesn't care about pixel (too much) about pixel light rays being shot, but it cares about shooting voxel-sized light rays. In simpler terms, Voxel Lighting implements a local light level for every Voxel in the world. 
+Voxel Lighting doesn't care (too much) about pixel light rays being shot, but it cares about shooting voxel-sized light rays. In simpler terms, Voxel Lighting implements a local light level for every Voxel in the world. 
 
 **No, we are not creating real-time lights for every voxel in the world, keep reading!**
 
@@ -88,7 +88,7 @@ Multi-chunk propagation is when a single block in a chunk propagates directional
 
 This part is the one that sends the Light Level calculated for the Voxels to their respective vertices. That part shouldn't be hard, right? WRONG!
 
-In order to get a decent gradient out each vertice, a Voxel's vertex light shouldn't always be the same as it's local light level. It must take into consideration the light of it's neighbords as well, especially bordering chunks. For that, a 2D Convolution is run on the neighborhood of a voxel to define it's 4 vertices' light level. This number is sent to the GPU in the UV Channel 3 (uv[3] for reference).
+In order to get a decent gradient out each vertice, a Voxel's vertex light shouldn't always be the same as its local light level. It must take into consideration the light of it's neighbords as well, especially bordering chunks. For that, a 2D Convolution is run on the neighborhood of a voxel to define its 4 vertices' light level. This number is sent to the GPU in the UV Channel 3 (uv[3] for reference).
 
 Explaining like that seems easy, but it took me over a month to get it right  :(
 
@@ -99,7 +99,7 @@ Explaining like that seems easy, but it took me over a month to get it right  :(
 Alright, now take everything that was just said in the entire past Section and LITERALLY double that. Extra Lights are lights that don't come from the sun (torches, magic, light switches, etc.). They are handled in a similar way, yet, they lack the ShadowCode 2. Whenever a Voxel contains both Natural Light and Extra Light information, the highest valued one will be used by the Shader.
 
 ## Custom Interpolation Shaders
-In order to get the modern (and to work towards realism in a Voxel Lighting engine), we need to get perfect gradients between light levels. So for every pixel, there must have a gradient happening... Just imagine how hard and CPU intensive it would be to Lerp every pixel on the screen...
+In order to get the modern look (and to work towards realism in a Voxel Lighting engine), we need to get perfect gradients between light levels. So for every pixel, there must have a gradient happening... Just imagine how hard and CPU intensive it would be to Lerp every pixel on the screen...
 
 Luckily, the Vertex->Fragment shader struct does that work for us. For those unaware, the Vertex Shader operates on Vertices, sends the data to Interpolators that create the perfect interpolation of values (like normals and colors), so that the Fragment Shader can work on every pixel independently.
 
@@ -118,7 +118,7 @@ The Chunk Building pipeline was revamped, supporting unlimited Custom Shaders. T
 
 ## Ground Emission Problem and Solution
 
-After all of this, we still had a problem. Well, you see, what we are doing here is basically casting "Voxel Shadows". The real light still comes from the Polygonal model, so if the sun shines light into object A, and it's shadows obscures object B, then Voxel Lighting won't help object B. That may make sense to most of you, but you should realize that the Underground would be dark even if we poke a hole in the ceiling to the surface.
+After all of this, we still had a problem. Well, you see, what we are doing here is basically casting "Voxel Shadows". The real light still comes from the Polygonal model, so if the sun shines light into object A, and its shadows obscures object B, then Voxel Lighting won't help object B. That may make sense to most of you, but you should realize that the Underground would be dark even if we poke a hole in the ceiling to the surface.
 
 The ground of the caves were 100% dark while the walls and ceilings were lit. Why is that? Simple, the materials weren't Double Sided. That means that the Shadows casted by the surface ground affected the only the places where the normals were similar, a.k.a the cave ground. Switching to Double Sided made everything darker.
 

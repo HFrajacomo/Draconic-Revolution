@@ -22,7 +22,7 @@ An Index File (.ind) is a file that assigns a Chunk Code (8 bytes) to an Offset 
 
 ![](../RepoImages/index.png)
 
-In short, if you want to save a Chunk, we first generate it's Chunk Code, based on it's X and Z coordinates. Then, we save it to an big-enough empty space in the .rdf file and save this position to the Index file. Pretty cool, right?
+In short, if you want to save a Chunk, we first generate its Chunk Code, based on its X and Z coordinates. Then, we save it to an big-enough empty space in the .rdf file and save this position to the Index file. Pretty cool, right?
 
 So, have you found the problem yet? I said that the Chunk will be saved to the first big-enough empty space it finds. So, theoretically, if we add a new block to a chunk and make it grow in size, we would write the whole chunk all over again at the end of the file, right? **Wrong!** That would be stupid and would waste so much disk space...
 
@@ -46,7 +46,7 @@ You all know what a pallete is, right? Given the color pallete example:
 
 Imagine that every in-game biome has a pallete. But not for colors... for blocks. It's common to see Grass, Dirt and Stone in a Plains Biome. It's common to see sand in the desert and snow in the tundras. Going further even, it's common to have blocks generated with an *'untouched'* HP and State information. Therefore, these common informations should be highly compressed. How?
 
-Instead of storing every single individual block in memory, **we check if a block is in it's Biome pallete first.** If the block/metadata is in the biome's pallete, then write it's data once, and then write the total amount of exactly identical information we will find if loading the chunk straight. Whenever we find another block or another state, we stop, reset the block-to-be-written and start all over again. Blocks/States outside of the pallete are stored normally.
+Instead of storing every single individual block in memory, **we check if a block is in its Biome pallete first.** If the block/metadata is in the biome's pallete, then write it's data once, and then write the total amount of exactly identical information we will find if loading the chunk straight. Whenever we find another block or another state, we stop, reset the block-to-be-written and start all over again. Blocks/States outside of the pallete are stored normally.
 
 # Congratulations
 

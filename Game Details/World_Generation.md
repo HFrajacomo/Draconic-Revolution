@@ -8,7 +8,7 @@ If you are here, you are probably very curious about Procedural Generation. I do
 ## Procedural vs Random Generation
 There is a very common misconception about what Procedural Generation actually is. As a programmer, it's common to think that using a simple *Random()* function a lot of times will eventually generate you a very good world in which you can play. That is, indeed, true if you have a lot of free time to generate stuff. And this is what we call 'Random Generation'.
 
-Now, for this generation to become *Procedural*, you need to be able to regenerate the same data everytime, given an initial condition. A *seed* is a common term for defining a Key value that serves as a global Randomness controller. You can replicate an entire world if you just happen to know it's seed.
+Now, for this generation to become *Procedural*, you need to be able to regenerate the same data everytime, given an initial condition. A *seed* is a common term for defining a Key value that serves as a global Randomness controller. You can replicate an entire world if you just happen to know its seed.
 
 **In short, every world has a seed value**!
 
@@ -22,7 +22,7 @@ The answer to this question is...
 
 This right here is the visual representation of a 2-dimensional Perlin Noise function. Pretty neat, right? But what does it do?
 
-Perlin Noise is a considerably fast and smooth noise function, very suitable to the task of generating heightmaps. Imagine that we are sampling a pixel in that image everytime we call our custom *Random()* function. If the pixel we picked is darker, it's value is closer to height 0. If it's brighter, then it's closer to height 255. All we have to do now, is to use the Chunk coordinates and World Seed in our custom *Random()* function to offset the Perlin Noise just enough to get an interesting heightmap curve.
+Perlin Noise is a considerably fast and smooth noise function, very suitable to the task of generating heightmaps. Imagine that we are sampling a pixel in that image everytime we call our custom *Random()* function. If the pixel we picked is darker, its value is closer to height 0. If it's brighter, then its closer to height 255. All we have to do now, is to use the Chunk coordinates and World Seed in our custom *Random()* function to offset the Perlin Noise just enough to get an interesting heightmap curve.
 
 ## Noise Maps
 Okay, we have procedurally generated numbers now. What is next? 
@@ -41,7 +41,7 @@ We have a total of 8 Noise Maps:
  8. Cave Mask Map
 
 ### The Surface
-To generate the surface terrain, **Base, Erosion** and **Peaks** maps are used. High base values make the terrain higher or lower. Higher erosion makes the terrain more flat and lower, while high erosion makes it higher and more prone to microchanges. High peak values make sudden high lands and low peak values dig out water ways like rivers.
+To generate the surface terrain, **Base, Erosion** and **Peaks** maps are used. High base values make the terrain higher or lower. Higher erosion makes the terrain more flat and lower, while low erosion makes it higher and more prone to microchanges. High peak values make sudden high lands and low peak values dig out water ways like rivers.
 
 ### The Biomes
 To figure out what biome should be placed in what given chunk, the **Base, Erosion, Temperature** and **Humidity** maps are used.
