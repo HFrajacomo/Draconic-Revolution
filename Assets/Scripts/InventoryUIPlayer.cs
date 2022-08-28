@@ -13,6 +13,7 @@ public class InventoryUIPlayer : MonoBehaviour
     public TextMeshProUGUI detailsName;
     public TextMeshProUGUI detailsDescription;
     public TextMeshProUGUI detailsStats;
+    public ChunkLoader cl;
 
 	// Inventory data and draw info
 	private Inventory inv1;
@@ -45,9 +46,10 @@ public class InventoryUIPlayer : MonoBehaviour
     }
 
     public void ReloadInventory(){
-        this.DrawStacks();
         this.inv1.FindLastEmptySlot();
-        this.inv2.FindLastEmptySlot();        
+        this.inv2.FindLastEmptySlot();  
+
+        this.DrawStacks();
     }
 
     // Draws the ItemStacks into the Inventory Screen
@@ -200,6 +202,12 @@ public class InventoryUIPlayer : MonoBehaviour
     		}
 
     		this.DrawSlot(inventoryCode, slot);
+
+    		int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
+    		
+    		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
+    		message.SendInventory(InventorySerializer.buffer, inventorySize);
+    		this.cl.client.Send(message.GetMessage(), message.size);
     	}
     	// If has a selected slot
     	else{
@@ -215,6 +223,12 @@ public class InventoryUIPlayer : MonoBehaviour
     		this.DrawSlot(this.selectedInventory, this.selectedSlot);
     		this.DrawSlot(inventoryCode, slot);
     		this.ResetSelection();
+
+    		int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
+
+    		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
+    		message.SendInventory(InventorySerializer.buffer, inventorySize);
+    		this.cl.client.Send(message.GetMessage(), message.size);
     	}
     }
 
@@ -243,6 +257,13 @@ public class InventoryUIPlayer : MonoBehaviour
         			}    
                 }			
     		}
+
+    		int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
+    		
+    		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
+    		message.SendInventory(InventorySerializer.buffer, inventorySize);
+    		this.cl.client.Send(message.GetMessage(), message.size);
+
     	}
     	// If there's a selection, then unselect
     	else{

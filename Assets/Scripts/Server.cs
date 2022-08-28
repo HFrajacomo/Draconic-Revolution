@@ -360,6 +360,9 @@ public class Server
 			case NetCode.BLOCKDAMAGE:
 				BlockDamage(data, id);
 				break;
+			case NetCode.SENDINVENTORY:
+				SendInventory(data, id);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED");
 				break;
@@ -369,6 +372,8 @@ public class Server
 	// Captures client info
 	private void SendClientInfo(byte[] data, ulong id){
 		NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
+		int inventoryLength;
+		bool isEmptyInventory;
 		ulong accountID = NetDecoder.ReadUlong(data, 1);
 		int renderDistance = NetDecoder.ReadInt(data, 9); 
 		int seed = NetDecoder.ReadInt(data, 13);
@@ -384,12 +389,23 @@ public class Server
 
 		// Sends Player Info
 		if(this.cl.RECEIVEDWORLDDATA){
+			// Sends player data
 			PlayerData pdat = this.cl.regionHandler.LoadPlayer(accountID);
 			pdat.SetOnline(true);
 			Vector3 playerPos = pdat.GetPosition();
 			Vector3 playerDir = pdat.GetDirection();
 			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z);
 			this.Send(message.GetMessage(), message.size, id, temporary:true);
+
+			// Sends player inventory data
+			NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
+			inventoryLength = this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmptyInventory);
+			if(!isEmptyInventory)
+				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetBuffer(), inventoryLength);
+			else
+				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetEmptyBuffer(), inventoryLength);
+
+			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id, temporary:true);
 		}
 
 		// If AccountID is already online, erase all memory from that connection
@@ -528,6 +544,7 @@ public class Server
 		ChunkPos pos;
 		int x, y, z, facing;
 		ushort blockCode, state, hp;
+		byte slot, newQuantity;
 		BUDCode type;
 		NetMessage message;
 
@@ -549,6 +566,9 @@ public class Server
 		else{
 			type = (BUDCode)NetDecoder.ReadInt(data, 27);
 		}
+
+		slot = data[35];
+		newQuantity = data[36];
 
 		CastCoord lastCoord = new CastCoord(pos, x, y, z);
 
@@ -604,6 +624,8 @@ public class Server
 							cl.blockBook.objects[ushort.MaxValue-blockCode].OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 						}
 
+						this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
+
 						// Sends the updated voxel to loaded clients
 						message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 						message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ), this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetHP(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
@@ -625,6 +647,8 @@ public class Server
 						}
 				
 					}
+
+					this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
 
 					// Make entities in this chunk update their TerrainVision
 					this.entityHandler.SetRefreshVision(EntityType.DROP, lastCoord.GetChunkPos());
@@ -720,9 +744,11 @@ public class Server
 
 
 		// Propagates data to all network
-		foreach(ulong code in this.connectionGraph[id]){
-			graphMessage.PlayerData(this.cl.regionHandler.allPlayerData[id]);
-			this.Send(graphMessage.GetMessage(), graphMessage.size, code);
+		if(this.connectionGraph.ContainsKey(id)){
+			foreach(ulong code in this.connectionGraph[id]){
+				graphMessage.PlayerData(this.cl.regionHandler.allPlayerData[id]);
+				this.Send(graphMessage.GetMessage(), graphMessage.size, code);
+			}
 		}
 	}
 
@@ -799,6 +825,9 @@ public class Server
 
 	// Receives an Interaction command from client
 	private void Interact(byte[] data){
+		// DEBUG
+		this.cl.TestInventoryReceive();
+
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 		int x = NetDecoder.ReadInt(data, 9);
 		int y = NetDecoder.ReadInt(data, 13);
@@ -1030,6 +1059,11 @@ public class Server
 				this.cl.regionHandler.SaveChunk(c);
 			}
 		}
+	}
+
+	// Receives the inventory of client and saves it
+	private void SendInventory(byte[] data, ulong id){
+		this.cl.playerServerInventory.AddInventory(id, data);
 	}
 
 	/*

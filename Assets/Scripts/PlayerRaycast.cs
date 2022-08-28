@@ -194,7 +194,7 @@ public class PlayerRaycast : MonoBehaviour
 		if(it is IPlaceable){
 			IPlaceable itPlaceable = it as IPlaceable;
 			// If block placement was successful in client
-			if(this.PlaceBlock(itPlaceable.placeableBlockID)){
+			if(this.PlaceBlock(itPlaceable.placeableBlockID, (byte)(its.GetAmount()-1))){
 				PlayerRaycast.lastBlockPlaced = it.id;
 				if(its.Decrement()){
 					playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
@@ -207,22 +207,20 @@ public class PlayerRaycast : MonoBehaviour
 	}
 
 	// Block Placing mechanic
-	private bool PlaceBlock(ushort blockCode){
+	private bool PlaceBlock(ushort blockCode, byte newQuantity){
 		// Won't happen if not raycasting something or if block is in player's body or head
 		if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.CheckSolid(blockCode))){
 			return false;
 		}
 
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, ushort.MaxValue, ushort.MaxValue);
+		message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerEvents.hotbarSlot, newQuantity:newQuantity);
 		this.loader.client.Send(message.GetMessage(), message.size);
 		return true;
 	}
 
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
-		loader.chunks[playerBody.GetChunkPos()].PrintDrawStage();
-
 		if(!current.active)
 			return;
 

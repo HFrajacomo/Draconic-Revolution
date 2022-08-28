@@ -3206,6 +3206,7 @@ MonoBehaviour:
   detailsName: {fileID: 1763417960}
   detailsDescription: {fileID: 1082757479}
   detailsStats: {fileID: 889420616}
+  cl: {fileID: 1192772367}
   invButton:
   - {fileID: 604732860}
   - {fileID: 65700860}

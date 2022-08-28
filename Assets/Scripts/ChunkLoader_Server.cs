@@ -31,8 +31,9 @@ public class ChunkLoader_Server : MonoBehaviour
 	public int worldSeed = -1; // 6 number integer
     public BiomeHandler biomeHandler;
 
-	// Chunk Rendering
+	// Persistence
     public RegionFileHandler regionHandler;
+    public PlayerServerInventory playerServerInventory;
 
 	// Flags
     public int reloadMemoryCounter = 30;
@@ -50,6 +51,8 @@ public class ChunkLoader_Server : MonoBehaviour
         
         if(this.worldGen != null)
             this.worldGen.DestroyNativeMemory();
+
+        this.playerServerInventory.Destroy();
     }
 
     void Start(){
@@ -76,16 +79,21 @@ public class ChunkLoader_Server : MonoBehaviour
     }
 
     private void InitWorld(){
+        int inventoryLength;
+        bool isEmptyInventory;
+
         this.regionHandler = new RegionFileHandler(this);
+        this.playerServerInventory = new PlayerServerInventory();
         worldSeed = regionHandler.GetRealSeed();
         biomeHandler = new BiomeHandler();
         this.worldGen = new WorldGenerator(worldSeed, biomeHandler, structHandler, this);
         biomeHandler.SetWorldGenerator(this.worldGen);
-        
+
+
         print("Initializing World");
     
         // Sends the first player it's information
-        PlayerData pdat = this.regionHandler.LoadPlayer(this.server.firstConnectedID); // CHANGE TO OTHER ACCOUNTID
+        PlayerData pdat = this.regionHandler.LoadPlayer(this.server.firstConnectedID);
         Vector3 playerPos = pdat.GetPosition();
         Vector3 playerDir = pdat.GetDirection();
         pdat.SetOnline(true);
@@ -93,9 +101,22 @@ public class ChunkLoader_Server : MonoBehaviour
         this.regionHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth)));
 
         HandleServerCommunication();
+
+        // Send first player info
         NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
         message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z);
         this.server.Send(message.GetMessage(), message.size, this.server.firstConnectedID); 
+
+        // Send first player inventory info
+        NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
+        inventoryLength = this.playerServerInventory.LoadInventoryIntoBuffer(this.server.firstConnectedID, out isEmptyInventory);
+        if(!isEmptyInventory)
+            inventoryMessage.SendInventory(this.playerServerInventory.GetBuffer(), inventoryLength);
+        else
+            inventoryMessage.SendInventory(this.playerServerInventory.GetEmptyBuffer(), inventoryLength);
+
+        this.server.Send(inventoryMessage.GetMessage(), inventoryMessage.size, this.server.firstConnectedID);
+
         this.INITIALIZEDWORLD = true;
         this.time.SetLock(false);
     }
@@ -395,5 +416,28 @@ public class ChunkLoader_Server : MonoBehaviour
             return sub%mod;
         else
             return (sub%mod)+mod;
+    }
+
+    public void TestInventoryReceive(){
+        PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[45];
+        NetMessage message;
+        int length;
+
+        for(int i=0; i < 45; i++){
+            if(i == 0){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.STONEBLOCK, 3);
+            }
+            else{
+                slots[i] = new EmptyPlayerInventorySlot();
+            }
+        }
+
+        for(ulong i=0; i < 1; i++){
+            this.playerServerInventory.AddInventory(i, slots);
+            length = this.playerServerInventory.ConvertInventoryToBytes(i);
+            message = new NetMessage(NetCode.SENDINVENTORY);
+            message.SendInventory(this.playerServerInventory.GetBuffer(), length);
+            this.server.Send(message.GetMessage(), message.size, i);
+        }
     }
 }

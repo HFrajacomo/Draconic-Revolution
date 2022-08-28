@@ -173,7 +173,8 @@ public struct NetMessage
 	}
 
 	// Client or Server send a single voxel data to each other
-	public void DirectBlockUpdate(BUDCode type, ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state, ushort hp){
+	// Keywords "Slot" and "NewQuantity" are used only in Place operations for Client->Server messages
+	public void DirectBlockUpdate(BUDCode type, ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state, ushort hp, byte slot=0, byte newQuantity=0){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
 		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
 		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
@@ -183,7 +184,9 @@ public struct NetMessage
 		NetDecoder.WriteUshort(state, NetMessage.buffer, 27);
 		NetDecoder.WriteUshort(hp, NetMessage.buffer, 29);
 		NetDecoder.WriteInt((int)type, NetMessage.buffer, 31);
-		this.size = 35;
+		NetDecoder.WriteByte(slot, NetMessage.buffer, 35);
+		NetDecoder.WriteByte(newQuantity, NetMessage.buffer, 36);
+		this.size = 37;
 	}
 
 	// Clients sends their position to Server
@@ -319,6 +322,12 @@ public struct NetMessage
 		this.size = 9;
 	}
 
+	// Server sends inventory information to client
+	public void SendInventory(byte[] data, int length){
+		Array.Copy(data, 0, NetMessage.buffer, 1, length);
+		this.size = 1 + length;
+	}
+
 }
 
 public enum NetCode{
@@ -347,6 +356,7 @@ public enum NetCode{
 	ITEMENTITYDATA,
 	BLOCKDAMAGE,
 	FAILEDCHUNKREQUEST,
+	SENDINVENTORY,
 	DISCONNECT  // No call
 }
 

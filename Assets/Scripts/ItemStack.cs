@@ -209,6 +209,35 @@ public class ItemStack
 		}
 	}
 
+	// Writes the memory representation of an item to a byte[]
+	public int ConvertToMemory(byte[] data, int pos){
+		if(this.item is Weapon)
+			return ConvertWeapon(data, pos);
+		//if is storage item //else if(this.item is)
+		else
+			return ConvertItem(data, pos);
+	}
+
+	private int ConvertWeapon(byte[] data, int pos){
+		Weapon weap = this.GetItem() as Weapon;
+
+		data[pos] = (byte)MemoryStorageType.WEAPON;
+		NetDecoder.WriteUshort((ushort)weap.id, data, pos+1);
+		NetDecoder.WriteLong(weap.currentDurability, data, pos+3);
+		data[pos+11] = weap.refineLevel;
+		data[pos+12] = (byte)weap.extraEffect;
+
+		return 13;
+	}
+
+	private int ConvertItem(byte[] data, int pos){
+		data[pos] = (byte)MemoryStorageType.ITEM;
+		NetDecoder.WriteUshort((ushort)this.GetID(), data, pos+1);
+		data[pos+3] = this.GetAmount();
+
+		return 4;
+	}
+
 	public override string ToString(){
 		return this.GetID().ToString() + " " + this.GetAmount();
 	}
@@ -217,34 +246,4 @@ public class ItemStack
 	public Item GetItem(){
 		return this.item;
 	}
-
-	// Writes the memory representation of an item to a byte[] and returns number of bytes written
-	public int ConvertToMemory(byte[] data, int pos){
-		if(this.item is Weapon)
-			return ConvertWeapon(data, pos);
-		else
-			return ConvertItem(data, pos);
-	}
-
-	private int ConvertWeapon(byte[] arr, int pos){
-		Weapon weap = this.GetItem() as Weapon;
-
-		arr[pos] = (byte)MemoryStorageType.WEAPON;
-		NetDecoder.WriteUshort((ushort)weap.id, arr, pos+1);
-		arr[pos+3] = this.GetAmount();
-		NetDecoder.WriteUint(weap.currentDurability, arr, pos+4);
-		arr[pos+8] = weap.refineLevel;
-		arr[pos+9] = (byte)weap.extraEffect;
-
-		return 10;
-	}
-
-	private int ConvertItem(byte[] arr, int pos){
-		arr[pos] = (byte)MemoryStorageType.ITEM;
-		NetDecoder.WriteUshort((ushort)this.GetID(), arr, pos+1);
-		arr[pos+3] = this.GetAmount();
-
-		return 4;
-	}
-
 }

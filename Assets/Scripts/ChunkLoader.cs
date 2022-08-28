@@ -141,7 +141,6 @@ public class ChunkLoader : MonoBehaviour
             this.REQUESTEDCHUNKS = true;
             HandleClientCommunication();
         }
-
         else{
             // If current chunk is drawn and world is generated
         	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ) && toLoad.Count == 0){
@@ -155,6 +154,7 @@ public class ChunkLoader : MonoBehaviour
                 this.time.SetPlayer(playerCharacter.GetComponent<PlayerMovement>());
                 this.playerEvents.SetPlayerObject(playerCharacter);
                 this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
+                this.client.SetPlayerEvents(this.playerEvents);
         	}
 
             MoveEntities();
