@@ -1,5 +1,7 @@
 public enum AudioName
 {
     RAINFALL,
-    AGES
+    AGES,
+    DONTFINDIT,
+    TEST_GROUP
 }

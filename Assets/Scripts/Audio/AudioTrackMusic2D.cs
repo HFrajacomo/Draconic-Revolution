@@ -60,9 +60,12 @@ public class AudioTrackMusic2D : MonoBehaviour
     Plays the given sound AudioClip
     If something is already playing, crossfade between the two
     */
-    public void Play(Sound sound, AudioClip clip){
-        if(this.currentMusic == sound.name)
+    public void Play(Sound sound, AudioClip clip, bool isDynamic=false){
+        if(this.currentMusic == sound.name && !isDynamic)
             return;
+
+        if(isDynamic && this.currentMusic != sound.name)
+            isDynamic = false;
 
         this.currentMusic = sound.name;
         this.playOperationWasLast = true;
@@ -75,10 +78,18 @@ public class AudioTrackMusic2D : MonoBehaviour
         else if(audioSourceOutput.isPlaying && !switchSourceOutput.isPlaying){
             this.switchSourceOutput.clip = clip;
             isCrossfading = true;
+
+            if(isDynamic)
+                this.switchSourceOutput.timeSamples = this.audioSourceOutput.timeSamples;
+
             this.switchSourceOutput.Play();
         }
         else{
             this.switchSourceOutput.clip = clip;
+
+            if(isDynamic)
+                this.switchSourceOutput.timeSamples = this.audioSourceOutput.timeSamples;
+
             this.switchSourceOutput.Play();
         }
     }
@@ -120,9 +131,6 @@ public class AudioTrackMusic2D : MonoBehaviour
         this.audioSourceOutput.volume = this.MAX_VOLUME;
         this.switchSourceOutput.volume = this.MAX_VOLUME;
     }
-
-
-    public void ChangeDynamic(int dynamic){return;}
 
 
     private void CrossfadeTransition(){
@@ -188,6 +196,7 @@ public class AudioTrackMusic2D : MonoBehaviour
 
                 this.audioSourceOutput.clip = null;
                 this.audioSourceOutput.volume = 0f;
+                this.currentMusic = null;
 
                 fadeTimer = 0;
                 isFading = false;
