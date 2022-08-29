@@ -14,7 +14,6 @@ public class AudioManager : MonoBehaviour
     private Dictionary<AudioName, AudioClip> cachedAudioClip = new Dictionary<AudioName, AudioClip>();
     private List<AudioName> cachedAudioList;
 
-
     public AudioTrackMusic2D audioTrackMusic2D;
 
 
@@ -65,7 +64,7 @@ public class AudioManager : MonoBehaviour
         StartCoroutine(GetAudioClip(name));
     }
 
-    IEnumerator GetAudioClip(AudioName name)
+    private IEnumerator GetAudioClip(AudioName name)
     {
         using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLibrary.GetSound(name).GetFilePath(), AudioType.MPEG))
         {
