@@ -50,6 +50,7 @@ public class DynamicMusic
 }
 
 public enum MusicDynamicLevel {
+    NONE,
     SOFT,
     MEDIUM,
     HARD

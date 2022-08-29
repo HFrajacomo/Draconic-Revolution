@@ -8,6 +8,7 @@ public static class AudioLibrary
         {AudioName.RAINFALL, new Sound(AudioName.RAINFALL, AudioUsecase.MUSIC_CLIP, "TestTrack", "rainfall.mp3")},
         {AudioName.AGES, new Sound(AudioName.AGES, AudioUsecase.MUSIC_CLIP, "TestTrack2", "ages.mp3")},
         {AudioName.DONTFINDIT, new Sound(AudioName.DONTFINDIT, AudioUsecase.MUSIC_CLIP, "TestTrack3", "dontfindit.mp3")},
+        {AudioName.SURPRISEMOTAFAKA, new Sound(AudioName.SURPRISEMOTAFAKA, AudioUsecase.SFX_CLIP, "TestSFX", "surprisemotafaka.mp3")}
     };
 
     private static Dictionary<AudioName, DynamicMusic> dynamicMusic = new Dictionary<AudioName, DynamicMusic>(){
@@ -24,6 +25,10 @@ public static class AudioLibrary
 
     public static bool IsSound(AudioName name){
         return sounds.ContainsKey(name);
+    }
+
+    public static bool IsDynamicMusic(AudioName name){
+        return dynamicMusic.ContainsKey(name);
     }
 
     public static bool MusicGroupContainsSound(AudioName groupName, AudioName queryAudio){

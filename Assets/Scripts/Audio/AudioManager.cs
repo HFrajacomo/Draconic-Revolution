@@ -17,6 +17,7 @@ public class AudioManager : MonoBehaviour
 
     // Tracks
     public AudioTrackMusic2D audioTrackMusic2D;
+    public AudioTrackSFX2D audioTrackSFX2D;
 
     // Last Iteration info
     private DynamicMusic lastMusicGroupLoaded;
@@ -25,6 +26,10 @@ public class AudioManager : MonoBehaviour
     private List<AudioName> cachedAudioList;
     private DynamicMusic cachedMusicGroup;
     private AudioName cachedAudioName;
+    private Sound cachedSound;
+
+    // DEBUGGING
+    private int counter = 0;
 
     
 
@@ -41,6 +46,30 @@ public class AudioManager : MonoBehaviour
 
     public void Update(){
         RerunLoadedClips();
+
+        counter++;
+
+        if(counter == 1)
+            Play(AudioName.TEST_GROUP, dynamicLevel:MusicDynamicLevel.SOFT);
+        if(counter == 300)
+            Play(AudioName.SURPRISEMOTAFAKA);
+    }
+
+    public void Play(AudioName name, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false){
+        if(AudioLibrary.IsSound(name))
+            this.cachedSound = AudioLibrary.GetSound(name);
+        else
+            this.cachedSound = AudioLibrary.GetMusicGroup(name).wrapperSound;
+
+        if(this.cachedSound.type == AudioUsecase.MUSIC_CLIP){
+            if(dynamicLevel != MusicDynamicLevel.NONE)
+                PlayDynamicMusic2D(name, dynamicLevel);
+            else
+                PlayMusic2D(name, bypassGroup);
+        }
+        else if(this.cachedSound.type == AudioUsecase.SFX_CLIP){
+            PlaySFX2D(name);
+        }
     }
 
 
@@ -48,7 +77,7 @@ public class AudioManager : MonoBehaviour
     Plays an AudioClip in AudioTrackMusic2D
         bypassGroup allows individual music from a DynamicMusic group be played standalone
     */
-    public void Play(AudioName name, bool bypassGroup=false){
+    public void PlayMusic2D(AudioName name, bool bypassGroup=false){
         if(loadedClips.ContainsKey(name)){
             GetClip(name).name = Enum.GetName(typeof(AudioName), name);
 
@@ -65,7 +94,7 @@ public class AudioManager : MonoBehaviour
     /*
     Plays an AudioClip from a DynamicMusic based on it's DynamicLevel
     */
-    public void Play(AudioName name, MusicDynamicLevel level){
+    public void PlayDynamicMusic2D(AudioName name, MusicDynamicLevel level){
         if(AudioLibrary.IsSound(name))
             Play(name);
 
@@ -84,6 +113,18 @@ public class AudioManager : MonoBehaviour
             ConditionalDynamicClipLoad(MusicDynamicLevel.MEDIUM, level);
         if(!IsClipLoaded(this.cachedMusicGroup.Get(MusicDynamicLevel.HARD).name))
             ConditionalDynamicClipLoad(MusicDynamicLevel.HARD, level);
+    }
+
+    /*
+    Plays an AudioClip in single-shot fashion
+    */
+    public void PlaySFX2D(AudioName name){
+        if(loadedClips.ContainsKey(name)){
+            this.audioTrackSFX2D.Play(GetClip(name));
+        }
+        else{
+            LoadAudioClip(name);
+        }
     }
 
     public void Stop(AudioUsecase type, bool fade=false){

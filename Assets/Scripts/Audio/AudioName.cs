@@ -3,5 +3,6 @@ public enum AudioName
     RAINFALL,
     AGES,
     DONTFINDIT,
-    TEST_GROUP
+    TEST_GROUP,
+    SURPRISEMOTAFAKA
 }

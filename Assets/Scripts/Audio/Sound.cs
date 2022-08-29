@@ -15,7 +15,6 @@ public class Sound
         {AudioUsecase.VOICE_3D, "voice_3d/"}
     };
 
-    public AudioClip audioClip;
     public AudioName name;
     public AudioUsecase type;
     public string description;

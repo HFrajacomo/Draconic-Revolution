@@ -9,10 +9,6 @@ public class AudioTrackMusic2D : MonoBehaviour
     public AudioSource switchSourceOutput;
     private AudioSource auxSwapSource;
 
-    // AudioClip references 
-    public AudioClip currentClip;
-    public AudioClip switchClip;
-
     // Last command info
     private AudioName? currentMusic = null;
     private bool playOperationWasLast = false;
