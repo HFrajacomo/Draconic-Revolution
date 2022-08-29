@@ -4,21 +4,28 @@ using UnityEngine;
 
 public class AudioTrackMusic2D : MonoBehaviour
 {
+    // AudioSources reference
     public AudioSource audioSourceOutput;
     public AudioSource switchSourceOutput;
     private AudioSource auxSwapSource;
 
+    // AudioClip references 
     public AudioClip currentClip;
     public AudioClip switchClip;
 
+    // Last command info
     private AudioName? currentMusic = null;
-    private bool playingComposite;
+    private bool playOperationWasLast = false;
 
+    // Crossfading
     private bool isCrossfading = false;
     private float crossfadeTimer = 0;
 
-    private float MAX_VOLUME = 0.2f;
+    // Downfade
+    private bool isFading = false;
+    private float fadeTimer = 0;
 
+    private float MAX_VOLUME = 0.2f;
     private const int FRAMES_IN_TRANSITION = 300;
     private const float FRAMES_MULTIPLIER = 1f/FRAMES_IN_TRANSITION;
 
@@ -38,17 +45,30 @@ public class AudioTrackMusic2D : MonoBehaviour
     }
 
     public void Update(){
-        TransitionVolume();
+        if(playOperationWasLast){
+            CrossfadeTransition();
+            DownfadeTransition();
+        }
+        else{
+            DownfadeTransition();
+            CrossfadeTransition();
+        }
     }
 
 
-    public void StartPlay(Sound sound, AudioClip clip){
+    /*
+    Plays the given sound AudioClip
+    If something is already playing, crossfade between the two
+    */
+    public void Play(Sound sound, AudioClip clip){
         if(this.currentMusic == sound.name)
             return;
 
         this.currentMusic = sound.name;
+        this.playOperationWasLast = true;
 
         if(!audioSourceOutput.isPlaying){
+            this.audioSourceOutput.volume = MAX_VOLUME;
             this.audioSourceOutput.clip = clip;
             this.audioSourceOutput.Play();
         }
@@ -64,14 +84,76 @@ public class AudioTrackMusic2D : MonoBehaviour
     }
 
 
-    public void Stop(){return;}
+    public void Stop(bool fade=false){
+        if(!fade){
+            if(this.currentMusic == null)
+                return;
+
+            this.playOperationWasLast = false;
+
+            if(this.audioSourceOutput.isPlaying)
+                this.audioSourceOutput.Stop();
+            if(this.switchSourceOutput.isPlaying)
+                this.switchSourceOutput.Stop();
+        }
+        else{
+            if(this.currentMusic == null)
+                return;
+
+            this.playOperationWasLast = false;
+
+            isFading = true;
+        }
+    }
+
+    public void ChangeVolume(float volume){
+        float v;
+
+        if(volume < 0)
+            v = 0f;
+        else if(volume > 1)
+            v = 1f;
+        else
+            v = volume;
+
+        this.MAX_VOLUME = v;
+        this.audioSourceOutput.volume = this.MAX_VOLUME;
+        this.switchSourceOutput.volume = this.MAX_VOLUME;
+    }
+
+
     public void ChangeDynamic(int dynamic){return;}
-    public void ChangeVolume(float volume){return;}
 
 
-    private void TransitionVolume(){
-        if(isCrossfading){
-            this.audioSourceOutput.volume = Mathf.Lerp(0f, MAX_VOLUME, 1-(FRAMES_MULTIPLIER*crossfadeTimer));
+    private void CrossfadeTransition(){
+        // If Downfade operation has been issued in the middle of crossfade
+        if(isCrossfading && isFading && !playOperationWasLast){
+            this.switchSourceOutput.volume = Mathf.Lerp(0f, MAX_VOLUME, FRAMES_MULTIPLIER*crossfadeTimer);
+
+            if(crossfadeTimer == 0){
+                this.auxSwapSource = this.audioSourceOutput;
+                this.audioSourceOutput = this.switchSourceOutput;
+                this.switchSourceOutput = this.auxSwapSource;
+                this.auxSwapSource = null;
+
+                if(this.switchSourceOutput.isPlaying)
+                    this.switchSourceOutput.Stop();
+
+                this.switchSourceOutput.clip = null;
+                this.switchSourceOutput.volume = 0f;
+
+                crossfadeTimer = 0;
+                isCrossfading = false;
+                return;                
+            }
+
+            crossfadeTimer--;
+        }
+        // If is simply crossfading
+        else if(isCrossfading){
+            if(this.audioSourceOutput.volume > 0f)
+                this.audioSourceOutput.volume = Mathf.Lerp(0f, MAX_VOLUME, 1-(FRAMES_MULTIPLIER*crossfadeTimer));
+
             this.switchSourceOutput.volume = Mathf.Lerp(0f, MAX_VOLUME, FRAMES_MULTIPLIER*crossfadeTimer);
 
             if(crossfadeTimer == FRAMES_IN_TRANSITION){
@@ -80,8 +162,11 @@ public class AudioTrackMusic2D : MonoBehaviour
                 this.switchSourceOutput = this.auxSwapSource;
                 this.auxSwapSource = null;
 
-                this.switchSourceOutput.Stop();
+                if(this.switchSourceOutput.isPlaying)
+                    this.switchSourceOutput.Stop();
+
                 this.switchSourceOutput.clip = null;
+                this.switchSourceOutput.volume = 0f;
 
                 crossfadeTimer = 0;
                 isCrossfading = false;
@@ -89,6 +174,27 @@ public class AudioTrackMusic2D : MonoBehaviour
             }
 
             crossfadeTimer++;
+        }
+
+    }
+
+    private void DownfadeTransition(){
+        if(isFading){
+            this.audioSourceOutput.volume = Mathf.Lerp(0f, MAX_VOLUME, 1-(FRAMES_MULTIPLIER*fadeTimer));
+
+            if(fadeTimer == FRAMES_IN_TRANSITION){
+                if(this.audioSourceOutput.isPlaying)
+                    this.audioSourceOutput.Stop();
+
+                this.audioSourceOutput.clip = null;
+                this.audioSourceOutput.volume = 0f;
+
+                fadeTimer = 0;
+                isFading = false;
+                return;
+            }
+
+            fadeTimer++;
         }
     }
 }

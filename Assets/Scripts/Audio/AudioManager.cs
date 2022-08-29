@@ -22,7 +22,6 @@ public class AudioManager : MonoBehaviour
 
         if(self == null){
             self = this;
-            Play(AudioName.RAINFALL);
         }
         else{
             Destroy(this.gameObject);
@@ -36,11 +35,26 @@ public class AudioManager : MonoBehaviour
 
     public void Play(AudioName name){
         if(loadedClips.ContainsKey(name)){
-            this.audioTrackMusic2D.StartPlay(AudioLibrary.GetSound(name), GetClip(name));
+            this.audioTrackMusic2D.Play(AudioLibrary.GetSound(name), GetClip(name));
         }
         else{
             LoadAudioClip(name);
         }
+    }
+
+    public void Stop(AudioUsecase type, bool fade=false){
+        switch(type){
+            case AudioUsecase.MUSIC_CLIP:
+                StopMusic2D(fade:fade);
+                break;
+            default:
+                StopMusic2D(fade:fade);
+                break;
+        }
+    }
+
+    private void StopMusic2D(bool fade){
+        this.audioTrackMusic2D.Stop(fade:fade);
     }
 
     private void RerunLoadedClips(){
