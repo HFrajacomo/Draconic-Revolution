@@ -32,9 +32,6 @@ public class AudioManager : MonoBehaviour
     private Sound cachedSound;
     private Voice cachedVoice;
 
-    // DEBUGGING
-    private int counter = 0;
-
     
 
     public void Awake(){
@@ -50,13 +47,6 @@ public class AudioManager : MonoBehaviour
 
     public void Update(){
         RerunLoadedClips();
-
-        counter++;
-
-        if(counter == 1)
-            Play(AudioName.TEST_GROUP, dynamicLevel:MusicDynamicLevel.SOFT);
-        if(counter == 50)
-            Play(AudioName.TEST_VOICE, segment:3);
     }
 
     public void Play(AudioName name, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false, int segment=-1, int finalSegment=-1, bool playAll=false){

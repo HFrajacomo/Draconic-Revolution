@@ -45,8 +45,9 @@ public class AudioTrackVoice2D : MonoBehaviour
                 IS_PLAYING = false;
                 SetTranscriptMessage(0, setEmpty:true);
             }
-
-            HandleNextTranscriptSegment();
+            else{
+                HandleNextTranscriptSegment();
+            }
     }
 
     /*
@@ -75,10 +76,20 @@ public class AudioTrackVoice2D : MonoBehaviour
 
         audioSource.time = segmentTime[segment];
         audioSource.Play();
-        audioSource.SetScheduledEndTime(AudioSettings.dspTime + (segmentTime[segment+1] - audioSource.time));
+
+        // If is a normal segment run
+        if(finalSegment == -1 && !playAll){
+            audioSource.SetScheduledEndTime(AudioSettings.dspTime + (segmentTime[segment+1] - audioSource.time));
+        }
+        // If all audio should be played
+        else if(playAll){}
+        // If is a long run
+        else{
+            audioSource.SetScheduledEndTime(AudioSettings.dspTime + (segmentTime[finalSegment+1] - audioSource.time));
+        }
+
 
         IS_PLAYING = true;
-
     }
 
     /*
