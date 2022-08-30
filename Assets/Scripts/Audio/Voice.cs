@@ -18,7 +18,7 @@ public class Voice
     public AudioUsecase type;
     public string description;
     public string filename;
-    public string transcriptPath;
+    public string transcriptFilename;
     public Sound wrapperSound;
 
 
@@ -27,7 +27,7 @@ public class Voice
         this.type = type;
         this.description = desc;
         this.filename = file;
-        this.transcriptPath = tName;
+        this.transcriptFilename = tName;
 
         this.wrapperSound = new Sound(name, type, description, "");
     }
@@ -37,6 +37,6 @@ public class Voice
     }
 
     public string GetTranscriptPath(){
-        return Voice.audioDir + folderMap[this.type] + this.transcriptPath;
+        return Application.streamingAssetsPath + "/Audio/" + folderMap[this.type] + this.transcriptFilename;
     }
 }

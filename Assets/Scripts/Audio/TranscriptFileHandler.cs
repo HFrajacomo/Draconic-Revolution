@@ -23,7 +23,7 @@ public static class TranscriptFileHandler
     public static string SEGMENT_SEPARATOR = "\n";
     public static string WRAPPER_SEPARATOR = ";";
 
-    public static string ReadTranscript(string filePath){
+    public static string ReadTranscript(string filePath){        
         return File.ReadAllText(filePath);
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Globalization;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -8,6 +9,9 @@ public class AudioTrackVoice2D : MonoBehaviour
 {
     // AudioSource
     private AudioSource audioSource;
+
+    // Globalization
+    private CultureInfo cultureInfo = new CultureInfo("en-US"); 
 
     // Transcript info
     private AudioName? currentVoice;
@@ -22,7 +26,7 @@ public class AudioTrackVoice2D : MonoBehaviour
     private int currentSegment;
     private int currentTranscriptSegment;
 
-    private float MAX_VOLUME = 0.2f;
+    private float MAX_VOLUME = 0.4f;
     private bool IS_PLAYING = false;
 
 
@@ -37,19 +41,21 @@ public class AudioTrackVoice2D : MonoBehaviour
 
     public void Update(){
         if(IS_PLAYING)
-            if(!audioSource.isPlaying)
+            if(!audioSource.isPlaying){
+                IS_PLAYING = false;
                 SetTranscriptMessage(0, setEmpty:true);
+            }
     }
 
     /*
     Plays the voice in a given segment and stops playing after a segment has passed
     returns the transcript of the Audio in the given segment
     */
-    public void Play(Sound sound, string transcriptPath, AudioClip clip, int segment){
+    public void Play(Sound sound, string transcriptPath, AudioClip clip, int segment, int finalSegment, bool playAll){        
         if(currentVoice == null || currentVoice != sound.name){
             ClearAllLists();
 
-            currentVoice = sound.name;
+            currentVoice = sound.name;            
             fullTranscript = TranscriptFileHandler.ReadTranscript(transcriptPath);
             audioSource.clip = clip;
             SetTimeValues(clip.length);
@@ -59,18 +65,16 @@ public class AudioTrackVoice2D : MonoBehaviour
         }
 
 
-        if(audioSource.isPlaying)
-            return;
-
         currentSegment = segment;
 
-        audioSource.time = segmentTime[segment];
-        audioSource.SetScheduledEndTime(segmentTime[segment+1]);
 
         FindExactTranscriptSegment(segmentTime[segment]);
         SetTranscriptMessage(currentTranscriptSegment);
 
+        audioSource.time = segmentTime[segment];
         audioSource.Play();
+        audioSource.SetScheduledEndTime(AudioSettings.dspTime + (segmentTime[segment+1] - audioSource.time));
+
         IS_PLAYING = true;
 
     }
@@ -134,7 +138,7 @@ public class AudioTrackVoice2D : MonoBehaviour
     }
 
     private float ConvertToFloat(string number){
-        return Convert.ToSingle(number);
+        return Convert.ToSingle(number, cultureInfo);
     }
 
     private void ClearAllLists(){
