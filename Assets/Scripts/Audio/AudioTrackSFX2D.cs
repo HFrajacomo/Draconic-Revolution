@@ -34,7 +34,7 @@ public class AudioTrackSFX2D : MonoBehaviour
             source.spatialBlend = 0f;
             source.volume = MAX_VOLUME;
             source.spread = 180f;
-            source.loop = true;
+            source.loop = false;
         }
     }
 

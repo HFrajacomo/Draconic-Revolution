@@ -58,7 +58,7 @@ public class AudioManager : MonoBehaviour
     public void Play(AudioName name, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false){
         if(AudioLibrary.IsSound(name))
             this.cachedSound = AudioLibrary.GetSound(name);
-        else
+        else if(AudioLibrary.IsDynamicMusic(name))
             this.cachedSound = AudioLibrary.GetMusicGroup(name).wrapperSound;
 
         if(this.cachedSound.type == AudioUsecase.MUSIC_CLIP){

@@ -15,6 +15,11 @@ public static class AudioLibrary
         {AudioName.TEST_GROUP, new DynamicMusic(AudioName.TEST_GROUP, AudioUsecase.MUSIC_CLIP, "TestGroup", AudioName.RAINFALL, AudioName.AGES, AudioName.DONTFINDIT)}
     };
 
+    private static Dictionary<AudioName, Voice> voices = new Dictionary<AudioName, Voice>(){
+        {AudioName.TEST_VOICE, new Voice(AudioName.TEST_VOICE, AudioUsecase.VOICE_CLIP, "TestVoice", "testvoice.mp3", "testvoice.tsc")}
+    };
+
+
     public static Sound GetSound(AudioName name){
         return sounds[name];
     }
@@ -23,12 +28,20 @@ public static class AudioLibrary
         return dynamicMusic[name];
     }
 
+    public static Voice GetVoice(AudioName name){
+        return voices[name];
+    }
+
     public static bool IsSound(AudioName name){
         return sounds.ContainsKey(name);
     }
 
     public static bool IsDynamicMusic(AudioName name){
         return dynamicMusic.ContainsKey(name);
+    }
+
+    public static bool IsVoice(AudioName name){
+        return voices.ContainsKey(name);
     }
 
     public static bool MusicGroupContainsSound(AudioName groupName, AudioName queryAudio){

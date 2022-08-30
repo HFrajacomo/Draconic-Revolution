@@ -4,5 +4,6 @@ public enum AudioName
     AGES,
     DONTFINDIT,
     TEST_GROUP,
-    SURPRISEMOTAFAKA
+    SURPRISEMOTAFAKA,
+    TEST_VOICE
 }
