@@ -45,6 +45,8 @@ public class AudioTrackVoice2D : MonoBehaviour
                 IS_PLAYING = false;
                 SetTranscriptMessage(0, setEmpty:true);
             }
+
+            HandleNextTranscriptSegment();
     }
 
     /*
@@ -122,6 +124,16 @@ public class AudioTrackVoice2D : MonoBehaviour
         for(int i=0; i < transcriptTime.Count; i++){
             if(transcriptTime[i] == currentTime)
                 currentTranscriptSegment = i;
+        }
+    }
+
+    private void HandleNextTranscriptSegment(){
+        if(transcriptTime.Count == 0)
+            return;
+
+        if(audioSource.time >= transcriptTime[currentTranscriptSegment+1]){
+            currentTranscriptSegment++;
+            SetTranscriptMessage(currentTranscriptSegment);
         }
     }
 
