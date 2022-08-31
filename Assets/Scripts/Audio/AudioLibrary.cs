@@ -5,10 +5,12 @@ using UnityEngine;
 public static class AudioLibrary
 {
     private static Dictionary<AudioName, Sound> sounds = new Dictionary<AudioName, Sound>(){
-        {AudioName.RAINFALL, new Sound(AudioName.RAINFALL, AudioUsecase.MUSIC_CLIP, "TestTrack", "rainfall.mp3")},
-        {AudioName.AGES, new Sound(AudioName.AGES, AudioUsecase.MUSIC_CLIP, "TestTrack2", "ages.mp3")},
-        {AudioName.DONTFINDIT, new Sound(AudioName.DONTFINDIT, AudioUsecase.MUSIC_CLIP, "TestTrack3", "dontfindit.mp3")},
-        {AudioName.SURPRISEMOTAFAKA, new Sound(AudioName.SURPRISEMOTAFAKA, AudioUsecase.SFX_CLIP, "TestSFX", "surprisemotafaka.mp3")}
+        {AudioName.RAINFALL, new Sound(AudioName.RAINFALL, AudioUsecase.MUSIC_CLIP, "TestTrack", "rainfall.ogg")},
+        {AudioName.AGES, new Sound(AudioName.AGES, AudioUsecase.MUSIC_CLIP, "TestTrack2", "ages.ogg")},
+        {AudioName.DONTFINDIT, new Sound(AudioName.DONTFINDIT, AudioUsecase.MUSIC_CLIP, "TestTrack3", "dontfindit.ogg")},
+        {AudioName.SURPRISEMOTAFAKA, new Sound(AudioName.SURPRISEMOTAFAKA, AudioUsecase.SFX_CLIP, "TestSFX", "surprisemotafaka.ogg")},
+        {AudioName.HAT, new Sound(AudioName.HAT, AudioUsecase.SFX_3D, "TestSFX3D", "hat.ogg")},
+        {AudioName.BZZT, new Sound(AudioName.BZZT, AudioUsecase.SFX_3D_LOOP, "BZZZT!", "bzzt.ogg")}
     };
 
     private static Dictionary<AudioName, DynamicMusic> dynamicMusic = new Dictionary<AudioName, DynamicMusic>(){
@@ -16,7 +18,7 @@ public static class AudioLibrary
     };
 
     private static Dictionary<AudioName, Voice> voices = new Dictionary<AudioName, Voice>(){
-        {AudioName.TEST_VOICE, new Voice(AudioName.TEST_VOICE, AudioUsecase.VOICE_CLIP, "TestVoice", "testvoice.mp3", "testvoice.tsc")}
+        {AudioName.TEST_VOICE, new Voice(AudioName.TEST_VOICE, AudioUsecase.VOICE_CLIP, "TestVoice", "testvoice.ogg", "testvoice.tsc")}
     };
 
 

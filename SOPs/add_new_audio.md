@@ -5,7 +5,7 @@
 
 In order to add new audio to Draconic Revolution, follow the steps
 
-1. Create or find .mp3 files to be used in-game
+1. Create or find .ogg files to be used in-game
 2. Figure out their usecase
 3. Put the files in the appropriate folder
 4. Register the new sound(s) in AudioLibrary
@@ -18,7 +18,7 @@ Now, let's cover each step independently.
 Getting new files into the project isn't a mindless effort. In order to maintain quality and functionality, a few steps must be followed and a few rules must be kept in mind.
 
 ### Rules
-1. Files must be .mp3
+1. Files must be .ogg
 2. The sound/music must be reviewed and approved by the Audio Director person
 3. Music must be unique or properly licensed
 4. Sounds must be unique, properly licensed or an altered enough version of another sound

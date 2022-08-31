@@ -12,7 +12,8 @@ public class Sound
         {AudioUsecase.SFX_CLIP, "sfx_clip/"},
         {AudioUsecase.SFX_3D, "sfx_3d/"},
         {AudioUsecase.VOICE_CLIP, "voice_clip/"},
-        {AudioUsecase.VOICE_3D, "voice_3d/"}
+        {AudioUsecase.VOICE_3D, "voice_3d/"},
+        {AudioUsecase.SFX_3D_LOOP, "sfx_3d/"}
     };
 
     public AudioName name;

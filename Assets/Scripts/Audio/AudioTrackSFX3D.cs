@@ -42,9 +42,10 @@ public class AudioTrackSFX3D : MonoBehaviour
     public void SetupAudioSource(AudioSource source){
         source.spatialBlend = 1f;
         source.volume = MAX_VOLUME;
-        source.spread = 180f;
+        source.spread = 0f;
         source.dopplerLevel = 0.1f;
-        source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.Constant(0f, 1f, 1f));
-        source.maxDistance = 100f; // Change it to make sounds "louder" or "quieter"
+        source.rolloffMode = AudioRolloffMode.Custom;
+        source.maxDistance = 40f; // Change it to make sounds "louder" or "quieter"
+        source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, source.maxDistance, 0f));
     }
 }

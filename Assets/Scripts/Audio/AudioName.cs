@@ -5,5 +5,7 @@ public enum AudioName
     DONTFINDIT,
     TEST_GROUP,
     SURPRISEMOTAFAKA,
-    TEST_VOICE
+    TEST_VOICE,
+    HAT,
+    BZZT
 }

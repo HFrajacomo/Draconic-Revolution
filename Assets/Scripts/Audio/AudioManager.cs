@@ -20,6 +20,7 @@ public class AudioManager : MonoBehaviour
     public AudioTrackMusic2D audioTrackMusic2D;
     public AudioTrackSFX2D audioTrackSFX2D;
     public AudioTrackVoice2D audioTrackVoice2D;
+    public AudioTrackSFX3D audioTrackSFX3D;
 
     // Last Iteration info
     private DynamicMusic lastMusicGroupLoaded;
@@ -32,7 +33,6 @@ public class AudioManager : MonoBehaviour
     private Sound cachedSound;
     private Voice cachedVoice;
 
-    
 
     public void Awake(){
         DontDestroyOnLoad(this.gameObject);
@@ -49,7 +49,7 @@ public class AudioManager : MonoBehaviour
         RerunLoadedClips();
     }
 
-    public void Play(AudioName name, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false, int segment=-1, int finalSegment=-1, bool playAll=false){
+    public void Play(AudioName name, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false, int segment=-1, int finalSegment=-1, bool playAll=false, ulong entity=0){
         if(AudioLibrary.IsSound(name))
             this.cachedSound = AudioLibrary.GetSound(name);
         else if(AudioLibrary.IsDynamicMusic(name))
@@ -70,6 +70,9 @@ public class AudioManager : MonoBehaviour
         }
         else if(this.cachedSound.type == AudioUsecase.VOICE_CLIP){
             PlayVoice2D(this.cachedVoice, segment, finalSegment, playAll);
+        }
+        else if(this.cachedSound.type == AudioUsecase.SFX_3D || this.cachedSound.type == AudioUsecase.SFX_3D_LOOP){
+            PlaySFX3D(this.cachedSound, entity);
         }
     }
 
@@ -129,6 +132,18 @@ public class AudioManager : MonoBehaviour
     }
 
     /*
+    Plays an SFX AudioClip in the 3D environment
+    */
+    public void PlaySFX3D(Sound sound, ulong entity){
+        if(loadedClips.ContainsKey(sound.name)){
+            this.audioTrackSFX3D.Play(sound, GetClip(sound.name), entity);
+        }
+        else{
+            LoadAudioClip(sound.name);
+        }
+    }
+
+    /*
     Plays a segment of a voice clip
     */
     public void PlayVoice2D(Voice voice, int segment, int finalSegment, bool playAll){
@@ -149,6 +164,24 @@ public class AudioManager : MonoBehaviour
                 StopMusic2D(fade:fade);
                 break;
         }
+    }
+
+    /*
+    Register an AudioSource to a AudioTrack3D that has the given usecase
+    */
+    public void RegisterAudioSource(AudioSource source, AudioUsecase type, ulong entityCode){
+        if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
+            this.audioTrackSFX3D.AddAudioSource(entityCode, source);
+        }
+    }
+
+    /*
+    Un-register an AudioSource to a AudioTrack3D that has the given usecase
+    */
+    public void UnregisterAudioSource(AudioUsecase type, ulong entityCode){
+        if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
+            this.audioTrackSFX3D.RemoveAudioSource(entityCode);
+        }        
     }
 
     private void StopMusic2D(bool fade){
@@ -197,7 +230,7 @@ public class AudioManager : MonoBehaviour
 
     private IEnumerator GetAudioClip(AudioName name, bool autoplay)
     {
-        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLibrary.GetSound(name).GetFilePath(), AudioType.MPEG))
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLibrary.GetSound(name).GetFilePath(), AudioType.OGGVORBIS))
         {
             yield return www.SendWebRequest();
 
@@ -218,7 +251,7 @@ public class AudioManager : MonoBehaviour
     // Alternative version of loading voice clips
     private IEnumerator GetAudioClip(AudioName name, int segment, int finalSegment, bool playAll)
     {
-        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLibrary.GetVoice(name).GetFilePath(), AudioType.MPEG))
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLibrary.GetVoice(name).GetFilePath(), AudioType.OGGVORBIS))
         {
             yield return www.SendWebRequest();
 
