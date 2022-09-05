@@ -26,7 +26,7 @@ public class TEST_AUDIO : MonoBehaviour
             goTest.transform.position = new Vector3(10, 95, 0);
             AudioSource source = goTest.AddComponent<AudioSource>();
             
-            manager.RegisterAudioSource(source, AudioUsecase.VOICE_3D, 0);
+            manager.RegisterAudioSource(source, AudioUsecase.VOICE_3D, 0); 
             manager.Play(AudioName.TEST_VOICE, segment:1, finalSegment:3, entity:0);
         }
 
