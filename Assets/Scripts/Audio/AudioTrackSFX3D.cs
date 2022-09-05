@@ -23,6 +23,9 @@ public class AudioTrackSFX3D : MonoBehaviour
         else
             cachedSource.loop = true;
 
+        cachedSource.maxDistance = (float)sound.volume;
+        cachedSource.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, cachedSource.maxDistance, 0f));
+
         cachedSource.clip = clip;
         cachedSource.Play();
     }
@@ -45,8 +48,6 @@ public class AudioTrackSFX3D : MonoBehaviour
         source.spread = 0f;
         source.dopplerLevel = 0.1f;
         source.rolloffMode = AudioRolloffMode.Custom;
-        source.maxDistance = 40f; // Change it to make sounds "louder" or "quieter"
-        source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, source.maxDistance, 0f));
     }
 
     public void DestroyTrackInfo(){

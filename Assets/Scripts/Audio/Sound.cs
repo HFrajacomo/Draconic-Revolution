@@ -18,6 +18,7 @@ public class Sound
 
     public AudioName name;
     public AudioUsecase type;
+    public AudioVolume volume;
     public string description;
     public string filename;
 
@@ -27,6 +28,15 @@ public class Sound
         this.type = type;
         this.description = desc;
         this.filename = file;
+        this.volume = AudioVolume.NONE;
+    }
+
+    public Sound(AudioName name, AudioUsecase type, string desc, string file, AudioVolume volume){
+        this.name = name;
+        this.type = type;
+        this.description = desc;
+        this.filename = file;
+        this.volume = volume;
     }
 
     public string GetFilePath(){

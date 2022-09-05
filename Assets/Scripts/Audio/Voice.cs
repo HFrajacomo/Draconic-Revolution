@@ -32,6 +32,16 @@ public class Voice
         this.wrapperSound = new Sound(name, type, description, "");
     }
 
+    public Voice(AudioName name, AudioUsecase type, string desc, string file, string tName, AudioVolume volume){
+        this.name = name;
+        this.type = type;
+        this.description = desc;
+        this.filename = file;
+        this.transcriptFilename = tName;
+
+        this.wrapperSound = new Sound(name, type, description, "", volume);
+    }
+
     public string GetFilePath(){
         return Voice.audioDir + folderMap[this.type] + this.filename;
     }

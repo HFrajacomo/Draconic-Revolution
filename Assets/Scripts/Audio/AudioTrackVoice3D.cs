@@ -17,7 +17,8 @@ public class AudioTrackVoice3D : MonoBehaviour
     private Dictionary<ulong, Transform> sourcesTransform = new Dictionary<ulong, Transform>(); 
 
     // Current Execution
-    private Dictionary<ulong, AudioName> currentAudio = new Dictionary<ulong, AudioName>();
+    private Dictionary<ulong, AudioName?> currentAudio = new Dictionary<ulong, AudioName?>();
+    private Dictionary<ulong, AudioVolume> currentVolume = new Dictionary<ulong, AudioVolume>();
 
     // Globalization
     private CultureInfo cultureInfo = new CultureInfo("en-US");
@@ -56,10 +57,11 @@ public class AudioTrackVoice3D : MonoBehaviour
                     if(playerPositionReference != null){
                         distances[entity] = Vector3.Distance(playerPositionReference.position, sourcesTransform[entity].position);
 
-                        if(!foundClosest || distances[closestEntity] > distances[entity])
+                        if(distances[closestEntity] >= distances[entity] && distances[entity] <= (int)currentVolume[entity]){
                             closestEntity = entity;
+                            foundClosest = true;
+                        }
 
-                        foundClosest = true;
                         HandleNextTranscriptSegment(entity);
                     }
                 }          
@@ -92,8 +94,13 @@ public class AudioTrackVoice3D : MonoBehaviour
         }
 
         currentSegment[entity] = segment;
+        currentAudio[entity] = sound.name;
+        currentVolume[entity] = sound.volume;
 
         FindExactTranscriptSegment(segmentTime[entity][segment], entity);
+
+        sources[entity].maxDistance = (float)sound.volume;
+        sources[entity].SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, (float)sound.volume, 0f));
 
         sources[entity].time = segmentTime[entity][segment];
         sources[entity].Play();
@@ -121,8 +128,6 @@ public class AudioTrackVoice3D : MonoBehaviour
 
             source.dopplerLevel = 0.04f;
             source.rolloffMode = AudioRolloffMode.Custom;
-            source.maxDistance = 40f; // Change it to make sounds "louder" or "quieter"
-            source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, source.maxDistance, 0f));
 
             this.sources.Add(entity, source);
             this.distances.Add(entity, 9999);
@@ -130,6 +135,8 @@ public class AudioTrackVoice3D : MonoBehaviour
             this.segmentTime.Add(entity, new List<float>());
             this.transcriptSegments.Add(entity, new List<string>());
             this.transcriptTime.Add(entity, new List<float>());
+            this.currentVolume.Add(entity, AudioVolume.NONE);
+            this.currentAudio.Add(entity, null);
         }
     }
 
@@ -141,6 +148,8 @@ public class AudioTrackVoice3D : MonoBehaviour
             this.segmentTime.Remove(entity);
             this.transcriptSegments.Remove(entity);
             this.transcriptTime.Remove(entity);
+            this.currentVolume.Remove(entity);
+            this.currentAudio.Remove(entity);
         }
     }
 
@@ -156,6 +165,7 @@ public class AudioTrackVoice3D : MonoBehaviour
             distances.Remove(entity);
             sourcesTransform.Remove(entity);
             currentAudio.Remove(entity);
+            currentVolume.Remove(entity);
             segmentTime.Remove(entity);
             transcriptSegments.Remove(entity);
             transcriptTime.Remove(entity);
@@ -247,11 +257,16 @@ public class AudioTrackVoice3D : MonoBehaviour
     }
 
     private void ClearCurrentAudio(ulong entity){
-        AudioName audio = currentAudio[entity];
+        AudioName? audio = currentAudio[entity];
+
         currentAudio.Remove(entity);
+        currentVolume.Remove(entity);
         segmentTime[entity].Clear();
         transcriptSegments[entity].Clear();
         transcriptTime[entity].Clear();
-        loadedTranscripts.Remove(audio);
+
+        if(audio != null)
+            if(loadedTranscripts.Contains((AudioName)audio))
+                loadedTranscripts.Remove((AudioName)audio);
     }
 }
