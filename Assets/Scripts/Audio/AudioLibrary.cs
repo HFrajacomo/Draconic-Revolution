@@ -18,7 +18,8 @@ public static class AudioLibrary
     };
 
     private static Dictionary<AudioName, Voice> voices = new Dictionary<AudioName, Voice>(){
-        {AudioName.TEST_VOICE, new Voice(AudioName.TEST_VOICE, AudioUsecase.VOICE_3D, "TestVoice", "testvoice.ogg", "testvoice.tsc")}
+        {AudioName.TEST_VOICE2D, new Voice(AudioName.TEST_VOICE2D, AudioUsecase.VOICE_CLIP, "TestVoice", "testvoice.ogg", "testvoice.tsc")},
+        {AudioName.TEST_VOICE3D, new Voice(AudioName.TEST_VOICE3D, AudioUsecase.VOICE_3D, "TestVoice", "testvoice.ogg", "testvoice.tsc")}
     };
 
 
