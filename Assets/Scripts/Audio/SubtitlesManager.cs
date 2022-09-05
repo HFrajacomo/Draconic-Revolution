@@ -25,7 +25,7 @@ public class SubtitlesManager : MonoBehaviour
 
         this.track2D.CreateSubtitlesReference(this);
         this.track3D.CreateSubtitlesReference(this);
-    }
+    } 
 
     public void Update(){
         if(transcript2D != "")
