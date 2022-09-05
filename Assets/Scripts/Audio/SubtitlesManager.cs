@@ -27,7 +27,6 @@ public class SubtitlesManager : MonoBehaviour
         this.track3D.CreateSubtitlesReference(this);
     }
 
-
     public void Update(){
         if(transcript2D != "")
             subtitles.text = transcript2D;
