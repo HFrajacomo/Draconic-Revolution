@@ -9,7 +9,6 @@ public class TEST_AUDIO : MonoBehaviour
 
     private int counter = 0;
     private GameObject goTest;
-    private GameObject goTest2;
 
 
     public void Awake(){
@@ -26,8 +25,8 @@ public class TEST_AUDIO : MonoBehaviour
             goTest.transform.position = new Vector3(25, 95, 0);
             AudioSource source = goTest.AddComponent<AudioSource>();
             
-            manager.RegisterAudioSource(source, AudioUsecase.VOICE_3D, 0); 
-            manager.Play(AudioName.TEST_VOICE3D, segment:0, finalSegment:3, entity:0);
+            manager.RegisterAudioSource(source, AudioUsecase.MUSIC_3D, 0); 
+            manager.Play(AudioName.ANCIENTS, entity:0);
         }
 
         counter++;

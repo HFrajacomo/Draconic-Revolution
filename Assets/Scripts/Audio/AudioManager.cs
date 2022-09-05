@@ -18,6 +18,7 @@ public class AudioManager : MonoBehaviour
 
     // Tracks
     public AudioTrackMusic2D audioTrackMusic2D;
+    public AudioTrackMusic3D audioTrackMusic3D;
     public AudioTrackSFX2D audioTrackSFX2D;
     public AudioTrackSFX3D audioTrackSFX3D;
     public AudioTrackVoice2D audioTrackVoice2D;
@@ -65,6 +66,9 @@ public class AudioManager : MonoBehaviour
                 PlayDynamicMusic2D(name, dynamicLevel);
             else
                 PlayMusic2D(name, bypassGroup);
+        }
+        else if(this.cachedSound.type == AudioUsecase.MUSIC_3D){
+            PlayMusic3D(name, entity);
         }
         else if(this.cachedSound.type == AudioUsecase.SFX_CLIP){
             PlaySFX2D(name);
@@ -121,6 +125,19 @@ public class AudioManager : MonoBehaviour
             ConditionalDynamicClipLoad(MusicDynamicLevel.MEDIUM, level);
         if(!IsClipLoaded(this.cachedMusicGroup.Get(MusicDynamicLevel.HARD).name))
             ConditionalDynamicClipLoad(MusicDynamicLevel.HARD, level);
+    }
+
+    /*
+    Plays an AudioClip in AudioTrackMusic23
+    */
+    public void PlayMusic3D(AudioName name, ulong entity){
+        if(loadedClips.ContainsKey(name)){
+            GetClip(name).name = Enum.GetName(typeof(AudioName), name);
+            this.audioTrackMusic3D.Play(AudioLibrary.GetSound(name), GetClip(name), entity);
+        }
+        else{
+            LoadAudioClip(name);
+        }
     }
 
     /*
@@ -186,7 +203,10 @@ public class AudioManager : MonoBehaviour
     Register an AudioSource to a AudioTrack3D that has the given usecase
     */
     public void RegisterAudioSource(AudioSource source, AudioUsecase type, ulong entityCode){
-        if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
+        if(type == AudioUsecase.MUSIC_3D){
+            this.audioTrackMusic3D.RegisterAudioSource(entityCode, source);
+        }
+        else if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
             this.audioTrackSFX3D.RegisterAudioSource(entityCode, source);
         }
         else if(type == AudioUsecase.VOICE_3D){
@@ -198,7 +218,10 @@ public class AudioManager : MonoBehaviour
     Un-register an AudioSource to a AudioTrack3D that has the given usecase
     */
     public void UnregisterAudioSource(AudioUsecase type, ulong entityCode){
-        if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
+        if(type == AudioUsecase.MUSIC_3D){
+            this.audioTrackMusic3D.UnregisterAudioSource(entityCode);
+        }
+        else if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
             this.audioTrackSFX3D.UnregisterAudioSource(entityCode);
         }
         else if(type == AudioUsecase.VOICE_3D){

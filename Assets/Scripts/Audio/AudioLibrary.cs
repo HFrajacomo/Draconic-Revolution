@@ -9,8 +9,9 @@ public static class AudioLibrary
         {AudioName.AGES, new Sound(AudioName.AGES, AudioUsecase.MUSIC_CLIP, "TestTrack2", "ages.ogg")},
         {AudioName.DONTFINDIT, new Sound(AudioName.DONTFINDIT, AudioUsecase.MUSIC_CLIP, "TestTrack3", "dontfindit.ogg")},
         {AudioName.SURPRISEMOTAFAKA, new Sound(AudioName.SURPRISEMOTAFAKA, AudioUsecase.SFX_CLIP, "TestSFX", "surprisemotafaka.ogg")},
-        {AudioName.HAT, new Sound(AudioName.HAT, AudioUsecase.SFX_3D, "TestSFX3D", "hat.ogg")},
-        {AudioName.BZZT, new Sound(AudioName.BZZT, AudioUsecase.SFX_3D_LOOP, "BZZZT!", "bzzt.ogg")}
+        {AudioName.HAT, new Sound(AudioName.HAT, AudioUsecase.SFX_3D, "TestSFX3D", "hat.ogg", AudioVolume.MIDLOW)},
+        {AudioName.BZZT, new Sound(AudioName.BZZT, AudioUsecase.SFX_3D_LOOP, "BZZZT!", "bzzt.ogg", AudioVolume.STEALTH)},
+        {AudioName.ANCIENTS, new Sound(AudioName.ANCIENTS, AudioUsecase.MUSIC_3D, "Ancients", "ancients.ogg", AudioVolume.HIGH)},
     };
 
     private static Dictionary<AudioName, DynamicMusic> dynamicMusic = new Dictionary<AudioName, DynamicMusic>(){
@@ -19,7 +20,7 @@ public static class AudioLibrary
 
     private static Dictionary<AudioName, Voice> voices = new Dictionary<AudioName, Voice>(){
         {AudioName.TEST_VOICE2D, new Voice(AudioName.TEST_VOICE2D, AudioUsecase.VOICE_CLIP, "TestVoice", "testvoice.ogg", "testvoice.tsc")},
-        {AudioName.TEST_VOICE3D, new Voice(AudioName.TEST_VOICE3D, AudioUsecase.VOICE_3D, "TestVoice", "testvoice.ogg", "testvoice.tsc")}
+        {AudioName.TEST_VOICE3D, new Voice(AudioName.TEST_VOICE3D, AudioUsecase.VOICE_3D, "TestVoice", "testvoice.ogg", "testvoice.tsc", AudioVolume.MID)}
     };
 
 

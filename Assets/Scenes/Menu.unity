@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.015109377, g: 0.009534907, b: 0.0038715964, a: 1}
+  m_IndirectSpecularColor: {r: 0.010603009, g: 0.015100485, b: 0.016066432, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -6669,6 +6669,7 @@ GameObject:
   - component: {fileID: 1744649081}
   - component: {fileID: 1744649082}
   - component: {fileID: 1744649083}
+  - component: {fileID: 1744649084}
   m_Layer: 0
   m_Name: AudioManager
   m_TagString: Untagged
@@ -6703,6 +6704,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioTrackMusic2D: {fileID: 1744649077}
+  audioTrackMusic3D: {fileID: 1744649084}
   audioTrackSFX2D: {fileID: 1744649080}
   audioTrackSFX3D: {fileID: 1744649082}
   audioTrackVoice2D: {fileID: 1744649081}
@@ -6772,6 +6774,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPositionReference: {fileID: 0}
+--- !u!114 &1744649084
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1744649076}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a29da147fac4254489d81b55856b0668, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1753898192
 GameObject:
   m_ObjectHideFlags: 0
