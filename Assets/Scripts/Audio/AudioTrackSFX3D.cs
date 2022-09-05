@@ -45,7 +45,7 @@ public class AudioTrackSFX3D : MonoBehaviour
     public void SetupAudioSource(AudioSource source){
         source.spatialBlend = 1f;
         source.volume = MAX_VOLUME;
-        source.spread = 0f;
+        source.spread = 60f;
         source.dopplerLevel = 0.1f;
         source.rolloffMode = AudioRolloffMode.Custom;
     }

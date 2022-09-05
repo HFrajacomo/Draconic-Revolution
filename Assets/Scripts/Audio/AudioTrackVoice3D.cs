@@ -123,7 +123,7 @@ public class AudioTrackVoice3D : MonoBehaviour
         if(!this.sources.ContainsKey(entity)){
             source.spatialBlend = 1f;
             source.volume = MAX_VOLUME;
-            source.spread = 10f;
+            source.spread = 60f;
             source.loop = false;
 
             source.dopplerLevel = 0.04f;
