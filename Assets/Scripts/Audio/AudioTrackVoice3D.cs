@@ -9,6 +9,7 @@ public class AudioTrackVoice3D : MonoBehaviour
 {
     // UnityReference
     public Transform playerPositionReference;
+    private SubtitlesManager subManager;
 
     // AudioSources
     private Dictionary<ulong, AudioSource> sources = new Dictionary<ulong, AudioSource>();
@@ -166,6 +167,13 @@ public class AudioTrackVoice3D : MonoBehaviour
 
     }
 
+    /*
+    Creates a reference to SubtitlesManager and should be called from within it
+    */
+    public void CreateSubtitlesReference(SubtitlesManager subManager){
+        this.subManager = subManager;
+    }
+
     private void HandleNextTranscriptSegment(ulong entity){
         if(transcriptTime[entity].Count == 0)
             return;
@@ -176,24 +184,17 @@ public class AudioTrackVoice3D : MonoBehaviour
     }
 
     private void SetTranscriptMessage(bool setEmpty=false){
-        bool isDiff = false; // Only used for testing
-
         if(setEmpty){
             if(currentTranscript == "")
                 return;
 
             currentTranscript = "";
         }
-        else{
-            isDiff = currentTranscript != transcriptSegments[closestEntity][currentTranscriptSegment[closestEntity]];
-                
+        else{                
             currentTranscript = transcriptSegments[closestEntity][currentTranscriptSegment[closestEntity]];
-
-            if(isDiff)
-                Debug.Log("<Transcript 3D>: " + currentTranscript);
         }
 
-        
+        subManager.SetTranscript3D(currentTranscript);
     }
 
     /*

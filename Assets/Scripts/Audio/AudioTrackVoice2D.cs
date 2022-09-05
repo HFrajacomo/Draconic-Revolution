@@ -7,6 +7,9 @@ using UnityEngine.Audio;
 
 public class AudioTrackVoice2D : MonoBehaviour
 {
+    // Unity Reference
+    private SubtitlesManager subManager;
+
     // AudioSource
     private AudioSource audioSource;
 
@@ -94,6 +97,13 @@ public class AudioTrackVoice2D : MonoBehaviour
     }
 
     /*
+    Creates a reference to SubtitlesManager and should be called from within it
+    */
+    public void CreateSubtitlesReference(SubtitlesManager subManager){
+        this.subManager = subManager;
+    }
+
+    /*
     Sets the time for time events in the current track
     */
     private void SetTimeValues(float clipLength){
@@ -158,7 +168,7 @@ public class AudioTrackVoice2D : MonoBehaviour
         else
             currentTranscript = "";
 
-        Debug.Log("<Transcript> " + currentTranscript);
+        subManager.SetTranscript2D(currentTranscript);
     }
 
     private float ConvertToFloat(string number){
