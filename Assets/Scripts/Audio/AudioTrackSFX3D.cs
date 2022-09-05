@@ -8,7 +8,7 @@ public class AudioTrackSFX3D : MonoBehaviour
     private Dictionary<ulong, AudioSource> audioMap = new Dictionary<ulong, AudioSource>();
     private AudioSource cachedSource;
 
-    private float MAX_VOLUME = 0.2f;
+    private static float MAX_VOLUME = 0.2f;
 
 
     public void Play(Sound sound, AudioClip clip, ulong entityCode){
@@ -27,14 +27,14 @@ public class AudioTrackSFX3D : MonoBehaviour
         cachedSource.Play();
     }
 
-    public void AddAudioSource(ulong entityCode, AudioSource source){
+    public void RegisterAudioSource(ulong entityCode, AudioSource source){
         if(!audioMap.ContainsKey(entityCode)){
             SetupAudioSource(source);
             audioMap.Add(entityCode, source);
         }
     }
 
-    public void RemoveAudioSource(ulong entityCode){
+    public void UnregisterAudioSource(ulong entityCode){
         if(audioMap.ContainsKey(entityCode))
             audioMap.Remove(entityCode);
     }
@@ -47,5 +47,13 @@ public class AudioTrackSFX3D : MonoBehaviour
         source.rolloffMode = AudioRolloffMode.Custom;
         source.maxDistance = 40f; // Change it to make sounds "louder" or "quieter"
         source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, source.maxDistance, 0f));
+    }
+
+    public void DestroyTrackInfo(){
+        List<ulong> removeList = new List<ulong>(audioMap.Keys);
+
+        foreach(ulong entity in removeList){
+            UnregisterAudioSource(entity);
+        }
     }
 }

@@ -47,7 +47,7 @@ public class Server
 	public ChunkLoader_Server cl;
 
 	// Cache
-	private byte[] cacheBreakData = new byte[35];
+	private byte[] cacheBreakData = new byte[37];
 
 	public Server(ChunkLoader_Server cl){
     	ParseArguments();
@@ -1046,6 +1046,8 @@ public class Server
 				NetDecoder.WriteInt(0, this.cacheBreakData, 21);
 				NetDecoder.WriteUshort(block, this.cacheBreakData, 25);
 				NetDecoder.WriteInt((int)BUDCode.BREAK, this.cacheBreakData, 27);
+				this.cacheBreakData[35] = 0;
+				this.cacheBreakData[36] = 0;
 
 				this.DirectBlockUpdate(this.cacheBreakData, id, comesFromMessage:false);
 			}

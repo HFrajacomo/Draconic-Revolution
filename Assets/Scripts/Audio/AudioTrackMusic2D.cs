@@ -21,7 +21,7 @@ public class AudioTrackMusic2D : MonoBehaviour
     private bool isFading = false;
     private float fadeTimer = 0;
 
-    private float MAX_VOLUME = 0.2f;
+    private static float MAX_VOLUME = 0.2f;
     private const int FRAMES_IN_TRANSITION = 300;
     private const float FRAMES_MULTIPLIER = 1f/FRAMES_IN_TRANSITION;
 
@@ -123,9 +123,9 @@ public class AudioTrackMusic2D : MonoBehaviour
         else
             v = volume;
 
-        this.MAX_VOLUME = v;
-        this.audioSourceOutput.volume = this.MAX_VOLUME;
-        this.switchSourceOutput.volume = this.MAX_VOLUME;
+        MAX_VOLUME = v;
+        this.audioSourceOutput.volume = MAX_VOLUME;
+        this.switchSourceOutput.volume = MAX_VOLUME;
     }
 
 

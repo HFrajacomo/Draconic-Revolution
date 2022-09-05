@@ -12,7 +12,7 @@ public class AudioTrackSFX2D : MonoBehaviour
     // Cache reference
     private AudioSource sourceReference;
 
-    private float MAX_VOLUME = 0.2f;
+    private static float MAX_VOLUME = 0.2f;
     private byte NUMBER_OF_SOURCES = 5;
 
 

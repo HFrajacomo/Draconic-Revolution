@@ -26,7 +26,7 @@ public class AudioTrackVoice2D : MonoBehaviour
     private int currentSegment;
     private int currentTranscriptSegment;
 
-    private float MAX_VOLUME = 0.4f;
+    private static float MAX_VOLUME = 0.4f;
     private bool IS_PLAYING = false;
 
 
@@ -40,7 +40,7 @@ public class AudioTrackVoice2D : MonoBehaviour
     }
 
     public void Update(){
-        if(IS_PLAYING)
+        if(IS_PLAYING){
             if(!audioSource.isPlaying){
                 IS_PLAYING = false;
                 SetTranscriptMessage(0, setEmpty:true);
@@ -48,6 +48,7 @@ public class AudioTrackVoice2D : MonoBehaviour
             else{
                 HandleNextTranscriptSegment();
             }
+        }
     }
 
     /*

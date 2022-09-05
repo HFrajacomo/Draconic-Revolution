@@ -45,6 +45,7 @@ public class ChunkLoader : MonoBehaviour
     public PlayerMovement playerMovement;
     public VolumeProfile volume;
     public GameObject mainControllerManager;
+    public AudioManager audioManager;
 
     // Initialization
     public GameObject playerCharacter;
@@ -80,6 +81,7 @@ public class ChunkLoader : MonoBehaviour
         this.player.position = new Vector3(0,0,0);
         this.testAccountID = Configurations.accountID;
         this.time.SetClient(this.client);
+        SetAudioManager();
         World.SetGameSceneFlag(true);
     }
 
@@ -102,6 +104,7 @@ public class ChunkLoader : MonoBehaviour
         this.time = null;
         this.blockBook = null;
         this.client = null;
+        this.audioManager.Destroy();
         ClearAllChunks();
         Destroy(this);
     }
@@ -137,6 +140,9 @@ public class ChunkLoader : MonoBehaviour
             this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
 
             this.cachePos = new ChunkPos((int)(playerX/Chunk.chunkWidth), (int)(playerZ/Chunk.chunkWidth));
+
+            this.audioManager.SetPlayerPositionInVoice3DTrack(this.player);
+
             GetChunks(true);  
             this.REQUESTEDCHUNKS = true;
             HandleClientCommunication();
@@ -757,6 +763,11 @@ public class ChunkLoader : MonoBehaviour
             return GetBlockHeight(pos, blockX, blockZ+1);
 
         return GetBlockHeight(pos, 0, 0);
+    }
+
+    // Attaches the AudioManager that has the "DontDestroyOnLoad" flag on
+    private void SetAudioManager(){
+        this.audioManager = GameObject.Find("AudioManager").GetComponent<AudioManager>();
     }
 
     // Re-acquires every chunk that is possibly not loaded and adds all chunks that need redraw (except borders) to redraw list
