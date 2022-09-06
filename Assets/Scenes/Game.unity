@@ -299,6 +299,7 @@ GameObject:
   - component: {fileID: 59614819}
   - component: {fileID: 59614823}
   - component: {fileID: 59614824}
+  - component: {fileID: 59614825}
   m_Layer: 9
   m_Name: Character
   m_TagString: Player
@@ -434,6 +435,22 @@ MonoBehaviour:
   hotbar_selected: {fileID: 494716106}
   invUIPlayer: {fileID: 638012052}
   iconRenderer: {fileID: 471249771}
+--- !u!114 &59614825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 59614818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbd7eba2a730d3342a0b175ef75146ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerTransform: {fileID: 59614821}
+  cl: {fileID: 1192772367}
+  audioManager: {fileID: 0}
+  counter: -1
 --- !u!1 &61128575
 GameObject:
   m_ObjectHideFlags: 0
@@ -7582,22 +7599,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   renderDistance: 0
   player: {fileID: 59614821}
-  blockBook: {fileID: 1668289087}
-  vfx: {fileID: 1018660373}
-  time: {fileID: 1322082558}
-  gameUI: {fileID: 1679592122}
-  structHandler: {fileID: 2128924710}
   playerX: 0
   playerZ: 0
   playerY: 0
   playerDirX: 0
   playerDirY: 0
   playerDirZ: 0
+  blockBook: {fileID: 1668289087}
+  vfx: {fileID: 1018660373}
+  time: {fileID: 1322082558}
+  gameUI: {fileID: 1679592122}
+  structHandler: {fileID: 2128924710}
   playerMovement: {fileID: 59614819}
   volume: {fileID: 11400000, guid: d74700023676aee41bc60f65c5f83bf2, type: 2}
   mainControllerManager: {fileID: 1635249983}
   audioManager: {fileID: 0}
   sfx: {fileID: 246974018}
+  playerAudioListener: {fileID: 1912773810}
+  playerPositionHandler: {fileID: 59614825}
   playerCharacter: {fileID: 59614818}
   playerEvents: {fileID: 59614824}
   rend: {fileID: 471797234}
@@ -12640,7 +12659,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1912773807}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!20 &1912773811
 Camera:
   m_ObjectHideFlags: 0

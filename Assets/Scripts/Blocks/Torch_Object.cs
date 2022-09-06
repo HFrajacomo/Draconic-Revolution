@@ -283,15 +283,15 @@ public class Torch_Object : BlocklikeObject
 			this.OnLoad(aux, cl);
 		}
 
-		ChunkPos thisPos = aux.GetChunkPos(); //new ChunkPos(Mathf.FloorToInt(x/Chunk.chunkWidth), Mathf.FloorToInt(z/Chunk.chunkWidth));
-		int X = aux.blockX; //x%Chunk.chunkWidth;
-		int Y = aux.blockY; //y%Chunk.chunkDepth;
-		int Z = aux.blockZ; //z%Chunk.chunkWidth;
+		ChunkPos thisPos = aux.GetChunkPos();
+		int X = aux.blockX;
+		int Y = aux.blockY;
+		int Z = aux.blockZ;
 		aux = new CastCoord(new Vector3(budX, budY, budZ));
-		ChunkPos budPos = aux.GetChunkPos(); //new ChunkPos(Mathf.FloorToInt(budX/Chunk.chunkWidth), Mathf.FloorToInt(budZ/Chunk.chunkWidth));
-		int bX = aux.blockX; //budX%Chunk.chunkWidth;
-		int bY = aux.blockY; //budY%Chunk.chunkDepth;
-		int bZ = aux.blockZ; //budZ%Chunk.chunkWidth;
+		ChunkPos budPos = aux.GetChunkPos();
+		int bX = aux.blockX;
+		int bY = aux.blockY;
+		int bZ = aux.blockZ;
 
 		ushort state = cl.chunks[thisPos].metadata.GetState(X,Y,Z);
 
@@ -307,10 +307,10 @@ public class Torch_Object : BlocklikeObject
 			EraseMetadata(thisPos, X, Y, Z, cl);		
 		}
 		// Breaks Torch if changed block is not solid
-		else if(type == BUDCode.CHANGE){
+		else if(type == BUDCode.CHANGE && (facing == state || facing+4 == state)){
 			int blockCode = cl.chunks[budPos].data.GetCell(bX,bY,bZ);
 
-			if(blockCode >= 0){
+			if(blockCode <= ushort.MaxValue/2){
 				// If changed block is not solid, break
 				if(!cl.blockBook.blocks[blockCode].solid){
 					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);

@@ -24,6 +24,10 @@ public static class AudioLibrary
         {AudioName.TEST_VOICE3D, new Voice(AudioName.TEST_VOICE3D, AudioUsecase.VOICE_3D, "TestVoice", "testvoice.ogg", "testvoice.tsc", AudioVolume.MID)}
     };
 
+    private static Dictionary<string, AudioName> biomeMusic = new Dictionary<string, AudioName>(){
+        {"Plains", AudioName.TEST_GROUP}
+    };
+
 
     public static Sound GetSound(AudioName name){
         return sounds[name];
@@ -47,6 +51,12 @@ public static class AudioLibrary
 
     public static bool IsVoice(AudioName name){
         return voices.ContainsKey(name);
+    }
+
+    public static AudioName? GetBiomeMusic(string biome){
+        if(biomeMusic.ContainsKey(biome))
+            return biomeMusic[biome];
+        return null;
     }
 
     public static bool MusicGroupContainsSound(AudioName groupName, AudioName queryAudio){

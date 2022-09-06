@@ -7,6 +7,7 @@ using Unity.Jobs;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
+using UnityEngine.Audio;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -27,13 +28,6 @@ public class ChunkLoader : MonoBehaviour
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
     public List<ChunkPos> toUpdateNoLight = new List<ChunkPos>();
     public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
-	public BlockEncyclopedia blockBook;
-    public VFXLoader vfx;
-    public TimeOfDay time;
-    public GameObject gameUI;
-    public StructureHandler structHandler;
-    public Client client;
-    public BiomeHandler biomeHandler = new BiomeHandler();
 
     // Received from Server
     public float playerX;
@@ -42,11 +36,20 @@ public class ChunkLoader : MonoBehaviour
     public float playerDirX, playerDirY, playerDirZ;
     
     // Unity Reference
+    public BlockEncyclopedia blockBook;
+    public VFXLoader vfx;
+    public TimeOfDay time;
+    public GameObject gameUI;
+    public StructureHandler structHandler;
+    public Client client;
+    public BiomeHandler biomeHandler = new BiomeHandler();
     public PlayerMovement playerMovement;
     public VolumeProfile volume;
     public GameObject mainControllerManager;
     public AudioManager audioManager;
     public SFXLoader sfx;
+    public AudioListener playerAudioListener;
+    public PlayerPositionHandler playerPositionHandler;
 
     // Initialization
     public GameObject playerCharacter;
@@ -84,6 +87,7 @@ public class ChunkLoader : MonoBehaviour
         this.time.SetClient(this.client);
         SetAudioManager();
         this.sfx.SetAudioManager(this.audioManager);
+        this.playerPositionHandler.SetAudioManager(this.audioManager);
         World.SetGameSceneFlag(true);
     }
 
@@ -96,6 +100,7 @@ public class ChunkLoader : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
+        this.playerAudioListener.enabled = false;
         this.biomeHandler.Clear();
         this.biomeHandler = null;
         this.structHandler = null;
@@ -106,6 +111,7 @@ public class ChunkLoader : MonoBehaviour
         this.time = null;
         this.blockBook = null;
         this.client = null;
+        this.audioManager.Stop(AudioUsecase.MUSIC_CLIP);
         this.audioManager.Destroy();
         ClearAllChunks();
         Destroy(this);
@@ -144,6 +150,7 @@ public class ChunkLoader : MonoBehaviour
             this.cachePos = new ChunkPos((int)(playerX/Chunk.chunkWidth), (int)(playerZ/Chunk.chunkWidth));
 
             this.audioManager.SetPlayerPositionInVoice3DTrack(this.player);
+            this.playerAudioListener.enabled = true;
 
             GetChunks(true);  
             this.REQUESTEDCHUNKS = true;
