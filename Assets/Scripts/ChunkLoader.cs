@@ -46,6 +46,7 @@ public class ChunkLoader : MonoBehaviour
     public VolumeProfile volume;
     public GameObject mainControllerManager;
     public AudioManager audioManager;
+    public SFXLoader sfx;
 
     // Initialization
     public GameObject playerCharacter;
@@ -82,6 +83,7 @@ public class ChunkLoader : MonoBehaviour
         this.testAccountID = Configurations.accountID;
         this.time.SetClient(this.client);
         SetAudioManager();
+        this.sfx.SetAudioManager(this.audioManager);
         World.SetGameSceneFlag(true);
     }
 
@@ -234,6 +236,7 @@ public class ChunkLoader : MonoBehaviour
     	foreach(ChunkPos item in chunks.Keys){
     		chunks[item].Destroy();
             vfx.RemoveChunk(item);
+            sfx.RemoveChunkSFX(item);
     	}
 
         chunks.Clear();

@@ -9,5 +9,6 @@ public enum AudioName
     TEST_VOICE2D,
     TEST_VOICE3D,
     HAT,
-    BZZT
+    BZZT,
+    TORCHFIRE
 }

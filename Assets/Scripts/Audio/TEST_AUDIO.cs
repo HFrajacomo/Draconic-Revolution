@@ -7,7 +7,7 @@ public class TEST_AUDIO : MonoBehaviour
     public AudioSource source;
     public AudioManager manager;
 
-    private int counter = 0;
+    //private int counter = 0;
     private GameObject goTest;
 
 
@@ -20,6 +20,7 @@ public class TEST_AUDIO : MonoBehaviour
     }
 
     public void Update(){
+        /*
         if(counter == 450){
             goTest = new GameObject("testEntity");
             goTest.transform.position = new Vector3(25, 95, 0);
@@ -30,5 +31,6 @@ public class TEST_AUDIO : MonoBehaviour
         }
 
         counter++;
+        */
     }
 }

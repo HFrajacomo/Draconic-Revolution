@@ -51,7 +51,7 @@ public class AudioManager : MonoBehaviour
         RerunLoadedClips();
     }
 
-    public void Play(AudioName name, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false, int segment=-1, int finalSegment=-1, bool playAll=false, ulong entity=0){
+    public void Play(AudioName name, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false, int segment=-1, int finalSegment=-1, bool playAll=false, ulong entity=0, ChunkPos? chunk=null){
         if(AudioLibrary.IsSound(name))
             this.cachedSound = AudioLibrary.GetSound(name);
         else if(AudioLibrary.IsDynamicMusic(name))
@@ -73,14 +73,14 @@ public class AudioManager : MonoBehaviour
         else if(this.cachedSound.type == AudioUsecase.SFX_CLIP){
             PlaySFX2D(name);
         }
+        else if(this.cachedSound.type == AudioUsecase.SFX_3D || this.cachedSound.type == AudioUsecase.SFX_3D_LOOP){
+            PlaySFX3D(this.cachedSound, entity, (ChunkPos)chunk);
+        }
         else if(this.cachedSound.type == AudioUsecase.VOICE_CLIP){
             PlayVoice2D(this.cachedVoice, segment, finalSegment, playAll);
         }
         else if(this.cachedSound.type == AudioUsecase.VOICE_3D){
             PlayVoice3D(this.cachedVoice, segment, finalSegment, playAll, entity);
-        }
-        else if(this.cachedSound.type == AudioUsecase.SFX_3D || this.cachedSound.type == AudioUsecase.SFX_3D_LOOP){
-            PlaySFX3D(this.cachedSound, entity);
         }
     }
 
@@ -155,9 +155,9 @@ public class AudioManager : MonoBehaviour
     /*
     Plays an SFX AudioClip in the 3D environment
     */
-    public void PlaySFX3D(Sound sound, ulong entity){
+    public void PlaySFX3D(Sound sound, ulong entity, ChunkPos pos){
         if(loadedClips.ContainsKey(sound.name)){
-            this.audioTrackSFX3D.Play(sound, GetClip(sound.name), entity);
+            this.audioTrackSFX3D.Play(sound, GetClip(sound.name), entity, pos);
         }
         else{
             LoadAudioClip(sound.name);
@@ -202,12 +202,12 @@ public class AudioManager : MonoBehaviour
     /*
     Register an AudioSource to a AudioTrack3D that has the given usecase
     */
-    public void RegisterAudioSource(AudioSource source, AudioUsecase type, ulong entityCode){
+    public void RegisterAudioSource(AudioSource source, AudioUsecase type, ulong entityCode, ChunkPos? pos=null){
         if(type == AudioUsecase.MUSIC_3D){
             this.audioTrackMusic3D.RegisterAudioSource(entityCode, source);
         }
         else if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
-            this.audioTrackSFX3D.RegisterAudioSource(entityCode, source);
+            this.audioTrackSFX3D.RegisterAudioSource(entityCode, source, (ChunkPos)pos);
         }
         else if(type == AudioUsecase.VOICE_3D){
             this.audioTrackVoice3D.RegisterAudioSource(source, entityCode);
@@ -217,12 +217,12 @@ public class AudioManager : MonoBehaviour
     /*
     Un-register an AudioSource to a AudioTrack3D that has the given usecase
     */
-    public void UnregisterAudioSource(AudioUsecase type, ulong entityCode){
+    public void UnregisterAudioSource(AudioUsecase type, ulong entityCode, ChunkPos? pos=null){
         if(type == AudioUsecase.MUSIC_3D){
             this.audioTrackMusic3D.UnregisterAudioSource(entityCode);
         }
         else if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
-            this.audioTrackSFX3D.UnregisterAudioSource(entityCode);
+            this.audioTrackSFX3D.UnregisterAudioSource(entityCode, (ChunkPos)pos);
         }
         else if(type == AudioUsecase.VOICE_3D){
             this.audioTrackVoice3D.UnregisterAudioSource(entityCode);
@@ -240,6 +240,7 @@ public class AudioManager : MonoBehaviour
     public void Destroy(){
         this.audioTrackVoice3D.DestroyTrackInfo();
         this.audioTrackSFX3D.DestroyTrackInfo();
+        this.audioTrackMusic3D.DestroyTrackInfo();
     }
 
     private void StopMusic2D(bool fade){

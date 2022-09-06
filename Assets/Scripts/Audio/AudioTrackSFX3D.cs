@@ -5,17 +5,20 @@ using UnityEngine.Audio;
 
 public class AudioTrackSFX3D : MonoBehaviour
 {
-    private Dictionary<ulong, AudioSource> audioMap = new Dictionary<ulong, AudioSource>();
+    private Dictionary<ChunkPos, Dictionary<ulong, AudioSource>> audioMap = new Dictionary<ChunkPos, Dictionary<ulong, AudioSource>>();
     private AudioSource cachedSource;
 
     private static float MAX_VOLUME = 0.2f;
 
 
-    public void Play(Sound sound, AudioClip clip, ulong entityCode){
-        if(!audioMap.ContainsKey(entityCode))
+    public void Play(Sound sound, AudioClip clip, ulong entityCode, ChunkPos pos){
+        if(!audioMap.ContainsKey(pos))
             return;
 
-        cachedSource = audioMap[entityCode];
+        if(!audioMap[pos].ContainsKey(entityCode))
+            return;
+
+        cachedSource = audioMap[pos][entityCode];
 
         if(sound.type == AudioUsecase.SFX_3D)
             cachedSource.loop = false;
@@ -30,16 +33,25 @@ public class AudioTrackSFX3D : MonoBehaviour
         cachedSource.Play();
     }
 
-    public void RegisterAudioSource(ulong entityCode, AudioSource source){
-        if(!audioMap.ContainsKey(entityCode)){
+    public void RegisterAudioSource(ulong entityCode, AudioSource source, ChunkPos pos){
+        if(!audioMap.ContainsKey(pos))
+            audioMap.Add(pos, new Dictionary<ulong, AudioSource>());
+
+        if(!audioMap[pos].ContainsKey(entityCode)){
             SetupAudioSource(source);
-            audioMap.Add(entityCode, source);
+            audioMap[pos].Add(entityCode, source);
         }
     }
 
-    public void UnregisterAudioSource(ulong entityCode){
-        if(audioMap.ContainsKey(entityCode))
-            audioMap.Remove(entityCode);
+    public void UnregisterAudioSource(ulong entityCode, ChunkPos pos){
+        if(!audioMap.ContainsKey(pos))
+            return;
+
+        if(audioMap[pos].ContainsKey(entityCode))
+            audioMap[pos].Remove(entityCode);
+
+        if(audioMap[pos].Count == 0)
+            audioMap.Remove(pos);
     }
 
     public void SetupAudioSource(AudioSource source){
@@ -51,10 +63,15 @@ public class AudioTrackSFX3D : MonoBehaviour
     }
 
     public void DestroyTrackInfo(){
-        List<ulong> removeList = new List<ulong>(audioMap.Keys);
+        List<ChunkPos> removeList = new List<ChunkPos>(audioMap.Keys);
+        List<ulong> removeCodeList;
 
-        foreach(ulong entity in removeList){
-            UnregisterAudioSource(entity);
+        foreach(ChunkPos pos in removeList){
+            removeCodeList = new List<ulong>(audioMap[pos].Keys);
+
+            foreach(ulong entity in removeCodeList){
+                UnregisterAudioSource(entity, pos);
+            }
         }
     }
 }
