@@ -312,6 +312,12 @@ public class Client
 			case NetCode.SENDINVENTORY:
 				SendInventory(data);
 				break;
+			case NetCode.SFXPLAY:
+				SFXPlay(data);
+				break;
+			case NetCode.SFXSTOP:
+				SFXStop(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -639,6 +645,28 @@ public class Client
 		}
 	}
 
+	// Receives a request to register an SFX into SFXLoader
+	private void SFXPlay(byte[] data){
+		int x,y,z;
+		AudioName name = (AudioName)NetDecoder.ReadInt(data, 1);
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 5);
+		x = NetDecoder.ReadInt(data, 13);
+		y = NetDecoder.ReadInt(data, 17);
+		z = NetDecoder.ReadInt(data, 21);
+
+		this.cl.sfx.LoadBlockSFX(name, pos, x, y, z);
+	}
+
+	// Receives a request to unregister an SFX from SFXLoader
+	private void SFXStop(byte[] data){
+		int x,y,z;
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+		x = NetDecoder.ReadInt(data, 9);
+		y = NetDecoder.ReadInt(data, 13);
+		z = NetDecoder.ReadInt(data, 17);
+
+		this.cl.sfx.RemoveBlockSFX(pos, x, y, z);		
+	}
 
 	/* ================================================================================ */
 
