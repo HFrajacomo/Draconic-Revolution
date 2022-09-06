@@ -9,7 +9,7 @@ public class AvailabilityQueue
 
     public AvailabilityQueue(bool inverted=false){
         if(inverted)
-            this.queue = new List<ulong>(){ulong.maxValue};
+            this.queue = new List<ulong>(){ulong.MaxValue};
         else
             this.queue = new List<ulong>(){0};
 
@@ -30,12 +30,14 @@ public class AvailabilityQueue
             else
                 this.queue.Add(this.queue[0]-1);
 
+        ulong item;
+
         if(!inverted){
-            ulong item = this.queue[0];
+            item = this.queue[0];
             this.queue.RemoveAt(0);
         }
         else{
-            ulong item = this.queue[this.queue.Count-1];
+            item = this.queue[this.queue.Count-1];
             this.queue.RemoveAt(this.queue.Count-1);
         }
 
