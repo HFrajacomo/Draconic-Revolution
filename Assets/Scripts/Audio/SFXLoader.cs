@@ -17,7 +17,8 @@ public class SFXLoader : MonoBehaviour
     Adds a block into the SFXLoader
     */
     public void LoadBlockSFX(AudioName name, ChunkPos pos, int x, int y, int z){
-        GameObject go = GameObject.Instantiate(prefab, new Vector3(x, y, z), Quaternion.identity);
+        CastCoord coord = new CastCoord(pos, x, y, z);
+        GameObject go = GameObject.Instantiate(prefab, new Vector3(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ()), Quaternion.identity);
         go.transform.parent = prefab.transform;
         AudioSource source = go.GetComponent<AudioSource>();
         ulong entityCode = (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z);
@@ -27,8 +28,8 @@ public class SFXLoader : MonoBehaviour
 
         blockSFX[pos].Add(entityCode, go);
 
-        audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D, entityCode);
-        audioManager.Play(name, entity:entityCode);
+        audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D, entityCode, pos:pos);
+        audioManager.Play(name, entity:entityCode, chunk:pos);
     }
 
     /*
@@ -45,6 +46,7 @@ public class SFXLoader : MonoBehaviour
 
         GameObject.Destroy(blockSFX[pos][code]);
         blockSFX[pos].Remove(code);
+        audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, code, pos:pos);
 
         if(blockSFX[pos].Count == 0)
             blockSFX.Remove(pos);

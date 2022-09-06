@@ -11,7 +11,7 @@ public static class AudioLibrary
         {AudioName.SURPRISEMOTAFAKA, new Sound(AudioName.SURPRISEMOTAFAKA, AudioUsecase.SFX_CLIP, "TestSFX", "surprisemotafaka.ogg")},
         {AudioName.HAT, new Sound(AudioName.HAT, AudioUsecase.SFX_3D, "TestSFX3D", "hat.ogg", AudioVolume.MIDLOW)},
         {AudioName.BZZT, new Sound(AudioName.BZZT, AudioUsecase.SFX_3D_LOOP, "BZZZT!", "bzzt.ogg", AudioVolume.STEALTH)},
-        {AudioName.TORCHFIRE, new Sound(AudioName.TORCHFIRE, AudioUsecase.SFX_3D_LOOP, "Torch", "torchfire.ogg", AudioVolume.STEALTH)},
+        {AudioName.TORCHFIRE, new Sound(AudioName.TORCHFIRE, AudioUsecase.SFX_3D_LOOP, "Torch", "torchfire.ogg", AudioVolume.VERYLOW)},
         {AudioName.ANCIENTS, new Sound(AudioName.ANCIENTS, AudioUsecase.MUSIC_3D, "Ancients", "ancients.ogg", AudioVolume.HIGH)},
     };
 

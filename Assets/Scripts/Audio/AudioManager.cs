@@ -15,6 +15,7 @@ public class AudioManager : MonoBehaviour
     private Dictionary<AudioName, AudioClip> loadedClips = new Dictionary<AudioName, AudioClip>();
     private Dictionary<AudioName, AudioClip> cachedAudioClip = new Dictionary<AudioName, AudioClip>();
     private Dictionary<AudioName, LoadedVoiceSegment> cachedVoiceClips = new Dictionary<AudioName, LoadedVoiceSegment>();
+    private Dictionary<AudioName, List<LoadedSFX>> cachedSFXClips = new Dictionary<AudioName, List<LoadedSFX>>();
 
     // Tracks
     public AudioTrackMusic2D audioTrackMusic2D;
@@ -30,6 +31,7 @@ public class AudioManager : MonoBehaviour
     // Cached data
     private List<AudioName> cachedAudioList;
     private List<LoadedVoiceSegment> cachedVoiceSegmentList;
+    private List<AudioName> cachedSFXList;
     private DynamicMusic cachedMusicGroup;
     private AudioName cachedAudioName;
     private Sound cachedSound;
@@ -160,7 +162,7 @@ public class AudioManager : MonoBehaviour
             this.audioTrackSFX3D.Play(sound, GetClip(sound.name), entity, pos);
         }
         else{
-            LoadAudioClip(sound.name);
+            LoadAudioClip(sound.name, pos, entity);
         }
     }
 
@@ -269,6 +271,22 @@ public class AudioManager : MonoBehaviour
                 this.Play(lvs.name, segment:lvs.segment, finalSegment:lvs.finalSegment, playAll:lvs.playAll);
             }
         }
+
+        if(cachedSFXClips.Count > 0){
+            this.cachedSFXList = new List<AudioName>(cachedSFXClips.Keys);
+
+            foreach(AudioName name in this.cachedSFXList){
+                foreach(LoadedSFX lsfx in cachedSFXClips[name]){
+                    if(loadedClips.ContainsKey(lsfx.name))
+                        continue;
+                        
+                    loadedClips.Add(lsfx.name, lsfx.clip);
+                    this.Play(lsfx.name, chunk:lsfx.pos, entity:lsfx.entityCode);
+                }
+
+                cachedSFXClips.Remove(name);
+            }
+        }
     }
 
     private AudioClip GetClip(AudioName name){
@@ -285,6 +303,10 @@ public class AudioManager : MonoBehaviour
 
     private void LoadAudioClip(AudioName name, int segment, int finalSegment, bool playAll){
         StartCoroutine(GetAudioClip(name, segment, finalSegment, playAll));
+    }
+
+    private void LoadAudioClip(AudioName name, ChunkPos pos, ulong entity){
+        StartCoroutine(GetAudioClip(name, pos, entity));        
     }
 
     private IEnumerator GetAudioClip(AudioName name, bool autoplay)
@@ -325,6 +347,27 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    // Alternative version of loading SFX for blocks
+    private IEnumerator GetAudioClip(AudioName name, ChunkPos pos, ulong entity)
+    {
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLibrary.GetSound(name).GetFilePath(), AudioType.OGGVORBIS))
+        {
+            yield return www.SendWebRequest();
+
+            if(www.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log(www.error);
+            }
+            else
+            {
+                if(!this.cachedSFXClips.ContainsKey(name))
+                    this.cachedSFXClips.Add(name, new List<LoadedSFX>());
+
+                this.cachedSFXClips[name].Add(new LoadedSFX(name, pos, entity, DownloadHandlerAudioClip.GetContent(www)));
+            }
+        }
+    }
+
     private void ConditionalDynamicClipLoad(MusicDynamicLevel evaluatedLevel, MusicDynamicLevel trueLevel){
         if(trueLevel == evaluatedLevel)
             LoadAudioClip(this.cachedMusicGroup.Get(evaluatedLevel).name);
@@ -346,6 +389,20 @@ public struct LoadedVoiceSegment{
         this.segment = segment;
         this.finalSegment = finalSegment;
         this.playAll = playAll;
+        this.clip = clip;
+    }
+}
+
+public struct LoadedSFX{
+    public AudioName name;
+    public ChunkPos pos;
+    public ulong entityCode;
+    public AudioClip clip;
+
+    public LoadedSFX(AudioName name, ChunkPos pos, ulong code, AudioClip clip){
+        this.name = name;
+        this.pos = pos;
+        this.entityCode = code;
         this.clip = clip;
     }
 }

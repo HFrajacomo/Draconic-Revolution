@@ -329,22 +329,14 @@ public struct NetMessage
 	}
 
 	// Server sends a client an order to register an SFX into SFXLoader
-	public void SFXPlay(AudioName name, ChunkPos pos, int x, int y, int z){
-		NetDecoder.WriteInt((int)name, NetMessage.buffer, 1);
-		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 5);
-		NetDecoder.WriteInt(x, NetMessage.buffer, 13);
-		NetDecoder.WriteInt(y, NetMessage.buffer, 17);
-		NetDecoder.WriteInt(z, NetMessage.buffer, 21);
-		this.size = 25;
-	}
-
-	// Server sends a client an order to unregister an SFX from SFXLoader
-	public void SFXStop(ChunkPos pos, int x, int y, int z){
+	public void SFXPlay(ChunkPos pos, int x, int y, int z, ushort blockCode, ushort state){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
 		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
 		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
 		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
-		this.size = 21;
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 21);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, 23);
+		this.size = 25;
 	}
 
 }
@@ -377,7 +369,6 @@ public enum NetCode{
 	FAILEDCHUNKREQUEST,
 	SENDINVENTORY,
 	SFXPLAY,
-	SFXSTOP,
 	DISCONNECT  // No call
 }
 
