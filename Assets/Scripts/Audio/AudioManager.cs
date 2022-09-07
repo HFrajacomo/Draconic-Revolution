@@ -309,6 +309,7 @@ public class AudioManager : MonoBehaviour
         StartCoroutine(GetAudioClip(name, pos, entity));        
     }
 
+    // Loads music into AudioClip via Streaming method
     private IEnumerator GetAudioClip(AudioName name, bool autoplay)
     {
         using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLibrary.GetSound(name).GetFilePath(), AudioType.OGGVORBIS))
@@ -318,13 +319,18 @@ public class AudioManager : MonoBehaviour
             if(www.result == UnityWebRequest.Result.ConnectionError)
             {
                 Debug.Log(www.error);
+                yield return 0;
             }
-            else
-            {
-                if(autoplay)
-                    this.cachedAudioClip.Add(name, DownloadHandlerAudioClip.GetContent(www));
-                else
-                    this.loadedClips.Add(name, DownloadHandlerAudioClip.GetContent(www));
+
+            ((DownloadHandlerAudioClip)www.downloadHandler).streamAudio = true;
+
+            if(autoplay){
+                AudioClip clip = ((DownloadHandlerAudioClip)www.downloadHandler).audioClip;
+                this.cachedAudioClip.Add(name, clip);
+            }
+            else{
+                AudioClip clip = ((DownloadHandlerAudioClip)www.downloadHandler).audioClip;
+                this.loadedClips.Add(name, clip);
             }
         }
     }
@@ -339,11 +345,10 @@ public class AudioManager : MonoBehaviour
             if(www.result == UnityWebRequest.Result.ConnectionError)
             {
                 Debug.Log(www.error);
+                yield return 0;
             }
-            else
-            {
-                this.cachedVoiceClips.Add(name, new LoadedVoiceSegment(name, segment, finalSegment, playAll, DownloadHandlerAudioClip.GetContent(www)));
-            }
+
+            this.cachedVoiceClips.Add(name, new LoadedVoiceSegment(name, segment, finalSegment, playAll, DownloadHandlerAudioClip.GetContent(www)));
         }
     }
 
@@ -357,14 +362,13 @@ public class AudioManager : MonoBehaviour
             if(www.result == UnityWebRequest.Result.ConnectionError)
             {
                 Debug.Log(www.error);
+                yield return 0;
             }
-            else
-            {
-                if(!this.cachedSFXClips.ContainsKey(name))
-                    this.cachedSFXClips.Add(name, new List<LoadedSFX>());
 
-                this.cachedSFXClips[name].Add(new LoadedSFX(name, pos, entity, DownloadHandlerAudioClip.GetContent(www)));
-            }
+            if(!this.cachedSFXClips.ContainsKey(name))
+                this.cachedSFXClips.Add(name, new List<LoadedSFX>());
+
+            this.cachedSFXClips[name].Add(new LoadedSFX(name, pos, entity, DownloadHandlerAudioClip.GetContent(www)));
         }
     }
 
