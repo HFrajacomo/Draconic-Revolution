@@ -3519,7 +3519,7 @@ public struct BuildBorderJob : IJob{
 
 }
 
-//[BurstCompile]
+[BurstCompile]
 public struct BuildDecalJob : IJob{
 	[ReadOnly]
 	public NativeArray<ushort> blockdata;
