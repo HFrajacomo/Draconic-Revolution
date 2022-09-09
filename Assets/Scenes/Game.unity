@@ -447,8 +447,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbd7eba2a730d3342a0b175ef75146ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 59614821}
+  playerTransform: {fileID: 1912773808}
   cl: {fileID: 1192772367}
+  reverb: {fileID: 1912773813}
   audioManager: {fileID: 0}
   counter: -1
 --- !u!1 &61128575
@@ -1027,6 +1028,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioManager: {fileID: 0}
   prefab: {fileID: 542211799}
+  prefabCategory: {fileID: 692086677}
 --- !u!4 &246974019
 Transform:
   m_ObjectHideFlags: 0
@@ -12613,6 +12615,7 @@ GameObject:
   - component: {fileID: 1912773810}
   - component: {fileID: 1912773809}
   - component: {fileID: 1912773812}
+  - component: {fileID: 1912773813}
   m_Layer: 9
   m_Name: Camera
   m_TagString: Untagged
@@ -12827,6 +12830,30 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
+--- !u!167 &1912773813
+AudioReverbZone:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1912773807}
+  m_Enabled: 1
+  m_MinDistance: 10
+  m_MaxDistance: 15
+  m_ReverbPreset: 27
+  m_Room: -1000
+  m_RoomHF: -100
+  m_DecayTime: 1.49
+  m_DecayHFRatio: 0.83
+  m_Reflections: -2602
+  m_ReflectionsDelay: 0.007
+  m_Reverb: 200
+  m_ReverbDelay: 0.011
+  m_HFReference: 5000
+  m_Diffusion: 100
+  m_Density: 100
+  m_LFReference: 250
+  m_RoomLF: 0
 --- !u!1 &1949158486
 GameObject:
   m_ObjectHideFlags: 0

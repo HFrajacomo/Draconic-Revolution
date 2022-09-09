@@ -3626,7 +3626,7 @@ public struct BuildDecalJob : IJob{
 	}
 
 	public bool CheckTransparentOrInvisible(ushort block){
-		if(block <= ushort.MaxValue)
+		if(block <= ushort.MaxValue/2)
 			return Boolean(blockTransparent[block]) || blockInvisible[block];
 		else
 			return objectInvisible[ushort.MaxValue - block] || Boolean(objectTransparent[ushort.MaxValue - block]);
@@ -3635,7 +3635,7 @@ public struct BuildDecalJob : IJob{
 	public int GetDecalStage(ushort block, ushort hp){
 		float hpPercentage;
 
-		if(block <= ushort.MaxValue)
+		if(block <= ushort.MaxValue/2)
 			hpPercentage = (float)hp / (float)blockHP[block];
 		else
 			hpPercentage = (float)hp / (float)objectHP[ushort.MaxValue - block];

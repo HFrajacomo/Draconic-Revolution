@@ -8,6 +8,7 @@ public class SFXLoader : MonoBehaviour
     // Unity Reference
     public AudioManager audioManager;
     public GameObject prefab;
+    public GameObject prefabCategory;
 
     // Sound Dictionaries
     private Dictionary<ChunkPos, Dictionary<ulong, GameObject>> blockSFX = new Dictionary<ChunkPos, Dictionary<ulong, GameObject>>();
@@ -19,7 +20,7 @@ public class SFXLoader : MonoBehaviour
     public void LoadBlockSFX(AudioName name, ChunkPos pos, int x, int y, int z){
         CastCoord coord = new CastCoord(pos, x, y, z);
         GameObject go = GameObject.Instantiate(prefab, new Vector3(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ()), Quaternion.identity);
-        go.transform.parent = prefab.transform;
+        go.transform.parent = prefabCategory.transform;
         AudioSource source = go.GetComponent<AudioSource>();
         ulong entityCode = (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z);
 
