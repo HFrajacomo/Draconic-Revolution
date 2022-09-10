@@ -218,7 +218,7 @@ public class PlayerPositionHandler : MonoBehaviour
 
     private int CalculateReflectionsFormula(float averageReverbDistance){
         float verticalVectorDistance = (this.raytracingDistances[8] + this.raytracingDistances[9])/2f;
-        float val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 2)*3000 - 2600;
+        float val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 1.58f)*3000 - 2600;
         val = val * Mathf.Clamp(5-(Mathf.Log(1+(verticalVectorDistance/8f), 1.4f)*4), 1, 5);
 
         return Mathf.CeilToInt(Mathf.Clamp(val, -2600, 400));
