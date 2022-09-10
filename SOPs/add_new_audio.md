@@ -69,4 +69,4 @@ Voices have the same idea to be registered, but should be added to the *Voices* 
 
 # Conclusion
 Everything is registered and you should be able to call your sounds in-game by calling: 
-> AudioManager.Play(AudioName, \*\*kwargs);
+> AudioManager.Play(AudioName, \*\*kwargs); 
