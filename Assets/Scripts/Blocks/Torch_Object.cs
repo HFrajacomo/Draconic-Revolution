@@ -6,18 +6,19 @@ using UnityEngine.Experimental.VFX;
 
 /*
 STATES:
-	0 = Unlit facing X+
-	1 = Unlit facing Z-
-	2 = Unlit facing X-
-	3 = Unlit facing Z+
-	4 = Lit facing X+
-	5 = Lit facing Z-
-	6 = Lit facing X-
-	7 = Lit facing Z+
+	0 = Lit facing X+
+	1 = Lit facing Z-
+	2 = Lit facing X-
+	3 = Lit facing Z+
+	4 = Unlit facing X+
+	5 = Unlit facing Z-
+	6 = Unlit facing X-
+	7 = Unlit facing Z+
 */
 public class Torch_Object : BlocklikeObject
 {
 	public GameObject fireVFX;
+	private AudioName audio = AudioName.TORCHFIRE;
 
 	public Torch_Object(bool isClient){
 		this.name = "Torch";
@@ -63,9 +64,15 @@ public class Torch_Object : BlocklikeObject
 			newState = (ushort)(state+4);
 		}
 
+		// Init VFX
 		NetMessage message = new NetMessage(NetCode.VFXCHANGE);
 		message.VFXChange(pos, blockX, blockY, blockZ, 0, ushort.MaxValue, newState);
 		cl.server.SendToClients(pos, message);
+
+		// Init SFX
+		NetMessage SFXMessage = new NetMessage(NetCode.SFXPLAY);
+		SFXMessage.SFXPlay(pos, blockX, blockY, blockZ, (ushort)BlockID.TORCH, newState);
+		cl.server.SendToClients(pos, SFXMessage);
 
 		return 2;
 	}
@@ -74,12 +81,16 @@ public class Torch_Object : BlocklikeObject
 	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
 		cl.chunks[pos].metadata.SetState(blockX,blockY,blockZ, (ushort)facing);
 
+		// Init VFX
 		NetMessage message = new NetMessage(NetCode.VFXDATA);
 		message.VFXData(pos, blockX, blockY, blockZ, facing, ushort.MaxValue, (ushort)facing);
-		
 		cl.vfx.Add(pos, BuildVFXName(pos, blockX, blockY, blockZ), message);
 		cl.server.SendToClients(pos, message);
 
+		// Init SFX
+		NetMessage SFXMessage = new NetMessage(NetCode.SFXPLAY);
+		SFXMessage.SFXPlay(pos, blockX, blockY, blockZ, (ushort)BlockID.TORCH, cl.chunks[pos].metadata.GetState(blockX, blockY, blockZ));
+		cl.server.SendToClients(pos, SFXMessage);
 		return 0;
 	}
 
@@ -117,17 +128,33 @@ public class Torch_Object : BlocklikeObject
 		return 0;
 	}
 
-	// Destroys FireVFX
+	public override int OnSFXPlay(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
+		if(state < 4){
+			cl.sfx.LoadBlockSFX(this.audio, pos, blockX, blockY, blockZ);
+			return 1;
+		}
+		else{
+			cl.sfx.RemoveBlockSFX(pos, blockX, blockY, blockZ);
+			return 2;
+		}
+	}
+
+	// Destroys FireVFX and SFX
 	public override int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){
 		NetMessage message = new NetMessage(NetCode.VFXBREAK);
 		message.VFXBreak(pos, x, y, z, ushort.MaxValue, 0);
 		cl.server.SendToClients(pos, message);
 
+		// Init SFX
+		NetMessage SFXMessage = new NetMessage(NetCode.SFXPLAY);
+		SFXMessage.SFXPlay(pos, x, y, z, (ushort)BlockID.TORCH, ushort.MaxValue);
+		cl.server.SendToClients(pos, SFXMessage);
+
 		EraseMetadata(pos,x,y,z,cl);
 		return 0;
 	}
 
-	// Creates FireVFX on Load
+	// Creates FireVFX and SFX on Load
 	public override int OnLoad(CastCoord coord, ChunkLoader_Server cl){
 		ushort state = cl.chunks[coord.GetChunkPos()].metadata.GetState(coord.blockX, coord.blockY, coord.blockZ);
 		int facing;
@@ -137,11 +164,17 @@ public class Torch_Object : BlocklikeObject
 		else
 			facing = state;
 
+		// Init VFX
 		NetMessage message = new NetMessage(NetCode.VFXDATA);
 		message.VFXData(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ, facing, ushort.MaxValue, state);
 		
 		cl.vfx.Add(coord.GetChunkPos(), BuildVFXName(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ), message);
 		cl.server.SendToClients(coord.GetChunkPos(), message);
+
+		// Init SFX
+		NetMessage SFXMessage = new NetMessage(NetCode.SFXPLAY);
+		SFXMessage.SFXPlay(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ, (ushort)BlockID.TORCH, state);
+		cl.server.SendToClients(coord.GetChunkPos(), SFXMessage);
 		return 1;
 	}
 
@@ -250,15 +283,15 @@ public class Torch_Object : BlocklikeObject
 			this.OnLoad(aux, cl);
 		}
 
-		ChunkPos thisPos = aux.GetChunkPos(); //new ChunkPos(Mathf.FloorToInt(x/Chunk.chunkWidth), Mathf.FloorToInt(z/Chunk.chunkWidth));
-		int X = aux.blockX; //x%Chunk.chunkWidth;
-		int Y = aux.blockY; //y%Chunk.chunkDepth;
-		int Z = aux.blockZ; //z%Chunk.chunkWidth;
+		ChunkPos thisPos = aux.GetChunkPos();
+		int X = aux.blockX;
+		int Y = aux.blockY;
+		int Z = aux.blockZ;
 		aux = new CastCoord(new Vector3(budX, budY, budZ));
-		ChunkPos budPos = aux.GetChunkPos(); //new ChunkPos(Mathf.FloorToInt(budX/Chunk.chunkWidth), Mathf.FloorToInt(budZ/Chunk.chunkWidth));
-		int bX = aux.blockX; //budX%Chunk.chunkWidth;
-		int bY = aux.blockY; //budY%Chunk.chunkDepth;
-		int bZ = aux.blockZ; //budZ%Chunk.chunkWidth;
+		ChunkPos budPos = aux.GetChunkPos();
+		int bX = aux.blockX;
+		int bY = aux.blockY;
+		int bZ = aux.blockZ;
 
 		ushort state = cl.chunks[thisPos].metadata.GetState(X,Y,Z);
 
@@ -274,10 +307,10 @@ public class Torch_Object : BlocklikeObject
 			EraseMetadata(thisPos, X, Y, Z, cl);		
 		}
 		// Breaks Torch if changed block is not solid
-		else if(type == BUDCode.CHANGE){
+		else if(type == BUDCode.CHANGE && (facing == state || facing+4 == state)){
 			int blockCode = cl.chunks[budPos].data.GetCell(bX,bY,bZ);
 
-			if(blockCode >= 0){
+			if(blockCode <= ushort.MaxValue/2){
 				// If changed block is not solid, break
 				if(!cl.blockBook.blocks[blockCode].solid){
 					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);

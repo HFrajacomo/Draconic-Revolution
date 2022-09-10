@@ -15,7 +15,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 15.25
+    m_Value: 23.375
   tint:
     m_OverrideState: 0
     m_Value: 0
@@ -111,7 +111,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.83283335, g: 0.7265, b: 0.5323333, a: 1}
+      m_Value: {r: 0.9249167, g: 0.61275, b: 0.28316668, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 2
@@ -353,7 +353,7 @@ MonoBehaviour:
     m_Value: 200
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 59.333336
+    m_Value: 37.666668
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -510,7 +510,7 @@ MonoBehaviour:
     m_Value: 1
   alphaSaturation:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.1121884
   alphaMultiplier:
     m_OverrideState: 1
     m_Value: 1

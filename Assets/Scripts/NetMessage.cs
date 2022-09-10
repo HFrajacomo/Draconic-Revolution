@@ -328,6 +328,17 @@ public struct NetMessage
 		this.size = 1 + length;
 	}
 
+	// Server sends a client an order to register an SFX into SFXLoader
+	public void SFXPlay(ChunkPos pos, int x, int y, int z, ushort blockCode, ushort state){
+		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
+		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 21);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, 23);
+		this.size = 25;
+	}
+
 }
 
 public enum NetCode{
@@ -357,6 +368,7 @@ public enum NetCode{
 	BLOCKDAMAGE,
 	FAILEDCHUNKREQUEST,
 	SENDINVENTORY,
+	SFXPLAY,
 	DISCONNECT  // No call
 }
 
