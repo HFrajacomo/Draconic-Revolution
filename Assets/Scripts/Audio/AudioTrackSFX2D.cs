@@ -12,11 +12,13 @@ public class AudioTrackSFX2D : MonoBehaviour
     // Cache reference
     private AudioSource sourceReference;
 
+    private const float HARD_VOLUME_LIMIT = 0.2f;
     private static float MAX_VOLUME = 0.2f;
     private byte NUMBER_OF_SOURCES = 5;
 
 
     public void Awake(){
+        ChangeVolume();
         CreateAudioSource();
     }
 
@@ -24,6 +26,10 @@ public class AudioTrackSFX2D : MonoBehaviour
     public void Play(AudioClip clip){
         this.sourceReference = FindFreeAudioSouce();
         this.sourceReference.PlayOneShot(clip);
+    }
+
+    public void ChangeVolume(){
+        MAX_VOLUME =  HARD_VOLUME_LIMIT * (Configurations.sfx2DVolume/100f);
     }
 
     private void CreateAudioSource(){

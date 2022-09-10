@@ -22,11 +22,14 @@ public class AudioTrackMusic2D : MonoBehaviour
     private float fadeTimer = 0;
 
     private static float MAX_VOLUME = 0.2f;
+    private const float HARD_VOLUME_LIMIT = 0.2f;
     private const int FRAMES_IN_TRANSITION = 300;
     private const float FRAMES_MULTIPLIER = 1f/FRAMES_IN_TRANSITION;
 
 
     public void Awake(){
+        this.ChangeVolume();
+
         this.audioSourceOutput = this.gameObject.AddComponent<AudioSource>();
         this.audioSourceOutput.spatialBlend = 0f;
         this.audioSourceOutput.volume = MAX_VOLUME;
@@ -51,6 +54,8 @@ public class AudioTrackMusic2D : MonoBehaviour
             DownfadeTransition();
             CrossfadeTransition();
         }
+
+        ChangeVolume();
     }
 
 
@@ -92,7 +97,6 @@ public class AudioTrackMusic2D : MonoBehaviour
         }
     }
 
-
     public void Stop(bool fade=false){
         if(!fade){
             if(this.currentMusic == null)
@@ -115,21 +119,9 @@ public class AudioTrackMusic2D : MonoBehaviour
         }
     }
 
-    public void ChangeVolume(float volume){
-        float v;
-
-        if(volume < 0)
-            v = 0f;
-        else if(volume > 1)
-            v = 1f;
-        else
-            v = volume;
-
-        MAX_VOLUME = v;
-        this.audioSourceOutput.volume = MAX_VOLUME;
-        this.switchSourceOutput.volume = MAX_VOLUME;
+    public void ChangeVolume(){
+        MAX_VOLUME =  HARD_VOLUME_LIMIT * (Configurations.music2DVolume/100f);
     }
-
 
     private void CrossfadeTransition(){
         // If Downfade operation has been issued in the middle of crossfade

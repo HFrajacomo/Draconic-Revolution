@@ -29,12 +29,15 @@ public class AudioTrackVoice2D : MonoBehaviour
     private int currentSegment;
     private int currentTranscriptSegment;
 
+    private const float HARD_VOLUME_LIMIT = 0.4f;
     private static float MAX_VOLUME = 0.4f;
     private bool IS_PLAYING = false;
 
 
     public void Awake(){
         audioSource = gameObject.AddComponent<AudioSource>();
+        
+        ChangeVolume();
 
         audioSource.spatialBlend = 0f;
         audioSource.volume = MAX_VOLUME;
@@ -102,6 +105,11 @@ public class AudioTrackVoice2D : MonoBehaviour
     */
     public void CreateSubtitlesReference(SubtitlesManager subManager){
         this.subManager = subManager;
+    }
+
+    public void ChangeVolume(){
+        MAX_VOLUME =  HARD_VOLUME_LIMIT * (Configurations.voice2DVolume/100f);
+        this.audioSource.volume = MAX_VOLUME;
     }
 
     /*

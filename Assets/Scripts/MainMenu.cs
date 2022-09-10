@@ -33,6 +33,7 @@ public class MainMenu : MonoBehaviour
 	public InputField single_seedInput;
 	public InputField multi_ipInput;
 	public TMP_InputField options_accountIDInput;
+	public TextMeshProUGUI subtitlesText;
 
 	// Initial Button
 	public Button singleplayerButton;
@@ -45,6 +46,12 @@ public class MainMenu : MonoBehaviour
 	public GameObject worldButtonPrefab;
 	private GameObject cacheObj;
 	public Slider renderDistanceSlider;
+	public Slider music2DMusicSlider;
+	public Slider music3DMusicSlider;
+	public Slider sfx2DMusicSlider;
+	public Slider sfx3DMusicSlider;
+	public Slider voice2DMusicSlider;
+	public Slider voice3DMusicSlider;
 
 	// Flags
 	private static bool firstLoad = true;
@@ -86,6 +93,8 @@ public class MainMenu : MonoBehaviour
 		CreateSinglePlayerNewMap();
 		CreateMultiPlayerMap();
 		OpenMainMenu();
+
+		GameObject.Find("AudioManager").GetComponent<AudioManager>().RefreshVolume();
 	}
 
 	public void Update(){
@@ -198,10 +207,17 @@ public class MainMenu : MonoBehaviour
 
 	public void OpenOptionsMenu(){
 		SetFullBrightColor();
+		SetSubtitlesColor();
 		ChangeVisibleMenu(this.optionsMenu);
 		this.currentSelection = 0;
 		this.renderDistanceSlider.value = World.renderDistance;
 		this.options_accountIDInput.text = Configurations.accountID.ToString();
+		this.music2DMusicSlider.value = Configurations.music2DVolume;
+		this.music3DMusicSlider.value = Configurations.music3DVolume;
+		this.sfx2DMusicSlider.value = Configurations.sfx2DVolume;
+		this.sfx3DMusicSlider.value = Configurations.sfx3DVolume;
+		this.voice2DMusicSlider.value = Configurations.voice2DVolume;
+		this.voice3DMusicSlider.value = Configurations.voice3DVolume;
 		MainMenu.code = MenuCode.OPTIONS;
 	}
 
@@ -223,15 +239,28 @@ public class MainMenu : MonoBehaviour
 		SetFullBrightColor();
 	}
 
+	public void ToggleSubtitles(){
+		Configurations.subtitlesOn = !Configurations.subtitlesOn;
+		SetSubtitlesColor();
+	}
+
 	public void SaveConfigs(){
 		Configurations.SaveConfigFile();
+		GameObject.Find("AudioManager").GetComponent<AudioManager>().RefreshVolume();
 	}
 
 	private void SetFullBrightColor(){
 		if(Configurations.FULLBRIGHT)
 			fullbrightText.color = GREEN;
 		else
-			fullbrightText.color = RED;		
+			fullbrightText.color = RED;
+	}
+
+	private void SetSubtitlesColor(){
+		if(Configurations.subtitlesOn)
+			subtitlesText.color = GREEN;
+		else
+			subtitlesText.color = RED;		
 	}
 
 	private void CreateSinglePlayerNewMap(){

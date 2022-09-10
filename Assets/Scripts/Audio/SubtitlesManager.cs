@@ -28,12 +28,14 @@ public class SubtitlesManager : MonoBehaviour
     } 
 
     public void Update(){
-        if(transcript2D != "")
-            subtitles.text = transcript2D;
-        else if(transcript3D != "")
-            subtitles.text = transcript3D;
-        else
-            subtitles.text = "";
+        if(Configurations.subtitlesOn){
+            if(transcript2D != "")
+                subtitles.text = transcript2D;
+            else if(transcript3D != "")
+                subtitles.text = transcript3D;
+            else
+                subtitles.text = "";
+        }
     }
 
     public void SetTranscript2D(string transcript){this.transcript2D = transcript;}

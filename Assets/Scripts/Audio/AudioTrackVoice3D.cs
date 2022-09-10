@@ -40,9 +40,14 @@ public class AudioTrackVoice3D : MonoBehaviour
     private ulong closestEntity;
     private bool foundClosest = false;
 
+    private const float HARD_VOLUME_LIMIT = 0.4f;
     private static float MAX_VOLUME = 0.4f;
     private Dictionary<ulong, bool> IS_PLAYING = new Dictionary<ulong, bool>();
 
+
+    public void Awake(){
+        ChangeVolume();
+    }
 
     public void Update(){
         foundClosest = false;
@@ -151,6 +156,10 @@ public class AudioTrackVoice3D : MonoBehaviour
             this.currentVolume.Remove(entity);
             this.currentAudio.Remove(entity);
         }
+    }
+
+    public void ChangeVolume(){
+        MAX_VOLUME = HARD_VOLUME_LIMIT * (Configurations.voice3DVolume/100f);
     }
 
     public void SetPlayerPosition(Transform transform){

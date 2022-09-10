@@ -8,9 +8,18 @@ using UnityEngine;
 
 public static class Configurations
 {
+    // Settings
     public static bool FULLBRIGHT = false;
     public static ulong accountID;
+    public static int music2DVolume;
+    public static int music3DVolume;
+    public static int sfx2DVolume;
+    public static int sfx3DVolume;
+    public static int voice2DVolume;
+    public static int voice3DVolume;
+    public static bool subtitlesOn;
 
+    // Config File
     private static bool firstRun = true;
     private static string configFilePath;
     private static Stream file;
@@ -24,6 +33,13 @@ public static class Configurations
         Configurations.AddToDictEntry("accountID", DATATYPE.ULONG, (Object)0UL);
         Configurations.AddToDictEntry("fullbright", DATATYPE.BOOL, (Object)false);
         Configurations.AddToDictEntry("render_distance", DATATYPE.INT, (Object)5);
+        Configurations.AddToDictEntry("2d_music_volume", DATATYPE.INT, (Object)100);
+        Configurations.AddToDictEntry("3d_music_volume", DATATYPE.INT, (Object)100);
+        Configurations.AddToDictEntry("2d_sfx_volume", DATATYPE.INT, (Object)100);
+        Configurations.AddToDictEntry("3d_sfx_volume", DATATYPE.INT, (Object)100);
+        Configurations.AddToDictEntry("2d_voice_volume", DATATYPE.INT, (Object)100);
+        Configurations.AddToDictEntry("3d_voice_volume", DATATYPE.INT, (Object)100);
+        Configurations.AddToDictEntry("subtitles", DATATYPE.BOOL, (Object)true);
         Configurations.firstRun = false;
     }
 
@@ -56,6 +72,13 @@ public static class Configurations
         CreateUlongField("accountID", accountID);
         CreateBoolField("fullbright", FULLBRIGHT);
         CreateIntField("render_distance", World.renderDistance);
+        CreateIntField("2d_music_volume", music2DVolume);
+        CreateIntField("3d_music_volume", music3DVolume);
+        CreateIntField("2d_sfx_volume", sfx2DVolume);
+        CreateIntField("3d_sfx_volume", sfx3DVolume);
+        CreateIntField("2d_voice_volume", voice2DVolume);
+        CreateIntField("3d_voice_volume", voice3DVolume);
+        CreateBoolField("subtitles", subtitlesOn);
 
         Configurations.file.Close();
     }
@@ -141,6 +164,27 @@ public static class Configurations
             case "render_distance":
                 World.SetRenderDistance((int)defaults[entry]);
                 break;
+            case "2d_music_volume":
+                Configurations.music2DVolume = (int)defaults[entry];
+                break;
+            case "3d_music_volume":
+                Configurations.music3DVolume = (int)defaults[entry];
+                break;
+            case "2d_sfx_volume":
+                Configurations.sfx2DVolume = (int)defaults[entry];
+                break;
+            case "3d_sfx_volume":
+                Configurations.sfx3DVolume = (int)defaults[entry];
+                break;
+            case "2d_voice_volume":
+                Configurations.voice2DVolume = (int)defaults[entry];
+                break;
+            case "3d_voice_volume":
+                Configurations.voice3DVolume = (int)defaults[entry];
+                break;
+            case "subtitles":
+                Configurations.subtitlesOn = (bool)defaults[entry];
+                break;
             default:
                 break;
         }
@@ -157,6 +201,27 @@ public static class Configurations
                 break;
             case "render_distance":
                 World.SetRenderDistance(ReadIntField(value));
+                break;
+            case "2d_music_volume":
+                Configurations.music2DVolume = ReadIntField(value);
+                break;
+            case "3d_music_volume":
+                Configurations.music3DVolume = ReadIntField(value);
+                break;
+            case "2d_sfx_volume":
+                Configurations.sfx2DVolume = ReadIntField(value);
+                break;
+            case "3d_sfx_volume":
+                Configurations.sfx3DVolume = ReadIntField(value);
+                break;
+            case "2d_voice_volume":
+                Configurations.voice2DVolume = ReadIntField(value);
+                break;
+            case "3d_voice_volume":
+                Configurations.voice3DVolume = ReadIntField(value);
+                break;
+            case "subtitles":
+                Configurations.subtitlesOn = ReadBoolField(value);
                 break;
             default:
                 break;

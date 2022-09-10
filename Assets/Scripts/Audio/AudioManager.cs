@@ -236,6 +236,16 @@ public class AudioManager : MonoBehaviour
         audioTrackVoice3D.SetPlayerPosition(transform);
     }
 
+    // Sets the volume of all tracks when game begins
+    public void RefreshVolume(){
+        this.audioTrackVoice3D.ChangeVolume();
+        this.audioTrackVoice2D.ChangeVolume();
+        this.audioTrackSFX3D.ChangeVolume();
+        this.audioTrackSFX2D.ChangeVolume();
+        this.audioTrackMusic3D.ChangeVolume();
+        this.audioTrackMusic2D.ChangeVolume();
+    }
+
     /*
     Destroys all information in Tracks that would break when reloaded
     */

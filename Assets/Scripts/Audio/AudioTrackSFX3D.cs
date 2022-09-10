@@ -8,8 +8,12 @@ public class AudioTrackSFX3D : MonoBehaviour
     private Dictionary<ChunkPos, Dictionary<ulong, AudioSource>> audioMap = new Dictionary<ChunkPos, Dictionary<ulong, AudioSource>>();
     private AudioSource cachedSource;
 
+    private const float HARD_VOLUME_LIMIT = 0.2f;
     private static float MAX_VOLUME = 0.2f;
 
+    public void Awake(){
+        ChangeVolume();
+    }
 
     public void Play(Sound sound, AudioClip clip, ulong entityCode, ChunkPos pos){
         if(!audioMap.ContainsKey(pos))
@@ -60,6 +64,10 @@ public class AudioTrackSFX3D : MonoBehaviour
         source.spread = 60f;
         source.dopplerLevel = 0.1f;
         source.rolloffMode = AudioRolloffMode.Custom;
+    }
+
+    public void ChangeVolume(){
+        MAX_VOLUME = HARD_VOLUME_LIMIT * (Configurations.sfx3DVolume/100f);
     }
 
     public void DestroyTrackInfo(){
