@@ -12847,7 +12847,7 @@ AudioReverbZone:
   m_DecayHFRatio: 0.83
   m_Reflections: -2602
   m_ReflectionsDelay: 0.007
-  m_Reverb: 200
+  m_Reverb: -2000
   m_ReverbDelay: 0.011
   m_HFReference: 5000
   m_Diffusion: 100

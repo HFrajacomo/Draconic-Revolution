@@ -194,9 +194,11 @@ public class PlayerPositionHandler : MonoBehaviour
         float sumReverbDistance = GetSumReverbDistance();
         float averageReverbDistance = sumReverbDistance/8f;
 
-        reverb.room = CalculateRoomFormula(averageReverbDistance);
+        reverb.reflections = CalculateReflectionsFormula(averageReverbDistance);
         reverb.decayTime = CalculateDecay(averageReverbDistance);
+        reverb.room = CalculateRoomFormula(averageReverbDistance);
         reverb.roomHF = CalculateRoomHigh(averageReverbDistance);
+        reverb.reflectionsDelay = CalculateEarlyReflectionDelay(averageReverbDistance);
     }
 
     private float GetSumReverbDistance(){
@@ -208,10 +210,18 @@ public class PlayerPositionHandler : MonoBehaviour
 
     private int CalculateRoomFormula(float averageReverbDistance){
         float verticalVectorDistance = (this.raytracingDistances[8] + this.raytracingDistances[9])/2f;
-        float val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 2)*1000 - 1000;
+        float val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 2)*700 - 1000;
         val = val * Mathf.Clamp(5-(Mathf.Log(1+(verticalVectorDistance/8f), 1.4f)*4), 1, 5);
 
-        return Mathf.CeilToInt(Mathf.Clamp(val, -1000, 0));
+        return Mathf.CeilToInt(Mathf.Clamp(val, -1000, -300));
+    }
+
+    private int CalculateReflectionsFormula(float averageReverbDistance){
+        float verticalVectorDistance = (this.raytracingDistances[8] + this.raytracingDistances[9])/2f;
+        float val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 2)*3000 - 2600;
+        val = val * Mathf.Clamp(5-(Mathf.Log(1+(verticalVectorDistance/8f), 1.4f)*4), 1, 5);
+
+        return Mathf.CeilToInt(Mathf.Clamp(val, -2600, 400));
     }
 
     private float CalculateDecay(float averageReverbDistance){
@@ -242,6 +252,13 @@ public class PlayerPositionHandler : MonoBehaviour
         deltaMax = max - averageReverbDistance;
 
         return Mathf.CeilToInt((Mathf.Abs(deltaMax - deltaMin)/(max - min))*115 - 100);
+    }
+
+    private float CalculateEarlyReflectionDelay(float averageReverbDistance){
+        float min, max;
+        FindLowestAndHighest(out min, out max);
+
+        return 0.017f + (min * 0.024f);
     }
 
 
