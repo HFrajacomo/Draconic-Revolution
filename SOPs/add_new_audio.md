@@ -22,6 +22,7 @@ Getting new files into the project isn't a mindless effort. In order to maintain
 2. The sound/music must be reviewed and approved by the Audio Director person
 3. Music must be unique or properly licensed
 4. Sounds must be unique, properly licensed or an altered enough version of another sound
+5. Voices must have a transcript file to match its audio content
 
 
 ## Assign sound usecase
@@ -34,6 +35,7 @@ Usecase is defined as the spatial and sound type of an Audio. Every new Sound mu
 |MUSIC_3D| Also known as 3DMusic. Audios with this usecase are meant to be assigned to AudioSources located around the world and will be affected by spatialization|
 |SFX_CLIP| Audios that are not affect by spatialization and are triggered in a one-shot fashion|
 |SFX_3D| Audios that are assigned to AudioSources around the world and are triggered in one-shot fashion|
+|SFX_3D_LOOP| Audios that are assigned to AudioSources around the world and are looped|
 |VOICE_CLIP| Voice lines that are triggered without spatialization. Voice-overs are good example of that|
 |VOICE_3D| Voice lines that are assigned to AudioSources in the world. NPC dialog is an example| 
 
@@ -56,10 +58,15 @@ To create an AudioName, just create a new enum item in **AudioName.cs**
 ### Register a Sound
 In order to register new sounds, just add them to the **AudioLibrary.sounds** dictionary.
 
+3D sounds may have an **AudioVolume** property to dictate the distance from the source that the sound would still be heard.
+
 ### Register a DynamicMusic
 DynamicMusic have a slightly different way of being registered. First, register all 3 sounds of the DynamicMusic group to the *sounds* dictionary. After that, register the DynamicMusic itself to the **dynamicMusic** dictionary.
+
+### Register a Voice
+Voices have the same idea to be registered, but should be added to the *Voices* dictionary. 3D Voices have the **AudioVolume** property to be set.
 
 
 # Conclusion
 Everything is registered and you should be able to call your sounds in-game by calling: 
-> AudioManager.Play(AudioName);
+> AudioManager.Play(AudioName, \*\*kwargs);
