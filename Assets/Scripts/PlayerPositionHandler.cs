@@ -196,6 +196,7 @@ public class PlayerPositionHandler : MonoBehaviour
 
         reverb.room = CalculateRoomFormula(averageReverbDistance);
         reverb.decayTime = CalculateDecay(averageReverbDistance);
+        reverb.roomHF = CalculateRoomHigh(averageReverbDistance);
     }
 
     private float GetSumReverbDistance(){
@@ -227,4 +228,32 @@ public class PlayerPositionHandler : MonoBehaviour
         return Mathf.Clamp(val, 1.5f, 20f);
     }
 
+    private int CalculateRoomHigh(float averageReverbDistance){
+        float highestConsiderableDistance = 30f;
+        float min, max, deltaMin, deltaMax;
+        FindLowestAndHighest(out min, out max);
+
+        if(min > highestConsiderableDistance)
+            min = highestConsiderableDistance;
+        if(max > highestConsiderableDistance)
+            max = highestConsiderableDistance;
+
+        deltaMin = averageReverbDistance - min;
+        deltaMax = max - averageReverbDistance;
+
+        return Mathf.CeilToInt((Mathf.Abs(deltaMax - deltaMin)/(max - min))*115 - 100);
+    }
+
+
+    private void FindLowestAndHighest(out float min, out float max){
+        min = 99999f;
+        max = -9999f;
+
+        for(int i=0; i < 8; i++){
+            if(raytracingDistances[i] < min)
+                min = raytracingDistances[i];
+            if(raytracingDistances[i] > max)
+                max = raytracingDistances[i];
+        }
+    }
 }
