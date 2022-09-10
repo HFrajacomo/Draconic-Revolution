@@ -218,13 +218,13 @@ public class PlayerPositionHandler : MonoBehaviour
         float val;
 
         if(averageReverbDistance >= minAvgReverbDistance)
-            val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 2)*8.5f + 1.5f;
+            val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 2)*13.5f + 1.5f;
         else
             return 1.5f;
 
         val = val * Mathf.Clamp((Mathf.Log(1+(verticalVectorDistance/8f), 2f)*4), 0.1f, 1f);
 
-        return Mathf.Clamp(val, 1.5f, 10f);
+        return Mathf.Clamp(val, 1.5f, 20f);
     }
 
 }

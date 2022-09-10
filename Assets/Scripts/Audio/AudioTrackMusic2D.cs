@@ -32,12 +32,14 @@ public class AudioTrackMusic2D : MonoBehaviour
         this.audioSourceOutput.volume = MAX_VOLUME;
         this.audioSourceOutput.spread = 180f;
         this.audioSourceOutput.loop = true;
+        this.audioSourceOutput.bypassReverbZones = true;
 
         this.switchSourceOutput = this.gameObject.AddComponent<AudioSource>();
         this.switchSourceOutput.spatialBlend = 0f;
         this.switchSourceOutput.volume = 0f;
         this.switchSourceOutput.spread = 180f;
         this.switchSourceOutput.loop = true;
+        this.audioSourceOutput.bypassReverbZones = true;
     }
 
     public void Update(){

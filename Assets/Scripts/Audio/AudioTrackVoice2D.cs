@@ -40,6 +40,7 @@ public class AudioTrackVoice2D : MonoBehaviour
         audioSource.volume = MAX_VOLUME;
         audioSource.spread = 180f;
         audioSource.loop = false;
+        audioSource.bypassReverbZones = true;
     }
 
     public void Update(){

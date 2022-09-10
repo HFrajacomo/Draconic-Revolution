@@ -35,6 +35,7 @@ public class AudioTrackSFX2D : MonoBehaviour
             source.volume = MAX_VOLUME;
             source.spread = 180f;
             source.loop = false;
+            source.bypassReverbZones = true;
         }
     }
 
