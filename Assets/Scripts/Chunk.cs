@@ -109,6 +109,7 @@ public class Chunk
 		this.objRaycast = new GameObject();
 		this.objRaycast.name = "RaycastCollider " + pos.x + ", " + pos.z;
 		this.objRaycast.transform.SetParent(this.renderer.transform);
+		this.objRaycast.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objRaycast.layer = 11;
 
 		this.data = new VoxelData();
@@ -136,6 +137,10 @@ public class Chunk
 		this.meshDecal = new Mesh();
 		this.meshFilterDecal.mesh = this.meshDecal;
 		this.meshColliderRaycast.sharedMesh = new Mesh();
+
+		// DEBUG
+		this.objRaycast.AddComponent<MeshFilter>();
+		this.objRaycast.AddComponent<MeshRenderer>();
 	}
 
 	// Dummy Chunk Generation
@@ -888,6 +893,7 @@ public class Chunk
 
 			if(!this.cacheCodes.Contains(assetCode)){
 				this.cacheCodes.Add(assetCode);
+
 				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetVertices(vertexAux);
 				this.cacheVertsv3.AddRange(vertexAux.ToArray());
 				this.cacheTris.AddRange(blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTriangles(0));
@@ -1097,6 +1103,8 @@ public class Chunk
 		indexUV.Clear();
 		indexTris.Clear();
 		scalingFactor.Clear();
+		this.indexHitboxVert.Clear();
+		this.indexHitboxTris.Clear();
 		this.hitboxScaling.Clear();
 		this.cacheLightUV.Clear();
     	this.vertices.Clear();
@@ -1275,6 +1283,8 @@ public class Chunk
     	this.meshColliderRaycast.sharedMesh.vertices = verts;
     	this.meshColliderRaycast.sharedMesh.SetTriangles(triangles, 0);
     	this.meshColliderRaycast.sharedMesh.normals = normals;
+
+    	this.objRaycast.GetComponent<MeshFilter>().mesh = this.meshColliderRaycast.sharedMesh;
     }
 }
 
@@ -2350,7 +2360,7 @@ public struct BuildChunkJob : IJob{
 }
 
 
-[BurstCompile]
+//[BurstCompile]
 public struct PrepareAssetsJob : IJob{
 	// Output
 	public NativeList<Vector3> meshVerts;
