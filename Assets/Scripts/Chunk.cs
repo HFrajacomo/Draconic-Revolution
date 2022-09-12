@@ -49,6 +49,10 @@ public class Chunk
 	public MeshFilter meshFilterDecal;
 	public GameObject objDecal;
 
+	// Raycast Collider Chunk
+	public MeshCollider meshColliderRaycast;
+	public GameObject objRaycast;
+
 	// Cache Information
     private List<Vector3> vertices = new List<Vector3>();
     private int[] specularTris;
@@ -76,6 +80,12 @@ public class Chunk
     private List<Vector2> UVaux = new List<Vector2>();
     private List<Vector3> vertexAux = new List<Vector3>();
     private List<Vector3> normalAux = new List<Vector3>();
+    private List<Vector3> cacheHitboxVerts = new List<Vector3>();
+    private List<Vector3> cacheHitboxNormals = new List<Vector3>();
+    private List<int> cacheHitboxTriangles = new List<int>();
+    private List<int> indexHitboxVert = new List<int>();
+    private List<int> indexHitboxTris = new List<int>();
+    private List<Vector3> hitboxScaling = new List<Vector3>();
 
     // Decals Cache
     private Mesh mesh;
@@ -96,6 +106,10 @@ public class Chunk
 		this.objDecal.name = "Decals " + pos.x + ", " + pos.z;
 		this.objDecal.transform.SetParent(this.renderer.transform);
 		this.objDecal.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
+		this.objRaycast = new GameObject();
+		this.objRaycast.name = "RaycastCollider " + pos.x + ", " + pos.z;
+		this.objRaycast.transform.SetParent(this.renderer.transform);
+		this.objRaycast.layer = 11;
 
 		this.data = new VoxelData();
 		this.metadata = new VoxelMetadata();
@@ -106,7 +120,7 @@ public class Chunk
 		this.objDecal.AddComponent<MeshFilter>();
 		MeshRenderer msrDecal = this.objDecal.AddComponent<MeshRenderer>() as MeshRenderer;
 		msrDecal.shadowCastingMode = ShadowCastingMode.Off;
-
+		this.meshColliderRaycast = this.objRaycast.AddComponent<MeshCollider>() as MeshCollider;
 
 		this.meshFilter = this.obj.GetComponent<MeshFilter>();
 		this.meshCollider = this.obj.GetComponent<MeshCollider>();
@@ -121,6 +135,7 @@ public class Chunk
 		this.meshCollider.sharedMesh = this.mesh;
 		this.meshDecal = new Mesh();
 		this.meshFilterDecal.mesh = this.meshDecal;
+		this.meshColliderRaycast.sharedMesh = new Mesh();
 	}
 
 	// Dummy Chunk Generation
@@ -152,10 +167,12 @@ public class Chunk
 	public void Destroy(){
 		GameObject.Destroy(this.obj);
 		GameObject.Destroy(this.objDecal);
+		GameObject.Destroy(this.objRaycast);
 		this.obj = null;
 		Object.Destroy(this.mesh);
 		Object.Destroy(this.meshFilter);
 		Object.Destroy(this.meshCollider);
+		Object.Destroy(this.meshColliderRaycast);
 		this.meshFilter = null;
 		this.meshCollider = null; 
 		this.loader = null;
@@ -189,13 +206,6 @@ public class Chunk
 
 		// The next 12 bytes are size information and don't need to be presented
 		return output;
-	}
-
-	public void PrintDrawStage(){
-		Debug.Log("XP: " + this.xpDraw);
-		Debug.Log("XM: " + this.xmDraw);
-		Debug.Log("ZP: " + this.zpDraw);
-		Debug.Log("ZM: " + this.zmDraw);
 	}
 
 
@@ -862,10 +872,11 @@ public class Chunk
 
 		job.Complete();
 
-
 		this.indexVert.Add(0);
 		this.indexUV.Add(0);
 		this.indexTris.Add(0);
+		this.indexHitboxVert.Add(0);
+		this.indexHitboxTris.Add(0);
 
 		// Offseting and Rotation shenanigans
 		NativeHashMap<int, Vector3> scaleOffset = new NativeHashMap<int, Vector3>(0, Allocator.TempJob);
@@ -888,8 +899,24 @@ public class Chunk
 				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetNormals(normalAux);
 				this.cacheNormals.AddRange(normalAux.ToArray());
 				this.scalingFactor.Add(BlockEncyclopediaECS.objectScaling[ushort.MaxValue-assetCode]);
+				this.hitboxScaling.Add(BlockEncyclopediaECS.hitboxScaling[ushort.MaxValue-assetCode]);
+
 				vertexAux.Clear();
 				UVaux.Clear();
+				normalAux.Clear();
+
+				blockBook.objects[ushort.MaxValue-assetCode].hitboxMesh.GetVertices(vertexAux);
+				this.cacheHitboxVerts.AddRange(vertexAux.ToArray());
+				this.cacheHitboxTriangles.AddRange(blockBook.objects[ushort.MaxValue-assetCode].hitboxMesh.GetTriangles(0));
+				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetNormals(normalAux);
+				this.cacheHitboxNormals.AddRange(normalAux);
+
+				this.indexHitboxVert.Add(this.indexHitboxVert[indexHitboxVert.Count-1] + vertexAux.Count);
+				this.indexHitboxTris.Add(this.indexHitboxTris[indexHitboxTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].hitboxMesh.GetTriangles(0).Length);
+
+				vertexAux.Clear();
+				normalAux.Clear();
+
 
 
 				// If has special offset or rotation
@@ -923,6 +950,9 @@ public class Chunk
 		NativeList<Vector2> meshLightUV = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector3> meshNormals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<int> meshTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<Vector3> hitboxVerts = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<Vector3> hitboxNormals = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<int> hitboxTriangles = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<ushort> blockCodes = new NativeList<ushort>(0, Allocator.TempJob);
 		blockCodes.CopyFromNBC(this.cacheCodes.ToArray());
 		NativeList<int> vertsOffset = new NativeList<int>(0, Allocator.TempJob);
@@ -936,6 +966,13 @@ public class Chunk
 		NativeArray<Vector3> loadedNormals = new NativeArray<Vector3>(this.cacheNormals.ToArray(), Allocator.TempJob);
 		NativeArray<int> loadedTris = new NativeArray<int>(this.cacheTris.ToArray(), Allocator.TempJob);
 		NativeArray<Vector3> scaling = new NativeArray<Vector3>(this.scalingFactor.ToArray(), Allocator.TempJob);
+		NativeArray<Vector3> hitboxScaling = new NativeArray<Vector3>(this.hitboxScaling.ToArray(), Allocator.TempJob);
+
+		NativeArray<Vector3> loadedHitboxVerts = new NativeArray<Vector3>(this.cacheHitboxVerts.ToArray(), Allocator.TempJob);
+		NativeArray<Vector3> loadedHitboxNormals = new NativeArray<Vector3>(this.cacheHitboxNormals.ToArray(), Allocator.TempJob);
+		NativeArray<int> loadedHitboxTriangles = new NativeArray<int>(this.cacheHitboxTriangles.ToArray(), Allocator.TempJob);
+		NativeArray<int> hitboxVertsOffset = new NativeArray<int>(this.indexHitboxVert.ToArray(), Allocator.TempJob);
+		NativeArray<int> hitboxTrisOffset = new NativeArray<int>(this.indexHitboxTris.ToArray(), Allocator.TempJob);
 
 		PrepareAssetsJob paJob = new PrepareAssetsJob{
 			vCount = verts.Length,
@@ -945,6 +982,9 @@ public class Chunk
 			meshUVs = meshUVs,
 			meshLightUV = meshLightUV,
 			meshNormals = meshNormals,
+			hitboxVerts = hitboxVerts,
+			hitboxNormals = hitboxNormals,
+			hitboxTriangles = hitboxTriangles,
 			scaling = scaling,
 			needRotation = BlockEncyclopediaECS.objectNeedRotation,
 			inplaceOffset = scaleOffset,
@@ -963,7 +1003,14 @@ public class Chunk
 			loadedVerts = loadedVerts,
 			loadedUV = loadedUV,
 			loadedTris = loadedTris,
-			loadedNormals = loadedNormals
+			loadedNormals = loadedNormals,
+
+			loadedHitboxVerts = loadedHitboxVerts,
+			loadedHitboxNormals = loadedHitboxNormals,
+			loadedHitboxTriangles = loadedHitboxTriangles,
+			hitboxVertsOffset = hitboxVertsOffset,
+			hitboxTrisOffset = hitboxTrisOffset,
+			hitboxScaling = hitboxScaling
 		};
 		job = paJob.Schedule();
 		job.Complete();
@@ -987,8 +1034,9 @@ public class Chunk
 		this.lightUVMain.AddRange(meshLightUV.ToArray());
 
 		this.normals.AddRange(normals.ToArray());
-		this.normals.AddRange(meshNormals.ToArray()); 
+		this.normals.AddRange(meshNormals.ToArray());
 
+		BuildHitboxMesh(hitboxVerts.ToArray(), hitboxNormals.ToArray(), hitboxTriangles.ToArray());
 
 		// Dispose Bin
 		verts.Dispose();
@@ -1025,6 +1073,15 @@ public class Chunk
 		lightUV.Dispose();
 		lightdata.Dispose();
 		meshLightUV.Dispose();
+		loadedHitboxVerts.Dispose();
+		loadedHitboxNormals.Dispose();
+		loadedHitboxTriangles.Dispose();
+		hitboxVerts.Dispose();
+		hitboxNormals.Dispose();
+		hitboxTriangles.Dispose();
+		hitboxVertsOffset.Dispose();
+		hitboxTrisOffset.Dispose();
+		hitboxScaling.Dispose();
 
 
 		BuildMesh();
@@ -1040,6 +1097,7 @@ public class Chunk
 		indexUV.Clear();
 		indexTris.Clear();
 		scalingFactor.Clear();
+		this.hitboxScaling.Clear();
 		this.cacheLightUV.Clear();
     	this.vertices.Clear();
     	this.lightUVMain.Clear();
@@ -1204,6 +1262,19 @@ public class Chunk
     	this.meshFilterDecal.mesh.SetTriangles(triangles, 0);
     	this.meshFilterDecal.mesh.uv = UV;
     	this.meshFilterDecal.mesh.RecalculateNormals();
+    }
+
+    // Builds the hitbox mesh onto the Hitbox MeshCollider
+    private void BuildHitboxMesh(Vector3[] verts, Vector3[] normals, int[] triangles){
+    	this.meshColliderRaycast.sharedMesh.Clear();
+
+    	if(verts.Length >= ushort.MaxValue){
+    		this.meshColliderRaycast.sharedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+    	}
+
+    	this.meshColliderRaycast.sharedMesh.vertices = verts;
+    	this.meshColliderRaycast.sharedMesh.SetTriangles(triangles, 0);
+    	this.meshColliderRaycast.sharedMesh.normals = normals;
     }
 }
 
@@ -2288,6 +2359,11 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<Vector3> meshNormals;
 	public NativeList<Vector2> meshLightUV;
 
+	// Hitbox
+	public NativeList<Vector3> hitboxVerts;
+	public NativeList<Vector3> hitboxNormals;
+	public NativeList<int> hitboxTriangles;
+
 	[ReadOnly]
 	public int vCount;
 
@@ -2327,9 +2403,24 @@ public struct PrepareAssetsJob : IJob{
 	[ReadOnly]
 	public NativeArray<Vector3> loadedNormals;
 
+	// Loaded Hitbox Data
+	[ReadOnly]
+	public NativeArray<Vector3> loadedHitboxVerts;
+	[ReadOnly]
+	public NativeArray<Vector3> loadedHitboxNormals;
+	[ReadOnly]
+	public NativeArray<int> loadedHitboxTriangles;
+	[ReadOnly]
+	public NativeArray<int> hitboxVertsOffset;
+	[ReadOnly]
+	public NativeArray<int> hitboxTrisOffset;
+	[ReadOnly]
+	public NativeArray<Vector3> hitboxScaling;
+
 	public void Execute(){
 		int i;
 		int currentVertAmount = vCount;
+		int hitboxVertAmount = 0;
 
 		for(int j=0; j < coords.Length; j++){
 			i = GetIndex(blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z]);
@@ -2342,7 +2433,7 @@ public struct PrepareAssetsJob : IJob{
 				int code = blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
 				int state = metadata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
 
-				// Vertices
+				// Normal Vertices
 				Vector3 vertPos = new Vector3(coords[j].x, coords[j].y, coords[j].z);
 				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
 					Vector3 resultVert = Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
@@ -2351,16 +2442,31 @@ public struct PrepareAssetsJob : IJob{
 					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false)));
 				}
 
+				// Hitbox Vertices
+				for(int vertIndex=hitboxVertsOffset[i]; vertIndex < hitboxVertsOffset[i+1]; vertIndex++){
+					Vector3 resultVert = Vector3MultOffsetRotate(loadedHitboxVerts[vertIndex], hitboxScaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
+					hitboxVerts.Add(resultVert);
+					hitboxNormals.Add(GetNormalRotation(loadedHitboxNormals[vertIndex], inplaceRotation[code*256+state]));
+				}
+
 			}
 			// If doesn't have special rotation
 			else{
+				// Normal Vertices
 				Vector3 vertPos = new Vector3(coords[j].x, coords[j].y, coords[j].z);
 				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
 					Vector3 resultVert = Vector3Mult(loadedVerts[vertIndex], scaling[i], vertPos);
 					meshVerts.Add(resultVert);
 					meshNormals.Add(loadedNormals[vertIndex]);
 					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false)));
-				}	
+				}
+
+				// Hitbox Vertices
+				for(int vertIndex=hitboxVertsOffset[i]; vertIndex < hitboxVertsOffset[i+1]; vertIndex++){
+					Vector3 resultVert = Vector3Mult(loadedHitboxVerts[vertIndex], hitboxScaling[i], vertPos);
+					hitboxVerts.Add(resultVert);
+					hitboxNormals.Add(loadedHitboxNormals[vertIndex]);
+				}
 			}
 
 			// UVs
@@ -2372,7 +2478,13 @@ public struct PrepareAssetsJob : IJob{
 			for(int triIndex=trisOffset[i]; triIndex < trisOffset[i+1]; triIndex++){
 				meshTris.Add(loadedTris[triIndex] + currentVertAmount);
 			}	
-			currentVertAmount += (vertsOffset[i+1] - vertsOffset[i]);		
+			currentVertAmount += (vertsOffset[i+1] - vertsOffset[i]);
+
+			// Hitbox Triangles
+			for(int triIndex=hitboxTrisOffset[i]; triIndex < hitboxTrisOffset[i+1]; triIndex++){
+				hitboxTriangles.Add(loadedHitboxTriangles[triIndex] + hitboxVertAmount);
+			}	
+			hitboxVertAmount += (hitboxVertsOffset[i+1] - hitboxVertsOffset[i]);	
 		}
 	}
 

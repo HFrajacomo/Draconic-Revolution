@@ -17,6 +17,7 @@ public abstract class BlocklikeObject
 
 	public Vector3 positionOffset;
 	public Vector3 scaling; 
+	public Vector3 hitboxScaling;
 
 	public static readonly int objectCount = 1;
 	public int stateNumber; // If needsRotation is true, these objects need to tell the rendering engine their max number of sequential states from 0
@@ -32,7 +33,9 @@ public abstract class BlocklikeObject
 
 	// Texture
 	public GameObject go;
+	public GameObject hitboxObject;
 	public Mesh mesh;
+	public Mesh hitboxMesh;
 
 	// Block Encyclopedia fill function
 	public static BlocklikeObject Create(int blockID, bool isClient){

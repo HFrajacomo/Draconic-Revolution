@@ -46,6 +46,7 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.objectInvisible[i] = objects[i].invisible;
             BlockEncyclopediaECS.objectMaterial[i] = objects[i].shaderIndex;
             BlockEncyclopediaECS.objectScaling[i] = objects[i].scaling;
+            BlockEncyclopediaECS.hitboxScaling[i] = objects[i].hitboxScaling;
             BlockEncyclopediaECS.objectNeedRotation[i] = objects[i].needsRotation;
             BlockEncyclopediaECS.objectWashable[i] = objects[i].washable;
             BlockEncyclopediaECS.objectAffectLight[i] = objects[i].affectLight;

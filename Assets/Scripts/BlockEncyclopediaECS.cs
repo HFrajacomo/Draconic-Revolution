@@ -22,6 +22,7 @@ public static class BlockEncyclopediaECS
 	public static NativeArray<ShaderIndex> objectMaterial;
 	public static NativeArray<int3> blockTiles; // [tileTop, tileBottom, tileSide]
 	public static NativeArray<Vector3> objectScaling;
+	public static NativeArray<Vector3> hitboxScaling;
 	public static NativeArray<bool> objectNeedRotation;
 	public static NativeArray<bool> blockWashable;
 	public static NativeArray<bool> objectWashable;
@@ -47,7 +48,8 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.blockMaterial = new NativeArray<ShaderIndex>(Blocks.blockCount, Allocator.Persistent);
 		BlockEncyclopediaECS.objectMaterial = new NativeArray<ShaderIndex>(BlocklikeObject.objectCount, Allocator.Persistent);
 		BlockEncyclopediaECS.blockTiles = new NativeArray<int3>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectScaling = new NativeArray<Vector3>(BlocklikeObject.objectCount, Allocator.Persistent);		
+		BlockEncyclopediaECS.objectScaling = new NativeArray<Vector3>(BlocklikeObject.objectCount, Allocator.Persistent);
+		BlockEncyclopediaECS.hitboxScaling = new NativeArray<Vector3>(BlocklikeObject.objectCount, Allocator.Persistent);		
 		BlockEncyclopediaECS.objectNeedRotation = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
 		BlockEncyclopediaECS.blockWashable = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
 		BlockEncyclopediaECS.objectWashable = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
@@ -76,6 +78,7 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.objectMaterial.Dispose();
 		BlockEncyclopediaECS.blockTiles.Dispose();
 		BlockEncyclopediaECS.objectScaling.Dispose();
+		BlockEncyclopediaECS.hitboxScaling.Dispose();
 		BlockEncyclopediaECS.objectNeedRotation.Dispose();
 		BlockEncyclopediaECS.blockWashable.Dispose();
 		BlockEncyclopediaECS.objectWashable.Dispose();

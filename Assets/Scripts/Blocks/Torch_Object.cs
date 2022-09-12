@@ -35,9 +35,12 @@ public class Torch_Object : BlocklikeObject
 
 		if(isClient){
 			this.go = GameObject.Find("----- PrefabObjects -----/Torch_Object");
+			this.hitboxObject = GameObject.Find("----- PrefabObjects -----/Torch_Object/Hitbox");
 			this.mesh = this.go.GetComponent<MeshFilter>().sharedMesh;
 			this.scaling = new Vector3(10, 20, 10);
+			this.hitboxScaling = new Vector3(0.22f, 0.76f, 0.25f);
 			this.fireVFX = GameObject.Find("----- PrefabVFX -----/FireVFX");
+			this.hitboxMesh = hitboxObject.GetComponent<MeshFilter>().sharedMesh;
 		}
 		else{
 			this.fireVFX = null;
