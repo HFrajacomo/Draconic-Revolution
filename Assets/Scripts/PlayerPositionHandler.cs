@@ -101,7 +101,7 @@ public class PlayerPositionHandler : MonoBehaviour
             this.currentBiome = cl.chunks[this.coord.GetChunkPos()].biomeName;    
     }
 
-    private bool CheckBiomeChange(){return this.currentBiome != this.lastBiome;}
+    private bool CheckBiomeChange(){return this.currentBiome != this.lastBiome && !CheckEqualMusic(this.currentBiome, this.lastBiome);}
 
     private bool GetBiomeMusic(){
         this.currentMusic = AudioLibrary.GetBiomeMusic(this.currentBiome);
@@ -109,6 +109,10 @@ public class PlayerPositionHandler : MonoBehaviour
         if(this.currentMusic == null)
             return false;
         return true;
+    }
+
+    private bool CheckEqualMusic(string biome1, string biome2){
+        return AudioLibrary.GetBiomeMusic(biome1) == AudioLibrary.GetBiomeMusic(biome2);
     }
 
     private void PlayMusic(){

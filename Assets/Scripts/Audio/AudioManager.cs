@@ -95,10 +95,7 @@ public class AudioManager : MonoBehaviour
         if(loadedClips.ContainsKey(name)){
             GetClip(name).name = Enum.GetName(typeof(AudioName), name);
 
-            if(!AudioLibrary.MusicGroupContainsSound(this.lastMusicGroupLoaded.groupName, name) || bypassGroup)
-                this.audioTrackMusic2D.Play(AudioLibrary.GetSound(name), GetClip(name));
-            else
-                this.audioTrackMusic2D.Play(this.lastMusicGroupLoaded.wrapperSound, GetClip(name), isDynamic:true);
+            this.audioTrackMusic2D.Play(AudioLibrary.GetSound(name), GetClip(name));
         }
         else{
             LoadAudioClip(name);

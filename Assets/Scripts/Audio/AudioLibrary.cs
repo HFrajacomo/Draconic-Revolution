@@ -13,10 +13,14 @@ public static class AudioLibrary
         {AudioName.BZZT, new Sound(AudioName.BZZT, AudioUsecase.SFX_3D_LOOP, "BZZZT!", "bzzt.ogg", AudioVolume.STEALTH)},
         {AudioName.TORCHFIRE, new Sound(AudioName.TORCHFIRE, AudioUsecase.SFX_3D_LOOP, "Torch", "torchfire.ogg", AudioVolume.VERYLOW)},
         {AudioName.ANCIENTS, new Sound(AudioName.ANCIENTS, AudioUsecase.MUSIC_3D, "Ancients", "ancients.ogg", AudioVolume.HIGH)},
+        {AudioName.SNOW_PLAINS_SEA_SOFT, new Sound(AudioName.SNOW_PLAINS_SEA_SOFT, AudioUsecase.MUSIC_CLIP, "SnowSea", "snow_plains_sea_soft.ogg")},
+        {AudioName.SNOW_PLAINS_SEA_MID, new Sound(AudioName.SNOW_PLAINS_SEA_MID, AudioUsecase.MUSIC_CLIP, "SnowSea", "snow_plains_sea_mid.ogg")},
+        {AudioName.SNOW_PLAINS_SEA_HEAVY, new Sound(AudioName.SNOW_PLAINS_SEA_HEAVY, AudioUsecase.MUSIC_CLIP, "SnowSea", "snow_plains_sea_heavy.ogg")}
     };
 
     private static Dictionary<AudioName, DynamicMusic> dynamicMusic = new Dictionary<AudioName, DynamicMusic>(){
-        {AudioName.TEST_GROUP, new DynamicMusic(AudioName.TEST_GROUP, AudioUsecase.MUSIC_CLIP, "TestGroup", AudioName.RAINFALL, AudioName.AGES, AudioName.DONTFINDIT)}
+        {AudioName.SNOW_PLAINS_SEA_GROUP, new DynamicMusic(AudioName.SNOW_PLAINS_SEA_GROUP, AudioUsecase.MUSIC_CLIP,
+         "SnowSea", AudioName.SNOW_PLAINS_SEA_SOFT, AudioName.SNOW_PLAINS_SEA_MID, AudioName.SNOW_PLAINS_SEA_HEAVY)}
     };
 
     private static Dictionary<AudioName, Voice> voices = new Dictionary<AudioName, Voice>(){
@@ -25,7 +29,8 @@ public static class AudioLibrary
     };
 
     private static Dictionary<string, AudioName> biomeMusic = new Dictionary<string, AudioName>(){
-        {"Plains", AudioName.TEST_GROUP}
+        {"Ice Ocean", AudioName.SNOW_PLAINS_SEA_GROUP},
+        {"Snow Plains", AudioName.SNOW_PLAINS_SEA_GROUP}
     };
 
 
@@ -33,9 +38,14 @@ public static class AudioLibrary
         return sounds[name];
     }
 
-    public static DynamicMusic GetMusicGroup(AudioName name){
-        return dynamicMusic[name];
+    #nullable enable
+    public static DynamicMusic? GetMusicGroup(AudioName name){
+        if(dynamicMusic.ContainsKey(name))
+            return dynamicMusic[name];
+        else
+            return null;
     }
+    #nullable disable
 
     public static Voice GetVoice(AudioName name){
         return voices[name];
@@ -59,8 +69,14 @@ public static class AudioLibrary
         return null;
     }
 
+    #nullable enable
     public static bool MusicGroupContainsSound(AudioName groupName, AudioName queryAudio){
-        DynamicMusic group = GetMusicGroup(groupName);
+        DynamicMusic? group = GetMusicGroup(groupName);
+
+        if(group == null)
+            return false;
+
         return group.ContainsSound(queryAudio);
     }
+    #nullable disable
 }
