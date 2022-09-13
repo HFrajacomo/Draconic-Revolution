@@ -27,6 +27,10 @@ public class Chunk
 	// Multiplayer Settings
 	private NetMessage message;
 
+	// Debug Settings
+	private static bool showHitbox = false;
+	private MeshFilter hitboxFilter;
+
 	// Draw Flags
 	public bool drawMain = false;
 	public bool xpDraw = false;
@@ -90,6 +94,8 @@ public class Chunk
     // Decals Cache
     private Mesh mesh;
     private Mesh meshDecal;
+    private Mesh meshRaycast;
+    private Mesh cacheMesh = new Mesh();
 
 	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader){
 		this.pos = pos;
@@ -136,11 +142,14 @@ public class Chunk
 		this.meshCollider.sharedMesh = this.mesh;
 		this.meshDecal = new Mesh();
 		this.meshFilterDecal.mesh = this.meshDecal;
-		this.meshColliderRaycast.sharedMesh = new Mesh();
+		this.meshRaycast = new Mesh();
+		this.meshRaycast.name = this.objRaycast.name;
+		this.meshColliderRaycast.sharedMesh = this.meshRaycast;
 
-		// DEBUG
-		this.objRaycast.AddComponent<MeshFilter>();
-		this.objRaycast.AddComponent<MeshRenderer>();
+		if(showHitbox){
+			this.hitboxFilter = this.objRaycast.AddComponent<MeshFilter>() as MeshFilter;
+			this.objRaycast.AddComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+		}
 	}
 
 	// Dummy Chunk Generation
@@ -190,6 +199,7 @@ public class Chunk
 		this.metadata = null;
 		this.mesh = null;
 		this.meshDecal = null;
+		this.meshRaycast = null;
 		this.meshFilterDecal = null;
 	}
 	
@@ -1216,8 +1226,11 @@ public class Chunk
     	this.meshFilter.mesh.SetTriangles(triangles, 0);
  	    this.meshFilter.mesh.SetTriangles(this.iceTris, 5);
 
-    	this.meshCollider.sharedMesh = null;
-    	this.meshCollider.sharedMesh = this.meshFilter.mesh;
+    	// Fix for a stupid Unity Bug
+    	if(this.vertices.Count > 0){
+	    	this.meshCollider.sharedMesh = null;
+	    	this.meshCollider.sharedMesh = this.meshFilter.mesh;
+    	}
 
     	this.meshFilter.mesh.SetTriangles(this.specularTris, 1);
     	this.meshFilter.mesh.SetTriangles(this.liquidTris, 2);
@@ -1245,8 +1258,11 @@ public class Chunk
     	this.meshFilter.mesh.SetTriangles(triangles, 0);
     	this.meshFilter.mesh.SetTriangles(this.iceTris, 5);
 
-    	this.meshCollider.sharedMesh = null;
-    	this.meshCollider.sharedMesh = this.meshFilter.mesh;
+    	// Fix for a stupid Unity Bug
+    	if(verts.Length > 0){
+	    	this.meshCollider.sharedMesh = null;
+	    	this.meshCollider.sharedMesh = this.meshFilter.mesh;
+    	}
 
     	this.meshFilter.mesh.SetTriangles(this.specularTris, 1);
     	this.meshFilter.mesh.SetTriangles(this.liquidTris, 2);
@@ -1274,17 +1290,29 @@ public class Chunk
 
     // Builds the hitbox mesh onto the Hitbox MeshCollider
     private void BuildHitboxMesh(Vector3[] verts, Vector3[] normals, int[] triangles){
-    	this.meshColliderRaycast.sharedMesh.Clear();
+    	this.meshRaycast.Clear();
 
     	if(verts.Length >= ushort.MaxValue){
     		this.meshColliderRaycast.sharedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	this.meshColliderRaycast.sharedMesh.vertices = verts;
-    	this.meshColliderRaycast.sharedMesh.SetTriangles(triangles, 0);
-    	this.meshColliderRaycast.sharedMesh.normals = normals;
+    	// Fix for a stupid Unity Bug
+    	if(verts.Length == 0){
+    		this.meshColliderRaycast.sharedMesh = null;
 
-    	this.objRaycast.GetComponent<MeshFilter>().mesh = this.meshColliderRaycast.sharedMesh;
+    		if(showHitbox)
+    			this.hitboxFilter.mesh = null;
+    		return;
+    	}
+
+    	this.meshRaycast.vertices = verts;
+    	this.meshRaycast.SetTriangles(triangles, 0);
+    	this.meshRaycast.normals = normals;
+    	this.meshColliderRaycast.sharedMesh = this.meshRaycast;
+
+    	if(showHitbox){
+    		this.hitboxFilter.mesh = this.meshColliderRaycast.sharedMesh;
+    	}
     }
 }
 

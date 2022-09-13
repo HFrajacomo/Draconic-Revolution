@@ -18,7 +18,12 @@ public class PlayerRaycast : MonoBehaviour
 	private Vector3 direction;
 	private Vector3 cachePos;
 	public CastCoord current;
+	private CastCoord previousCoord;
 	private CastCoord lastCoord;
+	private const int objectLayerMask = 1 << 11;
+
+	// Optimization Set
+	private HashSet<CastCoord> alreadyVisited = new HashSet<CastCoord>();
 
 	// Decal Specifics Test
 	private ushort blockDamage = 400;
@@ -37,6 +42,7 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Cached
 	private BUDSignal cachedBUD;
+	private RaycastHit cachedHit;
 
 	/*
 	0 = X+ => side
@@ -61,7 +67,9 @@ public class PlayerRaycast : MonoBehaviour
 		playerBody.blockY -= 1;
 
 		float traveledDistance = 0f;
+		ushort blockCode = 0;
 		lastCoord = new CastCoord(false);
+		previousCoord = new CastCoord(false);
 		bool FOUND = false;
 
 		// Raycast Detection
@@ -72,7 +80,13 @@ public class PlayerRaycast : MonoBehaviour
 		// Shoots Raycast
 		while(traveledDistance <= reach){
 			cachePos = cachePos + (direction*step);
+			traveledDistance += step;
 			current = new CastCoord(cachePos);
+			blockCode = loader.GetBlock(current);
+
+			if(alreadyVisited.Contains(current) && blockCode <= ushort.MaxValue/2){
+				continue;
+			}
 
 			// Out of bounds control
 			if(current.blockY >= Chunk.chunkDepth || current.blockY < 0f){
@@ -81,19 +95,31 @@ public class PlayerRaycast : MonoBehaviour
 
 			// Checks for solid block hit
 			// Checks for hit
-			if(HitAll(current)){ // HitSolid
+			if(HitAll(current, traveledDistance)){
 				FOUND = true;
 				break;
 			}
 
-			traveledDistance += step;
+			if(previousCoord.active){
+				if(!CastCoord.Eq(previousCoord, current)){
+					lastCoord = previousCoord;
+				}
+			}
+
+			previousCoord = current;
+
+			alreadyVisited.Add(current);
 		}
+
+		alreadyVisited.Clear();
 
 		if(!FOUND){
 			current = new CastCoord(false);
 		}
-		else
-			lastCoord = new CastCoord(cachePos - direction*step);
+		else{
+			if(blockCode <= ushort.MaxValue/2)
+				lastCoord = previousCoord;
+		}
 		
 		facing = current - lastCoord;
 
@@ -139,7 +165,7 @@ public class PlayerRaycast : MonoBehaviour
 	}
 
 	// Detects hit in any block except air
-	public bool HitAll(CastCoord coords){
+	public bool HitAll(CastCoord coords, float traveledDistance){
 		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ);
 
 		// Exception
@@ -150,12 +176,24 @@ public class PlayerRaycast : MonoBehaviour
 		ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
 		// If hits something
-		if(blockID != 0)
+		if(blockID != 0 && blockID <= ushort.MaxValue/2){
 			if(loader.chunks.ContainsKey(ck)){
 				// DEBUG 
 				//print(blockID + " : " + loader.chunks[ck].metadata.GetState(coords.blockX, coords.blockY, coords.blockZ));
 				return true;
 			}
+		}
+		// If is an objects, raycast against its hitbox
+		else if(blockID > ushort.MaxValue/2){
+			CastCoord castedCoord;
+			if(Physics.Raycast(position, direction, out cachedHit, maxDistance:traveledDistance, layerMask:objectLayerMask)){
+				castedCoord = new CastCoord(cachedHit.point);
+				if(CastCoord.Eq(coords, castedCoord)){
+					return true;
+				}
+			}
+		}
+
 		return false;
 	}
 
@@ -212,6 +250,9 @@ public class PlayerRaycast : MonoBehaviour
 		if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.CheckSolid(blockCode))){
 			return false;
 		}
+
+		if(loader.GetBlock(lastCoord) != 0)
+			return false;
 
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerEvents.hotbarSlot, newQuantity:newQuantity);

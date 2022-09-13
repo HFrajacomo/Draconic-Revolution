@@ -30,7 +30,7 @@ public static class AudioLibrary
 
     private static Dictionary<string, AudioName> biomeMusic = new Dictionary<string, AudioName>(){
         {"Ice Ocean", AudioName.SNOW_PLAINS_SEA_GROUP},
-        {"Snow Plains", AudioName.SNOW_PLAINS_SEA_GROUP}
+        {"Snowy Plains", AudioName.SNOW_PLAINS_SEA_GROUP}
     };
 
 
