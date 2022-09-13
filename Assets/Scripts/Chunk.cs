@@ -57,7 +57,7 @@ public class Chunk
 	public MeshCollider meshColliderRaycast;
 	public GameObject objRaycast;
 
-	// Cache Information
+	// Main Mesh Information
     private List<Vector3> vertices = new List<Vector3>();
     private int[] specularTris;
     private int[] liquidTris;
@@ -68,6 +68,11 @@ public class Chunk
   	private List<Vector2> UVs = new List<Vector2>();
   	private List<Vector2> lightUVMain = new List<Vector2>();
   	private List<Vector3> normals = new List<Vector3>();
+
+  	// Decal Mesh Information
+  	private List<Vector3> decalVertices = new List<Vector3>();
+  	private List<Vector2> decalUV = new List<Vector2>();
+  	private int[] decalTris;
 
     // Assets Cache
     private List<ushort> cacheCodes = new List<ushort>();
@@ -312,38 +317,22 @@ public class Chunk
 
 
 		// For Init
-		this.meshFilter.mesh.GetVertices(vertexAux);
-		NativeArray<Vector3> disposableVerts = NativeTools.CopyToNative<Vector3>(vertexAux.ToArray());
-		vertexAux.Clear();
-
-		this.meshFilter.mesh.GetUVs(0, UVaux);
-		NativeArray<Vector2> disposableUVS = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
-		UVaux.Clear();
-
-		this.meshFilter.mesh.GetUVs(3, UVaux);
-		NativeArray<Vector2> disposableLight = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
-		UVaux.Clear();
-
-		this.meshFilter.mesh.GetNormals(normalAux);
-		NativeArray<Vector3> disposableNormals = NativeTools.CopyToNative<Vector3>(normalAux.ToArray());
-		normalAux.Clear();
+		NativeArray<Vector3> disposableVerts = NativeTools.CopyToNative<Vector3>(this.vertices.ToArray());
+		NativeArray<Vector2> disposableUVS = NativeTools.CopyToNative<Vector2>(this.UVs.ToArray());
+		NativeArray<Vector2> disposableLight = NativeTools.CopyToNative<Vector2>(this.lightUVMain.ToArray());
+		NativeArray<Vector3> disposableNormals = NativeTools.CopyToNative<Vector3>(this.normals.ToArray());
 
 		// Decals
-		this.meshFilterDecal.mesh.GetVertices(vertexAux);
-		NativeArray<Vector3> disposableVertsDecal = NativeTools.CopyToNative<Vector3>(vertexAux.ToArray());
-		vertexAux.Clear();
-
-		this.meshFilterDecal.mesh.GetUVs(0, UVaux);
-		NativeArray<Vector2> disposableUVSDecal = NativeTools.CopyToNative<Vector2>(UVaux.ToArray());
-		UVaux.Clear();
+		NativeArray<Vector3> disposableVertsDecal = NativeTools.CopyToNative<Vector3>(this.decalVertices.ToArray());
+		NativeArray<Vector2> disposableUVSDecal = NativeTools.CopyToNative<Vector2>(this.decalUV.ToArray());
 
 
-		NativeArray<int> disposableTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(0), Allocator.TempJob);
-		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(1), Allocator.TempJob);
-		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(2), Allocator.TempJob);
-		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(4), Allocator.TempJob);
-		NativeArray<int> disposableIceTris = new NativeArray<int>(this.meshFilter.mesh.GetTriangles(5), Allocator.TempJob);
-		NativeArray<int> disposableDecalTris = new NativeArray<int>(this.meshFilterDecal.mesh.GetTriangles(0), Allocator.TempJob);
+		NativeArray<int> disposableTris = new NativeArray<int>(this.triangles, Allocator.TempJob);
+		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.specularTris, Allocator.TempJob);
+		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.liquidTris, Allocator.TempJob);
+		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.leavesTris, Allocator.TempJob);
+		NativeArray<int> disposableIceTris = new NativeArray<int>(this.iceTris, Allocator.TempJob);
+		NativeArray<int> disposableDecalTris = new NativeArray<int>(this.decalTris, Allocator.TempJob);
 
 
 		JobHandle job;
@@ -774,29 +763,25 @@ public class Chunk
 			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 		}
 		
-		// If mesh wasn't redrawn
+		// If mesh was redrawn
 		if(changed){
-			this.triangles = tris.ToArray();
-			this.specularTris = specularTris.ToArray();
-			this.liquidTris = liquidTris.ToArray();
-			this.leavesTris = leavesTris.ToArray();
-			this.iceTris = iceTris.ToArray();
-			assetTris = this.meshFilter.mesh.GetTriangles(3);
+			NativeTris triangleStructure = new NativeTris(tris, specularTris, liquidTris, leavesTris, iceTris);
 
-			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray());
+			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray(), triangleStructure);
 			BuildDecalMesh(vertsDecal.ToArray(), UVDecal.ToArray(), trisDecal.ToArray());
 		}
+
+		tris.Dispose();
+		specularTris.Dispose();
+		liquidTris.Dispose();
+		leavesTris.Dispose();
+		iceTris.Dispose();
 
 		blockdata.Dispose();
 		metadata.Dispose();
 		verts.Dispose();
 		uvs.Dispose();
 		normals.Dispose();
-		tris.Dispose();
-		specularTris.Dispose();
-		liquidTris.Dispose();
-		leavesTris.Dispose();
-		iceTris.Dispose();
 		cacheCubeVert.Dispose();
 		cacheUVVerts.Dispose();
 		cacheCubeNormal.Dispose();
@@ -810,7 +795,17 @@ public class Chunk
 		trisDecal.Dispose();
 		cacheCubeVertsDecal.Dispose();
 
+		return doneRendering;
+	}
+
+
+	// Builds the chunk mesh data excluding the X- and Z- chunk border
+	public void BuildChunk(bool load=false, bool pregenReload=false){
+		/*
+		Reset Chunk side rebuilding
+		*/
     	this.vertices.Clear();
+    	this.normals.Clear();
     	this.triangles = null;
     	this.specularTris = null;
     	this.liquidTris = null;
@@ -818,13 +813,10 @@ public class Chunk
     	this.assetTris = null;
     	this.UVs.Clear();
     	this.lightUVMain.Clear();
+    	this.decalVertices.Clear();
+    	this.decalUV.Clear();
+    	this.decalTris = null;
 
-		return doneRendering;
-	}
-
-
-	// Builds the chunk mesh data excluding the X- and Z- chunk border
-	public void BuildChunk(bool load=false, bool pregenReload=false){
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
 		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
 		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap());
@@ -1117,17 +1109,6 @@ public class Chunk
 		this.indexHitboxTris.Clear();
 		this.hitboxScaling.Clear();
 		this.cacheLightUV.Clear();
-    	this.vertices.Clear();
-    	this.lightUVMain.Clear();
-    	this.triangles = null;
-    	this.specularTris = null;
-    	this.liquidTris = null;
-    	this.assetTris = null;
-    	this.leavesTris = null;
-    	this.iceTris = null;
-    	this.UVs.Clear();
-    	this.normals.Clear();
-
 		this.drawMain = true;
     }
 
@@ -1156,7 +1137,11 @@ public class Chunk
 		JobHandle job = bdj.Schedule();
 		job.Complete();
 
-		BuildDecalMesh(verts.ToArray(), UVs.ToArray(), triangles.ToArray());
+		this.decalVertices.AddRange(verts.ToArray());
+		this.decalUV.AddRange(UVs.ToArray());
+		this.decalTris = triangles.ToArray();
+
+		BuildDecalMesh(verts.ToArray(), UVs.ToArray(), this.decalTris);
 
 		// Dispose Bin
 		hpdata.Dispose();
@@ -1223,7 +1208,7 @@ public class Chunk
     	this.meshFilter.mesh.subMeshCount = 6;
 
     	this.meshFilter.mesh.SetVertices(this.vertices.ToArray());
-    	this.meshFilter.mesh.SetTriangles(triangles, 0);
+    	this.meshFilter.mesh.SetTriangles(this.triangles, 0);
  	    this.meshFilter.mesh.SetTriangles(this.iceTris, 5);
 
     	// Fix for a stupid Unity Bug
@@ -1244,7 +1229,7 @@ public class Chunk
     }
 
     // Builds meshes from verts, UVs and tris from different layers
-    private void BuildMeshSide(Vector3[] verts, Vector2[] UV, Vector2[] lightUV, Vector3[] normals){
+    private void BuildMeshSide(Vector3[] verts, Vector2[] UV, Vector2[] lightUV, Vector3[] normals, NativeTris triStruct){
     	this.meshCollider.sharedMesh.Clear();
     	this.meshFilter.mesh.Clear();
 
@@ -1255,8 +1240,8 @@ public class Chunk
     	this.meshFilter.mesh.subMeshCount = 6;
 
     	this.meshFilter.mesh.vertices = verts;
-    	this.meshFilter.mesh.SetTriangles(triangles, 0);
-    	this.meshFilter.mesh.SetTriangles(this.iceTris, 5);
+    	this.meshFilter.mesh.SetTriangles(triStruct.tris.ToArray(), 0);
+    	this.meshFilter.mesh.SetTriangles(triStruct.iceTris.ToArray(), 5);
 
     	// Fix for a stupid Unity Bug
     	if(verts.Length > 0){
@@ -1264,10 +1249,10 @@ public class Chunk
 	    	this.meshCollider.sharedMesh = this.meshFilter.mesh;
     	}
 
-    	this.meshFilter.mesh.SetTriangles(this.specularTris, 1);
-    	this.meshFilter.mesh.SetTriangles(this.liquidTris, 2);
+    	this.meshFilter.mesh.SetTriangles(triStruct.specularTris.ToArray(), 1);
+    	this.meshFilter.mesh.SetTriangles(triStruct.liquidTris.ToArray(), 2);
     	this.meshFilter.mesh.SetTriangles(this.assetTris, 3);
-    	this.meshFilter.mesh.SetTriangles(this.leavesTris, 4);
+    	this.meshFilter.mesh.SetTriangles(triStruct.leavesTris.ToArray(), 4);
 
     	this.meshFilter.mesh.uv = UV;
     	this.meshFilter.mesh.uv4 = lightUV;
@@ -4080,5 +4065,29 @@ public struct BuildDecalSideJob : IJob{
 			normal = new Vector3(0, -Constants.DECAL_OFFSET, 0);
 
 		return new Vector3(x + normal.x, y + normal.y, z + normal.z);
+	}
+}
+
+public struct NativeTris {
+	public NativeArray<int> tris;
+	public NativeArray<int> specularTris;
+	public NativeArray<int> liquidTris; 
+	public NativeArray<int> leavesTris; 
+	public NativeArray<int> iceTris; 
+
+	public NativeTris(NativeArray<int> t, NativeArray<int> spec, NativeArray<int> liquid, NativeArray<int> leav, NativeArray<int> ice){
+		this.tris = t;
+		this.specularTris = spec;
+		this.liquidTris = liquid;
+		this.leavesTris = leav;
+		this.iceTris = ice;
+	}
+
+	public void Dispose(){
+		this.tris.Dispose();
+		this.specularTris.Dispose();
+		this.liquidTris.Dispose();
+		this.leavesTris.Dispose();
+		this.iceTris.Dispose();
 	}
 }
