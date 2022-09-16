@@ -379,6 +379,7 @@ public class ChunkLoader : MonoBehaviour
             popChunk.Destroy();
             chunks.Remove(popChunk.pos);
             vfx.RemoveChunk(popChunk.pos);
+            sfx.RemoveChunkSFX(popChunk.pos);
 
             this.message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
             this.message.RequestChunkUnload(toUnload[0]);
