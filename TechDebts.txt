@@ -1,0 +1,12 @@
+Tech Debts:
+
+Fix SFX not deleting on Chunk Remove
+Fix water propagation on diagonals
+Better manage Chunkloader's heavy operations
+Tweak ground emission to be darker
+Tweak moonlight to be dimmer
+Assign voxel lighting to shaders other than Ground and Objects
+Assign voxel lighting to Objects
+Fix Voxel Lighting at some edges
+Identify problem and fix Voxel lighting propagation in torches
+Dog Fix
