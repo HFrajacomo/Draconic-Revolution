@@ -26,7 +26,7 @@ public abstract class Blocks
 	public bool needsRotation = false;
 	public bool customBreak = false;
 	public bool customPlace = false;
-	public bool drawTopRegardless = false;
+	public bool drawRegardless = false;
 	public ushort maxHP;
 
 	public HashSet<BlockFlags> flags;

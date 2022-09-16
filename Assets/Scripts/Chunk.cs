@@ -143,11 +143,14 @@ public class Chunk
 		this.obj.layer = 8;
 
 		this.mesh = new Mesh();
+		this.mesh.MarkDynamic();
 		this.meshFilter.mesh = this.mesh;
 		this.meshCollider.sharedMesh = this.mesh;
 		this.meshDecal = new Mesh();
+		this.meshDecal.MarkDynamic();
 		this.meshFilterDecal.mesh = this.meshDecal;
 		this.meshRaycast = new Mesh();
+		this.meshRaycast.MarkDynamic();
 		this.meshRaycast.name = this.objRaycast.name;
 		this.meshColliderRaycast.sharedMesh = this.meshRaycast;
 
@@ -414,7 +417,8 @@ public class Chunk
 				objectMaterial = BlockEncyclopediaECS.objectMaterial,
 				blockWashable = BlockEncyclopediaECS.blockWashable,
 				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles
+				blockTiles = BlockEncyclopediaECS.blockTiles,
+				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
 			};
 
 			BuildDecalSideJob bdsj = new BuildDecalSideJob{
@@ -510,7 +514,8 @@ public class Chunk
 				objectMaterial = BlockEncyclopediaECS.objectMaterial,
 				blockWashable = BlockEncyclopediaECS.blockWashable,
 				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles
+				blockTiles = BlockEncyclopediaECS.blockTiles,
+				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
 			};
 
 			BuildDecalSideJob bdsj = new BuildDecalSideJob{
@@ -606,7 +611,8 @@ public class Chunk
 				objectMaterial = BlockEncyclopediaECS.objectMaterial,
 				blockWashable = BlockEncyclopediaECS.blockWashable,
 				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles
+				blockTiles = BlockEncyclopediaECS.blockTiles,
+				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
 			};
 
 			BuildDecalSideJob bdsj = new BuildDecalSideJob{
@@ -700,7 +706,8 @@ public class Chunk
 				objectMaterial = BlockEncyclopediaECS.objectMaterial,
 				blockWashable = BlockEncyclopediaECS.blockWashable,
 				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles
+				blockTiles = BlockEncyclopediaECS.blockTiles,
+				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
 			};
 
 			BuildDecalSideJob bdsj = new BuildDecalSideJob{
@@ -871,7 +878,7 @@ public class Chunk
 			blockWashable = BlockEncyclopediaECS.blockWashable,
 			objectWashable = BlockEncyclopediaECS.objectWashable,
 			blockTiles = BlockEncyclopediaECS.blockTiles,
-			blockDrawTop = BlockEncyclopediaECS.blockDrawTopRegardless
+			blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
 		};
 		JobHandle job = bcJob.Schedule();
 
@@ -1226,6 +1233,8 @@ public class Chunk
     	this.meshFilter.mesh.SetUVs(3, this.lightUVMain.ToArray());
 
     	this.meshFilter.mesh.SetNormals(this.normals.ToArray());
+
+    	this.meshFilter.mesh.Optimize();
     }
 
     // Builds meshes from verts, UVs and tris from different layers
@@ -1366,7 +1375,7 @@ public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public NativeArray<bool> objectWashable;
 	[ReadOnly]
-	public NativeArray<bool> blockDrawTop;
+	public NativeArray<bool> blockDrawRegardless;
 
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
@@ -1374,6 +1383,7 @@ public struct BuildChunkJob : IJob{
 		ushort thisBlock;
 		ushort neighborBlock;
 		ushort thisState;
+		bool isBlock;
 
 		for(int x=0; x<Chunk.chunkWidth; x++){
 			for(int y=0; y<Chunk.chunkDepth; y++){
@@ -1386,10 +1396,12 @@ public struct BuildChunkJob : IJob{
 	    				continue;
 	    			}
 
+	    			isBlock = thisBlock <= ushort.MaxValue/2;
+
 	    			// Runs OnLoad event
 	    			if(load)
 	    				// If is a block
-		    			if(thisBlock <= ushort.MaxValue/2){
+		    			if(isBlock){
 		    				if(blockLoad[thisBlock] && !blockSeamless[thisBlock]){
 		    					loadOutList.Add(new int3(x,y,z));
 		    				}
@@ -1406,8 +1418,8 @@ public struct BuildChunkJob : IJob{
 			    	for(int i=0; i<6; i++){
 			    		neighborBlock = GetNeighbor(x, y, z, i);
 			    		
-			    		// Chunk Border and floor culling here! ----------
-			    		
+			    		// Chunk Border and floor culling here! ----------	
+
 			    		if((x == 0 && 3 == i) || (z == 0 && 2 == i)){
 			    			continue;
 			    		}
@@ -1421,7 +1433,7 @@ public struct BuildChunkJob : IJob{
 			    		////////// -----------------------------------
 
 						// Handles Liquid chunks
-			    		if(thisBlock <= ushort.MaxValue/2){
+			    		if(isBlock){
 			    			if(blockSeamless[thisBlock]){
 				    			if(CheckSeams(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i))){
 				    				continue;
@@ -1461,24 +1473,10 @@ public struct BuildChunkJob : IJob{
 					    		break;
 					    	}
 			    		}
-			    		else if(thisBlock <= ushort.MaxValue/2){
-			    			if(blockDrawTop[thisBlock] && i == 4){
-			    				if(neighborBlock <= ushort.MaxValue/2){
-			    					if(blockTransparent[neighborBlock] == 0){
-			    						if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
-						    				break;
-						    			}
-			    					}
-			    				}
-			    				else{
-			    					if(objectTransparent[neighborBlock] == 0){
-			    						if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
-						    				break;
-						    			}
-			    					}			    					
-			    				}
-
-						    }
+			    		else if(isBlock){
+			    			if(blockDrawRegardless[thisBlock])
+	    						if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal))
+				    				break;
 			    		}
 				    } // faces loop
 	    		} // z loop
@@ -1550,7 +1548,7 @@ public struct BuildChunkJob : IJob{
     	else
     		neighborSeamless = objectSeamless[ushort.MaxValue-neighborBlock];
 
-    	return thisSeamless && neighborSeamless && (thisState == neighborState) && (thisBlock == neighborBlock);
+    	return thisSeamless && neighborSeamless && (thisBlock == neighborBlock);;
     }
 
     private bool Boolean(byte a){
@@ -2373,7 +2371,7 @@ public struct BuildChunkJob : IJob{
 }
 
 
-//[BurstCompile]
+[BurstCompile]
 public struct PrepareAssetsJob : IJob{
 	// Output
 	public NativeList<Vector3> meshVerts;
@@ -2615,6 +2613,8 @@ public struct BuildBorderJob : IJob{
 	public NativeArray<bool> blockWashable;
 	[ReadOnly]
 	public NativeArray<bool> objectWashable;
+	[ReadOnly]
+	public NativeArray<bool> blockDrawRegardless;
 
 
 	public void Execute(){
@@ -2661,6 +2661,11 @@ public struct BuildBorderJob : IJob{
 
 					if(CheckPlacement(neighborBlock)){
 						LoadMesh(0, y, z, 3, new int3(Chunk.chunkWidth-1, y, z), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
+					}
+					else if(thisBlock <= ushort.MaxValue/2){
+						if(blockDrawRegardless[thisBlock]){
+							LoadMesh(0, y, z, 3, new int3(Chunk.chunkWidth-1, y, z), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
+						}
 					}
 				}
 			}

@@ -59,7 +59,7 @@ public class Water_Block : Blocks
 		this.hasLoadEvent = false;
 		this.affectLight = true;
 		this.seamless = true;
-		this.drawTopRegardless = true;
+		this.drawRegardless = true;
 		this.viscosityDelay = 12;
 		this.maxHP = 1;
 		this.flags = new HashSet<BlockFlags>(){BlockFlags.IMMUNE};

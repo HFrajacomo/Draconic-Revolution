@@ -48,7 +48,7 @@ Material:
   - TransparentDepthPostpass
   - TransparentBackface
   - TransparentDepthPrepass
-  m_LockedProperties: 
+  m_LockedProperties: _BlendMode
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -147,6 +147,7 @@ Material:
     - _SupportDecals: 1
     - _SurfaceType: 1
     - _TestVertex: 0
+    - _TextureSize: 0.54
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0

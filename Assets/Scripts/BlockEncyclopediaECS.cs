@@ -30,7 +30,7 @@ public static class BlockEncyclopediaECS
 	public static bool[] objectAffectLight;
 	public static NativeArray<byte> blockLuminosity;
 	public static NativeArray<byte> objectLuminosity;
-	public static NativeArray<bool> blockDrawTopRegardless;
+	public static NativeArray<bool> blockDrawRegardless;
 
 	static BlockEncyclopediaECS(){ 
 		BlockEncyclopediaECS.blockHP = new NativeArray<ushort>(Blocks.blockCount, Allocator.Persistent);
@@ -55,7 +55,7 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.objectWashable = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
 		BlockEncyclopediaECS.blockLuminosity = new NativeArray<byte>(Blocks.blockCount, Allocator.Persistent);
 		BlockEncyclopediaECS.objectLuminosity = new NativeArray<byte>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockDrawTopRegardless = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.blockDrawRegardless = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
 
 		BlockEncyclopediaECS.blockAffectLight = new bool[Blocks.blockCount];
 		BlockEncyclopediaECS.objectAffectLight = new bool[BlocklikeObject.objectCount];
@@ -84,6 +84,6 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.objectWashable.Dispose();
 		BlockEncyclopediaECS.blockLuminosity.Dispose();
 		BlockEncyclopediaECS.objectLuminosity.Dispose();
-		BlockEncyclopediaECS.blockDrawTopRegardless.Dispose();
+		BlockEncyclopediaECS.blockDrawRegardless.Dispose();
 	}
 }
