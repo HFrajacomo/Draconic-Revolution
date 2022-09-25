@@ -36,14 +36,16 @@ public class Water_Block : Blocks
 	public ushort[] aroundCodes;
 	public ushort[] aroundStates;
 	public CastCoord cachedPos;
-	private bool[] surroundingWaterFlag = new bool[8];
+	private CastCoord cachedCoord;
 	private BUDSignal cachedBUD;
 	private bool breakFLAG = false;
 	private NetMessage reloadMessage;
 
 	private int viscosityDelay;
 
-	public Dictionary<ushort?, List<int>> spawnDirection = new Dictionary<ushort?, List<int>>();
+	private Dictionary<ushort?, List<int>> spawnDirection = new Dictionary<ushort?, List<int>>();
+	private Dictionary<ushort, byte> statePriority = new Dictionary<ushort, byte>();
+	private Dictionary<int, int[]> cameFrom = new Dictionary<int, int[]>();
 
 	// Just loaded block
 	public Water_Block(){
@@ -76,6 +78,36 @@ public class Water_Block : Blocks
 		this.spawnDirection.Add(8, new List<int>(new int[]{4,5,6}));
 		this.spawnDirection.Add(9, new List<int>(new int[]{5,6,7}));
 		this.spawnDirection.Add(10, new List<int>(new int[]{6,7,0}));
+
+		// Water states priority
+		this.statePriority.Add(0, 3);
+		this.statePriority.Add(1, 2);
+		this.statePriority.Add(2, 1);
+		this.statePriority.Add(3, 2);
+		this.statePriority.Add(4, 2);
+		this.statePriority.Add(5, 2);
+		this.statePriority.Add(6, 2);
+		this.statePriority.Add(7, 2);
+		this.statePriority.Add(8, 2);
+		this.statePriority.Add(9, 2);
+		this.statePriority.Add(10, 2);
+		this.statePriority.Add(11, 1);
+		this.statePriority.Add(12, 1);
+		this.statePriority.Add(13, 1);
+		this.statePriority.Add(14, 1);
+		this.statePriority.Add(15, 1);
+		this.statePriority.Add(16, 1);
+		this.statePriority.Add(17, 1);
+		this.statePriority.Add(18, 1);
+		this.statePriority.Add(19, 3);
+		this.statePriority.Add(20, 3);
+		this.statePriority.Add(21, 3);
+
+		// Adds to CameFrom dictionary
+		this.cameFrom.Add(1, new int[]{0,2});
+		this.cameFrom.Add(3, new int[]{2,4});
+		this.cameFrom.Add(5, new int[]{4,6});
+		this.cameFrom.Add(7, new int[]{6,0});
 	}
 
 	// Custom Place operation with Raycasting class overwrite
@@ -103,15 +135,15 @@ public class Water_Block : Blocks
 		cl.chunks[pos].data.SetCell(x, y, z, 0);
 		cl.chunks[pos].metadata.Reset(x,y,z);
 
-		cachedPos = new CastCoord(pos, x, y, z);
+		cachedCoord = new CastCoord(pos, x, y, z);
 
 		// Reloads surrounding data when was manually broken by player
 		if(!this.breakFLAG)
-			GetCodeAround(cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cl);
+			GetCodeAround(cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cl);
 		
-		this.Update(cachedPos, BUDCode.BREAK, -1, cl);
-		cl.budscheduler.ScheduleSave(cachedPos.GetChunkPos());
-		EmitWaterBUD(cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cl);
+		this.Update(cachedCoord, BUDCode.BREAK, -1, cl);
+		cl.budscheduler.ScheduleSave(cachedCoord.GetChunkPos());
+		EmitWaterBUD(cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cl);
 		this.breakFLAG = false;
 
 		return 0;
@@ -121,700 +153,194 @@ public class Water_Block : Blocks
 	public override void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){
 		if(type == BUDCode.BREAK || type == BUDCode.CHANGE){
 			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
-			ushort thisState = cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
-			GetCodeAround(myX, myY, myZ, cl);
-
-			// Checks if is around unloaded chunks
-			for(int i=0; i < 8; i++){
-				if(this.aroundCodes[i] == (ushort)(ushort.MaxValue/2)){
-					return;
-				}
-			}
-
-			GetStateAround(myX, myY, myZ, cl);
-
-			/* Directional Level 1 State 
-			 Deletes if not any highlevel water around */
-			if(thisState >= 11 && thisState <= 18){
-				ushort below = GetCodeBelow(myX, myY, myZ, cl);
-
-				// If lone directional level 1 water
-				if(!CheckHigherLevelWaterAround(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1, cl)){
-					this.breakFLAG = true;
-					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					return;
-				}
-
-				// If should be upgraded to Still Level 2
-				else if(GetHighLevelAroundCount(myX, myY, myZ, 1, cl, nofalling:true) >= 2){
-					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
-					this.Update(thisPos, BUDCode.CHANGE, -1, cl);
-					return;
-				}
-
-				// Turns Mid to Low level water below into falling 1
-				else if(below == this.waterCode && (TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) == 2 || TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) == 1)){
-					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
-					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 21);
-					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					return;					
-				}
-
-				// Turns Air below into falling 1
-				else if(below == 0){
-					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, this.waterCode);
-					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, 21);
-					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, -1, cl);
-					return;					
-				}
-
-			}
-
-			/* Still Level 1 State
-			 Deletes if not around solid blocks */
-			else if(thisState == 2){
-				bool destroy = false;
-
-				for(int i=0; i<4; i++){
-					if(!cl.blockBook.CheckSolid(this.aroundCodes[i])){
-						destroy = true;
-						break;
-					}
-				}
-				if(!cl.blockBook.CheckSolid(GetCodeBelow(myX, myY, myZ, cl)))
-					destroy = true;
-
-				if(destroy){
-					this.breakFLAG = true;
-					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);					
-					return;
-				}
-			}
-
-			/* Still Level 2 State */
-			else if(thisState == 1){
-				ushort below = GetCodeBelow(myX, myY, myZ, cl);
-				ushort newState;
-
-				// If Y chunk end
-				if(below == ushort.MaxValue)
-					return;
-
-				// If air below, falls as Still Block
-				else if(below == 0){
-					this.breakFLAG = true;
-					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-
-					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
-
-					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 1);
-					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					return;
-				}
-
-				// If should be upgraded to Still 3
-				if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl, nofalling:true) >= 2){
-					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					this.Update(thisPos, BUDCode.CHANGE, -1, cl);
-					return;
-				}
-
-				// Handles normal behaviour of Still 2
-				bool found;
-
-				for(int i=0; i<8; i++){
-					found = false;
-
-					if(this.aroundCodes[i] == 0 || (this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) == 1) || cl.blockBook.CheckWashable(this.aroundCodes[i])){
-						if(i == 0){
-							cachedPos = new CastCoord(new Vector3(myX, myY, myZ+1));
-							newState = 11;
-							found = true;
-						}
-						else if(i == 1 && ((cl.blockBook.CheckWashable(this.aroundCodes[1]) && cl.blockBook.CheckWashable(this.aroundCodes[0]) && cl.blockBook.CheckWashable(this.aroundCodes[2])) || (((this.aroundCodes[0] == 0 && GetGroundCode(0, myX, myY, myZ, cl) != 0) || (this.aroundCodes[0] == this.waterCode) || ((this.aroundCodes[2] == 0 && GetGroundCode(2, myX, myY, myZ, cl) != 0) || this.aroundCodes[2] == this.waterCode)) && (!(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) >= 2) && !(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) >= 2))))){
-							cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ+1));
-							newState = 12;
-							found = true;
-						}
-						else if(i == 2){
-							cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ));
-							newState = 13;
-							found = true;
-						}
-						else if(i == 3 && ((cl.blockBook.CheckWashable(this.aroundCodes[3]) && cl.blockBook.CheckWashable(this.aroundCodes[2]) && cl.blockBook.CheckWashable(this.aroundCodes[4])) || (((this.aroundCodes[2] == 0 && GetGroundCode(2, myX, myY, myZ, cl) != 0) || (this.aroundCodes[2] == this.waterCode) || ((this.aroundCodes[4] == 0 && GetGroundCode(4, myX, myY, myZ, cl) != 0) || this.aroundCodes[4] == this.waterCode)) && (!(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) >= 2) && !(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) >= 2))))){
-							cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ-1));
-							newState = 14;
-							found = true;
-						}
-						else if(i == 4){
-							cachedPos = new CastCoord(new Vector3(myX, myY, myZ-1));
-							newState = 15;
-							found = true;
-						}
-						else if(i == 5 && ((cl.blockBook.CheckWashable(this.aroundCodes[5]) && cl.blockBook.CheckWashable(this.aroundCodes[4]) && cl.blockBook.CheckWashable(this.aroundCodes[6])) || (((this.aroundCodes[4] == 0 && GetGroundCode(4, myX, myY, myZ, cl) != 0) || (this.aroundCodes[4] == this.waterCode) || ((this.aroundCodes[6] == 0 && GetGroundCode(6, myX, myY, myZ, cl) != 0) || this.aroundCodes[6] == this.waterCode)) && (!(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) >= 2) && !(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) >= 2))))){
-							cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ-1));
-							newState = 16;
-							found = true;
-						}
-						else if(i == 6){
-							cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ));
-							newState = 17;
-							found = true;
-						}
-						else if(i == 7 && ((cl.blockBook.CheckWashable(this.aroundCodes[7]) && cl.blockBook.CheckWashable(this.aroundCodes[6]) && cl.blockBook.CheckWashable(this.aroundCodes[0])) || (((this.aroundCodes[6] == 0 && GetGroundCode(6, myX, myY, myZ, cl) != 0) || (this.aroundCodes[6] == this.waterCode) || ((this.aroundCodes[0] == 0 && GetGroundCode(0, myX, myY, myZ, cl) != 0) || this.aroundCodes[0] == this.waterCode)) && (!(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) >= 2) && !(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) >= 2))))){
-							cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ+1));
-							newState = 18;
-							found = true;
-						}
-						else{
-							continue;
-						}
-
-						if(found){
-							// If found a washable block in radius
-							if(cl.blockBook.CheckWashable(this.aroundCodes[i])){
-								if(this.aroundCodes[i] <= ushort.MaxValue/2)
-									cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
-								else
-									cl.blockBook.objects[ushort.MaxValue-this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
-							} 
-
-							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
-
-							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-							return;
-						}		
-					}
-				}
-			}
-
-			/*
-			Directional Level 2
-			*/
-			else if(thisState >= 3 && thisState <= 10){
-				// Fall handler
-				ushort below = GetCodeBelow(myX, myY, myZ, cl);
-
-				// Falling Block
-				if(below == 0){
-					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, this.waterCode);
-					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, 20);
-					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY-1, thisPos.blockZ, -1, cl);
-					return;
-				}
-				// If there's is a Directional Level 2 below, turns below into Falling 2
-				else if(below == this.waterCode && (TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) == 2 || TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) == 1)){
-					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
-					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 20);
-					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					return;					
-				}
-
-				// Dies if no Still 3 around
-				else if(!CheckHigherLevelWaterAround(myX, myY, myZ, 2, cl)){
-					this.breakFLAG = true;
-					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					return;					
-				}
-				
-				// Does nothing if it's already a pivot of falling block
-				else if(below == this.waterCode && GetStateBelow(myX, myY, myZ, cl) == 20){
-					return;
-				}
-
-				// Upgrade if has two Still 3 adjascent
-				else if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl, nofalling:true) >= 2){
-					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
-					return;
-				}
-				// Upgrade if has two Still 2 adjascent
-				else if(GetSameLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
-					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
-					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
-					return;
-				}
-
-				// Normal Behaviour
-				else{
-					bool found;
-					ushort newState;
-
-					for(int i=0; i<8; i++){
-						found = false;
-
-						// Ignores spread if block direction is illegal
-						if(!this.spawnDirection[thisState].Contains(i))
-							continue;
-
-						if(this.aroundCodes[i] == 0 || (this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) == 1) || cl.blockBook.CheckWashable(this.aroundCodes[i])){
-							if(i == 0 && this.aroundStates[i] != 11){
-								cachedPos = new CastCoord(new Vector3(myX, myY, myZ+1));
-								newState = 11;
-								found = true;
-							}
-							else if(i == 1 && ((cl.blockBook.CheckWashable(this.aroundCodes[1]) && cl.blockBook.CheckWashable(this.aroundCodes[0]) && cl.blockBook.CheckWashable(this.aroundCodes[2])) || (((this.aroundCodes[0] == 0 && GetGroundCode(0, myX, myY, myZ, cl) != 0) || (this.aroundCodes[0] == this.waterCode) || ((this.aroundCodes[2] == 0 && GetGroundCode(2, myX, myY, myZ, cl) != 0) || this.aroundCodes[2] == this.waterCode)) && (!(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) >= 2) && !(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) >= 2))))){
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ+1));
-								newState = 12;
-								found = true;
-							}
-							else if(i == 2 && this.aroundStates[i] != 13){
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ));
-								newState = 13;
-								found = true;
-							}
-							else if(i == 3 && ((cl.blockBook.CheckWashable(this.aroundCodes[3]) && cl.blockBook.CheckWashable(this.aroundCodes[2]) && cl.blockBook.CheckWashable(this.aroundCodes[4])) || (((this.aroundCodes[2] == 0 && GetGroundCode(2, myX, myY, myZ, cl) != 0) || (this.aroundCodes[2] == this.waterCode) || ((this.aroundCodes[4] == 0 && GetGroundCode(4, myX, myY, myZ, cl) != 0) || this.aroundCodes[4] == this.waterCode)) && (!(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) >= 2) && !(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) >= 2))))){
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ-1));
-								newState = 14;
-								found = true;
-							}
-							else if(i == 4 && this.aroundStates[i] != 15){
-								cachedPos = new CastCoord(new Vector3(myX, myY, myZ-1));
-								newState = 15;
-								found = true;
-							}
-							else if(i == 5 && ((cl.blockBook.CheckWashable(this.aroundCodes[5]) && cl.blockBook.CheckWashable(this.aroundCodes[4]) && cl.blockBook.CheckWashable(this.aroundCodes[6])) || (((this.aroundCodes[4] == 0 && GetGroundCode(4, myX, myY, myZ, cl) != 0) || (this.aroundCodes[4] == this.waterCode) || ((this.aroundCodes[6] == 0 && GetGroundCode(6, myX, myY, myZ, cl) != 0) || this.aroundCodes[6] == this.waterCode)) && (!(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) >= 2) && !(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) >= 2))))){
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ-1));
-								newState = 16;
-								found = true;
-							}
-							else if(i == 6 && this.aroundStates[i] != 17){
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ));
-								newState = 17;
-								found = true;
-							}
-							else if(i == 7 && ((cl.blockBook.CheckWashable(this.aroundCodes[7]) && cl.blockBook.CheckWashable(this.aroundCodes[6]) && cl.blockBook.CheckWashable(this.aroundCodes[0])) || (((this.aroundCodes[6] == 0 && GetGroundCode(6, myX, myY, myZ, cl) != 0) || (this.aroundCodes[6] == this.waterCode) || ((this.aroundCodes[0] == 0 && GetGroundCode(0, myX, myY, myZ, cl) != 0) || this.aroundCodes[0] == this.waterCode)) && (!(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) >= 2) && !(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) >= 2))))){
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ+1));
-								newState = 18;
-								found = true;
-							}
-							else{
-								continue;
-							}
-
-							if(found){
-								// If found a washable block in radius
-								if(cl.blockBook.CheckWashable(this.aroundCodes[i])){
-									if(this.aroundCodes[i] <= ushort.MaxValue/2)
-										cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
-									else
-										cl.blockBook.objects[ushort.MaxValue-this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
-								}
-
-								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
-
-								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-							}	
-						}
-					}
-				}
-			}
+			ushort state = cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 
 			/*
 			Still Level 3
 			*/
-			else if(thisState == 0){
-				// Falling
-				ushort below = GetCodeBelow(myX, myY, myZ, cl);
-				ushort belowState = GetStateBelow(myX, myY, myZ, cl);
+			if(state == 0){
+				ushort below = GetCodeBelow(thisPos, cl);
+				ushort belowState = GetStateBelow(thisPos, cl);
 
-				// If Y chunk end
+				// If is out of Y bounds
 				if(below == (ushort)(ushort.MaxValue/2))
 					return;
 
-				// If air below
-				else if(below == 0 || (below == this.waterCode && (belowState >= 1 && belowState <= 19)) || cl.blockBook.CheckWashable(below)){
-					// Checks if all adjascent blocks are water, so it should spawn F3 State below
-					if(this.aroundCodes[0] == this.waterCode && this.aroundCodes[2] == this.waterCode && this.aroundCodes[4] == this.waterCode && this.aroundCodes[6] == this.waterCode){
-						cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
- 
-						if(cl.blockBook.CheckWashable(below)){
-							if(below <= ushort.MaxValue/2){
-								cl.blockBook.blocks[below].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-							}
-							else{
-								cl.blockBook.objects[ushort.MaxValue - below].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-							}
+				// If should expand downwards
+				if(below == 0 || (below == this.waterCode && ShouldStateOverpower(state, belowState)) || IsWashable(below, cl)){
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+
+					// If there are at least one adjascent Still Water 3 -> Expand falling blocks
+					if(GetSameLevelAroundCount(myX, myY, myZ, 3, cl) > 0){
+						// Should break washable block below
+						if(IsWashable(below, cl)){
+							if(below <= ushort.MaxValue/2)
+								cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							else
+								cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						}
 
-						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-						cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 19);
-						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+						cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.waterCode);
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 19);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 						return;
 					}
-					// General case of making the block fall
+					// If this block is a lone water one -> Fall by itself
 					else{
-						this.breakFLAG = true;
-						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-
-						cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
-
-						if(cl.blockBook.CheckWashable(below)){
-							if(below <= ushort.MaxValue/2){
-								cl.blockBook.blocks[below].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-							}
-							else{
-								cl.blockBook.objects[ushort.MaxValue - below].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-							}
+						// Should break washable block below
+						if(IsWashable(below, cl)){
+							if(below <= ushort.MaxValue/2)
+								cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							else
+								cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						}
 
-						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-						cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 0);
-						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+						cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.waterCode);
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 						return;
 					}
 				}
-
 				// Normal Behaviour
 				else{
+					GetCodeAround(myX, myY, myZ, cl);
+					GetStateAround(myX, myY, myZ, cl);
+
+
 					bool found;
-					ushort newState;
+					ushort targetState = 0;
+					//int targetWaterLevel;
 
-					for(int i=0; i<8; i++){
+					for(int i=0; i < 8; i+=2){
 						found = false;
+						GetDirectionPos(myX, myY, myZ, i);
 
-						if(this.aroundCodes[i] == 0 || (this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) == 1) || cl.blockBook.CheckWashable(this.aroundCodes[i])){
-							if(i == 0 && ((!(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) == 3) && !(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) == 3)) || (this.aroundCodes[0] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[0]) || (this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) == 1)))){ // North
-								cachedPos = new CastCoord(new Vector3(myX, myY, myZ+1));
-								newState = 3;
-								found = true;
-							}
-							else if(i == 1 && ((cl.blockBook.CheckWashable(this.aroundCodes[1]) && cl.blockBook.CheckWashable(this.aroundCodes[0]) && cl.blockBook.CheckWashable(this.aroundCodes[2])) || (((this.aroundCodes[0] == 0 && GetGroundCode(0, myX, myY, myZ, cl) != 0) || (this.aroundCodes[0] == this.waterCode) || ((this.aroundCodes[2] == 0 && GetGroundCode(2, myX, myY, myZ, cl) != 0) || this.aroundCodes[2] == this.waterCode)) && (!(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) == 3) && !(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) == 3))))){ // NE
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ+1));
-								newState = 4;
-								found = true;
-							}
-							else if(i == 2 && ((!(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) == 3) && !(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) == 3)) || (this.aroundCodes[2] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[2]) || (this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) == 1)))){ // East
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ));
-								newState = 5;
-								found = true;
-							}
-							else if(i == 3 && ((cl.blockBook.CheckWashable(this.aroundCodes[3]) && cl.blockBook.CheckWashable(this.aroundCodes[2]) && cl.blockBook.CheckWashable(this.aroundCodes[4])) || (((this.aroundCodes[2] == 0 && GetGroundCode(2, myX, myY, myZ, cl) != 0) || (this.aroundCodes[2] == this.waterCode) || ((this.aroundCodes[4] == 0 && GetGroundCode(4, myX, myY, myZ, cl) != 0) || this.aroundCodes[4] == this.waterCode)) && (!(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) == 3) && !(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) == 3))))){ // SE
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ-1));
-								newState = 6;
-								found = true;
-							}
-							else if(i == 4 && ((!(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) == 3) && !(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) == 3)) || (this.aroundCodes[4] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[4]) || (this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) == 1)))){ // South
-								cachedPos = new CastCoord(new Vector3(myX, myY, myZ-1));
-								newState = 7;
-								found = true;
-							}
-							else if(i == 5 && ((cl.blockBook.CheckWashable(this.aroundCodes[5]) && cl.blockBook.CheckWashable(this.aroundCodes[4]) && cl.blockBook.CheckWashable(this.aroundCodes[6])) || (((this.aroundCodes[4] == 0 && GetGroundCode(4, myX, myY, myZ, cl) != 0) || (this.aroundCodes[4] == this.waterCode) || ((this.aroundCodes[6] == 0 && GetGroundCode(6, myX, myY, myZ, cl) != 0) || this.aroundCodes[6] == this.waterCode)) && (!(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) == 3) && !(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) == 3))))){ // SW
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ-1));
-								newState = 8;
-								found = true;
-							}
-							else if(i == 6 && ((!(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) == 3) && !(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) == 3)) || (this.aroundCodes[6] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[6]) || (this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) == 1)))){ // West
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ));
-								newState = 9;
-								found = true;
-							}
-							else if(i == 7 && ((cl.blockBook.CheckWashable(this.aroundCodes[7]) && cl.blockBook.CheckWashable(this.aroundCodes[6]) && cl.blockBook.CheckWashable(this.aroundCodes[0])) || (((this.aroundCodes[6] == 0 && GetGroundCode(6, myX, myY, myZ, cl) != 0) || (this.aroundCodes[6] == this.waterCode) || ((this.aroundCodes[0] == 0 && GetGroundCode(0, myX, myY, myZ, cl) != 0) || this.aroundCodes[0] == this.waterCode)) && (!(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) == 3) && !(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) == 3))))){ // NW
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ+1));
-								newState = 10;
-								found = true;
-							}
-							else{
-								continue;
-							}
-
-							if(found){
-								// If found a washable block in radius
-								if(this.aroundCodes[i] <= ushort.MaxValue/2)
-									cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
-								else
-									cl.blockBook.objects[ushort.MaxValue-this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
-
-								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
-
-								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-							}			
+						// If is air
+						if(this.aroundCodes[i] == 0){
+							targetState = GetNewState(3, i);
+							found = true;
 						}
-					}
-				}
-			}
+						// If is washable
+						else if(IsWashable(this.aroundCodes[i], cl)){
+							targetState = GetNewState(3, i);
+							found = true;
 
-			/*
-			Falling 3
-			*/
-			else if(thisState == 19){
-				
-				ushort below = GetCodeBelow(myX, myY, myZ, cl);
-				int above = GetCodeAbove(myX, myY, myZ, cl);
-
-				// If should be upgraded to Still Level 3
-				if(GetHighLevelAroundCount(myX, myY, myZ, 2, cl, nofalling:true) >= 2){
-					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
-					return;
-				}
-
-				// If needs to spawn more falling blocks (no return to check if alive)
-				if(below == 0 || (below == this.waterCode && TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) < 3) || cl.blockBook.CheckWashable(below)){
-					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
-
-					if(cl.blockBook.CheckWashable(below)){
-						if(below <= ushort.MaxValue/2){
-							cl.blockBook.blocks[below].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							if(this.aroundCodes[i] <= ushort.MaxValue/2)
+								cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							else
+								cl.blockBook.objects[ushort.MaxValue - this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
-						else{
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+						// If is water
+						else if(this.aroundCodes[i] == waterCode){
+							targetState = GetNewState(3, i, targetWaterState:this.aroundCodes[i]);
+
+							if(targetState != ushort.MaxValue)
+								found = true;
 						}
+
+
+						// Found cases
+						if(found){
+							if(this.aroundCodes[i] <= ushort.MaxValue/2)
+								cl.blockBook.blocks[aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							else
+								cl.blockBook.objects[ushort.MaxValue - aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+
+							GetDirectionPos(myX, myY, myZ, i);
+							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
+							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+						}
+
 					}
 
-					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 19);
-					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					return;
-				}
-
-				// If not alive
-				if(above != this.waterCode){
-					this.breakFLAG = true;
-					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					return;
-				}
-
-				// Normal Behaviour
-				if(below != 0){
-					bool found;
-					ushort newState;
-
-					for(int i=0; i<8; i++){
-						found = false;
-
-						if(this.aroundCodes[i] == 0 || (this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) == 1) || cl.blockBook.CheckWashable(this.aroundCodes[i])){
-							if(i == 0 && ((!(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) == 3) && !(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) == 3)) || (this.aroundCodes[0] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[0]) || (this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) == 1)))){ // North
-								cachedPos = new CastCoord(new Vector3(myX, myY, myZ+1));
-								newState = 3;
-								found = true;
-							}
-							else if(i == 1 && (cl.blockBook.CheckWashable(this.aroundCodes[1]) || (((this.aroundCodes[0] == 0 && GetGroundCode(0, myX, myY, myZ, cl) != 0) || (this.aroundCodes[0] == this.waterCode) || ((this.aroundCodes[2] == 0 && GetGroundCode(2, myX, myY, myZ, cl) != 0) || this.aroundCodes[2] == this.waterCode)) && (!(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) == 3) && !(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) == 3))))){ // NE
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ+1));
-								newState = 4;
-								found = true;
-							}
-							else if(i == 2 && ((!(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) == 3) && !(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) == 3)) || (this.aroundCodes[2] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[2]) || (this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) == 1)))){ // East
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ));
-								newState = 5;
-								found = true;
-							}
-							else if(i == 3 && (cl.blockBook.CheckWashable(this.aroundCodes[3]) || (((this.aroundCodes[2] == 0 && GetGroundCode(2, myX, myY, myZ, cl) != 0) || (this.aroundCodes[2] == this.waterCode) || ((this.aroundCodes[4] == 0 && GetGroundCode(4, myX, myY, myZ, cl) != 0) || this.aroundCodes[4] == this.waterCode)) && (!(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) == 3) && !(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) == 3))))){ // SE
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ-1));
-								newState = 6;
-								found = true;
-							}
-							else if(i == 4 && ((!(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) == 3) && !(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) == 3)) || (this.aroundCodes[4] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[4]) || (this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) == 1)))){ // South
-								cachedPos = new CastCoord(new Vector3(myX, myY, myZ-1));
-								newState = 7;
-								found = true;
-							}
-							else if(i == 5 && (cl.blockBook.CheckWashable(this.aroundCodes[5]) || (((this.aroundCodes[4] == 0 && GetGroundCode(4, myX, myY, myZ, cl) != 0) || (this.aroundCodes[4] == this.waterCode) || ((this.aroundCodes[6] == 0 && GetGroundCode(6, myX, myY, myZ, cl) != 0) || this.aroundCodes[6] == this.waterCode)) && (!(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) == 3) && !(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) == 3))))){ // SW
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ-1));
-								newState = 8;
-								found = true;
-							}
-							else if(i == 6 && ((!(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) == 3) && !(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) == 3)) || (this.aroundCodes[6] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[6]) || (this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) == 1)))){ // West
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ));
-								newState = 9;
-								found = true;
-							}
-							else if(i == 7 && (cl.blockBook.CheckWashable(this.aroundCodes[7]) || (((this.aroundCodes[6] == 0 && GetGroundCode(6, myX, myY, myZ, cl) != 0) || (this.aroundCodes[6] == this.waterCode) || ((this.aroundCodes[0] == 0 && GetGroundCode(0, myX, myY, myZ, cl) != 0) || this.aroundCodes[0] == this.waterCode)) && (!(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) == 3) && !(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) == 3))))){ // NW
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ+1));
-								newState = 10;
-								found = true;
-							}
-							else{
-								continue;
-							}
-
-							if(found){
-								// If found a washable block in radius
-								if(cl.blockBook.CheckWashable(this.aroundCodes[i])){
-									if(this.aroundCodes[i] <= ushort.MaxValue/2)
-										cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
-									else
-										cl.blockBook.objects[ushort.MaxValue-this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
-								} 
-								
-								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
-
-								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-							}			
-						}
-					}					
-				}
-			}
-
-			/*
-			Falling 2
-			*/
-			else if(thisState == 20){
-				bool die = false;
-				ushort below = GetCodeBelow(myX, myY, myZ, cl);
-				int above = GetCodeAbove(myX, myY, myZ, cl);
-				ushort newState = GetStateBelow(myX, myY, myZ, cl);
-
-				// Do nothing if water is above and below
-				if(above == this.waterCode && below == this.waterCode && newState == 20){
-					return;
-				}
-
-				// If not alive
-				if(above != this.waterCode){
-					this.breakFLAG = true;
-					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					return;
-				}
-
-				if(below == (ushort)(ushort.MaxValue/2)){
-					return;
-				}
-
-				// If needs to spawn more falling blocks (no return to check if alive)
-				if(below == 0 || (below == this.waterCode && TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) < 3) || cl.blockBook.CheckWashable(below)){
-					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
-
-					if(cl.blockBook.CheckWashable(below)){
-						if(below <= ushort.MaxValue/2){
-							cl.blockBook.blocks[below].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-						}
-						else{
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-						}
-					}
-
-					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 20);
-					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					die = true;
-				}
-
-				if(die)
-					return;
-
-				// Normal Behaviour
-				if(below != 0 && below != (ushort)(ushort.MaxValue/2)){
-					bool found;
-
-					for(int i=0; i<8; i++){
-						found = false;
-
-						if(this.aroundCodes[i] == 0 || (this.aroundCodes[i] == this.waterCode && TranslateWaterLevel(this.aroundStates[i]) == 1) || cl.blockBook.CheckWashable(this.aroundCodes[i])){
-							if(i == 0 && ((!(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) == 3) && !(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) == 3)) || (this.aroundCodes[0] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[0]) || (this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) == 1)))){ // North
-								cachedPos = new CastCoord(new Vector3(myX, myY, myZ+1));
-								newState = 3;
-								found = true;
-							}
-							else if(i == 1 && (cl.blockBook.CheckWashable(this.aroundCodes[1]) || (((this.aroundCodes[0] == 0 && GetGroundCode(0, myX, myY, myZ, cl) != 0) || (this.aroundCodes[0] == this.waterCode) || ((this.aroundCodes[2] == 0 && GetGroundCode(2, myX, myY, myZ, cl) != 0) || this.aroundCodes[2] == this.waterCode)) && (!(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) == 3) && !(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) == 3))))){ // NE
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ+1));
-								newState = 4;
-								found = true;
-							}
-							else if(i == 2 && ((!(this.aroundCodes[1] == this.waterCode && TranslateWaterLevel(this.aroundStates[1]) == 3) && !(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) == 3)) || (this.aroundCodes[2] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[2]) || (this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) == 1)))){ // East
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ));
-								newState = 5;
-								found = true;
-							}
-							else if(i == 3 && (cl.blockBook.CheckWashable(this.aroundCodes[3]) || (((this.aroundCodes[2] == 0 && GetGroundCode(2, myX, myY, myZ, cl) != 0) || (this.aroundCodes[2] == this.waterCode) || ((this.aroundCodes[4] == 0 && GetGroundCode(4, myX, myY, myZ, cl) != 0) || this.aroundCodes[4] == this.waterCode)) && (!(this.aroundCodes[2] == this.waterCode && TranslateWaterLevel(this.aroundStates[2]) == 3) && !(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) == 3))))){ // SE
-								cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ-1));
-								newState = 6;
-								found = true;
-							}
-							else if(i == 4 && ((!(this.aroundCodes[3] == this.waterCode && TranslateWaterLevel(this.aroundStates[3]) == 3) && !(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) == 3)) || (this.aroundCodes[4] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[4]) || (this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) == 1)))){ // South
-								cachedPos = new CastCoord(new Vector3(myX, myY, myZ-1));
-								newState = 7;
-								found = true;
-							}
-							else if(i == 5 && (cl.blockBook.CheckWashable(this.aroundCodes[5]) || (((this.aroundCodes[4] == 0 && GetGroundCode(4, myX, myY, myZ, cl) != 0) || (this.aroundCodes[4] == this.waterCode) || ((this.aroundCodes[6] == 0 && GetGroundCode(6, myX, myY, myZ, cl) != 0) || this.aroundCodes[6] == this.waterCode)) && (!(this.aroundCodes[4] == this.waterCode && TranslateWaterLevel(this.aroundStates[4]) == 3) && !(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) == 3))))){ // SW
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ-1));
-								newState = 8;
-								found = true;
-							}
-							else if(i == 6 && ((!(this.aroundCodes[5] == this.waterCode && TranslateWaterLevel(this.aroundStates[5]) == 3) && !(this.aroundCodes[7] == this.waterCode && TranslateWaterLevel(this.aroundStates[7]) == 3)) || (this.aroundCodes[6] == 0 || cl.blockBook.CheckWashable(this.aroundCodes[6]) || (this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) == 1)))){ // West
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ));
-								newState = 9;
-								found = true;
-							}
-							else if(i == 7 && (cl.blockBook.CheckWashable(this.aroundCodes[7]) || (((this.aroundCodes[6] == 0 && GetGroundCode(6, myX, myY, myZ, cl) != 0) || (this.aroundCodes[6] == this.waterCode) || ((this.aroundCodes[0] == 0 && GetGroundCode(0, myX, myY, myZ, cl) != 0) || this.aroundCodes[0] == this.waterCode)) && (!(this.aroundCodes[6] == this.waterCode && TranslateWaterLevel(this.aroundStates[6]) == 3) && !(this.aroundCodes[0] == this.waterCode && TranslateWaterLevel(this.aroundStates[0]) == 3))))){ // NW
-								cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ+1));
-								newState = 10;
-								found = true;
-							}
-							else{
-								continue;
-							}
-
-							if(found){
-								// If found a washable block in radius
-								if(cl.blockBook.CheckWashable(this.aroundCodes[i])){
-									if(this.aroundCodes[i] <= ushort.MaxValue/2)
-										cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
-									else
-										cl.blockBook.objects[ushort.MaxValue-this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl); 
-								} 
-								
-								cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-								cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, newState);
-
-								this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-							}			
-						}
-					}					
-				}				
-			}
-
-			/*
-			Falling 1
-			*/
-			else if(thisState == 21){
-				ushort below = GetCodeBelow(myX, myY, myZ, cl);
-				int above = GetCodeAbove(myX, myY, myZ, cl);
-				ushort newState = GetStateBelow(myX, myY, myZ, cl);
-
-				// Do nothing if water is above and below
-				if(above == this.waterCode && below == this.waterCode && newState == 1){
-					return;
-				}
-
-				// If not alive
-				if(above != this.waterCode){
-					this.breakFLAG = true;
-					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					return;
-				}
-
-				if(below == (ushort)(ushort.MaxValue/2)){
-					return;
-				}
-
-				// If needs to spawn more falling blocks (no return to check if alive)
-				if(below == 0 || (below == this.waterCode && TranslateWaterLevel(GetStateBelow(myX, myY, myZ, cl)) < 3) || cl.blockBook.CheckWashable(below)){
-					cachedPos = new CastCoord(new Vector3(myX, myY-1, myZ));
-
-					if(cl.blockBook.CheckWashable(below)){
-						if(below <= ushort.MaxValue/2){
-							cl.blockBook.blocks[below].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-						}
-						else{
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-						}
-					}
-
-					cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
-					cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, 20);
-					this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					return;
 				}
 			}
 		}
 	}
 
+	// Get state of new propagation of water
+	// Returns ushort.MaxValue if failed
+	private ushort GetNewState(ushort currentWaterLevel, int dir, int targetWaterState=ushort.MaxValue, bool targetIsCorner=false){
+		int targetWaterLevel;
+
+		if(targetWaterState != ushort.MaxValue)
+			targetWaterLevel = TranslateWaterLevel(targetWaterState);
+
+		if(targetWaterLevel == ushort.MaxValue){
+			if(currentWaterLevel == 3){
+				return (ushort)(currentWaterLevel + dir);
+			}
+			else if(currentWaterLevel == 2){
+				return (ushort)(11 + dir);
+			}
+		}
+		else if(targetIsCorner){
+			if(currentWaterLevel >= targetWaterLevel+1){
+				if(currentWaterLevel == 3){
+					return (ushort)(currentWaterLevel + dir);
+				}
+				else if(currentWaterLevel == 2){
+					return (ushort)(11 + dir);
+				}
+			}
+		}
+		else{
+			if(currentWaterLevel > targetWaterLevel+1){
+				if(currentWaterLevel == 3){
+					return (ushort)(currentWaterLevel + dir);
+				}
+				else if(currentWaterLevel == 2){
+					return (ushort)(11 + dir);
+				}
+			}			
+		}
+
+		return ushort.MaxValue;
+	}
+
+	// Check if is upgradable
+	private bool IsUpgradeable(ushort currentWaterLevel, ushort targetState){
+		if(currentWaterLevel == 3 && targetState >= 3 && targetState <= 10 && targetState%2 == 1)
+			return true;
+		else if(currentWaterLevel == 2 && targetState >= 11 && targetState <= 18 && targetState%2 == 1)
+			return true;
+		return false;
+	}
+
+	// Sets the CachedPos to the coord of the direction given
+	private void GetDirectionPos(int x, int y, int z, int dir){
+		switch(dir){
+			case 0:
+				cachedPos = new CastCoord(new Vector3(x, y, z+1));
+				break;
+			case 1:
+				cachedPos = new CastCoord(new Vector3(x+1, y, z+1));
+				break;
+			case 2:
+				cachedPos = new CastCoord(new Vector3(x+1, y, z));
+				break;
+			case 3:
+				cachedPos = new CastCoord(new Vector3(x+1, y, z-1));
+				break;
+			case 4:
+				cachedPos = new CastCoord(new Vector3(x, y, z-1));
+				break;
+			case 5:
+				cachedPos = new CastCoord(new Vector3(x-1, y, z-1));
+				break;
+			case 6:
+				cachedPos = new CastCoord(new Vector3(x-1, y, z));
+				break;
+			case 7:
+				cachedPos = new CastCoord(new Vector3(x-1, y, z+1));
+				break;
+			default:
+				break;
+		}
+
+	}
 
 	// Gets Code of block below
 	private ushort GetCodeBelow(int myX, int myY, int myZ, ChunkLoader_Server cl){
@@ -824,6 +350,9 @@ public class Water_Block : Blocks
 
 		return cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 	}
+	private ushort GetCodeBelow(CastCoord c, ChunkLoader_Server cl){
+		return GetCodeBelow(c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), cl);
+	}
 
 	// Gets State of block below
 	private ushort GetStateBelow(int myX, int myY, int myZ, ChunkLoader_Server cl){
@@ -832,6 +361,9 @@ public class Water_Block : Blocks
 			return (ushort)(ushort.MaxValue/2);
 
 		return cl.chunks[cord.GetChunkPos()].metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
+	}
+	private ushort GetStateBelow(CastCoord c, ChunkLoader_Server cl){
+		return GetStateBelow(c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), cl);
 	}
 
 	// Gets State of block above
@@ -918,51 +450,51 @@ public class Water_Block : Blocks
 
 	// Gets a list of states of around blocks if they are water
 	private void GetStateAround(int myX, int myY, int myZ, ChunkLoader_Server cl){
-		cachedPos = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
-		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[0] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
+		cachedCoord = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
+		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode)
+			this.aroundStates[0] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 		else
 			this.aroundStates[0] = ushort.MaxValue;
 
-		cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ+1)); // NE
-		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[1] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
+		cachedCoord = new CastCoord(new Vector3(myX+1, myY, myZ+1)); // NE
+		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode)
+			this.aroundStates[1] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 		else
 			this.aroundStates[1] = ushort.MaxValue;
 
-		cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ)); // East
-		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[2] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
+		cachedCoord = new CastCoord(new Vector3(myX+1, myY, myZ)); // East
+		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode)
+			this.aroundStates[2] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 		else
 			this.aroundStates[2] = ushort.MaxValue;
 
-		cachedPos = new CastCoord(new Vector3(myX+1, myY, myZ-1)); // SE
-		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[3] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
+		cachedCoord = new CastCoord(new Vector3(myX+1, myY, myZ-1)); // SE
+		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode)
+			this.aroundStates[3] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 		else
 			this.aroundStates[3] = ushort.MaxValue;
 
-		cachedPos = new CastCoord(new Vector3(myX, myY, myZ-1)); // South
-		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[4] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
+		cachedCoord = new CastCoord(new Vector3(myX, myY, myZ-1)); // South
+		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode)
+			this.aroundStates[4] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 		else
 			this.aroundStates[4] = ushort.MaxValue;
 
-		cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ-1)); // SW
-		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[5] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
+		cachedCoord = new CastCoord(new Vector3(myX-1, myY, myZ-1)); // SW
+		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode)
+			this.aroundStates[5] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 		else
 			this.aroundStates[5] = ushort.MaxValue;
 
-		cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ)); // West
-		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[6] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
+		cachedCoord = new CastCoord(new Vector3(myX-1, myY, myZ)); // West
+		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode)
+			this.aroundStates[6] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 		else
 			this.aroundStates[6] = ushort.MaxValue;
 
-		cachedPos = new CastCoord(new Vector3(myX-1, myY, myZ+1)); // NW
-		if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode)
-			this.aroundStates[7] = cl.chunks[cachedPos.GetChunkPos()].metadata.GetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
+		cachedCoord = new CastCoord(new Vector3(myX-1, myY, myZ+1)); // NW
+		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode)
+			this.aroundStates[7] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 		else
 			this.aroundStates[7] = ushort.MaxValue;	
 	}
@@ -1030,6 +562,7 @@ public class Water_Block : Blocks
 	// Checks the amount of same level water ONLY IN ADJASCENT blocks disconsidering Falling Blocks
 	private int GetSameLevelAroundCount(int x, int y, int z, int currentWaterLevel, ChunkLoader_Server cl){
 		int count=0;
+		GetCodeAround(x,y,z,cl);
 		GetStateAround(x,y,z,cl);
 
 		if(currentWaterLevel == 1){
@@ -1059,10 +592,10 @@ public class Water_Block : Blocks
 
 	// Gets the ground blockCode of a direction
 	private int GetGroundCode(int dir, int myX, int myY, int myZ, ChunkLoader_Server cl){
-		cachedPos = new CastCoord(GetNeighborBlock(dir, myX, myY, myZ));
-		cachedPos = cachedPos.Add(0, -1, 0);
+		cachedCoord = new CastCoord(GetNeighborBlock(dir, myX, myY, myZ));
+		cachedCoord = cachedCoord.Add(0, -1, 0);
 
-		return cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ);
+		return cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 	}
 
 	// Emits BUD Signal to Water Blocks around this one
@@ -1070,34 +603,34 @@ public class Water_Block : Blocks
 		// Diagonals
 		for(int i=1; i<8; i+=2){
 			if(this.aroundCodes[i] == this.waterCode){
-				cachedPos = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
-				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+				cachedCoord = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
+				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);
 			}
 		}
 		// Adjascents
 		for(int i=0; i<8; i+=2){
 			if(this.aroundCodes[i] == this.waterCode){
-				cachedPos = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
-				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+				cachedCoord = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
+				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);
 			}
 		}
 
 		// Below
-		cachedPos = new CastCoord(this.GetNeighborBlock(8, myX, myY, myZ));
-		if(cachedPos.blockY >= 0){
-			if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode){
-				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+		cachedCoord = new CastCoord(this.GetNeighborBlock(8, myX, myY, myZ));
+		if(cachedCoord.blockY >= 0){
+			if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode){
+				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
 			}
 		}
 
 		// Above
-		cachedPos = new CastCoord(this.GetNeighborBlock(9, myX, myY, myZ));
-		if(cachedPos.blockY < Chunk.chunkDepth){
-			if(cl.chunks[cachedPos.GetChunkPos()].data.GetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ) == this.waterCode){
-				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), cachedPos.GetWorldX(), cachedPos.GetWorldY(), cachedPos.GetWorldZ(), -1);
+		cachedCoord = new CastCoord(this.GetNeighborBlock(9, myX, myY, myZ));
+		if(cachedCoord.blockY < Chunk.chunkDepth){
+			if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode){
+				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
 			}
 		}
@@ -1137,10 +670,18 @@ public class Water_Block : Blocks
 		return false;
 	}
 
+	// Check if given blockCode is washable
+	private bool IsWashable(ushort blockCode, ChunkLoader_Server cl){
+		return cl.blockBook.CheckWashable(blockCode);
+	}	
+
     // Sends a DirectBlockUpdate call to users
 	public void Update(CastCoord c, BUDCode type, int facing, ChunkLoader_Server cl){
 		this.reloadMessage = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		this.reloadMessage.DirectBlockUpdate(type, c.GetChunkPos(), c.blockX, c.blockY, c.blockZ, facing, this.waterCode, cl.GetState(c), ushort.MaxValue);
 		cl.server.SendToClients(c.GetChunkPos(), this.reloadMessage);
 	}
+
+	// Checks if current state overpowers the priority of target state
+	private bool ShouldStateOverpower(ushort current, ushort target){return statePriority[current] > statePriority[target];}
 }
