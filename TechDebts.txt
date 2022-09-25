@@ -1,6 +1,5 @@
 Tech Debts:
 
-Fix SFX not deleting on Chunk Remove
 Fix water propagation on diagonals
 Better manage Chunkloader's heavy operations
 Tweak ground emission to be darker
