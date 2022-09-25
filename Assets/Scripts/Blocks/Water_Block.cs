@@ -81,6 +81,10 @@ public class Water_Block : Blocks
 		this.spawnDirections.Add(6, new List<int>(new int[]{2,4}));
 		this.spawnDirections.Add(8, new List<int>(new int[]{4,6}));
 		this.spawnDirections.Add(10, new List<int>(new int[]{6,0}));
+		this.spawnDirections.Add(11, new List<int>(new int[]{2,6}));
+		this.spawnDirections.Add(13, new List<int>(new int[]{4,0}));
+		this.spawnDirections.Add(15, new List<int>(new int[]{6,2}));
+		this.spawnDirections.Add(17, new List<int>(new int[]{0,4}));
 
 		// Water states priority
 		this.statePriority.Add(0, 6);
@@ -134,13 +138,13 @@ public class Water_Block : Blocks
 		this.cameFromState.Add(9, new HashSet<ushort>(){0});
 		this.cameFromState.Add(10, new HashSet<ushort>(){0});
 		this.cameFromState.Add(11, new HashSet<ushort>(){10,3,4});
-		this.cameFromState.Add(12, new HashSet<ushort>(){3,4});
+		this.cameFromState.Add(12, new HashSet<ushort>(){4});
 		this.cameFromState.Add(13, new HashSet<ushort>(){4,5,6});
-		this.cameFromState.Add(14, new HashSet<ushort>(){5,6});
+		this.cameFromState.Add(14, new HashSet<ushort>(){6});
 		this.cameFromState.Add(15, new HashSet<ushort>(){6,7,8});
-		this.cameFromState.Add(16, new HashSet<ushort>(){7,8});
+		this.cameFromState.Add(16, new HashSet<ushort>(){8});
 		this.cameFromState.Add(17, new HashSet<ushort>(){8,9,10});
-		this.cameFromState.Add(18, new HashSet<ushort>(){9,10});
+		this.cameFromState.Add(18, new HashSet<ushort>(){10});
 	}
 
 	// Custom Place operation with Raycasting class overwrite
@@ -484,6 +488,83 @@ public class Water_Block : Blocks
 					return;					
 				}
 
+				// Normal Behaviour
+				else{
+					int i;
+					ushort targetState;
+					bool found;
+
+					for(int j=0; j < 2; j++){
+						i = spawnDirections[state][j];
+						targetState = GetNewState(state, i);
+						found = false;
+
+						// If is air
+						if(this.aroundCodes[i] == 0){
+							found = true;
+						}
+						// If is washable
+						else if(IsWashable(this.aroundCodes[i], cl)){
+							found = true;
+							GetDirectionPos(myX, myY, myZ, i);
+
+							if(this.aroundCodes[i] <= ushort.MaxValue/2)
+								cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							else
+								cl.blockBook.objects[ushort.MaxValue - this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+						}
+						// If is water
+						else if(this.aroundCodes[i] == waterCode && ShouldStateOverpower(targetState, this.aroundStates[i])){
+							found = true;
+						}
+
+						// Found cases
+						if(found){
+							GetDirectionPos(myX, myY, myZ, i);
+							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
+							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+						}
+					}					
+				}
+			}
+
+			/*
+			Directional Diagonal Level 1
+			*/
+			else if(state >= 12 && state <= 18 && state%2 == 0){
+				ushort below = GetCodeBelow(thisPos, cl);
+				ushort belowState = GetStateBelow(thisPos, cl);
+				GetCodeAround(myX, myY, myZ, cl);
+				GetStateAround(myX, myY, myZ, cl);
+
+				// Dies if no Level 2 around
+				if(this.aroundCodes[cameFromDir[state]] != waterCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					return;
+				}
+
+				// If is out of Y bounds
+				if(below == (ushort)(ushort.MaxValue/2))
+					return;
+
+				// If should create falling blocks
+				if(below == 0 || below == this.waterCode && ShouldStateOverpower(21, belowState) || IsWashable(below, cl)){
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+
+					// Should break washable block below
+					if(IsWashable(below, cl)){
+						if(below <= ushort.MaxValue/2)
+							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+						else
+							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+					}
+
+					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.waterCode);
+					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
+					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					return;					
+				}
 			}
 		}
 	}
@@ -566,7 +647,38 @@ public class Water_Block : Blocks
 					return 11;
 			}
 		}
-
+		else if(state == 11){
+			switch(dir){
+				case 2:
+					return 12;
+				case 6:
+					return 18;
+			}
+		}
+		else if(state == 13){
+			switch(dir){
+				case 4:
+					return 14;
+				case 0:
+					return 12;
+			}
+		}
+		else if(state == 15){
+			switch(dir){
+				case 2:
+					return 14;
+				case 6:
+					return 16;
+			}
+		}
+		else if(state == 17){
+			switch(dir){
+				case 4:
+					return 16;
+				case 0:
+					return 18;
+			}
+		}
 
 		return ushort.MaxValue;
 	}
