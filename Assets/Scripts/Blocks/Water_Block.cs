@@ -47,7 +47,7 @@ public class Water_Block : Blocks
 	private Dictionary<ushort, List<ushort>> spawnStateAdjascents = new Dictionary<ushort, List<ushort>>();
 	private Dictionary<ushort, int> stateDirection = new Dictionary<ushort, int>();
 	private Dictionary<ushort, byte> statePriority = new Dictionary<ushort, byte>();
-	private Dictionary<int, int[]> cameFrom = new Dictionary<int, int[]>();
+	private Dictionary<ushort, int> cameFrom = new Dictionary<ushort, int>();
 
 	// Just loaded block
 	public Water_Block(){
@@ -106,10 +106,22 @@ public class Water_Block : Blocks
 		this.statePriority.Add(21, 6);
 
 		// Adds to CameFrom dictionary
-		this.cameFrom.Add(1, new int[]{0,2});
-		this.cameFrom.Add(3, new int[]{2,4});
-		this.cameFrom.Add(5, new int[]{4,6});
-		this.cameFrom.Add(7, new int[]{6,0});
+		this.cameFrom.Add(3, 4);
+		this.cameFrom.Add(4, 5);
+		this.cameFrom.Add(5, 6);
+		this.cameFrom.Add(6, 7);
+		this.cameFrom.Add(7, 0);
+		this.cameFrom.Add(8, 1);
+		this.cameFrom.Add(9, 2);
+		this.cameFrom.Add(10, 3);
+		this.cameFrom.Add(11, 4);
+		this.cameFrom.Add(12, 5);
+		this.cameFrom.Add(13, 6);
+		this.cameFrom.Add(14, 7);
+		this.cameFrom.Add(15, 0);
+		this.cameFrom.Add(16, 1);
+		this.cameFrom.Add(17, 2);
+		this.cameFrom.Add(18, 3);
 	}
 
 	// Custom Place operation with Raycasting class overwrite
@@ -259,6 +271,12 @@ public class Water_Block : Blocks
 				GetCodeAround(myX, myY, myZ, cl);
 				GetStateAround(myX, myY, myZ, cl);
 
+				// Dies if no Still Level 3 around
+				if(this.aroundCodes[cameFrom[state]] != waterCode || this.aroundStates[cameFrom[state]] != 0){
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					return;
+				}
+
 				// If should upgrade to Still Level 3
 				if(GetSameLevelAroundCount(myX, myY, myZ, 3, cl) >= 2){
 					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, this.waterCode);
@@ -341,6 +359,14 @@ public class Water_Block : Blocks
 			else if(state >= 4 && state <= 10 && state%2 == 0){
 				ushort below = GetCodeBelow(thisPos, cl);
 				ushort belowState = GetStateBelow(thisPos, cl);
+				GetCodeAround(myX, myY, myZ, cl);
+				GetStateAround(myX, myY, myZ, cl);
+
+				// Dies if no Still Level 3 around
+				if(this.aroundCodes[cameFrom[state]] != waterCode || this.aroundStates[cameFrom[state]] != 0){
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					return;
+				}
 
 				// If is out of Y bounds
 				if(below == (ushort)(ushort.MaxValue/2))
@@ -372,8 +398,6 @@ public class Water_Block : Blocks
 					int i;
 					ushort targetState;
 					bool found;
-					GetCodeAround(myX, myY, myZ, cl);
-					GetStateAround(myX, myY, myZ, cl);
 
 					for(int j=0; j < 2; j++){
 						i = spawnDirections[state][j];
@@ -409,6 +433,13 @@ public class Water_Block : Blocks
 						}
 					}			
 				}
+			}
+
+			/*
+			Directional Adjascent Level 1
+			*/
+			else if(state >= 11 && state <= 17 && state%2 == 1){
+
 			}
 		}
 	}
