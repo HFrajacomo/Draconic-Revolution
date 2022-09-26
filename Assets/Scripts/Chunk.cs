@@ -1548,7 +1548,7 @@ public struct BuildChunkJob : IJob{
     	else
     		neighborSeamless = objectSeamless[ushort.MaxValue-neighborBlock];
 
-    	return thisSeamless && neighborSeamless && (thisBlock == neighborBlock);;
+    	return thisSeamless && neighborSeamless && (thisBlock == neighborBlock) && thisState == neighborState;
     }
 
     private bool Boolean(byte a){
