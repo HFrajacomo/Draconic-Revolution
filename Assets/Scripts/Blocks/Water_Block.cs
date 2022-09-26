@@ -153,7 +153,7 @@ public class Water_Block : Blocks
 
 		//DEBUG
 		if(facing >= 0)
-			cl.chunks[thisPos.GetChunkPos()].metadata.SetState(x,y,z,1); 
+			cl.chunks[thisPos.GetChunkPos()].metadata.SetState(x,y,z,2); 
 
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.PLACE, pos, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, this.waterCode, cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ), cl.chunks[thisPos.GetChunkPos()].metadata.GetHP(thisPos.blockX, thisPos.blockY, thisPos.blockZ));
@@ -163,7 +163,7 @@ public class Water_Block : Blocks
 		// If has been placed by player
 		if(facing >= 0){
 			//cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z); //DEBUG
-			cl.chunks[thisPos.GetChunkPos()].metadata.SetState(x,y,z,1); //DEBUG
+			cl.chunks[thisPos.GetChunkPos()].metadata.SetState(x,y,z,2); //DEBUG
 			cl.server.SendToClients(thisPos.GetChunkPos(), message);
 			return 0;
 		}
@@ -392,7 +392,59 @@ public class Water_Block : Blocks
 					}
 
 				}
-			}			
+			}
+
+			/*
+			Still Level 1
+			*/
+			else if(state == 2){
+				ushort below = GetCodeBelow(thisPos, cl);
+				ushort belowState = GetStateBelow(thisPos, cl);
+				GetCodeAround(myX, myY, myZ, cl);
+				GetStateAround(myX, myY, myZ, cl);
+
+				// If is out of Y bounds
+				if(below == (ushort)(ushort.MaxValue/2))
+					return;
+
+				// If should upgrade to Still Level 2
+				if(below == this.waterCode && belowState == 2){
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.waterCode);
+					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
+					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);					
+					return;
+				}
+
+				// If should fall
+				if(below == 0 || (below == this.waterCode && ShouldStateOverpower(state, belowState)) || IsWashable(below, cl)){
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+
+					// Should break washable block below
+					if(IsWashable(below, cl)){
+						if(below <= ushort.MaxValue/2)
+							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+						else
+							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+					}
+
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.waterCode);
+					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 2);
+					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					return;
+				}
+
+				// If should die
+				for(int i=0; i < 8; i+=2){
+					if(this.aroundCodes[i] == 0){
+						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+						return;
+					}
+				}	
+			}
 
 			/*
 			Directional Adjascent Level 2
