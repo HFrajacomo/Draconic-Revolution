@@ -897,6 +897,40 @@ public class Water_Block : Blocks
 					}
 				}
 			}
+
+			/*
+			Falling 1
+			*/
+			else if(state == 21){
+				ushort below = GetCodeBelow(thisPos, cl);
+				ushort belowState = GetStateBelow(thisPos, cl);
+				ushort above = GetCodeAbove(thisPos, cl);
+				ushort aboveState = GetStateAbove(thisPos, cl);
+
+				// If should die
+				if(above != this.waterCode || (above == this.waterCode && (aboveState != 2 && aboveState != 21 && !(aboveState >= 11 && aboveState <= 18)))){
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					return;					
+				}
+
+				// If should create new falling 1s
+				if(below == 0 || below == this.waterCode && ShouldStateOverpower(21, belowState) || IsWashable(below, cl)){
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+
+					// Should break washable block below
+					if(IsWashable(below, cl)){
+						if(below <= ushort.MaxValue/2)
+							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+						else
+							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+					}
+
+					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.waterCode);
+					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
+					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					return;							
+				}
+			}
 		}
 	}
 
