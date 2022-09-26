@@ -33,6 +33,7 @@ Material:
   - _DISABLE_SSR_TRANSPARENT
   - _DOUBLESIDED_ON
   - _ENABLE_FOG_ON_TRANSPARENT
+  - _REFRACTION_PLANE
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords: []
   m_LightmapFlags: 1
@@ -109,6 +110,7 @@ Material:
     - _AlphaToMask: 0
     - _AlphaToMaskInspectorValue: 0
     - _BlendMode: 0
+    - _BorderLimit: 0.3
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 0
     - _CullModeForward: 0
@@ -128,9 +130,11 @@ Material:
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
+    - _RefractionDistance: 2.32
     - _RefractionGradientScale: 1
     - _RefractionLOD: 1
-    - _RefractionModel: 0
+    - _RefractionModel: 1
+    - _RefractionThickness: 1
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0
     - _SrcBlend: 1
@@ -172,6 +176,7 @@ Material:
     - Vector2_A6922FD5: {r: 0.1, g: 0.076, b: 0, a: 0}
     - _DoubleSidedConstants: {r: -1, g: -1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RefractionColor: {r: 1, g: 1, b: 1, a: 0}
     - _VertexTiling: {r: 16, g: 16, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &1484091025811958356
