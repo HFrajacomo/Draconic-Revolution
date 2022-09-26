@@ -129,27 +129,32 @@ public class Water_Block : Blocks
 		this.cameFromDir.Add(18, 3);
 
 		// Adds to CameFromState dict
-		this.cameFromState.Add(3, new HashSet<ushort>(){0});
-		this.cameFromState.Add(4, new HashSet<ushort>(){0});
-		this.cameFromState.Add(5, new HashSet<ushort>(){0});
-		this.cameFromState.Add(6, new HashSet<ushort>(){0});
-		this.cameFromState.Add(7, new HashSet<ushort>(){0});
-		this.cameFromState.Add(8, new HashSet<ushort>(){0});
-		this.cameFromState.Add(9, new HashSet<ushort>(){0});
-		this.cameFromState.Add(10, new HashSet<ushort>(){0});
-		this.cameFromState.Add(11, new HashSet<ushort>(){10,3,4});
-		this.cameFromState.Add(12, new HashSet<ushort>(){4});
-		this.cameFromState.Add(13, new HashSet<ushort>(){4,5,6});
-		this.cameFromState.Add(14, new HashSet<ushort>(){6});
-		this.cameFromState.Add(15, new HashSet<ushort>(){6,7,8});
-		this.cameFromState.Add(16, new HashSet<ushort>(){8});
-		this.cameFromState.Add(17, new HashSet<ushort>(){8,9,10});
-		this.cameFromState.Add(18, new HashSet<ushort>(){10});
+		this.cameFromState.Add(3, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(4, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(5, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(6, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(7, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(8, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(9, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(10, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(11, new HashSet<ushort>(){10,3,4,20,1});
+		this.cameFromState.Add(12, new HashSet<ushort>(){4,20,1});
+		this.cameFromState.Add(13, new HashSet<ushort>(){4,5,6,20,1});
+		this.cameFromState.Add(14, new HashSet<ushort>(){6,20,1});
+		this.cameFromState.Add(15, new HashSet<ushort>(){6,7,8,20,1});
+		this.cameFromState.Add(16, new HashSet<ushort>(){8,20,1});
+		this.cameFromState.Add(17, new HashSet<ushort>(){8,9,10,20,1});
+		this.cameFromState.Add(18, new HashSet<ushort>(){10,20,1});
 	}
 
 	// Custom Place operation with Raycasting class overwrite
 	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader_Server cl){
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
+
+		//DEBUG
+		if(facing >= 0)
+			cl.chunks[thisPos.GetChunkPos()].metadata.SetState(x,y,z,1); 
+
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.PLACE, pos, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, this.waterCode, cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ), cl.chunks[thisPos.GetChunkPos()].metadata.GetHP(thisPos.blockX, thisPos.blockY, thisPos.blockZ));
 		
@@ -157,13 +162,15 @@ public class Water_Block : Blocks
 
 		// If has been placed by player
 		if(facing >= 0){
-			cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z);
+			//cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z); //DEBUG
+			cl.chunks[thisPos.GetChunkPos()].metadata.SetState(x,y,z,1); //DEBUG
 			cl.server.SendToClients(thisPos.GetChunkPos(), message);
 			return 0;
 		}
 
 		this.Update(thisPos, BUDCode.CHANGE, -1, cl);
 		cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
+		EmitWaterBUD(thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), cl);
 		return 0;
 	}
 
@@ -198,6 +205,8 @@ public class Water_Block : Blocks
 			if(state == 0){
 				ushort below = GetCodeBelow(thisPos, cl);
 				ushort belowState = GetStateBelow(thisPos, cl);
+				GetCodeAround(myX, myY, myZ, cl);
+				GetStateAround(myX, myY, myZ, cl);
 
 				// If is out of Y bounds
 				if(below == (ushort)(ushort.MaxValue/2))
@@ -241,9 +250,6 @@ public class Water_Block : Blocks
 				}
 				// Normal Behaviour
 				else{
-					GetCodeAround(myX, myY, myZ, cl);
-					GetStateAround(myX, myY, myZ, cl);
-
 					bool found;
 					ushort targetState = 0;
 
@@ -286,6 +292,109 @@ public class Water_Block : Blocks
 			}
 
 			/*
+			Still Level 2
+			*/
+			else if(state == 1){
+				ushort below = GetCodeBelow(thisPos, cl);
+				ushort belowState = GetStateBelow(thisPos, cl);
+				GetCodeAround(myX, myY, myZ, cl);
+				GetStateAround(myX, myY, myZ, cl);
+
+				// If is out of Y bounds
+				if(below == (ushort)(ushort.MaxValue/2))
+					return;
+
+				// If should upgrade to Still Level 3
+				if(below == this.waterCode && belowState == 1){
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.waterCode);
+					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
+					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);					
+					return;
+				}
+
+				// If should expand downwards
+				if(below == 0 || (below == this.waterCode && ShouldStateOverpower(state, belowState)) || IsWashable(below, cl)){
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+
+					// If there are at least one adjascent Still Water 2 -> Expand falling blocks
+					if(GetSameLevelAroundCount(myX, myY, myZ, 2, cl) > 0){
+						// Should break washable block below
+						if(IsWashable(below, cl)){
+							if(below <= ushort.MaxValue/2)
+								cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							else
+								cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+						}
+
+						cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.waterCode);
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+						return;
+					}
+					// If this block is a lone water one -> Fall by itself
+					else{
+						// Should break washable block below
+						if(IsWashable(below, cl)){
+							if(below <= ushort.MaxValue/2)
+								cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							else
+								cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+						}
+
+						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+						cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.waterCode);
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+						return;
+					}
+				}
+				// Normal Behaviour
+				else{
+					bool found;
+					ushort targetState = 0;
+
+					for(int i=0; i < 8; i+=2){
+						found = false;
+						GetDirectionPos(myX, myY, myZ, i);
+						targetState = GetNewState(state, i);
+
+						// If is air
+						if(this.aroundCodes[i] == 0){
+							found = true;
+						}
+						// If is washable
+						else if(IsWashable(this.aroundCodes[i], cl)){
+							found = true;
+
+							if(this.aroundCodes[i] <= ushort.MaxValue/2)
+								cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							else
+								cl.blockBook.objects[ushort.MaxValue - this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+						}
+						// If is water
+						else if(this.aroundCodes[i] == waterCode && ShouldStateOverpower(targetState, this.aroundStates[i])){
+							if(targetState != ushort.MaxValue)
+								found = true;
+						}
+
+
+						// Found cases
+						if(found){
+							GetDirectionPos(myX, myY, myZ, i);
+							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
+							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+						}
+
+					}
+
+				}
+			}			
+
+			/*
 			Directional Adjascent Level 2
 			*/
 			else if(state >= 3 && state <= 9 && state%2 == 1){
@@ -295,7 +404,7 @@ public class Water_Block : Blocks
 				GetStateAround(myX, myY, myZ, cl);
 
 				// Dies if no Still Level 3 around
-				if(this.aroundCodes[cameFromDir[state]] != waterCode || this.aroundStates[cameFromDir[state]] != 0){
+				if(this.aroundCodes[cameFromDir[state]] != waterCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 					return;
 				}
@@ -383,7 +492,7 @@ public class Water_Block : Blocks
 				GetStateAround(myX, myY, myZ, cl);
 
 				// Dies if no Still Level 3 around
-				if(this.aroundCodes[cameFromDir[state]] != waterCode || this.aroundStates[cameFromDir[state]] != 0){
+				if(this.aroundCodes[cameFromDir[state]] != waterCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 					return;
 				}
@@ -463,6 +572,14 @@ public class Water_Block : Blocks
 				// Dies if no Level 2 around
 				if(this.aroundCodes[cameFromDir[state]] != waterCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					return;
+				}
+
+				// If should upgrade to Still Level 2
+				if(GetSameLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
+					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, this.waterCode);
+					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
+					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
 					return;
 				}
 
@@ -575,6 +692,9 @@ public class Water_Block : Blocks
 		if(state == 0){
 			return (ushort)(3 + dir);
 		}
+		if(state == 1){
+			return (ushort)(11 + dir);
+		}
 		else if(state == 3){
 			switch(dir){
 				case 6:
@@ -681,15 +801,6 @@ public class Water_Block : Blocks
 		}
 
 		return ushort.MaxValue;
-	}
-
-	// Check if is upgradable
-	private bool IsUpgradeable(ushort currentWaterLevel, ushort targetState){
-		if(currentWaterLevel == 3 && targetState >= 3 && targetState <= 10 && targetState%2 == 1)
-			return true;
-		else if(currentWaterLevel == 2 && targetState >= 11 && targetState <= 18 && targetState%2 == 1)
-			return true;
-		return false;
 	}
 
 	// Sets the CachedPos to the coord of the direction given
