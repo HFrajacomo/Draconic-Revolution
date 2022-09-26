@@ -138,13 +138,13 @@ public class Water_Block : Blocks
 		this.cameFromState.Add(9, new HashSet<ushort>(){0,19});
 		this.cameFromState.Add(10, new HashSet<ushort>(){0,19});
 		this.cameFromState.Add(11, new HashSet<ushort>(){10,3,4,20,1});
-		this.cameFromState.Add(12, new HashSet<ushort>(){4,20,1});
+		this.cameFromState.Add(12, new HashSet<ushort>(){4,5,20,1});
 		this.cameFromState.Add(13, new HashSet<ushort>(){4,5,6,20,1});
-		this.cameFromState.Add(14, new HashSet<ushort>(){6,20,1});
+		this.cameFromState.Add(14, new HashSet<ushort>(){5,6,20,1});
 		this.cameFromState.Add(15, new HashSet<ushort>(){6,7,8,20,1});
-		this.cameFromState.Add(16, new HashSet<ushort>(){8,20,1});
+		this.cameFromState.Add(16, new HashSet<ushort>(){8,9,20,1});
 		this.cameFromState.Add(17, new HashSet<ushort>(){8,9,10,20,1});
-		this.cameFromState.Add(18, new HashSet<ushort>(){10,20,1});
+		this.cameFromState.Add(18, new HashSet<ushort>(){9,10,20,1});
 	}
 
 	// Custom Place operation with Raycasting class overwrite

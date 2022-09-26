@@ -844,6 +844,8 @@ public class Server
 		else
 			callback = this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnInteract(pos, current.blockX, current.blockY, current.blockZ, this.cl);
 
+		Debug.Log("state: " + this.cl.chunks[pos].metadata.GetState(current.blockX, current.blockY, current.blockZ));
+
 		// Actual handling of message
 		CallbackHandler(callback, pos, current, facing);		
 	}
