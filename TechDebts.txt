@@ -1,6 +1,6 @@
 Tech Debts:
 
-Fix water propagation on diagonals
+Fix Water rendering and shader
 Better manage Chunkloader's heavy operations
 Tweak ground emission to be darker
 Tweak moonlight to be dimmer
