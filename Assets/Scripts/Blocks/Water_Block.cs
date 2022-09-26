@@ -150,10 +150,6 @@ public class Water_Block : Blocks
 	// Custom Place operation with Raycasting class overwrite
 	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader_Server cl){
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
-
-		if(facing >= 0)
-			cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
-
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.PLACE, pos, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, this.waterCode, cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ), cl.chunks[thisPos.GetChunkPos()].metadata.GetHP(thisPos.blockX, thisPos.blockY, thisPos.blockZ));
 		
@@ -161,8 +157,7 @@ public class Water_Block : Blocks
 
 		// If has been placed by player
 		if(facing >= 0){
-			//cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z);
-			cl.chunks[thisPos.GetChunkPos()].metadata.SetState(x,y,z,1);
+			cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z);
 			cl.server.SendToClients(thisPos.GetChunkPos(), message);
 			return 0;
 		}
@@ -206,6 +201,9 @@ public class Water_Block : Blocks
 				ushort belowState = GetStateBelow(thisPos, cl);
 				GetCodeAround(myX, myY, myZ, cl);
 				GetStateAround(myX, myY, myZ, cl);
+
+				if(IsOutOfBounds())
+					return;
 
 				// If is out of Y bounds
 				if(below == (ushort)(ushort.MaxValue/2))
@@ -298,6 +296,9 @@ public class Water_Block : Blocks
 				ushort belowState = GetStateBelow(thisPos, cl);
 				GetCodeAround(myX, myY, myZ, cl);
 				GetStateAround(myX, myY, myZ, cl);
+
+				if(IsOutOfBounds())
+					return;
 
 				// If is out of Y bounds
 				if(below == (ushort)(ushort.MaxValue/2))
@@ -402,6 +403,9 @@ public class Water_Block : Blocks
 				GetCodeAround(myX, myY, myZ, cl);
 				GetStateAround(myX, myY, myZ, cl);
 
+				if(IsOutOfBounds())
+					return;
+
 				// If is out of Y bounds
 				if(below == (ushort)(ushort.MaxValue/2))
 					return;
@@ -453,6 +457,9 @@ public class Water_Block : Blocks
 				ushort belowState = GetStateBelow(thisPos, cl);
 				GetCodeAround(myX, myY, myZ, cl);
 				GetStateAround(myX, myY, myZ, cl);
+
+				if(IsOutOfBounds())
+					return;
 
 				// Dies if no Still Level 3 around
 				if(this.aroundCodes[cameFromDir[state]] != waterCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
@@ -545,6 +552,9 @@ public class Water_Block : Blocks
 				GetCodeAround(myX, myY, myZ, cl);
 				GetStateAround(myX, myY, myZ, cl);
 
+				if(IsOutOfBounds())
+					return;
+
 				// Dies if no Still Level 3 around
 				if(this.aroundCodes[cameFromDir[state]] != waterCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
@@ -625,6 +635,9 @@ public class Water_Block : Blocks
 				ushort belowState = GetStateBelow(thisPos, cl);
 				GetCodeAround(myX, myY, myZ, cl);
 				GetStateAround(myX, myY, myZ, cl);
+
+				if(IsOutOfBounds())
+					return;
 
 				// Dies if no Level 2 around
 				if(this.aroundCodes[cameFromDir[state]] != waterCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
@@ -715,6 +728,9 @@ public class Water_Block : Blocks
 				GetCodeAround(myX, myY, myZ, cl);
 				GetStateAround(myX, myY, myZ, cl);
 
+				if(IsOutOfBounds())
+					return;
+
 				// Dies if no Level 2 around
 				if(this.aroundCodes[cameFromDir[state]] != waterCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
@@ -789,6 +805,9 @@ public class Water_Block : Blocks
 
 				GetCodeAround(myX, myY, myZ, cl);
 				GetStateAround(myX, myY, myZ, cl);
+
+				if(IsOutOfBounds())
+					return;
 
 				for(int i=0; i < 8; i+=2){
 					found = false;
@@ -867,6 +886,9 @@ public class Water_Block : Blocks
 
 				GetCodeAround(myX, myY, myZ, cl);
 				GetStateAround(myX, myY, myZ, cl);
+
+				if(IsOutOfBounds())
+					return;
 
 				for(int i=0; i < 8; i+=2){
 					found = false;
@@ -1408,6 +1430,17 @@ public class Water_Block : Blocks
 		else{
 			return new Vector3(myX, myY, myZ);
 		}
+	}
+
+	// Checks if Water Update is out of bounds
+	// Run this after running GetCodeAround()
+	private bool IsOutOfBounds(){
+		for(int i=0; i < 8; i++){
+			if(this.aroundCodes[i] == ushort.MaxValue/2)
+				return true;
+		}
+
+		return false;
 	}
 
 	// Checks if a state is a corner block
