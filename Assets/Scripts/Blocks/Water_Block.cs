@@ -819,6 +819,84 @@ public class Water_Block : Blocks
 					}
 				}
 			}
+
+			/*
+			Falling 2
+			*/
+			else if(state == 20){
+				ushort below = GetCodeBelow(thisPos, cl);
+				ushort belowState = GetStateBelow(thisPos, cl);
+				ushort above = GetCodeAbove(thisPos, cl);
+				ushort aboveState = GetStateAbove(thisPos, cl);
+
+				// If should die
+				if(above != this.waterCode || (above == this.waterCode && (aboveState != 1 && aboveState != 20 && !(aboveState >= 3 && aboveState <= 10)))){
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					return;					
+				}
+
+				// If should create new falling 2s
+				if(below == 0 || below == this.waterCode && ShouldStateOverpower(20, belowState) || IsWashable(below, cl)){
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
+
+					// Should break washable block below
+					if(IsWashable(below, cl)){
+						if(below <= ushort.MaxValue/2)
+							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+						else
+							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+					}
+
+					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.waterCode);
+					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
+					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					return;							
+				}
+
+				// If is pivot to falling block
+				if(below == this.waterCode && above == this.waterCode) {return;}
+
+				// Normal Behaviour	
+				bool found;
+				ushort targetState = 0;
+
+				GetCodeAround(myX, myY, myZ, cl);
+				GetStateAround(myX, myY, myZ, cl);
+
+				for(int i=0; i < 8; i+=2){
+					found = false;
+					GetDirectionPos(myX, myY, myZ, i);
+					targetState = GetNewState(state, i);
+
+					// If is air
+					if(this.aroundCodes[i] == 0){
+						found = true;
+					}
+					// If is washable
+					else if(IsWashable(this.aroundCodes[i], cl)){
+						found = true;
+
+						if(this.aroundCodes[i] <= ushort.MaxValue/2)
+							cl.blockBook.blocks[this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+						else
+							cl.blockBook.objects[ushort.MaxValue - this.aroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+					}
+					// If is water
+					else if(this.aroundCodes[i] == waterCode && ShouldStateOverpower(targetState, this.aroundStates[i])){
+						if(targetState != ushort.MaxValue)
+							found = true;
+					}
+
+
+					// Found cases
+					if(found){
+						GetDirectionPos(myX, myY, myZ, i);
+						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.waterCode);
+						cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
+					}
+				}
+			}
 		}
 	}
 
