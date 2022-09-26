@@ -150,6 +150,10 @@ public class Water_Block : Blocks
 	// Custom Place operation with Raycasting class overwrite
 	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader_Server cl){
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
+
+		if(facing >= 0)
+			cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
+
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.PLACE, pos, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, this.waterCode, cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ), cl.chunks[thisPos.GetChunkPos()].metadata.GetHP(thisPos.blockX, thisPos.blockY, thisPos.blockZ));
 		
@@ -157,7 +161,8 @@ public class Water_Block : Blocks
 
 		// If has been placed by player
 		if(facing >= 0){
-			cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z);
+			//cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z);
+			cl.chunks[thisPos.GetChunkPos()].metadata.SetState(x,y,z,1);
 			cl.server.SendToClients(thisPos.GetChunkPos(), message);
 			return 0;
 		}
@@ -1348,14 +1353,8 @@ public class Water_Block : Blocks
 
 	// Emits BUD Signal to Water Blocks around this one
 	private void EmitWaterBUD(int myX, int myY, int myZ, ChunkLoader_Server cl){
-		// Diagonals
-		for(int i=1; i<8; i+=2){
-			if(this.aroundCodes[i] == this.waterCode){
-				cachedCoord = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
-				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
-				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);
-			}
-		}
+		GetCodeAround(myX, myY, myZ, cl);
+
 		// Adjascents
 		for(int i=0; i<8; i+=2){
 			if(this.aroundCodes[i] == this.waterCode){
