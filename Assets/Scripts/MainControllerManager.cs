@@ -83,11 +83,11 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnPrefabRead(){
-        //prefabRead = true;
+        prefabRead = true;
     }
 
     public void OnPrefabReadAir(){
-        //prefabReadAir = true;
+        prefabReadAir = true;
     }
 
     public void OnToggleFreeCam(){

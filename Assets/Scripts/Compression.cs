@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 using System.Collections;
@@ -420,6 +421,31 @@ public static class Compression{
 		}
 
 		return output;
+	}
+
+	// Formats and compresses structure input from PreRead operation
+	public static string FormatPrereadInformation(string st){
+		StringBuilder sb = new StringBuilder();
+
+		List<ushort> outputList = new List<ushort>();
+		string[] splitted = st.Replace("{", "").Replace("}", "").Split(",");
+
+		foreach(string s in splitted){
+			if(s != "")
+				outputList.Add((ushort)Convert.ToInt16(s));
+		}
+
+		ushort[] compressedOutput = Compression.CompressStructureBlocks(outputList.ToArray());
+
+		sb.Append("{");
+		for(int i=0; i < compressedOutput.Length; i++){
+			sb.Append(compressedOutput[i]);
+			if(i != compressedOutput.Length-1)
+				sb.Append(",");
+		}
+		sb.Append("}");
+
+		return sb.ToString();
 	}
 
 
