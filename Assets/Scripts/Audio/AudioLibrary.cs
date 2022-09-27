@@ -16,9 +16,9 @@ public static class AudioLibrary
         {AudioName.SNOW_PLAINS_SEA_SOFT, new Sound(AudioName.SNOW_PLAINS_SEA_SOFT, AudioUsecase.MUSIC_CLIP, "SnowSea", "snow_plains_sea_soft.ogg")},
         {AudioName.SNOW_PLAINS_SEA_MID, new Sound(AudioName.SNOW_PLAINS_SEA_MID, AudioUsecase.MUSIC_CLIP, "SnowSea", "snow_plains_sea_mid.ogg")},
         {AudioName.SNOW_PLAINS_SEA_HEAVY, new Sound(AudioName.SNOW_PLAINS_SEA_HEAVY, AudioUsecase.MUSIC_CLIP, "SnowSea", "snow_plains_sea_heavy.ogg")},
-        {AudioName.SNOW_MONTAINS_SOFT, new Sound(AudioName.SNOW_MONTAINS_SOFT, AudioUsecase.MUSIC_CLIP, "SnowMontains", "snow_montains_soft.ogg")},
-        {AudioName.SNOW_MONTAINS_MID, new Sound(AudioName.SNOW_MONTAINS_MID, AudioUsecase.MUSIC_CLIP, "SnowMontains", "snow_montains_mid.ogg")},
-        {AudioName.SNOW_MONTAINS_HEAVY, new Sound(AudioName.SNOW_MONTAINS_HEAVY, AudioUsecase.MUSIC_CLIP, "SnowMontains", "snow_montains_heavy.ogg")}
+        {AudioName.SNOW_MONTAINS_SOFT, new Sound(AudioName.SNOW_MONTAINS_SOFT, AudioUsecase.MUSIC_CLIP, "SnowMontains", "snow_mountains_soft.ogg")},
+        {AudioName.SNOW_MONTAINS_MID, new Sound(AudioName.SNOW_MONTAINS_MID, AudioUsecase.MUSIC_CLIP, "SnowMontains", "snow_mountains_mid.ogg")},
+        {AudioName.SNOW_MONTAINS_HEAVY, new Sound(AudioName.SNOW_MONTAINS_HEAVY, AudioUsecase.MUSIC_CLIP, "SnowMontains", "snow_mountains_heavy.ogg")}
     };
 
     private static Dictionary<AudioName, DynamicMusic> dynamicMusic = new Dictionary<AudioName, DynamicMusic>(){
@@ -35,8 +35,8 @@ public static class AudioLibrary
 
     private static Dictionary<string, AudioName> biomeMusic = new Dictionary<string, AudioName>(){
         {"Ice Ocean", AudioName.SNOW_PLAINS_SEA_GROUP},
-        {"Snowy Plains", AudioName.SNOW_PLAINS_SEA_GROUP}
-        //{"Snowy Montains", AudioName.SNOW_MONTAINS_GROUP}
+        {"Snowy Plains", AudioName.SNOW_PLAINS_SEA_GROUP},
+        {"Snowy Highlands", AudioName.SNOW_MONTAINS_GROUP}
     };
 
 
