@@ -12768,11 +12768,11 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 0
   stopNaNs: 0
-  taaSharpenStrength: 0.6
+  taaSharpenStrength: 1
   TAAQuality: 2
-  taaHistorySharpening: 0.35
-  taaAntiFlicker: 0.5
-  taaMotionVectorRejection: 0
+  taaHistorySharpening: 0
+  taaAntiFlicker: 1
+  taaMotionVectorRejection: 0.2
   taaAntiHistoryRinging: 0
   taaBaseBlendFactor: 0.875
   physicalParameters:
