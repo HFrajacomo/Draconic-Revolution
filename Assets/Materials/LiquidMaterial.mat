@@ -173,7 +173,7 @@ Material:
     - Color_9412C8D4: {r: 0.06341218, g: 0.34635195, b: 0.5377357, a: 0.74509805}
     - SecondaryColor: {r: 0.1344889, g: 0.2953211, b: 0.341075, a: 0}
     - Vector2_826BAFAC: {r: -0.037, g: -0.093, b: 0, a: 0}
-    - Vector2_A6922FD5: {r: 0.1, g: 0.076, b: 0, a: 0}
+    - Vector2_A6922FD5: {r: 0.2, g: 0.076, b: 0, a: 0}
     - _DoubleSidedConstants: {r: -1, g: -1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _RefractionColor: {r: 1, g: 1, b: 1, a: 0}
