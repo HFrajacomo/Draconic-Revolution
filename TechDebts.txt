@@ -1,8 +1,6 @@
 Tech Debts:
 
-Better manage Chunkloader's heavy operations
-Tweak ground emission to be darker
-Tweak moonlight to be dimmer
+Make compression tools for structures
 Assign voxel lighting to shaders other than Ground and Objects
 Assign voxel lighting to Objects
 Fix Voxel Lighting at some edges
