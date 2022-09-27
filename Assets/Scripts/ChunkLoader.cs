@@ -306,50 +306,40 @@ public class ChunkLoader : MonoBehaviour
     // Loads the chunk into the Chunkloader
     private void LoadChunk(){
         if(toLoad.Count > 0){
-            int min;
+            byte[] data = toLoad[0];
 
-            // Sets the current iteration amount
-            if(3 <= toLoad.Count)
-                min = 3;
-            else
-                min = toLoad.Count;
+            int headerSize = RegionFileHandler.chunkHeaderSize;
 
-            for(int i=0; i < min; i++){
-                byte[] data = toLoad[0];
+            ChunkPos cp = NetDecoder.ReadChunkPos(data, 1);
 
-                int headerSize = RegionFileHandler.chunkHeaderSize;
-
-                ChunkPos cp = NetDecoder.ReadChunkPos(data, 1);
-
-                // Prevention
-                if(this.chunks.ContainsKey(cp)){
-                    this.chunks[cp].Destroy();
-                    this.chunks.Remove(cp);
-                }
-
-
-                int blockDataSize = NetDecoder.ReadInt(data, 9);
-                int hpDataSize = NetDecoder.ReadInt(data, 13);
-                int stateDataSize = NetDecoder.ReadInt(data, 17);
-
-                this.chunks[cp] = new Chunk(cp, this.rend, this.blockBook, this);
-                this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[21]);
-
-                Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:21+headerSize);
-                Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
-                Compression.DecompressMetadataStateClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize+hpDataSize);
-
-                if(this.vfx.data.ContainsKey(cp))
-                    this.vfx.RemoveChunk(cp);
-                    
-                this.vfx.NewChunk(cp);
-
-                if(!this.toDraw.Contains(cp))
-                    this.toDraw.Add(cp);
-
-                toLoad.RemoveAt(0);
-                toLoadChunk.RemoveAt(0);        
+            // Prevention
+            if(this.chunks.ContainsKey(cp)){
+                this.chunks[cp].Destroy();
+                this.chunks.Remove(cp);
             }
+
+
+            int blockDataSize = NetDecoder.ReadInt(data, 9);
+            int hpDataSize = NetDecoder.ReadInt(data, 13);
+            int stateDataSize = NetDecoder.ReadInt(data, 17);
+
+            this.chunks[cp] = new Chunk(cp, this.rend, this.blockBook, this);
+            this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[21]);
+
+            Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:21+headerSize);
+            Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
+            Compression.DecompressMetadataStateClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize+hpDataSize);
+
+            if(this.vfx.data.ContainsKey(cp))
+                this.vfx.RemoveChunk(cp);
+                
+            this.vfx.NewChunk(cp);
+
+            if(!this.toDraw.Contains(cp))
+                this.toDraw.Add(cp);
+
+            toLoad.RemoveAt(0);
+            toLoadChunk.RemoveAt(0);        
         }
     }
 
@@ -413,61 +403,49 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // toREDRAW
-        for(int i=0; i < 2; i++){
-            if(toRedraw.Count > 0){
-                if(toDraw.Contains(toRedraw[0])){
-                    toRedraw.Add(toRedraw[0]);
-                    toRedraw.RemoveAt(0);
-                    continue;
-                }
-
-                if(chunks.ContainsKey(toRedraw[0])){
-                    if(chunks[toRedraw[0]].drawMain){
-                        // If hasn't been drawn entirely, put on Redraw again
-                        if(!chunks[toRedraw[0]].BuildSideBorder(reload:true, loadBUD:true)){
-                            toRedraw.Add(toRedraw[0]);
-                        }
-                        else{
-                            if(this.WORLD_GENERATED)
-                                this.vfx.UpdateLights(toRedraw[0]);
-                        }
-                    }
-                    else{
-                        toRedraw.Add(toRedraw[0]);
-                    }
-                }
+        if(toRedraw.Count > 0){
+            if(toDraw.Contains(toRedraw[0])){
+                toRedraw.Add(toRedraw[0]);
                 toRedraw.RemoveAt(0);
             }
+
+            if(chunks.ContainsKey(toRedraw[0])){
+                if(chunks[toRedraw[0]].drawMain){
+                    // If hasn't been drawn entirely, put on Redraw again
+                    if(!chunks[toRedraw[0]].BuildSideBorder(reload:true, loadBUD:true)){
+                        toRedraw.Add(toRedraw[0]);
+                    }
+                    else{
+                        if(this.WORLD_GENERATED)
+                            this.vfx.UpdateLights(toRedraw[0]);
+                    }
+                }
+                else{
+                    toRedraw.Add(toRedraw[0]);
+                }
+            }
+            toRedraw.RemoveAt(0);
         }
     }
 
     // Reload a chunk in toUpdate
     private void UpdateChunk(){
-        int min;
-
         // Gets the minimum operational value
-        if(2 < toUpdate.Count)
-            min = 2;
-        else
-            min = toUpdate.Count;
-
         if(toUpdate.Count > 0){
-            for(int i=0; i<min; i++){
-                if(this.chunks.ContainsKey(toUpdate[0])){
-                    chunks[toUpdate[0]].data.CalculateLightMap();
-                    CheckLightPropagation(toUpdate[0]);
+            if(this.chunks.ContainsKey(toUpdate[0])){
+                chunks[toUpdate[0]].data.CalculateLightMap();
+                CheckLightPropagation(toUpdate[0]);
 
-                    chunks[toUpdate[0]].BuildChunk();
+                chunks[toUpdate[0]].BuildChunk();
 
-                    if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
-                        toRedraw.Add(toUpdate[0]);
-                    else{ 
-                        if(this.WORLD_GENERATED)
-                            this.vfx.UpdateLights(toUpdate[0]);
-                    }
+                if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
+                    toRedraw.Add(toUpdate[0]);
+                else{ 
+                    if(this.WORLD_GENERATED)
+                        this.vfx.UpdateLights(toUpdate[0]);
                 }
-                toUpdate.RemoveAt(0);
             }
+            toUpdate.RemoveAt(0);
         }
 
         if(toUpdateNoLight.Count > 0){
