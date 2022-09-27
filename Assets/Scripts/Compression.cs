@@ -301,8 +301,6 @@ public static class Compression{
 				sb.Append(output[i]);
 				if(i != output.Length-1)
 					sb.Append(",");
-				else
-					sb.Append(";");
 			}
 
 			Debug.Log(sb.ToString());
@@ -436,8 +434,6 @@ public static class Compression{
 				return Pallete.OCEAN;
 			case "Forest":
 				return Pallete.FOREST;
-			case "Structure":
-				return Pallete.STRUCTUREBLOCKS;
 			default:
 				return Pallete.BASIC;
 		}
@@ -458,8 +454,9 @@ public static class Compression{
 			case Pallete.FOREST:
 				return new List<ushort>{0,2,3,6,7, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone, Water and Leaves (and pregen air)
 
+			// Special Pallete used for Structure blocks Compression
 			case Pallete.STRUCTUREBLOCKS:
-				return new List<ushort>{0,1,2,3,6,7}; // Air, Grass, Dirt, Stone, Water and Leaves
+				return new List<ushort>{0,1,2,3,5,6,7}; // Air, Grass, Dirt, Stone, Metal, Water and Leaves
 
 			// Special Pallete used for Metadata Compression
 			case Pallete.METADATA:

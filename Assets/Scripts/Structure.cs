@@ -24,6 +24,11 @@ public abstract class Structure
     public int sizeX, sizeY, sizeZ;
     public int offsetX, offsetZ;
 
+    // Cache
+    private ushort[] decompressedBlocks;
+    private ushort[] decompressedHP;
+    private ushort[] decompressedState;
+
     /*
     0: OverwriteAll
     1: FreeSpace
@@ -79,12 +84,16 @@ public abstract class Structure
     public virtual void Prepare(ushort[] data, ushort[] hp, ushort[] state){
         int i=0;
 
+        decompressedBlocks = Compression.DecompressStructureBlocks(data);
+        decompressedHP = Compression.DecompressStructureMetadata(hp);
+        decompressedState = Compression.DecompressStructureMetadata(state);
+
         for(int y=0; y < this.sizeY; y++){
             for(int x=0; x < this.sizeX; x++){
                 for(int z=0; z < this.sizeZ; z++){
-                    this.blockdata[x*sizeZ*sizeY+y*sizeZ+z] = data[i];
-                    this.meta.SetHP(x,y,z, hp[i]);
-                    this.meta.SetState(x,y,z, state[i]);
+                    this.blockdata[x*sizeZ*sizeY+y*sizeZ+z] = decompressedBlocks[i];
+                    this.meta.SetHP(x,y,z, decompressedHP[i]);
+                    this.meta.SetState(x,y,z, decompressedState[i]);
 
                     i++;
                 }
