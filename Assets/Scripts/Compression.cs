@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -269,6 +270,161 @@ public static class Compression{
 		pallete.Dispose();
 	}
 
+	// Compresses blocks in Structures array
+	public static ushort[] CompressStructureBlocks(ushort[] uncompressedBlocks, bool printOut=false){
+		StringBuilder sb = new StringBuilder();
+
+		List<ushort> palleteList = Compression.GetPallete(Pallete.STRUCTUREBLOCKS);
+		NativeArray<ushort> palleteArray = NativeTools.CopyToNative(palleteList.ToArray());
+
+		NativeList<ushort> outputData = new NativeList<ushort>(0, Allocator.TempJob);
+		NativeArray<ushort> inputData = NativeTools.CopyToNative(uncompressedBlocks);
+
+		CompressStructJob cbJob = new CompressStructJob{
+			inputData = inputData,
+			outputData = outputData,
+			palleteArray = palleteArray,
+		};
+
+		JobHandle handle = cbJob.Schedule();
+		handle.Complete();
+
+		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData);
+
+		inputData.Dispose();
+		outputData.Dispose();
+		palleteArray.Dispose();
+
+
+		if(printOut){
+			for(int i=0; i < output.Length; i++){
+				sb.Append(output[i]);
+				if(i != output.Length-1)
+					sb.Append(",");
+				else
+					sb.Append(";");
+			}
+
+			Debug.Log(sb.ToString());
+		}
+
+		return output;
+	}
+
+	// Decompresses blocks in Structures array
+	public static ushort[] DecompressStructureBlocks(ushort[] compressedBlocks, bool printOut=false){
+		StringBuilder sb = new StringBuilder();
+
+		List<ushort> palleteList = Compression.GetPallete(Pallete.STRUCTUREBLOCKS);
+
+		NativeList<ushort> outputData = new NativeList<ushort>(0, Allocator.TempJob);
+		NativeArray<ushort> inputData = NativeTools.CopyToNative(compressedBlocks);
+		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
+
+		DecompressStructJob dbJob = new DecompressStructJob{
+			outputData = outputData,
+			inputData = inputData,
+			palleteArray = pallete
+		};
+		JobHandle job = dbJob.Schedule();
+		job.Complete();
+
+		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData);
+
+		outputData.Dispose();
+		inputData.Dispose();
+		pallete.Dispose();
+
+		if(printOut){
+			for(int i=0; i < output.Length; i++){
+				sb.Append(output[i]);
+				if(i != output.Length-1)
+					sb.Append(",");
+			}
+
+			Debug.Log(sb.ToString());
+		}
+
+		return output;
+	}
+
+	// Compresses either hp or state in Structures array
+	public static ushort[] CompressStructureMetadata(ushort[] uncompressedMeta, bool printOut=false){
+		StringBuilder sb = new StringBuilder();
+
+		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+		NativeArray<ushort> palleteArray = NativeTools.CopyToNative(palleteList.ToArray());
+
+		NativeList<ushort> outputData = new NativeList<ushort>(0, Allocator.TempJob);
+		NativeArray<ushort> inputData = NativeTools.CopyToNative(uncompressedMeta);
+
+		CompressStructJob cbJob = new CompressStructJob{
+			inputData = inputData,
+			outputData = outputData,
+			palleteArray = palleteArray,
+		};
+
+		JobHandle handle = cbJob.Schedule();
+		handle.Complete();
+
+		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData);
+
+		inputData.Dispose();
+		outputData.Dispose();
+		palleteArray.Dispose();
+
+
+		if(printOut){
+			for(int i=0; i < output.Length; i++){
+				sb.Append(output[i]);
+				if(i != output.Length-1)
+					sb.Append(",");
+			}
+
+			Debug.Log(sb.ToString());
+		}
+
+		return output;
+	}
+
+	// Decompresses metadata in Structures array
+	public static ushort[] DecompressStructureMetadata(ushort[] compressedMeta, bool printOut=false){
+		StringBuilder sb = new StringBuilder();
+
+		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+
+		NativeList<ushort> outputData = new NativeList<ushort>(0, Allocator.TempJob);
+		NativeArray<ushort> inputData = NativeTools.CopyToNative(compressedMeta);
+		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
+
+		DecompressStructJob dbJob = new DecompressStructJob{
+			outputData = outputData,
+			inputData = inputData,
+			palleteArray = pallete
+		};
+		JobHandle job = dbJob.Schedule();
+		job.Complete();
+
+		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData);
+
+		outputData.Dispose();
+		inputData.Dispose();
+		pallete.Dispose();
+
+		if(printOut){
+			for(int i=0; i < output.Length; i++){
+				sb.Append(output[i]);
+				if(i != output.Length-1)
+					sb.Append(",");
+			}
+
+			Debug.Log(sb.ToString());
+		}
+
+		return output;
+	}
+
+
 	// Converts Chunk Biome to Pallete
 	private static Pallete BiomeToPallete(string biome){
 		switch(biome){
@@ -280,6 +436,8 @@ public static class Compression{
 				return Pallete.OCEAN;
 			case "Forest":
 				return Pallete.FOREST;
+			case "Structure":
+				return Pallete.STRUCTUREBLOCKS;
 			default:
 				return Pallete.BASIC;
 		}
@@ -299,6 +457,9 @@ public static class Compression{
 
 			case Pallete.FOREST:
 				return new List<ushort>{0,2,3,6,7, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone, Water and Leaves (and pregen air)
+
+			case Pallete.STRUCTUREBLOCKS:
+				return new List<ushort>{0,1,2,3,6,7}; // Air, Grass, Dirt, Stone, Water and Leaves
 
 			// Special Pallete used for Metadata Compression
 			case Pallete.METADATA:
@@ -336,6 +497,7 @@ public enum Pallete
 	GRASSLANDS,
 	OCEAN,
 	FOREST,
+	STRUCTUREBLOCKS,
 	METADATA
 }
 
@@ -489,6 +651,114 @@ public struct DecompressJob : IJob{
 	private bool Contains(ushort u){
 		for(int i=0; i < pallete.Length; i++){
 			if(pallete[i] == u)
+				return true;
+		}
+		return false;
+	}
+}
+
+
+[BurstCompile]
+public struct CompressStructJob : IJob{
+	[ReadOnly]
+	public NativeArray<ushort> inputData;
+	[ReadOnly]
+	public NativeArray<ushort> palleteArray;
+	public NativeList<ushort> outputData;
+
+	public void Execute(){
+		ushort blockCode;
+		ushort bufferedBlock = 0;
+		int bufferedCount = 0;
+		bool contains;
+
+		for(int i=0; i < inputData.Length; i++){
+			blockCode = inputData[i];
+			contains = Contains(blockCode);
+
+			// Case found block is not in Pallete and not buffered
+			if(!contains && bufferedCount == 0){
+				outputData.Add(blockCode);
+			}
+			// Case found block is not in Pallete and is buffered
+			else if(!contains){
+				outputData.Add(bufferedBlock);
+				outputData.Add((ushort)bufferedCount);
+				outputData.Add(blockCode);
+				bufferedCount = 0;
+			}
+			// Case found block is in Pallete and is the buffered block
+			else if(contains && bufferedBlock == blockCode && bufferedCount > 0){
+				bufferedCount++;
+			}
+			// Case found block is in Pallete and is buffered by another block
+			else if(contains && bufferedBlock != blockCode && bufferedCount > 0){
+				outputData.Add(bufferedBlock);
+				outputData.Add((ushort)bufferedCount);	
+				bufferedBlock = blockCode;
+				bufferedCount = 1;					
+			}
+			// General case of finding a palleted block that is not buffered
+			else{
+				bufferedBlock = blockCode;
+				bufferedCount = 1;
+			}
+	
+		}
+		// Writes to buffer if chunk ends on a buffered stream
+		if(bufferedCount > 0){
+			outputData.Add(bufferedBlock);
+			outputData.Add((ushort)bufferedCount);
+		}
+	}
+
+	// Checks if a element is in pallete
+	private bool Contains(ushort u){
+		for(int i=0; i < palleteArray.Length; i++){
+			if(palleteArray[i] == u)
+				return true;
+		}
+		return false;
+	}
+}
+
+
+[BurstCompile]
+public struct DecompressStructJob : IJob{
+	[ReadOnly]
+	public NativeArray<ushort> palleteArray;
+	[ReadOnly]
+	public NativeArray<ushort> inputData;
+	public NativeList<ushort> outputData;
+
+	public void Execute(){
+		ushort bufferedCount = 0;
+		ushort blockCode = 0;
+
+		// Block Data
+		for(int i=0; i < inputData.Length; i++){
+			blockCode = inputData[i];
+
+			// If code is contained in Pallete
+			if(Contains(blockCode)){
+				i++;
+				bufferedCount = inputData[i];
+
+				for(; bufferedCount > 0; bufferedCount--){
+					outputData.Add(blockCode);
+				}
+			}
+			else{
+				outputData.Add(blockCode);
+			}
+		}
+			
+	}
+
+	// Checks if a element is in pallete
+	private bool Contains(ushort u){
+		for(int i=0; i < palleteArray.Length; i++){
+			if(palleteArray[i] == u)
 				return true;
 		}
 		return false;

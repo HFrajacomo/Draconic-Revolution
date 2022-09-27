@@ -76,23 +76,15 @@ public abstract class Structure
 
 
     // Prepares array
-    public virtual void Prepare(ushort[] data, ushort?[] hp, ushort?[] state){
+    public virtual void Prepare(ushort[] data, ushort[] hp, ushort[] state){
         int i=0;
 
         for(int y=0; y < this.sizeY; y++){
             for(int x=0; x < this.sizeX; x++){
                 for(int z=0; z < this.sizeZ; z++){
                     this.blockdata[x*sizeZ*sizeY+y*sizeZ+z] = data[i];
-
-                    if(hp[i] != null)
-                        this.meta.SetHP(x,y,z, (ushort)hp[i]);
-                    else
-                        this.meta.SetHP(x,y,z, ushort.MaxValue);
-
-                    if(state[i] != null)
-                        this.meta.SetState(x,y,z, (ushort)state[i]);
-                    else
-                        this.meta.SetState(x,y,z, ushort.MaxValue);
+                    this.meta.SetHP(x,y,z, hp[i]);
+                    this.meta.SetState(x,y,z, state[i]);
 
                     i++;
                 }

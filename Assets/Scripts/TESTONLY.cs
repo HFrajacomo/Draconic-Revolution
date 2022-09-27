@@ -6,5 +6,6 @@ using Unity.Collections;
 
 public class TESTONLY : MonoBehaviour
 {   
-
+	public void Start(){
+	}
 }
