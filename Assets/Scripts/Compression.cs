@@ -460,6 +460,16 @@ public static class Compression{
 				return Pallete.OCEAN;
 			case "Forest":
 				return Pallete.FOREST;
+			case "Snowy Plains":
+				return Pallete.ICELANDS;
+			case "Snowy Highlands":
+				return Pallete.ICELANDS;
+			case "Ice Ocean":
+				return Pallete.ICELANDS;
+			case "Snow Forest":
+				return Pallete.ICELANDS;
+			case "Desert":
+				return Pallete.SANDLANDS;
 			default:
 				return Pallete.BASIC;
 		}
@@ -475,10 +485,16 @@ public static class Compression{
 				return new List<ushort>{0,1,2,3,6,7, (ushort)(ushort.MaxValue/2)}; // Air, Grass, Dirt, Stone, Water and Leaves (and pregen air)
 
 			case Pallete.OCEAN:
-				return new List<ushort>{0,2,3,6, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone and Water (and pregen air)
+				return new List<ushort>{0,2,3,6,8, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone and Water, Sand (and pregen air)
 
 			case Pallete.FOREST:
 				return new List<ushort>{0,2,3,6,7, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone, Water and Leaves (and pregen air)
+
+			case Pallete.ICELANDS:
+				return new List<ushort>{0,3,6,7,9,10, (ushort)(ushort.MaxValue/2)}; // Air, Stone, Water, Leaves, Snow and Ice (and pregen air)
+
+			case Pallete.SANDLANDS:
+				return new List<ushort>{0,3,6,8, (ushort)(ushort.MaxValue/2)}; // Air, Stone, Water and Sand (and pregen air)
 
 			// Special Pallete used for Structure blocks Compression
 			case Pallete.STRUCTUREBLOCKS:
@@ -520,6 +536,8 @@ public enum Pallete
 	GRASSLANDS,
 	OCEAN,
 	FOREST,
+	ICELANDS,
+	SANDLANDS,
 	STRUCTUREBLOCKS,
 	METADATA
 }

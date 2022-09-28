@@ -1,7 +1,5 @@
 Tech Debts:
 
-Make compression tools for structures
-Create Compression Palletes for new biomes
 Assign voxel lighting to shaders other than Ground and Objects
 Assign voxel lighting to Objects
 Fix Voxel Lighting at some edges
