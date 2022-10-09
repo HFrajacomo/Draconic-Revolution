@@ -56,7 +56,7 @@ public abstract class Item
 	ADD TO THIS LIST EVERYTIME A NEW ITEM IS ADDED
 	*/
 	public static Item GenerateItem(ushort code){
-		ItemID codeID = (ItemID)code; // DEBUG ItemID.Parse(typeof(ItemID), code.ToString());
+		ItemID codeID = (ItemID)code;
 
 		switch(codeID){
 			case ItemID.GRASSBLOCK:
@@ -75,6 +75,12 @@ public abstract class Item
 				return new Torch_Item();
 			case ItemID.LEAFBLOCK:
 				return new Leafblock_Item();
+			case ItemID.SANDBLOCK:
+				return new Sandblock_Item();
+			case ItemID.SNOWBLOCK:
+				return new Snowblock_Item();
+			case ItemID.ICEBLOCK:
+				return new Iceblock_Item();
 			default:
 				return null;
 		}
