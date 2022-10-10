@@ -24,9 +24,6 @@ public abstract class Structure
     public int sizeX, sizeY, sizeZ;
     public int offsetX, offsetZ;
 
-    // Middle control
-    public bool isGrounded;
-
     // Cache
     private ushort[] decompressedBlocks;
     private ushort[] decompressedHP;
@@ -116,7 +113,8 @@ public abstract class Structure
 
 
     // Applies this structure to a cachedUshort array and a VoxelMetadata
-    public virtual bool Apply(ChunkLoader_Server cl, ChunkPos pos, ushort[] VD, ushort[] VMHP, ushort[] VMState, int x, int y, int z, int rotation=0){
+    public virtual bool Apply(ChunkLoader_Server cl, ChunkPos pos, ushort[] VD, ushort[] VMHP, ushort[] VMState, int x, int y, int z, int rotation=0)
+    {
         bool retStatus;
         int xChunks = Mathf.FloorToInt((x + this.sizeX - 1)/Chunk.chunkWidth);
         int zChunks = Mathf.FloorToInt((z + this.sizeZ - 1)/Chunk.chunkWidth);
