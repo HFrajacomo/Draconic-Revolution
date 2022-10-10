@@ -150,14 +150,10 @@ public class WorldGenerator
         float percentage = BiomeHandler.GetBiomePercentages(biome)[index];
 
         int x,y,z;
-        int offsetX, offsetZ;
         int rotation = 0;
         float chance;
         this.rng = new Random((int)(int.MaxValue * PatchNoise((pos.z^(pos.x * pos.x))*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3)));
 
-        // Offset
-        offsetX = structHandler.LoadStructure(structureCode).offsetX;
-        offsetZ = structHandler.LoadStructure(structureCode).offsetZ;
 
         // If structure is static at given heightmap depth
         if(!range){
@@ -171,23 +167,8 @@ public class WorldGenerator
 
                 x = this.rng.Next(0, Chunk.chunkWidth);
                 z = this.rng.Next(0, Chunk.chunkWidth);
+                y = (int)cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth;
 
-                // All >
-                if(x + offsetX > 15 && z + offsetZ > 15){
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth;
-                }
-                // X >
-                else if(x + offsetX > 15 && z + offsetZ <= 15){
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth;
-                }
-                // Z >
-                else if(x + offsetX <= 15 && z + offsetZ > 15){
-                    y = HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth;
-                }
-                // All <
-                else{
-                    y = (int)cacheHeightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth;
-                }
 
                 // Ignores structure on hard limit
                 if(y <= heightlimit)
@@ -195,7 +176,7 @@ public class WorldGenerator
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
 
-                if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z]))
+                if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z]))
                     structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation); 
             }
         }
@@ -213,85 +194,19 @@ public class WorldGenerator
                 z = this.rng.Next(0, Chunk.chunkWidth);
                 float yMult = (float)this.rng.NextDouble(); 
 
-                // All >
-                if(x + offsetX > 15 && z + offsetZ > 15){
-                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, bothAxis:true) - depth));
-                }
-                // X >
-                else if(x + offsetX > 15 && z + offsetZ <= 15){
-                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, xAxis:true) - depth));
-                }
-                // Z >
-                else if(x + offsetX <= 15 && z + offsetZ > 15){
-                    y = (int)(heightlimit + yMult*(HalfConvolute(cacheHeightMap, x, z, offsetX, offsetZ, structureCode, zAxis:true) - depth));
-                }
-                // All <
-                else{
-                    y = (int)(heightlimit + yMult*(cacheHeightMap[(x+offsetX)*(Chunk.chunkWidth+1)+(z+offsetZ)] - depth));
-                }
+                y = (int)(heightlimit + yMult*(cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth));
 
                 // Ignores structure on hard limit
-                if(y <= heightlimit)
+                if(y <= heightlimit || y == 0)
                     continue;
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
 
-                if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z]))
+                if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z]))
                     structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);
             }            
         }
     }
-
-    // Returns the mean height for a given structure
-    private int HalfConvolute(float[] heightmap, int x, int z, int offsetX, int offsetZ, int code, bool xAxis=false, bool zAxis=false, bool bothAxis=false){
-        int sum=0;
-        int amount=0;
-        
-        if(bothAxis){
-            for(int i=x; i < Chunk.chunkWidth; i++){
-                for(int c=z; c < Chunk.chunkWidth; c++){
-                    sum += (int)heightmap[i*(Chunk.chunkWidth+1)+c];
-                    amount++;
-                }
-            }
-            if(amount > 0)
-                return (int)(sum / amount); 
-            else
-                return (int)heightmap[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)-1];        
-        }
-        else if(xAxis){
-            int size = structHandler.LoadStructure(code).sizeZ;
-
-            for(int i=x; i < Chunk.chunkWidth; i++){
-                for(int c=z; c < Mathf.Min(z+size, Chunk.chunkWidth); c++){
-                    sum += (int)heightmap[i*(Chunk.chunkWidth+1)+c];
-                    amount++;
-                }
-            }
-            if(amount > 0)
-                return (int)(sum / amount);
-            else
-                return (int)heightmap[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)-1]; 
-        }
-        else if(zAxis){
-            int size = structHandler.LoadStructure(code).sizeX;
-
-            for(int i=z; i < Chunk.chunkWidth; i++){
-                for(int c=x; c < Mathf.Min(x+size, Chunk.chunkWidth); c++){
-                    sum += (int)heightmap[c*(Chunk.chunkWidth+1)+i];
-                    amount++; 
-                }
-            }
-            if(amount > 0)
-                return (int)(sum / amount);
-            else
-                return (int)heightmap[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)-1];         
-        }
-        
-        
-        return (int)heightmap[x*(Chunk.chunkWidth+1)+z]-1;
-    }
-
 
     // Generates a Chunk
     public void GenerateChunk(ChunkPos pos, bool isPregen=false){
