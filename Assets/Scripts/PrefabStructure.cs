@@ -50,6 +50,8 @@ public class TreeSmallA : Structure
         this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
+        this.isGrounded = true;
+
 		this.considerAir = false;
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
@@ -80,6 +82,8 @@ public class TreeMediumA : Structure
         this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
+        this.isGrounded = true;
+
 		this.considerAir = false;
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
@@ -109,6 +113,8 @@ public class DirtPileA : Structure
         this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
+        this.isGrounded = true;
+
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
@@ -136,6 +142,8 @@ public class DirtPileB : Structure
 
         this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+        this.isGrounded = true;
 
 		this.considerAir = false;
 		this.needsBase = false;
@@ -165,6 +173,8 @@ public class BoulderNormalA : Structure
         this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
+        this.isGrounded = true;
+
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.OverwriteAll;
@@ -192,6 +202,8 @@ public class TreeBigA : Structure
 
         this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+        this.isGrounded = true;
 
 		this.considerAir = false;
 		this.type = FillType.FreeSpace;
@@ -222,6 +234,8 @@ public class TreeCrookedMediumA : Structure
         this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
 
+        this.isGrounded = true;
+
 		this.considerAir = false;
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
@@ -250,6 +264,8 @@ public class TreeSmallB : Structure
 
         this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+        this.isGrounded = true;
 
 		this.considerAir = false;
 		this.type = FillType.FreeSpace;

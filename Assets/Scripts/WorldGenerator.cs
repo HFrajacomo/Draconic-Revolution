@@ -196,7 +196,7 @@ public class WorldGenerator
                 Structure structure = this.structHandler.LoadStructure(structureCode);
 
                 if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z]))
-                    structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation); 
+                    structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, FindNonFlyingBase(structure, pos, x, y, z), z, rotation:rotation); 
             }
         }
         // If can be placed in a range
@@ -237,7 +237,7 @@ public class WorldGenerator
                 Structure structure = this.structHandler.LoadStructure(structureCode);
 
                 if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z]))
-                    structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);
+                    structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, FindNonFlyingBase(structure, pos, x, y, z), z, rotation:rotation);
             }            
         }
     }
@@ -246,16 +246,61 @@ public class WorldGenerator
     private int HalfConvolute(float[] heightmap, int x, int z, int offsetX, int offsetZ, int code, bool xAxis=false, bool zAxis=false, bool bothAxis=false){
         int sum=0;
         int amount=0;
+        int min=Chunk.chunkDepth-1;
+        int max=0;
+        float rebaseMultiplier;
+        bool isDownSlope;
         
         if(bothAxis){
-            for(int i=x; i < Chunk.chunkWidth; i++){
-                for(int c=z; c < Chunk.chunkWidth; c++){
+            bool minDistanceIsX;
+            int minDistanceToBorder;
+
+            int newX = x;
+            int newZ = z;
+
+            if(x >= z)
+                minDistanceIsX = true;
+            else
+                minDistanceIsX = false;
+
+            if(minDistanceIsX)
+                minDistanceToBorder = (Chunk.chunkWidth-1) - x;
+            else
+                minDistanceToBorder = (Chunk.chunkWidth-1) - z;
+
+            if(x > Chunk.chunkWidth-3)
+                newX = Chunk.chunkWidth-3;
+            if(z > Chunk.chunkWidth-3)
+                newZ = Chunk.chunkWidth-3;
+
+            for(int i=newX; i < Chunk.chunkWidth; i++){
+                for(int c=newZ; c < Chunk.chunkWidth; c++){
                     sum += (int)heightmap[i*(Chunk.chunkWidth+1)+c];
                     amount++;
+
+                    if(max < (int)heightmap[i*(Chunk.chunkWidth+1)+c])
+                        max = (int)heightmap[i*(Chunk.chunkWidth+1)+c];
+                    if(min > (int)heightmap[i*(Chunk.chunkWidth+1)+c])   
+                        min = (int)heightmap[i*(Chunk.chunkWidth+1)+c];
                 }
             }
+            rebaseMultiplier = (offsetX + offsetZ)/((Chunk.chunkWidth - newX) + (Chunk.chunkWidth - newZ));
+
+            if(minDistanceIsX){
+                if(heightmap[x*(Chunk.chunkWidth+1)+z] >= heightmap[(Chunk.chunkWidth-1)*(Chunk.chunkWidth+1)+(z+minDistanceToBorder)])
+                    isDownSlope = true;
+                else
+                    isDownSlope = false;
+            }
+            else{
+                if(heightmap[x*(Chunk.chunkWidth+1)+z] >= heightmap[(x+minDistanceToBorder)*(Chunk.chunkWidth+1)+(Chunk.chunkWidth-1)])
+                    isDownSlope = true;
+                else
+                    isDownSlope = false;                
+            }
+
             if(amount > 0)
-                return (int)(sum / amount); 
+                return ConsolidateHeight(sum, amount, max, min, rebaseMultiplier, isDownSlope); 
             else
                 return (int)heightmap[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)-1];        
         }
@@ -266,10 +311,24 @@ public class WorldGenerator
                 for(int c=z; c < Mathf.Min(z+size, Chunk.chunkWidth); c++){
                     sum += (int)heightmap[i*(Chunk.chunkWidth+1)+c];
                     amount++;
+
+                    if(i == x){
+                        if(max < (int)heightmap[i*(Chunk.chunkWidth+1)+c])
+                            max = (int)heightmap[i*(Chunk.chunkWidth+1)+c];
+                        if(min > (int)heightmap[i*(Chunk.chunkWidth+1)+c])   
+                            min = (int)heightmap[i*(Chunk.chunkWidth+1)+c];
+                    }
                 }
             }
+            rebaseMultiplier = offsetZ/(Chunk.chunkWidth - z);
+
+            if(heightmap[x*(Chunk.chunkWidth+1)+z] >= heightmap[x*(Chunk.chunkWidth+1)+(Chunk.chunkWidth-1)])
+                isDownSlope = true;
+            else
+                isDownSlope = false;
+
             if(amount > 0)
-                return (int)(sum / amount);
+                return ConsolidateHeight(sum, amount, max, min, rebaseMultiplier, isDownSlope);
             else
                 return (int)heightmap[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)-1]; 
         }
@@ -279,11 +338,25 @@ public class WorldGenerator
             for(int i=z; i < Chunk.chunkWidth; i++){
                 for(int c=x; c < Mathf.Min(x+size, Chunk.chunkWidth); c++){
                     sum += (int)heightmap[c*(Chunk.chunkWidth+1)+i];
-                    amount++; 
+                    amount++;
+
+                    if(c == z){
+                        if(max < (int)heightmap[i*(Chunk.chunkWidth+1)+c])
+                            max = (int)heightmap[i*(Chunk.chunkWidth+1)+c];
+                        if(min > (int)heightmap[i*(Chunk.chunkWidth+1)+c])   
+                            min = (int)heightmap[i*(Chunk.chunkWidth+1)+c];
+                    }
                 }
             }
+            rebaseMultiplier = offsetX/(Chunk.chunkWidth - x);
+
+            if(heightmap[x*(Chunk.chunkWidth+1)+z] >= heightmap[(Chunk.chunkWidth-1)*(Chunk.chunkWidth+1)+z])
+                isDownSlope = true;
+            else
+                isDownSlope = false;
+
             if(amount > 0)
-                return (int)(sum / amount);
+                return ConsolidateHeight(sum, amount, max, min, rebaseMultiplier, isDownSlope);
             else
                 return (int)heightmap[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)-1];         
         }
@@ -292,6 +365,12 @@ public class WorldGenerator
         return (int)heightmap[x*(Chunk.chunkWidth+1)+z]-1;
     }
 
+    private int ConsolidateHeight(int sum, int amount, int max, int min, float rebaseMultiplier, bool isDownSlope){
+        if(isDownSlope)
+            return (int)((sum/amount) - (int)((max-min)*rebaseMultiplier));
+        else
+            return (int)((sum/amount) + (int)((max-min)*rebaseMultiplier));
+    }
 
     // Generates a Chunk
     public void GenerateChunk(ChunkPos pos, bool isPregen=false){
@@ -389,6 +468,18 @@ public class WorldGenerator
         stateData.Dispose();
         hpData.Dispose();
         heightMap.Dispose();
+    }
+
+    public int FindNonFlyingBase(Structure st, ChunkPos pos, int x, int y, int z){
+        if(!st.isGrounded)
+            return y;
+
+        for(int i=y-1; i > 0; i--){
+            if(this.cl.chunks[pos].data.GetCell(x, i, z) != 0 && i+1 < Chunk.chunkDepth)
+                return i+1;
+        }
+
+        return y;
     }
 
 
@@ -800,7 +891,7 @@ public struct GenerateChunkJob: IJob{
             else
                 return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));            
         }
-    }  
+    }
 
 
     /*
