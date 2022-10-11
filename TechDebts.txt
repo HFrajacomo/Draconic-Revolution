@@ -1,8 +1,5 @@
 Tech Debts:
 
-Assign voxel lighting to shaders other than Ground and Objects
-Assign voxel lighting to Objects
-Remove flying structures
 Fix Voxel Lighting at some edges
 Identify problem and fix Voxel lighting propagation in torches
 Dog Fix

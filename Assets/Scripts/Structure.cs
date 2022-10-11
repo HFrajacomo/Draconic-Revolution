@@ -154,15 +154,21 @@ public abstract class Structure
         maxZChunk = Mathf.FloorToInt((z + ((this.sizeZ-1) - this.offsetZ))/Chunk.chunkWidth);
 
         // Calculates Remainder
-        if(minXChunk < 0)
-            xRemainder = this.sizeX - ((Chunk.chunkWidth - actualInitX) + (Mathf.Abs(minXChunk)-1)*Chunk.chunkWidth + mainChunkInitX);
+        if(minXChunk == maxXChunk)
+            xRemainder = this.sizeX;
+        else if(maxXChunk == 0){
+            xRemainder = (this.sizeX - ((Chunk.chunkWidth - actualInitX) + (-minXChunk-1)*Chunk.chunkWidth));
+        }
         else
-            xRemainder = Mathf.Min(this.sizeX, Chunk.chunkWidth - mainChunkInitX);
+            xRemainder = Chunk.chunkWidth - mainChunkInitX;
 
-        if(minZChunk < 0)
-            zRemainder = this.sizeZ - ((Chunk.chunkWidth - actualInitZ) + (Mathf.Abs(minZChunk)-1)*Chunk.chunkWidth + mainChunkInitZ);
+        if(minZChunk == maxZChunk)
+            zRemainder = this.sizeZ;
+        else if(maxZChunk == 0){
+            zRemainder = (this.sizeZ - ((Chunk.chunkWidth - actualInitZ) + (-minZChunk-1)*Chunk.chunkWidth));
+        }
         else
-            zRemainder = Mathf.Min(this.sizeZ, Chunk.chunkWidth - mainChunkInitZ);
+            zRemainder = Chunk.chunkWidth - mainChunkInitZ;
 
         // Calculates initial StructX and StructZ
         if(minXChunk < 0)
@@ -175,12 +181,12 @@ public abstract class Structure
         else
             initStructZ = 0;
 
-        /*
+        
         Debug.Log("MAIN CHUNK: " + pos + "\tStruct: " + this.code + "\n" + "SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tRemainders: " + xRemainder + ", " + zRemainder
          + "\tsPos: " + initStructX + ", " + initStructZ + "\tChunksUsedX: " + 
             minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tRotation: " + rotation + "\tPos: " + mainChunkInitX + ", " + y + ", " + mainChunkInitZ
             + "\tPivot: " + x + ", " + y + ", " + z);
-        */
+        
 
         retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, mainChunkInitX, y, mainChunkInitZ, xRemainder, zRemainder, initStructX, initStructZ, rotation:rotation, isPivoted:true);
 
@@ -260,11 +266,11 @@ public abstract class Structure
                 else if(zCount == maxZChunk)
                     sPosZ = this.sizeZ - zRemainder;
                 
-                /*
+                
                 Debug.Log("SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tRemainders: " + xRemainder + ", " + zRemainder + "\tsPos: " + sPosX + ", " + sPosZ + "\tChunksUsedX: " + 
                     minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tCurrentChunk: " + xCount + ", " + zCount
                     + "\tLogicalChunkCode: " + currentXChunk + ", " + currentZChunk + "\tRotation: " + rotation + "\tPos: " + posX + ", " + y + ", " + posZ);
-                */
+                
 
                 // ACTUAL APPLY FUNCTIONS
                 // Checks if it's a loaded chunk
