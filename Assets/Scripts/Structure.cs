@@ -181,12 +181,12 @@ public abstract class Structure
         else
             initStructZ = 0;
 
-        
+        /*
         Debug.Log("MAIN CHUNK: " + pos + "\tStruct: " + this.code + "\n" + "SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tRemainders: " + xRemainder + ", " + zRemainder
          + "\tsPos: " + initStructX + ", " + initStructZ + "\tChunksUsedX: " + 
             minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tRotation: " + rotation + "\tPos: " + mainChunkInitX + ", " + y + ", " + mainChunkInitZ
             + "\tPivot: " + x + ", " + y + ", " + z);
-        
+        */
 
         retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, mainChunkInitX, y, mainChunkInitZ, xRemainder, zRemainder, initStructX, initStructZ, rotation:rotation, isPivoted:true);
 
@@ -266,11 +266,11 @@ public abstract class Structure
                 else if(zCount == maxZChunk)
                     sPosZ = this.sizeZ - zRemainder;
                 
-                
+                /*
                 Debug.Log("SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tRemainders: " + xRemainder + ", " + zRemainder + "\tsPos: " + sPosX + ", " + sPosZ + "\tChunksUsedX: " + 
                     minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tCurrentChunk: " + xCount + ", " + zCount
                     + "\tLogicalChunkCode: " + currentXChunk + ", " + currentZChunk + "\tRotation: " + rotation + "\tPos: " + posX + ", " + y + ", " + posZ);
-                
+                */
 
                 // ACTUAL APPLY FUNCTIONS
                 // Checks if it's a loaded chunk
