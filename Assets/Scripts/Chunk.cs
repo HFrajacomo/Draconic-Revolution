@@ -273,6 +273,9 @@ public class Chunk
 
 	// Draws Chunk Borders. Returns true if all borders have been drawn, otherwise, return false.
 	public bool BuildSideBorder(bool reload=false, bool loadBUD=false){
+		// DEBUG
+		return true;
+
 		bool changed = false; // Flag is set if any change has been made that requires a redraw
 		bool doneRendering = true;
 
@@ -3558,6 +3561,14 @@ public struct BuildBorderJob : IJob{
 			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
 		else
 			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
+	}
+
+	// Gets neighbor light level
+	private int GetNeighborLight(int x, int y, int z, bool isNatural=true){
+		if(isNatural)
+			return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+		else
+			return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
 	}
 
 	// Gets neighbor light level

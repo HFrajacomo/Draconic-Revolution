@@ -88,14 +88,14 @@ Material:
     - Density: 3
     - FresnelPower: 3
     - Refraction: 1.47
-    - Vector1_2AD0C45: 0.8
-    - Vector1_3458B650: 0.8
+    - Vector1_2AD0C45: 0.7
+    - Vector1_3458B650: 0.3
     - Vector1_44F145AC: 0.1
-    - Vector1_484F9D19: 0.4
+    - Vector1_484F9D19: 0.56
     - Vector1_4A4CAD19: 0.062
     - Vector1_4F77EF96: 0.14
     - Vector1_80E409E7: 3.6
-    - Vector1_8F6D5055: 0.382
+    - Vector1_8F6D5055: 0.1
     - Vector1_9CD39123: 0.1
     - Vector1_B54B69EC: 0.8
     - Vector1_C714B95D: 0
@@ -132,11 +132,11 @@ Material:
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
-    - _RefractionDistance: 2.32
+    - _RefractionDistance: 9.9
     - _RefractionGradientScale: 1
     - _RefractionLOD: 1
     - _RefractionModel: 1
-    - _RefractionThickness: 1
+    - _RefractionThickness: 2.94
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0
     - _SrcBlend: 1
@@ -172,7 +172,7 @@ Material:
     - BaseColor: {r: 0.08039216, g: 0.20980392, b: 0.46470588, a: 0.1176471}
     - Color_31C227A5: {r: 0.099480815, g: 0.09184755, b: 0.45283002, a: 0}
     - Color_55706E16: {r: 0.33333334, g: 0.7019608, b: 0.83137256, a: 0.74509805}
-    - Color_9412C8D4: {r: 0.12041651, g: 0.4192611, b: 0.6226415, a: 0.74509805}
+    - Color_9412C8D4: {r: 0.17880027, g: 0.6211194, b: 0.9245283, a: 0.74509805}
     - SecondaryColor: {r: 0.1344889, g: 0.2953211, b: 0.341075, a: 0}
     - Vector2_826BAFAC: {r: -0.1, g: -0.2, b: 0, a: 0}
     - Vector2_A6922FD5: {r: 0.2, g: 0.076, b: 0, a: 0}
