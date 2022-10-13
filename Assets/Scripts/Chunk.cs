@@ -273,9 +273,6 @@ public class Chunk
 
 	// Draws Chunk Borders. Returns true if all borders have been drawn, otherwise, return false.
 	public bool BuildSideBorder(bool reload=false, bool loadBUD=false){
-		// DEBUG
-		return true;
-
 		bool changed = false; // Flag is set if any change has been made that requires a redraw
 		bool doneRendering = true;
 
@@ -814,6 +811,20 @@ public class Chunk
 		/*
 		Reset Chunk side rebuilding
 		*/
+
+		// DEBUG
+		/*
+		drawMain = true;
+		this.triangles = new int[0];
+    	this.specularTris = new int[0];
+    	this.liquidTris = new int[0];
+    	this.iceTris = new int[0];
+    	this.assetTris = new int[0];
+    	this.decalTris = new int[0];
+    	this.leavesTris = new int[0];
+    	return;
+    	*/
+    	
     	this.vertices.Clear();
     	this.normals.Clear();
     	this.triangles = null;
@@ -1423,13 +1434,13 @@ public struct BuildChunkJob : IJob{
 			    		
 			    		// Chunk Border and floor culling here! ----------	
 
-			    		if((x == 0 && 3 == i) || (z == 0 && 2 == i)){
+			    		if((x == 0 && (i == 3 || i == 4 || i == 5)) || (z == 0 && (i == 2 || i == 4 || i == 5))){
 			    			continue;
 			    		}
-			    		if((x == Chunk.chunkWidth-1 && 1 == i) || (z == Chunk.chunkWidth-1 && 0 == i)){
+			    		if((x == Chunk.chunkWidth-1 && (i == 1 || i == 4 || i == 5)) || (z == Chunk.chunkWidth-1 && (i == 0 || i == 4 || i == 5))){
 			    			continue;
 			    		}
-			    		if(y == 0 && 5 == i){
+			    		if(y == 0 && i == 5){
 			    			continue;
 			    		}
 
@@ -2552,7 +2563,7 @@ public struct PrepareAssetsJob : IJob{
 	}
 }
 
-[BurstCompile]
+//[BurstCompile]
 public struct BuildBorderJob : IJob{
 	[ReadOnly]
 	public bool reload;
@@ -2623,51 +2634,80 @@ public struct BuildBorderJob : IJob{
 	public void Execute(){
 		ushort thisBlock;
 		ushort neighborBlock;
+		int3 directions = new int3(0,0,0);
+		int3 thisCoord;
+		int3 neighborCoord;
+		int3 newChunkPos; // Third element is x or z offset inside chunk
+		bool isFacingBorder;
+
+		directions[1] = 4;
+		directions[2] = 5;
 
 		// X- Side
 		if(xM){
+			directions[0] = 3;
+				
 			for(int y=0; y<Chunk.chunkDepth; y++){
 				for(int z=0; z<Chunk.chunkWidth; z++){
+					for(int dirIndex=0; dirIndex < 3; dirIndex++){
 
-					thisBlock = data[y*Chunk.chunkWidth+z];
-					neighborBlock = neighbordata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+						thisBlock = data[y*Chunk.chunkWidth+z];
+						thisCoord = new int3(0, y, z);
 
-					if(thisBlock == 0 && neighborBlock == 0)
-						continue;
-
-					if(CheckSeams(thisBlock, neighborBlock)){
-						continue;
-					}
-					else{
-						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockSeamless[neighborBlock]){
-								toBUD.Add(new int3((pos.x-1)*Chunk.chunkWidth+Chunk.chunkWidth-1, y, pos.z*Chunk.chunkWidth+z));
-							}
-
-							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
-								toLoadEvent.Add(new int3(0,y,z));
-							}
+						if(directions[dirIndex] == 3){
+							neighborBlock = neighbordata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+							neighborCoord = new int3(Chunk.chunkWidth-1, y, z);
+							newChunkPos = new int3(-1, 0, Chunk.chunkWidth-1);
+							isFacingBorder = true;
+						}
+						else if(directions[dirIndex] == 4 && y < Chunk.chunkDepth-1){
+							neighborBlock = data[(y+1)*Chunk.chunkWidth+z];
+							neighborCoord = new int3(0, y+1, z);
+							newChunkPos = new int3(0, 0, 0);
+							isFacingBorder = false;
+						}
+						else if(directions[dirIndex] == 5 && y > 0){
+							neighborBlock = data[(y-1)*Chunk.chunkWidth+z];
+							neighborCoord = new int3(0, y-1, z);
+							newChunkPos = new int3(0, 0, 0);
+							isFacingBorder = false;
 						}
 						else{
-							if(objectSeamless[ushort.MaxValue-neighborBlock]){
-								toBUD.Add(new int3((pos.x-1)*Chunk.chunkWidth+Chunk.chunkWidth-1, y, pos.z*Chunk.chunkWidth+z));
-							}
+							continue;
+						}
 
-							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
-								toLoadEvent.Add(new int3(0,y,z));
+						if(thisBlock == 0 && neighborBlock == 0)
+							continue;
+
+						if(CheckSeams(thisBlock, neighborBlock)){
+							continue;
+						}
+						else{
+							if(neighborBlock <= ushort.MaxValue/2){
+								if(blockSeamless[neighborBlock]){
+									toBUD.Add(new int3((pos.x + newChunkPos.x)*Chunk.chunkWidth+(newChunkPos.z), y, (pos.z+newChunkPos.y)*Chunk.chunkWidth+z));
+								}
+
+								if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
+									toLoadEvent.Add(thisCoord);
+								}
+							}
+							else{
+								if(objectSeamless[ushort.MaxValue-neighborBlock]){
+									toBUD.Add(new int3((pos.x + newChunkPos.x)*Chunk.chunkWidth+(newChunkPos.z), y, (pos.z+newChunkPos.y)*Chunk.chunkWidth+z));
+								}
+
+								if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
+									toLoadEvent.Add(thisCoord);
+								}
 							}
 						}
-					}
 
-					if(thisBlock == 0)
-						continue;
+						if(thisBlock == 0)
+							continue;
 
-					if(CheckPlacement(neighborBlock)){
-						LoadMesh(0, y, z, 3, new int3(Chunk.chunkWidth-1, y, z), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
-					}
-					else if(thisBlock <= ushort.MaxValue/2){
-						if(blockDrawRegardless[thisBlock]){
-							LoadMesh(0, y, z, 3, new int3(Chunk.chunkWidth-1, y, z), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
+						if(CheckPlacement(neighborBlock)){
+							LoadMesh(0, y, z, directions[dirIndex], neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, isFacingBorder:isFacingBorder);
 						}
 					}
 				}
@@ -2676,43 +2716,70 @@ public struct BuildBorderJob : IJob{
 		}
 		// X+ Side
 		else if(xP){
+			directions[0] = 1;
+
 			for(int y=0; y<Chunk.chunkDepth; y++){
 				for(int z=0; z<Chunk.chunkWidth; z++){
-					thisBlock = data[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-					neighborBlock = neighbordata[y*Chunk.chunkWidth+z];
+					for(int dirIndex=0; dirIndex < 3; dirIndex++){
 
-					if(thisBlock == 0 && neighborBlock == 0)
-						continue;
+						thisBlock = data[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+						thisCoord = new int3(Chunk.chunkWidth-1, y, z);
 
-					if(CheckSeams(thisBlock, neighborBlock)){
-						continue;
-					}
-					else{
-						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockSeamless[neighborBlock]){
-								toBUD.Add(new int3((pos.x+1)*Chunk.chunkWidth, y, pos.z*Chunk.chunkWidth+z));
-							}
-
-							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
-								toLoadEvent.Add(new int3(Chunk.chunkWidth-1,y,z));
-							}
+						if(directions[dirIndex] == 1){
+							neighborBlock = neighbordata[y*Chunk.chunkWidth+z];
+							neighborCoord = new int3(0, y, z);
+							newChunkPos = new int3(1, 0, 0);
+							isFacingBorder = true;
+						}
+						else if(directions[dirIndex] == 4 && y < Chunk.chunkDepth-1){
+							neighborBlock = data[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+(y+1)*Chunk.chunkWidth+z];
+							neighborCoord = new int3(Chunk.chunkWidth-1, y+1, z);
+							newChunkPos = new int3(0, 0, Chunk.chunkWidth-1);
+							isFacingBorder = false;
+						}
+						else if(directions[dirIndex] == 5 && y > 0){
+							neighborBlock = data[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z];
+							neighborCoord = new int3(Chunk.chunkWidth-1, y-1, z);
+							newChunkPos = new int3(0, 0, Chunk.chunkWidth-1);
+							isFacingBorder = false;
 						}
 						else{
-							if(objectSeamless[ushort.MaxValue-neighborBlock]){
-								toBUD.Add(new int3((pos.x+1)*Chunk.chunkWidth, y, pos.z*Chunk.chunkWidth+z));
-							}
+							continue;
+						}
 
-							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
-								toLoadEvent.Add(new int3(Chunk.chunkWidth-1,y,z));
+						if(thisBlock == 0 && neighborBlock == 0)
+							continue;
+
+						if(CheckSeams(thisBlock, neighborBlock)){
+							continue;
+						}
+						else{
+							if(neighborBlock <= ushort.MaxValue/2){
+								if(blockSeamless[neighborBlock]){
+									toBUD.Add(new int3((pos.x + newChunkPos.x)*Chunk.chunkWidth+(newChunkPos.z), y, (pos.z + newChunkPos.y)*Chunk.chunkWidth+z));
+								}
+
+								if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
+									toLoadEvent.Add(thisCoord);
+								}
+							}
+							else{
+								if(objectSeamless[ushort.MaxValue-neighborBlock]){
+									toBUD.Add(new int3((pos.x + newChunkPos.x)*Chunk.chunkWidth+(newChunkPos.z), y, (pos.z + newChunkPos.y)*Chunk.chunkWidth+z));
+								}
+
+								if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
+									toLoadEvent.Add(thisCoord);
+								}
 							}
 						}
-					}
 
-					if(thisBlock == 0)
-						continue;
+						if(thisBlock == 0)
+							continue;
 
-					if(CheckPlacement(neighborBlock)){
-						LoadMesh(Chunk.chunkWidth-1, y, z, 1, new int3(0, y, z), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
+						if(CheckPlacement(neighborBlock)){
+							LoadMesh(Chunk.chunkWidth-1, y, z, directions[dirIndex], neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, isFacingBorder:isFacingBorder);
+						}
 					}
 				}
 			}
@@ -2720,43 +2787,70 @@ public struct BuildBorderJob : IJob{
 		}
 		// Z- Side
 		else if(zM){
+			directions[0] = 2;
+
 			for(int y=0; y<Chunk.chunkDepth; y++){
 				for(int x=0; x<Chunk.chunkWidth; x++){
-					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
-					neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
-					
-					if(thisBlock == 0 && neighborBlock == 0)
-						continue;
+					for(int dirIndex=0; dirIndex < 3; dirIndex++){
 
-					if(CheckSeams(thisBlock, neighborBlock)){
-						continue;
-					}
-					else{
-						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockSeamless[neighborBlock]){
-								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z-1)*Chunk.chunkWidth+Chunk.chunkWidth-1));
-							}
+						thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
+						thisCoord = new int3(x, y, 0);
 
-							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
-								toLoadEvent.Add(new int3(x, y, 0));
-							}
+						if(directions[dirIndex] == 2){
+							neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
+							neighborCoord = new int3(x, y, Chunk.chunkWidth-1);
+							newChunkPos = new int3(0, -1, Chunk.chunkWidth-1);
+							isFacingBorder = true;
+						}
+						else if(directions[dirIndex] == 4 && y < Chunk.chunkDepth-1 && (x != 0 && x != Chunk.chunkWidth-1)){
+							neighborBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+(y+1)*Chunk.chunkWidth];
+							neighborCoord = new int3(x, y+1, 0);
+							newChunkPos = new int3(0, 0, 0);
+							isFacingBorder = false;
+						}
+						else if(directions[dirIndex] == 5 && y > 0 && (x != 0 && x != Chunk.chunkWidth-1)){
+							neighborBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth];
+							neighborCoord = new int3(x, y-1, 0);
+							newChunkPos = new int3(0, 0, 0);
+							isFacingBorder = false;
 						}
 						else{
-							if(objectSeamless[ushort.MaxValue-neighborBlock]){
-								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z-1)*Chunk.chunkWidth+Chunk.chunkWidth-1));
-							}
+							continue;
+						}
 
-							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
-								toLoadEvent.Add(new int3(x,y,0));
+						if(thisBlock == 0 && neighborBlock == 0)
+							continue;
+
+						if(CheckSeams(thisBlock, neighborBlock)){
+							continue;
+						}
+						else{
+							if(neighborBlock <= ushort.MaxValue/2){
+								if(blockSeamless[neighborBlock]){
+									toBUD.Add(new int3((pos.x + newChunkPos.x)*Chunk.chunkWidth+x, y, (pos.z + newChunkPos.y)*Chunk.chunkWidth+(newChunkPos.z)));
+								}
+
+								if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
+									toLoadEvent.Add(thisCoord);
+								}
+							}
+							else{
+								if(objectSeamless[ushort.MaxValue-neighborBlock]){
+									toBUD.Add(new int3((pos.x + newChunkPos.x)*Chunk.chunkWidth+x, y, (pos.z + newChunkPos.y)*Chunk.chunkWidth+(newChunkPos.z)));
+								}
+
+								if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
+									toLoadEvent.Add(thisCoord);
+								}
 							}
 						}
-					}
 
-					if(thisBlock == 0)
-						continue;
+						if(thisBlock == 0)
+							continue;
 
-					if(CheckPlacement(neighborBlock)){
-						LoadMesh(x, y, 0, 2, new int3(x, y, Chunk.chunkWidth-1), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
+						if(CheckPlacement(neighborBlock)){
+							LoadMesh(x, y, 0, directions[dirIndex], neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, isFacingBorder:isFacingBorder);
+						}
 					}
 				}
 			}
@@ -2764,43 +2858,70 @@ public struct BuildBorderJob : IJob{
 		}
 		// Z+ Side
 		else if(zP){
+			directions[0] = 0;
+
 			for(int y=0; y<Chunk.chunkDepth; y++){
 				for(int x=0; x<Chunk.chunkWidth; x++){
-					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
-					neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
+					for(int dirIndex=0; dirIndex < 3; dirIndex++){
 
-					if(thisBlock == 0 && neighborBlock == 0)
-						continue;
+						thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
+						thisCoord = new int3(x, y, Chunk.chunkWidth-1);
 
-					if(CheckSeams(thisBlock, neighborBlock)){
-						continue;
-					}
-					else{
-						if(neighborBlock <= ushort.MaxValue/2){
-							if(blockSeamless[neighborBlock]){
-								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z+1)*Chunk.chunkWidth));
-							}
-
-							if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
-								toLoadEvent.Add(new int3(x, y, Chunk.chunkWidth-1));
-							}
+						if(directions[dirIndex] == 0){
+							neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
+							neighborCoord = new int3(x, y, 0);
+							newChunkPos = new int3(0, 1, 0);
+							isFacingBorder = true;
+						}
+						else if(directions[dirIndex] == 4 && y < Chunk.chunkDepth-1 && (x != 0 && x != Chunk.chunkWidth-1)){
+							neighborBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+(y+1)*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
+							neighborCoord = new int3(x, y+1, Chunk.chunkWidth-1);
+							newChunkPos = new int3(0, 0, Chunk.chunkWidth-1);
+							isFacingBorder = false;
+						}
+						else if(directions[dirIndex] == 5 && y > 0 && (x != 0 && x != Chunk.chunkWidth-1)){
+							neighborBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
+							neighborCoord = new int3(x, y-1, Chunk.chunkWidth-1);
+							newChunkPos = new int3(0, 0, Chunk.chunkWidth-1);
+							isFacingBorder = false;
 						}
 						else{
-							if(objectSeamless[ushort.MaxValue-neighborBlock]){
-								toBUD.Add(new int3(pos.x*Chunk.chunkWidth+x, y, (pos.z+1)*Chunk.chunkWidth));
-							}
+							continue;
+						}
 
-							if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
-								toLoadEvent.Add(new int3(x, y, Chunk.chunkWidth-1));
+						if(thisBlock == 0 && neighborBlock == 0)
+							continue;
+
+						if(CheckSeams(thisBlock, neighborBlock)){
+							continue;
+						}
+						else{
+							if(neighborBlock <= ushort.MaxValue/2){
+								if(blockSeamless[neighborBlock]){
+									toBUD.Add(new int3((pos.x + newChunkPos.x)*Chunk.chunkWidth+x, y, (pos.z + newChunkPos.y)*Chunk.chunkWidth+newChunkPos.z));
+								}
+
+								if((blockWashable[neighborBlock] || neighborBlock == 0) && !reload){
+									toLoadEvent.Add(thisCoord);
+								}
+							}
+							else{
+								if(objectSeamless[ushort.MaxValue-neighborBlock]){
+									toBUD.Add(new int3((pos.x + newChunkPos.x)*Chunk.chunkWidth+x, y, (pos.z + newChunkPos.y)*Chunk.chunkWidth+newChunkPos.z));
+								}
+
+								if((objectWashable[ushort.MaxValue-neighborBlock]) && !reload){
+									toLoadEvent.Add(thisCoord);
+								}
 							}
 						}
-					}
 
-					if(thisBlock == 0)
-						continue;
+						if(thisBlock == 0)
+							continue;
 
-					if(CheckPlacement(neighborBlock)){
-						LoadMesh(x, y, Chunk.chunkWidth-1, 0, new int3(x, y, 0), thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal);
+						if(CheckPlacement(neighborBlock)){
+							LoadMesh(x, y, Chunk.chunkWidth-1, directions[dirIndex], neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, isFacingBorder:isFacingBorder);
+						}
 					}
 				}
 			}
@@ -2858,7 +2979,7 @@ public struct BuildBorderJob : IJob{
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
     // Load is true when Chunk is being loaded and not reloaded
     // Returns true if loaded a blocktype mesh and false if it's an asset to be loaded later
-    private bool LoadMesh(int x, int y, int z, int dir, int3 neighborIndex, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, NativeArray<Vector3> cacheCubeNormal, int lookahead=0){
+    private bool LoadMesh(int x, int y, int z, int dir, int3 neighborIndex, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, NativeArray<Vector3> cacheCubeNormal, int lookahead=0, bool isFacingBorder=true){
     	ShaderIndex renderThread;
 
     	if(blockCode <= ushort.MaxValue/2)
@@ -2875,8 +2996,8 @@ public struct BuildBorderJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		uvs.AddRange(cacheCubeUV);
 
-    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex);
-    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex, isFacingBorder:isFacingBorder);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex, isFacingBorder:isFacingBorder);
     		lightUV.AddRange(cacheCubeUV);
 
     		CalculateNormal(cacheCubeNormal, dir);
@@ -2901,8 +3022,8 @@ public struct BuildBorderJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
     		uvs.AddRange(cacheCubeUV);
 
-    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex);
-    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex, isFacingBorder:isFacingBorder);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex, isFacingBorder:isFacingBorder);
     		lightUV.AddRange(cacheCubeUV);
 
     		CalculateNormal(cacheCubeNormal, dir);
@@ -2927,8 +3048,8 @@ public struct BuildBorderJob : IJob{
 			LiquidTexture(cacheCubeUV, x, z);
     		uvs.AddRange(cacheCubeUV);
 
-    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex);
-    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex, isFacingBorder:isFacingBorder);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex, isFacingBorder:isFacingBorder);
     		lightUV.AddRange(cacheCubeUV);
 
     		CalculateNormal(cacheCubeNormal, dir);
@@ -2953,8 +3074,8 @@ public struct BuildBorderJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
 			uvs.AddRange(cacheCubeUV);
 
-    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex);
-    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex, isFacingBorder:isFacingBorder);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex, isFacingBorder:isFacingBorder);
     		lightUV.AddRange(cacheCubeUV);
 
     		CalculateNormal(cacheCubeNormal, dir);
@@ -2979,8 +3100,8 @@ public struct BuildBorderJob : IJob{
 			AddTexture(cacheCubeUV, dir, blockCode);
 			uvs.AddRange(cacheCubeUV);
 
-    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex);
-    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex);
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex, isFacingBorder:isFacingBorder);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex, isFacingBorder:isFacingBorder);
     		lightUV.AddRange(cacheCubeUV);
 
     		CalculateNormal(cacheCubeNormal, dir);
@@ -3000,9 +3121,14 @@ public struct BuildBorderJob : IJob{
     }
 
     // Sets the secondary UV of Lightmaps
-    private void AddLightUV(NativeArray<Vector2> array, int x, int y, int z, int dir, int3 neighborIndex){
+    private void AddLightUV(NativeArray<Vector2> array, int x, int y, int z, int dir, int3 neighborIndex, bool isFacingBorder=true){
     	int maxLightLevel = 15;
-    	int currentLightLevel = GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z);
+    	int currentLightLevel;
+
+    	if(isFacingBorder)
+    		currentLightLevel = GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z);
+    	else
+    		currentLightLevel = GetNeighborLight(neighborIndex.x, neighborIndex.y, neighborIndex.z);
 
     	// If light is full blown
     	if(currentLightLevel == maxLightLevel){
@@ -3070,9 +3196,14 @@ public struct BuildBorderJob : IJob{
     }
 
     // Sets the secondary UV of Lightmaps
-    private void AddLightUVExtra(NativeArray<Vector2> array, int x, int y, int z, int dir, int3 neighborIndex){
+    private void AddLightUVExtra(NativeArray<Vector2> array, int x, int y, int z, int dir, int3 neighborIndex, bool isFacingBorder=true){
     	int maxLightLevel = 15;
-    	int currentLightLevel = GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z, isNatural:false);
+    	int currentLightLevel;
+
+    	if(isFacingBorder)
+    		currentLightLevel = GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z, isNatural:false);
+    	else
+    		currentLightLevel = GetNeighborLight(neighborIndex.x, neighborIndex.y, neighborIndex.z, isNatural:false);
 
     	// If light is full blown
     	if(currentLightLevel == maxLightLevel){
