@@ -3684,30 +3684,30 @@ public struct BuildBorderJob : IJob{
     	int transientValue;
 
     	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
-    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1, isNatural:true);
+    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1, isNatural:false);
     	else
-    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1, isNatural:true, chunkDir:chunkDir, currentLight:currentLightLevel);
+    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1, isNatural:false, chunkDir:chunkDir, currentLight:currentLightLevel);
     	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
-    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2, isNatural:true);
+    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2, isNatural:false);
     	else
-    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:true, chunkDir:chunkDir, currentLight:currentLightLevel);
+    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:false, chunkDir:chunkDir, currentLight:currentLightLevel);
     	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
-    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3, isNatural:true);
+    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3, isNatural:false);
     	else
-    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:true, chunkDir:chunkDir, currentLight:currentLightLevel);
+    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:false, chunkDir:chunkDir, currentLight:currentLightLevel);
     	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
-    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4, isNatural:true);
+    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4, isNatural:false);
     	else
-    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:true, chunkDir:chunkDir, currentLight:currentLightLevel);
+    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:false, chunkDir:chunkDir, currentLight:currentLightLevel);
 
     	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
     		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
-    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
     	}
     	else if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) || CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
     		if((!CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && dir1 == chunkDir) || (!CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && dir2 == chunkDir)){
 	    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
-	    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
 	    	}
 	    	else
 	    		light5 = currentLightLevel;
@@ -3718,12 +3718,12 @@ public struct BuildBorderJob : IJob{
 
     	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
     		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
-    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
     	}
     	else if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) || CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
     		if((!CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && dir2 == chunkDir) || (!CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && dir3 == chunkDir)){
 	    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
-	    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
 	    	}
 	    	else
 	    		light6 = currentLightLevel;
@@ -3734,12 +3734,12 @@ public struct BuildBorderJob : IJob{
 
     	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
     		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
-    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
     	}
     	else if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) || CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
     		if((!CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && dir3 == chunkDir) || (!CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && dir4 == chunkDir)){
 	    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
-	    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
 	    	}
 	    	else
 	    		light7 = currentLightLevel;
@@ -3750,12 +3750,12 @@ public struct BuildBorderJob : IJob{
 
     	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
     		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
-    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
     	}
     	else if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) || CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
     		if((!CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && dir4 == chunkDir) || (!CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && dir1 == chunkDir)){
 	    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
-	    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
+	    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
 	    	}
 	    	else
 	    		light8 = currentLightLevel;
