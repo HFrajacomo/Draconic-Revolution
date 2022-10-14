@@ -3346,108 +3346,51 @@ public struct BuildBorderJob : IJob{
     	return false;
     }
 
-    private int GetVertexLight(int current, int n, int e, int s, int ne, int se){
+    private int GetVertexLight(int current, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8){
     	int val = 0;
 
-    	// Light from left scenario
-    	if(current < e && e - current == 1){
-    		if(current > n)
-    			val = current << 24;
-    		else
-    			val = n << 24;
-
-    		if(current > s)
-    			val += current;
-    		else
-    			val += s;
-    	}
-    	// Light from right scenario
-    	else if(current > e && current - e == 1){
-    		if(current > n)
-    			val = (current+1) << 24;
-    		else
-    			val = (n+1) << 24;
-
-    		if(current > s)
-    			val += current+1;
-    		else
-    			val += s+1;
-    	}
-    	// Light from above or bottom
-    	else if(current == e){
-    		if(current > n)
-    			val = n << 24;
-    		else
-    			val = current << 24;
-
-    		if(current > s)
-    			val += s;
-    		else
-    			val += current;
-    	}
-
-    	// Enclosed space
-    	else if(n == 0 && s == 0 && e == 0){
-    		val = (current+1) << 24;
-    		val += current+1;
-    	}
-
-    	// No recorded case
-    	else{
-    		val = current << 24;
-    		val += current;
-    	}
-
-
     	// Populate outer values
-    	val += (Max(current, n, e, ne) << 16);
-    	val += (Max(current, e, s, se) << 8);
+    	val += (Max(current, l1, l2, l5) << 24);
+    	val += (Max(current, l2, l3, l6) << 16);
+    	val += (Max(current, l3, l4, l7) << 8);
+    	val += (Max(current, l4, l1, l8));
 
     	return val;
     }
 
     private int ProcessTransient(int facing, bool xm, bool zm, bool xp, bool zp, int currentLight, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8, bool isFacingBorder=false){
     	if(facing == 0 && xm)
-    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 0 && xp)
-    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 1 && zm)
-    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 1 && zp)
-    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 2 && xm)
-    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 2 && xp)
-    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 3 && zm)
-    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 3 && zp)
-    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
-    	if(facing == 4 && xm){
-    		int transientValue = GetVertexLight(currentLight, l1, l2, l3, l5, l6);
-    		if(isFacingBorder)
-    			return (transientValue << 16) + (transientValue >> 16);
-    		else
-    			return (transientValue << 8) + (transientValue >> 24);
-    	}
-    	if(facing == 4 && xp){
-    		int transientValue = GetVertexLight(currentLight, l3, l4, l1, l7, l8);
-    		return (transientValue >> 8) + (transientValue << 24);
-    	}
-	   	if(facing == 4 && zm){
-    		int transientValue = GetVertexLight(currentLight, l2, l1, l4, l5, l8);
-    		return (transientValue << 16) + (transientValue >> 16);
-	   	}
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
+    	if(facing == 4 && xm)
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
+    	if(facing == 4 && xp)
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
+	   	if(facing == 4 && zm)
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
 	   	if(facing == 4 && zp)
-    		return GetVertexLight(currentLight, l4, l3, l2, l7, l6);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 5 && xm)
-    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 5 && xp)
-    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 5 && zm)
-    		return GetVertexLight(currentLight, l1, l4, l3, l8, l7);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 5 && zp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l5, l6);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	return 0;
     }
 
@@ -3607,7 +3550,7 @@ public struct BuildBorderJob : IJob{
     		light8 = currentLightLevel;
     	}  	
 
-    	if(facing == 4 && pos.x == 15 && pos.y == 129 && pos.z == 2)
+    	if(facing == 4 && pos.x == 13 && pos.y == 129 && pos.z == 0)
     		Debug.Log("Lights: " + light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
 
 		transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8, isFacingBorder:false);
@@ -3616,7 +3559,7 @@ public struct BuildBorderJob : IJob{
 		array[2] = new Vector2(((transientValue >> 8) & 0x000000FF), 1);
 		array[3] = new Vector2((transientValue & 0x000000FF), 1);
 
-    	if(facing == 4 && pos.x == 15 && pos.y == 129 && pos.z == 2)
+    	if(facing == 4 && pos.x == 13 && pos.y == 129 && pos.z == 0)
     		Debug.Log("Final: " + array[0].x + " " + array[1].x + " " + array[2].x + " " + array[3].x);
     }
 
