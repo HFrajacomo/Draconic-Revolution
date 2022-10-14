@@ -3266,7 +3266,7 @@ public struct BuildBorderJob : IJob{
 		    }
     	}
 
-    	CalculateLightCornersExtra(neighborIndex, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
+    	CalculateLightCornersExtra(neighborIndex, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp, isFacingBorder);
     }
 
     private void CalculateLightCorners(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, bool isFacingBorder){
@@ -3298,25 +3298,33 @@ public struct BuildBorderJob : IJob{
 	    }
     }
 
-    private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
-    	// North
-    	if(dir == 0)
-    		SetCornerExtra(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp, 0);
-    	// East
-    	else if(dir == 1)
-    		SetCornerExtra(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp, 1);
-    	// South
-     	else if(dir == 2)
-    		SetCornerExtra(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp, 2);
-    	// West
-      	else if(dir == 3)
-    		SetCornerExtra(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp, 3);
-      	// Up
-    	else if(dir == 4)
-    		SetCornerExtra(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp, 4);
-    	// Down
-     	else
-    		SetCornerExtra(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp, 5);
+    private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, bool isFacingBorder){
+    	if(isFacingBorder){
+	    	// North
+	    	if(dir == 0)
+	    		SetCornerExtra(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp, 0);
+	    	// East
+	    	else if(dir == 1)
+	    		SetCornerExtra(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp, 1);
+	    	// South
+	     	else if(dir == 2)
+	    		SetCornerExtra(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp, 2);
+	    	// West
+	      	else if(dir == 3)
+	    		SetCornerExtra(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp, 3);
+	      	// Up
+	    	else if(dir == 4)
+	    		SetCornerExtra(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp, 4);
+	    	// Down
+	     	else
+	    		SetCornerExtra(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp, 5);
+	    }
+	    else{
+	    	if(dir == 4)
+	    		SetCornerBorderExtra(array, pos, currentLightLevel, 1,2,3,0, xm, xp, zm, zp, ym, yp, 4);
+	    	else if(dir == 5)
+	    		SetCornerBorderExtra(array, pos, currentLightLevel, 1,0,3,2, xm, xp, zm, zp, ym, yp, 5);
+	    }
     }
 
     private bool CheckBorder(int dir, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
@@ -3358,7 +3366,7 @@ public struct BuildBorderJob : IJob{
     	return val;
     }
 
-    private int ProcessTransient(int facing, bool xm, bool zm, bool xp, bool zp, int currentLight, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8, bool isFacingBorder=false){
+    private int ProcessTransient(int facing, bool xm, bool zm, bool xp, bool zp, int currentLight, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8){
     	if(facing == 0 && xm)
     		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 0 && xp)
@@ -3492,15 +3500,15 @@ public struct BuildBorderJob : IJob{
     	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
     		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2, isNatural:true);
     	else
-    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:true);;
+    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:true);
     	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
     		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3, isNatural:true);
     	else
-    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:true);;
+    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:true);
     	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
     		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4, isNatural:true);
     	else
-    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:true);;
+    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:true);
 
     	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
     		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
@@ -3553,7 +3561,7 @@ public struct BuildBorderJob : IJob{
     	if(facing == 4 && pos.x == 13 && pos.y == 129 && pos.z == 0)
     		Debug.Log("Lights: " + light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
 
-		transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8, isFacingBorder:false);
+		transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
 		array[0] = new Vector2(transientValue >> 24, 1);
 		array[1] = new Vector2(((transientValue >> 16) & 0x000000FF), 1);
 		array[2] = new Vector2(((transientValue >> 8) & 0x000000FF), 1);
@@ -3647,6 +3655,83 @@ public struct BuildBorderJob : IJob{
 		array[1] = new Vector2(array[1].x, Max(light2, light3, light6, currentLightLevel));
 		array[2] = new Vector2(array[2].x, Max(light3, light4, light7, currentLightLevel));
 		array[3] = new Vector2(array[3].x, Max(light4, light1, light8, currentLightLevel));
+    }
+
+    private void SetCornerBorderExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
+    	int light1, light2, light3, light4, light5, light6, light7, light8;
+    	int3 diagonal = new int3(0,0,0);
+    	int transientValue;
+
+    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
+    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1, isNatural:false);
+    	else
+    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1, isNatural:false);
+    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
+    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2, isNatural:false);
+    	else
+    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:false);
+    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
+    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3, isNatural:false);
+    	else
+    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:false);
+    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
+    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4, isNatural:false);
+    	else
+    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:false);
+
+    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) || CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
+    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else{
+    		light5 = currentLightLevel;
+    	}
+
+    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) || CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
+    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else{
+    		light6 = currentLightLevel;
+    	}
+
+    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) || CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
+    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else{
+    		light7 = currentLightLevel;
+    	}
+
+    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) || CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
+    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
+    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
+    	}
+    	else{
+    		light8 = currentLightLevel;
+    	}  	
+
+		transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
+		array[0] = new Vector2(array[0].x, transientValue >> 24);
+		array[1] = new Vector2(array[1].x, ((transientValue >> 16) & 0x000000FF));
+		array[2] = new Vector2(array[2].x, ((transientValue >> 8) & 0x000000FF));
+		array[3] = new Vector2(array[3].x, (transientValue & 0x000000FF));
     }
 
     /*
