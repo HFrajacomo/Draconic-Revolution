@@ -1434,10 +1434,10 @@ public struct BuildChunkJob : IJob{
 			    		
 			    		// Chunk Border and floor culling here! ----------	
 
-			    		if((x == 0 && (i == 3 || i == 4 || i == 5)) || (z == 0 && (i == 2 || i == 4 || i == 5))){
+			    		if((x == 0 && (i != 1)) || (z == 0 && (i != 0))){
 			    			continue;
 			    		}
-			    		if((x == Chunk.chunkWidth-1 && (i == 1 || i == 4 || i == 5)) || (z == Chunk.chunkWidth-1 && (i == 0 || i == 4 || i == 5))){
+			    		if((x == Chunk.chunkWidth-1 && (i != 3)) || (z == Chunk.chunkWidth-1 && (i != 2))){
 			    			continue;
 			    		}
 			    		if(y == 0 && i == 5){
@@ -1934,156 +1934,57 @@ public struct BuildChunkJob : IJob{
     	return false;
     }
 
-    private int GetVertexLight(int current, int n, int e, int s, int ne, int se, ref bool lightFromBorder, ref bool flipDirection){
+    private int GetVertexLight(int current, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8){
     	int val = 0;
 
-    	// Light from inside scenario
-    	if(current < e && e - current == 1){
-    		if(current > n)
-    			val = current << 24;
-    		else
-    			val = n << 24;
-
-    		if(current > s)
-    			val += current;
-    		else
-    			val += s;
-
-    		if(s > current || se > current || current > n)
-    			flipDirection = true;
-    	}
-    	// Light from outside scenario
-    	else if(current > e && current - e == 1){
-    		if(current > n)
-    			val = (current+1) << 24;
-    		else
-    			val = (n+1) << 24;
-
-    		if(current > s)
-    			val += current+1;
-    		else
-    			val += s+1;
-
-    		lightFromBorder = true;
-    		if(s > current || se > current || current > n)
-    			flipDirection = true;
-    	}
-    	// If everything around is the same light level
-    	else if((current == e && current == n && current == ne) || (current == e && current == se && current == s)){
-    		val = current;
-    		val <<= 8;
-    		val += current;
-    		val <<= 8;
-    		val += current;
-    		val <<= 8;
-    		val += current;
-    		return val;
-    	}
-    	// Light from above or bottom
-    	else if(current == e){
-    		// hotfix
-    		if(current > 1){
-    			if(n == 0)
-    				n = current;
-    			if(s == 0)
-    				s = current;
-    		}
-
-    		if(current > n)
-    			val = n << 24;
-    		else
-    			val = current << 24;
-
-    		if(current > s)
-    			val += s;
-    		else
-    			val += current;
-    	}
-
-    	// Enclosed space
-    	else if(n == 0 && s == 0 && e == 0){
-    		val = (current+1) << 24;
-    		val += current+1;
-    	}
-
-    	// No recorded case
-    	else{
-    		val = current << 24;
-    		val += current;
-    	}
-
-
     	// Populate outer values
-    	val += (Max(current, n, e, ne) << 16);
-    	val += (Max(current, e, s, se) << 8);
+    	val += (Max(current, l1, l2, l5) << 24);
+    	val += (Max(current, l2, l3, l6) << 16);
+    	val += (Max(current, l3, l4, l7) << 8);
+    	val += (Max(current, l4, l1, l8));
 
     	return val;
     }
 
     private int ProcessTransient(int facing, bool xm, bool zm, bool xp, bool zp, int currentLight, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8){
-    	bool fromOutsideBorder = false;
-    	bool flipDirection = false;
-
     	if(facing == 0 && xm)
-    		return GetVertexLight(currentLight, l1, l4, l3, l8, l7, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 0 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l5, l6, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 1 && zm)
-    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 1 && zp)
-    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 2 && xm)
-    		return GetVertexLight(currentLight, l1, l4, l3, l8, l7, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 2 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l5, l6, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 3 && zm)
-    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 3 && zp)
-    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 4 && xm){
-    		int transientValue = GetVertexLight(currentLight, l1, l2, l3, l5, l6, ref fromOutsideBorder, ref flipDirection);
+    		int transientValue = GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     		return (transientValue << 16) + (transientValue >> 16);
     	}
     	if(facing == 4 && xp)
-    		return GetVertexLight(currentLight, l3, l4, l1, l7, l8, ref fromOutsideBorder, ref flipDirection);
-
-
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
 	   	if(facing == 4 && zm){
-    		int transientValue = GetVertexLight(currentLight, l2, l1, l4, l5, l8, ref fromOutsideBorder, ref flipDirection);
-	   		if(fromOutsideBorder)
-	   			if(!flipDirection)
-	   				return transientValue;
-	   			else
-    				return (transientValue << 16) + (transientValue >> 16);
-    		else
-    			if(!flipDirection)
-    				return (transientValue << 16) + (transientValue >> 16);
-    			else
-    				return transientValue;
+    		int transientValue = GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
+    		return (transientValue << 16) + (transientValue >> 16);
 	   	}
 	   	if(facing == 4 && zp){
-	   		int transientValue = GetVertexLight(currentLight, l4, l3, l2, l7, l6, ref fromOutsideBorder, ref flipDirection);
-	   		if(fromOutsideBorder)
-	   			if(flipDirection)
-	   				return transientValue;
-	   			else
-    				return (transientValue << 16) + (transientValue >> 16);
-    		else
-    			if(flipDirection)
-    				return (transientValue << 16) + (transientValue >> 16);
-    			else
-    				return transientValue;
+	   		int transientValue = GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
+    		return (transientValue << 16) + (transientValue >> 16);
 	   	}
-
-
     	if(facing == 5 && xm)
-    		return GetVertexLight(currentLight, l1, l4, l3, l8, l7, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 5 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l5, l6, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 5 && zm)
-    		return GetVertexLight(currentLight, l2, l3, l4, l6, l7, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	if(facing == 5 && zp)
-    		return GetVertexLight(currentLight, l2, l1, l4, l5, l8, ref fromOutsideBorder, ref flipDirection);
+    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     	return 0;
     }
 
@@ -2093,49 +1994,49 @@ public struct BuildChunkJob : IJob{
     	int transientValue;
 
     	if(xm || xp || zm || zp || ym || yp){
-	    	if(CheckBorder(0, xm, xp, zm, zp, ym, yp))
-	    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, 0, isNatural:true);
+	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
+	    		light1 = GetNeighborLight(pos.x, pos.y, pos.z, dir1, isNatural:true);
 	    	else
 	    		light1 = currentLightLevel;
-	    	if(CheckBorder(1, xm, xp, zm, zp, ym, yp))
-	    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, 1, isNatural:true);
+	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
+	    		light2 = GetNeighborLight(pos.x, pos.y, pos.z, dir2, isNatural:true);
 	    	else
 	    		light2 = currentLightLevel;
-	    	if(CheckBorder(2, xm, xp, zm, zp, ym, yp))
-	    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, 2, isNatural:true);
+	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
+	    		light3 = GetNeighborLight(pos.x, pos.y, pos.z, dir3, isNatural:true);
 	    	else
 	    		light3 = currentLightLevel;
-	    	if(CheckBorder(3, xm, xp, zm, zp, ym, yp))
-	    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, 3, isNatural:true);
+	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
+	    		light4 = GetNeighborLight(pos.x, pos.y, pos.z, dir4, isNatural:true);
 	    	else
 	    		light4 = currentLightLevel;
 
-	    	if(CheckBorder(0, xm, xp, zm, zp, ym, yp) && CheckBorder(1, xm, xp, zm, zp, ym, yp)){
-	    		diagonal = VoxelData.offsets[0] + VoxelData.offsets[1];
+	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
 	    		light5 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
 	    	}
 	    	else{
 	    		light5 = currentLightLevel;
 	    	}
 
-	    	if(CheckBorder(1, xm, xp, zm, zp, ym, yp) && CheckBorder(2, xm, xp, zm, zp, ym, yp)){
-	    		diagonal = VoxelData.offsets[1] + VoxelData.offsets[2];
+	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
 	    		light6 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
 	    	}
 	    	else{
 	    		light6 = currentLightLevel;
 	    	}
 
-	    	if(CheckBorder(2, xm, xp, zm, zp, ym, yp) && CheckBorder(3, xm, xp, zm, zp, ym, yp)){
-	    		diagonal = VoxelData.offsets[2] + VoxelData.offsets[3];
+	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
 	    		light7 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
 	    	}
 	    	else{
 	    		light7 = currentLightLevel;
 	    	}
 
-	    	if(CheckBorder(3, xm, xp, zm, zp, ym, yp) && CheckBorder(0, xm, xp, zm, zp, ym, yp)){
-	    		diagonal = VoxelData.offsets[3] + VoxelData.offsets[0];
+	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
 	    		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
 	    	}
 	    	else{
@@ -2157,6 +2058,9 @@ public struct BuildChunkJob : IJob{
     		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
     		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
     	}
+
+    	//if(pos.x == 12 && pos.y == 129 && pos.z == 0 && facing == 1)
+    	//	Debug.Log("Lights: [" + currentLightLevel + "] " + light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
 
 		if(CheckTransient(facing, xm, zm, xp, zp)){
 			transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
@@ -2563,7 +2467,7 @@ public struct PrepareAssetsJob : IJob{
 	}
 }
 
-//[BurstCompile]
+[BurstCompile]
 public struct BuildBorderJob : IJob{
 	[ReadOnly]
 	public bool reload;
@@ -3579,8 +3483,7 @@ public struct BuildBorderJob : IJob{
     		light8 = currentLightLevel;
     	}  	
 
-    	if(facing == 4 && pos.x == 15 && pos.y == 129 && pos.z == 0)
-    		Debug.Log("Lights: " + light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
+    	//Debug.Log("Lights: " + light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
 
 		transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
 		array[0] = new Vector2(transientValue >> 24, 1);
@@ -3588,8 +3491,7 @@ public struct BuildBorderJob : IJob{
 		array[2] = new Vector2(((transientValue >> 8) & 0x000000FF), 1);
 		array[3] = new Vector2((transientValue & 0x000000FF), 1);
 
-    	if(facing == 4 && pos.x == 13 && pos.y == 129 && pos.z == 0)
-    		Debug.Log("Final: " + array[0].x + " " + array[1].x + " " + array[2].x + " " + array[3].x);
+    	//Debug.Log("Final: " + array[0].x + " " + array[1].x + " " + array[2].x + " " + array[3].x);
     }
 
     private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
