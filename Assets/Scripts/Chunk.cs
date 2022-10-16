@@ -2778,7 +2778,7 @@ public struct BuildBorderJob : IJob{
 		byte skipDir;
 		int3 thisCoord;
 		int3 neighborCoord;
-		int3 newChunkPos; // Third element is x or z offset inside chunk
+		int3 newChunkPos;
 		bool isFacingBorder;
 		byte chunkDir; // 0 = Z+, 1 = X+, 2 = Z-, 3 = X-
 
@@ -3616,39 +3616,7 @@ public struct BuildBorderJob : IJob{
     }
 
     private int ProcessTransient(int facing, bool xm, bool zm, bool xp, bool zp, int currentLight, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8){
-    	if(facing == 0 && xm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 0 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 1 && zm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 1 && zp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 2 && xm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 2 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 3 && zm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 3 && zp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 4 && xm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 4 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-	   	if(facing == 4 && zm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-	   	if(facing == 4 && zp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 5 && xm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 5 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 5 && zm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 5 && zp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	return 0;
+    	return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
     }
 
     private void SetCorner(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
@@ -3721,6 +3689,10 @@ public struct BuildBorderJob : IJob{
     		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
     		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
     	}
+
+    	
+		//if(pos.x == 15 && pos.z == 14 && pos.y == 129 && facing == 3)
+		//	Debug.Log(light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
 
 		if(CheckTransient(facing, xm, zm, xp, zp)){
 			transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
@@ -3823,15 +3795,11 @@ public struct BuildBorderJob : IJob{
     		light8 = currentLightLevel;
     	}  	
 
-    	//Debug.Log("Lights: " + light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
-
 		transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
 		array[0] = new Vector2(transientValue >> 24, 1);
 		array[1] = new Vector2(((transientValue >> 16) & 0x000000FF), 1);
 		array[2] = new Vector2(((transientValue >> 8) & 0x000000FF), 1);
 		array[3] = new Vector2((transientValue & 0x000000FF), 1);
-
-    	//Debug.Log("Final: " + array[0].x + " " + array[1].x + " " + array[2].x + " " + array[3].x);
     }
 
     private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
@@ -4836,7 +4804,7 @@ public struct BuildCornerJob : IJob{
 						newChunkPos = new int4(1, 0, 0, z);
 					}
 					else if(i == 2){
-						neighborBlock = zsidedata[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
+						neighborBlock = zsidedata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
 						neighborCoord = new int3(x, y, Chunk.chunkWidth-1);
 						newChunkPos = new int4(0, -1, x, Chunk.chunkWidth-1);
 					}
@@ -5450,15 +5418,15 @@ public struct BuildCornerJob : IJob{
     		}
     	}
 
-    	if(chunkDir == 4 && pos.x == 15 && pos.z == 0 && pos.y == 129){
-    		//Debug.Log(light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
-    		//Debug.Log(zsidelight[15*Chunk.chunkWidth*Chunk.chunkDepth+129*Chunk.chunkWidth+15]);
-    	}
 
 		array[0] = new Vector2(Max(light1, light2, light5, currentLightLevel), 1);
 		array[1] = new Vector2(Max(light2, light3, light6, currentLightLevel), 1);
 		array[2] = new Vector2(Max(light3, light4, light7, currentLightLevel), 1);
 		array[3] = new Vector2(Max(light4, light1, light8, currentLightLevel), 1);
+
+    	if(chunkDir == 6 && pos.x == 15 && pos.z == 15 && pos.y == 129){
+    		Debug.Log("[" + currentLightLevel + "] " + light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
+    	}
     }
 
     private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, byte chunkDir, int facing){
@@ -5473,7 +5441,7 @@ public struct BuildCornerJob : IJob{
 	    		light4 = GetLightOnCurrent(pos.x, pos.y, pos.z+1, isNatural:false);
 	    		light5 = GetLightOnCorner(chunkDir, pos.y, isNatural:false);
 	    		light6 = GetLightOnZ(pos.x-1, pos.y, Chunk.chunkWidth-1, isNatural:false);
-	    		light7 = GetLightOnCurrent(pos.x-1, pos.y, pos.z-1, isNatural:false);
+	    		light7 = GetLightOnCurrent(pos.x-1, pos.y, pos.z+1, isNatural:false);
 	    		light8 = GetLightOnX(0, pos.y, pos.z+1, isNatural:false);
 	    	}
 	    	else if(facing == 5){
@@ -5712,17 +5680,17 @@ public struct BuildCornerJob : IJob{
 			if(dir == 4 || dir == 5)
 				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 			else if(dir == 0 || dir == 2)
-				return zsidedata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				return zsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 			else if(dir == 1 || dir == 3)
-				return xsidedata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				return xsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 		}
 		else{
 			if(dir == 4 || dir == 5)
 				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
 			else if(dir == 0 || dir == 2)
-				return zsidedata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				return zsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
 			else if(dir == 1 || dir == 3)
-				return xsidedata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;			
+				return xsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;			
 		}
 
 		return 0;
