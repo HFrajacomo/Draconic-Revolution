@@ -254,7 +254,7 @@ public class ChunkLoader : MonoBehaviour
         this.cachePos = new ChunkPos(Mathf.FloorToInt((x+0.5f)/Chunk.chunkWidth), Mathf.FloorToInt((z+0.5f)/Chunk.chunkWidth));
     
         if(this.chunks.ContainsKey(this.cachePos)){
-            return this.chunks[this.cachePos].drawMain;
+            return this.chunks[this.cachePos].drawMain && this.chunks[this.cachePos].xmzm && this.chunks[this.cachePos].xmzp && this.chunks[this.cachePos].xpzm && this.chunks[this.cachePos].xpzp;
         }
         return false;
     }

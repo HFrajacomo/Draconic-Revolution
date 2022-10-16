@@ -561,6 +561,30 @@ public class Client
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
+
+		if(x == 0 && z == 0){
+			temp = new ChunkPos(pos.x-1, pos.z-1);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
+
+		if(x == Chunk.chunkWidth-1 && z == 0){
+			temp = new ChunkPos(pos.x+1, pos.z-1);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
+
+		if(x == Chunk.chunkWidth-1 && z == Chunk.chunkWidth-1){
+			temp = new ChunkPos(pos.x+1, pos.z+1);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
+
+		if(x == 0 && z == Chunk.chunkWidth-1){
+			temp = new ChunkPos(pos.x-1, pos.z+1);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
 	}
 
 	// Signals Raycast to giveback the last placed item

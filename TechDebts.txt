@@ -1,6 +1,5 @@
 Tech Debts:
 
-Fix Voxel Lighting at some edges
 Identify problem and fix Voxel lighting propagation in torches
 Dog Fix
 Increase lighting to better get a lively feel

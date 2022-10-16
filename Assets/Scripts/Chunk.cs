@@ -772,7 +772,7 @@ public class Chunk
 		}
 
 		// XPZM Corner
-		if(!xpzm && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[4])){
+		if(loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[4])){
 			xpzm = true;
 			changed = true;
 
@@ -856,7 +856,7 @@ public class Chunk
 		}
 
 		// XMZM Corner
-		if(!xmzm && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[5])){
+		if(loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[5])){
 			xmzm = true;
 			changed = true;
 
@@ -940,7 +940,7 @@ public class Chunk
 		}
 
 		// XMZP Corner
-		if(!xmzp && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[6])){
+		if(loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[6])){
 			xmzp = true;
 			changed = true;
 
@@ -1024,7 +1024,7 @@ public class Chunk
 		}
 
 		// XPZP Corner
-		if(!xpzp && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[7])){
+		if(loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[7])){
 			xpzp = true;
 			changed = true;
 
@@ -3235,7 +3235,7 @@ public struct BuildBorderJob : IJob{
     		ym = false;
     	if(neighborIndex.y < Chunk.chunkDepth-1)
     		yp = false;
-    		
+
     	CalculateLightCornersExtra(neighborIndex, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp, chunkDir, isFacingBorder);
     }
 
@@ -3432,9 +3432,7 @@ public struct BuildBorderJob : IJob{
     		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
     		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
     	}
-
     	
-		//if(pos.x == 15 && pos.z == 14 && pos.y == 129 && facing == 3)
 		//	Debug.Log(light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
 
 		if(CheckTransient(facing, xm, zm, xp, zp)){
@@ -5166,10 +5164,6 @@ public struct BuildCornerJob : IJob{
 		array[1] = new Vector2(Max(light2, light3, light6, currentLightLevel), 1);
 		array[2] = new Vector2(Max(light3, light4, light7, currentLightLevel), 1);
 		array[3] = new Vector2(Max(light4, light1, light8, currentLightLevel), 1);
-
-    	if(chunkDir == 6 && pos.x == 15 && pos.z == 15 && pos.y == 129){
-    		Debug.Log("[" + currentLightLevel + "] " + light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
-    	}
     }
 
     private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, byte chunkDir, int facing){
