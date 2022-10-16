@@ -4809,7 +4809,7 @@ public struct BuildCornerJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(0, y, z, i, neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, chunkDir);
+						LoadMesh(x, y, z, i, neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, chunkDir);
 					}
 				}
 			}
@@ -4842,12 +4842,12 @@ public struct BuildCornerJob : IJob{
 					}
 					else if(i == 4 && y < Chunk.chunkDepth-1){
 						neighborBlock = data[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+(y+1)*Chunk.chunkWidth+z];
-						neighborCoord = new int3(Chunk.chunkWidth-1, y+1, z);
+						neighborCoord = new int3(x, y+1, z);
 						newChunkPos = new int4(0, 0, x, z);
 					}
 					else if(i == 5 && y > 0){
 						neighborBlock = data[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z];
-						neighborCoord = new int3(Chunk.chunkWidth-1, y-1, z);
+						neighborCoord = new int3(x, y-1, z);
 						newChunkPos = new int4(0, 0, x, z);
 					}
 					else{
@@ -4885,7 +4885,7 @@ public struct BuildCornerJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(Chunk.chunkWidth-1, y, z, i, neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, chunkDir);
+						LoadMesh(x, y, z, i, neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, chunkDir);
 					}
 				}
 			}
@@ -4903,15 +4903,15 @@ public struct BuildCornerJob : IJob{
 					if(i == 1 || i == 2)
 						continue;
 
-					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
-					thisCoord = new int3(x, y, 0);
+					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+					thisCoord = new int3(x, y, z);
 
-					if(i == 4 && y < Chunk.chunkDepth-1 && (x != 0 && x != Chunk.chunkWidth-1)){
+					if(i == 4 && y < Chunk.chunkDepth-1){
 						neighborBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+(y+1)*Chunk.chunkWidth+z];
 						neighborCoord = new int3(x, y+1, z);
 						newChunkPos = new int4(0, 0, x, z);
 					}
-					else if(i == 5 && y > 0 && (x != 0 && x != Chunk.chunkWidth-1)){
+					else if(i == 5 && y > 0){
 						neighborBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z];
 						neighborCoord = new int3(x, y-1, z);
 						newChunkPos = new int4(0, 0, x, z);
@@ -4961,7 +4961,7 @@ public struct BuildCornerJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(x, y, 0, i, neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, chunkDir);
+						LoadMesh(x, y, z, i, neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, chunkDir);
 					}
 				}
 			}
@@ -4982,12 +4982,12 @@ public struct BuildCornerJob : IJob{
 					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 					thisCoord = new int3(x, y, z);
 
-					if(i == 4 && y < Chunk.chunkDepth-1 && (x != 0 && x != Chunk.chunkWidth-1)){
+					if(i == 4 && y < Chunk.chunkDepth-1){
 						neighborBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+(y+1)*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
 						neighborCoord = new int3(x, y+1, Chunk.chunkWidth-1);
 						newChunkPos = new int4(0, 0, x, z);
 					}
-					else if(i == 5 && y > 0 && (x != 0 && x != Chunk.chunkWidth-1)){
+					else if(i == 5 && y > 0){
 						neighborBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
 						neighborCoord = new int3(x, y-1, Chunk.chunkWidth-1);
 						newChunkPos = new int4(0, 0, x, z);
@@ -5037,7 +5037,7 @@ public struct BuildCornerJob : IJob{
 						continue;
 
 					if(CheckPlacement(neighborBlock)){
-						LoadMesh(x, y, Chunk.chunkWidth-1, i, neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, chunkDir);
+						LoadMesh(x, y, z, i, neighborCoord, thisBlock, true, cachedCubeVerts, cachedUVVerts, cachedCubeNormal, chunkDir);
 					}
 				}
 			}
@@ -5286,7 +5286,7 @@ public struct BuildCornerJob : IJob{
 	    		light4 = GetLightOnCurrent(pos.x, pos.y, pos.z+1);
 	    		light5 = GetLightOnCorner(chunkDir, pos.y);
 	    		light6 = GetLightOnZ(pos.x-1, pos.y, Chunk.chunkWidth-1);
-	    		light7 = GetLightOnCurrent(pos.x-1, pos.y, pos.z-1);
+	    		light7 = GetLightOnCurrent(pos.x-1, pos.y, pos.z+1);
 	    		light8 = GetLightOnX(0, pos.y, pos.z+1);
 	    	}
 	    	else if(facing == 5){
@@ -5448,6 +5448,11 @@ public struct BuildCornerJob : IJob{
     			light7 = GetLightOnCorner(chunkDir, pos.y-1);
     			light8 = GetLightOnX(0, pos.y-1, pos.z-1);
     		}
+    	}
+
+    	if(chunkDir == 4 && pos.x == 15 && pos.z == 0 && pos.y == 129){
+    		//Debug.Log(light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
+    		//Debug.Log(zsidelight[15*Chunk.chunkWidth*Chunk.chunkDepth+129*Chunk.chunkWidth+15]);
     	}
 
 		array[0] = new Vector2(Max(light1, light2, light5, currentLightLevel), 1);
@@ -5739,9 +5744,9 @@ public struct BuildCornerJob : IJob{
 
 	private int GetLightOnZ(int x, int y, int z, bool isNatural=true){
 		if(isNatural)
-			return xsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			return zsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 		else
-			return xsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			return zsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
 	}
 
 	private int GetLightOnCorner(byte chunkDir, int y, bool isNatural=true){
