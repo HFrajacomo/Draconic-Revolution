@@ -2093,62 +2093,9 @@ public struct BuildChunkJob : IJob{
 	    	return;
     	}
 
-    	bool xm = true;
-    	bool xp = true;
-    	bool zm = true;
-    	bool zp = true;
-    	bool ym = true;
-    	bool yp = true;
-
-    	if(x > 1 || (x == 1 && dir != 3) || (x == 0 && dir == 1))
-    		xm = false;
-    	if(x < Chunk.chunkWidth-2 || (x == Chunk.chunkWidth-2 && dir != 1) || (x == Chunk.chunkWidth-1 && dir == 3))
-    		xp = false;
-    	if(z > 1 || (z == 1 && dir != 2) || (z == 0 && dir == 0))
-    		zm = false;
-    	if(z < Chunk.chunkWidth-2 || (z == Chunk.chunkWidth-2 && dir != 0) || (z == Chunk.chunkWidth-1 && dir == 2))
-    		zp = false;
-    	if(y > 1 || (y == 1 && dir != 5) || (y == 0 && dir == 4))
-    		ym = false;
-    	if(y < Chunk.chunkDepth-2 || (y == Chunk.chunkDepth-2 && dir != 4) || (y == Chunk.chunkDepth-1 && dir == 5))
-    		yp = false;
-
-
-    	// If there's no light
-    	if(currentLightLevel <= 1){
-    		bool found = false;
-
-    		if(x > 0 && !xm)
-    			if(GetNeighborLight(x-1, y, z, dir) > 0)
-    				found = true;
-    		if(x < Chunk.chunkWidth-1 && !xp)
-    			if(GetNeighborLight(x+1, y, z, dir) > 0)
-    				found = true;
-    		if(z > 0 && !zm)
-    			if(GetNeighborLight(x, y, z-1, dir) > 0)
-    				found = true;    		
-    		if(z < Chunk.chunkWidth-1 && !zp)
-    			if(GetNeighborLight(x, y, z+1, dir) > 0)
-    				found = true;
-    		if(y > 0 && !ym)
-    			if(GetNeighborLight(x, y-1, z, dir) > 0)
-    				found = true;
-    		if(y < Chunk.chunkDepth-1 && !yp)
-    			if(GetNeighborLight(x, y+1, z, dir) > 0)
-    				found = true;
-
-    		if(!found){
-		    	array[0] = Vector2.zero;
-		    	array[1] = Vector2.zero;
-		    	array[2] = Vector2.zero;
-		    	array[3] = Vector2.zero;
-		    	return;
-		    }
-    	}
-
     	int3 auxPos = new int3(x,y,z) + VoxelData.offsets[dir];
 
-    	CalculateLightCorners(auxPos, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
+    	CalculateLightCorners(auxPos, dir, array, currentLightLevel);
 
     }
 
@@ -2166,188 +2113,54 @@ public struct BuildChunkJob : IJob{
 	    	return;
     	}
 
-    	bool xm = true;
-    	bool xp = true;
-    	bool zm = true;
-    	bool zp = true;
-    	bool ym = true;
-    	bool yp = true;
-
-    	if(x > 1 || (x == 1 && dir != 3) || (x == 0 && dir == 1))
-    		xm = false;
-    	if(x < Chunk.chunkWidth-2 || (x == Chunk.chunkWidth-2 && dir != 1) || (x == Chunk.chunkWidth-1 && dir == 3))
-    		xp = false;
-    	if(z > 1 || (z == 1 && dir != 2) || (z == 0 && dir == 0))
-    		zm = false;
-    	if(z < Chunk.chunkWidth-2 || (z == Chunk.chunkWidth-2 && dir != 0) || (z == Chunk.chunkWidth-1 && dir == 2))
-    		zp = false;
-    	if(y > 1 || (y == 1 && dir != 5) || (y == 0 && dir == 4))
-    		ym = false;
-    	if(y < Chunk.chunkDepth-2 || (y == Chunk.chunkDepth-2 && dir != 4) || (y == Chunk.chunkDepth-1 && dir == 5))
-    		yp = false;
-
-
-    	// If there's no light
-    	if(currentLightLevel <= 1){
-    		bool found = false;
-
-    		if(x > 0 && !xm)
-    			if(GetNeighborLight(x-1, y, z, dir) > 0)
-    				found = true;
-    		if(x < Chunk.chunkWidth-1 && !xp)
-    			if(GetNeighborLight(x+1, y, z, dir) > 0)
-    				found = true;
-    		if(z > 0 && !zm)
-    			if(GetNeighborLight(x, y, z-1, dir) > 0)
-    				found = true;    		
-    		if(z < Chunk.chunkWidth-1 && !zp)
-    			if(GetNeighborLight(x, y, z+1, dir) > 0)
-    				found = true;
-    		if(y > 0 && !ym)
-    			if(GetNeighborLight(x, y-1, z, dir) > 0)
-    				found = true;
-    		if(y < Chunk.chunkDepth-1 && !yp)
-    			if(GetNeighborLight(x, y+1, z, dir) > 0)
-    				found = true;
-
-    		if(!found){
-		    	array[0] = new Vector2(array[0].x, 0);
-		    	array[1] = new Vector2(array[1].x, 0);
-		    	array[2] = new Vector2(array[2].x, 0);
-		    	array[3] = new Vector2(array[3].x, 0);
-		    	return;
-		    }
-    	}
-
     	int3 auxPos = new int3(x,y,z) + VoxelData.offsets[dir];
 
-    	CalculateLightCornersExtra(auxPos, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp);
+    	CalculateLightCornersExtra(auxPos, dir, array, currentLightLevel);
     }
 
-    private void CalculateLightCorners(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    private void CalculateLightCorners(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel){
     	// North
     	if(dir == 0)
-    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp, 0);
+    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5, 0);
     	// East
     	else if(dir == 1)
-    		SetCorner(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp, 1);
+    		SetCorner(array, pos, currentLightLevel, 2, 4, 0, 5, 1);
     	// South
      	else if(dir == 2)
-    		SetCorner(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp, 2);
+    		SetCorner(array, pos, currentLightLevel, 3, 4, 1, 5, 2);
     	// West
       	else if(dir == 3)
-    		SetCorner(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp, 3);
+    		SetCorner(array, pos, currentLightLevel, 0, 4, 2, 5, 3);
       	// Up
     	else if(dir == 4)
-    		SetCorner(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp, 4);
+    		SetCorner(array, pos, currentLightLevel, 1, 2, 3, 0, 4);
     	// Down
      	else
-     		SetCorner(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp, 5);
+     		SetCorner(array, pos, currentLightLevel, 1, 0, 3, 2, 5);
     }
 
-    private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
+    private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel){
     	// North
     	if(dir == 0)
-    		SetCornerExtra(array, pos, currentLightLevel, 1, 4, 3, 5, xm, xp, zm, zp, ym, yp, 0);
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 4, 3, 5, 0);
     	// East
     	else if(dir == 1)
-    		SetCornerExtra(array, pos, currentLightLevel, 2, 4, 0, 5, xm, xp, zm, zp, ym, yp, 1);
+    		SetCornerExtra(array, pos, currentLightLevel, 2, 4, 0, 5, 1);
     	// South
      	else if(dir == 2)
-    		SetCornerExtra(array, pos, currentLightLevel, 3, 4, 1, 5, xm, xp, zm, zp, ym, yp, 2);
+    		SetCornerExtra(array, pos, currentLightLevel, 3, 4, 1, 5, 2);
     	// West
       	else if(dir == 3)
-    		SetCornerExtra(array, pos, currentLightLevel, 0, 4, 2, 5, xm, xp, zm, zp, ym, yp, 3);
+    		SetCornerExtra(array, pos, currentLightLevel, 0, 4, 2, 5, 3);
       	// Up
     	else if(dir == 4)
-    		SetCornerExtra(array, pos, currentLightLevel, 1, 2, 3, 0, xm, xp, zm, zp, ym, yp, 4);
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 2, 3, 0, 4);
     	// Down
      	else
-    		SetCornerExtra(array, pos, currentLightLevel, 1, 0, 3, 2, xm, xp, zm, zp, ym, yp, 5);
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 0, 3, 2, 5);
     }
 
-    private bool CheckBorder(int dir, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp){
-    	if(xm && dir == 3)
-    		return false;
-    	else if(xp && dir == 1)
-    		return false;
-    	else if(zm && dir == 2)
-    		return false;
-    	else if(zp && dir == 0)
-    		return false;
-    	else if(ym && dir == 5)
-    		return false;
-    	else if(yp && dir == 4)
-    		return false;
-    	else
-    		return true;
-    }
-
-    private bool CheckTransient(int facing, bool xm, bool zm, bool xp, bool zp){
-    	if((facing == 0 || facing == 2) && (xm || xp))
-    		return true;
-    	if((facing == 1 || facing == 3) && (zm || zp))
-    		return true;
-    	if((facing == 4 || facing == 5) && (xm || zm || xp || zp))
-    		return true;
-    	return false;
-    }
-
-    private int GetVertexLight(int current, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8){
-    	int val = 0;
-
-    	// Populate outer values
-    	val += (Max(current, l1, l2, l5) << 24);
-    	val += (Max(current, l2, l3, l6) << 16);
-    	val += (Max(current, l3, l4, l7) << 8);
-    	val += (Max(current, l4, l1, l8));
-
-    	return val;
-    }
-
-    private int ProcessTransient(int facing, bool xm, bool zm, bool xp, bool zp, int currentLight, int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8){
-    	if(facing == 0 && xm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 0 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 1 && zm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 1 && zp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 2 && xm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 2 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 3 && zm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 3 && zp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 4 && xm){
-    		int transientValue = GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    		return (transientValue << 16) + (transientValue >> 16);
-    	}
-    	if(facing == 4 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-	   	if(facing == 4 && zm){
-    		int transientValue = GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    		return (transientValue << 16) + (transientValue >> 16);
-	   	}
-	   	if(facing == 4 && zp){
-	   		int transientValue = GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    		return (transientValue << 16) + (transientValue >> 16);
-	   	}
-    	if(facing == 5 && xm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 5 && xp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 5 && zm)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	if(facing == 5 && zp)
-    		return GetVertexLight(currentLight, l1, l2, l3, l4, l5, l6, l7, l8);
-    	return 0;
-    }
-
-    private void SetCorner(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
+    private void SetCorner(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, int facing){
     	int light1, light2, light3, light4, light5, light6, light7, light8;
     	int3 diagonal = new int3(0,0,0);
 
@@ -2365,18 +2178,13 @@ public struct BuildChunkJob : IJob{
 		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
 		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
 
-
-    	//if(pos.x == 12 && pos.y == 129 && pos.z == 0 && facing == 1)
-    	//	Debug.Log("Lights: [" + currentLightLevel + "] " + light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
-
-
 		array[0] = new Vector2(Max(light1, light2, light5, currentLightLevel), 1);
 		array[1] = new Vector2(Max(light2, light3, light6, currentLightLevel), 1);
 		array[2] = new Vector2(Max(light3, light4, light7, currentLightLevel), 1);
 		array[3] = new Vector2(Max(light4, light1, light8, currentLightLevel), 1);
     }
 
-    private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, bool xm, bool xp, bool zm, bool zp, bool ym, bool yp, int facing){
+    private void SetCornerExtra(NativeArray<Vector2> array, int3 pos, int currentLightLevel, int dir1, int dir2, int dir3, int dir4, int facing){
     	int light1, light2, light3, light4, light5, light6, light7, light8;
     	int3 diagonal = new int3(0,0,0);
 
@@ -3386,39 +3194,6 @@ public struct BuildBorderJob : IJob{
     	if(neighborIndex.y < Chunk.chunkDepth-2 || (neighborIndex.y == Chunk.chunkDepth-2 && dir != 4) || (neighborIndex.y == Chunk.chunkDepth-1 && dir == 5))
     		yp = false;
 
-
-    	// If there's no light
-    	if(currentLightLevel <= 1){
-    		bool found = false;
-
-    		if(neighborIndex.x > 0 && !xm)
-    			if(GetNeighborLight(neighborIndex.x-1, neighborIndex.y, neighborIndex.z, dir) > 0)
-    				found = true;
-    		if(neighborIndex.x < Chunk.chunkWidth-1 && !xp)
-    			if(GetNeighborLight(neighborIndex.x+1, neighborIndex.y, neighborIndex.z, dir) > 0)
-    				found = true;
-    		if(neighborIndex.z > 0 && !zm)
-    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y, neighborIndex.z-1, dir) > 0)
-    				found = true;    		
-    		if(neighborIndex.z < Chunk.chunkWidth-1 && !zp)
-    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y, neighborIndex.z+1, dir) > 0)
-    				found = true;
-    		if(neighborIndex.y > 0 && !ym)
-    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y-1, neighborIndex.z, dir) > 0)
-    				found = true;
-    		if(neighborIndex.y < Chunk.chunkDepth-1 && !yp)
-    			if(GetNeighborLight(neighborIndex.x, neighborIndex.y+1, neighborIndex.z, dir) > 0)
-    				found = true;
-
-    		if(!found){
-		    	array[0] = Vector2.zero;
-		    	array[1] = Vector2.zero;
-		    	array[2] = Vector2.zero;
-		    	array[3] = Vector2.zero;
-		    	return;
-		    }
-    	}
-
     	CalculateLightCorners(neighborIndex, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp, chunkDir, isFacingBorder);
     }
 
@@ -3460,39 +3235,7 @@ public struct BuildBorderJob : IJob{
     		ym = false;
     	if(neighborIndex.y < Chunk.chunkDepth-1)
     		yp = false;
-
-    	// If there's no light
-    	if(currentLightLevel <= 1){
-    		bool found = false;
-
-    		if(dir != 1 && neighborIndex.x != 0)
-    			if(GetOtherLight(neighborIndex.x-1, neighborIndex.y, neighborIndex.z, dir, isNatural:false) > 0)
-    				found = true;
-    		if(dir != 3 && neighborIndex.x != Chunk.chunkWidth-1)
-    			if(GetOtherLight(neighborIndex.x+1, neighborIndex.y, neighborIndex.z, dir, isNatural:false) > 0)
-    				found = true;
-    		if(dir != 0 && neighborIndex.z != 0)
-    			if(GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z-1, dir, isNatural:false) > 0)
-    				found = true;    		
-    		if(dir != 2 && neighborIndex.z != Chunk.chunkWidth)
-    			if(GetOtherLight(neighborIndex.x, neighborIndex.y, neighborIndex.z+1, dir, isNatural:false) > 0)
-    				found = true;
-    		if(dir != 4 && neighborIndex.y != 0)
-    			if(GetOtherLight(neighborIndex.x, neighborIndex.y-1, neighborIndex.z, dir, isNatural:false) > 0)
-    				found = true;
-    		if(dir != 5 && neighborIndex.y != Chunk.chunkDepth-1)
-    			if(GetOtherLight(neighborIndex.x, neighborIndex.y+1, neighborIndex.z, dir, isNatural:false) > 0)
-    				found = true;
-
-    		if(!found){
-		    	array[0] = new Vector2(array[0].x, 0);
-		    	array[1] = new Vector2(array[1].x, 0);
-		    	array[2] = new Vector2(array[2].x, 0);
-		    	array[3] = new Vector2(array[3].x, 0);
-		    	return;
-		    }
-    	}
-
+    		
     	CalculateLightCornersExtra(neighborIndex, dir, array, currentLightLevel, xm, xp, zm, zp, ym, yp, chunkDir, isFacingBorder);
     }
 
