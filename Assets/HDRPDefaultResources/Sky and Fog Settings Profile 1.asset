@@ -27,10 +27,10 @@ MonoBehaviour:
     m_Value: 1
   m_MinSmoothness:
     m_OverrideState: 1
-    m_Value: 0.139
+    m_Value: 0.2
   m_SmoothnessFadeStart:
     m_OverrideState: 1
-    m_Value: 0.377
+    m_Value: 0.5
   reflectSky:
     m_OverrideState: 1
     m_Value: 1
@@ -39,7 +39,7 @@ MonoBehaviour:
     m_Value: 1
   depthBufferThickness:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.05
   screenFadeDistance:
     m_OverrideState: 1
     m_Value: 0
@@ -108,7 +108,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 7.625
+    m_Value: 18.625
   tint:
     m_OverrideState: 0
     m_Value: 0
@@ -204,7 +204,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.7464167, g: 0.83325, b: 0.7661667, a: 1}
+      m_Value: {r: 0.8710833, g: 0.67925, b: 0.42883334, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 2
@@ -464,7 +464,7 @@ MonoBehaviour:
     m_Value: 200
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 60
+    m_Value: 50.333332
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
