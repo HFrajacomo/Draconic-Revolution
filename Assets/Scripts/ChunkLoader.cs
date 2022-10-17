@@ -64,6 +64,7 @@ public class ChunkLoader : MonoBehaviour
     public bool REQUESTEDCHUNKS = false;
     public bool CONNECTEDTOSERVER = false;
     public bool SENTINFOTOSERVER = false;
+    public bool PASTLOADTIME = false;
 
     // Timer
     private ushort timer = 0;
@@ -208,6 +209,11 @@ public class ChunkLoader : MonoBehaviour
         // Garbage Collect Unity Assets
         if(this.timer % 600 == 0){
             Resources.UnloadUnusedAssets();
+        }
+
+        // Flips flags that accelerates the Drawing of Chunks at the cost of performance
+        if(this.timer % 1000 == 0){
+            this.PASTLOADTIME = true;
         }
 
         // Fix Unloaded Chunks
@@ -403,28 +409,33 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // toREDRAW
-        if(toRedraw.Count > 0){
-            if(toDraw.Contains(toRedraw[0])){
-                toRedraw.Add(toRedraw[0]);
-                toRedraw.RemoveAt(0);
-            }
+        for(int i = 0; i < 3; i++){
+            if(PASTLOADTIME)
+                i = 3;
 
-            if(chunks.ContainsKey(toRedraw[0])){
-                if(chunks[toRedraw[0]].drawMain){
-                    // If hasn't been drawn entirely, put on Redraw again
-                    if(!chunks[toRedraw[0]].BuildSideBorder(reload:true, loadBUD:true)){
-                        toRedraw.Add(toRedraw[0]);
+            if(toRedraw.Count > 0){
+                if(toDraw.Contains(toRedraw[0])){
+                    toRedraw.Add(toRedraw[0]);
+                    toRedraw.RemoveAt(0);
+                }
+
+                if(chunks.ContainsKey(toRedraw[0])){
+                    if(chunks[toRedraw[0]].drawMain){
+                        // If hasn't been drawn entirely, put on Redraw again
+                        if(!chunks[toRedraw[0]].BuildSideBorder(reload:true, loadBUD:true)){
+                            toRedraw.Add(toRedraw[0]);
+                        }
+                        else{
+                            if(this.WORLD_GENERATED)
+                                this.vfx.UpdateLights(toRedraw[0]);
+                        }
                     }
                     else{
-                        if(this.WORLD_GENERATED)
-                            this.vfx.UpdateLights(toRedraw[0]);
+                        toRedraw.Add(toRedraw[0]);
                     }
                 }
-                else{
-                    toRedraw.Add(toRedraw[0]);
-                }
+                toRedraw.RemoveAt(0);
             }
-            toRedraw.RemoveAt(0);
         }
     }
 
