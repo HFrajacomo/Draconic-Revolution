@@ -30,10 +30,9 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ALPHATEST_ON
-  - _DISABLE_SSR_TRANSPARENT
   - _DOUBLESIDED_ON
   - _ENABLE_FOG_ON_TRANSPARENT
-  - _REFRACTION_PLANE
+  - _REFRACTION_SPHERE
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords: []
   m_LightmapFlags: 1
@@ -48,8 +47,7 @@ Material:
   - MOTIONVECTORS
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentDepthPrepass
-  m_LockedProperties: _BlendMode
+  m_LockedProperties: Vector1_D703212C _BlendMode _RefractionDistance
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -91,14 +89,14 @@ Material:
     - Vector1_2AD0C45: 0.7
     - Vector1_3458B650: 0.3
     - Vector1_44F145AC: 0.1
-    - Vector1_484F9D19: 0.56
+    - Vector1_484F9D19: 1
     - Vector1_4A4CAD19: 0.062
     - Vector1_4F77EF96: 0.14
     - Vector1_80E409E7: 3.6
     - Vector1_8F6D5055: 0.1
     - Vector1_9CD39123: 0.1
     - Vector1_B54B69EC: 0.8
-    - Vector1_C714B95D: 0
+    - Vector1_C714B95D: 0.1
     - Vector1_C9DB228D: 0.107
     - Vector1_CCDCF5ED: 0.82
     - Vector1_D703212C: 1
@@ -131,20 +129,20 @@ Material:
     - _OpaqueCullMode: 2
     - _RayTracing: 0
     - _ReceivesSSR: 1
-    - _ReceivesSSRTransparent: 0
-    - _RefractionDistance: 9.9
+    - _ReceivesSSRTransparent: 1
+    - _RefractionDistance: 10.4
     - _RefractionGradientScale: 1
     - _RefractionLOD: 1
-    - _RefractionModel: 1
+    - _RefractionModel: 2
     - _RefractionThickness: 2.94
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0
     - _SrcBlend: 1
     - _StencilRef: 0
-    - _StencilRefDepth: 0
+    - _StencilRefDepth: 8
     - _StencilRefDistortionVec: 4
-    - _StencilRefGBuffer: 2
-    - _StencilRefMV: 32
+    - _StencilRefGBuffer: 10
+    - _StencilRefMV: 40
     - _StencilWriteMask: 6
     - _StencilWriteMaskDepth: 8
     - _StencilWriteMaskDistortionVec: 4
@@ -164,15 +162,15 @@ Material:
     - _UseShadowThreshold: 0
     - _WaveringX: 0.09
     - _WaveringZ: 0.119
-    - _ZTestDepthEqualForOpaque: 2
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestGBuffer: 3
-    - _ZTestTransparent: 2
+    - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
     - BaseColor: {r: 0.08039216, g: 0.20980392, b: 0.46470588, a: 0.1176471}
     - Color_31C227A5: {r: 0.099480815, g: 0.09184755, b: 0.45283002, a: 0}
-    - Color_55706E16: {r: 0.33333334, g: 0.7019608, b: 0.83137256, a: 0.74509805}
-    - Color_9412C8D4: {r: 0.17880027, g: 0.6211194, b: 0.9245283, a: 0.74509805}
+    - Color_55706E16: {r: 0.4712976, g: 0.7448331, b: 0.8396226, a: 0.74509805}
+    - Color_9412C8D4: {r: 0.63372195, g: 0.8552899, b: 0.9528302, a: 1}
     - SecondaryColor: {r: 0.1344889, g: 0.2953211, b: 0.341075, a: 0}
     - Vector2_826BAFAC: {r: -0.1, g: -0.2, b: 0, a: 0}
     - Vector2_A6922FD5: {r: 0.2, g: 0.076, b: 0, a: 0}

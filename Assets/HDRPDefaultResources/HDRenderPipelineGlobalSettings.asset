@@ -18,8 +18,8 @@ MonoBehaviour:
     type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 140486224379725
-      data2: 4539628453109923864
+      data1: 140623671721805
+      data2: 4539628454183665688
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 2
@@ -33,8 +33,8 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 135310787769165
-      data2: 4539628424389459992
+      data1: 135448235111245
+      data2: 4539628425463201816
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -48,8 +48,8 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 139914969620301
-      data2: 4539628424389459992
+      data1: 140052416962381
+      data2: 4539628425463201816
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -87,6 +87,7 @@ MonoBehaviour:
   decalLayerName7: Decal Layer 7
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
+  colorGradingSpace: 0
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 7b46b3bdaffa2054ea365c7932bd578a, type: 2}
   - {fileID: 11400000, guid: eee7cee4ae84ed34394f86241ca8c97a, type: 2}
