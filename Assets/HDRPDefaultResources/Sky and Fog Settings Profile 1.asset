@@ -108,7 +108,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 6.5
+    m_Value: 7.625
   tint:
     m_OverrideState: 0
     m_Value: 0
@@ -204,7 +204,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.66, g: 0.94, b: 1, a: 1}
+      m_Value: {r: 0.7464167, g: 0.83325, b: 0.7661667, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 2

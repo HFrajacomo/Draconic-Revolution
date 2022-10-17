@@ -1766,7 +1766,7 @@ public struct BuildChunkJob : IJob{
 	    			}
 
 	    			// If Corner
-	    			if((x == 0 || x == Chunk.chunkWidth-1) && (z == 0 || z == Chunk.chunkWidth-1))
+	    			if((x == 0 || x == Chunk.chunkWidth-1) && (z == 0 || z == Chunk.chunkWidth-1) && thisBlock <= ushort.MaxValue/2)
 	    				continue;
 
 	    			isBlock = thisBlock <= ushort.MaxValue/2;
@@ -1793,15 +1793,17 @@ public struct BuildChunkJob : IJob{
 			    		
 			    		// Chunk Border and floor culling here! ----------	
 
-			    		if((x == 0 && (i != 1)) || (z == 0 && (i != 0))){
-			    			continue;
-			    		}
-			    		if((x == Chunk.chunkWidth-1 && (i != 3)) || (z == Chunk.chunkWidth-1 && (i != 2))){
-			    			continue;
-			    		}
-			    		if(y == 0 && i == 5){
-			    			continue;
-			    		}
+			    		if(isBlock){
+				    		if((x == 0 && (i != 1)) || (z == 0 && (i != 0))){
+				    			continue;
+				    		}
+				    		if((x == Chunk.chunkWidth-1 && (i != 3)) || (z == Chunk.chunkWidth-1 && (i != 2))){
+				    			continue;
+				    		}
+				    		if(y == 0 && i == 5){
+				    			continue;
+				    		}
+				    	}
 
 			    		////////// -----------------------------------
 
