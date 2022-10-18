@@ -270,7 +270,8 @@ public class PlayerRaycast : MonoBehaviour
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
 		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
 
-		Debug.Log((loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) & 0x0F));
+		Debug.Log("ShadowCode: " + loader.chunks[lastCoord.GetChunkPos()].data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false)
+			+ " LightLevel: "  + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false));
 		
 		NetMessage message = new NetMessage(NetCode.INTERACT);
 		message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);

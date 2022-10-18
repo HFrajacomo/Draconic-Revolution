@@ -212,7 +212,7 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // Flips flags that accelerates the Drawing of Chunks at the cost of performance
-        if(this.timer % 1000 == 0){
+        if(this.timer % 700 == 0){
             this.PASTLOADTIME = true;
         }
 
@@ -409,9 +409,9 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // toREDRAW
-        for(int i = 0; i < 3; i++){
+        for(int i = 0; i < 5; i++){
             if(PASTLOADTIME)
-                i = 3;
+                i = 5;
 
             if(toRedraw.Count > 0){
                 if(toDraw.Contains(toRedraw[0])){

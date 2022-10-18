@@ -1,6 +1,7 @@
 Tech Debts:
 
-Extra lights transients are still buggy
-Identify problem and fix Voxel lighting propagation in torches
+| Identify problem and fix Voxel lighting propagation in torches
+
+Manhatan distance chunk loading/unloading
 Dog Fix
 Increase lighting to better get a lively feel
