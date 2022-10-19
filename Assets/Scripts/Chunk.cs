@@ -2204,6 +2204,8 @@ public struct BuildChunkJob : IJob{
 		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
 		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
 
+		
+
 		array[0] = new Vector2(array[0].x, Max(light1, light2, light5, currentLightLevel));
 		array[1] = new Vector2(array[1].x, Max(light2, light3, light6, currentLightLevel));
 		array[2] = new Vector2(array[2].x, Max(light3, light4, light7, currentLightLevel));
@@ -3435,8 +3437,6 @@ public struct BuildBorderJob : IJob{
     		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:true);
     	}
     	
-		//	Debug.Log(light1 + " " + light2 + " " + light3 + " " + light4 + " " + light5 + " " + light6 + " " + light7 + " " + light8);
-
 		if(CheckTransient(facing, xm, zm, xp, zp)){
 			transientValue = ProcessTransient(facing, xm, zm, xp, zp, currentLightLevel, light1, light2, light3, light4, light5, light6, light7, light8);
 			array[0] = new Vector2(transientValue >> 24, 1);
@@ -3551,49 +3551,49 @@ public struct BuildBorderJob : IJob{
     	int transientValue;
 
     	if(xm || xp || zm || zp || ym || yp){
-	    	if(CheckBorder(0, xm, xp, zm, zp, ym, yp))
-	    		light1 = GetOtherLight(pos.x, pos.y, pos.z, 0, isNatural:false);
+	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp))
+	    		light1 = GetOtherLight(pos.x, pos.y, pos.z, dir1, isNatural:false);
 	    	else
 	    		light1 = currentLightLevel;
-	    	if(CheckBorder(1, xm, xp, zm, zp, ym, yp))
-	    		light2 = GetOtherLight(pos.x, pos.y, pos.z, 1, isNatural:false);
+	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp))
+	    		light2 = GetOtherLight(pos.x, pos.y, pos.z, dir2, isNatural:false);
 	    	else
 	    		light2 = currentLightLevel;
-	    	if(CheckBorder(2, xm, xp, zm, zp, ym, yp))
-	    		light3 = GetOtherLight(pos.x, pos.y, pos.z, 2, isNatural:false);
+	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp))
+	    		light3 = GetOtherLight(pos.x, pos.y, pos.z, dir3, isNatural:false);
 	    	else
 	    		light3 = currentLightLevel;
-	    	if(CheckBorder(3, xm, xp, zm, zp, ym, yp))
-	    		light4 = GetOtherLight(pos.x, pos.y, pos.z, 3, isNatural:false);
+	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp))
+	    		light4 = GetOtherLight(pos.x, pos.y, pos.z, dir4, isNatural:false);
 	    	else
 	    		light4 = currentLightLevel;
 
-	    	if(CheckBorder(0, xm, xp, zm, zp, ym, yp) && CheckBorder(1, xm, xp, zm, zp, ym, yp)){
-	    		diagonal = VoxelData.offsets[0] + VoxelData.offsets[1];
+	    	if(CheckBorder(dir1, xm, xp, zm, zp, ym, yp) && CheckBorder(dir2, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir1] + VoxelData.offsets[dir2];
 	    		light5 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
 	    	}
 	    	else{
 	    		light5 = currentLightLevel;
 	    	}
 
-	    	if(CheckBorder(1, xm, xp, zm, zp, ym, yp) && CheckBorder(2, xm, xp, zm, zp, ym, yp)){
-	    		diagonal = VoxelData.offsets[1] + VoxelData.offsets[2];
+	    	if(CheckBorder(dir2, xm, xp, zm, zp, ym, yp) && CheckBorder(dir3, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir2] + VoxelData.offsets[dir3];
 	    		light6 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
 	    	}
 	    	else{
 	    		light6 = currentLightLevel;
 	    	}
 
-	    	if(CheckBorder(2, xm, xp, zm, zp, ym, yp) && CheckBorder(3, xm, xp, zm, zp, ym, yp)){
-	    		diagonal = VoxelData.offsets[2] + VoxelData.offsets[3];
+	    	if(CheckBorder(dir3, xm, xp, zm, zp, ym, yp) && CheckBorder(dir4, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir3] + VoxelData.offsets[dir4];
 	    		light7 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
 	    	}
 	    	else{
 	    		light7 = currentLightLevel;
 	    	}
 
-	    	if(CheckBorder(3, xm, xp, zm, zp, ym, yp) && CheckBorder(0, xm, xp, zm, zp, ym, yp)){
-	    		diagonal = VoxelData.offsets[3] + VoxelData.offsets[0];
+	    	if(CheckBorder(dir4, xm, xp, zm, zp, ym, yp) && CheckBorder(dir1, xm, xp, zm, zp, ym, yp)){
+	    		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
 	    		light8 = GetOtherLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
 	    	}
 	    	else{

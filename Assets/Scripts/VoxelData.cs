@@ -544,7 +544,7 @@ public struct CalculateShadowMapJob : IJob{
 					if((shadowMap[index] & 0x0F) >= 7)
 						lightMap[index] = (byte)(lightMap[index] & 0x0F);
 
-					if(x != 0 && x != Chunk.chunkWidth-1 && z != 0 && z != Chunk.chunkWidth-1 && (shadowMap[index] >> 4) >= 7){
+					if((shadowMap[index] >> 4) >= 7){
 						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | 16);
 						lightMap[index] = (byte)(lightMap[index] & 0x0F);
 					}
