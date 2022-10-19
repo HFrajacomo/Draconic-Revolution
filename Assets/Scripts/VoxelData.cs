@@ -85,9 +85,9 @@ public class VoxelData
 	4: Update Lights in neighbor chunk
 	}
 	*/
-	public static byte PropagateLight(VoxelData a, VoxelData b, byte borderCode){
-		NativeArray<byte> lightMap1 = NativeTools.CopyToNative(a.GetLightMap());
-		NativeArray<byte> lightMap2 = NativeTools.CopyToNative(b.GetLightMap());
+	public static byte PropagateLight(VoxelData a, VoxelMetadata aMetadata, VoxelData b, VoxelMetadata bMetadata,  byte borderCode){
+		NativeArray<byte> lightMap1 = NativeTools.CopyToNative(a.GetLightMap(aMetadata));
+		NativeArray<byte> lightMap2 = NativeTools.CopyToNative(b.GetLightMap(bMetadata));
 		NativeArray<byte> shadowMap1 = NativeTools.CopyToNative(a.GetShadowMap());
 		NativeArray<byte> shadowMap2 = NativeTools.CopyToNative(b.GetShadowMap());
 
@@ -162,7 +162,7 @@ public class VoxelData
 	/*
 	Burst Compiled
 	*/
-	public void CalculateLightMap(){
+	public void CalculateLightMap(VoxelMetadata metadata){
 		if(this.heightMap == null)
 			CalculateHeightMap();
 
@@ -171,6 +171,7 @@ public class VoxelData
 		NativeList<int4> lightSources = new NativeList<int4>(0, Allocator.TempJob);
 		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
 		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0}, Allocator.TempJob);
+		NativeArray<ushort> states = NativeTools.CopyToNative(metadata.GetStateData());
 
 		if(this.shadowMap == null)
 			shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
@@ -193,6 +194,7 @@ public class VoxelData
 			lightSources = lightSources,
 			heightMap = heightMap,
 			data = blockData,
+			states = states,
 			chunkWidth = Chunk.chunkWidth,
 			chunkDepth = Chunk.chunkDepth,
 			isTransparentObj = BlockEncyclopediaECS.objectTransparent,
@@ -232,6 +234,7 @@ public class VoxelData
         this.PROPAGATE_LIGHT_FLAG = changed[0];
 
         blockData.Dispose();
+        states.Dispose();
 
         bfsq.Dispose();
         bfsqExtra.Dispose();
@@ -356,9 +359,9 @@ public class VoxelData
 		data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blockCode;
 	}
 
-	public byte[] GetLightMap(){
+	public byte[] GetLightMap(VoxelMetadata metadata){
 		if(this.lightMap == null){
-			this.CalculateLightMap();
+			this.CalculateLightMap(metadata);
 		}
 
 		return this.lightMap;
@@ -373,10 +376,6 @@ public class VoxelData
 	}
 
 	public byte[] GetShadowMap(){
-		if(this.shadowMap == null){
-			this.CalculateLightMap();
-		}
-
 		return this.shadowMap;
 	}
 
@@ -428,6 +427,8 @@ public struct CalculateShadowMapJob : IJob{
 	[ReadOnly]
 	public NativeArray<ushort> data;
 	[ReadOnly]
+	public NativeArray<ushort> states;
+	[ReadOnly]
 	public int chunkWidth;
 	[ReadOnly]
 	public int chunkDepth;
@@ -460,11 +461,11 @@ public struct CalculateShadowMapJob : IJob{
 
 						// Gets lightsource
 						if(isBlock){
-							if(blockLuminosity[blockCode] > 0)
-								lightSources.Add(new int4(x, y, z, blockLuminosity[blockCode]));
+							if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4))
+								lightSources.Add(new int4(x, y, z, (blockLuminosity[blockCode] & 0x0F)));
 						}
 						else{
-							if(objectLuminosity[ushort.MaxValue - blockCode] > 0)
+							if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4))
 								lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode]));							
 						}
 
@@ -501,8 +502,8 @@ public struct CalculateShadowMapJob : IJob{
 						else
 							shadowMap[index] = 0;
 
-						if(blockLuminosity[blockCode] > 0)
-							lightSources.Add(new int4(x, y, z, blockLuminosity[blockCode]));
+						if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4))
+							lightSources.Add(new int4(x, y, z, (blockLuminosity[blockCode] & 0x0F)));
 					}
 					else{
 						if(isTransparentObj[ushort.MaxValue - blockCode] == 1){
@@ -532,8 +533,8 @@ public struct CalculateShadowMapJob : IJob{
 						else
 							shadowMap[index] = 0;
 
-						if(objectLuminosity[ushort.MaxValue - blockCode] > 0)
-							lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode]));			
+						if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4))
+							lightSources.Add(new int4(x, y, z, (objectLuminosity[ushort.MaxValue - blockCode] & 0x0F)));			
 					}
 
 					

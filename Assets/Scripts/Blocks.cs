@@ -20,7 +20,7 @@ public abstract class Blocks
 	public bool affectLight; // Should drain light level
 	public bool liquid;
 	public bool seamless = false;
-	public byte luminosity = 0; // Emits VoxelLight
+	public byte luminosity = 0; // Emits VoxelLight -> 0x0F represents the light level and 0xF0 represents the state offset to be emmiting light
 	public bool hasLoadEvent = false;
 	public bool washable = false; // Can be destroyed by flowing water
 	public bool needsRotation = false;

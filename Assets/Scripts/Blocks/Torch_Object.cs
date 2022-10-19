@@ -29,7 +29,7 @@ public class Torch_Object : BlocklikeObject
 		this.washable = true;
 		this.hasLoadEvent = true;
 		this.affectLight = false;
-		this.luminosity = 8;
+		this.luminosity = 8 + (3 << 4);
 
 		this.maxHP = 1;
 
@@ -77,7 +77,7 @@ public class Torch_Object : BlocklikeObject
 		SFXMessage.SFXPlay(pos, blockX, blockY, blockZ, (ushort)BlockID.TORCH, newState);
 		cl.server.SendToClients(pos, SFXMessage);
 
-		return 2;
+		return 1;
 	}
 
 	// Instantiates a FireVFX

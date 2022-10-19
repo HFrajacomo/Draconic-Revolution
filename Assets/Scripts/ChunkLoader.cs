@@ -392,7 +392,7 @@ public class ChunkLoader : MonoBehaviour
         if(toDraw.Count > 0){
             // If chunk is still loaded
             if(chunks.ContainsKey(toDraw[0])){
-                chunks[toDraw[0]].data.CalculateLightMap();
+                chunks[toDraw[0]].data.CalculateLightMap(chunks[toDraw[0]].metadata);
                 CheckLightPropagation(toDraw[0]);
 
                 chunks[toDraw[0]].BuildChunk(load:true);
@@ -444,7 +444,7 @@ public class ChunkLoader : MonoBehaviour
         // Gets the minimum operational value
         if(toUpdate.Count > 0){
             if(this.chunks.ContainsKey(toUpdate[0])){
-                chunks[toUpdate[0]].data.CalculateLightMap();
+                chunks[toUpdate[0]].data.CalculateLightMap(chunks[toUpdate[0]].metadata);
                 CheckLightPropagation(toUpdate[0]);
 
                 chunks[toUpdate[0]].BuildChunk();
@@ -501,7 +501,7 @@ public class ChunkLoader : MonoBehaviour
             neighbor = new ChunkPos(pos.x-1, pos.z);
 
             if(this.chunks.ContainsKey(neighbor)){
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 0);
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 0);
 
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
@@ -518,7 +518,7 @@ public class ChunkLoader : MonoBehaviour
             neighbor = new ChunkPos(pos.x+1, pos.z);
 
             if(this.chunks.ContainsKey(neighbor)){
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 1);
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 1);
 
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
@@ -535,7 +535,7 @@ public class ChunkLoader : MonoBehaviour
             neighbor = new ChunkPos(pos.x, pos.z-1);
 
             if(this.chunks.ContainsKey(neighbor)){
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 2);
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 2);
 
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);
@@ -553,7 +553,7 @@ public class ChunkLoader : MonoBehaviour
             neighbor = new ChunkPos(pos.x, pos.z+1);
 
             if(this.chunks.ContainsKey(neighbor)){
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[neighbor].data, 3);
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 3);
 
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);

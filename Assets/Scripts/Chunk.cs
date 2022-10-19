@@ -308,7 +308,7 @@ public class Chunk
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative(this.data.GetData());
 		NativeArray<ushort> hpdata = NativeTools.CopyToNative(this.metadata.GetHPData());
 		NativeArray<ushort> metadata = NativeTools.CopyToNative(this.metadata.GetStateData());
-		NativeArray<byte> lightdata = NativeTools.CopyToNative(this.data.GetLightMap());
+		NativeArray<byte> lightdata = NativeTools.CopyToNative(this.data.GetLightMap(this.metadata));
 
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> uvs = new NativeList<Vector2>(0, Allocator.TempJob);
@@ -394,7 +394,7 @@ public class Chunk
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
-			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap(loader.chunks[targetChunk].metadata));
 			
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
@@ -491,7 +491,7 @@ public class Chunk
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
-			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap(loader.chunks[targetChunk].metadata));
 
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
@@ -588,7 +588,7 @@ public class Chunk
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
-			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap(loader.chunks[targetChunk].metadata));
 
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
@@ -683,7 +683,7 @@ public class Chunk
 			changed = true;
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
-			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap(loader.chunks[targetChunk].metadata));
 
 			BuildBorderJob bbJob = new BuildBorderJob{
 				pos = this.pos,
@@ -777,11 +777,11 @@ public class Chunk
 			changed = true;
 
 			NativeArray<ushort> xsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[1]].data.GetData());
-			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[1]].data.GetLightMap());	
+			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[1]].data.GetLightMap(loader.chunks[this.surroundingChunks[1]].metadata));	
 			NativeArray<ushort> zsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[2]].data.GetData());
-			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[2]].data.GetLightMap());
+			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[2]].data.GetLightMap(loader.chunks[this.surroundingChunks[2]].metadata));
 			NativeArray<ushort> cornerdata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[4]].data.GetData());
-			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[4]].data.GetLightMap());
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[4]].data.GetLightMap(loader.chunks[this.surroundingChunks[4]].metadata));
 
 			BuildCornerJob bcj = new BuildCornerJob{
 				xsidedata = xsidedata,
@@ -861,11 +861,11 @@ public class Chunk
 			changed = true;
 
 			NativeArray<ushort> xsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[3]].data.GetData());
-			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[3]].data.GetLightMap());	
+			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[3]].data.GetLightMap(loader.chunks[this.surroundingChunks[3]].metadata));	
 			NativeArray<ushort> zsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[2]].data.GetData());
-			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[2]].data.GetLightMap());
+			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[2]].data.GetLightMap(loader.chunks[this.surroundingChunks[2]].metadata));
 			NativeArray<ushort> cornerdata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[5]].data.GetData());
-			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[5]].data.GetLightMap());
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[5]].data.GetLightMap(loader.chunks[this.surroundingChunks[5]].metadata));
 
 			BuildCornerJob bcj = new BuildCornerJob{
 				xsidedata = xsidedata,
@@ -945,11 +945,11 @@ public class Chunk
 			changed = true;
 
 			NativeArray<ushort> xsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[3]].data.GetData());
-			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[3]].data.GetLightMap());	
+			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[3]].data.GetLightMap(loader.chunks[this.surroundingChunks[3]].metadata));	
 			NativeArray<ushort> zsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[0]].data.GetData());
-			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[0]].data.GetLightMap());
+			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[0]].data.GetLightMap(loader.chunks[this.surroundingChunks[0]].metadata));
 			NativeArray<ushort> cornerdata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[6]].data.GetData());
-			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[6]].data.GetLightMap());
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[6]].data.GetLightMap(loader.chunks[this.surroundingChunks[6]].metadata));
 
 			BuildCornerJob bcj = new BuildCornerJob{
 				xsidedata = xsidedata,
@@ -1029,11 +1029,11 @@ public class Chunk
 			changed = true;
 
 			NativeArray<ushort> xsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[1]].data.GetData());
-			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[1]].data.GetLightMap());	
+			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[1]].data.GetLightMap(loader.chunks[this.surroundingChunks[1]].metadata));	
 			NativeArray<ushort> zsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[0]].data.GetData());
-			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[0]].data.GetLightMap());
+			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[0]].data.GetLightMap(loader.chunks[this.surroundingChunks[0]].metadata));
 			NativeArray<ushort> cornerdata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[7]].data.GetData());
-			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[7]].data.GetLightMap());
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[7]].data.GetLightMap(loader.chunks[this.surroundingChunks[7]].metadata));
 
 			BuildCornerJob bcj = new BuildCornerJob{
 				xsidedata = xsidedata,
@@ -1195,7 +1195,7 @@ public class Chunk
 
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
 		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
-		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap());
+		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap(this.metadata));
 		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<ushort> loadCodeList = new NativeList<ushort>(0, Allocator.TempJob);
@@ -2204,7 +2204,7 @@ public struct BuildChunkJob : IJob{
 		diagonal = VoxelData.offsets[dir4] + VoxelData.offsets[dir1];
 		light8 = GetNeighborLight(pos.x, pos.y, pos.z, diagonal, isNatural:false);
 
-		
+
 
 		array[0] = new Vector2(array[0].x, Max(light1, light2, light5, currentLightLevel));
 		array[1] = new Vector2(array[1].x, Max(light2, light3, light6, currentLightLevel));
