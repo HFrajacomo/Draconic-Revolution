@@ -42,7 +42,7 @@ For every Voxel in a chunk, we need to find out the ShadowCode for them. The Sha
  - Defined as 3 if current Voxel receives light from the sun but is not in contact with it (like light being shined into the underground)
  - Defined as 7, 8, 9, 10 if current Voxel receives light from a neighbor chunk, each code representing the direction the light received travels
 
-During the ShadowMapping process, only ShadowCode 0, 1 and 2 is set. The only exception are the 7-10 ShadowCodes that are not tampered with if the current ShadowMap has them at some point.
+During the ShadowMapping process, only ShadowCode 0, 1 and 2 is set. The only exception are the 7-10 ShadowCodes that are not tampered with if the current ShadowMap has them at some point for Natural Light. Extra Lights handling delete all occurrences of 7-10 ShadowCodes. See more at the Extra Lights section!
 
 ## LightMapping
 
@@ -50,7 +50,7 @@ Now things get fun. Lightmapping is meant to assign the local light value of eac
 The algorithm is pretty simple:
 
  1. For every sunlight affected voxel, assign Light Level 15
- 2. Add the unlit neighbords of these sunlight affected blocks to a Breadth-First-Search queue
+ 2. Add the unlit neighbors of these sunlight affected blocks to a Breadth-First-Search queue
  3. Iterate through the queue, lowering the light level by one each time and set these voxels to their respective light levels and ShadowCode 3.
  4. Find every directional light received from other chunk voxels (the ones that have untampered ShadowCode 7-10) and add them to another Breadth-First-Search queue.
  5. Iterate through the queue, checking if the received light should be further propagated
@@ -59,7 +59,7 @@ The algorithm is pretty simple:
 
 Imagine that we have the entrance to a cave perfectly fitting a chunk and this chunk's neighbor is directly into sunlight. Given the implementation of lighting so far, one chunk would be totally dark while the other would be totally lit. It makes sense that light should propagate between chunks so that this scenario won't happen.
 
-We check compare the ShadowCode of the bordering blocks of every two chunks to figure out what WorkCode should be assigned to the pair. A WorkCode simply represents a routine of handling the given pair of ShadowCodes. The following tables can explain it better:
+We compare the ShadowCode of the bordering blocks of every two chunks to figure out what WorkCode should be assigned to the pair. A WorkCode simply represents a routine of handling the given pair of ShadowCodes. The following tables can explain it better:
 
 | **Shadow Pair** | **Shadow Translation** | **WorkCode** | **What the WorkCode means** |
 |--|--|--|--|
@@ -88,15 +88,20 @@ Multi-chunk propagation is when a single block in a chunk propagates directional
 
 This part is the one that sends the Light Level calculated for the Voxels to their respective vertices. That part shouldn't be hard, right? WRONG!
 
-In order to get a decent gradient out each vertice, a Voxel's vertex light shouldn't always be the same as its local light level. It must take into consideration the light of it's neighbords as well, especially bordering chunks. For that, a 2D Convolution is run on the neighborhood of a voxel to define its 4 vertices' light level. This number is sent to the GPU in the UV Channel 3 (uv[3] for reference).
+In order to get a decent gradient out each vertice, a Voxel's vertex light shouldn't always be the same as its local light level. It must take into consideration the light of it's neighbors as well, especially bordering chunks. For that, every vertice is assigned the highest light value out of the 4-voxel-junction it generates. 
 
-Explaining like that seems easy, but it took me over a month to get it right  :(
+Explaining like that seems easy, but it took me over a month to get it right!
 
+Also note that the order in which the vertices are written heavily affects the order at which light information should be gathered. If you are developing a game and are creating voxels out of plain code, remember to create a standard order for drawing vertices. Clockwise rendering is the one I'm using in most (if not all) cases.
 
 
 ## Extra Lights
 
-Alright, now take everything that was just said in the entire past Section and LITERALLY double that. Extra Lights are lights that don't come from the sun (torches, magic, light switches, etc.). They are handled in a similar way, yet, they lack the ShadowCode 2. Whenever a Voxel contains both Natural Light and Extra Light information, the highest valued one will be used by the Shader.
+Alright, now take everything that was just said in the entire past Section and LITERALLY double that. 
+
+Extra Lights are lights that don't come from the sun (torches, magic, light switches, etc.). They are handled in a similar way, yet, they lack the ShadowCode 2. Whenever a Voxel contains both Natural Light and Extra Light information, the highest valued one will be used by the Shader.
+
+Note that Extra Lights are constantly calculated and directional Extra Lights are always deleted whenever the ShadowMapping stage kicks in.
 
 ## Custom Interpolation Shaders
 In order to get the modern look (and to work towards realism in a Voxel Lighting engine), we need to get perfect gradients between light levels. So for every pixel, there must have a gradient happening... Just imagine how hard and CPU intensive it would be to Lerp every pixel on the screen...
