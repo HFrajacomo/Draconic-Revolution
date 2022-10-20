@@ -466,7 +466,7 @@ public struct CalculateShadowMapJob : IJob{
 						}
 						else{
 							if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4))
-								lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode]));							
+								lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode] & 0x0F));							
 						}
 
 						lightMap[index] = 0;
@@ -658,29 +658,6 @@ public struct CalculateLightMapJob : IJob{
 		int index = 0;
 		bfsqSize = 0;
 
-		DetectDirectionals(extraLight:true);
-		bfsqSize = bfsqExtra.Length;
-		visited.Clear();
-
-		// Fills propagations from outside chunks
-		while(bfsqSize > 0){
-			current = bfsqExtra[0].xyz;
-			index = GetIndex(current);
-
-			if(visited.Contains(current)){
-				bfsqExtra.RemoveAt(0);
-				bfsqSize = bfsqExtra.Length;	
-				continue;
-			}
-
-			ScanDirectionals(current, (byte)(lightMap[index] >> 4), false, (byte)(shadowMap[index] >> 4));
-
-			visited.Add(current);
-			bfsqExtra.RemoveAt(0);	
-			bfsqSize = bfsqExtra.Length;			
-		}
-
-		bfsqSize = 0;
 		visited.Clear();
 
 		if(lightSources.Length > 0){
@@ -740,6 +717,28 @@ public struct CalculateLightMapJob : IJob{
 
 				bfsqSize = bfsqExtra.Length;
 			}
+		}
+
+		DetectDirectionals(extraLight:true);
+		bfsqSize = bfsqExtra.Length;
+		visited.Clear();
+
+		// Fills propagations from outside chunks
+		while(bfsqSize > 0){
+			current = bfsqExtra[0].xyz;
+			index = GetIndex(current);
+
+			if(visited.Contains(current)){
+				bfsqExtra.RemoveAt(0);
+				bfsqSize = bfsqExtra.Length;	
+				continue;
+			}
+
+			ScanDirectionals(current, (byte)(lightMap[index] >> 4), false, (byte)(shadowMap[index] >> 4));
+
+			visited.Add(current);
+			bfsqExtra.RemoveAt(0);	
+			bfsqSize = bfsqExtra.Length;			
 		}
 
 		CheckBorders();
