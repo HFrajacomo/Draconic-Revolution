@@ -1,5 +1,4 @@
 Tech Debts:
 
-Manhatan distance chunk loading/unloading
 Dog Fix
 Increase lighting to better get a lively feel
