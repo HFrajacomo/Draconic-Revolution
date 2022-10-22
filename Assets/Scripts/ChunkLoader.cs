@@ -295,63 +295,73 @@ public class ChunkLoader : MonoBehaviour
 
     // Asks the Server to send chunk information
     private void RequestChunk(){
-    	if(requestPriorityQueue.GetSize() > 0){
-    		// Prevention
-    		if(toUnload.Contains(requestPriorityQueue.Peek())){
-    			toUnload.Remove(requestPriorityQueue.Peek());
-    			requestPriorityQueue.Pop();
-    			return;
-    		}
+        for(int i = 0; i < 3; i++){
+            if(PASTLOADTIME)
+                i = 3;
 
-            if(chunks.ContainsKey(requestPriorityQueue.Peek())){
-                requestPriorityQueue.Pop();
-                return;
-            }
+        	if(requestPriorityQueue.GetSize() > 0){
+        		// Prevention
+        		if(toUnload.Contains(requestPriorityQueue.Peek())){
+        			toUnload.Remove(requestPriorityQueue.Peek());
+        			requestPriorityQueue.Pop();
+        			return;
+        		}
 
-           // Asks server to hand over chunk info
-            this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
-            this.message.RequestChunkLoad(requestPriorityQueue.Pop());
-            this.client.Send(this.message.GetMessage(), this.message.size);
-    	}
+                if(chunks.ContainsKey(requestPriorityQueue.Peek())){
+                    requestPriorityQueue.Pop();
+                    return;
+                }
+
+               // Asks server to hand over chunk info
+                this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
+                this.message.RequestChunkLoad(requestPriorityQueue.Pop());
+                this.client.Send(this.message.GetMessage(), this.message.size);
+        	}
+        }
     }
 
     // Loads the chunk into the Chunkloader
     private void LoadChunk(){
-        if(toLoad.Count > 0){
-            byte[] data = toLoad[0];
+        for(int i = 0; i < 3; i++){
+            if(PASTLOADTIME)
+                i = 3;
 
-            int headerSize = RegionFileHandler.chunkHeaderSize;
+            if(toLoad.Count > 0){
+                byte[] data = toLoad[0];
 
-            ChunkPos cp = NetDecoder.ReadChunkPos(data, 1);
+                int headerSize = RegionFileHandler.chunkHeaderSize;
 
-            // Prevention
-            if(this.chunks.ContainsKey(cp)){
-                this.chunks[cp].Destroy();
-                this.chunks.Remove(cp);
+                ChunkPos cp = NetDecoder.ReadChunkPos(data, 1);
+
+                // Prevention
+                if(this.chunks.ContainsKey(cp)){
+                    this.chunks[cp].Destroy();
+                    this.chunks.Remove(cp);
+                }
+
+
+                int blockDataSize = NetDecoder.ReadInt(data, 9);
+                int hpDataSize = NetDecoder.ReadInt(data, 13);
+                int stateDataSize = NetDecoder.ReadInt(data, 17);
+
+                this.chunks[cp] = new Chunk(cp, this.rend, this.blockBook, this);
+                this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[21]);
+
+                Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:21+headerSize);
+                Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
+                Compression.DecompressMetadataStateClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize+hpDataSize);
+
+                if(this.vfx.data.ContainsKey(cp))
+                    this.vfx.RemoveChunk(cp);
+                    
+                this.vfx.NewChunk(cp);
+
+                if(!this.toDraw.Contains(cp))
+                    this.toDraw.Add(cp);
+
+                toLoad.RemoveAt(0);
+                toLoadChunk.RemoveAt(0);        
             }
-
-
-            int blockDataSize = NetDecoder.ReadInt(data, 9);
-            int hpDataSize = NetDecoder.ReadInt(data, 13);
-            int stateDataSize = NetDecoder.ReadInt(data, 17);
-
-            this.chunks[cp] = new Chunk(cp, this.rend, this.blockBook, this);
-            this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[21]);
-
-            Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:21+headerSize);
-            Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize);
-            Compression.DecompressMetadataStateClient(this.chunks[cp], data, initialPos:21+headerSize+blockDataSize+hpDataSize);
-
-            if(this.vfx.data.ContainsKey(cp))
-                this.vfx.RemoveChunk(cp);
-                
-            this.vfx.NewChunk(cp);
-
-            if(!this.toDraw.Contains(cp))
-                this.toDraw.Add(cp);
-
-            toLoad.RemoveAt(0);
-            toLoadChunk.RemoveAt(0);        
         }
     }
 
@@ -395,23 +405,29 @@ public class ChunkLoader : MonoBehaviour
     // Actually builds the mesh for loaded chunks
     private void DrawChunk(){
         // toDRAW
-        if(toDraw.Count > 0){
-            // If chunk is still loaded
-            if(chunks.ContainsKey(toDraw[0])){
-                chunks[toDraw[0]].data.CalculateLightMap(chunks[toDraw[0]].metadata);
-                CheckLightPropagation(toDraw[0]);
 
-                chunks[toDraw[0]].BuildChunk(load:true);
-                // If hasn't been drawn entirely, put on Redraw List
-                if(!chunks[toDraw[0]].BuildSideBorder(reload:false, loadBUD:true)){
-                    toRedraw.Add(toDraw[0]);
+        for(int i = 0; i < 2; i++){
+            if(PASTLOADTIME)
+                i = 2;
+
+            if(toDraw.Count > 0){
+                // If chunk is still loaded
+                if(chunks.ContainsKey(toDraw[0])){
+                    chunks[toDraw[0]].data.CalculateLightMap(chunks[toDraw[0]].metadata);
+                    CheckLightPropagation(toDraw[0]);
+
+                    chunks[toDraw[0]].BuildChunk(load:true);
+                    // If hasn't been drawn entirely, put on Redraw List
+                    if(!chunks[toDraw[0]].BuildSideBorder(reload:false, loadBUD:true)){
+                        toRedraw.Add(toDraw[0]);
+                    }
+                    else{
+                        if(this.WORLD_GENERATED)
+                            this.vfx.UpdateLights(toDraw[0]);
+                    }
                 }
-                else{
-                    if(this.WORLD_GENERATED)
-                        this.vfx.UpdateLights(toDraw[0]);
-                }
+                toDraw.RemoveAt(0);
             }
-            toDraw.RemoveAt(0);
         }
 
         // toREDRAW
@@ -447,36 +463,45 @@ public class ChunkLoader : MonoBehaviour
 
     // Reload a chunk in toUpdate
     private void UpdateChunk(){
-        // Gets the minimum operational value
-        if(toUpdate.Count > 0){
-            if(this.chunks.ContainsKey(toUpdate[0])){
-                chunks[toUpdate[0]].data.CalculateLightMap(chunks[toUpdate[0]].metadata);
-                CheckLightPropagation(toUpdate[0]);
+        for(int i = 0; i < 2; i++){
+            if(PASTLOADTIME)
+                i = 2;
 
-                chunks[toUpdate[0]].BuildChunk();
+            if(toUpdate.Count > 0){
+                if(this.chunks.ContainsKey(toUpdate[0])){
+                    chunks[toUpdate[0]].data.CalculateLightMap(chunks[toUpdate[0]].metadata);
+                    CheckLightPropagation(toUpdate[0]);
 
-                if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
-                    toRedraw.Add(toUpdate[0]);
-                else{ 
-                    if(this.WORLD_GENERATED)
-                        this.vfx.UpdateLights(toUpdate[0]);
+                    chunks[toUpdate[0]].BuildChunk();
+
+                    if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
+                        toRedraw.Add(toUpdate[0]);
+                    else{ 
+                        if(this.WORLD_GENERATED)
+                            this.vfx.UpdateLights(toUpdate[0]);
+                    }
                 }
+                toUpdate.RemoveAt(0);
             }
-            toUpdate.RemoveAt(0);
         }
 
-        if(toUpdateNoLight.Count > 0){
-            if(this.chunks.ContainsKey(toUpdateNoLight[0])){
-                chunks[toUpdateNoLight[0]].BuildChunk();
+        for(int i = 0; i < 2; i++){
+            if(PASTLOADTIME)
+                i = 2;
 
-                if(!chunks[toUpdateNoLight[0]].BuildSideBorder(reload:true))
-                    toRedraw.Add(toUpdateNoLight[0]);
-                else{
-                    if(this.WORLD_GENERATED)
-                        this.vfx.UpdateLights(toUpdateNoLight[0]);
+            if(toUpdateNoLight.Count > 0){
+                if(this.chunks.ContainsKey(toUpdateNoLight[0])){
+                    chunks[toUpdateNoLight[0]].BuildChunk();
+
+                    if(!chunks[toUpdateNoLight[0]].BuildSideBorder(reload:true))
+                        toRedraw.Add(toUpdateNoLight[0]);
+                    else{
+                        if(this.WORLD_GENERATED)
+                            this.vfx.UpdateLights(toUpdateNoLight[0]);
+                    }
                 }
+                toUpdateNoLight.RemoveAt(0);
             }
-            toUpdateNoLight.RemoveAt(0);
         }
     }
 
