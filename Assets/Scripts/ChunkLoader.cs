@@ -160,7 +160,7 @@ public class ChunkLoader : MonoBehaviour
         }
         else{
             // If current chunk is drawn and world is generated
-        	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ)){// && toLoad.Count == 0){ //DEBUG
+        	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ)){
                 HandleClientCommunication();
         		WORLD_GENERATED = true;
 
@@ -187,15 +187,17 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Run attached messages to a 600 frame timer
     /*
     Registered Events:
 
     Heartbeart:         30 ticks
-    FixUnloadedChunks:  2400 ticks
+    UnloadUnityObjects: 600 ticks
+    RemoveLoadingTimer: 700 ticks (non loopable)
+    FixUnloadedChunks:  1200 ticks
+    ForceUnload:        1500 ticks
     */
     private void RunTimerFunctions(){
-        if(this.timer < 2400)
+        if(this.timer < 6000)
             this.timer++;
         else
             this.timer = 1;
@@ -218,8 +220,13 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // Fix Unloaded Chunks
-        if(this.timer % 2400 == 0){
+        if(this.timer % 1200 == 0){
             FixUnloaded();
+        }
+
+        // Remove Loaded Chunks outside render distance
+        if(this.timer % 1500 == 0){
+            ForceUnload();
         }
     }
 
@@ -768,6 +775,19 @@ public class ChunkLoader : MonoBehaviour
                     if(!this.chunks[newChunk].drawMain && !this.toDraw.Contains(newChunk))
                         this.toDraw.Add(newChunk);
                 }
+            }
+        }
+    }
+
+    // Goes through all Chunks and checks if they should've been deleted already
+    private void ForceUnload(){
+        foreach(ChunkPos pos in this.chunks.Keys){
+            if(Mathf.Abs(pos.x - this.playerCurrentChunk.x) > renderDistance){
+                toUnload.Add(pos);
+            }
+
+            if(Mathf.Abs(pos.z - this.playerCurrentChunk.z) > renderDistance){
+                toUnload.Add(pos);
             }
         }
     }
