@@ -19,7 +19,7 @@ public class ChunkLoader : MonoBehaviour
 	public Transform player;
 	public ChunkPos currentChunk;
 	public ChunkPos newChunk;
-	public List<ChunkPos> toRequest = new List<ChunkPos>();
+	public ChunkPriorityQueue requestPriorityQueue = new ChunkPriorityQueue();
     public List<byte[]> toLoad = new List<byte[]>();
     public List<ChunkPos> toLoadChunk = new List<ChunkPos>();
     public List<ChunkPos> toUpdate = new List<ChunkPos>();
@@ -34,6 +34,7 @@ public class ChunkLoader : MonoBehaviour
     public float playerZ;
     public float playerY;
     public float playerDirX, playerDirY, playerDirZ;
+    public ChunkPos playerCurrentChunk;
     
     // Unity Reference
     public BlockEncyclopedia blockBook;
@@ -159,7 +160,7 @@ public class ChunkLoader : MonoBehaviour
         }
         else{
             // If current chunk is drawn and world is generated
-        	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ) && toLoad.Count == 0){
+        	if(!WORLD_GENERATED && CheckChunkDrawn(this.playerX, this.playerZ)){// && toLoad.Count == 0){ //DEBUG
                 HandleClientCommunication();
         		WORLD_GENERATED = true;
 
@@ -287,25 +288,23 @@ public class ChunkLoader : MonoBehaviour
 
     // Asks the Server to send chunk information
     private void RequestChunk(){
-    	if(toRequest.Count > 0){
+    	if(requestPriorityQueue.GetSize() > 0){
     		// Prevention
-    		if(toUnload.Contains(toRequest[0])){
-    			toUnload.Remove(toRequest[0]);
-    			toRequest.RemoveAt(0);
+    		if(toUnload.Contains(requestPriorityQueue.Peek())){
+    			toUnload.Remove(requestPriorityQueue.Peek());
+    			requestPriorityQueue.Pop();
     			return;
     		}
 
-            if(chunks.ContainsKey(toRequest[0])){
-                toRequest.RemoveAt(0);
+            if(chunks.ContainsKey(requestPriorityQueue.Peek())){
+                requestPriorityQueue.Pop();
                 return;
             }
 
            // Asks server to hand over chunk info
             this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
-            this.message.RequestChunkLoad(toRequest[0]);
+            this.message.RequestChunkLoad(requestPriorityQueue.Pop());
             this.client.Send(this.message.GetMessage(), this.message.size);
-
-    		toRequest.RemoveAt(0);
     	}
     }
 
@@ -360,8 +359,8 @@ public class ChunkLoader : MonoBehaviour
             }
 
             // Prevention
-            if(toRequest.Contains(toUnload[0])){
-                toRequest.Remove(toUnload[0]);
+            if(requestPriorityQueue.Contains(toUnload[0])){
+                requestPriorityQueue.Pop();
                 toUnload.RemoveAt(0);
                 return;
             }
@@ -587,16 +586,19 @@ public class ChunkLoader : MonoBehaviour
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
 		newChunk = new ChunkPos(playerX, playerZ);
 
+        this.playerCurrentChunk = newChunk;
+
     	// Reload all Chunks nearby
     	if(reload){
     		ClearAllChunks();
-    		toRequest.Clear();
+    		requestPriorityQueue.Clear();
     		toUnload.Clear();
-            toRedraw.Clear();
+
+            requestPriorityQueue.SetPlayerPosition(newChunk);
     		
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
-	        		toRequest.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
+	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
                     toRedraw.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
 	        	}
 	        }
@@ -611,6 +613,7 @@ public class ChunkLoader : MonoBehaviour
     	}
 
     	int diff = (newChunk - currentChunk).dir();
+        requestPriorityQueue.SetPlayerPosition(newChunk);
 
 
     	if(diff == 0){ // East
@@ -618,9 +621,7 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x-renderDistance-1, newChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x+renderDistance-1, newChunk.z+i);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
     		}
     	}
     	else if(diff == 2){ // West
@@ -628,9 +629,7 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x+renderDistance+1, newChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x-renderDistance+1, newChunk.z+i);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
     		}
     	}
     	else if(diff == 1){ // South
@@ -638,9 +637,7 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance+1);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance+1);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
       		}
     	}
     	else if(diff == 3){ // North
@@ -648,9 +645,7 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance-1);
     			toUnload.Add(popChunk);
       			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance-1);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
        		}	
     	}
     	else if(diff == 5){ // Southeast
@@ -658,17 +653,13 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x+renderDistance-1, newChunk.z+i);
-       			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+       			requestPriorityQueue.Add(addChunk);
     		}
     		for(int i=-renderDistance+1; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i-1, newChunk.z-renderDistance);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i-1, newChunk.z-renderDistance+1);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
     		}
     	}
     	else if(diff == 6){ // Southwest
@@ -676,17 +667,13 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x-renderDistance+1, newChunk.z+i);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z-renderDistance);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i+1, newChunk.z-renderDistance+1);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
     		}
     	}
     	else if(diff == 7){ // Northwest
@@ -694,17 +681,13 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x-renderDistance+1, newChunk.z+i);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z-renderDistance);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z+renderDistance);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i+1, newChunk.z+renderDistance-1);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
     		}
     	}
     	else if(diff == 4){ // Northeast
@@ -712,17 +695,13 @@ public class ChunkLoader : MonoBehaviour
     			ChunkPos popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x+renderDistance-1, newChunk.z+i);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i+1, currentChunk.z-renderDistance);
     			toUnload.Add(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
-                ChunkPos refreshChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance-1);
-    			toRequest.Add(addChunk);
-                toRedraw.Add(refreshChunk);
+    			requestPriorityQueue.Add(addChunk);
     		}
     	}
 
@@ -822,90 +801,6 @@ public struct Coord3D{
 
 }
 
-
-public struct ChunkPos{
-	public int x;
-	public int z;
-
-	public ChunkPos(int a, int b){
-		this.x = a;
-		this.z = b;
-	}
-
-	public override string ToString(){
-		return "(" + this.x + ", " + this.z + ")";
-	}
-
-	public static bool operator==(ChunkPos a, ChunkPos b){
-		if(a.x == b.x && a.z == b.z)
-			return true;
-		return false;
-	}
-
-	public static bool operator!=(ChunkPos a, ChunkPos b){
-		if(a.x == b.x && a.z == b.z)
-			return false;
-		return true;
-	}
-
-	public override int GetHashCode(){
-		return this.x ^ this.z;
-	}
-
-	public override bool Equals(System.Object a){
-		if(a == null)
-			return false;
-
-		ChunkPos item = (ChunkPos)a;
-		return this == item;
-	}
-
-	/*
-	Returns the direction the player must have moved to find a new chunk
-	Used after ChunkPos - ChunkPos
-	0 = East
-	1 = South
-	2 = West
-	3 = North
-
-	4 = Northeast
-	5 = Southeast
-	6 = Southwest
-	7 = Northwest
-	*/
-	public int dir(){
-		if(this.x == 1 && this.z == 1){
-			return 4;
-		}
-		if(this.x == 1 && this.z == -1){
-			return 5;
-		}
-		if(this.x == -1 && this.z == -1){
-			return 6;
-		}
-		if(this.x == -1 && this.z == 1){
-			return 7;
-		}
-		if(this.x == 1){
-			return 0;
-		}
-		if(this.x == -1){
-			return 2;
-		}
-		if(this.z == 1){
-			return 3;
-		}
-		if(this.z == -1){
-			return 1;
-		}
-		return -1;
-	}
-
-
-	public static ChunkPos operator-(ChunkPos a, ChunkPos b){
-		return new ChunkPos(a.x - b.x, a.z - b.z);
-	}
-}
 
 public struct ChunkLightPropagInfo{
     public ChunkPos pos;
