@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
@@ -268,6 +269,8 @@ public class PlayerRaycast : MonoBehaviour
 
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
 		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
+
+		Debug.Log(loader.chunks[toUpdate].metadata.GetState(current.blockX, current.blockY, current.blockZ));
 		
 		NetMessage message = new NetMessage(NetCode.INTERACT);
 		message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);
@@ -296,12 +299,15 @@ public class PlayerRaycast : MonoBehaviour
 
 		// If this is last position to be set
 		else{
+			StringBuilder sbBlock = new StringBuilder();
+			StringBuilder sbHp = new StringBuilder();
+			StringBuilder sbState = new StringBuilder();
 
 			CastCoord finalPos;
 			ChunkPos newPos;
-			string outBlock = "{";
-			string outHp = "{";
-			string outState = "{";
+			sbBlock.Append("{");
+			sbHp.Append("{");
+			sbState.Append("{");
 
 			int xCount = 0;
 			int zCount = 0;
@@ -366,28 +372,28 @@ public class PlayerRaycast : MonoBehaviour
 							}
 
 							for(; z < zEnd; z++){
-								outBlock += loader.chunks[newPos].data.GetCell(x,y,z).ToString();
-								outBlock += ",";
+								sbBlock.Append(loader.chunks[newPos].data.GetCell(x,y,z).ToString());
+								sbBlock.Append(",");
 
 								if(loader.chunks[newPos].metadata.IsUnassigned(x,y,z)){
-									outHp += "null,";
-									outState += "null,";
+									sbHp.Append("0,");
+									sbState.Append("0,");
 								}
 								else{
 									if(loader.chunks[newPos].metadata.IsHPNull(x,y,z)){
-										outHp += "null,";
+										sbHp.Append("0,");
 									}
 									else{
-										outHp += loader.chunks[newPos].metadata.GetHP(x,y,z);
-										outHp += ",";
+										sbHp.Append(loader.chunks[newPos].metadata.GetHP(x,y,z));
+										sbHp.Append(",");
 									}
 
 									if(loader.chunks[newPos].metadata.IsStateNull(x,y,z)){
-										outState += "null,";
+										sbState.Append("0,");
 									}
 									else{
-										outState += loader.chunks[newPos].metadata.GetState(x,y,z);
-										outState += ",";
+										sbState.Append(loader.chunks[newPos].metadata.GetState(x,y,z));
+										sbState.Append(",");
 									}
 								}
 							}
@@ -395,6 +401,10 @@ public class PlayerRaycast : MonoBehaviour
 					}
 				}
 			}
+
+		sbBlock.Append("}");
+		sbHp.Append("}");
+		sbState.Append("}");
 
 		int sizeX, sizeZ, sizeY;
 
@@ -411,14 +421,16 @@ public class PlayerRaycast : MonoBehaviour
 
 		sizeY = finalPos.blockY - prefabPos.blockY;
 
+
+
 		StreamWriter file = new StreamWriter("SavedStruct.txt", append:true);
 
 		file.WriteLine("Blocks:\n");
-		file.WriteLine(outBlock + "}");
+		file.WriteLine(Compression.FormatPrereadInformation(sbBlock.ToString()));
 		file.WriteLine("\n\nHP:\n");
-		file.WriteLine(outHp + "}");
+		file.WriteLine(Compression.FormatPrereadInformation(sbHp.ToString()));
 		file.WriteLine("\n\nState:\n");
-		file.WriteLine(outState + "}");
+		file.WriteLine(Compression.FormatPrereadInformation(sbState.ToString()));
 		file.WriteLine("\nSizes: " + sizeX + " | " + sizeY + " | " + sizeZ + "		[" + sizeX*sizeY*sizeZ + "]\n\n\n\n");
 		file.Close();
 

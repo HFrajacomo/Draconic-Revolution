@@ -18,7 +18,7 @@ public class DayNightCycle : MonoBehaviour
 
     // Luminosity
     private float dayLuminosity = 3f;
-    private float nightLuminosity = 0.5f;
+    private float nightLuminosity = 0.2f;
 
     // Shadow Dimmer
     private float maxShadowDimmer = 1f;
@@ -27,7 +27,7 @@ public class DayNightCycle : MonoBehaviour
     // Shader Parameters
     private float lightMultiplier = 0f;
     private float lightValueAtDay = 1f;
-    private float lightValueAtNight = 0.3f;
+    private float lightValueAtNight = 0.05f;
 
     // Tint and Fog
     private float normalTint = 0f;

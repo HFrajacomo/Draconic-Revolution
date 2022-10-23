@@ -396,7 +396,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""72dce022-52b3-4940-8198-58778524b85b"",
-                    ""path"": ""<Keyboard>/p"",
+                    ""path"": ""<Keyboard>/numpad7"",
                     ""interactions"": ""Press"",
                     ""processors"": """",
                     ""groups"": ""Keyboard and Mouse"",
@@ -407,7 +407,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""c1c1ad14-407f-4393-b2d2-67e0f048273f"",
-                    ""path"": ""<Keyboard>/o"",
+                    ""path"": ""<Keyboard>/numpad9"",
                     ""interactions"": ""Press"",
                     ""processors"": """",
                     ""groups"": ""Keyboard and Mouse"",

@@ -12,6 +12,7 @@ public class Air_Block : Blocks
 		this.invisible = true;
 		this.liquid = false;
 		this.affectLight = false;
+		this.washable = false;
 
 		this.tileTop = 0;
 		this.tileSide = 0;

@@ -424,11 +424,14 @@ public class ChunkLoader_Server : MonoBehaviour
         int length;
 
         for(int i=0; i < 45; i++){
-            if(i == 0){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.STONEBLOCK, 3);
+            if(i == 1){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.STONEBLOCK, 50);
             }
-            else if(i == 1){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.TORCH, 10);
+            else if(i == 2){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.TORCH, 50);
+            }
+            else if(i == 3){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.ICEBLOCK, 50);
             }
             else{
                 slots[i] = new EmptyPlayerInventorySlot();

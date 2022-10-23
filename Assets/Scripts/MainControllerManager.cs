@@ -40,6 +40,19 @@ public class MainControllerManager : MonoBehaviour
     public Transform playerCamera;
     public ChunkLoader cl;
 
+    // Locks
+    public bool LOCK_MOUSE1 = false;
+    public bool LOCK_MOUSE2 = false;
+    public bool LOCK_INTERACT = false;
+    public bool LOCK_DROP = false;
+
+    public void Update(){
+        LOCK_DROP = false;
+        LOCK_INTERACT = false;
+        LOCK_MOUSE2 = false;
+        LOCK_MOUSE1 = false;
+    }
+
 	// Jumping
     public void OnJump(){
     	// If it's press
@@ -64,18 +77,24 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnPrimaryAction(){
-    	if(!MainControllerManager.InUI)
+    	if(!MainControllerManager.InUI && !LOCK_MOUSE1){
             raycast.BreakBlock();
+            LOCK_MOUSE1 = true;
+        }
     }
 
     public void OnSecondaryAction(){
-    	if(!MainControllerManager.InUI)
+    	if(!MainControllerManager.InUI && !LOCK_MOUSE2){
             raycast.UseItem();
+            LOCK_MOUSE2 = true;
+        }
     }
 
     public void OnInteract(){
-        if(!MainControllerManager.InUI)
+        if(!MainControllerManager.InUI && !LOCK_INTERACT){
             raycast.Interact();
+            LOCK_INTERACT = true;
+        }
     }
 
     public void OnToggleGravity(){
@@ -83,11 +102,11 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnPrefabRead(){
-        //prefabRead = true;
+        prefabRead = true;
     }
 
     public void OnPrefabReadAir(){
-        //prefabReadAir = true;
+        prefabReadAir = true;
     }
 
     public void OnToggleFreeCam(){
@@ -183,6 +202,11 @@ public class MainControllerManager : MonoBehaviour
             MainControllerManager.ctrl = false;    
     }
     public void OnDrop(){
+        if(!LOCK_DROP)
+            return;
+
+        LOCK_DROP = true;
+
         if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot) == null)
             return;
 

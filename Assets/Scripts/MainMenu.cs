@@ -134,7 +134,6 @@ public class MainMenu : MonoBehaviour
 		World.SetWorldSeed(0);
 		World.SetToClient();
 
-
 		SceneManager.LoadScene(1);
 	}
 
