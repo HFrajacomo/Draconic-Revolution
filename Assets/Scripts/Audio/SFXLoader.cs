@@ -22,7 +22,7 @@ public class SFXLoader : MonoBehaviour
         GameObject go = GameObject.Instantiate(prefab, new Vector3(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ()), Quaternion.identity);
         go.transform.parent = prefabCategory.transform;
         AudioSource source = go.GetComponent<AudioSource>();
-        ulong entityCode = (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z);
+        ulong entityCode = (ulong)((pos.x*Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth) + ((pos.z*Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth) << 32) + (x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z));
 
         if(!blockSFX.ContainsKey(pos))
             blockSFX.Add(pos, new Dictionary<ulong, GameObject>());
@@ -37,7 +37,7 @@ public class SFXLoader : MonoBehaviour
     Removes a single block from SFXLoader
     */
     public void RemoveBlockSFX(ChunkPos pos, int x, int y, int z){
-        ulong code = (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z);
+        ulong code = (ulong)((pos.x*Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth) + ((pos.z*Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth) << 32) + (x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z));
 
         if(!blockSFX.ContainsKey(pos))
             return;

@@ -69,7 +69,7 @@ MonoBehaviour:
         m_Bits: 0
       supportFabricConvolution: 0
       maxDirectionalLightsOnScreen: 1
-      maxPunctualLightsOnScreen: 1024
+      maxPunctualLightsOnScreen: 2048
       maxAreaLightsOnScreen: 64
       maxEnvLightsOnScreen: 64
       maxDecalsOnScreen: 512
