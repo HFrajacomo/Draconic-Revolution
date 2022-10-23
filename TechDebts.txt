@@ -1,4 +1,0 @@
-Tech Debts:
-
-Dog Fix
-Increase lighting to better get a lively feel
