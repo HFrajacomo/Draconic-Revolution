@@ -22,11 +22,11 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkPriorityQueue requestPriorityQueue = new ChunkPriorityQueue();
     public List<byte[]> toLoad = new List<byte[]>();
     public List<ChunkPos> toLoadChunk = new List<ChunkPos>();
-    public List<ChunkPos> toUpdate = new List<ChunkPos>();
+    public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue();
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
     public List<ChunkPos> toDraw = new List<ChunkPos>();
     public List<ChunkPos> toRedraw = new List<ChunkPos>();
-    public List<ChunkPos> toUpdateNoLight = new List<ChunkPos>();
+    public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue();
     public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 
     // Received from Server
@@ -276,19 +276,19 @@ public class ChunkLoader : MonoBehaviour
     // Adds chunk to Update queue
     public void AddToUpdate(ChunkPos pos, bool noLight=false){
         if(!noLight){
-            if(!toUpdate.Contains(pos))
-                toUpdate.Add(pos);
+            if(!updatePriorityQueue.Contains(pos))
+                updatePriorityQueue.Add(pos);
             else{
-                toUpdate.Remove(pos);
-                toUpdate.Add(pos);
+                updatePriorityQueue.Remove(pos);
+                updatePriorityQueue.Add(pos);
             }
         }
         else{
-            if(!toUpdateNoLight.Contains(pos))
-                toUpdateNoLight.Add(pos);
+            if(!updateNoLightPriorityQueue.Contains(pos))
+                updateNoLightPriorityQueue.Add(pos);
             else{
-                toUpdateNoLight.Remove(pos);
-                toUpdateNoLight.Add(pos);
+                updateNoLightPriorityQueue.Remove(pos);
+                updateNoLightPriorityQueue.Add(pos);
             }            
         }
     }
@@ -448,35 +448,35 @@ public class ChunkLoader : MonoBehaviour
     // Reload a chunk in toUpdate
     private void UpdateChunk(){
         // Gets the minimum operational value
-        if(toUpdate.Count > 0){
-            if(this.chunks.ContainsKey(toUpdate[0])){
-                chunks[toUpdate[0]].data.CalculateLightMap(chunks[toUpdate[0]].metadata);
-                CheckLightPropagation(toUpdate[0]);
+        if(updatePriorityQueue.GetSize() > 0){
+            if(this.chunks.ContainsKey(updatePriorityQueue.Peek())){
+                chunks[updatePriorityQueue.Peek()].data.CalculateLightMap(chunks[updatePriorityQueue.Peek()].metadata);
+                CheckLightPropagation(updatePriorityQueue.Peek());
 
-                chunks[toUpdate[0]].BuildChunk();
+                chunks[updatePriorityQueue.Peek()].BuildChunk();
 
-                if(!chunks[toUpdate[0]].BuildSideBorder(reload:true))
-                    toRedraw.Add(toUpdate[0]);
+                if(!chunks[updatePriorityQueue.Peek()].BuildSideBorder(reload:true))
+                    toRedraw.Add(updatePriorityQueue.Peek());
                 else{ 
                     if(this.WORLD_GENERATED)
-                        this.vfx.UpdateLights(toUpdate[0]);
+                        this.vfx.UpdateLights(updatePriorityQueue.Peek());
                 }
             }
-            toUpdate.RemoveAt(0);
+            updatePriorityQueue.Pop();
         }
 
-        if(toUpdateNoLight.Count > 0){
-            if(this.chunks.ContainsKey(toUpdateNoLight[0])){
-                chunks[toUpdateNoLight[0]].BuildChunk();
+        if(updateNoLightPriorityQueue.GetSize() > 0){
+            if(this.chunks.ContainsKey(updateNoLightPriorityQueue.Peek())){
+                chunks[updateNoLightPriorityQueue.Peek()].BuildChunk();
 
-                if(!chunks[toUpdateNoLight[0]].BuildSideBorder(reload:true))
-                    toRedraw.Add(toUpdateNoLight[0]);
+                if(!chunks[updateNoLightPriorityQueue.Peek()].BuildSideBorder(reload:true))
+                    toRedraw.Add(updateNoLightPriorityQueue.Peek());
                 else{
                     if(this.WORLD_GENERATED)
-                        this.vfx.UpdateLights(toUpdateNoLight[0]);
+                        this.vfx.UpdateLights(updateNoLightPriorityQueue.Peek());
                 }
             }
-            toUpdateNoLight.RemoveAt(0);
+            updateNoLightPriorityQueue.Pop();
         }
     }
 
