@@ -12,9 +12,9 @@ public class Sand_Block : Blocks
         this.liquid = false;
         this.affectLight = true;
 
-        this.tileTop = 8;
-        this.tileSide = 8;
-        this.tileBottom = 8;
+        this.tileTop = 9;
+        this.tileSide = 9;
+        this.tileBottom = 9;
 
         this.maxHP = 70; 
     }

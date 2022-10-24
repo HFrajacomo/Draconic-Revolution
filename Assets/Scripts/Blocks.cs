@@ -5,10 +5,10 @@ using UnityEngine;
 
 public abstract class Blocks
 {
-	public static readonly int blockCount = 11;
+	public static readonly int blockCount = 17;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
-	public static readonly int atlasSizeY = 2;
+	public static readonly int atlasSizeY = 3;
 	public static readonly int transparentAtlasSizeX = 8;
 	public static readonly int transparentAtlasSizeY = 4;
 
@@ -41,32 +41,46 @@ public abstract class Blocks
 	*/
 	public static Blocks Block(int blockID){
 		// The actual block encyclopedia
+		switch(blockID){
+			case 0:
+				return new Air_Block();
+			case 1:
+				return new Grass_Block();
+			case 2:
+				return new Dirt_Block();
+			case 3:
+				return new Stone_Block();
+			case 4:
+				return new Wood_Block();
+			case 5:
+				return new MetalOre_Block();
+			case 6:
+				return new Water_Block();
+			case 7:
+				return new Leaf_Block();
+			case 8:
+				return new Sand_Block();
+			case 9:
+				return new Snow_Block();
+			case 10:
+				return new Ice_Block();
+			case 11:
+				return new Basalt_Block();
+			case 12:
+				return new StoneBrick_Block();
+			case 13:
+				return new WoodenPlankRegular_Block();
+			case 14:
+				return new WoodenPlankPine_Block();
+			case 15:
+				return new Bone_Block();
+			case 16:
+				return new SandstoneBrick_Block();
 
-		if(blockID == 0)
-			return new Air_Block();
-		else if(blockID == 1)
-			return new Grass_Block();
-		else if(blockID == 2)
-			return new Dirt_Block();
-		else if(blockID == 3)
-			return new Stone_Block();	
-		else if(blockID == 4)
-			return new Wood_Block();		
-		else if(blockID == 5)
-			return new MetalOre_Block();		
-		else if(blockID == 6)
-			return new Water_Block();
-		else if(blockID == 7)
-			return new Leaf_Block();
-		else if(blockID == 8)
-			return new Sand_Block();
-		else if(blockID == 9)
-			return new Snow_Block();
-		else if(blockID == 10)
-			return new Ice_Block();
-		else
-			return new Air_Block();
-			
+
+			default:
+				return new Air_Block();
+		}
 	}
 
 

@@ -15,7 +15,13 @@ public enum BlockID : ushort
     SAND = 8,
     SNOW = 9,
     ICE = 10,
-
+    BASALT = 11,
+    CLAY = 12,
+    STONE_BRICK = 13,
+    WOODEN_PLANKS_REGULAR = 14,
+    WOODEN_PLANKS_PINE = 15,
+    BONE = 16,
+    SANDSTONE_BRICK = 17,
 
     /*
     OBJECTS
