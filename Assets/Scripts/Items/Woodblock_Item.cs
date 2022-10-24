@@ -14,7 +14,7 @@ public class Woodblock_Item : Item, IPlaceable
 		this.SetStackSize(50);
 		this.SetPrice(10);
 		this.SetPriceVar(6);
-		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Arbor, 1}});
+		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Arbor, 2}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Wood});
 		this.SetDurability(false);
 		this.placeableBlockID = 4;

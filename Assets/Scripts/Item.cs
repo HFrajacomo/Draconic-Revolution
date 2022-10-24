@@ -81,6 +81,20 @@ public abstract class Item
 				return new Snowblock_Item();
 			case ItemID.ICEBLOCK:
 				return new Iceblock_Item();
+			case ItemID.BASALTBLOCK:
+				return new Basaltblock_Item();
+			case ItemID.CLAYBLOCK:
+				return new Clayblock_Item();
+			case ItemID.STONEBRICKBLOCK:
+				return new StoneBrickblock_Item();
+			case ItemID.WOODENPLANKSREGULARBLOCK:
+				return new WoodenPlankRegularblock_Item();
+			case ItemID.WOODENPLANKSPINEBLOCK:
+				return new WoodenPlankPineblock_Item();
+			case ItemID.BONEBLOCK:
+				return new Boneblock_Item();
+			case ItemID.SANDSTONEBRICKBLOCK:
+				return new SandstoneBrickblock_Item();
 			default:
 				return null;
 		}

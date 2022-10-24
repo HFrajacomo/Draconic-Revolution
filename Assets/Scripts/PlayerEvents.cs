@@ -147,6 +147,7 @@ public class PlayerEvents : MonoBehaviour
 			hotbarText[slot].text = "";
 		}
 		else{
+			Debug.Log(its.GetItemIconName());
 			hotbarIcon[slot].sprite = iconAtlas.GetSprite(its.GetItemIconName());
 			hotbarIcon[slot].color = this.WHITE;
 
