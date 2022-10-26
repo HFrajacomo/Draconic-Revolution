@@ -67,14 +67,16 @@ public abstract class Blocks
 			case 11:
 				return new Basalt_Block();
 			case 12:
-				return new StoneBrick_Block();
+				return new Clay_Block();
 			case 13:
-				return new WoodenPlankRegular_Block();
+				return new StoneBrick_Block();
 			case 14:
-				return new WoodenPlankPine_Block();
+				return new WoodenPlankRegular_Block();
 			case 15:
-				return new Bone_Block();
+				return new WoodenPlankPine_Block();
 			case 16:
+				return new Bone_Block();
+			case 17:
 				return new SandstoneBrick_Block();
 
 

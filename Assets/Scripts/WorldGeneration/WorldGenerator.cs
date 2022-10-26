@@ -1123,14 +1123,24 @@ public struct PopulateChunkJob : IJob{
 
     public void ApplyWaterBodyFloor(){
         int depth = 0;
-        int finalDepth = 2;
+        int finalDepth = 5;
         ushort blockCode;
         int height;
+        bool hasClay;
+        float clayNoise;
+        float clayThreshold = 0.42f;
+        float clayThreshold2 = -0.2f;
 
         for(int x=0; x < Chunk.chunkWidth; x++){
             for(int z=0; z < Chunk.chunkWidth; z++){
+                hasClay = false;
+
                 depth = 0;
                 height = (int)heightMap[x*(Chunk.chunkWidth+1)+z];
+                clayNoise = Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep1);
+
+                if(clayNoise >= clayThreshold)
+                    hasClay = true;
 
                 blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+height*Chunk.chunkWidth+z];
 
@@ -1143,6 +1153,12 @@ public struct PopulateChunkJob : IJob{
                         if(blockCode != (ushort)BlockID.WATER){
                             depth++;
                             blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
+
+                            if(hasClay && y >= Constants.WORLD_CLAY_MIN_LEVEL && y <= Constants.WORLD_CLAY_MAX_LEVEL){
+                                if(Noise((x ^ z)*y*GenerationSeed.patchNoiseStep4) >= clayThreshold2){
+                                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.CLAY;
+                                }
+                            }
                         }
 
                         if(depth == finalDepth)
@@ -1270,6 +1286,15 @@ public struct PopulateChunkJob : IJob{
 
     }
 
+    public float Noise(float x)
+    {
+        int X = Mathf.FloorToInt(x) & 0xff;
+        x -= Mathf.Floor(x);
+        float u = Fade(x);
+
+        return Lerp(u, Grad(patchNoise[X], x), Grad(patchNoise[X+1], x-1));
+    }
+
     private float Noise(float x, float y)
     {
         int X = Mathf.FloorToInt(x) & 0xff;
@@ -1294,6 +1319,10 @@ public struct PopulateChunkJob : IJob{
     private float Lerp(float t, float a, float b)
     {
         return a + t * (b - a);
+    }
+    private float Grad(int hash, float x)
+    {
+        return (hash & 1) == 0 ? x : -x;
     }
     private float Grad(int hash, float x, float y)
     {
