@@ -5,7 +5,7 @@ using UnityEngine;
 
 public abstract class Blocks
 {
-	public static readonly int blockCount = 17;
+	public static readonly int blockCount = 19;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
 	public static readonly int atlasSizeY = 3;
@@ -78,6 +78,8 @@ public abstract class Blocks
 				return new Bone_Block();
 			case 17:
 				return new SandstoneBrick_Block();
+			case 18:
+				return new Sandstone_Block();
 
 
 			default:

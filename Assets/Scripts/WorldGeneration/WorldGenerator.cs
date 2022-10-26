@@ -958,11 +958,15 @@ public struct PopulateChunkJob : IJob{
                         if(blockCode == (ushort)BlockID.WATER)
                             depth++;
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
+                            if(depth != 5)
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
+                            else
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SANDSTONE;
+
                             depth++; 
                         }
 
-                        if(depth == 5){
+                        if(depth == 6){
                             break;
                         }
                     }

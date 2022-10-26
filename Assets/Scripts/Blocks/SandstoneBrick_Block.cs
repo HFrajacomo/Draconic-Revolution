@@ -2,20 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Sandstone_Block : Blocks
+public class SandstoneBrick_Block : Blocks
 {
-	public Sandstone_Block(){
-		this.name = "Sandstone";
+	public SandstoneBrick_Block(){
+		this.name = "Sandstone Bricks";
 		this.solid = true;
 		this.transparent = 0;
 		this.invisible = false;
 		this.liquid = false;
 		this.affectLight = true;
 
-		this.tileTop = 16;
-		this.tileSide = 16;
-		this.tileBottom = 16;
+		this.tileTop = 17;
+		this.tileSide = 17;
+		this.tileBottom = 17;
 
-		this.maxHP = 200;
+		this.maxHP = 240;
 	}
 }

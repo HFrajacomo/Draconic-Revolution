@@ -5475,6 +5475,9 @@ public struct BuildCornerJob : IJob{
 	}
 
 	private int GetLightOnX(int x, int y, int z, bool isNatural=true){
+		if(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z < 0)
+			return 0;
+
 		if(isNatural)
 			return xsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 		else
@@ -5482,6 +5485,9 @@ public struct BuildCornerJob : IJob{
 	}
 
 	private int GetLightOnZ(int x, int y, int z, bool isNatural=true){
+		if(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z < 0)
+			return 0;
+
 		if(isNatural)
 			return zsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 		else
@@ -5489,6 +5495,9 @@ public struct BuildCornerJob : IJob{
 	}
 
 	private int GetLightOnCorner(byte chunkDir, int y, bool isNatural=true){
+		if(y < 0)
+			return 0;
+
 		if(isNatural){
 			if(chunkDir == 4)
 				return cornerlight[(y)*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;

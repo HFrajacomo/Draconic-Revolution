@@ -22,6 +22,7 @@ public enum BlockID : ushort
     WOODEN_PLANKS_PINE = 15,
     BONE = 16,
     SANDSTONE_BRICK = 17,
+    SANDSTONE = 18,
 
     /*
     OBJECTS
