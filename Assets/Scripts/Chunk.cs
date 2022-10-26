@@ -1196,6 +1196,7 @@ public class Chunk
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
 		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
 		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap(this.metadata));
+		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());
 		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<ushort> loadCodeList = new NativeList<ushort>(0, Allocator.TempJob);
@@ -1222,6 +1223,7 @@ public class Chunk
 			lightdata = lightdata,
 			loadOutList = loadCoordList,
 			loadAssetList = loadAssetList,
+			renderMap = renderMap,
 			verts = verts,
 			UVs = UVs,
 			lightUV = lightUV,
@@ -1431,6 +1433,7 @@ public class Chunk
 		iceTris.Dispose();
 		blockdata.Dispose();
 		statedata.Dispose();
+		renderMap.Dispose();
 		loadCoordList.Dispose();
 		cacheCubeVert.Dispose();
 		cacheCubeNormal.Dispose();
@@ -1682,6 +1685,7 @@ public class Chunk
 /*
 MULTITHREADING
 */
+
 [BurstCompile]
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
@@ -1693,6 +1697,8 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<ushort> state; // VoxelMetadata.state
 	[ReadOnly]
 	public NativeArray<byte> lightdata;
+	[ReadOnly]
+	public NativeArray<byte> renderMap;
 
 	// OnLoad Event Trigger List
 	public NativeList<int3> loadOutList;
@@ -1751,28 +1757,22 @@ public struct BuildChunkJob : IJob{
 	public void Execute(){
 		ushort thisBlock;
 		ushort neighborBlock;
+		ushort neighborState;
 		ushort thisState;
 		bool isBlock;
+		bool isTransparent;
+		int ii;
+		int3 c;
 
 		for(int x=0; x<Chunk.chunkWidth; x++){
-			for(int y=0; y<Chunk.chunkDepth; y++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
+			for(int z=0; z<Chunk.chunkWidth; z++){
+				for(int y=renderMap[x*Chunk.chunkWidth+z]; y >= 0; y--){
 					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 					thisState = state[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-	    			// If air
-	    			if(thisBlock == 0){
-	    				continue;
-	    			}
-
-	    			// If Corner
-	    			if((x == 0 || x == Chunk.chunkWidth-1) && (z == 0 || z == Chunk.chunkWidth-1) && thisBlock <= ushort.MaxValue/2)
-	    				continue;
-
-	    			isBlock = thisBlock <= ushort.MaxValue/2;
+					isBlock = thisBlock <= ushort.MaxValue/2;
 
 	    			// Runs OnLoad event
-	    			if(load)
+	    			if(load){
 	    				// If is a block
 		    			if(isBlock){
 		    				if(blockLoad[thisBlock] && !blockSeamless[thisBlock]){
@@ -1785,78 +1785,98 @@ public struct BuildChunkJob : IJob{
 		    					loadOutList.Add(new int3(x,y,z));
 		    				}
 		    			}
+		    		}
 
-	    			// --------------------------------
+		    		// Object
+		    		if(!isBlock){
+		    			LoadMesh(x, y, z, -1, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
+		    		}
 
-			    	for(int i=0; i<6; i++){
-			    		neighborBlock = GetNeighbor(x, y, z, i);
-			    		
-			    		// Chunk Border and floor culling here! ----------	
+		    		// Transparency
+		    		if(isBlock){
+		    			isTransparent = blockTransparent[thisBlock] == 1 || blockDrawRegardless[thisBlock];
+		    		}
+		    		else{
+		    			isTransparent = objectTransparent[ushort.MaxValue - thisBlock] == 1;
+		    		}
 
-			    		if(isBlock){
-				    		if((x == 0 && (i != 1)) || (z == 0 && (i != 0))){
+		    		if(isTransparent){
+				    	for(int i=0; i<6; i++){
+				    		neighborBlock = GetNeighbor(x, y, z, i);
+				    		neighborState = GetNeighborState(x, y, z, i);
+				    		c = GetCoords(x, y, z, i);
+				    		isBlock = neighborBlock <= ushort.MaxValue/2;
+				    		ii = InvertDir(i);
+
+				    		if(neighborBlock == 0)
+				    			continue;
+				    		
+				    		// Chunk Border and floor culling here! ----------	
+			    			// If Corner
+				    		if(c.x >= Chunk.chunkWidth || c.x < 0 || c.z >= Chunk.chunkWidth || c.z < 0)
+				    			break;
+
+			    			if((c.x == 0 || c.x == Chunk.chunkWidth-1) && (c.z == 0 || c.z == Chunk.chunkWidth-1))
+			    				continue;
+
+				    		if((c.x == 0 && (ii != 1)) || (c.z == 0 && (ii != 0)))
+				    			continue;
+
+				    		if((c.x == Chunk.chunkWidth-1 && (ii != 3)) || (c.z == Chunk.chunkWidth-1 && (ii != 2)))
+				    			continue;
+
+				    		if(c.y == 0 && ii == 5)
+				    			continue;
+
+				    		if(c.y == Chunk.chunkDepth-1 && ii != 5){
 				    			continue;
 				    		}
-				    		if((x == Chunk.chunkWidth-1 && (i != 3)) || (z == Chunk.chunkWidth-1 && (i != 2))){
+
+				    		if(!isBlock)
 				    			continue;
+
+
+				    		////////// -----------------------------------
+
+							// Handles Liquid chunks
+				    		if(isBlock){
+				    			if(blockSeamless[neighborBlock]){
+					    			if(CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
+					    				continue;
+					    			}
+				    			}
+
 				    		}
-				    		if(y == 0 && i == 5){
-				    			continue;
+				    		else{
+				    			if(objectSeamless[ushort.MaxValue-neighborBlock]){
+					    			if(CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
+					    				continue;
+					    			}    				
+				    			}
 				    		}
-				    	}
 
-			    		////////// -----------------------------------
-
-						// Handles Liquid chunks
-			    		if(isBlock){
-			    			if(blockSeamless[thisBlock]){
-				    			if(CheckSeams(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i))){
-				    				continue;
-				    			}
-				    			else if(neighborBlock <= ushort.MaxValue/2 && i != 4){
-				    				if(neighborBlock == 0 || blockWashable[neighborBlock]){
-				    				}
-
-				    			}
-				    			else if(neighborBlock > ushort.MaxValue/2 && i != 4){
-				    				if(objectWashable[ushort.MaxValue-neighborBlock]){
-				    				}
-				    			}
-			    			}
-
-			    		}
-			    		else{
-			    			if(objectSeamless[ushort.MaxValue-thisBlock]){
-				    			if(CheckSeams(thisBlock, neighborBlock, thisState, GetNeighborState(x,y,z,i))){
-				    				continue;
-				    			}
-				    			else if(neighborBlock <= ushort.MaxValue/2 && i != 4){
-				    				if(neighborBlock == 0 || blockWashable[neighborBlock]){
-				    				}
-
-				    			}
-				    			else if(neighborBlock > ushort.MaxValue/2 && i != 4){
-				    				if(objectWashable[ushort.MaxValue-neighborBlock]){
-				    				}
-				    			}	    				
-			    			}
-			    		}
-
-		    			// Main Drawing Handling
-			    		if(CheckPlacement(neighborBlock)){
-					    	if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal)){
-					    		break;
-					    	}
-			    		}
-			    		else if(isBlock){
-			    			if(blockDrawRegardless[thisBlock])
-	    						if(!LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal))
-				    				break;
-			    		}
-				    } // faces loop
-	    		} // z loop
-	    	} // y loop
+						    LoadMesh(c.x, c.y, c.z, ii, neighborBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
+					    } // faces loop
+					}
+	    		} // y loop
+	    	} // z loop
 	    } // x loop
+    }
+
+    private int InvertDir(int i){
+    	if(i == 0)
+    		return 2;
+    	if(i == 1)
+    		return 3;
+    	if(i == 2)
+    		return 0;
+    	if(i == 3)
+    		return 1;
+    	if(i == 4)
+    		return 5;
+    	if(i == 5)
+    		return 4;
+    	return 0;
     }
 
     // Gets neighbor element
@@ -1868,6 +1888,10 @@ public struct BuildChunkJob : IJob{
 		}
 
 		return data[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
+	}
+
+	private int3 GetCoords(int x, int y, int z, int dir){
+		return new int3(x, y, z) + VoxelData.offsets[dir];
 	}
 
     // Gets neighbor state
@@ -1884,6 +1908,10 @@ public struct BuildChunkJob : IJob{
 	// Gets neighbor light level
 	private int GetNeighborLight(int x, int y, int z, int dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + VoxelData.offsets[dir];
+
+		if(coord.y >= Chunk.chunkDepth)
+			return 15;
+
 		if(isNatural)
 			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
 		else
@@ -1893,6 +1921,10 @@ public struct BuildChunkJob : IJob{
 	// Gets neighbor light level
 	private int GetNeighborLight(int x, int y, int z, int3 dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + dir;
+
+		if(coord.y >= Chunk.chunkDepth)
+			return 15;
+
 		if(isNatural)
 			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
 		else

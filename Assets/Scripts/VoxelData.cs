@@ -16,6 +16,7 @@ public class VoxelData
 
 	private ushort[] data;
 	private byte[] heightMap;
+	private byte[] renderMap;
 	private byte[] shadowMap;
 	private byte[] lightMap;
 
@@ -251,18 +252,26 @@ public class VoxelData
 			return;
 		if(this.heightMap == null)
 			this.heightMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth];
+		if(this.renderMap == null)
+			this.renderMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth];
 
 		ushort blockCode;
-		bool found;
+		bool found, foundRender;
 
 		for(int x=0; x < Chunk.chunkWidth; x++){
 	    	for(int z=0; z < Chunk.chunkWidth; z++){
 	    		found = false;
+	    		foundRender = false;
 	    		for(int y=Chunk.chunkDepth-1; y >= 0; y--){
 	    			blockCode = this.data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
 	    			// If is a block
 	    			if(blockCode <= ushort.MaxValue/2){
+	    				if(BlockEncyclopediaECS.blockInvisible[blockCode] && !foundRender){
+	    					this.renderMap[x*Chunk.chunkWidth+z] = (byte)y;
+	    					foundRender = true;
+	    				}
+
 	    				if(BlockEncyclopediaECS.blockAffectLight[blockCode]){
 	    					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
 	    					found = true;
@@ -271,6 +280,11 @@ public class VoxelData
 	    			}
 	    			// If it's an object
 	    			else{
+	    				if(BlockEncyclopediaECS.blockInvisible[ushort.MaxValue - blockCode] && !foundRender){
+	    					this.renderMap[x*Chunk.chunkWidth+z] = (byte)y;
+	    					foundRender = true;
+	    				}
+
 	    				if(BlockEncyclopediaECS.objectAffectLight[ushort.MaxValue - blockCode]){
 	    					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
 	    					found = true;
@@ -279,6 +293,9 @@ public class VoxelData
 	    			}
 	    		}
 
+	    		if(!foundRender){
+	    			this.renderMap[x*Chunk.chunkWidth+z] = 0;
+	    		}
 	    		if(!found){
 	    			this.heightMap[x*Chunk.chunkWidth+z] = 0;
 	    		}
@@ -365,6 +382,13 @@ public class VoxelData
 		}
 
 		return this.lightMap;
+	}
+
+	public byte[] GetRenderMap(){
+		if(this.renderMap == null)
+			this.CalculateHeightMap();
+
+		return this.renderMap;
 	}
 
 	public void SetLightMap(byte[] lm){
