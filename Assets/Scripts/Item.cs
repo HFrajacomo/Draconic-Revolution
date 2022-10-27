@@ -95,6 +95,8 @@ public abstract class Item
 				return new Boneblock_Item();
 			case ItemID.SANDSTONEBRICKBLOCK:
 				return new SandstoneBrickblock_Item();
+			case ItemID.SANDSTONEBLOCK:
+				return new Sandstoneblock_Item();
 			default:
 				return null;
 		}
