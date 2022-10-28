@@ -356,7 +356,7 @@ public class Client
 	// Receives a Chunk
 	private void SendChunk(byte[] data){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
-
+		
 		this.cl.toLoad.Add(data);
 		this.cl.toLoadChunk.Add(pos);
 	}

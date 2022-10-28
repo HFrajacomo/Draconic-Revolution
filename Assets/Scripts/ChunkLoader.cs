@@ -605,8 +605,7 @@ public class ChunkLoader : MonoBehaviour
     		
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
-	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
-                    toRedraw.Add(new ChunkPos(newChunk.x+x, newChunk.z+z));
+	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z), initial:true);
 	        	}
 	        }
 	        
@@ -627,6 +626,7 @@ public class ChunkLoader : MonoBehaviour
     		for(int i=-renderDistance; i <=renderDistance;i++){
     			ChunkPos popChunk = new ChunkPos(newChunk.x-renderDistance-1, newChunk.z+i);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
     			requestPriorityQueue.Add(addChunk);
     		}
@@ -635,6 +635,7 @@ public class ChunkLoader : MonoBehaviour
     		for(int i=-renderDistance; i <=renderDistance;i++){
     			ChunkPos popChunk = new ChunkPos(newChunk.x+renderDistance+1, newChunk.z+i);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
     			requestPriorityQueue.Add(addChunk);
     		}
@@ -643,6 +644,7 @@ public class ChunkLoader : MonoBehaviour
     		for(int i=-renderDistance; i <=renderDistance;i++){
     			ChunkPos popChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance+1);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance);
     			requestPriorityQueue.Add(addChunk);
       		}
@@ -651,6 +653,7 @@ public class ChunkLoader : MonoBehaviour
     		for(int i=-renderDistance; i <=renderDistance;i++){
     			ChunkPos popChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance-1);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
       			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
     			requestPriorityQueue.Add(addChunk);
        		}	
@@ -659,12 +662,14 @@ public class ChunkLoader : MonoBehaviour
     		for(int i=-renderDistance; i <= renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
        			requestPriorityQueue.Add(addChunk);
     		}
     		for(int i=-renderDistance+1; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i-1, newChunk.z-renderDistance);
     			requestPriorityQueue.Add(addChunk);
     		}
@@ -673,12 +678,14 @@ public class ChunkLoader : MonoBehaviour
     		for(int i=-renderDistance; i <= renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
     			requestPriorityQueue.Add(addChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z-renderDistance);
     			requestPriorityQueue.Add(addChunk);
     		}
@@ -687,12 +694,14 @@ public class ChunkLoader : MonoBehaviour
     		for(int i=-renderDistance; i <= renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i);
     			requestPriorityQueue.Add(addChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z-renderDistance);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z+renderDistance);
     			requestPriorityQueue.Add(addChunk);
     		}
@@ -701,12 +710,14 @@ public class ChunkLoader : MonoBehaviour
     		for(int i=-renderDistance; i <= renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
     			ChunkPos addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i);
     			requestPriorityQueue.Add(addChunk);
     		}
     		for(int i=-renderDistance; i < renderDistance; i++){
     			ChunkPos popChunk = new ChunkPos(currentChunk.x+i+1, currentChunk.z-renderDistance);
     			toUnload.Add(popChunk);
+                requestPriorityQueue.Remove(popChunk);
      			ChunkPos addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance);
     			requestPriorityQueue.Add(addChunk);
     		}
