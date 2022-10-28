@@ -44,6 +44,9 @@ public class ChunkLoader_Server : MonoBehaviour
     private ChunkPos cachePos = new ChunkPos(0,0);
     private Chunk cacheChunk;
 
+    // DEBUG
+    private int timer=0;
+
 
     void OnApplicationQuit(){
         if(regionHandler != null)
@@ -64,6 +67,8 @@ public class ChunkLoader_Server : MonoBehaviour
         if(this.RECEIVEDWORLDDATA && this.INITIALIZEDWORLD){
             // Decides what to do for current tick
             HandleServerCommunication();
+            Debug.Log(timer);
+            timer++;
 
             if(toLoad.Count > 0)
                 LoadChunk();
@@ -418,7 +423,7 @@ public class ChunkLoader_Server : MonoBehaviour
             return (sub%mod)+mod;
     }
 
-    public void TestInventoryReceive(){
+    public void TestInventoryReceive(ulong id){
         PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[45];
         NetMessage message;
         int length;
@@ -441,12 +446,10 @@ public class ChunkLoader_Server : MonoBehaviour
             }
         }
 
-        for(ulong i=0; i < 1; i++){
-            this.playerServerInventory.AddInventory(i, slots);
-            length = this.playerServerInventory.ConvertInventoryToBytes(i);
-            message = new NetMessage(NetCode.SENDINVENTORY);
-            message.SendInventory(this.playerServerInventory.GetBuffer(), length);
-            this.server.Send(message.GetMessage(), message.size, i);
-        }
+        this.playerServerInventory.AddInventory(id, slots);
+        length = this.playerServerInventory.ConvertInventoryToBytes(id);
+        message = new NetMessage(NetCode.SENDINVENTORY);
+        message.SendInventory(this.playerServerInventory.GetBuffer(), length);
+        this.server.Send(message.GetMessage(), message.size, id);
     }
 }

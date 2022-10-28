@@ -343,7 +343,7 @@ public class Server
 				Disconnect(id, DisconnectType.QUIT);
 				break;
 			case NetCode.INTERACT:
-				Interact(data);
+				Interact(data, id);
 				break;
 			case NetCode.HEARTBEAT:
 				Heartbeat(id);
@@ -400,6 +400,7 @@ public class Server
 			// Sends player inventory data
 			NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
 			inventoryLength = this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmptyInventory);
+
 			if(!isEmptyInventory)
 				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetBuffer(), inventoryLength);
 			else
@@ -824,9 +825,9 @@ public class Server
 	}
 
 	// Receives an Interaction command from client
-	private void Interact(byte[] data){
+	private void Interact(byte[] data, ulong id){
 		// DEBUG
-		this.cl.TestInventoryReceive();
+		this.cl.TestInventoryReceive(id);
 
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 		int x = NetDecoder.ReadInt(data, 9);
