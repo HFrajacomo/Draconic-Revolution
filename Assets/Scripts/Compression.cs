@@ -136,7 +136,7 @@ public static class Compression{
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
 
-		c.data.SetData(data.ToArray());
+		c.data.SetData(data.ToArray(), true);
 
 
 		data.Dispose();
@@ -164,7 +164,7 @@ public static class Compression{
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
 
-		c.data.SetData(data.ToArray());
+		c.data.SetData(data.ToArray(), false);
 
 		data.Dispose();
 		readData.Dispose();

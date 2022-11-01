@@ -465,7 +465,6 @@ public class Server
 
 			NetMessage message = new NetMessage(NetCode.SENDCHUNK);
 			message.SendChunk(this.cl.chunks[pos]);
-			Debug.Log("sent chunk");
 
 			this.Send(message.GetMessage(), message.size, id);
 		}

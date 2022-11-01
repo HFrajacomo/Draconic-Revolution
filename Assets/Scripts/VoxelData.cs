@@ -407,7 +407,7 @@ public class VoxelData
 		return this.data;
 	}
 
-	public void SetData(ushort[] data){
+	public void SetData(ushort[] data, bool isServer){
 		this.data = data;
 
 		/*
@@ -417,7 +417,7 @@ public class VoxelData
 		}
 		*/
 
-		if(this.heightMap == null)
+		if(this.heightMap == null && !isServer)
 			CalculateHeightMap();
 	}
 
