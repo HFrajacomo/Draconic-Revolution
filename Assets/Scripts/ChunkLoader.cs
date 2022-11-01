@@ -593,8 +593,6 @@ public class ChunkLoader : MonoBehaviour
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
 		newChunk = new ChunkPos(playerX, playerZ);
 
-        this.playerCurrentChunk = newChunk;
-
     	// Reload all Chunks nearby
     	if(reload){
     		ClearAllChunks();
@@ -609,18 +607,18 @@ public class ChunkLoader : MonoBehaviour
 	        	}
 	        }
 	        
-	        currentChunk = newChunk;
+	        this.playerCurrentChunk = newChunk;
 	        return;
 	    }
 
     	// If didn't move to another chunk
-    	if(currentChunk == newChunk){
+    	if(this.playerCurrentChunk == newChunk){
     		return;
     	}
 
-    	int diff = (newChunk - currentChunk).dir();
+    	int diff = (newChunk - this.playerCurrentChunk).dir();
         requestPriorityQueue.SetPlayerPosition(newChunk);
-
+        this.playerCurrentChunk = newChunk;
 
     	if(diff == 0){ // East
     		for(int i=-renderDistance; i <=renderDistance;i++){
@@ -776,7 +774,7 @@ public class ChunkLoader : MonoBehaviour
             for(int z=-World.renderDistance; z < World.renderDistance; z++){
                 newChunk = new ChunkPos(this.currentChunk.x+x, this.currentChunk.z+z);
 
-                if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk)){
+                if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk) && !this.requestPriorityQueue.Contains(newChunk) && !this.toDraw.Contains(newChunk)){
                     this.message.RequestChunkLoad(newChunk);
                     client.Send(this.message.GetMessage(), this.message.size);
                     continue;

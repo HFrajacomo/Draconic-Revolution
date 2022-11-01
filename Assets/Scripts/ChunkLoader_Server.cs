@@ -44,9 +44,6 @@ public class ChunkLoader_Server : MonoBehaviour
     private ChunkPos cachePos = new ChunkPos(0,0);
     private Chunk cacheChunk;
 
-    // DEBUG
-    private int timer=0;
-
 
     void OnApplicationQuit(){
         if(regionHandler != null)
@@ -67,8 +64,6 @@ public class ChunkLoader_Server : MonoBehaviour
         if(this.RECEIVEDWORLDDATA && this.INITIALIZEDWORLD){
             // Decides what to do for current tick
             HandleServerCommunication();
-            Debug.Log(timer);
-            timer++;
 
             if(toLoad.Count > 0)
                 LoadChunk();
