@@ -269,17 +269,14 @@ public class ChunkLoader_Server : MonoBehaviour
 
     // Sends chunk information to all requesting clients
     private void SendChunkToRequestingClients(ChunkPos pos){
-        NetMessage message;
-
         // If there was no request for this chunk yet
-        if(!this.loadedChunks.ContainsKey(pos))
+        if(!this.server.chunksRequested.ContainsKey(pos))
             return;
 
-        foreach(ulong id in this.loadedChunks[pos]){
-            message = new NetMessage(NetCode.SENDCHUNK);
-            message.SendChunk(this.chunks[pos]);
-            this.server.Send(message.GetMessage(), message.size, id);
-        }
+        HashSet<ulong> iterator = new HashSet<ulong>(this.server.chunksRequested[pos]);
+
+        foreach(ulong id in iterator)
+            this.server.RequestChunkLoad(pos, id);
     }
 
     // Returns block code of a castcoord

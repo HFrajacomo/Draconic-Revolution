@@ -27,6 +27,7 @@ public class Server
 	public Dictionary<ulong, int> packetSize;
 	public Dictionary<ulong, byte[]> dataBuffer;
 	public Dictionary<ulong, DateTime> timeoutTimers;
+	public Dictionary<ChunkPos, HashSet<ulong>> chunksRequested;
 	private Dictionary<ulong, byte[]> receiveBuffer;
 
 	public EntityHandler_Server entityHandler = new EntityHandler_Server();
@@ -68,6 +69,7 @@ public class Server
     	connectionGraph = new Dictionary<ulong, HashSet<ulong>>();
     	playersInChunk = new Dictionary<ChunkPos, HashSet<ulong>>();
     	receiveBuffer = new Dictionary<ulong, byte[]>();
+    	chunksRequested = new Dictionary<ChunkPos, HashSet<ulong>>();
 
     	this.cl = cl;
     	
@@ -221,6 +223,11 @@ public class Server
 		catch(Exception e){
 			Debug.Log("SEND ERROR: " + e.ToString());
 		}
+	}
+
+	public void SendList(byte[] data, int length, List<ulong> ids, bool temporary=false){
+		for(int i=0; i < ids.Count; i++)
+			this.Send(data, length, ids[i], temporary:temporary);
 	}
 
 	// Sends a message to all IDs connected
@@ -438,9 +445,9 @@ public class Server
 	}
 
 	// Gets chunk information to player
-	private void RequestChunkLoad(byte[] data, ulong id){
-		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+	private void RequestChunkLoad(byte[] data, ulong id){RequestChunkLoad(NetDecoder.ReadChunkPos(data, 1), id);}
 
+	public void RequestChunkLoad(ChunkPos pos, ulong id){
 		// If is loaded
 		if(this.cl.chunks.ContainsKey(pos) && this.cl.chunks[pos].needsGeneration == 0){
 			if(!this.cl.loadedChunks.ContainsKey(pos))
@@ -449,8 +456,16 @@ public class Server
 			if(!this.cl.loadedChunks[pos].Contains(id))
 				this.cl.loadedChunks[pos].Add(id);
 
+			if(this.chunksRequested.ContainsKey(pos)){
+				this.chunksRequested[pos].Remove(id);
+
+				if(this.chunksRequested[pos].Count == 0)
+					this.chunksRequested.Remove(pos);
+			}
+
 			NetMessage message = new NetMessage(NetCode.SENDCHUNK);
 			message.SendChunk(this.cl.chunks[pos]);
+			Debug.Log("sent chunk");
 
 			this.Send(message.GetMessage(), message.size, id);
 		}
@@ -459,9 +474,10 @@ public class Server
 			if(!this.cl.toLoad.Contains(pos))
 				this.cl.toLoad.Add(pos);
 
-			NetMessage message = new NetMessage(NetCode.FAILEDCHUNKREQUEST);
-			message.FailedChunkRequest(pos);
-			this.Send(message.GetMessage(), message.size, id);
+			if(chunksRequested.ContainsKey(pos))
+				chunksRequested[pos].Add(id);
+			else
+				chunksRequested.Add(pos, new HashSet<ulong>(){id});
 
 			return;
 		}
@@ -807,6 +823,13 @@ public class Server
 				this.playersInChunk[this.cl.regionHandler.allPlayerData[id].GetChunkPos()].Remove(id);
 			else
 				this.playersInChunk.Remove(this.cl.regionHandler.allPlayerData[id].GetChunkPos());
+		}
+
+		// Removes ChunksRequested
+		foreach(ChunkPos pos in chunksRequested.Keys){
+			chunksRequested[pos].Remove(id);
+			if(chunksRequested[pos].Count == 0)
+				chunksRequested.Remove(pos);
 		}
 
 		if(type == DisconnectType.QUIT)

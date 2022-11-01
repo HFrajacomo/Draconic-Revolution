@@ -316,12 +316,6 @@ public struct NetMessage
 		this.size = 24;
 	}
 
-	// Server sends to client whenever client asks for a chunk that is not in cl_server.chunks[]
-	public void FailedChunkRequest(ChunkPos pos){
-		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		this.size = 9;
-	}
-
 	// Server sends inventory information to client
 	public void SendInventory(byte[] data, int length){
 		Array.Copy(data, 0, NetMessage.buffer, 1, length);
@@ -366,7 +360,6 @@ public enum NetCode{
 	DROPITEM,
 	ITEMENTITYDATA,
 	BLOCKDAMAGE,
-	FAILEDCHUNKREQUEST,
 	SENDINVENTORY,
 	SFXPLAY,
 	DISCONNECT  // No call
