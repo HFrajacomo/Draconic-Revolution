@@ -24,6 +24,7 @@ public class Wood_Block : Blocks
 	List<CastCoord> safeList = new List<CastCoord>();
 	List<CastCoord> validDirections = new List<CastCoord>();
 	List<CastCoord> toDestroy = new List<CastCoord>();
+	HashSet<ChunkPos> toUpdate = new HashSet<ChunkPos>();
 
 	int maxAnalysed = 100;
 
@@ -226,6 +227,7 @@ public class Wood_Block : Blocks
 		currentList.Clear();
 		safeList.Clear();
 		toDestroy.Clear();
+		toUpdate.Clear();
 
 		while(validDirections.Count > 0){
 			current = validDirections[0];
@@ -253,9 +255,13 @@ public class Wood_Block : Blocks
 		foreach(CastCoord aux in toDestroy){
 			cl.chunks[aux.GetChunkPos()].data.SetCell(aux.blockX, aux.blockY, aux.blockZ, 0);
 			cl.chunks[aux.GetChunkPos()].metadata.Reset(aux.blockX, aux.blockY, aux.blockZ);
-			this.Update(aux, BUDCode.BREAK, 0, -1, cl);
 			EmitBlockUpdate(BUDCode.BREAK, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
 			EmitBlockUpdate(BUDCode.DECAY, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
+			toUpdate.Add(aux.GetChunkPos());
+		}
+
+		foreach(ChunkPos pos in toUpdate){
+			this.Update(pos, cl);
 		}
 
 	}
@@ -440,9 +446,11 @@ public class Wood_Block : Blocks
     }
 
     // Sends a DirectBlockUpdate call to users
-	public void Update(CastCoord c, BUDCode type, ushort code, int facing, ChunkLoader_Server cl){
-		this.reloadMessage = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		this.reloadMessage.DirectBlockUpdate(type, c.GetChunkPos(), c.blockX, c.blockY, c.blockZ, facing, code, cl.GetState(c), ushort.MaxValue);
-		cl.server.SendToClients(c.GetChunkPos(), this.reloadMessage);
+	public void Update(ChunkPos pos, ChunkLoader_Server cl){
+		if(cl.chunks.ContainsKey(pos)){
+			this.reloadMessage = new NetMessage(NetCode.SENDCHUNK);
+			this.reloadMessage.SendChunk(cl.chunks[pos]);
+			cl.server.SendToClients(pos, this.reloadMessage);
+		}
 	}
 }
