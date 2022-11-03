@@ -149,7 +149,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
             this.regionHandler.SaveChunk(chunks[cacheChunk.pos]);
 
-            SendChunkToRequestingClients(cacheChunk.pos);
+            SendToClients(cacheChunk.pos);
         }
 
         // If is in an unloaded indexed chunk
@@ -265,6 +265,13 @@ public class ChunkLoader_Server : MonoBehaviour
             }
         }
 
+    }
+
+    // Sends chunk information to clients that need it
+    private void SendToClients(ChunkPos pos){
+        NetMessage message = new NetMessage(NetCode.SENDCHUNK);
+        message.SendChunk(this.chunks[pos]);
+        this.server.SendToClients(pos, message);
     }
 
     // Sends chunk information to all requesting clients
