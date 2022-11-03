@@ -288,7 +288,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1515127906}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc9c91c750f2a0348a787cb2e8e84bd9, type: 3}
+  m_Script: {fileID: 11500000, guid: 26a993c0e281c2c42a11e4ef50543902, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   maxBiomesActive: 4

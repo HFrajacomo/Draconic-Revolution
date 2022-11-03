@@ -100,19 +100,30 @@ public class Torch_Object : BlocklikeObject
 	// Client handling the creation of the VFX
 	public override int OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
 		Vector3 fireOffset;
+		Quaternion shadowDirection;
 
-		if(facing == 0)
+		if(facing == 0){
 			fireOffset = new Vector3(0.15f,0f,0f);
-		else if(facing == 1)
+			shadowDirection = Quaternion.Euler(-20, 90, 90);
+		}
+		else if(facing == 1){
 			fireOffset = new Vector3(0f,0f,-0.15f);
-		else if(facing == 2)
+			shadowDirection = Quaternion.Euler(0, 90, 110);
+		}
+		else if(facing == 2){
 			fireOffset = new Vector3(-0.15f, 0f, 0f);
-		else if(facing == 3)
+			shadowDirection = Quaternion.Euler(20, 90, 90);
+		}
+		else if(facing == 3){
 			fireOffset = new Vector3(0f, 0f, 0.15f);
-		else
+			shadowDirection = Quaternion.Euler(0, 90, 70);
+		}
+		else{
 			fireOffset = new Vector3(0f,0f,0f);
+			shadowDirection = Quaternion.Euler(0, 0, 0);
+		}
 
-		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, Quaternion.identity);
+		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, shadowDirection);
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
 
 		this.vfx.Add(pos, fire, active:true, isOnDemandLight:true);
