@@ -75,7 +75,7 @@ public class TreeMediumA : Structure
 		this.sizeZ = 9;
 
 		this.offsetX = 3;
-		this.offsetZ = 5;
+		this.offsetZ = 3;
 
         this.blockdata = new ushort[sizeX*sizeY*sizeZ];
         this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
