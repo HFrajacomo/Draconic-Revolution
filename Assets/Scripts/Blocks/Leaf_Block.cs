@@ -9,12 +9,11 @@ public class Leaf_Block : Blocks
 	Dictionary<CastCoord, int> distances = new Dictionary<CastCoord, int>();
 	List<CastCoord> cache = new List<CastCoord>();
 
-	int minDecayTime = 8;
-	int maxDecayTime = 30;
-	int decayDistance = 7;
-	ushort assignedWoodCode = (ushort)BlockID.WOOD;
-	ushort thisCode = (ushort)BlockID.LEAF;
-	NetMessage reloadMessage;
+	private const int decayTime = 7;
+	private int decayDistance = 7;
+	private ushort assignedWoodCode = (ushort)BlockID.WOOD;
+	private ushort thisCode = (ushort)BlockID.LEAF;
+	private NetMessage reloadMessage;
 
 	public Leaf_Block(){
 		this.name = "Leaf";
@@ -45,16 +44,16 @@ public class Leaf_Block : Blocks
 			if(!RunLeavesRecursion(cl)){
 				if(cl.chunks.ContainsKey(thisPos.GetChunkPos())){
 					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					cl.chunks[thisPos.GetChunkPos()].metadata.Reset(thisPos.blockX, thisPos.blockY, thisPos.blockZ);					
-					this.Update(thisPos, BUDCode.BREAK, facing, cl);
+					cl.chunks[thisPos.GetChunkPos()].metadata.Reset(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
+					cl.budscheduler.SchedulePropagation(thisPos.GetChunkPos());
 				}
 
 				// Applies Decay BUD to surrounding leaves if this one is invalid
 				GetLastSurrounding(thisPos);
 
 				foreach(CastCoord c in cache){
-					EmitBUDTo(BUDCode.DECAY, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), Random.Range(minDecayTime, maxDecayTime), cl);
+					EmitBUDTo(BUDCode.DECAY, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), decayTime, cl);
 				}
 			}
 
@@ -88,13 +87,7 @@ public class Leaf_Block : Blocks
 		if(currentDistance == 0)
 			return false;
 
-		cache.Clear();
-		cache.Add(init.Add(0,0,1)); // North
-		cache.Add(init.Add(0,0,-1)); // South
-		cache.Add(init.Add(1,0,0)); // East
-		cache.Add(init.Add(-1,0,0)); // West
-		cache.Add(init.Add(0,1,0)); // Up
-		cache.Add(init.Add(0,-1,0)); // Down
+		GetLastSurrounding(init);
 
 		// Filters only Leaf blocks
 		foreach(CastCoord c in cache){
@@ -128,12 +121,5 @@ public class Leaf_Block : Blocks
 		cache.Add(init.Add(-1,0,0)); // West
 		cache.Add(init.Add(0,1,0)); // Up
 		cache.Add(init.Add(0,-1,0)); // Down
-	}
-
-    // Sends a DirectBlockUpdate call to users
-	public void Update(CastCoord c, BUDCode type, int facing, ChunkLoader_Server cl){
-		this.reloadMessage = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		this.reloadMessage.DirectBlockUpdate(type, c.GetChunkPos(), c.blockX, c.blockY, c.blockZ, facing, 0, cl.GetState(c), ushort.MaxValue);
-		cl.server.SendToClients(c.GetChunkPos(), this.reloadMessage);
 	}
 }

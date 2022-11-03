@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +7,8 @@ public class BUDScheduler : MonoBehaviour
 	public TimeOfDay schedulerTime;
 	private Dictionary<string, List<BUDSignal>> data = new Dictionary<string, List<BUDSignal>>();
 	private Dictionary<string, HashSet<ChunkPos>> toSave = new Dictionary<string, HashSet<ChunkPos>>();
+    private HashSet<ChunkPos> toSaveThisFrame = new HashSet<ChunkPos>();
+    private HashSet<ChunkPos> toPropagate = new HashSet<ChunkPos>();
     private List<ChunkPos> cachedList = new List<ChunkPos>();
     private string currentTime;
 	private string newTime;
@@ -14,6 +16,7 @@ public class BUDScheduler : MonoBehaviour
 	public int BUDperFrame;
 	private int currentBUDonFrame;
     private byte currentDealocTime;
+    private NetMessage message = new NetMessage(NetCode.SENDCHUNK);
 
 
     private ChunkPos cachePos;
@@ -33,6 +36,8 @@ public class BUDScheduler : MonoBehaviour
     {
     	// Gets this Unity Tick time
     	this.newTime = schedulerTime.GetBUDTime(); 
+
+        this.toSaveThisFrame.Clear();
 
     	// Checks if BUD Tick has changed
     	if(this.newTime != this.currentTime){
@@ -71,6 +76,15 @@ public class BUDScheduler : MonoBehaviour
                     }
                 }
             }
+
+            // Propagates saved chunks to users
+            foreach(ChunkPos pos in this.toPropagate){
+                this.message = new NetMessage(NetCode.SENDCHUNK);
+                this.message.SendChunk(loader.chunks[pos]);
+                loader.server.SendToClients(pos, this.message);
+            }
+
+            this.toPropagate.Clear();
 
     		this.currentBUDonFrame = 0;
 
@@ -171,8 +185,10 @@ public class BUDScheduler : MonoBehaviour
     }
 
     // Schedules a SaveChunk() operation 
-
     public void ScheduleSave(ChunkPos pos){
+        if(toSaveThisFrame.Contains(pos))
+            return;
+
         string fakeTime = schedulerTime.FakeSum(1);
 
         if(!this.toSave.ContainsKey(fakeTime))
@@ -182,8 +198,13 @@ public class BUDScheduler : MonoBehaviour
             return;
 
         this.toSave[fakeTime].Add(pos);
+        toSaveThisFrame.Add(pos);
     }
 
+    // Schedules a Server.SendToClients() operation
+    public void SchedulePropagation(ChunkPos pos){
+        this.toPropagate.Add(pos);
+    }
 
     // Gets the different Chunks that should be updated
     private void CheckSurroundingChunks(int x, int y, int z, ChunkPos pos){
