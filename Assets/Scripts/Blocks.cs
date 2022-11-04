@@ -5,7 +5,7 @@ using UnityEngine;
 
 public abstract class Blocks
 {
-	public static readonly int blockCount = 19;
+	public static readonly int blockCount = 31;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
 	public static readonly int atlasSizeY = 4;
@@ -53,7 +53,7 @@ public abstract class Blocks
 			case 4:
 				return new Wood_Block();
 			case 5:
-				return new MetalOre_Block();
+				return new IronOre_Block();
 			case 6:
 				return new Water_Block();
 			case 7:
@@ -80,7 +80,30 @@ public abstract class Blocks
 				return new SandstoneBrick_Block();
 			case 18:
 				return new Sandstone_Block();
-
+			case 19:
+				return new CoalOre_Block();
+			case 20:
+				return new MagnetiteOre_Block();
+			case 21:
+				return new AluminiumOre_Block();
+			case 22:
+				return new CopperOre_Block();
+			case 23:
+				return new TinOre_Block();
+			case 24:
+				return new GoldOre_Block();
+			case 25:
+				return new EmeriumOre_Block();
+			case 26:
+				return new UraniumOre_Block();
+			case 27:
+				return new Emerald_Block();
+			case 28:
+				return new Ruby_Block();
+			case 29:
+				return new PineWood_Block();
+			case 30:
+				return new PineLeaf_Block();
 
 			default:
 				return new Air_Block();

@@ -20,8 +20,8 @@ public class Stone_Block : Blocks
 	}
 
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
-		// Changes to Metal
-		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, (ushort)BlockID.METAL_ORE);
+		// Changes to Iron
+		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, (ushort)BlockID.IRON_ORE);
 		return 1;
 	}
 }

@@ -9,7 +9,7 @@ public enum BlockID : ushort
     DIRT = 2,
     STONE = 3,
     WOOD = 4,
-    METAL_ORE = 5,
+    IRON_ORE = 5,
     WATER = 6,
     LEAF = 7,
     SAND = 8,
@@ -23,6 +23,18 @@ public enum BlockID : ushort
     BONE = 16,
     SANDSTONE_BRICK = 17,
     SANDSTONE = 18,
+    COAL_ORE = 19,
+    MAGNETITE_ORE = 20,
+    ALUMINIUM_ORE = 21,
+    COPPER_ORE = 22,
+    TIN_ORE = 23,
+    GOLD_ORE = 24,
+    EMERIUM_ORE = 25,
+    URANIUM_ORE = 26,
+    EMERALD_ORE = 27,
+    RUBY_ORE = 28,
+    PINE_WOOD = 29,
+    PINE_LEAF = 30,
 
     /*
     OBJECTS

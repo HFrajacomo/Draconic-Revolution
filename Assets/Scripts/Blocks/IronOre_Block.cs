@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MetalOre_Block : Blocks
+public class IronOre_Block : Blocks
 {
-	public MetalOre_Block(){
-		this.name = "Metal Ore";
+	public IronOre_Block(){
+		this.name = "Iron Ore";
 		this.solid = true;
 		this.transparent = 0;
 		this.invisible = false;
