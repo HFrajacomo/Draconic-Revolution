@@ -564,6 +564,48 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: icon_19
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e7f39a1a19447cb48817d447dc24a165
+      internalID: 1017029098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon_20
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4c8c862a8fa4a674e827ddb93c2f6004
+      internalID: 1849963049
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -577,6 +619,7 @@ TextureImporter:
     nameFileIdTable:
       icon_3: -7441382367286639308
       icon_10: -1083945040
+      icon_20: 1849963049
       icon_4: 1618293649664528702
       icon_17: -819893588
       icon_15: 628963629
@@ -588,6 +631,7 @@ TextureImporter:
       icon_0: 6934086728263231946
       icon_5: 8049885976776599914
       icon_13: -1435714264
+      icon_19: 1017029098
       icon_2: -3885610455112514396
       icon_7: 4743126897691936252
       icon_9: 162643048

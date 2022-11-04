@@ -97,6 +97,10 @@ public abstract class Item
 				return new SandstoneBrickblock_Item();
 			case ItemID.SANDSTONEBLOCK:
 				return new Sandstoneblock_Item();
+			case ItemID.PINEWOODBLOCK:
+				return new Pinewoodblock_Item();
+			case ItemID.PINELEAFBLOCK:
+				return new Pineleafblock_Item();
 			default:
 				return null;
 		}

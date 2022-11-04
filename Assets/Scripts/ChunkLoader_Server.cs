@@ -438,7 +438,10 @@ public class ChunkLoader_Server : MonoBehaviour
                 slots[i] = new ItemPlayerInventorySlot(ItemID.ICEBLOCK, 50);
             }
             else if(i == 4){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.BASALTBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.PINEWOODBLOCK, 50);
+            }
+            else if(i == 5){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.PINELEAFBLOCK, 50);
             }
             else{
                 slots[i] = new EmptyPlayerInventorySlot();
