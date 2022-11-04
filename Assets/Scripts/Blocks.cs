@@ -8,9 +8,9 @@ public abstract class Blocks
 	public static readonly int blockCount = 19;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
-	public static readonly int atlasSizeY = 3;
-	public static readonly int transparentAtlasSizeX = 8;
-	public static readonly int transparentAtlasSizeY = 4;
+	public static readonly int atlasSizeY = 4;
+	public static readonly int transparentAtlasSizeX = 2;
+	public static readonly int transparentAtlasSizeY = 1;
 
 	public ShaderIndex shaderIndex = ShaderIndex.OPAQUE; // The material used in the rendering pipeline
 	public string name;
@@ -116,7 +116,7 @@ public abstract class Blocks
 		// If should use transparent atlas
 		else if(this.shaderIndex == ShaderIndex.WATER){
 			float x = textureID%Blocks.transparentAtlasSizeX;
-			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeY);
+			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
 	 
 			x *= 1f / Blocks.transparentAtlasSizeX;
 			y *= 1f / Blocks.transparentAtlasSizeY;
@@ -128,10 +128,16 @@ public abstract class Blocks
 		}
 		// If should use Leaves atlas
 		else if(this.shaderIndex == ShaderIndex.LEAVES){
-			UVs[0] = new Vector2(0,1);
-			UVs[1] = new Vector2(1,1);
-			UVs[2] = new Vector2(1,0);
-			UVs[3] = new Vector2(0,0);
+			float x = textureID%Blocks.transparentAtlasSizeX;
+			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
+	 
+			x *= 1f / Blocks.transparentAtlasSizeX;
+			y *= 1f / Blocks.transparentAtlasSizeY;
+
+			UVs[0] = new Vector2(x,y+(1f/Blocks.transparentAtlasSizeY));
+			UVs[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
+			UVs[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
+			UVs[3] = new Vector2(x,y);
 		}
 
 		return UVs;

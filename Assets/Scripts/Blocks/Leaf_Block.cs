@@ -26,6 +26,10 @@ public class Leaf_Block : Blocks
 		this.affectLight = false;
 		this.seamless = true;
 		this.maxHP = 1;
+
+		this.tileTop = 0;
+		this.tileSide = 0;
+		this.tileBottom = 0;
 	}
 
 	// Makes Wood Block have state 1 when unnaturally placed

@@ -2286,7 +2286,7 @@ public struct BuildChunkJob : IJob{
 		// If should use transparent atlas
 		else if(blockMaterial[blockCode] == ShaderIndex.SPECULAR){
 			float x = textureID%Blocks.transparentAtlasSizeX;
-			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeY);
+			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
 	 
 			x *= 1f / Blocks.transparentAtlasSizeX;
 			y *= 1f / Blocks.transparentAtlasSizeY;
@@ -2298,10 +2298,16 @@ public struct BuildChunkJob : IJob{
 		}
 		// If should use Leaves atlas
 		else if(blockMaterial[blockCode] == ShaderIndex.LEAVES){
-			array[0] = new Vector2(0,1);
-			array[1] = new Vector2(1,1);
-			array[2] = new Vector2(1,0);
-			array[3] = new Vector2(0,0);
+			float x = textureID%Blocks.transparentAtlasSizeX;
+			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
+	 
+			x *= 1f / Blocks.transparentAtlasSizeX;
+			y *= 1f / Blocks.transparentAtlasSizeY;
+
+			array[0] = new Vector2(x,y+(1f/Blocks.transparentAtlasSizeY));
+			array[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
+			array[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
+			array[3] = new Vector2(x,y);
 		}
 	}
 
@@ -3798,7 +3804,7 @@ public struct BuildBorderJob : IJob{
 		// If should use transparent atlas
 		else if(blockMaterial[blockCode] == ShaderIndex.SPECULAR){
 			float x = textureID%Blocks.transparentAtlasSizeX;
-			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeY);
+			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
 	 
 			x *= 1f / Blocks.transparentAtlasSizeX;
 			y *= 1f / Blocks.transparentAtlasSizeY;
@@ -3810,10 +3816,16 @@ public struct BuildBorderJob : IJob{
 		}
 		// If should use Leaves atlas
 		else if(blockMaterial[blockCode] == ShaderIndex.LEAVES){
-			array[0] = new Vector2(0,1);
-			array[1] = new Vector2(1,1);
-			array[2] = new Vector2(1,0);
-			array[3] = new Vector2(0,0);
+			float x = textureID%Blocks.transparentAtlasSizeX;
+			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
+	 
+			x *= 1f / Blocks.transparentAtlasSizeX;
+			y *= 1f / Blocks.transparentAtlasSizeY;
+
+			array[0] = new Vector2(x,y+(1f/Blocks.transparentAtlasSizeY));
+			array[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
+			array[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
+			array[3] = new Vector2(x,y);
 		}
 	}
 
@@ -5426,7 +5438,7 @@ public struct BuildCornerJob : IJob{
 		// If should use transparent atlas
 		else if(blockMaterial[blockCode] == ShaderIndex.SPECULAR){
 			float x = textureID%Blocks.transparentAtlasSizeX;
-			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeY);
+			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
 	 
 			x *= 1f / Blocks.transparentAtlasSizeX;
 			y *= 1f / Blocks.transparentAtlasSizeY;
@@ -5438,10 +5450,16 @@ public struct BuildCornerJob : IJob{
 		}
 		// If should use Leaves atlas
 		else if(blockMaterial[blockCode] == ShaderIndex.LEAVES){
-			array[0] = new Vector2(0,1);
-			array[1] = new Vector2(1,1);
-			array[2] = new Vector2(1,0);
-			array[3] = new Vector2(0,0);
+			float x = textureID%Blocks.transparentAtlasSizeX;
+			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
+	 
+			x *= 1f / Blocks.transparentAtlasSizeX;
+			y *= 1f / Blocks.transparentAtlasSizeY;
+
+			array[0] = new Vector2(x,y+(1f/Blocks.transparentAtlasSizeY));
+			array[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
+			array[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
+			array[3] = new Vector2(x,y);
 		}
 	}
 
