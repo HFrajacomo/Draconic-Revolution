@@ -88,7 +88,6 @@ public static class Compression{
 		if(!basicPallete.IsCreated)
 			return;
 
-		Debug.Log("DESTROYED");
 		basicPallete.Dispose();
 		grasslandsPallete.Dispose();
 		oceanPallete.Dispose();

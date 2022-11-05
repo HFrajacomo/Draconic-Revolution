@@ -75,6 +75,7 @@ public class MainMenu : MonoBehaviour
 
 	public void OnApplicationQuit(){
 		BlockEncyclopediaECS.Destroy();
+		Compression.Destroy();
 	}
 
 	public void Start(){
