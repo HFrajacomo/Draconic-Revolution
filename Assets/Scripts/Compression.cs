@@ -15,23 +15,105 @@ Class for the compression algorithm of the RDF files to be applied
 public static class Compression{
 	private static byte[] cachedData = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 5];
 
+
+	// Pallete Initializers
+	private static BlockID[] basicArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.PREGEN_AIR};
+	private static BlockID[] grasslandsArray = new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.LEAF, BlockID.PREGEN_AIR};
+	private static BlockID[] oceanArray = new BlockID[]{BlockID.AIR, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.PREGEN_AIR};
+	private static BlockID[] forestArray = new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.PREGEN_AIR};
+	private static BlockID[] icelandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.PINE_LEAF, BlockID.PINE_WOOD, BlockID.SNOW, BlockID.ICE, BlockID.PREGEN_AIR};
+	private static BlockID[] sandlandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.SANDSTONE, BlockID.PREGEN_AIR};
+
+	private static BlockID[] structureArray =
+						 new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.IRON_ORE, BlockID.WATER, BlockID.LEAF,
+										BlockID.PINE_WOOD, BlockID.PINE_LEAF, BlockID.COAL_ORE, BlockID.COPPER_ORE, BlockID.TIN_ORE, BlockID.ALUMINIUM_ORE,
+										BlockID.MAGNETITE_ORE, BlockID.EMERIUM_ORE, BlockID.GOLD_ORE}; 
+
+	private static BlockID[] metadataArray = new BlockID[]{(BlockID)0, (BlockID)1, (BlockID)(ushort.MaxValue)};
+
+	// Palletes
+	public static readonly NativeHashSet<ushort> basicPallete;
+	public static readonly NativeHashSet<ushort> grasslandsPallete;
+	public static readonly NativeHashSet<ushort> oceanPallete;
+	public static readonly NativeHashSet<ushort> forestPallete;
+	public static readonly NativeHashSet<ushort> icelandsPallete;
+	public static readonly NativeHashSet<ushort> sandlandsPallete;
+	public static readonly NativeHashSet<ushort> structurePallete;
+	public static readonly NativeHashSet<ushort> metadataPallete;
+
+	// Static Constructor
+	static Compression() {
+		basicPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		for(int i = 0; i < basicArray.Length; i++){
+			basicPallete.Add((ushort)basicArray[i]);
+		}
+
+		grasslandsPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		for(int i = 0; i < grasslandsArray.Length; i++){
+			grasslandsPallete.Add((ushort)grasslandsArray[i]);
+		}
+
+		oceanPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		for(int i = 0; i < oceanArray.Length; i++){
+			oceanPallete.Add((ushort)oceanArray[i]);
+		}
+
+		forestPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		for(int i = 0; i < forestArray.Length; i++){
+			forestPallete.Add((ushort)forestArray[i]);
+		}
+
+		icelandsPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		for(int i = 0; i < icelandsArray.Length; i++){
+			icelandsPallete.Add((ushort)icelandsArray[i]);
+		}
+
+		sandlandsPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		for(int i = 0; i < sandlandsArray.Length; i++){
+			sandlandsPallete.Add((ushort)sandlandsArray[i]);
+		}
+
+		structurePallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		for(int i = 0; i < structureArray.Length; i++){
+			structurePallete.Add((ushort)structureArray[i]);
+		}
+
+		metadataPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		for(int i = 0; i < metadataArray.Length; i++){
+			metadataPallete.Add((ushort)metadataArray[i]);
+		}
+	}
+
+	public static void Destroy(){
+		if(!basicPallete.IsCreated)
+			return;
+
+		Debug.Log("DESTROYED");
+		basicPallete.Dispose();
+		grasslandsPallete.Dispose();
+		oceanPallete.Dispose();
+		forestPallete.Dispose();
+		icelandsPallete.Dispose();
+		sandlandsPallete.Dispose();
+		structurePallete.Dispose();
+		metadataPallete.Dispose();
+	}
+
+
 	// Writes Chunk c's data using a Pallete's compression into given buffer
 	// and returns the amount of bytes written
 	public static int CompressBlocks(Chunk c, byte[] buffer, int targetPos=0){
 		int bytes;
-		Pallete p = Compression.BiomeToPallete(c.biomeName);
-		List<ushort> palleteList = Compression.GetPallete(p);
-		
+		Pallete p = Compression.BiomeToPallete(c.biomeName);		
 		
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
 		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.data.GetData());
 		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);
-		NativeArray<ushort> palleteArray = NativeTools.CopyToNative(palleteList.ToArray());
 
 		CompressionJob cbJob = new CompressionJob{
 			chunkData = chunkData,
 			buffer = buff,
-			palleteArray = palleteArray,
+			pallete = Compression.GetPallete(p),
 			writtenBytes = writtenBytes
 		};
 
@@ -43,7 +125,6 @@ public static class Compression{
 		bytes = writtenBytes[0];
 
 		chunkData.Dispose();
-		palleteArray.Dispose();
 		buff.Dispose();
 		writtenBytes.Dispose();
 
@@ -53,18 +134,17 @@ public static class Compression{
 	// Writes Chunk c's HP metadata into given buffer
 	// and returns the amount of bytes written
 	public static int CompressMetadataHP(Chunk c, byte[] buffer, int targetPos=0){
-		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+		Pallete p = Pallete.METADATA;
 		int bytes;
 
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
 		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.metadata.GetHPData());
 		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);
-		NativeArray<ushort> palleteArray = NativeTools.CopyToNative(palleteList.ToArray());
 
 		CompressionJob cmdJob = new CompressionJob{
 			chunkData = chunkData,
 			buffer = buff,
-			palleteArray = palleteArray,
+			pallete = Compression.GetPallete(p),
 			writtenBytes = writtenBytes		
 		};
 
@@ -76,7 +156,6 @@ public static class Compression{
 		bytes = writtenBytes[0];
 
 		chunkData.Dispose();
-		palleteArray.Dispose();
 		buff.Dispose();
 		writtenBytes.Dispose();
 
@@ -86,18 +165,17 @@ public static class Compression{
 	// Writes Chunk c's state metadata into given buffer
 	// and returns the amount of bytes written
 	public static int CompressMetadataState(Chunk c, byte[] buffer, int targetPos=0){
-		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+		Pallete p = Pallete.METADATA;
 		int bytes;
 
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
 		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.metadata.GetStateData());
 		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);
-		NativeArray<ushort> palleteArray = NativeTools.CopyToNative(palleteList.ToArray());
 
 		CompressionJob cmdJob = new CompressionJob{
 			chunkData = chunkData,
 			buffer = buff,
-			palleteArray = palleteArray,
+			pallete = Compression.GetPallete(p),
 			writtenBytes = writtenBytes		
 		};
 
@@ -109,7 +187,6 @@ public static class Compression{
 		bytes = writtenBytes[0];
 
 		chunkData.Dispose();
-		palleteArray.Dispose();
 		buff.Dispose();
 		writtenBytes.Dispose();
 
@@ -121,16 +198,14 @@ public static class Compression{
 	public static void DecompressBlocks(Chunk c, byte[] buffer){
 		// Preparation Variables
 		Pallete p = Compression.BiomeToPallete(c.biomeName);
-		List<ushort> palleteList = Compression.GetPallete(p);
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
-		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
 			readData = readData,
-			pallete = pallete,
+			pallete = Compression.GetPallete(p),
 			initialPos = 0
 		};
 		JobHandle job = dbJob.Schedule();
@@ -141,24 +216,20 @@ public static class Compression{
 
 		data.Dispose();
 		readData.Dispose();
-		pallete.Dispose();
 	}
 
 	// Builds byte message from Server using Decompression algorithm
 	public static void DecompressBlocksClient(Chunk c, byte[] buffer, int initialPos){
 		// Preparation Variables
 		Pallete p = Compression.BiomeToPallete(c.biomeName);
-		List<ushort> palleteList = Compression.GetPallete(p);
-
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
-		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
 			readData = readData,
-			pallete = pallete,
+			pallete = Compression.GetPallete(p),
 			initialPos = initialPos
 		};
 		JobHandle job = dbJob.Schedule();
@@ -168,22 +239,20 @@ public static class Compression{
 
 		data.Dispose();
 		readData.Dispose();
-		pallete.Dispose();
 	}
 
 	// Builds Chunk's HP Metadata using Decompression algorithm
 	public static void DecompressMetadataHP(Chunk c, byte[] buffer){
-		// Preparation Variables
-		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+		Pallete p = Pallete.METADATA;
 
+		// Preparation Variables
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
-		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
 			readData = readData,
-			pallete = pallete,
+			pallete = Compression.GetPallete(p),
 			initialPos = 0
 		};
 		JobHandle job = dbJob.Schedule();
@@ -193,22 +262,20 @@ public static class Compression{
 
 		data.Dispose();
 		readData.Dispose();
-		pallete.Dispose();
 	} 
 
 	// Builds Chunk's HP Metadata using Decompression algorithm
 	public static void DecompressMetadataHPClient(Chunk c, byte[] buffer, int initialPos){
 		// Preparation Variables
-		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+		Pallete p = Pallete.METADATA;
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
-		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
 			readData = readData,
-			pallete = pallete,
+			pallete = Compression.GetPallete(p),
 			initialPos = initialPos
 		};
 		JobHandle job = dbJob.Schedule();
@@ -218,22 +285,20 @@ public static class Compression{
 
 		data.Dispose();
 		readData.Dispose();
-		pallete.Dispose();
 	} 
 
 	// Builds Chunk's State Metadata using Decompression algorithm
 	public static void DecompressMetadataState(Chunk c, byte[] buffer){
 		// Preparation Variables
-		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+		Pallete p = Pallete.METADATA;
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
-		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
 			readData = readData,
-			pallete = pallete,
+			pallete = Compression.GetPallete(p),
 			initialPos = 0
 		};
 		JobHandle job = dbJob.Schedule();
@@ -243,22 +308,20 @@ public static class Compression{
 		
 		data.Dispose();
 		readData.Dispose();
-		pallete.Dispose();
 	}
 
 	// Builds Chunk's State Metadata using Decompression algorithm
 	public static void DecompressMetadataStateClient(Chunk c, byte[] buffer, int initialPos){
 		// Preparation Variables
-		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+		Pallete p = Pallete.METADATA;
 
 		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
-		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressJob dbJob = new DecompressJob{
 			data = data,
 			readData = readData,
-			pallete = pallete,
+			pallete = Compression.GetPallete(p),
 			initialPos = initialPos
 		};
 		JobHandle job = dbJob.Schedule();
@@ -268,23 +331,20 @@ public static class Compression{
 		
 		data.Dispose();
 		readData.Dispose();
-		pallete.Dispose();
 	}
 
 	// Compresses blocks in Structures array
 	public static ushort[] CompressStructureBlocks(ushort[] uncompressedBlocks, bool printOut=false){
 		StringBuilder sb = new StringBuilder();
 
-		List<ushort> palleteList = Compression.GetPallete(Pallete.STRUCTUREBLOCKS);
-		NativeArray<ushort> palleteArray = NativeTools.CopyToNative(palleteList.ToArray());
-
+		Pallete p = Pallete.STRUCTUREBLOCKS;
 		NativeList<ushort> outputData = new NativeList<ushort>(0, Allocator.TempJob);
 		NativeArray<ushort> inputData = NativeTools.CopyToNative(uncompressedBlocks);
 
 		CompressStructJob cbJob = new CompressStructJob{
 			inputData = inputData,
 			outputData = outputData,
-			palleteArray = palleteArray,
+			pallete = Compression.GetPallete(p)
 		};
 
 		JobHandle handle = cbJob.Schedule();
@@ -294,8 +354,6 @@ public static class Compression{
 
 		inputData.Dispose();
 		outputData.Dispose();
-		palleteArray.Dispose();
-
 
 		if(printOut){
 			for(int i=0; i < output.Length; i++){
@@ -314,16 +372,15 @@ public static class Compression{
 	public static ushort[] DecompressStructureBlocks(ushort[] compressedBlocks, bool printOut=false){
 		StringBuilder sb = new StringBuilder();
 
-		List<ushort> palleteList = Compression.GetPallete(Pallete.STRUCTUREBLOCKS);
+		Pallete p = Pallete.STRUCTUREBLOCKS;
 
 		NativeList<ushort> outputData = new NativeList<ushort>(0, Allocator.TempJob);
 		NativeArray<ushort> inputData = NativeTools.CopyToNative(compressedBlocks);
-		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressStructJob dbJob = new DecompressStructJob{
 			outputData = outputData,
 			inputData = inputData,
-			palleteArray = pallete
+			pallete = Compression.GetPallete(p)
 		};
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
@@ -332,7 +389,6 @@ public static class Compression{
 
 		outputData.Dispose();
 		inputData.Dispose();
-		pallete.Dispose();
 
 		if(printOut){
 			for(int i=0; i < output.Length; i++){
@@ -351,8 +407,7 @@ public static class Compression{
 	public static ushort[] CompressStructureMetadata(ushort[] uncompressedMeta, bool printOut=false){
 		StringBuilder sb = new StringBuilder();
 
-		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
-		NativeArray<ushort> palleteArray = NativeTools.CopyToNative(palleteList.ToArray());
+		Pallete p = Pallete.METADATA;
 
 		NativeList<ushort> outputData = new NativeList<ushort>(0, Allocator.TempJob);
 		NativeArray<ushort> inputData = NativeTools.CopyToNative(uncompressedMeta);
@@ -360,7 +415,7 @@ public static class Compression{
 		CompressStructJob cbJob = new CompressStructJob{
 			inputData = inputData,
 			outputData = outputData,
-			palleteArray = palleteArray,
+			pallete = Compression.GetPallete(p)
 		};
 
 		JobHandle handle = cbJob.Schedule();
@@ -370,8 +425,6 @@ public static class Compression{
 
 		inputData.Dispose();
 		outputData.Dispose();
-		palleteArray.Dispose();
-
 
 		if(printOut){
 			for(int i=0; i < output.Length; i++){
@@ -390,16 +443,15 @@ public static class Compression{
 	public static ushort[] DecompressStructureMetadata(ushort[] compressedMeta, bool printOut=false){
 		StringBuilder sb = new StringBuilder();
 
-		List<ushort> palleteList = Compression.GetPallete(Pallete.METADATA);
+		Pallete p = Pallete.METADATA;
 
 		NativeList<ushort> outputData = new NativeList<ushort>(0, Allocator.TempJob);
 		NativeArray<ushort> inputData = NativeTools.CopyToNative(compressedMeta);
-		NativeArray<ushort> pallete = NativeTools.CopyToNative(palleteList.ToArray());
 
 		DecompressStructJob dbJob = new DecompressStructJob{
 			outputData = outputData,
 			inputData = inputData,
-			palleteArray = pallete
+			pallete = Compression.GetPallete(p)
 		};
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
@@ -408,7 +460,6 @@ public static class Compression{
 
 		outputData.Dispose();
 		inputData.Dispose();
-		pallete.Dispose();
 
 		if(printOut){
 			for(int i=0; i < output.Length; i++){
@@ -475,37 +526,41 @@ public static class Compression{
 		}
 	}
 
+	public static bool PalleteContains(Pallete p, ushort x){
+		return Compression.GetPallete(p).Contains(x);
+	}
+
 	// Returns a Palleted list
-	private static List<ushort> GetPallete(Pallete p){
+	private static NativeHashSet<ushort> GetPallete(Pallete p){
 		switch(p){
 			case Pallete.BASIC:
-				return new List<ushort>{0,3,6, (ushort)(ushort.MaxValue/2)}; // Air, Stone and Water (and pregen air)
+				return Compression.basicPallete;
 
 			case Pallete.GRASSLANDS:
-				return new List<ushort>{0,1,2,3,6,7, (ushort)(ushort.MaxValue/2)}; // Air, Grass, Dirt, Stone, Water and Leaves (and pregen air)
+				return Compression.grasslandsPallete;
 
 			case Pallete.OCEAN:
-				return new List<ushort>{0,2,3,6,8, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone and Water, Sand (and pregen air)
+				return Compression.oceanPallete;
 
 			case Pallete.FOREST:
-				return new List<ushort>{0,2,3,6,7, (ushort)(ushort.MaxValue/2)}; // Air, Dirt, Stone, Water and Leaves (and pregen air)
+				return Compression.forestPallete;
 
 			case Pallete.ICELANDS:
-				return new List<ushort>{0,3,6,7,9,10, (ushort)(ushort.MaxValue/2)}; // Air, Stone, Water, Leaves, Snow and Ice (and pregen air)
+				return Compression.icelandsPallete;
 
 			case Pallete.SANDLANDS:
-				return new List<ushort>{0,3,6,8, (ushort)(ushort.MaxValue/2)}; // Air, Stone, Water and Sand (and pregen air)
+				return Compression.sandlandsPallete;
 
 			// Special Pallete used for Structure blocks Compression
 			case Pallete.STRUCTUREBLOCKS:
-				return new List<ushort>{0,1,2,3,5,6,7}; // Air, Grass, Dirt, Stone, Metal, Water and Leaves
+				return Compression.structurePallete;
 
 			// Special Pallete used for Metadata Compression
 			case Pallete.METADATA:
-				return new List<ushort>{0,1,ushort.MaxValue};
+				return Compression.metadataPallete;
 
 			default:
-				return new List<ushort>{0,3,6, (ushort)(ushort.MaxValue/2)}; // Returns Pallete.BASIC
+				return Compression.basicPallete;
 		}
 	}
 
@@ -551,7 +606,7 @@ MULTITHREADING
 public struct CompressionJob : IJob{
 	public NativeArray<ushort> chunkData;
 	public NativeArray<byte> buffer;
-	public NativeArray<ushort> palleteArray;
+	public NativeHashSet<ushort> pallete;
 	public NativeArray<int> writtenBytes;
 
 	public void Execute(){
@@ -565,7 +620,7 @@ public struct CompressionJob : IJob{
 			for(int x=0; x<Chunk.chunkWidth; x++){
 				for(int z=0; z<Chunk.chunkWidth; z++){
 					blockCode = chunkData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-					contains = Contains(blockCode);
+					contains = pallete.Contains(blockCode);
 
 					// Case found block is not in Pallete and not buffered
 					if(!contains && bufferedCount == 0){
@@ -618,22 +673,13 @@ public struct CompressionJob : IJob{
 		buffer[pos] = (byte)(data >> 8);
 		buffer[pos+1] = (byte)data;
 	}
-
-	// Checks if a blockCode is in palleteArray
-	private bool Contains(ushort data){
-		for(int i=0; i < palleteArray.Length; i++){
-			if(palleteArray[i] == data)
-				return true;
-		}
-		return false;
-	}
 }
 
 
 [BurstCompile]
 public struct DecompressJob : IJob{
 	[ReadOnly]
-	public NativeArray<ushort> pallete;
+	public NativeHashSet<ushort> pallete;
 	[ReadOnly]
 	public NativeArray<byte> readData;
 
@@ -660,7 +706,7 @@ public struct DecompressJob : IJob{
 						readBytes += 2;
 
 						// If code is contained in Pallete
-						if(Contains(blockCode)){
+						if(pallete.Contains(blockCode)){
 							bufferedCount = (ushort)(ReadShort(readBytes) - 1);
 							readBytes += 2;
 						}
@@ -687,15 +733,6 @@ public struct DecompressJob : IJob{
 
 		return (ushort)a;
 	}
-
-	// Checks if a element is in pallete
-	private bool Contains(ushort u){
-		for(int i=0; i < pallete.Length; i++){
-			if(pallete[i] == u)
-				return true;
-		}
-		return false;
-	}
 }
 
 
@@ -704,7 +741,7 @@ public struct CompressStructJob : IJob{
 	[ReadOnly]
 	public NativeArray<ushort> inputData;
 	[ReadOnly]
-	public NativeArray<ushort> palleteArray;
+	public NativeHashSet<ushort> pallete;
 	public NativeList<ushort> outputData;
 
 	public void Execute(){
@@ -715,7 +752,7 @@ public struct CompressStructJob : IJob{
 
 		for(int i=0; i < inputData.Length; i++){
 			blockCode = inputData[i];
-			contains = Contains(blockCode);
+			contains = pallete.Contains(blockCode);
 
 			// Case found block is not in Pallete and not buffered
 			if(!contains && bufferedCount == 0){
@@ -752,22 +789,13 @@ public struct CompressStructJob : IJob{
 			outputData.Add((ushort)bufferedCount);
 		}
 	}
-
-	// Checks if a element is in pallete
-	private bool Contains(ushort u){
-		for(int i=0; i < palleteArray.Length; i++){
-			if(palleteArray[i] == u)
-				return true;
-		}
-		return false;
-	}
 }
 
 
 [BurstCompile]
 public struct DecompressStructJob : IJob{
 	[ReadOnly]
-	public NativeArray<ushort> palleteArray;
+	public NativeHashSet<ushort> pallete;
 	[ReadOnly]
 	public NativeArray<ushort> inputData;
 	public NativeList<ushort> outputData;
@@ -781,7 +809,7 @@ public struct DecompressStructJob : IJob{
 			blockCode = inputData[i];
 
 			// If code is contained in Pallete
-			if(Contains(blockCode)){
+			if(pallete.Contains(blockCode)){
 				i++;
 				bufferedCount = inputData[i];
 
@@ -796,12 +824,4 @@ public struct DecompressStructJob : IJob{
 			
 	}
 
-	// Checks if a element is in pallete
-	private bool Contains(ushort u){
-		for(int i=0; i < palleteArray.Length; i++){
-			if(palleteArray[i] == u)
-				return true;
-		}
-		return false;
-	}
 }

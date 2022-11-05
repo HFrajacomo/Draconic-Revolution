@@ -37,6 +37,12 @@ public enum BlockID : ushort
     PINE_LEAF = 30,
 
     /*
+    Special
+    */
+    PREGEN_AIR = 32767,
+
+
+    /*
     OBJECTS
     */
     

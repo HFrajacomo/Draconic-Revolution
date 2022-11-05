@@ -56,6 +56,7 @@ public class BlockEncyclopedia : MonoBehaviour
 
     public void OnApplicationQuit(){
         BlockEncyclopediaECS.Destroy();
+        Compression.Destroy();
     }
 
 

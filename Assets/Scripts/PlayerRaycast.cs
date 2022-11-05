@@ -269,8 +269,6 @@ public class PlayerRaycast : MonoBehaviour
 
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
 		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
-
-		Debug.Log(loader.chunks[toUpdate].metadata.GetState(current.blockX, current.blockY, current.blockZ));
 		
 		NetMessage message = new NetMessage(NetCode.INTERACT);
 		message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);
