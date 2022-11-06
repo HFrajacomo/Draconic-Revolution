@@ -9,7 +9,7 @@ public class TestStruct : Structure
 	public ushort[] states = new ushort[2]{0,24};
 
 	public TestStruct(){
-		this.code = 0; 
+		this.code = (ushort)StructureCode.TestStruct; 
 
 		this.sizeX = 12;
 		this.sizeY = 1;
@@ -38,7 +38,7 @@ public class TreeSmallA : Structure
 	public ushort[] states = new ushort[2]{0,175};
 
 	public TreeSmallA(){
-		this.code = 1; 
+		this.code = (ushort)StructureCode.TreeSmallA; 
 
 		this.sizeX = 5;
 		this.sizeY = 7;
@@ -68,7 +68,7 @@ public class TreeMediumA : Structure
 	public ushort[] states = new ushort[2]{0,567};
 
 	public TreeMediumA(){
-		this.code = 2; 
+		this.code = (ushort)StructureCode.TreeMediumA; 
 
 		this.sizeX = 7;
 		this.sizeY = 9;
@@ -97,7 +97,7 @@ public class DirtPileA : Structure
 	public ushort[] states = new ushort[2]{0,126};
 
 	public DirtPileA(){
-		this.code = 3; 
+		this.code = (ushort)StructureCode.DirtPileA; 
 
 		this.sizeX = 7;
 		this.sizeY = 3;
@@ -125,7 +125,7 @@ public class DirtPileB : Structure
 	public ushort[] states = new ushort[2]{0,147};
 
 	public DirtPileB(){
-		this.code = 4; 
+		this.code = (ushort)StructureCode.DirtPileB; 
 
 		this.sizeX = 7;
 		this.sizeY = 3;
@@ -153,7 +153,7 @@ public class BoulderNormalA : Structure
 	public ushort[] states = new ushort[2]{0,112};
 
 	public BoulderNormalA(){
-		this.code = 5; 
+		this.code = (ushort)StructureCode.BoulderNormalA; 
 
 		this.sizeX = 4;
 		this.sizeY = 4;
@@ -181,7 +181,7 @@ public class TreeBigA : Structure
 	public ushort[] states = new ushort[2]{0,7920};
 
 	public TreeBigA(){
-		this.code = 6; 
+		this.code = (ushort)StructureCode.TreeBigA; 
 
 		this.sizeX = 18;
 		this.sizeY = 22;
@@ -210,7 +210,7 @@ public class TreeCrookedMediumA : Structure
 	public ushort[] states = new ushort[2]{0,1296};
 
 	public TreeCrookedMediumA(){
-		this.code = 7; 
+		this.code = (ushort)StructureCode.TreeCrookedMediumA; 
 
 		this.sizeX = 12;
 		this.sizeY = 12;
@@ -239,7 +239,7 @@ public class TreeSmallB : Structure
 	public ushort[] states = new ushort[2]{0,729};
 
 	public TreeSmallB(){
-		this.code = 8; 
+		this.code = (ushort)StructureCode.TreeSmallB; 
 
 		this.sizeX = 9;
 		this.sizeY = 9;
@@ -261,14 +261,14 @@ public class TreeSmallB : Structure
 	}
 }
 
-public class MetalVeinA : Structure
+public class IronVeinA : Structure
 {
 	public ushort[] blocks = new ushort[8]{0,1,5,3,0,2,5,2};
 	public ushort[] hps = new ushort[2]{0,8};
 	public ushort[] states = new ushort[2]{0,8};
 
-	public MetalVeinA(){
-		this.code = 9; 
+	public IronVeinA(){
+		this.code = (ushort)StructureCode.IronVeinA; 
 
 		this.sizeX = 2;
 		this.sizeY = 2;
@@ -289,14 +289,14 @@ public class MetalVeinA : Structure
 	}
 }
 
-public class MetalVeinB : Structure
+public class IronVeinB : Structure
 {
 	public ushort[] blocks = new ushort[16]{5,2,0,2,5,3,0,2,5,1,0,2,5,2,0,4};
 	public ushort[] hps = new ushort[2]{0,18};
 	public ushort[] states = new ushort[2]{0,18};
 
-	public MetalVeinB(){
-		this.code = 10; 
+	public IronVeinB(){
+		this.code = (ushort)StructureCode.IronVeinB; 
 
 		this.sizeX = 3;
 		this.sizeY = 2;
@@ -317,18 +317,46 @@ public class MetalVeinB : Structure
 	}
 }
 
-public class MetalVeinC : Structure
+public class IronVeinC : Structure
 {
 	public ushort[] blocks = new ushort[2]{5,4};
 	public ushort[] hps = new ushort[2]{0,4};
 	public ushort[] states = new ushort[2]{0,4};
 
-	public MetalVeinC(){
-		this.code = 11; 
+	public IronVeinC(){
+		this.code = (ushort)StructureCode.IronVeinC; 
 
 		this.sizeX = 2;
 		this.sizeY = 1;
 		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){3};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class CoalVeinA : Structure
+{
+	public ushort[] blocks = new ushort[]{19,8,0,1,19,4,0,3,19,2};
+	public ushort[] hps = new ushort[]{0,18};
+	public ushort[] states = new ushort[]{0,18};
+
+	public CoalVeinA(){
+		this.code = (ushort)StructureCode.CoalVeinA; 
+
+		this.sizeX = 2;
+		this.sizeY = 3;
+		this.sizeZ = 3;
 
 		this.offsetX = 0;
 		this.offsetZ = 0;
@@ -359,7 +387,8 @@ public enum StructureCode{
 	TreeBigA,
 	TreeCrookedMediumA,
 	TreeSmallB,
-	MetalVeinA,
-	MetalVeinB,
-	MetalVeinC
+	IronVeinA,
+	IronVeinB,
+	IronVeinC,
+	CoalVeinA
 }

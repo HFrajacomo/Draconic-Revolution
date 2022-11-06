@@ -45,31 +45,33 @@ public abstract class Structure
     ADD TO THIS LIST FOR EVERY STRUCTURE IMPLEMENTED
     */
     public static Structure Generate(int code){
-        switch(code){
-            case 0:
+        switch((StructureCode)code){
+            case StructureCode.TestStruct:
                 return new TestStruct();
-            case 1:
+            case StructureCode.TreeSmallA:
                 return new TreeSmallA();
-            case 2:
+            case StructureCode.TreeMediumA:
                 return new TreeMediumA();
-            case 3:
+            case StructureCode.DirtPileA:
                 return new DirtPileA();
-            case 4:
+            case StructureCode.DirtPileB:
                 return new DirtPileB();
-            case 5:
+            case StructureCode.BoulderNormalA:
                 return new BoulderNormalA();
-            case 6:
+            case StructureCode.TreeBigA:
                 return new TreeBigA();
-            case 7:
+            case StructureCode.TreeCrookedMediumA:
                 return new TreeCrookedMediumA();
-            case 8:
+            case StructureCode.TreeSmallB:
                 return new TreeSmallB();
-            case 9:
-                return new MetalVeinA();
-            case 10:
-                return new MetalVeinB();
-            case 11:
-                return new MetalVeinC();
+            case StructureCode.IronVeinA:
+                return new IronVeinA();
+            case StructureCode.IronVeinB:
+                return new IronVeinB();
+            case StructureCode.IronVeinC:
+                return new IronVeinC();
+            case StructureCode.CoalVeinA:
+                return new CoalVeinA();
             default:
                 return new TestStruct();
         }
