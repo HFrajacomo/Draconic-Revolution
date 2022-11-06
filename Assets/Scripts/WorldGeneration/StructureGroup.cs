@@ -94,7 +94,27 @@ public static class StructureGroup
         surfaceOres.Add(new StructSpawn(StructureCode.IronVeinA, 5, 1f, 0, 90, true));
         surfaceOres.Add(new StructSpawn(StructureCode.IronVeinB, 5, 1f, 0, 90, true));
         surfaceOres.Add(new StructSpawn(StructureCode.IronVeinC, 5, 1f, 0, 90, true));
-        surfaceOres.Add(new StructSpawn(StructureCode.CoalVeinA, 5, 1f, 0, -1, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.CoalVeinA, 6, 1f, 0, -1, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.CoalVeinB, 6, 1f, 0, -1, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.CoalVeinC, 6, 1f, 0, -1, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.CopperVeinA, 10, 1f, 0, 120, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.CopperVeinB, 10, 1f, 0, 120, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.TinVeinA, 6, 1f, 0, 100, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.TinVeinB, 6, 1f, 0, 100, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.GoldVeinA, 3, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.GoldVeinB, 3, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.AluminiumVeinA, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.AluminiumVeinB, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.EmeriumVeinA, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.EmeriumVeinB, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.UraniumVeinA, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.UraniumVeinB, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.MagnetiteVeinA, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.MagnetiteVeinB, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.EmeraldVeinA, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.EmeraldVeinB, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.RubyVeinA, 1, 0.5f, 0, 60, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.RubyVeinB, 1, 0.5f, 0, 60, true));
     }
 
     private static void PopulateDirtPatches(){

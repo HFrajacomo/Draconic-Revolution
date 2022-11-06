@@ -72,6 +72,46 @@ public abstract class Structure
                 return new IronVeinC();
             case StructureCode.CoalVeinA:
                 return new CoalVeinA();
+            case StructureCode.CoalVeinB:
+                return new CoalVeinB();
+            case StructureCode.CoalVeinC:
+                return new CoalVeinC();
+            case StructureCode.CopperVeinA:
+                return new CopperVeinA();
+            case StructureCode.CopperVeinB:
+                return new CopperVeinB();
+            case StructureCode.TinVeinA:
+                return new TinVeinA();
+            case StructureCode.TinVeinB:
+                return new TinVeinB();
+            case StructureCode.GoldVeinA:
+                return new GoldVeinA();
+            case StructureCode.GoldVeinB:
+                return new GoldVeinB();
+            case StructureCode.AluminiumVeinA:
+                return new AluminiumVeinA();
+            case StructureCode.AluminiumVeinB:
+                return new AluminiumVeinB();
+            case StructureCode.EmeriumVeinA:
+                return new EmeriumVeinA();
+            case StructureCode.EmeriumVeinB:
+                return new EmeriumVeinB();
+            case StructureCode.UraniumVeinA:
+                return new UraniumVeinA();
+            case StructureCode.UraniumVeinB:
+                return new UraniumVeinB();
+            case StructureCode.MagnetiteVeinA:
+                return new MagnetiteVeinA();
+            case StructureCode.MagnetiteVeinB:
+                return new MagnetiteVeinB();
+            case StructureCode.EmeraldVeinA:
+                return new EmeraldVeinA();
+            case StructureCode.EmeraldVeinB:
+                return new EmeraldVeinB();
+            case StructureCode.RubyVeinA:
+                return new RubyVeinA();
+            case StructureCode.RubyVeinB:
+                return new RubyVeinB();
             default:
                 return new TestStruct();
         }

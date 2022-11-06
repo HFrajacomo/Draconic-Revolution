@@ -201,12 +201,13 @@ public class WorldGenerator
 
                 x = this.rng.Next(0, Chunk.chunkWidth);
                 z = this.rng.Next(0, Chunk.chunkWidth);
-                float yMult = (float)this.rng.NextDouble(); 
 
-                if(hardSetDepth < 0)
+                if(hardSetDepth < 0){
+                    float yMult = (float)this.rng.NextDouble(); 
                     y = (int)(heightlimit + yMult*(cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth));
+                }
                 else
-                    y = (int)(heightlimit + (hardSetDepth*yMult));
+                    y = this.rng.Next(heightlimit, hardSetDepth);
 
                 // Ignores structure on hard limit
                 if(y <= heightlimit || y == 0)

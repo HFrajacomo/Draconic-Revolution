@@ -373,6 +373,566 @@ public class CoalVeinA : Structure
 	}
 }
 
+public class CoalVeinB : Structure
+{
+	public ushort[] blocks = new ushort[]{19,6,0,1,19,5,0,1,19,1,0,2};
+	public ushort[] hps = new ushort[]{0,16};
+	public ushort[] states = new ushort[]{0,16};
+
+	public CoalVeinB(){
+		this.code = (ushort)StructureCode.CoalVeinB; 
+
+		this.sizeX = 4;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class CoalVeinC : Structure
+{
+	public ushort[] blocks = new ushort[]{19,9,0,1,19,1,0,1,19,6,0,1,19,2,0,1,19,1,0,1};
+	public ushort[] hps = new ushort[]{0,24};
+	public ushort[] states = new ushort[]{0,24};
+
+	public CoalVeinC(){
+		this.code = (ushort)StructureCode.CoalVeinC; 
+
+		this.sizeX = 4;
+		this.sizeY = 2;
+		this.sizeZ = 3;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class CopperVeinA : Structure
+{
+	public ushort[] blocks = new ushort[]{22,4,0,1,22,1,0,2};
+	public ushort[] hps = new ushort[]{0,8};
+	public ushort[] states = new ushort[]{0,8};
+
+	public CopperVeinA(){
+		this.code = (ushort)StructureCode.CopperVeinA; 
+
+		this.sizeX = 2;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class CopperVeinB : Structure
+{
+	public ushort[] blocks = new ushort[]{22,4,0,1,22,1,0,1,22,3,0,2};
+	public ushort[] hps = new ushort[]{0,12};
+	public ushort[] states = new ushort[]{0,12};
+
+	public CopperVeinB(){
+		this.code = (ushort)StructureCode.CopperVeinB; 
+
+		this.sizeX = 3;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class TinVeinA : Structure
+{
+	public ushort[] blocks = new ushort[]{23,3,0,1,23,1,0,2,23,2,0,3};
+	public ushort[] hps = new ushort[]{0,12};
+	public ushort[] states = new ushort[]{0,12};
+
+	public TinVeinA(){
+		this.code = (ushort)StructureCode.TinVeinA; 
+
+		this.sizeX = 2;
+		this.sizeY = 2;
+		this.sizeZ = 3;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class TinVeinB : Structure
+{
+	public ushort[] blocks = new ushort[]{23,2,0,1,23,1,0,1,23,1,0,1,23,1,0,1,23,1,0,1,23,1};
+	public ushort[] hps = new ushort[]{0,12};
+	public ushort[] states = new ushort[]{0,12};
+
+	public TinVeinB(){
+		this.code = (ushort)StructureCode.TinVeinB; 
+
+		this.sizeX = 2;
+		this.sizeY = 3;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class GoldVeinA : Structure
+{
+	public ushort[] blocks = new ushort[]{24,4,0,1,24,1,0,3,24,1,0,2};
+	public ushort[] hps = new ushort[]{0,12};
+	public ushort[] states = new ushort[]{0,12};
+
+	public GoldVeinA(){
+		this.code = (ushort)StructureCode.GoldVeinA; 
+
+		this.sizeX = 3;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class GoldVeinB : Structure
+{
+	public ushort[] blocks = new ushort[]{24,3,0,1,24,3,0,1};
+	public ushort[] hps = new ushort[]{0,8};
+	public ushort[] states = new ushort[]{0,8};
+
+	public GoldVeinB(){
+		this.code = (ushort)StructureCode.GoldVeinB; 
+
+		this.sizeX = 2;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class AluminiumVeinA : Structure
+{
+	public ushort[] blocks = new ushort[]{21,3,0,1,21,1,0,1,21,2,0,4};
+	public ushort[] hps = new ushort[]{0,12};
+	public ushort[] states = new ushort[]{0,12};
+
+	public AluminiumVeinA(){
+		this.code = (ushort)StructureCode.AluminiumVeinA; 
+
+		this.sizeX = 2;
+		this.sizeY = 2;
+		this.sizeZ = 3;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class AluminiumVeinB : Structure
+{
+	public ushort[] blocks = new ushort[]{21,4,0,3,21,1};
+	public ushort[] hps = new ushort[]{0,8};
+	public ushort[] states = new ushort[]{0,8};
+
+	public AluminiumVeinB(){
+		this.code = (ushort)StructureCode.AluminiumVeinB; 
+
+		this.sizeX = 2;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class EmeriumVeinA : Structure
+{
+	public ushort[] blocks = new ushort[]{25,2,0,1,25,1,0,1,25,1,0,2};
+	public ushort[] hps = new ushort[]{0,8};
+	public ushort[] states = new ushort[]{0,8};
+
+	public EmeriumVeinA(){
+		this.code = (ushort)StructureCode.EmeriumVeinA; 
+
+		this.sizeX = 2;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class EmeriumVeinB : Structure
+{
+	public ushort[] blocks = new ushort[]{25,4,0,1,25,1,0,1,25,1};
+	public ushort[] hps = new ushort[]{0,8};
+	public ushort[] states = new ushort[]{0,8};
+
+	public EmeriumVeinB(){
+		this.code = (ushort)StructureCode.EmeriumVeinB; 
+
+		this.sizeX = 2;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class UraniumVeinA : Structure
+{
+	public ushort[] blocks = new ushort[]{26};
+	public ushort[] hps = new ushort[]{0,1};
+	public ushort[] states = new ushort[]{0,1};
+
+	public UraniumVeinA(){
+		this.code = (ushort)StructureCode.UraniumVeinA; 
+
+		this.sizeX = 1;
+		this.sizeY = 1;
+		this.sizeZ = 1;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class UraniumVeinB : Structure
+{
+	public ushort[] blocks = new ushort[]{26, 26};
+	public ushort[] hps = new ushort[]{0,2};
+	public ushort[] states = new ushort[]{0,2};
+
+	public UraniumVeinB(){
+		this.code = (ushort)StructureCode.UraniumVeinB; 
+
+		this.sizeX = 1;
+		this.sizeY = 2;
+		this.sizeZ = 1;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class MagnetiteVeinA : Structure
+{
+	public ushort[] blocks = new ushort[]{20,3,0,2,20,3,0,1,20,2,0,3,20,1,0,1};
+	public ushort[] hps = new ushort[]{0,16};
+	public ushort[] states = new ushort[]{0,16};
+
+	public MagnetiteVeinA(){
+		this.code = (ushort)StructureCode.MagnetiteVeinA; 
+
+		this.sizeX = 2;
+		this.sizeY = 2;
+		this.sizeZ = 4;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class MagnetiteVeinB : Structure
+{
+	public ushort[] blocks = new ushort[]{20,9,0,1,20,2};
+	public ushort[] hps = new ushort[]{0,12};
+	public ushort[] states = new ushort[]{0,12};
+
+	public MagnetiteVeinB(){
+		this.code = (ushort)StructureCode.MagnetiteVeinB; 
+
+		this.sizeX = 2;
+		this.sizeY = 3;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class EmeraldVeinA : Structure
+{
+	public ushort[] blocks = new ushort[]{27,27,0,1,27};
+	public ushort[] hps = new ushort[]{0,4};
+	public ushort[] states = new ushort[]{0,4};
+
+	public EmeraldVeinA(){
+		this.code = (ushort)StructureCode.EmeraldVeinA; 
+
+		this.sizeX = 2;
+		this.sizeY = 1;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class EmeraldVeinB : Structure
+{
+	public ushort[] blocks = new ushort[]{27,27,0,1,27};
+	public ushort[] hps = new ushort[]{0,4};
+	public ushort[] states = new ushort[]{0,4};
+
+	public EmeraldVeinB(){
+		this.code = (ushort)StructureCode.EmeraldVeinB; 
+
+		this.sizeX = 1;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class RubyVeinA : Structure
+{
+	public ushort[] blocks = new ushort[]{28,28,0,1,28};
+	public ushort[] hps = new ushort[]{0,4};
+	public ushort[] states = new ushort[]{0,4};
+
+	public RubyVeinA(){
+		this.code = (ushort)StructureCode.RubyVeinA; 
+
+		this.sizeX = 2;
+		this.sizeY = 1;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class RubyVeinB : Structure
+{
+	public ushort[] blocks = new ushort[]{28,28,0,1,28};
+	public ushort[] hps = new ushort[]{0,4};
+	public ushort[] states = new ushort[]{0,4};
+
+	public RubyVeinB(){
+		this.code = (ushort)StructureCode.RubyVeinB; 
+
+		this.sizeX = 1;
+		this.sizeY = 2;
+		this.sizeZ = 2;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
 /*
 ADD TO THIS ENUM EVERY NEW STRUCTURE IMPLEMENTED
 */
@@ -390,5 +950,25 @@ public enum StructureCode{
 	IronVeinA = 9,
 	IronVeinB = 10,
 	IronVeinC = 11,
-	CoalVeinA = 12
+	CoalVeinA = 12,
+	CoalVeinB = 13,
+	CoalVeinC = 14,
+	CopperVeinA = 15,
+	CopperVeinB = 16,
+	TinVeinA = 17,
+	TinVeinB = 18,
+	GoldVeinA = 19,
+	GoldVeinB = 20,
+	AluminiumVeinA = 21,
+	AluminiumVeinB = 22,
+	EmeriumVeinA = 23,
+	EmeriumVeinB = 24,
+	UraniumVeinA = 25,
+	UraniumVeinB = 26,
+	MagnetiteVeinA = 27,
+	MagnetiteVeinB = 28,
+	EmeraldVeinA = 29,
+	EmeraldVeinB = 30,
+	RubyVeinA = 31,
+	RubyVeinB = 32
 }
