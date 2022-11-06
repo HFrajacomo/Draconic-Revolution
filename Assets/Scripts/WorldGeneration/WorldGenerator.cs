@@ -17,7 +17,10 @@ public class WorldGenerator
 	public int worldSeed;
 	public BiomeHandler biomeHandler;
 	public ChunkLoader_Server cl;
+
+    // RNG elements
     private Random rng;
+    private int iteration = 0;
 
     // Prefab System
     public StructureHandler structHandler;
@@ -153,7 +156,9 @@ public class WorldGenerator
         int x,y,z;
         int rotation = 0;
         float chance;
-        this.rng = new Random((int)(int.MaxValue * PatchNoise((pos.z^(pos.x * pos.x))*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3)));
+
+        this.rng = new Random((int)((int.MaxValue * PatchNoise((pos.z^(pos.x * pos.x))*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3)) + this.iteration));
+        this.iteration++;
 
         // If structure is static at given heightmap depth
         if(!range){
@@ -305,6 +310,7 @@ public class WorldGenerator
         cacheMetadataHP = NativeTools.CopyToManaged(hpData);
         cacheHeightMap = NativeTools.CopyToManaged(heightMap);
 
+        this.iteration = 0;
         GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
 
         voxelData.Dispose();

@@ -79,9 +79,8 @@ public static class StructureGroup
 
     private static void PopulateForestTrees(){
         forestTrees.Add(new StructSpawn(StructureCode.TreeSmallA, 3, 1f, 0, -1, false));
-        forestTrees.Add(new StructSpawn(StructureCode.TreeMediumA, 3, 0.5f, 0, -1, false));
-        forestTrees.Add(new StructSpawn(StructureCode.TreeBigA, 1, 0.05f, 0, -1, false));
-        forestTrees.Add(new StructSpawn(StructureCode.TreeCrookedMediumA, 1, 0.1f, 0, -1, false));
+        forestTrees.Add(new StructSpawn(StructureCode.TreeMediumA, 2, 0.5f, 0, -1, false));
+        forestTrees.Add(new StructSpawn(StructureCode.TreeBigA, 1, 0.1f, 0, -1, false));
     }
 
     // To Change once Pine Trees are created
