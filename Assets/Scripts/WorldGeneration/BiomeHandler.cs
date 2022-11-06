@@ -16,67 +16,51 @@ public class BiomeHandler
 
 	private int currentBiome = 0;
 
-	// Cache Information
-	private static byte[] cachedByte = new byte[1];
-	private Dictionary<Biome, int> score = new Dictionary<Biome, int>();
-
 
 	public BiomeHandler(){
 		this.biomeTable = new BiomeTable();
 
 		Biome plains = new Biome("Plains", BiomeCode.PLAINS, BiomeType.LOW,
 		 1, 
-		 new List<int>(){1,2,3,4,5,9,10,11},
-		 new List<int>(){1,1,3,2,1,6,5, 5},
-		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.01f, 1f, 1f, 1f});
+		 new List<StructureGroupID>(){StructureGroupID.PLAINS_TREES, StructureGroupID.DIRT_PATCHES,
+		 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_LOW_DENSITY});
 
 		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS, BiomeType.PEAK,
 		 3,
-		 new List<int>(){1,2,3,4,5,9,10,11},
-		 new List<int>(){1,1,3,2,1,10,8, 14},
-		 new List<float>(){0.3f, 0.2f, 1f, 1f, 0.02f, 1f, 1f, 1f});
+		 new List<StructureGroupID>(){StructureGroupID.GRASS_HIGHLANDS_TREES, StructureGroupID.DIRT_PATCHES,
+		 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY});
 
 		Biome ocean = new Biome("Ocean", BiomeCode.OCEAN, BiomeType.OCEAN,
 		 8,
-		 new List<int>(){},
-		 new List<int>(){},
-		 new List<float>(){});
+		 new List<StructureGroupID>(){StructureGroupID.SURFACE_ORES});
 
 		Biome forest = new Biome("Forest", BiomeCode.FOREST, BiomeType.MID,
 		 1,
-		 new List<int>(){6,1,2,7,8,9,10,11},
-		 new List<int>(){1,3,3,1,1,7,7, 7},
-		 new List<float>(){0.05f, 1f, 0.5f, 0.1f, 0.3f, 1f, 1f, 1f});
+		 new List<StructureGroupID>(){StructureGroupID.FOREST_TREES, StructureGroupID.SURFACE_ORES});
 
 		Biome desert = new Biome("Desert", BiomeCode.DESERT, BiomeType.LOW,
 		 8,
-		 new List<int>(){5,9,10,11,7},
-		 new List<int>(){1,6,6, 6, 1},
-		 new List<float>(){0.01f, 1f, 1f, 1f, 0.05f});
+		 new List<StructureGroupID>(){StructureGroupID.DESERT_TREES, StructureGroupID.SURFACE_ORES,
+		 	StructureGroupID.BOULDERS_LOW_DENSITY});
 
 		Biome snowPlains = new Biome("Snowy Plains", BiomeCode.SNOWY_PLAINS, BiomeType.LOW,
 		 9,
-		 new List<int>(){1,2,3,4,5,9,10,11},
-		 new List<int>(){1,1,3,2,1,6,5, 5},
-		 new List<float>(){0.2f, 0.1f, 1f, 1f, 0.01f, 1f, 1f, 1f});
+		 new List<StructureGroupID>(){StructureGroupID.ICE_PLAINS_TREES, StructureGroupID.DIRT_PATCHES,
+		 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_LOW_DENSITY});
 
 		Biome snowyHighlands = new Biome("Snowy Highlands", BiomeCode.SNOWY_HIGHLANDS, BiomeType.PEAK,
 		 9,
-		 new List<int>(){1,2,3,4,5,9,10,11},
-		 new List<int>(){1,1,3,2,1,10,8, 14},
-		 new List<float>(){0.3f, 0.2f, 1f, 1f, 0.02f, 1f, 1f, 1f});
+		 new List<StructureGroupID>(){StructureGroupID.ICE_HIGHLANDS_TREES, StructureGroupID.DIRT_PATCHES,
+		 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY});
 
 		Biome iceOcean = new Biome("Ice Ocean", BiomeCode.ICE_OCEAN, BiomeType.OCEAN,
 		 9,
-		 new List<int>(){},
-		 new List<int>(){},
-		 new List<float>(){});
+		 new List<StructureGroupID>(){StructureGroupID.SURFACE_ORES});
 
 		Biome snowyForest = new Biome("Snow Forest", BiomeCode.SNOWY_FOREST, BiomeType.MID,
 		 9,
-		 new List<int>(){1,2,8,9,10,11},
-		 new List<int>(){3,3,1,7,7, 7},
-		 new List<float>(){1f, 0.5f, 0.3f, 1f, 1f, 1f});
+		 new List<StructureGroupID>(){StructureGroupID.ICE_FOREST_TREES, StructureGroupID.SURFACE_ORES});
+
 
 		AddBiome(plains);
 		AddBiome(grassyHighlands);
@@ -144,6 +128,21 @@ public class BiomeHandler
 		return dataset[(byte)biome].percentageStructs;
 	}
 
+	// Returns the list of possible Depths in a biome
+	public static List<int> GetBiomeDepth(BiomeCode biome){
+		return dataset[(byte)biome].depthValues;
+	}
+
+	// Returns the list of possible HardSetDepths in a biome
+	public static List<int> GetBiomeHSDepth(BiomeCode biome){
+		return dataset[(byte)biome].hardSetDepth;
+	}
+
+	// Returns the list of possible Range in a biome
+	public static List<bool> GetBiomeRange(BiomeCode biome){
+		return dataset[(byte)biome].hasRange;
+	}
+
 	/*
 	Main Function, assigns biome based on 
 	*/
@@ -165,17 +164,27 @@ public struct Biome{
 	public List<int> structCodes;
 	public List<int> amountStructs;
 	public List<float> percentageStructs;
+	public List<int> depthValues;
+	public List<int> hardSetDepth;
+	public List<bool> hasRange;
 
-	public Biome(string n, BiomeCode code, BiomeType type, ushort blendingBlock, List<int> structCodes, List<int> amountStructs, List<float> percentageStructs){
+	public Biome(string n, BiomeCode code, BiomeType type, ushort blendingBlock, List<StructureGroupID> structureGroups){
 		this.name = n;
 		this.biomeCode = (byte)code;
 		this.biomeType = (byte)type;
 
 		this.blendingBlock = blendingBlock;
 		
-		this.structCodes = structCodes;
-		this.amountStructs = amountStructs;
-		this.percentageStructs = percentageStructs;
+		this.structCodes = new List<int>();
+		this.amountStructs = new List<int>();
+		this.percentageStructs = new List<float>();
+		this.depthValues = new List<int>();
+		this.hardSetDepth = new List<int>();
+		this.hasRange = new List<bool>();
+
+		foreach(StructureGroupID id in structureGroups){
+			StructureGroup.AddStructureGroup(id, this);
+		}
 	}
 }
 

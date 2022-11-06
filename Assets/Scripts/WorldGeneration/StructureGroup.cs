@@ -1,0 +1,128 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public static class StructureGroup
+{
+    // Mapper
+    private static Dictionary<StructureGroupID, List<StructSpawn>> map = new Dictionary<StructureGroupID, List<StructSpawn>>();
+
+    // Structure Groups
+    private static List<StructSpawn> plainTrees = new List<StructSpawn>();
+    private static List<StructSpawn> grassHighlandsTrees = new List<StructSpawn>();
+    private static List<StructSpawn> desertTrees = new List<StructSpawn>();
+    private static List<StructSpawn> icePlainsTrees = new List<StructSpawn>();
+    private static List<StructSpawn> iceHighlandsTrees = new List<StructSpawn>();
+    private static List<StructSpawn> forestTrees = new List<StructSpawn>();
+    private static List<StructSpawn> iceForestTrees = new List<StructSpawn>();
+    private static List<StructSpawn> surfaceOres = new List<StructSpawn>();
+    private static List<StructSpawn> dirtPatches = new List<StructSpawn>();
+    private static List<StructSpawn> boulders_LowDensity = new List<StructSpawn>();
+    private static List<StructSpawn> boulders_MediumDensity = new List<StructSpawn>();
+
+    // Static Constructor
+    static StructureGroup(){
+        PopulatePlainsTrees();
+        map.Add(StructureGroupID.PLAINS_TREES, plainTrees);
+        PopulateGrassHighlandsTrees();
+        map.Add(StructureGroupID.GRASS_HIGHLANDS_TREES, grassHighlandsTrees);
+        PopulateDesertTrees();
+        map.Add(StructureGroupID.DESERT_TREES, desertTrees);
+        PopulateIcePlainsTrees();
+        map.Add(StructureGroupID.ICE_PLAINS_TREES, icePlainsTrees);
+        PopulateIceHighlandsTrees();
+        map.Add(StructureGroupID.ICE_HIGHLANDS_TREES, iceHighlandsTrees);
+        PopulateForestTrees();
+        map.Add(StructureGroupID.FOREST_TREES, forestTrees);
+        PopulateIceForestTrees();
+        map.Add(StructureGroupID.ICE_FOREST_TREES, iceForestTrees);
+        PopulateSurfaceOres();
+        map.Add(StructureGroupID.SURFACE_ORES, surfaceOres);
+        PopulateDirtPatches();
+        map.Add(StructureGroupID.DIRT_PATCHES, dirtPatches);
+        PopulateBoulders_LowDensity();
+        map.Add(StructureGroupID.BOULDERS_LOW_DENSITY, boulders_LowDensity);
+        PopulateBoulders_MediumDensity();
+        map.Add(StructureGroupID.BOULDERS_MID_DENSITY, boulders_MediumDensity);
+    }
+
+    public static void AddStructureGroup(StructureGroupID id, Biome b){
+        foreach(StructSpawn s in map[id]){
+            s.AddToSpawn(b.structCodes, b.amountStructs, b.percentageStructs, b.depthValues, b.hardSetDepth, b.hasRange);
+        }
+    }
+
+
+    private static void PopulatePlainsTrees(){
+        plainTrees.Add(new StructSpawn(StructureCode.TreeSmallA, 1, 0.2f, 0, -1, false));
+        plainTrees.Add(new StructSpawn(StructureCode.TreeMediumA, 1, 0.1f, 0, -1, false));        
+    }
+
+    private static void PopulateGrassHighlandsTrees(){
+        grassHighlandsTrees.Add(new StructSpawn(StructureCode.TreeSmallA, 1, 0.3f, 0, -1, false));
+        grassHighlandsTrees.Add(new StructSpawn(StructureCode.TreeMediumA, 1, 0.2f, 0, -1, false));             
+    }
+
+    private static void PopulateDesertTrees(){
+        desertTrees.Add(new StructSpawn(StructureCode.TreeCrookedMediumA, 1, 0.02f, 0, -1, false));
+    }
+
+    // To change once Pine Trees are created
+    private static void PopulateIcePlainsTrees(){
+        icePlainsTrees.Add(new StructSpawn(StructureCode.TreeSmallA, 1, 0.2f, 0, -1, false));
+        icePlainsTrees.Add(new StructSpawn(StructureCode.TreeMediumA, 1, 0.1f, 0, -1, false)); 
+    }
+    private static void PopulateIceHighlandsTrees(){
+        iceHighlandsTrees.Add(new StructSpawn(StructureCode.TreeSmallA, 1, 0.2f, 0, -1, false));
+        iceHighlandsTrees.Add(new StructSpawn(StructureCode.TreeMediumA, 1, 0.1f, 0, -1, false)); 
+    }
+
+    private static void PopulateForestTrees(){
+        forestTrees.Add(new StructSpawn(StructureCode.TreeSmallA, 3, 1f, 0, -1, false));
+        forestTrees.Add(new StructSpawn(StructureCode.TreeMediumA, 3, 0.5f, 0, -1, false));
+        forestTrees.Add(new StructSpawn(StructureCode.TreeBigA, 1, 0.05f, 0, -1, false));
+        forestTrees.Add(new StructSpawn(StructureCode.TreeCrookedMediumA, 1, 0.1f, 0, -1, false));
+    }
+
+    // To Change once Pine Trees are created
+    private static void PopulateIceForestTrees(){
+        forestTrees.Add(new StructSpawn(StructureCode.TreeSmallA, 3, 1f, 0, -1, false));
+        forestTrees.Add(new StructSpawn(StructureCode.TreeMediumA, 3, 0.5f, 0, -1, false));
+        forestTrees.Add(new StructSpawn(StructureCode.TreeSmallB, 1, 0.3f, 0, -1, false));
+    }
+
+    private static void PopulateSurfaceOres(){
+        surfaceOres.Add(new StructSpawn(StructureCode.IronVeinA, 5, 1f, 0, 90, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.IronVeinB, 5, 1f, 0, 90, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.IronVeinC, 5, 1f, 0, 90, true));
+        surfaceOres.Add(new StructSpawn(StructureCode.CoalVeinA, 5, 1f, 0, -1, true));
+    }
+
+    private static void PopulateDirtPatches(){
+        dirtPatches.Add(new StructSpawn(StructureCode.DirtPileA, 3, 1f, 3, -1, true));
+        dirtPatches.Add(new StructSpawn(StructureCode.DirtPileB, 2, 1f, 3, -1, true));
+    }
+
+    private static void PopulateBoulders_LowDensity(){
+        boulders_LowDensity.Add(new StructSpawn(StructureCode.BoulderNormalA, 1, 0.02f, 1, -1, false));
+    }
+
+    private static void PopulateBoulders_MediumDensity(){
+        boulders_MediumDensity.Add(new StructSpawn(StructureCode.BoulderNormalA, 1, 0.05f, 1, -1, false));
+    }
+}
+
+public enum StructureGroupID : int
+{
+    PLAINS_TREES,
+    GRASS_HIGHLANDS_TREES,
+    DESERT_TREES,
+    ICE_PLAINS_TREES,
+    ICE_HIGHLANDS_TREES,
+    FOREST_TREES,
+    ICE_FOREST_TREES,
+    SURFACE_ORES,
+    DIRT_PATCHES,
+    BOULDERS_LOW_DENSITY,
+    BOULDERS_MID_DENSITY
+}

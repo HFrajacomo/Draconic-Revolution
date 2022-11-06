@@ -21,7 +21,6 @@ public class WorldGenerator
 
     // Prefab System
     public StructureHandler structHandler;
-    public StructureGenerator structureGenerator;
 
 	// Cached Data
 	private	ushort[] cacheVoxdata = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
@@ -53,7 +52,6 @@ public class WorldGenerator
     	this.biomeHandler = biomeReference;
     	this.cl = reference;
     	this.structHandler = structHandler;
-        this.structureGenerator = new StructureGenerator(this);
 
         baseMap = new NativeArray<byte>(GenerationSeed.baseNoise, Allocator.Persistent);
         erosionMap = new NativeArray<byte>(GenerationSeed.erosionNoise, Allocator.Persistent);
@@ -141,19 +139,21 @@ public class WorldGenerator
     /*
     Depth Values represent how deep below heightmap things will go.
     Range represents if structure always spawn at given Depth, or if it spans below as well
+    HardSetDepth will be a fixed depth value for the structure to generate in case it is non-negative
     */
-    public void GenerateStructures(ChunkPos pos, BiomeCode biome, int structureCode, int depth, ushort[] blockdata, ushort[] statedata, ushort[] hpdata, int heightlimit=0, bool range=false){
+    public void GenerateStructures(ChunkPos pos, BiomeCode biome, int structureCode, ushort[] blockdata, ushort[] statedata, ushort[] hpdata, int heightlimit=0){
         // Gets index of amount and percentage
         int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureCode);
         int amount = BiomeHandler.GetBiomeAmounts(biome)[index];
-
+        int depth = BiomeHandler.GetBiomeDepth(biome)[index];
+        int hardSetDepth = BiomeHandler.GetBiomeHSDepth(biome)[index];
+        bool range = BiomeHandler.GetBiomeRange(biome)[index];
         float percentage = BiomeHandler.GetBiomePercentages(biome)[index];
 
         int x,y,z;
         int rotation = 0;
         float chance;
         this.rng = new Random((int)(int.MaxValue * PatchNoise((pos.z^(pos.x * pos.x))*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3)));
-
 
         // If structure is static at given heightmap depth
         if(!range){
@@ -167,7 +167,11 @@ public class WorldGenerator
 
                 x = this.rng.Next(0, Chunk.chunkWidth);
                 z = this.rng.Next(0, Chunk.chunkWidth);
-                y = (int)cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth;
+
+                if(hardSetDepth < 0)
+                    y = (int)cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth;
+                else
+                    y = hardSetDepth;
 
 
                 // Ignores structure on hard limit
@@ -194,7 +198,10 @@ public class WorldGenerator
                 z = this.rng.Next(0, Chunk.chunkWidth);
                 float yMult = (float)this.rng.NextDouble(); 
 
-                y = (int)(heightlimit + yMult*(cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth));
+                if(hardSetDepth < 0)
+                    y = (int)(heightlimit + yMult*(cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth));
+                else
+                    y = (int)(heightlimit + (hardSetDepth*yMult));
 
                 // Ignores structure on hard limit
                 if(y <= heightlimit || y == 0)
@@ -298,12 +305,17 @@ public class WorldGenerator
         cacheMetadataHP = NativeTools.CopyToManaged(hpData);
         cacheHeightMap = NativeTools.CopyToManaged(heightMap);
 
-        structureGenerator.GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
+        GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
 
         voxelData.Dispose();
         stateData.Dispose();
         hpData.Dispose();
         heightMap.Dispose();
+    }
+
+    private void GenerateBiomeStructures(ChunkLoader_Server cl, ChunkPos pos, BiomeCode biomeCode, ushort[] blockdata, ushort[] state, ushort[] hps){
+        foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode))
+            GenerateStructures(pos, biomeCode, structCode, blockdata, state, hps);
     }
 
 

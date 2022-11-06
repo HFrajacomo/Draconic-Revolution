@@ -112,7 +112,7 @@ public class DirtPileA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){1,3};
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE, (ushort)BlockID.GRASS};
 
 		Prepare(blocks, hps, states);
 	}
@@ -140,7 +140,7 @@ public class DirtPileB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){1,3};
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE, (ushort)BlockID.GRASS};
 
 		Prepare(blocks, hps, states);
 	}
@@ -283,7 +283,7 @@ public class IronVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){3};
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
 
 		Prepare(blocks, hps, states);
 	}
@@ -311,7 +311,7 @@ public class IronVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){3};
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
 
 		Prepare(blocks, hps, states);
 	}
@@ -339,7 +339,7 @@ public class IronVeinC : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){3};
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
 
 		Prepare(blocks, hps, states);
 	}
@@ -367,7 +367,7 @@ public class CoalVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){3};
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
 
 		Prepare(blocks, hps, states);
 	}
@@ -378,17 +378,17 @@ ADD TO THIS ENUM EVERY NEW STRUCTURE IMPLEMENTED
 */
 
 public enum StructureCode{
-	TestStruct,
-	TreeSmallA,
-	TreeMediumA,
-	DirtPileA,
-	DirtPileB,
-	BoulderNormalA,
-	TreeBigA,
-	TreeCrookedMediumA,
-	TreeSmallB,
-	IronVeinA,
-	IronVeinB,
-	IronVeinC,
-	CoalVeinA
+	TestStruct = 0,
+	TreeSmallA = 1,
+	TreeMediumA = 2,
+	DirtPileA = 3,
+	DirtPileB = 4,
+	BoulderNormalA = 5,
+	TreeBigA = 6,
+	TreeCrookedMediumA = 7,
+	TreeSmallB = 8,
+	IronVeinA = 9,
+	IronVeinB = 10,
+	IronVeinC = 11,
+	CoalVeinA = 12
 }
