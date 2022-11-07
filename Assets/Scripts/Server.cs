@@ -971,7 +971,7 @@ public class Server
 		int x, y, z, facing;
 		ushort blockCode, state, hp;
 
-		int currentByte = 9;
+		int currentByte = 10;
 		CastCoord lastCoord;
 
 		pos = NetDecoder.ReadChunkPos(data, 1);

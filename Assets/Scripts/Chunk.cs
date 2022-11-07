@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,6 +17,7 @@ public class Chunk
 	public VoxelMetadata metadata;
 	public static readonly int chunkWidth = 16;
 	public static readonly int chunkDepth = 256;
+	public static readonly int chunkMaxY = 3;
 	public static float chunkWidthMult = 15.99f; 
 	public ChunkPos pos;
 	public string biomeName;
@@ -161,14 +162,14 @@ public class Chunk
 		this.meshRaycast.name = this.objRaycast.name;
 		this.meshColliderRaycast.sharedMesh = this.meshRaycast;
 
-		this.surroundingChunks[0] = new ChunkPos(pos.x, pos.z+1);
-		this.surroundingChunks[1] = new ChunkPos(pos.x+1, pos.z);
-		this.surroundingChunks[2] = new ChunkPos(pos.x, pos.z-1);
-		this.surroundingChunks[3] = new ChunkPos(pos.x-1, pos.z);
-		this.surroundingChunks[4] = new ChunkPos(pos.x+1, pos.z-1);
-		this.surroundingChunks[5] = new ChunkPos(pos.x-1, pos.z-1);
-		this.surroundingChunks[6] = new ChunkPos(pos.x-1, pos.z+1);
-		this.surroundingChunks[7] = new ChunkPos(pos.x+1, pos.z+1);
+		this.surroundingChunks[0] = new ChunkPos(pos.x, pos.z+1, pos.y);
+		this.surroundingChunks[1] = new ChunkPos(pos.x+1, pos.z, pos.y);
+		this.surroundingChunks[2] = new ChunkPos(pos.x, pos.z-1, pos.y);
+		this.surroundingChunks[3] = new ChunkPos(pos.x-1, pos.z, pos.y);
+		this.surroundingChunks[4] = new ChunkPos(pos.x+1, pos.z-1, pos.y);
+		this.surroundingChunks[5] = new ChunkPos(pos.x-1, pos.z-1, pos.y);
+		this.surroundingChunks[6] = new ChunkPos(pos.x-1, pos.z+1, pos.y);
+		this.surroundingChunks[7] = new ChunkPos(pos.x+1, pos.z+1, pos.y);
 
 		if(showHitbox){
 			this.hitboxFilter = this.objRaycast.AddComponent<MeshFilter>() as MeshFilter;
@@ -388,7 +389,7 @@ public class Chunk
 		disposableDecalTris.Dispose();
 
 		// X- Analysis
-		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z); 
+		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z, this.pos.y);
 		if(loader.chunks.ContainsKey(targetChunk)){
 			xmDraw = true;
 			changed = true;
@@ -438,6 +439,7 @@ public class Chunk
 			};
 
 			BuildDecalSideJob bdsj = new BuildDecalSideJob{
+				pos = this.pos,
 				blockdata = blockdata,
 				neighbordata = neighbordata,
 				hpdata = hpdata,
@@ -485,7 +487,7 @@ public class Chunk
 
 
 		// X+ Analysis
-		targetChunk = new ChunkPos(this.pos.x+1, this.pos.z); 
+		targetChunk = new ChunkPos(this.pos.x+1, this.pos.z, this.pos.y); 
 		if(loader.chunks.ContainsKey(targetChunk)){
 			xpDraw = true;
 			changed = true;
@@ -535,6 +537,7 @@ public class Chunk
 			};
 
 			BuildDecalSideJob bdsj = new BuildDecalSideJob{
+				pos = this.pos,
 				blockdata = blockdata,
 				neighbordata = neighbordata,
 				hpdata = hpdata,
@@ -582,7 +585,7 @@ public class Chunk
 		}
 
 		// Z- Analysis
-		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1); 
+		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1, this.pos.y); 
 		if(loader.chunks.ContainsKey(targetChunk)){
 			zmDraw = true;
 			changed = true;
@@ -632,6 +635,7 @@ public class Chunk
 			};
 
 			BuildDecalSideJob bdsj = new BuildDecalSideJob{
+				pos = this.pos,
 				blockdata = blockdata,
 				neighbordata = neighbordata,
 				hpdata = hpdata,
@@ -677,7 +681,7 @@ public class Chunk
 		}
 
 		// Z+ Analysis
-		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1); 
+		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1, this.pos.y); 
 		if(loader.chunks.ContainsKey(targetChunk)){
 			zpDraw = true;
 			changed = true;
@@ -727,6 +731,7 @@ public class Chunk
 			};
 
 			BuildDecalSideJob bdsj = new BuildDecalSideJob{
+				pos = this.pos,
 				blockdata = blockdata,
 				neighbordata = neighbordata,
 				hpdata = hpdata,
@@ -1217,6 +1222,7 @@ public class Chunk
 
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{
+			pos = pos,
 			load = load,
 			data = blockdata,
 			state = statedata,
@@ -1361,6 +1367,7 @@ public class Chunk
 		NativeArray<int> hitboxTrisOffset = new NativeArray<int>(this.indexHitboxTris.ToArray(), Allocator.TempJob);
 
 		PrepareAssetsJob paJob = new PrepareAssetsJob{
+			pos = pos,
 			vCount = verts.Length,
 
 			meshVerts = meshVerts,
@@ -1500,6 +1507,7 @@ public class Chunk
 		NativeArray<Vector3> cacheVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
 
 		BuildDecalJob bdj = new BuildDecalJob{
+			pos = pos,
 			blockdata = blockdata,
 			verts = verts,
 			UV = UVs,
@@ -1540,6 +1548,7 @@ public class Chunk
 		NativeArray<Vector3> cacheVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
 
 		BuildDecalJob bdj = new BuildDecalJob{
+			pos = pos,
 			blockdata = blockdata,
 			verts = verts,
 			UV = UVs,
@@ -1690,6 +1699,8 @@ MULTITHREADING
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public bool load;
+	[ReadOnly]
+	public ChunkPos pos;
 
 	[ReadOnly]
 	public NativeArray<ushort> data; // Voxeldata
@@ -1978,7 +1989,7 @@ public struct BuildChunkJob : IJob{
     	
     	// If object is Normal Block
     	if(renderThread == ShaderIndex.OPAQUE){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -2004,7 +2015,7 @@ public struct BuildChunkJob : IJob{
 
     	// If object is Specular Block
     	else if(renderThread == ShaderIndex.SPECULAR){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -2030,7 +2041,7 @@ public struct BuildChunkJob : IJob{
 
     	// If object is Liquid
     	else if(renderThread == ShaderIndex.WATER){
-    		VertsByState(cacheCubeVert, dir, state[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y,z));
+    		VertsByState(cacheCubeVert, dir, state[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -2056,7 +2067,7 @@ public struct BuildChunkJob : IJob{
 
     	// If object is Leaves
     	else if(renderThread == ShaderIndex.LEAVES){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -2082,7 +2093,7 @@ public struct BuildChunkJob : IJob{
 
     	// If object is Ice
     	else if(renderThread == ShaderIndex.ICE){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -2108,7 +2119,7 @@ public struct BuildChunkJob : IJob{
 
     	// If object is an Asset
     	else{
-			loadAssetList.Add(new int3(x,y,z));
+			loadAssetList.Add(new int3(x,y+(Chunk.chunkDepth*pos.y),z));
     		return false;
     	}
     }
@@ -2378,6 +2389,9 @@ public struct BuildChunkJob : IJob{
 
 [BurstCompile]
 public struct PrepareAssetsJob : IJob{
+	[ReadOnly]
+	public ChunkPos pos;
+
 	// Output
 	public NativeList<Vector3> meshVerts;
 	public NativeList<Vector2> meshUVs;
@@ -3066,7 +3080,7 @@ public struct BuildBorderJob : IJob{
     	
     	// If object is Normal Block
     	if(renderThread == ShaderIndex.OPAQUE){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -3092,7 +3106,7 @@ public struct BuildBorderJob : IJob{
 
     	// If object is Specular Block
     	else if(renderThread == ShaderIndex.SPECULAR){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -3118,7 +3132,7 @@ public struct BuildBorderJob : IJob{
 
     	// If object is Liquid
     	else if(renderThread == ShaderIndex.WATER){
-    		VertsByState(cacheCubeVert, dir, metadata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y,z));
+    		VertsByState(cacheCubeVert, dir, metadata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -3144,7 +3158,7 @@ public struct BuildBorderJob : IJob{
 
     	// If object is Leaves
     	else if(renderThread == ShaderIndex.LEAVES){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -3170,7 +3184,7 @@ public struct BuildBorderJob : IJob{
 
     	// If object is Ice
     	else if(renderThread == ShaderIndex.ICE){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -3999,6 +4013,9 @@ public struct BuildBorderJob : IJob{
 [BurstCompile]
 public struct BuildDecalJob : IJob{
 	[ReadOnly]
+	public ChunkPos pos;
+
+	[ReadOnly]
 	public NativeArray<ushort> blockdata;
 	public NativeList<Vector3> verts;
 	public NativeList<Vector2> UV; 
@@ -4164,6 +4181,8 @@ public struct BuildDecalJob : IJob{
 
 [BurstCompile]
 public struct BuildDecalSideJob : IJob{
+	[ReadOnly]
+	public ChunkPos pos;
 	[ReadOnly]
 	public NativeArray<ushort> blockdata;
 	[ReadOnly]
@@ -4860,7 +4879,7 @@ public struct BuildCornerJob : IJob{
     	
     	// If object is Normal Block
     	if(renderThread == ShaderIndex.OPAQUE){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -4886,7 +4905,7 @@ public struct BuildCornerJob : IJob{
 
     	// If object is Specular Block
     	else if(renderThread == ShaderIndex.SPECULAR){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -4912,7 +4931,7 @@ public struct BuildCornerJob : IJob{
 
     	// If object is Liquid
     	else if(renderThread == ShaderIndex.WATER){
-    		VertsByState(cacheCubeVert, dir, metadata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y,z));
+    		VertsByState(cacheCubeVert, dir, metadata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -4938,7 +4957,7 @@ public struct BuildCornerJob : IJob{
 
     	// If object is Leaves
     	else if(renderThread == ShaderIndex.LEAVES){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 
@@ -4964,7 +4983,7 @@ public struct BuildCornerJob : IJob{
 
     	// If object is Ice
     	else if(renderThread == ShaderIndex.ICE){
-    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y,z));
+    		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
 

@@ -254,7 +254,7 @@ public abstract class Structure
                     continue;
                 }
 
-                newPos = new ChunkPos(pos.x+xCount, pos.z+zCount);
+                newPos = new ChunkPos(pos.x+xCount, pos.z+zCount, 3);
 
                 // Calculates Positions
                 posX = 0;
@@ -410,7 +410,7 @@ public abstract class Structure
                     continue;
                 }
 
-                newPos = new ChunkPos(pos.x+xCount, pos.z+zCount);
+                newPos = new ChunkPos(pos.x+xCount, pos.z+zCount, 3);
 
                 // Calculates Positions
                 if(xCount == 0){

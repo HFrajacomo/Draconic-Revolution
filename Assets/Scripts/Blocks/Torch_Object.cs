@@ -222,7 +222,7 @@ public class Torch_Object : BlocklikeObject
 						return false;
 				}
 				else{
-					ChunkPos newPos = new ChunkPos(pos.x-1, pos.z);
+					ChunkPos newPos = new ChunkPos(pos.x-1, pos.z, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(Chunk.chunkWidth-1,y,z);
 					if(cl.blockBook.CheckSolid(blockCode))
 						return true;
@@ -239,7 +239,7 @@ public class Torch_Object : BlocklikeObject
 						return false;
 				}
 				else{
-					ChunkPos newPos = new ChunkPos(pos.x+1, pos.z);
+					ChunkPos newPos = new ChunkPos(pos.x+1, pos.z, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(0,y,z);
 					if(cl.blockBook.CheckSolid(blockCode))
 						return true;
@@ -256,7 +256,7 @@ public class Torch_Object : BlocklikeObject
 						return false;
 				}
 				else{
-					ChunkPos newPos = new ChunkPos(pos.x, pos.z+1);
+					ChunkPos newPos = new ChunkPos(pos.x, pos.z+1, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(x,y,0);
 					if(cl.blockBook.CheckSolid(blockCode))
 						return true;
@@ -273,7 +273,7 @@ public class Torch_Object : BlocklikeObject
 						return false;
 				}
 				else{
-					ChunkPos newPos = new ChunkPos(pos.x, pos.z-1);
+					ChunkPos newPos = new ChunkPos(pos.x, pos.z-1, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(x,y,Chunk.chunkWidth-1);
 					if(cl.blockBook.CheckSolid(blockCode))
 						return true;

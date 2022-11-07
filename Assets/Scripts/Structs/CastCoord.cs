@@ -7,6 +7,7 @@ using UnityEngine;
 public struct CastCoord{
 	public int chunkX;
 	public int chunkZ;
+	public int chunkY;
 	public int blockX;
 	public int blockY;
 	public int blockZ;
@@ -15,6 +16,7 @@ public struct CastCoord{
 	public CastCoord(bool a){
 		chunkX = 0;
 		chunkZ = 0;
+		chunkY = 0;
 		blockX = 0;
 		blockZ = 0;
 		blockY = 0;
@@ -25,6 +27,7 @@ public struct CastCoord{
 		CastCoord c = new CastCoord(true);
 		c.chunkX = this.chunkX;
 		c.chunkZ = this.chunkZ;
+		c.chunkY = this.chunkY;
 		c.blockX = this.blockX;
 		c.blockY = this.blockY;
 		c.blockZ = this.blockZ;
@@ -63,8 +66,19 @@ public struct CastCoord{
 	      blockZ = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkZ)+nMark.z)%Chunk.chunkWidth);
 
 
+	    // Y Processing
+	    if(nMark.y >= 0)
+	      nMark.y = (int)Math.Round(nMark.y, MidpointRounding.AwayFromZero);
+	    else
+	      nMark.y = (int)(nMark.y - 0.5f);
 
-	    blockY = Mathf.RoundToInt(nMark.y);
+	    chunkY = Mathf.FloorToInt(nMark.y/Chunk.chunkDepth);
+
+	    if(chunkY >= 0)
+	      blockY = Mathf.FloorToInt(nMark.y%Chunk.chunkWidth);
+	    else
+	      blockY = Mathf.CeilToInt(((Chunk.chunkDepth*-chunkY)+nMark.y)%Chunk.chunkDepth);
+
 	 	active = true;
 	}
 
@@ -96,15 +110,26 @@ public struct CastCoord{
 	    else
 	      blockZ = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkZ)+z)%Chunk.chunkWidth);
 
+	    // Y Processing
+	    if(y >= 0)
+	      y = (int)Math.Round(y, MidpointRounding.AwayFromZero);
+	    else
+	      y = (int)(y - 0.5f);
 
+	    chunkY = Mathf.FloorToInt(y/Chunk.chunkWidth);
 
-	    blockY = Mathf.RoundToInt(y);
+	    if(chunkY >= 0)
+	      blockY = Mathf.FloorToInt(y%Chunk.chunkWidth);
+	    else
+	      blockY = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkY)+y)%Chunk.chunkWidth);
+
 	 	active = true;
 	}
 
 	public CastCoord(ChunkPos pos, int x, int y, int z){
 		chunkX = pos.x;
 		chunkZ = pos.z;
+		chunkY = pos.y;
 		blockX = x;
 		blockY = y;
 		blockZ = z;
@@ -117,7 +142,7 @@ public struct CastCoord{
 	}
 
 	public int GetWorldY(){
-	  return blockY;
+	  return Chunk.chunkDepth*chunkY+blockY;
 	}
 
 	public int GetWorldZ(){
@@ -125,7 +150,7 @@ public struct CastCoord{
 	}
 
 	public ChunkPos GetChunkPos(){
-	  return new ChunkPos(chunkX, chunkZ);
+	  return new ChunkPos(chunkX, chunkZ, chunkY);
 	}
 
 	// Adds and returns a rebuilt CastCoord
@@ -134,11 +159,11 @@ public struct CastCoord{
 	}
 
 	public override string ToString(){
-		return "ChunkX: " + chunkX + "\tChunkZ: " + chunkZ + "\tX, Y, Z: " + GetWorldX() + ", " + GetWorldY() + ", " + GetWorldZ();
+		return "ChunkX: " + chunkX + "\tChunkZ: " + chunkZ + "\tChunkY: " + (ChunkDepthID)chunkY + "\tX, Y, Z: " + GetWorldX() + ", " + GetWorldY() + ", " + GetWorldZ();
 	}
 
 	public string RealPos(){
-		return "X: " + (chunkX*Chunk.chunkWidth + blockX).ToString() + "   Y: " + blockY.ToString() + "   Z: " + (chunkZ*Chunk.chunkWidth + blockZ);
+		return "X: " + (chunkX*Chunk.chunkWidth + blockX).ToString() + "   Y: " + (chunkY*Chunk.chunkDepth + blockY).ToString() + "   Z: " + (chunkZ*Chunk.chunkWidth + blockZ);
 	}
 
 	public static int operator-(CastCoord a, CastCoord b){
@@ -149,7 +174,7 @@ public struct CastCoord{
 
 		x = (a.chunkX*Chunk.chunkWidth+a.blockX) - (b.chunkX*Chunk.chunkWidth+b.blockX);
 		z = (a.chunkZ*Chunk.chunkWidth+a.blockZ) - (b.chunkZ*Chunk.chunkWidth+b.blockZ);
-		y = a.blockY - b.blockY;
+		y = (a.chunkY*Chunk.chunkDepth+a.blockY) - (b.chunkY*Chunk.chunkDepth+b.blockY);
 
 		/*
 		0 = X+
@@ -177,7 +202,7 @@ public struct CastCoord{
 	}
 
 	public static bool Eq(CastCoord a, CastCoord b){
-		if(a.chunkX != b.chunkX || a.chunkZ != b.chunkZ || a.blockX != b.blockX || a.blockY != b.blockY || a.blockZ != b.blockZ)
+		if(a.chunkX != b.chunkX || a.chunkZ != b.chunkZ || a.blockX != b.blockX || a.blockY != b.blockY || a.blockZ != b.blockZ || a.chunkY != b.chunkY || a.blockY != b.blockY)
 			return false;
 		return true;
 	}

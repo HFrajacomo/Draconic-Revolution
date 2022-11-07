@@ -17,7 +17,7 @@ public class Iceblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Gelum, 2}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.COAL_ORE;
+		this.placeableBlockID = (ushort)BlockID.ICE;
 	}
 
 	public override int Use(){

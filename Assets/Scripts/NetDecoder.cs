@@ -95,7 +95,7 @@ public static class NetDecoder
 	}
 
 	public static ChunkPos ReadChunkPos(byte[] data, int pos){
-		return new ChunkPos(NetDecoder.ReadInt(data, pos), NetDecoder.ReadInt(data, pos+4));
+		return new ChunkPos(NetDecoder.ReadInt(data, pos), NetDecoder.ReadInt(data, pos+4), NetDecoder.ReadByte(data, pos+8));
 	}
 
 	public static float ReadFloat(byte[] data, int pos){
@@ -210,5 +210,6 @@ public static class NetDecoder
 	public static void WriteChunkPos(ChunkPos cp, byte[] data, int pos){
 		NetDecoder.WriteInt(cp.x, data, pos);
 		NetDecoder.WriteInt(cp.z, data, pos+4);
+		NetDecoder.WriteByte(cp.y, data, pos+8);
 	}
 }

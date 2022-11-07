@@ -138,7 +138,7 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Detects hit of solid block
 	public bool HitSolid(CastCoord coords){
-		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ);
+		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ, coords.chunkY);
 
 		if(!loader.chunks.ContainsKey(ck))
 			return false;
@@ -167,7 +167,7 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Detects hit in any block except air
 	public bool HitAll(CastCoord coords, float traveledDistance){
-		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ);
+		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ, coords.chunkY);
 
 		// Exception
 		if(!loader.chunks.ContainsKey(ck)){
@@ -204,7 +204,7 @@ public class PlayerRaycast : MonoBehaviour
 			return;
 		}
 
-		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
+		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ, current.chunkY);
 		ushort blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
 		ushort state = loader.chunks[toUpdate].metadata.GetState(current.blockX, current.blockY, current.blockZ);
 		ushort hp = loader.chunks[toUpdate].metadata.GetHP(current.blockX, current.blockY, current.blockZ);
@@ -267,7 +267,7 @@ public class PlayerRaycast : MonoBehaviour
 			return;
 
 
-		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ);
+		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ, current.chunkY);
 		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
 		
 		NetMessage message = new NetMessage(NetCode.INTERACT);
@@ -349,7 +349,7 @@ public class PlayerRaycast : MonoBehaviour
 
 					for(; x < xEnd; x++){
 						for(int zChunk=0; zChunk <= zCount; zChunk++){
-							newPos = new ChunkPos(prefabPos.chunkX + xChunk, prefabPos.chunkZ + zChunk);
+							newPos = new ChunkPos(prefabPos.chunkX + xChunk, prefabPos.chunkZ + zChunk, 3);
 
 							// Z Spec
 							if(zChunk == 0 && zChunk == zCount){
@@ -434,17 +434,4 @@ public class PlayerRaycast : MonoBehaviour
 
 		}
 	}
-
-
-	// Checks if neighbor chunk from chunkpos needs to update it's sides
-	private void UpdateNeighborChunk(ChunkPos pos, int x, int y, int z){
-		if(x == 0)
-			loader.chunks[new ChunkPos(pos.x-1, pos.z)].BuildSideBorder();
-		else if(x == Chunk.chunkWidth-1)
-			loader.chunks[new ChunkPos(pos.x+1, pos.z)].BuildSideBorder();
-		else if(z == 0)
-			loader.chunks[new ChunkPos(pos.x, pos.z-1)].BuildSideBorder();
-		else if(z == Chunk.chunkWidth-1)
-			loader.chunks[new ChunkPos(pos.x, pos.z+1)].BuildSideBorder();
-	}	
 }

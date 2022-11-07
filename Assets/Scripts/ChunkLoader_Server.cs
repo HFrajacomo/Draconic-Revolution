@@ -41,7 +41,7 @@ public class ChunkLoader_Server : MonoBehaviour
     public bool INITIALIZEDWORLD = false;
 
     // Cache Data
-    private ChunkPos cachePos = new ChunkPos(0,0);
+    private ChunkPos cachePos = new ChunkPos(0,0,0);
     private Chunk cacheChunk;
 
 
@@ -98,7 +98,7 @@ public class ChunkLoader_Server : MonoBehaviour
         Vector3 playerDir = pdat.GetDirection();
         pdat.SetOnline(true);
 
-        this.regionHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth)));
+        this.regionHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth), (int)(playerPos.y/Chunk.chunkDepth)));
 
         HandleServerCommunication();
 
@@ -320,9 +320,9 @@ public class ChunkLoader_Server : MonoBehaviour
     public int GetBlockHeight(ChunkPos pos, int blockX, int blockZ){
         // Checks if chunk doesn't exist
         if(!chunks.ContainsKey(pos)){
-            this.toLoad.Add(pos);
+            this.toLoad.Insert(0, pos);
             this.LoadChunk();
-            return GetBlockHeight(pos, blockX, blockZ);
+            return GetBlockHeight(pos, blockX, blockZ) + (pos.y*Chunk.chunkDepth)+1;
         }
         for(int i=Chunk.chunkDepth-1; i >= 0 ; i--){
             if(chunks[pos].data.GetCell(Mathf.Abs(blockX), i, Mathf.Abs(blockZ)) != 0){
@@ -359,13 +359,13 @@ public class ChunkLoader_Server : MonoBehaviour
         minBoundsY = c.blockY - radius.y;
 
         // Initial Pos
-        pos = new ChunkPos(middleChunk.x + minX, middleChunk.z + minZ);
+        pos = new ChunkPos(middleChunk.x + minX, middleChunk.z + minZ, 3);
         cX = minBoundsX;
         
         for(int x=0; x < (radius.x*2+1); x++){
             // If X goes to another chunk
             if(cX >= Chunk.chunkWidth){
-                pos = new ChunkPos(pos.x+1, middleChunk.z);
+                pos = new ChunkPos(pos.x+1, middleChunk.z, 3);
                 cX = 0;
             }
             // If chunk doesn't exist
@@ -379,14 +379,14 @@ public class ChunkLoader_Server : MonoBehaviour
                 // Set Y Limits
                 if(cY < 0 || cY >= Chunk.chunkDepth){
                     cY++;
-                    pos = new ChunkPos(pos.x, middleChunk.z);
+                    pos = new ChunkPos(pos.x, middleChunk.z, 3);
                     continue;
                 }
 
                 for(int z=0; z < (radius.x*2+1); z++){
                     // If Z goes to another chunk
                     if(cZ >= Chunk.chunkWidth){
-                        pos = new ChunkPos(pos.x, pos.z+1);
+                        pos = new ChunkPos(pos.x, pos.z+1, 3);
                         cZ = 0;
                     }
                     // If chunk doesn't exist
@@ -399,7 +399,7 @@ public class ChunkLoader_Server : MonoBehaviour
                     states[x*(radius.x*2+1)*(radius.y*2+1)+y*(radius.x*2+1)+z] = this.chunks[pos].metadata.GetState(cX, cY, cZ);
                     cZ++;
                 }
-                pos = new ChunkPos(pos.x, middleChunk.z);
+                pos = new ChunkPos(pos.x, middleChunk.z, 3);
                 cY++;
             }
             cX++;

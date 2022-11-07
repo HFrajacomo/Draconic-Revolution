@@ -353,6 +353,9 @@ public class Client
 	// Receives a Chunk
 	private void SendChunk(byte[] data){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+
+		if(pos.y != 3)
+			Debug.Log(pos);
 		
 		this.cl.toLoad.Add(data);
 		this.cl.toLoadChunk.Add(pos);
@@ -536,49 +539,49 @@ public class Client
 		ChunkPos temp;
 
 		if(x == 0){
-			temp = new ChunkPos(pos.x-1, pos.z);
+			temp = new ChunkPos(pos.x-1, pos.z, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x+1, pos.z);
+			temp = new ChunkPos(pos.x+1, pos.z, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(z == 0){
-			temp = new ChunkPos(pos.x, pos.z-1);
+			temp = new ChunkPos(pos.x, pos.z-1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);			
 		}
 
 		if(z == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x, pos.z+1);
+			temp = new ChunkPos(pos.x, pos.z+1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == 0 && z == 0){
-			temp = new ChunkPos(pos.x-1, pos.z-1);
+			temp = new ChunkPos(pos.x-1, pos.z-1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == Chunk.chunkWidth-1 && z == 0){
-			temp = new ChunkPos(pos.x+1, pos.z-1);
+			temp = new ChunkPos(pos.x+1, pos.z-1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == Chunk.chunkWidth-1 && z == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x+1, pos.z+1);
+			temp = new ChunkPos(pos.x+1, pos.z+1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == 0 && z == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x-1, pos.z+1);
+			temp = new ChunkPos(pos.x-1, pos.z+1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}

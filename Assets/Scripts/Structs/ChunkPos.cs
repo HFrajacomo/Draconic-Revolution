@@ -3,28 +3,42 @@ using UnityEngine;
 public struct ChunkPos{
 	public int x;
 	public int z;
+	public byte y;
 
-	public ChunkPos(int a, int b){
+	public ChunkPos(int a, int b, ChunkDepthID y){
 		this.x = a;
 		this.z = b;
+		this.y = (byte)y;
+	}
+
+	public ChunkPos(int a, int b, byte y){
+		this.x = a;
+		this.z = b;
+		this.y = y;
+	}
+
+	public ChunkPos(int a, int b, int y){
+		this.x = a;
+		this.z = b;
+		this.y = (byte)y;
 	}
 
 	public int DistanceFrom(ChunkPos otherPos){
-		return Mathf.Abs(otherPos.x - this.x) + Mathf.Abs(otherPos.z - this.z);
+		return Mathf.Abs(otherPos.x - this.x) + Mathf.Abs(otherPos.z - this.z) + Mathf.Abs(otherPos.y - this.y);
 	}
 
 	public override string ToString(){
-		return "(" + this.x + ", " + this.z + ")";
+		return "(" + this.x + ", " + this.z + "[" + (ChunkDepthID)this.y + "]" + ")";
 	}
 
 	public static bool operator==(ChunkPos a, ChunkPos b){
-		if(a.x == b.x && a.z == b.z)
+		if(a.x == b.x && a.z == b.z && a.y == b.y)
 			return true;
 		return false;
 	}
 
 	public static bool operator!=(ChunkPos a, ChunkPos b){
-		if(a.x == b.x && a.z == b.z)
+		if(a.x == b.x && a.z == b.z && a.y == b.y)
 			return false;
 		return true;
 	}
@@ -84,6 +98,6 @@ public struct ChunkPos{
 
 
 	public static ChunkPos operator-(ChunkPos a, ChunkPos b){
-		return new ChunkPos(a.x - b.x, a.z - b.z);
+		return new ChunkPos(a.x - b.x, a.z - b.z, a.y);
 	}
 }
