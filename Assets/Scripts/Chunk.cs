@@ -43,6 +43,16 @@ public class Chunk
 	public bool xmzp = false;
 	public bool xpzp = false;
 
+	// Bud Flags
+	public bool xpBUD = false;
+	public bool xmBUD = false;
+	public bool zpBUD = false;
+	public bool zmBUD = false;
+	public bool xpzmBUD = false;
+	public bool xpzpBUD = false;
+	public bool xmzmBUD = false;
+	public bool xmzpBUD = false;
+
 	/*
 		Unity Settings
 	*/
@@ -304,7 +314,6 @@ public class Chunk
 			return false;
 
 		int3[] coordArray;
-		int3[] budArray;
 
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative(this.data.GetData());
 		NativeArray<ushort> hpdata = NativeTools.CopyToNative(this.metadata.GetHPData());
@@ -390,7 +399,7 @@ public class Chunk
 
 		// X- Analysis
 		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z, this.pos.y);
-		if(loader.chunks.ContainsKey(targetChunk)){
+		if(loader.chunks.ContainsKey(targetChunk) && !xmDraw){
 			xmDraw = true;
 			changed = true;
 
@@ -473,7 +482,8 @@ public class Chunk
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
 
-			if(loadBUD){
+			if(loadBUD && !xmBUD){
+				xmBUD = true;
 				foreach(int3 coord in coordArray){
 					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 				}			
@@ -488,7 +498,7 @@ public class Chunk
 
 		// X+ Analysis
 		targetChunk = new ChunkPos(this.pos.x+1, this.pos.z, this.pos.y); 
-		if(loader.chunks.ContainsKey(targetChunk)){
+		if(loader.chunks.ContainsKey(targetChunk) && !xpDraw){
 			xpDraw = true;
 			changed = true;
 
@@ -571,7 +581,8 @@ public class Chunk
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
 
-			if(loadBUD){
+			if(loadBUD && !xpBUD){
+				xpBUD = true;
 				foreach(int3 coord in coordArray){
 					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 				}
@@ -586,7 +597,7 @@ public class Chunk
 
 		// Z- Analysis
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1, this.pos.y); 
-		if(loader.chunks.ContainsKey(targetChunk)){
+		if(loader.chunks.ContainsKey(targetChunk) && !zmDraw){
 			zmDraw = true;
 			changed = true;
 
@@ -668,7 +679,8 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD){
+			if(loadBUD && !zmBUD){
+				zmBUD = true;
 				foreach(int3 coord in coordArray){
 					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 				}
@@ -682,7 +694,7 @@ public class Chunk
 
 		// Z+ Analysis
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1, this.pos.y); 
-		if(loader.chunks.ContainsKey(targetChunk)){
+		if(loader.chunks.ContainsKey(targetChunk) && !zpDraw){
 			zpDraw = true;
 			changed = true;
 
@@ -764,7 +776,8 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD){
+			if(loadBUD && !zpBUD){
+				zpBUD = true;
 				foreach(int3 coord in coordArray){
 					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 				}
@@ -777,7 +790,7 @@ public class Chunk
 		}
 
 		// XPZM Corner
-		if(loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[4])){
+		if(loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[4]) && !xpzm){
 			xpzm = true;
 			changed = true;
 
@@ -848,7 +861,8 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD){
+			if(loadBUD && !xpzmBUD){
+				xpzmBUD = true;
 				foreach(int3 coord in coordArray){
 					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 				}
@@ -861,7 +875,7 @@ public class Chunk
 		}
 
 		// XMZM Corner
-		if(loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[5])){
+		if(loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[5]) && !xmzm){
 			xmzm = true;
 			changed = true;
 
@@ -932,7 +946,8 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD){
+			if(loadBUD && !xmzmBUD){
+				xmzmBUD = true;
 				foreach(int3 coord in coordArray){
 					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 				}
@@ -945,7 +960,7 @@ public class Chunk
 		}
 
 		// XMZP Corner
-		if(loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[6])){
+		if(loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[6]) && !xmzp){
 			xmzp = true;
 			changed = true;
 
@@ -1016,7 +1031,8 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD){
+			if(loadBUD && !xmzpBUD){
+				xmzpBUD = true;
 				foreach(int3 coord in coordArray){
 					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 				}
@@ -1029,7 +1045,7 @@ public class Chunk
 		}
 
 		// XPZP Corner
-		if(loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[7])){
+		if(loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[7]) && !xpzp){
 			xpzp = true;
 			changed = true;
 
@@ -1100,7 +1116,8 @@ public class Chunk
 			coordArray = toLoadEvent.AsArray().ToArray();
 			this.message = new NetMessage(NetCode.BATCHLOADBUD);
 			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD){
+			if(loadBUD && !xpzpBUD){
+				xpzpBUD = true;
 				foreach(int3 coord in coordArray){
 					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 				}
@@ -1110,24 +1127,6 @@ public class Chunk
 		}
 		else{
 			doneRendering = false;
-		}
-
-
-		// ========= After Burst operations ===========
-
-		this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-
-		// Runs BUD in neighbor chunks
-		if(loadBUD){
-			budArray = toBUD.AsArray().ToArray();
-			this.message = new NetMessage(NetCode.BATCHLOADBUD);
-			this.message.BatchLoadBUD(this.pos);
-
-			foreach(int3 bu in budArray){
-				this.message.AddBatchLoad(bu.x, bu.y, bu.z, 0, 0, 0, ushort.MaxValue);
-			}
-
-			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 		}
 		
 		// If mesh was redrawn
