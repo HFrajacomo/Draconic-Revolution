@@ -76,6 +76,7 @@ public class PlayerPositionHandler : MonoBehaviour
 
         CalculateDistances();
         SetReverbSpecs();
+        SetChunkLoaderChunkPos();
     }
 
     public void SetAudioManager(AudioManager manager){this.audioManager = manager;}
@@ -86,6 +87,11 @@ public class PlayerPositionHandler : MonoBehaviour
     public void SetRaycastDistances(){
         maxDistanceCardinal = Chunk.chunkWidth*World.renderDistance;
         maxDistanceDiagonal = Mathf.Sqrt(2*(Chunk.chunkWidth*Chunk.chunkWidth));
+    }
+
+    // Keeps ChunkLoader updated with the current ChunkPos
+    public void SetChunkLoaderChunkPos(){
+        this.cl.currentChunk = this.coord.GetChunkPos();
     }
 
     private void RenewPositionalInformation(){

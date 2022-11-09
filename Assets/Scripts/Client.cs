@@ -228,6 +228,9 @@ public class Client
 
 	// Sends a byte[] to the server
 	public bool Send(byte[] data, int length){
+		if(data[0] == (byte)NetCode.BATCHLOADBUD)
+			Debug.Log(NetDecoder.ReadChunkPos(data, 1));
+
 		try{
 			this.socket.Send(this.LengthPacket(length), 4, SocketFlags.None);
 			this.socket.Send(data, length, SocketFlags.None);
@@ -354,9 +357,6 @@ public class Client
 	private void SendChunk(byte[] data){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 
-		if(pos.y != 3)
-			Debug.Log(pos);
-		
 		this.cl.toLoad.Add(data);
 		this.cl.toLoadChunk.Add(pos);
 	}

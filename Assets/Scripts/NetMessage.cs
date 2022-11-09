@@ -300,7 +300,7 @@ public struct NetMessage
 
 	// Clients sends list of blocks that require a LOAD BUD operation
 	public void BatchLoadBUD(ChunkPos pos){
-		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 10);
+		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
 		this.size = 10;	
 	}
 

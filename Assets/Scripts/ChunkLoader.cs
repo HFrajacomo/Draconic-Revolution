@@ -149,7 +149,7 @@ public class ChunkLoader : MonoBehaviour
 
             this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
 
-            this.cachePos = new ChunkPos((int)(playerX/Chunk.chunkWidth), (int)(playerZ/Chunk.chunkWidth), (int)(playerY/Chunk.chunkDepth));
+            this.currentChunk = new ChunkPos((int)(playerX/Chunk.chunkWidth), (int)(playerZ/Chunk.chunkWidth), (int)(playerY/Chunk.chunkDepth));
 
             this.audioManager.SetPlayerPositionInVoice3DTrack(this.player);
             this.playerAudioListener.enabled = true;
@@ -172,6 +172,7 @@ public class ChunkLoader : MonoBehaviour
                 this.playerEvents.SetPlayerObject(playerCharacter);
                 this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
                 this.client.SetPlayerEvents(this.playerEvents);
+                this.playerPositionHandler.SetChunkLoaderChunkPos();
         	}
 
             MoveEntities();
