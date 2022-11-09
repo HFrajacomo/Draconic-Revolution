@@ -4085,7 +4085,7 @@ public struct BuildDecalJob : IJob{
 	}
 
 	public void BuildDecal(int x, int y, int z, int dir, int decal){
-		FaceVertices(cacheCubeVerts, dir, 0.5f, GetDecalPosition(x, y, z, dir));
+		FaceVertices(cacheCubeVerts, dir, 0.5f, GetDecalPosition(x, y+(this.pos.y*Chunk.chunkDepth), z, dir));
 		verts.AddRange(cacheCubeVerts);
 		int vCount = verts.Length;
 
@@ -4333,7 +4333,7 @@ public struct BuildDecalSideJob : IJob{
 	}
 
 	public void BuildDecal(int x, int y, int z, int dir, int decal){
-		FaceVertices(cacheCubeVerts, dir, 0.5f, GetDecalPosition(x, y, z, dir));
+		FaceVertices(cacheCubeVerts, dir, 0.5f, GetDecalPosition(x, y+(this.pos.y*Chunk.chunkDepth), z, dir));
 		verts.AddRange(cacheCubeVerts);
 		int vCount = verts.Length;
 

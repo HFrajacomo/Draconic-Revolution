@@ -48,7 +48,7 @@ public class Server
 	public ChunkLoader_Server cl;
 
 	// Cache
-	private byte[] cacheBreakData = new byte[37];
+	private byte[] cacheBreakData = new byte[38];
 
 	public Server(ChunkLoader_Server cl){
     	ParseArguments();
@@ -565,26 +565,26 @@ public class Server
 		NetMessage message;
 
 		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 9);
-		y = NetDecoder.ReadInt(data, 13);
-		z = NetDecoder.ReadInt(data, 17);
-		facing = NetDecoder.ReadInt(data, 21);
-		blockCode = NetDecoder.ReadUshort(data, 25);
+		x = NetDecoder.ReadInt(data, 10);
+		y = NetDecoder.ReadInt(data, 14);
+		z = NetDecoder.ReadInt(data, 18);
+		facing = NetDecoder.ReadInt(data, 22);
+		blockCode = NetDecoder.ReadUshort(data, 26);
 		state = 0;
 		hp = 0;
 
 
 		if(comesFromMessage){
-			state = NetDecoder.ReadUshort(data, 27);
-			hp = NetDecoder.ReadUshort(data, 29);
-			type = (BUDCode)NetDecoder.ReadInt(data, 31);
+			state = NetDecoder.ReadUshort(data, 28);
+			hp = NetDecoder.ReadUshort(data, 30);
+			type = (BUDCode)NetDecoder.ReadInt(data, 32);
 		}
 		else{
-			type = (BUDCode)NetDecoder.ReadInt(data, 27);
+			type = (BUDCode)NetDecoder.ReadInt(data, 28);
 		}
 
-		slot = data[35];
-		newQuantity = data[36];
+		slot = data[36];
+		newQuantity = data[37];
 
 		CastCoord lastCoord = new CastCoord(pos, x, y, z);
 
@@ -852,10 +852,10 @@ public class Server
 		this.cl.TestInventoryReceive(id);
 
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
-		int x = NetDecoder.ReadInt(data, 9);
-		int y = NetDecoder.ReadInt(data, 13);
-		int z = NetDecoder.ReadInt(data, 17);
-		int facing = NetDecoder.ReadInt(data, 21);
+		int x = NetDecoder.ReadInt(data, 10);
+		int y = NetDecoder.ReadInt(data, 14);
+		int z = NetDecoder.ReadInt(data, 18);
+		int facing = NetDecoder.ReadInt(data, 22);
 		int callback;
 
 		CastCoord current = new CastCoord(pos, x, y, z);
@@ -879,7 +879,7 @@ public class Server
 	// Receives the client's current chunk and finds the connections it has with other players
 	private void ClientChunk(byte[] data, ulong id){
 		ChunkPos lastPos = NetDecoder.ReadChunkPos(data, 1);
-		ChunkPos newPos = NetDecoder.ReadChunkPos(data, 9);
+		ChunkPos newPos = NetDecoder.ReadChunkPos(data, 10);
 
 		// Removes last ChunkPos if exists
 		if(lastPos != newPos){
@@ -1023,10 +1023,10 @@ public class Server
 		NetMessage message;
 
 		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 9);
-		y = NetDecoder.ReadInt(data, 13);
-		z = NetDecoder.ReadInt(data, 17);
-		blockDamage = NetDecoder.ReadUshort(data, 21);
+		x = NetDecoder.ReadInt(data, 10);
+		y = NetDecoder.ReadInt(data, 14);
+		z = NetDecoder.ReadInt(data, 18);
+		blockDamage = NetDecoder.ReadUshort(data, 22);
 
 		if(this.cl.chunks.ContainsKey(pos)){
 			c = this.cl.chunks[pos];
@@ -1063,14 +1063,14 @@ public class Server
 			if(currentHP <= 0){
 				this.cacheBreakData[0] = 0;
 				NetDecoder.WriteChunkPos(pos, this.cacheBreakData, 1);
-				NetDecoder.WriteInt(x, this.cacheBreakData, 9);
-				NetDecoder.WriteInt(y, this.cacheBreakData, 13);
-				NetDecoder.WriteInt(z, this.cacheBreakData, 17);
-				NetDecoder.WriteInt(0, this.cacheBreakData, 21);
-				NetDecoder.WriteUshort(block, this.cacheBreakData, 25);
-				NetDecoder.WriteInt((int)BUDCode.BREAK, this.cacheBreakData, 27);
-				this.cacheBreakData[35] = 0;
+				NetDecoder.WriteInt(x, this.cacheBreakData, 10);
+				NetDecoder.WriteInt(y, this.cacheBreakData, 14);
+				NetDecoder.WriteInt(z, this.cacheBreakData, 18);
+				NetDecoder.WriteInt(0, this.cacheBreakData, 22);
+				NetDecoder.WriteUshort(block, this.cacheBreakData, 26);
+				NetDecoder.WriteInt((int)BUDCode.BREAK, this.cacheBreakData, 28);
 				this.cacheBreakData[36] = 0;
+				this.cacheBreakData[37] = 0;
 
 				this.DirectBlockUpdate(this.cacheBreakData, id, comesFromMessage:false);
 			}
