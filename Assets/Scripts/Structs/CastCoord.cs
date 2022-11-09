@@ -75,7 +75,7 @@ public struct CastCoord{
 	    chunkY = Mathf.FloorToInt(nMark.y/Chunk.chunkDepth);
 
 	    if(chunkY >= 0)
-	      blockY = Mathf.FloorToInt(nMark.y%Chunk.chunkWidth);
+	      blockY = Mathf.FloorToInt(nMark.y%Chunk.chunkDepth);
 	    else
 	      blockY = Mathf.CeilToInt(((Chunk.chunkDepth*-chunkY)+nMark.y)%Chunk.chunkDepth);
 
@@ -116,12 +116,12 @@ public struct CastCoord{
 	    else
 	      y = (int)(y - 0.5f);
 
-	    chunkY = Mathf.FloorToInt(y/Chunk.chunkWidth);
+	    chunkY = Mathf.FloorToInt(y/Chunk.chunkDepth);
 
 	    if(chunkY >= 0)
-	      blockY = Mathf.FloorToInt(y%Chunk.chunkWidth);
+	      blockY = Mathf.FloorToInt(y%Chunk.chunkDepth);
 	    else
-	      blockY = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkY)+y)%Chunk.chunkWidth);
+	      blockY = Mathf.CeilToInt(((Chunk.chunkDepth*-chunkY)+y)%Chunk.chunkDepth);
 
 	 	active = true;
 	}
@@ -155,7 +155,7 @@ public struct CastCoord{
 
 	// Adds and returns a rebuilt CastCoord
 	public CastCoord Add(int x, int y, int z){
-	  return new CastCoord(new Vector3(Chunk.chunkWidth*chunkX+blockX+x, blockY+y, Chunk.chunkWidth*chunkZ+blockZ+z));
+	  return new CastCoord(new Vector3(Chunk.chunkWidth*chunkX+blockX+x, Chunk.chunkDepth*chunkY+blockY+y, Chunk.chunkWidth*chunkZ+blockZ+z));
 	}
 
 	public override string ToString(){
