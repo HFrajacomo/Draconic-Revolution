@@ -309,6 +309,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			int xCount = 0;
 			int zCount = 0;
+			int yCount = 0;
 
 			if(blockBased){
 				finalPos = current.Copy();
@@ -321,77 +322,98 @@ public class PlayerRaycast : MonoBehaviour
 
 			xCount = finalPos.chunkX - prefabPos.chunkX;
 			zCount = finalPos.chunkZ - prefabPos.chunkZ;
+			yCount = finalPos.chunkY - prefabPos.chunkY;
 
 
 			int x,y,z;
-			int xEnd, zEnd;
+			int xEnd, zEnd, yEnd;
 
-			for(y=prefabPos.blockY; y < finalPos.blockY; y++){
-				for(int xChunk=0; xChunk <= xCount; xChunk++){
+			for(int yChunk=0; yChunk <= yCount; yChunk++){
+				// Y Spec
+				if(yChunk == 0 && yChunk == yCount){
+					y = prefabPos.blockY;
+					yEnd = finalPos.blockY;
+				}
+				else if(yChunk == 0 && yChunk != yCount){
+					y = prefabPos.blockY;
+					yEnd = Chunk.chunkDepth;
+				}
+				else if(yChunk != yCount){
+					y = 0;
+					yEnd = finalPos.blockY;
+				}
+				else{
+					y = 0;
+					yEnd = finalPos.blockY;
+				}
 
-					// X Spec
-					if(xChunk == 0 && xChunk == xCount){
-						x = prefabPos.blockX;
-						xEnd = finalPos.blockX;
-					}
-					else if(xChunk == 0 && xChunk != xCount){
-						x = prefabPos.blockX;
-						xEnd = Chunk.chunkWidth;
-					}
-					else if(xChunk != xCount){
-						x = 0;
-						xEnd = Chunk.chunkWidth;
-					}
-					else{
-						x = 0;
-						xEnd = finalPos.blockX;
-					}
+				for(; y < yEnd; y++){
+					for(int xChunk=0; xChunk <= xCount; xChunk++){
 
-					for(; x < xEnd; x++){
-						for(int zChunk=0; zChunk <= zCount; zChunk++){
-							newPos = new ChunkPos(prefabPos.chunkX + xChunk, prefabPos.chunkZ + zChunk, 3);
+						// X Spec
+						if(xChunk == 0 && xChunk == xCount){
+							x = prefabPos.blockX;
+							xEnd = finalPos.blockX;
+						}
+						else if(xChunk == 0 && xChunk != xCount){
+							x = prefabPos.blockX;
+							xEnd = Chunk.chunkWidth;
+						}
+						else if(xChunk != xCount){
+							x = 0;
+							xEnd = Chunk.chunkWidth;
+						}
+						else{
+							x = 0;
+							xEnd = finalPos.blockX;
+						}
 
-							// Z Spec
-							if(zChunk == 0 && zChunk == zCount){
-								z = prefabPos.blockZ;
-								zEnd = finalPos.blockZ;
-							}
-							else if(zChunk == 0 && zChunk != zCount){
-								z = prefabPos.blockZ;
-								zEnd = Chunk.chunkWidth;
-							}
-							else if(zChunk != zCount){
-								z = 0;
-								zEnd = Chunk.chunkWidth;
-							}
-							else{
-								z = 0;
-								zEnd = finalPos.blockZ;
-							}
+						for(; x < xEnd; x++){
+							for(int zChunk=0; zChunk <= zCount; zChunk++){
+								newPos = new ChunkPos(prefabPos.chunkX + xChunk, prefabPos.chunkZ + zChunk, 3);
 
-							for(; z < zEnd; z++){
-								sbBlock.Append(loader.chunks[newPos].data.GetCell(x,y,z).ToString());
-								sbBlock.Append(",");
-
-								if(loader.chunks[newPos].metadata.IsUnassigned(x,y,z)){
-									sbHp.Append("0,");
-									sbState.Append("0,");
+								// Z Spec
+								if(zChunk == 0 && zChunk == zCount){
+									z = prefabPos.blockZ;
+									zEnd = finalPos.blockZ;
+								}
+								else if(zChunk == 0 && zChunk != zCount){
+									z = prefabPos.blockZ;
+									zEnd = Chunk.chunkWidth;
+								}
+								else if(zChunk != zCount){
+									z = 0;
+									zEnd = Chunk.chunkWidth;
 								}
 								else{
-									if(loader.chunks[newPos].metadata.IsHPNull(x,y,z)){
-										sbHp.Append("0,");
-									}
-									else{
-										sbHp.Append(loader.chunks[newPos].metadata.GetHP(x,y,z));
-										sbHp.Append(",");
-									}
+									z = 0;
+									zEnd = finalPos.blockZ;
+								}
 
-									if(loader.chunks[newPos].metadata.IsStateNull(x,y,z)){
+								for(; z < zEnd; z++){
+									sbBlock.Append(loader.chunks[newPos].data.GetCell(x,y,z).ToString());
+									sbBlock.Append(",");
+
+									if(loader.chunks[newPos].metadata.IsUnassigned(x,y,z)){
+										sbHp.Append("0,");
 										sbState.Append("0,");
 									}
 									else{
-										sbState.Append(loader.chunks[newPos].metadata.GetState(x,y,z));
-										sbState.Append(",");
+										if(loader.chunks[newPos].metadata.IsHPNull(x,y,z)){
+											sbHp.Append("0,");
+										}
+										else{
+											sbHp.Append(loader.chunks[newPos].metadata.GetHP(x,y,z));
+											sbHp.Append(",");
+										}
+
+										if(loader.chunks[newPos].metadata.IsStateNull(x,y,z)){
+											sbState.Append("0,");
+										}
+										else{
+											sbState.Append(loader.chunks[newPos].metadata.GetState(x,y,z));
+											sbState.Append(",");
+										}
 									}
 								}
 							}
