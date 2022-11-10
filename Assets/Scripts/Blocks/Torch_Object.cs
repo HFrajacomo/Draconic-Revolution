@@ -123,7 +123,7 @@ public class Torch_Object : BlocklikeObject
 			shadowDirection = Quaternion.Euler(0, 0, 0);
 		}
 
-		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, shadowDirection);
+		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f + pos.y*Chunk.chunkDepth, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, shadowDirection);
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
 
 		this.vfx.Add(pos, fire, active:true, isOnDemandLight:true);

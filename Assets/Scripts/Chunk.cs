@@ -2118,7 +2118,7 @@ public struct BuildChunkJob : IJob{
 
     	// If object is an Asset
     	else{
-			loadAssetList.Add(new int3(x,y+(Chunk.chunkDepth*pos.y),z));
+			loadAssetList.Add(new int3(x,y,z));
     		return false;
     	}
     }
@@ -2473,7 +2473,7 @@ public struct PrepareAssetsJob : IJob{
 				int state = metadata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
 
 				// Normal Vertices
-				Vector3 vertPos = new Vector3(coords[j].x, coords[j].y, coords[j].z);
+				Vector3 vertPos = new Vector3(coords[j].x, coords[j].y+(this.pos.y*Chunk.chunkDepth), coords[j].z);
 				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
 					Vector3 resultVert = Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
 					meshVerts.Add(resultVert);
@@ -2492,7 +2492,7 @@ public struct PrepareAssetsJob : IJob{
 			// If doesn't have special rotation
 			else{
 				// Normal Vertices
-				Vector3 vertPos = new Vector3(coords[j].x, coords[j].y, coords[j].z);
+				Vector3 vertPos = new Vector3(coords[j].x, coords[j].y+(this.pos.y*Chunk.chunkDepth), coords[j].z);
 				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
 					Vector3 resultVert = Vector3Mult(loadedVerts[vertIndex], scaling[i], vertPos);
 					meshVerts.Add(resultVert);
