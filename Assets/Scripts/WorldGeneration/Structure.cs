@@ -171,15 +171,20 @@ public abstract class Structure
         int maxXChunk;
         int minZChunk;
         int maxZChunk;
+        int minYChunk;
+        int maxYChunk;
         int xRemainder;
         int zRemainder;
-        int initStructX, initStructZ;
+        int yRemainder;
+        int initStructX, initStructZ, initStructY;
 
         int actualInitX = FindCoordPosition(x - this.offsetX);
         int actualInitZ = FindCoordPosition(z - this.offsetZ);
+        int actualInitY = y;
 
         int mainChunkInitX = FindMainCoordPosition(x);
         int mainChunkInitZ = FindMainCoordPosition(z, isX:false);
+        int mainChunkInitY = y;
 
         // Chunk Limits
         if(x - this.offsetX < 0)
@@ -192,8 +197,11 @@ public abstract class Structure
         else
             minZChunk = 0;
 
+        minYChunk = 0;
+
         maxXChunk = Mathf.FloorToInt((x + ((this.sizeX-1) - this.offsetX))/Chunk.chunkWidth);
         maxZChunk = Mathf.FloorToInt((z + ((this.sizeZ-1) - this.offsetZ))/Chunk.chunkWidth);
+        maxYChunk = Mathf.FloorToInt((y + (this.sizeY-1))/Chunk.chunkDepth);
 
         // Calculates Remainder
         if(minXChunk == maxXChunk)
@@ -212,6 +220,11 @@ public abstract class Structure
         else
             zRemainder = Chunk.chunkWidth - mainChunkInitZ;
 
+        if(minYChunk == maxYChunk)
+            yRemainder = this.sizeY;
+        else
+            yRemainder = Chunk.chunkDepth - mainChunkInitY;
+
         // Calculates initial StructX and StructZ
         if(minXChunk < 0)
             initStructX = this.offsetX - x;
@@ -223,6 +236,8 @@ public abstract class Structure
         else
             initStructZ = 0;
 
+        initStructY = 0;
+
         /*
         Debug.Log("MAIN CHUNK: " + pos + "\tStruct: " + this.code + "\n" + "SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tRemainders: " + xRemainder + ", " + zRemainder
          + "\tsPos: " + initStructX + ", " + initStructZ + "\tChunksUsedX: " + 
@@ -230,7 +245,7 @@ public abstract class Structure
             + "\tPivot: " + x + ", " + y + ", " + z);
         */
 
-        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, mainChunkInitX, y, mainChunkInitZ, xRemainder, zRemainder, initStructX, initStructZ, rotation:rotation, isPivoted:true);
+        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, mainChunkInitX, y, mainChunkInitZ, xRemainder, zRemainder, yRemainder, initStructX, initStructZ, initStructY, rotation:rotation, isPivoted:true);
 
         if(!retStatus)
             return false;
@@ -239,126 +254,152 @@ public abstract class Structure
         ChunkPos newPos; 
         int posX = 0;
         int posZ = 0;
+        int posY = 0;
         int sPosX=0;
         int sPosZ=0;
+        int sPosY=0;
 
         int numberOfXChunks = (maxXChunk - minXChunk) + 1;
         int numberOfZChunks = (maxZChunk - minZChunk) + 1;
+        int numberOfYChunks = (maxYChunk - minYChunk) + 1;
         int currentXChunk = 0;
         int currentZChunk = 0;
 
-        for(int zCount = minZChunk; zCount <= maxZChunk; zCount++){
-            for(int xCount = minXChunk; xCount <= maxXChunk; xCount++){
-                if(zCount == 0 && xCount == 0){
-                    currentXChunk++;
-                    continue;
-                }
+        for(int yCount = minYChunk; yCount <= maxYChunk; yCount++){
+            for(int zCount = minZChunk; zCount <= maxZChunk; zCount++){
+                for(int xCount = minXChunk; xCount <= maxXChunk; xCount++){
+                    if(zCount == 0 && xCount == 0 && yCount == 0){
+                        currentXChunk++;
+                        continue;
+                    }
 
-                newPos = new ChunkPos(pos.x+xCount, pos.z+zCount, 3);
+                    if(pos.y+yCount > Chunk.chunkMaxY)
+                        continue;
 
-                // Calculates Positions
-                posX = 0;
-                posZ = 0;
+                    newPos = new ChunkPos(pos.x+xCount, pos.z+zCount, pos.y+yCount);
 
-                if(xCount == minXChunk){
-                    posX = actualInitX;
-                }
-                if(zCount == minZChunk){
-                    posZ = actualInitZ;
-                }
-                if(xCount != minXChunk && zCount != minZChunk){
+                    // Calculates Positions
                     posX = 0;
                     posZ = 0;
-                }
+                    posY = 0;
 
-                // Calculate Remainders
-                if(minXChunk == maxXChunk)
-                    xRemainder = this.sizeX;
-                else if(xCount == maxXChunk){
-                    xRemainder = (this.sizeX - ((Chunk.chunkWidth - actualInitX) + (currentXChunk-1)*Chunk.chunkWidth));
-                }
-                else
-                    xRemainder = Chunk.chunkWidth - posX;
+                    if(xCount == minXChunk){
+                        posX = actualInitX;
+                    }
+                    if(zCount == minZChunk){
+                        posZ = actualInitZ;
+                    }
+                    if(xCount != minXChunk && zCount != minZChunk){
+                        posX = 0;
+                        posZ = 0;
+                    }
+
+                    if(yCount == 0)
+                        posY = y;
+                    else
+                        posY = 0;
+
+                    // Calculate Remainders
+                    if(minXChunk == maxXChunk)
+                        xRemainder = this.sizeX;
+                    else if(xCount == maxXChunk){
+                        xRemainder = (this.sizeX - ((Chunk.chunkWidth - actualInitX) + (currentXChunk-1)*Chunk.chunkWidth));
+                    }
+                    else
+                        xRemainder = Chunk.chunkWidth - posX;
 
 
-                if(minZChunk == maxZChunk){
-                    zRemainder = this.sizeZ;
-                }
-                else if(zCount == maxZChunk){
-                    zRemainder = (this.sizeZ - ((Chunk.chunkWidth - actualInitZ) + (currentZChunk-1)*Chunk.chunkWidth));
-                }
-                else{
-                    zRemainder = Chunk.chunkWidth - posZ;
-                }
+                    if(minZChunk == maxZChunk){
+                        zRemainder = this.sizeZ;
+                    }
+                    else if(zCount == maxZChunk){
+                        zRemainder = (this.sizeZ - ((Chunk.chunkWidth - actualInitZ) + (currentZChunk-1)*Chunk.chunkWidth));
+                    }
+                    else{
+                        zRemainder = Chunk.chunkWidth - posZ;
+                    }
 
-                // Struct Position
-                if(xCount == minXChunk){
-                    sPosX = 0;
-                }
-                else if(xCount < maxXChunk)
-                    sPosX = initStructX + ((currentXChunk-1) * Chunk.chunkWidth);
-                else if(xCount == maxXChunk){
-                    sPosX = this.sizeX - xRemainder;
-                }
 
-                if(zCount == minZChunk)
-                    sPosZ = 0;
-                else if(zCount < maxZChunk)
-                    sPosZ = initStructZ + ((currentZChunk-1) * Chunk.chunkWidth);
-                else if(zCount == maxZChunk)
-                    sPosZ = this.sizeZ - zRemainder;
-                
-                /*
-                Debug.Log("SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tRemainders: " + xRemainder + ", " + zRemainder + "\tsPos: " + sPosX + ", " + sPosZ + "\tChunksUsedX: " + 
-                    minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tCurrentChunk: " + xCount + ", " + zCount
-                    + "\tLogicalChunkCode: " + currentXChunk + ", " + currentZChunk + "\tRotation: " + rotation + "\tPos: " + posX + ", " + y + ", " + posZ);
-                */
+                    if(minYChunk == maxYChunk)
+                        yRemainder = this.sizeY;
+                    else
+                        yRemainder = Chunk.chunkDepth - posY;
 
-                // ACTUAL APPLY FUNCTIONS
-                // Checks if it's a loaded chunk
-                if(cl.chunks.ContainsKey(newPos)){
-                    ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation, isPivoted:true);
-                    AddChunk(cl.chunks[newPos]);
+
+                    // Struct Position
+                    if(xCount == minXChunk){
+                        sPosX = 0;
+                    }
+                    else if(xCount < maxXChunk)
+                        sPosX = initStructX + ((currentXChunk-1) * Chunk.chunkWidth);
+                    else if(xCount == maxXChunk){
+                        sPosX = this.sizeX - xRemainder;
+                    }
+
+                    if(zCount == minZChunk)
+                        sPosZ = 0;
+                    else if(zCount < maxZChunk)
+                        sPosZ = initStructZ + ((currentZChunk-1) * Chunk.chunkWidth);
+                    else if(zCount == maxZChunk)
+                        sPosZ = this.sizeZ - zRemainder;
+
+                    if(yCount == minYChunk)
+                        sPosY = 0;
+                    else
+                        sPosY = this.sizeY - yRemainder;
+                    
+                    /*
+                    Debug.Log("SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tRemainders: " + xRemainder + ", " + zRemainder + "\tsPos: " + sPosX + ", " + sPosZ + "\tChunksUsedX: " + 
+                        minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tCurrentChunk: " + xCount + ", " + zCount
+                        + "\tLogicalChunkCode: " + currentXChunk + ", " + currentZChunk + "\tRotation: " + rotation + "\tPos: " + posX + ", " + y + ", " + posZ);
+                    */
+
+                    // ACTUAL APPLY FUNCTIONS
+                    // Checks if it's a loaded chunk
+                    if(cl.chunks.ContainsKey(newPos)){
+                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);
+                        AddChunk(cl.chunks[newPos]);
+                        currentXChunk++;
+                        continue;
+                    }
+
+                    // CASE WHERE REGIONFILES NEED TO BE LOOKED UPON
+                    Chunk c;
+                    cl.regionHandler.GetCorrectRegion(newPos);
+
+                    // Check if it's an existing chunk
+                    if(cl.regionHandler.IsIndexed(newPos)){
+                        if(Structure.Exists(newPos)){
+                            c = Structure.GetChunk(newPos);
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);
+                        }
+                        else{
+                            c = new Chunk(newPos, server:true);
+                            cl.regionHandler.LoadChunk(c);
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);                
+                            AddChunk(c);
+                        }
+                    }
+                    // Check if it's an ungenerated chunk
+                    else{
+                        if(Structure.Exists(newPos)){
+                            c = Structure.GetChunk(newPos);
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);                        
+                        }
+                        else{
+                            c = new Chunk(newPos, server:true);
+                            c.biomeName = "Plains";
+                            c.needsGeneration = 1;
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);              
+                            AddChunk(c);
+                        }
+                    }
+
                     currentXChunk++;
-                    continue;
                 }
-
-                // CASE WHERE REGIONFILES NEED TO BE LOOKED UPON
-                Chunk c;
-                cl.regionHandler.GetCorrectRegion(newPos);
-
-                // Check if it's an existing chunk
-                if(cl.regionHandler.IsIndexed(newPos)){
-                    if(Structure.Exists(newPos)){
-                        c = Structure.GetChunk(newPos);
-                        ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation, isPivoted:true);
-                    }
-                    else{
-                        c = new Chunk(newPos, server:true);
-                        cl.regionHandler.LoadChunk(c);
-                        ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation, isPivoted:true);                
-                        AddChunk(c);
-                    }
-                }
-                // Check if it's an ungenerated chunk
-                else{
-                    if(Structure.Exists(newPos)){
-                        c = Structure.GetChunk(newPos);
-                        ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation, isPivoted:true);                        
-                    }
-                    else{
-                        c = new Chunk(newPos, server:true);
-                        c.biomeName = "Plains";
-                        c.needsGeneration = 1;
-                        ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation, isPivoted:true);              
-                        AddChunk(c);
-                    }
-                }
-
-                currentXChunk++;
+                currentXChunk = 0;
+                currentZChunk++;
             }
-            currentXChunk = 0;
-            currentZChunk++;
         }
 
         return true;
@@ -373,8 +414,9 @@ public abstract class Structure
         bool retStatus;
         int xChunks = Mathf.FloorToInt((x + this.sizeX - 1)/Chunk.chunkWidth);
         int zChunks = Mathf.FloorToInt((z + this.sizeZ - 1)/Chunk.chunkWidth);
+        int yChunks = Mathf.FloorToInt((y + this.sizeY - 1)/Chunk.chunkDepth);
 
-        int xRemainder, zRemainder;
+        int xRemainder, zRemainder, yRemainder;
 
         // Calculates Remainder
         if(xChunks > 0)
@@ -387,8 +429,13 @@ public abstract class Structure
         else
             zRemainder = this.sizeZ;
 
+        if(yChunks > 0)
+            yRemainder = Chunk.chunkDepth - y;
+        else
+            yRemainder = this.sizeY;
+
         // Applies Structure to origin chunk
-        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, x, y, z, xRemainder, zRemainder, 0, 0);
+        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, x, y, z, xRemainder, zRemainder, yRemainder, 0, 0, 0);
 
         // Possible failed return if in FreeSpace mode
         if(!retStatus){
@@ -399,107 +446,137 @@ public abstract class Structure
         ChunkPos newPos; 
         int posX = 0;
         int posZ = 0;
+        int posY = 0;
         int sPosX=0;
         int sPosZ=0;
+        int sPosY=0;
 
-        for(int zCount=0; zCount <= zChunks; zCount++){
-            for(int xCount=0; xCount <= xChunks; xCount++){
+        for(int yCount=0; yCount <= yChunks; yCount++){
+            for(int zCount=0; zCount <= zChunks; zCount++){
+                for(int xCount=0; xCount <= xChunks; xCount++){
 
-                // Skips the origin chunk
-                if(zCount == 0 && xCount == 0){
-                    continue;
-                }
+                    // Skips the origin chunk
+                    if(zCount == 0 && xCount == 0 && yCount == 0){
+                        continue;
+                    }
 
-                newPos = new ChunkPos(pos.x+xCount, pos.z+zCount, 3);
+                    // Skips chunks above limit
+                    if(pos.y + yCount > Chunk.chunkMaxY)
+                        continue;
 
-                // Calculates Positions
-                if(xCount == 0){
-                    posX = x;
-                    posZ = 0;
-                }
-                if(zCount == 0){
-                    posX = 0;
-                    posZ = z;
-                }
-                if(xCount != 0 && zCount != 0){
-                    posX = 0;
-                    posZ = 0;
-                }
+                    newPos = new ChunkPos(pos.x+xCount, pos.z+zCount, pos.y+yCount);
 
-                // Calculate Remainders
-                if(xChunks == 0){
-                    xRemainder = this.sizeX;
-                }
-                else if(xCount == xChunks){
-                    xRemainder = (this.sizeX - ((Chunk.chunkWidth - x) + (xCount-1)*Chunk.chunkWidth));
-                }
-                else{
-                    xRemainder = (Chunk.chunkWidth - posX);
-                }
+                    // Calculates Positions
+                    if(xCount == 0){
+                        posX = x;
+                        posZ = 0;
+                    }
+                    if(zCount == 0){
+                        posX = 0;
+                        posZ = z;
+                    }
+                    if(xCount != 0 && zCount != 0){
+                        posX = 0;
+                        posZ = 0;
+                    }
 
-                if(zChunks == 0){
-                    zRemainder = this.sizeZ;
-                }
-                else if(zCount == zChunks){
-                    zRemainder = (this.sizeZ - ((Chunk.chunkWidth - z) + (zCount-1)*Chunk.chunkWidth));
-                }
-                else{
-                    zRemainder = (Chunk.chunkWidth - posZ);
-                }
+                    if(yCount == 0)
+                        posY = y;
+                    else
+                        posY = 0;
 
-                // Struct Position
-                if(xCount == 0)
-                    sPosX = 0;
-                else if(xCount < xChunks)
-                    sPosX = (Chunk.chunkWidth - x) + ((xCount-1) * Chunk.chunkWidth);
-                else if(xCount == xChunks)
-                    sPosX = this.sizeX - xRemainder;
-
-                if(zCount == 0)
-                    sPosZ = 0;
-                else if(zCount < zChunks)
-                    sPosZ = (Chunk.chunkWidth - z) + ((zCount-1) * Chunk.chunkWidth);
-                else if(zCount == zChunks)
-                    sPosZ = this.sizeZ - zRemainder;
-
-
-                // ACTUAL APPLY FUNCTIONS
-                // Checks if it's a loaded chunk
-                if(cl.chunks.ContainsKey(newPos)){
-                    ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);
-                    AddChunk(cl.chunks[newPos]);
-                    continue;
-                }
-
-                // CASE WHERE REGIONFILES NEED TO BE LOOKED UPON
-                Chunk c;
-                cl.regionHandler.GetCorrectRegion(newPos);
-
-                // Check if it's an existing chunk
-                if(cl.regionHandler.IsIndexed(newPos)){
-                    if(Structure.Exists(newPos)){
-                        c = Structure.GetChunk(newPos);
-                        ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);
+                    // Calculate Remainders
+                    if(xChunks == 0){
+                        xRemainder = this.sizeX;
+                    }
+                    else if(xCount == xChunks){
+                        xRemainder = (this.sizeX - ((Chunk.chunkWidth - x) + (xCount-1)*Chunk.chunkWidth));
                     }
                     else{
-                        c = new Chunk(newPos, server:true);
-                        cl.regionHandler.LoadChunk(c);
-                        ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);                
-                        AddChunk(c);
+                        xRemainder = (Chunk.chunkWidth - posX);
                     }
-                }
-                // Check if it's an ungenerated chunk
-                else{
-                    if(Structure.Exists(newPos)){
-                        c = Structure.GetChunk(newPos);
-                        ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);                        
+
+                    if(zChunks == 0){
+                        zRemainder = this.sizeZ;
+                    }
+                    else if(zCount == zChunks){
+                        zRemainder = (this.sizeZ - ((Chunk.chunkWidth - z) + (zCount-1)*Chunk.chunkWidth));
                     }
                     else{
-                        c = new Chunk(newPos, server:true);
-                        c.biomeName = "Plains";
-                        c.needsGeneration = 1;
-                        ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, sPosX, sPosZ, rotation:rotation);              
-                        AddChunk(c);
+                        zRemainder = (Chunk.chunkWidth - posZ);
+                    }
+
+                    if(yChunks == 0){
+                        yRemainder = this.sizeY;
+                    }
+                    else if(yCount == yChunks){
+                        yRemainder = (this.sizeY - ((Chunk.chunkDepth - y) + (yCount-1)*Chunk.chunkDepth));
+                    }
+                    else{
+                        yRemainder = (Chunk.chunkDepth - posY);
+                    }
+
+                    // Struct Position
+                    if(xCount == 0)
+                        sPosX = 0;
+                    else if(xCount < xChunks)
+                        sPosX = (Chunk.chunkWidth - x) + ((xCount-1) * Chunk.chunkWidth);
+                    else if(xCount == xChunks)
+                        sPosX = this.sizeX - xRemainder;
+
+                    if(zCount == 0)
+                        sPosZ = 0;
+                    else if(zCount < zChunks)
+                        sPosZ = (Chunk.chunkWidth - z) + ((zCount-1) * Chunk.chunkWidth);
+                    else if(zCount == zChunks)
+                        sPosZ = this.sizeZ - zRemainder;
+
+                    if(yCount == 0)
+                        sPosY = 0;
+                    else if(yCount < yChunks)
+                        sPosY = (Chunk.chunkDepth - y) + ((yCount-1) * Chunk.chunkDepth);
+                    else if(yCount == yChunks)
+                        sPosY = this.sizeY - yRemainder;
+
+
+                    // ACTUAL APPLY FUNCTIONS
+                    // Checks if it's a loaded chunk
+                    if(cl.chunks.ContainsKey(newPos)){
+                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);
+                        AddChunk(cl.chunks[newPos]);
+                        continue;
+                    }
+
+                    // CASE WHERE REGIONFILES NEED TO BE LOOKED UPON
+                    Chunk c;
+                    cl.regionHandler.GetCorrectRegion(newPos);
+
+                    // Check if it's an existing chunk
+                    if(cl.regionHandler.IsIndexed(newPos)){
+                        if(Structure.Exists(newPos)){
+                            c = Structure.GetChunk(newPos);
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);
+                        }
+                        else{
+                            c = new Chunk(newPos, server:true);
+                            cl.regionHandler.LoadChunk(c);
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);                
+                            AddChunk(c);
+                        }
+                    }
+                    // Check if it's an ungenerated chunk
+                    else{
+                        if(Structure.Exists(newPos)){
+                            c = Structure.GetChunk(newPos);
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);                        
+                        }
+                        else{
+                            c = new Chunk(newPos, server:true);
+                            c.biomeName = "Plains";
+                            c.needsGeneration = 1;
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);              
+                            AddChunk(c);
+                        }
                     }
                 }
             }
@@ -510,19 +587,19 @@ public abstract class Structure
 
     // Applies this structure to a chunk
     // Receives a Chunk reference that will be changed in this function
-    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader_Server cl, ushort[] VD, ushort[] VMHP, ushort[] VMState, int posX, int posY, int posZ, int remainderX, int remainderZ, int structinitX, int structinitZ, int rotation=0, bool isPivoted=false){
+    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader_Server cl, ushort[] VD, ushort[] VMHP, ushort[] VMState, int posX, int posY, int posZ, int remainderX, int remainderZ, int remainderY, int structinitX, int structinitZ, int structinitY, int rotation=0, bool isPivoted=false){
 
         bool exists = exist;
 
         int structX = structinitX;
         int structZ = structinitZ;
-        int structY = 0;
+        int structY = structinitY;
 
         // Applies Free Space building rules to existing chunk
         if(this.type == FillType.FreeSpace && exists && initialchunk){
             if(!this.considerAir){
-                if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, isPivoted:isPivoted)){
-                    for(int y=posY; y < posY + this.sizeY; y++){
+                if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, isPivoted:isPivoted)){
+                    for(int y=posY; y < posY + remainderY; y++){
                         structX = structinitX;
                         for(int x=posX; x < posX + remainderX; x++){
                             structZ = structinitZ;
@@ -551,8 +628,8 @@ public abstract class Structure
                 }
             }
             else{
-                if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, isPivoted:isPivoted)){
-                    for(int y=posY; y < posY + this.sizeY; y++){
+                if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, isPivoted:isPivoted)){
+                    for(int y=posY; y < posY + remainderY; y++){
                         structX = structinitX;
                         for(int x=posX; x < posX + remainderX; x++){
                             structZ = structinitZ;
@@ -584,7 +661,7 @@ public abstract class Structure
             bool shouldDrawNeighbors = false;
 
             if(!this.considerAir){
-                for(int y=posY; y < posY + this.sizeY; y++){
+                for(int y=posY; y < posY + remainderY; y++){
                     structX = structinitX;
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
@@ -612,7 +689,7 @@ public abstract class Structure
                 return shouldDrawNeighbors;
             }
             else{
-                for(int y=posY; y < posY + this.sizeY; y++){
+                for(int y=posY; y < posY + remainderY; y++){
                     structX = structinitX;
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
@@ -642,7 +719,7 @@ public abstract class Structure
         else if(this.type == FillType.OverwriteAll || !exists || exists){
             // Handling if air is taken into account in generated chunks
             if(this.considerAir && exists){
-                for(int y=posY; y < posY + this.sizeY; y++){
+                for(int y=posY; y < posY + remainderY; y++){
                     structX = structinitX;
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
@@ -666,7 +743,7 @@ public abstract class Structure
             }
             // Handling if air is taken into account in blank chunks
             else if(this.considerAir && !exists){
-                for(int y=posY; y < posY + this.sizeY; y++){
+                for(int y=posY; y < posY + remainderY; y++){
                     structX = structinitX;
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
@@ -691,7 +768,7 @@ public abstract class Structure
             }
             // Handling if air is not taken into account in generated chunks
             else if(!this.considerAir && exists){
-                for(int y=posY; y < posY + this.sizeY; y++){
+                for(int y=posY; y < posY + remainderY; y++){
                     structX = structinitX;
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
@@ -712,7 +789,7 @@ public abstract class Structure
             }
             // Handles if air is not taken into account in new chunks
             else if(!this.considerAir && !exists){
-                for(int y=posY; y < posY + this.sizeY; y++){
+                for(int y=posY; y < posY + remainderY; y++){
                     structX = structinitX;
                     for(int x=posX; x < posX + remainderX; x++){
                         structZ = structinitZ;
@@ -739,21 +816,23 @@ public abstract class Structure
     } 
 
     // Checks for valid space in FreeSpace mode
-    private bool CheckFreeSpace(ushort[] data, int x, int y, int z, int rotation, int remainderX, int remainderZ, bool isPivoted=false){
-        int xRemainder, zRemainder;
+    private bool CheckFreeSpace(ushort[] data, int x, int y, int z, int rotation, int remainderX, int remainderZ, int remainderY, bool isPivoted=false){
+        int xRemainder, zRemainder, yRemainder;
 
         if(!isPivoted){
             xRemainder = Mathf.Min(Chunk.chunkWidth - x, this.sizeX);
             zRemainder = Mathf.Min(Chunk.chunkWidth - z, this.sizeZ);
+            yRemainder = Mathf.Min(Chunk.chunkDepth - y, this.sizeY);
         }
         else{
             xRemainder = Mathf.Min(Chunk.chunkWidth - x, remainderX);
             zRemainder = Mathf.Min(Chunk.chunkWidth - z, remainderZ);
+            yRemainder = Mathf.Min(Chunk.chunkDepth - y, remainderY);
         }
 
         // Case Struct considers it's air as a needed block
         if(this.considerAir){
-            for(int yCount = 0; yCount < this.sizeY; yCount++){
+            for(int yCount = 0; yCount < yRemainder; yCount++){
                 for(int xCount = 0; xCount < xRemainder; xCount++){
                     for(int zCount = 0; zCount < zRemainder; zCount++){
                         if(data[(x + xCount)*Chunk.chunkWidth*Chunk.chunkDepth+(y + yCount)*Chunk.chunkWidth+(z + zCount)] != 0)
@@ -765,7 +844,7 @@ public abstract class Structure
         }
         // Case Struct doesn't consider air as a needed block
         else{
-            for(int yCount = 0; yCount < this.sizeY; yCount++){
+            for(int yCount = 0; yCount < yRemainder; yCount++){
                 for(int xCount = 0; xCount < xRemainder; xCount++){
                     for(int zCount = 0; zCount < zRemainder; zCount++){
                         RotateData(xCount, yCount, zCount, rotation);
