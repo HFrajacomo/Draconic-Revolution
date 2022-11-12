@@ -27,7 +27,7 @@ public class PlayerRaycast : MonoBehaviour
 	private HashSet<CastCoord> alreadyVisited = new HashSet<CastCoord>();
 
 	// Decal Specifics Test
-	private ushort blockDamage = 400;
+	private ushort blockDamage = 65534;
 
 	// Prefab System
 	private bool prefabSetFlag = false;

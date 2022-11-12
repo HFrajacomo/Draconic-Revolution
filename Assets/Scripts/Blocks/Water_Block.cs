@@ -1116,6 +1116,8 @@ public class Water_Block : Blocks
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
 		if(myY-1 < 0)
 			return (ushort)(ushort.MaxValue/2);
+		if(!cl.chunks.ContainsKey(cord.GetChunkPos()))
+			return (ushort)(ushort.MaxValue/2);
 
 		return cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 	}
@@ -1127,6 +1129,8 @@ public class Water_Block : Blocks
 	private ushort GetStateBelow(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
 		if(myY-1 < 0)
+			return (ushort)(ushort.MaxValue/2);
+		if(!cl.chunks.ContainsKey(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
 
 		return cl.chunks[cord.GetChunkPos()].metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
@@ -1388,7 +1392,7 @@ public class Water_Block : Blocks
 
 		// Below
 		cachedCoord = new CastCoord(this.GetNeighborBlock(8, myX, myY, myZ));
-		if(cachedCoord.blockY >= 0){
+		if(cachedCoord.blockY >= 0 && cl.chunks.ContainsKey(cachedCoord.GetChunkPos())){
 			if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.waterCode){
 				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
