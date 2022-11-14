@@ -443,6 +443,12 @@ public class ChunkLoader_Server : MonoBehaviour
             else if(i == 5){
                 slots[i] = new ItemPlayerInventorySlot(ItemID.PINELEAFBLOCK, 50);
             }
+            else if(i == 6){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.WOODBLOCK, 50);
+            }
+            else if(i == 7){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.LEAFBLOCK, 50);
+            }
             else{
                 slots[i] = new EmptyPlayerInventorySlot();
             }

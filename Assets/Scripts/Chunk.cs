@@ -1919,11 +1919,12 @@ public struct BuildChunkJob : IJob{
 	private int GetNeighborLight(int x, int y, int z, int dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + VoxelData.offsets[dir];
 
-		if(coord.y >= Chunk.chunkDepth)
+		if(coord.y >= Chunk.chunkDepth || coord.y < 0)
 			return 15;
 
-		if(isNatural)
+		if(isNatural){
 			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+		}
 		else
 			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
 	}
@@ -1932,7 +1933,7 @@ public struct BuildChunkJob : IJob{
 	private int GetNeighborLight(int x, int y, int z, int3 dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + dir;
 
-		if(coord.y >= Chunk.chunkDepth)
+		if(coord.y >= Chunk.chunkDepth || coord.y < 0)
 			return 15;
 
 		if(isNatural)
@@ -3905,6 +3906,10 @@ public struct BuildBorderJob : IJob{
 			else
 				return currentLight;
 
+		// Temporary
+		if(neighborCoord.y < 0)
+			return 15;
+
 		if(isNatural)
 			return neighborlight[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z] & 0x0F;
 		else
@@ -3913,6 +3918,10 @@ public struct BuildBorderJob : IJob{
 
 	// Gets neighbor light level
 	private int GetOtherLight(int x, int y, int z, bool isNatural=true){
+		// Temporary
+		if(y < 0)
+			return 15;
+
 		if(isNatural)
 			return neighborlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 		else
@@ -3932,6 +3941,10 @@ public struct BuildBorderJob : IJob{
 		if(coord.z < 0)
 			coord.z += 16;
 
+		// Temporary
+		if(coord.y < 0)
+			return 15;
+
 		if(isNatural)
 			return neighborlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
 		else
@@ -3940,6 +3953,10 @@ public struct BuildBorderJob : IJob{
 
 	// Gets neighbor light level
 	private int GetOtherLight(int3 coord, bool isNatural=true){
+		// Temporary
+		if(coord.y < 0)
+			return 15;
+
 		if(isNatural)
 			return neighborlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
 		else

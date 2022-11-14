@@ -298,7 +298,7 @@ public class ChunkLoader : MonoBehaviour
     private void RequestChunk(){
     	if(requestPriorityQueue.GetSize() > 0){
             // DEBUG
-            while(requestPriorityQueue.GetSize() > 0 && requestPriorityQueue.Peek().y != 3)
+            while(requestPriorityQueue.GetSize() > 0 && !SkipNotImplemented(requestPriorityQueue.Peek()))
                 requestPriorityQueue.Pop();
             if(requestPriorityQueue.GetSize() == 0)
                 return;
@@ -382,6 +382,11 @@ public class ChunkLoader : MonoBehaviour
             }
 
             if(!chunks.ContainsKey(toUnload[0])){
+                toUnload.RemoveAt(0);
+                return;
+            }
+
+            if(!SkipNotImplemented(toUnload[0])){
                 toUnload.RemoveAt(0);
                 return;
             }
@@ -785,6 +790,9 @@ public class ChunkLoader : MonoBehaviour
             for(int z=-World.renderDistance; z < World.renderDistance; z++){
                 newChunk = new ChunkPos(this.currentChunk.x+x, this.currentChunk.z+z, this.currentChunk.y);
 
+                if(!SkipNotImplemented(newChunk))
+                    continue;
+
                 if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk) && !this.requestPriorityQueue.Contains(newChunk) && !this.toDraw.Contains(newChunk)){
                     this.message.RequestChunkLoad(newChunk);
                     client.Send(this.message.GetMessage(), this.message.size);
@@ -797,6 +805,11 @@ public class ChunkLoader : MonoBehaviour
                 }
             }
         }
+    }
+
+    // Returns false if chunk.y is not implemented yet
+    private bool SkipNotImplemented(ChunkPos pos){
+        return pos.y == 3;
     }
 
     // Goes through all Chunks and checks if they should've been deleted already
