@@ -63,10 +63,21 @@ public class BiomeHandler
 			9,
 			new List<StructureGroupID>(){StructureGroupID.ICE_FOREST_TREES, StructureGroupID.SURFACE_ORES});
 
-		Biome testCaverns = new Biome("Test Caverns", BiomeCode.TEST_CAVERNS, BiomeType.OCEAN, ChunkDepthID.UNDERGROUND,
+		Biome caverns = new Biome("Caverns", BiomeCode.CAVERNS, BiomeType.MID, ChunkDepthID.UNDERGROUND,
 			3,
 			new List<StructureGroupID>());
 
+		Biome basaltCaves = new Biome("Basalt Cave", BiomeCode.BASALT_CAVES, BiomeType.PEAK, ChunkDepthID.UNDERGROUND,
+			(ushort)BlockID.BASALT,
+			new List<StructureGroupID>());
+
+		Biome submergedCave = new Biome("Submerged Cave", BiomeCode.UNDERWATER_CAVES, BiomeType.OCEAN, ChunkDepthID.UNDERGROUND,
+			(ushort)BlockID.STONE,
+			new List<StructureGroupID>());
+
+		Biome iceCave = new Biome("Ice Cave", BiomeCode.ICE_CAVES, BiomeType.LOW, ChunkDepthID.UNDERGROUND,
+			(ushort)BlockID.SNOW,
+			new List<StructureGroupID>());
 
 		AddBiome(plains);
 		AddBiome(grassyHighlands);
@@ -77,7 +88,10 @@ public class BiomeHandler
 		AddBiome(snowyHighlands);
 		AddBiome(iceOcean);
 		AddBiome(snowyForest);
-		AddBiome(testCaverns);
+		AddBiome(caverns);
+		AddBiome(basaltCaves);
+		AddBiome(submergedCave);
+		AddBiome(iceCave);
 
 		this.biomeBlendingValue = new ushort[this.currentBiome];
 
@@ -242,5 +256,8 @@ public enum BiomeCode : byte{
 	SNOWY_HIGHLANDS,
 	ICE_OCEAN,
 	SNOWY_FOREST,
-	TEST_CAVERNS
+	CAVERNS,
+	BASALT_CAVES,
+	UNDERWATER_CAVES,
+	ICE_CAVES
 }
