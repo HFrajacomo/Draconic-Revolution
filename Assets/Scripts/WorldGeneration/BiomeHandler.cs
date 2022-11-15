@@ -12,54 +12,60 @@ public class BiomeHandler
 	public static Dictionary<byte, Biome> dataset = new Dictionary<byte, Biome>();
 	public static Dictionary<byte, string> codeToBiome = new Dictionary<byte, string>();
 	public ushort[] biomeBlendingValue;
-	private BiomeTable biomeTable;
+	private BiomeTable surfaceBiomeTable;
+	private BiomeTable undergroundBiomeTable;
 
 	private int currentBiome = 0;
 
 
 	public BiomeHandler(){
-		this.biomeTable = new BiomeTable();
+		this.surfaceBiomeTable = new BiomeTable(ChunkDepthID.SURFACE);
+		this.undergroundBiomeTable = new BiomeTable(ChunkDepthID.UNDERGROUND);
 
-		Biome plains = new Biome("Plains", BiomeCode.PLAINS, BiomeType.LOW,
-		 1, 
-		 new List<StructureGroupID>(){StructureGroupID.PLAINS_TREES, StructureGroupID.DIRT_PATCHES,
-		 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_LOW_DENSITY});
+		Biome plains = new Biome("Plains", BiomeCode.PLAINS, BiomeType.LOW, ChunkDepthID.SURFACE,
+			1, 
+			new List<StructureGroupID>(){StructureGroupID.PLAINS_TREES, StructureGroupID.DIRT_PATCHES,
+			 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_LOW_DENSITY});
 
-		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS, BiomeType.PEAK,
-		 3,
-		 new List<StructureGroupID>(){StructureGroupID.GRASS_HIGHLANDS_TREES, StructureGroupID.DIRT_PATCHES,
-		 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY});
+		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.SURFACE,
+			3,
+			new List<StructureGroupID>(){StructureGroupID.GRASS_HIGHLANDS_TREES, StructureGroupID.DIRT_PATCHES,
+			 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY});
 
-		Biome ocean = new Biome("Ocean", BiomeCode.OCEAN, BiomeType.OCEAN,
-		 8,
-		 new List<StructureGroupID>(){StructureGroupID.SURFACE_ORES});
+		Biome ocean = new Biome("Ocean", BiomeCode.OCEAN, BiomeType.OCEAN, ChunkDepthID.SURFACE,
+			8,
+			new List<StructureGroupID>(){StructureGroupID.SURFACE_ORES});
 
-		Biome forest = new Biome("Forest", BiomeCode.FOREST, BiomeType.MID,
-		 1,
-		 new List<StructureGroupID>(){StructureGroupID.FOREST_TREES, StructureGroupID.SURFACE_ORES});
+		Biome forest = new Biome("Forest", BiomeCode.FOREST, BiomeType.MID, ChunkDepthID.SURFACE,
+			1,
+			new List<StructureGroupID>(){StructureGroupID.FOREST_TREES, StructureGroupID.SURFACE_ORES});
 
-		Biome desert = new Biome("Desert", BiomeCode.DESERT, BiomeType.LOW,
-		 8,
-		 new List<StructureGroupID>(){StructureGroupID.DESERT_TREES, StructureGroupID.SURFACE_ORES,
-		 	StructureGroupID.BOULDERS_LOW_DENSITY});
+		Biome desert = new Biome("Desert", BiomeCode.DESERT, BiomeType.LOW, ChunkDepthID.SURFACE,
+			8,
+			new List<StructureGroupID>(){StructureGroupID.DESERT_TREES, StructureGroupID.SURFACE_ORES,
+				StructureGroupID.BOULDERS_LOW_DENSITY});
 
-		Biome snowPlains = new Biome("Snowy Plains", BiomeCode.SNOWY_PLAINS, BiomeType.LOW,
-		 9,
-		 new List<StructureGroupID>(){StructureGroupID.ICE_PLAINS_TREES, StructureGroupID.DIRT_PATCHES,
-		 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_LOW_DENSITY});
+		Biome snowPlains = new Biome("Snowy Plains", BiomeCode.SNOWY_PLAINS, BiomeType.LOW, ChunkDepthID.SURFACE,
+			9,
+			new List<StructureGroupID>(){StructureGroupID.ICE_PLAINS_TREES, StructureGroupID.DIRT_PATCHES,
+			 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_LOW_DENSITY});
 
-		Biome snowyHighlands = new Biome("Snowy Highlands", BiomeCode.SNOWY_HIGHLANDS, BiomeType.PEAK,
-		 9,
-		 new List<StructureGroupID>(){StructureGroupID.ICE_HIGHLANDS_TREES, StructureGroupID.DIRT_PATCHES,
-		 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY});
+		Biome snowyHighlands = new Biome("Snowy Highlands", BiomeCode.SNOWY_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.SURFACE,
+			9,
+			new List<StructureGroupID>(){StructureGroupID.ICE_HIGHLANDS_TREES, StructureGroupID.DIRT_PATCHES,
+			 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY});
 
-		Biome iceOcean = new Biome("Ice Ocean", BiomeCode.ICE_OCEAN, BiomeType.OCEAN,
-		 9,
-		 new List<StructureGroupID>(){StructureGroupID.SURFACE_ORES});
+		Biome iceOcean = new Biome("Ice Ocean", BiomeCode.ICE_OCEAN, BiomeType.OCEAN, ChunkDepthID.SURFACE,
+			9,
+			new List<StructureGroupID>(){StructureGroupID.SURFACE_ORES});
 
-		Biome snowyForest = new Biome("Snow Forest", BiomeCode.SNOWY_FOREST, BiomeType.MID,
-		 9,
-		 new List<StructureGroupID>(){StructureGroupID.ICE_FOREST_TREES, StructureGroupID.SURFACE_ORES});
+		Biome snowyForest = new Biome("Snow Forest", BiomeCode.SNOWY_FOREST, BiomeType.MID, ChunkDepthID.SURFACE,
+			9,
+			new List<StructureGroupID>(){StructureGroupID.ICE_FOREST_TREES, StructureGroupID.SURFACE_ORES});
+
+		Biome testCaverns = new Biome("Test Caverns", BiomeCode.TEST_CAVERNS, BiomeType.OCEAN, ChunkDepthID.UNDERGROUND,
+			3,
+			new List<StructureGroupID>());
 
 
 		AddBiome(plains);
@@ -71,6 +77,7 @@ public class BiomeHandler
 		AddBiome(snowyHighlands);
 		AddBiome(iceOcean);
 		AddBiome(snowyForest);
+		AddBiome(testCaverns);
 
 		this.biomeBlendingValue = new ushort[this.currentBiome];
 
@@ -146,10 +153,20 @@ public class BiomeHandler
 	/*
 	Main Function, assigns biome based on 
 	*/
-	public byte AssignBiome(float[] data){
+	public byte AssignBiome(float[] data, ChunkDepthID layer){
 		float5 biomeInfo = new float5(data[0], data[1], data[2], data[3], data[4]);
+
+		switch(layer){
+			case ChunkDepthID.SURFACE:
+				return (byte)this.surfaceBiomeTable.GetBiome(biomeInfo);
+			case ChunkDepthID.UNDERGROUND:
+				Debug.Log("Assigning to underground");
+				Debug.Log((BiomeCode)this.undergroundBiomeTable.GetBiome(biomeInfo));
+				return (byte)this.undergroundBiomeTable.GetBiome(biomeInfo);
+			default:
+				return 0;
+		}
 		
-		return (byte)this.biomeTable.GetBiome(biomeInfo);
 	}
 }
 
@@ -168,7 +185,7 @@ public struct Biome{
 	public List<int> hardSetDepth;
 	public List<bool> hasRange;
 
-	public Biome(string n, BiomeCode code, BiomeType type, ushort blendingBlock, List<StructureGroupID> structureGroups){
+	public Biome(string n, BiomeCode code, BiomeType type, ChunkDepthID layer, ushort blendingBlock, List<StructureGroupID> structureGroups){
 		this.name = n;
 		this.biomeCode = (byte)code;
 		this.biomeType = (byte)type;
@@ -226,5 +243,6 @@ public enum BiomeCode : byte{
 	SNOWY_PLAINS,
 	SNOWY_HIGHLANDS,
 	ICE_OCEAN,
-	SNOWY_FOREST
+	SNOWY_FOREST,
+	TEST_CAVERNS
 }

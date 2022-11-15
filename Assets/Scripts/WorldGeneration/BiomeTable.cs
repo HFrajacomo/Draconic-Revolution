@@ -13,7 +13,20 @@ public class BiomeTable
     private BiomeCode[,] midTempHumidTable;
     private BiomeCode[,] peakTempHumidTable;
 
-    public BiomeTable(){
+    public BiomeTable(ChunkDepthID layer){
+        switch(layer){
+            case ChunkDepthID.SURFACE:
+                SetupSurfaceBiomes();
+                return;
+            case ChunkDepthID.UNDERGROUND:
+                SetupUndergroundBiomes();
+                return;
+            default:
+                return;
+        }
+    }
+
+    private void SetupSurfaceBiomes(){
         this.baseErosionTable = new BiomeType[,]{
             {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
             {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
@@ -77,6 +90,73 @@ public class BiomeTable
             {BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
             {BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
             {BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS, BiomeCode.GRASSY_HIGHLANDS},
+        };
+    }
+
+    public void SetupUndergroundBiomes(){
+        this.baseErosionTable = new BiomeType[,]{
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+        };
+
+        this.oceanTempHumidTable = new BiomeCode[,]{
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS}
+        };
+
+        this.lowTempHumidTable = new BiomeCode[,]{
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS}
+        };
+
+        this.midTempHumidTable = new BiomeCode[,]{
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS}
+        };
+
+        this.peakTempHumidTable = new BiomeCode[,]{
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS},
+            {BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS, BiomeCode.TEST_CAVERNS}
         };
     }
 
