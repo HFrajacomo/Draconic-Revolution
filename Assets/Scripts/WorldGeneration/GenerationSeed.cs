@@ -21,6 +21,9 @@ public static class GenerationSeed
     public static readonly int[] baseNoiseSplineY = new int[]{    60, 70,    80,    90,     100,  140,  140,  170 , 200,  200};
     public static readonly float baseNoiseStep1 = 0.00019f;
     public static readonly float baseNoiseStep2 = 0.0013f;
+    public static readonly float baseYStep = 0.00117f;
+    public static readonly float baseYStep2 = 0.000931f;
+
 
     // Erosion Noise
     public static byte[] erosionNoise = new byte[257];
@@ -28,6 +31,8 @@ public static class GenerationSeed
     public static readonly float[] erosionNoiseSplineY = new float[]{0.6f, 0.7f, 0.8f,  0.9f, 1f, 1f};
     public static readonly float erosionNoiseStep1 = 0.0047f;
     public static readonly float erosionNoiseStep2 = 0.00063f;
+    public static readonly float erosionYStep = 0.00071f;
+    public static readonly float erosionYStep2 = 0.00083f;
 
     // Peaks Noise
     public static byte[] peakNoise = new byte[257];
@@ -35,6 +40,8 @@ public static class GenerationSeed
     public static readonly int[] peakNoiseSplineY = new int[]{   -30, -20,   -12,      -2,    0, 0,    10,   30,   50};
     public static readonly float peakNoiseStep1 = 0.00471f;
     public static readonly float peakNoiseStep2 = 0.00617f;
+    public static readonly float peakYStep = 0.00561f;
+    public static readonly float peakYStep2 = 0.00617f;
 
     // Temperature Noise
     public static byte[] temperatureNoise = new byte[257];

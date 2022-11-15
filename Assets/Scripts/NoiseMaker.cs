@@ -87,7 +87,6 @@ public static class NoiseMaker
         
     }
 
-    // Calculates 3D Noise for Cave System procedural generation
     public static float Noise3D(float x, float y, float z, NativeArray<byte> noiseMap)
     {
         int X = Mathf.FloorToInt(x) & 0xff;

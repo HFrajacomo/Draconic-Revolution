@@ -160,8 +160,6 @@ public class BiomeHandler
 			case ChunkDepthID.SURFACE:
 				return (byte)this.surfaceBiomeTable.GetBiome(biomeInfo);
 			case ChunkDepthID.UNDERGROUND:
-				Debug.Log("Assigning to underground");
-				Debug.Log((BiomeCode)this.undergroundBiomeTable.GetBiome(biomeInfo));
 				return (byte)this.undergroundBiomeTable.GetBiome(biomeInfo);
 			default:
 				return 0;
