@@ -52,7 +52,8 @@ public class ChunkLoader_Server : MonoBehaviour
         if(this.worldGen != null)
             this.worldGen.DestroyNativeMemory();
 
-        this.playerServerInventory.Destroy();
+        if(this.playerServerInventory != null)
+            this.playerServerInventory.Destroy();
     }
 
     void Start(){
