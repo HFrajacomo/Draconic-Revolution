@@ -267,8 +267,11 @@ public class VoxelData
 
 	    			// If is a block
 	    			if(blockCode <= ushort.MaxValue/2){
-	    				if(BlockEncyclopediaECS.blockInvisible[blockCode] && !foundRender){
-	    					this.renderMap[x*Chunk.chunkWidth+z] = (byte)y;
+	    				if(!BlockEncyclopediaECS.blockInvisible[blockCode] && !foundRender){
+	    					if(y < Chunk.chunkDepth-1)
+	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(y+1);
+	    					else
+	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(Chunk.chunkDepth-1);
 	    					foundRender = true;
 	    				}
 
@@ -280,8 +283,11 @@ public class VoxelData
 	    			}
 	    			// If it's an object
 	    			else{
-	    				if(BlockEncyclopediaECS.blockInvisible[ushort.MaxValue - blockCode] && !foundRender){
-	    					this.renderMap[x*Chunk.chunkWidth+z] = (byte)y;
+	    				if(!BlockEncyclopediaECS.blockInvisible[ushort.MaxValue - blockCode] && !foundRender){
+	    					if(y < Chunk.chunkDepth-1)
+	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(y+1);
+	    					else
+	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(Chunk.chunkDepth-1);
 	    					foundRender = true;
 	    				}
 
@@ -2298,7 +2304,6 @@ public struct CalculateLightPropagationJob : IJob{
 	}
 
 }
-
 
 public enum Direction{
 	North,

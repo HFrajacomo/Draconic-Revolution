@@ -606,7 +606,7 @@ public class ChunkLoader : MonoBehaviour
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
         int playerY = Mathf.FloorToInt(player.position.y / Chunk.chunkDepth);
-		newChunk = new ChunkPos(playerX, playerZ, 3);
+		newChunk = new ChunkPos(playerX, playerZ, playerY);
 
     	// Reload all Chunks nearby
     	if(reload){
@@ -618,7 +618,7 @@ public class ChunkLoader : MonoBehaviour
     		
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
-	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, 3), initial:true);
+	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, playerY), initial:true);
 	        	}
 	        }
 	        
@@ -809,7 +809,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Returns false if chunk.y is not implemented yet
     private bool SkipNotImplemented(ChunkPos pos){
-        return pos.y == 3;
+        return pos.y == 2;
     }
 
     // Goes through all Chunks and checks if they should've been deleted already

@@ -242,7 +242,7 @@ public class WorldGenerator
         NativeArray<ushort> hpData = NativeTools.CopyToNative(cacheMetadataHP);
         NativeArray<float> heightMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
 
-        GenerateChunkJob gcj = new GenerateChunkJob{
+        GenerateSurfaceChunkJob gcj = new GenerateSurfaceChunkJob{
             chunkX = pos.x,
             chunkZ = pos.z,
             blockData = voxelData,
@@ -346,9 +346,29 @@ public class WorldGenerator
         NativeArray<ushort> hpData = NativeTools.CopyToNative(cacheMetadataHP);
         NativeArray<float> heightMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
 
-        // GenerateUndergroundJob
+        GenerateUndergroundChunkJob gucj = new GenerateUndergroundChunkJob{
+            pos = pos,
+            blockData = voxelData,
+            stateData = stateData,
+            hpData = hpData,
+            heightMap = heightMap,
+            baseNoise = baseMap,
+            erosionNoise = erosionMap,
+            peakNoise = peakMap,
+            pregen = isPregen
+        };
+        JobHandle job = gucj.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
 
+        cacheVoxdata = NativeTools.CopyToManaged(voxelData);
+        cacheMetadataState = NativeTools.CopyToManaged(stateData);
+        cacheMetadataHP = NativeTools.CopyToManaged(hpData);
+        cacheHeightMap = NativeTools.CopyToManaged(heightMap);
 
+        voxelData.Dispose();
+        stateData.Dispose();
+        hpData.Dispose();
+        heightMap.Dispose();
     }
 
     /*
@@ -560,7 +580,7 @@ public class WorldGenerator
 MULTITHREADING JOBS
 */
 [BurstCompile(FloatPrecision.High, FloatMode.Strict)]
-public struct GenerateChunkJob: IJob{
+public struct GenerateSurfaceChunkJob: IJob{
     public int chunkX;
     public int chunkZ;
     public NativeArray<ushort> blockData;
@@ -666,7 +686,63 @@ public struct GenerateChunkJob: IJob{
         float c = (a+b)/2f;
 
         return (2f/(1f + Mathf.Exp(-c*4.1f)))-1;
-    }  
+    }
+}
+
+
+[BurstCompile(FloatPrecision.High, FloatMode.Strict)]
+public struct GenerateUndergroundChunkJob: IJobParallelFor{
+    public ChunkPos pos;
+    public NativeArray<ushort> blockData;
+    public NativeArray<ushort> stateData;
+    public NativeArray<ushort> hpData;
+    public NativeArray<float> heightMap;
+    public bool pregen;
+
+    // Noises
+    [ReadOnly]
+    public NativeArray<byte> baseNoise;
+    [ReadOnly]
+    public NativeArray<byte> erosionNoise;
+    [ReadOnly]
+    public NativeArray<byte> peakNoise;
+
+    public void Execute(int index){
+        GenerateAllStone(index);
+        //GenerateUndergroud(index);
+    }
+
+    public void GenerateAllStone(int x){
+        for(int z=0; z < Chunk.chunkWidth; z++){ 
+            for(int y=Chunk.chunkDepth-1; y > 0; y--){
+                if(y == Chunk.chunkDepth-1)
+                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                else
+                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
+            }
+            SetHeightMapData(x, z);
+        }        
+    }
+
+    // Creates a Noise Tunnels in the Chunk
+    public void GenerateUndergroud(int x){
+        for(int z=0; z < Chunk.chunkWidth; z++){ 
+            for(int y=Chunk.chunkDepth-1; y > 0; y--){
+
+            }
+            
+            SetHeightMapData(x, z);
+        }
+    }
+
+    private void SetHeightMapData(int x, int z){
+        for(int y = Chunk.chunkDepth-1; y > 0; y--){
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != 0 && blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != (ushort)BlockID.WATER){
+                heightMap[x*(Chunk.chunkWidth+1)+z] = y+1;
+                return;
+            }
+        }            
+    }
 }
 
 [BurstCompile]
