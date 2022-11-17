@@ -378,6 +378,9 @@ public class WorldGenerator
         cacheMetadataHP = NativeTools.CopyToManaged(hpData);
         cacheHeightMap = NativeTools.CopyToManaged(heightMap);
 
+        this.iteration = 0;
+        GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
+
         voxelData.Dispose();
         stateData.Dispose();
         hpData.Dispose();

@@ -19,6 +19,7 @@ public static class StructureGroup
     private static List<StructSpawn> dirtPatches = new List<StructSpawn>();
     private static List<StructSpawn> boulders_LowDensity = new List<StructSpawn>();
     private static List<StructSpawn> boulders_MediumDensity = new List<StructSpawn>();
+    private static List<StructSpawn> undergroundOres = new List<StructSpawn>();
 
     // Static Constructor
     static StructureGroup(){
@@ -44,6 +45,8 @@ public static class StructureGroup
         map.Add(StructureGroupID.BOULDERS_LOW_DENSITY, boulders_LowDensity);
         PopulateBoulders_MediumDensity();
         map.Add(StructureGroupID.BOULDERS_MID_DENSITY, boulders_MediumDensity);
+        PopulateUndergroundOres();
+        map.Add(StructureGroupID.UNDERGROUND_ORES, undergroundOres);
     }
 
     public static void AddStructureGroup(StructureGroupID id, Biome b){
@@ -129,6 +132,33 @@ public static class StructureGroup
     private static void PopulateBoulders_MediumDensity(){
         boulders_MediumDensity.Add(new StructSpawn(StructureCode.BoulderNormalA, 1, 0.05f, 1, -1, false));
     }
+
+    private static void PopulateUndergroundOres(){
+        undergroundOres.Add(new StructSpawn(StructureCode.IronVeinA, 12, 1f, 0, -1, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.IronVeinB, 12, 1f, 0, -1, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.IronVeinC, 12, 1f, 0, -1, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.CoalVeinA, 18, 1f, 0, -1, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.CoalVeinB, 18, 1f, 0, -1, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.CoalVeinC, 18, 1f, 0, -1, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.CopperVeinA, 10, 1f, 0, -1, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.CopperVeinB, 10, 1f, 0, -1, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.TinVeinA, 6, 1f, 0, -1, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.TinVeinB, 6, 1f, 0, -1, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.GoldVeinA, 6, 1f, 0, 240, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.GoldVeinB, 6, 1f, 0, 240, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.AluminiumVeinA, 4, 0.8f, 0, 200, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.AluminiumVeinB, 4, 0.8f, 0, 200, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.EmeriumVeinA, 3, 0.8f, 0, 160, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.EmeriumVeinB, 3, 0.8f, 0, 160, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.UraniumVeinA, 2, 0.8f, 0, 150, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.UraniumVeinB, 2, 0.8f, 0, 150, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.MagnetiteVeinA, 5, 0.8f, 0, 150, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.MagnetiteVeinB, 5, 0.8f, 0, 150, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.EmeraldVeinA, 2, 0.9f, 0, 200, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.EmeraldVeinB, 2, 0.9f, 0, 200, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.RubyVeinA, 2, 0.9f, 0, 200, true));
+        undergroundOres.Add(new StructSpawn(StructureCode.RubyVeinB, 2, 0.9f, 0, 200, true));        
+    }
 }
 
 public enum StructureGroupID : int
@@ -143,5 +173,6 @@ public enum StructureGroupID : int
     SURFACE_ORES,
     DIRT_PATCHES,
     BOULDERS_LOW_DENSITY,
-    BOULDERS_MID_DENSITY
+    BOULDERS_MID_DENSITY,
+    UNDERGROUND_ORES
 }

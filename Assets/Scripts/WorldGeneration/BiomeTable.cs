@@ -108,16 +108,16 @@ public class BiomeTable
         };
 
         this.oceanTempHumidTable = new BiomeCode[,]{
-            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
-            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
-            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
-            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
-            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
-            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
-            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
-            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
-            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
-            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES}
+            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
+            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
+            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
+            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
+            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
+            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
+            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
+            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
+            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES},
+            {BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.CAVERNS, BiomeCode.UNDERWATER_CAVES, BiomeCode.UNDERWATER_CAVES}
         };
 
         this.lowTempHumidTable = new BiomeCode[,]{

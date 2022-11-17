@@ -65,19 +65,19 @@ public class BiomeHandler
 
 		Biome caverns = new Biome("Caverns", BiomeCode.CAVERNS, BiomeType.MID, ChunkDepthID.UNDERGROUND,
 			3,
-			new List<StructureGroupID>());
+			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES});
 
 		Biome basaltCaves = new Biome("Basalt Cave", BiomeCode.BASALT_CAVES, BiomeType.PEAK, ChunkDepthID.UNDERGROUND,
 			(ushort)BlockID.BASALT,
-			new List<StructureGroupID>());
+			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES});
 
 		Biome submergedCave = new Biome("Submerged Cave", BiomeCode.UNDERWATER_CAVES, BiomeType.OCEAN, ChunkDepthID.UNDERGROUND,
 			(ushort)BlockID.STONE,
-			new List<StructureGroupID>());
+			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES});
 
 		Biome iceCave = new Biome("Ice Cave", BiomeCode.ICE_CAVES, BiomeType.LOW, ChunkDepthID.UNDERGROUND,
 			(ushort)BlockID.SNOW,
-			new List<StructureGroupID>());
+			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES});
 
 		AddBiome(plains);
 		AddBiome(grassyHighlands);

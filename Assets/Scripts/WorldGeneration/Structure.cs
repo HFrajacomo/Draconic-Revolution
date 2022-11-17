@@ -293,6 +293,10 @@ public abstract class Structure
                         posX = 0;
                         posZ = 0;
                     }
+                    if(xCount == 0 && zCount == 0){
+                        posX = x;
+                        posZ = z;
+                    }
 
                     if(yCount == 0)
                         posY = y;
@@ -357,7 +361,7 @@ public abstract class Structure
                     // ACTUAL APPLY FUNCTIONS
                     // Checks if it's a loaded chunk
                     if(cl.chunks.ContainsKey(newPos)){
-                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);
+                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);
                         AddChunk(cl.chunks[newPos]);
                         currentXChunk++;
                         continue;
@@ -371,12 +375,12 @@ public abstract class Structure
                     if(cl.regionHandler.IsIndexed(newPos)){
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             cl.regionHandler.LoadChunk(c);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);                
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);                
                             AddChunk(c);
                         }
                     }
@@ -384,13 +388,13 @@ public abstract class Structure
                     else{
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);                        
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);                        
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             c.biomeName = "Plains";
                             c.needsGeneration = 1;
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);              
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);              
                             AddChunk(c);
                         }
                     }
@@ -479,6 +483,10 @@ public abstract class Structure
                         posX = 0;
                         posZ = 0;
                     }
+                    if(xCount == 0 && zCount == 0){
+                        posX = x;
+                        posZ = z;
+                    }
 
                     if(yCount == 0)
                         posY = y;
@@ -542,7 +550,7 @@ public abstract class Structure
                     // ACTUAL APPLY FUNCTIONS
                     // Checks if it's a loaded chunk
                     if(cl.chunks.ContainsKey(newPos)){
-                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);
+                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);
                         AddChunk(cl.chunks[newPos]);
                         continue;
                     }
@@ -555,12 +563,12 @@ public abstract class Structure
                     if(cl.regionHandler.IsIndexed(newPos)){
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             cl.regionHandler.LoadChunk(c);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);                
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);                
                             AddChunk(c);
                         }
                     }
@@ -568,13 +576,13 @@ public abstract class Structure
                     else{
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);                        
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);                        
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             c.biomeName = "Plains";
                             c.needsGeneration = 1;
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, y, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);              
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);              
                             AddChunk(c);
                         }
                     }
