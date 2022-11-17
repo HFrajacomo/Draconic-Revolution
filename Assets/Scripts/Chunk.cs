@@ -128,15 +128,15 @@ public class Chunk
 
 		// Game Object Settings
 		this.obj = new GameObject();
-		this.obj.name = "Chunk " + pos.x + ", " + pos.z;
+		this.obj.name = "Chunk " + pos.x + ", " + pos.z + ", " + ((ChunkDepthID)pos.y).ToString()[0];
 		this.obj.transform.SetParent(this.renderer.transform);
 		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objDecal = new GameObject();
-		this.objDecal.name = "Decals " + pos.x + ", " + pos.z;
+		this.objDecal.name = "Decals " + pos.x + ", " + pos.z + ", " + ((ChunkDepthID)pos.y).ToString()[0];
 		this.objDecal.transform.SetParent(this.renderer.transform);
 		this.objDecal.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objRaycast = new GameObject();
-		this.objRaycast.name = "RaycastCollider " + pos.x + ", " + pos.z;
+		this.objRaycast.name = "RaycastCollider " + pos.x + ", " + pos.z + ", " + ((ChunkDepthID)pos.y).ToString()[0];
 		this.objRaycast.transform.SetParent(this.renderer.transform);
 		this.objRaycast.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objRaycast.layer = 11;
@@ -3907,7 +3907,9 @@ public struct BuildBorderJob : IJob{
 				return currentLight;
 
 		// Temporary
-		if(neighborCoord.y < 0)
+		if(neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth)
+			return 15;
+		if(neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z >= ushort.MaxValue)
 			return 15;
 
 		if(isNatural)
@@ -5500,6 +5502,10 @@ public struct BuildCornerJob : IJob{
 
 	// Gets the light of maybe neighbors by looking into the dir used to get current XYZ
 	private int GetLightBasedOnDir(int dir, int x, int y, int z, bool isNatural=true){
+		// Temporary
+		if(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z > ushort.MaxValue || x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z < 0)
+			return 15;
+
 		if(isNatural){
 			if(dir == 4 || dir == 5)
 				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
@@ -5521,6 +5527,10 @@ public struct BuildCornerJob : IJob{
 	}
 
 	private int GetLightOnCurrent(int x, int y, int z, bool isNatural=true){
+		// Temporary
+		if(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z > ushort.MaxValue || x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z < 0)
+			return 15;
+
 		if(isNatural)
 			return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 		else
@@ -5528,6 +5538,10 @@ public struct BuildCornerJob : IJob{
 	}
 
 	private int GetLightOnX(int x, int y, int z, bool isNatural=true){
+		// Temporary
+		if(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z > ushort.MaxValue || x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z < 0)
+			return 15;
+
 		if(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z < 0)
 			return 0;
 
@@ -5538,6 +5552,10 @@ public struct BuildCornerJob : IJob{
 	}
 
 	private int GetLightOnZ(int x, int y, int z, bool isNatural=true){
+		// Temporary
+		if(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z > ushort.MaxValue || x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z < 0)
+			return 15;
+
 		if(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z < 0)
 			return 0;
 
@@ -5548,8 +5566,9 @@ public struct BuildCornerJob : IJob{
 	}
 
 	private int GetLightOnCorner(byte chunkDir, int y, bool isNatural=true){
-		if(y < 0)
-			return 0;
+		// Temporary
+		if(y >= Chunk.chunkDepth || y < 0)
+			return 15;
 
 		if(isNatural){
 			if(chunkDir == 4)

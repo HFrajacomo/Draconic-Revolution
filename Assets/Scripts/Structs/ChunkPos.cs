@@ -28,7 +28,7 @@ public struct ChunkPos{
 	}
 
 	public override string ToString(){
-		return "(" + this.x + ", " + this.z + "[" + (ChunkDepthID)this.y + "]" + ")";
+		return "(" + this.x + ", " + this.z + ", " + ((ChunkDepthID)this.y).ToString()[0] + ")";
 	}
 
 	public static bool operator==(ChunkPos a, ChunkPos b){
