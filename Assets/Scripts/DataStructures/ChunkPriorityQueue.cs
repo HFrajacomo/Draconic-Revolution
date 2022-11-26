@@ -19,6 +19,9 @@ public class ChunkPriorityQueue
         int distance = playerPosition.DistanceFrom(x);
         int newDist = 0;
 
+        if(this.Contains(x))
+            return;
+
         List<ChunkDistance> q;
 
         if(initial)
