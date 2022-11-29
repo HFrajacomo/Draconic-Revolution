@@ -307,6 +307,37 @@ public class VoxelData
 	    		}
 	    	}
 		}
+
+		FixRenderMap();
+	}
+
+	// Remaps renderMap correctly
+	private void FixRenderMap(){
+		byte biggest;
+
+		for(int x=0; x < Chunk.chunkWidth; x++){
+			for(int z=0; z < Chunk.chunkWidth; z++){
+				biggest = 0;
+
+				if(x > 0)
+					if(this.renderMap[(x-1)*Chunk.chunkWidth+z] > biggest)
+						biggest = this.renderMap[(x-1)*Chunk.chunkWidth+z];
+				if(x < Chunk.chunkWidth-1)
+					if(this.renderMap[(x+1)*Chunk.chunkWidth+z] > biggest)
+						biggest = this.renderMap[(x+1)*Chunk.chunkWidth+z];
+				if(z > 0)
+					if(this.renderMap[x*Chunk.chunkWidth+(z-1)] > biggest)
+						biggest = this.renderMap[x*Chunk.chunkWidth+(z-1)];
+				if(z < Chunk.chunkWidth-1)
+					if(this.renderMap[x*Chunk.chunkWidth+(z+1)] > biggest)
+						biggest = this.renderMap[x*Chunk.chunkWidth+(z+1)];
+
+				if(this.renderMap[x*Chunk.chunkWidth+z] > biggest)
+					biggest = this.renderMap[x*Chunk.chunkWidth+z];
+
+				this.renderMap[x*Chunk.chunkWidth+z] = biggest;
+			}
+		}
 	}
 
 	public bool CalculateHeightMap(int x, int z){

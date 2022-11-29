@@ -644,7 +644,6 @@ public class ChunkLoader : MonoBehaviour
 
         // Delete chunk layer
         if(lastChunkYLayer != 0 && verticalChunkValue == 0){
-            Debug.Log("deleting layer: " + lastChunkYLayer);
             for(int x=-renderDistance; x <= renderDistance; x++){
                 for(int z=-renderDistance; z <= renderDistance; z++){
                     popChunk = new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y+lastChunkYLayer);
