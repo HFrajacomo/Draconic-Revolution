@@ -282,30 +282,120 @@ public class VoxelData
 	}
 
 
-	public bool CalculateHeightMap(int x, int z){
+	public void CalculateHeightMap(int x, int z){
 		ushort blockCode;
+		bool found, foundRender;
+
+		found = false;
+		foundRender = false;
+		byte newRenderValue = 0;
 
 		for(int y=Chunk.chunkDepth-1; y >= 0; y--){
 			blockCode = this.data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
 			// If is a block
 			if(blockCode <= ushort.MaxValue/2){
-				if(BlockEncyclopediaECS.blockAffectLight[blockCode]){
+				if(BlockEncyclopediaECS.blockAffectLight[blockCode] && !found){
 					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
-					return true;
+					found = true;
+				}
+
+				if(!BlockEncyclopediaECS.blockInvisible[blockCode] && !foundRender){
+					if(y < Chunk.chunkDepth-1)
+						newRenderValue = (byte)(y+1);
+					else
+						newRenderValue = (byte)(Chunk.chunkDepth-1);
+
+					foundRender = true;
 				}
 			}
 			// If it's an object
 			else{
-				if(BlockEncyclopediaECS.objectAffectLight[ushort.MaxValue - blockCode]){
+				if(BlockEncyclopediaECS.objectAffectLight[ushort.MaxValue - blockCode] && !found){
 					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
-					return true;
-				}		
+					found =  true;
+				}
+
+				if(!BlockEncyclopediaECS.objectInvisible[ushort.MaxValue - blockCode] && !foundRender){
+					if(y < Chunk.chunkDepth-1)
+						newRenderValue = (byte)(y+1);
+					else
+						newRenderValue = (byte)(Chunk.chunkDepth-1);
+
+					foundRender = true;
+				}	
 			}
 		}
 
-		return false;
+		if(!found)
+			this.heightMap[x*Chunk.chunkWidth+z] = 0;
+
+		if(newRenderValue != this.renderMap[x*Chunk.chunkWidth+z]){
+			this.renderMap[x*Chunk.chunkWidth+z] = newRenderValue;
+
+			if(x > 0)
+				if(this.renderMap[(x-1)*Chunk.chunkWidth+z] < newRenderValue)
+					this.renderMap[(x-1)*Chunk.chunkWidth+z] = newRenderValue;
+			if(x < Chunk.chunkWidth-1)
+				if(this.renderMap[(x+1)*Chunk.chunkWidth+z] < newRenderValue)
+					this.renderMap[(x+1)*Chunk.chunkWidth+z] = newRenderValue;
+			if(z > 0)
+				if(this.renderMap[x*Chunk.chunkWidth+(z-1)] < newRenderValue)
+					this.renderMap[x*Chunk.chunkWidth+(z-1)] = newRenderValue;
+			if(z < Chunk.chunkWidth-1)
+				if(this.renderMap[x*Chunk.chunkWidth+(z+1)] < newRenderValue)
+					this.renderMap[x*Chunk.chunkWidth+(z+1)] = newRenderValue;
+		}
+
 	}
+
+	/*
+	found = false;
+	foundRender = false;
+	for(int y=Chunk.chunkDepth-1; y >= 0; y--){
+		blockCode = this.data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+		// If is a block
+		if(blockCode <= ushort.MaxValue/2){
+			if(!blockInvisible[blockCode] && !foundRender){
+				if(y < Chunk.chunkDepth-1)
+					this.renderMap[x*Chunk.chunkWidth+z] = (byte)(y+1);
+				else
+					this.renderMap[x*Chunk.chunkWidth+z] = (byte)(Chunk.chunkDepth-1);
+				foundRender = true;
+			}
+
+			if(blockAffectLight[blockCode]){
+				this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+				found = true;
+				break;
+			}
+		}
+		// If it's an object
+		else{
+			if(!objectInvisible[ushort.MaxValue - blockCode] && !foundRender){
+				if(y < Chunk.chunkDepth-1)
+					this.renderMap[x*Chunk.chunkWidth+z] = (byte)(y+1);
+				else
+					this.renderMap[x*Chunk.chunkWidth+z] = (byte)(Chunk.chunkDepth-1);
+				foundRender = true;
+			}
+
+			if(objectAffectLight[ushort.MaxValue - blockCode]){
+				this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+				found = true;
+				break;
+			}		
+		}
+	}
+
+	if(!foundRender){
+		this.renderMap[x*Chunk.chunkWidth+z] = 0;
+	}
+	if(!found){
+		this.heightMap[x*Chunk.chunkWidth+z] = 0;
+	}
+	*/
 
 	public ushort GetHeight(byte x, byte z){
 		if(x < 0 || z < 0 || x > Chunk.chunkWidth || z > Chunk.chunkWidth)
