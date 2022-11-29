@@ -255,90 +255,32 @@ public class VoxelData
 		if(this.renderMap == null)
 			this.renderMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth];
 
-		ushort blockCode;
-		bool found, foundRender;
+		NativeArray<ushort> data = NativeTools.CopyToNative(this.data);
+		NativeArray<byte> hMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
+		NativeArray<byte> rMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
+		JobHandle job;
 
-		for(int x=0; x < Chunk.chunkWidth; x++){
-	    	for(int z=0; z < Chunk.chunkWidth; z++){
-	    		found = false;
-	    		foundRender = false;
-	    		for(int y=Chunk.chunkDepth-1; y >= 0; y--){
-	    			blockCode = this.data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+		GenerateHeightMapJob ghmj = new GenerateHeightMapJob{
+			data = data,
+			heightMap = hMap,
+			renderMap = rMap,
+			blockInvisible = BlockEncyclopediaECS.blockInvisible,
+			objectInvisible = BlockEncyclopediaECS.objectInvisible,
+			blockAffectLight = BlockEncyclopediaECS.blockAffectLight,
+			objectAffectLight = BlockEncyclopediaECS.objectAffectLight
+		};
 
-	    			// If is a block
-	    			if(blockCode <= ushort.MaxValue/2){
-	    				if(!BlockEncyclopediaECS.blockInvisible[blockCode] && !foundRender){
-	    					if(y < Chunk.chunkDepth-1)
-	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(y+1);
-	    					else
-	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(Chunk.chunkDepth-1);
-	    					foundRender = true;
-	    				}
+		job = ghmj.Schedule();
+		job.Complete();
 
-	    				if(BlockEncyclopediaECS.blockAffectLight[blockCode]){
-	    					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
-	    					found = true;
-	    					break;
-	    				}
-	    			}
-	    			// If it's an object
-	    			else{
-	    				if(!BlockEncyclopediaECS.blockInvisible[ushort.MaxValue - blockCode] && !foundRender){
-	    					if(y < Chunk.chunkDepth-1)
-	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(y+1);
-	    					else
-	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(Chunk.chunkDepth-1);
-	    					foundRender = true;
-	    				}
+		this.heightMap = NativeTools.CopyToManaged(hMap);
+		this.renderMap = NativeTools.CopyToManaged(rMap);
 
-	    				if(BlockEncyclopediaECS.objectAffectLight[ushort.MaxValue - blockCode]){
-	    					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
-	    					found = true;
-	    					break;
-	    				}		
-	    			}
-	    		}
-
-	    		if(!foundRender){
-	    			this.renderMap[x*Chunk.chunkWidth+z] = 0;
-	    		}
-	    		if(!found){
-	    			this.heightMap[x*Chunk.chunkWidth+z] = 0;
-	    		}
-	    	}
-		}
-
-		FixRenderMap();
+		hMap.Dispose();
+		rMap.Dispose();
+		data.Dispose();
 	}
 
-	// Remaps renderMap correctly
-	private void FixRenderMap(){
-		byte biggest;
-
-		for(int x=0; x < Chunk.chunkWidth; x++){
-			for(int z=0; z < Chunk.chunkWidth; z++){
-				biggest = 0;
-
-				if(x > 0)
-					if(this.renderMap[(x-1)*Chunk.chunkWidth+z] > biggest)
-						biggest = this.renderMap[(x-1)*Chunk.chunkWidth+z];
-				if(x < Chunk.chunkWidth-1)
-					if(this.renderMap[(x+1)*Chunk.chunkWidth+z] > biggest)
-						biggest = this.renderMap[(x+1)*Chunk.chunkWidth+z];
-				if(z > 0)
-					if(this.renderMap[x*Chunk.chunkWidth+(z-1)] > biggest)
-						biggest = this.renderMap[x*Chunk.chunkWidth+(z-1)];
-				if(z < Chunk.chunkWidth-1)
-					if(this.renderMap[x*Chunk.chunkWidth+(z+1)] > biggest)
-						biggest = this.renderMap[x*Chunk.chunkWidth+(z+1)];
-
-				if(this.renderMap[x*Chunk.chunkWidth+z] > biggest)
-					biggest = this.renderMap[x*Chunk.chunkWidth+z];
-
-				this.renderMap[x*Chunk.chunkWidth+z] = biggest;
-			}
-		}
-	}
 
 	public bool CalculateHeightMap(int x, int z){
 		ushort blockCode;
@@ -2334,6 +2276,109 @@ public struct CalculateLightPropagationJob : IJob{
 		return x*chunkWidth*chunkDepth+y*chunkWidth+z;
 	}
 
+}
+
+[BurstCompile]
+public struct GenerateHeightMapJob : IJob{
+	[ReadOnly]
+	public NativeArray<ushort> data;
+	[ReadOnly]
+	public NativeArray<bool> blockInvisible;
+	[ReadOnly]
+	public NativeArray<bool> objectInvisible;
+	[ReadOnly]
+	public NativeArray<bool> blockAffectLight;
+	[ReadOnly]
+	public NativeArray<bool> objectAffectLight;
+
+	public NativeArray<byte> heightMap;
+	public NativeArray<byte> renderMap;
+
+	public void Execute(){
+		ushort blockCode;
+		bool found, foundRender;
+
+		for(int x=0; x < Chunk.chunkWidth; x++){
+	    	for(int z=0; z < Chunk.chunkWidth; z++){
+	    		found = false;
+	    		foundRender = false;
+	    		for(int y=Chunk.chunkDepth-1; y >= 0; y--){
+	    			blockCode = this.data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+
+	    			// If is a block
+	    			if(blockCode <= ushort.MaxValue/2){
+	    				if(!blockInvisible[blockCode] && !foundRender){
+	    					if(y < Chunk.chunkDepth-1)
+	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(y+1);
+	    					else
+	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(Chunk.chunkDepth-1);
+	    					foundRender = true;
+	    				}
+
+	    				if(blockAffectLight[blockCode]){
+	    					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+	    					found = true;
+	    					break;
+	    				}
+	    			}
+	    			// If it's an object
+	    			else{
+	    				if(!objectInvisible[ushort.MaxValue - blockCode] && !foundRender){
+	    					if(y < Chunk.chunkDepth-1)
+	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(y+1);
+	    					else
+	    						this.renderMap[x*Chunk.chunkWidth+z] = (byte)(Chunk.chunkDepth-1);
+	    					foundRender = true;
+	    				}
+
+	    				if(objectAffectLight[ushort.MaxValue - blockCode]){
+	    					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+	    					found = true;
+	    					break;
+	    				}		
+	    			}
+	    		}
+
+	    		if(!foundRender){
+	    			this.renderMap[x*Chunk.chunkWidth+z] = 0;
+	    		}
+	    		if(!found){
+	    			this.heightMap[x*Chunk.chunkWidth+z] = 0;
+	    		}
+	    	}
+		}
+
+		FixRenderMap();
+	}
+
+	// Remaps renderMap correctly
+	private void FixRenderMap(){
+		byte biggest;
+
+		for(int x=0; x < Chunk.chunkWidth; x++){
+			for(int z=0; z < Chunk.chunkWidth; z++){
+				biggest = 0;
+
+				if(x > 0)
+					if(this.renderMap[(x-1)*Chunk.chunkWidth+z] > biggest)
+						biggest = this.renderMap[(x-1)*Chunk.chunkWidth+z];
+				if(x < Chunk.chunkWidth-1)
+					if(this.renderMap[(x+1)*Chunk.chunkWidth+z] > biggest)
+						biggest = this.renderMap[(x+1)*Chunk.chunkWidth+z];
+				if(z > 0)
+					if(this.renderMap[x*Chunk.chunkWidth+(z-1)] > biggest)
+						biggest = this.renderMap[x*Chunk.chunkWidth+(z-1)];
+				if(z < Chunk.chunkWidth-1)
+					if(this.renderMap[x*Chunk.chunkWidth+(z+1)] > biggest)
+						biggest = this.renderMap[x*Chunk.chunkWidth+(z+1)];
+
+				if(this.renderMap[x*Chunk.chunkWidth+z] > biggest)
+					biggest = this.renderMap[x*Chunk.chunkWidth+z];
+
+				this.renderMap[x*Chunk.chunkWidth+z] = biggest;
+			}
+		}
+	}
 }
 
 public enum Direction{

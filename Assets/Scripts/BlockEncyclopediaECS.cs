@@ -26,8 +26,8 @@ public static class BlockEncyclopediaECS
 	public static NativeArray<bool> objectNeedRotation;
 	public static NativeArray<bool> blockWashable;
 	public static NativeArray<bool> objectWashable;
-	public static bool[] blockAffectLight;
-	public static bool[] objectAffectLight;
+	public static NativeArray<bool> blockAffectLight;
+	public static NativeArray<bool> objectAffectLight;
 	public static NativeArray<byte> blockLuminosity;
 	public static NativeArray<byte> objectLuminosity;
 	public static NativeArray<bool> blockDrawRegardless;
@@ -56,9 +56,8 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.blockLuminosity = new NativeArray<byte>(Blocks.blockCount, Allocator.Persistent);
 		BlockEncyclopediaECS.objectLuminosity = new NativeArray<byte>(BlocklikeObject.objectCount, Allocator.Persistent);
 		BlockEncyclopediaECS.blockDrawRegardless = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
-
-		BlockEncyclopediaECS.blockAffectLight = new bool[Blocks.blockCount];
-		BlockEncyclopediaECS.objectAffectLight = new bool[BlocklikeObject.objectCount];
+		BlockEncyclopediaECS.blockAffectLight = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
+		BlockEncyclopediaECS.objectAffectLight = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
 	}
 
 	public static void Destroy(){
@@ -85,5 +84,7 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.blockLuminosity.Dispose();
 		BlockEncyclopediaECS.objectLuminosity.Dispose();
 		BlockEncyclopediaECS.blockDrawRegardless.Dispose();
+		BlockEncyclopediaECS.blockAffectLight.Dispose();
+		BlockEncyclopediaECS.objectAffectLight.Dispose();
 	}
 }
