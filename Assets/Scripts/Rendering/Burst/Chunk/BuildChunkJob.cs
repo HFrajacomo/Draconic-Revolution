@@ -114,17 +114,6 @@ public struct BuildChunkJob : IJob{
 		    			continue;
 		    		}
 
-		    		// DEBUG TEMPORARY DRAW BOTTOM OF CHUNK
-		    		if(y == 0 && thisBlock != 0){
-		    			LoadMesh(x, y, z, 5, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
-		    			continue;
-		    		}
-		    		// DEBUG TEMPORARY DRAW TOP OF CHUNK
-		    		if(y == Chunk.chunkDepth-1 && thisBlock != 0){
-		    			LoadMesh(x, y, z, 4, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
-		    			continue;
-		    		}
-
 		    		// Transparency
 		    		if(isBlock){
 		    			isTransparent = blockTransparent[thisBlock] == 1 || blockDrawRegardless[thisBlock];

@@ -263,7 +263,7 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
-		Debug.Log("RenderMap: " + loader.chunks[current.GetChunkPos()].data.GetRenderMap()[current.blockX*Chunk.chunkWidth+current.blockZ]);
+		Debug.Log("ShadowMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
 
 		if(!current.active)
 			return;

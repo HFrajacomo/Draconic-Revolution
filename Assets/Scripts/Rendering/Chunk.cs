@@ -195,7 +195,7 @@ public class Chunk
 		this.needsGeneration = 1;
 
 		if(!server)
-			this.data = new VoxelData(new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth]);
+			this.data = new VoxelData(new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth], pos);
 		else
 			this.data = new VoxelData();
 
@@ -207,7 +207,7 @@ public class Chunk
 		Chunk c = new Chunk(this.pos, this.renderer, this.blockBook, this.loader);
 
 		c.biomeName = this.biomeName;
-		c.data = new VoxelData(this.data.GetData());
+		c.data = new VoxelData(this.data.GetData(), this.pos);
 		c.metadata = new VoxelMetadata(this.metadata);
 
 		return c;
