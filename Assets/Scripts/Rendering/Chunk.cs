@@ -43,6 +43,26 @@ public class Chunk
 	public bool xmzp = false;
 	public bool xpzp = false;
 
+	public bool topDraw = false;
+	public bool bottomDraw = false;
+
+	public bool txpDraw = false;
+	public bool txmDraw = false;
+	public bool tzpDraw = false;
+	public bool tzmDraw = false;
+	public bool txpzmDraw = false;
+	public bool txmzmDraw = false;
+	public bool txmzpDraw = false;
+	public bool txpzpDraw = false;
+	public bool bxpDraw = false;
+	public bool bxmDraw = false;
+	public bool bzpDraw = false;
+	public bool bzmDraw = false;
+	public bool bxpzmDraw = false;
+	public bool bxmzmDraw = false;
+	public bool bxpzpDraw = false;
+	public bool bxmzpDraw = false;
+
 	// Bud Flags
 	public bool xpBUD = false;
 	public bool xmBUD = false;
@@ -119,6 +139,10 @@ public class Chunk
 
     // General Cache
     private ChunkPos[] surroundingChunks = new ChunkPos[8];
+    private ChunkPos[] surroundingTopChunks = new ChunkPos[8];
+    private ChunkPos[] surroundingBotChunks = new ChunkPos[8];
+    private ChunkPos[] surroundingVerticalChunks = new ChunkPos[2];
+
 
 	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader){
 		this.pos = pos;
@@ -180,6 +204,27 @@ public class Chunk
 		this.surroundingChunks[5] = new ChunkPos(pos.x-1, pos.z-1, pos.y);
 		this.surroundingChunks[6] = new ChunkPos(pos.x-1, pos.z+1, pos.y);
 		this.surroundingChunks[7] = new ChunkPos(pos.x+1, pos.z+1, pos.y);
+
+		this.surroundingTopChunks[0] = new ChunkPos(pos.x, pos.z+1, pos.y+1);
+		this.surroundingTopChunks[1] = new ChunkPos(pos.x+1, pos.z, pos.y+1);
+		this.surroundingTopChunks[2] = new ChunkPos(pos.x, pos.z-1, pos.y+1);
+		this.surroundingTopChunks[3] = new ChunkPos(pos.x-1, pos.z, pos.y+1);
+		this.surroundingTopChunks[4] = new ChunkPos(pos.x+1, pos.z-1, pos.y+1);
+		this.surroundingTopChunks[5] = new ChunkPos(pos.x-1, pos.z-1, pos.y+1);
+		this.surroundingTopChunks[6] = new ChunkPos(pos.x-1, pos.z+1, pos.y+1);
+		this.surroundingTopChunks[7] = new ChunkPos(pos.x+1, pos.z+1, pos.y+1);
+
+		this.surroundingBotChunks[0] = new ChunkPos(pos.x, pos.z+1, pos.y-1);
+		this.surroundingBotChunks[1] = new ChunkPos(pos.x+1, pos.z, pos.y-1);
+		this.surroundingBotChunks[2] = new ChunkPos(pos.x, pos.z-1, pos.y-1);
+		this.surroundingBotChunks[3] = new ChunkPos(pos.x-1, pos.z, pos.y-1);
+		this.surroundingBotChunks[4] = new ChunkPos(pos.x+1, pos.z-1, pos.y-1);
+		this.surroundingBotChunks[5] = new ChunkPos(pos.x-1, pos.z-1, pos.y-1);
+		this.surroundingBotChunks[6] = new ChunkPos(pos.x-1, pos.z+1, pos.y-1);
+		this.surroundingBotChunks[7] = new ChunkPos(pos.x+1, pos.z+1, pos.y-1);
+
+		this.surroundingVerticalChunks[0] = new ChunkPos(pos.x, pos.z, pos.y+1);
+		this.surroundingVerticalChunks[1] = new ChunkPos(pos.x, pos.z, pos.y-1);
 
 		if(showHitbox){
 			this.hitboxFilter = this.objRaycast.AddComponent<MeshFilter>() as MeshFilter;
@@ -291,6 +336,48 @@ public class Chunk
         if(!xpzp && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[7]))
         	return true;
 
+        if(!topDraw && loader.chunks.ContainsKey(this.surroundingVerticalChunks[0]))
+        	return true;
+        if(!bottomDraw && loader.chunks.ContainsKey(this.surroundingVerticalChunks[1]))
+        	return true;
+
+        if(!tzpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[0]))
+        	return true;
+        if(!txpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[1]))
+        	return true;
+        if(!tzmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[2]))
+        	return true;
+        if(!txmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[3]))
+        	return true;
+
+        if(!txpzmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[1]) && loader.chunks.ContainsKey(this.surroundingTopChunks[2]) && loader.chunks.ContainsKey(this.surroundingTopChunks[4]))
+        	return true;
+        if(!txmzmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[2]) && loader.chunks.ContainsKey(this.surroundingTopChunks[3]) && loader.chunks.ContainsKey(this.surroundingTopChunks[5]))
+        	return true;
+        if(!txmzpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[3]) && loader.chunks.ContainsKey(this.surroundingTopChunks[0]) && loader.chunks.ContainsKey(this.surroundingTopChunks[6]))
+        	return true;
+        if(!txpzpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[0]) && loader.chunks.ContainsKey(this.surroundingTopChunks[1]) && loader.chunks.ContainsKey(this.surroundingTopChunks[7]))
+        	return true;
+
+        if(!bzpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[0]))
+        	return true;
+        if(!bxpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[1]))
+        	return true;
+        if(!bzmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[2]))
+        	return true;
+        if(!bxmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[3]))
+        	return true;
+        	
+        if(!bxpzmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[1]) && loader.chunks.ContainsKey(this.surroundingBotChunks[2]) && loader.chunks.ContainsKey(this.surroundingBotChunks[4]))
+        	return true;
+        if(!bxmzmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[2]) && loader.chunks.ContainsKey(this.surroundingBotChunks[3]) && loader.chunks.ContainsKey(this.surroundingBotChunks[5]))
+        	return true;
+        if(!bxmzpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[3]) && loader.chunks.ContainsKey(this.surroundingBotChunks[0]) && loader.chunks.ContainsKey(this.surroundingBotChunks[6]))
+        	return true;
+        if(!bxpzpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[0]) && loader.chunks.ContainsKey(this.surroundingBotChunks[1]) && loader.chunks.ContainsKey(this.surroundingBotChunks[7]))
+        	return true;
+
+
         return false;
     }
 
@@ -308,6 +395,27 @@ public class Chunk
 			xmzp = false;
 			xpzm = false;
 			xpzp = false;
+
+			topDraw = false;
+			bottomDraw = false;
+			
+			txpDraw = false;
+			txmDraw = false;
+			tzmDraw = false;
+			tzpDraw = false;
+			txmzmDraw = false;
+			txpzmDraw = false;
+			txmzpDraw = false;
+			txpzpDraw = false;
+
+			bxpDraw = false;
+			bxmDraw = false;
+			bzmDraw = false;
+			bzpDraw = false;
+			bxmzmDraw = false;
+			bxpzmDraw = false;
+			bxmzpDraw = false;
+			bxpzpDraw = false;
 		}
 
 		if(!CheckRedraw())
@@ -319,6 +427,7 @@ public class Chunk
 		NativeArray<ushort> hpdata = NativeTools.CopyToNative(this.metadata.GetHPData());
 		NativeArray<ushort> metadata = NativeTools.CopyToNative(this.metadata.GetStateData());
 		NativeArray<byte> lightdata = NativeTools.CopyToNative(this.data.GetLightMap(this.metadata));
+		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());
 
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> uvs = new NativeList<Vector2>(0, Allocator.TempJob);
@@ -789,6 +898,109 @@ public class Chunk
 			doneRendering = false;
 		}
 
+		// Top Side
+		if(loader.chunks.ContainsKey(this.surroundingVerticalChunks[0]) && !topDraw){
+			topDraw = true;
+			changed = true;
+
+			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].data.GetData());
+			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
+
+			BuildVerticalChunkJob bvcj = new BuildVerticalChunkJob {
+				pos = this.pos,
+				isBottom = false,
+				isTop = true,
+				data = blockdata,
+				state = metadata,
+				neighbordata = neighbordata,
+				neighborStates = neighborstate,
+				lightdata = lightdata,
+				renderMap = renderMap,
+				verts = verts,
+				UVs = uvs,
+				lightUV = lightUV,
+				normals = normals,
+				normalTris = tris,
+				specularTris = specularTris,
+				liquidTris = liquidTris,
+				leavesTris = leavesTris,
+				iceTris = iceTris,
+				cacheCubeVert = cacheCubeVert,
+				cacheCubeUV = cacheUVVerts,
+				cacheCubeNormal = cacheCubeNormal,
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				blockSeamless = BlockEncyclopediaECS.blockSeamless,
+				objectSeamless = BlockEncyclopediaECS.objectSeamless,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockMaterial = BlockEncyclopediaECS.blockMaterial,
+				objectMaterial = BlockEncyclopediaECS.objectMaterial,
+				blockWashable = BlockEncyclopediaECS.blockWashable,
+				objectWashable = BlockEncyclopediaECS.objectWashable,
+				blockTiles = BlockEncyclopediaECS.blockTiles,
+				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
+			};
+
+			job = bvcj.Schedule();
+			job.Complete();
+
+			neighbordata.Dispose();
+			neighborstate.Dispose();
+		}
+
+		// Bottom Side
+		if(loader.chunks.ContainsKey(this.surroundingVerticalChunks[1]) && !bottomDraw){
+			bottomDraw = true;
+			changed = true;
+
+			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].data.GetData());
+			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
+
+			BuildVerticalChunkJob bvcj = new BuildVerticalChunkJob {
+				pos = this.pos,
+				isBottom = true,
+				isTop = false,
+				data = blockdata,
+				state = metadata,
+				neighbordata = neighbordata,
+				neighborStates = neighborstate,
+				lightdata = lightdata,
+				renderMap = renderMap,
+				verts = verts,
+				UVs = uvs,
+				lightUV = lightUV,
+				normals = normals,
+				normalTris = tris,
+				specularTris = specularTris,
+				liquidTris = liquidTris,
+				leavesTris = leavesTris,
+				iceTris = iceTris,
+				cacheCubeVert = cacheCubeVert,
+				cacheCubeUV = cacheUVVerts,
+				cacheCubeNormal = cacheCubeNormal,
+				blockTransparent = BlockEncyclopediaECS.blockTransparent,
+				objectTransparent = BlockEncyclopediaECS.objectTransparent,
+				blockSeamless = BlockEncyclopediaECS.blockSeamless,
+				objectSeamless = BlockEncyclopediaECS.objectSeamless,
+				blockInvisible = BlockEncyclopediaECS.blockInvisible,
+				objectInvisible = BlockEncyclopediaECS.objectInvisible,
+				blockMaterial = BlockEncyclopediaECS.blockMaterial,
+				objectMaterial = BlockEncyclopediaECS.objectMaterial,
+				blockWashable = BlockEncyclopediaECS.blockWashable,
+				objectWashable = BlockEncyclopediaECS.objectWashable,
+				blockTiles = BlockEncyclopediaECS.blockTiles,
+				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
+			};
+
+			job = bvcj.Schedule();
+			job.Complete();
+
+			neighbordata.Dispose();
+			neighborstate.Dispose();
+		}
+
+
 		// XPZM Corner
 		if(loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[4]) && !xpzm){
 			xpzm = true;
@@ -1145,6 +1357,7 @@ public class Chunk
 
 		blockdata.Dispose();
 		metadata.Dispose();
+		renderMap.Dispose();
 		verts.Dispose();
 		uvs.Dispose();
 		normals.Dispose();

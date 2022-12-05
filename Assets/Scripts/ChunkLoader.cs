@@ -660,6 +660,7 @@ public class ChunkLoader : MonoBehaviour
                     addChunk = new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y+verticalChunkValue);
                     toUnload.Remove(addChunk);
                     requestPriorityQueue.Add(addChunk);
+                    //TODO Add to redraw here
                 }           
             }            
         }

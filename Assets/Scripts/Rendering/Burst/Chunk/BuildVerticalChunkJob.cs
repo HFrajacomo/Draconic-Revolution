@@ -27,10 +27,6 @@ public struct BuildVerticalChunkJob : IJob{
 	[ReadOnly]
 	public NativeArray<byte> renderMap;
 
-	// OnLoad Event Trigger List
-	public NativeList<int3> loadOutList;
-	public NativeList<int3> loadAssetList;
-
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
 	public NativeList<Vector2> UVs;
@@ -58,10 +54,6 @@ public struct BuildVerticalChunkJob : IJob{
 	public NativeArray<bool> blockSeamless;
 	[ReadOnly]
 	public NativeArray<bool> objectSeamless;
-	[ReadOnly]
-	public NativeArray<bool> blockLoad;
-	[ReadOnly]
-	public NativeArray<bool> objectLoad;
 	[ReadOnly]
 	public NativeArray<bool> blockInvisible;
 	[ReadOnly]
