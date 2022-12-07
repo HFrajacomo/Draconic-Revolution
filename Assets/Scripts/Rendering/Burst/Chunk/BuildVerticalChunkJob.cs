@@ -80,15 +80,15 @@ public struct BuildVerticalChunkJob : IJob{
 		int i, y;
 
 		if(isBottom){
-			i = 4;
+			i = 5;
 			y = 0;
 			for(int x=0; x<Chunk.chunkWidth; x++){
 				for(int z=0; z<Chunk.chunkWidth; z++){
 
 					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+z];
 					thisState = state[x*Chunk.chunkWidth*Chunk.chunkDepth+z];
-					neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth)*Chunk.chunkWidth+z];
-					neighborState = neighborStates[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth)*Chunk.chunkWidth+z];
+					neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z];
+					neighborState = neighborStates[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z];
 					isBlock = thisBlock <= ushort.MaxValue/2;
 		    		isNeighborBlock = neighborBlock <= ushort.MaxValue/2;
 
@@ -121,13 +121,20 @@ public struct BuildVerticalChunkJob : IJob{
 		    			}
 		    		}
 
-				    LoadMesh(x, y, z, i, thisBlock, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
+		    		if(isNeighborBlock){
+		    			if(Boolean(blockTransparent[neighborBlock]))
+						    LoadMesh(x, y, z, i, thisBlock, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
+		    		}
+		    		else{
+		    			if(Boolean(objectTransparent[ushort.MaxValue-neighborBlock]))
+						    LoadMesh(x, y, z, i, thisBlock, cacheCubeVert, cacheCubeUV, cacheCubeNormal);		    				
+		    		}
 		    	} // z loop
 		    } // x loop
 		}
 
 		if(isTop){
-			i = 5;
+			i = 4;
 			y = Chunk.chunkDepth-1;
 			for(int x=0; x<Chunk.chunkWidth; x++){
 				for(int z=0; z<Chunk.chunkWidth; z++){
@@ -168,7 +175,15 @@ public struct BuildVerticalChunkJob : IJob{
 		    			}
 		    		}
 
-				    LoadMesh(x, y, z, i, thisBlock, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
+
+		    		if(isNeighborBlock){
+		    			if(Boolean(blockTransparent[neighborBlock]))
+						    LoadMesh(x, y, z, i, thisBlock, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
+		    		}
+		    		else{
+		    			if(Boolean(objectTransparent[ushort.MaxValue-neighborBlock]))
+						    LoadMesh(x, y, z, i, thisBlock, cacheCubeVert, cacheCubeUV, cacheCubeNormal);		    				
+		    		}
 		    	} // z loop
 		    } // x loop			
 		}
@@ -447,15 +462,7 @@ public struct BuildVerticalChunkJob : IJob{
 	public void CalculateNormal(NativeArray<Vector3> normals, int dir){
 		Vector3 normal;
 
-		if(dir == 0)
-			normal = new Vector3(0, 0, 1);
-		else if(dir == 1)
-			normal = new Vector3(1, 0, 0);
-		else if(dir == 2)
-			normal = new Vector3(0, 0, -1);
-		else if(dir == 3)
-			normal = new Vector3(-1, 0, 0);
-		else if(dir == 4)
+		if(dir == 4)
 			normal = new Vector3(0, 1, 0);
 		else
 			normal = new Vector3(0, -1, 0);
@@ -464,5 +471,9 @@ public struct BuildVerticalChunkJob : IJob{
 		normals[1] = normal;
 		normals[2] = normal;
 		normals[3] = normal;
+	}
+
+	public bool Boolean(byte b){
+		return b != 0;
 	}
 }
