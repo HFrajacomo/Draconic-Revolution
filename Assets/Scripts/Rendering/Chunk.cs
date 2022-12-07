@@ -381,10 +381,9 @@ public class Chunk
         return false;
     }
 
-	// Draws Chunk Borders. Returns true if all borders have been drawn, otherwise, return false.
-	public bool BuildSideBorder(bool reload=false, bool loadBUD=false){
+	// Draws Chunk Borders
+	public void BuildSideBorder(bool reload=false, bool loadBUD=false){
 		bool changed = false; // Flag is set if any change has been made that requires a redraw
-		bool doneRendering = true;
 
 		if(reload){
 			xmDraw = false;
@@ -419,7 +418,7 @@ public class Chunk
 		}
 
 		if(!CheckRedraw())
-			return false;
+			return;
 
 		int3[] coordArray;
 
@@ -600,9 +599,6 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
-		else{
-			doneRendering = false;
-		}
 
 
 		// X+ Analysis
@@ -700,9 +696,6 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
-		else{
-			doneRendering = false;
-		}
 
 		// Z- Analysis
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1, this.pos.y); 
@@ -797,9 +790,6 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
-		else{
-			doneRendering = false;
-		}
 
 		// Z+ Analysis
 		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1, this.pos.y); 
@@ -893,9 +883,6 @@ public class Chunk
 				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}
 			toLoadEvent.Clear();
-		}
-		else{
-			doneRendering = false;
 		}
 
 		// Top Side
@@ -1082,9 +1069,6 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
-		else{
-			doneRendering = false;
-		}
 
 		// XMZM Corner
 		if(loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[5]) && !xmzm){
@@ -1166,9 +1150,6 @@ public class Chunk
 				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
 			}
 			toLoadEvent.Clear();
-		}
-		else{
-			doneRendering = false;
 		}
 
 		// XMZP Corner
@@ -1252,9 +1233,6 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
-		else{
-			doneRendering = false;
-		}
 
 		// XPZP Corner
 		if(loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[7]) && !xpzp){
@@ -1337,9 +1315,6 @@ public class Chunk
 			}
 			toLoadEvent.Clear();
 		}
-		else{
-			doneRendering = false;
-		}
 		
 		// If mesh was redrawn
 		if(changed){
@@ -1373,8 +1348,6 @@ public class Chunk
 		UVDecal.Dispose();
 		trisDecal.Dispose();
 		cacheCubeVertsDecal.Dispose();
-
-		return doneRendering;
 	}
 
 
