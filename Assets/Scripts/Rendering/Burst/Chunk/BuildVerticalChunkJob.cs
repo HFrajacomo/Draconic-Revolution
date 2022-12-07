@@ -82,8 +82,8 @@ public struct BuildVerticalChunkJob : IJob{
 		if(isBottom){
 			i = 5;
 			y = 0;
-			for(int x=0; x<Chunk.chunkWidth; x++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
+			for(int x=1; x<Chunk.chunkWidth-1; x++){
+				for(int z=1; z<Chunk.chunkWidth-1; z++){
 
 					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+z];
 					thisState = state[x*Chunk.chunkWidth*Chunk.chunkDepth+z];
@@ -136,8 +136,8 @@ public struct BuildVerticalChunkJob : IJob{
 		if(isTop){
 			i = 4;
 			y = Chunk.chunkDepth-1;
-			for(int x=0; x<Chunk.chunkWidth; x++){
-				for(int z=0; z<Chunk.chunkWidth; z++){
+			for(int x=1; x<Chunk.chunkWidth-1; x++){
+				for(int z=1; z<Chunk.chunkWidth-1; z++){
 
 					thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 					thisState = state[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
