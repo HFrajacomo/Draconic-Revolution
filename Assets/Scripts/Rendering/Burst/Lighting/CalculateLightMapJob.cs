@@ -17,13 +17,14 @@ public struct CalculateLightMapJob : IJob{
 	public NativeHashSet<int3> visited;
 	public NativeArray<byte> changed;
 
-
 	[ReadOnly]
 	public NativeArray<byte> heightMap;
 	[ReadOnly]
 	public int chunkWidth;
 	[ReadOnly]
 	public int chunkDepth;
+	[ReadOnly]
+	public ChunkPos cpos;
 
 
 	public void Execute(){
@@ -202,7 +203,11 @@ public struct CalculateLightMapJob : IJob{
 						changed[0] = (byte)(changed[0] | 4);
 					else if(z == chunkWidth-1 && ((lightMap[index] & 0x0F) == 0 && (shadowMap[index] & 0x0F) == 1))
 						changed[0] = (byte)(changed[0] | 8);
-						
+
+					if(cpos.y > 0 && y == 0 && (lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) >= 2 || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2))
+						changed[0] = (byte)(changed[0] | 16);
+					if(cpos.y < Chunk.chunkMaxY && y == Chunk.chunkDepth-1 && (lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) >= 2 || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2))
+						changed[0] = (byte)(changed[0] | 32);
 				}
 			}
 		}
@@ -263,6 +268,34 @@ public struct CalculateLightMapJob : IJob{
 				else
 					if((shadowMap[index] >> 4) >= 7)
 						bfsqExtra.Add(new int4(x, y, (chunkWidth-1), -1));	
+			}
+		}
+
+		// ym
+		for(int x=0; x < chunkWidth; x++){
+			for(int z=0; z < chunkWidth; z++){
+				index = x*chunkWidth*chunkDepth+z;
+
+				if(!extraLight)
+					if((shadowMap[index] & 0x0F) >= 7)
+						bfsq.Add(new int3(x, 0, z));
+				else
+					if((shadowMap[index] >> 4) >= 7)
+						bfsqExtra.Add(new int4(x, 0, z, -1));
+			}
+		}
+
+		// yp
+		for(int x=0; x < chunkWidth; x++){
+			for(int z=0; z < chunkWidth; z++){
+				index = x*chunkWidth*chunkDepth+(chunkDepth-1)*chunkWidth+z;
+
+				if(!extraLight)
+					if((shadowMap[index] & 0x0F) >= 7)
+						bfsq.Add(new int3(x, chunkDepth-1, z));
+				else
+					if((shadowMap[index] >> 4) >= 7)
+						bfsqExtra.Add(new int4(x, chunkDepth-1, z, -1));
 			}
 		}
 	}
