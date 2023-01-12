@@ -21,6 +21,8 @@ public class VoxelData
 	private byte[] lightMap;
 	private ChunkPos pos;
 
+	private static ChunkLoader cl; 
+
 	private byte PROPAGATE_LIGHT_FLAG = 0; // 0 = no, 1 = xm, 2 = xp, 4 = zm, 8 = zp
 
 	public static readonly int3[] offsets = new int3[]{
@@ -36,9 +38,15 @@ public class VoxelData
 		this.data = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
 	}
 
+	public VoxelData(ChunkPos pos){
+		this.data = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
+		this.pos = pos;
+	}
+
 	public VoxelData(ushort[] data, ChunkPos pos){
 		this.data = (ushort[])data.Clone();
 		this.heightMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth];
+		this.pos = pos;
 		CalculateHeightMap();
 	}
 
@@ -47,6 +55,10 @@ public class VoxelData
 		this.heightMap = null;
 		this.shadowMap = null;
 		this.lightMap = null;
+	}
+
+	public static void SetChunkLoader(ChunkLoader reference){
+		VoxelData.cl = reference;
 	}
 
 	/*
@@ -87,7 +99,7 @@ public class VoxelData
 	4: Update Lights in neighbor chunk
 	}
 	*/
-	public static byte PropagateLight(VoxelData a, VoxelMetadata aMetadata, VoxelData b, VoxelMetadata bMetadata,  byte borderCode){
+	public static byte PropagateLight(VoxelData a, VoxelMetadata aMetadata, VoxelData b, VoxelMetadata bMetadata, byte borderCode){
 		NativeArray<byte> lightMap1 = NativeTools.CopyToNative(a.GetLightMap(aMetadata));
 		NativeArray<byte> lightMap2 = NativeTools.CopyToNative(b.GetLightMap(bMetadata));
 		NativeArray<byte> shadowMap1 = NativeTools.CopyToNative(a.GetShadowMap());
@@ -168,12 +180,16 @@ public class VoxelData
 		if(this.heightMap == null)
 			CalculateHeightMap();
 
+		bool isStandalone = true;
+		ChunkPos cachedPos;
+
 		NativeArray<byte> lightMap;
 		NativeArray<byte> shadowMap;
 		NativeList<int4> lightSources = new NativeList<int4>(0, Allocator.TempJob);
 		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
 		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0}, Allocator.TempJob);
 		NativeArray<ushort> states = NativeTools.CopyToNative(metadata.GetStateData());
+		NativeArray<byte> aboveHeightMap;
 
 		if(this.shadowMap == null)
 			shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
@@ -183,6 +199,28 @@ public class VoxelData
 			lightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		else
 			lightMap = NativeTools.CopyToNative(this.lightMap);
+
+		// Check if should be calculated as standalone chunk
+		
+		if(this.pos.y < Chunk.chunkMaxY){
+			cachedPos = new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1);
+
+			if(cl.chunks.ContainsKey(cachedPos)){
+				if(cl.chunks[cachedPos].data.ShadowMapIsSet()){
+					isStandalone = false;
+					aboveHeightMap = NativeTools.CopyToNative(cl.chunks[cachedPos].data.GetHeightMap());
+				}
+				else{
+					aboveHeightMap = new NativeArray<byte>(0, Allocator.TempJob);
+				}
+			}
+			else{
+				aboveHeightMap = new NativeArray<byte>(0, Allocator.TempJob);
+			}
+		}
+		else{
+			aboveHeightMap = new NativeArray<byte>(0, Allocator.TempJob);
+		}
 
 		JobHandle job;
 
@@ -203,7 +241,9 @@ public class VoxelData
 			isTransparentBlock = BlockEncyclopediaECS.blockTransparent,
 			blockLuminosity = BlockEncyclopediaECS.blockLuminosity,
 			objectLuminosity = BlockEncyclopediaECS.objectLuminosity,
-			changed = changed
+			changed = changed,
+			isStandalone = isStandalone,
+			neighborMap = aboveHeightMap
 		};
 
         job = csmJob.Schedule();
@@ -214,7 +254,6 @@ public class VoxelData
 		NativeHashSet<int3> visited = new NativeHashSet<int3>(0, Allocator.TempJob);
 
 		// LIGHTMAPPING =========================================================
-
 		CalculateLightMapJob clmJob = new CalculateLightMapJob{
 			lightMap = lightMap,
 			shadowMap = shadowMap,
@@ -246,6 +285,7 @@ public class VoxelData
         heightMap.Dispose();
         shadowMap.Dispose();
         changed.Dispose();
+        aboveHeightMap.Dispose();
 	}
 
 	public void CalculateHeightMap(){
@@ -425,8 +465,16 @@ public class VoxelData
 		return this.shadowMap;
 	}
 
+	public byte[] GetHeightMap(){
+		return this.heightMap;
+	}
+
 	public ushort[] GetData(){
 		return this.data;
+	}
+
+	public bool ShadowMapIsSet(){
+		return this.shadowMap != null;
 	}
 
 	public void SetData(ushort[] data, bool isServer){

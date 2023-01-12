@@ -165,7 +165,7 @@ public class Chunk
 		this.objRaycast.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objRaycast.layer = 11;
 
-		this.data = new VoxelData();
+		this.data = new VoxelData(pos);
 		this.metadata = new VoxelMetadata();
 
 		this.obj.AddComponent<MeshFilter>();

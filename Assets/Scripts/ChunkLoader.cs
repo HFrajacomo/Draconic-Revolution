@@ -93,6 +93,7 @@ public class ChunkLoader : MonoBehaviour
         this.sfx.SetAudioManager(this.audioManager);
         this.playerPositionHandler.SetAudioManager(this.audioManager);
         World.SetGameSceneFlag(true);
+        VoxelData.SetChunkLoader(this);
     }
 
     public void Cleanup(bool comesFromClient=false){
@@ -340,7 +341,6 @@ public class ChunkLoader : MonoBehaviour
                 this.chunks[cp].Destroy();
                 this.chunks.Remove(cp);
             }
-
 
             int blockDataSize = NetDecoder.ReadInt(data, 10);
             int hpDataSize = NetDecoder.ReadInt(data, 14);
