@@ -83,78 +83,53 @@ public struct CalculateShadowMapJob : IJob{
 					// If is transparent
 					if(isBlock){
 						if(isTransparentBlock[blockCode] == 1){
-							if((shadowMap[index] >> 4) >= 7){
-								if((shadowMap[index] & 0x0F) < 7){
-									// Set darken flag
-									border = CheckBorder(x, y, z);
-									if((shadowMap[index] & 0x0F) == 3 && border > 0)
-										changed[0] = (byte)(changed[0] | border);
-
-									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);
-								}
+							if(CheckBorder(x, y, z) == 0){
+								shadowMap[index] = 17;
+								lightMap[index] = 0;
 							}
 							else{
-								if((shadowMap[index] & 0x0F) >= 7)
+								if((shadowMap[index] & 0x0F) < 7){
+									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);
+									lightMap[index] = (byte)((lightMap[index] & 0xF0));
+								}
+								if((shadowMap[index] >> 4) < 7){
 									shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | 16);
-								else{
-									// Set darken flag
-									border = CheckBorder(x, y, z);
-									if((shadowMap[index] & 0x0F) == 3 && border > 0)
-										changed[0] = (byte)(changed[0] | border);
-
-									shadowMap[index] = 17;
+									lightMap[index] = (byte)((lightMap[index] & 0x0F));
 								}
 							}
 						}
-						else
+						else{
 							shadowMap[index] = 0;
+							lightMap[index] = 0;
+						}
 
 						if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4))
 							lightSources.Add(new int4(x, y, z, (blockLuminosity[blockCode] & 0x0F)));
 					}
 					else{
 						if(isTransparentObj[ushort.MaxValue - blockCode] == 1){
-							if((shadowMap[index] >> 4) >= 7){
-								if((shadowMap[index] & 0x0F) < 7){
-									// Set darken flag
-									border = CheckBorder(x, y, z);
-									if((shadowMap[index] & 0x0F) == 3 && border > 0)
-										changed[0] = (byte)(changed[0] | border);
-
-									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);
-								}
+							if(CheckBorder(x, y, z) == 0){
+								shadowMap[index] = 17;
+								lightMap[index] = 0;
 							}
 							else{
-								if((shadowMap[index] & 0x0F) >= 7)
+								if((shadowMap[index] & 0x0F) < 7){
+									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);
+									lightMap[index] = (byte)((lightMap[index] & 0xF0));
+								}
+								if((shadowMap[index] >> 4) < 7){
 									shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | 16);
-								else{
-									// Set darken flag
-									border = CheckBorder(x, y, z);
-									if((shadowMap[index] & 0x0F) == 3 && border > 0)
-										changed[0] = (byte)(changed[0] | border);
-
-									shadowMap[index] = 17;
+									lightMap[index] = (byte)((lightMap[index] & 0x0F));
 								}
 							}
 						}
-						else
+						else{
 							shadowMap[index] = 0;
+							lightMap[index] = 0;
+						}
 
 						if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4))
 							lightSources.Add(new int4(x, y, z, (objectLuminosity[ushort.MaxValue - blockCode] & 0x0F)));			
-					}
-
-					
-					if((shadowMap[index] >> 4) >= 7 && (shadowMap[index] & 0x0F) < 7)
-						lightMap[index] = (byte)(lightMap[index] & 0xF0);
-					else if((shadowMap[index] >> 4) < 7 && (shadowMap[index] & 0x0F) < 7)
-						lightMap[index] = 0;
-					if((shadowMap[index] & 0x0F) >= 7)
-						lightMap[index] = (byte)(lightMap[index] & 0x0F);
-
-					if((shadowMap[index] >> 4) >= 7){
-						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | 16);
-						lightMap[index] = (byte)(lightMap[index] & 0x0F);
 					}					
 				}
 			}
@@ -204,78 +179,53 @@ public struct CalculateShadowMapJob : IJob{
 					// If is transparent
 					if(isBlock){
 						if(isTransparentBlock[blockCode] == 1){
-							if((shadowMap[index] >> 4) >= 7){
-								if((shadowMap[index] & 0x0F) < 7){
-									// Set darken flag
-									border = CheckBorder(x, y, z);
-									if((shadowMap[index] & 0x0F) == 3 && border > 0)
-										changed[0] = (byte)(changed[0] | border);
-
-									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);
-								}
+							if(CheckBorder(x, y, z) == 0){
+								shadowMap[index] = 17;
+								lightMap[index] = 0;
 							}
 							else{
-								if((shadowMap[index] & 0x0F) >= 7)
+								if((shadowMap[index] & 0x0F) < 7){
+									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);
+									lightMap[index] = (byte)((lightMap[index] & 0xF0));
+								}
+								if((shadowMap[index] >> 4) < 7){
 									shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | 16);
-								else{
-									// Set darken flag
-									border = CheckBorder(x, y, z);
-									if((shadowMap[index] & 0x0F) == 3 && border > 0)
-										changed[0] = (byte)(changed[0] | border);
-
-									shadowMap[index] = 17;
+									lightMap[index] = (byte)((lightMap[index] & 0x0F));
 								}
 							}
 						}
-						else
+						else{
 							shadowMap[index] = 0;
+							lightMap[index] = 0;
+						}
 
 						if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4))
 							lightSources.Add(new int4(x, y, z, (blockLuminosity[blockCode] & 0x0F)));
 					}
 					else{
 						if(isTransparentObj[ushort.MaxValue - blockCode] == 1){
-							if((shadowMap[index] >> 4) >= 7){
-								if((shadowMap[index] & 0x0F) < 7){
-									// Set darken flag
-									border = CheckBorder(x, y, z);
-									if((shadowMap[index] & 0x0F) == 3 && border > 0)
-										changed[0] = (byte)(changed[0] | border);
-
-									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);
-								}
+							if(CheckBorder(x, y, z) == 0){
+								shadowMap[index] = 17;
+								lightMap[index] = 0;
 							}
 							else{
-								if((shadowMap[index] & 0x0F) >= 7)
+								if((shadowMap[index] & 0x0F) < 7){
+									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);
+									lightMap[index] = (byte)((lightMap[index] & 0xF0));
+								}
+								if((shadowMap[index] >> 4) < 7){
 									shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | 16);
-								else{
-									// Set darken flag
-									border = CheckBorder(x, y, z);
-									if((shadowMap[index] & 0x0F) == 3 && border > 0)
-										changed[0] = (byte)(changed[0] | border);
-
-									shadowMap[index] = 17;
+									lightMap[index] = (byte)((lightMap[index] & 0x0F));
 								}
 							}
 						}
-						else
+						else{
 							shadowMap[index] = 0;
+							lightMap[index] = 0;
+						}
 
 						if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4))
 							lightSources.Add(new int4(x, y, z, (objectLuminosity[ushort.MaxValue - blockCode] & 0x0F)));			
-					}
-
-					
-					if((shadowMap[index] >> 4) >= 7 && (shadowMap[index] & 0x0F) < 7)
-						lightMap[index] = (byte)(lightMap[index] & 0xF0);
-					else if((shadowMap[index] >> 4) < 7 && (shadowMap[index] & 0x0F) < 7)
-						lightMap[index] = 0;
-					if((shadowMap[index] & 0x0F) >= 7)
-						lightMap[index] = (byte)(lightMap[index] & 0x0F);
-
-					if((shadowMap[index] >> 4) >= 7){
-						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | 16);
-						lightMap[index] = (byte)(lightMap[index] & 0x0F);
 					}
 				}
 			}
