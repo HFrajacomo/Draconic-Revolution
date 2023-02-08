@@ -18,6 +18,8 @@ public struct CalculateLightMapJob : IJob{
 	public NativeArray<byte> changed;
 
 	[ReadOnly]
+	public NativeArray<byte> memoryLightMap;
+	[ReadOnly]
 	public NativeArray<byte> heightMap;
 	[ReadOnly]
 	public int chunkWidth;
@@ -177,8 +179,15 @@ public struct CalculateLightMapJob : IJob{
 		CheckBorders();
 	}
 
-	// Checks if chunk has empty space in neighborhood
 	public void CheckBorders(){
+		if(memoryLightMap.Length == 0)
+			CheckBordersFirstLoad();
+		else
+			CheckBordersMemory();
+	}
+
+	// Checks if chunk has empty space in neighborhood
+	public void CheckBordersFirstLoad(){
 		int index;
 
 		for(int x=0; x < chunkWidth; x++){
@@ -208,6 +217,87 @@ public struct CalculateLightMapJob : IJob{
 						changed[0] = (byte)(changed[0] | 16);
 					if(cpos.y < Chunk.chunkMaxY && y == Chunk.chunkDepth-1 && (lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) >= 2 || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2))
 						changed[0] = (byte)(changed[0] | 32);
+				}
+			}
+		}
+	}
+
+	// Checks for light value changes in borders
+	public void CheckBordersMemory(){
+		int x, y, z, index;
+
+		// xm
+		x = 0;
+		for(y=0; y < chunkDepth; y++){
+			for(z=0; z < chunkWidth; z++){
+				index = y*chunkWidth+z;
+
+				if(lightMap[index] != memoryLightMap[index]){
+					changed[0] = (byte)(changed[0] | 1);
+				}
+			}
+		}
+
+		// xp
+		x = chunkWidth-1;
+		for(y=0; y < chunkDepth; y++){
+			for(z=0; z < chunkWidth; z++){
+				index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+
+				if(lightMap[index] != memoryLightMap[index]){
+					changed[0] = (byte)(changed[0] | 2);
+				}
+			}
+		}
+
+		// zm
+		z = 0;
+		for(y=0; y < chunkDepth; y++){
+			for(x=0; x < chunkWidth; x++){
+				index = x*chunkWidth*chunkDepth+y*chunkWidth;
+
+				if(lightMap[index] != memoryLightMap[index]){
+					changed[0] = (byte)(changed[0] | 4);
+				}
+			}
+		}
+
+		// zp
+		z = chunkWidth-1;
+		for(y=0; y < chunkDepth; y++){
+			for(x=0; x < chunkWidth; x++){
+				index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+
+				if(lightMap[index] != memoryLightMap[index]){
+					changed[0] = (byte)(changed[0] | 8);
+				}
+			}
+		}
+
+		// ym
+		if(cpos.y > 0){
+			y = 0;
+			for(z=0; z < chunkWidth; z++){
+				for(x=0; x < chunkWidth; x++){
+					index = x*chunkWidth*chunkDepth+z;
+
+					if(lightMap[index] != memoryLightMap[index]){
+						changed[0] = (byte)(changed[0] | 16);
+					}
+				}
+			}
+		}
+
+		// yp
+		if(cpos.y < Chunk.chunkMaxY){
+			y = chunkDepth-1;
+			for(z=0; z < chunkWidth; z++){
+				for(x=0; x < chunkWidth; x++){
+					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+
+					if(lightMap[index] != memoryLightMap[index]){
+						changed[0] = (byte)(changed[0] | 32);
+					}
 				}
 			}
 		}
