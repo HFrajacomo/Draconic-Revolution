@@ -397,10 +397,6 @@ public struct CalculateLightPropagationJob : IJob{
 		if((shadowCode == 2 || shadowCode == 3) && a == 0)
 			ApplyShadowWork(1, order, index1, index2, borderCode, extraLight:extraLight);
 
-		// 0-7, 0-8, 0-9, 0-10
-		else if(shadowCode >= 7 && a == 0)
-			ApplyShadowWork(1, order, index1, index2, borderCode, extraLight:extraLight);
-
 		// 1-2, 1-3
 		else if(a == 1 && (b == 2 || b == 3))
 			ApplyShadowWork(2, order, index1, index2, borderCode, extraLight:extraLight);
@@ -424,6 +420,10 @@ public struct CalculateLightPropagationJob : IJob{
 		// 2-3
 		else if(a == 2 && b == 3)
 			ApplyShadowWork(6, order, index1, index2, borderCode, extraLight:extraLight);
+
+		// 0-7, 0-8, 0-9, 0-10
+		else if(shadowCode >= 7 && a == 0)
+			ApplyShadowWork(7, order, index1, index2, borderCode, extraLight:extraLight);
 	}
 
 	// Applies propagation of light 
@@ -695,6 +695,34 @@ public struct CalculateLightPropagationJob : IJob{
 				}	
 			}
 		}
+
+		// If a directional is besides a wall
+		else if(workCode == 7){
+			if(normalOrder){
+				if(!extraLight){
+					if(!CheckPropagatorAround(lightMap2, shadowMap2, GetCoord(index2), borderCode)){
+						RemoveDirectionFromChunk(lightMap2, shadowMap2, (byte)(shadowMap2[index2] & 0x0F), GetCoord(index2), borderCode, extraLight:extraLight);
+					}
+				}
+				else{
+					if(!CheckPropagatorAround(lightMap2, shadowMap2, GetCoord(index2), borderCode)){
+						RemoveDirectionFromChunk(lightMap2, shadowMap2, (byte)(shadowMap2[index2] >> 4), GetCoord(index2), borderCode, extraLight:extraLight);
+					}					
+				}
+			}
+			else{
+				if(!extraLight){
+					if(!CheckPropagatorAround(lightMap1, shadowMap1, GetCoord(index1), borderCode)){
+						RemoveDirectionFromChunk(lightMap1, shadowMap1, (byte)(shadowMap1[index1] & 0x0F), GetCoord(index1), borderCode, extraLight:extraLight);
+					}
+				}
+				else{
+					if(!CheckPropagatorAround(lightMap1, shadowMap1, GetCoord(index1), borderCode)){
+						RemoveDirectionFromChunk(lightMap1, shadowMap1, (byte)(shadowMap1[index1] >> 4), GetCoord(index1), borderCode, extraLight:extraLight);
+					}					
+				}
+			}
+		}
 	}
 
 	public byte GetShadowDirection(byte borderCode, bool normalOrder){
@@ -718,6 +746,97 @@ public struct CalculateLightPropagationJob : IJob{
 		int z = index%chunkWidth;
 
 		return new int3(x, y, z);
+	}
+
+	// Checks if there's a voxel around in the same chunk that generated the one provided by index
+	public bool CheckPropagatorAround(NativeArray<byte> lightMap, NativeArray<byte> shadowMap, int3 coord, byte borderCode, bool extraLight=false){
+		int indexAbove, indexBelow, indexPlus, indexMinus;
+		int index = GetIndex(coord);
+		byte currentShadow, currentLight;
+
+		if(!extraLight){
+			currentShadow = (byte)(shadowMap[index] & 0x0F);
+			currentLight = (byte)((lightMap[index] & 0x0F) + 1);
+		}
+		else{
+			currentShadow = (byte)(shadowMap[index] >> 4);
+			currentLight = (byte)((lightMap[index] >> 4) + 1);
+		}
+
+		indexAbove = -1;
+		indexBelow = -1;
+		indexPlus = -1;
+		indexMinus = -1;
+
+		if(borderCode == 0 || borderCode == 1){
+			if(coord.x > 0)
+				indexMinus = GetIndex(new int3(coord.x-1, coord.y, coord.z));
+			if(coord.x < chunkWidth-1)
+				indexPlus = GetIndex(new int3(coord.x+1, coord.y, coord.z));
+			if(coord.y > 0)
+				indexBelow = GetIndex(new int3(coord.x, coord.y-1, coord.z));
+			if(coord.y < chunkDepth-1)
+				indexAbove = GetIndex(new int3(coord.x, coord.y+1, coord.z));
+		}
+		else if(borderCode == 2 || borderCode == 3){
+			if(coord.z > 0)
+				indexMinus = GetIndex(new int3(coord.x, coord.y, coord.z-1));
+			if(coord.z < chunkWidth-1)
+				indexPlus = GetIndex(new int3(coord.x, coord.y, coord.z+1));
+			if(coord.y > 0)
+				indexBelow = GetIndex(new int3(coord.x, coord.y-1, coord.z));
+			if(coord.y < chunkDepth-1)
+				indexAbove = GetIndex(new int3(coord.x, coord.y+1, coord.z));
+		}
+		else{
+			if(coord.z > 0)
+				indexMinus = GetIndex(new int3(coord.x, coord.y, coord.z-1));
+			if(coord.z < chunkWidth-1)
+				indexPlus = GetIndex(new int3(coord.x, coord.y, coord.z+1));
+			if(coord.x > 0)
+				indexBelow = GetIndex(new int3(coord.x-1, coord.y, coord.z));
+			if(coord.x < chunkDepth-1)
+				indexAbove = GetIndex(new int3(coord.x+1, coord.y, coord.z));
+		}
+
+		if(!extraLight){
+			if(indexAbove >= 0){
+				if((shadowMap[indexAbove] & 0x0F) == currentShadow && (lightMap[indexAbove] & 0x0F) == currentLight)
+					return true;
+			}
+			if(indexBelow >= 0){
+				if((shadowMap[indexBelow] & 0x0F) == currentShadow && (lightMap[indexBelow] & 0x0F) == currentLight)
+					return true;
+			}
+			if(indexPlus >= 0){
+				if((shadowMap[indexPlus] & 0x0F) == currentShadow && (lightMap[indexPlus] & 0x0F) == currentLight)
+					return true;
+			}
+			if(indexMinus >= 0){
+				if((shadowMap[indexMinus] & 0x0F) == currentShadow && (lightMap[indexMinus] & 0x0F) == currentLight)
+					return true;
+			}
+		}
+		else{
+			if(indexAbove >= 0){
+				if((shadowMap[indexAbove] >> 4) == currentShadow && (lightMap[indexAbove] >> 4) == currentLight)
+					return true;
+			}
+			if(indexBelow >= 0){
+				if((shadowMap[indexBelow] >> 4) == currentShadow && (lightMap[indexBelow] >> 4) == currentLight)
+					return true;
+			}
+			if(indexPlus >= 0){
+				if((shadowMap[indexPlus] >> 4) == currentShadow && (lightMap[indexPlus] >> 4) == currentLight)
+					return true;
+			}
+			if(indexMinus >= 0){
+				if((shadowMap[indexMinus] >> 4) == currentShadow && (lightMap[indexMinus] >> 4) == currentLight)
+					return true;
+			}			
+		}
+
+		return false;
 	}
 
 

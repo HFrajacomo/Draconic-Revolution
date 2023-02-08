@@ -275,8 +275,6 @@ public class VoxelData
         this.shadowMap = NativeTools.CopyToManaged(shadowMap);
         this.PROPAGATE_LIGHT_FLAG = changed[0];
 
-        Debug.Log(this.pos + " -> " + (this.PROPAGATE_LIGHT_FLAG >> 4));
-
         blockData.Dispose();
         states.Dispose();
 

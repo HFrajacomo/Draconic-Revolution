@@ -71,7 +71,7 @@ We compare the ShadowCode of the bordering blocks of every two chunks to figure 
 | 2 & 2 | Both blocks in direct sunlight  | None | Do Nothing |
 | 2 & 3 | In direct sunlight and indirectly lit by sun | 6 | If sunlight from one is stronger than the local propagated indirect light of other, then propagate |
 | 3 & 3 | Two indirectly sunlit blocks | 3 | Propagate to the chunk that has the lowest light level |
-| 0 & 7-10 | Solid block and directional shadows | 1 | Set neighbor chunk to update |
+| 0 & 7-10 | Solid block and directional shadows | 7 | Checks if the directionals chunk has voxels around it with greater light value and same shadow. If not, propagate-delete them  |
 | 1 & 7-10 | Unlit block and directional shadows | 4 | Propagates to a third chunk or dies out because of lack of transmitter shadows (Shadows that have ShadowCode 2 or 3) |
 | 2 or 3 & 7-10 | Direct sunlit block and directional shadows | 5 | Tries to propagate to the chunk with the lowest light level overwritting directional shadows |
 | 7-10 & 7-10 | Directional shadows meet other directional shadows | 5 | Tries to propagate to the chunk with the lowest light level overwritting directional shadows |
