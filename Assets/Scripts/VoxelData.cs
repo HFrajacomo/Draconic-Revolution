@@ -19,6 +19,7 @@ public class VoxelData
 	private byte[] renderMap;
 	private byte[] shadowMap;
 	private byte[] lightMap;
+	private bool[] ceilingMap;
 	private ChunkPos pos;
 
 	private static ChunkLoader cl; 
@@ -55,6 +56,8 @@ public class VoxelData
 		this.heightMap = null;
 		this.shadowMap = null;
 		this.lightMap = null;
+		this.ceilingMap = null;
+		this.renderMap = null;
 	}
 
 	public static void SetChunkLoader(ChunkLoader reference){
@@ -308,16 +311,20 @@ public class VoxelData
 			this.heightMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth];
 		if(this.renderMap == null)
 			this.renderMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth];
+		if(this.ceilingMap == null)
+			this.ceilingMap = new bool[Chunk.chunkWidth*Chunk.chunkWidth];
 
 		NativeArray<ushort> data = NativeTools.CopyToNative(this.data);
 		NativeArray<byte> hMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
 		NativeArray<byte> rMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
+		NativeArray<bool> cMap = new NativeArray<bool>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
 		JobHandle job;
 
 		GenerateHeightMapJob ghmj = new GenerateHeightMapJob{
 			data = data,
 			heightMap = hMap,
 			renderMap = rMap,
+			ceilingMap = cMap,
 			blockInvisible = BlockEncyclopediaECS.blockInvisible,
 			objectInvisible = BlockEncyclopediaECS.objectInvisible,
 			blockAffectLight = BlockEncyclopediaECS.blockAffectLight,
@@ -329,9 +336,11 @@ public class VoxelData
 
 		this.heightMap = NativeTools.CopyToManaged(hMap);
 		this.renderMap = NativeTools.CopyToManaged(rMap);
+		this.ceilingMap = NativeTools.CopyToManaged(cMap);
 
 		hMap.Dispose();
 		rMap.Dispose();
+		cMap.Dispose();
 		data.Dispose();
 	}
 
@@ -464,6 +473,13 @@ public class VoxelData
 			this.CalculateHeightMap();
 
 		return this.renderMap;
+	}
+
+	public bool[] GetCeilingMap(){
+		if(this.ceilingMap == null)
+			this.CalculateHeightMap();
+
+		return this.ceilingMap;
 	}
 
 	public void SetLightMap(byte[] lm){

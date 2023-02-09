@@ -919,17 +919,18 @@ public struct CalculateLightMapJob : IJob{
 
 				index = x*chunkWidth*chunkDepth+height*chunkWidth+z;
 
-				if((shadowMap[index] & maxLightLevel) == 2){
+				if((shadowMap[index] & 0x0F) == 2){
 					bfsq.Add(new int3(x, height, z));
 					lightMap[index] = (byte)((lightMap[index] & 0xF0) | maxLightLevel);
-				}
+					AnalyzeSunShaft(x, height, z);
 
-				// Sets the remaining skylight above to max
-				for(int y=height+1; y < chunkDepth; y++){
-					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
-					lightMap[index] = (byte)((lightMap[index] & 0xF0) | maxLightLevel);
+					// Sets the remaining skylight above to max
+					for(int y=height+1; y < chunkDepth; y++){
+						index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+						lightMap[index] = (byte)((lightMap[index] & 0xF0) | maxLightLevel);
 
-					AnalyzeSunShaft(x, y, z);
+						AnalyzeSunShaft(x, y, z);
+					}
 				}
 			}
 		}

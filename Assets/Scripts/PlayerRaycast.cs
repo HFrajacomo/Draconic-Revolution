@@ -269,12 +269,14 @@ public class PlayerRaycast : MonoBehaviour
 		if(!current.active)
 			return;
 
+		/*
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ, current.chunkY);
 		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
 		
 		NetMessage message = new NetMessage(NetCode.INTERACT);
 		message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);
 		this.loader.client.Send(message.GetMessage(), message.size);
+		*/
 	}
 	
 

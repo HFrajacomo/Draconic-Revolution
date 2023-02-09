@@ -20,6 +20,7 @@ public struct GenerateHeightMapJob : IJob{
 
 	public NativeArray<byte> heightMap;
 	public NativeArray<byte> renderMap;
+	public NativeArray<bool> ceilingMap;
 
 	public void Execute(){
 		ushort blockCode;
@@ -44,6 +45,7 @@ public struct GenerateHeightMapJob : IJob{
 
 	    				if(blockAffectLight[blockCode]){
 	    					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+	    					this.ceilingMap[x*Chunk.chunkWidth+z] = true;
 	    					found = true;
 	    					break;
 	    				}
@@ -71,6 +73,7 @@ public struct GenerateHeightMapJob : IJob{
 	    		}
 	    		if(!found){
 	    			this.heightMap[x*Chunk.chunkWidth+z] = 0;
+	    			this.ceilingMap[x*Chunk.chunkWidth+z] = false;
 	    		}
 	    	}
 		}

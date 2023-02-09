@@ -33,10 +33,12 @@ public struct CalculateShadowMapJob : IJob{
 	public bool isStandalone;
 
 	public void Execute(){
-		if(isStandalone)
+		if(isStandalone){
 			CreateStandaloneShadowMap();
-		else
+		}
+		else{
 			CreateLayeredShadowMap();
+		}
 	}
 
 	/**
@@ -59,10 +61,14 @@ public struct CalculateShadowMapJob : IJob{
 
 					// If is above heightMap
 					if(y > heightMap[x*chunkWidth+z] || heightMap[x*chunkWidth+z] == 0){
-						if(!hasCeiling)
+						if(!hasCeiling){
 							shadowMap[index] = 18;
-						else
+							lightMap[index] = (byte)((lightMap[index] & 0xF0) | 15);
+						}
+						else{
 							shadowMap[index] = 17;
+							lightMap[index] = (byte)(lightMap[index] & 0xF0);
+						}
 
 						// Gets lightsource
 						if(isBlock){
