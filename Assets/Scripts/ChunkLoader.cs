@@ -452,6 +452,7 @@ public class ChunkLoader : MonoBehaviour
             if(this.chunks.ContainsKey(updatePriorityQueue.Peek())){
                 //Debug.Log("Update with light: " + updatePriorityQueue.Peek());
                 chunks[updatePriorityQueue.Peek()].data.CalculateLightMap(chunks[updatePriorityQueue.Peek()].metadata);
+
                 CheckLightPropagation(updatePriorityQueue.Peek());
 
                 chunks[updatePriorityQueue.Peek()].BuildChunk();

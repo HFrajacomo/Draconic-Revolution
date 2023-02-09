@@ -246,7 +246,6 @@ public class VoxelData
 			isTransparentBlock = BlockEncyclopediaECS.blockTransparent,
 			blockLuminosity = BlockEncyclopediaECS.blockLuminosity,
 			objectLuminosity = BlockEncyclopediaECS.objectLuminosity,
-			changed = changed,
 			isStandalone = isStandalone,
 			neighborMap = aboveHeightMap
 		};

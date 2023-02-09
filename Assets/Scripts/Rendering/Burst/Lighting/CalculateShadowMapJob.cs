@@ -31,7 +31,6 @@ public struct CalculateShadowMapJob : IJob{
 	public NativeArray<byte> neighborMap;
 	[ReadOnly]
 	public bool isStandalone;
-	public NativeArray<byte> changed;
 
 	public void Execute(){
 		if(isStandalone)
