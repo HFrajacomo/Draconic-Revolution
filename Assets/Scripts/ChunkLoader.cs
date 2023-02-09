@@ -450,7 +450,6 @@ public class ChunkLoader : MonoBehaviour
         // Gets the minimum operational value
         if(updatePriorityQueue.GetSize() > 0){
             if(this.chunks.ContainsKey(updatePriorityQueue.Peek())){
-                //Debug.Log("Update with light: " + updatePriorityQueue.Peek());
                 chunks[updatePriorityQueue.Peek()].data.CalculateLightMap(chunks[updatePriorityQueue.Peek()].metadata);
 
                 CheckLightPropagation(updatePriorityQueue.Peek());
@@ -468,7 +467,6 @@ public class ChunkLoader : MonoBehaviour
 
         if(updateNoLightPriorityQueue.GetSize() > 0){
             if(this.chunks.ContainsKey(updateNoLightPriorityQueue.Peek())){
-                //Debug.Log("Update NO light: " + updateNoLightPriorityQueue.Peek());
                 chunks[updateNoLightPriorityQueue.Peek()].BuildChunk();
 
                 chunks[updateNoLightPriorityQueue.Peek()].BuildSideBorder(reload:true);

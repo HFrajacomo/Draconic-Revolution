@@ -98,9 +98,12 @@ public struct CalculateLightMapJob : IJob{
 
 						if(directionalList[i].w == currentLevel){
 							index = GetIndex(directionalList[i].GetCoords());
-							bfsqDir.Add(directionalList[i]);
-							lightMap[index] = (byte)((lightMap[index] & 0xF0) + directionalList[i].w);
-							shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + directionalList[i].k);
+
+							if((lightMap[index] & 0x0F) < directionalList[i].w){
+								bfsqDir.Add(directionalList[i]);
+								lightMap[index] = (byte)((lightMap[index] & 0xF0) + directionalList[i].w);
+								shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + directionalList[i].k);
+							}
 						}
 						else{
 							searchedCurrentLevel = true;
@@ -173,9 +176,12 @@ public struct CalculateLightMapJob : IJob{
 
 						if(lightSources[i].w == currentLevel){
 							index = GetIndex(lightSources[i].xyz);
-							bfsqExtra.Add(lightSources[i]);
-							lightMap[index] = (byte)((lightMap[index] & 0x0F) + (lightSources[i].w << 4));
-							shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
+
+							if((lightMap[index] >> 4) < directionalList[i].w){
+								bfsqExtra.Add(lightSources[i]);
+								lightMap[index] = (byte)((lightMap[index] & 0x0F) + (lightSources[i].w << 4));
+								shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
+							}
 						}
 						else{
 							searchedCurrentLevel = true;
@@ -243,9 +249,12 @@ public struct CalculateLightMapJob : IJob{
 
 						if(directionalList[i].w == currentLevel){
 							index = GetIndex(directionalList[i].GetCoords());
-							bfsqDir.Add(directionalList[i]);
-							lightMap[index] = (byte)((lightMap[index] & 0x0F) + (directionalList[i].w << 4));
-							shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (directionalList[i].k << 4));
+
+							if((lightMap[index] >> 4) < directionalList[i].w){
+								bfsqDir.Add(directionalList[i]);
+								lightMap[index] = (byte)((lightMap[index] & 0x0F) + (directionalList[i].w << 4));
+								shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (directionalList[i].k << 4));
+							}
 						}
 						else{
 							searchedCurrentLevel = true;
