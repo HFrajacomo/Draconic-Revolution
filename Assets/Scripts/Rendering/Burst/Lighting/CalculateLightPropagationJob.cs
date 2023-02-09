@@ -413,8 +413,8 @@ public struct CalculateLightPropagationJob : IJob{
 		else if(b >= 7 && (a == 2 || a == 3))
 			ApplyShadowWork(5, order, index1, index2, borderCode, extraLight:extraLight);
 
-		// Almost any combination of directionals
-		else if(shadowCode >= 15)
+		// Any combination of directionals
+		else if(a >= 7 && b >= 7)
 			ApplyShadowWork(5, order, index1, index2, borderCode, extraLight:extraLight);
 
 		// 2-3
@@ -583,11 +583,17 @@ public struct CalculateLightPropagationJob : IJob{
 						}
 					}
 					else{
-						if(!CheckPropagatorAround(lightMap2, shadowMap2, GetCoord(index2), borderCode, extraLight:extraLight)){
+						if(!CheckPropagatorAround(lightMap2, shadowMap2, GetCoord(index2), borderCode, extraLight:extraLight) && (lightMap2[index2] & 0x0F) + 1 > (lightMap1[index1] & 0x0F)){
 							RemoveDirectionFromChunk(lightMap2, shadowMap2, (byte)(shadowMap2[index2] & 0x0F), GetCoord(index2), borderCode, extraLight:extraLight);
 							lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) - 1));
 							bfsq2.Add(GetCoord(index2));
 							visited1.Add(GetCoord(index1));
+						}
+						else if((lightMap1[index1] & 0x0F) >= (lightMap2[index2] & 0x0F) + 2){
+							lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) - 1));
+							shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | GetShadowDirection(borderCode, !normalOrder));
+							bfsq2.Add(GetCoord(index2));
+							visited1.Add(GetCoord(index1));							
 						}
 					}
 				}
@@ -601,11 +607,17 @@ public struct CalculateLightPropagationJob : IJob{
 						}
 					}
 					else{
-						if(!CheckPropagatorAround(lightMap2, shadowMap2, GetCoord(index2), borderCode, extraLight:extraLight)){
+						if(!CheckPropagatorAround(lightMap2, shadowMap2, GetCoord(index2), borderCode, extraLight:extraLight) && (lightMap2[index2] >> 4) + 1 > (lightMap1[index1] >> 4)){
 							RemoveDirectionFromChunk(lightMap2, shadowMap2, (byte)(shadowMap2[index2] >> 4), GetCoord(index2), borderCode, extraLight:extraLight);
 							lightMap2[index2] = (byte)((lightMap2[index2] & 0x0F) | ((lightMap1[index1] - 16) & 0xF0));
 							bfsq2.Add(GetCoord(index2));
 							visited1.Add(GetCoord(index1));
+						}
+						else if((lightMap1[index1] >> 4) >= (lightMap2[index2] >> 4) + 2){
+							lightMap2[index2] = (byte)((lightMap2[index2] & 0x0F) | ((lightMap1[index1] & 0xF0) - 16));
+							shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | GetShadowDirection(borderCode, !normalOrder));
+							bfsq2.Add(GetCoord(index2));
+							visited1.Add(GetCoord(index1));							
 						}
 						// If transmitter hits directional in border of extra light, try expand directionals
 						else{
@@ -626,11 +638,17 @@ public struct CalculateLightPropagationJob : IJob{
 						}
 					}
 					else{
-						if(!CheckPropagatorAround(lightMap1, shadowMap1, GetCoord(index1), borderCode, extraLight:extraLight)){
+						if(!CheckPropagatorAround(lightMap1, shadowMap1, GetCoord(index1), borderCode, extraLight:extraLight) && (lightMap1[index1] & 0x0F) + 1 > (lightMap2[index2] & 0x0F)){
 							RemoveDirectionFromChunk(lightMap1, shadowMap1, (byte)(shadowMap1[index1] & 0x0F), GetCoord(index1), borderCode, extraLight:extraLight);
 							lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) - 1));
 							bfsq1.Add(GetCoord(index1));
 							visited2.Add(GetCoord(index2));
+						}
+						else if((lightMap1[index1] & 0x0F) >= (lightMap2[index2] & 0x0F) + 2){
+							lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) - 1));
+							shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, !normalOrder));
+							bfsq1.Add(GetCoord(index1));
+							visited2.Add(GetCoord(index2));							
 						}
 					}
 				}
@@ -644,11 +662,17 @@ public struct CalculateLightPropagationJob : IJob{
 						}
 					}
 					else{
-						if(!CheckPropagatorAround(lightMap1, shadowMap1, GetCoord(index1), borderCode, extraLight:extraLight)){
+						if(!CheckPropagatorAround(lightMap1, shadowMap1, GetCoord(index1), borderCode, extraLight:extraLight) && (lightMap1[index1] >> 4) + 1 > (lightMap2[index2] >> 4)){
 							RemoveDirectionFromChunk(lightMap1, shadowMap1, (byte)(shadowMap1[index1] >> 4), GetCoord(index1), borderCode, extraLight:extraLight);
 							lightMap1[index1] = (byte)((lightMap1[index1] & 0x0F) | ((lightMap2[index2] - 16) & 0xF0));
 							bfsq1.Add(GetCoord(index1));
 							visited2.Add(GetCoord(index2));
+						}
+						else if((lightMap2[index2] >> 4) >= (lightMap1[index1] >> 4) + 2){
+							lightMap1[index1] = (byte)((lightMap1[index1] & 0x0F) | ((lightMap2[index2] & 0xF0) - 16));
+							shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, !normalOrder) << 4);
+							bfsq1.Add(GetCoord(index1));
+							visited2.Add(GetCoord(index2));							
 						}
 						// If transmitter hits directional in border of extra light, try expand directionals
 						else{

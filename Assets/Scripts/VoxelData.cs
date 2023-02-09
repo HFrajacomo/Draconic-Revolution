@@ -256,6 +256,8 @@ public class VoxelData
 
 		NativeList<int3> bfsq = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int4> bfsqExtra = new NativeList<int4>(0, Allocator.TempJob);
+		NativeList<byte5> directionalList = new NativeList<byte5>(0, Allocator.TempJob);
+		NativeList<byte5> bfsqDir = new NativeList<byte5>(0, Allocator.TempJob);
 		NativeHashSet<int3> visited = new NativeHashSet<int3>(0, Allocator.TempJob);
 
 		// LIGHTMAPPING =========================================================
@@ -269,7 +271,9 @@ public class VoxelData
 			chunkDepth = Chunk.chunkDepth,
 			bfsq = bfsq,
 			bfsqExtra = bfsqExtra,
+			bfsqDir = bfsqDir,
 			visited = visited,
+			directionalList = directionalList,
 			changed = changed,
 			cpos = this.pos
 		};
@@ -286,6 +290,7 @@ public class VoxelData
 
         bfsq.Dispose();
         bfsqExtra.Dispose();
+        bfsqDir.Dispose();
         visited.Dispose();
         lightSources.Dispose();
         lightMap.Dispose();
@@ -294,6 +299,7 @@ public class VoxelData
         changed.Dispose();
         aboveHeightMap.Dispose();
         memoryLightMap.Dispose();
+        directionalList.Dispose();
 	}
 
 	public void CalculateHeightMap(){

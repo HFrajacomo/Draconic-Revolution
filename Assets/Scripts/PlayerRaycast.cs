@@ -263,12 +263,12 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
-		Debug.Log("ShadowMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")");
-		Debug.Log("LightMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")");
+		Debug.Log("ShadowMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")");
+		Debug.Log("LightMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")");
 
+		/*
 		if(!current.active)
 			return;
-
 
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ, current.chunkY);
 		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
@@ -276,6 +276,7 @@ public class PlayerRaycast : MonoBehaviour
 		NetMessage message = new NetMessage(NetCode.INTERACT);
 		message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);
 		this.loader.client.Send(message.GetMessage(), message.size);
+		*/
 	}
 	
 

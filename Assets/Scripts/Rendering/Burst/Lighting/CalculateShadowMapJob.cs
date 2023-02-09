@@ -47,7 +47,6 @@ public struct CalculateShadowMapJob : IJob{
 		bool isBlock;
 		ushort blockCode;
 		int index;
-		byte border;
 		bool hasCeiling;
 
 		for(int z=0; z < Chunk.chunkWidth; z++){
@@ -143,7 +142,6 @@ public struct CalculateShadowMapJob : IJob{
 		bool isBlock;
 		ushort blockCode;
 		int index;
-		byte border;
 
 		for(int z=0; z < chunkWidth; z++){
 			for(int y=chunkDepth-1; y >= 0; y--){
