@@ -280,21 +280,10 @@ public class ChunkLoader : MonoBehaviour
     // Adds chunk to Update queue
     public void AddToUpdate(ChunkPos pos, bool noLight=false){
         if(!noLight){
-            if(!updatePriorityQueue.Contains(pos))
-                updatePriorityQueue.Add(pos);
-            else{
-                updatePriorityQueue.Remove(pos);
-                updatePriorityQueue.Add(pos);
-            }
+            updatePriorityQueue.Add(pos);
         }
-        else{
-            if(!updateNoLightPriorityQueue.Contains(pos))
-                updateNoLightPriorityQueue.Add(pos);
-            else{
-                updateNoLightPriorityQueue.Remove(pos);
-                updateNoLightPriorityQueue.Add(pos);
-            }            
-        }
+        else
+            updateNoLightPriorityQueue.Add(pos);
     }
 
     // Asks the Server to send chunk information
@@ -449,33 +438,45 @@ public class ChunkLoader : MonoBehaviour
     private void UpdateChunk(){
         // Gets the minimum operational value
         if(updatePriorityQueue.GetSize() > 0){
+            ChunkPos cachedPos;
+
             if(this.chunks.ContainsKey(updatePriorityQueue.Peek())){
-                chunks[updatePriorityQueue.Peek()].data.CalculateLightMap(chunks[updatePriorityQueue.Peek()].metadata);
+                cachedPos = updatePriorityQueue.Pop();
 
-                CheckLightPropagation(updatePriorityQueue.Peek());
+                chunks[cachedPos].data.CalculateLightMap(chunks[cachedPos].metadata);
 
-                chunks[updatePriorityQueue.Peek()].BuildChunk();
+                CheckLightPropagation(cachedPos);
 
-                chunks[updatePriorityQueue.Peek()].BuildSideBorder(reload:true);
-                AddToRedraw(updatePriorityQueue.Peek());
+                chunks[cachedPos].BuildChunk();
+
+                chunks[cachedPos].BuildSideBorder(reload:true);
+                AddToRedraw(cachedPos);
 
                 if(this.WORLD_GENERATED)
-                    this.vfx.UpdateLights(updatePriorityQueue.Peek());
+                    this.vfx.UpdateLights(cachedPos);
             }
-            updatePriorityQueue.Pop();
+            else{
+                updatePriorityQueue.Pop();
+            }
         }
 
         if(updateNoLightPriorityQueue.GetSize() > 0){
-            if(this.chunks.ContainsKey(updateNoLightPriorityQueue.Peek())){
-                chunks[updateNoLightPriorityQueue.Peek()].BuildChunk();
+            ChunkPos cachedPos;
 
-                chunks[updateNoLightPriorityQueue.Peek()].BuildSideBorder(reload:true);
-                AddToRedraw(updateNoLightPriorityQueue.Peek());
+            if(this.chunks.ContainsKey(updateNoLightPriorityQueue.Peek())){
+                cachedPos = updateNoLightPriorityQueue.Pop();
+
+                chunks[cachedPos].BuildChunk();
+
+                chunks[cachedPos].BuildSideBorder(reload:true);
+                AddToRedraw(cachedPos);
 
                 if(this.WORLD_GENERATED)
-                    this.vfx.UpdateLights(updateNoLightPriorityQueue.Peek());
+                    this.vfx.UpdateLights(cachedPos);
             }
-            updateNoLightPriorityQueue.Pop();
+            else{
+                updateNoLightPriorityQueue.Pop();
+            }
         }
     }
 
@@ -496,9 +497,6 @@ public class ChunkLoader : MonoBehaviour
         else{
             propagationFlag = flag;
         }
-
-        if(pos == new ChunkPos(0, 0, 3))
-            Debug.Log(propagationFlag);
 
         // None
         if(propagationFlag == 0)

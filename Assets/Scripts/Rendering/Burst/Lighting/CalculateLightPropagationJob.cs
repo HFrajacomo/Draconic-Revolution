@@ -378,8 +378,14 @@ public struct CalculateLightPropagationJob : IJob{
 			a = aux;
 		}
 
+		// (2-1 | 1-2) when coming from above or 0-2 when coming from above
+		if((a == 1 && b == 2 && borderCode == 4) || (a == 0 && b == 2 && borderCode == 4 && order)){
+			changed[2] = 1;
+			return;
+		}
+
 		// 0-2, 0-3
-		if((shadowCode == 2 || shadowCode == 3) && a == 0)
+		else if((shadowCode == 2 || shadowCode == 3) && a == 0)
 			ApplyShadowWork(1, order, index1, index2, borderCode, extraLight:extraLight);
 
 		// 1-2, 1-3
