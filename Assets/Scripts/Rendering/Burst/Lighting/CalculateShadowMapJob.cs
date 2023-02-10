@@ -28,7 +28,9 @@ public struct CalculateShadowMapJob : IJob{
 	[ReadOnly]
 	public NativeArray<byte> objectLuminosity;
 	[ReadOnly]
-	public NativeArray<byte> neighborMap;
+	public NativeArray<bool> ceilingMap;
+	[ReadOnly]
+	public NativeArray<bool> neighborCeilingMap;
 	[ReadOnly]
 	public bool isStandalone;
 
@@ -52,7 +54,7 @@ public struct CalculateShadowMapJob : IJob{
 
 		for(int z=0; z < Chunk.chunkWidth; z++){
 			for(int x=0; x < Chunk.chunkWidth; x++){
-				hasCeiling = neighborMap[x*Chunk.chunkWidth+z] != 0;
+				hasCeiling = neighborCeilingMap[x*Chunk.chunkWidth+z];
 
 				for(int y=chunkDepth-1; y >= 0; y--){
 					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
@@ -60,7 +62,7 @@ public struct CalculateShadowMapJob : IJob{
 					isBlock = blockCode <= ushort.MaxValue/2;
 
 					// If is above heightMap
-					if(y > heightMap[x*chunkWidth+z] || heightMap[x*chunkWidth+z] == 0){
+					if(y > heightMap[x*chunkWidth+z] || (!ceilingMap[x*chunkWidth+z] && heightMap[x*chunkWidth+z] == 0)){
 						if(!hasCeiling){
 							shadowMap[index] = 18;
 							lightMap[index] = (byte)((lightMap[index] & 0xF0) | 15);
@@ -156,7 +158,7 @@ public struct CalculateShadowMapJob : IJob{
 					isBlock = blockCode <= ushort.MaxValue/2;
 
 					// If is above heightMap
-					if(y > heightMap[x*chunkWidth+z]){
+					if(y > heightMap[x*chunkWidth+z] || !ceilingMap[x*chunkWidth+z]){
 						shadowMap[index] = 18;
 
 						// Gets lightsource

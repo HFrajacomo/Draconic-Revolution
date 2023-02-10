@@ -193,7 +193,8 @@ public class VoxelData
 		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
 		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0}, Allocator.TempJob);
 		NativeArray<ushort> states = NativeTools.CopyToNative(metadata.GetStateData());
-		NativeArray<byte> aboveHeightMap;
+		NativeArray<bool> ceilingMap = NativeTools.CopyToNative(this.ceilingMap);
+		NativeArray<bool> neighborCeilingMap;
 
 		if(this.shadowMap == null)
 			shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
@@ -216,18 +217,18 @@ public class VoxelData
 			if(cl.chunks.ContainsKey(cachedPos)){
 				if(cl.chunks[cachedPos].data.ShadowMapIsSet()){
 					isStandalone = false;
-					aboveHeightMap = NativeTools.CopyToNative(cl.chunks[cachedPos].data.GetHeightMap());
+					neighborCeilingMap = NativeTools.CopyToNative(cl.chunks[cachedPos].data.GetCeilingMap());
 				}
 				else{
-					aboveHeightMap = new NativeArray<byte>(0, Allocator.TempJob);
+					neighborCeilingMap = new NativeArray<bool>(0, Allocator.TempJob);
 				}
 			}
 			else{
-				aboveHeightMap = new NativeArray<byte>(0, Allocator.TempJob);
+				neighborCeilingMap = new NativeArray<bool>(0, Allocator.TempJob);
 			}
 		}
 		else{
-			aboveHeightMap = new NativeArray<byte>(0, Allocator.TempJob);
+			neighborCeilingMap = new NativeArray<bool>(0, Allocator.TempJob);
 		}
 
 		JobHandle job;
@@ -250,7 +251,8 @@ public class VoxelData
 			blockLuminosity = BlockEncyclopediaECS.blockLuminosity,
 			objectLuminosity = BlockEncyclopediaECS.objectLuminosity,
 			isStandalone = isStandalone,
-			neighborMap = aboveHeightMap
+			ceilingMap = ceilingMap,
+			neighborCeilingMap = neighborCeilingMap
 		};
 
         job = csmJob.Schedule();
@@ -299,7 +301,8 @@ public class VoxelData
         heightMap.Dispose();
         shadowMap.Dispose();
         changed.Dispose();
-        aboveHeightMap.Dispose();
+        ceilingMap.Dispose();
+        neighborCeilingMap.Dispose();
         memoryLightMap.Dispose();
         directionalList.Dispose();
 	}
@@ -360,6 +363,7 @@ public class VoxelData
 			if(blockCode <= ushort.MaxValue/2){
 				if(BlockEncyclopediaECS.blockAffectLight[blockCode] && !found){
 					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+					this.ceilingMap[x*Chunk.chunkWidth+z] = true;
 					found = true;
 				}
 
@@ -376,6 +380,7 @@ public class VoxelData
 			else{
 				if(BlockEncyclopediaECS.objectAffectLight[ushort.MaxValue - blockCode] && !found){
 					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+					this.ceilingMap[x*Chunk.chunkWidth+z] = true;
 					found =  true;
 				}
 
@@ -390,8 +395,10 @@ public class VoxelData
 			}
 		}
 
-		if(!found)
+		if(!found){
 			this.heightMap[x*Chunk.chunkWidth+z] = 0;
+			this.ceilingMap[x*Chunk.chunkWidth+z] = false;
+		}
 
 		if(newRenderValue > this.renderMap[x*Chunk.chunkWidth+z]){
 			this.renderMap[x*Chunk.chunkWidth+z] = newRenderValue;

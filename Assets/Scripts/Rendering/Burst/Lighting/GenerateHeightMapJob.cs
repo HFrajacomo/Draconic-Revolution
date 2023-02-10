@@ -62,6 +62,7 @@ public struct GenerateHeightMapJob : IJob{
 
 	    				if(objectAffectLight[ushort.MaxValue - blockCode]){
 	    					this.heightMap[x*Chunk.chunkWidth+z] = (byte)y;
+	    					this.ceilingMap[x*Chunk.chunkWidth+z] = true;
 	    					found = true;
 	    					break;
 	    				}		
