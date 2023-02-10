@@ -252,6 +252,7 @@ public class VoxelData
 			blockLuminosity = BlockEncyclopediaECS.blockLuminosity,
 			objectLuminosity = BlockEncyclopediaECS.objectLuminosity,
 			isStandalone = isStandalone,
+			cpos = this.pos,
 			ceilingMap = ceilingMap,
 			neighborCeilingMap = neighborCeilingMap
 		};
@@ -285,6 +286,7 @@ public class VoxelData
 
         job = clmJob.Schedule();
         job.Complete();
+
 
         this.lightMap = NativeTools.CopyToManaged(lightMap);
         this.shadowMap = NativeTools.CopyToManaged(shadowMap);

@@ -33,6 +33,8 @@ public struct CalculateShadowMapJob : IJob{
 	public NativeArray<bool> neighborCeilingMap;
 	[ReadOnly]
 	public bool isStandalone;
+	[ReadOnly]
+	public ChunkPos cpos;
 
 	public void Execute(){
 		if(isStandalone){
@@ -151,8 +153,8 @@ public struct CalculateShadowMapJob : IJob{
 		int index;
 
 		for(int z=0; z < chunkWidth; z++){
-			for(int y=chunkDepth-1; y >= 0; y--){
-				for(int x=0; x < chunkWidth; x++){
+			for(int x=0; x < chunkWidth; x++){
+				for(int y=chunkDepth-1; y >= 0; y--){
 					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 					blockCode = data[index];
 					isBlock = blockCode <= ushort.MaxValue/2;
@@ -171,7 +173,11 @@ public struct CalculateShadowMapJob : IJob{
 								lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode] & 0x0F));							
 						}
 
-						lightMap[index] = 0;
+						if(blockCode == 0)
+							lightMap[index] = 15;
+						else
+							lightMap[index] = 0;
+
 						continue;
 					}
 

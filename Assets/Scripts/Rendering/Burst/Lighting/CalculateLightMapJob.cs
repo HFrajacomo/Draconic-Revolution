@@ -912,11 +912,7 @@ public struct CalculateLightMapJob : IJob{
 					continue;
 				}
 
-				if(heightMap[x*chunkWidth+z] > 0)
-					height = (byte)(heightMap[x*chunkWidth+z]+1);
-				else
-					height = 0;
-
+				height = (byte)(heightMap[x*chunkWidth+z]+1);
 				index = x*chunkWidth*chunkDepth+height*chunkWidth+z;
 
 				if((shadowMap[index] & 0x0F) == 2){
