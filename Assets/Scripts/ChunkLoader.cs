@@ -497,6 +497,9 @@ public class ChunkLoader : MonoBehaviour
             propagationFlag = flag;
         }
 
+        if(pos == new ChunkPos(0, 0, 3))
+            Debug.Log(propagationFlag);
+
         // None
         if(propagationFlag == 0)
             return false;
@@ -559,6 +562,40 @@ public class ChunkLoader : MonoBehaviour
 
             if(this.chunks.ContainsKey(neighbor)){
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 3);
+
+                if((updateCode & 4) == 4)
+                    AddToUpdate(neighbor, noLight:false);
+                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+                    AddToUpdate(neighbor, noLight:true);
+                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+                    AddToUpdate(pos, noLight:true);
+                if(updateCode >= 8)
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
+            }
+        }
+        // ym
+        if((propagationFlag & 16) != 0){
+            neighbor = new ChunkPos(pos.x, pos.z, pos.y-1);
+
+            if(this.chunks.ContainsKey(neighbor)){
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 4);
+
+                if((updateCode & 4) == 4)
+                    AddToUpdate(neighbor, noLight:false);
+                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+                    AddToUpdate(neighbor, noLight:true);
+                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+                    AddToUpdate(pos, noLight:true);
+                if(updateCode >= 8)
+                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
+            }
+        }
+        // yp
+        if((propagationFlag & 32) != 0){
+            neighbor = new ChunkPos(pos.x, pos.z, pos.y+1);
+
+            if(this.chunks.ContainsKey(neighbor)){
+                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 5);
 
                 if((updateCode & 4) == 4)
                     AddToUpdate(neighbor, noLight:false);

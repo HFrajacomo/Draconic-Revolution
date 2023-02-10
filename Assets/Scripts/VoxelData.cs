@@ -141,6 +141,7 @@ public class VoxelData
 			chunkWidth = Chunk.chunkWidth,
 			chunkDepth = Chunk.chunkDepth,
 			borderCode = borderCode,
+			cpos = a.pos,
 			changed = changed
 		};
 

@@ -175,12 +175,6 @@ public struct CalculateShadowMapJob : IJob{
 						continue;
 					}
 
-					if(heightMap[x*chunkWidth+z] == 0){
-						shadowMap[index] = 18;
-						lightMap[index] = 0;
-						continue;
-					}
-
 					// If is transparent
 					if(isBlock){
 						if(isTransparentBlock[blockCode] == 1){

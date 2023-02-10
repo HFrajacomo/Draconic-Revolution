@@ -41,6 +41,7 @@ public struct CalculateLightMapJob : IJob{
 		Natural Light
 		***************************************/
 		DetectSunlight();
+		return;
 		bfsqSize = bfsq.Length;	
 		
 		// Iterates through queue
@@ -389,6 +390,7 @@ public struct CalculateLightMapJob : IJob{
 					index = x*chunkWidth*chunkDepth+z;
 
 					if(lightMap[index] != memoryLightMap[index]){
+						Debug.Log("was: " + (memoryLightMap[index] & 0x0F) + "     is now: " + (lightMap[index] & 0x0F));
 						changed[0] = (byte)(changed[0] | 16);
 					}
 				}

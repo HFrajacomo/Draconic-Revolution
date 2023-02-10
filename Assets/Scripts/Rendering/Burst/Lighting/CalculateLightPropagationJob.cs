@@ -23,14 +23,16 @@ public struct CalculateLightPropagationJob : IJob{
 	public NativeList<int4> aux;
 	public NativeHashSet<int4> hashAux;
 
-	public NativeArray<byte> changed; // [0] = Update current Chunk after the neighbor, [1] = Update neighbor Chunk, [2] = Update neighbor with lights, [3] = Xm,Xp,Zm,Zp flags of chunk of neighbor to calculate borders
+	public NativeArray<byte> changed; // [0] = Update current Chunk after the neighbor, [1] = Update neighbor Chunk, [2] = Update neighbor with lights, [3] = Xm,Xp,Zm,Zp,Ym,Yp flags of chunk of neighbor to calculate borders
 
+	[ReadOnly]
+	public ChunkPos cpos;
 	[ReadOnly]
 	public int chunkWidth;
 	[ReadOnly]
 	public int chunkDepth;
 	[ReadOnly]
-	public byte borderCode; // 0 = xm, 1 = xp, 2 = zm, 3 = zp
+	public byte borderCode; // 0 = xm, 1 = xp, 2 = zm, 3 = zp, 4 = ym, 5 = yp
 
 
 	public void Execute(){
@@ -79,6 +81,30 @@ public struct CalculateLightPropagationJob : IJob{
 				for(int x=0; x < chunkWidth; x++){
 					index1 = x*chunkDepth*chunkWidth+y*chunkWidth+(chunkWidth-1);
 					index2 = x*chunkDepth*chunkWidth+y*chunkWidth;
+
+					ProcessShadowCode(shadowMap1[index1] & 0x0F, shadowMap2[index2] & 0x0F, index1, index2, borderCode);
+					ProcessShadowCode(shadowMap1[index1] >> 4, shadowMap2[index2] >> 4, index1, index2, borderCode, extraLight:true);
+				}
+			}			
+		}
+		// ym
+		else if(borderCode == 4){
+			for(int z=0; z < chunkWidth; z++){
+				for(int x=0; x < chunkWidth; x++){
+					index1 = x*chunkDepth*chunkWidth+z;
+					index2 = x*chunkDepth*chunkWidth+(chunkDepth-1)*chunkWidth+z;
+
+					ProcessShadowCode(shadowMap1[index1] & 0x0F, shadowMap2[index2] & 0x0F, index1, index2, borderCode);
+					ProcessShadowCode(shadowMap1[index1] >> 4, shadowMap2[index2] >> 4, index1, index2, borderCode, extraLight:true);
+				}
+			}			
+		}
+		// yp
+		else if(borderCode == 5){
+			for(int z=0; z < chunkWidth; z++){
+				for(int x=0; x < chunkWidth; x++){
+					index1 = x*chunkDepth*chunkWidth+(chunkDepth-1)*chunkWidth+z;
+					index2 = x*chunkDepth*chunkWidth+z;
 
 					ProcessShadowCode(shadowMap1[index1] & 0x0F, shadowMap2[index2] & 0x0F, index1, index2, borderCode);
 					ProcessShadowCode(shadowMap1[index1] >> 4, shadowMap2[index2] >> 4, index1, index2, borderCode, extraLight:true);
@@ -233,6 +259,10 @@ public struct CalculateLightPropagationJob : IJob{
 							changed[3] = (byte)(changed[3] | 4);
 						if(current.z == chunkWidth-1 && borderCode != 2)
 							changed[3] = (byte)(changed[3] | 8);
+						if(current.y == 0 && borderCode != 5 && cpos.y > 0)
+							changed[3] = (byte)(changed[3] | 16);
+						if(current.y == chunkDepth-1 && borderCode != 4 && cpos.y < Chunk.chunkMaxY)
+							changed[3] = (byte)(changed[3] | 32);
 					}
 					else{
 						if(current.x == 0)
@@ -242,7 +272,11 @@ public struct CalculateLightPropagationJob : IJob{
 						if(current.z == 0)
 							changed[3] = (byte)(changed[3] | 4);
 						if(current.z == chunkWidth-1)
-							changed[3] = (byte)(changed[3] | 8);						
+							changed[3] = (byte)(changed[3] | 8);
+						if(current.y == 0 && cpos.y > 0)
+							changed[3] = (byte)(changed[3] | 16);
+						if(current.y == chunkDepth-1 && cpos.y < Chunk.chunkMaxY)
+							changed[3] = (byte)(changed[3] | 32);		
 					}
 
 					if(current.x > 0)
@@ -277,63 +311,6 @@ public struct CalculateLightPropagationJob : IJob{
 		aux.Clear();
 	}
 
-	// Checks if current block is bordering the neighbor chunk
-	public bool CheckBorder(int3 c, byte borderCode, int side){
-		if(side == 1){
-			if(borderCode == 0 && c.x == 0)
-				return true;
-			if(borderCode == 1 && c.x == chunkWidth-1)
-				return true;
-			if(borderCode == 2 && c.z == 0)
-				return true;
-			if(borderCode == 3 && c.z == chunkWidth-1)
-				return true;
-		}
-		else{
-			if(borderCode == 0 && c.x == chunkWidth-1)
-				return true;
-			if(borderCode == 1 && c.x == 0)
-				return true;
-			if(borderCode == 2 && c.z == chunkWidth-1)
-				return true;
-			if(borderCode == 3 && c.z == 0)
-				return true;
-		}
-
-		return false;
-	}
-
-	// Checks whether the neighbor border block to the given one was visited before
-	public bool CheckVisited(int3 c, byte borderCode, int side){
-		int3 originalNeighbor;
-
-		if(side == 1){
-			if(borderCode == 0)
-				originalNeighbor = new int3((chunkWidth-1), c.y, c.z);
-			else if(borderCode == 1)
-				originalNeighbor = new int3(0, c.y, c.z);
-			else if(borderCode == 2)
-				originalNeighbor = new int3(c.x, c.y, (chunkWidth-1));
-			else
-				originalNeighbor = new int3(c.x, c.y, 0);
-		}
-		else{
-			if(borderCode == 0)
-				originalNeighbor = new int3(0, c.y, c.z);
-			else if(borderCode == 1)
-				originalNeighbor = new int3((chunkWidth-1), c.y, c.z);
-			else if(borderCode == 2)
-				originalNeighbor = new int3(c.x, c.y, 0);
-			else
-				originalNeighbor = new int3(c.x, c.y, (chunkWidth-1));			
-		}
-
-		if(side == 1)
-			return visited2.Contains(originalNeighbor);
-		else
-			return visited1.Contains(originalNeighbor);
-	}
-
 	public int3 GetNeighborCoord(int3 c, byte borderCode, int side){
 		int3 originalNeighbor;
 
@@ -344,8 +321,12 @@ public struct CalculateLightPropagationJob : IJob{
 				originalNeighbor = new int3(0, c.y, c.z);
 			else if(borderCode == 2)
 				originalNeighbor = new int3(c.x, c.y, (chunkWidth-1));
-			else
+			else if(borderCode == 3)
 				originalNeighbor = new int3(c.x, c.y, 0);
+			else if(borderCode == 4)
+				originalNeighbor = new int3(c.x, (chunkDepth-1), c.z);
+			else
+				originalNeighbor = new int3(c.x, 0, c.z);
 		}
 		
 		else{
@@ -355,8 +336,12 @@ public struct CalculateLightPropagationJob : IJob{
 				originalNeighbor = new int3((chunkWidth-1), c.y, c.z);
 			else if(borderCode == 2)
 				originalNeighbor = new int3(c.x, c.y, 0);
-			else
+			else if(borderCode == 3)
 				originalNeighbor = new int3(c.x, c.y, (chunkWidth-1));
+			else if(borderCode == 4)
+				originalNeighbor = new int3(c.x, 0, c.z);
+			else
+				originalNeighbor = new int3(c.x, (chunkDepth-1), c.z);
 		}
 		
 
@@ -757,8 +742,12 @@ public struct CalculateLightPropagationJob : IJob{
 				return 7;
 			if(borderCode == 2)
 				return 10;
-			else
+			if(borderCode == 3)
 				return 9;
+			if(borderCode == 4)
+				return 12;
+			else
+				return 11;
 		}
 		else
 			return (byte)(borderCode + 7);
@@ -1125,6 +1114,13 @@ public struct CalculateLightPropagationJob : IJob{
 		// xm
 		else if(aux.x == 0 && borderCode != 1)
 			changed[3] = (byte)(changed[3] | (1));
+
+		// yp
+		if(aux.y == chunkDepth-1 && borderCode != 4 && cpos.y < Chunk.chunkMaxY)
+			changed[3] = (byte)(changed[3] | (1 << 5));
+		// ym
+		else if(aux.y == 0 && borderCode != 5 && cpos.y > 0)
+			changed[3] = (byte)(changed[3] | (1 << 4));
 	}
 
 	public byte InvertShadowDirection(byte shadow){
@@ -1136,6 +1132,10 @@ public struct CalculateLightPropagationJob : IJob{
 			return 10;
 		if(shadow == 10)
 			return 9;
+		if(shadow == 11)
+			return 12;
+		if(shadow == 12)
+			return 11;
 		return 0;
 	}
 
