@@ -70,8 +70,10 @@ public struct CalculateShadowMapJob : IJob{
 							lightMap[index] = (byte)((lightMap[index] & 0xF0) | 15);
 						}
 						else{
-							shadowMap[index] = 17;
-							lightMap[index] = (byte)(lightMap[index] & 0xF0);
+							if((shadowMap[index] & 0x0F) < 7){
+								shadowMap[index] = 17;
+								lightMap[index] = (byte)(lightMap[index] & 0xF0);
+							}
 						}
 
 						// Gets lightsource
@@ -84,7 +86,6 @@ public struct CalculateShadowMapJob : IJob{
 								lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode] & 0x0F));							
 						}
 
-						lightMap[index] = 0;
 						continue;
 					}
 
@@ -95,6 +96,7 @@ public struct CalculateShadowMapJob : IJob{
 								shadowMap[index] = 17;
 								lightMap[index] = 0;
 							}
+							
 							else{
 								if((shadowMap[index] & 0x0F) < 7){
 									shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | 1);

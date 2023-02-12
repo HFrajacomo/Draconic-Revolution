@@ -635,7 +635,7 @@ public struct CalculateLightPropagationJob : IJob{
 							bfsq1.Add(GetCoord(index1));
 							visited2.Add(GetCoord(index2));
 						}
-						else if((lightMap1[index1] & 0x0F) >= (lightMap2[index2] & 0x0F) + 2){
+						else if((lightMap2[index2] & 0x0F) >= (lightMap1[index1] & 0x0F) + 2){
 							lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) - 1));
 							shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, !normalOrder));
 							bfsq1.Add(GetCoord(index1));

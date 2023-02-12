@@ -414,7 +414,7 @@ public struct CalculateLightMapJob : IJob{
 		int index;
 		// xm
 		for(int z=0; z < chunkWidth; z++){
-			for(int y=heightMap[z]; y >= 0; y--){
+			for(int y=Chunk.chunkDepth-1; y >= 0; y--){
 				index = y*chunkWidth+z;
 
 				if(!extraLight){
@@ -430,7 +430,7 @@ public struct CalculateLightMapJob : IJob{
 
 		// xp
 		for(int z=0; z < chunkWidth; z++){
-			for(int y=heightMap[(chunkWidth-1)*chunkWidth+z]; y >= 0; y--){
+			for(int y=Chunk.chunkDepth-1; y >= 0; y--){
 				index = (chunkWidth-1)*chunkWidth*chunkDepth+y*chunkWidth+z;
 
 				if(!extraLight){
@@ -446,7 +446,7 @@ public struct CalculateLightMapJob : IJob{
 
 		// zm
 		for(int x=0; x < chunkWidth; x++){
-			for(int y=heightMap[x*chunkWidth]; y >= 0; y--){
+			for(int y=Chunk.chunkDepth-1; y >= 0; y--){
 				index = x*chunkWidth*chunkDepth+y*chunkWidth;
 
 				if(!extraLight){
@@ -462,7 +462,7 @@ public struct CalculateLightMapJob : IJob{
 
 		// zp
 		for(int x=0; x < chunkWidth; x++){
-			for(int y=heightMap[x*chunkWidth+(chunkWidth-1)]; y >= 0; y--){
+			for(int y=Chunk.chunkDepth-1; y >= 0; y--){
 				index = x*chunkWidth*chunkDepth+y*chunkWidth+(chunkWidth-1);
 
 				if(!extraLight){
