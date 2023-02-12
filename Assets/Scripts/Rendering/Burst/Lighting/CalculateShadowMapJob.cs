@@ -74,6 +74,10 @@ public struct CalculateShadowMapJob : IJob{
 								shadowMap[index] = 17;
 								lightMap[index] = (byte)(lightMap[index] & 0xF0);
 							}
+							else if(CheckBorder(x, y, z) == 0){
+								shadowMap[index] = 17;
+								lightMap[index] = (byte)(lightMap[index] & 0xF0);
+							}
 						}
 
 						// Gets lightsource
