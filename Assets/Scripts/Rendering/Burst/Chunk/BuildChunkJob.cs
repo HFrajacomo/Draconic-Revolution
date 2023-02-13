@@ -111,7 +111,6 @@ public struct BuildChunkJob : IJob{
 		    		// Object
 		    		if(!isBlock){
 		    			LoadMesh(x, y, z, -1, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
-		    			continue;
 		    		}
 
 		    		// Transparency
@@ -161,21 +160,11 @@ public struct BuildChunkJob : IJob{
 				    		////////// -----------------------------------
 
 							// Handles Liquid chunks
-				    		if(isBlock){
-				    			if(blockSeamless[neighborBlock]){
-					    			if(CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
-					    				continue;
-					    			}
+			    			if(blockSeamless[neighborBlock]){
+				    			if(CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
+				    				continue;
 				    			}
-
-				    		}
-				    		else{
-				    			if(objectSeamless[ushort.MaxValue-neighborBlock]){
-					    			if(CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
-					    				continue;
-					    			}    				
-				    			}
-				    		}
+			    			}
 
 						    LoadMesh(c.x, c.y, c.z, ii, neighborBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
 					    } // faces loop
