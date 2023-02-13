@@ -244,9 +244,6 @@ public struct CalculateLightPropagationJob : IJob{
 					if(!extraLight){
 						selectedLightMap[index] = (byte)(selectedLightMap[index] & 0xF0);
 						selectedShadowMap[index] = (byte)((selectedShadowMap[index] & 0xF0) | 1);
-
-						if(current.x == 11 && current.y == 255 && current.z == 0 && cpos == new ChunkPos(0,1,2))
-							Debug.Log("BOOYA");
 					}
 					else{
 						selectedLightMap[index] = (byte)(selectedLightMap[index] & 0x0F);

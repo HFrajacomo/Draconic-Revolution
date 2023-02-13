@@ -39,9 +39,10 @@ public struct BuildDecalJob : IJob{
 		int3 c;
 		int ii;
 
+
 		for(int x=0; x < Chunk.chunkWidth; x++){
-			for(int y=0; y < Chunk.chunkDepth; y++){
-				for(int z=0; z < Chunk.chunkWidth; z++){
+			for(int z=0; z < Chunk.chunkWidth; z++){
+				for(int y=0; y < Chunk.chunkDepth; y++){
 			    	block = blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
 		    		if(CheckTransparentOrInvisible(block)){
@@ -55,12 +56,12 @@ public struct BuildDecalJob : IJob{
 				    		if(neighborBlock == 0)
 				    			continue;
 
-				    		if(block <= ushort.MaxValue/2){
-				    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[block])
+				    		if(neighborBlock <= ushort.MaxValue/2){
+				    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[neighborBlock])
 				    				continue;
 				    		}
 				    		else{
-				    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[block])
+				    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[neighborBlock])
 				    				continue;			    			
 				    		}
 				    		
@@ -70,11 +71,11 @@ public struct BuildDecalJob : IJob{
 
 			    			if((c.x == 0 || c.x == Chunk.chunkWidth-1) && (c.z == 0 || c.z == Chunk.chunkWidth-1))
 			    				continue;
-
-				    		if((c.x == 0 && (ii != 1)) || (c.z == 0 && (ii != 0)))
+								
+				    		if((c.x == 0 && (ii == 3)) || (c.z == 0 && (ii == 2)))
 				    			continue;
 
-				    		if((c.x == Chunk.chunkWidth-1 && (ii != 3)) || (c.z == Chunk.chunkWidth-1 && (ii != 2)))
+				    		if((c.x == Chunk.chunkWidth-1 && (ii == 1)) || (c.z == Chunk.chunkWidth-1 && (ii == 0)))
 				    			continue;
 
 				    		if(c.y == 0 && ii == 5)
@@ -84,7 +85,7 @@ public struct BuildDecalJob : IJob{
 				    			continue;
 				    		}
 
-			    			decalCode = GetDecalStage(block, hp);
+			    			decalCode = GetDecalStage(neighborBlock, hp);
 
 			    			if(decalCode >= 0)
 			    				BuildDecal(c.x, c.y, c.z, ii, decalCode);

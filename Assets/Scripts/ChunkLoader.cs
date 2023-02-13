@@ -502,8 +502,6 @@ public class ChunkLoader : MonoBehaviour
         if(propagationFlag == 0)
             return false;
 
-        Debug.Log("Chunk: " + pos + "  ->  " + propagationFlag);
-
         // xm
         if((propagationFlag & 1) != 0){
             neighbor = new ChunkPos(pos.x-1, pos.z, pos.y);
