@@ -7,7 +7,7 @@ using Unity.Mathematics;
 /*
 Takes the ShadowMap and turns it into a progressive lightmap
 */
-[BurstCompile]
+//[BurstCompile]
 public struct CalculateLightMapJob : IJob{
 	public NativeArray<byte> lightMap;
 	public NativeArray<byte> shadowMap;
@@ -177,7 +177,7 @@ public struct CalculateLightMapJob : IJob{
 						if(lightSources[i].w == currentLevel){
 							index = GetIndex(lightSources[i].xyz);
 
-							if((lightMap[index] >> 4) < directionalList[i].w){
+							if((lightMap[index] >> 4) < lightSources[i].w){
 								bfsqExtra.Add(lightSources[i]);
 								lightMap[index] = (byte)((lightMap[index] & 0x0F) + (lightSources[i].w << 4));
 								shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
