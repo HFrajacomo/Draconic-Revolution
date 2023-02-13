@@ -7,7 +7,7 @@ using Unity.Mathematics;
 /*
 Takes the ShadowMap and turns it into a progressive lightmap
 */
-//[BurstCompile]
+[BurstCompile]
 public struct CalculateLightMapJob : IJob{
 	public NativeArray<byte> lightMap;
 	public NativeArray<byte> shadowMap;

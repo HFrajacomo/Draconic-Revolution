@@ -36,45 +36,61 @@ public struct BuildDecalJob : IJob{
 		ushort hp;
 		int decalCode;
 		ushort neighborBlock;
+		int3 c;
+		int ii;
 
 		for(int x=0; x < Chunk.chunkWidth; x++){
 			for(int y=0; y < Chunk.chunkDepth; y++){
 				for(int z=0; z < Chunk.chunkWidth; z++){
+			    	block = blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-			    	for(int i=0; i<6; i++){
-			    		block = blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-			    		neighborBlock = GetNeighbor(x, y, z, i);
-			    		hp = hpdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-			    		
-			    		// Chunk Border and floor culling here! ----------
-			    		
-			    		if((x == 0 && 3 == i) || (z == 0 && 2 == i)){
-			    			continue;
-			    		}
-			    		if((x == Chunk.chunkWidth-1 && 1 == i) || (z == Chunk.chunkWidth-1 && 0 == i)){
-			    			continue;
-			    		}
-			    		if(y == 0 && 5 == i){
-			    			continue;
-			    		}
+		    		if(CheckTransparentOrInvisible(block)){
+				    	for(int i=0; i<6; i++){
+				    		// Chunk Border and floor culling here! ----------
+				    		c = GetCoords(x, y, z, i);
+				    		ii = InvertDir(i);
+				    		hp = GetNeighborHP(x, y, z, i);
+				    		neighborBlock = GetNeighbor(x, y, z, i);
 
-			    		if(block <= ushort.MaxValue/2){
-			    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[block])
+				    		if(neighborBlock == 0)
+				    			continue;
+
+				    		if(block <= ushort.MaxValue/2){
+				    			if(hp == 0 || hp == ushort.MaxValue || hp == blockHP[block])
+				    				continue;
+				    		}
+				    		else{
+				    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[block])
+				    				continue;			    			
+				    		}
+				    		
+			    			// If Corner
+				    		if(c.x >= Chunk.chunkWidth || c.x < 0 || c.z >= Chunk.chunkWidth || c.z < 0)
+				    			break;
+
+			    			if((c.x == 0 || c.x == Chunk.chunkWidth-1) && (c.z == 0 || c.z == Chunk.chunkWidth-1))
 			    				continue;
-			    		}
-			    		else{
-			    			if(hp == 0 || hp == ushort.MaxValue || hp == objectHP[block])
-			    				continue;			    			
-			    		}
 
-			    		if(CheckTransparentOrInvisible(neighborBlock)){
+				    		if((c.x == 0 && (ii != 1)) || (c.z == 0 && (ii != 0)))
+				    			continue;
+
+				    		if((c.x == Chunk.chunkWidth-1 && (ii != 3)) || (c.z == Chunk.chunkWidth-1 && (ii != 2)))
+				    			continue;
+
+				    		if(c.y == 0 && ii == 5)
+				    			continue;
+
+				    		if(c.y == Chunk.chunkDepth-1 && ii == 4){
+				    			continue;
+				    		}
+
 			    			decalCode = GetDecalStage(block, hp);
 
 			    			if(decalCode >= 0)
-			    				BuildDecal(x, y, z, i, decalCode);
-			    		}
+			    				BuildDecal(c.x, c.y, c.z, ii, decalCode);
 
-			    	}
+				    	}
+		    		}
 				}
 			}
 		}
@@ -147,6 +163,37 @@ public struct BuildDecalJob : IJob{
 
 		return blockdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
 	}
+
+    // Gets neighbor hp
+	private ushort GetNeighborHP(int x, int y, int z, int dir){
+		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
+		
+		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
+			return 0;
+		} 
+
+		return hpdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
+	}
+
+	private int3 GetCoords(int x, int y, int z, int dir){
+		return new int3(x, y, z) + VoxelData.offsets[dir];
+	}
+
+    private int InvertDir(int i){
+    	if(i == 0)
+    		return 2;
+    	if(i == 1)
+    		return 3;
+    	if(i == 2)
+    		return 0;
+    	if(i == 3)
+    		return 1;
+    	if(i == 4)
+    		return 5;
+    	if(i == 5)
+    		return 4;
+    	return 0;
+    }
 
 	private bool Boolean(byte b){
 		if(b == 0)
