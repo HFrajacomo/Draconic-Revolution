@@ -5,7 +5,7 @@ using Unity.Burst;
 using Unity.Mathematics;
 
 
-[BurstCompile]
+//[BurstCompile]
 public struct CalculateLightPropagationJob : IJob{
 	public NativeArray<byte> lightMap1;
 	public NativeArray<byte> lightMap2;
@@ -244,6 +244,9 @@ public struct CalculateLightPropagationJob : IJob{
 					if(!extraLight){
 						selectedLightMap[index] = (byte)(selectedLightMap[index] & 0xF0);
 						selectedShadowMap[index] = (byte)((selectedShadowMap[index] & 0xF0) | 1);
+
+						if(current.x == 11 && current.y == 255 && current.z == 0 && cpos == new ChunkPos(0,1,2))
+							Debug.Log("BOOYA");
 					}
 					else{
 						selectedLightMap[index] = (byte)(selectedLightMap[index] & 0x0F);
@@ -715,24 +718,24 @@ public struct CalculateLightPropagationJob : IJob{
 		else if(workCode == 7){
 			if(normalOrder){
 				if(!extraLight){
-					if(!CheckPropagatorAround(lightMap2, shadowMap2, GetCoord(index2), borderCode, extraLight:extraLight)){
+					if(!CheckPropagatorAround(lightMap2, shadowMap2, GetCoord(index2), borderCode, extraLight:extraLight) && GetShadowDirection(borderCode, !normalOrder) == (byte)(shadowMap2[index2] & 0x0F)){
 						RemoveDirectionFromChunk(lightMap2, shadowMap2, (byte)(shadowMap2[index2] & 0x0F), GetCoord(index2), borderCode, extraLight:extraLight);
 					}
 				}
 				else{
-					if(!CheckPropagatorAround(lightMap2, shadowMap2, GetCoord(index2), borderCode, extraLight:extraLight)){
+					if(!CheckPropagatorAround(lightMap2, shadowMap2, GetCoord(index2), borderCode, extraLight:extraLight) && GetShadowDirection(borderCode, !normalOrder) == (byte)(shadowMap2[index2] >> 4)){
 						RemoveDirectionFromChunk(lightMap2, shadowMap2, (byte)(shadowMap2[index2] >> 4), GetCoord(index2), borderCode, extraLight:extraLight);
 					}					
 				}
 			}
 			else{
 				if(!extraLight){
-					if(!CheckPropagatorAround(lightMap1, shadowMap1, GetCoord(index1), borderCode, extraLight:extraLight)){
+					if(!CheckPropagatorAround(lightMap1, shadowMap1, GetCoord(index1), borderCode, extraLight:extraLight) && GetShadowDirection(borderCode, !normalOrder) == (byte)(shadowMap1[index1] & 0x0F)){
 						RemoveDirectionFromChunk(lightMap1, shadowMap1, (byte)(shadowMap1[index1] & 0x0F), GetCoord(index1), borderCode, extraLight:extraLight);
 					}
 				}
 				else{
-					if(!CheckPropagatorAround(lightMap1, shadowMap1, GetCoord(index1), borderCode, extraLight:extraLight)){
+					if(!CheckPropagatorAround(lightMap1, shadowMap1, GetCoord(index1), borderCode, extraLight:extraLight) && GetShadowDirection(borderCode, !normalOrder) == (byte)(shadowMap1[index1] >> 4)){
 						RemoveDirectionFromChunk(lightMap1, shadowMap1, (byte)(shadowMap1[index1] >> 4), GetCoord(index1), borderCode, extraLight:extraLight);
 					}					
 				}
