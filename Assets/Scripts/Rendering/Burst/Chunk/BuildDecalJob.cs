@@ -12,6 +12,8 @@ public struct BuildDecalJob : IJob{
 
 	[ReadOnly]
 	public NativeArray<ushort> blockdata;
+	[ReadOnly]
+	public NativeArray<byte> renderMap;
 	public NativeList<Vector3> verts;
 	public NativeList<Vector2> UV; 
 	public NativeList<int> triangles;
@@ -38,11 +40,17 @@ public struct BuildDecalJob : IJob{
 		ushort neighborBlock;
 		int3 c;
 		int ii;
-
+		byte renderMapTop;
 
 		for(int x=0; x < Chunk.chunkWidth; x++){
 			for(int z=0; z < Chunk.chunkWidth; z++){
-				for(int y=0; y < Chunk.chunkDepth; y++){
+
+				if(renderMap[x*Chunk.chunkWidth+z] < byte.MaxValue)
+					renderMapTop = (byte)(renderMap[x*Chunk.chunkWidth+z]+1);
+				else
+					renderMapTop = byte.MaxValue;
+
+				for(int y=renderMapTop; y >= 0; y--){
 			    	block = blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
 		    		if(CheckTransparentOrInvisible(block)){

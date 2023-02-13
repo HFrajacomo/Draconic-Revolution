@@ -2464,7 +2464,7 @@ public class Chunk
 		};
 		JobHandle job = bcJob.Schedule();
 
-		BuildAllDecals(blockdata);
+		BuildAllDecals(blockdata, renderMap);
 
 		job.Complete();
 
@@ -2703,7 +2703,7 @@ public class Chunk
 		this.drawMain = true;
     }
 
-    public void BuildAllDecals(NativeArray<ushort> blockdata){
+    public void BuildAllDecals(NativeArray<ushort> blockdata, NativeArray<byte> renderMap){
     	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
 
 		NativeList<int> triangles = new NativeList<int>(0, Allocator.TempJob);
@@ -2714,6 +2714,7 @@ public class Chunk
 		BuildDecalJob bdj = new BuildDecalJob{
 			pos = pos,
 			blockdata = blockdata,
+			renderMap = renderMap,
 			verts = verts,
 			UV = UVs,
 			triangles = triangles,
