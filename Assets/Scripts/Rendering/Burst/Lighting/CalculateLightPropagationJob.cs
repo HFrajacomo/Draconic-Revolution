@@ -5,7 +5,7 @@ using Unity.Burst;
 using Unity.Mathematics;
 
 
-//[BurstCompile]
+[BurstCompile]
 public struct CalculateLightPropagationJob : IJob{
 	public NativeArray<byte> lightMap1;
 	public NativeArray<byte> lightMap2;
@@ -817,7 +817,7 @@ public struct CalculateLightPropagationJob : IJob{
 				indexPlus = GetIndex(new int3(coord.x, coord.y, coord.z+1));
 			if(coord.x > 0)
 				indexBelow = GetIndex(new int3(coord.x-1, coord.y, coord.z));
-			if(coord.x < chunkDepth-1)
+			if(coord.x < chunkWidth-1)
 				indexAbove = GetIndex(new int3(coord.x+1, coord.y, coord.z));
 		}
 
