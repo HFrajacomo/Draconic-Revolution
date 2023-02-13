@@ -190,6 +190,7 @@ public class VoxelData
 		NativeArray<byte> lightMap;
 		NativeArray<byte> shadowMap;
 		NativeArray<byte> memoryLightMap;
+		NativeArray<byte> memoryShadowMap;
 		NativeList<int4> lightSources = new NativeList<int4>(0, Allocator.TempJob);
 		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
 		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0}, Allocator.TempJob);
@@ -197,10 +198,14 @@ public class VoxelData
 		NativeArray<bool> ceilingMap = NativeTools.CopyToNative(this.ceilingMap);
 		NativeArray<bool> neighborCeilingMap;
 
-		if(this.shadowMap == null)
+		if(this.shadowMap == null){
 			shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		else
+			memoryShadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
+		}
+		else{
 			shadowMap = NativeTools.CopyToNative(this.shadowMap);
+			memoryShadowMap = NativeTools.CopyToNative(this.shadowMap);
+		}
 		if(this.lightMap == null){
 			lightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 			memoryLightMap = new NativeArray<byte>(0, Allocator.TempJob);
@@ -271,6 +276,7 @@ public class VoxelData
 			lightMap = lightMap,
 			shadowMap = shadowMap,
 			memoryLightMap = memoryLightMap,
+			memoryShadowMap = memoryShadowMap,
 			lightSources = lightSources,
 			heightMap = heightMap,
 			chunkWidth = Chunk.chunkWidth,
@@ -307,6 +313,7 @@ public class VoxelData
         ceilingMap.Dispose();
         neighborCeilingMap.Dispose();
         memoryLightMap.Dispose();
+        memoryShadowMap.Dispose();
         directionalList.Dispose();
 	}
 

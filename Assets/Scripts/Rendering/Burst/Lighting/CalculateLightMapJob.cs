@@ -22,6 +22,8 @@ public struct CalculateLightMapJob : IJob{
 	[ReadOnly]
 	public NativeArray<byte> memoryLightMap;
 	[ReadOnly]
+	public NativeArray<byte> memoryShadowMap;
+	[ReadOnly]
 	public NativeArray<byte> heightMap;
 	[ReadOnly]
 	public int chunkWidth;
@@ -339,7 +341,7 @@ public struct CalculateLightMapJob : IJob{
 			for(z=0; z < chunkWidth; z++){
 				index = y*chunkWidth+z;
 
-				if(lightMap[index] != memoryLightMap[index]){
+				if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 					changed[0] = (byte)(changed[0] | 1);
 				}
 			}
@@ -351,7 +353,7 @@ public struct CalculateLightMapJob : IJob{
 			for(z=0; z < chunkWidth; z++){
 				index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 
-				if(lightMap[index] != memoryLightMap[index]){
+				if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 					changed[0] = (byte)(changed[0] | 2);
 				}
 			}
@@ -363,7 +365,7 @@ public struct CalculateLightMapJob : IJob{
 			for(x=0; x < chunkWidth; x++){
 				index = x*chunkWidth*chunkDepth+y*chunkWidth;
 
-				if(lightMap[index] != memoryLightMap[index]){
+				if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 					changed[0] = (byte)(changed[0] | 4);
 				}
 			}
@@ -375,7 +377,7 @@ public struct CalculateLightMapJob : IJob{
 			for(x=0; x < chunkWidth; x++){
 				index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 
-				if(lightMap[index] != memoryLightMap[index]){
+				if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 					changed[0] = (byte)(changed[0] | 8);
 				}
 			}
@@ -388,7 +390,7 @@ public struct CalculateLightMapJob : IJob{
 				for(x=0; x < chunkWidth; x++){
 					index = x*chunkWidth*chunkDepth+z;
 
-					if(lightMap[index] != memoryLightMap[index]){
+					if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 						changed[0] = (byte)(changed[0] | 16);
 					}
 				}
@@ -402,12 +404,22 @@ public struct CalculateLightMapJob : IJob{
 				for(x=0; x < chunkWidth; x++){
 					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 
-					if(lightMap[index] != memoryLightMap[index]){
+					if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 						changed[0] = (byte)(changed[0] | 32);
 					}
 				}
 			}
 		}
+	}
+
+	// Checks two shadow values should trigger a lighting propagation
+	private bool CheckValidShadowChange(byte oldShadow, byte newShadow){
+		if(oldShadow == 0 && newShadow != 0)
+			return true;
+		if(oldShadow != newShadow)
+			return true;
+
+		return false;
 	}
 
 	public void DetectDirectionals(bool extraLight=false){
