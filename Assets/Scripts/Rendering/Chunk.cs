@@ -892,6 +892,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].data.GetData());
 			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[0]].metadata));
 
 			BuildVerticalChunkJob bvcj = new BuildVerticalChunkJob {
 				pos = this.pos,
@@ -901,6 +902,7 @@ public class Chunk
 				state = metadata,
 				neighbordata = neighbordata,
 				neighborStates = neighborstate,
+				neighborlight = neighborlight,
 				lightdata = lightdata,
 				renderMap = renderMap,
 				verts = verts,
@@ -934,6 +936,7 @@ public class Chunk
 
 			neighbordata.Dispose();
 			neighborstate.Dispose();
+			neighborlight.Dispose();
 		}
 
 		// Bottom Side
@@ -943,6 +946,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].data.GetData());
 			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
+			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[1]].metadata));
 
 			BuildVerticalChunkJob bvcj = new BuildVerticalChunkJob {
 				pos = this.pos,
@@ -952,6 +956,7 @@ public class Chunk
 				state = metadata,
 				neighbordata = neighbordata,
 				neighborStates = neighborstate,
+				neighborlight = neighborlight,
 				lightdata = lightdata,
 				renderMap = renderMap,
 				verts = verts,
@@ -985,6 +990,7 @@ public class Chunk
 
 			neighbordata.Dispose();
 			neighborstate.Dispose();
+			neighborlight.Dispose();
 		}
 
 		// TopBot Sides
