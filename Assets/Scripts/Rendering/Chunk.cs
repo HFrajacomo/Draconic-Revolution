@@ -1828,7 +1828,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[0]].data.GetData());
 			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
-			//NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
 			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[3]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[3]].metadata));
 			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[2]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[2]].metadata));
 			NativeArray<byte> xzsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[5]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[5]].metadata));
@@ -1837,7 +1837,7 @@ public class Chunk
 				pos = this.pos,
 				data = blockdata,
 				state = metadata,
-				lightdata = lightdata,
+				cornerlight = cornerlight,
 				neighbordata = neighbordata,
 				neighborStates = neighborstate,
 				xsidelight = xsidelight,
@@ -1886,6 +1886,7 @@ public class Chunk
 			xsidelight.Dispose();
 			zsidelight.Dispose();
 			xzsidelight.Dispose();
+			cornerlight.Dispose();
 		}
 
 		// XPZM Top
@@ -1895,7 +1896,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[0]].data.GetData());
 			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
-			//NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
 			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[1]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[1]].metadata));
 			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[2]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[2]].metadata));
 			NativeArray<byte> xzsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[4]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[4]].metadata));
@@ -1904,7 +1905,7 @@ public class Chunk
 				pos = this.pos,
 				data = blockdata,
 				state = metadata,
-				lightdata = lightdata,
+				cornerlight = cornerlight,
 				neighbordata = neighbordata,
 				neighborStates = neighborstate,
 				xsidelight = xsidelight,
@@ -1953,6 +1954,7 @@ public class Chunk
 			xsidelight.Dispose();
 			zsidelight.Dispose();
 			xzsidelight.Dispose();
+			cornerlight.Dispose();
 		}
 
 		// XMZP Top
@@ -1962,7 +1964,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[0]].data.GetData());
 			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
-			//NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
 			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[3]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[3]].metadata));
 			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[0]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[0]].metadata));
 			NativeArray<byte> xzsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[6]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[6]].metadata));
@@ -1971,7 +1973,7 @@ public class Chunk
 				pos = this.pos,
 				data = blockdata,
 				state = metadata,
-				lightdata = lightdata,
+				cornerlight = cornerlight,
 				neighbordata = neighbordata,
 				neighborStates = neighborstate,
 				xsidelight = xsidelight,
@@ -2020,6 +2022,7 @@ public class Chunk
 			xsidelight.Dispose();
 			zsidelight.Dispose();
 			xzsidelight.Dispose();
+			cornerlight.Dispose();
 		}
 
 		// XPZP Top
@@ -2029,7 +2032,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[0]].data.GetData());
 			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
-			//NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
 			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[1]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[1]].metadata));
 			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[0]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[0]].metadata));
 			NativeArray<byte> xzsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[7]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[7]].metadata));
@@ -2038,7 +2041,7 @@ public class Chunk
 				pos = this.pos,
 				data = blockdata,
 				state = metadata,
-				lightdata = lightdata,
+				cornerlight = cornerlight,
 				neighbordata = neighbordata,
 				neighborStates = neighborstate,
 				xsidelight = xsidelight,
@@ -2087,6 +2090,7 @@ public class Chunk
 			xsidelight.Dispose();
 			zsidelight.Dispose();
 			xzsidelight.Dispose();
+			cornerlight.Dispose();
 		}
 
 		// XMZM Bot
@@ -2096,7 +2100,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[1]].data.GetData());
 			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
-			//NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[1]].metadata));
 			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[3]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[3]].metadata));
 			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[2]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[2]].metadata));
 			NativeArray<byte> xzsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[5]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[5]].metadata));
@@ -2105,7 +2109,7 @@ public class Chunk
 				pos = this.pos,
 				data = blockdata,
 				state = metadata,
-				lightdata = lightdata,
+				cornerlight = cornerlight,
 				neighbordata = neighbordata,
 				neighborStates = neighborstate,
 				xsidelight = xsidelight,
@@ -2154,6 +2158,7 @@ public class Chunk
 			xsidelight.Dispose();
 			zsidelight.Dispose();
 			xzsidelight.Dispose();
+			cornerlight.Dispose();
 		}
 
 		// XPZM Bot
@@ -2163,7 +2168,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[1]].data.GetData());
 			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
-			//NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[1]].metadata));
 			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[1]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[1]].metadata));
 			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[2]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[2]].metadata));
 			NativeArray<byte> xzsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[4]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[4]].metadata));
@@ -2172,7 +2177,7 @@ public class Chunk
 				pos = this.pos,
 				data = blockdata,
 				state = metadata,
-				lightdata = lightdata,
+				cornerlight = cornerlight,
 				neighbordata = neighbordata,
 				neighborStates = neighborstate,
 				xsidelight = xsidelight,
@@ -2221,6 +2226,7 @@ public class Chunk
 			xsidelight.Dispose();
 			zsidelight.Dispose();
 			xzsidelight.Dispose();
+			cornerlight.Dispose();
 		}
 
 		// XMZP Bot
@@ -2230,7 +2236,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[1]].data.GetData());
 			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
-			//NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[1]].metadata));
 			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[3]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[3]].metadata));
 			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[0]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[0]].metadata));
 			NativeArray<byte> xzsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[6]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[6]].metadata));
@@ -2239,7 +2245,7 @@ public class Chunk
 				pos = this.pos,
 				data = blockdata,
 				state = metadata,
-				lightdata = lightdata,
+				cornerlight = cornerlight,
 				neighbordata = neighbordata,
 				neighborStates = neighborstate,
 				xsidelight = xsidelight,
@@ -2288,6 +2294,7 @@ public class Chunk
 			xsidelight.Dispose();
 			zsidelight.Dispose();
 			xzsidelight.Dispose();
+			cornerlight.Dispose();
 		}
 
 		// XPZP Bot
@@ -2297,7 +2304,7 @@ public class Chunk
 
 			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[1]].data.GetData());
 			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
-			//NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
+			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[1]].metadata));
 			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[1]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[1]].metadata));
 			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[0]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[0]].metadata));
 			NativeArray<byte> xzsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[7]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[7]].metadata));
@@ -2306,7 +2313,7 @@ public class Chunk
 				pos = this.pos,
 				data = blockdata,
 				state = metadata,
-				lightdata = lightdata,
+				cornerlight = cornerlight,
 				neighbordata = neighbordata,
 				neighborStates = neighborstate,
 				xsidelight = xsidelight,
@@ -2355,6 +2362,7 @@ public class Chunk
 			xsidelight.Dispose();
 			zsidelight.Dispose();
 			xzsidelight.Dispose();
+			cornerlight.Dispose();
 		}
 
 		
