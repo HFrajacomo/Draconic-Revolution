@@ -1284,14 +1284,14 @@ public struct BuildBorderJob : IJob{
 	private int GetNeighborLight(int x, int y, int z, int dir, bool isNatural=true){
 		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
 
-		if(neighborCoord.x >= 16)
-			neighborCoord.x -= 16;
+		if(neighborCoord.x >= Chunk.chunkWidth)
+			neighborCoord.x -= Chunk.chunkWidth;
 		if(neighborCoord.x < 0)
-			neighborCoord.x += 16;
-		if(neighborCoord.z >= 16)
-			neighborCoord.z -= 16;
+			neighborCoord.x += Chunk.chunkWidth;
+		if(neighborCoord.z >= Chunk.chunkWidth)
+			neighborCoord.z -= Chunk.chunkWidth;
 		if(neighborCoord.z < 0)
-			neighborCoord.z += 16;
+			neighborCoord.z += Chunk.chunkWidth;
 
 		if(isNatural)
 			return lightdata[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z] & 0x0F;
@@ -1320,34 +1320,32 @@ public struct BuildBorderJob : IJob{
 	private int GetOtherLight(int x, int y, int z, int dir, bool isNatural=true, byte chunkDir=5, int currentLight=0){
 		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
 
-		if(neighborCoord.x >= 16)
+		if(neighborCoord.x >= Chunk.chunkWidth)
 			if(chunkDir == 1)
-				neighborCoord.x -= 16;
+				neighborCoord.x -= Chunk.chunkWidth;
 			else
 				return currentLight;
 
 		if(neighborCoord.x < 0)
 			if(chunkDir == 3)
-				neighborCoord.x += 16;
+				neighborCoord.x += Chunk.chunkWidth;
 			else
 				return currentLight;
 
-		if(neighborCoord.z >= 16)
+		if(neighborCoord.z >= Chunk.chunkWidth)
 			if(chunkDir == 0)
-				neighborCoord.z -= 16;
+				neighborCoord.z -= Chunk.chunkWidth;
 			else
 				return currentLight;
+
 		if(neighborCoord.z < 0)
 			if(chunkDir == 2)
-				neighborCoord.z += 16;
+				neighborCoord.z += Chunk.chunkWidth;
 			else
 				return currentLight;
 
-		// Temporary
-		if(neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth)
-			return 15;
-		if(neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z >= ushort.MaxValue)
-			return 15;
+		if(neighborCoord.y >= Chunk.chunkDepth || neighborCoord.y < 0)
+			return currentLight;
 
 		if(isNatural)
 			return neighborlight[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z] & 0x0F;
@@ -1357,9 +1355,24 @@ public struct BuildBorderJob : IJob{
 
 	// Gets neighbor light level
 	private int GetOtherLight(int x, int y, int z, bool isNatural=true){
-		// Temporary
-		if(y < 0)
-			return 15;
+		if(y < 0){
+			y++; 
+			
+			if(isNatural)
+				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else
+				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+
+		}
+		else if(y >= Chunk.chunkDepth){
+			y--;
+
+			if(isNatural)
+				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else
+				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+		}
+
 
 		if(isNatural)
 			return neighborlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
@@ -1371,18 +1384,21 @@ public struct BuildBorderJob : IJob{
 	private int GetOtherLight(int x, int y, int z, int3 dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + dir;
 
-		if(coord.x >= 16)
-			coord.x -= 16;
+		if(coord.x >= Chunk.chunkWidth)
+			coord.x -= Chunk.chunkWidth;
 		if(coord.x < 0)
-			coord.x += 16;
-		if(coord.z >= 16)
-			coord.z -= 16;
+			coord.x += Chunk.chunkWidth;
+		if(coord.z >= Chunk.chunkWidth)
+			coord.z -= Chunk.chunkWidth;
 		if(coord.z < 0)
-			coord.z += 16;
+			coord.z += Chunk.chunkWidth;
 
-		// Temporary
-		if(coord.y < 0)
-			return 15;
+		if(coord.y < 0 || coord.y >= Chunk.chunkDepth){
+			if(isNatural)
+				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else
+				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+		}
 
 		if(isNatural)
 			return neighborlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
@@ -1392,9 +1408,23 @@ public struct BuildBorderJob : IJob{
 
 	// Gets neighbor light level
 	private int GetOtherLight(int3 coord, bool isNatural=true){
-		// Temporary
-		if(coord.y < 0)
-			return 15;
+		if(coord.y < 0){
+			coord = new int3(coord.x, coord.y+1, coord.z); 
+			
+			if(isNatural)
+				return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+			else
+				return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
+
+		}
+		else if(coord.y >= Chunk.chunkDepth){
+			coord = new int3(coord.x, coord.y-1, coord.z);
+
+			if(isNatural)
+				return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+			else
+				return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
+		}
 
 		if(isNatural)
 			return neighborlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;

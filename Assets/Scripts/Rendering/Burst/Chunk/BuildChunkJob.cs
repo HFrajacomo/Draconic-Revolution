@@ -220,8 +220,12 @@ public struct BuildChunkJob : IJob{
 	private int GetNeighborLight(int x, int y, int z, int dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + VoxelData.offsets[dir];
 
-		if(coord.y >= Chunk.chunkDepth || coord.y < 0)
-			return 15;
+		if(coord.y >= Chunk.chunkDepth || coord.y < 0){
+			if(isNatural)
+				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else
+				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+		}
 
 		if(isNatural){
 			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
@@ -234,8 +238,12 @@ public struct BuildChunkJob : IJob{
 	private int GetNeighborLight(int x, int y, int z, int3 dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + dir;
 
-		if(coord.y >= Chunk.chunkDepth || coord.y < 0)
-			return 15;
+		if(coord.y >= Chunk.chunkDepth || coord.y < 0){
+			if(isNatural)
+				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else
+				return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+		}
 
 		if(isNatural)
 			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
