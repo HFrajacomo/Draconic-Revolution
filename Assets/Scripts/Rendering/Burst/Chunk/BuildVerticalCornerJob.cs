@@ -27,17 +27,19 @@ public struct BuildVerticalCornerJob : IJob{
 	[ReadOnly]
 	public NativeArray<ushort> state; // VoxelMetadata.state
 	[ReadOnly]
-	public NativeArray<ushort> neighbordata;
+	public NativeArray<byte> xlight;
 	[ReadOnly]
-	public NativeArray<ushort> neighborStates;
+	public NativeArray<byte> ylight;
 	[ReadOnly]
-	public NativeArray<byte> xsidelight;
+	public NativeArray<byte> zlight;
 	[ReadOnly]
-	public NativeArray<byte> zsidelight;
+	public NativeArray<byte> xylight;
 	[ReadOnly]
-	public NativeArray<byte> xzsidelight;
+	public NativeArray<byte> xzlight;
 	[ReadOnly]
-	public NativeArray<byte> cornerlight;
+	public NativeArray<byte> yzlight;
+	[ReadOnly]
+	public NativeArray<byte> xyzlight;
 	[ReadOnly]
 	public NativeArray<byte> renderMap;
 
@@ -85,64 +87,53 @@ public struct BuildVerticalCornerJob : IJob{
 	[ReadOnly]
 	public NativeArray<bool> blockDrawRegardless;
 
-	// Builds the chunk mesh data excluding the X- and Z- chunk border
 	public void Execute(){
 		ushort thisBlock;
-		ushort neighborBlock, neighborState;
 		ushort thisState;
-		bool isBlock, isNeighborBlock;
+		bool isBlock;
 		int3 neighborIndex;
+		int3 skipDirs;
+
 		int i = 0;
 
 		int x = 0;
 		int y = 0;
 		int z = 0;
-		int endX = 0;
-		int endY = 0;
-		int endZ = 0;
+
+		skipDirs = new int3(0,0,0);
 
 		if(isTop){
 			y = Chunk.chunkDepth-1;
-			endY = 0;
-			i = 4;
+			i = 5;
 		}
 		if(isBottom){
 			y = 0;
-			endY = Chunk.chunkDepth-1;
-			i = 5;
+			i = 4;
 		}
 		if(xmzm){
 			x = 0;
 			z = 0;
-			endX = Chunk.chunkWidth-1;
-			endZ = Chunk.chunkWidth-1;
+			skipDirs = new int3(i, 0, 1);
 		}
 		if(xmzp){
 			x = 0;
 			z = Chunk.chunkWidth-1;
-			endX = Chunk.chunkWidth-1;
-			endZ = 0;
+			skipDirs = new int3(i, 1, 2);
 		}
 		if(xpzm){
 			x = Chunk.chunkWidth-1;
 			z = 0;
-			endX = 0;
-			endZ = Chunk.chunkWidth-1;
+			skipDirs = new int3(i, 0, 3);
 		}
 		if(xpzp){
 			x = Chunk.chunkWidth-1;
 			z = Chunk.chunkWidth-1;
-			endX = 0;
-			endZ = 0;
+			skipDirs = new int3(i, 2, 3);
 		}
 
 		thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 		thisState = state[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-		neighborBlock = neighbordata[x*Chunk.chunkWidth*Chunk.chunkDepth+endY*Chunk.chunkWidth+z];
-		neighborState = neighborStates[x*Chunk.chunkWidth*Chunk.chunkDepth+endY*Chunk.chunkWidth+z];
-		neighborIndex = new int3(x, endY, z);
 		isBlock = thisBlock <= ushort.MaxValue/2;
-		isNeighborBlock = neighborBlock <= ushort.MaxValue/2;
 
 		// If current is invisible, ignore
 		if(isBlock){
@@ -154,33 +145,13 @@ public struct BuildVerticalCornerJob : IJob{
 			return;
 		}
 
-		////////// -----------------------------------
+		for(i = 0; i < 6; i++){
+			if(i == skipDirs.x || i == skipDirs.y || i == skipDirs.z)
+				continue;
 
-		// Handles Liquid chunks
-		if(isBlock){
-			if(blockSeamless[neighborBlock]){
-    			if(CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
-    				return;
-    			}
-			}
+			neighborIndex = new int3(x, y, z) + VoxelData.offsets[i];
 
-		}
-		else{
-			if(objectSeamless[ushort.MaxValue-neighborBlock]){
-    			if(CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
-    				return;
-    			}    				
-			}
-		}
-
-
-		if(isNeighborBlock){
-			if(Boolean(blockTransparent[neighborBlock]))
-			    LoadMesh(x, y, z, i, thisBlock, neighborIndex, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
-		}
-		else{
-			if(Boolean(objectTransparent[ushort.MaxValue-neighborBlock]))
-			    LoadMesh(x, y, z, i, thisBlock, neighborIndex, cacheCubeVert, cacheCubeUV, cacheCubeNormal);		    				
+			LoadMesh(x, y, z, i, thisBlock, neighborIndex, cacheCubeVert, cacheCubeUV, cacheCubeNormal);
 		}
 	}
 
@@ -216,8 +187,20 @@ public struct BuildVerticalCornerJob : IJob{
     }
 
     private void CalculateLightCorners(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel){
+    	// North
+    	if(dir == 0)
+    		SetCorner(array, pos, currentLightLevel, 1, 4, 3, 5, 0);
+    	// East
+    	else if(dir == 1)
+    		SetCorner(array, pos, currentLightLevel, 2, 4, 0, 5, 1);
+    	// South
+     	else if(dir == 2)
+    		SetCorner(array, pos, currentLightLevel, 3, 4, 1, 5, 2);
+    	// West
+      	else if(dir == 3)
+    		SetCorner(array, pos, currentLightLevel, 0, 4, 2, 5, 3);
       	// Up
-    	if(dir == 4)
+    	else if(dir == 4)
     		SetCorner(array, pos, currentLightLevel, 1, 2, 3, 0, 4);
     	// Down
      	else
@@ -225,8 +208,20 @@ public struct BuildVerticalCornerJob : IJob{
     }
 
     private void CalculateLightCornersExtra(int3 pos, int dir, NativeArray<Vector2> array, int currentLightLevel){
+    	// North
+    	if(dir == 0)
+    		SetCornerExtra(array, pos, currentLightLevel, 1, 4, 3, 5, 0);
+    	// East
+    	else if(dir == 1)
+    		SetCornerExtra(array, pos, currentLightLevel, 2, 4, 0, 5, 1);
+    	// South
+     	else if(dir == 2)
+    		SetCornerExtra(array, pos, currentLightLevel, 3, 4, 1, 5, 2);
+    	// West
+      	else if(dir == 3)
+    		SetCornerExtra(array, pos, currentLightLevel, 0, 4, 2, 5, 3);
       	// Up
-    	if(dir == 4)
+    	else if(dir == 4)
     		SetCornerExtra(array, pos, currentLightLevel, 1, 2, 3, 0, 4);
     	// Down
      	else
@@ -282,16 +277,62 @@ public struct BuildVerticalCornerJob : IJob{
     }
 
 	private int GetOtherLight(int x, int y, int z, bool isNatural=true){
-		if(isNatural)
-			return cornerlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
-		else
-			return cornerlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+		bool xSide = false;
+		bool zSide = false;
+		bool ySide = false;
+
+		if(x < 0){
+			x = Chunk.chunkWidth-1;
+			xSide = true;
+		}
+		else if(x >= Chunk.chunkWidth){
+			x = 0;
+			xSide = true;
+		}
+		if(z < 0){
+			z = Chunk.chunkWidth-1;
+			zSide = true;
+		}
+		else if(z >= Chunk.chunkWidth){
+			z = 0;
+			zSide = true;
+		}
+		if(y < 0){
+			y = Chunk.chunkDepth-1;
+			ySide = true;
+		}
+		else if(y >= Chunk.chunkDepth){
+			y = 0;
+			ySide = true;
+		}
+
+		if(isNatural){
+			if(xSide)
+				return xlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(ySide)
+				return ylight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(zSide)
+				return zlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else
+				return 15;
+		}
+		else{
+			if(xSide)
+				return xlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(ySide)
+				return ylight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(zSide)
+				return zlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;			
+			else
+				return 15;
+		}
 	}
 
 	private int GetOtherLight(int x, int y, int z, int dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + VoxelData.offsets[dir];
 		bool xSide = false;
 		bool zSide = false;
+		bool ySide = false;
 
 		x = coord.x;
 		y = coord.y;
@@ -313,22 +354,50 @@ public struct BuildVerticalCornerJob : IJob{
 			z = 0;
 			zSide = true;
 		}
+		if(y < 0){
+			y = Chunk.chunkDepth-1;
+			ySide = true;
+		}
+		else if(y >= Chunk.chunkDepth){
+			y = 0;
+			ySide = true;
+		}
 
 		if(isNatural){
-			if(xSide && zSide)
-				return xzsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			if(xSide && zSide && ySide)
+				return xyzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(xSide && ySide)
+				return xylight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(xSide && zSide)
+				return xzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(ySide && zSide)
+				return yzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 			else if(xSide)
-				return xsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				return xlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(ySide)
+				return ylight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(zSide)
+				return zlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 			else
-				return zsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				return 15;
 		}
 		else{
-			if(xSide && zSide)
-				return xzsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			if(xSide && zSide && ySide)
+				return xyzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(xSide && ySide)
+				return xylight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(xSide && zSide)
+				return xzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(ySide && zSide)
+				return yzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
 			else if(xSide)
-				return xsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				return xlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(ySide)
+				return ylight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(zSide)
+				return zlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
 			else
-				return zsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				return 15;
 		}
 	}
 
@@ -336,6 +405,7 @@ public struct BuildVerticalCornerJob : IJob{
 		int3 coord = new int3(x, y, z) + dir;
 		bool xSide = false;
 		bool zSide = false;
+		bool ySide = false;
 
 		x = coord.x;
 		y = coord.y;
@@ -357,42 +427,48 @@ public struct BuildVerticalCornerJob : IJob{
 			z = 0;
 			zSide = true;
 		}
+		if(y < 0){
+			y = Chunk.chunkDepth-1;
+			ySide = true;
+		}
+		else if(y >= Chunk.chunkDepth){
+			y = 0;
+			ySide = true;
+		}
 
 		if(isNatural){
-			if(xSide && zSide)
-				return xzsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			if(xSide && zSide && ySide)
+				return xyzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(xSide && ySide)
+				return xylight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(xSide && zSide)
+				return xzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(ySide && zSide)
+				return yzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 			else if(xSide)
-				return xsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				return xlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+			else if(ySide)
+				return ylight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 			else
-				return zsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				return zlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
 		}
 		else{
-			if(xSide && zSide)
-				return xzsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			if(xSide && zSide && ySide)
+				return xyzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(xSide && ySide)
+				return xylight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(xSide && zSide)
+				return xzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(ySide && zSide)
+				return yzlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
 			else if(xSide)
-				return xsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				return xlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+			else if(ySide)
+				return ylight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
 			else
-				return zsidelight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				return zlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
 		}
 	}
-
-    private bool CheckSeams(int thisBlock, int neighborBlock, ushort thisState, ushort neighborState){
-    	bool thisSeamless;
-    	bool neighborSeamless;
-
-
-    	if(thisBlock <= ushort.MaxValue/2)
-    		thisSeamless = blockSeamless[thisBlock];
-    	else
-    		thisSeamless = objectSeamless[ushort.MaxValue-thisBlock];
-
-    	if(neighborBlock <= ushort.MaxValue/2)
-    		neighborSeamless = blockSeamless[neighborBlock];
-    	else
-    		neighborSeamless = objectSeamless[ushort.MaxValue-neighborBlock];
-
-    	return thisSeamless && neighborSeamless && (thisBlock == neighborBlock) && thisState == neighborState;
-    }
 
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
     // Returns true if loaded a blocktype mesh and false if it's an asset to be loaded later
