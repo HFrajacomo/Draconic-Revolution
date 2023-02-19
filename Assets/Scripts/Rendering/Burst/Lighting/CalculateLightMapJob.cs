@@ -71,6 +71,8 @@ public struct CalculateLightMapJob : IJob{
 		bool initiateExtraLightSearch = false;
 		int lastIndex = directionalList.Length - 1;
 		int index = 0;
+		visited.Clear();
+
 		bfsqSize = 0;
 
 		if(directionalList.Length > 0){
@@ -676,7 +678,7 @@ public struct CalculateLightMapJob : IJob{
 
 	// Checks the surroundings and adds light fallout
 	public void ScanDirectionals(int3 c, byte currentLight, bool isNatural, byte newShadow){
-		if(currentLight == 0)
+		if(currentLight <= 1)
 			return;
 
 		int3 aux;

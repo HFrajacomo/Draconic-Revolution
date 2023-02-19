@@ -769,7 +769,7 @@ public struct CalculateLightPropagationJob : IJob{
 
 	// Checks if there's a voxel around in the same chunk that generated the one provided by index
 	public bool CheckPropagatorAround(NativeArray<byte> lightMap, NativeArray<byte> shadowMap, int3 coord, byte borderCode, bool extraLight=false){
-		int indexAbove, indexBelow, indexPlus, indexMinus;
+		int indexAbove, indexBelow, indexPlus, indexMinus, indexNext, indexPrev;
 		int index = GetIndex(coord);
 		byte currentShadow, currentLight;
 
@@ -786,6 +786,8 @@ public struct CalculateLightPropagationJob : IJob{
 		indexBelow = -1;
 		indexPlus = -1;
 		indexMinus = -1;
+		indexNext = -1;
+		indexPrev = -1;
 
 		if(borderCode == 0 || borderCode == 1){
 			if(coord.x > 0)
@@ -796,6 +798,10 @@ public struct CalculateLightPropagationJob : IJob{
 				indexBelow = GetIndex(new int3(coord.x, coord.y-1, coord.z));
 			if(coord.y < chunkDepth-1)
 				indexAbove = GetIndex(new int3(coord.x, coord.y+1, coord.z));
+			if(coord.z > 0)
+				indexPrev = GetIndex(new int3(coord.x, coord.y, coord.z-1));
+			if(coord.z < chunkWidth-1)
+				indexNext = GetIndex(new int3(coord.x, coord.y, coord.z+1));
 		}
 		else if(borderCode == 2 || borderCode == 3){
 			if(coord.z > 0)
@@ -806,6 +812,10 @@ public struct CalculateLightPropagationJob : IJob{
 				indexBelow = GetIndex(new int3(coord.x, coord.y-1, coord.z));
 			if(coord.y < chunkDepth-1)
 				indexAbove = GetIndex(new int3(coord.x, coord.y+1, coord.z));
+			if(coord.x > 0)
+				indexPrev = GetIndex(new int3(coord.x-1, coord.y, coord.z));
+			if(coord.x < chunkWidth-1)
+				indexNext = GetIndex(new int3(coord.x+1, coord.y, coord.z));
 		}
 		else{
 			if(coord.z > 0)
@@ -816,6 +826,10 @@ public struct CalculateLightPropagationJob : IJob{
 				indexBelow = GetIndex(new int3(coord.x-1, coord.y, coord.z));
 			if(coord.x < chunkWidth-1)
 				indexAbove = GetIndex(new int3(coord.x+1, coord.y, coord.z));
+			if(coord.y > 0)
+				indexPrev = GetIndex(new int3(coord.x, coord.y-1, coord.z));
+			if(coord.y < chunkDepth-1)
+				indexNext = GetIndex(new int3(coord.x, coord.y+1, coord.z));
 		}
 
 		if(!extraLight){
@@ -835,6 +849,14 @@ public struct CalculateLightPropagationJob : IJob{
 				if((shadowMap[indexMinus] & 0x0F) == currentShadow && (lightMap[indexMinus] & 0x0F) == currentLight)
 					return true;
 			}
+			if(indexPrev >= 0){
+				if((shadowMap[indexPrev] & 0x0F) == currentShadow && (lightMap[indexPrev] & 0x0F) == currentLight)
+					return true;
+			}
+			if(indexNext >= 0){
+				if((shadowMap[indexNext] & 0x0F) == currentShadow && (lightMap[indexNext] & 0x0F) == currentLight)
+					return true;
+			}
 		}
 		else{
 			if(indexAbove >= 0){
@@ -852,7 +874,15 @@ public struct CalculateLightPropagationJob : IJob{
 			if(indexMinus >= 0){
 				if((shadowMap[indexMinus] >> 4) == currentShadow && (lightMap[indexMinus] >> 4) == currentLight)
 					return true;
-			}			
+			}
+			if(indexPrev >= 0){
+				if((shadowMap[indexPrev] & 0x0F) == currentShadow && (lightMap[indexPrev] >> 4) == currentLight)
+					return true;
+			}
+			if(indexNext >= 0){
+				if((shadowMap[indexNext] & 0x0F) == currentShadow && (lightMap[indexNext] >> 4) == currentLight)
+					return true;
+			}		
 		}
 
 		return false;

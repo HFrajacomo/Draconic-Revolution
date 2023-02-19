@@ -64,21 +64,9 @@ public struct CalculateShadowMapJob : IJob{
 					isBlock = blockCode <= ushort.MaxValue/2;
 
 					// If is above heightMap
-					if(y > heightMap[x*chunkWidth+z] || (!ceilingMap[x*chunkWidth+z] && heightMap[x*chunkWidth+z] == 0)){
-						if(!hasCeiling){
-							shadowMap[index] = 18;
-							lightMap[index] = (byte)((lightMap[index] & 0xF0) | 15);
-						}
-						else{
-							if((shadowMap[index] & 0x0F) < 7){
-								shadowMap[index] = 17;
-								lightMap[index] = (byte)(lightMap[index] & 0xF0);
-							}
-							else if(CheckBorder(x, y, z) == 0){
-								shadowMap[index] = 17;
-								lightMap[index] = (byte)(lightMap[index] & 0xF0);
-							}
-						}
+					if((y > heightMap[x*chunkWidth+z] && !hasCeiling) || (!ceilingMap[x*chunkWidth+z] && heightMap[x*chunkWidth+z] == 0)){
+						shadowMap[index] = 18;
+						lightMap[index] = (byte)((lightMap[index] & 0xF0) | 15);
 
 						// Gets lightsource
 						if(isBlock){
@@ -166,7 +154,7 @@ public struct CalculateShadowMapJob : IJob{
 					isBlock = blockCode <= ushort.MaxValue/2;
 
 					// If is above heightMap
-					if(y > heightMap[x*chunkWidth+z] || !ceilingMap[x*chunkWidth+z]){
+					if((y > heightMap[x*chunkWidth+z] || !ceilingMap[x*chunkWidth+z]) && cpos.y == Chunk.chunkMaxY){
 						shadowMap[index] = 18;
 
 						// Gets lightsource

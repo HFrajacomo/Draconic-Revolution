@@ -350,6 +350,12 @@ public class ChunkLoader : MonoBehaviour
             if(!this.toDraw.Contains(cp))
                 this.toDraw.Add(cp);
 
+            // Vertical chunk update
+            // DEBUG
+            this.cachePos = new ChunkPos(cp.x, cp.z, cp.y-1);
+            if(this.chunks.ContainsKey(this.cachePos))
+                AddToUpdate(this.cachePos);
+
             AddToRedraw(cp);
 
             toLoad.RemoveAt(0);
