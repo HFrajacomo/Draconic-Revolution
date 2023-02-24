@@ -12776,7 +12776,7 @@ MonoBehaviour:
   taaSharpenStrength: 1
   TAAQuality: 2
   taaHistorySharpening: 0
-  taaAntiFlicker: 1
+  taaAntiFlicker: 0
   taaMotionVectorRejection: 0.2
   taaAntiHistoryRinging: 0
   taaBaseBlendFactor: 0.875
