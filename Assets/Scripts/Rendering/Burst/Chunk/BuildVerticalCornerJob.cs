@@ -92,7 +92,6 @@ public struct BuildVerticalCornerJob : IJob{
 		ushort thisState;
 		bool isBlock;
 		int3 neighborIndex;
-		int3 skipDirs;
 
 		int i = 0;
 
@@ -100,35 +99,27 @@ public struct BuildVerticalCornerJob : IJob{
 		int y = 0;
 		int z = 0;
 
-		skipDirs = new int3(0,0,0);
-
 		if(isTop){
 			y = Chunk.chunkDepth-1;
-			i = 5;
 		}
 		if(isBottom){
 			y = 0;
-			i = 4;
 		}
 		if(xmzm){
 			x = 0;
 			z = 0;
-			skipDirs = new int3(i, 0, 1);
 		}
 		if(xmzp){
 			x = 0;
 			z = Chunk.chunkWidth-1;
-			skipDirs = new int3(i, 1, 2);
 		}
 		if(xpzm){
 			x = Chunk.chunkWidth-1;
 			z = 0;
-			skipDirs = new int3(i, 0, 3);
 		}
 		if(xpzp){
 			x = Chunk.chunkWidth-1;
 			z = Chunk.chunkWidth-1;
-			skipDirs = new int3(i, 2, 3);
 		}
 
 		thisBlock = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
@@ -146,8 +137,6 @@ public struct BuildVerticalCornerJob : IJob{
 		}
 
 		for(i = 0; i < 6; i++){
-			if(i == skipDirs.x || i == skipDirs.y || i == skipDirs.z)
-				continue;
 
 			neighborIndex = new int3(x, y, z) + VoxelData.offsets[i];
 
@@ -167,6 +156,13 @@ public struct BuildVerticalCornerJob : IJob{
 	    	array[3] = new Vector2(maxLightLevel, 1);
 	    	return;
     	}
+    	else if(currentLightLevel == 0){
+	    	array[0] = new Vector2(0, 1);
+	    	array[1] = new Vector2(0, 1);
+	    	array[2] = new Vector2(0, 1);
+	    	array[3] = new Vector2(0, 1);
+	    	return;
+    	}
 
     	CalculateLightCorners(neighborIndex, dir, array, currentLightLevel);
     }
@@ -180,6 +176,13 @@ public struct BuildVerticalCornerJob : IJob{
 	    	array[1] = new Vector2(array[1].x, maxLightLevel);
 	    	array[2] = new Vector2(array[2].x, maxLightLevel);
 	    	array[3] = new Vector2(array[3].x, maxLightLevel);
+	    	return;
+    	}
+    	else if(currentLightLevel == 0){
+	    	array[0] = new Vector2(array[0].x, 0);
+	    	array[1] = new Vector2(array[1].x, 0);
+	    	array[2] = new Vector2(array[2].x, 0);
+	    	array[3] = new Vector2(array[3].x, 0);
 	    	return;
     	}
 
@@ -709,7 +712,15 @@ public struct BuildVerticalCornerJob : IJob{
 	public void CalculateNormal(NativeArray<Vector3> normals, int dir){
 		Vector3 normal;
 
-		if(dir == 4)
+		if(dir == 0)
+			normal = new Vector3(0, 0, 1);
+		else if(dir == 1)
+			normal = new Vector3(1, 0, 0);
+		else if(dir == 2)
+			normal = new Vector3(0, 0, -1);
+		else if(dir == 3)
+			normal = new Vector3(-1, 0, 0);
+		else if(dir == 4)
 			normal = new Vector3(0, 1, 0);
 		else
 			normal = new Vector3(0, -1, 0);

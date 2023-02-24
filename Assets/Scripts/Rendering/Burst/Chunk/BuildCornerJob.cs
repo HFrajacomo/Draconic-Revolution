@@ -92,7 +92,7 @@ public struct BuildCornerJob : IJob{
 		// XMZM
 		if(xmzm){
 			chunkDir = 5;
-			for(int y=0; y<Chunk.chunkDepth; y++){
+			for(int y=1; y<Chunk.chunkDepth-1; y++){
 				for(int i=0; i < 6; i++){
 					int x = 0;
 					int z = 0;
@@ -168,7 +168,7 @@ public struct BuildCornerJob : IJob{
 		else if(xpzm){
 			chunkDir = 4;
 
-			for(int y=0; y<Chunk.chunkDepth; y++){
+			for(int y=1; y<Chunk.chunkDepth-1; y++){
 				for(int i=0; i < 6; i++){
 					int x = Chunk.chunkWidth-1;
 					int z = 0;
@@ -244,7 +244,7 @@ public struct BuildCornerJob : IJob{
 		else if(xmzp){
 			chunkDir = 6;
 
-			for(int y=0; y<Chunk.chunkDepth; y++){
+			for(int y=1; y<Chunk.chunkDepth-1; y++){
 				for(int i=0; i < 6; i++){
 					int x = 0;
 					int z = Chunk.chunkWidth-1;
@@ -320,7 +320,7 @@ public struct BuildCornerJob : IJob{
 		else if(xpzp){
 			chunkDir = 7;
 
-			for(int y=0; y<Chunk.chunkDepth; y++){
+			for(int y=1; y<Chunk.chunkDepth-1; y++){
 				for(int i=0; i < 6; i++){
 					int x = Chunk.chunkWidth-1;
 					int z = Chunk.chunkWidth-1;
