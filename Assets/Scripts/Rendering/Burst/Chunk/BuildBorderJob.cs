@@ -33,6 +33,7 @@ public struct BuildBorderJob : IJob{
 	public NativeList<Vector2> uvs;
 	public NativeList<Vector2> lightUV;
 	public NativeList<Vector3> normals;
+	public NativeList<Vector4> tangents;
 
 	// Render Thread Triangles
 	public NativeList<int> normalTris;
@@ -45,6 +46,7 @@ public struct BuildBorderJob : IJob{
 	public NativeArray<Vector3> cachedCubeVerts;
 	public NativeArray<Vector2> cachedUVVerts;
 	public NativeArray<Vector3> cachedCubeNormal;
+	public NativeArray<Vector4> cacheCubeTangent;
 
 	// Block Encyclopedia Data
 	[ReadOnly]
@@ -530,6 +532,9 @@ public struct BuildBorderJob : IJob{
 
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);
+
+    		CalculateTangent(cacheCubeTangent, dir);
+    		tangents.AddRange(cacheCubeTangent);
     		
 	    	normalTris.Add(vCount -4);
 	    	normalTris.Add(vCount -4 +1);
@@ -557,6 +562,9 @@ public struct BuildBorderJob : IJob{
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);
 
+    		CalculateTangent(cacheCubeTangent, dir);
+    		tangents.AddRange(cacheCubeTangent);
+    		
 	    	specularTris.Add(vCount -4);
 	    	specularTris.Add(vCount -4 +1);
 	    	specularTris.Add(vCount -4 +2);
@@ -583,6 +591,9 @@ public struct BuildBorderJob : IJob{
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);    		
 
+    		CalculateTangent(cacheCubeTangent, dir);
+    		tangents.AddRange(cacheCubeTangent);
+    		
 	    	liquidTris.Add(vCount -4);
 	    	liquidTris.Add(vCount -4 +1);
 	    	liquidTris.Add(vCount -4 +2);
@@ -609,6 +620,9 @@ public struct BuildBorderJob : IJob{
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);
 
+    		CalculateTangent(cacheCubeTangent, dir);
+    		tangents.AddRange(cacheCubeTangent);
+    		
 	    	leavesTris.Add(vCount -4);
 	    	leavesTris.Add(vCount -4 +1);
 	    	leavesTris.Add(vCount -4 +2);
@@ -635,6 +649,9 @@ public struct BuildBorderJob : IJob{
     		CalculateNormal(cacheCubeNormal, dir);
     		normals.AddRange(cacheCubeNormal);
 
+    		CalculateTangent(cacheCubeTangent, dir);
+    		tangents.AddRange(cacheCubeTangent);
+    		
 	    	iceTris.Add(vCount -4);
 	    	iceTris.Add(vCount -4 +1);
 	    	iceTris.Add(vCount -4 +2);
@@ -1493,4 +1510,25 @@ public struct BuildBorderJob : IJob{
 		normals[3] = normal;
 	}
 
+	public void CalculateTangent(NativeArray<Vector4> tangents, int dir){
+		Vector4 tangent;
+
+		if(dir == 0)
+			tangent = new Vector4(1, 0, 0, -1);
+		else if(dir == 1)
+			tangent = new Vector4(0, 0, 1, -1);
+		else if(dir == 2)
+			tangent = new Vector4(-1, 0, 0, -1);
+		else if(dir == 3)
+			tangent = new Vector4(0, 0, -1, -1);
+		else if(dir == 4)
+			tangent = new Vector4(0, 0, 1, -1);
+		else
+			tangent = new Vector4(0, 0, -1, -1);
+
+		tangents[0] = tangent;
+		tangents[1] = tangent;
+		tangents[2] = tangent;
+		tangents[3] = tangent;
+	}
 }

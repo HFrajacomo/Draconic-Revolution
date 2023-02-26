@@ -103,6 +103,7 @@ public class Chunk
   	private List<Vector2> UVs = new List<Vector2>();
   	private List<Vector2> lightUVMain = new List<Vector2>();
   	private List<Vector3> normals = new List<Vector3>();
+    private List<Vector4> tangents = new List<Vector4>();
 
   	// Decal Mesh Information
   	private List<Vector3> decalVertices = new List<Vector3>();
@@ -116,14 +117,15 @@ public class Chunk
     private List<int> cacheTris = new List<int>();
     private List<Vector2> cacheUVv2 = new List<Vector2>();
     private List<Vector3> cacheNormals = new List<Vector3>();
+    private List<Vector4> cacheTangents = new List<Vector4>();
     private List<int> indexVert = new List<int>();
     private List<int> indexUV = new List<int>();
     private List<int> indexTris = new List<int>();
-    private List<int> indexNormals = new List<int>();
     private List<Vector3> scalingFactor = new List<Vector3>();
     private List<Vector2> UVaux = new List<Vector2>();
     private List<Vector3> vertexAux = new List<Vector3>();
     private List<Vector3> normalAux = new List<Vector3>();
+    private List<Vector4> tangentAux = new List<Vector4>();
     private List<Vector3> cacheHitboxVerts = new List<Vector3>();
     private List<Vector3> cacheHitboxNormals = new List<Vector3>();
     private List<int> cacheHitboxTriangles = new List<int>();
@@ -432,6 +434,7 @@ public class Chunk
 		NativeList<Vector2> uvs = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector2> lightUV = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<Vector4> tangents = new NativeList<Vector4>(0, Allocator.TempJob);
 		NativeList<int> tris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
@@ -445,6 +448,7 @@ public class Chunk
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector2> cacheUVVerts = new NativeArray<Vector2>(4, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
+		NativeArray<Vector4> cacheCubeTangent = new NativeArray<Vector4>(4, Allocator.TempJob);
 
 		// Decals
 		NativeList<Vector3> vertsDecal = new NativeList<Vector3>(0, Allocator.TempJob);
@@ -458,6 +462,7 @@ public class Chunk
 		NativeArray<Vector2> disposableUVS = NativeTools.CopyToNative<Vector2>(this.UVs.ToArray());
 		NativeArray<Vector2> disposableLight = NativeTools.CopyToNative<Vector2>(this.lightUVMain.ToArray());
 		NativeArray<Vector3> disposableNormals = NativeTools.CopyToNative<Vector3>(this.normals.ToArray());
+		NativeArray<Vector4> disposableTangents = NativeTools.CopyToNative<Vector4>(this.tangents.ToArray());
 
 		// Decals
 		NativeArray<Vector3> disposableVertsDecal = NativeTools.CopyToNative<Vector3>(this.decalVertices.ToArray());
@@ -486,6 +491,7 @@ public class Chunk
 		leavesTris.AddRange(disposableLeavesTris);
 		iceTris.AddRange(disposableIceTris);
 		normals.AddRange(disposableNormals);
+		tangents.AddRange(disposableTangents);
 		vertsDecal.AddRange(disposableVertsDecal);
 		UVDecal.AddRange(disposableUVSDecal);
 		trisDecal.AddRange(disposableDecalTris);
@@ -500,6 +506,7 @@ public class Chunk
 		disposableSpecTris.Dispose();
 		disposableLiquidTris.Dispose();
 		disposableNormals.Dispose();
+		disposableTangents.Dispose();
 		disposableLight.Dispose();
 		disposableLeavesTris.Dispose();
 		disposableIceTris.Dispose();
@@ -531,6 +538,7 @@ public class Chunk
 				verts = verts,
 				uvs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -541,6 +549,7 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -627,6 +636,7 @@ public class Chunk
 				verts = verts,
 				uvs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -637,6 +647,7 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -723,6 +734,7 @@ public class Chunk
 				verts = verts,
 				uvs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -733,6 +745,7 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -817,6 +830,7 @@ public class Chunk
 				verts = verts,
 				uvs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -827,6 +841,7 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -909,6 +924,7 @@ public class Chunk
 				UVs = uvs,
 				lightUV = lightUV,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -917,6 +933,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -963,6 +980,7 @@ public class Chunk
 				UVs = uvs,
 				lightUV = lightUV,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -971,6 +989,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1024,6 +1043,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1034,6 +1054,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1086,6 +1107,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1096,6 +1118,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1148,6 +1171,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1158,6 +1182,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1210,6 +1235,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1220,6 +1246,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1272,6 +1299,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1282,6 +1310,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1334,6 +1363,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1344,6 +1374,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1396,6 +1427,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1406,6 +1438,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1458,6 +1491,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1468,6 +1502,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1525,6 +1560,7 @@ public class Chunk
 				verts = verts,
 				uvs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1535,6 +1571,7 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1607,6 +1644,7 @@ public class Chunk
 				verts = verts,
 				uvs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1617,6 +1655,7 @@ public class Chunk
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1674,7 +1713,6 @@ public class Chunk
 				zsidelight = zsidelight,
 				cornerdata = cornerdata,
 				cornerlight = cornerlight,
-
 				pos = this.pos,
 				toBUD = toBUD,
 				reload = loadBUD,
@@ -1689,16 +1727,17 @@ public class Chunk
 				verts = verts,
 				uvs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
 				lightUV = lightUV,
-
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1771,16 +1810,17 @@ public class Chunk
 				verts = verts,
 				uvs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
 				lightUV = lightUV,
-
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1855,6 +1895,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1864,6 +1905,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1924,6 +1966,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -1933,6 +1976,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -1993,6 +2037,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -2002,6 +2047,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -2062,6 +2108,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -2071,6 +2118,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -2132,6 +2180,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -2141,6 +2190,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -2201,6 +2251,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -2210,6 +2261,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -2270,6 +2322,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -2280,6 +2333,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -2340,6 +2394,7 @@ public class Chunk
 				verts = verts,
 				UVs = uvs,
 				normals = normals,
+				tangents = tangents,
 				normalTris = tris,
 				specularTris = specularTris,
 				liquidTris = liquidTris,
@@ -2350,6 +2405,7 @@ public class Chunk
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
+				cacheCubeTangent = cacheCubeTangent,
 				blockTransparent = BlockEncyclopediaECS.blockTransparent,
 				objectTransparent = BlockEncyclopediaECS.objectTransparent,
 				blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -2397,9 +2453,11 @@ public class Chunk
 		verts.Dispose();
 		uvs.Dispose();
 		normals.Dispose();
+		tangents.Dispose();
 		cacheCubeVert.Dispose();
 		cacheUVVerts.Dispose();
 		cacheCubeNormal.Dispose();
+		cacheCubeTangent.Dispose();
 		toLoadEvent.Dispose();
 		toBUD.Dispose();
 		lightUV.Dispose();
@@ -2478,22 +2536,10 @@ public class Chunk
 		/*
 		Reset Chunk side rebuilding
 		*/
-
-		// DEBUG
-		/*
-		drawMain = true;
-		this.triangles = new int[0];
-    	this.specularTris = new int[0];
-    	this.liquidTris = new int[0];
-    	this.iceTris = new int[0];
-    	this.assetTris = new int[0];
-    	this.decalTris = new int[0];
-    	this.leavesTris = new int[0];
-    	return;
-    	*/
     	
     	this.vertices.Clear();
     	this.normals.Clear();
+    	this.tangents.Clear();
     	this.triangles = null;
     	this.specularTris = null;
     	this.liquidTris = null;
@@ -2523,9 +2569,11 @@ public class Chunk
 		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector2> lightUV = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<Vector4> tangents = new NativeList<Vector4>(0, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector2> cacheCubeUV = new NativeArray<Vector2>(4, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
+		NativeArray<Vector4> cacheCubeTangent = new NativeArray<Vector4>(4, Allocator.TempJob);
 
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{
@@ -2541,6 +2589,7 @@ public class Chunk
 			UVs = UVs,
 			lightUV = lightUV,
 			normals = normals,
+			tangents = tangents,
 			normalTris = normalTris,
 			specularTris = specularTris,
 			liquidTris = liquidTris,
@@ -2549,6 +2598,7 @@ public class Chunk
 			cacheCubeVert = cacheCubeVert,
 			cacheCubeUV = cacheCubeUV,
 			cacheCubeNormal = cacheCubeNormal,
+			cacheCubeTangent = cacheCubeTangent,
 			blockTransparent = BlockEncyclopediaECS.blockTransparent,
 			objectTransparent = BlockEncyclopediaECS.objectTransparent,
 			blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -2597,12 +2647,15 @@ public class Chunk
 				this.indexUV.Add(this.indexUV[indexUV.Count-1] + UVaux.Count);
 				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetNormals(normalAux);
 				this.cacheNormals.AddRange(normalAux.ToArray());
+				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTangents(tangentAux);
+				this.cacheTangents.AddRange(tangentAux.ToArray());
 				this.scalingFactor.Add(BlockEncyclopediaECS.objectScaling[ushort.MaxValue-assetCode]);
 				this.hitboxScaling.Add(BlockEncyclopediaECS.hitboxScaling[ushort.MaxValue-assetCode]);
 
 				vertexAux.Clear();
 				UVaux.Clear();
 				normalAux.Clear();
+				tangentAux.Clear();
 
 				blockBook.objects[ushort.MaxValue-assetCode].hitboxMesh.GetVertices(vertexAux);
 				this.cacheHitboxVerts.AddRange(vertexAux.ToArray());
@@ -2648,6 +2701,7 @@ public class Chunk
 		NativeList<Vector2> meshUVs = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector2> meshLightUV = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector3> meshNormals = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<Vector4> meshTangents = new NativeList<Vector4>(0, Allocator.TempJob);
 		NativeList<int> meshTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> hitboxVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector3> hitboxNormals = new NativeList<Vector3>(0, Allocator.TempJob);
@@ -2663,6 +2717,7 @@ public class Chunk
 		NativeArray<Vector3> loadedVerts = new NativeArray<Vector3>(this.cacheVertsv3.ToArray(), Allocator.TempJob);
 		NativeArray<Vector2> loadedUV = new NativeArray<Vector2>(this.cacheUVv2.ToArray(), Allocator.TempJob);
 		NativeArray<Vector3> loadedNormals = new NativeArray<Vector3>(this.cacheNormals.ToArray(), Allocator.TempJob);
+		NativeArray<Vector4> loadedTangents = new NativeArray<Vector4>(this.cacheTangents.ToArray(), Allocator.TempJob);
 		NativeArray<int> loadedTris = new NativeArray<int>(this.cacheTris.ToArray(), Allocator.TempJob);
 		NativeArray<Vector3> scaling = new NativeArray<Vector3>(this.scalingFactor.ToArray(), Allocator.TempJob);
 		NativeArray<Vector3> hitboxScaling = new NativeArray<Vector3>(this.hitboxScaling.ToArray(), Allocator.TempJob);
@@ -2682,6 +2737,7 @@ public class Chunk
 			meshUVs = meshUVs,
 			meshLightUV = meshLightUV,
 			meshNormals = meshNormals,
+			meshTangents = meshTangents,
 			hitboxVerts = hitboxVerts,
 			hitboxNormals = hitboxNormals,
 			hitboxTriangles = hitboxTriangles,
@@ -2704,6 +2760,7 @@ public class Chunk
 			loadedUV = loadedUV,
 			loadedTris = loadedTris,
 			loadedNormals = loadedNormals,
+			loadedTangents = loadedTangents,
 
 			loadedHitboxVerts = loadedHitboxVerts,
 			loadedHitboxNormals = loadedHitboxNormals,
@@ -2736,6 +2793,9 @@ public class Chunk
 		this.normals.AddRange(normals.ToArray());
 		this.normals.AddRange(meshNormals.ToArray());
 
+		this.tangents.AddRange(tangents.ToArray());
+		this.tangents.AddRange(meshTangents.ToArray());
+
 		BuildHitboxMesh(hitboxVerts.ToArray(), hitboxNormals.ToArray(), hitboxTriangles.ToArray());
 
 		// Dispose Bin
@@ -2751,6 +2811,7 @@ public class Chunk
 		loadCoordList.Dispose();
 		cacheCubeVert.Dispose();
 		cacheCubeNormal.Dispose();
+		cacheCubeTangent.Dispose();
 		cacheCubeUV.Dispose();
 		loadCodeList.Dispose();
 		meshVerts.Dispose();
@@ -2763,12 +2824,15 @@ public class Chunk
 		loadedTris.Dispose();
 		loadedUV.Dispose();
 		loadedNormals.Dispose();
+		loadedTangents.Dispose();
 		loadAssetList.Dispose();
 		scaling.Dispose();
 		UVs.Dispose();
 		normals.Dispose();
+		tangents.Dispose();
 		meshUVs.Dispose();
 		meshNormals.Dispose();
+		meshTangents.Dispose();
 		scaleOffset.Dispose();
 		rotationOffset.Dispose();
 		lightUV.Dispose();
@@ -2996,5 +3060,17 @@ public class Chunk
     	if(showHitbox){
     		this.hitboxFilter.mesh = this.meshColliderRaycast.sharedMesh;
     	}
+    }
+
+    private Vector4 GenerateTangent(Vector3 normal){
+    	if(normal.x > 0 || normal.y > 0)
+    		return new Vector4(0,0,1,-1);
+    	if(normal.x < 0 || normal.y < 0)
+    		return new Vector4(0,0,-1,-1);
+    	if(normal.z > 0)
+    		return new Vector4(1,0,0,-1);
+    	if(normal.z < 0)
+    		return new Vector4(-1,0,0,-1);
+    	return new Vector4(0,0,0,1);
     }
 }

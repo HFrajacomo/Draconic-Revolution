@@ -15,6 +15,7 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<Vector2> meshUVs;
 	public NativeList<int> meshTris;
 	public NativeList<Vector3> meshNormals;
+	public NativeList<Vector4> meshTangents;
 	public NativeList<Vector2> meshLightUV;
 
 	// Hitbox
@@ -60,6 +61,8 @@ public struct PrepareAssetsJob : IJob{
 	public NativeArray<int> loadedTris;
 	[ReadOnly]
 	public NativeArray<Vector3> loadedNormals;
+	[ReadOnly]
+	public NativeArray<Vector4> loadedTangents;
 
 	// Loaded Hitbox Data
 	[ReadOnly]
@@ -97,6 +100,7 @@ public struct PrepareAssetsJob : IJob{
 					Vector3 resultVert = Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
 					meshVerts.Add(resultVert);
 					meshNormals.Add(GetNormalRotation(loadedNormals[vertIndex], inplaceRotation[code*256+state]));
+					meshTangents.Add(GetNormalRotation(loadedTangents[vertIndex], inplaceRotation[code*256+state]));
 					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false)));
 				}
 
@@ -116,6 +120,7 @@ public struct PrepareAssetsJob : IJob{
 					Vector3 resultVert = Vector3Mult(loadedVerts[vertIndex], scaling[i], vertPos);
 					meshVerts.Add(resultVert);
 					meshNormals.Add(loadedNormals[vertIndex]);
+					meshTangents.Add(loadedTangents[vertIndex]);
 					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false)));
 				}
 
@@ -171,8 +176,16 @@ public struct PrepareAssetsJob : IJob{
 		return Rotate(normal, rotation);
 	}
 
+	private Vector4 GetNormalRotation(Vector4 normal, int rotation){
+		return Rotate(normal, rotation);
+	}
+
 	private Vector3 Rotate(Vector3 a, int degrees){
 		return new Vector3(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad));
+	}
+
+	private Vector4 Rotate(Vector4 a, int degrees){
+		return new Vector4(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad), a.w);
 	}
 
 	// Gets neighbor light level
