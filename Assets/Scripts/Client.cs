@@ -559,6 +559,18 @@ public class Client
 				this.cl.AddToUpdate(temp);
 		}
 
+		if(y == 0 && pos.y > 0){
+			temp = new ChunkPos(pos.x, pos.z, pos.y-1);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
+
+		if(y == Chunk.chunkDepth-1 && pos.y < Chunk.chunkMaxY){
+			temp = new ChunkPos(pos.x, pos.z, pos.y+1);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
+
 		if(x == 0 && z == 0){
 			temp = new ChunkPos(pos.x-1, pos.z-1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))

@@ -613,12 +613,7 @@ public struct BuildVerticalChunkJob : IJob{
 	}
 
 	public void CalculateTangent(NativeArray<Vector4> tangents, int dir){
-		Vector4 tangent;
-
-		if(dir == 4)
-			tangent = new Vector4(0, 0, 1, -1);
-		else
-			tangent = new Vector4(0, 0, -1, -1);
+		Vector4 tangent = new Vector4(-1, 0, 0, -1);
 
 		tangents[0] = tangent;
 		tangents[1] = tangent;

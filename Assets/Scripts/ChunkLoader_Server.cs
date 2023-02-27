@@ -436,19 +436,22 @@ public class ChunkLoader_Server : MonoBehaviour
                 slots[i] = new ItemPlayerInventorySlot(ItemID.TORCH, 50);
             }
             else if(i == 3){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.WATERBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.STONEBRICKBLOCK, 50);
             }
             else if(i == 4){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.PINEWOODBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.BASALTBLOCK, 50);
             }
             else if(i == 5){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.PINELEAFBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.WOODENPLANKSREGULARBLOCK, 50);
             }
             else if(i == 6){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.WOODBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.WOODENPLANKSPINEBLOCK, 50);
             }
             else if(i == 7){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.LEAFBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.BONEBLOCK, 50);
+            }
+            else if(i == 7){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.SANDSTONEBRICKBLOCK, 50);
             }
             else{
                 slots[i] = new EmptyPlayerInventorySlot();

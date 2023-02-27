@@ -2437,7 +2437,7 @@ public class Chunk
 		if(changed){
 			NativeTris triangleStructure = new NativeTris(tris, specularTris, liquidTris, leavesTris, iceTris);
 
-			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray(), triangleStructure);
+			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray(), tangents.ToArray(), triangleStructure);
 			BuildDecalMesh(vertsDecal.ToArray(), UVDecal.ToArray(), trisDecal.ToArray());
 		}
 
@@ -2986,12 +2986,11 @@ public class Chunk
     	this.meshFilter.mesh.SetUVs(3, this.lightUVMain.ToArray());
 
     	this.meshFilter.mesh.SetNormals(this.normals.ToArray());
-
-    	this.meshFilter.mesh.Optimize();
+    	this.meshFilter.mesh.SetTangents(this.tangents.ToArray());
     }
 
     // Builds meshes from verts, UVs and tris from different layers
-    private void BuildMeshSide(Vector3[] verts, Vector2[] UV, Vector2[] lightUV, Vector3[] normals, NativeTris triStruct){
+    private void BuildMeshSide(Vector3[] verts, Vector2[] UV, Vector2[] lightUV, Vector3[] normals, Vector4[] tangents, NativeTris triStruct){
     	this.meshCollider.sharedMesh.Clear();
     	this.meshFilter.mesh.Clear();
 
@@ -3019,6 +3018,7 @@ public class Chunk
     	this.meshFilter.mesh.uv = UV;
     	this.meshFilter.mesh.uv4 = lightUV;
     	this.meshFilter.mesh.SetNormals(normals);
+    	this.meshFilter.mesh.SetTangents(tangents);
     }
 
     // Builds the decal mesh

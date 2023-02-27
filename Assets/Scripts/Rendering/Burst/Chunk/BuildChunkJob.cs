@@ -715,17 +715,17 @@ public struct BuildChunkJob : IJob{
 		Vector4 tangent;
 
 		if(dir == 0)
-			tangent = new Vector4(1, 0, 0, -1);
+			tangent = new Vector4(-1, 0, 0, -1);
 		else if(dir == 1)
 			tangent = new Vector4(0, 0, 1, -1);
 		else if(dir == 2)
-			tangent = new Vector4(-1, 0, 0, -1);
+			tangent = new Vector4(1, 0, 0, -1);
 		else if(dir == 3)
 			tangent = new Vector4(0, 0, -1, -1);
 		else if(dir == 4)
-			tangent = new Vector4(0, 0, 1, -1);
+			tangent = new Vector4(-1, 0, 0, -1);
 		else
-			tangent = new Vector4(0, 0, -1, -1);
+			tangent = new Vector4(-1, 0, 0, -1);
 
 		tangents[0] = tangent;
 		tangents[1] = tangent;
