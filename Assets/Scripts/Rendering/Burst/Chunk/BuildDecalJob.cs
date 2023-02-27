@@ -77,7 +77,7 @@ public struct BuildDecalJob : IJob{
 				    		if(c.x >= Chunk.chunkWidth || c.x < 0 || c.z >= Chunk.chunkWidth || c.z < 0)
 				    			break;
 
-			    			if((c.x == 0 || c.x == Chunk.chunkWidth-1) && (c.z == 0 || c.z == Chunk.chunkWidth-1))
+			    			if((c.x == 0 || c.x == Chunk.chunkWidth-1) && (c.z == 0 || c.z == Chunk.chunkWidth-1) && (i != 4 && i != 5))
 			    				continue;
 								
 				    		if((c.x == 0 && (ii == 3)) || (c.z == 0 && (ii == 2)))
