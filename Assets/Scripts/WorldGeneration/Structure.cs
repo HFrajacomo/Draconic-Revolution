@@ -112,6 +112,8 @@ public abstract class Structure
                 return new RubyVeinA();
             case StructureCode.RubyVeinB:
                 return new RubyVeinB();
+            case StructureCode.GravelPile:
+                return new GravelPile();
             default:
                 return new TestStruct();
         }

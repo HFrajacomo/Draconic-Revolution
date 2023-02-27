@@ -5,7 +5,7 @@ using UnityEngine;
 
 public abstract class Blocks
 {
-	public static readonly int blockCount = 31;
+	public static readonly int blockCount = 33;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
 	public static readonly int atlasSizeY = 4;
@@ -104,6 +104,10 @@ public abstract class Blocks
 				return new PineWood_Block();
 			case 30:
 				return new PineLeaf_Block();
+			case 31:
+				return new Gravel_Block();
+			case 32:
+				return new Moonstone_Block();
 
 			default:
 				return new Air_Block();

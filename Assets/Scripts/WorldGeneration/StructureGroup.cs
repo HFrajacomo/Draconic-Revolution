@@ -17,6 +17,7 @@ public static class StructureGroup
     private static List<StructSpawn> iceForestTrees = new List<StructSpawn>();
     private static List<StructSpawn> surfaceOres = new List<StructSpawn>();
     private static List<StructSpawn> dirtPatches = new List<StructSpawn>();
+    private static List<StructSpawn> gravelPatches = new List<StructSpawn>();
     private static List<StructSpawn> boulders_LowDensity = new List<StructSpawn>();
     private static List<StructSpawn> boulders_MediumDensity = new List<StructSpawn>();
     private static List<StructSpawn> undergroundOres = new List<StructSpawn>();
@@ -41,6 +42,8 @@ public static class StructureGroup
         map.Add(StructureGroupID.SURFACE_ORES, surfaceOres);
         PopulateDirtPatches();
         map.Add(StructureGroupID.DIRT_PATCHES, dirtPatches);
+        PopulateGravelPatches();
+        map.Add(StructureGroupID.GRAVEL_PATCHES, gravelPatches);
         PopulateBoulders_LowDensity();
         map.Add(StructureGroupID.BOULDERS_LOW_DENSITY, boulders_LowDensity);
         PopulateBoulders_MediumDensity();
@@ -125,6 +128,11 @@ public static class StructureGroup
         dirtPatches.Add(new StructSpawn(StructureCode.DirtPileB, 2, 1f, 3, -1, true));
     }
 
+    private static void PopulateGravelPatches(){
+        gravelPatches.Add(new StructSpawn(StructureCode.GravelPile, 2, 0.5f, -1, -1, false));
+        gravelPatches.Add(new StructSpawn(StructureCode.GravelPile, 16, 1f, 1, -1, true));
+    }
+
     private static void PopulateBoulders_LowDensity(){
         boulders_LowDensity.Add(new StructSpawn(StructureCode.BoulderNormalA, 1, 0.02f, 1, -1, false));
     }
@@ -172,6 +180,7 @@ public enum StructureGroupID : int
     ICE_FOREST_TREES,
     SURFACE_ORES,
     DIRT_PATCHES,
+    GRAVEL_PATCHES,
     BOULDERS_LOW_DENSITY,
     BOULDERS_MID_DENSITY,
     UNDERGROUND_ORES

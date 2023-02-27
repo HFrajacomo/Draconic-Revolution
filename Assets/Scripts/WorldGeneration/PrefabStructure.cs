@@ -933,6 +933,34 @@ public class RubyVeinB : Structure
 	}
 }
 
+public class GravelPile : Structure
+{
+	public ushort[] blocks = new ushort[]{0,1,31,3,0,1,31,12,0,4,31,2,0,3,31,3,0,2,31,3,0,6};
+	public ushort[] hps = new ushort[]{0,40};
+	public ushort[] states = new ushort[]{0,40};
+
+	public GravelPile(){
+		this.code = (ushort)StructureCode.GravelPile; 
+
+		this.sizeX = 4;
+		this.sizeY = 2;
+		this.sizeZ = 5;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE, (ushort)BlockID.DIRT};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
 /*
 ADD TO THIS ENUM EVERY NEW STRUCTURE IMPLEMENTED
 */
@@ -970,5 +998,6 @@ public enum StructureCode{
 	EmeraldVeinA = 29,
 	EmeraldVeinB = 30,
 	RubyVeinA = 31,
-	RubyVeinB = 32
+	RubyVeinB = 32,
+	GravelPile = 33
 }
