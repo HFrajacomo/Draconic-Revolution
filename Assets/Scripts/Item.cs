@@ -105,6 +105,8 @@ public abstract class Item
 				return new Gravelblock_Item();
 			case ItemID.MOONSTONEBLOCK:
 				return new Moonstoneblock_Item();
+			case ItemID.LAVABLOCK:
+				return new Lavablock_Item();
 			default:
 				return null;
 		}

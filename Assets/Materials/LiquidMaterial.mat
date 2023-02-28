@@ -24,7 +24,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: LiquidMaterial
-  m_Shader: {fileID: -6465566751694194690, guid: 29a488befb4b8054e9722ca01108e4fa,
+  m_Shader: {fileID: -6465566751694194690, guid: 20ff6fbe6f8fac9479743b90dc7f4992,
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -120,7 +120,9 @@ Material:
     - _DstBlend: 10
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
+    - _Fresnel_Power: 1
     - _HDWater: 0
+    - _Lava_Luminescence: 1
     - _NoiseAngleOffset: 1
     - _NoiseCellDensity: 1
     - _NoiseOffsetMultiplier: 0.8
@@ -176,7 +178,9 @@ Material:
     - Vector2_A6922FD5: {r: 0.2, g: 0.076, b: 0, a: 0}
     - _DoubleSidedConstants: {r: -1, g: -1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Emission_Color: {r: 0, g: 0, b: 0, a: 0}
     - _RefractionColor: {r: 1, g: 1, b: 1, a: 0}
+    - _Secondary_Color: {r: 0, g: 0, b: 0, a: 0}
     - _VertexTiling: {r: 16, g: 16, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &1484091025811958356

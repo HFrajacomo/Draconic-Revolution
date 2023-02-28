@@ -37,6 +37,7 @@ public enum BlockID : ushort
     PINE_LEAF = 30,
     GRAVEL = 31,
     MOONSTONE = 32,
+    LAVA = 33,
 
     /*
     Special
