@@ -5,10 +5,10 @@ using UnityEngine;
 
 public abstract class Blocks
 {
-	public static readonly int blockCount = 34;
+	public static readonly int blockCount = 35;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
-	public static readonly int atlasSizeY = 4;
+	public static readonly int atlasSizeY = 5;
 	public static readonly int transparentAtlasSizeX = 2;
 	public static readonly int transparentAtlasSizeY = 1;
 
@@ -110,6 +110,8 @@ public abstract class Blocks
 				return new Moonstone_Block();
 			case 33:
 				return new Lava_Block();
+			case 34:
+				return new HellMarble_Block();
 
 			default:
 				return new Air_Block();

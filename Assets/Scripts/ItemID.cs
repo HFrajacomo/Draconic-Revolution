@@ -24,5 +24,6 @@ public enum ItemID : ushort {
     PINELEAFBLOCK,
     GRAVELBLOCK,
     MOONSTONEBLOCK,
-    LAVABLOCK
+    LAVABLOCK,
+    HELLMARBLEBLOCK
 }
