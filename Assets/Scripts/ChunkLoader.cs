@@ -989,7 +989,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Returns false if chunk.y is not implemented yet
     private bool SkipNotImplemented(ChunkPos pos){
-        return pos.y == 2 || pos.y == 3;
+        return pos.y >= 1;
     }
 
     // Goes through all Chunks and checks if they should've been deleted already

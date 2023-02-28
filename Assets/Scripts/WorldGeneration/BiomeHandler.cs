@@ -14,6 +14,7 @@ public class BiomeHandler
 	public ushort[] biomeBlendingValue;
 	private BiomeTable surfaceBiomeTable;
 	private BiomeTable undergroundBiomeTable;
+	private BiomeTable hellBiomeTable;
 
 	private int currentBiome = 0;
 
@@ -21,16 +22,17 @@ public class BiomeHandler
 	public BiomeHandler(){
 		this.surfaceBiomeTable = new BiomeTable(ChunkDepthID.SURFACE);
 		this.undergroundBiomeTable = new BiomeTable(ChunkDepthID.UNDERGROUND);
+		this.hellBiomeTable = new BiomeTable(ChunkDepthID.HELL);
 
 		Biome plains = new Biome("Plains", BiomeCode.PLAINS, BiomeType.LOW, ChunkDepthID.SURFACE,
 			1, 
 			new List<StructureGroupID>(){StructureGroupID.PLAINS_TREES, StructureGroupID.DIRT_PATCHES,
-			 	StructureGroupID.GRAVEL_PATCHES, StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_LOW_DENSITY});
+			 	StructureGroupID.GRAVEL_PATCHES, StructureGroupID.GRAVEL_PATCHES_SURFACE, StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_LOW_DENSITY});
 
 		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.SURFACE,
 			3,
 			new List<StructureGroupID>(){StructureGroupID.GRASS_HIGHLANDS_TREES, StructureGroupID.DIRT_PATCHES,
-			 	StructureGroupID.GRAVEL_PATCHES, StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY});
+			 	StructureGroupID.GRAVEL_PATCHES, StructureGroupID.GRAVEL_PATCHES_SURFACE, StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY});
 
 		Biome ocean = new Biome("Ocean", BiomeCode.OCEAN, BiomeType.OCEAN, ChunkDepthID.SURFACE,
 			8,
@@ -53,7 +55,7 @@ public class BiomeHandler
 		Biome snowyHighlands = new Biome("Snowy Highlands", BiomeCode.SNOWY_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.SURFACE,
 			9,
 			new List<StructureGroupID>(){StructureGroupID.ICE_HIGHLANDS_TREES, StructureGroupID.DIRT_PATCHES,
-			 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY, StructureGroupID.GRAVEL_PATCHES});
+			 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.GRAVEL_PATCHES_SURFACE});
 
 		Biome iceOcean = new Biome("Ice Ocean", BiomeCode.ICE_OCEAN, BiomeType.OCEAN, ChunkDepthID.SURFACE,
 			9,
@@ -79,6 +81,10 @@ public class BiomeHandler
 			(ushort)BlockID.SNOW,
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES});
 
+		Biome hellPlains = new Biome("Hellish Plains", BiomeCode.HELL_PLAINS, BiomeType.LOW, ChunkDepthID.HELL,
+			(ushort)BlockID.HELL_MARBLE,
+			new List<StructureGroupID>(){});
+
 		AddBiome(plains);
 		AddBiome(grassyHighlands);
 		AddBiome(ocean);
@@ -92,6 +98,7 @@ public class BiomeHandler
 		AddBiome(basaltCaves);
 		AddBiome(submergedCave);
 		AddBiome(iceCave);
+		AddBiome(hellPlains);
 
 		this.biomeBlendingValue = new ushort[this.currentBiome];
 
@@ -175,6 +182,8 @@ public class BiomeHandler
 				return (byte)this.surfaceBiomeTable.GetBiome(biomeInfo);
 			case ChunkDepthID.UNDERGROUND:
 				return (byte)this.undergroundBiomeTable.GetBiome(biomeInfo);
+			case ChunkDepthID.HELL:
+				return (byte)this.hellBiomeTable.GetBiome(biomeInfo);
 			default:
 				return 0;
 		}
@@ -259,5 +268,6 @@ public enum BiomeCode : byte{
 	CAVERNS,
 	BASALT_CAVES,
 	UNDERWATER_CAVES,
-	ICE_CAVES
+	ICE_CAVES,
+	HELL_PLAINS
 }

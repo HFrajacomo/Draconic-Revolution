@@ -266,7 +266,8 @@ public class PlayerRaycast : MonoBehaviour
 		ChunkPos above = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ, lastCoord.chunkY+1);
 
 		Debug.Log("ShadowMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" +
-		"LightMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + "   " + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")");
+		"LightMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + "   " + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" + 
+		"BlockCode: " + (BlockID)loader.chunks[current.GetChunkPos()].data.GetCell(current.blockX, current.blockY, current.blockZ));
 		if(!current.active)
 			return;
 

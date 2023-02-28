@@ -389,12 +389,12 @@ public struct BuildVerticalChunkJob : IJob{
     		CalculateTangent(cacheCubeTangent, dir);
     		tangents.AddRange(cacheCubeTangent);
     		    		
-	    	liquidTris.Add(vCount -4);
-	    	liquidTris.Add(vCount -4 +1);
-	    	liquidTris.Add(vCount -4 +2);
-	    	liquidTris.Add(vCount -4);
-	    	liquidTris.Add(vCount -4 +2);
-	    	liquidTris.Add(vCount -4 +3);
+	    	lavaTris.Add(vCount -4);
+	    	lavaTris.Add(vCount -4 +1);
+	    	lavaTris.Add(vCount -4 +2);
+	    	lavaTris.Add(vCount -4);
+	    	lavaTris.Add(vCount -4 +2);
+	    	lavaTris.Add(vCount -4 +3);
 
 	    	return true;    		
     	}

@@ -180,7 +180,7 @@ public class WorldGenerator
 
 
                 // Ignores structure on hard limit
-                if(y <= heightlimit)
+                if(y <= heightlimit || y == 0)
                     continue;
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
@@ -229,6 +229,9 @@ public class WorldGenerator
                 return;
             case ChunkDepthID.UNDERGROUND:
                 GenerateUndergroundChunk(pos, isPregen:isPregen);
+                return;
+            case ChunkDepthID.HELL:
+                GenerateHellChunk(pos, isPregen:isPregen);
                 return;
             default:
                 return;
@@ -386,6 +389,62 @@ public class WorldGenerator
         hpData.Dispose();
         heightMap.Dispose();
     }
+
+    // Generates chunks for the Hell Layer
+    private void GenerateHellChunk(ChunkPos pos, bool isPregen=false){
+        NativeArray<ushort> voxelData = NativeTools.CopyToNative(cacheVoxdata);
+        NativeArray<ushort> stateData = NativeTools.CopyToNative(cacheMetadataState);
+        NativeArray<ushort> hpData = NativeTools.CopyToNative(cacheMetadataHP);
+        NativeArray<float> heightMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<float> ceilingMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+
+        GenerateHellChunkJob ghcj = new GenerateHellChunkJob{
+            pos = pos,
+            blockData = voxelData,
+            stateData = stateData,
+            hpData = hpData,
+            heightMap = heightMap,
+            ceilingMap = ceilingMap,
+            baseNoise = baseMap,
+            erosionNoise = erosionMap,
+            peakNoise = peakMap,
+            caveNoise = caveMap,
+            cavemaskNoise = maskMap,
+            pregen = isPregen
+        };
+        JobHandle job = ghcj.Schedule();
+        job.Complete();
+
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
+        this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.HELL);
+
+        /*
+        PopulateHellChunkJob phcj = new PopulateHellChunkJob{
+            pos = pos,
+            blockData = voxelData,
+            heightMap = heightMap,
+            patchNoise = patchMap,
+            biome = this.cacheBiome
+        };
+        job = phcj.Schedule(Chunk.chunkWidth, 4);
+        job.Complete();
+        */
+
+        cacheVoxdata = NativeTools.CopyToManaged(voxelData);
+        cacheMetadataState = NativeTools.CopyToManaged(stateData);
+        cacheMetadataHP = NativeTools.CopyToManaged(hpData);
+        cacheHeightMap = NativeTools.CopyToManaged(heightMap);
+
+        this.iteration = 0;
+        //GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
+
+        voxelData.Dispose();
+        stateData.Dispose();
+        hpData.Dispose();
+        heightMap.Dispose();
+        ceilingMap.Dispose();
+    }
+
 
     /*
     Biome Generation

@@ -135,53 +135,110 @@ public static class NoiseMaker
                                Lerp(u, Grad(noiseMap[AB+1], x, y-1, z-1), Grad(noiseMap[BB+1], x-1, y-1, z-1))));
     }
 
-    public static float FindSplineHeight(float noiseValue, NoiseMap type){
+    public static float FindSplineHeight(float noiseValue, NoiseMap type, ChunkDepthID cdID){
         int index = GenerationSeed.baseNoiseSplineX.Length-2;
 
         if(type == NoiseMap.BASE){
-            for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){
-                if(GenerationSeed.baseNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
+            if(cdID == ChunkDepthID.SURFACE){
+                for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){
+                    if(GenerationSeed.baseNoiseSplineX[i] >= noiseValue){
+                        index = i-1;
+                        break;
+                    }
                 }
+
+                float inverseLerp = (noiseValue - GenerationSeed.baseNoiseSplineX[index])/(GenerationSeed.baseNoiseSplineX[index+1] - GenerationSeed.baseNoiseSplineX[index]);
+
+                if(GenerationSeed.baseNoiseSplineY[index] > GenerationSeed.baseNoiseSplineY[index+1])
+                    return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+                else
+                    return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
             }
+            else if(cdID == ChunkDepthID.HELL){
+                for(int i=1; i < GenerationSeed.baseHellNoiseSplineX.Length; i++){
+                    if(GenerationSeed.baseHellNoiseSplineX[i] >= noiseValue){
+                        index = i-1;
+                        break;
+                    }
+                }
 
-            float inverseLerp = (noiseValue - GenerationSeed.baseNoiseSplineX[index])/(GenerationSeed.baseNoiseSplineX[index+1] - GenerationSeed.baseNoiseSplineX[index]) ;
+                float inverseLerp = (noiseValue - GenerationSeed.baseHellNoiseSplineX[index])/(GenerationSeed.baseHellNoiseSplineX[index+1] - GenerationSeed.baseHellNoiseSplineX[index]);
 
-            if(GenerationSeed.baseNoiseSplineY[index] > GenerationSeed.baseNoiseSplineY[index+1])
-                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+                if(GenerationSeed.baseHellNoiseSplineY[index] > GenerationSeed.baseHellNoiseSplineY[index+1])
+                    return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseHellNoiseSplineY[index], GenerationSeed.baseHellNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+                else
+                    return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseHellNoiseSplineY[index], GenerationSeed.baseHellNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));                
+            }
             else
-                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
+                return 0;
         }
         else if(type == NoiseMap.EROSION){
-            for(int i=1; i < GenerationSeed.erosionNoiseSplineX.Length; i++){
-                if(GenerationSeed.erosionNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
+            if(cdID == ChunkDepthID.SURFACE){
+                for(int i=1; i < GenerationSeed.erosionNoiseSplineX.Length; i++){
+                    if(GenerationSeed.erosionNoiseSplineX[i] >= noiseValue){
+                        index = i-1;
+                        break;
+                    }
                 }
+
+                float inverseLerp = (noiseValue - GenerationSeed.erosionNoiseSplineX[index])/(GenerationSeed.erosionNoiseSplineX[index+1] - GenerationSeed.erosionNoiseSplineX[index]);
+
+                if(GenerationSeed.erosionNoiseSplineY[index] > GenerationSeed.erosionNoiseSplineY[index+1])
+                    return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+                else
+                    return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
             }
+            else if(cdID == ChunkDepthID.HELL){
+                for(int i=1; i < GenerationSeed.erosionHellNoiseSplineX.Length; i++){
+                    if(GenerationSeed.erosionHellNoiseSplineX[i] >= noiseValue){
+                        index = i-1;
+                        break;
+                    }
+                }
 
-            float inverseLerp = (noiseValue - GenerationSeed.erosionNoiseSplineX[index])/(GenerationSeed.erosionNoiseSplineX[index+1] - GenerationSeed.erosionNoiseSplineX[index]) ;
+                float inverseLerp = (noiseValue - GenerationSeed.erosionHellNoiseSplineX[index])/(GenerationSeed.erosionHellNoiseSplineX[index+1] - GenerationSeed.erosionHellNoiseSplineX[index]);
 
-            if(GenerationSeed.erosionNoiseSplineY[index] > GenerationSeed.erosionNoiseSplineY[index+1])
-                return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+                if(GenerationSeed.erosionHellNoiseSplineY[index] > GenerationSeed.erosionHellNoiseSplineY[index+1])
+                    return Mathf.Lerp(GenerationSeed.erosionHellNoiseSplineY[index], GenerationSeed.erosionHellNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+                else
+                    return Mathf.Lerp(GenerationSeed.erosionHellNoiseSplineY[index], GenerationSeed.erosionHellNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
+            }
             else
-                return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
+                return 0f;
         }
         else if(type == NoiseMap.PEAK){
-            for(int i=1; i < GenerationSeed.peakNoiseSplineX.Length; i++){
-                if(GenerationSeed.peakNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
+            if(cdID == ChunkDepthID.SURFACE || cdID == ChunkDepthID.UNDERGROUND){
+                for(int i=1; i < GenerationSeed.peakNoiseSplineX.Length; i++){
+                    if(GenerationSeed.peakNoiseSplineX[i] >= noiseValue){
+                        index = i-1;
+                        break;
+                    }
                 }
+
+                float inverseLerp = (noiseValue - GenerationSeed.peakNoiseSplineX[index])/(GenerationSeed.peakNoiseSplineX[index+1] - GenerationSeed.peakNoiseSplineX[index]);
+
+                if(GenerationSeed.peakNoiseSplineY[index] > GenerationSeed.peakNoiseSplineY[index+1])
+                    return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+                else
+                    return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
             }
+            else if(cdID == ChunkDepthID.HELL){
+                for(int i=1; i < GenerationSeed.peakHellNoiseSplineX.Length; i++){
+                    if(GenerationSeed.peakHellNoiseSplineX[i] >= noiseValue){
+                        index = i-1;
+                        break;
+                    }
+                }
 
-            float inverseLerp = (noiseValue - GenerationSeed.peakNoiseSplineX[index])/(GenerationSeed.peakNoiseSplineX[index+1] - GenerationSeed.peakNoiseSplineX[index]) ;
+                float inverseLerp = (noiseValue - GenerationSeed.peakHellNoiseSplineX[index])/(GenerationSeed.peakHellNoiseSplineX[index+1] - GenerationSeed.peakHellNoiseSplineX[index]);
 
-            if(GenerationSeed.peakNoiseSplineY[index] > GenerationSeed.peakNoiseSplineY[index+1])
-                return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+                if(GenerationSeed.peakHellNoiseSplineY[index] > GenerationSeed.peakHellNoiseSplineY[index+1])
+                    return Mathf.Lerp(GenerationSeed.peakHellNoiseSplineY[index], GenerationSeed.peakHellNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+                else
+                    return Mathf.Lerp(GenerationSeed.peakHellNoiseSplineY[index], GenerationSeed.peakHellNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));                
+            }
             else
-                return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
+                return 0f;
         }
         else{
             for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){

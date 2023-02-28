@@ -23,6 +23,7 @@ public static class Compression{
 	private static BlockID[] forestArray = new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.GRAVEL, BlockID.PREGEN_AIR};
 	private static BlockID[] icelandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.PINE_LEAF, BlockID.PINE_WOOD, BlockID.SNOW, BlockID.ICE, BlockID.GRAVEL, BlockID.PREGEN_AIR};
 	private static BlockID[] sandlandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.SANDSTONE, BlockID.GRAVEL, BlockID.PREGEN_AIR};
+	private static BlockID[] hellArray = new BlockID[]{BlockID.AIR, BlockID.HELL_MARBLE, BlockID.LAVA, BlockID.PREGEN_AIR};
 
 	private static BlockID[] structureArray =
 						 new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.IRON_ORE, BlockID.WATER, BlockID.LEAF,
@@ -38,6 +39,7 @@ public static class Compression{
 	public static readonly NativeHashSet<ushort> forestPallete;
 	public static readonly NativeHashSet<ushort> icelandsPallete;
 	public static readonly NativeHashSet<ushort> sandlandsPallete;
+	public static readonly NativeHashSet<ushort> hellPallete;
 	public static readonly NativeHashSet<ushort> structurePallete;
 	public static readonly NativeHashSet<ushort> metadataPallete;
 
@@ -73,6 +75,11 @@ public static class Compression{
 			sandlandsPallete.Add((ushort)sandlandsArray[i]);
 		}
 
+		hellPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		for(int i = 0; i < hellArray.Length; i++){
+			hellPallete.Add((ushort)hellArray[i]);
+		}
+
 		structurePallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < structureArray.Length; i++){
 			structurePallete.Add((ushort)structureArray[i]);
@@ -94,6 +101,7 @@ public static class Compression{
 		forestPallete.Dispose();
 		icelandsPallete.Dispose();
 		sandlandsPallete.Dispose();
+		hellPallete.Dispose();
 		structurePallete.Dispose();
 		metadataPallete.Dispose();
 	}
@@ -520,6 +528,8 @@ public static class Compression{
 				return Pallete.ICELANDS;
 			case "Desert":
 				return Pallete.SANDLANDS;
+			case "Hell Plains":
+				return Pallete.HELL;
 			default:
 				return Pallete.BASIC;
 		}
@@ -549,6 +559,9 @@ public static class Compression{
 
 			case Pallete.SANDLANDS:
 				return Compression.sandlandsPallete;
+
+			case Pallete.HELL:
+				return Compression.hellPallete;
 
 			// Special Pallete used for Structure blocks Compression
 			case Pallete.STRUCTUREBLOCKS:
@@ -592,6 +605,7 @@ public enum Pallete
 	FOREST,
 	ICELANDS,
 	SANDLANDS,
+	HELL,
 	STRUCTUREBLOCKS,
 	METADATA
 }

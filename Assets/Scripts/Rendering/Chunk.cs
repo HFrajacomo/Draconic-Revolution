@@ -3088,16 +3088,4 @@ public class Chunk
     		this.hitboxFilter.mesh = this.meshColliderRaycast.sharedMesh;
     	}
     }
-
-    private Vector4 GenerateTangent(Vector3 normal){
-    	if(normal.x > 0 || normal.y > 0)
-    		return new Vector4(0,0,1,-1);
-    	if(normal.x < 0 || normal.y < 0)
-    		return new Vector4(0,0,-1,-1);
-    	if(normal.z > 0)
-    		return new Vector4(1,0,0,-1);
-    	if(normal.z < 0)
-    		return new Vector4(-1,0,0,-1);
-    	return new Vector4(0,0,0,1);
-    }
 }

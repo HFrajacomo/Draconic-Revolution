@@ -23,6 +23,9 @@ public static class GenerationSeed
     public static readonly float baseNoiseStep2 = 0.0013f;
     public static readonly float baseYStep = 0.00117f;
     public static readonly float baseYStep2 = 0.000931f;
+    // ---- Hell Splines
+    public static readonly float[] baseHellNoiseSplineX = new float[]{-1, -0.6f, -0.56f, -0.1f, 0f, 0.2f, 0.25f, 0.4f, 0.67f, 1f};
+    public static readonly int[] baseHellNoiseSplineY = new int[]{    0,  0,     130,    150,   170,180,  190,   200,  210,   220};
 
 
     // Erosion Noise
@@ -33,6 +36,9 @@ public static class GenerationSeed
     public static readonly float erosionNoiseStep2 = 0.00063f;
     public static readonly float erosionYStep = 0.00071f;
     public static readonly float erosionYStep2 = 0.00083f;
+    // ---- Hell Splines
+    public static readonly float[] erosionHellNoiseSplineX = new float[]{-1, -0.6f, -0.56f, -0.1f,  0f,    0.4f, 1f};
+    public static readonly float[] erosionHellNoiseSplineY = new float[]{    0.7f,0.77f, 0.8f,   0.85f, 0.95f, 1f,   1f};
 
     // Peaks Noise
     public static byte[] peakNoise = new byte[257];
@@ -42,6 +48,9 @@ public static class GenerationSeed
     public static readonly float peakNoiseStep2 = 0.00617f;
     public static readonly float peakYStep = 0.00561f;
     public static readonly float peakYStep2 = 0.00617f;
+    // ---- Hell Splines
+    public static readonly float[] peakHellNoiseSplineX = new float[]{-1, -0.5f, -0.2f, -0.1f,  0f, 0.3f, 0.6f, 1f};
+    public static readonly int[] peakHellNoiseSplineY = new int[]{    -50,-35,   -25,   -5,     0,  10,   35,   60};
 
     // Temperature Noise
     public static byte[] temperatureNoise = new byte[257];
