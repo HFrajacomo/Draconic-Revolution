@@ -49,6 +49,7 @@ public struct BuildCornerJob : IJob{
 	public NativeList<int> liquidTris;
 	public NativeList<int> leavesTris;
 	public NativeList<int> iceTris;
+	public NativeList<int> lavaTris;
 
 	// Cached
 	public NativeArray<Vector3> cachedCubeVerts;
@@ -597,6 +598,35 @@ public struct BuildCornerJob : IJob{
 	    	iceTris.Add(vCount -4 +3);
 
 	    	return true;
+    	}
+
+    	// If object is Lava
+    	else if(renderThread == ShaderIndex.LAVA){
+    		VertsByState(cacheCubeVert, dir, metadata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z], new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
+			verts.AddRange(cacheCubeVert);
+			int vCount = verts.Length + lookahead;
+
+			LiquidTexture(cacheCubeUV, x, z);
+    		uvs.AddRange(cacheCubeUV);
+
+    		AddLightUV(cacheCubeUV, x, y, z, dir, neighborIndex, chunkDir);
+    		AddLightUVExtra(cacheCubeUV, x, y, z, dir, neighborIndex, chunkDir);
+    		lightUV.AddRange(cacheCubeUV);
+
+    		CalculateNormal(cacheCubeNormal, dir);
+    		normals.AddRange(cacheCubeNormal);
+
+    		CalculateTangent(cacheCubeTangent, dir);
+    		tangents.AddRange(cacheCubeTangent);
+    		    		
+	    	liquidTris.Add(vCount -4);
+	    	liquidTris.Add(vCount -4 +1);
+	    	liquidTris.Add(vCount -4 +2);
+	    	liquidTris.Add(vCount -4);
+	    	liquidTris.Add(vCount -4 +2);
+	    	liquidTris.Add(vCount -4 +3);
+
+	    	return true;    		
     	}
 
     	return false;

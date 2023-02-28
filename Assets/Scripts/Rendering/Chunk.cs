@@ -100,6 +100,7 @@ public class Chunk
     private int[] triangles;
     private int[] leavesTris;
     private int[] iceTris;
+    private int[] lavaTris;
   	private List<Vector2> UVs = new List<Vector2>();
   	private List<Vector2> lightUVMain = new List<Vector2>();
   	private List<Vector3> normals = new List<Vector3>();
@@ -440,6 +441,7 @@ public class Chunk
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> leavesTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> iceTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> lavaTris = new NativeList<int>(0, Allocator.TempJob);
 	
 		NativeList<int3> toLoadEvent = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int3> toBUD = new NativeList<int3>(0, Allocator.TempJob);
@@ -474,6 +476,7 @@ public class Chunk
 		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.liquidTris, Allocator.TempJob);
 		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.leavesTris, Allocator.TempJob);
 		NativeArray<int> disposableIceTris = new NativeArray<int>(this.iceTris, Allocator.TempJob);
+		NativeArray<int> disposableLavaTris = new NativeArray<int>(this.lavaTris, Allocator.TempJob);
 		NativeArray<int> disposableDecalTris = new NativeArray<int>(this.decalTris, Allocator.TempJob);
 
 
@@ -488,6 +491,7 @@ public class Chunk
 		tris.AddRange(disposableTris);
 		specularTris.AddRange(disposableSpecTris);
 		liquidTris.AddRange(disposableLiquidTris);
+		lavaTris.AddRange(disposableLavaTris);
 		leavesTris.AddRange(disposableLeavesTris);
 		iceTris.AddRange(disposableIceTris);
 		normals.AddRange(disposableNormals);
@@ -505,6 +509,7 @@ public class Chunk
 		disposableTris.Dispose();
 		disposableSpecTris.Dispose();
 		disposableLiquidTris.Dispose();
+		disposableLavaTris.Dispose();
 		disposableNormals.Dispose();
 		disposableTangents.Dispose();
 		disposableLight.Dispose();
@@ -544,6 +549,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
@@ -642,6 +648,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
@@ -740,6 +747,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
@@ -836,6 +844,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 
 				cachedCubeVerts = cacheCubeVert,
@@ -930,6 +939,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -986,6 +996,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -1049,8 +1060,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -1113,8 +1124,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -1177,8 +1188,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -1241,8 +1252,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -1305,8 +1316,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -1369,8 +1380,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -1433,8 +1444,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -1497,8 +1508,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -1566,8 +1577,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
@@ -1650,8 +1661,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
 				cachedCubeNormal = cacheCubeNormal,
@@ -1733,6 +1744,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
@@ -1816,6 +1828,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 				cachedCubeVerts = cacheCubeVert,
 				cachedUVVerts = cacheUVVerts,
@@ -1901,6 +1914,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
@@ -1972,6 +1986,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
@@ -2043,6 +2058,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
@@ -2114,6 +2130,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
@@ -2186,6 +2203,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
@@ -2257,6 +2275,7 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
@@ -2328,8 +2347,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -2400,8 +2419,8 @@ public class Chunk
 				liquidTris = liquidTris,
 				leavesTris = leavesTris,
 				iceTris = iceTris,
+				lavaTris = lavaTris,
 				lightUV = lightUV,
-
 				cacheCubeVert = cacheCubeVert,
 				cacheCubeUV = cacheUVVerts,
 				cacheCubeNormal = cacheCubeNormal,
@@ -2435,7 +2454,7 @@ public class Chunk
 		
 		// If mesh was redrawn
 		if(changed){
-			NativeTris triangleStructure = new NativeTris(tris, specularTris, liquidTris, leavesTris, iceTris);
+			NativeTris triangleStructure = new NativeTris(tris, specularTris, liquidTris, leavesTris, iceTris, lavaTris);
 
 			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray(), tangents.ToArray(), triangleStructure);
 			BuildDecalMesh(vertsDecal.ToArray(), UVDecal.ToArray(), trisDecal.ToArray());
@@ -2446,6 +2465,7 @@ public class Chunk
 		liquidTris.Dispose();
 		leavesTris.Dispose();
 		iceTris.Dispose();
+		lavaTris.Dispose();
 
 		blockdata.Dispose();
 		metadata.Dispose();
@@ -2544,6 +2564,7 @@ public class Chunk
     	this.specularTris = null;
     	this.liquidTris = null;
     	this.iceTris = null;
+    	this.lavaTris = null;
     	this.assetTris = null;
     	this.UVs.Clear();
     	this.lightUVMain.Clear();
@@ -2565,6 +2586,7 @@ public class Chunk
 		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> leavesTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> iceTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> lavaTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector2> lightUV = new NativeList<Vector2>(0, Allocator.TempJob);
@@ -2595,6 +2617,7 @@ public class Chunk
 			liquidTris = liquidTris,
 			leavesTris = leavesTris,
 			iceTris = iceTris,
+			lavaTris = lavaTris,
 			cacheCubeVert = cacheCubeVert,
 			cacheCubeUV = cacheCubeUV,
 			cacheCubeNormal = cacheCubeNormal,
@@ -2783,6 +2806,7 @@ public class Chunk
 		this.liquidTris = liquidTris.ToArray();
 		this.leavesTris = leavesTris.ToArray();
 		this.iceTris = iceTris.ToArray();
+		this.lavaTris = lavaTris.ToArray();
 
 		this.UVs.AddRange(UVs.ToArray());
 		this.UVs.AddRange(meshUVs.ToArray());
@@ -2805,6 +2829,7 @@ public class Chunk
 		liquidTris.Dispose();
 		leavesTris.Dispose();
 		iceTris.Dispose();
+		lavaTris.Dispose();
 		blockdata.Dispose();
 		statedata.Dispose();
 		renderMap.Dispose();
@@ -2965,7 +2990,7 @@ public class Chunk
     		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	this.meshFilter.mesh.subMeshCount = 6;
+    	this.meshFilter.mesh.subMeshCount = 7;
 
     	this.meshFilter.mesh.SetVertices(this.vertices.ToArray());
     	this.meshFilter.mesh.SetTriangles(this.triangles, 0);
@@ -2981,6 +3006,7 @@ public class Chunk
     	this.meshFilter.mesh.SetTriangles(this.liquidTris, 2);
     	this.meshFilter.mesh.SetTriangles(this.assetTris, 3);
  	    this.meshFilter.mesh.SetTriangles(this.leavesTris, 4);
+ 	    this.meshFilter.mesh.SetTriangles(this.lavaTris, 6);
 
     	this.meshFilter.mesh.SetUVs(0, this.UVs.ToArray());
     	this.meshFilter.mesh.SetUVs(3, this.lightUVMain.ToArray());
@@ -2998,7 +3024,7 @@ public class Chunk
     		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	this.meshFilter.mesh.subMeshCount = 6;
+    	this.meshFilter.mesh.subMeshCount = 7;
 
     	this.meshFilter.mesh.vertices = verts;
     	this.meshFilter.mesh.SetTriangles(triStruct.tris.ToArray(), 0);
@@ -3014,6 +3040,7 @@ public class Chunk
     	this.meshFilter.mesh.SetTriangles(triStruct.liquidTris.ToArray(), 2);
     	this.meshFilter.mesh.SetTriangles(this.assetTris, 3);
     	this.meshFilter.mesh.SetTriangles(triStruct.leavesTris.ToArray(), 4);
+    	this.meshFilter.mesh.SetTriangles(triStruct.lavaTris.ToArray(), 6);
 
     	this.meshFilter.mesh.uv = UV;
     	this.meshFilter.mesh.uv4 = lightUV;
