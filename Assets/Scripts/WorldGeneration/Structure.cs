@@ -169,17 +169,17 @@ public abstract class Structure
 
 
     // Applies this structure to a cachedUshort array and a VoxelMetadata
-    public virtual bool Apply(ChunkLoader_Server cl, ChunkPos pos, ushort[] VD, ushort[] VMHP, ushort[] VMState, int x, int y, int z, int rotation=0){
+    public virtual bool Apply(ChunkLoader_Server cl, ChunkPos pos, ushort[] VD, ushort[] VMHP, ushort[] VMState, int x, int y, int z, int rotation){
         if(this.offsetX == 0 && this.offsetZ == 0)
-            return ApplyAnchored(cl, pos, VD, VMHP, VMState, x, y, z, rotation:rotation);
+            return ApplyAnchored(cl, pos, VD, VMHP, VMState, x, y, z, rotation);
         else
-            return ApplyPivot(cl, pos, VD, VMHP, VMState, x, y, z, rotation:rotation);
+            return ApplyPivot(cl, pos, VD, VMHP, VMState, x, y, z, rotation);
     }
 
     /*
     Applies structure generation using pivot points as the middle of the structure
     */
-    private bool ApplyPivot(ChunkLoader_Server cl, ChunkPos pos, ushort[] VD, ushort[] VMHP, ushort[] VMState, int x, int y, int z, int rotation=0){
+    private bool ApplyPivot(ChunkLoader_Server cl, ChunkPos pos, ushort[] VD, ushort[] VMHP, ushort[] VMState, int x, int y, int z, int rotation){
         bool retStatus;
         int minXChunk;
         int maxXChunk;
@@ -191,62 +191,77 @@ public abstract class Structure
         int zRemainder;
         int yRemainder;
         int initStructX, initStructZ, initStructY;
+        int actualOffsetX, actualOffsetZ, actualSizeX, actualSizeZ;
 
-        int actualInitX = FindCoordPosition(x - this.offsetX);
-        int actualInitZ = FindCoordPosition(z - this.offsetZ);
+        if(rotation == 0 || rotation == 2){
+            actualOffsetX = this.offsetX;
+            actualOffsetZ = this.offsetZ;
+            actualSizeX = this.sizeX;
+            actualSizeZ = this.sizeZ;
+        }
+        else{
+            actualOffsetX = this.offsetZ;
+            actualOffsetZ = this.offsetX;
+            actualSizeX = this.sizeZ;
+            actualSizeZ = this.sizeX;
+        }
+
+
+        int actualInitX = FindCoordPosition(x - actualOffsetX);
+        int actualInitZ = FindCoordPosition(z - actualOffsetZ);
         int actualInitY = y;
 
-        int mainChunkInitX = FindMainCoordPosition(x);
-        int mainChunkInitZ = FindMainCoordPosition(z, isX:false);
+        int mainChunkInitX = FindMainCoordPosition(x, actualSizeX);
+        int mainChunkInitZ = FindMainCoordPosition(z, actualSizeZ);
         int mainChunkInitY = y;
 
         // Chunk Limits
-        if(x - this.offsetX < 0)
-            minXChunk = Mathf.FloorToInt((x - this.offsetX)/Chunk.chunkWidth)-1;
+        if(x - actualOffsetX < 0)
+            minXChunk = Mathf.FloorToInt((x - actualOffsetX)/Chunk.chunkWidth)-1;
         else
             minXChunk = 0;
 
-        if(z - this.offsetZ < 0)
-            minZChunk = Mathf.FloorToInt((z - this.offsetZ)/Chunk.chunkWidth)-1;
+        if(z - actualOffsetZ < 0)
+            minZChunk = Mathf.FloorToInt((z - actualOffsetZ)/Chunk.chunkWidth)-1;
         else
             minZChunk = 0;
 
         minYChunk = 0;
 
-        maxXChunk = Mathf.FloorToInt((x + ((this.sizeX-1) - this.offsetX))/Chunk.chunkWidth);
-        maxZChunk = Mathf.FloorToInt((z + ((this.sizeZ-1) - this.offsetZ))/Chunk.chunkWidth);
+        maxXChunk = Mathf.FloorToInt((x + ((actualSizeX-1) - actualOffsetX))/Chunk.chunkWidth);
+        maxZChunk = Mathf.FloorToInt((z + ((actualSizeZ-1) - actualOffsetZ))/Chunk.chunkWidth);
         maxYChunk = Mathf.FloorToInt((y + (this.sizeY-1))/Chunk.chunkDepth);
 
         // Calculates Remainder
         if(minXChunk == maxXChunk)
-            xRemainder = this.sizeX;
+            xRemainder = actualSizeX;
         else if(maxXChunk == 0){
-            xRemainder = (this.sizeX - ((Chunk.chunkWidth - actualInitX) + (-minXChunk-1)*Chunk.chunkWidth));
+            xRemainder = (actualSizeX - ((Chunk.chunkWidth - actualInitX) + (-minXChunk-1)*Chunk.chunkWidth));
         }
         else
             xRemainder = Chunk.chunkWidth - mainChunkInitX;
 
         if(minZChunk == maxZChunk)
-            zRemainder = this.sizeZ;
+            zRemainder = actualSizeZ;
         else if(maxZChunk == 0){
-            zRemainder = (this.sizeZ - ((Chunk.chunkWidth - actualInitZ) + (-minZChunk-1)*Chunk.chunkWidth));
+            zRemainder = (actualSizeZ - ((Chunk.chunkWidth - actualInitZ) + (-minZChunk-1)*Chunk.chunkWidth));
         }
         else
             zRemainder = Chunk.chunkWidth - mainChunkInitZ;
 
         if(minYChunk == maxYChunk)
-            yRemainder = this.sizeY;
+            yRemainder = actualSizeZ;
         else
             yRemainder = Chunk.chunkDepth - mainChunkInitY;
 
         // Calculates initial StructX and StructZ
         if(minXChunk < 0)
-            initStructX = this.offsetX - x;
+            initStructX = actualOffsetX - x;
         else
             initStructX = 0;
 
         if(minZChunk < 0)
-            initStructZ = this.offsetZ - z;
+            initStructZ = actualOffsetZ - z;
         else
             initStructZ = 0;
 
@@ -259,7 +274,7 @@ public abstract class Structure
             + "\tPivot: " + x + ", " + y + ", " + z);
         */
 
-        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, mainChunkInitX, y, mainChunkInitZ, xRemainder, zRemainder, yRemainder, initStructX, initStructZ, initStructY, rotation:rotation, isPivoted:true);
+        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, mainChunkInitX, y, mainChunkInitZ, xRemainder, zRemainder, yRemainder, initStructX, initStructZ, initStructY, actualSizeX, actualSizeZ, rotation, isPivoted:true);
 
         if(!retStatus)
             return false;
@@ -319,19 +334,19 @@ public abstract class Structure
 
                     // Calculate Remainders
                     if(minXChunk == maxXChunk)
-                        xRemainder = this.sizeX;
+                        xRemainder = actualSizeX;
                     else if(xCount == maxXChunk){
-                        xRemainder = (this.sizeX - ((Chunk.chunkWidth - actualInitX) + (currentXChunk-1)*Chunk.chunkWidth));
+                        xRemainder = (actualSizeX - ((Chunk.chunkWidth - actualInitX) + (currentXChunk-1)*Chunk.chunkWidth));
                     }
                     else
                         xRemainder = Chunk.chunkWidth - posX;
 
 
                     if(minZChunk == maxZChunk){
-                        zRemainder = this.sizeZ;
+                        zRemainder = actualSizeZ;
                     }
                     else if(zCount == maxZChunk){
-                        zRemainder = (this.sizeZ - ((Chunk.chunkWidth - actualInitZ) + (currentZChunk-1)*Chunk.chunkWidth));
+                        zRemainder = (actualSizeZ - ((Chunk.chunkWidth - actualInitZ) + (currentZChunk-1)*Chunk.chunkWidth));
                     }
                     else{
                         zRemainder = Chunk.chunkWidth - posZ;
@@ -351,7 +366,7 @@ public abstract class Structure
                     else if(xCount < maxXChunk)
                         sPosX = initStructX + ((currentXChunk-1) * Chunk.chunkWidth);
                     else if(xCount == maxXChunk){
-                        sPosX = this.sizeX - xRemainder;
+                        sPosX = actualSizeX - xRemainder;
                     }
 
                     if(zCount == minZChunk)
@@ -359,7 +374,7 @@ public abstract class Structure
                     else if(zCount < maxZChunk)
                         sPosZ = initStructZ + ((currentZChunk-1) * Chunk.chunkWidth);
                     else if(zCount == maxZChunk)
-                        sPosZ = this.sizeZ - zRemainder;
+                        sPosZ = actualSizeZ - zRemainder;
 
                     if(yCount == minYChunk)
                         sPosY = 0;
@@ -375,7 +390,7 @@ public abstract class Structure
                     // ACTUAL APPLY FUNCTIONS
                     // Checks if it's a loaded chunk
                     if(cl.chunks.ContainsKey(newPos)){
-                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);
+                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation, isPivoted:true);
                         AddChunk(cl.chunks[newPos]);
                         currentXChunk++;
                         continue;
@@ -389,12 +404,12 @@ public abstract class Structure
                     if(cl.regionHandler.IsIndexed(newPos)){
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation, isPivoted:true);
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             cl.regionHandler.LoadChunk(c);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);                
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation, isPivoted:true);                
                             AddChunk(c);
                         }
                     }
@@ -402,13 +417,13 @@ public abstract class Structure
                     else{
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);                        
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation, isPivoted:true);                        
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             c.biomeName = "Plains";
                             c.needsGeneration = 1;
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation, isPivoted:true);              
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation, isPivoted:true);              
                             AddChunk(c);
                         }
                     }
@@ -428,10 +443,26 @@ public abstract class Structure
     Application is anchored to bottom left of the structure
     */
     // Applies this structure to a cachedUshort array and a VoxelMetadata
-    private bool ApplyAnchored(ChunkLoader_Server cl, ChunkPos pos, ushort[] VD, ushort[] VMHP, ushort[] VMState, int x, int y, int z, int rotation=0){
+    private bool ApplyAnchored(ChunkLoader_Server cl, ChunkPos pos, ushort[] VD, ushort[] VMHP, ushort[] VMState, int x, int y, int z, int rotation){
         bool retStatus;
-        int xChunks = Mathf.FloorToInt((x + this.sizeX - 1)/Chunk.chunkWidth);
-        int zChunks = Mathf.FloorToInt((z + this.sizeZ - 1)/Chunk.chunkWidth);
+
+        int actualOffsetX, actualOffsetZ, actualSizeX, actualSizeZ;
+
+        if(rotation == 0 || rotation == 2){
+            actualOffsetX = this.offsetX;
+            actualOffsetZ = this.offsetZ;
+            actualSizeX = this.sizeX;
+            actualSizeZ = this.sizeZ;
+        }
+        else{
+            actualOffsetX = this.offsetZ;
+            actualOffsetZ = this.offsetX;
+            actualSizeX = this.sizeZ;
+            actualSizeZ = this.sizeX;
+        }
+
+        int xChunks = Mathf.FloorToInt((x + actualSizeX - 1)/Chunk.chunkWidth);
+        int zChunks = Mathf.FloorToInt((z + actualSizeZ - 1)/Chunk.chunkWidth);
         int yChunks = Mathf.FloorToInt((y + this.sizeY - 1)/Chunk.chunkDepth);
 
         int xRemainder, zRemainder, yRemainder;
@@ -440,12 +471,12 @@ public abstract class Structure
         if(xChunks > 0)
             xRemainder = Chunk.chunkWidth - x;
         else
-            xRemainder = this.sizeX;
+            xRemainder = actualSizeX;
 
         if(zChunks > 0)
             zRemainder = Chunk.chunkWidth - z;
         else
-            zRemainder = this.sizeZ;
+            zRemainder = actualSizeZ;
 
         if(yChunks > 0)
             yRemainder = Chunk.chunkDepth - y;
@@ -453,7 +484,7 @@ public abstract class Structure
             yRemainder = this.sizeY;
 
         // Applies Structure to origin chunk
-        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, x, y, z, xRemainder, zRemainder, yRemainder, 0, 0, 0);
+        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, x, y, z, xRemainder, zRemainder, yRemainder, 0, 0, 0, actualSizeX, actualSizeZ, rotation);
 
         // Possible failed return if in FreeSpace mode
         if(!retStatus){
@@ -461,7 +492,7 @@ public abstract class Structure
         }
 
         // Run loop for multi-chunk structures
-        ChunkPos newPos; 
+        ChunkPos newPos;
         int posX = 0;
         int posZ = 0;
         int posY = 0;
@@ -509,20 +540,20 @@ public abstract class Structure
 
                     // Calculate Remainders
                     if(xChunks == 0){
-                        xRemainder = this.sizeX;
+                        xRemainder = actualSizeX;
                     }
                     else if(xCount == xChunks){
-                        xRemainder = (this.sizeX - ((Chunk.chunkWidth - x) + (xCount-1)*Chunk.chunkWidth));
+                        xRemainder = (actualSizeX - ((Chunk.chunkWidth - x) + (xCount-1)*Chunk.chunkWidth));
                     }
                     else{
                         xRemainder = (Chunk.chunkWidth - posX);
                     }
 
                     if(zChunks == 0){
-                        zRemainder = this.sizeZ;
+                        zRemainder = actualSizeZ;
                     }
                     else if(zCount == zChunks){
-                        zRemainder = (this.sizeZ - ((Chunk.chunkWidth - z) + (zCount-1)*Chunk.chunkWidth));
+                        zRemainder = (actualSizeZ - ((Chunk.chunkWidth - z) + (zCount-1)*Chunk.chunkWidth));
                     }
                     else{
                         zRemainder = (Chunk.chunkWidth - posZ);
@@ -544,14 +575,14 @@ public abstract class Structure
                     else if(xCount < xChunks)
                         sPosX = (Chunk.chunkWidth - x) + ((xCount-1) * Chunk.chunkWidth);
                     else if(xCount == xChunks)
-                        sPosX = this.sizeX - xRemainder;
+                        sPosX = actualSizeX - xRemainder;
 
                     if(zCount == 0)
                         sPosZ = 0;
                     else if(zCount < zChunks)
                         sPosZ = (Chunk.chunkWidth - z) + ((zCount-1) * Chunk.chunkWidth);
                     else if(zCount == zChunks)
-                        sPosZ = this.sizeZ - zRemainder;
+                        sPosZ = actualSizeZ - zRemainder;
 
                     if(yCount == 0)
                         sPosY = 0;
@@ -564,7 +595,7 @@ public abstract class Structure
                     // ACTUAL APPLY FUNCTIONS
                     // Checks if it's a loaded chunk
                     if(cl.chunks.ContainsKey(newPos)){
-                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);
+                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation);
                         AddChunk(cl.chunks[newPos]);
                         continue;
                     }
@@ -577,12 +608,12 @@ public abstract class Structure
                     if(cl.regionHandler.IsIndexed(newPos)){
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation);
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             cl.regionHandler.LoadChunk(c);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);                
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation);                
                             AddChunk(c);
                         }
                     }
@@ -590,13 +621,13 @@ public abstract class Structure
                     else{
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);                        
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation);                        
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             c.biomeName = "Plains";
                             c.needsGeneration = 1;
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, rotation:rotation);              
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation);              
                             AddChunk(c);
                         }
                     }
@@ -609,7 +640,7 @@ public abstract class Structure
 
     // Applies this structure to a chunk
     // Receives a Chunk reference that will be changed in this function
-    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader_Server cl, ushort[] VD, ushort[] VMHP, ushort[] VMState, int posX, int posY, int posZ, int remainderX, int remainderZ, int remainderY, int structinitX, int structinitZ, int structinitY, int rotation=0, bool isPivoted=false){
+    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader_Server cl, ushort[] VD, ushort[] VMHP, ushort[] VMState, int posX, int posY, int posZ, int remainderX, int remainderZ, int remainderY, int structinitX, int structinitZ, int structinitY, int actualSizeX, int actualSizeZ, int rotation, bool isPivoted=false){
 
         bool exists = exist;
 
@@ -620,12 +651,13 @@ public abstract class Structure
         // Applies Free Space building rules to existing chunk
         if(this.type == FillType.FreeSpace && exists && initialchunk){
             if(!this.considerAir){
-                if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, isPivoted:isPivoted)){
+                if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, actualSizeX, actualSizeZ, isPivoted:isPivoted)){
                     for(int y=posY; y < posY + remainderY; y++){
                         structX = structinitX;
                         for(int x=posX; x < posX + remainderX; x++){
                             structZ = structinitZ;
                             for(int z=posZ; z < posZ + remainderZ; z++){
+
                                 RotateData(structX, structY, structZ, rotation);
                                 if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
                                     structZ++;
@@ -650,7 +682,7 @@ public abstract class Structure
                 }
             }
             else{
-                if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, isPivoted:isPivoted)){
+                if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, actualSizeX, actualSizeZ, isPivoted:isPivoted)){
                     for(int y=posY; y < posY + remainderY; y++){
                         structX = structinitX;
                         for(int x=posX; x < posX + remainderX; x++){
@@ -689,7 +721,8 @@ public abstract class Structure
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
                             if(this.overwriteBlocks.Contains(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
-
+                                //Debug.Log("xyz: " + x + ", " + y + ", " + z + "\nsXYZ: " + structX + ", " + structY + ", " + structZ + "\nRealSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ
+                                //    + "\nFakeSize: " + actualSizeX + ", " + actualSizeZ + "\nRot: " + rotation);
                                 RotateData(structX, structY, structZ, rotation);
 
                                 if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
@@ -792,6 +825,8 @@ public abstract class Structure
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
                             RotateData(structX, structY, structZ, rotation);
+                            Debug.Log("rot: " + rotation + "\nsXYZ: " + cacheX + ", " + cacheY + ", " + cacheZ + "\nSize: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ
+                                + "\nXYZ: " + x + ", " + y + ", " + z);
                             if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] != 0){
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
@@ -812,12 +847,12 @@ public abstract class Structure
     } 
 
     // Checks for valid space in FreeSpace mode
-    private bool CheckFreeSpace(ushort[] data, int x, int y, int z, int rotation, int remainderX, int remainderZ, int remainderY, bool isPivoted=false){
+    private bool CheckFreeSpace(ushort[] data, int x, int y, int z, int rotation, int remainderX, int remainderZ, int remainderY, int actualSizeX, int actualSizeZ, bool isPivoted=false){
         int xRemainder, zRemainder, yRemainder;
 
         if(!isPivoted){
-            xRemainder = Mathf.Min(Chunk.chunkWidth - x, this.sizeX);
-            zRemainder = Mathf.Min(Chunk.chunkWidth - z, this.sizeZ);
+            xRemainder = Mathf.Min(Chunk.chunkWidth - x, actualSizeX);
+            zRemainder = Mathf.Min(Chunk.chunkWidth - z, actualSizeZ);
             yRemainder = Mathf.Min(Chunk.chunkDepth - y, this.sizeY);
         }
         else{
@@ -935,32 +970,30 @@ public abstract class Structure
     2: 180º
     3: 270º
     */
-    private void RotateData(int x, int y, int z, int rotation){
-        cacheY = y;
-        rotation = 2;
+    private void RotateData(int sPosX, int sPosY, int sPosZ, int rotation){
+        cacheY = sPosY;
 
-        // No rotation
+
         if(rotation == 0){
-            cacheX = x;
-            cacheZ = z;
+            cacheX = sPosX;
+            cacheZ = sPosZ;
         }
         else if(rotation == 1){
-            cacheX = (this.sizeX - x) - 1;
-            cacheZ = z;
+            cacheX = sPosZ;
+            cacheZ = sPosX;
         }
         else if(rotation == 2){
-            cacheX = (this.sizeX - x) - 1;
-            cacheZ = (this.sizeZ - z) - 1;
+            cacheX = (this.sizeX - sPosX) - 1;
+            cacheZ = (this.sizeZ - sPosZ) - 1;
         }
         else if(rotation == 3){
-            cacheX = x;
-            cacheZ = (this.sizeZ - z) - 1;
+            cacheX = (this.sizeX - sPosZ) - 1;
+            cacheZ = (this.sizeZ - sPosX) - 1;
         }
         else{
-            cacheX = x;
-            cacheZ = z;            
+            cacheX = sPosX;
+            cacheZ = sPosZ;            
         }
-
     }
 
     // Adds chunk to reload static list
@@ -983,11 +1016,8 @@ public abstract class Structure
     }
 
     // Finds the position in main chunk that a structure starts
-    private int FindMainCoordPosition(int pos, bool isX=true){
-        if(isX)
-            pos = pos - this.offsetX;
-        else
-            pos = pos - this.offsetZ;
+    private int FindMainCoordPosition(int pos, int structSize){
+        pos = pos - structSize;
 
         if(pos < 0)
             return 0;

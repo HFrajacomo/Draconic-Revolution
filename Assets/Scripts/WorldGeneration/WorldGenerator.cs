@@ -181,7 +181,7 @@ public class WorldGenerator
 
 
                 // Ignores structure on hard limit
-                if(y <= minRelativeHeight || y == 0)
+                if(y <= minRelativeHeight || y <= 0)
                     continue;
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
@@ -219,7 +219,7 @@ public class WorldGenerator
                 }
 
                 // Ignores structure on hard limit
-                if(y <= minRelativeHeight || y == 0)
+                if(y <= minRelativeHeight || y <= 0)
                     continue;
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
