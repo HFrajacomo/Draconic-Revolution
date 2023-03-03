@@ -111,8 +111,7 @@ public static class Compression{
 	// and returns the amount of bytes written
 	public static int CompressBlocks(Chunk c, byte[] buffer, int targetPos=0){
 		int bytes;
-		Pallete p = Compression.BiomeToPallete(c.biomeName);		
-		
+		Pallete p = Compression.BiomeToPallete(c.biomeName);
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
 		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.data.GetData());
 		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);

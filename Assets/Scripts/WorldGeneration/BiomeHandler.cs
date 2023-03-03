@@ -81,7 +81,7 @@ public class BiomeHandler
 			(ushort)BlockID.SNOW,
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES});
 
-		Biome hellPlains = new Biome("Hellish Plains", BiomeCode.HELL_PLAINS, BiomeType.LOW, ChunkDepthID.HELL,
+		Biome hellPlains = new Biome("Hell Plains", BiomeCode.HELL_PLAINS, BiomeType.LOW, ChunkDepthID.HELL,
 			(ushort)BlockID.HELL_MARBLE,
 			new List<StructureGroupID>(){});
 
