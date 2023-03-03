@@ -81,8 +81,28 @@ public class BiomeHandler
 			(ushort)BlockID.SNOW,
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES});
 
-		Biome hellPlains = new Biome("Hell Plains", BiomeCode.HELL_PLAINS, BiomeType.LOW, ChunkDepthID.HELL,
+		Biome hellPlains = new Biome("Hell Plains", BiomeCode.HELL_PLAINS, BiomeType.MID, ChunkDepthID.HELL,
 			(ushort)BlockID.HELL_MARBLE,
+			new List<StructureGroupID>(){});
+
+		Biome boneValley = new Biome("Bone Valley", BiomeCode.BONE_VALLEY, BiomeType.MID, ChunkDepthID.HELL,
+			(ushort)BlockID.HELL_MARBLE,
+			new List<StructureGroupID>(){});
+
+		Biome lavaOcean = new Biome("Lava Ocean", BiomeCode.LAVA_OCEAN, BiomeType.LOW, ChunkDepthID.HELL,
+			(ushort)BlockID.LAVA,
+			new List<StructureGroupID>(){});
+
+		Biome deepCliff = new Biome("Deep Cliff", BiomeCode.DEEP_CLIFF, BiomeType.OCEAN, ChunkDepthID.HELL,
+			(ushort)BlockID.STONE,
+			new List<StructureGroupID>(){});
+
+		Biome hellHighlands= new Biome("Hell Highlands", BiomeCode.HELL_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
+			(ushort)BlockID.HELL_MARBLE,
+			new List<StructureGroupID>(){});
+
+		Biome volcanicHighlands = new Biome("Volcanic Highlands", BiomeCode.VOLCANIC_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
+			(ushort)BlockID.BASALT,
 			new List<StructureGroupID>(){});
 
 		AddBiome(plains);
@@ -99,6 +119,12 @@ public class BiomeHandler
 		AddBiome(submergedCave);
 		AddBiome(iceCave);
 		AddBiome(hellPlains);
+		AddBiome(boneValley);
+		AddBiome(lavaOcean);
+		AddBiome(deepCliff);
+		AddBiome(hellHighlands);
+		AddBiome(volcanicHighlands);
+
 
 		this.biomeBlendingValue = new ushort[this.currentBiome];
 
@@ -269,5 +295,10 @@ public enum BiomeCode : byte{
 	BASALT_CAVES,
 	UNDERWATER_CAVES,
 	ICE_CAVES,
-	HELL_PLAINS
+	HELL_PLAINS,
+	LAVA_OCEAN,
+	HELL_HIGHLANDS,
+	VOLCANIC_HIGHLANDS,
+	BONE_VALLEY,
+	DEEP_CLIFF
 }
