@@ -56,7 +56,7 @@ public static class GenerationSeed
     public static readonly float peakYStep2 = 0.00617f;
     // ---- Hell Splines
     public static readonly float[] peakHellNoiseSplineX = new float[]{-1, -0.5f, -0.2f, -0.1f,  0f, 0.3f, 0.6f, 1f};
-    public static readonly int[] peakHellNoiseSplineY = new int[]{    -15,-7,   -2,   0,     0,  2,   8,   25};
+    public static readonly int[] peakHellNoiseSplineY = new int[]{    -15, -8,   -2,   0,     0,  8,   15,   30};
 
     // Temperature Noise
     public static byte[] temperatureNoise = new byte[257];
@@ -64,6 +64,10 @@ public static class GenerationSeed
     public static readonly float[] temperatureOffsetY = new float[1];
     public static readonly float temperatureNoiseStep1 = 0.000093f;
     public static readonly float temperatureNoiseStep2 = 0.000127f;
+    public static readonly float temperatureNoiseStep3 = 0.000623f;
+    public static readonly float temperatureNoiseStep4 = 0.000773f;
+    public static readonly float temperatureNoiseStep5 = 0.0323f;
+    public static readonly float temperatureNoiseStep6 = 0.0927f;
 
     // Humidity Noise
     public static byte[] humidityNoise = new byte[257];

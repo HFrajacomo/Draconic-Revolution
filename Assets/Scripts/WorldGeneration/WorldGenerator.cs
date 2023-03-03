@@ -410,6 +410,7 @@ public class WorldGenerator
             peakNoise = peakMap,
             caveNoise = caveMap,
             cavemaskNoise = maskMap,
+            temperatureNoise = temperatureMap,
             pregen = isPregen
         };
         JobHandle job = ghcj.Schedule();
