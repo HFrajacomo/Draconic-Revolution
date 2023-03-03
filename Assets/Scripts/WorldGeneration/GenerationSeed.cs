@@ -26,7 +26,7 @@ public static class GenerationSeed
     public static readonly float baseYStep = 0.00117f;
     public static readonly float baseYStep2 = 0.000931f;
     // ---- Hell Splines
-    public static readonly float[] baseHellNoiseSplineX = new float[]{-1, -0.6f, -0.56f, -0.1f, 0f, 0.2f, 0.25f, 0.4f, 0.67f, 1f};
+    public static readonly float[] baseHellNoiseSplineX = new float[]{-1, -0.65f, -0.6f, -0.1f, 0f, 0.2f, 0.25f, 0.4f, 0.67f, 1f};
     public static readonly int[] baseHellNoiseSplineY = new int[]{    0,  0,     130,    150,   170,180,  190,   200,  210,   220};
 
 

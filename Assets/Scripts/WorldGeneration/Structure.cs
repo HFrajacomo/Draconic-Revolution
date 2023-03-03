@@ -114,6 +114,18 @@ public abstract class Structure
                 return new RubyVeinB();
             case StructureCode.GravelPile:
                 return new GravelPile();
+            case StructureCode.BigFossil1:
+                return new BigFossil1();
+            case StructureCode.BigFossil2:
+                return new BigFossil2();
+            case StructureCode.LittleBone1:
+                return new LittleBone1();
+            case StructureCode.LittleBone2:
+                return new LittleBone2();
+            case StructureCode.BigUpBone:
+                return new BigUpBone();  
+            case StructureCode.BigCrossBone:
+                return new BigCrossBone();        
             default:
                 return new TestStruct();
         }
@@ -726,7 +738,7 @@ public abstract class Structure
         }
 
         // Applies in OverwriteAll state
-        else if(this.type == FillType.OverwriteAll || !exists || exists){
+        else if(this.type == FillType.OverwriteAll){
             // Handling if air is taken into account in generated chunks
             if(this.considerAir && exists){
                 for(int y=posY; y < posY + remainderY; y++){
@@ -735,12 +747,8 @@ public abstract class Structure
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
                             RotateData(structX, structY, structZ, rotation);
-                            // If air add pregen block
-                            if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0)
-                                VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
-                            else
-                                VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
+                            VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                             VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
                             VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
                             
@@ -776,29 +784,8 @@ public abstract class Structure
                     structY++;
                 }                
             }
-            // Handling if air is not taken into account in generated chunks
-            else if(!this.considerAir && exists){
-                for(int y=posY; y < posY + remainderY; y++){
-                    structX = structinitX;
-                    for(int x=posX; x < posX + remainderX; x++){
-                        structZ = structinitZ;
-                        for(int z=posZ; z < posZ + remainderZ; z++){
-                            RotateData(structX, structY, structZ, rotation);
-                            if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] != 0){
-                                VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
-
-                                VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
-                            }
-                            structZ++;
-                        }
-                        structX++;
-                    }
-                    structY++;
-                }               
-            }
             // Handles if air is not taken into account in new chunks
-            else if(!this.considerAir && !exists){
+            else if(!this.considerAir){
                 for(int y=posY; y < posY + remainderY; y++){
                     structX = structinitX;
                     for(int x=posX; x < posX + remainderX; x++){
@@ -807,7 +794,6 @@ public abstract class Structure
                             RotateData(structX, structY, structZ, rotation);
                             if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] != 0){
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
-
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
                                 VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
                             }
@@ -951,6 +937,7 @@ public abstract class Structure
     */
     private void RotateData(int x, int y, int z, int rotation){
         cacheY = y;
+        rotation = 2;
 
         // No rotation
         if(rotation == 0){

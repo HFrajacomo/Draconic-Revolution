@@ -961,6 +961,174 @@ public class GravelPile : Structure
 	}
 }
 
+public class BigFossil1 : Structure
+{
+	public ushort[] blocks = new ushort[]{0,3,16,3,0,6,16,3,0,7,16,1,0,8,16,1,0,8,16,1,0,8,16,1,0,8,16,1,0,5,16,7,0,5,16,1,0,8,16,1,0,8,16,1,0,5,16,7,0,5,16,1,0,8,16,1,0,8,16,1,0,5,16,7,0,5,16,1,0,8,16,1,0,8,16,1,0,4,16,9,0,64,16,1,0,5,16,1,0,29,16,1,0,5,16,1,0,29,16,1,0,5,16,1,0,28,16,1,0,7,16,1,0,64,16,1,0,5,16,1,0,29,16,1,0,5,16,1,0,29,16,1,0,5,16,1,0,28,16,1,0,7,16,1,0,64,16,1,0,5,16,1,0,29,16,1,0,5,16,1,0,29,16,1,0,5,16,1,0,28,16,1,0,7,16,1,0,65,16,2,0,1,16,2,0,31,16,2,0,1,16,2,0,31,16,2,0,1,16,2,0,30,16,2,0,3,16,2,0,1};
+	public ushort[] hps = new ushort[]{0,900};
+	public ushort[] states = new ushort[]{0,900};
+
+	public BigFossil1(){
+		this.code = (ushort)StructureCode.BigFossil1; 
+
+		this.sizeX = 20;
+		this.sizeY = 5;
+		this.sizeZ = 9;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>(){};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class BigFossil2 : Structure
+{
+	public ushort[] blocks = new ushort[]{16,2,0,3,16,2,0,7,16,2,0,3,16,2,0,7,16,2,0,3,16,2,0,7,16,2,0,3,16,2,0,7,16,2,0,3,16,2,0,7,16,2,0,3,16,2,0,7,16,2,0,3,16,2,0,7,16,2,0,3,16,2,0,14,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,14,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,14,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,7,16,1,0,5,16,1,0,14,16,7,0,3,16,1,0,3,16,7,0,3,16,1,0,3,16,7,0,3,16,1,0,3,16,7,0,3,16,1,0,3,16,7,0,3,16,1,0,3,16,7,0,3,16,1,0,3,16,7,0,3,16,1,0,3,16,7,0,3,16,1,0,6,16,1,0,3};
+	public ushort[] hps = new ushort[]{0,595};
+	public ushort[] states = new ushort[]{0,595};
+
+	public BigFossil2(){
+		this.code = (ushort)StructureCode.BigFossil2; 
+
+		this.sizeX = 17;
+		this.sizeY = 5;
+		this.sizeZ = 7;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>(){};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class LittleBone1 : Structure
+{
+	public ushort[] blocks = new ushort[]{16,1,0,1,16,1,0,1,16,1,0,2,16,1,0,2,16,1,0,2,16,1,0,1,16,1,0,1,16,1};
+	public ushort[] hps = new ushort[]{0,18};
+	public ushort[] states = new ushort[]{0,18};
+
+	public LittleBone1(){
+		this.code = (ushort)StructureCode.LittleBone1; 
+
+		this.sizeX = 6;
+		this.sizeY = 1;
+		this.sizeZ = 3;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>(){};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class LittleBone2 : Structure
+{
+	public ushort[] blocks = new ushort[]{16,2,0,3,16,1,0,3,16,1,0,3,16,2,0,1,16,4};
+	public ushort[] hps = new ushort[]{0,20};
+	public ushort[] states = new ushort[]{0,20};
+
+	public LittleBone2(){
+		this.code = (ushort)StructureCode.LittleBone2; 
+
+		this.sizeX = 5;
+		this.sizeY = 1;
+		this.sizeZ = 4;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>(){};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class BigUpBone : Structure
+{
+	public ushort[] blocks = new ushort[]{16,1,0,1,16,1,0,3,16,1,0,1,16,2,0,1,16,1,0,1,16,1,0,1,16,1,0,1,16,1,0,4,16,1,0,7,16,2,0,7,16,2,0,7,16,3,0,7,16,2,0,7,16,1,0,4,16,1,0,1,16,1,0,1,16,1,0,1,16,1,0,1,16,2,0,1,16,1,0,3,16,1,0,1,16,1};
+	public ushort[] hps = new ushort[]{0,90};
+	public ushort[] states = new ushort[]{0,90};
+
+	public BigUpBone(){
+		this.code = (ushort)StructureCode.BigUpBone; 
+
+		this.sizeX = 3;
+		this.sizeY = 10;
+		this.sizeZ = 3;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>(){};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class BigCrossBone : Structure
+{
+	public ushort[] blocks = new ushort[]{0,4,16,1,0,7,16,1,0,6,16,2,0,6,16,1,0,7,16,2,0,6,16,2,0,7,16,1,0,6,16,2,0,6,16,2,0,3,16,8,0,1,16,4,0,1,16,1,0,5,16,1,0,6,16,2,0,3};
+	public ushort[] hps = new ushort[]{0,104};
+	public ushort[] states = new ushort[]{0,104};
+
+	public BigCrossBone(){
+		this.code = (ushort)StructureCode.BigCrossBone; 
+
+		this.sizeX = 1;
+		this.sizeY = 13;
+		this.sizeZ = 8;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+        this.blockdata = new ushort[sizeX*sizeY*sizeZ];
+        this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>(){};
+
+		Prepare(blocks, hps, states);
+	}
+}
+
 /*
 ADD TO THIS ENUM EVERY NEW STRUCTURE IMPLEMENTED
 */
@@ -999,5 +1167,11 @@ public enum StructureCode{
 	EmeraldVeinB = 30,
 	RubyVeinA = 31,
 	RubyVeinB = 32,
-	GravelPile = 33
+	GravelPile = 33,
+	BigFossil1 = 34,
+	LittleBone1 = 35,
+	LittleBone2 = 36,
+	BigFossil2 = 37,
+	BigUpBone = 38,
+	BigCrossBone = 39
 }

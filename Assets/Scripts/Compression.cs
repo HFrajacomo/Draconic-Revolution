@@ -23,12 +23,12 @@ public static class Compression{
 	private static BlockID[] forestArray = new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.GRAVEL, BlockID.PREGEN_AIR};
 	private static BlockID[] icelandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.PINE_LEAF, BlockID.PINE_WOOD, BlockID.SNOW, BlockID.ICE, BlockID.GRAVEL, BlockID.PREGEN_AIR};
 	private static BlockID[] sandlandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.SANDSTONE, BlockID.GRAVEL, BlockID.PREGEN_AIR};
-	private static BlockID[] hellArray = new BlockID[]{BlockID.AIR, BlockID.HELL_MARBLE, BlockID.LAVA, BlockID.PREGEN_AIR};
+	private static BlockID[] hellArray = new BlockID[]{BlockID.AIR, BlockID.HELL_MARBLE, BlockID.LAVA, BlockID.BASALT, BlockID.BONE, BlockID.PREGEN_AIR};
 
 	private static BlockID[] structureArray =
 						 new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.IRON_ORE, BlockID.WATER, BlockID.LEAF,
 										BlockID.PINE_WOOD, BlockID.PINE_LEAF, BlockID.COAL_ORE, BlockID.COPPER_ORE, BlockID.TIN_ORE, BlockID.ALUMINIUM_ORE,
-										BlockID.MAGNETITE_ORE, BlockID.EMERIUM_ORE, BlockID.GOLD_ORE, BlockID.GRAVEL}; 
+										BlockID.MAGNETITE_ORE, BlockID.EMERIUM_ORE, BlockID.GOLD_ORE, BlockID.GRAVEL, BlockID.BONE}; 
 
 	private static BlockID[] metadataArray = new BlockID[]{(BlockID)0, (BlockID)1, (BlockID)(ushort.MaxValue)};
 

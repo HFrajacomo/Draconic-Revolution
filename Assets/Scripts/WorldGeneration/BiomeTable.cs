@@ -167,15 +167,15 @@ public class BiomeTable
     public void SetupHellBiomes(){
         this.baseErosionTable = new BiomeType[,]{
             {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
-            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
             {BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW},
             {BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID},
-            {BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID},
-            {BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID},
-            {BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID},
+            {BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID},
+            {BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID},
             {BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
-            {BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
-            {BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.MID, BiomeType.MID, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.MID, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.MID, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
         };
 
         this.oceanTempHumidTable = new BiomeCode[,]{
@@ -207,8 +207,8 @@ public class BiomeTable
         this.midTempHumidTable = new BiomeCode[,]{
             {BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY},
             {BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY},
-            {BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS},
-            {BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS},
+            {BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY},
+            {BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY, BiomeCode.BONE_VALLEY},
             {BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS},
             {BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS},
             {BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS, BiomeCode.HELL_PLAINS},

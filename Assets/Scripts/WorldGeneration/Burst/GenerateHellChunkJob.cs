@@ -181,11 +181,11 @@ public struct GenerateHellChunkJob: IJob{
 
     // Remaps -1 to 1 interval to 0.35 to 1
     private float RemapIntervalGround(float number){
-        return Mathf.Lerp((number+1)/2, 0.35f, 1f);
+        return Mathf.Lerp(0.35f, 1f, (number+1)/2);
     }
 
     // Remaps -1 to 1 interval to 0.7 to 1
     private float RemapIntervalCeiling(float number){
-        return Mathf.Lerp((number+1)/2, 0.7f, 1f);
+        return Mathf.Lerp(0.7f, 1f, (number+1)/2);
     }
 }

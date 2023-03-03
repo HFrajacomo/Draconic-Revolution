@@ -83,11 +83,11 @@ public class BiomeHandler
 
 		Biome hellPlains = new Biome("Hell Plains", BiomeCode.HELL_PLAINS, BiomeType.MID, ChunkDepthID.HELL,
 			(ushort)BlockID.HELL_MARBLE,
-			new List<StructureGroupID>(){});
+			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES});
 
 		Biome boneValley = new Biome("Bone Valley", BiomeCode.BONE_VALLEY, BiomeType.MID, ChunkDepthID.HELL,
 			(ushort)BlockID.HELL_MARBLE,
-			new List<StructureGroupID>(){});
+			new List<StructureGroupID>(){StructureGroupID.GREATER_BONES});
 
 		Biome lavaOcean = new Biome("Lava Ocean", BiomeCode.LAVA_OCEAN, BiomeType.LOW, ChunkDepthID.HELL,
 			(ushort)BlockID.LAVA,
@@ -99,11 +99,11 @@ public class BiomeHandler
 
 		Biome hellHighlands= new Biome("Hell Highlands", BiomeCode.HELL_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
 			(ushort)BlockID.HELL_MARBLE,
-			new List<StructureGroupID>(){});
+			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES});
 
 		Biome volcanicHighlands = new Biome("Volcanic Highlands", BiomeCode.VOLCANIC_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
 			(ushort)BlockID.BASALT,
-			new List<StructureGroupID>(){});
+			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES});
 
 		AddBiome(plains);
 		AddBiome(grassyHighlands);
@@ -197,6 +197,11 @@ public class BiomeHandler
 		return dataset[(byte)biome].hasRange;
 	}
 
+	// Returns the list of possible Range in a biome
+	public static List<int> GetBiomeMinHeight(BiomeCode biome){
+		return dataset[(byte)biome].minHeight;
+	}
+
 	/*
 	Main Function, assigns biome based on 
 	*/
@@ -231,6 +236,7 @@ public struct Biome{
 	public List<int> depthValues;
 	public List<int> hardSetDepth;
 	public List<bool> hasRange;
+	public List<int> minHeight;
 
 	public Biome(string n, BiomeCode code, BiomeType type, ChunkDepthID layer, ushort blendingBlock, List<StructureGroupID> structureGroups){
 		this.name = n;
@@ -245,6 +251,7 @@ public struct Biome{
 		this.depthValues = new List<int>();
 		this.hardSetDepth = new List<int>();
 		this.hasRange = new List<bool>();
+		this.minHeight = new List<int>();
 
 		foreach(StructureGroupID id in structureGroups){
 			StructureGroup.AddStructureGroup(id, this);

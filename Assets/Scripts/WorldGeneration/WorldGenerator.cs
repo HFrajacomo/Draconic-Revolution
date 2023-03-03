@@ -144,7 +144,7 @@ public class WorldGenerator
     Range represents if structure always spawn at given Depth, or if it spans below as well
     HardSetDepth will be a fixed depth value for the structure to generate in case it is non-negative
     */
-    public void GenerateStructures(ChunkPos pos, BiomeCode biome, int structureCode, ushort[] blockdata, ushort[] statedata, ushort[] hpdata, int heightlimit=0){
+    public void GenerateStructures(ChunkPos pos, BiomeCode biome, int structureCode, ushort[] blockdata, ushort[] statedata, ushort[] hpdata){
         // Gets index of amount and percentage
         int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureCode);
         int amount = BiomeHandler.GetBiomeAmounts(biome)[index];
@@ -152,6 +152,7 @@ public class WorldGenerator
         int hardSetDepth = BiomeHandler.GetBiomeHSDepth(biome)[index];
         bool range = BiomeHandler.GetBiomeRange(biome)[index];
         float percentage = BiomeHandler.GetBiomePercentages(biome)[index];
+        int minRelativeHeight = BiomeHandler.GetBiomeMinHeight(biome)[index];
 
         int x,y,z;
         int rotation = 0;
@@ -180,7 +181,7 @@ public class WorldGenerator
 
 
                 // Ignores structure on hard limit
-                if(y <= heightlimit || y == 0)
+                if(y <= minRelativeHeight || y == 0)
                     continue;
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
@@ -202,15 +203,23 @@ public class WorldGenerator
                 x = this.rng.Next(0, Chunk.chunkWidth);
                 z = this.rng.Next(0, Chunk.chunkWidth);
 
-                if(hardSetDepth < 0){
+                if(minRelativeHeight != 0 && hardSetDepth < 0){
                     float yMult = (float)this.rng.NextDouble(); 
-                    y = (int)(heightlimit + yMult*(cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth));
+                    y = (int)(Mathf.Lerp(minRelativeHeight + cacheHeightMap[x*(Chunk.chunkWidth+1)+z], cacheHeightMap[x*(Chunk.chunkWidth+1)+z], yMult));
                 }
-                else
-                    y = this.rng.Next(heightlimit, hardSetDepth);
+                else if(minRelativeHeight != 0 && hardSetDepth >= 0){
+                    y = this.rng.Next(hardSetDepth + minRelativeHeight, hardSetDepth);
+                }
+                else if(hardSetDepth < 0){
+                    float yMult = (float)this.rng.NextDouble(); 
+                    y = (int)(yMult*(cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth));
+                }
+                else{
+                    y = this.rng.Next(1, hardSetDepth);
+                }
 
                 // Ignores structure on hard limit
-                if(y <= heightlimit || y == 0)
+                if(y <= minRelativeHeight || y == 0)
                     continue;
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
@@ -267,31 +276,31 @@ public class WorldGenerator
         byte xpBiome, zpBiome, zmBiome, xzpBiome, xpzmBiome, xmzpBiome;
 
         // This Chunk
-        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.SURFACE);
         this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.SURFACE);
 
         // X+ Chunk
-        float[] xPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
+        float[] xPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.SURFACE);
         xpBiome = this.biomeHandler.AssignBiome(xPlusInfo, ChunkDepthID.SURFACE);
 
         // Z+ Chunk
-        float[] zPlusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
+        float[] zPlusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.SURFACE);
         zpBiome = this.biomeHandler.AssignBiome(zPlusInfo, ChunkDepthID.SURFACE);
 
         // Z- Chunk
-        float[] zMinusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth);
+        float[] zMinusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth, ChunkDepthID.SURFACE);
         zmBiome = this.biomeHandler.AssignBiome(zMinusInfo, ChunkDepthID.SURFACE);
 
         // XZ+ Chunk
-        float[] xzPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
+        float[] xzPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.SURFACE);
         xzpBiome = this.biomeHandler.AssignBiome(xzPlusInfo, ChunkDepthID.SURFACE);
 
         // X+Z- Chunk
-        float[] xpzmMinusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth);
+        float[] xpzmMinusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth, ChunkDepthID.SURFACE);
         xpzmBiome = this.biomeHandler.AssignBiome(xpzmMinusInfo, ChunkDepthID.SURFACE);
 
         // X-Z+ Chunk
-        float[] xmzpMinusInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
+        float[] xmzpMinusInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.SURFACE);
         xmzpBiome = this.biomeHandler.AssignBiome(xmzpMinusInfo, ChunkDepthID.SURFACE);
 
         PopulateSurfaceChunkJob pcj = new PopulateSurfaceChunkJob{
@@ -363,7 +372,7 @@ public class WorldGenerator
         JobHandle job = gucj.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
 
-        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.UNDERGROUND);
         this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.UNDERGROUND);
 
         PopulateUndergroundChunkJob pucj = new PopulateUndergroundChunkJob{
@@ -416,7 +425,7 @@ public class WorldGenerator
         JobHandle job = ghcj.Schedule();
         job.Complete();
 
-        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.HELL);
         this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.HELL);
 
         /*
@@ -437,7 +446,7 @@ public class WorldGenerator
         cacheHeightMap = NativeTools.CopyToManaged(heightMap);
 
         this.iteration = 0;
-        //GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
+        GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
 
         voxelData.Dispose();
         stateData.Dispose();
@@ -451,45 +460,78 @@ public class WorldGenerator
     Biome Generation
     */
 
-    public float[] BiomeNoise(float x, float y)
+    public float[] BiomeNoise(float x, float y, ChunkDepthID cid)
     {
         x += 8;
         y += 8;
         float initialX = x;
         float initialY = y;
+        float u,v,x2,y2,u2,v2;
+        int A,B,A2,B2,X,Y,X2,Y2;
 
 
         float[] biomeVector = new float[5];
 
 
         // Temperature Noise
-        x = initialX*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetX[0];
-        x -= Mathf.Floor(x);
-        y = initialY*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetY[0];
-        y -= Mathf.Floor(y);
-        float u = Fade(x);
-        float v = Fade(y);
+        if(cid != ChunkDepthID.HELL){
+            x = initialX*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetX[0];
+            x -= Mathf.Floor(x);
+            y = initialY*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetY[0];
+            y -= Mathf.Floor(y);
+            u = Fade(x);
+            v = Fade(y);
 
-        float x2 = initialX*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetX[0];
-        x2 -= Mathf.Floor(x2);
-        float y2 = initialY*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetY[0];
-        y2 -= Mathf.Floor(y2);
-        
-        float u2 = Fade(x2);
-        float v2 = Fade(y2);
+            x2 = initialX*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetX[0];
+            x2 -= Mathf.Floor(x2);
+            y2 = initialY*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetY[0];
+            y2 -= Mathf.Floor(y2);
+            
+            u2 = Fade(x2);
+            v2 = Fade(y2);
 
-        int X = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
-        int Y = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
-        int X2 = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
-        int Y2 = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
-        int A = (GenerationSeed.temperatureNoise[X  ] + Y) & 0xff;
-        int B = (GenerationSeed.temperatureNoise[X+1] + Y) & 0xff;
-        int A2 = (GenerationSeed.temperatureNoise[X2  ] + Y2) & 0xff;
-        int B2 = (GenerationSeed.temperatureNoise[X2+1] + Y2) & 0xff;
-        biomeVector[0] = TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.temperatureNoise[A  ], x, y  ), Grad(GenerationSeed.temperatureNoise[B  ], x-1, y  )),
-                       Lerp(u, Grad(GenerationSeed.temperatureNoise[A+1], x, y-1), Grad(GenerationSeed.temperatureNoise[B+1], x-1, y-1))), 
-                        Lerp(v2, Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2  ], x2, y2  ), Grad(GenerationSeed.temperatureNoise[B2  ], x2-1, y2  )),
-                       Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2+1], x2, y2-1), Grad(GenerationSeed.temperatureNoise[B2+1], x2-1, y2-1))));
+            X = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
+            Y = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
+            X2 = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
+            Y2 = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
+            A = (GenerationSeed.temperatureNoise[X  ] + Y) & 0xff;
+            B = (GenerationSeed.temperatureNoise[X+1] + Y) & 0xff;
+            A2 = (GenerationSeed.temperatureNoise[X2  ] + Y2) & 0xff;
+            B2 = (GenerationSeed.temperatureNoise[X2+1] + Y2) & 0xff;
+            biomeVector[0] = TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.temperatureNoise[A  ], x, y  ), Grad(GenerationSeed.temperatureNoise[B  ], x-1, y  )),
+                           Lerp(u, Grad(GenerationSeed.temperatureNoise[A+1], x, y-1), Grad(GenerationSeed.temperatureNoise[B+1], x-1, y-1))), 
+                            Lerp(v2, Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2  ], x2, y2  ), Grad(GenerationSeed.temperatureNoise[B2  ], x2-1, y2  )),
+                           Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2+1], x2, y2-1), Grad(GenerationSeed.temperatureNoise[B2+1], x2-1, y2-1))));
+        }
+        else{
+            x = initialX*GenerationSeed.temperatureNoiseStep3 + GenerationSeed.temperatureOffsetX[0];
+            x -= Mathf.Floor(x);
+            y = initialY*GenerationSeed.temperatureNoiseStep3 + GenerationSeed.temperatureOffsetY[0];
+            y -= Mathf.Floor(y);
+            u = Fade(x);
+            v = Fade(y);
+
+            x2 = initialX*GenerationSeed.temperatureNoiseStep4 + GenerationSeed.temperatureOffsetX[0];
+            x2 -= Mathf.Floor(x2);
+            y2 = initialY*GenerationSeed.temperatureNoiseStep4 + GenerationSeed.temperatureOffsetY[0];
+            y2 -= Mathf.Floor(y2);
+            
+            u2 = Fade(x2);
+            v2 = Fade(y2);
+
+            X = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep3 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
+            Y = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep3 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
+            X2 = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep4 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
+            Y2 = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep4 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
+            A = (GenerationSeed.temperatureNoise[X  ] + Y) & 0xff;
+            B = (GenerationSeed.temperatureNoise[X+1] + Y) & 0xff;
+            A2 = (GenerationSeed.temperatureNoise[X2  ] + Y2) & 0xff;
+            B2 = (GenerationSeed.temperatureNoise[X2+1] + Y2) & 0xff;
+            biomeVector[0] = TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.temperatureNoise[A  ], x, y  ), Grad(GenerationSeed.temperatureNoise[B  ], x-1, y  )),
+                           Lerp(u, Grad(GenerationSeed.temperatureNoise[A+1], x, y-1), Grad(GenerationSeed.temperatureNoise[B+1], x-1, y-1))), 
+                            Lerp(v2, Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2  ], x2, y2  ), Grad(GenerationSeed.temperatureNoise[B2  ], x2-1, y2  )),
+                           Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2+1], x2, y2-1), Grad(GenerationSeed.temperatureNoise[B2+1], x2-1, y2-1))));            
+        }
         
         // Humidity Noise
         x = initialX*GenerationSeed.humidityNoiseStep1 + GenerationSeed.humidityOffsetX[0];
