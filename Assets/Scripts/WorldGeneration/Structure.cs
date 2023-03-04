@@ -825,8 +825,6 @@ public abstract class Structure
                         structZ = structinitZ;
                         for(int z=posZ; z < posZ + remainderZ; z++){
                             RotateData(structX, structY, structZ, rotation);
-                            Debug.Log("rot: " + rotation + "\nsXYZ: " + cacheX + ", " + cacheY + ", " + cacheZ + "\nSize: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ
-                                + "\nXYZ: " + x + ", " + y + ", " + z);
                             if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] != 0){
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);

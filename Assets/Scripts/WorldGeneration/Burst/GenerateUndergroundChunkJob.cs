@@ -46,7 +46,7 @@ public struct GenerateUndergroundChunkJob: IJobParallelFor{
 
 
         for(int z=0; z < Chunk.chunkWidth; z++){ 
-            for(int y=Chunk.chunkDepth-1; y > 0; y--){
+            for(int y=Chunk.chunkDepth-1; y >= 0; y--){
                 base_ = TransformOctaves(NoiseMaker.Noise3D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.caveNoiseStep1, y*GenerationSeed.caveYStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.caveNoiseStep1, caveNoise), NoiseMaker.Noise3D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.caveNoiseStep2, y*GenerationSeed.caveYStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.caveNoiseStep2, caveNoise));
                 mask = Normalize(NoiseMaker.NoiseMask((pos.x*Chunk.chunkWidth+x)*GenerationSeed.cavemaskNoiseStep1, y*GenerationSeed.cavemaskYStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.cavemaskNoiseStep1, cavemaskNoise));
                 peak = NormalizePeak(TransformOctaves(NoiseMaker.Noise3D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep1, y*GenerationSeed.peakYStep, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep1, peakNoise), NoiseMaker.Noise3D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep2, y*GenerationSeed.peakYStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep2, peakNoise)), logBase);
