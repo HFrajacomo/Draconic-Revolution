@@ -11,6 +11,8 @@ using Unity.Collections;
 public struct GenerateCaveJob : IJobParallelFor{
     [ReadOnly]
     public ChunkPos pos;
+    [ReadOnly]
+    public ChunkDepthID cid;
 
     [NativeDisableParallelForRestriction]
     public NativeArray<ushort> blockData;
@@ -35,11 +37,26 @@ public struct GenerateCaveJob : IJobParallelFor{
     public void GenerateNoiseTunnel(int x){
         // Dig Caves and destroy underground rocks variables
         float val;
-        float lowerCaveLimit = 0.3f;
-        float upperCaveLimit = 0.37f;
-        int bottomLimit = 10;
-        int upperCompensation = -1;
-        float maskThreshold = 0.2f;
+        float lowerCaveLimit;
+        float upperCaveLimit;
+        int bottomLimit;
+        int upperCompensation;
+        float maskThreshold;
+
+        if(cid == ChunkDepthID.HELL){
+            lowerCaveLimit = 0.0f;
+            upperCaveLimit = 0.1f;
+            bottomLimit = 1;
+            upperCompensation = -1;
+            maskThreshold = 0f;    
+        }
+        else{
+            lowerCaveLimit = 0.3f;
+            upperCaveLimit = 0.37f;
+            bottomLimit = 10;
+            upperCompensation = -1;
+            maskThreshold = 0.2f;            
+        }
 
         for(int z=0; z < Chunk.chunkWidth; z++){ 
             for(int y=(int)heightMap[x*(Chunk.chunkWidth+1)+z]+upperCompensation; y > bottomLimit; y--){
@@ -65,7 +82,9 @@ public struct GenerateCaveJob : IJobParallelFor{
                 }
             }
             
-            SetHeightMapData(x, z);
+            // Updates heightdata
+            if(cid == ChunkDepthID.SURFACE)
+                SetHeightMapData(x, z);
         }
     }
 

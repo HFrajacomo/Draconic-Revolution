@@ -37,7 +37,7 @@ public struct GenerateHellChunkJob: IJob{
         // Lower part
         GenerateHeightPivots();
         BilinearIntepolateMaps(heightMap, ceilingMap);
-        ApplyMap(lavaLevel);
+        ApplyMap();
         AddBedrockLayer();
     }
 
@@ -86,8 +86,7 @@ public struct GenerateHellChunkJob: IJob{
         }
     }
 
-    public void ApplyMap(int lavaLevel){
-        ushort lavaBlock = (ushort)BlockID.LAVA;
+    public void ApplyMap(){
         ushort hellMarble = (ushort)BlockID.HELL_MARBLE;
 
         if(!pregen){
@@ -96,11 +95,7 @@ public struct GenerateHellChunkJob: IJob{
                     for(int y=1; y < Chunk.chunkDepth; y++){ 
                         if(y >= heightMap[x*(Chunk.chunkWidth+1)+z]){
                             if(y < ceilingMap[x*(Chunk.chunkWidth+1)+z]){
-                                if(y <= lavaLevel){
-                                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = lavaBlock;
-                                }
-                                else
-                                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
                             }
                             else{
                                 blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = hellMarble;
@@ -125,11 +120,6 @@ public struct GenerateHellChunkJob: IJob{
                                 blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = hellMarble;
                                 stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
                                 hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;                                
-                            }
-                            else if(y <= lavaLevel && blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 0){
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = lavaBlock;
-                                stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                                hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;
                             }
                         } 
                         else if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 0){

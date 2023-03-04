@@ -44,7 +44,7 @@ public class WorldGenerator
 
     // Other Native Objects
     private NativeHashSet<ushort> caveFreeBlocks;
-    private ushort[] caveFreeBlocksArray = new ushort[]{6};
+    private ushort[] caveFreeBlocksArray = new ushort[]{(ushort)BlockID.WATER, (ushort)BlockID.LAVA};
 
     // Biome Blending Map
     private NativeArray<ushort> biomeBlendingBlock;
@@ -327,7 +327,8 @@ public class WorldGenerator
             heightMap = heightMap,
             caveNoise = caveMap,
             cavemaskNoise = maskMap,
-            caveFreeBlocks = caveFreeBlocks
+            caveFreeBlocks = caveFreeBlocks,
+            cid = ChunkDepthID.SURFACE
         };
         job = gcavej.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
@@ -423,6 +424,19 @@ public class WorldGenerator
             pregen = isPregen
         };
         JobHandle job = ghcj.Schedule();
+        job.Complete();
+
+        GenerateCaveJob gcavej = new GenerateCaveJob{
+            pos = pos,
+            blockData = voxelData,
+            stateData = stateData,
+            heightMap = heightMap,
+            caveNoise = caveMap,
+            cavemaskNoise = maskMap,
+            caveFreeBlocks = caveFreeBlocks,
+            cid = ChunkDepthID.HELL
+        };
+        job = gcavej.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
 
         float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.HELL);
