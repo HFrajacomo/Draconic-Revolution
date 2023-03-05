@@ -211,8 +211,8 @@ public abstract class Structure
         int actualInitZ = FindCoordPosition(z - actualOffsetZ);
         int actualInitY = y;
 
-        int mainChunkInitX = FindMainCoordPosition(x, actualSizeX);
-        int mainChunkInitZ = FindMainCoordPosition(z, actualSizeZ);
+        int mainChunkInitX = FindMainCoordPosition(x, actualOffsetX);
+        int mainChunkInitZ = FindMainCoordPosition(z, actualOffsetZ);
         int mainChunkInitY = y;
 
         // Chunk Limits
@@ -250,7 +250,7 @@ public abstract class Structure
             zRemainder = Chunk.chunkWidth - mainChunkInitZ;
 
         if(minYChunk == maxYChunk)
-            yRemainder = actualSizeZ;
+            yRemainder = this.sizeY;
         else
             yRemainder = Chunk.chunkDepth - mainChunkInitY;
 
@@ -267,14 +267,12 @@ public abstract class Structure
 
         initStructY = 0;
 
-        /*
-        Debug.Log("MAIN CHUNK: " + pos + "\tStruct: " + this.code + "\n" + "SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tRemainders: " + xRemainder + ", " + zRemainder
-         + "\tsPos: " + initStructX + ", " + initStructZ + "\tChunksUsedX: " + 
-            minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tRotation: " + rotation + "\tPos: " + mainChunkInitX + ", " + y + ", " + mainChunkInitZ
-            + "\tPivot: " + x + ", " + y + ", " + z);
-        */
+        //Debug.Log("MAIN CHUNK: " + pos + "\tStruct: " + this.code + "\n" + "SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tOffsets: " + this.offsetX + ", " + this.offsetZ +  "\tRemainders: " + xRemainder + ", " + zRemainder
+        // + "\tsPos: " + initStructX + ", " + initStructZ + "\tChunksUsedX: " + 
+        //    minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tRotation: " + rotation + "\tPos: " + mainChunkInitX + ", " + y + ", " + mainChunkInitZ
+        //    + "\tPivot: " + x + ", " + y + ", " + z);
 
-        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, mainChunkInitX, y, mainChunkInitZ, xRemainder, zRemainder, yRemainder, initStructX, initStructZ, initStructY, actualSizeX, actualSizeZ, rotation, isPivoted:true);
+        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, mainChunkInitX, y, mainChunkInitZ, xRemainder, zRemainder, yRemainder, initStructX, initStructZ, initStructY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation, isPivoted:true);
 
         if(!retStatus)
             return false;
@@ -381,16 +379,17 @@ public abstract class Structure
                     else
                         sPosY = this.sizeY - yRemainder;
                     
-                    /*
-                    Debug.Log("SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tRemainders: " + xRemainder + ", " + zRemainder + "\tsPos: " + sPosX + ", " + sPosZ + "\tChunksUsedX: " + 
-                        minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tCurrentChunk: " + xCount + ", " + zCount
-                        + "\tLogicalChunkCode: " + currentXChunk + ", " + currentZChunk + "\tRotation: " + rotation + "\tPos: " + posX + ", " + y + ", " + posZ);
-                    */
+                    
+                    //Debug.Log("pos: (" + pos.x + ", " + pos.z + ")" + "\tActualInitXZ: " + actualInitX + ", " + actualInitZ + "\n" +
+                    //    "SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tRemainders: " + xRemainder + ", " + zRemainder + "\tsPos: " + sPosX + ", " + sPosZ + "\tChunksUsedX: " + 
+                    //    minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tCurrentChunk: " + xCount + ", " + zCount
+                    //    + "\tLogicalChunkCode: " + currentXChunk + ", " + currentZChunk + "\tRotation: " + rotation + "\tPos: " + posX + ", " + y + ", " + posZ);
+                    
 
                     // ACTUAL APPLY FUNCTIONS
                     // Checks if it's a loaded chunk
                     if(cl.chunks.ContainsKey(newPos)){
-                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation, isPivoted:true);
+                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation, isPivoted:true);
                         AddChunk(cl.chunks[newPos]);
                         currentXChunk++;
                         continue;
@@ -404,12 +403,12 @@ public abstract class Structure
                     if(cl.regionHandler.IsIndexed(newPos)){
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation, isPivoted:true);
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation, isPivoted:true);
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             cl.regionHandler.LoadChunk(c);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation, isPivoted:true);                
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation, isPivoted:true);                
                             AddChunk(c);
                         }
                     }
@@ -417,13 +416,13 @@ public abstract class Structure
                     else{
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation, isPivoted:true);                        
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation, isPivoted:true);                        
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             c.biomeName = "Plains";
                             c.needsGeneration = 1;
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation, isPivoted:true);              
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation, isPivoted:true);              
                             AddChunk(c);
                         }
                     }
@@ -484,7 +483,7 @@ public abstract class Structure
             yRemainder = this.sizeY;
 
         // Applies Structure to origin chunk
-        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, x, y, z, xRemainder, zRemainder, yRemainder, 0, 0, 0, actualSizeX, actualSizeZ, rotation);
+        retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, x, y, z, xRemainder, zRemainder, yRemainder, 0, 0, 0, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation);
 
         // Possible failed return if in FreeSpace mode
         if(!retStatus){
@@ -595,7 +594,7 @@ public abstract class Structure
                     // ACTUAL APPLY FUNCTIONS
                     // Checks if it's a loaded chunk
                     if(cl.chunks.ContainsKey(newPos)){
-                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation);
+                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation);
                         AddChunk(cl.chunks[newPos]);
                         continue;
                     }
@@ -608,12 +607,12 @@ public abstract class Structure
                     if(cl.regionHandler.IsIndexed(newPos)){
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation);
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation);
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             cl.regionHandler.LoadChunk(c);
-                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation);                
+                            ApplyToChunk(newPos, false, true, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation);                
                             AddChunk(c);
                         }
                     }
@@ -621,13 +620,13 @@ public abstract class Structure
                     else{
                         if(Structure.Exists(newPos)){
                             c = Structure.GetChunk(newPos);
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation);                        
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation);                        
                         }
                         else{
                             c = new Chunk(newPos, server:true);
                             c.biomeName = "Plains";
                             c.needsGeneration = 1;
-                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, rotation);              
+                            ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation);              
                             AddChunk(c);
                         }
                     }
@@ -640,7 +639,7 @@ public abstract class Structure
 
     // Applies this structure to a chunk
     // Receives a Chunk reference that will be changed in this function
-    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader_Server cl, ushort[] VD, ushort[] VMHP, ushort[] VMState, int posX, int posY, int posZ, int remainderX, int remainderZ, int remainderY, int structinitX, int structinitZ, int structinitY, int actualSizeX, int actualSizeZ, int rotation, bool isPivoted=false){
+    private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader_Server cl, ushort[] VD, ushort[] VMHP, ushort[] VMState, int posX, int posY, int posZ, int remainderX, int remainderZ, int remainderY, int structinitX, int structinitZ, int structinitY, int actualSizeX, int actualSizeZ, int actualOffsetX, int actualOffsetZ, int rotation, bool isPivoted=false){
 
         bool exists = exist;
 
@@ -649,9 +648,71 @@ public abstract class Structure
         int structY = structinitY;
 
         // Applies Free Space building rules to existing chunk
-        if(this.type == FillType.FreeSpace && exists && initialchunk){
-            if(!this.considerAir){
-                if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, actualSizeX, actualSizeZ, isPivoted:isPivoted)){
+        if(this.type == FillType.FreeSpace){
+            if(initialchunk){
+                if(!this.considerAir){
+                    if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, actualSizeX, actualSizeZ, isPivoted:isPivoted)){
+                        for(int y=posY; y < posY + remainderY; y++){
+                            structX = structinitX;
+                            for(int x=posX; x < posX + remainderX; x++){
+                                structZ = structinitZ;
+                                for(int z=posZ; z < posZ + remainderZ; z++){
+
+                                    RotateData(structX, structY, structZ, rotation);
+
+
+                                    if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
+                                        structZ++;
+                                        continue;
+                                    }
+
+                                    VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
+
+                                    VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+
+                                    structZ++;
+                                }
+                                structX++;
+                            }
+                            structY++;
+                        }
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+                else{
+                    if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, actualSizeX, actualSizeZ, isPivoted:isPivoted)){
+                        for(int y=posY; y < posY + remainderY; y++){
+                            structX = structinitX;
+                            for(int x=posX; x < posX + remainderX; x++){
+                                structZ = structinitZ;
+                                for(int z=posZ; z < posZ + remainderZ; z++){
+                                    RotateData(structX, structY, structZ, rotation);
+                                    if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0)
+                                        VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
+                                    else
+                                        VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
+
+                                    VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                    structZ++;
+                                }
+                                structX++;
+                            }
+                            structY++;
+                        }
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+            }
+            else{
+                if(!this.considerAir){
                     for(int y=posY; y < posY + remainderY; y++){
                         structX = structinitX;
                         for(int x=posX; x < posX + remainderX; x++){
@@ -659,6 +720,7 @@ public abstract class Structure
                             for(int z=posZ; z < posZ + remainderZ; z++){
 
                                 RotateData(structX, structY, structZ, rotation);
+
                                 if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
                                     structZ++;
                                     continue;
@@ -677,25 +739,18 @@ public abstract class Structure
                     }
                     return true;
                 }
-                else{
-                    return false;
-                }
-            }
-            else{
-                if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, actualSizeX, actualSizeZ, isPivoted:isPivoted)){
+                else if(this.considerAir && exists){
                     for(int y=posY; y < posY + remainderY; y++){
                         structX = structinitX;
                         for(int x=posX; x < posX + remainderX; x++){
                             structZ = structinitZ;
                             for(int z=posZ; z < posZ + remainderZ; z++){
                                 RotateData(structX, structY, structZ, rotation);
-                                if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0)
-                                    VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
-                                else
-                                    VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
+                                VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
                                 VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                
                                 structZ++;
                             }
                             structX++;
@@ -704,69 +759,137 @@ public abstract class Structure
                     }
                     return true;
                 }
-                else{
-                    return false;
-                }
+                else if(this.considerAir && !exists){
+                    for(int y=posY; y < posY + remainderY; y++){
+                        structX = structinitX;
+                        for(int x=posX; x < posX + remainderX; x++){
+                            structZ = structinitZ;
+                            for(int z=posZ; z < posZ + remainderZ; z++){
+                                RotateData(structX, structY, structZ, rotation);
+                                if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
+                                    VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
+                                    VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                }
+                                else{
+                                    VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
+                                    VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                }
+                                structZ++;
+                            }
+                            structX++;
+                        }
+                        structY++;
+                    } 
+                    return true;
+                }            
             }
         }
 
         // Applies in SpecificOverwrite rule to existing chunk
-        else if(this.type == FillType.SpecificOverwrite && exists && initialchunk){
+        else if(this.type == FillType.SpecificOverwrite){
             bool shouldDrawNeighbors = false;
 
-            if(!this.considerAir){
-                for(int y=posY; y < posY + remainderY; y++){
-                    structX = structinitX;
-                    for(int x=posX; x < posX + remainderX; x++){
-                        structZ = structinitZ;
-                        for(int z=posZ; z < posZ + remainderZ; z++){
-                            if(this.overwriteBlocks.Contains(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
-                                //Debug.Log("xyz: " + x + ", " + y + ", " + z + "\nsXYZ: " + structX + ", " + structY + ", " + structZ + "\nRealSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ
-                                //    + "\nFakeSize: " + actualSizeX + ", " + actualSizeZ + "\nRot: " + rotation);
-                                RotateData(structX, structY, structZ, rotation);
+            if(exists){
+                if(!this.considerAir){
+                    for(int y=posY; y < posY + remainderY; y++){
+                        structX = structinitX;
+                        for(int x=posX; x < posX + remainderX; x++){
+                            structZ = structinitZ;
+                            for(int z=posZ; z < posZ + remainderZ; z++){
+                                if(this.overwriteBlocks.Contains(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
+                                    RotateData(structX, structY, structZ, rotation);
+                                    if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
+                                        continue;
+                                    }
 
-                                if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
-                                    continue;
-                                }
-
-                                shouldDrawNeighbors = true;
-                                VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
-
-                                VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
-                            }
-                            structZ++;
-                        }
-                        structX++;
-                    }
-                    structY++;
-                }
-                return shouldDrawNeighbors;
-            }
-            else{
-                for(int y=posY; y < posY + remainderY; y++){
-                    structX = structinitX;
-                    for(int x=posX; x < posX + remainderX; x++){
-                        structZ = structinitZ;
-                        for(int z=posZ; z < posZ + remainderZ; z++){
-                            if(this.overwriteBlocks.Contains(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
-                                RotateData(structX, structY, structZ, rotation);
-                                if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0)
-                                    VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
-                                else
+                                    shouldDrawNeighbors = true;
                                     VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
-                                shouldDrawNeighbors = true;
+                                    VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                }
+                                structZ++;
+                            }
+                            structX++;
+                        }
+                        structY++;
+                    }
+                    return shouldDrawNeighbors;
+                }
+                else{
+                    for(int y=posY; y < posY + remainderY; y++){
+                        structX = structinitX;
+                        for(int x=posX; x < posX + remainderX; x++){
+                            structZ = structinitZ;
+                            for(int z=posZ; z < posZ + remainderZ; z++){
+                                if(this.overwriteBlocks.Contains(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
+                                    RotateData(structX, structY, structZ, rotation);
+                                    if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0)
+                                        VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
+                                    else
+                                        VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
+
+                                    shouldDrawNeighbors = true;
+                                    VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                }
+                                structZ++;
+                            }
+                            structX++;
+                        }
+                        structY++;
+                    }
+                    return shouldDrawNeighbors;                
+                }
+            }
+            else{
+                if(!this.considerAir){
+                    for(int y=posY; y < posY + remainderY; y++){
+                        structX = structinitX;
+                        for(int x=posX; x < posX + remainderX; x++){
+                            structZ = structinitZ;
+                            for(int z=posZ; z < posZ + remainderZ; z++){
+                                RotateData(structX, structY, structZ, rotation);
+
+                                VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
                                 VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+
+                                structZ++;
                             }
-                            structZ++;
+                            structX++;
                         }
-                        structX++;
-                    }
-                    structY++;
+                        structY++;
+                    } 
+                    return true;
                 }
-                return shouldDrawNeighbors;                
+                else if(this.considerAir){
+                    for(int y=posY; y < posY + remainderY; y++){
+                        structX = structinitX;
+                        for(int x=posX; x < posX + remainderX; x++){
+                            structZ = structinitZ;
+                            for(int z=posZ; z < posZ + remainderZ; z++){
+                                RotateData(structX, structY, structZ, rotation);
+                                if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
+                                    VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
+                                    VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                }
+                                else{
+                                    VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
+                                    VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                }
+                                structZ++;
+                            }
+                            structX++;
+                        }
+                        structY++;
+                    } 
+                    return true;
+                }
             }
         }
 
