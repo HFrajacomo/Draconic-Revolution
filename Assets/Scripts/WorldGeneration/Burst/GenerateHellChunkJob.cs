@@ -130,14 +130,14 @@ public struct GenerateHellChunkJob: IJob{
     }
 
     public void AddBedrockLayer(){
-        ushort bedrock = (ushort)BlockID.STONE; // Needs to set it to bedrock once block is added
+        ushort acaster = (ushort)BlockID.ACASTER; // Needs to set it to bedrock once block is added
         int index;
 
         for(int x=0; x < Chunk.chunkWidth; x++){
             for(int z=0; z < Chunk.chunkWidth; z++){
                 index = x*Chunk.chunkWidth*Chunk.chunkDepth+z;
 
-                blockData[index] = bedrock;
+                blockData[index] = acaster;
                 stateData[index] = 0;
                 hpData[index] = ushort.MaxValue;
             }

@@ -39,6 +39,7 @@ public enum BlockID : ushort
     MOONSTONE = 32,
     LAVA = 33,
     HELL_MARBLE = 34,
+    ACASTER = 35,
 
     /*
     Special

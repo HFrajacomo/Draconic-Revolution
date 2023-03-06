@@ -193,14 +193,12 @@ public static class StructureGroup
         greaterBonesFormation.Add(new StructSpawn(StructureCode.BigUpBone, 1, 0.03f, 0, -1, true, -10));
         greaterBonesFormation.Add(new StructSpawn(StructureCode.BigCrossBone, 1, 0.03f, 0, -1, true, -10));
 
-        /*
         greaterBonesFormation.Add(new StructSpawn(StructureCode.LittleBone1, 8, 0.4f, 10, -1, true, 0));
         greaterBonesFormation.Add(new StructSpawn(StructureCode.LittleBone2, 8, 0.4f, 10, -1, true, 0));
         greaterBonesFormation.Add(new StructSpawn(StructureCode.BigFossil1, 3, 0.3f, 12, -1, true, 0));
         greaterBonesFormation.Add(new StructSpawn(StructureCode.BigFossil2, 3, 0.3f, 12, -1, true, 0));
         greaterBonesFormation.Add(new StructSpawn(StructureCode.BigUpBone, 3, 0.3f, 14, -1, true, 0));
         greaterBonesFormation.Add(new StructSpawn(StructureCode.BigCrossBone, 3, 0.3f, 15, -1, true, 0));
-        */
     }
 }
 

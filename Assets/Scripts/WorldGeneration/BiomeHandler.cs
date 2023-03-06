@@ -94,7 +94,7 @@ public class BiomeHandler
 			new List<StructureGroupID>(){});
 
 		Biome deepCliff = new Biome("Deep Cliff", BiomeCode.DEEP_CLIFF, BiomeType.OCEAN, ChunkDepthID.HELL,
-			(ushort)BlockID.STONE,
+			(ushort)BlockID.ACASTER,
 			new List<StructureGroupID>(){});
 
 		Biome hellHighlands= new Biome("Hell Highlands", BiomeCode.HELL_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
