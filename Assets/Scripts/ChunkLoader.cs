@@ -351,7 +351,6 @@ public class ChunkLoader : MonoBehaviour
                 this.toDraw.Add(cp);
 
             // Vertical chunk update
-            // DEBUG
             this.cachePos = new ChunkPos(cp.x, cp.z, cp.y-1);
             if(this.chunks.ContainsKey(this.cachePos))
                 AddToUpdate(this.cachePos);
@@ -989,7 +988,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Returns false if chunk.y is not implemented yet
     private bool SkipNotImplemented(ChunkPos pos){
-        return pos.y >= 1;
+        return pos.y >= 0 && pos.y <= Chunk.chunkMaxY;
     }
 
     // Goes through all Chunks and checks if they should've been deleted already

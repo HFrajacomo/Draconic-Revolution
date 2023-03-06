@@ -24,6 +24,9 @@ public class BiomeTable
             case ChunkDepthID.HELL:
                 SetupHellBiomes();
                 return;
+            case ChunkDepthID.CORE:
+                SetupCoreBiomes();
+                return;
             default:
                 return;
         }
@@ -228,6 +231,73 @@ public class BiomeTable
             {BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS},
             {BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS},
             {BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS, BiomeCode.VOLCANIC_HIGHLANDS}
+        };
+    }
+
+    public void SetupCoreBiomes(){
+        this.baseErosionTable = new BiomeType[,]{
+            {BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+        };
+
+        this.oceanTempHumidTable = new BiomeCode[,]{
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+        };
+
+        this.lowTempHumidTable = new BiomeCode[,]{
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+        };
+
+        this.midTempHumidTable = new BiomeCode[,]{
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+        };
+
+        this.peakTempHumidTable = new BiomeCode[,]{
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
+            {BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE, BiomeCode.CORE},
         };
     }
 

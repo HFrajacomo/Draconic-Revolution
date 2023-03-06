@@ -169,6 +169,21 @@ public static class NoiseMaker
                 else
                     return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseHellNoiseSplineY[index], GenerationSeed.baseHellNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));                
             }
+            else if(cdID == ChunkDepthID.CORE){
+                for(int i=1; i < GenerationSeed.baseCoreNoiseSplineX.Length; i++){
+                    if(GenerationSeed.baseCoreNoiseSplineX[i] >= noiseValue){
+                        index = i-1;
+                        break;
+                    }
+                }
+
+                float inverseLerp = (noiseValue - GenerationSeed.baseCoreNoiseSplineX[index])/(GenerationSeed.baseCoreNoiseSplineX[index+1] - GenerationSeed.baseCoreNoiseSplineX[index]);
+
+                if(GenerationSeed.baseCoreNoiseSplineY[index] > GenerationSeed.baseCoreNoiseSplineY[index+1])
+                    return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseCoreNoiseSplineY[index], GenerationSeed.baseCoreNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
+                else
+                    return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseCoreNoiseSplineY[index], GenerationSeed.baseCoreNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));                 
+            }
             else
                 return 0;
         }
@@ -203,6 +218,21 @@ public static class NoiseMaker
                 else
                     return Mathf.Lerp(GenerationSeed.erosionHellNoiseSplineY[index], GenerationSeed.erosionHellNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
             }
+            else if(cdID == ChunkDepthID.CORE){
+                for(int i=1; i < GenerationSeed.erosionCoreNoiseSplineX.Length; i++){
+                    if(GenerationSeed.erosionCoreNoiseSplineX[i] >= noiseValue){
+                        index = i-1;
+                        break;
+                    }
+                }
+
+                float inverseLerp = (noiseValue - GenerationSeed.erosionCoreNoiseSplineX[index])/(GenerationSeed.erosionCoreNoiseSplineX[index+1] - GenerationSeed.erosionCoreNoiseSplineX[index]);
+
+                if(GenerationSeed.erosionCoreNoiseSplineY[index] > GenerationSeed.erosionCoreNoiseSplineY[index+1])
+                    return Mathf.Lerp(GenerationSeed.erosionCoreNoiseSplineY[index], GenerationSeed.erosionCoreNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+                else
+                    return Mathf.Lerp(GenerationSeed.erosionCoreNoiseSplineY[index], GenerationSeed.erosionCoreNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));                
+            }
             else
                 return 0f;
         }
@@ -236,6 +266,21 @@ public static class NoiseMaker
                     return Mathf.Lerp(GenerationSeed.peakHellNoiseSplineY[index], GenerationSeed.peakHellNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
                 else
                     return Mathf.Lerp(GenerationSeed.peakHellNoiseSplineY[index], GenerationSeed.peakHellNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));                
+            }
+            else if(cdID == ChunkDepthID.CORE){
+                for(int i=1; i < GenerationSeed.peakCoreNoiseSplineX.Length; i++){
+                    if(GenerationSeed.peakCoreNoiseSplineX[i] >= noiseValue){
+                        index = i-1;
+                        break;
+                    }
+                }
+
+                float inverseLerp = (noiseValue - GenerationSeed.peakCoreNoiseSplineX[index])/(GenerationSeed.peakCoreNoiseSplineX[index+1] - GenerationSeed.peakCoreNoiseSplineX[index]);
+
+                if(GenerationSeed.peakCoreNoiseSplineY[index] > GenerationSeed.peakCoreNoiseSplineY[index+1])
+                    return Mathf.Lerp(GenerationSeed.peakCoreNoiseSplineY[index], GenerationSeed.peakCoreNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
+                else
+                    return Mathf.Lerp(GenerationSeed.peakCoreNoiseSplineY[index], GenerationSeed.peakCoreNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));                    
             }
             else
                 return 0f;

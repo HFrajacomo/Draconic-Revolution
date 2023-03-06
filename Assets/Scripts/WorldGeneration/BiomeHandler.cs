@@ -15,6 +15,7 @@ public class BiomeHandler
 	private BiomeTable surfaceBiomeTable;
 	private BiomeTable undergroundBiomeTable;
 	private BiomeTable hellBiomeTable;
+	private BiomeTable coreBiomeTable;
 
 	private int currentBiome = 0;
 
@@ -23,6 +24,7 @@ public class BiomeHandler
 		this.surfaceBiomeTable = new BiomeTable(ChunkDepthID.SURFACE);
 		this.undergroundBiomeTable = new BiomeTable(ChunkDepthID.UNDERGROUND);
 		this.hellBiomeTable = new BiomeTable(ChunkDepthID.HELL);
+		this.coreBiomeTable = new BiomeTable(ChunkDepthID.CORE);
 
 		Biome plains = new Biome("Plains", BiomeCode.PLAINS, BiomeType.LOW, ChunkDepthID.SURFACE,
 			1, 
@@ -105,6 +107,10 @@ public class BiomeHandler
 			(ushort)BlockID.BASALT,
 			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES});
 
+		Biome core = new Biome("Core", BiomeCode.CORE, BiomeType.PEAK, ChunkDepthID.CORE,
+			(ushort)BlockID.MOONSTONE,
+			new List<StructureGroupID>(){});
+
 		AddBiome(plains);
 		AddBiome(grassyHighlands);
 		AddBiome(ocean);
@@ -124,6 +130,7 @@ public class BiomeHandler
 		AddBiome(deepCliff);
 		AddBiome(hellHighlands);
 		AddBiome(volcanicHighlands);
+		AddBiome(core);
 
 
 		this.biomeBlendingValue = new ushort[this.currentBiome];
@@ -215,6 +222,8 @@ public class BiomeHandler
 				return (byte)this.undergroundBiomeTable.GetBiome(biomeInfo);
 			case ChunkDepthID.HELL:
 				return (byte)this.hellBiomeTable.GetBiome(biomeInfo);
+			case ChunkDepthID.CORE:
+				return (byte)this.coreBiomeTable.GetBiome(biomeInfo);
 			default:
 				return 0;
 		}
@@ -307,5 +316,6 @@ public enum BiomeCode : byte{
 	HELL_HIGHLANDS,
 	VOLCANIC_HIGHLANDS,
 	BONE_VALLEY,
-	DEEP_CLIFF
+	DEEP_CLIFF,
+	CORE
 }

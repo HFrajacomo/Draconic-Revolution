@@ -242,6 +242,9 @@ public class WorldGenerator
             case ChunkDepthID.HELL:
                 GenerateHellChunk(pos, isPregen:isPregen);
                 return;
+            case ChunkDepthID.CORE:
+                GenerateCoreChunk(pos, isPregen:isPregen);
+                return;
             default:
                 return;
         }
@@ -515,6 +518,44 @@ public class WorldGenerator
         ceilingMap.Dispose();
     }
 
+    // Generates chunks for the Core Layer
+    private void GenerateCoreChunk(ChunkPos pos, bool isPregen=false){
+        NativeArray<ushort> voxelData = NativeTools.CopyToNative(cacheVoxdata);
+        NativeArray<ushort> stateData = NativeTools.CopyToNative(cacheMetadataState);
+        NativeArray<ushort> hpData = NativeTools.CopyToNative(cacheMetadataHP);
+        NativeArray<float> heightMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<float> bottomMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+
+        GenerateCoreChunkJob gccj = new GenerateCoreChunkJob{
+            pos = pos,
+            blockData = voxelData,
+            stateData = stateData,
+            hpData = hpData,
+            heightMap = heightMap,
+            bottomMap = bottomMap,
+            baseNoise = baseMap,
+            erosionNoise = erosionMap,
+            peakNoise = peakMap,
+            pregen = isPregen
+        };
+        JobHandle job = gccj.Schedule();
+        job.Complete();
+
+        // This Chunk
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.CORE);
+        this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.CORE);
+
+        cacheVoxdata = NativeTools.CopyToManaged(voxelData);
+        cacheMetadataState = NativeTools.CopyToManaged(stateData);
+        cacheMetadataHP = NativeTools.CopyToManaged(hpData);
+        cacheHeightMap = NativeTools.CopyToManaged(heightMap);
+
+        voxelData.Dispose();
+        stateData.Dispose();
+        hpData.Dispose();
+        heightMap.Dispose();
+        bottomMap.Dispose();
+    }
 
     /*
     Biome Generation
