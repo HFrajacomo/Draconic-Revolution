@@ -426,6 +426,66 @@ public class WorldGenerator
         JobHandle job = ghcj.Schedule();
         job.Complete();
 
+
+        byte xmBiome, xpBiome, zpBiome, zmBiome, xpzpBiome, xpzmBiome, xmzpBiome, xmzmBiome;
+
+        // This Chunk
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.HELL);
+        this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.HELL);
+
+        // X- Chunk
+        float[] xMinusInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xmBiome = this.biomeHandler.AssignBiome(xMinusInfo, ChunkDepthID.HELL);
+
+        // X+ Chunk
+        float[] xPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xpBiome = this.biomeHandler.AssignBiome(xPlusInfo, ChunkDepthID.HELL);
+
+        // Z+ Chunk
+        float[] zPlusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        zpBiome = this.biomeHandler.AssignBiome(zPlusInfo, ChunkDepthID.HELL);
+
+        // Z- Chunk
+        float[] zMinusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        zmBiome = this.biomeHandler.AssignBiome(zMinusInfo, ChunkDepthID.HELL);
+
+        // XZ+ Chunk
+        float[] xpzpInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xpzpBiome = this.biomeHandler.AssignBiome(xpzpInfo, ChunkDepthID.HELL);
+
+        // X+Z- Chunk
+        float[] xpzmInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xpzmBiome = this.biomeHandler.AssignBiome(xpzmInfo, ChunkDepthID.HELL);
+
+        // X-Z+ Chunk
+        float[] xmzpInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xmzpBiome = this.biomeHandler.AssignBiome(xmzpInfo, ChunkDepthID.HELL);
+
+        // X-Z- Chunk
+        float[] xmzmInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xmzmBiome = this.biomeHandler.AssignBiome(xmzmInfo, ChunkDepthID.HELL);
+
+
+        PopulateHellChunkJob phcj = new PopulateHellChunkJob{
+            pos = pos,
+            blockData = voxelData,
+            heightMap = heightMap,
+            ceilingMap = ceilingMap,
+            patchNoise = patchMap,
+            biome = this.cacheBiome,
+            blendingBlock = biomeBlendingBlock,
+            xmBiome = xmBiome,
+            xpBiome = xpBiome,
+            zmBiome = zmBiome,
+            zpBiome = zpBiome,
+            xmzmBiome = xmzmBiome,
+            xmzpBiome = xmzpBiome,
+            xpzmBiome = xpzmBiome,
+            xpzpBiome = xpzpBiome
+        };
+        job = phcj.Schedule(Chunk.chunkWidth, 4);
+        job.Complete();
+
         GenerateCaveJob gcavej = new GenerateCaveJob{
             pos = pos,
             blockData = voxelData,
@@ -439,20 +499,6 @@ public class WorldGenerator
         job = gcavej.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
 
-        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.HELL);
-        this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.HELL);
-
-        /*
-        PopulateHellChunkJob phcj = new PopulateHellChunkJob{
-            pos = pos,
-            blockData = voxelData,
-            heightMap = heightMap,
-            patchNoise = patchMap,
-            biome = this.cacheBiome
-        };
-        job = phcj.Schedule(Chunk.chunkWidth, 4);
-        job.Complete();
-        */
 
         cacheVoxdata = NativeTools.CopyToManaged(voxelData);
         cacheMetadataState = NativeTools.CopyToManaged(stateData);

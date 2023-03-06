@@ -31,10 +31,6 @@ public struct GenerateHellChunkJob: IJob{
     public NativeArray<byte> temperatureNoise;
 
     public void Execute(){
-        int lavaLevel = 136;
-
-
-        // Lower part
         GenerateHeightPivots();
         BilinearIntepolateMaps(heightMap, ceilingMap);
         ApplyMap();
