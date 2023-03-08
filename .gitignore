@@ -57,3 +57,5 @@ config.cfg
 *.iind
 
 *.invf
+
+PlayerStructures/

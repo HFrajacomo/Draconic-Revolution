@@ -9,5 +9,6 @@ public enum ShaderIndex : byte
     WATER,
     ASSETS,
     LEAVES,
-    ICE
+    ICE,
+    LAVA
 }

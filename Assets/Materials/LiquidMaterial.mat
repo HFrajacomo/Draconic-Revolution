@@ -24,7 +24,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: LiquidMaterial
-  m_Shader: {fileID: -6465566751694194690, guid: 29a488befb4b8054e9722ca01108e4fa,
+  m_Shader: {fileID: -6465566751694194690, guid: 20ff6fbe6f8fac9479743b90dc7f4992,
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -47,7 +47,7 @@ Material:
   - MOTIONVECTORS
   - TransparentDepthPostpass
   - TransparentBackface
-  m_LockedProperties: Vector1_D703212C _BlendMode _RefractionDistance
+  m_LockedProperties: Vector1_D703212C _BlendMode
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -93,7 +93,7 @@ Material:
     - Vector1_4A4CAD19: 0.062
     - Vector1_4F77EF96: 0.14
     - Vector1_80E409E7: 3.6
-    - Vector1_8F6D5055: 0.1
+    - Vector1_8F6D5055: 0.12
     - Vector1_9CD39123: 0.1
     - Vector1_B54B69EC: 0.8
     - Vector1_C714B95D: 0.01
@@ -120,10 +120,12 @@ Material:
     - _DstBlend: 10
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
+    - _Fresnel_Power: 1
     - _HDWater: 0
+    - _Lava_Luminescence: 1
     - _NoiseAngleOffset: 1
     - _NoiseCellDensity: 1
-    - _NoiseOffsetMultiplier: 2
+    - _NoiseOffsetMultiplier: 0.8
     - _NormalBlendMultiplier: 1
     - _NormalStrength: 0.03
     - _OpaqueCullMode: 2
@@ -151,7 +153,7 @@ Material:
     - _SupportDecals: 1
     - _SurfaceType: 1
     - _TestVertex: 0
-    - _TextureSize: 0.5
+    - _TextureSize: 0.7
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
@@ -169,14 +171,16 @@ Material:
     m_Colors:
     - BaseColor: {r: 0.08039216, g: 0.20980392, b: 0.46470588, a: 0.1176471}
     - Color_31C227A5: {r: 0.099480815, g: 0.09184755, b: 0.45283002, a: 0}
-    - Color_55706E16: {r: 0.8726415, g: 0.8889736, b: 1, a: 1}
-    - Color_9412C8D4: {r: 0.5286579, g: 0.73712367, b: 0.8301887, a: 1}
+    - Color_55706E16: {r: 0.6069776, g: 0.75384134, b: 0.8301887, a: 1}
+    - Color_9412C8D4: {r: 0.4292453, g: 0.700078, b: 1, a: 1}
     - SecondaryColor: {r: 0.1344889, g: 0.2953211, b: 0.341075, a: 0}
     - Vector2_826BAFAC: {r: -0.1, g: -0.2, b: 0, a: 0}
     - Vector2_A6922FD5: {r: 0.2, g: 0.076, b: 0, a: 0}
     - _DoubleSidedConstants: {r: -1, g: -1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Emission_Color: {r: 0, g: 0, b: 0, a: 0}
     - _RefractionColor: {r: 1, g: 1, b: 1, a: 0}
+    - _Secondary_Color: {r: 0, g: 0, b: 0, a: 0}
     - _VertexTiling: {r: 16, g: 16, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &1484091025811958356

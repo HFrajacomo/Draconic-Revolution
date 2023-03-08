@@ -44,7 +44,7 @@ public class WorldGenerator
 
     // Other Native Objects
     private NativeHashSet<ushort> caveFreeBlocks;
-    private ushort[] caveFreeBlocksArray = new ushort[]{6};
+    private ushort[] caveFreeBlocksArray = new ushort[]{(ushort)BlockID.WATER, (ushort)BlockID.LAVA};
 
     // Biome Blending Map
     private NativeArray<ushort> biomeBlendingBlock;
@@ -144,7 +144,7 @@ public class WorldGenerator
     Range represents if structure always spawn at given Depth, or if it spans below as well
     HardSetDepth will be a fixed depth value for the structure to generate in case it is non-negative
     */
-    public void GenerateStructures(ChunkPos pos, BiomeCode biome, int structureCode, ushort[] blockdata, ushort[] statedata, ushort[] hpdata, int heightlimit=0){
+    public void GenerateStructures(ChunkPos pos, BiomeCode biome, int structureCode, ushort[] blockdata, ushort[] statedata, ushort[] hpdata){
         // Gets index of amount and percentage
         int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureCode);
         int amount = BiomeHandler.GetBiomeAmounts(biome)[index];
@@ -152,12 +152,13 @@ public class WorldGenerator
         int hardSetDepth = BiomeHandler.GetBiomeHSDepth(biome)[index];
         bool range = BiomeHandler.GetBiomeRange(biome)[index];
         float percentage = BiomeHandler.GetBiomePercentages(biome)[index];
+        int minRelativeHeight = BiomeHandler.GetBiomeMinHeight(biome)[index];
 
         int x,y,z;
         int rotation = 0;
         float chance;
 
-        this.rng = new Random((int)((int.MaxValue * PatchNoise((pos.z^(pos.x * pos.x))*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3)) + this.iteration));
+        this.rng = new Random((int)((int.MaxValue * NoiseMaker.NormalizedPatchNoise1D((pos.z^(pos.x * pos.x))*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3)) + this.iteration));
         this.iteration++;
 
         // If structure is static at given heightmap depth
@@ -180,7 +181,7 @@ public class WorldGenerator
 
 
                 // Ignores structure on hard limit
-                if(y <= heightlimit)
+                if(y <= minRelativeHeight || y <= 0)
                     continue;
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
@@ -202,15 +203,23 @@ public class WorldGenerator
                 x = this.rng.Next(0, Chunk.chunkWidth);
                 z = this.rng.Next(0, Chunk.chunkWidth);
 
-                if(hardSetDepth < 0){
+                if(minRelativeHeight != 0 && hardSetDepth < 0){
                     float yMult = (float)this.rng.NextDouble(); 
-                    y = (int)(heightlimit + yMult*(cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth));
+                    y = (int)(Mathf.Lerp(minRelativeHeight + cacheHeightMap[x*(Chunk.chunkWidth+1)+z], cacheHeightMap[x*(Chunk.chunkWidth+1)+z], yMult));
                 }
-                else
-                    y = this.rng.Next(heightlimit, hardSetDepth);
+                else if(minRelativeHeight != 0 && hardSetDepth >= 0){
+                    y = this.rng.Next(hardSetDepth + minRelativeHeight, hardSetDepth);
+                }
+                else if(hardSetDepth < 0){
+                    float yMult = (float)this.rng.NextDouble(); 
+                    y = (int)(yMult*(cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth));
+                }
+                else{
+                    y = this.rng.Next(1, hardSetDepth);
+                }
 
                 // Ignores structure on hard limit
-                if(y <= heightlimit || y == 0)
+                if(y <= minRelativeHeight || y <= 0)
                     continue;
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
@@ -221,14 +230,34 @@ public class WorldGenerator
         }
     }
 
-    // Generates a Chunk
+    // Handles the generation of chunks
     public void GenerateChunk(ChunkPos pos, bool isPregen=false){
+        switch((ChunkDepthID)pos.y){
+            case ChunkDepthID.SURFACE:
+                GenerateSurfaceChunk(pos, isPregen:isPregen);
+                return;
+            case ChunkDepthID.UNDERGROUND:
+                GenerateUndergroundChunk(pos, isPregen:isPregen);
+                return;
+            case ChunkDepthID.HELL:
+                GenerateHellChunk(pos, isPregen:isPregen);
+                return;
+            case ChunkDepthID.CORE:
+                GenerateCoreChunk(pos, isPregen:isPregen);
+                return;
+            default:
+                return;
+        }
+    }
+
+    // Generates a Surface Chunk
+    public void GenerateSurfaceChunk(ChunkPos pos, bool isPregen=false){
         NativeArray<ushort> voxelData = NativeTools.CopyToNative(cacheVoxdata);
         NativeArray<ushort> stateData = NativeTools.CopyToNative(cacheMetadataState);
         NativeArray<ushort> hpData = NativeTools.CopyToNative(cacheMetadataHP);
         NativeArray<float> heightMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
 
-        GenerateChunkJob gcj = new GenerateChunkJob{
+        GenerateSurfaceChunkJob gcj = new GenerateSurfaceChunkJob{
             chunkX = pos.x,
             chunkZ = pos.z,
             blockData = voxelData,
@@ -250,34 +279,34 @@ public class WorldGenerator
         byte xpBiome, zpBiome, zmBiome, xzpBiome, xpzmBiome, xmzpBiome;
 
         // This Chunk
-        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
-        this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo);
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.SURFACE);
+        this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.SURFACE);
 
         // X+ Chunk
-        float[] xPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, pos.z*Chunk.chunkWidth);
-        xpBiome = this.biomeHandler.AssignBiome(xPlusInfo);
+        float[] xPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.SURFACE);
+        xpBiome = this.biomeHandler.AssignBiome(xPlusInfo, ChunkDepthID.SURFACE);
 
         // Z+ Chunk
-        float[] zPlusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
-        zpBiome = this.biomeHandler.AssignBiome(zPlusInfo);
+        float[] zPlusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.SURFACE);
+        zpBiome = this.biomeHandler.AssignBiome(zPlusInfo, ChunkDepthID.SURFACE);
 
         // Z- Chunk
-        float[] zMinusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth);
-        zmBiome = this.biomeHandler.AssignBiome(zMinusInfo);
+        float[] zMinusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth, ChunkDepthID.SURFACE);
+        zmBiome = this.biomeHandler.AssignBiome(zMinusInfo, ChunkDepthID.SURFACE);
 
         // XZ+ Chunk
-        float[] xzPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
-        xzpBiome = this.biomeHandler.AssignBiome(xzPlusInfo);
+        float[] xzPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.SURFACE);
+        xzpBiome = this.biomeHandler.AssignBiome(xzPlusInfo, ChunkDepthID.SURFACE);
 
         // X+Z- Chunk
-        float[] xpzmMinusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth);
-        xpzmBiome = this.biomeHandler.AssignBiome(xpzmMinusInfo);
+        float[] xpzmMinusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth, ChunkDepthID.SURFACE);
+        xpzmBiome = this.biomeHandler.AssignBiome(xpzmMinusInfo, ChunkDepthID.SURFACE);
 
         // X-Z+ Chunk
-        float[] xmzpMinusInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth);
-        xmzpBiome = this.biomeHandler.AssignBiome(xmzpMinusInfo);
+        float[] xmzpMinusInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.SURFACE);
+        xmzpBiome = this.biomeHandler.AssignBiome(xmzpMinusInfo, ChunkDepthID.SURFACE);
 
-        PopulateChunkJob pcj = new PopulateChunkJob{
+        PopulateSurfaceChunkJob pcj = new PopulateSurfaceChunkJob{
             heightMap = heightMap,
             blockData = voxelData,
             patchNoise = patchMap,
@@ -301,7 +330,8 @@ public class WorldGenerator
             heightMap = heightMap,
             caveNoise = caveMap,
             cavemaskNoise = maskMap,
-            caveFreeBlocks = caveFreeBlocks
+            caveFreeBlocks = caveFreeBlocks,
+            cid = ChunkDepthID.SURFACE
         };
         job = gcavej.Schedule(Chunk.chunkWidth, 2);
         job.Complete();
@@ -325,78 +355,284 @@ public class WorldGenerator
             GenerateStructures(pos, biomeCode, structCode, blockdata, state, hps);
     }
 
+    // Generates chunks for the Underground Layer
+    private void GenerateUndergroundChunk(ChunkPos pos, bool isPregen=false){
+        NativeArray<ushort> voxelData = NativeTools.CopyToNative(cacheVoxdata);
+        NativeArray<ushort> stateData = NativeTools.CopyToNative(cacheMetadataState);
+        NativeArray<ushort> hpData = NativeTools.CopyToNative(cacheMetadataHP);
+        NativeArray<float> heightMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
 
-    public float PatchNoise(float x)
-    {
-        int X = Mathf.FloorToInt(x) & 0xff;
-        x -= Mathf.Floor(x);
-        float u = Fade(x);
+        GenerateUndergroundChunkJob gucj = new GenerateUndergroundChunkJob{
+            pos = pos,
+            blockData = voxelData,
+            stateData = stateData,
+            hpData = hpData,
+            heightMap = heightMap,
+            caveNoise = caveMap,
+            cavemaskNoise = maskMap,
+            peakNoise = peakMap,
+            pregen = isPregen
+        };
+        JobHandle job = gucj.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
 
-        return Normalize(Lerp(u, Grad(GenerationSeed.patchNoise[X], x), Grad(GenerationSeed.patchNoise[X+1], x-1)));
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.UNDERGROUND);
+        this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.UNDERGROUND);
+
+        PopulateUndergroundChunkJob pucj = new PopulateUndergroundChunkJob{
+            pos = pos,
+            blockData = voxelData,
+            heightMap = heightMap,
+            patchNoise = patchMap,
+            biome = this.cacheBiome
+        };
+        job = pucj.Schedule(Chunk.chunkWidth, 4);
+        job.Complete();
+
+        cacheVoxdata = NativeTools.CopyToManaged(voxelData);
+        cacheMetadataState = NativeTools.CopyToManaged(stateData);
+        cacheMetadataHP = NativeTools.CopyToManaged(hpData);
+        cacheHeightMap = NativeTools.CopyToManaged(heightMap);
+
+        this.iteration = 0;
+        GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
+
+        voxelData.Dispose();
+        stateData.Dispose();
+        hpData.Dispose();
+        heightMap.Dispose();
     }
 
-    public float PatchNoise(float x, float y){
-        int X = Mathf.FloorToInt(x) & 0xff;
-        int Y = Mathf.FloorToInt(y) & 0xff;
-        x -= Mathf.Floor(x);
-        y -= Mathf.Floor(y);
+    // Generates chunks for the Hell Layer
+    private void GenerateHellChunk(ChunkPos pos, bool isPregen=false){
+        NativeArray<ushort> voxelData = NativeTools.CopyToNative(cacheVoxdata);
+        NativeArray<ushort> stateData = NativeTools.CopyToNative(cacheMetadataState);
+        NativeArray<ushort> hpData = NativeTools.CopyToNative(cacheMetadataHP);
+        NativeArray<float> heightMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<float> ceilingMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
 
-        float u = Fade(x);
-        float v = Fade(y);
+        GenerateHellChunkJob ghcj = new GenerateHellChunkJob{
+            pos = pos,
+            blockData = voxelData,
+            stateData = stateData,
+            hpData = hpData,
+            heightMap = heightMap,
+            ceilingMap = ceilingMap,
+            baseNoise = baseMap,
+            erosionNoise = erosionMap,
+            peakNoise = peakMap,
+            caveNoise = caveMap,
+            cavemaskNoise = maskMap,
+            temperatureNoise = temperatureMap,
+            pregen = isPregen
+        };
+        JobHandle job = ghcj.Schedule();
+        job.Complete();
 
-        int A = (GenerationSeed.patchNoise[X  ] + Y) & 0xff;
-        int B = (GenerationSeed.patchNoise[X+1] + Y) & 0xff;
-        return Normalize(Lerp(v, Lerp(u, Grad(GenerationSeed.patchNoise[A  ], x, y  ), Grad(GenerationSeed.patchNoise[B  ], x-1, y  )),
-                       Lerp(u, Grad(GenerationSeed.patchNoise[A+1], x, y-1), Grad(GenerationSeed.patchNoise[B+1], x-1, y-1))));
+
+        byte xmBiome, xpBiome, zpBiome, zmBiome, xpzpBiome, xpzmBiome, xmzpBiome, xmzmBiome;
+
+        // This Chunk
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.HELL);
+        this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.HELL);
+
+        // X- Chunk
+        float[] xMinusInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xmBiome = this.biomeHandler.AssignBiome(xMinusInfo, ChunkDepthID.HELL);
+
+        // X+ Chunk
+        float[] xPlusInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xpBiome = this.biomeHandler.AssignBiome(xPlusInfo, ChunkDepthID.HELL);
+
+        // Z+ Chunk
+        float[] zPlusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        zpBiome = this.biomeHandler.AssignBiome(zPlusInfo, ChunkDepthID.HELL);
+
+        // Z- Chunk
+        float[] zMinusInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        zmBiome = this.biomeHandler.AssignBiome(zMinusInfo, ChunkDepthID.HELL);
+
+        // XZ+ Chunk
+        float[] xpzpInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xpzpBiome = this.biomeHandler.AssignBiome(xpzpInfo, ChunkDepthID.HELL);
+
+        // X+Z- Chunk
+        float[] xpzmInfo = this.BiomeNoise((pos.x+1)*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xpzmBiome = this.biomeHandler.AssignBiome(xpzmInfo, ChunkDepthID.HELL);
+
+        // X-Z+ Chunk
+        float[] xmzpInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, (pos.z+1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xmzpBiome = this.biomeHandler.AssignBiome(xmzpInfo, ChunkDepthID.HELL);
+
+        // X-Z- Chunk
+        float[] xmzmInfo = this.BiomeNoise((pos.x-1)*Chunk.chunkWidth, (pos.z-1)*Chunk.chunkWidth, ChunkDepthID.HELL);
+        xmzmBiome = this.biomeHandler.AssignBiome(xmzmInfo, ChunkDepthID.HELL);
+
+
+        PopulateHellChunkJob phcj = new PopulateHellChunkJob{
+            pos = pos,
+            blockData = voxelData,
+            heightMap = heightMap,
+            ceilingMap = ceilingMap,
+            patchNoise = patchMap,
+            biome = this.cacheBiome,
+            blendingBlock = biomeBlendingBlock,
+            xmBiome = xmBiome,
+            xpBiome = xpBiome,
+            zmBiome = zmBiome,
+            zpBiome = zpBiome,
+            xmzmBiome = xmzmBiome,
+            xmzpBiome = xmzpBiome,
+            xpzmBiome = xpzmBiome,
+            xpzpBiome = xpzpBiome
+        };
+        job = phcj.Schedule(Chunk.chunkWidth, 4);
+        job.Complete();
+
+        GenerateCaveJob gcavej = new GenerateCaveJob{
+            pos = pos,
+            blockData = voxelData,
+            stateData = stateData,
+            heightMap = heightMap,
+            caveNoise = caveMap,
+            cavemaskNoise = maskMap,
+            caveFreeBlocks = caveFreeBlocks,
+            cid = ChunkDepthID.HELL
+        };
+        job = gcavej.Schedule(Chunk.chunkWidth, 2);
+        job.Complete();
+
+
+        cacheVoxdata = NativeTools.CopyToManaged(voxelData);
+        cacheMetadataState = NativeTools.CopyToManaged(stateData);
+        cacheMetadataHP = NativeTools.CopyToManaged(hpData);
+        cacheHeightMap = NativeTools.CopyToManaged(heightMap);
+
+        this.iteration = 0;
+        GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
+
+        voxelData.Dispose();
+        stateData.Dispose();
+        hpData.Dispose();
+        heightMap.Dispose();
+        ceilingMap.Dispose();
     }
 
-    private float Normalize(float x){
-        return (1 + x)/2;
+    // Generates chunks for the Core Layer
+    private void GenerateCoreChunk(ChunkPos pos, bool isPregen=false){
+        NativeArray<ushort> voxelData = NativeTools.CopyToNative(cacheVoxdata);
+        NativeArray<ushort> stateData = NativeTools.CopyToNative(cacheMetadataState);
+        NativeArray<ushort> hpData = NativeTools.CopyToNative(cacheMetadataHP);
+        NativeArray<float> heightMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+        NativeArray<float> bottomMap = new NativeArray<float>((Chunk.chunkWidth+1)*(Chunk.chunkWidth+1), Allocator.TempJob);
+
+        GenerateCoreChunkJob gccj = new GenerateCoreChunkJob{
+            pos = pos,
+            blockData = voxelData,
+            stateData = stateData,
+            hpData = hpData,
+            heightMap = heightMap,
+            bottomMap = bottomMap,
+            baseNoise = baseMap,
+            erosionNoise = erosionMap,
+            peakNoise = peakMap,
+            pregen = isPregen
+        };
+        JobHandle job = gccj.Schedule();
+        job.Complete();
+
+        // This Chunk
+        float[] chunkInfo = this.BiomeNoise(pos.x*Chunk.chunkWidth, pos.z*Chunk.chunkWidth, ChunkDepthID.CORE);
+        this.cacheBiome = this.biomeHandler.AssignBiome(chunkInfo, ChunkDepthID.CORE);
+
+        cacheVoxdata = NativeTools.CopyToManaged(voxelData);
+        cacheMetadataState = NativeTools.CopyToManaged(stateData);
+        cacheMetadataHP = NativeTools.CopyToManaged(hpData);
+        cacheHeightMap = NativeTools.CopyToManaged(heightMap);
+
+        voxelData.Dispose();
+        stateData.Dispose();
+        hpData.Dispose();
+        heightMap.Dispose();
+        bottomMap.Dispose();
     }
 
     /*
     Biome Generation
     */
 
-    public float[] BiomeNoise(float x, float y)
+    public float[] BiomeNoise(float x, float y, ChunkDepthID cid)
     {
         x += 8;
         y += 8;
         float initialX = x;
         float initialY = y;
+        float u,v,x2,y2,u2,v2;
+        int A,B,A2,B2,X,Y,X2,Y2;
 
 
         float[] biomeVector = new float[5];
 
 
         // Temperature Noise
-        x = initialX*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetX[0];
-        x -= Mathf.Floor(x);
-        y = initialY*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetY[0];
-        y -= Mathf.Floor(y);
-        float u = Fade(x);
-        float v = Fade(y);
+        if(cid != ChunkDepthID.HELL){
+            x = initialX*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetX[0];
+            x -= Mathf.Floor(x);
+            y = initialY*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetY[0];
+            y -= Mathf.Floor(y);
+            u = Fade(x);
+            v = Fade(y);
 
-        float x2 = initialX*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetX[0];
-        x2 -= Mathf.Floor(x2);
-        float y2 = initialY*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetY[0];
-        y2 -= Mathf.Floor(y2);
-        
-        float u2 = Fade(x2);
-        float v2 = Fade(y2);
+            x2 = initialX*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetX[0];
+            x2 -= Mathf.Floor(x2);
+            y2 = initialY*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetY[0];
+            y2 -= Mathf.Floor(y2);
+            
+            u2 = Fade(x2);
+            v2 = Fade(y2);
 
-        int X = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
-        int Y = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
-        int X2 = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
-        int Y2 = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
-        int A = (GenerationSeed.temperatureNoise[X  ] + Y) & 0xff;
-        int B = (GenerationSeed.temperatureNoise[X+1] + Y) & 0xff;
-        int A2 = (GenerationSeed.temperatureNoise[X2  ] + Y2) & 0xff;
-        int B2 = (GenerationSeed.temperatureNoise[X2+1] + Y2) & 0xff;
-        biomeVector[0] = TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.temperatureNoise[A  ], x, y  ), Grad(GenerationSeed.temperatureNoise[B  ], x-1, y  )),
-                       Lerp(u, Grad(GenerationSeed.temperatureNoise[A+1], x, y-1), Grad(GenerationSeed.temperatureNoise[B+1], x-1, y-1))), 
-                        Lerp(v2, Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2  ], x2, y2  ), Grad(GenerationSeed.temperatureNoise[B2  ], x2-1, y2  )),
-                       Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2+1], x2, y2-1), Grad(GenerationSeed.temperatureNoise[B2+1], x2-1, y2-1))));
+            X = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
+            Y = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep1 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
+            X2 = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
+            Y2 = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep2 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
+            A = (GenerationSeed.temperatureNoise[X  ] + Y) & 0xff;
+            B = (GenerationSeed.temperatureNoise[X+1] + Y) & 0xff;
+            A2 = (GenerationSeed.temperatureNoise[X2  ] + Y2) & 0xff;
+            B2 = (GenerationSeed.temperatureNoise[X2+1] + Y2) & 0xff;
+            biomeVector[0] = TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.temperatureNoise[A  ], x, y  ), Grad(GenerationSeed.temperatureNoise[B  ], x-1, y  )),
+                           Lerp(u, Grad(GenerationSeed.temperatureNoise[A+1], x, y-1), Grad(GenerationSeed.temperatureNoise[B+1], x-1, y-1))), 
+                            Lerp(v2, Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2  ], x2, y2  ), Grad(GenerationSeed.temperatureNoise[B2  ], x2-1, y2  )),
+                           Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2+1], x2, y2-1), Grad(GenerationSeed.temperatureNoise[B2+1], x2-1, y2-1))));
+        }
+        else{
+            x = initialX*GenerationSeed.temperatureNoiseStep3 + GenerationSeed.temperatureOffsetX[0];
+            x -= Mathf.Floor(x);
+            y = initialY*GenerationSeed.temperatureNoiseStep3 + GenerationSeed.temperatureOffsetY[0];
+            y -= Mathf.Floor(y);
+            u = Fade(x);
+            v = Fade(y);
+
+            x2 = initialX*GenerationSeed.temperatureNoiseStep4 + GenerationSeed.temperatureOffsetX[0];
+            x2 -= Mathf.Floor(x2);
+            y2 = initialY*GenerationSeed.temperatureNoiseStep4 + GenerationSeed.temperatureOffsetY[0];
+            y2 -= Mathf.Floor(y2);
+            
+            u2 = Fade(x2);
+            v2 = Fade(y2);
+
+            X = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep3 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
+            Y = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep3 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
+            X2 = Mathf.FloorToInt(initialX*GenerationSeed.temperatureNoiseStep4 + GenerationSeed.temperatureOffsetX[0]) & 0xff;
+            Y2 = Mathf.FloorToInt(initialY*GenerationSeed.temperatureNoiseStep4 + GenerationSeed.temperatureOffsetY[0]) & 0xff;
+            A = (GenerationSeed.temperatureNoise[X  ] + Y) & 0xff;
+            B = (GenerationSeed.temperatureNoise[X+1] + Y) & 0xff;
+            A2 = (GenerationSeed.temperatureNoise[X2  ] + Y2) & 0xff;
+            B2 = (GenerationSeed.temperatureNoise[X2+1] + Y2) & 0xff;
+            biomeVector[0] = TransformOctaves(Lerp(v, Lerp(u, Grad(GenerationSeed.temperatureNoise[A  ], x, y  ), Grad(GenerationSeed.temperatureNoise[B  ], x-1, y  )),
+                           Lerp(u, Grad(GenerationSeed.temperatureNoise[A+1], x, y-1), Grad(GenerationSeed.temperatureNoise[B+1], x-1, y-1))), 
+                            Lerp(v2, Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2  ], x2, y2  ), Grad(GenerationSeed.temperatureNoise[B2  ], x2-1, y2  )),
+                           Lerp(u2, Grad(GenerationSeed.temperatureNoise[A2+1], x2, y2-1), Grad(GenerationSeed.temperatureNoise[B2+1], x2-1, y2-1))));            
+        }
         
         // Humidity Noise
         x = initialX*GenerationSeed.humidityNoiseStep1 + GenerationSeed.humidityOffsetX[0];
@@ -551,1069 +787,5 @@ public class WorldGenerator
         float c = (a+b)/2f;
 
         return (2f/(1f + Mathf.Exp(-c*4.1f)))-1;
-    }
-}
-
-
-// =====================================================================
-
-
-
-/*
-MULTITHREADING JOBS
-*/
-[BurstCompile(FloatPrecision.High, FloatMode.Strict)]
-public struct GenerateChunkJob: IJob{
-    public int chunkX;
-    public int chunkZ;
-    public NativeArray<ushort> blockData;
-    public NativeArray<ushort> stateData;
-    public NativeArray<ushort> hpData;
-    public NativeArray<float> heightMap;
-    public bool pregen;
-
-    // Noises
-    [ReadOnly]
-    public NativeArray<byte> baseNoise;
-    [ReadOnly]
-    public NativeArray<byte> erosionNoise;
-    [ReadOnly]
-    public NativeArray<byte> peakNoise;
-
-    public void Execute(){
-        int waterLevel = Constants.WORLD_WATER_LEVEL;
-        GeneratePivots();
-        BilinearIntepolateMap();
-        ApplyMap(waterLevel);
-    }
-
-    public void GeneratePivots(){
-        float height;
-        float erosionMultiplier;
-        float peakAdd;
-
-        for(int x=0; x <= Chunk.chunkWidth; x+=4){
-            for(int z=0; z <= Chunk.chunkWidth; z+=4){
-                height = FindSplineHeight(TransformOctaves(Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.baseNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.baseNoiseStep1, NoiseMap.BASE), (Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.baseNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.baseNoiseStep2, NoiseMap.BASE))), NoiseMap.BASE);
-                erosionMultiplier = FindSplineHeight(TransformOctaves(Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.erosionNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.erosionNoiseStep1, NoiseMap.EROSION), Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.erosionNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.erosionNoiseStep2, NoiseMap.EROSION)), NoiseMap.EROSION);
-                peakAdd = FindSplineHeight(TransformOctaves(Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep1, NoiseMap.PEAK), (Noise((chunkX*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep2, NoiseMap.PEAK))), NoiseMap.PEAK);
-
-                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.CeilToInt((height + peakAdd) * erosionMultiplier));
-            }
-        }
-    }
-    
-
-    public void BilinearIntepolateMap(){
-        int xIndex, zIndex;
-        float xInterp, zInterp;
-
-        for(int x=0; x < Chunk.chunkWidth; x++){
-            xIndex = x/4;
-            xInterp = (x%4)*0.25f;
-
-            for(int z=0; z < Chunk.chunkWidth; z++){
-                zIndex = z/4;
-                zInterp = (z%4)*0.25f;
-
-                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.RoundToInt(heightMap[xIndex*4*(Chunk.chunkWidth+1)+zIndex*4]*(1-xInterp)*(1-zInterp) + heightMap[(xIndex+1)*4*(Chunk.chunkWidth+1)+zIndex*4]*(xInterp)*(1-zInterp) + heightMap[xIndex*4*(Chunk.chunkWidth+1)+(zIndex+1)*4]*(1-xInterp)*(zInterp) + heightMap[(xIndex+1)*4*(Chunk.chunkWidth+1)+(zIndex+1)*4]*(xInterp)*(zInterp)));
-            }
-        }
-    }
-
-    public void ApplyMap(int waterLevel){
-        if(!pregen){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    for(int y=0; y < Chunk.chunkDepth; y++){ 
-                        if(y >= heightMap[x*(Chunk.chunkWidth+1)+z]){
-                            if(y <= waterLevel){
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 6;
-                            }
-                            else
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                        } 
-                        else
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;
-
-                        stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                        hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;       
-                    }
-                }
-            } 
-        }
-        else{
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    for(int y=0; y < Chunk.chunkDepth; y++){ 
-                        if(y >= heightMap[x*(Chunk.chunkWidth+1)+z]){
-                            if(y <= waterLevel && blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 0){
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 6;
-                                stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                                hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;
-                            }
-                        } 
-                        else if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 3;     
-                            stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                            hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;
-                        }
-                    }
-                }
-            }             
-        }
-    }
-    
-    // Calculates the cumulative distribution function of a Normal Distribution
-    private float TransformOctaves(float a, float b){
-        float c = (a+b)/2f;
-
-        return (2f/(1f + Mathf.Exp(-c*4.1f)))-1;
-    }
-
-    private float FindSplineHeight(float noiseValue, NoiseMap type){
-        int index = GenerationSeed.baseNoiseSplineX.Length-2;
-
-        if(type == NoiseMap.BASE){
-            for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){
-                if(GenerationSeed.baseNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
-                }
-            }
-
-            float inverseLerp = (noiseValue - GenerationSeed.baseNoiseSplineX[index])/(GenerationSeed.baseNoiseSplineX[index+1] - GenerationSeed.baseNoiseSplineX[index]) ;
-
-            if(GenerationSeed.baseNoiseSplineY[index] > GenerationSeed.baseNoiseSplineY[index+1])
-                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
-            else
-                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));
-        }
-        else if(type == NoiseMap.EROSION){
-            for(int i=1; i < GenerationSeed.erosionNoiseSplineX.Length; i++){
-                if(GenerationSeed.erosionNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
-                }
-            }
-
-            float inverseLerp = (noiseValue - GenerationSeed.erosionNoiseSplineX[index])/(GenerationSeed.erosionNoiseSplineX[index+1] - GenerationSeed.erosionNoiseSplineX[index]) ;
-
-            if(GenerationSeed.erosionNoiseSplineY[index] > GenerationSeed.erosionNoiseSplineY[index+1])
-                return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
-            else
-                return Mathf.Lerp(GenerationSeed.erosionNoiseSplineY[index], GenerationSeed.erosionNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
-        }
-        else if(type == NoiseMap.PEAK){
-            for(int i=1; i < GenerationSeed.peakNoiseSplineX.Length; i++){
-                if(GenerationSeed.peakNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
-                }
-            }
-
-            float inverseLerp = (noiseValue - GenerationSeed.peakNoiseSplineX[index])/(GenerationSeed.peakNoiseSplineX[index+1] - GenerationSeed.peakNoiseSplineX[index]) ;
-
-            if(GenerationSeed.peakNoiseSplineY[index] > GenerationSeed.peakNoiseSplineY[index+1])
-                return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2));
-            else
-                return Mathf.Lerp(GenerationSeed.peakNoiseSplineY[index], GenerationSeed.peakNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f));
-        }
-        else{
-            for(int i=1; i < GenerationSeed.baseNoiseSplineX.Length; i++){
-                if(GenerationSeed.baseNoiseSplineX[i] >= noiseValue){
-                    index = i-1;
-                    break;
-                }
-            }
-
-            float inverseLerp = (noiseValue - GenerationSeed.baseNoiseSplineX[index])/(GenerationSeed.baseNoiseSplineX[index+1] - GenerationSeed.baseNoiseSplineX[index]) ;
-
-            if(GenerationSeed.baseNoiseSplineY[index] > GenerationSeed.baseNoiseSplineY[index+1])
-                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(Mathf.Abs(inverseLerp), 2)));
-            else
-                return Mathf.CeilToInt(Mathf.Lerp(GenerationSeed.baseNoiseSplineY[index], GenerationSeed.baseNoiseSplineY[index+1], Mathf.Pow(inverseLerp, 0.8f)));            
-        }
-    }  
-
-
-    /*
-    Noises
-    */
-
-    public float Noise(float x, NoiseMap type)
-    {
-        int X = Mathf.FloorToInt(x) & 0xff;
-        x -= Mathf.Floor(x);
-        float u = Fade(x);
-
-        if(type == NoiseMap.BASE)
-            return Lerp(u, Grad(GenerationSeed.baseNoise[X], x), Grad(GenerationSeed.baseNoise[X+1], x-1)) * 2;
-        else if(type == NoiseMap.EROSION)
-            return Lerp(u, Grad(GenerationSeed.erosionNoise[X], x), Grad(GenerationSeed.erosionNoise[X+1], x-1)) * 2;
-        else if(type == NoiseMap.PEAK)
-            return Lerp(u, Grad(GenerationSeed.peakNoise[X], x), Grad(GenerationSeed.peakNoise[X+1], x-1)) * 2;
-        else
-            return Lerp(u, Grad(GenerationSeed.baseNoise[X], x), Grad(GenerationSeed.baseNoise[X+1], x-1)) * 2;
-    }
-
-    public float Noise(float x, float y, NoiseMap type)
-    {
-        int X = Mathf.FloorToInt(x) & 0xff;
-        int Y = Mathf.FloorToInt(y) & 0xff;
-        x -= Mathf.Floor(x);
-        y -= Mathf.Floor(y);
-
-        float u = Fade(x);
-        float v = Fade(y);
-
-        if(type == NoiseMap.BASE){
-            int A = (baseNoise[X  ] + Y) & 0xff;
-            int B = (baseNoise[X+1] + Y) & 0xff;
-            return Lerp(v, Lerp(u, Grad(baseNoise[A  ], x, y  ), Grad(baseNoise[B  ], x-1, y  )),
-                           Lerp(u, Grad(baseNoise[A+1], x, y-1), Grad(baseNoise[B+1], x-1, y-1)));
-        
-        }
-        else if(type == NoiseMap.EROSION){
-            int A = (erosionNoise[X  ] + Y) & 0xff;
-            int B = (erosionNoise[X+1] + Y) & 0xff;
-            return Lerp(v, Lerp(u, Grad(erosionNoise[A  ], x, y  ), Grad(erosionNoise[B  ], x-1, y  )),
-                           Lerp(u, Grad(erosionNoise[A+1], x, y-1), Grad(erosionNoise[B+1], x-1, y-1)));
-        }
-        else if(type == NoiseMap.PEAK){
-            int A = (peakNoise[X  ] + Y) & 0xff;
-            int B = (peakNoise[X+1] + Y) & 0xff;
-            return Lerp(v, Lerp(u, Grad(peakNoise[A  ], x, y  ), Grad(peakNoise[B  ], x-1, y  )),
-                           Lerp(u, Grad(peakNoise[A+1], x, y-1), Grad(peakNoise[B+1], x-1, y-1)));
-        }
-        else{
-            int A = (baseNoise[X  ] + Y) & 0xff;
-            int B = (baseNoise[X+1] + Y) & 0xff;
-            return Lerp(v, Lerp(u, Grad(baseNoise[A  ], x, y  ), Grad(baseNoise[B  ], x-1, y  )),
-                           Lerp(u, Grad(baseNoise[A+1], x, y-1), Grad(baseNoise[B+1], x-1, y-1)));
-        }
-        
-    }
-
-    private float Fade(float t)
-    {
-        return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-
-    private float Lerp(float t, float a, float b)
-    {
-        return a + t * (b - a);
-    }
-
-    private float Grad(int hash, float x)
-    {
-        return (hash & 1) == 0 ? x : -x;
-    }
-
-    private float Grad(int hash, float x, float y)
-    {
-        return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);
-    }
-
-    private float Grad(int hash, float x, float y, float z)
-    {
-        int h = hash & 15;
-        float u = h < 8 ? x : y;
-        float v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
-        return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
-    }
-}
-
-[BurstCompile]
-public struct PopulateChunkJob : IJob{
-    public NativeArray<ushort> blockData;
-    [ReadOnly]
-    public NativeArray<float> heightMap;
-    [ReadOnly]
-    public NativeArray<byte> patchNoise;
-    [ReadOnly]
-    public NativeArray<ushort> blendingBlock;
-
-    [ReadOnly]
-    public ChunkPos pos;
-    [ReadOnly]
-    public byte biome;
-    [ReadOnly]
-    public byte xpBiome, zpBiome, zmBiome;
-    [ReadOnly]
-    public byte xzpBiome, xpzmBiome, xmzpBiome;
-
-    public void Execute(){
-        ApplySurfaceDecoration(biome);
-        ApplyBiomeBlending();
-        ApplyWaterBodyFloor();
-    }
-
-    public void ApplySurfaceDecoration(byte biome){
-        BiomeCode code = (BiomeCode)biome;
-        ushort blockCode;
-        int depth = 0;
-
-        if(code == BiomeCode.PLAINS){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == (ushort)BlockID.WATER)
-                            depth++;
-                        else if(depth == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.GRASS;
-                            depth++;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.DIRT;
-                            depth++;
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        else if(code == BiomeCode.GRASSY_HIGHLANDS){
-            float stoneThreshold = 0.1f;
-            bool isStoneFloor = false;
-
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    isStoneFloor = false;
-                    depth = 0;
-
-                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) >= stoneThreshold)
-                        isStoneFloor = true;
-
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == (ushort)BlockID.WATER)
-                            depth++;
-                        else if(isStoneFloor && depth < 5){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
-                            depth++;
-                        } 
-                        else if(depth == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.GRASS;
-                            depth++;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.DIRT;
-                            depth++;
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }       
-        }
-        else if(code == BiomeCode.OCEAN){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == (ushort)BlockID.WATER)
-                            depth++;
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
-                            depth++; 
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }             
-        }
-        else if(code == BiomeCode.FOREST){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == (ushort)BlockID.WATER)
-                            depth++;
-                        else if(depth == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.GRASS;
-                            depth++;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.DIRT;
-                            depth++;
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }         
-        }
-        else if(code == BiomeCode.DESERT){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == (ushort)BlockID.WATER)
-                            depth++;
-                        else{
-                            if(depth != 5)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
-                            else
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SANDSTONE;
-
-                            depth++; 
-                        }
-
-                        if(depth == 6){
-                            break;
-                        }
-                    }
-                }
-            }          
-        }
-        else if(code == BiomeCode.SNOWY_PLAINS){
-            float iceThreshold = -0.2f;
-            bool isIceFloor = false;
-
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    isIceFloor = false;
-
-                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) >= iceThreshold){
-                        isIceFloor = true;
-                    }
-
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == (ushort)BlockID.WATER){
-                            depth++;
-                        }
-                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
-                            if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
-                            break;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
-                            depth++; 
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }              
-        }
-        else if(code == BiomeCode.SNOWY_HIGHLANDS){
-            float stoneThreshold = 0.1f;
-            bool isStoneFloor = false;
-            float iceThreshold = -0.2f;
-            bool isIceFloor = false;
-            float patchNoise;
-
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    isStoneFloor = false;
-                    isIceFloor = false;
-                    depth = 0;
-
-                    patchNoise = Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2);
-                    isStoneFloor = patchNoise >= stoneThreshold;
-                    isIceFloor = patchNoise >= iceThreshold;
-
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == (ushort)BlockID.WATER){
-                            depth++;
-                        }
-                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
-                            if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
-                            break;
-                        }
-                        else if(isStoneFloor && depth < 5){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
-                            depth++;
-                        } 
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
-                            depth++;
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        else if(code == BiomeCode.ICE_OCEAN){
-            float iceThreshold = 0f;
-            bool isIceFloor = false;
-
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    isIceFloor = false;
-
-                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) >= iceThreshold)
-                        isIceFloor = true;
-
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == (ushort)BlockID.WATER){
-                            depth++;
-                        }
-                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
-                            if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
-                            break;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
-                            depth++; 
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }        
-        }
-        else if(code == BiomeCode.SNOWY_FOREST){
-            float iceThreshold = -0.2f;
-            bool isIceFloor = false;
-
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    isIceFloor = false;
-
-                    if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) >= iceThreshold)
-                        isIceFloor = true;
-
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == (ushort)BlockID.WATER){
-                            depth++;
-                        }
-                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
-                            if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
-                            break;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
-                            depth++;
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }  
-        }
-    }
-
-    public void ApplyWaterBodyFloor(){
-        int depth = 0;
-        int finalDepth = 5;
-        ushort blockCode;
-        int height;
-        bool hasClay;
-        float clayNoise;
-        float clayThreshold = 0.42f;
-        float clayThreshold2 = -0.2f;
-
-        for(int x=0; x < Chunk.chunkWidth; x++){
-            for(int z=0; z < Chunk.chunkWidth; z++){
-                hasClay = false;
-
-                depth = 0;
-                height = (int)heightMap[x*(Chunk.chunkWidth+1)+z];
-                clayNoise = Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep1);
-
-                if(clayNoise >= clayThreshold)
-                    hasClay = true;
-
-                blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+height*Chunk.chunkWidth+z];
-
-                if(blockCode != (ushort)BlockID.WATER)
-                    continue;
-                else{
-                    for(int y=height-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode != (ushort)BlockID.WATER){
-                            depth++;
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
-
-                            if(hasClay && y >= Constants.WORLD_CLAY_MIN_LEVEL && y <= Constants.WORLD_CLAY_MAX_LEVEL){
-                                if(Noise((x ^ z)*y*GenerationSeed.patchNoiseStep4) >= clayThreshold2){
-                                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.CLAY;
-                                }
-                            }
-                        }
-
-                        if(depth == finalDepth)
-                            break;
-                    }
-                }
-            }
-        }          
-    }
-
-    public void ApplyBiomeBlending(){
-        int blendingAmount = Chunk.chunkWidth - 3;
-        int exageratedBlendingAmount = blendingAmount - (Chunk.chunkWidth - blendingAmount);
-        float blendingSafety = 0f;
-
-        if(biome == xpBiome && biome == zpBiome)
-            return;
-        
-        int y;
-
-        // X+ Side
-        if(blendingBlock[biome] != blendingBlock[xpBiome]){
-            // If needs rounded borders at the top
-            if(biome != xpBiome && xpBiome != xzpBiome){
-                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
-                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
-                        if(x-z > 0 && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
-                        }
-                    }
-                }                
-            }
-            // If needs rounded borders at the bottom
-            else if(biome != xpBiome && xpBiome != xpzmBiome){
-                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
-                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
-                        if(x+z >= Chunk.chunkWidth && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
-                        }
-                    }
-                }
-            }
-            // Both edges are rounded
-            else if(biome != xpBiome && xpBiome != xzpBiome && xpBiome != xpzmBiome){
-                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
-                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
-                        if(x+z <= blendingAmount*2 && x-z <= blendingAmount && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
-                        }
-                    }
-                }
-            }
-
-            // "Straight" line through border
-            else{
-                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
-                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
-                        if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
-                        }
-                    }
-                }                
-            }
-        }
-
-        // Z+ Side
-        if(blendingBlock[biome] != blendingBlock[zpBiome]){
-            // If needs rounded borders at the right
-            if(biome != zpBiome && zpBiome != xzpBiome){
-                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
-                    for(int x=0; x < Chunk.chunkWidth; x++){
-                        if(x-z <= blendingAmount - Chunk.chunkWidth && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
-                        }
-                    }
-                }                
-            }
-            // If needs rounded borders at the left
-            else if(biome != zpBiome && zpBiome != xmzpBiome){
-                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
-                    for(int x=0; x < Chunk.chunkWidth; x++){
-                        if(x+z >= Chunk.chunkWidth-1 && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
-                        }
-                    }
-                }
-            }
-            // Both ends are rounded
-            else if(biome != zpBiome && zpBiome != xzpBiome && zpBiome != xmzpBiome){
-                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
-                    for(int x=0; x < Chunk.chunkWidth; x++){
-                        if(x-z <= blendingAmount - Chunk.chunkWidth && x+z >= Chunk.chunkWidth-1 && Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
-                        }
-                    }
-                }                
-            }
-            // "Straight" line through border
-            else{
-                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
-                    for(int x=Chunk.chunkWidth-1; x >= 0; x--){
-                        if(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
-                        }
-                    }
-                }               
-            }
-        }
-
-    }
-
-    public float Noise(float x)
-    {
-        int X = Mathf.FloorToInt(x) & 0xff;
-        x -= Mathf.Floor(x);
-        float u = Fade(x);
-
-        return Lerp(u, Grad(patchNoise[X], x), Grad(patchNoise[X+1], x-1));
-    }
-
-    private float Noise(float x, float y)
-    {
-        int X = Mathf.FloorToInt(x) & 0xff;
-        int Y = Mathf.FloorToInt(y) & 0xff;
-        x -= Mathf.Floor(x);
-        y -= Mathf.Floor(y);
-
-        float u = Fade(x);
-        float v = Fade(y);
-
-        int A = (patchNoise[X  ] + Y) & 0xff;
-        int B = (patchNoise[X+1] + Y) & 0xff;
-        return Lerp(v, Lerp(u, Grad(patchNoise[A  ], x, y  ), Grad(patchNoise[B  ], x-1, y  )),
-                       Lerp(u, Grad(patchNoise[A+1], x, y-1), Grad(patchNoise[B+1], x-1, y-1)));        
-    }
-
-    private float Fade(float t)
-    {
-        return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-
-    private float Lerp(float t, float a, float b)
-    {
-        return a + t * (b - a);
-    }
-    private float Grad(int hash, float x)
-    {
-        return (hash & 1) == 0 ? x : -x;
-    }
-    private float Grad(int hash, float x, float y)
-    {
-        return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);
-    }
-}
-
-[BurstCompile]
-public struct GenerateCaveJob : IJobParallelFor{ // Chunk.chunkWidth, 2 on Schedule call
-    [ReadOnly]
-    public ChunkPos pos;
-
-    [NativeDisableParallelForRestriction]
-    public NativeArray<ushort> blockData;
-    [NativeDisableParallelForRestriction]
-    public NativeArray<ushort> stateData;
-    [NativeDisableParallelForRestriction]
-    public NativeArray<float> heightMap;
-
-    [ReadOnly]
-    public NativeArray<byte> caveNoise;
-    [ReadOnly]
-    public NativeArray<byte> cavemaskNoise;
-
-    [ReadOnly]
-    public NativeHashSet<ushort> caveFreeBlocks;
-
-    public void Execute(int index){
-        GenerateNoiseTunnel(index);
-    }
-
-    // Creates a Noise Tunnels in the Chunk
-    public void GenerateNoiseTunnel(int x){
-        // Dig Caves and destroy underground rocks variables
-        float val;
-        float lowerCaveLimit = 0.3f;
-        float upperCaveLimit = 0.37f;
-        int bottomLimit = 10;
-        int upperCompensation = -1;
-        float maskThreshold = 0.2f;
-
-        for(int z=0; z < Chunk.chunkWidth; z++){ 
-            for(int y=(int)heightMap[x*(Chunk.chunkWidth+1)+z]+upperCompensation; y > bottomLimit; y--){
-                if(caveFreeBlocks.Contains(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
-                    continue;
-                }
-
-                if(y < Chunk.chunkDepth-1){
-                    if(caveFreeBlocks.Contains(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+(y+1)*Chunk.chunkWidth+z])){
-                        continue;
-                    }
-                }
-
-                if(NoiseMask((pos.x*Chunk.chunkWidth+x)*GenerationSeed.cavemaskNoiseStep1, y*GenerationSeed.cavemaskYStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.cavemaskNoiseStep1) < maskThreshold)
-                    continue;
-
-                val = TransformOctaves(Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.caveNoiseStep1, y*GenerationSeed.caveYStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.caveNoiseStep1), Noise((pos.x*Chunk.chunkWidth+x)*GenerationSeed.caveNoiseStep2, y*GenerationSeed.caveYStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.caveNoiseStep2));
-            
-
-                if(lowerCaveLimit <= val && val <= upperCaveLimit){
-                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                    stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-                }
-            }
-            
-            SetHeightMapData(x, z);
-        }
-    }
-
-    private void SetHeightMapData(int x, int z){
-        for(int y = Chunk.chunkDepth-1; y > 0; y--){
-            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != 0 && blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != (ushort)BlockID.WATER){
-                heightMap[x*(Chunk.chunkWidth+1)+z] = y+1;
-                return;
-            }
-        }            
-    }
-
-
-    // Calculates 3D Noise for Cave System procedural generation
-    public float Noise(float x, float y, float z)
-    {
-        int X = Mathf.FloorToInt(x) & 0xff;
-        int Y = Mathf.FloorToInt(y) & 0xff;
-        int Z = Mathf.FloorToInt(z) & 0xff;
-        x -= Mathf.Floor(x);
-        y -= Mathf.Floor(y);
-        z -= Mathf.Floor(z);
-        float u = Fade(x);
-        float v = Fade(y);
-        float w = Fade(z);
-      
-        int A  = (caveNoise[X  ] + Y) & 0xff;
-        int B  = (caveNoise[X+1] + Y) & 0xff;
-        int AA = (caveNoise[A  ] + Z) & 0xff;
-        int BA = (caveNoise[B  ] + Z) & 0xff;
-        int AB = (caveNoise[A+1] + Z) & 0xff;
-        int BB = (caveNoise[B+1] + Z) & 0xff;
-        return Lerp(w, Lerp(v, Lerp(u, Grad(caveNoise[AA  ], x, y  , z  ), Grad(caveNoise[BA  ], x-1, y  , z  )),
-                               Lerp(u, Grad(caveNoise[AB  ], x, y-1, z  ), Grad(caveNoise[BB  ], x-1, y-1, z  ))),
-                       Lerp(v, Lerp(u, Grad(caveNoise[AA+1], x, y  , z-1), Grad(caveNoise[BA+1], x-1, y  , z-1)),
-                               Lerp(u, Grad(caveNoise[AB+1], x, y-1, z-1), Grad(caveNoise[BB+1], x-1, y-1, z-1))));
-    }
-
-    public float NoiseMask(float x, float y, float z)
-    {
-        int X = Mathf.FloorToInt(x) & 0xff;
-        int Y = Mathf.FloorToInt(y) & 0xff;
-        int Z = Mathf.FloorToInt(z) & 0xff;
-        x -= Mathf.Floor(x);
-        y -= Mathf.Floor(y);
-        z -= Mathf.Floor(z);
-        float u = Fade(x);
-        float v = Fade(y);
-        float w = Fade(z);
-      
-        int A  = (cavemaskNoise[X  ] + Y) & 0xff;
-        int B  = (cavemaskNoise[X+1] + Y) & 0xff;
-        int AA = (cavemaskNoise[A  ] + Z) & 0xff;
-        int BA = (cavemaskNoise[B  ] + Z) & 0xff;
-        int AB = (cavemaskNoise[A+1] + Z) & 0xff;
-        int BB = (cavemaskNoise[B+1] + Z) & 0xff;
-        return Lerp(w, Lerp(v, Lerp(u, Grad(cavemaskNoise[AA  ], x, y  , z  ), Grad(cavemaskNoise[BA  ], x-1, y  , z  )),
-                               Lerp(u, Grad(cavemaskNoise[AB  ], x, y-1, z  ), Grad(cavemaskNoise[BB  ], x-1, y-1, z  ))),
-                       Lerp(v, Lerp(u, Grad(cavemaskNoise[AA+1], x, y  , z-1), Grad(cavemaskNoise[BA+1], x-1, y  , z-1)),
-                               Lerp(u, Grad(cavemaskNoise[AB+1], x, y-1, z-1), Grad(cavemaskNoise[BB+1], x-1, y-1, z-1))));
-    }
-
-    private int Abs(int x){
-        if(x > 0)
-            return x;
-        else
-            return -x;
-    }
-
-    // Calculates the cumulative distribution function of a Normal Distribution
-    private float TransformOctaves(float a, float b){
-        float c = (a+b)/2f;
-
-        return (2f/(1f + Mathf.Exp(-c*4.1f)))-1;
-    }
-
-    private float Fade(float t)
-    {
-        return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-
-    private float Lerp(float t, float a, float b)
-    {
-        return a + t * (b - a);
-    }
-
-    private float Grad(int hash, float x)
-    {
-        return (hash & 1) == 0 ? x : -x;
-    }
-
-    private float Grad(int hash, float x, float y)
-    {
-        return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);
-    }
-
-    private float Grad(int hash, float x, float y, float z)
-    {
-        int h = hash & 15;
-        float u = h < 8 ? x : y;
-        float v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
-        return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
-    }
-}
-
-[BurstCompile]
-public struct RemoveSpikesJob : IJobParallelFor{
-    [NativeDisableParallelForRestriction]
-    public NativeArray<ushort> blockData;
-    [NativeDisableParallelForRestriction]
-    public NativeArray<ushort> stateData;
-    [NativeDisableParallelForRestriction]
-    public NativeArray<float> heightMap;
-
-    public void Execute(int index){
-        RemoveSpikes(index);
-    }
-
-    public void RemoveSpikes(int z){
-        int currentNextDiff = 0;
-        int currentPrevDiff = 0;
-        int maxSmoothDistance = 3;
-
-        for(int x=1; x < Chunk.chunkWidth-1; x++){
-            currentNextDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z];
-            currentPrevDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[(x-1)*(Chunk.chunkWidth+1)+z];
-
-            // If current is spike
-            if(Abs(currentNextDiff) > maxSmoothDistance && Abs(currentPrevDiff) > maxSmoothDistance){
-                // If current is spike up
-                if(currentNextDiff > 0){
-                    BreakPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z], (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z]);
-                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[(x+1)*(Chunk.chunkWidth+1)+z] + 1;                    
-                }
-                // If current is spike down
-                else{
-                    AddPillar(x, z, (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
-                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[(x+1)*(Chunk.chunkWidth+1)+z];                    
-                }
-            }
-        }
-
-        for(int x=Chunk.chunkWidth-2; x >= 1 ; x--){
-            currentNextDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z];
-            currentPrevDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[(x-1)*(Chunk.chunkWidth+1)+z];
-
-            // If current is spike
-            if(Abs(currentNextDiff) > maxSmoothDistance && Abs(currentPrevDiff) > maxSmoothDistance){
-                // If current is spike up
-                if(currentNextDiff > 0){
-                    BreakPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z], (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z]);
-                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[(x+1)*(Chunk.chunkWidth+1)+z] + 1;                    
-                }
-                // If current is spike down
-                else{
-                    AddPillar(x, z, (int)heightMap[(x+1)*(Chunk.chunkWidth+1)+z]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
-                    heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[(x+1)*(Chunk.chunkWidth+1)+z];                    
-                }
-            }
-        }
-
-        // Smooth process for z=0 and z=15
-        SmoothenProcessForBorder(0, z, 1, 2, maxSmoothDistance);
-        SmoothenProcessForBorder(Chunk.chunkWidth-1, z, Chunk.chunkWidth-2, Chunk.chunkWidth-3, maxSmoothDistance);
-        
-    }
-
-    private void SmoothenProcessForBorder(int x, int z, int targetX, int targetX2, int smoothFactor){
-        int currentToZDiff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[targetX*(Chunk.chunkWidth+1)+z];
-        int currentToZ2Diff = (int)heightMap[x*(Chunk.chunkWidth+1)+z] - (int)heightMap[targetX2*(Chunk.chunkWidth+1)+z];
-
-        if(Abs(currentToZDiff) > smoothFactor && Abs(currentToZ2Diff) > smoothFactor){
-            if(currentToZDiff > 0){
-                BreakPillar(x, z, (int)heightMap[x*(Chunk.chunkWidth+1)+z], (int)heightMap[targetX*(Chunk.chunkWidth+1)+z]);
-                heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[targetX*(Chunk.chunkWidth+1)+z] + 1;                  
-            }
-            else{
-                AddPillar(x, z, (int)heightMap[targetX*(Chunk.chunkWidth+1)+z]-1, (int)heightMap[x*(Chunk.chunkWidth+1)+z]);
-                heightMap[x*(Chunk.chunkWidth+1)+z] = heightMap[targetX*(Chunk.chunkWidth+1)+z];                  
-            }
-        }
-    }
-
-    private int Abs(int x){
-        if(x > 0)
-            return x;
-        else
-            return -x;
-    }
-
-    private void BreakPillar(int x, int z, int initialY, int endY){
-        for(int y=initialY; y > endY; y--){
-            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == (ushort)BlockID.WATER)
-                continue;
-
-            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
-            stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;  
-        }
-    }
-
-    private void AddPillar(int x, int z, int initialY, int endY){
-        for(int y=initialY; y >= endY; y--){
-            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == (ushort)BlockID.WATER)
-                continue;
-
-            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
-            stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;  
-        }        
     }
 }

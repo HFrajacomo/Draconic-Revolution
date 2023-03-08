@@ -353,7 +353,7 @@ public class Client
 	// Receives a Chunk
 	private void SendChunk(byte[] data){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
-		
+
 		this.cl.toLoad.Add(data);
 		this.cl.toLoadChunk.Add(pos);
 	}
@@ -376,15 +376,15 @@ public class Client
 		BUDCode type;
 
 		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 9);
-		y = NetDecoder.ReadInt(data, 13);
-		z = NetDecoder.ReadInt(data, 17);
-		int facing = NetDecoder.ReadInt(data, 21);
+		x = NetDecoder.ReadInt(data, 10);
+		y = NetDecoder.ReadInt(data, 14);
+		z = NetDecoder.ReadInt(data, 18);
+		int facing = NetDecoder.ReadInt(data, 22);
 
-		blockCode = NetDecoder.ReadUshort(data, 25);
-		state = NetDecoder.ReadUshort(data, 27);
-		hp = NetDecoder.ReadUshort(data, 29);
-		type = (BUDCode)NetDecoder.ReadInt(data, 31);
+		blockCode = NetDecoder.ReadUshort(data, 26);
+		state = NetDecoder.ReadUshort(data, 28);
+		hp = NetDecoder.ReadUshort(data, 30);
+		type = (BUDCode)NetDecoder.ReadInt(data, 32);
 
 		switch(type){
 			case BUDCode.PLACE:
@@ -426,12 +426,12 @@ public class Client
 		ushort blockCode, state;
 
 		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 9);
-		y = NetDecoder.ReadInt(data, 13);
-		z = NetDecoder.ReadInt(data, 17);
-		facing = NetDecoder.ReadInt(data, 21);
-		blockCode = NetDecoder.ReadUshort(data, 25);
-		state = NetDecoder.ReadUshort(data, 27);
+		x = NetDecoder.ReadInt(data, 10);
+		y = NetDecoder.ReadInt(data, 14);
+		z = NetDecoder.ReadInt(data, 18);
+		facing = NetDecoder.ReadInt(data, 22);
+		blockCode = NetDecoder.ReadUshort(data, 26);
+		state = NetDecoder.ReadUshort(data, 28);
 
 		if(blockCode <= ushort.MaxValue/2){
 			this.cl.blockBook.blocks[blockCode].OnVFXBuild(pos, x, y, z, facing, state, cl);
@@ -448,12 +448,12 @@ public class Client
 		ushort blockCode, state;
 
 		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 9);
-		y = NetDecoder.ReadInt(data, 13);
-		z = NetDecoder.ReadInt(data, 17);
-		facing = NetDecoder.ReadInt(data, 21);
-		blockCode = NetDecoder.ReadUshort(data, 25);
-		state = NetDecoder.ReadUshort(data, 27);
+		x = NetDecoder.ReadInt(data, 10);
+		y = NetDecoder.ReadInt(data, 14);
+		z = NetDecoder.ReadInt(data, 18);
+		facing = NetDecoder.ReadInt(data, 22);
+		blockCode = NetDecoder.ReadUshort(data, 26);
+		state = NetDecoder.ReadUshort(data, 28);
 
 		if(blockCode <= ushort.MaxValue/2){
 			this.cl.blockBook.blocks[blockCode].OnVFXChange(pos, x, y, z, facing, state, cl);
@@ -470,11 +470,11 @@ public class Client
 		ushort blockCode, state;
 
 		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 9);
-		y = NetDecoder.ReadInt(data, 13);
-		z = NetDecoder.ReadInt(data, 17);
-		blockCode = NetDecoder.ReadUshort(data, 21);
-		state = NetDecoder.ReadUshort(data, 23);
+		x = NetDecoder.ReadInt(data, 10);
+		y = NetDecoder.ReadInt(data, 14);
+		z = NetDecoder.ReadInt(data, 18);
+		blockCode = NetDecoder.ReadUshort(data, 22);
+		state = NetDecoder.ReadUshort(data, 24);
 
 		if(blockCode <= ushort.MaxValue/2){
 			this.cl.blockBook.blocks[blockCode].OnVFXBreak(pos, x, y, z, state, cl);
@@ -536,49 +536,61 @@ public class Client
 		ChunkPos temp;
 
 		if(x == 0){
-			temp = new ChunkPos(pos.x-1, pos.z);
+			temp = new ChunkPos(pos.x-1, pos.z, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x+1, pos.z);
+			temp = new ChunkPos(pos.x+1, pos.z, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(z == 0){
-			temp = new ChunkPos(pos.x, pos.z-1);
+			temp = new ChunkPos(pos.x, pos.z-1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);			
 		}
 
 		if(z == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x, pos.z+1);
+			temp = new ChunkPos(pos.x, pos.z+1, pos.y);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
+
+		if(y == 0 && pos.y > 0){
+			temp = new ChunkPos(pos.x, pos.z, pos.y-1);
+			if(this.cl.chunks.ContainsKey(temp))
+				this.cl.AddToUpdate(temp);
+		}
+
+		if(y == Chunk.chunkDepth-1 && pos.y < Chunk.chunkMaxY){
+			temp = new ChunkPos(pos.x, pos.z, pos.y+1);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == 0 && z == 0){
-			temp = new ChunkPos(pos.x-1, pos.z-1);
+			temp = new ChunkPos(pos.x-1, pos.z-1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == Chunk.chunkWidth-1 && z == 0){
-			temp = new ChunkPos(pos.x+1, pos.z-1);
+			temp = new ChunkPos(pos.x+1, pos.z-1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == Chunk.chunkWidth-1 && z == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x+1, pos.z+1);
+			temp = new ChunkPos(pos.x+1, pos.z+1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == 0 && z == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x-1, pos.z+1);
+			temp = new ChunkPos(pos.x-1, pos.z+1, pos.y);
 			if(this.cl.chunks.ContainsKey(temp))
 				this.cl.AddToUpdate(temp);
 		}
@@ -621,11 +633,11 @@ public class Client
 		Chunk c;
 
 		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 9);
-		y = NetDecoder.ReadInt(data, 13);
-		z = NetDecoder.ReadInt(data, 17);
-		newHP = NetDecoder.ReadUshort(data, 21);
-		shouldRedraw = NetDecoder.ReadBool(data, 23);
+		x = NetDecoder.ReadInt(data, 10);
+		y = NetDecoder.ReadInt(data, 14);
+		z = NetDecoder.ReadInt(data, 18);
+		newHP = NetDecoder.ReadUshort(data, 22);
+		shouldRedraw = NetDecoder.ReadBool(data, 24);
 
 		if(this.cl.chunks.ContainsKey(pos)){
 			c = this.cl.chunks[pos];
@@ -658,11 +670,11 @@ public class Client
 	private void SFXPlay(byte[] data){
 		int x,y,z;
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 9);
-		y = NetDecoder.ReadInt(data, 13);
-		z = NetDecoder.ReadInt(data, 17);
-		ushort blockCode = NetDecoder.ReadUshort(data, 21);
-		ushort state = NetDecoder.ReadUshort(data, 23);
+		x = NetDecoder.ReadInt(data, 10);
+		y = NetDecoder.ReadInt(data, 14);
+		z = NetDecoder.ReadInt(data, 18);
+		ushort blockCode = NetDecoder.ReadUshort(data, 22);
+		ushort state = NetDecoder.ReadUshort(data, 24);
 
 		if(blockCode <= ushort.MaxValue/2){
 			this.cl.blockBook.blocks[blockCode].OnSFXPlay(pos, x, y, z, state, cl);

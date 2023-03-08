@@ -1,4 +1,5 @@
 public enum BlockFlags : byte
 {
-	IMMUNE
+	IMMUNE,
+	UNBREAKABLE
 }

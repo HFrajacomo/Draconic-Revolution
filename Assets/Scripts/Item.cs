@@ -101,6 +101,17 @@ public abstract class Item
 				return new Pinewoodblock_Item();
 			case ItemID.PINELEAFBLOCK:
 				return new Pineleafblock_Item();
+			case ItemID.GRAVELBLOCK:
+				return new Gravelblock_Item();
+			case ItemID.MOONSTONEBLOCK:
+				return new Moonstoneblock_Item();
+			case ItemID.LAVABLOCK:
+				return new Lavablock_Item();
+			case ItemID.HELLMARBLEBLOCK:
+				return new HellMarbleblock_Item();
+			case ItemID.ACASTERBLOCK:
+				return new Acasterblock_Item();
+
 			default:
 				return null;
 		}

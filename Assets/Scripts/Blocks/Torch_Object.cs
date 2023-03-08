@@ -123,7 +123,7 @@ public class Torch_Object : BlocklikeObject
 			shadowDirection = Quaternion.Euler(0, 0, 0);
 		}
 
-		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, shadowDirection);
+		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f + pos.y*Chunk.chunkDepth, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, shadowDirection);
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
 
 		this.vfx.Add(pos, fire, active:true, isOnDemandLight:true);
@@ -222,7 +222,7 @@ public class Torch_Object : BlocklikeObject
 						return false;
 				}
 				else{
-					ChunkPos newPos = new ChunkPos(pos.x-1, pos.z);
+					ChunkPos newPos = new ChunkPos(pos.x-1, pos.z, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(Chunk.chunkWidth-1,y,z);
 					if(cl.blockBook.CheckSolid(blockCode))
 						return true;
@@ -239,7 +239,7 @@ public class Torch_Object : BlocklikeObject
 						return false;
 				}
 				else{
-					ChunkPos newPos = new ChunkPos(pos.x+1, pos.z);
+					ChunkPos newPos = new ChunkPos(pos.x+1, pos.z, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(0,y,z);
 					if(cl.blockBook.CheckSolid(blockCode))
 						return true;
@@ -256,7 +256,7 @@ public class Torch_Object : BlocklikeObject
 						return false;
 				}
 				else{
-					ChunkPos newPos = new ChunkPos(pos.x, pos.z+1);
+					ChunkPos newPos = new ChunkPos(pos.x, pos.z+1, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(x,y,0);
 					if(cl.blockBook.CheckSolid(blockCode))
 						return true;
@@ -273,7 +273,7 @@ public class Torch_Object : BlocklikeObject
 						return false;
 				}
 				else{
-					ChunkPos newPos = new ChunkPos(pos.x, pos.z-1);
+					ChunkPos newPos = new ChunkPos(pos.x, pos.z-1, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(x,y,Chunk.chunkWidth-1);
 					if(cl.blockBook.CheckSolid(blockCode))
 						return true;

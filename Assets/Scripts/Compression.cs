@@ -17,17 +17,18 @@ public static class Compression{
 
 
 	// Pallete Initializers
-	private static BlockID[] basicArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.PREGEN_AIR};
-	private static BlockID[] grasslandsArray = new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.LEAF, BlockID.PREGEN_AIR};
-	private static BlockID[] oceanArray = new BlockID[]{BlockID.AIR, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.PREGEN_AIR};
-	private static BlockID[] forestArray = new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.PREGEN_AIR};
-	private static BlockID[] icelandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.PINE_LEAF, BlockID.PINE_WOOD, BlockID.SNOW, BlockID.ICE, BlockID.PREGEN_AIR};
-	private static BlockID[] sandlandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.SANDSTONE, BlockID.PREGEN_AIR};
+	private static BlockID[] basicArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.GRAVEL, BlockID.PREGEN_AIR};
+	private static BlockID[] grasslandsArray = new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.LEAF, BlockID.GRAVEL, BlockID.PREGEN_AIR};
+	private static BlockID[] oceanArray = new BlockID[]{BlockID.AIR, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.GRAVEL, BlockID.PREGEN_AIR};
+	private static BlockID[] forestArray = new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.GRAVEL, BlockID.PREGEN_AIR};
+	private static BlockID[] icelandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.PINE_LEAF, BlockID.PINE_WOOD, BlockID.SNOW, BlockID.ICE, BlockID.GRAVEL, BlockID.PREGEN_AIR};
+	private static BlockID[] sandlandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.SANDSTONE, BlockID.GRAVEL, BlockID.PREGEN_AIR};
+	private static BlockID[] hellArray = new BlockID[]{BlockID.AIR, BlockID.HELL_MARBLE, BlockID.LAVA, BlockID.BASALT, BlockID.BONE, BlockID.PREGEN_AIR};
 
 	private static BlockID[] structureArray =
 						 new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.IRON_ORE, BlockID.WATER, BlockID.LEAF,
 										BlockID.PINE_WOOD, BlockID.PINE_LEAF, BlockID.COAL_ORE, BlockID.COPPER_ORE, BlockID.TIN_ORE, BlockID.ALUMINIUM_ORE,
-										BlockID.MAGNETITE_ORE, BlockID.EMERIUM_ORE, BlockID.GOLD_ORE}; 
+										BlockID.MAGNETITE_ORE, BlockID.EMERIUM_ORE, BlockID.GOLD_ORE, BlockID.GRAVEL, BlockID.BONE}; 
 
 	private static BlockID[] metadataArray = new BlockID[]{(BlockID)0, (BlockID)1, (BlockID)(ushort.MaxValue)};
 
@@ -38,6 +39,7 @@ public static class Compression{
 	public static readonly NativeHashSet<ushort> forestPallete;
 	public static readonly NativeHashSet<ushort> icelandsPallete;
 	public static readonly NativeHashSet<ushort> sandlandsPallete;
+	public static readonly NativeHashSet<ushort> hellPallete;
 	public static readonly NativeHashSet<ushort> structurePallete;
 	public static readonly NativeHashSet<ushort> metadataPallete;
 
@@ -73,6 +75,11 @@ public static class Compression{
 			sandlandsPallete.Add((ushort)sandlandsArray[i]);
 		}
 
+		hellPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		for(int i = 0; i < hellArray.Length; i++){
+			hellPallete.Add((ushort)hellArray[i]);
+		}
+
 		structurePallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < structureArray.Length; i++){
 			structurePallete.Add((ushort)structureArray[i]);
@@ -94,6 +101,7 @@ public static class Compression{
 		forestPallete.Dispose();
 		icelandsPallete.Dispose();
 		sandlandsPallete.Dispose();
+		hellPallete.Dispose();
 		structurePallete.Dispose();
 		metadataPallete.Dispose();
 	}
@@ -103,8 +111,7 @@ public static class Compression{
 	// and returns the amount of bytes written
 	public static int CompressBlocks(Chunk c, byte[] buffer, int targetPos=0){
 		int bytes;
-		Pallete p = Compression.BiomeToPallete(c.biomeName);		
-		
+		Pallete p = Compression.BiomeToPallete(c.biomeName);
 		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
 		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.data.GetData());
 		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);
@@ -520,6 +527,8 @@ public static class Compression{
 				return Pallete.ICELANDS;
 			case "Desert":
 				return Pallete.SANDLANDS;
+			case "Hell Plains":
+				return Pallete.HELL;
 			default:
 				return Pallete.BASIC;
 		}
@@ -549,6 +558,9 @@ public static class Compression{
 
 			case Pallete.SANDLANDS:
 				return Compression.sandlandsPallete;
+
+			case Pallete.HELL:
+				return Compression.hellPallete;
 
 			// Special Pallete used for Structure blocks Compression
 			case Pallete.STRUCTUREBLOCKS:
@@ -592,6 +604,7 @@ public enum Pallete
 	FOREST,
 	ICELANDS,
 	SANDLANDS,
+	HELL,
 	STRUCTUREBLOCKS,
 	METADATA
 }

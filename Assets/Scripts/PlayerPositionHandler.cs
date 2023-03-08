@@ -16,6 +16,9 @@ public class PlayerPositionHandler : MonoBehaviour
     private string currentBiome = "";
     private string lastBiome = "";
 
+    // Chunk loading variables
+    private int verticalChunkLoaded = 0;
+
     // Audio Stuff
     public AudioManager audioManager;
     private AudioName? currentMusic;
@@ -76,6 +79,7 @@ public class PlayerPositionHandler : MonoBehaviour
 
         CalculateDistances();
         SetReverbSpecs();
+        SetChunkLoaderChunkPos();
     }
 
     public void SetAudioManager(AudioManager manager){this.audioManager = manager;}
@@ -88,6 +92,15 @@ public class PlayerPositionHandler : MonoBehaviour
         maxDistanceDiagonal = Mathf.Sqrt(2*(Chunk.chunkWidth*Chunk.chunkWidth));
     }
 
+    // Keeps ChunkLoader updated with the current ChunkPos
+    public void SetChunkLoaderChunkPos(){
+        this.cl.currentChunk = this.coord.GetChunkPos();
+    }
+
+    public int GetPlayerVerticalChunk(){
+        return this.verticalChunkLoaded;
+    }
+
     private void RenewPositionalInformation(){
         if(this.coord.active)
             this.lastCoord = this.coord;
@@ -98,7 +111,19 @@ public class PlayerPositionHandler : MonoBehaviour
             this.lastBiome = this.currentBiome;
 
         if(cl.chunks.ContainsKey(this.coord.GetChunkPos()))
-            this.currentBiome = cl.chunks[this.coord.GetChunkPos()].biomeName;    
+            this.currentBiome = cl.chunks[this.coord.GetChunkPos()].biomeName; 
+
+        if(this.coord.blockY <= Constants.CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE)
+            this.verticalChunkLoaded = -1;
+        else if(this.coord.blockY >= Chunk.chunkDepth - Constants.CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE)
+            this.verticalChunkLoaded = 1;
+        else
+            this.verticalChunkLoaded = 0;
+
+        if(this.coord.chunkY >= Chunk.chunkMaxY && this.verticalChunkLoaded == 1)
+            this.verticalChunkLoaded = 0;
+        if(this.coord.chunkY <= 0 && this.verticalChunkLoaded == -1)
+            this.verticalChunkLoaded = 0;
     }
 
     private bool CheckBiomeChange(){return this.currentBiome != this.lastBiome && !CheckEqualMusic(this.currentBiome, this.lastBiome);}

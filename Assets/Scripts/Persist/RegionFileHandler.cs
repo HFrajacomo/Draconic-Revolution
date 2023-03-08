@@ -41,7 +41,7 @@ public class RegionFileHandler{
 
 	// Region Pool
 	private Dictionary<ChunkPos, RegionFile> pool = new Dictionary<ChunkPos, RegionFile>();
-	private int maxPoolSize = 4;
+	private int maxPoolSize = 10;
 
 	// Sizes
 	public static int chunkHeaderSize = 21; // Size (in bytes) of header
@@ -205,7 +205,7 @@ public class RegionFileHandler{
 	// Loads data from PDAT file
 	public PlayerData LoadPlayer(ulong ID){
 		if(!this.allPlayerData.ContainsKey(ID))
-			this.allPlayerData.Add(ID, new PlayerData(ID, new float3(0, this.cl.GetBlockHeight(new ChunkPos(0,0),0, 0), 0), new float3(0, 0, 0)));
+			this.allPlayerData.Add(ID, new PlayerData(ID, new float3(0, this.cl.GetBlockHeight(new ChunkPos(0,0,3),0, 0), 0), new float3(0, 0, 0)));
 
 		return this.allPlayerData[ID];
 	}
@@ -244,9 +244,9 @@ public class RegionFileHandler{
 
 		rfx = Mathf.FloorToInt(pos.x / RegionFileHandler.chunkLength);
 		rfz = Mathf.FloorToInt(pos.z / RegionFileHandler.chunkLength);
-		name = "r" + rfx.ToString() + "x" + rfz.ToString();
+		name = "r" + rfx.ToString() + "x" + rfz.ToString() + "_" + pos.y;
 
-		ChunkPos newPos = new ChunkPos(rfx, rfz);
+		ChunkPos newPos = new ChunkPos(rfx, rfz, pos.y);
 
 		// If Pool already has that region
 		if(this.pool.ContainsKey(newPos))
@@ -415,7 +415,6 @@ public class RegionFileHandler{
 			this.pool[regionPos].Write(seekPosition+chunkHeaderSize+blockSize, hpBuffer, hpSize);
 			this.pool[regionPos].Write(seekPosition+chunkHeaderSize+blockSize+hpSize, stateBuffer, stateSize);
 		}
-
 	}
 
 	// Reads header from a chunk
@@ -530,7 +529,7 @@ public class RegionFileHandler{
 		rfx = Mathf.FloorToInt(pos.x / RegionFileHandler.chunkLength);
 		rfz = Mathf.FloorToInt(pos.z / RegionFileHandler.chunkLength);
 
-		return new ChunkPos(rfx, rfz);		
+		return new ChunkPos(rfx, rfz, pos.y);		
 	}
 
 	// Gets NeedGeneration byte from Chunk
@@ -550,7 +549,8 @@ public class RegionFileHandler{
 		rfx = Mathf.FloorToInt(pos.x / RegionFileHandler.chunkLength);
 		rfz = Mathf.FloorToInt(pos.z / RegionFileHandler.chunkLength);
 
-		ChunkPos check = new ChunkPos(rfx, rfz);
+
+		ChunkPos check = new ChunkPos(rfx, rfz, pos.y);
 
 		if(this.pool.ContainsKey(check))
 			return true;
@@ -561,11 +561,6 @@ public class RegionFileHandler{
 	// Convert to linear Region Chunk Coordinates
 	private long GetLinearRegionCoords(ChunkPos pos){
 		return (long)(pos.z*chunkLength + pos.x);
-	}
-
-	// Sets the name of the world
-	public void SetWorldName(){
-
 	}
 
 }

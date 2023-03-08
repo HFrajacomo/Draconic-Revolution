@@ -2166,11 +2166,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 471249770}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4809103a5af78e3429bd9549d4d89504, type: 3}
+  m_Script: {fileID: 11500000, guid: 019814edccd86d84c860cad34d469048, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rend: {fileID: 0}
-  filter: {fileID: 0}
+  rend: {fileID: 471249773}
+  filter: {fileID: 471249772}
   decalMaterial: {fileID: 0}
 --- !u!33 &471249772
 MeshFilter:
@@ -2266,7 +2266,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 471797233}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4809103a5af78e3429bd9549d4d89504, type: 3}
+  m_Script: {fileID: 11500000, guid: 019814edccd86d84c860cad34d469048, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   rend: {fileID: 471797236}
@@ -2306,6 +2306,7 @@ MeshRenderer:
   - {fileID: 2100000, guid: 999c1fcd55f79634dbdba1279d725c94, type: 2}
   - {fileID: 2100000, guid: 946c1fa5602172a4ca6173a532729076, type: 2}
   - {fileID: 2100000, guid: c9848c3993e7291419934a8fafed6213, type: 2}
+  - {fileID: 2100000, guid: 94c115328a40eb24c9b57c417f631d1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -12776,7 +12777,7 @@ MonoBehaviour:
   taaSharpenStrength: 1
   TAAQuality: 2
   taaHistorySharpening: 0
-  taaAntiFlicker: 1
+  taaAntiFlicker: 0
   taaMotionVectorRejection: 0.2
   taaAntiHistoryRinging: 0
   taaBaseBlendFactor: 0.875

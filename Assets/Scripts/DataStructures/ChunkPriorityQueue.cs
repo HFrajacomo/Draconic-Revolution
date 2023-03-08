@@ -9,15 +9,21 @@ public class ChunkPriorityQueue
     private List<ChunkDistance> backupQueue; // Cache queue to recalculate distances
 
     private ChunkPos playerPosition; // Player current Distance
+    private bool DEBUG_QUEUE;
 
-    public ChunkPriorityQueue(){
+    public ChunkPriorityQueue(bool debug=false){
         this.queue = new List<ChunkDistance>();
         this.initialQueue = new List<ChunkDistance>();
+        this.DEBUG_QUEUE = debug;
     }
 
     public void Add(ChunkPos x, bool initial=false){
         int distance = playerPosition.DistanceFrom(x);
         int newDist = 0;
+
+        if(this.Contains(x)){
+            return;
+        }
 
         List<ChunkDistance> q;
 
@@ -60,8 +66,12 @@ public class ChunkPriorityQueue
         if(GetSize() > 0){
             if(this.initialQueue.Count > 0)
                 return this.initialQueue[0].pos;
-            else
+            else{
+                if(DEBUG_QUEUE)
+                    Debug.Log("Peeking: " + this.queue[0]);
+
                 return this.queue[0].pos;
+            }
         }
 
         return playerPosition;
@@ -75,6 +85,10 @@ public class ChunkPriorityQueue
         }
         else{
             ChunkPos aux = this.queue[0].pos;
+
+            if(this.DEBUG_QUEUE)
+                Debug.Log("popping: " + aux);
+
             this.queue.RemoveAt(0);
             return aux;            
         }
@@ -118,11 +132,11 @@ public class ChunkPriorityQueue
         this.backupQueue.Clear();
     }
 
-    private void Print(){
+    public void Print(){
         string a = "[";
 
         for(int i=0; i < this.queue.Count; i++)
-            a += this.queue[i].distance + ", ";
+            a += this.queue[i] + ", ";
 
         a += "]";
 

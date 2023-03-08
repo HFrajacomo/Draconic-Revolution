@@ -18,14 +18,19 @@ public static class AudioLibrary
         {AudioName.SNOW_PLAINS_SEA_HEAVY, new Sound(AudioName.SNOW_PLAINS_SEA_HEAVY, AudioUsecase.MUSIC_CLIP, "SnowSea", "snow_plains_sea_heavy.ogg")},
         {AudioName.SNOW_MONTAINS_SOFT, new Sound(AudioName.SNOW_MONTAINS_SOFT, AudioUsecase.MUSIC_CLIP, "SnowMontains", "snow_mountains_soft.ogg")},
         {AudioName.SNOW_MONTAINS_MID, new Sound(AudioName.SNOW_MONTAINS_MID, AudioUsecase.MUSIC_CLIP, "SnowMontains", "snow_mountains_mid.ogg")},
-        {AudioName.SNOW_MONTAINS_HEAVY, new Sound(AudioName.SNOW_MONTAINS_HEAVY, AudioUsecase.MUSIC_CLIP, "SnowMontains", "snow_mountains_heavy.ogg")}
+        {AudioName.SNOW_MONTAINS_HEAVY, new Sound(AudioName.SNOW_MONTAINS_HEAVY, AudioUsecase.MUSIC_CLIP, "SnowMontains", "snow_mountains_heavy.ogg")},
+        {AudioName.PLAINS_SOFT, new Sound(AudioName.PLAINS_SOFT, AudioUsecase.MUSIC_CLIP, "Plains", "plains_soft.ogg")},
+        {AudioName.PLAINS_MID, new Sound(AudioName.PLAINS_MID, AudioUsecase.MUSIC_CLIP, "Plains", "plains_mid.ogg")},
+        {AudioName.PLAINS_HEAVY, new Sound(AudioName.PLAINS_HEAVY, AudioUsecase.MUSIC_CLIP, "Plains", "plains_heavy.ogg")}
     };
 
     private static Dictionary<AudioName, DynamicMusic> dynamicMusic = new Dictionary<AudioName, DynamicMusic>(){
         {AudioName.SNOW_PLAINS_SEA_GROUP, new DynamicMusic(AudioName.SNOW_PLAINS_SEA_GROUP, AudioUsecase.MUSIC_CLIP,
          "SnowSea", AudioName.SNOW_PLAINS_SEA_SOFT, AudioName.SNOW_PLAINS_SEA_MID, AudioName.SNOW_PLAINS_SEA_HEAVY)},
         {AudioName.SNOW_MONTAINS_GROUP, new DynamicMusic(AudioName.SNOW_MONTAINS_GROUP, AudioUsecase.MUSIC_CLIP,
-         "SnowMontains", AudioName.SNOW_MONTAINS_SOFT, AudioName.SNOW_MONTAINS_MID, AudioName.SNOW_MONTAINS_HEAVY)}
+         "SnowMontains", AudioName.SNOW_MONTAINS_SOFT, AudioName.SNOW_MONTAINS_MID, AudioName.SNOW_MONTAINS_HEAVY)},
+        {AudioName.PLAINS_GROUP, new DynamicMusic(AudioName.SNOW_MONTAINS_GROUP, AudioUsecase.MUSIC_CLIP,
+         "Plains", AudioName.PLAINS_SOFT, AudioName.PLAINS_MID, AudioName.PLAINS_HEAVY)}
     };
 
     private static Dictionary<AudioName, Voice> voices = new Dictionary<AudioName, Voice>(){
@@ -36,7 +41,8 @@ public static class AudioLibrary
     private static Dictionary<string, AudioName> biomeMusic = new Dictionary<string, AudioName>(){
         {"Ice Ocean", AudioName.SNOW_PLAINS_SEA_GROUP},
         {"Snowy Plains", AudioName.SNOW_PLAINS_SEA_GROUP},
-        {"Snowy Highlands", AudioName.SNOW_MONTAINS_GROUP}
+        {"Snowy Highlands", AudioName.SNOW_MONTAINS_GROUP},
+        {"Plains", AudioName.PLAINS_GROUP}
     };
 
 

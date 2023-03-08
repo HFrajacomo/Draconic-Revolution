@@ -129,13 +129,13 @@ public struct NetMessage
 	// Client asking for a chunk information to Server
 	public void RequestChunkLoad(ChunkPos pos){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		this.size = 9;
+		this.size = 10;
 	}
 
 	// Client asking for Server to unload a chunk
 	public void RequestChunkUnload(ChunkPos pos){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		this.size = 9;
+		this.size = 10;
 	}
 
 	// Server sending chunk information to Client
@@ -143,19 +143,19 @@ public struct NetMessage
 		// {CODE} [ChunkPos] [blockSize] [hpSize] [stateSize] | Respective data
 		
 		int headerSize = RegionFileHandler.chunkHeaderSize;
-		int blockDataSize = Compression.CompressBlocks(c, NetMessage.buffer, 21+headerSize);
-		int hpDataSize = Compression.CompressMetadataHP(c, NetMessage.buffer, 21+headerSize+blockDataSize);
-		int stateDataSize = Compression.CompressMetadataState(c, NetMessage.buffer, 21+headerSize+blockDataSize+hpDataSize);
+		int blockDataSize = Compression.CompressBlocks(c, NetMessage.buffer, 22+headerSize);
+		int hpDataSize = Compression.CompressMetadataHP(c, NetMessage.buffer, 22+headerSize+blockDataSize);
+		int stateDataSize = Compression.CompressMetadataState(c, NetMessage.buffer, 22+headerSize+blockDataSize+hpDataSize);
 		
 		NetDecoder.WriteChunkPos(c.pos, NetMessage.buffer, 1);
-		NetDecoder.WriteInt(blockDataSize, NetMessage.buffer, 9);
-		NetDecoder.WriteInt(hpDataSize, NetMessage.buffer, 13);
-		NetDecoder.WriteInt(stateDataSize, NetMessage.buffer, 17);
+		NetDecoder.WriteInt(blockDataSize, NetMessage.buffer, 10);
+		NetDecoder.WriteInt(hpDataSize, NetMessage.buffer, 14);
+		NetDecoder.WriteInt(stateDataSize, NetMessage.buffer, 18);
 
 		byte[] header = c.GetHeader();
-		Array.Copy(header, 0, NetMessage.buffer, 21, headerSize);
+		Array.Copy(header, 0, NetMessage.buffer, 22, headerSize);
 
-		this.size = 21+headerSize+blockDataSize+hpDataSize+stateDataSize;
+		this.size = 22+headerSize+blockDataSize+hpDataSize+stateDataSize;
 	}
 
 	// Sends a BUD packet to the server
@@ -176,17 +176,17 @@ public struct NetMessage
 	// Keywords "Slot" and "NewQuantity" are used only in Place operations for Client->Server messages
 	public void DirectBlockUpdate(BUDCode type, ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state, ushort hp, byte slot=0, byte newQuantity=0){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
-		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
-		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
-		NetDecoder.WriteInt(facing, NetMessage.buffer, 21);
-		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 25);
-		NetDecoder.WriteUshort(state, NetMessage.buffer, 27);
-		NetDecoder.WriteUshort(hp, NetMessage.buffer, 29);
-		NetDecoder.WriteInt((int)type, NetMessage.buffer, 31);
-		NetDecoder.WriteByte(slot, NetMessage.buffer, 35);
-		NetDecoder.WriteByte(newQuantity, NetMessage.buffer, 36);
-		this.size = 37;
+		NetDecoder.WriteInt(x, NetMessage.buffer, 10);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 14);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 18);
+		NetDecoder.WriteInt(facing, NetMessage.buffer, 22);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 26);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, 28);
+		NetDecoder.WriteUshort(hp, NetMessage.buffer, 30);
+		NetDecoder.WriteInt((int)type, NetMessage.buffer, 32);
+		NetDecoder.WriteByte(slot, NetMessage.buffer, 36);
+		NetDecoder.WriteByte(newQuantity, NetMessage.buffer, 37);
+		this.size = 38;
 	}
 
 	// Clients sends their position to Server
@@ -203,46 +203,46 @@ public struct NetMessage
 	// Client sends a voxel coordinate to trigger OnInteraction in server
 	public void Interact(ChunkPos pos, int x, int y, int z, int facing){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
-		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
-		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
-		NetDecoder.WriteInt(facing, NetMessage.buffer, 21);
-		this.size = 25;
+		NetDecoder.WriteInt(x, NetMessage.buffer, 10);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 14);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 18);
+		NetDecoder.WriteInt(facing, NetMessage.buffer, 22);
+		this.size = 26;
 	}
 
 	// Server sends VFX data to Client
 	public void VFXData(ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
-		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
-		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
-		NetDecoder.WriteInt(facing, NetMessage.buffer, 21);
-		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 25);
-		NetDecoder.WriteUshort(state, NetMessage.buffer, 27);
-		this.size = 29;
+		NetDecoder.WriteInt(x, NetMessage.buffer, 10);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 14);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 18);
+		NetDecoder.WriteInt(facing, NetMessage.buffer, 22);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 26);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, 28);
+		this.size = 30;
 	}
 
 	// Server sends VFX change of state to Client
 	public void VFXChange(ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
-		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
-		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
-		NetDecoder.WriteInt(facing, NetMessage.buffer, 21);
-		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 25);
-		NetDecoder.WriteUshort(state, NetMessage.buffer, 27);
-		this.size = 29;
+		NetDecoder.WriteInt(x, NetMessage.buffer, 10);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 14);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 18);
+		NetDecoder.WriteInt(facing, NetMessage.buffer, 22);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 26);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, 28);
+		this.size = 30;
 	}
 
 	// Server sends VFX deletion information to Client
 	public void VFXBreak(ChunkPos pos, int x, int y, int z, ushort blockCode, ushort state){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
-		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
-		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
-		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 21);
-		NetDecoder.WriteUshort(state, NetMessage.buffer, 23);
-		this.size = 25;
+		NetDecoder.WriteInt(x, NetMessage.buffer, 10);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 14);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 18);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 22);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, 24);
+		this.size = 26;
 	}
 
 	// Sends time data to Client
@@ -274,8 +274,8 @@ public struct NetMessage
 	// Client sends the chunk the player is currently in
 	public void ClientChunk(ChunkPos lastPos, ChunkPos newPos){
 		NetDecoder.WriteChunkPos(lastPos, NetMessage.buffer, 1);
-		NetDecoder.WriteChunkPos(newPos, NetMessage.buffer, 9);
-		this.size = 17;
+		NetDecoder.WriteChunkPos(newPos, NetMessage.buffer, 10);
+		this.size = 19;
 	}
 
 	// Client sends item information for server to create a Dropped Item Entity
@@ -301,19 +301,19 @@ public struct NetMessage
 	// Clients sends list of blocks that require a LOAD BUD operation
 	public void BatchLoadBUD(ChunkPos pos){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		this.size = 9;	
+		this.size = 10;	
 	}
 
 	// Client or server sends a block damage operation to server
 	// TODO: Add Damage Type
 	public void BlockDamage(ChunkPos pos, int x, int y, int z, ushort newHPOrDamage, bool shouldRedrawChunk){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
-		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
-		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
-		NetDecoder.WriteUshort(newHPOrDamage, NetMessage.buffer, 21);
-		NetDecoder.WriteBool(shouldRedrawChunk, NetMessage.buffer, 23);
-		this.size = 24;
+		NetDecoder.WriteInt(x, NetMessage.buffer, 10);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 14);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 18);
+		NetDecoder.WriteUshort(newHPOrDamage, NetMessage.buffer, 22);
+		NetDecoder.WriteBool(shouldRedrawChunk, NetMessage.buffer, 24);
+		this.size = 25;
 	}
 
 	// Server sends inventory information to client
@@ -325,12 +325,12 @@ public struct NetMessage
 	// Server sends a client an order to register an SFX into SFXLoader
 	public void SFXPlay(ChunkPos pos, int x, int y, int z, ushort blockCode, ushort state){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
-		NetDecoder.WriteInt(x, NetMessage.buffer, 9);
-		NetDecoder.WriteInt(y, NetMessage.buffer, 13);
-		NetDecoder.WriteInt(z, NetMessage.buffer, 17);
-		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 21);
-		NetDecoder.WriteUshort(state, NetMessage.buffer, 23);
-		this.size = 25;
+		NetDecoder.WriteInt(x, NetMessage.buffer, 10);
+		NetDecoder.WriteInt(y, NetMessage.buffer, 14);
+		NetDecoder.WriteInt(z, NetMessage.buffer, 18);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 22);
+		NetDecoder.WriteUshort(state, NetMessage.buffer, 24);
+		this.size = 26;
 	}
 
 }

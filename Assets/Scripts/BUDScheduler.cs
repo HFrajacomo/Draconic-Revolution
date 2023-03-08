@@ -209,13 +209,17 @@ public class BUDScheduler : MonoBehaviour
     // Gets the different Chunks that should be updated
     private void CheckSurroundingChunks(int x, int y, int z, ChunkPos pos){
         if(x == 0)
-            cachedList.Add(new ChunkPos(pos.x-1, pos.z));
+            cachedList.Add(new ChunkPos(pos.x-1, pos.z, pos.y));
         if(x == Chunk.chunkWidth-1)
-            cachedList.Add(new ChunkPos(pos.x+1, pos.z));
+            cachedList.Add(new ChunkPos(pos.x+1, pos.z, pos.y));
         if(z == 0)
-            cachedList.Add(new ChunkPos(pos.x, pos.z-1));
+            cachedList.Add(new ChunkPos(pos.x, pos.z-1, pos.y));
         if(z == Chunk.chunkWidth-1)
-            cachedList.Add(new ChunkPos(pos.x, pos.z+1));
+            cachedList.Add(new ChunkPos(pos.x, pos.z+1, pos.y));
+        if(y == 0 && pos.y > 0)
+            cachedList.Add(new ChunkPos(pos.x, pos.z, pos.y-1));
+        if(y == Chunk.chunkDepth-1 && pos.y < Chunk.chunkMaxY)
+            cachedList.Add(new ChunkPos(pos.x, pos.z, pos.y+1));
 
         cachedList.Add(pos);
     }

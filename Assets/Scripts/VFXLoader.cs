@@ -134,7 +134,7 @@ public class VFXLoader : MonoBehaviour
         }
 
         if(adjascent){
-            ChunkPos[] neighbors = {new ChunkPos(pos.x-1, pos.z-1), new ChunkPos(pos.x-1, pos.z), new ChunkPos(pos.x-1, pos.z+1), new ChunkPos(pos.x, pos.z-1), new ChunkPos(pos.x, pos.z+1), new ChunkPos(pos.x+1, pos.z-1), new ChunkPos(pos.x+1, pos.z), new ChunkPos(pos.x+1, pos.z+1)};
+            ChunkPos[] neighbors = {new ChunkPos(pos.x-1, pos.z-1, pos.y), new ChunkPos(pos.x-1, pos.z, pos.y), new ChunkPos(pos.x-1, pos.z+1, pos.y), new ChunkPos(pos.x, pos.z-1, pos.y), new ChunkPos(pos.x, pos.z+1, pos.y), new ChunkPos(pos.x+1, pos.z-1, pos.y), new ChunkPos(pos.x+1, pos.z, pos.y), new ChunkPos(pos.x+1, pos.z+1, pos.y)};
         
             // Updates all lights in neighbor chunks
             foreach(ChunkPos iterPos in neighbors){

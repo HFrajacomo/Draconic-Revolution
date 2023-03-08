@@ -41,7 +41,7 @@ public class ChunkLoader_Server : MonoBehaviour
     public bool INITIALIZEDWORLD = false;
 
     // Cache Data
-    private ChunkPos cachePos = new ChunkPos(0,0);
+    private ChunkPos cachePos = new ChunkPos(0,0,0);
     private Chunk cacheChunk;
 
 
@@ -52,7 +52,8 @@ public class ChunkLoader_Server : MonoBehaviour
         if(this.worldGen != null)
             this.worldGen.DestroyNativeMemory();
 
-        this.playerServerInventory.Destroy();
+        if(this.playerServerInventory != null)
+            this.playerServerInventory.Destroy();
     }
 
     void Start(){
@@ -98,7 +99,7 @@ public class ChunkLoader_Server : MonoBehaviour
         Vector3 playerDir = pdat.GetDirection();
         pdat.SetOnline(true);
 
-        this.regionHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth)));
+        this.regionHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth), (int)(playerPos.y/Chunk.chunkDepth)));
 
         HandleServerCommunication();
 
@@ -209,7 +210,7 @@ public class ChunkLoader_Server : MonoBehaviour
                         this.worldGen.SetCacheState(chunks[toLoad[0]].metadata.GetStateData());
                         this.worldGen.GenerateChunk(toLoad[0], isPregen:true);
                         chunks[toLoad[0]].biomeName = this.worldGen.GetCacheBiome();
-                        chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata()));
+                        chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata(), toLoad[0]));
                         chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
                         chunks[toLoad[0]].needsGeneration = 0;
                         regionHandler.SaveChunk(chunks[toLoad[0]]);
@@ -229,7 +230,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
                     this.worldGen.ClearCaches();
                     this.worldGen.GenerateChunk(toLoad[0]);
-                    chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata()));
+                    chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata(), toLoad[0]));
                     chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
                     chunks[toLoad[0]].needsGeneration = 0;
                     chunks[toLoad[0]].biomeName = this.worldGen.GetCacheBiome();
@@ -320,9 +321,9 @@ public class ChunkLoader_Server : MonoBehaviour
     public int GetBlockHeight(ChunkPos pos, int blockX, int blockZ){
         // Checks if chunk doesn't exist
         if(!chunks.ContainsKey(pos)){
-            this.toLoad.Add(pos);
+            this.toLoad.Insert(0, pos);
             this.LoadChunk();
-            return GetBlockHeight(pos, blockX, blockZ);
+            return GetBlockHeight(pos, blockX, blockZ) + (pos.y*Chunk.chunkDepth)+1;
         }
         for(int i=Chunk.chunkDepth-1; i >= 0 ; i--){
             if(chunks[pos].data.GetCell(Mathf.Abs(blockX), i, Mathf.Abs(blockZ)) != 0){
@@ -359,13 +360,13 @@ public class ChunkLoader_Server : MonoBehaviour
         minBoundsY = c.blockY - radius.y;
 
         // Initial Pos
-        pos = new ChunkPos(middleChunk.x + minX, middleChunk.z + minZ);
+        pos = new ChunkPos(middleChunk.x + minX, middleChunk.z + minZ, 3);
         cX = minBoundsX;
         
         for(int x=0; x < (radius.x*2+1); x++){
             // If X goes to another chunk
             if(cX >= Chunk.chunkWidth){
-                pos = new ChunkPos(pos.x+1, middleChunk.z);
+                pos = new ChunkPos(pos.x+1, middleChunk.z, 3);
                 cX = 0;
             }
             // If chunk doesn't exist
@@ -379,14 +380,14 @@ public class ChunkLoader_Server : MonoBehaviour
                 // Set Y Limits
                 if(cY < 0 || cY >= Chunk.chunkDepth){
                     cY++;
-                    pos = new ChunkPos(pos.x, middleChunk.z);
+                    pos = new ChunkPos(pos.x, middleChunk.z, 3);
                     continue;
                 }
 
                 for(int z=0; z < (radius.x*2+1); z++){
                     // If Z goes to another chunk
                     if(cZ >= Chunk.chunkWidth){
-                        pos = new ChunkPos(pos.x, pos.z+1);
+                        pos = new ChunkPos(pos.x, pos.z+1, 3);
                         cZ = 0;
                     }
                     // If chunk doesn't exist
@@ -399,7 +400,7 @@ public class ChunkLoader_Server : MonoBehaviour
                     states[x*(radius.x*2+1)*(radius.y*2+1)+y*(radius.x*2+1)+z] = this.chunks[pos].metadata.GetState(cX, cY, cZ);
                     cZ++;
                 }
-                pos = new ChunkPos(pos.x, middleChunk.z);
+                pos = new ChunkPos(pos.x, middleChunk.z, 3);
                 cY++;
             }
             cX++;
@@ -435,13 +436,25 @@ public class ChunkLoader_Server : MonoBehaviour
                 slots[i] = new ItemPlayerInventorySlot(ItemID.TORCH, 50);
             }
             else if(i == 3){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.ICEBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.STONEBRICKBLOCK, 50);
             }
             else if(i == 4){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.PINEWOODBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.WOODENPLANKSREGULARBLOCK, 50);
             }
             else if(i == 5){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.PINELEAFBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.WOODENPLANKSPINEBLOCK, 50);
+            }
+            else if(i == 6){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.BONEBLOCK, 50);
+            }
+            else if(i == 7){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.SANDSTONEBRICKBLOCK, 50);
+            }
+            else if(i == 8){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.GRAVELBLOCK, 50);
+            }
+            else if(i == 9){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.MOONSTONEBLOCK, 50);
             }
             else{
                 slots[i] = new EmptyPlayerInventorySlot();

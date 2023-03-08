@@ -35,6 +35,11 @@ public enum BlockID : ushort
     RUBY_ORE = 28,
     PINE_WOOD = 29,
     PINE_LEAF = 30,
+    GRAVEL = 31,
+    MOONSTONE = 32,
+    LAVA = 33,
+    HELL_MARBLE = 34,
+    ACASTER = 35,
 
     /*
     Special
