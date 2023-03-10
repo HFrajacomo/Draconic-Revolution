@@ -88,7 +88,7 @@ public class PlayerPositionHandler : MonoBehaviour
     Call this whenever Render Distance is changed
     */
     public void SetRaycastDistances(){
-        maxDistanceCardinal = Chunk.chunkWidth*World.renderDistance;
+        maxDistanceCardinal = Chunk.chunkWidth*cl.renderDistance;
         maxDistanceDiagonal = Mathf.Sqrt(2*(Chunk.chunkWidth*Chunk.chunkWidth));
     }
 
@@ -99,6 +99,10 @@ public class PlayerPositionHandler : MonoBehaviour
 
     public int GetPlayerVerticalChunk(){
         return this.verticalChunkLoaded;
+    }
+
+    public ChunkPos GetCurrentChunk(){
+        return this.coord.GetChunkPos();
     }
 
     private void RenewPositionalInformation(){
@@ -166,7 +170,7 @@ public class PlayerPositionHandler : MonoBehaviour
         raytracingDirections[8] = (Vector3.back + Vector3.left).normalized;
         raytracingDirections[9] = (Vector3.back + Vector3.right).normalized;
 
-        this.reverb.minDistance = Chunk.chunkWidth*World.renderDistance;
+        this.reverb.minDistance = Chunk.chunkWidth*cl.renderDistance;
         this.reverb.maxDistance = 0;
     }
 

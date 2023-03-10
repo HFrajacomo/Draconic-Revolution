@@ -34,44 +34,8 @@ public class Chunk
 
 	// Draw Flags
 	public bool drawMain = false;
-	public bool xpDraw = false;
-	public bool zpDraw = false;
-	public bool xmDraw = false;
-	public bool zmDraw = false;
-	public bool xmzm = false;
-	public bool xpzm = false;
-	public bool xmzp = false;
-	public bool xpzp = false;
-
 	public bool topDraw = false;
 	public bool bottomDraw = false;
-
-	public bool txpDraw = false;
-	public bool txmDraw = false;
-	public bool tzpDraw = false;
-	public bool tzmDraw = false;
-	public bool txpzmDraw = false;
-	public bool txmzmDraw = false;
-	public bool txmzpDraw = false;
-	public bool txpzpDraw = false;
-	public bool bxpDraw = false;
-	public bool bxmDraw = false;
-	public bool bzpDraw = false;
-	public bool bzmDraw = false;
-	public bool bxpzmDraw = false;
-	public bool bxmzmDraw = false;
-	public bool bxpzpDraw = false;
-	public bool bxmzpDraw = false;
-
-	// Bud Flags
-	public bool xpBUD = false;
-	public bool xmBUD = false;
-	public bool zpBUD = false;
-	public bool zmBUD = false;
-	public bool xpzmBUD = false;
-	public bool xpzpBUD = false;
-	public bool xmzmBUD = false;
-	public bool xmzpBUD = false;
 
 	/*
 		Unity Settings
@@ -319,110 +283,15 @@ public class Chunk
 		this.mesh.Clear();
 	}
 
-	// Checks if a Chunk can be redrawn
-    private bool CheckRedraw(){
-        if(!xmDraw && loader.chunks.ContainsKey(this.surroundingChunks[3]))
-            return true;
-        if(!xpDraw && loader.chunks.ContainsKey(this.surroundingChunks[1]))
-            return true;
-        if(!zmDraw && loader.chunks.ContainsKey(this.surroundingChunks[2]))
-            return true;
-        if(!zpDraw && loader.chunks.ContainsKey(this.surroundingChunks[0]))
-            return true;
-
-        if(!xmzm && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[5]))
-        	return true;
-        if(!xpzm && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[4]))
-        	return true;
-        if(!xmzp && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[6]))
-        	return true;
-        if(!xpzp && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[7]))
-        	return true;
-
-        if(!topDraw && loader.chunks.ContainsKey(this.surroundingVerticalChunks[0]))
-        	return true;
-        if(!bottomDraw && loader.chunks.ContainsKey(this.surroundingVerticalChunks[1]))
-        	return true;
-
-        if(!tzpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[0]))
-        	return true;
-        if(!txpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[1]))
-        	return true;
-        if(!tzmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[2]))
-        	return true;
-        if(!txmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[3]))
-        	return true;
-
-        if(!txpzmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[1]) && loader.chunks.ContainsKey(this.surroundingTopChunks[2]) && loader.chunks.ContainsKey(this.surroundingTopChunks[4]))
-        	return true;
-        if(!txmzmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[2]) && loader.chunks.ContainsKey(this.surroundingTopChunks[3]) && loader.chunks.ContainsKey(this.surroundingTopChunks[5]))
-        	return true;
-        if(!txmzpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[3]) && loader.chunks.ContainsKey(this.surroundingTopChunks[0]) && loader.chunks.ContainsKey(this.surroundingTopChunks[6]))
-        	return true;
-        if(!txpzpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[0]) && loader.chunks.ContainsKey(this.surroundingTopChunks[1]) && loader.chunks.ContainsKey(this.surroundingTopChunks[7]))
-        	return true;
-
-        if(!bzpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[0]))
-        	return true;
-        if(!bxpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[1]))
-        	return true;
-        if(!bzmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[2]))
-        	return true;
-        if(!bxmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[3]))
-        	return true;
-        	
-        if(!bxpzmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[1]) && loader.chunks.ContainsKey(this.surroundingBotChunks[2]) && loader.chunks.ContainsKey(this.surroundingBotChunks[4]))
-        	return true;
-        if(!bxmzmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[2]) && loader.chunks.ContainsKey(this.surroundingBotChunks[3]) && loader.chunks.ContainsKey(this.surroundingBotChunks[5]))
-        	return true;
-        if(!bxmzpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[3]) && loader.chunks.ContainsKey(this.surroundingBotChunks[0]) && loader.chunks.ContainsKey(this.surroundingBotChunks[6]))
-        	return true;
-        if(!bxpzpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[0]) && loader.chunks.ContainsKey(this.surroundingBotChunks[1]) && loader.chunks.ContainsKey(this.surroundingBotChunks[7]))
-        	return true;
-
-
-        return false;
-    }
-
 	// Draws Chunk Borders
 	public void BuildSideBorder(bool reload=false, bool loadBUD=false){
-		bool changed = false; // Flag is set if any change has been made that requires a redraw
+		//bool changed = false; // Flag is set if any change has been made that requires a redraw
 
 		if(reload){
-			xmDraw = false;
-			zmDraw = false;
-			xpDraw = false;
-			zpDraw = false;
-			xmzm = false;
-			xmzp = false;
-			xpzm = false;
-			xpzp = false;
-
 			topDraw = false;
 			bottomDraw = false;
-			
-			txpDraw = false;
-			txmDraw = false;
-			tzmDraw = false;
-			tzpDraw = false;
-			txmzmDraw = false;
-			txpzmDraw = false;
-			txmzpDraw = false;
-			txpzpDraw = false;
-
-			bxpDraw = false;
-			bxmDraw = false;
-			bzmDraw = false;
-			bzpDraw = false;
-			bxmzmDraw = false;
-			bxpzmDraw = false;
-			bxmzpDraw = false;
-			bxpzpDraw = false;
 		}
-
-		if(!CheckRedraw())
-			return;
-
+		/*
 		int3[] coordArray;
 
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative(this.data.GetData());
@@ -2487,63 +2356,7 @@ public class Chunk
 		UVDecal.Dispose();
 		trisDecal.Dispose();
 		cacheCubeVertsDecal.Dispose();
-	}
-
-	// Checks if needed chunks to generate a vertical corner are loaded
-	private bool CornerIsReady(bool bottom=false, bool top=false, bool xmzm=false, bool xpzm=false, bool xmzp=false, bool xpzp=false){
-		if(bottom){
-			if(xmzm){
-				if(Has(surroundingChunks[3]) && Has(surroundingVerticalChunks[1]) && Has(surroundingChunks[2]) && Has(surroundingBotChunks[3]) &&
-					Has(surroundingChunks[5]) && Has(surroundingBotChunks[2]) && Has(surroundingBotChunks[5])){
-					return true;
-				}
-			}
-			else if(xmzp){
-				if(Has(surroundingChunks[3]) && Has(surroundingVerticalChunks[1]) && Has(surroundingChunks[0]) &&
-					Has(surroundingBotChunks[3]) && Has(surroundingChunks[6]) && Has(surroundingBotChunks[0]) && Has(surroundingBotChunks[6])){
-					return true;
-				}
-			}
-			else if(xpzm){
-				if(Has(surroundingChunks[1]) && Has(surroundingVerticalChunks[1]) && Has(surroundingChunks[2]) && Has(surroundingBotChunks[1]) &&
-				    Has(surroundingChunks[4]) && Has(surroundingBotChunks[2]) && Has(surroundingBotChunks[4])){
-					return true;
-				}
-			}
-			else if(xpzp){
-				if(Has(surroundingChunks[1]) && Has(surroundingVerticalChunks[1]) && Has(surroundingChunks[0]) && Has(surroundingBotChunks[1]) && 
-					Has(surroundingChunks[7]) && Has(surroundingBotChunks[0]) && Has(surroundingBotChunks[7])){
-					return true;
-				}
-			}
-		}
-		else if(top){
-			if(xmzm){
-				if(Has(surroundingChunks[3]) && Has(surroundingVerticalChunks[0]) && Has(surroundingChunks[2]) && Has(surroundingTopChunks[3]) &&
-					Has(surroundingChunks[5]) && Has(surroundingTopChunks[2]) && Has(surroundingTopChunks[5])){
-					return true;
-				}
-			}
-			else if(xmzp){
-				if(Has(surroundingChunks[3]) && Has(surroundingVerticalChunks[0]) && Has(surroundingChunks[0]) &&
-					Has(surroundingTopChunks[3]) && Has(surroundingChunks[6]) && Has(surroundingTopChunks[0]) && Has(surroundingTopChunks[6])){
-					return true;
-				}
-			}
-			else if(xpzm){
-				if(Has(surroundingChunks[1]) && Has(surroundingVerticalChunks[0]) && Has(surroundingChunks[2]) && Has(surroundingTopChunks[1]) &&
-				    Has(surroundingChunks[4]) && Has(surroundingTopChunks[2]) && Has(surroundingTopChunks[4])){
-					return true;
-				}
-			}
-			else if(xpzp){
-				if(Has(surroundingChunks[1]) && Has(surroundingVerticalChunks[0]) && Has(surroundingChunks[0]) && Has(surroundingTopChunks[1]) && 
-					Has(surroundingChunks[7]) && Has(surroundingTopChunks[0]) && Has(surroundingTopChunks[7])){
-					return true;
-				}
-			}
-		}
-		return false;
+		*/
 	}
 
 	// Short for "loader.chunks.ContainsKey()"
@@ -2572,11 +2385,12 @@ public class Chunk
     	this.decalUV.Clear();
     	this.decalTris = null;
 
+    	ChunkPos auxPos;
+
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
 		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
 		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap(this.metadata));
-		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());
-		
+		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<ushort> loadCodeList = new NativeList<ushort>(0, Allocator.TempJob);
 		NativeList<int3> loadAssetList = new NativeList<int3>(0, Allocator.TempJob);
@@ -2597,6 +2411,31 @@ public class Chunk
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector4> cacheCubeTangent = new NativeArray<Vector4>(4, Allocator.TempJob);
 
+		auxPos = new ChunkPos(pos.x-1, pos.z, pos.y);
+		NativeArray<ushort> xmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x+1, pos.z, pos.y);
+		NativeArray<ushort> xpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x, pos.z-1, pos.y);
+		NativeArray<ushort> zmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> zmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x, pos.z+1, pos.y);
+		NativeArray<ushort> zpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> zplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x-1, pos.z-1, pos.y);
+		NativeArray<ushort> xmzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xmzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x-1, pos.z+1, pos.y);
+		NativeArray<ushort> xmzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xmzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x+1, pos.z-1, pos.y);
+		NativeArray<ushort> xpzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xpzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x+1, pos.z+1, pos.y);
+		NativeArray<ushort> xpzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xpzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{
 			pos = pos,
@@ -2604,6 +2443,25 @@ public class Chunk
 			data = blockdata,
 			state = statedata,
 			lightdata = lightdata,
+
+			xmdata = xmdata,
+			xpdata = xpdata,
+			zmdata = zmdata,
+			zpdata = zpdata,
+			xmzmdata = xmzmdata,
+			xmzpdata = xmzpdata,
+			xpzmdata = xpzmdata,
+			xpzpdata = xpzpdata,
+
+			xmlight = xmlight,
+			xplight = xplight,
+			zmlight = zmlight,
+			zplight = zplight,
+			xmzmlight = xmzmlight,
+			xmzplight = xmzplight,
+			xpzmlight = xpzmlight,
+			xpzplight = xpzplight,
+
 			loadOutList = loadCoordList,
 			loadAssetList = loadAssetList,
 			renderMap = renderMap,
@@ -2872,6 +2730,24 @@ public class Chunk
 		hitboxVertsOffset.Dispose();
 		hitboxTrisOffset.Dispose();
 		hitboxScaling.Dispose();
+
+		xmdata.Dispose();
+		xpdata.Dispose();
+		zmdata.Dispose();
+		zpdata.Dispose();
+		xmzmdata.Dispose();
+		xmzpdata.Dispose();
+		xpzmdata.Dispose();
+		xpzpdata.Dispose();
+
+		xmlight.Dispose();
+		xplight.Dispose();
+		zmlight.Dispose();
+		zplight.Dispose();
+		xmzmlight.Dispose();
+		xmzplight.Dispose();
+		xpzmlight.Dispose();
+		xpzplight.Dispose();
 
 
 		BuildMesh();

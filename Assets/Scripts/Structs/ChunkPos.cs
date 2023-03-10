@@ -23,8 +23,23 @@ public struct ChunkPos{
 		this.y = (byte)y;
 	}
 
-	public int DistanceFrom(ChunkPos otherPos){
-		return Mathf.Abs(otherPos.x - this.x) + Mathf.Abs(otherPos.z - this.z) + Mathf.Abs(otherPos.y - this.y);
+	public float DistanceFrom(ChunkPos otherPos){
+		float bonus;
+		int xDiff, zDiff, yDiff;
+		int maximizedDistance;
+
+		xDiff = Mathf.Abs(otherPos.x - this.x);
+		yDiff = Mathf.Abs(otherPos.y - this.y);
+		zDiff = Mathf.Abs(otherPos.z - this.z);
+
+		maximizedDistance = Mathf.Max(xDiff, yDiff, zDiff);
+
+		if(xDiff == 0 || zDiff == 0)
+			bonus = 0f;
+		else
+			bonus = 0.5f;
+
+		return maximizedDistance + bonus;
 	}
 
 	public override string ToString(){

@@ -18,10 +18,12 @@ public class ChunkPriorityQueue
     }
 
     public void Add(ChunkPos x, bool initial=false){
-        int distance = playerPosition.DistanceFrom(x);
-        int newDist = 0;
+        float distance = playerPosition.DistanceFrom(x);
+        float newDist = 0;
 
         if(this.Contains(x)){
+            if(DEBUG_QUEUE)
+                Debug.Log("already contains: " + x);
             return;
         }
 
@@ -35,6 +37,9 @@ public class ChunkPriorityQueue
         // Empty Queue
         if(q.Count == 0){
             q.Add(new ChunkDistance(x, distance));
+
+            if(DEBUG_QUEUE)
+                Debug.Log("added: " + x);
             return;
         }
 
@@ -42,18 +47,29 @@ public class ChunkPriorityQueue
             newDist = playerPosition.DistanceFrom(q[i].pos);
             if(distance < newDist){
                 q.Insert(i, new ChunkDistance(x, distance));
+
+                if(DEBUG_QUEUE)
+                    Debug.Log("added: " + x + " to position: " + i);
                 return;
             }
         }
 
-        if(newDist == playerPosition.DistanceFrom(q[q.Count-1].pos))
+        if(newDist == playerPosition.DistanceFrom(q[q.Count-1].pos)){
             q.Add(new ChunkDistance(x, distance));
-        else
+
+            if(DEBUG_QUEUE)
+                Debug.Log("added: " + x);
+        }
+        else{
             q.Insert(0, new ChunkDistance(x, distance));
+
+            if(DEBUG_QUEUE)
+                Debug.Log("inserted in the beginning: " + x);
+        }
     }
 
     public bool Contains(ChunkPos x){
-        int distance = playerPosition.DistanceFrom(x);
+        float distance = playerPosition.DistanceFrom(x);
 
         return this.queue.Contains(new ChunkDistance(x, distance)) || this.initialQueue.Contains(new ChunkDistance(x, distance));
     }
@@ -146,9 +162,9 @@ public class ChunkPriorityQueue
 
 public struct ChunkDistance{
     public ChunkPos pos;
-    public int distance;
+    public float distance;
 
-    public ChunkDistance(ChunkPos pos, int distance){
+    public ChunkDistance(ChunkPos pos, float distance){
         this.pos = pos;
         this.distance = distance;
     }
