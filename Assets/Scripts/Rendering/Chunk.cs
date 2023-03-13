@@ -70,11 +70,6 @@ public class Chunk
   	private List<Vector3> normals = new List<Vector3>();
     private List<Vector4> tangents = new List<Vector4>();
 
-  	// Decal Mesh Information
-  	private List<Vector3> decalVertices = new List<Vector3>();
-  	private List<Vector2> decalUV = new List<Vector2>();
-  	private int[] decalTris;
-
     // Assets Cache
     private List<ushort> cacheCodes = new List<ushort>();
     private List<Vector3> cacheVertsv3 = new List<Vector3>();
@@ -2381,14 +2376,13 @@ public class Chunk
     	this.assetTris = null;
     	this.UVs.Clear();
     	this.lightUVMain.Clear();
-    	this.decalVertices.Clear();
-    	this.decalUV.Clear();
-    	this.decalTris = null;
 
     	ChunkPos auxPos;
 
+
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
 		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
+    	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
 		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap(this.metadata));
 		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
@@ -2410,6 +2404,10 @@ public class Chunk
 		NativeArray<Vector2> cacheCubeUV = new NativeArray<Vector2>(4, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector4> cacheCubeTangent = new NativeArray<Vector4>(4, Allocator.TempJob);
+
+		NativeList<int> decalTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<Vector3> decalVerts = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<Vector2> decalUVs = new NativeList<Vector2>(0, Allocator.TempJob);
 
 		auxPos = new ChunkPos(pos.x-1, pos.z, pos.y);
 		NativeArray<ushort> xmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
@@ -2442,6 +2440,7 @@ public class Chunk
 			load = load,
 			data = blockdata,
 			state = statedata,
+			hp = hpdata,
 			lightdata = lightdata,
 
 			xmdata = xmdata,
@@ -2476,6 +2475,9 @@ public class Chunk
 			leavesTris = leavesTris,
 			iceTris = iceTris,
 			lavaTris = lavaTris,
+			decalTris = decalTris,
+			decalUVs = decalUVs,
+			decalVerts = decalVerts,
 			cacheCubeVert = cacheCubeVert,
 			cacheCubeUV = cacheCubeUV,
 			cacheCubeNormal = cacheCubeNormal,
@@ -2493,11 +2495,11 @@ public class Chunk
 			blockWashable = BlockEncyclopediaECS.blockWashable,
 			objectWashable = BlockEncyclopediaECS.objectWashable,
 			blockTiles = BlockEncyclopediaECS.blockTiles,
-			blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
+			blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless,
+			blockHP = BlockEncyclopediaECS.blockHP,
+			objectHP = BlockEncyclopediaECS.objectHP
 		};
 		JobHandle job = bcJob.Schedule();
-
-		BuildAllDecals(blockdata, renderMap);
 
 		job.Complete();
 
@@ -2678,6 +2680,7 @@ public class Chunk
 		this.tangents.AddRange(tangents.ToArray());
 		this.tangents.AddRange(meshTangents.ToArray());
 
+		BuildDecalMesh(decalVerts.ToArray(), decalUVs.ToArray(), decalTris.ToArray());
 		BuildHitboxMesh(hitboxVerts.ToArray(), hitboxNormals.ToArray(), hitboxTriangles.ToArray());
 
 		// Dispose Bin
@@ -2730,6 +2733,10 @@ public class Chunk
 		hitboxVertsOffset.Dispose();
 		hitboxTrisOffset.Dispose();
 		hitboxScaling.Dispose();
+		hpdata.Dispose();
+		decalTris.Dispose();
+		decalVerts.Dispose();
+		decalUVs.Dispose();
 
 		xmdata.Dispose();
 		xpdata.Dispose();
@@ -2768,84 +2775,6 @@ public class Chunk
 		this.hitboxScaling.Clear();
 		this.cacheLightUV.Clear();
 		this.drawMain = true;
-    }
-
-    public void BuildAllDecals(NativeArray<ushort> blockdata, NativeArray<byte> renderMap){
-    	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
-
-		NativeList<int> triangles = new NativeList<int>(0, Allocator.TempJob);
-		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeArray<Vector3> cacheVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
-
-		BuildDecalJob bdj = new BuildDecalJob{
-			pos = pos,
-			blockdata = blockdata,
-			renderMap = renderMap,
-			verts = verts,
-			UV = UVs,
-			triangles = triangles,
-			hpdata = hpdata,
-			blockHP = BlockEncyclopediaECS.blockHP,
-			objectHP = BlockEncyclopediaECS.objectHP,
-			blockInvisible = BlockEncyclopediaECS.blockInvisible,
-			objectInvisible = BlockEncyclopediaECS.objectInvisible,
-			blockTransparent = BlockEncyclopediaECS.blockTransparent,
-			objectTransparent = BlockEncyclopediaECS.objectTransparent,
-			cacheCubeVerts = cacheVerts
-		};
-		JobHandle job = bdj.Schedule();
-		job.Complete();
-
-		this.decalVertices.AddRange(verts.ToArray());
-		this.decalUV.AddRange(UVs.ToArray());
-		this.decalTris = triangles.ToArray();
-
-		BuildDecalMesh(verts.ToArray(), UVs.ToArray(), this.decalTris);
-
-		// Dispose Bin
-		hpdata.Dispose();
-		triangles.Dispose();
-		verts.Dispose();
-		UVs.Dispose();
-		cacheVerts.Dispose();
-    }
-
-    public void BuildAllDecals(){
-    	NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
-    	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
-
-		NativeList<int> triangles = new NativeList<int>(0, Allocator.TempJob);
-		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeArray<Vector3> cacheVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
-
-		BuildDecalJob bdj = new BuildDecalJob{
-			pos = pos,
-			blockdata = blockdata,
-			verts = verts,
-			UV = UVs,
-			triangles = triangles,
-			hpdata = hpdata,
-			blockHP = BlockEncyclopediaECS.blockHP,
-			objectHP = BlockEncyclopediaECS.objectHP,
-			blockInvisible = BlockEncyclopediaECS.blockInvisible,
-			objectInvisible = BlockEncyclopediaECS.objectInvisible,
-			blockTransparent = BlockEncyclopediaECS.blockTransparent,
-			objectTransparent = BlockEncyclopediaECS.objectTransparent,
-			cacheCubeVerts = cacheVerts
-		};
-		JobHandle job = bdj.Schedule();
-		job.Complete();
-
-		BuildDecalMesh(verts.ToArray(), UVs.ToArray(), triangles.ToArray());
-
-		// Dispose Bin
-		hpdata.Dispose();
-		triangles.Dispose();
-		verts.Dispose();
-		UVs.Dispose();
-		cacheVerts.Dispose();
     }
 
     // Returns n ShadowUVs to a list

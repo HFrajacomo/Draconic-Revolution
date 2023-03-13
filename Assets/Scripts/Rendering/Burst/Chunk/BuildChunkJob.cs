@@ -17,6 +17,8 @@ public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public NativeArray<ushort> state; // VoxelMetadata.state
 	[ReadOnly]
+	public NativeArray<ushort> hp;
+	[ReadOnly]
 	public NativeArray<byte> lightdata;
 	[ReadOnly]
 	public NativeArray<byte> renderMap;
@@ -68,6 +70,11 @@ public struct BuildChunkJob : IJob{
 	public NativeList<Vector3> normals;
 	public NativeList<Vector4> tangents;
 
+	// Decals
+	public NativeList<Vector3> decalVerts;
+	public NativeList<Vector2> decalUVs;
+	public NativeList<int> decalTris;
+
 	// Render Thread Triangles
 	public NativeList<int> normalTris;
 	public NativeList<int> specularTris;
@@ -111,12 +118,17 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<bool> objectWashable;
 	[ReadOnly]
 	public NativeArray<bool> blockDrawRegardless;
+	[ReadOnly]
+	public NativeArray<ushort> blockHP;
+	[ReadOnly]
+	public NativeArray<ushort> objectHP;
 
 
 	public void Execute(){
 		ushort thisBlock;
 		ushort neighborBlock;
 		ushort neighborState;
+		ushort neighborHP;
 		ushort thisState;
 		bool isBlock;
 		bool isTransparent;
@@ -125,6 +137,7 @@ public struct BuildChunkJob : IJob{
 		bool isInBorder;
 		bool isSurfaceChunk;
 		int3 c;
+		int decalCode;
 
 
 		isSurfaceChunk = pos.y == Chunk.chunkMaxY;
@@ -214,6 +227,7 @@ public struct BuildChunkJob : IJob{
 
 				    		neighborBlock = GetNeighbor(x, y, z, i);
 				    		neighborState = GetNeighborState(x, y, z, i);
+				    		neighborHP = GetNeighborHP(x, y, z, i);
 				    		c = GetCoords(x, y, z, i);
 				    		isBlock = neighborBlock <= ushort.MaxValue/2;
 				    		ii = InvertDir(i);
@@ -242,6 +256,20 @@ public struct BuildChunkJob : IJob{
 			    			}
 
 						    LoadMesh(c.x, c.y, c.z, ii, neighborBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
+
+				    		if(neighborBlock <= ushort.MaxValue/2){
+				    			if(neighborHP == 0 || neighborHP == ushort.MaxValue || neighborHP == blockHP[neighborBlock])
+				    				continue;
+				    		}
+				    		else{
+				    			if(neighborHP == 0 || neighborHP == ushort.MaxValue || neighborHP == objectHP[neighborBlock])
+				    				continue;			    			
+				    		}
+
+				    		decalCode = GetDecalStage(neighborBlock, neighborHP);
+
+			    			if(decalCode >= 0)
+			    				BuildDecal(c.x, c.y, c.z, ii, decalCode);
 					    } // faces loop
 					}
 	    		} // y loop
@@ -280,6 +308,17 @@ public struct BuildChunkJob : IJob{
 		return data[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
 	}
 
+    // Gets neighbor hp
+	private ushort GetNeighborHP(int x, int y, int z, int dir){
+		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
+		
+		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
+			return 0;
+		}
+
+		return hp[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
+	}
+
 	private int3 GetCoords(int x, int y, int z, int dir){
 		return new int3(x, y, z) + VoxelData.offsets[dir];
 	}
@@ -311,6 +350,25 @@ public struct BuildChunkJob : IJob{
 		else{
 			return 0;
 		}		
+	}
+
+	public int GetDecalStage(ushort block, ushort hp){
+		float hpPercentage;
+
+		if(block <= ushort.MaxValue/2)
+			hpPercentage = (float)hp / (float)blockHP[block];
+		else
+			hpPercentage = (float)hp / (float)objectHP[ushort.MaxValue - block];
+
+		if(hpPercentage > 1f)
+			hpPercentage = 1f;
+
+	    for(int i=0; i < Constants.DECAL_STAGE_SIZE; i++){
+			if(hpPercentage <= Constants.DECAL_STAGE_PERCENTAGE[i])
+				return (Constants.DECAL_STAGE_SIZE - 1) - i;
+		}
+
+		return -1;
 	}
 
     // Gets neighbor state
@@ -480,6 +538,50 @@ public struct BuildChunkJob : IJob{
     		return false;
     	return true;
     }
+
+	public Vector3 GetDecalPosition(float x, float y, float z, int dir){
+		Vector3 normal;
+
+		if(dir == 0)
+			normal = new Vector3(0, 0, Constants.DECAL_OFFSET);
+		else if(dir == 1)
+			normal = new Vector3(Constants.DECAL_OFFSET, 0, 0);
+		else if(dir == 2)
+			normal = new Vector3(0, 0, -Constants.DECAL_OFFSET);
+		else if(dir == 3)
+			normal = new Vector3(-Constants.DECAL_OFFSET, 0, 0);
+		else if(dir == 4)
+			normal = new Vector3(0, Constants.DECAL_OFFSET, 0);
+		else
+			normal = new Vector3(0, -Constants.DECAL_OFFSET, 0);
+
+		return new Vector3(x + normal.x, y + normal.y, z + normal.z);
+	}
+
+	public void BuildDecal(int x, int y, int z, int dir, int decal){
+		faceVertices(cacheCubeVert, dir, 0.5f, GetDecalPosition(x, y+(this.pos.y*Chunk.chunkDepth), z, dir));
+		decalVerts.AddRange(cacheCubeVert);
+		int vCount = decalVerts.Length;
+
+		FillUV(decal);
+		
+    	decalTris.Add(vCount -4);
+    	decalTris.Add(vCount -4 +1);
+    	decalTris.Add(vCount -4 +2);
+    	decalTris.Add(vCount -4);
+    	decalTris.Add(vCount -4 +2);
+    	decalTris.Add(vCount -4 +3); 
+	}
+
+	public void FillUV(int decal){
+		float xSize = 1 / (float)Constants.DECAL_STAGE_SIZE;
+		float xMin = (float)decal * xSize;
+
+		decalUVs.Add(new Vector2(xMin, 0));
+		decalUVs.Add(new Vector2(xMin, 1));
+		decalUVs.Add(new Vector2(xMin + xSize, 1));
+		decalUVs.Add(new Vector2(xMin + xSize, 0));
+	}
 
 
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
