@@ -57,7 +57,7 @@ public class PlayerPositionHandler : MonoBehaviour
     // Update is called once per frame
     void Update(){
         RenewPositionalInformation();
-
+        
         if(CheckBiomeChange()){
             StopMusic();
             

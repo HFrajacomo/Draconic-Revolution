@@ -270,7 +270,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Checks if all 8 chunks around this one exists
-    private bool CanBeDrawn(ChunkPos pos){
+    public bool CanBeDrawn(ChunkPos pos){
         ChunkPos aux;
 
         aux = new ChunkPos(pos.x-1, pos.z, pos.y);
@@ -449,7 +449,6 @@ public class ChunkLoader : MonoBehaviour
                 CheckLightPropagation(cachedPos);
 
                 chunks[cachedPos].BuildChunk(load:true);
-                chunks[cachedPos].BuildSideBorder(reload:false, loadBUD:true);
 
                 if(WORLD_GENERATED)
                     this.vfx.UpdateLights(cachedPos);
@@ -476,8 +475,6 @@ public class ChunkLoader : MonoBehaviour
 
                     chunks[cachedPos].BuildChunk();
 
-                    chunks[cachedPos].BuildSideBorder(reload:true);
-
                     if(this.WORLD_GENERATED)
                         this.vfx.UpdateLights(cachedPos);
                 }
@@ -498,7 +495,6 @@ public class ChunkLoader : MonoBehaviour
                     cachedPos = updateNoLightPriorityQueue.Pop();
 
                     chunks[cachedPos].BuildChunk();
-                    chunks[cachedPos].BuildSideBorder(reload:true);
 
                     if(this.WORLD_GENERATED)
                         this.vfx.UpdateLights(cachedPos);

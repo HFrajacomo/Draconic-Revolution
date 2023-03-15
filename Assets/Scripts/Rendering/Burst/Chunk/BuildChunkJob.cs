@@ -11,6 +11,8 @@ public struct BuildChunkJob : IJob{
 	public bool load;
 	[ReadOnly]
 	public ChunkPos pos;
+	[ReadOnly]
+	public int verticalCode;
 
 	[ReadOnly]
 	public NativeArray<ushort> data; // Voxeldata
@@ -58,6 +60,46 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<byte> xmzplight;
 	[ReadOnly]
 	public NativeArray<byte> xpzplight;
+
+	// Vertical Data
+	[ReadOnly]
+	public NativeArray<ushort> vdata;
+	[ReadOnly]
+	public NativeArray<ushort> vxmdata;
+	[ReadOnly]
+	public NativeArray<ushort> vxpdata;
+	[ReadOnly]
+	public NativeArray<ushort> vzmdata;
+	[ReadOnly]
+	public NativeArray<ushort> vzpdata;
+	[ReadOnly]
+	public NativeArray<ushort> vxmzmdata;
+	[ReadOnly]
+	public NativeArray<ushort> vxpzmdata;
+	[ReadOnly]
+	public NativeArray<ushort> vxmzpdata;
+	[ReadOnly]
+	public NativeArray<ushort> vxpzpdata;
+
+	// Vertical Lights
+	[ReadOnly]
+	public NativeArray<byte> vlight;
+	[ReadOnly]
+	public NativeArray<byte> vxmlight;
+	[ReadOnly]
+	public NativeArray<byte> vxplight;
+	[ReadOnly]
+	public NativeArray<byte> vzmlight;
+	[ReadOnly]
+	public NativeArray<byte> vzplight;
+	[ReadOnly]
+	public NativeArray<byte> vxmzmlight;
+	[ReadOnly]
+	public NativeArray<byte> vxpzmlight;
+	[ReadOnly]
+	public NativeArray<byte> vxmzplight;
+	[ReadOnly]
+	public NativeArray<byte> vxpzplight;
 
 	// OnLoad Event Trigger List
 	public NativeList<int3> loadOutList;
@@ -138,12 +180,15 @@ public struct BuildChunkJob : IJob{
 		bool isSurfaceChunk;
 		int3 c;
 		int decalCode;
-
+		int yMin = 0;
 
 		isSurfaceChunk = pos.y == Chunk.chunkMaxY;
 
 		for(int x=-1; x<=Chunk.chunkWidth; x++){
 			for(int z=-1; z<=Chunk.chunkWidth; z++){
+				isInBorder = false;
+				yMin = 0;
+
 				if(x == -1 || z == -1 || x == Chunk.chunkWidth || z == Chunk.chunkWidth){
 					if(CheckCorner(x, z))
 						continue;
@@ -161,14 +206,28 @@ public struct BuildChunkJob : IJob{
 				}
 				else{
 					y = renderMap[x*Chunk.chunkWidth+z];
-					isInBorder = false;
 
 					if(y == Chunk.chunkDepth-1 && isSurfaceChunk)
 						y++;
+					if(verticalCode == 1 && y == Chunk.chunkDepth-1){
+						y = Chunk.chunkDepth;
+					}
+					if(verticalCode == -1){
+						yMin = -1;
+					}
 				}
 
-				for(; y >= 0; y--){
-					if(y == Chunk.chunkDepth && isSurfaceChunk){
+				for(; y >= yMin; y--){
+					if(verticalCode != 0){
+						if(CheckCorner(x, y, z))
+							continue;
+						if(CheckBorder(x, y, z))
+							isInBorder = true;
+						else
+							isInBorder = false;
+					}
+
+					if(y == Chunk.chunkDepth && isSurfaceChunk && verticalCode == 0){
 						thisBlock = 0;
 						thisState = 0;
 						isBlock = true;
@@ -225,28 +284,34 @@ public struct BuildChunkJob : IJob{
 				    		if(y == Chunk.chunkDepth && i != 5)
 				    			continue;
 
-				    		neighborBlock = GetNeighbor(x, y, z, i);
-				    		neighborState = GetNeighborState(x, y, z, i);
-				    		neighborHP = GetNeighborHP(x, y, z, i);
+				    		if(y == -1 && i != 4)
+				    			continue;
+
 				    		c = GetCoords(x, y, z, i);
-				    		isBlock = neighborBlock <= ushort.MaxValue/2;
 				    		ii = InvertDir(i);
+
+				    		if(CheckBorder(c.x, c.y, c.z))
+				    			continue;
+
+				    		if(verticalCode != -1)
+					    		if(c.y == 0 && ii == 5)
+					    			continue;
+
+					    	if(verticalCode != 1)
+					    		if(c.y == Chunk.chunkDepth-1 && ii == 4 && !isSurfaceChunk){
+					    			continue;
+				    		}
+
+				    		neighborBlock = GetBlockData(c.x, c.y, c.z, false);
+				    		neighborState = GetBlockState(c.x, c.y, c.z, false);
+				    		neighborHP = GetBlockHP(c.x, c.y, c.z);
+				    		isBlock = neighborBlock <= ushort.MaxValue/2;
 
 				    		if(neighborBlock == 0)
 				    			continue;
 
 				    		if(!isBlock)
 				    			continue;
-				    		
-				    		// Chunk Border and floor culling here! ----------	
-				    		if(c.y == 0 && ii == 5)
-				    			continue;
-
-				    		if(c.y == Chunk.chunkDepth-1 && ii == 4 && !isSurfaceChunk){
-				    			continue;
-				    		}
-
-				    		////////// -----------------------------------
 
 							// Handles Liquid chunks
 			    			if(blockSeamless[neighborBlock]){
@@ -297,27 +362,16 @@ public struct BuildChunkJob : IJob{
     	return ((x == -1 || x == Chunk.chunkWidth) && (z == -1 || z == Chunk.chunkWidth));
     }
 
-    // Gets neighbor element
-	private ushort GetNeighbor(int x, int y, int z, int dir){
-		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
-		
-		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
-			return 0;
-		}
+    private bool CheckCorner(int x, int y, int z){
+    	if(y != -1 && y != Chunk.chunkDepth)
+    		return ((x == -1 || x == Chunk.chunkWidth) && (z == -1 || z == Chunk.chunkWidth));
+    	else
+    		return (x == -1 || x == Chunk.chunkWidth || z == -1 || z == Chunk.chunkWidth);
+    }
 
-		return data[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
-	}
-
-    // Gets neighbor hp
-	private ushort GetNeighborHP(int x, int y, int z, int dir){
-		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
-		
-		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
-			return 0;
-		}
-
-		return hp[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
-	}
+    private bool CheckBorder(int x, int y, int z){
+    	return ((x == -1 || x == Chunk.chunkWidth) || (z == -1 || z == Chunk.chunkWidth)) || (y == -1 || y == Chunk.chunkDepth);
+    }
 
 	private int3 GetCoords(int x, int y, int z, int dir){
 		return new int3(x, y, z) + VoxelData.offsets[dir];
@@ -333,23 +387,30 @@ public struct BuildChunkJob : IJob{
 			if(x == -1)
 				return xmdata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 			else if(x == Chunk.chunkWidth)
-				return xpdata[y*Chunk.chunkWidth+z];		
+				return xpdata[y*Chunk.chunkWidth+z];
 			else if(z == -1)
 				return zmdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
 			else if(z == Chunk.chunkWidth)
 				return zpdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
-			else
+			else if(y == Chunk.chunkDepth && verticalCode == 1)
+				return vdata[x*Chunk.chunkWidth*Chunk.chunkDepth+z];
+			else if(y == -1 && verticalCode == -1)
+				return vdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z];
+			else{
 				return 0;
+			}
 		}
 	}
 
 	private ushort GetBlockState(int x, int y, int z, bool isInBorder){
-		if(!isInBorder){
-			return data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-		}
-		else{
+		if(!isInBorder)
+			return state[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+		else
 			return 0;
-		}		
+	}
+
+	private ushort GetBlockHP(int x, int y, int z){
+		return hp[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];	
 	}
 
 	public int GetDecalStage(ushort block, ushort hp){
@@ -371,75 +432,109 @@ public struct BuildChunkJob : IJob{
 		return -1;
 	}
 
-    // Gets neighbor state
-	private ushort GetNeighborState(int x, int y, int z, int dir){
-		int3 neighborCoord = new int3(x, y, z) + VoxelData.offsets[dir];
-		
-		if(neighborCoord.x < 0 || neighborCoord.x >= Chunk.chunkWidth || neighborCoord.z < 0 || neighborCoord.z >= Chunk.chunkWidth || neighborCoord.y < 0 || neighborCoord.y >= Chunk.chunkDepth){
-			return 0;
-		} 
-
-		return state[neighborCoord.x*Chunk.chunkWidth*Chunk.chunkDepth+neighborCoord.y*Chunk.chunkWidth+neighborCoord.z];
-	}
-
 	// Gets neighbor light level
 	private int GetNeighborLight(int x, int y, int z, int dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + VoxelData.offsets[dir];
 
-		if(coord.y >= Chunk.chunkDepth || coord.y < 0){
-			return 0;
+		if(verticalCode == 0){
+			if(coord.y >= Chunk.chunkDepth || coord.y < 0){
+				return 0;
+			}
 		}
 
+		int sideCode = CheckSide(x, y, z);
+
+		if(y == -1)
+			y = Chunk.chunkDepth;
+		else if(y == Chunk.chunkDepth)
+			y = 0;
+
 		if(isNatural){
-			if(coord.x != -1 && coord.x != Chunk.chunkWidth && coord.z != -1 && coord.z != Chunk.chunkWidth)
-				return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
-			else if(coord.x == -1){
-				if(coord.z == -1)
-					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				else if(coord.z == Chunk.chunkWidth)
-					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth] & 0x0F;
-				else
-					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;			
-			}
-			else if(coord.x == Chunk.chunkWidth){
-				if(coord.z == -1)
-					return xpzmlight[coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				else if(coord.z == Chunk.chunkWidth)
-					return xpzplight[coord.y*Chunk.chunkWidth] & 0x0F;
-				else
-					return xplight[coord.y*Chunk.chunkWidth+coord.z] & 0x0F;		
-			}
-			else if(coord.z == -1){
-				return zmlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-			}
-			else{ // z == Chunk.chunk
-				return zplight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth] & 0x0F;
+			switch(sideCode){
+				case 0:
+					return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				case 1:
+					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				case 2:
+					return vxmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				case 3:
+					return xplight[y*Chunk.chunkWidth+z] & 0x0F;
+				case 4:
+					return vxplight[y*Chunk.chunkWidth+z] & 0x0F;
+				case 5:
+					return zmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 6:
+					return vzmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 7:
+					return zplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
+				case 8:
+					return vzplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
+				case 9:
+					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 10:
+					return vxmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 11:
+					return xpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 12:
+					return vxpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 13:
+					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
+				case 14:
+					return vxmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
+				case 15:
+					return xpzplight[y*Chunk.chunkWidth] & 0x0F;
+				case 16:
+					return vxpzplight[y*Chunk.chunkWidth] & 0x0F;
+				case 17:
+					return vlight[x*Chunk.chunkWidth+z] & 0x0F;
+				case 18:
+					return vlight[x*Chunk.chunkWidth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] & 0x0F;
+				default:
+					return 0;
 			}
 		}
 		else{
-			if(coord.x != -1 && coord.x != Chunk.chunkWidth && coord.z != -1 && coord.z != Chunk.chunkWidth)
-				return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
-			else if(coord.x == -1){
-				if(coord.z == -1)
-					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				else if(coord.z == Chunk.chunkWidth)
-					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth] >> 4;
-				else
-					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;				
-			}
-			else if(coord.x == Chunk.chunkWidth){
-				if(coord.z == -1)
-					return xpzmlight[coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				else if(coord.z == Chunk.chunkWidth)
-					return xpzplight[coord.y*Chunk.chunkWidth] >> 4;
-				else
-					return xplight[coord.y*Chunk.chunkWidth+coord.z] >> 4;				
-			}
-			else if(coord.z == -1){
-				return zmlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-			}
-			else{ // z == Chunk.chunk
-				return zplight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth] >> 4;
+			switch(sideCode){
+				case 0:
+					return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				case 1:
+					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				case 2:
+					return vxmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				case 3:
+					return xplight[y*Chunk.chunkWidth+z] >> 4;
+				case 4:
+					return vxplight[y*Chunk.chunkWidth+z] >> 4;
+				case 5:
+					return zmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 6:
+					return vzmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 7:
+					return zplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
+				case 8:
+					return vzplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
+				case 9:
+					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 10:
+					return vxmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 11:
+					return xpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 12:
+					return vxpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 13:
+					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
+				case 14:
+					return vxmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
+				case 15:
+					return xpzplight[y*Chunk.chunkWidth] >> 4;
+				case 16:
+					return vxpzplight[y*Chunk.chunkWidth] >> 4;
+				case 17:
+					return vlight[x*Chunk.chunkWidth+z] >> 4;
+				case 18:
+					return vlight[x*Chunk.chunkWidth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] >> 4;
+				default:
+					return 0;
 			}
 		}
 	}
@@ -448,62 +543,189 @@ public struct BuildChunkJob : IJob{
 	private int GetNeighborLight(int x, int y, int z, int3 dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + dir;
 
-		if(coord.y >= Chunk.chunkDepth || coord.y < 0){
-			return 0;
+		if(verticalCode == 0){
+			if(coord.y >= Chunk.chunkDepth || coord.y < 0){
+				return 0;
+			}
 		}
 
+		int sideCode = CheckSide(x, y, z);
+
+		if(y == -1)
+			y = Chunk.chunkDepth;
+		else if(y == Chunk.chunkDepth)
+			y = 0;
+
 		if(isNatural){
-			if(coord.x != -1 && coord.x != Chunk.chunkWidth && coord.z != -1 && coord.z != Chunk.chunkWidth)
-				return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
-			else if(coord.x == -1){
-				if(coord.z == -1)
-					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				else if(coord.z == Chunk.chunkWidth)
-					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth] & 0x0F;
-				else
-					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;			
-			}
-			else if(coord.x == Chunk.chunkWidth){
-				if(coord.z == -1)
-					return xpzmlight[coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				else if(coord.z == Chunk.chunkWidth)
-					return xpzplight[coord.y*Chunk.chunkWidth] & 0x0F;
-				else
-					return xplight[coord.y*Chunk.chunkWidth+coord.z] & 0x0F;		
-			}
-			else if(coord.z == -1){
-				return zmlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-			}
-			else{ // z == Chunk.chunk
-				return zplight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth] & 0x0F;
+			switch(sideCode){
+				case 0:
+					return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				case 1:
+					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				case 2:
+					return vxmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
+				case 3:
+					return xplight[y*Chunk.chunkWidth+z] & 0x0F;
+				case 4:
+					return vxplight[y*Chunk.chunkWidth+z] & 0x0F;
+				case 5:
+					return zmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 6:
+					return vzmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 7:
+					return zplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
+				case 8:
+					return vzplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
+				case 9:
+					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 10:
+					return vxmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 11:
+					return xpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 12:
+					return vxpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
+				case 13:
+					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
+				case 14:
+					return vxmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
+				case 15:
+					return xpzplight[y*Chunk.chunkWidth] & 0x0F;
+				case 16:
+					return vxpzplight[y*Chunk.chunkWidth] & 0x0F;
+				case 17:
+					return vlight[x*Chunk.chunkWidth+z] & 0x0F;
+				case 18:
+					return vlight[x*Chunk.chunkWidth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] & 0x0F;
+				default:
+					return 0;
 			}
 		}
 		else{
-			if(coord.x != -1 && coord.x != Chunk.chunkWidth && coord.z != -1 && coord.z != Chunk.chunkWidth)
-				return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;
-			else if(coord.x == -1){
-				if(coord.z == -1)
-					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				else if(coord.z == Chunk.chunkWidth)
-					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth] >> 4;
-				else
-					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4;				
-			}
-			else if(coord.x == Chunk.chunkWidth){
-				if(coord.z == -1)
-					return xpzmlight[coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				else if(coord.z == Chunk.chunkWidth)
-					return xpzplight[coord.y*Chunk.chunkWidth] >> 4;
-				else
-					return xplight[coord.y*Chunk.chunkWidth+coord.z] >> 4;				
-			}
-			else if(coord.z == -1){
-				return zmlight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-			}
-			else{ // z == Chunk.chunk
-				return zplight[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth] >> 4;
+			switch(sideCode){
+				case 0:
+					return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				case 1:
+					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				case 2:
+					return vxmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
+				case 3:
+					return xplight[y*Chunk.chunkWidth+z] >> 4;
+				case 4:
+					return vxplight[y*Chunk.chunkWidth+z] >> 4;
+				case 5:
+					return zmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 6:
+					return vzmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 7:
+					return zplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
+				case 8:
+					return vzplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
+				case 9:
+					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 10:
+					return vxmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 11:
+					return xpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 12:
+					return vxpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
+				case 13:
+					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
+				case 14:
+					return vxmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
+				case 15:
+					return xpzplight[y*Chunk.chunkWidth] >> 4;
+				case 16:
+					return vxpzplight[y*Chunk.chunkWidth] >> 4;
+				case 17:
+					return vlight[x*Chunk.chunkWidth+z] >> 4;
+				case 18:
+					return vlight[x*Chunk.chunkWidth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] >> 4;
+				default:
+					return 0;
 			}
 		}
+	}
+
+	/*
+	Return List
+
+	0: normal
+	1: xm
+	2: vxm
+	3: xp
+	4: vxp
+	5: zm
+	6: vzm
+	7: zp
+	8: vzp
+	9: xmzm
+	10: vxmzm
+	11: xpzm
+	12: vxpzm
+	13: xmzp
+	14: vxmzp
+	15: xpzp
+	16: vxpzp
+	17: topY
+	18: bottomY
+	*/
+	private int CheckSide(int x, int y, int z){
+		if(x == -1 && z == -1){
+			if(y == -1 || y == Chunk.chunkDepth)
+				return 10;
+			else
+				return 9;			
+		}
+		else if(x == Chunk.chunkWidth && z == -1){
+			if(y == -1 || y == Chunk.chunkDepth)
+				return 12;
+			else
+				return 11;			
+		}
+		else if(x == -1 && z == Chunk.chunkWidth){
+			if(y == -1 || y == Chunk.chunkDepth)
+				return 14;
+			else
+				return 13;		
+		}
+		else if(x == Chunk.chunkWidth && z == Chunk.chunkWidth){
+			if(y == -1 || y == Chunk.chunkDepth)
+				return 16;
+			else
+				return 15;		
+		}
+		else if(x == -1){
+			if(y == -1 || y == Chunk.chunkDepth)
+				return 2;
+			else
+				return 1;
+		}
+		else if(x == Chunk.chunkWidth){
+			if(y == -1 || y == Chunk.chunkDepth)
+				return 4;
+			else
+				return 3;
+		}
+		else if(z == -1){
+			if(y == -1 || y == Chunk.chunkDepth)
+				return 6;
+			else
+				return 5;			
+		}
+		else if(z == Chunk.chunkWidth){
+			if(y == -1 || y == Chunk.chunkDepth)
+				return 8;
+			else
+				return 7;			
+		}
+		else if(y == -1){
+			return 18;
+		}
+		else if(y == Chunk.chunkDepth){
+			return 17;
+		}
+
+		return 0; // own chunk
 	}
 
     // Checks if neighbor is transparent or invisible
