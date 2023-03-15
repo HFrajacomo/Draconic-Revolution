@@ -61,7 +61,7 @@ public struct CalculateLightPropagationJob : IJob{
 					ProcessShadowCode(shadowMap1[index1] & 0x0F, shadowMap2[index2] & 0x0F, index1, index2, borderCode);
 					ProcessShadowCode(shadowMap1[index1] >> 4, shadowMap2[index2] >> 4, index1, index2, borderCode, extraLight:true);
 				}
-			}			
+			}
 		}
 		// zm
 		else if(borderCode == 2){

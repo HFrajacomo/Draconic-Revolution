@@ -926,11 +926,14 @@ public struct CalculateLightMapJob : IJob{
 					continue;
 				}
 
-				height = (byte)(heightMap[x*chunkWidth+z]+1);
+				height = (byte)(heightMap[x*chunkWidth+z]);
+
+				if(height > 0)
+					height = (byte)(height+1);
+
 				index = x*chunkWidth*chunkDepth+height*chunkWidth+z;
 
 				if((shadowMap[index] & 0x0F) == 2){
-					bfsq.Add(new int3(x, height, z));
 					lightMap[index] = (byte)((lightMap[index] & 0xF0) | maxLightLevel);
 					AnalyzeSunShaft(x, height, z);
 
