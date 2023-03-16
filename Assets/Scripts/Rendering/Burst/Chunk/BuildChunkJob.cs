@@ -491,9 +491,9 @@ public struct BuildChunkJob : IJob{
 				case 16:
 					return vxpzplight[y*Chunk.chunkWidth] & 0x0F;
 				case 17:
-					return vlight[x*Chunk.chunkWidth+z] & 0x0F;
+					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+z] & 0x0F;
 				case 18:
-					return vlight[x*Chunk.chunkWidth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] & 0x0F;
+					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] & 0x0F;
 				default:
 					return 0;
 			}
@@ -535,9 +535,9 @@ public struct BuildChunkJob : IJob{
 				case 16:
 					return vxpzplight[y*Chunk.chunkWidth] >> 4;
 				case 17:
-					return vlight[x*Chunk.chunkWidth+z] >> 4;
+					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+z] >> 4;
 				case 18:
-					return vlight[x*Chunk.chunkWidth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] >> 4;
+					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] >> 4;
 				default:
 					return 0;
 			}
@@ -603,9 +603,9 @@ public struct BuildChunkJob : IJob{
 				case 16:
 					return vxpzplight[y*Chunk.chunkWidth] & 0x0F;
 				case 17:
-					return vlight[x*Chunk.chunkWidth+z] & 0x0F;
+					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+z] & 0x0F;
 				case 18:
-					return vlight[x*Chunk.chunkWidth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] & 0x0F;
+					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] & 0x0F;
 				default:
 					return 0;
 			}
@@ -647,9 +647,9 @@ public struct BuildChunkJob : IJob{
 				case 16:
 					return vxpzplight[y*Chunk.chunkWidth] >> 4;
 				case 17:
-					return vlight[x*Chunk.chunkWidth+z] >> 4;
+					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+z] >> 4;
 				case 18:
-					return vlight[x*Chunk.chunkWidth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] >> 4;
+					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] >> 4;
 				default:
 					return 0;
 			}
