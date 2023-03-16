@@ -66,7 +66,7 @@ public class Lava_Block : Blocks
 		this.seamless = true;
 		this.drawRegardless = true;
 		this.viscosityDelay = 60;
-		//this.luminosity = 15;
+		this.luminosity = 15;
 		this.maxHP = 1;
 		this.flags = new HashSet<BlockFlags>(){BlockFlags.IMMUNE};
 

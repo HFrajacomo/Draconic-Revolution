@@ -12,6 +12,7 @@ public struct CalculateLightMapJob : IJob{
 	public NativeArray<byte> lightMap;
 	public NativeArray<byte> shadowMap;
 	public NativeArray<int4> lightSources;
+	public NativeList<int> sortingList;
 	public NativeList<int3> bfsq; // Breadth-first search queue
 	public NativeList<int4> bfsqExtra;
 	public NativeList<byte5> bfsqDir;
@@ -183,9 +184,19 @@ public struct CalculateLightMapJob : IJob{
 							index = GetIndex(lightSources[i].xyz);
 
 							if((lightMap[index] >> 4) < lightSources[i].w){
-								bfsqExtra.Add(lightSources[i]);
-								lightMap[index] = (byte)((lightMap[index] & 0x0F) + (lightSources[i].w << 4));
-								shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
+								
+								if(lightSources[i].w == 15){
+									shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (2 << 4));
+
+									if(ShouldMaxExtraPropagate(lightSources[i])){
+										bfsqExtra.Add(lightSources[i]);
+									}
+								}
+								else{
+									shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
+									lightMap[index] = (byte)((lightMap[index] & 0x0F) + (lightSources[i].w << 4));
+									bfsqExtra.Add(lightSources[i]);
+								}
 							}
 						}
 						else{
@@ -214,7 +225,7 @@ public struct CalculateLightMapJob : IJob{
 		}
 
 		directionalList.Clear();
-
+		
 		DetectDirectionals(extraLight:true);
 		QuickSort(isLightSource:false);
 
@@ -296,6 +307,56 @@ public struct CalculateLightMapJob : IJob{
 		else{
 			CheckBordersMemory();
 		}
+	}
+
+	private bool ShouldMaxExtraPropagate(int4 c){
+		int3 aux;
+		int index;
+
+		if(c.y < Chunk.chunkDepth-1){
+			aux = new int3(c.x, c.y+1, c.z);
+			index = GetIndex(aux);
+
+			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+				return true;
+		}
+		if(c.y > 0){
+			aux = new int3(c.x, c.y-1, c.z);
+			index = GetIndex(aux);
+
+			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+				return true;
+		}
+		if(c.x > 0){
+			aux = new int3(c.x-1, c.y, c.z);
+			index = GetIndex(aux);
+
+			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+				return true;
+		}
+		if(c.x < Chunk.chunkWidth-1){
+			aux = new int3(c.x+1, c.y, c.z);
+			index = GetIndex(aux);
+
+			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+				return true;
+		}
+		if(c.z > 0){
+			aux = new int3(c.x, c.y, c.z-1);
+			index = GetIndex(aux);
+
+			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+				return true;
+		}
+		if(c.z < Chunk.chunkWidth-1){
+			aux = new int3(c.x, c.y, c.z+1);
+			index = GetIndex(aux);
+
+			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+				return true;
+		}
+
+		return false;
 	}
 
 	// Checks if chunk has empty space in neighborhood
@@ -540,14 +601,14 @@ public struct CalculateLightMapJob : IJob{
 				index = GetIndex(aux);
 
 				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight && (shadowMap[index] & 0x0F) != 0){
+					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
 				else{
-					if((lightMap[index] >> 4) < currentLight && (shadowMap[index] >> 4) > 0){
+					if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
 						bfsqExtra.Add(new int4(aux, (currentLight-1)));
@@ -564,14 +625,14 @@ public struct CalculateLightMapJob : IJob{
 				index = GetIndex(aux);
 
 				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight && (shadowMap[index] & 0x0F) != 0){
+					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
 				else{
-					if((lightMap[index] >> 4) < currentLight && (shadowMap[index] >> 4) > 0){
+					if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
 						bfsqExtra.Add(new int4(aux, (currentLight-1)));
@@ -588,14 +649,14 @@ public struct CalculateLightMapJob : IJob{
 				index = GetIndex(aux);
 
 				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight && (shadowMap[index] & 0x0F) != 0){
+					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
 				else{
-					if((lightMap[index] >> 4) < currentLight && (shadowMap[index] >> 4) > 0){
+					if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
 						bfsqExtra.Add(new int4(aux, (currentLight-1)));
@@ -612,14 +673,14 @@ public struct CalculateLightMapJob : IJob{
 				index = GetIndex(aux);
 
 				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight && (shadowMap[index] & 0x0F) != 0){
+					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
 				else{
-					if((lightMap[index] >> 4) < currentLight && (shadowMap[index] >> 4) > 0){
+					if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
 						bfsqExtra.Add(new int4(aux, (currentLight-1)));
@@ -636,14 +697,14 @@ public struct CalculateLightMapJob : IJob{
 				index = GetIndex(aux);
 
 				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight && (shadowMap[index] & 0x0F) != 0){
+					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
 				else{
-					if((lightMap[index] >> 4) < currentLight && (shadowMap[index] >> 4) > 0){
+					if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
 						bfsqExtra.Add(new int4(aux, (currentLight-1)));
@@ -660,14 +721,14 @@ public struct CalculateLightMapJob : IJob{
 				index = GetIndex(aux);
 
 				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight && (shadowMap[index] & 0x0F) != 0){
+					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + 3);
 						bfsq.Add(aux);
 					}
 				}
 				else{
-					if((lightMap[index] >> 4) < currentLight && (shadowMap[index] >> 4) > 0){
+					if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
 						lightMap[index] = (byte)(((lightMap[index] & 0x0F) + ((currentLight-1) << 4)));
 						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (3 << 4));
 						bfsqExtra.Add(new int4(aux, (currentLight-1)));
@@ -831,81 +892,114 @@ public struct CalculateLightMapJob : IJob{
 	}
 
 	private void QuickSort(bool isLightSource=true){
-		int init = 0;
-		int end;
+		int startIndex = 0;
+		int endIndex;
+		int top = -1;
 
 		if(isLightSource){
-			end = lightSources.Length - 1;
-
-			if(lightSources.Length == 0)
-				return;
+ 			endIndex = lightSources.Length - 1;
 		}
 		else{
-			end = directionalList.Length - 1;
-
-			if(directionalList.Length == 0)
-				return;
+			endIndex = directionalList.Length - 1;
 		}
 
-		QuickSort(init, end, isLightSource:isLightSource);
-	}
+		if(endIndex == -1)
+			return;
 
-	private void QuickSort(int init, int end, bool isLightSource=true){
-		if(isLightSource){
-			if(init < end){
-				int4 val = lightSources[init];
-				int i = init +1;
-				int e = end;
+		sortingList.Add(startIndex);
+		sortingList.Add(endIndex);
+		top = top + 2;
 
-				while(i <= e){
-					if(lightSources[i].w <= val.w)
-						i++;
-					else if(val.w < lightSources[e].w)
-						e--;
-					else{
-						int4 swap = lightSources[i];
-						lightSources[i] = lightSources[e];
-						lightSources[e] = swap;
-						i++;
-						e--;
-					}
+		while (top >= 0)
+		{
+			endIndex = sortingList[top];
+			startIndex = sortingList[top-1];
+			top = top - 2;
+
+			int p = Partition(startIndex, endIndex, isLightSource);
+
+			if (p - 1 > startIndex)
+			{
+				top = top + 2;
+
+				if(top >= sortingList.Length){
+					sortingList.Add(startIndex);
+					sortingList.Add(p - 1);
 				}
+				else{
+					sortingList[top-1] = startIndex;
+					sortingList[top] = p - 1;
+				}
+			}
 
-				lightSources[init] = lightSources[e];
-				lightSources[e] = val;
+			if (p + 1 < endIndex)
+			{
+				top = top + 2;
 
-				QuickSort(init, e - 1, isLightSource:isLightSource);
-				QuickSort(e + 1, end, isLightSource:isLightSource);
+				if(top >= sortingList.Length){
+					sortingList.Add(p + 1);
+					sortingList.Add(endIndex);
+				}
+				else{
+					sortingList[top-1] = p + 1;
+					sortingList[top] = endIndex;
+				}
 			}
 		}
-		else{
-			if(init < end){
-				byte5 val = directionalList[init];
-				int i = init +1;
-				int e = end;
+	}
 
-				while(i <= e){
-					if(directionalList[i].w <= val.w)
-						i++;
-					else if(val.w < directionalList[e].w)
-						e--;
-					else{
-						byte5 swap = directionalList[i];
-						directionalList[i] = directionalList[e];
-						directionalList[e] = swap;
-						i++;
-						e--;
-					}
+	private int Partition(int left, int right, bool isLightSource){
+		if(isLightSource){
+			int entry = lightSources[right].w;
+			int i = (left - 1);
+
+			for (int j = left; j <= right - 1; ++j)
+			{
+				if (lightSources[j].w <= entry)
+				{
+					++i;
+					Swap(i, j, isLightSource);
 				}
+			}
 
-				directionalList[init] = directionalList[e];
-				directionalList[e] = val;
+			Swap(i+1, right, isLightSource);
 
-				QuickSort(init, e - 1, isLightSource:isLightSource);
-				QuickSort(e + 1, end, isLightSource:isLightSource);
-			}			
+			return (i + 1);
+		}
+		else{
+			int entry = directionalList[right].w;
+			int i = (left - 1);
+
+			for (int j = left; j <= right - 1; ++j)
+			{
+				if (directionalList[j].w <= entry)
+				{
+					++i;
+					Swap(i, j, isLightSource);
+				}
+			}
+
+			Swap(i+1, right, isLightSource);
+
+			return (i + 1);
 		}
 	}
+
+	private void Swap(int a, int b, bool isLightSource){
+		if(isLightSource){
+			int4 temp;
+			temp = lightSources[a];
+			lightSources[a] = lightSources[b];
+			lightSources[b] = temp;
+		}
+		else{
+			byte5 temp;
+			temp = directionalList[a];
+			directionalList[a] = directionalList[b];
+			directionalList[b] = temp;
+		}
+	}
+
 
 	public int GetIndex(int3 c){
 		return c.x*chunkWidth*chunkDepth+c.y*chunkWidth+c.z;

@@ -174,18 +174,17 @@ public class PlayerRaycast : MonoBehaviour
 			return false;
 		}
 
-		ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
+		BlockID blockID = (BlockID)loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
 		// If hits something
-		if(blockID != 0 && blockID <= ushort.MaxValue/2){
-			if(loader.chunks.ContainsKey(ck)){
-				// DEBUG 
+		if(blockID != BlockID.AIR && (ushort)blockID <= ushort.MaxValue/2){
+			if(loader.chunks.ContainsKey(ck)){ 
 				//print(blockID + " : " + loader.chunks[ck].metadata.GetState(coords.blockX, coords.blockY, coords.blockZ));
 				return true;
 			}
 		}
 		// If is an objects, raycast against its hitbox
-		else if(blockID > ushort.MaxValue/2){
+		else if((ushort)blockID > ushort.MaxValue/2){
 			CastCoord castedCoord;
 			if(Physics.Raycast(position, direction, out cachedHit, maxDistance:traveledDistance, layerMask:objectLayerMask)){
 				castedCoord = new CastCoord(cachedHit.point);
@@ -264,14 +263,13 @@ public class PlayerRaycast : MonoBehaviour
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
 		ChunkPos above = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ, lastCoord.chunkY+1);
-
-		//Debug.Log("ShadowMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" +
-		//"LightMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + "   " + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" + 
-		//"BlockCode: " + (BlockID)loader.chunks[current.GetChunkPos()].data.GetCell(current.blockX, current.blockY, current.blockZ));
 		
 		if(!current.active)
 			return;
 
+		Debug.Log("ShadowMap: " + loader.chunks[current.GetChunkPos()].data.GetShadow(current.blockX, current.blockY, current.blockZ) + "    " + loader.chunks[current.GetChunkPos()].data.GetShadow(current.blockX, current.blockY, current.blockZ, isNatural:false) + " -> (" + current.blockX + ", " + current.blockY + ", " + current.blockZ + ")\n" +
+		"LightMap: " + loader.chunks[current.GetChunkPos()].data.GetLight(current.blockX, current.blockY, current.blockZ) + "   " + loader.chunks[current.GetChunkPos()].data.GetLight(current.blockX, current.blockY, current.blockZ, isNatural:false) + " -> (" + current.blockX + ", " + current.blockY + ", " + current.blockZ + ")\n" + 
+		"BlockCode: " + (BlockID)loader.chunks[current.GetChunkPos()].data.GetCell(current.blockX, current.blockY, current.blockZ));
 		
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ, current.chunkY);
 		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);

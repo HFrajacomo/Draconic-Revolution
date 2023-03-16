@@ -270,6 +270,7 @@ public class VoxelData
 		NativeList<byte5> directionalList = new NativeList<byte5>(0, Allocator.TempJob);
 		NativeList<byte5> bfsqDir = new NativeList<byte5>(0, Allocator.TempJob);
 		NativeHashSet<int3> visited = new NativeHashSet<int3>(0, Allocator.TempJob);
+		NativeList<int> sortingList = new NativeList<int>(0, Allocator.TempJob);
 
 		// LIGHTMAPPING =========================================================
 		CalculateLightMapJob clmJob = new CalculateLightMapJob{
@@ -286,6 +287,7 @@ public class VoxelData
 			bfsqDir = bfsqDir,
 			visited = visited,
 			directionalList = directionalList,
+			sortingList = sortingList,
 			changed = changed,
 			cpos = this.pos
 		};
@@ -315,6 +317,7 @@ public class VoxelData
         memoryLightMap.Dispose();
         memoryShadowMap.Dispose();
         directionalList.Dispose();
+        sortingList.Dispose();
 	}
 
 	public void CalculateHeightMap(){

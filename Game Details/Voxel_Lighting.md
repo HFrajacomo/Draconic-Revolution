@@ -38,7 +38,7 @@ For every Voxel in a chunk, we need to find out the ShadowCode for them. The Sha
 
  - Defined as 0 if current Voxel is a solid block
  - Defined as 1 if current Voxel is a transparent block
- - Defined as 2 if current Voxel has contact with direct sunlight
+ - Defined as 2 if current Voxel has contact with direct sunlight or maximum luminosity Extra Light
  - Defined as 3 if current Voxel receives light from the sun but is not in contact with it (like light being shined into the underground)
  - Defined as 7, 8, 9, 10 if current Voxel receives light from a neighbor chunk, each code representing the direction the light received travels
 
@@ -99,7 +99,7 @@ Also note that the order in which the vertices are written heavily affects the o
 
 Alright, now take everything that was just said in the entire past Section and LITERALLY double that. 
 
-Extra Lights are lights that don't come from the sun (torches, magic, light switches, etc.). They are handled in a similar way, yet, they lack the ShadowCode 2. Whenever a Voxel contains both Natural Light and Extra Light information, the highest valued one will be used by the Shader.
+Extra Lights are lights that don't come from the sun (torches, magic, light switches, etc.). They are handled in a similar way, only changing its Shadow Code 2 to symbolize maximum luminosity blocks. Whenever a Voxel contains both Natural Light and Extra Light information, the highest valued one will be used by the Shader.
 
 Note that Extra Lights are constantly calculated and directional Extra Lights are always deleted whenever the ShadowMapping stage kicks in.
 

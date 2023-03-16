@@ -70,12 +70,22 @@ public struct CalculateShadowMapJob : IJob{
 
 						// Gets lightsource
 						if(isBlock){
-							if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4))
+							if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4)){
 								lightSources.Add(new int4(x, y, z, (blockLuminosity[blockCode] & 0x0F)));
+
+								if((blockLuminosity[blockCode] & 0x0F) == 15){
+									lightMap[index] = (byte)((lightMap[index] & 0x0F) | (15 << 4));
+								}
+							}
 						}
 						else{
-							if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4))
-								lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode] & 0x0F));							
+							if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4)){
+								lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode] & 0x0F));
+
+								if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) == 15){
+									lightMap[index] = (byte)((lightMap[index] & 0x0F) | (15 << 4));
+								}						
+							}
 						}
 
 						continue;
@@ -105,8 +115,13 @@ public struct CalculateShadowMapJob : IJob{
 							lightMap[index] = 0;
 						}
 
-						if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4))
+						if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4)){
 							lightSources.Add(new int4(x, y, z, (blockLuminosity[blockCode] & 0x0F)));
+
+							if((blockLuminosity[blockCode] & 0x0F) == 15){
+								lightMap[index] = (byte)((lightMap[index] & 0x0F) | (15 << 4));
+							}	
+						}
 					}
 					else{
 						if(isTransparentObj[ushort.MaxValue - blockCode] == 1){
@@ -130,8 +145,13 @@ public struct CalculateShadowMapJob : IJob{
 							lightMap[index] = 0;
 						}
 
-						if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4))
-							lightSources.Add(new int4(x, y, z, (objectLuminosity[ushort.MaxValue - blockCode] & 0x0F)));			
+						if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4)){
+							lightSources.Add(new int4(x, y, z, (objectLuminosity[ushort.MaxValue - blockCode] & 0x0F)));
+
+							if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) == 15){
+								lightMap[index] = (byte)((lightMap[index] & 0x0F) | (15 << 4));
+							}
+						}
 					}					
 				}
 			}
@@ -159,12 +179,22 @@ public struct CalculateShadowMapJob : IJob{
 
 						// Gets lightsource
 						if(isBlock){
-							if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4))
+							if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4)){
 								lightSources.Add(new int4(x, y, z, (blockLuminosity[blockCode] & 0x0F)));
+
+								if((blockLuminosity[blockCode] & 0x0F) == 15){
+									lightMap[index] = (byte)((lightMap[index] & 0x0F) | (15 << 4));
+								}
+							}
 						}
 						else{
-							if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4))
+							if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4)){
 								lightSources.Add(new int4(x, y, z, objectLuminosity[ushort.MaxValue - blockCode] & 0x0F));							
+
+								if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) == 15){
+									lightMap[index] = (byte)((lightMap[index] & 0x0F) | (15 << 4));
+								}
+							}
 						}
 
 						if(blockCode == 0)
@@ -198,8 +228,13 @@ public struct CalculateShadowMapJob : IJob{
 							lightMap[index] = 0;
 						}
 
-						if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4))
+						if((blockLuminosity[blockCode] & 0x0F) > 0 && states[index] <= (blockLuminosity[blockCode] >> 4)){
 							lightSources.Add(new int4(x, y, z, (blockLuminosity[blockCode] & 0x0F)));
+
+							if((blockLuminosity[blockCode] & 0x0F) == 15){
+								lightMap[index] = (byte)((lightMap[index] & 0x0F) | (15 << 4));
+							}
+						}
 					}
 					else{
 						if(isTransparentObj[ushort.MaxValue - blockCode] == 1){
@@ -223,8 +258,13 @@ public struct CalculateShadowMapJob : IJob{
 							lightMap[index] = 0;
 						}
 
-						if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4))
+						if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) > 0 && states[index] <= (objectLuminosity[ushort.MaxValue - blockCode] >> 4)){
 							lightSources.Add(new int4(x, y, z, (objectLuminosity[ushort.MaxValue - blockCode] & 0x0F)));			
+
+							if((objectLuminosity[ushort.MaxValue - blockCode] & 0x0F) == 15){
+								lightMap[index] = (byte)((lightMap[index] & 0x0F) | (15 << 4));
+							}
+						}
 					}
 				}
 			}
