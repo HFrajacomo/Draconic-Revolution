@@ -183,8 +183,8 @@ public struct CalculateLightMapJob : IJob{
 						if(lightSources[i].w == currentLevel){
 							index = GetIndex(lightSources[i].xyz);
 
-							if((lightMap[index] >> 4) < lightSources[i].w){
-								
+							if((lightMap[index] >> 4) < lightSources[i].w || (currentLevel == 15 && (lightMap[index] >> 4) == lightSources[i].w)){
+
 								if(lightSources[i].w == 15){
 									shadowMap[index] = (byte)((shadowMap[index] & 0x0F) + (2 << 4));
 
@@ -317,42 +317,42 @@ public struct CalculateLightMapJob : IJob{
 			aux = new int3(c.x, c.y+1, c.z);
 			index = GetIndex(aux);
 
-			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+			if((lightMap[index] >> 4) < 14 && (shadowMap[index] >> 4) > 0)
 				return true;
 		}
 		if(c.y > 0){
 			aux = new int3(c.x, c.y-1, c.z);
 			index = GetIndex(aux);
 
-			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+			if((lightMap[index] >> 4) < 14 && (shadowMap[index] >> 4) > 0)
 				return true;
 		}
 		if(c.x > 0){
 			aux = new int3(c.x-1, c.y, c.z);
 			index = GetIndex(aux);
 
-			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+			if((lightMap[index] >> 4) < 14 && (shadowMap[index] >> 4) > 0)
 				return true;
 		}
 		if(c.x < Chunk.chunkWidth-1){
 			aux = new int3(c.x+1, c.y, c.z);
 			index = GetIndex(aux);
 
-			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+			if((lightMap[index] >> 4) < 14 && (shadowMap[index] >> 4) > 0)
 				return true;
 		}
 		if(c.z > 0){
 			aux = new int3(c.x, c.y, c.z-1);
 			index = GetIndex(aux);
 
-			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+			if((lightMap[index] >> 4) < 14 && (shadowMap[index] >> 4) > 0)
 				return true;
 		}
 		if(c.z < Chunk.chunkWidth-1){
 			aux = new int3(c.x, c.y, c.z+1);
 			index = GetIndex(aux);
 
-			if((lightMap[index] >> 4) < 14 && shadowMap[index] > 0)
+			if((lightMap[index] >> 4) < 14 && (shadowMap[index] >> 4) > 0)
 				return true;
 		}
 
