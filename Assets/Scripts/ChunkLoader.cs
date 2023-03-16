@@ -24,8 +24,7 @@ public class ChunkLoader : MonoBehaviour
     public List<ChunkPos> toLoadChunk = new List<ChunkPos>();
     public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue();
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
-    public List<ChunkPos> toDraw = new List<ChunkPos>();
-    public ChunkPriorityQueue redrawPriorityQueue = new ChunkPriorityQueue();
+    public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue();
     public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue();
     public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 
@@ -65,7 +64,6 @@ public class ChunkLoader : MonoBehaviour
     public bool REQUESTEDCHUNKS = false;
     public bool CONNECTEDTOSERVER = false;
     public bool SENTINFOTOSERVER = false;
-    public bool PASTLOADTIME = false;
 
     // Timer
     private ushort timer = 0;
@@ -131,7 +129,7 @@ public class ChunkLoader : MonoBehaviour
             else
                 this.message.SendClientInfo(this.playerAccountID, World.renderDistance, 0, "a");
 
-            this.renderDistance = World.renderDistance;
+            this.renderDistance = World.renderDistance + 1;
             this.client.Send(this.message.GetMessage(), this.message.size);
             this.SENTINFOTOSERVER = true;
         }
@@ -196,7 +194,6 @@ public class ChunkLoader : MonoBehaviour
 
     Heartbeart:         30 ticks
     UnloadUnityObjects: 600 ticks
-    RemoveLoadingTimer: 1000 ticks (non loopable)
     FixUnloadedChunks:  1200 ticks
     ForceUnload:        1500 ticks
     */
@@ -216,11 +213,6 @@ public class ChunkLoader : MonoBehaviour
         // Garbage Collect Unity Assets
         if(this.timer % 600 == 0){
             Resources.UnloadUnusedAssets();
-        }
-
-        // Flips flags that accelerates the Drawing of Chunks at the cost of performance
-        if(this.timer % 1000 == 0){
-            this.PASTLOADTIME = true;
         }
 
         // Fix Unloaded Chunks
@@ -272,9 +264,49 @@ public class ChunkLoader : MonoBehaviour
         this.cachePos = new ChunkPos(Mathf.FloorToInt((x+0.5f)/Chunk.chunkWidth), Mathf.FloorToInt((z+0.5f)/Chunk.chunkWidth), Mathf.FloorToInt(y/Chunk.chunkDepth));
     
         if(this.chunks.ContainsKey(this.cachePos)){
-            return this.chunks[this.cachePos].drawMain && this.chunks[this.cachePos].xmzm && this.chunks[this.cachePos].xmzp && this.chunks[this.cachePos].xpzm && this.chunks[this.cachePos].xpzp;
+            return this.chunks[this.cachePos].drawMain;
         }
         return false;
+    }
+
+    // Checks if all 8 chunks around this one exists
+    public bool CanBeDrawn(ChunkPos pos){
+        ChunkPos aux;
+
+        aux = new ChunkPos(pos.x-1, pos.z, pos.y);
+        if(!this.chunks.ContainsKey(aux)){
+            return false;
+        }
+        aux = new ChunkPos(pos.x+1, pos.z, pos.y);
+        if(!this.chunks.ContainsKey(aux)){
+            return false;
+        }
+        aux = new ChunkPos(pos.x, pos.z-1, pos.y);
+        if(!this.chunks.ContainsKey(aux)){
+            return false;
+        }
+        aux = new ChunkPos(pos.x, pos.z+1, pos.y);
+        if(!this.chunks.ContainsKey(aux)){
+            return false;
+        }
+        aux = new ChunkPos(pos.x-1, pos.z-1, pos.y);
+        if(!this.chunks.ContainsKey(aux)){
+            return false;
+        }
+        aux = new ChunkPos(pos.x-1, pos.z+1, pos.y);
+        if(!this.chunks.ContainsKey(aux)){
+            return false;
+        }
+        aux = new ChunkPos(pos.x+1, pos.z-1, pos.y);
+        if(!this.chunks.ContainsKey(aux)){
+            return false;
+        }
+        aux = new ChunkPos(pos.x+1, pos.z+1, pos.y);
+        if(!this.chunks.ContainsKey(aux)){
+            return false;
+        }
+
+        return true;
     }
 
     // Adds chunk to Update queue
@@ -289,13 +321,10 @@ public class ChunkLoader : MonoBehaviour
     // Asks the Server to send chunk information
     private void RequestChunk(){
     	if(requestPriorityQueue.GetSize() > 0){
-            // DEBUG
             while(requestPriorityQueue.GetSize() > 0 && !SkipNotImplemented(requestPriorityQueue.Peek()))
                 requestPriorityQueue.Pop();
             if(requestPriorityQueue.GetSize() == 0)
                 return;
-
-
 
     		// Prevention
     		if(toUnload.Contains(requestPriorityQueue.Peek())){
@@ -347,36 +376,36 @@ public class ChunkLoader : MonoBehaviour
                 
             this.vfx.NewChunk(cp);
 
-            if(!this.toDraw.Contains(cp))
-                this.toDraw.Add(cp);
+            this.chunks[cp].data.CalculateLightMap(chunks[cp].metadata);
+
+            if(toUnload.Contains(cp))
+                toUnload.Remove(cp);
+
+            this.drawPriorityQueue.Add(cp);
 
             // Vertical chunk update
-            this.cachePos = new ChunkPos(cp.x, cp.z, cp.y-1);
-            if(this.chunks.ContainsKey(this.cachePos))
-                AddToUpdate(this.cachePos);
-
-            AddToRedraw(cp);
+            //this.cachePos = new ChunkPos(cp.x, cp.z, cp.y-1);
+            //if(this.chunks.ContainsKey(this.cachePos))
+            //    AddToUpdate(this.cachePos);
 
             toLoad.RemoveAt(0);
-            toLoadChunk.RemoveAt(0);        
+            toLoadChunk.RemoveAt(0);
         }
     }
 
 
     // Unloads a chunk per frame from the Unloading Buffer
     private void UnloadChunk(){
-
         if(toUnload.Count > 0){
-
-            if(redrawPriorityQueue.Contains(toUnload[0])){
-                redrawPriorityQueue.Remove(toUnload[0]);
-            }
-
             // Prevention
             if(requestPriorityQueue.Contains(toUnload[0])){
                 requestPriorityQueue.Pop();
                 toUnload.RemoveAt(0);
                 return;
+            }
+
+            if(drawPriorityQueue.Contains(toUnload[0])){
+                drawPriorityQueue.Remove(toUnload[0]);
             }
 
             if(!chunks.ContainsKey(toUnload[0])){
@@ -406,35 +435,26 @@ public class ChunkLoader : MonoBehaviour
 
     // Actually builds the mesh for loaded chunks
     private void DrawChunk(){
-        // toDRAW
-        if(toDraw.Count > 0){
-            // If chunk is still loaded
-            if(chunks.ContainsKey(toDraw[0])){
-                chunks[toDraw[0]].data.CalculateLightMap(chunks[toDraw[0]].metadata);
-                CheckLightPropagation(toDraw[0]);
+        if(drawPriorityQueue.GetSize() > 0){
+            ChunkPos cachedPos;
 
-                chunks[toDraw[0]].BuildChunk(load:true);
-                chunks[toDraw[0]].BuildSideBorder(reload:false, loadBUD:true);
+            // If chunk is still loaded
+            if(chunks.ContainsKey(drawPriorityQueue.Peek())){
+                if(!CanBeDrawn(drawPriorityQueue.Peek())){
+                    return;
+                }
+
+                cachedPos = drawPriorityQueue.Pop();
+
+                CheckLightPropagation(cachedPos);
+
+                chunks[cachedPos].BuildChunk(load:true);
 
                 if(WORLD_GENERATED)
-                    this.vfx.UpdateLights(toDraw[0]);
- 
+                    this.vfx.UpdateLights(cachedPos);
             }
-            toDraw.RemoveAt(0);
-        }
-
-        // toREDRAW
-        for(int i = 0; i < 5; i++){
-            if(PASTLOADTIME)
-                i = 5;
-
-            if(redrawPriorityQueue.GetSize() > 0){
-                if(chunks.ContainsKey(redrawPriorityQueue.Peek())){
-                    if(chunks[redrawPriorityQueue.Peek()].drawMain){
-                        chunks[redrawPriorityQueue.Peek()].BuildSideBorder(reload:true, loadBUD:true);
-                    }
-                }
-                redrawPriorityQueue.Pop();
+            else{
+                drawPriorityQueue.Pop();
             }
         }
     }
@@ -446,19 +466,21 @@ public class ChunkLoader : MonoBehaviour
             ChunkPos cachedPos;
 
             if(this.chunks.ContainsKey(updatePriorityQueue.Peek())){
-                cachedPos = updatePriorityQueue.Pop();
+                if(CanBeDrawn(updatePriorityQueue.Peek())){
+                    cachedPos = updatePriorityQueue.Pop();
 
-                chunks[cachedPos].data.CalculateLightMap(chunks[cachedPos].metadata);
+                    chunks[cachedPos].data.CalculateLightMap(chunks[cachedPos].metadata);
 
-                CheckLightPropagation(cachedPos);
+                    CheckLightPropagation(cachedPos);
 
-                chunks[cachedPos].BuildChunk();
+                    chunks[cachedPos].BuildChunk();
 
-                chunks[cachedPos].BuildSideBorder(reload:true);
-                AddToRedraw(cachedPos);
-
-                if(this.WORLD_GENERATED)
-                    this.vfx.UpdateLights(cachedPos);
+                    if(this.WORLD_GENERATED)
+                        this.vfx.UpdateLights(cachedPos);
+                }
+                else{
+                    updatePriorityQueue.Add(updatePriorityQueue.Pop());
+                }
             }
             else{
                 updatePriorityQueue.Pop();
@@ -469,15 +491,17 @@ public class ChunkLoader : MonoBehaviour
             ChunkPos cachedPos;
 
             if(this.chunks.ContainsKey(updateNoLightPriorityQueue.Peek())){
-                cachedPos = updateNoLightPriorityQueue.Pop();
+                if(CanBeDrawn(updateNoLightPriorityQueue.Peek())){
+                    cachedPos = updateNoLightPriorityQueue.Pop();
 
-                chunks[cachedPos].BuildChunk();
+                    chunks[cachedPos].BuildChunk();
 
-                chunks[cachedPos].BuildSideBorder(reload:true);
-                AddToRedraw(cachedPos);
-
-                if(this.WORLD_GENERATED)
-                    this.vfx.UpdateLights(cachedPos);
+                    if(this.WORLD_GENERATED)
+                        this.vfx.UpdateLights(cachedPos);
+                }
+                else{
+                    updateNoLightPriorityQueue.Add(updateNoLightPriorityQueue.Pop());
+                }
             }
             else{
                 updateNoLightPriorityQueue.Pop();
@@ -645,6 +669,9 @@ public class ChunkLoader : MonoBehaviour
     		toUnload.Clear();
 
             requestPriorityQueue.SetPlayerPosition(newChunk);
+            drawPriorityQueue.SetPlayerPosition(newChunk);
+            updatePriorityQueue.SetPlayerPosition(newChunk);
+            updateNoLightPriorityQueue.SetPlayerPosition(newChunk);
     		
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
@@ -694,7 +721,12 @@ public class ChunkLoader : MonoBehaviour
     	}
 
     	int diff = (newChunk - this.playerCurrentChunk).dir();
+
         requestPriorityQueue.SetPlayerPosition(newChunk);
+        drawPriorityQueue.SetPlayerPosition(newChunk);
+        updatePriorityQueue.SetPlayerPosition(newChunk);
+        updateNoLightPriorityQueue.SetPlayerPosition(newChunk);
+
         this.playerCurrentChunk = newChunk;
 
     	if(diff == 0){ // East
@@ -944,24 +976,25 @@ public class ChunkLoader : MonoBehaviour
     private void FixUnloaded(){
         ChunkPos newChunk;
         int chunkLayer = this.playerPositionHandler.GetPlayerVerticalChunk();
+        int actualRenderDistance = this.renderDistance - 1;
         this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
 
-        for(int x=-World.renderDistance; x < World.renderDistance; x++){
-            for(int z=-World.renderDistance; z < World.renderDistance; z++){
+        for(int x=-actualRenderDistance; x < actualRenderDistance; x++){
+            for(int z=actualRenderDistance; z < actualRenderDistance; z++){
                 newChunk = new ChunkPos(this.currentChunk.x+x, this.currentChunk.z+z, this.currentChunk.y);
 
                 if(!SkipNotImplemented(newChunk))
                     continue;
 
-                if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk) && !this.requestPriorityQueue.Contains(newChunk) && !this.toDraw.Contains(newChunk)){
+                if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk) && !this.requestPriorityQueue.Contains(newChunk) && !this.drawPriorityQueue.Contains(newChunk)){
                     this.message.RequestChunkLoad(newChunk);
                     client.Send(this.message.GetMessage(), this.message.size);
                     continue;
                 }
 
                 if(this.chunks.ContainsKey(newChunk)){
-                    if(!this.chunks[newChunk].drawMain && !this.toDraw.Contains(newChunk))
-                        this.toDraw.Add(newChunk);
+                    if(!this.chunks[newChunk].drawMain)
+                        this.drawPriorityQueue.Add(newChunk);
                 }
 
                 // If there's vertical chunks as well
@@ -971,15 +1004,15 @@ public class ChunkLoader : MonoBehaviour
                     if(!SkipNotImplemented(newChunk))
                         continue;
 
-                    if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk) && !this.requestPriorityQueue.Contains(newChunk) && !this.toDraw.Contains(newChunk)){
+                    if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk) && !this.requestPriorityQueue.Contains(newChunk) && !this.drawPriorityQueue.Contains(newChunk)){
                         this.message.RequestChunkLoad(newChunk);
                         client.Send(this.message.GetMessage(), this.message.size);
                         continue;
                     }
 
                     if(this.chunks.ContainsKey(newChunk)){
-                        if(!this.chunks[newChunk].drawMain && !this.toDraw.Contains(newChunk))
-                            this.toDraw.Add(newChunk);
+                        if(!this.chunks[newChunk].drawMain)
+                            this.drawPriorityQueue.Add(newChunk);
                     }                    
                 }
             }
@@ -1002,23 +1035,6 @@ public class ChunkLoader : MonoBehaviour
                 toUnload.Add(pos);
             }
         }
-    }
-
-    // Adds the surrouding chunks to the provided one to the RedrawQueue
-    private void AddToRedraw(ChunkPos pos){
-        redrawPriorityQueue.Add(new ChunkPos(pos.x+1, pos.z, pos.y));
-        redrawPriorityQueue.Add(new ChunkPos(pos.x-1, pos.z, pos.y));
-        redrawPriorityQueue.Add(new ChunkPos(pos.x, pos.z+1, pos.y));
-        redrawPriorityQueue.Add(new ChunkPos(pos.x, pos.z-1, pos.y));
-        redrawPriorityQueue.Add(new ChunkPos(pos.x+1, pos.z+1, pos.y));
-        redrawPriorityQueue.Add(new ChunkPos(pos.x+1, pos.z-1, pos.y));
-        redrawPriorityQueue.Add(new ChunkPos(pos.x-1, pos.z+1, pos.y));
-        redrawPriorityQueue.Add(new ChunkPos(pos.x-1, pos.z-1, pos.y));
-
-        if(pos.y > 0)
-            redrawPriorityQueue.Add(new ChunkPos(pos.x, pos.z, pos.y-1));
-        if(pos.y < Chunk.chunkMaxY)
-            redrawPriorityQueue.Add(new ChunkPos(pos.x, pos.z, pos.y+1));
     }
 }
 

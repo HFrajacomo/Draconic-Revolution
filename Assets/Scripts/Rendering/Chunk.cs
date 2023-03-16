@@ -34,44 +34,8 @@ public class Chunk
 
 	// Draw Flags
 	public bool drawMain = false;
-	public bool xpDraw = false;
-	public bool zpDraw = false;
-	public bool xmDraw = false;
-	public bool zmDraw = false;
-	public bool xmzm = false;
-	public bool xpzm = false;
-	public bool xmzp = false;
-	public bool xpzp = false;
-
 	public bool topDraw = false;
 	public bool bottomDraw = false;
-
-	public bool txpDraw = false;
-	public bool txmDraw = false;
-	public bool tzpDraw = false;
-	public bool tzmDraw = false;
-	public bool txpzmDraw = false;
-	public bool txmzmDraw = false;
-	public bool txmzpDraw = false;
-	public bool txpzpDraw = false;
-	public bool bxpDraw = false;
-	public bool bxmDraw = false;
-	public bool bzpDraw = false;
-	public bool bzmDraw = false;
-	public bool bxpzmDraw = false;
-	public bool bxmzmDraw = false;
-	public bool bxpzpDraw = false;
-	public bool bxmzpDraw = false;
-
-	// Bud Flags
-	public bool xpBUD = false;
-	public bool xmBUD = false;
-	public bool zpBUD = false;
-	public bool zmBUD = false;
-	public bool xpzmBUD = false;
-	public bool xpzpBUD = false;
-	public bool xmzmBUD = false;
-	public bool xmzpBUD = false;
 
 	/*
 		Unity Settings
@@ -106,11 +70,6 @@ public class Chunk
   	private List<Vector3> normals = new List<Vector3>();
     private List<Vector4> tangents = new List<Vector4>();
 
-  	// Decal Mesh Information
-  	private List<Vector3> decalVertices = new List<Vector3>();
-  	private List<Vector2> decalUV = new List<Vector2>();
-  	private int[] decalTris;
-
     // Assets Cache
     private List<ushort> cacheCodes = new List<ushort>();
     private List<Vector3> cacheVertsv3 = new List<Vector3>();
@@ -141,9 +100,6 @@ public class Chunk
     private Mesh cacheMesh = new Mesh();
 
     // General Cache
-    private ChunkPos[] surroundingChunks = new ChunkPos[8];
-    private ChunkPos[] surroundingTopChunks = new ChunkPos[8];
-    private ChunkPos[] surroundingBotChunks = new ChunkPos[8];
     private ChunkPos[] surroundingVerticalChunks = new ChunkPos[2];
 
 
@@ -198,33 +154,6 @@ public class Chunk
 		this.meshRaycast.MarkDynamic();
 		this.meshRaycast.name = this.objRaycast.name;
 		this.meshColliderRaycast.sharedMesh = this.meshRaycast;
-
-		this.surroundingChunks[0] = new ChunkPos(pos.x, pos.z+1, pos.y);
-		this.surroundingChunks[1] = new ChunkPos(pos.x+1, pos.z, pos.y);
-		this.surroundingChunks[2] = new ChunkPos(pos.x, pos.z-1, pos.y);
-		this.surroundingChunks[3] = new ChunkPos(pos.x-1, pos.z, pos.y);
-		this.surroundingChunks[4] = new ChunkPos(pos.x+1, pos.z-1, pos.y);
-		this.surroundingChunks[5] = new ChunkPos(pos.x-1, pos.z-1, pos.y);
-		this.surroundingChunks[6] = new ChunkPos(pos.x-1, pos.z+1, pos.y);
-		this.surroundingChunks[7] = new ChunkPos(pos.x+1, pos.z+1, pos.y);
-
-		this.surroundingTopChunks[0] = new ChunkPos(pos.x, pos.z+1, pos.y+1);
-		this.surroundingTopChunks[1] = new ChunkPos(pos.x+1, pos.z, pos.y+1);
-		this.surroundingTopChunks[2] = new ChunkPos(pos.x, pos.z-1, pos.y+1);
-		this.surroundingTopChunks[3] = new ChunkPos(pos.x-1, pos.z, pos.y+1);
-		this.surroundingTopChunks[4] = new ChunkPos(pos.x+1, pos.z-1, pos.y+1);
-		this.surroundingTopChunks[5] = new ChunkPos(pos.x-1, pos.z-1, pos.y+1);
-		this.surroundingTopChunks[6] = new ChunkPos(pos.x-1, pos.z+1, pos.y+1);
-		this.surroundingTopChunks[7] = new ChunkPos(pos.x+1, pos.z+1, pos.y+1);
-
-		this.surroundingBotChunks[0] = new ChunkPos(pos.x, pos.z+1, pos.y-1);
-		this.surroundingBotChunks[1] = new ChunkPos(pos.x+1, pos.z, pos.y-1);
-		this.surroundingBotChunks[2] = new ChunkPos(pos.x, pos.z-1, pos.y-1);
-		this.surroundingBotChunks[3] = new ChunkPos(pos.x-1, pos.z, pos.y-1);
-		this.surroundingBotChunks[4] = new ChunkPos(pos.x+1, pos.z-1, pos.y-1);
-		this.surroundingBotChunks[5] = new ChunkPos(pos.x-1, pos.z-1, pos.y-1);
-		this.surroundingBotChunks[6] = new ChunkPos(pos.x-1, pos.z+1, pos.y-1);
-		this.surroundingBotChunks[7] = new ChunkPos(pos.x+1, pos.z+1, pos.y-1);
 
 		this.surroundingVerticalChunks[0] = new ChunkPos(pos.x, pos.z, pos.y+1);
 		this.surroundingVerticalChunks[1] = new ChunkPos(pos.x, pos.z, pos.y-1);
@@ -319,2240 +248,13 @@ public class Chunk
 		this.mesh.Clear();
 	}
 
-	// Checks if a Chunk can be redrawn
-    private bool CheckRedraw(){
-        if(!xmDraw && loader.chunks.ContainsKey(this.surroundingChunks[3]))
-            return true;
-        if(!xpDraw && loader.chunks.ContainsKey(this.surroundingChunks[1]))
-            return true;
-        if(!zmDraw && loader.chunks.ContainsKey(this.surroundingChunks[2]))
-            return true;
-        if(!zpDraw && loader.chunks.ContainsKey(this.surroundingChunks[0]))
-            return true;
-
-        if(!xmzm && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[5]))
-        	return true;
-        if(!xpzm && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[4]))
-        	return true;
-        if(!xmzp && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[6]))
-        	return true;
-        if(!xpzp && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[7]))
-        	return true;
-
-        if(!topDraw && loader.chunks.ContainsKey(this.surroundingVerticalChunks[0]))
-        	return true;
-        if(!bottomDraw && loader.chunks.ContainsKey(this.surroundingVerticalChunks[1]))
-        	return true;
-
-        if(!tzpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[0]))
-        	return true;
-        if(!txpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[1]))
-        	return true;
-        if(!tzmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[2]))
-        	return true;
-        if(!txmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[3]))
-        	return true;
-
-        if(!txpzmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[1]) && loader.chunks.ContainsKey(this.surroundingTopChunks[2]) && loader.chunks.ContainsKey(this.surroundingTopChunks[4]))
-        	return true;
-        if(!txmzmDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[2]) && loader.chunks.ContainsKey(this.surroundingTopChunks[3]) && loader.chunks.ContainsKey(this.surroundingTopChunks[5]))
-        	return true;
-        if(!txmzpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[3]) && loader.chunks.ContainsKey(this.surroundingTopChunks[0]) && loader.chunks.ContainsKey(this.surroundingTopChunks[6]))
-        	return true;
-        if(!txpzpDraw && loader.chunks.ContainsKey(this.surroundingTopChunks[0]) && loader.chunks.ContainsKey(this.surroundingTopChunks[1]) && loader.chunks.ContainsKey(this.surroundingTopChunks[7]))
-        	return true;
-
-        if(!bzpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[0]))
-        	return true;
-        if(!bxpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[1]))
-        	return true;
-        if(!bzmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[2]))
-        	return true;
-        if(!bxmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[3]))
-        	return true;
-        	
-        if(!bxpzmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[1]) && loader.chunks.ContainsKey(this.surroundingBotChunks[2]) && loader.chunks.ContainsKey(this.surroundingBotChunks[4]))
-        	return true;
-        if(!bxmzmDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[2]) && loader.chunks.ContainsKey(this.surroundingBotChunks[3]) && loader.chunks.ContainsKey(this.surroundingBotChunks[5]))
-        	return true;
-        if(!bxmzpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[3]) && loader.chunks.ContainsKey(this.surroundingBotChunks[0]) && loader.chunks.ContainsKey(this.surroundingBotChunks[6]))
-        	return true;
-        if(!bxpzpDraw && loader.chunks.ContainsKey(this.surroundingBotChunks[0]) && loader.chunks.ContainsKey(this.surroundingBotChunks[1]) && loader.chunks.ContainsKey(this.surroundingBotChunks[7]))
-        	return true;
-
-
-        return false;
-    }
-
-	// Draws Chunk Borders
-	public void BuildSideBorder(bool reload=false, bool loadBUD=false){
-		bool changed = false; // Flag is set if any change has been made that requires a redraw
-
-		if(reload){
-			xmDraw = false;
-			zmDraw = false;
-			xpDraw = false;
-			zpDraw = false;
-			xmzm = false;
-			xmzp = false;
-			xpzm = false;
-			xpzp = false;
-
-			topDraw = false;
-			bottomDraw = false;
-			
-			txpDraw = false;
-			txmDraw = false;
-			tzmDraw = false;
-			tzpDraw = false;
-			txmzmDraw = false;
-			txpzmDraw = false;
-			txmzpDraw = false;
-			txpzpDraw = false;
-
-			bxpDraw = false;
-			bxmDraw = false;
-			bzmDraw = false;
-			bzpDraw = false;
-			bxmzmDraw = false;
-			bxpzmDraw = false;
-			bxmzpDraw = false;
-			bxpzpDraw = false;
-		}
-
-		if(!CheckRedraw())
-			return;
-
-		int3[] coordArray;
-
-		NativeArray<ushort> blockdata = NativeTools.CopyToNative(this.data.GetData());
-		NativeArray<ushort> hpdata = NativeTools.CopyToNative(this.metadata.GetHPData());
-		NativeArray<ushort> metadata = NativeTools.CopyToNative(this.metadata.GetStateData());
-		NativeArray<byte> lightdata = NativeTools.CopyToNative(this.data.GetLightMap(this.metadata));
-		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());
-
-		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector2> uvs = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeList<Vector2> lightUV = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector4> tangents = new NativeList<Vector4>(0, Allocator.TempJob);
-		NativeList<int> tris = new NativeList<int>(0, Allocator.TempJob);
-		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
-		NativeList<int> liquidTris = new NativeList<int>(0, Allocator.TempJob);
-		NativeList<int> leavesTris = new NativeList<int>(0, Allocator.TempJob);
-		NativeList<int> iceTris = new NativeList<int>(0, Allocator.TempJob);
-		NativeList<int> lavaTris = new NativeList<int>(0, Allocator.TempJob);
-	
-		NativeList<int3> toLoadEvent = new NativeList<int3>(0, Allocator.TempJob);
-		NativeList<int3> toBUD = new NativeList<int3>(0, Allocator.TempJob);
-
-		// Cached
-		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
-		NativeArray<Vector2> cacheUVVerts = new NativeArray<Vector2>(4, Allocator.TempJob);
-		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
-		NativeArray<Vector4> cacheCubeTangent = new NativeArray<Vector4>(4, Allocator.TempJob);
-
-		// Decals
-		NativeList<Vector3> vertsDecal = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector2> UVDecal = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeList<int> trisDecal = new NativeList<int>(0, Allocator.TempJob); 
-		NativeArray<Vector3> cacheCubeVertsDecal = new NativeArray<Vector3>(4, Allocator.TempJob);
-
-
-		// For Init
-		NativeArray<Vector3> disposableVerts = NativeTools.CopyToNative<Vector3>(this.vertices.ToArray());
-		NativeArray<Vector2> disposableUVS = NativeTools.CopyToNative<Vector2>(this.UVs.ToArray());
-		NativeArray<Vector2> disposableLight = NativeTools.CopyToNative<Vector2>(this.lightUVMain.ToArray());
-		NativeArray<Vector3> disposableNormals = NativeTools.CopyToNative<Vector3>(this.normals.ToArray());
-		NativeArray<Vector4> disposableTangents = NativeTools.CopyToNative<Vector4>(this.tangents.ToArray());
-
-		// Decals
-		NativeArray<Vector3> disposableVertsDecal = NativeTools.CopyToNative<Vector3>(this.decalVertices.ToArray());
-		NativeArray<Vector2> disposableUVSDecal = NativeTools.CopyToNative<Vector2>(this.decalUV.ToArray());
-
-
-		NativeArray<int> disposableTris = new NativeArray<int>(this.triangles, Allocator.TempJob);
-		NativeArray<int> disposableSpecTris = new NativeArray<int>(this.specularTris, Allocator.TempJob);
-		NativeArray<int> disposableLiquidTris = new NativeArray<int>(this.liquidTris, Allocator.TempJob);
-		NativeArray<int> disposableLeavesTris = new NativeArray<int>(this.leavesTris, Allocator.TempJob);
-		NativeArray<int> disposableIceTris = new NativeArray<int>(this.iceTris, Allocator.TempJob);
-		NativeArray<int> disposableLavaTris = new NativeArray<int>(this.lavaTris, Allocator.TempJob);
-		NativeArray<int> disposableDecalTris = new NativeArray<int>(this.decalTris, Allocator.TempJob);
-
-
-		JobHandle job;
-		JobHandle jobDecal;
-
-
-		// Initialize Data
-		verts.AddRange(disposableVerts);
-		uvs.AddRange(disposableUVS);
-		lightUV.AddRange(disposableLight);
-		tris.AddRange(disposableTris);
-		specularTris.AddRange(disposableSpecTris);
-		liquidTris.AddRange(disposableLiquidTris);
-		lavaTris.AddRange(disposableLavaTris);
-		leavesTris.AddRange(disposableLeavesTris);
-		iceTris.AddRange(disposableIceTris);
-		normals.AddRange(disposableNormals);
-		tangents.AddRange(disposableTangents);
-		vertsDecal.AddRange(disposableVertsDecal);
-		UVDecal.AddRange(disposableUVSDecal);
-		trisDecal.AddRange(disposableDecalTris);
-
-
-		// Dispose Init
-		disposableVerts.Dispose();
-		disposableVertsDecal.Dispose();
-		disposableUVS.Dispose();
-		disposableUVSDecal.Dispose();
-		disposableTris.Dispose();
-		disposableSpecTris.Dispose();
-		disposableLiquidTris.Dispose();
-		disposableLavaTris.Dispose();
-		disposableNormals.Dispose();
-		disposableTangents.Dispose();
-		disposableLight.Dispose();
-		disposableLeavesTris.Dispose();
-		disposableIceTris.Dispose();
-		disposableDecalTris.Dispose();
-
-		// X- Analysis
-		ChunkPos targetChunk = new ChunkPos(this.pos.x-1, this.pos.z, this.pos.y);
-		if(loader.chunks.ContainsKey(targetChunk) && !xmDraw){
-			xmDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
-			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap(loader.chunks[targetChunk].metadata));
-			
-			BuildBorderJob bbJob = new BuildBorderJob{
-				pos = this.pos,
-				toBUD = toBUD,
-				reload = loadBUD,
-				data = blockdata,
-				metadata = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborlight = neighborlight,
-				toLoadEvent = toLoadEvent,
-				xM = true,
-				xP = false,
-				zP = false,
-				zM = false,
-				verts = verts,
-				uvs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-
-				cachedCubeVerts = cacheCubeVert,
-				cachedUVVerts = cacheUVVerts,
-				cachedCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			BuildDecalSideJob bdsj = new BuildDecalSideJob{
-				pos = this.pos,
-				blockdata = blockdata,
-				neighbordata = neighbordata,
-				hpdata = hpdata,
-				xm = true,
-				zm = false,
-				xp = false,
-				zp = false,
-				verts = vertsDecal,
-				UV = UVDecal,
-				triangles = trisDecal,
-				blockHP = BlockEncyclopediaECS.blockHP,
-				objectHP = BlockEncyclopediaECS.objectHP,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				cacheCubeVerts = cacheCubeVertsDecal
-			};
-
-			job = bbJob.Schedule();
-			jobDecal = bdsj.Schedule();
-
-			job.Complete();
-			jobDecal.Complete();
-			
-			neighbordata.Dispose();
-			neighborlight.Dispose();
-
-			// ToLoad() Event Trigger
-			coordArray = toLoadEvent.AsArray().ToArray();
-			this.message = new NetMessage(NetCode.BATCHLOADBUD);
-			this.message.BatchLoadBUD(this.pos);
-
-			if(loadBUD && !xmBUD){
-				xmBUD = true;
-				foreach(int3 coord in coordArray){
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				}			
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}
-			toLoadEvent.Clear();
-		}
-
-
-		// X+ Analysis
-		targetChunk = new ChunkPos(this.pos.x+1, this.pos.z, this.pos.y); 
-		if(loader.chunks.ContainsKey(targetChunk) && !xpDraw){
-			xpDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
-			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap(loader.chunks[targetChunk].metadata));
-
-			BuildBorderJob bbJob = new BuildBorderJob{
-				pos = this.pos,
-				toBUD = toBUD,
-				reload = loadBUD,
-				data = blockdata,
-				metadata = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborlight = neighborlight,
-				toLoadEvent = toLoadEvent,
-				xM = false,
-				xP = true,
-				zP = false,
-				zM = false,
-				verts = verts,
-				uvs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-
-				cachedCubeVerts = cacheCubeVert,
-				cachedUVVerts = cacheUVVerts,
-				cachedCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			BuildDecalSideJob bdsj = new BuildDecalSideJob{
-				pos = this.pos,
-				blockdata = blockdata,
-				neighbordata = neighbordata,
-				hpdata = hpdata,
-				xm = false,
-				zm = false,
-				xp = true,
-				zp = false,
-				verts = vertsDecal,
-				UV = UVDecal,
-				triangles = trisDecal,
-				blockHP = BlockEncyclopediaECS.blockHP,
-				objectHP = BlockEncyclopediaECS.objectHP,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				cacheCubeVerts = cacheCubeVertsDecal
-			};
-
-			job = bbJob.Schedule();
-			jobDecal = bdsj.Schedule();
-
-			job.Complete();
-			jobDecal.Complete();
-
-			neighbordata.Dispose();
-			neighborlight.Dispose();
-
-			// ToLoad() Event Trigger
-			coordArray = toLoadEvent.AsArray().ToArray();
-			this.message = new NetMessage(NetCode.BATCHLOADBUD);
-			this.message.BatchLoadBUD(this.pos);
-
-			if(loadBUD && !xpBUD){
-				xpBUD = true;
-				foreach(int3 coord in coordArray){
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				}
-
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}
-			toLoadEvent.Clear();
-		}
-
-		// Z- Analysis
-		targetChunk = new ChunkPos(this.pos.x, this.pos.z-1, this.pos.y); 
-		if(loader.chunks.ContainsKey(targetChunk) && !zmDraw){
-			zmDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
-			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap(loader.chunks[targetChunk].metadata));
-
-			BuildBorderJob bbJob = new BuildBorderJob{
-				pos = this.pos,
-				toBUD = toBUD,
-				reload = loadBUD,
-				data = blockdata,
-				metadata = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborlight = neighborlight,
-				toLoadEvent = toLoadEvent,
-				xM = false,
-				xP = false,
-				zP = false,
-				zM = true,
-				verts = verts,
-				uvs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-
-				cachedCubeVerts = cacheCubeVert,
-				cachedUVVerts = cacheUVVerts,
-				cachedCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			BuildDecalSideJob bdsj = new BuildDecalSideJob{
-				pos = this.pos,
-				blockdata = blockdata,
-				neighbordata = neighbordata,
-				hpdata = hpdata,
-				xm = false,
-				zm = true,
-				xp = false,
-				zp = false,
-				verts = vertsDecal,
-				UV = UVDecal,
-				triangles = trisDecal,
-				blockHP = BlockEncyclopediaECS.blockHP,
-				objectHP = BlockEncyclopediaECS.objectHP,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				cacheCubeVerts = cacheCubeVertsDecal
-			};
-
-			job = bbJob.Schedule();
-			jobDecal = bdsj.Schedule();
-
-			job.Complete();
-			jobDecal.Complete();
-
-			neighbordata.Dispose();
-			neighborlight.Dispose();
-
-			// ToLoad() Event Trigger
-			coordArray = toLoadEvent.AsArray().ToArray();
-			this.message = new NetMessage(NetCode.BATCHLOADBUD);
-			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD && !zmBUD){
-				zmBUD = true;
-				foreach(int3 coord in coordArray){
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				}
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}
-			toLoadEvent.Clear();
-		}
-
-		// Z+ Analysis
-		targetChunk = new ChunkPos(this.pos.x, this.pos.z+1, this.pos.y); 
-		if(loader.chunks.ContainsKey(targetChunk) && !zpDraw){
-			zpDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[targetChunk].data.GetData());
-			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[targetChunk].data.GetLightMap(loader.chunks[targetChunk].metadata));
-
-			BuildBorderJob bbJob = new BuildBorderJob{
-				pos = this.pos,
-				toBUD = toBUD,
-				reload = loadBUD,
-				data = blockdata,
-				metadata = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborlight = neighborlight,
-				toLoadEvent = toLoadEvent,
-				xM = false,
-				xP = false,
-				zP = true,
-				zM = false,
-				verts = verts,
-				uvs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-
-				cachedCubeVerts = cacheCubeVert,
-				cachedUVVerts = cacheUVVerts,
-				cachedCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			BuildDecalSideJob bdsj = new BuildDecalSideJob{
-				pos = this.pos,
-				blockdata = blockdata,
-				neighbordata = neighbordata,
-				hpdata = hpdata,
-				xm = false,
-				zm = false,
-				xp = false,
-				zp = true,
-				verts = vertsDecal,
-				UV = UVDecal,
-				triangles = trisDecal,
-				blockHP = BlockEncyclopediaECS.blockHP,
-				objectHP = BlockEncyclopediaECS.objectHP,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				cacheCubeVerts = cacheCubeVertsDecal
-			};
-
-			job = bbJob.Schedule();
-			jobDecal = bdsj.Schedule();
-
-			job.Complete();
-			jobDecal.Complete();
-
-			neighbordata.Dispose();
-			neighborlight.Dispose();
-
-			// ToLoad() Event Trigger
-			coordArray = toLoadEvent.AsArray().ToArray();
-			this.message = new NetMessage(NetCode.BATCHLOADBUD);
-			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD && !zpBUD){
-				zpBUD = true;
-				foreach(int3 coord in coordArray){
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				}
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}
-			toLoadEvent.Clear();
-		}
-
-		// Top Side
-		if(loader.chunks.ContainsKey(this.surroundingVerticalChunks[0]) && !topDraw){
-			topDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].data.GetData());
-			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
-			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[0]].metadata));
-
-			BuildVerticalChunkJob bvcj = new BuildVerticalChunkJob {
-				pos = this.pos,
-				isBottom = false,
-				isTop = true,
-				data = blockdata,
-				state = metadata,
-				neighbordata = neighbordata,
-				neighborStates = neighborstate,
-				neighborlight = neighborlight,
-				lightdata = lightdata,
-				renderMap = renderMap,
-				verts = verts,
-				UVs = uvs,
-				lightUV = lightUV,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvcj.Schedule();
-			job.Complete();
-
-			neighbordata.Dispose();
-			neighborstate.Dispose();
-			neighborlight.Dispose();
-		}
-
-		// Bottom Side
-		if(loader.chunks.ContainsKey(this.surroundingVerticalChunks[1]) && !bottomDraw){
-			bottomDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].data.GetData());
-			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
-			NativeArray<byte> neighborlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[1]].metadata));
-
-			BuildVerticalChunkJob bvcj = new BuildVerticalChunkJob {
-				pos = this.pos,
-				isBottom = true,
-				isTop = false,
-				data = blockdata,
-				state = metadata,
-				neighbordata = neighbordata,
-				neighborStates = neighborstate,
-				neighborlight = neighborlight,
-				lightdata = lightdata,
-				renderMap = renderMap,
-				verts = verts,
-				UVs = uvs,
-				lightUV = lightUV,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvcj.Schedule();
-			job.Complete();
-
-			neighbordata.Dispose();
-			neighborstate.Dispose();
-			neighborlight.Dispose();
-		}
-
-		// TopBot Sides
-		
-		// XM Top
-		if(loader.chunks.ContainsKey(this.surroundingTopChunks[3]) && loader.chunks.ContainsKey(surroundingVerticalChunks[0]) && !txmDraw){
-			txmDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[0]].data.GetData());
-			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
-			NativeArray<byte> ysidelight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
-			NativeArray<byte> dsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[3]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[3]].metadata));
-
-			BuildVerticalSideJob bvsJob = new BuildVerticalSideJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborStates = neighborstate,
-				dsidelight = dsidelight,
-				ysidelight = ysidelight,
-				renderMap = renderMap,
-				isBottom = false,
-				isTop = true,
-				xm = true,
-				xp = false,
-				zp = false,
-				zm = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvsJob.Schedule();
-			job.Complete();
-
-			neighbordata.Dispose();
-			neighborstate.Dispose();
-			ysidelight.Dispose();
-			dsidelight.Dispose();
-		}
-
-		// XP Top
-		if(loader.chunks.ContainsKey(this.surroundingTopChunks[1]) && loader.chunks.ContainsKey(surroundingVerticalChunks[0]) && !txpDraw){
-			txpDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[0]].data.GetData());
-			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
-			NativeArray<byte> ysidelight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
-			NativeArray<byte> dsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[1]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[1]].metadata));
-
-			BuildVerticalSideJob bvsJob = new BuildVerticalSideJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborStates = neighborstate,
-				ysidelight = ysidelight,
-				dsidelight = dsidelight,
-				renderMap = renderMap,
-				isBottom = false,
-				isTop = true,
-				xm = false,
-				xp = true,
-				zp = false,
-				zm = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvsJob.Schedule();
-			job.Complete();
-
-			neighbordata.Dispose();
-			neighborstate.Dispose();
-			ysidelight.Dispose();
-			dsidelight.Dispose();
-		}
-
-		// ZM Top
-		if(loader.chunks.ContainsKey(this.surroundingTopChunks[2]) && loader.chunks.ContainsKey(surroundingVerticalChunks[0]) && !tzmDraw){
-			tzmDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[0]].data.GetData());
-			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
-			NativeArray<byte> ysidelight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
-			NativeArray<byte> dsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[2]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[2]].metadata));
-
-			BuildVerticalSideJob bvsJob = new BuildVerticalSideJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborStates = neighborstate,
-				ysidelight = ysidelight,
-				dsidelight = dsidelight,
-				renderMap = renderMap,
-				isBottom = false,
-				isTop = true,
-				xm = false,
-				xp = false,
-				zp = false,
-				zm = true,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvsJob.Schedule();
-			job.Complete();
-
-			neighbordata.Dispose();
-			neighborstate.Dispose();
-			ysidelight.Dispose();
-			dsidelight.Dispose();
-		}
-
-		// ZP Top
-		if(loader.chunks.ContainsKey(this.surroundingTopChunks[0]) && loader.chunks.ContainsKey(surroundingVerticalChunks[0]) && !tzpDraw){
-			tzpDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[0]].data.GetData());
-			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[0]].metadata.GetStateData());
-			NativeArray<byte> ysidelight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[0]].metadata));
-			NativeArray<byte> dsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[0]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[0]].metadata));
-
-			BuildVerticalSideJob bvsJob = new BuildVerticalSideJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborStates = neighborstate,
-				ysidelight = ysidelight,
-				dsidelight = dsidelight,
-				renderMap = renderMap,
-				isBottom = false,
-				isTop = true,
-				xm = false,
-				xp = false,
-				zp = true,
-				zm = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvsJob.Schedule();
-			job.Complete();
-
-			neighbordata.Dispose();
-			neighborstate.Dispose();
-			ysidelight.Dispose();
-			dsidelight.Dispose();
-		}
-
-		// XM Bot
-		if(loader.chunks.ContainsKey(this.surroundingBotChunks[3]) && loader.chunks.ContainsKey(surroundingVerticalChunks[1]) && !bxmDraw){
-			bxmDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[1]].data.GetData());
-			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
-			NativeArray<byte> ysidelight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[1]].metadata));
-			NativeArray<byte> dsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[3]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[3]].metadata));
-
-			BuildVerticalSideJob bvsJob = new BuildVerticalSideJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborStates = neighborstate,
-				ysidelight = ysidelight,
-				dsidelight = dsidelight,
-				renderMap = renderMap,
-				isBottom = true,
-				isTop = false,
-				xm = true,
-				xp = false,
-				zp = false,
-				zm = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvsJob.Schedule();
-			job.Complete();
-
-			neighbordata.Dispose();
-			neighborstate.Dispose();
-			ysidelight.Dispose();
-			dsidelight.Dispose();
-		}
-
-		// XP Bot
-		if(loader.chunks.ContainsKey(this.surroundingBotChunks[1]) && loader.chunks.ContainsKey(surroundingVerticalChunks[1]) && !bxpDraw){
-			bxpDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[1]].data.GetData());
-			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
-			NativeArray<byte> ysidelight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[1]].metadata));
-			NativeArray<byte> dsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[1]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[1]].metadata));
-
-			BuildVerticalSideJob bvsJob = new BuildVerticalSideJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborStates = neighborstate,
-				ysidelight = ysidelight,
-				dsidelight = dsidelight,
-				renderMap = renderMap,
-				isBottom = true,
-				isTop = false,
-				xm = false,
-				xp = true,
-				zp = false,
-				zm = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvsJob.Schedule();
-			job.Complete();
-
-			neighbordata.Dispose();
-			neighborstate.Dispose();
-			ysidelight.Dispose();
-			dsidelight.Dispose();
-		}
-
-		// ZM Bot
-		if(loader.chunks.ContainsKey(this.surroundingBotChunks[2]) && loader.chunks.ContainsKey(surroundingVerticalChunks[1]) && !bzmDraw){
-			bzmDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[1]].data.GetData());
-			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
-			NativeArray<byte> ysidelight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[1]].metadata));
-			NativeArray<byte> dsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[2]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[2]].metadata));
-
-			BuildVerticalSideJob bvsJob = new BuildVerticalSideJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborStates = neighborstate,
-				ysidelight = ysidelight,
-				dsidelight = dsidelight,
-				renderMap = renderMap,
-				isBottom = true,
-				isTop = false,
-				xm = false,
-				xp = false,
-				zp = false,
-				zm = true,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvsJob.Schedule();
-			job.Complete();
-
-			neighbordata.Dispose();
-			neighborstate.Dispose();
-			ysidelight.Dispose();
-			dsidelight.Dispose();
-		}
-
-		// ZP Bot
-		if(loader.chunks.ContainsKey(this.surroundingBotChunks[0]) && loader.chunks.ContainsKey(surroundingVerticalChunks[1]) && !bzpDraw){
-			bzpDraw = true;
-			changed = true;
-
-			NativeArray<ushort> neighbordata = NativeTools.CopyToNative<ushort>(loader.chunks[surroundingVerticalChunks[1]].data.GetData());
-			NativeArray<ushort> neighborstate = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingVerticalChunks[1]].metadata.GetStateData());
-			NativeArray<byte> ysidelight = NativeTools.CopyToNative<byte>(loader.chunks[surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[surroundingVerticalChunks[1]].metadata));
-			NativeArray<byte> dsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[0]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[0]].metadata));
-
-			BuildVerticalSideJob bvsJob = new BuildVerticalSideJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				lightdata = lightdata,
-				neighbordata = neighbordata,
-				neighborStates = neighborstate,
-				ysidelight = ysidelight,
-				dsidelight = dsidelight,
-				renderMap = renderMap,
-				isBottom = true,
-				isTop = false,
-				xm = false,
-				xp = false,
-				zp = true,
-				zm = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvsJob.Schedule();
-			job.Complete();
-
-			neighbordata.Dispose();
-			neighborstate.Dispose();
-			ysidelight.Dispose();
-			dsidelight.Dispose();
-		}
-
-		// XPZM Corner
-		if(loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[4]) && !xpzm){
-			xpzm = true;
-			changed = true;
-
-			NativeArray<ushort> xsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[1]].data.GetData());
-			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[1]].data.GetLightMap(loader.chunks[this.surroundingChunks[1]].metadata));	
-			NativeArray<ushort> zsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[2]].data.GetData());
-			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[2]].data.GetLightMap(loader.chunks[this.surroundingChunks[2]].metadata));
-			NativeArray<ushort> cornerdata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[4]].data.GetData());
-			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[4]].data.GetLightMap(loader.chunks[this.surroundingChunks[4]].metadata));
-
-			BuildCornerJob bcj = new BuildCornerJob{
-				xsidedata = xsidedata,
-				xsidelight = xsidelight,
-				zsidedata = zsidedata,
-				zsidelight = zsidelight,
-				cornerdata = cornerdata,
-				cornerlight = cornerlight,
-
-				pos = this.pos,
-				toBUD = toBUD,
-				reload = loadBUD,
-				data = blockdata,
-				metadata = metadata,
-				lightdata = lightdata,
-				toLoadEvent = toLoadEvent,
-				xmzm = false,
-				xpzm = true,
-				xmzp = false,
-				xpzp = false,
-				verts = verts,
-				uvs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cachedCubeVerts = cacheCubeVert,
-				cachedUVVerts = cacheUVVerts,
-				cachedCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless				
-			};
-
-			job = bcj.Schedule();
-			job.Complete();
-
-			xsidedata.Dispose();
-			xsidelight.Dispose();
-			zsidedata.Dispose();
-			zsidelight.Dispose();
-			cornerdata.Dispose();
-			cornerlight.Dispose();
-
-			// ToLoad() Event Trigger
-			coordArray = toLoadEvent.AsArray().ToArray();
-			this.message = new NetMessage(NetCode.BATCHLOADBUD);
-			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD && !xpzmBUD){
-				xpzmBUD = true;
-				foreach(int3 coord in coordArray){
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				}
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}
-			toLoadEvent.Clear();
-		}
-
-		// XMZM Corner
-		if(loader.chunks.ContainsKey(this.surroundingChunks[2]) && loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[5]) && !xmzm){
-			xmzm = true;
-			changed = true;
-
-			NativeArray<ushort> xsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[3]].data.GetData());
-			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[3]].data.GetLightMap(loader.chunks[this.surroundingChunks[3]].metadata));	
-			NativeArray<ushort> zsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[2]].data.GetData());
-			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[2]].data.GetLightMap(loader.chunks[this.surroundingChunks[2]].metadata));
-			NativeArray<ushort> cornerdata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[5]].data.GetData());
-			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[5]].data.GetLightMap(loader.chunks[this.surroundingChunks[5]].metadata));
-
-			BuildCornerJob bcj = new BuildCornerJob{
-				xsidedata = xsidedata,
-				xsidelight = xsidelight,
-				zsidedata = zsidedata,
-				zsidelight = zsidelight,
-				cornerdata = cornerdata,
-				cornerlight = cornerlight,
-
-				pos = this.pos,
-				toBUD = toBUD,
-				reload = loadBUD,
-				data = blockdata,
-				metadata = metadata,
-				lightdata = lightdata,
-				toLoadEvent = toLoadEvent,
-				xmzm = true,
-				xpzm = false,
-				xmzp = false,
-				xpzp = false,
-				verts = verts,
-				uvs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cachedCubeVerts = cacheCubeVert,
-				cachedUVVerts = cacheUVVerts,
-				cachedCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless				
-			};
-
-			job = bcj.Schedule();
-			job.Complete();
-
-			xsidedata.Dispose();
-			xsidelight.Dispose();
-			zsidedata.Dispose();
-			zsidelight.Dispose();
-			cornerdata.Dispose();
-			cornerlight.Dispose();
-
-			// ToLoad() Event Trigger
-			coordArray = toLoadEvent.AsArray().ToArray();
-			this.message = new NetMessage(NetCode.BATCHLOADBUD);
-			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD && !xmzmBUD){
-				xmzmBUD = true;
-				foreach(int3 coord in coordArray){
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				}
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}
-			toLoadEvent.Clear();
-		}
-
-		// XMZP Corner
-		if(loader.chunks.ContainsKey(this.surroundingChunks[3]) && loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[6]) && !xmzp){
-			xmzp = true;
-			changed = true;
-
-			NativeArray<ushort> xsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[3]].data.GetData());
-			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[3]].data.GetLightMap(loader.chunks[this.surroundingChunks[3]].metadata));	
-			NativeArray<ushort> zsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[0]].data.GetData());
-			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[0]].data.GetLightMap(loader.chunks[this.surroundingChunks[0]].metadata));
-			NativeArray<ushort> cornerdata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[6]].data.GetData());
-			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[6]].data.GetLightMap(loader.chunks[this.surroundingChunks[6]].metadata));
-
-			BuildCornerJob bcj = new BuildCornerJob{
-				xsidedata = xsidedata,
-				xsidelight = xsidelight,
-				zsidedata = zsidedata,
-				zsidelight = zsidelight,
-				cornerdata = cornerdata,
-				cornerlight = cornerlight,
-				pos = this.pos,
-				toBUD = toBUD,
-				reload = loadBUD,
-				data = blockdata,
-				metadata = metadata,
-				lightdata = lightdata,
-				toLoadEvent = toLoadEvent,
-				xmzm = false,
-				xpzm = false,
-				xmzp = true,
-				xpzp = false,
-				verts = verts,
-				uvs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cachedCubeVerts = cacheCubeVert,
-				cachedUVVerts = cacheUVVerts,
-				cachedCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless				
-			};
-
-			job = bcj.Schedule();
-			job.Complete();
-
-			xsidedata.Dispose();
-			xsidelight.Dispose();
-			zsidedata.Dispose();
-			zsidelight.Dispose();
-			cornerdata.Dispose();
-			cornerlight.Dispose();
-
-			// ToLoad() Event Trigger
-			coordArray = toLoadEvent.AsArray().ToArray();
-			this.message = new NetMessage(NetCode.BATCHLOADBUD);
-			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD && !xmzpBUD){
-				xmzpBUD = true;
-				foreach(int3 coord in coordArray){
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				}
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}
-			toLoadEvent.Clear();
-		}
-
-		// XPZP Corner
-		if(loader.chunks.ContainsKey(this.surroundingChunks[0]) && loader.chunks.ContainsKey(this.surroundingChunks[1]) && loader.chunks.ContainsKey(this.surroundingChunks[7]) && !xpzp){
-			xpzp = true;
-			changed = true;
-
-			NativeArray<ushort> xsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[1]].data.GetData());
-			NativeArray<byte> xsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[1]].data.GetLightMap(loader.chunks[this.surroundingChunks[1]].metadata));	
-			NativeArray<ushort> zsidedata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[0]].data.GetData());
-			NativeArray<byte> zsidelight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[0]].data.GetLightMap(loader.chunks[this.surroundingChunks[0]].metadata));
-			NativeArray<ushort> cornerdata = NativeTools.CopyToNative<ushort>(loader.chunks[this.surroundingChunks[7]].data.GetData());
-			NativeArray<byte> cornerlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[7]].data.GetLightMap(loader.chunks[this.surroundingChunks[7]].metadata));
-
-			BuildCornerJob bcj = new BuildCornerJob{
-				xsidedata = xsidedata,
-				xsidelight = xsidelight,
-				zsidedata = zsidedata,
-				zsidelight = zsidelight,
-				cornerdata = cornerdata,
-				cornerlight = cornerlight,
-
-				pos = this.pos,
-				toBUD = toBUD,
-				reload = loadBUD,
-				data = blockdata,
-				metadata = metadata,
-				lightdata = lightdata,
-				toLoadEvent = toLoadEvent,
-				xmzm = false,
-				xpzm = false,
-				xmzp = false,
-				xpzp = true,
-				verts = verts,
-				uvs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cachedCubeVerts = cacheCubeVert,
-				cachedUVVerts = cacheUVVerts,
-				cachedCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless				
-			};
-
-			job = bcj.Schedule();
-			job.Complete();
-
-			xsidedata.Dispose();
-			xsidelight.Dispose();
-			zsidedata.Dispose();
-			zsidelight.Dispose();
-			cornerdata.Dispose();
-			cornerlight.Dispose();
-
-			// ToLoad() Event Trigger
-			coordArray = toLoadEvent.AsArray().ToArray();
-			this.message = new NetMessage(NetCode.BATCHLOADBUD);
-			this.message.BatchLoadBUD(this.pos);
-			if(loadBUD && !xpzpBUD){
-				xpzpBUD = true;
-				foreach(int3 coord in coordArray){
-					this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-				}
-				this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
-			}
-			toLoadEvent.Clear();
-		}
-
-		// Vertical Corners
-		// 
-		// XMZM Top
-		if(CornerIsReady(top:true, xmzm:true) && !txmzmDraw){
-			txmzmDraw = true;
-			changed = true;
-
-			NativeArray<byte> xlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[3]].data.GetLightMap(loader.chunks[this.surroundingChunks[3]].metadata));
-			NativeArray<byte> ylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[0]].metadata));
-			NativeArray<byte> zlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[2]].data.GetLightMap(loader.chunks[this.surroundingChunks[2]].metadata));
-			NativeArray<byte> xylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[3]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[3]].metadata));
-			NativeArray<byte> xzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[5]].data.GetLightMap(loader.chunks[this.surroundingChunks[5]].metadata));
-			NativeArray<byte> yzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[2]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[2]].metadata));
-			NativeArray<byte> xyzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[5]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[5]].metadata));
-
-			BuildVerticalCornerJob bvcJob = new BuildVerticalCornerJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				xlight = xlight,
-				ylight = ylight,
-				zlight = zlight,
-				xylight = xylight,
-				xzlight = xzlight,
-				yzlight = yzlight,
-				xyzlight = xyzlight,
-				renderMap = renderMap,
-				isBottom = false,
-				isTop = true,
-				xmzm = true,
-				xpzm = false,
-				xmzp = false,
-				xpzp = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvcJob.Schedule();
-			job.Complete();
-
-			xlight.Dispose();
-			ylight.Dispose();
-			zlight.Dispose();
-			xylight.Dispose();
-			xzlight.Dispose();
-			yzlight.Dispose();
-			xyzlight.Dispose();
-		}
-
-		// XPZM Top
-		if(CornerIsReady(top:true, xpzm:true) && !txpzmDraw){
-			txpzmDraw = true;
-			changed = true;
-
-			NativeArray<byte> xlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[1]].data.GetLightMap(loader.chunks[this.surroundingChunks[1]].metadata));
-			NativeArray<byte> ylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[0]].metadata));
-			NativeArray<byte> zlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[2]].data.GetLightMap(loader.chunks[this.surroundingChunks[2]].metadata));
-			NativeArray<byte> xylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[1]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[1]].metadata));
-			NativeArray<byte> xzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[4]].data.GetLightMap(loader.chunks[this.surroundingChunks[4]].metadata));
-			NativeArray<byte> yzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[2]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[2]].metadata));
-			NativeArray<byte> xyzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[4]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[4]].metadata));
-
-			BuildVerticalCornerJob bvcJob = new BuildVerticalCornerJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				xlight = xlight,
-				ylight = ylight,
-				zlight = zlight,
-				xylight = xylight,
-				xzlight = xzlight,
-				yzlight = yzlight,
-				xyzlight = xyzlight,
-				renderMap = renderMap,
-				isBottom = false,
-				isTop = true,
-				xmzm = false,
-				xpzm = true,
-				xmzp = false,
-				xpzp = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvcJob.Schedule();
-			job.Complete();
-
-			xlight.Dispose();
-			ylight.Dispose();
-			zlight.Dispose();
-			xylight.Dispose();
-			xzlight.Dispose();
-			yzlight.Dispose();
-			xyzlight.Dispose();
-		}
-
-		// XMZP Top
-		if(CornerIsReady(top:true, xmzp:true)&& !txmzpDraw){
-			txmzpDraw = true;
-			changed = true;
-
-			NativeArray<byte> xlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[3]].data.GetLightMap(loader.chunks[this.surroundingChunks[3]].metadata));
-			NativeArray<byte> ylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[0]].metadata));
-			NativeArray<byte> zlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[0]].data.GetLightMap(loader.chunks[this.surroundingChunks[0]].metadata));
-			NativeArray<byte> xylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[3]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[3]].metadata));
-			NativeArray<byte> xzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[6]].data.GetLightMap(loader.chunks[this.surroundingChunks[6]].metadata));
-			NativeArray<byte> yzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[0]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[0]].metadata));
-			NativeArray<byte> xyzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[6]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[6]].metadata));
-
-			BuildVerticalCornerJob bvcJob = new BuildVerticalCornerJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				xlight = xlight,
-				ylight = ylight,
-				zlight = zlight,
-				xylight = xylight,
-				xzlight = xzlight,
-				yzlight = yzlight,
-				xyzlight = xyzlight,
-				renderMap = renderMap,
-				isBottom = false,
-				isTop = true,
-				xmzm = false,
-				xpzm = false,
-				xmzp = true,
-				xpzp = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvcJob.Schedule();
-			job.Complete();
-
-			xlight.Dispose();
-			ylight.Dispose();
-			zlight.Dispose();
-			xylight.Dispose();
-			xzlight.Dispose();
-			yzlight.Dispose();
-			xyzlight.Dispose();
-		}
-
-		// XPZP Top
-		if(CornerIsReady(top:true, xpzp:true) && !txpzpDraw){
-			txpzpDraw = true;
-			changed = true;
-
-			NativeArray<byte> xlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[1]].data.GetLightMap(loader.chunks[this.surroundingChunks[1]].metadata));
-			NativeArray<byte> ylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[0]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[0]].metadata));
-			NativeArray<byte> zlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[0]].data.GetLightMap(loader.chunks[this.surroundingChunks[0]].metadata));
-			NativeArray<byte> xylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[1]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[1]].metadata));
-			NativeArray<byte> xzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[7]].data.GetLightMap(loader.chunks[this.surroundingChunks[7]].metadata));
-			NativeArray<byte> yzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[0]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[0]].metadata));
-			NativeArray<byte> xyzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingTopChunks[7]].data.GetLightMap(loader.chunks[this.surroundingTopChunks[7]].metadata));
-
-			BuildVerticalCornerJob bvcJob = new BuildVerticalCornerJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				xlight = xlight,
-				ylight = ylight,
-				zlight = zlight,
-				xylight = xylight,
-				xzlight = xzlight,
-				yzlight = yzlight,
-				xyzlight = xyzlight,
-				renderMap = renderMap,
-				isBottom = false,
-				isTop = true,
-				xmzm = false,
-				xpzm = false,
-				xmzp = false,
-				xpzp = true,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvcJob.Schedule();
-			job.Complete();
-
-			xlight.Dispose();
-			ylight.Dispose();
-			zlight.Dispose();
-			xylight.Dispose();
-			xzlight.Dispose();
-			yzlight.Dispose();
-			xyzlight.Dispose();
-		}
-
-		// XMZM Bot
-		if(CornerIsReady(bottom:true, xmzm:true) && !bxmzmDraw){
-			bxmzmDraw = true;
-			changed = true;
-
-			NativeArray<byte> xlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[3]].data.GetLightMap(loader.chunks[this.surroundingChunks[3]].metadata));
-			NativeArray<byte> ylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[1]].metadata));
-			NativeArray<byte> zlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[2]].data.GetLightMap(loader.chunks[this.surroundingChunks[2]].metadata));
-			NativeArray<byte> xylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[3]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[3]].metadata));
-			NativeArray<byte> xzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[5]].data.GetLightMap(loader.chunks[this.surroundingChunks[5]].metadata));
-			NativeArray<byte> yzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[2]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[2]].metadata));
-			NativeArray<byte> xyzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[5]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[5]].metadata));
-
-
-			BuildVerticalCornerJob bvcJob = new BuildVerticalCornerJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				xlight = xlight,
-				ylight = ylight,
-				zlight = zlight,
-				xylight = xylight,
-				xzlight = xzlight,
-				yzlight = yzlight,
-				xyzlight = xyzlight,
-				renderMap = renderMap,
-				isBottom = true,
-				isTop = false,
-				xmzm = true,
-				xpzm = false,
-				xmzp = false,
-				xpzp = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvcJob.Schedule();
-			job.Complete();
-
-			xlight.Dispose();
-			ylight.Dispose();
-			zlight.Dispose();
-			xylight.Dispose();
-			xzlight.Dispose();
-			yzlight.Dispose();
-			xyzlight.Dispose();
-		}
-
-		// XPZM Bot
-		if(CornerIsReady(bottom:true, xpzm:true) && !bxpzmDraw){
-			bxpzmDraw = true;
-			changed = true;
-
-			NativeArray<byte> xlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[1]].data.GetLightMap(loader.chunks[this.surroundingChunks[1]].metadata));
-			NativeArray<byte> ylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[1]].metadata));
-			NativeArray<byte> zlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[2]].data.GetLightMap(loader.chunks[this.surroundingChunks[2]].metadata));
-			NativeArray<byte> xylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[1]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[1]].metadata));
-			NativeArray<byte> xzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[4]].data.GetLightMap(loader.chunks[this.surroundingChunks[4]].metadata));
-			NativeArray<byte> yzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[2]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[2]].metadata));
-			NativeArray<byte> xyzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[4]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[4]].metadata));
-
-			BuildVerticalCornerJob bvcJob = new BuildVerticalCornerJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				xlight = xlight,
-				ylight = ylight,
-				zlight = zlight,
-				xylight = xylight,
-				xzlight = xzlight,
-				yzlight = yzlight,
-				xyzlight = xyzlight,
-				renderMap = renderMap,
-				isBottom = true,
-				isTop = false,
-				xmzm = false,
-				xpzm = true,
-				xmzp = false,
-				xpzp = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvcJob.Schedule();
-			job.Complete();
-
-			xlight.Dispose();
-			ylight.Dispose();
-			zlight.Dispose();
-			xylight.Dispose();
-			xzlight.Dispose();
-			yzlight.Dispose();
-			xyzlight.Dispose();
-		}
-
-		// XMZP Bot
-		if(CornerIsReady(bottom:true, xmzp:true) && !bxmzpDraw){
-			bxmzpDraw = true;
-			changed = true;
-
-			NativeArray<byte> xlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[3]].data.GetLightMap(loader.chunks[this.surroundingChunks[3]].metadata));
-			NativeArray<byte> ylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[1]].metadata));
-			NativeArray<byte> zlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[0]].data.GetLightMap(loader.chunks[this.surroundingChunks[0]].metadata));
-			NativeArray<byte> xylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[3]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[3]].metadata));
-			NativeArray<byte> xzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[6]].data.GetLightMap(loader.chunks[this.surroundingChunks[6]].metadata));
-			NativeArray<byte> yzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[0]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[0]].metadata));
-			NativeArray<byte> xyzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[6]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[6]].metadata));
-
-			BuildVerticalCornerJob bvcJob = new BuildVerticalCornerJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				xlight = xlight,
-				ylight = ylight,
-				zlight = zlight,
-				xylight = xylight,
-				xzlight = xzlight,
-				yzlight = yzlight,
-				xyzlight = xyzlight,
-				renderMap = renderMap,
-				isBottom = true,
-				isTop = false,
-				xmzm = false,
-				xpzm = false,
-				xmzp = true,
-				xpzp = false,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvcJob.Schedule();
-			job.Complete();
-
-			xlight.Dispose();
-			ylight.Dispose();
-			zlight.Dispose();
-			xylight.Dispose();
-			xzlight.Dispose();
-			yzlight.Dispose();
-			xyzlight.Dispose();
-		}
-
-		// XPZP Bot
-		if(CornerIsReady(bottom:true, xpzp:true) && !bxpzpDraw){
-			bxpzpDraw = true;
-			changed = true;
-
-			NativeArray<byte> xlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[1]].data.GetLightMap(loader.chunks[this.surroundingChunks[1]].metadata));
-			NativeArray<byte> ylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingVerticalChunks[1]].data.GetLightMap(loader.chunks[this.surroundingVerticalChunks[1]].metadata));
-			NativeArray<byte> zlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[0]].data.GetLightMap(loader.chunks[this.surroundingChunks[0]].metadata));
-			NativeArray<byte> xylight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[1]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[1]].metadata));
-			NativeArray<byte> xzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingChunks[7]].data.GetLightMap(loader.chunks[this.surroundingChunks[7]].metadata));
-			NativeArray<byte> yzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[0]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[0]].metadata));
-			NativeArray<byte> xyzlight = NativeTools.CopyToNative<byte>(loader.chunks[this.surroundingBotChunks[7]].data.GetLightMap(loader.chunks[this.surroundingBotChunks[7]].metadata));
-
-			BuildVerticalCornerJob bvcJob = new BuildVerticalCornerJob{
-				pos = this.pos,
-				data = blockdata,
-				state = metadata,
-				xlight = xlight,
-				ylight = ylight,
-				zlight = zlight,
-				xylight = xylight,
-				xzlight = xzlight,
-				yzlight = yzlight,
-				xyzlight = xyzlight,
-				renderMap = renderMap,
-				isBottom = true,
-				isTop = false,
-				xmzm = false,
-				xpzm = false,
-				xmzp = false,
-				xpzp = true,
-				verts = verts,
-				UVs = uvs,
-				normals = normals,
-				tangents = tangents,
-				normalTris = tris,
-				specularTris = specularTris,
-				liquidTris = liquidTris,
-				leavesTris = leavesTris,
-				iceTris = iceTris,
-				lavaTris = lavaTris,
-				lightUV = lightUV,
-				cacheCubeVert = cacheCubeVert,
-				cacheCubeUV = cacheUVVerts,
-				cacheCubeNormal = cacheCubeNormal,
-				cacheCubeTangent = cacheCubeTangent,
-				blockTransparent = BlockEncyclopediaECS.blockTransparent,
-				objectTransparent = BlockEncyclopediaECS.objectTransparent,
-				blockSeamless = BlockEncyclopediaECS.blockSeamless,
-				objectSeamless = BlockEncyclopediaECS.objectSeamless,
-				blockInvisible = BlockEncyclopediaECS.blockInvisible,
-				objectInvisible = BlockEncyclopediaECS.objectInvisible,
-				blockMaterial = BlockEncyclopediaECS.blockMaterial,
-				objectMaterial = BlockEncyclopediaECS.objectMaterial,
-				blockWashable = BlockEncyclopediaECS.blockWashable,
-				objectWashable = BlockEncyclopediaECS.objectWashable,
-				blockTiles = BlockEncyclopediaECS.blockTiles,
-				blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
-			};
-
-			job = bvcJob.Schedule();
-			job.Complete();
-
-			xlight.Dispose();
-			ylight.Dispose();
-			zlight.Dispose();
-			xylight.Dispose();
-			xzlight.Dispose();
-			yzlight.Dispose();
-			xyzlight.Dispose();
-		}
-
-		
-		// If mesh was redrawn
-		if(changed){
-			NativeTris triangleStructure = new NativeTris(tris, specularTris, liquidTris, leavesTris, iceTris, lavaTris);
-
-			BuildMeshSide(verts.ToArray(), uvs.ToArray(), lightUV.ToArray(), normals.ToArray(), tangents.ToArray(), triangleStructure);
-			BuildDecalMesh(vertsDecal.ToArray(), UVDecal.ToArray(), trisDecal.ToArray());
-		}
-
-		tris.Dispose();
-		specularTris.Dispose();
-		liquidTris.Dispose();
-		leavesTris.Dispose();
-		iceTris.Dispose();
-		lavaTris.Dispose();
-
-		blockdata.Dispose();
-		metadata.Dispose();
-		renderMap.Dispose();
-		verts.Dispose();
-		uvs.Dispose();
-		normals.Dispose();
-		tangents.Dispose();
-		cacheCubeVert.Dispose();
-		cacheUVVerts.Dispose();
-		cacheCubeNormal.Dispose();
-		cacheCubeTangent.Dispose();
-		toLoadEvent.Dispose();
-		toBUD.Dispose();
-		lightUV.Dispose();
-		lightdata.Dispose();
-		hpdata.Dispose();
-		vertsDecal.Dispose();
-		UVDecal.Dispose();
-		trisDecal.Dispose();
-		cacheCubeVertsDecal.Dispose();
-	}
-
-	// Checks if needed chunks to generate a vertical corner are loaded
-	private bool CornerIsReady(bool bottom=false, bool top=false, bool xmzm=false, bool xpzm=false, bool xmzp=false, bool xpzp=false){
-		if(bottom){
-			if(xmzm){
-				if(Has(surroundingChunks[3]) && Has(surroundingVerticalChunks[1]) && Has(surroundingChunks[2]) && Has(surroundingBotChunks[3]) &&
-					Has(surroundingChunks[5]) && Has(surroundingBotChunks[2]) && Has(surroundingBotChunks[5])){
-					return true;
-				}
-			}
-			else if(xmzp){
-				if(Has(surroundingChunks[3]) && Has(surroundingVerticalChunks[1]) && Has(surroundingChunks[0]) &&
-					Has(surroundingBotChunks[3]) && Has(surroundingChunks[6]) && Has(surroundingBotChunks[0]) && Has(surroundingBotChunks[6])){
-					return true;
-				}
-			}
-			else if(xpzm){
-				if(Has(surroundingChunks[1]) && Has(surroundingVerticalChunks[1]) && Has(surroundingChunks[2]) && Has(surroundingBotChunks[1]) &&
-				    Has(surroundingChunks[4]) && Has(surroundingBotChunks[2]) && Has(surroundingBotChunks[4])){
-					return true;
-				}
-			}
-			else if(xpzp){
-				if(Has(surroundingChunks[1]) && Has(surroundingVerticalChunks[1]) && Has(surroundingChunks[0]) && Has(surroundingBotChunks[1]) && 
-					Has(surroundingChunks[7]) && Has(surroundingBotChunks[0]) && Has(surroundingBotChunks[7])){
-					return true;
-				}
-			}
-		}
-		else if(top){
-			if(xmzm){
-				if(Has(surroundingChunks[3]) && Has(surroundingVerticalChunks[0]) && Has(surroundingChunks[2]) && Has(surroundingTopChunks[3]) &&
-					Has(surroundingChunks[5]) && Has(surroundingTopChunks[2]) && Has(surroundingTopChunks[5])){
-					return true;
-				}
-			}
-			else if(xmzp){
-				if(Has(surroundingChunks[3]) && Has(surroundingVerticalChunks[0]) && Has(surroundingChunks[0]) &&
-					Has(surroundingTopChunks[3]) && Has(surroundingChunks[6]) && Has(surroundingTopChunks[0]) && Has(surroundingTopChunks[6])){
-					return true;
-				}
-			}
-			else if(xpzm){
-				if(Has(surroundingChunks[1]) && Has(surroundingVerticalChunks[0]) && Has(surroundingChunks[2]) && Has(surroundingTopChunks[1]) &&
-				    Has(surroundingChunks[4]) && Has(surroundingTopChunks[2]) && Has(surroundingTopChunks[4])){
-					return true;
-				}
-			}
-			else if(xpzp){
-				if(Has(surroundingChunks[1]) && Has(surroundingVerticalChunks[0]) && Has(surroundingChunks[0]) && Has(surroundingTopChunks[1]) && 
-					Has(surroundingChunks[7]) && Has(surroundingTopChunks[0]) && Has(surroundingTopChunks[7])){
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	// Short for "loader.chunks.ContainsKey()"
 	private bool Has(ChunkPos pos){
 		return this.loader.chunks.ContainsKey(pos);
 	}
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
-	public void BuildChunk(bool load=false, bool pregenReload=false){
+	public void BuildChunk(bool load=false){
 		/*
 		Reset Chunk side rebuilding
 		*/
@@ -2568,15 +270,16 @@ public class Chunk
     	this.assetTris = null;
     	this.UVs.Clear();
     	this.lightUVMain.Clear();
-    	this.decalVertices.Clear();
-    	this.decalUV.Clear();
-    	this.decalTris = null;
+
+    	ChunkPos auxPos;
+    	int verticalCode = 0;
+
 
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
 		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
+    	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
 		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap(this.metadata));
-		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());
-		
+		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<ushort> loadCodeList = new NativeList<ushort>(0, Allocator.TempJob);
 		NativeList<int3> loadAssetList = new NativeList<int3>(0, Allocator.TempJob);
@@ -2597,13 +300,186 @@ public class Chunk
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector4> cacheCubeTangent = new NativeArray<Vector4>(4, Allocator.TempJob);
 
+		NativeList<int> decalTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<Vector3> decalVerts = new NativeList<Vector3>(0, Allocator.TempJob);
+		NativeList<Vector2> decalUVs = new NativeList<Vector2>(0, Allocator.TempJob);
+
+		auxPos = new ChunkPos(pos.x-1, pos.z, pos.y);
+		NativeArray<ushort> xmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x+1, pos.z, pos.y);
+		NativeArray<ushort> xpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x, pos.z-1, pos.y);
+		NativeArray<ushort> zmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> zmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x, pos.z+1, pos.y);
+		NativeArray<ushort> zpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> zplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x-1, pos.z-1, pos.y);
+		NativeArray<ushort> xmzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xmzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x-1, pos.z+1, pos.y);
+		NativeArray<ushort> xmzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xmzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x+1, pos.z-1, pos.y);
+		NativeArray<ushort> xpzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xpzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+		auxPos = new ChunkPos(pos.x+1, pos.z+1, pos.y);
+		NativeArray<ushort> xpzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+		NativeArray<byte> xpzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+
+		NativeArray<ushort> vdata;
+		NativeArray<ushort> vxmdata;
+		NativeArray<ushort> vxpdata;
+		NativeArray<ushort> vzmdata;
+		NativeArray<ushort> vzpdata;
+		NativeArray<ushort> vxmzmdata;
+		NativeArray<ushort> vxmzpdata;
+		NativeArray<ushort> vxpzmdata;
+		NativeArray<ushort> vxpzpdata;
+		NativeArray<byte> vlight;
+		NativeArray<byte> vxmlight;
+		NativeArray<byte> vxplight;
+		NativeArray<byte> vzmlight;
+		NativeArray<byte> vzplight;
+		NativeArray<byte> vxmzmlight;
+		NativeArray<byte> vxmzplight;
+		NativeArray<byte> vxpzmlight;
+		NativeArray<byte> vxpzplight;
+
+		if(Has(this.surroundingVerticalChunks[0]) && this.loader.CanBeDrawn(this.surroundingVerticalChunks[0])){
+			vdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[this.surroundingVerticalChunks[0]].data.GetData());
+			vlight = NativeTools.CopyToNative<byte>(this.loader.chunks[this.surroundingVerticalChunks[0]].data.GetLightMap(this.loader.chunks[this.surroundingVerticalChunks[0]].metadata));
+
+			auxPos = new ChunkPos(pos.x-1, pos.z, pos.y+1);
+			vxmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x+1, pos.z, pos.y+1);
+			vxpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x, pos.z-1, pos.y+1);
+			vzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x, pos.z+1, pos.y+1);
+			vzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x-1, pos.z-1, pos.y+1);
+			vxmzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxmzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x-1, pos.z+1, pos.y+1);
+			vxmzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxmzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x+1, pos.z-1, pos.y+1);
+			vxpzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxpzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x+1, pos.z+1, pos.y+1);
+			vxpzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxpzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			verticalCode = 1;			
+		}
+		else if(Has(this.surroundingVerticalChunks[1]) && this.loader.CanBeDrawn(this.surroundingVerticalChunks[1])){
+			vdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[this.surroundingVerticalChunks[1]].data.GetData());
+			vlight = NativeTools.CopyToNative<byte>(this.loader.chunks[this.surroundingVerticalChunks[1]].data.GetLightMap(this.loader.chunks[this.surroundingVerticalChunks[1]].metadata));
+
+			auxPos = new ChunkPos(pos.x-1, pos.z, pos.y-1);
+			vxmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x+1, pos.z, pos.y-1);
+			vxpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x, pos.z-1, pos.y-1);
+			vzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x, pos.z+1, pos.y-1);
+			vzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x-1, pos.z-1, pos.y-1);
+			vxmzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxmzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x-1, pos.z+1, pos.y-1);
+			vxmzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxmzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x+1, pos.z-1, pos.y-1);
+			vxpzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxpzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
+			auxPos = new ChunkPos(pos.x+1, pos.z+1, pos.y-1);
+			vxpzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
+			vxpzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));	
+			verticalCode = -1;			
+		}
+		else{
+			vdata = new NativeArray<ushort>(0, Allocator.TempJob);
+			vlight = new NativeArray<byte>(0, Allocator.TempJob);
+
+			vxmdata = new NativeArray<ushort>(0, Allocator.TempJob);
+			vxpdata = new NativeArray<ushort>(0, Allocator.TempJob);
+			vzmdata = new NativeArray<ushort>(0, Allocator.TempJob);
+			vzpdata = new NativeArray<ushort>(0, Allocator.TempJob);
+			vxmzmdata = new NativeArray<ushort>(0, Allocator.TempJob);
+			vxmzpdata = new NativeArray<ushort>(0, Allocator.TempJob);
+			vxpzmdata = new NativeArray<ushort>(0, Allocator.TempJob);
+			vxpzpdata = new NativeArray<ushort>(0, Allocator.TempJob);
+			vxmlight = new NativeArray<byte>(0, Allocator.TempJob);
+			vxplight = new NativeArray<byte>(0, Allocator.TempJob);
+			vzmlight = new NativeArray<byte>(0, Allocator.TempJob);
+			vzplight = new NativeArray<byte>(0, Allocator.TempJob);
+			vxmzmlight = new NativeArray<byte>(0, Allocator.TempJob);
+			vxmzplight = new NativeArray<byte>(0, Allocator.TempJob);
+			vxpzmlight = new NativeArray<byte>(0, Allocator.TempJob);
+			vxpzplight = new NativeArray<byte>(0, Allocator.TempJob);
+		}
+
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{
 			pos = pos,
 			load = load,
 			data = blockdata,
 			state = statedata,
+			hp = hpdata,
 			lightdata = lightdata,
+
+			xmdata = xmdata,
+			xpdata = xpdata,
+			zmdata = zmdata,
+			zpdata = zpdata,
+			xmzmdata = xmzmdata,
+			xmzpdata = xmzpdata,
+			xpzmdata = xpzmdata,
+			xpzpdata = xpzpdata,
+
+			xmlight = xmlight,
+			xplight = xplight,
+			zmlight = zmlight,
+			zplight = zplight,
+			xmzmlight = xmzmlight,
+			xmzplight = xmzplight,
+			xpzmlight = xpzmlight,
+			xpzplight = xpzplight,
+
+			vdata = vdata,
+			vlight = vlight,
+
+			vxmdata = vxmdata,
+			vxpdata = vxpdata,
+			vzmdata = vzmdata,
+			vzpdata = vzpdata,
+			vxmzmdata = vxmzmdata,
+			vxmzpdata = vxmzpdata,
+			vxpzmdata = vxpzmdata,
+			vxpzpdata = vxpzpdata,
+
+			vxmlight = vxmlight,
+			vxplight = vxplight,
+			vzmlight = vzmlight,
+			vzplight = vzplight,
+			vxmzmlight = vxmzmlight,
+			vxmzplight = vxmzplight,
+			vxpzmlight = vxpzmlight,
+			vxpzplight = vxpzplight,
+
+			verticalCode = verticalCode,
+
 			loadOutList = loadCoordList,
 			loadAssetList = loadAssetList,
 			renderMap = renderMap,
@@ -2618,6 +494,9 @@ public class Chunk
 			leavesTris = leavesTris,
 			iceTris = iceTris,
 			lavaTris = lavaTris,
+			decalTris = decalTris,
+			decalUVs = decalUVs,
+			decalVerts = decalVerts,
 			cacheCubeVert = cacheCubeVert,
 			cacheCubeUV = cacheCubeUV,
 			cacheCubeNormal = cacheCubeNormal,
@@ -2635,11 +514,11 @@ public class Chunk
 			blockWashable = BlockEncyclopediaECS.blockWashable,
 			objectWashable = BlockEncyclopediaECS.objectWashable,
 			blockTiles = BlockEncyclopediaECS.blockTiles,
-			blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless
+			blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless,
+			blockHP = BlockEncyclopediaECS.blockHP,
+			objectHP = BlockEncyclopediaECS.objectHP
 		};
 		JobHandle job = bcJob.Schedule();
-
-		BuildAllDecals(blockdata, renderMap);
 
 		job.Complete();
 
@@ -2820,6 +699,7 @@ public class Chunk
 		this.tangents.AddRange(tangents.ToArray());
 		this.tangents.AddRange(meshTangents.ToArray());
 
+		BuildDecalMesh(decalVerts.ToArray(), decalUVs.ToArray(), decalTris.ToArray());
 		BuildHitboxMesh(hitboxVerts.ToArray(), hitboxNormals.ToArray(), hitboxTriangles.ToArray());
 
 		// Dispose Bin
@@ -2872,7 +752,49 @@ public class Chunk
 		hitboxVertsOffset.Dispose();
 		hitboxTrisOffset.Dispose();
 		hitboxScaling.Dispose();
+		hpdata.Dispose();
+		decalTris.Dispose();
+		decalVerts.Dispose();
+		decalUVs.Dispose();
 
+		vdata.Dispose();
+		vlight.Dispose();
+
+		xmdata.Dispose();
+		xpdata.Dispose();
+		zmdata.Dispose();
+		zpdata.Dispose();
+		xmzmdata.Dispose();
+		xmzpdata.Dispose();
+		xpzmdata.Dispose();
+		xpzpdata.Dispose();
+
+		xmlight.Dispose();
+		xplight.Dispose();
+		zmlight.Dispose();
+		zplight.Dispose();
+		xmzmlight.Dispose();
+		xmzplight.Dispose();
+		xpzmlight.Dispose();
+		xpzplight.Dispose();
+
+		vxmdata.Dispose();
+		vxpdata.Dispose();
+		vzmdata.Dispose();
+		vzpdata.Dispose();
+		vxmzmdata.Dispose();
+		vxmzpdata.Dispose();
+		vxpzmdata.Dispose();
+		vxpzpdata.Dispose();
+
+		vxmlight.Dispose();
+		vxplight.Dispose();
+		vzmlight.Dispose();
+		vzplight.Dispose();
+		vxmzmlight.Dispose();
+		vxmzplight.Dispose();
+		vxpzmlight.Dispose();
+		vxpzplight.Dispose();
 
 		BuildMesh();
 
@@ -2892,84 +814,6 @@ public class Chunk
 		this.hitboxScaling.Clear();
 		this.cacheLightUV.Clear();
 		this.drawMain = true;
-    }
-
-    public void BuildAllDecals(NativeArray<ushort> blockdata, NativeArray<byte> renderMap){
-    	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
-
-		NativeList<int> triangles = new NativeList<int>(0, Allocator.TempJob);
-		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeArray<Vector3> cacheVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
-
-		BuildDecalJob bdj = new BuildDecalJob{
-			pos = pos,
-			blockdata = blockdata,
-			renderMap = renderMap,
-			verts = verts,
-			UV = UVs,
-			triangles = triangles,
-			hpdata = hpdata,
-			blockHP = BlockEncyclopediaECS.blockHP,
-			objectHP = BlockEncyclopediaECS.objectHP,
-			blockInvisible = BlockEncyclopediaECS.blockInvisible,
-			objectInvisible = BlockEncyclopediaECS.objectInvisible,
-			blockTransparent = BlockEncyclopediaECS.blockTransparent,
-			objectTransparent = BlockEncyclopediaECS.objectTransparent,
-			cacheCubeVerts = cacheVerts
-		};
-		JobHandle job = bdj.Schedule();
-		job.Complete();
-
-		this.decalVertices.AddRange(verts.ToArray());
-		this.decalUV.AddRange(UVs.ToArray());
-		this.decalTris = triangles.ToArray();
-
-		BuildDecalMesh(verts.ToArray(), UVs.ToArray(), this.decalTris);
-
-		// Dispose Bin
-		hpdata.Dispose();
-		triangles.Dispose();
-		verts.Dispose();
-		UVs.Dispose();
-		cacheVerts.Dispose();
-    }
-
-    public void BuildAllDecals(){
-    	NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
-    	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
-
-		NativeList<int> triangles = new NativeList<int>(0, Allocator.TempJob);
-		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeArray<Vector3> cacheVerts = new NativeArray<Vector3>(4, Allocator.TempJob);
-
-		BuildDecalJob bdj = new BuildDecalJob{
-			pos = pos,
-			blockdata = blockdata,
-			verts = verts,
-			UV = UVs,
-			triangles = triangles,
-			hpdata = hpdata,
-			blockHP = BlockEncyclopediaECS.blockHP,
-			objectHP = BlockEncyclopediaECS.objectHP,
-			blockInvisible = BlockEncyclopediaECS.blockInvisible,
-			objectInvisible = BlockEncyclopediaECS.objectInvisible,
-			blockTransparent = BlockEncyclopediaECS.blockTransparent,
-			objectTransparent = BlockEncyclopediaECS.objectTransparent,
-			cacheCubeVerts = cacheVerts
-		};
-		JobHandle job = bdj.Schedule();
-		job.Complete();
-
-		BuildDecalMesh(verts.ToArray(), UVs.ToArray(), triangles.ToArray());
-
-		// Dispose Bin
-		hpdata.Dispose();
-		triangles.Dispose();
-		verts.Dispose();
-		UVs.Dispose();
-		cacheVerts.Dispose();
     }
 
     // Returns n ShadowUVs to a list
@@ -3013,39 +857,6 @@ public class Chunk
 
     	this.meshFilter.mesh.SetNormals(this.normals.ToArray());
     	this.meshFilter.mesh.SetTangents(this.tangents.ToArray());
-    }
-
-    // Builds meshes from verts, UVs and tris from different layers
-    private void BuildMeshSide(Vector3[] verts, Vector2[] UV, Vector2[] lightUV, Vector3[] normals, Vector4[] tangents, NativeTris triStruct){
-    	this.meshCollider.sharedMesh.Clear();
-    	this.meshFilter.mesh.Clear();
-
-    	if(verts.Length >= ushort.MaxValue){
-    		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-    	}
-
-    	this.meshFilter.mesh.subMeshCount = 7;
-
-    	this.meshFilter.mesh.vertices = verts;
-    	this.meshFilter.mesh.SetTriangles(triStruct.tris.ToArray(), 0);
-    	this.meshFilter.mesh.SetTriangles(triStruct.iceTris.ToArray(), 5);
-
-    	// Fix for a stupid Unity Bug
-    	if(verts.Length > 0){
-	    	this.meshCollider.sharedMesh = null;
-	    	this.meshCollider.sharedMesh = this.meshFilter.mesh;
-    	}
-
-    	this.meshFilter.mesh.SetTriangles(triStruct.specularTris.ToArray(), 1);
-    	this.meshFilter.mesh.SetTriangles(triStruct.liquidTris.ToArray(), 2);
-    	this.meshFilter.mesh.SetTriangles(this.assetTris, 3);
-    	this.meshFilter.mesh.SetTriangles(triStruct.leavesTris.ToArray(), 4);
-    	this.meshFilter.mesh.SetTriangles(triStruct.lavaTris.ToArray(), 6);
-
-    	this.meshFilter.mesh.uv = UV;
-    	this.meshFilter.mesh.uv4 = lightUV;
-    	this.meshFilter.mesh.SetNormals(normals);
-    	this.meshFilter.mesh.SetTangents(tangents);
     }
 
     // Builds the decal mesh
