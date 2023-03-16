@@ -442,12 +442,17 @@ public struct BuildChunkJob : IJob{
 			}
 		}
 
-		int sideCode = CheckSide(x, y, z);
+		int sideCode = CheckSide(coord.x, coord.y, coord.z);
 
-		if(y == -1)
-			y = Chunk.chunkDepth;
-		else if(y == Chunk.chunkDepth)
+		if(coord.y == -1)
+			y = Chunk.chunkDepth-1;
+		else if(coord.y == Chunk.chunkDepth)
 			y = 0;
+		else
+			y = coord.y;
+
+		x = coord.x;
+		z = coord.z;
 
 		if(isNatural){
 			switch(sideCode){
@@ -549,12 +554,17 @@ public struct BuildChunkJob : IJob{
 			}
 		}
 
-		int sideCode = CheckSide(x, y, z);
+		int sideCode = CheckSide(coord.x, coord.y, coord.z);
 
-		if(y == -1)
-			y = Chunk.chunkDepth;
-		else if(y == Chunk.chunkDepth)
+		if(coord.y == -1)
+			y = Chunk.chunkDepth-1;
+		else if(coord.y == Chunk.chunkDepth)
 			y = 0;
+		else
+			y = coord.y;
+
+		x = coord.x;
+		z = coord.z;
 
 		if(isNatural){
 			switch(sideCode){
@@ -1015,7 +1025,6 @@ public struct BuildChunkJob : IJob{
     	int3 auxPos = new int3(x,y,z) + VoxelData.offsets[dir];
 
     	CalculateLightCorners(auxPos, dir, array, currentLightLevel);
-
     }
 
     // Sets the secondary UV of ExtraLights Lightmaps

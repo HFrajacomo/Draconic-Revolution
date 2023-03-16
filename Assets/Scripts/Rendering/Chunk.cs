@@ -518,10 +518,9 @@ public class Chunk
 			blockHP = BlockEncyclopediaECS.blockHP,
 			objectHP = BlockEncyclopediaECS.objectHP
 		};
-		JobHandle job;// = bcJob.Schedule();
+		JobHandle job = bcJob.Schedule();
 
-		//job.Complete();
-		bcJob.Execute();
+		job.Complete();
 
 		this.indexVert.Add(0);
 		this.indexUV.Add(0);

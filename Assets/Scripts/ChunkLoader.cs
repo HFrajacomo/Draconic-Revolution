@@ -384,9 +384,9 @@ public class ChunkLoader : MonoBehaviour
             this.drawPriorityQueue.Add(cp);
 
             // Vertical chunk update
-            this.cachePos = new ChunkPos(cp.x, cp.z, cp.y-1);
-            if(this.chunks.ContainsKey(this.cachePos))
-                AddToUpdate(this.cachePos);
+            //this.cachePos = new ChunkPos(cp.x, cp.z, cp.y-1);
+            //if(this.chunks.ContainsKey(this.cachePos))
+            //    AddToUpdate(this.cachePos);
 
             toLoad.RemoveAt(0);
             toLoadChunk.RemoveAt(0);
