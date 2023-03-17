@@ -36,7 +36,7 @@ public class TimerUpdate : MonoBehaviour
             // XYZ only
             sb.Append(Mathf.RoundToInt(character.position.x));
             sb.Append(", ");
-            sb.Append(Mathf.CeilToInt(character.position.y));
+            sb.Append(Mathf.CeilToInt(character.position.y%Chunk.chunkDepth));
             sb.Append(", ");
             sb.Append(Mathf.RoundToInt(character.position.z));
             

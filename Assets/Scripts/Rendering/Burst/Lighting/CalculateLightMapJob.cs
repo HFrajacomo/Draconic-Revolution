@@ -1050,20 +1050,28 @@ public struct CalculateLightMapJob : IJob{
 		bool xm = false;
 		bool zp = false;
 		bool zm = false;
+		bool ym = false;
+		bool yp = false;
 		byte shadow;
 
 		// Checks borders
 		if(x > 0){
 			xm = true;
 		}
-		if(x < chunkWidth-2){
+		if(x < chunkWidth-1){
 			xp = true;
 		}
 		if(z > 0){
 			zm = true;
 		}
-		if(z < chunkWidth-2){
+		if(z < chunkWidth-1){
 			zp = true;
+		}
+		if(y > 0){
+			ym = true;
+		}
+		if(y < Chunk.chunkWidth-1){
+			yp = true;
 		}
 
 		if(xm){
@@ -1093,6 +1101,20 @@ public struct CalculateLightMapJob : IJob{
 				bfsq.Add(new int3(x, y, z));
 				return true;
 			}
+		}
+		if(ym){
+			shadow = (byte)(shadowMap[GetIndex(x, y-1, z)] & 0x0F);
+			if(shadow != 2 && shadow != 0){
+				bfsq.Add(new int3(x, y, z));
+				return true;
+			}			
+		}
+		if(yp){
+			shadow = (byte)(shadowMap[GetIndex(x, y+1, z)] & 0x0F);
+			if(shadow != 2 && shadow != 0){
+				bfsq.Add(new int3(x, y, z));
+				return true;
+			}			
 		}
 
 		return false;
