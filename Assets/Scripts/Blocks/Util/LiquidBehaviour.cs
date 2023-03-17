@@ -33,6 +33,7 @@ public class LiquidBehaviour{
 	public ushort[] aroundCodes;
 	public ushort[] mainAroundCodes;
 	public ushort[] aroundStates;
+	public ushort[] mainAroundStates;
 	private CastCoord cachedPos;
 	private CastCoord cachedCoord;
 	private bool breakFLAG = false;
@@ -57,6 +58,7 @@ public class LiquidBehaviour{
 		this.aroundCodes = new ushort[8];
 		this.aroundStates = new ushort[8];
 		this.mainAroundCodes = new ushort[8];
+		this.mainAroundStates = new ushort[8];
 
 		// Water Spawn Directions
 		this.spawnDirections.Add(3, new List<int>(new int[]{6,0,2}));
@@ -253,7 +255,7 @@ public class LiquidBehaviour{
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
 				GetCodeAround(myX, myY, myZ, main:true);
-				GetStateAround(myX, myY, myZ);
+				GetStateAround(myX, myY, myZ, main:true);
 
 				if(IsOutOfBounds())
 					return;
@@ -322,7 +324,7 @@ public class LiquidBehaviour{
 								cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
-						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.aroundStates[i])){
+						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
 							if(targetState != ushort.MaxValue)
 								found = true;
 						}
@@ -346,7 +348,7 @@ public class LiquidBehaviour{
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
 				GetCodeAround(myX, myY, myZ, main:true);
-				GetStateAround(myX, myY, myZ);
+				GetStateAround(myX, myY, myZ, main:true);
 
 				if(IsOutOfBounds())
 					return;
@@ -426,7 +428,7 @@ public class LiquidBehaviour{
 								cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
-						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.aroundStates[i])){
+						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
 							if(targetState != ushort.MaxValue)
 								found = true;
 						}
@@ -450,7 +452,7 @@ public class LiquidBehaviour{
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
 				GetCodeAround(myX, myY, myZ, main:true);
-				GetStateAround(myX, myY, myZ);
+				GetStateAround(myX, myY, myZ, main:true);
 
 				if(IsOutOfBounds())
 					return;
@@ -505,13 +507,13 @@ public class LiquidBehaviour{
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
 				GetCodeAround(myX, myY, myZ, main:true);
-				GetStateAround(myX, myY, myZ);
+				GetStateAround(myX, myY, myZ, main:true);
 
 				if(IsOutOfBounds())
 					return;
 
 				// Dies if no Still Level 3 around
-				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
+				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFromDir[state]])){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					return;
 				}
@@ -576,10 +578,9 @@ public class LiquidBehaviour{
 								cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
-						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.aroundStates[i])){
+						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
 							found = true;
 						}
-
 
 						// Found cases
 						if(found){
@@ -598,13 +599,13 @@ public class LiquidBehaviour{
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
 				GetCodeAround(myX, myY, myZ, main:true);
-				GetStateAround(myX, myY, myZ);
+				GetStateAround(myX, myY, myZ, main:true);
 
 				if(IsOutOfBounds())
 					return;
 
 				// Dies if no Still Level 3 around
-				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
+				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFromDir[state]])){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					return;
 				}
@@ -643,6 +644,8 @@ public class LiquidBehaviour{
 					for(int j=0; j < 2; j++){
 						i = spawnDirections[state][j];
 						targetState = GetNewState(state, i);
+
+						GetDirectionPos(myX, myY, myZ, i);
 						found = false;
 
 						// If is air
@@ -652,7 +655,6 @@ public class LiquidBehaviour{
 						// If is washable
 						else if(IsWashable(this.mainAroundCodes[i])){
 							found = true;
-							GetDirectionPos(myX, myY, myZ, i);
 
 							if(this.mainAroundCodes[i] <= ushort.MaxValue/2)
 								cl.blockBook.blocks[this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
@@ -660,7 +662,7 @@ public class LiquidBehaviour{
 								cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
-						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.aroundStates[i])){
+						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
 							found = true;
 						}
 
@@ -681,13 +683,13 @@ public class LiquidBehaviour{
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
 				GetCodeAround(myX, myY, myZ, main:true);
-				GetStateAround(myX, myY, myZ);
+				GetStateAround(myX, myY, myZ, main:true);
 
 				if(IsOutOfBounds())
 					return;
 
 				// Dies if no Level 2 around
-				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
+				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFromDir[state]])){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					return;
 				}
@@ -734,6 +736,8 @@ public class LiquidBehaviour{
 					for(int j=0; j < 2; j++){
 						i = spawnDirections[state][j];
 						targetState = GetNewState(state, i);
+
+						GetDirectionPos(myX, myY, myZ, i);
 						found = false;
 
 						// If is air
@@ -743,7 +747,6 @@ public class LiquidBehaviour{
 						// If is washable
 						else if(IsWashable(this.mainAroundCodes[i])){
 							found = true;
-							GetDirectionPos(myX, myY, myZ, i);
 
 							if(this.mainAroundCodes[i] <= ushort.MaxValue/2)
 								cl.blockBook.blocks[this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
@@ -751,7 +754,7 @@ public class LiquidBehaviour{
 								cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
-						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.aroundStates[i])){
+						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
 							found = true;
 						}
 
@@ -772,13 +775,13 @@ public class LiquidBehaviour{
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
 				GetCodeAround(myX, myY, myZ, main:true);
-				GetStateAround(myX, myY, myZ);
+				GetStateAround(myX, myY, myZ, main:true);
 
 				if(IsOutOfBounds())
 					return;
 
 				// Dies if no Level 2 around
-				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.aroundStates[cameFromDir[state]])){
+				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFromDir[state]])){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					return;
 				}
@@ -850,7 +853,7 @@ public class LiquidBehaviour{
 				ushort targetState = 0;
 
 				GetCodeAround(myX, myY, myZ, main:true);
-				GetStateAround(myX, myY, myZ);
+				GetStateAround(myX, myY, myZ, main:true);
 
 				if(IsOutOfBounds())
 					return;
@@ -874,7 +877,7 @@ public class LiquidBehaviour{
 							cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 					}
 					// If is water
-					else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.aroundStates[i])){
+					else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
 						if(targetState != ushort.MaxValue)
 							found = true;
 					}
@@ -930,7 +933,7 @@ public class LiquidBehaviour{
 				ushort targetState = 0;
 
 				GetCodeAround(myX, myY, myZ, main:true);
-				GetStateAround(myX, myY, myZ);
+				GetStateAround(myX, myY, myZ, main:true);
 
 				if(IsOutOfBounds())
 					return;
@@ -954,7 +957,7 @@ public class LiquidBehaviour{
 							cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 					}
 					// If is water
-					else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.aroundStates[i])){
+					else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
 						if(targetState != ushort.MaxValue)
 							found = true;
 					}
@@ -1278,54 +1281,62 @@ public class LiquidBehaviour{
 	}
 
 	// Gets a list of states of around blocks if they are water
-	private void GetStateAround(int myX, int myY, int myZ){
-		cachedCoord = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
-		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode)
-			this.aroundStates[0] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
-		else
-			this.aroundStates[0] = ushort.MaxValue;
+	private void GetStateAround(int myX, int myY, int myZ, bool main=false){
+		ushort[] selectedArray;
+		CastCoord cast;
 
-		cachedCoord = new CastCoord(new Vector3(myX+1, myY, myZ+1)); // NE
-		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode)
-			this.aroundStates[1] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+		if(main)
+			selectedArray = this.mainAroundStates;
 		else
-			this.aroundStates[1] = ushort.MaxValue;
+			selectedArray = this.aroundStates;
 
-		cachedCoord = new CastCoord(new Vector3(myX+1, myY, myZ)); // East
-		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode)
-			this.aroundStates[2] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+		cast = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
+		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[0] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
-			this.aroundStates[2] = ushort.MaxValue;
+			selectedArray[0] = ushort.MaxValue;
 
-		cachedCoord = new CastCoord(new Vector3(myX+1, myY, myZ-1)); // SE
-		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode)
-			this.aroundStates[3] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+		cast = new CastCoord(new Vector3(myX+1, myY, myZ+1)); // NE
+		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[1] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
-			this.aroundStates[3] = ushort.MaxValue;
+			selectedArray[1] = ushort.MaxValue;
 
-		cachedCoord = new CastCoord(new Vector3(myX, myY, myZ-1)); // South
-		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode)
-			this.aroundStates[4] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+		cast = new CastCoord(new Vector3(myX+1, myY, myZ)); // East
+		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[2] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
-			this.aroundStates[4] = ushort.MaxValue;
+			selectedArray[2] = ushort.MaxValue;
 
-		cachedCoord = new CastCoord(new Vector3(myX-1, myY, myZ-1)); // SW
-		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode)
-			this.aroundStates[5] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+		cast = new CastCoord(new Vector3(myX+1, myY, myZ-1)); // SE
+		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[3] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
-			this.aroundStates[5] = ushort.MaxValue;
+			selectedArray[3] = ushort.MaxValue;
 
-		cachedCoord = new CastCoord(new Vector3(myX-1, myY, myZ)); // West
-		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode)
-			this.aroundStates[6] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+		cast = new CastCoord(new Vector3(myX, myY, myZ-1)); // South
+		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[4] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
-			this.aroundStates[6] = ushort.MaxValue;
+			selectedArray[4] = ushort.MaxValue;
 
-		cachedCoord = new CastCoord(new Vector3(myX-1, myY, myZ+1)); // NW
-		if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode)
-			this.aroundStates[7] = cl.chunks[cachedCoord.GetChunkPos()].metadata.GetState(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+		cast = new CastCoord(new Vector3(myX-1, myY, myZ-1)); // SW
+		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[5] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
-			this.aroundStates[7] = ushort.MaxValue;	
+			selectedArray[5] = ushort.MaxValue;
+
+		cast = new CastCoord(new Vector3(myX-1, myY, myZ)); // West
+		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[6] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		else
+			selectedArray[6] = ushort.MaxValue;
+
+		cast = new CastCoord(new Vector3(myX-1, myY, myZ+1)); // NW
+		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[7] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		else
+			selectedArray[7] = ushort.MaxValue;	
 	}
 
 	// Gets Water Level based on state table
