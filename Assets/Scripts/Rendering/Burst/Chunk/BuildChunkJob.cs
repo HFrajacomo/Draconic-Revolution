@@ -5,7 +5,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.NotBurstCompatible;
 
-[BurstCompile]
+//[BurstCompile]
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public bool load;
@@ -259,9 +259,61 @@ public struct BuildChunkJob : IJob{
 		    			LoadMesh(x, y, z, -1, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal, false);
 		    		}
 
+		    		// Handles DrawRegardless cases
+		    		if(isBlock){
+			    		if(blockDrawRegardless[thisBlock]){
+			    			bool isABlock;
+			    			bool isAtTheBorder;
+			    			int3 auxC;
+
+			    			for(int i=0; i < 6; i++){
+					    		if(x < 0)
+					    			continue;
+
+					    		if(x >= Chunk.chunkWidth)
+					    			continue;
+
+					    		if(z < 0)
+					    			continue;
+
+					    		if(z >= Chunk.chunkWidth)
+					    			continue;
+
+					    		if(y >= Chunk.chunkDepth)
+					    			continue;
+
+					    		if(y < 0)
+					    			continue;
+
+			    				auxC = GetCoords(x, y, z, i);
+			    				isAtTheBorder = CheckBorder(auxC.x, auxC.y, auxC.z);
+					    		neighborBlock = GetBlockData(auxC.x, auxC.y, auxC.z, isAtTheBorder);
+					    		neighborState = GetBlockState(auxC.x, auxC.y, auxC.z, isAtTheBorder);
+					    		isABlock = neighborBlock <= ushort.MaxValue/2;
+
+					    		if(isABlock){
+						    		if(blockSeamless[thisBlock]){
+						    			if(CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
+						    				continue;
+						    			}
+						    		}
+						    	}
+						    	else{
+						    		if(objectSeamless[thisBlock]){
+						    			if(CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
+						    				continue;
+						    			}
+						    		}
+						    	}
+
+						    	LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
+			    			}
+			    		}
+		    		}
+
 		    		// Transparency
 		    		if(isBlock){
-		    			isTransparent = blockTransparent[thisBlock] == 1 || blockDrawRegardless[thisBlock];
+		    			isTransparent = blockTransparent[thisBlock] == 1;
 		    		}
 		    		else{
 		    			isTransparent = objectTransparent[ushort.MaxValue - thisBlock] == 1;
@@ -312,6 +364,10 @@ public struct BuildChunkJob : IJob{
 
 				    		if(!isBlock)
 				    			continue;
+
+			    			// Cuts down handling of DrawRegardless blocks here
+			    			if(blockDrawRegardless[neighborBlock])
+			    				continue;
 
 							// Handles Liquid chunks
 			    			if(blockSeamless[neighborBlock]){
