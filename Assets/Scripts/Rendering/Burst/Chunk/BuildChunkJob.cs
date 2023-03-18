@@ -5,7 +5,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.NotBurstCompatible;
 
-//[BurstCompile]
+[BurstCompile]
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public bool load;
@@ -818,7 +818,7 @@ public struct BuildChunkJob : IJob{
     	else
     		neighborSeamless = objectSeamless[ushort.MaxValue-neighborBlock];
 
-    	return thisSeamless && neighborSeamless && (thisBlock == neighborBlock);
+    	return thisSeamless && neighborSeamless && (thisBlock == neighborBlock) && thisState == neighborState;
     }
 
     private bool Boolean(byte a){
