@@ -1176,8 +1176,6 @@ public class LiquidBehaviour{
 	// Gets Code of block below
 	private ushort GetCodeBelow(int myX, int myY, int myZ){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
-		if(myY-1 < 0)
-			return (ushort)(ushort.MaxValue/2);
 		if(!cl.chunks.ContainsKey(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
 
@@ -1190,8 +1188,6 @@ public class LiquidBehaviour{
 	// Gets State of block below
 	private ushort GetStateBelow(int myX, int myY, int myZ){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
-		if(myY-1 < 0)
-			return (ushort)(ushort.MaxValue/2);
 		if(!cl.chunks.ContainsKey(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
 
@@ -1204,7 +1200,7 @@ public class LiquidBehaviour{
 	// Gets State of block above
 	private ushort GetStateAbove(int myX, int myY, int myZ){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
-		if(myY+1 >= Chunk.chunkDepth)
+		if(!cl.chunks.ContainsKey(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
 
 		return cl.chunks[cord.GetChunkPos()].metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
@@ -1216,7 +1212,7 @@ public class LiquidBehaviour{
 	// Gets Code of block above
 	private ushort GetCodeAbove(int myX, int myY, int myZ){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
-		if(myY+1 >= Chunk.chunkDepth)
+		if(!cl.chunks.ContainsKey(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
 
 		return cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
