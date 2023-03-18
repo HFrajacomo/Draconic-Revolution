@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 /*
 LIQUID STATES:
@@ -48,7 +49,7 @@ public class LiquidBehaviour{
 	private Dictionary<ushort, List<ushort>> spawnStateAdjascents = new Dictionary<ushort, List<ushort>>();
 	private Dictionary<ushort, int> stateDirection = new Dictionary<ushort, int>();
 	private Dictionary<ushort, byte> statePriority = new Dictionary<ushort, byte>();
-	private Dictionary<ushort, int> cameFromDir = new Dictionary<ushort, int>();
+	private Dictionary<ushort, int3> cameFromDir = new Dictionary<ushort, int3>();
 	private Dictionary<ushort, HashSet<ushort>> cameFromState = new Dictionary<ushort, HashSet<ushort>>();
 
 	public LiquidBehaviour(ushort liquidCode, int viscosityDelay){
@@ -99,40 +100,40 @@ public class LiquidBehaviour{
 		this.statePriority.Add(21, 6);
 
 		// Adds to CameFrom dictionary
-		this.cameFromDir.Add(3, 4);
-		this.cameFromDir.Add(4, 5);
-		this.cameFromDir.Add(5, 6);
-		this.cameFromDir.Add(6, 7);
-		this.cameFromDir.Add(7, 0);
-		this.cameFromDir.Add(8, 1);
-		this.cameFromDir.Add(9, 2);
-		this.cameFromDir.Add(10, 3);
-		this.cameFromDir.Add(11, 4);
-		this.cameFromDir.Add(12, 5);
-		this.cameFromDir.Add(13, 6);
-		this.cameFromDir.Add(14, 7);
-		this.cameFromDir.Add(15, 0);
-		this.cameFromDir.Add(16, 1);
-		this.cameFromDir.Add(17, 2);
-		this.cameFromDir.Add(18, 3);
+		this.cameFromDir.Add(3, new int3(4,5,3));
+		this.cameFromDir.Add(4, new int3(4,6,-1));
+		this.cameFromDir.Add(5, new int3(6,5,7));
+		this.cameFromDir.Add(6, new int3(0,6,-1));
+		this.cameFromDir.Add(7, new int3(0,7,1));
+		this.cameFromDir.Add(8, new int3(0,2,-1));
+		this.cameFromDir.Add(9, new int3(2,1,3));
+		this.cameFromDir.Add(10, new int3(2,4,-1));
+		this.cameFromDir.Add(11, new int3(4,5,3));
+		this.cameFromDir.Add(12, new int3(4,6,-1));
+		this.cameFromDir.Add(13, new int3(6,5,7));
+		this.cameFromDir.Add(14, new int3(0,6,-1));
+		this.cameFromDir.Add(15, new int3(0,7,1));
+		this.cameFromDir.Add(16, new int3(0,2,-1));
+		this.cameFromDir.Add(17, new int3(2,1,3));
+		this.cameFromDir.Add(18, new int3(2,4,-1));
 
 		// Adds to CameFromState dict
 		this.cameFromState.Add(3, new HashSet<ushort>(){0,19});
-		this.cameFromState.Add(4, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(4, new HashSet<ushort>(){0,19,3,5});
 		this.cameFromState.Add(5, new HashSet<ushort>(){0,19});
-		this.cameFromState.Add(6, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(6, new HashSet<ushort>(){0,19,5,7});
 		this.cameFromState.Add(7, new HashSet<ushort>(){0,19});
-		this.cameFromState.Add(8, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(8, new HashSet<ushort>(){0,19,7,9});
 		this.cameFromState.Add(9, new HashSet<ushort>(){0,19});
-		this.cameFromState.Add(10, new HashSet<ushort>(){0,19});
+		this.cameFromState.Add(10, new HashSet<ushort>(){0,19,9,3});
 		this.cameFromState.Add(11, new HashSet<ushort>(){10,3,4,20,1});
-		this.cameFromState.Add(12, new HashSet<ushort>(){4,5,20,1});
+		this.cameFromState.Add(12, new HashSet<ushort>(){20,1,11,13});
 		this.cameFromState.Add(13, new HashSet<ushort>(){4,5,6,20,1});
-		this.cameFromState.Add(14, new HashSet<ushort>(){5,6,20,1});
+		this.cameFromState.Add(14, new HashSet<ushort>(){20,1,13,15});
 		this.cameFromState.Add(15, new HashSet<ushort>(){6,7,8,20,1});
-		this.cameFromState.Add(16, new HashSet<ushort>(){8,9,20,1});
+		this.cameFromState.Add(16, new HashSet<ushort>(){20,1,15,17});
 		this.cameFromState.Add(17, new HashSet<ushort>(){8,9,10,20,1});
-		this.cameFromState.Add(18, new HashSet<ushort>(){9,10,20,1});
+		this.cameFromState.Add(18, new HashSet<ushort>(){20,1,11,17});
 	}
 
 	public bool IsChunkLoaderSet(){
@@ -506,6 +507,7 @@ public class LiquidBehaviour{
 			else if(state >= 3 && state <= 9 && state%2 == 1){
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
+				int3 cameFrom = cameFromDir[state];
 				GetCodeAround(myX, myY, myZ, main:true);
 				GetStateAround(myX, myY, myZ, main:true);
 
@@ -513,7 +515,10 @@ public class LiquidBehaviour{
 					return;
 
 				// Dies if no Still Level 3 around
-				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFromDir[state]])){
+				if((this.mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.x])) &&
+					(this.mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.y])) &&
+					(this.mainAroundCodes[cameFrom.z] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.z]))){
+
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					return;
 				}
@@ -598,6 +603,7 @@ public class LiquidBehaviour{
 			else if(state >= 4 && state <= 10 && state%2 == 0){
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
+				int3 cameFrom = cameFromDir[state];
 				GetCodeAround(myX, myY, myZ, main:true);
 				GetStateAround(myX, myY, myZ, main:true);
 
@@ -605,7 +611,9 @@ public class LiquidBehaviour{
 					return;
 
 				// Dies if no Still Level 3 around
-				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFromDir[state]])){
+				if((this.mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.x])) &&
+					(this.mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.y]))){
+
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					return;
 				}
@@ -682,6 +690,7 @@ public class LiquidBehaviour{
 			else if(state >= 11 && state <= 17 && state%2 == 1){
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
+				int3 cameFrom = cameFromDir[state];
 				GetCodeAround(myX, myY, myZ, main:true);
 				GetStateAround(myX, myY, myZ, main:true);
 
@@ -689,7 +698,10 @@ public class LiquidBehaviour{
 					return;
 
 				// Dies if no Level 2 around
-				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFromDir[state]])){
+				if((this.mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.x])) &&
+					(this.mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.y])) &&
+					(this.mainAroundCodes[cameFrom.z] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.z]))){
+
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					return;
 				}
@@ -774,6 +786,7 @@ public class LiquidBehaviour{
 			else if(state >= 12 && state <= 18 && state%2 == 0){
 				ushort below = GetCodeBelow(thisPos);
 				ushort belowState = GetStateBelow(thisPos);
+				int3 cameFrom = cameFromDir[state];
 				GetCodeAround(myX, myY, myZ, main:true);
 				GetStateAround(myX, myY, myZ, main:true);
 
@@ -781,7 +794,9 @@ public class LiquidBehaviour{
 					return;
 
 				// Dies if no Level 2 around
-				if(this.mainAroundCodes[cameFromDir[state]] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFromDir[state]])){
+				if((this.mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.x])) &&
+					(this.mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.y]))){
+
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					return;
 				}
