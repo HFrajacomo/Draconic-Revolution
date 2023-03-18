@@ -364,6 +364,11 @@ public class VoxelData
 	public void CalculateHeightMap(int x, int z){
 		ushort blockCode;
 		bool found, foundRender;
+		byte biggest = 0;
+		bool xm = false;
+		bool xp = false;
+		bool zm = false;
+		bool zp = false;
 
 		found = false;
 		foundRender = false;
@@ -413,23 +418,49 @@ public class VoxelData
 			this.ceilingMap[x*Chunk.chunkWidth+z] = false;
 		}
 
-		if(newRenderValue > this.renderMap[x*Chunk.chunkWidth+z]){
+		if(foundRender){
 			this.renderMap[x*Chunk.chunkWidth+z] = newRenderValue;
 
-			if(x > 0)
-				if(this.renderMap[(x-1)*Chunk.chunkWidth+z] < newRenderValue)
-					this.renderMap[(x-1)*Chunk.chunkWidth+z] = newRenderValue;
-			if(x < Chunk.chunkWidth-1)
-				if(this.renderMap[(x+1)*Chunk.chunkWidth+z] < newRenderValue)
-					this.renderMap[(x+1)*Chunk.chunkWidth+z] = newRenderValue;
-			if(z > 0)
-				if(this.renderMap[x*Chunk.chunkWidth+(z-1)] < newRenderValue)
-					this.renderMap[x*Chunk.chunkWidth+(z-1)] = newRenderValue;
-			if(z < Chunk.chunkWidth-1)
-				if(this.renderMap[x*Chunk.chunkWidth+(z+1)] < newRenderValue)
-					this.renderMap[x*Chunk.chunkWidth+(z+1)] = newRenderValue;
-		}
+			if(x > 0){
+				if(this.renderMap[(x-1)*Chunk.chunkWidth+z] > biggest)
+					biggest = this.renderMap[(x-1)*Chunk.chunkWidth+z];
 
+				xm = true;
+			}
+			if(x < Chunk.chunkWidth-1){
+				if(this.renderMap[(x+1)*Chunk.chunkWidth+z] > biggest)
+					biggest = this.renderMap[(x+1)*Chunk.chunkWidth+z];
+
+				xp = true;
+			}
+			if(z > 0){
+				if(this.renderMap[x*Chunk.chunkWidth+(z-1)] > biggest)
+					biggest = this.renderMap[x*Chunk.chunkWidth+(z-1)];
+
+				zm = true;
+			}
+			if(z < Chunk.chunkWidth-1){
+				if(this.renderMap[x*Chunk.chunkWidth+(z+1)] > biggest)
+					biggest = this.renderMap[x*Chunk.chunkWidth+(z+1)];
+
+				zp = true;
+			}
+
+			// If new value is the highest
+			if(this.renderMap[x*Chunk.chunkWidth+z] >= biggest)
+				biggest = this.renderMap[x*Chunk.chunkWidth+z];
+
+			this.renderMap[x*Chunk.chunkWidth+z] = biggest;
+
+			if(xm)
+				this.renderMap[(x-1)*Chunk.chunkWidth+z] = biggest;
+			if(xp)
+				this.renderMap[(x+1)*Chunk.chunkWidth+z] = biggest;
+			if(zm)
+				this.renderMap[x*Chunk.chunkWidth+(z-1)] = biggest;
+			if(zp)
+				this.renderMap[x*Chunk.chunkWidth+(z+1)] = biggest;
+		}
 	}
 
 	public ushort GetHeight(byte x, byte z){
@@ -437,6 +468,13 @@ public class VoxelData
 			return ushort.MaxValue;
 		else
 			return this.heightMap[x*Chunk.chunkWidth + z];
+	}
+
+	public ushort GetRender(byte x, byte z){
+		if(x < 0 || z < 0 || x > Chunk.chunkWidth || z > Chunk.chunkWidth)
+			return ushort.MaxValue;
+		else
+			return this.renderMap[x*Chunk.chunkWidth + z];
 	}
 
 	public byte GetPropagationFlag(){
