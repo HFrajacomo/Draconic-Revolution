@@ -361,7 +361,140 @@ public struct CalculateLightMapJob : IJob{
 	public void CheckBordersFirstLoad(){
 		int index;
 		byte lightNatural, lightExtra, shadowNatural, shadowExtra;
+		int x, y, z;
+		bool found;
 
+		// xm
+		x = 0;
+		found = false;
+		for(y=0; y < Chunk.chunkDepth; y++){
+			for(z=0; z < Chunk.chunkWidth; z++){
+				index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+				lightNatural = (byte)(lightMap[index] & 0x0F);
+				lightExtra = (byte)(lightMap[index] >> 4);
+				shadowNatural = (byte)(shadowMap[index] & 0x0F);
+				shadowExtra = (byte)(shadowMap[index] >> 4);
+
+				if(((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2))){
+					changed[0] = (byte)(changed[0] | 1);
+					found = true;
+					break;
+				}
+			}
+			if(found)
+				break;
+		}
+
+		// xp
+		x = Chunk.chunkWidth-1;
+		found = false;
+		for(y=0; y < Chunk.chunkDepth; y++){
+			for(z=0; z < Chunk.chunkWidth; z++){
+				index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+				lightNatural = (byte)(lightMap[index] & 0x0F);
+				lightExtra = (byte)(lightMap[index] >> 4);
+				shadowNatural = (byte)(shadowMap[index] & 0x0F);
+				shadowExtra = (byte)(shadowMap[index] >> 4);
+
+				if(((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2))){
+					changed[0] = (byte)(changed[0] | 2);
+					found = true;
+					break;
+				}
+			}
+			if(found)
+				break;
+		}
+
+		// zm
+		z = 0;
+		found = false;
+		for(y=0; y < Chunk.chunkDepth; y++){
+			for(x=0; x < Chunk.chunkWidth; x++){
+				index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+				lightNatural = (byte)(lightMap[index] & 0x0F);
+				lightExtra = (byte)(lightMap[index] >> 4);
+				shadowNatural = (byte)(shadowMap[index] & 0x0F);
+				shadowExtra = (byte)(shadowMap[index] >> 4);
+
+				if(((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2))){
+					changed[0] = (byte)(changed[0] | 4);
+					found = true;
+					break;
+				}
+			}
+			if(found)
+				break;
+		}
+
+		// zp
+		z = Chunk.chunkWidth-1;
+		found = false;
+		for(y=0; y < Chunk.chunkDepth; y++){
+			for(x=0; x < Chunk.chunkWidth; x++){
+				index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+				lightNatural = (byte)(lightMap[index] & 0x0F);
+				lightExtra = (byte)(lightMap[index] >> 4);
+				shadowNatural = (byte)(shadowMap[index] & 0x0F);
+				shadowExtra = (byte)(shadowMap[index] >> 4);
+
+				if(((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2))){
+					changed[0] = (byte)(changed[0] | 8);
+					found = true;
+					break;
+				}
+			}
+			if(found)
+				break;
+		}
+
+		// ym
+		if(cpos.y > 0){
+			y = 0;
+			found = false;
+			for(z=0; z < Chunk.chunkWidth; z++){
+				for(x=0; x < Chunk.chunkWidth; x++){
+					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+					lightNatural = (byte)(lightMap[index] & 0x0F);
+					lightExtra = (byte)(lightMap[index] >> 4);
+					shadowNatural = (byte)(shadowMap[index] & 0x0F);
+					shadowExtra = (byte)(shadowMap[index] >> 4);
+
+					if(((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2))){
+						changed[0] = (byte)(changed[0] | 16);
+						found = true;
+						break;
+					}
+				}
+				if(found)
+					break;
+			}
+		}
+
+		// yp
+		if(cpos.y < Chunk.chunkMaxY){
+			y = Chunk.chunkDepth-1;
+			found = false;
+			for(z=0; z < Chunk.chunkWidth; z++){
+				for(x=0; x < Chunk.chunkWidth; x++){
+					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+					lightNatural = (byte)(lightMap[index] & 0x0F);
+					lightExtra = (byte)(lightMap[index] >> 4);
+					shadowNatural = (byte)(shadowMap[index] & 0x0F);
+					shadowExtra = (byte)(shadowMap[index] >> 4);
+
+					if(((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2))){
+						changed[0] = (byte)(changed[0] | 32);
+						found = true;
+						break;
+					}
+				}
+				if(found)
+					break;
+			}
+		}
+
+		/*
 		for(int x=0; x < chunkWidth; x++){
 			for(int y=0; y < chunkDepth; y++){
 				for(int z=0; z < chunkWidth; z++){
@@ -404,6 +537,7 @@ public struct CalculateLightMapJob : IJob{
 				}
 			}
 		}
+		*/
 	}
 
 	// Checks for light value changes in borders
