@@ -398,92 +398,119 @@ public struct CalculateLightMapJob : IJob{
 	// Checks for light value changes in borders
 	public void CheckBordersMemory(){
 		int x, y, z, index;
+		bool found;
 
 		// xm
 		x = 0;
+		found = false;
 		for(y=0; y < chunkDepth; y++){
 			for(z=0; z < chunkWidth; z++){
 				index = y*chunkWidth+z;
 
 				if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 					changed[0] = (byte)(changed[0] | 1);
+					found = true;
+					break;
 				}
 			}
+			if(found)
+				break;
 		}
 
 		// xp
 		x = chunkWidth-1;
+		found = false;
 		for(y=0; y < chunkDepth; y++){
 			for(z=0; z < chunkWidth; z++){
 				index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 
 				if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 					changed[0] = (byte)(changed[0] | 2);
+					found = true;
+					break;
 				}
 			}
+			if(found)
+				break;
 		}
 
 		// zm
 		z = 0;
+		found = false;
 		for(y=0; y < chunkDepth; y++){
 			for(x=0; x < chunkWidth; x++){
 				index = x*chunkWidth*chunkDepth+y*chunkWidth;
 
 				if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 					changed[0] = (byte)(changed[0] | 4);
+					found = true;
+					break;
 				}
 			}
+			if(found)
+				break;
+
 		}
 
 		// zp
 		z = chunkWidth-1;
+		found = false;
 		for(y=0; y < chunkDepth; y++){
 			for(x=0; x < chunkWidth; x++){
 				index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 
 				if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 					changed[0] = (byte)(changed[0] | 8);
+					found = true;
+					break;
 				}
 			}
+			if(found)
+				break;
 		}
 
 		// ym
 		if(cpos.y > 0){
 			y = 0;
+			found = false;
 			for(z=0; z < chunkWidth; z++){
 				for(x=0; x < chunkWidth; x++){
 					index = x*chunkWidth*chunkDepth+z;
 
 					if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 						changed[0] = (byte)(changed[0] | 16);
+						found = true;
+						break;
 					}
 				}
+				if(found)
+					break;
 			}
 		}
 
 		// yp
 		if(cpos.y < Chunk.chunkMaxY){
 			y = chunkDepth-1;
+			found = false;
 			for(z=0; z < chunkWidth; z++){
 				for(x=0; x < chunkWidth; x++){
 					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 
 					if(lightMap[index] != memoryLightMap[index] || CheckValidShadowChange(memoryShadowMap[index], shadowMap[index])){
 						changed[0] = (byte)(changed[0] | 32);
+						found = true;
+						break;
 					}
 				}
+				if(found)
+					break;
 			}
 		}
 	}
 
 	// Checks two shadow values should trigger a lighting propagation
 	private bool CheckValidShadowChange(byte oldShadow, byte newShadow){
-		if(oldShadow == 0 && newShadow != 0)
-			return true;
-		if(oldShadow != newShadow)
-			return true;
-
-		return false;
+		return oldShadow != newShadow;
 	}
 
 	public void DetectDirectionals(bool extraLight=false){
@@ -892,6 +919,7 @@ public struct CalculateLightMapJob : IJob{
 	}
 
 	private void QuickSort(bool isLightSource=true){
+		sortingList.Clear();
 		int startIndex = 0;
 		int endIndex;
 		int top = -1;
@@ -903,7 +931,7 @@ public struct CalculateLightMapJob : IJob{
 			endIndex = directionalList.Length - 1;
 		}
 
-		if(endIndex == -1)
+		if(endIndex <= 0)
 			return;
 
 		sortingList.Add(startIndex);
