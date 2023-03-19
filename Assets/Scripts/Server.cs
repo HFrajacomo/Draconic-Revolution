@@ -42,7 +42,7 @@ public class Server
 	public List<NetMessage> queue = new List<NetMessage>();
 
 	public ulong firstConnectedID = ulong.MaxValue;
-	private const int timeoutSeconds = 10;
+	private const int timeoutSeconds = 15;
 
 	// Unity Reference
 	public ChunkLoader_Server cl;

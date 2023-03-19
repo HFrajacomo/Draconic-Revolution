@@ -11,8 +11,9 @@ Takes the ShadowMap and turns it into a progressive lightmap
 public struct CalculateLightMapJob : IJob{
 	public NativeArray<byte> lightMap;
 	public NativeArray<byte> shadowMap;
-	public NativeArray<int4> lightSources;
-	public NativeList<int> sortingList;
+	public NativeList<int4> lightSources;
+	public NativeList<int4> auxLightSources;
+	public NativeList<byte5> auxDirectionals;
 	public NativeList<int3> bfsq; // Breadth-first search queue
 	public NativeList<int4> bfsqExtra;
 	public NativeList<byte5> bfsqDir;
@@ -63,7 +64,7 @@ public struct CalculateLightMapJob : IJob{
 		}
 
 		DetectDirectionals();
-		QuickSort(isLightSource:false);
+		CountSort(isLightSource:false);
 
 		int currentLevel = 15;
 		bool searchedCurrentLevel = false;
@@ -141,7 +142,7 @@ public struct CalculateLightMapJob : IJob{
 		/***************************************
 		Extra Lights
 		***************************************/
-		QuickSort();
+		CountSort();
 		
 		currentLevel = 15;
 		searchedCurrentLevel = false;
@@ -224,7 +225,7 @@ public struct CalculateLightMapJob : IJob{
 		directionalList.Clear();
 		
 		DetectDirectionals(extraLight:true);
-		QuickSort(isLightSource:false);
+		CountSort(isLightSource:false);
 
 		visited.Clear();
 
@@ -359,33 +360,46 @@ public struct CalculateLightMapJob : IJob{
 	// Checks if chunk has empty space in neighborhood
 	public void CheckBordersFirstLoad(){
 		int index;
+		byte lightNatural, lightExtra, shadowNatural, shadowExtra;
 
 		for(int x=0; x < chunkWidth; x++){
 			for(int y=0; y < chunkDepth; y++){
 				for(int z=0; z < chunkWidth; z++){
+					if(x > 0 && x < Chunk.chunkWidth-1){
+						if(y > 0 && y < Chunk.chunkDepth-1){
+							if(z > 0 && z < Chunk.chunkWidth-1){
+								continue;
+							}
+						}
+					}
+
 					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
+					lightNatural = (byte)(lightMap[index] & 0x0F);
+					lightExtra = (byte)(lightMap[index] >> 4);
+					shadowNatural = (byte)(shadowMap[index] & 0x0F);
+					shadowExtra = (byte)(shadowMap[index] >> 4);
 
-					if(x == 0 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2) || (changed[0] & 1) == 1))
+					if(x == 0 && ((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2) || (changed[0] & 1) == 1))
 						changed[0] = (byte)(changed[0] | 1);
-					else if(x == chunkWidth-1 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2) || (changed[0] & 2) == 2))
+					else if(x == chunkWidth-1 && ((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2) || (changed[0] & 2) == 2))
 						changed[0] = (byte)(changed[0] | 2);
-					if(z == 0 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2) || (changed[0] & 4) == 4))
+					if(z == 0 && ((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2) || (changed[0] & 4) == 4))
 						changed[0] = (byte)(changed[0] | 4);
-					else if(z == chunkWidth-1 && (((lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) != 2) || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2) || (changed[0] & 8) == 8))
+					else if(z == chunkWidth-1 && ((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2) || (changed[0] & 8) == 8))
 						changed[0] = (byte)(changed[0] | 8);
 
-					if(x == 0 && ((lightMap[index] & 0x0F) == 0 && (shadowMap[index] & 0x0F) == 1))
+					if(x == 0 && (lightNatural == 0 && shadowNatural == 1))
 						changed[0] = (byte)(changed[0] | 1);
-					else if(x == chunkWidth-1 && ((lightMap[index] & 0x0F) == 0 && (shadowMap[index] & 0x0F) == 1))
+					else if(x == chunkWidth-1 && (lightNatural == 0 && shadowNatural == 1))
 						changed[0] = (byte)(changed[0] | 2);
-					if(z == 0 && ((lightMap[index] & 0x0F) == 0 && (shadowMap[index] & 0x0F) == 1))
+					if(z == 0 && (lightNatural == 0 && shadowNatural == 1))
 						changed[0] = (byte)(changed[0] | 4);
-					else if(z == chunkWidth-1 && ((lightMap[index] & 0x0F) == 0 && (shadowMap[index] & 0x0F) == 1))
+					else if(z == chunkWidth-1 && (lightNatural == 0 && shadowNatural == 1))
 						changed[0] = (byte)(changed[0] | 8);
 
-					if(cpos.y > 0 && y == 0 && (lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) >= 2 || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2))
+					if(cpos.y > 0 && y == 0 && lightNatural > 0 && shadowNatural >= 2 || ((lightExtra > 0) && shadowExtra != 2))
 						changed[0] = (byte)(changed[0] | 16);
-					if(cpos.y < Chunk.chunkMaxY && y == Chunk.chunkDepth-1 && (lightMap[index] & 0x0F) > 0 && (shadowMap[index] & 0x0F) >= 2 || (((lightMap[index] >> 4) > 0) && (shadowMap[index] >> 4) != 2))
+					if(cpos.y < Chunk.chunkMaxY && y == Chunk.chunkDepth-1 && lightNatural > 0 && shadowNatural >= 2 || ((lightExtra > 0) && shadowExtra != 2))
 						changed[0] = (byte)(changed[0] | 32);
 				}
 			}
@@ -915,116 +929,59 @@ public struct CalculateLightMapJob : IJob{
 		}
 	}
 
-	private void QuickSort(bool isLightSource=true){
-		sortingList.Clear();
-		int startIndex = 0;
-		int endIndex;
-		int top = -1;
+	private void CountSort(bool isLightSource=true){
+		int capacity;
 
 		if(isLightSource){
- 			endIndex = lightSources.Length - 1;
+			auxLightSources.Clear();
+
+			capacity = lightSources.Length;
+
+			if(capacity <= 1)
+				return;
+
+			for(int light=15; light > 0; light--){
+				for(int i=0; i < capacity; i++){
+					if(lightSources[i].w == light){
+						capacity--;
+
+						auxLightSources.Add(lightSources[i]);
+						lightSources.RemoveAt(i);
+
+						i--;
+					}
+				}
+			}
 		}
 		else{
-			endIndex = directionalList.Length - 1;
+			auxDirectionals.Clear();
+
+			capacity = directionalList.Length;
+
+			if(capacity <= 1)
+				return;
+
+			for(int light=15; light > 0; light--){
+				for(int i=0; i < capacity; i++){
+					if(directionalList[i].w == light){
+						capacity--;
+
+						auxDirectionals.Add(directionalList[i]);
+						directionalList.RemoveAt(i);
+
+						i--;
+					}
+				}
+			}			
 		}
 
-		if(endIndex <= 0)
-			return;
-
-		sortingList.Add(startIndex);
-		sortingList.Add(endIndex);
-		top = top + 2;
-
-		while (top >= 0)
-		{
-			endIndex = sortingList[top];
-			startIndex = sortingList[top-1];
-			top = top - 2;
-
-			int p = Partition(startIndex, endIndex, isLightSource);
-
-			if (p - 1 > startIndex)
-			{
-				top = top + 2;
-
-				if(top >= sortingList.Length){
-					sortingList.Add(startIndex);
-					sortingList.Add(p - 1);
-				}
-				else{
-					sortingList[top-1] = startIndex;
-					sortingList[top] = p - 1;
-				}
-			}
-
-			if (p + 1 < endIndex)
-			{
-				top = top + 2;
-
-				if(top >= sortingList.Length){
-					sortingList.Add(p + 1);
-					sortingList.Add(endIndex);
-				}
-				else{
-					sortingList[top-1] = p + 1;
-					sortingList[top] = endIndex;
-				}
-			}
-		}
-	}
-
-	private int Partition(int left, int right, bool isLightSource){
 		if(isLightSource){
-			int entry = lightSources[right].w;
-			int i = (left - 1);
-
-			for (int j = left; j <= right - 1; ++j)
-			{
-				if (lightSources[j].w <= entry)
-				{
-					++i;
-					Swap(i, j, isLightSource);
-				}
-			}
-
-			Swap(i+1, right, isLightSource);
-
-			return (i + 1);
+			lightSources = auxLightSources;
 		}
 		else{
-			int entry = directionalList[right].w;
-			int i = (left - 1);
-
-			for (int j = left; j <= right - 1; ++j)
-			{
-				if (directionalList[j].w <= entry)
-				{
-					++i;
-					Swap(i, j, isLightSource);
-				}
-			}
-
-			Swap(i+1, right, isLightSource);
-
-			return (i + 1);
+			directionalList = auxDirectionals;
 		}
 	}
-
-	private void Swap(int a, int b, bool isLightSource){
-		if(isLightSource){
-			int4 temp;
-			temp = lightSources[a];
-			lightSources[a] = lightSources[b];
-			lightSources[b] = temp;
-		}
-		else{
-			byte5 temp;
-			temp = directionalList[a];
-			directionalList[a] = directionalList[b];
-			directionalList[b] = temp;
-		}
-	}
-
 
 	public int GetIndex(int3 c){
 		return c.x*chunkWidth*chunkDepth+c.y*chunkWidth+c.z;
