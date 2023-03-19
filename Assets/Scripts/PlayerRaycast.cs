@@ -263,15 +263,16 @@ public class PlayerRaycast : MonoBehaviour
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
 		ChunkPos above = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ, lastCoord.chunkY+1);
+		CastCoord debugCoord = lastCoord;
 		
 		if(!current.active)
 			return;
 
-		Debug.Log("ShadowMap: " + loader.chunks[current.GetChunkPos()].data.GetShadow(current.blockX, current.blockY, current.blockZ) + "    " + loader.chunks[current.GetChunkPos()].data.GetShadow(current.blockX, current.blockY, current.blockZ, isNatural:false) + " -> (" + current.blockX + ", " + current.blockY + ", " + current.blockZ + ")\n" +
-		"LightMap: " + loader.chunks[current.GetChunkPos()].data.GetLight(current.blockX, current.blockY, current.blockZ) + "   " + loader.chunks[current.GetChunkPos()].data.GetLight(current.blockX, current.blockY, current.blockZ, isNatural:false) + " -> (" + current.blockX + ", " + current.blockY + ", " + current.blockZ + ")\n" + 
-		"BlockCode: " + (BlockID)loader.chunks[current.GetChunkPos()].data.GetCell(current.blockX, current.blockY, current.blockZ) + "\n" +
-		"HeightMap: " + loader.chunks[current.GetChunkPos()].data.GetHeight((byte)current.blockX, (byte)current.blockZ) + "\n" +
-		"RenderMap: " + loader.chunks[current.GetChunkPos()].data.GetRender((byte)current.blockX, (byte)current.blockZ));
+		Debug.Log("ShadowMap: " + loader.chunks[debugCoord.GetChunkPos()].data.GetShadow(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ) + "    " + loader.chunks[debugCoord.GetChunkPos()].data.GetShadow(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ, isNatural:false) + " -> (" + debugCoord.blockX + ", " + debugCoord.blockY + ", " + debugCoord.blockZ + ")\n" +
+		"LightMap: " + loader.chunks[debugCoord.GetChunkPos()].data.GetLight(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ) + "   " + loader.chunks[debugCoord.GetChunkPos()].data.GetLight(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ, isNatural:false) + " -> (" + debugCoord.blockX + ", " + debugCoord.blockY + ", " + debugCoord.blockZ + ")\n" + 
+		"BlockCode: " + (BlockID)loader.chunks[debugCoord.GetChunkPos()].data.GetCell(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ) + "\n" +
+		"HeightMap: " + loader.chunks[debugCoord.GetChunkPos()].data.GetHeight((byte)debugCoord.blockX, (byte)debugCoord.blockZ) + "\n" +
+		"RenderMap: " + loader.chunks[debugCoord.GetChunkPos()].data.GetRender((byte)debugCoord.blockX, (byte)debugCoord.blockZ));
 		
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ, current.chunkY);
 		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);

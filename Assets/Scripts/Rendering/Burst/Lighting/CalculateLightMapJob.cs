@@ -33,8 +33,6 @@ public struct CalculateLightMapJob : IJob{
 	[ReadOnly]
 	public ChunkPos cpos;
 
-	private void Test(){}
-
 	public void Execute(){
 		int3 current;
 		int4 currentExtra;
@@ -107,7 +105,6 @@ public struct CalculateLightMapJob : IJob{
 
 							if((lightMap[index] & 0x0F) <= directionalList[i].w){
 								bfsqDir.Add(directionalList[i]);
-								Test();
 								lightMap[index] = (byte)((lightMap[index] & 0xF0) + directionalList[i].w);
 								shadowMap[index] = (byte)((shadowMap[index] & 0xF0) + directionalList[i].k);
 							}

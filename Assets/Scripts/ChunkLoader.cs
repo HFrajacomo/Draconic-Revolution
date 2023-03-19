@@ -161,7 +161,7 @@ public class ChunkLoader : MonoBehaviour
         }
         else{
             // If current chunk is drawn and world is generated
-        	if(!WORLD_GENERATED){// && CheckChunkDrawn(this.playerX, this.playerZ, this.playerY)){ //DEBUG
+        	if(!WORLD_GENERATED){
                 HandleClientCommunication();
         		WORLD_GENERATED = true;
 
@@ -516,7 +516,7 @@ public class ChunkLoader : MonoBehaviour
         byte propagationFlag;
         ChunkPos neighbor;
         bool updateCurrent = false;
-        byte updateCode = 0;
+        ushort updateCode = 0;
 
         if(recursionDepth >= 5)
             return false;

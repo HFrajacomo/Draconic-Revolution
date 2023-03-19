@@ -102,7 +102,7 @@ public class VoxelData
 	4: Update Lights in neighbor chunk
 	}
 	*/
-	public static byte PropagateLight(VoxelData a, VoxelMetadata aMetadata, VoxelData b, VoxelMetadata bMetadata, byte borderCode){
+	public static ushort PropagateLight(VoxelData a, VoxelMetadata aMetadata, VoxelData b, VoxelMetadata bMetadata, byte borderCode){
 		NativeArray<byte> lightMap1 = NativeTools.CopyToNative(a.GetLightMap(aMetadata));
 		NativeArray<byte> lightMap2 = NativeTools.CopyToNative(b.GetLightMap(bMetadata));
 		NativeArray<byte> shadowMap1 = NativeTools.CopyToNative(a.GetShadowMap());
@@ -119,7 +119,7 @@ public class VoxelData
 		NativeList<int4> aux = new NativeList<int4>(0, Allocator.TempJob);
 		NativeHashSet<int4> hashAux = new NativeHashSet<int4>(0, Allocator.TempJob);
 		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0, 0, 0, 0}, Allocator.TempJob);
-		byte updateFlag = 0;
+		ushort updateFlag = 0;
 
 		JobHandle job;
 
@@ -154,9 +154,9 @@ public class VoxelData
         b.SetShadowMap(NativeTools.CopyToManaged(shadowMap2));
         
         updateFlag += changed[0];
-        updateFlag += (byte)(changed[1] << 1);
-        updateFlag += (byte)(changed[2] << 2);
-        updateFlag += (byte)(changed[3] << 3);
+        updateFlag += (ushort)(changed[1] << 1);
+        updateFlag += (ushort)(changed[2] << 2);
+        updateFlag += (ushort)(changed[3] << 3);
 
         lightMap1.Dispose();
         lightMap2.Dispose();
@@ -478,7 +478,9 @@ public class VoxelData
 	}
 
 	public byte GetPropagationFlag(){
-		return this.PROPAGATE_LIGHT_FLAG;
+		byte flag = this.PROPAGATE_LIGHT_FLAG;
+		this.PROPAGATE_LIGHT_FLAG = 0;
+		return flag;
 	}
 
 	public ushort GetCell(int x, int y, int z){
