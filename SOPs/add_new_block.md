@@ -30,6 +30,11 @@ If the block you are creating is fully opaque, then create the 32x32 texture for
 
 If the block you are creating has transparency, then create the 32x32 texture for it with alpha and append to the Transparent Atlas. It can be found in: *Assets/Resources/transparent_atlas.png*.
 
+## Create Normal Map
+
+Every block in the Fully Opaque Atlas needs a Normal Map. That is a bluish kind of texture that encodes normal vector information to apply to the block.
+Follow the **"add_normal_map"** SOP for a tutorial.
+
 
 ## Adding a BlockID
 
