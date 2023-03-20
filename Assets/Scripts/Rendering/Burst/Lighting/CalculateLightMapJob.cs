@@ -223,11 +223,11 @@ public struct CalculateLightMapJob : IJob{
 		}
 
 		directionalList.Clear();
+		visited.Clear();
 		
 		DetectDirectionals(extraLight:true);
 		CountSort(isLightSource:false);
 
-		visited.Clear();
 
 		currentLevel = 15;
 		searchedCurrentLevel = false;
@@ -493,51 +493,6 @@ public struct CalculateLightMapJob : IJob{
 					break;
 			}
 		}
-
-		/*
-		for(int x=0; x < chunkWidth; x++){
-			for(int y=0; y < chunkDepth; y++){
-				for(int z=0; z < chunkWidth; z++){
-					if(x > 0 && x < Chunk.chunkWidth-1){
-						if(y > 0 && y < Chunk.chunkDepth-1){
-							if(z > 0 && z < Chunk.chunkWidth-1){
-								continue;
-							}
-						}
-					}
-
-					index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
-					lightNatural = (byte)(lightMap[index] & 0x0F);
-					lightExtra = (byte)(lightMap[index] >> 4);
-					shadowNatural = (byte)(shadowMap[index] & 0x0F);
-					shadowExtra = (byte)(shadowMap[index] >> 4);
-
-					if(x == 0 && ((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2) || (changed[0] & 1) == 1))
-						changed[0] = (byte)(changed[0] | 1);
-					else if(x == chunkWidth-1 && ((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2) || (changed[0] & 2) == 2))
-						changed[0] = (byte)(changed[0] | 2);
-					if(z == 0 && ((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2) || (changed[0] & 4) == 4))
-						changed[0] = (byte)(changed[0] | 4);
-					else if(z == chunkWidth-1 && ((lightNatural > 0 && shadowNatural != 2) || ((lightExtra > 0) && shadowExtra != 2) || (changed[0] & 8) == 8))
-						changed[0] = (byte)(changed[0] | 8);
-
-					if(x == 0 && (lightNatural == 0 && shadowNatural == 1))
-						changed[0] = (byte)(changed[0] | 1);
-					else if(x == chunkWidth-1 && (lightNatural == 0 && shadowNatural == 1))
-						changed[0] = (byte)(changed[0] | 2);
-					if(z == 0 && (lightNatural == 0 && shadowNatural == 1))
-						changed[0] = (byte)(changed[0] | 4);
-					else if(z == chunkWidth-1 && (lightNatural == 0 && shadowNatural == 1))
-						changed[0] = (byte)(changed[0] | 8);
-
-					if(cpos.y > 0 && y == 0 && lightNatural > 0 && shadowNatural >= 2 || ((lightExtra > 0) && shadowExtra != 2))
-						changed[0] = (byte)(changed[0] | 16);
-					if(cpos.y < Chunk.chunkMaxY && y == Chunk.chunkDepth-1 && lightNatural > 0 && shadowNatural >= 2 || ((lightExtra > 0) && shadowExtra != 2))
-						changed[0] = (byte)(changed[0] | 32);
-				}
-			}
-		}
-		*/
 	}
 
 	// Checks for light value changes in borders
@@ -922,22 +877,20 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x+1, c.y, c.z);
 
 		if(aux.x < chunkWidth){
-			if(!visited.Contains(aux)){
-				index = GetIndex(aux);
+			index = GetIndex(aux);
 
-				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}
+			if(isNatural){
+				if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
 				}
-				else{
-					if((lightMap[index] >> 4) <= currentLight-1 && (shadowMap[index] >> 4) > 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}
+			}
+			else{
+				if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
 				}
 			}
 		}
@@ -946,23 +899,21 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x-1, c.y, c.z);
 
 		if(aux.x >= 0){
-			if(!visited.Contains(aux)){
-				index = GetIndex(aux);
+			index = GetIndex(aux);
 
-				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}
+			if(isNatural){
+				if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
 				}
-				else{
-					if((lightMap[index] >> 4) <= currentLight-1 && (shadowMap[index] >> 4) > 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}					
-				}
+			}
+			else{
+				if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
+				}					
 			}
 		}	
 
@@ -970,23 +921,21 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x, c.y, c.z+1);
 
 		if(aux.z < chunkWidth){
-			if(!visited.Contains(aux)){
-				index = GetIndex(aux);
+			index = GetIndex(aux);
 
-				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}
+			if(isNatural){
+				if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
 				}
-				else{
-					if((lightMap[index] >> 4) <= currentLight-1 && (shadowMap[index] >> 4) > 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}					
-				}
+			}
+			else{
+				if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
+				}					
 			}
 		}	
 
@@ -994,23 +943,21 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x, c.y, c.z-1);
 
 		if(aux.z >= 0){
-			if(!visited.Contains(aux)){
-				index = GetIndex(aux);
+			index = GetIndex(aux);
 
-				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}
+			if(isNatural){
+				if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
 				}
-				else{
-					if((lightMap[index] >> 4) <= currentLight-1 && (shadowMap[index] >> 4) > 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}					
-				}
+			}
+			else{
+				if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
+				}					
 			}
 		}
 
@@ -1018,23 +965,21 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x, c.y+1, c.z);
 
 		if(aux.y < chunkDepth){
-			if(!visited.Contains(aux)){
-				index = GetIndex(aux);
+			index = GetIndex(aux);
 
-				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}
+			if(isNatural){
+				if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
 				}
-				else{
-					if((lightMap[index] >> 4) <= currentLight-1 && (shadowMap[index] >> 4) > 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}					
-				}
+			}
+			else{
+				if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
+				}					
 			}
 		}
 
@@ -1042,22 +987,20 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x, c.y-1, c.z);
 
 		if(aux.y >= 0){
-			if(!visited.Contains(aux)){
-				index = GetIndex(aux);
+			index = GetIndex(aux);
 
-				if(isNatural){
-					if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}
+			if(isNatural){
+				if((lightMap[index] & 0x0F) < currentLight-1 && (shadowMap[index] & 0x0F) != 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0xF0) + (currentLight-1)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0xF0) | newShadow);
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
 				}
-				else{
-					if((lightMap[index] >> 4) <= currentLight-1 && (shadowMap[index] >> 4) > 0){
-						lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
-						shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
-						bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
-					}
+			}
+			else{
+				if((lightMap[index] >> 4) < currentLight-1 && (shadowMap[index] >> 4) > 0){
+					lightMap[index] = (byte)(((lightMap[index] & 0x0F) | ((currentLight-1) << 4)));
+					shadowMap[index] = (byte)((shadowMap[index] & 0x0F) | (newShadow << 4));
+					bfsqDir.Add(new byte5(aux, (byte)(currentLight-1), newShadow));
 				}
 			}
 		}
@@ -1147,11 +1090,13 @@ public struct CalculateLightMapJob : IJob{
 				if((shadowMap[index] & 0x0F) == 2){
 					lightMap[index] = (byte)((lightMap[index] & 0xF0) | maxLightLevel);
 					AnalyzeSunShaft(x, height, z);
+					visited.Add(new int3(x, height, z));
 
 					// Sets the remaining skylight above to max
 					for(int y=height+1; y < chunkDepth; y++){
 						index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 						lightMap[index] = (byte)((lightMap[index] & 0xF0) | maxLightLevel);
+						visited.Add(new int3(x, y, z));
 
 						AnalyzeSunShaft(x, y, z);
 					}
