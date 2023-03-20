@@ -1090,13 +1090,11 @@ public struct CalculateLightMapJob : IJob{
 				if((shadowMap[index] & 0x0F) == 2){
 					lightMap[index] = (byte)((lightMap[index] & 0xF0) | maxLightLevel);
 					AnalyzeSunShaft(x, height, z);
-					visited.Add(new int3(x, height, z));
 
 					// Sets the remaining skylight above to max
 					for(int y=height+1; y < chunkDepth; y++){
 						index = x*chunkWidth*chunkDepth+y*chunkWidth+z;
 						lightMap[index] = (byte)((lightMap[index] & 0xF0) | maxLightLevel);
-						visited.Add(new int3(x, y, z));
 
 						AnalyzeSunShaft(x, y, z);
 					}
