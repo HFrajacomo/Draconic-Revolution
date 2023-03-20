@@ -99,17 +99,17 @@ public static class GenerationSeed
 
     // Cave Noise
     public static byte[] caveNoise = new byte[257];
-    public static readonly float caveNoiseStep1 = 0.00181f;
-    public static readonly float caveNoiseStep2 = 0.00233f;
-    public static readonly float caveYStep1 = 0.0131f;
-    public static readonly float caveYStep2 = 0.0237f;
+    public static readonly float caveNoiseStep1 = 0.00247f;
+    public static readonly float caveNoiseStep2 = 0.00283f;
+    public static readonly float caveYStep1 = 0.0079f;
+    public static readonly float caveYStep2 = 0.0071f;
 
     // Cave Mask Noise
     public static byte[] cavemaskNoise = new byte[257];
     public static readonly float cavemaskNoiseStep1 = 0.0363f;
-    public static readonly float cavemaskNoiseStep2 = 0.0427f;
+    public static readonly float cavemaskNoiseStep2 = 0.0347f;
     public static readonly float cavemaskYStep1 = 0.01721f;
-    public static readonly float cavemaskYStep2 = 0.0277f;
+    public static readonly float cavemaskYStep2 = 0.0177f;
 
     public static void Initialize(int sed){
         seed = sed;
