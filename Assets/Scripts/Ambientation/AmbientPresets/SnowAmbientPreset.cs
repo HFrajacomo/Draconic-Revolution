@@ -1,39 +1,38 @@
 using UnityEngine;
 using Unity.Mathematics;
 
-public class PlainsAmbientPreset: BaseAmbientPreset{
-	public PlainsAmbientPreset(){
+public class SnowAmbientPreset: BaseAmbientPreset{
+	public SnowAmbientPreset(){
 		this.aerosolDensitySunrise = 0.1f;
-		this.aerosolDensityDay = 0f;
-		this.aerosolDensitySunset = 0f;
+		this.aerosolDensityDay = 0.1f;
+		this.aerosolDensitySunrise = 0f;
 		this.aerosolDensityNight = 0f;
 
-		this.horizonTintSunrise = new Color(.74f, .82f, .33f);
-		this.horizonTintDay = new Color(.26f, .9f, .86f);
-		this.horizonTintSunset = new Color(.57f, .07f, .35f);
-		this.horizonTintNight = new Color(0f, .07f, .16f);
+		this.horizonTintSunrise = new Color(.96f, .74f, .43f);
+		this.horizonTintDay = new Color(0f, .87f, 1f);
+		this.horizonTintSunset = new Color(.47f, .18f, 1f);
+		this.horizonTintNight = new Color(.66f, .66f, .66f);
 
-		this.zenithTintDay = new Color(0f, .57f, 1f);
-		this.zenithTintSunrise = new Color(.81f, .34f, .07f);
-		this.zenithTintSunset = new Color(.82f, .15f, .2f);
-		this.zenithTintNight = new Color(.28f, .28f, .28f);
-		
+		this.zenithTintSunrise = Color.white;
+		this.zenithTintDay = Color.white;
+		this.zenithTintSunset = new Color(.42f, .15f, .05f);
+		this.zenithTintNight = new Color(.13f, .13f, .13f);
+
 		this.fogAttenuation1 = 8f;
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = .25f;
 
-		this.cloudTintDay = new Color(.79f, .79f, .79f);
-		this.cloudTintSunrise = new Color(.23f, .11f, .07f);
-		this.cloudTintSunset = new Color(.02f, .04f, .16f);
-		this.cloudTintNight = new Color(.05f, .05f, .05f);
+		this.cloudTintSunrise = new Color(.27f, .27f, .27f);
+		this.cloudTintDay = Color.white;
+		this.cloudTintSunset = new Color(.16f, .04f, .02f);
+		this.cloudTintNight = Color.black;
 
-		this.wbTemperature = 17f;
-		this.wbTint = -4f;
+		this.wbTemperature = -7f;
 
-		this.gainSunrise = new float4(1f, .60f, .17f, .54f);
-		this.gainDay = new float4(.1f, .28f, .39f, .14f);
-		this.gainSunset = new float4(1f, .61f, .62f, .02f);
-		this.gainNight = new float4(0f, 0f, 0f, 0f);
+		this.gainSunrise = new float4(.82f, .6f, .32f, .007f);
+		this.gainDay = new float4(.6f, .65f, .68f, 0f);
+		this.gainSunset = new float4(.68f, .3f, .53f, 0f);
+		this.gainNight = new float4(.20f, .23f, .29f, .31f);
 	}
 
 	public override float GetAerosolDensity(int t){

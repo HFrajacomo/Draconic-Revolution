@@ -1,0 +1,11 @@
+public enum AmbientGroup{
+	PLAINS,
+	FOREST,
+	DESERT,
+	SNOW,
+	OCEAN,
+	CAVERNS,
+	ICE_CAVERNS,
+	HELL,
+	CORE
+}

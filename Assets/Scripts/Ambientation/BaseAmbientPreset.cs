@@ -4,56 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
 
-/*
-// Physical Based Sky
-aerosolDensityDay;
-aerosolTintDay;
-horizonTintDay;
-zenithTintDay;
-
-aerosolDensitySunset;
-aerosolTintSunset;
-horizonTintSunset;
-zenithTintSunset;
-
-aerosolDensitySunrise;
-aerosolTintSunrise;
-horizonTintSunrise;
-zenithTintSunrise;
-
-aerosolDensityNight;
-aerosolTintNight;
-horizonTintNight;
-zenithTintNight;
-
-// Fog
-fogAttenuation1;
-fogAttenuation2;
-fogAlbedo;
-fogAmbientLight;
-
-// Cloud Layer
-cloudTintDay;
-cloudTintSunset;
-cloudTintSunrise;
-cloudTintNight;
-
-// White Balance
-wbTemperature;
-wbTint;
-
-// Lift, Gamma, Gain
-gain;
-
-// Directional Light
-lightIntensity;
-sunRotation;
-sunColor;
-*/
-
 public abstract class BaseAmbientPreset{
-	private static Dictionary<BiomeCode, BaseAmbientPreset> presets = new Dictionary<BiomeCode, BaseAmbientPreset>();
-	protected bool isSurfacePreset;
+	private static Dictionary<AmbientGroup, BaseAmbientPreset> presets = new Dictionary<AmbientGroup, BaseAmbientPreset>();
 
 	// Constants
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_DAY = 4f;
@@ -105,11 +57,35 @@ public abstract class BaseAmbientPreset{
 	protected float2 sunRotation;
 	protected Color sunColor;
 
-	/*
-	public static BaseAmbientPreset GeneratePreset(BiomeCode c){
-		return new PlainsAmbientPreset();
+	public static BaseAmbientPreset GetPreset(AmbientGroup g){
+		if(presets.Count == 0)
+			LoadPresets();
+
+		return presets[g];
 	}
-	*/
+
+	private static BaseAmbientPreset GeneratePreset(AmbientGroup g){
+		switch(g){
+			case AmbientGroup.PLAINS:
+				return new PlainsAmbientPreset();
+			case AmbientGroup.SNOW:
+				return new SnowAmbientPreset();	
+			case AmbientGroup.DESERT:
+				return new DesertAmbientPreset();			
+			default:
+				return new PlainsAmbientPreset();
+		}
+	}
+
+	private static void LoadPresets(){
+		int numberOfPresets = AmbientGroup.GetNames(typeof(AmbientGroup)).Length;
+		AmbientGroup gp;
+
+		for(int i=0; i < numberOfPresets; i++){
+			gp = (AmbientGroup)i;
+			presets.Add(gp, GeneratePreset(gp));
+		}
+	}
 
 	public virtual float4 GetGain(int t){return this.gainDay;}
 	public virtual float GetAerosolDensity(int t){return this.aerosolDensityDay;}

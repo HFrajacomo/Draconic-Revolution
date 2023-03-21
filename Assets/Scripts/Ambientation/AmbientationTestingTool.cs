@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 public class AmbientationTestingTool: MonoBehaviour{
 	// What Biome is being tested?
-	private BaseAmbientPreset preset = new PlainsAmbientPreset();
+	private BaseAmbientPreset preset = new DesertAmbientPreset();
 
 	// Unity Reference
 	public TimeOfDay timer;

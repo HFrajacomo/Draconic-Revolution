@@ -525,7 +525,7 @@ MonoBehaviour:
     m_Value: 1000
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 6
+    m_Value: 8
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -612,11 +612,11 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   sphericalMode:
-    m_OverrideState: 0
-    m_Value: 1
-  seaLevel:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
+  seaLevel:
+    m_OverrideState: 1
+    m_Value: 848
   planetaryRadius:
     m_OverrideState: 0
     m_Value: 6378100
@@ -640,16 +640,16 @@ MonoBehaviour:
     m_Value: 55261.973
   aerosolDensity:
     m_OverrideState: 1
-    m_Value: 0.3
+    m_Value: 0
   aerosolTint:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 0.9809447, b: 0.5235849, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   aerosolMaximumAltitude:
     m_OverrideState: 0
     m_Value: 8289.296
   aerosolAnisotropy:
-    m_OverrideState: 0
-    m_Value: 0.18
+    m_OverrideState: 1
+    m_Value: 1
   numberOfBounces:
     m_OverrideState: 0
     m_Value: 2
@@ -666,7 +666,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   planetRotation:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: {x: 0, y: 0, z: 0}
   spaceEmissionTexture:
     m_OverrideState: 0
@@ -688,10 +688,10 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.749285, g: 0.8679245, b: 0.10234957, a: 1}
+    m_Value: {r: 0.26, g: 0.9, b: 0.86, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0.8113208, g: 0.33621815, b: 0.06505875, a: 1}
+    m_Value: {r: 0.29, g: 0.58, b: 0.97, a: 1}
   horizonZenithShift:
     m_OverrideState: 0
     m_Value: 1
