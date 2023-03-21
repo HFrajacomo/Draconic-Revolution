@@ -105,6 +105,10 @@ public class PlayerPositionHandler : MonoBehaviour
         return this.coord.GetChunkPos();
     }
 
+    public string GetCurrentBiome(){
+        return this.currentBiome;
+    }
+
     private void RenewPositionalInformation(){
         if(this.coord.active)
             this.lastCoord = this.coord;

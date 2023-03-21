@@ -4,9 +4,8 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-public class DayNightCycle : MonoBehaviour
+public class AmbientHandler : MonoBehaviour
 {
-
     // Unity References
     public GameObject lightObject;
 	public Transform skyboxLight;
@@ -43,6 +42,8 @@ public class DayNightCycle : MonoBehaviour
     private CloudLayer clouds;
     private WhiteBalance whiteBalance;
     private Fog fog;
+    private LiftGammaGain lgg;
+
     private Color horizonColor = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonDay = new Color(0.26f, 0.89f, 0.9f);
     private Color horizonNight = new Color(1f, 1f, 1f);
@@ -55,12 +56,24 @@ public class DayNightCycle : MonoBehaviour
 
 
     // Update detectors
+    /*
     public float delta = 0;
     public int previousFrameSeconds = 0;
     public bool UPDATELIGHT_FLAG = true;
     private static float FRAME_TIME_DIFF_MULTIPLIER = 0.7f;
     public int updateTimer = 10;
     private int timerFrameSize = 10;
+    */
+   
+    public PlayerPositionHandler playerPositionHandler;
+
+    // Update variables
+    private const int FRAMES_TO_CHANGE = 40;
+    private int updateTimer = 0;
+    private bool isTransitioning = false;
+
+    private BiomeCode currentBiome;
+    private BiomeCode lastBiome;
 
     void OnDestroy(){
         GameObject.Destroy(this.lightObject);
@@ -84,6 +97,38 @@ public class DayNightCycle : MonoBehaviour
         this.pbsky.horizonTint.value = this.horizonColor;
     }
 
+    void Update(){
+        if(!isTransitioning){
+            currentBiome = (BiomeCode)BiomeHandler.BiomeToByte(playerPositionHandler.GetCurrentBiome());
+
+            //if(lastBiome == null){
+                //SetStatsForCurrentBiome();
+            //    lastBiome = currentBiome;
+            //}
+            
+            if(currentBiome != lastBiome){
+                isTransitioning = true;
+            }
+        }
+        else{
+            // Run only on transition
+            if(this.updateTimer == 0){
+                //Flip Directional Light settings
+            }
+
+            this.updateTimer++;
+
+            //Artistic Lerps
+            
+
+            if(this.updateTimer == FRAMES_TO_CHANGE+1){
+                isTransitioning = false;
+                this.updateTimer = 0;
+            }
+        } 
+    }
+
+    /*
     // Update is called once per frame
     void Update()
     {
@@ -128,6 +173,7 @@ public class DayNightCycle : MonoBehaviour
 
 
 	}
+    */
 
 	// Rotation for main Skybox light
     private float RotationFunction(float x){

@@ -166,10 +166,10 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 17
   tint:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: -4
 --- !u!114 &-5272523201392510970
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -262,7 +262,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.66, g: 0.94, b: 1, a: 1}
+      m_Value: {r: 1, g: 1, b: 1, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 2
@@ -503,10 +503,10 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   tint:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   maxFogDistance:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 70
   mipFogMaxMip:
     m_OverrideState: 0
@@ -519,13 +519,13 @@ MonoBehaviour:
     m_Value: 60
   baseHeight:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 0
   maximumHeight:
     m_OverrideState: 1
-    m_Value: 200
+    m_Value: 1000
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: 6
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -536,7 +536,7 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0.25
   depthExtent:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1000
   denoisingMode:
     m_OverrideState: 0
@@ -640,15 +640,15 @@ MonoBehaviour:
     m_Value: 55261.973
   aerosolDensity:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.3
   aerosolTint:
     m_OverrideState: 1
-    m_Value: {r: 0.68235296, g: 0.8627451, b: 1, a: 1}
+    m_Value: {r: 1, g: 0.9809447, b: 0.5235849, a: 1}
   aerosolMaximumAltitude:
     m_OverrideState: 0
     m_Value: 8289.296
   aerosolAnisotropy:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0.18
   numberOfBounces:
     m_OverrideState: 0
@@ -681,17 +681,17 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   alphaSaturation:
-    m_OverrideState: 1
-    m_Value: 1
+    m_OverrideState: 0
+    m_Value: 0
   alphaMultiplier:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.98341644, g: 0.76230186, b: 0.6296331, a: 1}
+    m_Value: {r: 0.749285, g: 0.8679245, b: 0.10234957, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0.5137255, g: 0.827451, b: 1, a: 1}
+    m_Value: {r: 0.8113208, g: 0.33621815, b: 0.06505875, a: 1}
   horizonZenithShift:
     m_OverrideState: 0
     m_Value: 1
@@ -1146,7 +1146,7 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: {x: 1, y: 1, z: 1, w: 0}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
