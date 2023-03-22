@@ -28,6 +28,8 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 		this.gainDay = new float4(0.6959772f, 0.754717f, 0.6799573f, 0f);
 		this.gainSunset = new float4(0.8679245f, 0.2894512f, 0.1596654f, 0f);
 		this.gainNight = new float4(0.1665321f, 0.2358491f, 0.08343717f, 0f);
+
+		this.hasFlare = true;
 	}
 
 	public override Color GetHorizonTint(float t){

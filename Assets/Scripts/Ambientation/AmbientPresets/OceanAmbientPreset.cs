@@ -28,6 +28,8 @@ public class OceanAmbientPreset: BaseAmbientPreset{
 		this.gainDay = new float4(1f, 1f, 1f, 0.4f);
 		this.gainSunset = new float4(0.8113208f, 0.4581941f, 0.1415984f, 0.4f);
 		this.gainNight = new float4(0f, 0f, 0f, 0f);
+
+		this.hasFlare = true;
 	}
 
 	public override Color GetHorizonTint(float t){

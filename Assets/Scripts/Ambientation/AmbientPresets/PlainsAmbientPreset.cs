@@ -29,6 +29,8 @@ public class PlainsAmbientPreset: BaseAmbientPreset{
 		this.gainDay = new float4(.1f, .28f, .39f, .14f);
 		this.gainSunset = new float4(1f, .61f, .62f, .02f);
 		this.gainNight = new float4(0f, 0f, 0f, 0f);
+
+		this.hasFlare = true;
 	}
 
 	public override Color GetHorizonTint(float t){

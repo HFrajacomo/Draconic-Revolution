@@ -28,6 +28,8 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		this.gainDay = new float4(.6f, .56f, .45f, .16f);
 		this.gainSunset = new float4(.76f, .37f, .32f, .14f);
 		this.gainNight = new float4(0f, 0f, 0f, 0f);
+
+		this.hasFlare = true;
 	}
 
 	public override Color GetHorizonTint(float t){

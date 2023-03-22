@@ -60,6 +60,9 @@ public abstract class BaseAmbientPreset{
 	protected float2 sunRotation;
 	protected Color sunColor;
 
+	// Lens Flare
+	protected bool hasFlare = false;
+
 	public static BaseAmbientPreset GetPreset(AmbientGroup g){
 		if(presets.Count == 0)
 			LoadPresets();
@@ -116,6 +119,7 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
 	public virtual Color GetSunColor(float t){return this.sunColor;}
 	public virtual float GetFloorLighting(float t){return FLOOR_LIGHTING_UNDERGROUND;}
+	public bool HasFlare(){return this.hasFlare;}
 
 
 	protected float BehaviourLerp4(float sunrise, float day, float sunset, float night, float x){
