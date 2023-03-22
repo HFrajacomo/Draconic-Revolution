@@ -12,6 +12,12 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = 2.4f;
 	protected static readonly Color SURFACE_LIGHT_COLOR_DAY = Color.white;
 	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(0.27f, 0.57f, 1f, 1f);
+	protected static readonly float SUN_DIAMETER_DAY = 1f;
+	protected static readonly float SUN_DIAMETER_NIGHT = 0.2f;
+	protected static readonly float SUN_DIAMETER_UNDERGROUND = 0f;
+	protected static readonly float FLOOR_LIGHTING_DAY = 1f;
+	protected static readonly float FLOOR_LIGHTING_NIGHT = 0.05f;
+	protected static readonly float FLOOR_LIGHTING_UNDERGROUND = 2f;
 
 	// Physical Based Sky
 	protected Color horizonTintDay;
@@ -50,6 +56,7 @@ public abstract class BaseAmbientPreset{
 
 	// Directional Light
 	protected float lightIntensity;
+	protected float sunDiameter;
 	protected float2 sunRotation;
 	protected Color sunColor;
 
@@ -71,7 +78,15 @@ public abstract class BaseAmbientPreset{
 			case AmbientGroup.FOREST:
 				return new ForestAmbientPreset();
 			case AmbientGroup.OCEAN:
-				return new OceanAmbientPreset();			
+				return new OceanAmbientPreset();
+			case AmbientGroup.CAVERNS:
+				return new CavernsAmbientPreset();
+			case AmbientGroup.ICE_CAVERNS:
+				return new IceCavernsAmbientPreset();
+			case AmbientGroup.HELL:
+				return new HellAmbientPreset();
+			case AmbientGroup.CORE:
+				return new CoreAmbientPreset();		
 			default:
 				return new PlainsAmbientPreset();
 		}
@@ -98,7 +113,9 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetWhiteBalanceTint(){return this.wbTint;}
 	public virtual float GetSunIntensity(float t){return this.lightIntensity;}
 	public virtual float2 GetSunRotation(float t){return this.sunRotation;}
+	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
 	public virtual Color GetSunColor(float t){return this.sunColor;}
+	public virtual float GetFloorLighting(float t){return FLOOR_LIGHTING_UNDERGROUND;}
 
 
 	protected float BehaviourLerp4(float sunrise, float day, float sunset, float night, float x){

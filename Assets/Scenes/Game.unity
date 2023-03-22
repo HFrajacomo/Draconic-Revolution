@@ -2185,11 +2185,8 @@ MonoBehaviour:
   timer: {fileID: 1322082558}
   volume: {fileID: 11400000, guid: d74700023676aee41bc60f65c5f83bf2, type: 2}
   skyDirectionalLight: {fileID: 1484502057}
+  hdLight: {fileID: 1484502058}
   stopTimeAt: -1
-  aerosolDensity_sunrise: 0
-  aerosolDensity_day: 0
-  aerosolDensity_sunset: 0
-  aerosolDensity_night: 0
   horizonTint_sunrise: {r: 0, g: 0, b: 0, a: 0}
   horizonTint_day: {r: 0, g: 0, b: 0, a: 0}
   horizonTint_sunset: {r: 0, g: 0, b: 0, a: 0}

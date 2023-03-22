@@ -20,7 +20,7 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		this.cloudTintSunrise = new Color(.08f, .05f, .01f);
 		this.cloudTintDay = new Color(.5f, .43f, .28f);
 		this.cloudTintSunset = new Color(.7f, .28f, 0f);
-		this.cloudTintNight = new Color(.09f, .08f, .04f);;
+		this.cloudTintNight = new Color(.09f, .08f, .04f);
 
 		this.wbTemperature = 20f;
 
@@ -50,5 +50,11 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 	}
 	public override Color GetSunColor(float t){
 		return this.BehaviourFlipDayNight<Color>(SURFACE_LIGHT_COLOR_DAY, SURFACE_LIGHT_COLOR_NIGHT, t);
+	}
+	public override float GetSunDiameter(float t){
+		return this.BehaviourFlipDayNight<float>(SUN_DIAMETER_DAY, SUN_DIAMETER_NIGHT, t);
+	}
+	public override float GetFloorLighting(float t){
+		return this.BehaviourFlipDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
 }

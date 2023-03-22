@@ -5,12 +5,13 @@ using UnityEngine.Rendering.HighDefinition;
 
 public class AmbientationTestingTool: MonoBehaviour{
 	// What Biome is being tested?
-	private BaseAmbientPreset preset = new OceanAmbientPreset();
+	private BaseAmbientPreset preset = new CoreAmbientPreset();
 
 	// Unity Reference
 	public TimeOfDay timer;
 	public VolumeProfile volume;
 	public Light skyDirectionalLight;
+	public HDAdditionalLightData hdLight;
 
 	public int stopTimeAt = -1;
 	private int lastTimeAt = -1;
@@ -101,6 +102,7 @@ public class AmbientationTestingTool: MonoBehaviour{
 		this.skyDirectionalLight.intensity = preset.GetSunIntensity(time);
 		this.skyDirectionalLight.color = preset.GetSunColor(time);
 		this.skyDirectionalLight.transform.rotation = Quaternion.Euler(preset.GetSunRotation(time).x, 0, preset.GetSunRotation(time).y);
+		this.hdLight.angularDiameter = preset.GetSunDiameter(time);
 	}
 
 	private void Print(){

@@ -52,4 +52,10 @@ public class PlainsAmbientPreset: BaseAmbientPreset{
 	public override Color GetSunColor(float t){
 		return this.BehaviourFlipDayNight<Color>(SURFACE_LIGHT_COLOR_DAY, SURFACE_LIGHT_COLOR_NIGHT, t);
 	}
+	public override float GetSunDiameter(float t){
+		return this.BehaviourFlipDayNight<float>(SUN_DIAMETER_DAY, SUN_DIAMETER_NIGHT, t);
+	}
+	public override float GetFloorLighting(float t){
+		return this.BehaviourFlipDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
+	}
 }

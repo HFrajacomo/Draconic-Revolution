@@ -66,6 +66,8 @@ public class AmbientHandler : MonoBehaviour
     private int lastTick;
     private int lastTime;
     private float delta;
+    private byte ROTATE_SUN_FLAG;
+    private byte ROTATE_FLAG_MAX = 3;
 
     // Ambient Groups
     private AmbientGroup currentAmbient;
@@ -99,6 +101,8 @@ public class AmbientHandler : MonoBehaviour
         lastAmbient = currentAmbient;
         currentPreset = BaseAmbientPreset.GetPreset(currentAmbient);
         lastPreset = currentPreset;
+
+        ROTATE_SUN_FLAG = 0;
 
         SetStats(this.timer.ToSeconds());
     }
@@ -155,26 +159,38 @@ public class AmbientHandler : MonoBehaviour
     private void LerpStatus(int time){
         float currentStep = (float)this.updateTimer/FRAMES_TO_CHANGE;
 
-        if(currentTick % 4 == 0){
+        if(currentTick % 6 == 0){
             this.pbsky.horizonTint.value = Color.Lerp(lastPreset.GetHorizonTint(time), currentPreset.GetHorizonTint(time), currentStep);
             this.pbsky.zenithTint.value = Color.Lerp(lastPreset.GetZenithTint(time), currentPreset.GetZenithTint(time), currentStep);
         }
-        else if(currentTick % 4 == 1){
+        else if(currentTick % 6 == 1){
             this.fog.meanFreePath.value = Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep);
             this.fog.albedo.value = Color.Lerp(lastPreset.GetFogAlbedo(time), currentPreset.GetFogAlbedo(time), currentStep);
             this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);            
         }
-        else if(currentTick % 4 == 2){
+        else if(currentTick % 6 == 2){
             this.clouds.layerA.tint.value = Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep);
             this.whiteBalance.temperature.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTemperature(), currentPreset.GetWhiteBalanceTemperature(), currentStep);
             this.whiteBalance.tint.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTint(), currentPreset.GetWhiteBalanceTint(), currentStep);
             this.lgg.gain.value = LerpFloat4(lastPreset.GetGain(time), currentPreset.GetGain(time), currentStep);     
         }
-        else{
+        else if(currentTick % 4 == 3){
             this.skyDirectionalLight.intensity = Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep);
             this.skyDirectionalLight.color = Color.Lerp(lastPreset.GetSunColor(time), currentPreset.GetSunColor(time), currentStep);
-            this.cachedRotation = currentPreset.GetSunRotation(time);
-            this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);  
+            this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
+            Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
+
+            if(ROTATE_SUN_FLAG == 0){
+                this.cachedRotation = currentPreset.GetSunRotation(time);
+                this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+                ROTATE_SUN_FLAG++;
+            }
+            else if(ROTATE_SUN_FLAG == ROTATE_FLAG_MAX){
+                ROTATE_SUN_FLAG = 0;
+            }
+            else{
+                ROTATE_SUN_FLAG++;
+            }
         }
     }
 
@@ -200,8 +216,20 @@ public class AmbientHandler : MonoBehaviour
         else if(currentTick % 4 == 3){
             this.skyDirectionalLight.intensity = currentPreset.GetSunIntensity(finalTime);
             this.skyDirectionalLight.color = currentPreset.GetSunColor(finalTime);
-            this.cachedRotation = currentPreset.GetSunRotation(finalTime);
-            this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+            this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
+            Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
+
+            if(ROTATE_SUN_FLAG == 0){
+                this.cachedRotation = currentPreset.GetSunRotation(finalTime);
+                this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+                ROTATE_SUN_FLAG++;
+            }
+            else if(ROTATE_SUN_FLAG == ROTATE_FLAG_MAX){
+                ROTATE_SUN_FLAG = 0;
+            }
+            else{
+                ROTATE_SUN_FLAG++;
+            }
         }
     }
 
