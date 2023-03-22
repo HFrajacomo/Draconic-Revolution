@@ -14,19 +14,15 @@ public abstract class BaseAmbientPreset{
 	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(0.27f, 0.57f, 1f, 1f);
 
 	// Physical Based Sky
-	protected float aerosolDensityDay;
 	protected Color horizonTintDay;
 	protected Color zenithTintDay;
 
-	protected float aerosolDensitySunset;
 	protected Color horizonTintSunset;
 	protected Color zenithTintSunset;
 
-	protected float aerosolDensitySunrise;
 	protected Color horizonTintSunrise;
 	protected Color zenithTintSunrise;
 
-	protected float aerosolDensityNight;
 	protected Color horizonTintNight;
 	protected Color zenithTintNight;
 
@@ -71,7 +67,11 @@ public abstract class BaseAmbientPreset{
 			case AmbientGroup.SNOW:
 				return new SnowAmbientPreset();	
 			case AmbientGroup.DESERT:
-				return new DesertAmbientPreset();			
+				return new DesertAmbientPreset();
+			case AmbientGroup.FOREST:
+				return new ForestAmbientPreset();
+			case AmbientGroup.OCEAN:
+				return new OceanAmbientPreset();			
 			default:
 				return new PlainsAmbientPreset();
 		}
@@ -87,22 +87,21 @@ public abstract class BaseAmbientPreset{
 		}
 	}
 
-	public virtual float4 GetGain(int t){return this.gainDay;}
-	public virtual float GetAerosolDensity(int t){return this.aerosolDensityDay;}
-	public virtual Color GetHorizonTint(int t){return this.horizonTintDay;}
-	public virtual Color GetZenithTint(int t){return this.zenithTintDay;}
-	public virtual float GetFogAttenuation(int t){return this.fogAttenuation1;}
-	public virtual Color GetFogAlbedo(int t){return this.fogAlbedo;}
-	public virtual float GetFogAmbientLight(int t){return this.fogAmbientLight;}
-	public virtual Color GetCloudTint(int t){return this.cloudTintDay;}
+	public virtual float4 GetGain(float t){return this.gainDay;}
+	public virtual Color GetHorizonTint(float t){return this.horizonTintDay;}
+	public virtual Color GetZenithTint(float t){return this.zenithTintDay;}
+	public virtual float GetFogAttenuation(float t){return this.fogAttenuation1;}
+	public virtual Color GetFogAlbedo(float t){return this.fogAlbedo;}
+	public virtual float GetFogAmbientLight(float t){return this.fogAmbientLight;}
+	public virtual Color GetCloudTint(float t){return this.cloudTintDay;}
 	public virtual float GetWhiteBalanceTemperature(){return this.wbTemperature;}
 	public virtual float GetWhiteBalanceTint(){return this.wbTint;}
-	public virtual float GetSunIntensity(int t){return this.lightIntensity;}
-	public virtual float2 GetSunRotation(int t){return this.sunRotation;}
-	public virtual Color GetSunColor(int t){return this.sunColor;}
+	public virtual float GetSunIntensity(float t){return this.lightIntensity;}
+	public virtual float2 GetSunRotation(float t){return this.sunRotation;}
+	public virtual Color GetSunColor(float t){return this.sunColor;}
 
 
-	protected float BehaviourLerp4(float sunrise, float day, float sunset, float night, int x){
+	protected float BehaviourLerp4(float sunrise, float day, float sunset, float night, float x){
         if(x >= 180 && x < 240)
             return Mathf.Lerp(night, sunrise, (x-180)/60f);
         else if(x >= 240 && x < 360)
@@ -119,7 +118,7 @@ public abstract class BaseAmbientPreset{
             return night;
 	}
 
-	protected Color BehaviourColor4(Color sunrise, Color day, Color sunset, Color night, int x){
+	protected Color BehaviourColor4(Color sunrise, Color day, Color sunset, Color night, float x){
         if(x >= 180 && x < 240)
             return Color.Lerp(night, sunrise, (x-180)/60f);
         else if(x >= 240 && x < 360)
@@ -136,7 +135,7 @@ public abstract class BaseAmbientPreset{
             return night;
 	}
 
-	protected float4 BehaviourFloat4(float4 sunrise, float4 day, float4 sunset, float4 night, int x){
+	protected float4 BehaviourFloat4(float4 sunrise, float4 day, float4 sunset, float4 night, float x){
 		Color sr = Float4ToColor(sunrise);
 		Color d = Float4ToColor(day);
 		Color ss = Float4ToColor(sunset);
@@ -158,7 +157,7 @@ public abstract class BaseAmbientPreset{
             return ColorToFloat4(n);
 	}
 
-	protected T BehaviourFlipDayNight<T>(T day, T night, int x){
+	protected T BehaviourFlipDayNight<T>(T day, T night, float x){
 		if(x >= 240 && x < 1200)
 			return day;
 		return night;
@@ -213,11 +212,6 @@ public abstract class BaseAmbientPreset{
     }
 
     public void SetValues(AmbientationTestingTool att){
-    	aerosolDensityDay = att.aerosolDensity_day;
-    	aerosolDensitySunrise = att.aerosolDensity_sunrise;
-    	aerosolDensitySunset = att.aerosolDensity_sunset;
-    	aerosolDensityNight = att.aerosolDensity_night;
-
     	horizonTintDay = att.horizonTint_day;
     	horizonTintSunrise = att.horizonTint_sunrise;
     	horizonTintSunset = att.horizonTint_sunset;
@@ -259,10 +253,6 @@ public abstract class BaseAmbientPreset{
 		return new Color(f.x, f.y, f.z, f.w);
 	}
 
-	public float _ad_d(){return aerosolDensityDay;}
-	public float _ad_sr(){return aerosolDensitySunrise;}
-	public float _ad_ss(){return aerosolDensitySunset;}
-	public float _ad_n(){return aerosolDensityNight;}
 	public Color _ht_d(){return horizonTintDay;}
 	public Color _ht_sr(){return horizonTintSunrise;}
 	public Color _ht_ss(){return horizonTintSunset;}

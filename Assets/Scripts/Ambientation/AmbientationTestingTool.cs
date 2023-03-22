@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 public class AmbientationTestingTool: MonoBehaviour{
 	// What Biome is being tested?
-	private BaseAmbientPreset preset = new DesertAmbientPreset();
+	private BaseAmbientPreset preset = new OceanAmbientPreset();
 
 	// Unity Reference
 	public TimeOfDay timer;
@@ -24,11 +24,6 @@ public class AmbientationTestingTool: MonoBehaviour{
     private LiftGammaGain lgg;
 
 	// Physically based sky
-	public float aerosolDensity_sunrise;
-	public float aerosolDensity_day;
-	public float aerosolDensity_sunset;
-	public float aerosolDensity_night;
-
 	public Color horizonTint_sunrise;
 	public Color horizonTint_day;
 	public Color horizonTint_sunset;
@@ -89,10 +84,13 @@ public class AmbientationTestingTool: MonoBehaviour{
 		lastTime = time;
 	}
 
+	void OnDestroy(){
+		Print();
+	}
+
 	private void SimulateNormally(int time){
 		this.pbsky.horizonTint.value = preset.GetHorizonTint(time);
 		this.pbsky.zenithTint.value = preset.GetZenithTint(time);
-		this.pbsky.aerosolDensity.value = preset.GetAerosolDensity(time);
 		this.fog.meanFreePath.value = preset.GetFogAttenuation(time);
 		this.fog.albedo.value = preset.GetFogAlbedo(time);
 		this.fog.globalLightProbeDimmer.value = preset.GetFogAmbientLight(time);
@@ -105,12 +103,52 @@ public class AmbientationTestingTool: MonoBehaviour{
 		this.skyDirectionalLight.transform.rotation = Quaternion.Euler(preset.GetSunRotation(time).x, 0, preset.GetSunRotation(time).y);
 	}
 
-	private void SetValues(BaseAmbientPreset p){
-    	aerosolDensity_day = p._ad_d();
-    	aerosolDensity_sunrise = p._ad_sr();
-    	aerosolDensity_sunset = p._ad_ss();
-    	aerosolDensity_night = p._ad_n();
+	private void Print(){
+		string o = "";
 
+		o += "this.horizonTintSunrise = " + PrintColor(this.horizonTint_sunrise) + ";\n";
+		o += "this.horizonTintDay = " + PrintColor(this.horizonTint_day) + ";\n";
+		o += "this.horizonTintSunset = " + PrintColor(this.horizonTint_sunset) + ";\n";
+		o += "this.horizonTintNight = " + PrintColor(this.horizonTint_night) + ";\n\n";
+
+		o += "this.zenithTintSunrise = " + PrintColor(this.zenithTint_sunrise) + ";\n";
+		o += "this.zenithTintDay = " + PrintColor(this.zenithTint_day) + ";\n";
+		o += "this.zenithTintSunset = " + PrintColor(this.zenithTint_sunset) + ";\n";
+		o += "this.zenithTintNight = " + PrintColor(this.zenithTint_night) + ";\n\n";
+
+		o += "this.fogAttenuation1 = " + Q(this.fogAttenuation1) + "f;\n";
+		o += "this.fogAlbedo = Color.white;\n";
+		o += "this.fogAmbientLight = .25f;\n\n";
+
+		o += "this.cloudTintSunrise = " + PrintColor(this.cloudTint_sunrise) + ";\n";
+		o += "this.cloudTintDay = " + PrintColor(this.cloudTint_day) + ";\n";
+		o += "this.cloudTintSunset = " + PrintColor(this.cloudTint_sunset) + ";\n";
+		o += "this.cloudTintNight = " + PrintColor(this.cloudTint_night) + ";\n\n";
+
+		o += "this.wbTemperature = " + Q(this.wbTemperature) + "f;\n";
+		o += "this.wbTint = " + Q(this.wbTint) + "f;\n";
+
+		o += "this.gainSunrise = " + PrintFloat4(this.gain_sunrise) + ";\n";
+		o += "this.gainDay = " + PrintFloat4(this.gain_day) + ";\n";
+		o += "this.gainSunset = " + PrintFloat4(this.gain_sunset) + ";\n";
+		o += "this.gainNight = " + PrintFloat4(this.gain_night) + ";\n";
+
+		Debug.Log(o);
+	}
+
+	private string PrintColor(Color c){
+		return "new Color(" + Q(c.r) + "f, " + Q(c.g) + "f, " + Q(c.b) + "f)";
+	}
+
+	private string PrintFloat4(Color c){
+		return "new float4(" + Q(c.r) + "f, " + Q(c.g) + "f, " + Q(c.b) + "f, " + Q(c.a) + "f)";
+	}
+
+	private string Q(float a){
+		return a.ToString().Replace(',', '.');
+	}
+
+	private void SetValues(BaseAmbientPreset p){
     	horizonTint_day = p._ht_d();
     	horizonTint_sunrise = p._ht_sr();
     	horizonTint_sunset = p._ht_ss();

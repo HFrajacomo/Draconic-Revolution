@@ -10,7 +10,7 @@ public class TimeOfDay : MonoBehaviour
     public Client client;
     public static byte tickRate = 40;
     public static float timeRate = 1f/TimeOfDay.tickRate;
-    private static byte ticksForMinute = (byte)(TimeOfDay.tickRate * 2); // two seconds worth of ticks
+    public static byte ticksForMinute = (byte)(TimeOfDay.tickRate * 2); // two seconds worth of ticks
 
     private float faketicks = 0f;
 	public float ticks = 0f;
@@ -86,10 +86,12 @@ public class TimeOfDay : MonoBehaviour
 
         }
         else if(isClient){
-            faketicks += Time.deltaTime;
+            faketicks += Time.deltaTime * TimeOfDay.ticksForMinute;
 
-            if(faketicks >= TimeOfDay.timeRate){
+            if((int)faketicks % 4 == 0)
                 SendPlayerPosition();
+
+            if(faketicks >= TimeOfDay.ticksForMinute){
                 faketicks = 0f;
             }
         }
@@ -170,6 +172,9 @@ public class TimeOfDay : MonoBehaviour
         this.hours = hours;
         this.minutes = minutes;
         this.ticks = 0;
+
+        if(isClient)
+            this.faketicks = 0;
     }
 
     // Gets formatted h:m string
@@ -249,6 +254,10 @@ public class TimeOfDay : MonoBehaviour
 
     public float GetTicks(){
         return this.ticks;
+    }
+
+    public float GetFakeTicks(){
+        return this.faketicks;
     }
 
     // Checks if a given string-formatted time is past compared to current time

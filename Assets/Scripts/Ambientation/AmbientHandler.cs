@@ -58,10 +58,14 @@ public class AmbientHandler : MonoBehaviour
 
 
     // Update variables
-    private const int FRAMES_TO_CHANGE = 40;
+    private const int FRAMES_TO_CHANGE = 180;
     private int updateTimer = 0;
     private bool isTransitioning = false;
     private float2 cachedRotation;
+    private int currentTick;
+    private int lastTick;
+    private int lastTime;
+    private float delta;
 
     // Ambient Groups
     private AmbientGroup currentAmbient;
@@ -88,6 +92,7 @@ public class AmbientHandler : MonoBehaviour
         this.volume.TryGet<CloudLayer>(out this.clouds);
         this.volume.TryGet<WhiteBalance>(out this.whiteBalance);
         this.volume.TryGet<Fog>(out this.fog);
+        this.volume.TryGet<LiftGammaGain>(out this.lgg);
         this.pbsky.horizonTint.value = this.horizonColor;
 
         currentAmbient = BiomeHandler.GetAmbientGroup(BiomeHandler.BiomeToByte(playerPositionHandler.GetCurrentBiome()));
@@ -96,11 +101,12 @@ public class AmbientHandler : MonoBehaviour
         lastPreset = currentPreset;
 
         SetStats(this.timer.ToSeconds());
-        Debug.Log("starting with preset: " + currentAmbient);
     }
 
     void Update(){
         int time = timer.ToSeconds();
+        currentTick = (int)timer.GetFakeTicks();
+        delta += Time.deltaTime/2;
 
         if(!isTransitioning){
             currentAmbient = BiomeHandler.GetAmbientGroup(BiomeHandler.BiomeToByte(playerPositionHandler.GetCurrentBiome()));
@@ -108,62 +114,95 @@ public class AmbientHandler : MonoBehaviour
             if(currentAmbient != lastAmbient){
                 isTransitioning = true;
                 currentPreset = BaseAmbientPreset.GetPreset(currentAmbient);
+                return;
             }
 
-            SetStats(time);
+            if(time != lastTime){
+                delta = 0f;
+            }
+
+            if(currentTick != lastTick)
+                SetStats(time);
+
+            lastAmbient = currentAmbient;
+            lastTick = currentTick;
+            lastTime = time;
+
         }
         else{
             this.updateTimer++;
 
-            LerpStatus(time);
+            if(currentTick != lastTick)
+                LerpStatus(time);
             
-            if(this.updateTimer == FRAMES_TO_CHANGE+1){
+            if(this.updateTimer == FRAMES_TO_CHANGE){
                 isTransitioning = false;
                 this.updateTimer = 0;
-                Debug.Log("Finished transition: " + lastAmbient + " -> " + currentAmbient);
                 lastAmbient = currentAmbient;
                 lastPreset = currentPreset;
-
             }
+
+            lastTick = currentTick;
         } 
     }
 
-    private void LerpStatus(int time){
-        float currentStep = this.updateTimer/FRAMES_TO_CHANGE;
-        this.cachedRotation = currentPreset.GetSunRotation(time);
+    private void TransformDelta(){
+        if(this.delta > 1f)
+            this.delta = 1f;
+    }
 
-        this.pbsky.horizonTint.value = Color.Lerp(lastPreset.GetHorizonTint(time), currentPreset.GetHorizonTint(time), currentStep);
-        this.pbsky.zenithTint.value = Color.Lerp(lastPreset.GetZenithTint(time), currentPreset.GetZenithTint(time), currentStep);
-        this.pbsky.aerosolDensity.value = Mathf.Lerp(lastPreset.GetAerosolDensity(time), currentPreset.GetAerosolDensity(time), currentStep);
-        this.fog.meanFreePath.value = Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep);
-        this.fog.albedo.value = Color.Lerp(lastPreset.GetFogAlbedo(time), currentPreset.GetFogAlbedo(time), currentStep);
-        this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);
-        this.clouds.layerA.tint.value = Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep);
-        this.whiteBalance.temperature.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTemperature(), currentPreset.GetWhiteBalanceTemperature(), currentStep);
-        this.whiteBalance.tint.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTint(), currentPreset.GetWhiteBalanceTint(), currentStep);
-        this.lgg.gain.value = LerpFloat4(lastPreset.GetGain(time), currentPreset.GetGain(time), currentStep);
-        this.skyDirectionalLight.intensity = Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep);
-        this.skyDirectionalLight.color = Color.Lerp(lastPreset.GetSunColor(time), currentPreset.GetSunColor(time), currentStep);
-        this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+    // Calculates the status of ambientation features while there's a change in preset happening
+    private void LerpStatus(int time){
+        float currentStep = (float)this.updateTimer/FRAMES_TO_CHANGE;
+
+        if(currentTick % 4 == 0){
+            this.pbsky.horizonTint.value = Color.Lerp(lastPreset.GetHorizonTint(time), currentPreset.GetHorizonTint(time), currentStep);
+            this.pbsky.zenithTint.value = Color.Lerp(lastPreset.GetZenithTint(time), currentPreset.GetZenithTint(time), currentStep);
+        }
+        else if(currentTick % 4 == 1){
+            this.fog.meanFreePath.value = Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep);
+            this.fog.albedo.value = Color.Lerp(lastPreset.GetFogAlbedo(time), currentPreset.GetFogAlbedo(time), currentStep);
+            this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);            
+        }
+        else if(currentTick % 4 == 2){
+            this.clouds.layerA.tint.value = Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep);
+            this.whiteBalance.temperature.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTemperature(), currentPreset.GetWhiteBalanceTemperature(), currentStep);
+            this.whiteBalance.tint.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTint(), currentPreset.GetWhiteBalanceTint(), currentStep);
+            this.lgg.gain.value = LerpFloat4(lastPreset.GetGain(time), currentPreset.GetGain(time), currentStep);     
+        }
+        else{
+            this.skyDirectionalLight.intensity = Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep);
+            this.skyDirectionalLight.color = Color.Lerp(lastPreset.GetSunColor(time), currentPreset.GetSunColor(time), currentStep);
+            this.cachedRotation = currentPreset.GetSunRotation(time);
+            this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);  
+        }
     }
 
     // Sets the ambient status based on a time value passed
     private void SetStats(int time){
-        this.cachedRotation = currentPreset.GetSunRotation(time);
+        float finalTime = time + this.delta;
 
-        this.pbsky.horizonTint.value = currentPreset.GetHorizonTint(time);
-        this.pbsky.zenithTint.value = currentPreset.GetZenithTint(time);
-        this.pbsky.aerosolDensity.value = currentPreset.GetAerosolDensity(time);
-        this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
-        this.fog.albedo.value = currentPreset.GetFogAlbedo(time);
-        this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(time);
-        this.clouds.layerA.tint.value = currentPreset.GetCloudTint(time);
-        this.whiteBalance.temperature.value = currentPreset.GetWhiteBalanceTemperature();
-        this.whiteBalance.tint.value = currentPreset.GetWhiteBalanceTint();
-        this.lgg.gain.value = currentPreset.GetGain(time);
-        this.skyDirectionalLight.intensity = currentPreset.GetSunIntensity(time);
-        this.skyDirectionalLight.color = currentPreset.GetSunColor(time);
-        this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);        
+        if(currentTick % 4 == 0){
+            this.pbsky.horizonTint.value = currentPreset.GetHorizonTint(finalTime);
+            this.pbsky.zenithTint.value = currentPreset.GetZenithTint(finalTime);
+        }
+        else if(currentTick % 4 == 1){
+            this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(finalTime);
+            this.fog.albedo.value = currentPreset.GetFogAlbedo(finalTime);
+            this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime);
+        }
+        else if(currentTick % 4 == 2){
+            this.clouds.layerA.tint.value = currentPreset.GetCloudTint(finalTime);
+            this.whiteBalance.temperature.value = currentPreset.GetWhiteBalanceTemperature();
+            this.whiteBalance.tint.value = currentPreset.GetWhiteBalanceTint();
+            this.lgg.gain.value = currentPreset.GetGain(finalTime);
+        }
+        else if(currentTick % 4 == 3){
+            this.skyDirectionalLight.intensity = currentPreset.GetSunIntensity(finalTime);
+            this.skyDirectionalLight.color = currentPreset.GetSunColor(finalTime);
+            this.cachedRotation = currentPreset.GetSunRotation(finalTime);
+            this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+        }
     }
 
     /*

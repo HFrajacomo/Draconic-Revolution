@@ -166,10 +166,10 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 17
+    m_Value: -15
   tint:
     m_OverrideState: 1
-    m_Value: -4
+    m_Value: -10
 --- !u!114 &-5272523201392510970
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -262,7 +262,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 1, g: 1, b: 1, a: 1}
+      m_Value: {r: 0.5775682, g: 0.5755162, b: 0.5755162, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 2
@@ -612,7 +612,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   sphericalMode:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   seaLevel:
     m_OverrideState: 1
@@ -639,17 +639,17 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 55261.973
   aerosolDensity:
-    m_OverrideState: 1
-    m_Value: 0
+    m_OverrideState: 0
+    m_Value: 0.1
   aerosolTint:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   aerosolMaximumAltitude:
     m_OverrideState: 0
     m_Value: 8289.296
   aerosolAnisotropy:
-    m_OverrideState: 1
-    m_Value: 1
+    m_OverrideState: 0
+    m_Value: 0.15
   numberOfBounces:
     m_OverrideState: 0
     m_Value: 2
@@ -688,13 +688,13 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.26, g: 0.9, b: 0.86, a: 1}
+    m_Value: {r: 0.5870614, g: 0.729275, b: 0.5722677, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0.29, g: 0.58, b: 0.97, a: 1}
+    m_Value: {r: 0.8916612, g: 0.9706499, b: 0.67890906, a: 1}
   horizonZenithShift:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: -0.5
   m_SkyVersion: 1
   m_ObsoleteEarthPreset:
     m_OverrideState: 0
@@ -1147,7 +1147,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 1, z: 1, w: 0}
+    m_Value: {x: 0.73885524, y: 0.6720972, z: 0.4192872, w: 0}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3

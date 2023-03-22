@@ -3,11 +3,6 @@ using Unity.Mathematics;
 
 public class SnowAmbientPreset: BaseAmbientPreset{
 	public SnowAmbientPreset(){
-		this.aerosolDensitySunrise = 0.1f;
-		this.aerosolDensityDay = 0.1f;
-		this.aerosolDensitySunrise = 0f;
-		this.aerosolDensityNight = 0f;
-
 		this.horizonTintSunrise = new Color(.96f, .74f, .43f);
 		this.horizonTintDay = new Color(0f, .87f, 1f);
 		this.horizonTintSunset = new Color(.47f, .18f, 1f);
@@ -35,28 +30,25 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.gainNight = new float4(.20f, .23f, .29f, .31f);
 	}
 
-	public override float GetAerosolDensity(int t){
-		return this.BehaviourLerp4(aerosolDensitySunrise, aerosolDensityDay, aerosolDensitySunset, aerosolDensityNight, t);
-	}
-	public override Color GetHorizonTint(int t){
+	public override Color GetHorizonTint(float t){
 		return this.BehaviourColor4(horizonTintSunrise, horizonTintDay, horizonTintSunset, horizonTintNight, t);
 	}
-	public override Color GetZenithTint(int t){
+	public override Color GetZenithTint(float t){
 		return this.BehaviourColor4(zenithTintSunrise, zenithTintDay, zenithTintSunset, zenithTintNight, t);
 	}
-	public override Color GetCloudTint(int t){
+	public override Color GetCloudTint(float t){
 		return this.BehaviourColor4(cloudTintSunrise, cloudTintDay, cloudTintSunset, cloudTintNight, t);
 	}
-	public override float4 GetGain(int t){
+	public override float4 GetGain(float t){
 		return this.BehaviourFloat4(gainSunrise, gainDay, gainSunset, gainNight, t);
 	}
-	public override float GetSunIntensity(int t){
+	public override float GetSunIntensity(float t){
 		return this.BehaviourFlipDayNight<float>(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);
 	}
-	public override float2 GetSunRotation(int t){
+	public override float2 GetSunRotation(float t){
 		return new float2(this.SunRotationX(t), this.SunRotationZ(t));
 	}
-	public override Color GetSunColor(int t){
+	public override Color GetSunColor(float t){
 		return this.BehaviourFlipDayNight<Color>(SURFACE_LIGHT_COLOR_DAY, SURFACE_LIGHT_COLOR_NIGHT, t);
 	}
 }

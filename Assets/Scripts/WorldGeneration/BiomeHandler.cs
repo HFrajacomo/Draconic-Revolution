@@ -211,6 +211,9 @@ public class BiomeHandler
 	
 	// Returns the AmbientGroup this biome is from
 	public static AmbientGroup GetAmbientGroup(byte biome){
+		if(!dataset.ContainsKey(biome))
+			return AmbientGroup.PLAINS;
+			
 		return dataset[biome].ambient;
 	}
 

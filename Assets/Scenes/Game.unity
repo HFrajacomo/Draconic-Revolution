@@ -2154,7 +2154,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &456043007
 Transform:
   m_ObjectHideFlags: 0
@@ -2185,12 +2185,7 @@ MonoBehaviour:
   timer: {fileID: 1322082558}
   volume: {fileID: 11400000, guid: d74700023676aee41bc60f65c5f83bf2, type: 2}
   skyDirectionalLight: {fileID: 1484502057}
-  timerUpdate: {fileID: 756285227}
   stopTimeAt: -1
-  aerosolTint_sunrise: {r: 0, g: 0, b: 0, a: 0}
-  aerosolTint_day: {r: 0, g: 0, b: 0, a: 0}
-  aerosolTint_sunset: {r: 0, g: 0, b: 0, a: 0}
-  aerosolTint_night: {r: 0, g: 0, b: 0, a: 0}
   aerosolDensity_sunrise: 0
   aerosolDensity_day: 0
   aerosolDensity_sunset: 0
@@ -10191,11 +10186,20 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1484502055}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 793e80a16b8456a42a221b661114f904, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lightObject: {fileID: 1484502055}
+  skyboxLight: {fileID: 1484502056}
+  skyDirectionalLight: {fileID: 1484502057}
+  hdLight: {fileID: 1484502058}
+  timer: {fileID: 1322082558}
+  playerPositionHandler: {fileID: 59614825}
+  dayFlare: {fileID: 1484502060}
+  nightFlare: {fileID: 1484502061}
+  volume: {fileID: 11400000, guid: d74700023676aee41bc60f65c5f83bf2, type: 2}
 --- !u!114 &1484502060
 MonoBehaviour:
   m_ObjectHideFlags: 0
