@@ -162,18 +162,20 @@ public class ChunkLoader : MonoBehaviour
         else{
             // If current chunk is drawn and world is generated
         	if(!WORLD_GENERATED){
-                HandleClientCommunication();
-        		WORLD_GENERATED = true;
+                if(this.chunks.ContainsKey(this.currentChunk) && this.chunks[this.currentChunk].drawMain){
+                    HandleClientCommunication();
+            		WORLD_GENERATED = true;
 
 
-                this.gameUI.SetActive(true);
-                playerCharacter.SetActive(true);
-                this.mainControllerManager.SetActive(true);
-                this.time.SetPlayer(playerCharacter.GetComponent<PlayerMovement>());
-                this.playerEvents.SetPlayerObject(playerCharacter);
-                this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
-                this.client.SetPlayerEvents(this.playerEvents);
-                this.playerPositionHandler.SetChunkLoaderChunkPos();
+                    this.gameUI.SetActive(true);
+                    playerCharacter.SetActive(true);
+                    this.mainControllerManager.SetActive(true);
+                    this.time.SetPlayer(playerCharacter.GetComponent<PlayerMovement>());
+                    this.playerEvents.SetPlayerObject(playerCharacter);
+                    this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
+                    this.client.SetPlayerEvents(this.playerEvents);
+                    this.playerPositionHandler.SetChunkLoaderChunkPos();
+                }
         	}
 
             MoveEntities();

@@ -9,11 +9,11 @@ public abstract class BaseAmbientPreset{
 
 	// Constants
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_DAY = 4f;
-	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = 2.4f;
+	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = 0.7f;
 	protected static readonly Color SURFACE_LIGHT_COLOR_DAY = Color.white;
 	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(0.27f, 0.57f, 1f, 1f);
 	protected static readonly float SUN_DIAMETER_DAY = 1f;
-	protected static readonly float SUN_DIAMETER_NIGHT = 0.2f;
+	protected static readonly float SUN_DIAMETER_NIGHT = 0.6f;
 	protected static readonly float SUN_DIAMETER_UNDERGROUND = 0f;
 	protected static readonly float FLOOR_LIGHTING_DAY = 1f;
 	protected static readonly float FLOOR_LIGHTING_NIGHT = 0.05f;
