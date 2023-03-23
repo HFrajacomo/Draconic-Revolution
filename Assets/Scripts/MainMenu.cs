@@ -89,7 +89,7 @@ public class MainMenu : MonoBehaviour
 		World.SetGameSceneFlag(false);
 
 		MainMenu.firstLoad = false;
-		this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\";
+		this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
 
 		CreateSinglePlayerNewMap();
 		CreateMultiPlayerMap();

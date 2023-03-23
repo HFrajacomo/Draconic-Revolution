@@ -87,7 +87,7 @@ public class RegionFileHandler{
 			}
 			// If it's a Local Server
 			else{
-				this.saveDir = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\";
+				this.saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
 				this.worldDir = this.saveDir + this.worldName + "\\";			
 			}
 		#endif
