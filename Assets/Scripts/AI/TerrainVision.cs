@@ -61,15 +61,19 @@ public abstract class TerrainVision
         if(coord.Equals(null))
             return 0;
 
-        return this.viewFieldBlocks[this.viewDistance.x*(this.viewDistance.y*2+1)*(this.viewDistance.x*2+1) + ((this.viewDistance.y - ((int)(this.hitbox.GetDiameter().y/2)+1)))*(this.viewDistance.x*2+1) + this.viewDistance.x];
+        //DEBUG
+        CastCoord a = new CastCoord(coord.GetWorldX(), coord.GetWorldY()-1, coord.GetWorldZ());
+        return cl.GetBlock(a);
+        //return this.viewFieldBlocks[this.viewDistance.x*(this.viewDistance.y*2+1)*(this.viewDistance.x*2+1) + ((this.viewDistance.y - ((int)(this.hitbox.GetDiameter().y/2)+1)))*(this.viewDistance.x*2+1) + this.viewDistance.x];
     }
 
-    // Gets the blockCode that is just about above the middle ground
+    // Gets the blockCode that is just about the middle ground
     public ushort GetBlockContained(){
         if(coord.Equals(null))
             return 0;
 
-        return this.viewFieldBlocks[this.viewDistance.x*(this.viewDistance.y*2+1)*(this.viewDistance.x*2+1) + (this.viewDistance.y - (int)(this.hitbox.GetDiameter().y/2))*(this.viewDistance.x*2+1) + this.viewDistance.x];
+        return cl.GetBlock(coord);
+        //return this.viewFieldBlocks[this.viewDistance.x*(this.viewDistance.y*2+1)*(this.viewDistance.x*2+1) + (this.viewDistance.y - (int)(this.hitbox.GetDiameter().y/2))*(this.viewDistance.x*2+1) + this.viewDistance.x];
     }
 
     // Gets the blockCode that is in the middle of the hitbox

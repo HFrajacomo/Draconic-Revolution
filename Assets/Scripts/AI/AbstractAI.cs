@@ -11,8 +11,8 @@ public abstract class AbstractAI
 
     public Vector3 position;
     public Vector3 rotation;
-    protected List<EntityEvent> inboundEventQueue;
     protected CastCoord coords;
+    protected List<EntityEvent> inboundEventQueue;
     protected TerrainVision terrainVision;
     protected EntityHitbox hitbox;
     protected Behaviour behaviour;
@@ -22,13 +22,13 @@ public abstract class AbstractAI
 
     public void Construct(){
         this.inboundEventQueue = new List<EntityEvent>();
-        this.coords = new CastCoord(this.position);
     }
 
     // Sets World transform of AI
     public void SetPosition(float3 pos, float3 rot){
         this.position = new Vector3(pos.x, pos.y, pos.z);
         this.rotation = new Vector3(rot.x, rot.y, rot.z);
+        this.coords = new CastCoord(this.position);
     }
 
     // Forces a TerrainVision.RefreshView() operation
