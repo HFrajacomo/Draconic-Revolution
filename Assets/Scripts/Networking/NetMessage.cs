@@ -279,13 +279,12 @@ public struct NetMessage
 	}
 
 	// Client sends item information for server to create a Dropped Item Entity
-	public void DropItem(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float moveX, float moveY, float moveZ, ushort itemCode, byte amount){
+	public void DropItem(float posX, float posY, float posZ, float moveX, float moveY, float moveZ, ushort itemCode, byte amount){
 		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 1);
-		NetDecoder.WriteFloat3(rotX, rotY, rotZ, NetMessage.buffer, 13);
-		NetDecoder.WriteFloat3(moveX, moveY, moveZ, NetMessage.buffer, 25);
-		NetDecoder.WriteUshort(itemCode, NetMessage.buffer, 37);
-		NetDecoder.WriteByte(amount, NetMessage.buffer, 39);
-		this.size = 40;
+		NetDecoder.WriteFloat3(moveX, moveY, moveZ, NetMessage.buffer, 13);
+		NetDecoder.WriteUshort(itemCode, NetMessage.buffer, 25);
+		NetDecoder.WriteByte(amount, NetMessage.buffer, 27);
+		this.size = 28;
 	}
 
 	// Item Entity Data

@@ -12,7 +12,6 @@ public class ItemEntity : MonoBehaviour
 	private static readonly string NAME = "DroppedItem";
 	private static readonly Random rng = new Random();
 
-	public TimeOfDay time;
 	public MeshFilter meshFilter;
 	private Mesh mesh;
 	private ItemStack its;
@@ -32,6 +31,7 @@ public class ItemEntity : MonoBehaviour
 		this.animator = this.go.GetComponent<Animator>();
 		this.go.name = ItemEntity.NAME;
 		this.mesh = new Mesh();
+		this.animator.applyRootMotion = false;
 
 		BuildMesh();
 	}

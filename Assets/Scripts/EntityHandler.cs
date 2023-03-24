@@ -53,11 +53,9 @@ public class EntityHandler
 		}
 		else if(type == EntityType.DROP){
 			this.dropObject[code].go.transform.position = this.dropCurrentPositions[code].deltaPos;
-			this.dropObject[code].go.transform.eulerAngles = this.dropCurrentPositions[code].deltaRot;
-		
-			this.dropCurrentPositions[code] = new DeltaMove(pos, dir);			
-		}
 
+			this.dropCurrentPositions[code] = new DeltaMove(pos, dir);	
+		}
 	}
 
 	// Fine movement of entity in frame deltas
@@ -68,7 +66,13 @@ public class EntityHandler
 		}
 		else if(type == EntityType.DROP){
 			this.dropObject[code].go.transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
-			this.dropObject[code].go.transform.eulerAngles += (dRot * (Time.deltaTime / TimeOfDay.timeRate));			
+		}
+	}
+
+	// Should only be used to hard set item rotation animation position
+	public void SetItemPosition(ulong code, Vector3 newPos){
+		if(this.dropObject.ContainsKey(code)){
+			this.dropObject[code].go.transform.position = newPos;
 		}
 	}
 
@@ -85,6 +89,19 @@ public class EntityHandler
 			GameObject.Destroy(this.dropObject[code]);
 			this.dropObject.Remove(code);
 			this.dropCurrentPositions.Remove(code);
+		}
+	}
+
+	public void ToggleItemAnimation(EntityType type, ulong code, float f){
+		if(type == EntityType.DROP){
+			if(this.dropObject.ContainsKey(code)){
+				if(f == 1f){
+					this.dropObject[code].PlayRotationAnimation();
+				}
+				else{
+					this.dropObject[code].PlaySpinAnimation();
+				}
+			}
 		}
 	}
 

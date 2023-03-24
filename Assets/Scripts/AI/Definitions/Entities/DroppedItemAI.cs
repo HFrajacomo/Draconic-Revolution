@@ -9,7 +9,6 @@ public class DroppedItemAI : AbstractAI
     public bool CREATED_BY_PLAYER;
     public ulong playerCode;
     public ItemStack its;
-
     private NetMessage message;
 
     public DroppedItemAI(float3 pos, float3 rot, float3 move, ulong code, ushort itemCode, byte amount, EntityHandler_Server handler, ChunkLoader_Server cl){
@@ -45,11 +44,11 @@ public class DroppedItemAI : AbstractAI
         byte moveCode;
 
         // Refresh Vision
-        if(this.terrainVision.RefreshView(this.coords) != 0)
+        if(this.terrainVision.RefreshView(this.coords) != 0){
             if(this.terrainVision.GroundCollision(this.position)){
-                Debug.Log("Collided");
                 this.inboundEventQueue.Add(new EntityEvent(EntityEventType.ISSTANDING));
             }
+        }
             
         moveCode = this.behaviour.HandleBehaviour(ref this.inboundEventQueue);
 
@@ -59,8 +58,14 @@ public class DroppedItemAI : AbstractAI
             this.rotation = this.behaviour.rotation;
             this.coords = new CastCoord(this.position);
             this.message = new NetMessage(NetCode.ITEMENTITYDATA);
-            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, this.rotation.x, this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
+            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((ItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
             this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
         }
+    }
+
+    private float SetRotationAsStopFlag(ItemBehaviour behaviour){
+        if(behaviour.IsStanding())
+            return 1;
+        return 0;
     }
 }

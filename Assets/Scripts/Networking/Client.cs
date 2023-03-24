@@ -615,8 +615,15 @@ public class Client
 		code = NetDecoder.ReadUlong(data, 28);
 
 		if(this.entityHandler.Contains(EntityType.DROP, code)){
-			this.entityHandler.NudgeLastPos(EntityType.DROP, code, pos, rot);
 			this.smoothMovement.DefineMovement(EntityType.DROP, code, pos, rot);
+			this.entityHandler.NudgeLastPos(EntityType.DROP, code, pos, rot);
+			this.entityHandler.ToggleItemAnimation(EntityType.DROP, code, rot.x);
+
+			// Stop Signal
+			if(rot.x == 1f){
+				this.smoothMovement.StopEntity(EntityType.DROP, code);
+				this.entityHandler.SetItemPosition(code, pos);
+			}
 		}
 		else{
 			this.entityHandler.AddItem(code, pos, rot, its);

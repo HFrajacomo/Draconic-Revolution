@@ -951,10 +951,11 @@ public class Server
 		NetMessage message = new NetMessage(NetCode.ITEMENTITYDATA);
 
 		pos = NetDecoder.ReadFloat3(data, 1);
-		rot = NetDecoder.ReadFloat3(data, 13);
-		move = NetDecoder.ReadFloat3(data, 25);
-		itemCode = NetDecoder.ReadUshort(data, 37);
-		amount = data[39];
+		move = NetDecoder.ReadFloat3(data, 13);
+		itemCode = NetDecoder.ReadUshort(data, 25);
+		amount = data[27];
+
+		rot = new float3(0,0,0);
 
 		CastCoord coord = new CastCoord(pos);
 		ChunkPos cp = coord.GetChunkPos();

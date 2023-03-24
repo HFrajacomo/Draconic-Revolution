@@ -9,7 +9,8 @@ public class ItemBehaviour : Behaviour
     public float weight;
     private NetMessage message = new NetMessage(NetCode.ITEMENTITYDATA);
     private bool IS_STANDING = false;
-    private static float blockOffset = Constants.WORLD_COORDINATES_BLOCK_FLOATOFFSET - EntityHitbox.ITEM.GetDiameter().y/2;
+    private static readonly float blockOffset = Constants.WORLD_COORDINATES_BLOCK_FLOATOFFSET - EntityHitbox.ITEM.GetDiameter().y/2;
+    private static readonly float itemRotationYOffset = 1.7f;
 
     public ItemBehaviour(Vector3 pos, Vector3 rot, float3 move){
         this.SetTransform(ref pos, ref rot);
@@ -33,11 +34,8 @@ public class ItemBehaviour : Behaviour
                     return 3;
             }
 
-            this.deltaPos -= new Vector3(0f, this.deltaPos.y, 0f);
-
-            this.position += this.deltaPos;
-
-            this.deltaPos *= Constants.PHYSICS_ITEM_DRAG_MULTIPLIER;   
+            this.deltaPos = new Vector3(0f, 0f, 0f);
+            this.position = new Vector3(this.position.x, (int)this.position.y + itemRotationYOffset, this.position.z);
 
             if(PopEventAndContinue(ref ieq))
                 return HandleBehaviour(ref ieq);
@@ -65,5 +63,9 @@ public class ItemBehaviour : Behaviour
             return HandleBehaviour(ref ieq);
         else
             return 3;
+    }
+
+    public bool IsStanding(){
+        return this.IS_STANDING;
     }
 }

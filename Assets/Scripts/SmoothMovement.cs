@@ -8,6 +8,7 @@ public class SmoothMovement
     private EntityHandler handler;
     private Dictionary<ulong, DeltaMove> players = new Dictionary<ulong, DeltaMove>();
     private Dictionary<ulong, DeltaMove> items = new Dictionary<ulong, DeltaMove>();
+    private static readonly DeltaMove zeroDelta = new DeltaMove(Vector3.zero, Vector3.zero);
 
     public SmoothMovement(EntityHandler hand){
         this.handler = hand;
@@ -59,13 +60,17 @@ public class SmoothMovement
         rotV = new Vector3(rot.x, rot.y, rot.z);
 
         DeltaMove dm = new DeltaMove(posV - this.handler.GetLastPosition(type, id), rotV - this.handler.GetLastRotation(type, id));
-        
-        if(type == EntityType.PLAYER)
-            if(this.players.ContainsKey(id))
+
+        if(type == EntityType.PLAYER){
+            if(this.players.ContainsKey(id)){
                 this.players[id] = dm;
-        else if(type == EntityType.DROP)
-            if(this.items.ContainsKey(id))
+            }
+        }
+        else if(type == EntityType.DROP){
+            if(this.items.ContainsKey(id)){
                 this.items[id] = dm;
+            }
+        }
     }
 
     // Moves all entities according to their DeltaMoves
@@ -84,6 +89,17 @@ public class SmoothMovement
             }
 
             this.handler.Nudge(EntityType.DROP, id, this.items[id].deltaPos, this.items[id].deltaRot);
+        }
+    }
+
+    public void StopEntity(EntityType type, ulong code){
+        if(type == EntityType.PLAYER){
+            return; // Not Implemented
+        }
+        else if(type == EntityType.DROP){
+            if(this.items.ContainsKey(code)){
+                this.items[code] = zeroDelta; 
+            }
         }
     }
 }
@@ -105,5 +121,9 @@ public struct DeltaMove
 
     public bool Equals(DeltaMove dm){
         return this.deltaPos == dm.deltaPos && this.deltaRot == dm.deltaRot;
+    }
+
+    public override string ToString(){
+        return "DeltaPos: " + this.deltaPos + "   DeltaRot: " + this.deltaRot;
     }
 }

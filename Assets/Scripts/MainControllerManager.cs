@@ -7,8 +7,6 @@ using UnityEngine.UI;
 
 public class MainControllerManager : MonoBehaviour
 {
-    private Vector3 cachedForce;
-
 	// Public passed variables
 	public float movementX = 0f;
 	public float movementZ = 0f;
@@ -41,10 +39,10 @@ public class MainControllerManager : MonoBehaviour
     public ChunkLoader cl;
 
     // Locks
-    public bool LOCK_MOUSE1 = false;
-    public bool LOCK_MOUSE2 = false;
-    public bool LOCK_INTERACT = false;
-    public bool LOCK_DROP = false;
+    private bool LOCK_MOUSE1 = false;
+    private bool LOCK_MOUSE2 = false;
+    private bool LOCK_INTERACT = false;
+    private bool LOCK_DROP = false;
 
     public void Update(){
         LOCK_DROP = false;
@@ -202,7 +200,7 @@ public class MainControllerManager : MonoBehaviour
             MainControllerManager.ctrl = false;    
     }
     public void OnDrop(){
-        if(!LOCK_DROP)
+        if(LOCK_DROP)
             return;
 
         LOCK_DROP = true;
@@ -233,7 +231,7 @@ public class MainControllerManager : MonoBehaviour
         Vector3 force = this.playerCamera.forward / 5f;
 
         NetMessage message = new NetMessage(NetCode.DROPITEM);
-        message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, this.playerCamera.rotation.x, this.playerCamera.rotation.y, this.playerCamera.rotation.z, force.x, force.y, force.z, (ushort)id, amount);       
+        message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, force.x, force.y, force.z, (ushort)id, amount);       
         this.cl.client.Send(message.GetMessage(), message.size);
 
         playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
