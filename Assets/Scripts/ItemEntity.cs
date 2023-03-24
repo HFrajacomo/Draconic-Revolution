@@ -19,11 +19,17 @@ public class ItemEntity : MonoBehaviour
 	public GameObject go;
     public GameObject droppedItemHierarchy;
 	private Vector3 initialForce = new Vector3(0f, 0f, 0f);
+	private Animator animator;
+	private bool isRotation = false;
+
+	private static readonly string ANIMATION_MEGASPIN = "DroppedItemMegaSpin";
+	private static readonly string ANIMATION_ROTATION = "DroppedItemRotation";
 
 	void Start(){
 		this.go = this.gameObject;
 		//this.go.transform.parent = this.droppedItemHierarchy.transform;
 		this.meshFilter = this.go.GetComponent<MeshFilter>();
+		this.animator = this.go.GetComponent<Animator>();
 		this.go.name = ItemEntity.NAME;
 		this.mesh = new Mesh();
 
@@ -33,6 +39,16 @@ public class ItemEntity : MonoBehaviour
 	void OnDestroy(){
 		this.mesh.Clear();
 		this.mesh = null;
+	}
+
+	public void PlaySpinAnimation(){
+		if(isRotation)
+			this.animator.Play(ANIMATION_MEGASPIN);
+	}
+
+	public void PlayRotationAnimation(){
+		if(!isRotation)
+			this.animator.Play(ANIMATION_ROTATION);
 	}
 
 	public void RandomForce(){
