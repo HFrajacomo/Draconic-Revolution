@@ -83,8 +83,6 @@ public abstract class TerrainVision
     public virtual EntityTerrainCollision GroundCollision(){
         if(cl.blockBook.CheckSolid(this.GetBlockBelow()))
             return EntityTerrainCollision.SOLID;
-        if(cl.blockBook.CheckLiquid(this.GetBlockBelow()))
-            return EntityTerrainCollision.LIQUID;
         return EntityTerrainCollision.NONE;
     }
 }

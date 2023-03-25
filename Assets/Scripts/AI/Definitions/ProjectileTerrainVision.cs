@@ -42,6 +42,14 @@ public class ProjectileTerrainVision : TerrainVision
         return cl.GetBlock(this.coord);
     }
 
+    private ushort GetBlockAbove(){
+        if(coord.Equals(null))
+            return 0;
+
+        this.cacheBelow = new CastCoord(coord.GetWorldX(), coord.GetWorldY()+1, coord.GetWorldZ());
+        return cl.GetBlock(cacheBelow);
+    }
+
 
     // Also considers Liquids as ground
     public override EntityTerrainCollision GroundCollision(){
@@ -49,20 +57,33 @@ public class ProjectileTerrainVision : TerrainVision
 
         if(cl.blockBook.CheckSolid(blockCode))
             return EntityTerrainCollision.SOLID;
-        if(cl.blockBook.CheckLiquid(blockCode))
-            return EntityTerrainCollision.LIQUID;
 
         return EntityTerrainCollision.NONE;
     }
 
     /*
-    Returns a flag of collided sides
+    Return a flag
+    1: XP
+    2: XM
+    4: ZP
+    8: ZM
+    16: YP
+    32: Liquid Top
+    64: Liquid Elevator
     */
     public override int CollidedAround(){
         ushort blockCode = this.GetBlockContained();
 
-        if(cl.blockBook.CheckSolid(blockCode) || cl.blockBook.CheckLiquid(blockCode)){
+        if(cl.blockBook.CheckSolid(blockCode)){
             return CastCoord.TestEntityCollision(this.coord, this.lastCoord);
+        }
+        else if(cl.blockBook.CheckLiquid(blockCode)){
+            blockCode = this.GetBlockAbove();
+
+            if(cl.blockBook.CheckLiquid(blockCode)){
+                return 64;
+            }
+            return 32;
         }
 
         return 0;

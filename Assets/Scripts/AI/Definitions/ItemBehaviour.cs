@@ -16,6 +16,8 @@ public class ItemBehaviour : Behaviour
     private static readonly float blockOffset = Constants.WORLD_COORDINATES_BLOCK_FLOATOFFSET;
     private static readonly float itemRotationYOffset = .4f;
     private static readonly float itemCollisionOffset = 1f;
+    private static readonly float itemBuoyancyOffset = .3f;
+    private static readonly EntityEvent waterElevatorEvent = new EntityEvent(EntityEventType.NONGROUNDCOLLISION, 64);
 
     public ItemBehaviour(Vector3 pos, Vector3 rot, float3 move){
         this.SetTransform(ref pos, ref rot);
@@ -31,7 +33,7 @@ public class ItemBehaviour : Behaviour
             this.gravityVector += (Constants.GRAVITY_VECTOR * TimeOfDay.timeRate * weight);
 
             // Limit gravity pull
-            if(this.gravityVector.y > Constants.PHYSICS_MAXIMUM_GRAVITY_SPEED)
+            if(this.gravityVector.y < Constants.PHYSICS_MAXIMUM_GRAVITY_SPEED)
                 this.gravityVector.y = Constants.PHYSICS_MAXIMUM_GRAVITY_SPEED;
 
             return 1;
@@ -81,11 +83,35 @@ public class ItemBehaviour : Behaviour
                 this.position.y = (int)Math.Round(this.position.y, MidpointRounding.AwayFromZero) - itemCollisionOffset;
                 this.deltaPos.y = 0;
             }
+            if((this.cacheEvent.metaCode & 32) > 0){
+                this.position.y = (int)Math.Round(this.position.y, MidpointRounding.AwayFromZero) + itemBuoyancyOffset;
+                this.deltaPos = Vector3.zero;
+                this.gravityVector = Vector3.zero;
+                this.IS_STANDING = true;
+            }
+            if((this.cacheEvent.metaCode & 64) > 0){
+                this.position += this.deltaPos + this.gravityVector; 
+                this.rotation = this.deltaPos.normalized;
+
+                this.deltaPos *= Constants.PHYSICS_WATER_RESISTANCE_MULTIPLIER;
+
+                // Apply buoyancy effect
+                this.gravityVector += (Constants.BUOYANCY_VECTOR * TimeOfDay.timeRate / weight);
+
+                // Limit gravity pull
+                if(this.gravityVector.y > Constants.PHYSICS_MAXIMUM_BUOYANCY_SPEED)
+                    this.gravityVector.y = Constants.PHYSICS_MAXIMUM_BUOYANCY_SPEED;
+
+                // Recycle this event until another one comes into the queue
+                if(ieq.Count == 1)
+                    ieq.Add(waterElevatorEvent);
+            }
 
             if(PopEventAndContinue(ref ieq))
                 return HandleBehaviour(ref ieq);
-            else
+            else{
                 return 1;
+            }
         }
 
         if(PopEventAndContinue(ref ieq))
