@@ -7,6 +7,7 @@ public class EntityHandler_Server
 {
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> playerObject;
     public Dictionary<ChunkPos, Dictionary<ulong, DroppedItemAI>> dropObject;
+    public List<EntityID> toRemove;
     private AvailabilityQueue availableDropCodes;
 
 
@@ -14,10 +15,13 @@ public class EntityHandler_Server
         this.playerObject = new Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>>();
         this.dropObject = new Dictionary<ChunkPos, Dictionary<ulong, DroppedItemAI>>();
         this.availableDropCodes = new AvailabilityQueue();
+        this.toRemove = new List<EntityID>();
     }
 
     // Runs all Tick() functions from loaded entities
     public void RunEntities(){
+        DeleteScheduled();
+
         foreach(ChunkPos key in this.playerObject.Keys){
             foreach(ulong code in this.playerObject[key].Keys){
                 this.playerObject[key][code].Tick();
@@ -67,6 +71,8 @@ public class EntityHandler_Server
         ChunkPos chunk = coord.GetChunkPos();
         ulong assignedCode = this.availableDropCodes.Pop();
 
+        Debug.Log(assignedCode);
+
         if(!this.dropObject.ContainsKey(chunk))
             this.dropObject.Add(chunk, new Dictionary<ulong, DroppedItemAI>());
         
@@ -93,6 +99,22 @@ public class EntityHandler_Server
                 this.availableDropCodes.Add(code);
             }
         }
+    }
+
+    // Called from inside AbstractAI handlers to schedule current entity for deletion
+    public void ScheduleRemove(EntityID id){
+        this.toRemove.Add(id);
+    }
+
+    // Runs removal of marked entities
+    private void DeleteScheduled(){
+        EntityID entity;
+        for(int i=0; i < toRemove.Count; i++){
+            entity = this.toRemove[i];
+            Remove(entity.type, entity.pos, entity.code);
+        }
+
+        this.toRemove.Clear();
     }
 
     public void SetPosition(EntityType type, ulong code, ChunkPos chunk, float3 pos){

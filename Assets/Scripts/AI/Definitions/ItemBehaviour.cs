@@ -9,6 +9,7 @@ public class ItemBehaviour : Behaviour
     public Vector3 deltaPos;
     public float weight;
     private bool IS_STANDING = false;
+    private int currentLifeTick = 0;
 
     private NetMessage message = new NetMessage(NetCode.ITEMENTITYDATA);
     private Vector3 gravityVector = Vector3.zero;
@@ -26,6 +27,12 @@ public class ItemBehaviour : Behaviour
     }
 
     public override byte HandleBehaviour(ref List<EntityEvent> ieq){
+        currentLifeTick++;
+
+        if(currentLifeTick >= Constants.ITEM_ENTITY_LIFE_SPAN_TICKS){
+            return byte.MaxValue;
+        }
+
         if(ieq.Count == 0 && !this.IS_STANDING){
             this.position += this.deltaPos + this.gravityVector; 
             this.rotation = this.deltaPos.normalized;

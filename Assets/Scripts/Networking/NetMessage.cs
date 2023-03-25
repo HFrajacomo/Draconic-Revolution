@@ -371,7 +371,7 @@ public enum NetBroadcast{
 	PROCESSED
 }
 
-public enum EntityType{
+public enum EntityType : byte{
 	PLAYER,
 	NPC,
 	MOB,

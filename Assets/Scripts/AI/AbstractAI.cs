@@ -9,19 +9,30 @@ public abstract class AbstractAI
     protected EntityHandler_Server entityHandler;
     protected ChunkLoader_Server cl;
 
+    public ulong entityCode;
     public Vector3 position;
     public Vector3 rotation;
+    public EntityType type;
     protected CastCoord coords;
     protected List<EntityEvent> inboundEventQueue;
     protected TerrainVision terrainVision;
     protected EntityHitbox hitbox;
     protected Behaviour behaviour;
 
+
     // Main function to move everything in AI's power
     public abstract void Tick();
 
     public void Construct(){
         this.inboundEventQueue = new List<EntityEvent>();
+    }
+
+    protected virtual void KillEntity(){
+        NetMessage deathMessage = new NetMessage(NetCode.ENTITYDELETE);
+
+        this.entityHandler.ScheduleRemove(GetID());
+        deathMessage.EntityDelete(this.type, this.entityCode);
+        this.cl.server.SendToClients(this.coords.GetChunkPos(), deathMessage);
     }
 
     // Sets World transform of AI
@@ -67,5 +78,9 @@ public abstract class AbstractAI
 
     protected void Install(EntityHitbox hit){
         this.hitbox = hit;
+    }
+
+    protected EntityID GetID(){
+        return new EntityID(this.type, this.coords.GetChunkPos(), this.entityCode);
     }
 }

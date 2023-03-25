@@ -30,4 +30,7 @@ public static class Constants
 
     // Chunk Loading
     public static readonly int CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE = 50;
+
+    // Item Entity
+    public static readonly int ITEM_ENTITY_LIFE_SPAN_TICKS = 19200; // 4 in-game hours
 }

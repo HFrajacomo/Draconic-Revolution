@@ -511,6 +511,7 @@ public class Client
 
 	// Receives entity deletion command
 	private void EntityDelete(byte[] data){
+		Debug.Log("Received EntityDelete");
 		EntityType type = (EntityType)data[1];
 		ulong code = NetDecoder.ReadUlong(data, 2);
 

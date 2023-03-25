@@ -5,7 +5,6 @@ using Unity.Mathematics;
 
 public class DroppedItemAI : AbstractAI
 {
-    public ulong entityCode;
     public bool CREATED_BY_PLAYER;
     public ulong playerCode;
     public ItemStack its;
@@ -23,6 +22,7 @@ public class DroppedItemAI : AbstractAI
         this.entityCode = code;
         this.CREATED_BY_PLAYER = false;
         this.its = new ItemStack((ItemID)itemCode, amount);
+        this.type = EntityType.DROP;
 
         this.Install(new ProjectileTerrainVision(cl));
         this.Install(new ItemBehaviour(this.position, this.rotation, move));
@@ -38,6 +38,7 @@ public class DroppedItemAI : AbstractAI
         this.CREATED_BY_PLAYER = true;
         this.playerCode = playerCode;
         this.its = new ItemStack((ItemID)itemCode, amount);
+        this.type = EntityType.DROP;
 
         this.Install(new ProjectileTerrainVision(cl));
         this.Install(new ItemBehaviour(pos, rot, move));
@@ -62,6 +63,12 @@ public class DroppedItemAI : AbstractAI
         }
             
         moveCode = this.behaviour.HandleBehaviour(ref this.inboundEventQueue);
+
+        // If entity died
+        if(moveCode == byte.MaxValue){
+            this.KillEntity();
+            return;
+        }
 
         // Sends movement notification
         if(moveCode != 3){
