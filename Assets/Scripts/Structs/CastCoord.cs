@@ -173,6 +173,7 @@ public struct CastCoord{
 	4: ZP
 	8: ZM
 	16: YP
+	128: Block placed onto of item
 	*/
 	public static int TestEntityCollision(CastCoord current, CastCoord last){
 		int cx, lx, cy, ly, cz, lz;
@@ -203,6 +204,9 @@ public struct CastCoord{
 
 		if(cy > ly)
 			outFlag |= 16;
+
+		if(outFlag == 0)
+			outFlag |= 128;
 
 		return outFlag;
 	}

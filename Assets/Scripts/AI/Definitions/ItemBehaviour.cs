@@ -116,6 +116,9 @@ public class ItemBehaviour : Behaviour
                 if(ieq.Count == 1)
                     ieq.Add(waterElevatorEvent);
             }
+            if((this.cacheEvent.metaCode & 128) > 0){
+                this.position.y += 1;
+            }
 
             if(PopEventAndContinue(ref ieq))
                 return HandleBehaviour(ref ieq);
