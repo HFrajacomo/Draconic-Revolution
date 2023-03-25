@@ -53,6 +53,9 @@ public class ItemBehaviour : Behaviour
 
         if(this.cacheEvent.type == EntityEventType.AIRBORN){
             this.IS_STANDING = false;
+
+            PopEventAndContinue(ref ieq);
+            return 1;
         }
 
         if(this.cacheEvent.type == EntityEventType.ISSTANDING){

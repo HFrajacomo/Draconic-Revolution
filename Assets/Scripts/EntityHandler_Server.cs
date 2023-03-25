@@ -71,8 +71,6 @@ public class EntityHandler_Server
         ChunkPos chunk = coord.GetChunkPos();
         ulong assignedCode = this.availableDropCodes.Pop();
 
-        Debug.Log(assignedCode);
-
         if(!this.dropObject.ContainsKey(chunk))
             this.dropObject.Add(chunk, new Dictionary<ulong, DroppedItemAI>());
         

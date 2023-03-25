@@ -26,7 +26,7 @@ public class ItemEntity : MonoBehaviour
 
 	void Start(){
 		this.go = this.gameObject;
-		//this.go.transform.parent = this.droppedItemHierarchy.transform;
+		this.go.transform.parent = this.droppedItemHierarchy.transform;
 		this.meshFilter = this.go.GetComponent<MeshFilter>();
 		this.animator = this.go.GetComponent<Animator>();
 		this.go.name = ItemEntity.NAME;
@@ -42,13 +42,17 @@ public class ItemEntity : MonoBehaviour
 	}
 
 	public void PlaySpinAnimation(){
-		if(isRotation)
+		if(isRotation){
+			this.isRotation = false;
 			this.animator.Play(ANIMATION_MEGASPIN);
+		}
 	}
 
 	public void PlayRotationAnimation(){
-		if(!isRotation)
+		if(!isRotation){
+			this.isRotation = true;
 			this.animator.Play(ANIMATION_ROTATION);
+		}
 	}
 
 	public void RandomForce(){

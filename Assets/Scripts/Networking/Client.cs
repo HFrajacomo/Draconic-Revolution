@@ -628,6 +628,7 @@ public class Client
 		}
 		else{
 			this.entityHandler.AddItem(code, pos, rot, its);
+			this.entityHandler.ToggleItemAnimation(EntityType.DROP, code, rot.x);
 			this.smoothMovement.AddItem(code);
 		}
 	}

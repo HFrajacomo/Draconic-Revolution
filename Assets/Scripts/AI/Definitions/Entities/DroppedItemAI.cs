@@ -59,6 +59,9 @@ public class DroppedItemAI : AbstractAI
                 if(this.cachedTerrainCollision != EntityTerrainCollision.NONE){
                     this.inboundEventQueue.Add(new EntityEvent(EntityEventType.ISSTANDING));
                 }
+                else{
+                    this.inboundEventQueue.Add(new EntityEvent(EntityEventType.AIRBORN));
+                }
             }
         }
             
@@ -77,6 +80,7 @@ public class DroppedItemAI : AbstractAI
             this.coords = new CastCoord(this.position);
             this.message = new NetMessage(NetCode.ITEMENTITYDATA);
             this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((ItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
+            Debug.Log(SetRotationAsStopFlag((ItemBehaviour)this.behaviour));
             this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
         }
     }
