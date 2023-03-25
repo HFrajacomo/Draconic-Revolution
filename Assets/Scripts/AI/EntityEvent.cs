@@ -6,28 +6,32 @@ public class EntityEvent
 {
     public EntityEventType type;
     public bool zeroCost;
-    public Dictionary<string, Object> metadata;
+    public int metaCode;
 
-    public EntityEvent(EntityEventType type, bool zeroCost, Dictionary<string, Object> meta){
+    public EntityEvent(EntityEventType type, bool zeroCost, int meta){
         this.type = type;
-        this.metadata = meta;
+        this.metaCode = meta;
         this.zeroCost = zeroCost;
     }
 
-    public EntityEvent(EntityEventType type, bool zeroCost){
+    public EntityEvent(EntityEventType type, int meta){
         this.type = type;
-        this.zeroCost = zeroCost;
+        this.zeroCost = false;
+        this.metaCode = meta;
     }
 
     public EntityEvent(EntityEventType type){
         this.type = type;
         this.zeroCost = false;
     }
+
+
 }
 
 public enum EntityEventType : ushort {
     NOTHING,
     BLOCKHIT, // Has hit something
     ISSTANDING, // Is not falling
+    NONGROUNDCOLLISION,
     AIRBORN
 }

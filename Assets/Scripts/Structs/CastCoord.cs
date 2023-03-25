@@ -166,6 +166,47 @@ public struct CastCoord{
 		return "X: " + (chunkX*Chunk.chunkWidth + blockX).ToString() + "   Y: " + (chunkY*Chunk.chunkDepth + blockY).ToString() + "   Z: " + (chunkZ*Chunk.chunkWidth + blockZ);
 	}
 
+	/*
+	Return a flag
+	1: XP
+	2: XM
+	4: ZP
+	8: ZM
+	16: YP
+	*/
+	public static int TestEntityCollision(CastCoord current, CastCoord last){
+		int cx, lx, cy, ly, cz, lz;
+		int outFlag = 0;
+
+		cx = current.GetWorldX();
+		lx = last.GetWorldX();
+
+		if(cx != lx){
+			if(cx > lx)
+				outFlag |= 1;
+			else
+				outFlag |= 2;
+		}
+
+		cz = current.GetWorldZ();
+		lz = last.GetWorldZ();
+
+		if(cz != lz){
+			if(cz > lz)
+				outFlag |= 4;
+			else
+				outFlag |= 8;
+		}
+
+		cy = current.GetWorldY();
+		ly = last.GetWorldY();
+
+		if(cy > ly)
+			outFlag |= 16;
+
+		return outFlag;
+	}
+
 	public static int operator-(CastCoord a, CastCoord b){
 		int x,y,z;
 

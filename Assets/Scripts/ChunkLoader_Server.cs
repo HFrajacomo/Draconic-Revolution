@@ -293,7 +293,7 @@ public class ChunkLoader_Server : MonoBehaviour
             return this.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
         }
         else{
-            return (ushort)(ushort.MaxValue/2); // Error Code
+            return 0;
         }
     }
 

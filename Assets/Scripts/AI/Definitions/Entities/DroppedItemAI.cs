@@ -9,7 +9,10 @@ public class DroppedItemAI : AbstractAI
     public bool CREATED_BY_PLAYER;
     public ulong playerCode;
     public ItemStack its;
+
     private NetMessage message;
+    private EntityTerrainCollision cachedTerrainCollision;
+    private int collisionFlag;
 
     public DroppedItemAI(float3 pos, float3 rot, float3 move, ulong code, ushort itemCode, byte amount, EntityHandler_Server handler, ChunkLoader_Server cl){
         this.Construct();
@@ -44,9 +47,17 @@ public class DroppedItemAI : AbstractAI
         byte moveCode;
 
         // Refresh Vision
-        if(this.terrainVision.RefreshView(this.coords) != 0){
-            if(this.terrainVision.GroundCollision(this.position)){
-                this.inboundEventQueue.Add(new EntityEvent(EntityEventType.ISSTANDING));
+        if(this.terrainVision.RefreshView(this.coords) > 0){
+            this.collisionFlag = this.terrainVision.CollidedAround();
+
+            if(this.collisionFlag > 0){
+                this.inboundEventQueue.Add(new EntityEvent(EntityEventType.NONGROUNDCOLLISION, this.collisionFlag));
+            }
+            else{
+                this.cachedTerrainCollision = this.terrainVision.GroundCollision();
+                if(this.cachedTerrainCollision != EntityTerrainCollision.NONE){
+                    this.inboundEventQueue.Add(new EntityEvent(EntityEventType.ISSTANDING));
+                }
             }
         }
             
