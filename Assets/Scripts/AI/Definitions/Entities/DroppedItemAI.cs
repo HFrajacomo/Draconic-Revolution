@@ -24,7 +24,7 @@ public class DroppedItemAI : AbstractAI
         this.its = new ItemStack((ItemID)itemCode, amount);
 
         this.Install(new ProjectileTerrainVision(cl));
-        this.Install(new ItemBehaviour(this.position, this.rotation, move));
+        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its));
         this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
     }
 
@@ -39,7 +39,7 @@ public class DroppedItemAI : AbstractAI
         this.its = new ItemStack((ItemID)itemCode, amount);
 
         this.Install(new ProjectileTerrainVision(cl));
-        this.Install(new ItemBehaviour(this.position, this.rotation, move));
+        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its));
         this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
     }
 
@@ -99,5 +99,17 @@ public class DroppedItemAI : AbstractAI
         if(behaviour.IsStanding())
             return 1;
         return 0;
+    }
+
+    public bool IsStanding(){
+        return ((ItemBehaviour)this.behaviour).IsStanding();
+    }
+
+    public void SetItemStackAmount(byte b){
+        this.its.SetAmount(b);
+    }
+
+    public byte GetItemStackAmount(){
+        return this.its.GetAmount();
     }
 }

@@ -9,7 +9,7 @@ public class ItemEntityRadar : EntityRadar{
 		this.SetTransform(ref pos, ref dir, ref coords);
 		this.entityHandler = ehs;
 		this.FOV = 180;
-		this.visionDistance = 2;
+		this.visionDistance = 1.4f;
 		this.entitySubscription = new HashSet<EntityType>(){EntityType.DROP};
 		this.its = its;
 		this.ID = entityID;
@@ -21,6 +21,9 @@ public class ItemEntityRadar : EntityRadar{
 
 		// If has the same ID
 		if(this.its.GetID() == aiItem.GetID()){
+			if(!itemAI.IsStanding())
+				return false;
+
 			// And not full
 			if(!aiItem.IsFull()){
 				this.quantityToTransfer = (byte)(its.GetStacksize() - aiItem.GetAmount());

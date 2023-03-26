@@ -10,6 +10,7 @@ public class ItemBehaviour : Behaviour
     public float weight;
     private bool IS_STANDING = false;
     private int currentLifeTick = 0;
+    private ItemStack its;
 
     private NetMessage message = new NetMessage(NetCode.ITEMENTITYDATA);
     private Vector3 gravityVector = Vector3.zero;
@@ -20,10 +21,11 @@ public class ItemBehaviour : Behaviour
     private static readonly float itemBuoyancyOffset = .3f;
     private static readonly EntityEvent waterElevatorEvent = new EntityEvent(EntityEventType.NONGROUNDCOLLISION, 64);
 
-    public ItemBehaviour(Vector3 pos, Vector3 rot, float3 move){
+    public ItemBehaviour(Vector3 pos, Vector3 rot, float3 move, ItemStack its){
         this.SetTransform(ref pos, ref rot);
         this.deltaPos = new Vector3(move.x, move.y, move.z);
         this.weight = 0.4f;
+        this.its = its;
     }
 
     public override byte HandleBehaviour(ref List<EntityEvent> ieq){
@@ -51,9 +53,26 @@ public class ItemBehaviour : Behaviour
 
         this.cacheEvent = ieq[0];
 
-        // TEST
         if(this.cacheEvent.type == EntityEventType.VISION){
-            return byte.MaxValue;
+            DroppedItemAI auxAI = (DroppedItemAI)this.cacheEvent.radarEvent.entity;
+
+            // Can transfer all required and still has more
+            if(this.its.GetAmount() >= this.cacheEvent.metaCode){
+                this.its.SetAmount((byte)(this.its.GetAmount() - this.cacheEvent.metaCode));
+                auxAI.SetItemStackAmount(this.its.GetStacksize());
+
+                if(this.its.GetAmount() == 0)
+                    return byte.MaxValue;
+            }
+            else{
+                auxAI.SetItemStackAmount((byte)(auxAI.GetItemStackAmount() + this.its.GetAmount()));
+                this.its.SetAmount(0);
+                return byte.MaxValue;
+
+            }
+
+            PopEventAndContinue(ref ieq);
+            return HandleBehaviour(ref ieq);
         }
 
         if(this.cacheEvent.type == EntityEventType.AIRBORN){
