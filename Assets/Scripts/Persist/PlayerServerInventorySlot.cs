@@ -88,6 +88,8 @@ public class EmptyPlayerInventorySlot : PlayerServerInventorySlot {
 	}
 
 	public override int GetItemID(){return -1;}
+
+	public override int GetQuantity(){return 0;}
 }
 
 /*

@@ -81,11 +81,11 @@ public class EntityHandler_Server
     }
 
     // Only works while there is no other EntityType
-    public void AddPlayer(ChunkPos chunk, ulong code, float3 pos, float3 dir, PlayerServerInventory psi){
+    public void AddPlayer(ChunkPos chunk, ulong code, float3 pos, float3 dir, ChunkLoader_Server cl){
         if(!this.playerObject.ContainsKey(chunk))
             this.playerObject.Add(chunk, new Dictionary<ulong, AbstractAI>());
 
-        this.playerObject[chunk].Add(code, new PlayerAI(pos, dir, code, this, psi));
+        this.playerObject[chunk].Add(code, new PlayerAI(pos, dir, code, this, cl));
     }
 
     public ulong AddItem(float3 pos, float3 rot, float3 move, ushort itemCode, byte amount, ulong playerCode, ChunkLoader_Server cl){

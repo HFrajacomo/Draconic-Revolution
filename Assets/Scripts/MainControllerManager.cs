@@ -231,7 +231,7 @@ public class MainControllerManager : MonoBehaviour
         Vector3 force = this.playerCamera.forward / 5f;
 
         NetMessage message = new NetMessage(NetCode.DROPITEM);
-        message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, force.x, force.y, force.z, (ushort)id, amount);       
+        message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, force.x, force.y, force.z, (ushort)id, amount, (byte)PlayerEvents.hotbarSlot);       
         this.cl.client.Send(message.GetMessage(), message.size);
 
         playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);

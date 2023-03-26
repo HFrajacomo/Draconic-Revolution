@@ -6,6 +6,7 @@ public class PlayerEntityRadar : EntityRadar{
 	private PlayerServerInventory psi;
 	private Item cachedItem;
 	private DroppedItemAI cachedItemAI;
+	public bool HAS_RECEIVED_ITEMS;
 
 	public PlayerEntityRadar(Vector3 pos, Vector3 dir, CastCoord coords, EntityID entityID, EntityHandler_Server ehs, PlayerServerInventory psi){
 		this.SetTransform(ref pos, ref dir, ref coords);
@@ -50,11 +51,13 @@ public class PlayerEntityRadar : EntityRadar{
 
 				psi.ChangeQuantity(this.ID.code, (byte)inventorySlot.x, (byte)(inventorySlot.y + aiItem.GetAmount()));
 				this.cachedItemAI.SetPickupMode();
+				this.HAS_RECEIVED_ITEMS = true;
 				return true;
 			}
 			// If player can't take the entire stack
 			else{
 				psi.ChangeQuantity(this.ID.code, (byte)inventorySlot.x, aiItem.GetStacksize());
+				this.HAS_RECEIVED_ITEMS = true;
 				return false;
 			}
 		}

@@ -756,7 +756,7 @@ public class Server
 		cp = this.cl.regionHandler.allPlayerData[id].GetChunkPos();
 
 		if(!this.entityHandler.Contains(EntityType.PLAYER, cp, id))
-			this.entityHandler.AddPlayer(cp, id, pos, dir, cl.playerServerInventory);
+			this.entityHandler.AddPlayer(cp, id, pos, dir, cl);
 
 		this.entityHandler.SetPosition(EntityType.PLAYER, id, cp, pos, dir);
 
@@ -948,13 +948,14 @@ public class Server
 	private void DropItem(byte[] data, ulong id){
 		float3 pos, rot, move;
 		ushort itemCode;
-		byte amount;
+		byte amount, slot;
 		NetMessage message = new NetMessage(NetCode.ITEMENTITYDATA);
 
 		pos = NetDecoder.ReadFloat3(data, 1);
 		move = NetDecoder.ReadFloat3(data, 13);
 		itemCode = NetDecoder.ReadUshort(data, 25);
 		amount = data[27];
+		slot = data[28];
 
 		rot = new float3(0,0,0);
 
@@ -965,6 +966,8 @@ public class Server
 
 		message.ItemEntityData(pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, itemCode, amount, code);
 		this.SendToClients(cp, message);
+
+		this.cl.playerServerInventory.ChangeQuantity(id, slot, (byte)(this.cl.playerServerInventory.GetQuantity(id, slot) - amount));
 	}
 
 	// Receives a BatchLoadBUD request from client, with plenty of block coordinates in a chunk
