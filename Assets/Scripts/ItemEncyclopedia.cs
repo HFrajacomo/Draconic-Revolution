@@ -11,7 +11,6 @@ public class ItemEncyclopedia
     		this.items[i] = Item.GenerateItem(i);
     }
 
-
     public Item GetItem(ushort code){
     	if(this.ValidateCode(code))
     		return this.items[code];

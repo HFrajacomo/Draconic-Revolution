@@ -63,6 +63,10 @@ public abstract class EntityRadar{
 		this.coords = coords;
 	}
 
+	public Vector3 GetPosition(){
+		return this.position;
+	}
+
 	/**
 	 * Checks if the entity found is in viewDistance ignoring walls
 	 */
@@ -83,11 +87,22 @@ public abstract class EntityRadar{
 		if(Mathf.Abs(this.position.z - ePos.z) > this.visionDistance)
 			return;
 
-		if(Vector3.Distance(this.position, ePos) <= this.visionDistance)
+		if(Vector3.Distance(this.position, ePos) <= this.visionDistance){
+
+			if(!PostAnalysisAI(ai))
+				return;
+
 			CreateEntityRadarEvent(ai, ref ieq);
+		}
 	}
 
 	protected virtual bool PreAnalysisAI(AbstractAI ai){
+		if(ai.markedForDelete || ai.markedForChange)
+			return false;
+		return true;
+	}
+
+	protected virtual bool PostAnalysisAI(AbstractAI ai){
 		return true;
 	}
 

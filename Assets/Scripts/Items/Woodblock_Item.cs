@@ -18,6 +18,7 @@ public class Woodblock_Item : Item, IPlaceable
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Wood});
 		this.SetDurability(false);
 		this.placeableBlockID = 4;
+		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
 	public override int Use(){

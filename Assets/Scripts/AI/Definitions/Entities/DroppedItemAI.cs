@@ -5,7 +5,6 @@ using Unity.Mathematics;
 
 public class DroppedItemAI : AbstractAI
 {
-    public bool CREATED_BY_PLAYER;
     public ulong playerCode;
     public ItemStack its;
 
@@ -20,11 +19,10 @@ public class DroppedItemAI : AbstractAI
         this.Install(EntityHitbox.ITEM);
         this.SetChunkloader(cl);
         this.SetHandler(handler);
-        this.CREATED_BY_PLAYER = false;
         this.its = new ItemStack((ItemID)itemCode, amount);
 
         this.Install(new ProjectileTerrainVision(cl));
-        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its));
+        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its, false));
         this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
     }
 
@@ -34,12 +32,11 @@ public class DroppedItemAI : AbstractAI
         this.Install(EntityHitbox.ITEM);
         this.SetChunkloader(cl);
         this.SetHandler(handler);
-        this.CREATED_BY_PLAYER = true;
         this.playerCode = playerCode;
         this.its = new ItemStack((ItemID)itemCode, amount);
 
         this.Install(new ProjectileTerrainVision(cl));
-        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its));
+        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its, true));
         this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
     }
 
@@ -47,26 +44,28 @@ public class DroppedItemAI : AbstractAI
         byte moveCode;
 
         // Refresh Vision
-        if(this.terrainVision.RefreshView(this.coords) > 0){
-            this.collisionFlag = this.terrainVision.CollidedAround();
+        if(!IsOnPickupMode()){
+            if(this.terrainVision.RefreshView(this.coords) > 0){
+                this.collisionFlag = this.terrainVision.CollidedAround();
 
-            if(this.collisionFlag > 0){
-                this.inboundEventQueue.Add(new EntityEvent(EntityEventType.NONGROUNDCOLLISION, this.collisionFlag));
-            }
-            else{
-                this.cachedTerrainCollision = this.terrainVision.GroundCollision();
-                if(this.cachedTerrainCollision != EntityTerrainCollision.NONE){
-                    this.inboundEventQueue.Add(new EntityEvent(EntityEventType.ISSTANDING));
+                if(this.collisionFlag > 0){
+                    this.inboundEventQueue.Add(new EntityEvent(EntityEventType.NONGROUNDCOLLISION, this.collisionFlag));
                 }
                 else{
-                    this.inboundEventQueue.Add(new EntityEvent(EntityEventType.AIRBORN));
+                    this.cachedTerrainCollision = this.terrainVision.GroundCollision();
+                    if(this.cachedTerrainCollision != EntityTerrainCollision.NONE){
+                        this.inboundEventQueue.Add(new EntityEvent(EntityEventType.ISSTANDING));
+                    }
+                    else{
+                        this.inboundEventQueue.Add(new EntityEvent(EntityEventType.AIRBORN));
+                    }
                 }
             }
-        }
 
-        // Entity Vision
-        if(!((ItemBehaviour)this.behaviour).IsStanding()){
-            this.radar.Search(ref this.inboundEventQueue);
+            // Entity Vision
+            if(!((ItemBehaviour)this.behaviour).IsStanding()){
+                this.radar.Search(ref this.inboundEventQueue);
+            }
         }
             
         moveCode = this.behaviour.HandleBehaviour(ref this.inboundEventQueue);
@@ -115,5 +114,17 @@ public class DroppedItemAI : AbstractAI
 
     public void SetLifespan(int life){
         ((ItemBehaviour)this.behaviour).SetLifespan(life);
+    }
+
+    public bool IsOnPickupMode(){
+        return ((ItemBehaviour)this.behaviour).IsOnPickupMode();
+    }
+
+    public void SetPickupMode(){
+        ((ItemBehaviour)this.behaviour).SetPickupMode();
+    }
+
+    public bool IsCreatedByPlayer(){
+        return ((ItemBehaviour)this.behaviour).IsCreatedByPlayer();
     }
 }

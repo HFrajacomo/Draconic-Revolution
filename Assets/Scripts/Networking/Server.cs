@@ -756,7 +756,7 @@ public class Server
 		cp = this.cl.regionHandler.allPlayerData[id].GetChunkPos();
 
 		if(!this.entityHandler.Contains(EntityType.PLAYER, cp, id))
-			this.entityHandler.AddPlayer(cp, id, pos, dir);
+			this.entityHandler.AddPlayer(cp, id, pos, dir, cl.playerServerInventory);
 
 		this.entityHandler.SetPosition(EntityType.PLAYER, id, cp, pos, dir);
 

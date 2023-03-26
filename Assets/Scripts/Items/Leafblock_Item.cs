@@ -19,6 +19,7 @@ public class Leafblock_Item : Item, IPlaceable
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable});
 		this.SetDurability(false);
 		this.placeableBlockID = (ushort)BlockID.LEAF;
+		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
 	public override int Use(){

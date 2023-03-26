@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class PlayerServerInventorySlot{
-	private MemoryStorageType type;
-	private int slotMemorySize;
+	protected MemoryStorageType type;
+	protected int slotMemorySize;
+	protected ItemID itemID;
+	protected byte quantity;
 
 	public int GetSlotMemorySize(){return this.slotMemorySize;}
 	public abstract int SaveToBuffer(byte[] buffer, int init);
+	public virtual int GetItemID(){return (int)this.itemID;}
+	public virtual int GetQuantity(){return 1;}
+	public virtual void SetQuantity(byte quantity){}
 
 	public static PlayerServerInventorySlot[] BuildInventory(byte[] data, int init, int inventorySlotAmount, ref int bytesWritten, int initialSlot=0){
 		PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[inventorySlotAmount];
@@ -70,30 +75,28 @@ public abstract class PlayerServerInventorySlot{
 Empty Inventory Slot
 */
 public class EmptyPlayerInventorySlot : PlayerServerInventorySlot {
-	private MemoryStorageType type;
-	private int slotMemorySize = 1;
 
 	public EmptyPlayerInventorySlot(){
 		this.type = MemoryStorageType.EMPTY;
+		this.slotMemorySize = 1;
+
 	}
 
 	public override int SaveToBuffer(byte[] buffer, int init){
 		NetDecoder.WriteByte((byte)this.type, buffer, init);
 		return this.slotMemorySize;
 	}
+
+	public override int GetItemID(){return -1;}
 }
 
 /*
 Inventory Slot that contains a basic and untagged item
 */
 public class ItemPlayerInventorySlot : PlayerServerInventorySlot {
-	private MemoryStorageType type;
-	private int slotMemorySize = 4;
-	private ItemID itemID;
-	private byte quantity;
-
 	public ItemPlayerInventorySlot(ItemID id, byte quantity){
 		this.type = MemoryStorageType.ITEM;
+		this.slotMemorySize = 4;
 		this.itemID = id;
 		this.quantity = quantity;
 	}
@@ -105,8 +108,12 @@ public class ItemPlayerInventorySlot : PlayerServerInventorySlot {
 		return this.slotMemorySize;
 	}
 
-	public void SetQuantity(byte quantity){
+	public override void SetQuantity(byte quantity){
 		this.quantity = quantity;
+	}
+
+	public override int GetQuantity(){
+		return this.quantity;
 	}
 }
 
@@ -114,15 +121,13 @@ public class ItemPlayerInventorySlot : PlayerServerInventorySlot {
 Inventory Slot that contains a Weapon
 */
 public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
-	private MemoryStorageType type;
-	private int slotMemorySize = 9;
-	private ItemID itemID;
 	private uint currentDurability;
 	private byte refineLevel;
 	private EnchantmentType enchant;
 
 	public WeaponPlayerInventorySlot(ItemID id, uint currentDurability, byte refineLevel, EnchantmentType enchant){
 		this.type = MemoryStorageType.WEAPON;
+		this.slotMemorySize = 9;
 		this.itemID = id;
 		this.currentDurability = currentDurability;
 		this.refineLevel = refineLevel;
@@ -147,15 +152,13 @@ public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
 Inventory Slot for Storage items
 */
 public class StoragePlayerInventorySlot : PlayerServerInventorySlot {
-	private MemoryStorageType type;
-	private ItemID itemID;
 	private byte inventorySize;
 	private PlayerServerInventorySlot[] inventory;
-	private int slotMemorySize;
 
 	public StoragePlayerInventorySlot(ItemID id, byte inventorySize, PlayerServerInventorySlot[] inventory){
 		int size = 0;
 
+		this.type = MemoryStorageType.STORAGE;
 		this.itemID = id;
 		this.inventorySize = inventorySize;
 		this.inventory = inventory;

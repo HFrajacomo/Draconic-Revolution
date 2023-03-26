@@ -15,7 +15,7 @@ public static class InventorySerializer
         MemoryStorageType mst;
         ItemID id;
         byte quantity;
-        ulong currentDur;
+        uint currentDur;
         byte refineLv;
         EnchantmentType enchant;
         ItemStack its;
@@ -45,8 +45,8 @@ public static class InventorySerializer
                 case MemoryStorageType.WEAPON:
                     id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
                     bytesRead += 2;
-                    currentDur = NetDecoder.ReadUlong(data, init+bytesRead);
-                    bytesRead += 8;
+                    currentDur = NetDecoder.ReadUint(data, init+bytesRead);
+                    bytesRead += 4;
                     refineLv = data[init+bytesRead];
                     bytesRead++;
                     enchant = (EnchantmentType)data[init+bytesRead];
@@ -92,8 +92,8 @@ public static class InventorySerializer
                 case MemoryStorageType.WEAPON:
                     id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
                     bytesRead += 2;
-                    currentDur = NetDecoder.ReadUlong(data, init+bytesRead);
-                    bytesRead += 8;
+                    currentDur = NetDecoder.ReadUint(data, init+bytesRead);
+                    bytesRead += 4;
                     refineLv = data[init+bytesRead];
                     bytesRead++;
                     enchant = (EnchantmentType)data[init+bytesRead];

@@ -8,6 +8,7 @@ public class EntityEvent
     public bool zeroCost;
     public int metaCode;
     public EntityRadarEvent radarEvent;
+    public Vector3 position;
 
     public EntityEvent(EntityEventType type, bool zeroCost, int meta, EntityRadarEvent radar){
         this.type = type;
@@ -20,6 +21,13 @@ public class EntityEvent
         this.type = type;
         this.metaCode = meta;
         this.zeroCost = zeroCost;
+    }
+
+    public EntityEvent(EntityEventType type, bool zeroCost, EntityRadarEvent radar, Vector3 position){
+        this.type = type;
+        this.zeroCost = zeroCost;
+        this.radarEvent = radar;
+        this.position = position;
     }
 
     public EntityEvent(EntityEventType type, int meta, EntityRadarEvent radar){
@@ -62,5 +70,6 @@ public enum EntityEventType : ushort {
     NONGROUNDCOLLISION,
     AIRBORN,
     VISION,
+    ITEM_PICKUP,
     ITEMDEATH
 }

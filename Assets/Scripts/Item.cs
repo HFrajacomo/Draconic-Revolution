@@ -10,6 +10,9 @@ public abstract class Item
 	public ItemID id;
 	public uint iconID;
 
+	// Storage
+	public MemoryStorageType memoryStorageType;
+
 	// Inventory
 	public byte stacksize;
 	public uint price;

@@ -19,6 +19,9 @@ public class ItemEntityRadar : EntityRadar{
 		DroppedItemAI itemAI = (DroppedItemAI)ai;
 		ItemStack aiItem = itemAI.GetItemStack();
 
+		if(itemAI.IsOnPickupMode())
+			return false;
+
 		// If has the same ID
 		if(this.its.GetID() == aiItem.GetID()){
 			if(!itemAI.IsStanding())

@@ -18,6 +18,7 @@ public class Lavablock_Item : Item, IPlaceable
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Forbidden});
 		this.SetDurability(false);
 		this.placeableBlockID = (ushort)BlockID.LAVA;
+		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
 	public override int Use(){

@@ -23,6 +23,8 @@ public abstract class AbstractAI
     protected EntityID ID;
     protected EntityID auxID;
 
+    public bool markedForDelete = false;
+    public bool markedForChange = false;
 
     // Main function to move everything in AI's power
     public abstract void Tick();
@@ -33,12 +35,17 @@ public abstract class AbstractAI
         this.entityCode = code;
     }
 
+    public void AddToInboundEventQueue(EntityEvent e){
+        this.inboundEventQueue.Add(e);
+    }
+
     protected virtual void KillEntity(){
         NetMessage deathMessage = new NetMessage(NetCode.ENTITYDELETE);
 
         deathMessage.EntityDelete(this.type, this.entityCode);
         this.cl.server.SendToClients(this.coords.GetChunkPos(), deathMessage);
         this.entityHandler.ScheduleRemove(this.ID);
+        this.markedForDelete = true;
     }
 
     // Used to set initial position in the Constructor of every Child of AbstractAI
@@ -73,6 +80,7 @@ public abstract class AbstractAI
         if(this.ID.IsDiffPosition(newID)){
             this.entityHandler.SchedulePositionChange(new EntityChunkTransaction(this.ID, newID, this));
             this.ID = newID;
+            this.markedForChange = true;
         }
     }
 

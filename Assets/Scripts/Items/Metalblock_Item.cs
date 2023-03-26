@@ -18,6 +18,7 @@ public class Metalblock_Item : Item, IPlaceable
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Ore});
 		this.SetDurability(false);
 		this.placeableBlockID = 5;
+		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
 	public override int Use(){

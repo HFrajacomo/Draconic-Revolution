@@ -81,11 +81,11 @@ public class EntityHandler_Server
     }
 
     // Only works while there is no other EntityType
-    public void AddPlayer(ChunkPos chunk, ulong code, float3 pos, float3 dir){
+    public void AddPlayer(ChunkPos chunk, ulong code, float3 pos, float3 dir, PlayerServerInventory psi){
         if(!this.playerObject.ContainsKey(chunk))
             this.playerObject.Add(chunk, new Dictionary<ulong, AbstractAI>());
 
-        this.playerObject[chunk].Add(code, new PlayerAI(pos, dir, code, this));
+        this.playerObject[chunk].Add(code, new PlayerAI(pos, dir, code, this, psi));
     }
 
     public ulong AddItem(float3 pos, float3 rot, float3 move, ushort itemCode, byte amount, ulong playerCode, ChunkLoader_Server cl){
@@ -189,9 +189,21 @@ public class EntityHandler_Server
 
             InternalAdd(ect.novel, ect.ai);
             InternalRemove(ect.old.type, ect.old.pos, ect.old.code);
+            ResetAIChangeFlag(ect);
         }
 
         this.toChangePosition.Clear();
+    }
+
+    private void ResetAIChangeFlag(EntityChunkTransaction e){
+        switch(e.novel.type){
+            case EntityType.PLAYER:
+                this.playerObject[e.novel.pos][e.novel.code].markedForChange = false;
+                break;
+            case EntityType.DROP:
+                this.dropObject[e.novel.pos][e.novel.code].markedForChange = false;
+                break;
+        }
     }
 
     public void SetPosition(EntityType type, ulong code, ChunkPos chunk, float3 pos, float3 rot){
