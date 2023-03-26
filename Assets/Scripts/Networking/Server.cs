@@ -500,8 +500,11 @@ public class Server
 
 		// Connects new Dropped items to player
 		if(this.entityHandler.Contains(EntityType.DROP, pos)){
+			DroppedItemAI droppedItem;
+
 			foreach(ulong itemCode in this.entityHandler.dropObject[pos].Keys){
-				itemMessage.ItemEntityData(this.entityHandler.dropObject[pos][itemCode].position.x, this.entityHandler.dropObject[pos][itemCode].position.y, this.entityHandler.dropObject[pos][itemCode].position.z, this.entityHandler.dropObject[pos][itemCode].rotation.x, this.entityHandler.dropObject[pos][itemCode].rotation.y, this.entityHandler.dropObject[pos][itemCode].rotation.z, (ushort)this.entityHandler.dropObject[pos][itemCode].its.GetID(), this.entityHandler.dropObject[pos][itemCode].its.GetAmount(), itemCode);
+				droppedItem = (DroppedItemAI)this.entityHandler.dropObject[pos][itemCode];
+				itemMessage.ItemEntityData(droppedItem.position.x, droppedItem.position.y, droppedItem.position.z, droppedItem.rotation.x, droppedItem.rotation.y, droppedItem.rotation.z, (ushort)droppedItem.its.GetID(), droppedItem.its.GetAmount(), itemCode);
 			}
 		}
 	}

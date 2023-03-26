@@ -18,21 +18,35 @@ public abstract class AbstractAI
     protected TerrainVision terrainVision;
     protected EntityHitbox hitbox;
     protected Behaviour behaviour;
+    protected EntityRadar radar;
+
+    protected EntityID ID;
+    protected EntityID auxID;
 
 
     // Main function to move everything in AI's power
     public abstract void Tick();
 
-    public void Construct(){
+    public void Construct(EntityType t, ulong code){
         this.inboundEventQueue = new List<EntityEvent>();
+        this.type = t;
+        this.entityCode = code;
     }
 
     protected virtual void KillEntity(){
         NetMessage deathMessage = new NetMessage(NetCode.ENTITYDELETE);
 
-        this.entityHandler.ScheduleRemove(GetID());
         deathMessage.EntityDelete(this.type, this.entityCode);
         this.cl.server.SendToClients(this.coords.GetChunkPos(), deathMessage);
+        this.entityHandler.ScheduleRemove(this.ID);
+    }
+
+    // Used to set initial position in the Constructor of every Child of AbstractAI
+    protected void SetInitialPosition(float3 pos, float3 rot){
+        this.position = new Vector3(pos.x, pos.y, pos.z);
+        this.rotation = new Vector3(rot.x, rot.y, rot.z);
+        this.coords = new CastCoord(this.position);
+        this.ID = GetID();
     }
 
     // Sets World transform of AI
@@ -40,6 +54,34 @@ public abstract class AbstractAI
         this.position = new Vector3(pos.x, pos.y, pos.z);
         this.rotation = new Vector3(rot.x, rot.y, rot.z);
         this.coords = new CastCoord(this.position);
+
+        SetIdentityAndNotifyHandler();
+    }
+
+    // Sets World transform of AI
+    public void SetPosition(Vector3 pos, Vector3 rot){
+        this.position = pos;
+        this.rotation = rot;
+        this.coords = new CastCoord(this.position);
+
+        SetIdentityAndNotifyHandler();
+    }
+
+    private void SetIdentityAndNotifyHandler(){
+        EntityID newID = GetID();
+
+        if(this.ID.IsDiffPosition(newID)){
+            this.entityHandler.SchedulePositionChange(new EntityChunkTransaction(this.ID, newID, this));
+            this.ID = newID;
+        }
+    }
+
+    public Vector3 GetPosition(){
+        return this.position;
+    }
+
+    public Vector3 GetRotation(){
+        return this.rotation;
     }
 
     // Forces a TerrainVision.RefreshView() operation
@@ -80,7 +122,11 @@ public abstract class AbstractAI
         this.hitbox = hit;
     }
 
-    protected EntityID GetID(){
+    protected void Install(EntityRadar radar){
+        this.radar = radar;
+    }
+
+    public EntityID GetID(){
         return new EntityID(this.type, this.coords.GetChunkPos(), this.entityCode);
     }
 }

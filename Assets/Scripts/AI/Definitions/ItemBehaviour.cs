@@ -51,6 +51,11 @@ public class ItemBehaviour : Behaviour
 
         this.cacheEvent = ieq[0];
 
+        // TEST
+        if(this.cacheEvent.type == EntityEventType.VISION){
+            return byte.MaxValue;
+        }
+
         if(this.cacheEvent.type == EntityEventType.AIRBORN){
             this.IS_STANDING = false;
 

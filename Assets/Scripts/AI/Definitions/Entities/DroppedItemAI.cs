@@ -14,34 +14,33 @@ public class DroppedItemAI : AbstractAI
     private int collisionFlag;
 
     public DroppedItemAI(float3 pos, float3 rot, float3 move, ulong code, ushort itemCode, byte amount, EntityHandler_Server handler, ChunkLoader_Server cl){
-        this.Construct();
-        this.SetPosition(pos, rot);
+        this.Construct(EntityType.DROP, code);
+
+        this.SetInitialPosition(pos, rot);
         this.Install(EntityHitbox.ITEM);
         this.SetChunkloader(cl);
         this.SetHandler(handler);
-        this.entityCode = code;
         this.CREATED_BY_PLAYER = false;
         this.its = new ItemStack((ItemID)itemCode, amount);
-        this.type = EntityType.DROP;
 
         this.Install(new ProjectileTerrainVision(cl));
         this.Install(new ItemBehaviour(this.position, this.rotation, move));
+        this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
     }
 
     public DroppedItemAI(float3 pos, float3 rot, float3 move, ulong code, ushort itemCode, byte amount, ulong playerCode, EntityHandler_Server handler, ChunkLoader_Server cl){
-        this.Construct();
-        this.SetPosition(pos, rot);
+        this.Construct(EntityType.DROP, code);
+        this.SetInitialPosition(pos, rot);
         this.Install(EntityHitbox.ITEM);
         this.SetChunkloader(cl);
         this.SetHandler(handler);
-        this.entityCode = code;
         this.CREATED_BY_PLAYER = true;
         this.playerCode = playerCode;
         this.its = new ItemStack((ItemID)itemCode, amount);
-        this.type = EntityType.DROP;
 
         this.Install(new ProjectileTerrainVision(cl));
-        this.Install(new ItemBehaviour(pos, rot, move));
+        this.Install(new ItemBehaviour(this.position, this.rotation, move));
+        this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
     }
 
     public override void Tick(){
@@ -64,6 +63,11 @@ public class DroppedItemAI : AbstractAI
                 }
             }
         }
+
+        // Entity Vision
+        if(!((ItemBehaviour)this.behaviour).IsStanding()){
+            this.radar.Search(ref this.inboundEventQueue);
+        }
             
         moveCode = this.behaviour.HandleBehaviour(ref this.inboundEventQueue);
 
@@ -75,14 +79,20 @@ public class DroppedItemAI : AbstractAI
 
         // Sends movement notification
         if(moveCode != 3){
-            this.position = this.behaviour.position;
-            this.rotation = this.behaviour.rotation;
-            this.coords = new CastCoord(this.position);
+            SetPosition(this.behaviour.position, this.behaviour.rotation);
+            this.radar.SetTransform(ref this.behaviour.position, ref this.behaviour.rotation, ref this.coords);
+
             this.message = new NetMessage(NetCode.ITEMENTITYDATA);
             this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((ItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
-            Debug.Log(SetRotationAsStopFlag((ItemBehaviour)this.behaviour));
             this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
         }
+    }
+
+    public ItemStack GetItemStack(){
+        return this.its;
+    }
+
+    public void SetItemStackAmount(){
     }
 
     private float SetRotationAsStopFlag(ItemBehaviour behaviour){

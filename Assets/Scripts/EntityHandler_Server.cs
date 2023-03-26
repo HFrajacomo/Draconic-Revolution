@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
@@ -6,21 +7,42 @@ using Unity.Mathematics;
 public class EntityHandler_Server
 {
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> playerObject;
-    public Dictionary<ChunkPos, Dictionary<ulong, DroppedItemAI>> dropObject;
-    public List<EntityID> toRemove;
+    public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> dropObject;
+
+    private List<EntityID> toRemove;
     private AvailabilityQueue availableDropCodes;
+    private List<EntityChunkTransaction> toChangePosition;
 
 
     public EntityHandler_Server(){
         this.playerObject = new Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>>();
-        this.dropObject = new Dictionary<ChunkPos, Dictionary<ulong, DroppedItemAI>>();
+        this.dropObject = new Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>>();
         this.availableDropCodes = new AvailabilityQueue();
         this.toRemove = new List<EntityID>();
+        this.toChangePosition = new List<EntityChunkTransaction>();
+    }
+
+    // DEBUG
+    private void PrintDrops(){
+        StringBuilder sb = new StringBuilder();
+
+        foreach(ChunkPos cp in dropObject.Keys){
+            sb.Append(cp + " {\n");
+
+            foreach(ulong u in dropObject[cp].Keys){
+                sb.Append("\t" + u + "\n");
+            }
+
+            sb.Append("}");
+        }
+
+        Debug.Log(sb.ToString());
     }
 
     // Runs all Tick() functions from loaded entities
     public void RunEntities(){
         DeleteScheduled();
+        ApplyChangesScheduled();
 
         foreach(ChunkPos key in this.playerObject.Keys){
             foreach(ulong code in this.playerObject[key].Keys){
@@ -72,11 +94,30 @@ public class EntityHandler_Server
         ulong assignedCode = this.availableDropCodes.Pop();
 
         if(!this.dropObject.ContainsKey(chunk))
-            this.dropObject.Add(chunk, new Dictionary<ulong, DroppedItemAI>());
+            this.dropObject.Add(chunk, new Dictionary<ulong, AbstractAI>());
         
         this.dropObject[chunk].Add(assignedCode, new DroppedItemAI(pos, rot, move, assignedCode, itemCode, amount, playerCode, this, cl));
 
         return assignedCode;
+    }
+
+    // Adds an element to the Handler without creating an AI
+    // Used for internal re-allocation of entities
+    private void InternalAdd(EntityID novel, AbstractAI ai){
+        switch(novel.type){
+            case EntityType.PLAYER:
+                if(!this.playerObject.ContainsKey(novel.pos))
+                    this.playerObject.Add(novel.pos, new Dictionary<ulong, AbstractAI>());
+
+                this.playerObject[novel.pos].Add(novel.code, ai);
+                break;
+            case EntityType.DROP:
+                if(!this.dropObject.ContainsKey(novel.pos))
+                    this.dropObject.Add(novel.pos, new Dictionary<ulong, AbstractAI>());
+
+                this.dropObject[novel.pos].Add(novel.code, ai);
+                break;            
+        }
     }
 
     // ...
@@ -99,9 +140,32 @@ public class EntityHandler_Server
         }
     }
 
+    // Called as remove but doesn't pop values in AvailabilityList
+    public void InternalRemove(EntityType type, ChunkPos pos, ulong code){
+        if(type == EntityType.PLAYER){
+            if(this.playerObject.ContainsKey(pos)){
+                this.playerObject[pos].Remove(code);
+                if(this.playerObject[pos].Count == 0)
+                    this.playerObject.Remove(pos);
+            }
+        }
+        else if(type == EntityType.DROP){
+            if(this.dropObject.ContainsKey(pos)){
+                this.dropObject[pos].Remove(code);
+                if(this.dropObject[pos].Count == 0)
+                    this.dropObject.Remove(pos);
+            }
+        }
+    }
+
     // Called from inside AbstractAI handlers to schedule current entity for deletion
     public void ScheduleRemove(EntityID id){
         this.toRemove.Add(id);
+    }
+
+    // Triggered whenever an entity changes chunk
+    public void SchedulePositionChange(EntityChunkTransaction ect){
+        this.toChangePosition.Add(ect);
     }
 
     // Runs removal of marked entities
@@ -109,10 +173,25 @@ public class EntityHandler_Server
         EntityID entity;
         for(int i=0; i < toRemove.Count; i++){
             entity = this.toRemove[i];
+
             Remove(entity.type, entity.pos, entity.code);
         }
 
         this.toRemove.Clear();
+    }
+
+    // Applies chunk position changes
+    private void ApplyChangesScheduled(){
+        EntityChunkTransaction ect;
+
+        for(int i=0; i < this.toChangePosition.Count; i++){
+            ect = this.toChangePosition[i];
+
+            InternalAdd(ect.novel, ect.ai);
+            InternalRemove(ect.old.type, ect.old.pos, ect.old.code);
+        }
+
+        this.toChangePosition.Clear();
     }
 
     public void SetPosition(EntityType type, ulong code, ChunkPos chunk, float3 pos){
