@@ -60,12 +60,14 @@ public class ItemBehaviour : Behaviour
             if(this.its.GetAmount() >= this.cacheEvent.metaCode){
                 this.its.SetAmount((byte)(this.its.GetAmount() - this.cacheEvent.metaCode));
                 auxAI.SetItemStackAmount(this.its.GetStacksize());
+                auxAI.SetLifespan(0);
 
                 if(this.its.GetAmount() == 0)
                     return byte.MaxValue;
             }
             else{
                 auxAI.SetItemStackAmount((byte)(auxAI.GetItemStackAmount() + this.its.GetAmount()));
+                auxAI.SetLifespan(0);
                 this.its.SetAmount(0);
                 return byte.MaxValue;
 
@@ -159,5 +161,9 @@ public class ItemBehaviour : Behaviour
 
     public bool IsStanding(){
         return this.IS_STANDING;
+    }
+
+    public void SetLifespan(int life){
+        this.currentLifeTick = life;
     }
 }

@@ -112,4 +112,8 @@ public class DroppedItemAI : AbstractAI
     public byte GetItemStackAmount(){
         return this.its.GetAmount();
     }
+
+    public void SetLifespan(int life){
+        ((ItemBehaviour)this.behaviour).SetLifespan(life);
+    }
 }
