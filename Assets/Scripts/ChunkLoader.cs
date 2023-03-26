@@ -80,11 +80,12 @@ public class ChunkLoader : MonoBehaviour
 
     void Awake(){
         this.playerCharacter.SetActive(false);
+        this.playerCharacter.transform.position = new Vector3(0,-999,0);
         this.mainControllerManager.SetActive(false);
         this.gameUI.SetActive(false);
         this.client = new Client(this);
         HandleClientCommunication();
-        this.player.position = new Vector3(0,0,0);
+        this.player.position = new Vector3(0,-999,0);
         this.playerAccountID = Configurations.accountID;
         this.time.SetClient(this.client);
         SetAudioManager();
@@ -147,6 +148,7 @@ public class ChunkLoader : MonoBehaviour
             InitConfigurationFunctions();
 
             this.player.position = new Vector3(playerX, playerY+0.8f, playerZ);
+            this.playerCharacter.transform.position = new Vector3(playerX, playerY+0.8f, playerZ);
 
             this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
 
@@ -170,7 +172,7 @@ public class ChunkLoader : MonoBehaviour
                     this.gameUI.SetActive(true);
                     playerCharacter.SetActive(true);
                     this.mainControllerManager.SetActive(true);
-                    this.time.SetPlayer(playerCharacter.GetComponent<PlayerMovement>());
+                    this.time.SetPlayer(playerCharacter);
                     this.playerEvents.SetPlayerObject(playerCharacter);
                     this.client.SetRaycast(playerCharacter.GetComponent<PlayerRaycast>());
                     this.client.SetPlayerEvents(this.playerEvents);

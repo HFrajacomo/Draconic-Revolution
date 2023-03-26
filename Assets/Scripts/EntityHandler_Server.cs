@@ -26,10 +26,10 @@ public class EntityHandler_Server
     private void PrintDrops(){
         StringBuilder sb = new StringBuilder();
 
-        foreach(ChunkPos cp in dropObject.Keys){
+        foreach(ChunkPos cp in playerObject.Keys){
             sb.Append(cp + " {\n");
 
-            foreach(ulong u in dropObject[cp].Keys){
+            foreach(ulong u in playerObject[cp].Keys){
                 sb.Append("\t" + u + "\n");
             }
 
@@ -194,21 +194,11 @@ public class EntityHandler_Server
         this.toChangePosition.Clear();
     }
 
-    public void SetPosition(EntityType type, ulong code, ChunkPos chunk, float3 pos){
+    public void SetPosition(EntityType type, ulong code, ChunkPos chunk, float3 pos, float3 rot){
         if(type == EntityType.PLAYER){
             if(this.playerObject.ContainsKey(chunk)){
                 if(this.playerObject[chunk].ContainsKey(code)){
-                    this.playerObject[chunk][code].position = new Vector3(pos.x, pos.y, pos.z);
-                }
-            }
-        }
-    }
-
-    public void SetRotation(EntityType type, ulong code, ChunkPos chunk, float3 rot){
-        if(type == EntityType.PLAYER){
-            if(this.playerObject.ContainsKey(chunk)){
-                if(this.playerObject[chunk].ContainsKey(code)){
-                    this.playerObject[chunk][code].rotation = new Vector3(rot.x, rot.y, rot.z);
+                    this.playerObject[chunk][code].SetPosition(new Vector3(pos.x, pos.y, pos.z), new Vector3(rot.x, rot.y, rot.z));
                 }
             }
         }

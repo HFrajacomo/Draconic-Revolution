@@ -758,9 +758,7 @@ public class Server
 		if(!this.entityHandler.Contains(EntityType.PLAYER, cp, id))
 			this.entityHandler.AddPlayer(cp, id, pos, dir);
 
-		this.entityHandler.SetPosition(EntityType.PLAYER, id, cp, pos);
-		this.entityHandler.SetRotation(EntityType.PLAYER, id, cp, dir);
-
+		this.entityHandler.SetPosition(EntityType.PLAYER, id, cp, pos, dir);
 
 		// Propagates data to all network
 		if(this.connectionGraph.ContainsKey(id)){

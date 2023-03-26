@@ -21,7 +21,7 @@ public class TimeOfDay : MonoBehaviour
     public bool LOCKTIME = true;
     public bool isClient;
 
-    private PlayerMovement player;
+    private GameObject player;
 
     private bool SENDTIMEFLAG = false;
     private bool CHECKTIMEOUT = false;
@@ -109,7 +109,7 @@ public class TimeOfDay : MonoBehaviour
         this.client = cli;
     }
 
-    public void SetPlayer(PlayerMovement player){
+    public void SetPlayer(GameObject player){
         this.player = player;
     }
 
@@ -118,15 +118,16 @@ public class TimeOfDay : MonoBehaviour
         if(this.player == null)
             return;
         if(position == null)
-            position = this.player.controller.transform.position;
+            position = this.player.transform.position;
         if(rotation == null)
-            rotation = this.player.controller.transform.eulerAngles;
+            rotation = this.player.transform.eulerAngles;
 
         // If has moved
-        if(this.player.controller.transform.position != position || this.player.controller.transform.eulerAngles != rotation){
+        if(this.player.transform.position != position || this.player.transform.eulerAngles != rotation){
+            position = this.player.transform.position;
+            rotation = this.player.transform.eulerAngles;
+
             SendPositionMessage();
-            position = this.player.controller.transform.position;
-            rotation = this.player.controller.transform.eulerAngles;
 
             this.cacheCoord = new CastCoord(this.position);
             if(this.currentPos == null){
@@ -144,6 +145,9 @@ public class TimeOfDay : MonoBehaviour
         // If hasn't moved but notification must be sent
         else if(this.sendZeroNotification > 0){
             this.sendZeroNotification -= 1;
+
+            position = this.player.transform.position;
+            rotation = this.player.transform.eulerAngles;
             SendPositionMessage();
         }
     }

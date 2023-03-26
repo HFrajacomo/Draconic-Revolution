@@ -12,5 +12,7 @@ public class PlayerAI : AbstractAI
         this.SetHandler(handler);
     }
 
-    public override void Tick(){return;}
+    public override void Tick(){
+        return;
+    }
 }
