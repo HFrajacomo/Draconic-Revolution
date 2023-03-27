@@ -24,7 +24,6 @@ public struct ChunkPos{
 	}
 
 	public float DistanceFrom(ChunkPos otherPos){
-		float bonus;
 		int xDiff, zDiff, yDiff;
 		int maximizedDistance;
 
