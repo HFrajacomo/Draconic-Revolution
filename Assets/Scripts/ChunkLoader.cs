@@ -655,7 +655,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Gets all chunks around player's render distance
     // GetChunks automatically rebuilds chunks if reload=True
-    private void GetChunks(bool reload){
+    public void GetChunks(bool reload){
 		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
 		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
         int playerY = Mathf.FloorToInt(player.position.y / Chunk.chunkDepth);

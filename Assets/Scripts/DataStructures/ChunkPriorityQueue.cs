@@ -93,6 +93,21 @@ public class ChunkPriorityQueue
         return playerPosition;
     }
 
+    public float PeekDistance(){
+        if(GetSize() > 0){
+            if(this.initialQueue.Count > 0)
+                return this.initialQueue[0].distance;
+            else{
+                if(DEBUG_QUEUE)
+                    Debug.Log("Peeking: " + this.queue[0]);
+
+                return this.queue[0].distance;
+            }
+        }
+
+        return -1;
+    } 
+
     public ChunkPos Pop(){
         if(this.initialQueue.Count > 0){
             ChunkPos aux = this.initialQueue[0].pos;

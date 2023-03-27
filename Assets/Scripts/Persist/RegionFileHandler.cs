@@ -41,7 +41,6 @@ public class RegionFileHandler{
 
 	// Region Pool
 	private Dictionary<ChunkPos, RegionFile> pool = new Dictionary<ChunkPos, RegionFile>();
-	private int maxPoolSize = 10;
 
 	// Sizes
 	public static int chunkHeaderSize = 21; // Size (in bytes) of header
@@ -257,7 +256,7 @@ public class RegionFileHandler{
 			return;
 
 		// If Pool is not full
-		if(this.pool.Count < this.maxPoolSize){
+		if(this.pool.Count < Constants.MAXIMUM_REGION_FILE_POOL){
 			this.pool.Add(newPos, new RegionFile(name, newPos, RegionFileHandler.chunkLength));
 		}
 		// If Pool is full
