@@ -36,9 +36,26 @@ public class DroppedItemAI : AbstractAI
         this.its = new ItemStack((ItemID)itemCode, amount);
 
         this.Install(new ProjectileTerrainVision(cl));
-        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its, true));
+        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its, playerCode != ulong.MaxValue));
         this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
     }
+
+    // Used when loading dropped items from memory
+    public DroppedItemAI(float3 pos, ulong code, Item item, byte amount, byte state, EntityHandler_Server handler, ChunkLoader_Server cl){
+        this.Construct(EntityType.DROP, code);
+        this.SetInitialPosition(pos, new float3(0,0,0));
+        this.Install(EntityHitbox.ITEM);
+        this.SetChunkloader(cl);
+        this.SetHandler(handler);
+        this.its = new ItemStack(item, amount);
+
+        this.Install(new ProjectileTerrainVision(cl));
+        this.Install(new ItemBehaviour(this.position, this.rotation, new float3(0,0,0), this.its, false));
+        this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
+
+        LoadState(state);
+    }
+
 
     public override void Tick(){
         byte moveCode;
@@ -116,6 +133,14 @@ public class DroppedItemAI : AbstractAI
         ((ItemBehaviour)this.behaviour).SetLifespan(life);
     }
 
+    private void SetStanding(bool flag){
+        ((ItemBehaviour)this.behaviour).SetStanding(flag);
+    }
+
+    public int GetLifespan(){
+        return ((ItemBehaviour)this.behaviour).GetLifespan();
+    }
+
     public bool IsOnPickupMode(){
         return ((ItemBehaviour)this.behaviour).IsOnPickupMode();
     }
@@ -126,5 +151,19 @@ public class DroppedItemAI : AbstractAI
 
     public bool IsCreatedByPlayer(){
         return ((ItemBehaviour)this.behaviour).IsCreatedByPlayer();
+    }
+
+    public override byte GetState(){
+        return (byte)SetRotationAsStopFlag((ItemBehaviour)this.behaviour);
+    }
+
+    public override void LoadState(byte state){
+        // Is standing
+        if(state == 1){
+            this.SetStanding(true);
+            this.message = new NetMessage(NetCode.ITEMENTITYDATA);
+            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((ItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
+            this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
+        }
     }
 }

@@ -28,6 +28,8 @@ public abstract class AbstractAI
 
     // Main function to move everything in AI's power
     public abstract void Tick();
+    public abstract byte GetState();
+    public abstract void LoadState(byte state);
 
     public void Construct(EntityType t, ulong code){
         this.inboundEventQueue = new List<EntityEvent>();

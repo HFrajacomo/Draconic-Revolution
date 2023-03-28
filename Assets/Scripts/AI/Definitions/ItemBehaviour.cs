@@ -197,12 +197,20 @@ public class ItemBehaviour : Behaviour
         this.currentLifeTick = life;
     }
 
+    public int GetLifespan(){
+        return this.currentLifeTick;
+    }
+
     public bool IsOnPickupMode(){
         return this.IS_ON_PICKUP_ANIMATION;
     }
 
     public void SetPickupMode(){
         this.IS_ON_PICKUP_ANIMATION = true;
+    }
+
+    public void SetStanding(bool flag){
+        this.IS_STANDING = flag;
     }
 
     public bool IsCreatedByPlayer(){

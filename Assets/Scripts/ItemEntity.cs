@@ -24,7 +24,7 @@ public class ItemEntity : MonoBehaviour
 	private static readonly string ANIMATION_MEGASPIN = "DroppedItemMegaSpin";
 	private static readonly string ANIMATION_ROTATION = "DroppedItemRotation";
 
-	void Start(){
+	void Awake(){
 		this.go = this.gameObject;
 		this.go.transform.parent = this.droppedItemHierarchy.transform;
 		this.meshFilter = this.go.GetComponent<MeshFilter>();
@@ -32,7 +32,9 @@ public class ItemEntity : MonoBehaviour
 		this.go.name = ItemEntity.NAME;
 		this.mesh = new Mesh();
 		this.animator.applyRootMotion = false;
+	}
 
+	void Start(){
 		BuildMesh();
 	}
 

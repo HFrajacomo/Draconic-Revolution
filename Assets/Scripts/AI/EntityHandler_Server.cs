@@ -56,6 +56,29 @@ public class EntityHandler_Server
         }
     }
 
+    // Unloads all entities in chunk
+    public void UnloadChunk(ChunkPos pos){
+        if(this.playerObject.ContainsKey(pos))
+            this.playerObject.Remove(pos);
+
+        if(this.dropObject.ContainsKey(pos))
+            this.dropObject.Remove(pos);
+    }
+
+    // Gets all entities in given chunk
+    // THIS FUNCTION DOES NOT SAVE PLAYER ENTITY DATA
+    public List<AbstractAI> GetEntitiesInChunk(ChunkPos pos){
+        List<AbstractAI> outputList = new List<AbstractAI>();
+
+        if(this.dropObject.ContainsKey(pos)){
+           foreach(AbstractAI ai in this.dropObject[pos].Values){
+                outputList.Add(ai);
+           }
+        }
+
+        return outputList;
+    }
+
     // Returns true if current chunk is loaded and has entities on it
     public bool Contains(EntityType type, ChunkPos pos){
         if(type == EntityType.PLAYER)
@@ -88,6 +111,7 @@ public class EntityHandler_Server
         this.playerObject[chunk].Add(code, new PlayerAI(pos, dir, code, this, cl));
     }
 
+    // Issued command from Server class
     public ulong AddItem(float3 pos, float3 rot, float3 move, ushort itemCode, byte amount, ulong playerCode, ChunkLoader_Server cl){
         CastCoord coord = new CastCoord(pos);
         ChunkPos chunk = coord.GetChunkPos();
@@ -97,6 +121,20 @@ public class EntityHandler_Server
             this.dropObject.Add(chunk, new Dictionary<ulong, AbstractAI>());
         
         this.dropObject[chunk].Add(assignedCode, new DroppedItemAI(pos, rot, move, assignedCode, itemCode, amount, playerCode, this, cl));
+
+        return assignedCode;
+    }
+
+    // issued from EntityFileHandler
+    public ulong AddItem(float3 pos, Item item, byte amount, byte state, ChunkLoader_Server cl){
+        CastCoord coord = new CastCoord(pos);
+        ChunkPos chunk = coord.GetChunkPos();
+        ulong assignedCode = this.availableDropCodes.Pop();
+
+        if(!this.dropObject.ContainsKey(chunk))
+            this.dropObject.Add(chunk, new Dictionary<ulong, AbstractAI>());
+        
+        this.dropObject[chunk].Add(assignedCode, new DroppedItemAI(pos, assignedCode, item, amount, state, this, cl));
 
         return assignedCode;
     }

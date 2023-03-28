@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Jobs;
@@ -33,6 +34,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
 	// Persistence
     public RegionFileHandler regionHandler;
+    public EntityFileHandler entityFileHandler;
     public PlayerServerInventory playerServerInventory;
 
 	// Flags
@@ -48,6 +50,9 @@ public class ChunkLoader_Server : MonoBehaviour
     void OnApplicationQuit(){
         if(regionHandler != null)
             regionHandler.CloseAll();
+
+        if(this.entityFileHandler != null)
+            this.entityFileHandler.CloseAll();
         
         if(this.worldGen != null)
             this.worldGen.DestroyNativeMemory();
@@ -84,6 +89,7 @@ public class ChunkLoader_Server : MonoBehaviour
         bool isEmptyInventory;
 
         this.regionHandler = new RegionFileHandler(this);
+        this.entityFileHandler = new EntityFileHandler(this);
         this.playerServerInventory = new PlayerServerInventory();
         worldSeed = regionHandler.GetRealSeed();
         biomeHandler = new BiomeHandler();
@@ -100,6 +106,7 @@ public class ChunkLoader_Server : MonoBehaviour
         pdat.SetOnline(true);
 
         this.regionHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth), (int)(playerPos.y/Chunk.chunkDepth)));
+        this.entityFileHandler.InitDataFiles(new ChunkPos((int)(playerPos.x/Chunk.chunkWidth), (int)(playerPos.z/Chunk.chunkWidth), (int)(playerPos.y/Chunk.chunkDepth)));
 
         HandleServerCommunication();
 
@@ -238,14 +245,16 @@ public class ChunkLoader_Server : MonoBehaviour
                 }
 
 
+                this.entityFileHandler.LoadChunkEntities(toLoad[0]);
                 SendChunkToRequestingClients(toLoad[0]);
         		toLoad.RemoveAt(0);
         	}
         }
     }
 
-    // Post-processing of all deletes chunks from cl.chunks
-    public void UnloadChunk(ChunkPos pos, ulong id){
+    // Post-processing of all deleted chunks from cl.chunks
+    // Return true if chunk has been deleted and false if it's still in cl.chunks
+    public bool UnloadChunk(ChunkPos pos, ulong id){
         // If chunk is already gone
         if(!this.loadedChunks.ContainsKey(pos)){
             if(this.chunks.ContainsKey(pos)){
@@ -254,6 +263,7 @@ public class ChunkLoader_Server : MonoBehaviour
             if(this.vfx.Contains(pos, isServer:true)){
                 this.vfx.RemoveChunk(pos, isServer:true);
             }
+            return true;
         }
         else{
             this.loadedChunks[pos].Remove(id);
@@ -263,9 +273,14 @@ public class ChunkLoader_Server : MonoBehaviour
                 this.loadedChunks.Remove(pos);
                 this.chunks.Remove(pos);
                 this.vfx.RemoveChunk(pos, isServer:true);
+                this.entityFileHandler.SaveChunkEntities(pos, this.server.entityHandler.GetEntitiesInChunk(pos));
+                return true;
             }
-        }
 
+            this.entityFileHandler.SaveChunkEntities(pos, this.server.entityHandler.GetEntitiesInChunk(pos));
+
+            return false;
+        }
     }
 
     // Sends chunk information to clients that need it

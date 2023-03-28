@@ -20,7 +20,6 @@ public class RegionFileHandler{
 	private string worldName;
 	private static readonly string fileFormat = ".rdf";
 	private int seed;
-	private static float chunkLength = 32f;
 	public TimeOfDay globalTime;
 
 	// Unity Reference
@@ -66,7 +65,7 @@ public class RegionFileHandler{
 
 	// Initializes all files after received first player
 	public void InitDataFiles(ChunkPos pos){
-		LoadRegionFile(pos, init:true);
+		LoadRegionFile(pos);
 	}
 
 	// Initializes World Files
@@ -241,13 +240,13 @@ public class RegionFileHandler{
 
 
 	// Loads RegionFile related to given Chunk
-	public void LoadRegionFile(ChunkPos pos, bool init=false){
+	public void LoadRegionFile(ChunkPos pos){
 		int rfx;
 		int rfz;
 		string name;
 
-		rfx = Mathf.FloorToInt(pos.x / RegionFileHandler.chunkLength);
-		rfz = Mathf.FloorToInt(pos.z / RegionFileHandler.chunkLength);
+		rfx = Mathf.FloorToInt(pos.x / Constants.CHUNKS_IN_REGION_FILE);
+		rfz = Mathf.FloorToInt(pos.z / Constants.CHUNKS_IN_REGION_FILE);
 		name = "r" + rfx.ToString() + "x" + rfz.ToString() + "_" + pos.y;
 
 		ChunkPos newPos = new ChunkPos(rfx, rfz, pos.y);
@@ -258,12 +257,12 @@ public class RegionFileHandler{
 
 		// If Pool is not full
 		if(this.pool.Count < Constants.MAXIMUM_REGION_FILE_POOL){
-			this.pool.Add(newPos, new RegionFile(name, fileFormat, newPos, RegionFileHandler.chunkLength));
+			this.pool.Add(newPos, new RegionFile(name, fileFormat, newPos, Constants.CHUNKS_IN_REGION_FILE));
 		}
 		// If Pool is full
 		else{
 			FreePool(newPos); // Takes a RegionFile away from Pool
-			this.pool.Add(newPos, new RegionFile(name, fileFormat, newPos, RegionFileHandler.chunkLength));			
+			this.pool.Add(newPos, new RegionFile(name, fileFormat, newPos, Constants.CHUNKS_IN_REGION_FILE));			
 		}
 	}
 
@@ -530,8 +529,8 @@ public class RegionFileHandler{
 		int rfx;
 		int rfz;
 
-		rfx = Mathf.FloorToInt(pos.x / RegionFileHandler.chunkLength);
-		rfz = Mathf.FloorToInt(pos.z / RegionFileHandler.chunkLength);
+		rfx = Mathf.FloorToInt(pos.x / Constants.CHUNKS_IN_REGION_FILE);
+		rfz = Mathf.FloorToInt(pos.z / Constants.CHUNKS_IN_REGION_FILE);
 
 		return new ChunkPos(rfx, rfz, pos.y);		
 	}
@@ -550,9 +549,8 @@ public class RegionFileHandler{
 		int rfx;
 		int rfz;
 
-		rfx = Mathf.FloorToInt(pos.x / RegionFileHandler.chunkLength);
-		rfz = Mathf.FloorToInt(pos.z / RegionFileHandler.chunkLength);
-
+		rfx = Mathf.FloorToInt(pos.x / Constants.CHUNKS_IN_REGION_FILE);
+		rfz = Mathf.FloorToInt(pos.z / Constants.CHUNKS_IN_REGION_FILE);
 
 		ChunkPos check = new ChunkPos(rfx, rfz, pos.y);
 
@@ -564,6 +562,6 @@ public class RegionFileHandler{
 
 	// Convert to linear Region Chunk Coordinates
 	private long GetLinearRegionCoords(ChunkPos pos){
-		return (long)(pos.z*chunkLength + pos.x);
+		return (long)(pos.z*Constants.CHUNKS_IN_REGION_FILE + pos.x);
 	}
 }

@@ -30,4 +30,7 @@ public class PlayerAI : AbstractAI
             this.cl.server.Send(message.GetMessage(), message.size, this.ID.code);
         }
     }
+
+    public override byte GetState(){return 0;}
+    public override void LoadState(byte state){}
 }

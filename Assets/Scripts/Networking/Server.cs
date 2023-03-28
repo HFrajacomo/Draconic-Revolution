@@ -524,8 +524,11 @@ public class Server
 	        	killMessage.EntityDelete(EntityType.PLAYER, code);
 	        	this.Send(killMessage.GetMessage(), killMessage.size, id);
 	        }
+
+	        this.playersInChunk[pos].Remove(id);
 	    }
 
+	    // CHANGE THIS TO A SINGLE NETCODE MESSAGE TO DELETE THE ENTIRE CHUNK FOR ENTITIES
         if(this.entityHandler.Contains(EntityType.DROP, pos)){
 	        foreach(ulong itemCode in this.entityHandler.dropObject[pos].Keys){
 	        	killMessage.EntityDelete(EntityType.DROP, itemCode);
@@ -533,7 +536,9 @@ public class Server
 	        }
 	    }
 
-        this.cl.UnloadChunk(pos, id);
+        if(this.cl.UnloadChunk(pos, id))
+	    	this.entityHandler.UnloadChunk(pos);
+
 	}
 
 	// Processes a simple BUD request
@@ -786,7 +791,8 @@ public class Server
 		}
 
 		foreach(ChunkPos pos in toRemove){
-			this.cl.UnloadChunk(pos, id);
+			if(this.cl.UnloadChunk(pos, id))
+				this.entityHandler.UnloadChunk(pos);
 		}
 
 		this.connections[id].Close();

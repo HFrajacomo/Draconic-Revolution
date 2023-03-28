@@ -33,6 +33,7 @@ public static class Constants
 
     // Persistance
     public static readonly int MAXIMUM_REGION_FILE_POOL = 10;
+    public static readonly float CHUNKS_IN_REGION_FILE = 32f;
 
     // Item Entity
     public static readonly int ITEM_ENTITY_LIFE_SPAN_TICKS = 19200; // 4 in-game hours
