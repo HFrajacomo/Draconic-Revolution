@@ -9,6 +9,7 @@ using Unity.Mathematics;
 public class EntityFileHandler{
 	private string worldName;
 	private static readonly string fileFormat = ".edf";
+	private static readonly int headerSize = 4;
 	private int seed;
 	public TimeOfDay globalTime;
 
@@ -100,9 +101,6 @@ public class EntityFileHandler{
 
 	// Saves an entire chunk-worth of entities
 	public void SaveChunkEntities(ChunkPos pos, List<AbstractAI> entityList){
-		if(entityList.Count == 0)
-			return;
-
 		long chunkCode = GetLinearRegionCoords(pos);
 		long seekPosition = 0;
 
@@ -120,8 +118,8 @@ public class EntityFileHandler{
 
 			ChunkPos regionPos = ConvertToRegion(pos);
 
-			this.pool[regionPos].AddHole(this.pool[regionPos].index[chunkCode], lastChunkSize);
-			seekPosition = this.pool[regionPos].FindPosition(mainIndex);
+			this.pool[regionPos].AddHole(this.pool[regionPos].index[chunkCode], lastChunkSize + headerSize);
+			seekPosition = this.pool[regionPos].FindPosition(headerSize + mainIndex);
 			this.pool[regionPos].SaveHoles();
 
 			// If position in RegionFile has changed
@@ -140,7 +138,7 @@ public class EntityFileHandler{
 		else{
 			ChunkPos regionPos = ConvertToRegion(pos);
 
-			seekPosition = this.pool[regionPos].FindPosition(mainIndex);
+			seekPosition = this.pool[regionPos].FindPosition(headerSize + mainIndex);
 			this.pool[regionPos].SaveHoles();
 
 			// Adds new chunk to Index
