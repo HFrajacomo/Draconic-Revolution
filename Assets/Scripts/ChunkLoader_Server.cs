@@ -51,6 +51,8 @@ public class ChunkLoader_Server : MonoBehaviour
         if(regionHandler != null)
             regionHandler.CloseAll();
 
+        ForceUnloadAll();
+
         if(this.entityFileHandler != null)
             this.entityFileHandler.CloseAll();
         
@@ -280,6 +282,14 @@ public class ChunkLoader_Server : MonoBehaviour
             this.entityFileHandler.SaveChunkEntities(pos, this.server.entityHandler.GetEntitiesInChunk(pos));
 
             return false;
+        }
+    }
+
+    // Saves all entities
+    // Used whenever Server is shutdown
+    private void ForceUnloadAll(){
+        foreach(ChunkPos pos in this.chunks.Keys){
+            this.entityFileHandler.SaveChunkEntities(pos, this.server.entityHandler.GetEntitiesInChunk(pos));
         }
     }
 
