@@ -60,14 +60,23 @@ public class Wood_Block : Blocks
 	// Activates OnBreak event -> Emits normal BUD, emits special BUD to breadt-first search leaves
 	public override int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
 		CastCoord coord = new CastCoord(pos, blockX, blockY, blockZ);
+		int amountOfWoodDestroyed;
+		int i;
+
 		EmitBlockUpdate(BUDCode.BREAK, coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, cl);
 
-        cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
-            Item.GenerateForceVector(), this.droppedItem, Item.RandomizeDropQuantity(minDropQuantity, maxDropQuantity), cl);
-
-		TreeCheck(coord, cl);
+		amountOfWoodDestroyed = TreeCheck(coord, cl) + maxDropQuantity;
 		GetSurroundingLeaves(coord, decayDistance, cl);
 		RunLeavesRecursion(cl, coord);
+
+		// Drops excess wood
+		for(i=0; i < amountOfWoodDestroyed/this.droppedItem.stacksize; i += this.droppedItem.stacksize){
+	        cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
+	            Item.GenerateForceVector(), this.droppedItem, this.droppedItem.stacksize, cl);
+        }
+
+        cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
+            Item.GenerateForceVector(), this.droppedItem, (byte)(amountOfWoodDestroyed - i), cl);
 
 		return 0;
 	}
@@ -152,7 +161,7 @@ public class Wood_Block : Blocks
 
 
 	// Does the Wood check to break unconnected wood blocks from tree
-	private void TreeCheck(CastCoord pos, ChunkLoader_Server cl){
+	private int TreeCheck(CastCoord pos, ChunkLoader_Server cl){
 		CastCoord aux;
 		validDirections.Clear();
 
@@ -226,13 +235,15 @@ public class Wood_Block : Blocks
 			}
 		}
 
-		RunWoodRecursion(cl);
+		return RunWoodRecursion(cl);
 	}
 
 	// Handles search of Wood Blocks
-	private void RunWoodRecursion(ChunkLoader_Server cl){
+	// Returns the amount of wood blocks disposed of
+	private int RunWoodRecursion(ChunkLoader_Server cl){
 		CastCoord current;
 		int exitCode;
+		int amountOfBlocks;
 
 		currentList.Clear();
 		safeList.Clear();
@@ -258,9 +269,11 @@ public class Wood_Block : Blocks
 			}
 			// PANIC
 			else{
-				return;
+				return 0;
 			}
 		}
+
+		amountOfBlocks = toDestroy.Count;
 
 		foreach(CastCoord aux in toDestroy){
 			cl.chunks[aux.GetChunkPos()].data.SetCell(aux.blockX, aux.blockY, aux.blockZ, 0);
@@ -274,6 +287,7 @@ public class Wood_Block : Blocks
 			this.Update(pos, cl);
 		}
 
+		return amountOfBlocks;
 	}
 
 
