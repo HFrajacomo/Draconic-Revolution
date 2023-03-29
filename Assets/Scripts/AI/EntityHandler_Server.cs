@@ -139,6 +139,20 @@ public class EntityHandler_Server
         return assignedCode;
     }
 
+    // issued from Blocks being broken
+    public ulong AddItem(float3 pos, float3 move, Item item, byte amount, ChunkLoader_Server cl){
+        CastCoord coord = new CastCoord(pos);
+        ChunkPos chunk = coord.GetChunkPos();
+        ulong assignedCode = this.availableDropCodes.Pop();
+
+        if(!this.dropObject.ContainsKey(chunk))
+            this.dropObject.Add(chunk, new Dictionary<ulong, AbstractAI>());
+        
+        this.dropObject[chunk].Add(assignedCode, new DroppedItemAI(pos, move, assignedCode, item, amount, this, cl));
+
+        return assignedCode;
+    }
+
     // Adds an element to the Handler without creating an AI
     // Used for internal re-allocation of entities
     private void InternalAdd(EntityID novel, AbstractAI ai){

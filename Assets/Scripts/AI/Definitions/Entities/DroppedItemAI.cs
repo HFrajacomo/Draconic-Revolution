@@ -56,6 +56,20 @@ public class DroppedItemAI : AbstractAI
         LoadState(state);
     }
 
+    // Used when creating Item Drops from Block breaking mechanic
+    public DroppedItemAI(float3 pos, float3 move, ulong code, Item item, byte amount, EntityHandler_Server handler, ChunkLoader_Server cl){
+        this.Construct(EntityType.DROP, code);
+        this.SetInitialPosition(pos, new float3(0,0,0));
+        this.Install(EntityHitbox.ITEM);
+        this.SetChunkloader(cl);
+        this.SetHandler(handler);
+        this.its = new ItemStack(item, amount);
+
+        this.Install(new ProjectileTerrainVision(cl));
+        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its, false));
+        this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
+    }
+
 
     public override void Tick(){
         byte moveCode;

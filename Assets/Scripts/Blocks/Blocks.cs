@@ -36,6 +36,11 @@ public abstract class Blocks
 	public int tileSide;
 	public int tileBottom;
 
+	// Item Drops
+	public Item droppedItem;
+	public byte minDropQuantity;
+	public byte maxDropQuantity;
+
 	/*
 	Every new block addition must have a scope in the IF tree
 	*/

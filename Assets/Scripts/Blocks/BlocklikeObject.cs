@@ -37,6 +37,11 @@ public abstract class BlocklikeObject
 	public Mesh mesh;
 	public Mesh hitboxMesh;
 
+	// Item Drops
+	public Item droppedItem;
+	public byte minDropQuantity;
+	public byte maxDropQuantity;
+
 	// Block Encyclopedia fill function
 	public static BlocklikeObject Create(int blockID, bool isClient){
 		if(blockID == 0)

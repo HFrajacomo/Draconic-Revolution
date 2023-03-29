@@ -1,9 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
+
+using Random = System.Random;
 
 public abstract class Item
 {
+	private static Random rng = new Random((int)DateTime.Now.Ticks);
+
 	// Basic Identification
 	public string name;
 	public string description;
@@ -41,6 +47,35 @@ public abstract class Item
 	public virtual string[] GetDetails(){
 		return new string[2]{this.name, this.description};
 	}
+
+	// Generate the force vector for new Item Entities
+	public static float3 GenerateForceVector(){
+		float upwards, xForce, zForce;
+		int yMitigator = 6;
+		int xzMitigator = 10;
+
+		upwards = RandomDecimal() / yMitigator;
+		xForce = RandomMirrored() / xzMitigator;
+		zForce = RandomMirrored() / xzMitigator;
+
+		return new float3(xForce, upwards, zForce);
+	}
+
+	public static byte RandomizeDropQuantity(byte min, byte max){
+		if(min == max)
+			return max;
+		return (byte)Item.rng.Next(min, max+1);
+	}
+
+	private static float RandomDecimal(){
+		return (float)Item.rng.NextDouble();
+	}
+
+	private static float RandomMirrored(){
+		return (float)(Item.rng.NextDouble())*2-1;
+	}
+
+
 
 	public virtual void SetName(string s){this.name = s;}
 	public virtual void SetDescription(string s){this.description = s;}
