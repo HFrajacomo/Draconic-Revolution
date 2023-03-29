@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
+
+using Random = UnityEngine.Random;
 
 /*
 Wood Block triggers a special BUD message called "decay". This is received by 
@@ -48,16 +51,23 @@ public class Wood_Block : Blocks
 		this.tileBottom = 5;
 
 		this.maxHP = 180;
-	}
+
+        this.droppedItem = Item.GenerateItem(ItemID.WOODBLOCK);
+        this.minDropQuantity = 1;
+        this.maxDropQuantity = 1;
+    }
 
 	// Activates OnBreak event -> Emits normal BUD, emits special BUD to breadt-first search leaves
 	public override int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
-		CastCoord thisCoord = new CastCoord(pos, blockX, blockY, blockZ);
-		EmitBlockUpdate(BUDCode.BREAK, thisCoord.GetWorldX(), thisCoord.GetWorldY(), thisCoord.GetWorldZ(), 0, cl);
+		CastCoord coord = new CastCoord(pos, blockX, blockY, blockZ);
+		EmitBlockUpdate(BUDCode.BREAK, coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, cl);
 
-		TreeCheck(thisCoord, cl);
-		GetSurroundingLeaves(thisCoord, decayDistance, cl);
-		RunLeavesRecursion(cl, thisCoord);
+        cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
+            Item.GenerateForceVector(), this.droppedItem, Item.RandomizeDropQuantity(minDropQuantity, maxDropQuantity), cl);
+
+		TreeCheck(coord, cl);
+		GetSurroundingLeaves(coord, decayDistance, cl);
+		RunLeavesRecursion(cl, coord);
 
 		return 0;
 	}

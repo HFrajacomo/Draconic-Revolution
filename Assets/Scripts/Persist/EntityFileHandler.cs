@@ -183,7 +183,7 @@ public class EntityFileHandler{
 		int currentTick;
 		float3 position;
 		uint currentDurability;
-		Item item = Item.GenerateItem(0);
+		Item item = Item.GenerateItem(ItemID.STONEBLOCK);
 		Weapon weapon = item as Weapon;
 
 		while(i < chunkSize){

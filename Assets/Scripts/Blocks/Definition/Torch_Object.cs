@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-
+using Unity.Mathematics;
 
 /*
 STATES:
@@ -49,7 +49,10 @@ public class Torch_Object : BlocklikeObject
 		this.needsRotation = true;
 		this.stateNumber = 8;
 
-	}
+        this.droppedItem = Item.GenerateItem(ItemID.TORCH);
+        this.minDropQuantity = 1;
+        this.maxDropQuantity = 1;
+    }
 
 	// Turns on and off Torch
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
@@ -155,6 +158,11 @@ public class Torch_Object : BlocklikeObject
 
 	// Destroys FireVFX and SFX
 	public override int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){
+		CastCoord coord = new CastCoord(pos, x, y, z);
+
+        cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
+            Item.GenerateForceVector(), this.droppedItem, Item.RandomizeDropQuantity(minDropQuantity, maxDropQuantity), cl);
+
 		NetMessage message = new NetMessage(NetCode.VFXBREAK);
 		message.VFXBreak(pos, x, y, z, ushort.MaxValue, 0);
 		cl.server.SendToClients(pos, message);

@@ -94,9 +94,11 @@ public abstract class Item
 	ADD TO THIS LIST EVERYTIME A NEW ITEM IS ADDED
 	*/
 	public static Item GenerateItem(ushort code){
-		ItemID codeID = (ItemID)code;
+		return GenerateItem((ItemID)code);
+	}
 
-		switch(codeID){
+	public static Item GenerateItem(ItemID code){
+		switch(code){
 			case ItemID.GRASSBLOCK:
 				return new Grassblock_Item();
 			case ItemID.DIRTBLOCK:
