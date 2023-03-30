@@ -13,6 +13,7 @@ public class ItemEntity : MonoBehaviour
 	private static readonly Random rng = new Random();
 
 	public MeshFilter meshFilter;
+	public MeshRenderer meshRenderer;
 	private Mesh mesh;
 	private ItemStack its;
 	public GameObject go;
@@ -41,6 +42,10 @@ public class ItemEntity : MonoBehaviour
 	void OnDestroy(){
 		this.mesh.Clear();
 		this.mesh = null;
+	}
+
+	public void SetVisible(bool flag){
+		this.meshRenderer.enabled = flag;
 	}
 
 	public void PlaySpinAnimation(){

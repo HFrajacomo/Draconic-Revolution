@@ -10243,6 +10243,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   meshFilter: {fileID: 1485323991}
+  meshRenderer: {fileID: 1485323990}
   go: {fileID: 0}
   droppedItemHierarchy: {fileID: 1427935633}
 --- !u!23 &1485323990

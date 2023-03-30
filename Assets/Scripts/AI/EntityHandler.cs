@@ -5,19 +5,56 @@ using Unity.Mathematics;
 
 public class EntityHandler
 {
+	private ChunkLoader cl;
+
 	private Dictionary<ulong, GameObject> playerObject;
+	private Dictionary<ulong, MeshRenderer> playerRenderer;
 	private Dictionary<ulong, DeltaMove> playerCurrentPositions;
 	private Dictionary<ulong, ItemEntity> dropObject;
 	private Dictionary<ulong, DeltaMove> dropCurrentPositions;
 	private GameObject droppedItemBase = GameObject.Find("----- PrefabModels -----/DroppedItemBase");
 
+	private int currentTogglingCounter;
+	private static readonly int MAX_COUNTER_VALUE = 4;
 
-	public EntityHandler(){
+
+	public EntityHandler(ChunkLoader cl){
 		this.playerObject = new Dictionary<ulong, GameObject>();
 		this.playerCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.dropObject = new Dictionary<ulong, ItemEntity>();
 		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
+		this.cl = cl;
 	}
+
+	/*
+	Runs through all entities in Handler to verify which ones are bordering RenderDistance and cannot be rendered
+	*/
+	public void RunEntityActivation(){
+		currentTogglingCounter = currentTogglingCounter % MAX_COUNTER_VALUE;
+
+		if(currentTogglingCounter == 0){
+			foreach(ulong u in playerObject.Keys){
+				this.playerRenderer[u].enabled = this.cl.playerPositionHandler.IsInPlayerRenderDistance(this.playerObject[u].transform.position);
+			}
+		}
+		else if(currentTogglingCounter == 1){
+			foreach(ItemEntity ie in dropObject.Values){
+				ie.SetVisible(this.cl.playerPositionHandler.IsInPlayerRenderDistance(ie.transform.position));
+			}
+		}
+
+		currentTogglingCounter++;
+	}
+
+	public void RunSingleActivation(EntityType type, ulong code, float3 pos){
+		if(type == EntityType.PLAYER){
+			this.playerRenderer[code].enabled = this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos);
+		}
+		else if(type == EntityType.DROP){
+			this.dropObject[code].SetVisible(this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos));
+		}
+	}
+
 
 	// Only works while there is no other EntityTypes here other than player
 	public bool Contains(EntityType type, ulong code){
@@ -32,7 +69,9 @@ public class EntityHandler
 		GameObject go = GameObject.Instantiate(GameObject.Find("----- PrefabModels -----/PlayerModel"), new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(dir.x, dir.y, dir.z));
 		go.name = "Player_" + code;
 		this.playerObject.Add(code, go);
+		this.playerRenderer.Add(code, go.GetComponent<MeshRenderer>());
 		this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
+		RunSingleActivation(EntityType.PLAYER, code, pos);
 	}
 
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){
@@ -41,6 +80,7 @@ public class EntityHandler
 
 		this.dropObject.Add(code, newItemEntity);
 		this.dropCurrentPositions.Add(code, new DeltaMove(pos, dir));
+		RunSingleActivation(EntityType.DROP, code, pos);
 	}
 
 	// Triggers whenever a t(x) position is received. Moves entity to t(x-1) position received
@@ -82,6 +122,7 @@ public class EntityHandler
 			this.playerObject[code].SetActive(false);
 			GameObject.Destroy(this.playerObject[code]);
 			this.playerObject.Remove(code);
+			this.playerRenderer.Remove(code);
 			this.playerCurrentPositions.Remove(code);
 		}
 		else if(type == EntityType.DROP){

@@ -23,7 +23,7 @@ public class Client
 	private int connectionTimeout = 100;
 
 	// Entity Handler
-	public EntityHandler entityHandler = new EntityHandler();
+	public EntityHandler entityHandler;
 	public SmoothMovement smoothMovement;
 
 	// Data Management
@@ -60,9 +60,12 @@ public class Client
 	
 	public Client(ChunkLoader cl){
 		this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-		this.smoothMovement = new SmoothMovement(this.entityHandler);
-		receiveBuffer = new byte[receiveBufferSize];
 		this.cl = cl;
+
+		this.entityHandler = new EntityHandler(cl);
+		this.smoothMovement = new SmoothMovement(this.entityHandler);
+		
+		receiveBuffer = new byte[receiveBufferSize];
 
 		// If game world is in client
 		if(World.isClient){
@@ -696,6 +699,7 @@ public class Client
 
 	// Activates SmoothMovement in Entities for the current frame
 	public void MoveEntities(){
+		this.entityHandler.RunEntityActivation();
 		this.smoothMovement.MoveEntities();
 	}
 }

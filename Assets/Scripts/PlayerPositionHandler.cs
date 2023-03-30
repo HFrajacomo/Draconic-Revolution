@@ -2,6 +2,7 @@ using Random = System.Random;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 public class PlayerPositionHandler : MonoBehaviour
 {
@@ -94,7 +95,7 @@ public class PlayerPositionHandler : MonoBehaviour
 
     // Keeps ChunkLoader updated with the current ChunkPos
     public void SetChunkLoaderChunkPos(){
-        this.cl.currentChunk = this.coord.GetChunkPos();
+        this.cl.currentChunk = coord.GetChunkPos();
     }
 
     public int GetPlayerVerticalChunk(){
@@ -102,7 +103,7 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     public ChunkPos GetCurrentChunk(){
-        return this.coord.GetChunkPos();
+        return coord.GetChunkPos();
     }
 
     public string GetCurrentBiome(){
@@ -110,27 +111,27 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     private void RenewPositionalInformation(){
-        if(this.coord.active)
-            this.lastCoord = this.coord;
+        if(coord.active)
+            this.lastCoord = coord;
 
-        this.coord = new CastCoord(playerTransform.position);
+        coord = new CastCoord(playerTransform.position);
 
         if(this.currentBiome != "")
             this.lastBiome = this.currentBiome;
 
-        if(cl.chunks.ContainsKey(this.coord.GetChunkPos()))
-            this.currentBiome = cl.chunks[this.coord.GetChunkPos()].biomeName; 
+        if(cl.chunks.ContainsKey(coord.GetChunkPos()))
+            this.currentBiome = cl.chunks[coord.GetChunkPos()].biomeName; 
 
-        if(this.coord.blockY <= Constants.CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE)
+        if(coord.blockY <= Constants.CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE)
             this.verticalChunkLoaded = -1;
-        else if(this.coord.blockY >= Chunk.chunkDepth - Constants.CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE)
+        else if(coord.blockY >= Chunk.chunkDepth - Constants.CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE)
             this.verticalChunkLoaded = 1;
         else
             this.verticalChunkLoaded = 0;
 
-        if(this.coord.chunkY >= Chunk.chunkMaxY && this.verticalChunkLoaded == 1)
+        if(coord.chunkY >= Chunk.chunkMaxY && this.verticalChunkLoaded == 1)
             this.verticalChunkLoaded = 0;
-        if(this.coord.chunkY <= 0 && this.verticalChunkLoaded == -1)
+        if(coord.chunkY <= 0 && this.verticalChunkLoaded == -1)
             this.verticalChunkLoaded = 0;
     }
 
@@ -309,5 +310,26 @@ public class PlayerPositionHandler : MonoBehaviour
             if(raytracingDistances[i] > max)
                 max = raytracingDistances[i];
         }
+    }
+
+    // Checks if something in the given position is within a chunk in render distance
+    public bool IsInPlayerRenderDistance(Vector3 position){
+        ChunkPos pos = new CastCoord(position).GetChunkPos();
+        ChunkPos playerPos = this.coord.GetChunkPos();
+        int correctedRenderDistance = World.renderDistance;
+
+        if(!this.cl.chunks.ContainsKey(pos))
+            return false;
+        else if(!this.cl.chunks[pos].drawMain)
+            return false;
+
+        if(this.cl.chunks[pos].drawMain)
+            return true;
+
+        return false;
+    }
+
+    public bool IsInPlayerRenderDistance(float3 position){
+        return IsInPlayerRenderDistance(new Vector3(position.x, position.y, position.z));
     }
 }
