@@ -136,7 +136,7 @@ Material:
     - Vector1_3458B650: 1
     - Vector1_484F9D19: 0
     - Vector1_8F6D5055: 0
-    - Vector1_C714B95D: 0.26
+    - Vector1_C714B95D: 0
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
@@ -180,7 +180,7 @@ Material:
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
     - _EnergyConservingSpecularColor: 1
-    - _Fresnel_Power: 2
+    - _Fresnel_Power: 0.3
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
