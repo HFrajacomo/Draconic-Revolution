@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Unity.Mathematics;
 
 public struct CastCoord{
 	public int chunkX;
@@ -36,6 +36,53 @@ public struct CastCoord{
 	}
 
 	public CastCoord(Vector3 mark){
+	    Vector3 nMark = new Vector3(mark.x, mark.y, mark.z);
+
+	    // X Processing
+	    if(nMark.x >= 0)
+	      nMark.x = (int)Math.Round(nMark.x, MidpointRounding.AwayFromZero);
+	    else
+	      nMark.x = (int)(nMark.x - 0.5f);
+
+	    chunkX = Mathf.FloorToInt(nMark.x/Chunk.chunkWidth);
+
+
+	    if(chunkX >= 0)
+	      blockX = Mathf.FloorToInt(nMark.x%Chunk.chunkWidth);
+	    else
+	      blockX = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkX)+nMark.x)%Chunk.chunkWidth); 
+
+	    // Z Processing
+	    if(nMark.z >= 0)
+	      nMark.z = (int)Math.Round(nMark.z, MidpointRounding.AwayFromZero);
+	    else
+	      nMark.z = (int)(nMark.z - 0.5f);
+
+	    chunkZ = Mathf.FloorToInt(nMark.z/Chunk.chunkWidth);
+
+	    if(chunkZ >= 0)
+	      blockZ = Mathf.FloorToInt(nMark.z%Chunk.chunkWidth);
+	    else
+	      blockZ = Mathf.CeilToInt(((Chunk.chunkWidth*-chunkZ)+nMark.z)%Chunk.chunkWidth);
+
+
+	    // Y Processing
+	    if(nMark.y >= 0)
+	      nMark.y = (int)Math.Round(nMark.y, MidpointRounding.AwayFromZero);
+	    else
+	      nMark.y = (int)(nMark.y - 0.5f);
+
+	    chunkY = Mathf.FloorToInt(nMark.y/Chunk.chunkDepth);
+
+	    if(chunkY >= 0)
+	      blockY = Mathf.FloorToInt(nMark.y%Chunk.chunkDepth);
+	    else
+	      blockY = Mathf.CeilToInt(((Chunk.chunkDepth*-chunkY)+nMark.y)%Chunk.chunkDepth);
+
+	 	active = true;
+	}
+
+	public CastCoord(float3 mark){
 	    Vector3 nMark = new Vector3(mark.x, mark.y, mark.z);
 
 	    // X Processing
@@ -164,6 +211,51 @@ public struct CastCoord{
 
 	public string RealPos(){
 		return "X: " + (chunkX*Chunk.chunkWidth + blockX).ToString() + "   Y: " + (chunkY*Chunk.chunkDepth + blockY).ToString() + "   Z: " + (chunkZ*Chunk.chunkWidth + blockZ);
+	}
+
+	/*
+	Return a flag
+	1: XP
+	2: XM
+	4: ZP
+	8: ZM
+	16: YP
+	128: Block placed onto of item
+	*/
+	public static int TestEntityCollision(CastCoord current, CastCoord last){
+		int cx, lx, cy, ly, cz, lz;
+		int outFlag = 0;
+
+		cx = current.GetWorldX();
+		lx = last.GetWorldX();
+
+		if(cx != lx){
+			if(cx > lx)
+				outFlag |= 1;
+			else
+				outFlag |= 2;
+		}
+
+		cz = current.GetWorldZ();
+		lz = last.GetWorldZ();
+
+		if(cz != lz){
+			if(cz > lz)
+				outFlag |= 4;
+			else
+				outFlag |= 8;
+		}
+
+		cy = current.GetWorldY();
+		ly = last.GetWorldY();
+
+		if(cy > ly)
+			outFlag |= 16;
+
+		if(outFlag == 0)
+			outFlag |= 128;
+
+		return outFlag;
 	}
 
 	public static int operator-(CastCoord a, CastCoord b){

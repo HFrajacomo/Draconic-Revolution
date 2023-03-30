@@ -17,6 +17,7 @@ public class Acasterblock_Item : Item, IPlaceable
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Stone, ItemTag.Forbidden});
 		this.SetDurability(false);
 		this.placeableBlockID = (ushort)BlockID.ACASTER;
+		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
 	public override int Use(){

@@ -70,6 +70,7 @@ public class Inventory
 	// Forcefully adds a Stack to a slot in inventory, overwriting whatever was there before
 	public void ForceAddStack(ItemStack its, ushort slot){
 		ItemStack previousIts;
+		short lastEmptySlot;
 
 		if(slot >= this.GetLimit())
 			return;
@@ -80,7 +81,12 @@ public class Inventory
 
 		this.FindLastEmptySlot();
 
-		if(this.slots[this.GetLastEmptySlot()] != null){
+		lastEmptySlot = this.GetLastEmptySlot();
+
+		if(lastEmptySlot == -1)
+			return;
+
+		if(this.slots[lastEmptySlot] != null){
 			this.SetFull();
 		}
 	}

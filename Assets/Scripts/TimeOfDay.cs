@@ -8,9 +8,11 @@ public class TimeOfDay : MonoBehaviour
 {
     public Server server;
     public Client client;
-    public static byte tickRate = 40;
-    public static float timeRate = 1f/TimeOfDay.tickRate;
-    public static byte ticksForMinute = (byte)(TimeOfDay.tickRate * 2); // two seconds worth of ticks
+    public static readonly byte tickRate = 40;
+    public static readonly float timeRate = 1f/TimeOfDay.tickRate;
+    public static readonly byte ticksForMinute = (byte)(TimeOfDay.tickRate * 2); // two seconds worth of ticks
+    public static readonly int ticksForHours = ticksForMinute*60;
+    public static readonly int ticksForDays = ticksForHours*24;
 
     private float faketicks = 0f;
 	public float ticks = 0f;
@@ -21,7 +23,7 @@ public class TimeOfDay : MonoBehaviour
     public bool LOCKTIME = true;
     public bool isClient;
 
-    private PlayerMovement player;
+    private GameObject player;
 
     private bool SENDTIMEFLAG = false;
     private bool CHECKTIMEOUT = false;
@@ -109,7 +111,7 @@ public class TimeOfDay : MonoBehaviour
         this.client = cli;
     }
 
-    public void SetPlayer(PlayerMovement player){
+    public void SetPlayer(GameObject player){
         this.player = player;
     }
 
@@ -118,15 +120,16 @@ public class TimeOfDay : MonoBehaviour
         if(this.player == null)
             return;
         if(position == null)
-            position = this.player.controller.transform.position;
+            position = this.player.transform.position;
         if(rotation == null)
-            rotation = this.player.controller.transform.eulerAngles;
+            rotation = this.player.transform.eulerAngles;
 
         // If has moved
-        if(this.player.controller.transform.position != position || this.player.controller.transform.eulerAngles != rotation){
+        if(this.player.transform.position != position || this.player.transform.eulerAngles != rotation){
+            position = this.player.transform.position;
+            rotation = this.player.transform.eulerAngles;
+
             SendPositionMessage();
-            position = this.player.controller.transform.position;
-            rotation = this.player.controller.transform.eulerAngles;
 
             this.cacheCoord = new CastCoord(this.position);
             if(this.currentPos == null){
@@ -144,6 +147,9 @@ public class TimeOfDay : MonoBehaviour
         // If hasn't moved but notification must be sent
         else if(this.sendZeroNotification > 0){
             this.sendZeroNotification -= 1;
+
+            position = this.player.transform.position;
+            rotation = this.player.transform.eulerAngles;
             SendPositionMessage();
         }
     }
@@ -231,6 +237,26 @@ public class TimeOfDay : MonoBehaviour
         days = days + b[3];
 
         return days.ToString() + ":" + b[4].ToString("00") + ":" + b[5].ToString("00") + ":" + b[6].ToString();
+    }
+
+    // Get the amount of time passed from a time to another in ticks
+    public int TicksPassedFrom(string serializedTime){
+        uint days;
+        byte minutes, hours;
+        byte ticks;
+
+        string[] splitString = serializedTime.Split(":");
+        days = uint.Parse(splitString[0]);
+        hours = byte.Parse(splitString[1]);
+        minutes = byte.Parse(splitString[2]);
+        ticks = byte.Parse(splitString[3]);
+
+        days = this.days - days;
+        hours = (byte)(this.hours - hours);
+        minutes = (byte)(this.minutes - minutes);
+        ticks = (byte)(this.ticks - ticks);
+
+        return (int)(ticks + minutes*ticksForMinute + hours*ticksForHours + days*ticksForDays);
     }
 
     // Sets time based on byte[] read from WDAT file

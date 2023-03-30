@@ -1,26 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class ItemEncyclopedia
+public static class ItemEncyclopedia
 {
-	public Item[] items = new Item[ItemID.GetNames(typeof(ushort)).Length];
+	public static Item[] items = new Item[ItemID.GetNames(typeof(ItemID)).Length];
+    private static bool isInitialized = false;
 
-    void Awake()
+    public static void Initialize()
     {
     	for(ushort i=0; i<items.Length; i++)
-    		this.items[i] = Item.GenerateItem(i);
+    		items[i] = Item.GenerateItem(i);
     }
 
+    public static Item GetItem(ushort code){
+        if(!isInitialized)
+            Initialize();
 
-    public Item GetItem(ushort code){
-    	if(this.ValidateCode(code))
-    		return this.items[code];
+    	if(ValidateCode(code))
+    		return items[code];
     	return null;
-    	
+    }
+
+    public static Item GetItem(ItemID code){
+        return GetItem((ushort)code);
     }
 
     // Checks if code input is in bounds of ItemEncyclopedia.items
-    private bool ValidateCode(ushort code){
+    private static bool ValidateCode(ushort code){
     	if(code >= items.Length)
     		return false;
     	return true;

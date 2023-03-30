@@ -500,8 +500,11 @@ public class Server
 
 		// Connects new Dropped items to player
 		if(this.entityHandler.Contains(EntityType.DROP, pos)){
+			DroppedItemAI droppedItem;
+
 			foreach(ulong itemCode in this.entityHandler.dropObject[pos].Keys){
-				itemMessage.ItemEntityData(this.entityHandler.dropObject[pos][itemCode].position.x, this.entityHandler.dropObject[pos][itemCode].position.y, this.entityHandler.dropObject[pos][itemCode].position.z, this.entityHandler.dropObject[pos][itemCode].rotation.x, this.entityHandler.dropObject[pos][itemCode].rotation.y, this.entityHandler.dropObject[pos][itemCode].rotation.z, (ushort)this.entityHandler.dropObject[pos][itemCode].its.GetID(), this.entityHandler.dropObject[pos][itemCode].its.GetAmount(), itemCode);
+				droppedItem = (DroppedItemAI)this.entityHandler.dropObject[pos][itemCode];
+				itemMessage.ItemEntityData(droppedItem.position.x, droppedItem.position.y, droppedItem.position.z, droppedItem.rotation.x, droppedItem.rotation.y, droppedItem.rotation.z, (ushort)droppedItem.its.GetID(), droppedItem.its.GetAmount(), itemCode);
 			}
 		}
 	}
@@ -521,8 +524,11 @@ public class Server
 	        	killMessage.EntityDelete(EntityType.PLAYER, code);
 	        	this.Send(killMessage.GetMessage(), killMessage.size, id);
 	        }
+
+	        this.playersInChunk[pos].Remove(id);
 	    }
 
+	    // CHANGE THIS TO A SINGLE NETCODE MESSAGE TO DELETE THE ENTIRE CHUNK FOR ENTITIES
         if(this.entityHandler.Contains(EntityType.DROP, pos)){
 	        foreach(ulong itemCode in this.entityHandler.dropObject[pos].Keys){
 	        	killMessage.EntityDelete(EntityType.DROP, itemCode);
@@ -530,7 +536,9 @@ public class Server
 	        }
 	    }
 
-        this.cl.UnloadChunk(pos, id);
+        if(this.cl.UnloadChunk(pos, id))
+	    	this.entityHandler.UnloadChunk(pos);
+
 	}
 
 	// Processes a simple BUD request
@@ -753,11 +761,9 @@ public class Server
 		cp = this.cl.regionHandler.allPlayerData[id].GetChunkPos();
 
 		if(!this.entityHandler.Contains(EntityType.PLAYER, cp, id))
-			this.entityHandler.AddPlayer(cp, id, pos, dir);
+			this.entityHandler.AddPlayer(cp, id, pos, dir, cl);
 
-		this.entityHandler.SetPosition(EntityType.PLAYER, id, cp, pos);
-		this.entityHandler.SetRotation(EntityType.PLAYER, id, cp, dir);
-
+		this.entityHandler.SetPosition(EntityType.PLAYER, id, cp, pos, dir);
 
 		// Propagates data to all network
 		if(this.connectionGraph.ContainsKey(id)){
@@ -785,7 +791,8 @@ public class Server
 		}
 
 		foreach(ChunkPos pos in toRemove){
-			this.cl.UnloadChunk(pos, id);
+			if(this.cl.UnloadChunk(pos, id))
+				this.entityHandler.UnloadChunk(pos);
 		}
 
 		this.connections[id].Close();
@@ -947,14 +954,16 @@ public class Server
 	private void DropItem(byte[] data, ulong id){
 		float3 pos, rot, move;
 		ushort itemCode;
-		byte amount;
+		byte amount, slot;
 		NetMessage message = new NetMessage(NetCode.ITEMENTITYDATA);
 
 		pos = NetDecoder.ReadFloat3(data, 1);
-		rot = NetDecoder.ReadFloat3(data, 13);
-		move = NetDecoder.ReadFloat3(data, 25);
-		itemCode = NetDecoder.ReadUshort(data, 37);
-		amount = data[39];
+		move = NetDecoder.ReadFloat3(data, 13);
+		itemCode = NetDecoder.ReadUshort(data, 25);
+		amount = data[27];
+		slot = data[28];
+
+		rot = new float3(0,0,0);
 
 		CastCoord coord = new CastCoord(pos);
 		ChunkPos cp = coord.GetChunkPos();
@@ -963,6 +972,8 @@ public class Server
 
 		message.ItemEntityData(pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, itemCode, amount, code);
 		this.SendToClients(cp, message);
+
+		this.cl.playerServerInventory.ChangeQuantity(id, slot, (byte)(this.cl.playerServerInventory.GetQuantity(id, slot) - amount));
 	}
 
 	// Receives a BatchLoadBUD request from client, with plenty of block coordinates in a chunk

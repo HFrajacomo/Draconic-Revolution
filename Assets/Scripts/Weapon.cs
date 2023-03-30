@@ -5,8 +5,8 @@ using System.Text;
 public abstract class Weapon : Item
 {
 	public ushort damage;
-	public ulong maxDurability;
-	public ulong currentDurability;
+	public uint maxDurability;
+	public uint currentDurability;
 	public ushort impact;
 	public Dictionary<SkillType, byte> requiredLevels;
 	public WeaponType type;
@@ -15,8 +15,8 @@ public abstract class Weapon : Item
 
 
 	public virtual void SetDamage(ushort damage){this.damage = damage;}
-	public virtual void SetMaxDurability(ulong dur){this.maxDurability = dur;}
-	public virtual void SetDurability(ulong dur){this.currentDurability = dur;}
+	public virtual void SetMaxDurability(uint dur){this.maxDurability = dur;}
+	public virtual void SetDurability(uint dur){this.currentDurability = dur;}
 	public virtual void SetImpact(ushort imp){this.impact = imp;}
 	public virtual void SetRequirements(Dictionary<SkillType, byte> requirements){this.requiredLevels = requirements;}
 	public virtual void SetWeaponType(WeaponType type){this.type = type;}

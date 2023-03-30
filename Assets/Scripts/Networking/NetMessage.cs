@@ -279,13 +279,13 @@ public struct NetMessage
 	}
 
 	// Client sends item information for server to create a Dropped Item Entity
-	public void DropItem(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float moveX, float moveY, float moveZ, ushort itemCode, byte amount){
+	public void DropItem(float posX, float posY, float posZ, float moveX, float moveY, float moveZ, ushort itemCode, byte amount, byte slotId){
 		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 1);
-		NetDecoder.WriteFloat3(rotX, rotY, rotZ, NetMessage.buffer, 13);
-		NetDecoder.WriteFloat3(moveX, moveY, moveZ, NetMessage.buffer, 25);
-		NetDecoder.WriteUshort(itemCode, NetMessage.buffer, 37);
-		NetDecoder.WriteByte(amount, NetMessage.buffer, 39);
-		this.size = 40;
+		NetDecoder.WriteFloat3(moveX, moveY, moveZ, NetMessage.buffer, 13);
+		NetDecoder.WriteUshort(itemCode, NetMessage.buffer, 25);
+		NetDecoder.WriteByte(amount, NetMessage.buffer, 27);
+		NetDecoder.WriteByte(slotId, NetMessage.buffer, 28);
+		this.size = 29;
 	}
 
 	// Item Entity Data
@@ -372,7 +372,7 @@ public enum NetBroadcast{
 	PROCESSED
 }
 
-public enum EntityType{
+public enum EntityType : byte{
 	PLAYER,
 	NPC,
 	MOB,

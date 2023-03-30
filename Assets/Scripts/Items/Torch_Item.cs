@@ -18,6 +18,7 @@ public class Torch_Item : Item, IPlaceable
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Light});
 		this.SetDurability(false);
 		this.placeableBlockID = ushort.MaxValue;
+		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
 	public override int Use(){

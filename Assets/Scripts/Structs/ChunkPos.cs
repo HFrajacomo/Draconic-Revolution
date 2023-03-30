@@ -24,7 +24,6 @@ public struct ChunkPos{
 	}
 
 	public float DistanceFrom(ChunkPos otherPos){
-		float bonus;
 		int xDiff, zDiff, yDiff;
 		int maximizedDistance;
 
@@ -32,14 +31,14 @@ public struct ChunkPos{
 		yDiff = Mathf.Abs(otherPos.y - this.y);
 		zDiff = Mathf.Abs(otherPos.z - this.z);
 
-		maximizedDistance = Mathf.Max(xDiff, yDiff, zDiff);
+		maximizedDistance = Mathf.Max(xDiff, zDiff);
 
-		if(xDiff == 0 || zDiff == 0)
-			bonus = 0f;
-		else
-			bonus = 0.5f;
-
-		return maximizedDistance + bonus;
+		if(maximizedDistance > World.renderDistance){
+			return 999f;
+		}
+		else{
+			return xDiff + yDiff + zDiff;
+		}
 	}
 
 	public override string ToString(){

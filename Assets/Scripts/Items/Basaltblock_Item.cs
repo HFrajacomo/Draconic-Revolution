@@ -17,6 +17,7 @@ public class Basaltblock_Item : Item, IPlaceable
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Stone});
 		this.SetDurability(false);
 		this.placeableBlockID = (ushort)BlockID.BASALT;
+		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
 	public override int Use(){

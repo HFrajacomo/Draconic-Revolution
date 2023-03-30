@@ -17,6 +17,7 @@ public class Pinewoodblock_Item : Item, IPlaceable
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Wood});
 		this.SetDurability(false);
 		this.placeableBlockID = (ushort)BlockID.PINE_WOOD;
+		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
 	public override int Use(){

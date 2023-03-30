@@ -16,6 +16,14 @@ public class ItemStack
 		this.CheckFull();
 	}
 
+	public ItemStack(ushort id, byte amount){
+		this.item = Item.GenerateItem(id);
+		this.amount = amount;
+
+		this.CheckFull();
+	}
+
+
 	// Create based on a previously owned item
 	public ItemStack(Item item, byte amount){
 		this.item = item;

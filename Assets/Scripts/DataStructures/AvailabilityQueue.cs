@@ -20,15 +20,16 @@ public class AvailabilityQueue
         if(this.queue.Count == 0)
             this.queue.Add(item);
         else
-            this.Insert(this.queue.BinarySearch(item), item);
+            this.Insert(TransformResult(this.queue.BinarySearch(item)), item);
     }
 
     public ulong Pop(){
-        if(this.Count() == 1)
+        if(this.Count() == 1){
             if(!inverted)
                 this.queue.Add(this.queue[0]+1);
             else
                 this.queue.Add(this.queue[0]-1);
+        }
 
         ulong item;
 
@@ -50,5 +51,11 @@ public class AvailabilityQueue
 
     public int Count(){
         return this.queue.Count;
+    }
+
+    private int TransformResult(int index){
+        if(index >= 0)
+            return index;
+        return (-index) - 1;
     }
 }

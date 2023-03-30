@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 public class PlayerServerInventory{
-    public static int playerInventorySize = 45;
+    public static readonly int playerInventorySize = 45;
     private Dictionary<ulong, PlayerServerInventorySlot[]> inventories = new Dictionary<ulong, PlayerServerInventorySlot[]>();
     private InventoryFileHandler inventoryHandler;
     private byte[] buffer = new byte[16000];
@@ -99,8 +100,12 @@ public class PlayerServerInventory{
             if(quantity == 0)
                 this.inventories[playerId][slotId] = new EmptyPlayerInventorySlot();
             else
-                ((ItemPlayerInventorySlot)this.inventories[playerId][slotId]).SetQuantity(quantity);
+                this.inventories[playerId][slotId].SetQuantity(quantity);
         }
+    }
+
+    public byte GetQuantity(ulong playerId, byte slotId){
+        return (byte)(this.inventories[playerId][slotId].GetQuantity());
     }
 
     public void ChangeDurability(ulong playerId, byte slotId, uint durability){
@@ -131,5 +136,29 @@ public class PlayerServerInventory{
         }
 
         return bytesRead;
+    }
+
+    // Returns a pair (index, currentIndexAmount) of the player Inventory that fits the given ItemStack
+    // Returns (-1,0) if there's no room in player inventory
+    public int2 CheckFits(ulong playerCode, ItemStack its){
+        PlayerServerInventorySlot aux;
+
+        for(int i=0; i < playerInventorySize; i++){
+            aux = this.inventories[playerCode][i];
+            if(aux.GetItemID() == (int)its.GetID()){
+                if(its.GetStacksize() != aux.GetQuantity()){
+                    return new int2(i, aux.GetQuantity());
+                }
+            }
+            if(aux.GetItemID() == -1){
+                return new int2(i, 0);
+            }
+        }
+
+        return new int2(-1, 0);
+    }
+
+    public void CreateSlotAt(byte slotIndex, ulong playerCode, PlayerServerInventorySlot slot){
+        this.inventories[playerCode][slotIndex] = slot;
     }
 }

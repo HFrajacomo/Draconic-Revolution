@@ -18,6 +18,7 @@ public class Waterblock_Item : Item, IPlaceable
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Forbidden});
 		this.SetDurability(false);
 		this.placeableBlockID = 6;
+		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
 	public override int Use(){

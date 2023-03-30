@@ -17,6 +17,7 @@ public class Clayblock_Item : Item, IPlaceable
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable});
 		this.SetDurability(false);
 		this.placeableBlockID = (ushort)BlockID.CLAY;
+		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
 	public override int Use(){
