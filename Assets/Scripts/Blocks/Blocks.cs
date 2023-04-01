@@ -5,7 +5,7 @@ using UnityEngine;
 
 public abstract class Blocks
 {
-	public static readonly int blockCount = 36;
+	public static readonly int blockCount = 40;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
 	public static readonly int atlasSizeY = 5;
@@ -119,6 +119,14 @@ public abstract class Blocks
 				return new HellMarble_Block();
 			case 35:
 				return new Acaster_Block();
+			case 36:
+				return new CobaltOre_Block();
+			case 37:
+				return new ArditeOre_Block();
+			case 38:
+				return new GrandiumOre_Block();
+			case 39:
+				return new SteonyxOre_Block();
 
 			default:
 				return new Air_Block();

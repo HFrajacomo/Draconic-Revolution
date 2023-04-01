@@ -40,6 +40,10 @@ public enum BlockID : ushort
     LAVA = 33,
     HELL_MARBLE = 34,
     ACASTER = 35,
+    COBALT_ORE = 36,
+    ARDITE_ORE = 37,
+    GRANDIUM_ORE = 38,
+    STEONYX_ORE = 39,
 
     /*
     Special

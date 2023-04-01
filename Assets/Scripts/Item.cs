@@ -151,6 +151,34 @@ public abstract class Item
 				return new HellMarbleblock_Item();
 			case ItemID.ACASTERBLOCK:
 				return new Acasterblock_Item();
+			case ItemID.COAL_ORE_BLOCK:
+				return new CoalOreblock_Item();
+			case ItemID.MAGNETITE_ORE_BLOCK:
+				return new MagnetiteOreblock_Item();
+			case ItemID.ALUMINIUM_ORE_BLOCK:
+				return new AluminiumOreblock_Item();
+			case ItemID.COPPER_ORE_BLOCK:
+				return new CopperOreblock_Item();
+			case ItemID.TIN_ORE_BLOCK:
+				return new TinOreblock_Item();
+			case ItemID.GOLD_ORE_BLOCK:
+				return new GoldOreblock_Item();
+			case ItemID.EMERIUM_ORE_BLOCK:
+				return new EmeriumOreblock_Item();
+			case ItemID.URANIUM_ORE_BLOCK:
+				return new UraniumOreblock_Item();
+			case ItemID.EMERALD_ORE_BLOCK:
+				return new EmeraldOreblock_Item();
+			case ItemID.RUBY_ORE_BLOCK:
+				return new RubyOreblock_Item();
+			case ItemID.COBALT_ORE_BLOCK:
+				return new CobaltOreblock_Item();
+			case ItemID.ARDITE_ORE_BLOCK:
+				return new ArditeOreblock_Item();
+			case ItemID.GRANDIUM_ORE_BLOCK:
+				return new GrandiumOreblock_Item();
+			case ItemID.STEONYX_ORE_BLOCK:
+				return new SteonyxOreblock_Item();
 
 			default:
 				return null;

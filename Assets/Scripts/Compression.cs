@@ -29,7 +29,8 @@ public static class Compression{
 	private static BlockID[] structureArray =
 						 new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.IRON_ORE, BlockID.WATER, BlockID.LEAF,
 										BlockID.PINE_WOOD, BlockID.PINE_LEAF, BlockID.COAL_ORE, BlockID.COPPER_ORE, BlockID.TIN_ORE, BlockID.ALUMINIUM_ORE,
-										BlockID.MAGNETITE_ORE, BlockID.EMERIUM_ORE, BlockID.GOLD_ORE, BlockID.GRAVEL, BlockID.BONE}; 
+										BlockID.MAGNETITE_ORE, BlockID.EMERIUM_ORE, BlockID.GOLD_ORE, BlockID.COBALT_ORE, BlockID.ARDITE_ORE, BlockID.GRANDIUM_ORE,
+										BlockID.STEONYX_ORE, BlockID.GRAVEL, BlockID.BONE}; 
 
 	private static BlockID[] metadataArray = new BlockID[]{(BlockID)0, (BlockID)1, (BlockID)(ushort.MaxValue)};
 
