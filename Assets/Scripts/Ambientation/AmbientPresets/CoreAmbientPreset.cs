@@ -5,7 +5,7 @@ public class CoreAmbientPreset: BaseAmbientPreset{
 	public CoreAmbientPreset(){
 		this.horizonTintDay = new Color(1f, 1f, 1f);
 		this.zenithTintDay = new Color(0f, 0f, 0f);
-		this.cloudTintDay = new Color(0f, 0f, 0f);
+		this.cloudTintDay = new Color(1f, 1f, 1f);
 		this.gainDay = new float4(0f, 0f, 0f, 0f);
 
 		this.fogAttenuation1 = 12f;

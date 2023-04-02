@@ -17,7 +17,7 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float SUN_DIAMETER_UNDERGROUND = 0f;
 	protected static readonly float FLOOR_LIGHTING_DAY = 1f;
 	protected static readonly float FLOOR_LIGHTING_NIGHT = 0.05f;
-	protected static readonly float FLOOR_LIGHTING_UNDERGROUND = 2f;
+	protected static readonly float FLOOR_LIGHTING_UNDERGROUND = 4f;
 
 	// Physical Based Sky
 	protected Color horizonTintDay;

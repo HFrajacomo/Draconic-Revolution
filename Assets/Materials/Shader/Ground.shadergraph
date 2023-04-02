@@ -1221,10 +1221,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1891.0,
-            "y": 1113.0,
+            "x": -1888.9998779296875,
+            "y": 1160.0,
             "width": 162.9998779296875,
-            "height": 33.9998779296875
+            "height": 34.0
         }
     },
     "m_Slots": [
@@ -1296,10 +1296,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1994.0,
-            "y": 1284.0,
-            "width": 206.0,
-            "height": 130.9998779296875
+            "x": -1992.0,
+            "y": 1331.0,
+            "width": 206.0001220703125,
+            "height": 131.0
         }
     },
     "m_Slots": [
@@ -2243,8 +2243,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1545.0,
-            "y": 1308.0,
+            "x": -1542.9998779296875,
+            "y": 1355.0,
             "width": 145.0,
             "height": 136.0
         }
@@ -2540,9 +2540,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -885.0,
-            "y": 1118.0,
-            "width": 129.9998779296875,
+            "x": -933.0,
+            "y": 1266.0,
+            "width": 130.0,
             "height": 118.0
         }
     },
@@ -2583,9 +2583,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1100.0,
-            "y": 1117.0,
-            "width": 129.99993896484376,
+            "x": -1175.9998779296875,
+            "y": 1194.0,
+            "width": 130.0,
             "height": 118.0
         }
     },
@@ -4437,10 +4437,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1750.0,
-            "y": 1284.0,
+            "x": -1747.9998779296875,
+            "y": 1331.0,
             "width": 120.0,
-            "height": 149.0001220703125
+            "height": 149.0
         }
     },
     "m_Slots": [
@@ -4558,8 +4558,8 @@
     "m_ObjectId": "b3c518df507b4c8abcaad75d697cb5f1",
     "m_Title": "Floor Lighting",
     "m_Position": {
-        "x": -2019.0556640625,
-        "y": 1053.774169921875
+        "x": -2016.9998779296875,
+        "y": 1100.9998779296875
     }
 }
 
@@ -4823,9 +4823,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1178.0,
-            "y": 1307.0,
-            "width": 170.0,
+            "x": -1175.9998779296875,
+            "y": 1354.0,
+            "width": 169.9998779296875,
             "height": 142.0
         }
     },
@@ -5270,10 +5270,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1647.0,
-            "y": 1121.9998779296875,
+            "x": -1645.0,
+            "y": 1169.0,
             "width": 126.0,
-            "height": 118.000244140625
+            "height": 118.0
         }
     },
     "m_Slots": [

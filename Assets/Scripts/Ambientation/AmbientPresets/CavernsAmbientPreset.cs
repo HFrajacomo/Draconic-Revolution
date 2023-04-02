@@ -5,7 +5,7 @@ public class CavernsAmbientPreset: BaseAmbientPreset{
 	public CavernsAmbientPreset(){
 		this.horizonTintDay = new Color(0.1724368f, 0.2021929f, 0.2358491f);
 		this.zenithTintDay = new Color(0.3301887f, 0.3301887f, 0.3301887f);
-		this.cloudTintDay = new Color(0.2735849f, 0.2735849f, 0.2735849f);
+		this.cloudTintDay = new Color(1f, 1f, 1f);
 		this.gainDay = new float4(0.5f, 0.5f, 0.5f, 0.3333333f);
 
 		this.fogAttenuation1 = 8f;

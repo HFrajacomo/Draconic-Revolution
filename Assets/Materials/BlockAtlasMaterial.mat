@@ -279,6 +279,7 @@ Material:
     - _EnergyConservingSpecularColor: 1
     - _EnvironmentReflections: 1
     - _FlipbookMode: 0
+    - _FullBrightFloorIntensity: 0.05
     - _Fullbright: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5

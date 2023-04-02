@@ -137,7 +137,7 @@ public class AmbientHandler : MonoBehaviour
             this.lgg.gain.value = LerpFloat4(lastPreset.GetGain(time), currentPreset.GetGain(time), currentStep);     
         }
         else if(currentTick % 4 == 3){
-            this.skyDirectionalLight.intensity = Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep);
+            this.hdLight.SetIntensity(Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep), LightUnit.Lux);
             this.skyDirectionalLight.color = Color.Lerp(lastPreset.GetSunColor(time), currentPreset.GetSunColor(time), currentStep);
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
@@ -184,7 +184,7 @@ public class AmbientHandler : MonoBehaviour
             this.lgg.gain.value = currentPreset.GetGain(finalTime);
         }
         else if(currentTick % 4 == 3){
-            this.skyDirectionalLight.intensity = currentPreset.GetSunIntensity(finalTime);
+            this.hdLight.SetIntensity(currentPreset.GetSunIntensity(finalTime), LightUnit.Lux);
             this.skyDirectionalLight.color = currentPreset.GetSunColor(finalTime);
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
