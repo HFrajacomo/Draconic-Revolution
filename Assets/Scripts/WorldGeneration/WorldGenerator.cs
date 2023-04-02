@@ -158,7 +158,7 @@ public class WorldGenerator
         int rotation = 0;
         float chance;
 
-        this.rng = new Random((int)((int.MaxValue * NoiseMaker.NormalizedPatchNoise1D((pos.z^(pos.x * pos.x))*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3)) + this.iteration));
+        this.rng = new Random((int)((int.MaxValue * NoiseMaker.NormalizedPatchNoise1D((pos.z^(pos.x * pos.x))*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3)) + (this.iteration * GenerationSeed.patchMultStep)));
         this.iteration++;
 
         // If structure is static at given heightmap depth
@@ -549,6 +549,9 @@ public class WorldGenerator
         cacheMetadataState = NativeTools.CopyToManaged(stateData);
         cacheMetadataHP = NativeTools.CopyToManaged(hpData);
         cacheHeightMap = NativeTools.CopyToManaged(heightMap);
+
+        this.iteration = 0;
+        GenerateBiomeStructures(cl, pos, (BiomeCode)this.cacheBiome, cacheVoxdata, cacheMetadataState, cacheMetadataHP);
 
         voxelData.Dispose();
         stateData.Dispose();

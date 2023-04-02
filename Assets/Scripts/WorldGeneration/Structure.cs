@@ -125,7 +125,21 @@ public abstract class Structure
             case StructureCode.BigUpBone:
                 return new BigUpBone();  
             case StructureCode.BigCrossBone:
-                return new BigCrossBone();        
+                return new BigCrossBone();   
+            case StructureCode.CobaltVeinA:
+                return new CobaltVeinA();
+            case StructureCode.CobaltVeinB:
+                return new CobaltVeinB();
+            case StructureCode.ArditeVeinA:
+                return new ArditeVeinA();
+            case StructureCode.ArditeVeinB:
+                return new ArditeVeinB();
+            case StructureCode.GrandiumVeinA:
+                return new GrandiumVeinA();
+            case StructureCode.GrandiumVeinB:
+                return new GrandiumVeinB();
+            case StructureCode.SteonyxVein:
+                return new SteonyxVein();
             default:
                 return new TestStruct();
         }

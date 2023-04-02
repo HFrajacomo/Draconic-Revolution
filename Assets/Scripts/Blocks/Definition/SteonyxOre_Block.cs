@@ -12,9 +12,9 @@ public class SteonyxOre_Block : Blocks
 		this.liquid = false;
 		this.affectLight = true;
 
-		this.tileTop = 37;
-		this.tileSide = 37;
-		this.tileBottom = 37;
+		this.tileTop = 36;
+		this.tileSide = 36;
+		this.tileBottom = 36;
 
 		this.maxHP = 1100;
 	}

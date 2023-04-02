@@ -24,6 +24,8 @@ public static class StructureGroup
     private static List<StructSpawn> undergroundOres = new List<StructSpawn>();
     private static List<StructSpawn> smallBoneFormation = new List<StructSpawn>();
     private static List<StructSpawn> greaterBonesFormation = new List<StructSpawn>();
+    private static List<StructSpawn> hellOres = new List<StructSpawn>();
+    private static List<StructSpawn> coreOres = new List<StructSpawn>();
 
     // Static Constructor
     static StructureGroup(){
@@ -59,6 +61,10 @@ public static class StructureGroup
         map.Add(StructureGroupID.SMALL_BONES, smallBoneFormation);
         PopulateGreaterBoneFormation();
         map.Add(StructureGroupID.GREATER_BONES, greaterBonesFormation);
+        PopulateHellOres();
+        map.Add(StructureGroupID.HELL_ORES, hellOres);
+        PopulateCoreOres();
+        map.Add(StructureGroupID.CORE_ORES, coreOres);
     }
 
     public static void AddStructureGroup(StructureGroupID id, Biome b){
@@ -200,6 +206,19 @@ public static class StructureGroup
         greaterBonesFormation.Add(new StructSpawn(StructureCode.BigUpBone, 3, 0.3f, 14, -1, true, 0));
         greaterBonesFormation.Add(new StructSpawn(StructureCode.BigCrossBone, 3, 0.3f, 15, -1, true, 0));
     }
+
+    private static void PopulateHellOres(){
+        hellOres.Add(new StructSpawn(StructureCode.CobaltVeinA, 7, 1f, 0, -1, true, 0));
+        hellOres.Add(new StructSpawn(StructureCode.CobaltVeinB, 7, 1f, 0, -1, true, 0));
+        hellOres.Add(new StructSpawn(StructureCode.ArditeVeinA, 5, 1f, 0, -1, true, 0));
+        hellOres.Add(new StructSpawn(StructureCode.ArditeVeinB, 5, 1f, 0, -1, true, 0));      
+    }
+
+    private static void PopulateCoreOres(){
+        coreOres.Add(new StructSpawn(StructureCode.GrandiumVeinA, 3, 1f, 0, -1, true, 0));
+        coreOres.Add(new StructSpawn(StructureCode.GrandiumVeinB, 3, 1f, 0, -1, true, 0));
+        coreOres.Add(new StructSpawn(StructureCode.SteonyxVein, 3, 1f, 0, -1, true, 0));
+    }
 }
 
 public enum StructureGroupID : int
@@ -219,5 +238,7 @@ public enum StructureGroupID : int
     BOULDERS_MID_DENSITY,
     UNDERGROUND_ORES,
     SMALL_BONES,
-    GREATER_BONES
+    GREATER_BONES,
+    HELL_ORES,
+    CORE_ORES
 }

@@ -245,6 +245,9 @@ public class TimeOfDay : MonoBehaviour
         byte minutes, hours;
         byte ticks;
 
+        if(serializedTime == null)
+            return 0;
+
         string[] splitString = serializedTime.Split(":");
         days = uint.Parse(splitString[0]);
         hours = byte.Parse(splitString[1]);

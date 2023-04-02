@@ -32,7 +32,7 @@ public static class GenerationSeed
     public static readonly int[] baseHellNoiseSplineY = new int[]{    0,  0,     130,    150,   170,180,  190,   200,  210,   220};
     // ---- Core Splines
     public static readonly float[] baseCoreNoiseSplineX = new float[]{-1, -0.6f, -0.2f, 0f, 0.4f, 0.75f, 0.79f, 0.8f, 1f};
-    public static readonly int[] baseCoreNoiseSplineY = new int[]{    130,  135,     140,    150,   150,   180,  150, 156};
+    public static readonly int[] baseCoreNoiseSplineY = new int[]{    120,  125,  130,  140,140,  156,   130,   146, 156};
 
 
     // Erosion Noise
@@ -96,6 +96,7 @@ public static class GenerationSeed
     public static readonly float patchNoiseStep3 = 1.279f;
     public static readonly float patchNoiseStep4 = 0.1427f;
     public static readonly float patchNoiseStep5 = 0.0431f;
+    public static readonly float patchMultStep = 1.73f;
 
     // Cave Noise
     public static byte[] caveNoise = new byte[257];

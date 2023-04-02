@@ -85,15 +85,15 @@ public class BiomeHandler
 
 		Biome hellPlains = new Biome("Hell Plains", BiomeCode.HELL_PLAINS, BiomeType.MID, ChunkDepthID.HELL,
 			(ushort)BlockID.HELL_MARBLE,
-			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES}, AmbientGroup.HELL);
+			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome boneValley = new Biome("Bone Valley", BiomeCode.BONE_VALLEY, BiomeType.MID, ChunkDepthID.HELL,
 			(ushort)BlockID.HELL_MARBLE,
-			new List<StructureGroupID>(){StructureGroupID.GREATER_BONES}, AmbientGroup.HELL);
+			new List<StructureGroupID>(){StructureGroupID.GREATER_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome lavaOcean = new Biome("Lava Ocean", BiomeCode.LAVA_OCEAN, BiomeType.LOW, ChunkDepthID.HELL,
 			(ushort)BlockID.LAVA,
-			new List<StructureGroupID>(){}, AmbientGroup.HELL);
+			new List<StructureGroupID>(){StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome deepCliff = new Biome("Deep Cliff", BiomeCode.DEEP_CLIFF, BiomeType.OCEAN, ChunkDepthID.HELL,
 			(ushort)BlockID.ACASTER,
@@ -101,15 +101,15 @@ public class BiomeHandler
 
 		Biome hellHighlands= new Biome("Hell Highlands", BiomeCode.HELL_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
 			(ushort)BlockID.HELL_MARBLE,
-			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES}, AmbientGroup.HELL);
+			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome volcanicHighlands = new Biome("Volcanic Highlands", BiomeCode.VOLCANIC_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
 			(ushort)BlockID.BASALT,
-			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES}, AmbientGroup.HELL);
+			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome core = new Biome("Core", BiomeCode.CORE, BiomeType.PEAK, ChunkDepthID.CORE,
 			(ushort)BlockID.MOONSTONE,
-			new List<StructureGroupID>(){}, AmbientGroup.CORE);
+			new List<StructureGroupID>(){StructureGroupID.CORE_ORES}, AmbientGroup.CORE);
 
 		AddBiome(plains);
 		AddBiome(grassyHighlands);
