@@ -1243,7 +1243,7 @@ public class ArditeVeinB : Structure
 
 public class GrandiumVeinA : Structure
 {
-	public ushort[] blocks = new ushort[]{39,2,0,1,39,1};
+	public ushort[] blocks = new ushort[]{38,2,0,1,38,1};
 	public ushort[] hps = new ushort[]{0,4};
 	public ushort[] states = new ushort[]{0,4};
 
@@ -1271,7 +1271,7 @@ public class GrandiumVeinA : Structure
 
 public class GrandiumVeinB : Structure
 {
-	public ushort[] blocks = new ushort[]{39,2,0,1,39,1,0,1,39,1};
+	public ushort[] blocks = new ushort[]{38,2,0,1,38,1,0,1,38,1};
 	public ushort[] hps = new ushort[]{0,6};
 	public ushort[] states = new ushort[]{0,6};
 
@@ -1299,7 +1299,7 @@ public class GrandiumVeinB : Structure
 
 public class SteonyxVein : Structure
 {
-	public ushort[] blocks = new ushort[]{38,2};
+	public ushort[] blocks = new ushort[]{39,2};
 	public ushort[] hps = new ushort[]{0,2};
 	public ushort[] states = new ushort[]{0,2};
 

@@ -19,4 +19,12 @@ public class Acaster_Block : Blocks
 		this.maxHP = ushort.MaxValue;
 		this.flags = new HashSet<BlockFlags>(){BlockFlags.IMMUNE};
 	}
+
+	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
+		cl.chunks[pos].data.SetCell(blockX, blockY, blockZ, 0);
+		cl.chunks[pos].metadata.SetState(blockX, blockY, blockZ, 0);
+		cl.chunks[pos].metadata.SetHP(blockX, blockY, blockZ, 0);
+
+		return 1;
+	}
 }

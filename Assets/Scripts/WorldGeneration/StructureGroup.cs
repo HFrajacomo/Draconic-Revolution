@@ -215,9 +215,9 @@ public static class StructureGroup
     }
 
     private static void PopulateCoreOres(){
-        coreOres.Add(new StructSpawn(StructureCode.GrandiumVeinA, 3, 1f, 0, -1, true, 0));
-        coreOres.Add(new StructSpawn(StructureCode.GrandiumVeinB, 3, 1f, 0, -1, true, 0));
-        coreOres.Add(new StructSpawn(StructureCode.SteonyxVein, 3, 1f, 0, -1, true, 0));
+        coreOres.Add(new StructSpawn(StructureCode.GrandiumVeinA, 5, .7f, 0, -1, true, 0));
+        coreOres.Add(new StructSpawn(StructureCode.GrandiumVeinB, 5, .7f, 0, -1, true, 0));
+        coreOres.Add(new StructSpawn(StructureCode.SteonyxVein, 7, .7f, 0, -1, true, 0));
     }
 }
 
