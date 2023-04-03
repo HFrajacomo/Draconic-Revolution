@@ -15,6 +15,8 @@ STATES:
 */
 public class OrdoCrystal_Object : BlocklikeObject
 {
+	private VisCrystalBehaviour behaviour;
+
 	public OrdoCrystal_Object(bool isClient){
 		this.shaderIndex = ShaderIndex.ASSETS_SOLID;
 		this.name = "Ordo Crystal";
@@ -27,11 +29,13 @@ public class OrdoCrystal_Object : BlocklikeObject
 		this.affectLight = true;
 		this.maxHP = 100;
 		this.atlasPosition = new int2(4,0);
+		this.customPlace = true;
+		this.behaviour = new VisCrystalBehaviour((ushort)BlockID.ORDO_CRYSTAL);
 
 		if(isClient){
-			this.go = GameObject.Find("----- PrefabObjects -----/VisCrystal_Object");
-			this.hitboxObject = GameObject.Find("----- PrefabObjects -----/VisCrystal_Object/Hitbox");
-			this.mesh = this.go.GetComponent<MeshFilter>().sharedMesh;
+			this.go = GameObject.Find("----- PrefabObjects -----/OrdoCrystal_Object");
+			this.hitboxObject = GameObject.Find("----- PrefabObjects -----/OrdoCrystal_Object/Hitbox");
+			this.mesh = this.go.GetComponent<MeshFilter>().mesh;
 			this.scaling = new Vector3(12, 12, 37);
 			this.hitboxScaling = new Vector3(.75f, .75f, 1.8f);
 			this.hitboxMesh = hitboxObject.GetComponent<MeshFilter>().sharedMesh;
@@ -40,6 +44,23 @@ public class OrdoCrystal_Object : BlocklikeObject
 
 		this.needsRotation = true;
 		this.stateNumber = 6;
+	}
+
+	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
+		CastCoord coord = new CastCoord(pos, blockX, blockY, blockZ);
+
+		if(facing == -1){
+			if(!this.behaviour.FindAndPlaceCrystal(coord, cl))
+				this.behaviour.DeleteCrystal(coord, cl);
+		}
+		else{
+			if(this.behaviour.CanBePlacedFacing(facing, coord, cl))
+				this.behaviour.PlaceCrystal(facing, coord, cl);
+		}
+
+		this.behaviour.SaveAndSendChunk(coord, cl);
+
+		return 0;
 	}
 
 	// Get rotation in degrees

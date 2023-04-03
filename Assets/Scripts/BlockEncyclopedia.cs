@@ -87,6 +87,17 @@ public class BlockEncyclopedia : MonoBehaviour
             return objects[ushort.MaxValue - (ushort)code].solid;
     }
 
+    // Gets transparency value from block
+    public bool CheckTransparent(ushort? code){
+        if(code == null)
+            return false;
+
+        if(code <= ushort.MaxValue/2)
+            return ToBool(blocks[(ushort)code].transparent);
+        else
+            return ToBool(objects[ushort.MaxValue - (ushort)code].transparent);
+    }
+
     // Gets washable value from block
     public bool CheckWashable(ushort code){
         if(code <= ushort.MaxValue/2)
@@ -130,4 +141,7 @@ public class BlockEncyclopedia : MonoBehaviour
             return this.objects[ushort.MaxValue - block].CalculateDamage(blockDamage);
     }
 
+    private bool ToBool(int num){
+        return num == 1;
+    }
 }

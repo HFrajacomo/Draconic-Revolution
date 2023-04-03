@@ -1,8 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using Unity.Mathematics;
+
+using Random = System.Random;
 
 /*
 STATES:
@@ -15,6 +18,8 @@ STATES:
 */
 public class IgnisCrystal_Object : BlocklikeObject
 {
+	private VisCrystalBehaviour behaviour;
+
 	public IgnisCrystal_Object(bool isClient){
 		this.shaderIndex = ShaderIndex.ASSETS_SOLID;
 		this.name = "Ignis Crystal";
@@ -25,13 +30,15 @@ public class IgnisCrystal_Object : BlocklikeObject
 		this.washable = false;
 		this.hasLoadEvent = false;
 		this.affectLight = true;
+		this.customPlace = true;
 		this.maxHP = 100;
 		this.atlasPosition = new int2(0,0);
+		this.behaviour = new VisCrystalBehaviour((ushort)BlockID.IGNIS_CRYSTAL);
 
 		if(isClient){
-			this.go = GameObject.Find("----- PrefabObjects -----/VisCrystal_Object");
-			this.hitboxObject = GameObject.Find("----- PrefabObjects -----/VisCrystal_Object/Hitbox");
-			this.mesh = this.go.GetComponent<MeshFilter>().sharedMesh;
+			this.go = GameObject.Find("----- PrefabObjects -----/IgnisCrystal_Object");
+			this.hitboxObject = GameObject.Find("----- PrefabObjects -----/IgnisCrystal_Object/Hitbox");
+			this.mesh = this.go.GetComponent<MeshFilter>().mesh;
 			this.scaling = new Vector3(12, 12, 37);
 			this.hitboxScaling = new Vector3(.75f, .75f, 1.8f);
 			this.hitboxMesh = hitboxObject.GetComponent<MeshFilter>().sharedMesh;
@@ -42,6 +49,25 @@ public class IgnisCrystal_Object : BlocklikeObject
 		this.stateNumber = 6;
 
 	}
+
+	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
+		CastCoord coord = new CastCoord(pos, blockX, blockY, blockZ);
+
+		if(facing == -1){
+			if(!this.behaviour.FindAndPlaceCrystal(coord, cl))
+				this.behaviour.DeleteCrystal(coord, cl);
+		}
+		else{
+			if(this.behaviour.CanBePlacedFacing(facing, coord, cl)){
+				this.behaviour.PlaceCrystal(facing, coord, cl);
+			}
+		}
+
+		this.behaviour.SaveAndSendChunk(coord, cl);
+
+		return 0;
+	}
+
 
 	// Get rotation in degrees
 	public override int2 GetRotationValue(ushort state){

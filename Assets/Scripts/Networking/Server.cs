@@ -669,7 +669,6 @@ public class Server
 						else{
 							cl.blockBook.objects[ushort.MaxValue-blockCode].OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 						}
-				
 					}
 
 					this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
