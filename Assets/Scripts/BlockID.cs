@@ -54,6 +54,6 @@ public enum BlockID : ushort
     /*
     OBJECTS
     */
-    
+    VISCRYSTAL = 65534,
     TORCH = 65535
 }   

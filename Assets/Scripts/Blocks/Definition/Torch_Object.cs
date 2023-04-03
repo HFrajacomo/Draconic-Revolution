@@ -360,28 +360,6 @@ public class Torch_Object : BlocklikeObject
 		}
 	}
 
-	// Applies Rotation to block in Chunk.BuildChunk()
-	public override void ApplyRotation(GameObject go, ushort? stt, int blockX, int blockY, int blockZ){
-		ushort? state = stt;
-		Transform t = go.GetComponent<Transform>();
-
-		if(state == 0 || state == 4){
-			t.Rotate(0, -90,0);
-			t.position += new Vector3(0.4f,-0.2f,0f);
-		}
-		else if(state == 3 || state == 7){
-			t.Rotate(0, 180, 0);
-			t.position += new Vector3(0f,-0.2f,0.4f);
-		}
-		else if(state == 2 || state == 6){
-			t.Rotate(0, 90, 0);
-			t.position += new Vector3(-0.4f,-0.2f,0f);
-		}
-		else{
-			t.position += new Vector3(0f,-0.2f,-0.4f);
-		}
-	}
-
 	// Functions for the new Bursting Core Rendering
 	public override Vector3 GetOffsetVector(ushort state){
 		if(state == 0 || state == 4)
@@ -395,15 +373,15 @@ public class Torch_Object : BlocklikeObject
 	}
 
 	// Get rotation in degrees
-	public override int GetRotationValue(ushort state){
+	public override int2 GetRotationValue(ushort state){
 		if(state == 0 || state == 4)
-			return 90;
+			return new int2(90, 0);
 		else if(state == 3 || state == 7)
-			return 180;
+			return new int2(180,0);
 		else if(state == 2 || state == 6)
-			return -90;
+			return new int2(-90,0);
 		else
-			return 0;
+			return new int2(0,0);
 	}
 
 }

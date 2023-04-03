@@ -14,6 +14,7 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<Vector3> meshVerts;
 	public NativeList<Vector2> meshUVs;
 	public NativeList<int> meshTris;
+	public NativeList<int> meshSolidTris;
 	public NativeList<Vector3> meshNormals;
 	public NativeList<Vector4> meshTangents;
 	public NativeList<Vector2> meshLightUV;
@@ -50,7 +51,7 @@ public struct PrepareAssetsJob : IJob{
 	[ReadOnly]
 	public NativeHashMap<int, Vector3> inplaceOffset;
 	[ReadOnly]
-	public NativeHashMap<int, int> inplaceRotation;
+	public NativeHashMap<int, int2> inplaceRotation;
 
 	// Loaded Mesh Data
 	[ReadOnly]
@@ -77,6 +78,8 @@ public struct PrepareAssetsJob : IJob{
 	public NativeArray<int> hitboxTrisOffset;
 	[ReadOnly]
 	public NativeArray<Vector3> hitboxScaling;
+	[ReadOnly]
+	public NativeArray<ShaderIndex> material;
 
 	public void Execute(){
 		int i;
@@ -138,9 +141,16 @@ public struct PrepareAssetsJob : IJob{
 			}
 
 			// Triangles
-			for(int triIndex=trisOffset[i]; triIndex < trisOffset[i+1]; triIndex++){
-				meshTris.Add(loadedTris[triIndex] + currentVertAmount);
-			}	
+			if(material[i] == ShaderIndex.ASSETS){
+				for(int triIndex=trisOffset[i]; triIndex < trisOffset[i+1]; triIndex++){
+					meshTris.Add(loadedTris[triIndex] + currentVertAmount);
+				}	
+			}
+			else{
+				for(int triIndex=trisOffset[i]; triIndex < trisOffset[i+1]; triIndex++){
+					meshSolidTris.Add(loadedTris[triIndex] + currentVertAmount);
+				}					
+			}
 			currentVertAmount += (vertsOffset[i+1] - vertsOffset[i]);
 
 			// Hitbox Triangles
@@ -165,28 +175,47 @@ public struct PrepareAssetsJob : IJob{
 		return new Vector3(a.x * b.x + plus.x, a.y * b.y + plus.y, a.z * b.z + plus.z);
 	}
 
-	private Vector3 Vector3MultOffsetRotate(Vector3 a, Vector3 worldScaling, Vector3 worldOffset, Vector3 localOffset, int rotationDegree){
-		a = Rotate(a, rotationDegree);
-		Vector3 b = Vector3Mult(a, worldScaling, worldOffset);
-
-		return b + localOffset;
+	private Vector3 Vector3Mult(Vector3 a, Vector3 b){
+		return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
 	}
 
-	private Vector3 GetNormalRotation(Vector3 normal, int rotation){
-		return Rotate(normal, rotation);
+	private Vector3 Vector3MultOffsetRotate(Vector3 a, Vector3 worldScaling, Vector3 worldOffset, Vector3 localOffset, int2 rotationDegree){
+		a = Vector3Mult(a, worldScaling);
+
+		if(rotationDegree.x != 0)
+			a = RotateX(a, rotationDegree.x);
+		if(rotationDegree.y != 0)
+			a = RotateY(a, rotationDegree.y);
+
+		a = a + worldOffset;
+
+		return a + localOffset;
 	}
 
-	private Vector4 GetNormalRotation(Vector4 normal, int rotation){
-		return Rotate(normal, rotation);
+	private Vector3 GetNormalRotation(Vector3 normal, int2 rotation){
+		return RotateY(RotateX(normal, rotation.x), rotation.y);
 	}
 
-	private Vector3 Rotate(Vector3 a, int degrees){
+	private Vector4 GetNormalRotation(Vector4 normal, int2 rotation){
+		return RotateY(RotateX(normal, rotation.x), rotation.y);
+	}
+
+	private Vector3 RotateX(Vector3 a, int degrees){
 		return new Vector3(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad));
 	}
 
-	private Vector4 Rotate(Vector4 a, int degrees){
+	private Vector4 RotateX(Vector4 a, int degrees){
 		return new Vector4(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad), a.w);
 	}
+
+	private Vector3 RotateY(Vector3 a, int degrees){
+		return new Vector3(a.x, a.y * Mathf.Cos(degrees * Mathf.Deg2Rad) - a.z * Mathf.Sin(degrees * Mathf.Deg2Rad), a.y * Mathf.Sin(degrees * Mathf.Deg2Rad) + a.z * Mathf.Cos(degrees * Mathf.Deg2Rad));
+	}
+
+	private Vector4 RotateY(Vector4 a, int degrees){
+		return new Vector4(a.x, a.y * Mathf.Cos(degrees * Mathf.Deg2Rad) - a.z * Mathf.Sin(degrees * Mathf.Deg2Rad), a.y * Mathf.Sin(degrees * Mathf.Deg2Rad) + a.z * Mathf.Cos(degrees * Mathf.Deg2Rad), a.w);
+	}
+
 
 	// Gets neighbor light level
 	private int GetLight(int x, int y, int z, bool isNatural=true){

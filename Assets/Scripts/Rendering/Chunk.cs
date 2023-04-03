@@ -61,6 +61,7 @@ public class Chunk
     private int[] specularTris;
     private int[] liquidTris;
     private int[] assetTris;
+    private int[] assetSolidTris;
     private int[] triangles;
     private int[] leavesTris;
     private int[] iceTris;
@@ -268,6 +269,7 @@ public class Chunk
     	this.iceTris = null;
     	this.lavaTris = null;
     	this.assetTris = null;
+    	this.assetSolidTris = null;
     	this.UVs.Clear();
     	this.lightUVMain.Clear();
 
@@ -530,7 +532,7 @@ public class Chunk
 
 		// Offseting and Rotation shenanigans
 		NativeHashMap<int, Vector3> scaleOffset = new NativeHashMap<int, Vector3>(0, Allocator.TempJob);
-		NativeHashMap<int, int> rotationOffset = new NativeHashMap<int, int>(0, Allocator.TempJob);
+		NativeHashMap<int, int2> rotationOffset = new NativeHashMap<int, int2>(0, Allocator.TempJob);
 		
 		int3[] coordArray = loadAssetList.AsArray().ToArray();
 		foreach(int3 coord in coordArray){
@@ -605,6 +607,7 @@ public class Chunk
 		NativeList<Vector3> meshNormals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector4> meshTangents = new NativeList<Vector4>(0, Allocator.TempJob);
 		NativeList<int> meshTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> meshSolidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> hitboxVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector3> hitboxNormals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<int> hitboxTriangles = new NativeList<int>(0, Allocator.TempJob);
@@ -636,6 +639,7 @@ public class Chunk
 
 			meshVerts = meshVerts,
 			meshTris = meshTris,
+			meshSolidTris = meshSolidTris,
 			meshUVs = meshUVs,
 			meshLightUV = meshLightUV,
 			meshNormals = meshNormals,
@@ -645,6 +649,7 @@ public class Chunk
 			hitboxTriangles = hitboxTriangles,
 			scaling = scaling,
 			needRotation = BlockEncyclopediaECS.objectNeedRotation,
+			material = BlockEncyclopediaECS.objectMaterial,
 			inplaceOffset = scaleOffset,
 			inplaceRotation = rotationOffset,
 
@@ -680,6 +685,7 @@ public class Chunk
 		this.vertices.AddRange(meshVerts.ToArray());
 		this.triangles = normalTris.ToArray();
 		this.assetTris = meshTris.ToArray();
+		this.assetSolidTris = meshSolidTris.ToArray();
 
 		this.specularTris = specularTris.ToArray();
 		this.liquidTris = liquidTris.ToArray();
@@ -721,6 +727,7 @@ public class Chunk
 		loadCodeList.Dispose();
 		meshVerts.Dispose();
 		meshTris.Dispose();
+		meshSolidTris.Dispose();
 		blockCodes.Dispose();
 		vertsOffset.Dispose();
 		trisOffset.Dispose();
@@ -834,11 +841,12 @@ public class Chunk
     		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	this.meshFilter.mesh.subMeshCount = 7;
+    	this.meshFilter.mesh.subMeshCount = 8;
 
     	this.meshFilter.mesh.SetVertices(this.vertices.ToArray());
     	this.meshFilter.mesh.SetTriangles(this.triangles, 0);
  	    this.meshFilter.mesh.SetTriangles(this.iceTris, 5);
+ 	    this.meshFilter.mesh.SetTriangles(this.assetSolidTris, 7);
 
     	// Fix for a stupid Unity Bug
     	if(this.vertices.Count > 0){

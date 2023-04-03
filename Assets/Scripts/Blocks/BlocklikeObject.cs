@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
 public abstract class BlocklikeObject
 {
@@ -19,7 +20,7 @@ public abstract class BlocklikeObject
 	public Vector3 scaling; 
 	public Vector3 hitboxScaling;
 
-	public static readonly int objectCount = 1;
+	public static readonly int objectCount = 2;
 	public int stateNumber; // If needsRotation is true, these objects need to tell the rendering engine their max number of sequential states from 0
 
 	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();
@@ -44,23 +45,16 @@ public abstract class BlocklikeObject
 
 	// Block Encyclopedia fill function
 	public static BlocklikeObject Create(int blockID, bool isClient){
-		if(blockID == 0)
-			return new Torch_Object(isClient);
-		else
-			return new Torch_Object(isClient);
-	}
-
-	// Adds GameObject with correct offseting in the world and returns it
-	public GameObject PlaceObject(ChunkPos pos, int x, int y, int z, ushort blockCode, ChunkLoader_Server loader){
-		if(!this.needsRotation)
-			return GameObject.Instantiate(loader.blockBook.objects[ushort.MaxValue - blockCode].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
-		else{
-			GameObject GO = GameObject.Instantiate(loader.blockBook.objects[ushort.MaxValue - blockCode].go, new Vector3(pos.x*Chunk.chunkWidth + x, y, pos.z*Chunk.chunkWidth + z), Quaternion.identity);
-			loader.blockBook.objects[ushort.MaxValue - blockCode].ApplyRotation(GO, loader.chunks[pos].metadata.GetState(x,y,z), x, y, z);
-			return GO;
+		switch(blockID){
+			case 0:
+				return new Torch_Object(isClient);
+			case 1:
+				return new VisCrystal_Object(isClient);
+			
+			default:
+				return new Torch_Object(isClient);
 		}
 	}
-
 
     // Handles the emittion of BUD to neighboring blocks
     public void EmitBlockUpdate(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
@@ -133,7 +127,6 @@ public abstract class BlocklikeObject
 	public virtual int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){return 0;}
 	public virtual int OnSFXPlay(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){return 0;}
 	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader_Server cl){return true;}
-	public virtual void ApplyRotation(GameObject go, ushort? state, int blockX, int blockY, int blockZ){}
-	public virtual Vector3 GetOffsetVector(ushort state){return new Vector3(0f,0f,0f);}
-	public virtual int GetRotationValue(ushort state){return 0;}
+	public virtual Vector3 GetOffsetVector(ushort state){return Vector3.zero;}
+	public virtual int2 GetRotationValue(ushort state){return new int2(0,0);}
 }
