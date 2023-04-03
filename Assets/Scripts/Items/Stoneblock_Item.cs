@@ -17,7 +17,7 @@ public class Stoneblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Terra, 2}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Stone});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.VISCRYSTAL;
+		this.placeableBlockID = (ushort)BlockID.IGNIS_CRYSTAL;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 

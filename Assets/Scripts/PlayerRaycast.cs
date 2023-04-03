@@ -271,7 +271,7 @@ public class PlayerRaycast : MonoBehaviour
 		Debug.Log("ShadowMap: " + loader.chunks[debugCoord.GetChunkPos()].data.GetShadow(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ) + "    " + loader.chunks[debugCoord.GetChunkPos()].data.GetShadow(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ, isNatural:false) + " -> (" + debugCoord.blockX + ", " + debugCoord.blockY + ", " + debugCoord.blockZ + ")\n" +
 		"LightMap: " + loader.chunks[debugCoord.GetChunkPos()].data.GetLight(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ) + "   " + loader.chunks[debugCoord.GetChunkPos()].data.GetLight(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ, isNatural:false) + " -> (" + debugCoord.blockX + ", " + debugCoord.blockY + ", " + debugCoord.blockZ + ")\n" + 
 		"BlockCode: " + (BlockID)loader.chunks[debugCoord.GetChunkPos()].data.GetCell(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ) +
-		"\tState: " + loader.chunks[debugCoord.GetChunkPos()].metadata.GetState(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ)  + "\n" +
+		"\t\tState: " + loader.chunks[debugCoord.GetChunkPos()].metadata.GetState(debugCoord.blockX, debugCoord.blockY, debugCoord.blockZ)  + "\n" +
 		"HeightMap: " + loader.chunks[debugCoord.GetChunkPos()].data.GetHeight((byte)debugCoord.blockX, (byte)debugCoord.blockZ) + "\n" +
 		"RenderMap: " + loader.chunks[debugCoord.GetChunkPos()].data.GetRender((byte)debugCoord.blockX, (byte)debugCoord.blockZ));
 		

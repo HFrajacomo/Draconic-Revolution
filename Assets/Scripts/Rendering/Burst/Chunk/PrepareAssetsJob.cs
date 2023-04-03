@@ -85,9 +85,11 @@ public struct PrepareAssetsJob : IJob{
 		int i;
 		int currentVertAmount = vCount;
 		int hitboxVertAmount = 0;
+		int blockdataIndex;
 
 		for(int j=0; j < coords.Length; j++){
-			i = GetIndex(blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z]);
+			blockdataIndex = blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
+			i = GetIndex(blockdataIndex);
 
 			if(i == -1)
 				continue;
@@ -141,7 +143,7 @@ public struct PrepareAssetsJob : IJob{
 			}
 
 			// Triangles
-			if(material[i] == ShaderIndex.ASSETS){
+			if(material[ushort.MaxValue - blockdataIndex] == ShaderIndex.ASSETS){
 				for(int triIndex=trisOffset[i]; triIndex < trisOffset[i+1]; triIndex++){
 					meshTris.Add(loadedTris[triIndex] + currentVertAmount);
 				}	
@@ -162,7 +164,7 @@ public struct PrepareAssetsJob : IJob{
 	}
 
 	// Check if a blockCode is contained in blockCodes List
-	private int GetIndex(ushort code){
+	private int GetIndex(int code){
 		for(int i=0; i < blockCodes.Length; i++){
 			if(blockCodes[i] == code){
 				return i;

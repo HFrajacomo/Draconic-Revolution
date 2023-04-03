@@ -29,7 +29,7 @@ public class Chunk
 	private NetMessage message;
 
 	// Debug Settings
-	private static bool showHitbox = false;
+	private static bool showHitbox = true;
 	private MeshFilter hitboxFilter;
 
 	// Draw Flags
@@ -600,7 +600,6 @@ public class Chunk
 		}
 		loadCoordList.Clear();
 		
-
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> meshUVs = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector2> meshLightUV = new NativeList<Vector2>(0, Allocator.TempJob);

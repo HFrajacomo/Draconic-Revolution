@@ -32,11 +32,18 @@ public abstract class BlocklikeObject
 	public ushort maxHP;
 	public HashSet<BlockFlags> flags;
 
-	// Texture
+	// Mesh and Hitbox
 	public GameObject go;
 	public GameObject hitboxObject;
 	public Mesh mesh;
 	public Mesh hitboxMesh;
+
+	// Texture
+	protected static readonly int SOLID_ATLAS_X = 10;
+	protected static readonly int SOLID_ATLAS_Y = 2;
+	protected static readonly int NORMAL_ATLAS_X = 8;
+	protected static readonly int NORMAL_ATLAS_Y = 2;
+	public int2 atlasPosition;
 
 	// Item Drops
 	public Item droppedItem;
@@ -49,8 +56,22 @@ public abstract class BlocklikeObject
 			case 0:
 				return new Torch_Object(isClient);
 			case 1:
-				return new VisCrystal_Object(isClient);
-			
+				return new IgnisCrystal_Object(isClient);
+			case 2:
+				return new AquaCrystal_Object(isClient);
+			case 3:
+				return new AerCrystal_Object(isClient);
+			case 4:
+				return new TerraCrystal_Object(isClient);
+			case 5:
+				return new OrdoCrystal_Object(isClient);
+			case 6:
+				return new PerditioCrystal_Object(isClient);
+			case 7:
+				return new PrecantioCrystal_Object(isClient);
+			case 8:
+				return new SpawnCrystal_Object(isClient);
+
 			default:
 				return new Torch_Object(isClient);
 		}
@@ -105,6 +126,44 @@ public abstract class BlocklikeObject
     	}
 
     	return Mathf.CeilToInt(Mathf.Sqrt(blockDamage));
+    }
+
+    /*
+    Correctly re-arranges the object's mesh UVs to match their respective texture atlas position
+    */
+    public virtual Vector2 AddTexture(Vector2 uv){
+    	Vector2 finalUV = new Vector2(0,0);
+    	float initX, initY, finalX, finalY;
+
+    	if(this.shaderIndex == ShaderIndex.ASSETS){
+    		initX = (float)this.atlasPosition.x / NORMAL_ATLAS_X;
+    		finalX = (float)(this.atlasPosition.x + 1) / NORMAL_ATLAS_X;
+    		initY = (float)this.atlasPosition.y / NORMAL_ATLAS_Y;
+    		finalY = (float)(this.atlasPosition.y + 1) / NORMAL_ATLAS_Y;
+    	}
+    	else{
+    		initX = (float)this.atlasPosition.x / SOLID_ATLAS_X;
+    		finalX = (float)(this.atlasPosition.x + 1) / SOLID_ATLAS_X;
+    		initY = (float)this.atlasPosition.y / SOLID_ATLAS_Y;
+    		finalY = (float)(this.atlasPosition.y + 1) / SOLID_ATLAS_Y;    		
+    	}
+
+    	finalUV.x = Mathf.Lerp(initX, finalX, uv.x);
+    	finalUV.y = Mathf.Lerp(initY, finalY, uv.y);
+
+    	return finalUV;
+    }
+
+    // Gets the Input UVs of a mesh and transforms them using the AddTexture function
+    protected void RemapMeshUV(){
+    	List<Vector2> uvs = new List<Vector2>(); 
+    	this.mesh.GetUVs(0, uvs);
+
+    	for(int i=0; i < uvs.Count; i++){
+    		uvs[i] = AddTexture(uvs[i]);
+    	}
+
+    	this.mesh.SetUVs(0, uvs);
     }
 
 	/*

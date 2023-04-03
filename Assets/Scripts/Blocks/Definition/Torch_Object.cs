@@ -30,6 +30,7 @@ public class Torch_Object : BlocklikeObject
 		this.hasLoadEvent = true;
 		this.affectLight = false;
 		this.luminosity = 8 + (3 << 4);
+		this.atlasPosition = new int2(0,0);
 
 		this.maxHP = 1;
 
@@ -52,6 +53,8 @@ public class Torch_Object : BlocklikeObject
         this.droppedItem = Item.GenerateItem(ItemID.TORCH);
         this.minDropQuantity = 1;
         this.maxDropQuantity = 1;
+
+        RemapMeshUV();
     }
 
 	// Turns on and off Torch
