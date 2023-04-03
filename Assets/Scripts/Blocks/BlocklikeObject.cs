@@ -20,7 +20,7 @@ public abstract class BlocklikeObject
 	public Vector3 scaling; 
 	public Vector3 hitboxScaling;
 
-	public static readonly int objectCount = 2;
+	public static readonly int objectCount = 9;
 	public int stateNumber; // If needsRotation is true, these objects need to tell the rendering engine their max number of sequential states from 0
 
 	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();

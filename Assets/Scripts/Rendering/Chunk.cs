@@ -29,7 +29,7 @@ public class Chunk
 	private NetMessage message;
 
 	// Debug Settings
-	private static bool showHitbox = true;
+	private static bool showHitbox = false;
 	private MeshFilter hitboxFilter;
 
 	// Draw Flags

@@ -35,12 +35,12 @@ public class IgnisCrystal_Object : BlocklikeObject
 			this.scaling = new Vector3(12, 12, 37);
 			this.hitboxScaling = new Vector3(.75f, .75f, 1.8f);
 			this.hitboxMesh = hitboxObject.GetComponent<MeshFilter>().sharedMesh;
+			RemapMeshUV();
 		}
 
 		this.needsRotation = true;
 		this.stateNumber = 6;
 
-		RemapMeshUV();
 	}
 
 	// Get rotation in degrees

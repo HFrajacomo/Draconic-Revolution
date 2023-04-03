@@ -42,6 +42,7 @@ public class Torch_Object : BlocklikeObject
 			this.hitboxScaling = new Vector3(0.22f, 0.76f, 0.25f);
 			this.fireVFX = GameObject.Find("----- PrefabVFX -----/FireVFX");
 			this.hitboxMesh = hitboxObject.GetComponent<MeshFilter>().sharedMesh;
+	        RemapMeshUV();
 		}
 		else{
 			this.fireVFX = null;
@@ -53,8 +54,6 @@ public class Torch_Object : BlocklikeObject
         this.droppedItem = Item.GenerateItem(ItemID.TORCH);
         this.minDropQuantity = 1;
         this.maxDropQuantity = 1;
-
-        RemapMeshUV();
     }
 
 	// Turns on and off Torch
