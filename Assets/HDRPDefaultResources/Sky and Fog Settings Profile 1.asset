@@ -166,7 +166,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 40
+    m_Value: 0
   tint:
     m_OverrideState: 1
     m_Value: 0
@@ -224,7 +224,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   layers:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   resolution:
     m_OverrideState: 0
@@ -255,8 +255,8 @@ MonoBehaviour:
       m_OverrideState: 0
       m_Value: 0
     opacityA:
-      m_OverrideState: 0
-      m_Value: 0
+      m_OverrideState: 1
+      m_Value: 0.2
     rotation:
       m_OverrideState: 0
       m_Value: 0
@@ -264,8 +264,8 @@ MonoBehaviour:
       m_OverrideState: 1
       m_Value: {r: 1, g: 1, b: 1, a: 1}
     exposure:
-      m_OverrideState: 0
-      m_Value: 2
+      m_OverrideState: 1
+      m_Value: 0
     distortionMode:
       m_OverrideState: 1
       m_Value: 1
@@ -281,7 +281,7 @@ MonoBehaviour:
       m_Value:
         mode: 2
         customValue: 100
-        additiveValue: 110
+        additiveValue: 220
         multiplyValue: 1
     flowmap:
       m_OverrideState: 0
@@ -525,16 +525,16 @@ MonoBehaviour:
     m_Value: 1000
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 2.8
+    m_Value: 8
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
   albedo:
     m_OverrideState: 1
-    m_Value: {r: 0.51, g: 0.08, b: 0.08, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   globalLightProbeDimmer:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.25
   depthExtent:
     m_OverrideState: 0
     m_Value: 1000
@@ -688,13 +688,13 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 0, b: 0, a: 1}
+    m_Value: {r: 0.1745283, g: 0.9856023, b: 1, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0, g: 0, b: 0, a: 1}
+    m_Value: {r: 0.08962262, g: 0.6109502, b: 1, a: 1}
   horizonZenithShift:
     m_OverrideState: 1
-    m_Value: -0.5
+    m_Value: 0
   m_SkyVersion: 1
   m_ObsoleteEarthPreset:
     m_OverrideState: 0
@@ -1147,7 +1147,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 0.6981132, y: 0.3062477, z: 0.3062477, w: 0.6392157}
+    m_Value: {x: 1, y: 1, z: 1, w: 0.4}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3
