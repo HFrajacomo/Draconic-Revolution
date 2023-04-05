@@ -26,6 +26,8 @@ public static class StructureGroup
     private static List<StructSpawn> greaterBonesFormation = new List<StructSpawn>();
     private static List<StructSpawn> hellOres = new List<StructSpawn>();
     private static List<StructSpawn> coreOres = new List<StructSpawn>();
+    private static List<StructSpawn> visFew = new List<StructSpawn>();
+    private static List<StructSpawn> visMany = new List<StructSpawn>();
 
     // Static Constructor
     static StructureGroup(){
@@ -65,6 +67,10 @@ public static class StructureGroup
         map.Add(StructureGroupID.HELL_ORES, hellOres);
         PopulateCoreOres();
         map.Add(StructureGroupID.CORE_ORES, coreOres);
+        PopulateVisFew();
+        map.Add(StructureGroupID.VIS_FEW, visFew);
+        PopulateVisMany();
+        map.Add(StructureGroupID.VIS_MANY, visMany);
     }
 
     public static void AddStructureGroup(StructureGroupID id, Biome b){
@@ -219,6 +225,14 @@ public static class StructureGroup
         coreOres.Add(new StructSpawn(StructureCode.GrandiumVeinB, 5, .7f, 0, -1, true, 0));
         coreOres.Add(new StructSpawn(StructureCode.SteonyxVein, 7, .7f, 0, -1, true, 0));
     }
+
+    private static void PopulateVisFew(){
+        visFew.Add(new StructSpawn(StructureCode.SingleVisCrystal, 10, 1f, 10, -1, true, 0));
+    }
+
+    private static void PopulateVisMany(){
+        visMany.Add(new StructSpawn(StructureCode.SingleVisCrystal, 25, 1f, 10, -1, true, 0));
+    }
 }
 
 public enum StructureGroupID : int
@@ -240,5 +254,7 @@ public enum StructureGroupID : int
     SMALL_BONES,
     GREATER_BONES,
     HELL_ORES,
-    CORE_ORES
+    CORE_ORES,
+    VIS_FEW,
+    VIS_MANY
 }

@@ -2627,7 +2627,7 @@
     "m_RefNameGeneratedByDisplayName": "_Fullbright",
     "m_DefaultReferenceName": "_Fullbright",
     "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
+    "m_GeneratePropertyBlock": false,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,

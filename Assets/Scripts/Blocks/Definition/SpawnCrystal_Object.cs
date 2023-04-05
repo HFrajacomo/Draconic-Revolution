@@ -55,6 +55,6 @@ public class SpawnCrystal_Object : BlocklikeObject
 		ushort newCode = (ushort)(cl.chunks[coord.GetChunkPos()].data.GetCell(coord.blockX, coord.blockY, coord.blockZ) + codeAddition);
 
 		cl.chunks[coord.GetChunkPos()].data.SetCell(coord.blockX, coord.blockY, coord.blockZ, newCode);
-		cl.blockBook.objects[ushort.MaxValue - newCode].OnPlace(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ, facing, cl);		
+		cl.blockBook.objects[ushort.MaxValue - newCode].OnPlace(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ, facing, cl);
 	}
 }

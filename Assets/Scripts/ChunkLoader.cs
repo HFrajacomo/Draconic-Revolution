@@ -232,6 +232,7 @@ public class ChunkLoader : MonoBehaviour
 
     public void InitConfigurationFunctions(){
         this.rend.rend.sharedMaterials[0].SetFloat("_Fullbright", Configurations.GetFullbright());
+        this.rend.rend.sharedMaterials[7].SetFloat("_Fullbright", Configurations.GetFullbright());
     }
 
     // Moves all entities with SmoothMovement

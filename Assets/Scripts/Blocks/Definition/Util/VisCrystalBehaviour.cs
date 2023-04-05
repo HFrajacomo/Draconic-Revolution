@@ -56,10 +56,13 @@ public class VisCrystalBehaviour{
 			}
 		}
 
-		if(possibilities == 0)
+		if(possibilities == 0){
 			return false;
+		}
 
-		cl.chunks[pos].metadata.SetState(coord.blockX, coord.blockY, coord.blockZ, (ushort)rng.Next(0, this.possibilities+1));
+		int index = rng.Next(0, this.possibilities);
+
+		cl.chunks[pos].metadata.SetState(coord.blockX, coord.blockY, coord.blockZ, possibleCodes[index]);
 
 		return true;
 	}
@@ -69,7 +72,7 @@ public class VisCrystalBehaviour{
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.PLACE, pos, coord.blockX, coord.blockY, coord.blockZ, -1, blockID, cl.chunks[pos].metadata.GetState(coord.blockX, coord.blockY, coord.blockZ), cl.chunks[pos].metadata.GetHP(coord.blockX, coord.blockY, coord.blockZ));
 		cl.server.SendToClients(pos, message);				
-		cl.regionHandler.SaveChunk(cl.chunks[pos]);
+		cl.budscheduler.ScheduleSave(pos);
 	}
 
 	public void DeleteCrystal(CastCoord coord, ChunkLoader_Server cl){

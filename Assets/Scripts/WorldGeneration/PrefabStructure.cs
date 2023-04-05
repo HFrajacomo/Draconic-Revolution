@@ -1325,6 +1325,34 @@ public class SteonyxVein : Structure
 	}
 }
 
+public class SingleVisCrystal : Structure
+{
+	public ushort[] blocks = new ushort[]{65527};
+	public ushort[] hps = new ushort[]{0,1};
+	public ushort[] states = new ushort[]{0,1};
+
+	public SingleVisCrystal(){
+		this.code = (ushort)StructureCode.SingleVisCrystal;
+
+		this.sizeX = 1;
+		this.sizeY = 1;
+		this.sizeZ = 1;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+		this.blockdata = new ushort[1];
+		this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>();
+
+		Prepare(blocks, hps, states);
+	}
+}
+
 /*
 ADD TO THIS ENUM EVERY NEW STRUCTURE IMPLEMENTED
 */
@@ -1376,5 +1404,6 @@ public enum StructureCode{
 	ArditeVeinB,
 	GrandiumVeinA,
 	GrandiumVeinB,
-	SteonyxVein
+	SteonyxVein,
+	SingleVisCrystal
 }
