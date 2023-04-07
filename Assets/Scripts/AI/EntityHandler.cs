@@ -20,6 +20,7 @@ public class EntityHandler
 
 	public EntityHandler(ChunkLoader cl){
 		this.playerObject = new Dictionary<ulong, GameObject>();
+		this.playerRenderer = new Dictionary<ulong, MeshRenderer>();
 		this.playerCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.dropObject = new Dictionary<ulong, ItemEntity>();
 		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
