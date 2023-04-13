@@ -8,7 +8,7 @@ public abstract class Blocks
 	public static readonly int blockCount = 40;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
-	public static readonly int atlasSizeY = 5;
+	public static readonly int atlasSizeY = 10;
 	public static readonly int transparentAtlasSizeX = 2;
 	public static readonly int transparentAtlasSizeY = 1;
 
