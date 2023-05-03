@@ -9,7 +9,7 @@ public abstract class Blocks
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
 	public static readonly int atlasSizeY = 10;
-	public static readonly int transparentAtlasSizeX = 2;
+	public static readonly int transparentAtlasSizeX = 4;
 	public static readonly int transparentAtlasSizeY = 1;
 
 	public ShaderIndex shaderIndex = ShaderIndex.OPAQUE; // The material used in the rendering pipeline
@@ -127,6 +127,9 @@ public abstract class Blocks
 				return new GrandiumOre_Block();
 			case 39:
 				return new SteonyxOre_Block();
+
+			case 45:
+				return new Sunstone_Block();
 
 			default:
 				return new Air_Block();
