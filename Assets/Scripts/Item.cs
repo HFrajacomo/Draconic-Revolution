@@ -179,6 +179,20 @@ public abstract class Item
 				return new GrandiumOreblock_Item();
 			case ItemID.STEONYX_ORE_BLOCK:
 				return new SteonyxOreblock_Item();
+			case ItemID.WHITEMARBLEBLOCK:
+				return new WhiteMarbleblock_Item();
+			case ItemID.WHITEMARBLEBRICKBLOCK:
+				return new WhiteMarbleBrickblock_Item();
+			case ItemID.BLACKMARBLEBLOCK:
+				return new BlackMarbleblock_Item();
+			case ItemID.BLACKMARBLEBRICKBLOCK:
+				return new BlackMarbleBrickblock_Item();
+			case ItemID.HELLMARBLEBRICKBLOCK:
+				return new HellMarbleBrickblock_Item();
+			case ItemID.SUNSTONEBLOCK:
+				return new Sunstoneblock_Item();
+			case ItemID.COBBLESTONEBLOCK:
+				return new Cobblestoneblock_Item();
 
 			default:
 				return null;

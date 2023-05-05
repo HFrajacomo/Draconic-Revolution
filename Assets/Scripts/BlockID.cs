@@ -44,6 +44,13 @@ public enum BlockID : ushort
     ARDITE_ORE = 37,
     GRANDIUM_ORE = 38,
     STEONYX_ORE = 39,
+    WHITE_MARBLE = 40,
+    WHITE_MARBLE_BRICKS = 41,
+    HELL_MARBLE_BRICKS = 42,
+    BLACK_MARBLE = 43,
+    BLACK_MARBLE_BRICKS = 44,
+    SUNSTONE = 45,
+    COBBLESTONE = 46,
 
     /*
     Special
