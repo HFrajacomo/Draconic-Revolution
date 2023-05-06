@@ -193,6 +193,22 @@ public abstract class Item
 				return new Sunstoneblock_Item();
 			case ItemID.COBBLESTONEBLOCK:
 				return new Cobblestoneblock_Item();
+			case ItemID.VINTEUMOREBLOCK:
+				return new VinteumOreblock_Item();
+			case ItemID.SILVERWOODBLOCK:
+				return new SilverWoodblock_Item();
+			case ItemID.SILVERWOODLEAFBLOCK:
+				return new SilverWoodLeafblock_Item();
+			case ItemID.SILVERWOODPLANKBLOCK:
+				return new SilverWoodPlankblock_Item();
+			case ItemID.IRONFLOORBLOCK:
+				return new IronFloorblock_Item();
+			case ItemID.IRONWALLBLOCK:
+				return new IronWallblock_Item();
+			case ItemID.GABBROBLOCK:
+				return new Gabbroblock_Item();
+			case ItemID.GABBROBRICKBLOCK:
+				return new GabbroBrickblock_Item();
 
 			default:
 				return null;

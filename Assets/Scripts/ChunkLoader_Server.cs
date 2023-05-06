@@ -461,22 +461,28 @@ public class ChunkLoader_Server : MonoBehaviour
                 slots[i] = new ItemPlayerInventorySlot(ItemID.TORCH, 50);
             }
             else if(i == 3){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.WHITEMARBLEBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.VINTEUMOREBLOCK, 50);
             }
             else if(i == 4){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.WHITEMARBLEBRICKBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.SILVERWOODBLOCK, 50);
             }
             else if(i == 5){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.BLACKMARBLEBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.SILVERWOODLEAFBLOCK, 50);
             }
             else if(i == 6){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.BLACKMARBLEBRICKBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.SILVERWOODPLANKBLOCK, 50);
             }
             else if(i == 7){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.HELLMARBLEBRICKBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.IRONFLOORBLOCK, 50);
             }
             else if(i == 8){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.COBBLESTONEBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.IRONWALLBLOCK, 50);
+            }
+            else if(i == 9){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.GABBROBLOCK, 50); 
+            }
+            else if(i == 10){
+                slots[i] = new ItemPlayerInventorySlot(ItemID.GABBROBRICKBLOCK, 50); 
             }
             else{
                 slots[i] = new EmptyPlayerInventorySlot();

@@ -51,6 +51,14 @@ public enum BlockID : ushort
     BLACK_MARBLE_BRICKS = 44,
     SUNSTONE = 45,
     COBBLESTONE = 46,
+    VINTEUM_ORE = 47,
+    SILVERWOOD = 48,
+    SILVERWOOD_LEAF = 49,
+    IRON_FLOOR = 50,
+    IRON_WALL = 51,
+    GABBRO = 52,
+    GABBRO_BRICK = 53,
+    SILVERWOOD_PLANKS = 54,
 
     /*
     Special
