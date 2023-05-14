@@ -357,8 +357,16 @@ public class Client
 	private void SendChunk(byte[] data){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 
-		this.cl.toLoad.Add(data);
-		this.cl.toLoadChunk.Add(pos);
+		// Returns index if exists and -1 otherwise
+		int index = this.cl.toLoadChunk.IndexOf(pos);
+
+		if(index == -1){
+			this.cl.toLoad.Add(data);
+			this.cl.toLoadChunk.Add(pos);
+		}
+		else{
+			this.cl.toLoad[index] = data;
+		}
 	}
 
 	// Receives a disconnect call from server

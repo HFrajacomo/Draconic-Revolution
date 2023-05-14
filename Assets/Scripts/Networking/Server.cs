@@ -30,6 +30,8 @@ public class Server
 	public Dictionary<ChunkPos, HashSet<ulong>> chunksRequested;
 	private Dictionary<ulong, byte[]> receiveBuffer;
 
+	private HashSet<ChunkPos> chunksToSend = new HashSet<ChunkPos>();
+
 	public EntityHandler_Server entityHandler = new EntityHandler_Server();
 
 
@@ -1015,6 +1017,8 @@ public class Server
 				}
 			}	
 		}
+
+		this.SendAccumulatedChunks();
 	}
 
 	// Receives a block damage from client and processes block HP
@@ -1125,6 +1129,33 @@ public class Server
 				continue;
 			this.Send(message.GetMessage(), message.size, i);
 		}
+	}
+
+	// Register the current chunk to a set of chunks that should be triggered at the end of the current operation
+	// This way, only one chunk update message can be sent per multiple block/tile-entity operations
+	public void RegisterChunkToSend(ChunkPos pos){
+		this.chunksToSend.Add(pos);
+	}
+
+	// Clears the Chunks to Send set
+	private void ClearChunkToSend(){
+		this.chunksToSend.Clear();
+	}
+
+	// Sends all chunks in the ChunksToSend set to clients
+	private void SendAccumulatedChunks(){
+		foreach(ChunkPos pos in this.chunksToSend){
+			if(!this.cl.loadedChunks.ContainsKey(pos))
+				continue;
+
+			foreach(ulong i in this.cl.loadedChunks[pos]){
+				NetMessage message = new NetMessage(NetCode.SENDCHUNK);
+				message.SendChunk(this.cl.chunks[pos]);
+				this.Send(message.GetMessage(), message.size, i);
+			}	
+		}
+
+		this.ClearChunkToSend();	
 	}
 
 	/*
