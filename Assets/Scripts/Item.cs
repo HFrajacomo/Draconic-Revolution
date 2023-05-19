@@ -209,7 +209,16 @@ public abstract class Item
 				return new Gabbroblock_Item();
 			case ItemID.GABBROBRICKBLOCK:
 				return new GabbroBrickblock_Item();
-
+			case ItemID.BRICKBLOCK:
+				return new Brickblock_Item();
+			case ItemID.SANDSTONEBRICK2BLOCK:
+				return new SandstoneBrick2block_Item();
+			case ItemID.GRAVEL2BLOCK:
+				return new Gravel2block_Item();
+			case ItemID.LIMESTONEBLOCK:
+				return new Limestoneblock_Item();
+			case ItemID.LIMESTONEBRICKBLOCK:
+				return new LimestoneBrickblock_Item();
 			default:
 				return null;
 		}
