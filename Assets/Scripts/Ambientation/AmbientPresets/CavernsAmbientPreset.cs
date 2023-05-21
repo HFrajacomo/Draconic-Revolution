@@ -9,6 +9,7 @@ public class CavernsAmbientPreset: BaseAmbientPreset{
 		this.gainDay = new float4(0.5f, 0.5f, 0.5f, 0.3333333f);
 
 		this.fogAttenuation1 = 8f;
+		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = .25f;
 
@@ -19,8 +20,13 @@ public class CavernsAmbientPreset: BaseAmbientPreset{
 		this.lightIntensity = 2.5f;
 		this.sunColor = Color.white;
 		this.sunDiameter = 0f;
+
+		this.isSurface = false;
 	}
 	public override float GetSunDiameter(float t){
 		return SUN_DIAMETER_UNDERGROUND;
+	}
+	public override float GetBaseFogHeight(float t){
+		return this.fogBaseHeight;
 	}
 }

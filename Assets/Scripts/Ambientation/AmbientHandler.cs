@@ -127,6 +127,7 @@ public class AmbientHandler : MonoBehaviour
         }
         else if(currentTick % 6 == 1){
             this.fog.meanFreePath.value = Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep);
+            this.fog.baseHeight.value = Mathf.Lerp(lastPreset.GetBaseFogHeight(time), currentPreset.GetBaseFogHeight(time), currentStep);
             this.fog.albedo.value = Color.Lerp(lastPreset.GetFogAlbedo(time), currentPreset.GetFogAlbedo(time), currentStep);
             this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);            
         }
@@ -174,6 +175,7 @@ public class AmbientHandler : MonoBehaviour
         }
         else if(currentTick % 6 == 1){
             this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(finalTime);
+            this.fog.baseHeight.value = currentPreset.GetBaseFogHeight(finalTime);
             this.fog.albedo.value = currentPreset.GetFogAlbedo(finalTime);
             this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime);
         }

@@ -29,6 +29,7 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.gainSunset = new float4(.68f, .3f, .53f, 0f);
 		this.gainNight = new float4(.20f, .23f, .29f, .31f);
 
+		this.isSurface = true;
 		this.hasFlare = true;
 	}
 

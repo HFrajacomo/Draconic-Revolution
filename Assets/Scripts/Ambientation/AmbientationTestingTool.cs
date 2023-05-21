@@ -39,6 +39,7 @@ public class AmbientationTestingTool: MonoBehaviour{
 	public float fogAttenuation1;
 	public float fogAttenuation2;
 	public Color fogAlbedo;
+	public float fogBaseHeight;
 	public float fogAmbientLight;
 
 	// Cloud Layer
@@ -119,6 +120,7 @@ public class AmbientationTestingTool: MonoBehaviour{
 		o += "this.zenithTintNight = " + PrintColor(this.zenithTint_night) + ";\n\n";
 
 		o += "this.fogAttenuation1 = " + Q(this.fogAttenuation1) + "f;\n";
+		o += "this.fogBaseHeight = " + Q(this.fogBaseHeight) + "f;\n";
 		o += "this.fogAlbedo = Color.white;\n";
 		o += "this.fogAmbientLight = .25f;\n\n";
 
@@ -163,6 +165,7 @@ public class AmbientationTestingTool: MonoBehaviour{
     	
     	fogAttenuation1 = p._fa1();
     	fogAttenuation2 = p._fa2();
+    	fogBaseHeight = p._fbh();
     	fogAlbedo = p._falb();
     	fogAmbientLight = p._fal();
 

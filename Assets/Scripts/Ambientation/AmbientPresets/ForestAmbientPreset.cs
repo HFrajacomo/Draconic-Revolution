@@ -30,6 +30,7 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 		this.gainNight = new float4(0.1665321f, 0.2358491f, 0.08343717f, 0f);
 
 		this.hasFlare = true;
+		this.isSurface = true;
 	}
 
 	public override Color GetHorizonTint(float t){

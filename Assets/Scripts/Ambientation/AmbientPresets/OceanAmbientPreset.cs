@@ -29,6 +29,7 @@ public class OceanAmbientPreset: BaseAmbientPreset{
 		this.gainSunset = new float4(0.8113208f, 0.4581941f, 0.1415984f, 0.4f);
 		this.gainNight = new float4(0f, 0f, 0f, 0f);
 
+		this.isSurface = true;
 		this.hasFlare = true;
 	}
 

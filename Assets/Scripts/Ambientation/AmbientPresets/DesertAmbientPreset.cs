@@ -30,6 +30,7 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		this.gainNight = new float4(0f, 0f, 0f, 0f);
 
 		this.hasFlare = true;
+		this.isSurface = true;
 	}
 
 	public override Color GetHorizonTint(float t){

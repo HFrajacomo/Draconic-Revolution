@@ -59,7 +59,6 @@ public enum BlockID : ushort
     GABBRO = 52,
     GABBRO_BRICK = 53,
     SILVERWOOD_PLANKS = 54,
-
     BRICK = 55,
     SANDSTONE_BRICK2 = 56,
     GRAVEL2 = 57,

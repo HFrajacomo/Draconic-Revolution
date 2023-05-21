@@ -18,6 +18,12 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float FLOOR_LIGHTING_DAY = 1f;
 	protected static readonly float FLOOR_LIGHTING_NIGHT = 0.05f;
 	protected static readonly float FLOOR_LIGHTING_UNDERGROUND = 4f;
+	protected static readonly float BASE_FOG_HEIGHT_SURFACE = 700f;
+	protected static readonly float BASE_FOG_HEIGHT_UNDERGROUND = 0;
+
+	// General
+	protected bool isSurface;
+	protected bool hasFlare = false;
 
 	// Physical Based Sky
 	protected Color horizonTintDay;
@@ -37,6 +43,7 @@ public abstract class BaseAmbientPreset{
 	protected float fogAttenuation2;
 	protected Color fogAlbedo;
 	protected float fogAmbientLight;
+	protected float fogBaseHeight;
 
 	// Cloud Layer
 	protected Color cloudTintDay;
@@ -59,9 +66,6 @@ public abstract class BaseAmbientPreset{
 	protected float sunDiameter;
 	protected float2 sunRotation;
 	protected Color sunColor;
-
-	// Lens Flare
-	protected bool hasFlare = false;
 
 	public static BaseAmbientPreset GetPreset(AmbientGroup g){
 		if(presets.Count == 0)
@@ -119,6 +123,8 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
 	public virtual Color GetSunColor(float t){return this.sunColor;}
 	public virtual float GetFloorLighting(float t){return FLOOR_LIGHTING_UNDERGROUND;}
+	public virtual float GetBaseFogHeight(float t){return BASE_FOG_HEIGHT_SURFACE;}
+	public bool IsSurface(){return this.isSurface;}
 	public bool HasFlare(){return this.hasFlare;}
 
 
@@ -246,6 +252,7 @@ public abstract class BaseAmbientPreset{
     	fogAttenuation1 = att.fogAttenuation1;
     	fogAttenuation2 = att.fogAttenuation2;
     	fogAlbedo = att.fogAlbedo;
+    	fogBaseHeight = att.fogBaseHeight;
     	fogAmbientLight = att.fogAmbientLight;
 
     	cloudTintDay = att.cloudTint_day;
@@ -285,6 +292,7 @@ public abstract class BaseAmbientPreset{
 	public float _fa1(){return fogAttenuation1;}
 	public float _fa2(){return fogAttenuation2;}
 	public Color _falb(){return fogAlbedo;}
+	public float _fbh(){return fogBaseHeight;}
 	public float _fal(){return fogAmbientLight;}
 	public Color _ct_d(){return cloudTintDay;}
 	public Color _ct_sr(){return cloudTintSunrise;}

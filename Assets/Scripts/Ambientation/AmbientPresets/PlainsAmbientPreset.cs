@@ -30,6 +30,7 @@ public class PlainsAmbientPreset: BaseAmbientPreset{
 		this.gainSunset = new float4(1f, .61f, .62f, .02f);
 		this.gainNight = new float4(0f, 0f, 0f, 0f);
 
+		this.isSurface = true;
 		this.hasFlare = true;
 	}
 

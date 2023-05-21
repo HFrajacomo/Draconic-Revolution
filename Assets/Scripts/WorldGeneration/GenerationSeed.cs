@@ -112,6 +112,10 @@ public static class GenerationSeed
     public static readonly float cavemaskYStep1 = 0.01721f;
     public static readonly float cavemaskYStep2 = 0.0177f;
 
+    // Weather Noise
+    public static byte[] weatherNoise = new byte[257];
+    public static readonly float weatherNoiseStep = 0.0003f;
+
     public static void Initialize(int sed){
         seed = sed;
 
@@ -175,6 +179,13 @@ public static class GenerationSeed
             cavemaskNoise[i] = (byte)World.NextRandom(0, 256);
         }
         cavemaskNoise[256] = cavemaskNoise[0];
+
+        // Weather Noise
+        World.SetRNG(~seed ^ 0x7AAAAAAA);
+        for(int i=0; i < 256; i++){
+            weatherNoise[i] = (byte)World.NextRandom(0, 256);
+        }
+        weatherNoise[256] = weatherNoise[0];        
     }
 
 
