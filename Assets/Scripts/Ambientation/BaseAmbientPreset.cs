@@ -25,7 +25,6 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float FOG_ATTENUATION_SUNSET = 8f;
 	protected static readonly float FOG_ATTENUATION_NIGHT = 7f;
 
-
 	// General
 	protected bool isSurface;
 	protected bool hasFlare = false;

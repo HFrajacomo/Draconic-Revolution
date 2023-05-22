@@ -86,8 +86,6 @@ public class AmbientHandler : MonoBehaviour
         currentTick = (int)timer.GetFakeTicks();
         delta += Time.deltaTime/2;
 
-        ApplyFogChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
-
         if(!isTransitioning){
             currentAmbient = BiomeHandler.GetAmbientGroup(BiomeHandler.BiomeToByte(playerPositionHandler.GetCurrentBiome()));
             
@@ -103,6 +101,7 @@ public class AmbientHandler : MonoBehaviour
 
             if(currentTick != lastTick){
                 SetStats(time);
+                ApplyFogChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
             }
 
             lastAmbient = currentAmbient;
@@ -113,8 +112,10 @@ public class AmbientHandler : MonoBehaviour
         else{
             this.updateTimer++;
 
-            if(currentTick != lastTick)
+            if(currentTick != lastTick){
                 LerpStatus(time);
+                ApplyFogChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
+            }
             
             if(this.updateTimer == FRAMES_TO_CHANGE){
                 isTransitioning = false;
@@ -129,13 +130,14 @@ public class AmbientHandler : MonoBehaviour
 
     // Sets and changes Fog Attenuation based on Biome and Weather component
     private void ApplyFogChanges(float currentStep, int time, int currentTick, uint days, bool isSurface, bool isTransition){
-        if(currentTick % 6 == 1){
+        if(currentTick % 12 == 5){
             if(!isSurface){
                 this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
                 return;
             }
 
             weatherCast.SetFogNoise((int)((days*TimeOfDay.ticksForMinute*1440) + (time*TimeOfDay.ticksForMinute+currentTick)), days);
+            weatherCast.SetWeatherNoise((int)((days*1440) + time), days);
 
             if(isTransition)
                 this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());
