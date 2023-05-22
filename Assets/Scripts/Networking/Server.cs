@@ -416,6 +416,11 @@ public class Server
 				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetEmptyBuffer(), inventoryLength);
 
 			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id, temporary:true);
+
+			// Sends global weather noise data
+			NetMessage weatherMessage = new NetMessage(NetCode.SENDNOISE);
+			weatherMessage.SendNoise(GenerationSeed.weatherNoise);
+			this.Send(weatherMessage.GetMessage(), weatherMessage.size, id, temporary:true);
 		}
 
 		// If AccountID is already online, erase all memory from that connection

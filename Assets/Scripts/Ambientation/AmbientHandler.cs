@@ -134,13 +134,12 @@ public class AmbientHandler : MonoBehaviour
             if(!isSurface){
                 this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
                 this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(time);
-                //this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(time);
+                this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(time);
                 return;
             }
 
             weatherCast.SetFogNoise((int)((days*TimeOfDay.ticksForMinute*1440) + (time*TimeOfDay.ticksForMinute+currentTick)), days);
             weatherCast.SetWeatherNoise((int)((days*1440) + time), days);
-            weatherCast.Print();
 
             if(isTransition){
                 this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());

@@ -127,6 +127,11 @@ public class ChunkLoader_Server : MonoBehaviour
 
         this.server.Send(inventoryMessage.GetMessage(), inventoryMessage.size, this.server.firstConnectedID);
 
+        // Send first player the weather information
+        NetMessage weatherMessage = new NetMessage(NetCode.SENDNOISE);
+        weatherMessage.SendNoise(GenerationSeed.weatherNoise);
+        this.server.Send(weatherMessage.GetMessage(), weatherMessage.size, this.server.firstConnectedID);
+
         this.INITIALIZEDWORLD = true;
         this.time.SetLock(false);
     }
