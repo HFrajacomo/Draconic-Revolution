@@ -12,6 +12,7 @@ public class HellAmbientPreset: BaseAmbientPreset{
 		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
 		this.fogAlbedo = new Color(.51f, .08f, .08f);
 		this.fogAmbientLight = 0f;
+		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 
 		this.wbTemperature = 40f;
 		this.wbTint = 0f;

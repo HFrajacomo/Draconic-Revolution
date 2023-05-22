@@ -15,6 +15,7 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = .25f;
+		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 
 		this.cloudTintSunrise = new Color(0.3207547f, 0.3207547f, 0.3207547f);
 		this.cloudTintDay = new Color(0.7830189f, 0.7793254f, 0.7793254f);

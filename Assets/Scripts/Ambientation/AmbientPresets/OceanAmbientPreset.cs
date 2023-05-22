@@ -15,6 +15,7 @@ public class OceanAmbientPreset: BaseAmbientPreset{
 
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = .25f;
+		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 
 		this.cloudTintSunrise = new Color(0.08735315f, 0.1189269f, 0.1226415f);
 		this.cloudTintDay = new Color(1f, 1f, 1f);

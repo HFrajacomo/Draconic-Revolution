@@ -15,6 +15,7 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = .25f;
+		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 
 		this.cloudTintSunrise = new Color(.27f, .27f, .27f);
 		this.cloudTintDay = Color.white;

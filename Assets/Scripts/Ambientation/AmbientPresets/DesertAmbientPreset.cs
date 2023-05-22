@@ -15,6 +15,7 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = .25f;
+		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 
 		this.cloudTintSunrise = new Color(.08f, .05f, .01f);
 		this.cloudTintDay = new Color(.5f, .43f, .28f);

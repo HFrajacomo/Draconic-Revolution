@@ -40,6 +40,7 @@ public class AmbientationTestingTool: MonoBehaviour{
 	public Color fogAlbedo;
 	public float fogBaseHeight;
 	public float fogAmbientLight;
+	public float fogMaximumHeight;
 
 	// Cloud Layer
 	public Color cloudTint_sunrise;
@@ -121,6 +122,7 @@ public class AmbientationTestingTool: MonoBehaviour{
 
 		o += "this.fogAttenuation = " + Q(this.fogAttenuation) + "f;\n";
 		o += "this.fogBaseHeight = " + Q(this.fogBaseHeight) + "f;\n";
+		o += "this.fogMaxHeight = " + Q(this.fogMaximumHeight) + "f;\n";
 		o += "this.fogAlbedo = Color.white;\n";
 		o += "this.fogAmbientLight = .25f;\n\n";
 
@@ -167,6 +169,7 @@ public class AmbientationTestingTool: MonoBehaviour{
     	fogBaseHeight = p._fbh();
     	fogAlbedo = p._falb();
     	fogAmbientLight = p._fal();
+    	fogMaximumHeight = p._fmh();
 
     	cloudTint_day = p._ct_d();
     	cloudTint_sunrise = p._ct_sr();

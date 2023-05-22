@@ -24,6 +24,7 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float FOG_ATTENUATION_DAY = 10f;
 	protected static readonly float FOG_ATTENUATION_SUNSET = 8f;
 	protected static readonly float FOG_ATTENUATION_NIGHT = 7f;
+	protected static readonly float FOG_MAX_HEIGHT_SURFACE = 920f;
 
 	// General
 	protected bool isSurface;
@@ -47,6 +48,7 @@ public abstract class BaseAmbientPreset{
 	protected Color fogAlbedo;
 	protected float fogAmbientLight;
 	protected float fogBaseHeight;
+	protected float fogMaximumHeight;
 
 	// Cloud Layer
 	protected Color cloudTintDay;
@@ -119,6 +121,7 @@ public abstract class BaseAmbientPreset{
 	public virtual Color GetFogAlbedo(float t){return this.fogAlbedo;}
 	public virtual float GetFogAmbientLight(float t){return this.fogAmbientLight;}
 	public virtual float GetFogBaseHeight(float t){return BASE_FOG_HEIGHT_SURFACE;}
+	public virtual float GetFogMaxHeight(float t){return this.fogMaximumHeight;}
 	public virtual Color GetCloudTint(float t){return this.cloudTintDay;}
 	public virtual float GetWhiteBalanceTemperature(){return this.wbTemperature;}
 	public virtual float GetWhiteBalanceTint(){return this.wbTint;}
@@ -295,6 +298,7 @@ public abstract class BaseAmbientPreset{
 	public Color _falb(){return fogAlbedo;}
 	public float _fbh(){return fogBaseHeight;}
 	public float _fal(){return fogAmbientLight;}
+	public float _fmh(){return fogMaximumHeight;}
 	public Color _ct_d(){return cloudTintDay;}
 	public Color _ct_sr(){return cloudTintSunrise;}
 	public Color _ct_ss(){return cloudTintSunset;}

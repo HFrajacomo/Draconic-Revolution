@@ -14,13 +14,31 @@ public class WeatherCast{
 	private WeatherState[] lerpY = new WeatherState[]{WeatherState.RAINY, WeatherState.TRANSITION, WeatherState.OVERCAST,
 		WeatherState.TRANSITION, WeatherState.CLOUDY2, WeatherState.TRANSITION,  WeatherState.CLOUDY1, WeatherState.TRANSITION, WeatherState.SUNNY};
 
-	// Fog Dictionary
+	// Fog Attenuation Dictionary
 	private Dictionary<WeatherState, float> stateFogMap = new Dictionary<WeatherState, float>(){
 		{WeatherState.RAINY, FOG_RAINY},
 		{WeatherState.OVERCAST, FOG_OVERCAST},
 		{WeatherState.CLOUDY2, FOG_CLOUDY2},
 		{WeatherState.CLOUDY1, FOG_CLOUDY1},
 		{WeatherState.SUNNY, FOG_SUNNY}
+	};
+
+	// Fog Attenuation Dictionary
+	private Dictionary<WeatherState, float> stateFogMaxMap = new Dictionary<WeatherState, float>(){
+		{WeatherState.RAINY, FOG_MAX_HEIGHT_RAIN},
+		{WeatherState.OVERCAST, FOG_MAX_HEIGHT_RAIN},
+		{WeatherState.CLOUDY2, FOG_MAX_HEIGHT},
+		{WeatherState.CLOUDY1, FOG_MAX_HEIGHT},
+		{WeatherState.SUNNY, FOG_MAX_HEIGHT}
+	};
+
+	// Fog Attenuation Dictionary
+	private Dictionary<WeatherState, float> stateFogBaseMap = new Dictionary<WeatherState, float>(){
+		{WeatherState.RAINY, FOG_BASE_HEIGHT_RAIN},
+		{WeatherState.OVERCAST, FOG_BASE_HEIGHT_RAIN},
+		{WeatherState.CLOUDY2, FOG_BASE_HEIGHT},
+		{WeatherState.CLOUDY1, FOG_BASE_HEIGHT},
+		{WeatherState.SUNNY, FOG_BASE_HEIGHT}
 	};
 
 	// Noise Values
@@ -33,6 +51,7 @@ public class WeatherCast{
 	private float minTransitionValue;
 
 	// Constants
+	// --- Fog Attenuation
 	private static readonly float MAX_FOG_RANDOM = -4f;
 	private static readonly float MIN_FOG_RANDOM = 0f;
 	private static readonly float FOG_SUNNY = 0f;
@@ -40,13 +59,23 @@ public class WeatherCast{
 	private static readonly float FOG_CLOUDY2 = -2f;
 	private static readonly float FOG_OVERCAST = -3.5f;
 	private static readonly float FOG_RAINY = -6f;
+	// ---- Fog Height
+	private static readonly float FOG_MAX_HEIGHT = 0f;
+	private static readonly float FOG_MAX_HEIGHT_RAIN = 380f;
+	// ---- Fog Base
+	private static readonly float FOG_BASE_HEIGHT = 0f;
+	private static readonly float FOG_BASE_HEIGHT_RAIN = 300f;
 
 	// Parameters
 	private float fogFromWeather;
 	private float fogFromRandomness;
+	private float maximumHeight;
+	private float baseHeight;
 
 	// Calculates the entire fog value for Random Fog and Weather Fog
 	public float GetAdditionalFog(){return fogFromRandomness+fogFromWeather;}
+	public float GetMaximumHeight(){return maximumHeight;}
+	public float GetBaseHeight(){return baseHeight;}
 
 	// Sets calculation for Fog Noise
 	public void SetFogNoise(int totalTicks, uint days){
@@ -66,9 +95,13 @@ public class WeatherCast{
 
 		if(state == WeatherState.TRANSITION){
 			this.fogFromWeather = Mathf.Lerp(stateFogMap[this.initTransitionState], stateFogMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
+			this.maximumHeight = Mathf.Lerp(stateFogMaxMap[this.initTransitionState], stateFogMaxMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
+			this.baseHeight = Mathf.Lerp(stateFogBaseMap[this.initTransitionState], stateFogBaseMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
 		}
 		else{
 			this.fogFromWeather = this.stateFogMap[state];
+			this.maximumHeight = this.stateFogMaxMap[state];
+			this.baseHeight = this.stateFogBaseMap[state];
 		}
 	}
 

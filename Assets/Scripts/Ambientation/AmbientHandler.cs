@@ -78,7 +78,7 @@ public class AmbientHandler : MonoBehaviour
         weatherCast.SetWeatherNoise(this.timer.ToSeconds(), this.timer.days);
 
         SetStats(this.timer.ToSeconds());
-        ApplyFogChanges(0, this.timer.ToSeconds(), (int)this.timer.GetFakeTicks(), this.timer.days, currentPreset.IsSurface(), false);
+        ApplyWeatherChanges(0, this.timer.ToSeconds(), (int)this.timer.GetFakeTicks(), this.timer.days, currentPreset.IsSurface(), false);
     }
 
     void Update(){
@@ -101,7 +101,7 @@ public class AmbientHandler : MonoBehaviour
 
             if(currentTick != lastTick){
                 SetStats(time);
-                ApplyFogChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
+                ApplyWeatherChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
             }
 
             lastAmbient = currentAmbient;
@@ -114,7 +114,7 @@ public class AmbientHandler : MonoBehaviour
 
             if(currentTick != lastTick){
                 LerpStatus(time);
-                ApplyFogChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
+                ApplyWeatherChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
             }
             
             if(this.updateTimer == FRAMES_TO_CHANGE){
@@ -129,20 +129,29 @@ public class AmbientHandler : MonoBehaviour
     }
 
     // Sets and changes Fog Attenuation based on Biome and Weather component
-    private void ApplyFogChanges(float currentStep, int time, int currentTick, uint days, bool isSurface, bool isTransition){
+    private void ApplyWeatherChanges(float currentStep, int time, int currentTick, uint days, bool isSurface, bool isTransition){
         if(currentTick % 12 == 5){
             if(!isSurface){
                 this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
+                this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(time);
+                //this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(time);
                 return;
             }
 
             weatherCast.SetFogNoise((int)((days*TimeOfDay.ticksForMinute*1440) + (time*TimeOfDay.ticksForMinute+currentTick)), days);
             weatherCast.SetWeatherNoise((int)((days*1440) + time), days);
+            weatherCast.Print();
 
-            if(isTransition)
+            if(isTransition){
                 this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());
-            else
+                this.fog.maximumHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogMaxHeight(time), currentPreset.GetFogMaxHeight(time), currentStep), this.weatherCast.GetMaximumHeight());
+                this.fog.baseHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogBaseHeight(time), currentPreset.GetFogBaseHeight(time), currentStep), this.weatherCast.GetBaseHeight());
+            }
+            else{
                 this.fog.meanFreePath.value = AddFog(currentPreset.GetFogAttenuation(time), this.weatherCast.GetAdditionalFog());
+                this.fog.maximumHeight.value = AddFog(currentPreset.GetFogMaxHeight(time), this.weatherCast.GetMaximumHeight());
+                this.fog.baseHeight.value = AddFog(currentPreset.GetFogBaseHeight(time), this.weatherCast.GetBaseHeight());
+            }
         }
     }
 
@@ -155,7 +164,6 @@ public class AmbientHandler : MonoBehaviour
             this.pbsky.zenithTint.value = Color.Lerp(lastPreset.GetZenithTint(time), currentPreset.GetZenithTint(time), currentStep);
         }
         else if(currentTick % 6 == 1){
-            this.fog.baseHeight.value = Mathf.Lerp(lastPreset.GetFogBaseHeight(time), currentPreset.GetFogBaseHeight(time), currentStep);
             this.fog.albedo.value = Color.Lerp(lastPreset.GetFogAlbedo(time), currentPreset.GetFogAlbedo(time), currentStep);
             this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);            
         }
@@ -203,6 +211,7 @@ public class AmbientHandler : MonoBehaviour
         }
         else if(currentTick % 6 == 1){
             this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(finalTime);
+            this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(finalTime);
             this.fog.albedo.value = currentPreset.GetFogAlbedo(finalTime);
             this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime);
         }
