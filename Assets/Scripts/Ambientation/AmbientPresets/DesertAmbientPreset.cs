@@ -13,7 +13,6 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		this.zenithTintSunset = new Color(.72f, .34f, .03f);
 		this.zenithTintNight = new Color(.82f, .74f, .71f);
 
-		this.fogAttenuation1 = 8f;
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = .25f;
 

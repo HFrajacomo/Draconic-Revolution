@@ -8,7 +8,7 @@ public class HellAmbientPreset: BaseAmbientPreset{
 		this.cloudTintDay = new Color(1f, 1f, 1f);
 		this.gainDay = new float4(0.6981132f, 0.3062477f, 0.3062477f, 0.6392157f);
 
-		this.fogAttenuation1 = 2.8f;
+		this.fogAttenuation = 2.8f;
 		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
 		this.fogAlbedo = new Color(.51f, .08f, .08f);
 		this.fogAmbientLight = 0f;
@@ -27,7 +27,10 @@ public class HellAmbientPreset: BaseAmbientPreset{
 		return SUN_DIAMETER_UNDERGROUND;
 	}
 
-	public override float GetBaseFogHeight(float t){
+	public override float GetFogBaseHeight(float t){
 		return this.fogBaseHeight;
+	}
+	public override float GetFogAttenuation(float t){
+		return this.fogAttenuation;
 	}
 }

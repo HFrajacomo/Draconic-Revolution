@@ -31,6 +31,21 @@ public static class NoiseMaker
         return Lerp(u, Grad(GenerationSeed.patchNoise[X], x), Grad(GenerationSeed.patchNoise[X+1], x-1));
     }
 
+    public static float WeatherNoise(float x, float y){
+        int X = Mathf.FloorToInt(x) & 0xff;
+        int Y = Mathf.FloorToInt(y) & 0xff;
+        x -= Mathf.Floor(x);
+        y -= Mathf.Floor(y);
+
+        float u = Fade(x);
+        float v = Fade(y);
+
+        int A = (GenerationSeed.weatherNoise[X  ] + Y) & 0xff;
+        int B = (GenerationSeed.weatherNoise[X+1] + Y) & 0xff;
+        return Lerp(v, Lerp(u, Grad(GenerationSeed.weatherNoise[A  ], x, y  ), Grad(GenerationSeed.weatherNoise[B  ], x-1, y  )),
+                       Lerp(u, Grad(GenerationSeed.weatherNoise[A+1], x, y-1), Grad(GenerationSeed.weatherNoise[B+1], x-1, y-1)));
+    }
+
     public static float PatchNoise2D(float x, float y, NativeArray<byte> noiseMap){
         int X = Mathf.FloorToInt(x) & 0xff;
         int Y = Mathf.FloorToInt(y) & 0xff;

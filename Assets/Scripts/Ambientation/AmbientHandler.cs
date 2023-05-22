@@ -7,6 +7,9 @@ using Unity.Mathematics;
 
 public class AmbientHandler : MonoBehaviour
 {
+    // Weather Reference
+    public WeatherCast weatherCast = new WeatherCast();
+
     // Unity References
     public GameObject lightObject;
 	public Transform skyboxLight;
@@ -71,13 +74,19 @@ public class AmbientHandler : MonoBehaviour
 
         ROTATE_SUN_FLAG = 0;
 
+        weatherCast.SetFogNoise(this.timer.ToSeconds()*TimeOfDay.ticksForMinute, this.timer.days);
+        weatherCast.SetWeatherNoise(this.timer.ToSeconds(), this.timer.days);
+
         SetStats(this.timer.ToSeconds());
+        ApplyFogChanges(0, this.timer.ToSeconds(), (int)this.timer.GetFakeTicks(), this.timer.days, currentPreset.IsSurface(), false);
     }
 
     void Update(){
         int time = timer.ToSeconds();
         currentTick = (int)timer.GetFakeTicks();
         delta += Time.deltaTime/2;
+
+        ApplyFogChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
 
         if(!isTransitioning){
             currentAmbient = BiomeHandler.GetAmbientGroup(BiomeHandler.BiomeToByte(playerPositionHandler.GetCurrentBiome()));
@@ -92,8 +101,9 @@ public class AmbientHandler : MonoBehaviour
                 delta = 0f;
             }
 
-            if(currentTick != lastTick)
+            if(currentTick != lastTick){
                 SetStats(time);
+            }
 
             lastAmbient = currentAmbient;
             lastTick = currentTick;
@@ -117,6 +127,23 @@ public class AmbientHandler : MonoBehaviour
         } 
     }
 
+    // Sets and changes Fog Attenuation based on Biome and Weather component
+    private void ApplyFogChanges(float currentStep, int time, int currentTick, uint days, bool isSurface, bool isTransition){
+        if(currentTick % 6 == 1){
+            if(!isSurface){
+                this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
+                return;
+            }
+
+            weatherCast.SetFogNoise((int)((days*TimeOfDay.ticksForMinute*1440) + (time*TimeOfDay.ticksForMinute+currentTick)), days);
+
+            if(isTransition)
+                this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());
+            else
+                this.fog.meanFreePath.value = AddFog(currentPreset.GetFogAttenuation(time), this.weatherCast.GetAdditionalFog());
+        }
+    }
+
     // Calculates the status of ambientation features while there's a change in preset happening
     private void LerpStatus(int time){
         float currentStep = (float)this.updateTimer/FRAMES_TO_CHANGE;
@@ -126,8 +153,7 @@ public class AmbientHandler : MonoBehaviour
             this.pbsky.zenithTint.value = Color.Lerp(lastPreset.GetZenithTint(time), currentPreset.GetZenithTint(time), currentStep);
         }
         else if(currentTick % 6 == 1){
-            this.fog.meanFreePath.value = Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep);
-            this.fog.baseHeight.value = Mathf.Lerp(lastPreset.GetBaseFogHeight(time), currentPreset.GetBaseFogHeight(time), currentStep);
+            this.fog.baseHeight.value = Mathf.Lerp(lastPreset.GetFogBaseHeight(time), currentPreset.GetFogBaseHeight(time), currentStep);
             this.fog.albedo.value = Color.Lerp(lastPreset.GetFogAlbedo(time), currentPreset.GetFogAlbedo(time), currentStep);
             this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);            
         }
@@ -174,8 +200,7 @@ public class AmbientHandler : MonoBehaviour
             }
         }
         else if(currentTick % 6 == 1){
-            this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(finalTime);
-            this.fog.baseHeight.value = currentPreset.GetBaseFogHeight(finalTime);
+            this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(finalTime);
             this.fog.albedo.value = currentPreset.GetFogAlbedo(finalTime);
             this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime);
         }
@@ -208,6 +233,14 @@ public class AmbientHandler : MonoBehaviour
     private void TransformDelta(){
         if(this.delta > 1f)
             this.delta = 1f;
+    }
+
+    // An operation that adds Biome fog to Random and Weather fog only if in surface chunks
+    private float AddFog(float biomeFog, float additionalFog){
+        if(this.currentPreset.IsSurface()){
+            return biomeFog+additionalFog;
+        }
+        return biomeFog;
     }
 
     private float4 LerpFloat4(float4 a, float4 b, float t){

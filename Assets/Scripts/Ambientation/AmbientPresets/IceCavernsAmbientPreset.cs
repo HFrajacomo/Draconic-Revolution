@@ -8,10 +8,10 @@ public class IceCavernsAmbientPreset: BaseAmbientPreset{
 		this.cloudTintDay = Color.white;
 		this.gainDay = new float4(.6f, .65f, .68f, 0f);
 
-		this.fogAttenuation1 = 8f;
+		this.fogAttenuation = 8f;
 		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
 		this.fogAlbedo = Color.white;
-		this.fogAmbientLight = .25f;
+		this.fogAmbientLight = .2f;
 
 		this.wbTemperature = -7f;
 		this.wbTint = 0f;
@@ -26,7 +26,10 @@ public class IceCavernsAmbientPreset: BaseAmbientPreset{
 	public override float GetSunDiameter(float t){
 		return SUN_DIAMETER_UNDERGROUND;
 	}
-	public override float GetBaseFogHeight(float t){
+	public override float GetFogBaseHeight(float t){
 		return this.fogBaseHeight;
+	}
+	public override float GetFogAttenuation(float t){
+		return this.fogAttenuation;
 	}
 }

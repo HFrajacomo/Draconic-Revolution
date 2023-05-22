@@ -8,7 +8,7 @@ public class CoreAmbientPreset: BaseAmbientPreset{
 		this.cloudTintDay = new Color(1f, 1f, 1f);
 		this.gainDay = new float4(0f, 0f, 0f, 0f);
 
-		this.fogAttenuation1 = 12f;
+		this.fogAttenuation = 12f;
 		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = 0.12f;
@@ -25,7 +25,10 @@ public class CoreAmbientPreset: BaseAmbientPreset{
 	public override float GetSunDiameter(float t){
 		return SUN_DIAMETER_UNDERGROUND;
 	}
-	public override float GetBaseFogHeight(float t){
+	public override float GetFogBaseHeight(float t){
 		return this.fogBaseHeight;
+	}
+	public override float GetFogAttenuation(float t){
+		return this.fogAttenuation;
 	}
 }

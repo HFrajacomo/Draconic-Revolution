@@ -13,7 +13,6 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.zenithTintSunset = new Color(.42f, .15f, .05f);
 		this.zenithTintNight = new Color(.13f, .13f, .13f);
 
-		this.fogAttenuation1 = 8f;
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = .25f;
 

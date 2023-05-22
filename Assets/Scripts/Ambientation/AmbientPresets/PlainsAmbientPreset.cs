@@ -13,7 +13,6 @@ public class PlainsAmbientPreset: BaseAmbientPreset{
 		this.zenithTintSunset = new Color(.82f, .15f, .2f);
 		this.zenithTintNight = new Color(.28f, .28f, .28f);
 		
-		this.fogAttenuation1 = 8f;
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = .25f;
 

@@ -20,6 +20,11 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float FLOOR_LIGHTING_UNDERGROUND = 4f;
 	protected static readonly float BASE_FOG_HEIGHT_SURFACE = 700f;
 	protected static readonly float BASE_FOG_HEIGHT_UNDERGROUND = 0;
+	protected static readonly float FOG_ATTENUATION_SUNRISE = 6f;
+	protected static readonly float FOG_ATTENUATION_DAY = 10f;
+	protected static readonly float FOG_ATTENUATION_SUNSET = 8f;
+	protected static readonly float FOG_ATTENUATION_NIGHT = 7f;
+
 
 	// General
 	protected bool isSurface;
@@ -39,8 +44,7 @@ public abstract class BaseAmbientPreset{
 	protected Color zenithTintNight;
 
 	// Fog
-	protected float fogAttenuation1;
-	protected float fogAttenuation2;
+	protected float fogAttenuation;
 	protected Color fogAlbedo;
 	protected float fogAmbientLight;
 	protected float fogBaseHeight;
@@ -112,9 +116,10 @@ public abstract class BaseAmbientPreset{
 	public virtual float4 GetGain(float t){return this.gainDay;}
 	public virtual Color GetHorizonTint(float t){return this.horizonTintDay;}
 	public virtual Color GetZenithTint(float t){return this.zenithTintDay;}
-	public virtual float GetFogAttenuation(float t){return this.fogAttenuation1;}
+	public virtual float GetFogAttenuation(float t){return BehaviourLerp4(FOG_ATTENUATION_SUNRISE, FOG_ATTENUATION_DAY, FOG_ATTENUATION_SUNSET, FOG_ATTENUATION_NIGHT, t);}
 	public virtual Color GetFogAlbedo(float t){return this.fogAlbedo;}
 	public virtual float GetFogAmbientLight(float t){return this.fogAmbientLight;}
+	public virtual float GetFogBaseHeight(float t){return BASE_FOG_HEIGHT_SURFACE;}
 	public virtual Color GetCloudTint(float t){return this.cloudTintDay;}
 	public virtual float GetWhiteBalanceTemperature(){return this.wbTemperature;}
 	public virtual float GetWhiteBalanceTint(){return this.wbTint;}
@@ -123,7 +128,6 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
 	public virtual Color GetSunColor(float t){return this.sunColor;}
 	public virtual float GetFloorLighting(float t){return FLOOR_LIGHTING_UNDERGROUND;}
-	public virtual float GetBaseFogHeight(float t){return BASE_FOG_HEIGHT_SURFACE;}
 	public bool IsSurface(){return this.isSurface;}
 	public bool HasFlare(){return this.hasFlare;}
 
@@ -249,8 +253,7 @@ public abstract class BaseAmbientPreset{
     	zenithTintSunset = att.zenithTint_sunset;
     	zenithTintNight = att.zenithTint_night;
     	
-    	fogAttenuation1 = att.fogAttenuation1;
-    	fogAttenuation2 = att.fogAttenuation2;
+    	fogAttenuation = att.fogAttenuation;
     	fogAlbedo = att.fogAlbedo;
     	fogBaseHeight = att.fogBaseHeight;
     	fogAmbientLight = att.fogAmbientLight;
@@ -289,8 +292,7 @@ public abstract class BaseAmbientPreset{
 	public Color _zt_sr(){return zenithTintSunrise;}
 	public Color _zt_ss(){return zenithTintSunset;}
 	public Color _zt_n(){return zenithTintNight;}
-	public float _fa1(){return fogAttenuation1;}
-	public float _fa2(){return fogAttenuation2;}
+	public float _fa(){return fogAttenuation;}
 	public Color _falb(){return fogAlbedo;}
 	public float _fbh(){return fogBaseHeight;}
 	public float _fal(){return fogAmbientLight;}
