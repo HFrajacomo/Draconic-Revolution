@@ -230,7 +230,7 @@ public class AmbientHandler : MonoBehaviour
 
             if(currentPreset.HasFlare()){
                 SetFlare(time);
-                SetLensFlareIntensity(time);
+                SetLensFlareIntensity(time, this.weatherCast);
             }
             else{
                 DisableFlare();
@@ -315,25 +315,25 @@ public class AmbientHandler : MonoBehaviour
     }
 
     // Sets Lens Flare intensity
-    private void SetLensFlareIntensity(int x){
+    private void SetLensFlareIntensity(int x, WeatherCast wc){
         if(x >= 180 && x < 240){
-            nightFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-180)/60f);
+            nightFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-180)/60f) * wc.GetFlareMultiplier();
         }
         else if(x >= 1200 && x < 1260){
-            nightFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-1200)/60f);
+            nightFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-1200)/60f) * wc.GetFlareMultiplier();
         }
         else{
-            nightFlare.intensity = 1f;
+            nightFlare.intensity = 1f * wc.GetFlareMultiplier();
         }
 
         if(x >= 240 && x <= 300){
-            dayFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-240)/60f);
+            dayFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-240)/60f) * wc.GetFlareMultiplier();
         }
         else if(x >= 1140 && x < 1200){
-            dayFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-1140)/60f);
+            dayFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-1140)/60f) * wc.GetFlareMultiplier();
         }
         else{
-            dayFlare.intensity = 1f;
+            dayFlare.intensity = 1f * wc.GetFlareMultiplier();
         }
     }
 }

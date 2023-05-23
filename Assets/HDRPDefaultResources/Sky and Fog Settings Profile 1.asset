@@ -166,7 +166,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: -7
   tint:
     m_OverrideState: 1
     m_Value: 0
@@ -225,7 +225,7 @@ MonoBehaviour:
     m_Value: 1
   layers:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   resolution:
     m_OverrideState: 0
     m_Value: 1024
@@ -262,9 +262,9 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.28766665, g: 0.23788889, b: 0.1435, a: 1}
+      m_Value: {r: 0.54469955, g: 0.54469955, b: 0.54469955, a: 1}
     exposure:
-      m_OverrideState: 1
+      m_OverrideState: 0
       m_Value: 0
     distortionMode:
       m_OverrideState: 1
@@ -288,13 +288,13 @@ MonoBehaviour:
       m_Value: {fileID: 0}
     lighting:
       m_OverrideState: 1
-      m_Value: 0
+      m_Value: 1
     steps:
       m_OverrideState: 0
       m_Value: 3
     thickness:
       m_OverrideState: 1
-      m_Value: 0.1
+      m_Value: 0.2
     castShadows:
       m_OverrideState: 1
       m_Value: 1
@@ -303,25 +303,25 @@ MonoBehaviour:
       m_OverrideState: 1
       m_Value: {fileID: 2800000, guid: 57a33fc2476a01644865bfde5f06e2f4, type: 3}
     opacityR:
-      m_OverrideState: 1
-      m_Value: 1
+      m_OverrideState: 0
+      m_Value: 0
     opacityG:
       m_OverrideState: 0
       m_Value: 0
     opacityB:
-      m_OverrideState: 0
-      m_Value: 0
-    opacityA:
       m_OverrideState: 1
       m_Value: 1
+    opacityA:
+      m_OverrideState: 1
+      m_Value: 0.2
     rotation:
       m_OverrideState: 1
       m_Value: 251
     tint:
-      m_OverrideState: 0
-      m_Value: {r: 1, g: 1, b: 1, a: 1}
+      m_OverrideState: 1
+      m_Value: {r: 0, g: 0, b: 0, a: 0}
     exposure:
-      m_OverrideState: 0
+      m_OverrideState: 1
       m_Value: 0
     distortionMode:
       m_OverrideState: 1
@@ -525,13 +525,13 @@ MonoBehaviour:
     m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 7.9777775
+    m_Value: 6.4888887
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
   albedo:
     m_OverrideState: 1
-    m_Value: {r: 0.764151, g: 0.764151, b: 0.764151, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 0}
   globalLightProbeDimmer:
     m_OverrideState: 1
     m_Value: 0.25
@@ -688,10 +688,10 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.8794444, g: 0.38833335, b: 0.079222225, a: 1}
+    m_Value: {r: 0.5985809, g: 0.78894216, b: 0.6445926, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0.3437778, g: 0.6172222, b: 0.68655556, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   horizonZenithShift:
     m_OverrideState: 1
     m_Value: 0
@@ -1147,7 +1147,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 0.7415556, y: 0.60044444, z: 0.32866666, w: 0.07911111}
+    m_Value: {x: 0.7372067, y: 0.6188167, z: 0.45547992, w: 0.004365668}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3

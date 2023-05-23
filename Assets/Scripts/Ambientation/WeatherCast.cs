@@ -77,6 +77,15 @@ public class WeatherCast{
 		{WeatherState.SUNNY, CLOUD_GLOBAL_OPACITY_MIN}
 	};
 
+	// Flare Intensity Dictionary
+	private Dictionary<WeatherState, float> stateFlareIntensityMap = new Dictionary<WeatherState, float>(){
+		{WeatherState.RAINY, FLARE_INTENSITY_MULTIPLIER_MIN},
+		{WeatherState.OVERCAST, FLARE_INTENSITY_MULTIPLIER_MID},
+		{WeatherState.CLOUDY2, FLARE_INTENSITY_MULTIPLIER_MAX},
+		{WeatherState.CLOUDY1, FLARE_INTENSITY_MULTIPLIER_MAX},
+		{WeatherState.SUNNY, FLARE_INTENSITY_MULTIPLIER_MAX}
+	};
+
 	// Noise Values
 	private float weatherNoise = -10;
 	private float fogNoise;
@@ -114,7 +123,10 @@ public class WeatherCast{
 	private static readonly float CLOUD_LOCAL_OPACITY_OVERCAST = 1f;
 	private static readonly float CLOUD_GLOBAL_OPACITY_MAX = 0.2f;
 	private static readonly float CLOUD_GLOBAL_OPACITY_MIN = 0f;
-
+	// ---- Flare Intensity
+	private static readonly float FLARE_INTENSITY_MULTIPLIER_MAX = 1f;
+	private static readonly float FLARE_INTENSITY_MULTIPLIER_MID = .5f;
+	private static readonly float FLARE_INTENSITY_MULTIPLIER_MIN = .1f;
 
 	// Parameters
 	// ---- Fog
@@ -127,6 +139,8 @@ public class WeatherCast{
 	private float layerBMultiplier;
 	private float cloudsLocalOpacity;
 	private float cloudsGlobalOpacity;
+	// ---- Flare
+	private float flareIntensityMultiplier;
 
 
 	// Calculates the entire fog value for Random Fog and Weather Fog
@@ -137,6 +151,7 @@ public class WeatherCast{
 	public float GetCloudBMultiplier(){return layerBMultiplier;}
 	public float GetCloudLocalOpacity(){return cloudsLocalOpacity;}
 	public float GetCloudGlobalOpacity(){return cloudsGlobalOpacity;}
+	public float GetFlareMultiplier(){return flareIntensityMultiplier;}
 
 	// Sets calculation for Fog Noise
 	public void SetFogNoise(int totalTicks, uint days){
@@ -162,6 +177,7 @@ public class WeatherCast{
 			this.layerBMultiplier = Mathf.Lerp(stateCloudBMap[this.initTransitionState], stateCloudBMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
 			this.cloudsLocalOpacity = Mathf.Lerp(stateCloudLocalOpacityMap[this.initTransitionState], stateCloudLocalOpacityMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
 			this.cloudsGlobalOpacity = Mathf.Lerp(stateCloudGlobalOpacityMap[this.initTransitionState], stateCloudGlobalOpacityMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
+			this.flareIntensityMultiplier = Mathf.Lerp(stateFlareIntensityMap[this.initTransitionState], stateFlareIntensityMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
 		}
 		else{
 			this.fogFromWeather = this.stateFogMap[state];
@@ -171,6 +187,7 @@ public class WeatherCast{
 			this.layerBMultiplier = this.stateCloudBMap[state];
 			this.cloudsLocalOpacity = this.stateCloudLocalOpacityMap[state];
 			this.cloudsGlobalOpacity = this.stateCloudGlobalOpacityMap[state];
+			this.flareIntensityMultiplier = this.stateFlareIntensityMap[state];
 		}
 	}
 
