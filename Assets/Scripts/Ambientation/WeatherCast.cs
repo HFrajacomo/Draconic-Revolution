@@ -10,7 +10,7 @@ using UnityEngine;
 */
 public class WeatherCast{
 	// Splines
-	private float[] lerpX = new float[]{-1f, -.65f, -.55f, -.25f, -.15f, .05f, 0.15f, .55f, .65f, 1.1f};
+	private float[] lerpX = new float[]{-1f, -.55f, -.45f, -.35f, -.25f, -.05f, 0.05f, .45f, .55f, 1.1f};
 	private WeatherState[] lerpY = new WeatherState[]{WeatherState.RAINY, WeatherState.TRANSITION, WeatherState.OVERCAST,
 		WeatherState.TRANSITION, WeatherState.CLOUDY2, WeatherState.TRANSITION,  WeatherState.CLOUDY1, WeatherState.TRANSITION, WeatherState.SUNNY};
 
@@ -41,6 +41,42 @@ public class WeatherCast{
 		{WeatherState.SUNNY, FOG_BASE_HEIGHT}
 	};
 
+	// Fog Color Dictionary
+	private Dictionary<WeatherState, Color> stateFogColorMap = new Dictionary<WeatherState, Color>(){
+		{WeatherState.RAINY, FOG_COLOR_RAIN},
+		{WeatherState.OVERCAST, FOG_COLOR_NORMAL},
+		{WeatherState.CLOUDY2, FOG_COLOR_NORMAL},
+		{WeatherState.CLOUDY1, FOG_COLOR_NORMAL},
+		{WeatherState.SUNNY, FOG_COLOR_NORMAL}
+	};
+
+	// Cloud B Multiplier Dictionary
+	private Dictionary<WeatherState, float> stateCloudBMap = new Dictionary<WeatherState, float>(){
+		{WeatherState.RAINY, CLOUD_BLAYER_SHOW},
+		{WeatherState.OVERCAST, CLOUD_BLAYER_SHOW},
+		{WeatherState.CLOUDY2, CLOUD_BLAYER_SHOW},
+		{WeatherState.CLOUDY1, CLOUD_BLAYER_HIDE},
+		{WeatherState.SUNNY, CLOUD_BLAYER_HIDE}
+	};
+
+	// Cloud Local Opacity Dictionary
+	private Dictionary<WeatherState, float> stateCloudLocalOpacityMap = new Dictionary<WeatherState, float>(){
+		{WeatherState.RAINY, CLOUD_LOCAL_OPACITY_OVERCAST},
+		{WeatherState.OVERCAST, CLOUD_LOCAL_OPACITY_CLOUDY},
+		{WeatherState.CLOUDY2, CLOUD_LOCAL_OPACITY_NORMAL},
+		{WeatherState.CLOUDY1, CLOUD_LOCAL_OPACITY_NORMAL},
+		{WeatherState.SUNNY, CLOUD_LOCAL_OPACITY_NORMAL}
+	};
+
+	// Cloud Global Opacity Dictionary
+	private Dictionary<WeatherState, float> stateCloudGlobalOpacityMap = new Dictionary<WeatherState, float>(){
+		{WeatherState.RAINY, CLOUD_GLOBAL_OPACITY_MAX},
+		{WeatherState.OVERCAST, CLOUD_GLOBAL_OPACITY_MAX},
+		{WeatherState.CLOUDY2, CLOUD_GLOBAL_OPACITY_MAX},
+		{WeatherState.CLOUDY1, CLOUD_GLOBAL_OPACITY_MAX},
+		{WeatherState.SUNNY, CLOUD_GLOBAL_OPACITY_MIN}
+	};
+
 	// Noise Values
 	private float weatherNoise = -10;
 	private float fogNoise;
@@ -57,27 +93,50 @@ public class WeatherCast{
 	private static readonly float FOG_SUNNY = 0f;
 	private static readonly float FOG_CLOUDY1 = -1f;
 	private static readonly float FOG_CLOUDY2 = -2f;
-	private static readonly float FOG_OVERCAST = -1.5f;
-	private static readonly float FOG_RAINY = -4f;
+	private static readonly float FOG_OVERCAST = -3f;
+	private static readonly float FOG_RAINY = -5f;
 	// ---- Fog Height
 	private static readonly float FOG_MAX_HEIGHT = 0f;
-	private static readonly float FOG_MAX_HEIGHT_OVERCAST = 180f;
-	private static readonly float FOG_MAX_HEIGHT_RAIN = 250f;
+	private static readonly float FOG_MAX_HEIGHT_OVERCAST = 80f;
+	private static readonly float FOG_MAX_HEIGHT_RAIN = 120f;
 	// ---- Fog Base
 	private static readonly float FOG_BASE_HEIGHT = 0f;
-	private static readonly float FOG_BASE_HEIGHT_RAIN = 300f;
+	private static readonly float FOG_BASE_HEIGHT_RAIN = 100f;
+	// ---- Fog Albedo (subtractive)
+	private static readonly Color FOG_COLOR_NORMAL = Color.black;
+	private static readonly Color FOG_COLOR_RAIN = new Color(.24f, .24f, .24f);
+	// ---- Cloud B Tint
+	private static readonly float CLOUD_BLAYER_HIDE = 0f;
+	private static readonly float CLOUD_BLAYER_SHOW = 1f;
+	// ---- Cloud Opacity
+	private static readonly float CLOUD_LOCAL_OPACITY_NORMAL = 0.2f;
+	private static readonly float CLOUD_LOCAL_OPACITY_CLOUDY = 0.5f;
+	private static readonly float CLOUD_LOCAL_OPACITY_OVERCAST = 1f;
+	private static readonly float CLOUD_GLOBAL_OPACITY_MAX = 0.2f;
+	private static readonly float CLOUD_GLOBAL_OPACITY_MIN = 0f;
 
 
 	// Parameters
+	// ---- Fog
 	private float fogFromWeather;
 	private float fogFromRandomness;
 	private float maximumHeight;
 	private float baseHeight;
+	private Color fogColor;
+	// ---- Clouds
+	private float layerBMultiplier;
+	private float cloudsLocalOpacity;
+	private float cloudsGlobalOpacity;
+
 
 	// Calculates the entire fog value for Random Fog and Weather Fog
 	public float GetAdditionalFog(){return fogFromRandomness+fogFromWeather;}
 	public float GetMaximumHeight(){return maximumHeight;}
 	public float GetBaseHeight(){return baseHeight;}
+	public Color GetSubtractiveFogColor(){return fogColor;}
+	public float GetCloudBMultiplier(){return layerBMultiplier;}
+	public float GetCloudLocalOpacity(){return cloudsLocalOpacity;}
+	public float GetCloudGlobalOpacity(){return cloudsGlobalOpacity;}
 
 	// Sets calculation for Fog Noise
 	public void SetFogNoise(int totalTicks, uint days){
@@ -94,17 +153,24 @@ public class WeatherCast{
 		this.weatherNoise = NoiseMaker.WeatherNoise(totalSeconds*GenerationSeed.weatherNoiseStep, days*GenerationSeed.weatherDayStep + World.worldSeed*GenerationSeed.weatherSeedStep);
 
 		WeatherState state = GetCurrentWeather(this.weatherNoise);
-		Debug.Log(state);
 
 		if(state == WeatherState.TRANSITION){
 			this.fogFromWeather = Mathf.Lerp(stateFogMap[this.initTransitionState], stateFogMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
 			this.maximumHeight = Mathf.Lerp(stateFogMaxMap[this.initTransitionState], stateFogMaxMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
 			this.baseHeight = Mathf.Lerp(stateFogBaseMap[this.initTransitionState], stateFogBaseMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
+			this.fogColor = Color.Lerp(stateFogColorMap[this.initTransitionState], stateFogColorMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
+			this.layerBMultiplier = Mathf.Lerp(stateCloudBMap[this.initTransitionState], stateCloudBMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
+			this.cloudsLocalOpacity = Mathf.Lerp(stateCloudLocalOpacityMap[this.initTransitionState], stateCloudLocalOpacityMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
+			this.cloudsGlobalOpacity = Mathf.Lerp(stateCloudGlobalOpacityMap[this.initTransitionState], stateCloudGlobalOpacityMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
 		}
 		else{
 			this.fogFromWeather = this.stateFogMap[state];
 			this.maximumHeight = this.stateFogMaxMap[state];
 			this.baseHeight = this.stateFogBaseMap[state];
+			this.fogColor = this.stateFogColorMap[state];
+			this.layerBMultiplier = this.stateCloudBMap[state];
+			this.cloudsLocalOpacity = this.stateCloudLocalOpacityMap[state];
+			this.cloudsGlobalOpacity = this.stateCloudGlobalOpacityMap[state];
 		}
 	}
 

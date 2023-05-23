@@ -130,18 +130,22 @@ public class AmbientHandler : MonoBehaviour
 
     // Sets and changes Fog Attenuation based on Biome and Weather component
     private void ApplyWeatherChanges(float currentStep, int time, int currentTick, uint days, bool isSurface, bool isTransition){
-        if(currentTick % 6 == 5){
+        // Sampling the Weather Noise
+        if(currentTick % 6 == 0){
+            weatherCast.SetFogNoise((int)((days*TimeOfDay.ticksForMinute*1440) + (time*TimeOfDay.ticksForMinute+currentTick)), days);
+            weatherCast.SetWeatherNoise((int)((days*1440) + time), days);
+            weatherCast.Print();        
+        }
+
+        // Fog Shape and Density
+        else if(currentTick % 6 == 5){
             if(!isSurface){
                 this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
                 this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(time);
                 this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(time);
                 return;
             }
-
-            weatherCast.SetFogNoise((int)((days*TimeOfDay.ticksForMinute*1440) + (time*TimeOfDay.ticksForMinute+currentTick)), days);
-            weatherCast.SetWeatherNoise((int)((days*1440) + time), days);
-            weatherCast.Print();
-
+            
             if(isTransition){
                 this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());
                 this.fog.maximumHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogMaxHeight(time), currentPreset.GetFogMaxHeight(time), currentStep), this.weatherCast.GetMaximumHeight());
@@ -153,6 +157,30 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.baseHeight.value = AddFog(currentPreset.GetFogBaseHeight(time), this.weatherCast.GetBaseHeight());
             }
         }
+
+        // Fog Color and Clouds
+        else if(currentTick % 6 == 1){
+            // Runs everytime
+            this.clouds.layerA.opacityA.value = this.weatherCast.GetCloudLocalOpacity();
+            this.clouds.layerB.opacityA.value = this.weatherCast.GetCloudLocalOpacity();
+            this.clouds.opacity.value = this.weatherCast.GetCloudGlobalOpacity();
+
+            if(!isSurface){
+                this.fog.albedo.value = currentPreset.GetFogAlbedo(time);
+                this.clouds.layerB.tint.value = currentPreset.GetCloudTint(time);
+                return;
+            }
+            
+            if(isTransition){
+                this.fog.albedo.value = SubColor(Color.Lerp(lastPreset.GetFogAlbedo(time), currentPreset.GetFogAlbedo(time), currentStep), this.weatherCast.GetSubtractiveFogColor());
+                this.clouds.layerB.tint.value = MultiplyColor(Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep), this.weatherCast.GetCloudBMultiplier());
+      
+            }
+            else{
+                this.fog.albedo.value = SubColor(currentPreset.GetFogAlbedo(time), this.weatherCast.GetSubtractiveFogColor());
+                this.clouds.layerB.tint.value = MultiplyColor(currentPreset.GetCloudTint(time), this.weatherCast.GetCloudBMultiplier());      
+            }
+        }        
     }
 
     // Calculates the status of ambientation features while there's a change in preset happening
@@ -164,11 +192,10 @@ public class AmbientHandler : MonoBehaviour
             this.pbsky.zenithTint.value = Color.Lerp(lastPreset.GetZenithTint(time), currentPreset.GetZenithTint(time), currentStep);
         }
         else if(currentTick % 6 == 1){
-            this.fog.albedo.value = Color.Lerp(lastPreset.GetFogAlbedo(time), currentPreset.GetFogAlbedo(time), currentStep);
-            this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);            
+            this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);
+            this.clouds.layerA.tint.value = Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep);
         }
         else if(currentTick % 6 == 2){
-            this.clouds.layerA.tint.value = Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep);
             this.whiteBalance.temperature.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTemperature(), currentPreset.GetWhiteBalanceTemperature(), currentStep);
             this.whiteBalance.tint.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTint(), currentPreset.GetWhiteBalanceTint(), currentStep);
             this.lgg.gain.value = LerpFloat4(lastPreset.GetGain(time), currentPreset.GetGain(time), currentStep);     
@@ -210,11 +237,10 @@ public class AmbientHandler : MonoBehaviour
             }
         }
         else if(currentTick % 6 == 1){
-            this.fog.albedo.value = currentPreset.GetFogAlbedo(finalTime);
             this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime);
+            this.clouds.layerA.tint.value = currentPreset.GetCloudTint(finalTime);
         }
         else if(currentTick % 6 == 2){
-            this.clouds.layerA.tint.value = currentPreset.GetCloudTint(finalTime);
             this.whiteBalance.temperature.value = currentPreset.GetWhiteBalanceTemperature();
             this.whiteBalance.tint.value = currentPreset.GetWhiteBalanceTint();
             this.lgg.gain.value = currentPreset.GetGain(finalTime);
@@ -250,6 +276,16 @@ public class AmbientHandler : MonoBehaviour
             return biomeFog+additionalFog;
         }
         return biomeFog;
+    }
+
+    // Subtracts two color
+    private Color SubColor(Color main, Color sub){
+        return main - sub;
+    }
+
+    // Multiply color with scalar
+    private Color MultiplyColor(Color main, float scalar){
+        return main*scalar;
     }
 
     private float4 LerpFloat4(float4 a, float4 b, float t){
