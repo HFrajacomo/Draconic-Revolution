@@ -708,7 +708,9 @@ public class Client
 
 	// Receives weather Noise information from client
 	private void SendNoise(byte[] data){
-		Array.Copy(GenerationSeed.weatherNoise, 0, data, 1, data.Length-1);
+		Array.Copy(GenerationSeed.weatherNoise, 0, data, 1, data.Length-5);
+		int seed = NetDecoder.ReadInt(data, data.Length-4);
+		World.worldSeed = seed;
 	}
 
 	/* ================================================================================ */

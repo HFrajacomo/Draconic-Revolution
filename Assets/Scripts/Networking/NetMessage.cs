@@ -334,9 +334,10 @@ public struct NetMessage
 	}
 
 	// Server sends clients the bytes that composes a Noise (used for global weather noise)
-	public void SendNoise(byte[] noise){
+	public void SendNoise(byte[] noise, int seed){
 		NetDecoder.WriteByteArray(noise, NetMessage.buffer, 1);
-		this.size = 1+noise.Length;
+		NetDecoder.WriteInt(seed, NetMessage.buffer, 1+noise.Length);
+		this.size = 1+noise.Length+4;
 	}
 }
 

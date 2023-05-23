@@ -117,6 +117,7 @@ public static class GenerationSeed
     public static readonly float weatherNoiseStep = 0.006f;
     public static readonly float weatherDayStep = 0.09f;
     public static readonly float fogNoiseStep = 0.0002f;
+    public static readonly float weatherSeedStep = 0.0019f;
 
     public static void Initialize(int sed){
         seed = sed;

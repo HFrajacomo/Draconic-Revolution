@@ -11065,6 +11065,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1588378841}
   - component: {fileID: 1588378840}
+  - component: {fileID: 1588378842}
   m_Layer: 0
   m_Name: Skybox
   m_TagString: Untagged
@@ -11104,6 +11105,51 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1588378842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1588378839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f475cfea132777b48867b6f3b5a41789, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timer: {fileID: 1322082558}
+  volume: {fileID: 11400000, guid: d74700023676aee41bc60f65c5f83bf2, type: 2}
+  skyDirectionalLight: {fileID: 1484502057}
+  hdLight: {fileID: 1484502058}
+  stopTimeAt: -1
+  horizonTint_sunrise: {r: 0, g: 0, b: 0, a: 0}
+  horizonTint_day: {r: 0, g: 0, b: 0, a: 0}
+  horizonTint_sunset: {r: 0, g: 0, b: 0, a: 0}
+  horizonTint_night: {r: 0, g: 0, b: 0, a: 0}
+  zenithTint_sunrise: {r: 0, g: 0, b: 0, a: 0}
+  zenithTint_day: {r: 0, g: 0, b: 0, a: 0}
+  zenithTint_sunset: {r: 0, g: 0, b: 0, a: 0}
+  zenithTint_night: {r: 0, g: 0, b: 0, a: 0}
+  fogAttenuation: 0
+  fogAlbedo: {r: 0, g: 0, b: 0, a: 0}
+  fogBaseHeight: 0
+  fogAmbientLight: 0
+  fogMaximumHeight: 0
+  cloudTint_sunrise: {r: 0, g: 0, b: 0, a: 0}
+  cloudTint_day: {r: 0, g: 0, b: 0, a: 0}
+  cloudTint_sunset: {r: 0, g: 0, b: 0, a: 0}
+  cloudTint_night: {r: 0, g: 0, b: 0, a: 0}
+  wbTemperature: 0
+  wbTint: 0
+  gain_sunrise: {r: 0, g: 0, b: 0, a: 0}
+  gain_day: {r: 0, g: 0, b: 0, a: 0}
+  gain_sunset: {r: 0, g: 0, b: 0, a: 0}
+  gain_night: {r: 0, g: 0, b: 0, a: 0}
+  lightIntensity: 0
+  sunRotation:
+    x: 0
+    y: 0
+  sunColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &1589359174
 GameObject:
   m_ObjectHideFlags: 0

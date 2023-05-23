@@ -419,7 +419,7 @@ public class Server
 
 			// Sends global weather noise data
 			NetMessage weatherMessage = new NetMessage(NetCode.SENDNOISE);
-			weatherMessage.SendNoise(GenerationSeed.weatherNoise);
+			weatherMessage.SendNoise(GenerationSeed.weatherNoise, World.worldSeed);
 			this.Send(weatherMessage.GetMessage(), weatherMessage.size, id, temporary:true);
 		}
 

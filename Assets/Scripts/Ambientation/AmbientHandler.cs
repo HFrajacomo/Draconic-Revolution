@@ -130,7 +130,7 @@ public class AmbientHandler : MonoBehaviour
 
     // Sets and changes Fog Attenuation based on Biome and Weather component
     private void ApplyWeatherChanges(float currentStep, int time, int currentTick, uint days, bool isSurface, bool isTransition){
-        if(currentTick % 12 == 5){
+        if(currentTick % 6 == 5){
             if(!isSurface){
                 this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
                 this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(time);
@@ -140,6 +140,7 @@ public class AmbientHandler : MonoBehaviour
 
             weatherCast.SetFogNoise((int)((days*TimeOfDay.ticksForMinute*1440) + (time*TimeOfDay.ticksForMinute+currentTick)), days);
             weatherCast.SetWeatherNoise((int)((days*1440) + time), days);
+            weatherCast.Print();
 
             if(isTransition){
                 this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());
@@ -209,8 +210,6 @@ public class AmbientHandler : MonoBehaviour
             }
         }
         else if(currentTick % 6 == 1){
-            this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(finalTime);
-            this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(finalTime);
             this.fog.albedo.value = currentPreset.GetFogAlbedo(finalTime);
             this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime);
         }

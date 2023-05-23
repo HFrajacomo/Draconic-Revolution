@@ -129,7 +129,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
         // Send first player the weather information
         NetMessage weatherMessage = new NetMessage(NetCode.SENDNOISE);
-        weatherMessage.SendNoise(GenerationSeed.weatherNoise);
+        weatherMessage.SendNoise(GenerationSeed.weatherNoise, World.worldSeed);
         this.server.Send(weatherMessage.GetMessage(), weatherMessage.size, this.server.firstConnectedID);
 
         this.INITIALIZEDWORLD = true;

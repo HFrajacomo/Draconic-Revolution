@@ -23,16 +23,16 @@ public class WeatherCast{
 		{WeatherState.SUNNY, FOG_SUNNY}
 	};
 
-	// Fog Attenuation Dictionary
+	// Fog Max Height Dictionary
 	private Dictionary<WeatherState, float> stateFogMaxMap = new Dictionary<WeatherState, float>(){
 		{WeatherState.RAINY, FOG_MAX_HEIGHT_RAIN},
-		{WeatherState.OVERCAST, FOG_MAX_HEIGHT_RAIN},
+		{WeatherState.OVERCAST, FOG_MAX_HEIGHT_OVERCAST},
 		{WeatherState.CLOUDY2, FOG_MAX_HEIGHT},
 		{WeatherState.CLOUDY1, FOG_MAX_HEIGHT},
 		{WeatherState.SUNNY, FOG_MAX_HEIGHT}
 	};
 
-	// Fog Attenuation Dictionary
+	// Fog Base Height Dictionary
 	private Dictionary<WeatherState, float> stateFogBaseMap = new Dictionary<WeatherState, float>(){
 		{WeatherState.RAINY, FOG_BASE_HEIGHT_RAIN},
 		{WeatherState.OVERCAST, FOG_BASE_HEIGHT_RAIN},
@@ -57,14 +57,16 @@ public class WeatherCast{
 	private static readonly float FOG_SUNNY = 0f;
 	private static readonly float FOG_CLOUDY1 = -1f;
 	private static readonly float FOG_CLOUDY2 = -2f;
-	private static readonly float FOG_OVERCAST = -3.5f;
-	private static readonly float FOG_RAINY = -6f;
+	private static readonly float FOG_OVERCAST = -1.5f;
+	private static readonly float FOG_RAINY = -4f;
 	// ---- Fog Height
 	private static readonly float FOG_MAX_HEIGHT = 0f;
-	private static readonly float FOG_MAX_HEIGHT_RAIN = 380f;
+	private static readonly float FOG_MAX_HEIGHT_OVERCAST = 180f;
+	private static readonly float FOG_MAX_HEIGHT_RAIN = 250f;
 	// ---- Fog Base
 	private static readonly float FOG_BASE_HEIGHT = 0f;
 	private static readonly float FOG_BASE_HEIGHT_RAIN = 300f;
+
 
 	// Parameters
 	private float fogFromWeather;
@@ -79,7 +81,7 @@ public class WeatherCast{
 
 	// Sets calculation for Fog Noise
 	public void SetFogNoise(int totalTicks, uint days){
-		this.fogNoise = NoiseMaker.WeatherNoise(totalTicks*GenerationSeed.fogNoiseStep, days*GenerationSeed.weatherDayStep);
+		this.fogNoise = NoiseMaker.WeatherNoise(totalTicks*GenerationSeed.fogNoiseStep, days*GenerationSeed.weatherDayStep + World.worldSeed*GenerationSeed.weatherSeedStep);
 
 		if(this.fogNoise < 0)
 			this.fogFromRandomness = 0;
@@ -89,9 +91,10 @@ public class WeatherCast{
 
 	// Sets calculation for Weather Noise
 	public void SetWeatherNoise(int totalSeconds, uint days){
-		this.weatherNoise = NoiseMaker.WeatherNoise(totalSeconds*GenerationSeed.weatherNoiseStep, days*GenerationSeed.weatherDayStep);
+		this.weatherNoise = NoiseMaker.WeatherNoise(totalSeconds*GenerationSeed.weatherNoiseStep, days*GenerationSeed.weatherDayStep + World.worldSeed*GenerationSeed.weatherSeedStep);
 
 		WeatherState state = GetCurrentWeather(this.weatherNoise);
+		Debug.Log(state);
 
 		if(state == WeatherState.TRANSITION){
 			this.fogFromWeather = Mathf.Lerp(stateFogMap[this.initTransitionState], stateFogMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
