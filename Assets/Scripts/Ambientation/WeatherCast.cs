@@ -127,6 +127,7 @@ public class WeatherCast{
 	private static readonly float FLARE_INTENSITY_MULTIPLIER_MAX = 1f;
 	private static readonly float FLARE_INTENSITY_MULTIPLIER_MID = .5f;
 	private static readonly float FLARE_INTENSITY_MULTIPLIER_MIN = .1f;
+	
 
 	// Parameters
 	// ---- Fog

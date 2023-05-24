@@ -9,7 +9,7 @@ public abstract class BaseAmbientPreset{
 
 	// Constants
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_DAY = 4f;
-	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = 0.7f;
+	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = .7f;
 	protected static readonly Color SURFACE_LIGHT_COLOR_DAY = Color.white;
 	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(0.27f, 0.57f, 1f, 1f);
 	protected static readonly float SUN_DIAMETER_DAY = 1f;
@@ -25,6 +25,12 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float FOG_ATTENUATION_SUNSET = 8f;
 	protected static readonly float FOG_ATTENUATION_NIGHT = 7f;
 	protected static readonly float FOG_MAX_HEIGHT_SURFACE = 920f;
+	protected static readonly float STAR_MAP_MULTIPLIER_DAY = 0f;
+	protected static readonly float STAR_MAP_MULTIPLIER_NIGHT = 1f;
+	protected static readonly float STAR_MAP_X_ROTATION_BEGIN = 0f;
+	protected static readonly float STAR_MAP_X_ROTATION_END = 180f;
+	protected static readonly float STAR_MAP_VARIATION_FREQUENCY = 1.57f;
+	protected static readonly float STAR_MAP_VARIATION_AMPLITUDE = 0.4f;	
 
 	// General
 	protected bool isSurface;
@@ -130,6 +136,8 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
 	public virtual Color GetSunColor(float t){return this.sunColor;}
 	public virtual float GetFloorLighting(float t){return FLOOR_LIGHTING_UNDERGROUND;}
+	public virtual float GetStarMapMultiplier(float t){return StarMapMultiplierLerp(STAR_MAP_MULTIPLIER_DAY, STAR_MAP_MULTIPLIER_NIGHT, t);}
+	public virtual Vector3 GetStarMapRotation(float t){return new Vector3(StarMapRotationLerp(STAR_MAP_X_ROTATION_BEGIN, STAR_MAP_X_ROTATION_END, t), 0, 0);}
 	public bool IsSurface(){return this.isSurface;}
 	public bool HasFlare(){return this.hasFlare;}
 
@@ -149,6 +157,26 @@ public abstract class BaseAmbientPreset{
         	return Mathf.Lerp(sunset, night, (x-1140)/60f);
         else
             return night;
+	}
+
+	protected float StarMapMultiplierLerp(float day, float night, float x){
+        if(x >= 240 && x < 360)
+            return Mathf.Lerp(night, day, (x-240)/120f);
+        else if(x >= 360 && x < 1080)
+            return day;
+        else if(x >= 1080 && x < 1200)
+        	return Mathf.Lerp(day, night, (x-1080)/120f);
+        else
+            return night + (Mathf.Sin(x*STAR_MAP_VARIATION_FREQUENCY) * STAR_MAP_VARIATION_AMPLITUDE);
+	}
+
+	protected float StarMapRotationLerp(float day, float night, float x){
+		if(x < 360)
+			return Mathf.Lerp(day, night, (x+360)/720);
+		else if(x >= 1080)
+			return Mathf.Lerp(day, night, (x-1080)/720);
+		else
+			return day;
 	}
 
 	protected Color BehaviourColor4(Color sunrise, Color day, Color sunset, Color night, float x){

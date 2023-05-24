@@ -200,6 +200,10 @@ public class AmbientHandler : MonoBehaviour
             this.whiteBalance.tint.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTint(), currentPreset.GetWhiteBalanceTint(), currentStep);
             this.lgg.gain.value = LerpFloat4(lastPreset.GetGain(time), currentPreset.GetGain(time), currentStep);     
         }
+        else if(currentTick % 6 == 4){
+            this.pbsky.spaceEmissionMultiplier.value = currentPreset.GetStarMapMultiplier(time);
+            this.pbsky.spaceRotation.value = currentPreset.GetStarMapRotation(time);
+        }
         else if(currentTick % 4 == 3){
             this.hdLight.SetIntensity(Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep), LightUnit.Lux);
             this.skyDirectionalLight.color = Color.Lerp(lastPreset.GetSunColor(time), currentPreset.GetSunColor(time), currentStep);
@@ -244,6 +248,10 @@ public class AmbientHandler : MonoBehaviour
             this.whiteBalance.temperature.value = currentPreset.GetWhiteBalanceTemperature();
             this.whiteBalance.tint.value = currentPreset.GetWhiteBalanceTint();
             this.lgg.gain.value = currentPreset.GetGain(finalTime);
+        }
+        else if(currentTick % 6 == 4){
+            this.pbsky.spaceEmissionMultiplier.value = currentPreset.GetStarMapMultiplier(finalTime);
+            this.pbsky.spaceRotation.value = currentPreset.GetStarMapRotation(finalTime);
         }
         else if(currentTick % 4 == 3){
             this.hdLight.SetIntensity(currentPreset.GetSunIntensity(finalTime), LightUnit.Lux);
