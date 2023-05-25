@@ -19,15 +19,23 @@ public class HellAmbientPreset: BaseAmbientPreset{
 
 		this.sunRotation = new float2(90f, 0f);
 		this.lightIntensity = 5f;
-		this.sunColor = Color.white;
 		this.sunDiameter = 0f;
+		this.moonDiameter = 0f;
 
 		this.isSurface = false;
 	}
 	public override float GetSunDiameter(float t){
 		return SUN_DIAMETER_UNDERGROUND;
 	}
-
+	public override float GetMoonDiameter(float t){
+		return SUN_DIAMETER_UNDERGROUND;
+	}
+	public override float GetSunIntensity(float t){
+		return this.lightIntensity;
+	}
+	public override float GetMoonIntensity(float t){
+		return this.lightIntensity;
+	}
 	public override float GetFogBaseHeight(float t){
 		return this.fogBaseHeight;
 	}

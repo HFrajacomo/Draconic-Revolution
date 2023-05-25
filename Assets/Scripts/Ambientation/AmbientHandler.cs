@@ -15,6 +15,8 @@ public class AmbientHandler : MonoBehaviour
 	public Transform skyboxLight;
 	public Light skyDirectionalLight;
     public HDAdditionalLightData hdLight;
+    public Light moonDirectionalLight;
+    public HDAdditionalLightData hdLightMoon;
 	public TimeOfDay timer;
     public PlayerPositionHandler playerPositionHandler;
     public LensFlareComponentSRP dayFlare;
@@ -73,6 +75,9 @@ public class AmbientHandler : MonoBehaviour
         lastPreset = currentPreset;
 
         ROTATE_SUN_FLAG = 0;
+
+        this.skyDirectionalLight.color = currentPreset.GetSunColor(0);
+        this.moonDirectionalLight.color = currentPreset.GetMoonColor(0);
 
         weatherCast.SetFogNoise(this.timer.ToSeconds()*TimeOfDay.ticksForMinute, this.timer.days);
         weatherCast.SetWeatherNoise(this.timer.ToSeconds(), this.timer.days);
@@ -134,7 +139,6 @@ public class AmbientHandler : MonoBehaviour
         if(currentTick % 6 == 0){
             weatherCast.SetFogNoise((int)((days*TimeOfDay.ticksForMinute*1440) + (time*TimeOfDay.ticksForMinute+currentTick)), days);
             weatherCast.SetWeatherNoise((int)((days*1440) + time), days);
-            weatherCast.Print();        
         }
 
         // Fog Shape and Density
@@ -190,6 +194,8 @@ public class AmbientHandler : MonoBehaviour
         if(currentTick % 6 == 0){
             this.pbsky.horizonTint.value = Color.Lerp(lastPreset.GetHorizonTint(time), currentPreset.GetHorizonTint(time), currentStep);
             this.pbsky.zenithTint.value = Color.Lerp(lastPreset.GetZenithTint(time), currentPreset.GetZenithTint(time), currentStep);
+
+            EnableShadow(time);
         }
         else if(currentTick % 6 == 1){
             this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);
@@ -206,13 +212,16 @@ public class AmbientHandler : MonoBehaviour
         }
         else if(currentTick % 4 == 3){
             this.hdLight.SetIntensity(Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep), LightUnit.Lux);
-            this.skyDirectionalLight.color = Color.Lerp(lastPreset.GetSunColor(time), currentPreset.GetSunColor(time), currentStep);
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
+            this.hdLightMoon.SetIntensity(Mathf.Lerp(lastPreset.GetMoonIntensity(time), currentPreset.GetMoonIntensity(time), currentStep), LightUnit.Lux);
+            this.hdLightMoon.angularDiameter = currentPreset.GetMoonDiameter(time);
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
 
             if(ROTATE_SUN_FLAG == 0){
                 this.cachedRotation = currentPreset.GetSunRotation(time);
                 this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+                this.cachedRotation = currentPreset.GetMoonRotation(time);
+                this.moonDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
                 ROTATE_SUN_FLAG++;
             }
             else if(ROTATE_SUN_FLAG == ROTATE_FLAG_MAX){
@@ -239,6 +248,8 @@ public class AmbientHandler : MonoBehaviour
             else{
                 DisableFlare();
             }
+
+            EnableShadow(time);
         }
         else if(currentTick % 6 == 1){
             this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime);
@@ -255,13 +266,16 @@ public class AmbientHandler : MonoBehaviour
         }
         else if(currentTick % 4 == 3){
             this.hdLight.SetIntensity(currentPreset.GetSunIntensity(finalTime), LightUnit.Lux);
-            this.skyDirectionalLight.color = currentPreset.GetSunColor(finalTime);
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
+            this.hdLightMoon.SetIntensity(currentPreset.GetMoonIntensity(time), LightUnit.Lux);
+            this.hdLightMoon.angularDiameter = currentPreset.GetMoonDiameter(time);
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
 
             if(ROTATE_SUN_FLAG == 0){
                 this.cachedRotation = currentPreset.GetSunRotation(finalTime);
                 this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+                this.cachedRotation = currentPreset.GetMoonRotation(finalTime);
+                this.moonDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
                 ROTATE_SUN_FLAG++;
             }
             else if(ROTATE_SUN_FLAG == ROTATE_FLAG_MAX){
@@ -306,13 +320,26 @@ public class AmbientHandler : MonoBehaviour
 
     // Sets the current Lens Flare
     private void SetFlare(int x){
-        if(x >= 240 && x <= 1200){
+        if(x >= 240 && x <= 1200)
             this.dayFlare.enabled = true;
+        else
+            this.dayFlare.enabled = false;
+
+        if(x >= 1020 || x < 420)
+            this.nightFlare.enabled = true;
+        else
             this.nightFlare.enabled = false;
+    }
+
+    // Enable Sun/Moon Shadow
+    private void EnableShadow(int x){
+        if(x >= 240 && x <= 1200){
+            this.hdLight.EnableShadows(true);
+            this.hdLightMoon.EnableShadows(false);
         }
         else{
-            this.dayFlare.enabled = false;
-            this.nightFlare.enabled = true;
+            this.hdLight.EnableShadows(false);
+            this.hdLightMoon.EnableShadows(true);
         }
     }
 
@@ -324,11 +351,11 @@ public class AmbientHandler : MonoBehaviour
 
     // Sets Lens Flare intensity
     private void SetLensFlareIntensity(int x, WeatherCast wc){
-        if(x >= 180 && x < 240){
-            nightFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-180)/60f) * wc.GetFlareMultiplier();
+        if(x >= 360 && x < 420){
+            nightFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-360)/60f) * wc.GetFlareMultiplier();
         }
-        else if(x >= 1200 && x < 1260){
-            nightFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-1200)/60f) * wc.GetFlareMultiplier();
+        else if(x >= 1020 && x < 1080){
+            nightFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-1020)/60f) * wc.GetFlareMultiplier();
         }
         else{
             nightFlare.intensity = 1f * wc.GetFlareMultiplier();

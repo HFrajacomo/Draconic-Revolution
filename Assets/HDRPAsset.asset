@@ -68,7 +68,7 @@ MonoBehaviour:
         serializedVersion: 2
         m_Bits: 0
       supportFabricConvolution: 0
-      maxDirectionalLightsOnScreen: 1
+      maxDirectionalLightsOnScreen: 2
       maxPunctualLightsOnScreen: 2048
       maxAreaLightsOnScreen: 64
       maxEnvLightsOnScreen: 64

@@ -29,6 +29,8 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.gainSunset = new float4(.68f, .3f, .53f, 0f);
 		this.gainNight = new float4(.20f, .23f, .29f, .31f);
 
+		this.sunDiameter = SUN_DIAMETER_DAY;
+		this.moonDiameter = SUN_DIAMETER_NIGHT;
 		this.isSurface = true;
 		this.hasFlare = true;
 	}
@@ -45,19 +47,13 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 	public override float4 GetGain(float t){
 		return this.BehaviourFloat4(gainSunrise, gainDay, gainSunset, gainNight, t);
 	}
-	public override float GetSunIntensity(float t){
-		return this.BehaviourFlipDayNight<float>(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);
-	}
 	public override float2 GetSunRotation(float t){
 		return new float2(this.SunRotationX(t), this.SunRotationZ(t));
 	}
-	public override Color GetSunColor(float t){
-		return this.BehaviourFlipDayNight<Color>(SURFACE_LIGHT_COLOR_DAY, SURFACE_LIGHT_COLOR_NIGHT, t);
-	}
-	public override float GetSunDiameter(float t){
-		return this.BehaviourFlipDayNight<float>(SUN_DIAMETER_DAY, SUN_DIAMETER_NIGHT, t);
+	public override float2 GetMoonRotation(float t){
+		return new float2(this.MoonRotationX(t), this.MoonRotationZ(t));
 	}
 	public override float GetFloorLighting(float t){
-		return this.BehaviourFlipDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
+		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
 }

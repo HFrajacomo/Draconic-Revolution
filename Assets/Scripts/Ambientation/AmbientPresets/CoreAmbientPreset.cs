@@ -19,11 +19,19 @@ public class CoreAmbientPreset: BaseAmbientPreset{
 
 		this.sunRotation = new float2(90f, 0f);
 		this.lightIntensity = 3f;
-		this.sunColor = Color.white;
 
 		this.isSurface = false;
 	}
+	public override float GetSunIntensity(float t){
+		return this.lightIntensity;
+	}
+	public override float GetMoonIntensity(float t){
+		return this.lightIntensity;
+	}
 	public override float GetSunDiameter(float t){
+		return SUN_DIAMETER_UNDERGROUND;
+	}
+	public override float GetMoonDiameter(float t){
 		return SUN_DIAMETER_UNDERGROUND;
 	}
 	public override float GetFogBaseHeight(float t){
