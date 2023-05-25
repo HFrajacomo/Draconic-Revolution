@@ -325,7 +325,7 @@ public class AmbientHandler : MonoBehaviour
         else
             this.dayFlare.enabled = false;
 
-        if(x >= 1020 || x < 420)
+        if(x >= 1020 || x < 240)
             this.nightFlare.enabled = true;
         else
             this.nightFlare.enabled = false;

@@ -138,7 +138,7 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
 	public virtual float GetMoonIntensity(float t){return BehaviourMoonsetIntensity(SURFACE_LIGHT_LUMINOSITY_ZERO, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);}
 	public virtual float2 GetMoonRotation(float t){return this.sunRotation;}
-	public virtual float GetMoonDiameter(float t){return this.sunDiameter;}
+	public virtual float GetMoonDiameter(float t){return BehaviourMoonsetDiameter(SUN_DIAMETER_UNDERGROUND, SUN_DIAMETER_NIGHT, t);}
 	public virtual Color GetSunColor(float t){return SURFACE_LIGHT_COLOR_DAY;}
 	public virtual Color GetMoonColor(float t){return SURFACE_LIGHT_COLOR_NIGHT;}
 	public virtual float GetFloorLighting(float t){return FLOOR_LIGHTING_UNDERGROUND;}
@@ -264,6 +264,21 @@ public abstract class BaseAmbientPreset{
     protected float BehaviourMoonsetIntensity(float day, float night, float x){
         if(x > 360 && x <= 420){
             return Mathf.Lerp(night, day, (x-360)/60f);
+        }
+        else{
+            return night;
+        }
+    }
+
+    protected float BehaviourMoonsetDiameter(float day, float night, float x){
+        if(x > 180 && x <= 240){
+        	if(Mathf.Lerp(night, day, (x-180)/60f) > .024f)
+            	return Mathf.Lerp(night, day, (x-180)/60f);
+            else
+            	return day;
+        }
+        else if(x > 240 && x < 1020){
+        	return day;
         }
         else{
             return night;
