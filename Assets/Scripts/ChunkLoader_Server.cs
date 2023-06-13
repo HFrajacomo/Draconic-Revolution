@@ -469,16 +469,16 @@ public class ChunkLoader_Server : MonoBehaviour
                 slots[i] = new ItemPlayerInventorySlot(ItemID.BRICKBLOCK, 50);
             }
             else if(i == 4){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.SANDSTONEBRICK2BLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.QUARTZBLOCK, 50);
             }
             else if(i == 5){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.GRAVEL2BLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.QUARTZBRICKBLOCK, 50);
             }
             else if(i == 6){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.LIMESTONEBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.BASALTBRICKBLOCK, 50);
             }
             else if(i == 7){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.LIMESTONEBRICKBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemID.OBSIDIANBLOCK, 50);
             }
             else{
                 slots[i] = new EmptyPlayerInventorySlot();

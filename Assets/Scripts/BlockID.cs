@@ -64,6 +64,10 @@ public enum BlockID : ushort
     GRAVEL2 = 57,
     LIMESTONE = 58,
     LIMESTONE_BRICK = 59,
+    QUARTZ = 60,
+    QUARTZ_BRICK = 61,
+    BASALT_BRICK = 62,
+    OBSIDIAN = 63,
 
     /*
     Special

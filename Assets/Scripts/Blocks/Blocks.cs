@@ -5,7 +5,7 @@ using UnityEngine;
 
 public abstract class Blocks
 {
-	public static readonly int blockCount = 60;
+	public static readonly int blockCount = 64;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
 	public static readonly int atlasSizeY = 10;
@@ -167,6 +167,14 @@ public abstract class Blocks
 				return new Limestone_Block();
 			case BlockID.LIMESTONE_BRICK:
 				return new LimestoneBrick_Block();
+			case BlockID.QUARTZ:
+				return new Quartz_Block();
+			case BlockID.QUARTZ_BRICK:
+				return new QuartzBrick_Block();
+			case BlockID.BASALT_BRICK:
+				return new BasaltBrick_Block();
+			case BlockID.OBSIDIAN:
+				return new Obsidian_Block();
 			default:
 				return new Air_Block();
 		}

@@ -219,6 +219,14 @@ public abstract class Item
 				return new Limestoneblock_Item();
 			case ItemID.LIMESTONEBRICKBLOCK:
 				return new LimestoneBrickblock_Item();
+			case ItemID.QUARTZBLOCK:
+				return new Quartzblock_Item();
+			case ItemID.QUARTZBRICKBLOCK:
+				return new QuartzBrickblock_Item();
+			case ItemID.BASALTBRICKBLOCK:
+				return new BasaltBrickblock_Item();
+			case ItemID.OBSIDIANBLOCK:
+				return new Obsidianblock_Item();
 			default:
 				return null;
 		}
