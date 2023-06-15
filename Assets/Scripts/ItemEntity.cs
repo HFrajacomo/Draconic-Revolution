@@ -89,8 +89,6 @@ public class ItemEntity : MonoBehaviour
 		this.mesh.subMeshCount = 2;
 		this.mesh.SetVertices(ItemMeshData.vertices);
 		this.mesh.SetTriangles(ItemMeshData.imageTris, 0);
-		this.mesh.SetTriangles(ItemMeshData.materialTris, 1);
-
 		UpdateMeshUV(this.its.GetIconID());
 		this.mesh.RecalculateNormals();
 
