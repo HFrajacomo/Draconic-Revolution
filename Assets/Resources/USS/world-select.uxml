@@ -1,0 +1,39 @@
+<UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="PresetSchema.xsd">
+  <Panel>
+    <StyleSheet>
+      <Style src="./styles/default.uss" />
+      <Style src="./styles/world-select.uss" />
+    </StyleSheet>
+    <VisualElement>
+      <Label text="Selecionar Mundo" class="header-title" />
+    </VisualElement>
+    <ScrollView>
+      <VisualElement class="worlds-list">
+        <ScrollView>
+          <VisualElement class="carousel">
+            <VisualElement class="carousel-item">
+              <Image src="./placeholders/image.png" class="carousel-item-screenshot" />
+              <VisualElement class="carousel-item-container">
+                <Label text="Meu mundo" />
+                <Label text="Qualquer informação" />
+                <Button text="Jogar" class="carousel-item-btn-play" />
+              </VisualElement>
+            </VisualElement>
+            
+            <!-- Repeat the above VisualElement for each carousel item -->
+            
+          </VisualElement>
+        </ScrollView>
+        <VisualElement class="carousel-controls">
+          <Button text="Criar novo mundo" class="button-green" id="create-new-world-button" />
+          <Button text="◁ Retroceder" class="button-disabled" id="prev-button">
+            <Image class="carousel-controls-btn-icon" text="◁" />
+          </Button>
+          <Button text="Avançar ▷" class="button-primary" id="next-button">
+            <Image class="carousel-controls-btn-icon" text="▷" />
+          </Button>
+        </VisualElement>
+      </VisualElement>
+    </ScrollView>
+  </Panel>
+</UXML>

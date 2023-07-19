@@ -1,0 +1,22 @@
+.regular-button {
+    border-left-color: rgb(214, 214, 231);
+    border-right-color: rgb(214, 214, 231);
+    border-top-color: rgb(214, 214, 231);
+    border-bottom-color: rgb(214, 214, 231);
+    background-color: rgba(0, 0, 0, 0);
+    -unity-text-outline-color: rgb(255, 255, 255);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    color: rgb(210, 210, 210);
+}
+
+.regular-button:disabled {
+    background-color: rgba(0, 0, 0, 0);
+    color: rgba(214, 214, 231, 0.5);
+    border-left-color: rgba(214, 214, 231, 0.16);
+    border-right-color: rgba(214, 214, 231, 0.16);
+    border-top-color: rgba(214, 214, 231, 0.16);
+    border-bottom-color: rgba(214, 214, 231, 0.16);
+}
