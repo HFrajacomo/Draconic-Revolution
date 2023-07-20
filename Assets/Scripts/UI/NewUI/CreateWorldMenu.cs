@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+
+using Random = UnityEngine.Random;
 
 public class CreateWorldMenu : Menu{
 	// UI Documents
@@ -19,6 +22,12 @@ public class CreateWorldMenu : Menu{
 	private readonly Color TEXT_FIELD_COLOR = new Color(0.31f, 0.31f, 0.31f, 1f);
 	private readonly Color TEXT_COLOR = new Color(0.8f, 0.8f, 0.8f, 1f);
 
+
+    public override void Disable(){
+        this.mainDocument.panelSettings = null;
+        this.nameField.value = "";
+        this.seedField.value = "";
+    }
 
 	void Start(){
         this.root = this.mainDocument.rootVisualElement;
@@ -40,9 +49,32 @@ public class CreateWorldMenu : Menu{
 	}
 
     private void InitClickEvents(){
-        this.createButton.clicked += () => Debug.Log("a");
-        this.backButton.clicked += () => Debug.Log("b");
+        this.createButton.clicked += () => CreateNewWorld();
+        this.backButton.clicked += () => SendMessage("ChangeMenu", MenuID.SELECT_WORLD);
     }
 
+
+    private void CreateNewWorld(){
+        int rn;
+
+        if(this.nameField.value == ""){
+            return;
+        }
+
+        if(this.seedField.value == ""){
+            Random.InitState((int)DateTime.Now.Ticks);
+            rn = (int)Random.Range(0, int.MaxValue);
+            World.SetWorldSeed(rn.ToString());
+        }
+        else{
+            World.SetWorldSeed(this.seedField.value);
+        }
+
+        World.SetWorldName(this.nameField.value);
+        
+        if(RegionFileHandler.CreateWorldFile(World.worldName, World.worldSeed)){
+            SendMessage("ChangeMenu", MenuID.SELECT_WORLD);
+        }
+    }
 
 }

@@ -47,7 +47,7 @@ public class CarouselController{
     public ScrollView GetView(){return this.view;}
 
     public void MoveOneAhead(){
-    	if(this.lerpEndX + this.itemSize >= this.view.layout.width){return;}
+    	if(this.lerpEndX + this.itemSize >= this.totalCarouselSize){return;}
 
     	this.lerpEndX += this.itemSize;
     	this.lerpInitX = this.view.scrollOffset.x;
@@ -60,7 +60,8 @@ public class CarouselController{
     	this.isNextDisabled = false;
     	this.isPrevDisabled = false;
 
-    	if(this.lerpEndX + this.itemSize >= this.view.layout.width){
+
+    	if(this.lerpEndX + this.view.layout.width >= this.totalCarouselSize){
     		this.isNextDisabled = true;
     		this.refreshControllers = true;
     	}
@@ -100,6 +101,23 @@ public class CarouselController{
         this.parent.Add(this.cacheElement);
 
         this.totalCarouselSize += this.itemSize;
+    }
+
+    public void ClearCarousel(){
+        foreach(VisualElement element in this.parent.Children()){
+            element.SetEnabled(false);
+        }
+
+        this.parent.Clear();
+        this.view.scrollOffset = new Vector2(0,0);
+        this.totalCarouselSize = 0;
+        this.currentLerpTime = 0f;
+        this.isScrolling = false;
+        this.lerpInitX = 0f;
+        this.lerpEndX = 0;
+        this.isNextDisabled = false;
+        this.isPrevDisabled = true;
+        this.refreshControllers = true;
     }
 
     public void Scroll(){

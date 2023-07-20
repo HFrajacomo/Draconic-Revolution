@@ -32,6 +32,16 @@ public class SelectWorldMenu : Menu
     // Carousel
     private CarouselController carousel;
 
+    public override void Disable(){
+        this.mainDocument.panelSettings = null;
+        this.carousel.ClearCarousel();
+    }
+
+    public override void Enable(PanelSettings ps){
+        this.mainDocument.panelSettings = ps;
+        ListWorldFolders();
+    }
+
     void Start()
     {
         this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
@@ -50,7 +60,6 @@ public class SelectWorldMenu : Menu
 
         this.carousel = new CarouselController(this.root.Query<ScrollView>("worlds-scrollview"), this.worldListElement, 520, 0.5f);
 
-        ListWorldFolders();
         InitClickEvents();
     }
 
@@ -65,31 +74,6 @@ public class SelectWorldMenu : Menu
         this.carouselPrevButton.clicked += () => this.carousel.MoveOneBack();
         this.createWorldButton.clicked += () => SendMessage("ChangeMenu", MenuID.CREATE_WORLD);
     }
-
-    // REDO
-    /*
-    public void CreateNewWorld(){
-        int rn;
-
-        if(single_nameField.text == ""){
-            return;
-        }
-
-        if(single_seedField.text == ""){
-            Random.InitState((int)DateTime.Now.Ticks);
-            rn = (int)Random.Range(0, int.MaxValue);
-            World.SetWorldSeed(rn.ToString());
-        }
-        else{
-            World.SetWorldSeed(single_seedField.text);
-        }
-
-        World.SetWorldName(single_nameField.text);
-        
-        if(RegionFileHandler.CreateWorldFile(World.worldName, World.worldSeed))
-            OpenSingleplayerMenu();
-    }
-    */
    
     private bool ListWorldFolders(){
         string worldName;

@@ -16,6 +16,8 @@ public class MenuManager : MonoBehaviour{
 	private Menu currentMenu;
 
 	void Start(){
+		EnvironmentVariablesCentral.Start();
+
 		this.currentMenu = this.selectWorldMenu;
 		this.currentMenu.Enable(this.panelSettings);
 	}
