@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class SelectWorldMenu : MonoBehaviour
+public class SelectWorldMenu : Menu
 {
     // UI Files
-    public UIDocument uxmlSelectWorld;
     public UIDocument uxmlWorldItem;
     public StyleSheet style;
 
@@ -19,6 +18,7 @@ public class SelectWorldMenu : MonoBehaviour
     private Button carouselNextButton;
     private Button carouselPrevButton;
     private Button createWorldButton;
+    private Button backButton;
 
     // Directories
     private string[] worldNames;
@@ -37,12 +37,13 @@ public class SelectWorldMenu : MonoBehaviour
         this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
 
         // Load the UXML file and add it to the root VisualElement
-        this.root = this.uxmlSelectWorld.rootVisualElement;
+        this.root = this.mainDocument.rootVisualElement;
         this.root.styleSheets.Add(this.style);
 
         this.createWorldButton = this.root.Query<Button>("world-play-button");
         this.carouselNextButton = this.root.Query<Button>("next-carousel-button");
         this.carouselPrevButton = this.root.Query<Button>("prev-carousel-button");
+        this.backButton = this.root.Query<Button>("back-button");
 
         this.worldItemAsset = this.uxmlWorldItem.visualTreeAsset;
         this.worldListElement = this.root.Query<VisualElement>("unity-content-container");
@@ -62,6 +63,7 @@ public class SelectWorldMenu : MonoBehaviour
     public void InitClickEvents(){
         this.carouselNextButton.clicked += () => this.carousel.MoveOneAhead();
         this.carouselPrevButton.clicked += () => this.carousel.MoveOneBack();
+        this.createWorldButton.clicked += () => SendMessage("ChangeMenu", MenuID.CREATE_WORLD);
     }
 
     // REDO

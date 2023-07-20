@@ -1,0 +1,7 @@
+public enum MenuID{
+	SELECT_WORLD,
+	CREATE_WORLD,
+	MULTIPLAYER,
+	OPTIONS,
+	MAIN
+}
