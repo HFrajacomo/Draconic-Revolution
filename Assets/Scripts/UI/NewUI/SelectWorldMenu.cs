@@ -13,6 +13,7 @@ public class SelectWorldMenu : Menu
     private VisualElement root;
     private VisualTreeAsset worldItemAsset;
     private VisualElement worldListElement;
+    private List<VisualElement> worldItemList;
 
     // Buttons
     private Button carouselNextButton;
@@ -58,6 +59,9 @@ public class SelectWorldMenu : Menu
         this.worldItemAsset = this.uxmlWorldItem.visualTreeAsset;
         this.worldListElement = this.root.Query<VisualElement>("unity-content-container");
 
+        this.worldItemList = GetWorldItems();
+        SetPlayButtonFunctionality(this.worldItemList);
+
         this.carousel = new CarouselController(this.root.Query<ScrollView>("worlds-scrollview"), this.worldListElement, 520, 0.5f);
 
         InitClickEvents();
@@ -94,6 +98,32 @@ public class SelectWorldMenu : Menu
         if(this.worldNames.Length > 0)
             return true;
         return false;
+    }
+
+    private List<VisualElement> GetWorldItems(){
+        return this.root.Query<VisualElement>("world-item").ToList();
+    }
+
+    private void SetPlayButtonFunctionality(List<VisualElement> worldItems){
+        Button cachedButton;
+        string cachedName;
+
+        foreach(VisualElement item in worldItems){
+            cachedButton = item.Query<Button>().First();
+            Debug.Log(cachedButton);
+            cachedName = item.Query<Label>("world-name").First().text;
+            Debug.Log(cachedName);
+            cachedButton.clicked += () => StartGameSingleplayer(cachedName);
+        }
+    }
+
+    private void StartGameSingleplayer(string world){
+        World.SetWorldName(world);
+        World.SetWorldSeed(0);
+        World.SetToClient();
+
+        Debug.Log("LOGIN: " + world);
+        //SceneManager.LoadScene(1);
     }
 
     private string GetDirectoryName(string path){
