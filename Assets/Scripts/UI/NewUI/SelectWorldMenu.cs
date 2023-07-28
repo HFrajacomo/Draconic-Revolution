@@ -5,6 +5,7 @@ using UnityEngine.UIElements;
 
 public class SelectWorldMenu : Menu
 {
+    /*
     // UI Files
     public UIDocument uxmlWorldItem;
     public StyleSheet style;
@@ -139,4 +140,5 @@ public class SelectWorldMenu : Menu
             this.carousel.ResetRefresh();          
         }
     }
+    */
 }

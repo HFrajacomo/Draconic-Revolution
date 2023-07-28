@@ -6,6 +6,7 @@ using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
 public class CreateWorldMenu : Menu{
+    /*
 	// UI Documents
 	public StyleSheet style;
 
@@ -76,5 +77,5 @@ public class CreateWorldMenu : Menu{
             SendMessage("ChangeMenu", MenuID.SELECT_WORLD);
         }
     }
-
+    */
 }

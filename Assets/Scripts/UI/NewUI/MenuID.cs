@@ -3,5 +3,5 @@ public enum MenuID{
 	CREATE_WORLD,
 	MULTIPLAYER,
 	OPTIONS,
-	MAIN
+	INITIAL_MENU
 }
