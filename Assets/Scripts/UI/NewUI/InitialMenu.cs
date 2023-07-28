@@ -1,12 +1,15 @@
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class InitialMenu : Menu
 {
-	public void OnEnable(){
+	public Selectable initialSelectable;
 
+	public void OnEnable(){
+		if(this.initialSelectable != null)
+			initialSelectable.Select();
 	}
 
 	public void OpenWorldSelectMenu(){

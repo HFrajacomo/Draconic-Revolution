@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 4
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.0038036166, g: 0.0032709888, b: 0.0021300837, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -4704,8 +4704,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.078431375, g: 0.078431375, b: 0.078431375, a: 1}
+  m_Material: {fileID: 2100000, guid: c868858169fdb0f48bfd7cfb4162f9e5, type: 2}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 0
@@ -5654,6 +5654,7 @@ GameObject:
   - component: {fileID: 963985686}
   - component: {fileID: 963985690}
   - component: {fileID: 963985689}
+  - component: {fileID: 963985691}
   m_Layer: 5
   m_Name: ExitButton
   m_TagString: Untagged
@@ -5726,8 +5727,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 877167324}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+      - m_Target: {fileID: 1287091082}
+        m_TargetAssemblyTypeName: InitialMenu, Assembly-CSharp
         m_MethodName: ExitGame
         m_Mode: 1
         m_Arguments:
@@ -5833,6 +5834,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88feb9924d91aa5488e1a53062bc97c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &963985691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963985684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 1, g: 1, b: 1, a: 0.5882353}
+  m_EffectDistance: {x: 7, y: -7}
+  m_UseGraphicAlpha: 1
 --- !u!1 &973499422
 GameObject:
   m_ObjectHideFlags: 0
@@ -5920,6 +5936,7 @@ GameObject:
   - component: {fileID: 978113003}
   - component: {fileID: 978113005}
   - component: {fileID: 978113004}
+  - component: {fileID: 978113006}
   m_Layer: 5
   m_Name: Label
   m_TagString: Untagged
@@ -6044,6 +6061,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 978113002}
   m_CullTransparentMesh: 0
+--- !u!114 &978113006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 978113002}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 1
 --- !u!1 &986784056
 GameObject:
   m_ObjectHideFlags: 0
@@ -8213,7 +8245,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 0
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 681264159}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -8273,6 +8305,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e851380453eb5d4bb6f3bf548d4030d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  manager: {fileID: 877167326}
   mainObject: {fileID: 1287091074}
 --- !u!1 &1315458433
 GameObject:
@@ -8921,6 +8954,7 @@ GameObject:
   - component: {fileID: 1406486929}
   - component: {fileID: 1406486933}
   - component: {fileID: 1406486932}
+  - component: {fileID: 1406486934}
   m_Layer: 5
   m_Name: MultiButton
   m_TagString: Untagged
@@ -8993,8 +9027,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 877167324}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+      - m_Target: {fileID: 1287091082}
+        m_TargetAssemblyTypeName: InitialMenu, Assembly-CSharp
         m_MethodName: OpenMultiplayerMenu
         m_Mode: 1
         m_Arguments:
@@ -9100,6 +9134,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88feb9924d91aa5488e1a53062bc97c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1406486934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1406486927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 1, g: 1, b: 1, a: 0.5882353}
+  m_EffectDistance: {x: 7, y: -7}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1421830571
 GameObject:
   m_ObjectHideFlags: 0
@@ -10296,6 +10345,7 @@ GameObject:
   - component: {fileID: 1671261762}
   - component: {fileID: 1671261766}
   - component: {fileID: 1671261765}
+  - component: {fileID: 1671261767}
   m_Layer: 5
   m_Name: OptionsButton
   m_TagString: Untagged
@@ -10368,8 +10418,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 877167324}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+      - m_Target: {fileID: 1287091082}
+        m_TargetAssemblyTypeName: InitialMenu, Assembly-CSharp
         m_MethodName: OpenOptionsMenu
         m_Mode: 1
         m_Arguments:
@@ -10475,6 +10525,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88feb9924d91aa5488e1a53062bc97c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1671261767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1671261760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 1, g: 1, b: 1, a: 0.5882353}
+  m_EffectDistance: {x: 7, y: -7}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1680572006
 GameObject:
   m_ObjectHideFlags: 0
@@ -10828,6 +10893,7 @@ GameObject:
   - component: {fileID: 1694037539}
   - component: {fileID: 1694037543}
   - component: {fileID: 1694037542}
+  - component: {fileID: 1694037544}
   m_Layer: 5
   m_Name: SingleButton
   m_TagString: Untagged
@@ -10900,9 +10966,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 877167324}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
-        m_MethodName: OpenSingleplayerMenu
+      - m_Target: {fileID: 1287091082}
+        m_TargetAssemblyTypeName: InitialMenu, Assembly-CSharp
+        m_MethodName: OpenWorldSelectMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -11007,6 +11073,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88feb9924d91aa5488e1a53062bc97c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1694037544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1694037537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 1, g: 1, b: 1, a: 0.5882353}
+  m_EffectDistance: {x: 7, y: -7}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1697594993
 GameObject:
   m_ObjectHideFlags: 0
