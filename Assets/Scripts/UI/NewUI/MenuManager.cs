@@ -26,6 +26,8 @@ public class MenuManager : MonoBehaviour{
 	void Start(){
 		EnvironmentVariablesCentral.Start();
 
+		DisableMenus();
+
 		this.currentMenu = this.initialMenu;
 		this.currentMenu.Enable();
 
@@ -41,6 +43,11 @@ public class MenuManager : MonoBehaviour{
 		this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
 
 		GameObject.Find("AudioManager").GetComponent<AudioManager>().RefreshVolume();
+	}
+
+	private void DisableMenus(){
+		this.initialMenu.Disable();
+		this.selectWorldMenu.Disable();
 	}
 
 	public void ChangeMenu(MenuID id){

@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class TransparentButtonFillerEvent : MonoBehaviour{
 	private Image image;
 
-	void Start(){
+	void Awake(){
 		this.image = GetComponent<Image>();
 	}
 
