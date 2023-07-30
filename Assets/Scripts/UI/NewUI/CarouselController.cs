@@ -1,15 +1,15 @@
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 /*
-Implementation of a Horizontal Carousel ScrollView
+Implementation of a Horizontal Carousel ScrollRect
 */
 public class CarouselController{
 	// References
-	private ScrollView view;
-	private VisualElement parent;
+	private ScrollRect view;
+	private GameObject parent;
 
 	// Carousel animation variables
     private readonly float maxLerpTime;
@@ -30,10 +30,11 @@ public class CarouselController{
     public bool refreshControllers = true;
 
     // Cache
-    private VisualElement cacheElement;
+    private GameObject cacheElement;
+    private RectTransform cacheRect;
 
 
-    public CarouselController(ScrollView view, VisualElement parent, int itemSize, float maxLerpTime, bool isBezier=true){
+    public CarouselController(ScrollRect view, GameObject parent, int itemSize, float maxLerpTime, bool isBezier=true){
     	this.view = view;
     	this.parent = parent;
 
@@ -41,16 +42,16 @@ public class CarouselController{
     	this.maxLerpTime = maxLerpTime;
     	this.isBezier = isBezier;
 
-    	this.lerpInitX = this.view.scrollOffset.x;
+    	this.lerpInitX = this.view.normalizedPosition.x;
     }
 
-    public ScrollView GetView(){return this.view;}
+    public ScrollRect GetView(){return this.view;}
 
     public void MoveOneAhead(){
     	if(this.lerpEndX + this.itemSize >= this.totalCarouselSize){return;}
 
     	this.lerpEndX += this.itemSize;
-    	this.lerpInitX = this.view.scrollOffset.x;
+    	this.lerpInitX = this.view.normalizedPosition.x;
     	this.currentLerpTime = 0f;
     	this.isScrolling = true;
 
@@ -61,7 +62,7 @@ public class CarouselController{
     	this.isPrevDisabled = false;
 
 
-    	if(this.lerpEndX + this.view.layout.width >= this.totalCarouselSize){
+    	if(this.lerpEndX + this.view.content.sizeDelta.x >= this.totalCarouselSize){
     		this.isNextDisabled = true;
     		this.refreshControllers = true;
     	}
@@ -75,7 +76,7 @@ public class CarouselController{
 		}
 
 		this.lerpEndX -= this.itemSize;
-    	this.lerpInitX = this.view.scrollOffset.x;
+    	this.lerpInitX = this.view.normalizedPosition.x;
     	this.currentLerpTime = 0f;
     	this.isScrolling = true;
 
@@ -93,23 +94,28 @@ public class CarouselController{
     	CalculateBezierMidpoint();
     }
 
-    public void AddWorld(VisualTreeAsset item, string name, string description){
-        this.cacheElement = item.Instantiate();
-        this.cacheElement.Query<Label>("world-name").First().text = name;
-        this.cacheElement.Query<Label>("world-description").First().text = description;
+    public void AddWorld(GameObject item, string name, string description){
+        this.cacheElement = GameObject.Instantiate(item);
+        this.cacheElement.name = "[WorldItem] " + name;
+        this.cacheElement.transform.SetParent(this.parent.transform);
+        this.cacheElement.transform.localScale = Vector3.one;
 
-        this.parent.Add(this.cacheElement);
+        this.cacheRect = this.cacheElement.transform as RectTransform;
+        this.cacheRect.anchoredPosition3D = Vector3.zero;
+
+        this.cacheElement.GetComponentsInChildren<Text>()[0].text = name;
+        this.cacheElement.GetComponentsInChildren<Text>()[1].text = description;
 
         this.totalCarouselSize += this.itemSize;
     }
 
     public void ClearCarousel(){
-        foreach(VisualElement element in this.parent.Children()){
-            element.SetEnabled(false);
+        foreach(Transform children in this.parent.transform){
+            children.gameObject.SetActive(false);
+            GameObject.Destroy(children.gameObject);
         }
-
-        this.parent.Clear();
-        this.view.scrollOffset = new Vector2(0,0);
+        
+        this.view.normalizedPosition = new Vector2(0,0);
         this.totalCarouselSize = 0;
         this.currentLerpTime = 0f;
         this.isScrolling = false;
@@ -125,7 +131,7 @@ public class CarouselController{
             this.currentLerpTime += Time.deltaTime/this.maxLerpTime;
             this.currentLerpTime = Mathf.Clamp(this.currentLerpTime, 0, 1);
 
-            this.view.scrollOffset = new Vector2(Smooth(), 0f);
+            this.view.normalizedPosition = new Vector2(Smooth(), 0f);
 
             if(this.currentLerpTime == 1){
                 this.isScrolling = false;

@@ -19,7 +19,7 @@ public abstract class Menu : MonoBehaviour{
 
 	public void RequestMenuChange(MenuID id){this.manager.ChangeMenu(id);}
 
-	private void DeselectClickedButton(){
+	protected void DeselectClickedButton(){
 		EventSystem.current.SetSelectedGameObject(null);
 	}
 }
