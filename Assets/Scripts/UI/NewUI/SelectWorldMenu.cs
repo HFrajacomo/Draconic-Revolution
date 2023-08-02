@@ -18,7 +18,7 @@ public class SelectWorldMenu : Menu
     public Button carouselPrevButton;
 
     // Carousel
-    public ScrollRect scrollView;
+    public RectTransform scrollView;
     private CarouselController carousel;
     private bool isEnabled = false;
     private bool setButtons = false;
@@ -80,6 +80,8 @@ public class SelectWorldMenu : Menu
 
             this.carousel.AddWorld(this.worldItem, worldName, "Description...");
         }
+        
+        this.carousel.ResetPosition();
 
         if(this.worldNames.Length > 0)
             return true;
@@ -93,8 +95,8 @@ public class SelectWorldMenu : Menu
 
     private void RefreshCarouselButtons(){
         if(this.carousel.refreshControllers){
-            this.carouselNextButton.enabled = !this.carousel.isNextDisabled;
-            this.carouselPrevButton.enabled = !this.carousel.isPrevDisabled;
+            this.carouselNextButton.interactable = !this.carousel.isNextDisabled;
+            this.carouselPrevButton.interactable = !this.carousel.isPrevDisabled;
             
             this.carousel.ResetRefresh();          
         }

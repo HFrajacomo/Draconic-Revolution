@@ -8,7 +8,7 @@ Implementation of a Horizontal Carousel ScrollRect
 */
 public class CarouselController{
 	// References
-	private ScrollRect view;
+	private RectTransform view;
 	private GameObject parent;
 
 	// Carousel animation variables
@@ -34,7 +34,7 @@ public class CarouselController{
     private RectTransform cacheRect;
 
 
-    public CarouselController(ScrollRect view, GameObject parent, int itemSize, float maxLerpTime, bool isBezier=true){
+    public CarouselController(RectTransform view, GameObject parent, int itemSize, float maxLerpTime, bool isBezier=true){
     	this.view = view;
     	this.parent = parent;
 
@@ -42,56 +42,60 @@ public class CarouselController{
     	this.maxLerpTime = maxLerpTime;
     	this.isBezier = isBezier;
 
-    	this.lerpInitX = this.view.normalizedPosition.x;
+    	ResetPosition();
     }
 
-    public ScrollRect GetView(){return this.view;}
+    public RectTransform GetView(){return this.view;}
 
     public void MoveOneAhead(){
-    	if(this.lerpEndX + this.itemSize >= this.totalCarouselSize){return;}
+    	if(this.lerpEndX - this.itemSize <= 0){
+            this.isNextDisabled = true;
+            this.refreshControllers = true;
+            this.lerpEndX = 0;
+        }
+        else{
+            if(this.isPrevDisabled)
+                this.refreshControllers = true;
 
-    	this.lerpEndX += this.itemSize;
-    	this.lerpInitX = this.view.normalizedPosition.x;
+            this.isNextDisabled = false;
+            this.isPrevDisabled = false;
+            this.lerpEndX -= this.itemSize;
+        }
+    	
+        this.lerpInitX = this.view.anchoredPosition.x;
     	this.currentLerpTime = 0f;
     	this.isScrolling = true;
-
-    	if(this.isPrevDisabled)
-    		this.refreshControllers = true;
-
-    	this.isNextDisabled = false;
-    	this.isPrevDisabled = false;
-
-
-    	if(this.lerpEndX + this.view.content.sizeDelta.x >= this.totalCarouselSize){
-    		this.isNextDisabled = true;
-    		this.refreshControllers = true;
-    	}
 
     	CalculateBezierMidpoint();
     }
 
     public void MoveOneBack(){
-		if(this.lerpEndX - this.itemSize < 0){
-			return;
+		if(this.lerpEndX + this.itemSize >= this.totalCarouselSize){
+            this.isPrevDisabled = true;
+            this.refreshControllers = true;
+            this.lerpEndX = this.totalCarouselSize;
 		}
+        else{
+            if(this.isNextDisabled)
+                this.refreshControllers = true;
 
-		this.lerpEndX -= this.itemSize;
-    	this.lerpInitX = this.view.normalizedPosition.x;
+            this.isNextDisabled = false;
+            this.isPrevDisabled = false;
+            this.lerpEndX += this.itemSize;
+        }
+
+    	this.lerpInitX = this.view.anchoredPosition.x;
     	this.currentLerpTime = 0f;
     	this.isScrolling = true;
 
-    	if(this.isNextDisabled)
-    		this.refreshControllers = true;
-
-    	this.isPrevDisabled = false;
-    	this.isNextDisabled = false;
-
-    	if(this.lerpEndX == 0){
-    		this.isPrevDisabled = true;
-    		this.refreshControllers = true;
-    	}
-
     	CalculateBezierMidpoint();
+    }
+
+    public void ResetPosition(){
+        this.totalCarouselSize = (int)this.view.sizeDelta.x;
+        this.lerpInitX = this.totalCarouselSize;
+        this.lerpEndX = this.totalCarouselSize;
+        this.view.anchoredPosition = new Vector2(this.totalCarouselSize, 0f);
     }
 
     public void AddWorld(GameObject item, string name, string description){
@@ -106,7 +110,7 @@ public class CarouselController{
         this.cacheElement.GetComponentsInChildren<Text>()[0].text = name;
         this.cacheElement.GetComponentsInChildren<Text>()[1].text = description;
 
-        this.totalCarouselSize += this.itemSize;
+        this.totalCarouselSize = (int)this.view.offsetMax.x;
     }
 
     public void ClearCarousel(){
@@ -115,7 +119,7 @@ public class CarouselController{
             GameObject.Destroy(children.gameObject);
         }
         
-        this.view.normalizedPosition = new Vector2(0,0);
+        this.view.anchoredPosition = new Vector2(this.totalCarouselSize, 0);
         this.totalCarouselSize = 0;
         this.currentLerpTime = 0f;
         this.isScrolling = false;
@@ -124,6 +128,7 @@ public class CarouselController{
         this.isNextDisabled = false;
         this.isPrevDisabled = true;
         this.refreshControllers = true;
+        this.totalCarouselSize = (int)this.view.offsetMax.x;
     }
 
     public void Scroll(){
@@ -131,7 +136,7 @@ public class CarouselController{
             this.currentLerpTime += Time.deltaTime/this.maxLerpTime;
             this.currentLerpTime = Mathf.Clamp(this.currentLerpTime, 0, 1);
 
-            this.view.normalizedPosition = new Vector2(Smooth(), 0f);
+            this.view.anchoredPosition = new Vector2(Smooth(), 0f);
 
             if(this.currentLerpTime == 1){
                 this.isScrolling = false;
