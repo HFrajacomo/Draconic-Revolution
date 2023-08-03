@@ -80,7 +80,7 @@ public class SelectWorldMenu : Menu
 
             this.carousel.AddWorld(this.worldItem, worldName, "Description...");
         }
-        
+
         this.carousel.ResetPosition();
 
         if(this.worldNames.Length > 0)
