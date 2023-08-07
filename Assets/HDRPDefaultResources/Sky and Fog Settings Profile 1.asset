@@ -46,6 +46,27 @@ MonoBehaviour:
   accumulationFactor:
     m_OverrideState: 1
     m_Value: 0.635
+  biasFactor:
+    m_OverrideState: 0
+    m_Value: 0.5
+  speedRejectionParam:
+    m_OverrideState: 0
+    m_Value: 0.5
+  speedRejectionScalerFactor:
+    m_OverrideState: 0
+    m_Value: 0.2
+  speedSmoothReject:
+    m_OverrideState: 0
+    m_Value: 0
+  speedSurfaceOnly:
+    m_OverrideState: 0
+    m_Value: 1
+  speedTargetOnly:
+    m_OverrideState: 0
+    m_Value: 1
+  enableWorldSpeedRejection:
+    m_OverrideState: 0
+    m_Value: 0
   m_RayMaxIterations:
     m_OverrideState: 1
     m_Value: 64
@@ -55,6 +76,9 @@ MonoBehaviour:
   lastBounceFallbackHierarchy:
     m_OverrideState: 0
     m_Value: 3
+  ambientProbeDimmer:
+    m_OverrideState: 0
+    m_Value: 1
   layerMask:
     m_OverrideState: 0
     m_Value:
@@ -149,6 +173,9 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   m_PhysicallyBased:
+    m_OverrideState: 0
+    m_Value: 0
+  m_LimitManualRangeNearBlur:
     m_OverrideState: 0
     m_Value: 0
 --- !u!114 &-7190900373026344887
@@ -257,6 +284,9 @@ MonoBehaviour:
     opacityA:
       m_OverrideState: 1
       m_Value: 0.2
+    altitude:
+      m_OverrideState: 0
+      m_Value: 2000
     rotation:
       m_OverrideState: 0
       m_Value: 0
@@ -295,6 +325,9 @@ MonoBehaviour:
     thickness:
       m_OverrideState: 1
       m_Value: 0.2
+    ambientProbeDimmer:
+      m_OverrideState: 0
+      m_Value: 1
     castShadows:
       m_OverrideState: 1
       m_Value: 1
@@ -314,6 +347,9 @@ MonoBehaviour:
     opacityA:
       m_OverrideState: 1
       m_Value: 0.2
+    altitude:
+      m_OverrideState: 0
+      m_Value: 2000
     rotation:
       m_OverrideState: 1
       m_Value: 251
@@ -352,9 +388,31 @@ MonoBehaviour:
     thickness:
       m_OverrideState: 1
       m_Value: 0
+    ambientProbeDimmer:
+      m_OverrideState: 0
+      m_Value: 1
     castShadows:
       m_OverrideState: 1
       m_Value: 1
+--- !u!114 &-165159165466174361
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a7ff42a8c5be6646ad3975f3a54c1eb, type: 3}
+  m_Name: DiffusionProfileList
+  m_EditorClassIdentifier: 
+  active: 1
+  diffusionProfiles:
+    m_OverrideState: 1
+    m_Value:
+    - {fileID: 11400000, guid: 7b46b3bdaffa2054ea365c7932bd578a, type: 2}
+    - {fileID: 11400000, guid: eee7cee4ae84ed34394f86241ca8c97a, type: 2}
+    - {fileID: 11400000, guid: dbb906c2111efa9428cff1e68a51b1f5, type: 2}
 --- !u!114 &-39863744460300196
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -399,6 +457,7 @@ MonoBehaviour:
   - {fileID: -9079351773430747730}
   - {fileID: 7778525574719863079}
   - {fileID: 4571406552024562987}
+  - {fileID: -165159165466174361}
 --- !u!114 &177915345658955727
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -444,6 +503,9 @@ MonoBehaviour:
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
+  specularOcclusion:
+    m_OverrideState: 0
+    m_Value: 0.5
   occluderMotionRejection:
     m_OverrideState: 0
     m_Value: 1

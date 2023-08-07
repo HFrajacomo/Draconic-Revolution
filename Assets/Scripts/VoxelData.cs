@@ -112,12 +112,12 @@ public class VoxelData
 		NativeList<int3> bfsq2 = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int3> bfsqe1 = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<int3> bfsqe2 = new NativeList<int3>(0, Allocator.TempJob);
-		NativeHashSet<int3> visited1 = new NativeHashSet<int3>(0, Allocator.TempJob);
-		NativeHashSet<int3> visited2 = new NativeHashSet<int3>(0, Allocator.TempJob);
-		NativeHashSet<int3> visitede1 = new NativeHashSet<int3>(0, Allocator.TempJob);
-		NativeHashSet<int3> visitede2 = new NativeHashSet<int3>(0, Allocator.TempJob);
+		NativeParallelHashSet<int3> visited1 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
+		NativeParallelHashSet<int3> visited2 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
+		NativeParallelHashSet<int3> visitede1 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
+		NativeParallelHashSet<int3> visitede2 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
 		NativeList<int4> aux = new NativeList<int4>(0, Allocator.TempJob);
-		NativeHashSet<int4> hashAux = new NativeHashSet<int4>(0, Allocator.TempJob);
+		NativeParallelHashSet<int4> hashAux = new NativeParallelHashSet<int4>(0, Allocator.TempJob);
 		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0, 0, 0, 0}, Allocator.TempJob);
 		ushort updateFlag = 0;
 
@@ -269,7 +269,7 @@ public class VoxelData
 		NativeList<int4> bfsqExtra = new NativeList<int4>(0, Allocator.TempJob);
 		NativeList<byte5> directionalList = new NativeList<byte5>(0, Allocator.TempJob);
 		NativeList<byte5> bfsqDir = new NativeList<byte5>(0, Allocator.TempJob);
-		NativeHashSet<int3> visited = new NativeHashSet<int3>(0, Allocator.TempJob);
+		NativeParallelHashSet<int3> visited = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
 		NativeList<int4> auxLightSources = new NativeList<int4>(0, Allocator.TempJob);
 		NativeList<byte5> auxDirectionals = new NativeList<byte5>(0, Allocator.TempJob);
 

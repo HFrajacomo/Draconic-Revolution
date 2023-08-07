@@ -26,7 +26,11 @@ public class SelectWorldMenu : Menu
 
     public void OpenInitialMenu(){
         this.RequestMenuChange(MenuID.INITIAL_MENU);
-    }    
+    }
+
+    public void OpenCreateWorldMenu(){
+        this.RequestMenuChange(MenuID.CREATE_WORLD);
+    }
 
     public override void Disable(){
         DeselectClickedButton();

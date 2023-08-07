@@ -1,81 +1,84 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 using Random = UnityEngine.Random;
 
 public class CreateWorldMenu : Menu{
-    /*
-	// UI Documents
-	public StyleSheet style;
+    public Button createWorldButton;
+    public Button backButton;
+    public InputField nameField;
+    public InputField seedField;
+    public Text nameText;
+    public Text seedText;
 
-    // Visual Elements
-    private VisualElement root;
-
-	// Buttons
-	private Button createButton;
-	private Button backButton;
-
-	// TextFields
-	private TextField nameField;
-	private TextField seedField;
-	private readonly Color TEXT_FIELD_COLOR = new Color(0.31f, 0.31f, 0.31f, 1f);
-	private readonly Color TEXT_COLOR = new Color(0.8f, 0.8f, 0.8f, 1f);
+    // Cache
+    private Text cacheText;
+    private GameObject cacheObj;
 
 
     public override void Disable(){
-        this.mainDocument.panelSettings = null;
-        this.nameField.value = "";
-        this.seedField.value = "";
+        DeselectClickedButton();
+        this.mainObject.SetActive(false);
+
+        RebuildText(this.nameText, this.nameField);
+        RebuildText(this.seedText, this.seedField);
+    }
+
+    public override void Enable(){
+        this.mainObject.SetActive(true);
     }
 
 	void Start(){
-        this.root = this.mainDocument.rootVisualElement;
-        this.root.styleSheets.Add(this.style);
-
-        this.createButton = this.root.Query<Button>("create-button");
-        this.backButton = this.root.Query<Button>("back-button");
-        this.nameField = this.root.Query<TextField>("world-name-field");
-        this.seedField = this.root.Query<TextField>("world-seed-field");
-
-        List<VisualElement> textFieldList = this.root.Query<VisualElement>("unity-text-input").ToList();
-
-        USSPreparer.SetInputFieldColors(textFieldList, TEXT_FIELD_COLOR, TEXT_COLOR);
-
-        USSPreparer.SetTextFieldLimitation(this.nameField, InputFieldLimitation.CHARACTERS_ONLY);
-        USSPreparer.SetTextFieldLimitation(this.seedField, InputFieldLimitation.NUMBERS_ONLY);
-
-        InitClickEvents();
+        nameField.onValidateInput += ValidateFilename;
+        seedField.onValidateInput += ValidateSeedNumber;
 	}
 
-    private void InitClickEvents(){
-        this.createButton.clicked += () => CreateNewWorld();
-        this.backButton.clicked += () => SendMessage("ChangeMenu", MenuID.SELECT_WORLD);
+    public void RebuildText(Text text, InputField field){
     }
 
+    private char ValidateSeedNumber(string text, int charIndex, char addedChar){
+        if(text.Length >= 9)
+            return '\0';
+        if(char.IsDigit(addedChar))
+            return addedChar;
+        return '\0';
+    }
 
-    private void CreateNewWorld(){
+    private char ValidateFilename(string text, int charIndex, char addedChar){
+        if(char.IsLetter(addedChar))
+            return addedChar;
+        else if(text.Length > 0 && addedChar == ' ')
+            return addedChar;
+        return '\0';
+    }    
+
+
+    public void CreateNewWorld(){
         int rn;
 
-        if(this.nameField.value == ""){
+        if(this.nameText.text == ""){
             return;
         }
 
-        if(this.seedField.value == ""){
+        if(this.seedText.text == ""){
             Random.InitState((int)DateTime.Now.Ticks);
             rn = (int)Random.Range(0, int.MaxValue);
             World.SetWorldSeed(rn.ToString());
         }
         else{
-            World.SetWorldSeed(this.seedField.value);
+            World.SetWorldSeed(this.seedText.text);
         }
 
-        World.SetWorldName(this.nameField.value);
+        World.SetWorldName(this.nameText.text);
         
         if(RegionFileHandler.CreateWorldFile(World.worldName, World.worldSeed)){
-            SendMessage("ChangeMenu", MenuID.SELECT_WORLD);
+            OpenSelectWorldMenu();
         }
     }
-    */
+
+    public void OpenSelectWorldMenu(){
+        this.RequestMenuChange(MenuID.SELECT_WORLD);
+    }    
 }
