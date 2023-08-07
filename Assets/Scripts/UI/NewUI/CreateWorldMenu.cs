@@ -13,21 +13,13 @@ public class CreateWorldMenu : Menu{
     public Text nameText;
     public Text seedText;
 
-    // Cache
-    private Text cacheText;
-    private GameObject cacheObj;
-
 
     public override void Disable(){
         DeselectClickedButton();
         this.mainObject.SetActive(false);
 
-        RebuildText(this.nameText, this.nameField);
-        RebuildText(this.seedText, this.seedField);
-    }
-
-    public override void Enable(){
-        this.mainObject.SetActive(true);
+        RebuildText(this.nameField);
+        RebuildText(this.seedField);
     }
 
 	void Start(){
@@ -35,14 +27,23 @@ public class CreateWorldMenu : Menu{
         seedField.onValidateInput += ValidateSeedNumber;
 	}
 
-    public void RebuildText(Text text, InputField field){
+    public void RebuildText(InputField parent){
+        parent.ProcessEvent(Event.KeyboardEvent("^a"));
+        parent.ProcessEvent(Event.KeyboardEvent("backspace"));
+        parent.ForceLabelUpdate();
     }
 
     private char ValidateSeedNumber(string text, int charIndex, char addedChar){
         if(text.Length >= 9)
             return '\0';
-        if(char.IsDigit(addedChar))
+        if(char.IsDigit(addedChar)){
+            if(addedChar == '0' && text.Length == 0)
+                return '0';
+            else if(addedChar == '0' && text.Length == 1 && text[0] == '0')
+                return '\0';
+
             return addedChar;
+        }
         return '\0';
     }
 
