@@ -89,7 +89,7 @@ Material:
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
     - _CullModeForward: 2
-    - _CycleAnimationTime: 0.25
+    - _CycleAnimationTime: 0.2
     - _DepthOffsetEnable: 0
     - _DoubleSidedEnable: 0
     - _DoubleSidedGIMode: 0
@@ -126,7 +126,7 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
-    - _AnimationColor: {r: 0.43137255, g: 0.7921569, b: 0.45490196, a: 0}
+    - _AnimationColor: {r: 0.39021894, g: 0.745283, b: 0.4113537, a: 0}
     - _BackgroundColor: {r: 0.31132078, g: 0.31132078, b: 0.31132078, a: 0}
     - _BorderColor: {r: 0.40824136, g: 0.6226415, b: 0.42302758, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
