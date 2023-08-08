@@ -11,6 +11,9 @@ public class CarouselController{
 	public RectTransform view;
 	private GameObject parent;
 
+    // Carousel Elements
+    public List<GameObject> elements = new List<GameObject>();
+
 	// Carousel animation variables
     private readonly float maxLerpTime;
     private float currentLerpTime = 0f;
@@ -38,6 +41,7 @@ public class CarouselController{
     // Cache
     private GameObject cacheElement;
     private RectTransform cacheRect;
+    private GameObject cacheButton;
 
 
     public CarouselController(RectTransform view, GameObject parent, int itemSize, int viewportSize, float maxLerpTime, bool isBezier=true){
@@ -105,12 +109,16 @@ public class CarouselController{
         this.cacheElement.name = "[WorldItem] " + name;
         this.cacheElement.transform.SetParent(this.parent.transform);
         this.cacheElement.transform.localScale = Vector3.one;
+        this.cacheButton = GameObject.Find("/SelectWorldMenu/Content/MainLayout/VerticalGroup/Scroll View/Viewport/Content/" + this.cacheElement.name + "/PlayButton");
+        this.cacheButton.transform.localScale = Vector3.one;
 
         this.cacheRect = this.cacheElement.transform as RectTransform;
         this.cacheRect.anchoredPosition3D = Vector3.zero;
 
         this.cacheElement.GetComponentsInChildren<Text>()[0].text = name;
         this.cacheElement.GetComponentsInChildren<Text>()[1].text = description;
+
+        this.elements.Add(this.cacheElement);
     }
 
     public void ClearCarousel(){

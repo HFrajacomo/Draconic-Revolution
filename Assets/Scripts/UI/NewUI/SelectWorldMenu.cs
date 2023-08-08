@@ -2,6 +2,7 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class SelectWorldMenu : Menu
 {
@@ -23,6 +24,9 @@ public class SelectWorldMenu : Menu
     private CarouselController carousel;
     private bool isEnabled = false;
     private bool setButtons = false;
+
+    // Cache
+    private Button cacheButton;
 
 
     public void OpenInitialMenu(){
@@ -62,7 +66,7 @@ public class SelectWorldMenu : Menu
     void Update(){
         if(this.isEnabled){
             this.carousel.HandleMouseMovement();
-            
+
             if(!this.carousel.initialPositionSet)
                 this.carousel.InitialMovementOfView();
 
@@ -90,9 +94,28 @@ public class SelectWorldMenu : Menu
             this.carousel.AddWorld(this.worldItem, worldName, "Description...");
         }
 
+        SetPlayButtonFunctionality();
+
         if(this.worldNames.Length > 0)
             return true;
         return false;
+    }
+
+    private void SetPlayButtonFunctionality(){
+        foreach(GameObject world in this.carousel.elements){
+            string worldName = world.GetComponentInChildren<Text>().text;
+            this.cacheButton = world.GetComponentInChildren<Button>();
+
+            this.cacheButton.onClick.AddListener(() => StartGameSingleplayer(worldName));
+        }
+    }
+    
+    private void StartGameSingleplayer(string world){
+        World.SetWorldName(world);
+        World.SetWorldSeed(0);
+        World.SetToClient();
+
+        SceneManager.LoadScene(1);
     }
 
     private string GetDirectoryName(string path){
