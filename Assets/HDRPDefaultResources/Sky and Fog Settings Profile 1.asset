@@ -193,10 +193,10 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: 17
   tint:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: -4
 --- !u!114 &-5272523201392510970
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -215,7 +215,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.9053255}
   midtones:
     m_OverrideState: 1
-    m_Value: {x: 0.7868638, y: 0.853696, z: 1, w: 0.2366864}
+    m_Value: {x: 0.79, y: 0.8565, z: 1, w: 0.2366864}
   highlights:
     m_OverrideState: 1
     m_Value: {x: 1, y: 1, z: 1, w: 0}
@@ -292,7 +292,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.5, g: 0.43, b: 0.28, a: 1}
+      m_Value: {r: 0.23094185, g: 0.11114366, b: 0.071210936, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 0
@@ -384,7 +384,7 @@ MonoBehaviour:
       m_Value: 1
     steps:
       m_OverrideState: 0
-      m_Value: 1
+      m_Value: 2
     thickness:
       m_OverrideState: 1
       m_Value: 0
@@ -587,7 +587,7 @@ MonoBehaviour:
     m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 7.575752
+    m_Value: 4.6795754
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -750,10 +750,10 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.93, g: 0.54, b: 0.15, a: 1}
+    m_Value: {r: 0.7392076, g: 0.8201321, b: 0.33087495, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0, g: 0.87, b: 1, a: 1}
+    m_Value: {r: 0.80866283, g: 0.3403797, b: 0.071535274, a: 1}
   horizonZenithShift:
     m_OverrideState: 1
     m_Value: 0
@@ -1209,7 +1209,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 0.6, y: 0.56, z: 0.45, w: 0.16}
+    m_Value: {x: 1, y: 0.5988333, z: 0.17000002, w: 0.53939587}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3

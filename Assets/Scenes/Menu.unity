@@ -6132,7 +6132,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aea1f2184ff6b24fb72bf1a18d8235f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skybox: {fileID: 2012244600}
+  skybox: {fileID: 0}
   mainMenu: {fileID: 1287091074}
   singleplayerMenu: {fileID: 1350346720}
   singleplayerNewMenu: {fileID: 1340005433}
