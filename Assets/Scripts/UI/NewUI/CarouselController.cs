@@ -136,6 +136,7 @@ public class CarouselController{
         this.isPrevDisabled = true;
         this.refreshControllers = true;
         this.totalCarouselSize = (int)this.view.rect.width;
+        this.elements.Clear();
     }
 
     public void Scroll(){

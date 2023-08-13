@@ -2,10 +2,6 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 public class MenuManager : MonoBehaviour{
-	// Skybox
-	[SerializeField]
-	private GameObject skybox;
-
 	// Menus
 	[SerializeField]
 	private Menu initialMenu;
@@ -13,6 +9,8 @@ public class MenuManager : MonoBehaviour{
 	private Menu selectWorldMenu;
 	[SerializeField]
 	private Menu createWorldMenu;
+	[SerializeField]
+	private Menu multiplayerMenu;
 
 	// Pointer
 	private Menu currentMenu;
@@ -31,9 +29,7 @@ public class MenuManager : MonoBehaviour{
 		this.currentMenu = this.initialMenu;
 		this.currentMenu.Enable();
 
-		if(MenuManager.firstLoad)
-			GameObject.DontDestroyOnLoad(this.skybox);
-		else
+		if(!MenuManager.firstLoad)
 			UnloadMemory();
 
 		Configurations.LoadConfigFile();
@@ -62,6 +58,9 @@ public class MenuManager : MonoBehaviour{
 				break;
 			case MenuID.CREATE_WORLD:
 				this.currentMenu = this.createWorldMenu;
+				break;
+			case MenuID.MULTIPLAYER:
+				this.currentMenu = this.multiplayerMenu;
 				break;
 			default:
 				Debug.Log("Failed to fetch menu with MenuID: " + id);

@@ -193,10 +193,10 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 17
+    m_Value: -7
   tint:
     m_OverrideState: 1
-    m_Value: -4
+    m_Value: 0
 --- !u!114 &-5272523201392510970
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -292,7 +292,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.23094185, g: 0.11114366, b: 0.071210936, a: 1}
+      m_Value: {r: 1, g: 1, b: 1, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 0
@@ -406,7 +406,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a7ff42a8c5be6646ad3975f3a54c1eb, type: 3}
   m_Name: DiffusionProfileList
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   diffusionProfiles:
     m_OverrideState: 1
     m_Value:
@@ -587,7 +587,7 @@ MonoBehaviour:
     m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 4.6795754
+    m_Value: 9
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -750,10 +750,10 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.7392076, g: 0.8201321, b: 0.33087495, a: 1}
+    m_Value: {r: 0, g: 0.87, b: 1, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0.80866283, g: 0.3403797, b: 0.071535274, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   horizonZenithShift:
     m_OverrideState: 1
     m_Value: 0
@@ -1209,7 +1209,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 0.5988333, z: 0.17000002, w: 0.53939587}
+    m_Value: {x: 0.6, y: 0.65, z: 0.68, w: 0}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3
