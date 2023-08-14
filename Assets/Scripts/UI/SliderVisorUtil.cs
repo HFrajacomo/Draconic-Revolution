@@ -9,8 +9,8 @@ The InputField must be a child of the Slider GameObject
 */
 public class SliderVisorUtil : MonoBehaviour
 {
-    public Slider slider;
-    public InputField inputField;
+    private Slider slider;
+    private InputField inputField;
 
     /*
     Sets the Slider and InputField on Runtime
@@ -20,10 +20,11 @@ public class SliderVisorUtil : MonoBehaviour
         this.inputField = this.gameObject.GetComponentInChildren<InputField>();
         this.inputField.readOnly = true;
         this.inputField.text = ((int)this.slider.value).ToString();
+        this.slider.onValueChanged.AddListener(UpdateValue);
     }
 
-    public void UpdateValue(){
-        this.inputField.text = ((int)this.slider.value).ToString();
+    public void UpdateValue(float number){
+        this.inputField.text = ((int)number).ToString();
     }
 
 }

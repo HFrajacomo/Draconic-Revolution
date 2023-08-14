@@ -70,6 +70,9 @@ public class OptionsMenu : Menu
 		// Set default values
 		this.accountID_field.text = Configurations.accountID.ToString();
 		this.subtitlesToggle.isOn = Configurations.subtitlesOn;
+
+		// Set InputField validations
+        this.accountID_field.onValidateInput += ValidateAccountID;
 	}
 
 	void Start(){
@@ -79,7 +82,7 @@ public class OptionsMenu : Menu
 
 	public void ToggleDiv(GameObject go){
 		this.gameTab.SetActive(false);
-		//this.videoTab.SetActive(false);
+		this.videoTab.SetActive(false);
 		//this.audioTab.SetActive(false);
 		//this.adminTab.SetActive(false);
 
@@ -87,4 +90,22 @@ public class OptionsMenu : Menu
 	}
 
 	public void ToggleSubtitles(){Configurations.subtitlesOn = !Configurations.subtitlesOn;}
+
+    private char ValidateAccountID(string text, int charIndex, char addedChar){
+        if(char.IsDigit(addedChar)){
+        	if(text.Length > 18){
+        		string newStr = text + addedChar;
+
+        		if(ulong.TryParse(newStr, out _)){
+        			return addedChar;
+        		}
+        		else{
+        			return '\0';
+        		}
+        	}
+
+        	return addedChar;
+        }
+        return '\0';
+    }
 }
