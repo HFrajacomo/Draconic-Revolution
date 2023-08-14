@@ -164,7 +164,7 @@ Material:
     - _AlphaRemapMax: 1
     - _AlphaRemapMin: 0
     - _AlphaSrcBlend: 1
-    - _AnimationSpeed: 1
+    - _AnimationSpeed: 1.2
     - _Anisotropy: 0
     - _ArrowSize: 0.5
     - _BlendMode: 0
@@ -227,7 +227,7 @@ Material:
     - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _RenderQueueType: 4
-    - _ShouldAnimate: 1
+    - _ShouldAnimate: 0
     - _Smoothness: 0.5
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
@@ -273,14 +273,14 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _Basic_Color: {r: 0.47009587, g: 0.7005222, b: 0.7169812, a: 0.13333334}
+    - _Basic_Color: {r: 0.31181026, g: 0.5841317, b: 0.7264151, a: 0.15686275}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
-    - _HighlightColor: {r: 0.29369885, g: 0.4658561, b: 0.8301887, a: 0.38431373}
+    - _HighlightColor: {r: 0.18640976, g: 0.40651417, b: 0.6698113, a: 0.8784314}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
