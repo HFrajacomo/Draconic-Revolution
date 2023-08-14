@@ -41,14 +41,20 @@ Material:
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_ValidKeywords:
+  - _ENABLE_FOG_ON_TRANSPARENT
+  - _SURFACE_TYPE_TRANSPARENT
+  - _TRANSPARENT_WRITES_MOTION_VEC
+  m_InvalidKeywords:
+  - _BORDER
+  - _BorderSize
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: 3000
   stringTagMap:
     MotionVector: User
+    RenderType: Transparent
   disabledShaderPasses:
   - TransparentDepthPrepass
   - TransparentDepthPostpass
@@ -78,14 +84,15 @@ Material:
     m_Floats:
     - _AddPrecomputedVelocity: 0
     - _AlphaCutoffEnable: 0
-    - _AlphaDstBlend: 0
+    - _AlphaDstBlend: 10
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
     - _AlphaToMaskInspectorValue: 0
     - _BUILTIN_QueueControl: 0
     - _BUILTIN_QueueOffset: 0
     - _BlendMode: 0
-    - _BorderSize: 0.1
+    - _BorderSize: 0.05
+    - _ColorMask: 15
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
     - _CullModeForward: 2
@@ -94,14 +101,18 @@ Material:
     - _DoubleSidedEnable: 0
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 2
-    - _DstBlend: 0
+    - _DstBlend: 10
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
     - _FresnelStrength: 1.14
-    - _HorizontalAdjustment: 0.91
+    - _HorizontalAdjustment: 0.96
     - _OpaqueCullMode: 2
-    - _RenderQueueType: 1
+    - _RenderQueueType: 4
     - _SrcBlend: 1
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
     - _StencilRef: 0
     - _StencilRefDepth: 1
     - _StencilRefDistortionVec: 4
@@ -112,23 +123,23 @@ Material:
     - _StencilWriteMaskDistortionVec: 4
     - _StencilWriteMaskGBuffer: 14
     - _StencilWriteMaskMV: 43
-    - _SurfaceType: 0
+    - _SurfaceType: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
-    - _TransparentWritingMotionVec: 0
+    - _TransparentWritingMotionVec: 1
     - _TransparentZWrite: 0
     - _UseShadowThreshold: 0
-    - _ZTestDepthEqualForOpaque: 3
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestGBuffer: 4
     - _ZTestTransparent: 4
-    - _ZWrite: 1
+    - _ZWrite: 0
     m_Colors:
-    - _AnimationColor: {r: 0.39021894, g: 0.745283, b: 0.4113537, a: 0}
-    - _BackgroundColor: {r: 0.31132078, g: 0.31132078, b: 0.31132078, a: 0}
-    - _BorderColor: {r: 0.40824136, g: 0.6226415, b: 0.42302758, a: 0}
+    - _AnimationColor: {r: 0.4308473, g: 0.8867924, b: 0.7882118, a: 0}
+    - _BackgroundColor: {r: 0.18903525, g: 0.2161473, b: 0.2264151, a: 0}
+    - _BorderColor: {r: 0.44001427, g: 0.9056604, b: 0.68419456, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _FresnelColor: {r: 0, g: 1, b: 0.16000009, a: 0}
