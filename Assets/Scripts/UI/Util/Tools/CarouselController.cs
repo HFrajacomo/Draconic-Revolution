@@ -104,7 +104,7 @@ public class CarouselController{
     	CalculateBezierMidpoint();
     }
 
-    public void AddWorld(GameObject item, string name, string description){
+    public GameObject AddWorld(GameObject item, string name, string description){
         this.cacheElement = GameObject.Instantiate(item);
         this.cacheElement.name = "[WorldItem] " + name;
         this.cacheElement.transform.SetParent(this.parent.transform);
@@ -119,6 +119,8 @@ public class CarouselController{
         this.cacheElement.GetComponentsInChildren<Text>()[1].text = description;
 
         this.elements.Add(this.cacheElement);
+
+        return this.cacheElement;
     }
 
     public void ClearCarousel(){
