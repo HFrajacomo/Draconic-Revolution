@@ -49,8 +49,6 @@ public class SelectWorldMenu : Menu
         this.cacheDD = worldItem.GetComponentInChildren<Dropdown>();
         this.cacheText = worldItem.GetComponentInChildren<Text>();
 
-        Debug.Log(this.cacheText);
-
         this.dropDownSelection = this.cacheDD .options[this.cacheDD .value].text;
 
         switch(this.dropDownSelection){
@@ -58,6 +56,9 @@ public class SelectWorldMenu : Menu
                 return;
             case "Rename":
                 OpenRenameWorld(this.cacheText);
+                break;
+            case "Defragment":
+                OpenDefragmentWorld(this.cacheText);
                 break;
             default:
                 return;
@@ -67,6 +68,11 @@ public class SelectWorldMenu : Menu
     public void OpenRenameWorld(Text worldNameText){
         RenameWorldMenu.SetWorldName(worldNameText.text);
         this.RequestMenuChange(MenuID.RENAME_WORLD);
+    }
+
+    public void OpenDefragmentWorld(Text worldNameText){
+        DefragmentWorldMenu.SetWorldName(worldNameText.text);
+        this.RequestMenuChange(MenuID.DEFRAG_WORLD);
     }
 
     public override void Disable(){

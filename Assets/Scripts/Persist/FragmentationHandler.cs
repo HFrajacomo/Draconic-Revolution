@@ -97,6 +97,9 @@ public class FragmentationHandler{
         return this.data.Count;
     }
 
+    // Checks if the current Fragmentation Handler only has the infite hole entry
+    public bool IsDefragged(){return this.data.Count == 1 && this.data[0].infinite;}
+
     // Merges DataHoles starting from pos in data list if there's any
     // ONLY USE WHEN JUST ADDED A HOLE IN POS
     private void MergeHoles(int index){

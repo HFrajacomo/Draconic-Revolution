@@ -9,6 +9,7 @@ public struct RegionFile{
 	private float chunkLength;
 	private string worldDir;
 	private string saveDir;
+	private long fileSize;
 
 	// File Data
 	public Stream file;
@@ -23,7 +24,7 @@ public struct RegionFile{
 	private byte[] cachedHoles;
 
 	// Opens the file and adds ".rdf" at the end (Region Data File)
-	public RegionFile(string name, string fileFormat, ChunkPos pos, float chunkLen){
+	public RegionFile(string name, string fileFormat, ChunkPos pos, float chunkLen, string worldName="", bool isDefrag=false){
 		bool isLoaded = true;
 
 		this.name = name;
@@ -39,17 +40,29 @@ public struct RegionFile{
 
 		#if UNITY_EDITOR
 			this.saveDir = "Worlds/";
-			this.worldDir = this.saveDir + World.worldName + "/";
+
+			if(!isDefrag)
+				this.worldDir = this.saveDir + World.worldName + "/";
+			else
+				this.worldDir = this.saveDir + worldName + "/";
 		#else
 			// If is in Dedicated Server
 			if(!World.isClient){
 				this.saveDir = "Worlds/";
-				this.worldDir = this.saveDir + World.worldName + "/";
+
+				if(!isDefrag)
+					this.worldDir = this.saveDir + World.worldName + "/";
+				else
+					this.worldDir = this.saveDir + worldName + "/";
 			}
 			// If it's a Local Server
 			else{
 				this.saveDir = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\";
-				this.worldDir = this.saveDir + World.worldName + "\\";			
+
+				if(!isDefrag)
+					this.worldDir = this.saveDir + World.worldName + "\\";	
+				else
+					this.worldDir = this.saveDir + worldName + "\\";	
 			}
 		#endif
 
@@ -78,12 +91,21 @@ public struct RegionFile{
 		}
 
 		this.fragHandler = new FragmentationHandler(isLoaded);
-		
+
+		FileInfo info = new FileInfo(this.worldDir + this.name + this.fileFormat);
+
+		if(info.Exists)
+			this.fileSize = info.Length;
+		else
+			this.fileSize = 0;
+
 		if(isLoaded){
 			LoadIndex();
 			LoadHoles();
 		}
 	}
+
+	public long GetFileSize(){return this.fileSize;}
 
 
 	// Convert to linear Region Chunk Coordinates
@@ -108,7 +130,19 @@ public struct RegionFile{
 		this.file.Flush();
 	}
 
-	// Reads index data com IND file
+	// Reads from header to buffer stream (Not used in Game Loop)
+	public void ReadHeader(long position, byte[] buffer){
+		this.file.Seek(position, SeekOrigin.Begin);
+		this.file.Read(buffer, 0, RegionFileHandler.chunkHeaderSize);
+	}
+
+	// Reads from file to buffer stream (Not used in Game Loop)
+	public void Read(long position, byte[] buffer, int bufferOffset, int size){
+		this.file.Seek(position, SeekOrigin.Begin);
+		this.file.Read(buffer, bufferOffset, size);
+	}
+
+	// Reads index data with IND file
 	public void LoadIndex(){
 		this.indexFile.Seek(0, SeekOrigin.Begin);
 
@@ -142,6 +176,25 @@ public struct RegionFile{
 			writtenBytes = this.fragHandler.CacheHoles(offset, ref done);
 			this.holeFile.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
 			this.holeFile.Flush();		
+		}
+	}
+
+	// Save hole data to another stream (Not used in Game Loop)
+	public void SaveHolesToFile(Stream file){
+		bool done = false;
+		int offset = 0;
+		int writtenBytes = 0;
+
+		this.file.SetLength(0);
+		writtenBytes = this.fragHandler.CacheHoles(offset, ref done);
+		this.file.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
+		this.file.Flush();
+
+		while(!done){
+			offset++;
+			writtenBytes = this.fragHandler.CacheHoles(offset, ref done);
+			this.file.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
+			this.file.Flush();		
 		}
 	}
 
@@ -308,6 +361,13 @@ public struct RegionFile{
 		UnloadIndex();
 		SaveHoles();
 
+		this.file.Close();
+		this.indexFile.Close();
+		this.holeFile.Close();
+	}
+
+	// Close all Streams and don't save data (Not used in Game Loop)
+	public void CloseWithoutSaving(){
 		this.file.Close();
 		this.indexFile.Close();
 		this.holeFile.Close();
