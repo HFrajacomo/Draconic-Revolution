@@ -6892,7 +6892,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 877167325}
-  - component: {fileID: 877167324}
   - component: {fileID: 877167326}
   m_Layer: 0
   m_Name: MenuObject
@@ -6901,46 +6900,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &877167324
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 877167323}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6aea1f2184ff6b24fb72bf1a18d8235f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  skybox: {fileID: 0}
-  mainMenu: {fileID: 1287091074}
-  singleplayerMenu: {fileID: 1350346720}
-  singleplayerNewMenu: {fileID: 1340005433}
-  multiplayerMenu: {fileID: 0}
-  optionsMenu: {fileID: 0}
-  single_nameField: {fileID: 0}
-  single_seedField: {fileID: 0}
-  multi_IPField: {fileID: 0}
-  fullbrightText: {fileID: 0}
-  single_nameInput: {fileID: 0}
-  single_seedInput: {fileID: 0}
-  multi_ipInput: {fileID: 0}
-  options_accountIDInput: {fileID: 0}
-  subtitlesText: {fileID: 0}
-  singleplayerButton: {fileID: 1694037539}
-  multiplayerPlayButton: {fileID: 0}
-  singleplayerCreateButton: {fileID: 0}
-  singleplayerNewButton: {fileID: 0}
-  singleplayer_sliderList: {fileID: 0}
-  worldButtonPrefab: {fileID: 0}
-  renderDistanceSlider: {fileID: 0}
-  music2DMusicSlider: {fileID: 0}
-  music3DMusicSlider: {fileID: 0}
-  sfx2DMusicSlider: {fileID: 0}
-  sfx3DMusicSlider: {fileID: 0}
-  voice2DMusicSlider: {fileID: 0}
-  voice3DMusicSlider: {fileID: 0}
 --- !u!4 &877167325
 Transform:
   m_ObjectHideFlags: 0
