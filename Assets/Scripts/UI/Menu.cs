@@ -3,6 +3,7 @@ using UnityEngine.UIElements;
 using UnityEngine.EventSystems;
 
 public abstract class Menu : MonoBehaviour{
+	[Header("Management References")]
 	[SerializeField]
 	protected MenuManager manager;
 	[SerializeField]

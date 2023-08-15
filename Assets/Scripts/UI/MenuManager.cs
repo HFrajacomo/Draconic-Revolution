@@ -3,6 +3,7 @@ using UnityEngine.UIElements;
 
 public class MenuManager : MonoBehaviour{
 	// Menus
+	[Header("Menu Objects")]
 	[SerializeField]
 	private Menu initialMenu;
 	[SerializeField]
@@ -13,6 +14,8 @@ public class MenuManager : MonoBehaviour{
 	private Menu multiplayerMenu;
 	[SerializeField]
 	private Menu optionsMenu;
+	[SerializeField]
+	private Menu renameWorldMenu;
 
 	// Pointer
 	private Menu currentMenu;
@@ -66,6 +69,9 @@ public class MenuManager : MonoBehaviour{
 				break;
 			case MenuID.OPTIONS:
 				this.currentMenu = this.optionsMenu;
+				break;
+			case MenuID.RENAME_WORLD:
+				this.currentMenu = this.renameWorldMenu;
 				break;
 			default:
 				Debug.Log("Failed to fetch menu with MenuID: " + id);

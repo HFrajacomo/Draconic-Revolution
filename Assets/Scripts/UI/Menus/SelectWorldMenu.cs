@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 public class SelectWorldMenu : Menu
 {
     // Prefab
+    [Header("Prefabs")]
     public GameObject worldItem;
     public GameObject scrollContent;
 
@@ -15,10 +16,15 @@ public class SelectWorldMenu : Menu
     private string worldsDir;
 
     // Buttons
+    [Header("UI Elements")]
     public Button carouselNextButton;
     public Button carouselPrevButton;
+    
+    // Dropdown selection
+    private string dropDownSelection;
 
     // Carousel
+    [Header("Carousel Controllers")]
     public RectTransform scrollView;
     public RectTransform viewport;
     private CarouselController carousel;
@@ -27,7 +33,8 @@ public class SelectWorldMenu : Menu
 
     // Cache
     private Button cacheButton;
-    private Dropdown cacheDropdown;
+    private Text cacheText;
+    private Dropdown cacheDD;
 
 
     public void OpenInitialMenu(){
@@ -36,6 +43,30 @@ public class SelectWorldMenu : Menu
 
     public void OpenCreateWorldMenu(){
         this.RequestMenuChange(MenuID.CREATE_WORLD);
+    }
+
+    public void OpenDropDownSelection(GameObject worldItem){
+        this.cacheDD = worldItem.GetComponentInChildren<Dropdown>();
+        this.cacheText = worldItem.GetComponentInChildren<Text>();
+
+        Debug.Log(this.cacheText);
+
+        this.dropDownSelection = this.cacheDD .options[this.cacheDD .value].text;
+
+        switch(this.dropDownSelection){
+            case null:
+                return;
+            case "Rename":
+                OpenRenameWorld(this.cacheText);
+                break;
+            default:
+                return;
+        }
+    }
+
+    public void OpenRenameWorld(Text worldNameText){
+        RenameWorldMenu.SetWorldName(worldNameText.text);
+        this.RequestMenuChange(MenuID.RENAME_WORLD);
     }
 
     public override void Disable(){

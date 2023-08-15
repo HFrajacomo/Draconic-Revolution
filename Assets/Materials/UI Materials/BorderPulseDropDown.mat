@@ -91,7 +91,7 @@ Material:
     - _BUILTIN_QueueControl: 0
     - _BUILTIN_QueueOffset: 0
     - _BlendMode: 0
-    - _BorderSize: 0.05
+    - _BorderSize: 0.1
     - _ColorMask: 15
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
@@ -105,7 +105,7 @@ Material:
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
     - _FresnelStrength: 1.14
-    - _HorizontalAdjustment: 0.96
+    - _HorizontalAdjustment: 1
     - _OpaqueCullMode: 2
     - _RenderQueueType: 4
     - _SrcBlend: 1
@@ -137,9 +137,9 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 0
     m_Colors:
-    - _AnimationColor: {r: 0.4308473, g: 0.8867924, b: 0.7882118, a: 0}
-    - _BackgroundColor: {r: 0.18903525, g: 0.2161473, b: 0.2264151, a: 0}
-    - _BorderColor: {r: 0.44001427, g: 0.9056604, b: 0.68419456, a: 0}
+    - _AnimationColor: {r: 0.33664113, g: 0.8396226, b: 0.65598524, a: 0}
+    - _BackgroundColor: {r: 0.254717, g: 0.254717, b: 0.254717, a: 0}
+    - _BorderColor: {r: 0.4392157, g: 0.90588236, b: 0.83412194, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _FresnelColor: {r: 0, g: 1, b: 0.16000009, a: 0}
