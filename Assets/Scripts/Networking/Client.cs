@@ -140,6 +140,7 @@ public class Client
 
 	public void SetRaycast(PlayerRaycast raycast){
 		this.raycast = raycast;
+        this.raycast.SetFOV();
 	}
 
 	public void SetPlayerEvents(PlayerEvents events){

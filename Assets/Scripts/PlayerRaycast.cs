@@ -282,6 +282,11 @@ public class PlayerRaycast : MonoBehaviour
 		message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);
 		this.loader.client.Send(message.GetMessage(), message.size);
 	}
+
+	// Sets the Camera FOV
+	public void SetFOV(){
+		cam.GetComponent<Camera>().fieldOfView = Configurations.fieldOfView;
+	}
 	
 
 	// Runs Prefab read and returns the arrays needed to create the prefab

@@ -193,10 +193,10 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: -7
+    m_Value: 17
   tint:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: -4
 --- !u!114 &-5272523201392510970
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -292,7 +292,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 1, g: 1, b: 1, a: 1}
+      m_Value: {r: 0.43173358, g: 0.35496217, b: 0.32937172, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 0
@@ -311,7 +311,7 @@ MonoBehaviour:
       m_Value:
         mode: 2
         customValue: 100
-        additiveValue: 220
+        additiveValue: 10
         multiplyValue: 1
     flowmap:
       m_OverrideState: 0
@@ -374,7 +374,7 @@ MonoBehaviour:
       m_Value:
         mode: 2
         customValue: 100
-        additiveValue: 200
+        additiveValue: 40
         multiplyValue: 1
     flowmap:
       m_OverrideState: 0
@@ -587,7 +587,7 @@ MonoBehaviour:
     m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 9
+    m_Value: 5.4542494
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -750,10 +750,10 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0, g: 0.87, b: 1, a: 1}
+    m_Value: {r: 0.5670928, g: 0.8488179, b: 0.5209184, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_Value: {r: 0.51821905, g: 0.42285138, b: 0.40500775, a: 1}
   horizonZenithShift:
     m_OverrideState: 1
     m_Value: 0
@@ -1209,7 +1209,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 0.6, y: 0.65, z: 0.68, w: 0}
+    m_Value: {x: 0.6759381, y: 0.48477802, z: 0.24921513, w: 0.39597252}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3
