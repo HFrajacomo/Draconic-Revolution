@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 /*
 This Component is meant to react to any UI event
@@ -16,7 +15,7 @@ public class UIEventsHandler : MonoBehaviour
     }
 
     public void UpdateAccountID(){
-        string text = this.gameObject.GetComponent<TMP_InputField>().text;
+        string text = this.gameObject.GetComponent<InputField>().text;
 
         if(text == "")
             return;
@@ -47,5 +46,9 @@ public class UIEventsHandler : MonoBehaviour
 
     public void Update3DVoiceVolume(){
         Configurations.voice3DVolume = (int)this.gameObject.GetComponent<Slider>().value;
+    }
+
+    public void UpdateFOV(){
+        Configurations.fieldOfView = (int)this.gameObject.GetComponent<Slider>().value;
     }
 }

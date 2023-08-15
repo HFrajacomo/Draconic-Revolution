@@ -11,6 +11,8 @@ public class MenuManager : MonoBehaviour{
 	private Menu createWorldMenu;
 	[SerializeField]
 	private Menu multiplayerMenu;
+	[SerializeField]
+	private Menu optionsMenu;
 
 	// Pointer
 	private Menu currentMenu;
@@ -61,6 +63,9 @@ public class MenuManager : MonoBehaviour{
 				break;
 			case MenuID.MULTIPLAYER:
 				this.currentMenu = this.multiplayerMenu;
+				break;
+			case MenuID.OPTIONS:
+				this.currentMenu = this.optionsMenu;
 				break;
 			default:
 				Debug.Log("Failed to fetch menu with MenuID: " + id);

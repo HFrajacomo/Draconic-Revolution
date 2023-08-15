@@ -7,27 +7,45 @@ using UnityEngine.SceneManagement;
 public class OptionsMenu : Menu
 {
 	// Tabs
+	[Header("Options Tabs")]
 	public GameObject gameTab;
 	public GameObject videoTab;
 	public GameObject audioTab;
 	public GameObject adminTab;
 
 	// Tab Buttons
+	[Header("Div Buttons")]
 	public Button gameButton;
 	public Button videoButton;
 	public Button audioButton;
 	public Button adminButton;
 
 	// Backgrounds
+	[Header("Background")]
 	public Image backgroundDiv;
 	public Image backgroundConfigs;
 
 	// Input Field
+	[Header("Game Tab")]
 	public InputField accountID_field;
+	public Toggle subtitles_toggle;
 
-	// Toggles
-	public Toggle subtitlesToggle;
+	[Header("Video Tab")]
+	public Slider renderDistance_slider;
+	public Slider fov_slider;
 
+	[Header("Audio Tab")]
+	public Slider music2D_slider;
+	public Slider music3D_slider;
+	public Slider sfx2D_slider;
+	public Slider sfx3D_slider;
+	public Slider voice2D_slider;
+	public Slider voice3D_slider;
+
+	[Header("Admin Tab")]
+	public Toggle fullbright_toggle;
+
+	[Header("Other")]
 	// Materials
 	public Material pulseToggle;
 
@@ -65,31 +83,55 @@ public class OptionsMenu : Menu
 		this.backgroundDiv.material = bgMat;
 		this.backgroundConfigs.material = bgMat;
 		this.accountID_field.GetComponent<Image>().material = ifMat;
-		this.subtitlesToggle.GetComponent<Image>().material = tgMat;
+		this.subtitles_toggle.GetComponent<Image>().material = tgMat;
+		this.fullbright_toggle.GetComponent<Image>().material = Instantiate(tgMat);
 
-		// Set default values
-		this.accountID_field.text = Configurations.accountID.ToString();
-		this.subtitlesToggle.isOn = Configurations.subtitlesOn;
-
-		// Set InputField validations
+		// Set validations
         this.accountID_field.onValidateInput += ValidateAccountID;
 	}
 
-	void Start(){
-		this.gameButton.Select();
+	public override void Enable(){
+		this.mainObject.SetActive(true);
+
+		// Set default values
+		this.accountID_field.text = Configurations.accountID.ToString();
+		this.subtitles_toggle.isOn = Configurations.subtitlesOn;
+		this.fullbright_toggle.isOn = Configurations.FULLBRIGHT;
+		this.renderDistance_slider.value = World.renderDistance;
+		this.music2D_slider.value = Configurations.music2DVolume;
+		this.music3D_slider.value = Configurations.music3DVolume;
+		this.sfx2D_slider.value = Configurations.sfx2DVolume;
+		this.sfx3D_slider.value = Configurations.sfx3DVolume;
+		this.voice2D_slider.value = Configurations.voice2DVolume;
+		this.voice3D_slider.value = Configurations.voice3DVolume;
+		this.fov_slider.value = Configurations.fieldOfView;
+
+		// Refresh Shader
+		this.subtitles_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(this.subtitles_toggle.isOn);
+		this.fullbright_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(this.fullbright_toggle.isOn);
+
 		ToggleDiv(this.gameTab);
 	}
 
 	public void ToggleDiv(GameObject go){
 		this.gameTab.SetActive(false);
 		this.videoTab.SetActive(false);
-		//this.audioTab.SetActive(false);
-		//this.adminTab.SetActive(false);
+		this.audioTab.SetActive(false);
+		this.adminTab.SetActive(false);
 
+		this.gameButton.Select();
 		go.SetActive(true);
 	}
 
 	public void ToggleSubtitles(){Configurations.subtitlesOn = !Configurations.subtitlesOn;}
+	public void ToggleFullbright(){Configurations.FULLBRIGHT = !Configurations.FULLBRIGHT;}
+
+	public void SaveAndLeaveMenu(){
+		Configurations.SaveConfigFile();
+		GameObject.Find("AudioManager").GetComponent<AudioManager>().RefreshVolume();
+
+		this.RequestMenuChange(MenuID.INITIAL_MENU);
+	}
 
     private char ValidateAccountID(string text, int charIndex, char addedChar){
         if(char.IsDigit(addedChar)){
