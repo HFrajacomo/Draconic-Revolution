@@ -20,6 +20,9 @@ public class DefragmentWorldMenu : Menu
 
 	[Header("Material")]
 	public Material progressBarMaterial;
+	public Color primaryColor = new Color(0.156f, 0.679f, 0.392f);
+	public Color secondaryColor = new Color(0.225f, 0.318f, 0.330f);
+	public int frequency = 72;
 
 	// Defragmenter
 	private RegionDefragmenter defrag;
@@ -45,7 +48,12 @@ public class DefragmentWorldMenu : Menu
 	private string cachedString;
 
 	void Start(){
-		//this.progressBar.GetComponent<Image>().material = Instantiate(this.progressBarMaterial);
+		Material mat = Instantiate(this.progressBarMaterial);
+
+		mat.SetColor("_Primary_Color", this.primaryColor);
+		mat.SetColor("_Secondary_Color", this.secondaryColor);
+		mat.SetFloat("_Sine_Frequency", this.frequency);
+		this.progressBar.GetComponentsInChildren<Image>()[1].material = mat;
 	}
 
 	void Update(){
@@ -153,7 +161,6 @@ public class DefragmentWorldMenu : Menu
 	}
 
 	private void ConvertNewSize(long newBytes){
-		Debug.Log("RUNNING CONVERT AND RECEIVED: " + newBytes + " bytes");
 		if(newWorldSizeLevel == "B")
 			newWorldSize += newBytes;
 		else if(newWorldSizeLevel == "KB")

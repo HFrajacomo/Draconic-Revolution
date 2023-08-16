@@ -9911,7 +9911,10 @@ MonoBehaviour:
   progressText: {fileID: 1916555516}
   totalWorldSize: {fileID: 1511891706}
   defragedWorldSize: {fileID: 375385014}
-  progressBarMaterial: {fileID: 0}
+  progressBarMaterial: {fileID: 2100000, guid: 8ff8592b4ae5e4349956d23533cfc68f, type: 2}
+  primaryColor: {r: 0.145, g: 0.866, b: 0.47, a: 1}
+  secondaryColor: {r: 0.215, g: 0.403, b: 0.364, a: 1}
+  frequency: 72
 --- !u!4 &1046089196
 Transform:
   m_ObjectHideFlags: 0
@@ -20244,8 +20247,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -5, y: 0}
-  m_SizeDelta: {x: -20, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1812088950
 GameObject:
