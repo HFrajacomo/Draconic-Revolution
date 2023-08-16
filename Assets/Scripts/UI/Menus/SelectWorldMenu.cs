@@ -60,6 +60,9 @@ public class SelectWorldMenu : Menu
             case "Defragment":
                 OpenDefragmentWorld(this.cacheText);
                 break;
+            case "Reset":
+                OpenResetWorld(this.cacheText);
+                break;
             default:
                 return;
         }
@@ -73,6 +76,11 @@ public class SelectWorldMenu : Menu
     public void OpenDefragmentWorld(Text worldNameText){
         DefragmentWorldMenu.SetWorldName(worldNameText.text);
         this.RequestMenuChange(MenuID.DEFRAG_WORLD);
+    }
+
+    public void OpenResetWorld(Text worldNameText){
+        ResetWorldMenu.SetWorldName(worldNameText.text);
+        this.RequestMenuChange(MenuID.RESET_WORLD);
     }
 
     public override void Disable(){
