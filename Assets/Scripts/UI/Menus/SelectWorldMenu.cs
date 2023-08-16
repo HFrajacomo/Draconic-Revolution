@@ -63,6 +63,9 @@ public class SelectWorldMenu : Menu
             case "Reset":
                 OpenResetWorld(this.cacheText);
                 break;
+            case "Delete":
+                OpenDeleteWorld(this.cacheText);
+                break;
             default:
                 return;
         }
@@ -81,6 +84,11 @@ public class SelectWorldMenu : Menu
     public void OpenResetWorld(Text worldNameText){
         ResetWorldMenu.SetWorldName(worldNameText.text);
         this.RequestMenuChange(MenuID.RESET_WORLD);
+    }
+
+    public void OpenDeleteWorld(Text worldNameText){
+        DeleteWorldMenu.SetWorldName(worldNameText.text);
+        this.RequestMenuChange(MenuID.DELETE_WORLD);
     }
 
     public override void Disable(){

@@ -20,6 +20,8 @@ public class MenuManager : MonoBehaviour{
 	private Menu defragmentWorldMenu;
 	[SerializeField]
 	private Menu resetWorldMenu;
+	[SerializeField]
+	private Menu deleteWorldMenu;
 
 	// Pointer
 	private Menu currentMenu;
@@ -82,6 +84,9 @@ public class MenuManager : MonoBehaviour{
 				break;
 			case MenuID.RESET_WORLD:
 				this.currentMenu = this.resetWorldMenu;
+				break;
+			case MenuID.DELETE_WORLD:
+				this.currentMenu = this.deleteWorldMenu;
 				break;
 			default:
 				Debug.Log("Failed to fetch menu with MenuID: " + id);
