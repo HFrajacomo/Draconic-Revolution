@@ -180,21 +180,21 @@ public struct RegionFile{
 	}
 
 	// Save hole data to another stream (Not used in Game Loop)
-	public void SaveHolesToFile(Stream file){
+	public void SaveHolesToFile(Stream holeFile){
 		bool done = false;
 		int offset = 0;
 		int writtenBytes = 0;
 
-		this.file.SetLength(0);
+		holeFile.SetLength(0);
 		writtenBytes = this.fragHandler.CacheHoles(offset, ref done);
-		this.file.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
-		this.file.Flush();
+		holeFile.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
+		holeFile.Flush();
 
 		while(!done){
 			offset++;
 			writtenBytes = this.fragHandler.CacheHoles(offset, ref done);
-			this.file.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
-			this.file.Flush();		
+			holeFile.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
+			holeFile.Flush();		
 		}
 	}
 

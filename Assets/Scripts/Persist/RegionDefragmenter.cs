@@ -20,6 +20,7 @@ public class RegionDefragmenter {
 	// String Constants
 	private static readonly string REGION_DEFAULT_NAME = "DEFRAGMENTED_REGION";
 	private static readonly string INDEX_DEFAULT_NAME = "DEFRAGMENTED_INDEX";
+	private static readonly string HOLE_DEFAULT_NAME = "DEFRAGMENTED_HOLE";
 
 	// Directories
 	private string worldDir;
@@ -46,7 +47,6 @@ public class RegionDefragmenter {
 		this.region = new RegionFile(name, FORMAT, CACHED_POS, Constants.CHUNKS_IN_REGION_FILE, worldName:worldName, isDefrag:true);
 	}
 
-	// Defragments and returns an int2 representing (totalSize, newSize)
 	public void Defragment(){
 		this.totalSize = this.region.GetFileSize();
 
@@ -57,8 +57,10 @@ public class RegionDefragmenter {
 		}
 
 		// Open new temp files
-		defragRegionFile = File.Open(this.worldDir + REGION_DEFAULT_NAME, FileMode.Create);
-		defragIndexFile = File.Open(this.worldDir + INDEX_DEFAULT_NAME, FileMode.Create);
+		this.defragRegionFile = File.Open(this.worldDir + REGION_DEFAULT_NAME, FileMode.Create);
+		this.defragIndexFile = File.Open(this.worldDir + INDEX_DEFAULT_NAME, FileMode.Create);
+		this.defragHoleFile = File.Open(this.worldDir + HOLE_DEFAULT_NAME, FileMode.Create);
+
 
 		// Load and Save chunk data into new files
 		foreach(long key in this.region.index.Keys){
@@ -69,18 +71,21 @@ public class RegionDefragmenter {
 
 		// Remakes the .HLE file
 		this.region.fragHandler = new FragmentationHandler(false);
-		defragHoleFile = File.Open(this.worldDir + this.region.name + ".hle", FileMode.Create);
 		this.region.SaveHolesToFile(defragHoleFile);
 
+		this.defragRegionFile.Close();
+		this.defragIndexFile.Close();
+		this.defragHoleFile.Close();
+
 		// Moves temp files to main
+		File.Delete(this.worldDir + this.region.name + FORMAT);
 		File.Move(this.worldDir + REGION_DEFAULT_NAME, this.worldDir + this.region.name + FORMAT);
+		File.Delete(this.worldDir + this.region.name + ".ind");
 		File.Move(this.worldDir + INDEX_DEFAULT_NAME, this.worldDir + this.region.name + ".ind");
+		File.Delete(this.worldDir + this.region.name + ".hle");
+		File.Move(this.worldDir + HOLE_DEFAULT_NAME, this.worldDir + this.region.name + ".hle");
 
 		this.newSize = CalculateNewRegionSize();
-
-		defragRegionFile.Close();
-		defragIndexFile.Close();
-		defragHoleFile.Close();
 	}
 
 	public long GetDefragSize(){return this.newSize;}
