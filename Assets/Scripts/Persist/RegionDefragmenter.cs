@@ -71,7 +71,7 @@ public class RegionDefragmenter {
 
 		// Remakes the .HLE file
 		this.region.fragHandler = new FragmentationHandler(false);
-		this.region.SaveHolesToFile(defragHoleFile);
+		this.region.SaveBlankHole(defragHoleFile);
 
 		this.defragRegionFile.Close();
 		this.defragIndexFile.Close();

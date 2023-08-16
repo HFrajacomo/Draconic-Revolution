@@ -22,6 +22,7 @@ public struct RegionFile{
 	private byte[] cachedIndex;
 	private byte[] longArray;
 	private byte[] cachedHoles;
+	private byte[] emptyHole;
 
 	// Opens the file and adds ".rdf" at the end (Region Data File)
 	public RegionFile(string name, string fileFormat, ChunkPos pos, float chunkLen, string worldName="", bool isDefrag=false){
@@ -36,6 +37,7 @@ public struct RegionFile{
 		this.cachedIndex = new byte[16384];
 		this.cachedHoles = new byte[16384];
 		this.longArray = new byte[8];
+		this.emptyHole = new byte[12];
 
 
 		#if UNITY_EDITOR
@@ -179,23 +181,13 @@ public struct RegionFile{
 		}
 	}
 
-	// Save hole data to another stream (Not used in Game Loop)
-	public void SaveHolesToFile(Stream holeFile){
-		bool done = false;
-		int offset = 0;
-		int writtenBytes = 0;
-
+	// Save the first hole found in FragHandler to a new file (Not used in Game Loop)
+	public void SaveBlankHole(Stream holeFile){
 		holeFile.SetLength(0);
-		writtenBytes = this.fragHandler.CacheHoles(offset, ref done);
-		holeFile.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
+		
+		this.fragHandler.GetFirstHole().Bytefy(this.emptyHole, 0);
+		holeFile.Write(this.emptyHole, 0, 12);
 		holeFile.Flush();
-
-		while(!done){
-			offset++;
-			writtenBytes = this.fragHandler.CacheHoles(offset, ref done);
-			holeFile.Write(this.fragHandler.cachedHoles, 0, writtenBytes);
-			holeFile.Flush();		
-		}
 	}
 
 	// Loads all DataHole data to Fragment Handlers list

@@ -97,6 +97,8 @@ public class FragmentationHandler{
         return this.data.Count;
     }
 
+    public DataHole GetFirstHole(){return this.data[0];}
+
     // Checks if the current Fragmentation Handler only has the infite hole entry
     public bool IsDefragged(){return this.data.Count == 1 && this.data[0].infinite;}
 
@@ -146,5 +148,9 @@ public struct DataHole{
         b[offset+9] = (byte)(this.size >> 16);
         b[offset+10] = (byte)(this.size >> 8);
         b[offset+11] = (byte)this.size;
+    }
+
+    public override string ToString(){
+        return "Position: " + this.position + "\t Size: " + this.size + "\t INF: " + this.infinite;
     }
 }

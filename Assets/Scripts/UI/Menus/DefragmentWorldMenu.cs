@@ -22,6 +22,7 @@ public class DefragmentWorldMenu : Menu
 	public Material progressBarMaterial;
 	public Color primaryColor = new Color(0.156f, 0.679f, 0.392f);
 	public Color secondaryColor = new Color(0.225f, 0.318f, 0.330f);
+
 	public int frequency = 72;
 
 	// Defragmenter
@@ -34,8 +35,6 @@ public class DefragmentWorldMenu : Menu
 	private int amountOfRegions;
 
 	// Directories
-	private string saveDir;
-	private string worldDir;
 	private readonly int sizeLevelIncrease = 1024;
 
 	// World Sizes
@@ -70,7 +69,7 @@ public class DefragmentWorldMenu : Menu
 			progressText.text = ((this.amountOfRegions - (this.regionFilepath.Count+1))/this.amountOfRegions).ToString("0.00") + "%";
 			progressBar.value = ((this.amountOfRegions - (this.regionFilepath.Count+1))/this.amountOfRegions);
 
-			this.defrag = new RegionDefragmenter(this.cachedString, WORLD_NAME, this.worldDir);
+			this.defrag = new RegionDefragmenter(this.cachedString, WORLD_NAME, EnvironmentVariablesCentral.saveDir + WORLD_NAME + "/");
 			this.defrag.Defragment();
 
 			ConvertTotalSize(this.defrag.GetPreviousSize());
@@ -91,6 +90,10 @@ public class DefragmentWorldMenu : Menu
 		this.currentRegionText.text = "";
 		this.defragedWorldSize.text = "";
 		this.totalWorldSize.text = "";
+		this.totalSize = 0f;
+		this.newWorldSize = 0f;
+		this.totalSizeLevel = "B";
+		this.newWorldSizeLevel = "B";
 		this.isDefraging = false;
 	}
 
@@ -106,7 +109,8 @@ public class DefragmentWorldMenu : Menu
 	public static void SetWorldName(string name){WORLD_NAME = name;}
 
 	public void StartDefragment(){
-		GetAllRegionFilePaths();
+		this.regionFilepath = EnvironmentVariablesCentral.ListFilesInWorldFolder(WORLD_NAME, extensionFilter:"rdf", firstLetterFilter:'r', onlyName:true);
+		
 		this.amountOfRegions = this.regionFilepath.Count;
 		this.isDefraging = true;
 
@@ -196,38 +200,5 @@ public class DefragmentWorldMenu : Menu
 		if(!this.isDefraging){
 			this.RequestMenuChange(MenuID.SELECT_WORLD);
 		}
-	}
-
-	public void GetAllRegionFilePaths(){
-		#if UNITY_EDITOR
-			this.saveDir = "Worlds/";
-			this.worldDir = this.saveDir + WORLD_NAME + "/";
-		#else
-			// If is in Dedicated Server
-			if(!World.isClient){
-				this.saveDir = "Worlds/";
-				this.worldDir = this.saveDir + WORLD_NAME + "/";
-			}
-			// If it's a Local Server
-			else{
-				this.saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
-				this.worldDir = this.saveDir + WORLD_NAME + "/";			
-			}
-		#endif
-
-		this.regionFilepath.Clear();
-
-		string[] files = Directory.GetFiles(this.worldDir);
-		string[] splitted;
-		string fileName = "";
-
-        foreach (string file in files){
-        	if(file.Split(".")[1] == "rdf"){
-        		splitted = file.Split("/");
-        		fileName = splitted[splitted.Length - 1].Split(".")[0];
-
-        		this.regionFilepath.Add(fileName);
-        	}
-        }
 	}
 }
