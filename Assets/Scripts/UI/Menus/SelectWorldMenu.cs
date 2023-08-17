@@ -103,7 +103,9 @@ public class SelectWorldMenu : Menu
     public override void Enable(){
         this.mainObject.SetActive(true);
 
+        WorldImageLoader.LoadSprites();
         ListWorldFolders();
+
         this.isEnabled = true;
 
         if(!this.setButtons){

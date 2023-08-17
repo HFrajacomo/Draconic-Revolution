@@ -104,6 +104,7 @@ public class CarouselController{
     	CalculateBezierMidpoint();
     }
 
+    // Specific function to add WorldItems to the Select_World Menu carousel
     public GameObject AddWorld(GameObject item, string name, string description){
         this.cacheElement = GameObject.Instantiate(item);
         this.cacheElement.name = "[WorldItem] " + name;
@@ -117,6 +118,9 @@ public class CarouselController{
 
         this.cacheElement.GetComponentsInChildren<Text>()[0].text = name;
         this.cacheElement.GetComponentsInChildren<Text>()[1].text = description;
+
+        // Generates 
+        this.cacheElement.GetComponentsInChildren<Image>()[1].sprite = WorldImageLoader.GetWorldImage(name);
 
         this.elements.Add(this.cacheElement);
 

@@ -99,6 +99,18 @@ public static class EnvironmentVariablesCentral
         return fileList;
     }
 
+    public static List<string> ListWorldFolders(){
+        List<string> directories = new List<string>();
+
+        string[] dirArray =  Directory.GetDirectories(saveDir);
+
+        foreach(string dir in dirArray){
+            directories.Add(dir);
+        }
+
+        return directories;
+    }
+
     public static void PrintDirectories(){
         Start();
 

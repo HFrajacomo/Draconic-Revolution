@@ -292,8 +292,6 @@ public class PlayerRaycast : MonoBehaviour
 	}
 	
 	public void TakeWorldScreenshot(){
-		Debug.Log("Taking SS");
-
         RenderTexture renderTexture = new RenderTexture(Screen.width, (int)(Screen.height/2), 24);
         this.playerCamera.targetTexture = renderTexture;
 
