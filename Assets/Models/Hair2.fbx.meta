@@ -2,7 +2,25 @@ fileFormatVersion: 2
 guid: a0b09e8d45d8bcd4b9a3f727e3f105cf
 ModelImporter:
   serializedVersion: 22103
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      74: 3437518165432140569
+    second: Armature.002|Walking with Item
+  - first:
+      74: 5788249748251098270
+    second: Armature.001|0TPose
+  - first:
+      74: 4699274299699868179
+    second: Armature.001|Idle
+  - first:
+      74: -9028573184982893995
+    second: Armature.001|Idle with Item
+  - first:
+      74: -6991723973015678290
+    second: Armature.001|Walking
+  - first:
+      74: -7059621190087930489
+    second: Armature.001|Walking with Item
   externalObjects: {}
   materials:
     materialImportMode: 0
@@ -40,10 +58,10 @@ ModelImporter:
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
-    importVisibility: 1
+    importVisibility: 0
     importBlendShapes: 1
-    importCameras: 1
-    importLights: 1
+    importCameras: 0
+    importLights: 0
     nodeNameCollisionStrategy: 1
     fileIdsGeneration: 2
     swapUVChannels: 0

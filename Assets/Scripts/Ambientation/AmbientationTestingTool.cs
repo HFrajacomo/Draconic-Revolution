@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 public class AmbientationTestingTool: MonoBehaviour{
 	// What Biome is being tested?
-	private BaseAmbientPreset preset = new CoreAmbientPreset();
+	private BaseAmbientPreset preset = new DesertAmbientPreset();
 
 	// Unity Reference
 	public TimeOfDay timer;
@@ -36,10 +36,11 @@ public class AmbientationTestingTool: MonoBehaviour{
 	public Color zenithTint_night;
 
 	// Fog
-	public float fogAttenuation1;
-	public float fogAttenuation2;
+	public float fogAttenuation;
 	public Color fogAlbedo;
+	public float fogBaseHeight;
 	public float fogAmbientLight;
+	public float fogMaximumHeight;
 
 	// Cloud Layer
 	public Color cloudTint_sunrise;
@@ -95,6 +96,7 @@ public class AmbientationTestingTool: MonoBehaviour{
 		this.fog.meanFreePath.value = preset.GetFogAttenuation(time);
 		this.fog.albedo.value = preset.GetFogAlbedo(time);
 		this.fog.globalLightProbeDimmer.value = preset.GetFogAmbientLight(time);
+		this.fog.baseHeight.value = preset.GetFogBaseHeight(time);
 		this.clouds.layerA.tint.value = preset.GetCloudTint(time);
 		this.whiteBalance.temperature.value = preset.GetWhiteBalanceTemperature();
 		this.whiteBalance.tint.value = preset.GetWhiteBalanceTint();
@@ -118,7 +120,9 @@ public class AmbientationTestingTool: MonoBehaviour{
 		o += "this.zenithTintSunset = " + PrintColor(this.zenithTint_sunset) + ";\n";
 		o += "this.zenithTintNight = " + PrintColor(this.zenithTint_night) + ";\n\n";
 
-		o += "this.fogAttenuation1 = " + Q(this.fogAttenuation1) + "f;\n";
+		o += "this.fogAttenuation = " + Q(this.fogAttenuation) + "f;\n";
+		o += "this.fogBaseHeight = " + Q(this.fogBaseHeight) + "f;\n";
+		o += "this.fogMaxHeight = " + Q(this.fogMaximumHeight) + "f;\n";
 		o += "this.fogAlbedo = Color.white;\n";
 		o += "this.fogAmbientLight = .25f;\n\n";
 
@@ -161,10 +165,11 @@ public class AmbientationTestingTool: MonoBehaviour{
     	zenithTint_sunset = p._zt_ss();
     	zenithTint_night = p._zt_n();
     	
-    	fogAttenuation1 = p._fa1();
-    	fogAttenuation2 = p._fa2();
+    	fogAttenuation = p._fa();
+    	fogBaseHeight = p._fbh();
     	fogAlbedo = p._falb();
     	fogAmbientLight = p._fal();
+    	fogMaximumHeight = p._fmh();
 
     	cloudTint_day = p._ct_d();
     	cloudTint_sunrise = p._ct_sr();

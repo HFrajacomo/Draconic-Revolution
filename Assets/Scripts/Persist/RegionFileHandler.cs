@@ -279,12 +279,14 @@ public class RegionFileHandler{
 
 	// Creates a world folder with only a .wdat file inside
 	public static bool CreateWorldFile(string worldName, int seed){
-		string worldFolder = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\" + worldName + "\\";
+		string worldFolder = EnvironmentVariablesCentral.clientExeDir + "Worlds\\" + worldName + "\\";
 		Stream file;
 		byte[] byteArray = new byte[11];
 
-		if(Directory.Exists(worldFolder))
+
+		if(Directory.Exists(worldFolder)){
 			return false;
+		}
 
 		byteArray[0] = (byte)(seed >> 24);
 		byteArray[1] = (byte)(seed >> 16);

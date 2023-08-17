@@ -49,9 +49,9 @@ public struct PrepareAssetsJob : IJob{
 	[ReadOnly]
 	public NativeArray<bool> needRotation;
 	[ReadOnly]
-	public NativeHashMap<int, Vector3> inplaceOffset;
+	public NativeParallelHashMap<int, Vector3> inplaceOffset;
 	[ReadOnly]
-	public NativeHashMap<int, int2> inplaceRotation;
+	public NativeParallelHashMap<int, int2> inplaceRotation;
 
 	// Loaded Mesh Data
 	[ReadOnly]

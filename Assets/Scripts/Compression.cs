@@ -35,65 +35,65 @@ public static class Compression{
 	private static BlockID[] metadataArray = new BlockID[]{(BlockID)0, (BlockID)1, (BlockID)(ushort.MaxValue)};
 
 	// Palletes
-	public static readonly NativeHashSet<ushort> basicPallete;
-	public static readonly NativeHashSet<ushort> grasslandsPallete;
-	public static readonly NativeHashSet<ushort> oceanPallete;
-	public static readonly NativeHashSet<ushort> forestPallete;
-	public static readonly NativeHashSet<ushort> icelandsPallete;
-	public static readonly NativeHashSet<ushort> sandlandsPallete;
-	public static readonly NativeHashSet<ushort> hellPallete;
-	public static readonly NativeHashSet<ushort> corePallete;
-	public static readonly NativeHashSet<ushort> structurePallete;
-	public static readonly NativeHashSet<ushort> metadataPallete;
+	public static readonly NativeParallelHashSet<ushort> basicPallete;
+	public static readonly NativeParallelHashSet<ushort> grasslandsPallete;
+	public static readonly NativeParallelHashSet<ushort> oceanPallete;
+	public static readonly NativeParallelHashSet<ushort> forestPallete;
+	public static readonly NativeParallelHashSet<ushort> icelandsPallete;
+	public static readonly NativeParallelHashSet<ushort> sandlandsPallete;
+	public static readonly NativeParallelHashSet<ushort> hellPallete;
+	public static readonly NativeParallelHashSet<ushort> corePallete;
+	public static readonly NativeParallelHashSet<ushort> structurePallete;
+	public static readonly NativeParallelHashSet<ushort> metadataPallete;
 
 	// Static Constructor
 	static Compression() {
-		basicPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		basicPallete = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < basicArray.Length; i++){
 			basicPallete.Add((ushort)basicArray[i]);
 		}
 
-		grasslandsPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		grasslandsPallete = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < grasslandsArray.Length; i++){
 			grasslandsPallete.Add((ushort)grasslandsArray[i]);
 		}
 
-		oceanPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		oceanPallete = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < oceanArray.Length; i++){
 			oceanPallete.Add((ushort)oceanArray[i]);
 		}
 
-		forestPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		forestPallete = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < forestArray.Length; i++){
 			forestPallete.Add((ushort)forestArray[i]);
 		}
 
-		icelandsPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		icelandsPallete = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < icelandsArray.Length; i++){
 			icelandsPallete.Add((ushort)icelandsArray[i]);
 		}
 
-		sandlandsPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		sandlandsPallete = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < sandlandsArray.Length; i++){
 			sandlandsPallete.Add((ushort)sandlandsArray[i]);
 		}
 
-		hellPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		hellPallete = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < hellArray.Length; i++){
 			hellPallete.Add((ushort)hellArray[i]);
 		}
 
-		corePallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		corePallete = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < coreArray.Length; i++){
 			corePallete.Add((ushort)coreArray[i]);
 		}
 
-		structurePallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		structurePallete = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < structureArray.Length; i++){
 			structurePallete.Add((ushort)structureArray[i]);
 		}
 
-		metadataPallete = new NativeHashSet<ushort>(0, Allocator.Persistent);
+		metadataPallete = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
 		for(int i = 0; i < metadataArray.Length; i++){
 			metadataPallete.Add((ushort)metadataArray[i]);
 		}
@@ -550,7 +550,7 @@ public static class Compression{
 	}
 
 	// Returns a Palleted list
-	private static NativeHashSet<ushort> GetPallete(Pallete p){
+	private static NativeParallelHashSet<ushort> GetPallete(Pallete p){
 		switch(p){
 			case Pallete.BASIC:
 				return Compression.basicPallete;
@@ -633,7 +633,7 @@ MULTITHREADING
 public struct CompressionJob : IJob{
 	public NativeArray<ushort> chunkData;
 	public NativeArray<byte> buffer;
-	public NativeHashSet<ushort> pallete;
+	public NativeParallelHashSet<ushort> pallete;
 	public NativeArray<int> writtenBytes;
 
 	public void Execute(){
@@ -706,7 +706,7 @@ public struct CompressionJob : IJob{
 [BurstCompile]
 public struct DecompressJob : IJob{
 	[ReadOnly]
-	public NativeHashSet<ushort> pallete;
+	public NativeParallelHashSet<ushort> pallete;
 	[ReadOnly]
 	public NativeArray<byte> readData;
 
@@ -768,7 +768,7 @@ public struct CompressStructJob : IJob{
 	[ReadOnly]
 	public NativeArray<ushort> inputData;
 	[ReadOnly]
-	public NativeHashSet<ushort> pallete;
+	public NativeParallelHashSet<ushort> pallete;
 	public NativeList<ushort> outputData;
 
 	public void Execute(){
@@ -822,7 +822,7 @@ public struct CompressStructJob : IJob{
 [BurstCompile]
 public struct DecompressStructJob : IJob{
 	[ReadOnly]
-	public NativeHashSet<ushort> pallete;
+	public NativeParallelHashSet<ushort> pallete;
 	[ReadOnly]
 	public NativeArray<ushort> inputData;
 	public NativeList<ushort> outputData;

@@ -14,14 +14,14 @@ public struct CalculateLightPropagationJob : IJob{
 
 	public NativeList<int3> bfsq1; // Breadth-first search queue
 	public NativeList<int3> bfsq2;
-	public NativeHashSet<int3> visited1;
-	public NativeHashSet<int3> visited2;
+	public NativeParallelHashSet<int3> visited1;
+	public NativeParallelHashSet<int3> visited2;
 	public NativeList<int3> bfsqe1;
 	public NativeList<int3> bfsqe2;
-	public NativeHashSet<int3> visitede1;
-	public NativeHashSet<int3> visitede2;
+	public NativeParallelHashSet<int3> visitede1;
+	public NativeParallelHashSet<int3> visitede2;
 	public NativeList<int4> aux;
-	public NativeHashSet<int4> hashAux;
+	public NativeParallelHashSet<int4> hashAux;
 
 	public NativeArray<byte> changed; // [0] = Update current Chunk after the neighbor, [1] = Update neighbor Chunk, [2] = Update neighbor with lights, [3] = Xm,Xp,Zm,Zp,Ym,Yp flags of chunk of neighbor to calculate borders
 
@@ -890,7 +890,7 @@ public struct CalculateLightPropagationJob : IJob{
 
 
 	// Checks the surroundings and adds light fallout
-	public void ScanSurroundings(int3 c, byte currentLight, bool normalOrder, int side, NativeArray<byte> selectedMap, NativeArray<byte> otherMap, NativeArray<byte> selectedShadow, NativeArray<byte> otherShadow, NativeList<int3> bfsq, NativeList<int3> otherBfsq, NativeHashSet<int3> visited, NativeHashSet<int3> otherVisited, byte borderCode, bool shouldUpdateFlags, bool extraLight=false){
+	public void ScanSurroundings(int3 c, byte currentLight, bool normalOrder, int side, NativeArray<byte> selectedMap, NativeArray<byte> otherMap, NativeArray<byte> selectedShadow, NativeArray<byte> otherShadow, NativeList<int3> bfsq, NativeList<int3> otherBfsq, NativeParallelHashSet<int3> visited, NativeParallelHashSet<int3> otherVisited, byte borderCode, bool shouldUpdateFlags, bool extraLight=false){
 		if(currentLight == 1)
 			return;
 

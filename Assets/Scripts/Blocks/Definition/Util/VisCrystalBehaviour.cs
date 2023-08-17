@@ -13,6 +13,10 @@ public class VisCrystalBehaviour{
 		this.blockID = blockID;
 	}
 
+	public int GetRandomDirection(){
+		return rng.Next(1, 8);
+	}
+
 	// Returns true if placement was successful and false if it was not placed and destroyed the SpawnCrystal
 	public bool FindAndPlaceCrystal(CastCoord coord, ChunkLoader_Server cl){
 		ChunkPos pos = coord.GetChunkPos();
@@ -21,37 +25,37 @@ public class VisCrystalBehaviour{
 
 		if(coord.blockX > 0){
 			if(GetCorrectPlacement(cl.chunks[pos].data.GetCell(coord.blockX-1, coord.blockY, coord.blockZ), cl)){
-				this.possibleCodes[possibilities] = 1;
+				this.possibleCodes[possibilities] = 0;
 				this.possibilities++;
 			}
 		}
 		if(coord.blockX < Chunk.chunkWidth - 1){
 			if(GetCorrectPlacement(cl.chunks[pos].data.GetCell(coord.blockX+1, coord.blockY, coord.blockZ), cl)){
-				this.possibleCodes[possibilities] = 0;
+				this.possibleCodes[possibilities] = 1;
 				this.possibilities++;
 			}
 		}
 		if(coord.blockY > 0){
 			if(GetCorrectPlacement(cl.chunks[pos].data.GetCell(coord.blockX, coord.blockY-1, coord.blockZ), cl)){
-				this.possibleCodes[possibilities] = 5;
+				this.possibleCodes[possibilities] = 4;
 				this.possibilities++;
 			}
 		}
 		if(coord.blockY < Chunk.chunkDepth - 1){
 			if(GetCorrectPlacement(cl.chunks[pos].data.GetCell(coord.blockX, coord.blockY+1, coord.blockZ), cl)){
-				this.possibleCodes[possibilities] = 4;
+				this.possibleCodes[possibilities] = 5;
 				this.possibilities++;
 			}
 		}
 		if(coord.blockZ > 0){
 			if(GetCorrectPlacement(cl.chunks[pos].data.GetCell(coord.blockX, coord.blockY, coord.blockZ-1), cl)){
-				this.possibleCodes[possibilities] = 3;
+				this.possibleCodes[possibilities] = 2;
 				this.possibilities++;
 			}
 		}
 		if(coord.blockZ < Chunk.chunkWidth - 1){
 			if(GetCorrectPlacement(cl.chunks[pos].data.GetCell(coord.blockX, coord.blockY, coord.blockZ+1), cl)){
-				this.possibleCodes[possibilities] = 2;
+				this.possibleCodes[possibilities] = 3;
 				this.possibilities++;
 			}
 		}
@@ -61,8 +65,12 @@ public class VisCrystalBehaviour{
 		}
 
 		int index = rng.Next(0, this.possibilities);
+		ushort newCode = (ushort)(cl.chunks[coord.GetChunkPos()].data.GetCell(coord.blockX, coord.blockY, coord.blockZ) + rng.Next(1,8));
 
+		cl.chunks[coord.GetChunkPos()].data.SetCell(coord.blockX, coord.blockY, coord.blockZ, newCode);
 		cl.chunks[pos].metadata.SetState(coord.blockX, coord.blockY, coord.blockZ, possibleCodes[index]);
+
+		cl.server.RegisterChunkToSend(pos);
 
 		return true;
 	}

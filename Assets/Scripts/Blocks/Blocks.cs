@@ -5,11 +5,11 @@ using UnityEngine;
 
 public abstract class Blocks
 {
-	public static readonly int blockCount = 40;
+	public static readonly int blockCount = 64;
 	public static readonly int pixelSize = 32;
 	public static readonly int atlasSizeX = 8;
-	public static readonly int atlasSizeY = 5;
-	public static readonly int transparentAtlasSizeX = 2;
+	public static readonly int atlasSizeY = 10;
+	public static readonly int transparentAtlasSizeX = 4;
 	public static readonly int transparentAtlasSizeY = 1;
 
 	public ShaderIndex shaderIndex = ShaderIndex.OPAQUE; // The material used in the rendering pipeline
@@ -46,88 +46,135 @@ public abstract class Blocks
 	*/
 	public static Blocks Block(int blockID){
 		// The actual block encyclopedia
-		switch(blockID){
-			case 0:
-				return new Air_Block();
-			case 1:
-				return new Grass_Block();
-			case 2:
-				return new Dirt_Block();
-			case 3:
-				return new Stone_Block();
-			case 4:
-				return new Wood_Block();
-			case 5:
-				return new IronOre_Block();
-			case 6:
-				return new Water_Block();
-			case 7:
-				return new Leaf_Block();
-			case 8:
-				return new Sand_Block();
-			case 9:
-				return new Snow_Block();
-			case 10:
-				return new Ice_Block();
-			case 11:
-				return new Basalt_Block();
-			case 12:
-				return new Clay_Block();
-			case 13:
-				return new StoneBrick_Block();
-			case 14:
-				return new WoodenPlankRegular_Block();
-			case 15:
-				return new WoodenPlankPine_Block();
-			case 16:
-				return new Bone_Block();
-			case 17:
-				return new SandstoneBrick_Block();
-			case 18:
-				return new Sandstone_Block();
-			case 19:
-				return new CoalOre_Block();
-			case 20:
-				return new MagnetiteOre_Block();
-			case 21:
-				return new AluminiumOre_Block();
-			case 22:
-				return new CopperOre_Block();
-			case 23:
-				return new TinOre_Block();
-			case 24:
-				return new GoldOre_Block();
-			case 25:
-				return new EmeriumOre_Block();
-			case 26:
-				return new UraniumOre_Block();
-			case 27:
-				return new Emerald_Block();
-			case 28:
-				return new Ruby_Block();
-			case 29:
-				return new PineWood_Block();
-			case 30:
-				return new PineLeaf_Block();
-			case 31:
-				return new Gravel_Block();
-			case 32:
-				return new Moonstone_Block();
-			case 33:
-				return new Lava_Block();
-			case 34:
-				return new HellMarble_Block();
-			case 35:
-				return new Acaster_Block();
-			case 36:
-				return new CobaltOre_Block();
-			case 37:
-				return new ArditeOre_Block();
-			case 38:
-				return new GrandiumOre_Block();
-			case 39:
-				return new SteonyxOre_Block();
-
+		switch((BlockID)blockID){
+            case BlockID.AIR:
+                return new Air_Block();
+            case BlockID.GRASS:
+                return new Grass_Block();
+            case BlockID.DIRT:
+                return new Dirt_Block();
+            case BlockID.STONE:
+                return new Stone_Block();
+            case BlockID.WOOD:
+                return new Wood_Block();
+            case BlockID.IRON_ORE:
+                return new IronOre_Block();
+            case BlockID.WATER:
+                return new Water_Block();
+            case BlockID.LEAF:
+                return new Leaf_Block();
+            case BlockID.SAND:
+                return new Sand_Block();
+            case BlockID.SNOW:
+                return new Snow_Block();
+            case BlockID.ICE:
+                return new Ice_Block();
+            case BlockID.BASALT:
+                return new Basalt_Block();
+            case BlockID.CLAY:
+                return new Clay_Block();
+            case BlockID.STONE_BRICK:
+                return new StoneBrick_Block();
+            case BlockID.WOODEN_PLANKS_REGULAR:
+                return new WoodenPlankRegular_Block();
+            case BlockID.WOODEN_PLANKS_PINE:
+                return new WoodenPlankPine_Block();
+            case BlockID.BONE:
+                return new Bone_Block();
+            case BlockID.SANDSTONE_BRICK:
+                return new SandstoneBrick_Block();
+            case BlockID.SANDSTONE:
+                return new Sandstone_Block();
+            case BlockID.COAL_ORE:
+                return new CoalOre_Block();
+            case BlockID.MAGNETITE_ORE:
+                return new MagnetiteOre_Block();
+            case BlockID.ALUMINIUM_ORE:
+                return new AluminiumOre_Block();
+            case BlockID.COPPER_ORE:
+                return new CopperOre_Block();
+            case BlockID.TIN_ORE:
+                return new TinOre_Block();
+            case BlockID.GOLD_ORE:
+                return new GoldOre_Block();
+            case BlockID.EMERIUM_ORE:
+                return new EmeriumOre_Block();
+            case BlockID.URANIUM_ORE:
+                return new UraniumOre_Block();
+            case BlockID.EMERALD_ORE:
+                return new Emerald_Block();
+            case BlockID.RUBY_ORE:
+                return new Ruby_Block();
+            case BlockID.PINE_WOOD:
+                return new PineWood_Block();
+            case BlockID.PINE_LEAF:
+                return new PineLeaf_Block();
+            case BlockID.GRAVEL:
+                return new Gravel_Block();
+            case BlockID.MOONSTONE:
+                return new Moonstone_Block();
+            case BlockID.LAVA:
+                return new Lava_Block();
+            case BlockID.HELL_MARBLE:
+                return new HellMarble_Block();
+            case BlockID.ACASTER:
+                return new Acaster_Block();
+            case BlockID.COBALT_ORE:
+                return new CobaltOre_Block();
+            case BlockID.ARDITE_ORE:
+                return new ArditeOre_Block();
+            case BlockID.GRANDIUM_ORE:
+                return new GrandiumOre_Block();
+            case BlockID.STEONYX_ORE:
+                return new SteonyxOre_Block();
+            case BlockID.WHITE_MARBLE:
+                return new WhiteMarble_Block();
+            case BlockID.WHITE_MARBLE_BRICKS:
+                return new WhiteMarbleBrick_Block();
+			case BlockID.HELL_MARBLE_BRICKS:
+				return new HellMarbleBrick_Block();
+			case BlockID.BLACK_MARBLE:
+				return new BlackMarble_Block();
+			case BlockID.BLACK_MARBLE_BRICKS:
+				return new BlackMarbleBrick_Block();
+			case BlockID.SUNSTONE:
+				return new Sunstone_Block();
+			case BlockID.COBBLESTONE:
+				return new Cobblestone_Block();
+			case BlockID.VINTEUM_ORE:
+				return new VinteumOre_Block();
+			case BlockID.SILVERWOOD:
+				return new SilverWood_Block();
+			case BlockID.SILVERWOOD_LEAF:
+				return new SilverWoodLeaf_Block();
+			case BlockID.IRON_FLOOR:
+				return new IronFloor_Block();
+			case BlockID.IRON_WALL:
+				return new IronWall_Block();
+			case BlockID.GABBRO:
+				return new Gabbro_Block();
+			case BlockID.GABBRO_BRICK:
+				return new GabbroBrick_Block();
+			case BlockID.SILVERWOOD_PLANKS:
+				return new SilverWoodPlank_Block();
+			case BlockID.BRICK:
+				return new Brick_Block();
+			case BlockID.SANDSTONE_BRICK2:
+				return new SandstoneBrick2_Block();
+			case BlockID.GRAVEL2:
+				return new Gravel2_Block();
+			case BlockID.LIMESTONE:
+				return new Limestone_Block();
+			case BlockID.LIMESTONE_BRICK:
+				return new LimestoneBrick_Block();
+			case BlockID.QUARTZ:
+				return new Quartz_Block();
+			case BlockID.QUARTZ_BRICK:
+				return new QuartzBrick_Block();
+			case BlockID.BASALT_BRICK:
+				return new BasaltBrick_Block();
+			case BlockID.OBSIDIAN:
+				return new Obsidian_Block();
 			default:
 				return new Air_Block();
 		}

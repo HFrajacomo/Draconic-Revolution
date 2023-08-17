@@ -17,7 +17,7 @@ public struct CalculateLightMapJob : IJob{
 	public NativeList<int3> bfsq; // Breadth-first search queue
 	public NativeList<int4> bfsqExtra;
 	public NativeList<byte5> bfsqDir;
-	public NativeHashSet<int3> visited;
+	public NativeParallelHashSet<int3> visited;
 	public NativeArray<byte> changed;
 	public NativeList<byte5> directionalList;
 

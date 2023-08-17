@@ -12,9 +12,9 @@ public class GrandiumOre_Block : Blocks
 		this.liquid = false;
 		this.affectLight = true;
 
-		this.tileTop = 37;
-		this.tileSide = 37;
-		this.tileBottom = 37;
+		this.tileTop = 44;
+		this.tileSide = 44;
+		this.tileBottom = 44;
 
 		this.maxHP = 800;
 	}

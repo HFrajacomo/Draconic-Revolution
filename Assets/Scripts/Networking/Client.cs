@@ -140,6 +140,7 @@ public class Client
 
 	public void SetRaycast(PlayerRaycast raycast){
 		this.raycast = raycast;
+        this.raycast.SetFOV();
 	}
 
 	public void SetPlayerEvents(PlayerEvents events){
@@ -315,6 +316,9 @@ public class Client
 			case NetCode.SFXPLAY:
 				SFXPlay(data);
 				break;
+			case NetCode.SENDNOISE:
+				SendNoise(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -357,8 +361,16 @@ public class Client
 	private void SendChunk(byte[] data){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 
-		this.cl.toLoad.Add(data);
-		this.cl.toLoadChunk.Add(pos);
+		// Returns index if exists and -1 otherwise
+		int index = this.cl.toLoadChunk.IndexOf(pos);
+
+		if(index == -1){
+			this.cl.toLoad.Add(data);
+			this.cl.toLoadChunk.Add(pos);
+		}
+		else{
+			this.cl.toLoad[index] = data;
+		}
 	}
 
 	// Receives a disconnect call from server
@@ -366,7 +378,6 @@ public class Client
 		this.socket.Close();
 		Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
         this.cl.Cleanup(comesFromClient:true);
         SceneManager.LoadScene("Blank");
 	}
@@ -693,6 +704,13 @@ public class Client
 		else{
 			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnSFXPlay(pos, x, y, z, state, cl);
 		}
+	}
+
+	// Receives weather Noise information from client
+	private void SendNoise(byte[] data){
+		Array.Copy(GenerationSeed.weatherNoise, 0, data, 1, data.Length-5);
+		int seed = NetDecoder.ReadInt(data, data.Length-4);
+		World.worldSeed = seed;
 	}
 
 	/* ================================================================================ */

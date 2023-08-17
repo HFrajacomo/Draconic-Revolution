@@ -9,15 +9,33 @@ public abstract class BaseAmbientPreset{
 
 	// Constants
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_DAY = 4f;
-	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = 0.7f;
+	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = .8f;
+	protected static readonly float SURFACE_LIGHT_LUMINOSITY_ZERO = 0f;
 	protected static readonly Color SURFACE_LIGHT_COLOR_DAY = Color.white;
-	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(0.27f, 0.57f, 1f, 1f);
+	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(.75f, .75f, .75f, 1f);
 	protected static readonly float SUN_DIAMETER_DAY = 1f;
 	protected static readonly float SUN_DIAMETER_NIGHT = 0.6f;
 	protected static readonly float SUN_DIAMETER_UNDERGROUND = 0f;
 	protected static readonly float FLOOR_LIGHTING_DAY = 1f;
 	protected static readonly float FLOOR_LIGHTING_NIGHT = 0.05f;
 	protected static readonly float FLOOR_LIGHTING_UNDERGROUND = 4f;
+	protected static readonly float BASE_FOG_HEIGHT_SURFACE = 700f;
+	protected static readonly float BASE_FOG_HEIGHT_UNDERGROUND = 0;
+	protected static readonly float FOG_ATTENUATION_SUNRISE = 6f;
+	protected static readonly float FOG_ATTENUATION_DAY = 10f;
+	protected static readonly float FOG_ATTENUATION_SUNSET = 8f;
+	protected static readonly float FOG_ATTENUATION_NIGHT = 7f;
+	protected static readonly float FOG_MAX_HEIGHT_SURFACE = 920f;
+	protected static readonly float STAR_MAP_MULTIPLIER_DAY = 0f;
+	protected static readonly float STAR_MAP_MULTIPLIER_NIGHT = 1f;
+	protected static readonly float STAR_MAP_X_ROTATION_BEGIN = 0f;
+	protected static readonly float STAR_MAP_X_ROTATION_END = 180f;
+	protected static readonly float STAR_MAP_VARIATION_FREQUENCY = 1.57f;
+	protected static readonly float STAR_MAP_VARIATION_AMPLITUDE = 0.4f;	
+
+	// General
+	protected bool isSurface;
+	protected bool hasFlare = false;
 
 	// Physical Based Sky
 	protected Color horizonTintDay;
@@ -33,10 +51,11 @@ public abstract class BaseAmbientPreset{
 	protected Color zenithTintNight;
 
 	// Fog
-	protected float fogAttenuation1;
-	protected float fogAttenuation2;
+	protected float fogAttenuation;
 	protected Color fogAlbedo;
 	protected float fogAmbientLight;
+	protected float fogBaseHeight;
+	protected float fogMaximumHeight;
 
 	// Cloud Layer
 	protected Color cloudTintDay;
@@ -59,9 +78,7 @@ public abstract class BaseAmbientPreset{
 	protected float sunDiameter;
 	protected float2 sunRotation;
 	protected Color sunColor;
-
-	// Lens Flare
-	protected bool hasFlare = false;
+	protected float moonDiameter;
 
 	public static BaseAmbientPreset GetPreset(AmbientGroup g){
 		if(presets.Count == 0)
@@ -108,17 +125,26 @@ public abstract class BaseAmbientPreset{
 	public virtual float4 GetGain(float t){return this.gainDay;}
 	public virtual Color GetHorizonTint(float t){return this.horizonTintDay;}
 	public virtual Color GetZenithTint(float t){return this.zenithTintDay;}
-	public virtual float GetFogAttenuation(float t){return this.fogAttenuation1;}
+	public virtual float GetFogAttenuation(float t){return BehaviourLerp4(FOG_ATTENUATION_SUNRISE, FOG_ATTENUATION_DAY, FOG_ATTENUATION_SUNSET, FOG_ATTENUATION_NIGHT, t);}
 	public virtual Color GetFogAlbedo(float t){return this.fogAlbedo;}
 	public virtual float GetFogAmbientLight(float t){return this.fogAmbientLight;}
+	public virtual float GetFogBaseHeight(float t){return BASE_FOG_HEIGHT_SURFACE;}
+	public virtual float GetFogMaxHeight(float t){return this.fogMaximumHeight;}
 	public virtual Color GetCloudTint(float t){return this.cloudTintDay;}
 	public virtual float GetWhiteBalanceTemperature(){return this.wbTemperature;}
 	public virtual float GetWhiteBalanceTint(){return this.wbTint;}
-	public virtual float GetSunIntensity(float t){return this.lightIntensity;}
+	public virtual float GetSunIntensity(float t){return BehaviourSunsetIntensity(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_ZERO, t);}
 	public virtual float2 GetSunRotation(float t){return this.sunRotation;}
 	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
-	public virtual Color GetSunColor(float t){return this.sunColor;}
+	public virtual float GetMoonIntensity(float t){return BehaviourMoonsetIntensity(SURFACE_LIGHT_LUMINOSITY_ZERO, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);}
+	public virtual float2 GetMoonRotation(float t){return this.sunRotation;}
+	public virtual float GetMoonDiameter(float t){return BehaviourMoonsetDiameter(SUN_DIAMETER_UNDERGROUND, SUN_DIAMETER_NIGHT, t);}
+	public virtual Color GetSunColor(float t){return SURFACE_LIGHT_COLOR_DAY;}
+	public virtual Color GetMoonColor(float t){return SURFACE_LIGHT_COLOR_NIGHT;}
 	public virtual float GetFloorLighting(float t){return FLOOR_LIGHTING_UNDERGROUND;}
+	public virtual float GetStarMapMultiplier(float t){return StarMapMultiplierLerp(STAR_MAP_MULTIPLIER_DAY, STAR_MAP_MULTIPLIER_NIGHT, t);}
+	public virtual Vector3 GetStarMapRotation(float t){return new Vector3(StarMapRotationLerp(STAR_MAP_X_ROTATION_BEGIN, STAR_MAP_X_ROTATION_END, t), 0, 0);}
+	public bool IsSurface(){return this.isSurface;}
 	public bool HasFlare(){return this.hasFlare;}
 
 
@@ -137,6 +163,26 @@ public abstract class BaseAmbientPreset{
         	return Mathf.Lerp(sunset, night, (x-1140)/60f);
         else
             return night;
+	}
+
+	protected float StarMapMultiplierLerp(float day, float night, float x){
+        if(x >= 240 && x < 300)
+            return Mathf.Lerp(night, day, (x-240)/60f);
+        else if(x >= 300 && x < 1080)
+            return day;
+        else if(x >= 1080 && x < 1200)
+        	return Mathf.Lerp(day, night, (x-1080)/120f);
+        else
+            return night + (Mathf.Sin(x*STAR_MAP_VARIATION_FREQUENCY) * STAR_MAP_VARIATION_AMPLITUDE);
+	}
+
+	protected float StarMapRotationLerp(float day, float night, float x){
+		if(x < 300)
+			return Mathf.Lerp(day, night, (x+300)/660);
+		else if(x >= 1080)
+			return Mathf.Lerp(day, night, (x-1080)/660);
+		else
+			return day;
 	}
 
 	protected Color BehaviourColor4(Color sunrise, Color day, Color sunset, Color night, float x){
@@ -178,11 +224,66 @@ public abstract class BaseAmbientPreset{
             return ColorToFloat4(n);
 	}
 
+	protected float BehaviourLerpDayNight(float day, float night, float x){
+        if(x >= 180 && x < 240)
+            return Mathf.Lerp(night, day, (x-180)/60f);
+        else if(x >= 1140 && x < 1200)
+        	return Mathf.Lerp(day, night, (x-1140)/60f);
+        else if(x < 180)
+            return night;
+        else if(x >= 1200)
+        	return night;
+        else
+        	return day;
+	}
+
 	protected T BehaviourFlipDayNight<T>(T day, T night, float x){
 		if(x >= 240 && x < 1200)
 			return day;
 		return night;
 	}
+
+	protected T BehaviourFlipDayNightCosmic<T>(T day, T night, float x){
+		if(x >= 1020 || x < 420)
+			return night;
+		return day;
+	}
+
+    protected float BehaviourSunsetIntensity(float day, float night, float x){
+        if(x > 1140 && x <= 1200){
+            return Mathf.Lerp(day, night, (x-1140)/60f);
+        }
+        else if(x >= 240 && x < 300){
+        	return Mathf.Lerp(night, day, (x-240)/60f);
+        }
+        else{
+            return day;
+        }
+    }
+
+    protected float BehaviourMoonsetIntensity(float day, float night, float x){
+        if(x > 360 && x <= 420){
+            return Mathf.Lerp(night, day, (x-360)/60f);
+        }
+        else{
+            return night;
+        }
+    }
+
+    protected float BehaviourMoonsetDiameter(float day, float night, float x){
+        if(x > 180 && x <= 240){
+        	if(Mathf.Lerp(night, day, (x-180)/60f) > .024f)
+            	return Mathf.Lerp(night, day, (x-180)/60f);
+            else
+            	return day;
+        }
+        else if(x > 240 && x < 1020){
+        	return day;
+        }
+        else{
+            return night;
+        }
+    }
 
 	// Rotation for main Skybox light
     protected float SunRotationX(float x){
@@ -192,11 +293,21 @@ public abstract class BaseAmbientPreset{
         else if(x > 720 && x < 1200){
             return Mathf.Lerp(90f, 180f, ClampTime(x));
         }
-        else if(x <= 240){
-            return Mathf.Lerp(90f, 180f, ClampTime(x));
+        else{
+            return 270f;
+        }
+    }
+
+	// Rotation for main Skybox light
+    protected float MoonRotationX(float x){
+        if(x >= 1020 && x < 1440){
+            return Mathf.Lerp(0f, 90f, (x-1020)/420f);
+        }
+        else if(x < 420){
+            return Mathf.Lerp(90f, 180f, x/420f);
         }
         else{
-            return Mathf.Lerp(0f, 90f, ClampTime(x));
+            return 270f;
         }
     }
 
@@ -206,10 +317,21 @@ public abstract class BaseAmbientPreset{
             return Mathf.Lerp(0f, 30f, (x-240)/480);
         else if(x > 720 && x <= 1200)
             return Mathf.Lerp(30f, 0f, (x-720)/480);
-        else if(x > 1200)
-            return Mathf.Lerp(0f, 30f, (x-1200)/1440);
         else
-            return Mathf.Lerp(30f, 0f, x/240);
+            return 0f;
+    }
+
+    // Rotation for Z component of Skybox Light
+    protected float MoonRotationZ(float x){
+        if(x >= 1020 && x < 1440){
+            return Mathf.Lerp(0f, 30f, (x-1020)/420f);
+        }
+        else if(x < 420){
+            return Mathf.Lerp(30f, 0f, x/420f);
+        }
+        else{
+            return 0f;
+        }
     }
 
     // Clamps the current time to a float[0,1]
@@ -243,9 +365,9 @@ public abstract class BaseAmbientPreset{
     	zenithTintSunset = att.zenithTint_sunset;
     	zenithTintNight = att.zenithTint_night;
     	
-    	fogAttenuation1 = att.fogAttenuation1;
-    	fogAttenuation2 = att.fogAttenuation2;
+    	fogAttenuation = att.fogAttenuation;
     	fogAlbedo = att.fogAlbedo;
+    	fogBaseHeight = att.fogBaseHeight;
     	fogAmbientLight = att.fogAmbientLight;
 
     	cloudTintDay = att.cloudTint_day;
@@ -282,10 +404,11 @@ public abstract class BaseAmbientPreset{
 	public Color _zt_sr(){return zenithTintSunrise;}
 	public Color _zt_ss(){return zenithTintSunset;}
 	public Color _zt_n(){return zenithTintNight;}
-	public float _fa1(){return fogAttenuation1;}
-	public float _fa2(){return fogAttenuation2;}
+	public float _fa(){return fogAttenuation;}
 	public Color _falb(){return fogAlbedo;}
+	public float _fbh(){return fogBaseHeight;}
 	public float _fal(){return fogAmbientLight;}
+	public float _fmh(){return fogMaximumHeight;}
 	public Color _ct_d(){return cloudTintDay;}
 	public Color _ct_sr(){return cloudTintSunrise;}
 	public Color _ct_ss(){return cloudTintSunset;}

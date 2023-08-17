@@ -179,7 +179,54 @@ public abstract class Item
 				return new GrandiumOreblock_Item();
 			case ItemID.STEONYX_ORE_BLOCK:
 				return new SteonyxOreblock_Item();
-
+			case ItemID.WHITEMARBLEBLOCK:
+				return new WhiteMarbleblock_Item();
+			case ItemID.WHITEMARBLEBRICKBLOCK:
+				return new WhiteMarbleBrickblock_Item();
+			case ItemID.BLACKMARBLEBLOCK:
+				return new BlackMarbleblock_Item();
+			case ItemID.BLACKMARBLEBRICKBLOCK:
+				return new BlackMarbleBrickblock_Item();
+			case ItemID.HELLMARBLEBRICKBLOCK:
+				return new HellMarbleBrickblock_Item();
+			case ItemID.SUNSTONEBLOCK:
+				return new Sunstoneblock_Item();
+			case ItemID.COBBLESTONEBLOCK:
+				return new Cobblestoneblock_Item();
+			case ItemID.VINTEUMOREBLOCK:
+				return new VinteumOreblock_Item();
+			case ItemID.SILVERWOODBLOCK:
+				return new SilverWoodblock_Item();
+			case ItemID.SILVERWOODLEAFBLOCK:
+				return new SilverWoodLeafblock_Item();
+			case ItemID.SILVERWOODPLANKBLOCK:
+				return new SilverWoodPlankblock_Item();
+			case ItemID.IRONFLOORBLOCK:
+				return new IronFloorblock_Item();
+			case ItemID.IRONWALLBLOCK:
+				return new IronWallblock_Item();
+			case ItemID.GABBROBLOCK:
+				return new Gabbroblock_Item();
+			case ItemID.GABBROBRICKBLOCK:
+				return new GabbroBrickblock_Item();
+			case ItemID.BRICKBLOCK:
+				return new Brickblock_Item();
+			case ItemID.SANDSTONEBRICK2BLOCK:
+				return new SandstoneBrick2block_Item();
+			case ItemID.GRAVEL2BLOCK:
+				return new Gravel2block_Item();
+			case ItemID.LIMESTONEBLOCK:
+				return new Limestoneblock_Item();
+			case ItemID.LIMESTONEBRICKBLOCK:
+				return new LimestoneBrickblock_Item();
+			case ItemID.QUARTZBLOCK:
+				return new Quartzblock_Item();
+			case ItemID.QUARTZBRICKBLOCK:
+				return new QuartzBrickblock_Item();
+			case ItemID.BASALTBRICKBLOCK:
+				return new BasaltBrickblock_Item();
+			case ItemID.OBSIDIANBLOCK:
+				return new Obsidianblock_Item();
 			default:
 				return null;
 		}

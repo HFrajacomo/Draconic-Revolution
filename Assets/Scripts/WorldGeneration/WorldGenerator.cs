@@ -43,7 +43,7 @@ public class WorldGenerator
     private NativeArray<byte> maskMap;
 
     // Other Native Objects
-    private NativeHashSet<ushort> caveFreeBlocks;
+    private NativeParallelHashSet<ushort> caveFreeBlocks;
     private ushort[] caveFreeBlocksArray = new ushort[]{(ushort)BlockID.WATER, (ushort)BlockID.LAVA};
 
     // Biome Blending Map
@@ -65,7 +65,7 @@ public class WorldGenerator
         caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
         maskMap = new NativeArray<byte>(GenerationSeed.cavemaskNoise, Allocator.Persistent);
 
-        caveFreeBlocks = new NativeHashSet<ushort>(0, Allocator.Persistent);
+        caveFreeBlocks = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
         FillCaveFreeBlocks();
     }
 
@@ -81,7 +81,7 @@ public class WorldGenerator
         caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
         maskMap = new NativeArray<byte>(GenerationSeed.cavemaskNoise, Allocator.Persistent);
 
-        caveFreeBlocks = new NativeHashSet<ushort>(0, Allocator.Persistent);
+        caveFreeBlocks = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
         FillCaveFreeBlocks();
     }
 

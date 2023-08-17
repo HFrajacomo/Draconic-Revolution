@@ -13,9 +13,9 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 		this.zenithTintSunset = new Color(0.735849f, 0f, 0.3203108f);
 		this.zenithTintNight = new Color(0.1854943f, 0.3584906f, 0.04565682f);
 
-		this.fogAttenuation1 = 8f;
 		this.fogAlbedo = Color.white;
 		this.fogAmbientLight = .25f;
+		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 
 		this.cloudTintSunrise = new Color(0.3207547f, 0.3207547f, 0.3207547f);
 		this.cloudTintDay = new Color(0.7830189f, 0.7793254f, 0.7793254f);
@@ -29,7 +29,10 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 		this.gainSunset = new float4(0.8679245f, 0.2894512f, 0.1596654f, 0f);
 		this.gainNight = new float4(0.1665321f, 0.2358491f, 0.08343717f, 0f);
 
+		this.sunDiameter = SUN_DIAMETER_DAY;
+		this.moonDiameter = SUN_DIAMETER_NIGHT;
 		this.hasFlare = true;
+		this.isSurface = true;
 	}
 
 	public override Color GetHorizonTint(float t){
@@ -44,19 +47,13 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 	public override float4 GetGain(float t){
 		return this.BehaviourFloat4(gainSunrise, gainDay, gainSunset, gainNight, t);
 	}
-	public override float GetSunIntensity(float t){
-		return this.BehaviourFlipDayNight<float>(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);
-	}
 	public override float2 GetSunRotation(float t){
 		return new float2(this.SunRotationX(t), this.SunRotationZ(t));
 	}
-	public override Color GetSunColor(float t){
-		return this.BehaviourFlipDayNight<Color>(SURFACE_LIGHT_COLOR_DAY, SURFACE_LIGHT_COLOR_NIGHT, t);
-	}
-	public override float GetSunDiameter(float t){
-		return this.BehaviourFlipDayNight<float>(SUN_DIAMETER_DAY, SUN_DIAMETER_NIGHT, t);
+	public override float2 GetMoonRotation(float t){
+		return new float2(this.MoonRotationX(t), this.MoonRotationZ(t));
 	}
 	public override float GetFloorLighting(float t){
-		return this.BehaviourFlipDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
+		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
 }
