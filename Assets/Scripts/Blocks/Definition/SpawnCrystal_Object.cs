@@ -9,7 +9,7 @@ using Random = System.Random;
 
 public class SpawnCrystal_Object : BlocklikeObject
 {
-	private static readonly Random rng = new Random((int)DateTime.Now.Ticks);
+	private static readonly VisCrystalBehaviour vcb = new VisCrystalBehaviour((ushort)BlockID.SPAWN_CRYSTAL);
 
 	public SpawnCrystal_Object(bool isClient){
 		this.shaderIndex = ShaderIndex.ASSETS_SOLID;
@@ -38,20 +38,24 @@ public class SpawnCrystal_Object : BlocklikeObject
 
 	// Randomly converts to a elemental Vis Crystal and runs their OnPlace() event
 	public override int OnLoad(CastCoord coord, ChunkLoader_Server cl){
-		ConvertToElementalVis(coord, -1, cl);
+		ApplyLoadTransformation(coord, cl);
 
 		return 0;
 	}
 
 	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
 		ConvertToElementalVis(new CastCoord(pos, blockX, blockY, blockZ), facing, cl);
-
 		return 0;
 	}
 
+	private void ApplyLoadTransformation(CastCoord pos, ChunkLoader_Server cl){
+		if(!vcb.FindAndPlaceCrystal(pos, cl)){
+			vcb.DeleteCrystal(pos, cl);
+		}
+	}
 
 	private void ConvertToElementalVis(CastCoord coord, int facing, ChunkLoader_Server cl){
-		int codeAddition = rng.Next(1, 8);
+		int codeAddition = vcb.GetRandomDirection();
 		ushort newCode = (ushort)(cl.chunks[coord.GetChunkPos()].data.GetCell(coord.blockX, coord.blockY, coord.blockZ) + codeAddition);
 
 		cl.chunks[coord.GetChunkPos()].data.SetCell(coord.blockX, coord.blockY, coord.blockZ, newCode);

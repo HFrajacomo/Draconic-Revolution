@@ -27,7 +27,7 @@ public struct GenerateCaveJob : IJobParallelFor{
     public NativeArray<byte> cavemaskNoise;
 
     [ReadOnly]
-    public NativeHashSet<ushort> caveFreeBlocks;
+    public NativeParallelHashSet<ushort> caveFreeBlocks;
 
     public void Execute(int index){
         GenerateNoiseTunnel(index);

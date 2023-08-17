@@ -18,6 +18,7 @@ public static class Configurations
     public static int voice2DVolume;
     public static int voice3DVolume;
     public static bool subtitlesOn;
+    public static int fieldOfView;
 
     // Config File
     private static bool firstRun = true;
@@ -40,6 +41,7 @@ public static class Configurations
         Configurations.AddToDictEntry("2d_voice_volume", DATATYPE.INT, (Object)100);
         Configurations.AddToDictEntry("3d_voice_volume", DATATYPE.INT, (Object)100);
         Configurations.AddToDictEntry("subtitles", DATATYPE.BOOL, (Object)true);
+        Configurations.AddToDictEntry("fov", DATATYPE.INT, (Object)60);
         Configurations.firstRun = false;
     }
 
@@ -79,6 +81,7 @@ public static class Configurations
         CreateIntField("2d_voice_volume", voice2DVolume);
         CreateIntField("3d_voice_volume", voice3DVolume);
         CreateBoolField("subtitles", subtitlesOn);
+        CreateIntField("fov", fieldOfView);
 
         Configurations.file.Close();
     }
@@ -185,6 +188,9 @@ public static class Configurations
             case "subtitles":
                 Configurations.subtitlesOn = (bool)defaults[entry];
                 break;
+            case "fov":
+                Configurations.fieldOfView = (int)defaults[entry];
+                break;
             default:
                 break;
         }
@@ -222,6 +228,9 @@ public static class Configurations
                 break;
             case "subtitles":
                 Configurations.subtitlesOn = ReadBoolField(value);
+                break;
+            case "fov":
+                Configurations.fieldOfView = ReadIntField(value);
                 break;
             default:
                 break;

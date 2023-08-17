@@ -11,6 +11,9 @@ using TMPro;
 
 public class PlayerRaycast : MonoBehaviour
 {
+	public Camera playerCamera;
+	private static readonly string WORLD_SCREENSHOT_NAME = "world_screenshot.png";
+
 	public ChunkLoader loader;
 	public Transform cam;
 	public float reach = 4.0f;
@@ -282,7 +285,30 @@ public class PlayerRaycast : MonoBehaviour
 		message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);
 		this.loader.client.Send(message.GetMessage(), message.size);
 	}
+
+	// Sets the Camera FOV
+	public void SetFOV(){
+		cam.GetComponent<Camera>().fieldOfView = Configurations.fieldOfView;
+	}
 	
+	public void TakeWorldScreenshot(){
+        RenderTexture renderTexture = new RenderTexture(Screen.width, (int)(Screen.height/2), 24);
+        this.playerCamera.targetTexture = renderTexture;
+
+        Texture2D screenshotTexture = new Texture2D(Screen.width, (int)(Screen.height/2), TextureFormat.RGB24, false);
+        this.playerCamera.Render();
+        RenderTexture.active = renderTexture;
+
+        screenshotTexture.ReadPixels(new Rect(0, 0, Screen.width, (int)(Screen.height/2)), 0, 0);
+        screenshotTexture.Apply();
+
+        this.playerCamera.targetTexture = null;
+        RenderTexture.active = null;
+        Destroy(renderTexture);
+
+        byte[] bytes = screenshotTexture.EncodeToPNG();
+        System.IO.File.WriteAllBytes(EnvironmentVariablesCentral.saveDir + World.worldName + "/" + WORLD_SCREENSHOT_NAME, bytes);
+	}
 
 	// Runs Prefab read and returns the arrays needed to create the prefab
 	private void PrefabRead(bool blockBased){

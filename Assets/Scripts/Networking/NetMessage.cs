@@ -333,6 +333,12 @@ public struct NetMessage
 		this.size = 26;
 	}
 
+	// Server sends clients the bytes that composes a Noise (used for global weather noise)
+	public void SendNoise(byte[] noise, int seed){
+		NetDecoder.WriteByteArray(noise, NetMessage.buffer, 1);
+		NetDecoder.WriteInt(seed, NetMessage.buffer, 1+noise.Length);
+		this.size = 1+noise.Length+4;
+	}
 }
 
 public enum NetCode{
@@ -362,6 +368,7 @@ public enum NetCode{
 	BLOCKDAMAGE,
 	SENDINVENTORY,
 	SFXPLAY,
+	SENDNOISE,
 	DISCONNECT  // No call
 }
 

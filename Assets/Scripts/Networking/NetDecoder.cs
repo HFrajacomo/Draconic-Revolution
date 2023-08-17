@@ -201,6 +201,10 @@ public static class NetDecoder
 		data[pos] = a;
 	}
 
+	public static void WriteByteArray(byte[] array, byte[] data, int pos){
+		Array.Copy(array, 0, data, pos, array.Length);
+	}
+
 	public static void WriteString(string a, byte[] data, int pos){
 		for(int i=0; i < a.Length; i++){
 			data[pos+i] = (byte)a[i];

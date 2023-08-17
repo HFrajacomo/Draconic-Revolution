@@ -7,11 +7,16 @@ using Unity.Mathematics;
 
 public class AmbientHandler : MonoBehaviour
 {
+    // Weather Reference
+    public WeatherCast weatherCast = new WeatherCast();
+
     // Unity References
     public GameObject lightObject;
 	public Transform skyboxLight;
 	public Light skyDirectionalLight;
     public HDAdditionalLightData hdLight;
+    public Light moonDirectionalLight;
+    public HDAdditionalLightData hdLightMoon;
 	public TimeOfDay timer;
     public PlayerPositionHandler playerPositionHandler;
     public LensFlareComponentSRP dayFlare;
@@ -71,7 +76,14 @@ public class AmbientHandler : MonoBehaviour
 
         ROTATE_SUN_FLAG = 0;
 
+        this.skyDirectionalLight.color = currentPreset.GetSunColor(0);
+        this.moonDirectionalLight.color = currentPreset.GetMoonColor(0);
+
+        weatherCast.SetFogNoise(this.timer.ToSeconds()*TimeOfDay.ticksForMinute, this.timer.days);
+        weatherCast.SetWeatherNoise(this.timer.ToSeconds(), this.timer.days);
+
         SetStats(this.timer.ToSeconds());
+        ApplyWeatherChanges(0, this.timer.ToSeconds(), (int)this.timer.GetFakeTicks(), this.timer.days, currentPreset.IsSurface(), false);
     }
 
     void Update(){
@@ -92,8 +104,10 @@ public class AmbientHandler : MonoBehaviour
                 delta = 0f;
             }
 
-            if(currentTick != lastTick)
+            if(currentTick != lastTick){
                 SetStats(time);
+                ApplyWeatherChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
+            }
 
             lastAmbient = currentAmbient;
             lastTick = currentTick;
@@ -103,8 +117,10 @@ public class AmbientHandler : MonoBehaviour
         else{
             this.updateTimer++;
 
-            if(currentTick != lastTick)
+            if(currentTick != lastTick){
                 LerpStatus(time);
+                ApplyWeatherChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
+            }
             
             if(this.updateTimer == FRAMES_TO_CHANGE){
                 isTransitioning = false;
@@ -117,6 +133,60 @@ public class AmbientHandler : MonoBehaviour
         } 
     }
 
+    // Sets and changes Fog Attenuation based on Biome and Weather component
+    private void ApplyWeatherChanges(float currentStep, int time, int currentTick, uint days, bool isSurface, bool isTransition){
+        // Sampling the Weather Noise
+        if(currentTick % 6 == 0){
+            weatherCast.SetFogNoise((int)((days*TimeOfDay.ticksForMinute*1440) + (time*TimeOfDay.ticksForMinute+currentTick)), days);
+            weatherCast.SetWeatherNoise((int)((days*1440) + time), days);
+        }
+
+        // Fog Shape and Density
+        else if(currentTick % 6 == 5){
+            if(!isSurface){
+                this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
+                this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(time);
+                this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(time);
+                return;
+            }
+            
+            if(isTransition){
+                this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());
+                this.fog.maximumHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogMaxHeight(time), currentPreset.GetFogMaxHeight(time), currentStep), this.weatherCast.GetMaximumHeight());
+                this.fog.baseHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogBaseHeight(time), currentPreset.GetFogBaseHeight(time), currentStep), this.weatherCast.GetBaseHeight());
+            }
+            else{
+                this.fog.meanFreePath.value = AddFog(currentPreset.GetFogAttenuation(time), this.weatherCast.GetAdditionalFog());
+                this.fog.maximumHeight.value = AddFog(currentPreset.GetFogMaxHeight(time), this.weatherCast.GetMaximumHeight());
+                this.fog.baseHeight.value = AddFog(currentPreset.GetFogBaseHeight(time), this.weatherCast.GetBaseHeight());
+            }
+        }
+
+        // Fog Color and Clouds
+        else if(currentTick % 6 == 1){
+            // Runs everytime
+            this.clouds.layerA.opacityA.value = this.weatherCast.GetCloudLocalOpacity();
+            this.clouds.layerB.opacityA.value = this.weatherCast.GetCloudLocalOpacity();
+            this.clouds.opacity.value = this.weatherCast.GetCloudGlobalOpacity();
+
+            if(!isSurface){
+                this.fog.albedo.value = currentPreset.GetFogAlbedo(time);
+                this.clouds.layerB.tint.value = currentPreset.GetCloudTint(time);
+                return;
+            }
+            
+            if(isTransition){
+                this.fog.albedo.value = SubColor(Color.Lerp(lastPreset.GetFogAlbedo(time), currentPreset.GetFogAlbedo(time), currentStep), this.weatherCast.GetSubtractiveFogColor());
+                this.clouds.layerB.tint.value = MultiplyColor(Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep), this.weatherCast.GetCloudBMultiplier());
+      
+            }
+            else{
+                this.fog.albedo.value = SubColor(currentPreset.GetFogAlbedo(time), this.weatherCast.GetSubtractiveFogColor());
+                this.clouds.layerB.tint.value = MultiplyColor(currentPreset.GetCloudTint(time), this.weatherCast.GetCloudBMultiplier());      
+            }
+        }        
+    }
+
     // Calculates the status of ambientation features while there's a change in preset happening
     private void LerpStatus(int time){
         float currentStep = (float)this.updateTimer/FRAMES_TO_CHANGE;
@@ -124,27 +194,34 @@ public class AmbientHandler : MonoBehaviour
         if(currentTick % 6 == 0){
             this.pbsky.horizonTint.value = Color.Lerp(lastPreset.GetHorizonTint(time), currentPreset.GetHorizonTint(time), currentStep);
             this.pbsky.zenithTint.value = Color.Lerp(lastPreset.GetZenithTint(time), currentPreset.GetZenithTint(time), currentStep);
+
+            EnableShadow(time);
         }
         else if(currentTick % 6 == 1){
-            this.fog.meanFreePath.value = Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep);
-            this.fog.albedo.value = Color.Lerp(lastPreset.GetFogAlbedo(time), currentPreset.GetFogAlbedo(time), currentStep);
-            this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);            
+            this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);
+            this.clouds.layerA.tint.value = Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep);
         }
         else if(currentTick % 6 == 2){
-            this.clouds.layerA.tint.value = Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep);
             this.whiteBalance.temperature.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTemperature(), currentPreset.GetWhiteBalanceTemperature(), currentStep);
             this.whiteBalance.tint.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTint(), currentPreset.GetWhiteBalanceTint(), currentStep);
             this.lgg.gain.value = LerpFloat4(lastPreset.GetGain(time), currentPreset.GetGain(time), currentStep);     
         }
+        else if(currentTick % 6 == 4){
+            this.pbsky.spaceEmissionMultiplier.value = currentPreset.GetStarMapMultiplier(time);
+            this.pbsky.spaceRotation.value = currentPreset.GetStarMapRotation(time);
+        }
         else if(currentTick % 4 == 3){
             this.hdLight.SetIntensity(Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep), LightUnit.Lux);
-            this.skyDirectionalLight.color = Color.Lerp(lastPreset.GetSunColor(time), currentPreset.GetSunColor(time), currentStep);
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
+            this.hdLightMoon.SetIntensity(Mathf.Lerp(lastPreset.GetMoonIntensity(time), currentPreset.GetMoonIntensity(time), currentStep), LightUnit.Lux);
+            this.hdLightMoon.angularDiameter = currentPreset.GetMoonDiameter(time);
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
 
             if(ROTATE_SUN_FLAG == 0){
                 this.cachedRotation = currentPreset.GetSunRotation(time);
                 this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+                this.cachedRotation = currentPreset.GetMoonRotation(time);
+                this.moonDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
                 ROTATE_SUN_FLAG++;
             }
             else if(ROTATE_SUN_FLAG == ROTATE_FLAG_MAX){
@@ -166,32 +243,39 @@ public class AmbientHandler : MonoBehaviour
 
             if(currentPreset.HasFlare()){
                 SetFlare(time);
-                SetLensFlareIntensity(time);
+                SetLensFlareIntensity(time, this.weatherCast);
             }
             else{
                 DisableFlare();
             }
+
+            EnableShadow(time);
         }
         else if(currentTick % 6 == 1){
-            this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(finalTime);
-            this.fog.albedo.value = currentPreset.GetFogAlbedo(finalTime);
             this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime);
+            this.clouds.layerA.tint.value = currentPreset.GetCloudTint(finalTime);
         }
         else if(currentTick % 6 == 2){
-            this.clouds.layerA.tint.value = currentPreset.GetCloudTint(finalTime);
             this.whiteBalance.temperature.value = currentPreset.GetWhiteBalanceTemperature();
             this.whiteBalance.tint.value = currentPreset.GetWhiteBalanceTint();
             this.lgg.gain.value = currentPreset.GetGain(finalTime);
         }
+        else if(currentTick % 6 == 4){
+            this.pbsky.spaceEmissionMultiplier.value = currentPreset.GetStarMapMultiplier(finalTime);
+            this.pbsky.spaceRotation.value = currentPreset.GetStarMapRotation(finalTime);
+        }
         else if(currentTick % 4 == 3){
             this.hdLight.SetIntensity(currentPreset.GetSunIntensity(finalTime), LightUnit.Lux);
-            this.skyDirectionalLight.color = currentPreset.GetSunColor(finalTime);
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
+            this.hdLightMoon.SetIntensity(currentPreset.GetMoonIntensity(time), LightUnit.Lux);
+            this.hdLightMoon.angularDiameter = currentPreset.GetMoonDiameter(time);
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
 
             if(ROTATE_SUN_FLAG == 0){
                 this.cachedRotation = currentPreset.GetSunRotation(finalTime);
                 this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+                this.cachedRotation = currentPreset.GetMoonRotation(finalTime);
+                this.moonDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
                 ROTATE_SUN_FLAG++;
             }
             else if(ROTATE_SUN_FLAG == ROTATE_FLAG_MAX){
@@ -208,6 +292,24 @@ public class AmbientHandler : MonoBehaviour
             this.delta = 1f;
     }
 
+    // An operation that adds Biome fog to Random and Weather fog only if in surface chunks
+    private float AddFog(float biomeFog, float additionalFog){
+        if(this.currentPreset.IsSurface()){
+            return biomeFog+additionalFog;
+        }
+        return biomeFog;
+    }
+
+    // Subtracts two color
+    private Color SubColor(Color main, Color sub){
+        return main - sub;
+    }
+
+    // Multiply color with scalar
+    private Color MultiplyColor(Color main, float scalar){
+        return main*scalar;
+    }
+
     private float4 LerpFloat4(float4 a, float4 b, float t){
         Color x = new Color(a.x, a.y, a.z, a.w);
         Color y = new Color(b.x, b.y, b.z, b.w);
@@ -218,13 +320,26 @@ public class AmbientHandler : MonoBehaviour
 
     // Sets the current Lens Flare
     private void SetFlare(int x){
-        if(x >= 240 && x <= 1200){
+        if(x >= 240 && x <= 1200)
             this.dayFlare.enabled = true;
+        else
+            this.dayFlare.enabled = false;
+
+        if(x >= 1020 || x < 240)
+            this.nightFlare.enabled = true;
+        else
             this.nightFlare.enabled = false;
+    }
+
+    // Enable Sun/Moon Shadow
+    private void EnableShadow(int x){
+        if(x >= 240 && x <= 1200){
+            this.hdLight.EnableShadows(true);
+            this.hdLightMoon.EnableShadows(false);
         }
         else{
-            this.dayFlare.enabled = false;
-            this.nightFlare.enabled = true;
+            this.hdLight.EnableShadows(false);
+            this.hdLightMoon.EnableShadows(true);
         }
     }
 
@@ -235,25 +350,25 @@ public class AmbientHandler : MonoBehaviour
     }
 
     // Sets Lens Flare intensity
-    private void SetLensFlareIntensity(int x){
-        if(x >= 180 && x < 240){
-            nightFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-180)/60f);
+    private void SetLensFlareIntensity(int x, WeatherCast wc){
+        if(x >= 360 && x < 420){
+            nightFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-360)/60f) * wc.GetFlareMultiplier();
         }
-        else if(x >= 1200 && x < 1260){
-            nightFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-1200)/60f);
+        else if(x >= 1020 && x < 1080){
+            nightFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-1020)/60f) * wc.GetFlareMultiplier();
         }
         else{
-            nightFlare.intensity = 1f;
+            nightFlare.intensity = 1f * wc.GetFlareMultiplier();
         }
 
         if(x >= 240 && x <= 300){
-            dayFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-240)/60f);
+            dayFlare.intensity = Mathf.Lerp(0.4f, 1f, (x-240)/60f) * wc.GetFlareMultiplier();
         }
         else if(x >= 1140 && x < 1200){
-            dayFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-1140)/60f);
+            dayFlare.intensity = Mathf.Lerp(1f, 0.4f, (x-1140)/60f) * wc.GetFlareMultiplier();
         }
         else{
-            dayFlare.intensity = 1f;
+            dayFlare.intensity = 1f * wc.GetFlareMultiplier();
         }
     }
 }

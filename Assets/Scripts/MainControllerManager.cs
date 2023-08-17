@@ -121,6 +121,8 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnDebugKey(){
+        this.raycast.TakeWorldScreenshot();
+
         this.cl.Cleanup();
         SceneManager.LoadScene("Blank");
     }

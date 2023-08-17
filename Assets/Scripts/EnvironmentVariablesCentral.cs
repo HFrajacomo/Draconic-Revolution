@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -9,6 +10,7 @@ public static class EnvironmentVariablesCentral
     public static string gameDir;
     public static string serverDir;
     public static string compiledServerDir;
+    public static string saveDir;
     private static string invisScript = "start /min powershell \"start-process $env:APPDATA\\DraconicRevolution\\Server\\Server.exe -Arg -Local -WindowStyle hidden\"";
 
     public static void Start(){
@@ -16,8 +18,18 @@ public static class EnvironmentVariablesCentral
 
         #if UNITY_EDITOR
             compiledServerDir = clientExeDir + "Build\\Server";
+            saveDir = "Worlds/";
         #else
             compiledServerDir = GetParent(clientExeDir) + "\\Server";
+
+            // If it's a Dedicated Server
+            if(!World.isClient){
+                saveDir = "Worlds/";
+            }
+            // If it's a Local Server
+            else{
+                saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
+            }
         #endif
 
         gameDir = GetAppdataDir() + "\\DraconicRevolution\\";
@@ -53,6 +65,50 @@ public static class EnvironmentVariablesCentral
 
     private static string GetAppdataDir(){
         return GetParent(Application.persistentDataPath, iterations:3) + "\\Roaming";
+    }
+
+    public static List<string> ListFilesInWorldFolder(string worldName, string extensionFilter="", char firstLetterFilter='\0', bool onlyName=false){
+        string worldDir = saveDir + worldName + "/";
+        List<string> fileList = new List<string>();
+
+        string[] files = Directory.GetFiles(worldDir);
+        string[] splitted;
+        string fileName = "";
+
+        foreach (string file in files){
+            if(extensionFilter != ""){
+                if(file.Split(".")[1] != extensionFilter)
+                    continue;
+            }
+
+            splitted = file.Split("/");
+
+            if(onlyName)
+                fileName = splitted[splitted.Length - 1].Split(".")[0];
+            else
+                fileName = splitted[splitted.Length - 1];
+
+            if(firstLetterFilter != '\0'){
+                if(fileName[0] != firstLetterFilter)
+                    continue;
+            }
+
+            fileList.Add(fileName);
+        }
+
+        return fileList;
+    }
+
+    public static List<string> ListWorldFolders(){
+        List<string> directories = new List<string>();
+
+        string[] dirArray =  Directory.GetDirectories(saveDir);
+
+        foreach(string dir in dirArray){
+            directories.Add(dir);
+        }
+
+        return directories;
     }
 
     public static void PrintDirectories(){

@@ -531,8 +531,8 @@ public class Chunk
 		this.indexHitboxTris.Add(0);
 
 		// Offseting and Rotation shenanigans
-		NativeHashMap<int, Vector3> scaleOffset = new NativeHashMap<int, Vector3>(0, Allocator.TempJob);
-		NativeHashMap<int, int2> rotationOffset = new NativeHashMap<int, int2>(0, Allocator.TempJob);
+		NativeParallelHashMap<int, Vector3> scaleOffset = new NativeParallelHashMap<int, Vector3>(0, Allocator.TempJob);
+		NativeParallelHashMap<int, int2> rotationOffset = new NativeParallelHashMap<int, int2>(0, Allocator.TempJob);
 		
 		int3[] coordArray = loadAssetList.AsArray().ToArray();
 		foreach(int3 coord in coordArray){
