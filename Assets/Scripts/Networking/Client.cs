@@ -378,7 +378,6 @@ public class Client
 		this.socket.Close();
 		Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
         this.cl.Cleanup(comesFromClient:true);
         SceneManager.LoadScene("Blank");
 	}

@@ -397,6 +397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6075fb031d97a1b46892e99e81ce4736, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerCamera: {fileID: 1912773811}
   loader: {fileID: 1192772367}
   cam: {fileID: 1912773808}
   reach: 4
