@@ -13,6 +13,7 @@ public class CharacterCreationMenu : Menu{
 
     [Header("UI Elements")]
     public GameObject menuDiv;
+    public GameObject playerObject;
 
     [Header("Buttons")]
     public Button clothesButton;
@@ -32,6 +33,8 @@ public class CharacterCreationMenu : Menu{
 
     [Header("Prefab")]
     public GameObject itemButtonPrefab;
+
+    private CharacterBuilder characterBuilder;
 
     // Items List
     private List<GameObject> clothesItems = new List<GameObject>();
@@ -79,9 +82,9 @@ public class CharacterCreationMenu : Menu{
 
         menuDiv.GetComponentInChildren<Image>().material = mat;
 
-        ToggleDiv(this.clothesButton);
+        this.characterBuilder = new CharacterBuilder(this.playerObject);
 
-        ModelHandler.Run(); // Testing
+        ToggleDiv(this.clothesButton);
     }
 
     public void ToggleDiv(Button bt){
@@ -136,6 +139,17 @@ public class CharacterCreationMenu : Menu{
     }
 
     public void ClickItem(GameObject go){
+        SelectItem(go);
+        LoadModel(go.GetComponentInChildren<Text>().text + "/M");
+    }
+
+    private void LoadModel(string name){
+        GameObject go = ModelHandler.GetModelObject(this.selectedDiv, name);
+        go.name = GenerateGoName();
+        this.characterBuilder.Add(this.selectedDiv, go);
+    }
+
+    private void SelectItem(GameObject go){
         if(this.selectedDiv == ModelType.CLOTHES){
             if(this.selectedClothes != null){
                 this.cachedText = this.selectedClothesObj.GetComponentInChildren<Text>();
@@ -233,5 +247,9 @@ public class CharacterCreationMenu : Menu{
         if(button == this.hairButton)
             return this.hairDict;
         return this.clothesDict;          
+    }
+
+    private string GenerateGoName(){
+        return Enum.GetName(typeof(ModelType), (byte)this.selectedDiv);
     }
 }

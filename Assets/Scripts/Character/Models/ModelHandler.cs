@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public static class ModelHandler{
-	private static AssetBundle assets;
+	private static GameObject assets;
 
 	private static Dictionary<ModelType, Dictionary<string, ModelInfo>> models = new Dictionary<ModelType, Dictionary<string, ModelInfo>>();
 
@@ -13,19 +13,32 @@ public static class ModelHandler{
 	private static readonly string BOOTS_DB = "CharacterModels/boots_db";
 	private static readonly string HATS_DB = "CharacterModels/hats_db";
 	private static readonly string HAIR_DB = "CharacterModels/hair_db";
+	private static readonly string ARMATURE_MALE = "Armature";
+	private static readonly string ARMATURE_FEMALE = "Armature-Woman";
 
 	private static TextAsset cachedText;
 
 
 	static ModelHandler(){
-		assets = Resources.Load<AssetBundle>(ASSET_BUNDLE_RESPATH);
+		assets = Resources.Load<GameObject>(ASSET_BUNDLE_RESPATH);
+		assets = GameObject.Instantiate(assets);
+		assets.name = "ModelAssets";
+
 		LoadModelInfo();
 	}
 
 	public static void Run(){}
 
 	public static GameObject GetModelObject(ModelType type, string name){
-		return GameObject.Instantiate(assets.LoadAsset<GameObject>(name));
+		ModelInfo mi = GetModelInfo(type, name);
+		return GameObject.Instantiate(GameObject.Find("ModelAssets/" + mi.blenderReference));
+	}
+
+	public static GameObject GetArmature(bool isMale=true){
+		if(isMale)
+			return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_MALE));
+		else
+			return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_FEMALE));
 	}
 
 	public static ModelInfo GetModelInfo(ModelType type, string name){
