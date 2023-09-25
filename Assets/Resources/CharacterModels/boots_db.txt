@@ -1,0 +1,6 @@
+# Name	Blender_obj_name	Sex
+
+Slip-on shoes	shoe	M
+Sandal	shoe.001	M
+Slippers	shoe.002	M
+Boots	shoe.003	M

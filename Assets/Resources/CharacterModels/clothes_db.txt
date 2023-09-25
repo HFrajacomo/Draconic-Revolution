@@ -1,0 +1,6 @@
+# Name	Blender_obj_name	Sex
+
+Peasant blouse	coat	M
+Jacket and shirt	coat.001	M
+Sweatshirt	coat.002	M
+Trench coat	coat.003	M

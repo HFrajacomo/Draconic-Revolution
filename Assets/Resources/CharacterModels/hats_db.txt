@@ -1,0 +1,6 @@
+# Name	Blender_obj_name	Sex
+
+Inspector hat	hat	M
+Low profile	hat.001	M
+Beanie	hat.002	M
+Peasant hat	hat.003	M

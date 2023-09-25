@@ -167,11 +167,14 @@ public class SelectWorldMenu : Menu
     }
     
     private void StartGameSingleplayer(string world){
+        this.RequestMenuChange(MenuID.CHARACTER_CREATION);
+        /* UNCOMMENT THIS TO RE-ESTABLISH THE FUNCTIONALITY OF THIS FUNCTION
         World.SetWorldName(world);
         World.SetWorldSeed(0);
         World.SetToClient();
 
         SceneManager.LoadScene(1);
+        */
     }
 
     private string GetDirectoryName(string path){
