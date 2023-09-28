@@ -4,10 +4,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class ColorPickerRainbow : MonoBehaviour {
-	[Header("Offsets")]
-	public int xOffset = 0;
-	public int yOffset = 0;
-
 	public Image pickerImage;
 	public Texture2D colorChart;
 	private Color selectedColor;

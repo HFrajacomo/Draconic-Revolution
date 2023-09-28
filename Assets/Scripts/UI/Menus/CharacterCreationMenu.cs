@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 using Random = UnityEngine.Random;
+using Object = System.Object;
 
 public class CharacterCreationMenu : Menu{
     [Header("Text Color")]
@@ -33,6 +34,26 @@ public class CharacterCreationMenu : Menu{
 
     [Header("Prefab")]
     public GameObject itemButtonPrefab;
+
+    [Header("Color Picking")]
+    public ColorPickerPreview primaryColorPicker;
+    public ColorPickerPreview secondaryColorPicker;
+    public ColorPickerPreview terciaryColorPicker;
+    private Color clothesColor1;
+    private Color clothesColor2;
+    private Color clothesColor3;
+    private Color legsColor1;
+    private Color legsColor2;
+    private Color legsColor3;
+    private Color hatsColor1;
+    private Color hatsColor2;
+    private Color hatsColor3;
+    private Color bootsColor1;
+    private Color bootsColor2;
+    private Color bootsColor3;
+    private Color hairColor1;
+    private Color hairColor2;
+    private Color hairColor3;
 
     private CharacterBuilder characterBuilder;
 
@@ -204,6 +225,56 @@ public class CharacterCreationMenu : Menu{
             this.selectedHair = this.cachedText.text;
             this.cachedText.color = this.selectedColor;
             this.selectedHairObj = go;
+        }
+    }
+
+    public void ChangeColor(Object[] arguments){
+        Color c = (Color)arguments[0];
+        ColorPickerPreview picker = (ColorPickerPreview)arguments[1];
+
+        if(this.selectedDiv == ModelType.CLOTHES){
+            if(picker == primaryColorPicker){
+                this.clothesColor1 = c;
+            }
+            else if(picker == secondaryColorPicker){
+                this.clothesColor2 = c;
+            }
+            else{
+                this.clothesColor3 = c;
+            }
+        }
+        else if(this.selectedDiv == ModelType.LEGS){
+            if(picker == primaryColorPicker){
+                this.legsColor1 = c;
+            }
+            else if(picker == secondaryColorPicker){
+                this.legsColor2 = c;
+            }
+            else{
+                this.legsColor3 = c;
+            }
+        }
+        else if(this.selectedDiv == ModelType.FOOTGEAR){
+            if(picker == primaryColorPicker){
+                this.bootsColor1 = c;
+            }
+            else if(picker == secondaryColorPicker){
+                this.bootsColor2 = c;
+            }
+            else{
+                this.bootsColor3 = c;
+            }
+        }
+        else if(this.selectedDiv == ModelType.HEADGEAR){
+            if(picker == primaryColorPicker){
+                this.hatsColor1 = c;
+            }
+            else if(picker == secondaryColorPicker){
+                this.hatsColor2 = c;
+            }
+            else{
+                this.hatsColor3 = c;
+            }
         }
     }
 
