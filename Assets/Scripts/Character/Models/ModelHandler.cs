@@ -64,13 +64,12 @@ public static class ModelHandler{
 		armature.GetComponentsInChildren<Transform>(listTransforms);
 		
 		foreach(Transform t in listTransforms){
-			if(!t.name.EndsWith("end") && !t.name.EndsWith("(Clone)")){
+			if(!t.name.EndsWith("end") && t.name != "Armature"){
 				if(mapping.ContainsKey(t.name)){
 					array[mapping[t.name]] = t;
 				}
 			}
 		}
-
 
 		return array;
 	}

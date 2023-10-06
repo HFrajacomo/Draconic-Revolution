@@ -1,24 +1,28 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 
 public class CharacterBuilder{
 	private GameObject parent;
 	private Dictionary<ModelType, GameObject> bodyParts;
 	private GameObject armature;
 	private Transform rootBone;
+	private BoneRenderer boneRenderer;
 
 	private static Dictionary<string, int> BONE_MAP;
 
 	// Settings
 	private static readonly int ROOT_BONE_INDEX = 0;
+	private static readonly string ARMATURE_NAME = "Armature";
 	private static readonly Vector3 POS_1 = new Vector3(15, 0, 100);
-	private static readonly Vector3 ROT_1 = new Vector3(270, 0, 20);
-	private static readonly Vector3 SCL_1 = new Vector3(800,800,800);
+	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
+	private static readonly Vector3 SCL_1 = new Vector3(25,25,25);
 
 	public CharacterBuilder(GameObject par, bool isMale=true){
 		this.parent = par;
 		this.bodyParts = new Dictionary<ModelType, GameObject>();
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
+		this.armature.name = ARMATURE_NAME;
 
 		this.armature.transform.SetParent(this.parent.transform);
 		FixArmature();
@@ -42,6 +46,10 @@ public class CharacterBuilder{
 		}
 
 		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
+
+		if(boneRenderer.transforms == null)
+			boneRenderer.transforms = newBones;
+
 		Mesh mesh = CopyMesh(current.sharedMesh);
 
 		mesh.name = current.sharedMesh.name;
@@ -65,7 +73,8 @@ public class CharacterBuilder{
 	private void FixArmature(){
 		this.armature.transform.localScale = SCL_1;
 		this.armature.transform.eulerAngles = ROT_1;
-		this.armature.transform.localPosition = POS_1;		
+		this.armature.transform.localPosition = POS_1;
+		this.boneRenderer = this.armature.AddComponent<BoneRenderer>();
 	}
 
 	private void LoadRootBone(){
@@ -82,6 +91,7 @@ public class CharacterBuilder{
         newMesh.normals = mesh.normals;
         newMesh.colors = mesh.colors;
         newMesh.tangents = mesh.tangents;
+
         newMesh.boneWeights = mesh.boneWeights;
         newMesh.bindposes = mesh.bindposes;
 
@@ -94,24 +104,4 @@ public class CharacterBuilder{
 
         return newMesh;
 	}
-
-	private void PrintHierarchy(Transform[] t){
-		foreach(Transform a in t){
-			GetHierarchyPath(a);
-		}
-	}
-
-	// DEBUG
-	private void GetHierarchyPath(Transform transform)
-    {
-        string path = transform.name;
-
-        while (transform.parent != null)
-        {
-            transform = transform.parent;
-            path = transform.name + "/" + path;
-        }
-
-        Debug.Log(path);
-    }
 }
