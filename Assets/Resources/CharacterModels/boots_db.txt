@@ -1,6 +1,13 @@
 # Name	Blender_obj_name	Sex
 
+<No Boots>	NakedM.002	M
 Slip-on shoes	shoe	M
-Sandal	shoe.001	M
+Sandal	shoe.007	M
 Slippers	shoe.002	M
 Boots	shoe.003	M
+
+<No Boots>	NakedW	F
+Slip-on shoes	ShoeW	F
+Sandal	ShoeW.001	F
+Slippers	ShoeW.002	F
+Boots	ShoeW.003	F

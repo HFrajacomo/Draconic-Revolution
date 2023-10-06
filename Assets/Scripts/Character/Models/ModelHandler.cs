@@ -19,6 +19,7 @@ public static class ModelHandler{
 	private static TextAsset cachedText;
 
 
+
 	static ModelHandler(){
 		assets = Resources.Load<GameObject>(ASSET_BUNDLE_RESPATH);
 		assets = GameObject.Instantiate(assets);
@@ -53,6 +54,25 @@ public static class ModelHandler{
 		}
 
 		return outList;
+	}
+
+	public static Transform[] GetArmatureBones(Transform armature, Dictionary<string, int> mapping){
+		List<Transform> listTransforms = new List<Transform>();
+		Transform[] array = new Transform[mapping.Count];		
+
+		// Gets Hips 
+		armature.GetComponentsInChildren<Transform>(listTransforms);
+		
+		foreach(Transform t in listTransforms){
+			if(!t.name.EndsWith("end") && !t.name.EndsWith("(Clone)")){
+				if(mapping.ContainsKey(t.name)){
+					array[mapping[t.name]] = t;
+				}
+			}
+		}
+
+
+		return array;
 	}
 
 	private static void LoadModelInfo(){

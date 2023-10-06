@@ -3883,6 +3883,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rainbowObject: {fileID: 83241220}
   previewColor: {fileID: 318198316}
+  connectedMenu: {fileID: 1425498534}
 --- !u!114 &318198319
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6740,6 +6741,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rainbowObject: {fileID: 83241220}
   previewColor: {fileID: 602682200}
+  connectedMenu: {fileID: 1425498534}
 --- !u!114 &602682203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18467,6 +18469,9 @@ MonoBehaviour:
   BORDER_SIZE: 0.01
   HORIZONTAL_ADJUSTMENT: 1
   itemButtonPrefab: {fileID: 230452056}
+  primaryColorPicker: {fileID: 2114954353}
+  secondaryColorPicker: {fileID: 318198318}
+  terciaryColorPicker: {fileID: 602682202}
 --- !u!4 &1425498536
 Transform:
   m_ObjectHideFlags: 0
@@ -27820,6 +27825,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rainbowObject: {fileID: 83241220}
   previewColor: {fileID: 2114954351}
+  connectedMenu: {fileID: 1425498534}
 --- !u!114 &2114954354
 MonoBehaviour:
   m_ObjectHideFlags: 0

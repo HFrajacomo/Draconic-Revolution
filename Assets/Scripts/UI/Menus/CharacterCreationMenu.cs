@@ -76,6 +76,7 @@ public class CharacterCreationMenu : Menu{
     private GameObject selectedBootObj;
     private GameObject selectedHatObj;
     private GameObject selectedHairObj;
+    private GameObject selectedModel;
 
     // Name to code Dictionary
     private Dictionary<string, int> clothesDict = new Dictionary<string, int>();
@@ -145,10 +146,10 @@ public class CharacterCreationMenu : Menu{
                 this.cachedRect.anchoredPosition3D = Vector3.zero;
 
                 this.cachedObject.GetComponentInChildren<Text>().text = mi.name;
-                referenceDict.Add(mi.name, counter);
+                referenceDict.Add(mi.GetHandlerName(), counter);
                 referenceList.Add(this.cachedObject);
 
-                this.cachedObject.GetComponent<Button>().onClick.AddListener(() => ClickItem(referenceList[referenceDict[mi.name]]));
+                this.cachedObject.GetComponent<Button>().onClick.AddListener(() => ClickItem(referenceList[referenceDict[mi.GetHandlerName()]]));
                 counter++;
             }
         }
@@ -181,6 +182,7 @@ public class CharacterCreationMenu : Menu{
             this.selectedClothes = this.cachedText.text;
             this.cachedText.color = this.selectedColor;
             this.selectedClothesObj = go;
+            this.selectedModel = go;
         }
         else if(this.selectedDiv == ModelType.LEGS){
             if(this.selectedLeg != null){
@@ -192,6 +194,7 @@ public class CharacterCreationMenu : Menu{
             this.selectedLeg = this.cachedText.text;
             this.cachedText.color = this.selectedColor;
             this.selectedLegObj = go;
+            this.selectedModel = go;
         }
         else if(this.selectedDiv == ModelType.FOOTGEAR){
             if(this.selectedBoot != null){
@@ -203,6 +206,7 @@ public class CharacterCreationMenu : Menu{
             this.selectedBoot = this.cachedText.text;
             this.cachedText.color = this.selectedColor;
             this.selectedBootObj = go;
+            this.selectedModel = go;
         }
         else if(this.selectedDiv == ModelType.HEADGEAR){
             if(this.selectedHat != null){
@@ -214,6 +218,7 @@ public class CharacterCreationMenu : Menu{
             this.selectedHat = this.cachedText.text;
             this.cachedText.color = this.selectedColor;
             this.selectedHatObj = go;
+            this.selectedModel = go;
         }
         else if(this.selectedDiv == ModelType.HAIR){
             if(this.selectedHair != null){
@@ -225,6 +230,7 @@ public class CharacterCreationMenu : Menu{
             this.selectedHair = this.cachedText.text;
             this.cachedText.color = this.selectedColor;
             this.selectedHairObj = go;
+            this.selectedModel = go;
         }
     }
 
