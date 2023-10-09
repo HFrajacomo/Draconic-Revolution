@@ -3,7 +3,7 @@
 <No Boots>	NakedM.002	M
 Slip-on shoes	shoe	M
 Sandal	shoe.007	M
-Slippers	shoe.002	M
+Slippers	shoe.004	M
 Boots	shoe.003	M
 
 <No Boots>	NakedW	F

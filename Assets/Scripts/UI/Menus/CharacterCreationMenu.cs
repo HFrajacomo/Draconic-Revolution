@@ -77,6 +77,7 @@ public class CharacterCreationMenu : Menu{
     private GameObject selectedHatObj;
     private GameObject selectedHairObj;
     private GameObject selectedModel;
+    private bool selectedGenderIsMale = true;
 
     // Name to code Dictionary
     private Dictionary<string, int> clothesDict = new Dictionary<string, int>();
@@ -146,7 +147,7 @@ public class CharacterCreationMenu : Menu{
             Dictionary<string, int> referenceDict = IdentifyDict(bt);
             int counter = 0;
 
-            foreach(ModelInfo mi in ModelHandler.GetModelInfoList(selectedType)){
+            foreach(ModelInfo mi in ModelHandler.GetAllModelInfoList(selectedType, filterByGender:true, gender:IdentifyGender())){
                 this.cachedObject = GameObject.Instantiate(this.itemButtonPrefab);
                 this.cachedObject.transform.SetParent(this.scrollViewContent.transform);
                 this.cachedObject.transform.localScale = Vector3.one;
@@ -160,7 +161,7 @@ public class CharacterCreationMenu : Menu{
                 referenceDict.Add(mi.GetHandlerName(), counter);
                 referenceList.Add(this.cachedObject);
 
-                this.cachedObject.GetComponent<Button>().onClick.AddListener(() => ClickItem(referenceList[referenceDict[mi.GetHandlerName()]]));
+                this.cachedObject.GetComponent<Button>().onClick.AddListener(() => ClickItem(referenceList[referenceDict[mi.GetHandlerName()]], mi.GetHandlerName()));
                 counter++;
             }
         }
@@ -171,9 +172,9 @@ public class CharacterCreationMenu : Menu{
         }
     }
 
-    public void ClickItem(GameObject go){
+    public void ClickItem(GameObject go, string handlerReferenceName){
         SelectItem(go);
-        LoadModel(go.GetComponentInChildren<Text>().text + "/M");
+        LoadModel(handlerReferenceName);
     }
 
     private void LoadDefaultModel(bool isMale=true){
@@ -275,7 +276,7 @@ public class CharacterCreationMenu : Menu{
             this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
             this.selectedClothes = name;
             this.cachedText.color = this.selectedColor;
-            this.selectedClothesObj = go;
+            this.selectedClothesObj = IdentifyItemGO(name);
             this.selectedModel = go;
         }
         else if(this.selectedDiv == ModelType.LEGS){
@@ -287,7 +288,7 @@ public class CharacterCreationMenu : Menu{
             this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
             this.selectedLeg = name;
             this.cachedText.color = this.selectedColor;
-            this.selectedLegObj = go;
+            this.selectedLegObj = IdentifyItemGO(name);
             this.selectedModel = go;
         }
         else if(this.selectedDiv == ModelType.FOOTGEAR){
@@ -299,7 +300,7 @@ public class CharacterCreationMenu : Menu{
             this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
             this.selectedBoot = name;
             this.cachedText.color = this.selectedColor;
-            this.selectedBootObj = go;
+            this.selectedBootObj = IdentifyItemGO(name);
             this.selectedModel = go;
         }
         else if(this.selectedDiv == ModelType.HEADGEAR){
@@ -311,7 +312,7 @@ public class CharacterCreationMenu : Menu{
             this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
             this.selectedHat = name;
             this.cachedText.color = this.selectedColor;
-            this.selectedHatObj = go;
+            this.selectedHatObj = IdentifyItemGO(name);
             this.selectedModel = go;
         }
         else if(this.selectedDiv == ModelType.HAIR){
@@ -323,7 +324,7 @@ public class CharacterCreationMenu : Menu{
             this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
             this.selectedHair = name;
             this.cachedText.color = this.selectedColor;
-            this.selectedHairObj = go;
+            this.selectedHairObj = IdentifyItemGO(name);
             this.selectedModel = go;
         }
     }
@@ -481,6 +482,23 @@ public class CharacterCreationMenu : Menu{
         if(button == this.hairButton)
             return this.hairDict;
         return this.clothesDict;          
+    }
+
+    private GameObject IdentifyItemGO(string name){
+        foreach(Text text in this.scrollViewContent.GetComponentsInChildren<Text>()){
+            if(text.text == name){
+                return text.transform.parent.gameObject;
+            }
+        }
+
+        Debug.Log(name + " is null");
+        return null;
+    }
+
+    private char IdentifyGender(){
+        if(this.selectedGenderIsMale)
+            return 'M';
+        return 'F';
     }
 
     private string GenerateGoName(){

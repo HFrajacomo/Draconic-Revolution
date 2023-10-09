@@ -46,11 +46,35 @@ public static class ModelHandler{
 		return models[type][name];
 	}
 
-	public static List<ModelInfo> GetModelInfoList(ModelType t){
+	public static List<ModelInfo> GetAllModelInfoList(ModelType t, bool filterByGender=false, char gender = 'M'){
 		List<ModelInfo> outList = new List<ModelInfo>();
 		
 		foreach(ModelInfo mi in models[t].Values){
 			outList.Add(mi);
+		}
+
+		// Filters
+		if(filterByGender)
+			outList = FilterGenderModels(outList, gender);
+
+		return outList;
+	}
+
+	public static List<ModelInfo> FilterGenderModels(List<ModelInfo> modelList, char gender){
+		List<ModelInfo> outList = new List<ModelInfo>();
+		bool isMale = (gender == 'M'); 
+
+		foreach(ModelInfo mi in modelList){
+			if(isMale){
+				if(mi.sex == 'M'){
+					outList.Add(mi);
+				}
+			}
+			else{
+				if(mi.sex == 'F'){
+					outList.Add(mi);
+				}
+			}
 		}
 
 		return outList;
