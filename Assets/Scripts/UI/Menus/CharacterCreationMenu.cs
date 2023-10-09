@@ -85,6 +85,12 @@ public class CharacterCreationMenu : Menu{
     private Dictionary<string, int> hatsDict = new Dictionary<string, int>();
     private Dictionary<string, int> hairDict = new Dictionary<string, int>();
 
+    // Default Model
+    private static readonly string DEFAULT_CLOTHES = "<No Top>";
+    private static readonly string DEFAULT_HAT = "<No Hat>";
+    private static readonly string DEFAULT_LEGS = "<No Pants>";
+    private static readonly string DEFAULT_BOOTS = "<No Boots>";
+
     // Cache
     private GameObject cachedObject;
     private RectTransform cachedRect;
@@ -94,6 +100,11 @@ public class CharacterCreationMenu : Menu{
     public override void Disable(){
         DeselectClickedButton();
         this.mainObject.SetActive(false);
+    }
+
+    public override void Enable(){
+        this.mainObject.SetActive(true);
+        LoadDefaultModel();
     }
 
     void Start(){
@@ -165,10 +176,156 @@ public class CharacterCreationMenu : Menu{
         LoadModel(go.GetComponentInChildren<Text>().text + "/M");
     }
 
-    private void LoadModel(string name){
+    private void LoadDefaultModel(bool isMale=true){
+        string suffix;
+        GameObject loadedModel;
+
+        if(isMale){
+            suffix = "/M";
+            this.selectedDiv = ModelType.CLOTHES;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
+            SelectItem(DEFAULT_CLOTHES, loadedModel);
+
+            this.selectedDiv = ModelType.HEADGEAR;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_HAT + suffix);
+            SelectItem(DEFAULT_HAT, loadedModel);
+
+            this.selectedDiv = ModelType.LEGS;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_LEGS + suffix);
+            SelectItem(DEFAULT_LEGS, loadedModel);
+
+            this.selectedDiv = ModelType.FOOTGEAR;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_BOOTS + suffix);
+            SelectItem(DEFAULT_BOOTS, loadedModel);
+        }
+        else{
+            suffix = "/W";
+            this.selectedDiv = ModelType.CLOTHES;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
+            SelectItem(DEFAULT_CLOTHES, loadedModel);
+
+            this.selectedDiv = ModelType.HEADGEAR;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_HAT + suffix);
+            SelectItem(DEFAULT_HAT, loadedModel);
+
+            this.selectedDiv = ModelType.LEGS;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_LEGS + suffix);
+            SelectItem(DEFAULT_LEGS, loadedModel);
+
+            this.selectedDiv = ModelType.FOOTGEAR;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_BOOTS + suffix);
+            SelectItem(DEFAULT_BOOTS, loadedModel);
+        }
+
+        this.selectedDiv = ModelType.CLOTHES;
+        ToggleDiv(GetButton(this.selectedDiv));
+
+    }
+
+    private GameObject LoadModel(string name){
         GameObject go = ModelHandler.GetModelObject(this.selectedDiv, name);
         go.name = GenerateGoName();
         this.characterBuilder.Add(this.selectedDiv, go);
+
+        return go;
+    }
+
+    private Button GetButton(ModelType type){
+        switch(type){
+            case ModelType.CLOTHES:
+                return clothesButton;
+            case ModelType.LEGS:
+                return legsButton;
+            case ModelType.HEADGEAR:
+                return hatsButton;
+            case ModelType.FOOTGEAR:
+                return bootsButton;
+            case ModelType.HAIR:
+                return hairButton;
+            default:
+                return clothesButton;
+        }
+    }
+
+    private GameObject FetchItemByName(string name){
+        foreach(Transform t in this.scrollViewContent.GetComponentsInChildren<Transform>()){
+            if(t.name == name){
+                return t.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private void SelectItem(string name, GameObject go){
+        if(this.selectedDiv == ModelType.CLOTHES){
+            if(this.selectedClothes != null){
+                this.cachedText = this.selectedClothesObj.GetComponentInChildren<Text>();
+                this.cachedText.color = this.notSelectedColor;
+            }
+
+            this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
+            this.selectedClothes = name;
+            this.cachedText.color = this.selectedColor;
+            this.selectedClothesObj = go;
+            this.selectedModel = go;
+        }
+        else if(this.selectedDiv == ModelType.LEGS){
+            if(this.selectedLeg != null){
+                this.cachedText = this.selectedLegObj.GetComponentInChildren<Text>();
+                this.cachedText.color = this.notSelectedColor;
+            }
+
+            this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
+            this.selectedLeg = name;
+            this.cachedText.color = this.selectedColor;
+            this.selectedLegObj = go;
+            this.selectedModel = go;
+        }
+        else if(this.selectedDiv == ModelType.FOOTGEAR){
+            if(this.selectedBoot != null){
+                this.cachedText = this.selectedBootObj.GetComponentInChildren<Text>();
+                this.cachedText.color = this.notSelectedColor;
+            }
+
+            this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
+            this.selectedBoot = name;
+            this.cachedText.color = this.selectedColor;
+            this.selectedBootObj = go;
+            this.selectedModel = go;
+        }
+        else if(this.selectedDiv == ModelType.HEADGEAR){
+            if(this.selectedHat != null){
+                this.cachedText = this.selectedHatObj.GetComponentInChildren<Text>();
+                this.cachedText.color = this.notSelectedColor;
+            }
+
+            this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
+            this.selectedHat = name;
+            this.cachedText.color = this.selectedColor;
+            this.selectedHatObj = go;
+            this.selectedModel = go;
+        }
+        else if(this.selectedDiv == ModelType.HAIR){
+            if(this.selectedHair != null){
+                this.cachedText = this.selectedHairObj.GetComponentInChildren<Text>();
+                this.cachedText.color = this.notSelectedColor;
+            }
+
+            this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
+            this.selectedHair = name;
+            this.cachedText.color = this.selectedColor;
+            this.selectedHairObj = go;
+            this.selectedModel = go;
+        }
     }
 
     private void SelectItem(GameObject go){

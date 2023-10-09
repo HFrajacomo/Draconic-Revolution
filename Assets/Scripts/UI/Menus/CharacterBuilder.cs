@@ -57,7 +57,6 @@ public class CharacterBuilder{
 		current.rootBone = newBones[ROOT_BONE_INDEX];
 		current.bones = newBones;
 
-
 		this.bodyParts[type] = obj;
 	}
 
