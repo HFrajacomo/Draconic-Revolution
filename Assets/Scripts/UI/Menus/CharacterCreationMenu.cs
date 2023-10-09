@@ -183,10 +183,6 @@ public class CharacterCreationMenu : Menu{
 
         if(isMale){
             suffix = "/M";
-            this.selectedDiv = ModelType.CLOTHES;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
-            SelectItem(DEFAULT_CLOTHES, loadedModel);
 
             this.selectedDiv = ModelType.HEADGEAR;
             ToggleDiv(GetButton(this.selectedDiv));
@@ -202,13 +198,14 @@ public class CharacterCreationMenu : Menu{
             ToggleDiv(GetButton(this.selectedDiv));
             loadedModel = LoadModel(DEFAULT_BOOTS + suffix);
             SelectItem(DEFAULT_BOOTS, loadedModel);
+
+            this.selectedDiv = ModelType.CLOTHES;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
+            SelectItem(DEFAULT_CLOTHES, loadedModel);
         }
         else{
             suffix = "/W";
-            this.selectedDiv = ModelType.CLOTHES;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
-            SelectItem(DEFAULT_CLOTHES, loadedModel);
 
             this.selectedDiv = ModelType.HEADGEAR;
             ToggleDiv(GetButton(this.selectedDiv));
@@ -224,17 +221,20 @@ public class CharacterCreationMenu : Menu{
             ToggleDiv(GetButton(this.selectedDiv));
             loadedModel = LoadModel(DEFAULT_BOOTS + suffix);
             SelectItem(DEFAULT_BOOTS, loadedModel);
+
+            this.selectedDiv = ModelType.CLOTHES;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
+            SelectItem(DEFAULT_CLOTHES, loadedModel);
         }
-
-        this.selectedDiv = ModelType.CLOTHES;
-        ToggleDiv(GetButton(this.selectedDiv));
-
     }
 
     private GameObject LoadModel(string name){
         GameObject go = ModelHandler.GetModelObject(this.selectedDiv, name);
         go.name = GenerateGoName();
         this.characterBuilder.Add(this.selectedDiv, go);
+
+        ShowColorPickers(go.GetComponent<SkinnedMeshRenderer>().materials.Length);
 
         return go;
     }
@@ -491,7 +491,6 @@ public class CharacterCreationMenu : Menu{
             }
         }
 
-        Debug.Log(name + " is null");
         return null;
     }
 
@@ -503,5 +502,31 @@ public class CharacterCreationMenu : Menu{
 
     private string GenerateGoName(){
         return Enum.GetName(typeof(ModelType), (byte)this.selectedDiv);
+    }
+
+    private void ShowColorPickers(int numberOfMaterials){
+        if(this.selectedDiv == ModelType.HAIR)
+            numberOfMaterials++;
+
+        if(numberOfMaterials == 1){
+            this.primaryColorPicker.gameObject.SetActive(false);
+            this.secondaryColorPicker.gameObject.SetActive(false);
+            this.terciaryColorPicker.gameObject.SetActive(false);
+        }
+        else if(numberOfMaterials == 2){
+            this.primaryColorPicker.gameObject.SetActive(true);
+            this.secondaryColorPicker.gameObject.SetActive(false);
+            this.terciaryColorPicker.gameObject.SetActive(false);            
+        }
+        else if(numberOfMaterials == 3){
+            this.primaryColorPicker.gameObject.SetActive(true);
+            this.secondaryColorPicker.gameObject.SetActive(true);
+            this.terciaryColorPicker.gameObject.SetActive(false);            
+        }
+        else if(numberOfMaterials == 4){
+            this.primaryColorPicker.gameObject.SetActive(true);
+            this.secondaryColorPicker.gameObject.SetActive(true);
+            this.terciaryColorPicker.gameObject.SetActive(true);            
+        }
     }
 }
