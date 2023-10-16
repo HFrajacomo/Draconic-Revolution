@@ -23,6 +23,7 @@ public static class ModelHandler{
 	static ModelHandler(){
 		assets = Resources.Load<GameObject>(ASSET_BUNDLE_RESPATH);
 		assets = GameObject.Instantiate(assets);
+		assets.transform.position = new Vector3(0,-999999,0);
 		assets.name = "ModelAssets";
 
 		LoadModelInfo();

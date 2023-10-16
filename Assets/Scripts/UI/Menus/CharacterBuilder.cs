@@ -152,6 +152,16 @@ public class CharacterBuilder{
 
 	private void FixMeshVertexGroups(Mesh prefab, Mesh newMesh, SkinnedMeshRenderer rend){
 		switch(prefab.subMeshCount){
+			case 1:
+				if(rend.materials[0].name == "Skin (Instance)"){
+					ConvertSubMesh(prefab, newMesh, 0, 0);
+				}
+				else{
+					newMesh.subMeshCount = 2;
+					rend.materials = new Material[2];
+					ConvertSubMesh(prefab, newMesh, 0, 1);
+				}
+				return;
 			case 2:
 				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(0, rend), 0);
 				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(1, rend), 1);
