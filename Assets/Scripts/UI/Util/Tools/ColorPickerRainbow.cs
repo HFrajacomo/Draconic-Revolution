@@ -28,7 +28,7 @@ public class ColorPickerRainbow : MonoBehaviour {
 		this.selectedColor = colorChart.GetPixel(pixelX, pixelY);
 
 		this.colorPickerPreview.SetColor(this.selectedColor);
-		this.gameObject.SetActive(false);
+		//this.gameObject.SetActive(false);
 	}
 
 	public void SetTargetPicker(GameObject go){this.colorPickerPreview = go.GetComponent<ColorPickerPreview>();}

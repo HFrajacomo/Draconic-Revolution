@@ -39,6 +39,7 @@ public class CharacterCreationMenu : Menu{
     public ColorPickerPreview primaryColorPicker;
     public ColorPickerPreview secondaryColorPicker;
     public ColorPickerPreview terciaryColorPicker;
+    public ColorPickerRainbow rainbowPicker;
     private Color clothesColor1;
     private Color clothesColor2;
     private Color clothesColor3;
@@ -189,6 +190,8 @@ public class CharacterCreationMenu : Menu{
                 go.SetActive(true);
             }
         }
+
+        this.rainbowPicker.gameObject.SetActive(false);
 
         // If the models are still null - a.k.a was run on Start()
         if(this.selectedClothes != null)

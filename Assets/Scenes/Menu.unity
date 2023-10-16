@@ -18494,6 +18494,7 @@ MonoBehaviour:
   primaryColorPicker: {fileID: 2114954353}
   secondaryColorPicker: {fileID: 318198318}
   terciaryColorPicker: {fileID: 602682202}
+  rainbowPicker: {fileID: 83241226}
   prefabPlainMat: {fileID: 2100000, guid: d53d3c304eec41b49aad438799e8ad47, type: 2}
 --- !u!4 &1425498536
 Transform:
