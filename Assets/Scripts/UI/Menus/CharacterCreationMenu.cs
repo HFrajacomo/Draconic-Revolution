@@ -55,6 +55,24 @@ public class CharacterCreationMenu : Menu{
     private Color hairColor2;
     private Color hairColor3;
 
+    [Header("Materials")]
+    public Material prefabPlainMat;
+    private Material clothesMat1;
+    private Material clothesMat2;
+    private Material clothesMat3;
+    private Material legsMat1;
+    private Material legsMat2;
+    private Material legsMat3;
+    private Material bootsMat1;
+    private Material bootsMat2;
+    private Material bootsMat3;
+    private Material hatsMat1;
+    private Material hatsMat2;
+    private Material hatsMat3;
+    private Material hairMat1;
+    private Material hairMat2;
+    private Material hairMat3;
+
     private CharacterBuilder characterBuilder;
 
     // Items List
@@ -105,6 +123,7 @@ public class CharacterCreationMenu : Menu{
 
     public override void Enable(){
         this.mainObject.SetActive(true);
+        ResetColors();
         LoadDefaultModel();
     }
 
@@ -235,6 +254,7 @@ public class CharacterCreationMenu : Menu{
         this.characterBuilder.Add(this.selectedDiv, go);
 
         ShowColorPickers(go.GetComponent<SkinnedMeshRenderer>().materials.Length);
+        ApplyColorToModel(go);
 
         return go;
     }
@@ -528,5 +548,118 @@ public class CharacterCreationMenu : Menu{
             this.secondaryColorPicker.gameObject.SetActive(true);
             this.terciaryColorPicker.gameObject.SetActive(true);            
         }
+    }
+
+    private void ApplyColorToModel(GameObject go){
+        Material[] materials = go.GetComponent<SkinnedMeshRenderer>().materials;
+
+
+        if(this.selectedDiv == ModelType.CLOTHES){
+            if(materials.Length > 1){
+                materials[1] = this.clothesMat1;
+                materials[1].SetColor("_Color", this.clothesColor1);
+            }
+            if(materials.Length > 2){
+                materials[2] = this.clothesMat2;
+                materials[2].SetColor("_Color", this.clothesColor2);
+            }
+            if(materials.Length > 3){
+                materials[3] = this.clothesMat3;
+                materials[3].SetColor("_Color", this.clothesColor3);
+            }
+        }
+        else if(this.selectedDiv == ModelType.LEGS){
+            if(materials.Length > 1){
+                materials[1] = this.legsMat1;
+                materials[1].SetColor("_Color", this.legsColor1);
+            }
+            if(materials.Length > 2){
+                materials[2] = this.legsMat2;
+                materials[2].SetColor("_Color", this.legsColor2);
+            }
+            if(materials.Length > 3){
+                materials[3] = this.legsMat3;
+                materials[3].SetColor("_Color", this.legsColor3);
+            }
+        }
+        else if(this.selectedDiv == ModelType.FOOTGEAR){
+            if(materials.Length > 1){
+                materials[1] = this.bootsMat1;
+                materials[1].SetColor("_Color", this.bootsColor1);
+            }
+            if(materials.Length > 2){
+                materials[2] = this.bootsMat2;
+                materials[2].SetColor("_Color", this.bootsColor2);
+            }
+            if(materials.Length > 3){
+                materials[3] = this.bootsMat3;
+                materials[3].SetColor("_Color", this.bootsColor3);
+            }
+        }
+        else if(this.selectedDiv == ModelType.HEADGEAR){
+            if(materials.Length > 1){
+                materials[1] = this.hatsMat1;
+                materials[1].SetColor("_Color", this.hatsColor1);
+            }
+            if(materials.Length > 2){
+                materials[2] = this.hatsMat2;
+                materials[2].SetColor("_Color", this.hatsColor2);
+            }
+            if(materials.Length > 3){
+                materials[3] = this.hatsMat3;
+                materials[3].SetColor("_Color", this.hatsColor3);
+            }
+        }
+
+        go.GetComponent<SkinnedMeshRenderer>().materials = materials;
+    }
+
+    private void ResetColors(){
+        this.clothesMat1 = Instantiate(this.prefabPlainMat);
+        this.clothesMat2 = Instantiate(this.prefabPlainMat);
+        this.clothesMat3 = Instantiate(this.prefabPlainMat);
+        this.legsMat1 = Instantiate(this.prefabPlainMat);
+        this.legsMat2 = Instantiate(this.prefabPlainMat);
+        this.legsMat3 = Instantiate(this.prefabPlainMat);
+        this.bootsMat1 = Instantiate(this.prefabPlainMat);
+        this.bootsMat2 = Instantiate(this.prefabPlainMat);
+        this.bootsMat3 = Instantiate(this.prefabPlainMat);
+        this.hatsMat1 = Instantiate(this.prefabPlainMat);
+        this.hatsMat2 = Instantiate(this.prefabPlainMat);
+        this.hatsMat3 = Instantiate(this.prefabPlainMat);
+        this.hairMat1 = Instantiate(this.prefabPlainMat);
+        this.hairMat2 = Instantiate(this.prefabPlainMat);
+        this.hairMat3 = Instantiate(this.prefabPlainMat);
+
+        this.clothesColor1 = new Color(1f, 1f, 1f);
+        this.clothesColor2 = new Color(0f, 0f, 0f);
+        this.clothesColor3 = new Color(0f, 0f, 1f);
+        this.legsColor1 = new Color(1f, 1f, 1f);
+        this.legsColor2 = new Color(0f, 0f, 0f);
+        this.legsColor3 = new Color(0f, 0f, 1f);
+        this.bootsColor1 = new Color(1f, 1f, 1f);
+        this.bootsColor2 = new Color(0f, 0f, 0f);
+        this.bootsColor3 = new Color(0f, 0f, 1f);
+        this.hatsColor1 = new Color(1f, 1f, 1f);
+        this.hatsColor2 = new Color(0f, 0f, 0f);
+        this.hatsColor3 = new Color(0f, 0f, 1f);
+        this.hairColor1 = new Color(1f, 1f, 1f);
+        this.hairColor2 = new Color(0f, 0f, 0f);
+
+        this.clothesMat1.SetColor("_Color", this.clothesColor1);
+        this.clothesMat2.SetColor("_Color", this.clothesColor2);
+        this.clothesMat3.SetColor("_Color", this.clothesColor3);
+        this.legsMat1.SetColor("_Color", this.legsColor1);
+        this.legsMat2.SetColor("_Color", this.legsColor2);
+        this.legsMat3.SetColor("_Color", this.legsColor3);
+        this.bootsMat1.SetColor("_Color", this.bootsColor1);
+        this.bootsMat2.SetColor("_Color", this.bootsColor2);
+        this.bootsMat3.SetColor("_Color", this.bootsColor3);
+        this.hatsMat1.SetColor("_Color", this.hatsColor1);
+        this.hatsMat2.SetColor("_Color", this.hatsColor2);
+        this.hatsMat3.SetColor("_Color", this.hatsColor3);
+        this.hairMat1.SetColor("_Color", this.hairColor1);
+        this.hairMat2.SetColor("_Color", this.hairColor2);
+        this.hairMat3.SetColor("_Color", this.hairColor3);
     }
 }

@@ -1,8 +1,8 @@
 # Name	Blender_obj_name	Sex
 
 <No Pants>	NakedM.001	M
-Slim pants	pants	M
-Over-knee shorts	shoe.001	M
+Slim pants	pants.001	M
+Over-knee shorts	pants	M
 Peasant skirt	pants.002	M
 Traditional pants	pants.003	M
 
