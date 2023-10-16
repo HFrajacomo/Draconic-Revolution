@@ -17,6 +17,7 @@ public class ColorPickerPreview : MonoBehaviour {
 		this.rainbowObject.SetActive(!this.rainbowObject.activeSelf);
 		this.rainbowObject.GetComponent<ColorPickerRainbow>().SetTargetPicker(this.gameObject);
 	}
+
 	public void SetColor(Color c){
 		this.selectedColor = c;
 		this.previewColor.color = c;
@@ -27,5 +28,12 @@ public class ColorPickerPreview : MonoBehaviour {
 
 		this.connectedMenu.SendMessage("ChangeColor", arguments);
 	}
+
+	// No callback
+	public void SetDefiniteColor(Color c){
+		this.selectedColor = c;
+		this.previewColor.color = c;
+	}
+
 	public Color GetColor(){return this.selectedColor;}
 }

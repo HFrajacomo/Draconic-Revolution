@@ -189,6 +189,10 @@ public class CharacterCreationMenu : Menu{
                 go.SetActive(true);
             }
         }
+
+        // If the models are still null - a.k.a was run on Start()
+        if(this.selectedClothes != null)
+            ShowColorPickers(this.characterBuilder.GetMaterialLength(this.selectedDiv));
     }
 
     public void ClickItem(GameObject go, string handlerReferenceName){
@@ -460,6 +464,11 @@ public class CharacterCreationMenu : Menu{
                 this.hatsColor3 = c;
             }
         }
+        else{
+            return;
+        }
+
+        ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
     }
 
     private ModelType IdentifyType(Button button){
@@ -504,6 +513,24 @@ public class CharacterCreationMenu : Menu{
         return this.clothesDict;          
     }
 
+    private string IdentifySelectedName(ModelType type){
+        string fullname = "";
+
+        if(type == ModelType.CLOTHES)
+            fullname = this.selectedClothes;
+        else if(type == ModelType.LEGS)
+            fullname = this.selectedLeg;
+        else if(type == ModelType.FOOTGEAR)
+            fullname = this.selectedBoot;
+        else if(type == ModelType.HEADGEAR)
+            fullname = this.selectedHat;
+
+        if(this.selectedGenderIsMale)
+            return fullname + "/M";
+        else
+            return fullname + "/F";
+    }
+
     private GameObject IdentifyItemGO(string name){
         foreach(Text text in this.scrollViewContent.GetComponentsInChildren<Text>()){
             if(text.text == name){
@@ -525,9 +552,39 @@ public class CharacterCreationMenu : Menu{
     }
 
     private void ShowColorPickers(int numberOfMaterials){
+        Color p, s, t;
+
         if(this.selectedDiv == ModelType.HAIR)
             numberOfMaterials++;
 
+        // Gets color from ModelType
+        if(this.selectedDiv == ModelType.CLOTHES){
+            p = this.clothesColor1;
+            s = this.clothesColor2;
+            t = this.clothesColor3;
+        }
+        else if(this.selectedDiv == ModelType.LEGS){
+            p = this.legsColor1;
+            s = this.legsColor2;
+            t = this.legsColor3;
+        }
+        else if(this.selectedDiv == ModelType.FOOTGEAR){
+            p = this.bootsColor1;
+            s = this.bootsColor2;
+            t = this.bootsColor3;
+        }
+        else if(this.selectedDiv == ModelType.HEADGEAR){
+            p = this.hatsColor1;
+            s = this.hatsColor2;
+            t = this.hatsColor3;
+        }
+        else{
+            p = Color.black;
+            s = Color.black;
+            t = Color.black;
+        }
+
+        // Activates Color Pickers and add the color
         if(numberOfMaterials == 1){
             this.primaryColorPicker.gameObject.SetActive(false);
             this.secondaryColorPicker.gameObject.SetActive(false);
@@ -535,20 +592,28 @@ public class CharacterCreationMenu : Menu{
         }
         else if(numberOfMaterials == 2){
             this.primaryColorPicker.gameObject.SetActive(true);
+            this.primaryColorPicker.SetDefiniteColor(p);
             this.secondaryColorPicker.gameObject.SetActive(false);
             this.terciaryColorPicker.gameObject.SetActive(false);            
         }
         else if(numberOfMaterials == 3){
             this.primaryColorPicker.gameObject.SetActive(true);
+            this.primaryColorPicker.SetDefiniteColor(p);
             this.secondaryColorPicker.gameObject.SetActive(true);
+            this.secondaryColorPicker.SetDefiniteColor(s);
             this.terciaryColorPicker.gameObject.SetActive(false);            
         }
         else if(numberOfMaterials == 4){
             this.primaryColorPicker.gameObject.SetActive(true);
+            this.primaryColorPicker.SetDefiniteColor(p);
             this.secondaryColorPicker.gameObject.SetActive(true);
-            this.terciaryColorPicker.gameObject.SetActive(true);            
+            this.secondaryColorPicker.SetDefiniteColor(s);
+            this.terciaryColorPicker.gameObject.SetActive(true);
+            this.terciaryColorPicker.SetDefiniteColor(t);            
         }
     }
+
+
 
     private void ApplyColorToModel(GameObject go){
         Material[] materials = go.GetComponent<SkinnedMeshRenderer>().materials;

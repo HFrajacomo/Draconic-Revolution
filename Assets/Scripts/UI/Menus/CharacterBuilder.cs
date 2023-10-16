@@ -31,6 +31,14 @@ public class CharacterBuilder{
 		LoadRootBone();
 	}
 
+	public GameObject Get(ModelType type){
+		return this.bodyParts[type];
+	}
+
+	public int GetMaterialLength(ModelType type){
+		return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length;
+	}
+
 	public void Add(ModelType type, GameObject obj){
 		if(this.bodyParts.ContainsKey(type)){
 			GameObject.DestroyImmediate(this.bodyParts[type]);
@@ -97,13 +105,6 @@ public class CharacterBuilder{
         newMesh.bindposes = mesh.bindposes;
 
         FixMeshVertexGroups(mesh, newMesh, rend);
-        /*
-        for(int i=0; i < mesh.subMeshCount; i++){
-	    	mesh.GetTriangles(this.cachedTris, i);
-	    	newMesh.SetTriangles(this.cachedTris, i);
-	    	this.cachedTris.Clear();
-        }
-        */
 
         return newMesh;
 	}
