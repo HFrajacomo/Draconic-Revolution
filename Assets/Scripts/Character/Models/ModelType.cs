@@ -3,5 +3,7 @@ public enum ModelType : byte{
 	LEGS,
 	FOOTGEAR,
 	HEADGEAR,
-	HAIR
+	HAIR,
+	GENERAL,
+	FACE
 }
