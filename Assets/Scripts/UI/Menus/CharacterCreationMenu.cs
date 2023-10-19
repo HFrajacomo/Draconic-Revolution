@@ -241,9 +241,13 @@ public class CharacterCreationMenu : Menu{
         LoadModel(handlerReferenceName);
     }
 
-    private void LoadDefaultModel(bool isMale=true){
+    private void LoadDefaultModel(bool isMale=true, bool isReload=false){
         string suffix;
         GameObject loadedModel;
+
+        if(isReload){
+            this.characterBuilder.ChangeArmature(this.selectedGenderIsMale);
+        }
 
         if(isMale){
             suffix = "/M";
@@ -269,7 +273,7 @@ public class CharacterCreationMenu : Menu{
             SelectItem(DEFAULT_CLOTHES, loadedModel);
         }
         else{
-            suffix = "/W";
+            suffix = "/F";
 
             this.selectedDiv = ModelType.HEADGEAR;
             ToggleDiv(GetButton(this.selectedDiv));
@@ -299,7 +303,7 @@ public class CharacterCreationMenu : Menu{
     private GameObject LoadModel(string name){
         GameObject go = ModelHandler.GetModelObject(this.selectedDiv, name);
         go.name = GenerateGoName();
-        this.characterBuilder.Add(this.selectedDiv, go);
+        this.characterBuilder.Add(this.selectedDiv, go, name);
 
         ShowColorPickers(go.GetComponent<SkinnedMeshRenderer>().materials.Length);
         ApplyColorToModel(go);
@@ -477,10 +481,9 @@ public class CharacterCreationMenu : Menu{
 
         this.cachedText.color = this.selectedColor;
 
-        // UNCOMMENT WHEN WOMEN MODELS ARE ADDED
-        //SetGender(this.cachedText.text);
+        SetGender(this.cachedText.text);
 
-        LoadDefaultModel(isMale:this.selectedGenderIsMale);
+        LoadDefaultModel(isMale:this.selectedGenderIsMale, isReload:true);
 
         this.selectedDiv = ModelType.GENERAL;
         ToggleDiv(this.generalButton);

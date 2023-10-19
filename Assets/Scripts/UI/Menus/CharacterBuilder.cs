@@ -1,32 +1,46 @@
 using System.Collections.Generic;
+using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
 
 public class CharacterBuilder{
 	private GameObject parent;
+	private Animator animator;
 	private Dictionary<ModelType, GameObject> bodyParts;
+	private Dictionary<ModelType, string> bodyPartName;
 	private GameObject armature;
 	private Transform rootBone;
 	private BoneRenderer boneRenderer;
+	private RaceSettings raceSettings;
 
 	private static Dictionary<string, int> BONE_MAP;
 
 	// Settings
 	private static readonly int ROOT_BONE_INDEX = 0;
-	private static readonly string ARMATURE_NAME = "Armature";
-	private static readonly Vector3 POS_1 = new Vector3(15, 0, 100);
+	private static readonly string ARMATURE_NAME_MALE = "Armature";
+	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
+	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(25,25,25);
 
 	private List<int> cachedTris = new List<int>();
 
 	public CharacterBuilder(GameObject par, bool isMale=true){
-		this.parent = par;
-		this.bodyParts = new Dictionary<ModelType, GameObject>();
-		this.armature = ModelHandler.GetArmature(isMale:isMale);
-		this.armature.name = ARMATURE_NAME;
+		this.raceSettings = RaceManager.GetHuman();
 
+		this.parent = par;
+		this.animator = par.GetComponent<Animator>();
+		this.bodyParts = new Dictionary<ModelType, GameObject>();
+		this.bodyPartName = new Dictionary<ModelType, string>();
+		this.armature = ModelHandler.GetArmature(isMale:isMale);
+		this.armature.transform.localScale = raceSettings.scaling;
 		this.armature.transform.SetParent(this.parent.transform);
+
+		if(isMale)
+			this.armature.name = ARMATURE_NAME_MALE;
+		else
+			this.armature.name = ARMATURE_NAME_FEMALE;
+
 		FixArmature();
 		LoadRootBone();
 	}
@@ -39,13 +53,36 @@ public class CharacterBuilder{
 		return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length;
 	}
 
-	public void Add(ModelType type, GameObject obj){
+	public void ChangeRace(RaceSettings settings, bool isMale){
+		this.raceSettings = settings;
+
+		GameObject.DestroyImmediate(this.armature);
+
+		this.armature = ModelHandler.GetArmature(isMale:isMale);
+
+		if(isMale)
+			this.armature.name = ARMATURE_NAME_MALE;
+		else
+			this.armature.name = ARMATURE_NAME_FEMALE;
+
+		this.armature.transform.SetParent(this.parent.transform);
+		FixArmature();
+		LoadRootBone();
+
+		ReloadModel(isMale);
+		this.animator.Rebind();
+	}
+
+	public void Add(ModelType type, GameObject obj, string name, bool isReload=false){
 		if(this.bodyParts.ContainsKey(type)){
 			GameObject.DestroyImmediate(this.bodyParts[type]);
 		}
 
+		if(!isReload)
+			this.bodyPartName[type] = name;
+
 		obj.transform.SetParent(this.parent.transform);
-		obj.transform.localScale = Vector3.one;
+		obj.transform.localScale = this.raceSettings.scaling;
 		obj.transform.eulerAngles = ROT_1;
 		obj.transform.localPosition = POS_1;
 
@@ -71,6 +108,32 @@ public class CharacterBuilder{
 		this.bodyParts[type] = obj;
 	}
 
+	public void ChangeArmature(bool isMale){
+		if(this.armature != null){
+			GameObject.DestroyImmediate(this.armature);
+		}
+
+		this.armature = ModelHandler.GetArmature(isMale:isMale);
+		this.armature.transform.localScale = raceSettings.scaling;
+		this.armature.transform.SetParent(this.parent.transform);
+
+		if(isMale)
+			this.armature.name = ARMATURE_NAME_MALE;
+		else
+			this.armature.name = ARMATURE_NAME_FEMALE;
+
+		FixArmature();
+		this.animator.Rebind();
+	}
+
+	private void ReloadModel(bool isMale){
+		ChangeArmature(isMale);
+
+		foreach(ModelType type in this.bodyParts.Keys){
+			Add(type, ModelHandler.GetModelObject(type, this.bodyPartName[type]), this.bodyPartName[type], isReload:true);
+		}
+	}
+
 	private void SetBoneMap(Transform[] prefabBones){
 		BONE_MAP = new Dictionary<string, int>();
 
@@ -81,6 +144,10 @@ public class CharacterBuilder{
 	}
 
 	private void FixArmature(){
+		foreach(Transform t in this.armature.GetComponentsInChildren<Transform>()){
+			t.position = new Vector3(t.position.x * this.raceSettings.scaling.x, t.position.y * this.raceSettings.scaling.y, t.position.z * this.raceSettings.scaling.z);
+		}
+
 		this.armature.transform.localScale = SCL_1;
 		this.armature.transform.eulerAngles = ROT_1;
 		this.armature.transform.localPosition = POS_1;
@@ -95,7 +162,7 @@ public class CharacterBuilder{
         Mesh newMesh = new Mesh();
 
         newMesh.subMeshCount = mesh.subMeshCount;
-        newMesh.vertices = mesh.vertices;
+        newMesh.vertices = ScaleVertices(mesh.vertices);
         newMesh.uv = mesh.uv;
         newMesh.normals = mesh.normals;
         newMesh.colors = mesh.colors;
@@ -107,6 +174,16 @@ public class CharacterBuilder{
         FixMeshVertexGroups(mesh, newMesh, rend);
 
         return newMesh;
+	}
+
+	private Vector3[] ScaleVertices(Vector3[] original){
+		Vector3[] output = new Vector3[original.Length];
+
+		for(int i=0; i < original.Length; i++){
+			output[i] = new Vector3(original[i].x * this.raceSettings.scaling.x, original[i].y * this.raceSettings.scaling.y, original[i].z * this.raceSettings.scaling.z);
+		}
+
+		return output;
 	}
 
 	private void FixMaterialOrder(SkinnedMeshRenderer rend){
