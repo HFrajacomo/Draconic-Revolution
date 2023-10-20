@@ -110,7 +110,7 @@ public class CharacterCreationMenu : Menu{
 
     // Selected in General
     private Race race;
-    private bool selectedGenderIsMale = true;
+    private bool selectedGenderIsMale = false;
     private Button selectedRaceItem;
     private Button selectedGenderItem;
 
@@ -141,7 +141,7 @@ public class CharacterCreationMenu : Menu{
     public override void Enable(){
         this.mainObject.SetActive(true);
         ResetColors();
-        LoadDefaultModel();
+        LoadDefaultModel(isMale:this.selectedGenderIsMale);
     }
 
     void Start(){
@@ -154,7 +154,7 @@ public class CharacterCreationMenu : Menu{
         menuDiv.GetComponentInChildren<Image>().material = mat;
         this.nameInput.GetComponent<Image>().material = matField;
 
-        this.characterBuilder = new CharacterBuilder(this.playerObject);
+        this.characterBuilder = new CharacterBuilder(this.playerObject, isMale:this.selectedGenderIsMale);
 
         this.selectedGenderItem = this.defaultGender;
         this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;

@@ -37,10 +37,12 @@ public static class ModelHandler{
 	}
 
 	public static GameObject GetArmature(bool isMale=true){
-		if(isMale)
+		if(isMale){
 			return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_MALE));
-		else
+		}
+		else{
 			return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_FEMALE));
+		}
 	}
 
 	public static ModelInfo GetModelInfo(ModelType type, string name){

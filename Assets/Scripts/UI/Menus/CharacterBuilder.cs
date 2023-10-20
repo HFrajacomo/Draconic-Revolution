@@ -22,6 +22,7 @@ public class CharacterBuilder{
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(25,25,25);
+	private static readonly Vector3 SCL_2 = new Vector3(18,25,25);
 
 	private List<int> cachedTris = new List<int>();
 
@@ -41,8 +42,7 @@ public class CharacterBuilder{
 		else
 			this.armature.name = ARMATURE_NAME_FEMALE;
 
-		FixArmature();
-		LoadRootBone();
+		FixArmature(isMale);
 	}
 
 	public GameObject Get(ModelType type){
@@ -66,8 +66,7 @@ public class CharacterBuilder{
 			this.armature.name = ARMATURE_NAME_FEMALE;
 
 		this.armature.transform.SetParent(this.parent.transform);
-		FixArmature();
-		LoadRootBone();
+		FixArmature(isMale);
 
 		ReloadModel(isMale);
 		this.animator.Rebind();
@@ -111,6 +110,8 @@ public class CharacterBuilder{
 	public void ChangeArmature(bool isMale){
 		if(this.armature != null){
 			GameObject.DestroyImmediate(this.armature);
+			BONE_MAP.Clear();
+			BONE_MAP = null;
 		}
 
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
@@ -122,7 +123,7 @@ public class CharacterBuilder{
 		else
 			this.armature.name = ARMATURE_NAME_FEMALE;
 
-		FixArmature();
+		FixArmature(isMale);
 		this.animator.Rebind();
 	}
 
@@ -143,15 +144,22 @@ public class CharacterBuilder{
 
 	}
 
-	private void FixArmature(){
+	private void FixArmature(bool isMale){
 		foreach(Transform t in this.armature.GetComponentsInChildren<Transform>()){
 			t.position = new Vector3(t.position.x * this.raceSettings.scaling.x, t.position.y * this.raceSettings.scaling.y, t.position.z * this.raceSettings.scaling.z);
 		}
 
-		this.armature.transform.localScale = SCL_1;
+		if(isMale)
+			this.armature.transform.localScale = SCL_1;
+		else
+			this.armature.transform.localScale = SCL_2;
+
+
 		this.armature.transform.eulerAngles = ROT_1;
 		this.armature.transform.localPosition = POS_1;
 		this.boneRenderer = this.armature.AddComponent<BoneRenderer>();
+
+		LoadRootBone();
 	}
 
 	private void LoadRootBone(){
