@@ -27,11 +27,12 @@ public class CharacterBuilder{
 
 	private List<int> cachedTris = new List<int>();
 
-	public CharacterBuilder(GameObject par, bool isMale=true){
+	public CharacterBuilder(GameObject par, AnimatorController animations, bool isMale=true){
 		this.raceSettings = RaceManager.GetHuman();
 
 		this.parent = par;
 		this.animator = par.GetComponent<Animator>();
+		this.animator.runtimeAnimatorController = animations;
 		this.bodyParts = new Dictionary<ModelType, GameObject>();
 		this.bodyPartName = new Dictionary<ModelType, string>();
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
@@ -44,6 +45,10 @@ public class CharacterBuilder{
 			this.armature.name = ARMATURE_NAME_FEMALE;
 
 		FixArmature(isMale);
+	}
+
+	public void ChangeAnimationGender(AnimatorController animation){
+		this.animator.runtimeAnimatorController = animation;
 	}
 
 	public GameObject Get(ModelType type){

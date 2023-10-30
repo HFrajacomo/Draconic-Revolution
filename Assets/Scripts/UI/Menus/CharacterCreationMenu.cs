@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEditor.Animations;
 
 using Random = UnityEngine.Random;
 using Object = System.Object;
@@ -85,6 +86,10 @@ public class CharacterCreationMenu : Menu{
     public Button defaultGender;
     public Button defaultRace;
 
+    [Header("Animation")]
+    public AnimatorController maleAnimations;
+    public AnimatorController femaleAnimations;
+
     private CharacterBuilder characterBuilder;
 
     // Items List
@@ -155,7 +160,7 @@ public class CharacterCreationMenu : Menu{
         menuDiv.GetComponentInChildren<Image>().material = mat;
         this.nameInput.GetComponent<Image>().material = matField;
 
-        this.characterBuilder = new CharacterBuilder(this.playerObject, isMale:this.selectedGenderIsMale);
+        this.characterBuilder = new CharacterBuilder(this.playerObject, this.maleAnimations, isMale:true);
 
         this.selectedGenderItem = this.defaultGender;
         this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
@@ -540,6 +545,11 @@ public class CharacterCreationMenu : Menu{
         PopulateItemList(this.bootsButton);
 
         LoadDefaultModel(isMale:this.selectedGenderIsMale, isReload:true);
+
+        if(this.selectedGenderIsMale)
+            this.characterBuilder.ChangeAnimationGender(this.maleAnimations);
+        else
+            this.characterBuilder.ChangeAnimationGender(this.femaleAnimations);
 
         this.selectedDiv = ModelType.GENERAL;
         ToggleDiv(this.generalButton);

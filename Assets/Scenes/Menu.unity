@@ -20714,6 +20714,8 @@ MonoBehaviour:
   prefabPlainMat: {fileID: 2100000, guid: d53d3c304eec41b49aad438799e8ad47, type: 2}
   defaultGender: {fileID: 436480327}
   defaultRace: {fileID: 1205819016}
+  maleAnimations: {fileID: 9100000, guid: 3dcbf65dd7a8870439af7e02cd599fe3, type: 2}
+  femaleAnimations: {fileID: 9100000, guid: 204cc17358066914eb3f79f2a5c3aad2, type: 2}
 --- !u!4 &1425498536
 Transform:
   m_ObjectHideFlags: 0
