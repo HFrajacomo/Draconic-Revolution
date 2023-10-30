@@ -286,7 +286,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 15417835}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1425498535}
+        m_TargetAssemblyTypeName: CharacterCreationMenu, Assembly-CSharp
+        m_MethodName: SelectRace
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 15417834}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &15417835
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4364,7 +4376,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 299148042}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1425498535}
+        m_TargetAssemblyTypeName: CharacterCreationMenu, Assembly-CSharp
+        m_MethodName: SelectRace
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 299148041}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &299148042
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6099,7 +6123,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 440843399}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1425498535}
+        m_TargetAssemblyTypeName: CharacterCreationMenu, Assembly-CSharp
+        m_MethodName: SelectRace
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 440843398}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &440843399
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6500,7 +6536,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 486110153}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1425498535}
+        m_TargetAssemblyTypeName: CharacterCreationMenu, Assembly-CSharp
+        m_MethodName: SelectRace
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 486110152}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &486110153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16706,7 +16754,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1205819017}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1425498535}
+        m_TargetAssemblyTypeName: CharacterCreationMenu, Assembly-CSharp
+        m_MethodName: SelectRace
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1205819016}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1205819017
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22288,7 +22348,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1525529023}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1425498535}
+        m_TargetAssemblyTypeName: CharacterCreationMenu, Assembly-CSharp
+        m_MethodName: SelectRace
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1525529022}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1525529023
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27608,7 +27680,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1780870030}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1425498535}
+        m_TargetAssemblyTypeName: CharacterCreationMenu, Assembly-CSharp
+        m_MethodName: SelectRace
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1780870029}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1780870030
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -21,9 +21,9 @@ public static class RaceManager{
 
 	private static void SetHuman(){human = new RaceSettings(new Vector3(1f,1f,1f), new Color(1f,1f,1f), new Color(0f,0f,0f));}
 	private static void SetElf(){elf = new RaceSettings(new Vector3(1f,1f,1f), new Color(1f,1f,1f), new Color(0f,0f,0f));}
-	private static void SetDwarf(){dwarf = new RaceSettings(new Vector3(1f,1f,1f), new Color(1f,1f,1f), new Color(0f,0f,0f));}
+	private static void SetDwarf(){dwarf = new RaceSettings(new Vector3(1f,.75f,1f), new Color(1f,1f,1f), new Color(0f,0f,0f));}
 	private static void SetOrc(){orc = new RaceSettings(new Vector3(1f,1f,1f), new Color(1f,1f,1f), new Color(0f,0f,0f));}
-	private static void SetHalfling(){halfling = new RaceSettings(new Vector3(1f,1f,1f), new Color(1f,1f,1f), new Color(0f,0f,0f));}
+	private static void SetHalfling(){halfling = new RaceSettings(new Vector3(.88f,.67f,.88f), new Color(1f,1f,1f), new Color(0f,0f,0f));}
 	private static void SetDragonling(){dragonling = new RaceSettings(new Vector3(1f,1f,1f), new Color(1f,1f,1f), new Color(0f,0f,0f));}
 	private static void SetUndead(){undead = new RaceSettings(new Vector3(1f,1f,1f), new Color(1f,1f,1f), new Color(0f,0f,0f));}
 

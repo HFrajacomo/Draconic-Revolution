@@ -110,7 +110,8 @@ public class CharacterCreationMenu : Menu{
 
     // Selected in General
     private Race race;
-    private bool selectedGenderIsMale = false;
+    private bool selectedGenderIsMale = true;
+    private bool genderUsedToLoadingItems;
     private Button selectedRaceItem;
     private Button selectedGenderItem;
 
@@ -193,33 +194,20 @@ public class CharacterCreationMenu : Menu{
             this.slidingArea.SetActive(true);
             this.viewScrollbar.enabled = true;
 
+            // If it's a first load
             if(IdentifyListOfItems(bt).Count == 0){
-                List<GameObject> referenceList = IdentifyListOfItems(bt);
-                Dictionary<string, int> referenceDict = IdentifyDict(bt);
-                int counter = 0;
-
-                foreach(ModelInfo mi in ModelHandler.GetAllModelInfoList(selectedType, filterByGender:true, gender:IdentifyGender())){
-                    this.cachedObject = GameObject.Instantiate(this.itemButtonPrefab);
-                    this.cachedObject.transform.SetParent(this.scrollViewContent.transform);
-                    this.cachedObject.transform.localScale = Vector3.one;
-                    this.cachedObject.transform.position = Vector3.zero;
-                    this.cachedObject.name = mi.name;
-
-                    this.cachedRect = this.cachedObject.transform as RectTransform;
-                    this.cachedRect.anchoredPosition3D = Vector3.zero;
-
-                    this.cachedObject.GetComponentInChildren<Text>().text = mi.name;
-                    referenceDict.Add(mi.GetHandlerName(), counter);
-                    referenceList.Add(this.cachedObject);
-
-                    this.cachedObject.GetComponent<Button>().onClick.AddListener(() => ClickItem(referenceList[referenceDict[mi.GetHandlerName()]], mi.GetHandlerName()));
-                    counter++;
+                PopulateItemList(bt);
+            }
+            // If Gender has been changed -> Reload items list
+            else if(this.genderUsedToLoadingItems != this.selectedGenderItem){
+                for(int i = this.clothesItems.Count-1; i >= 0; i--){
+                    GameObject.DestroyImmediate(this.clothesItems[i]);
                 }
             }
+            // If it's a div change on the same gender -> reactivate relevant items
             else{
-                foreach(GameObject go in IdentifyListOfItems(bt)){
-                    go.SetActive(true);
-                }
+                DestroyAllItems();
+                PopulateItemList(bt);
             }
 
             this.rainbowPicker.gameObject.SetActive(false);
@@ -239,6 +227,33 @@ public class CharacterCreationMenu : Menu{
     public void ClickItem(GameObject go, string handlerReferenceName){
         SelectItem(go);
         LoadModel(handlerReferenceName);
+    }
+
+    private void PopulateItemList(Button bt){
+        List<GameObject> referenceList = IdentifyListOfItems(bt);
+        Dictionary<string, int> referenceDict = IdentifyDict(bt);
+        ModelType selectedType = IdentifyType(bt);
+        int counter = 0;
+
+        this.genderUsedToLoadingItems = this.selectedGenderItem;
+
+        foreach(ModelInfo mi in ModelHandler.GetAllModelInfoList(selectedType, filterByGender:true, gender:IdentifyGender())){
+            this.cachedObject = GameObject.Instantiate(this.itemButtonPrefab);
+            this.cachedObject.transform.SetParent(this.scrollViewContent.transform);
+            this.cachedObject.transform.localScale = Vector3.one;
+            this.cachedObject.transform.position = Vector3.zero;
+            this.cachedObject.name = mi.name;
+
+            this.cachedRect = this.cachedObject.transform as RectTransform;
+            this.cachedRect.anchoredPosition3D = Vector3.zero;
+
+            this.cachedObject.GetComponentInChildren<Text>().text = mi.name;
+            referenceDict.Add(mi.GetHandlerName(), counter);
+            referenceList.Add(this.cachedObject);
+
+            this.cachedObject.GetComponent<Button>().onClick.AddListener(() => ClickItem(referenceList[referenceDict[mi.GetHandlerName()]], mi.GetHandlerName()));
+            counter++;
+        }
     }
 
     private void LoadDefaultModel(bool isMale=true, bool isReload=false){
@@ -309,6 +324,40 @@ public class CharacterCreationMenu : Menu{
         ApplyColorToModel(go);
 
         return go;
+    }
+
+    private void DestroyAllItems(){
+        this.selectedClothesObj = null;
+        this.selectedLegObj = null;
+        this.selectedHatObj = null;
+        this.selectedBootObj = null;
+
+        this.selectedClothes = null;
+        this.selectedLeg = null;
+        this.selectedBoot = null;
+        this.selectedHat = null;
+
+        for(int i = this.clothesItems.Count-1; i >= 0; i--){
+            GameObject.DestroyImmediate(this.clothesItems[i]);
+            this.clothesItems.RemoveAt(i);
+        }
+        for(int i = this.legsItems.Count-1; i >= 0; i--){
+            GameObject.DestroyImmediate(this.legsItems[i]);
+            this.legsItems.RemoveAt(i);
+        }
+        for(int i = this.hatsItems.Count-1; i >= 0; i--){
+            GameObject.DestroyImmediate(this.hatsItems[i]);
+            this.hatsItems.RemoveAt(i);
+        }
+        for(int i = this.bootsItems.Count-1; i >= 0; i--){
+            GameObject.DestroyImmediate(this.bootsItems[i]);
+            this.bootsItems.RemoveAt(i);
+        }
+
+        this.clothesDict.Clear();
+        this.legsDict.Clear();
+        this.hatsDict.Clear();
+        this.bootsDict.Clear();
     }
 
     private Button GetButton(ModelType type){
@@ -482,11 +531,35 @@ public class CharacterCreationMenu : Menu{
         this.cachedText.color = this.selectedColor;
 
         SetGender(this.cachedText.text);
+        DestroyAllItems();
+        
+        PopulateItemList(this.clothesButton);
+        PopulateItemList(this.legsButton);
+        PopulateItemList(this.hatsButton);
+        PopulateItemList(this.bootsButton);
 
         LoadDefaultModel(isMale:this.selectedGenderIsMale, isReload:true);
 
         this.selectedDiv = ModelType.GENERAL;
         ToggleDiv(this.generalButton);
+    }
+
+    public void SelectRace(Button bt){
+        if(this.selectedRaceItem == bt){
+            return;
+        }
+
+        if(this.selectedRaceItem != null){
+            this.selectedRaceItem.GetComponentInChildren<Text>().color = this.notSelectedColor;
+        }
+        
+        this.selectedRaceItem = bt;
+        this.cachedText = bt.GetComponentInChildren<Text>();
+
+        this.cachedText.color = this.selectedColor;
+
+        SetRace(this.cachedText.text);
+        this.characterBuilder.ChangeRace(RaceManager.GetSettings(this.race), this.selectedGenderIsMale);
     }
 
     public void ChangeColor(Object[] arguments){
@@ -625,6 +698,35 @@ public class CharacterCreationMenu : Menu{
             this.selectedGenderIsMale = true;
         else
             this.selectedGenderIsMale = false;
+    }
+
+    private void SetRace(string text){
+        switch(text){
+            case "Human":
+                this.race = Race.HUMAN;
+                return;
+            case "Elf":
+                this.race = Race.ELF;
+                return;
+            case "Dwarf":
+                this.race = Race.DWARF;
+                return;
+            case "Orc":
+                this.race = Race.ORC;
+                return;
+            case "Halfling":
+                this.race = Race.HALFLING;
+                return;
+            case "Dragonling":
+                this.race = Race.DRAGONLING;
+                return;
+            case "Undead":
+                this.race = Race.UNDEAD;
+                return;
+            default:
+                this.race = Race.HUMAN;
+                return;
+        }
     }
 
     private Race IdentifyRace(string text){

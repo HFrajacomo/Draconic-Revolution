@@ -23,6 +23,7 @@ public class CharacterBuilder{
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(25,25,25);
 	private static readonly Vector3 SCL_2 = new Vector3(18,25,25);
+	private static readonly int CHARACTER_CREATION_CHARACTER_SCALING = 150;
 
 	private List<int> cachedTris = new List<int>();
 
@@ -77,8 +78,9 @@ public class CharacterBuilder{
 			GameObject.DestroyImmediate(this.bodyParts[type]);
 		}
 
-		if(!isReload)
+		if(!isReload){
 			this.bodyPartName[type] = name;
+		}
 
 		obj.transform.SetParent(this.parent.transform);
 		obj.transform.localScale = this.raceSettings.scaling;
@@ -115,8 +117,10 @@ public class CharacterBuilder{
 		}
 
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
-		this.armature.transform.localScale = raceSettings.scaling;
+		this.armature.transform.localScale = this.raceSettings.scaling;
 		this.armature.transform.SetParent(this.parent.transform);
+
+		this.parent.transform.localScale = this.raceSettings.scaling * CharacterBuilder.CHARACTER_CREATION_CHARACTER_SCALING;
 
 		if(isMale)
 			this.armature.name = ARMATURE_NAME_MALE;
@@ -130,7 +134,7 @@ public class CharacterBuilder{
 	private void ReloadModel(bool isMale){
 		ChangeArmature(isMale);
 
-		foreach(ModelType type in this.bodyParts.Keys){
+		foreach(ModelType type in this.bodyPartName.Keys){
 			Add(type, ModelHandler.GetModelObject(type, this.bodyPartName[type]), this.bodyPartName[type], isReload:true);
 		}
 	}
