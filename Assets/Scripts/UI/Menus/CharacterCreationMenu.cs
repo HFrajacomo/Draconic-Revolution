@@ -206,8 +206,9 @@ public class CharacterCreationMenu : Menu{
             }
             // If it's a div change on the same gender -> reactivate relevant items
             else{
-                DestroyAllItems();
-                PopulateItemList(bt);
+                foreach(GameObject go in IdentifyListOfItems(bt)){
+                    go.SetActive(true);
+                }
             }
 
             this.rainbowPicker.gameObject.SetActive(false);
