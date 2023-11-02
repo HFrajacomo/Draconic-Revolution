@@ -8,6 +8,6 @@ Boots	shoe.003	M
 
 <No Boots>	NakedW	F
 Slip-on shoes	ShoeW	F
-Sandal	ShoeW.001	F
-Slippers	ShoeW.002	F
+Sandal	ShoeW.004	F
+Slippers	ShoeW.001	F
 Boots	ShoeW.003	F

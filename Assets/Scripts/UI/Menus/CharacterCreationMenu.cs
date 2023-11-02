@@ -571,6 +571,8 @@ public class CharacterCreationMenu : Menu{
 
         SetRace(this.cachedText.text);
         this.characterBuilder.ChangeRace(RaceManager.GetSettings(this.race), this.selectedGenderIsMale);
+
+        UpdateColorInAllModel();
     }
 
     public void ChangeColor(Object[] arguments){
@@ -626,6 +628,21 @@ public class CharacterCreationMenu : Menu{
         }
 
         ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
+    }
+
+    private void UpdateColorInAllModel(){
+        ModelType currentDiv = this.selectedDiv;
+
+        this.selectedDiv = ModelType.CLOTHES;
+        ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
+        this.selectedDiv = ModelType.LEGS;
+        ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
+        this.selectedDiv = ModelType.FOOTGEAR;
+        ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
+        this.selectedDiv = ModelType.HEADGEAR;
+        ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
+
+        this.selectedDiv = currentDiv;
     }
 
     private ModelType IdentifyType(Button button){
