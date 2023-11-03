@@ -175,6 +175,9 @@ public class CharacterCreationMenu : Menu{
         if(bt.GetComponentInChildren<Text>().color == this.selectedColor)
             return;
 
+        // Closes Color Picking menu if open
+        this.primaryColorPicker.ResetPreview();
+
         ModelType selectedType = IdentifyType(bt);
         this.selectedDiv = selectedType;
 

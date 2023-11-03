@@ -13,6 +13,9 @@ public class ColorPickerPreview : MonoBehaviour {
 	public Image viewScrollbar;
 	public Image previewColor;
 	public GameObject connectedMenu;
+	public ColorPickerLerpGroup pickerGroup;
+
+	public string pickerText;
 
 	private Color selectedColor;
 
@@ -23,6 +26,22 @@ public class ColorPickerPreview : MonoBehaviour {
 		this.itemsViewPort.SetActive(current);
 		this.itemsScrollBar.SetActive(current);
 		this.viewScrollbar.enabled = current;
+
+		this.pickerGroup.SetTarget(this);
+		this.pickerGroup.SetText(this.pickerText);
+		this.pickerGroup.SetHSV(this.selectedColor);
+	}
+
+	public void ResetPreview(){
+		if(this.colorPickingMenu.activeSelf){
+			this.colorPickingMenu.SetActive(false);
+			this.itemsViewPort.SetActive(true);
+			this.itemsScrollBar.SetActive(true);
+			this.viewScrollbar.enabled = true;
+
+			this.pickerGroup.SetTarget(null);
+			this.pickerGroup.SetText("");	
+		}
 	}
 
 	public void SetColor(Color c){

@@ -27,6 +27,6 @@ public class SliderVisorUtilFloat : MonoBehaviour
         this.inputField.text = (TruncateAtTwo(number)).ToString();
     }
 
-    private float TruncateAtTwo(float f){return (float)Mathf.Floor(f * 100) / 100;}
+    private float TruncateAtTwo(float f){return ((float)Mathf.Floor(f * 100) / 100)*100;}
 
 }

@@ -6,6 +6,7 @@ public class ColorPickerLerpGroup : MonoBehaviour{
 	public ColorPickerLerp hue;
 	public Slider saturation;
 	public Slider value_;
+	public Text mainLabel;
 
 	[Header("Target")]
 	public ColorPickerPreview colorPickerPreview;
@@ -31,5 +32,21 @@ public class ColorPickerLerpGroup : MonoBehaviour{
 
 		if(this.lastFrameColor != this.finalColor)
 			this.colorPickerPreview.SetColor(this.finalColor);
+	}
+
+	public void SetTarget(ColorPickerPreview preview){
+		this.colorPickerPreview = preview;
+	}
+
+	public void SetText(string text){
+		this.mainLabel.text = text;
+	}
+
+	public void SetHSV(Color color){
+		Color.RGBToHSV(color, out this.color, out this.sat, out this.val);
+
+		this.hue.SetValue(this.color);
+		this.saturation.value = this.sat;
+		this.value_.value = this.val;
 	}
 }

@@ -66,4 +66,9 @@ public class ColorPickerLerp : MonoBehaviour, IPointerDownHandler, IPointerUpHan
 
     public Color GetColor(){return this.selectedColor;}
     public float GetValue(){return this.lerpValue;}
+    
+    public void SetValue(float val){
+        this.lerpValue = val;
+        this.selectorCaret.rectTransform.localPosition = new Vector3((this.lerpValue - .5f) * (image.rectTransform.rect.width), 0, 0); //image.rectTransform.position.y
+    }
 }
