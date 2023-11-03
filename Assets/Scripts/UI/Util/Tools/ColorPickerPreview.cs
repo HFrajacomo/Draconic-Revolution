@@ -7,15 +7,22 @@ using UnityEngine.UI;
 using Object = System.Object;
 
 public class ColorPickerPreview : MonoBehaviour {
-	public GameObject rainbowObject;
+	public GameObject colorPickingMenu;
+	public GameObject itemsViewPort;
+	public GameObject itemsScrollBar;
+	public Image viewScrollbar;
 	public Image previewColor;
 	public GameObject connectedMenu;
 
 	private Color selectedColor;
 
 	public void ClickPreview(){
-		this.rainbowObject.SetActive(!this.rainbowObject.activeSelf);
-		this.rainbowObject.GetComponent<ColorPickerRainbow>().SetTargetPicker(this.gameObject);
+		bool current = this.colorPickingMenu.activeSelf;
+
+		this.colorPickingMenu.SetActive(!current);
+		this.itemsViewPort.SetActive(current);
+		this.itemsScrollBar.SetActive(current);
+		this.viewScrollbar.enabled = current;
 	}
 
 	public void SetColor(Color c){
