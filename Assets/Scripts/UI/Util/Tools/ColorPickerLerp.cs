@@ -94,6 +94,8 @@ public class ColorPickerLerp : MonoBehaviour, IPointerClickHandler, IPointerDown
 
         this.material.SetColor("_Color1", this.gradient.color1);
         this.material.SetColor("_Color2", this.gradient.color2);
+
+        CalculateColor(this.lerpValue);
     }
     
     public void SetValue(float val){

@@ -598,7 +598,7 @@ public class CharacterCreationMenu : Menu{
     }
 
     public void SelectSkinPreset(Button bt){
-        if(this.selectedPresetItem == bt)
+        if(this.selectedPresetItem == bt && this.selectedPresetItem != this.defaultPreset)
             return;
 
         if(this.selectedPresetItem != null){
