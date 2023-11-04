@@ -9,7 +9,8 @@ public static class RaceManager{
 	public static RaceSettings dragonling;
 	public static RaceSettings undead;
 
-	private static readonly Gradient COMMON = new Gradient(new Color(.21f, .18f, .16f), new Color(.92f, .85f, .82f)); 
+	private static readonly Gradient COMMON = new Gradient(new Color(0.24f, 0.11f, 0.09f), new Color(0.93f, 0.71f, 0.60f));
+	private static readonly Gradient MAGICAL = new Gradient(new Color(0.65f, 0.87f, 0.85f), new Color(0.90f, 1.00f, 0.97f));
 
 
 	static RaceManager(){
@@ -23,39 +24,39 @@ public static class RaceManager{
 	}
 
 	private static void SetHuman(){human = new RaceSettings(new Vector3(1f,1f,1f), 
-		COMMON, 
-		new Gradient(new Color(.23f, .20f, .15f), new Color(.83f, .78f, .70f)),
-		new Gradient(new Color(.09f, .07f, .06f), new Color(.35f, .33f, .32f))
+		COMMON,
+		new Gradient(new Color(0.60f, 0.43f, 0.25f), new Color(0.98f, 0.91f, 0.81f)),
+		new Gradient(new Color(0.19f, 0.13f, 0.13f), new Color(0.50f, 0.37f, 0.30f))
 		);}
 
 	private static void SetElf(){elf = new RaceSettings(new Vector3(1f,1f,1f),
 		COMMON, 
-		new Gradient(new Color(.51f,.49f,.32f), new Color(.91f,.90f,.77f)),
-		new Gradient(new Color(.47f,.58f,.56f), new Color(.84f,.92f,.91f))
+		new Gradient(new Color(0.73f, 0.76f, 0.51f), new Color(0.91f, 0.93f, 0.79f)),
+		MAGICAL
 		);}
 
 	private static void SetDwarf(){dwarf = new RaceSettings(new Vector3(1f,.75f,1f),
 		COMMON,
-		new Gradient(new Color(.35f, .28f, .26f), new Color(.93f, .88f, .86f)),
-		new Gradient(new Color(.49f, .66f, .64f), new Color(.80f, .90f, .90f))
+		MAGICAL,
+		new Gradient(new Color(0.64f, 0.37f, 0.34f), new Color(0.93f, 0.78f, 0.78f))
 		);}
 
 	private static void SetOrc(){orc = new RaceSettings(new Vector3(1f,1f,1f),
-		new Gradient(new Color(.28f, .34f, .30f), new Color(.79f, .86f, .82f)),
-		new Gradient(new Color(.25f, .26f, .28f), new Color(.79f, .81f, .86f)),
+		new Gradient(new Color(0.38f, 0.44f, 0.35f), new Color(0.70f, 0.75f, 0.56f)),
+		new Gradient(new Color(0.35f, 0.38f, 0.44f), new Color(0.56f, 0.66f, 0.75f)),
 		COMMON
 		);}
 
 	private static void SetHalfling(){halfling = new RaceSettings(new Vector3(.88f,.67f,.88f),
 		COMMON,
-		new Gradient(new Color(.51f,.49f,.32f), new Color(.91f,.90f,.77f)),
+		new Gradient(new Color(0.60f, 0.43f, 0.25f), new Color(0.98f, 0.91f, 0.81f)),
 		new Gradient(new Color(.49f,.39f,.32f), new Color(1f,.93f,.89f))
 		);}
 
 	private static void SetDragonling(){dragonling = new RaceSettings(new Vector3(1f,1f,1f),
-		new Gradient(new Color(.28f,.13f,.11f), new Color(.71f,.36f,.33f)),
-		new Gradient(new Color(.19f,.31f,.23f), new Color(.52f,.79f,.61f)),
-		new Gradient(new Color(.19f,.24f,.33f), new Color(.58f,.69f,.85f))
+		new Gradient(new Color(0.43f, 0.15f, 0.15f), new Color(0.98f, 0.35f, 0.35f)),
+		new Gradient(new Color(0.34f, 0.56f, 0.19f), new Color(0.55f, 0.89f, 0.53f)),
+		new Gradient(new Color(0.19f, 0.33f, 0.56f), new Color(0.53f, 0.66f, 0.89f))
 		);}
 
 	private static void SetUndead(){undead = new RaceSettings(new Vector3(1f,1f,1f),

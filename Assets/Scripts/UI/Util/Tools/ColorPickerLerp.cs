@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ColorPickerLerp : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
+public class ColorPickerLerp : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler, IDragHandler
 {
     // Images
     public Image selectorCaret;
@@ -44,6 +44,11 @@ public class ColorPickerLerp : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     public void OnPointerUp(PointerEventData eventData)
     {
         this.isDragging = false;
+    }
+
+    public void OnPointerClick(PointerEventData eventData){
+        this.isDragging = true;
+        OnDrag(eventData);
     }
 
     public void OnDrag(PointerEventData eventData)
