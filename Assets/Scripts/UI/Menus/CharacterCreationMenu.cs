@@ -88,6 +88,7 @@ public class CharacterCreationMenu : Menu{
     [Header("Default Options")]
     public Button defaultGender;
     public Button defaultRace;
+    public Button defaultPreset;
 
     [Header("Animation")]
     public AnimatorController maleAnimations;
@@ -122,6 +123,7 @@ public class CharacterCreationMenu : Menu{
     private bool genderUsedToLoadingItems;
     private Button selectedRaceItem;
     private Button selectedGenderItem;
+    private Button selectedPresetItem;
     private Gradient skinColorGradient;
 
     // Name to code Dictionary
@@ -171,6 +173,9 @@ public class CharacterCreationMenu : Menu{
 
         this.selectedRaceItem = this.defaultRace;
         this.selectedRaceItem.GetComponentInChildren<Text>().color = this.selectedColor;
+
+        this.selectedPresetItem = this.defaultPreset;
+        this.selectedPresetItem.GetComponentInChildren<Text>().color = this.selectedColor;
 
         this.skinColorGradient = RaceManager.GetSettings(Race.ORC).gradient1;
 
@@ -580,8 +585,38 @@ public class CharacterCreationMenu : Menu{
 
         SetRace(this.cachedText.text);
         this.characterBuilder.ChangeRace(RaceManager.GetSettings(this.race), this.selectedGenderIsMale);
+        SelectSkinPreset(this.defaultPreset);
 
         UpdateColorInAllModel();
+    }
+
+    public void SelectSkinPreset(Button bt){
+        if(this.selectedPresetItem == bt)
+            return;
+
+        if(this.selectedPresetItem != null){
+            this.selectedPresetItem.GetComponentInChildren<Text>().color = this.notSelectedColor;
+        }
+
+        this.selectedPresetItem = bt;
+        this.cachedText = bt.GetComponentInChildren<Text>();
+
+        this.cachedText.color = this.selectedColor;
+
+        if(this.cachedText.text == "P1"){
+            this.skinColorGradient = RaceManager.GetSettings(this.race).gradient1;
+        }
+        else if(this.cachedText.text == "P2"){
+            this.skinColorGradient = RaceManager.GetSettings(this.race).gradient2;
+        }
+        else if(this.cachedText.text == "P3"){
+            this.skinColorGradient = RaceManager.GetSettings(this.race).gradient3;
+        }
+        else{
+            this.skinColorGradient = RaceManager.GetSettings(this.race).gradient1;            
+        }
+
+        this.skinColorPicker.ChangeGradient(this.skinColorGradient);
     }
 
     public void ChangeColor(Object[] arguments){
