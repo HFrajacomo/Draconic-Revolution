@@ -69,6 +69,7 @@ public class CharacterCreationMenu : Menu{
 
     [Header("Materials")]
     public Material prefabPlainMat;
+    public Material dragonSkinMat;
     private Material skinMat;
     private Material clothesMat1;
     private Material clothesMat2;
@@ -592,7 +593,15 @@ public class CharacterCreationMenu : Menu{
 
         SetRace(this.cachedText.text);
         this.characterBuilder.ChangeRace(RaceManager.GetSettings(this.race), this.selectedGenderIsMale);
+
+        // Setting Skin Material
+        if(this.race != Race.DRAGONLING)
+            this.skinMat = Instantiate(this.prefabPlainMat);
+        else
+            this.skinMat = Instantiate(this.dragonSkinMat);
+        
         SelectSkinPreset(this.defaultPreset);
+
 
         UpdateColorInAllModel();
     }
@@ -974,7 +983,11 @@ public class CharacterCreationMenu : Menu{
     }
 
     private void ResetColors(){
-        this.skinMat = Instantiate(this.prefabPlainMat);
+        if(this.race != Race.DRAGONLING)
+            this.skinMat = Instantiate(this.prefabPlainMat);
+        else
+            this.skinMat = Instantiate(this.dragonSkinMat);
+
         this.clothesMat1 = Instantiate(this.prefabPlainMat);
         this.clothesMat2 = Instantiate(this.prefabPlainMat);
         this.clothesMat3 = Instantiate(this.prefabPlainMat);
