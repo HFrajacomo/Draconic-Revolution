@@ -6878,12 +6878,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 042fc9ac0b5904746b4c43cec2257d48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  colorGradient: {fileID: 0}
+  colorGradient: {fileID: 1691147709}
   saturation: {fileID: 325643958}
   value_: {fileID: 532523487}
   mainLabel: {fileID: 1353489312}
   colorPickerPreview: {fileID: 2114954353}
-  connectedMenu: {fileID: 0}
+  connectedMenu: {fileID: 1425498535}
 --- !u!114 &458190384
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8813,7 +8813,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &584570346
 RectTransform:
   m_ObjectHideFlags: 0
@@ -23068,6 +23068,7 @@ MonoBehaviour:
   terciaryColorPicker: {fileID: 602682202}
   skinColorPicker: {fileID: 137387314}
   colorPickerDiv: {fileID: 83241220}
+  skinColorMenu: {fileID: 584570345}
   prefabPlainMat: {fileID: 2100000, guid: d53d3c304eec41b49aad438799e8ad47, type: 2}
   defaultGender: {fileID: 436480327}
   defaultRace: {fileID: 1205819016}
@@ -33387,8 +33388,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 137387312}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}

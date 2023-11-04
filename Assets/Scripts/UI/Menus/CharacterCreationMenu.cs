@@ -49,6 +49,7 @@ public class CharacterCreationMenu : Menu{
     public ColorPickerPreview terciaryColorPicker;
     public ColorPickerLerp skinColorPicker;
     public GameObject colorPickerDiv;
+    public GameObject skinColorMenu;
     private Color skinColor;
     private Color clothesColor1;
     private Color clothesColor2;
@@ -212,6 +213,7 @@ public class CharacterCreationMenu : Menu{
             this.scrollViewContent.SetActive(true);
             this.slidingArea.SetActive(true);
             this.viewScrollbar.enabled = true;
+            this.skinColorMenu.SetActive(false);
 
             // If it's a first load
             if(IdentifyListOfItems(bt).Count == 0){
@@ -241,6 +243,11 @@ public class CharacterCreationMenu : Menu{
             this.viewScrollbar.enabled = false;
             this.generalTab.SetActive(true);
             this.slidingArea.SetActive(false);
+            this.skinColorMenu.SetActive(true);
+
+            this.primaryColorPicker.gameObject.SetActive(false);
+            this.secondaryColorPicker.gameObject.SetActive(false);
+            this.terciaryColorPicker.gameObject.SetActive(false);
         }
     }
 
