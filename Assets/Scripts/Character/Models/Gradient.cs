@@ -8,4 +8,6 @@ public struct Gradient{
 		this.color1 = c1;
 		this.color2 = c2;
 	}
+
+	public override string ToString(){return this.color1 + " -> " + this.color2;}
 }

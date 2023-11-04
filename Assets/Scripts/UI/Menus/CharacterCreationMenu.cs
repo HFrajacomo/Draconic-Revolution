@@ -47,7 +47,9 @@ public class CharacterCreationMenu : Menu{
     public ColorPickerPreview primaryColorPicker;
     public ColorPickerPreview secondaryColorPicker;
     public ColorPickerPreview terciaryColorPicker;
+    public ColorPickerLerp skinColorPicker;
     public GameObject colorPickerDiv;
+    private Color skinColor;
     private Color clothesColor1;
     private Color clothesColor2;
     private Color clothesColor3;
@@ -66,6 +68,7 @@ public class CharacterCreationMenu : Menu{
 
     [Header("Materials")]
     public Material prefabPlainMat;
+    private Material skinMat;
     private Material clothesMat1;
     private Material clothesMat2;
     private Material clothesMat3;
@@ -119,6 +122,7 @@ public class CharacterCreationMenu : Menu{
     private bool genderUsedToLoadingItems;
     private Button selectedRaceItem;
     private Button selectedGenderItem;
+    private Gradient skinColorGradient;
 
     // Name to code Dictionary
     private Dictionary<string, int> clothesDict = new Dictionary<string, int>();
@@ -167,6 +171,8 @@ public class CharacterCreationMenu : Menu{
 
         this.selectedRaceItem = this.defaultRace;
         this.selectedRaceItem.GetComponentInChildren<Text>().color = this.selectedColor;
+
+        this.skinColorGradient = RaceManager.GetSettings(Race.ORC).gradient1;
 
         ToggleDiv(this.generalButton);
     }
@@ -633,6 +639,15 @@ public class CharacterCreationMenu : Menu{
         ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
     }
 
+    public void ChangeMainColor(object obj){
+        Color color = (Color)obj;
+        this.skinColor = color;
+
+        UpdateColorInAllModel();
+    }
+
+    public Gradient GetSkinColorGradient(){return this.skinColorGradient;}
+
     private void UpdateColorInAllModel(){
         ModelType currentDiv = this.selectedDiv;
 
@@ -910,10 +925,14 @@ public class CharacterCreationMenu : Menu{
             }
         }
 
+        materials[0] = this.skinMat;
+        materials[0].SetColor("_Color", this.skinColor);
+
         go.GetComponent<SkinnedMeshRenderer>().materials = materials;
     }
 
     private void ResetColors(){
+        this.skinMat = Instantiate(this.prefabPlainMat);
         this.clothesMat1 = Instantiate(this.prefabPlainMat);
         this.clothesMat2 = Instantiate(this.prefabPlainMat);
         this.clothesMat3 = Instantiate(this.prefabPlainMat);
@@ -930,6 +949,7 @@ public class CharacterCreationMenu : Menu{
         this.hairMat2 = Instantiate(this.prefabPlainMat);
         this.hairMat3 = Instantiate(this.prefabPlainMat);
 
+        this.skinColor = new Color(1f, 1f, 1f);
         this.clothesColor1 = new Color(1f, 1f, 1f);
         this.clothesColor2 = new Color(0f, 0f, 0f);
         this.clothesColor3 = new Color(0f, 0f, 1f);
@@ -945,6 +965,7 @@ public class CharacterCreationMenu : Menu{
         this.hairColor1 = new Color(1f, 1f, 1f);
         this.hairColor2 = new Color(0f, 0f, 0f);
 
+        this.skinMat.SetColor("_Color", this.skinColor);
         this.clothesMat1.SetColor("_Color", this.clothesColor1);
         this.clothesMat2.SetColor("_Color", this.clothesColor2);
         this.clothesMat3.SetColor("_Color", this.clothesColor3);

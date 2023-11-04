@@ -12,6 +12,11 @@ public class ColorPickerLerp : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     private Image image;
     private Material material;
 
+    [Header("Gradient Mode only")]
+    public bool isGradient = false;
+    public CharacterCreationMenu characterCreationMenu;
+    private Gradient gradient;
+
     // Colors
     private Color selectedColor;
 
@@ -20,12 +25,15 @@ public class ColorPickerLerp : MonoBehaviour, IPointerDownHandler, IPointerUpHan
 
     // Internal Flag
     private bool isDragging;
+    private bool isInit = false;
 
     private void Awake()
     {
-        this.image = GetComponent<Image>();
-        this.material = Instantiate(this.image.material);
-        this.image.material = this.material;
+        Initialize();
+
+        if(isGradient)
+            SetGradient(this.characterCreationMenu.GetSkinColorGradient());
+
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -47,25 +55,38 @@ public class ColorPickerLerp : MonoBehaviour, IPointerDownHandler, IPointerUpHan
             {
                 // Calculate the normalized x position
                 this.lerpValue = Mathf.Clamp01((localPoint.x + image.rectTransform.rect.width / 2) / image.rectTransform.rect.width);                
-                this.selectorCaret.rectTransform.localPosition = new Vector3((this.lerpValue - .5f) * (image.rectTransform.rect.width), 0, 0); //image.rectTransform.position.y
+                this.selectorCaret.rectTransform.localPosition = new Vector3((this.lerpValue - .5f) * (image.rectTransform.rect.width), 0, 0);
+            
+                if(this.isGradient){
+                    CalculateColor(this.lerpValue);
+                }
             }
         }
     }
 
-    private Color CalculateColor(float val){
-        if(val <= .33f){
-            return Color.Lerp(Color.red, Color.green, val/.33f);
+    private void Initialize(){
+        if(!this.isInit){        
+            this.image = GetComponent<Image>();
+            this.material = Instantiate(this.image.material);
+            this.image.material = this.material;
+            this.isInit = true;
         }
-        else if(val <= .66f){
-            return Color.Lerp(Color.green, Color.blue, (val-.33f)/.33f);
-        }
-        else{
-            return Color.Lerp(Color.blue, Color.red, (val-.66f)/.33f);
-        }
+    }
+
+    private void CalculateColor(float val){
+        this.selectedColor = Color.Lerp(this.gradient.color1, this.gradient.color2, val);
     }
 
     public Color GetColor(){return this.selectedColor;}
     public float GetValue(){return this.lerpValue;}
+
+    private void SetGradient(Gradient grad){
+        this.gradient = grad;
+
+        Debug.Log(grad);
+        this.material.SetColor("_Color1", this.gradient.color1);
+        this.material.SetColor("_Color2", this.gradient.color2);
+    }
     
     public void SetValue(float val){
         this.lerpValue = val;
