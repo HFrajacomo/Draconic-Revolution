@@ -8,6 +8,6 @@ Trench coat	coat.003	M
 
 <No Top>	NakedW.002	F
 Peasant blouse	CoatW	F
-Jacket and shirt	CoatW.001	F
+Jacket and shirt	CoatW.003	F
 Sweatshirt	CoatW.002	F
-Trench coat	CoatW.003	F
+Trench coat	CoatW.004	F

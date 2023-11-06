@@ -23070,6 +23070,7 @@ MonoBehaviour:
   colorPickerDiv: {fileID: 83241220}
   skinColorMenu: {fileID: 584570345}
   prefabPlainMat: {fileID: 2100000, guid: d53d3c304eec41b49aad438799e8ad47, type: 2}
+  dragonSkinMat: {fileID: 2100000, guid: 41a87ad85b5498e40821bc63e7547679, type: 2}
   defaultGender: {fileID: 436480327}
   defaultRace: {fileID: 1205819016}
   defaultPreset: {fileID: 1003336526}
