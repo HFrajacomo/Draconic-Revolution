@@ -24,6 +24,8 @@ public class MenuManager : MonoBehaviour{
 	private Menu deleteWorldMenu;
 	[SerializeField]
 	private Menu characterCreationMenu;
+	[SerializeField]
+	private Menu characterCreationDataMenu;
 
 	// Pointer
 	private Menu currentMenu;
@@ -92,6 +94,9 @@ public class MenuManager : MonoBehaviour{
 				break;
 			case MenuID.CHARACTER_CREATION:
 				this.currentMenu = this.characterCreationMenu;
+				break;
+			case MenuID.CHARACTER_CREATION_DATA:
+				this.currentMenu = this.characterCreationDataMenu;
 				break;
 			default:
 				Debug.Log("Failed to fetch menu with MenuID: " + id);

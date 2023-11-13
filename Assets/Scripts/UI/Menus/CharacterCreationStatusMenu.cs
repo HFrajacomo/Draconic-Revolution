@@ -36,7 +36,7 @@ public class CharacterCreationStatusMenu : Menu{
 		{"Technology", SkillType.TECHNOLOGY},
 		{"Thaumaturgy", SkillType.THAUMATURGY},
 		{"Transmuting", SkillType.TRANSMUTING},
-		{"Witchcraft", SkillType.WITCHCRAFT},
+		{"Witchcraft", SkillType.WITCHCRAFT}
 	};
 
 	public void SelectPrimary(GameObject go){

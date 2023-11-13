@@ -179,7 +179,7 @@ public class CharacterCreationMenu : Menu{
         this.selectedPresetItem = this.defaultPreset;
         this.selectedPresetItem.GetComponentInChildren<Text>().color = this.selectedColor;
 
-        this.skinColorGradient = RaceManager.GetSettings(Race.ORC).gradient1;
+        this.skinColorGradient = RaceManager.GetSettings(Race.HUMAN).gradient1;
 
         ToggleDiv(this.generalButton);
     }
@@ -698,6 +698,18 @@ public class CharacterCreationMenu : Menu{
     }
 
     public Gradient GetSkinColorGradient(){return this.skinColorGradient;}
+
+    public void OpenCharacterCreationDataMenu(){
+        this.RequestMenuChange(MenuID.CHARACTER_CREATION_DATA);
+
+        CharacterCreationData.SetRace(this.race);
+        CharacterCreationData.SetMale(this.selectedGenderIsMale);
+
+        CharacterCreationData.SetBodyPart(ModelType.CLOTHES, ModelHandler.GetCode(ModelType.CLOTHES, this.selectedClothes));
+        CharacterCreationData.SetBodyPart(ModelType.LEGS, ModelHandler.GetCode(ModelType.LEGS,this.selectedLeg));
+        CharacterCreationData.SetBodyPart(ModelType.FOOTGEAR, ModelHandler.GetCode(ModelType.FOOTGEAR,this.selectedBoot));
+        CharacterCreationData.SetBodyPart(ModelType.HEADGEAR, ModelHandler.GetCode(ModelType.HEADGEAR,this.selectedHat));
+    }
 
     private void UpdateColorInAllModel(){
         ModelType currentDiv = this.selectedDiv;

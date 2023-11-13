@@ -6,6 +6,10 @@ public static class ModelHandler{
 	private static GameObject assets;
 
 	private static Dictionary<ModelType, Dictionary<string, ModelInfo>> models = new Dictionary<ModelType, Dictionary<string, ModelInfo>>();
+	private static BiMap<ushort, string> clothesMap = new BiMap<ushort, string>(); 
+	private static BiMap<ushort, string> legsMap = new BiMap<ushort, string>(); 
+	private static BiMap<ushort, string> bootsMap = new BiMap<ushort, string>(); 
+	private static BiMap<ushort, string> hatsMap = new BiMap<ushort, string>(); 
 
 	private static readonly string ASSET_BUNDLE_RESPATH = "CharacterModels/characters";
 	private static readonly string CLOTHES_DB = "CharacterModels/clothes_db";
@@ -101,6 +105,36 @@ public static class ModelHandler{
 		return array;
 	}
 
+	public static ushort GetCode(ModelType t, string name){
+		switch(t){
+			case ModelType.CLOTHES:
+				return clothesMap.Get(name);
+			case ModelType.LEGS:
+				return legsMap.Get(name);
+			case ModelType.FOOTGEAR:
+				return bootsMap.Get(name);
+			case ModelType.HEADGEAR:
+				return hatsMap.Get(name);
+			default:
+				return 0;
+		}
+	}
+
+	public static string GetName(ModelType t, ushort code){
+		switch(t){
+			case ModelType.CLOTHES:
+				return clothesMap.Get(code);
+			case ModelType.LEGS:
+				return legsMap.Get(code);
+			case ModelType.FOOTGEAR:
+				return bootsMap.Get(code);
+			case ModelType.HEADGEAR:
+				return hatsMap.Get(code);
+			default:
+				return "";
+		}
+	}
+
 	private static void LoadModelInfo(){
 		cachedText = Resources.Load<TextAsset>(CLOTHES_DB);
 		ProcessTextAsset(ModelType.CLOTHES, cachedText.ToString());
@@ -117,6 +151,9 @@ public static class ModelHandler{
 	private static void ProcessTextAsset(ModelType t, string text){
 		string[] lines = text.Split("\r\n");
 		string[] lineElements;
+		string name;
+
+		ushort i = 0;
 
 		foreach(string line in lines){
 			if(line.Length == 0)
@@ -124,13 +161,33 @@ public static class ModelHandler{
 			if(line[0] == '#')
 				continue;
 
-
 			lineElements = line.Split('\t');
 
 			if(!models.ContainsKey(t))
 				models.Add(t, new Dictionary<string, ModelInfo>());
 
-			models[t].Add(BuildName(lineElements), new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0]));
+
+			name = BuildName(lineElements);
+			models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0]));
+
+			switch(t){
+				case ModelType.CLOTHES:
+					clothesMap.Add(i, name);
+					break;
+				case ModelType.LEGS:
+					legsMap.Add(i, name);
+					break;
+				case ModelType.FOOTGEAR:
+					bootsMap.Add(i, name);
+					break;
+				case ModelType.HEADGEAR:
+					hatsMap.Add(i, name);
+					break;
+				default:
+					break;
+			}
+
+			i++;
 		}
 	}
 
