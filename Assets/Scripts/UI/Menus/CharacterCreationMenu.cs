@@ -700,15 +700,15 @@ public class CharacterCreationMenu : Menu{
     public Gradient GetSkinColorGradient(){return this.skinColorGradient;}
 
     public void OpenCharacterCreationDataMenu(){
-        this.RequestMenuChange(MenuID.CHARACTER_CREATION_DATA);
-
         CharacterCreationData.SetRace(this.race);
         CharacterCreationData.SetMale(this.selectedGenderIsMale);
 
-        CharacterCreationData.SetBodyPart(ModelType.CLOTHES, ModelHandler.GetCode(ModelType.CLOTHES, this.selectedClothes));
-        CharacterCreationData.SetBodyPart(ModelType.LEGS, ModelHandler.GetCode(ModelType.LEGS,this.selectedLeg));
-        CharacterCreationData.SetBodyPart(ModelType.FOOTGEAR, ModelHandler.GetCode(ModelType.FOOTGEAR,this.selectedBoot));
-        CharacterCreationData.SetBodyPart(ModelType.HEADGEAR, ModelHandler.GetCode(ModelType.HEADGEAR,this.selectedHat));
+        CharacterCreationData.SetBodyPart(ModelType.CLOTHES, ModelHandler.GetCode(ModelType.CLOTHES, IdentifySelectedName(ModelType.CLOTHES)));
+        CharacterCreationData.SetBodyPart(ModelType.LEGS, ModelHandler.GetCode(ModelType.LEGS, IdentifySelectedName(ModelType.LEGS)));
+        CharacterCreationData.SetBodyPart(ModelType.FOOTGEAR, ModelHandler.GetCode(ModelType.FOOTGEAR, IdentifySelectedName(ModelType.FOOTGEAR)));
+        CharacterCreationData.SetBodyPart(ModelType.HEADGEAR, ModelHandler.GetCode(ModelType.HEADGEAR, IdentifySelectedName(ModelType.HEADGEAR)));
+
+        this.RequestMenuChange(MenuID.CHARACTER_CREATION_DATA);
     }
 
     private void UpdateColorInAllModel(){
