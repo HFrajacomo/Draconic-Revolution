@@ -14,7 +14,7 @@ public class CharacterCreationMenu : Menu{
     public Color selectedColor = new Color(.32f, .72f, .91f);
 
     [Header("UI Elements")]
-    public GameObject menuDiv;
+    public GameObject appearanceDiv;
     public GameObject playerObject;
     public GameObject generalTab;
 
@@ -165,7 +165,7 @@ public class CharacterCreationMenu : Menu{
         mat.SetFloat("_BorderSize", this.BORDER_SIZE);
         mat.SetFloat("_HorizontalAdjustment", this.HORIZONTAL_ADJUSTMENT);
 
-        menuDiv.GetComponentInChildren<Image>().material = mat;
+        appearanceDiv.GetComponentInChildren<Image>().material = mat;
         this.nameInput.GetComponent<Image>().material = matField;
 
         this.characterBuilder = new CharacterBuilder(this.playerObject, this.maleAnimations, isMale:true);
