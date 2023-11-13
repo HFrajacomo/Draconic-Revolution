@@ -33,11 +33,14 @@ public class CharacterCreationStatusMenu : Menu{
 	private SkillType? selectedSecondary = null;
 
 	private bool INIT = false;
+	private int arrangeablePoints = 10;
 
 	private static readonly float HORIZONTAL_ADJUSTMENT = 1f;
 	private static readonly float BORDER_SIZE_SKILLS = 0.001f;
 	private static readonly float BORDER_SIZE_DESC_ATT = 0.002f;
 	private static readonly float BORDER_SIZE_TOP = 0.016f;
+
+	private static readonly int MAXIMUM_ARRANGEABLE_POINTS = 10;
 
 	private Dictionary<string, string> skill_to_description = new Dictionary<string, string>();
 
@@ -173,7 +176,6 @@ public class CharacterCreationStatusMenu : Menu{
 			return;
 
 		foreach(string key in NAME_TO_SKILLTYPE.Keys){
-			Debug.Log("ADDED: " + key);
 			this.skill_to_description.Add(key, Resources.Load<TextAsset>(DESCRIPTION_DIR + key.ToLower()).ToString());
 		}
 	}
