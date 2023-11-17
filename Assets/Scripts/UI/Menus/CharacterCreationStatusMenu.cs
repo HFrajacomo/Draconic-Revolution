@@ -175,6 +175,10 @@ public class CharacterCreationStatusMenu : Menu{
 		this.descriptionText.text = "";
 	}
 
+	public void OpenCharacterCreationMenu(){
+		this.RequestMenuChange(MenuID.CHARACTER_CREATION);
+	}
+
 	private bool CheckSameNameParent(GameObject obj, GameObject tgt){
 		if(tgt == null)
 			return false;

@@ -10004,7 +10004,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 359197627}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 314149358}
+        m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        m_MethodName: OpenCharacterCreationMenu
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &359197627
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40540,6 +40552,18 @@ MonoBehaviour:
   defaultGender: {fileID: 1856174920}
   defaultRace: {fileID: 1413357274}
   defaultPreset: {fileID: 760068335}
+  humanRace: {fileID: 1413357274}
+  elfRace: {fileID: 754569805}
+  dwarfRace: {fileID: 1210380990}
+  orcRace: {fileID: 3455531}
+  halflingRace: {fileID: 1093944457}
+  dragonlingRace: {fileID: 898471011}
+  undeadRace: {fileID: 702500853}
+  maleGender: {fileID: 1856174920}
+  femaleGender: {fileID: 583192691}
+  preset1: {fileID: 760068335}
+  preset2: {fileID: 28419321}
+  preset3: {fileID: 1361548499}
   maleAnimations: {fileID: 9100000, guid: 3dcbf65dd7a8870439af7e02cd599fe3, type: 2}
   femaleAnimations: {fileID: 9100000, guid: 204cc17358066914eb3f79f2a5c3aad2, type: 2}
 --- !u!4 &1425498536

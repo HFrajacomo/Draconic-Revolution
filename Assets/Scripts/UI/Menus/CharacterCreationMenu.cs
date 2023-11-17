@@ -92,11 +92,28 @@ public class CharacterCreationMenu : Menu{
     public Button defaultRace;
     public Button defaultPreset;
 
+    [Header("General Buttons")]
+    public Button humanRace;
+    public Button elfRace;
+    public Button dwarfRace;
+    public Button orcRace;
+    public Button halflingRace;
+    public Button dragonlingRace;
+    public Button undeadRace;
+
+    public Button maleGender;
+    public Button femaleGender;
+
+    public Button preset1;
+    public Button preset2;
+    public Button preset3;
+
     [Header("Animation")]
     public AnimatorController maleAnimations;
     public AnimatorController femaleAnimations;
 
     private CharacterBuilder characterBuilder;
+    private bool INIT = false;
 
     // Items List
     private List<GameObject> clothesItems = new List<GameObject>();
@@ -166,20 +183,35 @@ public class CharacterCreationMenu : Menu{
         mat.SetFloat("_HorizontalAdjustment", this.HORIZONTAL_ADJUSTMENT);
 
         appearanceDiv.GetComponentInChildren<Image>().material = mat;
+        this.characterBuilder = new CharacterBuilder(this.playerObject, this.maleAnimations, isMale:true);
         this.nameInput.GetComponent<Image>().material = matField;
 
-        this.characterBuilder = new CharacterBuilder(this.playerObject, this.maleAnimations, isMale:true);
 
-        this.selectedGenderItem = this.defaultGender;
-        this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
 
-        this.selectedRaceItem = this.defaultRace;
-        this.selectedRaceItem.GetComponentInChildren<Text>().color = this.selectedColor;
+        if(!INIT){
+            this.selectedGenderItem = this.defaultGender;
+            this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
 
-        this.selectedPresetItem = this.defaultPreset;
-        this.selectedPresetItem.GetComponentInChildren<Text>().color = this.selectedColor;
+            this.selectedRaceItem = this.defaultRace;
+            this.selectedRaceItem.GetComponentInChildren<Text>().color = this.selectedColor;
 
-        this.skinColorGradient = RaceManager.GetSettings(Race.HUMAN).gradient1;
+            this.selectedPresetItem = this.defaultPreset;
+            this.selectedPresetItem.GetComponentInChildren<Text>().color = this.selectedColor;
+
+            this.skinColorGradient = RaceManager.GetSettings(Race.HUMAN).gradient1;
+        }
+        else{
+            this.nameInput.text = CharacterCreationData.GetName();
+
+            this.selectedGenderItem = IdentifyGender(CharacterCreationData.GetMale());
+            this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
+
+            this.selectedRaceItem = IdentifyRace(CharacterCreationData.GetRace());
+            this.selectedRaceItem.GetComponentInChildren<Text>().color = this.selectedColor;
+
+            this.selectedPresetItem = IdentifySkinPreset(CharacterCreationData.GetSkinPreset());
+            this.selectedPresetItem.GetComponentInChildren<Text>().color = this.selectedColor;
+        }
 
         ToggleDiv(this.generalButton);
     }
@@ -700,6 +732,10 @@ public class CharacterCreationMenu : Menu{
     public Gradient GetSkinColorGradient(){return this.skinColorGradient;}
 
     public void OpenCharacterCreationDataMenu(){
+        if(this.nameInput.text == "")
+            return;
+
+        CharacterCreationData.SetName(this.nameInput.text);
         CharacterCreationData.SetRace(this.race);
         CharacterCreationData.SetMale(this.selectedGenderIsMale);
 
@@ -720,6 +756,23 @@ public class CharacterCreationMenu : Menu{
         CharacterCreationData.SetAttribute(AttributeName.POISON_RESISTANCE, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.POISON_RESISTANCE));
         CharacterCreationData.SetAttribute(AttributeName.CURSE_RESISTANCE, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.CURSE_RESISTANCE));
         CharacterCreationData.SetAttribute(AttributeName.SPEED, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.SPEED));
+
+        CharacterCreationData.SetClothesColor1(this.clothesColor1);
+        CharacterCreationData.SetClothesColor2(this.clothesColor2);
+        CharacterCreationData.SetClothesColor3(this.clothesColor3);
+        CharacterCreationData.SetLegsColor1(this.legsColor1);
+        CharacterCreationData.SetLegsColor2(this.legsColor2);
+        CharacterCreationData.SetLegsColor3(this.legsColor3);
+        CharacterCreationData.SetHatsColor1(this.hatsColor1);
+        CharacterCreationData.SetHatsColor2(this.hatsColor2);
+        CharacterCreationData.SetHatsColor3(this.hatsColor3);
+        CharacterCreationData.SetBootsColor1(this.bootsColor1);
+        CharacterCreationData.SetBootsColor2(this.bootsColor2);
+        CharacterCreationData.SetBootsColor3(this.bootsColor3);
+
+        CharacterCreationData.SetSkinPreset(IdentifySkinPreset(this.selectedPresetItem));
+
+        this.INIT = true;
 
         this.RequestMenuChange(MenuID.CHARACTER_CREATION_DATA);
     }
@@ -813,6 +866,49 @@ public class CharacterCreationMenu : Menu{
         if(this.selectedGenderIsMale)
             return 'M';
         return 'F';
+    }
+
+    private Button IdentifyGender(bool isMale){
+        if(isMale)
+            return this.maleGender;
+        return this.femaleGender;
+    }
+
+    private Button IdentifyRace(Race r){
+        switch(r){
+            case Race.HUMAN:
+                return this.humanRace;
+            case Race.ELF:
+                return this.elfRace;
+            case Race.DWARF:
+                return this.dwarfRace;
+            case Race.ORC:
+                return this.orcRace;
+            case Race.HALFLING:
+                return this.halflingRace;
+            case Race.DRAGONLING:
+                return this.dragonlingRace;
+            case Race.UNDEAD:
+                return this.undeadRace;
+            default:
+                return this.humanRace;
+        }
+    }
+
+    private Button IdentifySkinPreset(byte b){
+        if(b == 1)
+            return this.preset1;
+        if(b == 2)
+            return this.preset2;
+        return this.preset3;
+    }
+
+    private byte IdentifySkinPreset(Button b){
+        if(b == this.preset1)
+            return 1;
+        if(b == this.preset2)
+            return 2;
+        return 3;
     }
 
     private void SetGender(string text){

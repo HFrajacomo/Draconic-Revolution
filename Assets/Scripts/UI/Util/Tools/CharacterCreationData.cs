@@ -1,10 +1,29 @@
+using UnityEngine;
+
 public static class CharacterCreationData {
+	private static string name;
 	private static Race race;
 	private static bool isMale;
 	private static ushort clothes;
 	private static ushort legs;
 	private static ushort hats;
 	private static ushort boots;
+	private static byte skinPreset;
+	private static float skinColor;
+
+	// Colors
+	private static Color clothesColor1;
+	private static Color clothesColor2;
+	private static Color clothesColor3;
+	private static Color legsColor1;
+	private static Color legsColor2;
+	private static Color legsColor3;
+	private static Color hatsColor1;
+	private static Color hatsColor2;
+	private static Color hatsColor3;
+	private static Color bootsColor1;
+	private static Color bootsColor2;
+	private static Color bootsColor3;
 
 	// General Attributes
 	private static short[] strength = new short[]{0,0,0};
@@ -41,10 +60,40 @@ public static class CharacterCreationData {
 		speed = new short[]{0,0,0};
 	}
 
+	public static void SetName(string n){name = n;}
+	public static string GetName(){return name;}
 	public static void SetRace(Race r){race = r;}
 	public static Race GetRace(){return race;}
 	public static void SetMale(bool flag){isMale = flag;}
 	public static bool GetMale(){return isMale;}
+	public static void SetSkinPreset(byte b){skinPreset = b;}
+	public static byte GetSkinPreset(){return skinPreset;}
+	public static void SetSkinColorLerp(float f){skinColor = f;}
+	public static float GetSkinColorLerp(){return skinColor;}
+	public static void SetClothesColor1(Color c){clothesColor1 = c;}
+	public static void SetClothesColor2(Color c){clothesColor2 = c;}
+	public static void SetClothesColor3(Color c){clothesColor3 = c;}
+	public static void SetLegsColor1(Color c){legsColor1 = c;}
+	public static void SetLegsColor2(Color c){legsColor2 = c;}
+	public static void SetLegsColor3(Color c){legsColor3 = c;}
+	public static void SetBootsColor1(Color c){bootsColor1 = c;}
+	public static void SetBootsColor2(Color c){bootsColor2 = c;}
+	public static void SetBootsColor3(Color c){bootsColor3 = c;}
+	public static void SetHatsColor1(Color c){hatsColor1 = c;}
+	public static void SetHatsColor2(Color c){hatsColor2 = c;}
+	public static void SetHatsColor3(Color c){hatsColor3 = c;}
+	public static Color GetClothesColor1(){return clothesColor1;}
+	public static Color GetClothesColor2(){return clothesColor2;}
+	public static Color GetClothesColor3(){return clothesColor3;}
+	public static Color GetLegsColor1(){return legsColor1;}
+	public static Color GetLegsColor2(){return legsColor2;}
+	public static Color GetLegsColor3(){return legsColor3;}
+	public static Color GetBootsColor1(){return bootsColor1;}
+	public static Color GetBootsColor2(){return bootsColor2;}
+	public static Color GetBootsColor3(){return bootsColor3;}
+	public static Color GetHatsColor1(){return hatsColor1;}
+	public static Color GetHatsColor2(){return hatsColor2;}
+	public static Color GetHatsColor3(){return hatsColor3;}
 
 	public static short GetAttribute(AttributeName at){
 		switch(at){
