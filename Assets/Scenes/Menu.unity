@@ -8255,6 +8255,18 @@ MonoBehaviour:
   - {fileID: 685361267}
   - {fileID: 1776662905}
   - {fileID: 1100087335}
+  strengthField: {fileID: 1587415092}
+  precisionField: {fileID: 2143965663}
+  vitalityField: {fileID: 1639483319}
+  evasionField: {fileID: 440688819}
+  magicField: {fileID: 888621852}
+  charismaField: {fileID: 979134075}
+  fireResField: {fileID: 1551212304}
+  iceResField: {fileID: 650492052}
+  lightningResField: {fileID: 1935091118}
+  poisonResField: {fileID: 1395753167}
+  curseResField: {fileID: 985255459}
+  speedField: {fileID: 830655593}
   descriptionText: {fileID: 141008142}
 --- !u!4 &314149359
 Transform:
@@ -12009,7 +12021,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 440688817}
   m_TextComponent: {fileID: 893493422}
   m_Placeholder: {fileID: 0}
@@ -12020,7 +12032,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -12101,6 +12113,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GOES_BELOW_BASE: 0
+  baseValue: 10
 --- !u!1 &447494090
 GameObject:
   m_ObjectHideFlags: 0
@@ -16683,6 +16696,7 @@ GameObject:
   - component: {fileID: 650492051}
   - component: {fileID: 650492050}
   - component: {fileID: 650492049}
+  - component: {fileID: 650492052}
   m_Layer: 5
   m_Name: InputField (Legacy)
   m_TagString: Untagged
@@ -16749,7 +16763,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 650492050}
   m_TextComponent: {fileID: 1819652807}
   m_Placeholder: {fileID: 0}
@@ -16760,7 +16774,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -16769,7 +16783,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 650492052}
+        m_TargetAssemblyTypeName: AttributeInputField, Assembly-CSharp
+        m_MethodName: ColorField
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
@@ -16816,6 +16842,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 650492047}
   m_CullTransparentMesh: 1
+--- !u!114 &650492052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 650492047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a409ad523e2636469073af7db8e0d82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GOES_BELOW_BASE: 0
+  baseValue: 0
 --- !u!1 &651733015
 GameObject:
   m_ObjectHideFlags: 0
@@ -22147,6 +22187,7 @@ GameObject:
   - component: {fileID: 830655592}
   - component: {fileID: 830655591}
   - component: {fileID: 830655590}
+  - component: {fileID: 830655593}
   m_Layer: 5
   m_Name: InputField (Legacy)
   m_TagString: Untagged
@@ -22213,7 +22254,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 830655591}
   m_TextComponent: {fileID: 1926722325}
   m_Placeholder: {fileID: 0}
@@ -22224,7 +22265,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -22233,7 +22274,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 830655593}
+        m_TargetAssemblyTypeName: AttributeInputField, Assembly-CSharp
+        m_MethodName: ColorField
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
@@ -22280,6 +22333,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 830655588}
   m_CullTransparentMesh: 1
+--- !u!114 &830655593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 830655588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a409ad523e2636469073af7db8e0d82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GOES_BELOW_BASE: 0
+  baseValue: 0
 --- !u!1 &837108830
 GameObject:
   m_ObjectHideFlags: 0
@@ -23641,7 +23708,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 888621850}
   m_TextComponent: {fileID: 397341084}
   m_Placeholder: {fileID: 0}
@@ -23652,7 +23719,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -23733,6 +23800,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GOES_BELOW_BASE: 0
+  baseValue: 10
 --- !u!1 &891762708
 GameObject:
   m_ObjectHideFlags: 0
@@ -26598,7 +26666,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 979134073}
   m_TextComponent: {fileID: 1677984685}
   m_Placeholder: {fileID: 0}
@@ -26609,7 +26677,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -26690,6 +26758,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GOES_BELOW_BASE: 0
+  baseValue: 10
 --- !u!1 &985255454
 GameObject:
   m_ObjectHideFlags: 0
@@ -26702,6 +26771,7 @@ GameObject:
   - component: {fileID: 985255458}
   - component: {fileID: 985255457}
   - component: {fileID: 985255456}
+  - component: {fileID: 985255459}
   m_Layer: 5
   m_Name: InputField (Legacy)
   m_TagString: Untagged
@@ -26768,7 +26838,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 985255457}
   m_TextComponent: {fileID: 503304235}
   m_Placeholder: {fileID: 0}
@@ -26779,7 +26849,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -26788,7 +26858,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 985255459}
+        m_TargetAssemblyTypeName: AttributeInputField, Assembly-CSharp
+        m_MethodName: ColorField
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
@@ -26835,6 +26917,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 985255454}
   m_CullTransparentMesh: 1
+--- !u!114 &985255459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 985255454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a409ad523e2636469073af7db8e0d82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GOES_BELOW_BASE: 0
+  baseValue: 0
 --- !u!1 &995212081
 GameObject:
   m_ObjectHideFlags: 0
@@ -39346,6 +39442,7 @@ GameObject:
   - component: {fileID: 1395753166}
   - component: {fileID: 1395753165}
   - component: {fileID: 1395753164}
+  - component: {fileID: 1395753167}
   m_Layer: 5
   m_Name: InputField (Legacy)
   m_TagString: Untagged
@@ -39412,7 +39509,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1395753165}
   m_TextComponent: {fileID: 655127309}
   m_Placeholder: {fileID: 0}
@@ -39423,7 +39520,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -39432,7 +39529,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1395753167}
+        m_TargetAssemblyTypeName: AttributeInputField, Assembly-CSharp
+        m_MethodName: ColorField
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
@@ -39479,6 +39588,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1395753162}
   m_CullTransparentMesh: 1
+--- !u!114 &1395753167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1395753162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a409ad523e2636469073af7db8e0d82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GOES_BELOW_BASE: 0
+  baseValue: 0
 --- !u!1 &1397243324
 GameObject:
   m_ObjectHideFlags: 0
@@ -45007,6 +45130,7 @@ GameObject:
   - component: {fileID: 1551212303}
   - component: {fileID: 1551212302}
   - component: {fileID: 1551212301}
+  - component: {fileID: 1551212304}
   m_Layer: 5
   m_Name: InputField (Legacy)
   m_TagString: Untagged
@@ -45073,7 +45197,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1551212302}
   m_TextComponent: {fileID: 1467958445}
   m_Placeholder: {fileID: 0}
@@ -45084,7 +45208,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -45093,7 +45217,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1551212304}
+        m_TargetAssemblyTypeName: AttributeInputField, Assembly-CSharp
+        m_MethodName: ColorField
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
@@ -45140,6 +45276,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1551212299}
   m_CullTransparentMesh: 1
+--- !u!114 &1551212304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1551212299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a409ad523e2636469073af7db8e0d82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GOES_BELOW_BASE: 0
+  baseValue: 0
 --- !u!1 &1552500383
 GameObject:
   m_ObjectHideFlags: 0
@@ -46783,7 +46933,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1587415090}
   m_TextComponent: {fileID: 1492905073}
   m_Placeholder: {fileID: 0}
@@ -46794,7 +46944,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -46875,6 +47025,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GOES_BELOW_BASE: 0
+  baseValue: 10
 --- !u!1 &1591274146
 GameObject:
   m_ObjectHideFlags: 0
@@ -48755,7 +48906,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1639483317}
   m_TextComponent: {fileID: 2024599553}
   m_Placeholder: {fileID: 0}
@@ -48766,7 +48917,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -48847,6 +48998,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GOES_BELOW_BASE: 0
+  baseValue: 10
 --- !u!1 &1639955123
 GameObject:
   m_ObjectHideFlags: 0
@@ -54622,7 +54774,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1824494173}
   m_TextComponent: {fileID: 804794039}
   m_Placeholder: {fileID: 0}
@@ -57842,6 +57994,7 @@ GameObject:
   - component: {fileID: 1935091117}
   - component: {fileID: 1935091116}
   - component: {fileID: 1935091115}
+  - component: {fileID: 1935091118}
   m_Layer: 5
   m_Name: InputField (Legacy)
   m_TagString: Untagged
@@ -57908,7 +58061,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1935091116}
   m_TextComponent: {fileID: 742377270}
   m_Placeholder: {fileID: 0}
@@ -57919,7 +58072,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -57928,7 +58081,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1935091118}
+        m_TargetAssemblyTypeName: AttributeInputField, Assembly-CSharp
+        m_MethodName: ColorField
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
@@ -57975,6 +58140,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1935091113}
   m_CullTransparentMesh: 1
+--- !u!114 &1935091118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1935091113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a409ad523e2636469073af7db8e0d82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GOES_BELOW_BASE: 0
+  baseValue: 0
 --- !u!1 &1936908808
 GameObject:
   m_ObjectHideFlags: 0
@@ -62126,7 +62305,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 2143965661}
   m_TextComponent: {fileID: 466391563}
   m_Placeholder: {fileID: 0}
@@ -62137,7 +62316,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 1
-  m_CharacterLimit: 2
+  m_CharacterLimit: 3
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -62218,6 +62397,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GOES_BELOW_BASE: 0
+  baseValue: 10
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

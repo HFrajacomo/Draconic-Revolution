@@ -10,10 +10,10 @@ public class AttributeInputField : MonoBehaviour {
 	private Color decreasedColor = new Color(.65f, .1f, .1f);
 
 	private InputField field;
-	private int baseValue = 10;
+	public int baseValue;
 
 
-	void Start(){
+	void Awake(){
 		this.field = GetComponent<InputField>();
 		SetBaseValue(10);
 		ColorField();
@@ -36,4 +36,6 @@ public class AttributeInputField : MonoBehaviour {
 	public void SetBaseValue(int val){this.baseValue = val;}
 
 	public bool IsAtBase(){return Convert.ToInt32(this.field.text) == this.baseValue;}
+
+	public void SetFieldValue(short val){this.field.text = val.ToString(); SetBaseValue((int)val); ColorField();}
 }

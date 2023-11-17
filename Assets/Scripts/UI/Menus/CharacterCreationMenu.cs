@@ -708,6 +708,19 @@ public class CharacterCreationMenu : Menu{
         CharacterCreationData.SetBodyPart(ModelType.FOOTGEAR, ModelHandler.GetCode(ModelType.FOOTGEAR, IdentifySelectedName(ModelType.FOOTGEAR)));
         CharacterCreationData.SetBodyPart(ModelType.HEADGEAR, ModelHandler.GetCode(ModelType.HEADGEAR, IdentifySelectedName(ModelType.HEADGEAR)));
 
+        CharacterCreationData.SetAttribute(AttributeName.STRENGTH, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.STRENGTH));
+        CharacterCreationData.SetAttribute(AttributeName.PRECISION, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.PRECISION));
+        CharacterCreationData.SetAttribute(AttributeName.VITALITY, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.VITALITY));
+        CharacterCreationData.SetAttribute(AttributeName.EVASION, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.EVASION));
+        CharacterCreationData.SetAttribute(AttributeName.MAGIC, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.MAGIC));
+        CharacterCreationData.SetAttribute(AttributeName.CHARISMA, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.CHARISMA));
+        CharacterCreationData.SetAttribute(AttributeName.FIRE_RESISTANCE, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.FIRE_RESISTANCE));
+        CharacterCreationData.SetAttribute(AttributeName.ICE_RESISTANCE, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.ICE_RESISTANCE));
+        CharacterCreationData.SetAttribute(AttributeName.LIGHTNING_RESISTANCE, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.LIGHTNING_RESISTANCE));
+        CharacterCreationData.SetAttribute(AttributeName.POISON_RESISTANCE, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.POISON_RESISTANCE));
+        CharacterCreationData.SetAttribute(AttributeName.CURSE_RESISTANCE, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.CURSE_RESISTANCE));
+        CharacterCreationData.SetAttribute(AttributeName.SPEED, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.SPEED));
+
         this.RequestMenuChange(MenuID.CHARACTER_CREATION_DATA);
     }
 

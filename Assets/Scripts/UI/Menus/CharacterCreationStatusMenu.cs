@@ -22,6 +22,20 @@ public class CharacterCreationStatusMenu : Menu{
 	[Header("Toggles")]
 	public Toggle[] allToggles;
 
+	[Header("Attribute Input Fields")]
+	public AttributeInputField strengthField;
+	public AttributeInputField precisionField;
+	public AttributeInputField vitalityField;
+	public AttributeInputField evasionField;
+	public AttributeInputField magicField;
+	public AttributeInputField charismaField;
+	public AttributeInputField fireResField;
+	public AttributeInputField iceResField;
+	public AttributeInputField lightningResField;
+	public AttributeInputField poisonResField;
+	public AttributeInputField curseResField;
+	public AttributeInputField speedField;
+
 	[Header("Description")]
 	public Text descriptionText;
 
@@ -33,14 +47,11 @@ public class CharacterCreationStatusMenu : Menu{
 	private SkillType? selectedSecondary = null;
 
 	private bool INIT = false;
-	private int arrangeablePoints = 10;
 
 	private static readonly float HORIZONTAL_ADJUSTMENT = 1f;
 	private static readonly float BORDER_SIZE_SKILLS = 0.001f;
 	private static readonly float BORDER_SIZE_DESC_ATT = 0.002f;
 	private static readonly float BORDER_SIZE_TOP = 0.016f;
-
-	private static readonly int MAXIMUM_ARRANGEABLE_POINTS = 10;
 
 	private Dictionary<string, string> skill_to_description = new Dictionary<string, string>();
 
@@ -85,6 +96,23 @@ public class CharacterCreationStatusMenu : Menu{
 	void Start(){
 		Init();
 		SetupShaders();
+	}
+
+	public override void Enable(){
+		this.mainObject.SetActive(true);
+
+		this.strengthField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.STRENGTH));
+		this.precisionField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.PRECISION));
+		this.vitalityField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.VITALITY));
+		this.evasionField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.EVASION));
+		this.magicField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.MAGIC));
+		this.charismaField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.CHARISMA));
+		this.fireResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.FIRE_RESISTANCE));
+		this.iceResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.ICE_RESISTANCE));
+		this.lightningResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.LIGHTNING_RESISTANCE));
+		this.poisonResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.POISON_RESISTANCE));
+		this.curseResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.CURSE_RESISTANCE));
+		this.speedField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.SPEED));
 	}
 
 
