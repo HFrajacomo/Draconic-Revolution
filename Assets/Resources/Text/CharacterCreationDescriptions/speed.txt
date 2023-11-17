@@ -1,0 +1,1 @@
+Speed increases the base speed of your character.

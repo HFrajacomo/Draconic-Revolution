@@ -1,0 +1,1 @@
+This attribute represents the damage blocked in percentage for a given element.

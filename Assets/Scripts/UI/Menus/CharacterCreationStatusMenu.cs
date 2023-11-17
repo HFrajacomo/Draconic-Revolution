@@ -68,6 +68,18 @@ public class CharacterCreationStatusMenu : Menu{
 		{"Transmuting", SkillType.TRANSMUTING},
 		{"Witchcraft", SkillType.WITCHCRAFT}
 	};
+	private static readonly Dictionary<string, AttributeName> NAME_TO_ATTRIBUTE = new Dictionary<string, AttributeName>(){
+		{"Strength", AttributeName.STRENGTH},
+		{"Precision", AttributeName.PRECISION},
+		{"Vitality", AttributeName.VITALITY},
+		{"Evasion", AttributeName.EVASION},
+		{"Magic", AttributeName.MAGIC},
+		{"Charisma", AttributeName.CHARISMA},
+		{"Speed", AttributeName.SPEED},
+	};
+	private static readonly HashSet<string> RESISTANCES = new HashSet<string>(){
+		"Fire Res.", "Ice Res.", "Lightning Res.", "Poison Res.", "Curse Res."
+	};
 
 
 	void Start(){
@@ -178,5 +190,14 @@ public class CharacterCreationStatusMenu : Menu{
 		foreach(string key in NAME_TO_SKILLTYPE.Keys){
 			this.skill_to_description.Add(key, Resources.Load<TextAsset>(DESCRIPTION_DIR + key.ToLower()).ToString());
 		}
+
+		foreach(string key in NAME_TO_ATTRIBUTE.Keys){
+			this.skill_to_description.Add(key, Resources.Load<TextAsset>(DESCRIPTION_DIR + key.ToLower()).ToString());
+		}
+
+		foreach(string key in RESISTANCES){
+			this.skill_to_description.Add(key, Resources.Load<TextAsset>(DESCRIPTION_DIR + "resistance").ToString());			
+		}
 	}
+
 }
