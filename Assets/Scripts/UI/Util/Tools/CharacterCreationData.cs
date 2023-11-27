@@ -48,6 +48,9 @@ public static class CharacterCreationData {
 	private static SkillType primarySkill;
 	private static SkillType secondarySkill;
 
+	// Metadata
+	private static string remainingPoints;
+
 
 	public static void Reset(){
 		race = Race.HUMAN;
@@ -96,6 +99,7 @@ public static class CharacterCreationData {
 	public static void SetSecondarySkill(SkillType s){secondarySkill = s;}
 	public static void SetAlignment(Alignment a){alignment = a;}
 	public static void SetReligion(Religion r){religion = r;}
+	public static void SetRemainingPoints(string p){remainingPoints = p;}
 
 	public static Color GetClothesColor1(){return clothesColor1;}
 	public static Color GetClothesColor2(){return clothesColor2;}
@@ -113,6 +117,11 @@ public static class CharacterCreationData {
 	public static SkillType GetSecondarySkill(){return secondarySkill;}
 	public static Alignment GetAlignment(){return alignment;}
 	public static Religion GetReligion(){return religion;}
+	public static string GetRemainingPoints(){
+		if(remainingPoints == null)
+			return "10/10";
+		return remainingPoints;
+	}
 
 	public static short GetAttribute(AttributeName at){
 		switch(at){
@@ -140,6 +149,37 @@ public static class CharacterCreationData {
 				return Sum(curseRes);
 			case AttributeName.SPEED:
 				return Sum(speed);
+			default:
+				return 0;
+		}
+	}
+
+	public static short GetAttributeNoBonus(AttributeName at){
+		switch(at){
+			case AttributeName.STRENGTH:
+				return SumNoBonus(strength);
+			case AttributeName.PRECISION:
+				return SumNoBonus(precision);
+			case AttributeName.VITALITY:
+				return SumNoBonus(vitality);
+			case AttributeName.EVASION:
+				return SumNoBonus(evasion);
+			case AttributeName.MAGIC:
+				return SumNoBonus(magic);
+			case AttributeName.CHARISMA:
+				return SumNoBonus(charisma);
+			case AttributeName.FIRE_RESISTANCE:
+				return SumNoBonus(fireRes);
+			case AttributeName.ICE_RESISTANCE:
+				return SumNoBonus(iceRes);
+			case AttributeName.LIGHTNING_RESISTANCE:
+				return SumNoBonus(lightningRes);
+			case AttributeName.POISON_RESISTANCE:
+				return SumNoBonus(poisonRes);
+			case AttributeName.CURSE_RESISTANCE:
+				return SumNoBonus(curseRes);
+			case AttributeName.SPEED:
+				return SumNoBonus(speed);
 			default:
 				return 0;
 		}
@@ -256,6 +296,14 @@ public static class CharacterCreationData {
 
 		for(int i=0; i < a.Length; i++)
 			sum += a[i];
+
+		return (short)sum;
+	}
+
+	private static short SumNoBonus(short[] a){
+		int sum = 0;
+
+		sum = a[0] + a[1];
 
 		return (short)sum;
 	}

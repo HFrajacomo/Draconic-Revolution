@@ -11062,6 +11062,7 @@ MonoBehaviour:
   curseResField: {fileID: 985255459}
   speedField: {fileID: 830655593}
   descriptionText: {fileID: 141008142}
+  pointsPool: {fileID: 1824494172}
 --- !u!4 &314149359
 Transform:
   m_ObjectHideFlags: 0
@@ -30740,7 +30741,7 @@ MonoBehaviour:
   deleteWorldMenu: {fileID: 17456769}
   characterCreationMenu: {fileID: 1425498535}
   characterCreationDataMenu: {fileID: 314149358}
-  characterCreationReligionMenu: {fileID: 0}
+  characterCreationReligionMenu: {fileID: 155365234}
 --- !u!1 &880298628
 GameObject:
   m_ObjectHideFlags: 0

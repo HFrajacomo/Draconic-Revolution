@@ -39,5 +39,18 @@ public class AttributeInputField : MonoBehaviour {
 
 	public bool IsAtBase(){return Convert.ToInt32(this.field.text) == this.baseValue;}
 
-	public void SetFieldValue(short val){this.field.text = val.ToString(); SetBaseValue((int)val); ColorField();}
+	public void SetFieldValue(short val, short baseVal){
+		this.field.text = val.ToString();
+		SetBaseValue(baseVal);
+		ColorField();
+	}
+
+	public void SetFieldValue(short val){
+		this.field.text = val.ToString();
+		ColorField();
+	}
+
+	public void UpdateGeometry(){
+		this.field.GetComponentInChildren<Text>().Rebuild(CanvasUpdate.Layout);
+	}
 }

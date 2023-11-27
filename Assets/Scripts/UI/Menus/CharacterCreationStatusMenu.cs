@@ -102,18 +102,33 @@ public class CharacterCreationStatusMenu : Menu{
 	public override void Enable(){
 		this.mainObject.SetActive(true);
 
-		this.strengthField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.STRENGTH));
-		this.precisionField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.PRECISION));
-		this.vitalityField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.VITALITY));
-		this.evasionField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.EVASION));
-		this.magicField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.MAGIC));
-		this.charismaField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.CHARISMA));
-		this.fireResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.FIRE_RESISTANCE));
-		this.iceResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.ICE_RESISTANCE));
-		this.lightningResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.LIGHTNING_RESISTANCE));
-		this.poisonResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.POISON_RESISTANCE));
-		this.curseResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.CURSE_RESISTANCE));
-		this.speedField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.SPEED));
+		this.pointsPool.text = CharacterCreationData.GetRemainingPoints();
+		this.strengthField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.STRENGTH), CharacterCreationData.GetAttributeNoBonus(AttributeName.STRENGTH));
+		this.precisionField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.PRECISION), CharacterCreationData.GetAttributeNoBonus(AttributeName.PRECISION));
+		this.vitalityField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.VITALITY), CharacterCreationData.GetAttributeNoBonus(AttributeName.VITALITY));
+		this.evasionField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.EVASION), CharacterCreationData.GetAttributeNoBonus(AttributeName.EVASION));
+		this.magicField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.MAGIC), CharacterCreationData.GetAttributeNoBonus(AttributeName.MAGIC));
+		this.charismaField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.CHARISMA), CharacterCreationData.GetAttributeNoBonus(AttributeName.CHARISMA));
+		this.fireResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.FIRE_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.FIRE_RESISTANCE));
+		this.iceResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.ICE_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.ICE_RESISTANCE));
+		this.lightningResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.LIGHTNING_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.LIGHTNING_RESISTANCE));
+		this.poisonResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.POISON_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.POISON_RESISTANCE));
+		this.curseResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.CURSE_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.CURSE_RESISTANCE));
+		this.speedField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.SPEED), CharacterCreationData.GetAttributeNoBonus(AttributeName.SPEED));
+	
+		this.pointsPool.GetComponentInChildren<Text>().Rebuild(CanvasUpdate.Layout);
+		this.strengthField.UpdateGeometry();
+		this.precisionField.UpdateGeometry();
+		this.vitalityField.UpdateGeometry();
+		this.evasionField.UpdateGeometry();
+		this.magicField.UpdateGeometry();
+		this.charismaField.UpdateGeometry();
+		this.fireResField.UpdateGeometry();
+		this.iceResField.UpdateGeometry();
+		this.lightningResField.UpdateGeometry();
+		this.poisonResField.UpdateGeometry();
+		this.curseResField.UpdateGeometry();
+		this.speedField.UpdateGeometry();
 	}
 
 
@@ -177,41 +192,59 @@ public class CharacterCreationStatusMenu : Menu{
 	}
 
 	public void OpenCharacterCreationMenu(){
+		SetupDataValues();
+
 		this.RequestMenuChange(MenuID.CHARACTER_CREATION);
 	}
 
 	public void OpenCharacterCreationReligionMenu(){
-		if(this.selectedPrimary == null || this.selectedSecondary == null || this.pointsPool.text != "0/10")
-			return;
+		if(SetupDataValues())
+			this.RequestMenuChange(MenuID.CHARACTER_CREATION_RELIGION);
+	}
 
-		CharacterCreationData.SetPrimarySkill((SkillType)this.selectedPrimary);
-		CharacterCreationData.SetSecondarySkill((SkillType)this.selectedSecondary);
+	private bool SetupDataValues(){
+		bool returnCode = true;
 
-        CharacterCreationData.SetAttribute(AttributeName.STRENGTH, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.STRENGTH));
-        CharacterCreationData.AddAttribute(AttributeName.STRENGTH, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.STRENGTH));
-        CharacterCreationData.SetAttribute(AttributeName.PRECISION, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.PRECISION));
-        CharacterCreationData.AddAttribute(AttributeName.PRECISION, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.PRECISION));
-        CharacterCreationData.SetAttribute(AttributeName.VITALITY, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.VITALITY));
-        CharacterCreationData.AddAttribute(AttributeName.VITALITY, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.VITALITY));
-        CharacterCreationData.SetAttribute(AttributeName.EVASION, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.EVASION));
-        CharacterCreationData.AddAttribute(AttributeName.EVASION, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.EVASION));
-        CharacterCreationData.SetAttribute(AttributeName.MAGIC, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.MAGIC));
-        CharacterCreationData.AddAttribute(AttributeName.MAGIC, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.MAGIC));
-        CharacterCreationData.SetAttribute(AttributeName.CHARISMA, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.CHARISMA));
-        CharacterCreationData.AddAttribute(AttributeName.CHARISMA, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.CHARISMA));
-        CharacterCreationData.SetAttribute(AttributeName.SPEED, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.SPEED));
-        CharacterCreationData.AddAttribute(AttributeName.SPEED, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.SPEED));
+		CharacterCreationData.SetRemainingPoints(this.pointsPool.text);
 
-        CharacterCreationData.SetAttribute(AttributeName.FIRE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.FIRE_RESISTANCE));
-        CharacterCreationData.AddAttribute(AttributeName.FIRE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.FIRE_RESISTANCE));
-        CharacterCreationData.SetAttribute(AttributeName.ICE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.ICE_RESISTANCE));
-        CharacterCreationData.AddAttribute(AttributeName.ICE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.ICE_RESISTANCE));
-        CharacterCreationData.SetAttribute(AttributeName.LIGHTNING_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.LIGHTNING_RESISTANCE));
-        CharacterCreationData.AddAttribute(AttributeName.LIGHTNING_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.LIGHTNING_RESISTANCE));
-        CharacterCreationData.SetAttribute(AttributeName.POISON_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.POISON_RESISTANCE));
-        CharacterCreationData.AddAttribute(AttributeName.POISON_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.POISON_RESISTANCE));
-        CharacterCreationData.SetAttribute(AttributeName.CURSE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.CURSE_RESISTANCE));
-        CharacterCreationData.AddAttribute(AttributeName.CURSE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.CURSE_RESISTANCE));
+		if(this.selectedPrimary != null){
+			CharacterCreationData.SetPrimarySkill((SkillType)this.selectedPrimary);
+	        CharacterCreationData.SetAttribute(AttributeName.STRENGTH, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.STRENGTH));
+	        CharacterCreationData.SetAttribute(AttributeName.PRECISION, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.PRECISION));
+	        CharacterCreationData.SetAttribute(AttributeName.VITALITY, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.VITALITY));
+	        CharacterCreationData.SetAttribute(AttributeName.EVASION, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.EVASION));
+	        CharacterCreationData.SetAttribute(AttributeName.MAGIC, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.MAGIC));
+	        CharacterCreationData.SetAttribute(AttributeName.CHARISMA, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.CHARISMA));
+	        CharacterCreationData.SetAttribute(AttributeName.SPEED, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.SPEED));
+	        CharacterCreationData.SetAttribute(AttributeName.FIRE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.FIRE_RESISTANCE));
+	        CharacterCreationData.SetAttribute(AttributeName.ICE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.ICE_RESISTANCE));
+	        CharacterCreationData.SetAttribute(AttributeName.LIGHTNING_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.LIGHTNING_RESISTANCE));
+	        CharacterCreationData.SetAttribute(AttributeName.POISON_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.POISON_RESISTANCE));
+	        CharacterCreationData.SetAttribute(AttributeName.CURSE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.CURSE_RESISTANCE));
+		}
+		else
+			returnCode = false;
+
+		if(this.selectedSecondary != null){
+			CharacterCreationData.SetSecondarySkill((SkillType)this.selectedSecondary);
+	        CharacterCreationData.AddAttribute(AttributeName.STRENGTH, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.STRENGTH));
+	        CharacterCreationData.AddAttribute(AttributeName.PRECISION, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.PRECISION));
+	        CharacterCreationData.AddAttribute(AttributeName.VITALITY, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.VITALITY));
+	        CharacterCreationData.AddAttribute(AttributeName.EVASION, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.EVASION));
+	        CharacterCreationData.AddAttribute(AttributeName.MAGIC, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.MAGIC));
+	        CharacterCreationData.AddAttribute(AttributeName.CHARISMA, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.CHARISMA));
+	        CharacterCreationData.AddAttribute(AttributeName.SPEED, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.SPEED));
+	        CharacterCreationData.AddAttribute(AttributeName.FIRE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.FIRE_RESISTANCE));
+	        CharacterCreationData.AddAttribute(AttributeName.ICE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.ICE_RESISTANCE));
+	        CharacterCreationData.AddAttribute(AttributeName.LIGHTNING_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.LIGHTNING_RESISTANCE));
+	        CharacterCreationData.AddAttribute(AttributeName.POISON_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.POISON_RESISTANCE));
+	        CharacterCreationData.AddAttribute(AttributeName.CURSE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedSecondary, AttributeName.CURSE_RESISTANCE));
+    	}
+    	else
+    		returnCode = false;
+
+    	if(this.pointsPool.text != "0/10")
+    		returnCode = false;
 
         CharacterCreationData.SetAttribute(AttributeName.STRENGTH, 2, this.strengthField.GetExtra());
         CharacterCreationData.SetAttribute(AttributeName.PRECISION, 2, this.precisionField.GetExtra());
@@ -220,7 +253,8 @@ public class CharacterCreationStatusMenu : Menu{
         CharacterCreationData.SetAttribute(AttributeName.MAGIC, 2, this.magicField.GetExtra());
         CharacterCreationData.SetAttribute(AttributeName.CHARISMA, 2, this.charismaField.GetExtra());
 
-		this.RequestMenuChange(MenuID.CHARACTER_CREATION_RELIGION);
+
+        return returnCode;
 	}
 
 	private bool CheckSameNameParent(GameObject obj, GameObject tgt){
@@ -257,6 +291,10 @@ public class CharacterCreationStatusMenu : Menu{
 		this.descriptionDiv.material.SetFloat("_HorizontalAdjustment", HORIZONTAL_ADJUSTMENT);
 		this.attributesDiv.material.SetFloat("_BorderSize", BORDER_SIZE_DESC_ATT);
 		this.attributesDiv.material.SetFloat("_HorizontalAdjustment", HORIZONTAL_ADJUSTMENT);
+	}
+
+	private void AddToSkill(SkillType skill, bool isAdd){
+
 	}
 
 	private void LoadDescriptions(){
