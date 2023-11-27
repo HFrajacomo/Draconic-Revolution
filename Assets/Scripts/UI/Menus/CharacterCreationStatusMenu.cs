@@ -133,10 +133,15 @@ public class CharacterCreationStatusMenu : Menu{
 
 
 	public void SelectPrimary(GameObject go){
+		if(!INIT)
+			return;
+
 		bool current = go.GetComponent<Toggle>().isOn;
 
 		// If has been toggled off
 		if(!current){
+			AddToSkill((SkillType)this.selectedPrimary, multiplier:-2);
+
 			this.selectedPrimary = null;
 			this.selectedPrimaryToggle = null;
 			return;
@@ -147,6 +152,7 @@ public class CharacterCreationStatusMenu : Menu{
 
 		this.selectedPrimaryToggle = go;
 		this.selectedPrimary = NAME_TO_SKILLTYPE[go.transform.parent.name];
+		AddToSkill((SkillType)this.selectedPrimary, multiplier:2);
 
 		if(CheckSameNameParent(go, this.selectedSecondaryToggle)){
 			this.selectedSecondaryToggle.GetComponent<Toggle>().isOn = false;
@@ -157,10 +163,14 @@ public class CharacterCreationStatusMenu : Menu{
 	}
 
 	public void SelectSecondary(GameObject go){
+		if(!INIT)
+			return;
+
 		bool current = go.GetComponent<Toggle>().isOn;
 
 		// If has been toggled off
 		if(!current){
+			AddToSkill((SkillType)this.selectedSecondary, multiplier:-1);
 			this.selectedSecondary = null;
 			this.selectedSecondaryToggle = null;
 			return;
@@ -171,6 +181,7 @@ public class CharacterCreationStatusMenu : Menu{
 
 		this.selectedSecondaryToggle = go;
 		this.selectedSecondary = NAME_TO_SKILLTYPE[go.transform.parent.name];
+		AddToSkill((SkillType)this.selectedSecondary, multiplier:1);
 
 		if(CheckSameNameParent(go, this.selectedPrimaryToggle)){
 			this.selectedPrimaryToggle.GetComponent<Toggle>().isOn = false;
@@ -293,8 +304,33 @@ public class CharacterCreationStatusMenu : Menu{
 		this.attributesDiv.material.SetFloat("_HorizontalAdjustment", HORIZONTAL_ADJUSTMENT);
 	}
 
-	private void AddToSkill(SkillType skill, bool isAdd){
-
+	private void AddToSkill(SkillType skill, int multiplier=1){
+		CharacterCreationData.AddAttribute(AttributeName.STRENGTH, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.STRENGTH) * multiplier));
+		CharacterCreationData.AddAttribute(AttributeName.PRECISION, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.PRECISION) * multiplier));
+		CharacterCreationData.AddAttribute(AttributeName.VITALITY, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.VITALITY) * multiplier));
+		CharacterCreationData.AddAttribute(AttributeName.EVASION, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.EVASION) * multiplier));
+		CharacterCreationData.AddAttribute(AttributeName.MAGIC, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.MAGIC) * multiplier));
+		CharacterCreationData.AddAttribute(AttributeName.CHARISMA, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.CHARISMA) * multiplier));
+	
+		CharacterCreationData.AddAttribute(AttributeName.FIRE_RESISTANCE, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.FIRE_RESISTANCE) * multiplier));
+		CharacterCreationData.AddAttribute(AttributeName.ICE_RESISTANCE, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.ICE_RESISTANCE) * multiplier));
+		CharacterCreationData.AddAttribute(AttributeName.LIGHTNING_RESISTANCE, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.LIGHTNING_RESISTANCE) * multiplier));
+		CharacterCreationData.AddAttribute(AttributeName.POISON_RESISTANCE, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.POISON_RESISTANCE) * multiplier));
+		CharacterCreationData.AddAttribute(AttributeName.CURSE_RESISTANCE, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.CURSE_RESISTANCE) * multiplier));
+		CharacterCreationData.AddAttribute(AttributeName.SPEED, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease(skill, AttributeName.SPEED) * multiplier));
+	
+		this.strengthField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.STRENGTH), CharacterCreationData.GetAttributeNoBonus(AttributeName.STRENGTH));
+		this.precisionField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.PRECISION), CharacterCreationData.GetAttributeNoBonus(AttributeName.PRECISION));
+		this.vitalityField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.VITALITY), CharacterCreationData.GetAttributeNoBonus(AttributeName.VITALITY));
+		this.evasionField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.EVASION), CharacterCreationData.GetAttributeNoBonus(AttributeName.EVASION));
+		this.magicField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.MAGIC), CharacterCreationData.GetAttributeNoBonus(AttributeName.MAGIC));
+		this.charismaField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.CHARISMA), CharacterCreationData.GetAttributeNoBonus(AttributeName.CHARISMA));
+		this.speedField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.SPEED), CharacterCreationData.GetAttributeNoBonus(AttributeName.SPEED));
+		this.fireResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.FIRE_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.FIRE_RESISTANCE));
+		this.iceResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.ICE_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.ICE_RESISTANCE));
+		this.lightningResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.LIGHTNING_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.LIGHTNING_RESISTANCE));
+		this.poisonResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.POISON_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.POISON_RESISTANCE));
+		this.curseResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.CURSE_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.CURSE_RESISTANCE));
 	}
 
 	private void LoadDescriptions(){
