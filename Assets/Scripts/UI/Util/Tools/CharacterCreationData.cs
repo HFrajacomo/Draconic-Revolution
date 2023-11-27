@@ -1,8 +1,13 @@
 using UnityEngine;
 
 public static class CharacterCreationData {
+	// Basic
 	private static string name;
 	private static Race race;
+	private static Religion religion;
+	private static Alignment alignment;
+
+	// Model Appearance
 	private static bool isMale;
 	private static ushort clothes;
 	private static ushort legs;
@@ -38,6 +43,11 @@ public static class CharacterCreationData {
 	private static short[] poisonRes = new short[]{0,0,0};
 	private static short[] curseRes = new short[]{0,0,0};
 	private static short[] speed = new short[]{0,0,0};
+
+	// Skills
+	private static SkillType primarySkill;
+	private static SkillType secondarySkill;
+
 
 	public static void Reset(){
 		race = Race.HUMAN;
@@ -82,6 +92,11 @@ public static class CharacterCreationData {
 	public static void SetHatsColor1(Color c){hatsColor1 = c;}
 	public static void SetHatsColor2(Color c){hatsColor2 = c;}
 	public static void SetHatsColor3(Color c){hatsColor3 = c;}
+	public static void SetPrimarySkill(SkillType s){primarySkill = s;}
+	public static void SetSecondarySkill(SkillType s){secondarySkill = s;}
+	public static void SetAlignment(Alignment a){alignment = a;}
+	public static void SetReligion(Religion r){religion = r;}
+
 	public static Color GetClothesColor1(){return clothesColor1;}
 	public static Color GetClothesColor2(){return clothesColor2;}
 	public static Color GetClothesColor3(){return clothesColor3;}
@@ -94,6 +109,10 @@ public static class CharacterCreationData {
 	public static Color GetHatsColor1(){return hatsColor1;}
 	public static Color GetHatsColor2(){return hatsColor2;}
 	public static Color GetHatsColor3(){return hatsColor3;}
+	public static SkillType GetPrimarySkill(){return primarySkill;}
+	public static SkillType GetSecondarySkill(){return secondarySkill;}
+	public static Alignment GetAlignment(){return alignment;}
+	public static Religion GetReligion(){return religion;}
 
 	public static short GetAttribute(AttributeName at){
 		switch(at){
@@ -163,6 +182,49 @@ public static class CharacterCreationData {
 				return;
 			case AttributeName.SPEED:
 				speed[i] = val;
+				return;
+			default:
+				return;
+		}
+	}
+
+	public static void AddAttribute(AttributeName at, int i, short val){
+		switch(at){
+			case AttributeName.STRENGTH:
+				strength[i] += val;
+				return;
+			case AttributeName.PRECISION:
+				precision[i] += val;
+				return;
+			case AttributeName.VITALITY:
+				vitality[i] += val;
+				return;
+			case AttributeName.EVASION:
+				evasion[i] += val;
+				return;
+			case AttributeName.MAGIC:
+				magic[i] += val;
+				return;
+			case AttributeName.CHARISMA:
+				charisma[i] += val;
+				return;
+			case AttributeName.FIRE_RESISTANCE:
+				fireRes[i] += val;
+				return;
+			case AttributeName.ICE_RESISTANCE:
+				iceRes[i] += val;
+				return;
+			case AttributeName.LIGHTNING_RESISTANCE:
+				lightningRes[i] += val;
+				return;
+			case AttributeName.POISON_RESISTANCE:
+				poisonRes[i] += val;
+				return;
+			case AttributeName.CURSE_RESISTANCE:
+				curseRes[i] += val;
+				return;
+			case AttributeName.SPEED:
+				speed[i] += val;
 				return;
 			default:
 				return;

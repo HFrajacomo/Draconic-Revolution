@@ -33,6 +33,8 @@ public class AttributeInputField : MonoBehaviour {
 			this.field.textComponent.color = this.decreasedColor;
 	}
 
+	public short GetExtra(){return (short)(Convert.ToInt32(this.field.text) - this.baseValue);}
+
 	public void SetBaseValue(int val){this.baseValue = val;}
 
 	public bool IsAtBase(){return Convert.ToInt32(this.field.text) == this.baseValue;}
