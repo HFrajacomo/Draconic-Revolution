@@ -40,7 +40,6 @@ public class PointsPoolControllers : MonoBehaviour {
 	}
 
 
-
 	private int ToNumber(string text){
 		return Convert.ToInt32(text);
 	}

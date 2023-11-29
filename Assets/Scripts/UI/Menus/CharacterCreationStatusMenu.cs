@@ -190,6 +190,23 @@ public class CharacterCreationStatusMenu : Menu{
 		}
 	}
 
+	public void AddToExtra(string att){
+		if(Convert.ToInt32(this.pointsPool.text.Split("/")[0]) == 0)
+			return;
+
+		AttributeName attribute = NAME_TO_ATTRIBUTE[att];
+		CharacterCreationData.AddAttribute(attribute, 2, 1);
+	}
+
+	public void SubToExtra(string att){
+		AttributeName attribute = NAME_TO_ATTRIBUTE[att];
+
+		if(GetField(attribute).IsAtBase())
+			return;
+
+		CharacterCreationData.AddAttribute(attribute, 2, -1);
+	}
+
 	public void HoverIn(GameObject go){
 		string key = go.GetComponentInChildren<Text>().text;
 
@@ -257,6 +274,8 @@ public class CharacterCreationStatusMenu : Menu{
     	if(this.pointsPool.text != "0/10")
     		returnCode = false;
 
+    	Debug.Log(this.strengthField.GetExtra());
+
         CharacterCreationData.SetAttribute(AttributeName.STRENGTH, 2, this.strengthField.GetExtra());
         CharacterCreationData.SetAttribute(AttributeName.PRECISION, 2, this.precisionField.GetExtra());
         CharacterCreationData.SetAttribute(AttributeName.VITALITY, 2, this.vitalityField.GetExtra());
@@ -286,6 +305,25 @@ public class CharacterCreationStatusMenu : Menu{
 		}
 
 		INIT = true;
+	}
+
+	private AttributeInputField GetField(AttributeName att){
+		switch(att){
+			case AttributeName.STRENGTH:
+				return this.strengthField;
+			case AttributeName.PRECISION:
+				return this.precisionField;
+			case AttributeName.VITALITY:
+				return this.vitalityField;
+			case AttributeName.EVASION:
+				return this.evasionField;
+			case AttributeName.MAGIC:
+				return this.magicField;
+			case AttributeName.CHARISMA:
+				return this.charismaField;
+			default:
+				return this.strengthField;
+		}
 	}
 
 	private void SetupShaders(){
