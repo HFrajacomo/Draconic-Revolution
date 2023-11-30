@@ -274,8 +274,6 @@ public class CharacterCreationStatusMenu : Menu{
     	if(this.pointsPool.text != "0/10")
     		returnCode = false;
 
-    	Debug.Log(this.strengthField.GetExtra());
-
         CharacterCreationData.SetAttribute(AttributeName.STRENGTH, 2, this.strengthField.GetExtra());
         CharacterCreationData.SetAttribute(AttributeName.PRECISION, 2, this.precisionField.GetExtra());
         CharacterCreationData.SetAttribute(AttributeName.VITALITY, 2, this.vitalityField.GetExtra());
@@ -300,8 +298,8 @@ public class CharacterCreationStatusMenu : Menu{
 				t.GetComponent<Image>().material = Instantiate(toggleMaterial);
 				t.isOn = false;
 				t.GetComponent<ShaderBorderFillToggle>().RefreshToggle(false);
-				LoadDescriptions();
-			}			
+			}		
+			LoadDescriptions();
 		}
 
 		INIT = true;
