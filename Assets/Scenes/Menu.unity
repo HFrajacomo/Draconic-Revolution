@@ -5090,6 +5090,20 @@ MonoBehaviour:
   - {fileID: 1984067192}
   - {fileID: 1369652461}
   - {fileID: 1821444519}
+  inquisitionGO: {fileID: 1195850561}
+  necrocismGO: {fileID: 1885320847}
+  lawfulsGO:
+  - {fileID: 717258312}
+  - {fileID: 1754411857}
+  - {fileID: 954554829}
+  neutralsGO:
+  - {fileID: 2084083501}
+  - {fileID: 1434199258}
+  - {fileID: 756682826}
+  chaoticsGO:
+  - {fileID: 1984067192}
+  - {fileID: 1369652461}
+  - {fileID: 1821444519}
 --- !u!4 &155365235
 Transform:
   m_ObjectHideFlags: 0

@@ -26,6 +26,13 @@ public class CharacterCreationReligionMenu : Menu{
 	public Toggle[] allToggles;
 	public Button[] allAlignmentButtons;
 
+	[Header("Exclusion Nodes")]
+	public GameObject inquisitionGO;
+	public GameObject necrocismGO;
+	public Button[] lawfulsGO;
+	public Button[] neutralsGO;
+	public Button[] chaoticsGO;
+
 	private GameObject selectedReligionToggle;
 	private GameObject selectedAlignmentButton;
 	
@@ -81,10 +88,13 @@ public class CharacterCreationReligionMenu : Menu{
 	private static readonly float BORDER_SIZE_SKILLS = 0.001f;
 	private static readonly float BORDER_SIZE_DESC_ATT = 0.002f;
 	private static readonly float BORDER_SIZE_TOP = 0.016f;
+	private static readonly Color BORDER_ENABLED = new Color(.43f, .9f, .68f);
 
 	private static readonly Color BUTTON_DEFAULT_COLOR = new Color(.14f, .35f, .45f);
 	private static readonly Color BUTTON_SELECTED_COLOR = new Color(.05f, .05f, .34f);
 	private static readonly Color BUTTON_HIGHLIGHTED_COLOR = new Color(.02f, .22f, .42f);
+	private static readonly Color BUTTON_DISABLED_COLOR = new Color(.3f, .3f, .3f);
+	private static readonly Color DARKER_GREY = new Color(.27f, .27f, .27f);
 
 	void Start(){
 		Init();
@@ -102,6 +112,7 @@ public class CharacterCreationReligionMenu : Menu{
 		if(!current){
 			this.selectedReligion = null;
 			this.selectedReligionToggle = null;
+			SetDisabilities();
 			return;
 		}
 
@@ -110,6 +121,8 @@ public class CharacterCreationReligionMenu : Menu{
 
 		this.selectedReligionToggle = go;
 		this.selectedReligion = NAME_TO_RELIGION[go.transform.parent.name];
+
+		SetDisabilities();
 	}
 
 	public void SelectAlignment(GameObject go){
@@ -122,6 +135,8 @@ public class CharacterCreationReligionMenu : Menu{
 
 			this.selectedAlignment = null;
 			this.selectedAlignmentButton = null;
+			DeselectClickedButton();
+			SetDisabilities();
 			return;
 		}
 
@@ -134,6 +149,8 @@ public class CharacterCreationReligionMenu : Menu{
 		this.colorBlock.normalColor = BUTTON_SELECTED_COLOR;
 		this.selectedAlignmentButton.GetComponent<Button>().colors = this.colorBlock;
 		this.selectedAlignment = NAME_TO_ALIGNMENT[go.transform.name];
+
+		SetDisabilities();
 	}
 
 	public void HoverIn(GameObject go){
@@ -177,6 +194,7 @@ public class CharacterCreationReligionMenu : Menu{
 		this.colorBlock.normalColor = BUTTON_DEFAULT_COLOR;
 		this.colorBlock.selectedColor = BUTTON_SELECTED_COLOR;
 		this.colorBlock.highlightedColor = BUTTON_HIGHLIGHTED_COLOR;
+		this.colorBlock.disabledColor = BUTTON_DISABLED_COLOR;
 
 		foreach(Button b in allAlignmentButtons){
 			b.colors = this.colorBlock;
@@ -197,4 +215,115 @@ public class CharacterCreationReligionMenu : Menu{
 		this.alignmentDiv.material.SetFloat("_HorizontalAdjustment", HORIZONTAL_ADJUSTMENT);
 	}
 
+	private void SetDisabilities(){
+		if(CharacterCreationData.GetRace() != Race.UNDEAD)
+			return;
+
+		bool isExclusion = false;
+
+		if(this.selectedAlignment != null){
+			if(AlignmentTools.IsChaotic((Alignment)this.selectedAlignment)){
+				if(this.selectedReligion != Religion.NECROCISM){
+					this.selectedReligion = null;
+
+					if(this.selectedReligionToggle != null)
+						this.selectedReligionToggle.GetComponent<Toggle>().isOn = false;
+
+					this.selectedReligionToggle = null;
+				}
+
+				isExclusion = true;
+
+				RunToggles(this.necrocismGO);
+			}
+			else if(AlignmentTools.IsLawful((Alignment)this.selectedAlignment)){
+				if(this.selectedReligion != Religion.INQUISITION){
+					this.selectedReligion = null;
+
+					if(this.selectedReligionToggle != null)
+						this.selectedReligionToggle.GetComponent<Toggle>().isOn = false;
+
+					this.selectedReligionToggle = null;
+				}
+
+				isExclusion = true;
+
+				RunToggles(this.inquisitionGO);
+			}
+		}
+		if(this.selectedReligion != null){
+			if(this.selectedReligion == Religion.INQUISITION){
+				if(this.selectedAlignment != null){
+					if(!AlignmentTools.IsLawful((Alignment)this.selectedAlignment)){
+						this.selectedAlignment = null;
+						this.colorBlock.normalColor = BUTTON_DEFAULT_COLOR;
+						this.selectedAlignmentButton.GetComponent<Button>().colors = this.colorBlock;
+						this.selectedAlignmentButton = null;					
+					}
+				}
+
+				isExclusion = true;
+
+				ToggleButtons(this.lawfulsGO, true);
+				ToggleButtons(this.neutralsGO, false);
+				ToggleButtons(this.chaoticsGO, false);
+			}
+			else if(this.selectedReligion == Religion.NECROCISM){
+				if(this.selectedAlignment != null){
+					if(!AlignmentTools.IsChaotic((Alignment)this.selectedAlignment)){
+						this.selectedAlignment = null;
+						this.colorBlock.normalColor = BUTTON_DEFAULT_COLOR;
+						this.selectedAlignmentButton.GetComponent<Button>().colors = this.colorBlock;
+						this.selectedAlignmentButton = null;					
+					}
+				}
+
+				isExclusion = true;
+
+				ToggleButtons(this.chaoticsGO, true);
+				ToggleButtons(this.neutralsGO, false);
+				ToggleButtons(this.lawfulsGO, false);				
+			}
+		}
+
+		if(!isExclusion){
+			RunToggles(null);
+
+			ToggleButtons(this.neutralsGO, true);
+			ToggleButtons(this.lawfulsGO, true);
+			ToggleButtons(this.chaoticsGO, true);
+		}
+	}
+
+	private void ToggleButtons(Button[] array, bool toggle){
+		foreach(Button b in array){
+			b.interactable = toggle;
+
+			if(toggle)
+				b.GetComponentInChildren<Text>().color = Color.white;
+			else
+				b.GetComponentInChildren<Text>().color = DARKER_GREY;	
+		}
+	}
+
+	#nullable enable
+	private void RunToggles(GameObject? excluded){
+		if(excluded == null){
+			foreach(Toggle t in allToggles){
+				t.interactable = true;
+				t.GetComponent<Image>().material.SetColor("_BorderColor", BORDER_ENABLED);
+				t.transform.parent.gameObject.GetComponentInChildren<Text>().color = Color.white;
+			}
+		}
+		else{
+			foreach(Toggle t in allToggles){
+				if(t.transform.parent.name != excluded.name){
+					t.interactable = false;
+					t.GetComponent<Image>().material.SetColor("_BorderColor", DARKER_GREY);
+					t.transform.parent.gameObject.GetComponentInChildren<Text>().color = DARKER_GREY;
+				}
+			}
+		}
+	}
+	#nullable disable
 }
