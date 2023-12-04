@@ -114,6 +114,7 @@ public class CharacterCreationMenu : Menu{
 
     private CharacterBuilder characterBuilder;
     private bool INIT = false;
+    private bool ENABLED = false;
 
     // Items List
     private List<GameObject> clothesItems = new List<GameObject>();
@@ -171,8 +172,59 @@ public class CharacterCreationMenu : Menu{
 
     public override void Enable(){
         this.mainObject.SetActive(true);
-        ResetColors();
-        LoadDefaultModel(isMale:this.selectedGenderIsMale);
+
+        if(ENABLED){
+            GameObject loadedModel;
+
+            // Load General info
+            this.nameInput.text = CharacterCreationData.GetName();
+            SelectRace(IdentifyRace(CharacterCreationData.GetRace()));
+            SelectGender(IdentifyGender(CharacterCreationData.GetMale()));
+
+            // Load Color Pallete
+            this.clothesColor1 = CharacterCreationData.GetClothesColor1();
+            this.clothesColor2 = CharacterCreationData.GetClothesColor2();
+            this.clothesColor3 = CharacterCreationData.GetClothesColor3();
+            this.legsColor1 = CharacterCreationData.GetLegsColor1();
+            this.legsColor2 = CharacterCreationData.GetLegsColor2();
+            this.legsColor3 = CharacterCreationData.GetLegsColor3();
+            this.hatsColor1 = CharacterCreationData.GetHatsColor1();
+            this.hatsColor2 = CharacterCreationData.GetHatsColor2();
+            this.hatsColor3 = CharacterCreationData.GetHatsColor3();
+            this.bootsColor1 = CharacterCreationData.GetBootsColor1();
+            this.bootsColor2 = CharacterCreationData.GetBootsColor2();
+            this.bootsColor3 = CharacterCreationData.GetBootsColor3();
+
+
+            // Load Models
+            this.selectedDiv = ModelType.HEADGEAR;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModelByCode(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv));
+            SelectItem(ModelHandler.GetModelName(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv)), loadedModel);
+
+            this.selectedDiv = ModelType.FOOTGEAR;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModelByCode(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv));
+            SelectItem(ModelHandler.GetModelName(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv)), loadedModel);
+
+            this.selectedDiv = ModelType.LEGS;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModelByCode(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv));
+            SelectItem(ModelHandler.GetModelName(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv)), loadedModel);
+
+            this.selectedDiv = ModelType.CLOTHES;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModelByCode(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv));
+            SelectItem(ModelHandler.GetModelName(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv)), loadedModel);
+
+            ToggleDiv(this.generalButton);
+        }
+        else{
+            ResetColors();
+            LoadDefaultModel(isMale:this.selectedGenderIsMale);  
+        }
+
+        ENABLED = true;
     }
 
     void Start(){
@@ -380,6 +432,17 @@ public class CharacterCreationMenu : Menu{
         GameObject go = ModelHandler.GetModelObject(this.selectedDiv, name);
         go.name = GenerateGoName();
         this.characterBuilder.Add(this.selectedDiv, go, name);
+
+        ShowColorPickers(go.GetComponent<SkinnedMeshRenderer>().materials.Length);
+        ApplyColorToModel(go);
+
+        return go;
+    }
+
+    private GameObject LoadModelByCode(ModelType type, ushort code){
+        GameObject go = ModelHandler.GetModelByCode(type, code);
+        go.name = GenerateGoName();
+        this.characterBuilder.Add(type, go, name);
 
         ShowColorPickers(go.GetComponent<SkinnedMeshRenderer>().materials.Length);
         ApplyColorToModel(go);

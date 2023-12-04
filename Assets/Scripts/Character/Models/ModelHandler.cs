@@ -40,6 +40,36 @@ public static class ModelHandler{
 		return GameObject.Instantiate(GameObject.Find("ModelAssets/" + mi.blenderReference));
 	}
 
+	public static GameObject GetModelByCode(ModelType type, ushort code){
+		switch(type){
+			case ModelType.CLOTHES:
+				return GetModelObject(type, clothesMap.Get(code));
+			case ModelType.LEGS:
+				return GetModelObject(type, legsMap.Get(code));
+			case ModelType.FOOTGEAR:
+				return GetModelObject(type, bootsMap.Get(code));
+			case ModelType.HEADGEAR:
+				return GetModelObject(type, hatsMap.Get(code));
+			default:
+				return GetModelObject(type, clothesMap.Get(code));
+		}
+	}
+
+	public static string GetModelName(ModelType type, ushort code){
+		switch(type){
+			case ModelType.CLOTHES:
+				return clothesMap.Get(code).Split("/")[0];
+			case ModelType.LEGS:
+				return legsMap.Get(code).Split("/")[0];
+			case ModelType.FOOTGEAR:
+				return bootsMap.Get(code).Split("/")[0];
+			case ModelType.HEADGEAR:
+				return hatsMap.Get(code).Split("/")[0];
+			default:
+				return "";
+		}
+	}
+
 	public static GameObject GetArmature(bool isMale=true){
 		if(isMale){
 			return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_MALE));

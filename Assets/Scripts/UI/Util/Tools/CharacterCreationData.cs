@@ -291,6 +291,21 @@ public static class CharacterCreationData {
 		}
 	}
 
+	public static ushort GetBodyPart(ModelType type){
+		switch(type){
+			case ModelType.CLOTHES:
+				return clothes;
+			case ModelType.LEGS:
+				return legs;
+			case ModelType.FOOTGEAR:
+				return boots;
+			case ModelType.HEADGEAR:
+				return hats;
+			default:
+				return clothes;
+		}
+	}
+
 	private static short Sum(short[] a){
 		int sum = 0;
 
