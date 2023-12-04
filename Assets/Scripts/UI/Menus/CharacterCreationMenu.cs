@@ -199,6 +199,7 @@ public class CharacterCreationMenu : Menu{
             this.selectedPresetItem.GetComponentInChildren<Text>().color = this.selectedColor;
 
             this.skinColorGradient = RaceManager.GetSettings(Race.HUMAN).gradient1;
+            this.skinColor = this.skinColorGradient.color2;
         }
         else{
             this.nameInput.text = CharacterCreationData.GetName();
@@ -1039,7 +1040,6 @@ public class CharacterCreationMenu : Menu{
     private void ApplyColorToModel(GameObject go){
         Material[] materials = go.GetComponent<SkinnedMeshRenderer>().materials;
 
-
         if(this.selectedDiv == ModelType.CLOTHES){
             if(materials.Length > 1){
                 materials[1] = this.clothesMat1;
@@ -1125,7 +1125,7 @@ public class CharacterCreationMenu : Menu{
         this.hairMat2 = Instantiate(this.prefabPlainMat);
         this.hairMat3 = Instantiate(this.prefabPlainMat);
 
-        this.skinColor = new Color(1f, 1f, 1f);
+        this.skinColor = this.skinColorGradient.color2;
         this.clothesColor1 = new Color(1f, 1f, 1f);
         this.clothesColor2 = new Color(0f, 0f, 0f);
         this.clothesColor3 = new Color(0f, 0f, 1f);

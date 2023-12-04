@@ -21,7 +21,7 @@ public class ColorPickerLerp : MonoBehaviour, IPointerClickHandler, IPointerDown
     private Color selectedColor;
 
     // Value
-    private float lerpValue;
+    private float lerpValue = 1f;
 
     // Internal Flag
     private bool isDragging;
@@ -31,8 +31,10 @@ public class ColorPickerLerp : MonoBehaviour, IPointerClickHandler, IPointerDown
     {
         Initialize();
 
-        if(isGradient)
+        if(isGradient){
             SetGradient(this.characterCreationMenu.GetSkinColorGradient());
+            CalculateColor(1f);
+        }
 
     }
 
