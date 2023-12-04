@@ -46,7 +46,7 @@ public class CharacterCreationReligionMenu : Menu{
 	private Dictionary<string, string> religion_to_description = new Dictionary<string, string>();
 	private Dictionary<string, string> alignment_to_description = new Dictionary<string, string>();
 
-	private static readonly string DESCRIPTION_DIR = "Text/CharacterCreationDescriptions/";
+	private static readonly string DESCRIPTION_DIR = "Text/CharacterCreationReligion/";
 	private static readonly Dictionary<string, Alignment> NAME_TO_ALIGNMENT = new Dictionary<string, Alignment>(){
 		{"Lawful Good", Alignment.LAWFUL_GOOD},
 		{"Lawful Neutral", Alignment.LAWFUL_NEUTRAL},
@@ -61,8 +61,6 @@ public class CharacterCreationReligionMenu : Menu{
 
 	private static readonly Dictionary<string, Religion> NAME_TO_RELIGION = new Dictionary<string, Religion>(){
 		{"No Religion", Religion.NONE},
-		{"Cronology", Religion.CRONOLOGY},
-		{"Existology", Religion.EXISTOLOGY},
 		{"Tenebrocism", Religion.TENEBROCISM},
 		{"Naturalism", Religion.NATURALISM},
 		{"Eihlism", Religion.EIHLISM},
@@ -99,6 +97,7 @@ public class CharacterCreationReligionMenu : Menu{
 	void Start(){
 		Init();
 		SetupShaders();
+		LoadDescriptions();
 	}
 
 
@@ -164,6 +163,25 @@ public class CharacterCreationReligionMenu : Menu{
 	public void HoverOut(){
 		this.descriptionText.text = "";
 	}
+
+	public void HoverInAlignment(GameObject go){
+		string key = go.GetComponentInChildren<Text>().text;
+
+		key = key.Replace("\n", "");
+
+		this.descriptionText.text = this.alignment_to_description[key];		
+	}
+
+	public void OpenCharacterCreationDataMenu(){
+		if(this.selectedAlignment == null || this.selectedReligion == null)
+			return;
+
+		CharacterCreationData.SetAlignment((Alignment)this.selectedAlignment);
+		CharacterCreationData.SetReligion((Religion)this.selectedReligion);
+
+		this.RequestMenuChange(MenuID.CHARACTER_CREATION_DATA);
+	}
+
 
 	private void Init(){
 		if(!INIT){

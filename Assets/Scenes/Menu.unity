@@ -890,8 +890,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -906,8 +906,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -4225,8 +4225,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -4241,8 +4241,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -10255,8 +10255,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -10271,8 +10271,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -12627,8 +12627,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -12643,8 +12643,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -13602,8 +13602,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -13618,8 +13618,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -14107,8 +14107,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -14123,8 +14123,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -14899,8 +14899,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -14915,8 +14915,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -15714,8 +15714,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -15730,8 +15730,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -21320,8 +21320,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -21336,8 +21336,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -23158,6 +23158,7 @@ GameObject:
   - component: {fileID: 717258311}
   - component: {fileID: 717258310}
   - component: {fileID: 717258312}
+  - component: {fileID: 717258313}
   m_Layer: 5
   m_Name: Lawful Good
   m_TagString: Untagged
@@ -23279,6 +23280,51 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &717258313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717258308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverInAlignment
+          m_Mode: 2
+          m_Arguments:
+            m_ObjectArgument: {fileID: 717258308}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverOut
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &717905197
 GameObject:
   m_ObjectHideFlags: 0
@@ -24753,6 +24799,7 @@ GameObject:
   - component: {fileID: 756682825}
   - component: {fileID: 756682824}
   - component: {fileID: 756682826}
+  - component: {fileID: 756682827}
   m_Layer: 5
   m_Name: Neutral Evil
   m_TagString: Untagged
@@ -24874,6 +24921,51 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &756682827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 756682822}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverInAlignment
+          m_Mode: 2
+          m_Arguments:
+            m_ObjectArgument: {fileID: 756682822}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverOut
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &758484671
 GameObject:
   m_ObjectHideFlags: 0
@@ -26672,7 +26764,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 480, y: -875}
-  m_SizeDelta: {x: 960, y: 210}
+  m_SizeDelta: {x: 960, y: 240}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &828751449
 CanvasRenderer:
@@ -30867,6 +30959,7 @@ GameObject:
   - component: {fileID: 954554828}
   - component: {fileID: 954554827}
   - component: {fileID: 954554829}
+  - component: {fileID: 954554830}
   m_Layer: 5
   m_Name: Lawful Evil
   m_TagString: Untagged
@@ -30988,6 +31081,51 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &954554830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 954554825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverInAlignment
+          m_Mode: 2
+          m_Arguments:
+            m_ObjectArgument: {fileID: 954554825}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverOut
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &963985684
 GameObject:
   m_ObjectHideFlags: 0
@@ -32762,7 +32900,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 480, y: -385}
-  m_SizeDelta: {x: 960, y: 770}
+  m_SizeDelta: {x: 960, y: 740}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &996044823
 MonoBehaviour:
@@ -34040,8 +34178,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -34056,8 +34194,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -38622,8 +38760,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -38638,8 +38776,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -39634,8 +39772,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -39650,8 +39788,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -45670,6 +45808,7 @@ GameObject:
   - component: {fileID: 1369652460}
   - component: {fileID: 1369652459}
   - component: {fileID: 1369652461}
+  - component: {fileID: 1369652462}
   m_Layer: 5
   m_Name: Chaotic Neutral
   m_TagString: Untagged
@@ -45791,6 +45930,51 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &1369652462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1369652457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverInAlignment
+          m_Mode: 2
+          m_Arguments:
+            m_ObjectArgument: {fileID: 1369652457}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverOut
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &1369726896
 GameObject:
   m_ObjectHideFlags: 0
@@ -48873,6 +49057,7 @@ GameObject:
   - component: {fileID: 1434199257}
   - component: {fileID: 1434199256}
   - component: {fileID: 1434199258}
+  - component: {fileID: 1434199259}
   m_Layer: 5
   m_Name: True Neutral
   m_TagString: Untagged
@@ -48994,6 +49179,51 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &1434199259
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1434199254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverInAlignment
+          m_Mode: 2
+          m_Arguments:
+            m_ObjectArgument: {fileID: 1434199254}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverOut
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &1435738087
 GameObject:
   m_ObjectHideFlags: 0
@@ -57149,8 +57379,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -57165,8 +57395,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -59727,8 +59957,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -59743,8 +59973,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -61553,8 +61783,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -61569,8 +61799,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -61619,6 +61849,7 @@ GameObject:
   - component: {fileID: 1754411856}
   - component: {fileID: 1754411855}
   - component: {fileID: 1754411857}
+  - component: {fileID: 1754411858}
   m_Layer: 5
   m_Name: Lawful Neutral
   m_TagString: Untagged
@@ -61740,6 +61971,51 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &1754411858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1754411853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverInAlignment
+          m_Mode: 2
+          m_Arguments:
+            m_ObjectArgument: {fileID: 1754411853}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverOut
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &1760492193
 GameObject:
   m_ObjectHideFlags: 0
@@ -64020,6 +64296,7 @@ GameObject:
   - component: {fileID: 1821444521}
   - component: {fileID: 1821444520}
   - component: {fileID: 1821444519}
+  - component: {fileID: 1821444523}
   m_Layer: 5
   m_Name: Chaotic Evil
   m_TagString: Untagged
@@ -64141,6 +64418,51 @@ RectTransform:
   m_AnchoredPosition: {x: 730, y: -355}
   m_SizeDelta: {x: 250, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1821444523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1821444518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverInAlignment
+          m_Mode: 2
+          m_Arguments:
+            m_ObjectArgument: {fileID: 1821444518}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverOut
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &1823368679
 GameObject:
   m_ObjectHideFlags: 0
@@ -66113,8 +66435,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -66129,8 +66451,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -67346,9 +67668,9 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 7cb733d3272f5844e80f14d5f13706aa, type: 3}
-    m_FontSize: 25
+    m_FontSize: 23
     m_FontStyle: 0
-    m_BestFit: 0
+    m_BestFit: 1
     m_MinSize: 2
     m_MaxSize: 40
     m_Alignment: 4
@@ -69273,6 +69595,7 @@ GameObject:
   - component: {fileID: 1984067191}
   - component: {fileID: 1984067190}
   - component: {fileID: 1984067192}
+  - component: {fileID: 1984067193}
   m_Layer: 5
   m_Name: Chaotic Good
   m_TagString: Untagged
@@ -69394,6 +69717,51 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &1984067193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1984067188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverInAlignment
+          m_Mode: 2
+          m_Arguments:
+            m_ObjectArgument: {fileID: 1984067188}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverOut
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &1996670628
 GameObject:
   m_ObjectHideFlags: 0
@@ -70044,8 +70412,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -70060,8 +70428,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -70824,8 +71192,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -70840,8 +71208,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
@@ -71804,6 +72172,7 @@ GameObject:
   - component: {fileID: 2084083500}
   - component: {fileID: 2084083499}
   - component: {fileID: 2084083501}
+  - component: {fileID: 2084083502}
   m_Layer: 5
   m_Name: Neutral Good
   m_TagString: Untagged
@@ -71925,6 +72294,51 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &2084083502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2084083497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverInAlignment
+          m_Mode: 2
+          m_Arguments:
+            m_ObjectArgument: {fileID: 2084083497}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
+          m_MethodName: HoverOut
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &2086905798
 GameObject:
   m_ObjectHideFlags: 0
@@ -72713,8 +73127,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverIn
           m_Mode: 2
           m_Arguments:
@@ -72729,8 +73143,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: CharacterCreationStatusMenu, Assembly-CSharp
+        - m_Target: {fileID: 155365234}
+          m_TargetAssemblyTypeName: CharacterCreationReligionMenu, Assembly-CSharp
           m_MethodName: HoverOut
           m_Mode: 1
           m_Arguments:
