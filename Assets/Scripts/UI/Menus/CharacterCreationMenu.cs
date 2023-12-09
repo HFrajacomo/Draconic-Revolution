@@ -835,6 +835,7 @@ public class CharacterCreationMenu : Menu{
         CharacterCreationData.SetBootsColor3(this.bootsColor3);
 
         CharacterCreationData.SetSkinPreset(IdentifySkinPreset(this.selectedPresetItem));
+        CharacterCreationData.SetSkin(this.skinColor);
 
         this.INIT = true;
 

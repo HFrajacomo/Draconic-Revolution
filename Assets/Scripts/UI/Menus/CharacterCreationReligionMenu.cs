@@ -100,7 +100,6 @@ public class CharacterCreationReligionMenu : Menu{
 		LoadDescriptions();
 	}
 
-
 	public void SelectReligion(GameObject go){
 		if(!INIT)
 			return;

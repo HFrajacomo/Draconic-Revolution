@@ -1,13 +1,15 @@
 using UnityEngine;
 
 public struct CharacterAppearance {
+	public Race race;
 	public Color skinColor;
 	public ClothingInfo hat;
 	public ClothingInfo torso;
 	public ClothingInfo legs;
 	public ClothingInfo boots;
 
-	public CharacterAppearance(Color skin, ClothingInfo h, ClothingInfo t, ClothingInfo l, ClothingInfo b){
+	public CharacterAppearance(Race r, Color skin, ClothingInfo h, ClothingInfo t, ClothingInfo l, ClothingInfo b){
+		this.race = r;
 		this.skinColor = skin;
 		this.hat = h;
 		this.torso = t;

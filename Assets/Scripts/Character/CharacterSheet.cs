@@ -6,6 +6,9 @@ public class CharacterSheet{
 	// Header
 	private string name;
 	private Alignment alignment;
+	private Race race;
+	private Religion religion;
+	private bool isMale;
 	private byte cronology;
 
 	// Handler
@@ -21,6 +24,7 @@ public class CharacterSheet{
 	private DepletableAttribute sanity;
 	private DepletableAttribute protection;
 	private DepletableAttribute equipmentWeight;
+	private DepletableAttribute poise;
 
 	// Base Attributes
 	private Attribute strength;
@@ -37,12 +41,11 @@ public class CharacterSheet{
 	private Attribute poisonResistance;
 	private Attribute curseResistance;
 	private Attribute speed;
-	private Attribute poise;
 
 	// Defense values
 	private ushort physicalDefense;
 	private ushort magicalDefense;
-	private float damageRedutionMultiplier;
+	private float damageReductionMultiplier;
 
 	// Flags
 	private bool hasBlood;
@@ -127,6 +130,9 @@ public class CharacterSheet{
 	public byte GetSkillLevel(SkillType t){return this.skillDict[t].GetLevel();}
 	public string GetName() {return this.name;}
 	public Alignment GetAlignment() {return this.alignment;}
+	public Race GetRace() {return this.race;}
+	public Religion GetReligion() {return this.religion;}
+	public bool GetGender() {return this.isMale;}
 	public byte GetCronology() {return this.cronology;}
 	public SpecialEffectHandler GetSpecialEffectHandler() {return this.specialEffectHandler;}
 	public CharacterAppearance GetCharacterAppearance() {return this.characterAppearance;}
@@ -148,10 +154,10 @@ public class CharacterSheet{
 	public Attribute GetPoisonResistance() {return this.poisonResistance;}
 	public Attribute GetCurseResistance() {return this.curseResistance;}
 	public Attribute GetSpeed() {return this.speed;}
-	public Attribute GetPoise() {return this.poise;}
+	public DepletableAttribute GetPoise() {return this.poise;}
 	public ushort GetPhysicalDefense() {return this.physicalDefense;}
 	public ushort GetMagicalDefense() {return this.magicalDefense;}
-	public float GetDamageRedutionMultiplier() {return this.damageRedutionMultiplier;}
+	public float GetDamageReductionMultiplier() {return this.damageReductionMultiplier;}
 	public bool HasBlood() {return this.hasBlood;}
 	public bool IsWeaponDrawn() {return this.isWeaponDrawn;}
 	public bool IsImortal() {return this.isImortal;}
@@ -173,9 +179,11 @@ public class CharacterSheet{
 
 	// Setter
 
-
 	public void SetName(string n) {this.name = n;}
 	public void SetAlignment(Alignment a) {this.alignment = a;}
+	public void SetRace(Race r) {this.race = r;}
+	public void SetReligion(Religion r) {this.religion = r;}
+	public void SetGender(bool isMale) {this.isMale = isMale;}
 	public void SetCronology(byte c) {this.cronology = c;}
 	public void SetSpecialEffectHandler(SpecialEffectHandler s) {this.specialEffectHandler = s;}
 	public void SetCharacterAppearance(CharacterAppearance c) {this.characterAppearance = c;}
@@ -197,10 +205,10 @@ public class CharacterSheet{
 	public void SetPoisonResistance(Attribute p) {this.poisonResistance = p;}
 	public void SetCurseResistance(Attribute c) {this.curseResistance = c;}
 	public void SetSpeed(Attribute s) {this.speed = s;}
-	public void SetPoise(Attribute p) {this.poise = p;}
+	public void SetPoise(DepletableAttribute p) {this.poise = p;}
 	public void SetPhysicalDefense(ushort p) {this.physicalDefense = p;}
 	public void SetMagicalDefense(ushort m) {this.magicalDefense = m;}
-	public void SetDamageRedutionMultiplier(float d) {this.damageRedutionMultiplier = d;}
+	public void SetDamageReductionMultiplier(float d) {this.damageReductionMultiplier = d;}
 	public void SetHasBlood(bool h) {this.hasBlood = h;}
 	public void SetIsWeaponDrawn(bool i) {this.isWeaponDrawn = i;}
 	public void SetIsImortal(bool i) {this.isImortal = i;}

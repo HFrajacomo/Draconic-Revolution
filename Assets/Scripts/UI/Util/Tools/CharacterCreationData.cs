@@ -15,6 +15,7 @@ public static class CharacterCreationData {
 	private static ushort boots;
 	private static byte skinPreset;
 	private static float skinColor;
+	private static Color skin;
 
 	// Colors
 	private static Color clothesColor1;
@@ -82,6 +83,8 @@ public static class CharacterCreationData {
 	public static void SetSkinPreset(byte b){skinPreset = b;}
 	public static byte GetSkinPreset(){return skinPreset;}
 	public static void SetSkinColorLerp(float f){skinColor = f;}
+	public static Color GetSkin(){return skin;}
+	public static void SetSkin(Color c){skin = c;}
 	public static float GetSkinColorLerp(){return skinColor;}
 	public static void SetClothesColor1(Color c){clothesColor1 = c;}
 	public static void SetClothesColor2(Color c){clothesColor2 = c;}
@@ -306,6 +309,56 @@ public static class CharacterCreationData {
 		}
 	}
 
+	public static CharacterSheet CreateCharacterSheet(){
+		CharacterSheet sheet = new CharacterSheet();
+		ClothingInfo clothesInfo, legsInfo, bootsInfo, hatsInfo;
+
+		clothesInfo = new ClothingInfo(clothes, clothesColor1, clothesColor2, clothesColor3, isMale);
+		legsInfo = new ClothingInfo(legs, legsColor1, legsColor2, legsColor3, isMale);
+		bootsInfo = new ClothingInfo(boots, bootsColor1, bootsColor2, bootsColor3, isMale);
+		hatsInfo = new ClothingInfo(hats, hatsColor1, hatsColor2, hatsColor3, isMale);
+
+		sheet.SetName(name);
+		sheet.SetReligion(religion);
+		sheet.SetAlignment(alignment);
+		sheet.SetRace(race);
+		sheet.SetCronology(0);
+		sheet.SetGender(isMale);
+		sheet.SetSpecialEffectHandler(new SpecialEffectHandler());
+		sheet.SetCharacterAppearance(new CharacterAppearance(race, skin, hatsInfo, clothesInfo, legsInfo, bootsInfo));
+		sheet.SetHealth(new DepletableAttribute(SecondaryAttributeCalculator.CalculateHealth(Sum(vitality))));
+		sheet.SetPoise(new DepletableAttribute(SecondaryAttributeCalculator.CalculatePoise(Sum(vitality))));
+		sheet.SetMana(new DepletableAttribute(SecondaryAttributeCalculator.CalculateMana(Sum(magic), GetStartingLevel(SkillType.SORCERY))));
+		sheet.SetPower(new DepletableAttribute(SecondaryAttributeCalculator.CalculatePower(GetStartingLevel(SkillType.WITCHCRAFT))));
+		sheet.SetSanity(new DepletableAttribute(SecondaryAttributeCalculator.CalculateSanity(Sum(magic), 13)));
+		sheet.SetProtection(new DepletableAttribute(0));
+		sheet.SetEquipmentWeight(new DepletableAttribute(0, SecondaryAttributeCalculator.CalculateEquipmentWeight(Sum(vitality))));
+		sheet.SetStrength(new Attribute(Sum(strength)));
+		sheet.SetPrecision(new Attribute(Sum(precision)));
+		sheet.SetVitality(new Attribute(Sum(vitality)));
+		sheet.SetEvasion(new Attribute(Sum(evasion)));
+		sheet.SetMagic(new Attribute(Sum(magic)));
+		sheet.SetCharisma(new Attribute(Sum(charisma)));
+
+		sheet.SetFireResistance(new Attribute(Sum(fireRes)));
+		sheet.SetColdResistance(new Attribute(Sum(iceRes)));
+		sheet.SetLightningResistance(new Attribute(Sum(lightningRes)));
+		sheet.SetPoisonResistance(new Attribute(Sum(poisonRes)));
+		sheet.SetCurseResistance(new Attribute(Sum(curseRes)));
+		sheet.SetSpeed(new Attribute(Sum(speed)));
+		sheet.SetPhysicalDefense(0);
+		sheet.SetMagicalDefense(0);
+		sheet.SetDamageReductionMultiplier(1f);
+		sheet.SetHasBlood(race != Race.UNDEAD);
+		sheet.SetIsWeaponDrawn(false);
+		sheet.SetIsImortal(false);
+		sheet.SetMainSkill(primarySkill);
+		sheet.SetSecondarySkill(secondarySkill);
+
+
+		return sheet;
+	}
+
 	private static short Sum(short[] a){
 		int sum = 0;
 
@@ -321,5 +374,13 @@ public static class CharacterCreationData {
 		sum = a[0] + a[1];
 
 		return (short)sum;
+	}
+
+	private static byte GetStartingLevel(SkillType skill){
+		if(primarySkill == skill)
+			return 8;
+		else if(secondarySkill == skill)
+			return 5;
+		return 1;
 	}
 }
