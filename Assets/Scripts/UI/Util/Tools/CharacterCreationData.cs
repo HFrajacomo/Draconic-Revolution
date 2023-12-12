@@ -1,6 +1,9 @@
 using UnityEngine;
 
 public static class CharacterCreationData {
+	// CharacterSheet
+	private static CharacterSheet charSheet;
+
 	// Basic
 	private static string name;
 	private static Race race;
@@ -104,6 +107,7 @@ public static class CharacterCreationData {
 	public static void SetReligion(Religion r){religion = r;}
 	public static void SetRemainingPoints(string p){remainingPoints = p;}
 
+	public static CharacterSheet GetCharacterSheet(){return charSheet;}
 	public static Color GetClothesColor1(){return clothesColor1;}
 	public static Color GetClothesColor2(){return clothesColor2;}
 	public static Color GetClothesColor3(){return clothesColor3;}
@@ -309,7 +313,7 @@ public static class CharacterCreationData {
 		}
 	}
 
-	public static CharacterSheet CreateCharacterSheet(){
+	public static void CreateCharacterSheet(){
 		CharacterSheet sheet = new CharacterSheet();
 		ClothingInfo clothesInfo, legsInfo, bootsInfo, hatsInfo;
 
@@ -355,8 +359,7 @@ public static class CharacterCreationData {
 		sheet.SetMainSkill(primarySkill);
 		sheet.SetSecondarySkill(secondarySkill);
 
-
-		return sheet;
+		charSheet = sheet;
 	}
 
 	private static short Sum(short[] a){

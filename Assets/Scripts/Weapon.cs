@@ -4,6 +4,15 @@ using System.Text;
 
 public abstract class Weapon : Item
 {
+	/*
+	Saved Fields:
+
+	ItemID (2)
+	CurrentDurability (4)
+	RefineLevel (1)
+	ExtraEffect (1)
+	*/
+
 	public ushort damage;
 	public uint maxDurability;
 	public uint currentDurability;

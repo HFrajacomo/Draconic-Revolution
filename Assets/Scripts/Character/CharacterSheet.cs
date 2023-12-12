@@ -92,7 +92,7 @@ public class CharacterSheet{
 	private SkillType mainSkill;
 	private SkillType secondarySkill;
 
-	// Inventory
+	// Inventory (No need to save in .CDAT)
 	private Inventory inventory = new Inventory(InventoryType.PLAYER);
 	private Inventory hotbar = new Inventory(InventoryType.HOTBAR);
 

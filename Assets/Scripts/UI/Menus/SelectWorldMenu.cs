@@ -167,17 +167,14 @@ public class SelectWorldMenu : Menu
     }
     
     private void StartGameSingleplayer(string world){
-        string dir = EnvironmentVariablesCentral.saveDir + "\\" + world + "\\Characters";
+        CharacterFileHandler characterHandler = new CharacterFileHandler(world);
 
-        if(!Directory.Exists(dir))
-            Directory.CreateDirectory(dir);
-        
-        dir = dir + "\\" + World.accountID + ".cdat";
-
-        if(!File.Exists(dir)){
+        if(!characterHandler.CharacterExists(World.accountID)){
             this.RequestMenuChange(MenuID.CHARACTER_CREATION);
             return;
         }
+
+        characterHandler.Close();
 
         World.SetWorldName(world);
         World.SetWorldSeed(0);

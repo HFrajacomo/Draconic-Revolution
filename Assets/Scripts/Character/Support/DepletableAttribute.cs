@@ -15,6 +15,12 @@ public class DepletableAttribute{
 		this.maximum = max;	
 	}
 
+	public DepletableAttribute(ushort cur, ushort max, bool belowZero){
+		this.current = cur;
+		this.maximum = max;	
+		this.CAN_GO_BELOW_ZERO = belowZero;
+	}
+
 	// Returns true if is Maxed
 	public bool Add(ushort amount){
 		this.current = (ushort)Mathf.Min(this.current + amount, this.maximum);
@@ -35,4 +41,8 @@ public class DepletableAttribute{
 	}
 
 	public float GetFloat(){return (float)this.current/this.maximum;}
+
+	public ushort GetCurrentValue(){return this.current;}
+	public ushort GetMaximumValue(){return this.maximum;}
+	public bool GetZeroFlag(){return this.CAN_GO_BELOW_ZERO;}
 }

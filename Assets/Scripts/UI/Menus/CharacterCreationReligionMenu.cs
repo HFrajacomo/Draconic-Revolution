@@ -181,6 +181,15 @@ public class CharacterCreationReligionMenu : Menu{
 		this.RequestMenuChange(MenuID.CHARACTER_CREATION_DATA);
 	}
 
+	public void CreateCharacterSheet(){
+		if(this.selectedAlignment == null || this.selectedReligion == null)
+			return;
+
+		CharacterCreationData.CreateCharacterSheet();
+
+		this.RequestMenuChange(MenuID.SELECT_WORLD);
+	}
+
 
 	private void Init(){
 		if(!INIT){
