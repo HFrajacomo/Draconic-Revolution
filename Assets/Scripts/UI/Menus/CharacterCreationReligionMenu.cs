@@ -185,7 +185,14 @@ public class CharacterCreationReligionMenu : Menu{
 		if(this.selectedAlignment == null || this.selectedReligion == null)
 			return;
 
+		CharacterCreationData.SetAlignment((Alignment)this.selectedAlignment);
+		CharacterCreationData.SetReligion((Religion)this.selectedReligion);
+
 		CharacterCreationData.CreateCharacterSheet();
+
+		CharacterFileHandler characterHandler = new CharacterFileHandler(World.worldName);
+        characterHandler.SaveCharacterSheet(Configurations.accountID, CharacterCreationData.GetCharacterSheet());
+        characterHandler.Close();
 
 		this.RequestMenuChange(MenuID.SELECT_WORLD);
 	}

@@ -51,9 +51,14 @@ public static class CharacterCreationData {
 	// Skills
 	private static SkillType primarySkill;
 	private static SkillType secondarySkill;
+	private static readonly SkillType[] SKILLS = new SkillType[]{SkillType.ALCHEMY, SkillType.BLOODMANCY, SkillType.CRAFTING, SkillType.COMBAT,
+		SkillType.CONSTRUCTION, SkillType.COOKING, SkillType.ENCHANTING, SkillType.FARMING, SkillType.FISHING, SkillType.LEADERSHIP, SkillType.MINING,
+		SkillType.MOUNTING, SkillType.MUSICALITY, SkillType.NATURALISM, SkillType.SMITHING, SkillType.SORCERY, SkillType.THIEVERY, SkillType.TECHNOLOGY,
+		SkillType.THAUMATURGY, SkillType.TRANSMUTING, SkillType.WITCHCRAFT};
 
 	// Metadata
 	private static string remainingPoints;
+	private static readonly Item NULL_ITEM = new Null_Item();
 
 
 	public static void Reset(){
@@ -337,6 +342,7 @@ public static class CharacterCreationData {
 		sheet.SetSanity(new DepletableAttribute(SecondaryAttributeCalculator.CalculateSanity(Sum(magic), 13)));
 		sheet.SetProtection(new DepletableAttribute(0));
 		sheet.SetEquipmentWeight(new DepletableAttribute(0, SecondaryAttributeCalculator.CalculateEquipmentWeight(Sum(vitality))));
+
 		sheet.SetStrength(new Attribute(Sum(strength)));
 		sheet.SetPrecision(new Attribute(Sum(precision)));
 		sheet.SetVitality(new Attribute(Sum(vitality)));
@@ -358,6 +364,30 @@ public static class CharacterCreationData {
 		sheet.SetIsImortal(false);
 		sheet.SetMainSkill(primarySkill);
 		sheet.SetSecondarySkill(secondarySkill);
+
+		// Skills
+		foreach(SkillType type in SKILLS){
+			if(type == primarySkill)
+				sheet.SetSkill(type, new SkillExp(8, SkillExp.GetLevelEXP(8)));
+			else if(type == secondarySkill)
+				sheet.SetSkill(type, new SkillExp(5, SkillExp.GetLevelEXP(5)));
+			else
+				sheet.SetSkill(type, new SkillExp(1, SkillExp.GetLevelEXP(1)));
+		}
+
+		// Equipment
+		sheet.SetRightHand(NULL_ITEM);
+		sheet.SetLeftHand(NULL_ITEM);
+		sheet.SetHelmet(NULL_ITEM);
+		sheet.SetArmor(NULL_ITEM);
+		sheet.SetLegs(NULL_ITEM);
+		sheet.SetBoots(NULL_ITEM);
+		sheet.SetRing1(NULL_ITEM);
+		sheet.SetRing2(NULL_ITEM);
+		sheet.SetRing3(NULL_ITEM);
+		sheet.SetRing4(NULL_ITEM);
+		sheet.SetAmulet(NULL_ITEM);
+		sheet.SetCape(NULL_ITEM);
 
 		charSheet = sheet;
 	}

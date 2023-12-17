@@ -37,6 +37,7 @@ public class CharacterFileHandler{
 	private Dictionary<ulong, ulong> index = new Dictionary<ulong, ulong>();
 
 	private static readonly SpecialEffect NULL_EFFECT = new SpecialEffect(EffectType.NONE);
+	private SpecialEffect cachedFX;
 
 
 	public CharacterFileHandler(string world){
@@ -45,6 +46,13 @@ public class CharacterFileHandler{
 
         if(!Directory.Exists(CharacterFileHandler.characterDirectory))
             Directory.CreateDirectory(CharacterFileHandler.characterDirectory);
+
+        // Opens Char file
+        if(!File.Exists(CharacterFileHandler.characterDirectory + "characters.cdat"))
+        	this.file = File.Open(CharacterFileHandler.characterDirectory + "characters.cdat", FileMode.Create);
+        else
+        	this.file = File.Open(CharacterFileHandler.characterDirectory + "characters.cdat", FileMode.Open);
+
 
         // Opens Index file
         if(File.Exists(CharacterFileHandler.indexFileDir))
@@ -61,6 +69,8 @@ public class CharacterFileHandler{
 		NetDecoder.WriteString(sheet.GetName(), buffer, count);
 		count += 20;
 		NetDecoder.WriteByte((byte)sheet.GetAlignment(), buffer, count);
+		count++;
+		NetDecoder.WriteByte((byte)sheet.GetReligion(), buffer, count);
 		count++;
 		NetDecoder.WriteByte((byte)sheet.GetRace(), buffer, count);
 		count++;
@@ -212,7 +222,7 @@ public class CharacterFileHandler{
 		}
 		else{
 			AddEntryIndex((long)code, this.indexFile.Length);
-			this.index.Add(code, (ulong)this.indexFile.Length);
+			this.index.Add(code, (ulong)this.file.Length);
 			this.indexFile.Seek(0, SeekOrigin.End);
 			this.indexFile.Write(this.indexArray, 0, 16);
 			this.indexFile.Flush();
@@ -222,6 +232,164 @@ public class CharacterFileHandler{
 		}
 
 		this.file.Flush();
+	}
+
+	public CharacterSheet LoadCharacterSheet(ulong code){
+		if(!this.index.ContainsKey(code))
+			return null;
+
+		CharacterSheet cs = new CharacterSheet();
+		int count = 0;
+
+		this.file.Seek((long)this.index[code], SeekOrigin.Begin);
+		this.file.Read(buffer, 0, buffer.Length);
+
+		cs.SetName(NetDecoder.ReadString(buffer, count, 20));
+		count += 20;
+		cs.SetAlignment((Alignment)NetDecoder.ReadByte(buffer, count));
+		count++;
+		cs.SetReligion((Religion)NetDecoder.ReadByte(buffer, count));
+		count++;
+		cs.SetRace((Race)NetDecoder.ReadByte(buffer, count));
+		count++;
+		cs.SetGender(NetDecoder.ReadBool(buffer, count));
+		count++;
+		cs.SetCronology(NetDecoder.ReadByte(buffer, count));
+		count++;
+		cs.SetStrength(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetPrecision(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetVitality(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetEvasion(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetMagic(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetCharisma(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetFireResistance(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetColdResistance(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetLightningResistance(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetPoisonResistance(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetCurseResistance(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetSpeed(NetDecoder.ReadAttribute(buffer, count));
+		count += 6;
+		cs.SetHealth(NetDecoder.ReadDepletableAttribute(buffer, count));
+		count += 5;
+		cs.SetMana(NetDecoder.ReadDepletableAttribute(buffer, count));
+		count += 5;
+		cs.SetPower(NetDecoder.ReadDepletableAttribute(buffer, count));
+		count += 5;
+		cs.SetSanity(NetDecoder.ReadDepletableAttribute(buffer, count));
+		count += 5;
+		cs.SetProtection(NetDecoder.ReadDepletableAttribute(buffer, count));
+		count += 5;
+		cs.SetEquipmentWeight(NetDecoder.ReadDepletableAttribute(buffer, count));
+		count += 5;
+		cs.SetPoise(NetDecoder.ReadDepletableAttribute(buffer, count));
+		count += 5;
+		cs.SetPhysicalDefense(NetDecoder.ReadUshort(buffer, count));
+		count += 2;
+		cs.SetMagicalDefense(NetDecoder.ReadUshort(buffer, count));
+		count += 2;
+		cs.SetDamageReductionMultiplier(NetDecoder.ReadFloat(buffer, count));
+		count += 4;
+		cs.SetHasBlood(NetDecoder.ReadBool(buffer, count));
+		count++;
+		cs.SetIsWeaponDrawn(NetDecoder.ReadBool(buffer, count));
+		count++;
+		cs.SetIsImortal(NetDecoder.ReadBool(buffer, count));
+		count++;
+		cs.SetMainSkill((SkillType)NetDecoder.ReadByte(buffer, count));
+		count++;
+		cs.SetSecondarySkill((SkillType)NetDecoder.ReadByte(buffer, count));
+		count++;
+		cs.SetSkill(SkillType.ALCHEMY, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.BLOODMANCY, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.CRAFTING, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.COMBAT, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.CONSTRUCTION, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.COOKING, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.ENCHANTING, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.FARMING, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.FISHING, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.LEADERSHIP, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.MINING, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.MOUNTING, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.MUSICALITY, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.NATURALISM, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.SMITHING, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.SORCERY, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.THIEVERY, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.TECHNOLOGY, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.THAUMATURGY, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.TRANSMUTING, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetSkill(SkillType.WITCHCRAFT, NetDecoder.ReadSkillEXP(buffer, count));
+		count += 5;
+		cs.SetRightHand(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetLeftHand(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetHelmet(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetArmor(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetLegs(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetBoots(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetRing1(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetRing2(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetRing3(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetRing4(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetAmulet(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetCape(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(buffer, count)));
+		count += 2;
+		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(buffer, count));
+		count += 169;
+
+		for(int i=0; i < 100; i++){
+			this.cachedFX = NetDecoder.ReadSpecialEffect(buffer, count);
+			count += 7;
+
+			if(this.cachedFX.GetEffectType() == EffectType.NONE)
+				break;
+
+			cs.GetSpecialEffectHandler().Add(this.cachedFX);
+		}
+
+		return cs;
 	}
 
 	public bool CharacterExists(ulong code){

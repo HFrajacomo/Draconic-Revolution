@@ -169,16 +169,21 @@ public class SelectWorldMenu : Menu
     private void StartGameSingleplayer(string world){
         CharacterFileHandler characterHandler = new CharacterFileHandler(world);
 
-        if(!characterHandler.CharacterExists(World.accountID)){
+        World.SetWorldName(world);
+        World.SetWorldSeed(0);
+        World.SetToClient();
+
+        if(!characterHandler.CharacterExists(Configurations.accountID)){
+            characterHandler.Close();
+
             this.RequestMenuChange(MenuID.CHARACTER_CREATION);
             return;
         }
 
-        characterHandler.Close();
+        CharacterSheet cs = characterHandler.LoadCharacterSheet(Configurations.accountID);
+        cs.DebugPrint();
 
-        World.SetWorldName(world);
-        World.SetWorldSeed(0);
-        World.SetToClient();
+        characterHandler.Close();
 
         SceneManager.LoadScene(1);
     }

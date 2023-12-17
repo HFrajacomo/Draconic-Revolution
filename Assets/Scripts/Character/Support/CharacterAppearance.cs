@@ -16,4 +16,8 @@ public struct CharacterAppearance {
 		this.legs = l;
 		this.boots = b;
 	}
+
+	public override string ToString(){
+		return  this.race + " | Skin: " + this.skinColor + " | " + this.hat.ToString(ModelType.HEADGEAR) + " | " + this.torso.ToString(ModelType.CLOTHES) + " | " + this.legs.ToString(ModelType.LEGS) + " | " + this.boots.ToString(ModelType.FOOTGEAR);
+	}
 }

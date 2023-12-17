@@ -64,5 +64,7 @@ public enum ItemID : ushort {
     QUARTZBLOCK,
     QUARTZBRICKBLOCK,
     BASALTBRICKBLOCK,
-    OBSIDIANBLOCK
+    OBSIDIANBLOCK,
+
+    NONE = 65535
 }

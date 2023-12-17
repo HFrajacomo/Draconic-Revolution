@@ -46,4 +46,8 @@ public class Attribute{
 
 	// Gets the calculates attribute
 	public int GetFinal(){return (int)((this.baseAtt + this.equipped + this.effect)*multiplier);}
+
+	public override string ToString(){
+		return baseAtt + " | " + equipped + " | " + effect + " | " + multiplier;
+	}
 }

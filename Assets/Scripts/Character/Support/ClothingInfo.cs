@@ -14,4 +14,8 @@ public struct ClothingInfo{
 		this.terciary = t;
 		this.isMale = isMale;
 	}
+
+	public string ToString(ModelType type){
+		return ModelHandler.GetModelName(type, this.code) + " P: " + primary.ToString() + " S: " + secondary.ToString() + " T: " + terciary.ToString();
+	}
 }

@@ -20,7 +20,7 @@ public class SkillExp{
 	}
 
 	// Calculates the EXP progression to the next levels
-	private void PopulateRequiredExp(){
+	private static void PopulateRequiredExp(){
 		if(levelCap != null)
 			return;
 
@@ -41,4 +41,15 @@ public class SkillExp{
 	public int GetCurrentExp(){return this.currentExp;}
 	public int GetFinalExp(){return SkillExp.levelCap[this.level];}
 	public string GetProgress(){return (this.currentExp/SkillExp.levelCap[this.level]).ToString("{#.##}");}
+
+	public static int GetLevelEXP(byte level){
+		if(levelCap == null)
+			PopulateRequiredExp();
+
+		return levelCap[level-1];
+	}
+
+	public override string ToString(){
+		return level + " | " + currentExp;
+	}
 }

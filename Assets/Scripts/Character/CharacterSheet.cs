@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -66,29 +67,6 @@ public class CharacterSheet{
 	private Item amulet;
 	private Item cape;
 
-	// Skills
-	private SkillExp alchemy;
-	private SkillExp bloodmancy;
-	private SkillExp crafting;
-	private SkillExp combat;
-	private SkillExp construction;
-	private SkillExp cooking;
-	private SkillExp enchanting;
-	private SkillExp farming;
-	private SkillExp fishing;
-	private SkillExp leadership;
-	private SkillExp mining;
-	private SkillExp mounting;
-	private SkillExp musicality;
-	private SkillExp naturalism;
-	private SkillExp smithing;
-	private SkillExp sorcery;
-	private SkillExp thievery;
-	private SkillExp technology;
-	private SkillExp thaumaturgy;
-	private SkillExp transmuting;
-	private SkillExp witchcraft;
-
 	private SkillType mainSkill;
 	private SkillType secondarySkill;
 
@@ -99,29 +77,47 @@ public class CharacterSheet{
 	// Helpers and Handlers
 	private Dictionary<SkillType, SkillExp> skillDict = new Dictionary<SkillType, SkillExp>();
 
+	// DEBUG
+	private List<string> DEBUG_LIST = new List<string>();
+
 
 	public CharacterSheet(){
-		this.skillDict.Add(SkillType.ALCHEMY, this.alchemy);
-		this.skillDict.Add(SkillType.BLOODMANCY, this.bloodmancy);
-		this.skillDict.Add(SkillType.CRAFTING, this.crafting);
-		this.skillDict.Add(SkillType.COMBAT, this.combat);
-		this.skillDict.Add(SkillType.CONSTRUCTION, this.construction);
-		this.skillDict.Add(SkillType.COOKING, this.cooking);
-		this.skillDict.Add(SkillType.ENCHANTING, this.enchanting);
-		this.skillDict.Add(SkillType.FARMING, this.farming);
-		this.skillDict.Add(SkillType.FISHING, this.fishing);
-		this.skillDict.Add(SkillType.LEADERSHIP, this.leadership);
-		this.skillDict.Add(SkillType.MINING, this.mining);
-		this.skillDict.Add(SkillType.MOUNTING, this.mounting);
-		this.skillDict.Add(SkillType.MUSICALITY, this.musicality);
-		this.skillDict.Add(SkillType.NATURALISM, this.naturalism);
-		this.skillDict.Add(SkillType.SMITHING, this.smithing);
-		this.skillDict.Add(SkillType.SORCERY, this.sorcery);
-		this.skillDict.Add(SkillType.THIEVERY, this.thievery);
-		this.skillDict.Add(SkillType.TECHNOLOGY, this.technology);
-		this.skillDict.Add(SkillType.THAUMATURGY, this.thaumaturgy);
-		this.skillDict.Add(SkillType.TRANSMUTING, this.transmuting);
-		this.skillDict.Add(SkillType.WITCHCRAFT, this.witchcraft);
+		this.specialEffectHandler = new SpecialEffectHandler();
+
+		this.skillDict.Add(SkillType.ALCHEMY, null);
+		this.skillDict.Add(SkillType.BLOODMANCY, null);
+		this.skillDict.Add(SkillType.CRAFTING, null);
+		this.skillDict.Add(SkillType.COMBAT, null);
+		this.skillDict.Add(SkillType.CONSTRUCTION, null);
+		this.skillDict.Add(SkillType.COOKING, null);
+		this.skillDict.Add(SkillType.ENCHANTING, null);
+		this.skillDict.Add(SkillType.FARMING, null);
+		this.skillDict.Add(SkillType.FISHING, null);
+		this.skillDict.Add(SkillType.LEADERSHIP, null);
+		this.skillDict.Add(SkillType.MINING, null);
+		this.skillDict.Add(SkillType.MOUNTING, null);
+		this.skillDict.Add(SkillType.MUSICALITY, null);
+		this.skillDict.Add(SkillType.NATURALISM, null);
+		this.skillDict.Add(SkillType.SMITHING, null);
+		this.skillDict.Add(SkillType.SORCERY, null);
+		this.skillDict.Add(SkillType.THIEVERY, null);
+		this.skillDict.Add(SkillType.TECHNOLOGY, null);
+		this.skillDict.Add(SkillType.THAUMATURGY, null);
+		this.skillDict.Add(SkillType.TRANSMUTING, null);
+		this.skillDict.Add(SkillType.WITCHCRAFT, null);
+
+		this.rightHand = null;
+		this.leftHand = null;
+		this.helmet = null;
+		this.armor = null;
+		this.legs = null;
+		this.boots = null;
+		this.ring1 = null;
+		this.ring2 = null;
+		this.ring3 = null;
+		this.ring4 = null;
+		this.amulet = null;
+		this.cape =  null;
 	}
 
 	// Getter
@@ -224,27 +220,85 @@ public class CharacterSheet{
 	public void SetRing4(Item r) {this.ring4 = r;}
 	public void SetAmulet(Item a) {this.amulet = a;}
 	public void SetCape(Item c) {this.cape = c;}
-	public void SetAlchemy(SkillExp a) {this.alchemy = a;}
-	public void SetBloodmancy(SkillExp b) {this.bloodmancy = b;}
-	public void SetCrafting(SkillExp c) {this.crafting = c;}
-	public void SetCombat(SkillExp c) {this.combat = c;}
-	public void SetConstruction(SkillExp c) {this.construction = c;}
-	public void SetCooking(SkillExp c) {this.cooking = c;}
-	public void SetEnchanting(SkillExp e) {this.enchanting = e;}
-	public void SetFarming(SkillExp f) {this.farming = f;}
-	public void SetFishing(SkillExp f) {this.fishing = f;}
-	public void SetLeadership(SkillExp l) {this.leadership = l;}
-	public void SetMining(SkillExp m) {this.mining = m;}
-	public void SetMounting(SkillExp m) {this.mounting = m;}
-	public void SetMusicality(SkillExp m) {this.musicality = m;}
-	public void SetNaturalism(SkillExp n) {this.naturalism = n;}
-	public void SetSmithing(SkillExp s) {this.smithing = s;}
-	public void SetSorcery(SkillExp s) {this.sorcery = s;}
-	public void SetThievery(SkillExp t) {this.thievery = t;}
-	public void SetTechnology(SkillExp t) {this.technology = t;}
-	public void SetThaumaturgy(SkillExp t) {this.thaumaturgy = t;}
-	public void SetTransmuting(SkillExp t) {this.transmuting = t;}
-	public void SetWitchcraft(SkillExp w) {this.witchcraft = w;}
+	public void SetSkill(SkillType type, SkillExp exp) {this.skillDict[type] = exp;}
 	public void SetMainSkill(SkillType m) {this.mainSkill = m;}
 	public void SetSecondarySkill(SkillType s) {this.secondarySkill = s;}
+
+	public void DebugPrint(){
+		this.DEBUG_LIST.Add("Name: " + GetName());
+		this.DEBUG_LIST.Add("Alignment: " + GetAlignment());
+		this.DEBUG_LIST.Add("Religion: " + GetReligion());
+		this.DEBUG_LIST.Add("Race: " + GetRace());
+		this.DEBUG_LIST.Add("IsMale: " + GetGender());
+		this.DEBUG_LIST.Add("Cronology: " + GetCronology());
+		this.DEBUG_LIST.Add("STR: " + GetStrength());
+		this.DEBUG_LIST.Add("PRE: " + GetPrecision());
+		this.DEBUG_LIST.Add("VIT: " + GetVitality());
+		this.DEBUG_LIST.Add("EVA: " + GetEvasion());
+		this.DEBUG_LIST.Add("MAG: " + GetMagic());
+		this.DEBUG_LIST.Add("CAR: " + GetCharisma());
+		this.DEBUG_LIST.Add("FR: " + GetFireResistance());
+		this.DEBUG_LIST.Add("IR: " + GetColdResistance());
+		this.DEBUG_LIST.Add("LR: " + GetLightningResistance());
+		this.DEBUG_LIST.Add("PR: " + GetPoisonResistance());
+		this.DEBUG_LIST.Add("CR: " + GetCurseResistance());
+		this.DEBUG_LIST.Add("SPD: " + GetSpeed());
+		this.DEBUG_LIST.Add("Health: " + GetHealth());
+		this.DEBUG_LIST.Add("Mana: " + GetMana());
+		this.DEBUG_LIST.Add("Power: " + GetPower());
+		this.DEBUG_LIST.Add("Sanity: " + GetSanity());
+		this.DEBUG_LIST.Add("Protection: " + GetProtection());
+		this.DEBUG_LIST.Add("Weight: " + GetEquipmentWeight());
+		this.DEBUG_LIST.Add("Poise: " + GetPoise());
+		this.DEBUG_LIST.Add("PhysDef: " + GetPhysicalDefense());
+		this.DEBUG_LIST.Add("MagDef: " + GetMagicalDefense());
+		this.DEBUG_LIST.Add("DmgR: " + GetDamageReductionMultiplier());
+		this.DEBUG_LIST.Add("Blood: " + HasBlood());
+		this.DEBUG_LIST.Add("WeaponDrawn: " + IsWeaponDrawn());
+		this.DEBUG_LIST.Add("Imortal: " + IsImortal());
+		this.DEBUG_LIST.Add("MainSkill: " + GetMainSkill());
+		this.DEBUG_LIST.Add("SecSkill: " + GetSecondarySkill());
+		this.DEBUG_LIST.Add("Alchemy: " + GetSkill(SkillType.ALCHEMY).ToString());
+		this.DEBUG_LIST.Add("Bloodmancy: " + GetSkill(SkillType.BLOODMANCY).ToString());
+		this.DEBUG_LIST.Add("Crafting: " + GetSkill(SkillType.CRAFTING).ToString());
+		this.DEBUG_LIST.Add("Combat: " + GetSkill(SkillType.COMBAT).ToString());
+		this.DEBUG_LIST.Add("Construction: " + GetSkill(SkillType.CONSTRUCTION).ToString());
+		this.DEBUG_LIST.Add("Cooking: " + GetSkill(SkillType.COOKING).ToString());
+		this.DEBUG_LIST.Add("Enchanting: " + GetSkill(SkillType.ENCHANTING).ToString());
+		this.DEBUG_LIST.Add("Farming: " + GetSkill(SkillType.FARMING).ToString());
+		this.DEBUG_LIST.Add("Fishing: " + GetSkill(SkillType.FISHING).ToString());
+		this.DEBUG_LIST.Add("Leadership: " + GetSkill(SkillType.LEADERSHIP).ToString());
+		this.DEBUG_LIST.Add("Mining: " + GetSkill(SkillType.MINING).ToString());
+		this.DEBUG_LIST.Add("Mounting: " + GetSkill(SkillType.MOUNTING).ToString());
+		this.DEBUG_LIST.Add("Musicality: " + GetSkill(SkillType.MUSICALITY).ToString());
+		this.DEBUG_LIST.Add("Naturalism: " + GetSkill(SkillType.NATURALISM).ToString());
+		this.DEBUG_LIST.Add("Smithing: " + GetSkill(SkillType.SMITHING).ToString());
+		this.DEBUG_LIST.Add("Sorcery: " + GetSkill(SkillType.SORCERY).ToString());
+		this.DEBUG_LIST.Add("Thievery: " + GetSkill(SkillType.THIEVERY).ToString());
+		this.DEBUG_LIST.Add("Technology: " + GetSkill(SkillType.TECHNOLOGY).ToString());
+		this.DEBUG_LIST.Add("Thaumaturgy: " + GetSkill(SkillType.THAUMATURGY).ToString());
+		this.DEBUG_LIST.Add("Transmuting: " + GetSkill(SkillType.TRANSMUTING).ToString());
+		this.DEBUG_LIST.Add("Witchcraft: " + GetSkill(SkillType.WITCHCRAFT).ToString());
+		this.DEBUG_LIST.Add("RightHand: " + GetRightHand());
+		this.DEBUG_LIST.Add("LeftHand: " + GetLeftHand());
+		this.DEBUG_LIST.Add("Helmet: " + GetHelmet());
+		this.DEBUG_LIST.Add("Armor: " + GetArmor());
+		this.DEBUG_LIST.Add("Legs: " + GetLegs());
+		this.DEBUG_LIST.Add("Boots: " + GetBoots());
+		this.DEBUG_LIST.Add("Ring1: " + GetRing1());
+		this.DEBUG_LIST.Add("Ring2: " + GetRing2());
+		this.DEBUG_LIST.Add("Ring3: " + GetRing3());
+		this.DEBUG_LIST.Add("Ring4: " + GetRing4());
+		this.DEBUG_LIST.Add("Amulet: " + GetAmulet());
+		this.DEBUG_LIST.Add("Cape: " + GetCape());
+		this.DEBUG_LIST.Add("Appearance: " + GetCharacterAppearance());
+
+		foreach(SpecialEffect fx in this.specialEffectHandler.GetAllEffects()){
+			this.DEBUG_LIST.Add("Effect: " + fx);
+		}
+
+		foreach(string s in this.DEBUG_LIST){
+			Debug.Log(s);
+		}
+	}
 }

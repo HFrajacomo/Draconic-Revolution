@@ -45,4 +45,8 @@ public class DepletableAttribute{
 	public ushort GetCurrentValue(){return this.current;}
 	public ushort GetMaximumValue(){return this.maximum;}
 	public bool GetZeroFlag(){return this.CAN_GO_BELOW_ZERO;}
+
+	public override string ToString(){
+		return current + "/" + maximum;
+	}
 }

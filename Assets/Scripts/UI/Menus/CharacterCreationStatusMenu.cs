@@ -237,18 +237,18 @@ public class CharacterCreationStatusMenu : Menu{
 
 		if(this.selectedPrimary != null){
 			CharacterCreationData.SetPrimarySkill((SkillType)this.selectedPrimary);
-	        CharacterCreationData.SetAttribute(AttributeName.STRENGTH, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.STRENGTH));
-	        CharacterCreationData.SetAttribute(AttributeName.PRECISION, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.PRECISION));
-	        CharacterCreationData.SetAttribute(AttributeName.VITALITY, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.VITALITY));
-	        CharacterCreationData.SetAttribute(AttributeName.EVASION, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.EVASION));
-	        CharacterCreationData.SetAttribute(AttributeName.MAGIC, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.MAGIC));
-	        CharacterCreationData.SetAttribute(AttributeName.CHARISMA, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.CHARISMA));
-	        CharacterCreationData.SetAttribute(AttributeName.SPEED, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.SPEED));
-	        CharacterCreationData.SetAttribute(AttributeName.FIRE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.FIRE_RESISTANCE));
-	        CharacterCreationData.SetAttribute(AttributeName.ICE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.ICE_RESISTANCE));
-	        CharacterCreationData.SetAttribute(AttributeName.LIGHTNING_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.LIGHTNING_RESISTANCE));
-	        CharacterCreationData.SetAttribute(AttributeName.POISON_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.POISON_RESISTANCE));
-	        CharacterCreationData.SetAttribute(AttributeName.CURSE_RESISTANCE, 1, AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.CURSE_RESISTANCE));
+	        CharacterCreationData.SetAttribute(AttributeName.STRENGTH, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.STRENGTH) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.PRECISION, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.PRECISION) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.VITALITY, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.VITALITY) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.EVASION, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.EVASION) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.MAGIC, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.MAGIC) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.CHARISMA, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.CHARISMA) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.SPEED, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.SPEED) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.FIRE_RESISTANCE, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.FIRE_RESISTANCE) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.ICE_RESISTANCE, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.ICE_RESISTANCE) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.LIGHTNING_RESISTANCE, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.LIGHTNING_RESISTANCE) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.POISON_RESISTANCE, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.POISON_RESISTANCE) * 2));
+	        CharacterCreationData.SetAttribute(AttributeName.CURSE_RESISTANCE, 1, (short)(AttributeIncreaseTable.GetAttributeIncrease((SkillType)this.selectedPrimary, AttributeName.CURSE_RESISTANCE) * 2));
 		}
 		else
 			returnCode = false;
