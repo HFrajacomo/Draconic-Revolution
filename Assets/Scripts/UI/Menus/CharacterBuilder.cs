@@ -73,8 +73,8 @@ public class CharacterBuilder{
 
 		this.armature.transform.SetParent(this.parent.transform);
 		FixArmature(isMale);
-
 		ReloadModel(isMale);
+		
 		this.animator.Rebind();
 	}
 
@@ -117,7 +117,10 @@ public class CharacterBuilder{
 	public void ChangeArmature(bool isMale){
 		if(this.armature != null){
 			GameObject.DestroyImmediate(this.armature);
-			BONE_MAP.Clear();
+
+			if(BONE_MAP != null)
+				BONE_MAP.Clear();
+			
 			BONE_MAP = null;
 		}
 

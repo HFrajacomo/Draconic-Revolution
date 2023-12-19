@@ -6,9 +6,9 @@ public static class CharacterCreationData {
 
 	// Basic
 	private static string name;
-	private static Race race;
-	private static Religion religion;
-	private static Alignment alignment;
+	private static Race? race;
+	private static Religion? religion;
+	private static Alignment? alignment;
 
 	// Model Appearance
 	private static bool isMale;
@@ -62,12 +62,19 @@ public static class CharacterCreationData {
 
 
 	public static void Reset(){
-		race = Race.HUMAN;
+		name = null;
+		religion = null;
+		alignment = null;
+		race = null;
 		isMale = true;
 		clothes = ushort.MaxValue;
 		legs = ushort.MaxValue;
 		hats = ushort.MaxValue;
 		boots = ushort.MaxValue;
+		remainingPoints = "10/10";
+	}
+
+	public static void ResetAttributes(){
 		strength = new short[]{0,0,0};
 		precision = new short[]{0,0,0};
 		vitality = new short[]{0,0,0};
@@ -85,7 +92,7 @@ public static class CharacterCreationData {
 	public static void SetName(string n){name = n;}
 	public static string GetName(){return name;}
 	public static void SetRace(Race r){race = r;}
-	public static Race GetRace(){return race;}
+	public static Race GetRace(){return (Race)race;}
 	public static void SetMale(bool flag){isMale = flag;}
 	public static bool GetMale(){return isMale;}
 	public static void SetSkinPreset(byte b){skinPreset = b;}
@@ -127,8 +134,8 @@ public static class CharacterCreationData {
 	public static Color GetHatsColor3(){return hatsColor3;}
 	public static SkillType GetPrimarySkill(){return primarySkill;}
 	public static SkillType GetSecondarySkill(){return secondarySkill;}
-	public static Alignment GetAlignment(){return alignment;}
-	public static Religion GetReligion(){return religion;}
+	public static Alignment GetAlignment(){return (Alignment)alignment;}
+	public static Religion GetReligion(){return (Religion)religion;}
 	public static string GetRemainingPoints(){
 		if(remainingPoints == null)
 			return "10/10";
@@ -328,13 +335,13 @@ public static class CharacterCreationData {
 		hatsInfo = new ClothingInfo(hats, hatsColor1, hatsColor2, hatsColor3, isMale);
 
 		sheet.SetName(name);
-		sheet.SetReligion(religion);
-		sheet.SetAlignment(alignment);
-		sheet.SetRace(race);
+		sheet.SetReligion((Religion)religion);
+		sheet.SetAlignment((Alignment)alignment);
+		sheet.SetRace((Race)race);
 		sheet.SetCronology(0);
 		sheet.SetGender(isMale);
 		sheet.SetSpecialEffectHandler(new SpecialEffectHandler());
-		sheet.SetCharacterAppearance(new CharacterAppearance(race, skin, hatsInfo, clothesInfo, legsInfo, bootsInfo));
+		sheet.SetCharacterAppearance(new CharacterAppearance((Race)race, skin, hatsInfo, clothesInfo, legsInfo, bootsInfo));
 		sheet.SetHealth(new DepletableAttribute(SecondaryAttributeCalculator.CalculateHealth(Sum(vitality))));
 		sheet.SetPoise(new DepletableAttribute(SecondaryAttributeCalculator.CalculatePoise(Sum(vitality))));
 		sheet.SetMana(new DepletableAttribute(SecondaryAttributeCalculator.CalculateMana(Sum(magic), GetStartingLevel(SkillType.SORCERY))));

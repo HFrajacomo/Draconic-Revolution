@@ -33,6 +33,10 @@ public class CharacterCreationReligionMenu : Menu{
 	public Button[] neutralsGO;
 	public Button[] chaoticsGO;
 
+	[Header("Menus to Reset")]
+	public CharacterCreationMenu charCreationMenu;
+	public CharacterCreationStatusMenu charCreationStatusMenu;
+
 	private GameObject selectedReligionToggle;
 	private GameObject selectedAlignmentButton;
 	
@@ -104,6 +108,8 @@ public class CharacterCreationReligionMenu : Menu{
 		if(!INIT)
 			return;
 
+		Debug.Log("Selecting Religion");
+
 		bool current = go.GetComponent<Toggle>().isOn;
 
 		// If has been toggled off
@@ -111,6 +117,7 @@ public class CharacterCreationReligionMenu : Menu{
 			this.selectedReligion = null;
 			this.selectedReligionToggle = null;
 			SetDisabilities();
+			Debug.Log("Off Toggle");
 			return;
 		}
 
@@ -121,6 +128,7 @@ public class CharacterCreationReligionMenu : Menu{
 		this.selectedReligion = NAME_TO_RELIGION[go.transform.parent.name];
 
 		SetDisabilities();
+		Debug.Log("END");
 	}
 
 	public void SelectAlignment(GameObject go){
@@ -182,8 +190,10 @@ public class CharacterCreationReligionMenu : Menu{
 	}
 
 	public void CreateCharacterSheet(){
-		if(this.selectedAlignment == null || this.selectedReligion == null)
+		if(this.selectedAlignment == null || this.selectedReligion == null){
+			Debug.Log(selectedAlignment + " " + this.selectedReligion);
 			return;
+		}
 
 		CharacterCreationData.SetAlignment((Alignment)this.selectedAlignment);
 		CharacterCreationData.SetReligion((Religion)this.selectedReligion);
@@ -193,6 +203,21 @@ public class CharacterCreationReligionMenu : Menu{
 		CharacterFileHandler characterHandler = new CharacterFileHandler(World.worldName);
         characterHandler.SaveCharacterSheet(Configurations.accountID, CharacterCreationData.GetCharacterSheet());
         characterHandler.Close();
+
+        if(this.selectedReligionToggle != null)
+        	this.selectedReligionToggle.GetComponent<Toggle>().isOn = false;
+
+        // Resets buttons
+		SelectAlignment(this.selectedAlignmentButton);
+		SetDisabilities();
+
+        CharacterCreationData.Reset();
+
+        this.selectedAlignmentButton = null;
+        this.selectedReligionToggle = null;
+
+        this.charCreationMenu.Reset();
+        this.charCreationStatusMenu.Reset();
 
 		this.RequestMenuChange(MenuID.SELECT_WORLD);
 	}

@@ -5104,6 +5104,8 @@ MonoBehaviour:
   - {fileID: 1984067192}
   - {fileID: 1369652461}
   - {fileID: 1821444519}
+  charCreationMenu: {fileID: 1425498535}
+  charCreationStatusMenu: {fileID: 314149358}
 --- !u!4 &155365235
 Transform:
   m_ObjectHideFlags: 0

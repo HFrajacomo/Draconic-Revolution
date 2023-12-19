@@ -230,6 +230,20 @@ public class CharacterCreationStatusMenu : Menu{
 			this.RequestMenuChange(MenuID.CHARACTER_CREATION_RELIGION);
 	}
 
+	public void Reset(){
+		if(this.selectedPrimaryToggle != null)
+			this.selectedPrimaryToggle.GetComponent<Toggle>().isOn = false;
+		if(this.selectedSecondaryToggle != null)
+			this.selectedSecondaryToggle.GetComponent<Toggle>().isOn = false;
+
+		this.selectedPrimaryToggle = null;
+		this.selectedSecondaryToggle = null;
+		this.selectedPrimary = null;
+		this.selectedSecondary = null;
+
+		CharacterCreationData.ResetAttributes();
+	}
+
 	private bool SetupDataValues(){
 		bool returnCode = true;
 
@@ -301,6 +315,8 @@ public class CharacterCreationStatusMenu : Menu{
 			}		
 			LoadDescriptions();
 		}
+
+		Reset();
 
 		INIT = true;
 	}

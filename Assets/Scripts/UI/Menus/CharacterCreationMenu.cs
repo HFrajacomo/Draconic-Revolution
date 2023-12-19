@@ -221,7 +221,7 @@ public class CharacterCreationMenu : Menu{
         }
         else{
             ResetColors();
-            LoadDefaultModel(isMale:this.selectedGenderIsMale);  
+            LoadDefaultModel(isMale:this.selectedGenderIsMale);
         }
 
         ENABLED = true;
@@ -267,6 +267,37 @@ public class CharacterCreationMenu : Menu{
         }
 
         ToggleDiv(this.generalButton);
+    }
+
+    public void Reset(){
+        this.ENABLED = false;
+        this.INIT = false;
+
+        this.nameInput.text = "";
+        this.selectedGenderIsMale = true;
+        SetRace("Human");
+
+        this.selectedGenderItem.GetComponentInChildren<Text>().color = this.notSelectedColor;
+        this.selectedGenderItem = this.defaultGender;
+        this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
+
+        this.selectedRaceItem.GetComponentInChildren<Text>().color = this.notSelectedColor;
+        this.selectedRaceItem = this.defaultRace;
+        this.selectedRaceItem.GetComponentInChildren<Text>().color = this.selectedColor;
+
+        this.selectedPresetItem.GetComponentInChildren<Text>().color = this.notSelectedColor;
+        this.selectedPresetItem = this.defaultPreset;
+        this.selectedPresetItem.GetComponentInChildren<Text>().color = this.selectedColor;
+
+        this.skinColorGradient = RaceManager.GetSettings(Race.HUMAN).gradient1;
+        this.skinColor = this.skinColorGradient.color2;
+        this.skinColorPicker.SetValue(1f);
+        SelectSkinPreset(this.defaultPreset);
+
+        LoadDefaultModel(isReload:true);
+        this.characterBuilder.ChangeRace(RaceManager.GetHuman(), true);
+        this.characterBuilder.ChangeAnimationGender(this.maleAnimations);
+        UpdateColorInAllModel();
     }
 
     public void ToggleDiv(Button bt){
