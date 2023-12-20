@@ -105,6 +105,11 @@ public class CharacterCreationReligionMenu : Menu{
 		LoadDescriptions();
 	}
 
+	public override void Enable(){
+		this.mainObject.SetActive(true);
+		SetDisabilities();
+	}
+
 	public override void Disable(){
 		DeselectClickedButton();
 		this.mainObject.SetActive(false);
