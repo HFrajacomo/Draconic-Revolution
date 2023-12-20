@@ -115,8 +115,9 @@ public class CharacterCreationStatusMenu : Menu{
 		this.poisonResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.POISON_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.POISON_RESISTANCE));
 		this.curseResField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.CURSE_RESISTANCE), CharacterCreationData.GetAttributeNoBonus(AttributeName.CURSE_RESISTANCE));
 		this.speedField.SetFieldValue(CharacterCreationData.GetAttribute(AttributeName.SPEED), CharacterCreationData.GetAttributeNoBonus(AttributeName.SPEED));
-	
+
 		this.pointsPool.GetComponentInChildren<Text>().Rebuild(CanvasUpdate.Layout);
+		ResetInputField(this.pointsPool);
 		this.strengthField.UpdateGeometry();
 		this.precisionField.UpdateGeometry();
 		this.vitalityField.UpdateGeometry();
@@ -304,6 +305,13 @@ public class CharacterCreationStatusMenu : Menu{
 			return false;
 
 		return obj.transform.parent.name == tgt.transform.parent.name;
+	}
+
+	private void ResetInputField(InputField ipf){
+		string txt = ipf.text;
+
+		ipf.textComponent.text = "";
+		ipf.textComponent.text = txt;
 	}
 
 	private void Init(){

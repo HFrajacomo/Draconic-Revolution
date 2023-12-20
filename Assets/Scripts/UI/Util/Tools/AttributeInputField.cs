@@ -51,6 +51,10 @@ public class AttributeInputField : MonoBehaviour {
 	}
 
 	public void UpdateGeometry(){
+		string txt = this.field.text;
+
 		this.field.GetComponentInChildren<Text>().Rebuild(CanvasUpdate.Layout);
+		this.field.textComponent.text = ""; 
+		this.field.textComponent.text = txt;
 	}
 }

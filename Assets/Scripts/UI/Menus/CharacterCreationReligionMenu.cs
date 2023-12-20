@@ -44,6 +44,7 @@ public class CharacterCreationReligionMenu : Menu{
 	private Alignment? selectedAlignment = null;
 
 	private bool INIT = false;
+	private bool WAS_UNDEAD = false;
 	private ColorBlock colorBlock = new ColorBlock();
 
 
@@ -102,6 +103,13 @@ public class CharacterCreationReligionMenu : Menu{
 		Init();
 		SetupShaders();
 		LoadDescriptions();
+	}
+
+	public override void Disable(){
+		DeselectClickedButton();
+		this.mainObject.SetActive(false);
+
+		this.WAS_UNDEAD = CharacterCreationData.GetRace() == Race.UNDEAD;
 	}
 
 	public void SelectReligion(GameObject go){
@@ -270,8 +278,16 @@ public class CharacterCreationReligionMenu : Menu{
 	}
 
 	private void SetDisabilities(){
-		if(CharacterCreationData.GetRace() != Race.UNDEAD)
+		if(CharacterCreationData.GetRace() != Race.UNDEAD){
+			if(this.WAS_UNDEAD){
+				ToggleButtons(this.lawfulsGO, true);
+				ToggleButtons(this.neutralsGO, true);
+				ToggleButtons(this.chaoticsGO, true);
+				RunToggles(null);		
+			}
+
 			return;
+		}
 
 		bool isExclusion = false;
 
