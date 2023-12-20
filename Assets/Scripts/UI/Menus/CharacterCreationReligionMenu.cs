@@ -108,8 +108,6 @@ public class CharacterCreationReligionMenu : Menu{
 		if(!INIT)
 			return;
 
-		Debug.Log("Selecting Religion");
-
 		bool current = go.GetComponent<Toggle>().isOn;
 
 		// If has been toggled off
@@ -117,7 +115,6 @@ public class CharacterCreationReligionMenu : Menu{
 			this.selectedReligion = null;
 			this.selectedReligionToggle = null;
 			SetDisabilities();
-			Debug.Log("Off Toggle");
 			return;
 		}
 
@@ -128,7 +125,6 @@ public class CharacterCreationReligionMenu : Menu{
 		this.selectedReligion = NAME_TO_RELIGION[go.transform.parent.name];
 
 		SetDisabilities();
-		Debug.Log("END");
 	}
 
 	public void SelectAlignment(GameObject go){

@@ -473,7 +473,8 @@ public class CharacterCreationMenu : Menu{
     private GameObject LoadModelByCode(ModelType type, ushort code){
         GameObject go = ModelHandler.GetModelByCode(type, code);
         go.name = GenerateGoName();
-        this.characterBuilder.Add(type, go, name);
+
+        this.characterBuilder.Add(type, go, AddGenderString(ModelHandler.GetModelName(type, code)));
 
         ShowColorPickers(go.GetComponent<SkinnedMeshRenderer>().materials.Length);
         ApplyColorToModel(go);
@@ -946,6 +947,12 @@ public class CharacterCreationMenu : Menu{
             return fullname + "/M";
         else
             return fullname + "/F";
+    }
+
+    private string AddGenderString(string name){
+        if(this.selectedGenderIsMale)
+            return name + "/M";
+        return name + "/F";
     }
 
     private GameObject IdentifyItemGO(string name){
