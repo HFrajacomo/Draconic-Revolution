@@ -235,12 +235,13 @@ public class CharacterCreationMenu : Menu{
         mat.SetFloat("_HorizontalAdjustment", this.HORIZONTAL_ADJUSTMENT);
 
         appearanceDiv.GetComponentInChildren<Image>().material = mat;
-        this.characterBuilder = new CharacterBuilder(this.playerObject, this.maleAnimations, isMale:true);
         this.nameInput.GetComponent<Image>().material = matField;
 
 
 
         if(!INIT){
+            this.characterBuilder = new CharacterBuilder(this.playerObject, this.maleAnimations, isMale:true);
+
             this.selectedGenderItem = this.defaultGender;
             this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
 

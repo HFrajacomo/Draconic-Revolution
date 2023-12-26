@@ -181,7 +181,6 @@ public class SelectWorldMenu : Menu
         }
 
         CharacterSheet cs = characterHandler.LoadCharacterSheet(Configurations.accountID);
-        cs.DebugPrint();
 
         characterHandler.Close();
 

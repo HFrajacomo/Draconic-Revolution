@@ -62,6 +62,9 @@ public class OptionsMenu : Menu
 	// Shader Toggle Settings
 	private static readonly float HORIZONTAL_ADJUSTMENT_TG = 1f;
 
+	// Flags
+	private static bool INIT = false;
+
 	void Awake(){
 		// Create materials
 		Material bgMat = Instantiate(this.backgroundDiv.material);
@@ -95,8 +98,6 @@ public class OptionsMenu : Menu
 
 		// Set default values
 		this.accountID_field.text = Configurations.accountID.ToString();
-		this.subtitles_toggle.isOn = Configurations.subtitlesOn;
-		this.fullbright_toggle.isOn = Configurations.FULLBRIGHT;
 		this.renderDistance_slider.value = World.renderDistance;
 		this.music2D_slider.value = Configurations.music2DVolume;
 		this.music3D_slider.value = Configurations.music3DVolume;
@@ -107,8 +108,14 @@ public class OptionsMenu : Menu
 		this.fov_slider.value = Configurations.fieldOfView;
 
 		// Refresh Shader
-		this.subtitles_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(this.subtitles_toggle.isOn);
-		this.fullbright_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(this.fullbright_toggle.isOn);
+		this.subtitles_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(!Configurations.subtitlesOn);
+		this.fullbright_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(!Configurations.FULLBRIGHT);
+
+		this.fullbright_toggle.isOn = Configurations.FULLBRIGHT;
+		this.subtitles_toggle.isOn = Configurations.subtitlesOn;
+
+		INIT = true;
+
 
 		ToggleDiv(this.gameTab);
 	}
@@ -123,8 +130,16 @@ public class OptionsMenu : Menu
 		go.SetActive(true);
 	}
 
-	public void ToggleSubtitles(){Configurations.subtitlesOn = !Configurations.subtitlesOn;}
-	public void ToggleFullbright(){Configurations.FULLBRIGHT = !Configurations.FULLBRIGHT;}
+	public void ToggleSubtitles(){
+		if(INIT){
+			Configurations.subtitlesOn = !Configurations.subtitlesOn;
+		}
+	}
+	public void ToggleFullbright(){
+		if(INIT){
+			Configurations.FULLBRIGHT = !Configurations.FULLBRIGHT;
+		}
+	}
 
 	public void SaveAndLeaveMenu(){
 		Configurations.SaveConfigFile();

@@ -45,6 +45,7 @@ public class CharacterCreationReligionMenu : Menu{
 
 	private bool INIT = false;
 	private bool WAS_UNDEAD = false;
+	private bool CREATE = false;
 	private ColorBlock colorBlock = new ColorBlock();
 
 
@@ -115,6 +116,11 @@ public class CharacterCreationReligionMenu : Menu{
 		this.mainObject.SetActive(false);
 
 		this.WAS_UNDEAD = CharacterCreationData.GetRace() == Race.UNDEAD;
+
+		if(this.CREATE){
+        	CharacterCreationData.Reset();
+        	this.CREATE = false;
+		}
 	}
 
 	public void SelectReligion(GameObject go){
@@ -200,7 +206,6 @@ public class CharacterCreationReligionMenu : Menu{
 
 	public void CreateCharacterSheet(){
 		if(this.selectedAlignment == null || this.selectedReligion == null){
-			Debug.Log(selectedAlignment + " " + this.selectedReligion);
 			return;
 		}
 
@@ -220,13 +225,13 @@ public class CharacterCreationReligionMenu : Menu{
 		SelectAlignment(this.selectedAlignmentButton);
 		SetDisabilities();
 
-        CharacterCreationData.Reset();
-
         this.selectedAlignmentButton = null;
         this.selectedReligionToggle = null;
 
         this.charCreationMenu.Reset();
         this.charCreationStatusMenu.Reset();
+
+        this.CREATE = true;
 
 		this.RequestMenuChange(MenuID.SELECT_WORLD);
 	}

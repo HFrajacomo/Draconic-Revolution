@@ -31,6 +31,8 @@ public static class ModelHandler{
 		assets.name = "ModelAssets";
 
 		LoadModelInfo();
+
+		GameObject.DontDestroyOnLoad(assets);
 	}
 
 	public static void Run(){}
