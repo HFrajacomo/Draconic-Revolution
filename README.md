@@ -1,90 +1,224 @@
+
 # Draconic Revolution
-Draconic Revolution is a procedural voxel-based sandbox online RPG currently in development. This game was inspired in my very own Homebrew table RPG System, created in 2016 and played by multiple parties up until today. This game is meant to be a digital version that fully implements all core mechanics and the main campaign of the system. Draconic Revolution was made using the Unity Engine. 
 
-![](RepoImages/WorldGen1.png)
+## About the Project
 
-## Development
-Right now, the development of the game is being separated into 4 different Dev Phases. Each of them will be listed down below, as well as their content. We are projecting all the content we intend to add into our game in this list.
+### What is it?
 
-### Phase 1 (Completed)
+Draconic Revolution is a procedurally genereated voxel-based late medieval RPG currently in development. The game supports dedicated server multiplayer and LAN multiplayer as well as a solo singleplayer experience.
 
- - Core Voxel Engine
- - Procedural Terrain Generation
- - Procedural Structure Generation
- - Procedural Cave Generation
- - Different Biomes
- - Basic Player Movement
- - Block Breaking/Placing/Interating Mechanics
- - Block Updates and Falling Trees
- - Day/Night Cycle and Global Time
- - High Definition Rendering Pipeline with PostFX
- - World Data Save
- - Burst Compiling (LLAC Compiling)
- - Complex Water Shader
- - VisualFX Support
+![](/RepoImages/a5.png)
 
-![](RepoImages/WorldGen2.png)
 
-### Phase 2 (Currently InDev) [Alpha]
+### Who is the creator? 
 
- - Dedicated and Local Server Multiplayer
- - Multiplayer Party System
- - Voxel Lighting Engine
- - Inventory, Items and Crafting
- - Character and Enemy models
- - Character Creation
- - Basic Animations
- - Basic Artificial Intelligence
- - Block and Entity Damage
- - Basic Magic VFX and Animation
- - More Blocks and Biomes
- - Storage-type Blocks
- - Multi-Tier Core Chunk Generation
- - Audio Engine
+My name is Henrique Frajacomo, a Brazillian Software Engineer and Music Production Instructor currently working a 9-5 job and developing Draconic Revolution on my free time along a team of volunteers consisting of friends and people who believe in the potential of this project.
 
-![](RepoImages/WorldGen3.png)
+![](/RepoImages/Eu13.jpg)
 
-### Phase 3 [Beta]
+Ever since I learned how to write, I have been making paper games. They eventually grew onto Tabletop RPG games that were played with my friends throughout my childhood. At the early age of 13, I got into the world of Computer Programming, and a huge spectrum of possibilities was opened to me. My love for programming led me to seek technical education on the subject, becoming then an Information Technician with the creation of a minor game with an RPG Maker-like aspect to it. Yet, I didn't think it was enough! I sought higher education in one of the most prestigious Federal Universities in Brazil, graduating in early 2021 as a Bachelor in Computer Science. During my time in University, I was a student researcher of the Bioinformatics and Machine Learning Lab, where I was team leader of projects regarding the use of Machine Learning AI to solve genetics and molecular biology problems.
 
- - Full Skill Tree Implementation for every Skill
- - Custom Dungeons
- - Better Animations
- - Better AI
- - Procedural City Generation
- - Procedural Quest Generation
- - NPC Shopping
- - Multiple Races and Races Regions
- - Multiple Game Dimensions
+Back when I was barely a teenager, I took a liking to music. This hobby eventually grew onto a YouTube Channel focused on teaching the technical and artistical process of Music Production. This project was meant to train and give visibility to many young producers that contained plenty raw talent but little resources. Music Tournaments are hosted on the channel and a website that sells a concise course of Music Production was created.
 
-![](RepoImages/WorldGen4.png)
+As of today, I work in my spare time with a team consisting of myself as Tech Lead, Product Owner, Principal Writter, Audio Director
 
-### Phase 4 [Release]
 
- - 'Draconic Revolution' Campaign mode
- - Construction of Campaign Map
- - Campaign Quest Writing
- - Campaign Voice Acting
- - Character Development
- - Custom Dungeons and Cities 
- 
-![](RepoImages/WorldGen5.png)
+### Where it came from?
 
-# In-depth Technical Analysis
+During my University time, back in 2016, after meeting a group of people who share the hobby of tabletop RPG, I decided to make my very own homebrew system. Being tired of the usual Dungeons & Dragons nature of "pick what your character will be for the rest of it's life", I decided to, intead, give the player plenty of options to choose from, and not bind them to their initial option. A game where you can mix different skills to be something completely different and unique. The concept of being a knight of sword and shield for the rest of your gameplay is completely optional in my system.
 
-If you are curious about the development of the game and it's peculiarities, make sure to check the "Game Details" folder. There, a series of .md files will explain a certain aspect of the current complete development phase.
+The game world was created with 7 character races, classic to medieval fantasy literature.
+The overall storyline consists of 1 main story quest, 21 skill-based faction quests, 3 special character quests and 9 Kingdom Politics Quest and a bit under a hundred characters. The story was named "Draconic Revolution", and the system created was given the same name a few months later.
 
-# Contribution
+With both system and story created, we were set to start. The tabletop game was played by over 30 people in 5 distinct groups from 2016 until present day. Sessions happen every Tuesday and Friday in portuguese language for 2 distinct active groups, having started in 2018 and 2020.
 
-I'm thankful enough if you have read up until here. If you wanna contribute to this project, we are always accepting some volunteer work. If you have any abilities in the following topics, feel free to send an email to me!
+As the Covid-19 lockdown happened, life stagnated. Refusing to accept that meetings in real life couldn't happen for the game sessions, I realized that, given my skillset, I could develop something that was similar to Draconic Revolution. After testing for some time, I realized that all technical barriers found could be broken through. So I discarded the idea of making something similar and was set on making the full digitalized version of Draconic Revolution.
 
- - Concept Artist
- - 3D Model Artist
- - Animation Artist
- - SoundTrack Producer
- - Voice Actor (Needed in Phase 3 and beyond only)
 
-# Playtest the Game
+And in August of 2020, Draconic Revolution as you see it now was born.
 
-Feel free to download the latest release at [this link](https://github.com/HFrajacomo/-Unity-Draconic-Revolution-RPG/releases)
+![](/RepoImages/a1.png)
 
-![](RepoImages/LightUpdate6.png)
+
+## Game Concepts
+
+### Levels, Skills and Progression
+
+This is the most key concept of Draconic Revolution and what ensures "player freedom" when building and progressing their character. 
+
+In the usual world of RPGs, there's the concept of Level, which dictates how strong an entity is in the game. Usually, level is gained by slaying monsters and completing quests. In Draconic Revolution, we had a different approach to how a character gets "stronger".
+
+![](/RepoImages/a2.png)
+
+Instead of levels, we have the Skill System. 21 completely distinct Skills with their very own progression that impact the world. These skills go from Level 1 to 100 and each one of them can be trained in their very own approach. Some skills have branches called 'subclasses', where once you get to a certain level in the skill, you may choose between multiple paths to keep evolving. Each path is unique. The skills are:
+
+| **Skill Name** | **Short Description** | **Levels up by** | **Subclasses** | 
+|--|--|--|--|
+| Alchemy | Creates potions and poisons | Crafting and identifying potions and poisons | - |
+|Bloodmancy| Uses vital energy to cast powerful spells | Fighting using Bloodmancy spells and gathering vital energy | Cultist, Vampire, Chaos Knight or Hellbound|
+|Crafting| Makes clothing, drawings, light armor, jewelry, works gems, makes additional inventory itens, etc.| Creating items related to crafting | - |
+|Combat| Wields stronger physical weaponry both melee and ranged| Fighting using physical and ranged weaponry| - |
+|Construction| Builds faster, adds variety to builds and increases inventory carry load| Building | - |
+|Cooking| Makes better food with better ingredients | Preparing meals | - |
+|Enchanting| Captures souls of fallen enemies to powerup weapons and armor or applying to other ends | Powering up items and using in battle | Soul Warden, Spiritual Mage, Illusionist|
+|Farming| Cultivate better crop, plants and animals | Plant, care for and harvest crops | - |
+|Fishing| Catching better fish and wielding fishing-like weapons | Fishing and using battle fishing weapons in combat | - |
+|Leadership| Provides bonuses to nearby allies with powerful speeches | Granting bonuses to allies | - |
+|Mining| Break terrain faster and gather more resources | Attacking the terrain | - |
+|Mounting| Tame and ride animals and mount big enemies | Successfully riding animals and enemies | - |
+|Musicality| Wield instruments and play sounds to influence the minds of others | Playing music | - |
+|Naturalism| Cast nature or corruption based spells to talk to animals and understand nature | Casting spells | Nature, Corruption |
+|Smithing| Work metal into weaponry and armor | Crafting metal objects | - |
+|Sorcery| Cast spells based on magic words that are learned progressively | Cast Sorcery spells | Elemental Affinities |
+|Thievery| Sneak, climb, pickpocket and lockpick better| Doing thievery actions | - |
+|Technology| Create circuits, firearms, electricity and industrial items | Crafting and using firearms in battle | Digital, Electrical, Bellic and Industrial |
+|Thaumaturgy| Craft magical artifacts that can be used in battle to cast spells | Crafting an using thaumaturgical items | Neutral, Dark, Ultra Dark, Eldritch |
+|Transmuting| Manipulate the terrain and objects using equivalent exchange magic | Use Transmuting spells | - |
+|Witchcraft| Cast powerful spells while tapping the energy of the demonic realm | Cast witchcraft spells | Elementalist, Essencialist, Mentalist |
+
+![](/RepoImages/a3.png)
+
+The amount of levels a character has in a skill dictates his usual attributes like Strength, Precision, Vitality, Evasion, Magic and Charisma. Leveling up skills like Smithing, Mining grants more Strength, while skills like Crafting, Leadership and Thievery may increase the Precision rating of a character.
+
+In this system, you can mix all skills you have to create a unique build for your character. And all skills are always unlocked, allowing the player to train any one of those and completely change the character build if they so desire.
+
+### Gamemodes
+
+Draconic Revolution as a digital game will contain two gamemodes: Campaign and Sandbox.
+
+![](/RepoImages/a4.png)
+
+#### Sandbox
+Sandbox mode will give the player an entirely procedurally generated world. In this gamemode, there will be no main storyline or set game map. The player is free to roam around, finding all sorts of points of interests, cities and dungeons. Cities will be procedurally generated just like the quests and item stores located there. Once Sandbox mode is completed, the beta phase of the development is considered completed.
+
+#### Campaign
+Campaign mode will give the player a partially procedurally generated world, where parts of it contain preset cities and structures, with pre-made character with their very own voice acting, questlines, daily activities and so on.
+This mode will contain premade quests tailored for its campaign and a lot more.
+
+Campaign mode will support multiple campaigns, the first one being Draconic Revolution storyline.
+
+![](/RepoImages/a6.png)
+
+### The World
+
+In Sandbox and the Draconic Revolution Campaign, the world will consist of a late medieval world, where the first technologies are being discovered. This world contains Kingdoms, usually containing more of a certain race of characters than the others. The terrain is meant to be changeable, either by being destroyed or built on. The world consists of 4 different layers of depth:
+
+![](/RepoImages/a7.png)
+
+1. The Surface: where most of the gameplay will take place
+2. The Underground: where most ores and deep caves are found
+3. The Hells: where lava lakes, devils and fossils of ancient gargantuos creatures are located
+4. The Core: the magnetic core of the world, where alien-like creatures and the rarest ores are in
+
+In Voxel-based games, there's a technical limit to the depth the world can have. Usually 256 or 512 voxels are the size in certain games.
+In Draconic Revolution, Voxel Chunks have 256 voxels, but our Voxel Engine is designed to stack chunks vertically, adding the capability of infinite depth and bypassing the technical limitation of rendering enormous chunks. Since we have 4 depth layers, out total number of voxel depth in a world is 1024. 
+
+![](/RepoImages/a11.png)
+
+Biomes are plenty and defined in every depth layer. For the surface layer, deserts, plans, mountains, etc. can be generated. On the Underground layer, deep caves, frozen caves, aquatic caves, etc. will be found. For the Hells layer, hell plains, bone valleys, volcanic highlands, etc. are located. For the Core depth, there is no biome distiction and the biome is simply named as Core.
+
+Structures will generate in the world based on biome. The structures consist of trees, ore veins, housing, fossils, etc.. 
+Certain parts of the world will be dominated by a certain race. So it would be more common to find race-specific items or race-specific expertise in parts of the map. It's also important to note that prices are not the same everywhere. Item prices and availability can vary depeding on player actions, story events and pure randomness.
+
+### Feeling
+
+Describing the feeling of what a game should be is always difficult. Especially when given the freedom aspect of Draconic Revolution. The game systems are being crafted in a way to accomodate all possible playstyles.
+
+For a more active combat playstyle we have Action RPG type of battles, where combat happens in real time and the user has first and third person control of their own character. The player has a battle hotbar to keep their combat skills in place for quick access in combat.
+
+For more of an exploration playstyle, we have plenty skills that add mobility to the character, as well as riding animals and crafting vehicle-like items. We also have completely destructible worlds, an entirely procedurally generated environment and quests everywhere.
+
+For a more chill experience, we have cities in which players can chose to settle in and build farms or live off of their skill set for crafting and selling items.
+
+![](/RepoImages/a8.png)
+
+## Ambientation
+
+### Visual
+
+The Artstyle chosen for game consists of:
+
+- Terrain: 32x32 pixel art with normal map support for depth mapping
+- Models: Low-poly models with textures matching the geometry' quality level
+- Semi-Cartoonish: We avoid vibrant colors to not evoke a cartoon feeling to the game. We dabble into the grayscale a bit more whenever working with art for the game to apply some level of realism.
+- Semi-Realistic Water and Liquids: Water in videogames are always a big thing, so we make sure to detail it as much as possible without breaking the proposed artstyle
+- Vibrant Magic Effects: Magic will be plenty in this game, from the 21 skills available, 5 are purely magical. So we want magic to be seen from very far away.
+- Biome-specific Color Correction: For every biome in the game, certain post-FX will be applied to the terrain. When crossing biome borders, a seamless transition will happen between biome ambientation presets.
+
+![](/RepoImages/a9.png)
+
+### Audio
+
+Audio for this game contains many layers, both in Ambientation and in Marketing. For now, let's verify what the Audio Engine for Draconic Revolution must be capable of doing:
+
+- Playing 2D and 3D music, sound effects and voiced-lines
+- Having support for multiple sounds happening at the same time (as in the interior of a tavern)
+- Being able to apply reverb to sounds based on the geometry of the room the player is currently placed in realtime*
+- Having unique music for every biome with different levels of intensity
+- Support to dynamically and seamlessly change intensity level of music based on what is happening onscreen 
+
+
+\**It is important to remember that Voxel games have technical limitations that makes things like presetting reverb zones in the map impossible. This requires some Research and Development.*
+
+
+
+# Progress
+
+![](/RepoImages/a10.png)
+
+Following I will present a list of the concepts that exist in the current Alpha Sprint. Please note that this list isn't complete yet, and the elements that haven't been planned or researched yet may be broken down into several sub-items with different complexity levels.
+
+|**Concept**|**Type**|**Sprint**|**Planned**|**Researched**|**Developed**|**Polishing**
+|--|--|--|--|--|--|--|
+|Core Voxel Engine|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
+|Procedural Terrain Generation|World Gen|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:soon:|
+|Procedural Structure Generation|World Gen|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Procedural Cave Generation|World Gen|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Different Biomes|World Gen|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Basic Player Movement and Camera|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Block Breaking, Placing and Interacting|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Voxel Updates|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Day and Night Cycle|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|High Definition Rendering Pipeline Support|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|World Save|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Game Save DB Compression|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Unity Burst Optimizations|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Dedicated and Local Multiplayer|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:warning:
+|Voxel Lighting Engine|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Inventory and Items|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Voxel Textures|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
+|Normal Map Support|Art| Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
+|Dynamic Lens Flare|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Custom Audio Engine|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:warning:
+|Initial Music|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:soon:|:soon:
+|Dynamic Music Support|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Dynamic Reverb Zone Generation|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:soon:
+|Non-Block Objects|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Block Damage Indicators|Core & Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Character Sheet|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Character Creation|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:soon:|:x:
+|World Save Defragmentation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Multi-Depth World Generation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:soon:
+|Storage Voxels|Core|Alpha|:heavy_check_mark:|:soon:|:x:|:x:
+|Character Models|3D|Alpha|:heavy_check_mark:|:warning:|:warning:|:x:
+|Character Rigging|3D|Alpha|:heavy_check_mark:|:warning:|:warning:|:x:
+|Basic Animations|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
+|Weapon Animations|3D|Alpha|:x:|:x:|:x:|:x:
+|Basic Enemy Models|3D|Alpha|:x:|:x:|:x:|:x:|
+|Basic AI|AI|Alpha|:heavy_check_mark:|:soon:|:soon:|:x:
+|Weather and Fog System|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:soon:
+|Main Menu UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Hotbar UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
+|Inventory UI|UI|Alpha|:heavy_check_mark:|:soon:|:warning:|:x:
+|Item Drops|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:warning:
+|Dynamic Light Objects|Core|Alpha|:heavy_check_mark:|:soon:|:x:|:x:
+
+---
+
+For the future Beta Sprint, we intend on implementing all 21 Skills, Cities and dungeon generation, stores and quests.
+
+Finally, for the Release Sprint, we intend on implementing the Draconic Revolution campaign mode in its entirety.
+
+# Fan Arts & Character Arts
+
+This section is reserved to art made by the players who played the Tabletop RPG version of Draconic Revolution. Enjoy!
