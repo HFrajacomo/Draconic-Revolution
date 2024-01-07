@@ -13,8 +13,7 @@ Draconic Revolution is a procedurally generated voxel-based late medieval RPG cu
 
 My name is Henrique Frajacomo, a Brazillian Software Engineer and Music Production Instructor currently working a 9-5 job and developing Draconic Revolution on my free time along a team of volunteers consisting of friends and people who believe in the potential of this project.
 
-![](/RepoImages/Eu13.jpg)
-<img src="/RepoImages/Eu13.jpg" width="400" height="400"/>
+<img src="/RepoImages/Eu13.jpg" width="400" height="500"/>
 
 Ever since I learned how to write, I have been making paper games. They eventually grew onto Tabletop RPG games that were played with my friends throughout my childhood. At the early age of 13, I got into the world of Computer Programming, and a huge spectrum of possibilities was opened to me. My love for programming led me to seek technical education on the subject, becoming then an Information Technician with the creation of a minor game with an RPG Maker-like aspect to it. Yet, I didn't think it was enough! I sought higher education in one of the most prestigious Federal Universities in Brazil, graduating in early 2021 as a Bachelor in Computer Science. During my time in University, I was a student researcher of the Bioinformatics and Machine Learning Lab, where I was team leader of projects regarding the use of Machine Learning AI to solve genetics and molecular biology problems.
 
