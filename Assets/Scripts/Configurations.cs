@@ -204,7 +204,6 @@ public static class Configurations
                 break;
             case "fullbright":
                 Configurations.FULLBRIGHT = ReadBoolField(value);
-                Debug.Log("Loaded FB as: " + Configurations.FULLBRIGHT);
                 break;
             case "render_distance":
                 World.SetRenderDistance(ReadIntField(value));
