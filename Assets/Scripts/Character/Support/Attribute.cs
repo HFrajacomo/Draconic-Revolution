@@ -7,8 +7,8 @@
  */
 public class Attribute{
 	private short baseAtt; 
-	private short equipped;
-	private short effect;
+	private short equipped; // Not saved
+	private short effect; // Not saved
 	private float multiplier;
 
 	public Attribute(){}
@@ -18,6 +18,10 @@ public class Attribute{
 	public Attribute(short b, short e){
 		this.baseAtt = b;
 		this.equipped = e;
+	}
+	public Attribute(short b, float m){
+		this.baseAtt = b;
+		this.multiplier = m;
 	}
 	public Attribute(short b, short e, float m){
 		this.baseAtt = b;
@@ -42,4 +46,8 @@ public class Attribute{
 
 	// Gets the calculates attribute
 	public int GetFinal(){return (int)((this.baseAtt + this.equipped + this.effect)*multiplier);}
+
+	public override string ToString(){
+		return baseAtt + " | " + equipped + " | " + effect + " | " + multiplier;
+	}
 }

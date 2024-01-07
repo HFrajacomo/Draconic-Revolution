@@ -97,7 +97,7 @@ public abstract class Item
 		return GenerateItem((ItemID)code);
 	}
 
-	public static Item GenerateItem(ItemID code){
+	public static Item GenerateItem(ItemID? code){
 		switch(code){
 			case ItemID.GRASSBLOCK:
 				return new Grassblock_Item();
@@ -227,8 +227,12 @@ public abstract class Item
 				return new BasaltBrickblock_Item();
 			case ItemID.OBSIDIANBLOCK:
 				return new Obsidianblock_Item();
+			case ItemID.NONE:
+				return new Null_Item();
+			case null:
+				return new Null_Item();
 			default:
-				return null;
+				return new Null_Item();
 		}
 	}
 }

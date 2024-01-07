@@ -40,4 +40,19 @@ public class SpecialEffectHandler{
 
 		return this.effects[usecase].Contains(e);
 	}
+
+	public List<SpecialEffect> GetAllEffects(){
+		List<SpecialEffect> outList = new List<SpecialEffect>();
+
+		foreach(HashSet<SpecialEffect> hs in this.effects){
+			if(hs == null)
+				continue;
+
+			foreach(SpecialEffect sfx in hs){
+				outList.Add(sfx);
+			}
+		}
+
+		return outList;
+	}
 }

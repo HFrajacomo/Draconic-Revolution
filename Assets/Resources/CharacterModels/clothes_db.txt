@@ -1,0 +1,13 @@
+# Name	Blender_obj_name	Sex
+
+<No Top>	NakedM	M
+Peasant blouse	coat	M
+Jacket and shirt	coat.002	M
+Sweatshirt	coat.001	M
+Trench coat	coat.003	M
+
+<No Top>	NakedW.002	F
+Peasant blouse	CoatW	F
+Jacket and shirt	CoatW.003	F
+Sweatshirt	CoatW.002	F
+Trench coat	CoatW.004	F

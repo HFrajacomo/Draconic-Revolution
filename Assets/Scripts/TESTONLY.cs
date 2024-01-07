@@ -6,19 +6,9 @@ using UnityEngine.UI;
 
 public class TESTONLY : MonoBehaviour
 {   
-	public Text text_;
-
-
 	void Start(){
-		SetText("aa");
-	}
+		float t = 1.23456f;
 
-	void Update(){
-		SetText("bb");
-		this.text_.SetAllDirty();
-	}
-
-	private void SetText(string t){
-		this.text_.text  = t;
+		Debug.Log((float)Mathf.Floor(t * 100) / 100);
 	}
 }

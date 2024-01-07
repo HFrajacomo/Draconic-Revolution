@@ -7,10 +7,8 @@ public class SpecialEffect {
 	private byte tickDuration;
 	private ushort amountTicks;
 	private EntityID source;
-	private bool showToPlayer;
+	private bool showToPlayer; // NO SAVE
 	private bool isSystem;
-
-	//private Damage damage;
 
 
 	// Basic for system operations
@@ -23,6 +21,11 @@ public class SpecialEffect {
 	public SpecialEffect(EffectType t, byte td, ushort ticks, bool system){
 		this.type = t; this.tickDuration = td; this.amountTicks = ticks; this.isSystem = system;
 		this.usecase = EffectUsecase.TURN_BASED;
+	}
+
+	public SpecialEffect(EffectType t, EffectUsecase use, byte td, ushort ticks, bool system){
+		this.type = t; this.tickDuration = td; this.amountTicks = ticks; this.isSystem = system;
+		this.usecase = use;
 	}
 
 	public EffectType GetEffectType(){return this.type;}

@@ -76,7 +76,6 @@ public static class World
 
     public static void SetToClient(){
         World.isClient = true;
-        World.SetAccountID((ulong)0);
     }
 
     public static void SetToServer(){

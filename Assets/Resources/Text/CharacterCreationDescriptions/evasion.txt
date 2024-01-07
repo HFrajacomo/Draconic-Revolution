@@ -1,0 +1,1 @@
+Evasion is related to your dexterity. It is related to your dodge rate and fall damage reduction.

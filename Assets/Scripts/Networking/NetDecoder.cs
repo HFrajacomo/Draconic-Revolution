@@ -98,6 +98,35 @@ public static class NetDecoder
 		return new ChunkPos(NetDecoder.ReadInt(data, pos), NetDecoder.ReadInt(data, pos+4), NetDecoder.ReadByte(data, pos+8));
 	}
 
+	public static Attribute ReadAttribute(byte[] data, int pos){
+		return new Attribute(NetDecoder.ReadShort(data, pos), NetDecoder.ReadFloat(data, pos+2));
+	}
+
+	public static DepletableAttribute ReadDepletableAttribute(byte[] data, int pos){
+		return new DepletableAttribute(NetDecoder.ReadUshort(data, pos), NetDecoder.ReadUshort(data, pos+2), NetDecoder.ReadBool(data, pos+4));
+	}
+
+
+	public static SkillExp ReadSkillEXP(byte[] data, int pos){
+		return new SkillExp(data[pos], NetDecoder.ReadInt(data, pos+1));
+	}
+
+	public static ClothingInfo ReadClothingInfo(byte[] data, int pos){
+		return new ClothingInfo(NetDecoder.ReadUshort(data, pos), NetDecoder.ReadRGB(data, pos+2), NetDecoder.ReadRGB(data, pos+14), NetDecoder.ReadRGB(data, pos+26), NetDecoder.ReadBool(data, pos+38));
+	}
+
+	public static Color ReadRGB(byte[] data, int pos){
+		return new Color(System.BitConverter.ToSingle(data, pos), System.BitConverter.ToSingle(data, pos+4), System.BitConverter.ToSingle(data, pos+8));
+	}
+
+	public static CharacterAppearance ReadCharacterAppearance(byte[] data, int pos){
+		return new CharacterAppearance((Race)data[pos], NetDecoder.ReadRGB(data, pos+1), NetDecoder.ReadClothingInfo(data, pos+13), NetDecoder.ReadClothingInfo(data, pos+52), NetDecoder.ReadClothingInfo(data, pos+91), NetDecoder.ReadClothingInfo(data, pos+130));
+	}
+
+	public static SpecialEffect ReadSpecialEffect(byte[] data, int pos){
+		return new SpecialEffect((EffectType)NetDecoder.ReadUshort(data, pos), (EffectUsecase)NetDecoder.ReadByte(data, pos+2), NetDecoder.ReadByte(data, pos+3), NetDecoder.ReadUshort(data, pos+4), NetDecoder.ReadBool(data, pos+6));
+	}
+
 	public static float ReadFloat(byte[] data, int pos){
 		float result = System.BitConverter.ToSingle(data, pos);
 		return result;
@@ -115,6 +144,12 @@ public static class NetDecoder
 
 	public static byte ReadByte(byte[] data, int pos){
 		return data[pos];
+	}
+
+	public static void WriteRGB(Color c, byte[] data, int pos){
+		NetDecoder.WriteFloat(c.r, data, pos);
+		NetDecoder.WriteFloat(c.g, data, pos+4);
+		NetDecoder.WriteFloat(c.b, data, pos+8);
 	}
 
 	public static void WriteFloat(float a, byte[] data, int pos){
@@ -215,5 +250,46 @@ public static class NetDecoder
 		NetDecoder.WriteInt(cp.x, data, pos);
 		NetDecoder.WriteInt(cp.z, data, pos+4);
 		NetDecoder.WriteByte(cp.y, data, pos+8);
+	}
+
+	public static void WriteAttribute(Attribute att, byte[] data, int pos){
+		NetDecoder.WriteShort(att.GetBase(), data, pos);
+		NetDecoder.WriteFloat(att.GetMultiplier(), data, pos+2);
+	}
+
+	public static void WriteDepletableAttribute(DepletableAttribute att, byte[] data, int pos){
+		NetDecoder.WriteUshort(att.GetCurrentValue(), data, pos);
+		NetDecoder.WriteUshort(att.GetMaximumValue(), data, pos+2);
+		NetDecoder.WriteBool(att.GetZeroFlag(), data, pos+4);
+	}
+
+	public static void WriteSkillEXP(SkillExp x, byte[] data, int pos){
+		NetDecoder.WriteByte(x.GetLevel(), data, pos);
+		NetDecoder.WriteInt(x.GetCurrentExp(), data, pos+1);
+	}
+
+	public static void WriteClothingInfo(ClothingInfo i, byte[] data, int pos){
+		NetDecoder.WriteUshort(i.code, data, pos);
+		NetDecoder.WriteRGB(i.primary, data, pos+2);
+		NetDecoder.WriteRGB(i.secondary, data, pos+14);
+		NetDecoder.WriteRGB(i.terciary, data, pos+26);
+		NetDecoder.WriteBool(i.isMale, data, pos+38);
+	}
+
+	public static void WriteCharacterAppearance(CharacterAppearance ca, byte[] data, int pos){
+		NetDecoder.WriteByte((byte)ca.race, data, pos);
+		NetDecoder.WriteRGB(ca.skinColor, data, pos+1);
+		NetDecoder.WriteClothingInfo(ca.hat, data, pos+13);
+		NetDecoder.WriteClothingInfo(ca.torso, data, pos+52);
+		NetDecoder.WriteClothingInfo(ca.legs, data, pos+91);
+		NetDecoder.WriteClothingInfo(ca.boots, data, pos+130);
+	}
+
+	public static void WriteSpecialEffect(SpecialEffect sfx, byte[] data, int pos){
+		NetDecoder.WriteUshort((ushort)sfx.GetEffectType(), data, pos);
+		NetDecoder.WriteByte((byte)sfx.GetUsecase(), data, pos+2);
+		NetDecoder.WriteByte(sfx.GetTickDuration(), data, pos+3);
+		NetDecoder.WriteUshort(sfx.GetTicks(), data, pos+4);
+		NetDecoder.WriteBool(sfx.IsSystem(), data, pos+6);
 	}
 }

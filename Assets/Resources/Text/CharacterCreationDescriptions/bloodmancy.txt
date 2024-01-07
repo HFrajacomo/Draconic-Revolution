@@ -1,0 +1,1 @@
+Bloodmancy is a magical skill that uses the living aura extracted from creatures to cast spells. Bloodmancy spells require <color=red>Blood</color> to be casted. Higher levels of bloodmancy allow the user to pick a subclass: <i>Cultist, Vampire, Chaos Knight</i> or <i>Hellbound</i>
