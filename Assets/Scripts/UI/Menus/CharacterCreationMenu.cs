@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using UnityEditor.Animations;
 
 using Random = UnityEngine.Random;
 using Object = System.Object;
@@ -109,8 +108,8 @@ public class CharacterCreationMenu : Menu{
     public Button preset3;
 
     [Header("Animation")]
-    public AnimatorController maleAnimations;
-    public AnimatorController femaleAnimations;
+    public RuntimeAnimatorController maleAnimations;
+    public RuntimeAnimatorController femaleAnimations;
 
     private CharacterBuilder characterBuilder;
     private bool INIT = false;

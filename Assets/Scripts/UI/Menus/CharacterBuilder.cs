@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
 
@@ -27,7 +26,7 @@ public class CharacterBuilder{
 
 	private List<int> cachedTris = new List<int>();
 
-	public CharacterBuilder(GameObject par, AnimatorController animations, bool isMale=true){
+	public CharacterBuilder(GameObject par, RuntimeAnimatorController animations, bool isMale=true){
 		this.raceSettings = RaceManager.GetHuman();
 
 		this.parent = par;
@@ -47,7 +46,7 @@ public class CharacterBuilder{
 		FixArmature(isMale);
 	}
 
-	public void ChangeAnimationGender(AnimatorController animation){
+	public void ChangeAnimationGender(RuntimeAnimatorController animation){
 		this.animator.runtimeAnimatorController = animation;
 	}
 
@@ -100,8 +99,10 @@ public class CharacterBuilder{
 
 		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
 
-		if(boneRenderer.transforms == null)
-			boneRenderer.transforms = newBones;
+		#if UNITY_EDITOR
+			if(boneRenderer.transforms == null)
+				boneRenderer.transforms = newBones;
+		#endif
 
 		Mesh mesh = CopyMesh(current.sharedMesh, current);
 		FixMaterialOrder(current);
