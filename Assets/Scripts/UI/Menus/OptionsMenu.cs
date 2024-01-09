@@ -108,8 +108,8 @@ public class OptionsMenu : Menu
 		this.fov_slider.value = Configurations.fieldOfView;
 
 		// Refresh Shader
-		this.subtitles_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(!Configurations.subtitlesOn);
-		this.fullbright_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(!Configurations.FULLBRIGHT);
+		this.subtitles_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(Configurations.subtitlesOn);
+		this.fullbright_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(Configurations.FULLBRIGHT);
 
 		this.fullbright_toggle.isOn = Configurations.FULLBRIGHT;
 		this.subtitles_toggle.isOn = Configurations.subtitlesOn;
@@ -133,11 +133,13 @@ public class OptionsMenu : Menu
 	public void ToggleSubtitles(){
 		if(INIT){
 			Configurations.subtitlesOn = !Configurations.subtitlesOn;
+			this.subtitles_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(Configurations.subtitlesOn);
 		}
 	}
 	public void ToggleFullbright(){
 		if(INIT){
 			Configurations.FULLBRIGHT = !Configurations.FULLBRIGHT;
+			this.fullbright_toggle.GetComponent<ShaderBorderFillToggle>().RefreshToggle(Configurations.FULLBRIGHT);
 		}
 	}
 
