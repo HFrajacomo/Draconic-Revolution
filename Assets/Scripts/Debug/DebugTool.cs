@@ -27,7 +27,26 @@ public static class DebugTool{
 
     public static void Log<T>(List<T> l){
 		string fullDir = EnvironmentVariablesCentral.clientExeDir + FILENAME;
-		string result = "[" + string.Join(",", l) + "]";
+		string result = "[" + string.Join(", ", l) + "]";
+
+        // Check if the file exists
+        if (!File.Exists(fullDir)){
+            // If the file doesn't exist, create it
+            using (StreamWriter sw = File.CreateText(fullDir)){
+                sw.WriteLine(result);
+            }
+        }
+        else{
+            // If the file exists, open it and append the string
+            using (StreamWriter sw = File.AppendText(fullDir)){
+                sw.WriteLine(result);
+            }
+        }    	
+    }
+
+    public static void Log(string[] l){
+		string fullDir = EnvironmentVariablesCentral.clientExeDir + FILENAME;
+		string result = "[" + string.Join(", ", l) + "]";
 
         // Check if the file exists
         if (!File.Exists(fullDir)){

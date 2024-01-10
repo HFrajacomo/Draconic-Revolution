@@ -32,7 +32,11 @@ public static class WorldImageLoader {
 		string worldName;
 
 		foreach(string dir in directories){
-			splitted = dir.Split("/");
+			if(dir.Contains("/"))
+				splitted = dir.Split("/");
+			else
+				splitted = dir.Split("\\");
+
 			worldName = splitted[splitted.Length-1];
 
 			if(File.Exists(dir + WORLD_IMAGE_NAME)){

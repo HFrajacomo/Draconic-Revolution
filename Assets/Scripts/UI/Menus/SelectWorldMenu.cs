@@ -103,6 +103,8 @@ public class SelectWorldMenu : Menu
     public override void Enable(){
         this.mainObject.SetActive(true);
 
+        this.carousel = new CarouselController(this.scrollView, this.scrollContent, (int)this.worldItem.GetComponent<RectTransform>().rect.width, (int)this.viewport.rect.width, 0.5f);
+
         WorldImageLoader.LoadSprites();
         ListWorldFolders();
 
@@ -116,7 +118,6 @@ public class SelectWorldMenu : Menu
 
     void Start(){
         this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
-        this.carousel = new CarouselController(this.scrollView, this.scrollContent, (int)this.worldItem.GetComponent<RectTransform>().rect.width, (int)this.viewport.rect.width, 0.5f);
     }
 
     void Update(){

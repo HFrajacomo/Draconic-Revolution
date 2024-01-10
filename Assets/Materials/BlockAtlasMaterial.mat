@@ -278,6 +278,7 @@ Material:
     - _EnableGeometricSpecularAA: 0
     - _EnergyConservingSpecularColor: 1
     - _EnvironmentReflections: 1
+    - _ExcludeFromTUAndAA: 0
     - _FlipbookMode: 0
     - _FullBrightFloorIntensity: 0.05
     - _Fullbright: 0
