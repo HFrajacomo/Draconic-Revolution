@@ -43,6 +43,7 @@ public class MainControllerManager : MonoBehaviour
     private bool LOCK_MOUSE2 = false;
     private bool LOCK_INTERACT = false;
     private bool LOCK_DROP = false;
+    public static bool DEBUG = false;
 
     public void Update(){
         LOCK_DROP = false;
@@ -124,11 +125,12 @@ public class MainControllerManager : MonoBehaviour
         this.raycast.TakeWorldScreenshot();
 
         this.cl.Cleanup();
+        DebugCube.Clear();
         SceneManager.LoadScene("Blank");
     }
 
     public void OnDebugKey2(){
-        cl.InitConfigurationFunctions();
+        MainControllerManager.DEBUG = !MainControllerManager.DEBUG;
     }
 
     public void OnToggleHUD(){

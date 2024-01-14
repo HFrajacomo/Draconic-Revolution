@@ -9,16 +9,18 @@ public class ChunkPriorityQueue
     private List<ChunkDistance> backupQueue; // Cache queue to recalculate distances
 
     private ChunkPos playerPosition; // Player current Distance
+    private DistanceMetric metric;
     private bool DEBUG_QUEUE;
 
-    public ChunkPriorityQueue(bool debug=false){
+    public ChunkPriorityQueue(bool debug=false, DistanceMetric metric=DistanceMetric.MANHATTAN){
         this.queue = new List<ChunkDistance>();
         this.initialQueue = new List<ChunkDistance>();
+        this.metric = metric;
         this.DEBUG_QUEUE = debug;
     }
 
     public void Add(ChunkPos x, bool initial=false){
-        float distance = playerPosition.DistanceFrom(x);
+        float distance = playerPosition.DistanceFrom(x, this.metric);
         float newDist = 0;
 
         if(this.Contains(x)){
@@ -44,7 +46,7 @@ public class ChunkPriorityQueue
         }
 
         for(int i=0; i < q.Count; i++){
-            newDist = playerPosition.DistanceFrom(q[i].pos);
+            newDist = playerPosition.DistanceFrom(q[i].pos, this.metric);
             if(distance < newDist){
                 q.Insert(i, new ChunkDistance(x, distance));
 
@@ -54,7 +56,7 @@ public class ChunkPriorityQueue
             }
         }
 
-        if(newDist == playerPosition.DistanceFrom(q[q.Count-1].pos)){
+        if(newDist == playerPosition.DistanceFrom(q[q.Count-1].pos, this.metric)){
             q.Add(new ChunkDistance(x, distance));
 
             if(DEBUG_QUEUE)
@@ -69,7 +71,7 @@ public class ChunkPriorityQueue
     }
 
     public bool Contains(ChunkPos x){
-        float distance = playerPosition.DistanceFrom(x);
+        float distance = playerPosition.DistanceFrom(x, this.metric);
 
         return this.queue.Contains(new ChunkDistance(x, distance)) || this.initialQueue.Contains(new ChunkDistance(x, distance));
     }

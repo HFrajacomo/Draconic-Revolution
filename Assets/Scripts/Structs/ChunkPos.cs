@@ -23,7 +23,28 @@ public struct ChunkPos{
 		this.y = (byte)y;
 	}
 
-	public float DistanceFrom(ChunkPos otherPos){
+	public float DistanceFrom(ChunkPos pos, DistanceMetric metric){
+		switch(metric){
+			case DistanceMetric.MANHATTAN:
+				return DistanceManhattan(pos);
+			case DistanceMetric.EDGE_LIMITING:
+				return DistanceEdgeLimiting(pos);
+			default:
+				return DistanceManhattan(pos);
+		}
+	}
+
+	public float DistanceManhattan(ChunkPos otherPos){
+		int xDiff, zDiff, yDiff;
+
+		xDiff = Mathf.Abs(otherPos.x - this.x);
+		yDiff = Mathf.Abs(otherPos.y - this.y);
+		zDiff = Mathf.Abs(otherPos.z - this.z);
+
+		return xDiff + yDiff + zDiff;
+	}
+
+	public float DistanceEdgeLimiting(ChunkPos otherPos){
 		int xDiff, zDiff, yDiff;
 		int maximizedDistance;
 
@@ -34,7 +55,7 @@ public struct ChunkPos{
 		maximizedDistance = Mathf.Max(xDiff, zDiff);
 
 		if(maximizedDistance > World.renderDistance){
-			return 999f;
+			return 999f + xDiff + yDiff + zDiff;
 		}
 		else{
 			return xDiff + yDiff + zDiff;
@@ -114,4 +135,9 @@ public struct ChunkPos{
 	public static ChunkPos operator-(ChunkPos a, ChunkPos b){
 		return new ChunkPos(a.x - b.x, a.z - b.z, a.y);
 	}
+}
+
+public enum DistanceMetric : byte{
+	MANHATTAN,
+	EDGE_LIMITING
 }

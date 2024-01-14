@@ -24,7 +24,7 @@ public class ChunkLoader : MonoBehaviour
     public List<ChunkPos> toLoadChunk = new List<ChunkPos>();
     public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue();
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
-    public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue();
+    public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue(metric:DistanceMetric.EDGE_LIMITING);
     public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue();
     public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 
@@ -343,11 +343,13 @@ public class ChunkLoader : MonoBehaviour
                 return;
             }
 
-           // Asks server to hand over chunk info
+            //DebugCube.ChangeColor(requestPriorityQueue.Peek(), Color.grey);
+
+            // Asks server to hand over chunk info
             this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
             this.message.RequestChunkLoad(requestPriorityQueue.Pop());
             this.client.Send(this.message.GetMessage(), this.message.size);
-    	}
+        }
     }
 
     // Loads the chunk into the Chunkloader
@@ -363,6 +365,10 @@ public class ChunkLoader : MonoBehaviour
             if(this.chunks.ContainsKey(cp)){
                 this.chunks[cp].Destroy();
                 this.chunks.Remove(cp);
+                //DebugCube.ChangeColor(cp, Color.black);
+            }
+            else{
+                //DebugCube.ChangeColor(cp, Color.yellow);
             }
 
             int blockDataSize = NetDecoder.ReadInt(data, 10);
@@ -395,6 +401,8 @@ public class ChunkLoader : MonoBehaviour
 
             toLoad.RemoveAt(0);
             toLoadChunk.RemoveAt(0);
+
+
         }
     }
 
@@ -429,6 +437,8 @@ public class ChunkLoader : MonoBehaviour
             vfx.RemoveChunk(popChunk.pos);
             sfx.RemoveChunkSFX(popChunk.pos);
 
+            //DebugCube.Delete(toUnload[0]);
+
             this.message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
             this.message.RequestChunkUnload(toUnload[0]);
             this.client.Send(this.message.GetMessage(), this.message.size);
@@ -446,6 +456,12 @@ public class ChunkLoader : MonoBehaviour
             // If chunk is still loaded
             if(chunks.ContainsKey(drawPriorityQueue.Peek())){
                 if(!CanBeDrawn(drawPriorityQueue.Peek())){
+                    //DebugCube.ChangeColor(drawPriorityQueue.Peek(), Color.red);
+
+                    if(MainControllerManager.DEBUG)
+                        drawPriorityQueue.Print();
+
+                    drawPriorityQueue.Add(drawPriorityQueue.Pop());
                     return;
                 }
 
@@ -454,6 +470,8 @@ public class ChunkLoader : MonoBehaviour
                 CheckLightPropagation(cachedPos);
 
                 chunks[cachedPos].BuildChunk(load:true);
+
+                //DebugCube.ChangeColor(cachedPos, Color.green);
 
                 if(WORLD_GENERATED)
                     this.vfx.UpdateLights(cachedPos);
@@ -483,7 +501,7 @@ public class ChunkLoader : MonoBehaviour
                     if(this.WORLD_GENERATED)
                         this.vfx.UpdateLights(cachedPos);
                 }
-                else{
+                else{    
                     updatePriorityQueue.Add(updatePriorityQueue.Pop());
                 }
             }
@@ -681,6 +699,7 @@ public class ChunkLoader : MonoBehaviour
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
 	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, playerY), initial:true);
+                    //DebugCube.Create(new ChunkPos(newChunk.x+x, newChunk.z+z, playerY), Color.white);
 	        	}
 	        }
 
