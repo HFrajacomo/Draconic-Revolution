@@ -1324,15 +1324,192 @@ public class SteonyxVein : Structure
 		Prepare(blocks, hps, states);
 	}
 }
-
-public class SingleVisCrystal : Structure
+/*
+    PRECANTIO_CRYSTAL = 65528,
+    PERDITIO_CRYSTAL = 65529,
+    ORDO_CRYSTAL = 65530,
+    TERRA_CRYSTAL = 65531,
+    AER_CRYSTAL = 65532,
+    AQUA_CRYSTAL = 65533,
+    IGNIS_CRYSTAL = 65534,
+ */
+public class SingleIgnisVisCrystal : Structure
 {
-	public ushort[] blocks = new ushort[]{65527};
+	public ushort[] blocks = new ushort[]{65534};
 	public ushort[] hps = new ushort[]{0,1};
 	public ushort[] states = new ushort[]{0,1};
 
-	public SingleVisCrystal(){
-		this.code = (ushort)StructureCode.SingleVisCrystal;
+	public SingleIgnisVisCrystal(){
+		this.code = (ushort)StructureCode.SingleIgnisVisCrystal;
+
+		this.sizeX = 1;
+		this.sizeY = 1;
+		this.sizeZ = 1;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+		this.blockdata = new ushort[1];
+		this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>();
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class SingleAquaVisCrystal : Structure
+{
+	public ushort[] blocks = new ushort[]{65533};
+	public ushort[] hps = new ushort[]{0,1};
+	public ushort[] states = new ushort[]{0,1};
+
+	public SingleAquaVisCrystal(){
+		this.code = (ushort)StructureCode.SingleAquaVisCrystal;
+
+		this.sizeX = 1;
+		this.sizeY = 1;
+		this.sizeZ = 1;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+		this.blockdata = new ushort[1];
+		this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>();
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class SingleAerVisCrystal : Structure
+{
+	public ushort[] blocks = new ushort[]{65532};
+	public ushort[] hps = new ushort[]{0,1};
+	public ushort[] states = new ushort[]{0,1};
+
+	public SingleAerVisCrystal(){
+		this.code = (ushort)StructureCode.SingleAerVisCrystal;
+
+		this.sizeX = 1;
+		this.sizeY = 1;
+		this.sizeZ = 1;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+		this.blockdata = new ushort[1];
+		this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>();
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+
+public class SingleTerraVisCrystal : Structure
+{
+	public ushort[] blocks = new ushort[]{65531};
+	public ushort[] hps = new ushort[]{0,1};
+	public ushort[] states = new ushort[]{0,1};
+
+	public SingleTerraVisCrystal(){
+		this.code = (ushort)StructureCode.SingleTerraVisCrystal;
+
+		this.sizeX = 1;
+		this.sizeY = 1;
+		this.sizeZ = 1;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+		this.blockdata = new ushort[1];
+		this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>();
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class SingleOrdoVisCrystal : Structure
+{
+	public ushort[] blocks = new ushort[]{65530};
+	public ushort[] hps = new ushort[]{0,1};
+	public ushort[] states = new ushort[]{0,1};
+
+	public SingleOrdoVisCrystal(){
+		this.code = (ushort)StructureCode.SingleOrdoVisCrystal;
+
+		this.sizeX = 1;
+		this.sizeY = 1;
+		this.sizeZ = 1;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+		this.blockdata = new ushort[1];
+		this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>();
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class SinglePerditioVisCrystal : Structure
+{
+	public ushort[] blocks = new ushort[]{65529};
+	public ushort[] hps = new ushort[]{0,1};
+	public ushort[] states = new ushort[]{0,1};
+
+	public SinglePerditioVisCrystal(){
+		this.code = (ushort)StructureCode.SinglePerditioVisCrystal;
+
+		this.sizeX = 1;
+		this.sizeY = 1;
+		this.sizeZ = 1;
+
+		this.offsetX = 0;
+		this.offsetZ = 0;
+
+		this.blockdata = new ushort[1];
+		this.meta = new VoxelMetadata(sizeX, sizeY, sizeZ);
+
+		this.considerAir = false;
+		this.needsBase = false;
+		this.type = FillType.OverwriteAll;
+		this.overwriteBlocks = new HashSet<ushort>();
+
+		Prepare(blocks, hps, states);
+	}
+}
+
+public class SingleMagicVisCrystal : Structure
+{
+	public ushort[] blocks = new ushort[]{65528};
+	public ushort[] hps = new ushort[]{0,1};
+	public ushort[] states = new ushort[]{0,1};
+
+	public SingleMagicVisCrystal(){
+		this.code = (ushort)StructureCode.SingleMagicVisCrystal;
 
 		this.sizeX = 1;
 		this.sizeY = 1;
@@ -1405,5 +1582,11 @@ public enum StructureCode{
 	GrandiumVeinA,
 	GrandiumVeinB,
 	SteonyxVein,
-	SingleVisCrystal
+	SingleIgnisVisCrystal,
+	SingleAquaVisCrystal,
+	SingleTerraVisCrystal,
+	SingleAerVisCrystal,
+	SingleOrdoVisCrystal,
+	SinglePerditioVisCrystal,
+	SingleMagicVisCrystal
 }

@@ -69,8 +69,6 @@ public abstract class BlocklikeObject
 				return new PerditioCrystal_Object(isClient);
 			case 7:
 				return new PrecantioCrystal_Object(isClient);
-			case 8:
-				return new SpawnCrystal_Object(isClient);
 
 			default:
 				return new Torch_Object(isClient);

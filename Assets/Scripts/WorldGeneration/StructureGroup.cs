@@ -227,11 +227,23 @@ public static class StructureGroup
     }
 
     private static void PopulateVisFew(){
-        visFew.Add(new StructSpawn(StructureCode.SingleVisCrystal, 10, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleIgnisVisCrystal, 2, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleAquaVisCrystal, 2, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleAerVisCrystal, 2, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleTerraVisCrystal, 2, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleOrdoVisCrystal, 2, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SinglePerditioVisCrystal, 2, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleMagicVisCrystal, 2, 1f, 10, -1, true, 0));
     }
 
     private static void PopulateVisMany(){
-        visMany.Add(new StructSpawn(StructureCode.SingleVisCrystal, 25, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleIgnisVisCrystal, 5, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleAquaVisCrystal, 5, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleAerVisCrystal, 5, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleTerraVisCrystal, 5, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleOrdoVisCrystal, 5, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SinglePerditioVisCrystal, 5, 1f, 10, -1, true, 0));
+        visFew.Add(new StructSpawn(StructureCode.SingleMagicVisCrystal, 5, 1f, 10, -1, true, 0));
     }
 }
 

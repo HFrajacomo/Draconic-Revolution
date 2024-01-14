@@ -79,7 +79,6 @@ public enum BlockID : ushort
     OBJECTS
     */
 
-    SPAWN_CRYSTAL = 65527,
     PRECANTIO_CRYSTAL = 65528,
     PERDITIO_CRYSTAL = 65529,
     ORDO_CRYSTAL = 65530,

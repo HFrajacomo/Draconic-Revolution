@@ -140,9 +140,20 @@ public abstract class Structure
                 return new GrandiumVeinB();
             case StructureCode.SteonyxVein:
                 return new SteonyxVein();
-            case StructureCode.SingleVisCrystal:
-                return new SingleVisCrystal();
-                
+            case StructureCode.SingleIgnisVisCrystal:
+                return new SingleIgnisVisCrystal();
+            case StructureCode.SingleAquaVisCrystal:
+                return new SingleAquaVisCrystal();
+            case StructureCode.SingleAerVisCrystal:
+                return new SingleAerVisCrystal();
+            case StructureCode.SingleTerraVisCrystal:
+                return new SingleTerraVisCrystal();
+            case StructureCode.SingleOrdoVisCrystal:
+                return new SingleOrdoVisCrystal();
+            case StructureCode.SinglePerditioVisCrystal:
+                return new SinglePerditioVisCrystal();
+            case StructureCode.SingleMagicVisCrystal:
+                return new SingleMagicVisCrystal();                
             default:
                 return new TestStruct();
         }
