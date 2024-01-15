@@ -120,7 +120,7 @@ public class PlayerPositionHandler : MonoBehaviour
             this.lastBiome = this.currentBiome;
 
         if(cl.chunks.ContainsKey(coord.GetChunkPos()))
-            this.currentBiome = cl.chunks[coord.GetChunkPos()].biomeName; 
+            this.currentBiome = cl.chunks[coord.GetChunkPos()].biomeName;
 
         if(coord.blockY <= Constants.CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE)
             this.verticalChunkLoaded = -1;

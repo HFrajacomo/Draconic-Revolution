@@ -79,6 +79,16 @@ public struct CastCoord{
 	    else
 	      blockY = Mathf.CeilToInt(((Chunk.chunkDepth*-chunkY)+nMark.y)%Chunk.chunkDepth);
 
+	    // World Boundaries
+	    if(chunkY > Constants.MAXIMUM_CHUNK_DEPTH){
+	    	chunkY = Constants.MAXIMUM_CHUNK_DEPTH;
+	    	blockY = Chunk.chunkDepth-1;
+	    }
+	    else if(chunkY < 0){
+	    	chunkY = 0;
+	    	blockY = 0;
+	    }
+
 	 	active = true;
 	}
 
@@ -126,6 +136,16 @@ public struct CastCoord{
 	    else
 	      blockY = Mathf.CeilToInt(((Chunk.chunkDepth*-chunkY)+nMark.y)%Chunk.chunkDepth);
 
+	    // World Boundaries
+	    if(chunkY > Constants.MAXIMUM_CHUNK_DEPTH){
+	    	chunkY = Constants.MAXIMUM_CHUNK_DEPTH;
+	    	blockY = Chunk.chunkDepth-1;
+	    }
+	    else if(chunkY < 0){
+	    	chunkY = 0;
+	    	blockY = 0;
+	    }
+
 	 	active = true;
 	}
 
@@ -170,6 +190,16 @@ public struct CastCoord{
 	    else
 	      blockY = Mathf.CeilToInt(((Chunk.chunkDepth*-chunkY)+y)%Chunk.chunkDepth);
 
+	    // World Boundaries
+	    if(chunkY > Constants.MAXIMUM_CHUNK_DEPTH){
+	    	chunkY = Constants.MAXIMUM_CHUNK_DEPTH;
+	    	blockY = Chunk.chunkDepth-1;
+	    }
+	    else if(chunkY < 0){
+	    	chunkY = 0;
+	    	blockY = 0;
+	    }
+
 	 	active = true;
 	}
 
@@ -180,6 +210,17 @@ public struct CastCoord{
 		blockX = x;
 		blockY = y;
 		blockZ = z;
+
+	    // World Boundaries
+	    if(chunkY > Constants.MAXIMUM_CHUNK_DEPTH){
+	    	chunkY = Constants.MAXIMUM_CHUNK_DEPTH;
+	    	blockY = Chunk.chunkDepth-1;
+	    }
+	    else if(chunkY < 0){
+	    	chunkY = 0;
+	    	blockY = 0;
+	    }
+
 		active = true;
 	}
 

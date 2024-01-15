@@ -152,7 +152,7 @@ public class ChunkLoader : MonoBehaviour
 
             this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
 
-            this.currentChunk = new ChunkPos((int)(playerX/Chunk.chunkWidth), (int)(playerZ/Chunk.chunkWidth), (int)(playerY/Chunk.chunkDepth));
+            this.currentChunk = new CastCoord(playerX, playerY, playerZ).GetChunkPos();
 
             this.audioManager.SetPlayerPositionInVoice3DTrack(this.player);
             this.playerAudioListener.enabled = true;
@@ -343,7 +343,7 @@ public class ChunkLoader : MonoBehaviour
                 return;
             }
 
-            //DebugCube.ChangeColor(requestPriorityQueue.Peek(), Color.grey);
+            DebugCube.ChangeColor(requestPriorityQueue.Peek(), Color.grey);
 
             // Asks server to hand over chunk info
             this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
@@ -365,10 +365,10 @@ public class ChunkLoader : MonoBehaviour
             if(this.chunks.ContainsKey(cp)){
                 this.chunks[cp].Destroy();
                 this.chunks.Remove(cp);
-                //DebugCube.ChangeColor(cp, Color.black);
+                DebugCube.ChangeColor(cp, Color.black);
             }
             else{
-                //DebugCube.ChangeColor(cp, Color.yellow);
+                DebugCube.ChangeColor(cp, Color.yellow);
             }
 
             int blockDataSize = NetDecoder.ReadInt(data, 10);
@@ -401,8 +401,6 @@ public class ChunkLoader : MonoBehaviour
 
             toLoad.RemoveAt(0);
             toLoadChunk.RemoveAt(0);
-
-
         }
     }
 
@@ -437,7 +435,7 @@ public class ChunkLoader : MonoBehaviour
             vfx.RemoveChunk(popChunk.pos);
             sfx.RemoveChunkSFX(popChunk.pos);
 
-            //DebugCube.Delete(toUnload[0]);
+            DebugCube.Delete(toUnload[0]);
 
             this.message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
             this.message.RequestChunkUnload(toUnload[0]);
@@ -456,7 +454,7 @@ public class ChunkLoader : MonoBehaviour
             // If chunk is still loaded
             if(chunks.ContainsKey(drawPriorityQueue.Peek())){
                 if(!CanBeDrawn(drawPriorityQueue.Peek())){
-                    //DebugCube.ChangeColor(drawPriorityQueue.Peek(), Color.red);
+                    DebugCube.ChangeColor(drawPriorityQueue.Peek(), Color.red);
 
                     if(MainControllerManager.DEBUG)
                         drawPriorityQueue.Print();
@@ -471,7 +469,7 @@ public class ChunkLoader : MonoBehaviour
 
                 chunks[cachedPos].BuildChunk(load:true);
 
-                //DebugCube.ChangeColor(cachedPos, Color.green);
+                DebugCube.ChangeColor(cachedPos, Color.green);
 
                 if(WORLD_GENERATED)
                     this.vfx.UpdateLights(cachedPos);
@@ -675,14 +673,11 @@ public class ChunkLoader : MonoBehaviour
     // Gets all chunks around player's render distance
     // GetChunks automatically rebuilds chunks if reload=True
     public void GetChunks(bool reload){
-		int playerX = Mathf.FloorToInt(player.position.x / Chunk.chunkWidth);
-		int playerZ = Mathf.FloorToInt(player.position.z / Chunk.chunkWidth);
-        int playerY = Mathf.FloorToInt(player.position.y / Chunk.chunkDepth);
         int verticalChunkValue = this.playerPositionHandler.GetPlayerVerticalChunk();
 
         ChunkPos popChunk;
         ChunkPos addChunk;
-		newChunk = new ChunkPos(playerX, playerZ, playerY);
+		newChunk = new CastCoord(player.position).GetChunkPos();
 
     	// Reload all Chunks nearby
     	if(reload){
@@ -698,15 +693,15 @@ public class ChunkLoader : MonoBehaviour
     		
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
-	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, playerY), initial:true);
-                    //DebugCube.Create(new ChunkPos(newChunk.x+x, newChunk.z+z, playerY), Color.white);
+	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y), initial:true);
+                    DebugCube.Create(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y), Color.white);
 	        	}
 	        }
 
             if(verticalChunkValue != 0){
                 for(int x=-renderDistance; x<=renderDistance;x++){
                     for(int z=-renderDistance; z<=renderDistance;z++){
-                        requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, playerY+verticalChunkValue), initial:true);
+                        requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y+verticalChunkValue), initial:true);
                     }
                 }                
             }

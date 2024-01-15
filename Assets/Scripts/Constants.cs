@@ -30,6 +30,7 @@ public static class Constants
 
     // Chunk Loading
     public static readonly int CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE = 50;
+    public static readonly int MAXIMUM_CHUNK_DEPTH = 3;
 
     // Persistance
     public static readonly int MAXIMUM_REGION_FILE_POOL = 10;
