@@ -343,8 +343,6 @@ public class ChunkLoader : MonoBehaviour
                 return;
             }
 
-            DebugCube.ChangeColor(requestPriorityQueue.Peek(), Color.grey);
-
             // Asks server to hand over chunk info
             this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
             this.message.RequestChunkLoad(requestPriorityQueue.Pop());
@@ -365,10 +363,6 @@ public class ChunkLoader : MonoBehaviour
             if(this.chunks.ContainsKey(cp)){
                 this.chunks[cp].Destroy();
                 this.chunks.Remove(cp);
-                DebugCube.ChangeColor(cp, Color.black);
-            }
-            else{
-                DebugCube.ChangeColor(cp, Color.yellow);
             }
 
             int blockDataSize = NetDecoder.ReadInt(data, 10);
@@ -435,7 +429,6 @@ public class ChunkLoader : MonoBehaviour
             vfx.RemoveChunk(popChunk.pos);
             sfx.RemoveChunkSFX(popChunk.pos);
 
-            DebugCube.Delete(toUnload[0]);
 
             this.message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
             this.message.RequestChunkUnload(toUnload[0]);
@@ -454,7 +447,6 @@ public class ChunkLoader : MonoBehaviour
             // If chunk is still loaded
             if(chunks.ContainsKey(drawPriorityQueue.Peek())){
                 if(!CanBeDrawn(drawPriorityQueue.Peek())){
-                    DebugCube.ChangeColor(drawPriorityQueue.Peek(), Color.red);
 
                     if(MainControllerManager.DEBUG)
                         drawPriorityQueue.Print();
@@ -468,8 +460,6 @@ public class ChunkLoader : MonoBehaviour
                 CheckLightPropagation(cachedPos);
 
                 chunks[cachedPos].BuildChunk(load:true);
-
-                DebugCube.ChangeColor(cachedPos, Color.green);
 
                 if(WORLD_GENERATED)
                     this.vfx.UpdateLights(cachedPos);
@@ -694,7 +684,6 @@ public class ChunkLoader : MonoBehaviour
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
 	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y), initial:true);
-                    DebugCube.Create(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y), Color.white);
 	        	}
 	        }
 
