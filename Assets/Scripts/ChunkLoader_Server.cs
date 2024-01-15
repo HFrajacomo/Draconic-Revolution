@@ -114,7 +114,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
         // Send first player info
         NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
-        message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z);
+        message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.time.days, this.time.hours, this.time.minutes);
         this.server.Send(message.GetMessage(), message.size, this.server.firstConnectedID); 
 
         // Send first player inventory info

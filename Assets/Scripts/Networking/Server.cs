@@ -403,7 +403,7 @@ public class Server
 			pdat.SetOnline(true);
 			Vector3 playerPos = pdat.GetPosition();
 			Vector3 playerDir = pdat.GetDirection();
-			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z);
+			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes);
 			this.Send(message.GetMessage(), message.size, id, temporary:true);
 
 			// Sends player inventory data

@@ -334,6 +334,8 @@ public class Client
 	// Receives Player Information saved on server on startup
 	private void SendServerInfo(byte[] data){
 		float x, y, z, xDir, yDir, zDir;
+		uint day;
+		byte hour, minute;
 		CastCoord initialCoord;
 
 		x = NetDecoder.ReadFloat(data, 1);
@@ -342,6 +344,12 @@ public class Client
 		xDir = NetDecoder.ReadFloat(data, 13);
 		yDir = NetDecoder.ReadFloat(data, 17);
 		zDir = NetDecoder.ReadFloat(data, 21);
+
+		day = NetDecoder.ReadUint(data, 25);
+		hour = data[29];
+		minute = data[30];
+
+		this.cl.time.SetTime(day, hour, minute);
 
 		this.cl.PLAYERSPAWNED = true;
 		this.cl.playerX = x;

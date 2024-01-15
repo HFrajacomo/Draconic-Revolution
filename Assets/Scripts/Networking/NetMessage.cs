@@ -116,16 +116,29 @@ public struct NetMessage
 	}
 
 	// Server sending player character position
-	public void SendServerInfo(float xPos, float yPos, float zPos, float xDir, float yDir, float zDir){
+	public void SendServerInfo(float xPos, float yPos, float zPos, float xDir, float yDir, float zDir, uint day, byte hour, byte minute){
 		NetDecoder.WriteFloat(xPos, NetMessage.buffer, 1);
 		NetDecoder.WriteFloat(yPos, NetMessage.buffer, 5);
 		NetDecoder.WriteFloat(zPos, NetMessage.buffer, 9);
 		NetDecoder.WriteFloat(xDir, NetMessage.buffer, 13);
 		NetDecoder.WriteFloat(yDir, NetMessage.buffer, 17);
 		NetDecoder.WriteFloat(zDir, NetMessage.buffer, 21);
-		this.size = 25;
+		NetDecoder.WriteUint(day, NetMessage.buffer, 25);
+		NetDecoder.WriteByte(hour, NetMessage.buffer, 29);
+		NetDecoder.WriteByte(minute, NetMessage.buffer, 30);
+		this.size = 31;
 	}
 
+	/*
+	// Sends time data to Client
+	public void SendGameTime(uint day, byte hour, byte minute){
+		NetDecoder.WriteUint(day, NetMessage.buffer, 1);
+		NetDecoder.WriteByte(hour, NetMessage.buffer, 5);
+		NetDecoder.WriteByte(minute, NetMessage.buffer, 6);
+		this.size = 7;
+	}
+	 */
+	
 	// Client asking for a chunk information to Server
 	public void RequestChunkLoad(ChunkPos pos){
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);

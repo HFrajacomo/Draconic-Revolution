@@ -228,7 +228,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Basic Player Movement and Camera|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Block Breaking, Placing and Interacting|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Voxel Updates|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
-|Day and Night Cycle|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Day and Night Cycle|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |High Definition Rendering Pipeline Support|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |World Save|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Game Save DB Compression|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
@@ -248,7 +248,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Character Sheet|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Character Creation|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:soon:|:x:
 |World Save Defragmentation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
-|Multi-Depth World Generation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:soon:
+|Multi-Depth World Generation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Storage Voxels|Core|Alpha|:heavy_check_mark:|:soon:|:x:|:x:
 |Character Models|3D|Alpha|:heavy_check_mark:|:warning:|:warning:|:x:
 |Character Rigging|3D|Alpha|:heavy_check_mark:|:warning:|:warning:|:x:
@@ -260,7 +260,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Main Menu UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Hotbar UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
 |Inventory UI|UI|Alpha|:heavy_check_mark:|:soon:|:warning:|:x:
-|Item Drops|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:warning:
+|Item Drops|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Dynamic Light Objects|Core|Alpha|:heavy_check_mark:|:soon:|:x:|:x:
 
 ---
