@@ -256,14 +256,23 @@ public abstract class BaseAmbientPreset{
         else if(x >= 240 && x < 300){
         	return Mathf.Lerp(night, day, (x-240)/60f);
         }
+        else if(x >= 300 && x <= 1140){
+        	return day;
+        }
         else{
-            return day;
+            return night;
         }
     }
 
     protected float BehaviourMoonsetIntensity(float day, float night, float x){
         if(x > 360 && x <= 420){
             return Mathf.Lerp(night, day, (x-360)/60f);
+        }
+        else if(x > 420 && x < 1080){
+        	return day;
+        }
+        else if(x >= 1080 && x < 1140){
+        	return Mathf.Lerp(day, night, (x-1080)/60f);
         }
         else{
             return night;
