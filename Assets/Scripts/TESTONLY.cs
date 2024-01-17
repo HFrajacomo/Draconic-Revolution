@@ -6,9 +6,18 @@ using UnityEngine.UI;
 
 public class TESTONLY : MonoBehaviour
 {   
-	void Start(){
-		float t = 1.23456f;
+	public RuntimeAnimatorController animations;
+	public Material clothing;
+	public Material dragonskin;
+	private CharacterBuilder builder;
 
-		Debug.Log((float)Mathf.Floor(t * 100) / 100);
+	void Start(){
+		this.builder = new CharacterBuilder(this.gameObject, this.animations, GenerateTest(), this.clothing, this.dragonskin);
+		this.builder.Build();
+	}
+
+	public CharacterAppearance GenerateTest(){
+		return new CharacterAppearance(Race.HUMAN, Color.white, new ClothingInfo(0, Color.white, Color.blue, Color.green, true), new ClothingInfo(2, Color.blue, Color.green, Color.green, true)
+			, new ClothingInfo(0, Color.white, Color.blue, Color.green, true), new ClothingInfo(0, Color.white, Color.blue, Color.green, true));
 	}
 }

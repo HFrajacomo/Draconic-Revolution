@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
 
-public class CharacterBuilder{
+public class CharacterBuilderMenu{
 	private GameObject parent;
 	private Animator animator;
 	private Dictionary<ModelType, GameObject> bodyParts;
@@ -26,7 +26,7 @@ public class CharacterBuilder{
 
 	private List<int> cachedTris = new List<int>();
 
-	public CharacterBuilder(GameObject par, RuntimeAnimatorController animations, bool isMale=true){
+	public CharacterBuilderMenu(GameObject par, RuntimeAnimatorController animations, bool isMale=true){
 		this.raceSettings = RaceManager.GetHuman();
 
 		this.parent = par;
@@ -129,7 +129,7 @@ public class CharacterBuilder{
 		this.armature.transform.localScale = this.raceSettings.scaling;
 		this.armature.transform.SetParent(this.parent.transform);
 
-		this.parent.transform.localScale = this.raceSettings.scaling * CharacterBuilder.CHARACTER_CREATION_CHARACTER_SCALING;
+		this.parent.transform.localScale = this.raceSettings.scaling * CharacterBuilderMenu.CHARACTER_CREATION_CHARACTER_SCALING;
 
 		if(isMale)
 			this.armature.name = ARMATURE_NAME_MALE;
@@ -154,7 +154,6 @@ public class CharacterBuilder{
 		for(int i=0; i < prefabBones.Length; i++){
 			BONE_MAP.Add(prefabBones[i].name, i);
 		}
-
 	}
 
 	private void FixArmature(bool isMale){

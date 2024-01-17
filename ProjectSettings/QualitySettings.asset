@@ -276,7 +276,7 @@ QualitySettings:
     vSyncCount: 0
     realtimeGICPUUsage: 100
     lodBias: 3
-    maximumLODLevel: 1
+    maximumLODLevel: 3
     enableLODCrossFade: 1
     streamingMipmapsActive: 0
     streamingMipmapsAddAllCameras: 1

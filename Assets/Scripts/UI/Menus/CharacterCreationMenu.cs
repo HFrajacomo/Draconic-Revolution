@@ -111,7 +111,7 @@ public class CharacterCreationMenu : Menu{
     public RuntimeAnimatorController maleAnimations;
     public RuntimeAnimatorController femaleAnimations;
 
-    private CharacterBuilder characterBuilder;
+    private CharacterBuilderMenu characterBuilder;
     private bool INIT = false;
     private bool ENABLED = false;
 
@@ -239,7 +239,7 @@ public class CharacterCreationMenu : Menu{
 
 
         if(!INIT){
-            this.characterBuilder = new CharacterBuilder(this.playerObject, this.maleAnimations, isMale:true);
+            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, isMale:true);
 
             this.selectedGenderItem = this.defaultGender;
             this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;

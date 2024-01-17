@@ -121,7 +121,7 @@ public static class ModelHandler{
 
 	public static Transform[] GetArmatureBones(Transform armature, Dictionary<string, int> mapping){
 		List<Transform> listTransforms = new List<Transform>();
-		Transform[] array = new Transform[mapping.Count];		
+		Transform[] array = new Transform[mapping.Count];
 
 		// Gets Hips 
 		armature.GetComponentsInChildren<Transform>(listTransforms);
