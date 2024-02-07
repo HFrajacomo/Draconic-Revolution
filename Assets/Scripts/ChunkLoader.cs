@@ -54,6 +54,7 @@ public class ChunkLoader : MonoBehaviour
     // Initialization
     public GameObject playerCharacter;
     public PlayerEvents playerEvents;
+    public PlayerModelHandler playerModelHandler;
 
 	// Chunk Rendering
 	public ChunkRenderer rend;
@@ -112,6 +113,7 @@ public class ChunkLoader : MonoBehaviour
         this.volume = null;
         this.rend = null;
         this.playerEvents = null;
+        this.playerModelHandler = null;
         this.time = null;
         this.blockBook = null;
         this.client = null;
@@ -130,6 +132,7 @@ public class ChunkLoader : MonoBehaviour
             else
                 this.message.SendClientInfo(this.playerAccountID, World.renderDistance, 0, "a");
 
+            this.client.SetPlayerModelHandler(this.playerModelHandler);
             this.renderDistance = World.renderDistance + 1;
             this.client.Send(this.message.GetMessage(), this.message.size);
             this.SENTINFOTOSERVER = true;

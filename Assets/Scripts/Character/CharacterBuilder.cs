@@ -47,14 +47,13 @@ public class CharacterBuilder{
 	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Quaternion ROT_1 = Quaternion.Euler(new Vector3(270, 180, 20));
-	private static readonly Vector3 SCL_1 = new Vector3(5,5,5);
-	private static readonly Vector3 SCL_2 = new Vector3(3.6f,5,5);
+	private static readonly Vector3 SCL_1 = new Vector3(1,1,1);
+	private static readonly Vector3 SCL_2 = new Vector3(0.7f,1,1);
 	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
-	private static readonly byte WEIGHTS_PER_BONES = 4;
 
 
 	public CharacterBuilder(GameObject par, RuntimeAnimatorController animations, CharacterAppearance app, Material clothing, Material dragonskin, bool isMale=true){
-		if(this.modelRoot == null)
+		if(EMPTY_OBJECT_PREFAB == null)
 			EMPTY_OBJECT_PREFAB = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
 		this.raceSettings = RaceManager.GetSettings(app.race);

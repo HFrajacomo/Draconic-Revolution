@@ -389,6 +389,8 @@ public class CharacterFileHandler{
 			cs.GetSpecialEffectHandler().Add(this.cachedFX);
 		}
 
+		cs.DebugPrint();
+
 		return cs;
 	}
 

@@ -116,7 +116,7 @@ public struct NetMessage
 	}
 
 	// Server sending player character position
-	public void SendServerInfo(float xPos, float yPos, float zPos, float xDir, float yDir, float zDir, uint day, byte hour, byte minute){
+	public void SendServerInfo(float xPos, float yPos, float zPos, float xDir, float yDir, float zDir, uint day, byte hour, byte minute, CharacterAppearance app, bool isMale){
 		NetDecoder.WriteFloat(xPos, NetMessage.buffer, 1);
 		NetDecoder.WriteFloat(yPos, NetMessage.buffer, 5);
 		NetDecoder.WriteFloat(zPos, NetMessage.buffer, 9);
@@ -126,7 +126,10 @@ public struct NetMessage
 		NetDecoder.WriteUint(day, NetMessage.buffer, 25);
 		NetDecoder.WriteByte(hour, NetMessage.buffer, 29);
 		NetDecoder.WriteByte(minute, NetMessage.buffer, 30);
-		this.size = 31;
+		NetDecoder.WriteCharacterAppearance(app, NetMessage.buffer, 31);
+		NetDecoder.WriteBool(isMale, NetMessage.buffer, 200);
+
+		this.size = 201;
 	}
 
 	/*

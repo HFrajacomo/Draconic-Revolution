@@ -51,6 +51,7 @@ public class Server
 
 	// Cache
 	private byte[] cacheBreakData = new byte[38];
+	private CharacterSheet cachedSheet;
 
 	public Server(ChunkLoader_Server cl){
     	ParseArguments();
@@ -403,7 +404,10 @@ public class Server
 			pdat.SetOnline(true);
 			Vector3 playerPos = pdat.GetPosition();
 			Vector3 playerDir = pdat.GetDirection();
-			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes);
+
+			this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(id);
+
+			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes, this.cachedSheet.GetCharacterAppearance(), this.cachedSheet.GetGender());
 			this.Send(message.GetMessage(), message.size, id, temporary:true);
 
 			// Sends player inventory data
