@@ -52,7 +52,7 @@ public class CharacterBuilder{
 	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
 
 
-	public CharacterBuilder(GameObject par, RuntimeAnimatorController animations, CharacterAppearance app, Material clothing, Material dragonskin, bool isMale=true){
+	public CharacterBuilder(GameObject par, RuntimeAnimatorController animations, CharacterAppearance app, Material clothing, Material dragonskin, bool isMale, bool isPlayerCharacter){
 		if(EMPTY_OBJECT_PREFAB == null)
 			EMPTY_OBJECT_PREFAB = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
@@ -70,6 +70,11 @@ public class CharacterBuilder{
 		this.modelRoot = GameObject.Instantiate(EMPTY_OBJECT_PREFAB);
 		this.modelRoot.transform.parent = this.parent.transform;
 		this.modelRoot.name = "CharacterModel";
+
+		if(isPlayerCharacter){
+			this.modelRoot.layer = 9;
+		}
+
 		this.renderer = this.modelRoot.AddComponent<SkinnedMeshRenderer>();
 
 		if(isMale)
@@ -83,6 +88,7 @@ public class CharacterBuilder{
 		FixArmature(isMale);
 	}
 
+	// Whenever clothes are being changed
 	public void ChangeAppearaceAndBuild(CharacterAppearance app){
 		this.appearance = app;
 		Build();
@@ -210,9 +216,9 @@ public class CharacterBuilder{
 		}
 
 		if(isMale)
-			this.armature.transform.localScale = SCL_1;
+			this.armature.transform.localScale = Multiply(this.armature.transform.localScale, SCL_1);
 		else
-			this.armature.transform.localScale = SCL_2;
+			this.armature.transform.localScale = Multiply(this.armature.transform.localScale, SCL_2);
 
 
 		this.armature.transform.eulerAngles = ROT_1.eulerAngles;
@@ -266,4 +272,12 @@ public class CharacterBuilder{
 
 		return Material.Instantiate(plainClothingMaterial);
 	}
+
+    private Vector3 Multiply(Vector3 vec1, Vector3 vec2){
+        Vector3 result = new Vector3();
+        result.x = vec1.x * vec2.x;
+        result.y = vec1.y * vec2.y;
+        result.z = vec1.z * vec2.z;
+        return result;
+    }
 }

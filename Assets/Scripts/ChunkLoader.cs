@@ -94,7 +94,7 @@ public class ChunkLoader : MonoBehaviour
         this.playerPositionHandler.SetAudioManager(this.audioManager);
         World.SetGameSceneFlag(true);
         VoxelData.SetChunkLoader(this);
-        this.playerModelHandler.BuildModel(PlayerAppearanceData.GetAppearance(), PlayerAppearanceData.GetGender());
+        this.playerModelHandler.BuildModel(PlayerAppearanceData.GetAppearance(), PlayerAppearanceData.GetGender(), true);
 
         Debug.Log(PlayerAppearanceData.GetAppearance().ToString());
     }

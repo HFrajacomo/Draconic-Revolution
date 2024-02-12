@@ -84,6 +84,7 @@ public class CharacterFileHandler{
 		this.file.Flush();
 	}
 
+	#nullable enable
 	public CharacterSheet? LoadCharacterSheet(ulong code){
 		if(!CharacterExists(code))
 			return null;
@@ -93,6 +94,7 @@ public class CharacterFileHandler{
 
 		return NetDecoder.ReadCharacterSheet(buffer, 0);
 	}
+	#nullable disable
 
 	public bool CharacterExists(ulong code){
         return this.index.ContainsKey(code);
