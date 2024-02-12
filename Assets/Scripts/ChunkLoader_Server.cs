@@ -69,10 +69,19 @@ public class ChunkLoader_Server : MonoBehaviour
 
     void Start(){
         this.server = new Server(this);
+
+        if(this.server.IsLocal())
+            World.SetToClient();
+        else
+            World.SetToServer();
+
+        EnvironmentVariablesCentral.StartServer();
+
         this.time.SetServer(this.server);
 
-        if(!this.server.IsLocal())
+        if(!this.server.IsLocal()){
             this.characterFileHandler = new CharacterFileHandler(World.worldName);
+        }
     }
 
     void Update(){ 

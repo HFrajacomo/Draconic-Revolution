@@ -102,6 +102,7 @@ public class Server
 			switch(arg){
 				case "-Local":
 					this.isLocal = true;
+					World.SetToClient();
 					Debug.Log("local");
 					break;
 				default:
@@ -252,6 +253,15 @@ public class Server
 			if(this.temporaryConnections.ContainsKey(currentID))
 				isTemporary = true;
 
+			// Check if socket still exists and is connected
+			if(!this.connections.ContainsKey(currentID) && !isTemporary){
+				return;
+			}
+			if(!isTemporary && !this.connections[currentID].Connected){
+				this.connections.Remove(currentID);
+				return;
+			}
+
 			// Gets packet size
 			if(isTemporary){
 				bytesReceived = this.temporaryConnections[currentID].EndReceive(result);
@@ -304,8 +314,8 @@ public class Server
 			if(!isTemporary)
     			this.connections[currentID].BeginReceive(this.receiveBuffer[currentID], 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), currentID);
 		}
-		catch(SocketException e){
-			Debug.Log(e.Message + "\n" + e.StackTrace);
+		catch(Exception e){
+			Debug.Log("Message: " + e.Message + "\nTrace: " + e.StackTrace + "\nSource: " + e.Source + "\nTarget: " + e.TargetSite);
 		}
 	}
 
@@ -1145,9 +1155,7 @@ public class Server
 		ulong charID = NetDecoder.ReadUlong(data, 1);
 		CharacterSheet sheet = NetDecoder.ReadCharacterSheet(data, 9);
 
-		if(!this.cl.characterFileHandler.CharacterExists(charID)){
-			this.cl.characterFileHandler.SaveCharacterSheet(charID, sheet);
-		}
+		this.cl.characterFileHandler.SaveCharacterSheet(charID, sheet);
 	}
 
 	// Receives a Disconnect message from InfoClient

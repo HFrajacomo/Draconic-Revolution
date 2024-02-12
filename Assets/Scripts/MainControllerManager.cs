@@ -122,7 +122,9 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnDebugKey(){
-        this.raycast.TakeWorldScreenshot();
+        if(World.isClient){
+            this.raycast.TakeWorldScreenshot();
+        }
 
         this.cl.Cleanup();
         DebugCube.Clear();

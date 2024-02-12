@@ -22,14 +22,7 @@ public static class EnvironmentVariablesCentral
         #else
             compiledServerDir = GetParent(clientExeDir) + "\\Server";
 
-            // If it's a Dedicated Server
-            if(!World.isClient){
-                saveDir = "Worlds/";
-            }
-            // If it's a Local Server
-            else{
-                saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
-            }
+            saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
         #endif
 
         gameDir = GetAppdataDir() + "\\DraconicRevolution\\";
@@ -54,6 +47,18 @@ public static class EnvironmentVariablesCentral
                 Application.Quit();
             }
         }
+    }
+
+    public static void StartServer(){
+        clientExeDir = GetClientDir();
+
+        if(!World.isClient)
+            saveDir = "Worlds\\";
+        else
+            saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
+
+        gameDir = GetAppdataDir() + "\\DraconicRevolution\\";
+        serverDir = gameDir + "Server\\";
     }
 
     public static void WriteInvisLaunchScript(){
@@ -102,6 +107,10 @@ public static class EnvironmentVariablesCentral
     public static List<string> ListWorldFolders(){
         List<string> directories = new List<string>();
 
+        if(!Directory.Exists(saveDir)){
+            Directory.CreateDirectory(saveDir);
+        }
+
         string[] dirArray =  Directory.GetDirectories(saveDir);
 
         foreach(string dir in dirArray){
@@ -121,7 +130,7 @@ public static class EnvironmentVariablesCentral
         a += ("serverDir: " + EnvironmentVariablesCentral.serverDir + "\n");
         a += ("compiledServerDir: " + EnvironmentVariablesCentral.compiledServerDir);
 
-        File.WriteAllText("Directories.txt", a);        
+        File.WriteAllText("Directories.txt", a); 
     }
 
     private static string GetClientDir(){
