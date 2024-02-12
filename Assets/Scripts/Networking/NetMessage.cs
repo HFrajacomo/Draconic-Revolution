@@ -116,7 +116,7 @@ public struct NetMessage
 	}
 
 	// Server sending player character position
-	public void SendServerInfo(float xPos, float yPos, float zPos, float xDir, float yDir, float zDir, uint day, byte hour, byte minute, CharacterAppearance app, bool isMale){
+	public void SendServerInfo(float xPos, float yPos, float zPos, float xDir, float yDir, float zDir, uint day, byte hour, byte minute){
 		NetDecoder.WriteFloat(xPos, NetMessage.buffer, 1);
 		NetDecoder.WriteFloat(yPos, NetMessage.buffer, 5);
 		NetDecoder.WriteFloat(zPos, NetMessage.buffer, 9);
@@ -126,10 +126,8 @@ public struct NetMessage
 		NetDecoder.WriteUint(day, NetMessage.buffer, 25);
 		NetDecoder.WriteByte(hour, NetMessage.buffer, 29);
 		NetDecoder.WriteByte(minute, NetMessage.buffer, 30);
-		NetDecoder.WriteCharacterAppearance(app, NetMessage.buffer, 31);
-		NetDecoder.WriteBool(isMale, NetMessage.buffer, 200);
 
-		this.size = 201;
+		this.size = 31;
 	}
 
 	/*
@@ -355,6 +353,35 @@ public struct NetMessage
 		NetDecoder.WriteInt(seed, NetMessage.buffer, 1+noise.Length);
 		this.size = 1+noise.Length+4;
 	}
+
+	// Client asks for existance of Character ID. Used before World load
+	public void RequestCharacterExistence(ulong id){
+		NetDecoder.WriteLong(id, NetMessage.buffer, 1);
+		this.size = 9;
+	}
+
+	// Server sends character appearance and a flag
+	public void SendCharacterPreload(CharacterAppearance? app, bool isMale){
+		if(app == null){
+			NetDecoder.WriteBool(false, NetMessage.buffer, 1);
+			NetDecoder.WriteZeros(2, 171, NetMessage.buffer);
+			NetDecoder.WriteBool(isMale, NetMessage.buffer, 171);
+		}
+		else{
+			NetDecoder.WriteBool(true, NetMessage.buffer, 1);
+			NetDecoder.WriteCharacterAppearance((CharacterAppearance)app, NetMessage.buffer, 2);
+			NetDecoder.WriteBool(isMale, NetMessage.buffer, 171);
+		}
+		this.size = 172;
+	}
+
+	// Encodes a CharacterSheet
+	public void SendCharSheet(ulong charCode, CharacterSheet sheet){
+		NetDecoder.WriteLong(charCode, NetMessage.buffer, 1);
+		NetDecoder.WriteCharacterSheet(sheet, NetMessage.buffer, 9);
+
+		this.size = 1152;
+	}
 }
 
 public enum NetCode{
@@ -385,6 +412,10 @@ public enum NetCode{
 	SENDINVENTORY,
 	SFXPLAY,
 	SENDNOISE,
+	REQUESTCHARACTEREXISTENCE,
+	SENDCHARACTERPRELOAD,
+	SENDCHARSHEET,
+	DISCONNECTINFO, // No call
 	DISCONNECT  // No call
 }
 

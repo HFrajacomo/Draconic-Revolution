@@ -20,7 +20,7 @@ public class Client
 	private SocketError err;
 	private DateTime lastMessageTime;
 	private int timeoutSeconds = 5;
-	private int connectionTimeout = 100;
+	private int connectionTimeout = 3;
 
 	// Entity Handler
 	public EntityHandler entityHandler;
@@ -342,8 +342,6 @@ public class Client
 		uint day;
 		byte hour, minute;
 		CastCoord initialCoord;
-		CharacterAppearance app;
-		bool isMale;
 
 		x = NetDecoder.ReadFloat(data, 1);
 		y = NetDecoder.ReadFloat(data, 5);
@@ -355,9 +353,6 @@ public class Client
 		day = NetDecoder.ReadUint(data, 25);
 		hour = data[29];
 		minute = data[30];
-
-		app = NetDecoder.ReadCharacterAppearance(data, 31);
-		isMale = NetDecoder.ReadBool(data, 200);
 
 		this.cl.time.SetTime(day, hour, minute);
 
@@ -373,8 +368,6 @@ public class Client
 		initialCoord = new CastCoord(x, y, z);
 		this.cl.time.SetCurrentChunkPos(initialCoord.GetChunkPos());
 		this.cl.time.SendChunkPosMessage();
-
-		this.playerModelHandler.BuildModel(app, isMale);
 	}
 
 	// Receives a Chunk

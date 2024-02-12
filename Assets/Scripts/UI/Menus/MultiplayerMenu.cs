@@ -46,7 +46,7 @@ public class MultiplayerMenu : Menu
 
 		World.SetToServer();
 
-		SceneManager.LoadScene(1);
+		SceneManager.LoadScene("Blank");
 	}
 
 	public void StartLocalGame(){
@@ -56,7 +56,7 @@ public class MultiplayerMenu : Menu
 
 		World.SetToServer();
 
-		SceneManager.LoadScene(1);
+		SceneManager.LoadScene("Blank");
 	}
 
     private char ValidateIP(string text, int charIndex, char addedChar){

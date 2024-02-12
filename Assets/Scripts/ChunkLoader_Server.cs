@@ -70,6 +70,9 @@ public class ChunkLoader_Server : MonoBehaviour
     void Start(){
         this.server = new Server(this);
         this.time.SetServer(this.server);
+
+        if(!this.server.IsLocal())
+            this.characterFileHandler = new CharacterFileHandler(World.worldName);
     }
 
     void Update(){ 
@@ -97,7 +100,11 @@ public class ChunkLoader_Server : MonoBehaviour
         this.regionHandler = new RegionFileHandler(this);
         this.entityFileHandler = new EntityFileHandler(this);
         this.playerServerInventory = new PlayerServerInventory();
-        this.characterFileHandler = new CharacterFileHandler(World.worldName);
+
+        if(this.server.IsLocal())
+            this.characterFileHandler = new CharacterFileHandler(World.worldName);
+
+
         worldSeed = regionHandler.GetRealSeed();
         biomeHandler = new BiomeHandler();
         this.worldGen = new WorldGenerator(worldSeed, biomeHandler, structHandler, this);
@@ -117,11 +124,9 @@ public class ChunkLoader_Server : MonoBehaviour
 
         HandleServerCommunication();
 
-        CharacterSheet sheet = this.characterFileHandler.LoadCharacterSheet(this.server.firstConnectedID);
-
         // Send first player info
         NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
-        message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.time.days, this.time.hours, this.time.minutes, sheet.GetCharacterAppearance(), sheet.GetGender());
+        message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.time.days, this.time.hours, this.time.minutes);
         this.server.Send(message.GetMessage(), message.size, this.server.firstConnectedID); 
 
         // Send first player inventory info

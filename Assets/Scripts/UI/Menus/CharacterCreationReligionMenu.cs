@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 using Random = UnityEngine.Random;
 using Object = System.Object;
@@ -213,9 +214,15 @@ public class CharacterCreationReligionMenu : Menu{
 
 		CharacterCreationData.CreateCharacterSheet();
 
-		CharacterFileHandler characterHandler = new CharacterFileHandler(World.worldName);
-        characterHandler.SaveCharacterSheet(Configurations.accountID, CharacterCreationData.GetCharacterSheet());
-        characterHandler.Close();
+		// Saves Character only if not trying to Preload into a Multiplayer Server
+        if(!PlayerAppearanceData.GetPreloadFlag()){
+			CharacterFileHandler characterHandler = new CharacterFileHandler(World.worldName);
+	        characterHandler.SaveCharacterSheet(Configurations.accountID, CharacterCreationData.GetCharacterSheet());
+	        characterHandler.Close();
+	    }
+
+    	PlayerAppearanceData.SetAppearance(CharacterCreationData.GetCharacterSheet().GetCharacterAppearance());
+    	PlayerAppearanceData.SetGender(CharacterCreationData.GetMale());
 
         if(this.selectedReligionToggle != null)
         	this.selectedReligionToggle.GetComponent<Toggle>().isOn = false;
@@ -232,7 +239,11 @@ public class CharacterCreationReligionMenu : Menu{
 
         this.CREATE = true;
 
-		this.RequestMenuChange(MenuID.SELECT_WORLD);
+
+        if(PlayerAppearanceData.GetPreloadFlag())
+        	SceneManager.LoadScene("Blank");
+       	else
+			this.RequestMenuChange(MenuID.SELECT_WORLD);
 	}
 
 

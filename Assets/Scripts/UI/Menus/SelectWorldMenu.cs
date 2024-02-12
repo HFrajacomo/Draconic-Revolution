@@ -182,6 +182,8 @@ public class SelectWorldMenu : Menu
         }
 
         CharacterSheet cs = characterHandler.LoadCharacterSheet(Configurations.accountID);
+        PlayerAppearanceData.SetAppearance(cs.GetCharacterAppearance());
+        PlayerAppearanceData.SetGender(cs.GetGender());
 
         characterHandler.Close();
 

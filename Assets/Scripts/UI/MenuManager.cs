@@ -34,6 +34,7 @@ public class MenuManager : MonoBehaviour{
 
 	// Flags
 	private static bool firstLoad = true;
+	private static bool initCharacterCreation = false;
 
 	// Directory
 	private string worldsDir;
@@ -56,12 +57,21 @@ public class MenuManager : MonoBehaviour{
 		this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
 
 		GameObject.Find("AudioManager").GetComponent<AudioManager>().RefreshVolume();
+
+		// Menu inits
+		if(initCharacterCreation){
+			SetInitCharacterCreationFlag(false);
+			((CharacterCreationMenu)this.characterCreationMenu).RESET_ON_ENABLE = true;
+			ChangeMenu(MenuID.CHARACTER_CREATION);
+		}
 	}
 
 	private void DisableMenus(){
 		this.initialMenu.Disable();
 		this.selectWorldMenu.Disable();
 	}
+
+	public static void SetInitCharacterCreationFlag(bool b){initCharacterCreation = b;}
 
 	public void ChangeMenu(MenuID id){
 		this.currentMenu.Disable();

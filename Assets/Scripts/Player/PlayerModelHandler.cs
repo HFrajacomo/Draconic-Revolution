@@ -14,7 +14,7 @@ public class PlayerModelHandler : MonoBehaviour {
 
 	private CharacterBuilder characterBuilder;
 
-	public void Start(){
+	public void Awake(){
 		this.parent.AddComponent<Animator>();
 	}
 

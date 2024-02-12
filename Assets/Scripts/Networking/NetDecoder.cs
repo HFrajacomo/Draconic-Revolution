@@ -7,6 +7,7 @@ using Unity.Mathematics;
 public static class NetDecoder
 {
 	private static byte[] floatBuffer = new byte[4];
+	private static readonly SpecialEffect NULL_EFFECT = new SpecialEffect(EffectType.NONE);
 
 
 	public static ushort ReadUshort(byte[] data, int pos){
@@ -125,6 +126,158 @@ public static class NetDecoder
 
 	public static SpecialEffect ReadSpecialEffect(byte[] data, int pos){
 		return new SpecialEffect((EffectType)NetDecoder.ReadUshort(data, pos), (EffectUsecase)NetDecoder.ReadByte(data, pos+2), NetDecoder.ReadByte(data, pos+3), NetDecoder.ReadUshort(data, pos+4), NetDecoder.ReadBool(data, pos+6));
+	}
+
+	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){
+		CharacterSheet cs = new CharacterSheet();
+		SpecialEffect cachedFX;
+
+		cs.SetName(NetDecoder.ReadString(data, pos, 20));
+		pos += 20;
+		cs.SetAlignment((Alignment)NetDecoder.ReadByte(data, pos));
+		pos++;
+		cs.SetReligion((Religion)NetDecoder.ReadByte(data, pos));
+		pos++;
+		cs.SetRace((Race)NetDecoder.ReadByte(data, pos));
+		pos++;
+		cs.SetGender(NetDecoder.ReadBool(data, pos));
+		pos++;
+		cs.SetCronology(NetDecoder.ReadByte(data, pos));
+		pos++;
+		cs.SetStrength(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetPrecision(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetVitality(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetEvasion(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetMagic(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetCharisma(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetFireResistance(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetColdResistance(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetLightningResistance(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetPoisonResistance(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetCurseResistance(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetSpeed(NetDecoder.ReadAttribute(data, pos));
+		pos += 6;
+		cs.SetHealth(NetDecoder.ReadDepletableAttribute(data, pos));
+		pos += 5;
+		cs.SetMana(NetDecoder.ReadDepletableAttribute(data, pos));
+		pos += 5;
+		cs.SetPower(NetDecoder.ReadDepletableAttribute(data, pos));
+		pos += 5;
+		cs.SetSanity(NetDecoder.ReadDepletableAttribute(data, pos));
+		pos += 5;
+		cs.SetProtection(NetDecoder.ReadDepletableAttribute(data, pos));
+		pos += 5;
+		cs.SetEquipmentWeight(NetDecoder.ReadDepletableAttribute(data, pos));
+		pos += 5;
+		cs.SetPoise(NetDecoder.ReadDepletableAttribute(data, pos));
+		pos += 5;
+		cs.SetPhysicalDefense(NetDecoder.ReadUshort(data, pos));
+		pos += 2;
+		cs.SetMagicalDefense(NetDecoder.ReadUshort(data, pos));
+		pos += 2;
+		cs.SetDamageReductionMultiplier(NetDecoder.ReadFloat(data, pos));
+		pos += 4;
+		cs.SetHasBlood(NetDecoder.ReadBool(data, pos));
+		pos++;
+		cs.SetIsWeaponDrawn(NetDecoder.ReadBool(data, pos));
+		pos++;
+		cs.SetIsImortal(NetDecoder.ReadBool(data, pos));
+		pos++;
+		cs.SetMainSkill((SkillType)NetDecoder.ReadByte(data, pos));
+		pos++;
+		cs.SetSecondarySkill((SkillType)NetDecoder.ReadByte(data, pos));
+		pos++;
+		cs.SetSkill(SkillType.ALCHEMY, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.BLOODMANCY, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.CRAFTING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.COMBAT, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.CONSTRUCTION, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.COOKING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.ENCHANTING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.FARMING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.FISHING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.LEADERSHIP, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.MINING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.MOUNTING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.MUSICALITY, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.NATURALISM, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.SMITHING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.SORCERY, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.THIEVERY, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.TECHNOLOGY, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.THAUMATURGY, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.TRANSMUTING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetSkill(SkillType.WITCHCRAFT, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
+		cs.SetRightHand(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetLeftHand(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetHelmet(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetArmor(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetLegs(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetBoots(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetRing1(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetRing2(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetRing3(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetRing4(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetAmulet(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetCape(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		pos += 2;
+		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
+		pos += 169;
+
+		for(int i=0; i < 100; i++){
+			cachedFX = NetDecoder.ReadSpecialEffect(data, pos);
+			pos += 7;
+
+			if(cachedFX.GetEffectType() == EffectType.NONE)
+				break;
+
+			cs.GetSpecialEffectHandler().Add(cachedFX);
+		}
+
+		return cs;
 	}
 
 	public static float ReadFloat(byte[] data, int pos){
@@ -291,5 +444,166 @@ public static class NetDecoder
 		NetDecoder.WriteByte(sfx.GetTickDuration(), data, pos+3);
 		NetDecoder.WriteUshort(sfx.GetTicks(), data, pos+4);
 		NetDecoder.WriteBool(sfx.IsSystem(), data, pos+6);
+	}
+
+	public static void WriteZeros(int initIndex, int lastExcludedIndex, byte[] data){
+		if(initIndex >= lastExcludedIndex)
+			return;
+
+		for(; initIndex < lastExcludedIndex; initIndex++){
+			NetDecoder.WriteByte(0, data, initIndex);
+		}
+	}
+
+	public static void WriteCharacterSheet(CharacterSheet sheet, byte[] data, int pos){
+		NetDecoder.WriteString(sheet.GetName(), data, pos);
+		pos += 20;
+		NetDecoder.WriteByte((byte)sheet.GetAlignment(), data, pos);
+		pos++;
+		NetDecoder.WriteByte((byte)sheet.GetReligion(), data, pos);
+		pos++;
+		NetDecoder.WriteByte((byte)sheet.GetRace(), data, pos);
+		pos++;
+		NetDecoder.WriteBool(sheet.GetGender(), data, pos);
+		pos++;
+		NetDecoder.WriteByte(sheet.GetCronology(), data, pos);
+		pos++;
+		NetDecoder.WriteAttribute(sheet.GetStrength(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetPrecision(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetVitality(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetEvasion(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetMagic(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetCharisma(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetFireResistance(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetColdResistance(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetLightningResistance(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetPoisonResistance(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetCurseResistance(), data, pos);
+		pos += 6;
+		NetDecoder.WriteAttribute(sheet.GetSpeed(), data, pos);
+		pos += 6;
+		NetDecoder.WriteDepletableAttribute(sheet.GetHealth(), data, pos);
+		pos += 5;
+		NetDecoder.WriteDepletableAttribute(sheet.GetMana(), data, pos);
+		pos += 5;
+		NetDecoder.WriteDepletableAttribute(sheet.GetPower(), data, pos);
+		pos += 5;
+		NetDecoder.WriteDepletableAttribute(sheet.GetSanity(), data, pos);
+		pos += 5;
+		NetDecoder.WriteDepletableAttribute(sheet.GetProtection(), data, pos);
+		pos += 5;
+		NetDecoder.WriteDepletableAttribute(sheet.GetEquipmentWeight(), data, pos);
+		pos += 5;
+		NetDecoder.WriteDepletableAttribute(sheet.GetPoise(), data, pos);
+		pos += 5;
+		NetDecoder.WriteUshort(sheet.GetPhysicalDefense(), data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort(sheet.GetMagicalDefense(), data, pos);
+		pos += 2;
+		NetDecoder.WriteFloat(sheet.GetDamageReductionMultiplier(), data, pos);
+		pos += 4;
+		NetDecoder.WriteBool(sheet.HasBlood(), data, pos);
+		pos++;
+		NetDecoder.WriteBool(sheet.IsWeaponDrawn(), data, pos);
+		pos++;
+		NetDecoder.WriteBool(sheet.IsImortal(), data, pos);
+		pos++;
+		NetDecoder.WriteByte((byte)sheet.GetMainSkill(), data, pos);
+		pos++;
+		NetDecoder.WriteByte((byte)sheet.GetSecondarySkill(), data, pos);
+		pos++;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.ALCHEMY), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.BLOODMANCY), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.CRAFTING), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.COMBAT), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.CONSTRUCTION), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.COOKING), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.ENCHANTING), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.FARMING), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.FISHING), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.LEADERSHIP), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.MINING), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.MOUNTING), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.MUSICALITY), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.NATURALISM), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.SMITHING), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.SORCERY), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.THIEVERY), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.TECHNOLOGY), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.THAUMATURGY), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.TRANSMUTING), data, pos);
+		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.WITCHCRAFT), data, pos);
+		pos += 5;
+		// CHANGE SIMPLE ITEM STORING TO WEAPON
+		NetDecoder.WriteUshort((ushort)sheet.GetRightHand().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetLeftHand().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetHelmet().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetArmor().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetLegs().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetBoots().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetRing1().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetRing2().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetRing3().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetRing4().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetAmulet().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteUshort((ushort)sheet.GetCape().id, data, pos);
+		pos += 2;
+		NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
+		pos += 169;
+
+		List<SpecialEffect> sfxList = sheet.GetSpecialEffectHandler().GetAllEffects();
+
+		for(int i=0; i < 100; i++){
+			if(sfxList.Count == 0){
+				NetDecoder.WriteSpecialEffect(NULL_EFFECT, data, pos);
+			}
+			else{
+				NetDecoder.WriteSpecialEffect(sfxList[0], data, pos);
+				sfxList.RemoveAt(0);
+			}
+
+			pos += 7;
+		}
 	}
 }

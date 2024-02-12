@@ -165,6 +165,8 @@ public class Server
 		}
 	}
 
+	public bool IsLocal(){return this.isLocal;}
+
 	// Generates a random 8 letter code
 	private string GenerateRandomName(){
 		StringBuilder sb = new StringBuilder();
@@ -373,6 +375,15 @@ public class Server
 			case NetCode.SENDINVENTORY:
 				SendInventory(data, id);
 				break;
+			case NetCode.REQUESTCHARACTEREXISTENCE:
+				RequestCharacterExistence(data, id);
+				break;
+			case NetCode.SENDCHARSHEET:
+				SendCharSheet(data, id);
+				break;
+			case NetCode.DISCONNECTINFO:
+				DisconnectInfo(id);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED");
 				break;
@@ -407,7 +418,7 @@ public class Server
 
 			this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(id);
 
-			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes, this.cachedSheet.GetCharacterAppearance(), this.cachedSheet.GetGender());
+			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes);
 			this.Send(message.GetMessage(), message.size, id, temporary:true);
 
 			// Sends player inventory data
@@ -1113,6 +1124,40 @@ public class Server
 	private void SendInventory(byte[] data, ulong id){
 		this.cl.playerServerInventory.AddInventory(id, data);
 	}
+
+	// Receives a request to check character existence, if exists, sends CharacterAppearance
+	public void RequestCharacterExistence(byte[] data, ulong id){
+		ulong charID = NetDecoder.ReadUlong(data, 1);
+		NetMessage message = new NetMessage(NetCode.SENDCHARACTERPRELOAD);
+
+		this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(charID);
+
+		if(this.cachedSheet == null)
+			message.SendCharacterPreload(null, false);
+		else
+			message.SendCharacterPreload(this.cachedSheet.GetCharacterAppearance(), this.cachedSheet.GetGender());
+
+		this.Send(message.GetMessage(), message.size, id, temporary:true);
+	}
+
+	// Receives the character sheet from a new character
+	public void SendCharSheet(byte[] data, ulong id){
+		ulong charID = NetDecoder.ReadUlong(data, 1);
+		CharacterSheet sheet = NetDecoder.ReadCharacterSheet(data, 9);
+
+		if(!this.cl.characterFileHandler.CharacterExists(charID)){
+			this.cl.characterFileHandler.SaveCharacterSheet(charID, sheet);
+		}
+	}
+
+	// Receives a Disconnect message from InfoClient
+	public void DisconnectInfo(ulong id){
+		Debug.Log("ID: " + id + " was sent to character creation");
+
+		this.temporaryConnections[id].Close();
+		this.temporaryConnections.Remove(id);
+	}
+
 
 	/*
 	// Auxiliary Functions

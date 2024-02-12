@@ -114,6 +114,7 @@ public class CharacterCreationMenu : Menu{
     private CharacterBuilderMenu characterBuilder;
     private bool INIT = false;
     private bool ENABLED = false;
+    public bool RESET_ON_ENABLE = false;
 
     // Items List
     private List<GameObject> clothesItems = new List<GameObject>();
@@ -172,6 +173,14 @@ public class CharacterCreationMenu : Menu{
     public override void Enable(){
         this.mainObject.SetActive(true);
 
+        /*
+        if(RESET_ON_ENABLE){
+            ENABLED = false;
+            INIT = false;
+            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, isMale:true);
+        }
+        */
+
         if(ENABLED){
             GameObject loadedModel;
 
@@ -224,9 +233,10 @@ public class CharacterCreationMenu : Menu{
         }
 
         ENABLED = true;
+        RESET_ON_ENABLE = false;
     }
 
-    void Start(){
+    void Awake(){
         Material mat = Instantiate(this.borderPulseMaterial);
         Material matField = Instantiate(this.borderPulseMaterial);
 
