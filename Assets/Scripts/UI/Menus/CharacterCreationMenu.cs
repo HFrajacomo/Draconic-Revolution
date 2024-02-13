@@ -30,6 +30,7 @@ public class CharacterCreationMenu : Menu{
 
     [Header("ScrollView")]
     public ScrollRect itemsView;
+    public Scrollbar itemsScrollBar;
     public GameObject scrollViewContent;
     public Image viewScrollbar;
     public GameObject slidingArea;
@@ -114,7 +115,6 @@ public class CharacterCreationMenu : Menu{
     private CharacterBuilderMenu characterBuilder;
     private bool INIT = false;
     private bool ENABLED = false;
-    public bool RESET_ON_ENABLE = false;
 
     // Items List
     private List<GameObject> clothesItems = new List<GameObject>();
@@ -173,14 +173,6 @@ public class CharacterCreationMenu : Menu{
     public override void Enable(){
         this.mainObject.SetActive(true);
 
-        /*
-        if(RESET_ON_ENABLE){
-            ENABLED = false;
-            INIT = false;
-            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, isMale:true);
-        }
-        */
-
         if(ENABLED){
             GameObject loadedModel;
 
@@ -233,7 +225,6 @@ public class CharacterCreationMenu : Menu{
         }
 
         ENABLED = true;
-        RESET_ON_ENABLE = false;
     }
 
     void Awake(){
@@ -340,6 +331,7 @@ public class CharacterCreationMenu : Menu{
             this.scrollViewContent.SetActive(true);
             this.slidingArea.SetActive(true);
             this.viewScrollbar.enabled = true;
+            this.itemsScrollBar.value = 1;
             this.skinColorMenu.SetActive(false);
 
             // If it's a first load

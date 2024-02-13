@@ -61,7 +61,6 @@ public class MenuManager : MonoBehaviour{
 		// Menu inits
 		if(initCharacterCreation){
 			SetInitCharacterCreationFlag(false);
-			((CharacterCreationMenu)this.characterCreationMenu).RESET_ON_ENABLE = true;
 			ChangeMenu(MenuID.CHARACTER_CREATION);
 		}
 	}
