@@ -9240,7 +9240,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 755009725}
   m_HandleRect: {fileID: 755009723}
   m_Direction: 2
-  m_Value: 0.00000030517577
+  m_Value: 0
   m_Size: 0.77272075
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -48667,6 +48667,7 @@ MonoBehaviour:
   hairButton: {fileID: 1266417147}
   nameInput: {fileID: 1804520481}
   itemsView: {fileID: 529744632}
+  itemsScrollBar: {fileID: 283434406}
   scrollViewContent: {fileID: 1495185142}
   viewScrollbar: {fileID: 283434405}
   slidingArea: {fileID: 938200629}

@@ -41,9 +41,9 @@ public class PlayerPositionHandler : MonoBehaviour
     private float maxDistanceCardinal;
     private float maxDistanceDiagonal;
     private const float maxDistanceVertical = 800f;
-    private const float bigEnoughAverageDistance = 30f;
+    private const float bigEnoughAverageDistance = 15f;
     // Minimum distance to trigger reverb
-    private const float minAvgReverbDistance = 4;
+    private const float minAvgReverbDistance = 2;
 
 
     // DEBUG MODE
@@ -237,6 +237,7 @@ public class PlayerPositionHandler : MonoBehaviour
         reverb.room = CalculateRoomFormula(averageReverbDistance);
         reverb.roomHF = CalculateRoomHigh(averageReverbDistance);
         reverb.reflectionsDelay = CalculateEarlyReflectionDelay(averageReverbDistance);
+        reverb.reverb = CalculateReverb(averageReverbDistance);
     }
 
     private float GetSumReverbDistance(){
@@ -246,12 +247,16 @@ public class PlayerPositionHandler : MonoBehaviour
         return sumReverbDistance;        
     }
 
+    private int CalculateReverb(float averageReverbDistance){
+        return (int)Mathf.Clamp(Mathf.Lerp(-300f, 1500f, (float)(averageReverbDistance/bigEnoughAverageDistance)), -300, 1500);
+    }
+
     private int CalculateRoomFormula(float averageReverbDistance){
         float verticalVectorDistance = (this.raytracingDistances[8] + this.raytracingDistances[9])/2f;
-        float val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 2)*700 - 1000;
-        val = val * Mathf.Clamp(5-(Mathf.Log(1+(verticalVectorDistance/8f), 1.4f)*4), 1, 5);
+        float val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 2)*1300 - 1300;
+        val = val * Mathf.Clamp(5-(Mathf.Log(1+verticalVectorDistance, 1.4f)*4), 1, 5);
 
-        return Mathf.CeilToInt(Mathf.Clamp(val, -1000, -300));
+        return Mathf.CeilToInt(Mathf.Clamp(val, -1300, 0));
     }
 
     private int CalculateReflectionsFormula(float averageReverbDistance){
@@ -267,12 +272,12 @@ public class PlayerPositionHandler : MonoBehaviour
         float val;
 
         if(averageReverbDistance >= minAvgReverbDistance)
-            val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 2)*13.5f + 1.5f;
+            val = Mathf.Log((averageReverbDistance/bigEnoughAverageDistance)+1, 2)*10.5f + 1.5f;
         else
             return 1.5f;
 
         val = val * Mathf.Clamp((Mathf.Log(1+(verticalVectorDistance/8f), 2f)*4), 0.1f, 1f);
-
+        
         return Mathf.Clamp(val, 1.5f, 20f);
     }
 

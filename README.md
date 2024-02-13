@@ -242,7 +242,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Custom Audio Engine|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:warning:
 |Initial Music|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:soon:|:soon:
 |Dynamic Music Support|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
-|Dynamic Reverb Zone Generation|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:soon:
+|Dynamic Reverb Zone Generation|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Non-Block Objects|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Block Damage Indicators|Core & Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Character Sheet|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
