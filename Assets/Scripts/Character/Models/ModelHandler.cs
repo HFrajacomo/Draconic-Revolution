@@ -17,7 +17,7 @@ public static class ModelHandler{
 	private static readonly string BOOTS_DB = "CharacterModels/boots_db";
 	private static readonly string HATS_DB = "CharacterModels/hats_db";
 	private static readonly string HAIR_DB = "CharacterModels/hair_db";
-	private static readonly string ARMATURE_MALE = "Armature";
+	private static readonly string ARMATURE_MALE = "Armature-Man";
 	private static readonly string ARMATURE_FEMALE = "Armature-Woman";
 
 	private static TextAsset cachedText;
@@ -200,7 +200,11 @@ public static class ModelHandler{
 
 
 			name = BuildName(lineElements);
-			models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0]));
+
+			if(lineElements.Length < 4)
+				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0]));
+			else
+				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0]));
 
 			switch(t){
 				case ModelType.CLOTHES:

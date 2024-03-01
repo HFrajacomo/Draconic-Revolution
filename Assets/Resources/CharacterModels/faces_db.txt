@@ -1,0 +1,5 @@
+# Name	Blender_obj_name	Sex
+
+<No Face>	M_FACE	M
+
+<No Face>	F_FACE	F

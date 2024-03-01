@@ -16,7 +16,7 @@ public class CharacterBuilderMenu{
 
 	// Settings
 	private static readonly int ROOT_BONE_INDEX = 0;
-	private static readonly string ARMATURE_NAME_MALE = "Armature";
+	private static readonly string ARMATURE_NAME_MALE = "Armature-Man";
 	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
@@ -175,7 +175,7 @@ public class CharacterBuilderMenu{
 	}
 
 	private void LoadRootBone(){
-		this.rootBone = this.armature.transform.Find("Hips").transform;
+		this.rootBone = this.armature.transform.Find("Pelvis").transform;
 	}
 
 	private Mesh CopyMesh(Mesh mesh, SkinnedMeshRenderer rend){
