@@ -48798,7 +48798,7 @@ MonoBehaviour:
   bootsButton: {fileID: 610997551}
   hatsButton: {fileID: 915734189}
   hairButton: {fileID: 1266417147}
-  faceButton: {fileID: 0}
+  faceButton: {fileID: 526722279}
   nameInput: {fileID: 1804520481}
   itemsView: {fileID: 529744632}
   itemsScrollBar: {fileID: 283434406}
@@ -48817,6 +48817,7 @@ MonoBehaviour:
   skinColorMenu: {fileID: 290796884}
   prefabPlainMat: {fileID: 2100000, guid: d53d3c304eec41b49aad438799e8ad47, type: 2}
   dragonSkinMat: {fileID: 2100000, guid: 41a87ad85b5498e40821bc63e7547679, type: 2}
+  eyeIrisMat: {fileID: 2100000, guid: 67eca447c0a97e54c8132ede8ea4e8a3, type: 2}
   defaultGender: {fileID: 1856174920}
   defaultRace: {fileID: 1413357274}
   defaultPreset: {fileID: 760068335}

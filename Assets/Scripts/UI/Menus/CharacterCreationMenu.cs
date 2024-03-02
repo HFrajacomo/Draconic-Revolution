@@ -74,6 +74,7 @@ public class CharacterCreationMenu : Menu{
     [Header("Materials")]
     public Material prefabPlainMat;
     public Material dragonSkinMat;
+    public Material eyeIrisMat;
     private Material skinMat;
     private Material clothesMat1;
     private Material clothesMat2;
@@ -1340,7 +1341,7 @@ public class CharacterCreationMenu : Menu{
         this.hairMat1 = Instantiate(this.prefabPlainMat);
         this.hairMat2 = Instantiate(this.prefabPlainMat);
         this.hairMat3 = Instantiate(this.prefabPlainMat);
-        this.faceMat1 = Instantiate(this.prefabPlainMat);
+        this.faceMat1 = Instantiate(this.eyeIrisMat);
         this.faceMat2 = Instantiate(this.prefabPlainMat);
         this.faceMat3 = Instantiate(this.prefabPlainMat);
 

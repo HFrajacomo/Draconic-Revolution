@@ -91,7 +91,7 @@ Material:
     - _BUILTIN_QueueControl: 0
     - _BUILTIN_QueueOffset: 0
     - _BlendMode: 0
-    - _BorderSize: 0.01
+    - _BorderSize: 0.05
     - _ColorMask: 15
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
@@ -106,7 +106,7 @@ Material:
     - _EnableFogOnTransparent: 1
     - _ExcludeFromTUAndAA: 0
     - _FresnelStrength: 1.14
-    - _HorizontalAdjustment: 1
+    - _HorizontalAdjustment: 0.96
     - _OpaqueCullMode: 2
     - _RenderQueueType: 4
     - _SrcBlend: 1
