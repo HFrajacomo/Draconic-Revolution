@@ -10,6 +10,7 @@ public static class ModelHandler{
 	private static BiMap<ushort, string> legsMap = new BiMap<ushort, string>(); 
 	private static BiMap<ushort, string> bootsMap = new BiMap<ushort, string>(); 
 	private static BiMap<ushort, string> hatsMap = new BiMap<ushort, string>(); 
+	private static BiMap<ushort, string> faceMap = new BiMap<ushort, string>();
 
 	private static readonly string ASSET_BUNDLE_RESPATH = "CharacterModels/characters";
 	private static readonly string CLOTHES_DB = "CharacterModels/clothes_db";
@@ -17,6 +18,7 @@ public static class ModelHandler{
 	private static readonly string BOOTS_DB = "CharacterModels/boots_db";
 	private static readonly string HATS_DB = "CharacterModels/hats_db";
 	private static readonly string HAIR_DB = "CharacterModels/hair_db";
+	private static readonly string FACE_DB = "CharacterModels/faces_db";
 	private static readonly string ARMATURE_MALE = "Armature-Man";
 	private static readonly string ARMATURE_FEMALE = "Armature-Woman";
 
@@ -52,6 +54,8 @@ public static class ModelHandler{
 				return GetModelObject(type, bootsMap.Get(code));
 			case ModelType.HEADGEAR:
 				return GetModelObject(type, hatsMap.Get(code));
+			case ModelType.FACE:
+				return GetModelObject(type, faceMap.Get(code));
 			default:
 				return GetModelObject(type, clothesMap.Get(code));
 		}
@@ -67,6 +71,8 @@ public static class ModelHandler{
 				return bootsMap.Get(code).Split("/")[0];
 			case ModelType.HEADGEAR:
 				return hatsMap.Get(code).Split("/")[0];
+			case ModelType.FACE:
+				return faceMap.Get(code).Split("/")[0];
 			default:
 				return "";
 		}
@@ -147,6 +153,8 @@ public static class ModelHandler{
 				return bootsMap.Get(name);
 			case ModelType.HEADGEAR:
 				return hatsMap.Get(name);
+			case ModelType.FACE:
+				return faceMap.Get(name);
 			default:
 				return 0;
 		}
@@ -162,6 +170,8 @@ public static class ModelHandler{
 				return bootsMap.Get(code);
 			case ModelType.HEADGEAR:
 				return hatsMap.Get(code);
+			case ModelType.FACE:
+				return faceMap.Get(code);
 			default:
 				return "";
 		}
@@ -178,6 +188,8 @@ public static class ModelHandler{
 		ProcessTextAsset(ModelType.HEADGEAR, cachedText.ToString());
 		cachedText = Resources.Load<TextAsset>(HAIR_DB);
 		ProcessTextAsset(ModelType.HAIR, cachedText.ToString());
+		cachedText = Resources.Load<TextAsset>(FACE_DB);
+		ProcessTextAsset(ModelType.FACE, cachedText.ToString());
 	}
 
 	private static void ProcessTextAsset(ModelType t, string text){
@@ -218,6 +230,9 @@ public static class ModelHandler{
 					break;
 				case ModelType.HEADGEAR:
 					hatsMap.Add(i, name);
+					break;
+				case ModelType.FACE:
+					faceMap.Add(i, name);
 					break;
 				default:
 					break;

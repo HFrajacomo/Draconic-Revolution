@@ -16,6 +16,7 @@ public static class CharacterCreationData {
 	private static ushort legs;
 	private static ushort hats;
 	private static ushort boots;
+	private static ushort face;
 	private static byte skinPreset;
 	private static float skinColor;
 	private static Color skin;
@@ -33,6 +34,9 @@ public static class CharacterCreationData {
 	private static Color bootsColor1;
 	private static Color bootsColor2;
 	private static Color bootsColor3;
+	private static Color faceColor1;
+	private static Color faceColor2;
+	private static Color faceColor3;
 
 	// General Attributes
 	private static short[] strength = new short[]{0,0,0};
@@ -113,6 +117,9 @@ public static class CharacterCreationData {
 	public static void SetHatsColor1(Color c){hatsColor1 = c;}
 	public static void SetHatsColor2(Color c){hatsColor2 = c;}
 	public static void SetHatsColor3(Color c){hatsColor3 = c;}
+	public static void SetFaceColor1(Color c){faceColor1 = c;}
+	public static void SetFaceColor2(Color c){faceColor2 = c;}
+	public static void SetFaceColor3(Color c){faceColor3 = c;}
 	public static void SetPrimarySkill(SkillType s){primarySkill = s;}
 	public static void SetSecondarySkill(SkillType s){secondarySkill = s;}
 	public static void SetAlignment(Alignment a){alignment = a;}
@@ -132,6 +139,9 @@ public static class CharacterCreationData {
 	public static Color GetHatsColor1(){return hatsColor1;}
 	public static Color GetHatsColor2(){return hatsColor2;}
 	public static Color GetHatsColor3(){return hatsColor3;}
+	public static Color GetFaceColor1(){return faceColor1;}
+	public static Color GetFaceColor2(){return faceColor2;}
+	public static Color GetFaceColor3(){return faceColor3;}
 	public static SkillType GetPrimarySkill(){return primarySkill;}
 	public static SkillType GetSecondarySkill(){return secondarySkill;}
 	public static Alignment GetAlignment(){return (Alignment)alignment;}
@@ -305,6 +315,9 @@ public static class CharacterCreationData {
 			case ModelType.HEADGEAR:
 				hats = code;
 				return;
+			case ModelType.FACE:
+				face = code;
+				return;
 			default:
 				return;
 		}
@@ -320,6 +333,8 @@ public static class CharacterCreationData {
 				return boots;
 			case ModelType.HEADGEAR:
 				return hats;
+			case ModelType.FACE:
+				return face;
 			default:
 				return clothes;
 		}
@@ -327,12 +342,13 @@ public static class CharacterCreationData {
 
 	public static void CreateCharacterSheet(){
 		CharacterSheet sheet = new CharacterSheet();
-		ClothingInfo clothesInfo, legsInfo, bootsInfo, hatsInfo;
+		ClothingInfo clothesInfo, legsInfo, bootsInfo, hatsInfo, faceInfo;
 
 		clothesInfo = new ClothingInfo(clothes, clothesColor1, clothesColor2, clothesColor3, isMale);
 		legsInfo = new ClothingInfo(legs, legsColor1, legsColor2, legsColor3, isMale);
 		bootsInfo = new ClothingInfo(boots, bootsColor1, bootsColor2, bootsColor3, isMale);
 		hatsInfo = new ClothingInfo(hats, hatsColor1, hatsColor2, hatsColor3, isMale);
+		faceInfo = new ClothingInfo(face, faceColor1, faceColor2, faceColor3, isMale);
 
 		sheet.SetName(name);
 		sheet.SetReligion((Religion)religion);
@@ -341,7 +357,7 @@ public static class CharacterCreationData {
 		sheet.SetCronology(0);
 		sheet.SetGender(isMale);
 		sheet.SetSpecialEffectHandler(new SpecialEffectHandler());
-		sheet.SetCharacterAppearance(new CharacterAppearance((Race)race, skin, hatsInfo, clothesInfo, legsInfo, bootsInfo));
+		sheet.SetCharacterAppearance(new CharacterAppearance((Race)race, skin, hatsInfo, clothesInfo, legsInfo, bootsInfo, faceInfo));
 		sheet.SetHealth(new DepletableAttribute(SecondaryAttributeCalculator.CalculateHealth(Sum(vitality))));
 		sheet.SetPoise(new DepletableAttribute(SecondaryAttributeCalculator.CalculatePoise(Sum(vitality))));
 		sheet.SetMana(new DepletableAttribute(SecondaryAttributeCalculator.CalculateMana(Sum(magic), GetStartingLevel(SkillType.SORCERY))));
