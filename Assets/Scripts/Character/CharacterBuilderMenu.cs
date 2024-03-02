@@ -58,7 +58,10 @@ public class CharacterBuilderMenu{
 	}
 
 	public int GetMaterialLength(ModelType type){
-		return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length;
+		if(type != ModelType.FACE)
+			return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length;
+		else
+			return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length + 1;
 	}
 
 	public void ChangeRace(RaceSettings settings, bool isMale){
@@ -273,7 +276,7 @@ public class CharacterBuilderMenu{
 				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(3, rend), 3);
 				return;				
 			default:
-				return;		
+				return;
 		}
 	}
 
