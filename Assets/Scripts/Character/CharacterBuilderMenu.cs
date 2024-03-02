@@ -21,7 +21,7 @@ public class CharacterBuilderMenu{
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(25,25,25);
-	private static readonly Vector3 SCL_2 = new Vector3(18,25,25);
+	private static readonly Vector3 SCL_2 = new Vector3(25,25,25);
 	private static readonly int CHARACTER_CREATION_CHARACTER_SCALING = 150;
 
 	private List<int> cachedTris = new List<int>();
@@ -35,13 +35,16 @@ public class CharacterBuilderMenu{
 		this.bodyParts = new Dictionary<ModelType, GameObject>();
 		this.bodyPartName = new Dictionary<ModelType, string>();
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
-		this.armature.transform.localScale = raceSettings.scaling;
 		this.armature.transform.SetParent(this.parent.transform);
 
-		if(isMale)
+		if(isMale){
 			this.armature.name = ARMATURE_NAME_MALE;
-		else
+			this.armature.transform.localScale = ElementWiseMult(SCL_1, this.raceSettings.scaling);
+		}
+		else{
 			this.armature.name = ARMATURE_NAME_FEMALE;
+			this.armature.transform.localScale = ElementWiseMult(SCL_2, this.raceSettings.scaling);
+		}
 
 		FixArmature(isMale);
 	}
@@ -126,15 +129,18 @@ public class CharacterBuilderMenu{
 		}
 
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
-		this.armature.transform.localScale = this.raceSettings.scaling;
 		this.armature.transform.SetParent(this.parent.transform);
 
 		this.parent.transform.localScale = this.raceSettings.scaling * CharacterBuilderMenu.CHARACTER_CREATION_CHARACTER_SCALING;
 
-		if(isMale)
+		if(isMale){
 			this.armature.name = ARMATURE_NAME_MALE;
-		else
+			this.armature.transform.localScale = ElementWiseMult(SCL_1, this.raceSettings.scaling);
+		}
+		else{
 			this.armature.name = ARMATURE_NAME_FEMALE;
+			this.armature.transform.localScale = ElementWiseMult(SCL_2, this.raceSettings.scaling);
+		}
 
 		FixArmature(isMale);
 		this.animator.Rebind();
@@ -162,9 +168,9 @@ public class CharacterBuilderMenu{
 		}
 
 		if(isMale)
-			this.armature.transform.localScale = SCL_1;
+			this.armature.transform.localScale = ElementWiseMult(SCL_1, this.raceSettings.scaling);
 		else
-			this.armature.transform.localScale = SCL_2;
+			this.armature.transform.localScale = ElementWiseMult(SCL_2, this.raceSettings.scaling);
 
 
 		this.armature.transform.eulerAngles = ROT_1;
@@ -182,7 +188,7 @@ public class CharacterBuilderMenu{
         Mesh newMesh = new Mesh();
 
         newMesh.subMeshCount = mesh.subMeshCount;
-        newMesh.vertices = ScaleVertices(mesh.vertices);
+        newMesh.vertices = mesh.vertices;
         newMesh.uv = mesh.uv;
         newMesh.normals = mesh.normals;
         newMesh.colors = mesh.colors;
@@ -196,15 +202,6 @@ public class CharacterBuilderMenu{
         return newMesh;
 	}
 
-	private Vector3[] ScaleVertices(Vector3[] original){
-		Vector3[] output = new Vector3[original.Length];
-
-		for(int i=0; i < original.Length; i++){
-			output[i] = new Vector3(original[i].x * this.raceSettings.scaling.x, original[i].y * this.raceSettings.scaling.y, original[i].z * this.raceSettings.scaling.z);
-		}
-
-		return output;
-	}
 
 	private void FixMaterialOrder(SkinnedMeshRenderer rend){
 		Material[] materials = new Material[rend.materials.Length];
@@ -313,5 +310,9 @@ public class CharacterBuilderMenu{
     	p.GetTriangles(this.cachedTris, indexP);
     	n.SetTriangles(this.cachedTris, indexN);
     	this.cachedTris.Clear();
+	}
+
+	private Vector3 ElementWiseMult(Vector3 a, Vector3 b){
+		return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
 	}
 }
