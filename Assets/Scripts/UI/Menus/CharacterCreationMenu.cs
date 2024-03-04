@@ -75,6 +75,7 @@ public class CharacterCreationMenu : Menu{
     public Material prefabPlainMat;
     public Material dragonSkinMat;
     public Material eyeIrisMat;
+    public Material dragonlingHornMat;
     private Material skinMat;
     private Material clothesMat1;
     private Material clothesMat2;
@@ -261,7 +262,7 @@ public class CharacterCreationMenu : Menu{
 
 
         if(!INIT){
-            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, isMale:true);
+            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat)}, isMale:true);
 
             this.selectedGenderItem = this.defaultGender;
             this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
@@ -317,7 +318,7 @@ public class CharacterCreationMenu : Menu{
         SelectSkinPreset(this.defaultPreset);
 
         LoadDefaultModel(isReload:true);
-        this.characterBuilder.ChangeRace(RaceManager.GetHuman(), true);
+        this.characterBuilder.ChangeRace(Race.HUMAN, true);
         this.characterBuilder.ChangeAnimationGender(this.maleAnimations);
         UpdateColorInAllModel();
     }
@@ -765,6 +766,7 @@ public class CharacterCreationMenu : Menu{
         PopulateItemList(this.faceButton);
 
         LoadDefaultModel(isMale:this.selectedGenderIsMale, isReload:true);
+        this.characterBuilder.ChangeGender(this.race, this.selectedGenderIsMale);
 
         if(this.selectedGenderIsMale)
             this.characterBuilder.ChangeAnimationGender(this.maleAnimations);
@@ -790,7 +792,7 @@ public class CharacterCreationMenu : Menu{
         this.cachedText.color = this.selectedColor;
 
         SetRace(this.cachedText.text);
-        this.characterBuilder.ChangeRace(RaceManager.GetSettings(this.race), this.selectedGenderIsMale);
+        this.characterBuilder.ChangeRace(this.race, this.selectedGenderIsMale);
 
         // Setting Skin Material
         if(this.race != Race.DRAGONLING)
@@ -1312,6 +1314,8 @@ public class CharacterCreationMenu : Menu{
 
         materials[0] = this.skinMat;
         materials[0].SetColor("_Color", this.skinColor);
+
+        this.characterBuilder.ChangeAddonColor(this.skinColor, this.race);
 
         go.GetComponent<SkinnedMeshRenderer>().materials = materials;
     }

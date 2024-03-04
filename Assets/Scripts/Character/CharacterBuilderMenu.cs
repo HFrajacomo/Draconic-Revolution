@@ -11,6 +11,7 @@ public class CharacterBuilderMenu{
 	private Transform rootBone;
 	private BoneRenderer boneRenderer;
 	private RaceSettings raceSettings;
+	private Material[] addonMats;
 
 	private static Dictionary<string, int> BONE_MAP;
 
@@ -26,7 +27,7 @@ public class CharacterBuilderMenu{
 
 	private List<int> cachedTris = new List<int>();
 
-	public CharacterBuilderMenu(GameObject par, RuntimeAnimatorController animations, bool isMale=true){
+	public CharacterBuilderMenu(GameObject par, RuntimeAnimatorController animations, Race race, Material[] addonMats, bool isMale=true){
 		this.raceSettings = RaceManager.GetHuman();
 
 		this.parent = par;
@@ -36,6 +37,7 @@ public class CharacterBuilderMenu{
 		this.bodyPartName = new Dictionary<ModelType, string>();
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
 		this.armature.transform.SetParent(this.parent.transform);
+		this.addonMats = addonMats;
 
 		if(isMale){
 			this.armature.name = ARMATURE_NAME_MALE;
@@ -47,6 +49,7 @@ public class CharacterBuilderMenu{
 		}
 
 		FixArmature(isMale);
+		PutAddon(race, isMale);
 	}
 
 	public void ChangeAnimationGender(RuntimeAnimatorController animation){
@@ -64,8 +67,8 @@ public class CharacterBuilderMenu{
 			return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length + 1;
 	}
 
-	public void ChangeRace(RaceSettings settings, bool isMale){
-		this.raceSettings = settings;
+	public void ChangeRace(Race race, bool isMale){
+		this.raceSettings = RaceManager.GetSettings(race);
 
 		GameObject.DestroyImmediate(this.armature);
 
@@ -77,10 +80,16 @@ public class CharacterBuilderMenu{
 			this.armature.name = ARMATURE_NAME_FEMALE;
 
 		this.armature.transform.SetParent(this.parent.transform);
+
+		PutAddon(race, isMale, isReload:true);
 		FixArmature(isMale);
 		ReloadModel(isMale);
 		
 		this.animator.Rebind();
+	}
+
+	public void ChangeGender(Race race, bool isMale){
+		PutAddon(race, isMale);
 	}
 
 	public void Add(ModelType type, GameObject obj, string name, bool isReload=false){
@@ -111,7 +120,16 @@ public class CharacterBuilderMenu{
 		#endif
 
 		Mesh mesh = CopyMesh(current.sharedMesh, current);
-		FixMaterialOrder(current);
+
+		if(type != ModelType.ADDON)
+			FixMaterialOrder(current);
+		else{
+			if(this.raceSettings.GetRace() == Race.DRAGONLING)
+				current.SetMaterials(new List<Material>(){this.addonMats[1]});
+			else
+				current.SetMaterials(new List<Material>(){this.addonMats[0]});
+		}
+
 
 		mesh.name = current.sharedMesh.name;
 		current.sharedMesh = mesh;
@@ -147,6 +165,107 @@ public class CharacterBuilderMenu{
 
 		FixArmature(isMale);
 		this.animator.Rebind();
+	}
+
+	public void ChangeAddonColor(Color col, Race race){
+		if(!this.bodyParts.ContainsKey(ModelType.ADDON))
+			return;
+
+		if(race == Race.DRAGONLING || race == Race.UNDEAD){
+			return;	
+		}
+
+		Material[] materials = this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials;
+
+		materials[0].SetColor("_Color", col);
+
+		this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials = materials;
+		
+	}
+
+
+	private void PutAddon(Race race, bool isMale, bool isReload=false){
+		if(this.bodyParts.ContainsKey(ModelType.ADDON)){
+			GameObject.DestroyImmediate(this.bodyParts[ModelType.ADDON]);
+		}
+
+		if(race == Race.UNDEAD){
+			this.bodyPartName.Remove(ModelType.ADDON);
+			return;
+		}
+
+		if(isMale)
+			this.bodyPartName[ModelType.ADDON] = GetAddonName(race) + "/M";
+		else
+			this.bodyPartName[ModelType.ADDON] = GetAddonName(race) + "/F";
+
+
+		if(isReload)
+			return;
+
+		GameObject obj;
+
+		if(isMale){
+			obj = ModelHandler.GetModelObject(ModelType.ADDON, GetAddonName(race) + "/M");
+		}
+		else{
+			obj = ModelHandler.GetModelObject(ModelType.ADDON, GetAddonName(race) + "/F");
+		}
+
+		obj.transform.SetParent(this.parent.transform);
+		obj.transform.localScale = this.raceSettings.scaling;
+		obj.transform.eulerAngles = ROT_1;
+		obj.transform.localPosition = POS_1;
+
+
+		SkinnedMeshRenderer current = obj.GetComponent<SkinnedMeshRenderer>();
+
+		if(BONE_MAP == null){
+			SetBoneMap(current.bones);
+		}
+
+		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
+
+		#if UNITY_EDITOR
+			if(boneRenderer.transforms == null)
+				boneRenderer.transforms = newBones;
+		#endif
+
+		Mesh mesh = CopyMesh(current.sharedMesh, current);
+		FixMaterialOrder(current);
+
+		obj.name = "ADDON";
+		mesh.name = current.sharedMesh.name;
+		current.sharedMesh = mesh;
+		current.rootBone = newBones[ROOT_BONE_INDEX];
+		current.bones = newBones;
+
+		this.bodyParts[ModelType.ADDON] = obj;
+
+		// Set Material
+		if(race == Race.DRAGONLING)
+			current.SetMaterials(new List<Material>(){this.addonMats[1]});
+		else
+			current.SetMaterials(new List<Material>(){this.addonMats[0]});
+	}
+
+	private string GetAddonName(Race r){
+		switch(r){
+			case Race.HUMAN:
+				return "Base_Ears";
+			case Race.ELF:
+				return "Elven_Ears";
+			case Race.DWARF:
+				return "Base_Ears";
+			case Race.ORC:
+				return "Orcish_Ears";
+			case Race.DRAGONLING:
+				return "Dragonling_Horns";
+			case Race.HALFLING:
+				return "Base_Ears";
+			default:
+				return "Base_Ears";
+		}
 	}
 
 	private void ReloadModel(bool isMale){
