@@ -1,1 +1,7 @@
-# Name	Blender_obj_name	Sex
+# Name	Blender_obj_name	Sex	ShapeKeys	HasModel
+
+<No Hair>	M_NO_HAIR	M	N	N
+Short	M_Short	M	N	Y
+
+<No Hair> F_NO_HAIR	F	N	N
+Short F_Short	F	N	Y

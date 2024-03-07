@@ -101,6 +101,12 @@ public class CharacterBuilderMenu{
 			this.bodyPartName[type] = name;
 		}
 
+		if(!ModelHandler.HasModel(type, name)){
+			this.bodyParts[type] = obj;
+			obj.transform.SetParent(this.parent.transform);
+			return;
+		}
+
 		obj.transform.SetParent(this.parent.transform);
 		obj.transform.localScale = this.raceSettings.scaling;
 		obj.transform.eulerAngles = ROT_1;

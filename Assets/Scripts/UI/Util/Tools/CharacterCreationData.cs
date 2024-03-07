@@ -17,6 +17,7 @@ public static class CharacterCreationData {
 	private static ushort hats;
 	private static ushort boots;
 	private static ushort face;
+	private static ushort hair;
 	private static byte skinPreset;
 	private static float skinColor;
 	private static Color skin;
@@ -37,6 +38,9 @@ public static class CharacterCreationData {
 	private static Color faceColor1;
 	private static Color faceColor2;
 	private static Color faceColor3;
+	private static Color hairColor1;
+	private static Color hairColor2;
+	private static Color hairColor3;
 
 	// General Attributes
 	private static short[] strength = new short[]{0,0,0};
@@ -120,6 +124,9 @@ public static class CharacterCreationData {
 	public static void SetFaceColor1(Color c){faceColor1 = c;}
 	public static void SetFaceColor2(Color c){faceColor2 = c;}
 	public static void SetFaceColor3(Color c){faceColor3 = c;}
+	public static void SetHairColor1(Color c){hairColor1 = c;}
+	public static void SetHairColor2(Color c){hairColor2 = c;}
+	public static void SetHairColor3(Color c){hairColor3 = c;}
 	public static void SetPrimarySkill(SkillType s){primarySkill = s;}
 	public static void SetSecondarySkill(SkillType s){secondarySkill = s;}
 	public static void SetAlignment(Alignment a){alignment = a;}
@@ -142,6 +149,9 @@ public static class CharacterCreationData {
 	public static Color GetFaceColor1(){return faceColor1;}
 	public static Color GetFaceColor2(){return faceColor2;}
 	public static Color GetFaceColor3(){return faceColor3;}
+	public static Color GetHairColor1(){return hairColor1;}
+	public static Color GetHairColor2(){return hairColor2;}
+	public static Color GetHairColor3(){return hairColor3;}
 	public static SkillType GetPrimarySkill(){return primarySkill;}
 	public static SkillType GetSecondarySkill(){return secondarySkill;}
 	public static Alignment GetAlignment(){return (Alignment)alignment;}
@@ -318,6 +328,9 @@ public static class CharacterCreationData {
 			case ModelType.FACE:
 				face = code;
 				return;
+			case ModelType.HAIR:
+				hair = code;
+				return;
 			default:
 				return;
 		}
@@ -335,6 +348,8 @@ public static class CharacterCreationData {
 				return hats;
 			case ModelType.FACE:
 				return face;
+			case ModelType.HAIR:
+				return hair;
 			default:
 				return clothes;
 		}

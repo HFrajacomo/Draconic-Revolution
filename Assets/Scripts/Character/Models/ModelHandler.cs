@@ -11,6 +11,7 @@ public static class ModelHandler{
 	private static BiMap<ushort, string> bootsMap = new BiMap<ushort, string>(); 
 	private static BiMap<ushort, string> hatsMap = new BiMap<ushort, string>(); 
 	private static BiMap<ushort, string> faceMap = new BiMap<ushort, string>();
+	private static BiMap<ushort, string> hairMap = new BiMap<ushort, string>();
 	private static BiMap<ushort, string> addonMap = new BiMap<ushort, string>();
 
 	private static readonly string ASSET_BUNDLE_RESPATH = "CharacterModels/characters";
@@ -46,6 +47,10 @@ public static class ModelHandler{
 		return GameObject.Instantiate(GameObject.Find("ModelAssets/" + mi.blenderReference));
 	}
 
+	public static bool HasModel(ModelType type, string name){
+		return GetModelInfo(type, name).hasModel;
+	}
+
 	public static GameObject GetModelByCode(ModelType type, ushort code){
 		switch(type){
 			case ModelType.CLOTHES:
@@ -56,6 +61,8 @@ public static class ModelHandler{
 				return GetModelObject(type, bootsMap.Get(code));
 			case ModelType.HEADGEAR:
 				return GetModelObject(type, hatsMap.Get(code));
+			case ModelType.HAIR:
+				return GetModelObject(type, hairMap.Get(code));
 			case ModelType.FACE:
 				return GetModelObject(type, faceMap.Get(code));
 			case ModelType.ADDON:
@@ -75,6 +82,8 @@ public static class ModelHandler{
 				return bootsMap.Get(code).Split("/")[0];
 			case ModelType.HEADGEAR:
 				return hatsMap.Get(code).Split("/")[0];
+			case ModelType.HAIR:
+				return hairMap.Get(code).Split("/")[0];
 			case ModelType.FACE:
 				return faceMap.Get(code).Split("/")[0];
 			case ModelType.ADDON:
@@ -159,6 +168,8 @@ public static class ModelHandler{
 				return bootsMap.Get(name);
 			case ModelType.HEADGEAR:
 				return hatsMap.Get(name);
+			case ModelType.HAIR:
+				return hairMap.Get(name);
 			case ModelType.FACE:
 				return faceMap.Get(name);
 			case ModelType.ADDON:
@@ -178,6 +189,8 @@ public static class ModelHandler{
 				return bootsMap.Get(code);
 			case ModelType.HEADGEAR:
 				return hatsMap.Get(code);
+			case ModelType.HAIR:
+				return hairMap.Get(code);
 			case ModelType.FACE:
 				return faceMap.Get(code);
 			case ModelType.ADDON:
@@ -227,8 +240,11 @@ public static class ModelHandler{
 
 			if(lineElements.Length < 4)
 				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0]));
-			else
+			else if(lineElements.Length == 4)
 				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0]));
+			else
+				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0], lineElements[4][0]));
+
 
 			switch(t){
 				case ModelType.CLOTHES:
@@ -248,6 +264,9 @@ public static class ModelHandler{
 					break;
 				case ModelType.ADDON:
 					addonMap.Add(i, name);
+					break;
+				case ModelType.HAIR:
+					hairMap.Add(i, name);
 					break;
 				default:
 					break;

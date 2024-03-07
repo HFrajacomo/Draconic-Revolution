@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.21927449, g: 0.22504756, b: 0.22618428, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -48818,6 +48818,7 @@ MonoBehaviour:
   prefabPlainMat: {fileID: 2100000, guid: d53d3c304eec41b49aad438799e8ad47, type: 2}
   dragonSkinMat: {fileID: 2100000, guid: 41a87ad85b5498e40821bc63e7547679, type: 2}
   eyeIrisMat: {fileID: 2100000, guid: 67eca447c0a97e54c8132ede8ea4e8a3, type: 2}
+  dragonlingHornMat: {fileID: 2100000, guid: 80ca6fa600d923e4297b60ee05f84f23, type: 2}
   defaultGender: {fileID: 1856174920}
   defaultRace: {fileID: 1413357274}
   defaultPreset: {fileID: 760068335}
