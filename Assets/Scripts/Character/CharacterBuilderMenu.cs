@@ -67,6 +67,12 @@ public class CharacterBuilderMenu{
 			return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length + 1;
 	}
 
+	public int GetMaterialLength(ModelType type, GameObject go){
+		if(type != ModelType.FACE)
+			return go.GetComponent<SkinnedMeshRenderer>().materials.Length;
+		return go.GetComponent<SkinnedMeshRenderer>().materials.Length + 1;
+	}
+
 	public void ChangeRace(Race race, bool isMale){
 		this.raceSettings = RaceManager.GetSettings(race);
 

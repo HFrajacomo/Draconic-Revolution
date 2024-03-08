@@ -120,15 +120,15 @@ public static class NetDecoder
 		return new Color(System.BitConverter.ToSingle(data, pos), System.BitConverter.ToSingle(data, pos+4), System.BitConverter.ToSingle(data, pos+8));
 	}
 
-	public static CharacterAppearance ReadCharacterAppearance(byte[] data, int pos){ // Size = 208
-		return new CharacterAppearance((Race)data[pos], NetDecoder.ReadRGB(data, pos+1), NetDecoder.ReadClothingInfo(data, pos+13), NetDecoder.ReadClothingInfo(data, pos+52), NetDecoder.ReadClothingInfo(data, pos+91), NetDecoder.ReadClothingInfo(data, pos+130), NetDecoder.ReadClothingInfo(data, pos+169));
+	public static CharacterAppearance ReadCharacterAppearance(byte[] data, int pos){ // Size = 247
+		return new CharacterAppearance((Race)data[pos], NetDecoder.ReadRGB(data, pos+1), NetDecoder.ReadClothingInfo(data, pos+13), NetDecoder.ReadClothingInfo(data, pos+52), NetDecoder.ReadClothingInfo(data, pos+91), NetDecoder.ReadClothingInfo(data, pos+130), NetDecoder.ReadClothingInfo(data, pos+169), NetDecoder.ReadClothingInfo(data, pos+208));
 	}
 
 	public static SpecialEffect ReadSpecialEffect(byte[] data, int pos){
 		return new SpecialEffect((EffectType)NetDecoder.ReadUshort(data, pos), (EffectUsecase)NetDecoder.ReadByte(data, pos+2), NetDecoder.ReadByte(data, pos+3), NetDecoder.ReadUshort(data, pos+4), NetDecoder.ReadBool(data, pos+6));
 	}
 
-	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){
+	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1221
 		CharacterSheet cs = new CharacterSheet();
 		SpecialEffect cachedFX;
 
@@ -265,7 +265,7 @@ public static class NetDecoder
 		cs.SetCape(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
 		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
-		pos += 208;
+		pos += 247;
 
 		for(int i=0; i < 100; i++){
 			cachedFX = NetDecoder.ReadSpecialEffect(data, pos);
@@ -437,6 +437,7 @@ public static class NetDecoder
 		NetDecoder.WriteClothingInfo(ca.legs, data, pos+91);
 		NetDecoder.WriteClothingInfo(ca.boots, data, pos+130);
 		NetDecoder.WriteClothingInfo(ca.face, data, pos+169);
+		NetDecoder.WriteClothingInfo(ca.face, data, pos+208);
 	}
 
 	public static void WriteSpecialEffect(SpecialEffect sfx, byte[] data, int pos){
@@ -591,7 +592,7 @@ public static class NetDecoder
 		NetDecoder.WriteUshort((ushort)sheet.GetCape().id, data, pos);
 		pos += 2;
 		NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
-		pos += 208;
+		pos += 247;
 
 		List<SpecialEffect> sfxList = sheet.GetSpecialEffectHandler().GetAllEffects();
 

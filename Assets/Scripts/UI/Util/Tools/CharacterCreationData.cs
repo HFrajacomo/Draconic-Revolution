@@ -357,13 +357,14 @@ public static class CharacterCreationData {
 
 	public static void CreateCharacterSheet(){
 		CharacterSheet sheet = new CharacterSheet();
-		ClothingInfo clothesInfo, legsInfo, bootsInfo, hatsInfo, faceInfo;
+		ClothingInfo clothesInfo, legsInfo, bootsInfo, hatsInfo, faceInfo, hairInfo;
 
 		clothesInfo = new ClothingInfo(clothes, clothesColor1, clothesColor2, clothesColor3, isMale);
 		legsInfo = new ClothingInfo(legs, legsColor1, legsColor2, legsColor3, isMale);
 		bootsInfo = new ClothingInfo(boots, bootsColor1, bootsColor2, bootsColor3, isMale);
 		hatsInfo = new ClothingInfo(hats, hatsColor1, hatsColor2, hatsColor3, isMale);
 		faceInfo = new ClothingInfo(face, faceColor1, faceColor2, faceColor3, isMale);
+		hairInfo = new ClothingInfo(hair, hairColor1, hairColor2, hairColor3, isMale);
 
 		sheet.SetName(name);
 		sheet.SetReligion((Religion)religion);
@@ -372,7 +373,7 @@ public static class CharacterCreationData {
 		sheet.SetCronology(0);
 		sheet.SetGender(isMale);
 		sheet.SetSpecialEffectHandler(new SpecialEffectHandler());
-		sheet.SetCharacterAppearance(new CharacterAppearance((Race)race, skin, hatsInfo, clothesInfo, legsInfo, bootsInfo, faceInfo));
+		sheet.SetCharacterAppearance(new CharacterAppearance((Race)race, skin, hatsInfo, clothesInfo, legsInfo, bootsInfo, faceInfo, hairInfo));
 		sheet.SetHealth(new DepletableAttribute(SecondaryAttributeCalculator.CalculateHealth(Sum(vitality))));
 		sheet.SetPoise(new DepletableAttribute(SecondaryAttributeCalculator.CalculatePoise(Sum(vitality))));
 		sheet.SetMana(new DepletableAttribute(SecondaryAttributeCalculator.CalculateMana(Sum(magic), GetStartingLevel(SkillType.SORCERY))));

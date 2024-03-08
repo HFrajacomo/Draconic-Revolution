@@ -364,15 +364,15 @@ public struct NetMessage
 	public void SendCharacterPreload(CharacterAppearance? app, bool isMale){
 		if(app == null){
 			NetDecoder.WriteBool(false, NetMessage.buffer, 1);
-			NetDecoder.WriteZeros(2, 171, NetMessage.buffer);
-			NetDecoder.WriteBool(isMale, NetMessage.buffer, 171);
+			NetDecoder.WriteZeros(2, 249, NetMessage.buffer);
+			NetDecoder.WriteBool(isMale, NetMessage.buffer, 249);
 		}
 		else{
 			NetDecoder.WriteBool(true, NetMessage.buffer, 1);
 			NetDecoder.WriteCharacterAppearance((CharacterAppearance)app, NetMessage.buffer, 2);
-			NetDecoder.WriteBool(isMale, NetMessage.buffer, 171);
+			NetDecoder.WriteBool(isMale, NetMessage.buffer, 249);
 		}
-		this.size = 172;
+		this.size = 251;
 	}
 
 	// Encodes a CharacterSheet
@@ -380,7 +380,7 @@ public struct NetMessage
 		NetDecoder.WriteLong(charCode, NetMessage.buffer, 1);
 		NetDecoder.WriteCharacterSheet(sheet, NetMessage.buffer, 9);
 
-		this.size = 1152;
+		this.size = 1230;
 	}
 }
 

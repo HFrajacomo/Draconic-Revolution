@@ -8,8 +8,9 @@ public struct CharacterAppearance {
 	public ClothingInfo legs;
 	public ClothingInfo boots;
 	public ClothingInfo face;
+	public ClothingInfo hair;
 
-	public CharacterAppearance(Race r, Color skin, ClothingInfo h, ClothingInfo t, ClothingInfo l, ClothingInfo b, ClothingInfo f){
+	public CharacterAppearance(Race r, Color skin, ClothingInfo h, ClothingInfo t, ClothingInfo l, ClothingInfo b, ClothingInfo f, ClothingInfo ha){
 		this.race = r;
 		this.skinColor = skin;
 		this.hat = h;
@@ -17,6 +18,7 @@ public struct CharacterAppearance {
 		this.legs = l;
 		this.boots = b;
 		this.face = f;
+		this.hair = h;
 	}
 
 	public ClothingInfo GetInfo(ModelType type){
@@ -31,12 +33,14 @@ public struct CharacterAppearance {
 				return this.boots;
 			case ModelType.FACE:
 				return this.face;
+			case ModelType.HAIR:
+				return this.hair;
 			default:
 				return this.torso;
 		}
 	}
 
 	public override string ToString(){
-		return  this.race + " | Skin: " + this.skinColor + " | " + this.hat.ToString(ModelType.HEADGEAR) + " | " + this.torso.ToString(ModelType.CLOTHES) + " | " + this.legs.ToString(ModelType.LEGS) + " | " + this.boots.ToString(ModelType.FOOTGEAR) + " | " + this.face.ToString(ModelType.FACE);
+		return  this.race + " | Skin: " + this.skinColor + " | " + this.hat.ToString(ModelType.HEADGEAR) + " | " + this.torso.ToString(ModelType.CLOTHES) + " | " + this.legs.ToString(ModelType.LEGS) + " | " + this.boots.ToString(ModelType.FOOTGEAR) + " | " + this.face.ToString(ModelType.FACE) + " | " + this.hair.ToString(ModelType.HAIR);
 	}
 }

@@ -520,7 +520,7 @@ public class CharacterCreationMenu : Menu{
 
         this.characterBuilder.Add(this.selectedDiv, go, name);
 
-        ShowColorPickers(go.GetComponent<SkinnedMeshRenderer>().materials.Length);
+        ShowColorPickers(this.characterBuilder.GetMaterialLength(this.selectedDiv, go));
         ApplyColorToModel(go);
 
         return go;
@@ -532,7 +532,7 @@ public class CharacterCreationMenu : Menu{
 
         this.characterBuilder.Add(type, go, AddGenderString(ModelHandler.GetModelName(type, code)));
 
-        ShowColorPickers(go.GetComponent<SkinnedMeshRenderer>().materials.Length);
+        ShowColorPickers(this.characterBuilder.GetMaterialLength(type, go));
         ApplyColorToModel(go);
 
         return go;
