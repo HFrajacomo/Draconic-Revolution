@@ -118,6 +118,8 @@ public class CharacterBuilderMenu{
 		obj.transform.eulerAngles = ROT_1;
 		obj.transform.localPosition = POS_1;
 
+		this.bodyParts[type] = obj;
+
 		SkinnedMeshRenderer current = obj.GetComponent<SkinnedMeshRenderer>();
 
 		if(BONE_MAP == null){
@@ -148,7 +150,24 @@ public class CharacterBuilderMenu{
 		current.rootBone = newBones[ROOT_BONE_INDEX];
 		current.bones = newBones;
 
-		this.bodyParts[type] = obj;
+
+		// Hide hair options
+		if(type == ModelType.HEADGEAR || type == ModelType.HAIR){
+			if(this.bodyParts.ContainsKey(ModelType.HAIR) && this.bodyParts.ContainsKey(ModelType.HEADGEAR)){
+
+				char hatSKCode = ModelHandler.GetHatCover(type, name);
+				bool hairHasShapeKeys = ModelHandler.HasShapeKeys(ModelType.HAIR, this.bodyPartName[ModelType.HAIR]);
+				
+				// TODO: Support to change hair with a different model just to match hair below head
+
+				if(hatSKCode == 'N'){ // If covers hair
+					this.bodyParts[ModelType.HAIR].SetActive(false);
+				}
+				else{
+					this.bodyParts[ModelType.HAIR].SetActive(true);
+				}
+			}
+		}
 	}
 
 	public void ChangeArmature(bool isMale){

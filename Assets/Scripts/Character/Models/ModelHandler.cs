@@ -51,6 +51,18 @@ public static class ModelHandler{
 		return GetModelInfo(type, name).hasModel;
 	}
 
+	public static bool HasShapeKeys(ModelType type, string name){
+		if(type != ModelType.HAIR)
+			return false;
+		return GetModelInfo(type, name).coverHair == 'Y';
+	}
+
+	public static char GetHatCover(ModelType type, string name){
+		if(type != ModelType.HEADGEAR)
+			return ' ';
+		return GetModelInfo(type, name).coverHair;
+	}
+
 	public static GameObject GetModelByCode(ModelType type, ushort code){
 		switch(type){
 			case ModelType.CLOTHES:
