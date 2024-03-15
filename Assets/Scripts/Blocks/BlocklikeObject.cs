@@ -21,22 +21,22 @@ public abstract class BlocklikeObject
 	public Vector3 hitboxScaling;
 
 	public static readonly int objectCount = 9;
-	public int stateNumber; // If needsRotation is true, these objects need to tell the rendering engine their max number of sequential states from 0
 
-	public VFXLoader vfx = GameObject.Find("/VFXLoader").GetComponent<VFXLoader>();
 	public bool washable = false; // Can be destroyed by flowing water
 	public bool needsRotation = false;
 	public bool customBreak = false;
 	public bool customPlace = false;
 
+	public ushort maximumRotationScaleState;
+
 	public ushort maxHP;
 	public HashSet<BlockFlags> flags;
 
 	// Mesh and Hitbox
-	public GameObject go;
-	public GameObject hitboxObject;
-	public Mesh mesh;
-	public Mesh hitboxMesh;
+	public string modelPath;
+	public string hitboxPath;
+	protected Mesh mesh;
+	protected Mesh hitboxMesh;
 
 	// Texture
 	protected static readonly int SOLID_ATLAS_X = 10;
@@ -45,14 +45,27 @@ public abstract class BlocklikeObject
 	protected static readonly int NORMAL_ATLAS_Y = 2;
 	public int2 atlasPosition;
 
-	// Item Drops
-	public Item droppedItem;
-	public byte minDropQuantity;
-	public byte maxDropQuantity;
+	// Behaviours
+	public ModelIdentityBehaviour modelIdentity;
+	public VoxelBehaviour onBlockUpdate;
+	public VoxelBehaviour onInteract;
+	public VoxelBehaviour onPlace;
+	public VoxelBehaviour onBreak;
+	public VoxelBehaviour onLoad;
+	public VoxelBehaviour onVFXBuild;
+	public VoxelBehaviour onVFXChange;
+	public VoxelBehaviour onVFXBreak;
+	public VoxelBehaviour onSFXPlay;
+	public VoxelBehaviour placementRule;
+	public VoxelBehaviour offsetVector;
+	public VoxelBehaviour rotationValue;
+
 
 	// Block Encyclopedia fill function
+	/*
 	public static BlocklikeObject Create(int blockID, bool isClient){
 		switch(blockID){
+
 			case 0:
 				return new Torch_Object(isClient);
 			case 1:
@@ -74,6 +87,10 @@ public abstract class BlocklikeObject
 				return new Torch_Object(isClient);
 		}
 	}
+	*/
+
+	public Mesh GetMesh(){return this.mesh;}
+	public Mesh GetHitboxMesh(){return this.hitboxMesh;}
 
     // Handles the emittion of BUD to neighboring blocks
     public void EmitBlockUpdate(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
@@ -173,17 +190,82 @@ public abstract class BlocklikeObject
 		"change": When emitting block has been turned into another block or changed properties
 		"trigger": When emitting block has been electrically triggered
 	*/
-	public virtual void OnBlockUpdate(BUDCode budType, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){}
+	public void LoadModel(bool isClient){
+		if(isClient){
+			this.mesh = this.modelIdentity.GetMesh();
+			this.hitboxMesh = this.modelIdentity.GetHitboxMesh();
+		}
+	}
 
-	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){return 0;}
-	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){return 0;}
-	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){return 0;}
-	public virtual int OnLoad(CastCoord coord, ChunkLoader_Server cl){return 0;}
-	public virtual int OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){return 0;}
-	public virtual int OnVFXChange(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){return 0;}
-	public virtual int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){return 0;}
-	public virtual int OnSFXPlay(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){return 0;}
-	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader_Server cl){return true;}
-	public virtual Vector3 GetOffsetVector(ushort state){return Vector3.zero;}
-	public virtual int2 GetRotationValue(ushort state){return new int2(0,0);}
+	public virtual void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){
+		if(this.onBlockUpdate == null)
+			return;
+		this.onBlockUpdate.OnBlockUpdate(type, myX, myY, myZ, budX, budY, budZ, facing, cl);
+	}
+
+	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
+		if(this.onInteract == null)
+			return 0;
+		return this.onInteract.OnInteract(pos, blockX, blockY, blockZ, cl);
+	}
+
+	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
+		if(this.onPlace == null)
+			return 0;
+		return this.onPlace.OnPlace(pos, blockX, blockY, blockZ, facing, cl);
+	}
+
+	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
+		if(this.onBreak == null)
+			return 0;
+		return this.onBreak.OnBreak(pos, blockX, blockY, blockZ, cl);
+	}
+
+	public virtual int OnLoad(CastCoord coord, ChunkLoader_Server cl){
+		if(this.onLoad == null)
+			return 0;
+		return this.onLoad.OnLoad(coord, cl);
+	}
+
+	public virtual int OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
+		if(this.onVFXBuild == null)
+			return 0;
+		return this.onVFXBuild.OnVFXBuild(pos, blockX, blockY, blockZ, facing, state, cl);
+	}
+
+	public virtual int OnVFXChange(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
+		if(this.onVFXChange == null)
+			return 0;
+		return this.onVFXChange.OnVFXChange(pos, blockX, blockY, blockZ, facing, state, cl);
+	}
+
+	public virtual int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
+		if(this.onVFXBreak == null)
+			return 0;
+		return this.onVFXBreak.OnVFXBreak(pos, blockX, blockY, blockZ, state, cl);
+	}
+
+	public virtual int OnSFXPlay(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
+		if(this.onSFXPlay == null)
+			return 0;
+		return this.onSFXPlay.OnSFXPlay(pos, blockX, blockY, blockZ, state, cl);
+	}
+
+	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader_Server cl){
+		if(this.placementRule == null)
+			return true;
+		return this.placementRule.PlacementRule(pos, blockX, blockY, blockZ, direction, cl);
+	}
+
+	public virtual Vector3 GetOffsetVector(ushort state){
+		if(this.offsetVector == null)
+			return Vector3.zero;
+		return this.offsetVector.GetOffsetVector(state);
+	}
+
+	public virtual int2 GetRotationValue(ushort state){
+		if(this.rotationValue == null)
+			return new int2(0,0);
+		return this.rotationValue.GetRotationValue(state);
+	}
 }

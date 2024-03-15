@@ -18,6 +18,8 @@ public class BlockEncyclopedia : MonoBehaviour
     // Start is called before the first frame update
     public void Awake()
     {
+        /*
+
     	// Loads all blocks
         for(int i=0;i<Blocks.blockCount;i++){
         	blocks[i] = Blocks.Block(i);
@@ -52,6 +54,8 @@ public class BlockEncyclopedia : MonoBehaviour
             BlockEncyclopediaECS.objectAffectLight[i] = objects[i].affectLight;
             BlockEncyclopediaECS.objectLuminosity[i] = objects[i].luminosity;
         }
+
+        */
     }
 
     public void OnApplicationQuit(){

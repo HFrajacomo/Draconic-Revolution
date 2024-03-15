@@ -541,17 +541,17 @@ public class Chunk
 			if(!this.cacheCodes.Contains(assetCode)){
 				this.cacheCodes.Add(assetCode);
 
-				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetVertices(vertexAux);
+				blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetVertices(vertexAux);
 				this.cacheVertsv3.AddRange(vertexAux.ToArray());
-				this.cacheTris.AddRange(blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTriangles(0));
-				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetUVs(0, UVaux);
+				this.cacheTris.AddRange(blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetTriangles(0));
+				blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetUVs(0, UVaux);
 				this.cacheUVv2.AddRange(UVaux.ToArray());
 				this.indexVert.Add(this.indexVert[indexVert.Count-1] + vertexAux.Count);
-				this.indexTris.Add(this.indexTris[indexTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTriangles(0).Length);
+				this.indexTris.Add(this.indexTris[indexTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetTriangles(0).Length);
 				this.indexUV.Add(this.indexUV[indexUV.Count-1] + UVaux.Count);
-				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetNormals(normalAux);
+				blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetNormals(normalAux);
 				this.cacheNormals.AddRange(normalAux.ToArray());
-				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTangents(tangentAux);
+				blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetTangents(tangentAux);
 				this.cacheTangents.AddRange(tangentAux.ToArray());
 				this.scalingFactor.Add(BlockEncyclopediaECS.objectScaling[ushort.MaxValue-assetCode]);
 				this.hitboxScaling.Add(BlockEncyclopediaECS.hitboxScaling[ushort.MaxValue-assetCode]);
@@ -561,14 +561,14 @@ public class Chunk
 				normalAux.Clear();
 				tangentAux.Clear();
 
-				blockBook.objects[ushort.MaxValue-assetCode].hitboxMesh.GetVertices(vertexAux);
+				blockBook.objects[ushort.MaxValue-assetCode].GetHitboxMesh().GetVertices(vertexAux);
 				this.cacheHitboxVerts.AddRange(vertexAux.ToArray());
-				this.cacheHitboxTriangles.AddRange(blockBook.objects[ushort.MaxValue-assetCode].hitboxMesh.GetTriangles(0));
-				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetNormals(normalAux);
+				this.cacheHitboxTriangles.AddRange(blockBook.objects[ushort.MaxValue-assetCode].GetHitboxMesh().GetTriangles(0));
+				blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetNormals(normalAux);
 				this.cacheHitboxNormals.AddRange(normalAux);
 
 				this.indexHitboxVert.Add(this.indexHitboxVert[indexHitboxVert.Count-1] + vertexAux.Count);
-				this.indexHitboxTris.Add(this.indexHitboxTris[indexHitboxTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].hitboxMesh.GetTriangles(0).Length);
+				this.indexHitboxTris.Add(this.indexHitboxTris[indexHitboxTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].GetHitboxMesh().GetTriangles(0).Length);
 
 				vertexAux.Clear();
 				normalAux.Clear();
@@ -578,7 +578,7 @@ public class Chunk
 				// If has special offset or rotation
 				// Hash function for Dictionary is blockCode*256 + state. This leaves a maximum of 256 states for every object in the game
 				if(blockBook.objects[ushort.MaxValue - assetCode].needsRotation){
-					for(ushort i=0; i < blockBook.objects[ushort.MaxValue - assetCode].stateNumber; i++){
+					for(ushort i=0; i < blockBook.objects[ushort.MaxValue - assetCode].maximumRotationScaleState; i++){
 						scaleOffset.Add((int)(assetCode*256 + i), blockBook.objects[ushort.MaxValue - assetCode].GetOffsetVector(i));
 						rotationOffset.Add((int)(assetCode*256 + i), blockBook.objects[ushort.MaxValue - assetCode].GetRotationValue(i));
 					}
