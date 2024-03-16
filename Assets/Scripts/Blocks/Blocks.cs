@@ -38,16 +38,16 @@ public class Blocks
 	public int tileBottom;
 
 	// Behaviours
-	public VoxelBehaviour onBlockUpdate;
-	public VoxelBehaviour onInteract;
-	public VoxelBehaviour onPlace;
-	public VoxelBehaviour onBreak;
-	public VoxelBehaviour onLoad;
-	public VoxelBehaviour onVFXBuild;
-	public VoxelBehaviour onVFXChange;
-	public VoxelBehaviour onVFXBreak;
-	public VoxelBehaviour onSFXPlay;
-	public VoxelBehaviour placementRule;
+	private VoxelBehaviour onBlockUpdate;
+	private VoxelBehaviour onInteract;
+	private VoxelBehaviour onPlace;
+	private VoxelBehaviour onBreak;
+	private VoxelBehaviour onLoad;
+	private VoxelBehaviour onVFXBuild;
+	private VoxelBehaviour onVFXChange;
+	private VoxelBehaviour onVFXBreak;
+	private VoxelBehaviour onSFXPlay;
+	private VoxelBehaviour placementRule;
 
 
 
@@ -169,6 +169,37 @@ public class Blocks
 
     	return Mathf.CeilToInt(Mathf.Sqrt(blockDamage));
     }
+
+    // Events GET/SET
+    public VoxelBehaviour GetOnBlockUpdate() { return onBlockUpdate; }
+    public void SetOnBlockUpdate(VoxelBehaviour val) { onBlockUpdate = val; }
+
+    public VoxelBehaviour GetOnInteract() { return onInteract; }
+    public void SetOnInteract(VoxelBehaviour val) { onInteract = val; }
+
+    public VoxelBehaviour GetOnPlace() { return onPlace; }
+    public void SetOnPlace(VoxelBehaviour val) { onPlace = val; }
+
+    public VoxelBehaviour GetOnBreak() { return onBreak; }
+    public void SetOnBreak(VoxelBehaviour val) { onBreak = val; }
+
+    public VoxelBehaviour GetOnLoad() { return onLoad; }
+    public void SetOnLoad(VoxelBehaviour val) { onLoad = val; }
+
+    public VoxelBehaviour GetOnVFXBuild() { return onVFXBuild; }
+    public void SetOnVFXBuild(VoxelBehaviour val) { onVFXBuild = val; }
+
+    public VoxelBehaviour GetOnVFXChange() { return onVFXChange; }
+    public void SetOnVFXChange(VoxelBehaviour val) { onVFXChange = val; }
+
+    public VoxelBehaviour GetOnVFXBreak() { return onVFXBreak; }
+    public void SetOnVFXBreak(VoxelBehaviour val) { onVFXBreak = val; }
+
+    public VoxelBehaviour GetOnSFXPlay() { return onSFXPlay; }
+    public void SetOnSFXPlay(VoxelBehaviour val) { onSFXPlay = val; }
+
+    public VoxelBehaviour GetPlacementRule() { return placementRule; }
+    public void SetPlacementRule(VoxelBehaviour val) { placementRule = val; }
 
 	/*
 	VIRTUAL METHODS

@@ -46,19 +46,19 @@ public abstract class BlocklikeObject
 	public int2 atlasPosition;
 
 	// Behaviours
-	public ModelIdentityBehaviour modelIdentity;
-	public VoxelBehaviour onBlockUpdate;
-	public VoxelBehaviour onInteract;
-	public VoxelBehaviour onPlace;
-	public VoxelBehaviour onBreak;
-	public VoxelBehaviour onLoad;
-	public VoxelBehaviour onVFXBuild;
-	public VoxelBehaviour onVFXChange;
-	public VoxelBehaviour onVFXBreak;
-	public VoxelBehaviour onSFXPlay;
-	public VoxelBehaviour placementRule;
-	public VoxelBehaviour offsetVector;
-	public VoxelBehaviour rotationValue;
+	private ModelIdentityBehaviour modelIdentity;
+	private VoxelBehaviour onBlockUpdate;
+	private VoxelBehaviour onInteract;
+	private VoxelBehaviour onPlace;
+	private VoxelBehaviour onBreak;
+	private VoxelBehaviour onLoad;
+	private VoxelBehaviour onVFXBuild;
+	private VoxelBehaviour onVFXChange;
+	private VoxelBehaviour onVFXBreak;
+	private VoxelBehaviour onSFXPlay;
+	private VoxelBehaviour placementRule;
+	private VoxelBehaviour offsetVector;
+	private VoxelBehaviour rotationValue;
 
 
 	// Block Encyclopedia fill function
@@ -180,6 +180,46 @@ public abstract class BlocklikeObject
 
     	this.mesh.SetUVs(0, uvs);
     }
+
+    // Events GET/SET
+    public VoxelBehaviour GetOnBlockUpdate() { return onBlockUpdate; }
+    public void SetOnBlockUpdate(VoxelBehaviour val) { onBlockUpdate = val; }
+
+    public VoxelBehaviour GetOnInteract() { return onInteract; }
+    public void SetOnInteract(VoxelBehaviour val) { onInteract = val; }
+
+    public VoxelBehaviour GetOnPlace() { return onPlace; }
+    public void SetOnPlace(VoxelBehaviour val) { onPlace = val; }
+
+    public VoxelBehaviour GetOnBreak() { return onBreak; }
+    public void SetOnBreak(VoxelBehaviour val) { onBreak = val; }
+
+    public VoxelBehaviour GetOnLoad() { return onLoad; }
+    public void SetOnLoad(VoxelBehaviour val) { onLoad = val; }
+
+    public VoxelBehaviour GetOnVFXBuild() { return onVFXBuild; }
+    public void SetOnVFXBuild(VoxelBehaviour val) { onVFXBuild = val; }
+
+    public VoxelBehaviour GetOnVFXChange() { return onVFXChange; }
+    public void SetOnVFXChange(VoxelBehaviour val) { onVFXChange = val; }
+
+    public VoxelBehaviour GetOnVFXBreak() { return onVFXBreak; }
+    public void SetOnVFXBreak(VoxelBehaviour val) { onVFXBreak = val; }
+
+    public VoxelBehaviour GetOnSFXPlay() { return onSFXPlay; }
+    public void SetOnSFXPlay(VoxelBehaviour val) { onSFXPlay = val; }
+
+    public VoxelBehaviour GetPlacementRule() { return placementRule; }
+    public void SetPlacementRule(VoxelBehaviour val) { placementRule = val; }
+
+    public ModelIdentityBehaviour GetModelIdentity() { return modelIdentity; }
+    public void SetModelIdentity(ModelIdentityBehaviour val) { modelIdentity = val; }
+
+    public VoxelBehaviour GetOffsetVector() { return offsetVector; }
+    public void SetOffsetVector(VoxelBehaviour val) { offsetVector = val; }
+
+    public VoxelBehaviour GetRotationValue() { return rotationValue; }
+    public void SetRotationValue(VoxelBehaviour val) { rotationValue = val; }
 
 	/*
 	VIRTUAL METHODS

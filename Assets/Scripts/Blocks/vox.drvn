@@ -1,0 +1,20 @@
+{
+    "boolean": true,
+    "color": "gold",
+    "null": null,
+    "number": 123
+}
+---Behaviours
+{
+    "onPlace": "LiquidBehaviour",
+    "onBreak": "TreeBehaviour",
+    "onInteract": "LiquidBehaviour"
+}
+---LiquidBehaviour
+{
+    "viscosity": 2
+}
+---TreeBehaviour
+{
+    "maxAnalyzedBlocks": 100
+}
