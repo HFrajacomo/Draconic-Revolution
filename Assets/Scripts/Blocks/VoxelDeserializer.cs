@@ -36,9 +36,9 @@ public static class VoxelDeserializer {
 		FindBehaviours(behaviourJson);
 		DeserializeAllBehaviours(json);
 
-		behaviours.Clear();
-
 		AssignEventsToBlock(block);
+
+		behaviours.Clear();
 
 		return block;
 	}
@@ -51,9 +51,9 @@ public static class VoxelDeserializer {
 		FindBehaviours(behaviourJson);
 		DeserializeAllBehaviours(json);
 
-		behaviours.Clear();
-
 		AssignEventsToObject(obj);
+
+		behaviours.Clear();
 
 		return obj;
 	}
@@ -164,15 +164,15 @@ public static class VoxelDeserializer {
 
 		string[] keyVal;
 
-		json = json.Replace("{", "").Replace("}", "").Replace("\t", "").Replace(" ", "");
+		json = json.Replace("{", "").Replace("}", "").Replace("\t", "").Replace(" ", "").Replace("\"", "").Replace("\r", "");
 
 		foreach(string line in json.Split("\n")){
-			if(line.Length == 0)
+			if(line.Length <= 1)
 				continue;
 		
-			keyVal = line.Split(":");
+			keyVal = line.Split(':');
 
-			behaviours.Add(keyVal[0], keyVal[1]);
+			behaviours.Add(keyVal[0], keyVal[1].Replace("\n", ""));
 		}
 	}
 
@@ -205,7 +205,7 @@ public static class VoxelDeserializer {
 	}
 
 	private static VoxelBehaviour HandleBehaviourCreation(string val, string json){
-		string jsonSerial = GetSection(json, val.Replace("\"", ""));
+		string jsonSerial = GetSection(json, val);
 
 		switch(val){
 			case "LiquidBehaviour":
@@ -278,20 +278,4 @@ public static class VoxelDeserializer {
 				break;
 		}
 	}
-
-	/*
-
-	private static VoxelBehaviour onInteractEvent;
-	private static VoxelBehaviour onBlockUpdateEvent;
-	private static VoxelBehaviour onLoadEvent;
-	private static VoxelBehaviour onVFXBuildEvent;
-	private static VoxelBehaviour onVFXChangeEvent;
-	private static VoxelBehaviour onVFXBreakEvent;
-	private static VoxelBehaviour onSFXPlayEvent;
-	private static VoxelBehaviour placementRuleEvent;
-
-	private static ModelIdentityBehaviour modelIdentityEvent;
-	private static VoxelBehaviour offsetVectorEvent;
-	private static VoxelBehaviour rotationValueEvent;
-	 */
 }

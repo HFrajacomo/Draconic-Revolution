@@ -7,6 +7,7 @@ using Unity.Mathematics;
 using Random = UnityEngine.Random;
 
 
+[Serializable]
 public class TreeBehaviour : VoxelBehaviour{
 	public int maxAnalysedBlocks;
 	public int decayDistance;

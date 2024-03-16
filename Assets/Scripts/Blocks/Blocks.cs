@@ -29,8 +29,8 @@ public class Blocks
 	public bool customPlace = false;
 	public bool drawRegardless = false;
 	public ushort maxHP;
-
-	public HashSet<BlockFlags> flags;
+	public bool indestructible;
+	
 
 	// Texture tile code
 	public int tileTop;
@@ -162,10 +162,8 @@ public class Blocks
     	if(blockDamage <= 0)
     		return 0;
 
-    	if(this.flags != null){
-	    	if(this.flags.Contains(BlockFlags.IMMUNE) || this.flags.Contains(BlockFlags.UNBREAKABLE))
-	    		return 0;
-    	}
+		if(this.indestructible)
+	    	return 0;
 
     	return Mathf.CeilToInt(Mathf.Sqrt(blockDamage));
     }

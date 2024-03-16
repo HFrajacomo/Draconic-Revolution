@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using Unity.Mathematics;
 
+[Serializable]
 public class BreakDropItemBehaviour : VoxelBehaviour{
 	public Item droppedItem;
 	public byte minDropQuantity;

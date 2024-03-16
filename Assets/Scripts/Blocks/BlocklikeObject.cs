@@ -28,9 +28,8 @@ public abstract class BlocklikeObject
 	public bool customPlace = false;
 
 	public ushort maximumRotationScaleState;
-
 	public ushort maxHP;
-	public HashSet<BlockFlags> flags;
+	public bool indestructible;
 
 	// Mesh and Hitbox
 	public string modelPath;
@@ -135,10 +134,8 @@ public abstract class BlocklikeObject
     	if(blockDamage <= 0)
     		return 0;
 
-    	if(this.flags != null){
-	    	if(this.flags.Contains(BlockFlags.IMMUNE))
-	    		return 0;
-    	}
+    	if(this.indestructible)
+	    	return 0;
 
     	return Mathf.CeilToInt(Mathf.Sqrt(blockDamage));
     }

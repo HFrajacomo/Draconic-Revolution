@@ -3,6 +3,7 @@ using UnityEngine;
 
 using Random = System.Random;
 
+[Serializable]
 public class VisCrystalBehaviour : VoxelBehaviour{
 	public string blockName;
 

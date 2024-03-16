@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 
+[Serializable]
 public class ModelIdentityBehaviour : VoxelBehaviour {
 	public string modelUnityPath;
 

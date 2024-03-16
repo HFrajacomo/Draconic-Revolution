@@ -17,6 +17,7 @@ STATES:
 	7 = Unlit facing Z+
 */
 
+[Serializable]
 public class TorchBehaviour : VoxelBehaviour{
 	public string fireVFXPath;
 

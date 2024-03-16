@@ -4,6 +4,9 @@ using Unity.Mathematics;
 
 [Serializable]
 public abstract class VoxelBehaviour {
+	// Overloads
+	public override string ToString(){return GetType().Name;}
+
 	// Common
     public void EmitBUDTo(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){cl.budscheduler.ScheduleBUD(new BUDSignal(type, x, y, z, 0, 0, 0, 0), tickOffset);}
 	public void EraseMetadata(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){cl.chunks[pos].metadata.Reset(x,y,z);}
