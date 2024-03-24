@@ -1,0 +1,41 @@
+{
+    "codename": "BASE_Silverwood_Log",
+    "name":  "Silverwood Log",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  180,
+    "indestructible": false,
+    "tileTop":  46,
+    "tileSide":  47,
+    "tileBottom":  46
+}
+---Behaviours
+{
+    "onPlace": "PlaceSetStateBehaviour",
+    "onBreak": "TreeBehaviour"
+}
+---PlaceSetStateBehaviour
+{
+    "stateToChange": 1,
+}
+---TreeBehaviour
+{
+    "maxAnalysedBlocks": 100,
+    "decayDistance": 7,
+    "minDecayTime": 8,
+    "maxDecayTime": 30,
+    "assignedLeaf": "BASE_Silverwood_Leaves",
+    "thisWood": "BASE_Silverwood_Log"
+}

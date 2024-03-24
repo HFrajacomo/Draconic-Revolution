@@ -1,0 +1,18 @@
+	public WoodenPlankRegular_Block(){
+		this.name = "Wooden Planks";
+		this.solid = true;
+		this.transparent = 0;
+		this.invisible = false;
+		this.liquid = false;
+		this.affectLight = true;
+
+		this.tileTop = 13;
+		this.tileSide = 13;
+		this.tileBottom = 13;
+
+		this.maxHP = 150;
+	
+        this.droppedItem = Item.GenerateItem(ItemID.WOODENPLANKSREGULARBLOCK);
+        this.minDropQuantity = 1;
+        this.maxDropQuantity = 1;
+    }

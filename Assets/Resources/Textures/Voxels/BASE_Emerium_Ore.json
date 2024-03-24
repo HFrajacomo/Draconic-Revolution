@@ -1,0 +1,23 @@
+{
+    "codename": "BASE_Emerium_Ore",
+    "name":  "Emerium Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  400,
+    "indestructible": false,
+    "tileTop":  24,
+    "tileSide":  24,
+    "tileBottom":  24
+}

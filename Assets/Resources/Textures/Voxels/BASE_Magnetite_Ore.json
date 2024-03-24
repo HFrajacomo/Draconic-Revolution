@@ -1,0 +1,23 @@
+{
+    "codename": "BASE_Magnetite_Ore",
+    "name":  "Magnetite Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  450,
+    "indestructible": false,
+    "tileTop":  19,
+    "tileSide":  19,
+    "tileBottom":  19
+}

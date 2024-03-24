@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_Gravel_Fine",
+    "name":  "Fine Gravel",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  80,
+    "indestructible": false,
+    "tileTop":  55,
+    "tileSide":  55,
+    "tileBottom":  55
+}
+---Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

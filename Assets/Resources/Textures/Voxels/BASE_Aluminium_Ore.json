@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_Aluminium_Ore",
+    "name":  "Aluminium Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  370,
+    "indestructible": false,
+    "tileTop":  20,
+    "tileSide":  20,
+    "tileBottom":  20
+}
+---Behaviour
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

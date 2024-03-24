@@ -8,7 +8,7 @@ public abstract class BlocklikeObject
 	public ShaderIndex shaderIndex = ShaderIndex.ASSETS; // Assets
 	public string name;
 	public bool solid; // Is collidable
-	public byte transparent; // Should render the back side?
+	public bool transparent; // Should render the back side?
 	public bool invisible; // Should not render at all
 	public bool affectLight; // Should drain light
 	public bool liquid;

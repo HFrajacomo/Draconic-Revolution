@@ -16,7 +16,6 @@ public class TreeBehaviour : VoxelBehaviour{
 	public string assignedLeaf;
 	public string thisWood;
 
-	public byte minDropQuantity;
 	public byte maxDropQuantity;
 	public Item droppedItem;
 

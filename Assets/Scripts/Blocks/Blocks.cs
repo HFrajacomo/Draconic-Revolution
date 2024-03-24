@@ -16,7 +16,7 @@ public class Blocks
 	public string codename;
 	public string name;
 	public bool solid; // Is collidable
-	public byte transparent; // Should render the back side?
+	public bool transparent; // Should render the back side?
 	public bool invisible; // Should not render at all
 	public bool affectLight; // Should drain light level
 	public bool liquid;

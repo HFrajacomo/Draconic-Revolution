@@ -97,9 +97,9 @@ public class BlockEncyclopedia : MonoBehaviour
             return false;
 
         if(code <= ushort.MaxValue/2)
-            return ToBool(blocks[(ushort)code].transparent);
+            return blocks[(ushort)code].transparent;
         else
-            return ToBool(objects[ushort.MaxValue - (ushort)code].transparent);
+            return objects[ushort.MaxValue - (ushort)code].transparent;
     }
 
     // Gets washable value from block
@@ -143,9 +143,5 @@ public class BlockEncyclopedia : MonoBehaviour
             return this.blocks[block].CalculateDamage(blockDamage);
         else
             return this.objects[ushort.MaxValue - block].CalculateDamage(blockDamage);
-    }
-
-    private bool ToBool(int num){
-        return num == 1;
     }
 }

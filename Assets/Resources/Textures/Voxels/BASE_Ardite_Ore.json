@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_Ardite_Ore",
+    "name":  "Ardite Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  540,
+    "indestructible": false,
+    "tileTop":  35,
+    "tileSide":  35,
+    "tileBottom":  35
+}
+---Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

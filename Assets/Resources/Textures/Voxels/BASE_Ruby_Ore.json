@@ -1,0 +1,23 @@
+{
+    "codename": "BASE_Ruby_Ore",
+    "name":  "Ruby Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  380,
+    "indestructible": false,
+    "tileTop":  27,
+    "tileSide":  27,
+    "tileBottom":  27
+}

@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_Hell_Marble_Bricks",
+    "name":  "Hell Marble Bricks",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  480,
+    "indestructible": false,
+    "tileTop":  39,
+    "tileSide":  39,
+    "tileBottom":  39
+}
+---Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

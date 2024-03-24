@@ -1,0 +1,23 @@
+{
+    "codename": "BASE_Cobalt_Ore",
+    "name":  "Cobalt Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  500,
+    "indestructible": false,
+    "tileTop":  34,
+    "tileSide":  34,
+    "tileBottom":  34
+}

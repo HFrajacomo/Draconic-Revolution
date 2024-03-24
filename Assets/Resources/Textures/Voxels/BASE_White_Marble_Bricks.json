@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_White_Marble_Bricks",
+    "name":  "White Marble Bricks",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  600,
+    "indestructible": false,
+    "tileTop":  38,
+    "tileSide":  38,
+    "tileBottom":  38
+}
+---Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

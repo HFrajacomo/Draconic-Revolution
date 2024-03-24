@@ -160,8 +160,10 @@ public static class VoxelDeserializer {
 	}
 
 	private static void FindBehaviours(string json){
-		behaviours.Clear();
+		if(json == "")
+			return;
 
+		behaviours.Clear();
 		string[] keyVal;
 
 		json = json.Replace("{", "").Replace("}", "").Replace("\t", "").Replace(" ", "").Replace("\"", "").Replace("\r", "");

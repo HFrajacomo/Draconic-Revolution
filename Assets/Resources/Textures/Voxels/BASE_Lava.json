@@ -1,0 +1,34 @@
+{
+    "codename": "BASE_Lava",
+    "name":  "Lava",
+    "shaderIndex": 7,
+    "solid":  false,
+    "transparent": true,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  true,
+    "seamless":  true,
+    "luminosity":  15,
+    "hasLoadEvent":  false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak":  true,
+    "customPlace":  true,
+    "drawRegardless":  true,
+    "maxHP":  1,
+    "indestructible": false,
+    "tileTop": 0,
+    "tileSide": 0,
+    "tileBottom": 0
+}
+---Behaviours
+{
+	"onPlace": "LiquidBehaviour",
+    "onBreak": "LiquidBehaviour",
+    "onBlockUpdate": "LiquidBehaviour"
+}
+---LiquidBehaviour
+{
+    "liquidName": "BASE_Lava",
+    "viscosityDelay": 60
+}
