@@ -226,8 +226,12 @@ public static class VoxelDeserializer {
 				return JsonUtility.FromJson<TorchBehaviour>(jsonSerial);
 			case "UpdateDecaySecondaryBlockBehaviour":
 				return JsonUtility.FromJson<UpdateDecaySecondaryBlockBehaviour>(jsonSerial);
-			case "VisCrystalBehaviour":
-				return JsonUtility.FromJson<VisCrystalBehaviour>(jsonSerial);
+			case "AuraCrystalBehaviour":
+				return JsonUtility.FromJson<AuraCrystalBehaviour>(jsonSerial);
+			case "ConfigurablePositionBehaviour":
+				return JsonUtility.FromJson<ConfigurablePositionBehaviour>(jsonSerial);
+			case "ConfigurableRotationBehaviour":
+				return JsonUtility.FromJson<ConfigurableRotationBehaviour>(jsonSerial);
 			default:
 				Debug.Log("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
 				return new LiquidBehaviour();

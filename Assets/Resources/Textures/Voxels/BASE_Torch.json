@@ -1,0 +1,58 @@
+{
+    "codename": "BASE_Torch",
+    "name":  "Torch",
+    "shaderIndex": 3,
+    "solid":  false,
+    "transparent": true,
+    "invisible":  false,
+    "affectLight":  false,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 51,
+    "hasLoadEvent": true,
+    "washable": true,
+    "needsRotation": true,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  1,
+    "indestructible": false,
+    "textureCode" : 0,
+    "maximumRotationScaleState" : 8,
+    "scaling" : {
+        "x" : 10,
+        "y" : 20,
+        "z" : 10
+    },
+    "hitboxScaling" : {
+        "x" : 0.22,
+        "y" : 0.76,
+        "z" : 0.25
+    }
+}
+---Behaviours
+{
+    "modelIdentity": "ModelIdentityBehaviour",
+    "onPlace": "TorchBehaviour",
+    "onBreak": "TorchBehaviour",
+    "onInteract": "TorchBehaviour",
+    "onBlockUpdate": "TorchBehaviour",
+    "onLoad": "TorchBehaviour",
+    "onVFXBuild" : "TorchBehaviour",
+    "onVFXBreak" : "TorchBehaviour",
+    "onVFXChange" : "TorchBehaviour",
+    "onSFXPlay" : "TorchBehaviour",
+    "placementRule" : "TorchBehaviour",
+    "offsetVector" : "TorchBehaviour",
+    "rotationValue" : "TorchBehaviour"
+}
+---ModelIdentityBehaviour
+{
+    "modelUnityPath": "----- PrefabObjects -----/Torch_Object"
+}
+---TorchBehaviour{
+    "minDropQuantity" : 1,
+    "maxDropQuantity" : 1,
+    "fireVFXPath" : "----- PrefabVFX -----/FireVFX",
+    "audioName" : ""
+}

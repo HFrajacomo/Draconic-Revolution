@@ -16,7 +16,6 @@ public abstract class BlocklikeObject
 	public bool hasLoadEvent; // Should run code when loaded it's chunk
 	public byte luminosity = 0; // Emits VoxelLight
 
-	public Vector3 positionOffset;
 	public Vector3 scaling; 
 	public Vector3 hitboxScaling;
 
@@ -31,9 +30,9 @@ public abstract class BlocklikeObject
 	public ushort maxHP;
 	public bool indestructible;
 
+	public int textureCode;
+
 	// Mesh and Hitbox
-	public string modelPath;
-	public string hitboxPath;
 	protected Mesh mesh;
 	protected Mesh hitboxMesh;
 

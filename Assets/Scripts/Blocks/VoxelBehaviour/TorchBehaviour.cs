@@ -20,6 +20,7 @@ STATES:
 [Serializable]
 public class TorchBehaviour : VoxelBehaviour{
 	public string fireVFXPath;
+	public string audioName;
 
 	public Item droppedItem;
 	public byte minDropQuantity;
@@ -31,6 +32,7 @@ public class TorchBehaviour : VoxelBehaviour{
 	public override void PostDeserializationSetup(bool isClient){
 		if(isClient){
 			this.fireVFX = GameObject.Find(this.fireVFXPath);
+			// TODO: Get Audio Name
 		}
 	}
 
