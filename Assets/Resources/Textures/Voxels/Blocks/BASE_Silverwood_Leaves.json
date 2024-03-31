@@ -1,0 +1,39 @@
+{
+    "codename": "BASE_Silverwood_Leaves",
+    "name":  "Silverwood Leaves",
+    "shaderIndex": 5,
+    "solid":  false,
+    "transparent": true,
+    "invisible":  false,
+    "affectLight":  false,
+    "liquid":  false,
+    "seamless":  true,
+    "luminosity": 0,
+    "hasLoadEvent":  false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  1,
+    "indestructible": false,
+    "tileTop":  "BASE_Silverwood_Leaves",
+    "tileSide":  "BASE_Silverwood_Leaves",
+    "tileBottom":  "BASE_Silverwood_Leaves"
+}
+---Behaviours
+{
+    "onPlace": "PlaceSetStateBehaviour",
+    "onBlockUpdate": "UpdateDecaySecondaryBlockBehaviour"
+}
+---PlaceSetStateBehaviour
+{
+    "changeToState": 1
+}
+---UpdateDecaySecondaryBlockBehaviour
+{
+    "decayTime": 7,
+    "decayDistance": 7,
+    "assignedMainBlock": "BASE_Silverwood_Log",
+    "thisBlock": "BASE_Silverwood_Leaves"
+}

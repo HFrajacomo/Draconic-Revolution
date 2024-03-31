@@ -38,10 +38,10 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 	private ushort liquidCode; // Post Serialize Set
 
-	private ushort[] aroundCodes;
-	private ushort[] mainAroundCodes;
-	private ushort[] aroundStates;
-	private ushort[] mainAroundStates;
+	private static ushort[] aroundCodes = new ushort[8];
+	private static ushort[] mainAroundCodes = new ushort[8];
+	private static ushort[] aroundStates = new ushort[8];
+	private static ushort[] mainAroundStates = new ushort[8];
 	private CastCoord cachedPos;
 	private CastCoord cachedCoord;
 	private bool breakFLAG = false;
@@ -50,95 +50,98 @@ public class LiquidBehaviour : VoxelBehaviour{
 	private BUDSignal cachedBUD;
 	private NetMessage reloadMessage;
 
-	private Dictionary<ushort?, List<int>> spawnDirections = new Dictionary<ushort?, List<int>>();
-	private Dictionary<ushort, List<ushort>> spawnStateAdjascents = new Dictionary<ushort, List<ushort>>();
-	private Dictionary<ushort, int> stateDirection = new Dictionary<ushort, int>();
-	private Dictionary<ushort, byte> statePriority = new Dictionary<ushort, byte>();
-	private Dictionary<ushort, int3> cameFromDir = new Dictionary<ushort, int3>();
-	private Dictionary<ushort, HashSet<ushort>> cameFromState = new Dictionary<ushort, HashSet<ushort>>();
+	private static Dictionary<ushort?, List<int>> spawnDirections = new Dictionary<ushort?, List<int>>();
+	private static Dictionary<ushort, List<ushort>> spawnStateAdjascents = new Dictionary<ushort, List<ushort>>();
+	private static Dictionary<ushort, int> stateDirection = new Dictionary<ushort, int>();
+	private static Dictionary<ushort, byte> statePriority = new Dictionary<ushort, byte>();
+	private static Dictionary<ushort, int3> cameFromDir = new Dictionary<ushort, int3>();
+	private static Dictionary<ushort, HashSet<ushort>> cameFromState = new Dictionary<ushort, HashSet<ushort>>();
 
 	public override void PostDeserializationSetup(bool isClient){
 		// TODO: Get code with name
 		//this.liquidCode = Get(liquidName);
 
-		this.aroundCodes = new ushort[8];
-		this.aroundStates = new ushort[8];
-		this.mainAroundCodes = new ushort[8];
-		this.mainAroundStates = new ushort[8];
-
 		// Water Spawn Directions
-		this.spawnDirections.Add(3, new List<int>(new int[]{6,0,2}));
-		this.spawnDirections.Add(5, new List<int>(new int[]{0,2,4}));
-		this.spawnDirections.Add(7, new List<int>(new int[]{2,4,6}));
-		this.spawnDirections.Add(9, new List<int>(new int[]{4,6,0}));
-		this.spawnDirections.Add(4, new List<int>(new int[]{0,2}));
-		this.spawnDirections.Add(6, new List<int>(new int[]{2,4}));
-		this.spawnDirections.Add(8, new List<int>(new int[]{4,6}));
-		this.spawnDirections.Add(10, new List<int>(new int[]{6,0}));
-		this.spawnDirections.Add(11, new List<int>(new int[]{2,6}));
-		this.spawnDirections.Add(13, new List<int>(new int[]{4,0}));
-		this.spawnDirections.Add(15, new List<int>(new int[]{6,2}));
-		this.spawnDirections.Add(17, new List<int>(new int[]{0,4}));
+		if(spawnDirections.Count == 0){
+			spawnDirections.Add(3, new List<int>(new int[]{6,0,2}));
+			spawnDirections.Add(5, new List<int>(new int[]{0,2,4}));
+			spawnDirections.Add(7, new List<int>(new int[]{2,4,6}));
+			spawnDirections.Add(9, new List<int>(new int[]{4,6,0}));
+			spawnDirections.Add(4, new List<int>(new int[]{0,2}));
+			spawnDirections.Add(6, new List<int>(new int[]{2,4}));
+			spawnDirections.Add(8, new List<int>(new int[]{4,6}));
+			spawnDirections.Add(10, new List<int>(new int[]{6,0}));
+			spawnDirections.Add(11, new List<int>(new int[]{2,6}));
+			spawnDirections.Add(13, new List<int>(new int[]{4,0}));
+			spawnDirections.Add(15, new List<int>(new int[]{6,2}));
+			spawnDirections.Add(17, new List<int>(new int[]{0,4}));
+		}
 
 		// Water states priority
-		this.statePriority.Add(0, 9);
-		this.statePriority.Add(1, 3);
-		this.statePriority.Add(2, 0);
-		this.statePriority.Add(3, 5);
-		this.statePriority.Add(4, 4);
-		this.statePriority.Add(5, 5);
-		this.statePriority.Add(6, 4);
-		this.statePriority.Add(7, 5);
-		this.statePriority.Add(8, 4);
-		this.statePriority.Add(9, 5);
-		this.statePriority.Add(10, 4);
-		this.statePriority.Add(11, 2);
-		this.statePriority.Add(12, 1);
-		this.statePriority.Add(13, 2);
-		this.statePriority.Add(14, 1);
-		this.statePriority.Add(15, 2);
-		this.statePriority.Add(16, 1);
-		this.statePriority.Add(17, 2);
-		this.statePriority.Add(18, 1);
-		this.statePriority.Add(19, 8);
-		this.statePriority.Add(20, 7);
-		this.statePriority.Add(21, 6);
+		if(statePriority.Count == 0){
+			statePriority.Add(0, 9);
+			statePriority.Add(1, 3);
+			statePriority.Add(2, 0);
+			statePriority.Add(3, 5);
+			statePriority.Add(4, 4);
+			statePriority.Add(5, 5);
+			statePriority.Add(6, 4);
+			statePriority.Add(7, 5);
+			statePriority.Add(8, 4);
+			statePriority.Add(9, 5);
+			statePriority.Add(10, 4);
+			statePriority.Add(11, 2);
+			statePriority.Add(12, 1);
+			statePriority.Add(13, 2);
+			statePriority.Add(14, 1);
+			statePriority.Add(15, 2);
+			statePriority.Add(16, 1);
+			statePriority.Add(17, 2);
+			statePriority.Add(18, 1);
+			statePriority.Add(19, 8);
+			statePriority.Add(20, 7);
+			statePriority.Add(21, 6);
+		}
 
 		// Adds to CameFrom dictionary
-		this.cameFromDir.Add(3, new int3(4,5,3));
-		this.cameFromDir.Add(4, new int3(4,6,-1));
-		this.cameFromDir.Add(5, new int3(6,5,7));
-		this.cameFromDir.Add(6, new int3(0,6,-1));
-		this.cameFromDir.Add(7, new int3(0,7,1));
-		this.cameFromDir.Add(8, new int3(0,2,-1));
-		this.cameFromDir.Add(9, new int3(2,1,3));
-		this.cameFromDir.Add(10, new int3(2,4,-1));
-		this.cameFromDir.Add(11, new int3(4,5,3));
-		this.cameFromDir.Add(12, new int3(4,6,-1));
-		this.cameFromDir.Add(13, new int3(6,5,7));
-		this.cameFromDir.Add(14, new int3(0,6,-1));
-		this.cameFromDir.Add(15, new int3(0,7,1));
-		this.cameFromDir.Add(16, new int3(0,2,-1));
-		this.cameFromDir.Add(17, new int3(2,1,3));
-		this.cameFromDir.Add(18, new int3(2,4,-1));
+		if(cameFromDir.Count == 0){
+			cameFromDir.Add(3, new int3(4,5,3));
+			cameFromDir.Add(4, new int3(4,6,-1));
+			cameFromDir.Add(5, new int3(6,5,7));
+			cameFromDir.Add(6, new int3(0,6,-1));
+			cameFromDir.Add(7, new int3(0,7,1));
+			cameFromDir.Add(8, new int3(0,2,-1));
+			cameFromDir.Add(9, new int3(2,1,3));
+			cameFromDir.Add(10, new int3(2,4,-1));
+			cameFromDir.Add(11, new int3(4,5,3));
+			cameFromDir.Add(12, new int3(4,6,-1));
+			cameFromDir.Add(13, new int3(6,5,7));
+			cameFromDir.Add(14, new int3(0,6,-1));
+			cameFromDir.Add(15, new int3(0,7,1));
+			cameFromDir.Add(16, new int3(0,2,-1));
+			cameFromDir.Add(17, new int3(2,1,3));
+			cameFromDir.Add(18, new int3(2,4,-1));
+		}
 
 		// Adds to CameFromState dict
-		this.cameFromState.Add(3, new HashSet<ushort>(){0,19});
-		this.cameFromState.Add(4, new HashSet<ushort>(){0,19,3,5});
-		this.cameFromState.Add(5, new HashSet<ushort>(){0,19});
-		this.cameFromState.Add(6, new HashSet<ushort>(){0,19,5,7});
-		this.cameFromState.Add(7, new HashSet<ushort>(){0,19});
-		this.cameFromState.Add(8, new HashSet<ushort>(){0,19,7,9});
-		this.cameFromState.Add(9, new HashSet<ushort>(){0,19});
-		this.cameFromState.Add(10, new HashSet<ushort>(){0,19,9,3});
-		this.cameFromState.Add(11, new HashSet<ushort>(){10,3,4,20,1});
-		this.cameFromState.Add(12, new HashSet<ushort>(){20,1,11,13});
-		this.cameFromState.Add(13, new HashSet<ushort>(){4,5,6,20,1});
-		this.cameFromState.Add(14, new HashSet<ushort>(){20,1,13,15});
-		this.cameFromState.Add(15, new HashSet<ushort>(){6,7,8,20,1});
-		this.cameFromState.Add(16, new HashSet<ushort>(){20,1,15,17});
-		this.cameFromState.Add(17, new HashSet<ushort>(){8,9,10,20,1});
-		this.cameFromState.Add(18, new HashSet<ushort>(){20,1,11,17});
+		if(cameFromState.Count == 0){
+			cameFromState.Add(3, new HashSet<ushort>(){0,19});
+			cameFromState.Add(4, new HashSet<ushort>(){0,19,3,5});
+			cameFromState.Add(5, new HashSet<ushort>(){0,19});
+			cameFromState.Add(6, new HashSet<ushort>(){0,19,5,7});
+			cameFromState.Add(7, new HashSet<ushort>(){0,19});
+			cameFromState.Add(8, new HashSet<ushort>(){0,19,7,9});
+			cameFromState.Add(9, new HashSet<ushort>(){0,19});
+			cameFromState.Add(10, new HashSet<ushort>(){0,19,9,3});
+			cameFromState.Add(11, new HashSet<ushort>(){10,3,4,20,1});
+			cameFromState.Add(12, new HashSet<ushort>(){20,1,11,13});
+			cameFromState.Add(13, new HashSet<ushort>(){4,5,6,20,1});
+			cameFromState.Add(14, new HashSet<ushort>(){20,1,13,15});
+			cameFromState.Add(15, new HashSet<ushort>(){6,7,8,20,1});
+			cameFromState.Add(16, new HashSet<ushort>(){20,1,15,17});
+			cameFromState.Add(17, new HashSet<ushort>(){8,9,10,20,1});
+			cameFromState.Add(18, new HashSet<ushort>(){20,1,11,17});
+		}
 	}
 
 
@@ -188,7 +191,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 		// Adjascents
 		for(int i=0; i<8; i+=2){
-			if(this.aroundCodes[i] == this.liquidCode){
+			if(aroundCodes[i] == this.liquidCode){
 				cachedCoord = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
 				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);
@@ -310,20 +313,20 @@ public class LiquidBehaviour : VoxelBehaviour{
 						targetState = GetNewState(state, i);
 
 						// If is air
-						if(this.mainAroundCodes[i] == 0){
+						if(mainAroundCodes[i] == 0){
 							found = true;
 						}
 						// If is washable
-						else if(IsWashable(this.mainAroundCodes[i], cl)){
+						else if(IsWashable(mainAroundCodes[i], cl)){
 							found = true;
 
-							if(this.mainAroundCodes[i] <= ushort.MaxValue/2)
-								cl.blockBook.blocks[this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							if(mainAroundCodes[i] <= ushort.MaxValue/2)
+								cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
-						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
+						else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
 							if(targetState != ushort.MaxValue)
 								found = true;
 						}
@@ -414,20 +417,20 @@ public class LiquidBehaviour : VoxelBehaviour{
 						targetState = GetNewState(state, i);
 
 						// If is air
-						if(this.mainAroundCodes[i] == 0){
+						if(mainAroundCodes[i] == 0){
 							found = true;
 						}
 						// If is washable
-						else if(IsWashable(this.mainAroundCodes[i], cl)){
+						else if(IsWashable(mainAroundCodes[i], cl)){
 							found = true;
 
-							if(this.mainAroundCodes[i] <= ushort.MaxValue/2)
-								cl.blockBook.blocks[this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							if(mainAroundCodes[i] <= ushort.MaxValue/2)
+								cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
-						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
+						else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
 							if(targetState != ushort.MaxValue)
 								found = true;
 						}
@@ -492,7 +495,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 				// If should die
 				for(int i=0; i < 8; i+=2){
-					if(this.mainAroundCodes[i] == 0){
+					if(mainAroundCodes[i] == 0){
 						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 						return;
 					}
@@ -513,9 +516,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 					return;
 
 				// Dies if no Still Level 3 around
-				if((this.mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.x])) &&
-					(this.mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.y])) &&
-					(this.mainAroundCodes[cameFrom.z] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.z]))){
+				if((mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(mainAroundStates[cameFrom.x])) &&
+					(mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(mainAroundStates[cameFrom.y])) &&
+					(mainAroundCodes[cameFrom.z] != liquidCode || !cameFromState[state].Contains(mainAroundStates[cameFrom.z]))){
 
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 					return;
@@ -568,20 +571,20 @@ public class LiquidBehaviour : VoxelBehaviour{
 						GetDirectionPos(myX, myY, myZ, i);
 
 						// If is air
-						if(this.mainAroundCodes[i] == 0){
+						if(mainAroundCodes[i] == 0){
 							found = true;
 						}
 						// If is washable
-						else if(IsWashable(this.mainAroundCodes[i], cl)){
+						else if(IsWashable(mainAroundCodes[i], cl)){
 							found = true;
 
-							if(this.mainAroundCodes[i] <= ushort.MaxValue/2)
-								cl.blockBook.blocks[this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							if(mainAroundCodes[i] <= ushort.MaxValue/2)
+								cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
-						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
+						else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
 							found = true;
 						}
 
@@ -609,8 +612,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 					return;
 
 				// Dies if no Still Level 3 around
-				if((this.mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.x])) &&
-					(this.mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.y]))){
+				if((mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(mainAroundStates[cameFrom.x])) &&
+					(mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(mainAroundStates[cameFrom.y]))){
 
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 					return;
@@ -655,20 +658,20 @@ public class LiquidBehaviour : VoxelBehaviour{
 						found = false;
 
 						// If is air
-						if(this.mainAroundCodes[i] == 0){
+						if(mainAroundCodes[i] == 0){
 							found = true;
 						}
 						// If is washable
-						else if(IsWashable(this.mainAroundCodes[i], cl)){
+						else if(IsWashable(mainAroundCodes[i], cl)){
 							found = true;
 
-							if(this.mainAroundCodes[i] <= ushort.MaxValue/2)
-								cl.blockBook.blocks[this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							if(mainAroundCodes[i] <= ushort.MaxValue/2)
+								cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
-						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
+						else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
 							found = true;
 						}
 
@@ -696,9 +699,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 					return;
 
 				// Dies if no Level 2 around
-				if((this.mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.x])) &&
-					(this.mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.y])) &&
-					(this.mainAroundCodes[cameFrom.z] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.z]))){
+				if((mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(mainAroundStates[cameFrom.x])) &&
+					(mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(mainAroundStates[cameFrom.y])) &&
+					(mainAroundCodes[cameFrom.z] != liquidCode || !cameFromState[state].Contains(mainAroundStates[cameFrom.z]))){
 
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 					return;
@@ -751,20 +754,20 @@ public class LiquidBehaviour : VoxelBehaviour{
 						found = false;
 
 						// If is air
-						if(this.mainAroundCodes[i] == 0){
+						if(mainAroundCodes[i] == 0){
 							found = true;
 						}
 						// If is washable
-						else if(IsWashable(this.mainAroundCodes[i], cl)){
+						else if(IsWashable(mainAroundCodes[i], cl)){
 							found = true;
 
-							if(this.mainAroundCodes[i] <= ushort.MaxValue/2)
-								cl.blockBook.blocks[this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							if(mainAroundCodes[i] <= ushort.MaxValue/2)
+								cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
-						else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
+						else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
 							found = true;
 						}
 
@@ -792,8 +795,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 					return;
 
 				// Dies if no Level 2 around
-				if((this.mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.x])) &&
-					(this.mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(this.mainAroundStates[cameFrom.y]))){
+				if((mainAroundCodes[cameFrom.x] != liquidCode || !cameFromState[state].Contains(mainAroundStates[cameFrom.x])) &&
+					(mainAroundCodes[cameFrom.y] != liquidCode || !cameFromState[state].Contains(mainAroundStates[cameFrom.y]))){
 
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 					return;
@@ -877,20 +880,20 @@ public class LiquidBehaviour : VoxelBehaviour{
 					targetState = GetNewState(state, i);
 
 					// If is air
-					if(this.mainAroundCodes[i] == 0){
+					if(mainAroundCodes[i] == 0){
 						found = true;
 					}
 					// If is washable
-					else if(IsWashable(this.mainAroundCodes[i], cl)){
+					else if(IsWashable(mainAroundCodes[i], cl)){
 						found = true;
 
-						if(this.mainAroundCodes[i] <= ushort.MaxValue/2)
-							cl.blockBook.blocks[this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+						if(mainAroundCodes[i] <= ushort.MaxValue/2)
+							cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 					}
 					// If is water
-					else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
+					else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
 						if(targetState != ushort.MaxValue)
 							found = true;
 					}
@@ -957,20 +960,20 @@ public class LiquidBehaviour : VoxelBehaviour{
 					targetState = GetNewState(state, i);
 
 					// If is air
-					if(this.mainAroundCodes[i] == 0){
+					if(mainAroundCodes[i] == 0){
 						found = true;
 					}
 					// If is washable
-					else if(IsWashable(this.mainAroundCodes[i], cl)){
+					else if(IsWashable(mainAroundCodes[i], cl)){
 						found = true;
 
-						if(this.mainAroundCodes[i] <= ushort.MaxValue/2)
-							cl.blockBook.blocks[this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+						if(mainAroundCodes[i] <= ushort.MaxValue/2)
+							cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - this.mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 					}
 					// If is water
-					else if(this.mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, this.mainAroundStates[i])){
+					else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
 						if(targetState != ushort.MaxValue)
 							found = true;
 					}
@@ -1228,9 +1231,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 		ushort[] selectedArray;
 
 		if(main)
-			selectedArray = this.mainAroundCodes;
+			selectedArray = mainAroundCodes;
 		else
-			selectedArray = this.aroundCodes;
+			selectedArray = aroundCodes;
 
 		cord = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
 		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
@@ -1295,9 +1298,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 		CastCoord cast;
 
 		if(main)
-			selectedArray = this.mainAroundStates;
+			selectedArray = mainAroundStates;
 		else
-			selectedArray = this.aroundStates;
+			selectedArray = aroundStates;
 
 		cast = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
 		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
@@ -1384,21 +1387,21 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 		if(currentWaterLevel == 1){
 			for(int i=0; i<8; i+=2){
-				if(this.aroundCodes[i] == this.liquidCode && this.aroundStates[i] == 2){
+				if(aroundCodes[i] == this.liquidCode && aroundStates[i] == 2){
 					count++;
 				}
 			}
 		}
 		if(currentWaterLevel == 2){
 			for(int i=0; i<8; i+=2){
-				if(this.aroundCodes[i] == this.liquidCode && this.aroundStates[i] == 1){
+				if(aroundCodes[i] == this.liquidCode && aroundStates[i] == 1){
 					count++;
 				}
 			}
 		}
 		if(currentWaterLevel == 3){
 			for(int i=0; i<8; i+=2){
-				if(this.aroundCodes[i] == this.liquidCode && this.aroundStates[i] == 0){
+				if(aroundCodes[i] == this.liquidCode && aroundStates[i] == 0){
 					count++;
 				}
 			}
@@ -1431,7 +1434,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 	// Run this after running GetCodeAround()
 	private bool IsOutOfBounds(){
 		for(int i=0; i < 8; i++){
-			if(this.aroundCodes[i] == ushort.MaxValue/2)
+			if(aroundCodes[i] == ushort.MaxValue/2)
 				return true;
 		}
 

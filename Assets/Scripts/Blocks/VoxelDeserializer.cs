@@ -30,11 +30,15 @@ public static class VoxelDeserializer {
 
 	public static Blocks DeserializeBlock(string json){
 		string propertiesJson = GetProperties(json);
-		string behaviourJson = GetBehaviours(json);
+		string behaviourJson;
 
 		Blocks block = JsonUtility.FromJson<Blocks>(propertiesJson);
-		FindBehaviours(behaviourJson);
-		DeserializeAllBehaviours(json);
+
+		if(HasBehaviours(json)){
+			behaviourJson = GetBehaviours(json);
+			FindBehaviours(behaviourJson);
+			DeserializeAllBehaviours(json);
+		}
 
 		AssignEventsToBlock(block);
 
@@ -45,11 +49,15 @@ public static class VoxelDeserializer {
 
 	public static BlocklikeObject DeserializeObject(string json){
 		string propertiesJson = GetProperties(json);
-		string behaviourJson = GetBehaviours(json);
+		string behaviourJson;
 
 		BlocklikeObject obj = JsonUtility.FromJson<BlocklikeObject>(propertiesJson);
-		FindBehaviours(behaviourJson);
-		DeserializeAllBehaviours(json);
+
+		if(HasBehaviours(json)){
+			behaviourJson = GetBehaviours(json);
+			FindBehaviours(behaviourJson);
+			DeserializeAllBehaviours(json);
+		}
 
 		AssignEventsToObject(obj);
 
@@ -148,15 +156,23 @@ public static class VoxelDeserializer {
 	}
 
 	private static string GetProperties(string json){
-		return json.Split("---Behaviours")[0];
+		return json.Split("-->Behaviours")[0];
+	}
+
+	private static bool HasBehaviours(string json){
+		int index = json.IndexOf("--->Behaviours");
+
+		if(index == -1)
+			return false;
+		return true;
 	}
 
 	private static string GetBehaviours(string json){
-		return json.Split("---Behaviours")[1].Split("---")[0];
+		return json.Split("--->Behaviours")[1].Split("--->")[0];
 	}
 
 	private static string GetSection(string json, string section){
-		return json.Split("---" + section)[1].Split("---")[0];
+		return json.Split("--->" + section)[1].Split("--->")[0];
 	}
 
 	private static void FindBehaviours(string json){
@@ -174,7 +190,7 @@ public static class VoxelDeserializer {
 		
 			keyVal = line.Split(':');
 
-			behaviours.Add(keyVal[0], keyVal[1].Replace("\n", ""));
+			behaviours.Add(keyVal[0], keyVal[1].Replace("\n", "").Replace(",", ""));
 		}
 	}
 
@@ -219,6 +235,7 @@ public static class VoxelDeserializer {
 			case "InteractChangeBlockBehaviour":
 				return JsonUtility.FromJson<InteractChangeBlockBehaviour>(jsonSerial);
 			case "ModelIdentityBehaviour":
+				Debug.Log(jsonSerial);
 				return JsonUtility.FromJson<ModelIdentityBehaviour>(jsonSerial);
 			case "PlaceSetStateBehaviour":
 				return JsonUtility.FromJson<PlaceSetStateBehaviour>(jsonSerial);

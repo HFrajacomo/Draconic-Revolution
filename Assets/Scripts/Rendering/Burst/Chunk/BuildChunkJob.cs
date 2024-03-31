@@ -133,9 +133,9 @@ public struct BuildChunkJob : IJob{
 
 	// Block Encyclopedia Data
 	[ReadOnly]
-	public NativeArray<byte> blockTransparent;
+	public NativeArray<bool> blockTransparent;
 	[ReadOnly]
-	public NativeArray<byte> objectTransparent;
+	public NativeArray<bool> objectTransparent;
 	[ReadOnly]
 	public NativeArray<bool> blockSeamless;
 	[ReadOnly]
@@ -164,6 +164,10 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<ushort> blockHP;
 	[ReadOnly]
 	public NativeArray<ushort> objectHP;
+
+	// Atlas Information
+	[ReadOnly]
+	public NativeArray<int2> atlasSize;
 
 
 	public void Execute(){
@@ -313,10 +317,10 @@ public struct BuildChunkJob : IJob{
 
 		    		// Transparency
 		    		if(isBlock){
-		    			isTransparent = blockTransparent[thisBlock] == 1;
+		    			isTransparent = blockTransparent[thisBlock];
 		    		}
 		    		else{
-		    			isTransparent = objectTransparent[ushort.MaxValue - thisBlock] == 1;
+		    			isTransparent = objectTransparent[ushort.MaxValue - thisBlock];
 		    		}
 
 		    		if(isTransparent){
@@ -797,9 +801,9 @@ public struct BuildChunkJob : IJob{
     // Checks if neighbor is transparent or invisible
     private bool CheckPlacement(int neighborBlock){
     	if(neighborBlock <= ushort.MaxValue/2)
-    		return (Boolean(blockTransparent[neighborBlock]) || blockInvisible[neighborBlock]);
+    		return blockTransparent[neighborBlock] || blockInvisible[neighborBlock];
     	else
-			return (Boolean(objectTransparent[ushort.MaxValue-neighborBlock]) || objectInvisible[ushort.MaxValue-neighborBlock]);
+			return objectTransparent[ushort.MaxValue-neighborBlock] || objectInvisible[ushort.MaxValue-neighborBlock];
     }
 
     // Checks if seamlesses are side by side
@@ -1222,41 +1226,47 @@ public struct BuildChunkJob : IJob{
 
 		// If should use normal atlas
 		if(blockMaterial[blockCode] == ShaderIndex.OPAQUE){
-			float x = textureID%Blocks.atlasSizeX;
-			float y = Mathf.FloorToInt(textureID/Blocks.atlasSizeX);
-	 
-			x *= 1f / Blocks.atlasSizeX;
-			y *= 1f / Blocks.atlasSizeY;
+			int atlasX = atlasSize[(int)ShaderIndex.OPAQUE].x;
+			int atlasY = atlasSize[(int)ShaderIndex.OPAQUE].y;
+			float x = textureID%atlasX;
+			float y = Mathf.FloorToInt(textureID/atlasX);
 
-			array[0] = new Vector2(x,y+(1f/Blocks.atlasSizeY));
-			array[1] = new Vector2(x+(1f/Blocks.atlasSizeX),y+(1f/Blocks.atlasSizeY));
-			array[2] = new Vector2(x+(1f/Blocks.atlasSizeX),y);
+			x *= 1f / atlasX;
+			y *= 1f / atlasY;
+
+			array[0] = new Vector2(x,y+(1f/atlasY));
+			array[1] = new Vector2(x+(1f/atlasX),y+(1f/atlasY));
+			array[2] = new Vector2(x+(1f/atlasX),y);
 			array[3] = new Vector2(x,y);
 		}
 		// If should use transparent atlas
 		else if(blockMaterial[blockCode] == ShaderIndex.SPECULAR){
-			float x = textureID%Blocks.transparentAtlasSizeX;
-			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
+			int atlasX = atlasSize[(int)ShaderIndex.SPECULAR].x;
+			int atlasY = atlasSize[(int)ShaderIndex.SPECULAR].y;
+			float x = textureID%atlasX;
+			float y = Mathf.FloorToInt(textureID/atlasX);
 	 
-			x *= 1f / Blocks.transparentAtlasSizeX;
-			y *= 1f / Blocks.transparentAtlasSizeY;
+			x *= 1f / atlasX;
+			y *= 1f / atlasY;
 
-			array[0] = new Vector2(x,y+(1f/Blocks.transparentAtlasSizeY));
-			array[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
-			array[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
+			array[0] = new Vector2(x,y+(1f/atlasY));
+			array[1] = new Vector2(x+(1f/atlasX),y+(1f/atlasY));
+			array[2] = new Vector2(x+(1f/atlasX),y);
 			array[3] = new Vector2(x,y);
 		}
 		// If should use Leaves atlas
 		else if(blockMaterial[blockCode] == ShaderIndex.LEAVES){
-			float x = textureID%Blocks.transparentAtlasSizeX;
-			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
+			int atlasX = atlasSize[(int)ShaderIndex.LEAVES].x;
+			int atlasY = atlasSize[(int)ShaderIndex.LEAVES].y;
+			float x = textureID%atlasX;
+			float y = Mathf.FloorToInt(textureID/atlasX);
 	 
-			x *= 1f / Blocks.transparentAtlasSizeX;
-			y *= 1f / Blocks.transparentAtlasSizeY;
+			x *= 1f / atlasX;
+			y *= 1f / atlasY;
 
-			array[0] = new Vector2(x,y+(1f/Blocks.transparentAtlasSizeY));
-			array[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
-			array[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
+			array[0] = new Vector2(x,y+(1f/atlasY));
+			array[1] = new Vector2(x+(1f/atlasX),y+(1f/atlasY));
+			array[2] = new Vector2(x+(1f/atlasX),y);
 			array[3] = new Vector2(x,y);
 		}
 	}

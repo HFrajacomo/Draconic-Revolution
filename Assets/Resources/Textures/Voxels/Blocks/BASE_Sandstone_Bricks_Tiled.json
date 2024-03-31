@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_Sandstone_Bricks_Tiled",
+    "name":  "Sandstone Tiles",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  240,
+    "indestructible": false,
+    "tileTop":  "BASE_Sandstone_Bricks_Tiled",
+    "tileSide":  "BASE_Sandstone_Bricks_Tiled",
+    "tileBottom":  "BASE_Sandstone_Bricks_Tiled"
+}
+---Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

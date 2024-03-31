@@ -1,11 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
 
-public abstract class BlocklikeObject
+[Serializable]
+public class BlocklikeObject
 {
 	public ShaderIndex shaderIndex = ShaderIndex.ASSETS; // Assets
+	public string codename;
 	public string name;
 	public bool solid; // Is collidable
 	public bool transparent; // Should render the back side?
@@ -19,8 +22,6 @@ public abstract class BlocklikeObject
 	public Vector3 scaling; 
 	public Vector3 hitboxScaling;
 
-	public static readonly int objectCount = 9;
-
 	public bool washable = false; // Can be destroyed by flowing water
 	public bool needsRotation = false;
 	public bool customBreak = false;
@@ -30,18 +31,12 @@ public abstract class BlocklikeObject
 	public ushort maxHP;
 	public bool indestructible;
 
-	public int textureCode;
-
 	// Mesh and Hitbox
-	protected Mesh mesh;
-	protected Mesh hitboxMesh;
+	private Mesh mesh;
+	private Mesh hitboxMesh;
 
 	// Texture
-	protected static readonly int SOLID_ATLAS_X = 10;
-	protected static readonly int SOLID_ATLAS_Y = 2;
-	protected static readonly int NORMAL_ATLAS_X = 8;
-	protected static readonly int NORMAL_ATLAS_Y = 2;
-	public int2 atlasPosition;
+	private int atlasPosition;
 
 	// Behaviours
 	private ModelIdentityBehaviour modelIdentity;
@@ -59,36 +54,10 @@ public abstract class BlocklikeObject
 	private VoxelBehaviour rotationValue;
 
 
-	// Block Encyclopedia fill function
-	/*
-	public static BlocklikeObject Create(int blockID, bool isClient){
-		switch(blockID){
-
-			case 0:
-				return new Torch_Object(isClient);
-			case 1:
-				return new IgnisCrystal_Object(isClient);
-			case 2:
-				return new AquaCrystal_Object(isClient);
-			case 3:
-				return new AerCrystal_Object(isClient);
-			case 4:
-				return new TerraCrystal_Object(isClient);
-			case 5:
-				return new OrdoCrystal_Object(isClient);
-			case 6:
-				return new PerditioCrystal_Object(isClient);
-			case 7:
-				return new PrecantioCrystal_Object(isClient);
-
-			default:
-				return new Torch_Object(isClient);
-		}
-	}
-	*/
-
 	public Mesh GetMesh(){return this.mesh;}
 	public Mesh GetHitboxMesh(){return this.hitboxMesh;}
+	public int GetTextureCode(){return this.modelIdentity.GetTextureCode();}
+	public string GetTextureName(){return this.modelIdentity.GetTextureName();}
 
     // Handles the emittion of BUD to neighboring blocks
     public void EmitBlockUpdate(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
@@ -142,6 +111,7 @@ public abstract class BlocklikeObject
     /*
     Correctly re-arranges the object's mesh UVs to match their respective texture atlas position
     */
+   	/*
     public virtual Vector2 AddTexture(Vector2 uv){
     	Vector2 finalUV = new Vector2(0,0);
     	float initX, initY, finalX, finalY;
@@ -176,6 +146,7 @@ public abstract class BlocklikeObject
 
     	this.mesh.SetUVs(0, uvs);
     }
+    */
 
     // Events GET/SET
     public VoxelBehaviour GetOnBlockUpdate() { return onBlockUpdate; }
@@ -303,5 +274,34 @@ public abstract class BlocklikeObject
 		if(this.rotationValue == null)
 			return new int2(0,0);
 		return this.rotationValue.GetRotationValue(state);
+	}
+
+	public void SetupAfterSerialize(bool isClient){
+		if(this.onBlockUpdate != null)
+			onBlockUpdate.PostDeserializationSetup(isClient);
+		if(this.onInteract != null)
+			onInteract.PostDeserializationSetup(isClient);
+		if(this.onPlace != null)
+			onPlace.PostDeserializationSetup(isClient);
+		if(this.onBreak != null)
+			onBreak.PostDeserializationSetup(isClient);
+		if(this.onLoad != null)
+			onLoad.PostDeserializationSetup(isClient);
+		if(this.onVFXBuild != null)
+			onVFXBuild.PostDeserializationSetup(isClient);
+		if(this.onVFXChange != null)
+			onVFXChange.PostDeserializationSetup(isClient);
+		if(this.onVFXBreak != null)
+			onVFXBreak.PostDeserializationSetup(isClient);
+		if(this.onSFXPlay != null)
+			onSFXPlay.PostDeserializationSetup(isClient);
+		if(this.placementRule != null)
+			placementRule.PostDeserializationSetup(isClient);
+		if(this.modelIdentity != null)
+			modelIdentity.PostDeserializationSetup(isClient);
+		if(this.offsetVector != null)
+			offsetVector.PostDeserializationSetup(isClient);
+		if(this.rotationValue != null)
+			rotationValue.PostDeserializationSetup(isClient);
 	}
 }

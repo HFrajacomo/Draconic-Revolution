@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_Steonyx_Ore",
+    "name":  "Steonyx Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  1100,
+    "indestructible": false,
+    "tileTop":  "BASE_Steonyx_Ore",
+    "tileSide":  "BASE_Steonyx_Ore",
+    "tileBottom":  "BASE_Steonyx_Ore"
+}
+---Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

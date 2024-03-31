@@ -7,9 +7,11 @@ using UnityEngine;
 
 public class TESTONLY : MonoBehaviour
 {
-	void Start(){
-        string json = Resources.Load<TextAsset>("vox").ToString();
+    public VoxelLoader voxelLoader;
 
-        Blocks b = VoxelDeserializer.DeserializeBlock(json);
+	void Awake(){
+        this.voxelLoader = new VoxelLoader(true);
+        this.voxelLoader.Load();
+        VoxelLoader.Destroy();
     }
 }

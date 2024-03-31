@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_Snow",
+    "name":  "Snow",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  50,
+    "indestructible": false,
+    "tileTop":  "BASE_Snow",
+    "tileSide":  "BASE_Snow",
+    "tileBottom":  "BASE_Snow"
+}
+---Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

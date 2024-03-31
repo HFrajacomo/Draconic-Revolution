@@ -3,15 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class Blocks
 {
-	public static readonly int blockCount = 64;
-	public static readonly int pixelSize = 32;
-	public static readonly int atlasSizeX = 8;
-	public static readonly int atlasSizeY = 10;
-	public static readonly int transparentAtlasSizeX = 4;
-	public static readonly int transparentAtlasSizeY = 1;
-
 	public ShaderIndex shaderIndex = ShaderIndex.OPAQUE; // The material used in the rendering pipeline
 	public string codename;
 	public string name;
@@ -31,11 +25,13 @@ public class Blocks
 	public ushort maxHP;
 	public bool indestructible;
 	
-
 	// Texture tile code
-	public int tileTop;
-	public int tileSide;
-	public int tileBottom;
+	public string tileTop;
+	public string tileSide;
+	public string tileBottom;
+	private int textureTop;
+	private int textureSide;
+	private int textureBottom;
 
 	// Behaviours
 	private VoxelBehaviour onBlockUpdate;
@@ -52,6 +48,7 @@ public class Blocks
 
 
 	// Sets UV mapping for a direction
+	/*
 	public Vector2[] AddTexture(Direction dir){
 		Vector2[] UVs = new Vector2[4];
 		int textureID;
@@ -120,6 +117,7 @@ public class Blocks
 
 		return UVs;
 	}
+	*/
 
     // Handles the emittion of BUD to neighboring blocks
     public void EmitBlockUpdate(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
@@ -148,6 +146,10 @@ public class Blocks
 	        faceCounter++;
     	}
     }	
+
+    public int GetTextureTop(){return this.textureTop;}
+    public int GetTextureBottom(){return this.textureBottom;}
+    public int GetTextureSide(){return this.textureSide;}
 
     // Emits a BUD signal with no information about sender
     public void EmitBUDTo(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
@@ -269,4 +271,26 @@ public class Blocks
 		return this.placementRule.PlacementRule(pos, blockX, blockY, blockZ, direction, cl);
 	}
 
+	public void SetupAfterSerialize(bool isClient){
+		if(this.onBlockUpdate != null)
+			onBlockUpdate.PostDeserializationSetup(isClient);
+		if(this.onInteract != null)
+			onInteract.PostDeserializationSetup(isClient);
+		if(this.onPlace != null)
+			onPlace.PostDeserializationSetup(isClient);
+		if(this.onBreak != null)
+			onBreak.PostDeserializationSetup(isClient);
+		if(this.onLoad != null)
+			onLoad.PostDeserializationSetup(isClient);
+		if(this.onVFXBuild != null)
+			onVFXBuild.PostDeserializationSetup(isClient);
+		if(this.onVFXChange != null)
+			onVFXChange.PostDeserializationSetup(isClient);
+		if(this.onVFXBreak != null)
+			onVFXBreak.PostDeserializationSetup(isClient);
+		if(this.onSFXPlay != null)
+			onSFXPlay.PostDeserializationSetup(isClient);
+		if(this.placementRule != null)
+			placementRule.PostDeserializationSetup(isClient);
+	}
 }

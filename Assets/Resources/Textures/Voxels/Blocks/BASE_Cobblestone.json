@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_Cobblestone",
+    "name":  "Cobblestone",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  200,
+    "indestructible": false,
+    "tileTop":  "BASE_Cobblestone",
+    "tileSide":  "BASE_Cobblestone",
+    "tileBottom":  "BASE_Cobblestone"
+}
+---Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

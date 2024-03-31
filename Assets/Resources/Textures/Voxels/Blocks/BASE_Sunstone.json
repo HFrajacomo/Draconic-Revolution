@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_Sunstone",
+    "name":  "Sunstone",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity":  15,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  240,
+    "indestructible": false,
+    "tileTop":  "BASE_Sunstone",
+    "tileSide":  "BASE_Sunstone",
+    "tileBottom":  "BASE_Sunstone"
+}
+---Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

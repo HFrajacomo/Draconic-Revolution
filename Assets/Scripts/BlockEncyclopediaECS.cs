@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
@@ -10,8 +11,8 @@ public static class BlockEncyclopediaECS
 	public static NativeArray<ushort> objectHP;
 	public static NativeArray<bool> blockSolid;
 	public static NativeArray<bool> objectSolid;
-	public static NativeArray<byte> blockTransparent;
-	public static NativeArray<byte> objectTransparent;
+	public static NativeArray<bool> blockTransparent;
+	public static NativeArray<bool> objectTransparent;
 	public static NativeArray<bool> blockSeamless;
 	public static NativeArray<bool> objectSeamless;
 	public static NativeArray<bool> blockLoad;
@@ -31,33 +32,35 @@ public static class BlockEncyclopediaECS
 	public static NativeArray<byte> blockLuminosity;
 	public static NativeArray<byte> objectLuminosity;
 	public static NativeArray<bool> blockDrawRegardless;
+	public static NativeArray<int2> atlasSize;
 
 	static BlockEncyclopediaECS(){ 
-		BlockEncyclopediaECS.blockHP = new NativeArray<ushort>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectHP = new NativeArray<ushort>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockSolid = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectSolid = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockTransparent = new NativeArray<byte>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectTransparent = new NativeArray<byte>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockSeamless = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectSeamless = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockLoad = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectLoad = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockInvisible = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectInvisible = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockMaterial = new NativeArray<ShaderIndex>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectMaterial = new NativeArray<ShaderIndex>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockTiles = new NativeArray<int3>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectScaling = new NativeArray<Vector3>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.hitboxScaling = new NativeArray<Vector3>(BlocklikeObject.objectCount, Allocator.Persistent);		
-		BlockEncyclopediaECS.objectNeedRotation = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockWashable = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectWashable = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockLuminosity = new NativeArray<byte>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectLuminosity = new NativeArray<byte>(BlocklikeObject.objectCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockDrawRegardless = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.blockAffectLight = new NativeArray<bool>(Blocks.blockCount, Allocator.Persistent);
-		BlockEncyclopediaECS.objectAffectLight = new NativeArray<bool>(BlocklikeObject.objectCount, Allocator.Persistent);
+		BlockEncyclopediaECS.blockHP = new NativeArray<ushort>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectHP = new NativeArray<ushort>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockSolid = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectSolid = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockTransparent = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectTransparent = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockSeamless = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectSeamless = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockLoad = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectLoad = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockInvisible = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectInvisible = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockMaterial = new NativeArray<ShaderIndex>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectMaterial = new NativeArray<ShaderIndex>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockTiles = new NativeArray<int3>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectScaling = new NativeArray<Vector3>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.hitboxScaling = new NativeArray<Vector3>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);		
+		BlockEncyclopediaECS.objectNeedRotation = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockWashable = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectWashable = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockLuminosity = new NativeArray<byte>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectLuminosity = new NativeArray<byte>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockDrawRegardless = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockAffectLight = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.objectAffectLight = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
+		BlockEncyclopediaECS.atlasSize = new NativeArray<int2>(Enum.GetValues(typeof(ShaderIndex)).Length, Allocator.Persistent);
 	}
 
 	public static void Destroy(){
@@ -86,5 +89,7 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.blockDrawRegardless.Dispose();
 		BlockEncyclopediaECS.blockAffectLight.Dispose();
 		BlockEncyclopediaECS.objectAffectLight.Dispose();
+		BlockEncyclopediaECS.atlasSize.Dispose();
+
 	}
 }

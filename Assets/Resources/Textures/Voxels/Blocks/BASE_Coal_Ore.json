@@ -1,0 +1,23 @@
+{
+    "codename": "BASE_Coal_Ore",
+    "name":  "Coal Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  320,
+    "indestructible": false,
+    "tileTop":  "BASE_Coal_Ore",
+    "tileSide":  "BASE_Coal_Ore",
+    "tileBottom":  "BASE_Coal_Ore"
+}

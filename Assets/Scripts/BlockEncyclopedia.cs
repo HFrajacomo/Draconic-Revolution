@@ -6,8 +6,9 @@ using Unity.Mathematics;
 
 public class BlockEncyclopedia : MonoBehaviour
 {
-	public Blocks[] blocks = new Blocks[Blocks.blockCount];
-	public BlocklikeObject[] objects = new BlocklikeObject[BlocklikeObject.objectCount];
+    
+	public Blocks[] blocks = new Blocks[1];
+	public BlocklikeObject[] objects = new BlocklikeObject[1];
     public bool isClient;
 
     public void OnDestroy(){

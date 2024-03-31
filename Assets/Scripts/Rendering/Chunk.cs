@@ -518,7 +518,9 @@ public class Chunk
 			blockTiles = BlockEncyclopediaECS.blockTiles,
 			blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless,
 			blockHP = BlockEncyclopediaECS.blockHP,
-			objectHP = BlockEncyclopediaECS.objectHP
+			objectHP = BlockEncyclopediaECS.objectHP,
+
+			atlasSize = BlockEncyclopediaECS.atlasSize
 		};
 		JobHandle job = bcJob.Schedule();
 

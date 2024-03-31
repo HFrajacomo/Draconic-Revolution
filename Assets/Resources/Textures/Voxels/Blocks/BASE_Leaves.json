@@ -1,0 +1,39 @@
+{
+    "codename": "BASE_Leaves",
+    "name":  "Leaves",
+    "shaderIndex": 5,
+    "solid":  false,
+    "transparent": true,
+    "invisible":  false,
+    "affectLight":  false,
+    "liquid":  false,
+    "seamless":  true,
+    "luminosity": 0,
+    "hasLoadEvent":  false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  1,
+    "indestructible": false,
+    "tileTop":  "BASE_Leaves",
+    "tileSide":  "BASE_Leaves",
+    "tileBottom":  "BASE_Leaves"
+}
+---Behaviours
+{
+    "onPlace": "PlaceSetStateBehaviour",
+    "onBlockUpdate": "UpdateDecaySecondaryBlockBehaviour"
+}
+---PlaceSetStateBehaviour
+{
+    "changeToState": 1
+}
+---UpdateDecaySecondaryBlockBehaviour
+{
+    "decayTime": 7,
+    "decayDistance": 7,
+    "assignedMainBlock": "BASE_Wood_Log",
+    "thisBlock": "BASE_Leaves"
+}

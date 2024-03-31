@@ -1,0 +1,23 @@
+{
+    "codename": "BASE_Uranium_Ore",
+    "name":  "Uranium Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  500,
+    "indestructible": false,
+    "tileTop":  "BASE_Uranium_Ore",
+    "tileSide":  "BASE_Uranium_Ore",
+    "tileBottom":  "BASE_Uranium_Ore"
+}

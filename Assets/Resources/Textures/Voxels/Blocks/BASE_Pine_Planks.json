@@ -1,0 +1,32 @@
+{
+    "codename": "BASE_Pine_Planks",
+    "name":  "Pine Planks",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  150,
+    "indestructible": false,
+    "tileTop":  "BASE_Pine_Planks",
+    "tileSide":  "BASE_Pine_Planks",
+    "tileBottom":  "BASE_Pine_Planks"
+}
+---Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+---BreakDropItemBehaviour
+{
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

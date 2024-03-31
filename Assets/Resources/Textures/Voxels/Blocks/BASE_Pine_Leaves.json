@@ -1,0 +1,39 @@
+{
+    "codename": "BASE_Pine_Leaves",
+    "name":  "Pine Leaves",
+    "shaderIndex": 5,
+    "solid":  false,
+    "transparent": true,
+    "invisible":  false,
+    "affectLight":  false,
+    "liquid":  false,
+    "seamless":  true,
+    "luminosity": 0,
+    "hasLoadEvent":  false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  1,
+    "indestructible": false,
+    "tileTop":  "BASE_Pine_Leaves",
+    "tileSide":  "BASE_Pine_Leaves",
+    "tileBottom":  "BASE_Pine_Leaves"
+}
+---Behaviours
+{
+    "onPlace": "PlaceSetStateBehaviour",
+    "onBlockUpdate": "UpdateDecaySecondaryBlockBehaviour"
+}
+---PlaceSetStateBehaviour
+{
+    "changeToState": 1
+}
+---UpdateDecaySecondaryBlockBehaviour
+{
+    "decayTime": 7,
+    "decayDistance": 7,
+    "assignedMainBlock": "BASE_Pine_Log",
+    "thisBlock": "BASE_Pine_Leaves"
+}
