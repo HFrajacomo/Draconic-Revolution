@@ -35,6 +35,10 @@
     "offsetVector" : "ConfigurablePositionBehaviour",
     "rotationValue" : "ConfigurableRotationBehaviour"
 }
+--->AuraCrystalBehaviour
+{
+    "blockName": "BASE_MagiaCrystal"
+}
 --->ModelIdentityBehaviour
 {
     "modelUnityPath": "----- PrefabObjects -----/AuraCrystal_Object",

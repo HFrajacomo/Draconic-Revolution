@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Snow",
     "name":  "Snow",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Snow",
     "tileBottom":  "BASE_Snow"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

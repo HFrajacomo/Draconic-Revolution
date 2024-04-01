@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Pine_Log",
     "name":  "Pine Log",
     "shaderIndex": 0,
@@ -21,16 +21,16 @@
     "tileSide":  "BASE_Pine_Log_Side",
     "tileBottom":  "BASE_Pine_Log"
 }
----Behaviours
+--->Behaviours
 {
     "onPlace": "PlaceSetStateBehaviour",
     "onBreak": "TreeBehaviour"
 }
----PlaceSetStateBehaviour
+--->PlaceSetStateBehaviour
 {
     "stateToChange": 1
 }
----TreeBehaviour
+--->TreeBehaviour
 {
     "maxAnalysedBlocks": 100,
     "decayDistance": 7,

@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Dirt",
     "name":  "Dirt",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Dirt",
     "tileBottom":  "BASE_Dirt"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

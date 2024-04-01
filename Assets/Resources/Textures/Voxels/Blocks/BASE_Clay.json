@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Clay",
     "name":  "Clay",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Clay",
     "tileBottom":  "BASE_Clay"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

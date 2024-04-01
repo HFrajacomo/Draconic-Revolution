@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Wood_Planks",
     "name":  "Wooden Planks",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Wood_Planks",
     "tileBottom":  "BASE_Wood_Planks"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

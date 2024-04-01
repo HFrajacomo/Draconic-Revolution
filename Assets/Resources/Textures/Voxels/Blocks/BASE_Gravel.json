@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Gravel",
     "name":  "Gravel",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Gravel",
     "tileBottom":  "BASE_Gravel"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Silverwood_Planks",
     "name":  "Silverwood Planks",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Silverwood_Planks",
     "tileBottom":  "BASE_Silverwood_Planks"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

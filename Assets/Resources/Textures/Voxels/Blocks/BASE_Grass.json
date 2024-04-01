@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Grass",
     "name": "Grass",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide": "BASE_Grass_Side",
     "tileBottom": "BASE_Dirt"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

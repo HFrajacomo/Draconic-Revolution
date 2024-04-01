@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Sand",
     "name":  "Sand",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Sand",
     "tileBottom":  "BASE_Sand"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

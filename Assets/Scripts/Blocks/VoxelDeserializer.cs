@@ -156,7 +156,7 @@ public static class VoxelDeserializer {
 	}
 
 	private static string GetProperties(string json){
-		return json.Split("-->Behaviours")[0];
+		return json.Split("--->Behaviours")[0];
 	}
 
 	private static bool HasBehaviours(string json){
@@ -235,7 +235,6 @@ public static class VoxelDeserializer {
 			case "InteractChangeBlockBehaviour":
 				return JsonUtility.FromJson<InteractChangeBlockBehaviour>(jsonSerial);
 			case "ModelIdentityBehaviour":
-				Debug.Log(jsonSerial);
 				return JsonUtility.FromJson<ModelIdentityBehaviour>(jsonSerial);
 			case "PlaceSetStateBehaviour":
 				return JsonUtility.FromJson<PlaceSetStateBehaviour>(jsonSerial);

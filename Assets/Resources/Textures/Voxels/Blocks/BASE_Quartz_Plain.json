@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Quartz_Plain",
     "name":  "Plain Quartz",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Quartz_Plain",
     "tileBottom":  "BASE_Quartz_Plain"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

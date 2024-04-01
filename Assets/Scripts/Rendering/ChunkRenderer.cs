@@ -10,6 +10,10 @@ public class ChunkRenderer : MonoBehaviour
 
 	public Material decalMaterial;
 
+	void Start(){
+		VoxelLoader.SetAtlasTextures(this);
+	}
+
 	void OnDestroy(){
 		this.rend = null;
 		this.filter = null;

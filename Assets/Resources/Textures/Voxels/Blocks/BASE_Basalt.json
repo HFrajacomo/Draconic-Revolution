@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Basalt",
     "name":  "Basalt",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Basalt",
     "tileBottom":  "BASE_Basalt"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

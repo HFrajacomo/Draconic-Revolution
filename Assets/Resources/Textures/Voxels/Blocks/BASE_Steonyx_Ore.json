@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Steonyx_Ore",
     "name":  "Steonyx Ore",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Steonyx_Ore",
     "tileBottom":  "BASE_Steonyx_Ore"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

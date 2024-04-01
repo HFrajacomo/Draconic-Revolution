@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Hell_Marble_Bricks",
     "name":  "Hell Marble Bricks",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Hell_Marble_Bricks",
     "tileBottom":  "BASE_Hell_Marble_Bricks"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

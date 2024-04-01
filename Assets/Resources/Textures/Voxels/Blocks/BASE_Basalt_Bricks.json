@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Basalt_Bricks",
     "name":  "Basalt Bricks",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Basalt_Bricks",
     "tileBottom":  "BASE_Basalt_Bricks"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

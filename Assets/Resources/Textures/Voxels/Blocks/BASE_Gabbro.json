@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Gabbro",
     "name":  "Gabbro",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Gabbro",
     "tileBottom":  "BASE_Gabbro"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

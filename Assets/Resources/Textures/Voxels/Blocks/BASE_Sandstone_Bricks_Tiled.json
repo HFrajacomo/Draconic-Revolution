@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Sandstone_Bricks_Tiled",
     "name":  "Sandstone Tiles",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Sandstone_Bricks_Tiled",
     "tileBottom":  "BASE_Sandstone_Bricks_Tiled"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

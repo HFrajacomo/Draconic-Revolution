@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Lava",
     "name":  "Lava",
     "shaderIndex": 7,
@@ -18,13 +18,13 @@
     "maxHP":  1,
     "indestructible": false
 }
----Behaviours
+--->Behaviours
 {
 	"onPlace": "LiquidBehaviour",
     "onBreak": "LiquidBehaviour",
     "onBlockUpdate": "LiquidBehaviour"
 }
----LiquidBehaviour
+--->LiquidBehaviour
 {
     "liquidName": "BASE_Lava",
     "viscosityDelay": 60

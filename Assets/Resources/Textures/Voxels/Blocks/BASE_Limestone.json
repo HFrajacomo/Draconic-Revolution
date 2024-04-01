@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Limestone",
     "name":  "Limestone",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Limestone",
     "tileBottom":  "BASE_Limestone"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

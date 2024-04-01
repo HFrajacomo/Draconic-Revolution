@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Quartz_Ore",
     "name":  "Quartz Ore",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Quartz_Ore",
     "tileBottom":  "BASE_Quartz_Ore"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

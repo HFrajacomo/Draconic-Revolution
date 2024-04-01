@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_White_Marble",
     "name":  "White Marble",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_White_Marble",
     "tileBottom":  "BASE_White_Marble"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

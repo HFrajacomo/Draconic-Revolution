@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Stone_Bricks",
     "name":  "Stone Bricks",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Stone_Bricks",
     "tileBottom":  "BASE_Stone_Bricks"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

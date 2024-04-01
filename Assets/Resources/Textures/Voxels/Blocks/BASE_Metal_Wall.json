@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Metal_Wall",
     "name":  "Metal Wall",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Metal_Wall",
     "tileBottom":  "BASE_Metal_Wall"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

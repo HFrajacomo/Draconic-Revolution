@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Pine_Leaves",
     "name":  "Pine Leaves",
     "shaderIndex": 5,
@@ -21,16 +21,16 @@
     "tileSide":  "BASE_Pine_Leaves",
     "tileBottom":  "BASE_Pine_Leaves"
 }
----Behaviours
+--->Behaviours
 {
     "onPlace": "PlaceSetStateBehaviour",
     "onBlockUpdate": "UpdateDecaySecondaryBlockBehaviour"
 }
----PlaceSetStateBehaviour
+--->PlaceSetStateBehaviour
 {
     "changeToState": 1
 }
----UpdateDecaySecondaryBlockBehaviour
+--->UpdateDecaySecondaryBlockBehaviour
 {
     "decayTime": 7,
     "decayDistance": 7,

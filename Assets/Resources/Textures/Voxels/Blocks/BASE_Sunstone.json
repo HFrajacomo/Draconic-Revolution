@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Sunstone",
     "name":  "Sunstone",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Sunstone",
     "tileBottom":  "BASE_Sunstone"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

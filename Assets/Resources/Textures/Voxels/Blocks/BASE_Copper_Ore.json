@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Copper_Ore",
     "name":  "Copper Ore",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Copper_Ore",
     "tileBottom":  "BASE_Copper_Ore"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

@@ -11,6 +11,8 @@ public class VoxelLoader : BaseLoader {
 	private static readonly string BLOCK_RESPATH = "Textures/Voxels/Blocks/";
 	private static readonly string OBJECT_RESPATH = "Textures/Voxels/Objects/";
 
+	private static readonly int TEXTURE_SIZE = 32;
+
 	// Entries read from main list
 	private static List<string> blockEntries = new List<string>();
 	private static List<string> objectEntries = new List<string>();
@@ -23,6 +25,9 @@ public class VoxelLoader : BaseLoader {
 	private static Dictionary<ShaderIndex, List<string>> atlasTextureNames = new Dictionary<ShaderIndex, List<string>>();
 	private static Dictionary<string, ushort> codenameToBlockID = new Dictionary<string, ushort>();
 	private static Dictionary<string, int> codenameToTexID = new Dictionary<string, int>();
+
+	// Atlas
+	private static Dictionary<ShaderIndex, Texture2D> textureAtlas = new Dictionary<ShaderIndex, Texture2D>();
 	
 	// Atlas Sizes
 	private static int2[] atlasSize;
@@ -56,6 +61,16 @@ public class VoxelLoader : BaseLoader {
 		InitBlockEncyclopediaECS();
 
 		return true;
+	}
+
+	public static void SetAtlasTextures(ChunkRenderer rend){
+		Material[] materials = rend.GetComponent<MeshRenderer>().sharedMaterials;
+
+		materials[(int)ShaderIndex.OPAQUE].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.OPAQUE]);
+		materials[(int)ShaderIndex.LEAVES].SetTexture("_Texture", textureAtlas[ShaderIndex.LEAVES]);
+		materials[(int)ShaderIndex.ASSETS].SetTexture("TextureAtlas", textureAtlas[ShaderIndex.ASSETS]);
+
+		rend.GetComponent<MeshRenderer>().sharedMaterials = materials;
 	}
 
 	public static ushort GetAmountOfBlocks(){return amountOfBlocks;}
@@ -231,8 +246,7 @@ public class VoxelLoader : BaseLoader {
 		}
 
 
-		foreach(string line in textAsset.text.Split("\n")){
-			Debug.Log(line);
+		foreach(string line in textAsset.text.Replace("\r", "").Split("\n")){
 			if(line.Length == 0)
 				continue;
 			if(line[0] == '#')
@@ -346,7 +360,6 @@ public class VoxelLoader : BaseLoader {
 			foreach(string textureName in atlasTextureNames[shader]){
 				if(shader == ShaderIndex.ASSETS || shader == ShaderIndex.ASSETS_SOLID){
 					tex = Resources.Load<Texture2D>($"{OBJECT_RESPATH}{textureName}");
-					Debug.Log($"{OBJECT_RESPATH}{textureName}");
 				}
 				else{
 					tex = Resources.Load<Texture2D>($"{BLOCK_RESPATH}{textureName}");
@@ -362,16 +375,111 @@ public class VoxelLoader : BaseLoader {
 				codenameToTexID.Add(textureName, currentTexID);
 				currentTexID++;
 			}
+		
+			// Get Atlas Sizes
+			int a, b;
+			int xOffset, yOffset;
+			int count = 0;
+			Color[] pixels;
 
+			TweakAtlasValues(textures.Count, out a, out b);
+			atlasSize[(int)shader] = new int2(a, b);
+			textureAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
 
+			// Build Atlas
+			foreach(Texture2D tex2d in textures){
+				pixels = tex2d.GetPixels();
+
+            	xOffset = (count % a) * TEXTURE_SIZE;
+            	yOffset = (int)(count / b) * TEXTURE_SIZE;
+            	textureAtlas[shader].SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, pixels);
+
+				count++;
+			}
 
 			currentTexID = 0;
 			textures.Clear();
 		}
 	}
 
+	private void TweakAtlasValues(int n, out int a, out int b){
+		a = GetClosestSquare(n);
+		b = a;
+
+		int mainDiff = (a*b) - n;
+		int maxAcceptableDiff = GetMaxDiffVal(n);
+
+		int bestA = a;
+		int bestB = b;
+		int bestDiff = mainDiff;
+		int diff;
+
+
+		if(CheckValidVal(a) && CheckValidVal(b) && mainDiff <= maxAcceptableDiff)
+			return;
+
+		while(a > 2 || b <= Mathf.CeilToInt(n/2)+1){
+			if(!CheckValidVal(a)){
+				a--;
+				continue;
+			}
+			if(!CheckValidVal(b)){
+				b++;
+				continue;
+			}
+
+			diff = (a*b) - n;
+
+			if(diff == 0)
+				return;
+			if(diff > 0 && diff <= maxAcceptableDiff)
+				return;
+			if(diff > 0 && diff <= bestDiff){
+				bestDiff = diff;
+				bestA = a;
+				bestB = b;
+			}
+
+			if(diff > 0){
+				a--;
+				continue;
+			}
+			else{
+				b++;
+				continue;
+			}
+		}
+
+		if(CheckValidVal(n)){
+			a = 1;
+			b = n;
+		}
+
+		a = bestA;
+		b = bestB;
+	}
+
+
+
 	private int GetClosestSquare(int num){
 		return Mathf.CeilToInt(Mathf.Sqrt(num));
+	}
+
+	private int GetMaxDiffVal(int n){
+		if(n <= 12)
+			return Mathf.CeilToInt(n*0.35f);
+		else if(n <= 100)
+			return Mathf.CeilToInt(n*0.18f);
+		else
+			return Mathf.CeilToInt(n*0.08f);
+	}
+
+	private bool CheckValidVal(int val){
+		if(val == 1)
+			return true;
+		if(val%3 == 0 || val%7 == 0 || val%9 == 0 || val%11 == 0 || val%13 == 0 || val%17 == 0 || val%19 == 0 || val%23 == 0 || (val%2 == 1 && val%5 != 0))
+			return false;
+		return true;
 	}
 
 }

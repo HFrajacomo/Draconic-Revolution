@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Moonstone",
     "name":  "Moonstone",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Moonstone",
     "tileBottom":  "BASE_Moonstone"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

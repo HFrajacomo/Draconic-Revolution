@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Sandstone_Bricks",
     "name":  "Sandstone Bricks",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Sandstone_Bricks",
     "tileBottom":  "BASE_Sandstone_Bricks"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1

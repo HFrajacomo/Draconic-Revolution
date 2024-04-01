@@ -1,4 +1,4 @@
-{
+﻿{
     "codename": "BASE_Pine_Planks",
     "name":  "Pine Planks",
     "shaderIndex": 0,
@@ -21,11 +21,11 @@
     "tileSide":  "BASE_Pine_Planks",
     "tileBottom":  "BASE_Pine_Planks"
 }
----Behaviours
+--->Behaviours
 {
     "onBreak": "BreakDropItemBehaviour"
 }
----BreakDropItemBehaviour
+--->BreakDropItemBehaviour
 {
     "minDropQuantity": 1,
     "maxDropQuantity": 1
