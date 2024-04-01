@@ -79,9 +79,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
         this.time.SetServer(this.server);
 
-        if(!this.server.IsLocal()){
-            this.characterFileHandler = new CharacterFileHandler(World.worldName);
-        }
+        this.characterFileHandler = new CharacterFileHandler(World.worldName);
     }
 
     void Update(){ 

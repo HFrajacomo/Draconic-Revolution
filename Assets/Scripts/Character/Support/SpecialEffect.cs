@@ -13,7 +13,7 @@ public class SpecialEffect {
 
 	// Basic for system operations
 	public SpecialEffect(EffectType t){
-		this.type = t; this.tickDuration = byte.MaxValue; this.amountTicks = ushort.MaxValue; this.showToPlayer = false; this.isSystem = true;
+		this.type = t; this.tickDuration = 0; this.amountTicks = 0; this.showToPlayer = false; this.isSystem = true;
 		this.usecase = EffectUsecase.SYSTEM;
 	}
 
@@ -38,4 +38,6 @@ public class SpecialEffect {
 
 	// Returns true if they have the same type and usecase
 	public bool Equals(SpecialEffect e){return this.type == e.GetEffectType();}
+
+	public override string ToString(){return $"{type} | {usecase} | {tickDuration} | {amountTicks} | {isSystem}";}
 }

@@ -267,8 +267,6 @@ public static class NetDecoder
 		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
 		pos += 247;
 
-		cs.DebugPrint();
-
 		for(int i=0; i < 100; i++){
 			cachedFX = NetDecoder.ReadSpecialEffect(data, pos);
 			pos += 7;
