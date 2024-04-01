@@ -293,9 +293,11 @@ public class CharacterSheet{
 		this.DEBUG_LIST.Add("Cape: " + GetCape());
 		this.DEBUG_LIST.Add("Appearance: " + GetCharacterAppearance());
 
+		/*
 		foreach(SpecialEffect fx in this.specialEffectHandler.GetAllEffects()){
 			this.DEBUG_LIST.Add("Effect: " + fx);
 		}
+		*/
 
 		foreach(string s in this.DEBUG_LIST){
 			Debug.Log(s);

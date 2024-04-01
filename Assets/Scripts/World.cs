@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,6 +15,7 @@ public static class World
     public static int renderDistance;
     public static bool isClient;
     public static string IP;
+    public static IPAddress connectionIP;
     public static ulong accountID;
 
     public static bool isInGame = false;
@@ -36,6 +39,11 @@ public static class World
     // Sets seed as integer
     public static void SetWorldSeed(int seed){
         SetWorldSeed(seed.ToString());
+    }
+
+    // Sets the connection IP
+    public static void SetConnectionIP(IPAddress ip){
+        World.connectionIP = ip;
     }
 
     // Sets accountID in client to join a server

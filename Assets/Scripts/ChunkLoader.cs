@@ -95,8 +95,6 @@ public class ChunkLoader : MonoBehaviour
         World.SetGameSceneFlag(true);
         VoxelData.SetChunkLoader(this);
         this.playerModelHandler.BuildModel(PlayerAppearanceData.GetAppearance(), PlayerAppearanceData.GetGender(), true);
-
-        Debug.Log(PlayerAppearanceData.GetAppearance().ToString());
     }
 
     public void Cleanup(bool comesFromClient=false){
@@ -122,6 +120,7 @@ public class ChunkLoader : MonoBehaviour
         this.client = null;
         this.audioManager.Stop(AudioUsecase.MUSIC_CLIP);
         this.audioManager.Destroy();
+        VoxelLoader.Destroy();
         ClearAllChunks();
         Destroy(this);
     }

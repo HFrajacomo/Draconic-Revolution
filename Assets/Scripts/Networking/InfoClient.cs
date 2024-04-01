@@ -193,7 +193,7 @@ public class InfoClient
 		}
 		else{
 			CharacterAppearance app = NetDecoder.ReadCharacterAppearance(data, 2);
-			bool isMale = NetDecoder.ReadBool(data, 171);
+			bool isMale = NetDecoder.ReadBool(data, 249);
 
 			PlayerAppearanceData.SetAppearance(app);
 			PlayerAppearanceData.SetGender(isMale);

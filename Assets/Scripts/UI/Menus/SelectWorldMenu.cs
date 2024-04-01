@@ -187,7 +187,7 @@ public class SelectWorldMenu : Menu
 
         characterHandler.Close();
 
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene("Blank");
     }
 
     private string GetDirectoryName(string path){

@@ -388,10 +388,23 @@ public class VoxelLoader : BaseLoader {
 			TweakAtlasValues(textures.Count, out a, out b);
 			atlasSize[(int)shader] = new int2(a, b);
 			textureAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
+			textureAtlas[shader].filterMode = FilterMode.Point;
 
 			// Build Atlas
 			foreach(Texture2D tex2d in textures){
-				pixels = tex2d.GetPixels();
+				RenderTexture rendTex = RenderTexture.GetTemporary(TEXTURE_SIZE, TEXTURE_SIZE, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+				Graphics.Blit(tex2d, rendTex);
+			    
+			    RenderTexture previous = RenderTexture.active;
+			    RenderTexture.active = rendTex;
+
+				Texture2D final = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE);
+			    final.ReadPixels(new Rect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE), 0, 0);
+			    final.Apply();
+			    RenderTexture.active = previous;
+			    RenderTexture.ReleaseTemporary(rendTex);
+
+				pixels = final.GetPixels();
 
             	xOffset = (count % a) * TEXTURE_SIZE;
             	yOffset = (int)(count / b) * TEXTURE_SIZE;

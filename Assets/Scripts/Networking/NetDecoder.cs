@@ -112,7 +112,7 @@ public static class NetDecoder
 		return new SkillExp(data[pos], NetDecoder.ReadInt(data, pos+1));
 	}
 
-	public static ClothingInfo ReadClothingInfo(byte[] data, int pos){
+	public static ClothingInfo ReadClothingInfo(byte[] data, int pos){ // Size = 39
 		return new ClothingInfo(NetDecoder.ReadUshort(data, pos), NetDecoder.ReadRGB(data, pos+2), NetDecoder.ReadRGB(data, pos+14), NetDecoder.ReadRGB(data, pos+26), NetDecoder.ReadBool(data, pos+38));
 	}
 
@@ -266,6 +266,8 @@ public static class NetDecoder
 		pos += 2;
 		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
 		pos += 247;
+
+		cs.DebugPrint();
 
 		for(int i=0; i < 100; i++){
 			cachedFX = NetDecoder.ReadSpecialEffect(data, pos);

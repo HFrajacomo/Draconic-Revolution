@@ -20,7 +20,6 @@ public class Client
 	private SocketError err;
 	private DateTime lastMessageTime;
 	private int timeoutSeconds = 5;
-	private int connectionTimeout = 3;
 
 	// Entity Handler
 	public EntityHandler entityHandler;
@@ -48,15 +47,9 @@ public class Client
 	public PlayerEvents playerEvents;
 	public PlayerModelHandler playerModelHandler;
 
-	// Windows External Process
-	public Process lanServerProcess;
-
 	// Const values
 	private static int maxBufferSize = 327680;
 
-	// Const Strings
-	private string serverFile = "Server.exe";
-	private string invisLauncher = "invisLaunchHelper.bat";
 
 	
 	public Client(ChunkLoader cl){
@@ -68,67 +61,7 @@ public class Client
 		
 		receiveBuffer = new byte[receiveBufferSize];
 
-		// If game world is in client
-		if(World.isClient){
-			// Unity edition only
-			#if UNITY_EDITOR
-				// Startup local server
-				this.lanServerProcess = new Process();
-				this.lanServerProcess.StartInfo.Arguments = "-Local";
-
-				if(!File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
-					EnvironmentVariablesCentral.WriteInvisLaunchScript();
-
-				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
-					this.lanServerProcess.StartInfo.FileName = EnvironmentVariablesCentral.serverDir + serverFile;
-				else
-					Panic();
-
-				try{
-					this.lanServerProcess.Start();
-				}
-				catch{
-					Panic();
-				}
-
-			// Standalone edition
-			#else
-				if(!File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
-					EnvironmentVariablesCentral.WriteInvisLaunchScript();
-
-				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
-					Application.OpenURL(EnvironmentVariablesCentral.serverDir + invisLauncher);
-				else
-					Panic();
-			#endif
-
-			this.ip = new IPAddress(new byte[4]{127, 0, 0, 1});
-		}
-
-		// If game world is in server
-		else{
-			string[] segmentedIP = World.IP.Split('.');
-			byte[] connectionIP = new byte[4];
-
-			// If it's not a valid IPv4
-			if(segmentedIP.Length != 4){
-				Panic();
-			}
-			// Tailors the IP
-			else{
-				for(int i=0; i < 4; i++){
-					try{
-						connectionIP[i] = (byte)Convert.ToInt16(segmentedIP[i]);
-					}
-					catch(Exception e){
-						Debug.Log(e);
-						Panic();
-					}
-				}
-
-				this.ip = new IPAddress(connectionIP);
-			}
-		}
+		this.ip = World.connectionIP;
 
 		this.Connect();
 	}
@@ -154,30 +87,12 @@ public class Client
 	
 	
 	public void Connect(){
-		int attempts = 0;
-
-		if(World.isClient){
-			while(attempts < this.connectionTimeout){
-				try{
-					this.socket.Connect(this.ip, this.port);
-					break;
-				} catch {
-					attempts++;
-					continue;
-				}
-			}
-
-			if(attempts == this.connectionTimeout)
-				Panic();
+		try{
+			this.socket.Connect(this.ip, this.port);
+			Debug.Log("Connecting");
+		} catch {
+			Panic();
 		}
-		else{
-			try{
-				this.socket.Connect(this.ip, this.port);
-			} catch{
-				Panic();
-			}
-		}
-
 
 		this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
 	}
