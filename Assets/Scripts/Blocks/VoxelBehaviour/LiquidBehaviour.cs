@@ -58,8 +58,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 	private static Dictionary<ushort, HashSet<ushort>> cameFromState = new Dictionary<ushort, HashSet<ushort>>();
 
 	public override void PostDeserializationSetup(bool isClient){
-		// TODO: Get code with name
-		//this.liquidCode = Get(liquidName);
+		this.liquidCode = VoxelLoader.GetBlockID(liquidName);
 
 		// Water Spawn Directions
 		if(spawnDirections.Count == 0){

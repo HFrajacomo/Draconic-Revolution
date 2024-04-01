@@ -13,7 +13,7 @@ public class AuraCrystalBehaviour : VoxelBehaviour{
 	private int possibilities = 0;
 
 	public override void PostDeserializationSetup(bool isClient){
-		//this.blockID = Get(blockName); 
+		this.blockID = VoxelLoader.GetBlockID(blockName); 
 	}
 
 	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){

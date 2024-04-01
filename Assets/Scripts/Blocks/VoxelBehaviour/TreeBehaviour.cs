@@ -38,10 +38,8 @@ public class TreeBehaviour : VoxelBehaviour{
 	private ushort thisCode = (ushort)BlockID.WOOD;
 
 	public override void PostDeserializationSetup(bool isClient){
-		// TODO: Get code with name
-		//this.assignedLeafCode = Get(assignedLeaf);
-		// TODO: Get code with name
-		//this.thisCode = Get(thisWood);
+		this.assignedLeafCode = VoxelLoader.GetBlockID(assignedLeaf);
+		this.thisCode = VoxelLoader.GetBlockID(thisWood);
 	}
 
 	// Activates OnBreak event -> Emits normal BUD, emits special BUD to breadt-first search leaves

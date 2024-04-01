@@ -63,6 +63,9 @@ public class VoxelLoader : BaseLoader {
 		return true;
 	}
 
+	public static ushort GetBlockID(string name){return codenameToBlockID[name];}
+	public static int GetTextureID(string name){return codenameToTexID[name];}
+
 	public static void SetAtlasTextures(ChunkRenderer rend){
 		Material[] materials = rend.GetComponent<MeshRenderer>().sharedMaterials;
 

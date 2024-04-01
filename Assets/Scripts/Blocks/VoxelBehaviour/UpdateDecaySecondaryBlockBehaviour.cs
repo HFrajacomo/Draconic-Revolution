@@ -20,11 +20,8 @@ public class UpdateDecaySecondaryBlockBehaviour : VoxelBehaviour{
 	private NetMessage reloadMessage;
 
 	public override void PostDeserializationSetup(bool isClient){
-		// TODO: Get main block code via assignedMainBlock string
-		// this.mainBlockCode = <something>.Get(assignedMainBlock);
-
-		// TODO: Get this block code via thisBlock string
-		// this.thisBlockCode = <something>.Get(thisBlock);
+		this.mainBlockCode = VoxelLoader.GetBlockID(assignedMainBlock);
+		this.thisBlockCode = VoxelLoader.GetBlockID(thisBlock);
 	}
 
 	// Triggers DECAY BUD on this block

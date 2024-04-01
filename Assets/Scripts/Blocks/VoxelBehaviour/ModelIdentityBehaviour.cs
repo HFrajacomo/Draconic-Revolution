@@ -9,7 +9,8 @@ public class ModelIdentityBehaviour : VoxelBehaviour {
 	private int textureCode;
 
 	public override void PostDeserializationSetup(bool isClient){
-		// TODO: Get TextureCode
+		if(isClient)
+			this.textureCode = VoxelLoader.GetTextureID(this.textureName);
 	}
 
 	public Mesh GetMesh(){return GameObject.Find(this.modelUnityPath).GetComponent<MeshFilter>().sharedMesh;}
