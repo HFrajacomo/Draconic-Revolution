@@ -149,22 +149,12 @@ public class PlayerRaycast : MonoBehaviour
 		ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
 		// If hits a full block
-		if(blockID <= ushort.MaxValue/2){
-			if(loader.chunks.ContainsKey(ck)){
-				if(loader.blockBook.blocks[blockID].solid){
-					return true;
-				}
+		if(loader.chunks.ContainsKey(ck)){
+			if(VoxelLoader.CheckSolid(blockID)){
+				return true;
 			}
 		}
-			// If hits an Asset
-		else{
-			if(loader.chunks.ContainsKey(ck)){
-				blockID = (ushort)(ushort.MaxValue - blockID);
-				if(loader.blockBook.objects[blockID].solid){
-					return true;
-				}
-			}
-		}
+		
 		return false;
 	}
 
@@ -250,7 +240,7 @@ public class PlayerRaycast : MonoBehaviour
 	// Block Placing mechanic
 	private bool PlaceBlock(ushort blockCode, byte newQuantity){
 		// Won't happen if not raycasting something or if block is in player's body or head
-		if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && loader.blockBook.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && loader.blockBook.CheckSolid(blockCode))){
+		if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && VoxelLoader.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && VoxelLoader.CheckSolid(blockCode))){
 			return false;
 		}
 

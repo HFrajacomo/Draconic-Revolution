@@ -54,8 +54,8 @@ BASE_Vinteum_Ore
 BASE_Silverwood_Log
 BASE_Silverwood_Log_Side
 BASE_Silverwood_Leaves
-BASE_Iron_Tile
-BASE_Iron_Wall
+BASE_Metal_Tile
+BASE_Metal_Wall
 BASE_Gabbro
 BASE_Gabbro_Bricks
 BASE_Silverwood_Planks
@@ -64,7 +64,7 @@ BASE_Sandstone_Bricks_Tiled
 BASE_Gravel_Fine
 BASE_Limestone
 BASE_Limestone_Bricks
-BASE_Quartz
-BASE_Quartz_Bricks
+BASE_Quartz_Ore
+BASE_Quartz_Plain
 BASE_Basalt_Bricks
 BASE_Obsidian

@@ -81,7 +81,7 @@ public abstract class TerrainVision
 
     // Is in the ground
     public virtual EntityTerrainCollision GroundCollision(){
-        if(cl.blockBook.CheckSolid(this.GetBlockBelow()))
+        if(VoxelLoader.CheckSolid(this.GetBlockBelow()))
             return EntityTerrainCollision.SOLID;
         return EntityTerrainCollision.NONE;
     }

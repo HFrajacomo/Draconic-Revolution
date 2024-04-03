@@ -111,7 +111,7 @@ public class AuraCrystalBehaviour : VoxelBehaviour{
 	}
 
 	private bool GetCorrectPlacement(ushort blockCode, ChunkLoader_Server cl){
-		return cl.blockBook.CheckSolid(blockCode) && !cl.blockBook.CheckTransparent(blockCode);
+		return VoxelLoader.CheckSolid(blockCode) && !VoxelLoader.CheckTransparent(blockCode);
 	}
 
 	public bool CanBePlacedFacing(int facing, CastCoord coord, ChunkLoader_Server cl){

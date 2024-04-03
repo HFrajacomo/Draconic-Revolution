@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1484502057}
-  m_IndirectSpecularColor: {r: 1.2126105, g: 1.3160394, b: 1.2642165, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -342,7 +342,7 @@ MonoBehaviour:
     type: 2}
   hotbar_selected: {fileID: 494716106}
   invUIPlayer: {fileID: 638012052}
-  iconRenderer: {fileID: 471249771}
+  iconRenderer: {fileID: 0}
 --- !u!143 &59614820
 CharacterController:
   m_ObjectHideFlags: 0
@@ -2539,7 +2539,7 @@ GameObject:
   - component: {fileID: 471249774}
   - component: {fileID: 471249773}
   - component: {fileID: 471249772}
-  - component: {fileID: 471249771}
+  - component: {fileID: 471249775}
   m_Layer: 8
   m_Name: IconRenderer
   m_TagString: Untagged
@@ -2547,21 +2547,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &471249771
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 471249770}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 019814edccd86d84c860cad34d469048, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rend: {fileID: 471249773}
-  filter: {fileID: 471249772}
-  decalMaterial: {fileID: 0}
 --- !u!33 &471249772
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2628,6 +2613,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &471249775
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 471249770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f97c29dc9682ed4fb57aee503a14b55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rend: {fileID: 471249773}
+  filter: {fileID: 471249772}
 --- !u!1 &471797233
 GameObject:
   m_ObjectHideFlags: 0
@@ -7926,7 +7925,6 @@ MonoBehaviour:
   playerDirX: 0
   playerDirY: 0
   playerDirZ: 0
-  blockBook: {fileID: 1668289087}
   vfx: {fileID: 1018660373}
   time: {fileID: 1322082558}
   gameUI: {fileID: 1679592122}
@@ -11219,51 +11217,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1640651214}
   m_CullTransparentMesh: 1
---- !u!1 &1668289086
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1668289088}
-  - component: {fileID: 1668289087}
-  m_Layer: 0
-  m_Name: BlockEncyclopedia
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1668289087
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1668289086}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 299ef2f071bbe3542b46c12f0598becc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isClient: 1
---- !u!4 &1668289088
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1668289086}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1679592122
 GameObject:
   m_ObjectHideFlags: 0
@@ -14343,7 +14296,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 59614821}
-  - {fileID: 1668289088}
   - {fileID: 1192772368}
   - {fileID: 471797237}
   - {fileID: 471249774}

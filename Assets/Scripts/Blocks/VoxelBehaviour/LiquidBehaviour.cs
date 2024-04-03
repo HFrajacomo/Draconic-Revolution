@@ -274,9 +274,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 						// Should break washable block below
 						if(IsWashable(below, cl)){
 							if(below <= ushort.MaxValue/2)
-								cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+								VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+								VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						}
 
 						cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
@@ -289,9 +289,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 						// Should break washable block below
 						if(IsWashable(below, cl)){
 							if(below <= ushort.MaxValue/2)
-								cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+								VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+								VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						}
 
 						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
@@ -320,9 +320,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 							found = true;
 
 							if(mainAroundCodes[i] <= ushort.MaxValue/2)
-								cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								VoxelLoader.GetBlock(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								VoxelLoader.GetObject(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
 						else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
@@ -378,9 +378,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 						// Should break washable block below
 						if(IsWashable(below, cl)){
 							if(below <= ushort.MaxValue/2)
-								cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+								VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+								VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						}
 
 						cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
@@ -393,9 +393,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 						// Should break washable block below
 						if(IsWashable(below, cl)){
 							if(below <= ushort.MaxValue/2)
-								cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+								VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+								VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						}
 
 						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
@@ -424,9 +424,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 							found = true;
 
 							if(mainAroundCodes[i] <= ushort.MaxValue/2)
-								cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								VoxelLoader.GetBlock(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								VoxelLoader.GetObject(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
 						else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
@@ -480,9 +480,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 					// Should break washable block below
 					if(IsWashable(below, cl)){
 						if(below <= ushort.MaxValue/2)
-							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
@@ -542,9 +542,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 					// Should break washable block below
 					if(IsWashable(below, cl)){
 						if(below <= ushort.MaxValue/2)
-							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
 					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
@@ -578,9 +578,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 							found = true;
 
 							if(mainAroundCodes[i] <= ushort.MaxValue/2)
-								cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								VoxelLoader.GetBlock(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								VoxelLoader.GetObject(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
 						else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
@@ -629,9 +629,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 					// Should break washable block below
 					if(IsWashable(below, cl)){
 						if(below <= ushort.MaxValue/2)
-							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
 					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
@@ -665,9 +665,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 							found = true;
 
 							if(mainAroundCodes[i] <= ushort.MaxValue/2)
-								cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								VoxelLoader.GetBlock(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								VoxelLoader.GetObject(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
 						else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
@@ -725,9 +725,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 					// Should break washable block below
 					if(IsWashable(below, cl)){
 						if(below <= ushort.MaxValue/2)
-							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
 					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
@@ -761,9 +761,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 							found = true;
 
 							if(mainAroundCodes[i] <= ushort.MaxValue/2)
-								cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								VoxelLoader.GetBlock(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 							else
-								cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+								VoxelLoader.GetObject(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						}
 						// If is water
 						else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
@@ -812,9 +812,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 					// Should break washable block below
 					if(IsWashable(below, cl)){
 						if(below <= ushort.MaxValue/2)
-							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
 					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
@@ -849,9 +849,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 					// Should break washable block below
 					if(IsWashable(below, cl)){
 						if(below <= ushort.MaxValue/2)
-							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
 					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
@@ -887,9 +887,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 						found = true;
 
 						if(mainAroundCodes[i] <= ushort.MaxValue/2)
-							cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							VoxelLoader.GetBlock(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							VoxelLoader.GetObject(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 					}
 					// If is water
 					else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
@@ -929,9 +929,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 					// Should break washable block below
 					if(IsWashable(below, cl)){
 						if(below <= ushort.MaxValue/2)
-							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
 					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
@@ -967,9 +967,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 						found = true;
 
 						if(mainAroundCodes[i] <= ushort.MaxValue/2)
-							cl.blockBook.blocks[mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							VoxelLoader.GetBlock(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - mainAroundCodes[i]].OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
+							VoxelLoader.GetObject(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
 					}
 					// If is water
 					else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
@@ -1009,9 +1009,9 @@ public class LiquidBehaviour : VoxelBehaviour{
 					// Should break washable block below
 					if(IsWashable(below, cl)){
 						if(below <= ushort.MaxValue/2)
-							cl.blockBook.blocks[below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						else
-							cl.blockBook.objects[ushort.MaxValue - below].OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
+							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
 					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
@@ -1411,7 +1411,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 	// Check if given blockCode is washable
 	private bool IsWashable(ushort blockCode, ChunkLoader_Server cl){
-		return cl.blockBook.CheckWashable(blockCode);
+		return VoxelLoader.CheckWashable(blockCode);
 	}	
 
     // Sends a DirectBlockUpdate call to users

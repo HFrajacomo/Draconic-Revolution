@@ -376,10 +376,10 @@ public class Client
 		state = NetDecoder.ReadUshort(data, 28);
 
 		if(blockCode <= ushort.MaxValue/2){
-			this.cl.blockBook.blocks[blockCode].OnVFXBuild(pos, x, y, z, facing, state, cl);
+			VoxelLoader.GetBlock(blockCode).OnVFXBuild(pos, x, y, z, facing, state, cl);
 		}
 		else{
-			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnVFXBuild(pos, x, y, z, facing, state, cl);
+			VoxelLoader.GetObject(blockCode).OnVFXBuild(pos, x, y, z, facing, state, cl);
 		}
 	}
 
@@ -398,10 +398,10 @@ public class Client
 		state = NetDecoder.ReadUshort(data, 28);
 
 		if(blockCode <= ushort.MaxValue/2){
-			this.cl.blockBook.blocks[blockCode].OnVFXChange(pos, x, y, z, facing, state, cl);
+			VoxelLoader.GetBlock(blockCode).OnVFXChange(pos, x, y, z, facing, state, cl);
 		}
 		else{
-			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnVFXChange(pos, x, y, z, facing, state, cl);
+			VoxelLoader.GetObject(blockCode).OnVFXChange(pos, x, y, z, facing, state, cl);
 		}
 	}
 
@@ -419,10 +419,10 @@ public class Client
 		state = NetDecoder.ReadUshort(data, 24);
 
 		if(blockCode <= ushort.MaxValue/2){
-			this.cl.blockBook.blocks[blockCode].OnVFXBreak(pos, x, y, z, state, cl);
+			VoxelLoader.GetBlock(blockCode).OnVFXBreak(pos, x, y, z, state, cl);
 		}
 		else{
-			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnVFXBreak(pos, x, y, z, state, cl);
+			VoxelLoader.GetObject(blockCode).OnVFXBreak(pos, x, y, z, state, cl);
 		}
 	}
 
@@ -627,10 +627,10 @@ public class Client
 		ushort state = NetDecoder.ReadUshort(data, 24);
 
 		if(blockCode <= ushort.MaxValue/2){
-			this.cl.blockBook.blocks[blockCode].OnSFXPlay(pos, x, y, z, state, cl);
+			VoxelLoader.GetBlock(blockCode).OnSFXPlay(pos, x, y, z, state, cl);
 		}
 		else{
-			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnSFXPlay(pos, x, y, z, state, cl);
+			VoxelLoader.GetObject(blockCode).OnSFXPlay(pos, x, y, z, state, cl);
 		}
 	}
 

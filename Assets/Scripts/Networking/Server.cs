@@ -636,7 +636,7 @@ public class Server
 					// if it's a block
 					if(blockCode <= ushort.MaxValue/2){
 						// if placement rules fail
-						if(!cl.blockBook.blocks[blockCode].PlacementRule(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl)){
+						if(!VoxelLoader.GetBlock(blockCode).PlacementRule(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl)){
 							NetMessage denied = new NetMessage(NetCode.PLACEMENTDENIED);
 							this.Send(denied.GetMessage(), denied.size, id);
 							return;
@@ -644,7 +644,7 @@ public class Server
 					}
 					// if it's an object
 					else{
-						if(!cl.blockBook.objects[ushort.MaxValue-blockCode].PlacementRule(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl)){
+						if(!VoxelLoader.GetObject(blockCode).PlacementRule(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl)){
 							NetMessage denied = new NetMessage(NetCode.PLACEMENTDENIED);
 							this.Send(denied.GetMessage(), denied.size, id);
 							return;
@@ -666,7 +666,7 @@ public class Server
 					}
 
 					// If doesn't have special place handling
-					if(!cl.blockBook.CheckCustomPlace(blockCode)){
+					if(!VoxelLoader.CheckCustomPlace(blockCode)){
 						// Actually places block/asset into terrain
 						cl.chunks[lastCoord.GetChunkPos()].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
 						//cl.budscheduler.ScheduleReload(lastCoord.GetChunkPos(), 0);
@@ -675,9 +675,9 @@ public class Server
 
 						// Applies OnPlace Event
 						if(blockCode <= ushort.MaxValue/2)
-							cl.blockBook.blocks[blockCode].OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
+							VoxelLoader.GetBlock(blockCode).OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 						else{
-							cl.blockBook.objects[ushort.MaxValue-blockCode].OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
+							VoxelLoader.GetObject(blockCode).OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 						}
 
 						this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
@@ -696,10 +696,10 @@ public class Server
 						this.cl.chunks[lastCoord.GetChunkPos()].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
 
 						if(blockCode <= ushort.MaxValue/2){
-							cl.blockBook.blocks[blockCode].OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
+							VoxelLoader.GetBlock(blockCode).OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 						}
 						else{
-							cl.blockBook.objects[ushort.MaxValue-blockCode].OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
+							VoxelLoader.GetObject(blockCode).OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 						}
 					}
 
@@ -719,7 +719,7 @@ public class Server
 
 			case BUDCode.BREAK:
 				// If doesn't has special break handling
-				if(!this.cl.blockBook.CheckCustomBreak(blockCode)){
+				if(!VoxelLoader.CheckCustomBreak(blockCode)){
 
 					// Actually breaks new block and updates chunk
 					this.cl.chunks[pos].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, 0);
@@ -727,9 +727,9 @@ public class Server
 
 					// Triggers OnBreak
 					if(blockCode <= ushort.MaxValue/2)
-						this.cl.blockBook.blocks[blockCode].OnBreak(pos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, this.cl);
+						VoxelLoader.GetBlock(blockCode).OnBreak(pos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, this.cl);
 					else
-						this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(pos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, this.cl);
+						VoxelLoader.GetObject(blockCode).OnBreak(pos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, this.cl);
 
 					EmitBlockUpdate(BUDCode.BREAK, lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ(), 0, this.cl);
 					
@@ -738,10 +738,10 @@ public class Server
 				else{
 
 					if(blockCode <= ushort.MaxValue/2){
-						this.cl.blockBook.blocks[blockCode].OnBreak(pos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, this.cl);
+						VoxelLoader.GetBlock(blockCode).OnBreak(pos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, this.cl);
 					}
 					else{
-						this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnBreak(pos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, this.cl);
+						VoxelLoader.GetObject(blockCode).OnBreak(pos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, this.cl);
 					}
 				}
 
@@ -764,10 +764,10 @@ public class Server
 				if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos())){
 					
 					if(blockCode <= ushort.MaxValue/2){
-						this.cl.blockBook.blocks[blockCode].OnLoad(lastCoord, this.cl);
+						VoxelLoader.GetBlock(blockCode).OnLoad(lastCoord, this.cl);
 					}
 					else{
-						this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnLoad(lastCoord, this.cl);
+						VoxelLoader.GetObject(blockCode).OnLoad(lastCoord, this.cl);
 					}
 				}
 				break;
@@ -901,9 +901,9 @@ public class Server
 		ushort blockCode = this.cl.GetBlock(current);
 
 		if(blockCode <= ushort.MaxValue/2)
-			callback = this.cl.blockBook.blocks[blockCode].OnInteract(pos, current.blockX, current.blockY, current.blockZ, this.cl);
+			callback = VoxelLoader.GetBlock(blockCode).OnInteract(pos, current.blockX, current.blockY, current.blockZ, this.cl);
 		else
-			callback = this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnInteract(pos, current.blockX, current.blockY, current.blockZ, this.cl);
+			callback = VoxelLoader.GetObject(blockCode).OnInteract(pos, current.blockX, current.blockY, current.blockZ, this.cl);
 
 		// Actual handling of message
 		CallbackHandler(callback, pos, current, facing);		
@@ -1040,10 +1040,10 @@ public class Server
 			if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos())){
 				
 				if(blockCode <= ushort.MaxValue/2){
-					this.cl.blockBook.blocks[blockCode].OnLoad(lastCoord, this.cl);
+					VoxelLoader.GetBlock(blockCode).OnLoad(lastCoord, this.cl);
 				}
 				else{
-					this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnLoad(lastCoord, this.cl);
+					VoxelLoader.GetObject(blockCode).OnLoad(lastCoord, this.cl);
 				}
 			}	
 		}
@@ -1094,7 +1094,7 @@ public class Server
 				}
 			}
 
-			actualDamage = this.cl.blockBook.GetDamageReceived(block, blockDamage);
+			actualDamage = VoxelLoader.GetDamageReceived(block, blockDamage);
 
 			if(actualDamage == 0)
 				return;

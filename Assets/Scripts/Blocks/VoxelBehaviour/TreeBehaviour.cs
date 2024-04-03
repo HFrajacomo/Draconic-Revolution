@@ -310,7 +310,7 @@ public class TreeBehaviour : VoxelBehaviour{
 			}
 			
 			// Check if it's a root
-			else if(cl.blockBook.CheckSolid(blockCode)){
+			else if(VoxelLoader.CheckSolid(blockCode)){
 				return 0;
 			}
 			else{
@@ -330,7 +330,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
 				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
 					currentList.Add(aux);
 				}
 			}
@@ -340,7 +340,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
 				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
 					currentList.Add(aux);
 				}
 			}
@@ -350,7 +350,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
 				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
 					currentList.Add(aux);
 				}
 			}
@@ -360,7 +360,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
 				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
 					currentList.Add(aux);
 				}
 			}
@@ -370,7 +370,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
 				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
 					currentList.Add(aux);
 				}
 			}
@@ -380,7 +380,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
 				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
 					currentList.Add(aux);
 				}
 			}
@@ -390,7 +390,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
 				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
 					currentList.Add(aux);
 				}
 			}
@@ -400,7 +400,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
 				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
 					currentList.Add(aux);
 				}
 			}
@@ -410,7 +410,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
 				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
 					currentList.Add(aux);
 				}
 			}
@@ -420,7 +420,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		if(cl.chunks.ContainsKey(aux.GetChunkPos())){
 			if(!currentList.Contains(aux)){
 				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || cl.blockBook.CheckSolid(blockCode)){
+				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
 					currentList.Add(aux);
 				}
 			}

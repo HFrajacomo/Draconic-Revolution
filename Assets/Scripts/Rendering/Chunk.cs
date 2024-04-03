@@ -45,7 +45,6 @@ public class Chunk
 	public MeshFilter meshFilter;
 	public MeshCollider meshCollider;
 	public GameObject obj;
-	public BlockEncyclopedia blockBook;
 	public ChunkLoader loader;
 
 	// Decal Chunk
@@ -104,7 +103,7 @@ public class Chunk
     private ChunkPos[] surroundingVerticalChunks = new ChunkPos[2];
 
 
-	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader){
+	public Chunk(ChunkPos pos, ChunkRenderer r, ChunkLoader loader){
 		this.pos = pos;
 		this.needsGeneration = 0;
 		this.renderer = r;
@@ -141,7 +140,6 @@ public class Chunk
 		this.meshFilterDecal = this.objDecal.GetComponent<MeshFilter>();
 		this.obj.GetComponent<MeshRenderer>().sharedMaterials = this.renderer.GetComponent<MeshRenderer>().sharedMaterials;
 		this.objDecal.GetComponent<MeshRenderer>().material = this.renderer.decalMaterial;
-		this.blockBook = be;
 		this.obj.layer = 8;
 
 		this.mesh = new Mesh();
@@ -182,7 +180,7 @@ public class Chunk
 
 	// Clone
 	public Chunk Clone(){
-		Chunk c = new Chunk(this.pos, this.renderer, this.blockBook, this.loader);
+		Chunk c = new Chunk(this.pos, this.renderer, this.loader);
 
 		c.biomeName = this.biomeName;
 		c.data = new VoxelData(this.data.GetData(), this.pos);
@@ -203,7 +201,6 @@ public class Chunk
 		this.meshFilter = null;
 		this.meshCollider = null; 
 		this.loader = null;
-		this.blockBook = null;
 
 		this.data.Destroy();
 		this.metadata.Destroy();
@@ -543,17 +540,17 @@ public class Chunk
 			if(!this.cacheCodes.Contains(assetCode)){
 				this.cacheCodes.Add(assetCode);
 
-				blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetVertices(vertexAux);
+				VoxelLoader.GetObject(assetCode).GetMesh().GetVertices(vertexAux);
 				this.cacheVertsv3.AddRange(vertexAux.ToArray());
-				this.cacheTris.AddRange(blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetTriangles(0));
-				blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetUVs(0, UVaux);
+				this.cacheTris.AddRange(VoxelLoader.GetObject(assetCode).GetMesh().GetTriangles(0));
+				VoxelLoader.GetObject(assetCode).GetMesh().GetUVs(0, UVaux);
 				this.cacheUVv2.AddRange(UVaux.ToArray());
 				this.indexVert.Add(this.indexVert[indexVert.Count-1] + vertexAux.Count);
-				this.indexTris.Add(this.indexTris[indexTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetTriangles(0).Length);
+				this.indexTris.Add(this.indexTris[indexTris.Count-1] + VoxelLoader.GetObject(assetCode).GetMesh().GetTriangles(0).Length);
 				this.indexUV.Add(this.indexUV[indexUV.Count-1] + UVaux.Count);
-				blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetNormals(normalAux);
+				VoxelLoader.GetObject(assetCode).GetMesh().GetNormals(normalAux);
 				this.cacheNormals.AddRange(normalAux.ToArray());
-				blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetTangents(tangentAux);
+				VoxelLoader.GetObject(assetCode).GetMesh().GetTangents(tangentAux);
 				this.cacheTangents.AddRange(tangentAux.ToArray());
 				this.scalingFactor.Add(BlockEncyclopediaECS.objectScaling[ushort.MaxValue-assetCode]);
 				this.hitboxScaling.Add(BlockEncyclopediaECS.hitboxScaling[ushort.MaxValue-assetCode]);
@@ -563,14 +560,14 @@ public class Chunk
 				normalAux.Clear();
 				tangentAux.Clear();
 
-				blockBook.objects[ushort.MaxValue-assetCode].GetHitboxMesh().GetVertices(vertexAux);
+				VoxelLoader.GetObject(assetCode).GetHitboxMesh().GetVertices(vertexAux);
 				this.cacheHitboxVerts.AddRange(vertexAux.ToArray());
-				this.cacheHitboxTriangles.AddRange(blockBook.objects[ushort.MaxValue-assetCode].GetHitboxMesh().GetTriangles(0));
-				blockBook.objects[ushort.MaxValue-assetCode].GetMesh().GetNormals(normalAux);
+				this.cacheHitboxTriangles.AddRange(VoxelLoader.GetObject(assetCode).GetHitboxMesh().GetTriangles(0));
+				VoxelLoader.GetObject(assetCode).GetMesh().GetNormals(normalAux);
 				this.cacheHitboxNormals.AddRange(normalAux);
 
 				this.indexHitboxVert.Add(this.indexHitboxVert[indexHitboxVert.Count-1] + vertexAux.Count);
-				this.indexHitboxTris.Add(this.indexHitboxTris[indexHitboxTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].GetHitboxMesh().GetTriangles(0).Length);
+				this.indexHitboxTris.Add(this.indexHitboxTris[indexHitboxTris.Count-1] + VoxelLoader.GetObject(assetCode).GetHitboxMesh().GetTriangles(0).Length);
 
 				vertexAux.Clear();
 				normalAux.Clear();
@@ -579,10 +576,10 @@ public class Chunk
 
 				// If has special offset or rotation
 				// Hash function for Dictionary is blockCode*256 + state. This leaves a maximum of 256 states for every object in the game
-				if(blockBook.objects[ushort.MaxValue - assetCode].needsRotation){
-					for(ushort i=0; i < blockBook.objects[ushort.MaxValue - assetCode].maximumRotationScaleState; i++){
-						scaleOffset.Add((int)(assetCode*256 + i), blockBook.objects[ushort.MaxValue - assetCode].GetOffsetVector(i));
-						rotationOffset.Add((int)(assetCode*256 + i), blockBook.objects[ushort.MaxValue - assetCode].GetRotationValue(i));
+				if(VoxelLoader.GetObject(assetCode).needsRotation){
+					for(ushort i=0; i < VoxelLoader.GetObject(assetCode).maximumRotationScaleState; i++){
+						scaleOffset.Add((int)(assetCode*256 + i), VoxelLoader.GetObject(assetCode).GetOffsetVector(i));
+						rotationOffset.Add((int)(assetCode*256 + i), VoxelLoader.GetObject(assetCode).GetRotationValue(i));
 					}
 				}
 			}

@@ -206,7 +206,7 @@ public class TorchBehaviour : VoxelBehaviour{
 			if(direction == 2){
 				if(x > 0){
 					blockCode = cl.chunks[pos].data.GetCell(x-1,y,z);
-					if(cl.blockBook.CheckSolid(blockCode))
+					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
 						return false;
@@ -214,7 +214,7 @@ public class TorchBehaviour : VoxelBehaviour{
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x-1, pos.z, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(Chunk.chunkWidth-1,y,z);
-					if(cl.blockBook.CheckSolid(blockCode))
+					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
 						return false;
@@ -223,7 +223,7 @@ public class TorchBehaviour : VoxelBehaviour{
 			else if(direction == 0){
 				if(x < Chunk.chunkWidth-1){
 					blockCode = cl.chunks[pos].data.GetCell(x+1,y,z);
-					if(cl.blockBook.CheckSolid(blockCode))
+					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
 						return false;
@@ -231,7 +231,7 @@ public class TorchBehaviour : VoxelBehaviour{
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x+1, pos.z, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(0,y,z);
-					if(cl.blockBook.CheckSolid(blockCode))
+					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
 						return false;
@@ -240,7 +240,7 @@ public class TorchBehaviour : VoxelBehaviour{
 			else if(direction == 3){
 				if(z < Chunk.chunkWidth-1){
 					blockCode = cl.chunks[pos].data.GetCell(x,y,z+1);
-					if(cl.blockBook.CheckSolid(blockCode))
+					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
 						return false;
@@ -248,7 +248,7 @@ public class TorchBehaviour : VoxelBehaviour{
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x, pos.z+1, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(x,y,0);
-					if(cl.blockBook.CheckSolid(blockCode))
+					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
 						return false;
@@ -257,7 +257,7 @@ public class TorchBehaviour : VoxelBehaviour{
 			else if(direction == 1){
 				if(z > 0){
 					blockCode = cl.chunks[pos].data.GetCell(x,y,z-1);
-					if(cl.blockBook.CheckSolid(blockCode))
+					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
 						return false;
@@ -265,7 +265,7 @@ public class TorchBehaviour : VoxelBehaviour{
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x, pos.z-1, pos.y);
 					blockCode = cl.chunks[newPos].data.GetCell(x,y,Chunk.chunkWidth-1);
-					if(cl.blockBook.CheckSolid(blockCode))
+					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
 						return false;
@@ -312,11 +312,11 @@ public class TorchBehaviour : VoxelBehaviour{
 		}
 		// Breaks Torch if changed block is not solid
 		else if(type == BUDCode.CHANGE && (facing == state || facing+4 == state)){
-			int blockCode = cl.chunks[budPos].data.GetCell(bX,bY,bZ);
+			ushort blockCode = cl.chunks[budPos].data.GetCell(bX,bY,bZ);
 
 			if(blockCode <= ushort.MaxValue/2){
 				// If changed block is not solid, break
-				if(!cl.blockBook.blocks[blockCode].solid){
+				if(!VoxelLoader.GetBlock(blockCode).solid){
 					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
 
@@ -328,7 +328,7 @@ public class TorchBehaviour : VoxelBehaviour{
 				}
 			}
 			else{
-				if(!cl.blockBook.objects[ushort.MaxValue-blockCode].solid){
+				if(!VoxelLoader.GetObject(blockCode).solid){
 					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
 

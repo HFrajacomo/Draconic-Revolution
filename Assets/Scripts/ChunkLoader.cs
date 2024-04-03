@@ -36,7 +36,6 @@ public class ChunkLoader : MonoBehaviour
     public ChunkPos playerCurrentChunk;
     
     // Unity Reference
-    public BlockEncyclopedia blockBook;
     public VFXLoader vfx;
     public TimeOfDay time;
     public GameObject gameUI;
@@ -116,7 +115,6 @@ public class ChunkLoader : MonoBehaviour
         this.playerEvents = null;
         this.playerModelHandler = null;
         this.time = null;
-        this.blockBook = null;
         this.client = null;
         this.audioManager.Stop(AudioUsecase.MUSIC_CLIP);
         this.audioManager.Destroy();
@@ -374,7 +372,7 @@ public class ChunkLoader : MonoBehaviour
             int hpDataSize = NetDecoder.ReadInt(data, 14);
             int stateDataSize = NetDecoder.ReadInt(data, 18);
 
-            this.chunks[cp] = new Chunk(cp, this.rend, this.blockBook, this);
+            this.chunks[cp] = new Chunk(cp, this.rend, this);
             this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[22]);
 
             Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:22+headerSize);

@@ -21,7 +21,7 @@ public class BUDScheduler : MonoBehaviour
 
     private ChunkPos cachePos;
 	private CastCoord cachedCoord;
-    private int cachedCode;
+    private ushort cachedCode;
     private string cachedString;
 
 	void Start(){
@@ -110,11 +110,11 @@ public class BUDScheduler : MonoBehaviour
                     // If BUDSignal is still in the loaded area
                     if(loader.chunks.ContainsKey(cachedCoord.GetChunkPos())){
                         cachedCode = loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
-                        
+
                         if(cachedCode <= ushort.MaxValue/2)
-                            loader.blockBook.blocks[cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
+                            VoxelLoader.GetBlock(cachedCode).OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
         	    	    else{
-                            loader.blockBook.objects[ushort.MaxValue - cachedCode].OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);                    
+                            VoxelLoader.GetObject(cachedCode).OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);                    
                         }
                     }
 

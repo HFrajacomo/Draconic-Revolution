@@ -54,14 +54,17 @@ public class VoxelLoader : BaseLoader {
 		ParseBlockList();
 		ParseObjectList();
 		LoadVoxels();
-		RunPostDeserializationRoutine();
-
 		CreateTextureAtlases();
+
+		RunPostDeserializationRoutine();
 
 		InitBlockEncyclopediaECS();
 
 		return true;
 	}
+
+	public static Blocks GetBlock(ushort code){return blockBook[code];}
+	public static BlocklikeObject GetObject(ushort code){return objectBook[ushort.MaxValue - code];}
 
 	public static ushort GetBlockID(string name){return codenameToBlockID[name];}
 	public static int GetTextureID(string name){return codenameToTexID[name];}
@@ -111,6 +114,10 @@ public class VoxelLoader : BaseLoader {
             BlockEncyclopediaECS.objectWashable[i] = objectBook[i].washable;
             BlockEncyclopediaECS.objectAffectLight[i] = objectBook[i].affectLight;
             BlockEncyclopediaECS.objectLuminosity[i] = objectBook[i].luminosity;
+        }
+
+        for(int i=0; i < atlasSize.Length; i++){
+        	BlockEncyclopediaECS.atlasSize[i] = atlasSize[i];
         }
 	}
 
@@ -387,6 +394,9 @@ public class VoxelLoader : BaseLoader {
 
 			TweakAtlasValues(textures.Count, out a, out b);
 			atlasSize[(int)shader] = new int2(a, b);
+
+			Debug.Log($"{shader} | {a},{b}");
+
 			textureAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
 			textureAtlas[shader].filterMode = FilterMode.Point;
 

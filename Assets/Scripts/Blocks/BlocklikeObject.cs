@@ -31,10 +31,6 @@ public class BlocklikeObject
 	public ushort maxHP;
 	public bool indestructible;
 
-	// Mesh and Hitbox
-	private Mesh mesh;
-	private Mesh hitboxMesh;
-
 	// Texture
 	private int atlasPosition;
 
@@ -54,8 +50,8 @@ public class BlocklikeObject
 	private VoxelBehaviour rotationValue;
 
 
-	public Mesh GetMesh(){return this.mesh;}
-	public Mesh GetHitboxMesh(){return this.hitboxMesh;}
+	public Mesh GetMesh(){return this.modelIdentity.GetMesh();}
+	public Mesh GetHitboxMesh(){return this.modelIdentity.GetHitboxMesh();}
 	public int GetTextureCode(){return this.modelIdentity.GetTextureCode();}
 	public string GetTextureName(){return this.modelIdentity.GetTextureName();}
 
@@ -197,12 +193,6 @@ public class BlocklikeObject
 		"change": When emitting block has been turned into another block or changed properties
 		"trigger": When emitting block has been electrically triggered
 	*/
-	public void LoadModel(bool isClient){
-		if(isClient){
-			this.mesh = this.modelIdentity.GetMesh();
-			this.hitboxMesh = this.modelIdentity.GetHitboxMesh();
-		}
-	}
 
 	public virtual void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){
 		if(this.onBlockUpdate == null)

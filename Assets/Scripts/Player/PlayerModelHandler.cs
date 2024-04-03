@@ -37,6 +37,8 @@ public class PlayerModelHandler : MonoBehaviour {
 
 
 	public void Awake(){
+		return;
+
 		this.animator = this.parent.AddComponent<Animator>();
 
 		this.controller = this.parent.GetComponent<CharacterController>();
@@ -48,12 +50,14 @@ public class PlayerModelHandler : MonoBehaviour {
 	}
 
 	public void ChangeParent(GameObject go){
+		return;
 		this.parent = go;
 		this.animator = this.parent.AddComponent<Animator>();
 		this.controller = this.parent.AddComponent<CharacterController>();
 	}
 
 	public void BuildModel(CharacterAppearance app, bool isMale, bool isPlayerCharacter){
+		return;
 		if(this.characterBuilder == null){
 			if(isMale)
 				this.characterBuilder = new CharacterBuilder(this.parent, this.maleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, isMale, isPlayerCharacter);
@@ -71,6 +75,7 @@ public class PlayerModelHandler : MonoBehaviour {
 	}
 
 	private void Rescale(Race r){
+		return;
 		switch(r){
 			case Race.DWARF:
 				this.parent.transform.localScale = dwarfScale;
@@ -85,6 +90,7 @@ public class PlayerModelHandler : MonoBehaviour {
 	}
 
 	private void SetControllerSettings(Race r){
+		return;
 		switch(r){
 			case Race.DWARF:
 				this.controller.height = dwarfHeight;

@@ -15,7 +15,6 @@ public class ChunkLoader_Server : MonoBehaviour
 	public Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
 	public ChunkPos currentChunk;
 	public ChunkPos newChunk;
-	public BlockEncyclopedia blockBook;
     public BUDScheduler budscheduler;
     public VFXLoader vfx;
     public TimeOfDay time;
