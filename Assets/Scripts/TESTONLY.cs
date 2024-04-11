@@ -10,8 +10,5 @@ public class TESTONLY : MonoBehaviour
     public VoxelLoader voxelLoader;
 
 	void Awake(){
-        this.voxelLoader = new VoxelLoader(true);
-        this.voxelLoader.Load();
-        VoxelLoader.Destroy();
     }
 }

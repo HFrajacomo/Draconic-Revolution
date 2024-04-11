@@ -20,7 +20,7 @@ STATES:
 [Serializable]
 public class TorchBehaviour : VoxelBehaviour{
 	public string fireVFXPath;
-	public string audioName;
+	//public string audioName;
 
 	public Item droppedItem;
 	public byte minDropQuantity;
@@ -29,12 +29,6 @@ public class TorchBehaviour : VoxelBehaviour{
 	private GameObject fireVFX;
 	private AudioName audio = AudioName.TORCHFIRE;
 
-	public override void PostDeserializationSetup(bool isClient){
-		if(isClient){
-			this.fireVFX = GameObject.Find(this.fireVFXPath);
-			// TODO: Get Audio Name
-		}
-	}
 
 	// Turns on and off Torch
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
@@ -86,6 +80,10 @@ public class TorchBehaviour : VoxelBehaviour{
 	public override int OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
 		Vector3 fireOffset;
 		Quaternion shadowDirection;
+
+		if(this.fireVFX == null){
+			this.fireVFX = GameObject.Find(this.fireVFXPath);
+		}
 
 		if(facing == 0){
 			fireOffset = new Vector3(0.15f,0f,0f);

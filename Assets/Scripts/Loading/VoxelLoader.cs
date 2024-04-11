@@ -5,6 +5,8 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
 
+using Object = UnityEngine.Object;
+
 public class VoxelLoader : BaseLoader {
 	private static readonly string BLOCK_LIST_RESPATH = "Textures/Voxels/Blocks/BLOCK_LIST";
 	private static readonly string OBJECT_LIST_RESPATH = "Textures/Voxels/Objects/OBJECT_LIST";
@@ -44,20 +46,24 @@ public class VoxelLoader : BaseLoader {
 	private static ushort currentBlockID = 0;
 	private static ushort currentObjectID = 0;
 
-	public VoxelLoader(bool client){
+	// Objects Reference
+	private static GameObject prefabObjects;
+
+
+	public VoxelLoader(bool client, GameObject prefabRoot){
 		isClient = client;
+		prefabObjects = prefabRoot;
 	}
 
 
 	public override bool Load(){
+		SetPrefabPersistance();
 		InitAtlases();
 		ParseBlockList();
 		ParseObjectList();
 		LoadVoxels();
 		CreateTextureAtlases();
-
 		RunPostDeserializationRoutine();
-
 		InitBlockEncyclopediaECS();
 
 		return true;
@@ -73,8 +79,8 @@ public class VoxelLoader : BaseLoader {
 		Material[] materials = rend.GetComponent<MeshRenderer>().sharedMaterials;
 
 		materials[(int)ShaderIndex.OPAQUE].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.OPAQUE]);
-		materials[(int)ShaderIndex.LEAVES].SetTexture("_Texture", textureAtlas[ShaderIndex.LEAVES]);
-		materials[(int)ShaderIndex.ASSETS].SetTexture("TextureAtlas", textureAtlas[ShaderIndex.ASSETS]);
+		materials[(int)ShaderIndex.LEAVES].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.LEAVES]);
+		materials[(int)ShaderIndex.ASSETS].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.ASSETS]);
 
 		rend.GetComponent<MeshRenderer>().sharedMaterials = materials;
 	}
@@ -353,11 +359,33 @@ public class VoxelLoader : BaseLoader {
 	}
 
 	private void RunPostDeserializationRoutine(){
+		List<Vector2> objUV = new List<Vector2>();
+		int2 atSize;
+		int texCode;
+		float u, v;
+
 		foreach(Blocks b in blockBook){
 			b.SetupAfterSerialize(isClient);
+			b.SetupTextureIDs();
 		}
 		foreach(BlocklikeObject b in objectBook){
+			texCode = codenameToTexID[b.codename];
 			b.SetupAfterSerialize(isClient);
+
+			b.GetMesh().GetUVs(0, objUV);
+			atSize = atlasSize[(int)b.shaderIndex];
+			texCode = codenameToTexID[b.codename]; 
+			
+
+			for(int i=0; i < objUV.Count; i++){
+				u = Mathf.Lerp((texCode%atSize.x)*(1f/atSize.x), ((texCode%atSize.x)*(1f/atSize.x))+(1f/atSize.x), objUV[i].x);
+				v = Mathf.Lerp((int)(texCode/atSize.x)*(1f/atSize.y), ((int)(texCode/atSize.x)*(1f/atSize.y))+(1f/atSize.y), objUV[i].y);
+
+				objUV[i] = new Vector2(u, v);
+			}
+
+			b.GetMesh().SetUVs(0, objUV);
+			objUV.Clear();
 		}
 	}
 
@@ -381,6 +409,7 @@ public class VoxelLoader : BaseLoader {
 					Application.Quit();
 				}
 
+				tex.name = textureName;
 				textures.Add(tex);
 				codenameToTexID.Add(textureName, currentTexID);
 				currentTexID++;
@@ -394,8 +423,6 @@ public class VoxelLoader : BaseLoader {
 
 			TweakAtlasValues(textures.Count, out a, out b);
 			atlasSize[(int)shader] = new int2(a, b);
-
-			Debug.Log($"{shader} | {a},{b}");
 
 			textureAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
 			textureAtlas[shader].filterMode = FilterMode.Point;
@@ -417,8 +444,10 @@ public class VoxelLoader : BaseLoader {
 				pixels = final.GetPixels();
 
             	xOffset = (count % a) * TEXTURE_SIZE;
-            	yOffset = (int)(count / b) * TEXTURE_SIZE;
+            	yOffset = (int)(count / a) * TEXTURE_SIZE;
             	textureAtlas[shader].SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, pixels);
+
+            	textureAtlas[shader].Apply();
 
 				count++;
 			}
@@ -486,7 +515,6 @@ public class VoxelLoader : BaseLoader {
 	}
 
 
-
 	private int GetClosestSquare(int num){
 		return Mathf.CeilToInt(Mathf.Sqrt(num));
 	}
@@ -507,5 +535,9 @@ public class VoxelLoader : BaseLoader {
 			return false;
 		return true;
 	}
+
+    private void SetPrefabPersistance(){
+    	Object.DontDestroyOnLoad(prefabObjects); 
+    }
 
 }

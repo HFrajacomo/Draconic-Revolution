@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameLoader : MonoBehaviour {
+	public GameObject prefabObjects;
+
 	private bool isClient = true;
 	private VoxelLoader voxelLoader;
 
@@ -16,7 +18,7 @@ public class GameLoader : MonoBehaviour {
 	}
 
 	void Start(){
-		this.voxelLoader = new VoxelLoader(this.isClient);
+		this.voxelLoader = new VoxelLoader(this.isClient, this.prefabObjects);
 		this.voxelLoader.Load();
 
 		if(this.isClient)

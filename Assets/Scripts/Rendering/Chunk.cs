@@ -843,8 +843,8 @@ public class Chunk
 
     	this.meshFilter.mesh.SetVertices(this.vertices.ToArray());
     	this.meshFilter.mesh.SetTriangles(this.triangles, 0);
- 	    this.meshFilter.mesh.SetTriangles(this.iceTris, 5);
- 	    this.meshFilter.mesh.SetTriangles(this.assetSolidTris, 7);
+ 	    this.meshFilter.mesh.SetTriangles(this.iceTris, 6);
+ 	    this.meshFilter.mesh.SetTriangles(this.assetSolidTris, 4);
 
     	// Fix for a stupid Unity Bug
     	if(this.vertices.Count > 0){
@@ -855,8 +855,8 @@ public class Chunk
     	this.meshFilter.mesh.SetTriangles(this.specularTris, 1);
     	this.meshFilter.mesh.SetTriangles(this.liquidTris, 2);
     	this.meshFilter.mesh.SetTriangles(this.assetTris, 3);
- 	    this.meshFilter.mesh.SetTriangles(this.leavesTris, 4);
- 	    this.meshFilter.mesh.SetTriangles(this.lavaTris, 6);
+ 	    this.meshFilter.mesh.SetTriangles(this.leavesTris, 5);
+ 	    this.meshFilter.mesh.SetTriangles(this.lavaTris, 7);
 
     	this.meshFilter.mesh.SetUVs(0, this.UVs.ToArray());
     	this.meshFilter.mesh.SetUVs(3, this.lightUVMain.ToArray());

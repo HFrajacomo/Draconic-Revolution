@@ -78,6 +78,17 @@ public class Blocks
     public int GetTextureBottom(){return this.textureBottom;}
     public int GetTextureSide(){return this.textureSide;}
 
+    public void SetupTextureIDs(){
+    	if(this.tileTop != null)
+    		this.textureTop = VoxelLoader.GetTextureID(this.tileTop);
+
+    	if(this.tileSide != null)
+    		this.textureSide = VoxelLoader.GetTextureID(this.tileSide);
+
+    	if(this.tileBottom != null)
+    		this.textureBottom = VoxelLoader.GetTextureID(this.tileBottom);
+    }
+
     // Emits a BUD signal with no information about sender
     public void EmitBUDTo(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
     	cl.budscheduler.ScheduleBUD(new BUDSignal(type, x, y, z, 0, 0, 0, 0), tickOffset);

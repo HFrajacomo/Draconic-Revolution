@@ -13,7 +13,8 @@ public class ItemEntityHand
 	public uint iconID;
 	public ItemID id;
 
-	public ItemEntityHand(ItemID id, uint iconID, ChunkRenderer renderer){
+	public ItemEntityHand(ItemID id, uint iconID, ChunkRenderer renderer){}
+		/*
 		this.go = new GameObject();
 		this.go.name = "item";
 		this.go.AddComponent<MeshFilter>();
@@ -30,6 +31,7 @@ public class ItemEntityHand
 	}
 
 	public void BuildMesh(){
+		return;
 		this.mesh.subMeshCount = 2;
 		this.mesh.SetVertices(ItemMeshData.vertices);
 		this.mesh.SetTriangles(ItemMeshData.imageTris, 0);
@@ -51,4 +53,5 @@ public class ItemEntityHand
 	public void Destroy(){
 		GameObject.Destroy(this.go);
 	}
+	*/
 }

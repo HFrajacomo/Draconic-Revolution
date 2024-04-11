@@ -90,6 +90,5 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.blockAffectLight.Dispose();
 		BlockEncyclopediaECS.objectAffectLight.Dispose();
 		BlockEncyclopediaECS.atlasSize.Dispose();
-
 	}
 }

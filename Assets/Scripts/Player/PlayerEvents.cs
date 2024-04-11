@@ -160,8 +160,8 @@ public class PlayerEvents : MonoBehaviour
 	}
 
 	public void DestroyItemEntity(){
-		PlayerEvents.itemInHand.Destroy();
-		PlayerEvents.itemInHand = null;	
+		//PlayerEvents.itemInHand.Destroy();
+		//PlayerEvents.itemInHand = null;	
 	}
 
 	// Updates ItemEntity in Player's hand
@@ -180,9 +180,9 @@ public class PlayerEvents : MonoBehaviour
 		// If had nothing and switched to something
 		if(PlayerEvents.itemInHand == null){
 			PlayerEvents.itemInHand = new ItemEntityHand(its.GetID(), its.GetIconID(), this.iconRenderer);
-			this.handItem = PlayerEvents.itemInHand.go;
-			this.handItem.name = "HandItem";
-			this.handItem.transform.parent = this.character.transform;
+			//this.handItem = PlayerEvents.itemInHand.go;
+			//this.handItem.name = "HandItem";
+			//this.handItem.transform.parent = this.character.transform;
 			SetItemEntityPosition();
 			return;
 		}
@@ -191,7 +191,7 @@ public class PlayerEvents : MonoBehaviour
 			return;
 
 		// Else if switched from something to something else
-		PlayerEvents.itemInHand.ChangeItem(its.GetItem());
+		//PlayerEvents.itemInHand.ChangeItem(its.GetItem());
 	}
 
 	public void SetPlayerObject(GameObject go){
