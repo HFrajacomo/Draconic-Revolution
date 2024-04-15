@@ -30,6 +30,7 @@ public class VoxelLoader : BaseLoader {
 
 	// Atlas
 	private static Dictionary<ShaderIndex, Texture2D> textureAtlas = new Dictionary<ShaderIndex, Texture2D>();
+	private static Dictionary<ShaderIndex, Texture2D> normalAtlas = new Dictionary<ShaderIndex, Texture2D>();
 	
 	// Atlas Sizes
 	private static int2[] atlasSize;
@@ -79,6 +80,7 @@ public class VoxelLoader : BaseLoader {
 		Material[] materials = rend.GetComponent<MeshRenderer>().sharedMaterials;
 
 		materials[(int)ShaderIndex.OPAQUE].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.OPAQUE]);
+		materials[(int)ShaderIndex.OPAQUE].SetTexture("_NormalAtlas", normalAtlas[ShaderIndex.OPAQUE]);
 		materials[(int)ShaderIndex.LEAVES].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.LEAVES]);
 		materials[(int)ShaderIndex.ASSETS].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.ASSETS]);
 
@@ -392,6 +394,7 @@ public class VoxelLoader : BaseLoader {
 	private void CreateTextureAtlases(){
 		List<Texture2D> textures = new List<Texture2D>();
 		Texture2D tex;
+		Texture2D normal = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE);
 		ushort currentTexID = 0;
 
 		foreach(ShaderIndex shader in (ShaderIndex[])Enum.GetValues(typeof(ShaderIndex))){
@@ -417,37 +420,20 @@ public class VoxelLoader : BaseLoader {
 		
 			// Get Atlas Sizes
 			int a, b;
-			int xOffset, yOffset;
 			int count = 0;
-			Color[] pixels;
+
 
 			TweakAtlasValues(textures.Count, out a, out b);
 			atlasSize[(int)shader] = new int2(a, b);
 
 			textureAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
 			textureAtlas[shader].filterMode = FilterMode.Point;
+			normalAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
+			normalAtlas[shader].filterMode = FilterMode.Point;
 
 			// Build Atlas
 			foreach(Texture2D tex2d in textures){
-				RenderTexture rendTex = RenderTexture.GetTemporary(TEXTURE_SIZE, TEXTURE_SIZE, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
-				Graphics.Blit(tex2d, rendTex);
-			    
-			    RenderTexture previous = RenderTexture.active;
-			    RenderTexture.active = rendTex;
-
-				Texture2D final = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE);
-			    final.ReadPixels(new Rect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE), 0, 0);
-			    final.Apply();
-			    RenderTexture.active = previous;
-			    RenderTexture.ReleaseTemporary(rendTex);
-
-				pixels = final.GetPixels();
-
-            	xOffset = (count % a) * TEXTURE_SIZE;
-            	yOffset = (int)(count / a) * TEXTURE_SIZE;
-            	textureAtlas[shader].SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, pixels);
-
-            	textureAtlas[shader].Apply();
+				AddImageToAtlas(textureAtlas[shader], normalAtlas[shader], tex2d, TEXTURE_SIZE, a, b, count);
 
 				count++;
 			}
@@ -456,6 +442,71 @@ public class VoxelLoader : BaseLoader {
 			textures.Clear();
 		}
 	}
+
+	private void AddImageToAtlas(Texture2D main, Texture2D normalMain, Texture2D tex2d, int TEXTURE_SIZE, int a, int b, int count){
+		Color[] pixels, normalPixels;
+		int xOffset, yOffset;
+
+		RenderTexture rendTex = RenderTexture.GetTemporary(TEXTURE_SIZE, TEXTURE_SIZE, 0, RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
+		Graphics.Blit(tex2d, rendTex);
+	    RenderTexture previous = RenderTexture.active;
+	    RenderTexture.active = rendTex;
+
+		Texture2D final = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, 4, false);
+		final.alphaIsTransparency = true;
+		final.wrapMode = TextureWrapMode.Clamp;
+	    final.ReadPixels(new Rect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE), 0, 0);
+	    final.Apply();
+	    RenderTexture.active = previous;
+	    RenderTexture.ReleaseTemporary(rendTex);
+
+		pixels = final.GetPixels();
+
+		Texture2D finalNormal = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, 4, false);
+		finalNormal.wrapMode = TextureWrapMode.Clamp;
+		finalNormal.ReadPixels(new Rect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE), 0, 0);
+		finalNormal.Apply();
+
+    	xOffset = (count % a) * TEXTURE_SIZE;
+    	yOffset = (int)(count / a) * TEXTURE_SIZE;
+    	main.SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, pixels);
+
+		CalculateNormalMap(final, pixels, finalNormal, 1F);
+
+		normalPixels = finalNormal.GetPixels();
+    	normalMain.SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, normalPixels);
+
+    	main.Apply();
+    	normalMain.Apply();
+	}
+
+    private void CalculateNormalMap(Texture2D source, Color[] pixels, Texture2D dest, float strength){
+        for (int y = 0; y < source.height; y++)
+        {
+            for (int x = 0; x < source.width; x++)
+            {
+                float nx = SampleHeight(source, x + 1, y) - SampleHeight(source, x - 1, y);
+                float ny = SampleHeight(source, x, y + 1) - SampleHeight(source, x, y - 1);
+                float nz = 1.0f / strength;
+
+                Vector3 normal = new Vector3(nx, ny, nz).normalized * 0.5f + new Vector3(0.5f, 0.5f, 0.5f);
+
+                pixels[y * source.width + x] = new Color(normal.x, normal.y, normal.z, 1.0f);
+            }
+        }
+
+        dest.SetPixels(pixels);
+        dest.Apply();
+    }
+
+    private float SampleHeight(Texture2D tex, int x, int y){
+	    x = Mathf.Clamp(x, 0, tex.width - 1);
+	    y = Mathf.Clamp(y, 0, tex.height - 1);
+
+	    Color pixel = tex.GetPixels(x, y, 1, 1)[0]; // Get a 1x1 pixel block
+
+	    return pixel.grayscale;
+    }
 
 	private void TweakAtlasValues(int n, out int a, out int b){
 		a = GetClosestSquare(n);

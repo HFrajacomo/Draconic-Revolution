@@ -292,7 +292,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.43173358, g: 0.35496217, b: 0.32937172, a: 1}
+      m_Value: {r: 0.39372605, g: 0.30881017, b: 0.2805049, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 0
@@ -355,7 +355,7 @@ MonoBehaviour:
       m_Value: 251
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0, g: 0, b: 0, a: 0}
+      m_Value: {r: 0.39177778, g: 0.30644447, b: 0.27800003, a: 1}
     exposure:
       m_OverrideState: 1
       m_Value: 0
@@ -479,18 +479,18 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.6
   directLightingStrength:
     m_OverrideState: 1
-    m_Value: 0.1
+    m_Value: 0
   radius:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
   spatialBilateralAggressiveness:
-    m_OverrideState: 0
-    m_Value: 0.694
+    m_OverrideState: 1
+    m_Value: 1
   temporalAccumulation:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   ghostingReduction:
     m_OverrideState: 1
@@ -516,8 +516,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 6
   m_FullResolution:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 1
   m_MaximumRadiusInPixels:
     m_OverrideState: 1
     m_Value: 40
@@ -587,7 +587,7 @@ MonoBehaviour:
     m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 5.4542494
+    m_Value: 5.1555557
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -712,9 +712,6 @@ MonoBehaviour:
   aerosolAnisotropy:
     m_OverrideState: 0
     m_Value: 0.15
-  numberOfBounces:
-    m_OverrideState: 0
-    m_Value: 2
   groundTint:
     m_OverrideState: 1
     m_Value: {r: 1, g: 1, b: 1, a: 1}
@@ -750,10 +747,10 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.5670928, g: 0.8488179, b: 0.5209184, a: 1}
+    m_Value: {r: 0.59968245, g: 0.84338623, b: 0.48493397, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0.51821905, g: 0.42285138, b: 0.40500775, a: 1}
+    m_Value: {r: 0.5732142, g: 0.4072355, b: 0.34186524, a: 1}
   horizonZenithShift:
     m_OverrideState: 1
     m_Value: 0
@@ -1209,7 +1206,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 0.6759381, y: 0.48477802, z: 0.24921513, w: 0.39597252}
+    m_Value: {x: 0.73684967, y: 0.50643545, z: 0.23432563, w: 0.42304432}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -1223,6 +1220,7 @@ MonoBehaviour:
   m_Name: HDShadowSettings
   m_EditorClassIdentifier: 
   active: 1
+  interCascadeBorders: 1
   maxShadowDistance:
     m_OverrideState: 1
     m_Value: 100
@@ -1234,7 +1232,7 @@ MonoBehaviour:
     m_Value: 3
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0.14243773
+    m_Value: 0.21806797
   cascadeShadowSplit1:
     m_OverrideState: 1
     m_Value: 0.45
@@ -1243,13 +1241,13 @@ MonoBehaviour:
     m_Value: 0.74175996
   cascadeShadowBorder0:
     m_OverrideState: 1
-    m_Value: 0.45
+    m_Value: 0.25838012
   cascadeShadowBorder1:
     m_OverrideState: 1
-    m_Value: 0.72042996
+    m_Value: 0.6895035
   cascadeShadowBorder2:
     m_OverrideState: 1
-    m_Value: 0.67
+    m_Value: 0.77371585
   cascadeShadowBorder3:
     m_OverrideState: 0
     m_Value: 0

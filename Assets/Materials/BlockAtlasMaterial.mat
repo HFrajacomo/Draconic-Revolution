@@ -130,7 +130,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalAtlas:
-        m_Texture: {fileID: 2800000, guid: d7bbf226551e1984dbdbd7cb77b6f62a, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
@@ -204,6 +204,7 @@ Material:
     m_Ints: []
     m_Floats:
     - PixelSnap: 0
+    - _AO: 1
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
@@ -221,6 +222,7 @@ Material:
     - _AlphaToMask: 0
     - _AlphaToMaskInspectorValue: 0
     - _Alpha_Compare: 1
+    - _AmbientOcclusion: 1
     - _Anisotropy: 0
     - _Blend: 0
     - _BlendMode: 0
