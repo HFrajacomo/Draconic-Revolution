@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,6 +13,10 @@ public class VoxelLoader : BaseLoader {
 	private static readonly string OBJECT_LIST_RESPATH = "Textures/Voxels/Objects/OBJECT_LIST";
 	private static readonly string BLOCK_RESPATH = "Textures/Voxels/Blocks/";
 	private static readonly string OBJECT_RESPATH = "Textures/Voxels/Objects/";
+	private static readonly string BLOCK_NORMAL_INTENSITY = "Textures/Voxels/Blocks/NORMAL_INTENSITY";
+	private static readonly string OBJECT_NORMAL_INTENSITY = "Textures/Voxels/Objects/NORMAL_INTENSITY";
+
+	private static readonly CultureInfo parsingCulture = CultureInfo.InvariantCulture;
 
 	private static readonly int TEXTURE_SIZE = 32;
 
@@ -27,6 +32,7 @@ public class VoxelLoader : BaseLoader {
 	private static Dictionary<ShaderIndex, List<string>> atlasTextureNames = new Dictionary<ShaderIndex, List<string>>();
 	private static Dictionary<string, ushort> codenameToBlockID = new Dictionary<string, ushort>();
 	private static Dictionary<string, int> codenameToTexID = new Dictionary<string, int>();
+	private static Dictionary<string, float> texnameToNormalIntensity = new Dictionary<string, float>();
 
 	// Atlas
 	private static Dictionary<ShaderIndex, Texture2D> textureAtlas = new Dictionary<ShaderIndex, Texture2D>();
@@ -62,6 +68,7 @@ public class VoxelLoader : BaseLoader {
 		InitAtlases();
 		ParseBlockList();
 		ParseObjectList();
+		LoadTextureNormalIntensity();
 		LoadVoxels();
 		CreateTextureAtlases();
 		RunPostDeserializationRoutine();
@@ -391,6 +398,43 @@ public class VoxelLoader : BaseLoader {
 		}
 	}
 
+	private void LoadTextureNormalIntensity(){
+		string[] splitText;
+		float normalIntensity;
+		TextAsset textAsset = Resources.Load<TextAsset>(BLOCK_NORMAL_INTENSITY);
+
+		if(textAsset != null){
+			foreach(string line in textAsset.text.Split("\n")){
+				splitText = line.Split("\t");
+
+				if(splitText.Length < 2)
+					continue;
+
+				if(float.TryParse(splitText[1], NumberStyles.Float | NumberStyles.AllowThousands, parsingCulture, out normalIntensity)){
+					texnameToNormalIntensity.Add(splitText[0], normalIntensity);
+				}
+				else{
+					Debug.Log($"PROBLEM READING NORMAL INTENSITY FROM LINE: {line}");
+				}
+			}
+		}
+
+		textAsset = Resources.Load<TextAsset>(OBJECT_NORMAL_INTENSITY);
+
+		if(textAsset != null){
+			foreach(string line in textAsset.text.Split("\n")){
+				splitText = line.Split("\t");
+
+				if(float.TryParse(splitText[1], NumberStyles.Float | NumberStyles.AllowThousands, parsingCulture, out normalIntensity)){
+					texnameToNormalIntensity.Add(splitText[0], normalIntensity);
+				}
+				else{
+					Debug.Log($"PROBLEM READING NORMAL INTENSITY FROM LINE: {line}");
+				}
+			}
+		}
+	}
+
 	private void CreateTextureAtlases(){
 		List<Texture2D> textures = new List<Texture2D>();
 		Texture2D tex;
@@ -433,7 +477,12 @@ public class VoxelLoader : BaseLoader {
 
 			// Build Atlas
 			foreach(Texture2D tex2d in textures){
-				AddImageToAtlas(textureAtlas[shader], normalAtlas[shader], tex2d, TEXTURE_SIZE, a, b, count);
+				if(texnameToNormalIntensity.ContainsKey(tex2d.name)){
+					AddImageToAtlas(textureAtlas[shader], normalAtlas[shader], tex2d, texnameToNormalIntensity[tex2d.name], TEXTURE_SIZE, a, b, count);
+				}
+				else{
+					AddImageToAtlas(textureAtlas[shader], normalAtlas[shader], tex2d, 1f, TEXTURE_SIZE, a, b, count);	
+				}
 
 				count++;
 			}
@@ -443,7 +492,7 @@ public class VoxelLoader : BaseLoader {
 		}
 	}
 
-	private void AddImageToAtlas(Texture2D main, Texture2D normalMain, Texture2D tex2d, int TEXTURE_SIZE, int a, int b, int count){
+	private void AddImageToAtlas(Texture2D main, Texture2D normalMain, Texture2D tex2d, float normalIntensity, int TEXTURE_SIZE, int a, int b, int count){
 		Color[] pixels, normalPixels;
 		int xOffset, yOffset;
 
@@ -471,7 +520,7 @@ public class VoxelLoader : BaseLoader {
     	yOffset = (int)(count / a) * TEXTURE_SIZE;
     	main.SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, pixels);
 
-		CalculateNormalMap(final, pixels, finalNormal, 1F);
+		CalculateNormalMap(final, pixels, finalNormal, normalIntensity);
 
 		normalPixels = finalNormal.GetPixels();
     	normalMain.SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, normalPixels);
