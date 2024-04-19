@@ -179,11 +179,11 @@ public class PlayerEvents : MonoBehaviour
 		}
 		// If had nothing and switched to something
 		if(PlayerEvents.itemInHand == null){
-			PlayerEvents.itemInHand = new ItemEntityHand(its.GetID(), its.GetIconID(), this.iconRenderer);
+			//PlayerEvents.itemInHand = new ItemEntityHand(its.GetID(), its.GetIconID(), this.iconRenderer);
 			//this.handItem = PlayerEvents.itemInHand.go;
 			//this.handItem.name = "HandItem";
 			//this.handItem.transform.parent = this.character.transform;
-			SetItemEntityPosition();
+			//SetItemEntityPosition();
 			return;
 		}
 		// If had item and switched to same
@@ -199,6 +199,7 @@ public class PlayerEvents : MonoBehaviour
 		DrawItemEntity(GetSlotStack());
 	}
 
+	/*
 	public void SetItemEntityPosition(){
 		if(this.handItem == null)
 			return;
@@ -207,4 +208,5 @@ public class PlayerEvents : MonoBehaviour
 		this.handItem.transform.localEulerAngles = new Vector3(130f, 0f, 0f);
 		this.handItem.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
 	}
+	*/
 }
