@@ -57,6 +57,9 @@ public class PlayerEvents : MonoBehaviour
 		PlayerEvents.hotbarSlot = 0;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(-1), 34);
 		DrawItemEntity(GetSlotStack());
+
+		// Debug
+		//this.hotbar.ForceAddStack(new ItemStack(ItemID.ALUMINIUM_ORE_BLOCK, 1), 0);
 	}
 	public void Scroll2(){
 		PlayerEvents.hotbarSlot = 1;
