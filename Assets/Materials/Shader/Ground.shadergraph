@@ -709,20 +709,6 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "da13db053a714029a6013a4171b2908e"
-                },
-                "m_SlotId": 2
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "e8acfe0feb0a433e9012077cd8e74f2c"
-                },
-                "m_SlotId": 0
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
                     "m_Id": "e8bb7c63e4b6447286f2ee9ed0234388"
                 },
                 "m_SlotId": 1
@@ -1108,10 +1094,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1461.0,
-            "y": 668.9999389648438,
+            "x": -1325.0,
+            "y": 666.0,
             "width": 125.9998779296875,
-            "height": 118.00006103515625
+            "height": 118.0
         }
     },
     "m_Slots": [
@@ -1259,8 +1245,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1567.0,
-            "y": 882.0,
+            "x": -1431.0001220703125,
+            "y": 879.0,
             "width": 119.0,
             "height": 34.0
         }
@@ -2382,10 +2368,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1913.0,
-            "y": 668.9999389648438,
+            "x": -1777.0001220703125,
+            "y": 666.0,
             "width": 273.0,
-            "height": 94.00006103515625
+            "height": 94.0
         }
     },
     "m_Slots": [
@@ -2432,8 +2418,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1901.0,
-            "y": 811.0,
+            "x": -1765.0001220703125,
+            "y": 808.0,
             "width": 261.0,
             "height": 94.0
         }
@@ -2910,8 +2896,8 @@
     "m_ObjectId": "67cd6ce7f8c643c8a2ae2cffed3bde94",
     "m_Title": "Voxel Lighting Interpolators",
     "m_Position": {
-        "x": -1940.0,
-        "y": 585.9999389648438
+        "x": -1802.0001220703125,
+        "y": 583.0
     }
 }
 
@@ -3994,10 +3980,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -977.9999389648438,
-            "y": 644.9999389648438,
-            "width": 129.9998779296875,
-            "height": 118.00006103515625
+            "x": -842.0001220703125,
+            "y": 642.0,
+            "width": 130.00006103515626,
+            "height": 118.0
         }
     },
     "m_Slots": [
@@ -4578,10 +4564,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1190.0001220703125,
-            "y": 668.9999389648438,
-            "width": 170.0,
-            "height": 142.00006103515626
+            "x": -1054.0001220703125,
+            "y": 666.0,
+            "width": 170.00006103515626,
+            "height": 142.0
         }
     },
     "m_Slots": [
@@ -4680,10 +4666,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1367.0,
-            "y": 848.0,
+            "x": -1231.0001220703125,
+            "y": 845.0,
             "width": 145.0,
-            "height": 135.99993896484376
+            "height": 136.0
         }
     },
     "m_Slots": [
