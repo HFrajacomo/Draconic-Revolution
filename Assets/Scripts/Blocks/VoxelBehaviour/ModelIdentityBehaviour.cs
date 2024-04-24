@@ -18,7 +18,7 @@ public class ModelIdentityBehaviour : VoxelBehaviour {
 
 	public Mesh GetMesh(){
 		if(this.mesh == null){
-			this.mesh = GameObject.Find(this.modelUnityPath).GetComponent<MeshFilter>().sharedMesh;
+			this.mesh = GameObject.Find(this.modelUnityPath).GetComponent<MeshFilter>().mesh;
 		}
 		return this.mesh;
 	}

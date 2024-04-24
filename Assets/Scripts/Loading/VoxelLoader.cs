@@ -384,7 +384,6 @@ public class VoxelLoader : BaseLoader {
 			b.GetMesh().GetUVs(0, objUV);
 			atSize = atlasSize[(int)b.shaderIndex];
 			texCode = codenameToTexID[b.codename]; 
-			
 
 			for(int i=0; i < objUV.Count; i++){
 				u = Mathf.Lerp((texCode%atSize.x)*(1f/atSize.x), ((texCode%atSize.x)*(1f/atSize.x))+(1f/atSize.x), objUV[i].x);
