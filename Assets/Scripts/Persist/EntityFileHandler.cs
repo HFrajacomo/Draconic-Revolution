@@ -67,21 +67,8 @@ public class EntityFileHandler{
 	}
 
 	private void InitDirectories(){
-		#if UNITY_EDITOR
-			this.saveDir = "Worlds/";
-			this.worldDir = this.saveDir + this.worldName + "/";
-		#else
-			// If is in Dedicated Server
-			if(!World.isClient){
-				this.saveDir = "Worlds/";
-				this.worldDir = this.saveDir + this.worldName + "/";
-			}
-			// If it's a Local Server
-			else{
-				this.saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
-				this.worldDir = this.saveDir + this.worldName + "\\";			
-			}
-		#endif
+		this.saveDir = EnvironmentVariablesCentral.saveDir;
+		this.worldDir = this.saveDir + this.worldName + "\\";	
 
 		// If "Worlds/" dir doesn't exist
 		if(!Directory.Exists(this.saveDir)){

@@ -107,10 +107,6 @@ public class ChunkLoader_Server : MonoBehaviour
         this.entityFileHandler = new EntityFileHandler(this);
         this.playerServerInventory = new PlayerServerInventory();
 
-        if(this.server.IsLocal())
-            this.characterFileHandler = new CharacterFileHandler(World.worldName);
-
-
         worldSeed = regionHandler.GetRealSeed();
         biomeHandler = new BiomeHandler();
         this.worldGen = new WorldGenerator(worldSeed, biomeHandler, structHandler, this);

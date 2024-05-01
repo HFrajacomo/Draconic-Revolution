@@ -40,8 +40,8 @@ public class CharacterFileHandler{
 
 
 	public CharacterFileHandler(string world){
-		CharacterFileHandler.characterDirectory = EnvironmentVariablesCentral.saveDir + "\\" + world + "\\Characters\\";
-		CharacterFileHandler.indexFileDir = EnvironmentVariablesCentral.saveDir + "\\" + world + "\\Characters\\index.cind";
+		CharacterFileHandler.characterDirectory = (EnvironmentVariablesCentral.saveDir + world + "\\Characters\\").Replace("\\\\", "\\");
+		CharacterFileHandler.indexFileDir = (EnvironmentVariablesCentral.saveDir + world + "\\Characters\\index.cind").Replace("\\\\", "\\");
 
         if(!Directory.Exists(CharacterFileHandler.characterDirectory))
             Directory.CreateDirectory(CharacterFileHandler.characterDirectory);

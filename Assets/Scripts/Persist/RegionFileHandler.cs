@@ -70,61 +70,54 @@ public class RegionFileHandler{
 
 	// Initializes World Files
 	public void InitWorldFiles(ChunkLoader_Server cl){
-		this.cl = cl;
-		this.worldName = World.worldName;
+		try{
+			this.cl = cl;
+			this.worldName = World.worldName;
 
-		this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
+			this.globalTime = GameObject.Find("/Time Counter").GetComponent<TimeOfDay>();
 
-		#if UNITY_EDITOR
-			this.saveDir = "Worlds/";
+
+			this.saveDir = EnvironmentVariablesCentral.saveDir;
+			Debug.Log(this.saveDir);
 			this.worldDir = this.saveDir + this.worldName + "/";
-		#else
-			// If is in Dedicated Server
-			if(!World.isClient){
-				this.saveDir = "Worlds/";
-				this.worldDir = this.saveDir + this.worldName + "/";
+
+			// If "Worlds/" dir doesn't exist
+			if(!Directory.Exists(this.saveDir)){
+				Directory.CreateDirectory(this.saveDir);
 			}
-			// If it's a Local Server
+
+			// If current world doesn't exist
+			if(!Directory.Exists(this.worldDir)){
+				Directory.CreateDirectory(this.worldDir);
+			}
+
+			// If already has a world data file
+			if(File.Exists(this.worldDir + "world.wdat")){
+				this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Open);
+				LoadWorld();
+				World.SetWorldSeed(this.seed);
+			}
 			else{
-				this.saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
-				this.worldDir = this.saveDir + this.worldName + "\\";			
+				Random rnd = new Random((int)(DateTime.Now.Ticks % 999999));
+				this.seed = rnd.Next(1,999999);
+
+				this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Create);	
+				SaveWorld();
+				World.SetWorldSeed(this.seed);
 			}
-		#endif
 
-		// If "Worlds/" dir doesn't exist
-		if(!Directory.Exists(this.saveDir)){
-			Directory.CreateDirectory(this.saveDir);
+			// If already has a player data file
+			if(File.Exists(this.worldDir + "player.pdat")){
+				this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Open);
+				LoadAllPlayers();
+			}
+			else{
+				this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Create);	
+			}	
 		}
-
-		// If current world doesn't exist
-		if(!Directory.Exists(this.worldDir)){
-			Directory.CreateDirectory(this.worldDir);
+		catch{
+			while(true){}
 		}
-
-		// If already has a world data file
-		if(File.Exists(this.worldDir + "world.wdat")){
-			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Open);
-			LoadWorld();
-			World.SetWorldSeed(this.seed);
-
-		}
-		else{
-			Random rnd = new Random((int)(DateTime.Now.Ticks % 999999));
-			this.seed = rnd.Next(1,999999);
-
-			this.worldFile = File.Open(this.worldDir + "world.wdat", FileMode.Create);	
-			SaveWorld();
-			World.SetWorldSeed(this.seed);		
-		}
-
-		// If already has a player data file
-		if(File.Exists(this.worldDir + "player.pdat")){
-			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Open);
-			LoadAllPlayers();
-		}
-		else{
-			this.playerFile = File.Open(this.worldDir + "player.pdat", FileMode.Create);	
-		}	
 	}
 
 	// Returns initialized seed if world was just generated or returns saved seed if world exists
@@ -279,7 +272,7 @@ public class RegionFileHandler{
 
 	// Creates a world folder with only a .wdat file inside
 	public static bool CreateWorldFile(string worldName, int seed){
-		string worldFolder = EnvironmentVariablesCentral.clientExeDir + "Worlds\\" + worldName + "\\";
+		string worldFolder = EnvironmentVariablesCentral.saveDir + worldName + "\\";
 		Stream file;
 		byte[] byteArray = new byte[11];
 

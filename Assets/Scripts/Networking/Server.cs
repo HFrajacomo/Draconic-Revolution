@@ -96,6 +96,7 @@ public class Server
 
 	// Receives command line args and parses them
 	private void ParseArguments(){
+		bool nextIsWorld = false;
 		string[] args = GetCommandLineArgs();
 
 		foreach(string arg in args){
@@ -105,7 +106,15 @@ public class Server
 					World.SetToClient();
 					Debug.Log("local");
 					break;
+				case "-World":
+					nextIsWorld = true;
+					break;
 				default:
+					if(nextIsWorld){
+						Debug.Log("Setting world name to: " + arg);
+						World.SetWorldName(arg);
+						nextIsWorld = false;
+					}
 					break;
 			}
 		}

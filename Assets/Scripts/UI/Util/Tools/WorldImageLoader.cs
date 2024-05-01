@@ -22,7 +22,10 @@ public static class WorldImageLoader {
 		defaultImage = Resources.Load<Sprite>(PATH_TO_DEFAULT_IMAGE);
 	}
 
-	public static Sprite GetWorldImage(string world){return sprites[world];}
+	public static Sprite GetWorldImage(string world){
+		Debug.Log("World Name: " + world);
+		return sprites[world];
+	}
 
 	public static void LoadSprites(){
 		sprites.Clear();

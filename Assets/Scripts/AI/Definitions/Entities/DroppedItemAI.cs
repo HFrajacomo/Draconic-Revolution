@@ -113,6 +113,12 @@ public class DroppedItemAI : AbstractAI
             this.radar.SetTransform(ref this.behaviour.position, ref this.behaviour.rotation, ref this.coords);
 
             this.message = new NetMessage(NetCode.ITEMENTITYDATA);
+
+            Debug.Log(this.position);
+            Debug.Log((ushort)this.its.GetID());
+            Debug.Log(this.its.GetAmount());
+            Debug.Log(this.entityCode);
+
             this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((ItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
             this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
         }

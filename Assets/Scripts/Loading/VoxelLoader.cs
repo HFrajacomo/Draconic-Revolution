@@ -501,7 +501,6 @@ public class VoxelLoader : BaseLoader {
 	    RenderTexture.active = rendTex;
 
 		Texture2D final = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, 4, false);
-		final.alphaIsTransparency = true;
 		final.wrapMode = TextureWrapMode.Clamp;
 	    final.ReadPixels(new Rect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE), 0, 0);
 	    final.Apply();

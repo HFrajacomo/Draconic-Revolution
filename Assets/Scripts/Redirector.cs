@@ -20,7 +20,6 @@ public class Redirector : MonoBehaviour
 
     // Const Strings
     private string serverFile = "Server.exe";
-    private string invisLauncher = "invisLaunchHelper.bat";
 
 
     void Start()
@@ -63,15 +62,13 @@ public class Redirector : MonoBehaviour
             #if UNITY_EDITOR
                 // Startup local server
                 this.lanServerProcess = new Process();
-                this.lanServerProcess.StartInfo.Arguments = "-Local";
-
-                if(!File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
-                    EnvironmentVariablesCentral.WriteInvisLaunchScript();
+                this.lanServerProcess.StartInfo.Arguments = $"-Local -World {World.worldName}";
 
                 if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
                     this.lanServerProcess.StartInfo.FileName = EnvironmentVariablesCentral.serverDir + serverFile;
-                else
+                else{
                     Panic();
+                }
 
                 try{
                     this.lanServerProcess.Start();
@@ -80,16 +77,17 @@ public class Redirector : MonoBehaviour
                     Panic();
                 }
 
-            // Standalone edition
             #else
-                if(!File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
-                    EnvironmentVariablesCentral.WriteInvisLaunchScript();
+                string invisLauncher = "invisLaunchHelper.bat";
+
+                EnvironmentVariablesCentral.WriteInvisLaunchScript(World.worldName);
 
                 if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
-                    Application.OpenURL(EnvironmentVariablesCentral.serverDir + invisLauncher);
+                    Application.OpenURL($"{EnvironmentVariablesCentral.serverDir}{invisLauncher}");
                 else
                     Panic();
             #endif
+
 
             World.SetConnectionIP(new IPAddress(new byte[4]{127, 0, 0, 1}));
             SERVER_STARTED = true;

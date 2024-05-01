@@ -37,30 +37,11 @@ public class InventoryFileHandler{
 
 
     public InventoryFileHandler(){
-        #if UNITY_EDITOR
-            this.worldsPath = "Worlds\\";
-            this.worldDir = "Worlds\\" + World.worldName + "\\";
-            this.filePath = this.worldDir + FILENAME;
-            this.indexFilePath = this.worldDir + INDEXNAME;
-            this.holeFilePath = this.worldDir + HOLENAME;
-        #else
-            // If is in Dedicated Server
-            if(!World.isClient){
-                this.worldsPath = "Worlds\\";
-                this.worldDir = "Worlds\\" + World.worldName + "\\";
-                this.filePath = this.worldDir + FILENAME;
-                this.indexFilePath = this.worldDir + INDEXNAME;
-                this.holeFilePath = this.worldDir + HOLENAME;
-            }
-            // If it's a Local Server
-            else{
-                this.worldsPath = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\";
-                this.worldDir = this.worldsPath + World.worldName;
-                this.filePath = this.worldDir + FILENAME;
-                this.indexFilePath = this.worldDir + INDEXNAME;
-                this.holeFilePath = this.worldDir + HOLENAME;
-            }
-        #endif
+        this.worldsPath = EnvironmentVariablesCentral.saveDir + World.worldName + "\\";
+        this.worldDir = (EnvironmentVariablesCentral.saveDir + World.worldName + "\\Inventory\\").Replace("\\\\", "\\");
+        this.filePath = this.worldDir + FILENAME;
+        this.indexFilePath = this.worldDir + INDEXNAME;
+        this.holeFilePath = this.worldDir + HOLENAME;
     
         LoadFiles();
         LoadIndex();

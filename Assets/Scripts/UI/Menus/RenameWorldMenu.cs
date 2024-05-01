@@ -35,23 +35,9 @@ public class RenameWorldMenu : Menu
 		if(this.nameField.text == "")
 			return;
 
-		#if UNITY_EDITOR
-			this.saveDir = "Worlds/";
-		#else
-			// If is in Dedicated Server
-			if(!World.isClient){
-				this.saveDir = "Worlds/";
-			}
-			// If it's a Local Server
-			else{
-				this.saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
-			}
-		#endif
+		this.saveDir = EnvironmentVariablesCentral.saveDir;
 
 		string fullpath = this.saveDir + WORLD_NAME + "/";
-
-		Debug.Log(fullpath);
-		Debug.Log(this.saveDir + this.nameField.text + "/");
 
 		if(Directory.Exists(fullpath)){
 			Directory.Move(fullpath, this.saveDir + this.nameField.text + "/");

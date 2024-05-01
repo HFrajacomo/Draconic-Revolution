@@ -314,7 +314,7 @@ Material:
     - _NormalScale: 1
     - _NormalStrength: 2
     - _Normal_Offset: 0
-    - _Normal_Strength: 0
+    - _Normal_Strength: 1
     - _OcclusionStrength: 1
     - _OpaqueCullMode: 2
     - _PPDLodThreshold: 5
