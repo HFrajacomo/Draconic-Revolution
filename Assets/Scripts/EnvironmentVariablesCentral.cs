@@ -11,8 +11,10 @@ public static class EnvironmentVariablesCentral
     public static string serverDir;
     public static string compiledServerDir;
     public static string saveDir;
-    private static string invisScript = "start /min powershell \"start-process $env:APPDATA\\DraconicRevolution\\Server\\Server.exe -Arg -Local -WindowStyle";
-    private static string invisScriptSuffix = " hidden\"";
+    private static string invisScript = "start /min powershell \"start-process $env:APPDATA\\DraconicRevolution\\Server\\Server.exe -WindowStyle hidden -ArgumentList '-Local'";
+
+    // start /min powershell "start-process $env:APPDATA\DraconicRevolution\Server\Server.exe -WindowStyle hidden -ArgumentList '-Local', '-World', 's'"
+
 
     public static void Start(){
         clientExeDir = GetClientDir();
@@ -58,10 +60,10 @@ public static class EnvironmentVariablesCentral
         string dump;
 
         if(worldName == ""){
-            dump = $"{invisScript}{invisScriptSuffix}";
+            dump = $"{invisScript}";
         }
         else{
-            dump = $"{invisScript} -World {worldName}{invisScriptSuffix}";
+            dump = $"{invisScript}, '-World', '{worldName}'";
         }
 
         byte[] bytes = Encoding.ASCII.GetBytes(dump);

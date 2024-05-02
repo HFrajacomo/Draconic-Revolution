@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -81,7 +82,7 @@ public class ChunkLoader_Server : MonoBehaviour
         this.characterFileHandler = new CharacterFileHandler(World.worldName);
     }
 
-    void Update(){ 
+    void Update(){
         if(this.RECEIVEDWORLDDATA && this.INITIALIZEDWORLD){
             // Decides what to do for current tick
             HandleServerCommunication();
