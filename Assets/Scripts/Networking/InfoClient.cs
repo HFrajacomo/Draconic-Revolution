@@ -52,7 +52,6 @@ public class InfoClient
         bool success = result.AsyncWaitHandle.WaitOne(this.timeoutSeconds * 1000, true);
 
         if (success && socket.Connected){
-        	Debug.Log("Connected");
             this.socket.EndConnect(result);
             this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(Receive), null);
 
@@ -133,7 +132,6 @@ public class InfoClient
 	}
 
 	public void Close(){
-		Debug.Log("SOCKET CLOSED");
 		this.ended = true;
 		this.socket.Close();
 	}
@@ -182,10 +180,8 @@ public class InfoClient
 			NetMessage message = new NetMessage(NetCode.REQUESTCHARACTEREXISTENCE);
 			message.RequestCharacterExistence(Configurations.accountID);
 			this.Send(message.GetMessage(), message.size);
-			Debug.Log("Requesting Character Existence");
 		}
 		else{
-			Debug.Log("Sending Character Sheet to Server");
 			SendCharAndDisconnectInfo();
 			PlayerAppearanceData.SetPreloadFlag(false);
 		}
@@ -199,10 +195,8 @@ public class InfoClient
 			PlayerAppearanceData.SetPreloadFlag(true);
 			MenuManager.SetInitCharacterCreationFlag(true);
 			this.backToMenu = true;
-			Debug.Log("back to CharacterCreation");
 		}
 		else{
-			Debug.Log("Received Character from server");
 			CharacterAppearance app = NetDecoder.ReadCharacterAppearance(data, 2);
 			bool isMale = NetDecoder.ReadBool(data, 249);
 
@@ -228,7 +222,6 @@ public class InfoClient
 		NetMessage disconnectMessage = new NetMessage(NetCode.DISCONNECTINFO);
 		this.Send(disconnectMessage.GetMessage(), disconnectMessage.size);
 		this.Close();
-		Debug.Log("Sent character infor and Disconnected");
 	
 		PlayerAppearanceData.SetAppearance(CharacterCreationData.GetCharacterSheet().GetCharacterAppearance());
 		PlayerAppearanceData.SetGender(CharacterCreationData.GetCharacterSheet().GetGender());
