@@ -52,6 +52,7 @@ public class InfoClient
         bool success = result.AsyncWaitHandle.WaitOne(this.timeoutSeconds * 1000, true);
 
         if (success && socket.Connected){
+        	Debug.Log("Connected");
             this.socket.EndConnect(result);
             this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(Receive), null);
 
@@ -66,6 +67,10 @@ public class InfoClient
 
 	public void Receive(IAsyncResult result){
 		try{
+			if(this.ended || this.backToMenu){
+				return;
+			}
+
 			int bytesReceived = this.socket.EndReceive(result);
 
 			// If is a length packet
@@ -114,6 +119,7 @@ public class InfoClient
 
 	public bool Send(byte[] data, int length){
 		try{
+			NetMessage.Broadcast(NetBroadcast.SENT, dataBuffer[0], 0, length);
 			LengthPacket(length);
 
 			this.socket.Send(this.lengthBuffer, 4, SocketFlags.None);
@@ -127,8 +133,9 @@ public class InfoClient
 	}
 
 	public void Close(){
-		this.socket.Close();
+		Debug.Log("SOCKET CLOSED");
 		this.ended = true;
+		this.socket.Close();
 	}
 
 	// Sets a byte array representation of a int
@@ -145,7 +152,7 @@ public class InfoClient
 	*/
 
 	public void HandleReceivedMessages(){
-		if(this.queue.Count == 0)
+		if(this.queue.Count == 0 || this.ended)
 			return;
 
 		byte[] data = this.queue[0].GetData();
@@ -175,8 +182,10 @@ public class InfoClient
 			NetMessage message = new NetMessage(NetCode.REQUESTCHARACTEREXISTENCE);
 			message.RequestCharacterExistence(Configurations.accountID);
 			this.Send(message.GetMessage(), message.size);
+			Debug.Log("Requesting Character Existence");
 		}
 		else{
+			Debug.Log("Sending Character Sheet to Server");
 			SendCharAndDisconnectInfo();
 			PlayerAppearanceData.SetPreloadFlag(false);
 		}
@@ -190,17 +199,19 @@ public class InfoClient
 			PlayerAppearanceData.SetPreloadFlag(true);
 			MenuManager.SetInitCharacterCreationFlag(true);
 			this.backToMenu = true;
+			Debug.Log("back to CharacterCreation");
 		}
 		else{
+			Debug.Log("Received Character from server");
 			CharacterAppearance app = NetDecoder.ReadCharacterAppearance(data, 2);
 			bool isMale = NetDecoder.ReadBool(data, 249);
 
+			NetMessage disconnectMessage = new NetMessage(NetCode.DISCONNECTINFO);
+			this.Send(disconnectMessage.GetMessage(), disconnectMessage.size);
+			this.Close();
+
 			PlayerAppearanceData.SetAppearance(app);
 			PlayerAppearanceData.SetGender(isMale);
-
-			NetMessage message = new NetMessage(NetCode.DISCONNECTINFO);
-			this.Send(message.GetMessage(), message.size);
-			this.Close();
 		}
 	}
 
@@ -217,6 +228,7 @@ public class InfoClient
 		NetMessage disconnectMessage = new NetMessage(NetCode.DISCONNECTINFO);
 		this.Send(disconnectMessage.GetMessage(), disconnectMessage.size);
 		this.Close();
+		Debug.Log("Sent character infor and Disconnected");
 	
 		PlayerAppearanceData.SetAppearance(CharacterCreationData.GetCharacterSheet().GetCharacterAppearance());
 		PlayerAppearanceData.SetGender(CharacterCreationData.GetCharacterSheet().GetGender());

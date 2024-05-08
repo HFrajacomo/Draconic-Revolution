@@ -145,7 +145,6 @@ public class SelectWorldMenu : Menu
         
         foreach(string world in this.worldNames){
             worldName = GetDirectoryName(world);
-            Debug.Log(world);
 
             this.carousel.AddWorld(this.worldItem, worldName, "Description...");
         }

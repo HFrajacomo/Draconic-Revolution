@@ -7,6 +7,7 @@ using Unity.Mathematics;
 
 public static class BlockEncyclopediaECS
 {
+	private static bool IS_INITIALIZED = false;
 	public static NativeArray<ushort> blockHP;
 	public static NativeArray<ushort> objectHP;
 	public static NativeArray<bool> blockSolid;
@@ -35,6 +36,14 @@ public static class BlockEncyclopediaECS
 	public static NativeArray<int2> atlasSize;
 
 	static BlockEncyclopediaECS(){ 
+		InitializeNativeStructures();
+	}
+
+	public static bool IsInitialized(){return IS_INITIALIZED;}
+
+	public static void InitializeNativeStructures(){
+		if(IS_INITIALIZED){return;}
+
 		BlockEncyclopediaECS.blockHP = new NativeArray<ushort>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
 		BlockEncyclopediaECS.objectHP = new NativeArray<ushort>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
 		BlockEncyclopediaECS.blockSolid = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
@@ -61,7 +70,9 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.blockAffectLight = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
 		BlockEncyclopediaECS.objectAffectLight = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
 		BlockEncyclopediaECS.atlasSize = new NativeArray<int2>(Enum.GetValues(typeof(ShaderIndex)).Length, Allocator.Persistent);
+		IS_INITIALIZED = true;
 	}
+
 
 	public static void Destroy(){
 		BlockEncyclopediaECS.blockHP.Dispose();
@@ -90,5 +101,6 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.blockAffectLight.Dispose();
 		BlockEncyclopediaECS.objectAffectLight.Dispose();
 		BlockEncyclopediaECS.atlasSize.Dispose();
+		IS_INITIALIZED = false;
 	}
 }

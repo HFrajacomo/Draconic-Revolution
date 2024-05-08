@@ -79,6 +79,9 @@ public class ChunkLoader : MonoBehaviour
 
 
     void Awake(){
+        BlockEncyclopediaECS.InitializeNativeStructures();
+        VoxelLoader.InitBlockEncyclopediaECS();
+
         this.playerCharacter.SetActive(false);
         this.playerCharacter.transform.position = new Vector3(0,-999,0);
         this.mainControllerManager.SetActive(false);
@@ -105,6 +108,7 @@ public class ChunkLoader : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
+        Redirector.SetServerClosure();
         this.playerAudioListener.enabled = false;
         this.biomeHandler.Clear();
         this.biomeHandler = null;
@@ -118,7 +122,6 @@ public class ChunkLoader : MonoBehaviour
         this.client = null;
         this.audioManager.Stop(AudioUsecase.MUSIC_CLIP);
         this.audioManager.Destroy();
-        VoxelLoader.Destroy();
         ClearAllChunks();
         Destroy(this);
     }

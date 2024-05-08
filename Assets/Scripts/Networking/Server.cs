@@ -885,7 +885,7 @@ public class Server
 		else if(type == DisconnectType.TIMEDOUT)
 			Debug.Log("ID: " + id + " has timed out");
 		else if(type == DisconnectType.LOGINOVERWRITE)
-			Debug.Log("ID: " + id + " has overwritten it's login");
+			Debug.Log("ID: " + id + " has overwritten its login");
 		else
 			Debug.Log("ID: " + id + " has quit due to unknown issue");
 

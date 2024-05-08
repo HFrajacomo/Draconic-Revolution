@@ -23,7 +23,6 @@ public static class WorldImageLoader {
 	}
 
 	public static Sprite GetWorldImage(string world){
-		Debug.Log("World Name: " + world);
 		return sprites[world];
 	}
 

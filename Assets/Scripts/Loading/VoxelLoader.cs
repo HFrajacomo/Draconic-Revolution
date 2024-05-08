@@ -97,7 +97,7 @@ public class VoxelLoader : BaseLoader {
 	public static ushort GetAmountOfBlocks(){return amountOfBlocks;}
 	public static ushort GetAmountOfObjects(){return amountOfObjects;}
 
-	private void InitBlockEncyclopediaECS(){
+	public static void InitBlockEncyclopediaECS(){
     	// Loads all blocks
         for(int i=0; i < blockBook.Length; i++){
             BlockEncyclopediaECS.blockHP[i] = blockBook[i].maxHP;
@@ -138,7 +138,6 @@ public class VoxelLoader : BaseLoader {
 
     public static void Destroy(){
         BlockEncyclopediaECS.Destroy();
-        Compression.Destroy();
     }
 
 

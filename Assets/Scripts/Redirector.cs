@@ -52,6 +52,8 @@ public class Redirector : MonoBehaviour
         this.socket.HandleReceivedMessages();
     }
 
+    public static void SetServerClosure(){SERVER_STARTED = false;}
+
     private void TryStartServer(){
         if(SERVER_STARTED)
             return;
