@@ -17,7 +17,7 @@ public class Snowblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Aqua, 1}, {ThaumicAspect.Gelum, 1}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.SNOW;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class Snowblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

@@ -17,7 +17,7 @@ public class MagnetiteOreblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Potentia, 6}, {ThaumicAspect.Terra, 2}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Ore});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.MAGNETITE_ORE;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class MagnetiteOreblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

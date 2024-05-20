@@ -53,7 +53,7 @@ public class TorchBehaviour : VoxelBehaviour{
 
 		// Init SFX
 		NetMessage SFXMessage = new NetMessage(NetCode.SFXPLAY);
-		SFXMessage.SFXPlay(pos, blockX, blockY, blockZ, (ushort)BlockID.TORCH, newState);
+		SFXMessage.SFXPlay(pos, blockX, blockY, blockZ, VoxelLoader.GetBlockID("BASE_Torch"), newState);
 		cl.server.SendToClients(pos, SFXMessage);
 
 		return 1;
@@ -71,7 +71,7 @@ public class TorchBehaviour : VoxelBehaviour{
 
 		// Init SFX
 		NetMessage SFXMessage = new NetMessage(NetCode.SFXPLAY);
-		SFXMessage.SFXPlay(pos, blockX, blockY, blockZ, (ushort)BlockID.TORCH, cl.chunks[pos].metadata.GetState(blockX, blockY, blockZ));
+		SFXMessage.SFXPlay(pos, blockX, blockY, blockZ, VoxelLoader.GetBlockID("BASE_Torch"), cl.chunks[pos].metadata.GetState(blockX, blockY, blockZ));
 		cl.server.SendToClients(pos, SFXMessage);
 		return 0;
 	}
@@ -149,7 +149,7 @@ public class TorchBehaviour : VoxelBehaviour{
 
 		// Init SFX
 		NetMessage SFXMessage = new NetMessage(NetCode.SFXPLAY);
-		SFXMessage.SFXPlay(pos, x, y, z, (ushort)BlockID.TORCH, ushort.MaxValue);
+		SFXMessage.SFXPlay(pos, x, y, z, VoxelLoader.GetBlockID("BASE_Torch"), ushort.MaxValue);
 		cl.server.SendToClients(pos, SFXMessage);
 
 		EraseMetadata(pos,x,y,z,cl);
@@ -175,7 +175,7 @@ public class TorchBehaviour : VoxelBehaviour{
 
 		// Init SFX
 		NetMessage SFXMessage = new NetMessage(NetCode.SFXPLAY);
-		SFXMessage.SFXPlay(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ, (ushort)BlockID.TORCH, state);
+		SFXMessage.SFXPlay(coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ, VoxelLoader.GetBlockID("BASE_Torch"), state);
 		cl.server.SendToClients(coord.GetChunkPos(), SFXMessage);
 		return 1;
 	}

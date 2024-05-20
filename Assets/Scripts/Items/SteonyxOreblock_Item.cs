@@ -17,7 +17,7 @@ public class SteonyxOreblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Terra, 1}, {ThaumicAspect.Alienis, 1}, {ThaumicAspect.Metallum, 4}, {ThaumicAspect.Tenebrae, 1}, {ThaumicAspect.Tutamen, 1}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Ore});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.STEONYX_ORE;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class SteonyxOreblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

@@ -16,7 +16,7 @@ public class Dirtblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Terra, 2}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable});
 		this.SetDurability(false);
-		this.placeableBlockID = 3;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -24,3 +24,4 @@ public class Dirtblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

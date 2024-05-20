@@ -29,6 +29,11 @@ public struct GenerateUndergroundChunkJob: IJobParallelFor{
     [ReadOnly]
     public NativeArray<byte> peakNoise;
 
+    [ReadOnly]
+    public ushort waterBlockID;
+    [ReadOnly]
+    public ushort stoneBlockID;
+
     public void Execute(int index){
         GenerateUnderground(index);
     }
@@ -57,7 +62,7 @@ public struct GenerateUndergroundChunkJob: IJobParallelFor{
                 if(base_ <= maxMask && base_ >= minMask && mask >= maskThreshold)
                     blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
                 else
-                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
+                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.stoneBlockID;
             }
             SetHeightMapData(x, z);
         }
@@ -65,7 +70,7 @@ public struct GenerateUndergroundChunkJob: IJobParallelFor{
 
     private void SetHeightMapData(int x, int z){
         for(int y = Chunk.chunkDepth-1; y > 0; y--){
-            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != 0 && blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != (ushort)BlockID.WATER){
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != 0 && blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != this.waterBlockID){
                 heightMap[x*(Chunk.chunkWidth+1)+z] = y+1;
                 return;
             }

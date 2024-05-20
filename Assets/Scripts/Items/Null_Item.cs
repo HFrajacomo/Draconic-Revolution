@@ -7,3 +7,4 @@ public class Null_Item : Item
 		this.SetID(ItemID.NONE);
 	}
 }
+

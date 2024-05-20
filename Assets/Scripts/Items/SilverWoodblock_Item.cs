@@ -17,7 +17,7 @@ public class SilverWoodblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Arbor, 2}, {ThaumicAspect.Precantatio, 1}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Wood});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.SILVERWOOD;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class SilverWoodblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

@@ -17,7 +17,7 @@ public class HellMarbleblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Terra, 1}, {ThaumicAspect.Ignis, 1}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Stone});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.HELL_MARBLE;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class HellMarbleblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

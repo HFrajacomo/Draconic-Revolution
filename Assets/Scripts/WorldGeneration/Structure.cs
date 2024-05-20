@@ -37,7 +37,7 @@ public abstract class Structure
     public FillType type;
 
     public HashSet<ushort> overwriteBlocks;
-    public HashSet<BlockID> acceptableBaseBlocks;
+    public HashSet<ushort> acceptableBaseBlocks;
 
 
     /*
@@ -189,7 +189,7 @@ public abstract class Structure
         if(!this.needsBase)
             return true;
 
-        if(this.acceptableBaseBlocks.Contains((BlockID)baseBlock))
+        if(this.acceptableBaseBlocks.Contains(baseBlock))
             return true;
 
         return false;

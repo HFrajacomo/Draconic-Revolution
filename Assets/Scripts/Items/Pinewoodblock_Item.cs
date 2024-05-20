@@ -16,7 +16,7 @@ public class Pinewoodblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Terra, 2}, {ThaumicAspect.Ignis, 1}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Wood});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.PINE_WOOD;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -24,3 +24,4 @@ public class Pinewoodblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

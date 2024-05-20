@@ -17,7 +17,7 @@ public class TinOreblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Metallum, 1}, {ThaumicAspect.Terra, 1}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Ore});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.TIN_ORE;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class TinOreblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

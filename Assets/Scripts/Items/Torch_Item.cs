@@ -17,7 +17,7 @@ public class Torch_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Lux, 1}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Light});
 		this.SetDurability(false);
-		this.placeableBlockID = ushort.MaxValue;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class Torch_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

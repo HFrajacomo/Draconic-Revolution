@@ -99,7 +99,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			// Checks for solid block hit
 			// Checks for hit
-			if(HitAll(current, traveledDistance)){
+			if(HitSolid(current)){
 				FOUND = true;
 				break;
 			}
@@ -167,10 +167,10 @@ public class PlayerRaycast : MonoBehaviour
 			return false;
 		}
 
-		BlockID blockID = (BlockID)loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
+		ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
 		// If hits something
-		if(blockID != BlockID.AIR && (ushort)blockID <= ushort.MaxValue/2){
+		if(blockID != VoxelLoader.GetBlockID("BASE_Air") && (ushort)blockID <= ushort.MaxValue/2){
 			if(loader.chunks.ContainsKey(ck)){ 
 				//print(blockID + " : " + loader.chunks[ck].metadata.GetState(coords.blockX, coords.blockY, coords.blockZ));
 				return true;
@@ -262,7 +262,6 @@ public class PlayerRaycast : MonoBehaviour
 
 		Debug.Log("Name: " + VoxelLoader.CheckName(loader.chunks[current.GetChunkPos()].data.GetCell(current.blockX, current.blockY, current.blockZ)) +  "\nShadowMap: " + loader.chunks[current.GetChunkPos()].data.GetShadow(current.blockX, current.blockY, current.blockZ) + "    " + loader.chunks[current.GetChunkPos()].data.GetShadow(current.blockX, current.blockY, current.blockZ, isNatural:false) + " -> (" + current.blockX + ", " + current.blockY + ", " + current.blockZ + ")\n" +
 		"LightMap: " + loader.chunks[current.GetChunkPos()].data.GetLight(current.blockX, current.blockY, current.blockZ) + "   " + loader.chunks[current.GetChunkPos()].data.GetLight(current.blockX, current.blockY, current.blockZ, isNatural:false) + " -> (" + current.blockX + ", " + current.blockY + ", " + current.blockZ + ")\n" + 
-		"BlockCode: " + (BlockID)loader.chunks[current.GetChunkPos()].data.GetCell(current.blockX, current.blockY, current.blockZ) +
 		"\t\tState: " + loader.chunks[current.GetChunkPos()].metadata.GetState(current.blockX, current.blockY, current.blockZ)  + "\n" +
 		"HeightMap: " + loader.chunks[current.GetChunkPos()].data.GetHeight((byte)current.blockX, (byte)current.blockZ) + "\n" +
 		"RenderMap: " + loader.chunks[current.GetChunkPos()].data.GetRender((byte)current.blockX, (byte)current.blockZ));

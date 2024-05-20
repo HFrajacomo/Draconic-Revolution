@@ -17,7 +17,7 @@ public class CoalOreblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Potentia, 2}, {ThaumicAspect.Ignis, 2}, {ThaumicAspect.Terra, 2}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Ore});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.COAL_ORE;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class CoalOreblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

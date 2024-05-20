@@ -24,6 +24,8 @@ public struct GenerateCoreChunkJob: IJob{
     public NativeArray<byte> erosionNoise;
     [ReadOnly]
     public NativeArray<byte> peakNoise;
+    [ReadOnly]
+    public ushort moonstoneBlockID;
 
     public void Execute(){
         GenerateHeightPivots();
@@ -67,15 +69,13 @@ public struct GenerateCoreChunkJob: IJob{
     }
 
     public void ApplyMap(){
-        ushort moonStone = (ushort)BlockID.MOONSTONE;
-
         if(!pregen){
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
                     for(int y=0; y < Chunk.chunkDepth; y++){ 
                         if(y <= heightMap[x*(Chunk.chunkWidth+1)+z]){
                             if(y >= bottomMap[x*(Chunk.chunkWidth+1)+z]){
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = moonStone;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = moonstoneBlockID;
                             }
                             else{
                                 blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
@@ -97,7 +97,7 @@ public struct GenerateCoreChunkJob: IJob{
                     for(int y=0; y < Chunk.chunkDepth; y++){ 
                         if(y <= heightMap[x*(Chunk.chunkWidth+1)+z]){
                             if(y >= bottomMap[x*(Chunk.chunkWidth+1)+z]){
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = moonStone;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = moonstoneBlockID;
                                 stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
                                 hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;                                
                             }

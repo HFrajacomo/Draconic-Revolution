@@ -28,6 +28,10 @@ public struct PopulateHellChunkJob : IJobParallelFor{
     [ReadOnly]
     public byte xmzmBiome, xmzpBiome, xpzmBiome, xpzpBiome;
 
+    [ReadOnly]
+    public NativeArray<ushort> decorationBlock; // 0: Basalt, 1: Hell Marble, 2: Lava
+
+
     public void Execute(int index){
         int lavaLevel = 136;
 
@@ -74,9 +78,9 @@ public struct PopulateHellChunkJob : IJobParallelFor{
 
                     if(depth <= 5){
                         if(isBasaltFloor)
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.BASALT;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[0];
                         else
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.HELL_MARBLE;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[1];
 
                         depth++;
                     }
@@ -92,9 +96,9 @@ public struct PopulateHellChunkJob : IJobParallelFor{
 
                     if(depthCeil <= 5){
                         if(isBasaltFloor)
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+yC*Chunk.chunkWidth+z] = (ushort)BlockID.BASALT;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+yC*Chunk.chunkWidth+z] = this.decorationBlock[0];
                         else
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+yC*Chunk.chunkWidth+z] = (ushort)BlockID.HELL_MARBLE;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+yC*Chunk.chunkWidth+z] = this.decorationBlock[1];
 
                         depthCeil++;
                     }
@@ -129,7 +133,7 @@ public struct PopulateHellChunkJob : IJobParallelFor{
 
             if(height <= lavaLevel){
                 for(int y=height; y <= lavaLevel; y++){
-                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.LAVA;
+                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[2];
                 }
             }
         }

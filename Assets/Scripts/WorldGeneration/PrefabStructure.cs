@@ -54,7 +54,7 @@ public class TreeSmallA : Structure
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
 		this.needsBase = true;
-		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT, BlockID.SNOW};
+		this.acceptableBaseBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Snow")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -84,7 +84,7 @@ public class TreeMediumA : Structure
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
 		this.needsBase = true;
-		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT, BlockID.SNOW};
+		this.acceptableBaseBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Snow")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -112,7 +112,7 @@ public class DirtPileA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE, (ushort)BlockID.GRASS};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Grass")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -140,7 +140,7 @@ public class DirtPileB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE, (ushort)BlockID.GRASS};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Grass")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -197,7 +197,7 @@ public class TreeBigA : Structure
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
 		this.needsBase = true;
-		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT};
+		this.acceptableBaseBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -226,7 +226,7 @@ public class TreeCrookedMediumA : Structure
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
 		this.needsBase = true;
-		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT, BlockID.SAND};
+		this.acceptableBaseBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Sand")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -255,7 +255,7 @@ public class TreeSmallB : Structure
 		this.type = FillType.FreeSpace;
 		this.overwriteBlocks = new HashSet<ushort>();
 		this.needsBase = true;
-		this.acceptableBaseBlocks = new HashSet<BlockID>(){BlockID.GRASS, BlockID.DIRT, BlockID.SNOW};
+		this.acceptableBaseBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Snow")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -283,7 +283,7 @@ public class IronVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -311,7 +311,7 @@ public class IronVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -339,7 +339,7 @@ public class IronVeinC : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -367,7 +367,7 @@ public class CoalVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -395,7 +395,7 @@ public class CoalVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -423,7 +423,7 @@ public class CoalVeinC : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -451,7 +451,7 @@ public class CopperVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -479,7 +479,7 @@ public class CopperVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -507,7 +507,7 @@ public class TinVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -535,7 +535,7 @@ public class TinVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -563,7 +563,7 @@ public class GoldVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -591,7 +591,7 @@ public class GoldVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -619,7 +619,7 @@ public class AluminiumVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -647,7 +647,7 @@ public class AluminiumVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -675,7 +675,7 @@ public class EmeriumVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -703,7 +703,7 @@ public class EmeriumVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -731,7 +731,7 @@ public class UraniumVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -759,7 +759,7 @@ public class UraniumVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -787,7 +787,7 @@ public class MagnetiteVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -815,7 +815,7 @@ public class MagnetiteVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -843,7 +843,7 @@ public class EmeraldVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -871,7 +871,7 @@ public class EmeraldVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -899,7 +899,7 @@ public class RubyVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -927,7 +927,7 @@ public class RubyVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -955,7 +955,7 @@ public class GravelPile : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.STONE, (ushort)BlockID.DIRT};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Dirt")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -1151,7 +1151,7 @@ public class CobaltVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.HELL_MARBLE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Hell_Marble")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -1179,7 +1179,7 @@ public class CobaltVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.HELL_MARBLE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Hell_Marble")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -1207,7 +1207,7 @@ public class ArditeVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.HELL_MARBLE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Hell_Marble")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -1235,7 +1235,7 @@ public class ArditeVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.HELL_MARBLE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Hell_Marble")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -1263,7 +1263,7 @@ public class GrandiumVeinA : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.MOONSTONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Moonstone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -1291,7 +1291,7 @@ public class GrandiumVeinB : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.MOONSTONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Moonstone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -1319,7 +1319,7 @@ public class SteonyxVein : Structure
 		this.considerAir = false;
 		this.needsBase = false;
 		this.type = FillType.SpecificOverwrite;
-		this.overwriteBlocks = new HashSet<ushort>(){(ushort)BlockID.MOONSTONE};
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Moonstone")};
 
 		Prepare(blocks, hps, states);
 	}

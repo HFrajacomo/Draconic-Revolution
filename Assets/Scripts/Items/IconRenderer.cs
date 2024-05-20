@@ -13,3 +13,4 @@ public class IconRenderer : MonoBehaviour
 		this.filter = null;
 	}
 }
+

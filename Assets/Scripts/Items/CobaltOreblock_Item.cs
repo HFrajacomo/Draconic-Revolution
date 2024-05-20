@@ -17,7 +17,7 @@ public class CobaltOreblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Terra, 1}, {ThaumicAspect.Ignis, 1}, {ThaumicAspect.Metallum, 2}, {ThaumicAspect.Mortus, 1}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Ore});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.COBALT_ORE;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class CobaltOreblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

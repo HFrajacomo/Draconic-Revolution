@@ -17,7 +17,7 @@ public class BlackMarbleBrickblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Terra, 2}, {ThaumicAspect.Ordo, 2}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Stone});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.BLACK_MARBLE_BRICKS;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class BlackMarbleBrickblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

@@ -42,9 +42,14 @@ public class WorldGenerator
     private NativeArray<byte> caveMap;
     private NativeArray<byte> maskMap;
 
+    // Decoration Blocks
+    private NativeArray<ushort> decorationSurfaceBlock;
+    private NativeArray<ushort> decorationUndergroundBlock;
+    private NativeArray<ushort> decorationHellBlock;
+
     // Other Native Objects
     private NativeParallelHashSet<ushort> caveFreeBlocks;
-    private ushort[] caveFreeBlocksArray = new ushort[]{(ushort)BlockID.WATER, (ushort)BlockID.LAVA};
+    private ushort[] caveFreeBlocksArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Lava")};
 
     // Biome Blending Map
     private NativeArray<ushort> biomeBlendingBlock;
@@ -65,6 +70,8 @@ public class WorldGenerator
         caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
         maskMap = new NativeArray<byte>(GenerationSeed.cavemaskNoise, Allocator.Persistent);
 
+        SetupDecorationBlocks();
+
         caveFreeBlocks = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
         FillCaveFreeBlocks();
     }
@@ -81,8 +88,21 @@ public class WorldGenerator
         caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
         maskMap = new NativeArray<byte>(GenerationSeed.cavemaskNoise, Allocator.Persistent);
 
+        SetupDecorationBlocks();
+
         caveFreeBlocks = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
         FillCaveFreeBlocks();
+    }
+
+    private void SetupDecorationBlocks(){
+        this.decorationSurfaceBlock = new NativeArray<ushort>(new ushort[]{VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"),
+            VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Sand"), VoxelLoader.GetBlockID("BASE_Sandstone"), VoxelLoader.GetBlockID("BASE_Ice"),
+            VoxelLoader.GetBlockID("BASE_Snow"), VoxelLoader.GetBlockID("BASE_Clay")}, Allocator.Persistent);
+
+        this.decorationHellBlock = new NativeArray<ushort>(new ushort[]{VoxelLoader.GetBlockID("BASE_Basalt"), VoxelLoader.GetBlockID("BASE_Hell_Marble"), VoxelLoader.GetBlockID("BASE_Lava")}, Allocator.Persistent);
+
+        this.decorationUndergroundBlock = new NativeArray<ushort>(new ushort[]{VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Basalt"), VoxelLoader.GetBlockID("BASE_Water"),
+            VoxelLoader.GetBlockID("BASE_Ice"), VoxelLoader.GetBlockID("BASE_Snow")}, Allocator.Persistent);
     }
 
     public void SetBiomeBlending(ushort[] blendingArray){
@@ -133,6 +153,9 @@ public class WorldGenerator
         this.caveMap.Dispose();
         this.maskMap.Dispose();
         this.biomeBlendingBlock.Dispose();
+        this.decorationHellBlock.Dispose();
+        this.decorationSurfaceBlock.Dispose();
+        this.decorationUndergroundBlock.Dispose();
 
         this.caveFreeBlocks.Dispose();
     }
@@ -313,6 +336,7 @@ public class WorldGenerator
             pos = pos,
             blendingBlock = biomeBlendingBlock,
             biome = this.cacheBiome,
+            decorationBlock = this.decorationSurfaceBlock,
             xpBiome = xpBiome,
             zpBiome = zpBiome,
             zmBiome = zmBiome,
@@ -331,6 +355,7 @@ public class WorldGenerator
             caveNoise = caveMap,
             cavemaskNoise = maskMap,
             caveFreeBlocks = caveFreeBlocks,
+            waterBlockID = VoxelLoader.GetBlockID("BASE_Water"),
             cid = ChunkDepthID.SURFACE
         };
         job = gcavej.Schedule(Chunk.chunkWidth, 2);
@@ -371,6 +396,8 @@ public class WorldGenerator
             caveNoise = caveMap,
             cavemaskNoise = maskMap,
             peakNoise = peakMap,
+            waterBlockID = VoxelLoader.GetBlockID("BASE_Water"),
+            stoneBlockID = VoxelLoader.GetBlockID("BASE_Stone"),
             pregen = isPregen
         };
         JobHandle job = gucj.Schedule(Chunk.chunkWidth, 2);
@@ -384,6 +411,7 @@ public class WorldGenerator
             blockData = voxelData,
             heightMap = heightMap,
             patchNoise = patchMap,
+            decorationBlock = this.decorationSurfaceBlock,
             biome = this.cacheBiome
         };
         job = pucj.Schedule(Chunk.chunkWidth, 4);
@@ -424,6 +452,8 @@ public class WorldGenerator
             caveNoise = caveMap,
             cavemaskNoise = maskMap,
             temperatureNoise = temperatureMap,
+            hellMarbleBlockID = VoxelLoader.GetBlockID("BASE_Hell_Marble"),
+            acasterBlockID = VoxelLoader.GetBlockID("BASE_Acaster"),
             pregen = isPregen
         };
         JobHandle job = ghcj.Schedule();
@@ -484,7 +514,8 @@ public class WorldGenerator
             xmzmBiome = xmzmBiome,
             xmzpBiome = xmzpBiome,
             xpzmBiome = xpzmBiome,
-            xpzpBiome = xpzpBiome
+            xpzpBiome = xpzpBiome,
+            decorationBlock = this.decorationSurfaceBlock
         };
         job = phcj.Schedule(Chunk.chunkWidth, 4);
         job.Complete();
@@ -536,6 +567,7 @@ public class WorldGenerator
             baseNoise = baseMap,
             erosionNoise = erosionMap,
             peakNoise = peakMap,
+            moonstoneBlockID = VoxelLoader.GetBlockID("BASE_Moonstone"),
             pregen = isPregen
         };
         JobHandle job = gccj.Schedule();

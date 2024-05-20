@@ -16,7 +16,7 @@ public class Boneblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Mortus, 6}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.BONE;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -24,3 +24,4 @@ public class Boneblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

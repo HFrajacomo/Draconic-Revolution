@@ -17,7 +17,7 @@ public class IronFloorblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Metallum, 3}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.IRON_FLOOR;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class IronFloorblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

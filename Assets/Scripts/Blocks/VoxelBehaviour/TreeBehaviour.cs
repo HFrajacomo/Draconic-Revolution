@@ -34,8 +34,8 @@ public class TreeBehaviour : VoxelBehaviour{
 	private NetMessage reloadMessage;
 
 
-	private ushort assignedLeafCode = (ushort)BlockID.LEAF;
-	private ushort thisCode = (ushort)BlockID.WOOD;
+	private ushort assignedLeafCode;
+	private ushort thisCode;
 
 	public override void PostDeserializationSetup(bool isClient){
 		this.assignedLeafCode = VoxelLoader.GetBlockID(assignedLeaf);

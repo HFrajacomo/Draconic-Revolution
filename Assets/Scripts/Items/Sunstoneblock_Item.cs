@@ -17,7 +17,7 @@ public class Sunstoneblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Lux, 10}, {ThaumicAspect.Ignis, 2}, {ThaumicAspect.Terra, 1}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Stone});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.SUNSTONE;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class Sunstoneblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

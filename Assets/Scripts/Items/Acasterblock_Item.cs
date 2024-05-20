@@ -16,7 +16,7 @@ public class Acasterblock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Tutamen, 20}, {ThaumicAspect.Terra, 5}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Stone, ItemTag.Forbidden});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.ACASTER;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -24,3 +24,4 @@ public class Acasterblock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

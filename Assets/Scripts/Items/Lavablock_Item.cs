@@ -17,7 +17,7 @@ public class Lavablock_Item : Item, IPlaceable
 		this.SetAspects(new Dictionary<ThaumicAspect, byte>(){{ThaumicAspect.Ignis, 3}});
 		this.SetTags(new List<ItemTag>(){ItemTag.Placeable, ItemTag.Forbidden});
 		this.SetDurability(false);
-		this.placeableBlockID = (ushort)BlockID.LAVA;
+		this.placeableBlockID = 0;
 		this.memoryStorageType = MemoryStorageType.ITEM;
 	}
 
@@ -25,3 +25,4 @@ public class Lavablock_Item : Item, IPlaceable
 		return this.placeableBlockID;
 	}
 }
+

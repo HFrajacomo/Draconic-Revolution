@@ -25,6 +25,9 @@ public struct PopulateSurfaceChunkJob : IJob{
     [ReadOnly]
     public byte xzpBiome, xpzmBiome, xmzpBiome;
 
+    [ReadOnly]
+    public NativeArray<ushort> decorationBlock; // 0: Water, 1: Grass, 2: Dirt, 3: Stone, 4: Sand, 5: Sandstone, 6: Ice, 7: Snow, 8: Clay 
+
     public void Execute(){
         ApplySurfaceDecoration(biome);
         ApplyBiomeBlending();
@@ -43,14 +46,14 @@ public struct PopulateSurfaceChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER)
+                        if(blockCode == this.decorationBlock[0])
                             depth++;
                         else if(depth == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.GRASS;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[1];
                             depth++;
                         }
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.DIRT;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[2];
                             depth++;
                         }
 
@@ -76,18 +79,18 @@ public struct PopulateSurfaceChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER)
+                        if(blockCode == this.decorationBlock[0])
                             depth++;
                         else if(isStoneFloor && depth < 5){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[3];
                             depth++;
                         } 
                         else if(depth == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.GRASS;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[1];
                             depth++;
                         }
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.DIRT;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[2];
                             depth++;
                         }
 
@@ -105,10 +108,10 @@ public struct PopulateSurfaceChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER)
+                        if(blockCode == this.decorationBlock[0])
                             depth++;
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[4];
                             depth++; 
                         }
 
@@ -126,14 +129,14 @@ public struct PopulateSurfaceChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER)
+                        if(blockCode == this.decorationBlock[0])
                             depth++;
                         else if(depth == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.GRASS;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[1];
                             depth++;
                         }
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.DIRT;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[2];
                             depth++;
                         }
 
@@ -151,13 +154,13 @@ public struct PopulateSurfaceChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER)
+                        if(blockCode == this.decorationBlock[0])
                             depth++;
                         else{
                             if(depth != 5)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[4];
                             else
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SANDSTONE;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[5];
 
                             depth++; 
                         }
@@ -185,16 +188,16 @@ public struct PopulateSurfaceChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER){
+                        if(blockCode == this.decorationBlock[0]){
                             depth++;
                         }
                         else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
                             if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = this.decorationBlock[6];
                             break;
                         }
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[7];
                             depth++; 
                         }
 
@@ -225,20 +228,20 @@ public struct PopulateSurfaceChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER){
+                        if(blockCode == this.decorationBlock[0]){
                             depth++;
                         }
                         else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
                             if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = this.decorationBlock[6];
                             break;
                         }
                         else if(isStoneFloor && depth < 5){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.STONE;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[3];
                             depth++;
                         } 
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[7];
                             depth++;
                         }
 
@@ -264,16 +267,16 @@ public struct PopulateSurfaceChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER){
+                        if(blockCode == this.decorationBlock[0]){
                             depth++;
                         }
                         else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
                             if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = this.decorationBlock[6];
                             break;
                         }
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[7];
                             depth++; 
                         }
 
@@ -299,16 +302,16 @@ public struct PopulateSurfaceChunkJob : IJob{
                     for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == (ushort)BlockID.WATER){
+                        if(blockCode == this.decorationBlock[0]){
                             depth++;
                         }
                         else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
                             if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = this.decorationBlock[6];
                             break;
                         }
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[7];
                             depth++;
                         }
 
@@ -344,19 +347,19 @@ public struct PopulateSurfaceChunkJob : IJob{
 
                 blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+height*Chunk.chunkWidth+z];
 
-                if(blockCode != (ushort)BlockID.WATER)
+                if(blockCode != this.decorationBlock[0])
                     continue;
                 else{
                     for(int y=height-1; y > 0; y--){
                         blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode != (ushort)BlockID.WATER){
+                        if(blockCode != this.decorationBlock[0]){
                             depth++;
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SAND;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[4];
 
                             if(hasClay && y >= Constants.WORLD_CLAY_MIN_LEVEL && y <= Constants.WORLD_CLAY_MAX_LEVEL){
                                 if(NoiseMaker.PatchNoise1D((x ^ z)*y*GenerationSeed.patchNoiseStep4, patchNoise) >= clayThreshold2){
-                                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.CLAY;
+                                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[8];
                                 }
                             }
                         }

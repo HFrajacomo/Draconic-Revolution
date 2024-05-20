@@ -17,22 +17,22 @@ public static class Compression{
 
 
 	// Pallete Initializers
-	private static BlockID[] basicArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.GRAVEL, BlockID.PREGEN_AIR};
-	private static BlockID[] grasslandsArray = new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.LEAF, BlockID.GRAVEL, BlockID.PREGEN_AIR};
-	private static BlockID[] oceanArray = new BlockID[]{BlockID.AIR, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.GRAVEL, BlockID.PREGEN_AIR};
-	private static BlockID[] forestArray = new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.GRAVEL, BlockID.PREGEN_AIR};
-	private static BlockID[] icelandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.PINE_LEAF, BlockID.PINE_WOOD, BlockID.SNOW, BlockID.ICE, BlockID.GRAVEL, BlockID.PREGEN_AIR};
-	private static BlockID[] sandlandsArray = new BlockID[]{BlockID.AIR, BlockID.STONE, BlockID.WATER, BlockID.SAND, BlockID.SANDSTONE, BlockID.GRAVEL, BlockID.PREGEN_AIR};
-	private static BlockID[] hellArray = new BlockID[]{BlockID.AIR, BlockID.HELL_MARBLE, BlockID.LAVA, BlockID.BASALT, BlockID.BONE, BlockID.PREGEN_AIR};
-	private static BlockID[] coreArray = new BlockID[]{BlockID.AIR, BlockID.MOONSTONE, BlockID.PREGEN_AIR};
+	private static ushort[] basicArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
+	private static ushort[] grasslandsArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Leaves"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
+	private static ushort[] oceanArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Sand"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
+	private static ushort[] forestArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Sand"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
+	private static ushort[] icelandsArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Pine_Leaves"), VoxelLoader.GetBlockID("BASE_Pine_Log"), VoxelLoader.GetBlockID("BASE_Snow"), VoxelLoader.GetBlockID("BASE_Ice"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
+	private static ushort[] sandlandsArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Sand"), VoxelLoader.GetBlockID("BASE_Sandstone"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
+	private static ushort[] hellArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Hell_Marble"), VoxelLoader.GetBlockID("BASE_Lava"), VoxelLoader.GetBlockID("BASE_Basalt"), VoxelLoader.GetBlockID("BASE_Bone"), ushort.MaxValue/2};
+	private static ushort[] coreArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Moonstone"), ushort.MaxValue/2};
 
-	private static BlockID[] structureArray =
-						 new BlockID[]{BlockID.AIR, BlockID.GRASS, BlockID.DIRT, BlockID.STONE, BlockID.IRON_ORE, BlockID.WATER, BlockID.LEAF,
-										BlockID.PINE_WOOD, BlockID.PINE_LEAF, BlockID.COAL_ORE, BlockID.COPPER_ORE, BlockID.TIN_ORE, BlockID.ALUMINIUM_ORE,
-										BlockID.MAGNETITE_ORE, BlockID.EMERIUM_ORE, BlockID.GOLD_ORE, BlockID.COBALT_ORE, BlockID.ARDITE_ORE, BlockID.GRANDIUM_ORE,
-										BlockID.STEONYX_ORE, BlockID.GRAVEL, BlockID.BONE}; 
+	private static ushort[] structureArray =
+						 new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Iron_Ore"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Leaves"),
+										VoxelLoader.GetBlockID("BASE_Pine_Log"), VoxelLoader.GetBlockID("BASE_Pine_Leaves"), VoxelLoader.GetBlockID("BASE_Coal_Ore"), VoxelLoader.GetBlockID("BASE_Copper_Ore"), VoxelLoader.GetBlockID("BASE_Tin_Ore"), VoxelLoader.GetBlockID("BASE_Aluminium_Ore"),
+										VoxelLoader.GetBlockID("BASE_Magnetite_Ore"), VoxelLoader.GetBlockID("BASE_Emerium_Ore"), VoxelLoader.GetBlockID("BASE_Gold_Ore"), VoxelLoader.GetBlockID("BASE_Cobalt_Ore"), VoxelLoader.GetBlockID("BASE_Ardite_Ore"), VoxelLoader.GetBlockID("BASE_Grandium_Ore"),
+										VoxelLoader.GetBlockID("BASE_Steonyx_Ore"), VoxelLoader.GetBlockID("BASE_Gravel"), VoxelLoader.GetBlockID("BASE_Bone")}; 
 
-	private static BlockID[] metadataArray = new BlockID[]{(BlockID)0, (BlockID)1, (BlockID)(ushort.MaxValue)};
+	private static ushort[] metadataArray = new ushort[]{0, 1, ushort.MaxValue};
 
 	// Palletes
 	public static readonly NativeParallelHashSet<ushort> basicPallete;
