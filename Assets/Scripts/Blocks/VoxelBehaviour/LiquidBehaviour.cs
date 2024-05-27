@@ -149,7 +149,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.PLACE, pos, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, this.liquidCode, cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ), cl.chunks[thisPos.GetChunkPos()].metadata.GetHP(thisPos.blockX, thisPos.blockY, thisPos.blockZ));
-		
+		cl.chunks[pos].data.SetCell(x, y, z, this.liquidCode);
+
 		cl.budscheduler.ScheduleBUD(new BUDSignal(BUDCode.CHANGE, thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing), this.viscosityDelay);
 
 		// If has been placed by player
@@ -161,6 +162,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 		this.Update(thisPos, BUDCode.CHANGE, -1, cl);
 		cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
+		cl.server.SendToClients(pos, message);
 		EmitWaterBUD(thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), cl);
 		return 0;
 	}
@@ -267,6 +269,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 				// If should expand downwards
 				if(below == 0 || (below == this.liquidCode && ShouldStateOverpower(state, belowState)) || IsWashable(below, cl)){
+					Debug.Log("Expand below");
 					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					// If there are at least one adjascent Still Water 3 -> Expand falling blocks

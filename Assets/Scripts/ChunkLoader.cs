@@ -43,6 +43,7 @@ public class ChunkLoader : MonoBehaviour
     public Client client;
     public BiomeHandler biomeHandler = new BiomeHandler();
     public PlayerMovement playerMovement;
+    public PlayerRaycast playerRaycast; // Set in UNITY!
     public VolumeProfile volume;
     public GameObject mainControllerManager;
     public AudioManager audioManager;

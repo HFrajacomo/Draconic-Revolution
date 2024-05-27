@@ -1281,7 +1281,7 @@ public class Server
 			}
 
 			cachedBUD = new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]);
-			cl.budscheduler.ScheduleBUD(cachedBUD, tickOffset);			 
+			cl.budscheduler.ScheduleBUD(cachedBUD, tickOffset); 
 		
 			faceCounter++;
 		}
