@@ -16,7 +16,7 @@ public class Item
 	public string name;
 	public string description;
 
-	public ushort id;
+	private ushort id;
 
 	// Storage
 	public byte memoryType;
@@ -24,9 +24,6 @@ public class Item
 
 	// Inventory
 	public byte stacksize;
-	public uint price;
-	public uint priceVariation;
-
 	private HashSet<string> tags;
 	public bool hasDurability;
 
@@ -86,10 +83,9 @@ public class Item
 
     // Properties Set
 	public void SetID(ushort i){this.id = i;}
-	public void SetPrice(uint u){this.price = u;}
-	public void SetPriceVar(uint u){this.priceVariation = u;}
 	public void SetTags(List<string> lit){this.tags = new HashSet<string>(lit);}
 	public void SetDurability(bool b){this.hasDurability = b;}
+	public ushort GetID(){return this.id;}
 
 	// Basic Operations
 	public virtual void OnHold(ChunkLoader cl, ItemStack its){

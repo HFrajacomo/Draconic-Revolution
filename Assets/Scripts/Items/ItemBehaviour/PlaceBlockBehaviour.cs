@@ -9,8 +9,8 @@ public class PlaceBlockBehaviour : ItemBehaviour{
 	public override void OnUseClient(ChunkLoader cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
 		Item it = its.GetItem();
 
-		if(this.PlaceBlock(it.id, (byte)(its.GetAmount()-1), targetBlock, referencePoint1, referencePoint2, referencePoint3, cl)){
-			cl.playerRaycast.lastBlockPlaced = it.id;
+		if(this.PlaceBlock(it.GetID(), (byte)(its.GetAmount()-1), targetBlock, referencePoint1, referencePoint2, referencePoint3, cl)){
+			cl.playerRaycast.lastBlockPlaced = it.GetID();
 			if(its.Decrement()){
 				cl.playerEvents.hotbar.SetNull(cl.PlayerEvents.hotbarSlot);
 				cl.playerEvents.DestroyItemEntity();

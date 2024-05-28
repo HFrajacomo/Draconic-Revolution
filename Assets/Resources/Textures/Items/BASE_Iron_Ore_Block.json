@@ -1,0 +1,15 @@
+{
+    "codename": "BASE_Iron_Ore_Block",
+    "name":  "Iron Ore Block",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Iron_Ore"
+}
