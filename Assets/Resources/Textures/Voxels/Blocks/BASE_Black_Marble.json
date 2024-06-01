@@ -21,12 +21,3 @@
         "tileSide":  "BASE_Black_Marble",
         "tileBottom":  "BASE_Black_Marble"
 }
---->Behaviours
-{
-    "onBreak": "BreakDropItemBehaviour"
-}
---->BreakDropItemBehaviour
-{
-    "minDropQuantity": 1,
-    "maxDropQuantity": 1
-}

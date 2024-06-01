@@ -1,0 +1,7 @@
+{
+    "codename": "BASE_NULL",
+    "name":  "NULL",
+    "memoryType": 0,
+    "stacksize": 0,
+    "hasDurability": false
+}

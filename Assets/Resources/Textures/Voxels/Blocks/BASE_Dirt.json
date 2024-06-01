@@ -27,6 +27,7 @@
 }
 --->BreakDropItemBehaviour
 {
+    "droppedItem": "BASE_Dirt",
     "minDropQuantity": 1,
     "maxDropQuantity": 1
 }

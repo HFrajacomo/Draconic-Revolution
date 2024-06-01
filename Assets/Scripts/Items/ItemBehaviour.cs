@@ -3,7 +3,7 @@ using UnityEngine;
 using Unity.Mathematics;
 
 [Serializable]
-public abstract class ItemBehaviour {
+public abstract class ItemBehaviour{
 	// Overloads
 	public override string ToString(){return GetType().Name;}
 

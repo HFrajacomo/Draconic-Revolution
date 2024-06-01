@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Iron_Ore",
     "tileBottom":  "BASE_Iron_Ore"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Iron_Ore_Block",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

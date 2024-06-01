@@ -71,7 +71,6 @@ public class VoxelLoader : BaseLoader {
 		LoadTextureNormalIntensity();
 		LoadVoxels();
 		CreateTextureAtlases();
-		RunPostDeserializationRoutine();
 		InitBlockEncyclopediaECS();
 
 		return true;
@@ -366,7 +365,7 @@ public class VoxelLoader : BaseLoader {
 		}
 	}
 
-	private void RunPostDeserializationRoutine(){
+	public void RunPostDeserializationRoutine(){
 		List<Vector2> objUV = new List<Vector2>();
 		int2 atSize;
 		int texCode;

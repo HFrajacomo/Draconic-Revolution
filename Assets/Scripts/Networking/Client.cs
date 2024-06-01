@@ -540,7 +540,7 @@ public class Client
 
 	// Signals Raycast to giveback the last placed item
 	private void PlacementDenied(){
-		ItemStack its = new ItemStack(PlayerRaycast.lastBlockPlaced, 1);
+		ItemStack its = new ItemStack(cl.playerRaycast.lastBlockPlaced, 1);
 		this.raycast.playerEvents.hotbar.AddStack(its, this.raycast.playerEvents.hotbar.CanFit(its));
 		this.raycast.playerEvents.DrawHotbar();
 	}
@@ -553,7 +553,7 @@ public class Client
 
 		pos = NetDecoder.ReadFloat3(data, 1);
 		rot = NetDecoder.ReadFloat3(data, 13);
-		its = new ItemStack((ItemID)NetDecoder.ReadUshort(data, 25), data[27]);
+		its = new ItemStack(NetDecoder.ReadUshort(data, 25), data[27]);
 		code = NetDecoder.ReadUlong(data, 28);
 
 		if(this.entityHandler.Contains(EntityType.DROP, code)){

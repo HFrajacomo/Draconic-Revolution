@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.U2D;
 
 public class PlayerEvents : MonoBehaviour
 {
@@ -11,9 +10,9 @@ public class PlayerEvents : MonoBehaviour
 	public Inventory hotbar = new Inventory(InventoryType.HOTBAR);
 	public Image[] hotbarIcon;
 	public Text[] hotbarText;
-	public SpriteAtlas iconAtlas;
 	public RectTransform hotbar_selected;
 	public InventoryUIPlayer invUIPlayer;
+	public Material itemIconMaterial;
 
 	// Constant colors
 	private readonly Color TRANSPARENT = new Color(1f, 1f, 1f, 0f);
@@ -32,6 +31,10 @@ public class PlayerEvents : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+    	foreach(Image img in hotbarIcon){
+    		img.material = Instantiate(this.itemIconMaterial);
+    	}
+
     	this.Scroll1();
 
 
@@ -136,12 +139,12 @@ public class PlayerEvents : MonoBehaviour
 		ItemStack its = hotbar.GetSlot(slot);
 
 		if(its == null){
-			hotbarIcon[slot].sprite = null;
+			hotbarIcon[slot].material.SetTexture("_Texture", null);
 			hotbarIcon[slot].color = this.TRANSPARENT;		
 			hotbarText[slot].text = "";
 		}
 		else{
-			hotbarIcon[slot].sprite = iconAtlas.GetSprite(its.GetItemIconName());
+			hotbarIcon[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
 			hotbarIcon[slot].color = this.WHITE;
 
 			if(its.GetStacksize() > 1)		
@@ -190,7 +193,7 @@ public class PlayerEvents : MonoBehaviour
 			return;
 		}
 		// If had item and switched to same
-		if(its.GetIconID() == PlayerEvents.itemInHand.iconID)
+		if(its.GetID() == PlayerEvents.itemInHand.GetID())
 			return;
 
 		// Else if switched from something to something else

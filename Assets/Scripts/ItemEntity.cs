@@ -89,18 +89,20 @@ public class ItemEntity : MonoBehaviour
 		this.mesh.subMeshCount = 2;
 		this.mesh.SetVertices(ItemMeshData.vertices);
 		this.mesh.SetTriangles(ItemMeshData.imageTris, 0);
-		UpdateMeshUV(this.its.GetIconID());
+		UpdateMeshUV();
 		this.mesh.RecalculateNormals();
+
+		this.meshRenderer.materials[0].SetTexture("_Texture", ItemLoader.GetSprite(this.its));
 
 		this.meshFilter.sharedMesh = this.mesh;
 	}
 
 	public void ChangeItem(Item item){
-		UpdateMeshUV(item.iconID);
+		UpdateMeshUV();
 	}
 
-	private void UpdateMeshUV(uint iconID){
-		this.mesh.SetUVs(0, Icon.GetItemEntityUV(iconID));
+	private void UpdateMeshUV(){
+		this.mesh.SetUVs(0, Icon.GetItemEntityUV());
 	}
 
 	public ItemStack GetItemStack(){

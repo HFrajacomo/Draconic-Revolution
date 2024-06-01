@@ -21,12 +21,3 @@
     "tileSide":  "BASE_Ardite_Ore",
     "tileBottom":  "BASE_Ardite_Ore"
 }
---->Behaviours
-{
-    "onBreak": "BreakDropItemBehaviour"
-}
---->BreakDropItemBehaviour
-{
-    "minDropQuantity": 1,
-    "maxDropQuantity": 1
-}

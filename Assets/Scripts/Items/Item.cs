@@ -33,6 +33,14 @@ public class Item
 	private ItemBehaviour onUseServerBehaviour;
 
 
+	public Item Copy(){
+		return (Item)this.MemberwiseClone();
+	}
+
+	public override string ToString(){
+		return $"{this.codename}:{this.id}";
+	}
+
 	// Checks if this item contains a given tag
 	public bool ContainsTag(string tag){
 		return this.tags.Contains(tag);
@@ -78,30 +86,34 @@ public class Item
 	// EVENT GET/SET
 	public ItemBehaviour GetOnHold() { return onHoldBehaviour; }
     public void SetOnHold(ItemBehaviour val) { onHoldBehaviour = val; }
-	public ItemBehaviour GetOnUse() { return onUseBehaviour; }
-    public void SetOnUse(ItemBehaviour val) { onUseBehaviour = val; }
+	public ItemBehaviour GetOnUseClient() { return onUseClientBehaviour; }
+    public void SetOnUseClient(ItemBehaviour val) { onUseClientBehaviour = val; }
+	public ItemBehaviour GetOnUseServer() { return onUseServerBehaviour; }
+    public void SetOnUseServer(ItemBehaviour val) { onUseServerBehaviour = val; }
 
     // Properties Set
 	public void SetID(ushort i){this.id = i;}
 	public void SetTags(List<string> lit){this.tags = new HashSet<string>(lit);}
 	public void SetDurability(bool b){this.hasDurability = b;}
 	public ushort GetID(){return this.id;}
+	public void SetMemoryStorageType(){this.memoryStorageType = (MemoryStorageType)this.memoryType;}
+	public MemoryStorageType GetMemoryStorageType(){return (MemoryStorageType)this.memoryType;}
 
 	// Basic Operations
 	public virtual void OnHold(ChunkLoader cl, ItemStack its){
 		if(this.onHoldBehaviour == null)
 			return;
-		this.onHoldBehaviour.OnHold(cl);
+		this.onHoldBehaviour.OnHold(cl, its);
 	}
 	public virtual void OnUseClient(ChunkLoader cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
 		if(this.onUseClientBehaviour == null)
 			return;
-		this.onUseClientBehaviour.OnUseClient(cl, its, usagePos, referencePoint, targetBlock);
+		this.onUseClientBehaviour.OnUseClient(cl, its, usagePos, targetBlock, referencePoint1, referencePoint2, referencePoint3);
 	}
 	public virtual void OnUseServer(ChunkLoader_Server cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
 		if(this.onUseServerBehaviour == null)
 			return;
-		this.onUseServerBehaviour.OnUseClient(cl, its, usagePos, referencePoint, targetBlock);
+		this.onUseServerBehaviour.OnUseServer(cl, its, usagePos, targetBlock, referencePoint1, referencePoint2, referencePoint3);
 	}
 
 	public void SetupAfterSerialize(bool isClient){

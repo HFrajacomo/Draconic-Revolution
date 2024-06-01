@@ -66,7 +66,7 @@ public static class CharacterCreationData {
 
 	// Metadata
 	private static string remainingPoints;
-	private static readonly Item NULL_ITEM = new Null_Item();
+	private static readonly Item NULL_ITEM = ItemLoader.GetCopy("BASE_NULL");
 
 
 	public static void Reset(){

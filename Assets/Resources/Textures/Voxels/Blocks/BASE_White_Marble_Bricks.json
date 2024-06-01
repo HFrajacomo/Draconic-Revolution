@@ -21,12 +21,3 @@
     "tileSide":  "BASE_White_Marble_Bricks",
     "tileBottom":  "BASE_White_Marble_Bricks"
 }
---->Behaviours
-{
-    "onBreak": "BreakDropItemBehaviour"
-}
---->BreakDropItemBehaviour
-{
-    "minDropQuantity": 1,
-    "maxDropQuantity": 1
-}

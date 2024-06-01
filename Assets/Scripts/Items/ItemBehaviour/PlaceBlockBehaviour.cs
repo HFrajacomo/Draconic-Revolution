@@ -12,11 +12,11 @@ public class PlaceBlockBehaviour : ItemBehaviour{
 		if(this.PlaceBlock(it.GetID(), (byte)(its.GetAmount()-1), targetBlock, referencePoint1, referencePoint2, referencePoint3, cl)){
 			cl.playerRaycast.lastBlockPlaced = it.GetID();
 			if(its.Decrement()){
-				cl.playerEvents.hotbar.SetNull(cl.PlayerEvents.hotbarSlot);
+				cl.playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
 				cl.playerEvents.DestroyItemEntity();
 			}
-			cl.playerEvents.DrawHotbarSlot(cl.PlayerEvents.hotbarSlot);
-			cl.playerEvents.invUIPlayer.DrawSlot(1, cl.PlayerEvents.hotbarSlot);
+			cl.playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
+			cl.playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);
 		}
 	}
 
@@ -30,7 +30,7 @@ public class PlaceBlockBehaviour : ItemBehaviour{
 			return false;
 
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:loader.playerEvents.hotbarSlot, newQuantity:newQuantity);
+		message.DirectBlockUpdate(BUDCode.PLACE, targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, loader.playerRaycast.facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerEvents.hotbarSlot, newQuantity:newQuantity);
 		loader.client.Send(message.GetMessage(), message.size);
 		return true;
 	}

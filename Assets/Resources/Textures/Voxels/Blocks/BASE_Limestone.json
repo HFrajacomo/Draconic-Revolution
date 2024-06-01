@@ -21,12 +21,3 @@
     "tileSide":  "BASE_Limestone",
     "tileBottom":  "BASE_Limestone"
 }
---->Behaviours
-{
-    "onBreak": "BreakDropItemBehaviour"
-}
---->BreakDropItemBehaviour
-{
-    "minDropQuantity": 1,
-    "maxDropQuantity": 1
-}

@@ -21,12 +21,3 @@
     "tileSide":  "BASE_Moonstone",
     "tileBottom":  "BASE_Moonstone"
 }
---->Behaviours
-{
-    "onBreak": "BreakDropItemBehaviour"
-}
---->BreakDropItemBehaviour
-{
-    "minDropQuantity": 1,
-    "maxDropQuantity": 1
-}

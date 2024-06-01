@@ -27,6 +27,7 @@
 }
 --->BreakDropItemBehaviour
 {
+    "droppedItem": "BASE_Stone_Bricks",
     "minDropQuantity": 1,
     "maxDropQuantity": 1
 }

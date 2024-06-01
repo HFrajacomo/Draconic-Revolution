@@ -5,7 +5,7 @@ using UnityEngine;
 public abstract class PlayerServerInventorySlot{
 	protected MemoryStorageType type;
 	protected int slotMemorySize;
-	protected ItemID itemID;
+	protected ushort itemID;
 	protected byte quantity;
 
 	public int GetSlotMemorySize(){return this.slotMemorySize;}
@@ -20,7 +20,7 @@ public abstract class PlayerServerInventorySlot{
 		int currentSlot = initialSlot;
 
 		MemoryStorageType cachedType;
-		ItemID cachedId;
+		ushort cachedId;
 		byte cachedQuantity;
 		uint cachedDurability;
 		byte cachedRefine;
@@ -37,14 +37,14 @@ public abstract class PlayerServerInventorySlot{
 					slots[currentSlot] = new EmptyPlayerInventorySlot();
 					break;
 				case MemoryStorageType.ITEM:
-					cachedId = (ItemID)NetDecoder.ReadUshort(data, currentPosition);
+					cachedId = NetDecoder.ReadUshort(data, currentPosition);
 					currentPosition += 2;
 					cachedQuantity = NetDecoder.ReadByte(data, currentPosition);
 					currentPosition++;
 					slots[currentSlot] = new ItemPlayerInventorySlot(cachedId, cachedQuantity);
 					break;
 				case MemoryStorageType.WEAPON:
-					cachedId = (ItemID)NetDecoder.ReadUshort(data, currentPosition);
+					cachedId = NetDecoder.ReadUshort(data, currentPosition);
 					currentPosition += 2;
 					cachedDurability = NetDecoder.ReadUint(data, currentPosition);
 					currentPosition += 8;
@@ -54,7 +54,7 @@ public abstract class PlayerServerInventorySlot{
 					currentPosition++;
 					break;
 				case MemoryStorageType.STORAGE:
-					cachedId = (ItemID)NetDecoder.ReadUshort(data, currentPosition);
+					cachedId = NetDecoder.ReadUshort(data, currentPosition);
 					currentPosition += 2;
 					cachedInventorySize = NetDecoder.ReadByte(data, currentPosition);
 					currentPosition++;
@@ -96,7 +96,7 @@ public class EmptyPlayerInventorySlot : PlayerServerInventorySlot {
 Inventory Slot that contains a basic and untagged item
 */
 public class ItemPlayerInventorySlot : PlayerServerInventorySlot {
-	public ItemPlayerInventorySlot(ItemID id, byte quantity){
+	public ItemPlayerInventorySlot(ushort id, byte quantity){
 		this.type = MemoryStorageType.ITEM;
 		this.slotMemorySize = 4;
 		this.itemID = id;
@@ -105,7 +105,7 @@ public class ItemPlayerInventorySlot : PlayerServerInventorySlot {
 
 	public override int SaveToBuffer(byte[] buffer, int init){
 		NetDecoder.WriteByte((byte)this.type, buffer, init);
-		NetDecoder.WriteUshort((ushort)this.itemID, buffer, init+1);
+		NetDecoder.WriteUshort(this.itemID, buffer, init+1);
 		NetDecoder.WriteByte(this.quantity, buffer, init+3);
 		return this.slotMemorySize;
 	}
@@ -127,7 +127,7 @@ public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
 	private byte refineLevel;
 	private EnchantmentType enchant;
 
-	public WeaponPlayerInventorySlot(ItemID id, uint currentDurability, byte refineLevel, EnchantmentType enchant){
+	public WeaponPlayerInventorySlot(ushort id, uint currentDurability, byte refineLevel, EnchantmentType enchant){
 		this.type = MemoryStorageType.WEAPON;
 		this.slotMemorySize = 9;
 		this.itemID = id;
@@ -138,7 +138,7 @@ public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
 
 	public override int SaveToBuffer(byte[] buffer, int init){
 		NetDecoder.WriteByte((byte)this.type, buffer, init);
-		NetDecoder.WriteUshort((ushort)this.itemID, buffer, init+1);
+		NetDecoder.WriteUshort(this.itemID, buffer, init+1);
 		NetDecoder.WriteUint(this.currentDurability, buffer, init+3);
 		NetDecoder.WriteByte(this.refineLevel, buffer, init+7);
 		NetDecoder.WriteByte((byte)this.enchant, buffer, init+8);
@@ -157,7 +157,7 @@ public class StoragePlayerInventorySlot : PlayerServerInventorySlot {
 	private byte inventorySize;
 	private PlayerServerInventorySlot[] inventory;
 
-	public StoragePlayerInventorySlot(ItemID id, byte inventorySize, PlayerServerInventorySlot[] inventory){
+	public StoragePlayerInventorySlot(ushort id, byte inventorySize, PlayerServerInventorySlot[] inventory){
 		int size = 0;
 
 		this.type = MemoryStorageType.STORAGE;
@@ -180,7 +180,7 @@ public class StoragePlayerInventorySlot : PlayerServerInventorySlot {
 		int size = 0;
 
 		NetDecoder.WriteByte((byte)this.type, buffer, init);
-		NetDecoder.WriteUshort((ushort)this.itemID, buffer, init+1);
+		NetDecoder.WriteUshort(this.itemID, buffer, init+1);
 		
 		if(this.inventory == null){
 			for(int i=0; i < this.inventorySize; i++){

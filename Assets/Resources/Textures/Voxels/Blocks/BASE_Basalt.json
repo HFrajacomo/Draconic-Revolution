@@ -27,6 +27,7 @@
 }
 --->BreakDropItemBehaviour
 {
+    "droppedItem" : "BASE_Basalt",
     "minDropQuantity": 1,
     "maxDropQuantity": 1
 }

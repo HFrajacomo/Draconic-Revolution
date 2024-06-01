@@ -17,7 +17,8 @@ public class TreeBehaviour : VoxelBehaviour{
 	public string thisWood;
 
 	public byte maxDropQuantity;
-	public Item droppedItem;
+	public string droppedItem;
+	private Item item;
 
 	// Leaves Checker
 	private List<CastCoord> openList = new List<CastCoord>();
@@ -40,6 +41,7 @@ public class TreeBehaviour : VoxelBehaviour{
 	public override void PostDeserializationSetup(bool isClient){
 		this.assignedLeafCode = VoxelLoader.GetBlockID(assignedLeaf);
 		this.thisCode = VoxelLoader.GetBlockID(thisWood);
+		this.item = ItemLoader.GetCopy(this.droppedItem);
 	}
 
 	// Activates OnBreak event -> Emits normal BUD, emits special BUD to breadt-first search leaves
@@ -55,13 +57,13 @@ public class TreeBehaviour : VoxelBehaviour{
 		RunLeavesRecursion(cl, coord);
 
 		// Drops excess wood
-		for(i=0; i < amountOfWoodDestroyed/this.droppedItem.stacksize; i += this.droppedItem.stacksize){
+		for(i=0; i < amountOfWoodDestroyed/this.item.stacksize; i += this.item.stacksize){
 	        cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
-	            Item.GenerateForceVector(), this.droppedItem, this.droppedItem.stacksize, cl);
-        }
+	            Item.GenerateForceVector(), this.item, this.item.stacksize, cl);
+    }
 
-        cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
-            Item.GenerateForceVector(), this.droppedItem, (byte)(amountOfWoodDestroyed - i), cl);
+		cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
+            Item.GenerateForceVector(), this.item, (byte)(amountOfWoodDestroyed - i), cl);
 
 		return 0;
 	}
@@ -213,7 +215,7 @@ public class TreeBehaviour : VoxelBehaviour{
 			}
 		}
 
-		return RunWoodRecursion(cl);
+		return RunWoodRecursion(cl) + 1;
 	}
 
 	// Handles search of Wood Blocks

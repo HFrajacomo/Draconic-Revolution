@@ -170,7 +170,7 @@ public class EntityFileHandler{
 		int currentTick;
 		float3 position;
 		uint currentDurability;
-		Item item = Item.GenerateItem(ItemID.STONEBLOCK);
+		Item item = ItemLoader.GetCopy("BASE_Stone");
 		Weapon weapon = item as Weapon;
 
 		while(i < chunkSize){
@@ -193,7 +193,7 @@ public class EntityFileHandler{
 						i += 4;
 						position = NetDecoder.ReadFloat3(mainBuffer, i);
 						i += 12;
-						item = Item.GenerateItem(itemID);
+						item = ItemLoader.GetCopy(itemID);
 						break;
 					case MemoryStorageType.WEAPON:
 						state = mainBuffer[i];
@@ -210,7 +210,7 @@ public class EntityFileHandler{
 						i += 4;
 						position = NetDecoder.ReadFloat3(mainBuffer, i);
 						i += 12;
-						weapon = (Weapon)Item.GenerateItem(itemID);
+						weapon = (Weapon)ItemLoader.GetCopy(itemID);;
 						weapon.currentDurability = currentDurability;
 						weapon.refineLevel = refineLevel;
 						weapon.extraEffect = (EnchantmentType)enchantment;
@@ -275,13 +275,13 @@ public class EntityFileHandler{
 		mainBuffer[mainIndex] = (byte)EntityType.DROP;
 		mainIndex++;
 
-		switch(this.cachedItem.memoryStorageType){
+		switch(this.cachedItem.GetMemoryStorageType()){
 			case MemoryStorageType.ITEM:
 				mainBuffer[mainIndex] = (byte)MemoryStorageType.ITEM;
 				mainIndex++;
 				mainBuffer[mainIndex] = (byte)ai.GetState();
 				mainIndex++;
-				NetDecoder.WriteUshort((ushort)this.cachedItem.id, mainBuffer, mainIndex);
+				NetDecoder.WriteUshort((ushort)this.cachedItem.GetID(), mainBuffer, mainIndex);
 				mainIndex += 2;
 				mainBuffer[mainIndex] = this.cachedIts.GetAmount();
 				mainIndex++;
@@ -297,7 +297,7 @@ public class EntityFileHandler{
 				mainIndex++;
 				mainBuffer[mainIndex] = (byte)ai.GetState();
 				mainIndex++;
-				NetDecoder.WriteUshort((ushort)this.cachedWeapon.id, mainBuffer, mainIndex);
+				NetDecoder.WriteUshort((ushort)this.cachedWeapon.GetID(), mainBuffer, mainIndex);
 				mainIndex += 2;
 				NetDecoder.WriteUint(this.cachedWeapon.currentDurability, mainBuffer, mainIndex);
 				mainIndex += 4;

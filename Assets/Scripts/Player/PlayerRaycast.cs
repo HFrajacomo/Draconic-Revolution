@@ -41,7 +41,7 @@ public class PlayerRaycast : MonoBehaviour
 	private CastCoord playerBody;
 	public MainControllerManager control;
 
-	public static ItemID lastBlockPlaced = (ItemID)0;
+	public ushort lastBlockPlaced = 0;
 	public PlayerEvents playerEvents;
 
 	// Cached
@@ -221,20 +221,7 @@ public class PlayerRaycast : MonoBehaviour
 
 		Item it = its.GetItem();
 
-		// If is a placeable item
-		if(it is IPlaceable){
-			IPlaceable itPlaceable = it as IPlaceable;
-			// If block placement was successful in client
-			if(this.PlaceBlock(itPlaceable.placeableBlockID, (byte)(its.GetAmount()-1))){
-				PlayerRaycast.lastBlockPlaced = it.id;
-				if(its.Decrement()){
-					playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
-					playerEvents.DestroyItemEntity();
-				}
-				playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
-				playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);
-			}
-		}
+		it.OnUseClient(this.loader, its, this.position, lastCoord, playerBody, playerHead, current);
 	}
 
 	// Block Placing mechanic

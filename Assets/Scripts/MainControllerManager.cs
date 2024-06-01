@@ -214,7 +214,7 @@ public class MainControllerManager : MonoBehaviour
         if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot) == null)
             return;
 
-        ItemID id = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetID();
+        ushort id = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetID();
         ItemStack its;
         byte amount;
 

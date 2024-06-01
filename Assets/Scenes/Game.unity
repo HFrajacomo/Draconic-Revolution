@@ -338,10 +338,9 @@ MonoBehaviour:
   - {fileID: 414484833}
   - {fileID: 1695668876}
   - {fileID: 2034451134}
-  iconAtlas: {fileID: 4343727234628468602, guid: f8c39b7054e2f084cb41142f02b80d92,
-    type: 2}
   hotbar_selected: {fileID: 494716106}
   invUIPlayer: {fileID: 638012052}
+  itemIconMaterial: {fileID: 2100000, guid: 282c9903c54a80e4ea05ef3c841600e3, type: 2}
   iconRenderer: {fileID: 0}
 --- !u!143 &59614820
 CharacterController:
@@ -440,6 +439,7 @@ MonoBehaviour:
   reach: 4
   step: 0.025
   control: {fileID: 1635249984}
+  lastBlockPlaced: 0
   playerEvents: {fileID: 59614819}
   facing: 0
 --- !u!114 &59614825
@@ -3643,6 +3643,7 @@ MonoBehaviour:
   detailsDescription: {fileID: 1082757479}
   detailsStats: {fileID: 889420616}
   cl: {fileID: 1192772367}
+  itemIconMaterial: {fileID: 2100000, guid: 282c9903c54a80e4ea05ef3c841600e3, type: 2}
   invButton:
   - {fileID: 604732860}
   - {fileID: 65700860}
@@ -3737,8 +3738,6 @@ MonoBehaviour:
   - {fileID: 353694323}
   - {fileID: 1368381229}
   - {fileID: 804358123}
-  iconAtlas: {fileID: 4343727234628468602, guid: f8c39b7054e2f084cb41142f02b80d92,
-    type: 2}
 --- !u!1 &667132612
 GameObject:
   m_ObjectHideFlags: 0
@@ -7733,6 +7732,7 @@ MonoBehaviour:
   gameUI: {fileID: 1679592122}
   structHandler: {fileID: 2128924710}
   playerMovement: {fileID: 59614823}
+  playerRaycast: {fileID: 0}
   volume: {fileID: 11400000, guid: d74700023676aee41bc60f65c5f83bf2, type: 2}
   mainControllerManager: {fileID: 1635249983}
   audioManager: {fileID: 0}

@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.U2D;
 using TMPro;
 
 public class InventoryUIPlayer : MonoBehaviour
@@ -14,6 +13,7 @@ public class InventoryUIPlayer : MonoBehaviour
     public TextMeshProUGUI detailsDescription;
     public TextMeshProUGUI detailsStats;
     public ChunkLoader cl;
+    public Material itemIconMaterial;
 
 	// Inventory data and draw info
 	private Inventory inv1;
@@ -26,7 +26,6 @@ public class InventoryUIPlayer : MonoBehaviour
 	public Image[] hbButton;
 	[SerializeField]
 	public Text[] hbText;
-	public SpriteAtlas iconAtlas;
 
 	// Inventory Logic
 	private byte selectedInventory = byte.MaxValue;
@@ -35,6 +34,18 @@ public class InventoryUIPlayer : MonoBehaviour
 	// Color constants
 	private readonly Color WHITE = new Color(1f,1f,1f,1f);
 	private readonly Color RED = new Color(1f, 0.5f, 0.5f, 1f);
+
+	void Start(){
+		foreach(Image img in invButton){
+			img.material = Instantiate(this.itemIconMaterial);
+		}
+		foreach(Image img in hbButton){
+			img.material = Instantiate(this.itemIconMaterial);
+		}
+
+		this.detailsImage.material = Instantiate(this.itemIconMaterial);
+	}
+
 
     public void OpenInventory(Inventory inventory, Inventory hotbar){
 		this.inv1 = inventory;
@@ -63,7 +74,7 @@ public class InventoryUIPlayer : MonoBehaviour
     		if(its == null)
     			continue;
 
-    		this.invButton[i].sprite = this.iconAtlas.GetSprite(its.GetItemIconName());
+    		this.invButton[i].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
 
     		if(its.GetStacksize() > 1)
     			this.invText[i].text = its.GetAmount().ToString();
@@ -75,7 +86,7 @@ public class InventoryUIPlayer : MonoBehaviour
     		if(its == null)
     			continue;
 
-    		this.hbButton[i].sprite = this.iconAtlas.GetSprite(its.GetItemIconName());
+    		this.hbButton[i].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
 
     		if(its.GetStacksize() > 1)
     			this.hbText[i].text = its.GetAmount().ToString();
@@ -90,11 +101,11 @@ public class InventoryUIPlayer : MonoBehaviour
     		its = this.inv1.GetSlot(slot);
 
     		if(its == null){
-    			this.invButton[slot].sprite = null;
+    			this.invButton[slot].material.SetTexture("_Texture", null);
     			this.invText[slot].text = "";
     		}
     		else{
-	    		this.invButton[slot].sprite = this.iconAtlas.GetSprite(its.GetItemIconName());
+	    		this.invButton[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
 
 	    		if(its.GetStacksize() > 1)
 	    			this.invText[slot].text = its.GetAmount().ToString();    			
@@ -104,11 +115,11 @@ public class InventoryUIPlayer : MonoBehaviour
     		its = this.inv2.GetSlot(slot);
 
     		if(its == null){
-    			this.hbButton[slot].sprite = null;
+    			this.hbButton[slot].material.SetTexture("_Texture", null);
     			this.hbText[slot].text = "";
     		}
     		else{
-	    		this.hbButton[slot].sprite = this.iconAtlas.GetSprite(its.GetItemIconName());
+	    		this.hbButton[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
 
 	    		if(its.GetStacksize() > 1)
 	    			this.hbText[slot].text = its.GetAmount().ToString();    			
@@ -148,7 +159,7 @@ public class InventoryUIPlayer : MonoBehaviour
             else if(item is Item)
                 this.detailsDescription.text = details[1];
 
-            this.detailsImage.sprite = this.iconAtlas.GetSprite(item.GetIconName());
+            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
     	}
     	// If has no slot selected and shift clicked
     	else if(this.selectedSlot == byte.MaxValue && MainControllerManager.shifting){
@@ -303,7 +314,7 @@ public class InventoryUIPlayer : MonoBehaviour
         this.detailsName.text = "";
         this.detailsDescription.text = "";
         this.detailsStats.text = "";
-        this.detailsImage.sprite = null;
+        this.detailsImage.material.SetTexture("_Texture", null);
     }
 
 	// Toggles selection highlighting

@@ -8,6 +8,7 @@ public class GameLoader : MonoBehaviour {
 
 	private bool isClient = true;
 	private VoxelLoader voxelLoader;
+	private ItemLoader itemLoader;
 
 	private static readonly string SERVER_SCENE = "Assets/Scenes/Server.unity";
 
@@ -18,8 +19,14 @@ public class GameLoader : MonoBehaviour {
 	}
 
 	void Start(){
+		this.itemLoader = new ItemLoader(this.isClient);
 		this.voxelLoader = new VoxelLoader(this.isClient, this.prefabObjects);
+
+		this.itemLoader.Load();
 		this.voxelLoader.Load();
+
+		this.itemLoader.RunPostDeserializationRoutine();
+		this.voxelLoader.RunPostDeserializationRoutine();
 
 		if(this.isClient)
 			SceneManager.LoadScene("Menu");

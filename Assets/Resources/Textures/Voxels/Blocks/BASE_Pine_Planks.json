@@ -27,6 +27,7 @@
 }
 --->BreakDropItemBehaviour
 {
+    "droppedItem": "BASE_Pine_Planks",
     "minDropQuantity": 1,
     "maxDropQuantity": 1
 }

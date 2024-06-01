@@ -32,6 +32,7 @@
 }
 --->TreeBehaviour
 {
+    "droppedItem": "BASE_Wood_Log",
     "maxAnalysedBlocks": 100,
     "decayDistance": 7,
     "minDecayTime": 8,
