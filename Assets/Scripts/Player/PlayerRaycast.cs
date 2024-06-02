@@ -267,6 +267,8 @@ public class PlayerRaycast : MonoBehaviour
 	}
 	
 	public void TakeWorldScreenshot(){
+		loader.gameUI.SetActive(false);
+
         RenderTexture renderTexture = new RenderTexture(Screen.width, (int)(Screen.height/2), 24);
         this.playerCamera.targetTexture = renderTexture;
 
