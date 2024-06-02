@@ -99,7 +99,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			// Checks for solid block hit
 			// Checks for hit
-			if(HitSolid(current)){
+			if(HitNonLiquid(current)){
 				FOUND = true;
 				break;
 			}
@@ -151,6 +151,25 @@ public class PlayerRaycast : MonoBehaviour
 		// If hits a full block
 		if(loader.chunks.ContainsKey(ck)){
 			if(VoxelLoader.CheckSolid(blockID)){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	// Detects hit of solid block
+	public bool HitNonLiquid(CastCoord coords){
+		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ, coords.chunkY);
+
+		if(!loader.chunks.ContainsKey(ck))
+			return false;
+
+		ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
+
+		// If hits a full block
+		if(loader.chunks.ContainsKey(ck)){
+			if(!VoxelLoader.CheckLiquid(blockID) && blockID != 0){
 				return true;
 			}
 		}
