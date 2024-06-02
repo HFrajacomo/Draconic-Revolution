@@ -35,7 +35,7 @@ public class InventoryUIPlayer : MonoBehaviour
 	private readonly Color WHITE = new Color(1f,1f,1f,1f);
 	private readonly Color RED = new Color(1f, 0.5f, 0.5f, 1f);
 
-	void Start(){
+	void Awake(){
 		foreach(Image img in invButton){
 			img.material = Instantiate(this.itemIconMaterial);
 		}
@@ -324,15 +324,15 @@ public class InventoryUIPlayer : MonoBehaviour
 
 		if(this.selectedInventory == 0){
 			if(b)
-				invButton[this.selectedSlot].color = this.RED;
+				invButton[this.selectedSlot].material.SetFloat("_IsClicked", 1);
 			else
-				invButton[this.selectedSlot].color = this.WHITE;
+				invButton[this.selectedSlot].material.SetFloat("_IsClicked", 0);
 		}
 		else{
 			if(b)
-				hbButton[this.selectedSlot].color = this.RED;
+				hbButton[this.selectedSlot].material.SetFloat("_IsClicked", 1);
 			else
-				hbButton[this.selectedSlot].color = this.WHITE;
+				hbButton[this.selectedSlot].material.SetFloat("_IsClicked", 0);
 		}
 	}
 }
