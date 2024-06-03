@@ -18,13 +18,13 @@ public abstract class VoxelBehaviour {
     	CastCoord[] neighbors = {
 	    	thisPos.Add(1,0,0),
 	    	thisPos.Add(-1,0,0),
-	    	thisPos.Add(0,1,0),
-	    	thisPos.Add(0,-1,0),
 	    	thisPos.Add(0,0,1),
-	    	thisPos.Add(0,0,-1)
+	    	thisPos.Add(0,0,-1),
+	    	thisPos.Add(0,1,0),
+	    	thisPos.Add(0,-1,0)
     	};
 
-		int[] facings = {2,0,4,5,1,3};
+		int[] facings = {2,0,1,3,4,5};
 
 		int faceCounter=0;
 

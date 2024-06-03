@@ -160,7 +160,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 			return 0;
 		}
 
-		this.Update(thisPos, BUDCode.CHANGE, -1, cl);
+		//this.Update(thisPos, BUDCode.CHANGE, -1, cl);
 		cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
 		cl.server.SendToClients(pos, message);
 		EmitWaterBUD(thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), cl);
@@ -269,11 +269,11 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 				// If should expand downwards
 				if(below == 0 || (below == this.liquidCode && ShouldStateOverpower(state, belowState)) || IsWashable(below, cl)){
-					Debug.Log("Expand below");
 					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					// If there are at least one adjascent Still Water 3 -> Expand falling blocks
 					if(GetSameLevelAroundCount(myX, myY, myZ, 3, cl) > 0){
+
 						// Should break washable block below
 						if(IsWashable(below, cl)){
 							if(below <= ushort.MaxValue/2)
@@ -863,6 +863,27 @@ public class LiquidBehaviour : VoxelBehaviour{
 					return;							
 				}
 
+				// If should upgrade
+				if(GetHighestDoubleLevelAround(myX, myY, myZ, cl) > 0){
+					int highestLevel = GetHighestDoubleLevelAround(myX, myY, myZ, cl);
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY, myZ));
+
+					if(highestLevel == 1){
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 2);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					}
+					else if(highestLevel == 2){
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					}
+					else{
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					}
+
+					return;
+				}
+
 				// If is pivot to falling block
 				if(below == this.liquidCode && above == this.liquidCode) {return;}
 
@@ -943,6 +964,27 @@ public class LiquidBehaviour : VoxelBehaviour{
 					return;							
 				}
 
+				// If should upgrade
+				if(GetHighestDoubleLevelAround(myX, myY, myZ, cl) > 0){
+					int highestLevel = GetHighestDoubleLevelAround(myX, myY, myZ, cl);
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY, myZ));
+
+					if(highestLevel == 1){
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 2);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					}
+					else if(highestLevel == 2){
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					}
+					else{
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					}
+
+					return;
+				}
+
 				// If is pivot to falling block
 				if(below == this.liquidCode && above == this.liquidCode) {return;}
 
@@ -1021,6 +1063,27 @@ public class LiquidBehaviour : VoxelBehaviour{
 					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					return;							
+				}
+
+				// If should upgrade
+				if(GetHighestDoubleLevelAround(myX, myY, myZ, cl) > 0){
+					int highestLevel = GetHighestDoubleLevelAround(myX, myY, myZ, cl);
+					CastCoord newPos = new CastCoord(new Vector3(myX, myY, myZ));
+
+					if(highestLevel == 1){
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 2);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					}
+					else if(highestLevel == 2){
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					}
+					else{
+						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
+						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+					}
+
+					return;
 				}
 			}
 		}
@@ -1410,6 +1473,45 @@ public class LiquidBehaviour : VoxelBehaviour{
 		}
 
 		return count;
+	}
+
+	// Gets the highest state level around only if there are at least two blocks of that level
+	private int GetHighestDoubleLevelAround(int x, int y, int z, ChunkLoader_Server cl){
+		int countOne=0;
+		int countTwo=0;
+		int countThree=0;
+
+		GetCodeAround(x,y,z,cl);
+		GetStateAround(x,y,z,cl);
+
+		for(int i=0; i<8; i+=2){
+			if(aroundCodes[i] == this.liquidCode){
+				switch(TranslateWaterLevelSpec(aroundStates[i])){
+					case 0:
+						continue;
+					case 1:
+						countOne++;
+						continue;
+					case 2:
+						countTwo++;
+						continue;
+					case 3:
+						countThree++;
+						continue;
+					default:
+						continue;
+				}
+			}
+		}
+
+		if(countThree >= 2)
+			return 3;
+		if(countTwo >= 2)
+			return 2;
+		if(countOne >= 1)
+			return 1;
+
+		return 0;
 	}
 
 	// Check if given blockCode is washable
