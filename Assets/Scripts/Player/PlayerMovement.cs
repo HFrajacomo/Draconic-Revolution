@@ -71,12 +71,12 @@ public class PlayerMovement : MonoBehaviour
                 jumpticks--;
             }
             else{
-                controller.skinWidth = 0f;
+                controller.skinWidth = 0.008f;
             }
 
             // If gravity hack is toggled
             if(controls.gravityHack){
-                velocity.y = 10f;
+                velocity.y = 20f;
             }
 
             // Gravity
@@ -103,5 +103,21 @@ public class PlayerMovement : MonoBehaviour
                 velocity.y = 0;
             }
         }
+    }
+
+    // Headbumping Mechanics
+    void OnControllerColliderHit(ControllerColliderHit hit){
+        if(this.controller.isGrounded || controls.freecam)
+            return;
+
+        Vector3 impactPoint = hit.point;
+
+        if(this.velocity.y >= 0 && impactPoint.y > this.gameObject.transform.position.y){
+            this.velocity.y = -this.velocity.y;
+        }
+    }
+
+    private bool IsYPointingDown(Vector3 v){
+        return v.y < v.x && v.y < v.z;
     }
 }

@@ -39,4 +39,7 @@ public static class Constants
     // Item Entity
     public static readonly int ITEM_ENTITY_LIFE_SPAN_TICKS = 19200; // 4 in-game hours
     public static readonly float ITEM_ENTITY_SPAWN_HEIGHT_BONUS = .5f;
+
+    // Models
+    public static readonly float PLAYER_MODEL_SCALING_FACTOR = .4f;
 }
