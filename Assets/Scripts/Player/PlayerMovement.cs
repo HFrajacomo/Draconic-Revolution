@@ -116,8 +116,4 @@ public class PlayerMovement : MonoBehaviour
             this.velocity.y = -this.velocity.y;
         }
     }
-
-    private bool IsYPointingDown(Vector3 v){
-        return v.y < v.x && v.y < v.z;
-    }
 }
