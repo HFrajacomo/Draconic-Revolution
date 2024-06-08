@@ -269,6 +269,7 @@ Material:
     - _DoubleSidedGIMode: 2
     - _DoubleSidedNormalMode: 1
     - _DstBlend: 0
+    - _DstBlend2: 0
     - _EmissionEnabled: 0
     - _EmissiveColorMode: 1
     - _EmissiveExposureWeight: 1
@@ -304,6 +305,7 @@ Material:
     - _LightingEnabled: 1
     - _LinkDetailsWithBase: 0
     - _MaterialID: 1
+    - _MaterialTypeMask: 2
     - _Metallic: 0
     - _MetallicRemapMax: 0
     - _MetallicRemapMin: 0
@@ -323,6 +325,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _Parallax: 0.02
+    - _PerPixelSorting: 0
     - _QueueOffset: 0
     - _RayTracing: 0
     - _ReceiveShadows: 1
@@ -412,6 +415,7 @@ Material:
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
     - _WorldSpaceLightPos0: {r: 0, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &6969281417144891448
 MonoBehaviour:
   m_ObjectHideFlags: 11

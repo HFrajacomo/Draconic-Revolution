@@ -6,7 +6,6 @@ using Unity.Collections;
 
 public static class NativeTools
 {
-
     /*
     Uses unsafe code to copy all elements in NativeArray to a normal array
     */
