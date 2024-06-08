@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class PlayerEvents : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class PlayerEvents : MonoBehaviour
 	public Inventory inventory = new Inventory(InventoryType.PLAYER);
 	public Inventory hotbar = new Inventory(InventoryType.HOTBAR);
 	public Image[] hotbarIcon;
-	public Text[] hotbarText;
+	public TMP_Text[] hotbarText;
 	public RectTransform hotbar_selected;
 	public InventoryUIPlayer invUIPlayer;
 	public Material itemIconMaterial;
