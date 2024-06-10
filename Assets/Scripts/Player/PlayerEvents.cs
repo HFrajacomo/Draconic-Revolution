@@ -10,7 +10,7 @@ public class PlayerEvents : MonoBehaviour
 	public Inventory inventory = new Inventory(InventoryType.PLAYER);
 	public Inventory hotbar = new Inventory(InventoryType.HOTBAR);
 	public Image[] hotbarIcon;
-	public TMP_Text[] hotbarText;
+	public TextMeshProUGUI[] hotbarText;
 	public RectTransform hotbar_selected;
 	public InventoryUIPlayer invUIPlayer;
 	public Material itemIconMaterial;
@@ -59,50 +59,47 @@ public class PlayerEvents : MonoBehaviour
 	// Selects a new item in hotbar
 	public void Scroll1(){
 		PlayerEvents.hotbarSlot = 0;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(-1), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 48);
 		DrawItemEntity(GetSlotStack());
-
-		// Debug
-		//this.hotbar.ForceAddStack(new ItemStack(ItemID.ALUMINIUM_ORE_BLOCK, 1), 0);
 	}
 	public void Scroll2(){
 		PlayerEvents.hotbarSlot = 1;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 48);
 		DrawItemEntity(GetSlotStack());
 	}
 	public void Scroll3(){
 		PlayerEvents.hotbarSlot = 2;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 48);
 		DrawItemEntity(GetSlotStack());
 	}
 	public void Scroll4(){
 		PlayerEvents.hotbarSlot = 3;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 48);
 		DrawItemEntity(GetSlotStack());
 	}
 	public void Scroll5(){
 		PlayerEvents.hotbarSlot = 4;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 48);
 		DrawItemEntity(GetSlotStack());
 	}
 	public void Scroll6(){
 		PlayerEvents.hotbarSlot = 5;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 48);
 		DrawItemEntity(GetSlotStack());
 	}
 	public void Scroll7(){
 		PlayerEvents.hotbarSlot = 6;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 48);
 		DrawItemEntity(GetSlotStack());
 	}
 	public void Scroll8(){
 		PlayerEvents.hotbarSlot = 7;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 48);
 		DrawItemEntity(GetSlotStack());
 	}
 	public void Scroll9(){
 		PlayerEvents.hotbarSlot = 8;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 48);
 		DrawItemEntity(GetSlotStack());
 	}
 	public void MouseScroll(int val){
@@ -121,7 +118,7 @@ public class PlayerEvents : MonoBehaviour
 		else
 			return;
 
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(PlayerEvents.hotbarSlot-1), 34);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(PlayerEvents.hotbarSlot-1), 48);
 		DrawItemEntity(GetSlotStack());
 	}
 
@@ -132,7 +129,7 @@ public class PlayerEvents : MonoBehaviour
 
 	// Calculates correct X position for the selected hotbar spot
 	public int GetSelectionX(int pos){
-		return 78*pos-234;
+		return 107*pos-428;
 	}
 
 	// Draws a hotbar slot
