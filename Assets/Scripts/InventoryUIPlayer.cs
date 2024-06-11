@@ -7,6 +7,7 @@ using TMPro;
 public class InventoryUIPlayer : MonoBehaviour
 {
     // Unity Reference
+    public Image background;
     public GameObject detailsPanel;
     public Image detailsImage;
     public TextMeshProUGUI detailsName;
@@ -14,6 +15,7 @@ public class InventoryUIPlayer : MonoBehaviour
     public TextMeshProUGUI detailsStats;
     public ChunkLoader cl;
     public Material itemIconMaterial;
+    public Material backgroundMaterial;
 
 	// Inventory data and draw info
 	private Inventory inv1;
@@ -21,11 +23,11 @@ public class InventoryUIPlayer : MonoBehaviour
 	[SerializeField]
 	public Image[] invButton;
 	[SerializeField]
-	public Text[] invText;
+	public TextMeshProUGUI[] invText;
 	[SerializeField]
 	public Image[] hbButton;
 	[SerializeField]
-	public Text[] hbText;
+	public TextMeshProUGUI[] hbText;
 
 	// Inventory Logic
 	private byte selectedInventory = byte.MaxValue;
@@ -36,14 +38,26 @@ public class InventoryUIPlayer : MonoBehaviour
 	private readonly Color RED = new Color(1f, 0.5f, 0.5f, 1f);
 
 	void Awake(){
+		int i = 0;
+
 		foreach(Image img in invButton){
 			img.material = Instantiate(this.itemIconMaterial);
+			img.material.name = $"Slot-{i}";
+			img.material.SetTexture("_Texture", null);
+			i++;
 		}
+		i = 0;
 		foreach(Image img in hbButton){
 			img.material = Instantiate(this.itemIconMaterial);
+			img.material.name = $"Hotbar-{i}";
+			img.material.SetTexture("_Texture", null);
+			i++;
 		}
 
 		this.detailsImage.material = Instantiate(this.itemIconMaterial);
+
+		this.background.material = Instantiate(this.backgroundMaterial);
+		this.background.material.SetColor("_Color1", new Color(.3f, .3f, .3f));
 	}
 
 
