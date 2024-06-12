@@ -25586,7 +25586,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Thaumaturgy
+  m_Text: Artificing
 --- !u!222 &768842858
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -28692,7 +28692,7 @@ GameObject:
   - component: {fileID: 885902843}
   - component: {fileID: 885902844}
   m_Layer: 5
-  m_Name: Thaumaturgy
+  m_Name: Artificing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -49723,6 +49723,7 @@ RectTransform:
   - {fileID: 1520245785}
   - {fileID: 1342191484}
   - {fileID: 2052912551}
+  - {fileID: 885902842}
   - {fileID: 730211297}
   - {fileID: 2015402722}
   - {fileID: 1491015091}
@@ -49740,7 +49741,6 @@ RectTransform:
   - {fileID: 970901367}
   - {fileID: 130588867}
   - {fileID: 706932412}
-  - {fileID: 885902842}
   - {fileID: 1582889960}
   - {fileID: 2040220776}
   m_Father: {fileID: 652126239}

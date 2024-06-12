@@ -1,6 +1,7 @@
 public enum SkillType : byte
 {
 	ALCHEMY,
+	ARTIFICING,
 	BLOODMANCY,
 	CRAFTING,
 	COMBAT,
@@ -18,7 +19,6 @@ public enum SkillType : byte
 	SORCERY,
 	THIEVERY,
 	TECHNOLOGY,
-	THAUMATURGY,
 	TRANSMUTING,
 	WITCHCRAFT
 }

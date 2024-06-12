@@ -59,10 +59,10 @@ public static class CharacterCreationData {
 	// Skills
 	private static SkillType primarySkill;
 	private static SkillType secondarySkill;
-	private static readonly SkillType[] SKILLS = new SkillType[]{SkillType.ALCHEMY, SkillType.BLOODMANCY, SkillType.CRAFTING, SkillType.COMBAT,
-		SkillType.CONSTRUCTION, SkillType.COOKING, SkillType.ENCHANTING, SkillType.FARMING, SkillType.FISHING, SkillType.LEADERSHIP, SkillType.MINING,
-		SkillType.MOUNTING, SkillType.MUSICALITY, SkillType.NATURALISM, SkillType.SMITHING, SkillType.SORCERY, SkillType.THIEVERY, SkillType.TECHNOLOGY,
-		SkillType.THAUMATURGY, SkillType.TRANSMUTING, SkillType.WITCHCRAFT};
+	private static readonly SkillType[] SKILLS = new SkillType[]{SkillType.ALCHEMY, SkillType.ARTIFICING, SkillType.BLOODMANCY, SkillType.CRAFTING,
+		SkillType.COMBAT, SkillType.CONSTRUCTION, SkillType.COOKING, SkillType.ENCHANTING, SkillType.FARMING, SkillType.FISHING, SkillType.LEADERSHIP,
+		SkillType.MINING, SkillType.MOUNTING, SkillType.MUSICALITY, SkillType.NATURALISM, SkillType.SMITHING, SkillType.SORCERY, SkillType.THIEVERY,
+		SkillType.TECHNOLOGY, SkillType.TRANSMUTING, SkillType.WITCHCRAFT};
 
 	// Metadata
 	private static string remainingPoints;

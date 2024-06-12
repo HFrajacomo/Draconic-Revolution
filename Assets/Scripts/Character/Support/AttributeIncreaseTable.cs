@@ -7,6 +7,7 @@ public static class AttributeIncreaseTable{
 		dict = new Dictionary<SkillType, Dictionary<AttributeName, sbyte>>();
 
 		SetAlchemy();
+		SetArtificing();
 		SetCrafting();
 		SetFarming();
 		SetWitchcraft();
@@ -25,7 +26,6 @@ public static class AttributeIncreaseTable{
 		SetFishing();
 		SetTechnology();
 		SetTransmuting();
-		SetThaumaturgy();
 		SetBloodmancy();
 	}
 
@@ -44,6 +44,16 @@ public static class AttributeIncreaseTable{
 		dict[SkillType.ALCHEMY].Add(AttributeName.POISON_RESISTANCE, 2);
 		dict[SkillType.ALCHEMY].Add(AttributeName.FIRE_RESISTANCE, 1);
 		dict[SkillType.ALCHEMY].Add(AttributeName.CURSE_RESISTANCE, 1);
+	}
+
+	private static void SetArtificing(){
+		dict.Add(SkillType.ARTIFICING, new Dictionary<AttributeName, sbyte>());
+		dict[SkillType.ARTIFICING].Add(AttributeName.MAGIC, 4);
+		dict[SkillType.ARTIFICING].Add(AttributeName.PRECISION, 2);
+		dict[SkillType.ARTIFICING].Add(AttributeName.CHARISMA, -2);
+		dict[SkillType.ARTIFICING].Add(AttributeName.FIRE_RESISTANCE, 1);
+		dict[SkillType.ARTIFICING].Add(AttributeName.ICE_RESISTANCE, 1);
+		dict[SkillType.ARTIFICING].Add(AttributeName.LIGHTNING_RESISTANCE, 1);
 	}
 
 	private static void SetCrafting(){
@@ -195,16 +205,6 @@ public static class AttributeIncreaseTable{
 		dict[SkillType.TRANSMUTING].Add(AttributeName.VITALITY, 1);
 		dict[SkillType.TRANSMUTING].Add(AttributeName.EVASION, 2);
 		dict[SkillType.TRANSMUTING].Add(AttributeName.CURSE_RESISTANCE, 1);
-	}
-
-	private static void SetThaumaturgy(){
-		dict.Add(SkillType.THAUMATURGY, new Dictionary<AttributeName, sbyte>());
-		dict[SkillType.THAUMATURGY].Add(AttributeName.MAGIC, 4);
-		dict[SkillType.THAUMATURGY].Add(AttributeName.PRECISION, 2);
-		dict[SkillType.THAUMATURGY].Add(AttributeName.CHARISMA, -2);
-		dict[SkillType.THAUMATURGY].Add(AttributeName.FIRE_RESISTANCE, 1);
-		dict[SkillType.THAUMATURGY].Add(AttributeName.ICE_RESISTANCE, 1);
-		dict[SkillType.THAUMATURGY].Add(AttributeName.LIGHTNING_RESISTANCE, 1);
 	}
 
 	private static void SetBloodmancy(){
