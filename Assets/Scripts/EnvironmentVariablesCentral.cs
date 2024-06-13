@@ -31,12 +31,21 @@ public static class EnvironmentVariablesCentral
         if(!Directory.Exists(gameDir))
             Directory.CreateDirectory(gameDir);
 
+        // Moves compiled server to APPDATA
         if(Directory.Exists(compiledServerDir)){
             if(Directory.Exists(serverDir)){
+                if(Directory.Exists(saveDir)){
+                    Directory.Move(saveDir, gameDir + "Worlds\\");
+                }
+
                 Directory.Delete(serverDir, true);
             }
 
             Directory.Move(compiledServerDir, serverDir);
+
+            if(Directory.Exists(gameDir + "Worlds\\")){
+                Directory.Move(gameDir + "Worlds\\", saveDir);
+            }
         }
 
         if(!Directory.Exists(serverDir)){
