@@ -5,11 +5,16 @@ using Unity.Mathematics;
 [Serializable]
 public class PlaceBlockBehaviour : ItemBehaviour{
 	public string blockName;
+	private ushort blockID;
+
+	public override void PostDeserializationSetup(bool isClient){
+		this.blockID = VoxelLoader.GetBlockID(this.blockName);
+	}
 
 	public override void OnUseClient(ChunkLoader cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
 		Item it = its.GetItem();
 
-		if(this.PlaceBlock(it.GetID(), (byte)(its.GetAmount()-1), targetBlock, referencePoint1, referencePoint2, referencePoint3, cl)){
+		if(this.PlaceBlock(this.blockID, (byte)(its.GetAmount()-1), targetBlock, referencePoint1, referencePoint2, referencePoint3, cl)){
 			cl.playerRaycast.lastBlockPlaced = it.GetID();
 			if(its.Decrement()){
 				cl.playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
