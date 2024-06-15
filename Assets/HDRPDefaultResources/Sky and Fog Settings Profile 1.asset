@@ -193,7 +193,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: -7
   tint:
     m_OverrideState: 1
     m_Value: 0
@@ -261,7 +261,7 @@ MonoBehaviour:
     m_Value: 2
   shadowTint:
     m_OverrideState: 1
-    m_Value: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   shadowResolution:
     m_OverrideState: 0
     m_Value: 256
@@ -283,7 +283,7 @@ MonoBehaviour:
       m_Value: 0
     opacityA:
       m_OverrideState: 1
-      m_Value: 0.32194433
+      m_Value: 0.2
     altitude:
       m_OverrideState: 0
       m_Value: 2000
@@ -292,7 +292,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.09, g: 0.08, b: 0.04, a: 1}
+      m_Value: {r: 0.03968229, g: 0.009920573, b: 0.0049602864, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 0
@@ -346,7 +346,7 @@ MonoBehaviour:
       m_Value: 1
     opacityA:
       m_OverrideState: 1
-      m_Value: 0.32194433
+      m_Value: 0.2
     altitude:
       m_OverrideState: 0
       m_Value: 2000
@@ -355,7 +355,7 @@ MonoBehaviour:
       m_Value: 251
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.09, g: 0.08, b: 0.04, a: 1}
+      m_Value: {r: 0.013010976, g: 0.003252744, b: 0.001626372, a: 0.3252744}
     exposure:
       m_OverrideState: 1
       m_Value: 0
@@ -581,13 +581,13 @@ MonoBehaviour:
     m_Value: 60
   baseHeight:
     m_OverrideState: 1
-    m_Value: 740.64813
+    m_Value: 700
   maximumHeight:
     m_OverrideState: 1
-    m_Value: 952.5185
+    m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 4.4721155
+    m_Value: 5.636302
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -741,10 +741,10 @@ MonoBehaviour:
     m_Value: {fileID: 8900000, guid: 956d1ebbce92f7244a3c827fe1c11afd, type: 3}
   spaceEmissionMultiplier:
     m_OverrideState: 1
-    m_Value: 1.3728776
+    m_Value: 0.87582296
   spaceRotation:
     m_OverrideState: 1
-    m_Value: {x: 64.88289, y: 0, z: 0}
+    m_Value: {x: 28.663298, y: 0, z: 0}
   colorSaturation:
     m_OverrideState: 0
     m_Value: 1
@@ -756,10 +756,10 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.48, g: 0.3, b: 0.1, a: 1}
+    m_Value: {r: 0.61285025, g: 0.5408848, b: 0.7443733, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0.82, g: 0.74, b: 0.71, a: 1}
+    m_Value: {r: 0.20196545, g: 0.13496312, b: 0.11014746, a: 1}
   horizonZenithShift:
     m_OverrideState: 1
     m_Value: 0
@@ -834,7 +834,7 @@ MonoBehaviour:
   active: 1
   mode:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 3
   meteringMode:
     m_OverrideState: 1
     m_Value: 0
@@ -846,13 +846,13 @@ MonoBehaviour:
     m_Value: 1
   compensation:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 14.3
   limitMin:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 2
   limitMax:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 1.5
   curveMap:
     m_OverrideState: 1
     m_Value:
@@ -861,12 +861,12 @@ MonoBehaviour:
       - serializedVersion: 3
         time: -0.19515228
         value: -0.03452041
-        inSlope: -0.0986638
-        outSlope: -0.0986638
+        inSlope: 0.09757513
+        outSlope: 0.09757513
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.3002895
-        outWeight: 0.5833334
+        outWeight: 0.14800516
       - serializedVersion: 3
         time: 7.4614353
         value: 3.0086617
@@ -885,8 +885,8 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: -10
-        value: -12
+        time: -9.856476
+        value: -4.908203
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -894,8 +894,26 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 20.125
-        value: -7.4009438
+        time: -0.15810108
+        value: 0.16265249
+        inSlope: 0.1488284
+        outSlope: 0.1488284
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.29066715
+      - serializedVersion: 3
+        time: 5.0415163
+        value: 8.938719
+        inSlope: 0.14103071
+        outSlope: 0.14103071
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.32928404
+        outWeight: 0.12584077
+      - serializedVersion: 3
+        time: 19.976854
+        value: 9.972837
         inSlope: 0.107088245
         outSlope: 0.107088245
         tangentMode: 0
@@ -911,25 +929,43 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.24151993
-        value: -9.860321
-        inSlope: 0.43917045
-        outSlope: 0.43917045
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
-        outWeight: 0.3625
+        outWeight: 0
       - serializedVersion: 3
-        time: 9.832321
-        value: 9.757362
-        inSlope: Infinity
-        outSlope: Infinity
+        time: 2.90683
+        value: 0.9796231
+        inSlope: 0.2716696
+        outSlope: 0.2716696
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.19322167
+      - serializedVersion: 3
+        time: 6.598785
+        value: 9.023938
+        inSlope: 0.9301832
+        outSlope: 0.9301832
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 9.973633
+        value: 10.0468445
+        inSlope: 2
+        outSlope: 2
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       m_PreInfinity: 2
-      m_PostInfinity: 2
+      m_PostInfinity: 1
       m_RotationOrder: 4
   adaptationMode:
     m_OverrideState: 1
@@ -1234,7 +1270,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 0, y: 0, z: 0, w: 0}
+    m_Value: {x: 0.3190166, y: 0.2473566, z: 0.3495083, w: 0.2331351}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3
