@@ -85,6 +85,7 @@ public class CharacterSheet{
 		this.specialEffectHandler = new SpecialEffectHandler();
 
 		this.skillDict.Add(SkillType.ALCHEMY, null);
+		this.skillDict.Add(SkillType.ARTIFICING, null);
 		this.skillDict.Add(SkillType.BLOODMANCY, null);
 		this.skillDict.Add(SkillType.CRAFTING, null);
 		this.skillDict.Add(SkillType.COMBAT, null);
@@ -102,7 +103,6 @@ public class CharacterSheet{
 		this.skillDict.Add(SkillType.SORCERY, null);
 		this.skillDict.Add(SkillType.THIEVERY, null);
 		this.skillDict.Add(SkillType.TECHNOLOGY, null);
-		this.skillDict.Add(SkillType.THAUMATURGY, null);
 		this.skillDict.Add(SkillType.TRANSMUTING, null);
 		this.skillDict.Add(SkillType.WITCHCRAFT, null);
 
@@ -259,6 +259,7 @@ public class CharacterSheet{
 		this.DEBUG_LIST.Add("MainSkill: " + GetMainSkill());
 		this.DEBUG_LIST.Add("SecSkill: " + GetSecondarySkill());
 		this.DEBUG_LIST.Add("Alchemy: " + GetSkill(SkillType.ALCHEMY).ToString());
+		this.DEBUG_LIST.Add("Artificing: " + GetSkill(SkillType.ARTIFICING).ToString());
 		this.DEBUG_LIST.Add("Bloodmancy: " + GetSkill(SkillType.BLOODMANCY).ToString());
 		this.DEBUG_LIST.Add("Crafting: " + GetSkill(SkillType.CRAFTING).ToString());
 		this.DEBUG_LIST.Add("Combat: " + GetSkill(SkillType.COMBAT).ToString());
@@ -276,7 +277,6 @@ public class CharacterSheet{
 		this.DEBUG_LIST.Add("Sorcery: " + GetSkill(SkillType.SORCERY).ToString());
 		this.DEBUG_LIST.Add("Thievery: " + GetSkill(SkillType.THIEVERY).ToString());
 		this.DEBUG_LIST.Add("Technology: " + GetSkill(SkillType.TECHNOLOGY).ToString());
-		this.DEBUG_LIST.Add("Thaumaturgy: " + GetSkill(SkillType.THAUMATURGY).ToString());
 		this.DEBUG_LIST.Add("Transmuting: " + GetSkill(SkillType.TRANSMUTING).ToString());
 		this.DEBUG_LIST.Add("Witchcraft: " + GetSkill(SkillType.WITCHCRAFT).ToString());
 		this.DEBUG_LIST.Add("RightHand: " + GetRightHand());

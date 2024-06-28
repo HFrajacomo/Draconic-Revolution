@@ -200,6 +200,8 @@ public static class NetDecoder
 		pos++;
 		cs.SetSkill(SkillType.ALCHEMY, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
+		cs.SetSkill(SkillType.ARTIFICING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
 		cs.SetSkill(SkillType.BLOODMANCY, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
 		cs.SetSkill(SkillType.CRAFTING, NetDecoder.ReadSkillEXP(data, pos));
@@ -233,8 +235,6 @@ public static class NetDecoder
 		cs.SetSkill(SkillType.THIEVERY, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
 		cs.SetSkill(SkillType.TECHNOLOGY, NetDecoder.ReadSkillEXP(data, pos));
-		pos += 5;
-		cs.SetSkill(SkillType.THAUMATURGY, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
 		cs.SetSkill(SkillType.TRANSMUTING, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
@@ -526,6 +526,8 @@ public static class NetDecoder
 		pos++;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.ALCHEMY), data, pos);
 		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.ARTIFICING), data, pos);
+		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.BLOODMANCY), data, pos);
 		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.CRAFTING), data, pos);
@@ -559,8 +561,6 @@ public static class NetDecoder
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.THIEVERY), data, pos);
 		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.TECHNOLOGY), data, pos);
-		pos += 5;
-		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.THAUMATURGY), data, pos);
 		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.TRANSMUTING), data, pos);
 		pos += 5;
