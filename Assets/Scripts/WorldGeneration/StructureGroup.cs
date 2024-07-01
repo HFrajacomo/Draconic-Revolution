@@ -26,8 +26,8 @@ public static class StructureGroup
     private static List<StructSpawn> greaterBonesFormation = new List<StructSpawn>();
     private static List<StructSpawn> hellOres = new List<StructSpawn>();
     private static List<StructSpawn> coreOres = new List<StructSpawn>();
-    private static List<StructSpawn> visFew = new List<StructSpawn>();
-    private static List<StructSpawn> visMany = new List<StructSpawn>();
+    private static List<StructSpawn> auraFew = new List<StructSpawn>();
+    private static List<StructSpawn> auraMany = new List<StructSpawn>();
 
     // Static Constructor
     static StructureGroup(){
@@ -67,10 +67,10 @@ public static class StructureGroup
         map.Add(StructureGroupID.HELL_ORES, hellOres);
         PopulateCoreOres();
         map.Add(StructureGroupID.CORE_ORES, coreOres);
-        PopulateVisFew();
-        map.Add(StructureGroupID.VIS_FEW, visFew);
-        PopulateVisMany();
-        map.Add(StructureGroupID.VIS_MANY, visMany);
+        PopulateAuraFew();
+        map.Add(StructureGroupID.AURA_FEW, auraFew);
+        PopulateAuraMany();
+        map.Add(StructureGroupID.AURA_MANY, auraMany);
     }
 
     public static void AddStructureGroup(StructureGroupID id, Biome b){
@@ -226,24 +226,24 @@ public static class StructureGroup
         coreOres.Add(new StructSpawn(StructureCode.SteonyxVein, 7, .7f, 0, -1, true, 0));
     }
 
-    private static void PopulateVisFew(){
-        visFew.Add(new StructSpawn(StructureCode.SingleIgnisVisCrystal, 2, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SingleAquaVisCrystal, 2, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SingleAerVisCrystal, 2, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SingleTerraVisCrystal, 2, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SingleOrdoVisCrystal, 2, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SinglePerditioVisCrystal, 2, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SingleMagicVisCrystal, 2, 1f, 10, -1, true, 0));
+    private static void PopulateAuraFew(){
+        auraFew.Add(new StructSpawn(StructureCode.SingleIgnisAuraCrystal, 2, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleAquaAuraCrystal, 2, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleVentusAuraCrystal, 2, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleSolumAuraCrystal, 2, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleCastusAuraCrystal, 2, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleRuinaAuraCrystal, 2, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleMagicAuraCrystal, 2, 1f, 10, -1, true, 0));
     }
 
-    private static void PopulateVisMany(){
-        visFew.Add(new StructSpawn(StructureCode.SingleIgnisVisCrystal, 5, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SingleAquaVisCrystal, 5, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SingleAerVisCrystal, 5, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SingleTerraVisCrystal, 5, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SingleOrdoVisCrystal, 5, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SinglePerditioVisCrystal, 5, 1f, 10, -1, true, 0));
-        visFew.Add(new StructSpawn(StructureCode.SingleMagicVisCrystal, 5, 1f, 10, -1, true, 0));
+    private static void PopulateAuraMany(){
+        auraFew.Add(new StructSpawn(StructureCode.SingleIgnisAuraCrystal, 5, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleAquaAuraCrystal, 5, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleVentusAuraCrystal, 5, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleSolumAuraCrystal, 5, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleCastusAuraCrystal, 5, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleRuinaAuraCrystal, 5, 1f, 10, -1, true, 0));
+        auraFew.Add(new StructSpawn(StructureCode.SingleMagicAuraCrystal, 5, 1f, 10, -1, true, 0));
     }
 }
 
@@ -267,6 +267,6 @@ public enum StructureGroupID : int
     GREATER_BONES,
     HELL_ORES,
     CORE_ORES,
-    VIS_FEW,
-    VIS_MANY
+    AURA_FEW,
+    AURA_MANY
 }

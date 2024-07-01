@@ -1333,14 +1333,14 @@ public class SteonyxVein : Structure
     AQUA_CRYSTAL = 65533,
     IGNIS_CRYSTAL = 65534,
  */
-public class SingleIgnisVisCrystal : Structure
+public class SingleIgnisAuraCrystal : Structure
 {
 	public ushort[] blocks = new ushort[]{65534};
 	public ushort[] hps = new ushort[]{0,1};
 	public ushort[] states = new ushort[]{0,1};
 
-	public SingleIgnisVisCrystal(){
-		this.code = (ushort)StructureCode.SingleIgnisVisCrystal;
+	public SingleIgnisAuraCrystal(){
+		this.code = (ushort)StructureCode.SingleIgnisAuraCrystal;
 
 		this.sizeX = 1;
 		this.sizeY = 1;
@@ -1354,21 +1354,21 @@ public class SingleIgnisVisCrystal : Structure
 
 		this.considerAir = false;
 		this.needsBase = false;
-		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>();
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
 }
 
-public class SingleAquaVisCrystal : Structure
+public class SingleAquaAuraCrystal : Structure
 {
 	public ushort[] blocks = new ushort[]{65533};
 	public ushort[] hps = new ushort[]{0,1};
 	public ushort[] states = new ushort[]{0,1};
 
-	public SingleAquaVisCrystal(){
-		this.code = (ushort)StructureCode.SingleAquaVisCrystal;
+	public SingleAquaAuraCrystal(){
+		this.code = (ushort)StructureCode.SingleAquaAuraCrystal;
 
 		this.sizeX = 1;
 		this.sizeY = 1;
@@ -1382,21 +1382,21 @@ public class SingleAquaVisCrystal : Structure
 
 		this.considerAir = false;
 		this.needsBase = false;
-		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>();
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
 }
 
-public class SingleAerVisCrystal : Structure
+public class SingleVentusAuraCrystal : Structure
 {
 	public ushort[] blocks = new ushort[]{65532};
 	public ushort[] hps = new ushort[]{0,1};
 	public ushort[] states = new ushort[]{0,1};
 
-	public SingleAerVisCrystal(){
-		this.code = (ushort)StructureCode.SingleAerVisCrystal;
+	public SingleVentusAuraCrystal(){
+		this.code = (ushort)StructureCode.SingleVentusAuraCrystal;
 
 		this.sizeX = 1;
 		this.sizeY = 1;
@@ -1410,22 +1410,22 @@ public class SingleAerVisCrystal : Structure
 
 		this.considerAir = false;
 		this.needsBase = false;
-		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>();
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
 }
 
 
-public class SingleTerraVisCrystal : Structure
+public class SingleSolumAuraCrystal : Structure
 {
 	public ushort[] blocks = new ushort[]{65531};
 	public ushort[] hps = new ushort[]{0,1};
 	public ushort[] states = new ushort[]{0,1};
 
-	public SingleTerraVisCrystal(){
-		this.code = (ushort)StructureCode.SingleTerraVisCrystal;
+	public SingleSolumAuraCrystal(){
+		this.code = (ushort)StructureCode.SingleSolumAuraCrystal;
 
 		this.sizeX = 1;
 		this.sizeY = 1;
@@ -1439,21 +1439,21 @@ public class SingleTerraVisCrystal : Structure
 
 		this.considerAir = false;
 		this.needsBase = false;
-		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>();
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
 }
 
-public class SingleOrdoVisCrystal : Structure
+public class SingleCastusAuraCrystal : Structure
 {
 	public ushort[] blocks = new ushort[]{65530};
 	public ushort[] hps = new ushort[]{0,1};
 	public ushort[] states = new ushort[]{0,1};
 
-	public SingleOrdoVisCrystal(){
-		this.code = (ushort)StructureCode.SingleOrdoVisCrystal;
+	public SingleCastusAuraCrystal(){
+		this.code = (ushort)StructureCode.SingleCastusAuraCrystal;
 
 		this.sizeX = 1;
 		this.sizeY = 1;
@@ -1467,21 +1467,21 @@ public class SingleOrdoVisCrystal : Structure
 
 		this.considerAir = false;
 		this.needsBase = false;
-		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>();
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
 }
 
-public class SinglePerditioVisCrystal : Structure
+public class SingleRuinaAuraCrystal : Structure
 {
 	public ushort[] blocks = new ushort[]{65529};
 	public ushort[] hps = new ushort[]{0,1};
 	public ushort[] states = new ushort[]{0,1};
 
-	public SinglePerditioVisCrystal(){
-		this.code = (ushort)StructureCode.SinglePerditioVisCrystal;
+	public SingleRuinaAuraCrystal(){
+		this.code = (ushort)StructureCode.SingleRuinaAuraCrystal;
 
 		this.sizeX = 1;
 		this.sizeY = 1;
@@ -1495,21 +1495,21 @@ public class SinglePerditioVisCrystal : Structure
 
 		this.considerAir = false;
 		this.needsBase = false;
-		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>();
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
 }
 
-public class SingleMagicVisCrystal : Structure
+public class SingleMagicAuraCrystal : Structure
 {
 	public ushort[] blocks = new ushort[]{65528};
 	public ushort[] hps = new ushort[]{0,1};
 	public ushort[] states = new ushort[]{0,1};
 
-	public SingleMagicVisCrystal(){
-		this.code = (ushort)StructureCode.SingleMagicVisCrystal;
+	public SingleMagicAuraCrystal(){
+		this.code = (ushort)StructureCode.SingleMagicAuraCrystal;
 
 		this.sizeX = 1;
 		this.sizeY = 1;
@@ -1523,8 +1523,8 @@ public class SingleMagicVisCrystal : Structure
 
 		this.considerAir = false;
 		this.needsBase = false;
-		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>();
+		this.type = FillType.SpecificOverwrite;
+		this.overwriteBlocks = new HashSet<ushort>(){VoxelLoader.GetBlockID("BASE_Stone")};
 
 		Prepare(blocks, hps, states);
 	}
@@ -1582,11 +1582,11 @@ public enum StructureCode{
 	GrandiumVeinA,
 	GrandiumVeinB,
 	SteonyxVein,
-	SingleIgnisVisCrystal,
-	SingleAquaVisCrystal,
-	SingleTerraVisCrystal,
-	SingleAerVisCrystal,
-	SingleOrdoVisCrystal,
-	SinglePerditioVisCrystal,
-	SingleMagicVisCrystal
+	SingleIgnisAuraCrystal,
+	SingleAquaAuraCrystal,
+	SingleSolumAuraCrystal,
+	SingleVentusAuraCrystal,
+	SingleCastusAuraCrystal,
+	SingleRuinaAuraCrystal,
+	SingleMagicAuraCrystal
 }
