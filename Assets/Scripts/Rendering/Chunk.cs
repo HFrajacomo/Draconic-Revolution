@@ -265,6 +265,7 @@ public class Chunk
     	this.triangles.Clear();
     	this.specularTris.Clear();
     	this.liquidTris.Clear();
+    	this.leavesTris.Clear();
     	this.iceTris.Clear();
     	this.lavaTris.Clear();
     	this.assetTris.Clear();
@@ -844,6 +845,9 @@ public class Chunk
     	if(this.vertices.Count >= ushort.MaxValue){
     		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
+
+ 	    Debug.Log($"{this.pos} -> {this.leavesTris.Count}");
+
 
     	this.meshFilter.mesh.subMeshCount = 8;
 
