@@ -19,6 +19,9 @@ public struct PopulateUndergroundChunkJob : IJobParallelFor{
     public ChunkPos pos;
     [ReadOnly]
     public byte biome;
+    
+    [ReadOnly]
+    public NativeArray<ushort> decorationBlock; // 0: Stone, 1: Basalt, 2: Water, 3: Ice, 4: Snow
 
     public void Execute(int index){
         ApplySurfaceDecoration(index, biome);
@@ -33,9 +36,9 @@ public struct PopulateUndergroundChunkJob : IJobParallelFor{
 
             for(int z=0; z < Chunk.chunkWidth; z++){
                 for(int y=(int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                    if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == (ushort)BlockID.STONE){
+                    if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == this.decorationBlock[0]){
                         if(NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2 + (pos.y*Chunk.chunkDepth+y)*GenerationSeed.patchNoiseStep3, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) >= basaltThreshold){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.BASALT;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[1];
                         }
                     }
                 }
@@ -50,7 +53,7 @@ public struct PopulateUndergroundChunkJob : IJobParallelFor{
                         continue;
 
                     if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 0)
-                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.WATER;
+                        blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[2];
                 }
             }            
         }
@@ -65,7 +68,7 @@ public struct PopulateUndergroundChunkJob : IJobParallelFor{
 
             for(int z=0; z < Chunk.chunkWidth; z++){
                 for(int y=(int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                    if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == (ushort)BlockID.STONE){
+                    if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == this.decorationBlock[0]){
 
                         if(y < Chunk.chunkDepth-1)
                             topBlock = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+(y+1)*Chunk.chunkWidth+z] == 0;
@@ -85,10 +88,10 @@ public struct PopulateUndergroundChunkJob : IJobParallelFor{
 
                         if(val >= snowThreshold){
                             if(val >= minIce && val <= maxIce){
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.ICE;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[3];
                             }
                             else{
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)BlockID.SNOW;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[4];
                             }
                         }
                     }

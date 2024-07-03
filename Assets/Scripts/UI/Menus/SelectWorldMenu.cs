@@ -116,9 +116,6 @@ public class SelectWorldMenu : Menu
         }
     }
 
-    void Start(){
-        this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
-    }
 
     void Update(){
         if(this.isEnabled){
@@ -140,11 +137,12 @@ public class SelectWorldMenu : Menu
     private bool ListWorldFolders(){
         string worldName;
 
-        if(!Directory.Exists(this.worldsDir))
+        if(!Directory.Exists(EnvironmentVariablesCentral.saveDir))
             return false;
 
-        this.worldNames = Directory.GetDirectories(this.worldsDir);
+        this.worldNames = Directory.GetDirectories(EnvironmentVariablesCentral.saveDir);
 
+        
         foreach(string world in this.worldNames){
             worldName = GetDirectoryName(world);
 
@@ -187,7 +185,7 @@ public class SelectWorldMenu : Menu
 
         characterHandler.Close();
 
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene("Blank");
     }
 
     private string GetDirectoryName(string path){

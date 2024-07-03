@@ -20,9 +20,9 @@ public struct CalculateShadowMapJob : IJob{
 	[ReadOnly]
 	public int chunkDepth;
 	[ReadOnly]
-	public NativeArray<byte> isTransparentBlock;
+	public NativeArray<bool> isTransparentBlock;
 	[ReadOnly]
-	public NativeArray<byte> isTransparentObj;
+	public NativeArray<bool> isTransparentObj;
 	[ReadOnly]
 	public NativeArray<byte> blockLuminosity;
 	[ReadOnly]
@@ -93,7 +93,7 @@ public struct CalculateShadowMapJob : IJob{
 
 					// If is transparent
 					if(isBlock){
-						if(isTransparentBlock[blockCode] == 1){
+						if(isTransparentBlock[blockCode]){
 							if(CheckBorder(x, y, z) == 0){
 								shadowMap[index] = 17;
 								lightMap[index] = 0;
@@ -124,7 +124,7 @@ public struct CalculateShadowMapJob : IJob{
 						}
 					}
 					else{
-						if(isTransparentObj[ushort.MaxValue - blockCode] == 1){
+						if(isTransparentObj[ushort.MaxValue - blockCode]){
 							if(CheckBorder(x, y, z) == 0){
 								shadowMap[index] = 17;
 								lightMap[index] = 0;
@@ -207,7 +207,7 @@ public struct CalculateShadowMapJob : IJob{
 
 					// If is transparent
 					if(isBlock){
-						if(isTransparentBlock[blockCode] == 1){
+						if(isTransparentBlock[blockCode]){
 							if(CheckBorder(x, y, z) == 0){
 								shadowMap[index] = 17;
 								lightMap[index] = 0;
@@ -237,7 +237,7 @@ public struct CalculateShadowMapJob : IJob{
 						}
 					}
 					else{
-						if(isTransparentObj[ushort.MaxValue - blockCode] == 1){
+						if(isTransparentObj[ushort.MaxValue - blockCode]){
 							if(CheckBorder(x, y, z) == 0){
 								shadowMap[index] = 17;
 								lightMap[index] = 0;

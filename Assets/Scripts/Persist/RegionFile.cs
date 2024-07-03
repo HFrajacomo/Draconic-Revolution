@@ -8,7 +8,6 @@ public struct RegionFile{
 	public ChunkPos regionPos; // Variable to represent Region coordinates, and not Chunk coordinates
 	private float chunkLength;
 	private string worldDir;
-	private string saveDir;
 	private long fileSize;
 
 	// File Data
@@ -39,34 +38,10 @@ public struct RegionFile{
 		this.longArray = new byte[8];
 		this.emptyHole = new byte[12];
 
-
-		#if UNITY_EDITOR
-			this.saveDir = "Worlds/";
-
-			if(!isDefrag)
-				this.worldDir = this.saveDir + World.worldName + "/";
-			else
-				this.worldDir = this.saveDir + worldName + "/";
-		#else
-			// If is in Dedicated Server
-			if(!World.isClient){
-				this.saveDir = "Worlds/";
-
-				if(!isDefrag)
-					this.worldDir = this.saveDir + World.worldName + "/";
-				else
-					this.worldDir = this.saveDir + worldName + "/";
-			}
-			// If it's a Local Server
-			else{
-				this.saveDir = EnvironmentVariablesCentral.clientExeDir + "\\Worlds\\";
-
-				if(!isDefrag)
-					this.worldDir = this.saveDir + World.worldName + "\\";	
-				else
-					this.worldDir = this.saveDir + worldName + "\\";	
-			}
-		#endif
+		if(!isDefrag)
+			this.worldDir = EnvironmentVariablesCentral.saveDir + World.worldName + "\\";	
+		else
+			this.worldDir = EnvironmentVariablesCentral.saveDir + worldName + "\\";
 
 		try{
 			this.file = File.Open(this.worldDir + name + this.fileFormat, FileMode.Open);

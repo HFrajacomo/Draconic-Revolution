@@ -1,0 +1,23 @@
+﻿{
+        "codename": "BASE_Black_Marble",
+        "name":  "Black Marble",
+        "shaderIndex": 0,
+        "solid":  true,
+        "transparent": false,
+        "invisible":  false,
+        "affectLight":  true,
+        "liquid":  false,
+        "seamless": false,
+        "luminosity": 0,
+        "hasLoadEvent": false,
+        "washable": false,
+        "needsRotation": false,
+        "customBreak": false,
+        "customPlace": false,
+        "drawRegardless": false,
+        "maxHP":  350,
+        "indestructible": false,
+        "tileTop":  "BASE_Black_Marble",
+        "tileSide":  "BASE_Black_Marble",
+        "tileBottom":  "BASE_Black_Marble"
+}

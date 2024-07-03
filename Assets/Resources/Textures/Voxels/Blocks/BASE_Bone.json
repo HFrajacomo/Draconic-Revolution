@@ -1,0 +1,33 @@
+﻿{
+    "codename": "BASE_Bone",
+    "name":  "Bone",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  120,
+    "indestructible": false,
+    "tileTop":  "BASE_Bone",
+    "tileSide":  "BASE_Bone",
+    "tileBottom":  "BASE_Bone"
+}
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Bone",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

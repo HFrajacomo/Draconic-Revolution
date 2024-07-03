@@ -10,7 +10,7 @@ public class Inventory
 	private ushort limit;
 	private short lastEmptySlot;
 	private bool isFull;
-	private HashSet<ItemID> itemInInventory;
+	private HashSet<ushort> itemInInventory;
 
 	// Creates an empty inventory
 	public Inventory(InventoryType type){
@@ -33,7 +33,7 @@ public class Inventory
 		this.type = type;
 		this.lastEmptySlot = 0;
 		this.isFull = false;
-		this.itemInInventory = new HashSet<ItemID>();
+		this.itemInInventory = new HashSet<ushort>();
 	}
 
 
@@ -43,7 +43,7 @@ public class Inventory
 			return 0;
 
 		byte receivedAmount = 0;
-		ItemID id = its.GetID();
+		ushort id = its.GetID();
 
 		foreach(InventoryTransaction t in spots){
 			if(its.MoveTo(ref this.slots[t.slotNumber])){
@@ -350,13 +350,13 @@ public class Inventory
 	#nullable disable
 
 	// Removes an element from itemInInventory
-	public void RemoveFromRecords(ItemID id){
+	public void RemoveFromRecords(ushort id){
 		if(!this.Contains(id))
 			itemInInventory.Remove(id);
 	}
 
 	// Discovers whether an item is contained in the inventory manually
-	public bool Contains(ItemID id){
+	public bool Contains(ushort id){
 		for(int i=0; i < this.limit; i++){
 			if(this.slots[i] == null)
 				continue;

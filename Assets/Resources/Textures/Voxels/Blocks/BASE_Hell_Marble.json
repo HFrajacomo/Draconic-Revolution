@@ -1,0 +1,23 @@
+﻿{
+    "codename": "BASE_Hell_Marble",
+    "name":  "Hell Marble",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  240,
+    "indestructible": false,
+    "tileTop":  "BASE_Hell_Marble",
+    "tileSide":  "BASE_Hell_Marble",
+    "tileBottom":  "BASE_Hell_Marble"
+}

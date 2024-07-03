@@ -1,0 +1,15 @@
+{
+    "codename": "BASE_Stone_Bricks",
+    "name":  "Stone Bricks",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Stone_Bricks"
+}

@@ -11,22 +11,23 @@ public class CharacterBuilderMenu{
 	private Transform rootBone;
 	private BoneRenderer boneRenderer;
 	private RaceSettings raceSettings;
+	private Material[] addonMats;
 
 	private static Dictionary<string, int> BONE_MAP;
 
 	// Settings
 	private static readonly int ROOT_BONE_INDEX = 0;
-	private static readonly string ARMATURE_NAME_MALE = "Armature";
+	private static readonly string ARMATURE_NAME_MALE = "Armature-Man";
 	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(25,25,25);
-	private static readonly Vector3 SCL_2 = new Vector3(18,25,25);
+	private static readonly Vector3 SCL_2 = new Vector3(25,25,25);
 	private static readonly int CHARACTER_CREATION_CHARACTER_SCALING = 150;
 
 	private List<int> cachedTris = new List<int>();
 
-	public CharacterBuilderMenu(GameObject par, RuntimeAnimatorController animations, bool isMale=true){
+	public CharacterBuilderMenu(GameObject par, RuntimeAnimatorController animations, Race race, Material[] addonMats, bool isMale=true){
 		this.raceSettings = RaceManager.GetHuman();
 
 		this.parent = par;
@@ -35,15 +36,20 @@ public class CharacterBuilderMenu{
 		this.bodyParts = new Dictionary<ModelType, GameObject>();
 		this.bodyPartName = new Dictionary<ModelType, string>();
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
-		this.armature.transform.localScale = raceSettings.scaling;
 		this.armature.transform.SetParent(this.parent.transform);
+		this.addonMats = addonMats;
 
-		if(isMale)
+		if(isMale){
 			this.armature.name = ARMATURE_NAME_MALE;
-		else
+			this.armature.transform.localScale = ElementWiseMult(SCL_1, this.raceSettings.scaling);
+		}
+		else{
 			this.armature.name = ARMATURE_NAME_FEMALE;
+			this.armature.transform.localScale = ElementWiseMult(SCL_2, this.raceSettings.scaling);
+		}
 
 		FixArmature(isMale);
+		PutAddon(race, isMale);
 	}
 
 	public void ChangeAnimationGender(RuntimeAnimatorController animation){
@@ -55,11 +61,20 @@ public class CharacterBuilderMenu{
 	}
 
 	public int GetMaterialLength(ModelType type){
-		return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length;
+		if(type != ModelType.FACE)
+			return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length;
+		else
+			return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length + 1;
 	}
 
-	public void ChangeRace(RaceSettings settings, bool isMale){
-		this.raceSettings = settings;
+	public int GetMaterialLength(ModelType type, GameObject go){
+		if(type != ModelType.FACE)
+			return go.GetComponent<SkinnedMeshRenderer>().materials.Length;
+		return go.GetComponent<SkinnedMeshRenderer>().materials.Length + 1;
+	}
+
+	public void ChangeRace(Race race, bool isMale){
+		this.raceSettings = RaceManager.GetSettings(race);
 
 		GameObject.DestroyImmediate(this.armature);
 
@@ -71,10 +86,16 @@ public class CharacterBuilderMenu{
 			this.armature.name = ARMATURE_NAME_FEMALE;
 
 		this.armature.transform.SetParent(this.parent.transform);
+
+		PutAddon(race, isMale, isReload:true);
 		FixArmature(isMale);
 		ReloadModel(isMale);
 		
 		this.animator.Rebind();
+	}
+
+	public void ChangeGender(Race race, bool isMale){
+		PutAddon(race, isMale);
 	}
 
 	public void Add(ModelType type, GameObject obj, string name, bool isReload=false){
@@ -86,10 +107,147 @@ public class CharacterBuilderMenu{
 			this.bodyPartName[type] = name;
 		}
 
+		if(!ModelHandler.HasModel(type, name)){
+			this.bodyParts[type] = obj;
+			obj.transform.SetParent(this.parent.transform);
+			return;
+		}
+
 		obj.transform.SetParent(this.parent.transform);
 		obj.transform.localScale = this.raceSettings.scaling;
 		obj.transform.eulerAngles = ROT_1;
 		obj.transform.localPosition = POS_1;
+
+		this.bodyParts[type] = obj;
+
+		SkinnedMeshRenderer current = obj.GetComponent<SkinnedMeshRenderer>();
+
+		if(BONE_MAP == null){
+			SetBoneMap(current.bones);
+		}
+
+		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
+
+		#if UNITY_EDITOR
+			if(boneRenderer.transforms == null)
+				boneRenderer.transforms = newBones;
+		#endif
+
+		Mesh mesh = CopyMesh(current.sharedMesh, current);
+
+		if(type != ModelType.ADDON)
+			FixMaterialOrder(current);
+		else{
+			if(this.raceSettings.GetRace() == Race.DRAGONLING)
+				current.SetMaterials(new List<Material>(){this.addonMats[1]});
+			else
+				current.SetMaterials(new List<Material>(){this.addonMats[0]});
+		}
+
+
+		mesh.name = current.sharedMesh.name;
+		current.sharedMesh = mesh;
+		current.rootBone = newBones[ROOT_BONE_INDEX];
+		current.bones = newBones;
+
+
+		// Hide hair options
+		if(type == ModelType.HEADGEAR || type == ModelType.HAIR){
+			if(this.bodyParts.ContainsKey(ModelType.HAIR) && this.bodyParts.ContainsKey(ModelType.HEADGEAR)){
+
+				char hatSKCode = ModelHandler.GetHatCover(type, name);
+				bool hairHasShapeKeys = ModelHandler.HasShapeKeys(ModelType.HAIR, this.bodyPartName[ModelType.HAIR]);
+				
+				// TODO: Support to change hair with a different model just to match hair below head
+
+				if(hatSKCode == 'N'){ // If covers hair
+					this.bodyParts[ModelType.HAIR].SetActive(false);
+				}
+				else{
+					this.bodyParts[ModelType.HAIR].SetActive(true);
+				}
+			}
+		}
+	}
+
+	public void ChangeArmature(bool isMale){
+		if(this.armature != null){
+			GameObject.DestroyImmediate(this.armature);
+
+			if(BONE_MAP != null)
+				BONE_MAP.Clear();
+			
+			BONE_MAP = null;
+		}
+
+		this.armature = ModelHandler.GetArmature(isMale:isMale);
+		this.armature.transform.SetParent(this.parent.transform);
+
+		this.parent.transform.localScale = this.raceSettings.scaling * CharacterBuilderMenu.CHARACTER_CREATION_CHARACTER_SCALING;
+
+		if(isMale){
+			this.armature.name = ARMATURE_NAME_MALE;
+			this.armature.transform.localScale = ElementWiseMult(SCL_1, this.raceSettings.scaling);
+		}
+		else{
+			this.armature.name = ARMATURE_NAME_FEMALE;
+			this.armature.transform.localScale = ElementWiseMult(SCL_2, this.raceSettings.scaling);
+		}
+
+		FixArmature(isMale);
+		this.animator.Rebind();
+	}
+
+	public void ChangeAddonColor(Color col, Race race){
+		if(!this.bodyParts.ContainsKey(ModelType.ADDON))
+			return;
+
+		if(race == Race.DRAGONLING || race == Race.UNDEAD){
+			return;	
+		}
+
+		Material[] materials = this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials;
+
+		materials[0].SetColor("_Color", col);
+
+		this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials = materials;
+		
+	}
+
+
+	private void PutAddon(Race race, bool isMale, bool isReload=false){
+		if(this.bodyParts.ContainsKey(ModelType.ADDON)){
+			GameObject.DestroyImmediate(this.bodyParts[ModelType.ADDON]);
+		}
+
+		if(race == Race.UNDEAD){
+			this.bodyPartName.Remove(ModelType.ADDON);
+			return;
+		}
+
+		if(isMale)
+			this.bodyPartName[ModelType.ADDON] = GetAddonName(race) + "/M";
+		else
+			this.bodyPartName[ModelType.ADDON] = GetAddonName(race) + "/F";
+
+
+		if(isReload)
+			return;
+
+		GameObject obj;
+
+		if(isMale){
+			obj = ModelHandler.GetModelObject(ModelType.ADDON, GetAddonName(race) + "/M");
+		}
+		else{
+			obj = ModelHandler.GetModelObject(ModelType.ADDON, GetAddonName(race) + "/F");
+		}
+
+		obj.transform.SetParent(this.parent.transform);
+		obj.transform.localScale = this.raceSettings.scaling;
+		obj.transform.eulerAngles = ROT_1;
+		obj.transform.localPosition = POS_1;
+
 
 		SkinnedMeshRenderer current = obj.GetComponent<SkinnedMeshRenderer>();
 
@@ -107,37 +265,38 @@ public class CharacterBuilderMenu{
 		Mesh mesh = CopyMesh(current.sharedMesh, current);
 		FixMaterialOrder(current);
 
+		obj.name = "ADDON";
 		mesh.name = current.sharedMesh.name;
 		current.sharedMesh = mesh;
 		current.rootBone = newBones[ROOT_BONE_INDEX];
 		current.bones = newBones;
 
-		this.bodyParts[type] = obj;
+		this.bodyParts[ModelType.ADDON] = obj;
+
+		// Set Material
+		if(race == Race.DRAGONLING)
+			current.SetMaterials(new List<Material>(){this.addonMats[1]});
+		else
+			current.SetMaterials(new List<Material>(){this.addonMats[0]});
 	}
 
-	public void ChangeArmature(bool isMale){
-		if(this.armature != null){
-			GameObject.DestroyImmediate(this.armature);
-
-			if(BONE_MAP != null)
-				BONE_MAP.Clear();
-			
-			BONE_MAP = null;
+	private string GetAddonName(Race r){
+		switch(r){
+			case Race.HUMAN:
+				return "Base_Ears";
+			case Race.ELF:
+				return "Elven_Ears";
+			case Race.DWARF:
+				return "Base_Ears";
+			case Race.ORC:
+				return "Orcish_Ears";
+			case Race.DRAGONLING:
+				return "Dragonling_Horns";
+			case Race.HALFLING:
+				return "Base_Ears";
+			default:
+				return "Base_Ears";
 		}
-
-		this.armature = ModelHandler.GetArmature(isMale:isMale);
-		this.armature.transform.localScale = this.raceSettings.scaling;
-		this.armature.transform.SetParent(this.parent.transform);
-
-		this.parent.transform.localScale = this.raceSettings.scaling * CharacterBuilderMenu.CHARACTER_CREATION_CHARACTER_SCALING;
-
-		if(isMale)
-			this.armature.name = ARMATURE_NAME_MALE;
-		else
-			this.armature.name = ARMATURE_NAME_FEMALE;
-
-		FixArmature(isMale);
-		this.animator.Rebind();
 	}
 
 	private void ReloadModel(bool isMale){
@@ -162,9 +321,9 @@ public class CharacterBuilderMenu{
 		}
 
 		if(isMale)
-			this.armature.transform.localScale = SCL_1;
+			this.armature.transform.localScale = ElementWiseMult(SCL_1, this.raceSettings.scaling);
 		else
-			this.armature.transform.localScale = SCL_2;
+			this.armature.transform.localScale = ElementWiseMult(SCL_2, this.raceSettings.scaling);
 
 
 		this.armature.transform.eulerAngles = ROT_1;
@@ -175,14 +334,14 @@ public class CharacterBuilderMenu{
 	}
 
 	private void LoadRootBone(){
-		this.rootBone = this.armature.transform.Find("Hips").transform;
+		this.rootBone = this.armature.transform.Find("Pelvis").transform;
 	}
 
 	private Mesh CopyMesh(Mesh mesh, SkinnedMeshRenderer rend){
         Mesh newMesh = new Mesh();
 
         newMesh.subMeshCount = mesh.subMeshCount;
-        newMesh.vertices = ScaleVertices(mesh.vertices);
+        newMesh.vertices = mesh.vertices;
         newMesh.uv = mesh.uv;
         newMesh.normals = mesh.normals;
         newMesh.colors = mesh.colors;
@@ -196,15 +355,6 @@ public class CharacterBuilderMenu{
         return newMesh;
 	}
 
-	private Vector3[] ScaleVertices(Vector3[] original){
-		Vector3[] output = new Vector3[original.Length];
-
-		for(int i=0; i < original.Length; i++){
-			output[i] = new Vector3(original[i].x * this.raceSettings.scaling.x, original[i].y * this.raceSettings.scaling.y, original[i].z * this.raceSettings.scaling.z);
-		}
-
-		return output;
-	}
 
 	private void FixMaterialOrder(SkinnedMeshRenderer rend){
 		Material[] materials = new Material[rend.materials.Length];
@@ -276,7 +426,7 @@ public class CharacterBuilderMenu{
 				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(3, rend), 3);
 				return;				
 			default:
-				return;		
+				return;
 		}
 	}
 
@@ -313,5 +463,9 @@ public class CharacterBuilderMenu{
     	p.GetTriangles(this.cachedTris, indexP);
     	n.SetTriangles(this.cachedTris, indexN);
     	this.cachedTris.Clear();
+	}
+
+	private Vector3 ElementWiseMult(Vector3 a, Vector3 b){
+		return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
 	}
 }

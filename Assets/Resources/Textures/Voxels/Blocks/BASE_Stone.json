@@ -1,0 +1,33 @@
+﻿{
+    "codename": "BASE_Stone",
+    "name":  "Stone",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  300,
+    "indestructible": false,
+    "tileTop":  "BASE_Stone",
+    "tileSide":  "BASE_Stone",
+    "tileBottom":  "BASE_Stone"
+}
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Stone",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

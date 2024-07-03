@@ -45,7 +45,6 @@ public class Chunk
 	public MeshFilter meshFilter;
 	public MeshCollider meshCollider;
 	public GameObject obj;
-	public BlockEncyclopedia blockBook;
 	public ChunkLoader loader;
 
 	// Decal Chunk
@@ -58,14 +57,14 @@ public class Chunk
 
 	// Main Mesh Information
     private List<Vector3> vertices = new List<Vector3>();
-    private int[] specularTris;
-    private int[] liquidTris;
-    private int[] assetTris;
-    private int[] assetSolidTris;
-    private int[] triangles;
-    private int[] leavesTris;
-    private int[] iceTris;
-    private int[] lavaTris;
+    private List<int> specularTris = new List<int>();
+    private List<int> liquidTris = new List<int>();
+    private List<int> assetTris = new List<int>();
+    private List<int> assetSolidTris = new List<int>();
+    private List<int> triangles = new List<int>();
+    private List<int> leavesTris = new List<int>();
+    private List<int> iceTris = new List<int>();
+    private List<int> lavaTris = new List<int>();
   	private List<Vector2> UVs = new List<Vector2>();
   	private List<Vector2> lightUVMain = new List<Vector2>();
   	private List<Vector3> normals = new List<Vector3>();
@@ -99,12 +98,14 @@ public class Chunk
     private Mesh meshDecal;
     private Mesh meshRaycast;
     private Mesh cacheMesh = new Mesh();
+    private List<int> decalTris = new List<int>();
+    private List<int> hitboxTris = new List<int>();
 
     // General Cache
     private ChunkPos[] surroundingVerticalChunks = new ChunkPos[2];
 
 
-	public Chunk(ChunkPos pos, ChunkRenderer r, BlockEncyclopedia be, ChunkLoader loader){
+	public Chunk(ChunkPos pos, ChunkRenderer r, ChunkLoader loader){
 		this.pos = pos;
 		this.needsGeneration = 0;
 		this.renderer = r;
@@ -141,7 +142,6 @@ public class Chunk
 		this.meshFilterDecal = this.objDecal.GetComponent<MeshFilter>();
 		this.obj.GetComponent<MeshRenderer>().sharedMaterials = this.renderer.GetComponent<MeshRenderer>().sharedMaterials;
 		this.objDecal.GetComponent<MeshRenderer>().material = this.renderer.decalMaterial;
-		this.blockBook = be;
 		this.obj.layer = 8;
 
 		this.mesh = new Mesh();
@@ -182,7 +182,7 @@ public class Chunk
 
 	// Clone
 	public Chunk Clone(){
-		Chunk c = new Chunk(this.pos, this.renderer, this.blockBook, this.loader);
+		Chunk c = new Chunk(this.pos, this.renderer, this.loader);
 
 		c.biomeName = this.biomeName;
 		c.data = new VoxelData(this.data.GetData(), this.pos);
@@ -203,7 +203,6 @@ public class Chunk
 		this.meshFilter = null;
 		this.meshCollider = null; 
 		this.loader = null;
-		this.blockBook = null;
 
 		this.data.Destroy();
 		this.metadata.Destroy();
@@ -263,13 +262,14 @@ public class Chunk
     	this.vertices.Clear();
     	this.normals.Clear();
     	this.tangents.Clear();
-    	this.triangles = null;
-    	this.specularTris = null;
-    	this.liquidTris = null;
-    	this.iceTris = null;
-    	this.lavaTris = null;
-    	this.assetTris = null;
-    	this.assetSolidTris = null;
+    	this.triangles.Clear();
+    	this.specularTris.Clear();
+    	this.liquidTris.Clear();
+    	this.leavesTris.Clear();
+    	this.iceTris.Clear();
+    	this.lavaTris.Clear();
+    	this.assetTris.Clear();
+    	this.assetSolidTris.Clear();
     	this.UVs.Clear();
     	this.lightUVMain.Clear();
 
@@ -518,7 +518,9 @@ public class Chunk
 			blockTiles = BlockEncyclopediaECS.blockTiles,
 			blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless,
 			blockHP = BlockEncyclopediaECS.blockHP,
-			objectHP = BlockEncyclopediaECS.objectHP
+			objectHP = BlockEncyclopediaECS.objectHP,
+
+			atlasSize = BlockEncyclopediaECS.atlasSize
 		};
 		JobHandle job = bcJob.Schedule();
 
@@ -541,17 +543,17 @@ public class Chunk
 			if(!this.cacheCodes.Contains(assetCode)){
 				this.cacheCodes.Add(assetCode);
 
-				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetVertices(vertexAux);
+				VoxelLoader.GetObject(assetCode).GetMesh().GetVertices(vertexAux);
 				this.cacheVertsv3.AddRange(vertexAux.ToArray());
-				this.cacheTris.AddRange(blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTriangles(0));
-				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetUVs(0, UVaux);
+				this.cacheTris.AddRange(VoxelLoader.GetObject(assetCode).GetMesh().GetTriangles(0));
+				VoxelLoader.GetObject(assetCode).GetMesh().GetUVs(0, UVaux);
 				this.cacheUVv2.AddRange(UVaux.ToArray());
 				this.indexVert.Add(this.indexVert[indexVert.Count-1] + vertexAux.Count);
-				this.indexTris.Add(this.indexTris[indexTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTriangles(0).Length);
+				this.indexTris.Add(this.indexTris[indexTris.Count-1] + VoxelLoader.GetObject(assetCode).GetMesh().GetTriangles(0).Length);
 				this.indexUV.Add(this.indexUV[indexUV.Count-1] + UVaux.Count);
-				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetNormals(normalAux);
+				VoxelLoader.GetObject(assetCode).GetMesh().GetNormals(normalAux);
 				this.cacheNormals.AddRange(normalAux.ToArray());
-				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetTangents(tangentAux);
+				VoxelLoader.GetObject(assetCode).GetMesh().GetTangents(tangentAux);
 				this.cacheTangents.AddRange(tangentAux.ToArray());
 				this.scalingFactor.Add(BlockEncyclopediaECS.objectScaling[ushort.MaxValue-assetCode]);
 				this.hitboxScaling.Add(BlockEncyclopediaECS.hitboxScaling[ushort.MaxValue-assetCode]);
@@ -561,14 +563,14 @@ public class Chunk
 				normalAux.Clear();
 				tangentAux.Clear();
 
-				blockBook.objects[ushort.MaxValue-assetCode].hitboxMesh.GetVertices(vertexAux);
+				VoxelLoader.GetObject(assetCode).GetHitboxMesh().GetVertices(vertexAux);
 				this.cacheHitboxVerts.AddRange(vertexAux.ToArray());
-				this.cacheHitboxTriangles.AddRange(blockBook.objects[ushort.MaxValue-assetCode].hitboxMesh.GetTriangles(0));
-				blockBook.objects[ushort.MaxValue-assetCode].mesh.GetNormals(normalAux);
+				this.cacheHitboxTriangles.AddRange(VoxelLoader.GetObject(assetCode).GetHitboxMesh().GetTriangles(0));
+				VoxelLoader.GetObject(assetCode).GetMesh().GetNormals(normalAux);
 				this.cacheHitboxNormals.AddRange(normalAux);
 
 				this.indexHitboxVert.Add(this.indexHitboxVert[indexHitboxVert.Count-1] + vertexAux.Count);
-				this.indexHitboxTris.Add(this.indexHitboxTris[indexHitboxTris.Count-1] + blockBook.objects[ushort.MaxValue-assetCode].hitboxMesh.GetTriangles(0).Length);
+				this.indexHitboxTris.Add(this.indexHitboxTris[indexHitboxTris.Count-1] + VoxelLoader.GetObject(assetCode).GetHitboxMesh().GetTriangles(0).Length);
 
 				vertexAux.Clear();
 				normalAux.Clear();
@@ -577,10 +579,10 @@ public class Chunk
 
 				// If has special offset or rotation
 				// Hash function for Dictionary is blockCode*256 + state. This leaves a maximum of 256 states for every object in the game
-				if(blockBook.objects[ushort.MaxValue - assetCode].needsRotation){
-					for(ushort i=0; i < blockBook.objects[ushort.MaxValue - assetCode].stateNumber; i++){
-						scaleOffset.Add((int)(assetCode*256 + i), blockBook.objects[ushort.MaxValue - assetCode].GetOffsetVector(i));
-						rotationOffset.Add((int)(assetCode*256 + i), blockBook.objects[ushort.MaxValue - assetCode].GetRotationValue(i));
+				if(VoxelLoader.GetObject(assetCode).needsRotation){
+					for(ushort i=0; i < VoxelLoader.GetObject(assetCode).maximumRotationScaleState; i++){
+						scaleOffset.Add((int)(assetCode*256 + i), VoxelLoader.GetObject(assetCode).GetOffsetVector(i));
+						rotationOffset.Add((int)(assetCode*256 + i), VoxelLoader.GetObject(assetCode).GetRotationValue(i));
 					}
 				}
 			}
@@ -679,33 +681,35 @@ public class Chunk
 		job.Complete();
 
 		// Convert data back
-		this.vertices.AddRange(verts.ToArray());
+		this.vertices.AddRange(verts.AsArray());
 
-		this.vertices.AddRange(meshVerts.ToArray());
-		this.triangles = normalTris.ToArray();
-		this.assetTris = meshTris.ToArray();
-		this.assetSolidTris = meshSolidTris.ToArray();
+		this.vertices.AddRange(meshVerts.AsArray());
+		this.triangles.AddRange(normalTris.AsArray());
+		this.assetTris.AddRange(meshTris.AsArray());
+		this.assetSolidTris.AddRange(meshSolidTris.AsArray());
 
-		this.specularTris = specularTris.ToArray();
-		this.liquidTris = liquidTris.ToArray();
-		this.leavesTris = leavesTris.ToArray();
-		this.iceTris = iceTris.ToArray();
-		this.lavaTris = lavaTris.ToArray();
+		this.specularTris.AddRange(specularTris.AsArray());
+		this.liquidTris.AddRange(liquidTris.AsArray());
+		this.leavesTris.AddRange(leavesTris.AsArray());
+		this.iceTris.AddRange(iceTris.AsArray());
+		this.lavaTris.AddRange(lavaTris.AsArray());
 
-		this.UVs.AddRange(UVs.ToArray());
-		this.UVs.AddRange(meshUVs.ToArray());
+		this.UVs.AddRange(UVs.AsArray());
+		this.UVs.AddRange(meshUVs.AsArray());
 
-		this.lightUVMain.AddRange(lightUV.ToArray());
-		this.lightUVMain.AddRange(meshLightUV.ToArray());
+		this.lightUVMain.AddRange(lightUV.AsArray());
+		this.lightUVMain.AddRange(meshLightUV.AsArray());
 
-		this.normals.AddRange(normals.ToArray());
-		this.normals.AddRange(meshNormals.ToArray());
+		this.normals.AddRange(normals.AsArray());
+		this.normals.AddRange(meshNormals.AsArray());
 
-		this.tangents.AddRange(tangents.ToArray());
-		this.tangents.AddRange(meshTangents.ToArray());
+		this.tangents.AddRange(tangents.AsArray());
+		this.tangents.AddRange(meshTangents.AsArray());
+		this.decalTris.AddRange(decalTris.AsArray());
+		this.hitboxTris.AddRange(hitboxTriangles.AsArray());
 
-		BuildDecalMesh(decalVerts.ToArray(), decalUVs.ToArray(), decalTris.ToArray());
-		BuildHitboxMesh(hitboxVerts.ToArray(), hitboxNormals.ToArray(), hitboxTriangles.ToArray());
+		BuildDecalMesh(decalVerts.AsArray(), decalUVs.AsArray(), this.decalTris);
+		BuildHitboxMesh(hitboxVerts.AsArray(), hitboxNormals.AsArray(), this.hitboxTris);
 
 		// Dispose Bin
 		verts.Dispose();
@@ -815,6 +819,8 @@ public class Chunk
 		indexUV.Clear();
 		indexTris.Clear();
 		scalingFactor.Clear();
+		this.decalTris.Clear();
+		this.hitboxTris.Clear();
 		this.indexHitboxVert.Clear();
 		this.indexHitboxTris.Clear();
 		this.hitboxScaling.Clear();
@@ -840,12 +846,15 @@ public class Chunk
     		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
+ 	    Debug.Log($"{this.pos} -> {this.leavesTris.Count}");
+
+
     	this.meshFilter.mesh.subMeshCount = 8;
 
     	this.meshFilter.mesh.SetVertices(this.vertices.ToArray());
     	this.meshFilter.mesh.SetTriangles(this.triangles, 0);
- 	    this.meshFilter.mesh.SetTriangles(this.iceTris, 5);
- 	    this.meshFilter.mesh.SetTriangles(this.assetSolidTris, 7);
+ 	    this.meshFilter.mesh.SetTriangles(this.iceTris, 6);
+ 	    this.meshFilter.mesh.SetTriangles(this.assetSolidTris, 4);
 
     	// Fix for a stupid Unity Bug
     	if(this.vertices.Count > 0){
@@ -856,8 +865,8 @@ public class Chunk
     	this.meshFilter.mesh.SetTriangles(this.specularTris, 1);
     	this.meshFilter.mesh.SetTriangles(this.liquidTris, 2);
     	this.meshFilter.mesh.SetTriangles(this.assetTris, 3);
- 	    this.meshFilter.mesh.SetTriangles(this.leavesTris, 4);
- 	    this.meshFilter.mesh.SetTriangles(this.lavaTris, 6);
+ 	    this.meshFilter.mesh.SetTriangles(this.leavesTris, 5);
+ 	    this.meshFilter.mesh.SetTriangles(this.lavaTris, 7);
 
     	this.meshFilter.mesh.SetUVs(0, this.UVs.ToArray());
     	this.meshFilter.mesh.SetUVs(3, this.lightUVMain.ToArray());
@@ -867,21 +876,21 @@ public class Chunk
     }
 
     // Builds the decal mesh
-    private void BuildDecalMesh(Vector3[] verts, Vector2[] UV, int[] triangles){
+    private void BuildDecalMesh(NativeArray<Vector3> verts, NativeArray<Vector2> UV, List<int> triangles){
     	this.meshFilterDecal.mesh.Clear();
 
     	if(verts.Length >= ushort.MaxValue){
     		this.meshFilterDecal.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
-    	this.meshFilterDecal.mesh.vertices = verts;
+    	this.meshFilterDecal.mesh.SetVertices(verts);
     	this.meshFilterDecal.mesh.SetTriangles(triangles, 0);
-    	this.meshFilterDecal.mesh.uv = UV;
+    	this.meshFilterDecal.mesh.SetUVs(0, UV);
     	this.meshFilterDecal.mesh.RecalculateNormals();
     }
 
     // Builds the hitbox mesh onto the Hitbox MeshCollider
-    private void BuildHitboxMesh(Vector3[] verts, Vector3[] normals, int[] triangles){
+    private void BuildHitboxMesh(NativeArray<Vector3> verts, NativeArray<Vector3> normals, List<int> triangles){
     	this.meshRaycast.Clear();
 
     	if(verts.Length >= ushort.MaxValue){
@@ -897,9 +906,9 @@ public class Chunk
     		return;
     	}
 
-    	this.meshRaycast.vertices = verts;
+    	this.meshRaycast.SetVertices(verts);
     	this.meshRaycast.SetTriangles(triangles, 0);
-    	this.meshRaycast.normals = normals;
+    	this.meshRaycast.SetNormals(normals);
     	this.meshColliderRaycast.sharedMesh = this.meshRaycast;
 
     	if(showHitbox){

@@ -36,7 +36,6 @@ public class ChunkLoader : MonoBehaviour
     public ChunkPos playerCurrentChunk;
     
     // Unity Reference
-    public BlockEncyclopedia blockBook;
     public VFXLoader vfx;
     public TimeOfDay time;
     public GameObject gameUI;
@@ -44,6 +43,7 @@ public class ChunkLoader : MonoBehaviour
     public Client client;
     public BiomeHandler biomeHandler = new BiomeHandler();
     public PlayerMovement playerMovement;
+    public PlayerRaycast playerRaycast;
     public VolumeProfile volume;
     public GameObject mainControllerManager;
     public AudioManager audioManager;
@@ -80,6 +80,9 @@ public class ChunkLoader : MonoBehaviour
 
 
     void Awake(){
+        BlockEncyclopediaECS.InitializeNativeStructures();
+        VoxelLoader.InitBlockEncyclopediaECS();
+
         this.playerCharacter.SetActive(false);
         this.playerCharacter.transform.position = new Vector3(0,-999,0);
         this.mainControllerManager.SetActive(false);
@@ -95,8 +98,6 @@ public class ChunkLoader : MonoBehaviour
         World.SetGameSceneFlag(true);
         VoxelData.SetChunkLoader(this);
         this.playerModelHandler.BuildModel(PlayerAppearanceData.GetAppearance(), PlayerAppearanceData.GetGender(), true);
-
-        Debug.Log(PlayerAppearanceData.GetAppearance().ToString());
     }
 
     public void Cleanup(bool comesFromClient=false){
@@ -108,6 +109,7 @@ public class ChunkLoader : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
+        Redirector.SetServerClosure();
         this.playerAudioListener.enabled = false;
         this.biomeHandler.Clear();
         this.biomeHandler = null;
@@ -118,7 +120,6 @@ public class ChunkLoader : MonoBehaviour
         this.playerEvents = null;
         this.playerModelHandler = null;
         this.time = null;
-        this.blockBook = null;
         this.client = null;
         this.audioManager.Stop(AudioUsecase.MUSIC_CLIP);
         this.audioManager.Destroy();
@@ -375,7 +376,7 @@ public class ChunkLoader : MonoBehaviour
             int hpDataSize = NetDecoder.ReadInt(data, 14);
             int stateDataSize = NetDecoder.ReadInt(data, 18);
 
-            this.chunks[cp] = new Chunk(cp, this.rend, this.blockBook, this);
+            this.chunks[cp] = new Chunk(cp, this.rend, this);
             this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[22]);
 
             Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:22+headerSize);

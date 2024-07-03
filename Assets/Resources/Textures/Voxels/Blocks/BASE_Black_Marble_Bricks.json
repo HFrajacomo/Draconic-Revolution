@@ -1,0 +1,23 @@
+﻿{
+        "codename": "BASE_Black_Marble_Bricks",
+        "name":  "Black Marble Bricks",
+        "shaderIndex": 0,
+        "solid":  true,
+        "transparent": false,
+        "invisible":  false,
+        "affectLight":  true,
+        "liquid":  false,
+        "seamless": false,
+        "luminosity": 0,
+        "hasLoadEvent": false,
+        "washable": false,
+        "needsRotation": false,
+        "customBreak": false,
+        "customPlace": false,
+        "drawRegardless": false,
+        "maxHP":  600,
+        "indestructible": false,
+        "tileTop":  "BASE_Black_Marble_Bricks",
+        "tileSide":  "BASE_Black_Marble_Bricks",
+        "tileBottom":  "BASE_Black_Marble_Bricks"
+}

@@ -1,0 +1,23 @@
+﻿{
+        "codename": "BASE_Acaster",
+        "name":  "Acaster Rock",
+        "shaderIndex": 0,
+        "solid":  true,
+        "transparent":  0,
+        "invisible":  false,
+        "affectLight":  true,
+        "liquid":  false,
+        "seamless": false,
+        "luminosity": 0,
+        "hasLoadEvent": false,
+        "washable": false,
+        "needsRotation": false,
+        "customBreak": false,
+        "customPlace": false,
+        "drawRegardless": false,
+        "maxHP":  65535,
+        "indestructible": true,
+        "tileTop": "BASE_Acaster",
+        "tileSide": "BASE_Acaster",
+        "tileBottom": "BASE_Acaster"
+}

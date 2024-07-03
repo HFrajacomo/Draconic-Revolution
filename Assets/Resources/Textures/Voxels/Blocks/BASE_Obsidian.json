@@ -1,0 +1,23 @@
+﻿{
+    "codename": "BASE_Obsidian",
+    "name":  "Obsidian",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  1200,
+    "indestructible": false,
+    "tileTop":  "BASE_Obsidian",
+    "tileSide":  "BASE_Obsidian",
+    "tileBottom":  "BASE_Obsidian"
+}

@@ -19,10 +19,10 @@ public class DroppedItemAI : AbstractAI
         this.Install(EntityHitbox.ITEM);
         this.SetChunkloader(cl);
         this.SetHandler(handler);
-        this.its = new ItemStack((ItemID)itemCode, amount);
+        this.its = new ItemStack(itemCode, amount);
 
         this.Install(new ProjectileTerrainVision(cl));
-        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its, false));
+        this.Install(new DroppedItemBehaviour(this.position, this.rotation, move, this.its, false));
         this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
     }
 
@@ -33,10 +33,10 @@ public class DroppedItemAI : AbstractAI
         this.SetChunkloader(cl);
         this.SetHandler(handler);
         this.playerCode = playerCode;
-        this.its = new ItemStack((ItemID)itemCode, amount);
+        this.its = new ItemStack(itemCode, amount);
 
         this.Install(new ProjectileTerrainVision(cl));
-        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its, playerCode != ulong.MaxValue));
+        this.Install(new DroppedItemBehaviour(this.position, this.rotation, move, this.its, playerCode != ulong.MaxValue));
         this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
     }
 
@@ -50,7 +50,7 @@ public class DroppedItemAI : AbstractAI
         this.its = new ItemStack(item, amount);
 
         this.Install(new ProjectileTerrainVision(cl));
-        this.Install(new ItemBehaviour(this.position, this.rotation, new float3(0,0,0), this.its, false));
+        this.Install(new DroppedItemBehaviour(this.position, this.rotation, new float3(0,0,0), this.its, false));
         this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
 
         LoadState(state);
@@ -66,7 +66,7 @@ public class DroppedItemAI : AbstractAI
         this.its = new ItemStack(item, amount);
 
         this.Install(new ProjectileTerrainVision(cl));
-        this.Install(new ItemBehaviour(this.position, this.rotation, move, this.its, false));
+        this.Install(new DroppedItemBehaviour(this.position, this.rotation, move, this.its, false));
         this.Install(new ItemEntityRadar(this.position, this.rotation, this.coords, this.its, this.GetID(), handler));
     }
 
@@ -94,7 +94,7 @@ public class DroppedItemAI : AbstractAI
             }
 
             // Entity Vision
-            if(!((ItemBehaviour)this.behaviour).IsStanding()){
+            if(!((DroppedItemBehaviour)this.behaviour).IsStanding()){
                 this.radar.Search(ref this.inboundEventQueue);
             }
         }
@@ -113,7 +113,9 @@ public class DroppedItemAI : AbstractAI
             this.radar.SetTransform(ref this.behaviour.position, ref this.behaviour.rotation, ref this.coords);
 
             this.message = new NetMessage(NetCode.ITEMENTITYDATA);
-            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((ItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
+
+
+            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((DroppedItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
             this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
         }
     }
@@ -125,14 +127,14 @@ public class DroppedItemAI : AbstractAI
     public void SetItemStackAmount(){
     }
 
-    private float SetRotationAsStopFlag(ItemBehaviour behaviour){
+    private float SetRotationAsStopFlag(DroppedItemBehaviour behaviour){
         if(behaviour.IsStanding())
             return 1;
         return 0;
     }
 
     public bool IsStanding(){
-        return ((ItemBehaviour)this.behaviour).IsStanding();
+        return ((DroppedItemBehaviour)this.behaviour).IsStanding();
     }
 
     public void SetItemStackAmount(byte b){
@@ -144,31 +146,31 @@ public class DroppedItemAI : AbstractAI
     }
 
     public void SetLifespan(int life){
-        ((ItemBehaviour)this.behaviour).SetLifespan(life);
+        ((DroppedItemBehaviour)this.behaviour).SetLifespan(life);
     }
 
     private void SetStanding(bool flag){
-        ((ItemBehaviour)this.behaviour).SetStanding(flag);
+        ((DroppedItemBehaviour)this.behaviour).SetStanding(flag);
     }
 
     public int GetLifespan(){
-        return ((ItemBehaviour)this.behaviour).GetLifespan();
+        return ((DroppedItemBehaviour)this.behaviour).GetLifespan();
     }
 
     public bool IsOnPickupMode(){
-        return ((ItemBehaviour)this.behaviour).IsOnPickupMode();
+        return ((DroppedItemBehaviour)this.behaviour).IsOnPickupMode();
     }
 
     public void SetPickupMode(){
-        ((ItemBehaviour)this.behaviour).SetPickupMode();
+        ((DroppedItemBehaviour)this.behaviour).SetPickupMode();
     }
 
     public bool IsCreatedByPlayer(){
-        return ((ItemBehaviour)this.behaviour).IsCreatedByPlayer();
+        return ((DroppedItemBehaviour)this.behaviour).IsCreatedByPlayer();
     }
 
     public override byte GetState(){
-        return (byte)SetRotationAsStopFlag((ItemBehaviour)this.behaviour);
+        return (byte)SetRotationAsStopFlag((DroppedItemBehaviour)this.behaviour);
     }
 
     public override void LoadState(byte state){
@@ -176,7 +178,7 @@ public class DroppedItemAI : AbstractAI
         if(state == 1){
             this.SetStanding(true);
             this.message = new NetMessage(NetCode.ITEMENTITYDATA);
-            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((ItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
+            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((DroppedItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
             this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
         }
     }

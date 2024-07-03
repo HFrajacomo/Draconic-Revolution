@@ -1,0 +1,33 @@
+﻿{
+    "codename": "BASE_Grass",
+    "name": "Grass",
+    "shaderIndex": 0,
+    "solid": true,
+    "transparent": false,
+    "invisible": false,
+    "affectLight": false, 
+    "liquid": false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false, 
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP": 150,
+    "indestructible": false,
+    "tileTop": "BASE_Grass",
+    "tileSide": "BASE_Grass_Side",
+    "tileBottom": "BASE_Dirt"
+}
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Grass_Block",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

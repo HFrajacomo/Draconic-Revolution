@@ -70,10 +70,10 @@ public class PlayerEntityRadar : EntityRadar{
 	private PlayerServerInventorySlot CreateSlot(ItemStack its){
 		this.cachedItem = its.GetItem();
 
-		if(this.cachedItem.memoryStorageType == MemoryStorageType.ITEM){
+		if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.ITEM){
 			return new ItemPlayerInventorySlot(its.GetID(), its.GetAmount());
 		} 
-		else if(this.cachedItem.memoryStorageType == MemoryStorageType.WEAPON){
+		else if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.WEAPON){
 			return new WeaponPlayerInventorySlot(its.GetID(), ((Weapon)this.cachedItem).currentDurability, ((Weapon)this.cachedItem).refineLevel, ((Weapon)this.cachedItem).extraEffect);
 		}
 		else{

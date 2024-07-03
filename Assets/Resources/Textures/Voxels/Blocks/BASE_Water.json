@@ -1,0 +1,31 @@
+﻿{
+    "codename": "BASE_Water",
+    "name":  "Water",
+    "shaderIndex": 2,
+    "solid":  false,
+    "transparent": true,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  true,
+    "seamless":  true,
+    "luminosity": 0,
+    "hasLoadEvent":  false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak":  true,
+    "customPlace":  true,
+    "drawRegardless":  true,
+    "maxHP":  1,
+    "indestructible": false
+}
+--->Behaviours
+{
+    "onPlace": "LiquidBehaviour",
+    "onBreak": "LiquidBehaviour",
+    "onBlockUpdate": "LiquidBehaviour"
+}
+--->LiquidBehaviour
+{
+    "liquidName": "BASE_Water",
+    "viscosityDelay": 12
+}

@@ -8,21 +8,12 @@ public class ItemStack
 	private byte amount;
 	private bool isFull;
 
-	// Create default item
-	public ItemStack(ItemID id, byte amount){
-		this.item = Item.GenerateItem((ushort)id);
-		this.amount = amount;
-
-		this.CheckFull();
-	}
-
 	public ItemStack(ushort id, byte amount){
-		this.item = Item.GenerateItem(id);
+		this.item = ItemLoader.GetCopy(id);
 		this.amount = amount;
 
 		this.CheckFull();
 	}
-
 
 	// Create based on a previously owned item
 	public ItemStack(Item item, byte amount){
@@ -42,18 +33,8 @@ public class ItemStack
 	}
 
 	// Returns the item ID
-	public ItemID GetID(){
-		return item.id;
-	}
-
-	// Returns the item iconID
-	public uint GetIconID(){
-		return item.iconID;
-	}
-
-	// Returns the item's Icon
-	public string GetItemIconName(){
-		return "icon_" + item.iconID.ToString();
+	public ushort GetID(){
+		return item.GetID();
 	}
 
 	// Returns the stacksize of the item
@@ -230,7 +211,7 @@ public class ItemStack
 		Weapon weap = this.GetItem() as Weapon;
 
 		data[pos] = (byte)MemoryStorageType.WEAPON;
-		NetDecoder.WriteUshort((ushort)weap.id, data, pos+1);
+		NetDecoder.WriteUshort(weap.GetID(), data, pos+1);
 		NetDecoder.WriteLong(weap.currentDurability, data, pos+3);
 		data[pos+11] = weap.refineLevel;
 		data[pos+12] = (byte)weap.extraEffect;

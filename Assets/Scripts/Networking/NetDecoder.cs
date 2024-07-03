@@ -112,7 +112,7 @@ public static class NetDecoder
 		return new SkillExp(data[pos], NetDecoder.ReadInt(data, pos+1));
 	}
 
-	public static ClothingInfo ReadClothingInfo(byte[] data, int pos){
+	public static ClothingInfo ReadClothingInfo(byte[] data, int pos){ // Size = 39
 		return new ClothingInfo(NetDecoder.ReadUshort(data, pos), NetDecoder.ReadRGB(data, pos+2), NetDecoder.ReadRGB(data, pos+14), NetDecoder.ReadRGB(data, pos+26), NetDecoder.ReadBool(data, pos+38));
 	}
 
@@ -120,15 +120,15 @@ public static class NetDecoder
 		return new Color(System.BitConverter.ToSingle(data, pos), System.BitConverter.ToSingle(data, pos+4), System.BitConverter.ToSingle(data, pos+8));
 	}
 
-	public static CharacterAppearance ReadCharacterAppearance(byte[] data, int pos){
-		return new CharacterAppearance((Race)data[pos], NetDecoder.ReadRGB(data, pos+1), NetDecoder.ReadClothingInfo(data, pos+13), NetDecoder.ReadClothingInfo(data, pos+52), NetDecoder.ReadClothingInfo(data, pos+91), NetDecoder.ReadClothingInfo(data, pos+130));
+	public static CharacterAppearance ReadCharacterAppearance(byte[] data, int pos){ // Size = 247
+		return new CharacterAppearance((Race)data[pos], NetDecoder.ReadRGB(data, pos+1), NetDecoder.ReadClothingInfo(data, pos+13), NetDecoder.ReadClothingInfo(data, pos+52), NetDecoder.ReadClothingInfo(data, pos+91), NetDecoder.ReadClothingInfo(data, pos+130), NetDecoder.ReadClothingInfo(data, pos+169), NetDecoder.ReadClothingInfo(data, pos+208));
 	}
 
 	public static SpecialEffect ReadSpecialEffect(byte[] data, int pos){
 		return new SpecialEffect((EffectType)NetDecoder.ReadUshort(data, pos), (EffectUsecase)NetDecoder.ReadByte(data, pos+2), NetDecoder.ReadByte(data, pos+3), NetDecoder.ReadUshort(data, pos+4), NetDecoder.ReadBool(data, pos+6));
 	}
 
-	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){
+	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1221
 		CharacterSheet cs = new CharacterSheet();
 		SpecialEffect cachedFX;
 
@@ -200,6 +200,8 @@ public static class NetDecoder
 		pos++;
 		cs.SetSkill(SkillType.ALCHEMY, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
+		cs.SetSkill(SkillType.ARTIFICING, NetDecoder.ReadSkillEXP(data, pos));
+		pos += 5;
 		cs.SetSkill(SkillType.BLOODMANCY, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
 		cs.SetSkill(SkillType.CRAFTING, NetDecoder.ReadSkillEXP(data, pos));
@@ -234,38 +236,36 @@ public static class NetDecoder
 		pos += 5;
 		cs.SetSkill(SkillType.TECHNOLOGY, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
-		cs.SetSkill(SkillType.THAUMATURGY, NetDecoder.ReadSkillEXP(data, pos));
-		pos += 5;
 		cs.SetSkill(SkillType.TRANSMUTING, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
 		cs.SetSkill(SkillType.WITCHCRAFT, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
-		cs.SetRightHand(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetRightHand(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetLeftHand(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetLeftHand(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetHelmet(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetHelmet(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetArmor(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetArmor(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetLegs(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetLegs(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetBoots(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetBoots(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetRing1(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetRing1(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetRing2(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetRing2(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetRing3(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetRing3(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetRing4(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetRing4(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetAmulet(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetAmulet(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
-		cs.SetCape(Item.GenerateItem((ItemID)NetDecoder.ReadUshort(data, pos)));
+		cs.SetCape(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
 		pos += 2;
 		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
-		pos += 169;
+		pos += 247;
 
 		for(int i=0; i < 100; i++){
 			cachedFX = NetDecoder.ReadSpecialEffect(data, pos);
@@ -436,6 +436,8 @@ public static class NetDecoder
 		NetDecoder.WriteClothingInfo(ca.torso, data, pos+52);
 		NetDecoder.WriteClothingInfo(ca.legs, data, pos+91);
 		NetDecoder.WriteClothingInfo(ca.boots, data, pos+130);
+		NetDecoder.WriteClothingInfo(ca.face, data, pos+169);
+		NetDecoder.WriteClothingInfo(ca.face, data, pos+208);
 	}
 
 	public static void WriteSpecialEffect(SpecialEffect sfx, byte[] data, int pos){
@@ -524,6 +526,8 @@ public static class NetDecoder
 		pos++;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.ALCHEMY), data, pos);
 		pos += 5;
+		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.ARTIFICING), data, pos);
+		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.BLOODMANCY), data, pos);
 		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.CRAFTING), data, pos);
@@ -558,39 +562,37 @@ public static class NetDecoder
 		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.TECHNOLOGY), data, pos);
 		pos += 5;
-		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.THAUMATURGY), data, pos);
-		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.TRANSMUTING), data, pos);
 		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.WITCHCRAFT), data, pos);
 		pos += 5;
 		// CHANGE SIMPLE ITEM STORING TO WEAPON
-		NetDecoder.WriteUshort((ushort)sheet.GetRightHand().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetRightHand().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetLeftHand().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetLeftHand().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetHelmet().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetHelmet().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetArmor().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetArmor().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetLegs().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetLegs().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetBoots().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetBoots().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetRing1().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetRing1().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetRing2().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetRing2().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetRing3().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetRing3().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetRing4().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetRing4().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetAmulet().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetAmulet().GetID(), data, pos);
 		pos += 2;
-		NetDecoder.WriteUshort((ushort)sheet.GetCape().id, data, pos);
+		NetDecoder.WriteUshort(sheet.GetCape().GetID(), data, pos);
 		pos += 2;
 		NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
-		pos += 169;
+		pos += 247;
 
 		List<SpecialEffect> sfxList = sheet.GetSpecialEffectHandler().GetAllEffects();
 

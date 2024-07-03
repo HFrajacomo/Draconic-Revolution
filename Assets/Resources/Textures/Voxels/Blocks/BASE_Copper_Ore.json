@@ -1,0 +1,23 @@
+﻿{
+    "codename": "BASE_Copper_Ore",
+    "name":  "Copper Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  340,
+    "indestructible": false,
+    "tileTop":  "BASE_Copper_Ore",
+    "tileSide":  "BASE_Copper_Ore",
+    "tileBottom":  "BASE_Copper_Ore"
+}

@@ -3,12 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class TimerUpdate : MonoBehaviour
 {
 	public TimeOfDay timer;
-	public Text str;
-	public Text biome;
+	public TextMeshProUGUI str;
+	public TextMeshProUGUI biome;
     public Transform character;
 	public ChunkLoader cl;
     private StringBuilder sb = new StringBuilder();

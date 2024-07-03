@@ -12,7 +12,7 @@ public class CharacterBuilder{
 	private GameObject modelRoot;
 	private Transform rootBone;
 	private BoneRenderer boneRenderer;
-	private RaceSettings raceSettings;
+	//private RaceSettings raceSettings; DEBUG
 	private CharacterAppearance appearance;
 	private bool isMale;
 
@@ -46,9 +46,7 @@ public class CharacterBuilder{
 	private static readonly string ARMATURE_NAME_MALE = "Armature";
 	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
 	private static readonly Vector3 POS_1 = Vector3.zero;
-	private static readonly Quaternion ROT_1 = Quaternion.Euler(new Vector3(270, 180, 20));
-	private static readonly Vector3 SCL_1 = new Vector3(1,1,1);
-	private static readonly Vector3 SCL_2 = new Vector3(0.7f,1,1);
+	private static readonly Quaternion ROT_1 = Quaternion.Euler(new Vector3(270, 180, 180));
 	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
 
 
@@ -56,7 +54,7 @@ public class CharacterBuilder{
 		if(EMPTY_OBJECT_PREFAB == null)
 			EMPTY_OBJECT_PREFAB = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
-		this.raceSettings = RaceManager.GetSettings(app.race);
+		//this.raceSettings = RaceManager.GetSettings(app.race); DEBUG
 
 		this.parent = par;
 		this.isMale = isMale;
@@ -64,7 +62,7 @@ public class CharacterBuilder{
 		this.animator = par.GetComponent<Animator>();
 		this.animator.runtimeAnimatorController = animations;
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
-		this.armature.transform.localScale = raceSettings.scaling;
+		//this.armature.transform.localScale = raceSettings.scaling; DEBUG
 		this.armature.transform.SetParent(this.parent.transform);
 
 		this.modelRoot = GameObject.Instantiate(EMPTY_OBJECT_PREFAB);
@@ -126,6 +124,11 @@ public class CharacterBuilder{
         AddGeometryToMesh(combinedMesh, modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FOOTGEAR);
         GameObject.Destroy(modelRenderer.gameObject);
 
+        // Face
+		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.face.code).GetComponent<SkinnedMeshRenderer>();
+        AddGeometryToMesh(combinedMesh, modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
+        GameObject.Destroy(modelRenderer.gameObject);
+
 		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
 		#if UNITY_EDITOR
 			if(boneRenderer.transforms == null)
@@ -167,7 +170,7 @@ public class CharacterBuilder{
 	}
 
 	private void BuildMesh(Mesh mesh){
-		mesh.SetVertices(ScaleVertices(this.meshVert));
+		mesh.SetVertices(this.meshVert);
 		mesh.SetUVs(0, this.meshUV);
 		mesh.SetNormals(this.meshNormal);
 		mesh.SetTangents(this.meshTangent);
@@ -211,14 +214,12 @@ public class CharacterBuilder{
 	}
 
 	private void FixArmature(bool isMale){
-		foreach(Transform t in this.armature.GetComponentsInChildren<Transform>()){
-			t.position = new Vector3(t.position.x * this.raceSettings.scaling.x, t.position.y * this.raceSettings.scaling.y, t.position.z * this.raceSettings.scaling.z);
-		}
-
+		/* DEBUG
 		if(isMale)
 			this.armature.transform.localScale = Multiply(this.armature.transform.localScale, SCL_1);
 		else
 			this.armature.transform.localScale = Multiply(this.armature.transform.localScale, SCL_2);
+		*/
 
 
 		this.armature.transform.eulerAngles = ROT_1.eulerAngles;
@@ -229,17 +230,7 @@ public class CharacterBuilder{
 	}
 
 	private void LoadRootBone(){
-		this.rootBone = this.armature.transform.Find("Hips").transform;
-	}
-
-	private Vector3[] ScaleVertices(List<Vector3> original){
-		Vector3[] output = new Vector3[original.Count];
-
-		for(int i=0; i < original.Count; i++){
-			output[i] = new Vector3(original[i].x * this.raceSettings.scaling.x, original[i].y * this.raceSettings.scaling.y, original[i].z * this.raceSettings.scaling.z);
-		}
-
-		return output;
+		this.rootBone = this.armature.transform.Find("Pelvis").transform;
 	}
 
 	private Material FixMaterial(Material mat, ClothingInfo info, Color skin, Race r){

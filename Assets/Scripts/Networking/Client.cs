@@ -20,7 +20,6 @@ public class Client
 	private SocketError err;
 	private DateTime lastMessageTime;
 	private int timeoutSeconds = 5;
-	private int connectionTimeout = 3;
 
 	// Entity Handler
 	public EntityHandler entityHandler;
@@ -48,15 +47,9 @@ public class Client
 	public PlayerEvents playerEvents;
 	public PlayerModelHandler playerModelHandler;
 
-	// Windows External Process
-	public Process lanServerProcess;
-
 	// Const values
 	private static int maxBufferSize = 327680;
 
-	// Const Strings
-	private string serverFile = "Server.exe";
-	private string invisLauncher = "invisLaunchHelper.bat";
 
 	
 	public Client(ChunkLoader cl){
@@ -68,67 +61,7 @@ public class Client
 		
 		receiveBuffer = new byte[receiveBufferSize];
 
-		// If game world is in client
-		if(World.isClient){
-			// Unity edition only
-			#if UNITY_EDITOR
-				// Startup local server
-				this.lanServerProcess = new Process();
-				this.lanServerProcess.StartInfo.Arguments = "-Local";
-
-				if(!File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
-					EnvironmentVariablesCentral.WriteInvisLaunchScript();
-
-				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
-					this.lanServerProcess.StartInfo.FileName = EnvironmentVariablesCentral.serverDir + serverFile;
-				else
-					Panic();
-
-				try{
-					this.lanServerProcess.Start();
-				}
-				catch{
-					Panic();
-				}
-
-			// Standalone edition
-			#else
-				if(!File.Exists(EnvironmentVariablesCentral.serverDir + invisLauncher))
-					EnvironmentVariablesCentral.WriteInvisLaunchScript();
-
-				if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
-					Application.OpenURL(EnvironmentVariablesCentral.serverDir + invisLauncher);
-				else
-					Panic();
-			#endif
-
-			this.ip = new IPAddress(new byte[4]{127, 0, 0, 1});
-		}
-
-		// If game world is in server
-		else{
-			string[] segmentedIP = World.IP.Split('.');
-			byte[] connectionIP = new byte[4];
-
-			// If it's not a valid IPv4
-			if(segmentedIP.Length != 4){
-				Panic();
-			}
-			// Tailors the IP
-			else{
-				for(int i=0; i < 4; i++){
-					try{
-						connectionIP[i] = (byte)Convert.ToInt16(segmentedIP[i]);
-					}
-					catch(Exception e){
-						Debug.Log(e);
-						Panic();
-					}
-				}
-
-				this.ip = new IPAddress(connectionIP);
-			}
-		}
+		this.ip = World.connectionIP;
 
 		this.Connect();
 	}
@@ -154,30 +87,12 @@ public class Client
 	
 	
 	public void Connect(){
-		int attempts = 0;
-
-		if(World.isClient){
-			while(attempts < this.connectionTimeout){
-				try{
-					this.socket.Connect(this.ip, this.port);
-					break;
-				} catch {
-					attempts++;
-					continue;
-				}
-			}
-
-			if(attempts == this.connectionTimeout)
-				Panic();
+		try{
+			this.socket.Connect(this.ip, this.port);
+			Debug.Log("Connecting");
+		} catch {
+			Panic();
 		}
-		else{
-			try{
-				this.socket.Connect(this.ip, this.port);
-			} catch{
-				Panic();
-			}
-		}
-
 
 		this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
 	}
@@ -461,10 +376,10 @@ public class Client
 		state = NetDecoder.ReadUshort(data, 28);
 
 		if(blockCode <= ushort.MaxValue/2){
-			this.cl.blockBook.blocks[blockCode].OnVFXBuild(pos, x, y, z, facing, state, cl);
+			VoxelLoader.GetBlock(blockCode).OnVFXBuild(pos, x, y, z, facing, state, cl);
 		}
 		else{
-			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnVFXBuild(pos, x, y, z, facing, state, cl);
+			VoxelLoader.GetObject(blockCode).OnVFXBuild(pos, x, y, z, facing, state, cl);
 		}
 	}
 
@@ -483,10 +398,10 @@ public class Client
 		state = NetDecoder.ReadUshort(data, 28);
 
 		if(blockCode <= ushort.MaxValue/2){
-			this.cl.blockBook.blocks[blockCode].OnVFXChange(pos, x, y, z, facing, state, cl);
+			VoxelLoader.GetBlock(blockCode).OnVFXChange(pos, x, y, z, facing, state, cl);
 		}
 		else{
-			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnVFXChange(pos, x, y, z, facing, state, cl);
+			VoxelLoader.GetObject(blockCode).OnVFXChange(pos, x, y, z, facing, state, cl);
 		}
 	}
 
@@ -504,10 +419,10 @@ public class Client
 		state = NetDecoder.ReadUshort(data, 24);
 
 		if(blockCode <= ushort.MaxValue/2){
-			this.cl.blockBook.blocks[blockCode].OnVFXBreak(pos, x, y, z, state, cl);
+			VoxelLoader.GetBlock(blockCode).OnVFXBreak(pos, x, y, z, state, cl);
 		}
 		else{
-			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnVFXBreak(pos, x, y, z, state, cl);
+			VoxelLoader.GetObject(blockCode).OnVFXBreak(pos, x, y, z, state, cl);
 		}
 	}
 
@@ -625,7 +540,7 @@ public class Client
 
 	// Signals Raycast to giveback the last placed item
 	private void PlacementDenied(){
-		ItemStack its = new ItemStack(PlayerRaycast.lastBlockPlaced, 1);
+		ItemStack its = new ItemStack(cl.playerRaycast.lastBlockPlaced, 1);
 		this.raycast.playerEvents.hotbar.AddStack(its, this.raycast.playerEvents.hotbar.CanFit(its));
 		this.raycast.playerEvents.DrawHotbar();
 	}
@@ -638,7 +553,7 @@ public class Client
 
 		pos = NetDecoder.ReadFloat3(data, 1);
 		rot = NetDecoder.ReadFloat3(data, 13);
-		its = new ItemStack((ItemID)NetDecoder.ReadUshort(data, 25), data[27]);
+		its = new ItemStack(NetDecoder.ReadUshort(data, 25), data[27]);
 		code = NetDecoder.ReadUlong(data, 28);
 
 		if(this.entityHandler.Contains(EntityType.DROP, code)){
@@ -712,10 +627,10 @@ public class Client
 		ushort state = NetDecoder.ReadUshort(data, 24);
 
 		if(blockCode <= ushort.MaxValue/2){
-			this.cl.blockBook.blocks[blockCode].OnSFXPlay(pos, x, y, z, state, cl);
+			VoxelLoader.GetBlock(blockCode).OnSFXPlay(pos, x, y, z, state, cl);
 		}
 		else{
-			this.cl.blockBook.objects[ushort.MaxValue - blockCode].OnSFXPlay(pos, x, y, z, state, cl);
+			VoxelLoader.GetObject(blockCode).OnSFXPlay(pos, x, y, z, state, cl);
 		}
 	}
 

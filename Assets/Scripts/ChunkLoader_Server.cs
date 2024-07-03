@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -15,7 +16,6 @@ public class ChunkLoader_Server : MonoBehaviour
 	public Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
 	public ChunkPos currentChunk;
 	public ChunkPos newChunk;
-	public BlockEncyclopedia blockBook;
     public BUDScheduler budscheduler;
     public VFXLoader vfx;
     public TimeOfDay time;
@@ -79,12 +79,10 @@ public class ChunkLoader_Server : MonoBehaviour
 
         this.time.SetServer(this.server);
 
-        if(!this.server.IsLocal()){
-            this.characterFileHandler = new CharacterFileHandler(World.worldName);
-        }
+        this.characterFileHandler = new CharacterFileHandler(World.worldName);
     }
 
-    void Update(){ 
+    void Update(){
         if(this.RECEIVEDWORLDDATA && this.INITIALIZEDWORLD){
             // Decides what to do for current tick
             HandleServerCommunication();
@@ -109,10 +107,6 @@ public class ChunkLoader_Server : MonoBehaviour
         this.regionHandler = new RegionFileHandler(this);
         this.entityFileHandler = new EntityFileHandler(this);
         this.playerServerInventory = new PlayerServerInventory();
-
-        if(this.server.IsLocal())
-            this.characterFileHandler = new CharacterFileHandler(World.worldName);
-
 
         worldSeed = regionHandler.GetRealSeed();
         biomeHandler = new BiomeHandler();
@@ -481,25 +475,13 @@ public class ChunkLoader_Server : MonoBehaviour
 
         for(int i=0; i < 45; i++){
             if(i == 1){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.STONEBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50);
             }
             else if(i == 2){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.TORCH, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50);
             }
             else if(i == 3){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.BRICKBLOCK, 50);
-            }
-            else if(i == 4){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.QUARTZBLOCK, 50);
-            }
-            else if(i == 5){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.QUARTZBRICKBLOCK, 50);
-            }
-            else if(i == 6){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.BASALTBRICKBLOCK, 50);
-            }
-            else if(i == 7){
-                slots[i] = new ItemPlayerInventorySlot(ItemID.OBSIDIANBLOCK, 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50);
             }
             else{
                 slots[i] = new EmptyPlayerInventorySlot();

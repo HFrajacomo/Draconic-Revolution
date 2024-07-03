@@ -11,32 +11,41 @@ public static class EnvironmentVariablesCentral
     public static string serverDir;
     public static string compiledServerDir;
     public static string saveDir;
-    private static string invisScript = "start /min powershell \"start-process $env:APPDATA\\DraconicRevolution\\Server\\Server.exe -Arg -Local -WindowStyle hidden\"";
+    private static string invisScript = "start /min powershell \"start-process $env:APPDATA\\DraconicRevolution\\Server\\Server.exe -WindowStyle hidden -ArgumentList '-Local'";
+
+    // start /min powershell "start-process $env:APPDATA\DraconicRevolution\Server\Server.exe -WindowStyle hidden -ArgumentList '-Local', '-World', 's'"
+
 
     public static void Start(){
         clientExeDir = GetClientDir();
+        gameDir = GetAppdataDir() + "\\DraconicRevolution\\";
+        serverDir = gameDir + "Server\\";
+        saveDir = EnvironmentVariablesCentral.serverDir + "Worlds\\";
 
         #if UNITY_EDITOR
             compiledServerDir = clientExeDir + "Build\\Server";
-            saveDir = "Worlds/";
         #else
             compiledServerDir = GetParent(clientExeDir) + "\\Server";
-
-            saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
         #endif
-
-        gameDir = GetAppdataDir() + "\\DraconicRevolution\\";
-        serverDir = gameDir + "Server\\";
 
         if(!Directory.Exists(gameDir))
             Directory.CreateDirectory(gameDir);
 
+        // Moves compiled server to APPDATA
         if(Directory.Exists(compiledServerDir)){
             if(Directory.Exists(serverDir)){
+                if(Directory.Exists(saveDir)){
+                    Directory.Move(saveDir, gameDir + "Worlds\\");
+                }
+
                 Directory.Delete(serverDir, true);
             }
 
             Directory.Move(compiledServerDir, serverDir);
+
+            if(Directory.Exists(gameDir + "Worlds\\")){
+                Directory.Move(gameDir + "Worlds\\", saveDir);
+            }
         }
 
         if(!Directory.Exists(serverDir)){
@@ -51,18 +60,22 @@ public static class EnvironmentVariablesCentral
 
     public static void StartServer(){
         clientExeDir = GetClientDir();
-
-        if(!World.isClient)
-            saveDir = "Worlds\\";
-        else
-            saveDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
-
         gameDir = GetAppdataDir() + "\\DraconicRevolution\\";
         serverDir = gameDir + "Server\\";
+        saveDir = EnvironmentVariablesCentral.serverDir + "Worlds\\";
     }
 
-    public static void WriteInvisLaunchScript(){
-        byte[] bytes = Encoding.ASCII.GetBytes(invisScript);
+    public static void WriteInvisLaunchScript(string worldName){
+        string dump;
+
+        if(worldName == ""){
+            dump = $"{invisScript}";
+        }
+        else{
+            dump = $"{invisScript}, '-World', '{worldName}'";
+        }
+
+        byte[] bytes = Encoding.ASCII.GetBytes(dump);
         Stream invisFile = File.Open(serverDir + "invisLaunchHelper.bat", FileMode.Create);
         invisFile.Write(bytes, 0, bytes.Length);
         invisFile.Close();
@@ -121,13 +134,12 @@ public static class EnvironmentVariablesCentral
     }
 
     public static void PrintDirectories(){
-        Start();
-
         string a = "";
         a += ("DataPath: " + Application.dataPath + "\n");
         a += ("clientExeDir: " + EnvironmentVariablesCentral.clientExeDir + "\n");
         a += ("gameDir: " + EnvironmentVariablesCentral.gameDir + "\n");
         a += ("serverDir: " + EnvironmentVariablesCentral.serverDir + "\n");
+        a += ("saveDir: " + EnvironmentVariablesCentral.saveDir + "\n");
         a += ("compiledServerDir: " + EnvironmentVariablesCentral.compiledServerDir);
 
         File.WriteAllText("Directories.txt", a); 

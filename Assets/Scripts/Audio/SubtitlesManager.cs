@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SubtitlesManager : MonoBehaviour
 {
     // Unity Reference
-    public Text subtitles;
+    public TextMeshProUGUI subtitles;
 
     // Strings
     private string transcript2D = "";

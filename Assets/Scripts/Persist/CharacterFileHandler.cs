@@ -16,8 +16,7 @@ MainSkill(1) | SecondarySkill(1) | alchemy(5) | bloodmancy(5) | crafting(5) | co
 fishing(5) | leadership(5) | mining(5) | mounting(5) | musicality(5) | naturalism(5) | smithing(5) | sorcery(5) | thievery(5) | technology(5) | thaumaturgy(5) | [55]
 transmuting(5) | witchcraft(5) | [10]
 RightHand(2) | LeftHand(2) | Helmet(2) | Armor(2) | Legs(2) | Boots(2) | Ring1(2) | Ring2(2) | Ring3(2) | Ring4(2) | Amulet(2) | Cape(2) | [24]
-CharacterAppearance(169) | SpecialEffects(7) *100 | [869]
-
+CharacterAppearance(247) | SpecialEffects(7) *100 |
 
 .cind file
 
@@ -32,7 +31,7 @@ public class CharacterFileHandler{
 	private Stream indexFile;
 
 	private byte[] indexArray = new byte[16];
-	private byte[] buffer = new byte[1143]; // Total CharacterSheet size 
+	private byte[] buffer = new byte[1221]; // Total CharacterSheet size 
 
 	private Dictionary<ulong, ulong> index = new Dictionary<ulong, ulong>();
 
@@ -41,8 +40,8 @@ public class CharacterFileHandler{
 
 
 	public CharacterFileHandler(string world){
-		CharacterFileHandler.characterDirectory = EnvironmentVariablesCentral.saveDir + "\\" + world + "\\Characters\\";
-		CharacterFileHandler.indexFileDir = EnvironmentVariablesCentral.saveDir + "\\" + world + "\\Characters\\index.cind";
+		CharacterFileHandler.characterDirectory = (EnvironmentVariablesCentral.saveDir + world + "\\Characters\\").Replace("\\\\", "\\");
+		CharacterFileHandler.indexFileDir = (EnvironmentVariablesCentral.saveDir + world + "\\Characters\\index.cind").Replace("\\\\", "\\");
 
         if(!Directory.Exists(CharacterFileHandler.characterDirectory))
             Directory.CreateDirectory(CharacterFileHandler.characterDirectory);

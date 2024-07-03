@@ -1,0 +1,15 @@
+{
+    "codename": "BASE_Ice",
+    "name":  "Ice",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Ice"
+}

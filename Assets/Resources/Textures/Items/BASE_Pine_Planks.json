@@ -1,0 +1,15 @@
+{
+    "codename": "BASE_Pine_Planks",
+    "name":  "Pine Planks",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Pine_Planks"
+}

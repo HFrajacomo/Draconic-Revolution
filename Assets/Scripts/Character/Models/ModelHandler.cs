@@ -10,6 +10,9 @@ public static class ModelHandler{
 	private static BiMap<ushort, string> legsMap = new BiMap<ushort, string>(); 
 	private static BiMap<ushort, string> bootsMap = new BiMap<ushort, string>(); 
 	private static BiMap<ushort, string> hatsMap = new BiMap<ushort, string>(); 
+	private static BiMap<ushort, string> faceMap = new BiMap<ushort, string>();
+	private static BiMap<ushort, string> hairMap = new BiMap<ushort, string>();
+	private static BiMap<ushort, string> addonMap = new BiMap<ushort, string>();
 
 	private static readonly string ASSET_BUNDLE_RESPATH = "CharacterModels/characters";
 	private static readonly string CLOTHES_DB = "CharacterModels/clothes_db";
@@ -17,7 +20,9 @@ public static class ModelHandler{
 	private static readonly string BOOTS_DB = "CharacterModels/boots_db";
 	private static readonly string HATS_DB = "CharacterModels/hats_db";
 	private static readonly string HAIR_DB = "CharacterModels/hair_db";
-	private static readonly string ARMATURE_MALE = "Armature";
+	private static readonly string FACE_DB = "CharacterModels/faces_db";
+	private static readonly string ADDONS_DB = "CharacterModels/addons_db";
+	private static readonly string ARMATURE_MALE = "Armature-Man";
 	private static readonly string ARMATURE_FEMALE = "Armature-Woman";
 
 	private static TextAsset cachedText;
@@ -42,6 +47,22 @@ public static class ModelHandler{
 		return GameObject.Instantiate(GameObject.Find("ModelAssets/" + mi.blenderReference));
 	}
 
+	public static bool HasModel(ModelType type, string name){
+		return GetModelInfo(type, name).hasModel;
+	}
+
+	public static bool HasShapeKeys(ModelType type, string name){
+		if(type != ModelType.HAIR)
+			return false;
+		return GetModelInfo(type, name).coverHair == 'Y';
+	}
+
+	public static char GetHatCover(ModelType type, string name){
+		if(type != ModelType.HEADGEAR)
+			return ' ';
+		return GetModelInfo(type, name).coverHair;
+	}
+
 	public static GameObject GetModelByCode(ModelType type, ushort code){
 		switch(type){
 			case ModelType.CLOTHES:
@@ -52,6 +73,12 @@ public static class ModelHandler{
 				return GetModelObject(type, bootsMap.Get(code));
 			case ModelType.HEADGEAR:
 				return GetModelObject(type, hatsMap.Get(code));
+			case ModelType.HAIR:
+				return GetModelObject(type, hairMap.Get(code));
+			case ModelType.FACE:
+				return GetModelObject(type, faceMap.Get(code));
+			case ModelType.ADDON:
+				return GetModelObject(type, addonMap.Get(code));
 			default:
 				return GetModelObject(type, clothesMap.Get(code));
 		}
@@ -67,6 +94,12 @@ public static class ModelHandler{
 				return bootsMap.Get(code).Split("/")[0];
 			case ModelType.HEADGEAR:
 				return hatsMap.Get(code).Split("/")[0];
+			case ModelType.HAIR:
+				return hairMap.Get(code).Split("/")[0];
+			case ModelType.FACE:
+				return faceMap.Get(code).Split("/")[0];
+			case ModelType.ADDON:
+				return addonMap.Get(code).Split("/")[0];
 			default:
 				return "";
 		}
@@ -147,6 +180,12 @@ public static class ModelHandler{
 				return bootsMap.Get(name);
 			case ModelType.HEADGEAR:
 				return hatsMap.Get(name);
+			case ModelType.HAIR:
+				return hairMap.Get(name);
+			case ModelType.FACE:
+				return faceMap.Get(name);
+			case ModelType.ADDON:
+				return addonMap.Get(name);
 			default:
 				return 0;
 		}
@@ -162,6 +201,12 @@ public static class ModelHandler{
 				return bootsMap.Get(code);
 			case ModelType.HEADGEAR:
 				return hatsMap.Get(code);
+			case ModelType.HAIR:
+				return hairMap.Get(code);
+			case ModelType.FACE:
+				return faceMap.Get(code);
+			case ModelType.ADDON:
+				return addonMap.Get(code);
 			default:
 				return "";
 		}
@@ -178,6 +223,10 @@ public static class ModelHandler{
 		ProcessTextAsset(ModelType.HEADGEAR, cachedText.ToString());
 		cachedText = Resources.Load<TextAsset>(HAIR_DB);
 		ProcessTextAsset(ModelType.HAIR, cachedText.ToString());
+		cachedText = Resources.Load<TextAsset>(FACE_DB);
+		ProcessTextAsset(ModelType.FACE, cachedText.ToString());
+		cachedText = Resources.Load<TextAsset>(ADDONS_DB);
+		ProcessTextAsset(ModelType.ADDON, cachedText.ToString());
 	}
 
 	private static void ProcessTextAsset(ModelType t, string text){
@@ -200,7 +249,14 @@ public static class ModelHandler{
 
 
 			name = BuildName(lineElements);
-			models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0]));
+
+			if(lineElements.Length < 4)
+				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0]));
+			else if(lineElements.Length == 4)
+				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0]));
+			else
+				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0], lineElements[4][0]));
+
 
 			switch(t){
 				case ModelType.CLOTHES:
@@ -214,6 +270,15 @@ public static class ModelHandler{
 					break;
 				case ModelType.HEADGEAR:
 					hatsMap.Add(i, name);
+					break;
+				case ModelType.FACE:
+					faceMap.Add(i, name);
+					break;
+				case ModelType.ADDON:
+					addonMap.Add(i, name);
+					break;
+				case ModelType.HAIR:
+					hairMap.Add(i, name);
 					break;
 				default:
 					break;

@@ -55,7 +55,7 @@ public class ProjectileTerrainVision : TerrainVision
     public override EntityTerrainCollision GroundCollision(){
         ushort blockCode = this.GetBlockBelow();
 
-        if(cl.blockBook.CheckSolid(blockCode))
+        if(VoxelLoader.CheckSolid(blockCode))
             return EntityTerrainCollision.SOLID;
 
         return EntityTerrainCollision.NONE;
@@ -74,13 +74,13 @@ public class ProjectileTerrainVision : TerrainVision
     public override int CollidedAround(){
         ushort blockCode = this.GetBlockContained();
 
-        if(cl.blockBook.CheckSolid(blockCode)){
+        if(VoxelLoader.CheckSolid(blockCode)){
             return CastCoord.TestEntityCollision(this.coord, this.lastCoord);
         }
-        else if(cl.blockBook.CheckLiquid(blockCode)){
+        else if(VoxelLoader.CheckLiquid(blockCode)){
             blockCode = this.GetBlockAbove();
 
-            if(cl.blockBook.CheckLiquid(blockCode)){
+            if(VoxelLoader.CheckLiquid(blockCode)){
                 return 64;
             }
             return 32;

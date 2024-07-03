@@ -1,21 +1,16 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Blocks
+[Serializable]
+public class Blocks
 {
-	public static readonly int blockCount = 64;
-	public static readonly int pixelSize = 32;
-	public static readonly int atlasSizeX = 8;
-	public static readonly int atlasSizeY = 10;
-	public static readonly int transparentAtlasSizeX = 4;
-	public static readonly int transparentAtlasSizeY = 1;
-
 	public ShaderIndex shaderIndex = ShaderIndex.OPAQUE; // The material used in the rendering pipeline
+	public string codename;
 	public string name;
 	public bool solid; // Is collidable
-	public byte transparent; // Should render the back side?
+	public bool transparent; // Should render the back side?
 	public bool invisible; // Should not render at all
 	public bool affectLight; // Should drain light level
 	public bool liquid;
@@ -28,228 +23,28 @@ public abstract class Blocks
 	public bool customPlace = false;
 	public bool drawRegardless = false;
 	public ushort maxHP;
-
-	public HashSet<BlockFlags> flags;
-
+	public bool indestructible;
+	
 	// Texture tile code
-	public int tileTop;
-	public int tileSide;
-	public int tileBottom;
+	public string tileTop;
+	public string tileSide;
+	public string tileBottom;
+	private int textureTop;
+	private int textureSide;
+	private int textureBottom;
 
-	// Item Drops
-	public Item droppedItem;
-	public byte minDropQuantity;
-	public byte maxDropQuantity;
+	// Behaviours
+	private VoxelBehaviour onBlockUpdate;
+	private VoxelBehaviour onInteract;
+	private VoxelBehaviour onPlace;
+	private VoxelBehaviour onBreak;
+	private VoxelBehaviour onLoad;
+	private VoxelBehaviour onVFXBuild;
+	private VoxelBehaviour onVFXChange;
+	private VoxelBehaviour onVFXBreak;
+	private VoxelBehaviour onSFXPlay;
+	private VoxelBehaviour placementRule;
 
-	/*
-	Every new block addition must have a scope in the IF tree
-	*/
-	public static Blocks Block(int blockID){
-		// The actual block encyclopedia
-		switch((BlockID)blockID){
-            case BlockID.AIR:
-                return new Air_Block();
-            case BlockID.GRASS:
-                return new Grass_Block();
-            case BlockID.DIRT:
-                return new Dirt_Block();
-            case BlockID.STONE:
-                return new Stone_Block();
-            case BlockID.WOOD:
-                return new Wood_Block();
-            case BlockID.IRON_ORE:
-                return new IronOre_Block();
-            case BlockID.WATER:
-                return new Water_Block();
-            case BlockID.LEAF:
-                return new Leaf_Block();
-            case BlockID.SAND:
-                return new Sand_Block();
-            case BlockID.SNOW:
-                return new Snow_Block();
-            case BlockID.ICE:
-                return new Ice_Block();
-            case BlockID.BASALT:
-                return new Basalt_Block();
-            case BlockID.CLAY:
-                return new Clay_Block();
-            case BlockID.STONE_BRICK:
-                return new StoneBrick_Block();
-            case BlockID.WOODEN_PLANKS_REGULAR:
-                return new WoodenPlankRegular_Block();
-            case BlockID.WOODEN_PLANKS_PINE:
-                return new WoodenPlankPine_Block();
-            case BlockID.BONE:
-                return new Bone_Block();
-            case BlockID.SANDSTONE_BRICK:
-                return new SandstoneBrick_Block();
-            case BlockID.SANDSTONE:
-                return new Sandstone_Block();
-            case BlockID.COAL_ORE:
-                return new CoalOre_Block();
-            case BlockID.MAGNETITE_ORE:
-                return new MagnetiteOre_Block();
-            case BlockID.ALUMINIUM_ORE:
-                return new AluminiumOre_Block();
-            case BlockID.COPPER_ORE:
-                return new CopperOre_Block();
-            case BlockID.TIN_ORE:
-                return new TinOre_Block();
-            case BlockID.GOLD_ORE:
-                return new GoldOre_Block();
-            case BlockID.EMERIUM_ORE:
-                return new EmeriumOre_Block();
-            case BlockID.URANIUM_ORE:
-                return new UraniumOre_Block();
-            case BlockID.EMERALD_ORE:
-                return new Emerald_Block();
-            case BlockID.RUBY_ORE:
-                return new Ruby_Block();
-            case BlockID.PINE_WOOD:
-                return new PineWood_Block();
-            case BlockID.PINE_LEAF:
-                return new PineLeaf_Block();
-            case BlockID.GRAVEL:
-                return new Gravel_Block();
-            case BlockID.MOONSTONE:
-                return new Moonstone_Block();
-            case BlockID.LAVA:
-                return new Lava_Block();
-            case BlockID.HELL_MARBLE:
-                return new HellMarble_Block();
-            case BlockID.ACASTER:
-                return new Acaster_Block();
-            case BlockID.COBALT_ORE:
-                return new CobaltOre_Block();
-            case BlockID.ARDITE_ORE:
-                return new ArditeOre_Block();
-            case BlockID.GRANDIUM_ORE:
-                return new GrandiumOre_Block();
-            case BlockID.STEONYX_ORE:
-                return new SteonyxOre_Block();
-            case BlockID.WHITE_MARBLE:
-                return new WhiteMarble_Block();
-            case BlockID.WHITE_MARBLE_BRICKS:
-                return new WhiteMarbleBrick_Block();
-			case BlockID.HELL_MARBLE_BRICKS:
-				return new HellMarbleBrick_Block();
-			case BlockID.BLACK_MARBLE:
-				return new BlackMarble_Block();
-			case BlockID.BLACK_MARBLE_BRICKS:
-				return new BlackMarbleBrick_Block();
-			case BlockID.SUNSTONE:
-				return new Sunstone_Block();
-			case BlockID.COBBLESTONE:
-				return new Cobblestone_Block();
-			case BlockID.VINTEUM_ORE:
-				return new VinteumOre_Block();
-			case BlockID.SILVERWOOD:
-				return new SilverWood_Block();
-			case BlockID.SILVERWOOD_LEAF:
-				return new SilverWoodLeaf_Block();
-			case BlockID.IRON_FLOOR:
-				return new IronFloor_Block();
-			case BlockID.IRON_WALL:
-				return new IronWall_Block();
-			case BlockID.GABBRO:
-				return new Gabbro_Block();
-			case BlockID.GABBRO_BRICK:
-				return new GabbroBrick_Block();
-			case BlockID.SILVERWOOD_PLANKS:
-				return new SilverWoodPlank_Block();
-			case BlockID.BRICK:
-				return new Brick_Block();
-			case BlockID.SANDSTONE_BRICK2:
-				return new SandstoneBrick2_Block();
-			case BlockID.GRAVEL2:
-				return new Gravel2_Block();
-			case BlockID.LIMESTONE:
-				return new Limestone_Block();
-			case BlockID.LIMESTONE_BRICK:
-				return new LimestoneBrick_Block();
-			case BlockID.QUARTZ:
-				return new Quartz_Block();
-			case BlockID.QUARTZ_BRICK:
-				return new QuartzBrick_Block();
-			case BlockID.BASALT_BRICK:
-				return new BasaltBrick_Block();
-			case BlockID.OBSIDIAN:
-				return new Obsidian_Block();
-			default:
-				return new Air_Block();
-		}
-	}
-
-
-	// Sets UV mapping for a direction
-	public Vector2[] AddTexture(Direction dir){
-		Vector2[] UVs = new Vector2[4];
-		int textureID;
-
-		if(dir == Direction.Up)
-			textureID = this.tileTop;
-		else if(dir == Direction.Down)
-			textureID = this.tileBottom;
-		else
-			textureID = this.tileSide;
-
-		// If should use normal atlas
-		if(this.shaderIndex == ShaderIndex.OPAQUE){
-			float x = textureID%Blocks.atlasSizeX;
-			float y = Mathf.FloorToInt(textureID/Blocks.atlasSizeX);
-	 
-			x *= 1f / Blocks.atlasSizeX;
-			y *= 1f / Blocks.atlasSizeY;
-
-			UVs[0] = new Vector2(x,y+(1f/Blocks.atlasSizeY));
-			UVs[1] = new Vector2(x+(1f/Blocks.atlasSizeX),y+(1f/Blocks.atlasSizeY));
-			UVs[2] = new Vector2(x+(1f/Blocks.atlasSizeX),y);
-			UVs[3] = new Vector2(x,y);
-		}
-		// If should use transparent atlas
-		else if(this.shaderIndex == ShaderIndex.WATER){
-			float x = textureID%Blocks.transparentAtlasSizeX;
-			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
-	 
-			x *= 1f / Blocks.transparentAtlasSizeX;
-			y *= 1f / Blocks.transparentAtlasSizeY;
-
-			UVs[0] = new Vector2(x,y+(1f/Blocks.transparentAtlasSizeY));
-			UVs[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
-			UVs[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
-			UVs[3] = new Vector2(x,y);
-		}
-		// If should use Leaves atlas
-		else if(this.shaderIndex == ShaderIndex.LEAVES){
-			float x = textureID%Blocks.transparentAtlasSizeX;
-			float y = Mathf.FloorToInt(textureID/Blocks.transparentAtlasSizeX);
-	 
-			x *= 1f / Blocks.transparentAtlasSizeX;
-			y *= 1f / Blocks.transparentAtlasSizeY;
-
-			UVs[0] = new Vector2(x,y+(1f/Blocks.transparentAtlasSizeY));
-			UVs[1] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y+(1f/Blocks.transparentAtlasSizeY));
-			UVs[2] = new Vector2(x+(1f/Blocks.transparentAtlasSizeX),y);
-			UVs[3] = new Vector2(x,y);
-		}
-
-		return UVs;
-	}
-
-	// Gets UV Map for Liquid blocks
-	public Vector2[] LiquidTexture(int x, int z){
-		int size = Chunk.chunkWidth;
-		int tileSize = 1/size;
-
-		Vector2[] UVs = {
-			new Vector2(x*tileSize,z*tileSize),
-			new Vector2(x*tileSize,(z+1)*tileSize),
-			new Vector2((x+1)*tileSize,(z+1)*tileSize),
-			new Vector2((x+1)*tileSize,z*tileSize)
-		};
-
-		return UVs;
-	}
 
     // Handles the emittion of BUD to neighboring blocks
     public void EmitBlockUpdate(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
@@ -279,6 +74,21 @@ public abstract class Blocks
     	}
     }	
 
+    public int GetTextureTop(){return this.textureTop;}
+    public int GetTextureBottom(){return this.textureBottom;}
+    public int GetTextureSide(){return this.textureSide;}
+
+    public void SetupTextureIDs(){
+    	if(this.tileTop != null)
+    		this.textureTop = VoxelLoader.GetTextureID(this.tileTop);
+
+    	if(this.tileSide != null)
+    		this.textureSide = VoxelLoader.GetTextureID(this.tileSide);
+
+    	if(this.tileBottom != null)
+    		this.textureBottom = VoxelLoader.GetTextureID(this.tileBottom);
+    }
+
     // Emits a BUD signal with no information about sender
     public void EmitBUDTo(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){
     	cl.budscheduler.ScheduleBUD(new BUDSignal(type, x, y, z, 0, 0, 0, 0), tickOffset);
@@ -292,13 +102,42 @@ public abstract class Blocks
     	if(blockDamage <= 0)
     		return 0;
 
-    	if(this.flags != null){
-	    	if(this.flags.Contains(BlockFlags.IMMUNE) || this.flags.Contains(BlockFlags.UNBREAKABLE))
-	    		return 0;
-    	}
+		if(this.indestructible)
+	    	return 0;
 
     	return Mathf.CeilToInt(Mathf.Sqrt(blockDamage));
     }
+
+    // Events GET/SET
+    public VoxelBehaviour GetOnBlockUpdate() { return onBlockUpdate; }
+    public void SetOnBlockUpdate(VoxelBehaviour val) { onBlockUpdate = val; }
+
+    public VoxelBehaviour GetOnInteract() { return onInteract; }
+    public void SetOnInteract(VoxelBehaviour val) { onInteract = val; }
+
+    public VoxelBehaviour GetOnPlace() { return onPlace; }
+    public void SetOnPlace(VoxelBehaviour val) { onPlace = val; }
+
+    public VoxelBehaviour GetOnBreak() { return onBreak; }
+    public void SetOnBreak(VoxelBehaviour val) { onBreak = val; }
+
+    public VoxelBehaviour GetOnLoad() { return onLoad; }
+    public void SetOnLoad(VoxelBehaviour val) { onLoad = val; }
+
+    public VoxelBehaviour GetOnVFXBuild() { return onVFXBuild; }
+    public void SetOnVFXBuild(VoxelBehaviour val) { onVFXBuild = val; }
+
+    public VoxelBehaviour GetOnVFXChange() { return onVFXChange; }
+    public void SetOnVFXChange(VoxelBehaviour val) { onVFXChange = val; }
+
+    public VoxelBehaviour GetOnVFXBreak() { return onVFXBreak; }
+    public void SetOnVFXBreak(VoxelBehaviour val) { onVFXBreak = val; }
+
+    public VoxelBehaviour GetOnSFXPlay() { return onSFXPlay; }
+    public void SetOnSFXPlay(VoxelBehaviour val) { onSFXPlay = val; }
+
+    public VoxelBehaviour GetPlacementRule() { return placementRule; }
+    public void SetPlacementRule(VoxelBehaviour val) { placementRule = val; }
 
 	/*
 	VIRTUAL METHODS
@@ -310,16 +149,86 @@ public abstract class Blocks
 		"trigger": When emitting block has been electrically triggered
 		"decay": When emitting block is wood and wants to decay leaves
 	*/
-	public virtual void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){}
+	public virtual void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){
+		if(this.onBlockUpdate == null)
+			return;
+		this.onBlockUpdate.OnBlockUpdate(type, myX, myY, myZ, budX, budY, budZ, facing, cl);
+	}
 
-	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){return 0;}
-	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){return 0;}
-	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){return 0;}
-	public virtual int OnLoad(CastCoord coord, ChunkLoader_Server cl){return 0;}
-	public virtual int OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){return 0;}
-	public virtual int OnVFXChange(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){return 0;}
-	public virtual int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){return 0;}
-	public virtual int OnSFXPlay(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){return 0;}
-	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader_Server cl){return true;}
+	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
+		if(this.onInteract == null)
+			return 0;
+		return this.onInteract.OnInteract(pos, blockX, blockY, blockZ, cl);
+	}
 
+	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
+		if(this.onPlace == null)
+			return 0;
+		return this.onPlace.OnPlace(pos, blockX, blockY, blockZ, facing, cl);
+	}
+
+	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
+		if(this.onBreak == null)
+			return 0;
+		return this.onBreak.OnBreak(pos, blockX, blockY, blockZ, cl);
+	}
+
+	public virtual int OnLoad(CastCoord coord, ChunkLoader_Server cl){
+		if(this.onLoad == null)
+			return 0;
+		return this.onLoad.OnLoad(coord, cl);
+	}
+
+	public virtual int OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
+		if(this.onVFXBuild == null)
+			return 0;
+		return this.onVFXBuild.OnVFXBuild(pos, blockX, blockY, blockZ, facing, state, cl);
+	}
+
+	public virtual int OnVFXChange(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
+		if(this.onVFXChange == null)
+			return 0;
+		return this.onVFXChange.OnVFXChange(pos, blockX, blockY, blockZ, facing, state, cl);
+	}
+
+	public virtual int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
+		if(this.onVFXBreak == null)
+			return 0;
+		return this.onVFXBreak.OnVFXBreak(pos, blockX, blockY, blockZ, state, cl);
+	}
+
+	public virtual int OnSFXPlay(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
+		if(this.onSFXPlay == null)
+			return 0;
+		return this.onSFXPlay.OnSFXPlay(pos, blockX, blockY, blockZ, state, cl);
+	}
+
+	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader_Server cl){
+		if(this.placementRule == null)
+			return true;
+		return this.placementRule.PlacementRule(pos, blockX, blockY, blockZ, direction, cl);
+	}
+
+	public void SetupAfterSerialize(bool isClient){
+		if(this.onBlockUpdate != null)
+			onBlockUpdate.PostDeserializationSetup(isClient);
+		if(this.onInteract != null)
+			onInteract.PostDeserializationSetup(isClient);
+		if(this.onPlace != null)
+			onPlace.PostDeserializationSetup(isClient);
+		if(this.onBreak != null)
+			onBreak.PostDeserializationSetup(isClient);
+		if(this.onLoad != null)
+			onLoad.PostDeserializationSetup(isClient);
+		if(this.onVFXBuild != null)
+			onVFXBuild.PostDeserializationSetup(isClient);
+		if(this.onVFXChange != null)
+			onVFXChange.PostDeserializationSetup(isClient);
+		if(this.onVFXBreak != null)
+			onVFXBreak.PostDeserializationSetup(isClient);
+		if(this.onSFXPlay != null)
+			onSFXPlay.PostDeserializationSetup(isClient);
+		if(this.placementRule != null)
+			placementRule.PostDeserializationSetup(isClient);
+	}
 }

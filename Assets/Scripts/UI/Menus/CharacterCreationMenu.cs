@@ -24,6 +24,7 @@ public class CharacterCreationMenu : Menu{
     public Button bootsButton;
     public Button hatsButton;
     public Button hairButton;
+    public Button faceButton;
 
     [Header("Input Field")]
     public InputField nameInput;
@@ -66,10 +67,15 @@ public class CharacterCreationMenu : Menu{
     private Color hairColor1;
     private Color hairColor2;
     private Color hairColor3;
+    private Color faceColor1;
+    private Color faceColor2;
+    private Color faceColor3;
 
     [Header("Materials")]
     public Material prefabPlainMat;
     public Material dragonSkinMat;
+    public Material eyeIrisMat;
+    public Material dragonlingHornMat;
     private Material skinMat;
     private Material clothesMat1;
     private Material clothesMat2;
@@ -86,6 +92,8 @@ public class CharacterCreationMenu : Menu{
     private Material hairMat1;
     private Material hairMat2;
     private Material hairMat3;
+    private Material faceMat1;
+    private Material faceMat2;
 
     [Header("Default Options")]
     public Button defaultGender;
@@ -122,6 +130,7 @@ public class CharacterCreationMenu : Menu{
     private List<GameObject> bootsItems = new List<GameObject>();
     private List<GameObject> hatsItems = new List<GameObject>();
     private List<GameObject> hairItems = new List<GameObject>();
+    private List<GameObject> faceItems = new List<GameObject>();
 
     // Selected Items
     private ModelType selectedDiv;
@@ -130,11 +139,13 @@ public class CharacterCreationMenu : Menu{
     private string selectedBoot;
     private string selectedHat;
     private string selectedHair;
+    private string selectedFace;
     private GameObject selectedClothesObj;
     private GameObject selectedLegObj;
     private GameObject selectedBootObj;
     private GameObject selectedHatObj;
     private GameObject selectedHairObj;
+    private GameObject selectedFaceObj;
     private GameObject selectedModel;
 
     // Selected in General
@@ -152,12 +163,15 @@ public class CharacterCreationMenu : Menu{
     private Dictionary<string, int> bootsDict = new Dictionary<string, int>();
     private Dictionary<string, int> hatsDict = new Dictionary<string, int>();
     private Dictionary<string, int> hairDict = new Dictionary<string, int>();
+    private Dictionary<string, int> faceDict = new Dictionary<string, int>();
 
     // Default Model
     private static readonly string DEFAULT_CLOTHES = "<No Top>";
     private static readonly string DEFAULT_HAT = "<No Hat>";
     private static readonly string DEFAULT_LEGS = "<No Pants>";
     private static readonly string DEFAULT_BOOTS = "<No Boots>";
+    private static readonly string DEFAULT_FACE = "Face 1";
+    private static readonly string DEFAULT_HAIR = "<No Hair>";
 
     // Cache
     private GameObject cachedObject;
@@ -194,6 +208,12 @@ public class CharacterCreationMenu : Menu{
             this.bootsColor1 = CharacterCreationData.GetBootsColor1();
             this.bootsColor2 = CharacterCreationData.GetBootsColor2();
             this.bootsColor3 = CharacterCreationData.GetBootsColor3();
+            this.faceColor1 = CharacterCreationData.GetFaceColor1();
+            this.faceColor2 = CharacterCreationData.GetFaceColor2();
+            this.faceColor3 = CharacterCreationData.GetFaceColor3();
+            this.hairColor1 = CharacterCreationData.GetHairColor1();
+            this.hairColor2 = CharacterCreationData.GetHairColor2();
+            this.hairColor3 = CharacterCreationData.GetHairColor3();
 
 
             // Load Models
@@ -216,6 +236,17 @@ public class CharacterCreationMenu : Menu{
             ToggleDiv(GetButton(this.selectedDiv));
             loadedModel = LoadModelByCode(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv));
             SelectItem(ModelHandler.GetModelName(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv)), loadedModel);
+
+            this.selectedDiv = ModelType.FACE;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModelByCode(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv));
+            SelectItem(ModelHandler.GetModelName(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv)), loadedModel);
+
+            this.selectedDiv = ModelType.HAIR;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModelByCode(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv));
+            SelectItem(ModelHandler.GetModelName(this.selectedDiv, CharacterCreationData.GetBodyPart(this.selectedDiv)), loadedModel);            
+
 
             ToggleDiv(this.generalButton);
         }
@@ -240,7 +271,7 @@ public class CharacterCreationMenu : Menu{
 
 
         if(!INIT){
-            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, isMale:true);
+            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat)}, isMale:true);
 
             this.selectedGenderItem = this.defaultGender;
             this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
@@ -296,7 +327,7 @@ public class CharacterCreationMenu : Menu{
         SelectSkinPreset(this.defaultPreset);
 
         LoadDefaultModel(isReload:true);
-        this.characterBuilder.ChangeRace(RaceManager.GetHuman(), true);
+        this.characterBuilder.ChangeRace(Race.HUMAN, true);
         this.characterBuilder.ChangeAnimationGender(this.maleAnimations);
         UpdateColorInAllModel();
     }
@@ -317,6 +348,7 @@ public class CharacterCreationMenu : Menu{
         this.bootsButton.GetComponentInChildren<Text>().color = this.notSelectedColor;
         this.hatsButton.GetComponentInChildren<Text>().color = this.notSelectedColor;
         this.hairButton.GetComponentInChildren<Text>().color = this.notSelectedColor;
+        this.faceButton.GetComponentInChildren<Text>().color = this.notSelectedColor;
 
         bt.GetComponentInChildren<Text>().color = this.selectedColor;
 
@@ -354,8 +386,9 @@ public class CharacterCreationMenu : Menu{
             this.colorPickerDiv.SetActive(false);
 
             // If the models are still null - a.k.a was run on Start()
-            if(this.selectedClothes != null)
+            if(this.selectedFace != null){ // This should be the last Div loaded in LoadDefaultModel
                 ShowColorPickers(this.characterBuilder.GetMaterialLength(this.selectedDiv));
+            }
         }
         else{
             this.scrollViewContent.SetActive(false);
@@ -432,6 +465,16 @@ public class CharacterCreationMenu : Menu{
             ToggleDiv(GetButton(this.selectedDiv));
             loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
             SelectItem(DEFAULT_CLOTHES, loadedModel);
+
+            this.selectedDiv = ModelType.HAIR;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_HAIR + suffix);
+            SelectItem(DEFAULT_HAIR, loadedModel);
+
+            this.selectedDiv = ModelType.FACE;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_FACE + suffix);
+            SelectItem(DEFAULT_FACE, loadedModel);
         }
         else{
             suffix = "/F";
@@ -455,6 +498,16 @@ public class CharacterCreationMenu : Menu{
             ToggleDiv(GetButton(this.selectedDiv));
             loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
             SelectItem(DEFAULT_CLOTHES, loadedModel);
+
+            this.selectedDiv = ModelType.HAIR;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_HAIR + suffix);
+            SelectItem(DEFAULT_HAIR, loadedModel);
+
+            this.selectedDiv = ModelType.FACE;
+            ToggleDiv(GetButton(this.selectedDiv));
+            loadedModel = LoadModel(DEFAULT_FACE + suffix);
+            SelectItem(DEFAULT_FACE, loadedModel);
         }
 
         this.selectedDiv = ModelType.GENERAL;
@@ -464,9 +517,10 @@ public class CharacterCreationMenu : Menu{
     private GameObject LoadModel(string name){
         GameObject go = ModelHandler.GetModelObject(this.selectedDiv, name);
         go.name = GenerateGoName();
+
         this.characterBuilder.Add(this.selectedDiv, go, name);
 
-        ShowColorPickers(go.GetComponent<SkinnedMeshRenderer>().materials.Length);
+        ShowColorPickers(this.characterBuilder.GetMaterialLength(this.selectedDiv, go));
         ApplyColorToModel(go);
 
         return go;
@@ -478,7 +532,7 @@ public class CharacterCreationMenu : Menu{
 
         this.characterBuilder.Add(type, go, AddGenderString(ModelHandler.GetModelName(type, code)));
 
-        ShowColorPickers(go.GetComponent<SkinnedMeshRenderer>().materials.Length);
+        ShowColorPickers(this.characterBuilder.GetMaterialLength(type, go));
         ApplyColorToModel(go);
 
         return go;
@@ -489,11 +543,16 @@ public class CharacterCreationMenu : Menu{
         this.selectedLegObj = null;
         this.selectedHatObj = null;
         this.selectedBootObj = null;
+        this.selectedFaceObj = null;
+        this.selectedHairObj = null;
 
         this.selectedClothes = null;
         this.selectedLeg = null;
         this.selectedBoot = null;
         this.selectedHat = null;
+        this.selectedFace = null;
+        this.selectedHair = null;
+
 
         for(int i = this.clothesItems.Count-1; i >= 0; i--){
             GameObject.DestroyImmediate(this.clothesItems[i]);
@@ -511,11 +570,21 @@ public class CharacterCreationMenu : Menu{
             GameObject.DestroyImmediate(this.bootsItems[i]);
             this.bootsItems.RemoveAt(i);
         }
+        for(int i = this.faceItems.Count-1; i >= 0; i--){
+            GameObject.DestroyImmediate(this.faceItems[i]);
+            this.faceItems.RemoveAt(i);
+        }
+        for(int i = this.hairItems.Count-1; i >= 0; i--){
+            GameObject.DestroyImmediate(this.hairItems[i]);
+            this.hairItems.RemoveAt(i);
+        }
 
         this.clothesDict.Clear();
         this.legsDict.Clear();
         this.hatsDict.Clear();
         this.bootsDict.Clear();
+        this.faceDict.Clear();
+        this.hairDict.Clear();
     }
 
     private Button GetButton(ModelType type){
@@ -532,6 +601,8 @@ public class CharacterCreationMenu : Menu{
                 return hairButton;
             case ModelType.GENERAL:
                 return generalButton;
+            case ModelType.FACE:
+                return faceButton;
             default:
                 return generalButton;
         }
@@ -608,6 +679,18 @@ public class CharacterCreationMenu : Menu{
             this.selectedHairObj = IdentifyItemGO(name);
             this.selectedModel = go;
         }
+        else if(this.selectedDiv == ModelType.FACE){
+            if(this.selectedFace != null){
+                this.cachedText = this.selectedFaceObj.GetComponentInChildren<Text>();
+                this.cachedText.color = this.notSelectedColor;
+            }
+
+            this.cachedText = FetchItemByName(name).GetComponentInChildren<Text>();
+            this.selectedFace = name;
+            this.cachedText.color = this.selectedColor;
+            this.selectedFaceObj = IdentifyItemGO(name);
+            this.selectedModel = go;
+        }
     }
 
     private void SelectItem(GameObject go){
@@ -671,6 +754,18 @@ public class CharacterCreationMenu : Menu{
             this.selectedHairObj = go;
             this.selectedModel = go;
         }
+        else if(this.selectedDiv == ModelType.FACE){
+            if(this.selectedFace != null){
+                this.cachedText = this.selectedFaceObj.GetComponentInChildren<Text>();
+                this.cachedText.color = this.notSelectedColor;
+            }
+
+            this.cachedText = go.GetComponentInChildren<Text>();
+            this.selectedFace = this.cachedText.text;
+            this.cachedText.color = this.selectedColor;
+            this.selectedFaceObj = go;
+            this.selectedModel = go;
+        }
     }
 
     public void SelectGender(Button bt){
@@ -695,8 +790,11 @@ public class CharacterCreationMenu : Menu{
         PopulateItemList(this.legsButton);
         PopulateItemList(this.hatsButton);
         PopulateItemList(this.bootsButton);
+        PopulateItemList(this.faceButton);
+        PopulateItemList(this.hairButton);
 
         LoadDefaultModel(isMale:this.selectedGenderIsMale, isReload:true);
+        this.characterBuilder.ChangeGender(this.race, this.selectedGenderIsMale);
 
         if(this.selectedGenderIsMale)
             this.characterBuilder.ChangeAnimationGender(this.maleAnimations);
@@ -722,7 +820,7 @@ public class CharacterCreationMenu : Menu{
         this.cachedText.color = this.selectedColor;
 
         SetRace(this.cachedText.text);
-        this.characterBuilder.ChangeRace(RaceManager.GetSettings(this.race), this.selectedGenderIsMale);
+        this.characterBuilder.ChangeRace(this.race, this.selectedGenderIsMale);
 
         // Setting Skin Material
         if(this.race != Race.DRAGONLING)
@@ -813,6 +911,28 @@ public class CharacterCreationMenu : Menu{
                 this.hatsColor3 = c;
             }
         }
+        else if(this.selectedDiv == ModelType.FACE){
+            if(picker == primaryColorPicker){
+                this.faceColor1 = c;
+            }
+            else if(picker == secondaryColorPicker){
+                this.faceColor2 = c;
+            }
+            else{
+                this.faceColor3 = c;
+            }
+        }
+        else if(this.selectedDiv == ModelType.HAIR){
+            if(picker == primaryColorPicker){
+                this.hairColor1 = c;
+            }
+            else if(picker == secondaryColorPicker){
+                this.hairColor2 = c;
+            }
+            else{
+                this.hairColor3 = c;
+            }
+        }
         else{
             return;
         }
@@ -841,6 +961,8 @@ public class CharacterCreationMenu : Menu{
         CharacterCreationData.SetBodyPart(ModelType.LEGS, ModelHandler.GetCode(ModelType.LEGS, IdentifySelectedName(ModelType.LEGS)));
         CharacterCreationData.SetBodyPart(ModelType.FOOTGEAR, ModelHandler.GetCode(ModelType.FOOTGEAR, IdentifySelectedName(ModelType.FOOTGEAR)));
         CharacterCreationData.SetBodyPart(ModelType.HEADGEAR, ModelHandler.GetCode(ModelType.HEADGEAR, IdentifySelectedName(ModelType.HEADGEAR)));
+        CharacterCreationData.SetBodyPart(ModelType.FACE, ModelHandler.GetCode(ModelType.FACE, IdentifySelectedName(ModelType.FACE)));
+        CharacterCreationData.SetBodyPart(ModelType.HAIR, ModelHandler.GetCode(ModelType.HAIR, IdentifySelectedName(ModelType.HAIR)));
 
         CharacterCreationData.SetAttribute(AttributeName.STRENGTH, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.STRENGTH));
         CharacterCreationData.SetAttribute(AttributeName.PRECISION, 0, AttributeIncreaseTableRace.GetAttributeIncrease(this.race, AttributeName.PRECISION));
@@ -867,6 +989,12 @@ public class CharacterCreationMenu : Menu{
         CharacterCreationData.SetBootsColor1(this.bootsColor1);
         CharacterCreationData.SetBootsColor2(this.bootsColor2);
         CharacterCreationData.SetBootsColor3(this.bootsColor3);
+        CharacterCreationData.SetFaceColor1(this.faceColor1);
+        CharacterCreationData.SetFaceColor2(this.faceColor2);
+        CharacterCreationData.SetFaceColor3(this.faceColor3);
+        CharacterCreationData.SetHairColor1(this.hairColor1);
+        CharacterCreationData.SetHairColor2(this.hairColor2);
+        CharacterCreationData.SetHairColor3(this.hairColor3);
 
         CharacterCreationData.SetSkinPreset(IdentifySkinPreset(this.selectedPresetItem));
         CharacterCreationData.SetSkin(this.skinColor);
@@ -887,6 +1015,10 @@ public class CharacterCreationMenu : Menu{
         ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
         this.selectedDiv = ModelType.HEADGEAR;
         ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
+        this.selectedDiv = ModelType.FACE;
+        ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
+        this.selectedDiv = ModelType.HAIR;
+        ApplyColorToModel(this.characterBuilder.Get(this.selectedDiv));
 
         this.selectedDiv = currentDiv;
     }
@@ -902,6 +1034,8 @@ public class CharacterCreationMenu : Menu{
             return ModelType.HEADGEAR;
         if(button == this.hairButton)
             return ModelType.HAIR;
+        if(button == this.faceButton)
+            return ModelType.FACE;
         return ModelType.CLOTHES;
     }
 
@@ -916,6 +1050,8 @@ public class CharacterCreationMenu : Menu{
             return this.hatsItems;
         if(button == this.hairButton)
             return this.hairItems;
+        if(button == this.faceButton)
+            return this.faceItems;
         return this.clothesItems;        
     }
 
@@ -930,6 +1066,8 @@ public class CharacterCreationMenu : Menu{
             return this.hatsDict;
         if(button == this.hairButton)
             return this.hairDict;
+        if(button == this.faceButton)
+            return this.faceDict;
         return this.clothesDict;          
     }
 
@@ -944,6 +1082,10 @@ public class CharacterCreationMenu : Menu{
             fullname = this.selectedBoot;
         else if(type == ModelType.HEADGEAR)
             fullname = this.selectedHat;
+        else if(type == ModelType.FACE)
+            fullname = this.selectedFace;
+        else if(type == ModelType.HAIR)
+            fullname = this.selectedHair;
 
         if(this.selectedGenderIsMale)
             return fullname + "/M";
@@ -1080,9 +1222,6 @@ public class CharacterCreationMenu : Menu{
     private void ShowColorPickers(int numberOfMaterials){
         Color p, s, t;
 
-        if(this.selectedDiv == ModelType.HAIR)
-            numberOfMaterials++;
-
         // Gets color from ModelType
         if(this.selectedDiv == ModelType.CLOTHES){
             p = this.clothesColor1;
@@ -1103,6 +1242,16 @@ public class CharacterCreationMenu : Menu{
             p = this.hatsColor1;
             s = this.hatsColor2;
             t = this.hatsColor3;
+        }
+        else if(this.selectedDiv == ModelType.FACE){
+            p = this.faceColor1;
+            s = this.faceColor2;
+            t = this.faceColor3;
+        }
+        else if(this.selectedDiv == ModelType.HAIR){
+            p = this.hairColor1;
+            s = this.hairColor2;
+            t = this.hairColor3;
         }
         else{
             p = Color.black;
@@ -1200,9 +1349,33 @@ public class CharacterCreationMenu : Menu{
                 materials[3].SetColor("_Color", this.hatsColor3);
             }
         }
+        else if(this.selectedDiv == ModelType.FACE){
+            if(materials.Length > 1){
+                materials[1] = this.faceMat1;
+                materials[1].SetColor("_Color", this.faceColor1);
+                materials[1].SetColor("_IrisColor", this.faceColor2);
+            }
+            if(materials.Length > 2){
+                materials[2] = this.faceMat2;
+                materials[2].SetColor("_Color", this.faceColor3);
+            }
+        }
+        else if(this.selectedDiv == ModelType.HAIR){
+            if(materials.Length > 1){
+                materials[1] = this.hairMat1;
+                materials[1].SetColor("_Color", this.hairColor1);
+                materials[1].SetColor("_IrisColor", this.hairColor2);
+            }
+            if(materials.Length > 2){
+                materials[2] = this.hairMat2;
+                materials[2].SetColor("_Color", this.hairColor3);
+            }
+        }
 
         materials[0] = this.skinMat;
         materials[0].SetColor("_Color", this.skinColor);
+
+        this.characterBuilder.ChangeAddonColor(this.skinColor, this.race);
 
         go.GetComponent<SkinnedMeshRenderer>().materials = materials;
     }
@@ -1228,6 +1401,8 @@ public class CharacterCreationMenu : Menu{
         this.hairMat1 = Instantiate(this.prefabPlainMat);
         this.hairMat2 = Instantiate(this.prefabPlainMat);
         this.hairMat3 = Instantiate(this.prefabPlainMat);
+        this.faceMat1 = Instantiate(this.eyeIrisMat);
+        this.faceMat2 = Instantiate(this.prefabPlainMat);
 
         this.skinColor = this.skinColorGradient.color2;
         this.clothesColor1 = new Color(1f, 1f, 1f);
@@ -1244,6 +1419,10 @@ public class CharacterCreationMenu : Menu{
         this.hatsColor3 = new Color(0f, 0f, 1f);
         this.hairColor1 = new Color(1f, 1f, 1f);
         this.hairColor2 = new Color(0f, 0f, 0f);
+        this.hairColor3 = new Color(0f, 0f, 0f);
+        this.faceColor1 = new Color(1f, 1f, 1f);
+        this.faceColor2 = new Color(0f, 0f, 0f);
+        this.faceColor3 = new Color(0f, 0f, 0f);
 
         this.skinMat.SetColor("_Color", this.skinColor);
         this.clothesMat1.SetColor("_Color", this.clothesColor1);
@@ -1261,5 +1440,7 @@ public class CharacterCreationMenu : Menu{
         this.hairMat1.SetColor("_Color", this.hairColor1);
         this.hairMat2.SetColor("_Color", this.hairColor2);
         this.hairMat3.SetColor("_Color", this.hairColor3);
+        this.faceMat1.SetColor("_Color", this.faceColor1);
+        this.faceMat2.SetColor("_Color", this.faceColor2);
     }
 }

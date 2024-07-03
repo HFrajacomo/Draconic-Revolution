@@ -37,7 +37,7 @@ public abstract class Structure
     public FillType type;
 
     public HashSet<ushort> overwriteBlocks;
-    public HashSet<BlockID> acceptableBaseBlocks;
+    public HashSet<ushort> acceptableBaseBlocks;
 
 
     /*
@@ -140,20 +140,20 @@ public abstract class Structure
                 return new GrandiumVeinB();
             case StructureCode.SteonyxVein:
                 return new SteonyxVein();
-            case StructureCode.SingleIgnisVisCrystal:
-                return new SingleIgnisVisCrystal();
-            case StructureCode.SingleAquaVisCrystal:
-                return new SingleAquaVisCrystal();
-            case StructureCode.SingleAerVisCrystal:
-                return new SingleAerVisCrystal();
-            case StructureCode.SingleTerraVisCrystal:
-                return new SingleTerraVisCrystal();
-            case StructureCode.SingleOrdoVisCrystal:
-                return new SingleOrdoVisCrystal();
-            case StructureCode.SinglePerditioVisCrystal:
-                return new SinglePerditioVisCrystal();
-            case StructureCode.SingleMagicVisCrystal:
-                return new SingleMagicVisCrystal();                
+            case StructureCode.SingleIgnisAuraCrystal:
+                return new SingleIgnisAuraCrystal();
+            case StructureCode.SingleAquaAuraCrystal:
+                return new SingleAquaAuraCrystal();
+            case StructureCode.SingleVentusAuraCrystal:
+                return new SingleVentusAuraCrystal();
+            case StructureCode.SingleSolumAuraCrystal:
+                return new SingleSolumAuraCrystal();
+            case StructureCode.SingleCastusAuraCrystal:
+                return new SingleCastusAuraCrystal();
+            case StructureCode.SingleRuinaAuraCrystal:
+                return new SingleRuinaAuraCrystal();
+            case StructureCode.SingleMagicAuraCrystal:
+                return new SingleMagicAuraCrystal();                
             default:
                 return new TestStruct();
         }
@@ -189,7 +189,7 @@ public abstract class Structure
         if(!this.needsBase)
             return true;
 
-        if(this.acceptableBaseBlocks.Contains((BlockID)baseBlock))
+        if(this.acceptableBaseBlocks.Contains(baseBlock))
             return true;
 
         return false;

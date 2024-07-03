@@ -8,46 +8,31 @@ Let's go through some of those.
 
 ## Block Types
 
-The first thing you should realize is that blocks are assigned classes depending on the material property.
+The first thing you should realize is that blocks are assigned categories depending on the material property.
 The properties (at the moment) are:
 
 1. Fully Opaque
 2. Transparent
 3. Special
 
-Go give a few examples, let's say you made a new Stone block. That block is opaque, therefore, falls under category 1. If you made some new Leaves, that's a transparent block and falls under category 2.
+To give a few examples, let's say you made a new Stone block. That block is opaque, therefore, falls under category 1. If you made some new Leaves, that's a transparent block and falls under category 2.
 Now, blocks complex enough to require a shader of their own fall under the special category. Some special blocks include Water and Ice.
 
 If you are dealing with category 1 and 2, then skip to their very own sections below. If you are dealing with a special block, then I'm sorry, but this SOP is not for you. Ask your Shader Artist for some help!
 
-## Appending to Texture Atlas
+## Storing the Texture
 
-### Fully Opaque
+If the block you are creating is fully opaque, then create the 32x32 texture for it and put it in the *Assets\Resources\Textures\Voxels\Blocks* folder. The name must match the naming convention of the other files.
 
-If the block you are creating is fully opaque, then create the 32x32 texture for it and append to the Texture Atlas. It can be found in: *Assets/Resources/texture_atlas.png*.
+## Assign Block Behaviour and Information
 
-### Transparent
-
-If the block you are creating has transparency, then create the 32x32 texture for it with alpha and append to the Transparent Atlas. It can be found in: *Assets/Resources/transparent_atlas.png*.
-
-## Create Normal Map
-
-Every block in the Fully Opaque Atlas needs a Normal Map. That is a bluish kind of texture that encodes normal vector information to apply to the block.
-Follow the **"add_normal_map"** SOP for a tutorial.
-
-
-## Adding a BlockID
-
-In *Assets/Scripts/BlockID.cs* create add a new entry at the bottom of the ID list. Use the naming standard of all uppercase and *_* for spaces.
-Follow the value standard and you should be good to go.
-
-Example: Cobalt Bricks would have the id **COBALT_BRICKS**.
-
-## Creating the Block Class
-
-Go to *Assets/Scripts/Blocks/* and create your new block classes there. Using Clay block as example, the file should be *Clay_Block.cs*.
+Along with the texture, you must create a JSON file with the same name as the texture. This file will contain all data for that specific block and its behaviour. Ask help from a Programmer to help you create the block behaviour.
 
 ## Registering the Block
 
-Go to *Assets/Scripts/Blocks.cs* and increase the blockCount in 1. In case the Atlas has changed shape (a new row or column has been added), change the atlasX and atlasY variables to match that.
-In the **public static Blocks Block()** function, add the new block and its ID to the return.
+Open the *Assets\Resources\Textures\Voxels\Blocks\BLOCK_LIST.txt* file and append your block's name to the end of the file. This tells Draconic Revolution that this block is registered and ready to be processed in the game. Blocks that are not registered in this file are considered "work in progress" and will not be imported.
+
+
+## Registering Normal Map (Optional)
+
+In this version of Draconic Revolution, normal maps are generated from the texture. But you can adjust the normal intensity in the *Assets\Resources\Textures\Voxels\Blocks\NORMAL_INTENSITY.txt*. In this file, you can reference the block id, followed by a tab and the normal intensity. It is recommended to keep values in-between 0 and 2. If a block has no entry in the normal intensity, that means its intensity is 1.

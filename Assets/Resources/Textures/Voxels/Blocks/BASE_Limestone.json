@@ -1,0 +1,23 @@
+﻿{
+    "codename": "BASE_Limestone",
+    "name":  "Limestone",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  300,
+    "indestructible": false,
+    "tileTop":  "BASE_Limestone",
+    "tileSide":  "BASE_Limestone",
+    "tileBottom":  "BASE_Limestone"
+}

@@ -118,17 +118,22 @@ Material:
     - _DoubleSidedGIMode: 2
     - _DoubleSidedNormalMode: 0
     - _DstBlend: 10
+    - _DstBlend2: 10
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
+    - _ExcludeFromTUAndAA: 0
     - _Fresnel_Power: 1
     - _HDWater: 0
     - _Lava_Luminescence: 1
+    - _MaterialID: 1
+    - _MaterialTypeMask: 2
     - _NoiseAngleOffset: 1
     - _NoiseCellDensity: 1
     - _NoiseOffsetMultiplier: 0.8
     - _NormalBlendMultiplier: 1
     - _NormalStrength: 0.03
     - _OpaqueCullMode: 2
+    - _PerPixelSorting: 0
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 1
@@ -141,12 +146,12 @@ Material:
     - _RequireSplitLighting: 0
     - _SrcBlend: 1
     - _StencilRef: 0
-    - _StencilRefDepth: 8
+    - _StencilRefDepth: 24
     - _StencilRefDistortionVec: 4
     - _StencilRefGBuffer: 10
     - _StencilRefMV: 40
     - _StencilWriteMask: 6
-    - _StencilWriteMaskDepth: 9
+    - _StencilWriteMaskDepth: 25
     - _StencilWriteMaskDistortionVec: 4
     - _StencilWriteMaskGBuffer: 15
     - _StencilWriteMaskMV: 41
@@ -154,6 +159,7 @@ Material:
     - _SurfaceType: 1
     - _TestVertex: 0
     - _TextureSize: 0.7
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
@@ -183,6 +189,7 @@ Material:
     - _Secondary_Color: {r: 0, g: 0, b: 0, a: 0}
     - _VertexTiling: {r: 16, g: 16, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &1484091025811958356
 MonoBehaviour:
   m_ObjectHideFlags: 11

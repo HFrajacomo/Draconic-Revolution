@@ -72,43 +72,43 @@ public class BiomeHandler
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_MANY}, AmbientGroup.CAVERNS);
 
 		Biome basaltCaves = new Biome("Basalt Cave", BiomeCode.BASALT_CAVES, BiomeType.PEAK, ChunkDepthID.UNDERGROUND,
-			(ushort)BlockID.BASALT,
+			VoxelLoader.GetBlockID("BASE_Basalt"),
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_MANY}, AmbientGroup.CAVERNS);
 
 		Biome submergedCave = new Biome("Submerged Cave", BiomeCode.UNDERWATER_CAVES, BiomeType.OCEAN, ChunkDepthID.UNDERGROUND,
-			(ushort)BlockID.STONE,
+			VoxelLoader.GetBlockID("BASE_Stone"),
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_MANY}, AmbientGroup.CAVERNS);
 
 		Biome iceCave = new Biome("Ice Cave", BiomeCode.ICE_CAVES, BiomeType.LOW, ChunkDepthID.UNDERGROUND,
-			(ushort)BlockID.SNOW,
+			VoxelLoader.GetBlockID("BASE_Stone"),
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_MANY}, AmbientGroup.ICE_CAVERNS);
 
 		Biome hellPlains = new Biome("Hell Plains", BiomeCode.HELL_PLAINS, BiomeType.MID, ChunkDepthID.HELL,
-			(ushort)BlockID.HELL_MARBLE,
+			VoxelLoader.GetBlockID("BASE_Hell_Marble"),
 			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome boneValley = new Biome("Bone Valley", BiomeCode.BONE_VALLEY, BiomeType.MID, ChunkDepthID.HELL,
-			(ushort)BlockID.HELL_MARBLE,
+			VoxelLoader.GetBlockID("BASE_Hell_Marble"),
 			new List<StructureGroupID>(){StructureGroupID.GREATER_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome lavaOcean = new Biome("Lava Ocean", BiomeCode.LAVA_OCEAN, BiomeType.LOW, ChunkDepthID.HELL,
-			(ushort)BlockID.LAVA,
+			VoxelLoader.GetBlockID("BASE_Lava"),
 			new List<StructureGroupID>(){StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome deepCliff = new Biome("Deep Cliff", BiomeCode.DEEP_CLIFF, BiomeType.OCEAN, ChunkDepthID.HELL,
-			(ushort)BlockID.ACASTER,
+			VoxelLoader.GetBlockID("BASE_Acaster"),
 			new List<StructureGroupID>(){}, AmbientGroup.HELL);
 
 		Biome hellHighlands= new Biome("Hell Highlands", BiomeCode.HELL_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
-			(ushort)BlockID.HELL_MARBLE,
+			VoxelLoader.GetBlockID("BASE_Hell_Marble"),
 			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome volcanicHighlands = new Biome("Volcanic Highlands", BiomeCode.VOLCANIC_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
-			(ushort)BlockID.BASALT,
+			VoxelLoader.GetBlockID("BASE_Basalt"),
 			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome core = new Biome("Core", BiomeCode.CORE, BiomeType.PEAK, ChunkDepthID.CORE,
-			(ushort)BlockID.MOONSTONE,
+			VoxelLoader.GetBlockID("BASE_Moonstone"),
 			new List<StructureGroupID>(){StructureGroupID.CORE_ORES}, AmbientGroup.CORE);
 
 		AddBiome(plains);

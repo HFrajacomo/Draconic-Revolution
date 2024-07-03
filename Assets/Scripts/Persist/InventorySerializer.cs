@@ -13,7 +13,7 @@ public static class InventorySerializer
         int bytesRead = 0;
         int currentSlot = 0;
         MemoryStorageType mst;
-        ItemID id;
+        ushort id;
         byte quantity;
         uint currentDur;
         byte refineLv;
@@ -34,23 +34,23 @@ public static class InventorySerializer
                 case MemoryStorageType.EMPTY:
                     break;
                 case MemoryStorageType.ITEM:
-                    id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
+                    id = NetDecoder.ReadUshort(data, init+bytesRead);
                     bytesRead += 2;
                     quantity = data[init+bytesRead];
                     bytesRead++;
-                    item = Item.GenerateItem((ushort)id);
+                    item = ItemLoader.GetCopy(id);
                     its = new ItemStack(item, quantity);
                     AddToInventory(its, hotbar, inv, currentSlot);
                     break;
                 case MemoryStorageType.WEAPON:
-                    id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
+                    id = NetDecoder.ReadUshort(data, init+bytesRead);
                     bytesRead += 2;
                     currentDur = NetDecoder.ReadUint(data, init+bytesRead);
                     bytesRead += 4;
                     refineLv = data[init+bytesRead];
                     bytesRead++;
                     enchant = (EnchantmentType)data[init+bytesRead];
-                    weapon = (Weapon)Item.GenerateItem((ushort)id);
+                    weapon = (Weapon)ItemLoader.GetCopy(id);;
                     weapon.SetDurability(currentDur);
                     weapon.SetExtraEffects(enchant);
                     weapon.SetRefineLevel(refineLv);
@@ -58,7 +58,7 @@ public static class InventorySerializer
                     AddToInventory(its, hotbar, inv, currentSlot);
                     break;
                 case MemoryStorageType.STORAGE:
-                    //id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
+                    //id = NetDecoder.ReadUshort(data, init+bytesRead);
                     //bytesRead += 2;
                     //inventorySize = NetDecoder.ReadUshort(data, init+bytesRead);
                     /*
@@ -81,23 +81,23 @@ public static class InventorySerializer
                 case MemoryStorageType.EMPTY:
                     break;
                 case MemoryStorageType.ITEM:
-                    id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
+                    id = NetDecoder.ReadUshort(data, init+bytesRead);
                     bytesRead += 2;
                     quantity = data[init+bytesRead];
                     bytesRead++;
-                    item = Item.GenerateItem((ushort)id);
+                    item = ItemLoader.GetCopy(id);
                     its = new ItemStack(item, quantity);
                     AddToInventory(its, hotbar, inv, currentSlot);
                     break;
                 case MemoryStorageType.WEAPON:
-                    id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
+                    id = NetDecoder.ReadUshort(data, init+bytesRead);
                     bytesRead += 2;
                     currentDur = NetDecoder.ReadUint(data, init+bytesRead);
                     bytesRead += 4;
                     refineLv = data[init+bytesRead];
                     bytesRead++;
                     enchant = (EnchantmentType)data[init+bytesRead];
-                    weapon = (Weapon)Item.GenerateItem((ushort)id);
+                    weapon = (Weapon)ItemLoader.GetCopy(id);
                     weapon.SetDurability(currentDur);
                     weapon.SetExtraEffects(enchant);
                     weapon.SetRefineLevel(refineLv);
@@ -105,7 +105,7 @@ public static class InventorySerializer
                     AddToInventory(its, hotbar, inv, currentSlot);
                     break;
                 case MemoryStorageType.STORAGE:
-                    //id = (ItemID)NetDecoder.ReadUshort(data, init+bytesRead);
+                    //id = NetDecoder.ReadUshort(data, init+bytesRead);
                     //bytesRead += 2;
                     //inventorySize = NetDecoder.ReadUshort(data, init+bytesRead);
                     /*

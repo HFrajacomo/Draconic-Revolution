@@ -1,0 +1,15 @@
+{
+    "codename": "BASE_Sand",
+    "name":  "Sand",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Sand"
+}

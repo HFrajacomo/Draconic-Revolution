@@ -53,7 +53,8 @@ Instead of levels, we have the Skill System. 21 completely distinct Skills with 
 
 | **Skill Name** | **Short Description** | **Levels up by** | **Subclasses** | 
 |--|--|--|--|
-| Alchemy | Creates potions and poisons | Crafting and identifying potions and poisons | - |
+|Alchemy| Creates potions and poisons | Crafting and identifying potions and poisons | - |
+|Artificing| Craft magical artifacts that can be used in battle to cast spells | Crafting and using Artificers' items | Neutral, Dark, Energism, Golemancy, Eldritch |
 |Bloodmancy| Uses vital energy to cast powerful spells | Fighting using Bloodmancy spells and gathering vital energy | Cultist, Vampire, Chaos Knight or Hellbound|
 |Crafting| Makes clothing, drawings, light armor, jewelry, works gems, makes additional inventory itens, etc.| Creating items related to crafting | - |
 |Combat| Wields stronger physical weaponry both melee and ranged| Fighting using physical and ranged weaponry| - |
@@ -71,7 +72,6 @@ Instead of levels, we have the Skill System. 21 completely distinct Skills with 
 |Sorcery| Cast spells based on magic words that are learned progressively | Cast Sorcery spells | Elemental Affinities |
 |Thievery| Sneak, climb, pickpocket and lockpick better| Doing thievery actions | - |
 |Technology| Create circuits, firearms, electricity and industrial items | Crafting and using firearms in battle | Digital, Electrical, Bellic and Industrial |
-|Thaumaturgy| Craft magical artifacts that can be used in battle to cast spells | Crafting and using thaumaturgical items | Neutral, Dark, Ultra Dark, Eldritch |
 |Transmuting| Manipulate the terrain and objects using equivalent exchange magic | Use Transmuting spells | - |
 |Witchcraft| Cast powerful spells while tapping the energy of the demonic realm | Cast witchcraft spells | Elementalist, Essencialist, Mentalist |
 

@@ -1,0 +1,33 @@
+﻿{
+    "codename": "BASE_Iron_Ore",
+    "name":  "Iron Ore",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  350,
+    "indestructible": false,
+    "tileTop":  "BASE_Iron_Ore",
+    "tileSide":  "BASE_Iron_Ore",
+    "tileBottom":  "BASE_Iron_Ore"
+}
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Iron_Ore_Block",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

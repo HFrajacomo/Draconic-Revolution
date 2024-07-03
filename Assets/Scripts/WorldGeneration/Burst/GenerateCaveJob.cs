@@ -25,6 +25,8 @@ public struct GenerateCaveJob : IJobParallelFor{
     public NativeArray<byte> caveNoise;
     [ReadOnly]
     public NativeArray<byte> cavemaskNoise;
+    [ReadOnly]
+    public ushort waterBlockID;
 
     [ReadOnly]
     public NativeParallelHashSet<ushort> caveFreeBlocks;
@@ -90,7 +92,7 @@ public struct GenerateCaveJob : IJobParallelFor{
 
     private void SetHeightMapData(int x, int z){
         for(int y = Chunk.chunkDepth-1; y > 0; y--){
-            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != 0 && blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != (ushort)BlockID.WATER){
+            if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != 0 && blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] != this.waterBlockID){
                 heightMap[x*(Chunk.chunkWidth+1)+z] = y+1;
                 return;
             }

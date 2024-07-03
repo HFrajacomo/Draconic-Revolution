@@ -1,0 +1,33 @@
+﻿{
+    "codename": "BASE_Wood_Planks",
+    "name":  "Wooden Planks",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  150,
+    "indestructible": false,
+    "tileTop":  "BASE_Wood_Planks",
+    "tileSide":  "BASE_Wood_Planks",
+    "tileBottom":  "BASE_Wood_Planks"
+}
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Wood_Planks",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

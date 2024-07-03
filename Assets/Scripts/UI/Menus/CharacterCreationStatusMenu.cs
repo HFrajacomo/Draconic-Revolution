@@ -58,6 +58,7 @@ public class CharacterCreationStatusMenu : Menu{
 	private static readonly string DESCRIPTION_DIR = "Text/CharacterCreationDescriptions/";
 	private static readonly Dictionary<string, SkillType> NAME_TO_SKILLTYPE = new Dictionary<string, SkillType>(){
 		{"Alchemy", SkillType.ALCHEMY},
+		{"Artificing", SkillType.ARTIFICING},
 		{"Bloodmancy", SkillType.BLOODMANCY},
 		{"Crafting", SkillType.CRAFTING},
 		{"Combat", SkillType.COMBAT},
@@ -75,7 +76,6 @@ public class CharacterCreationStatusMenu : Menu{
 		{"Sorcery", SkillType.SORCERY},
 		{"Thievery", SkillType.THIEVERY},
 		{"Technology", SkillType.TECHNOLOGY},
-		{"Thaumaturgy", SkillType.THAUMATURGY},
 		{"Transmuting", SkillType.TRANSMUTING},
 		{"Witchcraft", SkillType.WITCHCRAFT}
 	};

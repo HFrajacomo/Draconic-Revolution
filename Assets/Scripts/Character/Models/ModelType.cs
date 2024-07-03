@@ -5,5 +5,6 @@ public enum ModelType : byte{
 	HEADGEAR,
 	HAIR,
 	GENERAL,
-	FACE
+	FACE,
+	ADDON
 }

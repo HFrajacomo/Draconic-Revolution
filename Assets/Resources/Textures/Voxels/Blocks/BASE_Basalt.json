@@ -1,0 +1,33 @@
+﻿{
+    "codename": "BASE_Basalt",
+    "name":  "Basalt",
+    "shaderIndex": 0,
+    "solid":  true,
+    "transparent": false,
+    "invisible":  false,
+    "affectLight":  true,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": false,
+    "customBreak": false,
+    "customPlace": false,
+    "drawRegardless": false,
+    "maxHP":  400,
+    "indestructible": false,
+    "tileTop":  "BASE_Basalt",
+    "tileSide":  "BASE_Basalt",
+    "tileBottom":  "BASE_Basalt"
+}
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem" : "BASE_Basalt",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

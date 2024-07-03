@@ -30,6 +30,11 @@ public struct GenerateHellChunkJob: IJob{
     [ReadOnly]
     public NativeArray<byte> temperatureNoise;
 
+    [ReadOnly]
+    public ushort hellMarbleBlockID;
+    [ReadOnly]
+    public ushort acasterBlockID;
+
     public void Execute(){
         GenerateHeightPivots();
         BilinearIntepolateMaps(heightMap, ceilingMap);
@@ -83,8 +88,6 @@ public struct GenerateHellChunkJob: IJob{
     }
 
     public void ApplyMap(){
-        ushort hellMarble = (ushort)BlockID.HELL_MARBLE;
-
         if(!pregen){
             for(int x=0; x < Chunk.chunkWidth; x++){
                 for(int z=0; z < Chunk.chunkWidth; z++){
@@ -94,11 +97,11 @@ public struct GenerateHellChunkJob: IJob{
                                 blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
                             }
                             else{
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = hellMarble;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.hellMarbleBlockID;
                             }
                         } 
                         else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = hellMarble;
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.hellMarbleBlockID;
                         }
 
                         stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
@@ -113,13 +116,13 @@ public struct GenerateHellChunkJob: IJob{
                     for(int y=1; y < Chunk.chunkDepth; y++){ 
                         if(y >= heightMap[x*(Chunk.chunkWidth+1)+z]){
                             if(y >= ceilingMap[x*(Chunk.chunkWidth+1)+z]){
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = hellMarble;
+                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.hellMarbleBlockID;
                                 stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
                                 hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;                                
                             }
                         } 
                         else if(blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = hellMarble;     
+                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.hellMarbleBlockID;     
                             stateData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = 0;
                             hpData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = ushort.MaxValue;
                         }
@@ -130,14 +133,13 @@ public struct GenerateHellChunkJob: IJob{
     }
 
     public void AddBedrockLayer(){
-        ushort acaster = (ushort)BlockID.ACASTER; // Needs to set it to bedrock once block is added
         int index;
 
         for(int x=0; x < Chunk.chunkWidth; x++){
             for(int z=0; z < Chunk.chunkWidth; z++){
                 index = x*Chunk.chunkWidth*Chunk.chunkDepth+z;
 
-                blockData[index] = acaster;
+                blockData[index] = this.acasterBlockID;
                 stateData[index] = 0;
                 hpData[index] = ushort.MaxValue;
             }

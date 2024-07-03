@@ -36,9 +36,6 @@ public class MenuManager : MonoBehaviour{
 	private static bool firstLoad = true;
 	private static bool initCharacterCreation = false;
 
-	// Directory
-	private string worldsDir;
-
 	void Start(){
 		EnvironmentVariablesCentral.Start();
 
@@ -54,7 +51,6 @@ public class MenuManager : MonoBehaviour{
 		World.SetGameSceneFlag(false);
 
 		MenuManager.firstLoad = false;
-		this.worldsDir = EnvironmentVariablesCentral.clientExeDir + "Worlds\\";
 
 		GameObject.Find("AudioManager").GetComponent<AudioManager>().RefreshVolume();
 

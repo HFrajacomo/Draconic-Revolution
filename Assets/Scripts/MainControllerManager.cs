@@ -136,6 +136,9 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnToggleHUD(){
+        if(MainControllerManager.InUI)
+            return;
+
         this.HUDActive = !this.HUDActive;
         this.mainHUD.SetActive(this.HUDActive);
     }
@@ -175,15 +178,20 @@ public class MainControllerManager : MonoBehaviour
         this.inventoryGUI.SetActive(newState);
         MainControllerManager.InUI = newState;
 
-        if(newState)
+        if(newState){
             invUIPlayer.ReloadInventory();
+            this.HUDActive = false;
+            this.mainHUD.SetActive(this.HUDActive);
+        }
 
         this.invUIPlayer.ResetSelection();
-        hotbar.SetActive(!newState);
+
         MouseLook.ToggleMouseCursor(newState);
 
         // If closing, refresh the hotbar
         if(newState == false){
+            this.HUDActive = true;
+            this.mainHUD.SetActive(this.HUDActive);
             playerEvents.DrawHotbar();
             playerEvents.DrawItemEntity(playerEvents.GetSlotStack());
         }
@@ -193,10 +201,14 @@ public class MainControllerManager : MonoBehaviour
         MainControllerManager.InUI = false;
         this.invUIPlayer.ResetSelection();
         MouseLook.ToggleMouseCursor(false);
-        hotbar.SetActive(true);
+
+        this.HUDActive = true;
+        this.mainHUD.SetActive(this.HUDActive);
+        
         playerEvents.DrawHotbar();
         playerEvents.DrawItemEntity(playerEvents.GetSlotStack());
     }
+
     public void OnCtrl(){
         if(!MainControllerManager.ctrl){
             MainControllerManager.ctrl = true;
@@ -214,7 +226,7 @@ public class MainControllerManager : MonoBehaviour
         if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot) == null)
             return;
 
-        ItemID id = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetID();
+        ushort id = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetID();
         ItemStack its;
         byte amount;
 
