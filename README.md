@@ -250,7 +250,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |World Save Defragmentation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Multi-Depth World Generation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Storage Voxels|Core|Alpha|:heavy_check_mark:|:soon:|:x:|:x:
-|Character Models|3D|Alpha|:heavy_check_mark:|:warning:|:warning:|:x:
+|Character Models|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
 |Character Rigging|3D|Alpha|:heavy_check_mark:|:warning:|:warning:|:x:
 |Basic Animations|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
 |Weapon Animations|3D|Alpha|:x:|:x:|:x:|:x:
@@ -258,8 +258,8 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Basic AI|AI|Alpha|:heavy_check_mark:|:soon:|:soon:|:x:
 |Weather and Fog System|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:soon:
 |Main Menu UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
-|Hotbar UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
-|Inventory UI|UI|Alpha|:heavy_check_mark:|:soon:|:warning:|:x:
+|Hotbar UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Inventory UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Item Drops|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Dynamic Light Objects|Core|Alpha|:heavy_check_mark:|:soon:|:x:|:x:
 
