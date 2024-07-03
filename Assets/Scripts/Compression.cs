@@ -365,7 +365,7 @@ public static class Compression{
 		JobHandle handle = cbJob.Schedule();
 		handle.Complete();
 
-		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData);
+		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData.AsArray());
 
 		inputData.Dispose();
 		outputData.Dispose();
@@ -400,7 +400,7 @@ public static class Compression{
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
 
-		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData);
+		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData.AsArray());
 
 		outputData.Dispose();
 		inputData.Dispose();
@@ -436,7 +436,7 @@ public static class Compression{
 		JobHandle handle = cbJob.Schedule();
 		handle.Complete();
 
-		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData);
+		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData.AsArray());
 
 		inputData.Dispose();
 		outputData.Dispose();
@@ -471,7 +471,7 @@ public static class Compression{
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
 
-		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData);
+		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData.AsArray());
 
 		outputData.Dispose();
 		inputData.Dispose();

@@ -211,9 +211,9 @@ public class AmbientHandler : MonoBehaviour
             this.pbsky.spaceRotation.value = currentPreset.GetStarMapRotation(time);
         }
         else if(currentTick % 4 == 3){
-            this.hdLight.SetIntensity(Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep), LightUnit.Lux);
+            this.skyDirectionalLight.intensity = Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep);
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
-            this.hdLightMoon.SetIntensity(Mathf.Lerp(lastPreset.GetMoonIntensity(time), currentPreset.GetMoonIntensity(time), currentStep), LightUnit.Lux);
+            this.moonDirectionalLight.intensity = Mathf.Lerp(lastPreset.GetMoonIntensity(time), currentPreset.GetMoonIntensity(time), currentStep);
             this.hdLightMoon.angularDiameter = currentPreset.GetMoonDiameter(time);
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
 
@@ -265,9 +265,9 @@ public class AmbientHandler : MonoBehaviour
             this.pbsky.spaceRotation.value = currentPreset.GetStarMapRotation(finalTime);
         }
         else if(currentTick % 4 == 3){
-            this.hdLight.SetIntensity(currentPreset.GetSunIntensity(finalTime), LightUnit.Lux);
+            this.skyDirectionalLight.intensity = currentPreset.GetSunIntensity(finalTime);
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
-            this.hdLightMoon.SetIntensity(currentPreset.GetMoonIntensity(time), LightUnit.Lux);
+            this.moonDirectionalLight.intensity = currentPreset.GetMoonIntensity(time);
             this.hdLightMoon.angularDiameter = currentPreset.GetMoonDiameter(time);
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
 

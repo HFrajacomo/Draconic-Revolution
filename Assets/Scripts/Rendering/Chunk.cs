@@ -846,9 +846,6 @@ public class Chunk
     		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
- 	    Debug.Log($"{this.pos} -> {this.leavesTris.Count}");
-
-
     	this.meshFilter.mesh.subMeshCount = 8;
 
     	this.meshFilter.mesh.SetVertices(this.vertices.ToArray());
