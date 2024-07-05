@@ -104,6 +104,7 @@ public struct BuildChunkJob : IJob{
 	// OnLoad Event Trigger List
 	public NativeList<int3> loadOutList;
 	public NativeList<int3> loadAssetList;
+	public NativeHashSet<int3> assetCoordinates;
 
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
@@ -258,11 +259,6 @@ public struct BuildChunkJob : IJob{
 		    			}
 		    		}
 
-		    		// Object
-		    		if(!isBlock && !isInBorder){
-		    			LoadMesh(x, y, z, -1, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal, false);
-		    		}
-
 		    		// Handles DrawRegardless cases
 		    		if(isBlock){
 			    		if(blockDrawRegardless[thisBlock]){
@@ -366,8 +362,15 @@ public struct BuildChunkJob : IJob{
 				    		if(neighborBlock == 0)
 				    			continue;
 
-				    		if(!isBlock)
+				    		// Handles Objects
+				    		if(!isBlock){
+				    			if(!assetCoordinates.Contains(c)){
+				    				assetCoordinates.Add(c);
+				    				LoadMesh(c.x, c.y, c.z, ii, neighborBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
+				    			}
+
 				    			continue;
+				    		}
 
 			    			// Cuts down handling of DrawRegardless blocks here
 			    			if(blockDrawRegardless[neighborBlock])

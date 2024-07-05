@@ -22,7 +22,7 @@ public class TorchBehaviour : VoxelBehaviour{
 	public string fireVFXPath;
 	//public string audioName;
 
-	public Item droppedItem;
+	public string dropItem;
 	public byte minDropQuantity;
 	public byte maxDropQuantity;
 
@@ -141,7 +141,7 @@ public class TorchBehaviour : VoxelBehaviour{
 		CastCoord coord = new CastCoord(pos, x, y, z);
 
         cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
-            Item.GenerateForceVector(), this.droppedItem, Item.RandomizeDropQuantity(this.minDropQuantity, this.maxDropQuantity), cl);
+            Item.GenerateForceVector(), ItemLoader.GetCopy(this.dropItem), Item.RandomizeDropQuantity(this.minDropQuantity, this.maxDropQuantity), cl);
 
 		NetMessage message = new NetMessage(NetCode.VFXBREAK);
 		message.VFXBreak(pos, x, y, z, ushort.MaxValue, 0);

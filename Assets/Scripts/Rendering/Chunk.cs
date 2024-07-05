@@ -255,24 +255,6 @@ public class Chunk
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
 	public void BuildChunk(bool load=false){
-		/*
-		Reset Chunk side rebuilding
-		*/
-    	
-    	this.vertices.Clear();
-    	this.normals.Clear();
-    	this.tangents.Clear();
-    	this.triangles.Clear();
-    	this.specularTris.Clear();
-    	this.liquidTris.Clear();
-    	this.leavesTris.Clear();
-    	this.iceTris.Clear();
-    	this.lavaTris.Clear();
-    	this.assetTris.Clear();
-    	this.assetSolidTris.Clear();
-    	this.UVs.Clear();
-    	this.lightUVMain.Clear();
-
     	ChunkPos auxPos;
     	int verticalCode = 0;
 
@@ -285,6 +267,7 @@ public class Chunk
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<ushort> loadCodeList = new NativeList<ushort>(0, Allocator.TempJob);
 		NativeList<int3> loadAssetList = new NativeList<int3>(0, Allocator.TempJob);
+		NativeHashSet<int3> assetCoordinates = new NativeHashSet<int3>(0, Allocator.TempJob);
 
 		NativeList<int> normalTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> specularTris = new NativeList<int>(0, Allocator.TempJob);
@@ -484,6 +467,7 @@ public class Chunk
 
 			loadOutList = loadCoordList,
 			loadAssetList = loadAssetList,
+			assetCoordinates = assetCoordinates,
 			renderMap = renderMap,
 			verts = verts,
 			UVs = UVs,
@@ -723,6 +707,7 @@ public class Chunk
 		statedata.Dispose();
 		renderMap.Dispose();
 		loadCoordList.Dispose();
+		assetCoordinates.Dispose();
 		cacheCubeVert.Dispose();
 		cacheCubeNormal.Dispose();
 		cacheCubeTangent.Dispose();
@@ -826,6 +811,20 @@ public class Chunk
 		this.hitboxScaling.Clear();
 		this.cacheLightUV.Clear();
 		this.drawMain = true;
+    	
+    	this.vertices.Clear();
+    	this.normals.Clear();
+    	this.tangents.Clear();
+    	this.triangles.Clear();
+    	this.specularTris.Clear();
+    	this.liquidTris.Clear();
+    	this.leavesTris.Clear();
+    	this.iceTris.Clear();
+    	this.lavaTris.Clear();
+    	this.assetTris.Clear();
+    	this.assetSolidTris.Clear();
+    	this.UVs.Clear();
+    	this.lightUVMain.Clear();
     }
 
     // Returns n ShadowUVs to a list

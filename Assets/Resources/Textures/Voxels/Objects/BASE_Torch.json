@@ -52,6 +52,7 @@
 --->TorchBehaviour{
     "minDropQuantity" : 1,
     "maxDropQuantity" : 1,
+    "dropItem" : "BASE_Torch",
     "fireVFXPath" : "----- PrefabVFX -----/FireVFX",
     "audioName" : ""
 }
