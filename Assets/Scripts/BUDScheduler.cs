@@ -13,8 +13,6 @@ public class BUDScheduler : MonoBehaviour
     private string currentTime;
 	private string newTime;
 	public ChunkLoader_Server loader;
-	public int BUDperFrame;
-	private int currentBUDonFrame;
     private byte currentDealocTime;
     private NetMessage message = new NetMessage(NetCode.SENDCHUNK);
 
@@ -26,7 +24,6 @@ public class BUDScheduler : MonoBehaviour
 
 	void Start(){
 		this.currentTime = schedulerTime.GetBUDTime();
-		this.BUDperFrame = 200;
 		this.data.Add(currentTime, new List<BUDSignal>());
 		this.toSave.Add(currentTime, new HashSet<ChunkPos>());
 	}
@@ -86,14 +83,6 @@ public class BUDScheduler : MonoBehaviour
 
             this.toPropagate.Clear();
 
-    		this.currentBUDonFrame = 0;
-
-    		// Pops all elements of BUD
-            if(this.data.ContainsKey(this.currentTime)){
-        		if(this.data[this.currentTime].Count > 0){
-        			PassToNextTick();
-        		}
-            }
 
     		// Frees memory of previous BUD Tick
             this.data.Remove(this.currentTime);
@@ -102,28 +91,21 @@ public class BUDScheduler : MonoBehaviour
     	}
 
     	// Iterates through frame's list and triggers BUD
-        if(DataCount() > 0){
-        	for(currentBUDonFrame=0;currentBUDonFrame<BUDperFrame;currentBUDonFrame++){
-    	    	if(this.data[this.currentTime].Count > 0){
-                    cachedCoord = new CastCoord(new Vector3(this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z));
+        while(DataCount() > 0){
+            cachedCoord = new CastCoord(new Vector3(this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z));
 
-                    // If BUDSignal is still in the loaded area
-                    if(loader.chunks.ContainsKey(cachedCoord.GetChunkPos())){
-                        cachedCode = loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+            // If BUDSignal is still in the loaded area
+            if(loader.chunks.ContainsKey(cachedCoord.GetChunkPos())){
+                cachedCode = loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 
-                        if(cachedCode <= ushort.MaxValue/2)
-                            VoxelLoader.GetBlock(cachedCode).OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
-        	    	    else{
-                            VoxelLoader.GetObject(cachedCode).OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);                    
-                        }
-                    }
-
-                    this.data[this.currentTime].RemoveAt(0);
+                if(cachedCode <= ushort.MaxValue/2)
+                    VoxelLoader.GetBlock(cachedCode).OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);
+	    	    else{
+                    VoxelLoader.GetObject(cachedCode).OnBlockUpdate(this.data[this.currentTime][0].type, this.data[this.currentTime][0].x, this.data[this.currentTime][0].y, this.data[this.currentTime][0].z, this.data[this.currentTime][0].budX, this.data[this.currentTime][0].budY, this.data[this.currentTime][0].budZ, this.data[this.currentTime][0].facing, loader);                    
                 }
-    	    	else{
-    	    		break;
-    	    	}
-        	}
+            }
+
+            this.data[this.currentTime].RemoveAt(0);
         }
     }
 
@@ -222,23 +204,6 @@ public class BUDScheduler : MonoBehaviour
             cachedList.Add(new ChunkPos(pos.x, pos.z, pos.y+1));
 
         cachedList.Add(pos);
-    }
-
-    // Passes all elements in a to-be-deleted schedule date to the next tick
-    private void PassToNextTick(){
-    	int i=0;
-
-        // If current tick has/had BUD
-        if(this.data.ContainsKey(this.currentTime)){
-            if(!this.data.ContainsKey(this.newTime)){
-                this.data.Add(this.newTime, new List<BUDSignal>());
-            }
-
-        	foreach(BUDSignal b in this.data[this.currentTime]){
-        		this.data[this.newTime].Insert(i, b);
-        		i++;
-        	}
-        }
     }
 
     // Deschedules a BUD request (probably when block is broken or updated)

@@ -14,23 +14,28 @@ A Water block will be able to flow if there are no blocks around, and the newly 
 
 ## The Recursion Problem
 
-Okay, so now that every block has it's BU behaviour, all we have to do, is trigger lots of them and see the World change instantly, right? **Wrong!** Seriously, do you really think that updating thousands of Water blocks every frame is smart? That's the Recursion Problem. If we were to design the Block Update System as a big recursive code-show, we would be f*cked whenever someone attempted to run a few thousands of those. The game would freeze, and, in the best-case scenario, would lose a bunch of BUD information after sitting still for a couple of seconds. In the worst-case scenario, it would crash due to StackOverflow.
+Okay, so now that every block has it's BU behaviour, all we have to do, is trigger lots of them and see the World change instantly, right? **Wrong!** Seriously, do you really think that updating thousands of Water blocks every frame is smart? That's the Recursion Problem. If we were to design the Block Update System as a big recursive code-show, we would be f\*cked whenever someone attempted to run a few thousands of those. The game would freeze, and, in the best-case scenario, would lose a bunch of BUD information after sitting still for a couple of seconds. In the worst-case scenario, it would crash due to *StackOverflow*.
 
-To solve that, we need to think smart...
+
+## The Determinism Problem
+
+Let's say we try to mitigate the *Recursion Problem* by adding a limit of BUs that the Scheduler can process per frame (let's say 30). Even if a million BUD happens in the same frame, only 30 will be processed and the other ones will be passed to the next frame and so on. This would save some FPS, but would lead to inconsistencies in the game. 
+
+For example: if multiple water blocks are updated at once, only a few water chunks would move, while others would wait to flow. This could lead to Block Updates happening considerably too late and with inconsistent timing. So if water normally takes 10 frames to flow from one block to another, with this scenario, depending on the amount of BUs received, every specific Water block could have a completely different flow time, and that is unaceptable too. 
 
 ## The BUD-Scheduler
 
-Instead of recursing through all of the BU calls once they arrive, why not store them in a buffer queue so we can deal with them later? Also, what if every frame had it's very own buffer queue? This solution doesn't only solve our problem, but also adds tons of functionality and control to the game. A few examples of pros of the Scheduler system are:
+This class is made out of a dictionary that links In-Game time to a list of BUD requests. In that way, a block can literally *schedule* a BUD to happen in a later date, depending on Game Time. A few examples of pros of the Scheduler system are:
 
- 1. Game doesn't freeze constantly while under huge BU activity
- 2. Little to no FPS drop while BUD activity is happening
- 3. BUs can be scheduled to happen at a later time. For example, Water can flow one block of distance every *X* frames.
+ 1. BUs can be scheduled to happen at a later time. For example, Water can flow one block of distance every *X* frames.
+ 2. Runs all game logic in a deterministic way with exact timings
+ 3. 
 
 It's important to note that our system is FPS-safe instead of BUD-safe. What does that mean though?
 
 ## FPS-Safe vs BUD-Safe System
 
-Imagine that a million BUDs are scheduled to Frame #1. In a BUD-Safe system, the game would iterate through all the million BUDs and solve them individually inside the Frame #1's time period. Of course, processing a huge amount of BUD in such a short time is impossible, thus, the game will get lag spikes. It will freeze slowly to give the game time to solve all the BUDs. In a FPS-Safe system (like ours), the BUDScheduler has a limited amount of BUD it can process every frame. If this cap is surpassed, then all the remaining BUDs are passed on to be processed first thing in the next frame. It saves our FPS, but slows the game logic.
+Imagine that a million BUDs are scheduled to Frame #1. In a BUD-Safe system, the game would iterate through all the million BUDs and solve them individually inside the Frame #1's time period. Of course, processing a huge amount of BUD in such a short time is impossible, thus, the game will get lag spikes. It will slow down user experience to give the game time to solve all the BUDs. In a FPS-Safe system, the BUDScheduler has a limited amount of BUD it can process every frame. If this cap is surpassed, then all the remaining BUDs are passed on to be processed first thing in the next frame. It saves our FPS, but slows down the game logic.
 
 ### BUD-Safe
 **Pros**
@@ -52,7 +57,7 @@ Imagine that a million BUDs are scheduled to Frame #1. In a BUD-Safe system, the
 
  - Will disrupt the prediction of in-game time in regards to game logic during heavy BUD activity
 
-**In short, the approach we've taken in this game, is the FPS-Safe System!**
+**In short, the approach we've taken in this game, is the BUD-Safe System! (But we will add the option of toggling FPS-Safe Scheduling for Server owners in the future)**
 
 # Congratulations
 
