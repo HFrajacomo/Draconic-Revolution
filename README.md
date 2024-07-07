@@ -244,8 +244,8 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Dynamic Music Support|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Dynamic Reverb Zone Generation|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Non-Block Objects|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
-|Block Damage Indicators|Core & Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
-|Character Sheet|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Block Damage Indicators|Core & Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
+|Character Sheet|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Character Creation|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:soon:|:x:
 |World Save Defragmentation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Multi-Depth World Generation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:

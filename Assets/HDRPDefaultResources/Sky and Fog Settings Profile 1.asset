@@ -193,10 +193,10 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: -15
   tint:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: -10
 --- !u!114 &-5272523201392510970
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -292,7 +292,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.8489344, g: 0.8249502, b: 0.8295418, a: 1}
+      m_Value: {r: 0.7830189, g: 0.7793254, b: 0.7793254, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 0
@@ -355,7 +355,7 @@ MonoBehaviour:
       m_Value: 251
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0.8581761, g: 0.8356592, b: 0.8399699, a: 1}
+      m_Value: {r: 0, g: 0, b: 0, a: 0}
     exposure:
       m_OverrideState: 1
       m_Value: 0
@@ -587,7 +587,7 @@ MonoBehaviour:
     m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 5.839258
+    m_Value: 8.618063
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -741,10 +741,10 @@ MonoBehaviour:
     m_Value: {fileID: 8900000, guid: 956d1ebbce92f7244a3c827fe1c11afd, type: 3}
   spaceEmissionMultiplier:
     m_OverrideState: 1
-    m_Value: 0.097472124
+    m_Value: 0
   spaceRotation:
     m_OverrideState: 1
-    m_Value: {x: 3.1899967, y: 0, z: 0}
+    m_Value: {x: 0, y: 0, z: 0}
   colorSaturation:
     m_OverrideState: 0
     m_Value: 1
@@ -756,10 +756,10 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 0.3356105, g: 0.797216, b: 0.8048604, a: 1}
+    m_Value: {r: 0.3850125, g: 0.7721011, b: 0.7924528, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0.26727328, g: 0.617834, b: 0.96527183, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   horizonZenithShift:
     m_OverrideState: 1
     m_Value: 0
@@ -1270,7 +1270,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 0.9631413, y: 0.8941576, z: 0.83231026, w: 0.4}
+    m_Value: {x: 0.6959772, y: 0.754717, z: 0.6799573, w: 0}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3
