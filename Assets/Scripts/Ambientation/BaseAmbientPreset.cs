@@ -31,7 +31,8 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float STAR_MAP_X_ROTATION_BEGIN = 0f;
 	protected static readonly float STAR_MAP_X_ROTATION_END = 180f;
 	protected static readonly float STAR_MAP_VARIATION_FREQUENCY = 1.57f;
-	protected static readonly float STAR_MAP_VARIATION_AMPLITUDE = 0.4f;	
+	protected static readonly float STAR_MAP_VARIATION_AMPLITUDE = 0.4f;
+	protected static readonly int RAIN_SPAWN_RATE = 2500;
 
 	// General
 	protected bool isSurface;
@@ -79,6 +80,9 @@ public abstract class BaseAmbientPreset{
 	protected float2 sunRotation;
 	protected Color sunColor;
 	protected float moonDiameter;
+
+	// Rain
+	protected int rainSpawnRate;
 
 	public static BaseAmbientPreset GetPreset(AmbientGroup g){
 		if(presets.Count == 0)
@@ -144,6 +148,7 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetFloorLighting(float t){return FLOOR_LIGHTING_UNDERGROUND;}
 	public virtual float GetStarMapMultiplier(float t){return StarMapMultiplierLerp(STAR_MAP_MULTIPLIER_DAY, STAR_MAP_MULTIPLIER_NIGHT, t);}
 	public virtual Vector3 GetStarMapRotation(float t){return new Vector3(StarMapRotationLerp(STAR_MAP_X_ROTATION_BEGIN, STAR_MAP_X_ROTATION_END, t), 0, 0);}
+	public virtual int GetRainSpawnRate(WeatherCast wc){return GetValueDuringRain(wc, this.rainSpawnRate);}
 	public bool IsSurface(){return this.isSurface;}
 	public bool HasFlare(){return this.hasFlare;}
 
@@ -363,6 +368,18 @@ public abstract class BaseAmbientPreset{
         }
     }
 
+    protected int GetValueDuringRain(WeatherCast wc, int val){
+    	if(wc.GetWeatherState() == WeatherState.RAINY)
+    		return val;
+    	else if(wc.GetWeatherState() == WeatherState.TRANSITION){
+    		if(wc.GetInitState() == WeatherState.RAINY && wc.GetEndState() == WeatherState.TRANSITION)
+    			return (int)Mathf.Lerp(val, 0, wc.GetLerpValue());
+    		else if(wc.GetEndState() == WeatherState.RAINY && wc.GetInitState() == WeatherState.TRANSITION)
+    			return (int)Mathf.Lerp(0, val, wc.GetLerpValue());
+    	}
+    	return 0;
+    }
+
     public void SetValues(AmbientationTestingTool att){
     	horizonTintDay = att.horizonTint_day;
     	horizonTintSunrise = att.horizonTint_sunrise;
@@ -395,6 +412,8 @@ public abstract class BaseAmbientPreset{
     	lightIntensity = att.lightIntensity;
     	sunRotation = att.sunRotation;
     	sunColor = att.sunColor;
+
+    	rainSpawnRate = att.rainSpawnRate;
     }
 
 	private float4 ColorToFloat4(Color c){
@@ -431,5 +450,6 @@ public abstract class BaseAmbientPreset{
 	public Color _g_sr(){return Float4ToColor(gainSunrise);}
 	public Color _g_ss(){return Float4ToColor(gainSunset);}
 	public Color _g_n(){return Float4ToColor(gainNight);}
+	public int _rsp(){return rainSpawnRate;}
 
 }

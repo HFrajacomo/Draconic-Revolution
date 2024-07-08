@@ -5069,8 +5069,8 @@ Transform:
   m_GameObject: {fileID: 552774301}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.82855207, z: -0, w: -0.55991215}
-  m_LocalPosition: {x: 8.924151, y: 1100.5261, z: -30.254723}
-  m_LocalScale: {x: 0.39999986, y: 0.39999998, z: 0.39999986}
+  m_LocalPosition: {x: 0, y: 260, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1706061086}
@@ -5724,7 +5724,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 2000
+    maxNumParticles: 10000
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 1
     rotation3D: 0
@@ -17945,6 +17945,7 @@ MonoBehaviour:
   playerPositionHandler: {fileID: 59614825}
   dayFlare: {fileID: 1484502060}
   nightFlare: {fileID: 444992164}
+  rainParticleSystem: {fileID: 552774304}
   volume: {fileID: 11400000, guid: d74700023676aee41bc60f65c5f83bf2, type: 2}
 --- !u!114 &1484502060
 MonoBehaviour:

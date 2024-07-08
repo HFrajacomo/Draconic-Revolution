@@ -29,6 +29,8 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		this.gainSunset = new float4(.76f, .37f, .32f, .14f);
 		this.gainNight = new float4(0f, 0f, 0f, 0f);
 
+		this.rainSpawnRate = 0;
+
 		this.sunDiameter = SUN_DIAMETER_DAY;
 		this.moonDiameter = SUN_DIAMETER_NIGHT;
 		this.hasFlare = true;
@@ -56,4 +58,5 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 	public override float GetFloorLighting(float t){
 		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
+	public override int GetRainSpawnRate(WeatherCast ws){return 0;}
 }

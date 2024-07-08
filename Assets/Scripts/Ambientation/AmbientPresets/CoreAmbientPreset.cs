@@ -19,6 +19,7 @@ public class CoreAmbientPreset: BaseAmbientPreset{
 
 		this.sunRotation = new float2(90f, 0f);
 		this.lightIntensity = 3f;
+		this.rainSpawnRate = 0;
 
 		this.isSurface = false;
 	}
@@ -40,4 +41,5 @@ public class CoreAmbientPreset: BaseAmbientPreset{
 	public override float GetFogAttenuation(float t){
 		return this.fogAttenuation;
 	}
+	public override int GetRainSpawnRate(WeatherCast ws){return 0;}
 }

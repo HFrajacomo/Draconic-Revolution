@@ -87,8 +87,10 @@ public class WeatherCast{
 	};
 
 	// Noise Values
+	private WeatherState weatherState;
 	private float weatherNoise = -10;
 	private float fogNoise;
+	private float lerpValue = .5f;
 
 	// Cache
 	private WeatherState initTransitionState;
@@ -154,6 +156,13 @@ public class WeatherCast{
 	public float GetCloudGlobalOpacity(){return cloudsGlobalOpacity;}
 	public float GetFlareMultiplier(){return flareIntensityMultiplier;}
 
+	// State
+	public WeatherState GetWeatherState(){return this.weatherState;}
+	public WeatherState GetInitState(){return this.initTransitionState;}
+	public WeatherState GetEndState(){return this.endTransitionState;}
+	public float GetLerpValue(){return this.lerpValue;}
+
+
 	// Sets calculation for Fog Noise
 	public void SetFogNoise(int totalTicks, uint days){
 		this.fogNoise = NoiseMaker.WeatherNoise(totalTicks*GenerationSeed.fogNoiseStep, days*GenerationSeed.weatherDayStep + World.worldSeed*GenerationSeed.weatherSeedStep);
@@ -169,6 +178,7 @@ public class WeatherCast{
 		this.weatherNoise = NoiseMaker.WeatherNoise(totalSeconds*GenerationSeed.weatherNoiseStep, days*GenerationSeed.weatherDayStep + World.worldSeed*GenerationSeed.weatherSeedStep);
 
 		WeatherState state = GetCurrentWeather(this.weatherNoise);
+		this.weatherState = state;
 
 		if(state == WeatherState.TRANSITION){
 			this.fogFromWeather = Mathf.Lerp(stateFogMap[this.initTransitionState], stateFogMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
@@ -215,6 +225,8 @@ public class WeatherCast{
 			this.initTransitionState = lerpY[index-1];
 			this.endTransitionState = lerpY[index+1];
 			this.minTransitionValue = lerpX[index];
+
+			this.lerpValue = Mathf.Lerp(lerpX[index], lerpX[index+1], noise);
 		}
 
 		return state;

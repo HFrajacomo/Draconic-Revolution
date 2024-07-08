@@ -23,6 +23,7 @@ public class IceCavernsAmbientPreset: BaseAmbientPreset{
 		this.moonDiameter = 0f;
 
 		this.isSurface = false;
+		this.rainSpawnRate = 0;
 	}
 	public override float GetSunDiameter(float t){
 		return SUN_DIAMETER_UNDERGROUND;
@@ -42,4 +43,5 @@ public class IceCavernsAmbientPreset: BaseAmbientPreset{
 	public override float GetMoonIntensity(float t){
 		return this.lightIntensity;
 	}
+	public override int GetRainSpawnRate(WeatherCast ws){return 0;}
 }

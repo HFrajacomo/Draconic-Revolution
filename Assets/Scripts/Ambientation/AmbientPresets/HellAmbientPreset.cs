@@ -23,6 +23,7 @@ public class HellAmbientPreset: BaseAmbientPreset{
 		this.moonDiameter = 0f;
 
 		this.isSurface = false;
+		this.rainSpawnRate = 0;
 	}
 	public override float GetSunDiameter(float t){
 		return SUN_DIAMETER_UNDERGROUND;
@@ -42,4 +43,5 @@ public class HellAmbientPreset: BaseAmbientPreset{
 	public override float GetFogAttenuation(float t){
 		return this.fogAttenuation;
 	}
+	public override int GetRainSpawnRate(WeatherCast ws){return 0;}
 }

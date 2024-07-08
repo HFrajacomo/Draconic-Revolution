@@ -33,6 +33,7 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.moonDiameter = SUN_DIAMETER_NIGHT;
 		this.isSurface = true;
 		this.hasFlare = true;
+		this.rainSpawnRate = 2500;
 	}
 
 	public override Color GetHorizonTint(float t){

@@ -63,6 +63,9 @@ public class AmbientationTestingTool: MonoBehaviour{
 	public float2 sunRotation;
 	public Color sunColor;
 
+	// Rain
+	public int rainSpawnRate;
+
 	void Start(){
         this.volume.TryGet<PhysicallyBasedSky>(out this.pbsky);
         this.volume.TryGet<CloudLayer>(out this.clouds);
@@ -187,5 +190,7 @@ public class AmbientationTestingTool: MonoBehaviour{
     	lightIntensity = p._li();
     	sunRotation = p._sr();
     	sunColor = p._sc();
+
+    	rainSpawnRate = p._rsp();
 	}
 }
