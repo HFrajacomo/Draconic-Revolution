@@ -154,7 +154,7 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
                 this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(time);
                 this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(time);
-                this.psEmission.rateOverTime = 0;
+                //this.psEmission.rateOverTime = 0;
                 return;
             }
             
@@ -162,13 +162,13 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());
                 this.fog.maximumHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogMaxHeight(time), currentPreset.GetFogMaxHeight(time), currentStep), this.weatherCast.GetMaximumHeight());
                 this.fog.baseHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogBaseHeight(time), currentPreset.GetFogBaseHeight(time), currentStep), this.weatherCast.GetBaseHeight());
-                this.psEmission.rateOverTime = Mathf.Lerp(lastPreset.GetRainSpawnRate(this.weatherCast), currentPreset.GetRainSpawnRate(this.weatherCast), currentStep);
+                //this.psEmission.rateOverTime = Mathf.Lerp(lastPreset.GetRainSpawnRate(this.weatherCast), currentPreset.GetRainSpawnRate(this.weatherCast), currentStep);
             }
             else{
                 this.fog.meanFreePath.value = AddFog(currentPreset.GetFogAttenuation(time), this.weatherCast.GetAdditionalFog());
                 this.fog.maximumHeight.value = AddFog(currentPreset.GetFogMaxHeight(time), this.weatherCast.GetMaximumHeight());
                 this.fog.baseHeight.value = AddFog(currentPreset.GetFogBaseHeight(time), this.weatherCast.GetBaseHeight());
-                this.psEmission.rateOverTime = currentPreset.GetRainSpawnRate(this.weatherCast);
+                //this.psEmission.rateOverTime = currentPreset.GetRainSpawnRate(this.weatherCast);
             }
         }
 
