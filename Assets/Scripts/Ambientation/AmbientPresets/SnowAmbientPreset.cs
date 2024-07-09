@@ -13,7 +13,7 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.zenithTintSunset = new Color(.42f, .15f, .05f);
 		this.zenithTintNight = new Color(.13f, .13f, .13f);
 
-		this.fogAlbedo = Color.white;
+		this.fogAlbedo = BASE_FOG_COLOR;
 		this.fogAmbientLight = .25f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 

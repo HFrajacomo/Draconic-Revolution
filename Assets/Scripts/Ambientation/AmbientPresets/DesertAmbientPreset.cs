@@ -13,7 +13,7 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		this.zenithTintSunset = new Color(.72f, .34f, .03f);
 		this.zenithTintNight = new Color(.82f, .74f, .71f);
 
-		this.fogAlbedo = Color.white;
+		this.fogAlbedo = new Color(.87f, .87f, .7f);
 		this.fogAmbientLight = .25f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 

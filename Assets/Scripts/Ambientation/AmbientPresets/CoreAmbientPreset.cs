@@ -11,7 +11,7 @@ public class CoreAmbientPreset: BaseAmbientPreset{
 		this.fogAttenuation = 12f;
 		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
-		this.fogAlbedo = Color.white;
+		this.fogAlbedo = BASE_UNDERGROUND_FOG_COLOR;
 		this.fogAmbientLight = 0.12f;
 
 		this.wbTemperature = 0f;

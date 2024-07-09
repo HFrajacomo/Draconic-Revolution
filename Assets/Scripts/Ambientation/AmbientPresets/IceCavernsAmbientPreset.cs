@@ -10,7 +10,7 @@ public class IceCavernsAmbientPreset: BaseAmbientPreset{
 
 		this.fogAttenuation = 8f;
 		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
-		this.fogAlbedo = Color.white;
+		this.fogAlbedo = BASE_UNDERGROUND_FOG_COLOR;
 		this.fogAmbientLight = .2f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 

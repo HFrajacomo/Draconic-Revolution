@@ -13,7 +13,7 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 		this.zenithTintSunset = new Color(0.735849f, 0f, 0.3203108f);
 		this.zenithTintNight = new Color(0.1854943f, 0.3584906f, 0.04565682f);
 
-		this.fogAlbedo = Color.white;
+		this.fogAlbedo = BASE_FOG_COLOR;
 		this.fogAmbientLight = .25f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 

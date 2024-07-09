@@ -13,7 +13,7 @@ public class OceanAmbientPreset: BaseAmbientPreset{
 		this.zenithTintSunset = new Color(1f, 0.6462264f, 0.8220341f);
 		this.zenithTintNight = new Color(0.08250267f, 0.1389117f, 0.1698113f);
 
-		this.fogAlbedo = Color.white;
+		this.fogAlbedo = BASE_FOG_COLOR;
 		this.fogAmbientLight = .25f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 

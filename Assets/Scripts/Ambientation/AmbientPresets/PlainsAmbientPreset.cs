@@ -13,7 +13,7 @@ public class PlainsAmbientPreset: BaseAmbientPreset{
 		this.zenithTintSunset = new Color(.82f, .15f, .2f);
 		this.zenithTintNight = new Color(.28f, .28f, .28f);
 		
-		this.fogAlbedo = Color.white;
+		this.fogAlbedo = BASE_FOG_COLOR;
 		this.fogAmbientLight = .25f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 

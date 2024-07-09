@@ -11,7 +11,7 @@ public class CavernsAmbientPreset: BaseAmbientPreset{
 		this.fogAttenuation = 8f;
 		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
-		this.fogAlbedo = Color.white;
+		this.fogAlbedo = BASE_UNDERGROUND_FOG_COLOR;
 		this.fogAmbientLight = 0.2f;
 
 		this.wbTemperature = 10f;

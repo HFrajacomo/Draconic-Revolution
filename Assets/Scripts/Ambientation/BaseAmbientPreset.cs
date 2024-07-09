@@ -32,6 +32,8 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float STAR_MAP_X_ROTATION_END = 180f;
 	protected static readonly float STAR_MAP_VARIATION_FREQUENCY = 1.57f;
 	protected static readonly float STAR_MAP_VARIATION_AMPLITUDE = 0.4f;
+	protected static readonly Color BASE_FOG_COLOR = new Color(.9f, .9f, .9f);
+	protected static readonly Color BASE_UNDERGROUND_FOG_COLOR = new Color(.6f, .6f, .6f);
 	protected static readonly int RAIN_SPAWN_RATE = 2500;
 
 	// General
