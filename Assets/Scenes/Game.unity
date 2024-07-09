@@ -5060,7 +5060,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &552774302
 Transform:
   m_ObjectHideFlags: 0
@@ -5171,7 +5171,7 @@ ParticleSystem:
   emitterVelocityMode: 1
   looping: 1
   prewarm: 0
-  playOnAwake: 0
+  playOnAwake: 1
   useUnscaledTime: 0
   autoRandomSeed: 1
   startDelay:
@@ -22838,6 +22838,7 @@ MonoBehaviour:
   dayFlare: {fileID: 1484502060}
   nightFlare: {fileID: 444992164}
   rainParticleSystem: {fileID: 552774304}
+  snowParticleSystem: {fileID: 1530239053}
   volume: {fileID: 11400000, guid: d74700023676aee41bc60f65c5f83bf2, type: 2}
 --- !u!114 &1484502060
 MonoBehaviour:
@@ -23249,7 +23250,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1530239051
 Transform:
   m_ObjectHideFlags: 0
@@ -23258,9 +23259,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1530239050}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.932954, z: -0, w: -0.35999563}
-  m_LocalPosition: {x: 1.5710415, y: 1157.168, z: 5.899757}
-  m_LocalScale: {x: 0.4000002, y: 0.39999998, z: 0.4000002}
+  m_LocalRotation: {x: 0, y: 0.82903755, z: 0, w: 0.559193}
+  m_LocalPosition: {x: 0, y: 260, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 572799770}
@@ -23533,7 +23534,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 1, g: 1, b: 1, a: 1}
+      maxColor: {r: 0.6981132, g: 0.6981132, b: 0.6981132, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -29644,7 +29645,7 @@ ParticleSystem:
   emitterVelocityMode: 1
   looping: 1
   prewarm: 0
-  playOnAwake: 0
+  playOnAwake: 1
   useUnscaledTime: 0
   autoRandomSeed: 1
   startDelay:

@@ -83,6 +83,7 @@ public abstract class BaseAmbientPreset{
 
 	// Rain
 	protected int rainSpawnRate;
+	protected bool isSnowInstead;
 
 	public static BaseAmbientPreset GetPreset(AmbientGroup g){
 		if(presets.Count == 0)
@@ -149,6 +150,7 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetStarMapMultiplier(float t){return StarMapMultiplierLerp(STAR_MAP_MULTIPLIER_DAY, STAR_MAP_MULTIPLIER_NIGHT, t);}
 	public virtual Vector3 GetStarMapRotation(float t){return new Vector3(StarMapRotationLerp(STAR_MAP_X_ROTATION_BEGIN, STAR_MAP_X_ROTATION_END, t), 0, 0);}
 	public virtual int GetRainSpawnRate(WeatherCast wc){return GetValueDuringRain(wc, this.rainSpawnRate);}
+	public virtual bool IsSnowInstead(){return false;}
 	public bool IsSurface(){return this.isSurface;}
 	public bool HasFlare(){return this.hasFlare;}
 

@@ -21,7 +21,11 @@ public class AmbientHandler : MonoBehaviour
     public PlayerPositionHandler playerPositionHandler;
     public LensFlareComponentSRP dayFlare;
     public LensFlareComponentSRP nightFlare;
+
+    // Particles
+    private ParticleSystem currentParticleSystem;
     public ParticleSystem rainParticleSystem;
+    public ParticleSystem snowParticleSystem;
 
     // Skybox Parameters
     public VolumeProfile volume;
@@ -74,7 +78,9 @@ public class AmbientHandler : MonoBehaviour
         this.volume.TryGet<Fog>(out this.fog);
         this.volume.TryGet<LiftGammaGain>(out this.lgg);
 
+        this.currentParticleSystem = this.rainParticleSystem;
         this.psEmission = this.rainParticleSystem.emission;
+        SetParticleSystem();
 
         currentAmbient = BiomeHandler.GetAmbientGroup(BiomeHandler.BiomeToByte(playerPositionHandler.GetCurrentBiome()));
         lastAmbient = currentAmbient;
@@ -140,6 +146,25 @@ public class AmbientHandler : MonoBehaviour
         } 
     }
 
+    // Changes the current Particle System depending on the Current Ambient Preset
+    private void SetParticleSystem(){
+        if(this.currentPreset == null)
+            return;
+
+        if(this.currentPreset.IsSnowInstead() && this.currentParticleSystem != this.snowParticleSystem){
+            this.snowParticleSystem.gameObject.SetActive(true);
+            this.currentParticleSystem = this.snowParticleSystem;
+            this.psEmission = this.snowParticleSystem.emission;
+            this.rainParticleSystem.gameObject.SetActive(false);
+        }
+        else if(!this.currentPreset.IsSnowInstead() && this.currentParticleSystem != this.rainParticleSystem){
+            this.rainParticleSystem.gameObject.SetActive(true);
+            this.currentParticleSystem = this.rainParticleSystem;
+            this.psEmission = this.rainParticleSystem.emission;
+            this.snowParticleSystem.gameObject.SetActive(false);
+        }
+    }
+
     // Sets and changes Fog Attenuation based on Biome and Weather component
     private void ApplyWeatherChanges(float currentStep, int time, int currentTick, uint days, bool isSurface, bool isTransition){
         // Sampling the Weather Noise
@@ -154,7 +179,7 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
                 this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(time);
                 this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(time);
-                //this.psEmission.rateOverTime = 0;
+                this.psEmission.rateOverTime = 0;
                 return;
             }
             
@@ -162,13 +187,15 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());
                 this.fog.maximumHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogMaxHeight(time), currentPreset.GetFogMaxHeight(time), currentStep), this.weatherCast.GetMaximumHeight());
                 this.fog.baseHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogBaseHeight(time), currentPreset.GetFogBaseHeight(time), currentStep), this.weatherCast.GetBaseHeight());
-                //this.psEmission.rateOverTime = Mathf.Lerp(lastPreset.GetRainSpawnRate(this.weatherCast), currentPreset.GetRainSpawnRate(this.weatherCast), currentStep);
+                SetParticleSystem();
+                this.psEmission.rateOverTime = Mathf.Lerp(lastPreset.GetRainSpawnRate(this.weatherCast), currentPreset.GetRainSpawnRate(this.weatherCast), currentStep);
             }
             else{
                 this.fog.meanFreePath.value = AddFog(currentPreset.GetFogAttenuation(time), this.weatherCast.GetAdditionalFog());
                 this.fog.maximumHeight.value = AddFog(currentPreset.GetFogMaxHeight(time), this.weatherCast.GetMaximumHeight());
                 this.fog.baseHeight.value = AddFog(currentPreset.GetFogBaseHeight(time), this.weatherCast.GetBaseHeight());
-                //this.psEmission.rateOverTime = currentPreset.GetRainSpawnRate(this.weatherCast);
+                SetParticleSystem();
+                this.psEmission.rateOverTime = currentPreset.GetRainSpawnRate(this.weatherCast);
             }
         }
 

@@ -34,6 +34,7 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.isSurface = true;
 		this.hasFlare = true;
 		this.rainSpawnRate = 2500;
+		this.isSnowInstead = true;
 	}
 
 	public override Color GetHorizonTint(float t){
@@ -57,4 +58,5 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 	public override float GetFloorLighting(float t){
 		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
+	public override bool IsSnowInstead(){return this.isSnowInstead;}
 }
