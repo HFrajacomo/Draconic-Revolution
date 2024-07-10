@@ -31,6 +31,14 @@ public static class NoiseMaker
         return Lerp(u, Grad(GenerationSeed.patchNoise[X], x), Grad(GenerationSeed.patchNoise[X+1], x-1));
     }
 
+    public static float NormalizedWeatherNoise1D(float x){
+        int X = Mathf.FloorToInt(x) & 0xff;
+        x -= Mathf.Floor(x);
+        float u = Fade(x);
+
+        return Normalize(Lerp(u, Grad(GenerationSeed.weatherNoise[X], x), Grad(GenerationSeed.weatherNoise[X+1], x-1)));
+    }
+
     public static float WeatherNoise(float x, float y){
         int X = Mathf.FloorToInt(x) & 0xff;
         int Y = Mathf.FloorToInt(y) & 0xff;

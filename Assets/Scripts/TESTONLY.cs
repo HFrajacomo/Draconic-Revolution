@@ -11,14 +11,9 @@ public class TESTONLY : MonoBehaviour
     public ItemLoader itemLoader;
 
     void Start(){
-        this.itemLoader = new ItemLoader(true);
-
-        this.itemLoader.Load();
-
-        this.itemLoader.RunPostDeserializationRoutine();
-
-        Debug.Log(ItemLoader.GetItem("BASE_Sand"));
-        Debug.Log(ItemLoader.GetCopy("BASE_Sand"));
+        Debug.Log(Vector2.Angle(Vector2.up, new Vector2(1,0)));
+        Debug.Log(Vector2.Angle(Vector2.up, new Vector2(0, -1)));
+        Debug.Log(Vector2.Angle(Vector2.up, new Vector2(-.2f,1)));
     }
 	
 }

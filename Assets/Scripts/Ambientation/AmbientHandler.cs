@@ -53,8 +53,12 @@ public class AmbientHandler : MonoBehaviour
     private BaseAmbientPreset currentPreset;
     private BaseAmbientPreset lastPreset;
 
+    // Wind
+    private GlobalWindHandler windHandler;
+
     // Particle System Cache
     private ParticleSystem.EmissionModule psEmission;
+    private ParticleSystem.VelocityOverLifetimeModule psVelocity;
 
 
     void OnDestroy(){
@@ -78,8 +82,11 @@ public class AmbientHandler : MonoBehaviour
         this.volume.TryGet<Fog>(out this.fog);
         this.volume.TryGet<LiftGammaGain>(out this.lgg);
 
+        this.windHandler = new GlobalWindHandler(this.clouds);
+
         this.currentParticleSystem = this.rainParticleSystem;
         this.psEmission = this.rainParticleSystem.emission;
+        this.psVelocity = this.rainParticleSystem.velocityOverLifetime;
         SetParticleSystem();
 
         currentAmbient = BiomeHandler.GetAmbientGroup(BiomeHandler.BiomeToByte(playerPositionHandler.GetCurrentBiome()));
@@ -118,6 +125,8 @@ public class AmbientHandler : MonoBehaviour
             }
 
             if(currentTick != lastTick){
+                this.windHandler.Tick(currentTick, time, (int)timer.days, this.weatherCast.GetWeatherState() == WeatherState.RAINY);
+
                 SetStats(time);
                 ApplyWeatherChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
             }
@@ -155,12 +164,14 @@ public class AmbientHandler : MonoBehaviour
             this.snowParticleSystem.gameObject.SetActive(true);
             this.currentParticleSystem = this.snowParticleSystem;
             this.psEmission = this.snowParticleSystem.emission;
+            this.psVelocity = this.snowParticleSystem.velocityOverLifetime;
             this.rainParticleSystem.gameObject.SetActive(false);
         }
         else if(!this.currentPreset.IsSnowInstead() && this.currentParticleSystem != this.rainParticleSystem){
             this.rainParticleSystem.gameObject.SetActive(true);
             this.currentParticleSystem = this.rainParticleSystem;
             this.psEmission = this.rainParticleSystem.emission;
+            this.psVelocity = this.rainParticleSystem.velocityOverLifetime;
             this.snowParticleSystem.gameObject.SetActive(false);
         }
     }
@@ -180,6 +191,8 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(time);
                 this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(time);
                 this.psEmission.rateOverTime = 0;
+                //this.psVelocity.x = 0;
+                //this.psVelocity.z = 0;
                 return;
             }
             
@@ -189,6 +202,8 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.baseHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogBaseHeight(time), currentPreset.GetFogBaseHeight(time), currentStep), this.weatherCast.GetBaseHeight());
                 SetParticleSystem();
                 this.psEmission.rateOverTime = Mathf.Lerp(lastPreset.GetRainSpawnRate(this.weatherCast), currentPreset.GetRainSpawnRate(this.weatherCast), currentStep);
+                //this.psVelocity.x = this.windHandler.GetGlobalWind().x;
+                //this.psVelocity.z = this.windHandler.GetGlobalWind().y;
             }
             else{
                 this.fog.meanFreePath.value = AddFog(currentPreset.GetFogAttenuation(time), this.weatherCast.GetAdditionalFog());
@@ -196,6 +211,8 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.baseHeight.value = AddFog(currentPreset.GetFogBaseHeight(time), this.weatherCast.GetBaseHeight());
                 SetParticleSystem();
                 this.psEmission.rateOverTime = currentPreset.GetRainSpawnRate(this.weatherCast);
+                //this.psVelocity.x = this.windHandler.GetGlobalWind().x;
+                //this.psVelocity.z = this.windHandler.GetGlobalWind().y;
             }
         }
 

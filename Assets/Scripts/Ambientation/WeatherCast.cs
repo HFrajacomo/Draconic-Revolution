@@ -175,7 +175,8 @@ public class WeatherCast{
 
 	// Sets calculation for Weather Noise
 	public void SetWeatherNoise(int totalSeconds, uint days){
-		this.weatherNoise = NoiseMaker.WeatherNoise(totalSeconds*GenerationSeed.weatherNoiseStep, days*GenerationSeed.weatherDayStep + World.worldSeed*GenerationSeed.weatherSeedStep);
+		//this.weatherNoise = NoiseMaker.WeatherNoise(totalSeconds*GenerationSeed.weatherNoiseStep, days*GenerationSeed.weatherDayStep + World.worldSeed*GenerationSeed.weatherSeedStep);
+		this.weatherNoise = -.6f;
 
 		WeatherState state = GetCurrentWeather(this.weatherNoise);
 		this.weatherState = state;
