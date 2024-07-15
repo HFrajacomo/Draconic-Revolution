@@ -23,6 +23,7 @@ public class GlobalWindHandler{
 		this.clouds = cl;
 	}
 
+	public float GetMaxWindPower(){return MAX_GLOBAL_WIND_POWER;}
 	public Vector2 GetGlobalWind(){return this.globalWind;}
 	public Vector2 GetGlobalWindResistant(){return this.globalResistantWind;}
 

@@ -110,6 +110,10 @@ public class PlayerPositionHandler : MonoBehaviour
         return this.currentBiome;
     }
 
+    public Vector3 GetPlayerWorldPosition(){
+        return this.playerTransform.position;
+    }
+
     private void RenewPositionalInformation(){
         if(coord.active)
             this.lastCoord = coord;

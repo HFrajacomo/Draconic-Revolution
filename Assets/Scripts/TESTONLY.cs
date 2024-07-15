@@ -11,9 +11,7 @@ public class TESTONLY : MonoBehaviour
     public ItemLoader itemLoader;
 
     void Start(){
-        Debug.Log(Vector2.Angle(Vector2.up, new Vector2(1,0)));
-        Debug.Log(Vector2.Angle(Vector2.up, new Vector2(0, -1)));
-        Debug.Log(Vector2.Angle(Vector2.up, new Vector2(-.2f,1)));
+        Debug.Log(Vector2.Angle(Vector2.down, new Vector2(0.8f,0.6f)));
     }
 	
 }

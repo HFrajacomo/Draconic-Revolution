@@ -7,6 +7,9 @@ using Unity.Mathematics;
 
 public class AmbientHandler : MonoBehaviour
 {
+    [Range(-40f, 40f)]
+    public float windX;
+
     // Weather Reference
     public WeatherCast weatherCast = new WeatherCast();
 
@@ -58,8 +61,6 @@ public class AmbientHandler : MonoBehaviour
 
     // Particle System Cache
     private ParticleSystem.EmissionModule psEmission;
-    private ParticleSystem.VelocityOverLifetimeModule psVelocity;
-
 
     void OnDestroy(){
         GameObject.Destroy(this.lightObject);
@@ -86,7 +87,6 @@ public class AmbientHandler : MonoBehaviour
 
         this.currentParticleSystem = this.rainParticleSystem;
         this.psEmission = this.rainParticleSystem.emission;
-        this.psVelocity = this.rainParticleSystem.velocityOverLifetime;
         SetParticleSystem();
 
         currentAmbient = BiomeHandler.GetAmbientGroup(BiomeHandler.BiomeToByte(playerPositionHandler.GetCurrentBiome()));
@@ -164,14 +164,12 @@ public class AmbientHandler : MonoBehaviour
             this.snowParticleSystem.gameObject.SetActive(true);
             this.currentParticleSystem = this.snowParticleSystem;
             this.psEmission = this.snowParticleSystem.emission;
-            this.psVelocity = this.snowParticleSystem.velocityOverLifetime;
             this.rainParticleSystem.gameObject.SetActive(false);
         }
         else if(!this.currentPreset.IsSnowInstead() && this.currentParticleSystem != this.rainParticleSystem){
             this.rainParticleSystem.gameObject.SetActive(true);
             this.currentParticleSystem = this.rainParticleSystem;
             this.psEmission = this.rainParticleSystem.emission;
-            this.psVelocity = this.rainParticleSystem.velocityOverLifetime;
             this.snowParticleSystem.gameObject.SetActive(false);
         }
     }
@@ -186,24 +184,30 @@ public class AmbientHandler : MonoBehaviour
 
         // Fog Shape and Density & Rain
         else if(currentTick % 6 == 5){
+            Vector3 playerPos = playerPositionHandler.GetPlayerWorldPosition();
+            Debug.Log(this.windHandler.GetGlobalWind());
+
             if(!isSurface){
                 this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
                 this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(time);
                 this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(time);
                 this.psEmission.rateOverTime = 0;
-                //this.psVelocity.x = 0;
-                //this.psVelocity.z = 0;
+                this.currentParticleSystem.gameObject.transform.localPosition = new Vector3(playerPos.x, playerPos.y + 260, playerPos.z);
+                this.currentParticleSystem.gameObject.transform.rotation = Quaternion.Euler(-90, 0, 0);
                 return;
             }
             
+            float mult = 2f;
+            Vector2 globalWind = this.windHandler.GetGlobalWind();
+
             if(isTransition){
                 this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());
                 this.fog.maximumHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogMaxHeight(time), currentPreset.GetFogMaxHeight(time), currentStep), this.weatherCast.GetMaximumHeight());
                 this.fog.baseHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogBaseHeight(time), currentPreset.GetFogBaseHeight(time), currentStep), this.weatherCast.GetBaseHeight());
                 SetParticleSystem();
                 this.psEmission.rateOverTime = Mathf.Lerp(lastPreset.GetRainSpawnRate(this.weatherCast), currentPreset.GetRainSpawnRate(this.weatherCast), currentStep);
-                //this.psVelocity.x = this.windHandler.GetGlobalWind().x;
-                //this.psVelocity.z = this.windHandler.GetGlobalWind().y;
+                this.currentParticleSystem.gameObject.transform.position = new Vector3(playerPos.x - globalWind.x * mult, playerPos.y+260, playerPos.z  - globalWind.y * mult);
+                this.currentParticleSystem.gameObject.transform.rotation = Quaternion.Euler(Mathf.Lerp(-90, -40, GetWindMax(globalWind)), GetAngle(globalWind.normalized), 0);
             }
             else{
                 this.fog.meanFreePath.value = AddFog(currentPreset.GetFogAttenuation(time), this.weatherCast.GetAdditionalFog());
@@ -211,8 +215,8 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.baseHeight.value = AddFog(currentPreset.GetFogBaseHeight(time), this.weatherCast.GetBaseHeight());
                 SetParticleSystem();
                 this.psEmission.rateOverTime = currentPreset.GetRainSpawnRate(this.weatherCast);
-                //this.psVelocity.x = this.windHandler.GetGlobalWind().x;
-                //this.psVelocity.z = this.windHandler.GetGlobalWind().y;
+                this.currentParticleSystem.gameObject.transform.position = new Vector3(playerPos.x - globalWind.x * mult, playerPos.y+260, playerPos.z  - globalWind.y * mult);
+                this.currentParticleSystem.gameObject.transform.rotation = Quaternion.Euler(Mathf.Lerp(-90, -40, GetWindMax(globalWind)), GetAngle(globalWind.normalized), 0);
             }
         }
 
@@ -339,6 +343,19 @@ public class AmbientHandler : MonoBehaviour
                 ROTATE_SUN_FLAG++;
             }
         }
+    }
+
+    private float GetAngle(Vector2 a){
+        if(a.x > 0)
+            return 360 - Vector2.Angle(Vector2.down, a);
+        return Vector2.Angle(Vector2.down, a);
+    }
+
+    private float GetWindMax(Vector2 v){
+        float a = Mathf.Abs(v.x);
+        float b = Mathf.Abs(v.y);
+
+        return Mathf.Max(a, b) / this.windHandler.GetMaxWindPower();
     }
 
     private void TransformDelta(){
