@@ -13,7 +13,7 @@ public class GlobalWindHandler{
 	private int currentTick = 0;
 	private static readonly int rainTicks = 40;
 
-	private static readonly float MAX_GLOBAL_WIND_POWER = 40f;
+	private static readonly float MAX_GLOBAL_WIND_POWER = 20f;
 	private static readonly float MAX_RESISTANCE = 0.7f;
 	private static readonly int CLOUD_LAYER_ANGLE_DIFF = 40;
 	private static readonly int MAX_CLOUD_MOVEMENT = 300;
@@ -30,8 +30,8 @@ public class GlobalWindHandler{
 	public void Tick(int ticks, int timeInSeconds, int day, bool isRaining){
 		float x, z, resistance, cloudSpeed, cloudAngle;
 
-		x = NoiseMaker.WeatherNoise((ticks + timeInSeconds*TimeOfDay.tickRate)*GenerationSeed.windNoiseStep1, day*GenerationSeed.windNoiseStep2 + World.worldSeed*GenerationSeed.windNoiseStep2) * MAX_GLOBAL_WIND_POWER/2;
-		z = NoiseMaker.WeatherNoise((ticks + timeInSeconds*TimeOfDay.tickRate)*GenerationSeed.windNoiseStep3, day*GenerationSeed.windNoiseStep4 + World.worldSeed*GenerationSeed.windNoiseStep4) * MAX_GLOBAL_WIND_POWER/2;
+		x = NoiseMaker.WeatherNoise((ticks + timeInSeconds*TimeOfDay.tickRate)*GenerationSeed.windNoiseStep1, day*GenerationSeed.windNoiseStep2 + World.worldSeed*GenerationSeed.windNoiseStep2) * MAX_GLOBAL_WIND_POWER;
+		z = NoiseMaker.WeatherNoise((ticks + timeInSeconds*TimeOfDay.tickRate)*GenerationSeed.windNoiseStep3, day*GenerationSeed.windNoiseStep4 + World.worldSeed*GenerationSeed.windNoiseStep4) * MAX_GLOBAL_WIND_POWER;
 		resistance = Mathf.Lerp(MAX_RESISTANCE, 1f, NoiseMaker.NormalizedWeatherNoise1D((ticks + timeInSeconds*TimeOfDay.tickRate) * GenerationSeed.windResistanceStep));
 		cloudSpeed = NoiseMaker.NormalizedWeatherNoise1D(timeInSeconds*GenerationSeed.windCloudStep + day*GenerationSeed.windNoiseStep1 + World.worldSeed*GenerationSeed.windNoiseStep3) * MAX_CLOUD_MOVEMENT/2;
 		cloudAngle = Mathf.Lerp(0, 360, NoiseMaker.NormalizedWeatherNoise1D(timeInSeconds*GenerationSeed.windCloudOrientStep));
