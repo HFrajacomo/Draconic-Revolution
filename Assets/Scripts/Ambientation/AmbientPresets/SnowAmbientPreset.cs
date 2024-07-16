@@ -33,7 +33,7 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.moonDiameter = SUN_DIAMETER_NIGHT;
 		this.isSurface = true;
 		this.hasFlare = true;
-		this.rainSpawnRate = 1250;
+		this.rainSpawnRate = 3000;
 		this.isSnowInstead = true;
 	}
 
