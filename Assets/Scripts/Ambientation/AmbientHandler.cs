@@ -7,9 +7,6 @@ using Unity.Mathematics;
 
 public class AmbientHandler : MonoBehaviour
 {
-    [Range(-40f, 40f)]
-    public float windX;
-
     // Weather Reference
     public WeatherCast weatherCast = new WeatherCast();
 
@@ -140,6 +137,7 @@ public class AmbientHandler : MonoBehaviour
             this.updateTimer++;
 
             if(currentTick != lastTick){
+                this.windHandler.Tick(currentTick, time, (int)timer.days, this.weatherCast.GetWeatherState() == WeatherState.RAINY);
                 LerpStatus(time);
                 ApplyWeatherChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
             }
@@ -185,7 +183,6 @@ public class AmbientHandler : MonoBehaviour
         // Fog Shape and Density & Rain
         else if(currentTick % 6 == 5){
             Vector3 playerPos = playerPositionHandler.GetPlayerWorldPosition();
-            Debug.Log(this.windHandler.GetGlobalWind());
 
             if(!isSurface){
                 this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);

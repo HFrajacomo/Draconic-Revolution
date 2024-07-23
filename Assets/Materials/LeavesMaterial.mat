@@ -165,6 +165,7 @@ Material:
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
     - _DiffusionProfileHash: 0
+    - _Disable_Movement_Distance: 100
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -198,6 +199,7 @@ Material:
     - _LinkDetailsWithBase: 1
     - _MaterialID: 1
     - _MaterialTypeMask: 2
+    - _MaxDisplacement: 0.85
     - _Metallic: 0
     - _MetallicRemapMax: 1
     - _MetallicRemapMin: 0
@@ -254,6 +256,7 @@ Material:
     - _UVEmissive: 0
     - _UseEmissiveIntensity: 0
     - _UseShadowThreshold: 0
+    - _Wind_Speed: 0.001
     - _XTimeMultiplier: 0.14
     - _ZTImeMultipler: 0.17
     - _ZTestDepthEqualForOpaque: 3

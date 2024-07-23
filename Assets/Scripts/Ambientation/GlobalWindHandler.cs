@@ -11,13 +11,20 @@ public class GlobalWindHandler{
 
 	private bool isRainOn = false;
 	private int currentTick = 0;
-	private static readonly int rainTicks = 40;
+
+	/*
+	v[0] = Resistant Wind X
+	v[1] = Resistant Wind Z
+	v[2] = Transition to rain [0-1]
+	v[3] = Is Raining [0 or 1]
+	*/
+	private Vector4 windShaderInformation;
+
+	private static readonly int rainTicks = 400;
 
 	private static readonly float MAX_GLOBAL_WIND_POWER = 20f;
-	private static readonly float MAX_RESISTANCE = 0.7f;
 	private static readonly int CLOUD_LAYER_ANGLE_DIFF = 40;
 	private static readonly int MAX_CLOUD_MOVEMENT = 300;
-
 
 	public GlobalWindHandler(CloudLayer cl){
 		this.clouds = cl;
@@ -28,11 +35,10 @@ public class GlobalWindHandler{
 	public Vector2 GetGlobalWindResistant(){return this.globalResistantWind;}
 
 	public void Tick(int ticks, int timeInSeconds, int day, bool isRaining){
-		float x, z, resistance, cloudSpeed, cloudAngle;
+		float x, z, cloudSpeed, cloudAngle;
 
 		x = NoiseMaker.WeatherNoise((ticks + timeInSeconds*TimeOfDay.tickRate)*GenerationSeed.windNoiseStep1, day*GenerationSeed.windNoiseStep2 + World.worldSeed*GenerationSeed.windNoiseStep2) * MAX_GLOBAL_WIND_POWER;
 		z = NoiseMaker.WeatherNoise((ticks + timeInSeconds*TimeOfDay.tickRate)*GenerationSeed.windNoiseStep3, day*GenerationSeed.windNoiseStep4 + World.worldSeed*GenerationSeed.windNoiseStep4) * MAX_GLOBAL_WIND_POWER;
-		resistance = Mathf.Lerp(MAX_RESISTANCE, 1f, NoiseMaker.NormalizedWeatherNoise1D((ticks + timeInSeconds*TimeOfDay.tickRate) * GenerationSeed.windResistanceStep));
 		cloudSpeed = NoiseMaker.NormalizedWeatherNoise1D(timeInSeconds*GenerationSeed.windCloudStep + day*GenerationSeed.windNoiseStep1 + World.worldSeed*GenerationSeed.windNoiseStep3) * MAX_CLOUD_MOVEMENT/2;
 		cloudAngle = Mathf.Lerp(0, 360, NoiseMaker.NormalizedWeatherNoise1D(timeInSeconds*GenerationSeed.windCloudOrientStep));
 
@@ -59,8 +65,13 @@ public class GlobalWindHandler{
 			cloudSpeed *= Mathf.Lerp(1, 2, currentTick/rainTicks);
 		}
 
+
 		this.globalWind = new Vector2(x, z);
-		this.globalResistantWind = new Vector2((x/MAX_GLOBAL_WIND_POWER) * Mathf.Lerp(MAX_RESISTANCE, 1, resistance), (z/MAX_GLOBAL_WIND_POWER) * Mathf.Lerp(MAX_RESISTANCE, 1, resistance));
+		this.globalResistantWind = new Vector2((x/MAX_GLOBAL_WIND_POWER), (z/MAX_GLOBAL_WIND_POWER));
+
+		this.windShaderInformation = new Vector4(this.globalResistantWind.x, this.globalResistantWind.y, currentTick/rainTicks, ConvertBool(isRainOn));
+
+		Shader.SetGlobalVector("_Global_Wind_And_Rain", this.windShaderInformation);
 	
 		// Sets Cloud Info
 		this.clouds.layerA.scrollSpeed = new WindSpeedParameter(cloudSpeed, WindParameter.WindOverrideMode.Custom, true);
@@ -74,5 +85,11 @@ public class GlobalWindHandler{
 			return angle - diff;
 		else
 			return angle + diff;
+	}
+
+	private float ConvertBool(bool b){
+		if(b)
+			return 1;
+		return 0;
 	}
 }
