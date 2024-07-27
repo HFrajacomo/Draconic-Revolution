@@ -20,7 +20,7 @@ public class GlobalWindHandler{
 	*/
 	private Vector4 windShaderInformation;
 
-	private static readonly int rainTicks = 400;
+	private static readonly int RAIN_TICKS = 800;
 
 	private static readonly float MAX_GLOBAL_WIND_POWER = 20f;
 	private static readonly int CLOUD_LAYER_ANGLE_DIFF = 40;
@@ -28,6 +28,7 @@ public class GlobalWindHandler{
 
 	public GlobalWindHandler(CloudLayer cl){
 		this.clouds = cl;
+		Shader.SetGlobalFloat("_Total_Rain_Ticks", (float)RAIN_TICKS);
 	}
 
 	public float GetMaxWindPower(){return MAX_GLOBAL_WIND_POWER;}
@@ -43,33 +44,33 @@ public class GlobalWindHandler{
 		cloudAngle = Mathf.Lerp(0, 360, NoiseMaker.NormalizedWeatherNoise1D(timeInSeconds*GenerationSeed.windCloudOrientStep));
 
 		// Advance rain tick
-		if(isRainOn && currentTick < rainTicks){
+		if(this.isRainOn && currentTick < RAIN_TICKS){
 			currentTick++;
 		}
 
 		// Check if started/stopped raining
-		if(!isRainOn && isRaining){
+		if(!this.isRainOn && isRaining){
 			isRainOn = true;
 			currentTick = 0;
 		}
-		if(isRainOn && !isRaining){
-			isRainOn = false;
+		if(this.isRainOn && !isRaining){
+			this.isRainOn = false;
 			currentTick = 0;
 		}
 
 
 		// Rain Modifier
-		if(isRainOn){
-			x *= Mathf.Lerp(1, 2, currentTick/rainTicks);
-			z *= Mathf.Lerp(1, 2, currentTick/rainTicks);
-			cloudSpeed *= Mathf.Lerp(1, 2, currentTick/rainTicks);
+		if(this.isRainOn){
+			x *= Mathf.Lerp(1, 2, (float)currentTick/RAIN_TICKS);
+			z *= Mathf.Lerp(1, 2, (float)currentTick/RAIN_TICKS);
+			cloudSpeed *= Mathf.Lerp(1, 2, (float)currentTick/RAIN_TICKS);
 		}
 
 
 		this.globalWind = new Vector2(x, z);
 		this.globalResistantWind = new Vector2((x/MAX_GLOBAL_WIND_POWER), (z/MAX_GLOBAL_WIND_POWER));
 
-		this.windShaderInformation = new Vector4(this.globalResistantWind.x, this.globalResistantWind.y, currentTick/rainTicks, ConvertBool(isRainOn));
+		this.windShaderInformation = new Vector4(this.globalResistantWind.x, this.globalResistantWind.y, currentTick, ConvertBool(this.isRainOn));
 
 		Shader.SetGlobalVector("_Global_Wind_And_Rain", this.windShaderInformation);
 	
