@@ -15,6 +15,7 @@ public class VoxelLoader : BaseLoader {
 	private static readonly string OBJECT_RESPATH = "Textures/Voxels/Objects/";
 	private static readonly string BLOCK_NORMAL_INTENSITY = "Textures/Voxels/Blocks/NORMAL_INTENSITY";
 	private static readonly string OBJECT_NORMAL_INTENSITY = "Textures/Voxels/Objects/NORMAL_INTENSITY";
+	private static readonly string PBR_SUFFIX = "-PBR";
 
 	private static readonly CultureInfo parsingCulture = CultureInfo.InvariantCulture;
 
@@ -37,6 +38,7 @@ public class VoxelLoader : BaseLoader {
 	// Atlas
 	private static Dictionary<ShaderIndex, Texture2D> textureAtlas = new Dictionary<ShaderIndex, Texture2D>();
 	private static Dictionary<ShaderIndex, Texture2D> normalAtlas = new Dictionary<ShaderIndex, Texture2D>();
+	private static Dictionary<ShaderIndex, Texture2D> pbrAtlas = new Dictionary<ShaderIndex, Texture2D>();
 	
 	// Atlas Sizes
 	private static int2[] atlasSize;
@@ -87,8 +89,11 @@ public class VoxelLoader : BaseLoader {
 
 		materials[(int)ShaderIndex.OPAQUE].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.OPAQUE]);
 		materials[(int)ShaderIndex.OPAQUE].SetTexture("_NormalAtlas", normalAtlas[ShaderIndex.OPAQUE]);
+		materials[(int)ShaderIndex.OPAQUE].SetTexture("_PBRAtlas", pbrAtlas[ShaderIndex.OPAQUE]);
 		materials[(int)ShaderIndex.LEAVES].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.LEAVES]);
+		materials[(int)ShaderIndex.LEAVES].SetTexture("_PBRAtlas", pbrAtlas[ShaderIndex.LEAVES]);
 		materials[(int)ShaderIndex.ASSETS].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.ASSETS]);
+		materials[(int)ShaderIndex.ASSETS].SetTexture("_PBRAtlas", pbrAtlas[ShaderIndex.ASSETS]);
 
 		rend.GetComponent<MeshRenderer>().sharedMaterials = materials;
 	}
@@ -434,27 +439,34 @@ public class VoxelLoader : BaseLoader {
 
 	private void CreateTextureAtlases(){
 		List<Texture2D> textures = new List<Texture2D>();
+		List<Texture2D> pbrTextures = new List<Texture2D>();
 		Texture2D tex;
 		Texture2D normal = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE);
+		Texture2D pbr = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE);
 		ushort currentTexID = 0;
 
 		foreach(ShaderIndex shader in (ShaderIndex[])Enum.GetValues(typeof(ShaderIndex))){
 			foreach(string textureName in atlasTextureNames[shader]){
 				if(shader == ShaderIndex.ASSETS || shader == ShaderIndex.ASSETS_SOLID){
 					tex = Resources.Load<Texture2D>($"{OBJECT_RESPATH}{textureName}");
+					pbr = Resources.Load<Texture2D>($"{OBJECT_RESPATH}{textureName}{PBR_SUFFIX}");
 				}
 				else{
 					tex = Resources.Load<Texture2D>($"{BLOCK_RESPATH}{textureName}");
+					pbr = Resources.Load<Texture2D>($"{BLOCK_RESPATH}{textureName}{PBR_SUFFIX}");
 				}
 
 
-				if(tex == null){
+				if(tex == null || pbr == null){
 					Debug.Log($"PROBLEM WHEN TRYING TO LOAD TEXTURE: {textureName} in Shader {shader}");
 					Application.Quit();
 				}
 
 				tex.name = textureName;
+				pbr.name = textureName;
+
 				textures.Add(tex);
+				pbrTextures.Add(pbr);
 				codenameToTexID.Add(textureName, currentTexID);
 				currentTexID++;
 			}
@@ -471,8 +483,9 @@ public class VoxelLoader : BaseLoader {
 			textureAtlas[shader].filterMode = FilterMode.Point;
 			normalAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
 			normalAtlas[shader].filterMode = FilterMode.Point;
+			pbrAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
 
-			// Build Atlas
+			// Build Atlas and Normals
 			foreach(Texture2D tex2d in textures){
 				if(texnameToNormalIntensity.ContainsKey(tex2d.name)){
 					AddImageToAtlas(textureAtlas[shader], normalAtlas[shader], tex2d, texnameToNormalIntensity[tex2d.name], TEXTURE_SIZE, a, b, count);
@@ -484,8 +497,16 @@ public class VoxelLoader : BaseLoader {
 				count++;
 			}
 
+			count = 0;
+
+			foreach(Texture2D tex2d in pbrTextures){
+				AddImageToPBR(pbrAtlas[shader], tex2d, TEXTURE_SIZE, a, b, count);
+				count++;
+			}
+
 			currentTexID = 0;
 			textures.Clear();
+			pbrTextures.Clear();
 		}
 	}
 
@@ -523,6 +544,31 @@ public class VoxelLoader : BaseLoader {
 
     	main.Apply();
     	normalMain.Apply();
+	}
+
+	private void AddImageToPBR(Texture2D main, Texture2D tex2d, int TEXTURE_SIZE, int a, int b, int count){
+		Color[] pixels;
+		int xOffset, yOffset;
+
+		RenderTexture rendTex = RenderTexture.GetTemporary(TEXTURE_SIZE, TEXTURE_SIZE, 0, RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
+		Graphics.Blit(tex2d, rendTex);
+	    RenderTexture previous = RenderTexture.active;
+	    RenderTexture.active = rendTex;
+
+		Texture2D final = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, 4, false);
+		final.wrapMode = TextureWrapMode.Clamp;
+	    final.ReadPixels(new Rect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE), 0, 0);
+	    final.Apply();
+	    RenderTexture.active = previous;
+	    RenderTexture.ReleaseTemporary(rendTex);
+
+		pixels = final.GetPixels();
+
+    	xOffset = (count % a) * TEXTURE_SIZE;
+    	yOffset = (int)(count / a) * TEXTURE_SIZE;
+    	main.SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, pixels);
+
+		main.Apply();
 	}
 
     private void CalculateNormalMap(Texture2D source, Color[] pixels, Texture2D dest, float strength){
