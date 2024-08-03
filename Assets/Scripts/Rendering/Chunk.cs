@@ -66,7 +66,7 @@ public class Chunk
     private List<int> iceTris = new List<int>();
     private List<int> lavaTris = new List<int>();
   	private List<Vector2> UVs = new List<Vector2>();
-  	private List<Vector2> lightUVMain = new List<Vector2>();
+  	private List<Vector3> lightUVMain = new List<Vector3>();
   	private List<Vector3> normals = new List<Vector3>();
     private List<Vector4> tangents = new List<Vector4>();
 
@@ -277,7 +277,7 @@ public class Chunk
 		NativeList<int> lavaTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeList<Vector2> lightUV = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector3> lightUV = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector4> tangents = new NativeList<Vector4>(0, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
@@ -415,6 +415,18 @@ public class Chunk
 			vxpzplight = new NativeArray<byte>(0, Allocator.TempJob);
 		}
 
+		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.data.GetHeightMap());
+		auxPos = new ChunkPos(pos.x-1, pos.z, pos.y);
+		NativeArray<byte> xmheightMap = NativeTools.CopyToNative(this.loader.chunks[auxPos].data.GetHeightMap());
+		auxPos = new ChunkPos(pos.x+1, pos.z, pos.y);
+		NativeArray<byte> xpheightMap = NativeTools.CopyToNative(this.loader.chunks[auxPos].data.GetHeightMap());
+		auxPos = new ChunkPos(pos.x, pos.z-1, pos.y);
+		NativeArray<byte> zmheightMap = NativeTools.CopyToNative(this.loader.chunks[auxPos].data.GetHeightMap());
+		auxPos = new ChunkPos(pos.x, pos.z+1, pos.y);
+		NativeArray<byte> zpheightMap = NativeTools.CopyToNative(this.loader.chunks[auxPos].data.GetHeightMap());
+
+		NativeArray<Vector3> extraUV = new NativeArray<Vector3>(4, Allocator.TempJob);
+
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{
 			pos = pos,
@@ -463,6 +475,13 @@ public class Chunk
 			vxpzmlight = vxpzmlight,
 			vxpzplight = vxpzplight,
 
+			heightMap = heightMap,
+			xmheight = xmheightMap,
+			xpheight = xpheightMap,
+			zmheight = zmheightMap,
+			zpheight = zpheightMap,
+
+			canRain = BiomeHandler.BiomeToDampness(this.biomeName),
 			verticalCode = verticalCode,
 
 			loadOutList = loadCoordList,
@@ -487,6 +506,7 @@ public class Chunk
 			cacheCubeUV = cacheCubeUV,
 			cacheCubeNormal = cacheCubeNormal,
 			cacheCubeTangent = cacheCubeTangent,
+			extraUV = extraUV,
 			blockTransparent = BlockEncyclopediaECS.blockTransparent,
 			objectTransparent = BlockEncyclopediaECS.objectTransparent,
 			blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -588,7 +608,7 @@ public class Chunk
 		
 		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> meshUVs = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeList<Vector2> meshLightUV = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector3> meshLightUV = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector3> meshNormals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector4> meshTangents = new NativeList<Vector4>(0, Allocator.TempJob);
 		NativeList<int> meshTris = new NativeList<int>(0, Allocator.TempJob);
@@ -621,6 +641,8 @@ public class Chunk
 		PrepareAssetsJob paJob = new PrepareAssetsJob{
 			pos = pos,
 			vCount = verts.Length,
+			canRain = BiomeHandler.BiomeToDampness(this.biomeName),
+			heightMap = heightMap,
 
 			meshVerts = meshVerts,
 			meshTris = meshTris,
@@ -712,6 +734,7 @@ public class Chunk
 		cacheCubeNormal.Dispose();
 		cacheCubeTangent.Dispose();
 		cacheCubeUV.Dispose();
+		extraUV.Dispose();
 		loadCodeList.Dispose();
 		meshVerts.Dispose();
 		meshTris.Dispose();
@@ -763,6 +786,12 @@ public class Chunk
 		xmzpdata.Dispose();
 		xpzmdata.Dispose();
 		xpzpdata.Dispose();
+
+		heightMap.Dispose();
+		xmheightMap.Dispose();
+		xpheightMap.Dispose();
+		zmheightMap.Dispose();
+		zpheightMap.Dispose();
 
 		xmlight.Dispose();
 		xplight.Dispose();

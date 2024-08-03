@@ -17,7 +17,7 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<int> meshSolidTris;
 	public NativeList<Vector3> meshNormals;
 	public NativeList<Vector4> meshTangents;
-	public NativeList<Vector2> meshLightUV;
+	public NativeList<Vector3> meshLightUV;
 
 	// Hitbox
 	public NativeList<Vector3> hitboxVerts;
@@ -26,6 +26,8 @@ public struct PrepareAssetsJob : IJob{
 
 	[ReadOnly]
 	public int vCount;
+	[ReadOnly]
+	public bool canRain;
 
 	// Input
 	[ReadOnly]
@@ -34,6 +36,8 @@ public struct PrepareAssetsJob : IJob{
 	public NativeArray<ushort> metadata;
 	[ReadOnly]
 	public NativeArray<byte> lightdata;
+	[ReadOnly]
+	public NativeArray<byte> heightMap;
 	[ReadOnly]
 	public NativeList<int3> coords;
 	[ReadOnly]
@@ -106,7 +110,7 @@ public struct PrepareAssetsJob : IJob{
 					meshVerts.Add(resultVert);
 					meshNormals.Add(GetNormalRotation(loadedNormals[vertIndex], inplaceRotation[code*256+state]));
 					meshTangents.Add(GetNormalRotation(loadedTangents[vertIndex], inplaceRotation[code*256+state]));
-					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false)));
+					meshLightUV.Add(new Vector3(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false), IsDamp(this.heightMap, coords[j])));
 				}
 
 				// Hitbox Vertices
@@ -126,7 +130,7 @@ public struct PrepareAssetsJob : IJob{
 					meshVerts.Add(resultVert);
 					meshNormals.Add(loadedNormals[vertIndex]);
 					meshTangents.Add(loadedTangents[vertIndex]);
-					meshLightUV.Add(new Vector2(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false)));
+					meshLightUV.Add(new Vector3(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false), IsDamp(this.heightMap, coords[j])));
 				}
 
 				// Hitbox Vertices
@@ -161,6 +165,15 @@ public struct PrepareAssetsJob : IJob{
 			}	
 			hitboxVertAmount += (hitboxVertsOffset[i+1] - hitboxVertsOffset[i]);	
 		}
+	}
+
+	private byte IsDamp(NativeArray<byte> heightMap, int3 coord){
+		if(!this.canRain)
+			return 0;
+
+		if(coord.y > heightMap[coord.x*Chunk.chunkWidth+coord.z])
+			return 1;
+		return 0;
 	}
 
 	// Check if a blockCode is contained in blockCodes List

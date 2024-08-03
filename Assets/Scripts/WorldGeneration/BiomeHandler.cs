@@ -27,88 +27,88 @@ public class BiomeHandler
 		this.coreBiomeTable = new BiomeTable(ChunkDepthID.CORE);
 
 		Biome plains = new Biome("Plains", BiomeCode.PLAINS, BiomeType.LOW, ChunkDepthID.SURFACE,
-			1, 
+			1, true,
 			new List<StructureGroupID>(){StructureGroupID.PLAINS_TREES, StructureGroupID.DIRT_PATCHES,
 			 	StructureGroupID.GRAVEL_PATCHES, StructureGroupID.GRAVEL_PATCHES_SURFACE, StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_LOW_DENSITY, StructureGroupID.VIS_FEW}, AmbientGroup.PLAINS);
 
 		Biome grassyHighlands = new Biome("Grassy Highlands", BiomeCode.GRASSY_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.SURFACE,
-			3,
+			3, true,
 			new List<StructureGroupID>(){StructureGroupID.GRASS_HIGHLANDS_TREES, StructureGroupID.DIRT_PATCHES,
 			 	StructureGroupID.GRAVEL_PATCHES, StructureGroupID.GRAVEL_PATCHES_SURFACE, StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY, StructureGroupID.VIS_FEW}, AmbientGroup.PLAINS);
 
 		Biome ocean = new Biome("Ocean", BiomeCode.OCEAN, BiomeType.OCEAN, ChunkDepthID.SURFACE,
-			8,
+			8, true,
 			new List<StructureGroupID>(){StructureGroupID.SURFACE_ORES, StructureGroupID.VIS_FEW}, AmbientGroup.OCEAN);
 
 		Biome forest = new Biome("Forest", BiomeCode.FOREST, BiomeType.MID, ChunkDepthID.SURFACE,
-			1,
+			1, true,
 			new List<StructureGroupID>(){StructureGroupID.FOREST_TREES, StructureGroupID.SURFACE_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_FEW}, AmbientGroup.FOREST);
 
 		Biome desert = new Biome("Desert", BiomeCode.DESERT, BiomeType.LOW, ChunkDepthID.SURFACE,
-			8,
+			8, true,
 			new List<StructureGroupID>(){StructureGroupID.DESERT_TREES, StructureGroupID.SURFACE_ORES,
 				StructureGroupID.BOULDERS_LOW_DENSITY, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_FEW}, AmbientGroup.DESERT);
 
 		Biome snowPlains = new Biome("Snowy Plains", BiomeCode.SNOWY_PLAINS, BiomeType.LOW, ChunkDepthID.SURFACE,
-			9,
+			9, true,
 			new List<StructureGroupID>(){StructureGroupID.ICE_PLAINS_TREES, StructureGroupID.DIRT_PATCHES,
 			 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_LOW_DENSITY, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_FEW}, AmbientGroup.SNOW);
 
 		Biome snowyHighlands = new Biome("Snowy Highlands", BiomeCode.SNOWY_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.SURFACE,
-			9,
+			9, true,
 			new List<StructureGroupID>(){StructureGroupID.ICE_HIGHLANDS_TREES, StructureGroupID.DIRT_PATCHES,
 			 	StructureGroupID.SURFACE_ORES, StructureGroupID.BOULDERS_MID_DENSITY, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.GRAVEL_PATCHES_SURFACE, StructureGroupID.VIS_FEW}, AmbientGroup.SNOW);
 
 		Biome iceOcean = new Biome("Ice Ocean", BiomeCode.ICE_OCEAN, BiomeType.OCEAN, ChunkDepthID.SURFACE,
-			9,
+			9, true,
 			new List<StructureGroupID>(){StructureGroupID.SURFACE_ORES, StructureGroupID.VIS_FEW}, AmbientGroup.SNOW);
 
 		Biome snowyForest = new Biome("Snow Forest", BiomeCode.SNOWY_FOREST, BiomeType.MID, ChunkDepthID.SURFACE,
-			9,
+			9, true,
 			new List<StructureGroupID>(){StructureGroupID.ICE_FOREST_TREES, StructureGroupID.SURFACE_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_FEW}, AmbientGroup.SNOW);
 
 		Biome caverns = new Biome("Caverns", BiomeCode.CAVERNS, BiomeType.MID, ChunkDepthID.UNDERGROUND,
-			3,
+			3, false,
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_MANY}, AmbientGroup.CAVERNS);
 
 		Biome basaltCaves = new Biome("Basalt Cave", BiomeCode.BASALT_CAVES, BiomeType.PEAK, ChunkDepthID.UNDERGROUND,
-			VoxelLoader.GetBlockID("BASE_Basalt"),
+			VoxelLoader.GetBlockID("BASE_Basalt"), false,
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_MANY}, AmbientGroup.CAVERNS);
 
 		Biome submergedCave = new Biome("Submerged Cave", BiomeCode.UNDERWATER_CAVES, BiomeType.OCEAN, ChunkDepthID.UNDERGROUND,
-			VoxelLoader.GetBlockID("BASE_Stone"),
+			VoxelLoader.GetBlockID("BASE_Stone"), false,
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_MANY}, AmbientGroup.CAVERNS);
 
 		Biome iceCave = new Biome("Ice Cave", BiomeCode.ICE_CAVES, BiomeType.LOW, ChunkDepthID.UNDERGROUND,
-			VoxelLoader.GetBlockID("BASE_Stone"),
+			VoxelLoader.GetBlockID("BASE_Stone"), false,
 			new List<StructureGroupID>(){StructureGroupID.UNDERGROUND_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_MANY}, AmbientGroup.ICE_CAVERNS);
 
 		Biome hellPlains = new Biome("Hell Plains", BiomeCode.HELL_PLAINS, BiomeType.MID, ChunkDepthID.HELL,
-			VoxelLoader.GetBlockID("BASE_Hell_Marble"),
+			VoxelLoader.GetBlockID("BASE_Hell_Marble"), false,
 			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome boneValley = new Biome("Bone Valley", BiomeCode.BONE_VALLEY, BiomeType.MID, ChunkDepthID.HELL,
-			VoxelLoader.GetBlockID("BASE_Hell_Marble"),
+			VoxelLoader.GetBlockID("BASE_Hell_Marble"), false,
 			new List<StructureGroupID>(){StructureGroupID.GREATER_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome lavaOcean = new Biome("Lava Ocean", BiomeCode.LAVA_OCEAN, BiomeType.LOW, ChunkDepthID.HELL,
-			VoxelLoader.GetBlockID("BASE_Lava"),
+			VoxelLoader.GetBlockID("BASE_Lava"), false,
 			new List<StructureGroupID>(){StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome deepCliff = new Biome("Deep Cliff", BiomeCode.DEEP_CLIFF, BiomeType.OCEAN, ChunkDepthID.HELL,
-			VoxelLoader.GetBlockID("BASE_Acaster"),
+			VoxelLoader.GetBlockID("BASE_Acaster"), false,
 			new List<StructureGroupID>(){}, AmbientGroup.HELL);
 
 		Biome hellHighlands= new Biome("Hell Highlands", BiomeCode.HELL_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
-			VoxelLoader.GetBlockID("BASE_Hell_Marble"),
+			VoxelLoader.GetBlockID("BASE_Hell_Marble"), false,
 			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome volcanicHighlands = new Biome("Volcanic Highlands", BiomeCode.VOLCANIC_HIGHLANDS, BiomeType.PEAK, ChunkDepthID.HELL,
-			VoxelLoader.GetBlockID("BASE_Basalt"),
+			VoxelLoader.GetBlockID("BASE_Basalt"), false,
 			new List<StructureGroupID>(){StructureGroupID.SMALL_BONES, StructureGroupID.HELL_ORES}, AmbientGroup.HELL);
 
 		Biome core = new Biome("Core", BiomeCode.CORE, BiomeType.PEAK, ChunkDepthID.CORE,
-			VoxelLoader.GetBlockID("BASE_Moonstone"),
+			VoxelLoader.GetBlockID("BASE_Moonstone"), false,
 			new List<StructureGroupID>(){StructureGroupID.CORE_ORES}, AmbientGroup.CORE);
 
 		AddBiome(plains);
@@ -152,6 +152,15 @@ public class BiomeHandler
 				return b.biomeCode;
 		}
 		return 0;
+	}
+
+	// Gets the dampness flag from name
+	public static bool BiomeToDampness(string biomeName){
+		foreach(Biome b in dataset.Values){
+			if(b.name == biomeName)
+				return b.naturalDampness;
+		}
+		return false;
 	}
 
 	// Gets biome name from byte code
@@ -244,6 +253,7 @@ public struct Biome{
 	public string name;
 	public byte biomeCode;
 	public byte biomeType;
+	public bool naturalDampness;
 
 	public ushort blendingBlock;
 
@@ -257,7 +267,7 @@ public struct Biome{
 
 	public AmbientGroup ambient;
 
-	public Biome(string n, BiomeCode code, BiomeType type, ChunkDepthID layer, ushort blendingBlock, List<StructureGroupID> structureGroups, AmbientGroup agroup){
+	public Biome(string n, BiomeCode code, BiomeType type, ChunkDepthID layer, ushort blendingBlock, bool dampness, List<StructureGroupID> structureGroups, AmbientGroup agroup){
 		this.name = n;
 		this.biomeCode = (byte)code;
 		this.biomeType = (byte)type;
@@ -272,6 +282,8 @@ public struct Biome{
 		this.hasRange = new List<bool>();
 		this.minHeight = new List<int>();
 		this.ambient = agroup;
+
+		this.naturalDampness = dampness;
 
 		foreach(StructureGroupID id in structureGroups){
 			StructureGroup.AddStructureGroup(id, this);
