@@ -45,7 +45,7 @@ public class BiomeHandler
 			new List<StructureGroupID>(){StructureGroupID.FOREST_TREES, StructureGroupID.SURFACE_ORES, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_FEW}, AmbientGroup.FOREST);
 
 		Biome desert = new Biome("Desert", BiomeCode.DESERT, BiomeType.LOW, ChunkDepthID.SURFACE,
-			8, true,
+			8, false,
 			new List<StructureGroupID>(){StructureGroupID.DESERT_TREES, StructureGroupID.SURFACE_ORES,
 				StructureGroupID.BOULDERS_LOW_DENSITY, StructureGroupID.GRAVEL_PATCHES, StructureGroupID.VIS_FEW}, AmbientGroup.DESERT);
 

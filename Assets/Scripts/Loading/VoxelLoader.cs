@@ -484,6 +484,7 @@ public class VoxelLoader : BaseLoader {
 			normalAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
 			normalAtlas[shader].filterMode = FilterMode.Point;
 			pbrAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
+			pbrAtlas[shader].filterMode = FilterMode.Point;
 
 			// Build Atlas and Normals
 			foreach(Texture2D tex2d in textures){

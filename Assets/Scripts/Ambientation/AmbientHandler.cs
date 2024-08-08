@@ -194,7 +194,7 @@ public class AmbientHandler : MonoBehaviour
                 return;
             }
             
-            float mult = 2f;
+            float mult = 3f;
             Vector2 globalWind = this.windHandler.GetGlobalWind();
 
             if(isTransition){

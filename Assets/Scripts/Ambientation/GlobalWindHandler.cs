@@ -20,7 +20,7 @@ public class GlobalWindHandler{
 	*/
 	private Vector4 windShaderInformation;
 
-	private static readonly int RAIN_TICKS = 800;
+	private static readonly int RAIN_TICKS = 1500;
 
 	private static readonly float MAX_GLOBAL_WIND_POWER = 20f;
 	private static readonly int CLOUD_LAYER_ANGLE_DIFF = 40;
