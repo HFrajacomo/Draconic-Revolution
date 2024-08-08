@@ -256,7 +256,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Weapon Animations|3D|Alpha|:x:|:x:|:x:|:x:
 |Basic Enemy Models|3D|Alpha|:x:|:x:|:x:|:x:|
 |Basic AI|AI|Alpha|:heavy_check_mark:|:soon:|:soon:|:x:
-|Weather and Fog System|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:soon:
+|Weather and Fog System|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Main Menu UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Hotbar UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Inventory UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
