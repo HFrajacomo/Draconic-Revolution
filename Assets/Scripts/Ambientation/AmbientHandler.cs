@@ -96,8 +96,10 @@ public class AmbientHandler : MonoBehaviour
         this.skyDirectionalLight.color = currentPreset.GetSunColor(0);
         this.moonDirectionalLight.color = currentPreset.GetMoonColor(0);
 
-        weatherCast.SetFogNoise(this.timer.ToSeconds()*TimeOfDay.ticksForMinute, this.timer.days);
-        weatherCast.SetWeatherNoise(this.timer.ToSeconds(), this.timer.days);
+        this.weatherCast.SetFogNoise(this.timer.ToSeconds()*TimeOfDay.ticksForMinute, this.timer.days);
+        this.weatherCast.SetWeatherNoise(this.timer.ToSeconds(), this.timer.days);
+
+        this.windHandler.InitRain(this.weatherCast.GetWeatherState() == WeatherState.RAINY);
 
         SetStats(this.timer.ToSeconds());
         ApplyWeatherChanges(0, this.timer.ToSeconds(), (int)this.timer.GetFakeTicks(), this.timer.days, currentPreset.IsSurface(), false);

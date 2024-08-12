@@ -31,6 +31,17 @@ public class GlobalWindHandler{
 		Shader.SetGlobalFloat("_Total_Rain_Ticks", (float)RAIN_TICKS);
 	}
 
+	public void InitRain(bool isRaining){
+		if(isRaining){
+			this.currentTick = RAIN_TICKS;
+			this.isRainOn = true;
+		}
+		else{
+			this.currentTick = 0;
+			this.isRainOn = false;
+		}
+	}
+
 	public float GetMaxWindPower(){return MAX_GLOBAL_WIND_POWER;}
 	public Vector2 GetGlobalWind(){return this.globalWind;}
 	public Vector2 GetGlobalWindResistant(){return this.globalResistantWind;}
@@ -47,6 +58,9 @@ public class GlobalWindHandler{
 		if(this.isRainOn && currentTick < RAIN_TICKS){
 			currentTick++;
 		}
+		if(!this.isRainOn && currentTick > 0){
+			currentTick--;
+		}
 
 		// Check if started/stopped raining
 		if(!this.isRainOn && isRaining){
@@ -55,7 +69,7 @@ public class GlobalWindHandler{
 		}
 		if(this.isRainOn && !isRaining){
 			this.isRainOn = false;
-			currentTick = 0;
+			currentTick = RAIN_TICKS;
 		}
 
 
