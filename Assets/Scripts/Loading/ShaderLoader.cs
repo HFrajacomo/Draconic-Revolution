@@ -42,6 +42,6 @@ public class ShaderLoader : BaseLoader {
 			VOXEL_LIGHT_INITIAL_BUFFER[i] = new Vector4(0,0,0,0);
 		}
 
-		Shader.SetGlobalVectorArray("_AAAAA", VOXEL_LIGHT_INITIAL_BUFFER);
+		Shader.SetGlobalVectorArray("_VOXEL_LIGHT_BUFFER", VOXEL_LIGHT_INITIAL_BUFFER);
 	}
 }

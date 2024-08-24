@@ -98,6 +98,6 @@ public class VoxelLightHandler: MonoBehaviour {
 				this.cachedPositions[i] = new Vector4(0,0,0,0);
 		}
 
-		Shader.SetGlobalVectorArray("_AAAAA", this.cachedPositions);
+		Shader.SetGlobalVectorArray("_VOXEL_LIGHT_BUFFER", this.cachedPositions);
 	}
 }
