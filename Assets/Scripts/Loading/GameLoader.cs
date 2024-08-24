@@ -9,6 +9,7 @@ public class GameLoader : MonoBehaviour {
 	private bool isClient = true;
 	private VoxelLoader voxelLoader;
 	private ItemLoader itemLoader;
+	private ShaderLoader shaderLoader;
 
 	private static readonly string SERVER_SCENE = "Assets/Scenes/Server.unity";
 
@@ -19,9 +20,11 @@ public class GameLoader : MonoBehaviour {
 	}
 
 	void Start(){
+		this.shaderLoader = new ShaderLoader(this.isClient);
 		this.itemLoader = new ItemLoader(this.isClient);
 		this.voxelLoader = new VoxelLoader(this.isClient, this.prefabObjects);
 
+		this.shaderLoader.Load();
 		this.itemLoader.Load();
 		this.voxelLoader.Load();
 

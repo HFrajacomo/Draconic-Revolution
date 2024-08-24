@@ -703,6 +703,7 @@ MonoBehaviour:
   playerTransform: {fileID: 59614821}
   cl: {fileID: 1192772367}
   reverb: {fileID: 1912773813}
+  voxelLightHandler: {fileID: 2085928825}
   audioManager: {fileID: 0}
   counter: -1
 --- !u!114 &59614826
@@ -20675,6 +20676,7 @@ MonoBehaviour:
   sfx: {fileID: 246974018}
   playerAudioListener: {fileID: 1912773810}
   playerPositionHandler: {fileID: 59614825}
+  voxelLightHandler: {fileID: 2085928825}
   playerCharacter: {fileID: 59614818}
   playerEvents: {fileID: 59614819}
   playerModelHandler: {fileID: 59614826}
@@ -32229,6 +32231,50 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &2085928824
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2085928826}
+  - component: {fileID: 2085928825}
+  m_Layer: 0
+  m_Name: VoxelLightHandler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2085928825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2085928824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b78c81d5051df5478a98f425bc08e74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &2085928826
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2085928824}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 32.417995, y: 24.110765, z: 100.23317}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2086353088
 GameObject:
   m_ObjectHideFlags: 0
@@ -32522,6 +32568,7 @@ SceneRoots:
   - {fileID: 246974019}
   - {fileID: 1635249985}
   - {fileID: 1588378841}
+  - {fileID: 2085928826}
   - {fileID: 553950993}
   - {fileID: 913350135}
   - {fileID: 1337578100}

@@ -9,6 +9,12 @@ public struct EntityID{
 		this.code = c;
 	}
 
+	public EntityID(EntityType t, ulong c){
+		this.type = t;
+		this.code = c;
+		this.pos = new ChunkPos(0,0,0);
+	}
+
 	public bool Equals(EntityID other){
 		return this.type == other.type && this.code == other.code;
 	}
