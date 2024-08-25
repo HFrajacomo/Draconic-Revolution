@@ -1,5 +1,4 @@
 float4 _VOXEL_LIGHT_BUFFER[32];
-float _VOXEL_LIGHT_MULTIPLIER = 0.0667;
 
 void CalculateMovingVoxelLight_float(float3 fragPos, out float intensity){
     intensity = 0;
@@ -17,7 +16,7 @@ void CalculateMovingVoxelLight_float(float3 fragPos, out float intensity){
         dist = distance(fragPos, vectorXYZ);
 
         if (dist < _VOXEL_LIGHT_BUFFER[i].w){
-            intensity = 1 - (dist/_VOXEL_LIGHT_BUFFER[i].w);
+            intensity = clamp(1 - (dist/_VOXEL_LIGHT_BUFFER[i].w), 0, 1);
             return;
         }
     }
