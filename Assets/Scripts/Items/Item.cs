@@ -28,7 +28,12 @@ public class Item
 	public bool hasDurability;
 
 	// Behaviours
-	private ItemBehaviour onHoldBehaviour;
+	private ItemBehaviour onHoldPlayerBehaviour;
+	private ItemBehaviour onHoldClientBehaviour;
+	private ItemBehaviour onHoldServerBehaviour;
+	private ItemBehaviour onUnholdPlayerBehaviour;
+	private ItemBehaviour onUnholdClientBehaviour;
+	private ItemBehaviour onUnholdServerBehaviour;
 	private ItemBehaviour onUseClientBehaviour;
 	private ItemBehaviour onUseServerBehaviour;
 
@@ -84,8 +89,20 @@ public class Item
 	}
 
 	// EVENT GET/SET
-	public ItemBehaviour GetOnHold() { return onHoldBehaviour; }
-    public void SetOnHold(ItemBehaviour val) { onHoldBehaviour = val; }
+	public ItemBehaviour GetOnHoldPlayer() { return onHoldPlayerBehaviour; }
+    public void SetOnHoldPlayer(ItemBehaviour val) { onHoldPlayerBehaviour = val; }
+	public ItemBehaviour GetOnHoldClient() { return onHoldClientBehaviour; }
+    public void SetOnHoldClient(ItemBehaviour val) { onHoldClientBehaviour = val; }
+	public ItemBehaviour GetOnHoldServer() { return onHoldServerBehaviour; }
+    public void SetOnHoldServer(ItemBehaviour val) { onHoldServerBehaviour = val; }
+
+	public ItemBehaviour GetOnUnholdPlayer() { return onUnholdPlayerBehaviour; }
+    public void SetOnUnholdPlayer(ItemBehaviour val) { onUnholdPlayerBehaviour = val; }
+	public ItemBehaviour GetOnUnholdClient() { return onUnholdClientBehaviour; }
+    public void SetOnUnholdClient(ItemBehaviour val) { onUnholdClientBehaviour = val; }
+	public ItemBehaviour GetOnUnholdServer() { return onUnholdServerBehaviour; }
+    public void SetOnUnholdServer(ItemBehaviour val) { onUnholdServerBehaviour = val; }
+
 	public ItemBehaviour GetOnUseClient() { return onUseClientBehaviour; }
     public void SetOnUseClient(ItemBehaviour val) { onUseClientBehaviour = val; }
 	public ItemBehaviour GetOnUseServer() { return onUseServerBehaviour; }
@@ -100,10 +117,35 @@ public class Item
 	public MemoryStorageType GetMemoryStorageType(){return (MemoryStorageType)this.memoryType;}
 
 	// Basic Operations
-	public virtual void OnHold(ChunkLoader cl, ItemStack its){
-		if(this.onHoldBehaviour == null)
+	public virtual void OnHoldPlayer(ChunkLoader cl, ItemStack its){
+		if(this.onHoldPlayerBehaviour == null)
 			return;
-		this.onHoldBehaviour.OnHold(cl, its);
+		this.onHoldPlayerBehaviour.OnHoldPlayer(cl, its);
+	}
+	public virtual void OnHoldClient(ChunkLoader cl, ItemStack its){
+		if(this.onHoldClientBehaviour == null)
+			return;
+		this.onHoldClientBehaviour.OnHoldClient(cl, its);
+	}
+	public virtual void OnHoldServer(ChunkLoader_Server cl, ItemStack its){
+		if(this.onHoldServerBehaviour == null)
+			return;
+		this.onHoldServerBehaviour.OnHoldServer(cl, its);
+	}
+	public virtual void OnUnholdPlayer(ChunkLoader cl, ItemStack its){
+		if(this.onUnholdPlayerBehaviour == null)
+			return;
+		this.onUnholdPlayerBehaviour.OnUnholdPlayer(cl, its);
+	}
+	public virtual void OnUnholdClient(ChunkLoader cl, ItemStack its){
+		if(this.onUnholdClientBehaviour == null)
+			return;
+		this.onUnholdClientBehaviour.OnUnholdClient(cl, its);
+	}
+	public virtual void OnUnholdServer(ChunkLoader_Server cl, ItemStack its){
+		if(this.onUnholdServerBehaviour == null)
+			return;
+		this.onUnholdServerBehaviour.OnUnholdServer(cl, its);
 	}
 	public virtual void OnUseClient(ChunkLoader cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
 		if(this.onUseClientBehaviour == null)
@@ -117,8 +159,20 @@ public class Item
 	}
 
 	public void SetupAfterSerialize(bool isClient){
-		if(this.onHoldBehaviour != null)
-			onHoldBehaviour.PostDeserializationSetup(isClient);
+		if(this.onHoldPlayerBehaviour != null)
+			onHoldPlayerBehaviour.PostDeserializationSetup(isClient);
+		if(this.onHoldClientBehaviour != null)
+			onHoldClientBehaviour.PostDeserializationSetup(isClient);
+		if(this.onHoldServerBehaviour != null)
+			onHoldServerBehaviour.PostDeserializationSetup(isClient);
+		if(this.onUnholdPlayerBehaviour != null)
+			onUnholdPlayerBehaviour.PostDeserializationSetup(isClient);
+		if(this.onUnholdClientBehaviour != null)
+			onUnholdClientBehaviour.PostDeserializationSetup(isClient);
+		if(this.onUnholdServerBehaviour != null)
+			onUnholdServerBehaviour.PostDeserializationSetup(isClient);
+
+
 		if(this.onUseClientBehaviour != null)
 			onUseClientBehaviour.PostDeserializationSetup(isClient);
 		if(this.onUseServerBehaviour != null)

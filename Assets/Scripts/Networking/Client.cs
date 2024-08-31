@@ -440,13 +440,14 @@ public class Client
 		ulong code = NetDecoder.ReadUlong(data, 1);
 		float3 pos = NetDecoder.ReadFloat3(data, 9);
 		float3 dir = NetDecoder.ReadFloat3(data, 21);
+		CharacterSheet sheet = NetDecoder.ReadCharacterSheet(data, 33);
 
 		if(this.entityHandler.Contains(EntityType.PLAYER, code)){
 			this.entityHandler.NudgeLastPos(EntityType.PLAYER, code, pos, dir);
 			this.smoothMovement.DefineMovement(EntityType.PLAYER, code, pos, dir);
 		}
 		else{
-			this.entityHandler.AddPlayer(code, pos, dir);
+			this.entityHandler.AddPlayer(code, pos, dir, sheet);
 			this.smoothMovement.AddPlayer(code);
 		}
 	}
