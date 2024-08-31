@@ -522,7 +522,7 @@ public class Server
 			return;
 		}
 
-		NetMessage playerMessage = new NetMessage(NetCode.PLAYERDATA);
+		NetMessage playerMessage = new NetMessage(NetCode.PLAYERLOCATION);
 
 		// Sends logged in players data
 		if(this.playersInChunk.ContainsKey(pos)){
@@ -531,7 +531,7 @@ public class Server
 					continue;
 				if(this.cl.regionHandler.allPlayerData[code].IsOnline()){
 					this.connectionGraph[code].Add(id);
-					playerMessage.PlayerData(this.cl.regionHandler.allPlayerData[code]);
+					playerMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[code]);
 					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
 				}
 			}
@@ -790,7 +790,7 @@ public class Server
 	private void ClientPlayerPosition(byte[] data, ulong id){
 		float3 pos, dir;
 		ChunkPos cp;
-		NetMessage graphMessage = new NetMessage(NetCode.PLAYERDATA);
+		NetMessage graphMessage = new NetMessage(NetCode.PLAYERLOCATION);
 	
 		pos = NetDecoder.ReadFloat3(data, 1);
 		dir = NetDecoder.ReadFloat3(data, 13);
@@ -808,7 +808,7 @@ public class Server
 		// Propagates data to all network
 		if(this.connectionGraph.ContainsKey(id)){
 			foreach(ulong code in this.connectionGraph[id]){
-				graphMessage.PlayerData(this.cl.regionHandler.allPlayerData[id]);
+				graphMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id]);
 				this.Send(graphMessage.GetMessage(), graphMessage.size, code);
 			}
 		}
@@ -980,10 +980,10 @@ public class Server
 				}
 
 				if(this.cl.loadedChunks[newPos].Contains(code)){
-					NetMessage liveMessage = new NetMessage(NetCode.PLAYERDATA);
+					NetMessage liveMessage = new NetMessage(NetCode.PLAYERLOCATION);
 
 					this.connectionGraph[id].Add(code);
-					liveMessage.PlayerData(this.cl.regionHandler.allPlayerData[id]);
+					liveMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id]);
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);					
 				}				
 			}

@@ -215,8 +215,8 @@ public class Client
 			case NetCode.SENDGAMETIME:
 				SendGameTime(data);
 				break;
-			case NetCode.PLAYERDATA:
-				PlayerData(data);
+			case NetCode.PLAYERLOCATION:
+				PlayerLocation(data);
 				break;
 			case NetCode.ENTITYDELETE:
 				EntityDelete(data);
@@ -436,7 +436,7 @@ public class Client
 	}
 
 	// Receives data regarding an entity
-	private void PlayerData(byte[] data){
+	private void PlayerLocation(byte[] data){
 		ulong code = NetDecoder.ReadUlong(data, 1);
 		float3 pos = NetDecoder.ReadFloat3(data, 9);
 		float3 dir = NetDecoder.ReadFloat3(data, 21);

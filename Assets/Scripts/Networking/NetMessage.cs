@@ -259,14 +259,14 @@ public struct NetMessage
 	}
 
 	// Server sends entity data to Client
-	public void PlayerData(ulong code, float posX, float posY, float posZ, float dirX, float dirY, float dirZ){
+	public void PlayerLocation(ulong code, float posX, float posY, float posZ, float dirX, float dirY, float dirZ){
 		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
 		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 9);
 		NetDecoder.WriteFloat3(dirX, dirY, dirZ, NetMessage.buffer, 21);
 		this.size = 33;
 	}
-	public void PlayerData(PlayerData pdat){
-		PlayerData(pdat.GetID(), pdat.posX, pdat.posY, pdat.posZ, pdat.dirX, pdat.dirY, pdat.dirZ);
+	public void PlayerLocation(PlayerData pdat){
+		PlayerLocation(pdat.GetID(), pdat.posX, pdat.posY, pdat.posZ, pdat.dirX, pdat.dirY, pdat.dirZ);
 	}
 
 	// Server sends a deletion command to out-of-bounds entities to Client
@@ -393,7 +393,7 @@ public enum NetCode{
 	VFXBREAK,
 	SENDGAMETIME,
 	HEARTBEAT, // No call
-	PLAYERDATA,
+	PLAYERLOCATION,
 	ENTITYDELETE,
 	CLIENTCHUNK,
 	PLACEMENTDENIED, // No call
