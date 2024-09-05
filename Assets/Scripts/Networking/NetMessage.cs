@@ -269,6 +269,19 @@ public struct NetMessage
 		PlayerLocation(pdat.GetID(), pdat.posX, pdat.posY, pdat.posZ, pdat.dirX, pdat.dirY, pdat.dirZ);
 	}
 
+	// Client requests a player's appearance information
+	public void RequestPlayerAppearance(ulong code){
+		NetDecoder.WriteUlong(code);
+		this.size = 9;
+	}
+
+	// Server sends player appearance information to Client
+	public void SendPlayerAppearance(ulong code, CharacterAppearance app){
+		NetDecoder.WriteUlong(code);
+		NetDecoder.WriteCharacterAppearance(app);
+		this.size = 256;
+	}
+
 	// Server sends a deletion command to out-of-bounds entities to Client
 	public void EntityDelete(EntityType type, ulong code){
 		NetDecoder.WriteByte((byte)type, NetMessage.buffer, 1);
@@ -394,6 +407,8 @@ public enum NetCode{
 	SENDGAMETIME,
 	HEARTBEAT, // No call
 	PLAYERLOCATION,
+	REQUESTPLAYERAPPEARANCE,
+	SENDPLAYERAPPEARANCE,
 	ENTITYDELETE,
 	CLIENTCHUNK,
 	PLACEMENTDENIED, // No call

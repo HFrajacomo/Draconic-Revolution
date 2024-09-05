@@ -429,6 +429,7 @@ public static class NetDecoder
 		NetDecoder.WriteBool(i.isMale, data, pos+38);
 	}
 
+	// Size = 247
 	public static void WriteCharacterAppearance(CharacterAppearance ca, byte[] data, int pos){
 		NetDecoder.WriteByte((byte)ca.race, data, pos);
 		NetDecoder.WriteRGB(ca.skinColor, data, pos+1);
