@@ -36,7 +36,7 @@ public class PlaceBlockBehaviour : ItemBehaviour{
 
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.PLACE, targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, loader.playerRaycast.facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerEvents.hotbarSlot, newQuantity:newQuantity);
-		loader.client.Send(message.GetMessage(), message.size);
+		loader.client.Send(message);
 		return true;
 	}
 }

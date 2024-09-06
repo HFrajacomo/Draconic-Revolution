@@ -602,7 +602,7 @@ public class Chunk
 			foreach(int3 coord in coordArray){
 				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
 			}	
-			this.loader.client.Send(this.message.GetMessage(), this.message.GetSize());
+			this.loader.client.Send(this.message);
 		}
 		loadCoordList.Clear();
 		

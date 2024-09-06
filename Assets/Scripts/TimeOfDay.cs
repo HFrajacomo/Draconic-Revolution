@@ -162,13 +162,13 @@ public class TimeOfDay : MonoBehaviour
     private void SendPositionMessage(){
         this.movementMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
         this.movementMessage.ClientPlayerPosition(this.position.x, this.position.y, this.position.z, this.rotation.x, this.rotation.y, this.rotation.z);
-        this.client.Send(this.movementMessage.GetMessage(), this.movementMessage.size);
+        this.client.Send(this.movementMessage);
     }
 
     public void SendChunkPosMessage(){
         NetMessage message = new NetMessage(NetCode.CLIENTCHUNK);
         message.ClientChunk(this.lastPos, this.currentPos);
-        this.client.Send(message.GetMessage(), message.size);
+        this.client.Send(message);
     }
 
     // Sets current time. Used to set time in client through a server force message

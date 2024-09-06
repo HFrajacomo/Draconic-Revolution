@@ -78,6 +78,10 @@ public class EntityHandler
 		RunSingleActivation(EntityType.PLAYER, code, pos);
 	}
 
+	public void UpdatePlayerModel(ulong code, CharacterAppearance app){
+		// TODO
+	}
+
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){
 		ItemEntity newItemEntity = GameObject.Instantiate(this.droppedItemBase, pos, Quaternion.Euler(dir.x, dir.y, dir.z)).GetComponent<ItemEntity>();
 		newItemEntity.SetItemStack(its);

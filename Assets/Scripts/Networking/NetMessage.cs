@@ -271,15 +271,22 @@ public struct NetMessage
 
 	// Client requests a player's appearance information
 	public void RequestPlayerAppearance(ulong code){
-		NetDecoder.WriteUlong(code);
+		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
 		this.size = 9;
 	}
 
 	// Server sends player appearance information to Client
 	public void SendPlayerAppearance(ulong code, CharacterAppearance app){
-		NetDecoder.WriteUlong(code);
-		NetDecoder.WriteCharacterAppearance(app);
+		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
+		NetDecoder.WriteCharacterAppearance(app, NetMessage.buffer, 9);
 		this.size = 256;
+	}
+
+	// Server sends the item in a player's hand to the Client
+	public void PlayerItemHand(ulong code, Item it){
+		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
+		NetDecoder.WriteItem(it, NetMessage.buffer, 9);
+		this.size = 11;
 	}
 
 	// Server sends a deletion command to out-of-bounds entities to Client
@@ -409,6 +416,7 @@ public enum NetCode{
 	PLAYERLOCATION,
 	REQUESTPLAYERAPPEARANCE,
 	SENDPLAYERAPPEARANCE,
+	PLAYERITEMHAND,
 	ENTITYDELETE,
 	CLIENTCHUNK,
 	PLACEMENTDENIED, // No call

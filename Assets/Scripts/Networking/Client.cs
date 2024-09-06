@@ -151,10 +151,10 @@ public class Client
 	}
 
 	// Sends a byte[] to the server
-	public bool Send(byte[] data, int length){
+	public bool Send(NetMessage message){
 		try{
-			this.socket.Send(this.LengthPacket(length), 4, SocketFlags.None);
-			this.socket.Send(data, length, SocketFlags.None);
+			this.socket.Send(this.LengthPacket(message.size), 4, SocketFlags.None);
+			this.socket.Send(message.GetMessage(), message.size, SocketFlags.None);
 			return true;
 		}
 		catch(Exception e){
@@ -449,6 +449,20 @@ public class Client
 		else{
 			this.entityHandler.AddPlayer(code, pos, dir, sheet);
 			this.smoothMovement.AddPlayer(code);
+
+			NetMessage message = new NetMessage(NetCode.REQUESTPLAYERAPPEARANCE);
+			message.RequestPlayerAppearance(code);
+			this.Send(message);
+		}
+	}
+
+	// Receives a player information
+	private void SendPlayerAppearance(byte[] data){
+		ulong code = NetDecoder.ReadUlong(data, 1);
+		CharacterAppearance app = NetDecoder.ReadCharacterAppearance(data, 9);
+
+		if(this.entityHandler.Contains(EntityType.PLAYER, code)){
+			this.entityHandler.UpdatePlayerModel(code, app);
 		}
 	}
 

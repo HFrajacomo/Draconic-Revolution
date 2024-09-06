@@ -222,7 +222,7 @@ public class PlayerRaycast : MonoBehaviour
 
 		NetMessage message = new NetMessage(NetCode.BLOCKDAMAGE);
 		message.BlockDamage(current.GetChunkPos(), current.blockX, current.blockY, current.blockZ, this.blockDamage, false);
-		this.loader.client.Send(message.GetMessage(), message.size);
+		this.loader.client.Send(message);
 	}
 
 	// Uses item in hand
@@ -255,7 +255,7 @@ public class PlayerRaycast : MonoBehaviour
 
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 		message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerEvents.hotbarSlot, newQuantity:newQuantity);
-		this.loader.client.Send(message.GetMessage(), message.size);
+		this.loader.client.Send(message);
 		return true;
 	}
 
@@ -277,7 +277,7 @@ public class PlayerRaycast : MonoBehaviour
 		
 		NetMessage message = new NetMessage(NetCode.INTERACT);
 		message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);
-		this.loader.client.Send(message.GetMessage(), message.size);
+		this.loader.client.Send(message);
 	}
 
 	// Sets the Camera FOV

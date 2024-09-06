@@ -289,6 +289,10 @@ public static class NetDecoder
 		return new float3(NetDecoder.ReadFloat(data, pos), NetDecoder.ReadFloat(data, pos+4), NetDecoder.ReadFloat(data, pos+8));
 	}
 
+	public static Item ReadItem(byte[] data, int pos){
+		return ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos));
+	}
+
 	public static bool ReadBool(byte[] data, int pos){
 		if(data[pos] == 0)
 			return false;
@@ -330,6 +334,10 @@ public static class NetDecoder
 		NetDecoder.WriteFloat(v.x, data, pos);
 		NetDecoder.WriteFloat(v.y, data, pos+4);
 		NetDecoder.WriteFloat(v.z, data, pos+8);		
+	}
+
+	public static void WriteItem(Item it, byte[] data, int pos){
+		NetDecoder.WriteUshort(it.GetID(), data, pos);
 	}
 
 	public static void WriteBool(bool a, byte[] data, int pos){
