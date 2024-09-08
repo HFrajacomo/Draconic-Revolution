@@ -276,10 +276,11 @@ public struct NetMessage
 	}
 
 	// Server sends player appearance information to Client
-	public void SendPlayerAppearance(ulong code, CharacterAppearance app){
+	public void SendPlayerAppearance(ulong code, CharacterAppearance app, bool isMale){
 		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
 		NetDecoder.WriteCharacterAppearance(app, NetMessage.buffer, 9);
-		this.size = 256;
+		NetDecoder.WriteBool(isMale, NetMessage.buffer, 256);
+		this.size = 257;
 	}
 
 	// Server sends the item in a player's hand to the Client
@@ -371,6 +372,12 @@ public struct NetMessage
 		this.size = 9;
 	}
 
+	// Client asks for CharacterSheet
+	public void RequestCharacterSheet(ulong id){
+		NetDecoder.WriteLong(id, NetMessage.buffer, 1);
+		this.size = 9;
+	}
+
 	// Server sends character appearance and a flag
 	public void SendCharacterPreload(CharacterAppearance? app, bool isMale){
 		if(app == null){
@@ -416,6 +423,7 @@ public enum NetCode{
 	PLAYERLOCATION,
 	REQUESTPLAYERAPPEARANCE,
 	SENDPLAYERAPPEARANCE,
+	REQUESTCHARACTERSHEET,
 	PLAYERITEMHAND,
 	ENTITYDELETE,
 	CLIENTCHUNK,

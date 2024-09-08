@@ -23,17 +23,31 @@ public class PlayerModelHandler : MonoBehaviour {
 		this.controller = this.parent.GetComponent<CharacterController>();
 
 		if(this.controller == null){
-			// Will need to configure it for new entities later
 			this.controller = this.parent.AddComponent<CharacterController>();
 		}
 	}
 
-	public void ChangeParent(GameObject go){
-		this.parent = go;
-		this.animator = this.parent.AddComponent<Animator>();
-		this.controller = this.parent.AddComponent<CharacterController>();
+
+	// Builds any character other than Player
+	public GameObject BuildModel(GameObject go, CharacterAppearance app, bool isMale){
+		this.animator = go.GetComponent<Animator>();
+
+		if(this.animator == null){
+			this.animator = go.AddComponent<Animator>();
+		}
+
+		if(isMale)
+			this.characterBuilder = new CharacterBuilder(go, this.maleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, isMale, false);
+		else
+			this.characterBuilder = new CharacterBuilder(go, this.femaleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, isMale, false);
+
+		this.characterBuilder.Build();
+		Rescale(app.race);
+
+		return go;
 	}
 
+	// Builds player character
 	public void BuildModel(CharacterAppearance app, bool isMale, bool isPlayerCharacter){
 		if(this.characterBuilder == null){
 			if(isMale)

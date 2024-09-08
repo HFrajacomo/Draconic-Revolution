@@ -27,7 +27,7 @@ public class ItemLoader : BaseLoader {
 	private static List<string> itemEntries = new List<string>();
 
 	// Counters
-	private static int amountOfItems = 0;
+	private static int amountOfItems = 1;
 
 
 	public ItemLoader(bool client){

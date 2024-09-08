@@ -370,6 +370,9 @@ public class Server
 			case NetCode.CLIENTPLAYERPOSITION:
 				ClientPlayerPosition(data, id);
 				break;
+			case NetCode.REQUESTPLAYERAPPEARANCE:
+				RequestPlayerAppearance(data, id);
+				break;
 			case NetCode.DISCONNECT:
 				Disconnect(id, DisconnectType.QUIT);
 				break;
@@ -396,6 +399,9 @@ public class Server
 				break;
 			case NetCode.REQUESTCHARACTEREXISTENCE:
 				RequestCharacterExistence(data, id);
+				break;
+			case NetCode.REQUESTCHARACTERSHEET:
+				RequestCharacterSheet(data, id);
 				break;
 			case NetCode.SENDCHARSHEET:
 				SendCharSheet(data, id);
@@ -814,6 +820,26 @@ public class Server
 		}
 	}
 
+	// Receives a request from a player to fetch another player's appearance (or himself)
+	private void RequestPlayerAppearance(byte[] data, ulong id){
+		ulong requestedID = NetDecoder.ReadUlong(data, 1);
+
+		CharacterSheet cs = this.cl.characterFileHandler.LoadCharacterSheet(requestedID);
+		CharacterAppearance app;
+		bool isMale;
+
+		if(cs == null)
+			return;
+		else{
+			app = cs.GetCharacterAppearance();
+			isMale = cs.GetGender();
+		}
+
+		NetMessage message = new NetMessage(NetCode.SENDPLAYERAPPEARANCE);
+		message.SendPlayerAppearance(requestedID, app, isMale);
+		this.Send(message.GetMessage(), message.size, id);
+	}
+
 	// Receives a disconnect call from client
 	private void Disconnect(ulong id, DisconnectType type){
 		if(!this.connections.ContainsKey(id))
@@ -871,8 +897,14 @@ public class Server
 				this.playersInChunk.Remove(this.cl.regionHandler.allPlayerData[id].GetChunkPos());
 		}
 
+		toRemove = new List<ChunkPos>();
+
 		// Removes ChunksRequested
 		foreach(ChunkPos pos in chunksRequested.Keys){
+			toRemove.Add(pos);
+		}
+
+		foreach(ChunkPos pos in toRemove){
 			chunksRequested[pos].Remove(id);
 			if(chunksRequested[pos].Count == 0)
 				chunksRequested.Remove(pos);
@@ -1157,6 +1189,20 @@ public class Server
 			message.SendCharacterPreload(this.cachedSheet.GetCharacterAppearance(), this.cachedSheet.GetGender());
 
 		this.Send(message.GetMessage(), message.size, id, temporary:true);
+	}
+
+	// Receives the request for sending a CharacterSheet to user
+	public void RequestCharacterSheet(byte[] data, ulong id){
+		ulong code = NetDecoder.ReadUlong(data, 1);
+
+		this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(code);
+
+		if(this.cachedSheet == null)
+			return;
+
+		NetMessage message = new NetMessage(NetCode.SENDCHARSHEET);
+		message.SendCharSheet(code, this.cachedSheet);
+		this.Send(message.GetMessage(), message.size, id);
 	}
 
 	// Receives the character sheet from a new character

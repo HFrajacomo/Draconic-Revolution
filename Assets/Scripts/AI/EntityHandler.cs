@@ -5,7 +5,9 @@ using Unity.Mathematics;
 
 public class EntityHandler
 {
+	// Unity Reference
 	private ChunkLoader cl;
+	private PlayerModelHandler playerModelHandler;
 
 	private Dictionary<ulong, CharacterSheet> playerSheet;
 	private Dictionary<ulong, GameObject> playerObject;
@@ -27,6 +29,7 @@ public class EntityHandler
 		this.dropObject = new Dictionary<ulong, ItemEntity>();
 		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.cl = cl;
+		this.playerModelHandler = cl.playerModelHandler;
 	}
 
 	/*
@@ -68,18 +71,30 @@ public class EntityHandler
 		return false;
 	}
 
-	public void AddPlayer(ulong code, float3 pos, float3 dir, CharacterSheet sheet){
+	public void AddPlayer(ulong code, float3 pos, float3 dir){
 		GameObject go = GameObject.Instantiate(GameObject.Find("----- PrefabModels -----/PlayerModel"), new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(dir.x, dir.y, dir.z));
 		go.name = "Player_" + code;
 		this.playerObject.Add(code, go);
 		this.playerRenderer.Add(code, go.GetComponent<MeshRenderer>());
 		this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
-		this.playerSheet.Add(code, sheet);
 		RunSingleActivation(EntityType.PLAYER, code, pos);
 	}
 
-	public void UpdatePlayerModel(ulong code, CharacterAppearance app){
-		// TODO
+	public void AddPlayerSheet(ulong code, CharacterSheet sheet){
+		if(this.playerSheet.ContainsKey(code)){
+			this.playerSheet[code] = sheet;
+		}
+		else{
+			this.playerSheet.Add(code, sheet);
+		}
+	}
+
+	public void UpdatePlayerModel(ulong code, CharacterAppearance app, bool isMale){
+		if(this.playerObject.ContainsKey(code)){
+			Object.Destroy(this.playerObject[code].GetComponent<MeshRenderer>());
+			this.playerObject[code] = this.playerModelHandler.BuildModel(this.playerObject[code], app, isMale);
+			this.playerRenderer[code] = this.playerObject[code].GetComponent<MeshRenderer>();
+		}
 	}
 
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){
