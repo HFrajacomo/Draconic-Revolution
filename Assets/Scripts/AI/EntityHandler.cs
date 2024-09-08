@@ -91,7 +91,7 @@ public class EntityHandler
 
 	public void UpdatePlayerModel(ulong code, CharacterAppearance app, bool isMale){
 		if(this.playerObject.ContainsKey(code)){
-			Object.Destroy(this.playerObject[code].GetComponent<MeshRenderer>());
+			Object.DestroyImmediate(this.playerObject[code].GetComponent<MeshRenderer>());
 			this.playerObject[code] = this.playerModelHandler.BuildModel(this.playerObject[code], app, isMale);
 			this.playerRenderer[code] = this.playerObject[code].GetComponent<MeshRenderer>();
 		}

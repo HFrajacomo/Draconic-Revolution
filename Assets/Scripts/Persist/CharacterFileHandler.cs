@@ -70,7 +70,7 @@ public class CharacterFileHandler{
 			this.file.Write(buffer, 0, buffer.Length);
 		}
 		else{
-			AddEntryIndex((long)code, this.indexFile.Length);
+			AddEntryIndex((long)code, this.file.Length);
 			this.index.Add(code, (ulong)this.file.Length);
 			this.indexFile.Seek(0, SeekOrigin.End);
 			this.indexFile.Write(this.indexArray, 0, 16);
