@@ -42,7 +42,7 @@ public class PlayerModelHandler : MonoBehaviour {
 			this.characterBuilder = new CharacterBuilder(go, this.femaleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, isMale, false);
 
 		this.characterBuilder.Build();
-		Rescale(app.race);
+		Rescale(app.race, go);
 
 		return go;
 	}
@@ -61,19 +61,19 @@ public class PlayerModelHandler : MonoBehaviour {
 			this.characterBuilder.ChangeAppearaceAndBuild(app);
 		}
 
-		Rescale(app.race);
+		Rescale(app.race, this.parent);
 	}
 
-	private void Rescale(Race r){
+	private void Rescale(Race r, GameObject go){
 		switch(r){
 			case Race.DWARF:
-				this.parent.transform.localScale = RaceManager.GetSettings(Race.DWARF).scaling * Constants.PLAYER_MODEL_SCALING_FACTOR;
+				go.transform.localScale = RaceManager.GetSettings(Race.DWARF).scaling * Constants.PLAYER_MODEL_SCALING_FACTOR;
 				break;
 			case Race.HALFLING:
-				this.parent.transform.localScale = RaceManager.GetSettings(Race.HALFLING).scaling * Constants.PLAYER_MODEL_SCALING_FACTOR;
+				go.transform.localScale = RaceManager.GetSettings(Race.HALFLING).scaling * Constants.PLAYER_MODEL_SCALING_FACTOR;
 				break;
 			default:
-				this.parent.transform.localScale = RaceManager.GetSettings(Race.HUMAN).scaling * Constants.PLAYER_MODEL_SCALING_FACTOR;
+				go.transform.localScale = RaceManager.GetSettings(Race.HUMAN).scaling * Constants.PLAYER_MODEL_SCALING_FACTOR;
 				break;
 		}
 	}
