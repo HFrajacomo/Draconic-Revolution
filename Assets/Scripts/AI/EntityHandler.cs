@@ -11,7 +11,6 @@ public class EntityHandler
 
 	private Dictionary<ulong, CharacterSheet> playerSheet;
 	private Dictionary<ulong, GameObject> playerObject;
-	private Dictionary<ulong, MeshRenderer> playerRenderer;
 	private Dictionary<ulong, DeltaMove> playerCurrentPositions;
 	private Dictionary<ulong, ItemEntity> dropObject;
 	private Dictionary<ulong, DeltaMove> dropCurrentPositions;
@@ -24,7 +23,6 @@ public class EntityHandler
 	public EntityHandler(ChunkLoader cl){
 		this.playerSheet = new Dictionary<ulong, CharacterSheet>();
 		this.playerObject = new Dictionary<ulong, GameObject>();
-		this.playerRenderer = new Dictionary<ulong, MeshRenderer>();
 		this.playerCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.dropObject = new Dictionary<ulong, ItemEntity>();
 		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
@@ -40,7 +38,7 @@ public class EntityHandler
 
 		if(currentTogglingCounter == 0){
 			foreach(ulong u in playerObject.Keys){
-				this.playerRenderer[u].enabled = this.cl.playerPositionHandler.IsInPlayerRenderDistance(this.playerObject[u].transform.position);
+				this.playerObject[u].SetActive(this.cl.playerPositionHandler.IsInPlayerRenderDistance(this.playerObject[u].transform.position));
 			}
 		}
 		else if(currentTogglingCounter == 1){
@@ -54,7 +52,7 @@ public class EntityHandler
 
 	public void RunSingleActivation(EntityType type, ulong code, float3 pos){
 		if(type == EntityType.PLAYER){
-			this.playerRenderer[code].enabled = this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos);
+			this.playerObject[code].SetActive(this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos));
 		}
 		else if(type == EntityType.DROP){
 			this.dropObject[code].SetVisible(this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos));
@@ -75,7 +73,6 @@ public class EntityHandler
 		GameObject go = GameObject.Instantiate(GameObject.Find("----- PrefabModels -----/PlayerModel"), new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(dir.x, dir.y, dir.z));
 		go.name = "Player_" + code;
 		this.playerObject.Add(code, go);
-		this.playerRenderer.Add(code, go.GetComponent<MeshRenderer>());
 		this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
 		RunSingleActivation(EntityType.PLAYER, code, pos);
 	}
@@ -91,9 +88,7 @@ public class EntityHandler
 
 	public void UpdatePlayerModel(ulong code, CharacterAppearance app, bool isMale){
 		if(this.playerObject.ContainsKey(code)){
-			Object.DestroyImmediate(this.playerObject[code].GetComponent<MeshRenderer>());
 			this.playerObject[code] = this.playerModelHandler.BuildModel(this.playerObject[code], app, isMale);
-			this.playerRenderer[code] = this.playerObject[code].GetComponent<MeshRenderer>();
 		}
 	}
 
@@ -145,7 +140,6 @@ public class EntityHandler
 			this.playerObject[code].SetActive(false);
 			GameObject.Destroy(this.playerObject[code]);
 			this.playerObject.Remove(code);
-			this.playerRenderer.Remove(code);
 			this.playerCurrentPositions.Remove(code);
 			this.playerSheet.Remove(code);
 		}
