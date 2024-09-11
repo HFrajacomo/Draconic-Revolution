@@ -117,35 +117,35 @@ public class Item
 	public MemoryStorageType GetMemoryStorageType(){return (MemoryStorageType)this.memoryType;}
 
 	// Basic Operations
-	public virtual void OnHoldPlayer(ChunkLoader cl, ItemStack its){
+	public virtual void OnHoldPlayer(ChunkLoader cl, ItemStack its, ulong code){
 		if(this.onHoldPlayerBehaviour == null)
 			return;
-		this.onHoldPlayerBehaviour.OnHoldPlayer(cl, its);
+		this.onHoldPlayerBehaviour.OnHoldPlayer(cl, its, code);
 	}
-	public virtual void OnHoldClient(ChunkLoader cl, ItemStack its){
+	public virtual void OnHoldClient(ChunkLoader cl, ItemStack its, ulong code){
 		if(this.onHoldClientBehaviour == null)
 			return;
-		this.onHoldClientBehaviour.OnHoldClient(cl, its);
+		this.onHoldClientBehaviour.OnHoldClient(cl, its, code);
 	}
-	public virtual void OnHoldServer(ChunkLoader_Server cl, ItemStack its){
+	public virtual void OnHoldServer(ChunkLoader_Server cl, ItemStack its, ulong code){
 		if(this.onHoldServerBehaviour == null)
 			return;
-		this.onHoldServerBehaviour.OnHoldServer(cl, its);
+		this.onHoldServerBehaviour.OnHoldServer(cl, its, code);
 	}
-	public virtual void OnUnholdPlayer(ChunkLoader cl, ItemStack its){
+	public virtual void OnUnholdPlayer(ChunkLoader cl, ItemStack its, ulong code){
 		if(this.onUnholdPlayerBehaviour == null)
 			return;
-		this.onUnholdPlayerBehaviour.OnUnholdPlayer(cl, its);
+		this.onUnholdPlayerBehaviour.OnUnholdPlayer(cl, its, code);
 	}
-	public virtual void OnUnholdClient(ChunkLoader cl, ItemStack its){
+	public virtual void OnUnholdClient(ChunkLoader cl, ItemStack its, ulong code){
 		if(this.onUnholdClientBehaviour == null)
 			return;
-		this.onUnholdClientBehaviour.OnUnholdClient(cl, its);
+		this.onUnholdClientBehaviour.OnUnholdClient(cl, its, code);
 	}
-	public virtual void OnUnholdServer(ChunkLoader_Server cl, ItemStack its){
+	public virtual void OnUnholdServer(ChunkLoader_Server cl, ItemStack its, ulong code){
 		if(this.onUnholdServerBehaviour == null)
 			return;
-		this.onUnholdServerBehaviour.OnUnholdServer(cl, its);
+		this.onUnholdServerBehaviour.OnUnholdServer(cl, its, code);
 	}
 	public virtual void OnUseClient(ChunkLoader cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
 		if(this.onUseClientBehaviour == null)

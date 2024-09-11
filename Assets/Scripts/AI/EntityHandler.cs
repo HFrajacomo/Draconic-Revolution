@@ -181,4 +181,14 @@ public class EntityHandler
 	public CharacterSheet GetPlayerSheet(ulong code){
 		return this.playerSheet[code];
 	}
+
+	public Light GetPointLight(EntityType type, ulong code){
+		if(type == EntityType.PLAYER){
+			if(this.playerObject.ContainsKey(code)){
+				return this.playerObject[code].GetComponentInChildren<Light>();
+			}
+		}
+
+		return null;
+	}
 }
