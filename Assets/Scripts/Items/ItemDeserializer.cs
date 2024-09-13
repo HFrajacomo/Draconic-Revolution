@@ -148,6 +148,8 @@ public static class ItemDeserializer {
 		switch(val){
 			case "PlaceBlockBehaviour":
 				return JsonUtility.FromJson<PlaceBlockBehaviour>(jsonSerial);
+			case "CreatePointLightBehaviour":
+				return JsonUtility.FromJson<CreatePointLightBehaviour>(jsonSerial);
 			default:
 				Debug.Log("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
 				return new PlaceBlockBehaviour();

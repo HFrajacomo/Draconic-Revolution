@@ -39,7 +39,7 @@ public class PlayerEvents : MonoBehaviour
     		img.material = Instantiate(this.itemIconMaterial);
     	}
 
-    	this.Scroll1();
+    	this.Scroll1(skipOnUnhold:true);
 
 
         InventoryStaticMessage.SetPlayerInventory(inventory);
@@ -60,55 +60,82 @@ public class PlayerEvents : MonoBehaviour
     }
 
 	// Selects a new item in hotbar
-	public void Scroll1(){
+	public void Scroll1(bool skipOnUnhold=false){
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 0;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
 	}
-	public void Scroll2(){
+	public void Scroll2(bool skipOnUnhold=false){
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 1;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
 	}
-	public void Scroll3(){
+	public void Scroll3(bool skipOnUnhold=false){
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 2;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
 	}
-	public void Scroll4(){
+	public void Scroll4(bool skipOnUnhold=false){
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 3;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
 	}
-	public void Scroll5(){
+	public void Scroll5(bool skipOnUnhold=false){
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 4;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
 	}
-	public void Scroll6(){
+	public void Scroll6(bool skipOnUnhold=false){
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 5;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
 	}
-	public void Scroll7(){
+	public void Scroll7(bool skipOnUnhold=false){
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 6;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
 	}
-	public void Scroll8(){
+	public void Scroll8(bool skipOnUnhold=false){
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 7;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
 	}
-	public void Scroll9(){
+	public void Scroll9(bool skipOnUnhold=false){
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 8;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 48);
 		DrawItemEntity(GetSlotStack());
@@ -116,12 +143,14 @@ public class PlayerEvents : MonoBehaviour
 	}
 	public void MouseScroll(int val){
 		if(val < 0){
+			OnUnholdPlayer();
 			if(PlayerEvents.hotbarSlot == 8)
 				PlayerEvents.hotbarSlot = 0;
 			else
 				PlayerEvents.hotbarSlot++;
 		}
 		else if(val > 0){
+			OnUnholdPlayer();
 			if(PlayerEvents.hotbarSlot == 0)
 				PlayerEvents.hotbarSlot = 8;
 			else
@@ -184,6 +213,16 @@ public class PlayerEvents : MonoBehaviour
 			return;
 
 		its.GetItem().OnHoldPlayer(this.cl, its, Configurations.accountID);
+	}
+
+	// Runs Item OnUnholdPlayer behaviour
+	private void OnUnholdPlayer(){
+		ItemStack its = GetSlotStack();
+
+		if(its == null)
+			return;
+
+		its.GetItem().OnUnholdPlayer(this.cl, its, Configurations.accountID);
 	}
 
 	public void DestroyItemEntity(){

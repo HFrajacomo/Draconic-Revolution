@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Unity.Mathematics;
+using UnityEngine.Rendering.HighDefinition;
 
 [Serializable]
 public class CreatePointLightBehaviour : ItemBehaviour{
@@ -8,30 +9,24 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 	public float lightComponentIntensity;
 	public float lightRange;
 	public Color lightColor;
+	public bool realisticLight;
 
 	public override void OnHoldPlayer(ChunkLoader cl, ItemStack its, ulong playerCode){
-		Light light = cl.client.entityHandler.GetPointLight(EntityType.PLAYER, playerCode);
-
-		if(light == null)
-			return;
+		Light lightComponent = cl.playerSheetController.GetLight();
+		HDAdditionalLightData light = cl.playerSheetController.GetLightData();
 
 		light.color = this.lightColor;
-		light.intensity = this.lightComponentIntensity;
 		light.range = this.lightRange;
+		lightComponent.intensity = this.lightComponentIntensity;
 
-		light.enabled = true;
+		cl.playerSheetController.Enable(this.realisticLight);
 
+		cl.playerSheetController.SetVoxelLightIntensity(this.voxelLightIntensity);
 		cl.voxelLightHandler.Add(new EntityID(EntityType.PLAYER, playerCode), cl.playerPositionHandler.playerTransform.position, this.voxelLightIntensity, priority:true);
 	}
 
 	public override void OnUnholdPlayer(ChunkLoader cl, ItemStack its, ulong playerCode){
-		Light light = cl.client.entityHandler.GetPointLight(EntityType.PLAYER, playerCode);
-
-		if(light == null)
-			return;
-
-		light.enabled = false;
-
+		cl.playerSheetController.Disable(this.realisticLight);
 		cl.voxelLightHandler.Remove(new EntityID(EntityType.PLAYER, playerCode));
 	}
 }
