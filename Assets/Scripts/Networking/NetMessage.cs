@@ -400,6 +400,12 @@ public struct NetMessage
 
 		this.size = 1230; 
 	}
+
+	// Client sends character hotbar position to Server
+	public void SendHotbarPosition(byte hotbarSlot){
+		NetDecoder.WriteByte(hotbarSlot, NetMessage.buffer, 1);
+		this.size = 2;
+	}
 }
 
 public enum NetCode{
@@ -437,6 +443,7 @@ public enum NetCode{
 	REQUESTCHARACTEREXISTENCE,
 	SENDCHARACTERPRELOAD,
 	SENDCHARSHEET,
+	SENDHOTBARPOSITION,
 	DISCONNECTINFO, // No call
 	DISCONNECT  // No call
 }

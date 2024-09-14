@@ -406,6 +406,9 @@ public class Server
 			case NetCode.SENDCHARSHEET:
 				SendCharSheet(data, id);
 				break;
+			case NetCode.SENDHOTBARPOSITION:
+				SendHotbarPosition(data, id);
+				break;
 			case NetCode.DISCONNECTINFO:
 				DisconnectInfo(id);
 				break;
@@ -1211,6 +1214,13 @@ public class Server
 		CharacterSheet sheet = NetDecoder.ReadCharacterSheet(data, 9);
 
 		this.cl.characterFileHandler.SaveCharacterSheet(charID, sheet);
+	}
+
+	// Receives the current hotbar slot in player's hand
+	public void SendHotbarPosition(byte[] data, ulong id){
+		byte slot = NetDecoder.ReadByte(data, 1);
+
+		return;
 	}
 
 	// Receives a Disconnect message from InfoClient

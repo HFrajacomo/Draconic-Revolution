@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 1920
     height: 997
   m_ShowMode: 4
-  m_Title: Console
+  m_Title: Game
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -323,7 +323,7 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: 36d9ffffd0faffffaad7000084dd0000
+      m_ExpandedIDs: 8c77fcffd265fdff464cfeff3aaeffffd0faffffa8080100540e0100c8d701002afc0100
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 

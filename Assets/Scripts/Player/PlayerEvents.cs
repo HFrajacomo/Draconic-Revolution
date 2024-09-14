@@ -68,6 +68,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
+		SendHotbarInfoToServer();
 	}
 	public void Scroll2(bool skipOnUnhold=false){
 		if(!skipOnUnhold)
@@ -77,6 +78,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
+		SendHotbarInfoToServer();
 	}
 	public void Scroll3(bool skipOnUnhold=false){
 		if(!skipOnUnhold)
@@ -86,6 +88,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
+		SendHotbarInfoToServer();
 	}
 	public void Scroll4(bool skipOnUnhold=false){
 		if(!skipOnUnhold)
@@ -95,6 +98,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
+		SendHotbarInfoToServer();
 	}
 	public void Scroll5(bool skipOnUnhold=false){
 		if(!skipOnUnhold)
@@ -104,6 +108,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
+		SendHotbarInfoToServer();
 	}
 	public void Scroll6(bool skipOnUnhold=false){
 		if(!skipOnUnhold)
@@ -113,6 +118,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
+		SendHotbarInfoToServer();
 	}
 	public void Scroll7(bool skipOnUnhold=false){
 		if(!skipOnUnhold)
@@ -122,6 +128,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
+		SendHotbarInfoToServer();
 	}
 	public void Scroll8(bool skipOnUnhold=false){
 		if(!skipOnUnhold)
@@ -131,6 +138,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
+		SendHotbarInfoToServer();
 	}
 	public void Scroll9(bool skipOnUnhold=false){
 		if(!skipOnUnhold)
@@ -140,6 +148,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
+		SendHotbarInfoToServer();
 	}
 	public void MouseScroll(int val){
 		if(val < 0){
@@ -162,6 +171,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(PlayerEvents.hotbarSlot-1), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
+		SendHotbarInfoToServer();
 	}
 
 	// Returns the ItemStack selected in hotbar
@@ -275,4 +285,10 @@ public class PlayerEvents : MonoBehaviour
 		this.handItem.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
 	}
 	*/
+
+	private void SendHotbarInfoToServer(){
+		NetMessage message = new NetMessage(NetCode.SENDHOTBARPOSITION);
+		message.SendHotbarPosition(PlayerEvents.hotbarSlot);
+		this.cl.client.Send(message);
+	}
 }
