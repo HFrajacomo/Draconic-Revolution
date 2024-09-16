@@ -31,7 +31,7 @@ public class CharacterFileHandler{
 	private Stream indexFile;
 
 	private byte[] indexArray = new byte[16];
-	private byte[] buffer = new byte[1221]; // Total CharacterSheet size 
+	private byte[] buffer = new byte[1222]; // Total CharacterSheet size 
 
 	private Dictionary<ulong, ulong> index = new Dictionary<ulong, ulong>();
 

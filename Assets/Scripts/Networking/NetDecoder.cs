@@ -128,7 +128,7 @@ public static class NetDecoder
 		return new SpecialEffect((EffectType)NetDecoder.ReadUshort(data, pos), (EffectUsecase)NetDecoder.ReadByte(data, pos+2), NetDecoder.ReadByte(data, pos+3), NetDecoder.ReadUshort(data, pos+4), NetDecoder.ReadBool(data, pos+6));
 	}
 
-	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1221
+	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1222
 		CharacterSheet cs = new CharacterSheet();
 		SpecialEffect cachedFX;
 
@@ -266,6 +266,8 @@ public static class NetDecoder
 		pos += 2;
 		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
 		pos += 247;
+		cs.SetHotbarSlot(NetDecoder.ReadByte(data, pos));
+		pos++;
 
 		for(int i=0; i < 100; i++){
 			cachedFX = NetDecoder.ReadSpecialEffect(data, pos);
@@ -602,6 +604,8 @@ public static class NetDecoder
 		pos += 2;
 		NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
 		pos += 247;
+		NetDecoder.WriteByte(sheet.GetHotbarSlot(), data, pos);
+		pos++;
 
 		List<SpecialEffect> sfxList = sheet.GetSpecialEffectHandler().GetAllEffects();
 

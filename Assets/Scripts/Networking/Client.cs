@@ -289,6 +289,10 @@ public class Client
 		initialCoord = new CastCoord(x, y, z);
 		this.cl.time.SetCurrentChunkPos(initialCoord.GetChunkPos());
 		this.cl.time.SendChunkPosMessage();
+
+		NetMessage message = new NetMessage(NetCode.REQUESTCHARACTERSHEET);
+		message.RequestCharacterExistence(Configurations.accountID);
+		this.Send(message);
 	}
 
 	// Receives a Chunk
@@ -479,7 +483,14 @@ public class Client
 		ulong code = NetDecoder.ReadUlong(data, 1);
 		CharacterSheet sheet = NetDecoder.ReadCharacterSheet(data, 9);
 
-		this.entityHandler.AddPlayerSheet(code, sheet);
+		if(code == Configurations.accountID){
+			this.entityHandler.AddPlayerSheet(code, sheet);
+			this.cl.playerSheetController.SetSheet(sheet);
+			this.cl.playerEvents.ScrollToSlot(sheet.GetHotbarSlot());
+		}
+		else{
+			this.entityHandler.AddPlayerSheet(code, sheet);			
+		}
 	}
 
 	// Receives entity deletion command

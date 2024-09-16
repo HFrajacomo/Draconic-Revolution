@@ -174,6 +174,17 @@ public class PlayerEvents : MonoBehaviour
 		SendHotbarInfoToServer();
 	}
 
+	public void ScrollToSlot(byte slot){
+		if(PlayerEvents.hotbarSlot == slot)
+			return;
+
+		PlayerEvents.hotbarSlot = slot;
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 48);
+		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		SendHotbarInfoToServer();
+	}
+
 	// Returns the ItemStack selected in hotbar
 	public ItemStack GetSlotStack(){
 		return hotbar.GetSlot(PlayerEvents.hotbarSlot);
