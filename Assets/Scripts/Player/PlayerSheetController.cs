@@ -10,7 +10,7 @@ public class PlayerSheetController : MonoBehaviour {
 
 	private float voxelLightIntensity = 0f;
 
-	void Start(){
+	void Awake(){
 		this.characterLight = this.gameObject.AddComponent<Light>();
 		this.HDRPLightData = this.gameObject.AddComponent<HDAdditionalLightData>();
 		this.realisticLight = this.gameObject.AddComponent<RealisticLight>();

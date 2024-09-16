@@ -1203,6 +1203,10 @@ public class Server
 		if(this.cachedSheet == null)
 			return;
 
+		if(!this.entityHandler.ContainsSheet(code)){
+			this.entityHandler.AddPlayerSheet(code, this.cachedSheet);
+		}
+
 		NetMessage message = new NetMessage(NetCode.SENDCHARSHEET);
 		message.SendCharSheet(code, this.cachedSheet);
 		this.Send(message.GetMessage(), message.size, id);
@@ -1219,8 +1223,17 @@ public class Server
 	// Receives the current hotbar slot in player's hand
 	public void SendHotbarPosition(byte[] data, ulong id){
 		byte slot = NetDecoder.ReadByte(data, 1);
+		CharacterSheet sheet;
 
-		return;
+		if(this.entityHandler.ContainsSheet(id)){
+			sheet = this.entityHandler.GetSheet(id);
+			sheet.SetHotbarSlot(slot);
+			this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
+		}
+
+		// TODO: Create a way of saving CharacterSheets on closure
+		// TODO: Handle in OnHold and Unhold on Server
+		// TODO: Send to all except client
 	}
 
 	// Receives a Disconnect message from InfoClient

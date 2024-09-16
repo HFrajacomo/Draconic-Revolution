@@ -25,6 +25,7 @@ public class PlayerEvents : MonoBehaviour
 	// Hotbar
 	public static byte hotbarSlot = 0;
 	public static ItemEntityHand itemInHand;
+	private static bool STARTED = false;
 
 	// Unity Reference
 	private GameObject character;
@@ -39,14 +40,15 @@ public class PlayerEvents : MonoBehaviour
     		img.material = Instantiate(this.itemIconMaterial);
     	}
 
-    	this.Scroll1(skipOnUnhold:true);
-
-
         InventoryStaticMessage.SetPlayerInventory(inventory);
         InventoryStaticMessage.SetInventory(hotbar);
         invUIPlayer.OpenInventory(inventory, hotbar);
 
         this.DrawHotbar();
+    }
+
+    void OnDisable(){
+    	PlayerEvents.STARTED = false;
     }
 
     public void SetInventories(Inventory inv, Inventory hotbar){
@@ -174,15 +176,16 @@ public class PlayerEvents : MonoBehaviour
 		SendHotbarInfoToServer();
 	}
 
+	// Scrolls to a given slot. Only works once when receiving Player Character information to set the hotbar position
 	public void ScrollToSlot(byte slot){
-		if(PlayerEvents.hotbarSlot == slot)
-			return;
-
-		PlayerEvents.hotbarSlot = slot;
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 48);
-		DrawItemEntity(GetSlotStack());
-		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		if(!PlayerEvents.STARTED){
+			PlayerEvents.hotbarSlot = slot;
+			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(slot), 48);
+			DrawItemEntity(GetSlotStack());
+			OnHoldPlayer();
+			SendHotbarInfoToServer();
+			PlayerEvents.STARTED = true;
+		}
 	}
 
 	// Returns the ItemStack selected in hotbar

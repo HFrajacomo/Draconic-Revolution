@@ -6,6 +6,7 @@ using Unity.Mathematics;
 
 public class EntityHandler_Server
 {
+    public Dictionary<ulong, CharacterSheet> playerSheet;
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> playerObject;
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> dropObject;
 
@@ -15,6 +16,7 @@ public class EntityHandler_Server
 
 
     public EntityHandler_Server(){
+        this.playerSheet = new Dictionary<ulong, CharacterSheet>();
         this.playerObject = new Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>>();
         this.dropObject = new Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>>();
         this.availableDropCodes = new AvailabilityQueue();
@@ -103,12 +105,29 @@ public class EntityHandler_Server
         return false;
     }
 
+    // Retrieves the CharacterSheet
+    public CharacterSheet GetSheet(ulong code){
+        return this.playerSheet[code];
+    }
+
+    // Checks if EntityHandler has the player sheet loaded
+    public bool ContainsSheet(ulong code){
+        return this.playerSheet.ContainsKey(code);
+    }
+
     // Only works while there is no other EntityType
     public void AddPlayer(ChunkPos chunk, ulong code, float3 pos, float3 dir, ChunkLoader_Server cl){
         if(!this.playerObject.ContainsKey(chunk))
             this.playerObject.Add(chunk, new Dictionary<ulong, AbstractAI>());
 
         this.playerObject[chunk].Add(code, new PlayerAI(pos, dir, code, this, cl));
+    }
+
+    // Creates a Player Sheet reference
+    public void AddPlayerSheet(ulong code, CharacterSheet sheet){
+        if(!this.playerSheet.ContainsKey(code)){
+            this.playerSheet.Add(code, sheet);
+        }
     }
 
     // Issued command from Server class
@@ -179,6 +198,9 @@ public class EntityHandler_Server
                 this.playerObject[pos].Remove(code);
                 if(this.playerObject[pos].Count == 0)
                     this.playerObject.Remove(pos);
+            }
+            if(this.playerSheet.ContainsKey(code)){
+                this.playerSheet.Remove(code);
             }
         }
         else if(type == EntityType.DROP){
