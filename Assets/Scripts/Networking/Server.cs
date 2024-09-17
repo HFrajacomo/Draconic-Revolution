@@ -1223,16 +1223,22 @@ public class Server
 	// Receives the current hotbar slot in player's hand
 	public void SendHotbarPosition(byte[] data, ulong id){
 		byte slot = NetDecoder.ReadByte(data, 1);
+		byte previousSlot;
 		CharacterSheet sheet;
 
 		if(this.entityHandler.ContainsSheet(id)){
 			sheet = this.entityHandler.GetSheet(id);
+			previousSlot = sheet.GetHotbarSlot();
+
 			sheet.SetHotbarSlot(slot);
 			this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
+
+			if(previousSlot != slot){
+				this.cl.playerServerInventory.GetSlot(id, previousSlot).OnUnholdServer(this.cl, id);
+				this.cl.playerServerInventory.GetSlot(id, slot).OnHoldServer(this.cl, id);
+			}
 		}
 
-		// TODO: Create a way of saving CharacterSheets on closure
-		// TODO: Handle in OnHold and Unhold on Server
 		// TODO: Send to all except client
 	}
 

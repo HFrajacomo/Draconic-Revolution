@@ -87,7 +87,7 @@ public class EmptyPlayerInventorySlot : PlayerServerInventorySlot {
 		return this.slotMemorySize;
 	}
 
-	public override int GetItemID(){return -1;}
+	public override int GetItemID(){return 0;}
 
 	public override int GetQuantity(){return 0;}
 }

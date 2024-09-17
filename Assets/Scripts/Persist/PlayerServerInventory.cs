@@ -86,6 +86,11 @@ public class PlayerServerInventory{
         }
     }
 
+    // Fetches the Item in a slot directly from the buffer data
+    public Item GetSlot(ulong playerCode, byte slot){
+        return ItemLoader.GetItem((ushort)this.inventories[playerCode][slot].GetItemID());
+    }
+
     /*
     Removes inventory from this handler
     */
