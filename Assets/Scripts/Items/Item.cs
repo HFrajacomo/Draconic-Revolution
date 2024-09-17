@@ -127,10 +127,10 @@ public class Item
 			return;
 		this.onHoldClientBehaviour.OnHoldClient(cl, its, code);
 	}
-	public virtual void OnHoldServer(ChunkLoader_Server cl, ulong code){
+	public virtual void OnHoldServer(ChunkLoader_Server cl, ItemStack its, ulong code){
 		if(this.onHoldServerBehaviour == null)
 			return;
-		this.onHoldServerBehaviour.OnHoldServer(cl, this, code);
+		this.onHoldServerBehaviour.OnHoldServer(cl, its, code);
 	}
 	public virtual void OnUnholdPlayer(ChunkLoader cl, ItemStack its, ulong code){
 		if(this.onUnholdPlayerBehaviour == null)
@@ -142,20 +142,20 @@ public class Item
 			return;
 		this.onUnholdClientBehaviour.OnUnholdClient(cl, its, code);
 	}
-	public virtual void OnUnholdServer(ChunkLoader_Server cl, ulong code){
+	public virtual void OnUnholdServer(ChunkLoader_Server cl, ItemStack its, ulong code){
 		if(this.onUnholdServerBehaviour == null)
 			return;
-		this.onUnholdServerBehaviour.OnUnholdServer(cl, this, code);
+		this.onUnholdServerBehaviour.OnUnholdServer(cl, its, code);
 	}
 	public virtual void OnUseClient(ChunkLoader cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
 		if(this.onUseClientBehaviour == null)
 			return;
 		this.onUseClientBehaviour.OnUseClient(cl, its, usagePos, targetBlock, referencePoint1, referencePoint2, referencePoint3);
 	}
-	public virtual void OnUseServer(ChunkLoader_Server cl, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
+	public virtual void OnUseServer(ChunkLoader_Server cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
 		if(this.onUseServerBehaviour == null)
 			return;
-		this.onUseServerBehaviour.OnUseServer(cl, this, usagePos, targetBlock, referencePoint1, referencePoint2, referencePoint3);
+		this.onUseServerBehaviour.OnUseServer(cl, its, usagePos, targetBlock, referencePoint1, referencePoint2, referencePoint3);
 	}
 
 	public void SetupAfterSerialize(bool isClient){

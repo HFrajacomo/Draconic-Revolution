@@ -9,6 +9,7 @@ public abstract class PlayerServerInventorySlot{
 	protected byte quantity;
 
 	public int GetSlotMemorySize(){return this.slotMemorySize;}
+	public ItemStack GetItemStack(){return new ItemStack(this.itemID, this.quantity);}
 	public abstract int SaveToBuffer(byte[] buffer, int init);
 	public virtual int GetItemID(){return (int)this.itemID;}
 	public virtual int GetQuantity(){return 1;}

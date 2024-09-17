@@ -1225,6 +1225,8 @@ public class Server
 		byte slot = NetDecoder.ReadByte(data, 1);
 		byte previousSlot;
 		CharacterSheet sheet;
+		PlayerServerInventorySlot psiSlot;
+		ItemStack hotbarStack;
 
 		if(this.entityHandler.ContainsSheet(id)){
 			sheet = this.entityHandler.GetSheet(id);
@@ -1234,8 +1236,11 @@ public class Server
 			this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
 
 			if(previousSlot != slot){
-				this.cl.playerServerInventory.GetSlot(id, previousSlot).OnUnholdServer(this.cl, id);
-				this.cl.playerServerInventory.GetSlot(id, slot).OnHoldServer(this.cl, id);
+				psiSlot = this.cl.playerServerInventory.GetSlot(id, previousSlot);
+				hotbarStack = psiSlot.GetItemStack();
+
+				hotbarStack.GetItem().OnUnholdServer(this.cl, hotbarStack, id);
+				hotbarStack.GetItem().OnHoldServer(this.cl, hotbarStack, id);
 			}
 		}
 
