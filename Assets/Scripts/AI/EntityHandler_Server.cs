@@ -7,8 +7,11 @@ using Unity.Mathematics;
 public class EntityHandler_Server
 {
     public Dictionary<ulong, CharacterSheet> playerSheet;
+
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> playerObject;
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> dropObject;
+    public Dictionary<ulong, float3> playerPosition;
+    public Dictionary<ulong, float3> playerRotation;
 
     private List<EntityID> toRemove;
     private AvailabilityQueue availableDropCodes;

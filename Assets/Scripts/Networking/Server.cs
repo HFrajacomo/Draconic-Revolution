@@ -30,6 +30,8 @@ public class Server
 	public Dictionary<ChunkPos, HashSet<ulong>> chunksRequested;
 	private Dictionary<ulong, byte[]> receiveBuffer;
 
+	private Dictionary<ulong, ChunkPos> playerToChunk;
+
 	private HashSet<ChunkPos> chunksToSend = new HashSet<ChunkPos>();
 
 	public EntityHandler_Server entityHandler = new EntityHandler_Server();
@@ -73,6 +75,7 @@ public class Server
     	playersInChunk = new Dictionary<ChunkPos, HashSet<ulong>>();
     	receiveBuffer = new Dictionary<ulong, byte[]>();
     	chunksRequested = new Dictionary<ChunkPos, HashSet<ulong>>();
+    	playerToChunk = new Dictionary<ulong, ChunkPos>();
 
     	this.cl = cl;
     	
@@ -913,6 +916,11 @@ public class Server
 				chunksRequested.Remove(pos);
 		}
 
+		// Remove player last known chunk
+		if(this.playerToChunk.ContainsKey(id)){
+			this.playerToChunk.Remove(id);
+		}
+
 		if(type == DisconnectType.QUIT)
 			Debug.Log("ID: " + id + " has disconnected");
 		else if(type == DisconnectType.LOSTCONNECTION)
@@ -976,6 +984,10 @@ public class Server
 				if(this.entityHandler.Contains(EntityType.PLAYER, lastPos, id))
 					this.entityHandler.Remove(EntityType.PLAYER, lastPos, id);
 			}
+
+			if(this.playerToChunk.ContainsKey(id)){
+				this.playerToChunk[id] = newPos;
+			}
 		}
 
 		// Add new ChunkPos
@@ -983,6 +995,11 @@ public class Server
 			this.playersInChunk.Add(newPos, new HashSet<ulong>(){id});
 		else
 			this.playersInChunk[newPos].Add(id);
+
+		// Add new ChunkPos to PlayerToChunk
+		if(!this.playerToChunk.ContainsKey(id)){
+			this.playerToChunk.Add(id, newPos);
+		}
 
 		// Finds the connections
 		ChunkPos targetPos;
@@ -1227,6 +1244,7 @@ public class Server
 		CharacterSheet sheet;
 		PlayerServerInventorySlot psiSlot;
 		ItemStack hotbarStack;
+		NetMessage message;
 
 		if(this.entityHandler.ContainsSheet(id)){
 			sheet = this.entityHandler.GetSheet(id);
@@ -1241,10 +1259,12 @@ public class Server
 
 				hotbarStack.GetItem().OnUnholdServer(this.cl, hotbarStack, id);
 				hotbarStack.GetItem().OnHoldServer(this.cl, hotbarStack, id);
+
+				message = new NetMessage(NetCode.SENDITEMINHAND);
+				message.SendItemInHand(id, hotbarStack.GetID());
+				this.SendToClientsExcept(id, message);
 			}
 		}
-
-		// TODO: Send to all except client
 	}
 
 	// Receives a Disconnect message from InfoClient
@@ -1271,12 +1291,17 @@ public class Server
 	}
 
 	// Send input message to all Clients connected to a given Chunk except the given one
-	public void SendToClientsExcept(ChunkPos pos, NetMessage message, ulong exception){
+	public void SendToClientsExcept(ulong playerCode, NetMessage message){
+		if(!this.playerToChunk.ContainsKey(playerCode))
+			return;
+
+		ChunkPos pos = this.playerToChunk[playerCode];
+
 		if(!this.cl.loadedChunks.ContainsKey(pos))
 			return;
 
 		foreach(ulong i in this.cl.loadedChunks[pos]){
-			if(i == exception)
+			if(i == playerCode)
 				continue;
 			this.Send(message.GetMessage(), message.size, i);
 		}

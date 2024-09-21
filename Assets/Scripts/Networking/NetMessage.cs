@@ -406,6 +406,13 @@ public struct NetMessage
 		NetDecoder.WriteByte(hotbarSlot, NetMessage.buffer, 1);
 		this.size = 2;
 	}
+
+	// Server sends character item in hand to Clients
+	public void SendItemInHand(ulong playerCode, ushort itemID){
+		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
+		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 9);
+		this.size = 11;
+	}
 }
 
 public enum NetCode{
@@ -444,6 +451,7 @@ public enum NetCode{
 	SENDCHARACTERPRELOAD,
 	SENDCHARSHEET,
 	SENDHOTBARPOSITION,
+	SENDITEMINHAND,
 	DISCONNECTINFO, // No call
 	DISCONNECT  // No call
 }
