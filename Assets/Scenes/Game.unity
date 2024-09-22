@@ -14325,6 +14325,7 @@ GameObject:
   - component: {fileID: 1049375644}
   - component: {fileID: 1049375646}
   - component: {fileID: 1049375645}
+  - component: {fileID: 1049375647}
   m_Layer: 0
   m_Name: PlayerModel
   m_TagString: Untagged
@@ -14354,7 +14355,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1049375643}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
@@ -14554,6 +14555,25 @@ Light:
   m_LightUnit: 0
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!114 &1049375647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1049375643}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de5e46afe9f8bc345ab7c5141f50588c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lightComponent: {fileID: 0}
+  maxLightLevel: 0
+  minLightLevel: 0
+  minLightPercentage: 0.7
+  deltaLight: 0
+  decreasing: 1
+  steps: 150
 --- !u!1 &1053948237
 GameObject:
   m_ObjectHideFlags: 0

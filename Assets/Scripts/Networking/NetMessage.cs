@@ -408,10 +408,11 @@ public struct NetMessage
 	}
 
 	// Server sends character item in hand to Clients
-	public void SendItemInHand(ulong playerCode, ushort itemID){
+	public void SendItemInHand(ulong playerCode, ushort itemID, byte amount){
 		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
 		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 9);
-		this.size = 11;
+		NetDecoder.WriteByte(amount, NetMessage.buffer, 11);
+		this.size = 12;
 	}
 }
 

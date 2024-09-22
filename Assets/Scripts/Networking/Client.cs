@@ -245,6 +245,9 @@ public class Client
 			case NetCode.SENDNOISE:
 				SendNoise(data);
 				break;
+			case NetCode.SENDITEMINHAND:
+				SendItemInHand(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -681,6 +684,17 @@ public class Client
 		Array.Copy(GenerationSeed.weatherNoise, 0, data, 1, data.Length-5);
 		int seed = NetDecoder.ReadInt(data, data.Length-4);
 		World.worldSeed = seed;
+	}
+
+	// Receives the item code for an item a player is holding
+	private void SendItemInHand(byte[] data){
+		ulong playerCode = NetDecoder.ReadUlong(data, 1);
+		ushort item = NetDecoder.ReadUshort(data, 9);
+		byte amount = data[11];
+
+		Debug.Log($"RECEIVED FROM PLAYER: {playerCode}, item number: {item}");
+
+		this.entityHandler.UpdatePlayerItem(playerCode, item, amount);
 	}
 
 	/* ================================================================================ */

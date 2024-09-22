@@ -9,7 +9,9 @@
 {
     "onUseClient": "PlaceBlockBehaviour",
     "onHoldPlayer": "CreatePointLightBehaviour",
-    "onUnholdPlayer": "CreatePointLightBehaviour"
+    "onUnholdPlayer": "CreatePointLightBehaviour",
+    "onHoldClient": "CreatePointLightBehaviour",
+    "onUnholdClient": "CreatePointLightBehaviour"
 }
 --->PlaceBlockBehaviour
 {

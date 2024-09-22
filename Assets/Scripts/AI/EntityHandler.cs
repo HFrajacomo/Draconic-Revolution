@@ -11,6 +11,7 @@ public class EntityHandler
 
 	private Dictionary<ulong, CharacterSheet> playerSheet;
 	private Dictionary<ulong, GameObject> playerObject;
+	private Dictionary<ulong, ushort> playerItem;
 	private Dictionary<ulong, DeltaMove> playerCurrentPositions;
 	private Dictionary<ulong, ItemEntity> dropObject;
 	private Dictionary<ulong, DeltaMove> dropCurrentPositions;
@@ -23,6 +24,7 @@ public class EntityHandler
 	public EntityHandler(ChunkLoader cl){
 		this.playerSheet = new Dictionary<ulong, CharacterSheet>();
 		this.playerObject = new Dictionary<ulong, GameObject>();
+		this.playerItem = new Dictionary<ulong, ushort>();
 		this.playerCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.dropObject = new Dictionary<ulong, ItemEntity>();
 		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
@@ -73,6 +75,7 @@ public class EntityHandler
 		GameObject go = GameObject.Instantiate(GameObject.Find("----- PrefabModels -----/PlayerModel"), new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(dir.x, dir.y, dir.z));
 		go.name = "Player_" + code;
 		this.playerObject.Add(code, go);
+		this.playerItem.Add(code, 0);
 		this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
 		RunSingleActivation(EntityType.PLAYER, code, pos);
 	}
@@ -137,9 +140,12 @@ public class EntityHandler
 	// ...
 	public void Remove(EntityType type, ulong code){
 		if(type == EntityType.PLAYER){
+			UpdatePlayerItem(code, 0, 1);
+			
 			this.playerObject[code].SetActive(false);
 			GameObject.Destroy(this.playerObject[code]);
 			this.playerObject.Remove(code);
+			this.playerItem.Remove(code);
 			this.playerCurrentPositions.Remove(code);
 			this.playerSheet.Remove(code);
 		}
@@ -182,6 +188,10 @@ public class EntityHandler
 		return this.playerSheet[code];
 	}
 
+	public GameObject GetPlayerObject(ulong code){
+		return this.playerObject[code];
+	}
+
 	public Light GetPointLight(EntityType type, ulong code){
 		if(type == EntityType.PLAYER){
 			if(this.playerObject.ContainsKey(code)){
@@ -190,5 +200,17 @@ public class EntityHandler
 		}
 
 		return null;
+	}
+
+	public void UpdatePlayerItem(ulong playerCode, ushort item, byte quantity){
+		if(!this.playerItem.ContainsKey(playerCode))
+			return;
+
+		ushort oldItem = this.playerItem[playerCode];
+
+		ItemLoader.GetItem(oldItem).OnUnholdClient(this.cl, new ItemStack(oldItem, 1), playerCode);
+		this.playerItem[playerCode] = item;
+		ItemLoader.GetItem(item).OnHoldClient(this.cl, new ItemStack(item, quantity), playerCode);
+
 	}
 }

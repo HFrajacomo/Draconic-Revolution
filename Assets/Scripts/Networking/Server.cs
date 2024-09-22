@@ -1221,6 +1221,7 @@ public class Server
 			return;
 
 		if(!this.entityHandler.ContainsSheet(code)){
+			Debug.Log("LOADED CHARACTER SHEET FOR: " + code);
 			this.entityHandler.AddPlayerSheet(code, this.cachedSheet);
 		}
 
@@ -1254,14 +1255,14 @@ public class Server
 			this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
 
 			if(previousSlot != slot){
-				psiSlot = this.cl.playerServerInventory.GetSlot(id, previousSlot);
+				psiSlot = this.cl.playerServerInventory.GetSlot(id, slot);
 				hotbarStack = psiSlot.GetItemStack();
 
 				hotbarStack.GetItem().OnUnholdServer(this.cl, hotbarStack, id);
 				hotbarStack.GetItem().OnHoldServer(this.cl, hotbarStack, id);
 
 				message = new NetMessage(NetCode.SENDITEMINHAND);
-				message.SendItemInHand(id, hotbarStack.GetID());
+				message.SendItemInHand(id, hotbarStack.GetID(), hotbarStack.GetAmount());
 				this.SendToClientsExcept(id, message);
 			}
 		}
