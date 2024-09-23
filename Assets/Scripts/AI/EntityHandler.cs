@@ -5,10 +5,13 @@ using Unity.Mathematics;
 
 public class EntityHandler
 {
+	// Unity Reference
 	private ChunkLoader cl;
+	private PlayerModelHandler playerModelHandler;
 
+	private Dictionary<ulong, CharacterSheet> playerSheet;
 	private Dictionary<ulong, GameObject> playerObject;
-	private Dictionary<ulong, MeshRenderer> playerRenderer;
+	private Dictionary<ulong, ushort> playerItem;
 	private Dictionary<ulong, DeltaMove> playerCurrentPositions;
 	private Dictionary<ulong, ItemEntity> dropObject;
 	private Dictionary<ulong, DeltaMove> dropCurrentPositions;
@@ -19,12 +22,14 @@ public class EntityHandler
 
 
 	public EntityHandler(ChunkLoader cl){
+		this.playerSheet = new Dictionary<ulong, CharacterSheet>();
 		this.playerObject = new Dictionary<ulong, GameObject>();
-		this.playerRenderer = new Dictionary<ulong, MeshRenderer>();
+		this.playerItem = new Dictionary<ulong, ushort>();
 		this.playerCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.dropObject = new Dictionary<ulong, ItemEntity>();
 		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.cl = cl;
+		this.playerModelHandler = cl.playerModelHandler;
 	}
 
 	/*
@@ -35,7 +40,7 @@ public class EntityHandler
 
 		if(currentTogglingCounter == 0){
 			foreach(ulong u in playerObject.Keys){
-				this.playerRenderer[u].enabled = this.cl.playerPositionHandler.IsInPlayerRenderDistance(this.playerObject[u].transform.position);
+				this.playerObject[u].SetActive(this.cl.playerPositionHandler.IsInPlayerRenderDistance(this.playerObject[u].transform.position));
 			}
 		}
 		else if(currentTogglingCounter == 1){
@@ -49,7 +54,7 @@ public class EntityHandler
 
 	public void RunSingleActivation(EntityType type, ulong code, float3 pos){
 		if(type == EntityType.PLAYER){
-			this.playerRenderer[code].enabled = this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos);
+			this.playerObject[code].SetActive(this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos));
 		}
 		else if(type == EntityType.DROP){
 			this.dropObject[code].SetVisible(this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos));
@@ -70,9 +75,24 @@ public class EntityHandler
 		GameObject go = GameObject.Instantiate(GameObject.Find("----- PrefabModels -----/PlayerModel"), new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(dir.x, dir.y, dir.z));
 		go.name = "Player_" + code;
 		this.playerObject.Add(code, go);
-		this.playerRenderer.Add(code, go.GetComponent<MeshRenderer>());
+		this.playerItem.Add(code, 0);
 		this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
 		RunSingleActivation(EntityType.PLAYER, code, pos);
+	}
+
+	public void AddPlayerSheet(ulong code, CharacterSheet sheet){
+		if(this.playerSheet.ContainsKey(code)){
+			this.playerSheet[code] = sheet;
+		}
+		else{
+			this.playerSheet.Add(code, sheet);
+		}
+	}
+
+	public void UpdatePlayerModel(ulong code, CharacterAppearance app, bool isMale){
+		if(this.playerObject.ContainsKey(code)){
+			this.playerObject[code] = this.playerModelHandler.BuildModel(this.playerObject[code], app, isMale);
+		}
 	}
 
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){
@@ -120,11 +140,14 @@ public class EntityHandler
 	// ...
 	public void Remove(EntityType type, ulong code){
 		if(type == EntityType.PLAYER){
+			UpdatePlayerItem(code, 0, 1);
+			
 			this.playerObject[code].SetActive(false);
 			GameObject.Destroy(this.playerObject[code]);
 			this.playerObject.Remove(code);
-			this.playerRenderer.Remove(code);
+			this.playerItem.Remove(code);
 			this.playerCurrentPositions.Remove(code);
+			this.playerSheet.Remove(code);
 		}
 		else if(type == EntityType.DROP){
 			this.dropObject[code].go.SetActive(false);
@@ -159,5 +182,35 @@ public class EntityHandler
 			return this.playerCurrentPositions[code].deltaRot;
 		else
 			return this.dropCurrentPositions[code].deltaRot;
+	}
+
+	public CharacterSheet GetPlayerSheet(ulong code){
+		return this.playerSheet[code];
+	}
+
+	public GameObject GetPlayerObject(ulong code){
+		return this.playerObject[code];
+	}
+
+	public Light GetPointLight(EntityType type, ulong code){
+		if(type == EntityType.PLAYER){
+			if(this.playerObject.ContainsKey(code)){
+				return this.playerObject[code].GetComponentInChildren<Light>();
+			}
+		}
+
+		return null;
+	}
+
+	public void UpdatePlayerItem(ulong playerCode, ushort item, byte quantity){
+		if(!this.playerItem.ContainsKey(playerCode))
+			return;
+
+		ushort oldItem = this.playerItem[playerCode];
+
+		ItemLoader.GetItem(oldItem).OnUnholdClient(this.cl, new ItemStack(oldItem, 1), playerCode);
+		this.playerItem[playerCode] = item;
+		ItemLoader.GetItem(item).OnHoldClient(this.cl, new ItemStack(item, quantity), playerCode);
+
 	}
 }

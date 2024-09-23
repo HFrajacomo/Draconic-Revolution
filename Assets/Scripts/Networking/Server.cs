@@ -30,6 +30,8 @@ public class Server
 	public Dictionary<ChunkPos, HashSet<ulong>> chunksRequested;
 	private Dictionary<ulong, byte[]> receiveBuffer;
 
+	private Dictionary<ulong, ChunkPos> playerToChunk;
+
 	private HashSet<ChunkPos> chunksToSend = new HashSet<ChunkPos>();
 
 	public EntityHandler_Server entityHandler = new EntityHandler_Server();
@@ -73,6 +75,7 @@ public class Server
     	playersInChunk = new Dictionary<ChunkPos, HashSet<ulong>>();
     	receiveBuffer = new Dictionary<ulong, byte[]>();
     	chunksRequested = new Dictionary<ChunkPos, HashSet<ulong>>();
+    	playerToChunk = new Dictionary<ulong, ChunkPos>();
 
     	this.cl = cl;
     	
@@ -370,6 +373,9 @@ public class Server
 			case NetCode.CLIENTPLAYERPOSITION:
 				ClientPlayerPosition(data, id);
 				break;
+			case NetCode.REQUESTPLAYERAPPEARANCE:
+				RequestPlayerAppearance(data, id);
+				break;
 			case NetCode.DISCONNECT:
 				Disconnect(id, DisconnectType.QUIT);
 				break;
@@ -397,8 +403,14 @@ public class Server
 			case NetCode.REQUESTCHARACTEREXISTENCE:
 				RequestCharacterExistence(data, id);
 				break;
+			case NetCode.REQUESTCHARACTERSHEET:
+				RequestCharacterSheet(data, id);
+				break;
 			case NetCode.SENDCHARSHEET:
 				SendCharSheet(data, id);
+				break;
+			case NetCode.SENDHOTBARPOSITION:
+				SendHotbarPosition(data, id);
 				break;
 			case NetCode.DISCONNECTINFO:
 				DisconnectInfo(id);
@@ -435,7 +447,7 @@ public class Server
 			Vector3 playerPos = pdat.GetPosition();
 			Vector3 playerDir = pdat.GetDirection();
 
-			this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(id);
+			this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
 
 			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes);
 			this.Send(message.GetMessage(), message.size, id, temporary:true);
@@ -522,7 +534,7 @@ public class Server
 			return;
 		}
 
-		NetMessage playerMessage = new NetMessage(NetCode.PLAYERDATA);
+		NetMessage playerMessage = new NetMessage(NetCode.PLAYERLOCATION);
 
 		// Sends logged in players data
 		if(this.playersInChunk.ContainsKey(pos)){
@@ -531,7 +543,7 @@ public class Server
 					continue;
 				if(this.cl.regionHandler.allPlayerData[code].IsOnline()){
 					this.connectionGraph[code].Add(id);
-					playerMessage.PlayerData(this.cl.regionHandler.allPlayerData[code]);
+					playerMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[code]);
 					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
 				}
 			}
@@ -790,7 +802,7 @@ public class Server
 	private void ClientPlayerPosition(byte[] data, ulong id){
 		float3 pos, dir;
 		ChunkPos cp;
-		NetMessage graphMessage = new NetMessage(NetCode.PLAYERDATA);
+		NetMessage graphMessage = new NetMessage(NetCode.PLAYERLOCATION);
 	
 		pos = NetDecoder.ReadFloat3(data, 1);
 		dir = NetDecoder.ReadFloat3(data, 13);
@@ -808,10 +820,30 @@ public class Server
 		// Propagates data to all network
 		if(this.connectionGraph.ContainsKey(id)){
 			foreach(ulong code in this.connectionGraph[id]){
-				graphMessage.PlayerData(this.cl.regionHandler.allPlayerData[id]);
+				graphMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id]);
 				this.Send(graphMessage.GetMessage(), graphMessage.size, code);
 			}
 		}
+	}
+
+	// Receives a request from a player to fetch another player's appearance (or himself)
+	private void RequestPlayerAppearance(byte[] data, ulong id){
+		ulong requestedID = NetDecoder.ReadUlong(data, 1);
+
+		CharacterSheet cs = this.cl.characterFileHandler.LoadCharacterSheet(requestedID);
+		CharacterAppearance app;
+		bool isMale;
+
+		if(cs == null)
+			return;
+		else{
+			app = cs.GetCharacterAppearance();
+			isMale = cs.GetGender();
+		}
+
+		NetMessage message = new NetMessage(NetCode.SENDPLAYERAPPEARANCE);
+		message.SendPlayerAppearance(requestedID, app, isMale);
+		this.Send(message.GetMessage(), message.size, id);
 	}
 
 	// Receives a disconnect call from client
@@ -871,11 +903,22 @@ public class Server
 				this.playersInChunk.Remove(this.cl.regionHandler.allPlayerData[id].GetChunkPos());
 		}
 
+		toRemove = new List<ChunkPos>();
+
 		// Removes ChunksRequested
 		foreach(ChunkPos pos in chunksRequested.Keys){
+			toRemove.Add(pos);
+		}
+
+		foreach(ChunkPos pos in toRemove){
 			chunksRequested[pos].Remove(id);
 			if(chunksRequested[pos].Count == 0)
 				chunksRequested.Remove(pos);
+		}
+
+		// Remove player last known chunk
+		if(this.playerToChunk.ContainsKey(id)){
+			this.playerToChunk.Remove(id);
 		}
 
 		if(type == DisconnectType.QUIT)
@@ -941,6 +984,10 @@ public class Server
 				if(this.entityHandler.Contains(EntityType.PLAYER, lastPos, id))
 					this.entityHandler.Remove(EntityType.PLAYER, lastPos, id);
 			}
+
+			if(this.playerToChunk.ContainsKey(id)){
+				this.playerToChunk[id] = newPos;
+			}
 		}
 
 		// Add new ChunkPos
@@ -948,6 +995,11 @@ public class Server
 			this.playersInChunk.Add(newPos, new HashSet<ulong>(){id});
 		else
 			this.playersInChunk[newPos].Add(id);
+
+		// Add new ChunkPos to PlayerToChunk
+		if(!this.playerToChunk.ContainsKey(id)){
+			this.playerToChunk.Add(id, newPos);
+		}
 
 		// Finds the connections
 		ChunkPos targetPos;
@@ -980,10 +1032,10 @@ public class Server
 				}
 
 				if(this.cl.loadedChunks[newPos].Contains(code)){
-					NetMessage liveMessage = new NetMessage(NetCode.PLAYERDATA);
+					NetMessage liveMessage = new NetMessage(NetCode.PLAYERLOCATION);
 
 					this.connectionGraph[id].Add(code);
-					liveMessage.PlayerData(this.cl.regionHandler.allPlayerData[id]);
+					liveMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id]);
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);					
 				}				
 			}
@@ -1159,12 +1211,61 @@ public class Server
 		this.Send(message.GetMessage(), message.size, id, temporary:true);
 	}
 
+	// Receives the request for sending a CharacterSheet to user
+	public void RequestCharacterSheet(byte[] data, ulong id){
+		ulong code = NetDecoder.ReadUlong(data, 1);
+
+		this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(code);
+
+		if(this.cachedSheet == null)
+			return;
+
+		if(!this.entityHandler.ContainsSheet(code)){
+			Debug.Log("LOADED CHARACTER SHEET FOR: " + code);
+			this.entityHandler.AddPlayerSheet(code, this.cachedSheet);
+		}
+
+		NetMessage message = new NetMessage(NetCode.SENDCHARSHEET);
+		message.SendCharSheet(code, this.cachedSheet);
+		this.Send(message.GetMessage(), message.size, id);
+	}
+
 	// Receives the character sheet from a new character
 	public void SendCharSheet(byte[] data, ulong id){
 		ulong charID = NetDecoder.ReadUlong(data, 1);
 		CharacterSheet sheet = NetDecoder.ReadCharacterSheet(data, 9);
 
 		this.cl.characterFileHandler.SaveCharacterSheet(charID, sheet);
+	}
+
+	// Receives the current hotbar slot in player's hand
+	public void SendHotbarPosition(byte[] data, ulong id){
+		byte slot = NetDecoder.ReadByte(data, 1);
+		byte previousSlot;
+		CharacterSheet sheet;
+		PlayerServerInventorySlot psiSlot;
+		ItemStack hotbarStack;
+		NetMessage message;
+
+		if(this.entityHandler.ContainsSheet(id)){
+			sheet = this.entityHandler.GetSheet(id);
+			previousSlot = sheet.GetHotbarSlot();
+
+			sheet.SetHotbarSlot(slot);
+			this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
+
+			if(previousSlot != slot){
+				psiSlot = this.cl.playerServerInventory.GetSlot(id, slot);
+				hotbarStack = psiSlot.GetItemStack();
+
+				hotbarStack.GetItem().OnUnholdServer(this.cl, hotbarStack, id);
+				hotbarStack.GetItem().OnHoldServer(this.cl, hotbarStack, id);
+
+				message = new NetMessage(NetCode.SENDITEMINHAND);
+				message.SendItemInHand(id, hotbarStack.GetID(), hotbarStack.GetAmount());
+				this.SendToClientsExcept(id, message);
+			}
+		}
 	}
 
 	// Receives a Disconnect message from InfoClient
@@ -1191,12 +1292,17 @@ public class Server
 	}
 
 	// Send input message to all Clients connected to a given Chunk except the given one
-	public void SendToClientsExcept(ChunkPos pos, NetMessage message, ulong exception){
+	public void SendToClientsExcept(ulong playerCode, NetMessage message){
+		if(!this.playerToChunk.ContainsKey(playerCode))
+			return;
+
+		ChunkPos pos = this.playerToChunk[playerCode];
+
 		if(!this.cl.loadedChunks.ContainsKey(pos))
 			return;
 
 		foreach(ulong i in this.cl.loadedChunks[pos]){
-			if(i == exception)
+			if(i == playerCode)
 				continue;
 			this.Send(message.GetMessage(), message.size, i);
 		}

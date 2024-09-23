@@ -250,7 +250,7 @@ public class MainControllerManager : MonoBehaviour
 
         NetMessage message = new NetMessage(NetCode.DROPITEM);
         message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, force.x, force.y, force.z, (ushort)id, amount, (byte)PlayerEvents.hotbarSlot);       
-        this.cl.client.Send(message.GetMessage(), message.size);
+        this.cl.client.Send(message);
 
         playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
         playerEvents.DrawItemEntity(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot));

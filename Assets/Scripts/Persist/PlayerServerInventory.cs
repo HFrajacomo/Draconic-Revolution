@@ -86,6 +86,11 @@ public class PlayerServerInventory{
         }
     }
 
+    // Fetches the Item in a slot directly from the buffer data
+    public PlayerServerInventorySlot GetSlot(ulong playerCode, byte slot){
+        return this.inventories[playerCode][slot];
+    }
+
     /*
     Removes inventory from this handler
     */
@@ -145,7 +150,7 @@ public class PlayerServerInventory{
 
         for(int i=0; i < playerInventorySize; i++){
             aux = this.inventories[playerCode][i];
-            if(aux.GetItemID() == (int)its.GetID()){
+            if(aux.GetItemID() == (int)its.GetID() || aux.GetItemID() == 0){
                 if(its.GetStacksize() != aux.GetQuantity()){
                     return new int2(i, aux.GetQuantity());
                 }

@@ -43,6 +43,7 @@ public class ChunkLoader : MonoBehaviour
     public Client client;
     public BiomeHandler biomeHandler = new BiomeHandler();
     public PlayerMovement playerMovement;
+    public PlayerSheetController playerSheetController;
     public PlayerRaycast playerRaycast;
     public VolumeProfile volume;
     public GameObject mainControllerManager;
@@ -50,6 +51,7 @@ public class ChunkLoader : MonoBehaviour
     public SFXLoader sfx;
     public AudioListener playerAudioListener;
     public PlayerPositionHandler playerPositionHandler;
+    public VoxelLightHandler voxelLightHandler;
 
     // Initialization
     public GameObject playerCharacter;
@@ -103,7 +105,7 @@ public class ChunkLoader : MonoBehaviour
     public void Cleanup(bool comesFromClient=false){
         if(!comesFromClient){
             this.message = new NetMessage(NetCode.DISCONNECT);
-            this.client.Send(this.message.GetMessage(), this.message.size);
+            this.client.Send(this.message);
         }
 
         Cursor.lockState = CursorLockMode.None;
@@ -138,7 +140,7 @@ public class ChunkLoader : MonoBehaviour
 
             this.client.SetPlayerModelHandler(this.playerModelHandler);
             this.renderDistance = World.renderDistance + 1;
-            this.client.Send(this.message.GetMessage(), this.message.size);
+            this.client.Send(this.message);
             this.SENTINFOTOSERVER = true;
         }
         else if(!this.CONNECTEDTOSERVER){
@@ -218,7 +220,7 @@ public class ChunkLoader : MonoBehaviour
         if(this.timer % 30 == 0){
             this.client.CheckTimeout();
             this.message = new NetMessage(NetCode.HEARTBEAT);
-            this.client.Send(this.message.GetMessage(), this.message.size);
+            this.client.Send(this.message);
         }
 
         // Garbage Collect Unity Assets
@@ -353,7 +355,7 @@ public class ChunkLoader : MonoBehaviour
             // Asks server to hand over chunk info
             this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
             this.message.RequestChunkLoad(requestPriorityQueue.Pop());
-            this.client.Send(this.message.GetMessage(), this.message.size);
+            this.client.Send(this.message);
         }
     }
 
@@ -439,7 +441,7 @@ public class ChunkLoader : MonoBehaviour
 
             this.message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
             this.message.RequestChunkUnload(toUnload[0]);
-            this.client.Send(this.message.GetMessage(), this.message.size);
+            this.client.Send(this.message);
 
             toUnload.RemoveAt(0);
         }
@@ -1003,7 +1005,7 @@ public class ChunkLoader : MonoBehaviour
 
                 if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk) && !this.requestPriorityQueue.Contains(newChunk) && !this.drawPriorityQueue.Contains(newChunk)){
                     this.message.RequestChunkLoad(newChunk);
-                    client.Send(this.message.GetMessage(), this.message.size);
+                    client.Send(this.message);
                     continue;
                 }
 
@@ -1021,7 +1023,7 @@ public class ChunkLoader : MonoBehaviour
 
                     if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk) && !this.requestPriorityQueue.Contains(newChunk) && !this.drawPriorityQueue.Contains(newChunk)){
                         this.message.RequestChunkLoad(newChunk);
-                        client.Send(this.message.GetMessage(), this.message.size);
+                        client.Send(this.message);
                         continue;
                     }
 

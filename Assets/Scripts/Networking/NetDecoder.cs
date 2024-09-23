@@ -128,7 +128,7 @@ public static class NetDecoder
 		return new SpecialEffect((EffectType)NetDecoder.ReadUshort(data, pos), (EffectUsecase)NetDecoder.ReadByte(data, pos+2), NetDecoder.ReadByte(data, pos+3), NetDecoder.ReadUshort(data, pos+4), NetDecoder.ReadBool(data, pos+6));
 	}
 
-	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1221
+	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1222
 		CharacterSheet cs = new CharacterSheet();
 		SpecialEffect cachedFX;
 
@@ -266,6 +266,8 @@ public static class NetDecoder
 		pos += 2;
 		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
 		pos += 247;
+		cs.SetHotbarSlot(NetDecoder.ReadByte(data, pos));
+		pos++;
 
 		for(int i=0; i < 100; i++){
 			cachedFX = NetDecoder.ReadSpecialEffect(data, pos);
@@ -287,6 +289,10 @@ public static class NetDecoder
 
 	public static float3 ReadFloat3(byte[] data, int pos){
 		return new float3(NetDecoder.ReadFloat(data, pos), NetDecoder.ReadFloat(data, pos+4), NetDecoder.ReadFloat(data, pos+8));
+	}
+
+	public static Item ReadItem(byte[] data, int pos){
+		return ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos));
 	}
 
 	public static bool ReadBool(byte[] data, int pos){
@@ -330,6 +336,10 @@ public static class NetDecoder
 		NetDecoder.WriteFloat(v.x, data, pos);
 		NetDecoder.WriteFloat(v.y, data, pos+4);
 		NetDecoder.WriteFloat(v.z, data, pos+8);		
+	}
+
+	public static void WriteItem(Item it, byte[] data, int pos){
+		NetDecoder.WriteUshort(it.GetID(), data, pos);
 	}
 
 	public static void WriteBool(bool a, byte[] data, int pos){
@@ -429,6 +439,7 @@ public static class NetDecoder
 		NetDecoder.WriteBool(i.isMale, data, pos+38);
 	}
 
+	// Size = 247
 	public static void WriteCharacterAppearance(CharacterAppearance ca, byte[] data, int pos){
 		NetDecoder.WriteByte((byte)ca.race, data, pos);
 		NetDecoder.WriteRGB(ca.skinColor, data, pos+1);
@@ -593,6 +604,8 @@ public static class NetDecoder
 		pos += 2;
 		NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
 		pos += 247;
+		NetDecoder.WriteByte(sheet.GetHotbarSlot(), data, pos);
+		pos++;
 
 		List<SpecialEffect> sfxList = sheet.GetSpecialEffectHandler().GetAllEffects();
 

@@ -12,8 +12,8 @@ Strength(Attribute 6) | Precision(6) | Vitality(6) | Evasion(6) | Magic(6) | Cha
 FireRes(6) | IceRes(6) | LightningRes(6) | PoisonRes(6) | CurseRes(6) | Speed(6) | [36]
 Health(DepletableAtt 5) | Mana(5) | Power(5) | Sanity(5) | Protection(5) | Weight(5) | Poise(5) | [35]
 PhysicalDefense(2) | MagicalDefense(2) | DamageReduction(4) | hasBlood(1) | isWeaponDrawn(1) | isImortal(1) | [11]
-MainSkill(1) | SecondarySkill(1) | alchemy(5) | bloodmancy(5) | crafting(5) | combat(5) | construction(5) | cooking(5) | enchanting(5) | farming(5) | [42]
-fishing(5) | leadership(5) | mining(5) | mounting(5) | musicality(5) | naturalism(5) | smithing(5) | sorcery(5) | thievery(5) | technology(5) | thaumaturgy(5) | [55]
+MainSkill(1) | SecondarySkill(1) | alchemy(5) | articing(5) | bloodmancy(5) | crafting(5) | combat(5) | construction(5) | cooking(5) | enchanting(5) | farming(5) | [42]
+fishing(5) | leadership(5) | mining(5) | mounting(5) | musicality(5) | naturalism(5) | smithing(5) | sorcery(5) | thievery(5) | technology(5) | [55]
 transmuting(5) | witchcraft(5) | [10]
 RightHand(2) | LeftHand(2) | Helmet(2) | Armor(2) | Legs(2) | Boots(2) | Ring1(2) | Ring2(2) | Ring3(2) | Ring4(2) | Amulet(2) | Cape(2) | [24]
 CharacterAppearance(247) | SpecialEffects(7) *100 |
@@ -31,7 +31,7 @@ public class CharacterFileHandler{
 	private Stream indexFile;
 
 	private byte[] indexArray = new byte[16];
-	private byte[] buffer = new byte[1221]; // Total CharacterSheet size 
+	private byte[] buffer = new byte[1222]; // Total CharacterSheet size 
 
 	private Dictionary<ulong, ulong> index = new Dictionary<ulong, ulong>();
 
@@ -70,7 +70,7 @@ public class CharacterFileHandler{
 			this.file.Write(buffer, 0, buffer.Length);
 		}
 		else{
-			AddEntryIndex((long)code, this.indexFile.Length);
+			AddEntryIndex((long)code, this.file.Length);
 			this.index.Add(code, (ulong)this.file.Length);
 			this.indexFile.Seek(0, SeekOrigin.End);
 			this.indexFile.Write(this.indexArray, 0, 16);

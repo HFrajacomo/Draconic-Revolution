@@ -232,7 +232,7 @@ public class InventoryUIPlayer : MonoBehaviour
     		
     		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
     		message.SendInventory(InventorySerializer.buffer, inventorySize);
-    		this.cl.client.Send(message.GetMessage(), message.size);
+    		this.cl.client.Send(message);
     	}
     	// If has a selected slot
     	else{
@@ -253,7 +253,7 @@ public class InventoryUIPlayer : MonoBehaviour
 
     		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
     		message.SendInventory(InventorySerializer.buffer, inventorySize);
-    		this.cl.client.Send(message.GetMessage(), message.size);
+    		this.cl.client.Send(message);
     	}
     }
 
@@ -287,7 +287,7 @@ public class InventoryUIPlayer : MonoBehaviour
     		
     		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
     		message.SendInventory(InventorySerializer.buffer, inventorySize);
-    		this.cl.client.Send(message.GetMessage(), message.size);
+    		this.cl.client.Send(message);
 
     	}
     	// If there's a selection, then unselect

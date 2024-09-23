@@ -259,14 +259,35 @@ public struct NetMessage
 	}
 
 	// Server sends entity data to Client
-	public void PlayerData(ulong code, float posX, float posY, float posZ, float dirX, float dirY, float dirZ){
+	public void PlayerLocation(ulong code, float posX, float posY, float posZ, float dirX, float dirY, float dirZ){
 		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
 		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 9);
 		NetDecoder.WriteFloat3(dirX, dirY, dirZ, NetMessage.buffer, 21);
 		this.size = 33;
 	}
-	public void PlayerData(PlayerData pdat){
-		PlayerData(pdat.GetID(), pdat.posX, pdat.posY, pdat.posZ, pdat.dirX, pdat.dirY, pdat.dirZ);
+	public void PlayerLocation(PlayerData pdat){
+		PlayerLocation(pdat.GetID(), pdat.posX, pdat.posY, pdat.posZ, pdat.dirX, pdat.dirY, pdat.dirZ);
+	}
+
+	// Client requests a player's appearance information
+	public void RequestPlayerAppearance(ulong code){
+		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
+		this.size = 9;
+	}
+
+	// Server sends player appearance information to Client
+	public void SendPlayerAppearance(ulong code, CharacterAppearance app, bool isMale){
+		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
+		NetDecoder.WriteCharacterAppearance(app, NetMessage.buffer, 9);
+		NetDecoder.WriteBool(isMale, NetMessage.buffer, 256);
+		this.size = 257;
+	}
+
+	// Server sends the item in a player's hand to the Client
+	public void PlayerItemHand(ulong code, Item it){
+		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
+		NetDecoder.WriteItem(it, NetMessage.buffer, 9);
+		this.size = 11;
 	}
 
 	// Server sends a deletion command to out-of-bounds entities to Client
@@ -351,6 +372,12 @@ public struct NetMessage
 		this.size = 9;
 	}
 
+	// Client asks for CharacterSheet
+	public void RequestCharacterSheet(ulong id){
+		NetDecoder.WriteLong(id, NetMessage.buffer, 1);
+		this.size = 9;
+	}
+
 	// Server sends character appearance and a flag
 	public void SendCharacterPreload(CharacterAppearance? app, bool isMale){
 		if(app == null){
@@ -373,6 +400,20 @@ public struct NetMessage
 
 		this.size = 1230; 
 	}
+
+	// Client sends character hotbar position to Server
+	public void SendHotbarPosition(byte hotbarSlot){
+		NetDecoder.WriteByte(hotbarSlot, NetMessage.buffer, 1);
+		this.size = 2;
+	}
+
+	// Server sends character item in hand to Clients
+	public void SendItemInHand(ulong playerCode, ushort itemID, byte amount){
+		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
+		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 9);
+		NetDecoder.WriteByte(amount, NetMessage.buffer, 11);
+		this.size = 12;
+	}
 }
 
 public enum NetCode{
@@ -393,7 +434,11 @@ public enum NetCode{
 	VFXBREAK,
 	SENDGAMETIME,
 	HEARTBEAT, // No call
-	PLAYERDATA,
+	PLAYERLOCATION,
+	REQUESTPLAYERAPPEARANCE,
+	SENDPLAYERAPPEARANCE,
+	REQUESTCHARACTERSHEET,
+	PLAYERITEMHAND,
 	ENTITYDELETE,
 	CLIENTCHUNK,
 	PLACEMENTDENIED, // No call
@@ -406,6 +451,8 @@ public enum NetCode{
 	REQUESTCHARACTEREXISTENCE,
 	SENDCHARACTERPRELOAD,
 	SENDCHARSHEET,
+	SENDHOTBARPOSITION,
+	SENDITEMINHAND,
 	DISCONNECTINFO, // No call
 	DISCONNECT  // No call
 }

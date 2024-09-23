@@ -12,7 +12,6 @@ public class CharacterBuilder{
 	private GameObject modelRoot;
 	private Transform rootBone;
 	private BoneRenderer boneRenderer;
-	//private RaceSettings raceSettings; DEBUG
 	private CharacterAppearance appearance;
 	private bool isMale;
 
@@ -54,15 +53,12 @@ public class CharacterBuilder{
 		if(EMPTY_OBJECT_PREFAB == null)
 			EMPTY_OBJECT_PREFAB = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
-		//this.raceSettings = RaceManager.GetSettings(app.race); DEBUG
-
 		this.parent = par;
 		this.isMale = isMale;
 		this.appearance = app;
 		this.animator = par.GetComponent<Animator>();
 		this.animator.runtimeAnimatorController = animations;
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
-		//this.armature.transform.localScale = raceSettings.scaling; DEBUG
 		this.armature.transform.SetParent(this.parent.transform);
 
 		this.modelRoot = GameObject.Instantiate(EMPTY_OBJECT_PREFAB);

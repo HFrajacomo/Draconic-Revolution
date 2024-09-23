@@ -8,7 +8,12 @@ Deserializes Draconic Revolution Item Notation files
 */
 public static class ItemDeserializer {
 	// Generic Item Placeholders
-	private static ItemBehaviour onHoldEvent;
+	private static ItemBehaviour onHoldPlayerEvent;
+	private static ItemBehaviour onHoldClientEvent;
+	private static ItemBehaviour onHoldServerEvent;
+	private static ItemBehaviour onUnholdPlayerEvent;
+	private static ItemBehaviour onUnholdClientEvent;
+	private static ItemBehaviour onUnholdServerEvent;
 	private static ItemBehaviour onUseClientEvent;
 	private static ItemBehaviour onUseServerEvent;
 
@@ -39,8 +44,23 @@ public static class ItemDeserializer {
 	private static void AssignEventsToItem(Item item){
 		foreach(string ev in behaviours.Keys){
 			switch(ev){
-				case "onHold":
-					item.SetOnHold(onHoldEvent);
+				case "onHoldPlayer":
+					item.SetOnHoldPlayer(onHoldPlayerEvent);
+					break;
+				case "onHoldClient":
+					item.SetOnHoldClient(onHoldClientEvent);
+					break;
+				case "onHoldServer":
+					item.SetOnHoldServer(onHoldServerEvent);
+					break;
+				case "onUnholdPlayer":
+					item.SetOnUnholdPlayer(onUnholdPlayerEvent);
+					break;
+				case "onUnholdClient":
+					item.SetOnUnholdClient(onUnholdClientEvent);
+					break;
+				case "onUnholdServer":
+					item.SetOnUnholdServer(onUnholdServerEvent);
 					break;
 				case "onUseClient":
 					item.SetOnUseClient(onUseClientEvent);
@@ -128,6 +148,8 @@ public static class ItemDeserializer {
 		switch(val){
 			case "PlaceBlockBehaviour":
 				return JsonUtility.FromJson<PlaceBlockBehaviour>(jsonSerial);
+			case "CreatePointLightBehaviour":
+				return JsonUtility.FromJson<CreatePointLightBehaviour>(jsonSerial);
 			default:
 				Debug.Log("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
 				return new PlaceBlockBehaviour();
@@ -136,8 +158,23 @@ public static class ItemDeserializer {
 
 	private static void AddToPlaceholder(string key, ItemBehaviour ib){
 		switch(key){
-			case "onHold":
-				onHoldEvent = ib;
+			case "onHoldPlayer":
+				onHoldPlayerEvent = ib;
+				break;
+			case "onHoldClient":
+				onHoldClientEvent = ib;
+				break;
+			case "onHoldServer":
+				onHoldServerEvent = ib;
+				break;
+			case "onUnholdPlayer":
+				onUnholdPlayerEvent = ib;
+				break;
+			case "onUnholdClient":
+				onUnholdClientEvent = ib;
+				break;
+			case "onUnholdServer":
+				onUnholdServerEvent = ib;
 				break;
 			case "onUseClient":
 				onUseClientEvent = ib;

@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CharacterSheet{
+	// Runtime Information
+	private byte hotbarSlot;
+
 	// Header
 	private string name;
 	private Alignment alignment;
@@ -118,6 +121,8 @@ public class CharacterSheet{
 		this.ring4 = null;
 		this.amulet = null;
 		this.cape =  null;
+
+		this.hotbarSlot = 0;
 	}
 
 	// Getter
@@ -171,6 +176,7 @@ public class CharacterSheet{
 	public Item GetCape() {return this.cape;}
 	public SkillType GetMainSkill() {return this.mainSkill;}
 	public SkillType GetSecondarySkill() {return this.secondarySkill;}
+	public byte GetHotbarSlot() {return this.hotbarSlot;}
 
 
 	// Setter
@@ -223,6 +229,7 @@ public class CharacterSheet{
 	public void SetSkill(SkillType type, SkillExp exp) {this.skillDict[type] = exp;}
 	public void SetMainSkill(SkillType m) {this.mainSkill = m;}
 	public void SetSecondarySkill(SkillType s) {this.secondarySkill = s;}
+	public void SetHotbarSlot(byte slot) {this.hotbarSlot = slot;}
 
 	public void DebugPrint(){
 		this.DEBUG_LIST.Add("Name: " + GetName());
@@ -292,6 +299,7 @@ public class CharacterSheet{
 		this.DEBUG_LIST.Add("Amulet: " + GetAmulet());
 		this.DEBUG_LIST.Add("Cape: " + GetCape());
 		this.DEBUG_LIST.Add("Appearance: " + GetCharacterAppearance());
+		this.DEBUG_LIST.Add("HotbarSlot: " + GetHotbarSlot());
 
 		foreach(SpecialEffect fx in this.specialEffectHandler.GetAllEffects()){
 			this.DEBUG_LIST.Add("Effect: " + fx);

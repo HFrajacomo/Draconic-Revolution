@@ -151,10 +151,10 @@ public class Client
 	}
 
 	// Sends a byte[] to the server
-	public bool Send(byte[] data, int length){
+	public bool Send(NetMessage message){
 		try{
-			this.socket.Send(this.LengthPacket(length), 4, SocketFlags.None);
-			this.socket.Send(data, length, SocketFlags.None);
+			this.socket.Send(this.LengthPacket(message.size), 4, SocketFlags.None);
+			this.socket.Send(message.GetMessage(), message.size, SocketFlags.None);
 			return true;
 		}
 		catch(Exception e){
@@ -215,8 +215,14 @@ public class Client
 			case NetCode.SENDGAMETIME:
 				SendGameTime(data);
 				break;
-			case NetCode.PLAYERDATA:
-				PlayerData(data);
+			case NetCode.PLAYERLOCATION:
+				PlayerLocation(data);
+				break;
+			case NetCode.SENDPLAYERAPPEARANCE:
+				SendPlayerAppearance(data);
+				break;
+			case NetCode.SENDCHARSHEET:
+				SendCharSheet(data);
 				break;
 			case NetCode.ENTITYDELETE:
 				EntityDelete(data);
@@ -238,6 +244,9 @@ public class Client
 				break;
 			case NetCode.SENDNOISE:
 				SendNoise(data);
+				break;
+			case NetCode.SENDITEMINHAND:
+				SendItemInHand(data);
 				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
@@ -283,6 +292,10 @@ public class Client
 		initialCoord = new CastCoord(x, y, z);
 		this.cl.time.SetCurrentChunkPos(initialCoord.GetChunkPos());
 		this.cl.time.SendChunkPosMessage();
+
+		NetMessage message = new NetMessage(NetCode.REQUESTCHARACTERSHEET);
+		message.RequestCharacterExistence(Configurations.accountID);
+		this.Send(message);
 	}
 
 	// Receives a Chunk
@@ -436,7 +449,7 @@ public class Client
 	}
 
 	// Receives data regarding an entity
-	private void PlayerData(byte[] data){
+	private void PlayerLocation(byte[] data){
 		ulong code = NetDecoder.ReadUlong(data, 1);
 		float3 pos = NetDecoder.ReadFloat3(data, 9);
 		float3 dir = NetDecoder.ReadFloat3(data, 21);
@@ -448,6 +461,38 @@ public class Client
 		else{
 			this.entityHandler.AddPlayer(code, pos, dir);
 			this.smoothMovement.AddPlayer(code);
+
+			NetMessage charSheetMessage = new NetMessage(NetCode.REQUESTCHARACTERSHEET);
+			charSheetMessage.RequestCharacterSheet(code);
+			this.Send(charSheetMessage);
+
+			NetMessage message = new NetMessage(NetCode.REQUESTPLAYERAPPEARANCE);
+			message.RequestPlayerAppearance(code);
+			this.Send(message);
+		}
+	}
+
+	// Receives a player information
+	private void SendPlayerAppearance(byte[] data){
+		ulong code = NetDecoder.ReadUlong(data, 1);
+		CharacterAppearance app = NetDecoder.ReadCharacterAppearance(data, 9);
+		bool isMale = NetDecoder.ReadBool(data, 256);
+
+		this.entityHandler.UpdatePlayerModel(code, app, isMale);
+	}
+
+	// Receives a character's sheet from Server
+	private void SendCharSheet(byte[] data){
+		ulong code = NetDecoder.ReadUlong(data, 1);
+		CharacterSheet sheet = NetDecoder.ReadCharacterSheet(data, 9);
+
+		if(code == Configurations.accountID){
+			this.entityHandler.AddPlayerSheet(code, sheet);
+			this.cl.playerSheetController.SetSheet(sheet);
+			this.cl.playerEvents.ScrollToSlot(sheet.GetHotbarSlot());
+		}
+		else{
+			this.entityHandler.AddPlayerSheet(code, sheet);			
 		}
 	}
 
@@ -639,6 +684,17 @@ public class Client
 		Array.Copy(GenerationSeed.weatherNoise, 0, data, 1, data.Length-5);
 		int seed = NetDecoder.ReadInt(data, data.Length-4);
 		World.worldSeed = seed;
+	}
+
+	// Receives the item code for an item a player is holding
+	private void SendItemInHand(byte[] data){
+		ulong playerCode = NetDecoder.ReadUlong(data, 1);
+		ushort item = NetDecoder.ReadUshort(data, 9);
+		byte amount = data[11];
+
+		Debug.Log($"RECEIVED FROM PLAYER: {playerCode}, item number: {item}");
+
+		this.entityHandler.UpdatePlayerItem(playerCode, item, amount);
 	}
 
 	/* ================================================================================ */

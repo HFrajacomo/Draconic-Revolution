@@ -6,6 +6,12 @@ using TMPro;
 
 public class PlayerEvents : MonoBehaviour
 {
+	// Unity Reference
+	public ChunkLoader cl;
+	private GameObject character;
+	private GameObject handItem;
+	public ChunkRenderer iconRenderer;
+
 	// Inventory
 	public Inventory inventory = new Inventory(InventoryType.PLAYER);
 	public Inventory hotbar = new Inventory(InventoryType.HOTBAR);
@@ -22,11 +28,12 @@ public class PlayerEvents : MonoBehaviour
 	// Hotbar
 	public static byte hotbarSlot = 0;
 	public static ItemEntityHand itemInHand;
+	private static bool STARTED = false;
+	private static float HOTBAR_SELECTION_CHANGE_DOWNTIME = 0.08f;
+	private static bool HOTBAR_SELECTED_VALID = false;
+	private static float HOTBAR_SELECTION_TIME = 0f;
+	private static byte LAST_HOTBAR_SENT = 9;
 
-	// Unity Reference
-	private GameObject character;
-	private GameObject handItem;
-	public ChunkRenderer iconRenderer;
 
 
     // Start is called before the first frame update
@@ -36,14 +43,29 @@ public class PlayerEvents : MonoBehaviour
     		img.material = Instantiate(this.itemIconMaterial);
     	}
 
-    	this.Scroll1();
-
-
         InventoryStaticMessage.SetPlayerInventory(inventory);
         InventoryStaticMessage.SetInventory(hotbar);
         invUIPlayer.OpenInventory(inventory, hotbar);
 
         this.DrawHotbar();
+    }
+
+    void Update(){
+    	if(PlayerEvents.HOTBAR_SELECTED_VALID){
+    		PlayerEvents.HOTBAR_SELECTION_TIME += Time.deltaTime;
+
+    		if(PlayerEvents.HOTBAR_SELECTION_TIME >= PlayerEvents.HOTBAR_SELECTION_CHANGE_DOWNTIME){
+    			SendHotbarInfoToServer();
+    			PlayerEvents.HOTBAR_SELECTED_VALID = false;
+    			PlayerEvents.HOTBAR_SELECTION_TIME = 0f;
+    		}
+    	}
+    }
+
+    void OnDisable(){
+    	PlayerEvents.STARTED = false;
+		PlayerEvents.HOTBAR_SELECTED_VALID = false;
+		PlayerEvents.HOTBAR_SELECTION_TIME = 0f;
     }
 
     public void SetInventories(Inventory inv, Inventory hotbar){
@@ -57,59 +79,124 @@ public class PlayerEvents : MonoBehaviour
     }
 
 	// Selects a new item in hotbar
-	public void Scroll1(){
+	public void Scroll1(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 0)
+			return;
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 0;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 48);
 		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		TriggerHotbarDelay();
 	}
-	public void Scroll2(){
+	public void Scroll2(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 1)
+			return;
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 1;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 48);
 		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		TriggerHotbarDelay();
 	}
-	public void Scroll3(){
+	public void Scroll3(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 2)
+			return;
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 2;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 48);
 		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		TriggerHotbarDelay();
 	}
-	public void Scroll4(){
+	public void Scroll4(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 3)
+			return;
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 3;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 48);
 		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		TriggerHotbarDelay();
 	}
-	public void Scroll5(){
+	public void Scroll5(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 4)
+			return;
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 4;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 48);
 		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		TriggerHotbarDelay();
 	}
-	public void Scroll6(){
+	public void Scroll6(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 5)
+			return;
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 5;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 48);
 		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		TriggerHotbarDelay();
 	}
-	public void Scroll7(){
+	public void Scroll7(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 6)
+			return;
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 6;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 48);
 		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		TriggerHotbarDelay();
 	}
-	public void Scroll8(){
+	public void Scroll8(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 7)
+			return;
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 7;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 48);
 		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		TriggerHotbarDelay();
 	}
-	public void Scroll9(){
+	public void Scroll9(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 8)
+			return;
+		if(!skipOnUnhold)
+			OnUnholdPlayer();
+
 		PlayerEvents.hotbarSlot = 8;
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 48);
 		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		TriggerHotbarDelay();
 	}
 	public void MouseScroll(int val){
 		if(val < 0){
+			OnUnholdPlayer();
 			if(PlayerEvents.hotbarSlot == 8)
 				PlayerEvents.hotbarSlot = 0;
 			else
 				PlayerEvents.hotbarSlot++;
 		}
 		else if(val > 0){
+			OnUnholdPlayer();
 			if(PlayerEvents.hotbarSlot == 0)
 				PlayerEvents.hotbarSlot = 8;
 			else
@@ -118,8 +205,27 @@ public class PlayerEvents : MonoBehaviour
 		else
 			return;
 
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(PlayerEvents.hotbarSlot-1), 48);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(PlayerEvents.hotbarSlot), 48);
 		DrawItemEntity(GetSlotStack());
+		OnHoldPlayer();
+		TriggerHotbarDelay();
+	}
+
+	// Scrolls to a given slot. Only works once when receiving Player Character information to set the hotbar position
+	public void ScrollToSlot(byte slot){
+		if(!PlayerEvents.STARTED){
+			PlayerEvents.hotbarSlot = slot;
+			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(slot), 48);
+			DrawItemEntity(GetSlotStack());
+			OnHoldPlayer();
+			SendHotbarInfoToServer();
+			PlayerEvents.STARTED = true;
+		}
+	}
+
+	private void TriggerHotbarDelay(){
+		PlayerEvents.HOTBAR_SELECTION_TIME = 0f;
+		PlayerEvents.HOTBAR_SELECTED_VALID = true;
 	}
 
 	// Returns the ItemStack selected in hotbar
@@ -161,6 +267,26 @@ public class PlayerEvents : MonoBehaviour
 	// Updates inventory in UI
 	public void UpdateInventory(){
 		invUIPlayer.OpenInventory(this.inventory, this.hotbar);
+	}
+
+	// Runs Item OnHoldPlayer behaviour
+	private void OnHoldPlayer(){
+		ItemStack its = GetSlotStack();
+
+		if(its == null)
+			return;
+
+		its.GetItem().OnHoldPlayer(this.cl, its, Configurations.accountID);
+	}
+
+	// Runs Item OnUnholdPlayer behaviour
+	private void OnUnholdPlayer(){
+		ItemStack its = GetSlotStack();
+
+		if(its == null)
+			return;
+
+		its.GetItem().OnUnholdPlayer(this.cl, its, Configurations.accountID);
 	}
 
 	public void DestroyItemEntity(){
@@ -213,4 +339,15 @@ public class PlayerEvents : MonoBehaviour
 		this.handItem.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
 	}
 	*/
+
+	private void SendHotbarInfoToServer(){
+		if(PlayerEvents.hotbarSlot == PlayerEvents.LAST_HOTBAR_SENT)
+			return;
+
+		NetMessage message = new NetMessage(NetCode.SENDHOTBARPOSITION);
+		message.SendHotbarPosition(PlayerEvents.hotbarSlot);
+		this.cl.client.Send(message);
+		PlayerEvents.LAST_HOTBAR_SENT = PlayerEvents.hotbarSlot;
+		Debug.Log($"Sent slot {PlayerEvents.hotbarSlot} to server");
+	}
 }
