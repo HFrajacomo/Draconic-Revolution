@@ -18,6 +18,8 @@ public class VoxelLightHandler: MonoBehaviour {
 		this.cachedPositions = new Vector4[ShaderLoader.GetVoxelLightBufferSize()];
 		this.entitiesMap = new Dictionary<EntityID, int>();
 		this.entities = new HashSet<EntityID>();
+
+		BuildAndSendBuffer();
 	}
 
 	void Update(){
