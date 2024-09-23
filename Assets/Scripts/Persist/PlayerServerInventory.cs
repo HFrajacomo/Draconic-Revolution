@@ -150,7 +150,7 @@ public class PlayerServerInventory{
 
         for(int i=0; i < playerInventorySize; i++){
             aux = this.inventories[playerCode][i];
-            if(aux.GetItemID() == (int)its.GetID()){
+            if(aux.GetItemID() == (int)its.GetID() || aux.GetItemID() == 0){
                 if(its.GetStacksize() != aux.GetQuantity()){
                     return new int2(i, aux.GetQuantity());
                 }
