@@ -8,6 +8,9 @@ public class PlayerEvents : MonoBehaviour
 {
 	// Unity Reference
 	public ChunkLoader cl;
+	private GameObject character;
+	private GameObject handItem;
+	public ChunkRenderer iconRenderer;
 
 	// Inventory
 	public Inventory inventory = new Inventory(InventoryType.PLAYER);
@@ -26,11 +29,11 @@ public class PlayerEvents : MonoBehaviour
 	public static byte hotbarSlot = 0;
 	public static ItemEntityHand itemInHand;
 	private static bool STARTED = false;
+	private static float HOTBAR_SELECTION_CHANGE_DOWNTIME = 0.08f;
+	private static bool HOTBAR_SELECTED_VALID = false;
+	private static float HOTBAR_SELECTION_TIME = 0f;
+	private static byte LAST_HOTBAR_SENT = 9;
 
-	// Unity Reference
-	private GameObject character;
-	private GameObject handItem;
-	public ChunkRenderer iconRenderer;
 
 
     // Start is called before the first frame update
@@ -47,8 +50,22 @@ public class PlayerEvents : MonoBehaviour
         this.DrawHotbar();
     }
 
+    void Update(){
+    	if(PlayerEvents.HOTBAR_SELECTED_VALID){
+    		PlayerEvents.HOTBAR_SELECTION_TIME += Time.deltaTime;
+
+    		if(PlayerEvents.HOTBAR_SELECTION_TIME >= PlayerEvents.HOTBAR_SELECTION_CHANGE_DOWNTIME){
+    			SendHotbarInfoToServer();
+    			PlayerEvents.HOTBAR_SELECTED_VALID = false;
+    			PlayerEvents.HOTBAR_SELECTION_TIME = 0f;
+    		}
+    	}
+    }
+
     void OnDisable(){
     	PlayerEvents.STARTED = false;
+		PlayerEvents.HOTBAR_SELECTED_VALID = false;
+		PlayerEvents.HOTBAR_SELECTION_TIME = 0f;
     }
 
     public void SetInventories(Inventory inv, Inventory hotbar){
@@ -63,6 +80,8 @@ public class PlayerEvents : MonoBehaviour
 
 	// Selects a new item in hotbar
 	public void Scroll1(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 0)
+			return;
 		if(!skipOnUnhold)
 			OnUnholdPlayer();
 
@@ -70,9 +89,11 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		TriggerHotbarDelay();
 	}
 	public void Scroll2(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 1)
+			return;
 		if(!skipOnUnhold)
 			OnUnholdPlayer();
 
@@ -80,9 +101,11 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		TriggerHotbarDelay();
 	}
 	public void Scroll3(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 2)
+			return;
 		if(!skipOnUnhold)
 			OnUnholdPlayer();
 
@@ -90,9 +113,11 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		TriggerHotbarDelay();
 	}
 	public void Scroll4(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 3)
+			return;
 		if(!skipOnUnhold)
 			OnUnholdPlayer();
 
@@ -100,9 +125,11 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		TriggerHotbarDelay();
 	}
 	public void Scroll5(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 4)
+			return;
 		if(!skipOnUnhold)
 			OnUnholdPlayer();
 
@@ -110,9 +137,11 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		TriggerHotbarDelay();
 	}
 	public void Scroll6(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 5)
+			return;
 		if(!skipOnUnhold)
 			OnUnholdPlayer();
 
@@ -120,9 +149,11 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		TriggerHotbarDelay();
 	}
 	public void Scroll7(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 6)
+			return;
 		if(!skipOnUnhold)
 			OnUnholdPlayer();
 
@@ -130,9 +161,11 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		TriggerHotbarDelay();
 	}
 	public void Scroll8(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 7)
+			return;
 		if(!skipOnUnhold)
 			OnUnholdPlayer();
 
@@ -140,9 +173,11 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		TriggerHotbarDelay();
 	}
 	public void Scroll9(bool skipOnUnhold=false){
+		if(PlayerEvents.hotbarSlot == 8)
+			return;
 		if(!skipOnUnhold)
 			OnUnholdPlayer();
 
@@ -150,7 +185,7 @@ public class PlayerEvents : MonoBehaviour
 		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		TriggerHotbarDelay();
 	}
 	public void MouseScroll(int val){
 		if(val < 0){
@@ -170,10 +205,10 @@ public class PlayerEvents : MonoBehaviour
 		else
 			return;
 
-		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(PlayerEvents.hotbarSlot-1), 48);
+		this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(PlayerEvents.hotbarSlot), 48);
 		DrawItemEntity(GetSlotStack());
 		OnHoldPlayer();
-		SendHotbarInfoToServer();
+		TriggerHotbarDelay();
 	}
 
 	// Scrolls to a given slot. Only works once when receiving Player Character information to set the hotbar position
@@ -186,6 +221,11 @@ public class PlayerEvents : MonoBehaviour
 			SendHotbarInfoToServer();
 			PlayerEvents.STARTED = true;
 		}
+	}
+
+	private void TriggerHotbarDelay(){
+		PlayerEvents.HOTBAR_SELECTION_TIME = 0f;
+		PlayerEvents.HOTBAR_SELECTED_VALID = true;
 	}
 
 	// Returns the ItemStack selected in hotbar
@@ -301,8 +341,13 @@ public class PlayerEvents : MonoBehaviour
 	*/
 
 	private void SendHotbarInfoToServer(){
+		if(PlayerEvents.hotbarSlot == PlayerEvents.LAST_HOTBAR_SENT)
+			return;
+
 		NetMessage message = new NetMessage(NetCode.SENDHOTBARPOSITION);
 		message.SendHotbarPosition(PlayerEvents.hotbarSlot);
 		this.cl.client.Send(message);
+		PlayerEvents.LAST_HOTBAR_SENT = PlayerEvents.hotbarSlot;
+		Debug.Log($"Sent slot {PlayerEvents.hotbarSlot} to server");
 	}
 }
