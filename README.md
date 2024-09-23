@@ -261,7 +261,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Hotbar UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Inventory UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Item Drops|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
-|Dynamic Light Objects|Core|Alpha|:heavy_check_mark:|:soon:|:x:|:x:
+|Dynamic Light Objects|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 
 ---
 
