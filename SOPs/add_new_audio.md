@@ -46,27 +46,19 @@ This one is pretty much a no-brainer, but let's go through it anyways.
 The files are organized in the Audio folder contained inside the StreamingAssets folder. Inside, there are folders for each usecase. Simply put the file inside its usecase folder and you are good to go!
 
 
-## Registering Sounds in AudioLibrary
+## Registering Sounds
 
-**AudioLibrary** is a static class meant to be the source of all audio information. 
-
-### Register an AudioName
-No matter if you're trying to register Sound or DynamicMusic, every class should have a unique AudioName to use as reference. It's a good practice to use the suffix ***"_GROUP"*** for DynamicMusic namings.
-
-To create an AudioName, just create a new enum item in **AudioName.cs**
-
-### Register a Sound
-In order to register new sounds, just add them to the **AudioLibrary.sounds** dictionary.
+If its a Sound, a Voice or DynamicGroups, you need to assign them in the **Resources/Audio/SOUNDS_LIST.json** folder's respective list. Just follow the json file's model and create a new entry for your Audio. 
 
 3D sounds may have an **AudioVolume** property to dictate the distance from the source that the sound would still be heard.
 
 ### Register a DynamicMusic
-DynamicMusic have a slightly different way of being registered. First, register all 3 sounds of the DynamicMusic group to the *sounds* dictionary. After that, register the DynamicMusic itself to the **dynamicMusic** dictionary.
+DynamicMusic have a slightly different way of being registered. First, register all 3 sounds of the DynamicMusic group to the **Resources/Audio/DYNAMIC_GROUPS_LIST.json** file. If you need to assign a DynamicMusic Group to a biome, go to **Resources/Audio/BIOME_LIST.json** and assign "Biome": "DynamicGroup".
 
 ### Register a Voice
-Voices have the same idea to be registered, but should be added to the *Voices* dictionary. 3D Voices have the **AudioVolume** property to be set.
+Voices have the same idea to be registered, but should be added to the **Resources/Audio/VOICES_LIST.json** file. 3D Voices have the **AudioVolume** property to be set.
 
 
 # Conclusion
 Everything is registered and you should be able to call your sounds in-game by calling: 
-> AudioManager.Play(AudioName, \*\*kwargs); 
+> AudioManager.Play(audioName, \*\*kwargs); 

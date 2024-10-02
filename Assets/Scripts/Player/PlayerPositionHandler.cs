@@ -24,7 +24,7 @@ public class PlayerPositionHandler : MonoBehaviour
 
     // Audio Stuff
     public AudioManager audioManager;
-    private AudioName? currentMusic;
+    private string currentMusic;
     private const int minInterval = 0;
     private const int maxInterval = 2400;
     public int counter = -1;
@@ -151,7 +151,7 @@ public class PlayerPositionHandler : MonoBehaviour
     private bool CheckBiomeChange(){return this.currentBiome != this.lastBiome && !CheckEqualMusic(this.currentBiome, this.lastBiome);}
 
     private bool GetBiomeMusic(){
-        this.currentMusic = AudioLibrary.GetBiomeMusic(this.currentBiome);
+        this.currentMusic = AudioLoader.GetBiomeMusic(this.currentBiome);
 
         if(this.currentMusic == null)
             return false;
@@ -159,14 +159,14 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     private bool CheckEqualMusic(string biome1, string biome2){
-        return AudioLibrary.GetBiomeMusic(biome1) == AudioLibrary.GetBiomeMusic(biome2);
+        return AudioLoader.GetBiomeMusic(biome1) == AudioLoader.GetBiomeMusic(biome2);
     }
 
     private void PlayMusic(){
         if(this.currentMusic == null)
             return;
 
-        audioManager.Play((AudioName)this.currentMusic, dynamicLevel:MusicDynamicLevel.SOFT);
+        audioManager.Play(this.currentMusic, dynamicLevel:MusicDynamicLevel.SOFT);
     }
 
     private void StopMusic(){audioManager.Stop(AudioUsecase.MUSIC_CLIP, fade:true);}

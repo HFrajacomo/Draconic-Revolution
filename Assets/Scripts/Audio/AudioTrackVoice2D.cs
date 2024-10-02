@@ -17,7 +17,7 @@ public class AudioTrackVoice2D : MonoBehaviour
     private CultureInfo cultureInfo = new CultureInfo("en-US"); 
 
     // Transcript info
-    private AudioName? currentVoice;
+    private string currentVoice = "";
     private string currentTranscript = "";
     private string fullTranscript;
     private string[] cachedSplitTranscript;

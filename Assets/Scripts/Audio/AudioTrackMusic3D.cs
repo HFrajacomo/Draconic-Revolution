@@ -21,7 +21,7 @@ public class AudioTrackMusic3D : MonoBehaviour
 
         cachedSource = audioMap[entityCode];
 
-        cachedSource.maxDistance = (float)sound.volume;
+        cachedSource.maxDistance = (float)sound.GetVolume();
         cachedSource.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, cachedSource.maxDistance, 0f));
 
         cachedSource.clip = clip;

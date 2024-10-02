@@ -1,0 +1,134 @@
+{
+    "data": [
+        {
+            "name": "Rainfall",
+            "description": "Artcore|2019",
+            "filename": "rainfall.ogg",
+            "author": "Miraboa",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "SurpriseMotafaka",
+            "description": "Meme|REMOVE LATER",
+            "filename": "surprisemotafaka.ogg",
+            "author": "",
+            "serializedType": "SFX_CLIP"
+        },
+        {
+            "name": "Hat",
+            "description": "REMOVE LATER",
+            "filename": "hat.ogg",
+            "author": "",
+            "serializedType": "SFX_3D",
+            "serializedVolume": "MIDLOW"
+        },
+        {
+            "name": "Bzzt",
+            "description": "REMOVE LATER",
+            "filename": "bzzt.ogg",
+            "author": "",
+            "serializedType": "SFX_3D_LOOP",
+            "serializedVolume": "STEALTH"
+        },
+        {
+            "name": "Torchfire",
+            "description": "Sound from small fire source",
+            "filename": "torchfire.ogg",
+            "author": "",
+            "serializedType": "SFX_3D_LOOP",
+            "serializedVolume": "VERYLOW"
+        },
+        {
+            "name": "Ancients",
+            "description": "Test 3D piano song",
+            "filename": "ancients.ogg",
+            "author": "",
+            "serializedType": "MUSIC_3D",
+            "serializedVolume": "HIGH"
+        },
+        {
+            "name": "Snow_Plains_Soft",
+            "description": "SnowSea",
+            "filename": "snow_plains_sea_soft.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Snow_Plains_Mid",
+            "description": "SnowSea",
+            "filename": "snow_plains_sea_mid.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Snow_Plains_Heavy",
+            "description": "SnowSea",
+            "filename": "snow_plains_sea_heavy.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Snow_Mountains_Soft",
+            "description": "SnowMontains",
+            "filename": "snow_mountains_soft.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Snow_Mountains_Mid",
+            "description": "SnowMontains",
+            "filename": "snow_mountains_mid.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Snow_Mountains_Heavy",
+            "description": "SnowMontains",
+            "filename": "snow_mountains_heavy.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Plains_Soft",
+            "description": "Plains",
+            "filename": "plains_soft.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Plains_Mid",
+            "description": "Plains",
+            "filename": "plains_mid.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Plains_Heavy",
+            "description": "Plains",
+            "filename": "plains_heavy.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Grass_Mountains_Soft",
+            "description": "GrassMountains",
+            "filename": "grass_mountains_soft.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Grass_Mountains_Mid",
+            "description": "GrassMountains",
+            "filename": "grass_mountains_mid.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Grass_Mountains_Heavy",
+            "description": "GrassMountains",
+            "filename": "grass_mountains_heavy.ogg",
+            "author": "C1002",
+            "serializedType": "MUSIC_CLIP"
+        }
+    ]
+}

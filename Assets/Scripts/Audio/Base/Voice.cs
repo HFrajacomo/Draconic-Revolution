@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class Voice
 {
     private static string audioDir = "file://" + Application.streamingAssetsPath + "/Audio/";
@@ -14,36 +16,28 @@ public class Voice
         {AudioUsecase.VOICE_3D, "voice_3d/"}
     };
 
-    public AudioName name;
-    public AudioUsecase type;
+    public string name;
+    public string serializedType;
+    public string serializedVolume;
     public string description;
     public string filename;
     public string transcriptFilename;
-    public Sound wrapperSound;
+    private AudioUsecase type;
+    private AudioVolume volume;
+    private Sound wrapperSound;
 
+    public AudioUsecase GetUsecaseType(){return this.type;}
+    public AudioVolume GetVolume(){return this.volume;}
+    public Sound GetSound(){return this.wrapperSound;}
 
-    public Voice(AudioName name, AudioUsecase type, string desc, string file, string tName){
-        this.name = name;
-        this.type = type;
-        this.description = desc;
-        this.filename = file;
-        this.transcriptFilename = tName;
-
-        this.wrapperSound = new Sound(name, type, description, "");
+    public override string ToString(){
+        return $"{this.name}\n{this.description}\n{this.filename}";
     }
 
-    public Voice(AudioName name, AudioUsecase type, string desc, string file, string tName, AudioVolume volume){
-        this.name = name;
-        this.type = type;
-        this.description = desc;
-        this.filename = file;
-        this.transcriptFilename = tName;
-
-        this.wrapperSound = new Sound(name, type, description, "", volume);
-    }
-
-    public string GetFilePath(){
-        return Voice.audioDir + folderMap[this.type] + this.filename;
+    public void PostDeserializationSetup(){
+        this.type = Sound.ConvertUsecase(this.serializedType);
+        this.volume = Sound.ConvertVolume(this.serializedVolume);
+        this.wrapperSound = new Sound(this.name, this.volume, this.type, this.filename);
     }
 
     public string GetTranscriptPath(){

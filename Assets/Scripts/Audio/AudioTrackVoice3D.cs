@@ -17,7 +17,7 @@ public class AudioTrackVoice3D : MonoBehaviour
     private Dictionary<ulong, Transform> sourcesTransform = new Dictionary<ulong, Transform>(); 
 
     // Current Execution
-    private Dictionary<ulong, AudioName?> currentAudio = new Dictionary<ulong, AudioName?>();
+    private Dictionary<ulong, string> currentAudio = new Dictionary<ulong, string>();
     private Dictionary<ulong, AudioVolume> currentVolume = new Dictionary<ulong, AudioVolume>();
 
     // Globalization
@@ -27,7 +27,7 @@ public class AudioTrackVoice3D : MonoBehaviour
     private string currentTranscript = "";
     private string fullTranscript;
     private string[] cachedSplitTranscript;
-    private HashSet<AudioName> loadedTranscripts = new HashSet<AudioName>();
+    private HashSet<string> loadedTranscripts = new HashSet<string>();
 
     // Timing Lists
     private Dictionary<ulong, List<float>> segmentTime = new Dictionary<ulong, List<float>>();
@@ -100,12 +100,12 @@ public class AudioTrackVoice3D : MonoBehaviour
 
         currentSegment[entity] = segment;
         currentAudio[entity] = sound.name;
-        currentVolume[entity] = sound.volume;
+        currentVolume[entity] = sound.GetVolume();
 
         FindExactTranscriptSegment(segmentTime[entity][segment], entity);
 
-        sources[entity].maxDistance = (float)sound.volume;
-        sources[entity].SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, (float)sound.volume, 0f));
+        sources[entity].maxDistance = (float)sound.GetVolume();
+        sources[entity].SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, (float)sound.GetVolume(), 0f));
 
         sources[entity].time = segmentTime[entity][segment];
         sources[entity].Play();
@@ -266,7 +266,7 @@ public class AudioTrackVoice3D : MonoBehaviour
     }
 
     private void ClearCurrentAudio(ulong entity){
-        AudioName? audio = currentAudio[entity];
+        string audio = currentAudio[entity];
 
         currentAudio.Remove(entity);
         currentVolume.Remove(entity);
@@ -275,7 +275,7 @@ public class AudioTrackVoice3D : MonoBehaviour
         transcriptTime[entity].Clear();
 
         if(audio != null)
-            if(loadedTranscripts.Contains((AudioName)audio))
-                loadedTranscripts.Remove((AudioName)audio);
+            if(loadedTranscripts.Contains((string)audio))
+                loadedTranscripts.Remove((string)audio);
     }
 }

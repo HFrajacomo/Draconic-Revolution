@@ -15,19 +15,19 @@ public class TEST_AUDIO : MonoBehaviour
     void Update()
     {
         if(counter == 500)
-            audioManager.Play(AudioName.GRASS_MOUNTAINS_GROUP, dynamicLevel:MusicDynamicLevel.SOFT);
+            audioManager.Play("Grass_Mountains_Group", dynamicLevel:MusicDynamicLevel.SOFT);
 
         if(counter == 5000)
-            audioManager.Play(AudioName.GRASS_MOUNTAINS_GROUP, dynamicLevel:MusicDynamicLevel.MEDIUM);
+            audioManager.Play("Grass_Mountains_Group", dynamicLevel:MusicDynamicLevel.MEDIUM);
 
         if(counter == 10000)
-            audioManager.Play(AudioName.GRASS_MOUNTAINS_GROUP, dynamicLevel:MusicDynamicLevel.HARD);
+            audioManager.Play("Grass_Mountains_Group", dynamicLevel:MusicDynamicLevel.HARD);
 
         if(counter == 15000)
-            audioManager.Play(AudioName.GRASS_MOUNTAINS_GROUP, dynamicLevel:MusicDynamicLevel.MEDIUM);
+            audioManager.Play("Grass_Mountains_Group", dynamicLevel:MusicDynamicLevel.MEDIUM);
 
         if(counter == 20000)
-            audioManager.Play(AudioName.GRASS_MOUNTAINS_GROUP, dynamicLevel:MusicDynamicLevel.SOFT);
+            audioManager.Play("Grass_Mountains_Group", dynamicLevel:MusicDynamicLevel.SOFT);
 
         counter++;
     }

@@ -24,13 +24,13 @@ public class AudioTrackSFX3D : MonoBehaviour
 
         cachedSource = audioMap[pos][entityCode];
 
-        if(sound.type == AudioUsecase.SFX_3D)
+        if(sound.GetUsecaseType() == AudioUsecase.SFX_3D)
             cachedSource.loop = false;
         // AudioUsecase.SFX_3D_LOOP
         else
             cachedSource.loop = true;
 
-        cachedSource.maxDistance = (float)sound.volume;
+        cachedSource.maxDistance = (float)sound.GetVolume();
         cachedSource.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, cachedSource.maxDistance, 0f));
 
         cachedSource.clip = clip;

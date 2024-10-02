@@ -348,6 +348,5 @@ public class PlayerEvents : MonoBehaviour
 		message.SendHotbarPosition(PlayerEvents.hotbarSlot);
 		this.cl.client.Send(message);
 		PlayerEvents.LAST_HOTBAR_SENT = PlayerEvents.hotbarSlot;
-		Debug.Log($"Sent slot {PlayerEvents.hotbarSlot} to server");
 	}
 }

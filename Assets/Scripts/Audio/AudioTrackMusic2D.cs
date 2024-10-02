@@ -10,7 +10,7 @@ public class AudioTrackMusic2D : MonoBehaviour
     private AudioSource auxSwapSource;
 
     // Last command info
-    private AudioName? currentMusic = null;
+    private string currentMusic = "";
     private bool playOperationWasLast = false;
 
     // Crossfading

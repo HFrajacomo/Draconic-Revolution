@@ -1,8 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
+[Serializable]
 public class DynamicMusic
 {
     private static string audioDir = "file://" + Application.streamingAssetsPath + "/Audio/";
@@ -16,35 +18,40 @@ public class DynamicMusic
         {AudioUsecase.VOICE_3D, "voice_3d/"}
     };
 
-    public AudioName groupName;
-    public AudioUsecase type;
-    public string description;
-    public Sound wrapperSound;
-    public Dictionary<MusicDynamicLevel, Sound> soundByDynamic;
+    public string name;
+    public string serializedType;
+    public string serializedVolume;
+    public string soundLight;
+    public string soundMid;
+    public string soundHeavy;
+    private AudioUsecase type;
+    private AudioVolume volume;
+    private Dictionary<MusicDynamicLevel, Sound> soundByDynamic;
 
-
-    public DynamicMusic(AudioName groupName, AudioUsecase usecase, string description, AudioName name1, AudioName name2, AudioName name3){
-        this.soundByDynamic = new Dictionary<MusicDynamicLevel, Sound>();
-        this.soundByDynamic.Add(MusicDynamicLevel.SOFT, AudioLibrary.GetSound(name1));
-        this.soundByDynamic.Add(MusicDynamicLevel.MEDIUM, AudioLibrary.GetSound(name2));
-        this.soundByDynamic.Add(MusicDynamicLevel.HARD, AudioLibrary.GetSound(name3));
-
-        this.groupName = groupName;
-        this.type = usecase;
-        this.description = description;
-
-        this.wrapperSound = new Sound(groupName, usecase, description, "");
-    }
 
     public Sound Get(MusicDynamicLevel level){
         return this.soundByDynamic[level];
+    }
+
+    public void PostDeserializationSetup(){
+        this.soundByDynamic = new Dictionary<MusicDynamicLevel, Sound>();
+        this.soundByDynamic.Add(MusicDynamicLevel.SOFT, AudioLoader.GetSound(this.soundLight));
+        this.soundByDynamic.Add(MusicDynamicLevel.MEDIUM, AudioLoader.GetSound(this.soundMid));
+        this.soundByDynamic.Add(MusicDynamicLevel.HARD, AudioLoader.GetSound(this.soundHeavy));
+
+        this.type = Sound.ConvertUsecase(this.serializedType);
+        this.volume = Sound.ConvertVolume(this.serializedVolume);
+    }
+
+    public override string ToString(){
+        return $"{this.name}\n{this.soundLight}\n{this.soundMid}\n{this.soundHeavy}";
     }
 
     public string GetFilePath(MusicDynamicLevel level){
         return this.soundByDynamic[level].GetFilePath();
     }
 
-    public bool ContainsSound(AudioName audio){
+    public bool ContainsSound(string audio){
         return (this.soundByDynamic[MusicDynamicLevel.SOFT].name == audio) || (this.soundByDynamic[MusicDynamicLevel.MEDIUM].name == audio) || (this.soundByDynamic[MusicDynamicLevel.HARD].name == audio);
     }
 }

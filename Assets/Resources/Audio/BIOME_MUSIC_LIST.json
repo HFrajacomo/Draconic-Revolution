@@ -1,0 +1,24 @@
+{
+    "data": [
+        {
+            "key": "Ice Ocean",
+            "value": "Snow_Plains_Sea_Group"
+        },
+        {
+            "key": "Snowy Plains",
+            "value": "Snow_Plains_Sea_Group"
+        },
+        {
+            "key": "Snowy Highlands",
+            "value": "Snow_Mountains_Group"
+        },
+        {
+            "key": "Plains",
+            "value": "Plains_Group"
+        },
+        {
+            "key": "Grassy Mountains",
+            "value": "Grass_Mountains_Group"
+        }
+    ]
+}

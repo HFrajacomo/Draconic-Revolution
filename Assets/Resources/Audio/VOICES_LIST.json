@@ -1,0 +1,21 @@
+{
+	"data": [
+		{
+			"name": "Test_Voice2D",
+			"description": "Test 2D voice",
+			"filename": "testvoice.ogg",
+			"transcriptFilename": "testvoice.tsc",
+			"serializedType": "VOICE_CLIP",
+			"voiceActor": "Miraboa"
+		},
+		{
+			"name": "Test_Voice3D",
+			"description": "Test 3D voice",
+			"filename": "testvoice.ogg",
+			"transcriptFilename": "testvoice.tsc",
+			"serializedType": "VOICE_3D",
+			"serializedVolume": "MID",
+			"voiceActor": "Miraboa"
+		}
+	]
+}

@@ -12,10 +12,10 @@ public class AudioManager : MonoBehaviour
     private static AudioManager self;
 
     // Clip Info
-    private Dictionary<AudioName, AudioClip> loadedClips = new Dictionary<AudioName, AudioClip>();
-    private Dictionary<AudioName, AudioClip> cachedAudioClip = new Dictionary<AudioName, AudioClip>();
-    private Dictionary<AudioName, LoadedVoiceSegment> cachedVoiceClips = new Dictionary<AudioName, LoadedVoiceSegment>();
-    private Dictionary<AudioName, List<LoadedSFX>> cachedSFXClips = new Dictionary<AudioName, List<LoadedSFX>>();
+    private Dictionary<string, AudioClip> loadedClips = new Dictionary<string, AudioClip>();
+    private Dictionary<string, AudioClip> cachedAudioClip = new Dictionary<string, AudioClip>();
+    private Dictionary<string, LoadedVoiceSegment> cachedVoiceClips = new Dictionary<string, LoadedVoiceSegment>();
+    private Dictionary<string, List<LoadedSFX>> cachedSFXClips = new Dictionary<string, List<LoadedSFX>>();
 
     // Tracks
     public AudioTrackMusic2D audioTrackMusic2D;
@@ -29,11 +29,11 @@ public class AudioManager : MonoBehaviour
     private DynamicMusic lastMusicGroupLoaded;
 
     // Cached data
-    private List<AudioName> cachedAudioList;
+    private List<string> cachedAudioList;
     private List<LoadedVoiceSegment> cachedVoiceSegmentList;
-    private List<AudioName> cachedSFXList;
+    private List<string> cachedSFXList;
     private DynamicMusic cachedMusicGroup;
-    private AudioName cachedAudioName;
+    private string cachedstring;
     private Sound cachedSound;
     private Voice cachedVoice;
 
@@ -53,35 +53,35 @@ public class AudioManager : MonoBehaviour
         RerunLoadedClips();
     }
 
-    public void Play(AudioName name, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false, int segment=-1, int finalSegment=-1, bool playAll=false, ulong entity=0, ChunkPos? chunk=null){
-        if(AudioLibrary.IsSound(name))
-            this.cachedSound = AudioLibrary.GetSound(name);
-        else if(AudioLibrary.IsDynamicMusic(name))
-            this.cachedSound = AudioLibrary.GetMusicGroup(name).wrapperSound;
-        else if(AudioLibrary.IsVoice(name)){
-            this.cachedVoice = AudioLibrary.GetVoice(name);
-            this.cachedSound = this.cachedVoice.wrapperSound;
+    public void Play(string name, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false, int segment=-1, int finalSegment=-1, bool playAll=false, ulong entity=0, ChunkPos? chunk=null){
+        if(AudioLoader.IsSound(name))
+            this.cachedSound = AudioLoader.GetSound(name);
+        else if(AudioLoader.IsDynamicMusic(name))
+            this.cachedSound = AudioLoader.GetMusicGroup(name).Get(dynamicLevel);
+        else if(AudioLoader.IsVoice(name)){
+            this.cachedVoice = AudioLoader.GetVoice(name);
+            this.cachedSound = this.cachedVoice.GetSound();
         }
 
-        if(this.cachedSound.type == AudioUsecase.MUSIC_CLIP){
+        if(this.cachedSound.GetUsecaseType() == AudioUsecase.MUSIC_CLIP){
             if(dynamicLevel != MusicDynamicLevel.NONE)
                 PlayDynamicMusic2D(name, dynamicLevel);
             else
                 PlayMusic2D(name, bypassGroup);
         }
-        else if(this.cachedSound.type == AudioUsecase.MUSIC_3D){
+        else if(this.cachedSound.GetUsecaseType() == AudioUsecase.MUSIC_3D){
             PlayMusic3D(name, entity);
         }
-        else if(this.cachedSound.type == AudioUsecase.SFX_CLIP){
+        else if(this.cachedSound.GetUsecaseType() == AudioUsecase.SFX_CLIP){
             PlaySFX2D(name);
         }
-        else if(this.cachedSound.type == AudioUsecase.SFX_3D || this.cachedSound.type == AudioUsecase.SFX_3D_LOOP){
+        else if(this.cachedSound.GetUsecaseType() == AudioUsecase.SFX_3D || this.cachedSound.GetUsecaseType() == AudioUsecase.SFX_3D_LOOP){
             PlaySFX3D(this.cachedSound, entity, (ChunkPos)chunk);
         }
-        else if(this.cachedSound.type == AudioUsecase.VOICE_CLIP){
+        else if(this.cachedSound.GetUsecaseType() == AudioUsecase.VOICE_CLIP){
             PlayVoice2D(this.cachedVoice, segment, finalSegment, playAll);
         }
-        else if(this.cachedSound.type == AudioUsecase.VOICE_3D){
+        else if(this.cachedSound.GetUsecaseType() == AudioUsecase.VOICE_3D){
             PlayVoice3D(this.cachedVoice, segment, finalSegment, playAll, entity);
         }
     }
@@ -91,11 +91,11 @@ public class AudioManager : MonoBehaviour
     Plays an AudioClip in AudioTrackMusic2D
         bypassGroup allows individual music from a DynamicMusic group be played standalone
     */
-    public void PlayMusic2D(AudioName name, bool bypassGroup=false){
+    public void PlayMusic2D(string name, bool bypassGroup=false){
         if(loadedClips.ContainsKey(name)){
-            GetClip(name).name = Enum.GetName(typeof(AudioName), name);
+            GetClip(name).name = name;
 
-            this.audioTrackMusic2D.Play(AudioLibrary.GetSound(name), GetClip(name));
+            this.audioTrackMusic2D.Play(AudioLoader.GetSound(name), GetClip(name));
         }
         else{
             LoadAudioClip(name);
@@ -105,15 +105,15 @@ public class AudioManager : MonoBehaviour
     /*
     Plays an AudioClip from a DynamicMusic based on it's DynamicLevel
     */
-    public void PlayDynamicMusic2D(AudioName name, MusicDynamicLevel level){
-        if(AudioLibrary.IsSound(name))
+    public void PlayDynamicMusic2D(string name, MusicDynamicLevel level){
+        if(AudioLoader.IsSound(name))
             Play(name);
 
-        this.cachedMusicGroup = AudioLibrary.GetMusicGroup(name);
-        this.cachedAudioName = this.cachedMusicGroup.Get(level).name;
+        this.cachedMusicGroup = AudioLoader.GetMusicGroup(name);
+        this.cachedstring = this.cachedMusicGroup.Get(level).name;
 
-        if(IsClipLoaded(this.cachedAudioName))
-            this.audioTrackMusic2D.Play(this.cachedMusicGroup.wrapperSound, GetClip(this.cachedAudioName), isDynamic:true);
+        if(IsClipLoaded(this.cachedstring))
+            this.audioTrackMusic2D.Play(this.cachedMusicGroup.Get(level), GetClip(this.cachedstring), isDynamic:true);
         else
             this.lastMusicGroupLoaded = this.cachedMusicGroup;
 
@@ -129,10 +129,10 @@ public class AudioManager : MonoBehaviour
     /*
     Plays an AudioClip in AudioTrackMusic23
     */
-    public void PlayMusic3D(AudioName name, ulong entity){
+    public void PlayMusic3D(string name, ulong entity){
         if(loadedClips.ContainsKey(name)){
-            GetClip(name).name = Enum.GetName(typeof(AudioName), name);
-            this.audioTrackMusic3D.Play(AudioLibrary.GetSound(name), GetClip(name), entity);
+            GetClip(name).name = Enum.GetName(typeof(string), name);
+            this.audioTrackMusic3D.Play(AudioLoader.GetSound(name), GetClip(name), entity);
         }
         else{
             LoadAudioClip(name);
@@ -142,7 +142,7 @@ public class AudioManager : MonoBehaviour
     /*
     Plays an AudioClip in single-shot fashion
     */
-    public void PlaySFX2D(AudioName name){
+    public void PlaySFX2D(string name){
         if(loadedClips.ContainsKey(name)){
             this.audioTrackSFX2D.Play(GetClip(name));
         }
@@ -168,7 +168,7 @@ public class AudioManager : MonoBehaviour
     */
     public void PlayVoice2D(Voice voice, int segment, int finalSegment, bool playAll){
         if(loadedClips.ContainsKey(voice.name)){
-            this.audioTrackVoice2D.Play(voice.wrapperSound, voice.GetTranscriptPath(), GetClip(voice.name), segment, finalSegment, playAll);
+            this.audioTrackVoice2D.Play(voice.GetSound(), voice.GetTranscriptPath(), GetClip(voice.name), segment, finalSegment, playAll);
         }
         else{
             LoadAudioClip(voice.name, segment, finalSegment, playAll);
@@ -180,7 +180,7 @@ public class AudioManager : MonoBehaviour
     */
     public void PlayVoice3D(Voice voice, int segment, int finalSegment, bool playAll, ulong entity){
         if(loadedClips.ContainsKey(voice.name)){
-            this.audioTrackVoice3D.Play(voice.wrapperSound, voice.GetTranscriptPath(), GetClip(voice.name), segment, finalSegment, playAll, entity);
+            this.audioTrackVoice3D.Play(voice.GetSound(), voice.GetTranscriptPath(), GetClip(voice.name), segment, finalSegment, playAll, entity);
         }
         else{
             LoadAudioClip(voice.name, segment, finalSegment, playAll);
@@ -258,9 +258,9 @@ public class AudioManager : MonoBehaviour
 
     private void RerunLoadedClips(){
         if(cachedAudioClip.Count > 0){
-            this.cachedAudioList = new List<AudioName>(cachedAudioClip.Keys);
+            this.cachedAudioList = new List<string>(cachedAudioClip.Keys);
 
-            foreach(AudioName name in this.cachedAudioList){
+            foreach(string name in this.cachedAudioList){
                 loadedClips.Add(name, this.cachedAudioClip[name]);
                 cachedAudioClip.Remove(name);
                 this.Play(name);
@@ -280,9 +280,9 @@ public class AudioManager : MonoBehaviour
         }
 
         if(cachedSFXClips.Count > 0){
-            this.cachedSFXList = new List<AudioName>(cachedSFXClips.Keys);
+            this.cachedSFXList = new List<string>(cachedSFXClips.Keys);
 
-            foreach(AudioName name in this.cachedSFXList){
+            foreach(string name in this.cachedSFXList){
                 foreach(LoadedSFX lsfx in cachedSFXClips[name]){
                     if(loadedClips.ContainsKey(lsfx.name))
                         continue;
@@ -296,30 +296,30 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    private AudioClip GetClip(AudioName name){
+    private AudioClip GetClip(string name){
         return this.loadedClips[name];
     }
 
-    private bool IsClipLoaded(AudioName name){
+    private bool IsClipLoaded(string name){
         return this.loadedClips.ContainsKey(name);
     }
 
-    private void LoadAudioClip(AudioName name, bool autoplay=true){
+    private void LoadAudioClip(string name, bool autoplay=true){
         StartCoroutine(GetAudioClip(name, autoplay));
     }
 
-    private void LoadAudioClip(AudioName name, int segment, int finalSegment, bool playAll){
+    private void LoadAudioClip(string name, int segment, int finalSegment, bool playAll){
         StartCoroutine(GetAudioClip(name, segment, finalSegment, playAll));
     }
 
-    private void LoadAudioClip(AudioName name, ChunkPos pos, ulong entity){
+    private void LoadAudioClip(string name, ChunkPos pos, ulong entity){
         StartCoroutine(GetAudioClip(name, pos, entity));        
     }
 
     // Loads music into AudioClip via Streaming method
-    private IEnumerator GetAudioClip(AudioName name, bool autoplay)
+    private IEnumerator GetAudioClip(string name, bool autoplay)
     {
-        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLibrary.GetSound(name).GetFilePath(), AudioType.OGGVORBIS))
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLoader.GetSound(name).GetFilePath(), AudioType.OGGVORBIS))
         {
             yield return www.SendWebRequest();
 
@@ -343,9 +343,9 @@ public class AudioManager : MonoBehaviour
     }
 
     // Alternative version of loading voice clips
-    private IEnumerator GetAudioClip(AudioName name, int segment, int finalSegment, bool playAll)
+    private IEnumerator GetAudioClip(string name, int segment, int finalSegment, bool playAll)
     {
-        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLibrary.GetVoice(name).GetFilePath(), AudioType.OGGVORBIS))
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLoader.GetVoice(name).GetSound().GetFilePath(), AudioType.OGGVORBIS))
         {
             yield return www.SendWebRequest();
 
@@ -360,9 +360,9 @@ public class AudioManager : MonoBehaviour
     }
 
     // Alternative version of loading SFX for blocks
-    private IEnumerator GetAudioClip(AudioName name, ChunkPos pos, ulong entity)
+    private IEnumerator GetAudioClip(string name, ChunkPos pos, ulong entity)
     {
-        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLibrary.GetSound(name).GetFilePath(), AudioType.OGGVORBIS))
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLoader.GetSound(name).GetFilePath(), AudioType.OGGVORBIS))
         {
             yield return www.SendWebRequest();
 
@@ -389,13 +389,13 @@ public class AudioManager : MonoBehaviour
 
 
 public struct LoadedVoiceSegment{
-    public AudioName name;
+    public string name;
     public int segment;
     public int finalSegment;
     public bool playAll;
     public AudioClip clip;
 
-    public LoadedVoiceSegment(AudioName name, int segment, int finalSegment, bool playAll, AudioClip clip){
+    public LoadedVoiceSegment(string name, int segment, int finalSegment, bool playAll, AudioClip clip){
         this.name = name;
         this.segment = segment;
         this.finalSegment = finalSegment;
@@ -405,12 +405,12 @@ public struct LoadedVoiceSegment{
 }
 
 public struct LoadedSFX{
-    public AudioName name;
+    public string name;
     public ChunkPos pos;
     public ulong entityCode;
     public AudioClip clip;
 
-    public LoadedSFX(AudioName name, ChunkPos pos, ulong code, AudioClip clip){
+    public LoadedSFX(string name, ChunkPos pos, ulong code, AudioClip clip){
         this.name = name;
         this.pos = pos;
         this.entityCode = code;

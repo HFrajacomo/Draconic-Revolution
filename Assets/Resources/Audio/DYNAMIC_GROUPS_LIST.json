@@ -1,0 +1,32 @@
+{
+    "data": [
+        {
+            "name": "Snow_Plains_Sea_Group",
+            "soundLight": "Snow_Plains_Soft",
+            "soundMid": "Snow_Plains_Mid",
+            "soundHeavy": "Snow_Plains_Heavy",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Snow_Mountains_Group",
+            "soundLight": "Snow_Mountains_Soft",
+            "soundMid": "Snow_Mountains_Mid",
+            "soundHeavy": "Snow_Mountains_Heavy",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Plains_Group",
+            "soundLight": "Plains_Soft",
+            "soundMid": "Plains_Mid",
+            "soundHeavy": "Plains_Heavy",
+            "serializedType": "MUSIC_CLIP"
+        },
+        {
+            "name": "Grass_Mountains_Group",
+            "soundLight": "Grass_Mountains_Soft",
+            "soundMid": "Grass_Mountains_Mid",
+            "soundHeavy": "Grass_Mountains_Heavy",
+            "serializedType": "MUSIC_CLIP"
+        }
+    ]
+}

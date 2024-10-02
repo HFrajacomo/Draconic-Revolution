@@ -239,7 +239,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Voxel Textures|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
 |Normal Map Support|Art| Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
 |Dynamic Lens Flare|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
-|Custom Audio Engine|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:warning:
+|Custom Audio Engine|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Initial Music|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:soon:|:soon:
 |Dynamic Music Support|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Dynamic Reverb Zone Generation|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
@@ -261,7 +261,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Hotbar UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Inventory UI|UI|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Item Drops|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
-|Dynamic Light Objects|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Dynamic Light Objects|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
  
 ---
 

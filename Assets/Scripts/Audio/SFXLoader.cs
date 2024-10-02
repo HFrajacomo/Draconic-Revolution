@@ -17,7 +17,7 @@ public class SFXLoader : MonoBehaviour
     /*
     Adds a block into the SFXLoader
     */
-    public void LoadBlockSFX(AudioName name, ChunkPos pos, int x, int y, int z){
+    public void LoadBlockSFX(string name, ChunkPos pos, int x, int y, int z){
         CastCoord coord = new CastCoord(pos, x, y, z);
         GameObject go = GameObject.Instantiate(prefab, new Vector3(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ()), Quaternion.identity);
         go.transform.parent = prefabCategory.transform;

@@ -10,6 +10,7 @@ public class GameLoader : MonoBehaviour {
 	private VoxelLoader voxelLoader;
 	private ItemLoader itemLoader;
 	private ShaderLoader shaderLoader;
+	private AudioLoader audioLoader;
 
 	private static readonly string SERVER_SCENE = "Assets/Scenes/Server.unity";
 
@@ -23,10 +24,12 @@ public class GameLoader : MonoBehaviour {
 		this.shaderLoader = new ShaderLoader(this.isClient);
 		this.itemLoader = new ItemLoader(this.isClient);
 		this.voxelLoader = new VoxelLoader(this.isClient, this.prefabObjects);
+		this.audioLoader = new AudioLoader(this.isClient);
 
 		this.shaderLoader.Load();
 		this.itemLoader.Load();
 		this.voxelLoader.Load();
+		this.audioLoader.Load();
 
 		this.itemLoader.RunPostDeserializationRoutine();
 		this.voxelLoader.RunPostDeserializationRoutine();

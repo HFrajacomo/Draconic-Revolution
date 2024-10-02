@@ -27,7 +27,7 @@ public class TorchBehaviour : VoxelBehaviour{
 	public byte maxDropQuantity;
 
 	private GameObject fireVFX;
-	private AudioName audio = AudioName.TORCHFIRE;
+	private string audio = "TorchFire";
 
 
 	// Turns on and off Torch
