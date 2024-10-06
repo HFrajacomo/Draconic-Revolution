@@ -1221,7 +1221,6 @@ public class Server
 			return;
 
 		if(!this.entityHandler.ContainsSheet(code)){
-			Debug.Log("LOADED CHARACTER SHEET FOR: " + code);
 			this.entityHandler.AddPlayerSheet(code, this.cachedSheet);
 		}
 
