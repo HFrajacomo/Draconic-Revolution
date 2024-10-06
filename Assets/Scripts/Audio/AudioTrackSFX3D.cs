@@ -43,8 +43,8 @@ public class AudioTrackSFX3D : MonoBehaviour
         cachedSource.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.EaseInOut(0f, 1f, cachedSource.maxDistance, 0f));
 
         cachedSource.clip = clip;
+        cachedSource.clip.name = sound.name;
         cachedSource.Play();
-
     }
 
     public void RegisterAudioSource(EntityID entityID, AudioSource source){

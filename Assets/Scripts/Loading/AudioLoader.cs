@@ -48,7 +48,11 @@ public class AudioLoader : BaseLoader {
 		return biomeMusic[biome];
 	}
 
-
+	public static bool IsLoop(string codename){
+		if(sounds[codename].GetUsecaseType() == AudioUsecase.SFX_3D_LOOP)
+			return true;
+		return false;
+	}
 
 	private static void ParseSoundList(){
 		TextAsset soundJson = Resources.Load<TextAsset>(SOUNDS_RESPATH);

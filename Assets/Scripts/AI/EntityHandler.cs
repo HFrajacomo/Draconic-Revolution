@@ -148,6 +148,7 @@ public class EntityHandler
 			this.playerItem.Remove(code);
 			this.playerCurrentPositions.Remove(code);
 			this.playerSheet.Remove(code);
+			this.cl.sfx.RemoveEntitySFX(new EntityID(type, code));
 		}
 		else if(type == EntityType.DROP){
 			this.dropObject[code].go.SetActive(false);
@@ -189,8 +190,13 @@ public class EntityHandler
 	}
 
 	public GameObject GetEntityObject(EntityID id){
-		if(id.type == EntityType.PLAYER)
+		if(id.type == EntityType.PLAYER){
+			if(id.code == this.cl.playerAccountID){
+				return this.cl.playerCharacter;
+			}
+
 			return this.playerObject[id.code];
+		}
 		return this.playerObject[id.code];
 	}
 

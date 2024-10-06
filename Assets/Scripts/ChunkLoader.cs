@@ -77,7 +77,7 @@ public class ChunkLoader : MonoBehaviour
     private NetMessage message;
 
     // Player information
-    private ulong playerAccountID = 1;
+    public ulong playerAccountID = 1;
     private int lastChunkYLayer = 0;
 
 

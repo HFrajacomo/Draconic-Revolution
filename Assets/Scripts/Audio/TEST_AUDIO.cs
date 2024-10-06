@@ -14,6 +14,7 @@ public class TEST_AUDIO : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        /*
         if(counter == 500)
             audioManager.Play("Grass_Mountains_Group", null, dynamicLevel:MusicDynamicLevel.SOFT);
 
@@ -30,5 +31,6 @@ public class TEST_AUDIO : MonoBehaviour
             audioManager.Play("Grass_Mountains_Group", null, dynamicLevel:MusicDynamicLevel.SOFT);
 
         counter++;
+        */
     }
 }
