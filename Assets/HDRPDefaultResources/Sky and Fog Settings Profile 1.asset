@@ -303,14 +303,14 @@ MonoBehaviour:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 215.25531
+        customValue: 155.40549
         additiveValue: 0
         multiplyValue: 1
     scrollSpeed:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 0.72190094
+        customValue: 43.263584
         additiveValue: 0
         multiplyValue: 1
     flowmap:
@@ -355,7 +355,7 @@ MonoBehaviour:
       m_Value: 251
     tint:
       m_OverrideState: 1
-      m_Value: {r: 0, g: 0, b: 0, a: 0}
+      m_Value: {r: 0.09043809, g: 0.09043809, b: 0.09043809, a: 0.11447859}
     exposure:
       m_OverrideState: 1
       m_Value: 0
@@ -366,14 +366,14 @@ MonoBehaviour:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 255.25531
+        customValue: 195.40549
         additiveValue: 0
         multiplyValue: 1
     scrollSpeed:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 0.64971083
+        customValue: 38.937225
         additiveValue: 0
         multiplyValue: 1
     flowmap:
@@ -587,7 +587,7 @@ MonoBehaviour:
     m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 8.865904
+    m_Value: 8.885521
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1

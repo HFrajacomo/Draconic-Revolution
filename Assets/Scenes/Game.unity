@@ -566,6 +566,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cl: {fileID: 1192772367}
+  iconRenderer: {fileID: 0}
   hotbarIcon:
   - {fileID: 680558544}
   - {fileID: 909137828}
@@ -589,7 +590,6 @@ MonoBehaviour:
   hotbar_selected: {fileID: 494716106}
   invUIPlayer: {fileID: 638012052}
   itemIconMaterial: {fileID: 2100000, guid: 757d7ed9e718e554ead4be13de0d9cc8, type: 2}
-  iconRenderer: {fileID: 0}
 --- !u!143 &59614820
 CharacterController:
   m_ObjectHideFlags: 0
@@ -2228,6 +2228,7 @@ MonoBehaviour:
   audioManager: {fileID: 0}
   prefab: {fileID: 542211799}
   prefabCategory: {fileID: 692086677}
+  cl: {fileID: 1192772367}
 --- !u!4 &246974019
 Transform:
   m_ObjectHideFlags: 0

@@ -6,6 +6,8 @@ using UnityEngine.Audio;
 public class AudioTrackSFX3D : MonoBehaviour
 {
     private Dictionary<ChunkPos, Dictionary<ulong, AudioSource>> audioMap = new Dictionary<ChunkPos, Dictionary<ulong, AudioSource>>();
+    private Dictionary<EntityID, AudioSource> entityMap = new Dictionary<EntityID, AudioSource>();
+
     private AudioSource cachedSource;
 
     private const float HARD_VOLUME_LIMIT = 0.2f;
@@ -15,18 +17,25 @@ public class AudioTrackSFX3D : MonoBehaviour
         ChangeVolume();
     }
 
-    public void Play(Sound sound, AudioClip clip, ulong entityCode, ChunkPos pos){
-        if(!audioMap.ContainsKey(pos))
-            return;
+    public void Play(Sound sound, AudioClip clip, EntityID entityID){
+        if(entityID.type == EntityType.VOXEL){
+            if(!audioMap.ContainsKey(entityID.pos))
+                return;
 
-        if(!audioMap[pos].ContainsKey(entityCode))
-            return;
+            if(!audioMap[entityID.pos].ContainsKey(entityID.code))
+                return;
 
-        cachedSource = audioMap[pos][entityCode];
+            cachedSource = audioMap[entityID.pos][entityID.code];
+        }
+        else if(entityID.type == EntityType.PLAYER){
+            if(!entityMap.ContainsKey(entityID))
+                return;
+
+            cachedSource = entityMap[entityID];
+        }
 
         if(sound.GetUsecaseType() == AudioUsecase.SFX_3D)
             cachedSource.loop = false;
-        // AudioUsecase.SFX_3D_LOOP
         else
             cachedSource.loop = true;
 
@@ -35,27 +44,45 @@ public class AudioTrackSFX3D : MonoBehaviour
 
         cachedSource.clip = clip;
         cachedSource.Play();
+
     }
 
-    public void RegisterAudioSource(ulong entityCode, AudioSource source, ChunkPos pos){
-        if(!audioMap.ContainsKey(pos))
-            audioMap.Add(pos, new Dictionary<ulong, AudioSource>());
+    public void RegisterAudioSource(EntityID entityID, AudioSource source){
+        if(entityID.type == EntityType.VOXEL){
+            if(!audioMap.ContainsKey(entityID.pos))
+                audioMap.Add(entityID.pos, new Dictionary<ulong, AudioSource>());
 
-        if(!audioMap[pos].ContainsKey(entityCode)){
+            if(!audioMap[entityID.pos].ContainsKey(entityID.code)){
+                SetupAudioSource(source);
+                audioMap[entityID.pos].Add(entityID.code, source);
+            }
+        }
+        else if(entityID.type == EntityType.PLAYER){
+            if(!entityMap.ContainsKey(entityID)){
+                entityMap.Add(entityID, source);
+            }
+            else{
+                entityMap[entityID] = source;
+            }
             SetupAudioSource(source);
-            audioMap[pos].Add(entityCode, source);
         }
     }
 
-    public void UnregisterAudioSource(ulong entityCode, ChunkPos pos){
-        if(!audioMap.ContainsKey(pos))
-            return;
+    public void UnregisterAudioSource(EntityID entityID){
+        if(entityID.type == EntityType.VOXEL){
+            if(!audioMap.ContainsKey(entityID.pos))
+                return;
 
-        if(audioMap[pos].ContainsKey(entityCode))
-            audioMap[pos].Remove(entityCode);
+            if(audioMap[entityID.pos].ContainsKey(entityID.code))
+                audioMap[entityID.pos].Remove(entityID.code);
 
-        if(audioMap[pos].Count == 0)
-            audioMap.Remove(pos);
+            if(audioMap[entityID.pos].Count == 0)
+                audioMap.Remove(entityID.pos);
+        }
+        else if(entityID.type == EntityType.PLAYER){
+            if(entityMap.ContainsKey(entityID))
+                entityMap.Remove(entityID);
+        }
     }
 
     public void SetupAudioSource(AudioSource source){
@@ -72,14 +99,21 @@ public class AudioTrackSFX3D : MonoBehaviour
 
     public void DestroyTrackInfo(){
         List<ChunkPos> removeList = new List<ChunkPos>(audioMap.Keys);
+        List<EntityID> removeIds = new List<EntityID>(entityMap.Keys);
         List<ulong> removeCodeList;
 
+        // AudioMap
         foreach(ChunkPos pos in removeList){
             removeCodeList = new List<ulong>(audioMap[pos].Keys);
 
             foreach(ulong entity in removeCodeList){
-                UnregisterAudioSource(entity, pos);
+                UnregisterAudioSource(new EntityID(EntityType.VOXEL, pos, entity));
             }
+        }
+
+        // EntityMap
+        foreach(EntityID id in removeIds){
+            UnregisterAudioSource(id);
         }
     }
 }

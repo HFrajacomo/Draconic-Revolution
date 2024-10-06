@@ -53,7 +53,7 @@ public class AudioManager : MonoBehaviour
         RerunLoadedClips();
     }
 
-    public void Play(string name, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false, int segment=-1, int finalSegment=-1, bool playAll=false, ulong entity=0, ChunkPos? chunk=null){
+    public void Play(string name, EntityID? entity, MusicDynamicLevel dynamicLevel=MusicDynamicLevel.NONE, bool bypassGroup=false, int segment=-1, int finalSegment=-1, bool playAll=false, ChunkPos? chunk=null){
         if(AudioLoader.IsSound(name))
             this.cachedSound = AudioLoader.GetSound(name);
         else if(AudioLoader.IsDynamicMusic(name))
@@ -70,19 +70,19 @@ public class AudioManager : MonoBehaviour
                 PlayMusic2D(name, bypassGroup);
         }
         else if(this.cachedSound.GetUsecaseType() == AudioUsecase.MUSIC_3D){
-            PlayMusic3D(name, entity);
+            PlayMusic3D(name, (EntityID)entity);
         }
         else if(this.cachedSound.GetUsecaseType() == AudioUsecase.SFX_CLIP){
             PlaySFX2D(name);
         }
         else if(this.cachedSound.GetUsecaseType() == AudioUsecase.SFX_3D || this.cachedSound.GetUsecaseType() == AudioUsecase.SFX_3D_LOOP){
-            PlaySFX3D(this.cachedSound, entity, (ChunkPos)chunk);
+            PlaySFX3D(this.cachedSound, (EntityID)entity);
         }
         else if(this.cachedSound.GetUsecaseType() == AudioUsecase.VOICE_CLIP){
             PlayVoice2D(this.cachedVoice, segment, finalSegment, playAll);
         }
         else if(this.cachedSound.GetUsecaseType() == AudioUsecase.VOICE_3D){
-            PlayVoice3D(this.cachedVoice, segment, finalSegment, playAll, entity);
+            PlayVoice3D(this.cachedVoice, segment, finalSegment, playAll, (EntityID)entity);
         }
     }
 
@@ -107,7 +107,7 @@ public class AudioManager : MonoBehaviour
     */
     public void PlayDynamicMusic2D(string name, MusicDynamicLevel level){
         if(AudioLoader.IsSound(name))
-            Play(name);
+            Play(name, null);
 
         this.cachedMusicGroup = AudioLoader.GetMusicGroup(name);
         this.cachedstring = this.cachedMusicGroup.Get(level).name;
@@ -129,7 +129,7 @@ public class AudioManager : MonoBehaviour
     /*
     Plays an AudioClip in AudioTrackMusic23
     */
-    public void PlayMusic3D(string name, ulong entity){
+    public void PlayMusic3D(string name, EntityID entity){
         if(loadedClips.ContainsKey(name)){
             GetClip(name).name = Enum.GetName(typeof(string), name);
             this.audioTrackMusic3D.Play(AudioLoader.GetSound(name), GetClip(name), entity);
@@ -154,12 +154,12 @@ public class AudioManager : MonoBehaviour
     /*
     Plays an SFX AudioClip in the 3D environment
     */
-    public void PlaySFX3D(Sound sound, ulong entity, ChunkPos pos){
+    public void PlaySFX3D(Sound sound, EntityID entity){
         if(loadedClips.ContainsKey(sound.name)){
-            this.audioTrackSFX3D.Play(sound, GetClip(sound.name), entity, pos);
+            this.audioTrackSFX3D.Play(sound, GetClip(sound.name), entity);
         }
         else{
-            LoadAudioClip(sound.name, pos, entity);
+            LoadAudioClip(sound.name, entity);
         }
     }
 
@@ -178,7 +178,7 @@ public class AudioManager : MonoBehaviour
     /*
     Plays a segment of a Voice in 3D environment
     */
-    public void PlayVoice3D(Voice voice, int segment, int finalSegment, bool playAll, ulong entity){
+    public void PlayVoice3D(Voice voice, int segment, int finalSegment, bool playAll, EntityID entity){
         if(loadedClips.ContainsKey(voice.name)){
             this.audioTrackVoice3D.Play(voice.GetSound(), voice.GetTranscriptPath(), GetClip(voice.name), segment, finalSegment, playAll, entity);
         }
@@ -201,30 +201,30 @@ public class AudioManager : MonoBehaviour
     /*
     Register an AudioSource to a AudioTrack3D that has the given usecase
     */
-    public void RegisterAudioSource(AudioSource source, AudioUsecase type, ulong entityCode, ChunkPos? pos=null){
+    public void RegisterAudioSource(AudioSource source, AudioUsecase type, EntityID entityID){
         if(type == AudioUsecase.MUSIC_3D){
-            this.audioTrackMusic3D.RegisterAudioSource(entityCode, source);
+            this.audioTrackMusic3D.RegisterAudioSource(entityID, source);
         }
         else if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
-            this.audioTrackSFX3D.RegisterAudioSource(entityCode, source, (ChunkPos)pos);
+            this.audioTrackSFX3D.RegisterAudioSource(entityID, source);
         }
         else if(type == AudioUsecase.VOICE_3D){
-            this.audioTrackVoice3D.RegisterAudioSource(source, entityCode);
+            this.audioTrackVoice3D.RegisterAudioSource(source, entityID);
         }
     }
 
     /*
     Un-register an AudioSource to a AudioTrack3D that has the given usecase
     */
-    public void UnregisterAudioSource(AudioUsecase type, ulong entityCode, ChunkPos? pos=null){
+    public void UnregisterAudioSource(AudioUsecase type, EntityID entityID, ChunkPos? pos=null){
         if(type == AudioUsecase.MUSIC_3D){
-            this.audioTrackMusic3D.UnregisterAudioSource(entityCode);
+            this.audioTrackMusic3D.UnregisterAudioSource(entityID);
         }
         else if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
-            this.audioTrackSFX3D.UnregisterAudioSource(entityCode, (ChunkPos)pos);
+            this.audioTrackSFX3D.UnregisterAudioSource(entityID);
         }
         else if(type == AudioUsecase.VOICE_3D){
-            this.audioTrackVoice3D.UnregisterAudioSource(entityCode);
+            this.audioTrackVoice3D.UnregisterAudioSource(entityID);
         } 
     }
 
@@ -263,7 +263,7 @@ public class AudioManager : MonoBehaviour
             foreach(string name in this.cachedAudioList){
                 loadedClips.Add(name, this.cachedAudioClip[name]);
                 cachedAudioClip.Remove(name);
-                this.Play(name);
+                this.Play(name, null);
             }
 
             this.cachedAudioList.Clear();
@@ -275,7 +275,7 @@ public class AudioManager : MonoBehaviour
             foreach(LoadedVoiceSegment lvs in this.cachedVoiceSegmentList){
                 loadedClips.Add(lvs.name, lvs.clip);
                 cachedVoiceClips.Remove(lvs.name);
-                this.Play(lvs.name, segment:lvs.segment, finalSegment:lvs.finalSegment, playAll:lvs.playAll);
+                this.Play(lvs.name, null, segment:lvs.segment, finalSegment:lvs.finalSegment, playAll:lvs.playAll);
             }
         }
 
@@ -288,7 +288,7 @@ public class AudioManager : MonoBehaviour
                         continue;
                         
                     loadedClips.Add(lsfx.name, lsfx.clip);
-                    this.Play(lsfx.name, chunk:lsfx.pos, entity:lsfx.entityCode);
+                    this.Play(lsfx.name, lsfx.entity, chunk:lsfx.entity.pos);
                 }
 
                 cachedSFXClips.Remove(name);
@@ -312,8 +312,8 @@ public class AudioManager : MonoBehaviour
         StartCoroutine(GetAudioClip(name, segment, finalSegment, playAll));
     }
 
-    private void LoadAudioClip(string name, ChunkPos pos, ulong entity){
-        StartCoroutine(GetAudioClip(name, pos, entity));        
+    private void LoadAudioClip(string name, EntityID entity){
+        StartCoroutine(GetAudioClip(name, entity));        
     }
 
     // Loads music into AudioClip via Streaming method
@@ -359,8 +359,8 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    // Alternative version of loading SFX for blocks
-    private IEnumerator GetAudioClip(string name, ChunkPos pos, ulong entity)
+    // Alternative version of loading SFX for blocks or entities
+    private IEnumerator GetAudioClip(string name, EntityID entity)
     {
         using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(AudioLoader.GetSound(name).GetFilePath(), AudioType.OGGVORBIS))
         {
@@ -375,7 +375,7 @@ public class AudioManager : MonoBehaviour
             if(!this.cachedSFXClips.ContainsKey(name))
                 this.cachedSFXClips.Add(name, new List<LoadedSFX>());
 
-            this.cachedSFXClips[name].Add(new LoadedSFX(name, pos, entity, DownloadHandlerAudioClip.GetContent(www)));
+            this.cachedSFXClips[name].Add(new LoadedSFX(name, entity, DownloadHandlerAudioClip.GetContent(www)));
         }
     }
 
@@ -406,14 +406,12 @@ public struct LoadedVoiceSegment{
 
 public struct LoadedSFX{
     public string name;
-    public ChunkPos pos;
-    public ulong entityCode;
+    public EntityID entity;
     public AudioClip clip;
 
-    public LoadedSFX(string name, ChunkPos pos, ulong code, AudioClip clip){
+    public LoadedSFX(string name, EntityID entity, AudioClip clip){
         this.name = name;
-        this.pos = pos;
-        this.entityCode = code;
+        this.entity = entity;
         this.clip = clip;
     }
 }

@@ -9,10 +9,37 @@ public class SFXLoader : MonoBehaviour
     public AudioManager audioManager;
     public GameObject prefab;
     public GameObject prefabCategory;
+    public ChunkLoader cl;
 
     // Sound Dictionaries
-    private Dictionary<ChunkPos, Dictionary<ulong, GameObject>> blockSFX = new Dictionary<ChunkPos, Dictionary<ulong, GameObject>>();
+    private Dictionary<ChunkPos, Dictionary<EntityID, GameObject>> blockSFX = new Dictionary<ChunkPos, Dictionary<EntityID, GameObject>>();
+    private Dictionary<EntityID, GameObject> entitySFX = new Dictionary<EntityID, GameObject>();
 
+    // Adds an SFX to an Entity
+    public void LoadEntitySFX(string name, EntityID entity){
+        GameObject entityObj = cl.client.entityHandler.GetEntityObject(entity);
+
+        GameObject go = GameObject.Instantiate(prefab, Vector3.zero, Quaternion.identity);
+        go.transform.parent = entityObj.transform;
+        AudioSource source = go.GetComponent<AudioSource>();
+
+        if(this.entitySFX.ContainsKey(entity))
+            GameObject.Destroy(this.entitySFX[entity]);
+        
+        this.entitySFX.Add(entity, go);
+        audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D, entity);
+        audioManager.Play(name, entity);
+    }
+
+    // Remove an SFX from an Entity
+    public void RemoveEntitySFX(EntityID entity){
+        if(!entitySFX.ContainsKey(entity))
+            return;
+
+        GameObject.Destroy(entitySFX[entity]);
+        entitySFX.Remove(entity);
+        audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, entity);
+    }
 
     /*
     Adds a block into the SFXLoader
@@ -22,37 +49,37 @@ public class SFXLoader : MonoBehaviour
         GameObject go = GameObject.Instantiate(prefab, new Vector3(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ()), Quaternion.identity);
         go.transform.parent = prefabCategory.transform;
         AudioSource source = go.GetComponent<AudioSource>();
-        ulong entityCode = (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z);
+        EntityID id = new EntityID(EntityType.VOXEL, pos, (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z));
 
         if(!blockSFX.ContainsKey(pos))
-            blockSFX.Add(pos, new Dictionary<ulong, GameObject>());
+            blockSFX.Add(pos, new Dictionary<EntityID, GameObject>());
 
-        if(blockSFX[pos].ContainsKey(entityCode)){
-            blockSFX[pos][entityCode] = go;
+        if(blockSFX[pos].ContainsKey(id)){
+            blockSFX[pos][id] = go;
             RemoveBlockSFX(pos, x, y, z);
         }
         else
-            blockSFX[pos].Add(entityCode, go);
+            blockSFX[pos].Add(id, go);
 
-        audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D, entityCode, pos:pos);
-        audioManager.Play(name, entity:entityCode, chunk:pos);
+        audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D, id);
+        audioManager.Play(name, id);
     }
 
     /*
     Removes a single block from SFXLoader
     */
     public void RemoveBlockSFX(ChunkPos pos, int x, int y, int z){
-        ulong code = (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z);
+        EntityID id = new EntityID(EntityType.VOXEL, pos, (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z));
 
         if(!blockSFX.ContainsKey(pos))
             return;
 
-        if(!blockSFX[pos].ContainsKey(code))
+        if(!blockSFX[pos].ContainsKey(id))
             return;
 
-        GameObject.Destroy(blockSFX[pos][code]);
-        blockSFX[pos].Remove(code);
-        audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, code, pos:pos);
+        GameObject.Destroy(blockSFX[pos][id]);
+        blockSFX[pos].Remove(id);
+        audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, id);
 
         if(blockSFX[pos].Count == 0)
             blockSFX.Remove(pos);
@@ -65,9 +92,9 @@ public class SFXLoader : MonoBehaviour
         if(!blockSFX.ContainsKey(pos))
             return;
 
-        foreach(ulong entity in blockSFX[pos].Keys){
+        foreach(EntityID entity in blockSFX[pos].Keys){
             GameObject.Destroy(blockSFX[pos][entity]);
-            audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, entity, pos:pos);
+            audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, entity);
         }
 
         blockSFX.Remove(pos);

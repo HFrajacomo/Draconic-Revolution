@@ -33,7 +33,7 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 	public override void OnHoldClient(ChunkLoader cl, ItemStack its, ulong playerCode){
 		Debug.Log("Running OnHoldClient for ID: " + playerCode);
 
-		GameObject go = cl.client.entityHandler.GetPlayerObject(playerCode);
+		GameObject go = cl.client.entityHandler.GetEntityObject(new EntityID(EntityType.PLAYER, playerCode));
 		Light lightComponent = go.GetComponent<Light>();
 		HDAdditionalLightData light = go.GetComponent<HDAdditionalLightData>();
 		RealisticLight realLight = go.GetComponent<RealisticLight>();
@@ -52,7 +52,7 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 	public override void OnUnholdClient(ChunkLoader cl, ItemStack its, ulong playerCode){
 		Debug.Log("Running OnUnholdClient for ID: " + playerCode);
 
-		GameObject go = cl.client.entityHandler.GetPlayerObject(playerCode);
+		GameObject go = cl.client.entityHandler.GetEntityObject(new EntityID(EntityType.PLAYER, playerCode));
 		Light lightComponent = go.GetComponent<Light>();
 		HDAdditionalLightData light = go.GetComponent<HDAdditionalLightData>();
 		RealisticLight realLight = go.GetComponent<RealisticLight>();

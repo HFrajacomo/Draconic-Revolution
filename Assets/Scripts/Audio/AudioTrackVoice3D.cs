@@ -12,13 +12,13 @@ public class AudioTrackVoice3D : MonoBehaviour
     private SubtitlesManager subManager;
 
     // AudioSources
-    private Dictionary<ulong, AudioSource> sources = new Dictionary<ulong, AudioSource>();
-    private Dictionary<ulong, float> distances = new Dictionary<ulong, float>();
-    private Dictionary<ulong, Transform> sourcesTransform = new Dictionary<ulong, Transform>(); 
+    private Dictionary<EntityID, AudioSource> sources = new Dictionary<EntityID, AudioSource>();
+    private Dictionary<EntityID, float> distances = new Dictionary<EntityID, float>();
+    private Dictionary<EntityID, Transform> sourcesTransform = new Dictionary<EntityID, Transform>(); 
 
     // Current Execution
-    private Dictionary<ulong, string> currentAudio = new Dictionary<ulong, string>();
-    private Dictionary<ulong, AudioVolume> currentVolume = new Dictionary<ulong, AudioVolume>();
+    private Dictionary<EntityID, string> currentAudio = new Dictionary<EntityID, string>();
+    private Dictionary<EntityID, AudioVolume> currentVolume = new Dictionary<EntityID, AudioVolume>();
 
     // Globalization
     private CultureInfo cultureInfo = new CultureInfo("en-US");
@@ -30,19 +30,19 @@ public class AudioTrackVoice3D : MonoBehaviour
     private HashSet<string> loadedTranscripts = new HashSet<string>();
 
     // Timing Lists
-    private Dictionary<ulong, List<float>> segmentTime = new Dictionary<ulong, List<float>>();
-    private Dictionary<ulong, List<string>> transcriptSegments = new Dictionary<ulong, List<string>>();
-    private Dictionary<ulong, List<float>> transcriptTime = new Dictionary<ulong, List<float>>();
-    private Dictionary<ulong, int> currentSegment = new Dictionary<ulong, int>();
-    private Dictionary<ulong, int> currentTranscriptSegment = new Dictionary<ulong, int>();
+    private Dictionary<EntityID, List<float>> segmentTime = new Dictionary<EntityID, List<float>>();
+    private Dictionary<EntityID, List<string>> transcriptSegments = new Dictionary<EntityID, List<string>>();
+    private Dictionary<EntityID, List<float>> transcriptTime = new Dictionary<EntityID, List<float>>();
+    private Dictionary<EntityID, int> currentSegment = new Dictionary<EntityID, int>();
+    private Dictionary<EntityID, int> currentTranscriptSegment = new Dictionary<EntityID, int>();
 
     // Cache
-    private ulong closestEntity;
+    private EntityID closestEntity;
     private bool foundClosest = false;
 
     private const float HARD_VOLUME_LIMIT = 0.4f;
     private static float MAX_VOLUME = 0.4f;
-    private Dictionary<ulong, bool> IS_PLAYING = new Dictionary<ulong, bool>();
+    private Dictionary<EntityID, bool> IS_PLAYING = new Dictionary<EntityID, bool>();
 
 
     public void Awake(){
@@ -52,7 +52,7 @@ public class AudioTrackVoice3D : MonoBehaviour
     public void Update(){
         foundClosest = false;
 
-        foreach(ulong entity in sources.Keys){
+        foreach(EntityID entity in sources.Keys){
             if(IS_PLAYING.ContainsKey(entity) && IS_PLAYING[entity]){
                 if(!sources[entity].isPlaying){
                     IS_PLAYING[entity] = false;
@@ -77,7 +77,7 @@ public class AudioTrackVoice3D : MonoBehaviour
     }
 
 
-    public void Play(Sound sound, string transcriptPath, AudioClip clip, int segment, int finalSegment, bool playAll, ulong entity){
+    public void Play(Sound sound, string transcriptPath, AudioClip clip, int segment, int finalSegment, bool playAll, EntityID entity){
         if(currentAudio.ContainsKey(entity)){
             if(currentAudio[entity] != sound.name){
                 ClearCurrentAudio(entity);
@@ -124,7 +124,7 @@ public class AudioTrackVoice3D : MonoBehaviour
         IS_PLAYING[entity] = true;
     }
 
-    public void RegisterAudioSource(AudioSource source, ulong entity){
+    public void RegisterAudioSource(AudioSource source, EntityID entity){
         if(!this.sources.ContainsKey(entity)){
             source.spatialBlend = 1f;
             source.volume = MAX_VOLUME;
@@ -145,7 +145,7 @@ public class AudioTrackVoice3D : MonoBehaviour
         }
     }
 
-    public void UnregisterAudioSource(ulong entity){
+    public void UnregisterAudioSource(EntityID entity){
         if(this.sources.ContainsKey(entity)){
             this.sources.Remove(entity);
             this.distances.Remove(entity);
@@ -167,9 +167,9 @@ public class AudioTrackVoice3D : MonoBehaviour
     }
 
     public void DestroyTrackInfo(){
-        List<ulong> removeList = new List<ulong>(sources.Keys);
+        List<EntityID> removeList = new List<EntityID>(sources.Keys);
 
-        foreach(ulong entity in removeList){
+        foreach(EntityID entity in removeList){
             sources.Remove(entity);
             distances.Remove(entity);
             sourcesTransform.Remove(entity);
@@ -193,7 +193,7 @@ public class AudioTrackVoice3D : MonoBehaviour
         this.subManager = subManager;
     }
 
-    private void HandleNextTranscriptSegment(ulong entity){
+    private void HandleNextTranscriptSegment(EntityID entity){
         if(transcriptTime[entity].Count == 0)
             return;
 
@@ -219,7 +219,7 @@ public class AudioTrackVoice3D : MonoBehaviour
     /*
     Sets the time for time events in the current track
     */
-    private void SetTimeValues(float clipLength, ulong entity){
+    private void SetTimeValues(float clipLength, EntityID entity){
         bool isTimePair;
         bool isFirstTimePair;
 
@@ -258,14 +258,14 @@ public class AudioTrackVoice3D : MonoBehaviour
     /*
     Finds the index of the TranscriptSegment given an exact timestamp
     */
-    private void FindExactTranscriptSegment(float currentTime, ulong entity){
+    private void FindExactTranscriptSegment(float currentTime, EntityID entity){
         for(int i=0; i < transcriptTime[entity].Count; i++){
             if(transcriptTime[entity][i] == currentTime)
                 currentTranscriptSegment[entity] = i;
         }
     }
 
-    private void ClearCurrentAudio(ulong entity){
+    private void ClearCurrentAudio(EntityID entity){
         string audio = currentAudio[entity];
 
         currentAudio.Remove(entity);

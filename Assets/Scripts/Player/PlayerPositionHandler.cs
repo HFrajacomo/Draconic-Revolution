@@ -166,7 +166,7 @@ public class PlayerPositionHandler : MonoBehaviour
         if(this.currentMusic == null)
             return;
 
-        audioManager.Play(this.currentMusic, dynamicLevel:MusicDynamicLevel.SOFT);
+        audioManager.Play(this.currentMusic, null, dynamicLevel:MusicDynamicLevel.SOFT);
     }
 
     private void StopMusic(){audioManager.Stop(AudioUsecase.MUSIC_CLIP, fade:true);}

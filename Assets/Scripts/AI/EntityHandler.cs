@@ -188,8 +188,10 @@ public class EntityHandler
 		return this.playerSheet[code];
 	}
 
-	public GameObject GetPlayerObject(ulong code){
-		return this.playerObject[code];
+	public GameObject GetEntityObject(EntityID id){
+		if(id.type == EntityType.PLAYER)
+			return this.playerObject[id.code];
+		return this.playerObject[id.code];
 	}
 
 	public Light GetPointLight(EntityType type, ulong code){
