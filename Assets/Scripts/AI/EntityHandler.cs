@@ -92,6 +92,7 @@ public class EntityHandler
 	public void UpdatePlayerModel(ulong code, CharacterAppearance app, bool isMale){
 		if(this.playerObject.ContainsKey(code)){
 			this.playerObject[code] = this.playerModelHandler.BuildModel(this.playerObject[code], app, isMale);
+			//this.playerObject[code].transform.Find("Armature").transform.rotation = Quaternion.Euler(270, 0, 0);
 		}
 	}
 

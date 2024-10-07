@@ -45,7 +45,7 @@ public class CharacterBuilder{
 	private static readonly string ARMATURE_NAME_MALE = "Armature";
 	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
 	private static readonly Vector3 POS_1 = Vector3.zero;
-	private static readonly Quaternion ROT_1 = Quaternion.Euler(new Vector3(270, 180, 180));
+	private static readonly Quaternion ROT_1 = Quaternion.Euler(new Vector3(270, 0, 0));
 	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
 
 
@@ -58,7 +58,7 @@ public class CharacterBuilder{
 		this.appearance = app;
 		this.animator = par.GetComponent<Animator>();
 		this.animator.runtimeAnimatorController = animations;
-		this.armature = ModelHandler.GetArmature(isMale:isMale);
+		this.armature = ModelHandler.GetArmature(isMale:isMale, rotated:true);
 		this.armature.transform.SetParent(this.parent.transform);
 
 		this.modelRoot = GameObject.Instantiate(EMPTY_OBJECT_PREFAB);
@@ -79,11 +79,11 @@ public class CharacterBuilder{
 		plainClothingMaterial = clothing;
 		dragonSkinMaterial = dragonskin;
 
-		FixArmature(isMale);
+		FixArmature();
 	}
 
 	// Whenever clothes are being changed
-	public void ChangeAppearaceAndBuild(CharacterAppearance app){
+	public void ChangeAppearanceAndBuild(CharacterAppearance app){
 		this.appearance = app;
 		Build();
 	}
@@ -209,16 +209,8 @@ public class CharacterBuilder{
 		}
 	}
 
-	private void FixArmature(bool isMale){
-		/* DEBUG
-		if(isMale)
-			this.armature.transform.localScale = Multiply(this.armature.transform.localScale, SCL_1);
-		else
-			this.armature.transform.localScale = Multiply(this.armature.transform.localScale, SCL_2);
-		*/
-
-
-		this.armature.transform.eulerAngles = ROT_1.eulerAngles;
+	private void FixArmature(){
+		this.armature.transform.localRotation = ROT_1;
 		this.armature.transform.localPosition = POS_1;
 		this.boneRenderer = this.armature.AddComponent<BoneRenderer>();
 

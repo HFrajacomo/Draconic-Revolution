@@ -16,6 +16,8 @@ public class PlayerModelHandler : MonoBehaviour {
 
 	private CharacterBuilder characterBuilder;
 
+	private static readonly Quaternion ROTATION = Quaternion.Euler(new Vector3(0, -90, 0));
+
 
 	public void Awake(){
 		this.animator = this.parent.AddComponent<Animator>();
@@ -58,7 +60,7 @@ public class PlayerModelHandler : MonoBehaviour {
 			this.characterBuilder.Build();
 		}
 		else{
-			this.characterBuilder.ChangeAppearaceAndBuild(app);
+			this.characterBuilder.ChangeAppearanceAndBuild(app);
 		}
 
 		Rescale(app.race, this.parent);

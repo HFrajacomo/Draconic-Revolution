@@ -25,6 +25,8 @@ public static class ModelHandler{
 	private static readonly string ARMATURE_MALE = "Armature-Man";
 	private static readonly string ARMATURE_FEMALE = "Armature-Woman";
 
+	private static readonly Quaternion ROTATION = Quaternion.Euler(0, -90, 0);
+
 	private static TextAsset cachedText;
 
 
@@ -105,12 +107,18 @@ public static class ModelHandler{
 		}
 	}
 
-	public static GameObject GetArmature(bool isMale=true){
+	public static GameObject GetArmature(bool isMale=true, bool rotated=false){
 		if(isMale){
-			return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_MALE));
+			if(rotated)
+				return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_MALE), Vector3.zero, ROTATION);
+			else
+				return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_MALE));
 		}
 		else{
-			return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_FEMALE));
+			if(rotated)
+				return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_FEMALE), Vector3.zero, ROTATION);
+			else
+				return GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_FEMALE));
 		}
 	}
 

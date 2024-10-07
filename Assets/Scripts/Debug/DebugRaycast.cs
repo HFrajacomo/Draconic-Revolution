@@ -15,11 +15,14 @@ public static class DebugRaycast {
 	} 
 
 	public static void Register(ulong code, Vector3 pos, Vector3 dir){
-		if(positions.ContainsKey(code))
-			return;
-
-		positions.Add(code, pos);
-		directions.Add(code, dir);
+		if(!positions.ContainsKey(code)){
+			positions.Add(code, pos);
+			directions.Add(code, dir);
+		}
+		else{
+			positions[code] = pos;
+			directions[code] = dir;
+		}
 	}
 
 	public static void Register(ulong code, float3 pos, float3 dir){
