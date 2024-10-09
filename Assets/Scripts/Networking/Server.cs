@@ -446,6 +446,23 @@ public class Server
 			pdat.SetOnline(true);
 			Vector3 playerPos = pdat.GetPosition();
 			Vector3 playerDir = pdat.GetDirection();
+			ChunkPos playerChunkPos = new CastCoord(playerPos).GetChunkPos();
+
+			// Add to Chunk graph
+			if(this.playersInChunk.ContainsKey(playerChunkPos)){
+				this.playersInChunk[playerChunkPos].Add(accountID);
+			}
+			else{
+				this.playersInChunk.Add(playerChunkPos, new HashSet<ulong>());
+				this.playersInChunk[playerChunkPos].Add(accountID);
+			}
+
+			if(!this.playerToChunk.ContainsKey(accountID)){
+				this.playerToChunk.Add(accountID, playerChunkPos);
+			}
+			else{
+				this.playerToChunk[accountID] = playerChunkPos;
+			}
 
 			this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
 
@@ -495,6 +512,16 @@ public class Server
 		Debug.Log("Temporary ID: " + id + " was assigned to ID: " + accountID);
 
     	this.connections[accountID].BeginReceive(this.receiveBuffer[accountID], 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), accountID);
+
+    	// Run OnHoldServer and OnHoldClient events
+    	bool isEmpty;
+    	this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
+		byte hotbarSlot = this.cachedSheet.GetHotbarSlot();
+		this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmpty);
+
+		ItemStack its = this.cl.playerServerInventory.GetSlot(accountID, hotbarSlot).GetItemStack();
+
+		its.GetItem().OnHoldServer(this.cl, its, accountID);
 	}
 
 	// Gets chunk information to player
@@ -807,15 +834,18 @@ public class Server
 		pos = NetDecoder.ReadFloat3(data, 1);
 		dir = NetDecoder.ReadFloat3(data, 13);
 
+		// Sets PlayerData
 		this.cl.regionHandler.allPlayerData[id].SetPosition(pos.x, pos.y, pos.z);
 		this.cl.regionHandler.allPlayerData[id].SetDirection(dir.x, dir.y, dir.z);
 
 		cp = this.cl.regionHandler.allPlayerData[id].GetChunkPos();
 
+		// Sets EntityHandler
 		if(!this.entityHandler.Contains(EntityType.PLAYER, cp, id))
 			this.entityHandler.AddPlayer(cp, id, pos, dir, cl);
 
 		this.entityHandler.SetPosition(EntityType.PLAYER, id, cp, pos, dir);
+
 
 		// Propagates data to all network
 		if(this.connectionGraph.ContainsKey(id)){
@@ -833,6 +863,15 @@ public class Server
 		CharacterSheet cs = this.cl.characterFileHandler.LoadCharacterSheet(requestedID);
 		CharacterAppearance app;
 		bool isMale;
+		ItemStack its;
+		bool trash;
+
+		byte slot = cs.GetHotbarSlot();
+
+		if(!this.cl.playerServerInventory.HasInventory(requestedID))
+			this.cl.playerServerInventory.LoadInventoryIntoBuffer(requestedID, out trash);
+
+		its = this.cl.playerServerInventory.GetSlot(requestedID, slot).GetItemStack();
 
 		if(cs == null)
 			return;
@@ -842,7 +881,7 @@ public class Server
 		}
 
 		NetMessage message = new NetMessage(NetCode.SENDPLAYERAPPEARANCE);
-		message.SendPlayerAppearance(requestedID, app, isMale);
+		message.SendPlayerAppearance(requestedID, app, isMale, its.GetID(), its.GetAmount());
 		this.Send(message.GetMessage(), message.size, id);
 	}
 
@@ -1292,17 +1331,20 @@ public class Server
 
 	// Send input message to all Clients connected to a given Chunk except the given one
 	public void SendToClientsExcept(ulong playerCode, NetMessage message){
-		if(!this.playerToChunk.ContainsKey(playerCode))
+		if(!this.playerToChunk.ContainsKey(playerCode)){
 			return;
+		}
 
 		ChunkPos pos = this.playerToChunk[playerCode];
 
-		if(!this.cl.loadedChunks.ContainsKey(pos))
+		if(!this.cl.loadedChunks.ContainsKey(pos)){
 			return;
+		}
 
 		foreach(ulong i in this.cl.loadedChunks[pos]){
 			if(i == playerCode)
 				continue;
+
 			this.Send(message.GetMessage(), message.size, i);
 		}
 	}

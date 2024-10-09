@@ -80,6 +80,7 @@ public class ChunkLoader_Server : MonoBehaviour
         this.time.SetServer(this.server);
 
         this.characterFileHandler = new CharacterFileHandler(World.worldName);
+        this.playerServerInventory = new PlayerServerInventory();
     }
 
     void Update(){
@@ -106,7 +107,6 @@ public class ChunkLoader_Server : MonoBehaviour
 
         this.regionHandler = new RegionFileHandler(this);
         this.entityFileHandler = new EntityFileHandler(this);
-        this.playerServerInventory = new PlayerServerInventory();
 
         worldSeed = regionHandler.GetRealSeed();
         biomeHandler = new BiomeHandler();

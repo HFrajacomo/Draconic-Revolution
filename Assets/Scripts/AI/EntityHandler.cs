@@ -89,11 +89,12 @@ public class EntityHandler
 		}
 	}
 
-	public void UpdatePlayerModel(ulong code, CharacterAppearance app, bool isMale){
+	public bool UpdatePlayerModel(ulong code, CharacterAppearance app, bool isMale){
 		if(this.playerObject.ContainsKey(code)){
 			this.playerObject[code] = this.playerModelHandler.BuildModel(this.playerObject[code], app, isMale);
-			//this.playerObject[code].transform.Find("Armature").transform.rotation = Quaternion.Euler(270, 0, 0);
+			return true;
 		}
+		return false;
 	}
 
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){
@@ -212,10 +213,19 @@ public class EntityHandler
 	}
 
 	public void UpdatePlayerItem(ulong playerCode, ushort item, byte quantity){
-		if(!this.playerItem.ContainsKey(playerCode))
+		Debug.Log("UPDATING PLAYER ITEM NOW");
+		if(!this.playerItem.ContainsKey(playerCode)){
+			Debug.Log("FAILED BECAUSE NO PLAYERITEM");
 			return;
+		}
+
+		if(this.playerItem[playerCode] == item){
+			Debug.Log($"FAILED BECAUSE ITEM IS THE SAME: {item}");
+			return;
+		}
 
 		ushort oldItem = this.playerItem[playerCode];
+		Debug.Log($"SUCCESS WITH ITEM: {playerCode}");
 
 		ItemLoader.GetItem(oldItem).OnUnholdClient(this.cl, new ItemStack(oldItem, 1), playerCode);
 		this.playerItem[playerCode] = item;

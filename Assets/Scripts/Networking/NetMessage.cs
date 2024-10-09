@@ -276,11 +276,13 @@ public struct NetMessage
 	}
 
 	// Server sends player appearance information to Client
-	public void SendPlayerAppearance(ulong code, CharacterAppearance app, bool isMale){
+	public void SendPlayerAppearance(ulong code, CharacterAppearance app, bool isMale, ushort item, byte quantity){
 		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
 		NetDecoder.WriteCharacterAppearance(app, NetMessage.buffer, 9);
 		NetDecoder.WriteBool(isMale, NetMessage.buffer, 256);
-		this.size = 257;
+		NetDecoder.WriteUshort(item, NetMessage.buffer, 257);
+		NetDecoder.WriteByte(quantity, NetMessage.buffer, 259);
+		this.size = 260;
 	}
 
 	// Server sends the item in a player's hand to the Client

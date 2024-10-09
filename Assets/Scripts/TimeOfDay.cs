@@ -35,7 +35,6 @@ public class TimeOfDay : MonoBehaviour
     private ChunkPos currentPos;
     private ChunkPos lastPos;
     private CastCoord cacheCoord;
-    private byte sendZeroNotification = 2;
 
     void Update()
     {
@@ -90,9 +89,6 @@ public class TimeOfDay : MonoBehaviour
         else if(isClient){
             faketicks += Time.deltaTime * TimeOfDay.ticksForMinute;
 
-            if((int)faketicks % 4 == 0)
-                SendPlayerPosition();
-
             if(faketicks >= TimeOfDay.ticksForMinute){
                 faketicks = 0f;
             }
@@ -115,61 +111,6 @@ public class TimeOfDay : MonoBehaviour
         this.player = player;
     }
 
-    // When on client, sends player position to Server whenever there's movement
-    private void SendPlayerPosition(){
-        if(this.player == null)
-            return;
-        if(position == null)
-            position = this.player.transform.position;
-        if(rotation == null)
-            rotation = this.player.transform.eulerAngles;
-
-        // If has moved
-        if(this.player.transform.position != position || this.player.transform.eulerAngles != rotation){
-            position = this.player.transform.position;
-            rotation = this.player.transform.eulerAngles;
-
-            SendPositionMessage();
-
-            this.cacheCoord = new CastCoord(this.position);
-            if(this.currentPos == null){
-                this.currentPos = this.cacheCoord.GetChunkPos();
-                this.lastPos = this.cacheCoord.GetChunkPos();
-            }
-            else if(this.currentPos != this.cacheCoord.GetChunkPos()){
-                this.currentPos = this.cacheCoord.GetChunkPos();
-                SendChunkPosMessage();
-                this.lastPos = this.currentPos;
-            }
-
-            this.sendZeroNotification = 2;            
-        }
-        // If hasn't moved but notification must be sent
-        else if(this.sendZeroNotification > 0){
-            this.sendZeroNotification -= 1;
-
-            position = this.player.transform.position;
-            rotation = this.player.transform.eulerAngles;
-            SendPositionMessage();
-        }
-    }
-
-    public void SetCurrentChunkPos(ChunkPos pos){
-        this.currentPos = pos;
-        this.lastPos = pos;
-    }
-
-    private void SendPositionMessage(){
-        this.movementMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
-        this.movementMessage.ClientPlayerPosition(this.position.x, this.position.y, this.position.z, this.rotation.x, this.rotation.y, this.rotation.z);
-        this.client.Send(this.movementMessage);
-    }
-
-    public void SendChunkPosMessage(){
-        NetMessage message = new NetMessage(NetCode.CLIENTCHUNK);
-        message.ClientChunk(this.lastPos, this.currentPos);
-        this.client.Send(message);
-    }
 
     // Sets current time. Used to set time in client through a server force message
     // Currently sets ticks to 0 in client

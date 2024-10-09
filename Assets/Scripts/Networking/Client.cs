@@ -290,8 +290,6 @@ public class Client
 
 		// Finds current Chunk and sends position data
 		initialCoord = new CastCoord(x, y, z);
-		this.cl.time.SetCurrentChunkPos(initialCoord.GetChunkPos());
-		this.cl.time.SendChunkPosMessage();
 
 		NetMessage message = new NetMessage(NetCode.REQUESTCHARACTERSHEET);
 		message.RequestCharacterExistence(Configurations.accountID);
@@ -477,8 +475,15 @@ public class Client
 		ulong code = NetDecoder.ReadUlong(data, 1);
 		CharacterAppearance app = NetDecoder.ReadCharacterAppearance(data, 9);
 		bool isMale = NetDecoder.ReadBool(data, 256);
+		ushort item = NetDecoder.ReadUshort(data, 257);
+		byte quantity = data[259];
 
-		this.entityHandler.UpdatePlayerModel(code, app, isMale);
+		Debug.Log($"RECEIVING PLAYER APPEARANCE: {code} with item: {item}");
+
+		if(this.entityHandler.UpdatePlayerModel(code, app, isMale) && code != Configurations.accountID){
+			Debug.Log($"UPDATING ITEM");
+			this.entityHandler.UpdatePlayerItem(code, item, quantity);
+		}
 	}
 
 	// Receives a character's sheet from Server
@@ -691,8 +696,6 @@ public class Client
 		ulong playerCode = NetDecoder.ReadUlong(data, 1);
 		ushort item = NetDecoder.ReadUshort(data, 9);
 		byte amount = data[11];
-
-		Debug.Log($"RECEIVED FROM PLAYER: {playerCode}, item number: {item}");
 
 		this.entityHandler.UpdatePlayerItem(playerCode, item, amount);
 	}

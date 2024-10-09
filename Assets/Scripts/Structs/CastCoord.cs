@@ -72,7 +72,7 @@ public struct CastCoord{
 	    else
 	      nMark.y = (int)(nMark.y - 0.5f);
 
-	    chunkY = Mathf.FloorToInt(nMark.y/Chunk.chunkDepth);
+	    chunkY = Mathf.Clamp(Mathf.FloorToInt(nMark.y/Chunk.chunkDepth), 0, Constants.MAXIMUM_CHUNK_DEPTH);
 
 	    if(chunkY >= 0)
 	      blockY = Mathf.FloorToInt(nMark.y%Chunk.chunkDepth);
@@ -129,7 +129,7 @@ public struct CastCoord{
 	    else
 	      nMark.y = (int)(nMark.y - 0.5f);
 
-	    chunkY = Mathf.FloorToInt(nMark.y/Chunk.chunkDepth);
+	    chunkY = Mathf.Clamp(Mathf.FloorToInt(nMark.y/Chunk.chunkDepth), 0, Constants.MAXIMUM_CHUNK_DEPTH);
 
 	    if(chunkY >= 0)
 	      blockY = Mathf.FloorToInt(nMark.y%Chunk.chunkDepth);
@@ -183,7 +183,7 @@ public struct CastCoord{
 	    else
 	      y = (int)(y - 0.5f);
 
-	    chunkY = Mathf.FloorToInt(y/Chunk.chunkDepth);
+	    chunkY = Mathf.Clamp(Mathf.FloorToInt(y/Chunk.chunkDepth), 0, Constants.MAXIMUM_CHUNK_DEPTH);
 
 	    if(chunkY >= 0)
 	      blockY = Mathf.FloorToInt(y%Chunk.chunkDepth);

@@ -91,6 +91,10 @@ public class PlayerServerInventory{
         return this.inventories[playerCode][slot];
     }
 
+    public bool HasInventory(ulong playerCode){
+        return this.inventories.ContainsKey(playerCode);
+    }
+
     /*
     Removes inventory from this handler
     */

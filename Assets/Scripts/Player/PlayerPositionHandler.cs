@@ -16,8 +16,12 @@ public class PlayerPositionHandler : MonoBehaviour
     // Position Stuff
     private CastCoord coord = new CastCoord(false);
     private CastCoord lastCoord = new CastCoord(false);
+    private Vector3 lastPos = Vector3.zero;
+    private Vector3 lastRot = Vector3.zero;
     private string currentBiome = "";
     private string lastBiome = "";
+    private static readonly int TICKS = 4;
+    private int tickCounter = 4;
 
     // Chunk loading variables
     private int verticalChunkLoaded = 0;
@@ -84,6 +88,9 @@ public class PlayerPositionHandler : MonoBehaviour
         SetReverbSpecs();
         SetChunkLoaderChunkPos();
         UpdateVoxelLightPosition();
+
+        this.lastPos = this.playerTransform.position;
+        this.lastRot = this.playerTransform.eulerAngles;
     }
 
     public void SetAudioManager(AudioManager manager){this.audioManager = manager;}
@@ -124,8 +131,7 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     private void RenewPositionalInformation(){
-        if(coord.active)
-            this.lastCoord = coord;
+        this.tickCounter--;
 
         coord = new CastCoord(playerTransform.position);
 
@@ -146,6 +152,27 @@ public class PlayerPositionHandler : MonoBehaviour
             this.verticalChunkLoaded = 0;
         if(coord.chunkY <= 0 && this.verticalChunkLoaded == -1)
             this.verticalChunkLoaded = 0;
+
+        // If moved from Chunk
+        if(!CastCoord.Eq(this.lastCoord, coord)){
+            NetMessage message = new NetMessage(NetCode.CLIENTCHUNK);
+            message.ClientChunk(this.lastCoord.GetChunkPos(), coord.GetChunkPos());
+            this.cl.client.Send(message);
+        }
+
+        if(this.tickCounter == 0){
+            this.tickCounter = TICKS;
+
+            // If has moved
+            if(this.playerTransform.position != this.lastPos || this.playerTransform.eulerAngles != this.lastRot){
+                NetMessage posMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
+                posMessage.ClientPlayerPosition(this.playerTransform.position.x, this.playerTransform.position.y, this.playerTransform.position.z, this.playerTransform.eulerAngles.x, this.playerTransform.eulerAngles.y, this.playerTransform.eulerAngles.z);
+                this.cl.client.Send(posMessage);
+            }
+        }
+
+        if(coord.active)
+            this.lastCoord = coord;
     }
 
     private bool CheckBiomeChange(){return this.currentBiome != this.lastBiome && !CheckEqualMusic(this.currentBiome, this.lastBiome);}
