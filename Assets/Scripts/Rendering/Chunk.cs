@@ -29,7 +29,7 @@ public class Chunk
 	private NetMessage message;
 
 	// Debug Settings
-	private static bool showHitbox = false;
+	private static bool showHitbox = true;
 	private MeshFilter hitboxFilter;
 
 	// Draw Flags
@@ -54,21 +54,6 @@ public class Chunk
 	// Raycast Collider Chunk
 	public MeshCollider meshColliderRaycast;
 	public GameObject objRaycast;
-
-	// Main Mesh Information
-    private List<Vector3> vertices = new List<Vector3>();
-    private List<int> specularTris = new List<int>();
-    private List<int> liquidTris = new List<int>();
-    private List<int> assetTris = new List<int>();
-    private List<int> assetSolidTris = new List<int>();
-    private List<int> triangles = new List<int>();
-    private List<int> leavesTris = new List<int>();
-    private List<int> iceTris = new List<int>();
-    private List<int> lavaTris = new List<int>();
-  	private List<Vector2> UVs = new List<Vector2>();
-  	private List<Vector3> lightUVMain = new List<Vector3>();
-  	private List<Vector3> normals = new List<Vector3>();
-    private List<Vector4> tangents = new List<Vector4>();
 
     // Assets Cache
     private List<ushort> cacheCodes = new List<ushort>();
@@ -98,8 +83,6 @@ public class Chunk
     private Mesh meshDecal;
     private Mesh meshRaycast;
     private Mesh cacheMesh = new Mesh();
-    private List<int> decalTris = new List<int>();
-    private List<int> hitboxTris = new List<int>();
 
     // General Cache
     private ChunkPos[] surroundingVerticalChunks = new ChunkPos[2];
@@ -275,6 +258,8 @@ public class Chunk
 		NativeList<int> leavesTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> iceTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> lavaTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> assetTris = new NativeList<int>(0, Allocator.TempJob);
+		NativeList<int> assetSolidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
 		NativeList<Vector3> lightUV = new NativeList<Vector3>(0, Allocator.TempJob);
@@ -606,13 +591,6 @@ public class Chunk
 		}
 		loadCoordList.Clear();
 		
-		NativeList<Vector3> meshVerts = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector2> meshUVs = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeList<Vector3> meshLightUV = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector3> meshNormals = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector4> meshTangents = new NativeList<Vector4>(0, Allocator.TempJob);
-		NativeList<int> meshTris = new NativeList<int>(0, Allocator.TempJob);
-		NativeList<int> meshSolidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> hitboxVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector3> hitboxNormals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<int> hitboxTriangles = new NativeList<int>(0, Allocator.TempJob);
@@ -644,13 +622,13 @@ public class Chunk
 			canRain = BiomeHandler.BiomeToDampness(this.biomeName),
 			heightMap = heightMap,
 
-			meshVerts = meshVerts,
-			meshTris = meshTris,
-			meshSolidTris = meshSolidTris,
-			meshUVs = meshUVs,
-			meshLightUV = meshLightUV,
-			meshNormals = meshNormals,
-			meshTangents = meshTangents,
+			meshVerts = verts,
+			meshTris = assetTris,
+			meshSolidTris = assetSolidTris,
+			meshUVs = UVs,
+			meshLightUV = lightUV,
+			meshNormals = normals,
+			meshTangents = tangents,
 			hitboxVerts = hitboxVerts,
 			hitboxNormals = hitboxNormals,
 			hitboxTriangles = hitboxTriangles,
@@ -686,36 +664,11 @@ public class Chunk
 		job = paJob.Schedule();
 		job.Complete();
 
-		// Convert data back
-		this.vertices.AddRange(verts.AsArray());
 
-		this.vertices.AddRange(meshVerts.AsArray());
-		this.triangles.AddRange(normalTris.AsArray());
-		this.assetTris.AddRange(meshTris.AsArray());
-		this.assetSolidTris.AddRange(meshSolidTris.AsArray());
+		BuildDecalMesh(decalVerts.AsArray(), decalUVs.AsArray(), decalTris);
+		BuildHitboxMesh(hitboxVerts.AsArray(), hitboxNormals.AsArray(), hitboxTriangles);
+		BuildMesh(verts, normalTris, specularTris, liquidTris, assetTris, assetSolidTris, leavesTris, iceTris, lavaTris, UVs, lightUV, normals, tangents);
 
-		this.specularTris.AddRange(specularTris.AsArray());
-		this.liquidTris.AddRange(liquidTris.AsArray());
-		this.leavesTris.AddRange(leavesTris.AsArray());
-		this.iceTris.AddRange(iceTris.AsArray());
-		this.lavaTris.AddRange(lavaTris.AsArray());
-
-		this.UVs.AddRange(UVs.AsArray());
-		this.UVs.AddRange(meshUVs.AsArray());
-
-		this.lightUVMain.AddRange(lightUV.AsArray());
-		this.lightUVMain.AddRange(meshLightUV.AsArray());
-
-		this.normals.AddRange(normals.AsArray());
-		this.normals.AddRange(meshNormals.AsArray());
-
-		this.tangents.AddRange(tangents.AsArray());
-		this.tangents.AddRange(meshTangents.AsArray());
-		this.decalTris.AddRange(decalTris.AsArray());
-		this.hitboxTris.AddRange(hitboxTriangles.AsArray());
-
-		BuildDecalMesh(decalVerts.AsArray(), decalUVs.AsArray(), this.decalTris);
-		BuildHitboxMesh(hitboxVerts.AsArray(), hitboxNormals.AsArray(), this.hitboxTris);
 
 		// Dispose Bin
 		verts.Dispose();
@@ -725,6 +678,8 @@ public class Chunk
 		leavesTris.Dispose();
 		iceTris.Dispose();
 		lavaTris.Dispose();
+		assetTris.Dispose();
+		assetSolidTris.Dispose();
 		blockdata.Dispose();
 		statedata.Dispose();
 		renderMap.Dispose();
@@ -736,9 +691,6 @@ public class Chunk
 		cacheCubeUV.Dispose();
 		extraUV.Dispose();
 		loadCodeList.Dispose();
-		meshVerts.Dispose();
-		meshTris.Dispose();
-		meshSolidTris.Dispose();
 		blockCodes.Dispose();
 		vertsOffset.Dispose();
 		trisOffset.Dispose();
@@ -753,14 +705,10 @@ public class Chunk
 		UVs.Dispose();
 		normals.Dispose();
 		tangents.Dispose();
-		meshUVs.Dispose();
-		meshNormals.Dispose();
-		meshTangents.Dispose();
 		scaleOffset.Dispose();
 		rotationOffset.Dispose();
 		lightUV.Dispose();
 		lightdata.Dispose();
-		meshLightUV.Dispose();
 		loadedHitboxVerts.Dispose();
 		loadedHitboxNormals.Dispose();
 		loadedHitboxTriangles.Dispose();
@@ -820,40 +768,30 @@ public class Chunk
 		vxpzmlight.Dispose();
 		vxpzplight.Dispose();
 
-		BuildMesh();
-
-
 		// Dispose Asset Cache
-		cacheCodes.Clear();
-		cacheVertsv3.Clear();
-		cacheTris.Clear();
-		cacheUVv2.Clear();
-		cacheNormals.Clear();
-		indexVert.Clear();
-		indexUV.Clear();
-		indexTris.Clear();
-		scalingFactor.Clear();
-		this.decalTris.Clear();
-		this.hitboxTris.Clear();
+		this.cacheCodes.Clear();
+		this.cacheVertsv3.Clear();
+		this.cacheLightUV.Clear();
+		this.cacheTris.Clear();
+		this.cacheUVv2.Clear();
+		this.cacheNormals.Clear();
+		this.cacheTangents.Clear();
+		this.indexVert.Clear();
+		this.indexUV.Clear();
+		this.indexTris.Clear();
+		this.scalingFactor.Clear();
+		this.UVaux.Clear();
+		this.vertexAux.Clear();
+		this.normalAux.Clear();
+		this.tangentAux.Clear();
+		this.cacheHitboxVerts.Clear();
+		this.cacheHitboxNormals.Clear();
+		this.cacheHitboxTriangles.Clear();
 		this.indexHitboxVert.Clear();
 		this.indexHitboxTris.Clear();
 		this.hitboxScaling.Clear();
-		this.cacheLightUV.Clear();
+
 		this.drawMain = true;
-    	
-    	this.vertices.Clear();
-    	this.normals.Clear();
-    	this.tangents.Clear();
-    	this.triangles.Clear();
-    	this.specularTris.Clear();
-    	this.liquidTris.Clear();
-    	this.leavesTris.Clear();
-    	this.iceTris.Clear();
-    	this.lavaTris.Clear();
-    	this.assetTris.Clear();
-    	this.assetSolidTris.Clear();
-    	this.UVs.Clear();
-    	this.lightUVMain.Clear();
     }
 
     // Returns n ShadowUVs to a list
@@ -866,42 +804,42 @@ public class Chunk
     }
 
     // Builds meshes from verts, UVs and tris from different layers
-    private void BuildMesh(){
+    private void BuildMesh(NativeList<Vector3> vertices, NativeList<int> tris, NativeList<int> specularTris, NativeList<int> liquidTris, NativeList<int> assetTris, NativeList<int> assetSolidTris, NativeList<int> leavesTris, NativeList<int> iceTris, NativeList<int> lavaTris, NativeList<Vector2> UVs, NativeList<Vector3> lightUV, NativeList<Vector3> normals, NativeList<Vector4> tangents){
     	this.meshCollider.sharedMesh.Clear();
     	this.meshFilter.mesh.Clear();
 
-    	if(this.vertices.Count >= ushort.MaxValue){
+    	if(vertices.Length >= ushort.MaxValue){
     		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
     	}
 
     	this.meshFilter.mesh.subMeshCount = 8;
 
-    	this.meshFilter.mesh.SetVertices(this.vertices.ToArray());
-    	this.meshFilter.mesh.SetTriangles(this.triangles, 0);
- 	    this.meshFilter.mesh.SetTriangles(this.iceTris, 6);
- 	    this.meshFilter.mesh.SetTriangles(this.assetSolidTris, 4);
+    	this.meshFilter.mesh.SetVertices(vertices.AsArray());
+    	this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(tris.AsArray()), 0);
+ 	    this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(iceTris.AsArray()), 6);
+ 	    this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(assetSolidTris.AsArray()), 4);
 
     	// Fix for a stupid Unity Bug
-    	if(this.vertices.Count > 0){
+    	if(vertices.Length > 0){
 	    	this.meshCollider.sharedMesh = null;
 	    	this.meshCollider.sharedMesh = this.meshFilter.mesh;
     	}
 
-    	this.meshFilter.mesh.SetTriangles(this.specularTris, 1);
-    	this.meshFilter.mesh.SetTriangles(this.liquidTris, 2);
-    	this.meshFilter.mesh.SetTriangles(this.assetTris, 3);
- 	    this.meshFilter.mesh.SetTriangles(this.leavesTris, 5);
- 	    this.meshFilter.mesh.SetTriangles(this.lavaTris, 7);
+    	this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(specularTris.AsArray()), 1);
+    	this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(liquidTris.AsArray()), 2);
+    	this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(assetTris.AsArray()), 3);
+ 	    this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(leavesTris.AsArray()), 5);
+ 	    this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(lavaTris.AsArray()), 7);
 
-    	this.meshFilter.mesh.SetUVs(0, this.UVs.ToArray());
-    	this.meshFilter.mesh.SetUVs(3, this.lightUVMain.ToArray());
+    	this.meshFilter.mesh.SetUVs(0, UVs.AsArray());
+    	this.meshFilter.mesh.SetUVs(3, lightUV.AsArray());
 
-    	this.meshFilter.mesh.SetNormals(this.normals.ToArray());
-    	this.meshFilter.mesh.SetTangents(this.tangents.ToArray());
+    	this.meshFilter.mesh.SetNormals(normals.AsArray());
+    	this.meshFilter.mesh.SetTangents(tangents.AsArray());
     }
 
     // Builds the decal mesh
-    private void BuildDecalMesh(NativeArray<Vector3> verts, NativeArray<Vector2> UV, List<int> triangles){
+    private void BuildDecalMesh(NativeArray<Vector3> verts, NativeArray<Vector2> UV, NativeList<int> triangles){
     	this.meshFilterDecal.mesh.Clear();
 
     	if(verts.Length >= ushort.MaxValue){
@@ -909,13 +847,13 @@ public class Chunk
     	}
 
     	this.meshFilterDecal.mesh.SetVertices(verts);
-    	this.meshFilterDecal.mesh.SetTriangles(triangles, 0);
+    	this.meshFilterDecal.mesh.SetTriangles(NativeTools.CopyToManaged(triangles.AsArray()), 0);
     	this.meshFilterDecal.mesh.SetUVs(0, UV);
     	this.meshFilterDecal.mesh.RecalculateNormals();
     }
 
     // Builds the hitbox mesh onto the Hitbox MeshCollider
-    private void BuildHitboxMesh(NativeArray<Vector3> verts, NativeArray<Vector3> normals, List<int> triangles){
+    private void BuildHitboxMesh(NativeArray<Vector3> verts, NativeArray<Vector3> normals, NativeList<int> triangles){
     	this.meshRaycast.Clear();
 
     	if(verts.Length >= ushort.MaxValue){
@@ -932,7 +870,7 @@ public class Chunk
     	}
 
     	this.meshRaycast.SetVertices(verts);
-    	this.meshRaycast.SetTriangles(triangles, 0);
+    	this.meshRaycast.SetTriangles(NativeTools.CopyToManaged(triangles.AsArray()), 0);
     	this.meshRaycast.SetNormals(normals);
     	this.meshColliderRaycast.sharedMesh = this.meshRaycast;
 

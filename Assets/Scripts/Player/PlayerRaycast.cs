@@ -99,7 +99,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			// Checks for solid block hit
 			// Checks for hit
-			if(HitNonLiquid(current)){
+			if(HitNonLiquid(current, traveledDistance)){
 				FOUND = true;
 				break;
 			}
@@ -159,7 +159,7 @@ public class PlayerRaycast : MonoBehaviour
 	}
 
 	// Detects hit of solid block
-	public bool HitNonLiquid(CastCoord coords){
+	public bool HitNonLiquid(CastCoord coords, float traveledDistance){
 		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ, coords.chunkY);
 
 		if(!loader.chunks.ContainsKey(ck))
@@ -169,8 +169,17 @@ public class PlayerRaycast : MonoBehaviour
 
 		// If hits a full block
 		if(loader.chunks.ContainsKey(ck)){
-			if(!VoxelLoader.CheckLiquid(blockID) && blockID != 0){
+			if(!VoxelLoader.CheckLiquid(blockID) && blockID != 0 && blockID <= ushort.MaxValue/2){
 				return true;
+			}
+			else if(blockID > ushort.MaxValue/2){
+				CastCoord castedCoord;
+				if(Physics.Raycast(position, direction, out cachedHit, maxDistance:traveledDistance, layerMask:objectLayerMask)){
+					castedCoord = new CastCoord(cachedHit.point);
+					if(CastCoord.Eq(coords, castedCoord)){
+						return true;
+					}
+				}
 			}
 		}
 		
