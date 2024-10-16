@@ -180,7 +180,7 @@ public class PlayerPositionHandler : MonoBehaviour
     private bool GetBiomeMusic(){
         this.currentMusic = AudioLoader.GetBiomeMusic(this.currentBiome);
 
-        if(this.currentMusic == null)
+        if(this.currentMusic == "")
             return false;
         return true;
     }
@@ -190,7 +190,7 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     private void PlayMusic(){
-        if(this.currentMusic == null)
+        if(this.currentMusic == "")
             return;
 
         audioManager.Play(this.currentMusic, null, dynamicLevel:MusicDynamicLevel.SOFT);
