@@ -420,6 +420,8 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
+    // Loads the chunk into the Chunkloader
+
     // Multithreaded call for Unload operation
     private void UnloadChunk(){
         if(this.unloadTask == null || this.unloadTask.IsCompleted){
@@ -431,34 +433,30 @@ public class ChunkLoader : MonoBehaviour
                 }
             #endif
 
-
-            this.unloadTask = Task.Run(UnloadChunkTask);
+            if(this.toUnload.Count > 0){
+                ChunkPos pos = this.toUnload[0];
+                this.toUnload.RemoveAt(0);
+                this.unloadTask = Task.Run(() => UnloadChunkTask(pos));
+            }
         }
     }
 
 
     // Unloads a chunk per frame from the Unloading Buffer
-    private void UnloadChunkTask(){
-        if(this.toUnload.Count > 0){
-            if(!this.chunks.ContainsKey(this.toUnload[0])){
-                this.toUnload.RemoveAt(0);
-                return;
-            }
-
-            if(!SkipNotImplemented(this.toUnload[0])){
-                this.toUnload.RemoveAt(0);
-                return;
-            }
-
-            if(this.ShouldBeDrawn(this.toUnload[0])){
-                this.toUnload.RemoveAt(0);
-                return;
-            }
-            
-            ChunkPos popChunk = this.toUnload[0];
-            this.toUnloadFinish.Enqueue(popChunk);
-            this.toUnload.RemoveAt(0);
+    private void UnloadChunkTask(ChunkPos pos){
+        if(!this.chunks.ContainsKey(pos)){
+            return;
         }
+
+        if(!SkipNotImplemented(pos)){
+            return;
+        }
+
+        if(this.ShouldBeDrawn(pos)){
+            return;
+        }
+        
+        this.toUnloadFinish.Enqueue(pos);
     }
 
     // Main Thread's Unload operation Finisher
