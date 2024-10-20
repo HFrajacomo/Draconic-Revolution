@@ -29,7 +29,7 @@ public class Chunk
 	private NetMessage message;
 
 	// Debug Settings
-	private static bool showHitbox = true;
+	private static bool showHitbox = false;
 	private MeshFilter hitboxFilter;
 
 	// Draw Flags
@@ -187,8 +187,10 @@ public class Chunk
 		this.meshCollider = null; 
 		this.loader = null;
 
-		this.data.Destroy();
-		this.metadata.Destroy();
+		if(this.data != null)
+			this.data.Destroy();
+		if(this.metadata != null)
+			this.metadata.Destroy();
 
 		this.data = null;
 		this.metadata = null;

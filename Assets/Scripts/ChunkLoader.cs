@@ -1,6 +1,8 @@
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Jobs;
@@ -60,6 +62,19 @@ public class ChunkLoader : MonoBehaviour
 
 	// Chunk Rendering
 	public ChunkRenderer rend;
+
+    // Multithreading Tasks
+    private Task unloadTask;
+    private Task loadTask;
+    private Task requestTask;
+    private Task drawTask;
+    private Task updateTask;
+
+    // Multithreading Control Lists
+    private ConcurrentQueue<ChunkPos> toUnloadFinish = new ConcurrentQueue<ChunkPos>();
+
+    // Multithreading Locks
+    private object unloadLock;
 
 	// Flags
 	public bool WORLD_GENERATED = false; 
@@ -126,6 +141,10 @@ public class ChunkLoader : MonoBehaviour
         this.audioManager.Stop(AudioUsecase.MUSIC_CLIP);
         this.audioManager.Destroy();
         ClearAllChunks();
+
+        // Multithreading
+        this.unloadTask.Wait();
+
         Destroy(this);
     }
 
@@ -195,6 +214,7 @@ public class ChunkLoader : MonoBehaviour
             GetChunks(false);
 
         	UnloadChunk();
+            UnloadChunkFinish();
             LoadChunk();
             RequestChunk();
             DrawChunk();
@@ -340,13 +360,6 @@ public class ChunkLoader : MonoBehaviour
             if(requestPriorityQueue.GetSize() == 0)
                 return;
 
-    		// Prevention
-    		if(toUnload.Contains(requestPriorityQueue.Peek())){
-    			toUnload.Remove(requestPriorityQueue.Peek());
-    			requestPriorityQueue.Pop();
-    			return;
-    		}
-
             if(chunks.ContainsKey(requestPriorityQueue.Peek())){
                 requestPriorityQueue.Pop();
                 return;
@@ -407,43 +420,77 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
+    // Multithreaded call for Unload operation
+    private void UnloadChunk(){
+        if(this.unloadTask == null || this.unloadTask.IsCompleted){
+            #if UNITY_EDITOR
+                if(this.unloadTask != null){
+                    if(this.unloadTask.Status == TaskStatus.Faulted){
+                        Debug.LogException(this.unloadTask.Exception);
+                    }
+                }
+            #endif
+
+
+            this.unloadTask = Task.Run(UnloadChunkTask);
+        }
+    }
+
 
     // Unloads a chunk per frame from the Unloading Buffer
-    private void UnloadChunk(){
-        if(toUnload.Count > 0){
-            // Prevention
-            if(requestPriorityQueue.Contains(toUnload[0])){
-                requestPriorityQueue.Pop();
-                toUnload.RemoveAt(0);
+    private void UnloadChunkTask(){
+        if(this.toUnload.Count > 0){
+            if(!this.chunks.ContainsKey(this.toUnload[0])){
+                this.toUnload.RemoveAt(0);
                 return;
             }
 
-            if(drawPriorityQueue.Contains(toUnload[0])){
-                drawPriorityQueue.Remove(toUnload[0]);
-            }
-
-            if(!chunks.ContainsKey(toUnload[0])){
-                toUnload.RemoveAt(0);
+            if(!SkipNotImplemented(this.toUnload[0])){
+                this.toUnload.RemoveAt(0);
                 return;
             }
 
-            if(!SkipNotImplemented(toUnload[0])){
-                toUnload.RemoveAt(0);
+            if(this.ShouldBeDrawn(this.toUnload[0])){
+                this.toUnload.RemoveAt(0);
                 return;
             }
             
-            Chunk popChunk = chunks[toUnload[0]];
-            popChunk.Destroy();
-            chunks.Remove(popChunk.pos);
-            vfx.RemoveChunk(popChunk.pos);
-            sfx.RemoveChunkSFX(popChunk.pos);
+            ChunkPos popChunk = this.toUnload[0];
+            this.toUnloadFinish.Enqueue(popChunk);
+            this.toUnload.RemoveAt(0);
+        }
+    }
 
+    // Main Thread's Unload operation Finisher
+    private void UnloadChunkFinish(){
+        if(this.toUnloadFinish.Count > 0){
 
-            this.message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
-            this.message.RequestChunkUnload(toUnload[0]);
-            this.client.Send(this.message);
+            ChunkPos pos;
+            bool successfulDequeueing = false;
 
-            toUnload.RemoveAt(0);
+            for(int i=0; i < this.toUnloadFinish.Count; i++){
+                successfulDequeueing = this.toUnloadFinish.TryDequeue(out pos);
+
+                if(!successfulDequeueing){
+                    Debug.Log("Problem when Dequeuing from UnloadChunkFinish");
+                    UnloadUnwanted();
+                    continue;
+                }
+
+                if(!this.chunks.ContainsKey(pos)){
+                    continue;
+                }
+
+                this.chunks[pos].Destroy();
+                this.vfx.RemoveChunk(pos);
+                this.sfx.RemoveChunkSFX(pos);
+
+                NetMessage message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
+                message.RequestChunkUnload(pos);
+                this.client.Send(message);
+
+                this.chunks.Remove(pos);
+            }
         }
     }
 
@@ -456,9 +503,6 @@ public class ChunkLoader : MonoBehaviour
             // If chunk is still loaded
             if(chunks.ContainsKey(drawPriorityQueue.Peek())){
                 if(!CanBeDrawn(drawPriorityQueue.Peek())){
-
-                    if(MainControllerManager.DEBUG)
-                        drawPriorityQueue.Print();
 
                     drawPriorityQueue.Add(drawPriorityQueue.Pop());
                     return;
@@ -1034,6 +1078,30 @@ public class ChunkLoader : MonoBehaviour
                 }
             }
         }
+    }
+
+    // Unloads all chunks that are loaded but shouldn't
+    private void UnloadUnwanted(){
+        foreach(ChunkPos pos in this.chunks.Keys){
+            if(!ShouldBeDrawn(pos)){
+                this.toUnload.Add(pos);
+            }
+        }
+    }
+
+    // Returns whether a ChunkPos is within Render Distance
+    private bool ShouldBeDrawn(ChunkPos pos){
+        ChunkPos playerChunk = this.playerPositionHandler.GetCurrentChunk();
+
+        if(pos.x >= playerChunk.x - (this.renderDistance-1) && pos.x <= playerChunk.x + (this.renderDistance-1)){
+            if(pos.z >= playerChunk.z - (this.renderDistance-1) && pos.z <= playerChunk.z + (this.renderDistance-1)){
+                if(pos.y == playerChunk.y)
+                    return true;
+                else if(pos.y == playerChunk.y + this.playerPositionHandler.GetPlayerVerticalChunk())
+                    return true;
+            }
+        }
+        return false;
     }
 
     // Returns false if chunk.y is not implemented yet
