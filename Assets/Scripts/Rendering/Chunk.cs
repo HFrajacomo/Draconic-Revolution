@@ -153,6 +153,10 @@ public class Chunk
 
 	// Adds Mesh information to MeshFilters
 	public void Draw(){
+		if(!this.drawMain){
+			Debug.Log($"Drawing without building first: {this.pos}");
+		}
+
 		// ToLoad() Event Trigger
 		this.message = new NetMessage(NetCode.BATCHLOADBUD);
 		this.message.BatchLoadBUD(this.pos);

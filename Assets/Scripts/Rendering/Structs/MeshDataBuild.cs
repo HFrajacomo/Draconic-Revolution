@@ -107,6 +107,10 @@ public struct MeshDataBuild{
 	public Mesh BuildMesh(){
 		Mesh mesh = new Mesh();
 
+		if(this.vertices == null){
+			Debug.Log("NULL RUN");
+			return mesh;
+		}
 		if(this.vertices.Length == 0)
 			return mesh;
     	if(this.vertices.Length >= ushort.MaxValue)
@@ -138,6 +142,8 @@ public struct MeshDataBuild{
 	public Mesh BuildColliderMesh(){
 		Mesh mesh = new Mesh();
 
+		if(this.colliderVertices == null)
+			return mesh;
 		if(this.colliderVertices.Length == 0)
 			return mesh;
     	if(this.colliderVertices.Length >= ushort.MaxValue)
@@ -158,6 +164,8 @@ public struct MeshDataBuild{
 	public Mesh BuildDecalMesh(){
 		Mesh mesh = new Mesh();
 
+		if(this.decalVertices == null)
+			return mesh;
 		if(this.decalVertices.Length == 0)
 			return mesh;
     	if(this.decalVertices.Length >= ushort.MaxValue)
@@ -175,6 +183,8 @@ public struct MeshDataBuild{
 	public Mesh BuildRaycastMesh(){
 		Mesh mesh = new Mesh();
 
+		if(this.raycastVertices == null)
+			return mesh;
 		if(this.raycastVertices.Length == 0)
 			return mesh;
 		if(this.raycastVertices.Length >= ushort.MaxValue)
