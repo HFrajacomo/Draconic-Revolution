@@ -148,10 +148,27 @@ public class PlayerPositionHandler : MonoBehaviour
         else
             this.verticalChunkLoaded = 0;
 
-        if(coord.chunkY >= Chunk.chunkMaxY && this.verticalChunkLoaded == 1)
+        if(coord.chunkY == Chunk.chunkMaxY && this.verticalChunkLoaded == 1)
             this.verticalChunkLoaded = 0;
-        if(coord.chunkY <= 0 && this.verticalChunkLoaded == -1)
+        if(coord.chunkY == 0 && this.verticalChunkLoaded == -1)
             this.verticalChunkLoaded = 0;
+        if(coord.chunkY > Chunk.chunkMaxY){
+            coord.chunkY = Chunk.chunkMaxY;
+            this.verticalChunkLoaded = 0;
+        }
+        if(coord.chunkY < 0){
+            coord.chunkY = 0;
+            this.verticalChunkLoaded = 0;
+        }
+
+        /*
+        if(playerTransform.position.y >= (Chunk.chunkMaxY+1)*Chunk.chunkDepth){
+            Debug.Log("Correcting");
+            this.verticalChunkLoaded = 0;
+        }
+        if(playerTransform.position.y < 0)
+            this.verticalChunkLoaded = 0;
+        */
 
         // If moved from Chunk
         if(!CastCoord.Eq(this.lastCoord, coord)){

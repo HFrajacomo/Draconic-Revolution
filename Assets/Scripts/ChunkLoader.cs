@@ -2,6 +2,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -515,6 +516,8 @@ public class ChunkLoader : MonoBehaviour
 
     // Actually builds the mesh for loaded chunks
     private void DrawChunkTask(ChunkPos pos){
+            Mutex mutex = new Mutex();
+
             // If chunk is still loaded
             if(this.chunks.ContainsKey(pos)){
                 if(!CanBeDrawn(pos)){
@@ -524,12 +527,15 @@ public class ChunkLoader : MonoBehaviour
 
                 CheckLightPropagation(pos);
 
-                this.chunks[pos].BuildChunk(load:true);
+                mutex.WaitOne();
+                this.chunks[pos].BuildChunk(mutex:mutex, load:true);
 
                 if(WORLD_GENERATED)
                     this.vfx.UpdateLights(pos);
 
+                mutex.WaitOne();
                 this.toDrawFinish.Enqueue(pos);
+                mutex.ReleaseMutex();
             }
     }
 
@@ -557,7 +563,9 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Reload a chunk in toUpdate
+    
     private void UpdateChunk(){
+        return; // DEBUG
         // Gets the minimum operational value
         if(updatePriorityQueue.GetSize() > 0){
             ChunkPos cachedPos;

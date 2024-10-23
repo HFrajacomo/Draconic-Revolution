@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Jobs;
@@ -34,8 +35,6 @@ public class Chunk
 
 	// Draw Flags
 	public bool drawMain = false;
-	public bool topDraw = false;
-	public bool bottomDraw = false;
 
 	/*
 		Unity Settings
@@ -153,8 +152,9 @@ public class Chunk
 
 	// Adds Mesh information to MeshFilters
 	public void Draw(){
-		if(!this.drawMain){
-			Debug.Log($"Drawing without building first: {this.pos}");
+		if(this.meshData.vertices == null){
+			Debug.Log(this.pos);
+			return;
 		}
 
 		// ToLoad() Event Trigger
@@ -258,13 +258,13 @@ public class Chunk
 	}
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
-	public void BuildChunk(bool load=false){
-    	ChunkPos auxPos;
-    	int verticalCode = 0;
+	public void BuildChunk(Mutex mutex=null, bool load=false){
+		ChunkPos auxPos;
+		int verticalCode = 0;
 
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
 		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
-    	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
+		NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
 		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap(this.metadata));
 		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
@@ -790,6 +790,9 @@ public class Chunk
 		this.hitboxScaling.Clear();
 
 		this.drawMain = true;
+
+		if(mutex != null)
+			mutex.ReleaseMutex();
     }
 
     // Builds meshes from verts, UVs and tris from different layers

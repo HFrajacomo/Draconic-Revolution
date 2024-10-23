@@ -72,7 +72,7 @@ public struct CastCoord{
 	    else
 	      nMark.y = (int)(nMark.y - 0.5f);
 
-	    chunkY = Mathf.Clamp(Mathf.FloorToInt(nMark.y/Chunk.chunkDepth), 0, Constants.MAXIMUM_CHUNK_DEPTH);
+	    chunkY = Mathf.Clamp(Mathf.FloorToInt(nMark.y/Chunk.chunkDepth), 0, Chunk.chunkMaxY);
 
 	    if(chunkY >= 0)
 	      blockY = Mathf.FloorToInt(nMark.y%Chunk.chunkDepth);
@@ -80,8 +80,8 @@ public struct CastCoord{
 	      blockY = Mathf.CeilToInt(((Chunk.chunkDepth*-chunkY)+nMark.y)%Chunk.chunkDepth);
 
 	    // World Boundaries
-	    if(chunkY > Constants.MAXIMUM_CHUNK_DEPTH){
-	    	chunkY = Constants.MAXIMUM_CHUNK_DEPTH;
+	    if(chunkY > Chunk.chunkMaxY){
+	    	chunkY = Chunk.chunkMaxY;
 	    	blockY = Chunk.chunkDepth-1;
 	    }
 	    else if(chunkY < 0){
@@ -129,7 +129,7 @@ public struct CastCoord{
 	    else
 	      nMark.y = (int)(nMark.y - 0.5f);
 
-	    chunkY = Mathf.Clamp(Mathf.FloorToInt(nMark.y/Chunk.chunkDepth), 0, Constants.MAXIMUM_CHUNK_DEPTH);
+	    chunkY = Mathf.Clamp(Mathf.FloorToInt(nMark.y/Chunk.chunkDepth), 0, Chunk.chunkMaxY);
 
 	    if(chunkY >= 0)
 	      blockY = Mathf.FloorToInt(nMark.y%Chunk.chunkDepth);
@@ -137,8 +137,8 @@ public struct CastCoord{
 	      blockY = Mathf.CeilToInt(((Chunk.chunkDepth*-chunkY)+nMark.y)%Chunk.chunkDepth);
 
 	    // World Boundaries
-	    if(chunkY > Constants.MAXIMUM_CHUNK_DEPTH){
-	    	chunkY = Constants.MAXIMUM_CHUNK_DEPTH;
+	    if(chunkY > Chunk.chunkMaxY){
+	    	chunkY = Chunk.chunkMaxY;
 	    	blockY = Chunk.chunkDepth-1;
 	    }
 	    else if(chunkY < 0){
@@ -183,7 +183,7 @@ public struct CastCoord{
 	    else
 	      y = (int)(y - 0.5f);
 
-	    chunkY = Mathf.Clamp(Mathf.FloorToInt(y/Chunk.chunkDepth), 0, Constants.MAXIMUM_CHUNK_DEPTH);
+	    chunkY = Mathf.Clamp(Mathf.FloorToInt(y/Chunk.chunkDepth), 0, Chunk.chunkMaxY);
 
 	    if(chunkY >= 0)
 	      blockY = Mathf.FloorToInt(y%Chunk.chunkDepth);
@@ -191,8 +191,8 @@ public struct CastCoord{
 	      blockY = Mathf.CeilToInt(((Chunk.chunkDepth*-chunkY)+y)%Chunk.chunkDepth);
 
 	    // World Boundaries
-	    if(chunkY > Constants.MAXIMUM_CHUNK_DEPTH){
-	    	chunkY = Constants.MAXIMUM_CHUNK_DEPTH;
+	    if(chunkY > Chunk.chunkMaxY){
+	    	chunkY = Chunk.chunkMaxY;
 	    	blockY = Chunk.chunkDepth-1;
 	    }
 	    else if(chunkY < 0){
@@ -212,8 +212,8 @@ public struct CastCoord{
 		blockZ = z;
 
 	    // World Boundaries
-	    if(chunkY > Constants.MAXIMUM_CHUNK_DEPTH){
-	    	chunkY = Constants.MAXIMUM_CHUNK_DEPTH;
+	    if(chunkY > Chunk.chunkMaxY){
+	    	chunkY = Chunk.chunkMaxY;
 	    	blockY = Chunk.chunkDepth-1;
 	    }
 	    else if(chunkY < 0){
