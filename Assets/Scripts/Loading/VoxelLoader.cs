@@ -384,7 +384,7 @@ public class VoxelLoader : BaseLoader {
 			texCode = codenameToTexID[b.codename];
 			b.SetupAfterSerialize(isClient);
 
-			b.GetMesh().GetUVs(0, objUV);
+			b.GetMeshData().GetUVs(objUV);
 			atSize = atlasSize[(int)b.shaderIndex];
 			texCode = codenameToTexID[b.codename]; 
 
@@ -395,7 +395,7 @@ public class VoxelLoader : BaseLoader {
 				objUV[i] = new Vector2(u, v);
 			}
 
-			b.GetMesh().SetUVs(0, objUV);
+			b.GetMeshData().SetUVs(objUV);
 			objUV.Clear();
 		}
 	}

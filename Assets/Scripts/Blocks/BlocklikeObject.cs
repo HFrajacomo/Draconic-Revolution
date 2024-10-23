@@ -31,9 +31,6 @@ public class BlocklikeObject
 	public ushort maxHP;
 	public bool indestructible;
 
-	// Texture
-	private int atlasPosition;
-
 	// Behaviours
 	private ModelIdentityBehaviour modelIdentity;
 	private VoxelBehaviour onBlockUpdate;
@@ -50,9 +47,7 @@ public class BlocklikeObject
 	private VoxelBehaviour rotationValue;
 
 
-	public Mesh GetMesh(){return this.modelIdentity.GetMesh();}
-	public Mesh GetHitboxMesh(){return this.modelIdentity.GetHitboxMesh();}
-	public int GetTextureCode(){return this.modelIdentity.GetTextureCode();}
+	public MeshData GetMeshData(){return this.modelIdentity.GetMeshData();}
 	public string GetTextureName(){return this.modelIdentity.GetTextureName();}
 
     // Handles the emittion of BUD to neighboring blocks
@@ -103,46 +98,6 @@ public class BlocklikeObject
 
     	return Mathf.CeilToInt(Mathf.Sqrt(blockDamage));
     }
-
-    /*
-    Correctly re-arranges the object's mesh UVs to match their respective texture atlas position
-    */
-   	/*
-    public virtual Vector2 AddTexture(Vector2 uv){
-    	Vector2 finalUV = new Vector2(0,0);
-    	float initX, initY, finalX, finalY;
-
-    	if(this.shaderIndex == ShaderIndex.ASSETS){
-    		initX = (float)this.atlasPosition.x / NORMAL_ATLAS_X;
-    		finalX = (float)(this.atlasPosition.x + 1) / NORMAL_ATLAS_X;
-    		initY = (float)this.atlasPosition.y / NORMAL_ATLAS_Y;
-    		finalY = (float)(this.atlasPosition.y + 1) / NORMAL_ATLAS_Y;
-    	}
-    	else{
-    		initX = (float)this.atlasPosition.x / SOLID_ATLAS_X;
-    		finalX = (float)(this.atlasPosition.x + 1) / SOLID_ATLAS_X;
-    		initY = (float)this.atlasPosition.y / SOLID_ATLAS_Y;
-    		finalY = (float)(this.atlasPosition.y + 1) / SOLID_ATLAS_Y;    		
-    	}
-
-    	finalUV.x = Mathf.Lerp(initX, finalX, uv.x);
-    	finalUV.y = Mathf.Lerp(initY, finalY, uv.y);
-
-    	return finalUV;
-    }
-
-    // Gets the Input UVs of a mesh and transforms them using the AddTexture function
-    protected void RemapMeshUV(){
-    	List<Vector2> uvs = new List<Vector2>(); 
-    	this.mesh.GetUVs(0, uvs);
-
-    	for(int i=0; i < uvs.Count; i++){
-    		uvs[i] = AddTexture(uvs[i]);
-    	}
-
-    	this.mesh.SetUVs(0, uvs);
-    }
-    */
 
     // Events GET/SET
     public VoxelBehaviour GetOnBlockUpdate() { return onBlockUpdate; }

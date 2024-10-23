@@ -65,13 +65,12 @@ public class ChunkLoader : MonoBehaviour
 
     // Multithreading Tasks
     private Task unloadTask;
-    private Task loadTask;
-    private Task requestTask;
     private Task drawTask;
     private Task updateTask;
 
     // Multithreading Control Lists
     private ConcurrentQueue<ChunkPos> toUnloadFinish = new ConcurrentQueue<ChunkPos>();
+    private ConcurrentQueue<ChunkPos> toDrawFinish = new ConcurrentQueue<ChunkPos>();
 
     // Multithreading Locks
     private object unloadLock;
@@ -143,7 +142,10 @@ public class ChunkLoader : MonoBehaviour
         ClearAllChunks();
 
         // Multithreading
-        this.unloadTask.Wait();
+        if(this.unloadTask != null)
+            this.unloadTask.Wait();
+        if(this.drawTask != null)
+            this.drawTask.Wait();
 
         Destroy(this);
     }
@@ -218,7 +220,8 @@ public class ChunkLoader : MonoBehaviour
             LoadChunk();
             RequestChunk();
             DrawChunk();
-            UpdateChunk();
+            DrawChunkFinish();
+            //UpdateChunk();
         }
     }
 
@@ -492,31 +495,63 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
+    // Multithreaded call for Draw operation
+    private void DrawChunk(){
+        if(this.drawTask == null || this.drawTask.IsCompleted){
+            #if UNITY_EDITOR
+                if(this.drawTask != null){
+                    if(this.drawTask.Status == TaskStatus.Faulted){
+                        Debug.LogException(this.drawTask.Exception);
+                    }
+                }
+            #endif
+
+            if(this.drawPriorityQueue.GetSize() > 0){
+                ChunkPos pos = this.drawPriorityQueue.Pop();
+                this.drawTask = Task.Run(() => DrawChunkTask(pos));
+            }
+        }
+    }
 
     // Actually builds the mesh for loaded chunks
-    private void DrawChunk(){
-        if(drawPriorityQueue.GetSize() > 0){
-            ChunkPos cachedPos;
-
+    private void DrawChunkTask(ChunkPos pos){
             // If chunk is still loaded
-            if(chunks.ContainsKey(drawPriorityQueue.Peek())){
-                if(!CanBeDrawn(drawPriorityQueue.Peek())){
-
-                    drawPriorityQueue.Add(drawPriorityQueue.Pop());
+            if(this.chunks.ContainsKey(pos)){
+                if(!CanBeDrawn(pos)){
+                    this.drawPriorityQueue.Add(pos);
                     return;
                 }
 
-                cachedPos = drawPriorityQueue.Pop();
+                CheckLightPropagation(pos);
 
-                CheckLightPropagation(cachedPos);
-
-                chunks[cachedPos].BuildChunk(load:true);
+                this.chunks[pos].BuildChunk(load:true);
 
                 if(WORLD_GENERATED)
-                    this.vfx.UpdateLights(cachedPos);
+                    this.vfx.UpdateLights(pos);
+
+                this.toDrawFinish.Enqueue(pos);
             }
-            else{
-                drawPriorityQueue.Pop();
+    }
+
+    // Main Thread's Draw Chunk finisher
+    private void DrawChunkFinish(){
+        if(this.toDrawFinish.Count > 0){
+            ChunkPos pos;
+            bool successfulDequeueing = false;
+
+            for(int i=0; i < this.toDrawFinish.Count; i++){
+                successfulDequeueing = this.toDrawFinish.TryDequeue(out pos);
+
+                if(!successfulDequeueing){
+                    Debug.Log("Problem when Dequeuing from DrawChunkFinish");
+                    continue;
+                }
+
+                if(!this.chunks.ContainsKey(pos)){
+                    continue;
+                }
+
+                this.chunks[pos].Draw();
             }
         }
     }
@@ -536,6 +571,7 @@ public class ChunkLoader : MonoBehaviour
                     CheckLightPropagation(cachedPos);
 
                     chunks[cachedPos].BuildChunk();
+                    chunks[cachedPos].Draw();
 
                     if(this.WORLD_GENERATED)
                         this.vfx.UpdateLights(cachedPos);
@@ -557,6 +593,7 @@ public class ChunkLoader : MonoBehaviour
                     cachedPos = updateNoLightPriorityQueue.Pop();
 
                     chunks[cachedPos].BuildChunk();
+                    chunks[cachedPos].Draw();
 
                     if(this.WORLD_GENERATED)
                         this.vfx.UpdateLights(cachedPos);

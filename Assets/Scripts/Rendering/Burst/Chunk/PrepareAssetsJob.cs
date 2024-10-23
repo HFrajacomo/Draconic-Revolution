@@ -155,15 +155,15 @@ public struct PrepareAssetsJob : IJob{
 			else{
 				for(int triIndex=trisOffset[i]; triIndex < trisOffset[i+1]; triIndex++){
 					meshSolidTris.Add(loadedTris[triIndex] + currentVertAmount);
-				}					
+				}			
 			}
-			currentVertAmount += (vertsOffset[i+1] - vertsOffset[i]);
+			currentVertAmount = (vertsOffset[i+1] - vertsOffset[i]);
 
 			// Hitbox Triangles
 			for(int triIndex=hitboxTrisOffset[i]; triIndex < hitboxTrisOffset[i+1]; triIndex++){
 				hitboxTriangles.Add(loadedHitboxTriangles[triIndex] + hitboxVertAmount);
 			}	
-			hitboxVertAmount += (hitboxVertsOffset[i+1] - hitboxVertsOffset[i]);	
+			hitboxVertAmount = (hitboxVertsOffset[i+1] - hitboxVertsOffset[i]);	
 		}
 	}
 

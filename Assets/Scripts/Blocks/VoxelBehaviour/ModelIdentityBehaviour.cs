@@ -7,27 +7,16 @@ public class ModelIdentityBehaviour : VoxelBehaviour {
 	public string textureName;
 
 	private int textureCode;
-	private Mesh mesh;
-	private Mesh hitboxMesh;
+	private MeshData meshdata;
 
 	public override void PostDeserializationSetup(bool isClient){
 		if(isClient){
 			this.textureCode = VoxelLoader.GetTextureID(this.textureName);
+			this.meshdata = new MeshData(GameObject.Find(this.modelUnityPath).GetComponent<MeshFilter>().mesh, GameObject.Find(this.modelUnityPath + "/Hitbox").GetComponent<MeshFilter>().sharedMesh);
 		}
 	}
 
-	public Mesh GetMesh(){
-		if(this.mesh == null){
-			this.mesh = GameObject.Find(this.modelUnityPath).GetComponent<MeshFilter>().mesh;
-		}
-		return this.mesh;
-	}
-
-	public Mesh GetHitboxMesh(){
-		if(this.hitboxMesh == null)
-			this.hitboxMesh = GameObject.Find(this.modelUnityPath + "/Hitbox").GetComponent<MeshFilter>().sharedMesh;
-		return this.hitboxMesh;
-	}
+	public MeshData GetMeshData(){return this.meshdata;}
 
 	public int GetTextureCode(){return this.textureCode;}
 	public string GetTextureName(){return this.textureName;}
