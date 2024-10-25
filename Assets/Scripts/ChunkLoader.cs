@@ -184,6 +184,7 @@ public class ChunkLoader : MonoBehaviour
             this.player.eulerAngles = new Vector3(playerDirX, playerDirY, playerDirZ);
 
             this.currentChunk = new CastCoord(playerX, playerY, playerZ).GetChunkPos();
+            this.playerPositionHandler.Activate();
 
             this.audioManager.SetPlayerPositionInVoice3DTrack(this.player);
             this.playerAudioListener.enabled = true;
@@ -763,7 +764,7 @@ public class ChunkLoader : MonoBehaviour
 
         ChunkPos popChunk;
         ChunkPos addChunk;
-		newChunk = new CastCoord(player.position).GetChunkPos();
+		newChunk = this.playerPositionHandler.GetCurrentChunk();
 
     	// Reload all Chunks nearby
     	if(reload){

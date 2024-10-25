@@ -51,8 +51,7 @@ public class PlayerPositionHandler : MonoBehaviour
     // Minimum distance to trigger reverb
     private const float minAvgReverbDistance = 2;
 
-
-    // DEBUG MODE
+    // Flags
     private bool isDebugMode = true;
 
 
@@ -91,6 +90,10 @@ public class PlayerPositionHandler : MonoBehaviour
 
         this.lastPos = this.playerTransform.position;
         this.lastRot = this.playerTransform.eulerAngles;
+    }
+
+    public void Activate(){
+        RenewPositionalInformation();
     }
 
     public void SetAudioManager(AudioManager manager){this.audioManager = manager;}
@@ -148,27 +151,16 @@ public class PlayerPositionHandler : MonoBehaviour
         else
             this.verticalChunkLoaded = 0;
 
+        // Fix for being near the upper/lower edge of map
         if(coord.chunkY == Chunk.chunkMaxY && this.verticalChunkLoaded == 1)
             this.verticalChunkLoaded = 0;
         if(coord.chunkY == 0 && this.verticalChunkLoaded == -1)
             this.verticalChunkLoaded = 0;
-        if(coord.chunkY > Chunk.chunkMaxY){
-            coord.chunkY = Chunk.chunkMaxY;
-            this.verticalChunkLoaded = 0;
-        }
-        if(coord.chunkY < 0){
-            coord.chunkY = 0;
-            this.verticalChunkLoaded = 0;
-        }
 
-        /*
-        if(playerTransform.position.y >= (Chunk.chunkMaxY+1)*Chunk.chunkDepth){
-            Debug.Log("Correcting");
+        // Fix for going above/below map limit
+        if((playerTransform.position.y + Constants.WORLD_BLOCK_GRID_DISPLACEMENT) >= (Chunk.chunkMaxY+1)*Chunk.chunkDepth || (playerTransform.position.y-Constants.WORLD_BLOCK_GRID_DISPLACEMENT) < 0)
             this.verticalChunkLoaded = 0;
-        }
-        if(playerTransform.position.y < 0)
-            this.verticalChunkLoaded = 0;
-        */
+
 
         // If moved from Chunk
         if(!CastCoord.Eq(this.lastCoord, coord)){
