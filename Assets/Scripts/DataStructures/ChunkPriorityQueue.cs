@@ -8,6 +8,8 @@ public class ChunkPriorityQueue
     private List<ChunkDistance> queue; // Second queue that handles normal execution
     private List<ChunkDistance> backupQueue; // Cache queue to recalculate distances
 
+    private HashSet<ChunkPos> chunks; // HashSet that contains all ChunkPos currently in the Queue
+
     private ChunkPos playerPosition; // Player current Distance
     private DistanceMetric metric;
     private bool DEBUG_QUEUE;
@@ -15,6 +17,7 @@ public class ChunkPriorityQueue
     public ChunkPriorityQueue(bool debug=false, DistanceMetric metric=DistanceMetric.MANHATTAN){
         this.queue = new List<ChunkDistance>();
         this.initialQueue = new List<ChunkDistance>();
+        this.chunks = new HashSet<ChunkPos>();
         this.metric = metric;
         this.DEBUG_QUEUE = debug;
     }
@@ -39,6 +42,7 @@ public class ChunkPriorityQueue
         // Empty Queue
         if(q.Count == 0){
             q.Add(new ChunkDistance(x, distance));
+            this.chunks.Add(x);
 
             if(DEBUG_QUEUE)
                 Debug.Log("added: " + x);
@@ -49,6 +53,7 @@ public class ChunkPriorityQueue
             newDist = playerPosition.DistanceFrom(q[i].pos, this.metric);
             if(distance < newDist){
                 q.Insert(i, new ChunkDistance(x, distance));
+                this.chunks.Add(x);
 
                 if(DEBUG_QUEUE)
                     Debug.Log("added: " + x + " to position: " + i);
@@ -58,12 +63,14 @@ public class ChunkPriorityQueue
 
         if(newDist == playerPosition.DistanceFrom(q[q.Count-1].pos, this.metric)){
             q.Add(new ChunkDistance(x, distance));
+            this.chunks.Add(x);
 
             if(DEBUG_QUEUE)
                 Debug.Log("added: " + x);
         }
         else{
             q.Insert(0, new ChunkDistance(x, distance));
+            this.chunks.Add(x);
 
             if(DEBUG_QUEUE)
                 Debug.Log("inserted in the beginning: " + x);
@@ -71,9 +78,7 @@ public class ChunkPriorityQueue
     }
 
     public bool Contains(ChunkPos x){
-        float distance = playerPosition.DistanceFrom(x, this.metric);
-
-        return this.queue.Contains(new ChunkDistance(x, distance)) || this.initialQueue.Contains(new ChunkDistance(x, distance));
+        return this.chunks.Contains(x);
     }
 
     public int GetSize(){
@@ -114,6 +119,7 @@ public class ChunkPriorityQueue
         if(this.initialQueue.Count > 0){
             ChunkPos aux = this.initialQueue[0].pos;
             this.initialQueue.RemoveAt(0);
+            this.chunks.Remove(aux);
             return aux;
         }
         else{
@@ -123,6 +129,7 @@ public class ChunkPriorityQueue
                 Debug.Log("popping: " + aux);
 
             this.queue.RemoveAt(0);
+            this.chunks.Remove(aux);
             return aux;            
         }
 
@@ -132,6 +139,7 @@ public class ChunkPriorityQueue
         for(int i=0; i < this.initialQueue.Count; i++){
             if(this.initialQueue[i].pos == x){
                 this.initialQueue.RemoveAt(i);
+                this.chunks.Remove(x);
                 return;
             }
         }
@@ -139,6 +147,7 @@ public class ChunkPriorityQueue
         for(int i=0; i < this.queue.Count; i++){
             if(this.queue[i].pos == x){
                 this.queue.RemoveAt(i);
+                this.chunks.Remove(x);
                 return;
             }
         }        
@@ -146,6 +155,7 @@ public class ChunkPriorityQueue
 
     public void Clear(){
         this.queue.Clear();
+        this.chunks.Clear();
     }
 
     public void SetPlayerPosition(ChunkPos pos){
@@ -155,14 +165,20 @@ public class ChunkPriorityQueue
     }
 
     private void RenewDistances(){
-        this.backupQueue = new List<ChunkDistance>(this.queue);
-        this.queue.Clear();
+        ChangeReference(ref this.queue, ref this.backupQueue);
+
+        this.chunks.Clear();
 
         for(int i=0; i < this.backupQueue.Count; i++){
             Add(this.backupQueue[i].pos);
         }
 
         this.backupQueue.Clear();
+    }
+
+    private void ChangeReference(ref List<ChunkDistance> queue, ref List<ChunkDistance> backupQueue){
+        backupQueue = queue;
+        queue = new List<ChunkDistance>();
     }
 
     public void Print(){
