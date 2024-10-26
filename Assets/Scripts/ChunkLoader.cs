@@ -66,7 +66,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Multithreading Tasks
     private Task unloadTask;
-    private Task drawTask;
+    private Task[] drawTaskPool = new Task[3];
     private Task updateTask;
 
     // Multithreading Control Lists
@@ -145,8 +145,8 @@ public class ChunkLoader : MonoBehaviour
         // Multithreading
         if(this.unloadTask != null)
             this.unloadTask.Wait();
-        if(this.drawTask != null)
-            this.drawTask.Wait();
+
+        WaitTaskPool(this.drawTaskPool);
 
         Destroy(this);
     }
@@ -475,7 +475,6 @@ public class ChunkLoader : MonoBehaviour
                 successfulDequeueing = this.toUnloadFinish.TryDequeue(out pos);
 
                 if(!successfulDequeueing){
-                    Debug.Log("Problem when Dequeuing from UnloadChunkFinish");
                     UnloadUnwanted();
                     continue;
                 }
@@ -499,18 +498,31 @@ public class ChunkLoader : MonoBehaviour
 
     // Multithreaded call for Draw operation
     private void DrawChunk(){
-        if(this.drawTask == null || this.drawTask.IsCompleted){
-            #if UNITY_EDITOR
-                if(this.drawTask != null){
-                    if(this.drawTask.Status == TaskStatus.Faulted){
-                        Debug.LogException(this.drawTask.Exception);
-                    }
-                }
-            #endif
+        for(int i=0; i < this.drawTaskPool.Length; i++){
+            if(this.drawPriorityQueue.GetSize() == 0)
+                break;
 
-            if(this.drawPriorityQueue.GetSize() > 0){
-                ChunkPos pos = this.drawPriorityQueue.Pop();
-                this.drawTask = Task.Run(() => DrawChunkTask(pos));
+            if(this.drawTaskPool[i] == null || this.drawTaskPool[i].IsCompleted){
+                #if UNITY_EDITOR
+                    if(this.drawTaskPool[i] != null){
+                        if(this.drawTaskPool[i].Status == TaskStatus.Faulted){
+                            Debug.LogException(this.drawTaskPool[i].Exception);
+                        }
+                    }
+                #endif
+
+                if(this.drawPriorityQueue.GetSize() > 0){
+                    ChunkPos pos = this.drawPriorityQueue.Pop();
+
+                    if(this.chunks.ContainsKey(pos)){
+                        if(!CanBeDrawn(pos)){
+                            this.drawPriorityQueue.Add(pos);
+                            continue;
+                        }
+                    }
+
+                    this.drawTaskPool[i] = Task.Run(() => DrawChunkTask(pos));
+                }
             }
         }
     }
@@ -521,11 +533,6 @@ public class ChunkLoader : MonoBehaviour
 
             // If chunk is still loaded
             if(this.chunks.ContainsKey(pos)){
-                if(!CanBeDrawn(pos)){
-                    this.drawPriorityQueue.Add(pos);
-                    return;
-                }
-
                 CheckLightPropagation(pos);
 
                 mutex.WaitOne();
@@ -551,11 +558,11 @@ public class ChunkLoader : MonoBehaviour
 
                 if(!successfulDequeueing){
                     Debug.Log("Problem when Dequeuing from DrawChunkFinish");
-                    continue;
+                    break;
                 }
 
                 if(!this.chunks.ContainsKey(pos)){
-                    continue;
+                    break;
                 }
 
                 this.chunks[pos].Draw();
@@ -1155,14 +1162,26 @@ public class ChunkLoader : MonoBehaviour
 
     // Goes through all Chunks and checks if they should've been deleted already
     private void ForceUnload(){
+        ChunkPos currentChunk = this.playerPositionHandler.GetCurrentChunk();
+
         foreach(ChunkPos pos in this.chunks.Keys){
-            if(Mathf.Abs(pos.x - this.playerCurrentChunk.x) > renderDistance){
+            if(Mathf.Abs(pos.x - currentChunk.x) > renderDistance){
                 toUnload.Add(pos);
             }
 
-            if(Mathf.Abs(pos.z - this.playerCurrentChunk.z) > renderDistance){
+            if(Mathf.Abs(pos.z - currentChunk.z) > renderDistance){
                 toUnload.Add(pos);
             }
+        }
+    }
+
+    // Waits the end of execution of multiple Task Pools
+    private void WaitTaskPool(Task[] taskPool){
+        for(int i=0; i < taskPool.Length; i++){
+            if(taskPool[i] == null)
+                continue;
+
+            taskPool[i].Wait();
         }
     }
 }

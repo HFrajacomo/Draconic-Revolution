@@ -35,6 +35,8 @@ public class Chunk
 
 	// Draw Flags
 	public bool drawMain = false;
+    private int drawCounter = 0;
+
 
 	/*
 		Unity Settings
@@ -152,8 +154,13 @@ public class Chunk
 
 	// Adds Mesh information to MeshFilters
 	public void Draw(){
+		this.drawCounter++;
+
+		if(this.drawCounter > 1){
+			Debug.Log("Counter sucks");
+			return;
+		}
 		if(this.meshData.vertices == null){
-			Debug.Log(this.pos);
 			return;
 		}
 
@@ -191,6 +198,11 @@ public class Chunk
 		c.metadata = new VoxelMetadata(this.metadata);
 
 		return c;
+	}
+
+	// Check if a Chunk can be Drawn by having its meshData set
+	public bool IsReadyToDraw(){
+		return this.meshData.vertices != null;
 	}
 
 	public void Destroy(){
@@ -259,6 +271,7 @@ public class Chunk
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
 	public void BuildChunk(Mutex mutex=null, bool load=false){
+		this.drawCounter = 0;
 		ChunkPos auxPos;
 		int verticalCode = 0;
 
