@@ -519,6 +519,9 @@ public class ChunkLoader : MonoBehaviour
                             this.drawPriorityQueue.Add(pos);
                             continue;
                         }
+
+                        if(this.chunks[pos].drawMain)
+                            Debug.Log($"Contains and will be drawn: {pos}");
                     }
 
                     this.drawTaskPool[i] = Task.Run(() => DrawChunkTask(pos));
@@ -571,7 +574,6 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Reload a chunk in toUpdate
-    
     private void UpdateChunk(){
         return; // DEBUG
         // Gets the minimum operational value

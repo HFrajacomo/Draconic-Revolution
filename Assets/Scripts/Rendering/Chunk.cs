@@ -154,15 +154,14 @@ public class Chunk
 
 	// Adds Mesh information to MeshFilters
 	public void Draw(){
-		this.drawCounter++;
-
-		if(this.drawCounter > 1){
-			Debug.Log("Counter sucks");
-			return;
-		}
 		if(this.meshData.vertices == null){
 			return;
 		}
+
+		this.drawCounter++;
+
+		if(this.drawCounter > 1)
+			return;
 
 		// ToLoad() Event Trigger
 		this.message = new NetMessage(NetCode.BATCHLOADBUD);
@@ -272,6 +271,7 @@ public class Chunk
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
 	public void BuildChunk(Mutex mutex=null, bool load=false){
 		this.drawCounter = 0;
+
 		ChunkPos auxPos;
 		int verticalCode = 0;
 
