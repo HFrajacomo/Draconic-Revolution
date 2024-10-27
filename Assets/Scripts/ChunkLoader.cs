@@ -22,13 +22,13 @@ public class ChunkLoader : MonoBehaviour
 	public Transform player;
 	public ChunkPos currentChunk;
 	public ChunkPos newChunk;
-	public ChunkPriorityQueue requestPriorityQueue = new ChunkPriorityQueue();
+	public ChunkPriorityQueue requestPriorityQueue = new ChunkPriorityQueue(World.renderDistance+1);
     public List<byte[]> toLoad = new List<byte[]>();
     public List<ChunkPos> toLoadChunk = new List<ChunkPos>();
-    public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue();
+    public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue(World.renderDistance);
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
-    public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue(metric:DistanceMetric.EDGE_LIMITING);
-    public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue();
+    public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue(World.renderDistance, metric:DistanceMetric.EDGE_LIMITING);
+    public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue(World.renderDistance);
     public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 
     // Received from Server
@@ -223,7 +223,7 @@ public class ChunkLoader : MonoBehaviour
             RequestChunk();
             DrawChunk();
             DrawChunkFinish();
-            //UpdateChunk();
+            UpdateChunk();
         }
     }
 
@@ -575,10 +575,17 @@ public class ChunkLoader : MonoBehaviour
 
     // Reload a chunk in toUpdate
     private void UpdateChunk(){
-        return; // DEBUG
+        if(updatePriorityQueue.GetSize() > 0)
+            updatePriorityQueue.Pop();
+
+        if(updateNoLightPriorityQueue.GetSize() > 0)
+            updateNoLightPriorityQueue.Pop();
+        
+        return;
+
         // Gets the minimum operational value
         if(updatePriorityQueue.GetSize() > 0){
-            ChunkPos cachedPos;
+            ChunkPos cachedPos;            
 
             if(this.chunks.ContainsKey(updatePriorityQueue.Peek())){
                 if(CanBeDrawn(updatePriorityQueue.Peek())){
@@ -789,14 +796,14 @@ public class ChunkLoader : MonoBehaviour
     		
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
-	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y), initial:true);
+	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y));
 	        	}
 	        }
 
             if(verticalChunkValue != 0){
                 for(int x=-renderDistance; x<=renderDistance;x++){
                     for(int z=-renderDistance; z<=renderDistance;z++){
-                        requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y+verticalChunkValue), initial:true);
+                        requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y+verticalChunkValue));
                     }
                 }                
             }
