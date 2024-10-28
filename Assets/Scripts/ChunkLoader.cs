@@ -25,10 +25,10 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkPriorityQueue requestPriorityQueue = new ChunkPriorityQueue(World.renderDistance+1);
     public List<byte[]> toLoad = new List<byte[]>();
     public List<ChunkPos> toLoadChunk = new List<ChunkPos>();
-    public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue(World.renderDistance);
+    public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue(World.renderDistance, metric:DistanceMetric.EDGE_LIMITING);
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
     public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue(World.renderDistance, metric:DistanceMetric.EDGE_LIMITING);
-    public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue(World.renderDistance);
+    public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue(World.renderDistance, debug:true, metric:DistanceMetric.EDGE_LIMITING);
     public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 
     // Received from Server
@@ -67,7 +67,7 @@ public class ChunkLoader : MonoBehaviour
     // Multithreading Tasks
     private Task unloadTask;
     private Task[] drawTaskPool = new Task[3];
-    private Task updateTask;
+    private Task[] updateTaskPool = new Task[2];
 
     // Multithreading Control Lists
     private ConcurrentQueue<ChunkPos> toUnloadFinish = new ConcurrentQueue<ChunkPos>();
@@ -147,6 +147,7 @@ public class ChunkLoader : MonoBehaviour
             this.unloadTask.Wait();
 
         WaitTaskPool(this.drawTaskPool);
+        WaitTaskPool(this.updateTaskPool);
 
         Destroy(this);
     }
@@ -222,8 +223,8 @@ public class ChunkLoader : MonoBehaviour
             LoadChunk();
             RequestChunk();
             DrawChunk();
-            DrawChunkFinish();
             UpdateChunk();
+            DrawChunkFinish();
         }
     }
 
@@ -520,8 +521,7 @@ public class ChunkLoader : MonoBehaviour
                             continue;
                         }
 
-                        if(this.chunks[pos].drawMain)
-                            Debug.Log($"Contains and will be drawn: {pos}");
+                        CheckLightPropagation(pos);
                     }
 
                     this.drawTaskPool[i] = Task.Run(() => DrawChunkTask(pos));
@@ -532,21 +532,15 @@ public class ChunkLoader : MonoBehaviour
 
     // Actually builds the mesh for loaded chunks
     private void DrawChunkTask(ChunkPos pos){
-            Mutex mutex = new Mutex();
-
             // If chunk is still loaded
             if(this.chunks.ContainsKey(pos)){
-                CheckLightPropagation(pos);
 
-                mutex.WaitOne();
-                this.chunks[pos].BuildChunk(mutex:mutex, load:true);
+                this.chunks[pos].BuildChunk(load:true);
 
                 if(WORLD_GENERATED)
                     this.vfx.UpdateLights(pos);
 
-                mutex.WaitOne();
                 this.toDrawFinish.Enqueue(pos);
-                mutex.ReleaseMutex();
             }
     }
 
@@ -573,63 +567,96 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Reload a chunk in toUpdate
+    // Multithreaded call for Update operation
     private void UpdateChunk(){
-        if(updatePriorityQueue.GetSize() > 0)
-            updatePriorityQueue.Pop();
+        bool lightUpdate = false;
 
-        if(updateNoLightPriorityQueue.GetSize() > 0)
-            updateNoLightPriorityQueue.Pop();
-        
-        return;
+        for(int i=0; i < this.updateTaskPool.Length; i++){
+            if(this.updatePriorityQueue.GetSize() + this.updateNoLightPriorityQueue.GetSize() == 0)
+                break;
 
-        // Gets the minimum operational value
-        if(updatePriorityQueue.GetSize() > 0){
-            ChunkPos cachedPos;            
+            if(this.updateTaskPool[i] == null || this.updateTaskPool[i].IsCompleted){
+                #if UNITY_EDITOR
+                    if(this.updateTaskPool[i] != null){
+                        if(this.updateTaskPool[i].Status == TaskStatus.Faulted){
+                            Debug.LogException(this.updateTaskPool[i].Exception);
+                        }
+                    }
+                #endif
 
-            if(this.chunks.ContainsKey(updatePriorityQueue.Peek())){
-                if(CanBeDrawn(updatePriorityQueue.Peek())){
-                    cachedPos = updatePriorityQueue.Pop();
+                // If update has Chunk and not light updated -> Update With Light
+                if(this.updatePriorityQueue.GetSize() > 0 && !lightUpdate){
+                    ChunkPos pos = this.updatePriorityQueue.Pop();
 
-                    chunks[cachedPos].data.CalculateLightMap(chunks[cachedPos].metadata);
+                    if(this.chunks.ContainsKey(pos)){
+                        if(!CanBeDrawn(pos)){
+                            this.updatePriorityQueue.Add(pos);
+                            continue;
+                        }
 
-                    CheckLightPropagation(cachedPos);
+                        this.chunks[pos].data.CalculateLightMap(this.chunks[pos].metadata);
+                        CheckLightPropagation(pos);
+                    }
 
-                    chunks[cachedPos].BuildChunk();
-                    chunks[cachedPos].Draw();
-
-                    if(this.WORLD_GENERATED)
-                        this.vfx.UpdateLights(cachedPos);
+                    lightUpdate = true;
+                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
                 }
-                else{    
-                    updatePriorityQueue.Add(updatePriorityQueue.Pop());
+                // If no Light has Chunk and light updated -> Update with no Light
+                else if(this.updateNoLightPriorityQueue.GetSize() > 0 && lightUpdate){
+                    ChunkPos pos = this.updateNoLightPriorityQueue.Pop();
+
+                    if(this.chunks.ContainsKey(pos)){
+                        if(!CanBeDrawn(pos)){
+                            this.updateNoLightPriorityQueue.Add(pos);
+                            continue;
+                        }
+                    }
+
+                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
                 }
-            }
-            else{
-                updatePriorityQueue.Pop();
+                // If no Light was not run and there is still something in With Lights -> Update with Lights
+                else if(this.updatePriorityQueue.GetSize() > 0){
+                    ChunkPos pos = this.updatePriorityQueue.Pop();
+
+                    if(this.chunks.ContainsKey(pos)){
+                        if(!CanBeDrawn(pos)){
+                            this.updatePriorityQueue.Add(pos);
+                            continue;
+                        }
+
+                        this.chunks[pos].data.CalculateLightMap(this.chunks[pos].metadata);
+                        CheckLightPropagation(pos);
+                    }
+
+                    lightUpdate = true;
+                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
+                }
+                else if(this.updateNoLightPriorityQueue.GetSize() > 0){
+                    ChunkPos pos = this.updateNoLightPriorityQueue.Pop();
+
+                    if(this.chunks.ContainsKey(pos)){
+                        if(!CanBeDrawn(pos)){
+                            this.updateNoLightPriorityQueue.Add(pos);
+                            continue;
+                        }
+                    }
+
+                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
+                }
             }
         }
+    }
 
-        if(updateNoLightPriorityQueue.GetSize() > 0){
-            ChunkPos cachedPos;
+    // Reload a chunk in toUpdate
+    private void UpdateChunkTask(ChunkPos pos){
+        if(this.chunks.ContainsKey(pos)){
 
-            if(this.chunks.ContainsKey(updateNoLightPriorityQueue.Peek())){
-                if(CanBeDrawn(updateNoLightPriorityQueue.Peek())){
-                    cachedPos = updateNoLightPriorityQueue.Pop();
+            this.chunks[pos].BuildChunk();
 
-                    chunks[cachedPos].BuildChunk();
-                    chunks[cachedPos].Draw();
+            if(this.WORLD_GENERATED)
+                this.vfx.UpdateLights(pos);
 
-                    if(this.WORLD_GENERATED)
-                        this.vfx.UpdateLights(cachedPos);
-                }
-                else{
-                    updateNoLightPriorityQueue.Add(updateNoLightPriorityQueue.Pop());
-                }
-            }
-            else{
-                updateNoLightPriorityQueue.Pop();
-            }
+            this.toDrawFinish.Enqueue(pos);
         }
     }
 

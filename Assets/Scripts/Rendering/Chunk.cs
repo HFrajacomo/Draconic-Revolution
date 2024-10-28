@@ -85,6 +85,9 @@ public class Chunk
     // General Cache
     private ChunkPos[] surroundingVerticalChunks = new ChunkPos[2];
 
+    // Thread-Safety
+    private Mutex mutex = new Mutex();
+
 
 	public Chunk(ChunkPos pos, ChunkRenderer r, ChunkLoader loader){
 		this.pos = pos;
@@ -154,7 +157,9 @@ public class Chunk
 
 	// Adds Mesh information to MeshFilters
 	public void Draw(){
-		if(this.meshData.vertices == null){
+		if(!this.meshData.VerifyIntegrity()){
+			this.meshData.Destroy();
+			this.loader.AddToUpdate(this.pos);
 			return;
 		}
 
@@ -269,7 +274,8 @@ public class Chunk
 	}
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
-	public void BuildChunk(Mutex mutex=null, bool load=false){
+	public void BuildChunk(bool load=false, bool priority=false){
+		this.mutex.WaitOne();
 		this.drawCounter = 0;
 
 		ChunkPos auxPos;
@@ -803,9 +809,7 @@ public class Chunk
 		this.hitboxScaling.Clear();
 
 		this.drawMain = true;
-
-		if(mutex != null)
-			mutex.ReleaseMutex();
+		this.mutex.ReleaseMutex();
     }
 
     // Builds meshes from verts, UVs and tris from different layers

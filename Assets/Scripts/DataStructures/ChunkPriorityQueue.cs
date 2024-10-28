@@ -51,24 +51,22 @@ public class ChunkPriorityQueue
 
                 this.queue.Insert((int)this.partition[distance], new ChunkDistance(x, distance));
                 this.chunks.Add(x);
-                return;
             }
             else{
                 this.queue.Insert((int)this.partition[distance], new ChunkDistance(x, distance));
                 this.chunks.Add(x);
-                return;
             }
         }
         // If partition already exists
         else{
             if(distance != this.lastPartitionDistance){
                 ShiftAllAbove(distance);
+                
                 this.queue.Insert((int)this.partition[distance] + (int)this.elementsInPartition[distance], new ChunkDistance(x, distance));
             }
             else{
                 this.queue.Add(new ChunkDistance(x, distance));
             }
-
 
             this.chunks.Add(x);
             this.elementsInPartition[distance]++;

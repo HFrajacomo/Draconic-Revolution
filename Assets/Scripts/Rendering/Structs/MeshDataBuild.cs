@@ -103,12 +103,62 @@ public struct MeshDataBuild{
 		this.raycastTriangles = null;
 	}
 
+	public bool VerifyIntegrity(){
+    	if(this.vertices == null)
+    		return false;
+		if(this.UVs == null)
+			return false;
+		if(this.tris == null)
+			return false;
+		if(this.specularTris == null)
+			return false;
+		if(this.liquidTris == null)
+			return false;
+		if(this.assetTris == null)
+			return false;
+		if(this.assetSolidTris == null)
+			return false;
+		if(this.leavesTris == null)
+			return false;
+		if(this.iceTris == null)
+			return false;
+		if(this.lavaTris == null)
+			return false;
+		if(this.lightUVs == null)
+			return false;
+		if(this.tangents == null)
+			return false;
+		if(this.normals == null)
+			return false;
+		if(this.colliderVertices == null)
+			return false;
+		if(this.colliderTris == null)
+			return false;
+		if(this.colliderIceTris == null)
+			return false;
+		if(this.colliderAssetSolidTris == null)
+			return false;
+		if(this.decalVertices == null)
+			return false;
+		if(this.decalUVs == null)
+			return false;
+		if(this.decalTris == null)
+			return false;
+		if(this.raycastVertices == null)
+			return false;
+		if(this.raycastNormals == null)
+			return false;
+		if(this.raycastTriangles == null)
+			return false;
+
+		return true;
+	}
+
 	// Builds Main Chunk mesh
 	public Mesh BuildMesh(){
 		Mesh mesh = new Mesh();
 
 		if(this.vertices == null){
-			Debug.Log("NULL RUN");
 			return mesh;
 		}
 		if(this.vertices.Length == 0)
