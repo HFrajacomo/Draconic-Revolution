@@ -384,18 +384,20 @@ public class VoxelLoader : BaseLoader {
 			texCode = codenameToTexID[b.codename];
 			b.SetupAfterSerialize(isClient);
 
-			b.GetMeshData().GetUVs(objUV);
-			atSize = atlasSize[(int)b.shaderIndex];
-			texCode = codenameToTexID[b.codename]; 
+			if(isClient){
+				b.GetMeshData().GetUVs(objUV);
+				atSize = atlasSize[(int)b.shaderIndex];
+				texCode = codenameToTexID[b.codename]; 
 
-			for(int i=0; i < objUV.Count; i++){
-				u = Mathf.Lerp((texCode%atSize.x)*(1f/atSize.x), ((texCode%atSize.x)*(1f/atSize.x))+(1f/atSize.x), objUV[i].x);
-				v = Mathf.Lerp((int)(texCode/atSize.x)*(1f/atSize.y), ((int)(texCode/atSize.x)*(1f/atSize.y))+(1f/atSize.y), objUV[i].y);
+				for(int i=0; i < objUV.Count; i++){
+					u = Mathf.Lerp((texCode%atSize.x)*(1f/atSize.x), ((texCode%atSize.x)*(1f/atSize.x))+(1f/atSize.x), objUV[i].x);
+					v = Mathf.Lerp((int)(texCode/atSize.x)*(1f/atSize.y), ((int)(texCode/atSize.x)*(1f/atSize.y))+(1f/atSize.y), objUV[i].y);
 
-				objUV[i] = new Vector2(u, v);
+					objUV[i] = new Vector2(u, v);
+				}
+
+				b.GetMeshData().SetUVs(objUV);
 			}
-
-			b.GetMeshData().SetUVs(objUV);
 			objUV.Clear();
 		}
 	}
