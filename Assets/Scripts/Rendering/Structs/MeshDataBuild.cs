@@ -158,9 +158,6 @@ public struct MeshDataBuild{
 	public Mesh BuildMesh(){
 		Mesh mesh = new Mesh();
 
-		if(this.vertices == null){
-			return mesh;
-		}
 		if(this.vertices.Length == 0)
 			return mesh;
     	if(this.vertices.Length >= ushort.MaxValue)
@@ -192,8 +189,6 @@ public struct MeshDataBuild{
 	public Mesh BuildColliderMesh(){
 		Mesh mesh = new Mesh();
 
-		if(this.colliderVertices == null)
-			return mesh;
 		if(this.colliderVertices.Length == 0)
 			return mesh;
     	if(this.colliderVertices.Length >= ushort.MaxValue)
@@ -203,10 +198,9 @@ public struct MeshDataBuild{
 
     	mesh.SetVertices(this.colliderVertices);
 
-    	mesh.SetTriangles(this.tris, 0);
- 	   	mesh.SetTriangles(this.assetSolidTris, 1);
- 	   	mesh.SetTriangles(this.iceTris, 2);
-
+    	mesh.SetTriangles(this.colliderTris, 0);
+ 	   	mesh.SetTriangles(this.colliderAssetSolidTris, 1);
+ 	   	mesh.SetTriangles(this.colliderIceTris, 2);
  	   	return mesh;
 	}
 
@@ -214,8 +208,6 @@ public struct MeshDataBuild{
 	public Mesh BuildDecalMesh(){
 		Mesh mesh = new Mesh();
 
-		if(this.decalVertices == null)
-			return mesh;
 		if(this.decalVertices.Length == 0)
 			return mesh;
     	if(this.decalVertices.Length >= ushort.MaxValue)

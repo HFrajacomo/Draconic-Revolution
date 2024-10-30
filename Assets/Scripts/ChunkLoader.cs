@@ -65,12 +65,10 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkRenderer rend;
 
     // Multithreading Tasks
-    private Task unloadTask;
     private Task[] drawTaskPool = new Task[3];
     private Task[] updateTaskPool = new Task[2];
 
     // Multithreading Control Lists
-    private ConcurrentQueue<ChunkPos> toUnloadFinish = new ConcurrentQueue<ChunkPos>();
     private ConcurrentQueue<ChunkPos> toDrawFinish = new ConcurrentQueue<ChunkPos>();
 
     // Multithreading Locks
@@ -143,9 +141,6 @@ public class ChunkLoader : MonoBehaviour
         ClearAllChunks();
 
         // Multithreading
-        if(this.unloadTask != null)
-            this.unloadTask.Wait();
-
         WaitTaskPool(this.drawTaskPool);
         WaitTaskPool(this.updateTaskPool);
 
@@ -219,7 +214,6 @@ public class ChunkLoader : MonoBehaviour
             GetChunks(false);
 
         	UnloadChunk();
-            UnloadChunkFinish();
             LoadChunk();
             RequestChunk();
             DrawChunk();
@@ -358,6 +352,11 @@ public class ChunkLoader : MonoBehaviour
             updateNoLightPriorityQueue.Add(pos);
     }
 
+    // Adds chunk to Draw queue
+    public void AddToDraw(ChunkPos pos){
+        this.toDrawFinish.Enqueue(pos);
+    }
+
     // Asks the Server to send chunk information
     private void RequestChunk(){
     	if(requestPriorityQueue.GetSize() > 0){
@@ -426,61 +425,16 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Loads the chunk into the Chunkloader
-
-    // Multithreaded call for Unload operation
+    // Unload operation
     private void UnloadChunk(){
-        if(this.unloadTask == null || this.unloadTask.IsCompleted){
-            #if UNITY_EDITOR
-                if(this.unloadTask != null){
-                    if(this.unloadTask.Status == TaskStatus.Faulted){
-                        Debug.LogException(this.unloadTask.Exception);
-                    }
-                }
-            #endif
-
-            if(this.toUnload.Count > 0){
-                ChunkPos pos = this.toUnload[0];
-                this.toUnload.RemoveAt(0);
-                this.unloadTask = Task.Run(() => UnloadChunkTask(pos));
-            }
-        }
-    }
-
-
-    // Unloads a chunk per frame from the Unloading Buffer
-    private void UnloadChunkTask(ChunkPos pos){
-        if(!this.chunks.ContainsKey(pos)){
-            return;
-        }
-
-        if(!SkipNotImplemented(pos)){
-            return;
-        }
-
-        if(this.ShouldBeDrawn(pos)){
-            return;
-        }
-        
-        this.toUnloadFinish.Enqueue(pos);
-    }
-
-    // Main Thread's Unload operation Finisher
-    private void UnloadChunkFinish(){
-        if(this.toUnloadFinish.Count > 0){
-
+        if(this.toUnload.Count > 0){
             ChunkPos pos;
-            bool successfulDequeueing = false;
 
-            for(int i=0; i < this.toUnloadFinish.Count; i++){
-                successfulDequeueing = this.toUnloadFinish.TryDequeue(out pos);
-
-                if(!successfulDequeueing){
-                    UnloadUnwanted();
-                    continue;
-                }
+            for(int i=0; i < this.toUnload.Count; i++){
+                pos = this.toUnload[0];
 
                 if(!this.chunks.ContainsKey(pos)){
+                    this.toUnload.RemoveAt(0);
                     continue;
                 }
 
@@ -493,6 +447,7 @@ public class ChunkLoader : MonoBehaviour
                 this.client.Send(message);
 
                 this.chunks.Remove(pos);
+                this.toUnload.RemoveAt(0);
             }
         }
     }

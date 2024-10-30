@@ -36,6 +36,7 @@ public class Chunk
 	// Draw Flags
 	public bool drawMain = false;
     private int drawCounter = 0;
+    private bool isBuilding = false;
 
 
 	/*
@@ -162,6 +163,10 @@ public class Chunk
 			this.loader.AddToUpdate(this.pos);
 			return;
 		}
+		if(this.isBuilding){
+			this.loader.AddToDraw(this.pos);
+			return;
+		}
 
 		this.drawCounter++;
 
@@ -202,11 +207,6 @@ public class Chunk
 		c.metadata = new VoxelMetadata(this.metadata);
 
 		return c;
-	}
-
-	// Check if a Chunk can be Drawn by having its meshData set
-	public bool IsReadyToDraw(){
-		return this.meshData.vertices != null;
 	}
 
 	public void Destroy(){
@@ -276,6 +276,7 @@ public class Chunk
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
 	public void BuildChunk(bool load=false, bool priority=false){
 		this.mutex.WaitOne();
+		this.isBuilding = true;
 		this.drawCounter = 0;
 
 		ChunkPos auxPos;
@@ -809,6 +810,7 @@ public class Chunk
 		this.hitboxScaling.Clear();
 
 		this.drawMain = true;
+		this.isBuilding = false;
 		this.mutex.ReleaseMutex();
     }
 
