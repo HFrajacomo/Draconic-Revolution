@@ -386,18 +386,14 @@ public class ChunkLoader : MonoBehaviour
 
             ChunkPos cp = NetDecoder.ReadChunkPos(data, 1);
 
-            // Prevention
-            if(this.chunks.ContainsKey(cp)){
-                this.chunks[cp].Destroy();
-                this.chunks.Remove(cp);
-            }
-
             int blockDataSize = NetDecoder.ReadInt(data, 10);
             int hpDataSize = NetDecoder.ReadInt(data, 14);
             int stateDataSize = NetDecoder.ReadInt(data, 18);
 
-            this.chunks[cp] = new Chunk(cp, this.rend, this);
-            this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[22]);
+            if(!this.chunks.ContainsKey(cp)){
+                this.chunks.Add(cp, new Chunk(cp, this.rend, this));
+                this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[22]);
+            }
 
             Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:22+headerSize);
             Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:22+headerSize+blockDataSize);
