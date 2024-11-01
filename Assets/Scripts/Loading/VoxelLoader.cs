@@ -371,8 +371,9 @@ public class VoxelLoader : BaseLoader {
 	}
 
 	public void RunPostDeserializationRoutine(){
-		List<Vector2> objUV = new List<Vector2>();
 		int2 atSize;
+		List<Vector2> objUV;
+		MeshData meshData;
 		int texCode;
 		float u, v;
 
@@ -381,11 +382,14 @@ public class VoxelLoader : BaseLoader {
 			b.SetupTextureIDs();
 		}
 		foreach(BlocklikeObject b in objectBook){
+			objUV = new List<Vector2>();
 			texCode = codenameToTexID[b.codename];
 			b.SetupAfterSerialize(isClient);
 
 			if(isClient){
-				b.GetMeshData().GetUVs(objUV);
+				meshData = b.GetMeshData();
+				meshData.GetUVs(objUV);
+
 				atSize = atlasSize[(int)b.shaderIndex];
 				texCode = codenameToTexID[b.codename]; 
 
@@ -396,9 +400,9 @@ public class VoxelLoader : BaseLoader {
 					objUV[i] = new Vector2(u, v);
 				}
 
-				b.GetMeshData().SetUVs(objUV);
+				meshData = meshData.SetUVs(objUV);
+				b.SetMeshData(meshData);
 			}
-			objUV.Clear();
 		}
 	}
 

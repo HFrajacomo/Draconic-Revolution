@@ -60,7 +60,12 @@ public struct MeshData{
 
 	public int[] GetHitboxTriangles(){return this.hitboxTriangles;}
 
-	public void SetUVs(List<Vector2> UVs){this.UVs = UVs;}
+	public MeshData SetUVs(List<Vector2> UVs){
+		this.UVs = UVs;
+		UVs = null;
+
+		return this;
+	}
 
 	public void DebugCreate(){
 		GameObject obj = new GameObject("TestMeshData");
@@ -75,5 +80,4 @@ public struct MeshData{
 		mesh.SetNormals(this.normals);
 		meshFilter.mesh = mesh;
 	}
-
 }

@@ -48,6 +48,7 @@ public class BlocklikeObject
 
 
 	public MeshData GetMeshData(){return this.modelIdentity.GetMeshData();}
+	public void SetMeshData(MeshData meshData){this.modelIdentity.SetMeshData(meshData);}
 	public string GetTextureName(){return this.modelIdentity.GetTextureName();}
 
     // Handles the emittion of BUD to neighboring blocks

@@ -278,6 +278,7 @@ public class Chunk
 		this.mutex.WaitOne();
 		this.isBuilding = true;
 		this.drawCounter = 0;
+		this.meshData = new MeshDataBuild();
 
 		ChunkPos auxPos;
 		int verticalCode = 0;
@@ -686,7 +687,6 @@ public class Chunk
 		job = paJob.Schedule();
 		job.Complete();
 
-		this.meshData = new MeshDataBuild();
 		BuildDecalMesh(decalVerts.AsArray(), decalUVs.AsArray(), decalTris);
 		BuildHitboxMesh(hitboxVerts.AsArray(), hitboxNormals.AsArray(), hitboxTriangles);
 		BuildMesh(verts, normalTris, specularTris, liquidTris, assetTris, assetSolidTris, leavesTris, iceTris, lavaTris, UVs, lightUV, normals, tangents);

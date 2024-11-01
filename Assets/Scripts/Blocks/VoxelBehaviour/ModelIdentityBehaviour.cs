@@ -17,6 +17,7 @@ public class ModelIdentityBehaviour : VoxelBehaviour {
 	}
 
 	public MeshData GetMeshData(){return this.meshdata;}
+	public void SetMeshData(MeshData meshData){this.meshdata = meshData;}
 
 	public int GetTextureCode(){return this.textureCode;}
 	public string GetTextureName(){return this.textureName;}
