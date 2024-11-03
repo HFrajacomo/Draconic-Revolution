@@ -169,6 +169,9 @@ public class PlayerPositionHandler : MonoBehaviour
             this.cl.client.Send(message);
         }
 
+        if(this.cl.client == null)
+            return;
+
         if(this.tickCounter == 0){
             this.tickCounter = TICKS;
 

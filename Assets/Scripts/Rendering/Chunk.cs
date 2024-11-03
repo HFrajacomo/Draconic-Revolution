@@ -36,7 +36,6 @@ public class Chunk
 	// Draw Flags
 	public bool drawMain = false;
     private int drawCounter = 0;
-    private bool isBuilding = false;
 
 
 	/*
@@ -88,6 +87,9 @@ public class Chunk
 
     // Thread-Safety
     private Mutex mutex = new Mutex();
+    private bool isDrawing = false;
+    private bool isBuilding = false;
+
 
 
 	public Chunk(ChunkPos pos, ChunkRenderer r, ChunkLoader loader){
@@ -158,20 +160,26 @@ public class Chunk
 
 	// Adds Mesh information to MeshFilters
 	public void Draw(){
+		this.isDrawing = true;
+
+		if(this.isBuilding){
+			this.loader.AddToDraw(this.pos);
+			this.isDrawing = false;
+			return;
+		}
 		if(!this.meshData.VerifyIntegrity()){
 			this.meshData.Destroy();
 			this.loader.AddToUpdate(this.pos);
-			return;
-		}
-		if(this.isBuilding){
-			this.loader.AddToDraw(this.pos);
+			this.isDrawing = false;
 			return;
 		}
 
 		this.drawCounter++;
 
-		if(this.drawCounter > 1)
+		if(this.drawCounter > 1){
+			this.isDrawing = false;
 			return;
+		}
 
 		// ToLoad() Event Trigger
 		this.message = new NetMessage(NetCode.BATCHLOADBUD);
@@ -185,6 +193,14 @@ public class Chunk
 			this.loader.client.Send(this.message);
 		}
 
+		// Last integrity check
+		if(!this.meshData.VerifyIntegrity()){
+			this.meshData.Destroy();
+			this.loader.AddToUpdate(this.pos);
+			this.isDrawing = false;
+			return;
+		}
+
 		// Mesh Building
 		this.meshFilter.mesh = this.meshData.BuildMesh();
 		this.meshCollider.sharedMesh = this.meshData.BuildColliderMesh();
@@ -196,6 +212,7 @@ public class Chunk
 		}
 
 		this.meshData.Destroy();
+		this.isDrawing = false;
 	}
 
 	// Clone
@@ -233,6 +250,8 @@ public class Chunk
 		this.meshDecal = null;
 		this.meshRaycast = null;
 		this.meshFilterDecal = null;
+
+		this.mutex.Dispose();
 	}
 	
 	// Returns the chunk's header in byte array format
@@ -277,6 +296,9 @@ public class Chunk
 	public void BuildChunk(bool load=false, bool priority=false){
 		this.mutex.WaitOne();
 		this.isBuilding = true;
+		
+		while(this.isDrawing){Thread.Sleep(1);}
+
 		this.drawCounter = 0;
 		this.meshData = new MeshDataBuild();
 
@@ -811,6 +833,7 @@ public class Chunk
 
 		this.drawMain = true;
 		this.isBuilding = false;
+
 		this.mutex.ReleaseMutex();
     }
 

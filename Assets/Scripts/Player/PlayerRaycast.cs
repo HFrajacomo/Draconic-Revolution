@@ -252,22 +252,6 @@ public class PlayerRaycast : MonoBehaviour
 		it.OnUseClient(this.loader, its, this.position, lastCoord, playerBody, playerHead, current);
 	}
 
-	// Block Placing mechanic
-	private bool PlaceBlock(ushort blockCode, byte newQuantity){
-		// Won't happen if not raycasting something or if block is in player's body or head
-		if(!current.active || (CastCoord.Eq(lastCoord, playerHead) && VoxelLoader.CheckSolid(blockCode)) || (CastCoord.Eq(lastCoord, playerBody) && VoxelLoader.CheckSolid(blockCode))){
-			return false;
-		}
-
-		if(loader.GetBlock(lastCoord) != 0)
-			return false;
-
-		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerEvents.hotbarSlot, newQuantity:newQuantity);
-		this.loader.client.Send(message);
-		return true;
-	}
-
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){
 		ChunkPos above = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ, lastCoord.chunkY+1);
