@@ -13,8 +13,6 @@ Draconic Revolution is a procedurally generated voxel-based late medieval RPG cu
 
 My name is Henrique Frajacomo, a Brazillian Software Engineer and Music Production Instructor currently working a 9-5 job and developing Draconic Revolution on my free time along a team of volunteers consisting of friends and people who believe in the potential of this project.
 
-<img src="/RepoImages/Eu13.jpg" width="400" height="500"/>
-
 Ever since I learned how to write, I have been making paper games. They eventually grew onto Tabletop RPG games that were played with my friends throughout my childhood. At the early age of 13, I got into the world of Computer Programming, and a huge spectrum of possibilities was opened to me. My love for programming led me to seek technical education on the subject, becoming then an Information Technician with the creation of a minor game with an RPG Maker-like aspect to it. Yet, I didn't think it was enough! I sought higher education in one of the most prestigious Federal Universities in Brazil, graduating in early 2021 as a Bachelor in Computer Science. During my time in University, I was a student researcher of the Bioinformatics and Machine Learning Lab, where I was team leader of projects regarding the use of Machine Learning AI to solve genetics and molecular biology problems.
 
 Back when I was barely a teenager, I took a liking to music. This hobby eventually grew onto a YouTube Channel focused on teaching the technical and artistical process of Music Production. This project was meant to train and give visibility to many young producers that contained plenty raw talent but little resources. Music Tournaments are hosted on the channel and a website that sells a concise course of Music Production was created.
@@ -227,7 +225,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Different Biomes|World Gen|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Basic Player Movement and Camera|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Block Breaking, Placing and Interacting|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
-|Voxel Updates|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Voxel Updates|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Day and Night Cycle|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |High Definition Rendering Pipeline Support|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |World Save|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
@@ -238,7 +236,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Inventory and Items|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Voxel Textures|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
 |Normal Map Support|Art| Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
-|Dynamic Lens Flare|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Dynamic Lens Flare|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:warning:
 |Custom Audio Engine|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Initial Music|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:soon:|:soon:
 |Dynamic Music Support|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
