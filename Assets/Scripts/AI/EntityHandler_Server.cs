@@ -6,6 +6,7 @@ using Unity.Mathematics;
 
 public class EntityHandler_Server
 {
+    private ChunkLoader_Server cl;
     public Dictionary<ulong, CharacterSheet> playerSheet;
 
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> playerObject;
@@ -26,6 +27,8 @@ public class EntityHandler_Server
         this.toRemove = new List<EntityID>();
         this.toChangePosition = new List<EntityChunkTransaction>();
     }
+
+    public void SetChunkLoader(ChunkLoader_Server cl){this.cl = cl;}
 
     // DEBUG
     private void PrintDrops(){
@@ -110,6 +113,10 @@ public class EntityHandler_Server
 
     // Retrieves the CharacterSheet
     public CharacterSheet GetSheet(ulong code){
+        if(!ContainsSheet(code)){
+            AddPlayerSheet(code, this.cl.characterFileHandler.LoadCharacterSheet(code));
+        }
+
         return this.playerSheet[code];
     }
 

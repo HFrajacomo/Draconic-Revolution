@@ -78,6 +78,7 @@ public class Server
     	playerToChunk = new Dictionary<ulong, ChunkPos>();
 
     	this.cl = cl;
+    	this.entityHandler.SetChunkLoader(cl);
     	
     	if(!this.isLocal){
         	this.masterSocket = new Socket(IPAddress.Any.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -762,7 +763,7 @@ public class Server
 					}
 
 					this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
-					
+
 					// If quantity becomes zero or less, runs OnUnhold
 					if(newQuantity <= 0){
 						ItemStack its = this.cl.playerServerInventory.GetSlot(id, slot).GetItemStack();
