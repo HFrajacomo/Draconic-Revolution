@@ -763,6 +763,16 @@ public class Server
 					}
 
 					this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
+					
+					// If quantity becomes zero or less, runs OnUnhold
+					if(newQuantity <= 0){
+						ItemStack its = this.cl.playerServerInventory.GetSlot(id, slot).GetItemStack();
+						its.GetItem().OnUnholdServer(this.cl, its , id);
+
+						NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
+						unholdMessage.SendItemInHand(id, 0, 0);
+						this.SendToClientsExcept(id, unholdMessage);
+					}
 
 					// If quantity becomes zero or less, runs OnUnhold
 					if(newQuantity <= 0){
