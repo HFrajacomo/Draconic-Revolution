@@ -155,7 +155,7 @@ public struct PrepareAssetsJob : IJob{
 			else{
 				for(int triIndex=trisOffset[i]; triIndex < trisOffset[i+1]; triIndex++){
 					meshSolidTris.Add(loadedTris[triIndex] + currentVertAmount);
-				}					
+				}			
 			}
 			currentVertAmount += (vertsOffset[i+1] - vertsOffset[i]);
 

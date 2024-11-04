@@ -22,6 +22,7 @@ public class PlaceBlockBehaviour : ItemBehaviour{
 			}
 			cl.playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
 			cl.playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);
+			cl.playerEvents.invUIPlayer.SendInventoryDataToServer();
 		}
 	}
 

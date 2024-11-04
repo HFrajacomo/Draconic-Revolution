@@ -283,7 +283,7 @@ MonoBehaviour:
       m_Value: 0
     opacityA:
       m_OverrideState: 1
-      m_Value: 1
+      m_Value: 0.2
     altitude:
       m_OverrideState: 0
       m_Value: 2000
@@ -303,14 +303,14 @@ MonoBehaviour:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 206.1343
+        customValue: 154.19127
         additiveValue: 0
         multiplyValue: 1
     scrollSpeed:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 164.9308
+        customValue: 71.4192
         additiveValue: 0
         multiplyValue: 1
     flowmap:
@@ -346,7 +346,7 @@ MonoBehaviour:
       m_Value: 1
     opacityA:
       m_OverrideState: 1
-      m_Value: 1
+      m_Value: 0.2
     altitude:
       m_OverrideState: 0
       m_Value: 2000
@@ -366,14 +366,14 @@ MonoBehaviour:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 246.1343
+        customValue: 194.19127
         additiveValue: 0
         multiplyValue: 1
     scrollSpeed:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 148.43771
+        customValue: 64.277275
         additiveValue: 0
         multiplyValue: 1
     flowmap:
@@ -581,19 +581,19 @@ MonoBehaviour:
     m_Value: 60
   baseHeight:
     m_OverrideState: 1
-    m_Value: 800
+    m_Value: 700
   maximumHeight:
     m_OverrideState: 1
-    m_Value: 1040
+    m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 7.7466087
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
   albedo:
     m_OverrideState: 1
-    m_Value: {r: 0.65999997, g: 0.65999997, b: 0.65999997, a: 0}
+    m_Value: {r: 0.9, g: 0.9, b: 0.9, a: 0}
   globalLightProbeDimmer:
     m_OverrideState: 1
     m_Value: 0.25

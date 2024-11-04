@@ -23,7 +23,7 @@ public struct ChunkPos{
 		this.y = (byte)y;
 	}
 
-	public float DistanceFrom(ChunkPos pos, DistanceMetric metric){
+	public int DistanceFrom(ChunkPos pos, DistanceMetric metric){
 		switch(metric){
 			case DistanceMetric.MANHATTAN:
 				return DistanceManhattan(pos);
@@ -34,7 +34,7 @@ public struct ChunkPos{
 		}
 	}
 
-	public float DistanceManhattan(ChunkPos otherPos){
+	public int DistanceManhattan(ChunkPos otherPos){
 		int xDiff, zDiff, yDiff;
 
 		xDiff = Mathf.Abs(otherPos.x - this.x);
@@ -44,7 +44,7 @@ public struct ChunkPos{
 		return xDiff + yDiff + zDiff;
 	}
 
-	public float DistanceEdgeLimiting(ChunkPos otherPos){
+	public int DistanceEdgeLimiting(ChunkPos otherPos){
 		int xDiff, zDiff, yDiff;
 		int maximizedDistance;
 
@@ -55,7 +55,7 @@ public struct ChunkPos{
 		maximizedDistance = Mathf.Max(xDiff, zDiff);
 
 		if(maximizedDistance > World.renderDistance){
-			return 999f + xDiff + yDiff + zDiff;
+			return (World.renderDistance*5)-1;
 		}
 		else{
 			return xDiff + yDiff + zDiff;

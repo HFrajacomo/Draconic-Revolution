@@ -77,6 +77,14 @@ public class InventoryUIPlayer : MonoBehaviour
         this.DrawStacks();
     }
 
+    public void SendInventoryDataToServer(){
+    	int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
+
+		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
+		message.SendInventory(InventorySerializer.buffer, inventorySize);
+		this.cl.client.Send(message);
+    }
+
     // Draws the ItemStacks into the Inventory Screen
     private void DrawStacks(){
     	ItemStack its;
@@ -228,11 +236,7 @@ public class InventoryUIPlayer : MonoBehaviour
 
     		this.DrawSlot(inventoryCode, slot);
 
-    		int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
-    		
-    		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
-    		message.SendInventory(InventorySerializer.buffer, inventorySize);
-    		this.cl.client.Send(message);
+			SendInventoryDataToServer();
     	}
     	// If has a selected slot
     	else{
@@ -249,11 +253,7 @@ public class InventoryUIPlayer : MonoBehaviour
     		this.DrawSlot(inventoryCode, slot);
     		this.ResetSelection();
 
-    		int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
-
-    		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
-    		message.SendInventory(InventorySerializer.buffer, inventorySize);
-    		this.cl.client.Send(message);
+    		SendInventoryDataToServer();
     	}
     }
 
@@ -283,12 +283,7 @@ public class InventoryUIPlayer : MonoBehaviour
                 }			
     		}
 
-    		int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
-    		
-    		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
-    		message.SendInventory(InventorySerializer.buffer, inventorySize);
-    		this.cl.client.Send(message);
-
+    		SendInventoryDataToServer();
     	}
     	// If there's a selection, then unselect
     	else{

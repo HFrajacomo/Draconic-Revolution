@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Jobs;
@@ -29,13 +30,13 @@ public class Chunk
 	private NetMessage message;
 
 	// Debug Settings
-	private static bool showHitbox = true;
+	private static bool showHitbox = false;
 	private MeshFilter hitboxFilter;
 
 	// Draw Flags
 	public bool drawMain = false;
-	public bool topDraw = false;
-	public bool bottomDraw = false;
+    private int drawCounter = 0;
+
 
 	/*
 		Unity Settings
@@ -67,10 +68,6 @@ public class Chunk
     private List<int> indexUV = new List<int>();
     private List<int> indexTris = new List<int>();
     private List<Vector3> scalingFactor = new List<Vector3>();
-    private List<Vector2> UVaux = new List<Vector2>();
-    private List<Vector3> vertexAux = new List<Vector3>();
-    private List<Vector3> normalAux = new List<Vector3>();
-    private List<Vector4> tangentAux = new List<Vector4>();
     private List<Vector3> cacheHitboxVerts = new List<Vector3>();
     private List<Vector3> cacheHitboxNormals = new List<Vector3>();
     private List<int> cacheHitboxTriangles = new List<int>();
@@ -78,14 +75,21 @@ public class Chunk
     private List<int> indexHitboxTris = new List<int>();
     private List<Vector3> hitboxScaling = new List<Vector3>();
 
-    // Decals Cache
+    // Mesh Cache
+    private MeshDataBuild meshData;
     private Mesh mesh;
+    private Mesh meshCollision;
     private Mesh meshDecal;
     private Mesh meshRaycast;
-    private Mesh cacheMesh = new Mesh();
 
     // General Cache
     private ChunkPos[] surroundingVerticalChunks = new ChunkPos[2];
+
+    // Thread-Safety
+    private Mutex mutex = new Mutex();
+    private bool isDrawing = false;
+    private bool isBuilding = false;
+
 
 
 	public Chunk(ChunkPos pos, ChunkRenderer r, ChunkLoader loader){
@@ -112,32 +116,23 @@ public class Chunk
 		this.data = new VoxelData(pos);
 		this.metadata = new VoxelMetadata();
 
-		this.obj.AddComponent<MeshFilter>();
+		this.meshFilter = this.obj.AddComponent<MeshFilter>();
 		MeshRenderer msr = this.obj.AddComponent<MeshRenderer>() as MeshRenderer;
-		this.obj.AddComponent<MeshCollider>();
-		this.objDecal.AddComponent<MeshFilter>();
+		this.meshCollider = this.obj.AddComponent<MeshCollider>();
+		this.meshFilterDecal = this.objDecal.AddComponent<MeshFilter>();
 		MeshRenderer msrDecal = this.objDecal.AddComponent<MeshRenderer>() as MeshRenderer;
 		msrDecal.shadowCastingMode = ShadowCastingMode.Off;
 		this.meshColliderRaycast = this.objRaycast.AddComponent<MeshCollider>() as MeshCollider;
 
-		this.meshFilter = this.obj.GetComponent<MeshFilter>();
-		this.meshCollider = this.obj.GetComponent<MeshCollider>();
-		this.meshFilterDecal = this.objDecal.GetComponent<MeshFilter>();
 		this.obj.GetComponent<MeshRenderer>().sharedMaterials = this.renderer.GetComponent<MeshRenderer>().sharedMaterials;
 		this.objDecal.GetComponent<MeshRenderer>().material = this.renderer.decalMaterial;
 		this.obj.layer = 8;
 
+		// Mesh Initialization
 		this.mesh = new Mesh();
-		this.mesh.MarkDynamic();
-		this.meshFilter.mesh = this.mesh;
-		this.meshCollider.sharedMesh = this.mesh;
+		this.meshCollision = new Mesh();
 		this.meshDecal = new Mesh();
-		this.meshDecal.MarkDynamic();
-		this.meshFilterDecal.mesh = this.meshDecal;
 		this.meshRaycast = new Mesh();
-		this.meshRaycast.MarkDynamic();
-		this.meshRaycast.name = this.objRaycast.name;
-		this.meshColliderRaycast.sharedMesh = this.meshRaycast;
 
 		this.surroundingVerticalChunks[0] = new ChunkPos(pos.x, pos.z, pos.y+1);
 		this.surroundingVerticalChunks[1] = new ChunkPos(pos.x, pos.z, pos.y-1);
@@ -161,6 +156,63 @@ public class Chunk
 			this.data = new VoxelData();
 
 		this.metadata = new VoxelMetadata();
+	}
+
+	// Adds Mesh information to MeshFilters
+	public void Draw(){
+		this.isDrawing = true;
+
+		if(this.isBuilding){
+			this.loader.AddToDraw(this.pos);
+			this.isDrawing = false;
+			return;
+		}
+		if(!this.meshData.VerifyIntegrity()){
+			this.meshData.Destroy();
+			this.loader.AddToUpdate(this.pos);
+			this.isDrawing = false;
+			return;
+		}
+
+		this.drawCounter++;
+
+		if(this.drawCounter > 1){
+			this.isDrawing = false;
+			return;
+		}
+
+		// ToLoad() Event Trigger
+		this.message = new NetMessage(NetCode.BATCHLOADBUD);
+		this.message.BatchLoadBUD(this.pos);
+
+		if(!this.meshData.IsLoadNull()){
+			int3[] coordArray = this.meshData.GetLoadList();
+			for(int i=0; i < coordArray.Length; i++){
+				this.message.AddBatchLoad(coordArray[i].x, coordArray[i].y, coordArray[i].z, 0, 0, 0, 0);
+			}	
+			this.loader.client.Send(this.message);
+		}
+
+		// Last integrity check
+		if(!this.meshData.VerifyIntegrity()){
+			this.meshData.Destroy();
+			this.loader.AddToUpdate(this.pos);
+			this.isDrawing = false;
+			return;
+		}
+
+		// Mesh Building
+		this.meshFilter.mesh = this.meshData.BuildMesh();
+		this.meshCollider.sharedMesh = this.meshData.BuildColliderMesh();
+		this.meshFilterDecal.mesh = this.meshData.BuildDecalMesh();
+		this.meshColliderRaycast.sharedMesh = this.meshData.BuildRaycastMesh();
+
+		if(showHitbox){
+			this.hitboxFilter.mesh = this.meshColliderRaycast.sharedMesh;
+		}
+
+		this.meshData.Destroy();
+		this.isDrawing = false;
 	}
 
 	// Clone
@@ -187,8 +239,10 @@ public class Chunk
 		this.meshCollider = null; 
 		this.loader = null;
 
-		this.data.Destroy();
-		this.metadata.Destroy();
+		if(this.data != null)
+			this.data.Destroy();
+		if(this.metadata != null)
+			this.metadata.Destroy();
 
 		this.data = null;
 		this.metadata = null;
@@ -196,6 +250,8 @@ public class Chunk
 		this.meshDecal = null;
 		this.meshRaycast = null;
 		this.meshFilterDecal = null;
+
+		this.mutex.Dispose();
 	}
 	
 	// Returns the chunk's header in byte array format
@@ -237,14 +293,21 @@ public class Chunk
 	}
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
-	public void BuildChunk(bool load=false){
-    	ChunkPos auxPos;
-    	int verticalCode = 0;
+	public void BuildChunk(bool load=false, bool priority=false){
+		this.mutex.WaitOne();
+		this.isBuilding = true;
+		
+		while(this.isDrawing){Thread.Sleep(1);}
 
+		this.drawCounter = 0;
+		this.meshData = new MeshDataBuild();
+
+		ChunkPos auxPos;
+		int verticalCode = 0;
 
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
 		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
-    	NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
+		NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
 		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap(this.metadata));
 		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
@@ -526,43 +589,34 @@ public class Chunk
 		NativeParallelHashMap<int, int2> rotationOffset = new NativeParallelHashMap<int, int2>(0, Allocator.TempJob);
 		
 		int3[] coordArray = loadAssetList.AsArray().ToArray();
+		int vertAmount, uvAmount;
 		foreach(int3 coord in coordArray){
 			ushort assetCode = this.data.GetCell(coord);
 
 			if(!this.cacheCodes.Contains(assetCode)){
 				this.cacheCodes.Add(assetCode);
 
-				VoxelLoader.GetObject(assetCode).GetMesh().GetVertices(vertexAux);
-				this.cacheVertsv3.AddRange(vertexAux.ToArray());
-				this.cacheTris.AddRange(VoxelLoader.GetObject(assetCode).GetMesh().GetTriangles(0));
-				VoxelLoader.GetObject(assetCode).GetMesh().GetUVs(0, UVaux);
-				this.cacheUVv2.AddRange(UVaux.ToArray());
-				this.indexVert.Add(this.indexVert[indexVert.Count-1] + vertexAux.Count);
-				this.indexTris.Add(this.indexTris[indexTris.Count-1] + VoxelLoader.GetObject(assetCode).GetMesh().GetTriangles(0).Length);
-				this.indexUV.Add(this.indexUV[indexUV.Count-1] + UVaux.Count);
-				VoxelLoader.GetObject(assetCode).GetMesh().GetNormals(normalAux);
-				this.cacheNormals.AddRange(normalAux.ToArray());
-				VoxelLoader.GetObject(assetCode).GetMesh().GetTangents(tangentAux);
-				this.cacheTangents.AddRange(tangentAux.ToArray());
+
+				vertAmount = VoxelLoader.GetObject(assetCode).GetMeshData().GetVertices(this.cacheVertsv3);
+				this.cacheTris.AddRange(VoxelLoader.GetObject(assetCode).GetMeshData().GetTriangles());
+				uvAmount = VoxelLoader.GetObject(assetCode).GetMeshData().GetUVs(this.cacheUVv2);
+
+				this.indexVert.Add(this.indexVert[indexVert.Count-1] + vertAmount);
+				this.indexTris.Add(this.indexTris[indexTris.Count-1] + VoxelLoader.GetObject(assetCode).GetMeshData().GetTriangles().Length);
+				this.indexUV.Add(this.indexUV[indexUV.Count-1] + uvAmount);
+
+				VoxelLoader.GetObject(assetCode).GetMeshData().GetNormals(this.cacheNormals);
+				VoxelLoader.GetObject(assetCode).GetMeshData().GetTangents(this.cacheTangents);
+
 				this.scalingFactor.Add(BlockEncyclopediaECS.objectScaling[ushort.MaxValue-assetCode]);
 				this.hitboxScaling.Add(BlockEncyclopediaECS.hitboxScaling[ushort.MaxValue-assetCode]);
 
-				vertexAux.Clear();
-				UVaux.Clear();
-				normalAux.Clear();
-				tangentAux.Clear();
+				vertAmount = VoxelLoader.GetObject(assetCode).GetMeshData().GetHitboxVertices(this.cacheHitboxVerts);
+				this.cacheHitboxTriangles.AddRange(VoxelLoader.GetObject(assetCode).GetMeshData().GetHitboxTriangles());
+				VoxelLoader.GetObject(assetCode).GetMeshData().GetNormals(this.cacheHitboxNormals);
 
-				VoxelLoader.GetObject(assetCode).GetHitboxMesh().GetVertices(vertexAux);
-				this.cacheHitboxVerts.AddRange(vertexAux.ToArray());
-				this.cacheHitboxTriangles.AddRange(VoxelLoader.GetObject(assetCode).GetHitboxMesh().GetTriangles(0));
-				VoxelLoader.GetObject(assetCode).GetMesh().GetNormals(normalAux);
-				this.cacheHitboxNormals.AddRange(normalAux);
-
-				this.indexHitboxVert.Add(this.indexHitboxVert[indexHitboxVert.Count-1] + vertexAux.Count);
-				this.indexHitboxTris.Add(this.indexHitboxTris[indexHitboxTris.Count-1] + VoxelLoader.GetObject(assetCode).GetHitboxMesh().GetTriangles(0).Length);
-
-				vertexAux.Clear();
-				normalAux.Clear();
+				this.indexHitboxVert.Add(this.indexHitboxVert[indexHitboxVert.Count-1] + vertAmount);
+				this.indexHitboxTris.Add(this.indexHitboxTris[indexHitboxTris.Count-1] + VoxelLoader.GetObject(assetCode).GetMeshData().GetHitboxTriangles().Length);
 
 
 
@@ -577,19 +631,10 @@ public class Chunk
 			}
 		}
 
-
-		// ToLoad() Event Trigger
-		this.message = new NetMessage(NetCode.BATCHLOADBUD);
-		this.message.BatchLoadBUD(this.pos);
-
+		// Sets Load List
 		if(load){
-			coordArray = loadCoordList.AsArray().ToArray();
-			foreach(int3 coord in coordArray){
-				this.message.AddBatchLoad(coord.x, coord.y, coord.z, 0, 0, 0, 0);
-			}	
-			this.loader.client.Send(this.message);
+			this.meshData.SetLoadList(NativeTools.CopyToManaged(loadCoordList.AsArray()));
 		}
-		loadCoordList.Clear();
 		
 		NativeList<Vector3> hitboxVerts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector3> hitboxNormals = new NativeList<Vector3>(0, Allocator.TempJob);
@@ -663,7 +708,6 @@ public class Chunk
 		};
 		job = paJob.Schedule();
 		job.Complete();
-
 
 		BuildDecalMesh(decalVerts.AsArray(), decalUVs.AsArray(), decalTris);
 		BuildHitboxMesh(hitboxVerts.AsArray(), hitboxNormals.AsArray(), hitboxTriangles);
@@ -780,10 +824,6 @@ public class Chunk
 		this.indexUV.Clear();
 		this.indexTris.Clear();
 		this.scalingFactor.Clear();
-		this.UVaux.Clear();
-		this.vertexAux.Clear();
-		this.normalAux.Clear();
-		this.tangentAux.Clear();
 		this.cacheHitboxVerts.Clear();
 		this.cacheHitboxNormals.Clear();
 		this.cacheHitboxTriangles.Clear();
@@ -792,90 +832,35 @@ public class Chunk
 		this.hitboxScaling.Clear();
 
 		this.drawMain = true;
-    }
+		this.isBuilding = false;
 
-    // Returns n ShadowUVs to a list
-    private void FillShadowUV(ref List<Vector2> l, int3 coord, int n){
-    	float light = this.data.GetLight(coord);
-
-    	for(int i = 0; i < n; i++){
-    		l.Add(new Vector2(light, 1));
-    	}
+		this.mutex.ReleaseMutex();
     }
 
     // Builds meshes from verts, UVs and tris from different layers
     private void BuildMesh(NativeList<Vector3> vertices, NativeList<int> tris, NativeList<int> specularTris, NativeList<int> liquidTris, NativeList<int> assetTris, NativeList<int> assetSolidTris, NativeList<int> leavesTris, NativeList<int> iceTris, NativeList<int> lavaTris, NativeList<Vector2> UVs, NativeList<Vector3> lightUV, NativeList<Vector3> normals, NativeList<Vector4> tangents){
-    	this.meshCollider.sharedMesh.Clear();
-    	this.meshFilter.mesh.Clear();
+    	Vector3[] verts = NativeTools.CopyToManaged(vertices.AsArray());
+    	int[] T = NativeTools.CopyToManaged(tris.AsArray());
+    	int[] iceT = NativeTools.CopyToManaged(iceTris.AsArray());
+    	int[] assetSolidT = NativeTools.CopyToManaged(assetSolidTris.AsArray());
 
-    	if(vertices.Length >= ushort.MaxValue){
-    		this.meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-    	}
+    	this.meshData.SetData(verts, T, NativeTools.CopyToManaged(specularTris.AsArray()),
+    		NativeTools.CopyToManaged(liquidTris.AsArray()), NativeTools.CopyToManaged(assetTris.AsArray()), assetSolidT,
+    		NativeTools.CopyToManaged(leavesTris.AsArray()), iceT, NativeTools.CopyToManaged(lavaTris.AsArray()),
+    		NativeTools.CopyToManaged(UVs.AsArray()), NativeTools.CopyToManaged(lightUV.AsArray()), NativeTools.CopyToManaged(normals.AsArray()),
+    		NativeTools.CopyToManaged(tangents.AsArray())
+    	);
 
-    	this.meshFilter.mesh.subMeshCount = 8;
-
-    	this.meshFilter.mesh.SetVertices(vertices.AsArray());
-    	this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(tris.AsArray()), 0);
- 	    this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(iceTris.AsArray()), 6);
- 	    this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(assetSolidTris.AsArray()), 4);
-
-    	// Fix for a stupid Unity Bug
-    	if(vertices.Length > 0){
-	    	this.meshCollider.sharedMesh = null;
-	    	this.meshCollider.sharedMesh = this.meshFilter.mesh;
-    	}
-
-    	this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(specularTris.AsArray()), 1);
-    	this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(liquidTris.AsArray()), 2);
-    	this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(assetTris.AsArray()), 3);
- 	    this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(leavesTris.AsArray()), 5);
- 	    this.meshFilter.mesh.SetTriangles(NativeTools.CopyToManaged(lavaTris.AsArray()), 7);
-
-    	this.meshFilter.mesh.SetUVs(0, UVs.AsArray());
-    	this.meshFilter.mesh.SetUVs(3, lightUV.AsArray());
-
-    	this.meshFilter.mesh.SetNormals(normals.AsArray());
-    	this.meshFilter.mesh.SetTangents(tangents.AsArray());
+    	this.meshData.SetColliderData(verts, T, iceT, assetSolidT);
     }
 
     // Builds the decal mesh
     private void BuildDecalMesh(NativeArray<Vector3> verts, NativeArray<Vector2> UV, NativeList<int> triangles){
-    	this.meshFilterDecal.mesh.Clear();
-
-    	if(verts.Length >= ushort.MaxValue){
-    		this.meshFilterDecal.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-    	}
-
-    	this.meshFilterDecal.mesh.SetVertices(verts);
-    	this.meshFilterDecal.mesh.SetTriangles(NativeTools.CopyToManaged(triangles.AsArray()), 0);
-    	this.meshFilterDecal.mesh.SetUVs(0, UV);
-    	this.meshFilterDecal.mesh.RecalculateNormals();
+    	this.meshData.SetDecalData(NativeTools.CopyToManaged(verts), NativeTools.CopyToManaged(UV), NativeTools.CopyToManaged(triangles.AsArray()));
     }
 
     // Builds the hitbox mesh onto the Hitbox MeshCollider
     private void BuildHitboxMesh(NativeArray<Vector3> verts, NativeArray<Vector3> normals, NativeList<int> triangles){
-    	this.meshRaycast.Clear();
-
-    	if(verts.Length >= ushort.MaxValue){
-    		this.meshColliderRaycast.sharedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-    	}
-
-    	// Fix for a stupid Unity Bug
-    	if(verts.Length == 0){
-    		this.meshColliderRaycast.sharedMesh = null;
-
-    		if(showHitbox)
-    			this.hitboxFilter.mesh = null;
-    		return;
-    	}
-
-    	this.meshRaycast.SetVertices(verts);
-    	this.meshRaycast.SetTriangles(NativeTools.CopyToManaged(triangles.AsArray()), 0);
-    	this.meshRaycast.SetNormals(normals);
-    	this.meshColliderRaycast.sharedMesh = this.meshRaycast;
-
-    	if(showHitbox){
-    		this.hitboxFilter.mesh = this.meshColliderRaycast.sharedMesh;
-    	}
+    	this.meshData.SetRaycastData(NativeTools.CopyToManaged(verts), NativeTools.CopyToManaged(normals), NativeTools.CopyToManaged(triangles.AsArray()));
     }
 }

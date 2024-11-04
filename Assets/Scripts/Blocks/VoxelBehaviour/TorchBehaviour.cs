@@ -20,14 +20,13 @@ STATES:
 [Serializable]
 public class TorchBehaviour : VoxelBehaviour{
 	public string fireVFXPath;
-	//public string audioName;
+	public string audioName;
 
 	public string dropItem;
 	public byte minDropQuantity;
 	public byte maxDropQuantity;
 
 	private GameObject fireVFX;
-	private string audio = "TorchFire";
 
 
 	// Turns on and off Torch
@@ -127,7 +126,7 @@ public class TorchBehaviour : VoxelBehaviour{
 
 	public override int OnSFXPlay(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
 		if(state < 4){
-			cl.sfx.LoadBlockSFX(this.audio, pos, blockX, blockY, blockZ);
+			cl.sfx.LoadBlockSFX(this.audioName, pos, blockX, blockY, blockZ);
 			return 1;
 		}
 		else{

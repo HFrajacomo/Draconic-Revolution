@@ -25,10 +25,13 @@ public class SFXLoader : MonoBehaviour
         go.name = $"SFX_{name}";
         AudioSource source = go.GetComponent<AudioSource>();
 
-        if(this.entitySFX.ContainsKey(entity))
+        if(this.entitySFX.ContainsKey(entity)){
             GameObject.Destroy(this.entitySFX[entity]);
-        
-        this.entitySFX.Add(entity, go);
+            this.entitySFX[entity] = go;
+        }
+        else{
+            this.entitySFX.Add(entity, go);            
+        }
 
         if(AudioLoader.IsLoop(name))
             audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D_LOOP, entity);

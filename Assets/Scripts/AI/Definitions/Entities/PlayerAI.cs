@@ -12,7 +12,7 @@ public class PlayerAI : AbstractAI
         this.SetInitialPosition(pos, rot);
         this.Install(EntityHitbox.PLAYER);
         this.SetHandler(handler);
-        this.Install(new PlayerEntityRadar(this.position, this.rotation, this.coords, this.ID, handler, cl.playerServerInventory));
+        this.Install(new PlayerEntityRadar(this.position, this.rotation, this.coords, this.ID, handler, cl.playerServerInventory, cl));
         this.cl = cl;
         this.psi = cl.playerServerInventory;
     }

@@ -3,12 +3,13 @@ using UnityEngine;
 using Unity.Mathematics;
 
 public class PlayerEntityRadar : EntityRadar{
+	private ChunkLoader_Server cl;
 	private PlayerServerInventory psi;
 	private Item cachedItem;
 	private DroppedItemAI cachedItemAI;
 	public bool HAS_RECEIVED_ITEMS;
 
-	public PlayerEntityRadar(Vector3 pos, Vector3 dir, CastCoord coords, EntityID entityID, EntityHandler_Server ehs, PlayerServerInventory psi){
+	public PlayerEntityRadar(Vector3 pos, Vector3 dir, CastCoord coords, EntityID entityID, EntityHandler_Server ehs, PlayerServerInventory psi, ChunkLoader_Server cl){
 		this.SetTransform(ref pos, ref dir, ref coords);
 		this.entityHandler = ehs;
 		this.FOV = 180;
@@ -16,6 +17,7 @@ public class PlayerEntityRadar : EntityRadar{
 		this.entitySubscription = new HashSet<EntityType>(){EntityType.DROP};
 		this.psi = psi;
 		this.ID = entityID;
+		this.cl = cl;
 	}
 
 	protected override bool PreAnalysisAI(AbstractAI ai){
@@ -38,12 +40,25 @@ public class PlayerEntityRadar : EntityRadar{
 		this.cachedItemAI = (DroppedItemAI)ai;
 
 		ItemStack aiItem = this.cachedItemAI.GetItemStack();
-
+		byte playerSelectedSlot;
 		int2 inventorySlot = this.psi.CheckFits(this.ID.code, aiItem);
 
 		if(inventorySlot.x == -1)
 			return false;
 		else{
+			playerSelectedSlot = this.entityHandler.GetSheet(this.ID.code).GetHotbarSlot();
+			
+			// Checks if ItemStack was previously empty (to trigger OnHold event)
+			if(playerSelectedSlot == inventorySlot.x){ // If it's the same slot as the selected one
+				if(psi.GetSlot(this.ID.code, playerSelectedSlot).GetItemStack().GetID() != aiItem.GetID()){
+					aiItem.GetItem().OnHoldServer(this.cl, aiItem, this.ID.code);
+
+					NetMessage message = new NetMessage(NetCode.SENDITEMINHAND);
+					message.SendItemInHand(this.ID.code, aiItem.GetID(), aiItem.GetAmount());
+					this.cl.server.SendToClientsExcept(this.ID.code, message);
+				}
+			}
+
 			// If can completely take the stack
 			if(aiItem.GetStacksize() >= inventorySlot.y + aiItem.GetAmount()){
 				if(inventorySlot.y == 0)

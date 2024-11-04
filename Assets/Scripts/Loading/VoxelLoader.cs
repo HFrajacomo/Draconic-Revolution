@@ -371,8 +371,9 @@ public class VoxelLoader : BaseLoader {
 	}
 
 	public void RunPostDeserializationRoutine(){
-		List<Vector2> objUV = new List<Vector2>();
 		int2 atSize;
+		List<Vector2> objUV;
+		MeshData meshData;
 		int texCode;
 		float u, v;
 
@@ -381,22 +382,27 @@ public class VoxelLoader : BaseLoader {
 			b.SetupTextureIDs();
 		}
 		foreach(BlocklikeObject b in objectBook){
+			objUV = new List<Vector2>();
 			texCode = codenameToTexID[b.codename];
 			b.SetupAfterSerialize(isClient);
 
-			b.GetMesh().GetUVs(0, objUV);
-			atSize = atlasSize[(int)b.shaderIndex];
-			texCode = codenameToTexID[b.codename]; 
+			if(isClient){
+				meshData = b.GetMeshData();
+				meshData.GetUVs(objUV);
 
-			for(int i=0; i < objUV.Count; i++){
-				u = Mathf.Lerp((texCode%atSize.x)*(1f/atSize.x), ((texCode%atSize.x)*(1f/atSize.x))+(1f/atSize.x), objUV[i].x);
-				v = Mathf.Lerp((int)(texCode/atSize.x)*(1f/atSize.y), ((int)(texCode/atSize.x)*(1f/atSize.y))+(1f/atSize.y), objUV[i].y);
+				atSize = atlasSize[(int)b.shaderIndex];
+				texCode = codenameToTexID[b.codename]; 
 
-				objUV[i] = new Vector2(u, v);
+				for(int i=0; i < objUV.Count; i++){
+					u = Mathf.Lerp((texCode%atSize.x)*(1f/atSize.x), ((texCode%atSize.x)*(1f/atSize.x))+(1f/atSize.x), objUV[i].x);
+					v = Mathf.Lerp((int)(texCode/atSize.x)*(1f/atSize.y), ((int)(texCode/atSize.x)*(1f/atSize.y))+(1f/atSize.y), objUV[i].y);
+
+					objUV[i] = new Vector2(u, v);
+				}
+
+				meshData = meshData.SetUVs(objUV);
+				b.SetMeshData(meshData);
 			}
-
-			b.GetMesh().SetUVs(0, objUV);
-			objUV.Clear();
 		}
 	}
 

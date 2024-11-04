@@ -22,6 +22,7 @@ public static class Constants
     public static readonly int WORLD_WATER_LEVEL = 80;
     public static readonly int WORLD_CLAY_MIN_LEVEL = 50;
     public static readonly int WORLD_CLAY_MAX_LEVEL = 79;
+    public static readonly float WORLD_BLOCK_GRID_DISPLACEMENT = 0.5f;
 
     // Decals
     public static readonly float[] DECAL_STAGE_PERCENTAGE = new float[]{0.2f, 0.4f, 0.6f, 0.8f};
@@ -30,7 +31,6 @@ public static class Constants
 
     // Chunk Loading
     public static readonly int CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE = 50;
-    public static readonly int MAXIMUM_CHUNK_DEPTH = 3;
 
     // Persistance
     public static readonly int MAXIMUM_REGION_FILE_POOL = 10;

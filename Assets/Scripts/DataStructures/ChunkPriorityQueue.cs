@@ -1,144 +1,139 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ChunkPriorityQueue
 {
-    private List<ChunkDistance> initialQueue; // Queue that processes only prioritary elements
     private List<ChunkDistance> queue; // Second queue that handles normal execution
     private List<ChunkDistance> backupQueue; // Cache queue to recalculate distances
 
+    private HashSet<ChunkPos> chunks; // HashSet that contains all ChunkPos currently in the Queue
+
+    private int?[] partition; // Array connecting index=distance marking where every distance partition starts
+    private int?[] elementsInPartition; // Array connection index=distance to the amount of elements in a partition
+    private int lastPartitionDistance = -1;
+
     private ChunkPos playerPosition; // Player current Distance
     private DistanceMetric metric;
-    private bool DEBUG_QUEUE;
 
-    public ChunkPriorityQueue(bool debug=false, DistanceMetric metric=DistanceMetric.MANHATTAN){
+    private bool DEBUG;
+
+    public ChunkPriorityQueue(int renderDistance, bool debug=false, DistanceMetric metric=DistanceMetric.MANHATTAN){
         this.queue = new List<ChunkDistance>();
-        this.initialQueue = new List<ChunkDistance>();
+        this.chunks = new HashSet<ChunkPos>();
+        this.partition = new int?[renderDistance*5];
+        this.elementsInPartition = new int?[renderDistance*5];
         this.metric = metric;
-        this.DEBUG_QUEUE = debug;
+        this.DEBUG = debug;
     }
 
-    public void Add(ChunkPos x, bool initial=false){
-        float distance = playerPosition.DistanceFrom(x, this.metric);
-        float newDist = 0;
-
+    public void Add(ChunkPos x){
         if(this.Contains(x)){
-            if(DEBUG_QUEUE)
-                Debug.Log("already contains: " + x);
             return;
         }
 
-        List<ChunkDistance> q;
-
-        if(initial)
-            q = this.initialQueue;
-        else
-            q = this.queue;
+        int distance = playerPosition.DistanceFrom(x, this.metric);
 
         // Empty Queue
-        if(q.Count == 0){
-            q.Add(new ChunkDistance(x, distance));
+        if(this.queue.Count == 0){
+            CreateNewPartition(distance);
 
-            if(DEBUG_QUEUE)
-                Debug.Log("added: " + x);
+            this.queue.Add(new ChunkDistance(x, distance));
+            this.chunks.Add(x);
             return;
         }
 
-        for(int i=0; i < q.Count; i++){
-            newDist = playerPosition.DistanceFrom(q[i].pos, this.metric);
-            if(distance < newDist){
-                q.Insert(i, new ChunkDistance(x, distance));
+        // If partition is new
+        if(this.partition[distance] == null){
+            if(!CreateNewPartition(distance)){
+                ShiftAllAbove(distance);
 
-                if(DEBUG_QUEUE)
-                    Debug.Log("added: " + x + " to position: " + i);
-                return;
+                this.queue.Insert((int)this.partition[distance], new ChunkDistance(x, distance));
+                this.chunks.Add(x);
+            }
+            else{
+                this.queue.Insert((int)this.partition[distance], new ChunkDistance(x, distance));
+                this.chunks.Add(x);
             }
         }
-
-        if(newDist == playerPosition.DistanceFrom(q[q.Count-1].pos, this.metric)){
-            q.Add(new ChunkDistance(x, distance));
-
-            if(DEBUG_QUEUE)
-                Debug.Log("added: " + x);
-        }
+        // If partition already exists
         else{
-            q.Insert(0, new ChunkDistance(x, distance));
+            if(distance != this.lastPartitionDistance){
+                ShiftAllAbove(distance);
+                
+                this.queue.Insert((int)this.partition[distance] + (int)this.elementsInPartition[distance], new ChunkDistance(x, distance));
+            }
+            else{
+                this.queue.Add(new ChunkDistance(x, distance));
+            }
 
-            if(DEBUG_QUEUE)
-                Debug.Log("inserted in the beginning: " + x);
+            this.chunks.Add(x);
+            this.elementsInPartition[distance]++;
         }
     }
 
     public bool Contains(ChunkPos x){
-        float distance = playerPosition.DistanceFrom(x, this.metric);
-
-        return this.queue.Contains(new ChunkDistance(x, distance)) || this.initialQueue.Contains(new ChunkDistance(x, distance));
+        return this.chunks.Contains(x);
     }
 
     public int GetSize(){
-        return this.queue.Count + this.initialQueue.Count;
+        return this.queue.Count;
     }
 
     public ChunkPos Peek(){
-        if(GetSize() > 0){
-            if(this.initialQueue.Count > 0)
-                return this.initialQueue[0].pos;
-            else{
-                if(DEBUG_QUEUE)
-                    Debug.Log("Peeking: " + this.queue[0]);
-
-                return this.queue[0].pos;
-            }
-        }
+        if(GetSize() > 0)
+            return this.queue[0].pos;
 
         return playerPosition;
     }
 
     public float PeekDistance(){
-        if(GetSize() > 0){
-            if(this.initialQueue.Count > 0)
-                return this.initialQueue[0].distance;
-            else{
-                if(DEBUG_QUEUE)
-                    Debug.Log("Peeking: " + this.queue[0]);
-
-                return this.queue[0].distance;
-            }
-        }
+        if(GetSize() > 0)
+            return this.queue[0].distance;
 
         return -1;
     } 
 
     public ChunkPos Pop(){
-        if(this.initialQueue.Count > 0){
-            ChunkPos aux = this.initialQueue[0].pos;
-            this.initialQueue.RemoveAt(0);
-            return aux;
+        ChunkPos aux = this.queue[0].pos;
+        int distance = this.queue[0].distance;
+
+        if(this.elementsInPartition[distance] == 1){
+            if(!DeletePartition(distance)){
+                ShiftAllBelow(distance);
+            }
         }
         else{
-            ChunkPos aux = this.queue[0].pos;
-
-            if(this.DEBUG_QUEUE)
-                Debug.Log("popping: " + aux);
-
-            this.queue.RemoveAt(0);
-            return aux;            
+            this.elementsInPartition[distance]--;
+            ShiftAllBelow(distance);
         }
 
+        this.queue.RemoveAt(0);
+        this.chunks.Remove(aux);
+        return aux;            
     }
 
     public void Remove(ChunkPos x){
-        for(int i=0; i < this.initialQueue.Count; i++){
-            if(this.initialQueue[i].pos == x){
-                this.initialQueue.RemoveAt(i);
-                return;
-            }
-        }
+        if(!Contains(x))
+            return;
 
-        for(int i=0; i < this.queue.Count; i++){
+        int dist = playerPosition.DistanceFrom(x, this.metric);
+
+        for(int i=(int)this.partition[dist]; i < (int)this.partition[dist]+(int)this.elementsInPartition[dist]; i++){
             if(this.queue[i].pos == x){
                 this.queue.RemoveAt(i);
+                this.chunks.Remove(x);
+
+                if(this.elementsInPartition[dist] == 1){
+                    if(!DeletePartition(dist)){
+                        ShiftAllBelow(dist);
+                    }
+                }
+                else{
+                    this.elementsInPartition[dist]--;
+                    ShiftAllBelow(dist);
+                }
                 return;
             }
         }        
@@ -146,6 +141,10 @@ public class ChunkPriorityQueue
 
     public void Clear(){
         this.queue.Clear();
+        this.chunks.Clear();
+        this.lastPartitionDistance = -1;
+        Array.Fill(this.partition, null);
+        Array.Fill(this.elementsInPartition, null);
     }
 
     public void SetPlayerPosition(ChunkPos pos){
@@ -155,14 +154,95 @@ public class ChunkPriorityQueue
     }
 
     private void RenewDistances(){
-        this.backupQueue = new List<ChunkDistance>(this.queue);
-        this.queue.Clear();
+        ChangeReference(ref this.queue, ref this.backupQueue);
+
+        this.chunks.Clear();
+        Array.Fill(this.partition, null);
+        Array.Fill(this.elementsInPartition, null);
+        this.lastPartitionDistance = -1;
 
         for(int i=0; i < this.backupQueue.Count; i++){
             Add(this.backupQueue[i].pos);
         }
 
         this.backupQueue.Clear();
+    }
+
+    // Shifts forward the partition position of all valid partition
+    private void ShiftAllAbove(int distance){
+        for(int i=distance+1; i <= this.lastPartitionDistance; i++){
+            if(this.partition[i] == null)
+                continue;
+
+            this.partition[i]++;
+        }
+    }
+
+    // Shifts backwards the partition position of all valid partition
+    private void ShiftAllBelow(int distance){
+        for(int i=distance+1; i <= this.lastPartitionDistance; i++){
+            if(this.partition[i] == null)
+                continue;
+
+            this.partition[i]--;
+        }
+    }
+
+    // Finds the latest partition index and increments one
+    // Returns true if is creating a new last partition
+    private bool CreateNewPartition(int distance){
+        if(distance > this.lastPartitionDistance){
+            this.partition[distance] = this.queue.Count;
+            this.elementsInPartition[distance] = 1;
+            this.lastPartitionDistance = distance;
+            return true;
+        }
+        else{
+            for(int i=distance+1; i <= this.lastPartitionDistance; i++){
+                if(this.partition[i] == null)
+                    continue;
+
+                this.partition[distance] = this.partition[i];
+                this.elementsInPartition[distance] = 1;
+                return false;
+            }
+
+            this.partition[distance] = this.queue.Count;
+            this.elementsInPartition[distance] = 1;
+            this.lastPartitionDistance = distance;
+            return true;
+        }
+    }
+
+    // Deletes an entire partition
+    // Returns true if was deleting the last partition
+    private bool DeletePartition(int distance){
+        if(distance == this.lastPartitionDistance){
+            this.partition[distance] = null;
+            this.elementsInPartition[distance] = null;
+
+            for(int i=distance-1; i >= 0; i--){
+                if(this.partition[i] == null)
+                    continue;
+
+                this.partition[distance] = this.partition[i];
+                this.lastPartitionDistance = i;
+                return true;
+            }
+
+            this.lastPartitionDistance = -1;
+            return true;
+        }
+        else{
+            this.partition[distance] = null;
+            this.elementsInPartition[distance] = null;
+            return false;
+        }
+    }
+
+    private void ChangeReference(ref List<ChunkDistance> queue, ref List<ChunkDistance> backupQueue){
+        backupQueue = queue;
+        queue = new List<ChunkDistance>();
     }
 
     public void Print(){
@@ -179,9 +259,9 @@ public class ChunkPriorityQueue
 
 public struct ChunkDistance{
     public ChunkPos pos;
-    public float distance;
+    public int distance;
 
-    public ChunkDistance(ChunkPos pos, float distance){
+    public ChunkDistance(ChunkPos pos, int distance){
         this.pos = pos;
         this.distance = distance;
     }
