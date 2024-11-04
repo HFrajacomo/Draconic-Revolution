@@ -733,6 +733,17 @@ public class Server
 						message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 						message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ), this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetHP(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
 						SendToClients(lastCoord.GetChunkPos(), message);
+
+						// If quantity becomes zero or less, runs OnUnhold
+						if(newQuantity <= 0){
+							ItemStack its = this.cl.playerServerInventory.GetSlot(id, slot).GetItemStack();
+							its.GetItem().OnUnholdServer(this.cl, its , id);
+
+							NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
+							unholdMessage.SendItemInHand(id, 0, 0);
+							this.SendToClientsExcept(id, unholdMessage);
+						}
+
 						
 						this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
 					}
@@ -751,6 +762,16 @@ public class Server
 					}
 
 					this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
+					
+					// If quantity becomes zero or less, runs OnUnhold
+					if(newQuantity <= 0){
+						ItemStack its = this.cl.playerServerInventory.GetSlot(id, slot).GetItemStack();
+						its.GetItem().OnUnholdServer(this.cl, its , id);
+
+						NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
+						unholdMessage.SendItemInHand(id, 0, 0);
+						this.SendToClientsExcept(id, unholdMessage);
+					}
 
 					// Make entities in this chunk update their TerrainVision
 					this.entityHandler.SetRefreshVision(EntityType.DROP, lastCoord.GetChunkPos());
