@@ -254,6 +254,7 @@ public class MainControllerManager : MonoBehaviour
 
         playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
         playerEvents.DrawItemEntity(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot));
+
         playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);
     }
 }

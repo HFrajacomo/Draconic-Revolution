@@ -717,7 +717,6 @@ public class Server
 					if(!VoxelLoader.CheckCustomPlace(blockCode)){
 						// Actually places block/asset into terrain
 						cl.chunks[lastCoord.GetChunkPos()].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
-						//cl.budscheduler.ScheduleReload(lastCoord.GetChunkPos(), 0);
 						EmitBlockUpdate(BUDCode.CHANGE, lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ(), 0, cl);
 
 
@@ -1087,6 +1086,8 @@ public class Server
 		ushort itemCode;
 		byte amount, slot;
 		NetMessage message = new NetMessage(NetCode.ITEMENTITYDATA);
+		NetMessage unholdMessage;
+
 
 		pos = NetDecoder.ReadFloat3(data, 1);
 		move = NetDecoder.ReadFloat3(data, 13);
@@ -1105,6 +1106,16 @@ public class Server
 		this.SendToClients(cp, message);
 
 		this.cl.playerServerInventory.ChangeQuantity(id, slot, (byte)(this.cl.playerServerInventory.GetQuantity(id, slot) - amount));
+
+		// If quantity becomes zero or less, runs OnUnhold
+		if(this.cl.playerServerInventory.GetQuantity(id, slot) - amount <= 0){
+			ItemStack its = new ItemStack(itemCode, amount);
+			ItemLoader.GetItem(itemCode).OnUnholdServer(this.cl, its , id);
+
+			unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
+			unholdMessage.SendItemInHand(id, 0, 0);
+			this.SendToClientsExcept(id, unholdMessage);
+		}
 	}
 
 	// Receives a BatchLoadBUD request from client, with plenty of block coordinates in a chunk
@@ -1232,7 +1243,30 @@ public class Server
 
 	// Receives the inventory of client and saves it
 	private void SendInventory(byte[] data, ulong id){
-		this.cl.playerServerInventory.AddInventory(id, data);
+		byte selectedSlot;
+		ItemStack previousItem, currentItem;
+		CharacterSheet sheet;
+		NetMessage message;
+
+		if(this.entityHandler.ContainsSheet(id)){
+			sheet = this.entityHandler.GetSheet(id);
+			selectedSlot = sheet.GetHotbarSlot();
+			previousItem = this.cl.playerServerInventory.GetSlot(id, selectedSlot).GetItemStack();
+
+
+			this.cl.playerServerInventory.AddInventory(id, data);
+
+			currentItem = this.cl.playerServerInventory.GetSlot(id, selectedSlot).GetItemStack();
+
+			if(previousItem.GetID() != currentItem.GetID()){
+				previousItem.GetItem().OnUnholdServer(this.cl, previousItem, id);
+				currentItem.GetItem().OnHoldServer(this.cl, currentItem, id);
+
+				message = new NetMessage(NetCode.SENDITEMINHAND);
+				message.SendItemInHand(id, currentItem.GetID(), currentItem.GetAmount());
+				this.SendToClientsExcept(id, message);
+			}
+		}
 	}
 
 	// Receives a request to check character existence, if exists, sends CharacterAppearance

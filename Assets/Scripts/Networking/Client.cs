@@ -593,6 +593,7 @@ public class Client
 		ItemStack its = new ItemStack(cl.playerRaycast.lastBlockPlaced, 1);
 		this.raycast.playerEvents.hotbar.AddStack(its, this.raycast.playerEvents.hotbar.CanFit(its));
 		this.raycast.playerEvents.DrawHotbar();
+		this.raycast.playerEvents.invUIPlayer.SendInventoryDataToServer();
 	}
 
 	// Received information on an Item Entity
