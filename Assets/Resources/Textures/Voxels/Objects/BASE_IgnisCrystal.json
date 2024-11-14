@@ -1,7 +1,7 @@
 {
     "codename": "BASE_IgnisCrystal",
     "name":  "Ignis Crystal",
-    "shaderIndex": 3,
+    "shaderIndex": 4,
     "solid":  true,
     "transparent": true,
     "invisible":  false,

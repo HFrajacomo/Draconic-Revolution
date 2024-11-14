@@ -1,7 +1,7 @@
 {
     "codename": "BASE_RuinaCrystal",
     "name":  "Ruina Crystal",
-    "shaderIndex": 3,
+    "shaderIndex": 4,
     "solid":  true,
     "transparent": true,
     "invisible":  false,
