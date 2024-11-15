@@ -55,9 +55,7 @@ public class InventoryUIPlayer : MonoBehaviour
 		}
 
 		this.detailsImage.material = Instantiate(this.itemIconMaterial);
-
 		this.background.material = Instantiate(this.backgroundMaterial);
-		this.background.material.SetColor("_Color1", new Color(.3f, .3f, .3f));
 	}
 
 

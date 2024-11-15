@@ -42,7 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -10439,7 +10440,7 @@ Canvas:
   serializedVersion: 3
   m_RenderMode: 1
   m_Camera: {fileID: 1912773811}
-  m_PlaneDistance: 0.1003
+  m_PlaneDistance: 1
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -10471,7 +10472,7 @@ MonoBehaviour:
   detailsStats: {fileID: 889420616}
   cl: {fileID: 1192772367}
   itemIconMaterial: {fileID: 2100000, guid: 757d7ed9e718e554ead4be13de0d9cc8, type: 2}
-  backgroundMaterial: {fileID: 2100000, guid: b34e3cf63db09004c920a4a8e9cbc24a, type: 2}
+  backgroundMaterial: {fileID: 2100000, guid: c1b6d00ab13b4f44cb81f834ccb74e94, type: 2}
   invButton:
   - {fileID: 604732860}
   - {fileID: 65700860}
@@ -20863,6 +20864,7 @@ MonoBehaviour:
   REQUESTEDCHUNKS: 0
   CONNECTEDTOSERVER: 0
   SENTINFOTOSERVER: 0
+  playerAccountID: 1
 --- !u!4 &1192772368
 Transform:
   m_ObjectHideFlags: 0
@@ -26743,7 +26745,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 2800
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 20}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 20.2}
   m_UseBoundingSphereOverride: 1
   m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
