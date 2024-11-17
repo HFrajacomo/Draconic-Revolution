@@ -31046,19 +31046,19 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   volumeAnchorOverride: {fileID: 0}
-  antialiasing: 3
+  antialiasing: 2
   SMAAQuality: 2
   dithering: 0
   stopNaNs: 0
   taaSharpenStrength: 1
   TAAQuality: 2
-  taaSharpenMode: 0
+  taaSharpenMode: 1
   taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0
-  taaMotionVectorRejection: 0.2
+  taaMotionVectorRejection: 1
   taaAntiHistoryRinging: 0
-  taaBaseBlendFactor: 0.875
+  taaBaseBlendFactor: 0.6
   taaJitterScale: 1
   physicalParameters:
     m_Iso: 200
