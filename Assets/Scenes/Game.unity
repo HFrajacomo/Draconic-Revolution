@@ -26543,7 +26543,7 @@ MonoBehaviour:
   lightComponent: {fileID: 1324502673}
   maxLightLevel: 0
   minLightLevel: 0
-  minLightPercentage: 0.7
+  minLightPercentage: 0.9
   deltaLight: 0
   decreasing: 1
   steps: 150
@@ -26700,8 +26700,8 @@ Light:
   serializedVersion: 11
   m_Type: 7
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 59.6831
-  m_Range: 20
+  m_Intensity: 119.3662
+  m_Range: 8
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -26745,11 +26745,11 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 2800
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 20.2}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 8.2}
   m_UseBoundingSphereOverride: 1
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0
+  m_ShadowRadius: 1
   m_ShadowAngle: 0
   m_LightUnit: 0
   m_LuxAtDistance: 1

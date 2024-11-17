@@ -32,6 +32,9 @@ EditorUserSettings:
     UnityEditor.ShaderGraph.ToggleSettings:
       value: 18135d1527590858060c032302276919051e1a26296a7c243f3c187fa0e92708f0e220e0e22d09352a0bed30017c5b39f3061a0eba4903183800ee1e14fc041c03f311d613ca131989431acfc10ed4af97d5dbe6d7f9d7cad1c9a9f6f1e2aca2b7ad8bf4a4ada282b7
       flags: 0
+    lightmappingBakingProfile:
+      value: 51
+      flags: 0
     lightmappingDeviceAndPlatform:
       value: 53
       flags: 0
@@ -52,5 +55,6 @@ EditorUserSettings:
   m_VCHierarchyOverlayIcons: 1
   m_VCOtherOverlayIcons: 1
   m_VCAllowAsyncUpdate: 0
+  m_VCScanLocalPackagesOnConnect: 1
   m_ArtifactGarbageCollection: 1
   m_CompressAssetsOnImport: 1

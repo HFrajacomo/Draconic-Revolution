@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88da235ee80df394e99ee865506eb9e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_WizardPopupAlreadyShownOnce: 0
+  m_WizardPopupAlreadyShownOnce: 1
   m_WizardNeedRestartAfterChangingToDX12: 0
   m_WizardNeedToRunFixAllAgainAfterDomainReload: 0
   m_WizardFixAllAfterDomainReloadInclusiveMode: 0

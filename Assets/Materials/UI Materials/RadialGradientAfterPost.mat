@@ -33,7 +33,7 @@ Material:
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: 2501
   stringTagMap:
     MotionVector: User
   disabledShaderPasses:
@@ -84,7 +84,7 @@ Material:
     - _ExcludeFromTUAndAA: 0
     - _OpaqueCullMode: 2
     - _PerPixelSorting: 0
-    - _RenderQueueType: 1
+    - _RenderQueueType: 2
     - _SrcBlend: 1
     - _StencilRef: 0
     - _StencilRefDepth: 1
@@ -105,7 +105,7 @@ Material:
     - _TransparentWritingMotionVec: 0
     - _TransparentZWrite: 0
     - _UseShadowThreshold: 0
-    - _ZTestDepthEqualForOpaque: 3
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestGBuffer: 4
     - _ZTestTransparent: 4
     - _ZWrite: 1

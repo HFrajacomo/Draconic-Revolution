@@ -8,7 +8,7 @@
     "affectLight":  false,
     "liquid":  false,
     "seamless": false,
-    "luminosity": 51,
+    "luminosity": 55,
     "hasLoadEvent": true,
     "washable": true,
     "needsRotation": true,

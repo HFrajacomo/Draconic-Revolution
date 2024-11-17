@@ -21,8 +21,8 @@
 {
     "audioName": "Torchfire",
     "voxelLightIntensity": 5,
-    "lightComponentIntensity": 25,
-    "lightRange": 20,
+    "lightComponentIntensity": 40,
+    "lightRange": 12,
     "lightColor": {
         "r": 0.84,
         "g": 0.59,

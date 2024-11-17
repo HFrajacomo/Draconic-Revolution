@@ -8,7 +8,7 @@ public class RealisticLight : MonoBehaviour
 	public Light lightComponent;
 	public float maxLightLevel;
 	public float minLightLevel;
-	public float minLightPercentage = 0.7f;
+	public float minLightPercentage = 0.85f;
 	public float deltaLight;
 	public bool decreasing = true;
 	public int steps = 150;
