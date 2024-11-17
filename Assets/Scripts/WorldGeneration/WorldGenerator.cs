@@ -411,7 +411,7 @@ public class WorldGenerator
             blockData = voxelData,
             heightMap = heightMap,
             patchNoise = patchMap,
-            decorationBlock = this.decorationSurfaceBlock,
+            decorationBlock = this.decorationUndergroundBlock,
             biome = this.cacheBiome
         };
         job = pucj.Schedule(Chunk.chunkWidth, 4);
@@ -515,7 +515,7 @@ public class WorldGenerator
             xmzpBiome = xmzpBiome,
             xpzmBiome = xpzmBiome,
             xpzpBiome = xpzpBiome,
-            decorationBlock = this.decorationSurfaceBlock
+            decorationBlock = this.decorationHellBlock
         };
         job = phcj.Schedule(Chunk.chunkWidth, 4);
         job.Complete();
