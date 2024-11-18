@@ -1406,7 +1406,7 @@
     "m_Title": "Alpha",
     "m_Position": {
         "x": -2032.0,
-        "y": -233.0000762939453
+        "y": -233.0
     }
 }
 
@@ -1466,8 +1466,8 @@
     "m_ObjectId": "03256c585bd8477c973c8e7a6509ac24",
     "m_Title": "Wind and Rain",
     "m_Position": {
-        "x": -3171.25146484375,
-        "y": 504.8778381347656
+        "x": -3171.0,
+        "y": 371.0
     }
 }
 
@@ -1537,7 +1537,7 @@
     "m_DefaultValue": {
         "x": 0.0,
         "y": 0.0,
-        "z": 0.0
+        "z": 1.0
     },
     "m_Labels": []
 }
@@ -1607,7 +1607,7 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": {
-        "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
+        "m_SerializedTexture": "",
         "m_Guid": ""
     },
     "isMainTexture": false,
@@ -2763,7 +2763,7 @@
     "m_StageCapability": 3,
     "m_BareResource": false,
     "m_Texture": {
-        "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
+        "m_SerializedTexture": "",
         "m_Guid": ""
     },
     "m_DefaultType": 0
@@ -3428,7 +3428,7 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": {
-        "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
+        "m_SerializedTexture": "",
         "m_Guid": ""
     },
     "isMainTexture": false,
@@ -3684,7 +3684,7 @@
     "m_Title": "Texture",
     "m_Position": {
         "x": -2962.0,
-        "y": 873.9999389648438
+        "y": 874.0
     }
 }
 
@@ -4245,8 +4245,8 @@
     "m_ObjectId": "5933fbd6a7f14a52b5732f2d038eea41",
     "m_Title": "Voxel Lighting",
     "m_Position": {
-        "x": -918.8739013671875,
-        "y": -1528.885498046875
+        "x": -919.0,
+        "y": -1529.0
     }
 }
 
@@ -4542,7 +4542,7 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": {
-        "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
+        "m_SerializedTexture": "",
         "m_Guid": ""
     },
     "isMainTexture": false,
@@ -4682,8 +4682,8 @@
     "m_ObjectId": "67cd6ce7f8c643c8a2ae2cffed3bde94",
     "m_Title": "Voxel Lighting Interpolators",
     "m_Position": {
-        "x": -2138.8349609375,
-        "y": 1097.0821533203125
+        "x": -2139.0,
+        "y": 1097.0
     }
 }
 
@@ -5131,7 +5131,7 @@
     "m_StageCapability": 3,
     "m_BareResource": false,
     "m_Texture": {
-        "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
+        "m_SerializedTexture": "",
         "m_Guid": ""
     },
     "m_DefaultType": 3
@@ -6466,7 +6466,7 @@
     "m_Title": "PBR Sampling",
     "m_Position": {
         "x": -3052.0,
-        "y": -216.0000457763672
+        "y": -216.0
     }
 }
 
@@ -6517,7 +6517,7 @@
     "m_StageCapability": 3,
     "m_BareResource": false,
     "m_Texture": {
-        "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
+        "m_SerializedTexture": "",
         "m_Guid": ""
     },
     "m_DefaultType": 0
@@ -6675,7 +6675,7 @@
     "m_Title": "Floor Lighting",
     "m_Position": {
         "x": -2125.0,
-        "y": 1684.9998779296875
+        "y": 1685.0
     }
 }
 
@@ -6885,8 +6885,8 @@
     "m_ObjectId": "bbf0e905f16640f6a8a7e434abe83b0f",
     "m_Title": "Dampness Color Multiplier",
     "m_Position": {
-        "x": -1874.000244140625,
-        "y": 570.0000610351563
+        "x": -1766.0,
+        "y": 573.0
     }
 }
 
@@ -8064,8 +8064,8 @@
         "y": 1.0
     },
     "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0
+        "x": 1.0,
+        "y": 1.0
     },
     "m_Labels": []
 }
@@ -9072,7 +9072,7 @@
     "m_DefaultValue": {
         "x": 0.0,
         "y": 0.0,
-        "z": 0.0
+        "z": 1.0
     },
     "m_Labels": []
 }
