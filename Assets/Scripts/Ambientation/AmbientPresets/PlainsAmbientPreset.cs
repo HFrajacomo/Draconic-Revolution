@@ -16,6 +16,7 @@ public class PlainsAmbientPreset: BaseAmbientPreset{
 		this.fogAlbedo = BASE_FOG_COLOR;
 		this.fogAmbientLight = .25f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
+		this.fogAnisotropy = FOG_BASE_ANISOTROPY;
 
 		this.cloudTintDay = new Color(.79f, .79f, .79f);
 		this.cloudTintSunrise = new Color(.23f, .11f, .07f);

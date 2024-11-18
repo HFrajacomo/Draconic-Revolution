@@ -16,6 +16,7 @@ public class OceanAmbientPreset: BaseAmbientPreset{
 		this.fogAlbedo = BASE_FOG_COLOR;
 		this.fogAmbientLight = .25f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
+		this.fogAnisotropy = FOG_BASE_ANISOTROPY;
 
 		this.cloudTintSunrise = new Color(0.08735315f, 0.1189269f, 0.1226415f);
 		this.cloudTintDay = new Color(1f, 1f, 1f);
@@ -24,6 +25,8 @@ public class OceanAmbientPreset: BaseAmbientPreset{
 
 		this.wbTemperature = 0f;
 		this.wbTint = 0f;
+		this.expCompensation = -0.7f;
+
 		this.gainSunrise = new float4(0.745283f, 0.57064f, 0.3339711f, 0.4f);
 		this.gainDay = new float4(1f, 1f, 1f, 0.4f);
 		this.gainSunset = new float4(0.8113208f, 0.4581941f, 0.1415984f, 0.4f);
@@ -57,4 +60,5 @@ public class OceanAmbientPreset: BaseAmbientPreset{
 	public override float GetFloorLighting(float t){
 		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
+	public override float GetExposureCompensation(){return this.expCompensation;}
 }

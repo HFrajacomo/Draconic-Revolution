@@ -16,6 +16,7 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		this.fogAlbedo = new Color(.87f, .87f, .7f);
 		this.fogAmbientLight = .25f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
+		this.fogAnisotropy = FOG_BASE_ANISOTROPY;
 
 		this.cloudTintSunrise = new Color(.08f, .05f, .01f);
 		this.cloudTintDay = new Color(.5f, .43f, .28f);
@@ -23,6 +24,7 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		this.cloudTintNight = new Color(.09f, .08f, .04f);
 
 		this.wbTemperature = 20f;
+		this.expCompensation = -0.8f;
 
 		this.gainSunrise = new float4(.88f, .64f, .21f, 0f);
 		this.gainDay = new float4(.6f, .56f, .45f, .16f);
@@ -59,4 +61,5 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
 	public override int GetRainSpawnRate(WeatherCast ws){return 0;}
+	public override float GetExposureCompensation(){return this.expCompensation;}
 }

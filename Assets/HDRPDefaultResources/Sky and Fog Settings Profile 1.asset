@@ -132,7 +132,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 40
+    m_Value: 0
   tint:
     m_OverrideState: 1
     m_Value: 0
@@ -222,7 +222,7 @@ MonoBehaviour:
       m_Value: 0
     opacityA:
       m_OverrideState: 1
-      m_Value: 0.2
+      m_Value: 0.82436925
     altitude:
       m_OverrideState: 0
       m_Value: 2000
@@ -242,14 +242,14 @@ MonoBehaviour:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 157.88281
+        customValue: 196.92892
         additiveValue: 0
         multiplyValue: 1
     scrollSpeed:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 65.51363
+        customValue: 85.65554
         additiveValue: 0
         multiplyValue: 1
     flowmap:
@@ -285,7 +285,7 @@ MonoBehaviour:
       m_Value: 1
     opacityA:
       m_OverrideState: 1
-      m_Value: 0.2
+      m_Value: 0.82436925
     altitude:
       m_OverrideState: 0
       m_Value: 2000
@@ -305,14 +305,14 @@ MonoBehaviour:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 197.88281
+        customValue: 236.92892
         additiveValue: 0
         multiplyValue: 1
     scrollSpeed:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 58.96227
+        customValue: 77.08998
         additiveValue: 0
         multiplyValue: 1
     flowmap:
@@ -507,16 +507,16 @@ MonoBehaviour:
     m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 2.8
+    m_Value: 12
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
   albedo:
     m_OverrideState: 1
-    m_Value: {r: 0.51, g: 0.08, b: 0.08, a: 1}
+    m_Value: {r: 0.6, g: 0.6, b: 0.6, a: 1}
   globalLightProbeDimmer:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.12
   depthExtent:
     m_OverrideState: 1
     m_Value: 1000
@@ -661,10 +661,10 @@ MonoBehaviour:
     m_Value: {fileID: 8900000, guid: 956d1ebbce92f7244a3c827fe1c11afd, type: 3}
   spaceEmissionMultiplier:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.094340004
   spaceRotation:
     m_OverrideState: 1
-    m_Value: {x: 0, y: 0, z: 0}
+    m_Value: {x: 3.087491, y: 0, z: 0}
   colorSaturation:
     m_OverrideState: 0
     m_Value: 1
@@ -676,7 +676,7 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 0, b: 0, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   zenithTint:
     m_OverrideState: 1
     m_Value: {r: 0, g: 0, b: 0, a: 1}
@@ -766,7 +766,7 @@ MonoBehaviour:
     m_Value: 1
   compensation:
     m_OverrideState: 1
-    m_Value: -0.5
+    m_Value: 0
   limitMin:
     m_OverrideState: 1
     m_Value: 0
@@ -1260,7 +1260,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 0.6981132, y: 0.3062477, z: 0.3062477, w: 0.6392157}
+    m_Value: {x: 0, y: 0, z: 0, w: 0}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3

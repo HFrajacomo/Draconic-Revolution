@@ -91,6 +91,7 @@ public class WeatherCast{
 	private float weatherNoise = -10;
 	private float fogNoise;
 	private float lerpValue = .5f;
+	private float anisotropyInterval = 0.08f;
 
 	// Cache
 	private WeatherState initTransitionState;
@@ -155,6 +156,13 @@ public class WeatherCast{
 	public float GetCloudLocalOpacity(){return cloudsLocalOpacity;}
 	public float GetCloudGlobalOpacity(){return cloudsGlobalOpacity;}
 	public float GetFlareMultiplier(){return flareIntensityMultiplier;}
+	public float GetFogAnisotropyMultiplier(){
+		if(this.lerpValue < this.lerpX[4])
+			return 0f;
+		if(this.lerpValue >= this.lerpX[4]+this.anisotropyInterval)
+			return 1f;
+		return (this.lerpValue - this.lerpX[4])/this.anisotropyInterval;
+	}
 
 	// State
 	public WeatherState GetWeatherState(){return this.weatherState;}

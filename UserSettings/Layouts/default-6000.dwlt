@@ -227,7 +227,7 @@ MonoBehaviour:
   - {fileID: 16}
   - {fileID: 12}
   m_Selected: 1
-  m_LastSelected: 3
+  m_LastSelected: 0
 --- !u!114 &10
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -3323,7 +3323,7 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: a4fedcff5e25dfffc631e0ff70c7e4ff74dee5ff3aaeebffc47aecff2244edff7248f0ffe6e4f0ffb2affbff026ffdff9ce8fffff8faffffb2ea00000e0c0100d8280100f862010056a0010006c8010048ca0100b2ee0100
+      m_ExpandedIDs: 34cadeff82c0dfff78f3dfffb4f6dfffa8f9dfffb0f9dfff986deaff7c54ebffac92ecff5481eeff32aaeeffea34f1ff562af5ff9226f6ff5c80faff1ab7fbfffecffeff3ee8fffff8fafffffcfaffffc803010048090100ee2d01008e650100a8bb010010da0100
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -3372,8 +3372,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 303
     y: 79
-    width: 1296
-    height: 671
+    width: 1283
+    height: 665
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -3914,9 +3914,9 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: 0, y: 0, z: 0}
+    m_Target: {x: 931.078, y: 254.9, z: 1848.7883}
     speed: 2
-    m_Value: {x: 0, y: 0, z: 0}
+    m_Value: {x: 931.078, y: 254.9, z: 1848.7883}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -3966,9 +3966,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0.029429311, y: 0.70249397, z: -0.029099638, w: 0.7105138}
   m_Size:
-    m_Target: 3.1628914
+    m_Target: 0.8660254
     speed: 2
-    m_Value: 3.1628914
+    m_Value: 0.8660254
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -4597,7 +4597,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scripts/VFX
+    - Assets/Materials
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -4607,15 +4607,15 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/Scripts/VFX
+  - Assets/Materials
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\Miroba\Desktop\Draconic-Revolution
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 548}
-    m_SelectedIDs: 66cd0100
-    m_LastClickedID: 118118
+    scrollPos: {x: 0, y: 108}
+    m_SelectedIDs: 7aae0000
+    m_LastClickedID: 44666
     m_ExpandedIDs: 00000000aca80000aea80000b0a80000b2a80000b4a80000b6a80000b8a80000baa80000bca80000bea80000c0a80000c2a80000c4a80000c6a80000c8a80000caa80000cca80000cea80000d0a80000d2a80000
     m_RenameOverlay:
       m_UserAcceptedRename: 0

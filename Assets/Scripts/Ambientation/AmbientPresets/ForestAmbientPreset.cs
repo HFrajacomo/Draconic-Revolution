@@ -16,6 +16,7 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 		this.fogAlbedo = BASE_FOG_COLOR;
 		this.fogAmbientLight = .25f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
+		this.fogAnisotropy = FOG_BASE_ANISOTROPY;
 
 		this.cloudTintSunrise = new Color(0.3207547f, 0.3207547f, 0.3207547f);
 		this.cloudTintDay = new Color(0.7830189f, 0.7793254f, 0.7793254f);
@@ -28,6 +29,8 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 		this.gainDay = new float4(0.6959772f, 0.754717f, 0.6799573f, 0f);
 		this.gainSunset = new float4(0.8679245f, 0.2894512f, 0.1596654f, 0f);
 		this.gainNight = new float4(0.1665321f, 0.2358491f, 0.08343717f, 0f);
+
+		this.expCompensation = 0f;
 
 		this.sunDiameter = SUN_DIAMETER_DAY;
 		this.moonDiameter = SUN_DIAMETER_NIGHT;
@@ -57,4 +60,5 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 	public override float GetFloorLighting(float t){
 		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
+	public override float GetExposureCompensation(){return this.expCompensation;}
 }

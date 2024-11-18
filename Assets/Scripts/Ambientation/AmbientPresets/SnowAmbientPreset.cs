@@ -16,6 +16,7 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.fogAlbedo = BASE_FOG_COLOR;
 		this.fogAmbientLight = .25f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
+		this.fogAnisotropy = FOG_BASE_ANISOTROPY;
 
 		this.cloudTintSunrise = new Color(.27f, .27f, .27f);
 		this.cloudTintDay = Color.white;
@@ -23,6 +24,7 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.cloudTintNight = Color.black;
 
 		this.wbTemperature = -7f;
+		this.expCompensation = -0.3f;
 
 		this.gainSunrise = new float4(.82f, .6f, .32f, .007f);
 		this.gainDay = new float4(.6f, .65f, .68f, 0f);
@@ -59,4 +61,5 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
 	public override bool IsSnowInstead(){return this.isSnowInstead;}
+	public override float GetExposureCompensation(){return this.expCompensation;}
 }

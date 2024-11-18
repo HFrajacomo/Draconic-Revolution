@@ -13,9 +13,12 @@ public class CoreAmbientPreset: BaseAmbientPreset{
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 		this.fogAlbedo = BASE_UNDERGROUND_FOG_COLOR;
 		this.fogAmbientLight = 0.12f;
+		this.fogAnisotropy = 0f;
 
 		this.wbTemperature = 0f;
 		this.wbTint = 0f;
+
+		this.expCompensation = 0f;
 
 		this.sunRotation = new float2(90f, 0f);
 		this.lightIntensity = 3f;
@@ -42,4 +45,5 @@ public class CoreAmbientPreset: BaseAmbientPreset{
 		return this.fogAttenuation;
 	}
 	public override int GetRainSpawnRate(WeatherCast ws){return 0;}
+	public override float GetExposureCompensation(){return this.expCompensation;}
 }

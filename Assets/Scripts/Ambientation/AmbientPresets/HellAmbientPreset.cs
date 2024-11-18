@@ -13,9 +13,12 @@ public class HellAmbientPreset: BaseAmbientPreset{
 		this.fogAlbedo = new Color(.51f, .08f, .08f);
 		this.fogAmbientLight = 0f;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
+		this.fogAnisotropy = FOG_BASE_ANISOTROPY;
 
 		this.wbTemperature = 40f;
 		this.wbTint = 0f;
+
+		this.expCompensation = 0.2f;
 
 		this.sunRotation = new float2(90f, 0f);
 		this.lightIntensity = 5f;
@@ -44,4 +47,5 @@ public class HellAmbientPreset: BaseAmbientPreset{
 		return this.fogAttenuation;
 	}
 	public override int GetRainSpawnRate(WeatherCast ws){return 0;}
+	public override float GetExposureCompensation(){return this.expCompensation;}
 }

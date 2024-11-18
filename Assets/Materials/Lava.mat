@@ -268,7 +268,7 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
-    - Color_55706E16: {r: 1, g: 0.3063987, b: 0.19339621, a: 0.94509804}
+    - Color_55706E16: {r: 0.5943396, g: 0.119801514, b: 0.042052325, a: 0.94509804}
     - Vector2_826BAFAC: {r: 0.006, g: 0.0093, b: 0, a: 0}
     - Vector2_A6922FD5: {r: 1, g: 1, b: 0, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
@@ -282,7 +282,7 @@ Material:
     - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
-    - _Secondary_Color: {r: 1, g: 0.7505099, b: 0.514151, a: 0}
+    - _Secondary_Color: {r: 0.8207547, g: 0.5989561, b: 0.39101994, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}

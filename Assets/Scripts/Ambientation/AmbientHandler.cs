@@ -34,6 +34,7 @@ public class AmbientHandler : MonoBehaviour
     private WhiteBalance whiteBalance;
     private Fog fog;
     private LiftGammaGain lgg;
+    private Exposure exposure;
 
     // Update variables
     private const int FRAMES_TO_CHANGE = 180;
@@ -79,6 +80,7 @@ public class AmbientHandler : MonoBehaviour
         this.volume.TryGet<WhiteBalance>(out this.whiteBalance);
         this.volume.TryGet<Fog>(out this.fog);
         this.volume.TryGet<LiftGammaGain>(out this.lgg);
+        this.volume.TryGet<Exposure>(out this.exposure);
 
         this.windHandler = new GlobalWindHandler(this.clouds);
 
@@ -190,6 +192,7 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.meanFreePath.value = currentPreset.GetFogAttenuation(time);
                 this.fog.maximumHeight.value = currentPreset.GetFogMaxHeight(time);
                 this.fog.baseHeight.value = currentPreset.GetFogBaseHeight(time);
+                this.fog.anisotropy.value = currentPreset.GetFogAnisotropy(time) * this.weatherCast.GetFogAnisotropyMultiplier();
                 this.psEmission.rateOverTime = 0;
                 this.currentParticleSystem.gameObject.transform.localPosition = new Vector3(playerPos.x, playerPos.y + 260, playerPos.z);
                 this.currentParticleSystem.gameObject.transform.rotation = Quaternion.Euler(-90, 0, 0);
@@ -203,6 +206,7 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.meanFreePath.value = AddFog(Mathf.Lerp(lastPreset.GetFogAttenuation(time), currentPreset.GetFogAttenuation(time), currentStep), this.weatherCast.GetAdditionalFog());
                 this.fog.maximumHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogMaxHeight(time), currentPreset.GetFogMaxHeight(time), currentStep), this.weatherCast.GetMaximumHeight());
                 this.fog.baseHeight.value = AddFog(Mathf.Lerp(lastPreset.GetFogBaseHeight(time), currentPreset.GetFogBaseHeight(time), currentStep), this.weatherCast.GetBaseHeight());
+                this.fog.anisotropy.value = Mathf.Lerp(lastPreset.GetFogAnisotropy(time) * this.weatherCast.GetFogAnisotropyMultiplier(), currentPreset.GetFogAnisotropy(time) * this.weatherCast.GetFogAnisotropyMultiplier(), currentStep);
                 SetParticleSystem();
                 this.psEmission.rateOverTime = Mathf.Lerp(lastPreset.GetRainSpawnRate(this.weatherCast), currentPreset.GetRainSpawnRate(this.weatherCast), currentStep);
                 this.currentParticleSystem.gameObject.transform.position = new Vector3(playerPos.x - globalWind.x * mult, playerPos.y+260, playerPos.z  - globalWind.y * mult);
@@ -212,6 +216,7 @@ public class AmbientHandler : MonoBehaviour
                 this.fog.meanFreePath.value = AddFog(currentPreset.GetFogAttenuation(time), this.weatherCast.GetAdditionalFog());
                 this.fog.maximumHeight.value = AddFog(currentPreset.GetFogMaxHeight(time), this.weatherCast.GetMaximumHeight());
                 this.fog.baseHeight.value = AddFog(currentPreset.GetFogBaseHeight(time), this.weatherCast.GetBaseHeight());
+                this.fog.anisotropy.value = currentPreset.GetFogAnisotropy(time) * this.weatherCast.GetFogAnisotropyMultiplier();
                 SetParticleSystem();
                 this.psEmission.rateOverTime = currentPreset.GetRainSpawnRate(this.weatherCast);
                 this.currentParticleSystem.gameObject.transform.position = new Vector3(playerPos.x - globalWind.x * mult, playerPos.y+260, playerPos.z  - globalWind.y * mult);
@@ -257,6 +262,7 @@ public class AmbientHandler : MonoBehaviour
         else if(currentTick % 6 == 1){
             this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);
             this.clouds.layerA.tint.value = Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep);
+            this.exposure.compensation.value = Mathf.Lerp(lastPreset.GetExposureCompensation(), currentPreset.GetExposureCompensation(), currentStep);
         }
         else if(currentTick % 6 == 2){
             this.whiteBalance.temperature.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTemperature(), currentPreset.GetWhiteBalanceTemperature(), currentStep);
@@ -311,6 +317,7 @@ public class AmbientHandler : MonoBehaviour
         else if(currentTick % 6 == 1){
             this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime);
             this.clouds.layerA.tint.value = currentPreset.GetCloudTint(finalTime);
+            this.exposure.compensation.value = currentPreset.GetExposureCompensation();
         }
         else if(currentTick % 6 == 2){
             this.whiteBalance.temperature.value = currentPreset.GetWhiteBalanceTemperature();

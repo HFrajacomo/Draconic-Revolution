@@ -26,6 +26,8 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float FOG_ATTENUATION_SUNSET = 8f;
 	protected static readonly float FOG_ATTENUATION_NIGHT = 7f;
 	protected static readonly float FOG_MAX_HEIGHT_SURFACE = 920f;
+	protected static readonly float FOG_BASE_ANISOTROPY = 0.2f;
+	protected static readonly float EXPOSURE_COMPENSATION_NEUTRAL = -0.5f;
 	protected static readonly float STAR_MAP_MULTIPLIER_DAY = 0f;
 	protected static readonly float STAR_MAP_MULTIPLIER_NIGHT = 1f;
 	protected static readonly float STAR_MAP_X_ROTATION_BEGIN = 0f;
@@ -59,6 +61,7 @@ public abstract class BaseAmbientPreset{
 	protected float fogAmbientLight;
 	protected float fogBaseHeight;
 	protected float fogMaximumHeight;
+	protected float fogAnisotropy;
 
 	// Cloud Layer
 	protected Color cloudTintDay;
@@ -75,6 +78,9 @@ public abstract class BaseAmbientPreset{
 	protected float4 gainSunset;
 	protected float4 gainSunrise;
 	protected float4 gainNight;
+
+	// Exposure
+	protected float expCompensation;
 
 	// Directional Light
 	protected float lightIntensity;
@@ -137,9 +143,11 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetFogAmbientLight(float t){return this.fogAmbientLight;}
 	public virtual float GetFogBaseHeight(float t){return BASE_FOG_HEIGHT_SURFACE;}
 	public virtual float GetFogMaxHeight(float t){return this.fogMaximumHeight;}
+	public virtual float GetFogAnisotropy(float t){return this.fogAnisotropy;}
 	public virtual Color GetCloudTint(float t){return this.cloudTintDay;}
 	public virtual float GetWhiteBalanceTemperature(){return this.wbTemperature;}
 	public virtual float GetWhiteBalanceTint(){return this.wbTint;}
+	public virtual float GetExposureCompensation(){return EXPOSURE_COMPENSATION_NEUTRAL;}
 	public virtual float GetSunIntensity(float t){return BehaviourSunsetIntensity(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_ZERO, t);}
 	public virtual float2 GetSunRotation(float t){return this.sunRotation;}
 	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
