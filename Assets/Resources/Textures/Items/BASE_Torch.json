@@ -20,13 +20,13 @@
 --->CreatePointLightBehaviour
 {
     "audioName": "Torchfire",
-    "voxelLightIntensity": 5,
-    "lightComponentIntensity": 40,
-    "lightRange": 12,
+    "voxelLightIntensity": 6,
+    "lightComponentIntensity": 600,
+    "lightRange": 15,
     "lightColor": {
         "r": 0.84,
-        "g": 0.59,
-        "b": 0.46,
+        "g": 0.51,
+        "b": 0.34,
         "a": 1
     },
     "realisticLight": true

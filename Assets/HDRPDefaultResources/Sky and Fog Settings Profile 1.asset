@@ -132,7 +132,7 @@ MonoBehaviour:
   active: 1
   temperature:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: -7
   tint:
     m_OverrideState: 1
     m_Value: 0
@@ -222,7 +222,7 @@ MonoBehaviour:
       m_Value: 0
     opacityA:
       m_OverrideState: 1
-      m_Value: 0.82436925
+      m_Value: 0.2
     altitude:
       m_OverrideState: 0
       m_Value: 2000
@@ -231,7 +231,7 @@ MonoBehaviour:
       m_Value: 0
     tint:
       m_OverrideState: 1
-      m_Value: {r: 1, g: 1, b: 1, a: 1}
+      m_Value: {r: 0.52394253, g: 0.52394253, b: 0.52394253, a: 1}
     exposure:
       m_OverrideState: 0
       m_Value: 0
@@ -242,14 +242,14 @@ MonoBehaviour:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 196.92892
+        customValue: 201.0347
         additiveValue: 0
         multiplyValue: 1
     scrollSpeed:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 85.65554
+        customValue: 85.569695
         additiveValue: 0
         multiplyValue: 1
     flowmap:
@@ -285,7 +285,7 @@ MonoBehaviour:
       m_Value: 1
     opacityA:
       m_OverrideState: 1
-      m_Value: 0.82436925
+      m_Value: 0.2
     altitude:
       m_OverrideState: 0
       m_Value: 2000
@@ -294,7 +294,7 @@ MonoBehaviour:
       m_Value: 251
     tint:
       m_OverrideState: 1
-      m_Value: {r: 1, g: 1, b: 1, a: 1}
+      m_Value: {r: 0.52144444, g: 0.52144444, b: 0.52144444, a: 1}
     exposure:
       m_OverrideState: 1
       m_Value: 0
@@ -305,14 +305,14 @@ MonoBehaviour:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 236.92892
+        customValue: 241.0347
         additiveValue: 0
         multiplyValue: 1
     scrollSpeed:
       m_OverrideState: 1
       m_Value:
         mode: 0
-        customValue: 77.08998
+        customValue: 77.012726
         additiveValue: 0
         multiplyValue: 1
     flowmap:
@@ -501,22 +501,22 @@ MonoBehaviour:
     m_Value: 60
   baseHeight:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 700
   maximumHeight:
     m_OverrideState: 1
     m_Value: 920
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 12
+    m_Value: 5.291811
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
   albedo:
     m_OverrideState: 1
-    m_Value: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+    m_Value: {r: 0.9, g: 0.9, b: 0.9, a: 0}
   globalLightProbeDimmer:
     m_OverrideState: 1
-    m_Value: 0.12
+    m_Value: 0.25
   depthExtent:
     m_OverrideState: 1
     m_Value: 1000
@@ -661,10 +661,10 @@ MonoBehaviour:
     m_Value: {fileID: 8900000, guid: 956d1ebbce92f7244a3c827fe1c11afd, type: 3}
   spaceEmissionMultiplier:
     m_OverrideState: 1
-    m_Value: 0.094340004
+    m_Value: 0
   spaceRotation:
     m_OverrideState: 1
-    m_Value: {x: 3.087491, y: 0, z: 0}
+    m_Value: {x: 0, y: 0, z: 0}
   colorSaturation:
     m_OverrideState: 0
     m_Value: 1
@@ -676,10 +676,10 @@ MonoBehaviour:
     m_Value: 1
   horizonTint:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_Value: {r: 0.28695047, g: 0.837392, b: 1, a: 1}
   zenithTint:
     m_OverrideState: 1
-    m_Value: {r: 0, g: 0, b: 0, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   horizonZenithShift:
     m_OverrideState: 1
     m_Value: 1
@@ -766,7 +766,7 @@ MonoBehaviour:
     m_Value: 1
   compensation:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: -0.3
   limitMin:
     m_OverrideState: 1
     m_Value: 0
@@ -1260,7 +1260,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.07100592}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 0, y: 0, z: 0, w: 0}
+    m_Value: {x: 0.7434579, y: 0.61739594, z: 0.44525066, w: 0.0045645703}
 --- !u!114 &8531287848742843627
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -1277,34 +1277,34 @@ MonoBehaviour:
   interCascadeBorders: 1
   maxShadowDistance:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 300
   directionalTransmissionMultiplier:
     m_OverrideState: 1
     m_Value: 1
   cascadeShadowSplitCount:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 4
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0.21806797
+    m_Value: 0.1893703
   cascadeShadowSplit1:
     m_OverrideState: 1
-    m_Value: 0.45
+    m_Value: 0.412
   cascadeShadowSplit2:
     m_OverrideState: 1
-    m_Value: 0.74175996
+    m_Value: 0.65199995
   cascadeShadowBorder0:
     m_OverrideState: 1
-    m_Value: 0.25838012
+    m_Value: 0.314
   cascadeShadowBorder1:
     m_OverrideState: 1
-    m_Value: 0.6895035
+    m_Value: 0.15
   cascadeShadowBorder2:
     m_OverrideState: 1
-    m_Value: 0.77371585
+    m_Value: 0.15
   cascadeShadowBorder3:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 0.15
 --- !u!114 &8963606201817144313
 MonoBehaviour:
   m_ObjectHideFlags: 3

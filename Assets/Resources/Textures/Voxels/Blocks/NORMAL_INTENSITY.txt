@@ -1,7 +1,6 @@
 BASE_Basalt_Bricks	1.4
 BASE_Bricks	1.4
 BASE_Gabbro_Bricks	1.4
-BASE_Grass	1.2
 BASE_Limestone_Bricks	1.4
 BASE_Metal_Tile	1.2
 BASE_Metal_Wall	1.2
@@ -17,7 +16,5 @@ BASE_Silverwood_Planks	1.5
 BASE_Stone_Bricks	1.4
 BASE_Sandstone_Bricks	1.4
 BASE_Sandstone_Bricks_Tiled	1.4
-BASE_Sand	1.2
-BASE_Snow	1.2
 BASE_White_Marble_Bricks	1.4
 BASE_Black_Marble_Bricks	1.4

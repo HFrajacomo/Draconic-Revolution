@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 public class SnowAmbientPreset: BaseAmbientPreset{
 	public SnowAmbientPreset(){
-		this.horizonTintSunrise = new Color(.96f, .74f, .43f);
+		this.horizonTintSunrise = new Color(.44f, .82f, 1f);
 		this.horizonTintDay = new Color(0f, .87f, 1f);
 		this.horizonTintSunset = new Color(.47f, .18f, 1f);
 		this.horizonTintNight = new Color(.66f, .66f, .66f);

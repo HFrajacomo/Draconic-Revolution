@@ -20,6 +20,7 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 		light.color = this.lightColor;
 		light.range = this.lightRange;
 		light.volumetricDimmer = 0f;
+		lightComponent.lightUnit = UnityEngine.Rendering.LightUnit.Lumen;
 		lightComponent.intensity = this.lightComponentIntensity;
 
 		cl.playerSheetController.Enable(this.realisticLight);
@@ -47,6 +48,7 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 		light.color = this.lightColor;
 		light.range = this.lightRange;
 		light.volumetricDimmer = 0f;
+		lightComponent.lightUnit = UnityEngine.Rendering.LightUnit.Lumen;
 		lightComponent.intensity = this.lightComponentIntensity;
 
 		lightComponent.enabled = true;

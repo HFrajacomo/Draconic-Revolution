@@ -80,6 +80,7 @@ public class TreeBehaviour : VoxelBehaviour{
 		foreach(CastCoord c in distances.Keys){
 			if(distances[c] == 0){
 				EmitBUDTo(BUDCode.DECAY, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), 1, cl);
+				Debug.Log("Found Distant? Leaves");
 			}
 		}
 
@@ -260,6 +261,7 @@ public class TreeBehaviour : VoxelBehaviour{
 			cl.chunks[aux.GetChunkPos()].metadata.Reset(aux.blockX, aux.blockY, aux.blockZ);
 			EmitBlockUpdate(BUDCode.BREAK, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
 			EmitBlockUpdate(BUDCode.DECAY, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
+			Debug.Log("Emitting Decay and Break");
 			toUpdate.Add(aux.GetChunkPos());
 		}
 
@@ -430,24 +432,24 @@ public class TreeBehaviour : VoxelBehaviour{
 	}
 
 
-    // Handles the emittion of BUD to neighboring blocks
-    public void EmitDelayedBUD(BUDCode type, int x, int y, int z, int minOffset, int maxOffset, ChunkLoader_Server cl){
-      CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
+	// Handles the emittion of BUD to neighboring blocks
+	public void EmitDelayedBUD(BUDCode type, int x, int y, int z, int minOffset, int maxOffset, ChunkLoader_Server cl){
+		CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
 
-      cache.Clear();
+		cache.Clear();
 
-      cache.Add(thisPos.Add(1,0,0));
-      cache.Add(thisPos.Add(-1,0,0));
-      cache.Add(thisPos.Add(0,1,0));
-      cache.Add(thisPos.Add(0,-1,0));
-      cache.Add(thisPos.Add(0,0,1));
-      cache.Add(thisPos.Add(0,0,-1));
+		cache.Add(thisPos.Add(1,0,0));
+		cache.Add(thisPos.Add(-1,0,0));
+		cache.Add(thisPos.Add(0,1,0));
+		cache.Add(thisPos.Add(0,-1,0));
+		cache.Add(thisPos.Add(0,0,1));
+		cache.Add(thisPos.Add(0,0,-1));
 
 
-      foreach(CastCoord c in cache){
-        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), 0), Random.Range(minOffset, maxOffset));     
-      }
-    }
+		foreach(CastCoord c in cache){
+			cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), 0), Random.Range(minOffset, maxOffset));     
+		}
+	}
 
     // Sends a DirectBlockUpdate call to users
 	public void Update(ChunkPos pos, ChunkLoader_Server cl){

@@ -20,7 +20,7 @@ public struct BUDSignal{
 	}
 
     public override string ToString(){
-        return "(" + x + ", " + y + ", " + z + ")";
+        return $"{type} -> ({x}, {y}, {z})";
     }
 
 	public bool Equals(BUDSignal b){
