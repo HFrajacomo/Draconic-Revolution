@@ -261,7 +261,6 @@ public class TreeBehaviour : VoxelBehaviour{
 			cl.chunks[aux.GetChunkPos()].metadata.Reset(aux.blockX, aux.blockY, aux.blockZ);
 			EmitBlockUpdate(BUDCode.BREAK, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
 			EmitBlockUpdate(BUDCode.DECAY, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
-			Debug.Log("Emitting Decay and Break");
 			toUpdate.Add(aux.GetChunkPos());
 		}
 

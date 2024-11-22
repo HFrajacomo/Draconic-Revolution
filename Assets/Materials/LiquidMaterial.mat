@@ -30,6 +30,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ALPHATEST_ON
+  - _DISABLE_DECALS
   - _DOUBLESIDED_ON
   - _ENABLE_FOG_ON_TRANSPARENT
   - _REFRACTION_SPHERE
@@ -44,9 +45,9 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - RayTracingPrepass
-  - MOTIONVECTORS
-  - TransparentDepthPostpass
   - TransparentBackface
+  - TransparentDepthPostpass
+  - MOTIONVECTORS
   m_LockedProperties: Vector1_D703212C _BlendMode
   m_SavedProperties:
     serializedVersion: 3
@@ -122,6 +123,7 @@ Material:
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
     - _ExcludeFromTUAndAA: 0
+    - _Final_Normal_Intensity: 0
     - _Fresnel_Power: 1
     - _HDWater: 0
     - _Lava_Luminescence: 1
@@ -155,8 +157,9 @@ Material:
     - _StencilWriteMaskDistortionVec: 4
     - _StencilWriteMaskGBuffer: 15
     - _StencilWriteMaskMV: 41
-    - _SupportDecals: 1
+    - _SupportDecals: 0
     - _SurfaceType: 1
+    - _TEST_NORMAL: 0
     - _TestVertex: 0
     - _TextureSize: 0.7
     - _TransmissionEnable: 1

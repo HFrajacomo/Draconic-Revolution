@@ -31,6 +31,7 @@ Material:
   - TransparentDepthPostpass
   - TransparentBackface
   - RayTracingPrepass
+  - MOTIONVECTORS
   m_LockedProperties: _PBRAtlas
   m_SavedProperties:
     serializedVersion: 3
