@@ -39,7 +39,7 @@ public struct GenerateHellChunkJob: IJob{
         GenerateHeightPivots();
         BilinearIntepolateMaps(heightMap, ceilingMap);
         ApplyMap();
-        AddBedrockLayer();
+        AddAcasterLayer();
     }
 
     public void GenerateHeightPivots(){
@@ -132,7 +132,7 @@ public struct GenerateHellChunkJob: IJob{
         }
     }
 
-    public void AddBedrockLayer(){
+    public void AddAcasterLayer(){
         int index;
 
         for(int x=0; x < Chunk.chunkWidth; x++){

@@ -568,6 +568,7 @@ public class WorldGenerator
             erosionNoise = erosionMap,
             peakNoise = peakMap,
             moonstoneBlockID = VoxelLoader.GetBlockID("BASE_Moonstone"),
+            acasterBlockID = VoxelLoader.GetBlockID("BASE_Acaster"),
             pregen = isPregen
         };
         JobHandle job = gccj.Schedule();

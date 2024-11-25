@@ -253,9 +253,7 @@ public class PlayerRaycast : MonoBehaviour
 	}
 
 	// Triggers Blocktype.OnInteract()
-	public void Interact(){
-		ChunkPos above = new ChunkPos(lastCoord.chunkX, lastCoord.chunkZ, lastCoord.chunkY+1);
-		
+	public void Interact(){		
 		if(!current.active)
 			return;
 

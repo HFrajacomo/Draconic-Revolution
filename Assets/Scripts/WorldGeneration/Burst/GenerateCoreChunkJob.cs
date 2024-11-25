@@ -26,11 +26,14 @@ public struct GenerateCoreChunkJob: IJob{
     public NativeArray<byte> peakNoise;
     [ReadOnly]
     public ushort moonstoneBlockID;
+    [ReadOnly]
+    public ushort acasterBlockID;
 
     public void Execute(){
         GenerateHeightPivots();
         BilinearIntepolateMaps();
         ApplyMap();
+        AddAcasterLayer();
     }
 
     public void GenerateHeightPivots(){
@@ -115,6 +118,20 @@ public struct GenerateCoreChunkJob: IJob{
                     }
                 }
             }             
+        }
+    }
+
+    public void AddAcasterLayer(){
+        int index;
+
+        for(int x=0; x < Chunk.chunkWidth; x++){
+            for(int z=0; z < Chunk.chunkWidth; z++){
+                index = x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z;
+
+                blockData[index] = this.acasterBlockID;
+                stateData[index] = 0;
+                hpData[index] = ushort.MaxValue;
+            }
         }
     }
 
