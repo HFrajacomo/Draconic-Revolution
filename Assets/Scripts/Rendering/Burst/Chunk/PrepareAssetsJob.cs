@@ -17,7 +17,7 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<int> meshSolidTris;
 	public NativeList<Vector3> meshNormals;
 	public NativeList<Vector4> meshTangents;
-	public NativeList<Vector3> meshLightUV;
+	public NativeList<Vector2> dampnessdata;
 
 	// Hitbox
 	public NativeList<Vector3> hitboxVerts;
@@ -34,8 +34,6 @@ public struct PrepareAssetsJob : IJob{
 	public NativeArray<ushort> blockdata;
 	[ReadOnly]
 	public NativeArray<ushort> metadata;
-	[ReadOnly]
-	public NativeArray<byte> lightdata;
 	[ReadOnly]
 	public NativeArray<byte> heightMap;
 	[ReadOnly]
@@ -110,7 +108,7 @@ public struct PrepareAssetsJob : IJob{
 					meshVerts.Add(resultVert);
 					meshNormals.Add(GetNormalRotation(loadedNormals[vertIndex], inplaceRotation[code*256+state]));
 					meshTangents.Add(GetNormalRotation(loadedTangents[vertIndex], inplaceRotation[code*256+state]));
-					meshLightUV.Add(new Vector3(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false), IsDamp(this.heightMap, coords[j])));
+					dampnessdata.Add(new Vector2(IsDamp(this.heightMap, coords[j]), 0));
 				}
 
 				// Hitbox Vertices
@@ -130,7 +128,7 @@ public struct PrepareAssetsJob : IJob{
 					meshVerts.Add(resultVert);
 					meshNormals.Add(loadedNormals[vertIndex]);
 					meshTangents.Add(loadedTangents[vertIndex]);
-					meshLightUV.Add(new Vector3(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false), IsDamp(this.heightMap, coords[j])));
+					dampnessdata.Add(new Vector2(IsDamp(this.heightMap, coords[j]), 0));
 				}
 
 				// Hitbox Vertices
@@ -229,16 +227,5 @@ public struct PrepareAssetsJob : IJob{
 
 	private Vector4 RotateY(Vector4 a, int degrees){
 		return new Vector4(a.x, a.y * Mathf.Cos(degrees * Mathf.Deg2Rad) - a.z * Mathf.Sin(degrees * Mathf.Deg2Rad), a.y * Mathf.Sin(degrees * Mathf.Deg2Rad) + a.z * Mathf.Cos(degrees * Mathf.Deg2Rad), a.w);
-	}
-
-
-	// Gets neighbor light level
-	private int GetLight(int x, int y, int z, bool isNatural=true){
-		int3 coord = new int3(x, y, z);
-
-		if(isNatural)
-			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
-		else
-			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0xF0;
 	}
 }

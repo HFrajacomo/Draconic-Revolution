@@ -17,8 +17,6 @@ public class VoxelData
 	private ushort[] data;
 	private byte[] heightMap;
 	private byte[] renderMap;
-	private byte[] shadowMap;
-	private byte[] lightMap;
 	private bool[] ceilingMap;
 	private ChunkPos pos;
 
@@ -54,8 +52,6 @@ public class VoxelData
 	public void Destroy(){
 		this.data = null;
 		this.heightMap = null;
-		this.shadowMap = null;
-		this.lightMap = null;
 		this.ceilingMap = null;
 		this.renderMap = null;
 	}
@@ -90,238 +86,6 @@ public class VoxelData
         shadowMapBuffer.Dispose();
 	}
 	*/
-
-	/*
-	Burst Compiled
-
-	Return byte = {
-	0: Shouldn't update any chunk
-	1: Update the current chunk
-	2: Update the neighbor chunk
-	3: Update both chunks
-	4: Update Lights in neighbor chunk
-	}
-	*/
-	public static ushort PropagateLight(VoxelData a, VoxelMetadata aMetadata, VoxelData b, VoxelMetadata bMetadata, byte borderCode){
-		NativeArray<byte> lightMap1 = NativeTools.CopyToNative(a.GetLightMap(aMetadata));
-		NativeArray<byte> lightMap2 = NativeTools.CopyToNative(b.GetLightMap(bMetadata));
-		NativeArray<byte> shadowMap1 = NativeTools.CopyToNative(a.GetShadowMap());
-		NativeArray<byte> shadowMap2 = NativeTools.CopyToNative(b.GetShadowMap());
-
-		NativeList<int3> bfsq1 = new NativeList<int3>(0, Allocator.TempJob);
-		NativeList<int3> bfsq2 = new NativeList<int3>(0, Allocator.TempJob);
-		NativeList<int3> bfsqe1 = new NativeList<int3>(0, Allocator.TempJob);
-		NativeList<int3> bfsqe2 = new NativeList<int3>(0, Allocator.TempJob);
-		NativeParallelHashSet<int3> visited1 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
-		NativeParallelHashSet<int3> visited2 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
-		NativeParallelHashSet<int3> visitede1 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
-		NativeParallelHashSet<int3> visitede2 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
-		NativeList<int4> aux = new NativeList<int4>(0, Allocator.TempJob);
-		NativeParallelHashSet<int4> hashAux = new NativeParallelHashSet<int4>(0, Allocator.TempJob);
-		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0, 0, 0, 0}, Allocator.TempJob);
-		ushort updateFlag = 0;
-
-		JobHandle job;
-
-		CalculateLightPropagationJob clpJob = new CalculateLightPropagationJob{
-			lightMap1 = lightMap1,
-			lightMap2 = lightMap2,
-			shadowMap1 = shadowMap1,
-			shadowMap2 = shadowMap2,
-			bfsq1 = bfsq1,
-			bfsq2 = bfsq2,
-			visited1 = visited1,
-			visited2 = visited2,
-			visitede1 = visitede1,
-			visitede2 = visitede2,
-			bfsqe1 = bfsqe1,
-			bfsqe2 = bfsqe2,
-			aux = aux,
-			hashAux = hashAux,
-			chunkWidth = Chunk.chunkWidth,
-			chunkDepth = Chunk.chunkDepth,
-			borderCode = borderCode,
-			cpos = a.pos,
-			changed = changed
-		};
-
-        job = clpJob.Schedule();
-        job.Complete();
-
-        a.SetLightMap(NativeTools.CopyToManaged(lightMap1));
-        b.SetLightMap(NativeTools.CopyToManaged(lightMap2));
-        a.SetShadowMap(NativeTools.CopyToManaged(shadowMap1));
-        b.SetShadowMap(NativeTools.CopyToManaged(shadowMap2));
-        
-        updateFlag += changed[0];
-        updateFlag += (ushort)(changed[1] << 1);
-        updateFlag += (ushort)(changed[2] << 2);
-        updateFlag += (ushort)(changed[3] << 3);
-
-        lightMap1.Dispose();
-        lightMap2.Dispose();
-        shadowMap1.Dispose();
-        shadowMap2.Dispose();
-        bfsq1.Dispose();
-        bfsq2.Dispose();
-        bfsqe1.Dispose();
-        bfsqe2.Dispose();
-        visited1.Dispose();
-        visited2.Dispose();
-        visitede1.Dispose();
-        visitede2.Dispose();
-        aux.Dispose();
-        hashAux.Dispose();
-        changed.Dispose();
-
-        return updateFlag;
-    }
-
-	/*
-	Burst Compiled
-	*/
-	public void CalculateLightMap(VoxelMetadata metadata){
-		if(this.heightMap == null)
-			CalculateHeightMap();
-
-		bool isStandalone = true;
-		ChunkPos cachedPos;
-
-		NativeArray<byte> lightMap;
-		NativeArray<byte> shadowMap;
-		NativeArray<byte> memoryLightMap;
-		NativeArray<byte> memoryShadowMap;
-		NativeList<int4> lightSources = new NativeList<int4>(0, Allocator.TempJob);
-		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
-		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0}, Allocator.TempJob);
-		NativeArray<ushort> states = NativeTools.CopyToNative(metadata.GetStateData());
-		NativeArray<bool> ceilingMap = NativeTools.CopyToNative(this.ceilingMap);
-		NativeArray<bool> neighborCeilingMap;
-
-		if(this.shadowMap == null){
-			shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-			memoryShadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		}
-		else{
-			shadowMap = NativeTools.CopyToNative(this.shadowMap);
-			memoryShadowMap = NativeTools.CopyToNative(this.shadowMap);
-		}
-		if(this.lightMap == null){
-			lightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-			memoryLightMap = new NativeArray<byte>(0, Allocator.TempJob);
-		}
-		else{
-			lightMap = NativeTools.CopyToNative(this.lightMap);
-			memoryLightMap = NativeTools.CopyToNative(this.lightMap);
-		}
-
-		// Check if should be calculated as standalone chunk
-		
-		if(this.pos.y < Chunk.chunkMaxY){
-			cachedPos = new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1);
-
-			if(cl.chunks.ContainsKey(cachedPos)){
-				if(cl.chunks[cachedPos].data.ShadowMapIsSet()){
-					isStandalone = false;
-					neighborCeilingMap = NativeTools.CopyToNative(cl.chunks[cachedPos].data.GetCeilingMap());
-				}
-				else{
-					neighborCeilingMap = new NativeArray<bool>(0, Allocator.TempJob);
-				}
-			}
-			else{
-				neighborCeilingMap = new NativeArray<bool>(0, Allocator.TempJob);
-			}
-		}
-		else{
-			neighborCeilingMap = new NativeArray<bool>(0, Allocator.TempJob);
-		}
-
-		JobHandle job;
-
-		NativeArray<ushort> blockData = NativeTools.CopyToNative(this.data);
-
-		// SHADOWMAPPING =========================================================
-
-		CalculateShadowMapJob csmJob = new CalculateShadowMapJob{
-			shadowMap = shadowMap,
-			lightMap = lightMap,
-			lightSources = lightSources,
-			heightMap = heightMap,
-			data = blockData,
-			states = states,
-			chunkWidth = Chunk.chunkWidth,
-			chunkDepth = Chunk.chunkDepth,
-			isTransparentObj = BlockEncyclopediaECS.objectTransparent,
-			isTransparentBlock = BlockEncyclopediaECS.blockTransparent,
-			blockLuminosity = BlockEncyclopediaECS.blockLuminosity,
-			objectLuminosity = BlockEncyclopediaECS.objectLuminosity,
-			isStandalone = isStandalone,
-			cpos = this.pos,
-			ceilingMap = ceilingMap,
-			neighborCeilingMap = neighborCeilingMap
-		};
-
-        job = csmJob.Schedule();
-        job.Complete();
-
-		NativeList<int3> bfsq = new NativeList<int3>(0, Allocator.TempJob);
-		NativeList<int4> bfsqExtra = new NativeList<int4>(0, Allocator.TempJob);
-		NativeList<byte5> directionalList = new NativeList<byte5>(0, Allocator.TempJob);
-		NativeList<byte5> bfsqDir = new NativeList<byte5>(0, Allocator.TempJob);
-		NativeParallelHashSet<int3> visited = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
-		NativeList<int4> auxLightSources = new NativeList<int4>(0, Allocator.TempJob);
-		NativeList<byte5> auxDirectionals = new NativeList<byte5>(0, Allocator.TempJob);
-
-		// LIGHTMAPPING =========================================================
-		CalculateLightMapJob clmJob = new CalculateLightMapJob{
-			lightMap = lightMap,
-			shadowMap = shadowMap,
-			memoryLightMap = memoryLightMap,
-			memoryShadowMap = memoryShadowMap,
-			lightSources = lightSources,
-			heightMap = heightMap,
-			chunkWidth = Chunk.chunkWidth,
-			chunkDepth = Chunk.chunkDepth,
-			bfsq = bfsq,
-			bfsqExtra = bfsqExtra,
-			bfsqDir = bfsqDir,
-			visited = visited,
-			directionalList = directionalList,
-			auxLightSources = auxLightSources,
-			auxDirectionals = auxDirectionals,
-			changed = changed,
-			cpos = this.pos
-		};
-
-        job = clmJob.Schedule();
-        job.Complete();
-
-
-        this.lightMap = NativeTools.CopyToManaged(lightMap);
-        this.shadowMap = NativeTools.CopyToManaged(shadowMap);
-        this.PROPAGATE_LIGHT_FLAG = changed[0];
-
-        blockData.Dispose();
-        states.Dispose();
-
-        bfsq.Dispose();
-        bfsqExtra.Dispose();
-        bfsqDir.Dispose();
-        visited.Dispose();
-        lightSources.Dispose();
-        lightMap.Dispose();
-        heightMap.Dispose();
-        shadowMap.Dispose();
-        changed.Dispose();
-        ceilingMap.Dispose();
-        neighborCeilingMap.Dispose();
-        memoryLightMap.Dispose();
-        memoryShadowMap.Dispose();
-        directionalList.Dispose();
-        auxDirectionals.Dispose();
-        auxLightSources.Dispose();
-	}
 
 	public void CalculateHeightMap(){
 		if(this.data == null)
@@ -498,37 +262,8 @@ public class VoxelData
 		return data[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z];
 	}
 
-	public ushort GetLight(int3 coord, bool isNatural=true){
-		if(isNatural)
-			return (ushort)(lightMap[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F);
-		else
-			return (ushort)(lightMap[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] >> 4);
-	}
-
-	public ushort GetLight(int x, int y, int z, bool isNatural=true){
-		if(isNatural)
-			return (ushort)(lightMap[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F);
-		else
-			return (ushort)(lightMap[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4);
-	}
-
-	public ushort GetShadow(int x, int y, int z, bool isNatural=true){
-		if(isNatural)
-			return (ushort)(shadowMap[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F);
-		else
-			return (ushort)(shadowMap[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4);
-	}
-
 	public void SetCell(int x, int y, int z, ushort blockCode){
 		data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blockCode;
-	}
-
-	public byte[] GetLightMap(VoxelMetadata metadata){
-		if(this.lightMap == null){
-			this.CalculateLightMap(metadata);
-		}
-
-		return this.lightMap;
 	}
 
 	public byte[] GetRenderMap(){
@@ -545,28 +280,12 @@ public class VoxelData
 		return this.ceilingMap;
 	}
 
-	public void SetLightMap(byte[] lm){
-		this.lightMap = lm;
-	}
-
-	public void SetShadowMap(byte[] sm){
-		this.shadowMap = sm;
-	}
-
-	public byte[] GetShadowMap(){
-		return this.shadowMap;
-	}
-
 	public byte[] GetHeightMap(){
 		return this.heightMap;
 	}
 
 	public ushort[] GetData(){
 		return this.data;
-	}
-
-	public bool ShadowMapIsSet(){
-		return this.shadowMap != null;
 	}
 
 	public void SetData(ushort[] data, bool isServer){

@@ -15,7 +15,7 @@ public struct MeshDataBuild{
 	public int[] leavesTris;
 	public int[] iceTris;
 	public int[] lavaTris;
-	public Vector3[] lightUVs;
+	public Vector2[] dampness;
 	public Vector4[] tangents;
 	public Vector3[] normals;
 
@@ -38,7 +38,7 @@ public struct MeshDataBuild{
 	// Load Coord List
 	public int3[] loadList;
 
-	public void SetData(Vector3[] vertices, int[] tris, int[] specularTris, int[] liquidTris, int[] assetTris, int[] assetSolidTris, int[] leavesTris, int[] iceTris, int[] lavaTris, Vector2[] UVs, Vector3[] lightUV, Vector3[] normals, Vector4[] tangents){
+	public void SetData(Vector3[] vertices, int[] tris, int[] specularTris, int[] liquidTris, int[] assetTris, int[] assetSolidTris, int[] leavesTris, int[] iceTris, int[] lavaTris, Vector2[] UVs, Vector2[] dampness, Vector3[] normals, Vector4[] tangents){
     	this.vertices = vertices;
 		this.UVs = UVs;
 		this.tris = tris;
@@ -49,7 +49,7 @@ public struct MeshDataBuild{
 		this.leavesTris = leavesTris;
 		this.iceTris = iceTris;
 		this.lavaTris = lavaTris;
-		this.lightUVs = lightUV;
+		this.dampness = dampness;
 		this.tangents = tangents;
 		this.normals = normals;
 	}
@@ -88,7 +88,7 @@ public struct MeshDataBuild{
 		this.leavesTris = null;
 		this.iceTris = null;
 		this.lavaTris = null;
-		this.lightUVs = null;
+		this.dampness = null;
 		this.tangents = null;
 		this.normals = null;
 		this.colliderVertices = null;
@@ -124,7 +124,7 @@ public struct MeshDataBuild{
 			return false;
 		if(this.lavaTris == null)
 			return false;
-		if(this.lightUVs == null)
+		if(this.dampness == null)
 			return false;
 		if(this.tangents == null)
 			return false;
@@ -177,7 +177,7 @@ public struct MeshDataBuild{
 		mesh.SetTriangles(this.lavaTris, 7);
 
 		mesh.SetUVs(0, this.UVs);
-		mesh.SetUVs(3, this.lightUVs);
+		mesh.SetUVs(3, this.dampness);
 
 		mesh.SetNormals(this.normals);
 		mesh.SetTangents(this.tangents);

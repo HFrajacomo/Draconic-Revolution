@@ -28,8 +28,6 @@ public class ChunkLoader : MonoBehaviour
     public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue(World.renderDistance, metric:DistanceMetric.EDGE_LIMITING);
 	public List<ChunkPos> toUnload = new List<ChunkPos>();
     public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue(World.renderDistance, metric:DistanceMetric.EDGE_LIMITING);
-    public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue(World.renderDistance, debug:true, metric:DistanceMetric.EDGE_LIMITING);
-    public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 
     // Received from Server
     public float playerX;
@@ -344,12 +342,8 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Adds chunk to Update queue
-    public void AddToUpdate(ChunkPos pos, bool noLight=false){
-        if(!noLight){
-            updatePriorityQueue.Add(pos);
-        }
-        else
-            updateNoLightPriorityQueue.Add(pos);
+    public void AddToUpdate(ChunkPos pos){
+        updatePriorityQueue.Add(pos);
     }
 
     // Adds chunk to Draw queue
@@ -403,8 +397,6 @@ public class ChunkLoader : MonoBehaviour
                 this.vfx.RemoveChunk(cp);
                 
             this.vfx.NewChunk(cp);
-
-            this.chunks[cp].data.CalculateLightMap(chunks[cp].metadata);
 
             if(toUnload.Contains(cp))
                 toUnload.Remove(cp);
@@ -471,8 +463,6 @@ public class ChunkLoader : MonoBehaviour
                             this.drawPriorityQueue.Add(pos);
                             continue;
                         }
-
-                        CheckLightPropagation(pos);
                     }
 
                     this.drawTaskPool[i] = Task.Run(() => DrawChunkTask(pos));
@@ -520,10 +510,8 @@ public class ChunkLoader : MonoBehaviour
 
     // Multithreaded call for Update operation
     private void UpdateChunk(){
-        bool lightUpdate = false;
-
         for(int i=0; i < this.updateTaskPool.Length; i++){
-            if(this.updatePriorityQueue.GetSize() + this.updateNoLightPriorityQueue.GetSize() == 0)
+            if(this.updatePriorityQueue.GetSize() == 0)
                 break;
 
             if(this.updateTaskPool[i] == null || this.updateTaskPool[i].IsCompleted){
@@ -536,58 +524,12 @@ public class ChunkLoader : MonoBehaviour
                 #endif
 
                 // If update has Chunk and not light updated -> Update With Light
-                if(this.updatePriorityQueue.GetSize() > 0 && !lightUpdate){
+                if(this.updatePriorityQueue.GetSize() > 0){
                     ChunkPos pos = this.updatePriorityQueue.Pop();
 
                     if(this.chunks.ContainsKey(pos)){
                         if(!CanBeDrawn(pos)){
                             this.updatePriorityQueue.Add(pos);
-                            continue;
-                        }
-
-                        this.chunks[pos].data.CalculateLightMap(this.chunks[pos].metadata);
-                        CheckLightPropagation(pos);
-                    }
-
-                    lightUpdate = true;
-                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
-                }
-                // If no Light has Chunk and light updated -> Update with no Light
-                else if(this.updateNoLightPriorityQueue.GetSize() > 0 && lightUpdate){
-                    ChunkPos pos = this.updateNoLightPriorityQueue.Pop();
-
-                    if(this.chunks.ContainsKey(pos)){
-                        if(!CanBeDrawn(pos)){
-                            this.updateNoLightPriorityQueue.Add(pos);
-                            continue;
-                        }
-                    }
-
-                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
-                }
-                // If no Light was not run and there is still something in With Lights -> Update with Lights
-                else if(this.updatePriorityQueue.GetSize() > 0){
-                    ChunkPos pos = this.updatePriorityQueue.Pop();
-
-                    if(this.chunks.ContainsKey(pos)){
-                        if(!CanBeDrawn(pos)){
-                            this.updatePriorityQueue.Add(pos);
-                            continue;
-                        }
-
-                        this.chunks[pos].data.CalculateLightMap(this.chunks[pos].metadata);
-                        CheckLightPropagation(pos);
-                    }
-
-                    lightUpdate = true;
-                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
-                }
-                else if(this.updateNoLightPriorityQueue.GetSize() > 0){
-                    ChunkPos pos = this.updateNoLightPriorityQueue.Pop();
-
-                    if(this.chunks.ContainsKey(pos)){
-                        if(!CanBeDrawn(pos)){
-                            this.updateNoLightPriorityQueue.Add(pos);
                             continue;
                         }
                     }
@@ -611,146 +553,6 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Checks if neighbor chunks should have light propagated
-    // MUST BE USED AFTER THE CalculateLightMap FUNCTION
-    // Returns true if should update current chunk and false if not
-    public bool CheckLightPropagation(ChunkPos pos, byte flag=255, int recursionDepth=0){
-        byte propagationFlag;
-        ChunkPos neighbor;
-        bool updateCurrent = false;
-        ushort updateCode = 0;
-
-        if(recursionDepth >= 5)
-            return false;
-
-        if(flag == 255)
-            propagationFlag = this.chunks[pos].data.GetPropagationFlag();
-        else{
-            propagationFlag = flag;
-        }
-
-        // None
-        if(propagationFlag == 0)
-            return false;
-
-        // xm
-        if((propagationFlag & 1) != 0){
-            neighbor = new ChunkPos(pos.x-1, pos.z, pos.y);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 0);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-        }
-        // xp
-        if((propagationFlag & 2) != 0){
-            neighbor = new ChunkPos(pos.x+1, pos.z, pos.y);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 1);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-        }
-        // zm
-        if((propagationFlag & 4) != 0){
-            neighbor = new ChunkPos(pos.x, pos.z-1, pos.y);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 2);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-
-        }
-        // zp
-        if((propagationFlag & 8) != 0){
-            neighbor = new ChunkPos(pos.x, pos.z+1, pos.y);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 3);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-        }
-        // ym
-        if((propagationFlag & 16) != 0){
-            neighbor = new ChunkPos(pos.x, pos.z, pos.y-1);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 4);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-        }
-        // yp
-        if((propagationFlag & 32) != 0){
-            neighbor = new ChunkPos(pos.x, pos.z, pos.y+1);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 5);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-        }
-
-        while(toCallLightCascade.Count > 0){
-            ChunkLightPropagInfo info = toCallLightCascade[0];
-            toCallLightCascade.RemoveAt(0);
-
-            CheckLightPropagation(info);
-        }
-
-        return updateCurrent;
-    }
-    private bool CheckLightPropagation(ChunkLightPropagInfo info){
-        return CheckLightPropagation(info.pos, info.propagationFlag, info.recursionDepth);
-    }
-
-
     // Gets all chunks around player's render distance
     // GetChunks automatically rebuilds chunks if reload=True
     public void GetChunks(bool reload){
@@ -770,7 +572,6 @@ public class ChunkLoader : MonoBehaviour
             requestPriorityQueue.SetPlayerPosition(newChunk);
             drawPriorityQueue.SetPlayerPosition(newChunk);
             updatePriorityQueue.SetPlayerPosition(newChunk);
-            updateNoLightPriorityQueue.SetPlayerPosition(newChunk);
     		
 	        for(int x=-renderDistance; x<=renderDistance;x++){
 	        	for(int z=-renderDistance; z<=renderDistance;z++){
@@ -824,7 +625,6 @@ public class ChunkLoader : MonoBehaviour
         requestPriorityQueue.SetPlayerPosition(newChunk);
         drawPriorityQueue.SetPlayerPosition(newChunk);
         updatePriorityQueue.SetPlayerPosition(newChunk);
-        updateNoLightPriorityQueue.SetPlayerPosition(newChunk);
 
         this.playerCurrentChunk = newChunk;
 

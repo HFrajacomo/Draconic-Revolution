@@ -308,7 +308,6 @@ public class Chunk
 		NativeArray<ushort> blockdata = NativeTools.CopyToNative<ushort>(this.data.GetData());
 		NativeArray<ushort> statedata = NativeTools.CopyToNative<ushort>(this.metadata.GetStateData());
 		NativeArray<ushort> hpdata = NativeTools.CopyToNative<ushort>(this.metadata.GetHPData());
-		NativeArray<byte> lightdata = NativeTools.CopyToNative<byte>(this.data.GetLightMap(this.metadata));
 		NativeArray<byte> renderMap = NativeTools.CopyToNative<byte>(this.data.GetRenderMap());		
 		NativeList<int3> loadCoordList = new NativeList<int3>(0, Allocator.TempJob);
 		NativeList<ushort> loadCodeList = new NativeList<ushort>(0, Allocator.TempJob);
@@ -325,7 +324,6 @@ public class Chunk
 		NativeList<int> assetSolidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
-		NativeList<Vector3> lightUV = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector4> tangents = new NativeList<Vector4>(0, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
@@ -339,28 +337,20 @@ public class Chunk
 
 		auxPos = new ChunkPos(pos.x-1, pos.z, pos.y);
 		NativeArray<ushort> xmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-		NativeArray<byte> xmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 		auxPos = new ChunkPos(pos.x+1, pos.z, pos.y);
 		NativeArray<ushort> xpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-		NativeArray<byte> xplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 		auxPos = new ChunkPos(pos.x, pos.z-1, pos.y);
 		NativeArray<ushort> zmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-		NativeArray<byte> zmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 		auxPos = new ChunkPos(pos.x, pos.z+1, pos.y);
 		NativeArray<ushort> zpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-		NativeArray<byte> zplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 		auxPos = new ChunkPos(pos.x-1, pos.z-1, pos.y);
 		NativeArray<ushort> xmzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-		NativeArray<byte> xmzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 		auxPos = new ChunkPos(pos.x-1, pos.z+1, pos.y);
 		NativeArray<ushort> xmzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-		NativeArray<byte> xmzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 		auxPos = new ChunkPos(pos.x+1, pos.z-1, pos.y);
 		NativeArray<ushort> xpzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-		NativeArray<byte> xpzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 		auxPos = new ChunkPos(pos.x+1, pos.z+1, pos.y);
 		NativeArray<ushort> xpzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-		NativeArray<byte> xpzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 
 		NativeArray<ushort> vdata;
 		NativeArray<ushort> vxmdata;
@@ -371,79 +361,51 @@ public class Chunk
 		NativeArray<ushort> vxmzpdata;
 		NativeArray<ushort> vxpzmdata;
 		NativeArray<ushort> vxpzpdata;
-		NativeArray<byte> vlight;
-		NativeArray<byte> vxmlight;
-		NativeArray<byte> vxplight;
-		NativeArray<byte> vzmlight;
-		NativeArray<byte> vzplight;
-		NativeArray<byte> vxmzmlight;
-		NativeArray<byte> vxmzplight;
-		NativeArray<byte> vxpzmlight;
-		NativeArray<byte> vxpzplight;
 
 		if(Has(this.surroundingVerticalChunks[0]) && this.loader.CanBeDrawn(this.surroundingVerticalChunks[0])){
 			vdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[this.surroundingVerticalChunks[0]].data.GetData());
-			vlight = NativeTools.CopyToNative<byte>(this.loader.chunks[this.surroundingVerticalChunks[0]].data.GetLightMap(this.loader.chunks[this.surroundingVerticalChunks[0]].metadata));
 
 			auxPos = new ChunkPos(pos.x-1, pos.z, pos.y+1);
 			vxmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x+1, pos.z, pos.y+1);
 			vxpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x, pos.z-1, pos.y+1);
 			vzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x, pos.z+1, pos.y+1);
 			vzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x-1, pos.z-1, pos.y+1);
 			vxmzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxmzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x-1, pos.z+1, pos.y+1);
 			vxmzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxmzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x+1, pos.z-1, pos.y+1);
 			vxpzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxpzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x+1, pos.z+1, pos.y+1);
 			vxpzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxpzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			verticalCode = 1;			
 		}
 		else if(Has(this.surroundingVerticalChunks[1]) && this.loader.CanBeDrawn(this.surroundingVerticalChunks[1])){
 			vdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[this.surroundingVerticalChunks[1]].data.GetData());
-			vlight = NativeTools.CopyToNative<byte>(this.loader.chunks[this.surroundingVerticalChunks[1]].data.GetLightMap(this.loader.chunks[this.surroundingVerticalChunks[1]].metadata));
 
 			auxPos = new ChunkPos(pos.x-1, pos.z, pos.y-1);
 			vxmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x+1, pos.z, pos.y-1);
 			vxpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x, pos.z-1, pos.y-1);
 			vzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x, pos.z+1, pos.y-1);
 			vzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x-1, pos.z-1, pos.y-1);
 			vxmzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxmzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x-1, pos.z+1, pos.y-1);
 			vxmzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxmzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x+1, pos.z-1, pos.y-1);
 			vxpzmdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxpzmlight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));
 			auxPos = new ChunkPos(pos.x+1, pos.z+1, pos.y-1);
 			vxpzpdata = NativeTools.CopyToNative<ushort>(this.loader.chunks[auxPos].data.GetData());
-			vxpzplight = NativeTools.CopyToNative<byte>(this.loader.chunks[auxPos].data.GetLightMap(this.loader.chunks[auxPos].metadata));	
 			verticalCode = -1;			
 		}
 		else{
 			vdata = new NativeArray<ushort>(0, Allocator.TempJob);
-			vlight = new NativeArray<byte>(0, Allocator.TempJob);
 
 			vxmdata = new NativeArray<ushort>(0, Allocator.TempJob);
 			vxpdata = new NativeArray<ushort>(0, Allocator.TempJob);
@@ -453,14 +415,6 @@ public class Chunk
 			vxmzpdata = new NativeArray<ushort>(0, Allocator.TempJob);
 			vxpzmdata = new NativeArray<ushort>(0, Allocator.TempJob);
 			vxpzpdata = new NativeArray<ushort>(0, Allocator.TempJob);
-			vxmlight = new NativeArray<byte>(0, Allocator.TempJob);
-			vxplight = new NativeArray<byte>(0, Allocator.TempJob);
-			vzmlight = new NativeArray<byte>(0, Allocator.TempJob);
-			vzplight = new NativeArray<byte>(0, Allocator.TempJob);
-			vxmzmlight = new NativeArray<byte>(0, Allocator.TempJob);
-			vxmzplight = new NativeArray<byte>(0, Allocator.TempJob);
-			vxpzmlight = new NativeArray<byte>(0, Allocator.TempJob);
-			vxpzplight = new NativeArray<byte>(0, Allocator.TempJob);
 		}
 
 		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.data.GetHeightMap());
@@ -473,7 +427,7 @@ public class Chunk
 		auxPos = new ChunkPos(pos.x, pos.z+1, pos.y);
 		NativeArray<byte> zpheightMap = NativeTools.CopyToNative(this.loader.chunks[auxPos].data.GetHeightMap());
 
-		NativeArray<Vector3> extraUV = new NativeArray<Vector3>(4, Allocator.TempJob);
+		NativeList<Vector2> dampnessdata = new NativeList<Vector2>(0, Allocator.TempJob);
 
 		// Threading Job
 		BuildChunkJob bcJob = new BuildChunkJob{
@@ -482,7 +436,6 @@ public class Chunk
 			data = blockdata,
 			state = statedata,
 			hp = hpdata,
-			lightdata = lightdata,
 
 			xmdata = xmdata,
 			xpdata = xpdata,
@@ -492,18 +445,9 @@ public class Chunk
 			xmzpdata = xmzpdata,
 			xpzmdata = xpzmdata,
 			xpzpdata = xpzpdata,
-
-			xmlight = xmlight,
-			xplight = xplight,
-			zmlight = zmlight,
-			zplight = zplight,
-			xmzmlight = xmzmlight,
-			xmzplight = xmzplight,
-			xpzmlight = xpzmlight,
-			xpzplight = xpzplight,
+			dampnessdata = dampnessdata,
 
 			vdata = vdata,
-			vlight = vlight,
 
 			vxmdata = vxmdata,
 			vxpdata = vxpdata,
@@ -513,15 +457,6 @@ public class Chunk
 			vxmzpdata = vxmzpdata,
 			vxpzmdata = vxpzmdata,
 			vxpzpdata = vxpzpdata,
-
-			vxmlight = vxmlight,
-			vxplight = vxplight,
-			vzmlight = vzmlight,
-			vzplight = vzplight,
-			vxmzmlight = vxmzmlight,
-			vxmzplight = vxmzplight,
-			vxpzmlight = vxpzmlight,
-			vxpzplight = vxpzplight,
 
 			heightMap = heightMap,
 			xmheight = xmheightMap,
@@ -538,7 +473,6 @@ public class Chunk
 			renderMap = renderMap,
 			verts = verts,
 			UVs = UVs,
-			lightUV = lightUV,
 			normals = normals,
 			tangents = tangents,
 			normalTris = normalTris,
@@ -554,7 +488,6 @@ public class Chunk
 			cacheCubeUV = cacheCubeUV,
 			cacheCubeNormal = cacheCubeNormal,
 			cacheCubeTangent = cacheCubeTangent,
-			extraUV = extraUV,
 			blockTransparent = BlockEncyclopediaECS.blockTransparent,
 			objectTransparent = BlockEncyclopediaECS.objectTransparent,
 			blockSeamless = BlockEncyclopediaECS.blockSeamless,
@@ -666,12 +599,12 @@ public class Chunk
 			vCount = verts.Length,
 			canRain = BiomeHandler.BiomeToDampness(this.biomeName),
 			heightMap = heightMap,
+			dampnessdata = dampnessdata,
 
 			meshVerts = verts,
 			meshTris = assetTris,
 			meshSolidTris = assetSolidTris,
 			meshUVs = UVs,
-			meshLightUV = lightUV,
 			meshNormals = normals,
 			meshTangents = tangents,
 			hitboxVerts = hitboxVerts,
@@ -687,7 +620,6 @@ public class Chunk
 			blockCodes = blockCodes,
 			blockdata = blockdata,
 			metadata = statedata,
-			lightdata = lightdata,
 
 			vertsOffset = vertsOffset,
 			trisOffset = trisOffset,
@@ -711,7 +643,7 @@ public class Chunk
 
 		BuildDecalMesh(decalVerts.AsArray(), decalUVs.AsArray(), decalTris);
 		BuildHitboxMesh(hitboxVerts.AsArray(), hitboxNormals.AsArray(), hitboxTriangles);
-		BuildMesh(verts, normalTris, specularTris, liquidTris, assetTris, assetSolidTris, leavesTris, iceTris, lavaTris, UVs, lightUV, normals, tangents);
+		BuildMesh(verts, normalTris, specularTris, liquidTris, assetTris, assetSolidTris, leavesTris, iceTris, lavaTris, UVs, dampnessdata, normals, tangents);
 
 
 		// Dispose Bin
@@ -733,7 +665,6 @@ public class Chunk
 		cacheCubeNormal.Dispose();
 		cacheCubeTangent.Dispose();
 		cacheCubeUV.Dispose();
-		extraUV.Dispose();
 		loadCodeList.Dispose();
 		blockCodes.Dispose();
 		vertsOffset.Dispose();
@@ -751,8 +682,6 @@ public class Chunk
 		tangents.Dispose();
 		scaleOffset.Dispose();
 		rotationOffset.Dispose();
-		lightUV.Dispose();
-		lightdata.Dispose();
 		loadedHitboxVerts.Dispose();
 		loadedHitboxNormals.Dispose();
 		loadedHitboxTriangles.Dispose();
@@ -766,9 +695,9 @@ public class Chunk
 		decalTris.Dispose();
 		decalVerts.Dispose();
 		decalUVs.Dispose();
+		dampnessdata.Dispose();
 
 		vdata.Dispose();
-		vlight.Dispose();
 
 		xmdata.Dispose();
 		xpdata.Dispose();
@@ -785,15 +714,6 @@ public class Chunk
 		zmheightMap.Dispose();
 		zpheightMap.Dispose();
 
-		xmlight.Dispose();
-		xplight.Dispose();
-		zmlight.Dispose();
-		zplight.Dispose();
-		xmzmlight.Dispose();
-		xmzplight.Dispose();
-		xpzmlight.Dispose();
-		xpzplight.Dispose();
-
 		vxmdata.Dispose();
 		vxpdata.Dispose();
 		vzmdata.Dispose();
@@ -802,15 +722,6 @@ public class Chunk
 		vxmzpdata.Dispose();
 		vxpzmdata.Dispose();
 		vxpzpdata.Dispose();
-
-		vxmlight.Dispose();
-		vxplight.Dispose();
-		vzmlight.Dispose();
-		vzplight.Dispose();
-		vxmzmlight.Dispose();
-		vxmzplight.Dispose();
-		vxpzmlight.Dispose();
-		vxpzplight.Dispose();
 
 		// Dispose Asset Cache
 		this.cacheCodes.Clear();
@@ -838,7 +749,7 @@ public class Chunk
     }
 
     // Builds meshes from verts, UVs and tris from different layers
-    private void BuildMesh(NativeList<Vector3> vertices, NativeList<int> tris, NativeList<int> specularTris, NativeList<int> liquidTris, NativeList<int> assetTris, NativeList<int> assetSolidTris, NativeList<int> leavesTris, NativeList<int> iceTris, NativeList<int> lavaTris, NativeList<Vector2> UVs, NativeList<Vector3> lightUV, NativeList<Vector3> normals, NativeList<Vector4> tangents){
+    private void BuildMesh(NativeList<Vector3> vertices, NativeList<int> tris, NativeList<int> specularTris, NativeList<int> liquidTris, NativeList<int> assetTris, NativeList<int> assetSolidTris, NativeList<int> leavesTris, NativeList<int> iceTris, NativeList<int> lavaTris, NativeList<Vector2> UVs, NativeList<Vector2> dampness, NativeList<Vector3> normals, NativeList<Vector4> tangents){
     	Vector3[] verts = NativeTools.CopyToManaged(vertices.AsArray());
     	int[] T = NativeTools.CopyToManaged(tris.AsArray());
     	int[] iceT = NativeTools.CopyToManaged(iceTris.AsArray());
@@ -847,7 +758,7 @@ public class Chunk
     	this.meshData.SetData(verts, T, NativeTools.CopyToManaged(specularTris.AsArray()),
     		NativeTools.CopyToManaged(liquidTris.AsArray()), NativeTools.CopyToManaged(assetTris.AsArray()), assetSolidT,
     		NativeTools.CopyToManaged(leavesTris.AsArray()), iceT, NativeTools.CopyToManaged(lavaTris.AsArray()),
-    		NativeTools.CopyToManaged(UVs.AsArray()), NativeTools.CopyToManaged(lightUV.AsArray()), NativeTools.CopyToManaged(normals.AsArray()),
+    		NativeTools.CopyToManaged(UVs.AsArray()), NativeTools.CopyToManaged(dampness.AsArray()), NativeTools.CopyToManaged(normals.AsArray()),
     		NativeTools.CopyToManaged(tangents.AsArray())
     	);
 
