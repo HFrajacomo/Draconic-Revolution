@@ -8,8 +8,8 @@ public abstract class BaseAmbientPreset{
 	private static Dictionary<AmbientGroup, BaseAmbientPreset> presets = new Dictionary<AmbientGroup, BaseAmbientPreset>();
 
 	// Constants
-	protected static readonly float SURFACE_LIGHT_LUMINOSITY_DAY = 4f;
-	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = .8f;
+	protected static readonly float SURFACE_LIGHT_LUMINOSITY_DAY = 100000f;
+	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = .5f;
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_ZERO = 0f;
 	protected static readonly Color SURFACE_LIGHT_COLOR_DAY = Color.white;
 	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(.75f, .75f, .75f, 1f);
@@ -27,7 +27,7 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float FOG_ATTENUATION_NIGHT = 7f;
 	protected static readonly float FOG_MAX_HEIGHT_SURFACE = 920f;
 	protected static readonly float FOG_BASE_ANISOTROPY = 0.2f;
-	protected static readonly float EXPOSURE_COMPENSATION_NEUTRAL = -0.5f;
+	protected static readonly float EXPOSURE_COMPENSATION_NEUTRAL = 0f;
 	protected static readonly float STAR_MAP_MULTIPLIER_DAY = 0f;
 	protected static readonly float STAR_MAP_MULTIPLIER_NIGHT = 1f;
 	protected static readonly float STAR_MAP_X_ROTATION_BEGIN = 0f;
