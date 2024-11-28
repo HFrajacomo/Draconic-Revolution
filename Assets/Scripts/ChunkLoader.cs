@@ -52,7 +52,6 @@ public class ChunkLoader : MonoBehaviour
     public SFXLoader sfx;
     public AudioListener playerAudioListener;
     public PlayerPositionHandler playerPositionHandler;
-    public VoxelLightHandler voxelLightHandler;
 
     // Initialization
     public GameObject playerCharacter;

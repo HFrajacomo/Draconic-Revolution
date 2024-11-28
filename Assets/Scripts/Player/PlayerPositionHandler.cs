@@ -10,7 +10,6 @@ public class PlayerPositionHandler : MonoBehaviour
     public Transform playerTransform;
     public ChunkLoader cl;
     public AudioReverbZone reverb;
-    public VoxelLightHandler voxelLightHandler;
     public PlayerSheetController playerSheetController;
 
     // Position Stuff
@@ -86,7 +85,6 @@ public class PlayerPositionHandler : MonoBehaviour
         CalculateDistances();
         SetReverbSpecs();
         SetChunkLoaderChunkPos();
-        UpdateVoxelLightPosition();
 
         this.lastPos = this.playerTransform.position;
         this.lastRot = this.playerTransform.eulerAngles;
@@ -125,12 +123,6 @@ public class PlayerPositionHandler : MonoBehaviour
 
     public Vector3 GetPlayerWorldPosition(){
         return this.playerTransform.position;
-    }
-
-    private void UpdateVoxelLightPosition(){
-        if(this.playerSheetController.IsEnabled()){
-            this.voxelLightHandler.Add(new EntityID(EntityType.PLAYER, Configurations.accountID), this.GetPlayerWorldPosition(), this.playerSheetController.GetVoxelLightIntensity(), priority:true);
-        }
     }
 
     private void RenewPositionalInformation(){

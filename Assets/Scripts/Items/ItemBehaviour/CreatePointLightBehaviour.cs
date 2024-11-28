@@ -26,7 +26,6 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 		cl.playerSheetController.Enable(this.realisticLight);
 
 		cl.playerSheetController.SetVoxelLightIntensity(this.voxelLightIntensity);
-		cl.voxelLightHandler.Add(id, cl.playerPositionHandler.playerTransform.position, this.voxelLightIntensity, priority:true);
 		cl.sfx.LoadEntitySFX(this.audioName, id);
 	}
 
@@ -34,7 +33,6 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 		EntityID id = new EntityID(EntityType.PLAYER, playerCode);
 
 		cl.playerSheetController.Disable(this.realisticLight);
-		cl.voxelLightHandler.Remove(id);
 		cl.sfx.RemoveEntitySFX(id);
 	}
 
@@ -55,7 +53,6 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 		light.enabled = true;
 		realLight.enabled = this.realisticLight;
 
-		cl.voxelLightHandler.Add(id, go.transform.position, this.voxelLightIntensity);
 		cl.sfx.LoadEntitySFX(this.audioName, id);
 	}
 
@@ -70,7 +67,6 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 		light.enabled = false;
 		realLight.enabled = false;
 
-		cl.voxelLightHandler.Remove(id);
 		cl.sfx.RemoveEntitySFX(id);
 	}
 }
