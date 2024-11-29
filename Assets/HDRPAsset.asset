@@ -313,8 +313,8 @@ MonoBehaviour:
       - 0.5
     gpuResidentDrawerSettings:
       mode: 0
-      smallMeshScreenPercentage: 0
-      enableOcclusionCullingInCameras: 0
+      smallMeshScreenPercentage: 10
+      enableOcclusionCullingInCameras: 1
       useDepthPrepassForOccluders: 1
     m_ObsoleteLightLayerName0: 
     m_ObsoleteLightLayerName1: 

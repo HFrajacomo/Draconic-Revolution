@@ -12,7 +12,7 @@ public struct PrepareAssetsJob : IJob{
 
 	// Output
 	public NativeList<Vector3> meshVerts;
-	public NativeList<Vector2> meshUVs;
+	public NativeList<Vector3> meshUVs;
 	public NativeList<int> meshTris;
 	public NativeList<int> meshSolidTris;
 	public NativeList<Vector3> meshNormals;
@@ -56,6 +56,8 @@ public struct PrepareAssetsJob : IJob{
 	public NativeParallelHashMap<int, Vector3> inplaceOffset;
 	[ReadOnly]
 	public NativeParallelHashMap<int, int2> inplaceRotation;
+	[ReadOnly]
+	public NativeArray<int> objectTiles;
 
 	// Loaded Mesh Data
 	[ReadOnly]
@@ -143,7 +145,8 @@ public struct PrepareAssetsJob : IJob{
 
 			// UVs
 			for(int UVIndex=UVOffset[i]; UVIndex < UVOffset[i+1]; UVIndex++){
-				meshUVs.Add(loadedUV[UVIndex]);
+				int code = blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
+				meshUVs.Add(new Vector3(loadedUV[UVIndex].x, loadedUV[UVIndex].y, objectTiles[ushort.MaxValue - code]));
 			}
 
 			// Triangles

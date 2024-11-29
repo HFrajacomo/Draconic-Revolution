@@ -324,12 +324,12 @@ public class Chunk
 		NativeList<int> assetTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<int> assetSolidTris = new NativeList<int>(0, Allocator.TempJob);
 		NativeList<Vector3> verts = new NativeList<Vector3>(0, Allocator.TempJob);
-		NativeList<Vector2> UVs = new NativeList<Vector2>(0, Allocator.TempJob);
+		NativeList<Vector3> UVs = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector3> lightUV = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector3> normals = new NativeList<Vector3>(0, Allocator.TempJob);
 		NativeList<Vector4> tangents = new NativeList<Vector4>(0, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeVert = new NativeArray<Vector3>(4, Allocator.TempJob);
-		NativeArray<Vector2> cacheCubeUV = new NativeArray<Vector2>(4, Allocator.TempJob);
+		NativeArray<Vector3> cacheCubeUV = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector3> cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.TempJob);
 		NativeArray<Vector4> cacheCubeTangent = new NativeArray<Vector4>(4, Allocator.TempJob);
 
@@ -570,9 +570,7 @@ public class Chunk
 			blockTiles = BlockEncyclopediaECS.blockTiles,
 			blockDrawRegardless = BlockEncyclopediaECS.blockDrawRegardless,
 			blockHP = BlockEncyclopediaECS.blockHP,
-			objectHP = BlockEncyclopediaECS.objectHP,
-
-			atlasSize = BlockEncyclopediaECS.atlasSize
+			objectHP = BlockEncyclopediaECS.objectHP
 		};
 		JobHandle job = bcJob.Schedule();
 
@@ -682,6 +680,7 @@ public class Chunk
 			material = BlockEncyclopediaECS.objectMaterial,
 			inplaceOffset = scaleOffset,
 			inplaceRotation = rotationOffset,
+			objectTiles = BlockEncyclopediaECS.objectTiles,
 
 			coords = loadAssetList,
 			blockCodes = blockCodes,
@@ -838,7 +837,7 @@ public class Chunk
     }
 
     // Builds meshes from verts, UVs and tris from different layers
-    private void BuildMesh(NativeList<Vector3> vertices, NativeList<int> tris, NativeList<int> specularTris, NativeList<int> liquidTris, NativeList<int> assetTris, NativeList<int> assetSolidTris, NativeList<int> leavesTris, NativeList<int> iceTris, NativeList<int> lavaTris, NativeList<Vector2> UVs, NativeList<Vector3> lightUV, NativeList<Vector3> normals, NativeList<Vector4> tangents){
+    private void BuildMesh(NativeList<Vector3> vertices, NativeList<int> tris, NativeList<int> specularTris, NativeList<int> liquidTris, NativeList<int> assetTris, NativeList<int> assetSolidTris, NativeList<int> leavesTris, NativeList<int> iceTris, NativeList<int> lavaTris, NativeList<Vector3> UVs, NativeList<Vector3> lightUV, NativeList<Vector3> normals, NativeList<Vector4> tangents){
     	Vector3[] verts = NativeTools.CopyToManaged(vertices.AsArray());
     	int[] T = NativeTools.CopyToManaged(tris.AsArray());
     	int[] iceT = NativeTools.CopyToManaged(iceTris.AsArray());

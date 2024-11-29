@@ -194,24 +194,7 @@ MonoBehaviour:
       - rid: 7660306889711288445
       - rid: 7660306416950837250
     m_RuntimeSettings:
-      m_List:
-      - rid: 8499626401260634113
-      - rid: 8499626401260634114
-      - rid: 8499626401260634115
-      - rid: 8499626401260634116
-      - rid: 8499626401260634117
-      - rid: 8499626401260634119
-      - rid: 8499626401260634120
-      - rid: 8499626401260634121
-      - rid: 8499626401260634122
-      - rid: 8499626401260634123
-      - rid: 8499626401260634127
-      - rid: 8499626401260634128
-      - rid: 8499626401260634135
-      - rid: 8499626401260634138
-      - rid: 8499626401260634139
-      - rid: 7660306416950837248
-      - rid: 7660306416950837250
+      m_List: []
   renderingLayerNames:
   - Light Layer default
   - Light Layer 1
@@ -1152,7 +1135,7 @@ MonoBehaviour:
         asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
         m_Version: 0
-        m_DynamicRenderPassCulling: 0
+        m_DynamicRenderPassCulling: 1
     - rid: 8499626401260634135
       type: {class: RenderGraphUtilsResources, ns: UnityEngine.Rendering.RenderGraphModule.Util,
         asm: Unity.RenderPipelines.Core.Runtime}

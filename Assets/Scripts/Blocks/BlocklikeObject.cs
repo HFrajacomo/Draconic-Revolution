@@ -31,6 +31,10 @@ public class BlocklikeObject
 	public ushort maxHP;
 	public bool indestructible;
 
+	// Texture tile code
+	public string texture;
+	private int textureID;
+
 	// Behaviours
 	private ModelIdentityBehaviour modelIdentity;
 	private VoxelBehaviour onBlockUpdate;
@@ -50,6 +54,12 @@ public class BlocklikeObject
 	public MeshData GetMeshData(){return this.modelIdentity.GetMeshData();}
 	public void SetMeshData(MeshData meshData){this.modelIdentity.SetMeshData(meshData);}
 	public string GetTextureName(){return this.modelIdentity.GetTextureName();}
+	public int GetTexture(){return this.textureID;}
+
+    public void SetupTextureIDs(){
+    	if(this.texture != null)
+    		this.textureID = VoxelLoader.GetTextureID(this.texture);
+    }
 
     // Handles the emittion of BUD to neighboring blocks
     public void EmitBlockUpdate(BUDCode type, int x, int y, int z, int tickOffset, ChunkLoader_Server cl){

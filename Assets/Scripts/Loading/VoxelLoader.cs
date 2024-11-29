@@ -35,13 +35,10 @@ public class VoxelLoader : BaseLoader {
 	private static Dictionary<string, int> codenameToTexID = new Dictionary<string, int>();
 	private static Dictionary<string, float> texnameToNormalIntensity = new Dictionary<string, float>();
 
-	// Atlas
-	private static Dictionary<ShaderIndex, Texture2D> textureAtlas = new Dictionary<ShaderIndex, Texture2D>();
-	private static Dictionary<ShaderIndex, Texture2D> normalAtlas = new Dictionary<ShaderIndex, Texture2D>();
-	private static Dictionary<ShaderIndex, Texture2D> pbrAtlas = new Dictionary<ShaderIndex, Texture2D>();
-	
-	// Atlas Sizes
-	private static int2[] atlasSize;
+	// Final Array
+	private static Dictionary<ShaderIndex, Texture2DArray> textureArray = new Dictionary<ShaderIndex, Texture2DArray>();
+	private static Dictionary<ShaderIndex, Texture2DArray> normalArray = new Dictionary<ShaderIndex, Texture2DArray>();
+	private static Dictionary<ShaderIndex, Texture2DArray> pbrArray = new Dictionary<ShaderIndex, Texture2DArray>();
 
 	// Block Book
 	private static Blocks[] blockBook;
@@ -87,13 +84,15 @@ public class VoxelLoader : BaseLoader {
 	public static void SetAtlasTextures(ChunkRenderer rend){
 		Material[] materials = rend.GetComponent<MeshRenderer>().sharedMaterials;
 
-		materials[(int)ShaderIndex.OPAQUE].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.OPAQUE]);
-		materials[(int)ShaderIndex.OPAQUE].SetTexture("_NormalAtlas", normalAtlas[ShaderIndex.OPAQUE]);
-		materials[(int)ShaderIndex.OPAQUE].SetTexture("_PBRAtlas", pbrAtlas[ShaderIndex.OPAQUE]);
-		materials[(int)ShaderIndex.LEAVES].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.LEAVES]);
-		materials[(int)ShaderIndex.LEAVES].SetTexture("_PBRAtlas", pbrAtlas[ShaderIndex.LEAVES]);
-		materials[(int)ShaderIndex.ASSETS].SetTexture("_TextureAtlas", textureAtlas[ShaderIndex.ASSETS]);
-		materials[(int)ShaderIndex.ASSETS].SetTexture("_PBRAtlas", pbrAtlas[ShaderIndex.ASSETS]);
+		materials[(int)ShaderIndex.OPAQUE].SetTexture("_TextureArray", textureArray[ShaderIndex.OPAQUE]);
+		materials[(int)ShaderIndex.OPAQUE].SetTexture("_NormalArray", normalArray[ShaderIndex.OPAQUE]);
+		materials[(int)ShaderIndex.OPAQUE].SetTexture("_PBRArray", pbrArray[ShaderIndex.OPAQUE]);
+		materials[(int)ShaderIndex.LEAVES].SetTexture("_TextureArray", textureArray[ShaderIndex.LEAVES]);
+		materials[(int)ShaderIndex.LEAVES].SetTexture("_PBRArray", pbrArray[ShaderIndex.LEAVES]);
+		materials[(int)ShaderIndex.ASSETS].SetTexture("_TextureArray", textureArray[ShaderIndex.ASSETS]);
+		materials[(int)ShaderIndex.ASSETS].SetTexture("_PBRArray", pbrArray[ShaderIndex.ASSETS]);
+		materials[(int)ShaderIndex.ASSETS_SOLID].SetTexture("_TextureArray", textureArray[ShaderIndex.ASSETS_SOLID]);
+		materials[(int)ShaderIndex.ASSETS_SOLID].SetTexture("_PBRArray", pbrArray[ShaderIndex.ASSETS_SOLID]);
 
 		rend.GetComponent<MeshRenderer>().sharedMaterials = materials;
 	}
@@ -133,10 +132,6 @@ public class VoxelLoader : BaseLoader {
             BlockEncyclopediaECS.objectWashable[i] = objectBook[i].washable;
             BlockEncyclopediaECS.objectAffectLight[i] = objectBook[i].affectLight;
             BlockEncyclopediaECS.objectLuminosity[i] = objectBook[i].luminosity;
-        }
-
-        for(int i=0; i < atlasSize.Length; i++){
-        	BlockEncyclopediaECS.atlasSize[i] = atlasSize[i];
         }
 	}
 
@@ -228,14 +223,9 @@ public class VoxelLoader : BaseLoader {
 
 
 	private void InitAtlases(){
-		int numOfShaders = 0;
-
 		foreach(ShaderIndex atlas in (ShaderIndex[])Enum.GetValues(typeof(ShaderIndex))){
 			atlasTextureNames.Add(atlas, new List<string>());
-			numOfShaders++;
 		}
-
-		atlasSize = new int2[numOfShaders];
 	}
 
 	private void ParseBlockList(){
@@ -371,11 +361,9 @@ public class VoxelLoader : BaseLoader {
 	}
 
 	public void RunPostDeserializationRoutine(){
-		int2 atSize;
 		List<Vector2> objUV;
 		MeshData meshData;
 		int texCode;
-		float u, v;
 
 		foreach(Blocks b in blockBook){
 			b.SetupAfterSerialize(isClient);
@@ -385,20 +373,13 @@ public class VoxelLoader : BaseLoader {
 			objUV = new List<Vector2>();
 			texCode = codenameToTexID[b.codename];
 			b.SetupAfterSerialize(isClient);
+			b.SetupTextureIDs();
 
 			if(isClient){
 				meshData = b.GetMeshData();
 				meshData.GetUVs(objUV);
 
-				atSize = atlasSize[(int)b.shaderIndex];
 				texCode = codenameToTexID[b.codename]; 
-
-				for(int i=0; i < objUV.Count; i++){
-					u = Mathf.Lerp((texCode%atSize.x)*(1f/atSize.x), ((texCode%atSize.x)*(1f/atSize.x))+(1f/atSize.x), objUV[i].x);
-					v = Mathf.Lerp((int)(texCode/atSize.x)*(1f/atSize.y), ((int)(texCode/atSize.x)*(1f/atSize.y))+(1f/atSize.y), objUV[i].y);
-
-					objUV[i] = new Vector2(u, v);
-				}
 
 				meshData = meshData.SetUVs(objUV);
 				b.SetMeshData(meshData);
@@ -478,27 +459,22 @@ public class VoxelLoader : BaseLoader {
 			}
 		
 			// Get Atlas Sizes
-			int a, b;
 			int count = 0;
 
-
-			TweakAtlasValues(textures.Count, out a, out b);
-			atlasSize[(int)shader] = new int2(a, b);
-
-			textureAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
-			textureAtlas[shader].filterMode = FilterMode.Point;
-			normalAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
-			normalAtlas[shader].filterMode = FilterMode.Point;
-			pbrAtlas.Add(shader, new Texture2D(a*TEXTURE_SIZE, b*TEXTURE_SIZE));
-			pbrAtlas[shader].filterMode = FilterMode.Point;
+			textureArray.Add(shader, new Texture2DArray(TEXTURE_SIZE, TEXTURE_SIZE, Mathf.Max(1, textures.Count), TextureFormat.RGBA32, true));
+			textureArray[shader].filterMode = FilterMode.Point;
+			normalArray.Add(shader, new Texture2DArray(TEXTURE_SIZE, TEXTURE_SIZE, Mathf.Max(1, textures.Count), TextureFormat.RGBA32, true));
+			normalArray[shader].filterMode = FilterMode.Point;
+			pbrArray.Add(shader, new Texture2DArray(TEXTURE_SIZE, TEXTURE_SIZE, Mathf.Max(1, textures.Count), TextureFormat.RGBA32, true));
+			pbrArray[shader].filterMode = FilterMode.Point;
 
 			// Build Atlas and Normals
 			foreach(Texture2D tex2d in textures){
 				if(texnameToNormalIntensity.ContainsKey(tex2d.name)){
-					AddImageToAtlas(textureAtlas[shader], normalAtlas[shader], tex2d, texnameToNormalIntensity[tex2d.name], TEXTURE_SIZE, a, b, count);
+					AddImageToAtlas(textureArray[shader], normalArray[shader], tex2d, texnameToNormalIntensity[tex2d.name], TEXTURE_SIZE, count);
 				}
 				else{
-					AddImageToAtlas(textureAtlas[shader], normalAtlas[shader], tex2d, 1f, TEXTURE_SIZE, a, b, count);	
+					AddImageToAtlas(textureArray[shader], normalArray[shader], tex2d, 1f, TEXTURE_SIZE,count);	
 				}
 
 				count++;
@@ -507,75 +483,54 @@ public class VoxelLoader : BaseLoader {
 			count = 0;
 
 			foreach(Texture2D tex2d in pbrTextures){
-				AddImageToPBR(pbrAtlas[shader], tex2d, TEXTURE_SIZE, a, b, count);
+				AddImageToPBR(pbrArray[shader], tex2d, TEXTURE_SIZE, count);
 				count++;
 			}
 
 			currentTexID = 0;
 			textures.Clear();
 			pbrTextures.Clear();
+
+			textureArray[shader].Apply();
+			normalArray[shader].Apply();
+			pbrArray[shader].Apply();
 		}
 	}
 
-	private void AddImageToAtlas(Texture2D main, Texture2D normalMain, Texture2D tex2d, float normalIntensity, int TEXTURE_SIZE, int a, int b, int count){
-		Color[] pixels, normalPixels;
-		int xOffset, yOffset;
-
+	private void AddImageToAtlas(Texture2DArray main, Texture2DArray normalMain, Texture2D tex2d, float normalIntensity, int TEXTURE_SIZE, int count){
 		RenderTexture rendTex = RenderTexture.GetTemporary(TEXTURE_SIZE, TEXTURE_SIZE, 0, RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
 		Graphics.Blit(tex2d, rendTex);
 	    RenderTexture previous = RenderTexture.active;
 	    RenderTexture.active = rendTex;
 
-		Texture2D final = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, 4, false);
+		Texture2D final = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, false, false);
 		final.wrapMode = TextureWrapMode.Clamp;
 	    final.ReadPixels(new Rect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE), 0, 0);
 	    final.Apply();
 	    RenderTexture.active = previous;
 	    RenderTexture.ReleaseTemporary(rendTex);
 
-		pixels = final.GetPixels();
+		Texture2D finalNormal = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, false, false);
 
-		Texture2D finalNormal = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, 4, false);
-		finalNormal.wrapMode = TextureWrapMode.Clamp;
-		finalNormal.ReadPixels(new Rect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE), 0, 0);
-		finalNormal.Apply();
-
-    	xOffset = (count % a) * TEXTURE_SIZE;
-    	yOffset = (int)(count / a) * TEXTURE_SIZE;
-    	main.SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, pixels);
-
-		CalculateNormalMap(final, pixels, finalNormal, normalIntensity);
-
-		normalPixels = finalNormal.GetPixels();
-    	normalMain.SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, normalPixels);
-
-    	main.Apply();
-    	normalMain.Apply();
+		main.SetPixels(final.GetPixels(), count);
+		CalculateNormalMap(final, final.GetPixels(), finalNormal, normalIntensity);
+		normalMain.SetPixels(finalNormal.GetPixels(), count);
 	}
 
-	private void AddImageToPBR(Texture2D main, Texture2D tex2d, int TEXTURE_SIZE, int a, int b, int count){
-		Color[] pixels;
-		int xOffset, yOffset;
-
+	private void AddImageToPBR(Texture2DArray main, Texture2D tex2d, int TEXTURE_SIZE, int count){
 		RenderTexture rendTex = RenderTexture.GetTemporary(TEXTURE_SIZE, TEXTURE_SIZE, 0, RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
 		Graphics.Blit(tex2d, rendTex);
 	    RenderTexture previous = RenderTexture.active;
 	    RenderTexture.active = rendTex;
 
-		Texture2D final = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, 4, false);
+		Texture2D final = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, false, false);
 		final.wrapMode = TextureWrapMode.Clamp;
 	    final.ReadPixels(new Rect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE), 0, 0);
 	    final.Apply();
 	    RenderTexture.active = previous;
 	    RenderTexture.ReleaseTemporary(rendTex);
 
-		pixels = final.GetPixels();
-
-    	xOffset = (count % a) * TEXTURE_SIZE;
-    	yOffset = (int)(count / a) * TEXTURE_SIZE;
-    	main.SetPixels(xOffset, yOffset, TEXTURE_SIZE, TEXTURE_SIZE, pixels);
-
-		main.Apply();
+		main.SetPixels(final.GetPixels(), count);
 	}
 
     private void CalculateNormalMap(Texture2D source, Color[] pixels, Texture2D dest, float strength){
@@ -605,85 +560,6 @@ public class VoxelLoader : BaseLoader {
 
 	    return pixel.grayscale;
     }
-
-	private void TweakAtlasValues(int n, out int a, out int b){
-		a = GetClosestSquare(n);
-		b = a;
-
-		int mainDiff = (a*b) - n;
-		int maxAcceptableDiff = GetMaxDiffVal(n);
-
-		int bestA = a;
-		int bestB = b;
-		int bestDiff = mainDiff;
-		int diff;
-
-
-		if(CheckValidVal(a) && CheckValidVal(b) && mainDiff <= maxAcceptableDiff)
-			return;
-
-		while(a > 2 || b <= Mathf.CeilToInt(n/2)+1){
-			if(!CheckValidVal(a)){
-				a--;
-				continue;
-			}
-			if(!CheckValidVal(b)){
-				b++;
-				continue;
-			}
-
-			diff = (a*b) - n;
-
-			if(diff == 0)
-				return;
-			if(diff > 0 && diff <= maxAcceptableDiff)
-				return;
-			if(diff > 0 && diff <= bestDiff){
-				bestDiff = diff;
-				bestA = a;
-				bestB = b;
-			}
-
-			if(diff > 0){
-				a--;
-				continue;
-			}
-			else{
-				b++;
-				continue;
-			}
-		}
-
-		if(CheckValidVal(n)){
-			a = 1;
-			b = n;
-		}
-
-		a = bestA;
-		b = bestB;
-	}
-
-
-	private int GetClosestSquare(int num){
-		return Mathf.CeilToInt(Mathf.Sqrt(num));
-	}
-
-	private int GetMaxDiffVal(int n){
-		if(n <= 12)
-			return Mathf.CeilToInt(n*0.35f);
-		else if(n <= 100)
-			return Mathf.CeilToInt(n*0.18f);
-		else
-			return Mathf.CeilToInt(n*0.08f);
-	}
-
-	private bool CheckValidVal(int val){
-		if(val == 1)
-			return true;
-		if(val%3 == 0 || val%7 == 0 || val%9 == 0 || val%11 == 0 || val%13 == 0 || val%17 == 0 || val%19 == 0 || val%23 == 0 || (val%2 == 1 && val%5 != 0))
-			return false;
-		return true;
-	}
 
     private void SetPrefabPersistance(){
     	Object.DontDestroyOnLoad(prefabObjects); 

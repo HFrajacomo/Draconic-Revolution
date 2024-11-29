@@ -6,7 +6,7 @@ using Unity.Mathematics;
 public struct MeshDataBuild{
 	// Mesh Data
 	public Vector3[] vertices;
-	public Vector2[] UVs;
+	public Vector3[] UVs;
 	public int[] tris;
 	public int[] specularTris;
 	public int[] liquidTris;
@@ -38,7 +38,7 @@ public struct MeshDataBuild{
 	// Load Coord List
 	public int3[] loadList;
 
-	public void SetData(Vector3[] vertices, int[] tris, int[] specularTris, int[] liquidTris, int[] assetTris, int[] assetSolidTris, int[] leavesTris, int[] iceTris, int[] lavaTris, Vector2[] UVs, Vector3[] lightUV, Vector3[] normals, Vector4[] tangents){
+	public void SetData(Vector3[] vertices, int[] tris, int[] specularTris, int[] liquidTris, int[] assetTris, int[] assetSolidTris, int[] leavesTris, int[] iceTris, int[] lavaTris, Vector3[] UVs, Vector3[] lightUV, Vector3[] normals, Vector4[] tangents){
     	this.vertices = vertices;
 		this.UVs = UVs;
 		this.tris = tris;

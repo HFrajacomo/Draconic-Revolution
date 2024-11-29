@@ -122,7 +122,7 @@ public struct BuildChunkJob : IJob{
 
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
-	public NativeList<Vector2> UVs;
+	public NativeList<Vector3> UVs;
 	public NativeList<Vector3> lightUV;
 	public NativeList<Vector3> normals;
 	public NativeList<Vector4> tangents;
@@ -142,7 +142,7 @@ public struct BuildChunkJob : IJob{
 
 	// Cache
 	public NativeArray<Vector3> cacheCubeVert;
-	public NativeArray<Vector2> cacheCubeUV;
+	public NativeArray<Vector3> cacheCubeUV;
 	public NativeArray<Vector3> extraUV;
 	public NativeArray<Vector3> cacheCubeNormal;
 	public NativeArray<Vector4> cacheCubeTangent;
@@ -180,10 +180,6 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<ushort> blockHP;
 	[ReadOnly]
 	public NativeArray<ushort> objectHP;
-
-	// Atlas Information
-	[ReadOnly]
-	public NativeArray<int2> atlasSize;
 
 
 	public void Execute(){
@@ -932,7 +928,7 @@ public struct BuildChunkJob : IJob{
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
     // Load is true when Chunk is being loaded and not reloaded
     // Returns true if loaded a blocktype mesh and false if it's an asset to be loaded later
-    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector2> cacheCubeUV, NativeArray<Vector3> cacheCubeNormal, bool isSurfaceBlock, int lookahead=0){
+    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector3> cacheCubeUV, NativeArray<Vector3> cacheCubeNormal, bool isSurfaceBlock, int lookahead=0){
     	ShaderIndex renderThread;
 
     	if(blockCode <= ushort.MaxValue/2)
@@ -1271,7 +1267,7 @@ public struct BuildChunkJob : IJob{
     }
 
 	// Sets UV mapping for a direction
-	private void AddTexture(NativeArray<Vector2> array, int dir, ushort blockCode){
+	private void AddTexture(NativeArray<Vector3> array, int dir, ushort blockCode){
 		int textureID;
 
 		if(dir == 4)
@@ -1281,62 +1277,21 @@ public struct BuildChunkJob : IJob{
 		else
 			textureID = blockTiles[blockCode].z;
 
-		// If should use normal atlas
-		if(blockMaterial[blockCode] == ShaderIndex.OPAQUE){
-			int atlasX = atlasSize[(int)ShaderIndex.OPAQUE].x;
-			int atlasY = atlasSize[(int)ShaderIndex.OPAQUE].y;
-			float x = textureID%atlasX;
-			float y = Mathf.FloorToInt(textureID/atlasX);
-
-			x *= 1f / atlasX;
-			y *= 1f / atlasY;
-
-			array[0] = new Vector2(x,y+(1f/atlasY));
-			array[1] = new Vector2(x+(1f/atlasX),y+(1f/atlasY));
-			array[2] = new Vector2(x+(1f/atlasX),y);
-			array[3] = new Vector2(x,y);
-		}
-		// If should use transparent atlas
-		else if(blockMaterial[blockCode] == ShaderIndex.SPECULAR){
-			int atlasX = atlasSize[(int)ShaderIndex.SPECULAR].x;
-			int atlasY = atlasSize[(int)ShaderIndex.SPECULAR].y;
-			float x = textureID%atlasX;
-			float y = Mathf.FloorToInt(textureID/atlasX);
-	 
-			x *= 1f / atlasX;
-			y *= 1f / atlasY;
-
-			array[0] = new Vector2(x,y+(1f/atlasY));
-			array[1] = new Vector2(x+(1f/atlasX),y+(1f/atlasY));
-			array[2] = new Vector2(x+(1f/atlasX),y);
-			array[3] = new Vector2(x,y);
-		}
-		// If should use Leaves atlas
-		else if(blockMaterial[blockCode] == ShaderIndex.LEAVES){
-			int atlasX = atlasSize[(int)ShaderIndex.LEAVES].x;
-			int atlasY = atlasSize[(int)ShaderIndex.LEAVES].y;
-			float x = textureID%atlasX;
-			float y = Mathf.FloorToInt(textureID/atlasX);
-	 
-			x *= 1f / atlasX;
-			y *= 1f / atlasY;
-
-			array[0] = new Vector2(x,y+(1f/atlasY));
-			array[1] = new Vector2(x+(1f/atlasX),y+(1f/atlasY));
-			array[2] = new Vector2(x+(1f/atlasX),y);
-			array[3] = new Vector2(x,y);
-		}
+		array[0] = new Vector3(0, 1, textureID);
+		array[1] = new Vector3(1, 1, textureID);
+		array[2] = new Vector3(1, 0, textureID);
+		array[3] = new Vector3(0, 0, textureID);
 	}
 
 	// Gets UV Map for Liquid blocks
-	private void LiquidTexture(NativeArray<Vector2> array, int x, int z){
+	private void LiquidTexture(NativeArray<Vector3> array, int x, int z){
 		int size = Chunk.chunkWidth;
 		int tileSize = 1/size;
 
-		array[0] = new Vector2(x*tileSize,z*tileSize);
-		array[1] = new Vector2(x*tileSize,(z+1)*tileSize);
-		array[2] = new Vector2((x+1)*tileSize,(z+1)*tileSize);
-		array[3] = new Vector2((x+1)*tileSize,z*tileSize);
+		array[0] = new Vector3(x*tileSize,z*tileSize, 0);
+		array[1] = new Vector3(x*tileSize,(z+1)*tileSize, 0);
+		array[2] = new Vector3((x+1)*tileSize,(z+1)*tileSize, 0);
+		array[3] = new Vector3((x+1)*tileSize,z*tileSize, 0);
 	}
 
 	// Cube Mesh Data get verts

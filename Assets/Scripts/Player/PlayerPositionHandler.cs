@@ -134,6 +134,11 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     private void RenewPositionalInformation(){
+        if(this.cl == null)
+            return;
+        if(this.cl.client == null)
+            return;
+
         this.tickCounter--;
 
         coord = new CastCoord(playerTransform.position);
