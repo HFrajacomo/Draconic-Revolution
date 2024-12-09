@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Burst;
+using Random = System.Random;
 
 public abstract class Structure
 {
@@ -20,6 +21,7 @@ public abstract class Structure
 
     public bool considerAir;
     public bool needsBase;
+    public bool randomStates;
 
     public int sizeX, sizeY, sizeZ;
     public int offsetX, offsetZ;
@@ -27,7 +29,7 @@ public abstract class Structure
     // Cache
     private ushort[] decompressedBlocks;
     private ushort[] decompressedHP;
-    private ushort[] decompressedState;
+    private ushort[] decompressedState; 
 
     /*
     0: OverwriteAll
@@ -38,6 +40,8 @@ public abstract class Structure
 
     public HashSet<ushort> overwriteBlocks;
     public HashSet<ushort> acceptableBaseBlocks;
+
+    private static Random rng;
 
 
     /*
@@ -294,11 +298,6 @@ public abstract class Structure
             initStructZ = 0;
 
         initStructY = 0;
-
-        //Debug.Log("MAIN CHUNK: " + pos + "\tStruct: " + this.code + "\n" + "SSizes: " + this.sizeX + ", " + this.sizeY + ", " + this.sizeZ + "\tOffsets: " + this.offsetX + ", " + this.offsetZ +  "\tRemainders: " + xRemainder + ", " + zRemainder
-        // + "\tsPos: " + initStructX + ", " + initStructZ + "\tChunksUsedX: " + 
-        //    minXChunk + "/" + maxXChunk + "\tChunksUsedZ: " + minZChunk + "/" + maxZChunk + "\tRotation: " + rotation + "\tPos: " + mainChunkInitX + ", " + y + ", " + mainChunkInitZ
-        //    + "\tPivot: " + x + ", " + y + ", " + z);
 
         retStatus = ApplyToChunk(pos, true, true, true, cl, VD, VMHP, VMState, mainChunkInitX, y, mainChunkInitZ, xRemainder, zRemainder, yRemainder, initStructX, initStructZ, initStructY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation, isPivoted:true);
 
@@ -697,7 +696,7 @@ public abstract class Structure
                                     VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
                                     VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, cacheX, cacheY, cacheZ, this.meta.GetState(cacheX, cacheY, cacheZ));
 
                                     structZ++;
                                 }
@@ -725,7 +724,7 @@ public abstract class Structure
                                         VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
                                     VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, cacheX, cacheY, cacheZ, this.meta.GetState(cacheX, cacheY, cacheZ));
                                     structZ++;
                                 }
                                 structX++;
@@ -757,7 +756,7 @@ public abstract class Structure
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, cacheX, cacheY, cacheZ, this.meta.GetState(cacheX, cacheY, cacheZ));
 
                                 structZ++;
                             }
@@ -777,7 +776,7 @@ public abstract class Structure
 
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, cacheX, cacheY, cacheZ, this.meta.GetState(cacheX, cacheY, cacheZ));
                                 
                                 structZ++;
                             }
@@ -797,12 +796,12 @@ public abstract class Structure
                                 if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
                                     VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
                                     VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, cacheX, cacheY, cacheZ, this.meta.GetState(cacheX, cacheY, cacheZ));
                                 }
                                 else{
                                     VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                                     VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, cacheX, cacheY, cacheZ, this.meta.GetState(cacheX, cacheY, cacheZ));
                                 }
                                 structZ++;
                             }
@@ -836,7 +835,7 @@ public abstract class Structure
                                     VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
 
                                     VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, x, y, z, this.meta.GetState(cacheX, cacheY, cacheZ));
                                 }
                                 structZ++;
                             }
@@ -861,7 +860,7 @@ public abstract class Structure
 
                                     shouldDrawNeighbors = true;
                                     VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, x, y, z, this.meta.GetState(cacheX, cacheY, cacheZ));
                                 }
                                 structZ++;
                             }
@@ -883,7 +882,7 @@ public abstract class Structure
 
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, x, y, z, this.meta.GetState(cacheX, cacheY, cacheZ));
 
                                 structZ++;
                             }
@@ -903,12 +902,12 @@ public abstract class Structure
                                 if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
                                     VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
                                     VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, x, y, z, this.meta.GetState(cacheX, cacheY, cacheZ));
                                 }
                                 else{
                                     VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                                     VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                    VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, x, y, z, this.meta.GetState(cacheX, cacheY, cacheZ));
                                 }
                                 structZ++;
                             }
@@ -934,7 +933,7 @@ public abstract class Structure
 
                             VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                             VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                            VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                            VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, x, y, z, this.meta.GetState(cacheX, cacheY, cacheZ));
                             
                             structZ++;
                         }
@@ -954,12 +953,12 @@ public abstract class Structure
                             if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, x, y, z, this.meta.GetState(cacheX, cacheY, cacheZ));
                             }
                             else{
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, x, y, z, this.meta.GetState(cacheX, cacheY, cacheZ));
                             }
                             structZ++;
                         }
@@ -979,7 +978,7 @@ public abstract class Structure
                             if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] != 0){
                                 VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ];
                                 VMHP[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetHP(cacheX, cacheY, cacheZ);
-                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.meta.GetState(cacheX, cacheY, cacheZ);
+                                VMState[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = GetState(pos, x, y, z, this.meta.GetState(cacheX, cacheY, cacheZ));
                             }
                             structZ++;
                         }
@@ -994,6 +993,16 @@ public abstract class Structure
 
         return false;
     } 
+
+    // Returns the state of the structure block considering the randomState mechanics
+    private ushort GetState(ChunkPos pos, int x, int y, int z, ushort state){
+        if(this.randomStates){
+            Structure.rng = new Random(Mathf.FloorToInt((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchRandomStep + (pos.y*Chunk.chunkDepth+y)*GenerationSeed.patchRandomStep + (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchRandomStep2));
+
+            return (ushort)Structure.rng.Next(0, state);
+        }
+        return state; 
+    }
 
     // Checks for valid space in FreeSpace mode
     private bool CheckFreeSpace(ushort[] data, int x, int y, int z, int rotation, int remainderX, int remainderZ, int remainderY, int actualSizeX, int actualSizeZ, bool isPivoted=false){
@@ -1216,6 +1225,6 @@ public struct RoughApplyJob : IJobParallelFor{
                 hpOut[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = hpIn[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
                 stateOut[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = stateIn[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
             }
-        }       
+        }
     }
 }

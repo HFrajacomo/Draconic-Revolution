@@ -69,7 +69,10 @@ public class VoxelLoader : BaseLoader {
 		ParseObjectList();
 		LoadTextureNormalIntensity();
 		LoadVoxels();
-		CreateTextureAtlases();
+
+		if(isClient)
+			CreateTextureAtlases();
+
 		InitBlockEncyclopediaECS();
 
 		return true;
@@ -78,6 +81,11 @@ public class VoxelLoader : BaseLoader {
 	public static Blocks GetBlock(ushort code){return blockBook[code];}
 	public static BlocklikeObject GetObject(ushort code){return objectBook[ushort.MaxValue - code];}
 
+	public static string GetName(ushort code){
+		if(code <= ushort.MaxValue/2)
+			return GetBlock(code).name;
+		return GetObject(code).name;
+	}
 	public static ushort GetBlockID(string name){return codenameToBlockID[name];}
 	public static int GetTextureID(string name){return codenameToTexID[name];}
 
@@ -367,15 +375,19 @@ public class VoxelLoader : BaseLoader {
 
 		foreach(Blocks b in blockBook){
 			b.SetupAfterSerialize(isClient);
-			b.SetupTextureIDs();
+
+			if(isClient)
+				b.SetupTextureIDs();
 		}
 		foreach(BlocklikeObject b in objectBook){
-			objUV = new List<Vector2>();
-			texCode = codenameToTexID[b.codename];
 			b.SetupAfterSerialize(isClient);
-			b.SetupTextureIDs();
-
+			
 			if(isClient){
+				b.SetupTextureIDs();
+
+				objUV = new List<Vector2>();
+				texCode = codenameToTexID[b.codename];
+
 				meshData = b.GetMeshData();
 				meshData.GetUVs(objUV);
 

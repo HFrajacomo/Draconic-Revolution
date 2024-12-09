@@ -134,6 +134,30 @@ public static class NoiseMaker
                                Lerp(u, Grad(noiseMap[AB+1], x, y-1, z-1), Grad(noiseMap[BB+1], x-1, y-1, z-1))));
     }
 
+    public static float Noise3DNormalized(float x, float y, float z, NativeArray<byte> noiseMap)
+    {
+        int X = Mathf.FloorToInt(x) & 0xff;
+        int Y = Mathf.FloorToInt(y) & 0xff;
+        int Z = Mathf.FloorToInt(z) & 0xff;
+        x -= Mathf.Floor(x);
+        y -= Mathf.Floor(y);
+        z -= Mathf.Floor(z);
+        float u = Fade(x);
+        float v = Fade(y);
+        float w = Fade(z);
+      
+        int A  = (noiseMap[X  ] + Y) & 0xff;
+        int B  = (noiseMap[X+1] + Y) & 0xff;
+        int AA = (noiseMap[A  ] + Z) & 0xff;
+        int BA = (noiseMap[B  ] + Z) & 0xff;
+        int AB = (noiseMap[A+1] + Z) & 0xff;
+        int BB = (noiseMap[B+1] + Z) & 0xff;
+        return Normalize(Lerp(w, Lerp(v, Lerp(u, Grad(noiseMap[AA  ], x, y  , z  ), Grad(noiseMap[BA  ], x-1, y  , z  )),
+                               Lerp(u, Grad(noiseMap[AB  ], x, y-1, z  ), Grad(noiseMap[BB  ], x-1, y-1, z  ))),
+                       Lerp(v, Lerp(u, Grad(noiseMap[AA+1], x, y  , z-1), Grad(noiseMap[BA+1], x-1, y  , z-1)),
+                               Lerp(u, Grad(noiseMap[AB+1], x, y-1, z-1), Grad(noiseMap[BB+1], x-1, y-1, z-1)))));
+    }
+
     public static float NoiseMask(float x, float y, float z, NativeArray<byte> noiseMap)
     {
         int X = Mathf.FloorToInt(x) & 0xff;
