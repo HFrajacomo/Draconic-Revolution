@@ -13,7 +13,7 @@ public class ChunkLoader_Server : MonoBehaviour
 {
 	// Basic ChunkLoader Data
 	public int unloadAssetsCount = 25;
-	public Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
+	private Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
 	public ChunkPos currentChunk;
 	public ChunkPos newChunk;
     public BUDScheduler budscheduler;
@@ -230,7 +230,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
                     // If chunk is Pre-Generated
                     if(isPregen){
-                        chunks.Add(toLoad[0], new Chunk(toLoad[0], server:true));
+                        AddChunk(toLoad[0], new Chunk(toLoad[0], server:true));
                         vfx.NewChunk(toLoad[0], isServer:true);
                         regionHandler.LoadChunk(chunks[toLoad[0]]);
                         this.worldGen.ClearCaches();
@@ -246,7 +246,7 @@ public class ChunkLoader_Server : MonoBehaviour
                     }
                     // If it's just a normally generated chunk
                     else{
-                        chunks.Add(toLoad[0], new Chunk(toLoad[0], server:true));
+                        AddChunk(toLoad[0], new Chunk(toLoad[0], server:true));
                         vfx.NewChunk(toLoad[0], isServer:true);
                         regionHandler.LoadChunk(chunks[toLoad[0]]);
                         chunks[toLoad[0]].needsGeneration = 0;
@@ -254,7 +254,7 @@ public class ChunkLoader_Server : MonoBehaviour
                 }
                 // If it's a new chunk to be generated
                 else{
-                    chunks.Add(toLoad[0], new Chunk(toLoad[0], server:true));
+                    AddChunk(toLoad[0], new Chunk(toLoad[0], server:true));
                     vfx.NewChunk(toLoad[0], isServer:true);
 
                     this.worldGen.ClearCaches();
@@ -279,8 +279,8 @@ public class ChunkLoader_Server : MonoBehaviour
     public bool UnloadChunk(ChunkPos pos, ulong id){
         // If chunk is already gone
         if(!this.loadedChunks.ContainsKey(pos)){
-            if(this.chunks.ContainsKey(pos)){
-                this.chunks.Remove(pos);
+            if(this.Contains(pos)){
+                RemoveChunk(pos);
             }
             if(this.vfx.Contains(pos, isServer:true)){
                 this.vfx.RemoveChunk(pos, isServer:true);
@@ -304,6 +304,18 @@ public class ChunkLoader_Server : MonoBehaviour
             return false;
         }
     }
+
+    // Getter for Chunks
+    public Chunk GetChunk(ChunkPos pos){return this.chunks[pos];}
+    public bool Contains(ChunkPos pos){return this.chunks.ContainsKey(pos);}
+    private void AddChunk(ChunkPos pos, Chunk c){
+        if(this.chunks.ContainsKey(pos))
+            this.chunks[pos] = c;
+        else
+            this.chunks.Add(pos, c);
+    }
+    private void RemoveChunk(ChunkPos pos){this.chunks.Remove(pos);}
+
 
     // Saves all entities
     // Used whenever Server is shutdown

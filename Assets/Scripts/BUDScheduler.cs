@@ -53,8 +53,8 @@ public class BUDScheduler : MonoBehaviour
                 cachedCoord = new CastCoord(new Vector3(this.data[frame][0].x, this.data[frame][0].y, this.data[frame][0].z));
 
                 // If BUDSignal is still in the loaded area
-                if(loader.chunks.ContainsKey(cachedCoord.GetChunkPos())){
-                    cachedCode = loader.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+                if(loader.Contains(cachedCoord.GetChunkPos())){
+                    cachedCode = loader.GetChunk(cachedCoord.GetChunkPos()).data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
 
                     if(cachedCode <= ushort.MaxValue/2)
                         VoxelLoader.GetBlock(cachedCode).OnBlockUpdate(this.data[frame][0].type, this.data[frame][0].x, this.data[frame][0].y, this.data[frame][0].z, this.data[frame][0].budX, this.data[frame][0].budY, this.data[frame][0].budZ, this.data[frame][0].facing, loader);
@@ -72,8 +72,8 @@ public class BUDScheduler : MonoBehaviour
         // Saves chunks
         if(SaveCount() > 0){
             foreach(ChunkPos pos in this.toSave[frame]){
-                if(loader.chunks.ContainsKey(pos)){
-                    loader.regionHandler.SaveChunk(loader.chunks[pos]);
+                if(loader.Contains(pos)){
+                    loader.regionHandler.SaveChunk(loader.GetChunk(pos));
                 }
             }
 
@@ -83,7 +83,7 @@ public class BUDScheduler : MonoBehaviour
         // Propagates saved chunks to users
         foreach(ChunkPos pos in this.toPropagate){
             this.message = new NetMessage(NetCode.SENDCHUNK);
-            this.message.SendChunk(loader.chunks[pos]);
+            this.message.SendChunk(loader.GetChunk(pos));
             loader.server.SendToClients(pos, this.message);
         }
 

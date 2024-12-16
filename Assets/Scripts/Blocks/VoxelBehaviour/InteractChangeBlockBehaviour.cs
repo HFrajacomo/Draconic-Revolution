@@ -11,7 +11,7 @@ public class InteractChangeBlockBehaviour : VoxelBehaviour{
 	}
 
 	public override int OnInteract(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){
-		cl.chunks[pos].data.SetCell(x, y, z, this.blockID);
+		cl.GetChunk(pos).data.SetCell(x, y, z, this.blockID);
 		return 1;
 	}
 }

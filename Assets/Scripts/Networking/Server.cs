@@ -530,7 +530,7 @@ public class Server
 
 	public void RequestChunkLoad(ChunkPos pos, ulong id){
 		// If is loaded
-		if(this.cl.chunks.ContainsKey(pos) && this.cl.chunks[pos].needsGeneration == 0){
+		if(this.cl.Contains(pos) && this.cl.GetChunk(pos).needsGeneration == 0){
 			if(!this.cl.loadedChunks.ContainsKey(pos))
 				this.cl.loadedChunks.Add(pos, new HashSet<ulong>());
 
@@ -545,7 +545,7 @@ public class Server
 			}
 
 			NetMessage message = new NetMessage(NetCode.SENDCHUNK);
-			message.SendChunk(this.cl.chunks[pos]);
+			message.SendChunk(this.cl.GetChunk(pos));
 
 			this.Send(message.GetMessage(), message.size, id);
 		}
@@ -680,7 +680,7 @@ public class Server
 		switch(type){
 			case BUDCode.PLACE:
 				// if chunk is still loaded
-				if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos())){
+				if(this.cl.Contains(lastCoord.GetChunkPos())){
 
 					// if it's a block
 					if(blockCode <= ushort.MaxValue/2){
@@ -717,7 +717,7 @@ public class Server
 					// If doesn't have special place handling
 					if(!VoxelLoader.CheckCustomPlace(blockCode)){
 						// Actually places block/asset into terrain
-						cl.chunks[lastCoord.GetChunkPos()].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+						cl.GetChunk(lastCoord.GetChunkPos()).data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
 						EmitBlockUpdate(BUDCode.CHANGE, lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ(), 0, cl);
 
 
@@ -732,7 +732,7 @@ public class Server
 
 						// Sends the updated voxel to loaded clients
 						message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-						message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ), this.cl.chunks[lastCoord.GetChunkPos()].metadata.GetHP(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
+						message.DirectBlockUpdate(BUDCode.PLACE, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, blockCode, this.cl.GetChunk(lastCoord.GetChunkPos()).metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ), this.cl.GetChunk(lastCoord.GetChunkPos()).metadata.GetHP(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
 						SendToClients(lastCoord.GetChunkPos(), message);
 
 						// If quantity becomes zero or less, runs OnUnhold
@@ -746,13 +746,13 @@ public class Server
 						}
 
 						
-						this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
+						this.cl.regionHandler.SaveChunk(this.cl.GetChunk(pos));
 					}
 
 					// If has special handling
 					else{
 						// Actually places block/asset into terrain
-						this.cl.chunks[lastCoord.GetChunkPos()].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+						this.cl.GetChunk(lastCoord.GetChunkPos()).data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
 
 						if(blockCode <= ushort.MaxValue/2){
 							VoxelLoader.GetBlock(blockCode).OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
@@ -790,8 +790,8 @@ public class Server
 				}
 				break;
 			case BUDCode.SETSTATE:
-				if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos())){
-					this.cl.chunks[lastCoord.GetChunkPos()].metadata.SetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
+				if(this.cl.Contains(lastCoord.GetChunkPos())){
+					this.cl.GetChunk(lastCoord.GetChunkPos()).metadata.SetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);
 					this.entityHandler.SetRefreshVision(EntityType.DROP, lastCoord.GetChunkPos());
 				}
 				break;
@@ -801,8 +801,8 @@ public class Server
 				if(!VoxelLoader.CheckCustomBreak(blockCode)){
 
 					// Actually breaks new block and updates chunk
-					this.cl.chunks[pos].data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, 0);
-					this.cl.chunks[pos].metadata.Reset(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ);
+					this.cl.GetChunk(pos).data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, 0);
+					this.cl.GetChunk(pos).metadata.Reset(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ);
 
 					// Triggers OnBreak
 					if(blockCode <= ushort.MaxValue/2)
@@ -829,7 +829,7 @@ public class Server
 				message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 				message.DirectBlockUpdate(BUDCode.BREAK, lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, 0, ushort.MaxValue, ushort.MaxValue);
 				SendToClients(lastCoord.GetChunkPos(), message);				
-				this.cl.regionHandler.SaveChunk(this.cl.chunks[pos]);
+				this.cl.regionHandler.SaveChunk(this.cl.GetChunk(pos));
 
 				break;
 
@@ -840,7 +840,7 @@ public class Server
 				
 				blockCode = this.cl.GetBlock(lastCoord);
 
-				if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos())){
+				if(this.cl.Contains(lastCoord.GetChunkPos())){
 					
 					if(blockCode <= ushort.MaxValue/2){
 						VoxelLoader.GetBlock(blockCode).OnLoad(lastCoord, this.cl);
@@ -1180,7 +1180,7 @@ public class Server
 			
 			blockCode = this.cl.GetBlock(lastCoord);
 
-			if(this.cl.chunks.ContainsKey(lastCoord.GetChunkPos())){
+			if(this.cl.Contains(lastCoord.GetChunkPos())){
 				
 				if(blockCode <= ushort.MaxValue/2){
 					VoxelLoader.GetBlock(blockCode).OnLoad(lastCoord, this.cl);
@@ -1215,8 +1215,8 @@ public class Server
 		z = NetDecoder.ReadInt(data, 18);
 		blockDamage = NetDecoder.ReadUshort(data, 22);
 
-		if(this.cl.chunks.ContainsKey(pos)){
-			c = this.cl.chunks[pos];
+		if(this.cl.Contains(pos)){
+			c = this.cl.GetChunk(pos);
 
 			block = c.data.GetCell(x, y, z);
 			currentHP = c.metadata.GetHP(x, y, z);
@@ -1434,7 +1434,7 @@ public class Server
 
 			foreach(ulong i in this.cl.loadedChunks[pos]){
 				NetMessage message = new NetMessage(NetCode.SENDCHUNK);
-				message.SendChunk(this.cl.chunks[pos]);
+				message.SendChunk(this.cl.GetChunk(pos));
 				this.Send(message.GetMessage(), message.size, i);
 			}	
 		}
@@ -1457,7 +1457,7 @@ public class Server
 			ushort state = this.cl.GetState(thisPos);
 			ushort hp = this.cl.GetHP(thisPos);
 
-			this.cl.regionHandler.SaveChunk(this.cl.chunks[targetChunk]);
+			this.cl.regionHandler.SaveChunk(this.cl.GetChunk(targetChunk));
 			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
 			message.DirectBlockUpdate(BUDCode.CHANGE, targetChunk, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, blockCode, state, hp);
 			SendToClients(targetChunk, message);

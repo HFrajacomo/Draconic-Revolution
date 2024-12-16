@@ -31,17 +31,17 @@ public class TorchBehaviour : VoxelBehaviour{
 
 	// Turns on and off Torch
 	public override int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
-		ushort state = cl.chunks[pos].metadata.GetState(blockX,blockY,blockZ);
+		ushort state = cl.GetChunk(pos).metadata.GetState(blockX,blockY,blockZ);
 		ushort newState = 0;
 
 		if(state == ushort.MaxValue)
 			return 0;
 		else if(state >= 4){
-			cl.chunks[pos].metadata.AddToState(blockX,blockY,blockZ, -4);
+			cl.GetChunk(pos).metadata.AddToState(blockX,blockY,blockZ, -4);
 			newState = (ushort)(state-4);
 		}
 		else if(state >= 0 && state < 4){
-			cl.chunks[pos].metadata.AddToState(blockX,blockY,blockZ, 4);
+			cl.GetChunk(pos).metadata.AddToState(blockX,blockY,blockZ, 4);
 			newState = (ushort)(state+4);
 		}
 
@@ -60,7 +60,7 @@ public class TorchBehaviour : VoxelBehaviour{
 
 	// Instantiates a FireVFX
 	public override int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
-		cl.chunks[pos].metadata.SetState(blockX,blockY,blockZ, (ushort)facing);
+		cl.GetChunk(pos).metadata.SetState(blockX,blockY,blockZ, (ushort)facing);
 
 		// Init VFX
 		NetMessage message = new NetMessage(NetCode.VFXDATA);
@@ -70,7 +70,7 @@ public class TorchBehaviour : VoxelBehaviour{
 
 		// Init SFX
 		NetMessage SFXMessage = new NetMessage(NetCode.SFXPLAY);
-		SFXMessage.SFXPlay(pos, blockX, blockY, blockZ, VoxelLoader.GetBlockID("BASE_Torch"), cl.chunks[pos].metadata.GetState(blockX, blockY, blockZ));
+		SFXMessage.SFXPlay(pos, blockX, blockY, blockZ, VoxelLoader.GetBlockID("BASE_Torch"), cl.GetChunk(pos).metadata.GetState(blockX, blockY, blockZ));
 		cl.server.SendToClients(pos, SFXMessage);
 		return 0;
 	}
@@ -157,7 +157,7 @@ public class TorchBehaviour : VoxelBehaviour{
 
 	// Creates FireVFX and SFX on Load
 	public override int OnLoad(CastCoord coord, ChunkLoader_Server cl){
-		ushort state = cl.chunks[coord.GetChunkPos()].metadata.GetState(coord.blockX, coord.blockY, coord.blockZ);
+		ushort state = cl.GetChunk(coord.GetChunkPos()).metadata.GetState(coord.blockX, coord.blockY, coord.blockZ);
 		int facing;
 
 		if(state >= 4)
@@ -202,7 +202,7 @@ public class TorchBehaviour : VoxelBehaviour{
 			ushort blockCode;
 			if(direction == 2){
 				if(x > 0){
-					blockCode = cl.chunks[pos].data.GetCell(x-1,y,z);
+					blockCode = cl.GetChunk(pos).data.GetCell(x-1,y,z);
 					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
@@ -210,7 +210,7 @@ public class TorchBehaviour : VoxelBehaviour{
 				}
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x-1, pos.z, pos.y);
-					blockCode = cl.chunks[newPos].data.GetCell(Chunk.chunkWidth-1,y,z);
+					blockCode = cl.GetChunk(newPos).data.GetCell(Chunk.chunkWidth-1,y,z);
 					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
@@ -219,7 +219,7 @@ public class TorchBehaviour : VoxelBehaviour{
 			}
 			else if(direction == 0){
 				if(x < Chunk.chunkWidth-1){
-					blockCode = cl.chunks[pos].data.GetCell(x+1,y,z);
+					blockCode = cl.GetChunk(pos).data.GetCell(x+1,y,z);
 					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
@@ -227,7 +227,7 @@ public class TorchBehaviour : VoxelBehaviour{
 				}
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x+1, pos.z, pos.y);
-					blockCode = cl.chunks[newPos].data.GetCell(0,y,z);
+					blockCode = cl.GetChunk(newPos).data.GetCell(0,y,z);
 					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
@@ -236,7 +236,7 @@ public class TorchBehaviour : VoxelBehaviour{
 			}
 			else if(direction == 3){
 				if(z < Chunk.chunkWidth-1){
-					blockCode = cl.chunks[pos].data.GetCell(x,y,z+1);
+					blockCode = cl.GetChunk(pos).data.GetCell(x,y,z+1);
 					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
@@ -244,7 +244,7 @@ public class TorchBehaviour : VoxelBehaviour{
 				}
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x, pos.z+1, pos.y);
-					blockCode = cl.chunks[newPos].data.GetCell(x,y,0);
+					blockCode = cl.GetChunk(newPos).data.GetCell(x,y,0);
 					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
@@ -253,7 +253,7 @@ public class TorchBehaviour : VoxelBehaviour{
 			}
 			else if(direction == 1){
 				if(z > 0){
-					blockCode = cl.chunks[pos].data.GetCell(x,y,z-1);
+					blockCode = cl.GetChunk(pos).data.GetCell(x,y,z-1);
 					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
@@ -261,7 +261,7 @@ public class TorchBehaviour : VoxelBehaviour{
 				}
 				else{
 					ChunkPos newPos = new ChunkPos(pos.x, pos.z-1, pos.y);
-					blockCode = cl.chunks[newPos].data.GetCell(x,y,Chunk.chunkWidth-1);
+					blockCode = cl.GetChunk(newPos).data.GetCell(x,y,Chunk.chunkWidth-1);
 					if(VoxelLoader.CheckSolid(blockCode))
 						return true;
 					else
@@ -294,11 +294,11 @@ public class TorchBehaviour : VoxelBehaviour{
 		int bY = aux.blockY;
 		int bZ = aux.blockZ;
 
-		ushort state = cl.chunks[thisPos].metadata.GetState(X,Y,Z);
+		ushort state = cl.GetChunk(thisPos).metadata.GetState(X,Y,Z);
 
 		// Breaks Torch if broken attached block
 		if(type == BUDCode.BREAK && (facing == state || facing+4 == state)){
-			cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
+			cl.GetChunk(thisPos).data.SetCell(X, Y, Z, 0);
 			this.OnBreak(thisPos, X, Y, Z, cl);
 
 			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
@@ -309,12 +309,12 @@ public class TorchBehaviour : VoxelBehaviour{
 		}
 		// Breaks Torch if changed block is not solid
 		else if(type == BUDCode.CHANGE && (facing == state || facing+4 == state)){
-			ushort blockCode = cl.chunks[budPos].data.GetCell(bX,bY,bZ);
+			ushort blockCode = cl.GetChunk(budPos).data.GetCell(bX,bY,bZ);
 
 			if(blockCode <= ushort.MaxValue/2){
 				// If changed block is not solid, break
 				if(!VoxelLoader.GetBlock(blockCode).solid){
-					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
+					cl.GetChunk(thisPos).data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
 
 					NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
@@ -326,7 +326,7 @@ public class TorchBehaviour : VoxelBehaviour{
 			}
 			else{
 				if(!VoxelLoader.GetObject(blockCode).solid){
-					cl.chunks[thisPos].data.SetCell(X, Y, Z, 0);
+					cl.GetChunk(thisPos).data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
 
 					NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);

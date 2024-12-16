@@ -80,7 +80,7 @@ public class BlocklikeObject
 	    int faceCounter=0;
 
 	    foreach(CastCoord c in neighbors){
-	        blockCode = cl.chunks[c.GetChunkPos()].data.GetCell(c.blockX, c.blockY, c.blockZ);
+	        blockCode = cl.GetChunk(c.GetChunkPos()).data.GetCell(c.blockX, c.blockY, c.blockZ);
 
 	        cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facings[faceCounter]), tickOffset);     
 	      
@@ -94,7 +94,7 @@ public class BlocklikeObject
     }
 
 	// Unassigns metadata from block (use after OnBreak events)
-	public void EraseMetadata(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){cl.chunks[pos].metadata.Reset(x,y,z);}
+	public void EraseMetadata(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){cl.GetChunk(pos).metadata.Reset(x,y,z);}
 	
     /*
     Calculates how damage should be calculated for a block

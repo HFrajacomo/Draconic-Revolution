@@ -148,14 +148,14 @@ public class LiquidBehaviour : VoxelBehaviour{
 	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader_Server cl){
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, pos, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, this.liquidCode, cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ), cl.chunks[thisPos.GetChunkPos()].metadata.GetHP(thisPos.blockX, thisPos.blockY, thisPos.blockZ));
-		cl.chunks[pos].data.SetCell(x, y, z, this.liquidCode);
+		message.DirectBlockUpdate(BUDCode.PLACE, pos, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, this.liquidCode, cl.GetChunk(thisPos.GetChunkPos()).metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ), cl.GetChunk(thisPos.GetChunkPos()).metadata.GetHP(thisPos.blockX, thisPos.blockY, thisPos.blockZ));
+		cl.GetChunk(pos).data.SetCell(x, y, z, this.liquidCode);
 
 		cl.budscheduler.ScheduleBUD(new BUDSignal(BUDCode.CHANGE, thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing), this.viscosityDelay);
 
 		// If has been placed by player
 		if(facing >= 0){
-			cl.chunks[thisPos.GetChunkPos()].metadata.Reset(x,y,z);
+			cl.GetChunk(thisPos.GetChunkPos()).metadata.Reset(x,y,z);
 			cl.server.SendToClients(thisPos.GetChunkPos(), message);
 			return 0;
 		}
@@ -169,8 +169,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 	// Custom Break operation with Raycasting class overwrite
 	public override int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){
-		cl.chunks[pos].data.SetCell(x, y, z, 0);
-		cl.chunks[pos].metadata.Reset(x,y,z);
+		cl.GetChunk(pos).data.SetCell(x, y, z, 0);
+		cl.GetChunk(pos).metadata.Reset(x,y,z);
 
 		cachedCoord = new CastCoord(pos, x, y, z);
 
@@ -201,8 +201,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 		// Below
 		cachedCoord = new CastCoord(this.GetNeighborBlock(8, myX, myY, myZ));
-		if(cachedCoord.blockY >= 0 && cl.chunks.ContainsKey(cachedCoord.GetChunkPos())){
-			if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode){
+		if(cachedCoord.blockY >= 0 && cl.Contains(cachedCoord.GetChunkPos())){
+			if(cl.GetChunk(cachedCoord.GetChunkPos()).data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode){
 				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
 			}
@@ -211,7 +211,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 		// Above
 		cachedCoord = new CastCoord(this.GetNeighborBlock(9, myX, myY, myZ));
 		if(cachedCoord.blockY < Chunk.chunkDepth){
-			if(cl.chunks[cachedCoord.GetChunkPos()].data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode){
+			if(cl.GetChunk(cachedCoord.GetChunkPos()).data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode){
 				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
 				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
 			}
@@ -249,7 +249,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 	public override void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){
 		if(type == BUDCode.BREAK || type == BUDCode.CHANGE){
 			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
-			ushort state = cl.chunks[thisPos.GetChunkPos()].metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
+			ushort state = cl.GetChunk(thisPos.GetChunkPos()).metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 
 			/*
 			Still Level 3
@@ -282,8 +282,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 								VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						}
 
-						cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 19);
+						cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 19);
 						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 						return;
 					}
@@ -298,8 +298,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 						}
 
 						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-						cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
+						cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
 						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 						return;
 					}
@@ -335,8 +335,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 						// Found cases
 						if(found){
-							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
-							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+							cl.GetChunk(cachedPos.GetChunkPos()).data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
+							cl.GetChunk(cachedPos.GetChunkPos()).metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
 							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 						}
 
@@ -366,8 +366,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
+					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);					
 					return;
 				}
@@ -386,8 +386,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 								VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						}
 
-						cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
+						cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
 						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 						return;
 					}
@@ -402,8 +402,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 						}
 
 						this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-						cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
+						cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
 						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 						return;
 					}
@@ -439,8 +439,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 						// Found cases
 						if(found){
-							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
-							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+							cl.GetChunk(cachedPos.GetChunkPos()).data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
+							cl.GetChunk(cachedPos.GetChunkPos()).metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
 							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 						}
 
@@ -470,8 +470,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
+					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);					
 					return;
 				}
@@ -489,8 +489,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 					}
 
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 2);
+					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 2);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					return;
 				}
@@ -525,8 +525,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 				// If should upgrade to Still Level 3
 				if(GetSameLevelAroundCount(myX, myY, myZ, 3, cl) >= 2){
-					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, this.liquidCode);
-					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
+					cl.GetChunk(thisPos.GetChunkPos()).data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, this.liquidCode);
+					cl.GetChunk(thisPos.GetChunkPos()).metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
 					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
 					return;
 				}
@@ -547,8 +547,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
+					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					return;					
 				}
@@ -589,8 +589,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 						// Found cases
 						if(found){
-							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
-							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+							cl.GetChunk(cachedPos.GetChunkPos()).data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
+							cl.GetChunk(cachedPos.GetChunkPos()).metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
 							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 						}
 					}
@@ -634,8 +634,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
+					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					return;					
 				}
@@ -676,8 +676,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 						// Found cases
 						if(found){
-							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
-							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+							cl.GetChunk(cachedPos.GetChunkPos()).data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
+							cl.GetChunk(cachedPos.GetChunkPos()).metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
 							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 						}
 					}			
@@ -708,8 +708,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 				// If should upgrade to Still Level 2
 				if(GetSameLevelAroundCount(myX, myY, myZ, 2, cl) >= 2){
-					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, this.liquidCode);
-					cl.chunks[thisPos.GetChunkPos()].metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
+					cl.GetChunk(thisPos.GetChunkPos()).data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, this.liquidCode);
+					cl.GetChunk(thisPos.GetChunkPos()).metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 1);
 					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
 					return;
 				}
@@ -730,8 +730,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
+					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					return;					
 				}
@@ -772,8 +772,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 						// Found cases
 						if(found){
-							cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
-							cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+							cl.GetChunk(cachedPos.GetChunkPos()).data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
+							cl.GetChunk(cachedPos.GetChunkPos()).metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
 							this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 						}
 					}					
@@ -817,8 +817,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
+					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					return;					
 				}
@@ -854,8 +854,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 19);
+					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 19);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					return;							
 				}
@@ -865,7 +865,7 @@ public class LiquidBehaviour : VoxelBehaviour{
 					int highestLevel = GetHighestDoubleLevelAround(myX, myY, myZ, cl);
 					CastCoord newPos = new CastCoord(new Vector3(myX, myY, myZ));
 
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 
 					return;
@@ -911,8 +911,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 					// Found cases
 					if(found){
-						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
-						cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+						cl.GetChunk(cachedPos.GetChunkPos()).data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
+						cl.GetChunk(cachedPos.GetChunkPos()).metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
 						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 					}
 				}
@@ -945,8 +945,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
+					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					return;							
 				}
@@ -957,11 +957,11 @@ public class LiquidBehaviour : VoxelBehaviour{
 					CastCoord newPos = new CastCoord(new Vector3(myX, myY, myZ));
 
 					if(highestLevel == 2){
-						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
+						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
 						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					}
 					else{
-						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
+						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
 						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					}
 
@@ -1008,8 +1008,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 
 					// Found cases
 					if(found){
-						cl.chunks[cachedPos.GetChunkPos()].data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
-						cl.chunks[cachedPos.GetChunkPos()].metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+						cl.GetChunk(cachedPos.GetChunkPos()).data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
+						cl.GetChunk(cachedPos.GetChunkPos()).metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
 						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 					}
 				}
@@ -1042,8 +1042,8 @@ public class LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.chunks[newPos.GetChunkPos()].data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
+					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
+					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
 					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					return;							
 				}
@@ -1054,15 +1054,15 @@ public class LiquidBehaviour : VoxelBehaviour{
 					CastCoord newPos = new CastCoord(new Vector3(myX, myY, myZ));
 
 					if(highestLevel == 1){
-						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 2);
+						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 2);
 						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					}
 					else if(highestLevel == 2){
-						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
+						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
 						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					}
 					else{
-						cl.chunks[newPos.GetChunkPos()].metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
+						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
 						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
 					}
 
@@ -1225,10 +1225,10 @@ public class LiquidBehaviour : VoxelBehaviour{
 	// Gets Code of block below
 	private ushort GetCodeBelow(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
-		if(!cl.chunks.ContainsKey(cord.GetChunkPos()))
+		if(!cl.Contains(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
 
-		return cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		return cl.GetChunk(cord.GetChunkPos()).data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 	}
 	private ushort GetCodeBelow(CastCoord c, ChunkLoader_Server cl){
 		return GetCodeBelow(c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), cl);
@@ -1237,10 +1237,10 @@ public class LiquidBehaviour : VoxelBehaviour{
 	// Gets State of block below
 	private ushort GetStateBelow(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
-		if(!cl.chunks.ContainsKey(cord.GetChunkPos()))
+		if(!cl.Contains(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
 
-		return cl.chunks[cord.GetChunkPos()].metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
+		return cl.GetChunk(cord.GetChunkPos()).metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
 	}
 	private ushort GetStateBelow(CastCoord c, ChunkLoader_Server cl){
 		return GetStateBelow(c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), cl);
@@ -1249,10 +1249,10 @@ public class LiquidBehaviour : VoxelBehaviour{
 	// Gets State of block above
 	private ushort GetStateAbove(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
-		if(!cl.chunks.ContainsKey(cord.GetChunkPos()))
+		if(!cl.Contains(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
 
-		return cl.chunks[cord.GetChunkPos()].metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
+		return cl.GetChunk(cord.GetChunkPos()).metadata.GetState(cord.blockX, cord.blockY, cord.blockZ);
 	}
 	private ushort GetStateAbove(CastCoord c, ChunkLoader_Server cl){
 		return GetStateAbove(c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), cl);
@@ -1261,10 +1261,10 @@ public class LiquidBehaviour : VoxelBehaviour{
 	// Gets Code of block above
 	private ushort GetCodeAbove(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
-		if(!cl.chunks.ContainsKey(cord.GetChunkPos()))
+		if(!cl.Contains(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
 
-		return cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		return cl.GetChunk(cord.GetChunkPos()).data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 	}
 	private ushort GetCodeAbove(CastCoord c, ChunkLoader_Server cl){
 		return GetCodeAbove(c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), cl);
@@ -1284,57 +1284,57 @@ public class LiquidBehaviour : VoxelBehaviour{
 			selectedArray = aroundCodes;
 
 		cord = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
-		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
-			selectedArray[0] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.Contains(cord.GetChunkPos()))
+			selectedArray[0] = cl.GetChunk(cord.GetChunkPos()).data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 		else
 			selectedArray[0] = (ushort)(ushort.MaxValue/2);
 		
 
 		cord = new CastCoord(new Vector3(myX+1, myY, myZ+1)); // NE
-		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
-			selectedArray[1] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.Contains(cord.GetChunkPos()))
+			selectedArray[1] = cl.GetChunk(cord.GetChunkPos()).data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 		else
 			selectedArray[1] = (ushort)(ushort.MaxValue/2);
 		
 
 		cord = new CastCoord(new Vector3(myX+1, myY, myZ)); // East
-		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
-			selectedArray[2] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.Contains(cord.GetChunkPos()))
+			selectedArray[2] = cl.GetChunk(cord.GetChunkPos()).data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 		else
 			selectedArray[2] = (ushort)(ushort.MaxValue/2);
 		
 		
 		cord = new CastCoord(new Vector3(myX+1, myY, myZ-1)); // SE
-		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
-			selectedArray[3] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.Contains(cord.GetChunkPos()))
+			selectedArray[3] = cl.GetChunk(cord.GetChunkPos()).data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 		else
 			selectedArray[3] = (ushort)(ushort.MaxValue/2);
 		
 		
 		cord = new CastCoord(new Vector3(myX, myY, myZ-1)); // South
-		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
-			selectedArray[4] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.Contains(cord.GetChunkPos()))
+			selectedArray[4] = cl.GetChunk(cord.GetChunkPos()).data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 		else
 			selectedArray[4] = (ushort)(ushort.MaxValue/2);
 		
 
 		cord = new CastCoord(new Vector3(myX-1, myY, myZ-1)); // SW
-		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
-			selectedArray[5] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.Contains(cord.GetChunkPos()))
+			selectedArray[5] = cl.GetChunk(cord.GetChunkPos()).data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 		else
 			selectedArray[5] = (ushort)(ushort.MaxValue/2);
 		
 
 		cord = new CastCoord(new Vector3(myX-1, myY, myZ)); // West
-		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
-			selectedArray[6] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.Contains(cord.GetChunkPos()))
+			selectedArray[6] = cl.GetChunk(cord.GetChunkPos()).data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 		else
 			selectedArray[6] = (ushort)(ushort.MaxValue/2);
 		
 
 		cord = new CastCoord(new Vector3(myX-1, myY, myZ+1)); // NW
-		if(cl.chunks.ContainsKey(cord.GetChunkPos()))
-			selectedArray[7] = cl.chunks[cord.GetChunkPos()].data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
+		if(cl.Contains(cord.GetChunkPos()))
+			selectedArray[7] = cl.GetChunk(cord.GetChunkPos()).data.GetCell(cord.blockX, cord.blockY, cord.blockZ);
 		else
 			selectedArray[7] = (ushort)(ushort.MaxValue/2);
 
@@ -1351,50 +1351,50 @@ public class LiquidBehaviour : VoxelBehaviour{
 			selectedArray = aroundStates;
 
 		cast = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
-		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[0] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[0] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
 			selectedArray[0] = ushort.MaxValue;
 
 		cast = new CastCoord(new Vector3(myX+1, myY, myZ+1)); // NE
-		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[1] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[1] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
 			selectedArray[1] = ushort.MaxValue;
 
 		cast = new CastCoord(new Vector3(myX+1, myY, myZ)); // East
-		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[2] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[2] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
 			selectedArray[2] = ushort.MaxValue;
 
 		cast = new CastCoord(new Vector3(myX+1, myY, myZ-1)); // SE
-		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[3] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[3] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
 			selectedArray[3] = ushort.MaxValue;
 
 		cast = new CastCoord(new Vector3(myX, myY, myZ-1)); // South
-		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[4] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[4] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
 			selectedArray[4] = ushort.MaxValue;
 
 		cast = new CastCoord(new Vector3(myX-1, myY, myZ-1)); // SW
-		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[5] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[5] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
 			selectedArray[5] = ushort.MaxValue;
 
 		cast = new CastCoord(new Vector3(myX-1, myY, myZ)); // West
-		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[6] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[6] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
 			selectedArray[6] = ushort.MaxValue;
 
 		cast = new CastCoord(new Vector3(myX-1, myY, myZ+1)); // NW
-		if(cl.chunks[cast.GetChunkPos()].data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[7] = cl.chunks[cast.GetChunkPos()].metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
+			selectedArray[7] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
 		else
 			selectedArray[7] = ushort.MaxValue;	
 	}

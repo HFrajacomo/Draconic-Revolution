@@ -32,9 +32,9 @@ public class UpdateDecaySecondaryBlockBehaviour : VoxelBehaviour{
 			GetSurroundings(thisPos, this.decayDistance, cl);
 
 			if(!RunMainRecursion(cl)){
-				if(cl.chunks.ContainsKey(thisPos.GetChunkPos())){
-					cl.chunks[thisPos.GetChunkPos()].data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					cl.chunks[thisPos.GetChunkPos()].metadata.Reset(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
+				if(cl.Contains(thisPos.GetChunkPos())){
+					cl.GetChunk(thisPos.GetChunkPos()).data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
+					cl.GetChunk(thisPos.GetChunkPos()).metadata.Reset(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
 					cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
 					cl.budscheduler.SchedulePropagation(thisPos.GetChunkPos());
 				}

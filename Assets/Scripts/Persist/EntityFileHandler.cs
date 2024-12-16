@@ -151,7 +151,7 @@ public class EntityFileHandler{
 		if(!IsIndexed(pos))
 			return;
 
-		int ticksPassed = this.cl.time.TicksPassedFrom(this.cl.chunks[pos].lastVisitedTime);
+		int ticksPassed = this.cl.time.TicksPassedFrom(this.cl.GetChunk(pos).lastVisitedTime);
 
 		ReadHeader(pos);
 		int chunkSize = NetDecoder.ReadInt(intBuffer, 0);

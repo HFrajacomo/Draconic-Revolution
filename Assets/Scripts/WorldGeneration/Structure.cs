@@ -415,9 +415,9 @@ public abstract class Structure
 
                     // ACTUAL APPLY FUNCTIONS
                     // Checks if it's a loaded chunk
-                    if(cl.chunks.ContainsKey(newPos)){
-                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation, isPivoted:true);
-                        AddChunk(cl.chunks[newPos]);
+                    if(cl.Contains(newPos)){
+                        ApplyToChunk(newPos, false, true, true, cl, cl.GetChunk(newPos).data.GetData(), cl.GetChunk(newPos).metadata.GetHPData(), cl.GetChunk(newPos).metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation, isPivoted:true);
+                        AddChunk(cl.GetChunk(newPos));
                         currentXChunk++;
                         continue;
                     }
@@ -620,9 +620,9 @@ public abstract class Structure
 
                     // ACTUAL APPLY FUNCTIONS
                     // Checks if it's a loaded chunk
-                    if(cl.chunks.ContainsKey(newPos)){
-                        ApplyToChunk(newPos, false, true, true, cl, cl.chunks[newPos].data.GetData(), cl.chunks[newPos].metadata.GetHPData(), cl.chunks[newPos].metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation);
-                        AddChunk(cl.chunks[newPos]);
+                    if(cl.Contains(newPos)){
+                        ApplyToChunk(newPos, false, true, true, cl, cl.GetChunk(newPos).data.GetData(), cl.GetChunk(newPos).metadata.GetHPData(), cl.GetChunk(newPos).metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation);
+                        AddChunk(cl.GetChunk(newPos));
                         continue;
                     }
 
