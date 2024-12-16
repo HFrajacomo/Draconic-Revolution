@@ -546,7 +546,6 @@ public class Server
 
 			NetMessage message = new NetMessage(NetCode.SENDCHUNK);
 			message.SendChunk(this.cl.GetChunk(pos));
-
 			this.Send(message.GetMessage(), message.size, id);
 		}
 		else{

@@ -6,12 +6,12 @@ using Unity.Mathematics;
 
 public class VoxelMetadata
 {
-	ushort[] hp;
-	ushort[] state;
+	private ushort[] hp;
+	private ushort[] state;
 
-	int xSize = Chunk.chunkWidth;
-	int ySize = Chunk.chunkDepth;
-	int zSize = Chunk.chunkWidth;
+	private int xSize = Chunk.chunkWidth;
+	private int ySize = Chunk.chunkDepth;
+	private int zSize = Chunk.chunkWidth;
 	
 	// Default Constructor
 	public VoxelMetadata(){
@@ -37,8 +37,8 @@ public class VoxelMetadata
 
 	// Metadata Constructor
 	public VoxelMetadata(ushort[] hp, ushort[] state){
-		this.hp = hp;
-		this.state = state;
+		this.hp = (ushort[])hp.Clone();
+		this.state = (ushort[])state.Clone();
 	}
 
 	public void Destroy(){

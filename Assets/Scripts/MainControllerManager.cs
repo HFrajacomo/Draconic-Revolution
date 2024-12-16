@@ -132,27 +132,6 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnDebugKey2(){
-        Chunk chunk = this.cl.chunks[this.cl.playerPositionHandler.GetCurrentChunk()];
-        Dictionary<string, int> total = new Dictionary<string, int>();
-        string found = "";
-
-        for(int i = 0; i < Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth; i++){
-            if(chunk.data.GetCell(i) > ushort.MaxValue/2){
-                found = $"{VoxelLoader.GetName(chunk.data.GetCell(i))} | {chunk.metadata.GetState(i)}";
-
-                if(total.ContainsKey(found)){
-                    total[found]++;
-                }
-                else{
-                    total.Add(found, 1);
-                }
-            }
-        }
-
-        foreach(string entry in total.Keys){
-            Debug.Log($"{entry} -> {total[entry]}");
-        }
-
         MainControllerManager.DEBUG = !MainControllerManager.DEBUG;
     }
 

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
@@ -667,7 +667,6 @@ public abstract class Structure
     // Applies this structure to a chunk
     // Receives a Chunk reference that will be changed in this function
     private bool ApplyToChunk(ChunkPos pos, bool initialchunk, bool exist, bool loaded, ChunkLoader_Server cl, ushort[] VD, ushort[] VMHP, ushort[] VMState, int posX, int posY, int posZ, int remainderX, int remainderZ, int remainderY, int structinitX, int structinitZ, int structinitY, int actualSizeX, int actualSizeZ, int actualOffsetX, int actualOffsetZ, int rotation, bool isPivoted=false){
-
         bool exists = exist;
 
         int structX = structinitX;
@@ -985,7 +984,7 @@ public abstract class Structure
                         structX++;
                     }
                     structY++;
-                }                
+                }
             }
 
             return true;
@@ -998,7 +997,6 @@ public abstract class Structure
     private ushort GetState(ChunkPos pos, int x, int y, int z, ushort state){
         if(this.randomStates){
             Structure.rng = new Random(Mathf.FloorToInt((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchRandomStep + (pos.y*Chunk.chunkDepth+y)*GenerationSeed.patchRandomStep + (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchRandomStep2));
-
             return (ushort)Structure.rng.Next(0, state);
         }
         return state; 

@@ -78,7 +78,6 @@ public class RegionFileHandler{
 
 
 			this.saveDir = EnvironmentVariablesCentral.saveDir;
-			Debug.Log(this.saveDir);
 			this.worldDir = this.saveDir + this.worldName + "/";
 
 			// If "Worlds/" dir doesn't exist

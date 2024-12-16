@@ -181,7 +181,7 @@ public class WorldGenerator
         int rotation = 0;
         float chance;
 
-        this.rng = new Random((int)((int.MaxValue * NoiseMaker.NormalizedPatchNoise1D((pos.z^(pos.x * pos.x))*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3)) + (this.iteration * GenerationSeed.patchMultStep)));
+        this.rng = new Random((int)(int.MaxValue * NoiseMaker.NormalizedPatchNoise1D((pos.z^(pos.x-1))*pos.y*Chunk.chunkWidth*GenerationSeed.patchNoiseStep3 + (this.iteration * GenerationSeed.patchMultStep))));
         this.iteration++;
 
         // If structure is static at given heightmap depth
@@ -209,8 +209,9 @@ public class WorldGenerator
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
 
-                if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z]))
+                if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z])){
                     structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation); 
+                }
             }
         }
         // If can be placed in a range
@@ -247,9 +248,10 @@ public class WorldGenerator
 
                 Structure structure = this.structHandler.LoadStructure(structureCode);
 
-                if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z]))
+                if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z])){
                     structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);
-            }            
+                }
+            }
         }
     }
 
@@ -376,8 +378,9 @@ public class WorldGenerator
     }
 
     private void GenerateBiomeStructures(ChunkLoader_Server cl, ChunkPos pos, BiomeCode biomeCode, ushort[] blockdata, ushort[] state, ushort[] hps){
-        foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode))
+        foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
             GenerateStructures(pos, biomeCode, structCode, blockdata, state, hps);
+        }
     }
 
     // Generates chunks for the Underground Layer
