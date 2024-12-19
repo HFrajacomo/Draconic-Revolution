@@ -26,8 +26,7 @@
         "x" : 0.75,
         "y" : 0.75,
         "z" : 1.8
-    },
-    "texture": "BASE_IgnisCrystal"
+    }
 }
 --->Behaviours
 {

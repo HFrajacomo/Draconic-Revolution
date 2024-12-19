@@ -32,7 +32,6 @@ public class BlocklikeObject
 	public bool indestructible;
 
 	// Texture tile code
-	public string texture;
 	private int textureID;
 
 	// Behaviours
@@ -57,8 +56,9 @@ public class BlocklikeObject
 	public int GetTexture(){return this.textureID;}
 
     public void SetupTextureIDs(){
-    	if(this.texture != null)
-    		this.textureID = VoxelLoader.GetTextureID(this.texture);
+    	if(GetTextureName() != null){
+    		this.textureID = VoxelLoader.GetTextureID(GetTextureName());
+    	}
     }
 
     // Handles the emittion of BUD to neighboring blocks

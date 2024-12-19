@@ -23,7 +23,6 @@ public static class BlockEncyclopediaECS
 	public static NativeArray<ShaderIndex> blockMaterial;
 	public static NativeArray<ShaderIndex> objectMaterial;
 	public static NativeArray<int3> blockTiles; // [tileTop, tileBottom, tileSide]
-	public static NativeArray<int> objectTiles;
 	public static NativeArray<Vector3> objectScaling;
 	public static NativeArray<Vector3> hitboxScaling;
 	public static NativeArray<bool> objectNeedRotation;
@@ -59,7 +58,6 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.blockMaterial = new NativeArray<ShaderIndex>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
 		BlockEncyclopediaECS.objectMaterial = new NativeArray<ShaderIndex>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
 		BlockEncyclopediaECS.blockTiles = new NativeArray<int3>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
-		BlockEncyclopediaECS.objectTiles = new NativeArray<int>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
 		BlockEncyclopediaECS.objectScaling = new NativeArray<Vector3>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
 		BlockEncyclopediaECS.hitboxScaling = new NativeArray<Vector3>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);		
 		BlockEncyclopediaECS.objectNeedRotation = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
@@ -90,7 +88,6 @@ public static class BlockEncyclopediaECS
 		BlockEncyclopediaECS.blockMaterial.Dispose();
 		BlockEncyclopediaECS.objectMaterial.Dispose();
 		BlockEncyclopediaECS.blockTiles.Dispose();
-		BlockEncyclopediaECS.objectTiles.Dispose();
 		BlockEncyclopediaECS.objectScaling.Dispose();
 		BlockEncyclopediaECS.hitboxScaling.Dispose();
 		BlockEncyclopediaECS.objectNeedRotation.Dispose();

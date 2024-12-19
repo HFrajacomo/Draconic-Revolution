@@ -61,7 +61,7 @@ public class Chunk
     private List<Vector3> cacheVertsv3 = new List<Vector3>();
     private List<Vector2> cacheLightUV = new List<Vector2>();
     private List<int> cacheTris = new List<int>();
-    private List<Vector2> cacheUVv2 = new List<Vector2>();
+    private List<Vector3> cacheUVv2 = new List<Vector3>();
     private List<Vector3> cacheNormals = new List<Vector3>();
     private List<Vector4> cacheTangents = new List<Vector4>();
     private List<int> indexVert = new List<int>();
@@ -646,7 +646,7 @@ public class Chunk
 		NativeList<int> UVOffset = new NativeList<int>(0, Allocator.TempJob);
 		UVOffset.CopyFromNBC(this.indexUV.ToArray());
 		NativeArray<Vector3> loadedVerts = new NativeArray<Vector3>(this.cacheVertsv3.ToArray(), Allocator.TempJob);
-		NativeArray<Vector2> loadedUV = new NativeArray<Vector2>(this.cacheUVv2.ToArray(), Allocator.TempJob);
+		NativeArray<Vector3> loadedUV = new NativeArray<Vector3>(this.cacheUVv2.ToArray(), Allocator.TempJob);
 		NativeArray<Vector3> loadedNormals = new NativeArray<Vector3>(this.cacheNormals.ToArray(), Allocator.TempJob);
 		NativeArray<Vector4> loadedTangents = new NativeArray<Vector4>(this.cacheTangents.ToArray(), Allocator.TempJob);
 		NativeArray<int> loadedTris = new NativeArray<int>(this.cacheTris.ToArray(), Allocator.TempJob);
@@ -680,7 +680,6 @@ public class Chunk
 			material = BlockEncyclopediaECS.objectMaterial,
 			inplaceOffset = scaleOffset,
 			inplaceRotation = rotationOffset,
-			objectTiles = BlockEncyclopediaECS.objectTiles,
 
 			coords = loadAssetList,
 			blockCodes = blockCodes,

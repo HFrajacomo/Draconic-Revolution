@@ -4,7 +4,7 @@ using UnityEngine;
 
 public struct MeshData{
 	private readonly List<Vector3> vertices;
-	private List<Vector2> UVs;
+	private readonly List<Vector3> UVs;
 	private readonly int[] triangles;
 	private readonly List<Vector4> tangents;
 	private readonly List<Vector3> normals;
@@ -13,9 +13,11 @@ public struct MeshData{
 	private readonly int[] hitboxTriangles;
 
 	// For VoxelLoader
-	public MeshData(Mesh mesh, Mesh hitboxMesh){
+	public MeshData(Mesh mesh, Mesh hitboxMesh, int textureCode){
+		List<Vector2> loadedUV = new List<Vector2>();
+
 		this.vertices = new List<Vector3>();
-		this.UVs = new List<Vector2>();
+		this.UVs = new List<Vector3>();
 
 		this.tangents = new List<Vector4>();
 		this.normals = new List<Vector3>();
@@ -23,15 +25,20 @@ public struct MeshData{
 
 		mesh.GetVertices(this.vertices);
 		this.triangles = mesh.GetTriangles(0);
-		mesh.GetUVs(0, this.UVs);
+		mesh.GetUVs(0, loadedUV);
 		mesh.GetNormals(this.normals);
 		mesh.GetTangents(this.tangents);
 
+		foreach(Vector2 u in loadedUV){
+			this.UVs.Add(new Vector3(u.x, u.y, textureCode));
+		}
+
 		hitboxMesh.GetVertices(this.hitboxVertices);
 		this.hitboxTriangles = hitboxMesh.GetTriangles(0);
+		loadedUV.Clear();
 	}
 
-	public int GetUVs(List<Vector2> outputList){
+	public int GetUVs(List<Vector3> outputList){
 		outputList.AddRange(this.UVs);
 		return this.UVs.Count;
 	}
@@ -59,13 +66,6 @@ public struct MeshData{
 	}
 
 	public int[] GetHitboxTriangles(){return this.hitboxTriangles;}
-
-	public MeshData SetUVs(List<Vector2> UVs){
-		this.UVs = UVs;
-		UVs = null;
-
-		return this;
-	}
 
 	public void DebugCreate(){
 		GameObject obj = new GameObject("TestMeshData");

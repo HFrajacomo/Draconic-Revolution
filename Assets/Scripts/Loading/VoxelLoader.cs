@@ -369,10 +369,6 @@ public class VoxelLoader : BaseLoader {
 	}
 
 	public void RunPostDeserializationRoutine(){
-		List<Vector2> objUV;
-		MeshData meshData;
-		int texCode;
-
 		foreach(Blocks b in blockBook){
 			b.SetupAfterSerialize(isClient);
 
@@ -380,22 +376,10 @@ public class VoxelLoader : BaseLoader {
 				b.SetupTextureIDs();
 		}
 		foreach(BlocklikeObject b in objectBook){
-			b.SetupAfterSerialize(isClient);
-			
-			if(isClient){
+			if(isClient)
 				b.SetupTextureIDs();
-
-				objUV = new List<Vector2>();
-				texCode = codenameToTexID[b.codename];
-
-				meshData = b.GetMeshData();
-				meshData.GetUVs(objUV);
-
-				texCode = codenameToTexID[b.codename]; 
-
-				meshData = meshData.SetUVs(objUV);
-				b.SetMeshData(meshData);
-			}
+			
+			b.SetupAfterSerialize(isClient);
 		}
 	}
 
