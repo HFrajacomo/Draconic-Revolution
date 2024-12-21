@@ -52,7 +52,7 @@
             "position" : {
                 "x" : -0.5,
                 "y" : 0,
-                "z" : 0 
+                "z" : -0.5 
             }
         },
         {
@@ -60,23 +60,23 @@
             "position" : {
                 "x" : 0.5,
                 "y" : 0,
-                "z" : 0 
+                "z" : 0.5 
             }
         },
         {
             "state" : 2,
             "position" : {
-                "x" : 0,
+                "x" : 0.5,
                 "y" : 0,
-                "z" : -0.5 
+                "z" : 0 
             }
         },
         {
             "state" : 3,
             "position" : {
-                "x" : 0,
+                "x" : -0.5,
                 "y" : 0,
-                "z" : 0.5 
+                "z" : 0 
             }
         },
         {
@@ -102,42 +102,42 @@
     "states" : [
         {
             "state" : 0,
-            "position" : {
+            "rotation" : {
                 "x" : 270,
                 "y" : 0
             }
         },
         {
             "state" : 1,
-            "position" : {
+            "rotation" : {
                 "x" : 90,
                 "y" : 0
             }
         },
         {
             "state" : 2,
-            "position" : {
+            "rotation" : {
                 "x" : 0,
                 "y" : 0
             }
         },
         {
             "state" : 3,
-            "position" : {
+            "rotation" : {
                 "x" : 180,
                 "y" : 0
             }
         },
         {
             "state" : 4,
-            "position" : {
+            "rotation" : {
                 "x" : 0,
                 "y" : -90
             }
         },
         {
             "state" : 5,
-            "position" : {
+            "rotation" : {
                 "x" : 0,
                 "y" : 90
             }
