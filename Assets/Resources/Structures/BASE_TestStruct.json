@@ -1,0 +1,16 @@
+{
+	"name": "BASE_TestStruct",
+	"blockdata_raw": [3,24]
+	"hpdata_raw": [0,24]
+	"statedata_raw": [0,24]
+	"sizeX": 12,
+	"sizeY": 1,
+	"sizeZ": 2,
+	"offsetX": 0,
+	"offsetZ": 0,
+	"considerAir": false,
+	"needsBase": false,
+	"randomStates": false,
+	"type": 0,
+	"overwriteBlocks": [],
+}

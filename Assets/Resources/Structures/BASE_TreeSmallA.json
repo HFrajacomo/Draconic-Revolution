@@ -1,0 +1,17 @@
+{
+	"name": "BASE_TreeSmallA",
+	"blockdata_raw": [0,12,4,0,24,4,0,24,4,0,13,7,3,0,1,7,7,4,7,7,0,1,7,3,0,2,7,3,0,1,7,7,4,7,7,0,1,7,3,0,2,7,3,0,1,7,15,0,1,7,3,0,7,7,3,0,2,7,3,0,2,7,3,0,6]
+	"hpdata_raw": [0,175]
+	"statedata_raw": [0,175]
+	"sizeX": 5,
+	"sizeY": 7,
+	"sizeZ": 5,
+	"offsetX": 2,
+	"offsetZ": 2,
+	"considerAir": false,
+	"type": 1,
+	"overwriteBlocks": [],
+	"needsBase": true,
+	"randomStates": false,
+	"acceptableBaseBlocks": ["BASE_Grass", "BASE_Dirt", "BASE_Snow"],
+}

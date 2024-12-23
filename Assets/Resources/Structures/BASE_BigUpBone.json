@@ -1,0 +1,16 @@
+{
+	"name": "BASE_BigUpBone",
+	"blockdata_raw": [16,1,0,1,16,1,0,3,16,1,0,1,16,2,0,1,16,1,0,1,16,1,0,1,16,1,0,1,16,1,0,4,16,1,0,7,16,2,0,7,16,2,0,7,16,3,0,7,16,2,0,7,16,1,0,4,16,1,0,1,16,1,0,1,16,1,0,1,16,1,0,1,16,2,0,1,16,1,0,3,16,1,0,1,16,1]
+	"hpdata_raw": [0,90]
+	"statedata_raw": [0,90]
+	"sizeX": 3,
+	"sizeY": 10,
+	"sizeZ": 3,
+	"offsetX": 0,
+	"offsetZ": 0,
+	"considerAir": false,
+	"needsBase": false,
+	"randomStates": false,
+	"type": 0,
+	"overwriteBlocks": [],
+}

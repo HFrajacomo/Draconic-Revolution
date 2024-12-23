@@ -1,0 +1,16 @@
+{
+	"name": "BASE_IronVeinC",
+	"blockdata_raw": [5,4]
+	"hpdata_raw": [0,4]
+	"statedata_raw": [0,4]
+	"sizeX": 2,
+	"sizeY": 1,
+	"sizeZ": 2,
+	"offsetX": 0,
+	"offsetZ": 0,
+	"considerAir": false,
+	"needsBase": false,
+	"randomStates": false,
+	"type": 2,
+	"overwriteBlocks": ["BASE_Stone"],
+}

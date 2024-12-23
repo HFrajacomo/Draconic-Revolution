@@ -1,0 +1,16 @@
+{
+	"name": "BASE_UraniumVeinB",
+	"blockdata_raw": [26, 26]
+	"hpdata_raw": [0,2]
+	"statedata_raw": [0,2]
+	"sizeX": 1,
+	"sizeY": 2,
+	"sizeZ": 1,
+	"offsetX": 0,
+	"offsetZ": 0,
+	"considerAir": false,
+	"needsBase": false,
+	"randomStates": false,
+	"type": 2,
+	"overwriteBlocks": ["BASE_Stone"],
+}

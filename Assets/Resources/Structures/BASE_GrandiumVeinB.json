@@ -1,0 +1,16 @@
+{
+	"name": "BASE_GrandiumVeinB",
+	"blockdata_raw": [38,2,0,1,38,1,0,1,38,1]
+	"hpdata_raw": [0,6]
+	"statedata_raw": [0,6]
+	"sizeX": 3,
+	"sizeY": 2,
+	"sizeZ": 1,
+	"offsetX": 0,
+	"offsetZ": 0,
+	"considerAir": false,
+	"needsBase": false,
+	"randomStates": false,
+	"type": 2,
+	"overwriteBlocks": ["BASE_Moonstone"],
+}

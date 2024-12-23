@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,194 +7,81 @@ using Unity.Collections;
 using Unity.Burst;
 using Random = System.Random;
 
-public abstract class Structure
+[Serializable]
+public class Structure
 {
-    public int code;
-
-    public ushort[] blockdata;
-    public VoxelMetadata meta;
-
-    private static int cacheX;
-    private static int cacheY;
-    private static int cacheZ;
-
-    public static List<Chunk> reloadChunks = new List<Chunk>();
-
+    public string name;
     public bool considerAir;
     public bool needsBase;
     public bool randomStates;
-
     public int sizeX, sizeY, sizeZ;
     public int offsetX, offsetZ;
-
-    // Cache
-    private ushort[] decompressedBlocks;
-    private ushort[] decompressedHP;
-    private ushort[] decompressedState; 
 
     /*
     0: OverwriteAll
     1: FreeSpace
     2: SpecificOverwrite
     */
-    public FillType type;
+    public int type;
 
-    public HashSet<ushort> overwriteBlocks;
-    public HashSet<ushort> acceptableBaseBlocks;
+
+    public ushort[] blockdata_raw;
+    public ushort[] statedata_raw;
+    public ushort[] hpdata_raw;
+    public string[] overwriteBlocks;
+    public string[] acceptableBaseBlocks;
+
+    // Post-Serialization
+    private ushort[] blockdata;
+    private VoxelMetadata meta;
+    private FillType fillType;
+    private HashSet<ushort> overwriteBlocksInternal;
+    private HashSet<ushort> acceptableBaseBlocksInternal;
+
+    private static int cacheX;
+    private static int cacheY;
+    private static int cacheZ;
+    public static List<Chunk> reloadChunks = new List<Chunk>();
 
     private static Random rng;
 
 
-    /*
-    Overall Structure List
-    ADD TO THIS LIST FOR EVERY STRUCTURE IMPLEMENTED
-    */
-    public static Structure Generate(int code){
-        switch((StructureCode)code){
-            case StructureCode.TestStruct:
-                return new TestStruct();
-            case StructureCode.TreeSmallA:
-                return new TreeSmallA();
-            case StructureCode.TreeMediumA:
-                return new TreeMediumA();
-            case StructureCode.DirtPileA:
-                return new DirtPileA();
-            case StructureCode.DirtPileB:
-                return new DirtPileB();
-            case StructureCode.BoulderNormalA:
-                return new BoulderNormalA();
-            case StructureCode.TreeBigA:
-                return new TreeBigA();
-            case StructureCode.TreeCrookedMediumA:
-                return new TreeCrookedMediumA();
-            case StructureCode.TreeSmallB:
-                return new TreeSmallB();
-            case StructureCode.IronVeinA:
-                return new IronVeinA();
-            case StructureCode.IronVeinB:
-                return new IronVeinB();
-            case StructureCode.IronVeinC:
-                return new IronVeinC();
-            case StructureCode.CoalVeinA:
-                return new CoalVeinA();
-            case StructureCode.CoalVeinB:
-                return new CoalVeinB();
-            case StructureCode.CoalVeinC:
-                return new CoalVeinC();
-            case StructureCode.CopperVeinA:
-                return new CopperVeinA();
-            case StructureCode.CopperVeinB:
-                return new CopperVeinB();
-            case StructureCode.TinVeinA:
-                return new TinVeinA();
-            case StructureCode.TinVeinB:
-                return new TinVeinB();
-            case StructureCode.GoldVeinA:
-                return new GoldVeinA();
-            case StructureCode.GoldVeinB:
-                return new GoldVeinB();
-            case StructureCode.AluminiumVeinA:
-                return new AluminiumVeinA();
-            case StructureCode.AluminiumVeinB:
-                return new AluminiumVeinB();
-            case StructureCode.EmeriumVeinA:
-                return new EmeriumVeinA();
-            case StructureCode.EmeriumVeinB:
-                return new EmeriumVeinB();
-            case StructureCode.UraniumVeinA:
-                return new UraniumVeinA();
-            case StructureCode.UraniumVeinB:
-                return new UraniumVeinB();
-            case StructureCode.MagnetiteVeinA:
-                return new MagnetiteVeinA();
-            case StructureCode.MagnetiteVeinB:
-                return new MagnetiteVeinB();
-            case StructureCode.EmeraldVeinA:
-                return new EmeraldVeinA();
-            case StructureCode.EmeraldVeinB:
-                return new EmeraldVeinB();
-            case StructureCode.RubyVeinA:
-                return new RubyVeinA();
-            case StructureCode.RubyVeinB:
-                return new RubyVeinB();
-            case StructureCode.GravelPile:
-                return new GravelPile();
-            case StructureCode.BigFossil1:
-                return new BigFossil1();
-            case StructureCode.BigFossil2:
-                return new BigFossil2();
-            case StructureCode.LittleBone1:
-                return new LittleBone1();
-            case StructureCode.LittleBone2:
-                return new LittleBone2();
-            case StructureCode.BigUpBone:
-                return new BigUpBone();  
-            case StructureCode.BigCrossBone:
-                return new BigCrossBone();   
-            case StructureCode.CobaltVeinA:
-                return new CobaltVeinA();
-            case StructureCode.CobaltVeinB:
-                return new CobaltVeinB();
-            case StructureCode.ArditeVeinA:
-                return new ArditeVeinA();
-            case StructureCode.ArditeVeinB:
-                return new ArditeVeinB();
-            case StructureCode.GrandiumVeinA:
-                return new GrandiumVeinA();
-            case StructureCode.GrandiumVeinB:
-                return new GrandiumVeinB();
-            case StructureCode.SteonyxVein:
-                return new SteonyxVein();
-            case StructureCode.SingleIgnisAuraCrystal:
-                return new SingleIgnisAuraCrystal();
-            case StructureCode.SingleAquaAuraCrystal:
-                return new SingleAquaAuraCrystal();
-            case StructureCode.SingleVentusAuraCrystal:
-                return new SingleVentusAuraCrystal();
-            case StructureCode.SingleSolumAuraCrystal:
-                return new SingleSolumAuraCrystal();
-            case StructureCode.SingleCastusAuraCrystal:
-                return new SingleCastusAuraCrystal();
-            case StructureCode.SingleRuinaAuraCrystal:
-                return new SingleRuinaAuraCrystal();
-            case StructureCode.SingleMagicAuraCrystal:
-                return new SingleMagicAuraCrystal();                
-            default:
-                return new TestStruct();
-        }
-    }
+    public void SetupAfterSerialize(){
+        this.fillType = (FillType)this.type;
 
-    public static Structure Generate(StructureCode code){
-        return Structure.Generate((int)code);
-    }
+        this.blockdata = Compression.DecompressStructureBlocks(blockdata_raw);
+        this.meta = new VoxelMetadata(this.sizeX, this.sizeY, this.sizeZ, Compression.DecompressStructureMetadata(hpdata_raw), Compression.DecompressStructureMetadata(statedata_raw));
 
+        if(this.fillType == FillType.SpecificOverwrite){
+            this.overwriteBlocksInternal = new HashSet<ushort>();
 
-    // Prepares array
-    public virtual void Prepare(ushort[] data, ushort[] hp, ushort[] state){
-        int i=0;
-
-        decompressedBlocks = Compression.DecompressStructureBlocks(data);
-        decompressedHP = Compression.DecompressStructureMetadata(hp);
-        decompressedState = Compression.DecompressStructureMetadata(state);
-
-        for(int y=0; y < this.sizeY; y++){
-            for(int x=0; x < this.sizeX; x++){
-                for(int z=0; z < this.sizeZ; z++){
-                    this.blockdata[x*sizeZ*sizeY+y*sizeZ+z] = decompressedBlocks[i];
-                    this.meta.SetHP(x,y,z, decompressedHP[i]);
-                    this.meta.SetState(x,y,z, decompressedState[i]);
-
-                    i++;
-                }
+            foreach(string block in this.overwriteBlocks){
+                this.overwriteBlocksInternal.Add(VoxelLoader.GetBlockID(block));
             }
+
+            this.overwriteBlocks = null;
         }
+
+        if(this.needsBase){
+            this.acceptableBaseBlocksInternal = new HashSet<ushort>();
+
+            foreach(string block in this.acceptableBaseBlocks){
+                this.acceptableBaseBlocksInternal.Add(VoxelLoader.GetBlockID(block));
+            }
+
+            this.acceptableBaseBlocks = null;
+        }        
+
+        this.blockdata_raw = null;
+        this.hpdata_raw = null;
+        this.statedata_raw = null;
     }
 
     public bool AcceptBaseBlock(ushort baseBlock){
         if(!this.needsBase)
             return true;
 
-        if(this.acceptableBaseBlocks.Contains(baseBlock))
+        if(this.acceptableBaseBlocksInternal.Contains(baseBlock))
             return true;
 
         return false;
@@ -674,7 +562,7 @@ public abstract class Structure
         int structY = structinitY;
 
         // Applies Free Space building rules to existing chunk
-        if(this.type == FillType.FreeSpace){
+        if(this.fillType == FillType.FreeSpace){
             if(initialchunk){
                 if(!this.considerAir){
                     if(CheckFreeSpace(VD, posX, posY, posZ, rotation, remainderX, remainderZ, remainderY, actualSizeX, actualSizeZ, isPivoted:isPivoted)){
@@ -814,7 +702,7 @@ public abstract class Structure
         }
 
         // Applies in SpecificOverwrite rule to existing chunk
-        else if(this.type == FillType.SpecificOverwrite){
+        else if(this.fillType == FillType.SpecificOverwrite){
             bool shouldDrawNeighbors = false;
 
             if(exists){
@@ -824,7 +712,7 @@ public abstract class Structure
                         for(int x=posX; x < posX + remainderX; x++){
                             structZ = structinitZ;
                             for(int z=posZ; z < posZ + remainderZ; z++){
-                                if(this.overwriteBlocks.Contains(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
+                                if(this.overwriteBlocksInternal.Contains(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
                                     RotateData(structX, structY, structZ, rotation);
                                     if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0){
                                         continue;
@@ -850,7 +738,7 @@ public abstract class Structure
                         for(int x=posX; x < posX + remainderX; x++){
                             structZ = structinitZ;
                             for(int z=posZ; z < posZ + remainderZ; z++){
-                                if(this.overwriteBlocks.Contains(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
+                                if(this.overwriteBlocksInternal.Contains(VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z])){
                                     RotateData(structX, structY, structZ, rotation);
                                     if(this.blockdata[cacheX*sizeZ*sizeY+cacheY*sizeZ+cacheZ] == 0)
                                         VD[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = (ushort)(ushort.MaxValue/2);
@@ -920,7 +808,7 @@ public abstract class Structure
         }
 
         // Applies in OverwriteAll state
-        else if(this.type == FillType.OverwriteAll){
+        else if(this.fillType == FillType.OverwriteAll){
             // Handling if air is taken into account in generated chunks
             if(this.considerAir && exists){
                 for(int y=posY; y < posY + remainderY; y++){

@@ -1,0 +1,16 @@
+{
+	"name": "BASE_SingleIgnisAuraCrystal",
+	"blockdata_raw": [65534]
+	"hpdata_raw": [0,1]
+	"statedata_raw": [6]
+	"sizeX": 1,
+	"sizeY": 1,
+	"sizeZ": 1,
+	"offsetX": 0,
+	"offsetZ": 0,
+	"considerAir": false,
+	"needsBase": false,
+	"randomStates": true,
+	"type": 2,
+	"overwriteBlocks": ["BASE_Stone"],
+}

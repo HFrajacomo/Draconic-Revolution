@@ -1,0 +1,16 @@
+{
+	"name": "BASE_BigCrossBone",
+	"blockdata_raw": [0,4,16,1,0,7,16,1,0,6,16,2,0,6,16,1,0,7,16,2,0,6,16,2,0,7,16,1,0,6,16,2,0,6,16,2,0,3,16,8,0,1,16,4,0,1,16,1,0,5,16,1,0,6,16,2,0,3]
+	"hpdata_raw": [0,104]
+	"statedata_raw": [0,104]
+	"sizeX": 1,
+	"sizeY": 13,
+	"sizeZ": 8,
+	"offsetX": 0,
+	"offsetZ": 0,
+	"considerAir": false,
+	"needsBase": false,
+	"randomStates": false,
+	"type": 0,
+	"overwriteBlocks": [],
+}

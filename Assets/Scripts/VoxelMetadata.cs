@@ -29,6 +29,14 @@ public class VoxelMetadata
 		this.hp = new ushort[xSize*ySize*zSize];
 		this.state = new ushort[xSize*ySize*zSize];
 	}
+	public VoxelMetadata(int x, int y, int z, ushort[] hp, ushort[] state){
+		xSize = x;
+		ySize = y;
+		zSize = z;
+
+		this.hp = hp;
+		this.state = state;
+	}
 
 	public VoxelMetadata(VoxelMetadata vd){
 		this.hp = (ushort[])vd.GetHPData().Clone();

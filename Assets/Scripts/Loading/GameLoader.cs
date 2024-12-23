@@ -12,6 +12,7 @@ public class GameLoader : MonoBehaviour {
 	private ItemLoader itemLoader;
 	private ShaderLoader shaderLoader;
 	private AudioLoader audioLoader;
+	private StructureLoader structureLoader;
 
 	private static readonly string SERVER_SCENE = "Assets/Scenes/Server.unity";
 
@@ -26,14 +27,17 @@ public class GameLoader : MonoBehaviour {
 		this.itemLoader = new ItemLoader(this.isClient);
 		this.voxelLoader = new VoxelLoader(this.isClient, this.prefabObjects);
 		this.audioLoader = new AudioLoader(this.isClient);
+		this.structureLoader = new StructureLoader(this.isClient);
 
 		this.shaderLoader.Load();
 		this.itemLoader.Load();
 		this.voxelLoader.Load();
 		this.audioLoader.Load();
+		this.structureLoader.Load();
 
 		this.itemLoader.RunPostDeserializationRoutine();
 		this.voxelLoader.RunPostDeserializationRoutine();
+		this.structureLoader.RunPostDeserializationRoutine();
 
 		if(this.isClient)
 			SceneManager.LoadScene("Menu");

@@ -118,7 +118,7 @@ public class ItemLoader : BaseLoader {
 		codenameToItemID.Add("BASE_NULL", 0);
 	}
 
-	public void RunPostDeserializationRoutine(){
+	public override void RunPostDeserializationRoutine(){
 		foreach(Item it in itemBook){
 			it.SetupAfterSerialize(isClient);
 		}

@@ -368,7 +368,7 @@ public class VoxelLoader : BaseLoader {
 		}
 	}
 
-	public void RunPostDeserializationRoutine(){
+	public override void RunPostDeserializationRoutine(){
 		foreach(Blocks b in blockBook){
 			b.SetupAfterSerialize(isClient);
 

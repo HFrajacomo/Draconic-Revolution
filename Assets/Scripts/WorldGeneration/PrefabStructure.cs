@@ -1020,7 +1020,7 @@ public class BigFossil1 : Structure
 		this.needsBase = false;
 		this.randomStates = false;
 		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>(){};
+		this.overwriteBlocks = new HashSet<ushort>();
 
 		Prepare(blocks, hps, states);
 	}
@@ -1049,7 +1049,7 @@ public class BigFossil2 : Structure
 		this.needsBase = false;
 		this.randomStates = false;
 		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>(){};
+		this.overwriteBlocks = new HashSet<ushort>();
 
 		Prepare(blocks, hps, states);
 	}
@@ -1078,7 +1078,7 @@ public class LittleBone1 : Structure
 		this.needsBase = false;
 		this.randomStates = false;
 		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>(){};
+		this.overwriteBlocks = new HashSet<ushort>();
 
 		Prepare(blocks, hps, states);
 	}
@@ -1107,7 +1107,7 @@ public class LittleBone2 : Structure
 		this.needsBase = false;
 		this.randomStates = false;
 		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>(){};
+		this.overwriteBlocks = new HashSet<ushort>();
 
 		Prepare(blocks, hps, states);
 	}
@@ -1136,7 +1136,7 @@ public class BigUpBone : Structure
 		this.needsBase = false;
 		this.randomStates = false;
 		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>(){};
+		this.overwriteBlocks = new HashSet<ushort>();
 
 		Prepare(blocks, hps, states);
 	}
@@ -1165,7 +1165,7 @@ public class BigCrossBone : Structure
 		this.needsBase = false;
 		this.randomStates = false;
 		this.type = FillType.OverwriteAll;
-		this.overwriteBlocks = new HashSet<ushort>(){};
+		this.overwriteBlocks = new HashSet<ushort>();
 
 		Prepare(blocks, hps, states);
 	}
