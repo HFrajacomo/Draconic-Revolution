@@ -1,0 +1,16 @@
+{
+	"name": "BASE_RubyVeinB",
+	"blockdata_raw": [28,28,0,1,28],
+	"hpdata_raw": [0,4],
+	"statedata_raw": [0,4],
+	"sizeX": 1,
+	"sizeY": 2,
+	"sizeZ": 2,
+	"offsetX": 0,
+	"offsetZ": 0,
+	"considerAir": false,
+	"needsBase": false,
+	"randomStates": false,
+	"type": 2,
+	"overwriteBlocks": ["BASE_Stone"]
+}

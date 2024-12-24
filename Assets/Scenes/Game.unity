@@ -20844,7 +20844,6 @@ MonoBehaviour:
   vfx: {fileID: 1018660373}
   time: {fileID: 1322082558}
   gameUI: {fileID: 675879286}
-  structHandler: {fileID: 2128924710}
   playerMovement: {fileID: 59614823}
   playerSheetController: {fileID: 59614827}
   playerRaycast: {fileID: 59614824}
@@ -32682,51 +32681,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2100311301}
   m_CullTransparentMesh: 1
---- !u!1 &2128924709
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2128924711}
-  - component: {fileID: 2128924710}
-  m_Layer: 0
-  m_Name: StructureHandler
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2128924710
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2128924709}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26a993c0e281c2c42a11e4ef50543902, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxBiomesActive: 4
---- !u!4 &2128924711
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2128924709}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 201.11108, y: 17.599121, z: 193.72266}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -32742,7 +32696,6 @@ SceneRoots:
   - {fileID: 675879287}
   - {fileID: 1691366255}
   - {fileID: 1322082559}
-  - {fileID: 2128924711}
   - {fileID: 1018660374}
   - {fileID: 246974019}
   - {fileID: 1635249985}

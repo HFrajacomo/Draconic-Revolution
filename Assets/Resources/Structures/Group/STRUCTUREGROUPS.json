@@ -1,0 +1,1040 @@
+{
+	"data": [
+		{
+			"name": "BASE_Plains_Trees",
+			"structData": [
+				{
+					"structName": "BASE_TreeSmallA",
+					"quantity": 1,
+					"chance": 0.2,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TreeMediumA",
+					"quantity": 1,
+					"chance": 0.1,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Grass_Highlands_Trees",
+			"structData": [
+				{
+					"structName": "BASE_TreeSmallA",
+					"quantity": 1,
+					"chance": 0.3,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TreeMediumA",
+					"quantity": 1,
+					"chance": 0.2,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Desert_Trees",
+			"structData": [
+				{
+					"structName": "BASE_TreeCrookedMediumA",
+					"quantity": 1,
+					"chance": 0.02,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Ice_Plains_Trees",
+			"structData": [
+				{
+					"structName": "BASE_TreeSmallA",
+					"quantity": 1,
+					"chance": 0.2,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TreeMediumA",
+					"quantity": 1,
+					"chance": 0.1,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Ice_Highlands_Trees",
+			"structData": [
+				{
+					"structName": "BASE_TreeSmallA",
+					"quantity": 1,
+					"chance": 0.2,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TreeMediumA",
+					"quantity": 1,
+					"chance": 0.1,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Forest_Trees",
+			"structData": [
+				{
+					"structName": "BASE_TreeSmallA",
+					"quantity": 3,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TreeMediumA",
+					"quantity": 2,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TreeBigA",
+					"quantity": 1,
+					"chance": 0.1,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0				
+				}
+			]
+		},
+		{
+			"name": "BASE_Ice_Forest_Trees",
+			"structData": [
+				{
+					"structName": "BASE_TreeSmallA",
+					"quantity": 3,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TreeMediumA",
+					"quantity": 3,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TreeSmmallB",
+					"quantity": 1,
+					"chance": 0.3,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0				
+				}
+			]
+		},
+		{
+			"name": "BASE_Surface_Ores",
+			"structData": [
+				{
+					"structName": "BASE_IronVeinA",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": 90,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_IronVeinB",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": 90,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_IronVeinC",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": 90,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CoalVeinA",
+					"quantity": 6,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CoalVeinB",
+					"quantity": 6,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CoalVeinC",
+					"quantity": 6,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CopperVeinA",
+					"quantity": 10,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": 120,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CopperVeinB",
+					"quantity": 10,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": 120,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TinVeinA",
+					"quantity": 6,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": 100,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TinVeinB",
+					"quantity": 6,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": 100,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_GoldVeinA",
+					"quantity": 3,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_GoldVeinB",
+					"quantity": 3,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_AluminiumVeinA",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_AluminiumVeinB",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_EmeriumVeinA",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_EmeriumVeinB",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_UraniumVeinA",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_UraniumVeinB",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_MagnetiteVeinA",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_MagnetiteVeinB",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_EmeraldVeinA",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_EmeraldVeinB",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_RubyVeinA",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_RubyVeinB",
+					"quantity": 1,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": 60,
+					"hasRange": true,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Dirt_Patches",
+			"structData": [
+				{
+					"structName": "BASE_DirtPileA",
+					"quantity": 3,
+					"chance": 1.0,
+					"depth": 3,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_DirtPileB",
+					"quantity": 3,
+					"chance": 1.0,
+					"depth": 3,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Gravel_Surface_Patches",
+			"structData": [
+				{
+					"structName": "BASE_GravelPile",
+					"quantity": 2,
+					"chance": 0.5,
+					"depth": -1,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Gravel_Patches",
+			"structData": [
+				{
+					"structName": "BASE_GravelPile",
+					"quantity": 16,
+					"chance": 1.0,
+					"depth": 1,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Boulders_LowDensity",
+			"structData": [
+				{
+					"structName": "BASE_BoulderNormalA",
+					"quantity": 1,
+					"chance": 0.02,
+					"depth": 1,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Boulders_MediumDensity",
+			"structData": [
+				{
+					"structName": "BASE_BoulderNormalA",
+					"quantity": 1,
+					"chance": 0.05,
+					"depth": 1,
+					"hardSetDepth": -1,
+					"hasRange": false,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Underground_Ores",
+			"structData": [
+				{
+					"structName": "BASE_IronVeinA",
+					"quantity": 12,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_IronVeinB",
+					"quantity": 12,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_IronVeinC",
+					"quantity": 12,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CoalVeinA",
+					"quantity": 18,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CoalVeinB",
+					"quantity": 18,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CoalVeinC",
+					"quantity": 18,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CopperVeinA",
+					"quantity": 10,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CopperVeinB",
+					"quantity": 10,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TinVeinA",
+					"quantity": 6,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_TinVeinB",
+					"quantity": 6,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_GoldVeinA",
+					"quantity": 6,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": 240,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_GoldVeinB",
+					"quantity": 6,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": 240,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_AluminiumVeinA",
+					"quantity": 4,
+					"chance": 0.8,
+					"depth": 0,
+					"hardSetDepth": 200,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_AluminiumVeinB",
+					"quantity": 4,
+					"chance": 0.8,
+					"depth": 0,
+					"hardSetDepth": 200,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_EmeriumVeinA",
+					"quantity": 3,
+					"chance": 0.8,
+					"depth": 0,
+					"hardSetDepth": 160,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_EmeriumVeinB",
+					"quantity": 3,
+					"chance": 0.8,
+					"depth": 0,
+					"hardSetDepth": 160,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_UraniumVeinA",
+					"quantity": 2,
+					"chance": 0.8,
+					"depth": 0,
+					"hardSetDepth": 150,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_UraniumVeinB",
+					"quantity": 2,
+					"chance": 0.8,
+					"depth": 0,
+					"hardSetDepth": 150,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_MagnetiteVeinA",
+					"quantity": 5,
+					"chance": 0.8,
+					"depth": 0,
+					"hardSetDepth": 150,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_MagnetiteVeinB",
+					"quantity": 5,
+					"chance": 0.8,
+					"depth": 0,
+					"hardSetDepth": 150,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_EmeraldVeinA",
+					"quantity": 2,
+					"chance": 0.9,
+					"depth": 0,
+					"hardSetDepth": 200,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_EmeraldVeinB",
+					"quantity": 2,
+					"chance": 0.9,
+					"depth": 0,
+					"hardSetDepth": 200,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_RubyVeinA",
+					"quantity": 2,
+					"chance": 0.9,
+					"depth": 0,
+					"hardSetDepth": 200,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_RubyVeinB",
+					"quantity": 2,
+					"chance": 0.9,
+					"depth": 0,
+					"hardSetDepth": 200,
+					"hasRange": true,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Small_Bone_Formation",
+			"structData": [
+				{
+					"structName": "BASE_LittleBone1",
+					"quantity": 8,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_LittleBone2",
+					"quantity": 6,
+					"chance": 0.5,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Greater_Bone_Formation",
+			"structData": [
+				{
+					"structName": "BASE_LittleBone1",
+					"quantity": 2,
+					"chance": 0.2,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": -1
+				},
+				{
+					"structName": "BASE_LittleBone1",
+					"quantity": 8,
+					"chance": 0.4,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_LittleBone2",
+					"quantity": 2,
+					"chance": 0.2,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": -1
+				},
+				{
+					"structName": "BASE_LittleBone2",
+					"quantity": 8,
+					"chance": 0.4,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_BigFossil1",
+					"quantity": 1,
+					"chance": 0.03,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": -4
+				},
+				{
+					"structName": "BASE_BigFossil1",
+					"quantity": 3,
+					"chance": 0.3,
+					"depth": 12,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_BigFossil2",
+					"quantity": 1,
+					"chance": 0.03,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": -4
+				},
+				{
+					"structName": "BASE_BigFossil2",
+					"quantity": 3,
+					"chance": 0.3,
+					"depth": 12,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_BigUpBone",
+					"quantity": 1,
+					"chance": 0.03,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": -10
+				},
+				{
+					"structName": "BASE_BigUpBone",
+					"quantity": 3,
+					"chance": 0.3,
+					"depth": 14,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_BigCrossBone",
+					"quantity": 1,
+					"chance": 0.03,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": -10
+				},
+				{
+					"structName": "BASE_BigCrossBone",
+					"quantity": 3,
+					"chance": 0.3,
+					"depth": 15,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Hell_Ores",
+			"structData": [
+				{
+					"structName": "BASE_CobaltVeinA",
+					"quantity": 7,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_CobaltVeinB",
+					"quantity": 7,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_ArditeVeinA",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_ArditeVeinB",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_Core_Ores",
+			"structData": [
+				{
+					"structName": "BASE_GrandiumVeinA",
+					"quantity": 5,
+					"chance": 0.7,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_GrandiumVeinB",
+					"quantity": 5,
+					"chance": 0.7,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SteonyxVein",
+					"quantity": 7,
+					"chance": 0.7,
+					"depth": 0,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_AuraFew",
+			"structData": [
+				{
+					"structName": "BASE_SingleIgnisAuraCrystal",
+					"quantity": 2,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleAquaAuraCrystal",
+					"quantity": 2,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleVentusAuraCrystal",
+					"quantity": 2,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleSolumAuraCrystal",
+					"quantity": 2,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleCastusAuraCrystal",
+					"quantity": 2,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleRuinaAuraCrystal",
+					"quantity": 2,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleMagicAuraCrystal",
+					"quantity": 2,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				}
+			]
+		},
+		{
+			"name": "BASE_AuraMany",
+			"structData": [
+				{
+					"structName": "BASE_SingleIgnisAuraCrystal",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleAquaAuraCrystal",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleVentusAuraCrystal",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleSolumAuraCrystal",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleCastusAuraCrystal",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleRuinaAuraCrystal",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				},
+				{
+					"structName": "BASE_SingleMagicAuraCrystal",
+					"quantity": 5,
+					"chance": 1.0,
+					"depth": 10,
+					"hardSetDepth": -1,
+					"hasRange": true,
+					"minHeight": 0
+				}
+			]
+		}
+	]
+}

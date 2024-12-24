@@ -42,9 +42,8 @@ public class ChunkLoader : MonoBehaviour
     public VFXLoader vfx;
     public TimeOfDay time;
     public GameObject gameUI;
-    public StructureHandler structHandler;
     public Client client;
-    public BiomeHandler biomeHandler = new BiomeHandler();
+    public BiomeHandler biomeHandler = new BiomeHandler(true);
     public PlayerMovement playerMovement;
     public PlayerSheetController playerSheetController;
     public PlayerRaycast playerRaycast;
@@ -128,7 +127,6 @@ public class ChunkLoader : MonoBehaviour
         this.playerAudioListener.enabled = false;
         this.biomeHandler.Clear();
         this.biomeHandler = null;
-        this.structHandler = null;
         this.mainControllerManager = null;
         this.volume = null;
         this.rend = null;

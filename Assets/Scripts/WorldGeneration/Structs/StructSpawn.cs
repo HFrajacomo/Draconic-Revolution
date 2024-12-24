@@ -1,10 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct StructSpawn
+[Serializable]
+public class StructSpawn
 {
-    public StructureCode code;
+    public string structName;
+    private ushort structCode;
     public int quantity;
     public float chance;
     public int depth;
@@ -12,18 +15,12 @@ public struct StructSpawn
     public bool hasRange;
     public int minHeight;
 
-    public StructSpawn(StructureCode c, int q, float p, int d, int hsD, bool r, int mh){
-        this.code = c;
-        this.quantity = q;
-        this.chance = p;
-        this.depth = d;
-        this.hardSetDepth = hsD;
-        this.hasRange = r;
-        this.minHeight = mh;
+    public void RunPostDeserializationRoutine(){
+        this.structCode = StructureLoader.GetStructureID(this.structName);
     }
 
-    public void AddToSpawn(List<int> codeList, List<int> quantityList, List<float> percentageList, List<int> depthList, List<int> hsDepthList, List<bool> rangeList, List<int> minHeightList){
-        codeList.Add((int)this.code);
+    public void AddToSpawn(List<string> nameList, List<int> quantityList, List<float> percentageList, List<int> depthList, List<int> hsDepthList, List<bool> rangeList, List<int> minHeightList){
+        nameList.Add(this.structName);
         quantityList.Add(this.quantity);
         percentageList.Add(this.chance);
         depthList.Add(this.depth);

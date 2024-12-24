@@ -20,7 +20,6 @@ public class ChunkLoader_Server : MonoBehaviour
     public VFXLoader vfx;
     public TimeOfDay time;
     public WorldGenerator worldGen;
-    public StructureHandler structHandler;
     public Server server;
 
     // Queues
@@ -109,8 +108,8 @@ public class ChunkLoader_Server : MonoBehaviour
         this.entityFileHandler = new EntityFileHandler(this);
 
         worldSeed = regionHandler.GetRealSeed();
-        biomeHandler = new BiomeHandler();
-        this.worldGen = new WorldGenerator(worldSeed, biomeHandler, structHandler, this);
+        biomeHandler = new BiomeHandler(false);
+        this.worldGen = new WorldGenerator(worldSeed, biomeHandler, this);
         biomeHandler.SetWorldGenerator(this.worldGen);
 
 

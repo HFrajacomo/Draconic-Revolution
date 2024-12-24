@@ -22,9 +22,6 @@ public class WorldGenerator
     private Random rng;
     private int iteration = 0;
 
-    // Prefab System
-    public StructureHandler structHandler;
-
 	// Cached Data
 	private	ushort[] cacheVoxdata = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private ushort[] cacheMetadataHP = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
@@ -55,11 +52,10 @@ public class WorldGenerator
     private NativeArray<ushort> biomeBlendingBlock;
 
 
-    public WorldGenerator(int worldSeed, BiomeHandler biomeReference, StructureHandler structHandler, ChunkLoader_Server reference){
+    public WorldGenerator(int worldSeed, BiomeHandler biomeReference, ChunkLoader_Server reference){
     	this.worldSeed = worldSeed;
     	this.biomeHandler = biomeReference;
     	this.cl = reference;
-    	this.structHandler = structHandler;
 
         baseMap = new NativeArray<byte>(GenerationSeed.baseNoise, Allocator.Persistent);
         erosionMap = new NativeArray<byte>(GenerationSeed.erosionNoise, Allocator.Persistent);
@@ -167,9 +163,9 @@ public class WorldGenerator
     Range represents if structure always spawn at given Depth, or if it spans below as well
     HardSetDepth will be a fixed depth value for the structure to generate in case it is non-negative
     */
-    public void GenerateStructures(ChunkPos pos, BiomeCode biome, int structureCode, ushort[] blockdata, ushort[] statedata, ushort[] hpdata){
+    public void GenerateStructures(ChunkPos pos, BiomeCode biome, string structureName, ushort[] blockdata, ushort[] statedata, ushort[] hpdata){
         // Gets index of amount and percentage
-        int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureCode);
+        int index = BiomeHandler.GetBiomeStructs(biome).IndexOf(structureName);
         int amount = BiomeHandler.GetBiomeAmounts(biome)[index];
         int depth = BiomeHandler.GetBiomeDepth(biome)[index];
         int hardSetDepth = BiomeHandler.GetBiomeHSDepth(biome)[index];
@@ -207,7 +203,7 @@ public class WorldGenerator
                 if(y <= minRelativeHeight || y <= 0)
                     continue;
 
-                Structure structure = this.structHandler.LoadStructure(structureCode);
+                Structure structure = StructureLoader.GetStructure(structureName);
 
                 if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z])){
                     structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation); 
@@ -246,7 +242,7 @@ public class WorldGenerator
                 if(y <= minRelativeHeight || y <= 0)
                     continue;
 
-                Structure structure = this.structHandler.LoadStructure(structureCode);
+                Structure structure = StructureLoader.GetStructure(structureName);
 
                 if(structure.AcceptBaseBlock(blockdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(y-1)*Chunk.chunkWidth+z])){
                     structure.Apply(this.cl, pos, blockdata, hpdata, statedata, x, y, z, rotation:rotation);
@@ -378,8 +374,8 @@ public class WorldGenerator
     }
 
     private void GenerateBiomeStructures(ChunkLoader_Server cl, ChunkPos pos, BiomeCode biomeCode, ushort[] blockdata, ushort[] state, ushort[] hps){
-        foreach(int structCode in BiomeHandler.GetBiomeStructs(biomeCode)){
-            GenerateStructures(pos, biomeCode, structCode, blockdata, state, hps);
+        foreach(string structName in BiomeHandler.GetBiomeStructs(biomeCode)){
+            GenerateStructures(pos, biomeCode, structName, blockdata, state, hps);
         }
     }
 

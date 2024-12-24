@@ -73,11 +73,11 @@ def parse_line(line, parse_list):
 		else:
 			parse_list.append(f"\t{q()}acceptableBaseBlocks{q()}: [],")
 	elif("public ushort[] blocks" in line):
-		parse_list.append(f"\t{q()}blockdata_raw{q()}: [{line.split('{')[1].split('}')[0]}]")
+		parse_list.append(f"\t{q()}blockdata_raw{q()}: [{line.split('{')[1].split('}')[0]}],")
 	elif("public ushort[] hps" in line):
-		parse_list.append(f"\t{q()}hpdata_raw{q()}: [{line.split('{')[1].split('}')[0]}]")
+		parse_list.append(f"\t{q()}hpdata_raw{q()}: [{line.split('{')[1].split('}')[0]}],")
 	elif("public ushort[] states" in line):
-		parse_list.append(f"\t{q()}statedata_raw{q()}: [{line.split('{')[1].split('}')[0]}]")
+		parse_list.append(f"\t{q()}statedata_raw{q()}: [{line.split('{')[1].split('}')[0]}],")
 
 text = read_file(sys.argv[1])
 first = True
@@ -86,18 +86,19 @@ parse_list = []
 for line in text:
 	parse_line(line, parse_list)
 
-'''
+
 current_file = ""
 file = None
 for line in parse_list:
 	if(line[0] == "{"):
-		if(file != None):
-			file.close()
-
 		current_file = line.split(" ")[1].replace("\n", "") + ".json"
-		file = open(f"Generated/{current_file}", "w")
+		file = open(f"Generated/{current_file}", "w+")
 		file.write("{\n")
+	elif(line[0] == "}"):
+		file.seek(0)
+		all_text = file.read()
+		file = open(f"Generated/{current_file}", "w")
+		file.write(all_text[:-2] + "\n}\n")
+		file.close()
 	else:
 		file.write(line + "\n")
-
-'''

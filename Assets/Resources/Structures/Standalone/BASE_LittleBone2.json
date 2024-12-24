@@ -1,0 +1,16 @@
+{
+	"name": "BASE_LittleBone2",
+	"blockdata_raw": [16,2,0,3,16,1,0,3,16,1,0,3,16,2,0,1,16,4],
+	"hpdata_raw": [0,20],
+	"statedata_raw": [0,20],
+	"sizeX": 5,
+	"sizeY": 1,
+	"sizeZ": 4,
+	"offsetX": 0,
+	"offsetZ": 0,
+	"considerAir": false,
+	"needsBase": false,
+	"randomStates": false,
+	"type": 0,
+	"overwriteBlocks": []
+}

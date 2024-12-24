@@ -1,0 +1,16 @@
+{
+	"name": "BASE_CoalVeinA",
+	"blockdata_raw": [19,8,0,1,19,4,0,3,19,2],
+	"hpdata_raw": [0,18],
+	"statedata_raw": [0,18],
+	"sizeX": 2,
+	"sizeY": 3,
+	"sizeZ": 3,
+	"offsetX": 0,
+	"offsetZ": 0,
+	"considerAir": false,
+	"needsBase": false,
+	"randomStates": false,
+	"type": 2,
+	"overwriteBlocks": ["BASE_Stone"]
+}
