@@ -49,8 +49,8 @@ public class Structure
     public void SetupAfterSerialize(){
         this.fillType = (FillType)this.type;
 
-        this.blockdata = Compression.DecompressStructureBlocks(blockdata_raw);
-        this.meta = new VoxelMetadata(this.sizeX, this.sizeY, this.sizeZ, Compression.DecompressStructureMetadata(hpdata_raw), Compression.DecompressStructureMetadata(statedata_raw));
+        this.blockdata = Compression.DecompressStructureBlocks(blockdata_raw, this.sizeX, this.sizeY, this.sizeZ);
+        this.meta = new VoxelMetadata(this.sizeX, this.sizeY, this.sizeZ, Compression.DecompressStructureMetadata(hpdata_raw, this.sizeX, this.sizeY, this.sizeZ), Compression.DecompressStructureMetadata(statedata_raw, this.sizeX, this.sizeY, this.sizeZ));
 
         if(this.fillType == FillType.SpecificOverwrite){
             this.overwriteBlocksInternal = new HashSet<ushort>();

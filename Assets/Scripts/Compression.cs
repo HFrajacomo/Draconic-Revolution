@@ -20,15 +20,15 @@ public static class Compression{
 	private static ushort[] basicArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
 	private static ushort[] grasslandsArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Leaves"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
 	private static ushort[] oceanArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Sand"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
-	private static ushort[] forestArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Sand"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
-	private static ushort[] icelandsArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Pine_Leaves"), VoxelLoader.GetBlockID("BASE_Pine_Log"), VoxelLoader.GetBlockID("BASE_Snow"), VoxelLoader.GetBlockID("BASE_Ice"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
+	private static ushort[] forestArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Leaves"), VoxelLoader.GetBlockID("BASE_Sand"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
+	private static ushort[] icelandsArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Leaves"), VoxelLoader.GetBlockID("BASE_Snow"), VoxelLoader.GetBlockID("BASE_Ice"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
 	private static ushort[] sandlandsArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Sand"), VoxelLoader.GetBlockID("BASE_Sandstone"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
 	private static ushort[] hellArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Hell_Marble"), VoxelLoader.GetBlockID("BASE_Lava"), VoxelLoader.GetBlockID("BASE_Basalt"), VoxelLoader.GetBlockID("BASE_Bone"), ushort.MaxValue/2};
 	private static ushort[] coreArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Moonstone"), ushort.MaxValue/2};
 
 	private static ushort[] structureArray =
 						 new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Grass"), VoxelLoader.GetBlockID("BASE_Dirt"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Iron_Ore"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Leaves"),
-										VoxelLoader.GetBlockID("BASE_Pine_Log"), VoxelLoader.GetBlockID("BASE_Pine_Leaves"), VoxelLoader.GetBlockID("BASE_Coal_Ore"), VoxelLoader.GetBlockID("BASE_Copper_Ore"), VoxelLoader.GetBlockID("BASE_Tin_Ore"), VoxelLoader.GetBlockID("BASE_Aluminium_Ore"),
+										VoxelLoader.GetBlockID("BASE_Coal_Ore"), VoxelLoader.GetBlockID("BASE_Copper_Ore"), VoxelLoader.GetBlockID("BASE_Tin_Ore"), VoxelLoader.GetBlockID("BASE_Aluminium_Ore"),
 										VoxelLoader.GetBlockID("BASE_Magnetite_Ore"), VoxelLoader.GetBlockID("BASE_Emerium_Ore"), VoxelLoader.GetBlockID("BASE_Gold_Ore"), VoxelLoader.GetBlockID("BASE_Cobalt_Ore"), VoxelLoader.GetBlockID("BASE_Ardite_Ore"), VoxelLoader.GetBlockID("BASE_Grandium_Ore"),
 										VoxelLoader.GetBlockID("BASE_Steonyx_Ore"), VoxelLoader.GetBlockID("BASE_Gravel"), VoxelLoader.GetBlockID("BASE_Bone")}; 
 
@@ -384,28 +384,34 @@ public static class Compression{
 	}
 
 	// Decompresses blocks in Structures array
-	public static ushort[] DecompressStructureBlocks(ushort[] compressedBlocks, bool printOut=false){
-		StringBuilder sb = new StringBuilder();
-
+	public static ushort[] DecompressStructureBlocks(ushort[] compressedBlocks, int sizeX, int sizeY, int sizeZ, bool printOut=false){
 		Pallete p = Pallete.STRUCTUREBLOCKS;
 
-		NativeList<ushort> outputData = new NativeList<ushort>(0, Allocator.TempJob);
+		NativeArray<ushort> outputData = new NativeArray<ushort>(sizeX*sizeY*sizeZ, Allocator.TempJob);
+		NativeList<ushort> swapData = new NativeList<ushort>(0, Allocator.TempJob);
 		NativeArray<ushort> inputData = NativeTools.CopyToNative(compressedBlocks);
 
 		DecompressStructJob dbJob = new DecompressStructJob{
 			outputData = outputData,
 			inputData = inputData,
+			swapData = swapData,
+			sizeX = sizeX,
+			sizeY = sizeY,
+			sizeZ = sizeZ,
 			pallete = Compression.GetPallete(p)
 		};
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
 
-		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData.AsArray());
+		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData);
 
 		outputData.Dispose();
 		inputData.Dispose();
+		swapData.Dispose();
 
 		if(printOut){
+			StringBuilder sb = new StringBuilder();
+
 			for(int i=0; i < output.Length; i++){
 				sb.Append(output[i]);
 				if(i != output.Length-1)
@@ -455,28 +461,34 @@ public static class Compression{
 	}
 
 	// Decompresses metadata in Structures array
-	public static ushort[] DecompressStructureMetadata(ushort[] compressedMeta, bool printOut=false){
-		StringBuilder sb = new StringBuilder();
-
+	public static ushort[] DecompressStructureMetadata(ushort[] compressedMeta, int sizeX, int sizeY, int sizeZ, bool printOut=false){
 		Pallete p = Pallete.METADATA;
 
-		NativeList<ushort> outputData = new NativeList<ushort>(0, Allocator.TempJob);
+		NativeArray<ushort> outputData = new NativeArray<ushort>(sizeX*sizeY*sizeZ, Allocator.TempJob);
+		NativeList<ushort> swapData = new NativeList<ushort>(0, Allocator.TempJob);
 		NativeArray<ushort> inputData = NativeTools.CopyToNative(compressedMeta);
 
 		DecompressStructJob dbJob = new DecompressStructJob{
 			outputData = outputData,
 			inputData = inputData,
+			swapData = swapData,
+			sizeX = sizeX,
+			sizeY = sizeY,
+			sizeZ = sizeZ,
 			pallete = Compression.GetPallete(p)
 		};
 		JobHandle job = dbJob.Schedule();
 		job.Complete();
 
-		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData.AsArray());
+		ushort[] output = NativeTools.CopyToManaged<ushort>(outputData);
 
 		outputData.Dispose();
+		swapData.Dispose();
 		inputData.Dispose();
 
 		if(printOut){
+			StringBuilder sb = new StringBuilder();
+
 			for(int i=0; i < output.Length; i++){
 				sb.Append(output[i]);
 				if(i != output.Length-1)
@@ -822,10 +834,13 @@ public struct CompressStructJob : IJob{
 [BurstCompile]
 public struct DecompressStructJob : IJob{
 	[ReadOnly]
+	public int sizeX, sizeY, sizeZ;
+	[ReadOnly]
 	public NativeParallelHashSet<ushort> pallete;
 	[ReadOnly]
 	public NativeArray<ushort> inputData;
-	public NativeList<ushort> outputData;
+	public NativeList<ushort> swapData;
+	public NativeArray<ushort> outputData;
 
 	public void Execute(){
 		ushort bufferedCount = 0;
@@ -841,14 +856,23 @@ public struct DecompressStructJob : IJob{
 				bufferedCount = inputData[i];
 
 				for(; bufferedCount > 0; bufferedCount--){
-					outputData.Add(blockCode);
+					swapData.Add(blockCode);
 				}
 			}
 			else{
-				outputData.Add(blockCode);
+				swapData.Add(blockCode);
 			}
 		}
+
+        int j=0;
+        for(int y=0; y < this.sizeY; y++){
+            for(int x=0; x < this.sizeX; x++){
+                for(int z=0; z < this.sizeZ; z++){
+                    outputData[x*sizeZ*sizeY+y*sizeZ+z] = swapData[j];
+                    j++;
+                }
+            }
+        }
 			
 	}
-
 }
