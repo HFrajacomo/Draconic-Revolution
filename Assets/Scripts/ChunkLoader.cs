@@ -17,8 +17,8 @@ using UnityEngine.Rendering.HighDefinition;
 public class ChunkLoader : MonoBehaviour
 {
 	// Basic ChunkLoader Data
+    private Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>(); 
 	public int renderDistance = 0;
-	public Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
 	public Transform player;
 	public ChunkPos currentChunk;
 	public ChunkPos newChunk;
@@ -113,6 +113,9 @@ public class ChunkLoader : MonoBehaviour
         VoxelData.SetChunkLoader(this);
         this.playerModelHandler.BuildModel(PlayerAppearanceData.GetAppearance(), PlayerAppearanceData.GetGender(), true);
     }
+
+    public Chunk Get(ChunkPos pos){return this.chunks[pos];}
+    public bool Contains(ChunkPos pos){return this.chunks.ContainsKey(pos);}
 
     public void Cleanup(bool comesFromClient=false){
         if(!comesFromClient){

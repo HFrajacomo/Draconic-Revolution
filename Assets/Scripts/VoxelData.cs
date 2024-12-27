@@ -220,10 +220,10 @@ public class VoxelData
 		if(this.pos.y < Chunk.chunkMaxY){
 			cachedPos = new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1);
 
-			if(cl.chunks.ContainsKey(cachedPos)){
-				if(cl.chunks[cachedPos].data.ShadowMapIsSet()){
+			if(cl.Contains(cachedPos)){
+				if(cl.Get(cachedPos).data.ShadowMapIsSet()){
 					isStandalone = false;
-					neighborCeilingMap = NativeTools.CopyToNative(cl.chunks[cachedPos].data.GetCeilingMap());
+					neighborCeilingMap = NativeTools.CopyToNative(cl.Get(cachedPos).data.GetCeilingMap());
 				}
 				else{
 					neighborCeilingMap = new NativeArray<bool>(0, Allocator.TempJob);

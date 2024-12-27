@@ -143,13 +143,13 @@ public class PlayerRaycast : MonoBehaviour
 	public bool HitSolid(CastCoord coords){
 		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ, coords.chunkY);
 
-		if(!loader.chunks.ContainsKey(ck))
+		if(!loader.Contains(ck))
 			return false;
 
-		ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
+		ushort blockID = loader.Get(ck).data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
 		// If hits a full block
-		if(loader.chunks.ContainsKey(ck)){
+		if(loader.Contains(ck)){
 			if(VoxelLoader.CheckSolid(blockID)){
 				return true;
 			}
@@ -162,13 +162,13 @@ public class PlayerRaycast : MonoBehaviour
 	public bool HitNonLiquid(CastCoord coords, float traveledDistance){
 		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ, coords.chunkY);
 
-		if(!loader.chunks.ContainsKey(ck))
+		if(!loader.Contains(ck))
 			return false;
 
-		ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
+		ushort blockID = loader.Get(ck).data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
 		// If hits a full block
-		if(loader.chunks.ContainsKey(ck)){
+		if(loader.Contains(ck)){
 			if(!VoxelLoader.CheckLiquid(blockID) && blockID != 0 && blockID <= ushort.MaxValue/2){
 				return true;
 			}
@@ -191,16 +191,15 @@ public class PlayerRaycast : MonoBehaviour
 		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ, coords.chunkY);
 
 		// Exception
-		if(!loader.chunks.ContainsKey(ck)){
+		if(!loader.Contains(ck)){
 			return false;
 		}
 
-		ushort blockID = loader.chunks[ck].data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
+		ushort blockID = loader.Get(ck).data.GetCell(coords.blockX, coords.blockY, coords.blockZ);
 
 		// If hits something
 		if(blockID != VoxelLoader.GetBlockID("BASE_Air") && (ushort)blockID <= ushort.MaxValue/2){
-			if(loader.chunks.ContainsKey(ck)){ 
-				//print(blockID + " : " + loader.chunks[ck].metadata.GetState(coords.blockX, coords.blockY, coords.blockZ));
+			if(loader.Contains(ck)){ 
 				return true;
 			}
 		}
@@ -225,9 +224,9 @@ public class PlayerRaycast : MonoBehaviour
 		}
 
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ, current.chunkY);
-		ushort blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
-		ushort state = loader.chunks[toUpdate].metadata.GetState(current.blockX, current.blockY, current.blockZ);
-		ushort hp = loader.chunks[toUpdate].metadata.GetHP(current.blockX, current.blockY, current.blockZ);
+		ushort blockCode = loader.Get(toUpdate).data.GetCell(current.blockX, current.blockY, current.blockZ);
+		ushort state = loader.Get(toUpdate).metadata.GetState(current.blockX, current.blockY, current.blockZ);
+		ushort hp = loader.Get(toUpdate).metadata.GetHP(current.blockX, current.blockY, current.blockZ);
 
 		NetMessage message = new NetMessage(NetCode.BLOCKDAMAGE);
 		message.BlockDamage(current.GetChunkPos(), current.blockX, current.blockY, current.blockZ, this.blockDamage, false);
@@ -257,14 +256,14 @@ public class PlayerRaycast : MonoBehaviour
 		if(!current.active)
 			return;
 
-		Debug.Log("Name: " + VoxelLoader.CheckName(loader.chunks[lastCoord.GetChunkPos()].data.GetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ)) + " | State: " + loader.chunks[lastCoord.GetChunkPos()].metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) +  "\nShadowMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + "    " + loader.chunks[lastCoord.GetChunkPos()].data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" +
-		"LightMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + "   " + loader.chunks[lastCoord.GetChunkPos()].data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" + 
-		"\t\tState: " + loader.chunks[lastCoord.GetChunkPos()].metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ)  + "\n" +
-		"HeightMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetHeight((byte)lastCoord.blockX, (byte)lastCoord.blockZ) + "\n" +
-		"RenderMap: " + loader.chunks[lastCoord.GetChunkPos()].data.GetRender((byte)lastCoord.blockX, (byte)lastCoord.blockZ));
+		Debug.Log("Name: " + VoxelLoader.CheckName(loader.Get(lastCoord.GetChunkPos()).data.GetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ)) + " | State: " + loader.Get(lastCoord.GetChunkPos()).metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) +  "\nShadowMap: " + loader.Get(lastCoord.GetChunkPos()).data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + "    " + loader.Get(lastCoord.GetChunkPos()).data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" +
+		"LightMap: " + loader.Get(lastCoord.GetChunkPos()).data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + "   " + loader.Get(lastCoord.GetChunkPos()).data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" + 
+		"\t\tState: " + loader.Get(lastCoord.GetChunkPos()).metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ)  + "\n" +
+		"HeightMap: " + loader.Get(lastCoord.GetChunkPos()).data.GetHeight((byte)lastCoord.blockX, (byte)lastCoord.blockZ) + "\n" +
+		"RenderMap: " + loader.Get(lastCoord.GetChunkPos()).data.GetRender((byte)lastCoord.blockX, (byte)lastCoord.blockZ));
 		
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ, current.chunkY);
-		int blockCode = loader.chunks[toUpdate].data.GetCell(current.blockX, current.blockY, current.blockZ);
+		int blockCode = loader.Get(toUpdate).data.GetCell(current.blockX, current.blockY, current.blockZ);
 		
 		NetMessage message = new NetMessage(NetCode.INTERACT);
 		message.Interact(toUpdate, current.blockX, current.blockY, current.blockZ, facing);
@@ -412,27 +411,27 @@ public class PlayerRaycast : MonoBehaviour
 								}
 
 								for(; z < zEnd; z++){
-									sbBlock.Append(loader.chunks[newPos].data.GetCell(x,y,z).ToString());
+									sbBlock.Append(loader.Get(newPos).data.GetCell(x,y,z).ToString());
 									sbBlock.Append(",");
 
-									if(loader.chunks[newPos].metadata.IsUnassigned(x,y,z)){
+									if(loader.Get(newPos).metadata.IsUnassigned(x,y,z)){
 										sbHp.Append("0,");
 										sbState.Append("0,");
 									}
 									else{
-										if(loader.chunks[newPos].metadata.IsHPNull(x,y,z)){
+										if(loader.Get(newPos).metadata.IsHPNull(x,y,z)){
 											sbHp.Append("0,");
 										}
 										else{
-											sbHp.Append(loader.chunks[newPos].metadata.GetHP(x,y,z));
+											sbHp.Append(loader.Get(newPos).metadata.GetHP(x,y,z));
 											sbHp.Append(",");
 										}
 
-										if(loader.chunks[newPos].metadata.IsStateNull(x,y,z)){
+										if(loader.Get(newPos).metadata.IsStateNull(x,y,z)){
 											sbState.Append("0,");
 										}
 										else{
-											sbState.Append(loader.chunks[newPos].metadata.GetState(x,y,z));
+											sbState.Append(loader.Get(newPos).metadata.GetState(x,y,z));
 											sbState.Append(",");
 										}
 									}

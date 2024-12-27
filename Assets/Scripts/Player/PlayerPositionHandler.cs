@@ -146,8 +146,8 @@ public class PlayerPositionHandler : MonoBehaviour
         if(this.currentBiome != "")
             this.lastBiome = this.currentBiome;
 
-        if(cl.chunks.ContainsKey(coord.GetChunkPos()))
-            this.currentBiome = cl.chunks[coord.GetChunkPos()].biomeName;
+        if(cl.Contains(coord.GetChunkPos()))
+            this.currentBiome = cl.Get(coord.GetChunkPos()).biomeName;
 
         if(coord.blockY <= Constants.CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE)
             this.verticalChunkLoaded = -1;
@@ -380,12 +380,12 @@ public class PlayerPositionHandler : MonoBehaviour
         ChunkPos playerPos = this.coord.GetChunkPos();
         int correctedRenderDistance = World.renderDistance;
 
-        if(!this.cl.chunks.ContainsKey(pos))
+        if(!this.cl.Contains(pos))
             return false;
-        else if(!this.cl.chunks[pos].drawMain)
+        else if(!this.cl.Get(pos).drawMain)
             return false;
 
-        if(this.cl.chunks[pos].drawMain)
+        if(this.cl.Get(pos).drawMain)
             return true;
 
         return false;

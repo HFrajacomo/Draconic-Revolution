@@ -341,29 +341,29 @@ public class Client
 
 		switch(type){
 			case BUDCode.PLACE:
-				if(this.cl.chunks.ContainsKey(pos)){
-					this.cl.chunks[pos].data.SetCell(x, y, z, blockCode);
-					this.cl.chunks[pos].metadata.SetState(x, y, z, state);
-					this.cl.chunks[pos].metadata.SetHP(x, y, z, hp);
-					this.cl.chunks[pos].data.CalculateHeightMap(x, z);
+				if(this.cl.Contains(pos)){
+					this.cl.Get(pos).data.SetCell(x, y, z, blockCode);
+					this.cl.Get(pos).metadata.SetState(x, y, z, state);
+					this.cl.Get(pos).metadata.SetHP(x, y, z, hp);
+					this.cl.Get(pos).data.CalculateHeightMap(x, z);
 					this.cl.AddToUpdate(pos);
 					CheckReload(pos, x, y, z);
 				}
 				break;
 			case BUDCode.BREAK:
-				if(this.cl.chunks.ContainsKey(pos)){
-					this.cl.chunks[pos].data.SetCell(x, y, z, 0);
-					this.cl.chunks[pos].metadata.Reset(x,y,z);
-					this.cl.chunks[pos].data.CalculateHeightMap(x, z);
+				if(this.cl.Contains(pos)){
+					this.cl.Get(pos).data.SetCell(x, y, z, 0);
+					this.cl.Get(pos).metadata.Reset(x,y,z);
+					this.cl.Get(pos).data.CalculateHeightMap(x, z);
 					this.cl.AddToUpdate(pos);
 					CheckReload(pos, x, y, z);
 				}	
 				break;
 			case BUDCode.CHANGE:
-				if(this.cl.chunks.ContainsKey(pos)){
-					this.cl.chunks[pos].data.SetCell(x, y, z, blockCode);
-					this.cl.chunks[pos].metadata.SetState(x, y, z, state);
-					this.cl.chunks[pos].metadata.SetHP(x, y, z, hp);
+				if(this.cl.Contains(pos)){
+					this.cl.Get(pos).data.SetCell(x, y, z, blockCode);
+					this.cl.Get(pos).metadata.SetState(x, y, z, state);
+					this.cl.Get(pos).metadata.SetHP(x, y, z, hp);
 					this.cl.AddToUpdate(pos);
 				}
 				break;
@@ -529,61 +529,61 @@ public class Client
 
 		if(x == 0){
 			temp = new ChunkPos(pos.x-1, pos.z, pos.y);
-			if(this.cl.chunks.ContainsKey(temp))
+			if(this.cl.Contains(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == Chunk.chunkWidth-1){
 			temp = new ChunkPos(pos.x+1, pos.z, pos.y);
-			if(this.cl.chunks.ContainsKey(temp))
+			if(this.cl.Contains(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(z == 0){
 			temp = new ChunkPos(pos.x, pos.z-1, pos.y);
-			if(this.cl.chunks.ContainsKey(temp))
+			if(this.cl.Contains(temp))
 				this.cl.AddToUpdate(temp);			
 		}
 
 		if(z == Chunk.chunkWidth-1){
 			temp = new ChunkPos(pos.x, pos.z+1, pos.y);
-			if(this.cl.chunks.ContainsKey(temp))
+			if(this.cl.Contains(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(y == 0 && pos.y > 0){
 			temp = new ChunkPos(pos.x, pos.z, pos.y-1);
-			if(this.cl.chunks.ContainsKey(temp))
+			if(this.cl.Contains(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(y == Chunk.chunkDepth-1 && pos.y < Chunk.chunkMaxY){
 			temp = new ChunkPos(pos.x, pos.z, pos.y+1);
-			if(this.cl.chunks.ContainsKey(temp))
+			if(this.cl.Contains(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == 0 && z == 0){
 			temp = new ChunkPos(pos.x-1, pos.z-1, pos.y);
-			if(this.cl.chunks.ContainsKey(temp))
+			if(this.cl.Contains(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == Chunk.chunkWidth-1 && z == 0){
 			temp = new ChunkPos(pos.x+1, pos.z-1, pos.y);
-			if(this.cl.chunks.ContainsKey(temp))
+			if(this.cl.Contains(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == Chunk.chunkWidth-1 && z == Chunk.chunkWidth-1){
 			temp = new ChunkPos(pos.x+1, pos.z+1, pos.y);
-			if(this.cl.chunks.ContainsKey(temp))
+			if(this.cl.Contains(temp))
 				this.cl.AddToUpdate(temp);
 		}
 
 		if(x == 0 && z == Chunk.chunkWidth-1){
 			temp = new ChunkPos(pos.x-1, pos.z+1, pos.y);
-			if(this.cl.chunks.ContainsKey(temp))
+			if(this.cl.Contains(temp))
 				this.cl.AddToUpdate(temp);
 		}
 	}
@@ -640,8 +640,8 @@ public class Client
 		newHP = NetDecoder.ReadUshort(data, 22);
 		shouldRedraw = NetDecoder.ReadBool(data, 24);
 
-		if(this.cl.chunks.ContainsKey(pos)){
-			c = this.cl.chunks[pos];
+		if(this.cl.Contains(pos)){
+			c = this.cl.Get(pos);
 			c.metadata.SetHP(x, y, z, newHP);
 
 			if(shouldRedraw){
