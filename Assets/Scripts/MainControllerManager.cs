@@ -15,8 +15,6 @@ public class MainControllerManager : MonoBehaviour
 	public float mouseY = 0f;
 
     public bool gravityHack = false;
-    public bool prefabRead = false;
-    public bool prefabReadAir = false;
     public bool freecam = false;
     private bool HUDActive = true;
 
@@ -101,11 +99,11 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnPrefabRead(){
-        prefabRead = true;
+        raycast.PrefabRead(true);
     }
 
     public void OnPrefabReadAir(){
-        prefabReadAir = true;
+        raycast.PrefabRead(false);
     }
 
     public void OnToggleFreeCam(){

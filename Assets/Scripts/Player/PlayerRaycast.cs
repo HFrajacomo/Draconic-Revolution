@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Collections;
@@ -15,16 +15,18 @@ public class PlayerRaycast : MonoBehaviour
 	private static readonly string WORLD_SCREENSHOT_NAME = "world_screenshot.png";
 
 	public ChunkLoader loader;
-	public Transform cam;
-	public float reach = 4.0f;
-	public float step = 0.025f;
-	private Vector3 position;
-	private Vector3 direction;
 	private Vector3 cachePos;
 	public CastCoord current;
 	private CastCoord previousCoord;
 	private CastCoord lastCoord;
 	private const int objectLayerMask = 1 << 11;
+
+	// Raycast Settings
+	public Transform cam;
+	private Vector3 position;
+	private Vector3 direction;
+	public float reach = 4.0f;
+	public float step = 0.025f;
 
 	// Optimization Set
 	private HashSet<CastCoord> alreadyVisited = new HashSet<CastCoord>();
@@ -58,17 +60,15 @@ public class PlayerRaycast : MonoBehaviour
 	*/
 	public int facing;
 
-	
-	// Update is called once per frame
-	void Update()
-	{
+
+	public bool Raycast(){
 		if(!loader.WORLD_GENERATED)
-			return;
+			return false;
 
 		// Updates player block position
-		playerHead = new CastCoord(cam.position);
-		playerBody = new CastCoord(cam.position);
-		playerBody.blockY -= 1;
+		this.playerHead = new CastCoord(cam.position);
+		this.playerBody = new CastCoord(cam.position);
+		this.playerBody.blockY -= 1;
 
 		float traveledDistance = 0f;
 		ushort blockCode = 0;
@@ -94,7 +94,7 @@ public class PlayerRaycast : MonoBehaviour
 
 			// Out of bounds control
 			if(current.blockY >= Chunk.chunkDepth || current.blockY < 0f){
-				return;
+				return false;
 			}
 
 			// Checks for solid block hit
@@ -119,6 +119,7 @@ public class PlayerRaycast : MonoBehaviour
 
 		if(!FOUND){
 			current = new CastCoord(false);
+			return false;
 		}
 		else{
 			if(blockCode <= ushort.MaxValue/2)
@@ -127,16 +128,7 @@ public class PlayerRaycast : MonoBehaviour
 		
 		facing = current - lastCoord;
 
-
-		if(control.prefabRead || control.prefabReadAir){
-			PrefabRead(control.prefabRead);
-
-			this.prefabSetFlag = !this.prefabSetFlag;
-			control.prefabRead = false;
-			control.prefabReadAir = false;
-		}
-
-
+		return true;
 	}
 
 	// Detects hit of solid block
@@ -219,7 +211,7 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Block Breaking mechanic
 	public void BreakBlock(){
-		if(!current.active){
+		if(!Raycast()){
 			return;
 		}
 
@@ -236,7 +228,7 @@ public class PlayerRaycast : MonoBehaviour
 	// Uses item in hand
 	public void UseItem(){
 		// If ain't aiming at anything
-		if(!current.active)
+		if(!Raycast())
 			return;
 
 		ItemStack its = playerEvents.GetSlotStack();
@@ -253,7 +245,7 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Triggers Blocktype.OnInteract()
 	public void Interact(){		
-		if(!current.active)
+		if(!Raycast())
 			return;
 
 		Debug.Log("Name: " + VoxelLoader.CheckName(loader.Get(lastCoord.GetChunkPos()).data.GetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ)) + " | State: " + loader.Get(lastCoord.GetChunkPos()).metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) +  "\nShadowMap: " + loader.Get(lastCoord.GetChunkPos()).data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + "    " + loader.Get(lastCoord.GetChunkPos()).data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" +
@@ -297,11 +289,9 @@ public class PlayerRaycast : MonoBehaviour
 	}
 
 	// Runs Prefab read and returns the arrays needed to create the prefab
-	private void PrefabRead(bool blockBased){
-		if(!current.active)
+	public void PrefabRead(bool blockBased){
+		if(!Raycast())
 			return;
-
-		Debug.Log(current.RealPos());
 
 		// If first position is not set
 		if(!this.prefabSetFlag){
@@ -442,38 +432,39 @@ public class PlayerRaycast : MonoBehaviour
 				}
 			}
 
-		sbBlock.Append("}");
-		sbHp.Append("}");
-		sbState.Append("}");
+			sbBlock.Append("}");
+			sbHp.Append("}");
+			sbState.Append("}");
 
-		int sizeX, sizeZ, sizeY;
+			int sizeX, sizeZ, sizeY;
 
-		// Calculates Struct Size
-		if(xCount >= 1)
-			sizeX = (Chunk.chunkWidth - prefabPos.blockX) + (xCount-1)*Chunk.chunkWidth + finalPos.blockX;
-		else
-			sizeX = finalPos.blockX - prefabPos.blockX;
+			// Calculates Struct Size
+			if(xCount >= 1)
+				sizeX = (Chunk.chunkWidth - prefabPos.blockX) + (xCount-1)*Chunk.chunkWidth + finalPos.blockX;
+			else
+				sizeX = finalPos.blockX - prefabPos.blockX;
 
-		if(zCount >= 1)
-			sizeZ = (Chunk.chunkWidth - prefabPos.blockZ) + (zCount-1)*Chunk.chunkWidth + finalPos.blockZ;
-		else
-			sizeZ = finalPos.blockZ - prefabPos.blockZ;
+			if(zCount >= 1)
+				sizeZ = (Chunk.chunkWidth - prefabPos.blockZ) + (zCount-1)*Chunk.chunkWidth + finalPos.blockZ;
+			else
+				sizeZ = finalPos.blockZ - prefabPos.blockZ;
 
-		sizeY = finalPos.blockY - prefabPos.blockY;
+			sizeY = finalPos.blockY - prefabPos.blockY;
 
 
 
-		StreamWriter file = new StreamWriter("SavedStruct.txt", append:true);
+			StreamWriter file = new StreamWriter("SavedStruct.txt", append:true);
 
-		file.WriteLine("Blocks:\n");
-		file.WriteLine(Compression.FormatPrereadInformation(sbBlock.ToString()));
-		file.WriteLine("\n\nHP:\n");
-		file.WriteLine(Compression.FormatPrereadInformation(sbHp.ToString()));
-		file.WriteLine("\n\nState:\n");
-		file.WriteLine(Compression.FormatPrereadInformation(sbState.ToString()));
-		file.WriteLine("\nSizes: " + sizeX + " | " + sizeY + " | " + sizeZ + "		[" + sizeX*sizeY*sizeZ + "]\n\n\n\n");
-		file.Close();
-
+			file.WriteLine("Blocks:\n");
+			file.WriteLine(Compression.FormatPrereadInformation(sbBlock.ToString()));
+			file.WriteLine("\n\nHP:\n");
+			file.WriteLine(Compression.FormatPrereadInformation(sbHp.ToString()));
+			file.WriteLine("\n\nState:\n");
+			file.WriteLine(Compression.FormatPrereadInformation(sbState.ToString()));
+			file.WriteLine("\nSizes: " + sizeX + " | " + sizeY + " | " + sizeZ + "		[" + sizeX*sizeY*sizeZ + "]\n\n\n\n");
+			file.Close();
 		}
+
+		this.prefabSetFlag = !this.prefabSetFlag;
 	}
 }
