@@ -382,6 +382,7 @@ public class ChunkLoader : MonoBehaviour
     private void LoadChunk(){
         if(toLoad.Count > 0){
             byte[] data = toLoad[0];
+            bool chunkOverwrite = true;
 
             int headerSize = RegionFileHandler.chunkHeaderSize;
 
@@ -394,6 +395,7 @@ public class ChunkLoader : MonoBehaviour
             if(!this.chunks.ContainsKey(cp)){
                 this.chunks.Add(cp, new Chunk(cp, this.rend, this));
                 this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[22]);
+                chunkOverwrite = false;
             }
 
             Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:22+headerSize);
@@ -404,6 +406,11 @@ public class ChunkLoader : MonoBehaviour
                 this.vfx.RemoveChunk(cp);
                 
             this.vfx.NewChunk(cp);
+
+            // If is an overwrite of an existing chunk, calculate Heightmap and rendermap again
+            if(chunkOverwrite){
+                this.chunks[cp].data.CalculateHeightMap();
+            }
 
             this.chunks[cp].data.CalculateLightMap(chunks[cp].metadata);
 
