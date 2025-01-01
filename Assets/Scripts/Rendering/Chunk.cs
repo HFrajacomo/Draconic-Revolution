@@ -281,7 +281,7 @@ public class Chunk
 	private bool Has(ChunkPos pos){return this.loader.Contains(pos);}
 
 	// Builds the chunk mesh data excluding the X- and Z- chunk border
-	public void BuildChunk(bool load=false, bool priority=false){
+	public void BuildChunk(bool load=false){
 		this.mutex.WaitOne();
 		this.isBuilding = true;
 		

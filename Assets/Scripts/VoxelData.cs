@@ -24,7 +24,7 @@ public class VoxelData
 
 	private static ChunkLoader cl; 
 
-	private byte PROPAGATE_LIGHT_FLAG = 0; // 0 = no, 1 = xm, 2 = xp, 4 = zm, 8 = zp
+	private byte PROPAGATE_LIGHT_FLAG = 0; // 0 = no, 1 = xm, 2 = xp, 4 = zm, 8 = zp, 16 = ym, 32 = yp
 
 	public static readonly int3[] offsets = new int3[]{
 		new int3(0,0,1),
@@ -323,6 +323,84 @@ public class VoxelData
         auxLightSources.Dispose();
 	}
 
+	public void VerifyPropagation(ChunkLoader cl){
+		NativeArray<byte> lightdata = new NativeArray<byte>(this.lightMap, Allocator.TempJob); 
+		NativeArray<byte> shadowdata = new NativeArray<byte>(this.shadowMap, Allocator.TempJob); 
+		NativeArray<byte> xmlight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x-1, this.pos.z, this.pos.y)).data.GetLightMap(), Allocator.TempJob); 
+		NativeArray<byte> xmshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x-1, this.pos.z, this.pos.y)).data.GetShadowMap(), Allocator.TempJob); 
+		NativeArray<byte> xplight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x+1, this.pos.z, this.pos.y)).data.GetLightMap(), Allocator.TempJob); 
+		NativeArray<byte> xpshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x+1, this.pos.z, this.pos.y)).data.GetShadowMap(), Allocator.TempJob); 
+		NativeArray<byte> zmlight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z-1, this.pos.y)).data.GetLightMap(), Allocator.TempJob); 
+		NativeArray<byte> zmshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z-1, this.pos.y)).data.GetShadowMap(), Allocator.TempJob); 
+		NativeArray<byte> zplight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z+1, this.pos.y)).data.GetLightMap(), Allocator.TempJob); 
+		NativeArray<byte> zpshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z+1, this.pos.y)).data.GetShadowMap(), Allocator.TempJob);
+
+		NativeArray<byte> vplight;
+		NativeArray<byte> vpshadow;
+		NativeArray<byte> vmlight;
+		NativeArray<byte> vmshadow;
+
+		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0}, Allocator.TempJob);
+
+		if(cl.Contains(new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1))){
+			vplight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1)).data.GetLightMap(), Allocator.TempJob);
+			vpshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1)).data.GetShadowMap(), Allocator.TempJob);
+			vmlight = new NativeArray<byte>(0, Allocator.TempJob);
+			vmshadow = new NativeArray<byte>(0, Allocator.TempJob);	
+		}
+		else if(cl.Contains(new ChunkPos(this.pos.x, this.pos.z, this.pos.y-1))){
+			vmlight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z, this.pos.y-1)).data.GetLightMap(), Allocator.TempJob);
+			vmshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z, this.pos.y-1)).data.GetShadowMap(), Allocator.TempJob);
+			vplight = new NativeArray<byte>(0, Allocator.TempJob);
+			vpshadow = new NativeArray<byte>(0, Allocator.TempJob);
+		}
+		else{
+			vplight = new NativeArray<byte>(0, Allocator.TempJob);
+			vpshadow = new NativeArray<byte>(0, Allocator.TempJob);
+			vmlight = new NativeArray<byte>(0, Allocator.TempJob);
+			vmshadow = new NativeArray<byte>(0, Allocator.TempJob);	
+		}
+
+		VerifyPropagationJob vpJob = new VerifyPropagationJob{
+			lightdata = lightdata,
+			shadowdata = shadowdata,
+			xmlight = xmlight,
+			xplight = xplight,
+			xmshadow = xmshadow,
+			xpshadow = xpshadow,
+			zmlight = zmlight,
+			zplight = zplight,
+			zmshadow = zmshadow,
+			zpshadow = zpshadow,
+			vmlight = vmlight,
+			vplight = vplight,
+			vmshadow = vmshadow,
+			vpshadow = vpshadow,
+			changed = changed
+		};
+
+		JobHandle job = vpJob.Schedule();
+		job.Complete();
+
+		this.PROPAGATE_LIGHT_FLAG = changed[0];
+
+		lightdata.Dispose();
+		shadowdata.Dispose();
+		xmlight.Dispose(); 
+		xmshadow.Dispose();
+		xplight.Dispose(); 
+		xpshadow.Dispose();
+		zmlight.Dispose(); 
+		zmshadow.Dispose();
+		zplight.Dispose(); 
+		zpshadow.Dispose();
+		vplight.Dispose();
+		vpshadow.Dispose();
+		vmlight.Dispose();
+		vmshadow.Dispose();
+		changed.Dispose();
+ 	}
+
 	public void CalculateHeightMap(){
 		if(this.data == null)
 			return;
@@ -528,6 +606,10 @@ public class VoxelData
 			this.CalculateLightMap(metadata);
 		}
 
+		return this.lightMap;
+	}
+
+	public byte[] GetLightMap(){
 		return this.lightMap;
 	}
 
