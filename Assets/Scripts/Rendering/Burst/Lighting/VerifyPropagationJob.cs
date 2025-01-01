@@ -118,41 +118,45 @@ public struct VerifyPropagationJob : IJob {
 		}
 
 		// ym
-		FOUND = false;
-		for(int z=0; z < Chunk.chunkWidth; z++){
-			for(int x = 0; x < Chunk.chunkWidth; x++){
-				if(ValidPropagationChecking(shadowdata[x*Chunk.chunkWidth*Chunk.chunkDepth+z], vmshadow[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z])){
-					highestLightCurrent = ExtractHighestLightFactor(lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+z]);
-					highestLightNeighbor = ExtractHighestLightFactor(vmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z]);
+		if(vmshadow.Length > 0){
+			FOUND = false;
+			for(int z=0; z < Chunk.chunkWidth; z++){
+				for(int x = 0; x < Chunk.chunkWidth; x++){
+					if(ValidPropagationChecking(shadowdata[x*Chunk.chunkWidth*Chunk.chunkDepth+z], vmshadow[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z])){
+						highestLightCurrent = ExtractHighestLightFactor(lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+z]);
+						highestLightNeighbor = ExtractHighestLightFactor(vmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z]);
 
-					if(highestLightCurrent > highestLightNeighbor+1){
-						changed[0] = (byte)(changed[0] | 16);
-						FOUND = true;
-						break;
+						if(highestLightCurrent > highestLightNeighbor+1){
+							changed[0] = (byte)(changed[0] | 16);
+							FOUND = true;
+							break;
+						}
 					}
 				}
+				if(FOUND)
+					break;
 			}
-			if(FOUND)
-				break;
 		}
 
 		// yp
-		FOUND = false;
-		for(int z=0; z < Chunk.chunkWidth; z++){
-			for(int x = 0; x < Chunk.chunkWidth; x++){
-				if(ValidPropagationChecking(shadowdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z], vpshadow[x*Chunk.chunkWidth*Chunk.chunkDepth+z])){
-					highestLightCurrent = ExtractHighestLightFactor(lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z]);
-					highestLightNeighbor = ExtractHighestLightFactor(vplight[x*Chunk.chunkWidth*Chunk.chunkDepth+z]);
+		if(vpshadow.Length > 0){
+			FOUND = false;
+			for(int z=0; z < Chunk.chunkWidth; z++){
+				for(int x = 0; x < Chunk.chunkWidth; x++){
+					if(ValidPropagationChecking(shadowdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z], vpshadow[x*Chunk.chunkWidth*Chunk.chunkDepth+z])){
+						highestLightCurrent = ExtractHighestLightFactor(lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z]);
+						highestLightNeighbor = ExtractHighestLightFactor(vplight[x*Chunk.chunkWidth*Chunk.chunkDepth+z]);
 
-					if(highestLightCurrent > highestLightNeighbor+1){
-						changed[0] = (byte)(changed[0] | 32);
-						FOUND = true;
-						break;
+						if(highestLightCurrent > highestLightNeighbor+1){
+							changed[0] = (byte)(changed[0] | 32);
+							FOUND = true;
+							break;
+						}
 					}
 				}
+				if(FOUND)
+					break;
 			}
-			if(FOUND)
-				break;
 		}
 	}
 

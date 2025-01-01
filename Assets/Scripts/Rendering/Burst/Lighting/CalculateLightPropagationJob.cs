@@ -4,7 +4,6 @@ using Unity.Jobs;
 using Unity.Burst;
 using Unity.Mathematics;
 
-
 [BurstCompile]
 public struct CalculateLightPropagationJob : IJob{
 	public NativeArray<byte> lightMap1;

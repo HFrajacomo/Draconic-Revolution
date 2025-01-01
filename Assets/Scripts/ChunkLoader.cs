@@ -480,7 +480,7 @@ public class ChunkLoader : MonoBehaviour
                             continue;
                         }
 
-                        //this.chunks[pos].data.VerifyPropagation(this);
+                        this.chunks[pos].data.VerifyPropagation(this);
                         CheckLightPropagation(pos);
                     }
 

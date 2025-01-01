@@ -189,30 +189,23 @@ public class VoxelData
 
 		NativeArray<byte> lightMap;
 		NativeArray<byte> shadowMap;
-		NativeArray<byte> memoryLightMap;
-		NativeArray<byte> memoryShadowMap;
 		NativeList<int4> lightSources = new NativeList<int4>(0, Allocator.TempJob);
 		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
-		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0}, Allocator.TempJob);
 		NativeArray<ushort> states = NativeTools.CopyToNative(metadata.GetStateData());
 		NativeArray<bool> ceilingMap = NativeTools.CopyToNative(this.ceilingMap);
 		NativeArray<bool> neighborCeilingMap;
 
 		if(this.shadowMap == null){
 			shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-			memoryShadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
 		}
 		else{
 			shadowMap = NativeTools.CopyToNative(this.shadowMap);
-			memoryShadowMap = NativeTools.CopyToNative(this.shadowMap);
 		}
 		if(this.lightMap == null){
 			lightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-			memoryLightMap = new NativeArray<byte>(0, Allocator.TempJob);
 		}
 		else{
 			lightMap = NativeTools.CopyToNative(this.lightMap);
-			memoryLightMap = NativeTools.CopyToNative(this.lightMap);
 		}
 
 		// Check if should be calculated as standalone chunk
@@ -277,8 +270,6 @@ public class VoxelData
 		CalculateLightMapJob clmJob = new CalculateLightMapJob{
 			lightMap = lightMap,
 			shadowMap = shadowMap,
-			memoryLightMap = memoryLightMap,
-			memoryShadowMap = memoryShadowMap,
 			lightSources = lightSources,
 			heightMap = heightMap,
 			chunkWidth = Chunk.chunkWidth,
@@ -290,7 +281,6 @@ public class VoxelData
 			directionalList = directionalList,
 			auxLightSources = auxLightSources,
 			auxDirectionals = auxDirectionals,
-			changed = changed,
 			cpos = this.pos
 		};
 
@@ -300,7 +290,6 @@ public class VoxelData
 
         this.lightMap = NativeTools.CopyToManaged(lightMap);
         this.shadowMap = NativeTools.CopyToManaged(shadowMap);
-        this.PROPAGATE_LIGHT_FLAG = changed[0];
 
         blockData.Dispose();
         states.Dispose();
@@ -313,11 +302,8 @@ public class VoxelData
         lightMap.Dispose();
         heightMap.Dispose();
         shadowMap.Dispose();
-        changed.Dispose();
         ceilingMap.Dispose();
         neighborCeilingMap.Dispose();
-        memoryLightMap.Dispose();
-        memoryShadowMap.Dispose();
         directionalList.Dispose();
         auxDirectionals.Dispose();
         auxLightSources.Dispose();
