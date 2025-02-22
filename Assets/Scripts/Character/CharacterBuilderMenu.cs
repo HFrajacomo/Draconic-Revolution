@@ -13,6 +13,9 @@ public class CharacterBuilderMenu{
 	private RaceSettings raceSettings;
 	private Material[] addonMats;
 
+	// Hairline
+	private Plane? hairlinePlane = null;
+
 	private static Dictionary<string, int> BONE_MAP;
 
 	// Settings
@@ -23,7 +26,7 @@ public class CharacterBuilderMenu{
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(25,25,25);
 	private static readonly Vector3 SCL_2 = new Vector3(25,25,25);
-	private static readonly int CHARACTER_CREATION_CHARACTER_SCALING = 150;
+	private static readonly int CHARACTER_CREATION_CHARACTER_SCALING = 400;
 
 	private List<int> cachedTris = new List<int>();
 
@@ -61,15 +64,25 @@ public class CharacterBuilderMenu{
 	}
 
 	public int GetMaterialLength(ModelType type){
-		if(type != ModelType.FACE)
-			return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length;
+		if(type != ModelType.FACE){
+			SkinnedMeshRenderer smr = this.bodyParts[type].GetComponent<SkinnedMeshRenderer>();
+
+			if(smr == null)
+				return 1;
+			return smr.materials.Length;
+		}
 		else
 			return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length + 1;
 	}
 
 	public int GetMaterialLength(ModelType type, GameObject go){
-		if(type != ModelType.FACE)
-			return go.GetComponent<SkinnedMeshRenderer>().materials.Length;
+		if(type != ModelType.FACE){
+			SkinnedMeshRenderer smr = this.bodyParts[type].GetComponent<SkinnedMeshRenderer>();
+
+			if(smr == null)
+				return 1;
+			return smr.materials.Length;
+		}
 		return go.GetComponent<SkinnedMeshRenderer>().materials.Length + 1;
 	}
 
@@ -133,38 +146,63 @@ public class CharacterBuilderMenu{
 				boneRenderer.transforms = newBones;
 		#endif
 
+		if(!ModelHandler.HasModel(type, name) || current == null){
+			if(type == ModelType.HEADGEAR){
+				this.hairlinePlane = null;
+			}
+
+			return;
+		}
+
 		Mesh mesh = CopyMesh(current.sharedMesh, current);
 
-		if(type != ModelType.ADDON)
-			FixMaterialOrder(current);
-		else{
+		if(type == ModelType.ADDON){
 			if(this.raceSettings.GetRace() == Race.DRAGONLING)
 				current.SetMaterials(new List<Material>(){this.addonMats[1]});
 			else
 				current.SetMaterials(new List<Material>(){this.addonMats[0]});
 		}
 
-
 		mesh.name = current.sharedMesh.name;
 		current.sharedMesh = mesh;
 		current.rootBone = newBones[ROOT_BONE_INDEX];
 		current.bones = newBones;
 
+		// Handling hat mesh and saving of the hairline plane
+		if(type == ModelType.HEADGEAR){
+			Mesh bakedMesh = new Mesh();
+			current.BakeMesh(bakedMesh);
+
+			List<Vector3> planeVerts = GetVerticesForSubmesh(bakedMesh, bakedMesh.subMeshCount-1);
+
+			if(planeVerts.Count < 4){
+				return;
+			}
+
+			for(int i=0; i < planeVerts.Count; i++){
+				planeVerts[i] = new Vector3(planeVerts[i].x, planeVerts[i].z, planeVerts[i].y);
+				planeVerts[i] += obj.transform.position;
+			}
+
+			this.hairlinePlane = new Plane(planeVerts[3], planeVerts[0], planeVerts[1]);
+			DebugPlane.Draw((Plane)this.hairlinePlane, planeVerts);
+
+			mesh.subMeshCount = mesh.subMeshCount - 1;
+		}
 
 		// Hide hair options
 		if(type == ModelType.HEADGEAR || type == ModelType.HAIR){
 			if(this.bodyParts.ContainsKey(ModelType.HAIR) && this.bodyParts.ContainsKey(ModelType.HEADGEAR)){
+				if(ModelHandler.HasModel(ModelType.HAIR, this.bodyPartName[ModelType.HAIR]) && ModelHandler.HasModel(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR])){
+					char hatSKCode = ModelHandler.GetHatCover(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR]);
 
-				char hatSKCode = ModelHandler.GetHatCover(type, name);
-				bool hairHasShapeKeys = ModelHandler.HasShapeKeys(ModelType.HAIR, this.bodyPartName[ModelType.HAIR]);
-				
-				// TODO: Support to change hair with a different model just to match hair below head
-
-				if(hatSKCode == 'N'){ // If covers hair
-					this.bodyParts[ModelType.HAIR].SetActive(false);
-				}
-				else{
-					this.bodyParts[ModelType.HAIR].SetActive(true);
+					if(hatSKCode == 'N'){ // If covers hair
+						this.bodyParts[ModelType.HAIR].SetActive(true);
+						//ProcessHairMesh(this.bodyParts[ModelType.HAIR].GetComponent<SkinnedMeshRenderer>());
+					}
+					else{
+						this.bodyParts[ModelType.HAIR].SetActive(false);
+					}
 				}
 			}
 		}
@@ -210,10 +248,67 @@ public class CharacterBuilderMenu{
 
 		materials[0].SetColor("_Color", col);
 
-		this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials = materials;
-		
+		this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials = materials;	
 	}
 
+	private void ProcessHairMesh(SkinnedMeshRenderer hair){
+		List<Vector3> hairVerts = new List<Vector3>();
+		hair.sharedMesh.GetVertices(hairVerts);
+
+		for(int i=0; i < hairVerts.Count; i++){
+			if(!CheckBelowHairlinePlane((Plane)this.hairlinePlane, hairVerts[i])){
+				continue;
+			}
+
+			hairVerts[i] = MoveToClosestPointOnPlane((Plane)this.hairlinePlane, hairVerts[i]);
+		}
+
+		hair.sharedMesh.SetVertices(hairVerts);
+	}
+
+    private List<Vector3> GetVerticesForSubmesh(Mesh mesh, int submeshIndex){
+        // Get all vertex indices for the specified submesh
+        int[] submeshIndices = mesh.GetTriangles(submeshIndex);
+
+        // Get all vertices in the mesh
+        Vector3[] allVertices = mesh.vertices;
+
+        // Use a hash set to collect unique vertices
+        HashSet<Vector3> submeshVertices = new HashSet<Vector3>();
+
+        // Add vertices used by the submesh
+        foreach (int index in submeshIndices)
+        {
+            submeshVertices.Add(allVertices[index]);
+        }
+
+        // Return as a list
+        return new List<Vector3>(submeshVertices);
+    }
+
+	// This function exists to check if a given point in the fbx model is below a given plane
+    private bool CheckBelowHairlinePlane(Plane plane, Vector3 vector){
+        // Calculate the signed distance from the point to the plane
+        float distance = plane.GetDistanceToPoint(vector);
+
+        // Determine position relative to the plane
+        if (distance > 0)
+            return false;
+        return true;
+    }
+
+    // This function moves the given point to a projection of itself in the plane, but moves it slightly towards the normal
+    private Vector3 MoveToClosestPointOnPlane(Plane plane, Vector3 vector){
+        return plane.ClosestPointOnPlane(vector) - (plane.normal * 0.01f);
+    }
+
+    private Vector3 AddVector(Vector3 a, Vector3 b){
+    	return new Vector3(a.x+b.x, a.y+b.y, a.z+b.z);
+    }
+
+    private Vector3 MultVector(Vector3 a, Vector3 b){
+    	return new Vector3(a.x*b.x, a.y*b.y, a.z*b.z);
+    }
 
 	private void PutAddon(Race race, bool isMale, bool isReload=false){
 		if(this.bodyParts.ContainsKey(ModelType.ADDON)){
@@ -263,7 +358,6 @@ public class CharacterBuilderMenu{
 		#endif
 
 		Mesh mesh = CopyMesh(current.sharedMesh, current);
-		FixMaterialOrder(current);
 
 		obj.name = "ADDON";
 		mesh.name = current.sharedMesh.name;
@@ -334,7 +428,7 @@ public class CharacterBuilderMenu{
 	}
 
 	private void LoadRootBone(){
-		this.rootBone = this.armature.transform.Find("Pelvis").transform;
+		this.rootBone = this.armature.transform.Find("Hips").transform;
 	}
 
 	private Mesh CopyMesh(Mesh mesh, SkinnedMeshRenderer rend){
@@ -350,7 +444,7 @@ public class CharacterBuilderMenu{
         newMesh.boneWeights = mesh.boneWeights;
         newMesh.bindposes = mesh.bindposes;
 
-        FixMeshVertexGroups(mesh, newMesh, rend);
+        CopyTriangles(mesh, newMesh);
 
         return newMesh;
 	}
@@ -396,6 +490,12 @@ public class CharacterBuilderMenu{
 			}
 		}
 		return mats[0];
+	}
+
+	private void CopyTriangles(Mesh prefab, Mesh newMesh){
+		for(int i=0; i < prefab.subMeshCount; i++){
+			newMesh.SetTriangles(prefab.GetTriangles(i), i);
+		}
 	}
 
 	private void FixMeshVertexGroups(Mesh prefab, Mesh newMesh, SkinnedMeshRenderer rend){
@@ -444,6 +544,9 @@ public class CharacterBuilderMenu{
 		}
 		else if(index == 3){
 			return FindMaterialIndex(mats, "Tcolor (Instance)");
+		}
+		else if(index == 4){
+			return FindMaterialIndex(mats, "Hairline (Instance)");
 		}
 		else{
 			return 0;

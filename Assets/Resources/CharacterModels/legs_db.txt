@@ -1,5 +1,15 @@
 # Name	Blender_obj_name	Sex
 
 <No Pants>	M_LEGS	M
+Basic Pants	M_Basic_Pants	M
+Bulky Pants	M_Bulky_Pants	M
+Short Pants	M_Short_Pants	M
+Shorts	M_Shorts	M
+Long Shorts	M_Long_Shorts	M
 
 <No Pants>	F_LEGS	F
+Shorts	F_Shorts	F
+Skirt	F_Skirt	F
+Long Shorts	F_Long_Shorts	F
+Long Skirt	F_Long_Skirt	F
+Long Pants	F_Long_Pants	F

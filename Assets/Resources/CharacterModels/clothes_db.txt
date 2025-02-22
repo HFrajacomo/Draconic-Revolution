@@ -1,5 +1,15 @@
 # Name	Blender_obj_name	Sex
 
 <No Top>	M_TORSO	M
+T-Shirt	M_T-Shirt	M
+T-Shirt with Gloves	M_T-Shirt_with_Gloves	M
+Sleeved Shirt	M_Sleeved_Shirt	M
+Sleeveless Shirt	M_Sleeveless_Shirt	M
+Sleeveless Shirt with Gloves	M_Sleeveless_Shirt_with_Gloves	M
 
 <No Top>	F_TORSO	F
+T-Shirt	F_T-Shirt	F
+T-Shirt with Gloves	F_T-Shirt_with_Gloves	F
+Sleeved Shirt	F_Sleeved_Shirt	F
+Sleeved Shirt with Gloves	F_Sleeveless_Shirt_with_Gloves	F
+Cropped Shirt	F_Cropped_Shirt	F

@@ -268,8 +268,6 @@ public class CharacterCreationMenu : Menu{
         appearanceDiv.GetComponentInChildren<Image>().material = mat;
         this.nameInput.GetComponent<Image>().material = matField;
 
-
-
         if(!INIT){
             this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat)}, isMale:true);
 
@@ -1242,6 +1240,7 @@ public class CharacterCreationMenu : Menu{
             p = this.hatsColor1;
             s = this.hatsColor2;
             t = this.hatsColor3;
+            numberOfMaterials--; // Adjustment since the hairline plane takes a vertex group
         }
         else if(this.selectedDiv == ModelType.FACE){
             p = this.faceColor1;
@@ -1286,12 +1285,30 @@ public class CharacterCreationMenu : Menu{
             this.terciaryColorPicker.gameObject.SetActive(true);
             this.terciaryColorPicker.SetDefiniteColor(t);            
         }
+        else if(numberOfMaterials <= 0){
+            this.primaryColorPicker.gameObject.SetActive(false);
+            this.secondaryColorPicker.gameObject.SetActive(false);
+            this.terciaryColorPicker.gameObject.SetActive(false);
+        }
+        else{
+            this.primaryColorPicker.gameObject.SetActive(true);
+            this.primaryColorPicker.SetDefiniteColor(p);
+            this.secondaryColorPicker.gameObject.SetActive(true);
+            this.secondaryColorPicker.SetDefiniteColor(s);
+            this.terciaryColorPicker.gameObject.SetActive(true);
+            this.terciaryColorPicker.SetDefiniteColor(t);    
+        }
     }
 
 
 
     private void ApplyColorToModel(GameObject go){
-        Material[] materials = go.GetComponent<SkinnedMeshRenderer>().materials;
+        SkinnedMeshRenderer smr = go.GetComponent<SkinnedMeshRenderer>();
+
+        if(smr == null)
+            return;
+
+        Material[] materials = smr.materials;
 
         if(this.selectedDiv == ModelType.CLOTHES){
             if(materials.Length > 1){

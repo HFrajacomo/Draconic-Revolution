@@ -248,11 +248,13 @@ public class PlayerRaycast : MonoBehaviour
 		if(!Raycast())
 			return;
 
+		/*
 		Debug.Log("Name: " + VoxelLoader.CheckName(loader.Get(lastCoord.GetChunkPos()).data.GetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ)) + " | State: " + loader.Get(lastCoord.GetChunkPos()).metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) +  "\nShadowMap: " + loader.Get(lastCoord.GetChunkPos()).data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + "    " + loader.Get(lastCoord.GetChunkPos()).data.GetShadow(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" +
 		"LightMap: " + loader.Get(lastCoord.GetChunkPos()).data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) + "   " + loader.Get(lastCoord.GetChunkPos()).data.GetLight(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, isNatural:false) + " -> (" + lastCoord.blockX + ", " + lastCoord.blockY + ", " + lastCoord.blockZ + ")\n" + 
 		"\t\tState: " + loader.Get(lastCoord.GetChunkPos()).metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ)  + "\n" +
 		"HeightMap: " + loader.Get(lastCoord.GetChunkPos()).data.GetHeight((byte)lastCoord.blockX, (byte)lastCoord.blockZ) + "\n" +
 		"RenderMap: " + loader.Get(lastCoord.GetChunkPos()).data.GetRender((byte)lastCoord.blockX, (byte)lastCoord.blockZ));
+		*/
 		
 		ChunkPos toUpdate = new ChunkPos(current.chunkX, current.chunkZ, current.chunkY);
 		int blockCode = loader.Get(toUpdate).data.GetCell(current.blockX, current.blockY, current.blockZ);

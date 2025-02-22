@@ -218,7 +218,7 @@ public class CharacterBuilder{
 	}
 
 	private void LoadRootBone(){
-		this.rootBone = this.armature.transform.Find("Pelvis").transform;
+		this.rootBone = this.armature.transform.Find("Hips").transform;
 	}
 
 	private Material FixMaterial(Material mat, ClothingInfo info, Color skin, Race r){

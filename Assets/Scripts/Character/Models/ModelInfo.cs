@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public struct ModelInfo{
 	public ModelType type;
 	public string name;
@@ -15,14 +17,17 @@ public struct ModelInfo{
 		this.hasModel = true;
 	}
 
-	public ModelInfo(ModelType t, string n, string br, char s, char ch){
+	public ModelInfo(ModelType t, string n, string br, char s, char hm){
 		this.type = t;
 		this.name = n;
 		this.blenderReference = br;
 		this.sex = s;
-		this.coverHair = ch;
-		this.hasModel = true;
-	}
+		this.coverHair = 'N';
+
+		if(hm == 'Y')
+			this.hasModel = true;
+		else
+			this.hasModel = false;	}
 
 	public ModelInfo(ModelType t, string n, string br, char s, char ch, char hm){
 		this.type = t;
@@ -38,6 +43,10 @@ public struct ModelInfo{
 	}
 
 	public string GetHandlerName(){
+		return this.name + "/" + this.sex;
+	}
+
+	public override string ToString(){
 		return this.name + "/" + this.sex;
 	}
 }

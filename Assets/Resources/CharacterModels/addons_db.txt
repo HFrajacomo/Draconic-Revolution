@@ -1,11 +1,11 @@
 # Name	Blender_obj_name	Sex
 
-Base_Ears	M_Base_Ears	M
+Base_Ears	M_Normal_Ears	M
 Elven_Ears	M_Elven_Ears	M
 Orcish_Ears	M_Orcish_Ears	M
 Dragonling_Horns	M_Dragonling_Horns	M
 
-Base_Ears	W_Base_Ears	F
+Base_Ears	W_Normal_Ears	F
 Elven_Ears	W_Elven_Ears	F
 Orcish_Ears	W_Orcish_Ears	F
 Dragonling_Horns	W_Dragonling_Horns	F
