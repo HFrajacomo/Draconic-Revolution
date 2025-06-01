@@ -1,1 +1,0 @@
-start /min powershell "start-process $env:APPDATA\DraconicRevolution\Server\Server.exe -Arg -Local -WindowStyle hidden"

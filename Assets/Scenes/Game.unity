@@ -28927,8 +28927,6 @@ MonoBehaviour:
   mouseX: 0
   mouseY: 0
   gravityHack: 0
-  prefabRead: 0
-  prefabReadAir: 0
   freecam: 0
   mainHUD: {fileID: 675879286}
   playerEvents: {fileID: 59614819}

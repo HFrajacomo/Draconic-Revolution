@@ -65,6 +65,7 @@ public class Redirector : MonoBehaviour
                 // Startup local server
                 this.lanServerProcess = new Process();
                 this.lanServerProcess.StartInfo.Arguments = $"-Local -World {World.worldName}";
+                this.lanServerProcess.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
 
                 if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
                     this.lanServerProcess.StartInfo.FileName = EnvironmentVariablesCentral.serverDir + serverFile;
