@@ -40,8 +40,6 @@ public struct HairlinePlane{
 		if(!this.valid)
 			return true;
 
-		Debug.Log($"(GETSIDE) Mid: {this.planeMid} -- Normal: {this.planeNormal} -- Tangent: {this.planeTangent} -- Binormal: {this.planeBinormal} -- Hair: {input} -- Dot: {Vector3.Dot(this.planeNormal, input - this.planeMid)} -- IsAbove: {Vector3.Dot(this.planeNormal, input - this.planeMid) > 0}");
-
 		return Vector3.Dot(this.planeNormal, input - this.planeMid) > 0;
 	}
 

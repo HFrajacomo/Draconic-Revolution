@@ -250,20 +250,14 @@ public class CharacterBuilderMenu{
 		List<Vector3> hairVerts = new List<Vector3>();
 		hair.sharedMesh.GetVertices(hairVerts);
 
-		int j = 0;
-
 		for(int i=0; i < hairVerts.Count; i++){
 			if(!this.hairlinePlane.GetSide(hairVerts[i])){
 				continue;
 			}
 
-			Debug.Log($"Moved {hairVerts[i]} to {this.hairlinePlane.GetClosestPoint(hairVerts[i])}");
 			hairVerts[i] = this.hairlinePlane.GetClosestPoint(hairVerts[i]);
 
-			j++;
 		}
-
-		Debug.Log($"Moved {j} verts out of {hairVerts.Count}");
 
 		hair.sharedMesh.SetVertices(hairVerts);
 	}
