@@ -173,24 +173,16 @@ public class CharacterBuilderMenu{
 
 		// Handling hat mesh and saving of the hairline plane
 		if(type == ModelType.HEADGEAR){
-			Mesh bakedMesh = new Mesh();
-			current.BakeMesh(bakedMesh);
-
-			List<Vector3> planeVerts = GetVerticesForSubmesh(bakedMesh, bakedMesh.subMeshCount-1);
-			List<Vector3> mainVerts = GetVerticesForSubmesh(bakedMesh, 0);
-			Vector3 normal = GetFirstNormalInSubmesh(bakedMesh, bakedMesh.subMeshCount-1);
+			List<Vector3> planeVerts = GetVerticesForSubmesh(current.sharedMesh, current.sharedMesh.subMeshCount-1);
+			Vector3 normal = GetFirstNormalInSubmesh(current.sharedMesh, current.sharedMesh.subMeshCount-1);
 
 			if(planeVerts.Count < 4){
 				return;
 			}
 
-			for(int i=0; i < planeVerts.Count; i++){
-				planeVerts[i] = new Vector3(planeVerts[i].x, planeVerts[i].z, planeVerts[i].y)*10;
-			}
-
 			this.hairlinePlane = new HairlinePlane(planeVerts[0], planeVerts[1], planeVerts[2], planeVerts[3], normal);
 
-			mesh.subMeshCount = mesh.subMeshCount - 1;
+			current.sharedMesh.subMeshCount = current.sharedMesh.subMeshCount - 1;
 		}
 
 		// Hide hair options
@@ -300,8 +292,7 @@ public class CharacterBuilderMenu{
 
     private Vector3 GetFirstNormalInSubmesh(Mesh mesh, int submeshIndex){
     	int normalIndice = mesh.GetTriangles(submeshIndex)[0];
-    	Vector3 normal = mesh.normals[normalIndice];
-    	return Vector3.Normalize(new Vector3(normal.x, normal.z, normal.y));
+    	return mesh.normals[normalIndice];
     }
 
     private Vector3 AddVector(Vector3 a, Vector3 b){
