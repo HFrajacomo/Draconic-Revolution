@@ -14,7 +14,7 @@ public class CharacterBuilderMenu{
 	private Material[] addonMats;
 
 	// Hairline
-	private Plane? hairlinePlane = null;
+	private HairlinePlane hairlinePlane = new HairlinePlane(Vector3.zero, Vector3.zero, false);
 
 	private static Dictionary<string, int> BONE_MAP;
 
@@ -123,6 +123,9 @@ public class CharacterBuilderMenu{
 		if(!ModelHandler.HasModel(type, name)){
 			this.bodyParts[type] = obj;
 			obj.transform.SetParent(this.parent.transform);
+			obj.transform.localPosition = Vector3.zero;
+			obj.transform.localScale = Vector3.one;
+			obj.transform.localRotation = Quaternion.Euler(-90, 0, 0);
 			return;
 		}
 
@@ -148,7 +151,7 @@ public class CharacterBuilderMenu{
 
 		if(!ModelHandler.HasModel(type, name) || current == null){
 			if(type == ModelType.HEADGEAR){
-				this.hairlinePlane = null;
+				this.hairlinePlane.valid = false;
 			}
 
 			return;
@@ -174,18 +177,18 @@ public class CharacterBuilderMenu{
 			current.BakeMesh(bakedMesh);
 
 			List<Vector3> planeVerts = GetVerticesForSubmesh(bakedMesh, bakedMesh.subMeshCount-1);
+			List<Vector3> mainVerts = GetVerticesForSubmesh(bakedMesh, 0);
+			Vector3 normal = GetFirstNormalInSubmesh(bakedMesh, bakedMesh.subMeshCount-1);
 
 			if(planeVerts.Count < 4){
 				return;
 			}
 
 			for(int i=0; i < planeVerts.Count; i++){
-				planeVerts[i] = new Vector3(planeVerts[i].x, planeVerts[i].z, planeVerts[i].y);
-				planeVerts[i] += obj.transform.position;
+				planeVerts[i] = new Vector3(planeVerts[i].x, planeVerts[i].z, planeVerts[i].y)*10;
 			}
 
-			this.hairlinePlane = new Plane(planeVerts[3], planeVerts[0], planeVerts[1]);
-			DebugPlane.Draw((Plane)this.hairlinePlane, planeVerts);
+			this.hairlinePlane = new HairlinePlane(planeVerts[0], planeVerts[1], planeVerts[2], planeVerts[3], normal);
 
 			mesh.subMeshCount = mesh.subMeshCount - 1;
 		}
@@ -198,7 +201,7 @@ public class CharacterBuilderMenu{
 
 					if(hatSKCode == 'N'){ // If covers hair
 						this.bodyParts[ModelType.HAIR].SetActive(true);
-						//ProcessHairMesh(this.bodyParts[ModelType.HAIR].GetComponent<SkinnedMeshRenderer>());
+						ProcessHairMesh(this.bodyParts[ModelType.HAIR].GetComponent<SkinnedMeshRenderer>());
 					}
 					else{
 						this.bodyParts[ModelType.HAIR].SetActive(false);
@@ -255,16 +258,25 @@ public class CharacterBuilderMenu{
 		List<Vector3> hairVerts = new List<Vector3>();
 		hair.sharedMesh.GetVertices(hairVerts);
 
+		int j = 0;
+
 		for(int i=0; i < hairVerts.Count; i++){
-			if(!CheckBelowHairlinePlane((Plane)this.hairlinePlane, hairVerts[i])){
+			if(!this.hairlinePlane.GetSide(hairVerts[i])){
 				continue;
 			}
 
-			hairVerts[i] = MoveToClosestPointOnPlane((Plane)this.hairlinePlane, hairVerts[i]);
+			Debug.Log($"Moved {hairVerts[i]} to {this.hairlinePlane.GetClosestPoint(hairVerts[i])}");
+			hairVerts[i] = this.hairlinePlane.GetClosestPoint(hairVerts[i]);
+
+			j++;
 		}
+
+		Debug.Log($"Moved {j} verts out of {hairVerts.Count}");
 
 		hair.sharedMesh.SetVertices(hairVerts);
 	}
+
+
 
     private List<Vector3> GetVerticesForSubmesh(Mesh mesh, int submeshIndex){
         // Get all vertex indices for the specified submesh
@@ -286,20 +298,10 @@ public class CharacterBuilderMenu{
         return new List<Vector3>(submeshVertices);
     }
 
-	// This function exists to check if a given point in the fbx model is below a given plane
-    private bool CheckBelowHairlinePlane(Plane plane, Vector3 vector){
-        // Calculate the signed distance from the point to the plane
-        float distance = plane.GetDistanceToPoint(vector);
-
-        // Determine position relative to the plane
-        if (distance > 0)
-            return false;
-        return true;
-    }
-
-    // This function moves the given point to a projection of itself in the plane, but moves it slightly towards the normal
-    private Vector3 MoveToClosestPointOnPlane(Plane plane, Vector3 vector){
-        return plane.ClosestPointOnPlane(vector) - (plane.normal * 0.01f);
+    private Vector3 GetFirstNormalInSubmesh(Mesh mesh, int submeshIndex){
+    	int normalIndice = mesh.GetTriangles(submeshIndex)[0];
+    	Vector3 normal = mesh.normals[normalIndice];
+    	return Vector3.Normalize(new Vector3(normal.x, normal.z, normal.y));
     }
 
     private Vector3 AddVector(Vector3 a, Vector3 b){
