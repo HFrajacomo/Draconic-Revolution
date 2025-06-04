@@ -149,14 +149,6 @@ public class CharacterBuilderMenu{
 				boneRenderer.transforms = newBones;
 		#endif
 
-		if(!ModelHandler.HasModel(type, name) || current == null){
-			if(type == ModelType.HEADGEAR){
-				this.hairlinePlane.valid = false;
-			}
-
-			return;
-		}
-
 		Mesh mesh = CopyMesh(current.sharedMesh, current);
 
 		if(type == ModelType.ADDON){
@@ -183,10 +175,12 @@ public class CharacterBuilderMenu{
 			this.hairlinePlane = new HairlinePlane(planeVerts[0], planeVerts[1], planeVerts[2], planeVerts[3], normal);
 
 			current.sharedMesh.subMeshCount = current.sharedMesh.subMeshCount - 1;
+
+			RefreshHairlineApply();
 		}
 
 		// Hide hair options
-		if(type == ModelType.HEADGEAR || type == ModelType.HAIR){
+		if(type == ModelType.HAIR){
 			if(this.bodyParts.ContainsKey(ModelType.HAIR) && this.bodyParts.ContainsKey(ModelType.HEADGEAR)){
 				if(ModelHandler.HasModel(ModelType.HAIR, this.bodyPartName[ModelType.HAIR]) && ModelHandler.HasModel(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR])){
 					char hatSKCode = ModelHandler.GetHatCover(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR]);
@@ -198,6 +192,19 @@ public class CharacterBuilderMenu{
 					else{
 						this.bodyParts[ModelType.HAIR].SetActive(false);
 					}
+				}
+			}
+		}
+	}
+
+	private void RefreshHairlineApply(){
+		if(this.bodyParts.ContainsKey(ModelType.HAIR)){
+			if(ModelHandler.HasModel(ModelType.HAIR, this.bodyPartName[ModelType.HAIR])){
+				if(ModelHandler.GetHatCover(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR]) == 'N'){
+					SkinnedMeshRenderer hairRenderer = this.bodyParts[ModelType.HAIR].GetComponent<SkinnedMeshRenderer>();
+
+					hairRenderer.sharedMesh.SetVertices(ModelHandler.GetVertices(ModelType.HAIR, this.bodyPartName[ModelType.HAIR]));
+					ProcessHairMesh(hairRenderer);
 				}
 			}
 		}
@@ -247,6 +254,9 @@ public class CharacterBuilderMenu{
 	}
 
 	private void ProcessHairMesh(SkinnedMeshRenderer hair){
+		if(!this.hairlinePlane.valid)
+			return;
+
 		List<Vector3> hairVerts = new List<Vector3>();
 		hair.sharedMesh.GetVertices(hairVerts);
 

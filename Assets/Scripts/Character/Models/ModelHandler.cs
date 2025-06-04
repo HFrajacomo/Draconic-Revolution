@@ -49,6 +49,18 @@ public static class ModelHandler{
 		return GameObject.Instantiate(GameObject.Find("ModelAssets/" + mi.blenderReference));
 	}
 
+	public static List<Vector3> GetVertices(ModelType type, string name){
+		List<Vector3> verts = new List<Vector3>();
+
+		ModelInfo mi = GetModelInfo(type, name);
+		GameObject go = GameObject.Instantiate(GameObject.Find("ModelAssets/" + mi.blenderReference));
+
+		Mesh mesh = go.GetComponent<SkinnedMeshRenderer>().sharedMesh;
+		mesh.GetVertices(verts);
+
+		return verts;
+	}
+
 	public static bool HasModel(ModelType type, string name){
 		return GetModelInfo(type, name).hasModel;
 	}

@@ -7,6 +7,14 @@ public struct HairlinePlane{
 	public Vector3 planeBinormal;
 	public bool valid;
 
+	public HairlinePlane(string unused){
+		this.planeMid = new Vector3(0,10000,0);
+		this.planeNormal = Vector3.up;
+		this.valid = true;
+		this.planeTangent = Vector3.zero;
+		this.planeBinormal = Vector3.zero;	
+	}
+
 	public HairlinePlane(Vector3 mid, Vector3 n, bool valid){
 		this.planeMid = mid;
 		this.planeNormal = n;
