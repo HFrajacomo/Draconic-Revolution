@@ -25,7 +25,6 @@ public class CharacterBuilderMenu{
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(25,25,25);
-	private static readonly Vector3 SCL_2 = new Vector3(25,25,25);
 	private static readonly int CHARACTER_CREATION_CHARACTER_SCALING = 400;
 
 	private List<int> cachedTris = new List<int>();
@@ -42,14 +41,12 @@ public class CharacterBuilderMenu{
 		this.armature.transform.SetParent(this.parent.transform);
 		this.addonMats = addonMats;
 
-		if(isMale){
+		if(isMale)
 			this.armature.name = ARMATURE_NAME_MALE;
-			this.armature.transform.localScale = ElementWiseMult(SCL_1, this.raceSettings.scaling);
-		}
-		else{
+		else
 			this.armature.name = ARMATURE_NAME_FEMALE;
-			this.armature.transform.localScale = ElementWiseMult(SCL_2, this.raceSettings.scaling);
-		}
+
+		this.parent.transform.localScale = this.raceSettings.scaling * CHARACTER_CREATION_CHARACTER_SCALING;
 
 		FixArmature(isMale);
 		PutAddon(race, isMale);
@@ -223,16 +220,10 @@ public class CharacterBuilderMenu{
 		this.armature = ModelHandler.GetArmature(isMale:isMale);
 		this.armature.transform.SetParent(this.parent.transform);
 
-		this.parent.transform.localScale = this.raceSettings.scaling * CharacterBuilderMenu.CHARACTER_CREATION_CHARACTER_SCALING;
-
-		if(isMale){
+		if(isMale)
 			this.armature.name = ARMATURE_NAME_MALE;
-			this.armature.transform.localScale = ElementWiseMult(SCL_1, this.raceSettings.scaling);
-		}
-		else{
+		else
 			this.armature.name = ARMATURE_NAME_FEMALE;
-			this.armature.transform.localScale = ElementWiseMult(SCL_2, this.raceSettings.scaling);
-		}
 
 		FixArmature(isMale);
 		this.animator.Rebind();
@@ -407,16 +398,8 @@ public class CharacterBuilderMenu{
 	}
 
 	private void FixArmature(bool isMale){
-		foreach(Transform t in this.armature.GetComponentsInChildren<Transform>()){
-			t.position = new Vector3(t.position.x * this.raceSettings.scaling.x, t.position.y * this.raceSettings.scaling.y, t.position.z * this.raceSettings.scaling.z);
-		}
-
-		if(isMale)
-			this.armature.transform.localScale = ElementWiseMult(SCL_1, this.raceSettings.scaling);
-		else
-			this.armature.transform.localScale = ElementWiseMult(SCL_2, this.raceSettings.scaling);
-
-
+		this.parent.transform.localScale = this.raceSettings.scaling * CHARACTER_CREATION_CHARACTER_SCALING;
+		this.armature.transform.localScale = SCL_1;
 		this.armature.transform.eulerAngles = ROT_1;
 		this.armature.transform.localPosition = POS_1;
 		this.boneRenderer = this.armature.AddComponent<BoneRenderer>();
