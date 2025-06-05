@@ -172,6 +172,7 @@ public class CharacterBuilderMenu{
 			this.hairlinePlane = new HairlinePlane(planeVerts[0], planeVerts[1], planeVerts[2], planeVerts[3], normal);
 
 			current.sharedMesh.subMeshCount = current.sharedMesh.subMeshCount - 1;
+			current.materials = RemoveLastElementFromArray(current.materials);
 
 			RefreshHairlineApply();
 		}
@@ -205,6 +206,16 @@ public class CharacterBuilderMenu{
 				}
 			}
 		}
+	}
+
+	private T[] RemoveLastElementFromArray<T>(T[] input){
+		T[] aux = new T[input.Length-1];
+
+		for(int i=0; i < input.Length-1; i++){
+			aux[i] = input[i];
+		}
+
+		return aux;
 	}
 
 	public void ChangeArmature(bool isMale){

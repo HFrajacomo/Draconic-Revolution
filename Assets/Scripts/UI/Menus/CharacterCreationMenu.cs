@@ -1381,11 +1381,14 @@ public class CharacterCreationMenu : Menu{
             if(materials.Length > 1){
                 materials[1] = this.hairMat1;
                 materials[1].SetColor("_Color", this.hairColor1);
-                materials[1].SetColor("_IrisColor", this.hairColor2);
             }
             if(materials.Length > 2){
                 materials[2] = this.hairMat2;
-                materials[2].SetColor("_Color", this.hairColor3);
+                materials[2].SetColor("_Color", this.hairColor2);
+            }
+            if(materials.Length > 3){
+                materials[3] = this.hairMat3;
+                materials[3].SetColor("_Color", this.hairColor3);
             }
         }
 
@@ -1458,6 +1461,6 @@ public class CharacterCreationMenu : Menu{
         this.hairMat2.SetColor("_Color", this.hairColor2);
         this.hairMat3.SetColor("_Color", this.hairColor3);
         this.faceMat1.SetColor("_Color", this.faceColor1);
-        this.faceMat2.SetColor("_Color", this.faceColor2);
+        this.faceMat2.SetColor("_IrisColor", this.faceColor2);
     }
 }
