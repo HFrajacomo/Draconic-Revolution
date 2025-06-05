@@ -4,7 +4,7 @@
 Beanie	M_Beanie	M	N	Y
 Feathered Beanie	M_Feathered_Beanie	M	N	Y
 Fedora	M_Fedora	M	N	Y
-Basic Cowl	M_Keys_Hat	M	N	Y
+Basic Cowl	M_Keys_Hat	M	Y	Y
 Top Hat	M_Top_Hat	M	N	Y
 
 <No Hat>	F_HEAD	F	N	Y

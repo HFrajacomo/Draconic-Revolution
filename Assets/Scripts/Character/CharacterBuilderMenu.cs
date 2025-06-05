@@ -160,6 +160,14 @@ public class CharacterBuilderMenu{
 			current.materials = RemoveLastElementFromArray(current.materials);
 
 			RefreshHairlineApply();
+
+			// Check if covers hair
+			if(ModelHandler.GetHatCover(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR]) == 'Y' && this.bodyParts.ContainsKey(ModelType.HAIR)){
+				this.bodyParts[ModelType.HAIR].SetActive(false);
+			}
+			else if(ModelHandler.GetHatCover(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR]) == 'N' && this.bodyParts.ContainsKey(ModelType.HAIR)){
+				this.bodyParts[ModelType.HAIR].SetActive(true);
+			}
 		}
 
 		// Hide hair options
