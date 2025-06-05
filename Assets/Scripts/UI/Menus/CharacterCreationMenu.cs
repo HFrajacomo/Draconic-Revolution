@@ -94,6 +94,7 @@ public class CharacterCreationMenu : Menu{
     private Material hairMat3;
     private Material faceMat1;
     private Material faceMat2;
+    private Material faceMat3;
 
     [Header("Default Options")]
     public Button defaultGender;
@@ -518,7 +519,7 @@ public class CharacterCreationMenu : Menu{
 
         this.characterBuilder.Add(this.selectedDiv, go, name);
 
-        ShowColorPickers(this.characterBuilder.GetMaterialLength(this.selectedDiv, go));
+        ShowColorPickers(this.characterBuilder.GetMaterialLength(this.selectedDiv));
         ApplyColorToModel(go);
 
         return go;
@@ -530,7 +531,7 @@ public class CharacterCreationMenu : Menu{
 
         this.characterBuilder.Add(type, go, AddGenderString(ModelHandler.GetModelName(type, code)));
 
-        ShowColorPickers(this.characterBuilder.GetMaterialLength(type, go));
+        ShowColorPickers(this.characterBuilder.GetMaterialLength(type));
         ApplyColorToModel(go);
 
         return go;
@@ -1374,7 +1375,11 @@ public class CharacterCreationMenu : Menu{
             }
             if(materials.Length > 2){
                 materials[2] = this.faceMat2;
-                materials[2].SetColor("_Color", this.faceColor3);
+                materials[2].SetColor("_Color", Color.white);
+            }
+            if(materials.Length > 3){
+                materials[3] = this.faceMat3;
+                materials[3].SetColor("_Color", this.faceColor3);
             }
         }
         else if(this.selectedDiv == ModelType.HAIR){
@@ -1423,6 +1428,7 @@ public class CharacterCreationMenu : Menu{
         this.hairMat3 = Instantiate(this.prefabPlainMat);
         this.faceMat1 = Instantiate(this.eyeIrisMat);
         this.faceMat2 = Instantiate(this.prefabPlainMat);
+        this.faceMat3 = Instantiate(this.prefabPlainMat);
 
         this.skinColor = this.skinColorGradient.color2;
         this.clothesColor1 = new Color(1f, 1f, 1f);
@@ -1461,6 +1467,8 @@ public class CharacterCreationMenu : Menu{
         this.hairMat2.SetColor("_Color", this.hairColor2);
         this.hairMat3.SetColor("_Color", this.hairColor3);
         this.faceMat1.SetColor("_Color", this.faceColor1);
-        this.faceMat2.SetColor("_IrisColor", this.faceColor2);
+        this.faceMat1.SetColor("_IrisColor", this.faceColor2);
+        this.faceMat2.SetColor("_Color", Color.white);
+        this.faceMat3.SetColor("_Color", this.faceColor3);
     }
 }

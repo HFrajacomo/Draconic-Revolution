@@ -61,26 +61,11 @@ public class CharacterBuilderMenu{
 	}
 
 	public int GetMaterialLength(ModelType type){
-		if(type != ModelType.FACE){
-			SkinnedMeshRenderer smr = this.bodyParts[type].GetComponent<SkinnedMeshRenderer>();
+		SkinnedMeshRenderer smr = this.bodyParts[type].GetComponent<SkinnedMeshRenderer>();
 
-			if(smr == null)
-				return 1;
-			return smr.materials.Length;
-		}
-		else
-			return this.bodyParts[type].GetComponent<SkinnedMeshRenderer>().materials.Length + 1;
-	}
-
-	public int GetMaterialLength(ModelType type, GameObject go){
-		if(type != ModelType.FACE){
-			SkinnedMeshRenderer smr = this.bodyParts[type].GetComponent<SkinnedMeshRenderer>();
-
-			if(smr == null)
-				return 1;
-			return smr.materials.Length;
-		}
-		return go.GetComponent<SkinnedMeshRenderer>().materials.Length + 1;
+		if(smr == null)
+			return 1;
+		return smr.materials.Length;
 	}
 
 	public void ChangeRace(Race race, bool isMale){
@@ -440,117 +425,10 @@ public class CharacterBuilderMenu{
         return newMesh;
 	}
 
-
-	private void FixMaterialOrder(SkinnedMeshRenderer rend){
-		Material[] materials = new Material[rend.materials.Length];
-
-		for(int i=0; i < materials.Length; i++){
-			materials[i] = FindMaterial(rend.materials, i);
-		}
-
-		rend.materials = materials;
-	}
-
-	private Material FindMaterial(Material[] mats, int index){
-		if(index == 0){
-			for(int i=0; i < mats.Length; i++){
-				if(mats[i].name == "Skin (Instance)"){
-					return mats[i];
-				}
-			}
-		}
-		else if(index == 1){
-			for(int i=0; i < mats.Length; i++){
-				if(mats[i].name == "Pcolor (Instance)"){
-					return mats[i];
-				}
-			}
-		}
-		else if(index == 2){
-			for(int i=0; i < mats.Length; i++){
-				if(mats[i].name == "Scolor (Instance)"){
-					return mats[i];
-				}
-			}
-		}
-		else if(index == 3){
-			for(int i=0; i < mats.Length; i++){
-				if(mats[i].name == "Tcolor (Instance)"){
-					return mats[i];
-				}
-			}
-		}
-		return mats[0];
-	}
-
 	private void CopyTriangles(Mesh prefab, Mesh newMesh){
 		for(int i=0; i < prefab.subMeshCount; i++){
 			newMesh.SetTriangles(prefab.GetTriangles(i), i);
 		}
-	}
-
-	private void FixMeshVertexGroups(Mesh prefab, Mesh newMesh, SkinnedMeshRenderer rend){
-		switch(prefab.subMeshCount){
-			case 1:
-				if(rend.materials[0].name == "Skin (Instance)"){
-					ConvertSubMesh(prefab, newMesh, 0, 0);
-				}
-				else{
-					newMesh.subMeshCount = 2;
-					rend.materials = new Material[2];
-					ConvertSubMesh(prefab, newMesh, 0, 1);
-				}
-				return;
-			case 2:
-				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(0, rend), 0);
-				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(1, rend), 1);
-				return;
-			case 3:
-				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(0, rend), 0);
-				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(1, rend), 1);
-				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(2, rend), 2);
-				return;
-			case 4:
-				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(0, rend), 0);
-				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(1, rend), 1);
-				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(2, rend), 2);
-				ConvertSubMesh(prefab, newMesh, GetPrefabMeshSubMesh(3, rend), 3);
-				return;				
-			default:
-				return;
-		}
-	}
-
-	private int GetPrefabMeshSubMesh(int index, SkinnedMeshRenderer rend){
-		Material[] mats = rend.materials;
-
-		if(index == 0){
-			return FindMaterialIndex(mats, "Skin (Instance)");
-		}
-		else if(index == 1){
-			return FindMaterialIndex(mats, "Pcolor (Instance)");
-		}
-		else if(index == 2){
-			return FindMaterialIndex(mats, "Scolor (Instance)");
-		}
-		else if(index == 3){
-			return FindMaterialIndex(mats, "Tcolor (Instance)");
-		}
-		else if(index == 4){
-			return FindMaterialIndex(mats, "Hairline (Instance)");
-		}
-		else{
-			return 0;
-		}
-	}
-
-	private int FindMaterialIndex(Material[] mats, string name){
-		for(int i=0; i < mats.Length; i++){
-			if(mats[i].name == name){
-				return i;
-			}
-		}
-		return -1;
 	}
 
 	private void ConvertSubMesh(Mesh p, Mesh n, int indexP, int indexN){
