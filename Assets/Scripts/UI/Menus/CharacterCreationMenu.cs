@@ -1241,7 +1241,6 @@ public class CharacterCreationMenu : Menu{
             p = this.hatsColor1;
             s = this.hatsColor2;
             t = this.hatsColor3;
-            numberOfMaterials--; // Adjustment since the hairline plane takes a vertex group
         }
         else if(this.selectedDiv == ModelType.FACE){
             p = this.faceColor1;

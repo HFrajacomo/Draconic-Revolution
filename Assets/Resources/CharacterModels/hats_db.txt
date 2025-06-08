@@ -12,4 +12,4 @@ Bucket Hat	F_Bucket_Hat	F	N	Y
 Fedora	F_Fedora	F	N	Y
 Straw Hat	F_Straw_Hat	F	N	Y
 Rough Peasant Hat	F_Rough_Peasant_Hat	F	N	Y
-Rough Peasant Cowl	F_Rough_Peasant_Cowl	F	N	Y
+Rough Peasant Cowl	F_Rough_Peasant_Cowl	F	Y	Y

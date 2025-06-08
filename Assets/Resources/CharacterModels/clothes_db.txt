@@ -10,6 +10,6 @@ Sleeveless Shirt with Gloves	M_Sleeveless_Shirt_with_Gloves	M
 <No Top>	F_TORSO	F
 T-Shirt	F_T-Shirt	F
 T-Shirt with Gloves	F_T-Shirt_with_Gloves	F
-Sleeved Shirt	F_Sleeved_Shirt	F
-Sleeved Shirt with Gloves	F_Sleeveless_Shirt_with_Gloves	F
+Sleeveless Shirt	F_Sleeveless_Shirt	F
+Sleeveless Shirt with Gloves	F_Sleeveless_Shirt_with_Gloves	F
 Cropped Shirt	F_Cropped_Shirt	F

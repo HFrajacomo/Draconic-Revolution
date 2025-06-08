@@ -65,6 +65,7 @@ public class CharacterBuilderMenu{
 
 		if(smr == null)
 			return 1;
+			
 		return smr.materials.Length;
 	}
 
@@ -119,8 +120,6 @@ public class CharacterBuilderMenu{
 		this.bodyParts[type] = obj;
 
 		SkinnedMeshRenderer current = obj.GetComponent<SkinnedMeshRenderer>();
-
-		Debug.Log(current.materials.Length);
 
 		if(BONE_MAP == null){
 			SetBoneMap(current.bones);
