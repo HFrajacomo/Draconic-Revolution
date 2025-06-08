@@ -1374,11 +1374,11 @@ public class CharacterCreationMenu : Menu{
             }
             if(materials.Length > 2){
                 materials[2] = this.faceMat2;
-                materials[2].SetColor("_Color", Color.white);
+                materials[2].SetColor("_Color", this.faceColor3);
             }
             if(materials.Length > 3){
                 materials[3] = this.faceMat3;
-                materials[3].SetColor("_Color", this.faceColor3);
+                materials[3].SetColor("_Color", Color.white);
             }
         }
         else if(this.selectedDiv == ModelType.HAIR){
@@ -1467,7 +1467,7 @@ public class CharacterCreationMenu : Menu{
         this.hairMat3.SetColor("_Color", this.hairColor3);
         this.faceMat1.SetColor("_Color", this.faceColor1);
         this.faceMat1.SetColor("_IrisColor", this.faceColor2);
-        this.faceMat2.SetColor("_Color", Color.white);
-        this.faceMat3.SetColor("_Color", this.faceColor3);
+        this.faceMat2.SetColor("_Color", this.faceColor3);
+        this.faceMat3.SetColor("_Color", Color.white);
     }
 }
