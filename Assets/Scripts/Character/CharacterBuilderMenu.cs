@@ -120,6 +120,8 @@ public class CharacterBuilderMenu{
 
 		SkinnedMeshRenderer current = obj.GetComponent<SkinnedMeshRenderer>();
 
+		Debug.Log(current.materials.Length);
+
 		if(BONE_MAP == null){
 			SetBoneMap(current.bones);
 		}
