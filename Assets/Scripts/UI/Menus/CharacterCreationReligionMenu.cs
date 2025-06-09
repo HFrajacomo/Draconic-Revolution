@@ -112,7 +112,6 @@ public class CharacterCreationReligionMenu : Menu{
 	}
 
 	public override void Disable(){
-		DeselectClickedButton();
 		this.mainObject.SetActive(false);
 
 		this.WAS_UNDEAD = CharacterCreationData.GetRace() == Race.UNDEAD;
@@ -121,6 +120,18 @@ public class CharacterCreationReligionMenu : Menu{
         	CharacterCreationData.Reset();
         	this.CREATE = false;
 		}
+	}
+
+	public void Reset(){
+		this.selectedReligion = null;
+		this.selectedAlignment = null;
+
+		if(this.selectedReligionToggle != null)
+			this.selectedReligionToggle.GetComponent<Toggle>().isOn = false;
+
+		this.colorBlock.normalColor = BUTTON_DEFAULT_COLOR;
+		this.selectedAlignmentButton.GetComponent<Button>().colors = this.colorBlock;
+		this.selectedAlignmentButton = null;
 	}
 
 	public void SelectReligion(GameObject go){
@@ -197,6 +208,8 @@ public class CharacterCreationReligionMenu : Menu{
 	public void OpenCharacterCreationDataMenu(){
 		if(this.selectedAlignment == null || this.selectedReligion == null)
 			return;
+
+		DeselectClickedButton();
 
 		CharacterCreationData.SetAlignment((Alignment)this.selectedAlignment);
 		CharacterCreationData.SetReligion((Religion)this.selectedReligion);
@@ -298,6 +311,9 @@ public class CharacterCreationReligionMenu : Menu{
 	}
 
 	private void SetDisabilities(){
+		if(CharacterCreationData.GetRace() == null)
+			return;
+
 		if(CharacterCreationData.GetRace() != Race.UNDEAD){
 			if(this.WAS_UNDEAD){
 				ToggleButtons(this.lawfulsGO, true);

@@ -100,7 +100,7 @@ public static class CharacterCreationData {
 	public static void SetName(string n){name = n;}
 	public static string GetName(){return name;}
 	public static void SetRace(Race r){race = r;}
-	public static Race GetRace(){return (Race)race;}
+	public static Race? GetRace(){return race;}
 	public static void SetMale(bool flag){isMale = flag;}
 	public static bool GetMale(){return isMale;}
 	public static void SetSkinPreset(byte b){skinPreset = b;}

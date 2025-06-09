@@ -8,6 +8,10 @@ using Random = UnityEngine.Random;
 using Object = System.Object;
 
 public class CharacterCreationMenu : Menu{
+    [Header("Menu")]
+    public CharacterCreationStatusMenu statusMenu;
+    public CharacterCreationReligionMenu religionMenu;
+
     [Header("Text Color")]
     public Color notSelectedColor = new Color(.87f, .87f, .87f);
     public Color selectedColor = new Color(.32f, .72f, .91f);
@@ -193,7 +197,7 @@ public class CharacterCreationMenu : Menu{
 
             // Load General info
             this.nameInput.text = CharacterCreationData.GetName();
-            SelectRace(IdentifyRace(CharacterCreationData.GetRace()));
+            SelectRace(IdentifyRace((Race)CharacterCreationData.GetRace()));
             SelectGender(IdentifyGender(CharacterCreationData.GetMale()));
 
             // Load Color Pallete
@@ -290,7 +294,7 @@ public class CharacterCreationMenu : Menu{
             this.selectedGenderItem = IdentifyGender(CharacterCreationData.GetMale());
             this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
 
-            this.selectedRaceItem = IdentifyRace(CharacterCreationData.GetRace());
+            this.selectedRaceItem = IdentifyRace((Race)CharacterCreationData.GetRace());
             this.selectedRaceItem.GetComponentInChildren<Text>().color = this.selectedColor;
 
             this.selectedPresetItem = IdentifySkinPreset(CharacterCreationData.GetSkinPreset());
@@ -1001,6 +1005,15 @@ public class CharacterCreationMenu : Menu{
         this.INIT = true;
 
         this.RequestMenuChange(MenuID.CHARACTER_CREATION_DATA);
+    }
+
+    public void LeaveCharacterCreation(){
+        CharacterCreationData.Reset();
+        Reset();
+        this.statusMenu.Reset();
+        this.religionMenu.Reset();
+
+        this.RequestMenuChange(MenuID.SELECT_WORLD);
     }
 
     private void UpdateColorInAllModel(){
