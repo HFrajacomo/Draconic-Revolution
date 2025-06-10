@@ -107,7 +107,7 @@ public class CharacterBuilder{
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HEADGEAR);
 
         GameObject.Destroy(modelRenderer.gameObject);
-
+        
         // Hair
         if(hatCover == 'N'){
 	        modelRenderer = ModelHandler.GetModelByCode(ModelType.HAIR, this.appearance.hair.code).GetComponent<SkinnedMeshRenderer>();
@@ -157,6 +157,11 @@ public class CharacterBuilder{
 		int submeshCount = newMesh.subMeshCount;
 
 		newMesh.GetVertices(this.cachedVerts);
+
+		// Hat-hair hiding
+		if(type == ModelType.HAIR)
+			ProcessHairMesh(this.cachedVerts);
+
 		this.meshVert.AddRange(this.cachedVerts);
 		newMesh.GetUVs(0, this.cachedUV);
 		this.meshUV.AddRange(this.cachedUV);
@@ -173,13 +178,11 @@ public class CharacterBuilder{
 			RemoveLastFour(this.meshUV);
 			RemoveLastFour(this.meshNormal);
 			RemoveLastFour(this.meshTangent);
-			RemoveLastFour(this.meshBoneWeights);
+			RemoveTill(this.meshBoneWeights, this.meshVert.Count);
 			submeshCount--;
 		}
 
-		if(type == ModelType.HAIR){
-			ProcessHairMesh(this.meshVert);
-		}
+
 
 		for(int i=0; i < submeshCount; i++){
 			this.meshTris.Add(new List<int>());
@@ -211,6 +214,19 @@ public class CharacterBuilder{
 
 		for(int i=0; i < 4; i++){
 			lista.RemoveAt(lista.Count-1);
+		}
+	}
+
+	// Removes the last elements until List is of size x
+	private void RemoveTill<T>(List<T> lista, int x){
+		if(lista.Count == 0 || x < 0)
+			return;
+
+		if(lista.Count <= x)
+			return;
+
+		for(;lista.Count > x;){
+			lista.RemoveAt(x);
 		}
 	}
 
