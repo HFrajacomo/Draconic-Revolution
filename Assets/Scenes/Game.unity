@@ -609,13 +609,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 3.3
+  m_Height: 4.2
   m_Radius: 0.4
   m_SlopeLimit: 45
   m_StepOffset: 0.4
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0
-  m_Center: {x: 0, y: -2.5, z: -0.3}
+  m_Center: {x: 0, y: -2.07, z: -0.3}
 --- !u!4 &59614821
 Transform:
   m_ObjectHideFlags: 0

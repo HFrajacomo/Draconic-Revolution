@@ -271,7 +271,6 @@ public static class ModelHandler{
 			else
 				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0], lineElements[4][0]));
 
-
 			switch(t){
 				case ModelType.CLOTHES:
 					clothesMap.Add(i, name);

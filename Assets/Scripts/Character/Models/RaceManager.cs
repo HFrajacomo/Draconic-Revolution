@@ -47,7 +47,7 @@ public static class RaceManager{
 		COMMON
 		);}
 
-	private static void SetHalfling(){halfling = new RaceSettings(Race.HALFLING, new Vector3(.5f,.5f,.5f),
+	private static void SetHalfling(){halfling = new RaceSettings(Race.HALFLING, new Vector3(.75f,.75f,.75f),
 		COMMON,
 		new Gradient(new Color(0.60f, 0.43f, 0.25f), new Color(0.98f, 0.91f, 0.81f)),
 		new Gradient(new Color(.49f,.39f,.32f), new Color(1f,.93f,.89f))

@@ -14,6 +14,7 @@ public class CharacterBuilder{
 	private BoneRenderer boneRenderer;
 	private CharacterAppearance appearance;
 	private bool isMale;
+	private HairlinePlane hairline = new HairlinePlane(Vector3.zero, Vector3.zero, false);
 
 	// Mesh Cache
 	private List<Material> meshMat = new List<Material>();
@@ -44,8 +45,9 @@ public class CharacterBuilder{
 	private static readonly int ROOT_BONE_INDEX = 0;
 	private static readonly string ARMATURE_NAME_MALE = "Armature";
 	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
-	private static readonly Vector3 POS_1 = Vector3.zero;
+	private static readonly Vector3 POS_1 = new Vector3(0f, -4.15f, 0f);
 	private static readonly Quaternion ROT_1 = Quaternion.Euler(new Vector3(270, 0, 0));
+	private static readonly Vector3 SCL_1 = new Vector3(100f, 100f, 100f);
 	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
 
 
@@ -94,35 +96,43 @@ public class CharacterBuilder{
 	public void Build(){
 		SkinnedMeshRenderer modelRenderer;
 		Mesh combinedMesh = new Mesh();
-		combinedMesh.name = "CombinedMesh";
+		combinedMesh.name = "PlayerMesh";
+		char hatCover = ModelHandler.GetHatCover(ModelType.HEADGEAR, this.appearance.hat.GetFullName(ModelType.HEADGEAR));
 
 		// Hat
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.HEADGEAR, this.appearance.hat.code).GetComponent<SkinnedMeshRenderer>();
         SetBoneMap(modelRenderer.bones);
         combinedMesh.bindposes = modelRenderer.sharedMesh.bindposes;
-        AddGeometryToMesh(combinedMesh, modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HEADGEAR);
+		SetHairline(modelRenderer.sharedMesh);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HEADGEAR);
 
         GameObject.Destroy(modelRenderer.gameObject);
+
+        // Hair
+        if(hatCover == 'N'){
+	        modelRenderer = ModelHandler.GetModelByCode(ModelType.HAIR, this.appearance.hair.code).GetComponent<SkinnedMeshRenderer>();
+	        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HAIR);
+	        GameObject.Destroy(modelRenderer.gameObject);
+	    }
 
 		// Torso
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.CLOTHES, this.appearance.torso.code).GetComponent<SkinnedMeshRenderer>();
-        AddGeometryToMesh(combinedMesh, modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.CLOTHES);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.CLOTHES);
         GameObject.Destroy(modelRenderer.gameObject);
-
 
 		// Legs
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.LEGS, this.appearance.legs.code).GetComponent<SkinnedMeshRenderer>();
-        AddGeometryToMesh(combinedMesh, modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.LEGS);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.LEGS);
         GameObject.Destroy(modelRenderer.gameObject);
 
 		// Boots
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.FOOTGEAR, this.appearance.boots.code).GetComponent<SkinnedMeshRenderer>();
-        AddGeometryToMesh(combinedMesh, modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FOOTGEAR);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FOOTGEAR);
         GameObject.Destroy(modelRenderer.gameObject);
 
         // Face
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.face.code).GetComponent<SkinnedMeshRenderer>();
-        AddGeometryToMesh(combinedMesh, modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
         GameObject.Destroy(modelRenderer.gameObject);
 
 		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
@@ -142,8 +152,9 @@ public class CharacterBuilder{
 		this.animator.Rebind();
 	}
 
-	private void AddGeometryToMesh(Mesh main, Mesh newMesh, SkinnedMeshRenderer rend, CharacterAppearance app, ModelType type){
+	private void AddGeometryToMesh(Mesh newMesh, SkinnedMeshRenderer rend, CharacterAppearance app, ModelType type){
 		int vertsCount = this.meshVert.Count;
+		int submeshCount = newMesh.subMeshCount;
 
 		newMesh.GetVertices(this.cachedVerts);
 		this.meshVert.AddRange(this.cachedVerts);
@@ -156,12 +167,50 @@ public class CharacterBuilder{
 		newMesh.GetBoneWeights(this.cachedBW);
 		this.meshBoneWeights.AddRange(this.cachedBW);
 
-		for(int i=0; i < newMesh.subMeshCount; i++){
+		// Removes hairline submesh
+		if(type == ModelType.HEADGEAR){
+			RemoveLastFour(this.meshVert);
+			RemoveLastFour(this.meshUV);
+			RemoveLastFour(this.meshNormal);
+			RemoveLastFour(this.meshTangent);
+			RemoveLastFour(this.meshBoneWeights);
+			submeshCount--;
+		}
+
+		if(type == ModelType.HAIR){
+			ProcessHairMesh(this.meshVert);
+		}
+
+		for(int i=0; i < submeshCount; i++){
 			this.meshTris.Add(new List<int>());
 			newMesh.GetTriangles(this.meshTris[this.meshTris.Count-1], i);
 			ReassignTriangles(this.meshTris[this.meshTris.Count-1], vertsCount);
 
-			this.meshMat.Add(FixMaterial(rend.materials[i], app.GetInfo(type), app.skinColor, app.race));
+			this.meshMat.Add(SetMaterial(type, app.GetInfo(type), app.skinColor, app.race, i));
+		}
+	}
+
+	private void ProcessHairMesh(List<Vector3> hairVerts){
+		if(!this.hairline.valid)
+			return;
+
+		for(int i=0; i < hairVerts.Count; i++){
+			if(!this.hairline.GetSide(hairVerts[i])){
+				continue;
+			}
+
+			hairVerts[i] = this.hairline.GetClosestPoint(hairVerts[i]);
+
+		}
+	}
+
+	// Removes the last 4 elements from a list. Used for removing data from hairplane submesh
+	private void RemoveLastFour<T>(List<T> lista){
+		if(lista.Count == 0)
+			return;
+
+		for(int i=0; i < 4; i++){
+			lista.RemoveAt(lista.Count-1);
 		}
 	}
 
@@ -179,7 +228,6 @@ public class CharacterBuilder{
 			mesh.SetTriangles(this.meshTris[i], i);
 		}
 
-
 		this.meshVert.Clear();
 		this.meshUV.Clear();
 		this.meshNormal.Clear();
@@ -192,6 +240,41 @@ public class CharacterBuilder{
 		this.meshBoneWeights.Clear();
 		this.cachedBW.Clear();
 	}
+
+	private void SetHairline(Mesh hatMesh){
+		List<Vector3> planeVerts = GetVerticesForSubmesh(hatMesh, hatMesh.subMeshCount-1);
+		Vector3 normal = GetFirstNormalInSubmesh(hatMesh, hatMesh.subMeshCount-1);
+
+		if(planeVerts.Count < 4)
+			return;
+		
+		this.hairline = new HairlinePlane(planeVerts[0], planeVerts[1], planeVerts[2], planeVerts[3], normal);
+	}
+
+    private List<Vector3> GetVerticesForSubmesh(Mesh mesh, int submeshIndex){
+        // Get all vertex indices for the specified submesh
+        int[] submeshIndices = mesh.GetTriangles(submeshIndex);
+
+        // Get all vertices in the mesh
+        Vector3[] allVertices = mesh.vertices;
+
+        // Use a hash set to collect unique vertices
+        HashSet<Vector3> submeshVertices = new HashSet<Vector3>();
+
+        // Add vertices used by the submesh
+        foreach (int index in submeshIndices)
+        {
+            submeshVertices.Add(allVertices[index]);
+        }
+
+        // Return as a list
+        return new List<Vector3>(submeshVertices);
+    }
+
+    private Vector3 GetFirstNormalInSubmesh(Mesh mesh, int submeshIndex){
+    	int normalIndice = mesh.GetTriangles(submeshIndex)[0];
+    	return mesh.normals[normalIndice];
+    }
 
 	private void ReassignTriangles(List<int> tris, int vertsCount){
 		for(int i=0; i < tris.Count; i++){
@@ -212,6 +295,7 @@ public class CharacterBuilder{
 	private void FixArmature(){
 		this.armature.transform.localRotation = ROT_1;
 		this.armature.transform.localPosition = POS_1;
+		this.armature.transform.localScale = SCL_1;
 		this.boneRenderer = this.armature.AddComponent<BoneRenderer>();
 
 		LoadRootBone();
@@ -221,10 +305,11 @@ public class CharacterBuilder{
 		this.rootBone = this.armature.transform.Find("Hips").transform;
 	}
 
-	private Material FixMaterial(Material mat, ClothingInfo info, Color skin, Race r){
+	private Material SetMaterial(ModelType type, ClothingInfo info, Color skin, Race r, int index){
 		Material newMaterial;
 
-		if(mat.name == "Skin (Instance)"){
+		// Skin
+		if(index == 0){
 			if(r == Race.DRAGONLING)
 				newMaterial = Material.Instantiate(dragonSkinMaterial);
 			else
@@ -233,17 +318,22 @@ public class CharacterBuilder{
 			newMaterial.SetColor("_Color", skin);
 			return newMaterial;
 		}
-		else if(mat.name == "Pcolor (Instance)"){
+		else if(index == 1){
 			newMaterial = Material.Instantiate(plainClothingMaterial);
 			newMaterial.SetColor("_Color", info.primary);
 			return newMaterial;
 		}
-		else if(mat.name == "Scolor (Instance)"){
+		else if(index == 2){
 			newMaterial = Material.Instantiate(plainClothingMaterial);
-			newMaterial.SetColor("_Color", info.secondary);
+
+			if(type != ModelType.FACE)
+				newMaterial.SetColor("_Color", info.secondary);
+			else
+				newMaterial.SetColor("_IrisColor", info.secondary);
+
 			return newMaterial;
 		}
-		else if(mat.name == "Tcolor (Instance)"){
+		else if(index == 3){
 			newMaterial = Material.Instantiate(plainClothingMaterial);
 			newMaterial.SetColor("_Color", info.terciary);
 			return newMaterial;

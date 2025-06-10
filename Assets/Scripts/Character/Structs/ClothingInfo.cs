@@ -15,6 +15,12 @@ public struct ClothingInfo{
 		this.isMale = isMale;
 	}
 
+	public string GetFullName(ModelType type){
+		if(isMale)
+			return $"{ModelHandler.GetModelName(type, this.code)}/M";
+		return $"{ModelHandler.GetModelName(type, this.code)}/F";
+	}
+
 	public string ToString(ModelType type){
 		return ModelHandler.GetModelName(type, this.code) + " P: " + primary.ToString() + " S: " + secondary.ToString() + " T: " + terciary.ToString();
 	}
