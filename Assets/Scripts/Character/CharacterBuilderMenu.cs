@@ -25,7 +25,7 @@ public class CharacterBuilderMenu{
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(25,25,25);
-	private static readonly int CHARACTER_CREATION_CHARACTER_SCALING = 400;
+	private static readonly int CHARACTER_CREATION_CHARACTER_SCALING = 100;
 
 	private List<int> cachedTris = new List<int>();
 

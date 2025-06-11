@@ -43,7 +43,7 @@ public class CharacterBuilder{
 
 	// Settings
 	private static readonly int ROOT_BONE_INDEX = 0;
-	private static readonly string ARMATURE_NAME_MALE = "Armature";
+	private static readonly string ARMATURE_NAME_MALE = "Armature-Man";
 	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
 	private static readonly Vector3 POS_1 = new Vector3(0f, -4.15f, 0f);
 	private static readonly Quaternion ROT_1 = Quaternion.Euler(new Vector3(270, 0, 0));
@@ -107,7 +107,6 @@ public class CharacterBuilder{
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HEADGEAR);
 
         GameObject.Destroy(modelRenderer.gameObject);
-        
         // Hair
         if(hatCover == 'N'){
 	        modelRenderer = ModelHandler.GetModelByCode(ModelType.HAIR, this.appearance.hair.code).GetComponent<SkinnedMeshRenderer>();
@@ -134,7 +133,7 @@ public class CharacterBuilder{
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.face.code).GetComponent<SkinnedMeshRenderer>();
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
         GameObject.Destroy(modelRenderer.gameObject);
-
+        
 		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
 		#if UNITY_EDITOR
 			if(boneRenderer.transforms == null)
@@ -181,8 +180,6 @@ public class CharacterBuilder{
 			RemoveTill(this.meshBoneWeights, this.meshVert.Count);
 			submeshCount--;
 		}
-
-
 
 		for(int i=0; i < submeshCount; i++){
 			this.meshTris.Add(new List<int>());
@@ -357,12 +354,4 @@ public class CharacterBuilder{
 
 		return Material.Instantiate(plainClothingMaterial);
 	}
-
-    private Vector3 Multiply(Vector3 vec1, Vector3 vec2){
-        Vector3 result = new Vector3();
-        result.x = vec1.x * vec2.x;
-        result.y = vec1.y * vec2.y;
-        result.z = vec1.z * vec2.z;
-        return result;
-    }
 }

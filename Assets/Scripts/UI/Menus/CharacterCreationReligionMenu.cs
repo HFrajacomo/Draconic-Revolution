@@ -44,6 +44,7 @@ public class CharacterCreationReligionMenu : Menu{
 	private Alignment? selectedAlignment = null;
 
 	private bool INIT = false;
+	private bool SHOWN_ONCE = false;
 	private bool WAS_UNDEAD = false;
 	private bool CREATE = false;
 	private ColorBlock colorBlock = new ColorBlock();
@@ -107,6 +108,7 @@ public class CharacterCreationReligionMenu : Menu{
 	}
 
 	public override void Enable(){
+		this.SHOWN_ONCE = true;
 		this.mainObject.SetActive(true);
 		SetDisabilities();
 	}
@@ -123,6 +125,9 @@ public class CharacterCreationReligionMenu : Menu{
 	}
 
 	public void Reset(){
+		if(!this.SHOWN_ONCE)
+			return;
+
 		this.selectedReligion = null;
 		this.selectedAlignment = null;
 
@@ -132,6 +137,7 @@ public class CharacterCreationReligionMenu : Menu{
 		this.colorBlock.normalColor = BUTTON_DEFAULT_COLOR;
 		this.selectedAlignmentButton.GetComponent<Button>().colors = this.colorBlock;
 		this.selectedAlignmentButton = null;
+		this.SHOWN_ONCE = false;
 	}
 
 	public void SelectReligion(GameObject go){
@@ -251,7 +257,7 @@ public class CharacterCreationReligionMenu : Menu{
         this.charCreationStatusMenu.Reset();
 
         this.CREATE = true;
-
+        this.SHOWN_ONCE = false;
 
         if(PlayerAppearanceData.GetPreloadFlag())
         	SceneManager.LoadScene("Blank");
