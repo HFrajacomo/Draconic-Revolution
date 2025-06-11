@@ -107,6 +107,7 @@ public class CharacterBuilder{
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HEADGEAR);
 
         GameObject.Destroy(modelRenderer.gameObject);
+        
         // Hair
         if(hatCover == 'N'){
 	        modelRenderer = ModelHandler.GetModelByCode(ModelType.HAIR, this.appearance.hair.code).GetComponent<SkinnedMeshRenderer>();
@@ -133,7 +134,7 @@ public class CharacterBuilder{
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.face.code).GetComponent<SkinnedMeshRenderer>();
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
         GameObject.Destroy(modelRenderer.gameObject);
-        
+
 		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
 		#if UNITY_EDITOR
 			if(boneRenderer.transforms == null)
