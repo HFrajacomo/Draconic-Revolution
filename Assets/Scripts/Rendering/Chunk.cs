@@ -520,7 +520,6 @@ public class Chunk
 			canRain = BiomeHandler.BiomeToDampness(this.biomeName),
 			verticalCode = verticalCode,
 
-			loadOutList = loadCoordList,
 			loadAssetList = loadAssetList,
 			assetCoordinates = assetCoordinates,
 			renderMap = renderMap,
@@ -547,8 +546,6 @@ public class Chunk
 			objectTransparent = BlockEncyclopediaECS.objectTransparent,
 			blockSeamless = BlockEncyclopediaECS.blockSeamless,
 			objectSeamless = BlockEncyclopediaECS.objectSeamless,
-			blockLoad = BlockEncyclopediaECS.blockLoad,
-			objectLoad = BlockEncyclopediaECS.objectLoad,
 			blockInvisible = BlockEncyclopediaECS.blockInvisible,
 			objectInvisible = BlockEncyclopediaECS.objectInvisible,
 			blockMaterial = BlockEncyclopediaECS.blockMaterial,
@@ -562,7 +559,16 @@ public class Chunk
 		};
 		JobHandle job = bcJob.Schedule();
 
+		CheckLoadEventJob clej = new CheckLoadEventJob{
+			data = blockdata,
+			blockLoad = BlockEncyclopediaECS.blockLoad,
+			objectLoad = BlockEncyclopediaECS.objectLoad,
+			loadCoords = loadCoordList
+		};
+		JobHandle cleJob = clej.Schedule();
+
 		job.Complete();
+		cleJob.Complete();
 
 		this.indexVert.Add(0);
 		this.indexUV.Add(0);

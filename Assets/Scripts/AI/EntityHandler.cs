@@ -202,6 +202,15 @@ public class EntityHandler
 		return this.playerObject[id.code];
 	}
 
+	public GameObject GetEntityMiddle(EntityID id){
+		if(id.type == EntityType.PLAYER){
+			return GetEntityObject(id).transform.Find("MiddlePoint").gameObject;
+		}
+		else{
+			return GetEntityObject(id);
+		}
+	}
+
 	public Light GetPointLight(EntityType type, ulong code){
 		if(type == EntityType.PLAYER){
 			if(this.playerObject.ContainsKey(code)){

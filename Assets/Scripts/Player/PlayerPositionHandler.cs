@@ -8,6 +8,7 @@ public class PlayerPositionHandler : MonoBehaviour
 {
     // Unity Reference
     public Transform playerTransform;
+    public Transform playerMiddle;
     public ChunkLoader cl;
     public AudioReverbZone reverb;
     public VoxelLightHandler voxelLightHandler;
@@ -97,6 +98,11 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     public void SetAudioManager(AudioManager manager){this.audioManager = manager;}
+
+
+    public Transform GetPlayerMiddlePoint(){
+        return this.playerMiddle;
+    }
 
     /*
     Call this whenever Render Distance is changed

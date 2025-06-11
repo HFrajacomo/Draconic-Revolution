@@ -115,8 +115,7 @@ public struct BuildChunkJob : IJob{
 	[ReadOnly]
 	public NativeArray<byte> vxpzplight;
 
-	// OnLoad Event Trigger List
-	public NativeList<int3> loadOutList;
+	// Asset Loading
 	public NativeList<int3> loadAssetList;
 	public NativeHashSet<int3> assetCoordinates;
 
@@ -156,10 +155,6 @@ public struct BuildChunkJob : IJob{
 	public NativeArray<bool> blockSeamless;
 	[ReadOnly]
 	public NativeArray<bool> objectSeamless;
-	[ReadOnly]
-	public NativeArray<bool> blockLoad;
-	[ReadOnly]
-	public NativeArray<bool> objectLoad;
 	[ReadOnly]
 	public NativeArray<bool> blockInvisible;
 	[ReadOnly]
@@ -253,22 +248,6 @@ public struct BuildChunkJob : IJob{
 						thisState = GetBlockState(x, y, z, isInBorder);
 						isBlock = thisBlock <= ushort.MaxValue/2;
 					}
-
-	    			// Runs OnLoad event
-	    			if(load && !isInBorder){
-	    				// If is a block
-		    			if(isBlock){
-		    				if(blockLoad[thisBlock] && !blockSeamless[thisBlock]){
-		    					loadOutList.Add(new int3(x,y,z));
-		    				}
-		    			}
-		    			// If Asset
-		    			else{
-		    				if(objectLoad[ushort.MaxValue-thisBlock] && !objectSeamless[ushort.MaxValue-thisBlock]){
-		    					loadOutList.Add(new int3(x,y,z));
-		    				}
-		    			}
-		    		}
 
 		    		// Handles DrawRegardless cases
 		    		if(isBlock){

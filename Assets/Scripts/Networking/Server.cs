@@ -1172,7 +1172,6 @@ public class Server
 
 			lastCoord = new CastCoord(pos, x, y, z);
 
-
 			// HP is set as the Chunk Coordinates vs World Coordinates flag
 			if(hp == ushort.MaxValue)
 				lastCoord = new CastCoord(new Vector3(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
@@ -1187,7 +1186,7 @@ public class Server
 				else{
 					VoxelLoader.GetObject(blockCode).OnLoad(lastCoord, this.cl);
 				}
-			}	
+			}
 		}
 
 		this.SendAccumulatedChunks();

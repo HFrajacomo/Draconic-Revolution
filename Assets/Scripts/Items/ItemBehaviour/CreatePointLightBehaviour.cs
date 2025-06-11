@@ -26,7 +26,7 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 		cl.playerSheetController.Enable(this.realisticLight);
 
 		cl.playerSheetController.SetVoxelLightIntensity(this.voxelLightIntensity);
-		cl.voxelLightHandler.Add(id, cl.playerPositionHandler.playerTransform.position, this.voxelLightIntensity, priority:true);
+		cl.voxelLightHandler.Add(id, cl.playerPositionHandler.GetPlayerMiddlePoint().position, this.voxelLightIntensity, priority:true);
 		cl.sfx.LoadEntitySFX(this.audioName, id);
 	}
 
@@ -39,7 +39,7 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 	}
 
 	public override void OnHoldClient(ChunkLoader cl, ItemStack its, ulong playerCode){
-		GameObject go = cl.client.entityHandler.GetEntityObject(new EntityID(EntityType.PLAYER, playerCode));
+		GameObject go = cl.client.entityHandler.GetEntityMiddle(new EntityID(EntityType.PLAYER, playerCode));
 		Light lightComponent = go.GetComponent<Light>();
 		HDAdditionalLightData light = go.GetComponent<HDAdditionalLightData>();
 		RealisticLight realLight = go.GetComponent<RealisticLight>();
@@ -60,7 +60,7 @@ public class CreatePointLightBehaviour : ItemBehaviour{
 	}
 
 	public override void OnUnholdClient(ChunkLoader cl, ItemStack its, ulong playerCode){
-		GameObject go = cl.client.entityHandler.GetEntityObject(new EntityID(EntityType.PLAYER, playerCode));
+		GameObject go = cl.client.entityHandler.GetEntityMiddle(new EntityID(EntityType.PLAYER, playerCode));
 		Light lightComponent = go.GetComponent<Light>();
 		HDAdditionalLightData light = go.GetComponent<HDAdditionalLightData>();
 		RealisticLight realLight = go.GetComponent<RealisticLight>();

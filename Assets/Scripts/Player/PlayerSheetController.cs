@@ -8,12 +8,16 @@ public class PlayerSheetController : MonoBehaviour {
 	private HDAdditionalLightData HDRPLightData;
 	private RealisticLight realisticLight;
 
+	private GameObject middle;
+
 	private float voxelLightIntensity = 0f;
 
 	void Awake(){
-		this.characterLight = this.gameObject.AddComponent<Light>();
-		this.HDRPLightData = this.gameObject.AddComponent<HDAdditionalLightData>();
-		this.realisticLight = this.gameObject.AddComponent<RealisticLight>();
+		this.middle = this.gameObject.transform.Find("MiddlePoint").gameObject;
+
+		this.characterLight = middle.AddComponent<Light>();
+		this.HDRPLightData = middle.AddComponent<HDAdditionalLightData>();
+		this.realisticLight = middle.AddComponent<RealisticLight>();
 
 		this.characterLight.enabled = false;
 		this.HDRPLightData.enabled = false;
