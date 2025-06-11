@@ -727,6 +727,7 @@ MonoBehaviour:
   plainClothingMaterial: {fileID: 2100000, guid: d53d3c304eec41b49aad438799e8ad47,
     type: 2}
   dragonSkinMaterial: {fileID: 2100000, guid: 41a87ad85b5498e40821bc63e7547679, type: 2}
+  eyeMaterial: {fileID: 2100000, guid: 67eca447c0a97e54c8132ede8ea4e8a3, type: 2}
 --- !u!114 &59614827
 MonoBehaviour:
   m_ObjectHideFlags: 0

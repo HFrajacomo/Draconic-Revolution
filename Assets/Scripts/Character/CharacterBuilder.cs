@@ -40,6 +40,7 @@ public class CharacterBuilder{
 	// Materials
 	private static Material plainClothingMaterial;
 	private static Material dragonSkinMaterial;
+	private static Material eyeMaterial;
 
 	// Settings
 	private static readonly int ROOT_BONE_INDEX = 0;
@@ -51,7 +52,7 @@ public class CharacterBuilder{
 	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
 
 
-	public CharacterBuilder(GameObject par, RuntimeAnimatorController animations, CharacterAppearance app, Material clothing, Material dragonskin, bool isMale, bool isPlayerCharacter){
+	public CharacterBuilder(GameObject par, RuntimeAnimatorController animations, CharacterAppearance app, Material clothing, Material dragonskin, Material eye, bool isMale, bool isPlayerCharacter){
 		if(EMPTY_OBJECT_PREFAB == null)
 			EMPTY_OBJECT_PREFAB = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
@@ -80,6 +81,7 @@ public class CharacterBuilder{
 
 		plainClothingMaterial = clothing;
 		dragonSkinMaterial = dragonskin;
+		eyeMaterial = eye;
 
 		FixArmature();
 	}
@@ -107,7 +109,7 @@ public class CharacterBuilder{
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HEADGEAR);
 
         GameObject.Destroy(modelRenderer.gameObject);
-        
+
         // Hair
         if(hatCover == 'N'){
 	        modelRenderer = ModelHandler.GetModelByCode(ModelType.HAIR, this.appearance.hair.code).GetComponent<SkinnedMeshRenderer>();
@@ -333,8 +335,13 @@ public class CharacterBuilder{
 			return newMaterial;
 		}
 		else if(index == 1){
-			newMaterial = Material.Instantiate(plainClothingMaterial);
+			newMaterial = Material.Instantiate(eyeMaterial);
 			newMaterial.SetColor("_Color", info.primary);
+
+			if(type == ModelType.FACE)
+				newMaterial.SetColor("_IrisColor", info.secondary);
+			
+
 			return newMaterial;
 		}
 		else if(index == 2){
@@ -343,13 +350,18 @@ public class CharacterBuilder{
 			if(type != ModelType.FACE)
 				newMaterial.SetColor("_Color", info.secondary);
 			else
-				newMaterial.SetColor("_IrisColor", info.secondary);
+				newMaterial.SetColor("_Color", info.terciary);
 
 			return newMaterial;
 		}
 		else if(index == 3){
 			newMaterial = Material.Instantiate(plainClothingMaterial);
-			newMaterial.SetColor("_Color", info.terciary);
+
+			if(type != ModelType.FACE)
+				newMaterial.SetColor("_Color", info.terciary);
+			else
+				newMaterial.SetColor("_Color", Color.white);
+
 			return newMaterial;
 		}
 

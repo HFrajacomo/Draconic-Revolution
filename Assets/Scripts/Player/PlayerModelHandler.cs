@@ -13,6 +13,7 @@ public class PlayerModelHandler : MonoBehaviour {
 	[Header("Materials")]
 	public Material plainClothingMaterial;
 	public Material dragonSkinMaterial;
+	public Material eyeMaterial;
 
 	private CharacterBuilder characterBuilder;
 
@@ -39,9 +40,9 @@ public class PlayerModelHandler : MonoBehaviour {
 		}
 
 		if(isMale)
-			this.characterBuilder = new CharacterBuilder(go, this.maleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, isMale, false);
+			this.characterBuilder = new CharacterBuilder(go, this.maleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, this.eyeMaterial, isMale, false);
 		else
-			this.characterBuilder = new CharacterBuilder(go, this.femaleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, isMale, false);
+			this.characterBuilder = new CharacterBuilder(go, this.femaleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, this.eyeMaterial, isMale, false);
 
 		this.characterBuilder.Build();
 		Rescale(app.race, go);
@@ -53,9 +54,9 @@ public class PlayerModelHandler : MonoBehaviour {
 	public void BuildModel(CharacterAppearance app, bool isMale, bool isPlayerCharacter){
 		if(this.characterBuilder == null){
 			if(isMale)
-				this.characterBuilder = new CharacterBuilder(this.parent, this.maleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, isMale, isPlayerCharacter);
+				this.characterBuilder = new CharacterBuilder(this.parent, this.maleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, this.eyeMaterial, isMale, isPlayerCharacter);
 			else
-				this.characterBuilder = new CharacterBuilder(this.parent, this.femaleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, isMale, isPlayerCharacter);
+				this.characterBuilder = new CharacterBuilder(this.parent, this.femaleAnimations, app, this.plainClothingMaterial, this.dragonSkinMaterial, this.eyeMaterial, isMale, isPlayerCharacter);
 
 			this.characterBuilder.Build();
 		}
