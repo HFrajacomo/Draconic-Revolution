@@ -1,0 +1,15 @@
+{
+    "codename": "BASE_Ardite_Ore",
+    "name":  "Ardite Ore",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Ardite_Ore"
+}

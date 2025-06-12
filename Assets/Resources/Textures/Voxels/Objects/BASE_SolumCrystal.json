@@ -32,8 +32,15 @@
 {
     "modelIdentity": "ModelIdentityBehaviour",
     "onPlace": "AuraCrystalBehaviour",
+    "onBreak": "BreakDropItemBehaviour",
     "offsetVector" : "ConfigurablePositionBehaviour",
     "rotationValue" : "ConfigurableRotationBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_SolumCrystal",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
 }
 --->AuraCrystalBehaviour
 {

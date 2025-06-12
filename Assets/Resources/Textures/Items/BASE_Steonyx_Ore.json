@@ -1,0 +1,15 @@
+{
+	"codename": "BASE_Steonyx_Ore",
+	"name":  "Steonyx Ore",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Steonyx_Ore"
+}

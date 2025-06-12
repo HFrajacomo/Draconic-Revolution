@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Gravel_Fine",
     "tileBottom":  "BASE_Gravel_Fine"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Gravel_Fine",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

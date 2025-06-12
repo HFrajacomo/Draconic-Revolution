@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Emerium_Ore",
     "tileBottom":  "BASE_Emerium_Ore"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Emerium_Ore",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

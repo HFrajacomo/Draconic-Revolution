@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Vinteum_Ore",
     "tileBottom":  "BASE_Vinteum_Ore"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Vinteum_Ore",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

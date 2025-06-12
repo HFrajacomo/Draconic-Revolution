@@ -1,0 +1,15 @@
+{
+    "codename": "BASE_Aluminium_Ore",
+    "name":  "Aluminium Ore",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Aluminium_Ore"
+}

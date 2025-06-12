@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Cobblestone",
     "tileBottom":  "BASE_Cobblestone"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Cobblestone",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

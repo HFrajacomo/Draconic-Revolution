@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Obsidian",
     "tileBottom":  "BASE_Obsidian"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Obsidian",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

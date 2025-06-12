@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Silverwood_Planks",
     "tileBottom":  "BASE_Silverwood_Planks"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Silverwood_Planks",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

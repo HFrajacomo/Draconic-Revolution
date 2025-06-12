@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Steonyx_Ore",
     "tileBottom":  "BASE_Steonyx_Ore"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Steonyx_Ore",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Bricks",
     "tileBottom":  "BASE_Bricks"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Bricks",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

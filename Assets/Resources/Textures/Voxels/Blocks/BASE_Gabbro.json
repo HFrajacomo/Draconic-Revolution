@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Gabbro",
     "tileBottom":  "BASE_Gabbro"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Gabbro",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

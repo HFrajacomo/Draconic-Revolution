@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Hell_Marble",
     "tileBottom":  "BASE_Hell_Marble"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Hell_Marble",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}
