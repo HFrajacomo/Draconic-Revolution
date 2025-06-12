@@ -13,7 +13,7 @@ public class PlayerEntityRadar : EntityRadar{
 		this.SetTransform(ref pos, ref dir, ref coords);
 		this.entityHandler = ehs;
 		this.FOV = 180;
-		this.visionDistance = 1f;
+		this.visionDistance = 1.4f;
 		this.entitySubscription = new HashSet<EntityType>(){EntityType.DROP};
 		this.psi = psi;
 		this.ID = entityID;

@@ -9,7 +9,7 @@ public class ItemEntityRadar : EntityRadar{
 		this.SetTransform(ref pos, ref dir, ref coords);
 		this.entityHandler = ehs;
 		this.FOV = 180;
-		this.visionDistance = 1.4f;
+		this.visionDistance = 1.25f;
 		this.entitySubscription = new HashSet<EntityType>(){EntityType.DROP};
 		this.its = its;
 		this.ID = entityID;

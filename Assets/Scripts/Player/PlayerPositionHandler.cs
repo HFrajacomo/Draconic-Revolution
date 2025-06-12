@@ -9,6 +9,7 @@ public class PlayerPositionHandler : MonoBehaviour
     // Unity Reference
     public Transform playerTransform;
     public Transform playerMiddle;
+    public Transform cameraTransform;
     public ChunkLoader cl;
     public AudioReverbZone reverb;
     public VoxelLightHandler voxelLightHandler;
@@ -245,47 +246,47 @@ public class PlayerPositionHandler : MonoBehaviour
     private void CalculateDistances(){
         // Front
         SendRaycast(raytracingDirections[0], maxDistanceCardinal, 0);
-        if(isDebugMode) {Debug.DrawRay(this.playerTransform.position, raytracingDirections[0] * raytracingDistances[0], Color.red);}
+        if(isDebugMode) {Debug.DrawRay(this.cameraTransform.position, raytracingDirections[0] * raytracingDistances[0], Color.red);}
 
         // Front-left
         SendRaycast(raytracingDirections[6], maxDistanceDiagonal, 1);
-        if(isDebugMode) {Debug.DrawRay(this.playerTransform.position, raytracingDirections[6] * raytracingDistances[1], Color.red);}
+        if(isDebugMode) {Debug.DrawRay(this.cameraTransform.position, raytracingDirections[6] * raytracingDistances[1], Color.red);}
 
         // Left
         SendRaycast(raytracingDirections[2], maxDistanceCardinal, 2);
-        if(isDebugMode) {Debug.DrawRay(this.playerTransform.position, raytracingDirections[2] * raytracingDistances[2], Color.red);}
+        if(isDebugMode) {Debug.DrawRay(this.cameraTransform.position, raytracingDirections[2] * raytracingDistances[2], Color.red);}
 
         // Back-left
         SendRaycast(raytracingDirections[8], maxDistanceDiagonal, 3);
-        if(isDebugMode) {Debug.DrawRay(this.playerTransform.position, raytracingDirections[8] * raytracingDistances[3], Color.red);}
+        if(isDebugMode) {Debug.DrawRay(this.cameraTransform.position, raytracingDirections[8] * raytracingDistances[3], Color.red);}
 
         // Back
         SendRaycast(raytracingDirections[1], maxDistanceCardinal, 4);
-        if(isDebugMode) {Debug.DrawRay(this.playerTransform.position, raytracingDirections[1] * raytracingDistances[4], Color.red);}
+        if(isDebugMode) {Debug.DrawRay(this.cameraTransform.position, raytracingDirections[1] * raytracingDistances[4], Color.red);}
 
         // Back-right
         SendRaycast(raytracingDirections[9], maxDistanceDiagonal, 5);
-        if(isDebugMode) {Debug.DrawRay(this.playerTransform.position, raytracingDirections[9] * raytracingDistances[5], Color.red);}
+        if(isDebugMode) {Debug.DrawRay(this.cameraTransform.position, raytracingDirections[9] * raytracingDistances[5], Color.red);}
 
         // Right
         SendRaycast(raytracingDirections[3], maxDistanceCardinal, 6);
-        if(isDebugMode) {Debug.DrawRay(this.playerTransform.position, raytracingDirections[3] * raytracingDistances[6], Color.red);}
+        if(isDebugMode) {Debug.DrawRay(this.cameraTransform.position, raytracingDirections[3] * raytracingDistances[6], Color.red);}
 
         // Front-right
         SendRaycast(raytracingDirections[7], maxDistanceDiagonal, 7);
-        if(isDebugMode) {Debug.DrawRay(this.playerTransform.position, raytracingDirections[7] * raytracingDistances[7], Color.red);}
+        if(isDebugMode) {Debug.DrawRay(this.cameraTransform.position, raytracingDirections[7] * raytracingDistances[7], Color.red);}
 
         // Up
         SendRaycast(raytracingDirections[4], maxDistanceVertical, 8);
-        if(isDebugMode) {Debug.DrawRay(this.playerTransform.position, raytracingDirections[4] * raytracingDistances[8], Color.red);}
+        if(isDebugMode) {Debug.DrawRay(this.cameraTransform.position, raytracingDirections[4] * raytracingDistances[8], Color.red);}
 
         // Down
         SendRaycast(raytracingDirections[5], maxDistanceVertical, 9);
-        if(isDebugMode) {Debug.DrawRay(this.playerTransform.position, raytracingDirections[5] * raytracingDistances[9], Color.red);}
+        if(isDebugMode) {Debug.DrawRay(this.cameraTransform.position, raytracingDirections[5] * raytracingDistances[9], Color.red);}
     }
 
     private void SendRaycast(Vector3 direction, float distance, int outputIndex){
-        if(Physics.Raycast(this.playerTransform.position, direction, out this.cacheHit, distance, layerMask:groundLayerMask))
+        if(Physics.Raycast(this.cameraTransform.position, direction, out this.cacheHit, distance, layerMask:groundLayerMask))
             raytracingDistances[outputIndex] = this.cacheHit.distance;
         else
             raytracingDistances[outputIndex] = 0f;

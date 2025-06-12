@@ -17,7 +17,8 @@ public class PlayerMovement : MonoBehaviour
     public bool isGrounded;
 	public Vector3 velocity;
     public Vector3 move;
-    private int jumpticks = 6; // Amount of ticks the skinWidth will stick to new blocks
+    private int jumpticks = 6
+    ; // Amount of ticks the skinWidth will stick to new blocks
     public MainControllerManager controls;
 
     // Position properties

@@ -335,12 +335,15 @@ public class CharacterBuilder{
 			return newMaterial;
 		}
 		else if(index == 1){
-			newMaterial = Material.Instantiate(eyeMaterial);
-			newMaterial.SetColor("_Color", info.primary);
-
-			if(type == ModelType.FACE)
+			if(type == ModelType.FACE){
+				newMaterial = Material.Instantiate(eyeMaterial);
+				newMaterial.SetColor("_Color", info.primary);
 				newMaterial.SetColor("_IrisColor", info.secondary);
-			
+			}
+			else{
+				newMaterial = Material.Instantiate(plainClothingMaterial);
+				newMaterial.SetColor("_Color", info.primary);
+			}
 
 			return newMaterial;
 		}

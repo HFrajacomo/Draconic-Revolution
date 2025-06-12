@@ -42,4 +42,5 @@ public static class Constants
 
     // Models
     public static readonly float PLAYER_MODEL_SCALING_FACTOR = .4f;
+    public static readonly Vector3 CHARACTER_MODEL_EYE_Y_OFFSET = new Vector3(0, 1, 0);
 }

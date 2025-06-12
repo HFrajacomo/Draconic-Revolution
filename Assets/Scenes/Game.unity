@@ -705,6 +705,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerTransform: {fileID: 59614821}
   playerMiddle: {fileID: 1042312835}
+  cameraTransform: {fileID: 1912773808}
   cl: {fileID: 1192772367}
   reverb: {fileID: 1912773813}
   voxelLightHandler: {fileID: 2085928825}

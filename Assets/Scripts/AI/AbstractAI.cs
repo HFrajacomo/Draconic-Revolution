@@ -76,6 +76,20 @@ public abstract class AbstractAI
         SetIdentityAndNotifyHandler();
     }
 
+    // Sets the world position of the "eyes" of the entity
+    public void SetVisionPosition(Vector3 pos){
+        CastCoord coord = new CastCoord(pos);
+        this.radar.SetTransform(ref pos, ref this.rotation, ref coord);
+    }
+
+    // Sets the world position of the "eyes" as an offset of the AI position
+    public void SetVisionOffset(Vector3 pos){
+        Vector3 newPos = this.position + pos;
+        CastCoord coord = new CastCoord(newPos);
+
+        this.radar.SetTransform(ref newPos, ref this.rotation, ref coord);
+    }
+
     private void SetIdentityAndNotifyHandler(){
         EntityID newID = GetID();
 

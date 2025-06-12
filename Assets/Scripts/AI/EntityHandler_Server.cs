@@ -11,8 +11,6 @@ public class EntityHandler_Server
 
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> playerObject;
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> dropObject;
-    public Dictionary<ulong, float3> playerPosition;
-    public Dictionary<ulong, float3> playerRotation;
 
     private List<EntityID> toRemove;
     private AvailabilityQueue availableDropCodes;
@@ -295,6 +293,7 @@ public class EntityHandler_Server
             if(this.playerObject.ContainsKey(chunk)){
                 if(this.playerObject[chunk].ContainsKey(code)){
                     this.playerObject[chunk][code].SetPosition(new Vector3(pos.x, pos.y, pos.z), new Vector3(rot.x, rot.y, rot.z));
+                    this.playerObject[chunk][code].SetVisionOffset(Constants.CHARACTER_MODEL_EYE_Y_OFFSET);
                 }
             }
         }
