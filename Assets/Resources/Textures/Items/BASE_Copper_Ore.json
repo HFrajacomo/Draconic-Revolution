@@ -1,0 +1,15 @@
+{
+	"codename": "BASE_Copper_Ore",
+	"name":  "Copper Ore",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Copper_Ore"
+}

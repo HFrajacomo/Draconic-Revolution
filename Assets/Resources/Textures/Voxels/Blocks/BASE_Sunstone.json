@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Sunstone",
     "tileBottom":  "BASE_Sunstone"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Sunstone",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

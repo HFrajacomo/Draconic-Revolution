@@ -1,0 +1,15 @@
+{
+	"codename": "BASE_Vinteum_Ore",
+	"name":  "Vinteum Ore",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Vinteum_Ore"
+}

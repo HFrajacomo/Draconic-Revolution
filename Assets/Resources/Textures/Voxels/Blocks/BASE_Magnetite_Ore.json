@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Magnetite_Ore",
     "tileBottom":  "BASE_Magnetite_Ore"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Magnetite_Ore",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

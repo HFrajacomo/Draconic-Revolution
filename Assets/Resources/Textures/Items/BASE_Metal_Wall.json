@@ -1,0 +1,15 @@
+{
+	"codename": "BASE_Metal_Wall",
+	"name":  "Metal Wall",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Metal_Wall"
+}

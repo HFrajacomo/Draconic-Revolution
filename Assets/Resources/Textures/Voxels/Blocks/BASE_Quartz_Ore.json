@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Quartz_Ore",
     "tileBottom":  "BASE_Quartz_Ore"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Quartz_Ore",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

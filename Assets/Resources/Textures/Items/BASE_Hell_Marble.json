@@ -1,0 +1,15 @@
+{
+	"codename": "BASE_Hell_Marble",
+	"name":  "Hell Marble",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Hell_Marble"
+}

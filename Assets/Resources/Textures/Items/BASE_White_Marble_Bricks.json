@@ -1,0 +1,15 @@
+{
+	"codename": "BASE_White_Marble_Bricks",
+	"name":  "White Marble Bricks",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_White_Marble_Bricks"
+}

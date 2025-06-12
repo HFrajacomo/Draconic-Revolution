@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Uranium_Ore",
     "tileBottom":  "BASE_Uranium_Ore"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Uranium_Ore",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

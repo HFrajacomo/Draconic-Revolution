@@ -1,0 +1,15 @@
+{
+	"codename": "BASE_Silverwood_Leaves",
+	"name":  "Silverwood Leaves",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Silverwood_Leaves"
+}

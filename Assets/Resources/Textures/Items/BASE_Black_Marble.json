@@ -1,0 +1,15 @@
+{
+    "codename": "BASE_Black_Marble",
+    "name":  "Black Marble",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Black_Marble"
+}

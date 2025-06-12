@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Sandstone_Bricks_Tiled",
     "tileBottom":  "BASE_Sandstone_Bricks_Tiled"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Sandstone_Bricks_Tiled",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

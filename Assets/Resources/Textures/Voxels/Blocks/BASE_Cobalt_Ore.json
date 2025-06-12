@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Cobalt_Ore",
     "tileBottom":  "BASE_Cobalt_Ore"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Cobalt_Ore",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

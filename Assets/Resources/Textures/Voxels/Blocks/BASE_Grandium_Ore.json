@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Grandium_Ore",
     "tileBottom":  "BASE_Grandium_Ore"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Grandium_Ore",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

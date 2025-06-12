@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Metal_Wall",
     "tileBottom":  "BASE_Metal_Wall"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Metal_Wall",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

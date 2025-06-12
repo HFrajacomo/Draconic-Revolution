@@ -21,3 +21,13 @@
     "tileSide":  "BASE_Gold_Ore",
     "tileBottom":  "BASE_Gold_Ore"
 }
+--->Behaviours
+{
+    "onBreak": "BreakDropItemBehaviour"
+}
+--->BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Gold_Ore",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}
