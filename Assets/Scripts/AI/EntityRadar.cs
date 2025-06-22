@@ -79,8 +79,6 @@ public abstract class EntityRadar{
 		if(!PreAnalysisAI(ai))
 			return;
 		
-		Debug.Log($"Radar: {this.position} -- AI: {ePos} -- Distance: {Vector3.Distance(this.position, ePos)} -- Vision: {this.visionDistance}");
-
 		// Optimization limits
 		if(Mathf.Abs(this.position.y - ePos.y) > this.visionDistance)
 			return;

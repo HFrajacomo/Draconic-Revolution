@@ -478,10 +478,7 @@ public class Client
 		ushort item = NetDecoder.ReadUshort(data, 257);
 		byte quantity = data[259];
 
-		Debug.Log($"RECEIVING PLAYER APPEARANCE: {code} with item: {item}");
-
 		if(this.entityHandler.UpdatePlayerModel(code, app, isMale) && code != Configurations.accountID){
-			Debug.Log($"UPDATING ITEM");
 			this.entityHandler.UpdatePlayerItem(code, item, quantity);
 		}
 	}
