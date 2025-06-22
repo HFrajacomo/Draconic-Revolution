@@ -234,7 +234,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Dedicated and Local Multiplayer|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:warning:
 |Voxel Lighting Engine|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Inventory and Items|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
-|Voxel Textures|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
+|Voxel Textures|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Normal Map Support|Art| Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
 |Dynamic Lens Flare|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Custom Audio Engine|Audio|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
@@ -244,11 +244,11 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Non-Block Objects|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Block Damage Indicators|Core & Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Character Sheet|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
-|Character Creation|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Character Creation|Char|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |World Save Defragmentation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Multi-Depth World Generation|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Storage Voxels|Core|Alpha|:heavy_check_mark:|:soon:|:x:|:x:
-|Character Models|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
+|Character Models|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Character Rigging|3D|Alpha|:heavy_check_mark:|:warning:|:warning:|:x:
 |Basic Animations|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:warning:|:x:
 |Weapon Animations|3D|Alpha|:x:|:x:|:x:|:x:
