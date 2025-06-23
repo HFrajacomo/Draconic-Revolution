@@ -11,7 +11,8 @@ public static class EnvironmentVariablesCentral
     public static string serverDir;
     public static string compiledServerDir;
     public static string saveDir;
-    private static string invisScript = "start /min powershell start-process $env:APPDATA\\DraconicRevolution\\Server\\Server.exe -WindowStyle hidden -ArgumentList '-Local'";
+//    private static string invisScript = "start powershell start-process $env:APPDATA\\DraconicRevolution\\Server\\Server.exe -WindowStyle hidden -ArgumentList '-Local'";
+    private static string invisScript = "start powershell start-process $env:APPDATA\\DraconicRevolution\\Server\\Server.exe -ArgumentList '-Local'";
 
 
     public static void Start(){

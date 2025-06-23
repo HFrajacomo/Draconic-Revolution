@@ -12,7 +12,8 @@ public class InfoClient
 	public bool backToMenu = false;
 	private Socket socket;
 	private SocketError err;
-	private int timeoutSeconds = 5;
+	private int timeoutMiliseconds = 30000;
+	private int attempts = 40;
 	private static readonly int RECEIVE_BUFFER_SIZE = 1200;
 	private static readonly int MAXIMUM_PACKET_SIZE = 1200;
 
@@ -34,37 +35,59 @@ public class InfoClient
 
 	public InfoClient(){
 		this.receiveBuffer = new byte[RECEIVE_BUFFER_SIZE];
-		this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+		CreateSocket();
 
 		if(World.isClient){
 			this.ip = new IPAddress(new byte[4]{127,0,0,1});
-			this.Connect();
+			TryConnectWithRetry();
 		}
 		else{
 			this.ip = IPAddress.Parse(World.IP);
-			this.Connect();
+			TryConnectWithRetry();
 		}
 	}
 
-	public bool Connect(){
-        IAsyncResult result = this.socket.BeginConnect(this.ip, this.port, null, null);
+	public void Close(){
+		this.ended = true;
+		this.socket.Close();
+	}
 
-        bool success = result.AsyncWaitHandle.WaitOne(this.timeoutSeconds * 1000, true);
+	private void CreateSocket(){this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);}
+
+	private void TryConnectWithRetry(){
+		IAsyncResult result;
+
+		for (int i = 0; i < this.attempts; i++){
+			CreateSocket();
+
+			result = this.socket.BeginConnect(this.ip, this.port, null, null);
+
+			if(Connect(result)){
+				Debug.Log($"[Attempt #{i+1}] InfoClient connected to {this.ip}");
+				return;
+			}
+		}
+
+		this.socket.Close();
+		Debug.Log("Failed to establish and info connection to server at: " + this.ip);
+
+		// TODO: Make it so game returns
+	}
+
+	private bool Connect(IAsyncResult result){
+        bool success = result.AsyncWaitHandle.WaitOne(this.timeoutMiliseconds/this.attempts, true);
 
         if (success && socket.Connected){
-            this.socket.EndConnect(result);
-            this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(Receive), null);
-
+			this.socket.EndConnect(result);
+			this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(Receive), null);
             return true;
         }
         else{
-            this.socket.Close();
-            Debug.Log("Failed to establish and info connection to server at: " + this.ip);
             return false;
         }
 	}
 
-	public void Receive(IAsyncResult result){
+	private void Receive(IAsyncResult result){
 		try{
 			if(this.ended || this.backToMenu){
 				return;
@@ -116,7 +139,7 @@ public class InfoClient
 		}
 	}
 
-	public bool Send(byte[] data, int length){
+	private bool Send(byte[] data, int length){
 		try{
 			NetMessage.Broadcast(NetBroadcast.SENT, dataBuffer[0], 0, length);
 			LengthPacket(length);
@@ -129,11 +152,6 @@ public class InfoClient
 			Debug.Log("SEND ERROR: " + e.ToString());
 			return false;
 		}
-	}
-
-	public void Close(){
-		this.ended = true;
-		this.socket.Close();
 	}
 
 	// Sets a byte array representation of a int

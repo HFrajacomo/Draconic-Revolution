@@ -89,8 +89,7 @@ public class Server
         	this.serverIP = new IPEndPoint(0x0100007F, this.port);
         }
 
-
-        Debug.Log("Starting Server");
+        Debug.Log($"Starting Server at {this.serverIP}");
 
         this.masterSocket.Bind(this.serverIP);
         this.masterSocket.Listen(byte.MaxValue);
