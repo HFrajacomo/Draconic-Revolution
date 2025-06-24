@@ -69,9 +69,8 @@ public class InfoClient
 		}
 
 		this.socket.Close();
+		this.backToMenu = true;
 		Debug.Log("Failed to establish and info connection to server at: " + this.ip);
-
-		// TODO: Make it so game returns
 	}
 
 	private bool Connect(IAsyncResult result){

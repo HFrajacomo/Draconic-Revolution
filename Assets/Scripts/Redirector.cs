@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -60,6 +61,8 @@ public class Redirector : MonoBehaviour
 
         // If game world is in client
         if(World.isClient){
+            bool started = false;
+
             // Unity edition only
             #if UNITY_EDITOR
                 // Startup local server
@@ -74,21 +77,25 @@ public class Redirector : MonoBehaviour
                 }
 
                 try{
-                    this.lanServerProcess.Start();
+                    started = this.lanServerProcess.Start();
                 }
                 catch{
+                    if(started && !this.lanServerProcess.HasExited)
+                        this.lanServerProcess.Kill();
                     Panic();
                 }
 
             #else
                 string invisLauncher = "invisLaunchHelper.bat";
-
                 EnvironmentVariablesCentral.WriteInvisLaunchScript(World.worldName);
 
-                if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
+                if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile)){
                     Application.OpenURL($"{EnvironmentVariablesCentral.serverDir}{invisLauncher}");
-                else
+                }
+                else{
                     Panic();
+                    DebugTool.Log("Server does not exist");
+                }
             #endif
 
 
