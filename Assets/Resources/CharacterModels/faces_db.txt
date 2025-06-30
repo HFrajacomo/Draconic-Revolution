@@ -1,5 +1,8 @@
 # Name	Blender_obj_name	Sex
 
-Face 1	M_FACE	M
+Face Basic	M_FACE_BASE	M
+Face Oval	M_FACE_OVAL	M
+Face Rectangular	M_FACE_RECTANGULAR	M
+Face Round	M_FACE_ROUND	M
 
 Face 1	F_FACE	F

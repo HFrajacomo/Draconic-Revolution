@@ -187,6 +187,11 @@ public class CharacterBuilderMenu{
 				}
 			}
 		}
+
+		// Adds ShapeKey animator
+		if(type == ModelType.FACE){
+			ShapeKeyAnimator skh = obj.AddComponent<ShapeKeyAnimator>();
+		}
 	}
 
 	private void RefreshHairlineApply(){
@@ -430,8 +435,27 @@ public class CharacterBuilderMenu{
         newMesh.bindposes = mesh.bindposes;
 
         CopyTriangles(mesh, newMesh);
+        CopyShapeKeys(mesh, newMesh);
 
         return newMesh;
+	}
+
+	private void CopyShapeKeys(Mesh prefab, Mesh newMesh){
+        for (int i = 0; i < prefab.blendShapeCount; i++){
+            string shapeName = prefab.GetBlendShapeName(i);
+            int frameCount = prefab.GetBlendShapeFrameCount(i);
+
+            for (int j = 0; j < frameCount; j++){
+                float weight = prefab.GetBlendShapeFrameWeight(i, j);
+                Vector3[] deltaVertices = new Vector3[prefab.vertexCount];
+                Vector3[] deltaNormals = new Vector3[prefab.vertexCount];
+                Vector3[] deltaTangents = new Vector3[prefab.vertexCount];
+
+                prefab.GetBlendShapeFrameVertices(i, j, deltaVertices, deltaNormals, deltaTangents);
+                newMesh.AddBlendShapeFrame(shapeName, weight, deltaVertices, deltaNormals, deltaTangents);
+            }
+        }
+
 	}
 
 	private void CopyTriangles(Mesh prefab, Mesh newMesh){
