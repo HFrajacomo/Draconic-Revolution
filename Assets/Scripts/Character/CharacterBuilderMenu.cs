@@ -455,7 +455,6 @@ public class CharacterBuilderMenu{
                 newMesh.AddBlendShapeFrame(shapeName, weight, deltaVertices, deltaNormals, deltaTangents);
             }
         }
-
 	}
 
 	private void CopyTriangles(Mesh prefab, Mesh newMesh){

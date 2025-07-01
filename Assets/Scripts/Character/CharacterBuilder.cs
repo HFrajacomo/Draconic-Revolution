@@ -25,6 +25,7 @@ public class CharacterBuilder{
 	private List<Vector2> meshUV = new List<Vector2>();
 	private List<List<int>> meshTris = new List<List<int>>();
 	private List<BoneWeight> meshBoneWeights = new List<BoneWeight>();
+	private List<ShapeKeyDeltaData> meshSKData = new List<ShapeKeyDeltaData>();
 
 
 	private List<Vector3> cachedVerts = new List<Vector3>();
@@ -106,6 +107,7 @@ public class CharacterBuilder{
         SetBoneMap(modelRenderer.bones);
         combinedMesh.bindposes = modelRenderer.sharedMesh.bindposes;
 		SetHairline(modelRenderer.sharedMesh);
+		SaveShapeKeys(modelRenderer.sharedMesh);
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HEADGEAR);
 
         GameObject.Destroy(modelRenderer.gameObject);
@@ -113,27 +115,35 @@ public class CharacterBuilder{
         // Hair
         if(hatCover == 'N'){
 	        modelRenderer = ModelHandler.GetModelByCode(ModelType.HAIR, this.appearance.hair.code).GetComponent<SkinnedMeshRenderer>();
+	        SaveShapeKeys(modelRenderer.sharedMesh);
 	        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HAIR);
 	        GameObject.Destroy(modelRenderer.gameObject);
 	    }
 
 		// Torso
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.CLOTHES, this.appearance.torso.code).GetComponent<SkinnedMeshRenderer>();
+        SaveShapeKeys(modelRenderer.sharedMesh);
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.CLOTHES);
         GameObject.Destroy(modelRenderer.gameObject);
 
 		// Legs
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.LEGS, this.appearance.legs.code).GetComponent<SkinnedMeshRenderer>();
+        SaveShapeKeys(modelRenderer.sharedMesh);
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.LEGS);
         GameObject.Destroy(modelRenderer.gameObject);
 
 		// Boots
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.FOOTGEAR, this.appearance.boots.code).GetComponent<SkinnedMeshRenderer>();
+		SetBoneMap(modelRenderer.bones); // DELETE
+        combinedMesh.bindposes = modelRenderer.sharedMesh.bindposes; // DELETE
+        SaveShapeKeys(modelRenderer.sharedMesh); // UNCOMMENT
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FOOTGEAR);
         GameObject.Destroy(modelRenderer.gameObject);
 
+
         // Face
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.face.code).GetComponent<SkinnedMeshRenderer>();
+        SaveShapeKeys(modelRenderer.sharedMesh);
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
         GameObject.Destroy(modelRenderer.gameObject);
 
@@ -149,9 +159,25 @@ public class CharacterBuilder{
 		this.renderer.rootBone = newBones[ROOT_BONE_INDEX];
 		this.renderer.bones = newBones;
 		this.renderer.materials = this.meshMat.ToArray();
+		this.renderer.gameObject.AddComponent<ShapeKeyAnimator>();
 
 		this.meshMat.Clear();
 		this.animator.Rebind();
+	}
+
+	// Copy ShapeKeys data from a given mesh and saves to cache
+	private void SaveShapeKeys(Mesh mesh){
+        for (int i = 0; i < mesh.blendShapeCount; i++){
+            string shapeName = mesh.GetBlendShapeName(i);
+            float weight = mesh.GetBlendShapeFrameWeight(i, 0);
+
+            this.meshSKData.Add(new ShapeKeyDeltaData(shapeName, i, weight, mesh, this.meshVert.Count));
+        }
+	}
+
+	// Loads the ShapeKeys into the combined mesh
+	private void ApplyShapeKeys(Mesh mesh){
+		ShapeKeyDeltaData.CopyBlendShapes(this.meshSKData, mesh);
 	}
 
 	private void AddGeometryToMesh(Mesh newMesh, SkinnedMeshRenderer rend, CharacterAppearance app, ModelType type){
@@ -244,6 +270,8 @@ public class CharacterBuilder{
 			mesh.SetTriangles(this.meshTris[i], i);
 		}
 
+		ApplyShapeKeys(mesh);
+
 		this.meshVert.Clear();
 		this.meshUV.Clear();
 		this.meshNormal.Clear();
@@ -255,6 +283,7 @@ public class CharacterBuilder{
 		this.meshTris.Clear();
 		this.meshBoneWeights.Clear();
 		this.cachedBW.Clear();
+		this.meshSKData.Clear();
 	}
 
 	private void SetHairline(Mesh hatMesh){
