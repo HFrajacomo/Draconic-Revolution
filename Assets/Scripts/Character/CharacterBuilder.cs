@@ -134,15 +134,18 @@ public class CharacterBuilder{
 
 		// Boots
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.FOOTGEAR, this.appearance.boots.code).GetComponent<SkinnedMeshRenderer>();
-		SetBoneMap(modelRenderer.bones); // DELETE
-        combinedMesh.bindposes = modelRenderer.sharedMesh.bindposes; // DELETE
-        SaveShapeKeys(modelRenderer.sharedMesh); // UNCOMMENT
+        SaveShapeKeys(modelRenderer.sharedMesh);
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FOOTGEAR);
         GameObject.Destroy(modelRenderer.gameObject);
 
+        // Addon
+		modelRenderer = ModelHandler.GetModelObject(ModelType.ADDON, GetAddonName(this.appearance.race)).GetComponent<SkinnedMeshRenderer>();
+        SaveShapeKeys(modelRenderer.sharedMesh);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FOOTGEAR);
+        GameObject.Destroy(modelRenderer.gameObject);
 
         // Face
-		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.face.code).GetComponent<SkinnedMeshRenderer>();
+		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.boots.code).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
         GameObject.Destroy(modelRenderer.gameObject);
@@ -398,5 +401,45 @@ public class CharacterBuilder{
 		}
 
 		return Material.Instantiate(plainClothingMaterial);
+	}
+
+	private string GetAddonName(Race r){
+		switch(r){
+			case Race.HUMAN:
+				if(this.isMale)
+					return "Base_Ears/M";
+				else
+					return "Base_Ears/W";
+			case Race.ELF:
+				if(this.isMale)
+					return "Elven_Ears/M";
+				else
+					return "Elven_Ears/W";
+			case Race.DWARF:
+				if(this.isMale)
+					return "Base_Ears/M";
+				else
+					return "Base_Ears/W";
+			case Race.ORC:
+				if(this.isMale)
+					return "Orcish_Ears/M";
+				else
+					return "Orcish_Ears/W";
+			case Race.DRAGONLING:
+				if(this.isMale)
+					return "Dragonling_Horns/M";
+				else
+					return "Dragonling_Horns/W";
+			case Race.HALFLING:
+				if(this.isMale)
+					return "Base_Ears/M";
+				else
+					return "Base_Ears/W";
+			default:
+				if(this.isMale)
+					return "Base_Ears/M";
+				else
+					return "Base_Ears/W";
+		}
 	}
 }
