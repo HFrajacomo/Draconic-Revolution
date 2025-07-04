@@ -141,7 +141,7 @@ public class CharacterBuilder{
         // Addon
 		modelRenderer = ModelHandler.GetModelObject(ModelType.ADDON, GetAddonName(this.appearance.race)).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
-        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FOOTGEAR);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.ADDON);
         GameObject.Destroy(modelRenderer.gameObject);
 
         // Face
