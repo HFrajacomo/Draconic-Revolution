@@ -24,7 +24,7 @@ public class CharacterBuilderMenu{
 	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
-	private static readonly Vector3 SCL_1 = new Vector3(25,25,25);
+	private static readonly Vector3 SCL_1 = new Vector3(100,100,100);
 	private static readonly int CHARACTER_CREATION_CHARACTER_SCALING = 100;
 
 	private List<int> cachedTris = new List<int>();
@@ -186,6 +186,11 @@ public class CharacterBuilderMenu{
 					}
 				}
 			}
+		}
+
+		// Adds ShapeKey animator
+		if(type == ModelType.FACE){
+			ShapeKeyAnimator skh = obj.AddComponent<ShapeKeyAnimator>();
 		}
 	}
 
@@ -430,8 +435,26 @@ public class CharacterBuilderMenu{
         newMesh.bindposes = mesh.bindposes;
 
         CopyTriangles(mesh, newMesh);
+        CopyShapeKeys(mesh, newMesh);
 
         return newMesh;
+	}
+
+	private void CopyShapeKeys(Mesh prefab, Mesh newMesh){
+        for (int i = 0; i < prefab.blendShapeCount; i++){
+            string shapeName = prefab.GetBlendShapeName(i);
+            int frameCount = prefab.GetBlendShapeFrameCount(i);
+
+            for (int j = 0; j < frameCount; j++){
+                float weight = prefab.GetBlendShapeFrameWeight(i, j);
+                Vector3[] deltaVertices = new Vector3[prefab.vertexCount];
+                Vector3[] deltaNormals = new Vector3[prefab.vertexCount];
+                Vector3[] deltaTangents = new Vector3[prefab.vertexCount];
+
+                prefab.GetBlendShapeFrameVertices(i, j, deltaVertices, deltaNormals, deltaTangents);
+                newMesh.AddBlendShapeFrame(shapeName, weight, deltaVertices, deltaNormals, deltaTangents);
+            }
+        }
 	}
 
 	private void CopyTriangles(Mesh prefab, Mesh newMesh){

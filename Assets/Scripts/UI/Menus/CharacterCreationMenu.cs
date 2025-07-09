@@ -175,7 +175,7 @@ public class CharacterCreationMenu : Menu{
     private static readonly string DEFAULT_HAT = "<No Hat>";
     private static readonly string DEFAULT_LEGS = "<No Pants>";
     private static readonly string DEFAULT_BOOTS = "<No Boots>";
-    private static readonly string DEFAULT_FACE = "Face 1";
+    private static readonly string DEFAULT_FACE = "Face Basic";
     private static readonly string DEFAULT_HAIR = "<No Hair>";
 
     // Cache
