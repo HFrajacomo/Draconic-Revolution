@@ -409,37 +409,37 @@ public class CharacterBuilder{
 				if(this.isMale)
 					return "Base_Ears/M";
 				else
-					return "Base_Ears/W";
+					return "Base_Ears/F";
 			case Race.ELF:
 				if(this.isMale)
 					return "Elven_Ears/M";
 				else
-					return "Elven_Ears/W";
+					return "Elven_Ears/F";
 			case Race.DWARF:
 				if(this.isMale)
 					return "Base_Ears/M";
 				else
-					return "Base_Ears/W";
+					return "Base_Ears/F";
 			case Race.ORC:
 				if(this.isMale)
 					return "Orcish_Ears/M";
 				else
-					return "Orcish_Ears/W";
+					return "Orcish_Ears/F";
 			case Race.DRAGONLING:
 				if(this.isMale)
 					return "Dragonling_Horns/M";
 				else
-					return "Dragonling_Horns/W";
+					return "Dragonling_Horns/F";
 			case Race.HALFLING:
 				if(this.isMale)
 					return "Base_Ears/M";
 				else
-					return "Base_Ears/W";
+					return "Base_Ears/F";
 			default:
 				if(this.isMale)
 					return "Base_Ears/M";
 				else
-					return "Base_Ears/W";
+					return "Base_Ears/F";
 		}
 	}
 }
