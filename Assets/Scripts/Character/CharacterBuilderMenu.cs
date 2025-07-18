@@ -50,6 +50,7 @@ public class CharacterBuilderMenu{
 
 		FixArmature(isMale);
 		PutAddon(race, isMale);
+		AddEssential(race, isMale);
 	}
 
 	public void ChangeAnimationGender(RuntimeAnimatorController animation){
@@ -84,6 +85,7 @@ public class CharacterBuilderMenu{
 		this.armature.transform.SetParent(this.parent.transform);
 
 		PutAddon(race, isMale, isReload:true);
+		AddEssential(race, isMale);
 		FixArmature(isMale);
 		ReloadModel(isMale);
 		
@@ -92,6 +94,7 @@ public class CharacterBuilderMenu{
 
 	public void ChangeGender(Race race, bool isMale){
 		PutAddon(race, isMale);
+		AddEssential(race, isMale);
 	}
 
 	public void Add(ModelType type, GameObject obj, string name, bool isReload=false){
@@ -137,6 +140,12 @@ public class CharacterBuilderMenu{
 		if(type == ModelType.ADDON){
 			if(this.raceSettings.GetRace() == Race.DRAGONLING)
 				current.SetMaterials(new List<Material>(){this.addonMats[1]});
+			else
+				current.SetMaterials(new List<Material>(){this.addonMats[0]});
+		}
+		if(type == ModelType.ESSENTIAL){
+			if(this.raceSettings.GetRace() == Race.DRAGONLING)
+				current.SetMaterials(new List<Material>(){this.addonMats[2]});
 			else
 				current.SetMaterials(new List<Material>(){this.addonMats[0]});
 		}
@@ -243,15 +252,33 @@ public class CharacterBuilderMenu{
 		if(!this.bodyParts.ContainsKey(ModelType.ADDON))
 			return;
 
-		if(race == Race.DRAGONLING || race == Race.UNDEAD){
-			return;	
-		}
+		if(race == Race.UNDEAD)
+			return;
 
 		Material[] materials = this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials;
 
-		materials[0].SetColor("_Color", col);
+		if(race == Race.DRAGONLING){
+			this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials = new Material[]{this.addonMats[1]};
+		}
+		else{
+			this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials = materials;
+			this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials[0].SetColor("_Color", col);
+		}
 
-		this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials = materials;	
+	}
+
+	public void ChangeEssentialColor(Color col, Race race){
+		if(!this.bodyParts.ContainsKey(ModelType.ESSENTIAL))
+			return;
+
+		Material[] materials = this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials;
+
+		if(race == Race.DRAGONLING)
+			this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials = new Material[]{this.addonMats[2]};
+		else
+			this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials = materials;	
+
+		this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials[0].SetColor("_Color", col);
 	}
 
 	private void ProcessHairMesh(SkinnedMeshRenderer hair){
@@ -306,6 +333,48 @@ public class CharacterBuilderMenu{
 
     private Vector3 MultVector(Vector3 a, Vector3 b){
     	return new Vector3(a.x*b.x, a.y*b.y, a.z*b.z);
+    }
+
+    private void AddEssential(Race race, bool isMale, bool isReload=false){
+		if(this.bodyParts.ContainsKey(ModelType.ESSENTIAL)){
+			GameObject.DestroyImmediate(this.bodyParts[ModelType.ESSENTIAL]);
+		}
+
+		this.bodyPartName[ModelType.ESSENTIAL] = GetEssentialName(isMale);
+
+		if(isReload)
+			return;
+
+		GameObject obj = ModelHandler.GetModelObject(ModelType.ESSENTIAL, GetEssentialName(isMale));
+
+		obj.transform.SetParent(this.parent.transform);
+		obj.transform.localScale = this.raceSettings.scaling;
+		obj.transform.eulerAngles = ROT_1;
+		obj.transform.localPosition = POS_1;
+
+		SkinnedMeshRenderer current = obj.GetComponent<SkinnedMeshRenderer>();
+
+		if(BONE_MAP == null){
+			SetBoneMap(current.bones);
+		}
+
+		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
+
+		#if UNITY_EDITOR
+			if(boneRenderer.transforms == null)
+				boneRenderer.transforms = newBones;
+		#endif
+
+		Mesh mesh = CopyMesh(current.sharedMesh, current);
+
+		obj.name = "HEAD";
+		mesh.name = current.sharedMesh.name;
+		current.sharedMesh = mesh;
+		current.rootBone = newBones[ROOT_BONE_INDEX];
+		current.bones = newBones;
+
+		this.bodyParts[ModelType.ESSENTIAL] = obj;
+		current.SetMaterials(new List<Material>(){this.addonMats[0]});
     }
 
 	private void PutAddon(Race race, bool isMale, bool isReload=false){
@@ -389,6 +458,12 @@ public class CharacterBuilderMenu{
 			default:
 				return "Base_Ears";
 		}
+	}
+
+	private string GetEssentialName(bool isMale){
+		if(isMale)
+			return "Base_Head/M";
+		return "Base_Head/F";
 	}
 
 	private void ReloadModel(bool isMale){

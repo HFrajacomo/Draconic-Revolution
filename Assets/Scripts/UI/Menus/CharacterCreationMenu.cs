@@ -274,7 +274,7 @@ public class CharacterCreationMenu : Menu{
         this.nameInput.GetComponent<Image>().material = matField;
 
         if(!INIT){
-            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat)}, isMale:true);
+            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat), Instantiate(this.dragonSkinMat)}, isMale:true);
 
             this.selectedGenderItem = this.defaultGender;
             this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
@@ -1413,6 +1413,7 @@ public class CharacterCreationMenu : Menu{
         materials[0].SetColor("_Color", this.skinColor);
 
         this.characterBuilder.ChangeAddonColor(this.skinColor, this.race);
+        this.characterBuilder.ChangeEssentialColor(this.skinColor, this.race);
 
         go.GetComponent<SkinnedMeshRenderer>().materials = materials;
     }

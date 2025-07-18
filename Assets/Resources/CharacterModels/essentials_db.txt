@@ -1,0 +1,4 @@
+#Comment	Blender_obj_name	Sex
+
+Base_Head	M_HEAD	M
+Base_Head	F_HEAD	F

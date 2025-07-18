@@ -13,6 +13,7 @@ public static class ModelHandler{
 	private static BiMap<ushort, string> faceMap = new BiMap<ushort, string>();
 	private static BiMap<ushort, string> hairMap = new BiMap<ushort, string>();
 	private static BiMap<ushort, string> addonMap = new BiMap<ushort, string>();
+	private static BiMap<ushort, string> essentialsMap = new BiMap<ushort, string>();
 
 	private static readonly string ASSET_BUNDLE_RESPATH = "CharacterModels/characters";
 	private static readonly string CLOTHES_DB = "CharacterModels/clothes_db";
@@ -22,6 +23,7 @@ public static class ModelHandler{
 	private static readonly string HAIR_DB = "CharacterModels/hair_db";
 	private static readonly string FACE_DB = "CharacterModels/faces_db";
 	private static readonly string ADDONS_DB = "CharacterModels/addons_db";
+	private static readonly string ESSENTIALS_DB = "CharacterModels/essentials_db";
 	private static readonly string ARMATURE_MALE = "Armature-Man";
 	private static readonly string ARMATURE_FEMALE = "Armature-Woman";
 
@@ -241,6 +243,8 @@ public static class ModelHandler{
 		ProcessTextAsset(ModelType.FACE, cachedText.ToString());
 		cachedText = Resources.Load<TextAsset>(ADDONS_DB);
 		ProcessTextAsset(ModelType.ADDON, cachedText.ToString());
+		cachedText = Resources.Load<TextAsset>(ESSENTIALS_DB);
+		ProcessTextAsset(ModelType.ESSENTIAL, cachedText.ToString());
 	}
 
 	private static void ProcessTextAsset(ModelType t, string text){
@@ -292,6 +296,9 @@ public static class ModelHandler{
 					break;
 				case ModelType.HAIR:
 					hairMap.Add(i, name);
+					break;
+				case ModelType.ESSENTIAL:
+					essentialsMap.Add(i, name);
 					break;
 				default:
 					break;

@@ -6,5 +6,6 @@ public enum ModelType : byte{
 	HAIR,
 	GENERAL,
 	FACE,
-	ADDON
+	ADDON,
+	ESSENTIAL
 }
