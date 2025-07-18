@@ -20,8 +20,8 @@ public class CharacterBuilderMenu{
 
 	// Settings
 	private static readonly int ROOT_BONE_INDEX = 0;
-	private static readonly string ARMATURE_NAME_MALE = "Armature-Man";
-	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
+	private static readonly string ARMATURE_NAME_MALE = "ManArmt";
+	private static readonly string ARMATURE_NAME_FEMALE = "WomanArmt";
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(100,100,100);

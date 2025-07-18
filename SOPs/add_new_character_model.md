@@ -16,6 +16,8 @@ This document is a tutorial and general reminder to anyone working in Draconic R
 
 - In Unity's Import Settings, **do not** use "Weld Vertices" as it will delete most 'empty' submeshes 
 
+- Still in Unity's Import Settings, Legacy Blend Shapes must be off and all normals must be "Imported"
+
 ## Objects with empty submeshes:
 Unfortunately, there is no such a thing as empty submesh when importing a model into Unity. It will ignore the submesh completely.
 So to make it work, whenever you have an empty submesh, create 3 minuscule verts in Blender and fill them up to form a face. If they are small enough, it won't be seen and the submesh will not be ignored in Unity

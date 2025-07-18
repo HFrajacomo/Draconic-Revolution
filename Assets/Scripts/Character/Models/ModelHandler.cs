@@ -24,8 +24,8 @@ public static class ModelHandler{
 	private static readonly string FACE_DB = "CharacterModels/faces_db";
 	private static readonly string ADDONS_DB = "CharacterModels/addons_db";
 	private static readonly string ESSENTIALS_DB = "CharacterModels/essentials_db";
-	private static readonly string ARMATURE_MALE = "Armature-Man";
-	private static readonly string ARMATURE_FEMALE = "Armature-Woman";
+	private static readonly string ARMATURE_MALE = "ManArmt";
+	private static readonly string ARMATURE_FEMALE = "WomanArmt";
 
 	private static readonly Quaternion ROTATION = Quaternion.Euler(0, -90, 0);
 

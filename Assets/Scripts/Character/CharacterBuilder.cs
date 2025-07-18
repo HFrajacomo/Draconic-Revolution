@@ -42,18 +42,19 @@ public class CharacterBuilder{
 	private static Material plainClothingMaterial;
 	private static Material dragonSkinMaterial;
 	private static Material eyeMaterial;
+	private static Material dragonHornMaterial;
 
 	// Settings
 	private static readonly int ROOT_BONE_INDEX = 0;
-	private static readonly string ARMATURE_NAME_MALE = "Armature-Man";
-	private static readonly string ARMATURE_NAME_FEMALE = "Armature-Woman";
-	private static readonly Vector3 POS_1 = new Vector3(0f, -4.15f, 0f);
+	private static readonly string ARMATURE_NAME_MALE = "ManArmt";
+	private static readonly string ARMATURE_NAME_FEMALE = "WomanArmt";
+	private static readonly Vector3 POS_1 = new Vector3(0f, 0f, 0f);
 	private static readonly Quaternion ROT_1 = Quaternion.Euler(new Vector3(270, 0, 0));
 	private static readonly Vector3 SCL_1 = new Vector3(100f, 100f, 100f);
 	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
 
 
-	public CharacterBuilder(GameObject par, RuntimeAnimatorController animations, CharacterAppearance app, Material clothing, Material dragonskin, Material eye, bool isMale, bool isPlayerCharacter){
+	public CharacterBuilder(GameObject par, RuntimeAnimatorController animations, CharacterAppearance app, Material clothing, Material dragonhorn, Material dragonskin, Material eye, bool isMale, bool isPlayerCharacter){
 		if(EMPTY_OBJECT_PREFAB == null)
 			EMPTY_OBJECT_PREFAB = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
@@ -83,6 +84,7 @@ public class CharacterBuilder{
 		plainClothingMaterial = clothing;
 		dragonSkinMaterial = dragonskin;
 		eyeMaterial = eye;
+		dragonHornMaterial = dragonhorn;
 
 		FixArmature();
 	}
@@ -148,6 +150,12 @@ public class CharacterBuilder{
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.boots.code).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
+        GameObject.Destroy(modelRenderer.gameObject);
+
+        // Head
+        modelRenderer = ModelHandler.GetModelObject(ModelType.ESSENTIAL, GetEssentialName(this.isMale)).GetComponent<SkinnedMeshRenderer>();
+        SaveShapeKeys(modelRenderer.sharedMesh);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.ESSENTIAL);
         GameObject.Destroy(modelRenderer.gameObject);
 
 		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
@@ -358,7 +366,11 @@ public class CharacterBuilder{
 
 		// Skin
 		if(index == 0){
-			if(r == Race.DRAGONLING)
+			if(r == Race.DRAGONLING && type == ModelType.ADDON){
+				newMaterial = Material.Instantiate(dragonHornMaterial);
+				return newMaterial;
+			}
+			else if(r == Race.DRAGONLING)
 				newMaterial = Material.Instantiate(dragonSkinMaterial);
 			else
 				newMaterial = Material.Instantiate(plainClothingMaterial);
@@ -401,6 +413,12 @@ public class CharacterBuilder{
 		}
 
 		return Material.Instantiate(plainClothingMaterial);
+	}
+
+	private string GetEssentialName(bool isMale){
+		if(isMale)
+			return "Base_Head/M";
+		return "Base_Head/F";
 	}
 
 	private string GetAddonName(Race r){
