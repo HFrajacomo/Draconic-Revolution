@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 1920
     height: 989
   m_ShowMode: 4
-  m_Title: Game
+  m_Title: Inspector
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -396,7 +396,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 24
+    y: 79
     width: 317
     height: 673
   m_SerializedDataModeController:
@@ -413,9 +413,9 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: 
+      m_SelectedIDs: a8c30100
       m_LastClickedID: 0
-      m_ExpandedIDs: 04c3feff12dbfeffd037ffff0a4dffff6a66ffff6e66ffff8266ffff8666ffff8a66ffff8e66ffff326cffff689affff6c9affffac9affffb09affffb49affffb89affff5ca0ffffacceffff4ad6000056d900002ae10000e4e80000a0ef0000acf2000080fa0000ea080100f60b0100ca1301004422010050250100242d01008c3b0100983e01006c46010076870100828a010056920100d0a00100dca30100b0ab01006ab30100
+      m_ExpandedIDs: 96bdfbffaec5fcff90e6fcff52edfdffd6cefffff8faffff76e60000
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -465,7 +465,7 @@ MonoBehaviour:
     x: 318
     y: 79
     width: 1271
-    height: 642
+    height: 673
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -1006,9 +1006,9 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: 1.2165256, y: 0.7971924, z: -8.669512}
+    m_Target: {x: -10.110458, y: 852.2427, z: 2.2065802}
     speed: 2
-    m_Value: {x: 1.2165256, y: 0.7971924, z: -8.669512}
+    m_Value: {x: -10.110458, y: 852.2427, z: 2.2065802}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1054,13 +1054,13 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
-    m_Target: {x: 0.13928938, y: 0.40110117, z: -0.061850876, w: 0.90327287}
+    m_Target: {x: -0.188565, y: 0.34066877, z: -0.06994523, w: -0.9184264}
     speed: 2
-    m_Value: {x: 0.13928938, y: 0.40110114, z: -0.061850872, w: 0.9032728}
+    m_Value: {x: -0.18856394, y: 0.34066686, z: -0.069944836, w: -0.91842127}
   m_Size:
-    m_Target: 0.69422454
+    m_Target: 1.8832736
     speed: 2
-    m_Value: 0.69422454
+    m_Value: 1.8832736
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -1113,8 +1113,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Game\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 319
-    y: 24
+    x: 318
+    y: 79
     width: 1271
     height: 673
   m_SerializedDataModeController:
@@ -1613,8 +1613,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Inspector\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1592
-    y: 24
+    x: 1591
+    y: 79
     width: 328
     height: 673
   m_SerializedDataModeController:
@@ -1664,9 +1664,9 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 711
+    y: 778
     width: 1920
-    height: 275
+    height: 208
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -1689,7 +1689,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Resources/CharacterModels
+    - Assets/Materials/Clothing Materials
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -1699,16 +1699,16 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/Resources/CharacterModels
+  - Assets/Materials/Clothing Materials
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\Henrique\Desktop\Draconic-Revolution
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 87}
-    m_SelectedIDs: c6b60000
-    m_LastClickedID: 46790
-    m_ExpandedIDs: 0000000078a800007aa800007ca800007ea8000080a80000
+    m_SelectedIDs: ae280100
+    m_LastClickedID: 75950
+    m_ExpandedIDs: 0000000078a800007aa800007ca800007ea8000080a800005428010000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1763,9 +1763,9 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_ListAreaState:
-    m_SelectedInstanceIDs: 
-    m_LastClickedInstanceID: 0
-    m_HadKeyboardFocusLastEvent: 0
+    m_SelectedInstanceIDs: 9a6c0100
+    m_LastClickedInstanceID: 93338
+    m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: c62300006c7b00004cf20000167b000008850000f49500009eac0000fa75000002800000fc7b0000f87b0000fe7b0000f47c000048340000f07c00004a340000d6340000ce8b000028940000e08b0000f0ca0300aa880400e63300004a6f00005a6f000000000000c0ef00009ab600009ea7000098a700009aaa00005eae00002caa0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -1818,7 +1818,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 723
+    y: 778
     width: 1920
     height: 208
   m_SerializedDataModeController:
