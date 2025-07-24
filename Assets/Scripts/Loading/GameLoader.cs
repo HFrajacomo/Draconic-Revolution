@@ -13,6 +13,7 @@ public class GameLoader : MonoBehaviour {
 	private ShaderLoader shaderLoader;
 	private AudioLoader audioLoader;
 	private StructureLoader structureLoader;
+	private AnimationControlBuilder animationControlBuilder;
 
 	private static readonly string SERVER_SCENE = "Assets/Scenes/Server.unity";
 
@@ -28,6 +29,12 @@ public class GameLoader : MonoBehaviour {
 		this.voxelLoader = new VoxelLoader(this.isClient, this.prefabObjects);
 		this.audioLoader = new AudioLoader(this.isClient);
 		this.structureLoader = new StructureLoader(this.isClient);
+
+        #if UNITY_EDITOR
+            this.animationControlBuilder = new AnimationControlBuilder();
+            this.animationControlBuilder.Build();
+        #endif
+		
 
 		this.shaderLoader.Load();
 		this.itemLoader.Load();

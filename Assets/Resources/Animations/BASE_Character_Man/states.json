@@ -1,0 +1,174 @@
+{
+	"data": [
+		{
+			"name": "T-Pose",
+			"clip": "0TPose-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Idle",
+			"clip": "Idle-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "Jump Start",
+			"clip": "Jump Start-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Jump End",
+			"clip": "Jump End-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "On Air",
+			"clip": "",
+			"layer": "",
+			"isDefaultState": false,
+			"isBlendTree": true,
+			"blendTree": {
+				"clipA": "Falling-Man",
+				"minThreshold": -1,
+				"clipB": "Going Up-Man",
+				"maxThreshold": 1,
+				"blendParameter": {
+					"parameterName": "Y_Velocity",
+					"parameterType": "float"
+				}
+			}
+		},
+		{
+			"name": "Moving Forward",
+			"clip": "",
+			"layer": "",
+			"isDefaultState": false,
+			"isBlendTree": true,
+			"blendTree": {
+				"clipA": "WalkForward-Man",
+				"minThreshold": 0,
+				"clipB": "RunForward-Man",
+				"maxThreshold": 1,
+				"blendParameter": {
+					"parameterName": "Run",
+					"parameterType": "float"
+				}
+			}
+		},
+		{
+			"name": "Moving Forward",
+			"clip": "",
+			"layer": "Bottom",
+			"isDefaultState": false,
+			"isBlendTree": true,
+			"blendTree": {
+				"clipA": "WalkForward-Man",
+				"minThreshold": 0,
+				"clipB": "RunForward-Man",
+				"maxThreshold": 1,
+				"blendParameter": {
+					"parameterName": "Run",
+					"parameterType": "float"
+				}
+			}
+		},
+		{
+			"name": "Walk Backward",
+			"clip": "Walk Backward-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Walk Left",
+			"clip": "Walk Left-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Walk Right",
+			"clip": "Walk Right-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Walk Backward",
+			"clip": "Walk Backward-Man",
+			"layer": "Bottom",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Walk Left",
+			"clip": "Walk Left-Man",
+			"layer": "Bottom",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Walk Right",
+			"clip": "Walk Right-Man",
+			"layer": "Bottom",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Idle Hand",
+			"clip": "IdleHand-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 1",
+			"clip": "Punch1-Normal-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 2",
+			"clip": "Punch2-Normal-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 3",
+			"clip": "Punch3-Normal-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 1",
+			"clip": "Punch1-Normal-Man",
+			"layer": "Full Torso",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 2",
+			"clip": "Punch2-Normal-Man",
+			"layer": "Full Torso",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 3",
+			"clip": "Punch3-Normal-Man",
+			"layer": "Full Torso",
+			"isBlendTree": false,
+			"isDefaultState": false
+		}
+	]
+}
