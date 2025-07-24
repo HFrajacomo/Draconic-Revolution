@@ -7,12 +7,17 @@ using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Animations;
 
+using Object = UnityEngine.Object;
+
+
 public class AnimationControlBuilder {
 	private Dictionary<string, AnimationControllerSettings> controllerSettings = new Dictionary<string, AnimationControllerSettings>();
 	private Dictionary<string, AnimationLayerSettings[]> layerSettings = new Dictionary<string, AnimationLayerSettings[]>();
 	private Dictionary<string, AnimationStateSettings[]> stateSettings = new Dictionary<string, AnimationStateSettings[]>();
 	private Dictionary<string, AnimationTransitionSettings[]> transitionSettings = new Dictionary<string, AnimationTransitionSettings[]>();
+	private Dictionary<string, Dictionary<string, AnimationClip>> animations = new Dictionary<string, Dictionary<string, AnimationClip>>();
 
+	private Dictionary<string, Dictionary<string, int>> layers = new Dictionary<string, Dictionary<string, int>>();
 	private Dictionary<string, AnimatorController> controllers = new Dictionary<string, AnimatorController>();
 
 	private static readonly string ANIMATION_FOLDER = "Resources/Animations/";
@@ -31,16 +36,20 @@ public class AnimationControlBuilder {
 	}
 
 
+
 	private void BuildLayers(){
 		string controllerName;
 
 		foreach(AnimationControllerSettings acs in this.controllerSettings.Values){
 			controllerName = acs.controllerName;
+			this.layers.Add(controllerName, new Dictionary<string, int>());
+			this.layers[controllerName].Add("Base Layer", 0);
 
 			for(int i=0; i < this.layerSettings[controllerName].Length; i++){
 				AnimatorControllerLayer layer = this.layerSettings[controllerName][i].Build();
 
 				this.controllers[controllerName].AddLayer(layer);
+				this.layers[controllerName].Add(layer.name, this.layers[controllerName].Count);
 				AssetDatabase.AddObjectToAsset(layer.stateMachine, this.controllers[controllerName]);
 				AssetDatabase.AddObjectToAsset(layer.avatarMask, this.controllers[controllerName]);
 			}
@@ -59,7 +68,27 @@ public class AnimationControlBuilder {
 
 			controller = AnimatorController.CreateAnimatorControllerAtPath(path);
 			this.controllers.Add(acs.controllerName, controller);
+
+			LoadAnimationClips(acs);
 		}
+	}
+
+	private void LoadAnimationClips(AnimationControllerSettings acs){
+		this.animations.Add(acs.controllerName, new Dictionary<string, AnimationClip>());
+
+		Object[] allAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(acs.fbxFile);
+
+		AnimationClip clip;
+
+	    foreach(Object asset in allAssets){
+	        if(asset is AnimationClip){
+	        	clip = (AnimationClip)asset;
+	        	
+	        	if(acs.Contains(clip.name)){
+	        		this.animations[acs.controllerName].Add(clip.name, clip);
+	        	}
+	        }
+	    }
 	}
 
 	private void LoadControllerSettings(){
@@ -78,6 +107,7 @@ public class AnimationControlBuilder {
 			}
 
 			acs = JsonUtility.FromJson<AnimationControllerSettings>(controllerJson.text);
+			acs.PostDeserializationSetup();
 
 			this.controllerSettings.Add(controllerName, acs);
 		}

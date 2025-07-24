@@ -9,4 +9,10 @@ public class AnimationStateSettings {
 	public bool isBlendTree;
 	public bool isDefaultState;
 	public BlendTreeSettings blendTree;
+
+
+	public void PostDeserializationSetup(){
+		if(this.isBlendTree)
+			this.blendTree.PostDeserializationSetup();
+	}
 }

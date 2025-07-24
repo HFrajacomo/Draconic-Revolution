@@ -1,7 +1,7 @@
 {
 	"controllerName": "BASE_Character_Man",
 	"armatureName": "ManArmt",
-	"fbxFile": "CharacterModels/characters",
+	"fbxFile": "Assets/Resources/CharacterModels/characters.fbx",
 	"layersFile": "Animations/BASE_Character_Man/layers",
 	"statesFile": "Animations/BASE_Character_Man/states",
 	"transitionFile": "Animations/BASE_Character_Man/transitions",
