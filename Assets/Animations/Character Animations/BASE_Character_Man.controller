@@ -1,82 +1,33 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1107 &-9157820016641192906
-AnimatorStateMachine:
+--- !u!1102 &-9024296331793351048
+AnimatorState:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Right Arm
-  m_ChildStates: []
-  m_ChildStateMachines: []
-  m_AnyStateTransitions: []
-  m_EntryTransitions: []
-  m_StateMachineTransitions: {}
+  m_Name: Walk Right
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
   m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
-  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 0}
---- !u!1107 &-8332282715597142922
-AnimatorStateMachine:
-  serializedVersion: 6
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Cinematic Override
-  m_ChildStates: []
-  m_ChildStateMachines: []
-  m_AnyStateTransitions: []
-  m_EntryTransitions: []
-  m_StateMachineTransitions: {}
-  m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
-  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 0}
---- !u!1107 &-8229245446041678685
-AnimatorStateMachine:
-  serializedVersion: 6
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Bottom
-  m_ChildStates: []
-  m_ChildStateMachines: []
-  m_AnyStateTransitions: []
-  m_EntryTransitions: []
-  m_StateMachineTransitions: {}
-  m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
-  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 0}
---- !u!1107 &-7817523692354865017
-AnimatorStateMachine:
-  serializedVersion: 6
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Post-Cinematic Add
-  m_ChildStates: []
-  m_ChildStateMachines: []
-  m_AnyStateTransitions: []
-  m_EntryTransitions: []
-  m_StateMachineTransitions: {}
-  m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
-  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 0}
---- !u!1107 &-4389271299791940490
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -1691622860466851059, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1107 &-8384759289633514371
 AnimatorStateMachine:
   serializedVersion: 6
   m_ObjectHideFlags: 0
@@ -84,211 +35,30 @@ AnimatorStateMachine:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Full Torso
-  m_ChildStates: []
+  m_ChildStates:
+  - serializedVersion: 1
+    m_State: {fileID: 4881035199577142127}
+    m_Position: {x: 0, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: -2830809420765837711}
+    m_Position: {x: 250, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 1098352225433081049}
+    m_Position: {x: 500, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 6248995940209837618}
+    m_Position: {x: 750, y: -100, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
   m_StateMachineTransitions: {}
   m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
+  m_AnyStatePosition: {x: 520, y: 0, z: 0}
+  m_EntryPosition: {x: 145, y: 0, z: 0}
+  m_ExitPosition: {x: 885, y: 0, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 0}
---- !u!1107 &-695011550133052311
-AnimatorStateMachine:
-  serializedVersion: 6
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Base Layer
-  m_ChildStates: []
-  m_ChildStateMachines: []
-  m_AnyStateTransitions: []
-  m_EntryTransitions: []
-  m_StateMachineTransitions: {}
-  m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
-  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 0}
---- !u!319 &-458364952747769337
-AvatarMask:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Bottom_Mask
-  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-  m_Elements:
-  - m_Path: Hips
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.L
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.R
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.L/LowerLeg.L
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.R/LowerLeg.R
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.L/LowerLeg.L/Foot.L
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.R/LowerLeg.R/Foot.R
-    m_Weight: 1
-  - m_Path: IK_KneePole.L
-    m_Weight: 1
-  - m_Path: IK_KneePole.R
-    m_Weight: 1
-  - m_Path: IK_KneeTarget.L
-    m_Weight: 1
-  - m_Path: IK_KneeTarget.R
-    m_Weight: 1
---- !u!91 &9100000
-AnimatorController:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: BASE_Character_Man
-  serializedVersion: 5
-  m_AnimatorParameters: []
-  m_AnimatorLayers:
-  - serializedVersion: 5
-    m_Name: Base Layer
-    m_StateMachine: {fileID: -695011550133052311}
-    m_Mask: {fileID: 0}
-    m_Motions: []
-    m_Behaviours: []
-    m_BlendingMode: 0
-    m_SyncedLayerIndex: -1
-    m_DefaultWeight: 0
-    m_IKPass: 0
-    m_SyncedLayerAffectsTiming: 0
-    m_Controller: {fileID: 9100000}
-  - serializedVersion: 5
-    m_Name: Bottom
-    m_StateMachine: {fileID: -8229245446041678685}
-    m_Mask: {fileID: -458364952747769337}
-    m_Motions: []
-    m_Behaviours: []
-    m_BlendingMode: 0
-    m_SyncedLayerIndex: -1
-    m_DefaultWeight: 1
-    m_IKPass: 0
-    m_SyncedLayerAffectsTiming: 0
-    m_Controller: {fileID: 9100000}
-  - serializedVersion: 5
-    m_Name: Full Torso
-    m_StateMachine: {fileID: -4389271299791940490}
-    m_Mask: {fileID: 5676778557827713884}
-    m_Motions: []
-    m_Behaviours: []
-    m_BlendingMode: 0
-    m_SyncedLayerIndex: -1
-    m_DefaultWeight: 1
-    m_IKPass: 0
-    m_SyncedLayerAffectsTiming: 0
-    m_Controller: {fileID: 9100000}
-  - serializedVersion: 5
-    m_Name: Right Arm
-    m_StateMachine: {fileID: -9157820016641192906}
-    m_Mask: {fileID: 3337248103857750809}
-    m_Motions: []
-    m_Behaviours: []
-    m_BlendingMode: 0
-    m_SyncedLayerIndex: -1
-    m_DefaultWeight: 1
-    m_IKPass: 0
-    m_SyncedLayerAffectsTiming: 0
-    m_Controller: {fileID: 9100000}
-  - serializedVersion: 5
-    m_Name: Left Arm
-    m_StateMachine: {fileID: 2251000539751093835}
-    m_Mask: {fileID: 745494835907877573}
-    m_Motions: []
-    m_Behaviours: []
-    m_BlendingMode: 0
-    m_SyncedLayerIndex: -1
-    m_DefaultWeight: 1
-    m_IKPass: 0
-    m_SyncedLayerAffectsTiming: 0
-    m_Controller: {fileID: 9100000}
-  - serializedVersion: 5
-    m_Name: Head
-    m_StateMachine: {fileID: 4999393669927166668}
-    m_Mask: {fileID: 1230008216560182850}
-    m_Motions: []
-    m_Behaviours: []
-    m_BlendingMode: 0
-    m_SyncedLayerIndex: -1
-    m_DefaultWeight: 1
-    m_IKPass: 0
-    m_SyncedLayerAffectsTiming: 0
-    m_Controller: {fileID: 9100000}
-  - serializedVersion: 5
-    m_Name: Pre-Cinematic Add
-    m_StateMachine: {fileID: 7518733343162943761}
-    m_Mask: {fileID: 1952692424092285750}
-    m_Motions: []
-    m_Behaviours: []
-    m_BlendingMode: 1
-    m_SyncedLayerIndex: -1
-    m_DefaultWeight: 1
-    m_IKPass: 0
-    m_SyncedLayerAffectsTiming: 0
-    m_Controller: {fileID: 9100000}
-  - serializedVersion: 5
-    m_Name: Cinematic Override
-    m_StateMachine: {fileID: -8332282715597142922}
-    m_Mask: {fileID: 1886662137931748037}
-    m_Motions: []
-    m_Behaviours: []
-    m_BlendingMode: 0
-    m_SyncedLayerIndex: -1
-    m_DefaultWeight: 1
-    m_IKPass: 0
-    m_SyncedLayerAffectsTiming: 0
-    m_Controller: {fileID: 9100000}
-  - serializedVersion: 5
-    m_Name: Post-Cinematic Add
-    m_StateMachine: {fileID: -7817523692354865017}
-    m_Mask: {fileID: 8746013044868587280}
-    m_Motions: []
-    m_Behaviours: []
-    m_BlendingMode: 1
-    m_SyncedLayerIndex: -1
-    m_DefaultWeight: 1
-    m_IKPass: 0
-    m_SyncedLayerAffectsTiming: 0
-    m_Controller: {fileID: 9100000}
---- !u!319 &745494835907877573
-AvatarMask:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Left Arm_Mask
-  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-  m_Elements:
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L/Thumb.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Fingers.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Item.L
-    m_Weight: 1
---- !u!319 &1230008216560182850
+  m_DefaultState: {fileID: 4881035199577142127}
+--- !u!319 &-7508639491903851235
 AvatarMask:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -303,82 +73,7 @@ AvatarMask:
     m_Weight: 1
   - m_Path: Hips/LowerTorso/UpperTorso/Neck/Head/Hat
     m_Weight: 1
---- !u!319 &1886662137931748037
-AvatarMask:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Cinematic Override_Mask
-  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-  m_Elements:
-  - m_Path: Hips
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.L
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.R
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.L/LowerLeg.L
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.R/LowerLeg.R
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.L/LowerLeg.L/Foot.L
-    m_Weight: 1
-  - m_Path: Hips/UpperLeg.R/LowerLeg.R/Foot.R
-    m_Weight: 1
-  - m_Path: IK_KneePole.L
-    m_Weight: 1
-  - m_Path: IK_KneePole.R
-    m_Weight: 1
-  - m_Path: IK_KneeTarget.L
-    m_Weight: 1
-  - m_Path: IK_KneeTarget.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Neck
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Neck
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Neck/Head
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Neck/Head/Hat
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L/Thumb.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R/Thumb.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Fingers.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Fingers.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Item.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Item.R
-    m_Weight: 1
---- !u!319 &1952692424092285750
+--- !u!319 &-6810472468730393163
 AvatarMask:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -453,51 +148,162 @@ AvatarMask:
     m_Weight: 1
   - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Item.R
     m_Weight: 1
---- !u!1107 &2251000539751093835
+--- !u!1107 &-5571003872100824613
+AnimatorStateMachine:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Base Layer
+  m_ChildStates:
+  - serializedVersion: 1
+    m_State: {fileID: -609998685273100192}
+    m_Position: {x: 0, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 457466281915393592}
+    m_Position: {x: 250, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 1151384033399756419}
+    m_Position: {x: 500, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 4825366726531755620}
+    m_Position: {x: 750, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 4535384069955918003}
+    m_Position: {x: 1000, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: -4328389373749348016}
+    m_Position: {x: 0, y: -160, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: -2791131020196251055}
+    m_Position: {x: 250, y: -160, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: -3155476985138364546}
+    m_Position: {x: 500, y: -160, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 4833143992847176714}
+    m_Position: {x: 750, y: -160, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: -5567650881224377676}
+    m_Position: {x: 1000, y: -160, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 2355199752015887792}
+    m_Position: {x: 0, y: -220, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 9116942724813429837}
+    m_Position: {x: 250, y: -220, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 8498306276608649276}
+    m_Position: {x: 500, y: -220, z: 0}
+  m_ChildStateMachines: []
+  m_AnyStateTransitions: []
+  m_EntryTransitions: []
+  m_StateMachineTransitions: {}
+  m_StateMachineBehaviours: []
+  m_AnyStatePosition: {x: 520, y: 0, z: 0}
+  m_EntryPosition: {x: 145, y: 0, z: 0}
+  m_ExitPosition: {x: 885, y: 0, z: 0}
+  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
+  m_DefaultState: {fileID: 457466281915393592}
+--- !u!1102 &-5567650881224377676
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Idle Hand
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -8093610180014055596, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1107 &-4974836345945935841
 AnimatorStateMachine:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Left Arm
-  m_ChildStates: []
+  m_Name: Post-Cinematic Add
+  m_ChildStates:
+  - serializedVersion: 1
+    m_State: {fileID: -3713258609819995045}
+    m_Position: {x: 0, y: -100, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
   m_StateMachineTransitions: {}
   m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
+  m_AnyStatePosition: {x: 520, y: 0, z: 0}
+  m_EntryPosition: {x: 145, y: 0, z: 0}
+  m_ExitPosition: {x: 885, y: 0, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 0}
---- !u!319 &3337248103857750809
-AvatarMask:
+  m_DefaultState: {fileID: -3713258609819995045}
+--- !u!1107 &-4378165585056494825
+AnimatorStateMachine:
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Right Arm_Mask
-  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-  m_Elements:
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R/Thumb.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Fingers.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Item.R
-    m_Weight: 1
---- !u!1107 &4999393669927166668
+  m_Name: Right Arm
+  m_ChildStates:
+  - serializedVersion: 1
+    m_State: {fileID: 3206103154246403665}
+    m_Position: {x: 0, y: -100, z: 0}
+  m_ChildStateMachines: []
+  m_AnyStateTransitions: []
+  m_EntryTransitions: []
+  m_StateMachineTransitions: {}
+  m_StateMachineBehaviours: []
+  m_AnyStatePosition: {x: 520, y: 0, z: 0}
+  m_EntryPosition: {x: 145, y: 0, z: 0}
+  m_ExitPosition: {x: 885, y: 0, z: 0}
+  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
+  m_DefaultState: {fileID: 3206103154246403665}
+--- !u!1102 &-4328389373749348016
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Moving Forward
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 4056258170085993322}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1107 &-4153652588831648745
 AnimatorStateMachine:
   serializedVersion: 6
   m_ObjectHideFlags: 0
@@ -505,90 +311,21 @@ AnimatorStateMachine:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Head
-  m_ChildStates: []
+  m_ChildStates:
+  - serializedVersion: 1
+    m_State: {fileID: -3713899003654118825}
+    m_Position: {x: 0, y: -100, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
   m_StateMachineTransitions: {}
   m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
+  m_AnyStatePosition: {x: 520, y: 0, z: 0}
+  m_EntryPosition: {x: 145, y: 0, z: 0}
+  m_ExitPosition: {x: 885, y: 0, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 0}
---- !u!319 &5676778557827713884
-AvatarMask:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Full Torso_Mask
-  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-  m_Elements:
-  - m_Path: Hips/LowerTorso
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Neck
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Neck
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Neck/Head
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Neck/Head/Hat
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L/Thumb.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R/Thumb.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Fingers.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Fingers.R
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Item.L
-    m_Weight: 1
-  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Item.R
-    m_Weight: 1
---- !u!1107 &7518733343162943761
-AnimatorStateMachine:
-  serializedVersion: 6
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Pre-Cinematic Add
-  m_ChildStates: []
-  m_ChildStateMachines: []
-  m_AnyStateTransitions: []
-  m_EntryTransitions: []
-  m_StateMachineTransitions: {}
-  m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
-  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 0}
---- !u!319 &8746013044868587280
+  m_DefaultState: {fileID: -3713899003654118825}
+--- !u!319 &-4017172458161545986
 AvatarMask:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -663,3 +400,1205 @@ AvatarMask:
     m_Weight: 1
   - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Item.R
     m_Weight: 1
+--- !u!1102 &-3713899003654118825
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: <Empty>
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &-3713258609819995045
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: <Empty>
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &-3534558336595091011
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: <Empty>
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &-3196124054637822095
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Walk Left
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -1808118251311325804, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1107 &-3177422713857037170
+AnimatorStateMachine:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Pre-Cinematic Add
+  m_ChildStates:
+  - serializedVersion: 1
+    m_State: {fileID: 2925173639972276190}
+    m_Position: {x: 0, y: -100, z: 0}
+  m_ChildStateMachines: []
+  m_AnyStateTransitions: []
+  m_EntryTransitions: []
+  m_StateMachineTransitions: {}
+  m_StateMachineBehaviours: []
+  m_AnyStatePosition: {x: 520, y: 0, z: 0}
+  m_EntryPosition: {x: 145, y: 0, z: 0}
+  m_ExitPosition: {x: 885, y: 0, z: 0}
+  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
+  m_DefaultState: {fileID: 2925173639972276190}
+--- !u!1102 &-3155476985138364546
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Walk Left
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -1808118251311325804, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1107 &-2994221059073291717
+AnimatorStateMachine:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Bottom
+  m_ChildStates:
+  - serializedVersion: 1
+    m_State: {fileID: -3534558336595091011}
+    m_Position: {x: 0, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 3314444740750747375}
+    m_Position: {x: 250, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 6502164697699618253}
+    m_Position: {x: 500, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: -3196124054637822095}
+    m_Position: {x: 750, y: -100, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: -9024296331793351048}
+    m_Position: {x: 1000, y: -100, z: 0}
+  m_ChildStateMachines: []
+  m_AnyStateTransitions: []
+  m_EntryTransitions: []
+  m_StateMachineTransitions: {}
+  m_StateMachineBehaviours: []
+  m_AnyStatePosition: {x: 520, y: 0, z: 0}
+  m_EntryPosition: {x: 145, y: 0, z: 0}
+  m_ExitPosition: {x: 885, y: 0, z: 0}
+  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
+  m_DefaultState: {fileID: -3534558336595091011}
+--- !u!1102 &-2830809420765837711
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Punch 1
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 8404408930704415155, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &-2791131020196251055
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Walk Backward
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -857186971943692282, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &-609998685273100192
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: T-Pose
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 868091296634080634, guid: 618dff8b76ace7241b471ee2075083e1, type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!319 &-367648905249419426
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Left Arm_Mask
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L/Thumb.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Fingers.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Item.L
+    m_Weight: 1
+--- !u!1102 &-351576375250220087
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: <Empty>
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!91 &9100000
+AnimatorController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: BASE_Character_Man
+  serializedVersion: 5
+  m_AnimatorParameters:
+  - m_Name: Y_Velocity
+    m_Type: 1
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
+  - m_Name: Run
+    m_Type: 1
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
+  m_AnimatorLayers:
+  - serializedVersion: 5
+    m_Name: Base Layer
+    m_StateMachine: {fileID: -5571003872100824613}
+    m_Mask: {fileID: 0}
+    m_Motions: []
+    m_Behaviours: []
+    m_BlendingMode: 0
+    m_SyncedLayerIndex: -1
+    m_DefaultWeight: 0
+    m_IKPass: 0
+    m_SyncedLayerAffectsTiming: 0
+    m_Controller: {fileID: 9100000}
+  - serializedVersion: 5
+    m_Name: Bottom
+    m_StateMachine: {fileID: -2994221059073291717}
+    m_Mask: {fileID: 3123685103488901154}
+    m_Motions: []
+    m_Behaviours: []
+    m_BlendingMode: 0
+    m_SyncedLayerIndex: -1
+    m_DefaultWeight: 1
+    m_IKPass: 0
+    m_SyncedLayerAffectsTiming: 0
+    m_Controller: {fileID: 9100000}
+  - serializedVersion: 5
+    m_Name: Full Torso
+    m_StateMachine: {fileID: -8384759289633514371}
+    m_Mask: {fileID: 4830170987074975786}
+    m_Motions: []
+    m_Behaviours: []
+    m_BlendingMode: 0
+    m_SyncedLayerIndex: -1
+    m_DefaultWeight: 1
+    m_IKPass: 0
+    m_SyncedLayerAffectsTiming: 0
+    m_Controller: {fileID: 9100000}
+  - serializedVersion: 5
+    m_Name: Right Arm
+    m_StateMachine: {fileID: -4378165585056494825}
+    m_Mask: {fileID: 291997766002921360}
+    m_Motions: []
+    m_Behaviours: []
+    m_BlendingMode: 0
+    m_SyncedLayerIndex: -1
+    m_DefaultWeight: 1
+    m_IKPass: 0
+    m_SyncedLayerAffectsTiming: 0
+    m_Controller: {fileID: 9100000}
+  - serializedVersion: 5
+    m_Name: Left Arm
+    m_StateMachine: {fileID: 6927328278605238101}
+    m_Mask: {fileID: -367648905249419426}
+    m_Motions: []
+    m_Behaviours: []
+    m_BlendingMode: 0
+    m_SyncedLayerIndex: -1
+    m_DefaultWeight: 1
+    m_IKPass: 0
+    m_SyncedLayerAffectsTiming: 0
+    m_Controller: {fileID: 9100000}
+  - serializedVersion: 5
+    m_Name: Head
+    m_StateMachine: {fileID: -4153652588831648745}
+    m_Mask: {fileID: -7508639491903851235}
+    m_Motions: []
+    m_Behaviours: []
+    m_BlendingMode: 0
+    m_SyncedLayerIndex: -1
+    m_DefaultWeight: 1
+    m_IKPass: 0
+    m_SyncedLayerAffectsTiming: 0
+    m_Controller: {fileID: 9100000}
+  - serializedVersion: 5
+    m_Name: Pre-Cinematic Add
+    m_StateMachine: {fileID: -3177422713857037170}
+    m_Mask: {fileID: -6810472468730393163}
+    m_Motions: []
+    m_Behaviours: []
+    m_BlendingMode: 1
+    m_SyncedLayerIndex: -1
+    m_DefaultWeight: 1
+    m_IKPass: 0
+    m_SyncedLayerAffectsTiming: 0
+    m_Controller: {fileID: 9100000}
+  - serializedVersion: 5
+    m_Name: Cinematic Override
+    m_StateMachine: {fileID: 5121485515505808665}
+    m_Mask: {fileID: 5517567875369002194}
+    m_Motions: []
+    m_Behaviours: []
+    m_BlendingMode: 0
+    m_SyncedLayerIndex: -1
+    m_DefaultWeight: 1
+    m_IKPass: 0
+    m_SyncedLayerAffectsTiming: 0
+    m_Controller: {fileID: 9100000}
+  - serializedVersion: 5
+    m_Name: Post-Cinematic Add
+    m_StateMachine: {fileID: -4974836345945935841}
+    m_Mask: {fileID: -4017172458161545986}
+    m_Motions: []
+    m_Behaviours: []
+    m_BlendingMode: 1
+    m_SyncedLayerIndex: -1
+    m_DefaultWeight: 1
+    m_IKPass: 0
+    m_SyncedLayerAffectsTiming: 0
+    m_Controller: {fileID: 9100000}
+--- !u!319 &291997766002921360
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Right Arm_Mask
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R/Thumb.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Fingers.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Item.R
+    m_Weight: 1
+--- !u!1102 &457466281915393592
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Idle
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 3633314833009989281, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &1098352225433081049
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Punch 2
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -6899934100516254271, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &1151384033399756419
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Jump Start
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -6971878869656612229, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &2355199752015887792
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Punch 1
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 8404408930704415155, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &2925173639972276190
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: <Empty>
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!319 &3123685103488901154
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Bottom_Mask
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: Hips
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.L
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.R
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.L/LowerLeg.L
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.R/LowerLeg.R
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.L/LowerLeg.L/Foot.L
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.R/LowerLeg.R/Foot.R
+    m_Weight: 1
+  - m_Path: IK_KneePole.L
+    m_Weight: 1
+  - m_Path: IK_KneePole.R
+    m_Weight: 1
+  - m_Path: IK_KneeTarget.L
+    m_Weight: 1
+  - m_Path: IK_KneeTarget.R
+    m_Weight: 1
+--- !u!1102 &3206103154246403665
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: <Empty>
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &3314444740750747375
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Moving Forward
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 8028557966689487394}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!206 &4056258170085993322
+BlendTree:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Moving Forward
+  m_Childs:
+  - serializedVersion: 2
+    m_Motion: {fileID: 5475471813991180921, guid: 618dff8b76ace7241b471ee2075083e1,
+      type: 3}
+    m_Threshold: 0
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: Blend
+    m_Mirror: 0
+  - serializedVersion: 2
+    m_Motion: {fileID: 5990331842993123200, guid: 618dff8b76ace7241b471ee2075083e1,
+      type: 3}
+    m_Threshold: 1
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: Blend
+    m_Mirror: 0
+  m_BlendParameter: Run
+  m_BlendParameterY: Blend
+  m_MinThreshold: 0
+  m_MaxThreshold: 1
+  m_UseAutomaticThresholds: 0
+  m_NormalizedBlendValues: 0
+  m_BlendType: 0
+--- !u!1102 &4535384069955918003
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Jump End
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -5496889232392239506, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &4825366726531755620
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: On Air
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 6188590129583503049}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!319 &4830170987074975786
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Full Torso_Mask
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: Hips/LowerTorso
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Neck
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Neck
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Neck/Head
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Neck/Head/Hat
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L/Thumb.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R/Thumb.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Fingers.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Fingers.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Item.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Item.R
+    m_Weight: 1
+--- !u!1102 &4833143992847176714
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Walk Right
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -1691622860466851059, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &4881035199577142127
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: <Empty>
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1107 &5121485515505808665
+AnimatorStateMachine:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Cinematic Override
+  m_ChildStates:
+  - serializedVersion: 1
+    m_State: {fileID: -351576375250220087}
+    m_Position: {x: 0, y: -100, z: 0}
+  m_ChildStateMachines: []
+  m_AnyStateTransitions: []
+  m_EntryTransitions: []
+  m_StateMachineTransitions: {}
+  m_StateMachineBehaviours: []
+  m_AnyStatePosition: {x: 520, y: 0, z: 0}
+  m_EntryPosition: {x: 145, y: 0, z: 0}
+  m_ExitPosition: {x: 885, y: 0, z: 0}
+  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
+  m_DefaultState: {fileID: -351576375250220087}
+--- !u!319 &5517567875369002194
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Cinematic Override_Mask
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: Hips
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.L
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.R
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.L/LowerLeg.L
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.R/LowerLeg.R
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.L/LowerLeg.L/Foot.L
+    m_Weight: 1
+  - m_Path: Hips/UpperLeg.R/LowerLeg.R/Foot.R
+    m_Weight: 1
+  - m_Path: IK_KneePole.L
+    m_Weight: 1
+  - m_Path: IK_KneePole.R
+    m_Weight: 1
+  - m_Path: IK_KneeTarget.L
+    m_Weight: 1
+  - m_Path: IK_KneeTarget.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Neck
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Neck
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Neck/Head
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Neck/Head/Hat
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/HandJoint.L/Thumb.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/HandJoint.R/Thumb.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Fingers.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Fingers.R
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Item.L
+    m_Weight: 1
+  - m_Path: Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Item.R
+    m_Weight: 1
+--- !u!206 &6188590129583503049
+BlendTree:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: On Air
+  m_Childs:
+  - serializedVersion: 2
+    m_Motion: {fileID: 3815386155576916926, guid: 618dff8b76ace7241b471ee2075083e1,
+      type: 3}
+    m_Threshold: -1
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: Blend
+    m_Mirror: 0
+  - serializedVersion: 2
+    m_Motion: {fileID: -1787964962148164694, guid: 618dff8b76ace7241b471ee2075083e1,
+      type: 3}
+    m_Threshold: 1
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: Blend
+    m_Mirror: 0
+  m_BlendParameter: Y_Velocity
+  m_BlendParameterY: Blend
+  m_MinThreshold: -1
+  m_MaxThreshold: 1
+  m_UseAutomaticThresholds: 0
+  m_NormalizedBlendValues: 0
+  m_BlendType: 0
+--- !u!1102 &6248995940209837618
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Punch 3
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 2426274633904743878, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &6502164697699618253
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Walk Backward
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -857186971943692282, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1107 &6927328278605238101
+AnimatorStateMachine:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Left Arm
+  m_ChildStates:
+  - serializedVersion: 1
+    m_State: {fileID: 8543310490641190264}
+    m_Position: {x: 0, y: -100, z: 0}
+  m_ChildStateMachines: []
+  m_AnyStateTransitions: []
+  m_EntryTransitions: []
+  m_StateMachineTransitions: {}
+  m_StateMachineBehaviours: []
+  m_AnyStatePosition: {x: 520, y: 0, z: 0}
+  m_EntryPosition: {x: 145, y: 0, z: 0}
+  m_ExitPosition: {x: 885, y: 0, z: 0}
+  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
+  m_DefaultState: {fileID: 8543310490641190264}
+--- !u!206 &8028557966689487394
+BlendTree:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Moving Forward
+  m_Childs:
+  - serializedVersion: 2
+    m_Motion: {fileID: 5475471813991180921, guid: 618dff8b76ace7241b471ee2075083e1,
+      type: 3}
+    m_Threshold: 0
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: Blend
+    m_Mirror: 0
+  - serializedVersion: 2
+    m_Motion: {fileID: 5990331842993123200, guid: 618dff8b76ace7241b471ee2075083e1,
+      type: 3}
+    m_Threshold: 1
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: Blend
+    m_Mirror: 0
+  m_BlendParameter: Run
+  m_BlendParameterY: Blend
+  m_MinThreshold: 0
+  m_MaxThreshold: 1
+  m_UseAutomaticThresholds: 0
+  m_NormalizedBlendValues: 0
+  m_BlendType: 0
+--- !u!1102 &8498306276608649276
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Punch 3
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 2426274633904743878, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &8543310490641190264
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: <Empty>
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &9116942724813429837
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Punch 2
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: -6899934100516254271, guid: 618dff8b76ace7241b471ee2075083e1,
+    type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 

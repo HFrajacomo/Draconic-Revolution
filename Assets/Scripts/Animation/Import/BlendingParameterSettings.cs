@@ -4,11 +4,17 @@ using UnityEditor.Animations;
 
 [Serializable]
 public class BlendingParameterSettings {
-	public string name;
+	public string parameterName;
 	public string parameterType;
 	private AnimatorControllerParameterType type;
 
-	public AnimatorControllerParameterType GetParameterType(){return this.type;}
+
+	public AnimatorControllerParameter Build(){
+		return new AnimatorControllerParameter{
+			name = this.parameterName,
+			type = this.type
+		};
+	}
 
 	public void PostDeserializationSetup(){
 		switch(parameterType){

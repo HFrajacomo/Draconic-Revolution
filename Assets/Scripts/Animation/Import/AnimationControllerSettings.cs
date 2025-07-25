@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Animations;
+using UnityEngine;
 
 [Serializable]
 public class AnimationControllerSettings {
@@ -15,13 +16,34 @@ public class AnimationControllerSettings {
 	private HashSet<string> animationSet;
 
 
-	public bool Contains(string animation){return this.animationSet.Contains(animation);}
+	public bool Contains(string animation){
+		if(SelectBeforePipe(animation) != this.armatureName)
+			return false;
+
+		return this.animationSet.Contains(SelectAfterPipe(animation));
+	}
 
 	public void PostDeserializationSetup(){
 		this.animationSet = new HashSet<string>();
 
 		for(int i=0; i < this.animations.Length; i++){
-			this.animationSet.Add($"{this.armatureName}|{this.animations[i]}");
+			this.animationSet.Add(this.animations[i]);
 		}
+	}
+
+	private string SelectBeforePipe(string input){
+	    int index = input.IndexOf('|');
+
+	    if(index >= 0)
+	    	return input.Substring(0, index);
+	    return input;
+	}
+
+	private string SelectAfterPipe(string input){
+	    int index = input.IndexOf('|');
+
+	    if(index >= 0)
+	    	return input.Substring(index + 1);
+	    return input;
 	}
 }

@@ -15,14 +15,23 @@ public class AnimationControlBuilder {
 	private Dictionary<string, AnimationLayerSettings[]> layerSettings = new Dictionary<string, AnimationLayerSettings[]>();
 	private Dictionary<string, AnimationStateSettings[]> stateSettings = new Dictionary<string, AnimationStateSettings[]>();
 	private Dictionary<string, AnimationTransitionSettings[]> transitionSettings = new Dictionary<string, AnimationTransitionSettings[]>();
-	private Dictionary<string, Dictionary<string, AnimationClip>> animations = new Dictionary<string, Dictionary<string, AnimationClip>>();
 
+	private Dictionary<string, Dictionary<string, Motion>> animations = new Dictionary<string, Dictionary<string, Motion>>();
 	private Dictionary<string, Dictionary<string, int>> layers = new Dictionary<string, Dictionary<string, int>>();
 	private Dictionary<string, AnimatorController> controllers = new Dictionary<string, AnimatorController>();
 
 	private static readonly string ANIMATION_FOLDER = "Resources/Animations/";
 	private static readonly string ANIMATION_RESFOLDER = "Animations/";
 	private static readonly string SAVED_CHARACTER_CONTROLLER_PATH = "Assets/Animations/Character Animations/";
+
+	private static readonly int LAYER_GRAPH_MAX_NODES_IN_ROW = 5;
+	private static readonly int LAYER_GRAPH_SPACE_BETWEEN_NODES = 250;
+	private static readonly int LAYER_GRAPH_VERTICAL_OFFSET = 60;
+	private static readonly int LAYER_GRAPH_STARTING_OFFSET_Y = -400;
+
+	private static readonly Vector3 LAYER_GRAPH_ENTRY_NODE_POS = new Vector3(145, 0, 0);
+	private static readonly Vector3 LAYER_GRAPH_ANY_NODE_POS = new Vector3(520, 0, 0);
+	private static readonly Vector3 LAYER_GRAPH_EXIT_NODE_POS = new Vector3(885, 0, 0);
 
 	public void Build(){
 		LoadControllerSettings();
@@ -32,10 +41,70 @@ public class AnimationControlBuilder {
 
 		BuildControllers();
 		BuildLayers();
+		BuildStates();
+
 		AssetDatabase.SaveAssets();
 	}
 
+	private void BuildStates(){
+		string controllerName;
+		Vector3 graphPosition = Vector3.zero;
+		int[] layerIndexes;
+		int[] lastPositionInLayer;
+		int layerNumber;
 
+		foreach(AnimationControllerSettings acs in this.controllerSettings.Values){
+			controllerName = acs.controllerName;
+			layerIndexes = CreateArrayOfZeroes(this.layers[controllerName].Count);
+			lastPositionInLayer = CreateArrayOfZeroes(this.layers[controllerName].Count);
+
+			// Create all states for the layers
+			for(int i=0; i < this.stateSettings[controllerName].Length; i++){
+				AnimationStateSettings ass = this.stateSettings[controllerName][i];
+				AnimatorState state = ass.Build(this.controllers[controllerName], this.animations[controllerName]);
+				layerNumber = this.layers[controllerName][ass.layer];
+
+				graphPosition = AssignGraphPosition(layerIndexes[layerNumber], lastPositionInLayer[layerNumber]);
+				layerIndexes[layerNumber]++;
+				lastPositionInLayer[layerNumber] = (int)graphPosition.x;
+
+				this.controllers[controllerName].layers[layerNumber].stateMachine.AddState(state, graphPosition);
+
+				if(ass.isDefaultState){
+					this.controllers[controllerName].layers[layerNumber].stateMachine.defaultState = state;
+				}
+
+				AssetDatabase.AddObjectToAsset(state, this.controllers[controllerName]);
+			}
+
+			for(int i=0; i < this.controllers[controllerName].layers.Length; i++){
+				this.controllers[controllerName].layers[i].stateMachine.entryPosition = LAYER_GRAPH_ENTRY_NODE_POS;
+				this.controllers[controllerName].layers[i].stateMachine.anyStatePosition = LAYER_GRAPH_ANY_NODE_POS;
+				this.controllers[controllerName].layers[i].stateMachine.exitPosition = LAYER_GRAPH_EXIT_NODE_POS;
+			}
+		}
+	}
+
+	private Vector3 AssignGraphPosition(int index, int lastX){
+		Vector3 outVector = new Vector3(0,0,0);
+
+		outVector.y = LAYER_GRAPH_STARTING_OFFSET_Y + (LAYER_GRAPH_MAX_NODES_IN_ROW - (index/LAYER_GRAPH_MAX_NODES_IN_ROW))*LAYER_GRAPH_VERTICAL_OFFSET;
+
+		if(index % LAYER_GRAPH_MAX_NODES_IN_ROW == 0){
+			outVector.x = 0;
+		}
+		else{
+			outVector.x = lastX + LAYER_GRAPH_SPACE_BETWEEN_NODES;
+		}
+
+		return outVector;
+	}
+
+	private int[] CreateArrayOfZeroes(int size){
+		int[] array = new int[size];
+		Array.Fill(array, 0);
+		return array;
+	}
 
 	private void BuildLayers(){
 		string controllerName;
@@ -74,7 +143,7 @@ public class AnimationControlBuilder {
 	}
 
 	private void LoadAnimationClips(AnimationControllerSettings acs){
-		this.animations.Add(acs.controllerName, new Dictionary<string, AnimationClip>());
+		this.animations.Add(acs.controllerName, new Dictionary<string, Motion>());
 
 		Object[] allAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(acs.fbxFile);
 
@@ -85,10 +154,18 @@ public class AnimationControlBuilder {
 	        	clip = (AnimationClip)asset;
 	        	
 	        	if(acs.Contains(clip.name)){
-	        		this.animations[acs.controllerName].Add(clip.name, clip);
+	        		this.animations[acs.controllerName].Add(SelectAfterPipe(clip.name), clip);
 	        	}
 	        }
 	    }
+	}
+
+	private string SelectAfterPipe(string input){
+	    int index = input.IndexOf('|');
+
+	    if(index >= 0)
+	    	return input.Substring(index + 1);
+	    return input;
 	}
 
 	private void LoadControllerSettings(){
@@ -146,6 +223,10 @@ public class AnimationControlBuilder {
 			}
 
 			ass = JsonUtility.FromJson<Wrapper<AnimationStateSettings>>(statesJson.text);
+
+			foreach(AnimationStateSettings stateSettings in ass.data){
+				stateSettings.PostDeserializationSetup();
+			}
 
 			this.stateSettings.Add(acs.controllerName, ass.data);
 		}

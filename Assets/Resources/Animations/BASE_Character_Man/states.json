@@ -8,6 +8,62 @@
 			"isDefaultState": false
 		},
 		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Bottom",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Full Torso",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Right Arm",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Left Arm",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Head",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Pre-Cinematic Add",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Cinematic Override",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Post-Cinematic Add",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
 			"name": "Idle",
 			"clip": "Idle-Man",
 			"layer": "",
@@ -17,13 +73,6 @@
 		{
 			"name": "Jump Start",
 			"clip": "Jump Start-Man",
-			"layer": "",
-			"isBlendTree": false,
-			"isDefaultState": false
-		},
-		{
-			"name": "Jump End",
-			"clip": "Jump End-Man",
 			"layer": "",
 			"isBlendTree": false,
 			"isDefaultState": false
@@ -46,6 +95,13 @@
 			}
 		},
 		{
+			"name": "Jump End",
+			"clip": "Jump End-Man",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
 			"name": "Moving Forward",
 			"clip": "",
 			"layer": "",
@@ -81,42 +137,42 @@
 		},
 		{
 			"name": "Walk Backward",
-			"clip": "Walk Backward-Man",
+			"clip": "WalkBackward-Man",
 			"layer": "",
 			"isBlendTree": false,
 			"isDefaultState": false
 		},
 		{
 			"name": "Walk Left",
-			"clip": "Walk Left-Man",
+			"clip": "WalkLeft-Man",
 			"layer": "",
 			"isBlendTree": false,
 			"isDefaultState": false
 		},
 		{
 			"name": "Walk Right",
-			"clip": "Walk Right-Man",
+			"clip": "WalkRight-Man",
 			"layer": "",
 			"isBlendTree": false,
 			"isDefaultState": false
 		},
 		{
 			"name": "Walk Backward",
-			"clip": "Walk Backward-Man",
+			"clip": "WalkBackward-Man",
 			"layer": "Bottom",
 			"isBlendTree": false,
 			"isDefaultState": false
 		},
 		{
 			"name": "Walk Left",
-			"clip": "Walk Left-Man",
+			"clip": "WalkLeft-Man",
 			"layer": "Bottom",
 			"isBlendTree": false,
 			"isDefaultState": false
 		},
 		{
 			"name": "Walk Right",
-			"clip": "Walk Right-Man",
+			"clip": "WalkRight-Man",
 			"layer": "Bottom",
 			"isBlendTree": false,
 			"isDefaultState": false
