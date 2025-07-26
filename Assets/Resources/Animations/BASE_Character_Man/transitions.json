@@ -15,8 +15,8 @@
 			"layer": "",
 			"sourceState": "Jump Start",
 			"destinationState": "On Air",
-			"hasExitTime": false,
-			"exitTime": 0,
+			"hasExitTime": true,
+			"exitTime": 1,
 			"duration": 0,
 			"offset": 0,
 			"interruptionSource": "none",
@@ -27,8 +27,8 @@
 			"sourceState": "Punch 1",
 			"destinationState": "Punch 2",
 			"hasExitTime": false,
-			"exitTime": 0,
-			"duration": 0,
+			"exitTime": 0.5,
+			"duration": 0.1,
 			"offset": 0,
 			"canTransitionToSelf": false,
 			"interruptionSource": "source",
@@ -36,7 +36,8 @@
 			    {
 			        "mode": "equals",
 			        "threshold": 2,
-			        "parameter": "Attack_Combo"
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
 			    }
 			]
 		},
@@ -45,8 +46,8 @@
 			"sourceState": "Punch 2",
 			"destinationState": "Punch 3",
 			"hasExitTime": false,
-			"exitTime": 0,
-			"duration": 0,
+			"exitTime": 0.5,
+			"duration": 0.1,
 			"offset": 0,
 			"canTransitionToSelf": false,
 			"interruptionSource": "source",
@@ -54,7 +55,8 @@
 			    {
 			        "mode": "equals",
 			        "threshold": 3,
-			        "parameter": "Attack_Combo"
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
 			    }
 			]
 		},
@@ -63,54 +65,33 @@
 			"sourceState": "Punch 1",
 			"destinationState": "Idle Hand",
 			"hasExitTime": true,
-			"exitTime": 0.8,
-			"duration": 0.2,
+			"exitTime": 1,
+			"duration": 0,
 			"offset": 0,
 			"canTransitionToSelf": false,
-			"interruptionSource": "source",
-		    "conditions": [
-			    {
-			        "mode": "equals",
-			        "threshold": 0,
-			        "parameter": "Attack_Combo"
-			    }
-			]
+			"interruptionSource": "none"
 		},
 		{
 			"layer": "",
 			"sourceState": "Punch 2",
 			"destinationState": "Idle Hand",
 			"hasExitTime": true,
-			"exitTime": 0.8,
-			"duration": 0.2,
+			"exitTime": 1,
+			"duration": 0,
 			"offset": 0,
 			"canTransitionToSelf": false,
-			"interruptionSource": "source",
-		    "conditions": [
-			    {
-			        "mode": "equals",
-			        "threshold": 0,
-			        "parameter": "Attack_Combo"
-			    }
-			]
+			"interruptionSource": "none"
 		},
 		{
 			"layer": "",
 			"sourceState": "Punch 3",
 			"destinationState": "Idle Hand",
 			"hasExitTime": true,
-			"exitTime": 0.8,
-			"duration": 0.2,
+			"exitTime": 1,
+			"duration": 0,
 			"offset": 0,
 			"canTransitionToSelf": false,
-			"interruptionSource": "source",
-		    "conditions": [
-			    {
-			        "mode": "equals",
-			        "threshold": 0,
-			        "parameter": "Attack_Combo"
-			    }
-			]
+			"interruptionSource": "none"
 		}
 	]
 }

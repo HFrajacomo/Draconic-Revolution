@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using UnityEditor.Animations;
 
 [Serializable]
@@ -6,7 +7,16 @@ public class AnimationTransitionConditionSettings {
 	public string mode;
 	public float threshold;
 	public string parameter;
+	public string parameterType;
 	private AnimatorConditionMode conditionMode;
+	private AnimatorControllerParameterType dataType;
+
+	public AnimatorControllerParameter BuildParameter(){
+		return new AnimatorControllerParameter{
+			name = this.parameter,
+			type = this.dataType
+		};
+	}
 
 	public AnimatorConditionMode GetMode(){return this.conditionMode;}
 
@@ -32,6 +42,24 @@ public class AnimationTransitionConditionSettings {
 				break;
 			default:
 				this.conditionMode = AnimatorConditionMode.Equals;
+				break;
+		}
+
+		switch(parameterType){
+			case "int":
+				this.dataType = AnimatorControllerParameterType.Int;
+				break;
+			case "float":
+				this.dataType = AnimatorControllerParameterType.Float;
+				break;
+			case "bool":
+				this.dataType = AnimatorControllerParameterType.Bool;
+				break;
+			case "trigger":
+				this.dataType = AnimatorControllerParameterType.Trigger;
+				break;
+			default:
+				this.dataType = AnimatorControllerParameterType.Float;
 				break;
 		}
 	}

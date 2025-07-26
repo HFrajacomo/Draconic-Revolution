@@ -10,6 +10,13 @@
 		{
 			"name": "<Empty>",
 			"clip": "",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
 			"layer": "Bottom",
 			"isBlendTree": false,
 			"isDefaultState": true

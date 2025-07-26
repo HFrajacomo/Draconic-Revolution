@@ -19,6 +19,7 @@ public class AnimationControlBuilder {
 	private Dictionary<string, Dictionary<string, Motion>> animations = new Dictionary<string, Dictionary<string, Motion>>();
 	private Dictionary<string, Dictionary<string, int>> layers = new Dictionary<string, Dictionary<string, int>>();
 	private Dictionary<string, AnimatorController> controllers = new Dictionary<string, AnimatorController>();
+	private Dictionary<StateLayerKey, AnimatorState> states = new Dictionary<StateLayerKey, AnimatorState>();
 
 	private static readonly string ANIMATION_FOLDER = "Resources/Animations/";
 	private static readonly string ANIMATION_RESFOLDER = "Animations/";
@@ -42,8 +43,36 @@ public class AnimationControlBuilder {
 		BuildControllers();
 		BuildLayers();
 		BuildStates();
+		BuildTransitions();
 
 		AssetDatabase.SaveAssets();
+	}
+
+	private void BuildTransitions(){
+		string controllerName;
+		int layerNumber;
+
+		foreach(AnimationControllerSettings acs in this.controllerSettings.Values){
+			controllerName = acs.controllerName;
+
+			for(int i=0; i < this.transitionSettings[controllerName].Length; i++){
+				AnimationTransitionSettings ats = this.transitionSettings[controllerName][i];
+				AnimatorState destinationState = this.states[new StateLayerKey(controllerName, ats.layer, ats.destinationState)];
+				AnimatorStateTransition finalTransition;
+
+				// If transition is linked to Any state
+				if(ats.IsTransitionFromAny()){
+					layerNumber = this.layers[controllerName][ats.layer];
+					finalTransition = this.controllers[controllerName].layers[layerNumber].stateMachine.AddAnyStateTransition(destinationState);
+				}
+				else{
+					AnimatorState sourceState = this.states[new StateLayerKey(controllerName, ats.layer, ats.sourceState)];
+					finalTransition = sourceState.AddTransition(destinationState);
+				}
+
+				ats.Copy(this.controllers[controllerName], finalTransition);
+			}
+		}
 	}
 
 	private void BuildStates(){
@@ -74,6 +103,7 @@ public class AnimationControlBuilder {
 					this.controllers[controllerName].layers[layerNumber].stateMachine.defaultState = state;
 				}
 
+				this.states.Add(new StateLayerKey(controllerName, ass.layer, state.name), state);
 				AssetDatabase.AddObjectToAsset(state, this.controllers[controllerName]);
 			}
 
@@ -244,6 +274,10 @@ public class AnimationControlBuilder {
 			}
 
 			ats = JsonUtility.FromJson<Wrapper<AnimationTransitionSettings>>(transitionsJson.text);
+
+			foreach(AnimationTransitionSettings transitionSettings in ats.data){
+				transitionSettings.PostDeserializationSetup();
+			}
 
 			this.transitionSettings.Add(acs.controllerName, ats.data);
 		}

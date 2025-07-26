@@ -13,7 +13,44 @@ public class AnimationTransitionSettings {
 	public bool canTransitionToSelf;
 	public string interruptionSource;
 	public AnimationTransitionConditionSettings[] conditions;
+	private bool isFromAny = false;
 	private TransitionInterruptionSource interruption;
+
+	public AnimatorStateTransition Build(){
+		AnimatorStateTransition ast = new AnimatorStateTransition();
+
+		ast.canTransitionToSelf = this.canTransitionToSelf;
+		ast.duration = this.duration;
+		ast.exitTime = this.exitTime;
+		ast.hasExitTime = this.hasExitTime;
+		ast.interruptionSource = this.interruption;
+		ast.offset = this.offset;
+		ast.name = $"{this.sourceState} -> {this.destinationState}";
+
+		return ast;
+	}
+
+	public void Copy(AnimatorController controller, AnimatorStateTransition other){
+		other.canTransitionToSelf = this.canTransitionToSelf;
+		other.duration = this.duration;
+		other.exitTime = this.exitTime;
+		other.hasExitTime = this.hasExitTime;
+		other.interruptionSource = this.interruption;
+		other.offset = this.offset;
+		other.name = $"{this.sourceState} -> {this.destinationState}";
+
+		if(this.conditions != null){
+			foreach(AnimationTransitionConditionSettings condition in this.conditions){
+				other.AddCondition(condition.GetMode(), condition.threshold, condition.parameter);
+
+				if(!CheckControllerHasParameter(condition.parameter, controller)){
+					controller.AddParameter(condition.BuildParameter());
+				}
+			}
+		}
+	}
+
+	public bool IsTransitionFromAny(){return this.isFromAny;}
 
 	public TransitionInterruptionSource GetInterruption(){return this.interruption;}
 
@@ -38,5 +75,26 @@ public class AnimationTransitionSettings {
 				this.interruption = TransitionInterruptionSource.None;
 				break;
 		}
+
+		if(this.sourceState == "any")
+			this.isFromAny = true;
+
+		if(this.conditions != null){
+			for(int i=0; i < this.conditions.Length; i++){
+				this.conditions[i].PostDeserializationSetup();
+			}
+		}
+
+		if(this.layer == "")
+			this.layer = "Base Layer";
+	}
+
+	private bool CheckControllerHasParameter(string name, AnimatorController controller){
+		for(int i=0; i < controller.parameters.Length; i++){
+			if(controller.parameters[i].name == name){
+				return true;
+			}
+		}
+		return false;
 	}
 }
