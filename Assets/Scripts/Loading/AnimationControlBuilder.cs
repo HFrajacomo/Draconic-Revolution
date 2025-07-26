@@ -24,6 +24,7 @@ public class AnimationControlBuilder {
 	private static readonly string ANIMATION_FOLDER = "Resources/Animations/";
 	private static readonly string ANIMATION_RESFOLDER = "Animations/";
 	private static readonly string SAVED_CHARACTER_CONTROLLER_PATH = "Assets/Animations/Character Animations/";
+	private static readonly string ANIMATION_CLIPS_PATH = "Assets/Resources/AnimationClips/";
 
 	private static readonly int LAYER_GRAPH_MAX_NODES_IN_ROW = 5;
 	private static readonly int LAYER_GRAPH_SPACE_BETWEEN_NODES = 250;
@@ -184,7 +185,18 @@ public class AnimationControlBuilder {
 	        	clip = (AnimationClip)asset;
 	        	
 	        	if(acs.Contains(clip.name)){
-	        		this.animations[acs.controllerName].Add(SelectAfterPipe(clip.name), clip);
+	        		// Setting clip to 
+					AnimationClip newClip = new AnimationClip();
+					EditorUtility.CopySerialized(clip, newClip);
+					AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(newClip);
+					settings.loopTime = acs.GetLoop(SelectAfterPipe(clip.name));
+					AnimationUtility.SetAnimationClipSettings(newClip, settings);
+
+					string clipFilename = newClip.name.Replace('|', '_');
+					newClip.name = clipFilename;
+					AssetDatabase.CreateAsset(newClip, $"{ANIMATION_CLIPS_PATH}{clipFilename}.anim");
+
+	        		this.animations[acs.controllerName].Add(SelectAfterUnderscore(newClip.name), newClip);
 	        	}
 	        }
 	    }
@@ -192,6 +204,14 @@ public class AnimationControlBuilder {
 
 	private string SelectAfterPipe(string input){
 	    int index = input.IndexOf('|');
+
+	    if(index >= 0)
+	    	return input.Substring(index + 1);
+	    return input;
+	}
+
+	private string SelectAfterUnderscore(string input){
+	    int index = input.IndexOf('_');
 
 	    if(index >= 0)
 	    	return input.Substring(index + 1);

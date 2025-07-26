@@ -1,0 +1,237 @@
+{
+	"data": [
+		{
+			"name": "T-Pose",
+			"clip": "0TPose-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Bottom",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Full Torso",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Right Arm",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Left Arm",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Head",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Pre-Cinematic Add",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Cinematic Override",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "<Empty>",
+			"clip": "",
+			"layer": "Post-Cinematic Add",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "Idle",
+			"clip": "Idle-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "Jump Start",
+			"clip": "Jump Start-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "On Air",
+			"clip": "",
+			"layer": "",
+			"isDefaultState": false,
+			"isBlendTree": true,
+			"blendTree": {
+				"clipA": "Falling-Woman",
+				"minThreshold": -1,
+				"clipB": "Going Up-Woman",
+				"maxThreshold": 1,
+				"blendParameter": {
+					"parameterName": "Y_Velocity",
+					"parameterType": "float"
+				}
+			}
+		},
+		{
+			"name": "Jump End",
+			"clip": "Jump End-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Moving Forward",
+			"clip": "",
+			"layer": "",
+			"isDefaultState": false,
+			"isBlendTree": true,
+			"blendTree": {
+				"clipA": "WalkForward-Woman",
+				"minThreshold": 0,
+				"clipB": "RunForward-Woman",
+				"maxThreshold": 1,
+				"blendParameter": {
+					"parameterName": "Run",
+					"parameterType": "float"
+				}
+			}
+		},
+		{
+			"name": "Moving Forward",
+			"clip": "",
+			"layer": "Bottom",
+			"isDefaultState": false,
+			"isBlendTree": true,
+			"blendTree": {
+				"clipA": "WalkForward-Woman",
+				"minThreshold": 0,
+				"clipB": "RunForward-Woman",
+				"maxThreshold": 1,
+				"blendParameter": {
+					"parameterName": "Run",
+					"parameterType": "float"
+				}
+			}
+		},
+		{
+			"name": "Walk Backward",
+			"clip": "WalkBackward-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Walk Left",
+			"clip": "WalkLeft-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Walk Right",
+			"clip": "WalkRight-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Walk Backward",
+			"clip": "WalkBackward-Woman",
+			"layer": "Bottom",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Walk Left",
+			"clip": "WalkLeft-Woman",
+			"layer": "Bottom",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Walk Right",
+			"clip": "WalkRight-Woman",
+			"layer": "Bottom",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Idle Hand",
+			"clip": "IdleHand-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 1",
+			"clip": "Punch1-Normal-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 2",
+			"clip": "Punch2-Normal-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 3",
+			"clip": "Punch3-Normal-Woman",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 1",
+			"clip": "Punch1-Normal-Woman",
+			"layer": "Full Torso",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 2",
+			"clip": "Punch2-Normal-Woman",
+			"layer": "Full Torso",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Punch 3",
+			"clip": "Punch3-Normal-Woman",
+			"layer": "Full Torso",
+			"isBlendTree": false,
+			"isDefaultState": false
+		}
+	]
+}

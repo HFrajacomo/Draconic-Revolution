@@ -49339,8 +49339,8 @@ MonoBehaviour:
   preset1: {fileID: 760068335}
   preset2: {fileID: 28419321}
   preset3: {fileID: 1361548499}
-  maleAnimations: {fileID: 9100000, guid: 3dcbf65dd7a8870439af7e02cd599fe3, type: 2}
-  femaleAnimations: {fileID: 9100000, guid: 204cc17358066914eb3f79f2a5c3aad2, type: 2}
+  maleAnimations: {fileID: 9100000, guid: 36ccd3e9674b69143bb2b1cf4340a712, type: 2}
+  femaleAnimations: {fileID: 9100000, guid: 50c8a289f25e0c943b9c43eacacbb60a, type: 2}
 --- !u!4 &1425498536
 Transform:
   m_ObjectHideFlags: 0
