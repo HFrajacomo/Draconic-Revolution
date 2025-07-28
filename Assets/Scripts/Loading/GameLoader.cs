@@ -13,7 +13,11 @@ public class GameLoader : MonoBehaviour {
 	private ShaderLoader shaderLoader;
 	private AudioLoader audioLoader;
 	private StructureLoader structureLoader;
+	private AnimationLoader animationLoader;
+
+	#if UNITY_EDITOR
 	private AnimationControlBuilder animationControlBuilder;
+	#endif
 
 	private static readonly string SERVER_SCENE = "Assets/Scenes/Server.unity";
 
@@ -31,16 +35,19 @@ public class GameLoader : MonoBehaviour {
 		this.structureLoader = new StructureLoader(this.isClient);
 
         #if UNITY_EDITOR
-            this.animationControlBuilder = new AnimationControlBuilder();
+        	this.animationControlBuilder = new AnimationControlBuilder(this.isClient);
             this.animationControlBuilder.Build();
         #endif
-		
 
+        this.animationLoader = new AnimationLoader(this.isClient);
+		
 		this.shaderLoader.Load();
 		this.itemLoader.Load();
 		this.voxelLoader.Load();
 		this.audioLoader.Load();
 		this.structureLoader.Load();
+		this.animationLoader.Load();
+
 
 		this.itemLoader.RunPostDeserializationRoutine();
 		this.voxelLoader.RunPostDeserializationRoutine();

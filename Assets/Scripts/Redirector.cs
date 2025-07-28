@@ -61,10 +61,10 @@ public class Redirector : MonoBehaviour
 
         // If game world is in client
         if(World.isClient){
-            bool started = false;
-
             // Unity edition only
             #if UNITY_EDITOR
+                bool started = false;
+
                 // Startup local server
                 this.lanServerProcess = new Process();
                 this.lanServerProcess.StartInfo.Arguments = $"-Local -World {World.worldName}";

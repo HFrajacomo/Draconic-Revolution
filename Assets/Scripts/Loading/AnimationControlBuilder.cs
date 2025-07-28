@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using System;
 using System.IO;
 using System.Collections;
@@ -16,14 +18,20 @@ public class AnimationControlBuilder {
 	private Dictionary<string, AnimationStateSettings[]> stateSettings = new Dictionary<string, AnimationStateSettings[]>();
 	private Dictionary<string, AnimationTransitionSettings[]> transitionSettings = new Dictionary<string, AnimationTransitionSettings[]>();
 
+	private Dictionary<string, string> controllerPath = new Dictionary<string, string>();
+
 	private Dictionary<string, Dictionary<string, Motion>> animations = new Dictionary<string, Dictionary<string, Motion>>();
 	private Dictionary<string, Dictionary<string, int>> layers = new Dictionary<string, Dictionary<string, int>>();
 	private Dictionary<string, AnimatorController> controllers = new Dictionary<string, AnimatorController>();
 	private Dictionary<StateLayerKey, AnimatorState> states = new Dictionary<StateLayerKey, AnimatorState>();
 
+	private bool isClient;
+
 	private static readonly string ANIMATION_FOLDER = "Resources/Animations/";
 	private static readonly string ANIMATION_RESFOLDER = "Animations/";
-	private static readonly string SAVED_CHARACTER_CONTROLLER_PATH = "Assets/Animations/Character Animations/";
+	private static readonly string SERIALIZED_CONTROLLERS_PATH = "/Resources/SerializedData/AnimatorControllers.json";
+	private static readonly string SAVED_CHARACTER_CONTROLLER_PATH = "Assets/Resources/AnimationControllers/Character Animations/";
+	private static readonly string SAVED_CHARACTER_CONTROLLER_RESPATH = "AnimationControllers/Character Animations/";
 	private static readonly string ANIMATION_CLIPS_PATH = "Assets/Resources/AnimationClips/";
 
 	private static readonly int LAYER_GRAPH_MAX_NODES_IN_ROW = 5;
@@ -35,18 +43,43 @@ public class AnimationControlBuilder {
 	private static readonly Vector3 LAYER_GRAPH_ANY_NODE_POS = new Vector3(520, 0, 0);
 	private static readonly Vector3 LAYER_GRAPH_EXIT_NODE_POS = new Vector3(885, 0, 0);
 
+	public AnimationControlBuilder(bool isClient){
+		this.isClient = isClient;
+	}
+
 	public void Build(){
-		LoadControllerSettings();
-		LoadLayersSettings();
-		LoadStatesSettings();
-		LoadTransitionsSettings();
+		if(this.isClient){
+			LoadControllerSettings();
+			LoadLayersSettings();
+			LoadStatesSettings();
+			LoadTransitionsSettings();
 
-		BuildControllers();
-		BuildLayers();
-		BuildStates();
-		BuildTransitions();
+			BuildControllers();
+			BuildLayers();
+			BuildStates();
+			BuildTransitions();
 
-		AssetDatabase.SaveAssets();
+			SaveControllerPath();
+
+			AssetDatabase.SaveAssets();
+		}
+	}
+
+	private void SaveControllerPath(){
+		ValuePair<string, string>[] pairArray = new ValuePair<string, string>[this.controllerPath.Count];
+		int i=0;
+
+		foreach(string s in this.controllerPath.Keys){
+			pairArray[i].key = s;
+			pairArray[i].value = this.controllerPath[s];
+			i++;
+		}
+
+		Wrapper<ValuePair<string, string>> wrapper = new Wrapper<ValuePair<string, string>>(pairArray);
+
+		string serializedWrapper = JsonUtility.ToJson(wrapper);
+
+		File.WriteAllText($"{Application.dataPath}{SERIALIZED_CONTROLLERS_PATH}", serializedWrapper);
 	}
 
 	private void BuildTransitions(){
@@ -158,16 +191,18 @@ public class AnimationControlBuilder {
 
 	private void BuildControllers(){
 		AnimatorController controller;
-		string path;
+		string path, respath;
 
 		foreach(AnimationControllerSettings acs in this.controllerSettings.Values){
 			path = $"{SAVED_CHARACTER_CONTROLLER_PATH}{acs.controllerName}.controller";
+			respath = $"{SAVED_CHARACTER_CONTROLLER_RESPATH}{acs.controllerName}.controller";
 
 			if(File.Exists(path))
 				File.Delete(path);
 
 			controller = AnimatorController.CreateAnimatorControllerAtPath(path);
 			this.controllers.Add(acs.controllerName, controller);
+			this.controllerPath.Add(acs.controllerName, $"{SAVED_CHARACTER_CONTROLLER_RESPATH}{acs.controllerName}");
 
 			LoadAnimationClips(acs);
 		}
@@ -307,3 +342,4 @@ public class AnimationControlBuilder {
 		return Directory.GetDirectories($"{Application.dataPath}/{ANIMATION_FOLDER}");
 	}
 }
+#endif

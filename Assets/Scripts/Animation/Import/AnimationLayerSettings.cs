@@ -1,8 +1,11 @@
+#if UNITY_EDITOR
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Animations;
+
 
 [Serializable]
 public class AnimationLayerSettings {
@@ -41,3 +44,4 @@ public class AnimationLayerSettings {
 			this.layerBlending = AnimatorLayerBlendingMode.Additive;
 	}
 }
+#endif

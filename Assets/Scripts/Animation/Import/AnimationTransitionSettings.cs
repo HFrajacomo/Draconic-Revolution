@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using System;
 using UnityEditor.Animations;
 
@@ -98,3 +100,4 @@ public class AnimationTransitionSettings {
 		return false;
 	}
 }
+#endif
