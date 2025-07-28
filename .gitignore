@@ -11,6 +11,8 @@ Build/*
 Builds/*
 Assets/AssetStoreTools*
 Assets/Resources/AnimationClips/*
+Assets/Resources/SerializedData/
+Assets/Resources/AnimationControllers/Character Animations/
 MemoryCaptures/*
 Worlds/*
 

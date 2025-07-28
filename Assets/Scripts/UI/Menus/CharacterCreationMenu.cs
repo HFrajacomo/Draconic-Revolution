@@ -121,10 +121,6 @@ public class CharacterCreationMenu : Menu{
     public Button preset2;
     public Button preset3;
 
-    [Header("Animation")]
-    public RuntimeAnimatorController maleAnimations;
-    public RuntimeAnimatorController femaleAnimations;
-
     private CharacterBuilderMenu characterBuilder;
     private bool INIT = false;
     private bool ENABLED = false;
@@ -274,7 +270,7 @@ public class CharacterCreationMenu : Menu{
         this.nameInput.GetComponent<Image>().material = matField;
 
         if(!INIT){
-            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, this.maleAnimations, Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat), Instantiate(this.dragonSkinMat)}, isMale:true);
+            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, AnimationLoader.GetController("BASE_Character_Man"), Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat), Instantiate(this.dragonSkinMat)}, isMale:true);
 
             this.selectedGenderItem = this.defaultGender;
             this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
@@ -331,7 +327,7 @@ public class CharacterCreationMenu : Menu{
 
         LoadDefaultModel(isReload:true);
         this.characterBuilder.ChangeRace(Race.HUMAN, true);
-        this.characterBuilder.ChangeAnimationGender(this.maleAnimations);
+        this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character_Man"));
         UpdateColorInAllModel();
     }
 
@@ -800,9 +796,9 @@ public class CharacterCreationMenu : Menu{
         this.characterBuilder.ChangeGender(this.race, this.selectedGenderIsMale);
 
         if(this.selectedGenderIsMale)
-            this.characterBuilder.ChangeAnimationGender(this.maleAnimations);
+            this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character_Man"));
         else
-            this.characterBuilder.ChangeAnimationGender(this.femaleAnimations);
+            this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character_Woman"));
 
         this.selectedDiv = ModelType.GENERAL;
         ToggleDiv(this.generalButton);

@@ -4,23 +4,23 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class AnimationLoader : BaseLoader {
-	private Dictionary<string, RuntimeAnimatorController> controllers = new Dictionary<string, RuntimeAnimatorController>();
-	private bool isClient;
+	private static Dictionary<string, RuntimeAnimatorController> controllers = new Dictionary<string, RuntimeAnimatorController>();
+	private static bool isClient;
 
 	private static readonly string CONTROLLERS_PATHS = "SerializedData/AnimatorControllers";
 
 
-	public AnimationLoader(bool isClient){this.isClient = isClient;}
+	public AnimationLoader(bool isClient){AnimationLoader.isClient = isClient;}
 
 	public override bool Load(){
-		if(this.isClient){
+		if(isClient){
 			LoadCharacterControllers();
 		}
 
 		return true;
 	}
 
-	public RuntimeAnimatorController GetController(string controller){return this.controllers[controller];}
+	public static RuntimeAnimatorController GetController(string controller){return controllers[controller];}
 
 	private void LoadCharacterControllers(){
 		RuntimeAnimatorController currentController;
@@ -40,7 +40,7 @@ public class AnimationLoader : BaseLoader {
 				throw new AnimationImportException($"AnimatorController was not found in Resources Path: {vp.value}");
 			}
 
-			this.controllers.Add(vp.key, currentController);
+			controllers.Add(vp.key, currentController);
 		}
 	}
 }
