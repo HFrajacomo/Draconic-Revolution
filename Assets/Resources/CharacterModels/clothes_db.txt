@@ -8,7 +8,7 @@ Fancy Shirt	M_Fancy_Shirt	M
 
 
 <No Top>	F_TORSO	F
-T-Shirt	M_Basic_T-Shirt	F
+T-Shirt	F_Basic_T-Shirt	F
 Over Shirt	F_Over_Shirt	F
 Ragged Shirt	F_Rags_T-Shirt	F
 Basic Dress	F_Dress_Top	F
