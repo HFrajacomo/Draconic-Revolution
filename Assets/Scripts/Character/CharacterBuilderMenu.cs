@@ -20,8 +20,7 @@ public class CharacterBuilderMenu{
 
 	// Settings
 	private static readonly int ROOT_BONE_INDEX = 0;
-	private static readonly string ARMATURE_NAME_MALE = "ManArmt";
-	private static readonly string ARMATURE_NAME_FEMALE = "WomanArmt";
+	private static readonly string ARMATURE_NAME = "CharacterArmature";
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(100,100,100);
@@ -37,18 +36,15 @@ public class CharacterBuilderMenu{
 		this.animator.runtimeAnimatorController = animations;
 		this.bodyParts = new Dictionary<ModelType, GameObject>();
 		this.bodyPartName = new Dictionary<ModelType, string>();
-		this.armature = ModelHandler.GetArmature(isMale:isMale);
+		this.armature = ModelHandler.GetArmature();
 		this.armature.transform.SetParent(this.parent.transform);
 		this.addonMats = addonMats;
 
-		if(isMale)
-			this.armature.name = ARMATURE_NAME_MALE;
-		else
-			this.armature.name = ARMATURE_NAME_FEMALE;
+		this.armature.name = ARMATURE_NAME;
 
 		this.parent.transform.localScale = this.raceSettings.scaling * CHARACTER_CREATION_CHARACTER_SCALING;
 
-		FixArmature(isMale);
+		FixArmature();
 		PutAddon(race, isMale);
 		AddEssential(race, isMale);
 		RefreshAnimations(isMale);
@@ -77,19 +73,16 @@ public class CharacterBuilderMenu{
 
 		GameObject.DestroyImmediate(this.armature);
 
-		this.armature = ModelHandler.GetArmature(isMale:isMale);
+		this.armature = ModelHandler.GetArmature();
 
-		if(isMale)
-			this.armature.name = ARMATURE_NAME_MALE;
-		else
-			this.armature.name = ARMATURE_NAME_FEMALE;
+		this.armature.name = ARMATURE_NAME;
 
 		this.armature.transform.SetParent(this.parent.transform);
 
 		PutAddon(race, isMale, isReload:true);
 		AddEssential(race, isMale);
-		FixArmature(isMale);
-		ReloadModel(isMale);
+		FixArmature();
+		ReloadModel();
 		
 		this.animator.Rebind();
 	}
@@ -229,25 +222,8 @@ public class CharacterBuilderMenu{
 		return aux;
 	}
 
-	public void ChangeArmature(bool isMale){
-		if(this.armature != null){
-			GameObject.DestroyImmediate(this.armature);
-
-			if(BONE_MAP != null)
-				BONE_MAP.Clear();
-			
-			BONE_MAP = null;
-		}
-
-		this.armature = ModelHandler.GetArmature(isMale:isMale);
-		this.armature.transform.SetParent(this.parent.transform);
-
-		if(isMale)
-			this.armature.name = ARMATURE_NAME_MALE;
-		else
-			this.armature.name = ARMATURE_NAME_FEMALE;
-
-		FixArmature(isMale);
+	public void ChangeArmature(){
+		FixArmature();
 		this.animator.Rebind();
 	}
 
@@ -469,8 +445,8 @@ public class CharacterBuilderMenu{
 		return "Base_Head/F";
 	}
 
-	private void ReloadModel(bool isMale){
-		ChangeArmature(isMale);
+	private void ReloadModel(){
+		ChangeArmature();
 
 		foreach(ModelType type in this.bodyPartName.Keys){
 			Add(type, ModelHandler.GetModelObject(type, this.bodyPartName[type]), this.bodyPartName[type], isReload:true);
@@ -485,7 +461,7 @@ public class CharacterBuilderMenu{
 		}
 	}
 
-	private void FixArmature(bool isMale){
+	private void FixArmature(){
 		this.parent.transform.localScale = this.raceSettings.scaling * CHARACTER_CREATION_CHARACTER_SCALING;
 		this.armature.transform.localScale = SCL_1;
 		this.armature.transform.eulerAngles = ROT_1;
@@ -552,6 +528,6 @@ public class CharacterBuilderMenu{
 	}
 
 	private void RefreshAnimations(bool isMale){
-		PlayerActionController.UseStyle(this.animator, "BASE_Idle", isMale);
+		PlayerActionController.UseStyle(this.animator, "BASE_Idle");
 	}
 }

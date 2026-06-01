@@ -222,12 +222,7 @@ public class PlayerActionController : MonoBehaviour {
 	public static void RegisterClientMessage(AnimationData data){PlayerActionController.statesPlayed.Insert(0, data);}
 
 	// Used only in Menu
-	public static void UseStyle(Animator animator, string styleName, bool isMale){
-		if(isMale)
-			styleName = $"{styleName}-Man";
-		else
-			styleName = $"{styleName}-Woman";
-
+	public static void UseStyle(Animator animator, string styleName){
 		AnimatorOverrideController animationOverrideController = new AnimatorOverrideController(animator.runtimeAnimatorController);
 		animationOverrideController = ApplyOverrides(animationOverrideController, AnimationLoader.GetBattleStyle(styleName).GetOverrides());
 		animator.runtimeAnimatorController = animationOverrideController;

@@ -270,7 +270,7 @@ public class CharacterCreationMenu : Menu{
         this.nameInput.GetComponent<Image>().material = matField;
 
         if(!INIT){
-            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, AnimationLoader.GetController("BASE_Character_Man"), Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat), Instantiate(this.dragonSkinMat)}, isMale:true);
+            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, AnimationLoader.GetController("BASE_Character"), Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat), Instantiate(this.dragonSkinMat)}, isMale:true);
 
             this.selectedGenderItem = this.defaultGender;
             this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
@@ -327,7 +327,7 @@ public class CharacterCreationMenu : Menu{
 
         LoadDefaultModel(isReload:true);
         this.characterBuilder.ChangeRace(Race.HUMAN, true);
-        this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character_Man"), true);
+        this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character"), true);
         UpdateColorInAllModel();
     }
 
@@ -439,7 +439,7 @@ public class CharacterCreationMenu : Menu{
         GameObject loadedModel;
 
         if(isReload){
-            this.characterBuilder.ChangeArmature(this.selectedGenderIsMale);
+            this.characterBuilder.ChangeArmature();
         }
 
         if(isMale){
@@ -795,10 +795,8 @@ public class CharacterCreationMenu : Menu{
         LoadDefaultModel(isMale:this.selectedGenderIsMale, isReload:true);
         this.characterBuilder.ChangeGender(this.race, this.selectedGenderIsMale);
 
-        if(this.selectedGenderIsMale)
-            this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character_Man"), true);
-        else
-            this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character_Woman"), false);
+        this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character"), this.selectedGenderIsMale);
+
 
         this.selectedDiv = ModelType.GENERAL;
         ToggleDiv(this.generalButton);

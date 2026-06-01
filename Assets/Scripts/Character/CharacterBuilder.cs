@@ -77,7 +77,7 @@ public class CharacterBuilder{
 		this.thirdPersonRig = SetupNewGO("TP-Rig", this.parent.transform);
 		this.tpAnimGO = SetupNewGO("Animator", this.thirdPersonRig.transform);
 
-		this.tpArmature = ModelHandler.GetArmature(isMale:isMale, rotated:true);
+		this.tpArmature = ModelHandler.GetArmature(rotated:true);
 		this.tpArmature.transform.SetParent(this.tpAnimGO.transform);
 
 		this.tpModelRoot = GameObject.Instantiate(EMPTY_OBJECT_PREFAB);
@@ -101,7 +101,7 @@ public class CharacterBuilder{
 
 			this.fpRenderer = this.fpModelRoot.AddComponent<SkinnedMeshRenderer>();
 			
-			this.fpArmature = ModelHandler.GetArmature(isMale:isMale, rotated:true);
+			this.fpArmature = ModelHandler.GetArmature(rotated:true);
 			this.fpArmature.transform.SetParent(this.fpAnimGO.transform);
 			this.fpRotation = this.fpAnimGO.AddComponent<RotationTowardsTarget>();
 

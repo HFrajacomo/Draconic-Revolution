@@ -24,8 +24,7 @@ public static class ModelHandler{
 	private static readonly string FACE_DB = "CharacterModels/faces_db";
 	private static readonly string ADDONS_DB = "CharacterModels/addons_db";
 	private static readonly string ESSENTIALS_DB = "CharacterModels/essentials_db";
-	private static readonly string ARMATURE_MALE = "ManArmt";
-	private static readonly string ARMATURE_FEMALE = "WomanArmt";
+	private static readonly string ARMATURE = "CharacterArmature";
 
 	private static readonly Quaternion ROTATION = Quaternion.Euler(0, -90, 0);
 
@@ -115,32 +114,18 @@ public static class ModelHandler{
 		}
 	}
 
-	public static GameObject GetArmature(bool isMale=true, bool rotated=false){
+	public static GameObject GetArmature(bool rotated=false){
 		GameObject go;
 
-		if(isMale){
-			if(rotated){
-				go = GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_MALE), Vector3.zero, ROTATION);
-				go.name = ARMATURE_MALE;
-				return go;
-			}
-			else{
-				go = GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_MALE));
-				go.name = ARMATURE_MALE;
-				return go;
-			}
+		if(rotated){
+			go = GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE), Vector3.zero, ROTATION);
+			go.name = ARMATURE;
+			return go;
 		}
 		else{
-			if(rotated){
-				go = GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_FEMALE), Vector3.zero, ROTATION);
-				go.name = ARMATURE_FEMALE;
-				return go;
-			}
-			else{
-				go = GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE_FEMALE));
-				go.name = ARMATURE_FEMALE;
-				return go;
-			}
+			go = GameObject.Instantiate(GameObject.Find("ModelAssets/" + ARMATURE));
+			go.name = ARMATURE;
+			return go;
 		}
 	}
 

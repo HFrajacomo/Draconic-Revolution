@@ -1,0 +1,16 @@
+{
+	"controllerName": "BASE_Character_FP",
+	"armatureName": "CharacterArmature",
+	"fbxFile": "Assets/Resources/CharacterModels/characters.fbx",
+	"layersFile": "Animations/BASE_Character_FP/layers",
+	"statesFile": "Animations/BASE_Character_FP/states",
+	"transitionFile": "Animations/BASE_Character_FP/transitions",
+	"animations": [
+		{"name": "Idle", "loop": true},
+		{"name": "Idle Hand-FP", "loop": true},
+		{"name": "Punch 1 - Normal-FP", "loop": false},
+		{"name": "Punch 2 - Normal-FP", "loop": false},
+		{"name": "Punch 3 - Normal-FP", "loop": false},
+		{"name": "Run Forward-FP", "loop": true}
+	]
+}
