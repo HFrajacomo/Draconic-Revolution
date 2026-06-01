@@ -1,15 +1,13 @@
 # Name	Blender_obj_name	Sex
 
-<No Boots>	M_BOOTS	M
-Basic Shoes	M_Basic_Shoe	M
-Boots	M_Boot	M
-Low Boots	M_Low_Boot	M
-Long Boots	M_Long_Boot	M
+<No Boots>	M_BOOT	M
+Normal Boots	M_Normal_Boots	M
+High Boots	M_High_Boot	M
+Fancy Boots	M_Fancy_Boots	M
 Slippers	M_Slippers	M
 
-<No Boots>	F_BOOTS	F
-Basic Shoes	F_Basic_Shoe	F
-Boots	F_Boot	F
-Low Boots	F_Low_Boot	F
-Long Boots	F_Long_Boot	F
+<No Boots>	F_BOOT	F
+Normal Boots	F_Normal_Boots	F
+High Boots	F_High_Boots	F
+Fancy Boots	F_Fancy_Boot	F
 Slippers	F_Slippers	F
