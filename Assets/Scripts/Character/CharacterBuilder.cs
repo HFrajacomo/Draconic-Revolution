@@ -179,7 +179,7 @@ public class CharacterBuilder{
         GameObject.Destroy(modelRenderer.gameObject);
 
         // Face
-		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.boots.code).GetComponent<SkinnedMeshRenderer>();
+		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.face.code).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
         GameObject.Destroy(modelRenderer.gameObject);

@@ -41,6 +41,6 @@ public static class Constants
     public static readonly float ITEM_ENTITY_SPAWN_HEIGHT_BONUS = .5f;
 
     // Models
-    public static readonly float PLAYER_MODEL_SCALING_FACTOR = .4f;
+    public static readonly float PLAYER_MODEL_SCALING_FACTOR = .45f;
     public static readonly Vector3 CHARACTER_MODEL_EYE_Y_OFFSET = new Vector3(0, 1, 0);
 }

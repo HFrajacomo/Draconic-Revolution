@@ -5,7 +5,6 @@ public class RotationTowardsTarget : MonoBehaviour
     [SerializeField] private Transform main;
     [SerializeField] private Transform cam;
 
-
     private float angle;
     private float lastAngle = 0;
 

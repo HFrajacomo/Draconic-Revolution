@@ -179,7 +179,7 @@ public class CharacterBuilderMenu{
 		// Hide hair options
 		if(type == ModelType.HAIR){
 			if(this.bodyParts.ContainsKey(ModelType.HAIR) && this.bodyParts.ContainsKey(ModelType.HEADGEAR)){
-				if(ModelHandler.HasModel(ModelType.HAIR, this.bodyPartName[ModelType.HAIR]) && ModelHandler.HasModel(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR])){
+				if(ModelHandler.HasModel(ModelType.HAIR, this.bodyPartName[ModelType.HAIR])){
 					char hatSKCode = ModelHandler.GetHatCover(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR]);
 
 					if(hatSKCode == 'N'){ // If covers hair
@@ -319,12 +319,20 @@ public class CharacterBuilderMenu{
 			GameObject.DestroyImmediate(this.bodyParts[ModelType.ESSENTIAL]);
 		}
 
-		this.bodyPartName[ModelType.ESSENTIAL] = GetEssentialName(isMale);
+		if(isMale)
+			this.bodyPartName[ModelType.ESSENTIAL] = "Base_Head/M";
+		else
+			this.bodyPartName[ModelType.ESSENTIAL] = "Base_Head/F";
 
 		if(isReload)
 			return;
 
-		GameObject obj = ModelHandler.GetModelObject(ModelType.ESSENTIAL, GetEssentialName(isMale));
+		GameObject obj;
+
+		if(isMale)
+			obj = ModelHandler.GetModelObject(ModelType.ESSENTIAL, "Base_Head/M");
+		else
+			obj = ModelHandler.GetModelObject(ModelType.ESSENTIAL, "Base_Head/F");
 
 		obj.transform.SetParent(this.parent.transform);
 		obj.transform.localScale = this.raceSettings.scaling;
@@ -437,12 +445,6 @@ public class CharacterBuilderMenu{
 			default:
 				return "Base_Ears";
 		}
-	}
-
-	private string GetEssentialName(bool isMale){
-		if(isMale)
-			return "Base_Head/M";
-		return "Base_Head/F";
 	}
 
 	private void ReloadModel(){
