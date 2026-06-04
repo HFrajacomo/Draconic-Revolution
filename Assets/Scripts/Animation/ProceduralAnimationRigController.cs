@@ -24,8 +24,14 @@ public class ProceduralAnimationRigController {
 		this.animatorParent = animatorParent;
 		this.controllerName = controllerName;
 		this.multiAimConstraints = new List<MultiAimConstraint>();
-		this.camera = this.parent.transform.parent.Find("Camera").gameObject;
 
+		Transform cam = this.parent.transform.parent.Find("Camera");
+
+		if(cam == null)
+			this.camera = this.parent.transform.parent.gameObject;
+		else
+			this.camera = cam.gameObject;
+		
 		this.armature = this.animatorParent.transform.Find(AnimationLoader.GetArmatureName(controllerName));
 
 		if(parentEyeTrackers == null){

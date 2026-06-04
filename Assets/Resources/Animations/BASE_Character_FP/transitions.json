@@ -17,7 +17,7 @@
 			        "parameterType": "bool"
 			    },
 			    {
-			        "mode": "if",
+			        "mode": "if not",
 			        "parameter": "Sheathed",
 			        "parameterType": "bool"
 			    }

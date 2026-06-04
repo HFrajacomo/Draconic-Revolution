@@ -607,7 +607,7 @@
 			"interruptionSource": "none"
 		},
 		{
-			"layer": "Bottom",
+			"layer": "Full Torso",
 			"sourceState": "On Air",
 			"destinationState": "Empty",
 			"hasExitTime": false,

@@ -80,7 +80,7 @@ public class PlayerMovement : MonoBehaviour
 
             this.movementOrchestrator.UpdateFOV(this.cl.playerRaycast.playerCamera, this.runMomentumBoost);
 
-            this.playerActionController.VerifyMovement(this.transform.forward, this.direction, this.runMomentumBoost/this.movementOrchestrator.GetMaxRunningMomentum(), Mathf.Clamp(this.gravityMomentum/15f, -1f, 1f), (MovementFlags)this.flags);
+            this.playerActionController.VerifyMovement(this.transform.forward, this.direction, this.runMomentumBoost/this.movementOrchestrator.GetMaxRunningMomentum(), Mathf.Clamp(this.gravityMomentum/15f, -5f, 5f), (MovementFlags)this.flags);
         }
         else{
             this.direction = Vector3.zero;

@@ -6,4 +6,6 @@ public struct AnimationData {
 		this.name = n;
 		this.layer = l;
 	}
+
+	public override string ToString(){return $"State: {this.name} -- Layer: {this.layer}";}
 }

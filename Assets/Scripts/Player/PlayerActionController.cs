@@ -206,6 +206,8 @@ public class PlayerActionController : MonoBehaviour {
 			pmt = PlayerMovementType.STILL_AGGRO;
 		else if(Mathf.Abs(angle) >= 180)
 			pmt = PlayerMovementType.BACKWARD;
+		else if(Mathf.Abs(angle) <= 50 && this.weaponSheathed)
+			pmt = PlayerMovementType.FORWARD_SHEATHED;
 		else if(Mathf.Abs(angle) <= 50)
 			pmt = PlayerMovementType.FORWARD;
 		else if(angle > 0)
@@ -232,7 +234,6 @@ public class PlayerActionController : MonoBehaviour {
 		for(int i = statesPlayed.Count - 1; i >= 0; i--){
 			this.animationLayerMessage.SendAnimationLayer(Configurations.accountID, statesPlayed[i]);
 			this.cl.client.Send(this.animationLayerMessage);
-
 			statesPlayed.RemoveAt(i);
 		} 
 	}
@@ -278,6 +279,9 @@ public class PlayerActionController : MonoBehaviour {
 				break;
 			case PlayerMovementType.FORWARD:
 				AddToPlaylist("Moving Forward", igFP:!isRunning);
+				break;
+			case PlayerMovementType.FORWARD_SHEATHED:
+				AddToPlaylist("Moving Forward", igFP:true);
 				break;
 			case PlayerMovementType.BACKWARD:
 				AddToPlaylist("Walk Backward", igFP:!isRunning);

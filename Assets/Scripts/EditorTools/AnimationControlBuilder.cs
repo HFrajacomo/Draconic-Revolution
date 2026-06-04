@@ -124,7 +124,6 @@ public static class AnimationControlBuilder {
 
 			for(int i=0; i < transitionSettings[controllerName].Length; i++){
 				AnimationTransitionSettings ats = transitionSettings[controllerName][i];
-				Debug.Log($"Controller: {controllerName} -- State: {ats.destinationState}");
 				AnimatorState destinationState = states[new StateLayerKey(controllerName, ats.layer, ats.destinationState)];
 				AnimatorStateTransition finalTransition;
 

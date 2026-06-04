@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 
 public class CharacterBuilder{
 	private GameObject parent;
+	private GameObject cam;
 	private GameObject thirdPersonRig;
 	private GameObject firstPersonRig;
 	private GameObject tpAnimGO;
@@ -20,8 +21,6 @@ public class CharacterBuilder{
 
 	private GameObject tpModelRoot;
 	private GameObject fpModelRoot;
-
-	private RotationTowardsTarget fpRotation;
 
 	private BoneRenderer boneRenderer;
 	private CharacterAppearance appearance;
@@ -70,6 +69,7 @@ public class CharacterBuilder{
 			EMPTY_OBJECT_PREFAB = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
 		this.parent = par;
+		this.cam = this.parent.transform.Find("Camera").gameObject;
 		this.isMale = isMale;
 		this.isPlayer = isPlayerCharacter;
 		this.appearance = app;
@@ -95,7 +95,8 @@ public class CharacterBuilder{
 		dragonHornMaterial = dragonhorn;
 
 		if(this.isPlayer){
-			this.firstPersonRig = SetupNewGO("FP-Rig", this.parent.transform);
+			this.firstPersonRig = SetupNewGO("FP-Rig", this.cam.transform);
+			this.firstPersonRig.transform.localPosition = new Vector3(0, -3.8f, 0);
 			this.fpAnimGO = SetupNewGO("Animator", this.firstPersonRig.transform);
 			this.fpModelRoot = SetupNewGO("Model", this.fpAnimGO.transform);
 
@@ -103,7 +104,6 @@ public class CharacterBuilder{
 			
 			this.fpArmature = ModelHandler.GetArmature(rotated:true);
 			this.fpArmature.transform.SetParent(this.fpAnimGO.transform);
-			this.fpRotation = this.fpAnimGO.AddComponent<RotationTowardsTarget>();
 
 			this.firstPersonRig.layer = 12;
 			this.fpModelRoot.layer = 12;
@@ -199,6 +199,8 @@ public class CharacterBuilder{
         // First Person Model
         if(this.isPlayer){
     		Transform[] newBonesFP = ModelHandler.GetArmatureBones(this.fpArmature.transform, BONE_MAP);
+    		Bounds bounds = this.fpRenderer.localBounds;
+    		bounds.Expand(Vector3.one);
 
         	modelRenderer = ModelHandler.GetModelByCode(ModelType.CLOTHES, this.appearance.torso.code).GetComponent<SkinnedMeshRenderer>();
         	this.fpRenderer.sharedMesh = modelRenderer.sharedMesh;
@@ -212,7 +214,7 @@ public class CharacterBuilder{
 
         	this.fpRenderer.materials = mats.ToArray();
         	this.fpRenderer.shadowCastingMode = ShadowCastingMode.Off;
-
+        	this.fpRenderer.localBounds = bounds;
     	}
 
 		BuildMesh(combinedMesh);
@@ -224,10 +226,6 @@ public class CharacterBuilder{
 		this.tpRenderer.gameObject.AddComponent<ShapeKeyAnimator>();
 
 		this.meshMat.Clear();
-	}
-
-	public void SetFirstPersonRotation(ProceduralAnimationRigController rigControllerFP){
-		this.fpRotation.Setup(rigControllerFP.GetCamera().transform);
 	}
 
 	private GameObject SetupNewGO(string name, Transform parent){
