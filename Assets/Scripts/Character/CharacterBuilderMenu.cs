@@ -64,7 +64,10 @@ public class CharacterBuilderMenu{
 
 		if(smr == null)
 			return 1;
-			
+		
+		if(type == ModelType.FACE)
+			return smr.materials.Length + 1;
+
 		return smr.materials.Length;
 	}
 

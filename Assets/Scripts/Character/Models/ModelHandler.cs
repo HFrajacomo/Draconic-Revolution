@@ -14,6 +14,9 @@ public static class ModelHandler{
 	private static BiMap<ushort, string> hairMap = new BiMap<ushort, string>();
 	private static BiMap<ushort, string> addonMap = new BiMap<ushort, string>();
 	private static BiMap<ushort, string> essentialsMap = new BiMap<ushort, string>();
+	private static Dictionary<ushort, Texture2D> faceTextureMap = new Dictionary<ushort, Texture2D>();
+
+	private static Texture2D dragonlingScales;
 
 	private static readonly string ASSET_BUNDLE_RESPATH = "CharacterModels/characters";
 	private static readonly string CLOTHES_DB = "CharacterModels/clothes_db";
@@ -24,6 +27,7 @@ public static class ModelHandler{
 	private static readonly string FACE_DB = "CharacterModels/faces_db";
 	private static readonly string ADDONS_DB = "CharacterModels/addons_db";
 	private static readonly string ESSENTIALS_DB = "CharacterModels/essentials_db";
+	private static readonly string FACE_TEXTURE_DIR = "CharacterModels/FaceTextures/";
 	private static readonly string ARMATURE = "CharacterArmature";
 
 	private static readonly Quaternion ROTATION = Quaternion.Euler(0, -90, 0);
@@ -60,6 +64,37 @@ public static class ModelHandler{
 		mesh.GetVertices(verts);
 
 		return verts;
+	}
+
+	public static Texture2D GetFaceTexture(ushort code){
+		if(!faceTextureMap.ContainsKey(code)){
+			Texture2D tex = Resources.Load<Texture2D>($"{FACE_TEXTURE_DIR}/{GetModelInfo(ModelType.FACE, faceMap.Get(code)).faceTextureImage}");
+
+			if(tex == null){
+				Debug.LogError($"[ModelHandler] Failed to load face texture: {FACE_TEXTURE_DIR}/{GetModelInfo(ModelType.FACE, faceMap.Get(code)).faceTextureImage}\n Code: {code} -- Name: {faceMap.Get(code)}");
+				return Texture2D.blackTexture;
+			}
+
+			faceTextureMap.Add(code, tex);
+		}
+
+		return faceTextureMap[code];
+	}
+	public static Texture2D GetFaceTexture(string name){return GetFaceTexture(faceMap.Get(name));}
+
+	public static Texture2D GetDragonlingScales(){
+		if(dragonlingScales == null){
+			Texture2D tex = Resources.Load<Texture2D>($"{FACE_TEXTURE_DIR}/dragon_scales");
+
+			if(tex == null){
+				Debug.LogError($"[ModelHandler] Failed to load face texture: {FACE_TEXTURE_DIR}/dragon_scales}");
+				return Texture2D.whiteTexture;
+			}
+
+			dragonlingScales = tex;
+		}
+
+		return dragonlingScales;
 	}
 
 	public static bool HasModel(ModelType type, string name){
@@ -269,10 +304,16 @@ public static class ModelHandler{
 
 			if(lineElements.Length < 4)
 				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0]));
-			else if(lineElements.Length == 4)
-				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0]));
-			else
-				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0], lineElements[4][0]));
+			else if(lineElements.Length == 4){
+				if(lineElements[3].Length == 1)
+					models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0]));
+				else
+					models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3]));
+
+			}
+			else{
+				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0], lineElements[4][0]));	
+			}
 
 			switch(t){
 				case ModelType.CLOTHES:
