@@ -47,12 +47,7 @@ public class CharacterBuilderMenu{
 		FixArmature();
 		PutAddon(race, isMale);
 		AddEssential(race, isMale);
-		RefreshAnimations(isMale);
-	}
-
-	public void ChangeAnimationGender(RuntimeAnimatorController animation, bool isMale){
-		this.animator.runtimeAnimatorController = animation;
-		RefreshAnimations(isMale);
+		SetIdleStyle();
 	}
 
 	public GameObject Get(ModelType type){
@@ -93,7 +88,7 @@ public class CharacterBuilderMenu{
 	public void ChangeGender(Race race, bool isMale){
 		PutAddon(race, isMale);
 		AddEssential(race, isMale);
-		RefreshAnimations(isMale);
+		StartIdleAnimation();
 	}
 
 	public void Add(ModelType type, GameObject obj, string name, bool isReload=false){
@@ -200,6 +195,8 @@ public class CharacterBuilderMenu{
 		if(type == ModelType.FACE){
 			ShapeKeyAnimator skh = obj.AddComponent<ShapeKeyAnimator>();
 		}
+
+		StartIdleAnimation();
 	}
 
 	private void RefreshHairlineApply(){
@@ -261,6 +258,12 @@ public class CharacterBuilderMenu{
 			this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials = materials;	
 
 		this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials[0].SetColor("_Color", col);
+	}
+
+	public void StartIdleAnimation(){
+		this.animator.Rebind();
+		this.animator.Update(0f);
+		this.animator.Play("Idle");
 	}
 
 	private void ProcessHairMesh(SkinnedMeshRenderer hair){
@@ -532,7 +535,7 @@ public class CharacterBuilderMenu{
 		return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
 	}
 
-	private void RefreshAnimations(bool isMale){
+	private void SetIdleStyle(){
 		PlayerActionController.UseStyle(this.animator, "BASE_Idle");
 	}
 }

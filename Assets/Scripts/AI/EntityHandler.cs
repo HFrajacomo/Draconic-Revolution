@@ -124,6 +124,8 @@ public class EntityHandler
 		if(this.playerBattleStyle[code] == style)
 			return;
 
+		Debug.Log("Ran EntityHandler");
+
 		bool isMale = this.playerSheet[code].GetGender();
 		this.playerBattleStyle[code] = style;
 

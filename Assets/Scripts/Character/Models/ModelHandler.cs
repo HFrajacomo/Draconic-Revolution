@@ -27,7 +27,7 @@ public static class ModelHandler{
 	private static readonly string FACE_DB = "CharacterModels/faces_db";
 	private static readonly string ADDONS_DB = "CharacterModels/addons_db";
 	private static readonly string ESSENTIALS_DB = "CharacterModels/essentials_db";
-	private static readonly string FACE_TEXTURE_DIR = "CharacterModels/FaceTextures/";
+	private static readonly string FACE_TEXTURE_DIR = "CharacterModels/FaceTextures";
 	private static readonly string ARMATURE = "CharacterArmature";
 
 	private static readonly Quaternion ROTATION = Quaternion.Euler(0, -90, 0);
@@ -80,14 +80,19 @@ public static class ModelHandler{
 
 		return faceTextureMap[code];
 	}
-	public static Texture2D GetFaceTexture(string name){return GetFaceTexture(faceMap.Get(name));}
+	public static Texture2D GetFaceTexture(string name){
+		if(name == null)
+			return Texture2D.blackTexture;
+
+		return GetFaceTexture(faceMap.Get(name));
+	}
 
 	public static Texture2D GetDragonlingScales(){
 		if(dragonlingScales == null){
 			Texture2D tex = Resources.Load<Texture2D>($"{FACE_TEXTURE_DIR}/dragon_scales");
 
 			if(tex == null){
-				Debug.LogError($"[ModelHandler] Failed to load face texture: {FACE_TEXTURE_DIR}/dragon_scales}");
+				Debug.LogError($"[ModelHandler] Failed to load face texture: {FACE_TEXTURE_DIR}/dragon_scales");
 				return Texture2D.whiteTexture;
 			}
 

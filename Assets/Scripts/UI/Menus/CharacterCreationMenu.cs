@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -254,6 +255,7 @@ public class CharacterCreationMenu : Menu{
         else{
             ResetColors();
             LoadDefaultModel(isMale:this.selectedGenderIsMale);
+            this.characterBuilder.StartIdleAnimation();
         }
 
         ENABLED = true;
@@ -327,7 +329,6 @@ public class CharacterCreationMenu : Menu{
 
         LoadDefaultModel(isReload:true);
         this.characterBuilder.ChangeRace(Race.HUMAN, true);
-        this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character"), true);
         UpdateColorInAllModel();
     }
 
@@ -794,9 +795,7 @@ public class CharacterCreationMenu : Menu{
 
         LoadDefaultModel(isMale:this.selectedGenderIsMale, isReload:true);
         this.characterBuilder.ChangeGender(this.race, this.selectedGenderIsMale);
-
-        this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character"), this.selectedGenderIsMale);
-
+        this.characterBuilder.ChangeEssentialColor(this.skinColor, this.race);
 
         this.selectedDiv = ModelType.GENERAL;
         ToggleDiv(this.generalButton);
@@ -822,15 +821,15 @@ public class CharacterCreationMenu : Menu{
         // Setting Skin Material
         if(this.race != Race.DRAGONLING){
             this.skinMat = Instantiate(this.prefabPlainMat);
-            this.faceMat1.SetBool("_Dragonling", false);
-            this.faceMat2.SetBool("_Dragonling", false);
-            this.faceMat3.SetBool("_Dragonling", false);
+            this.faceMat1.SetInteger("_Dragonling", 0);
+            this.faceMat2.SetInteger("_Dragonling", 0);
+            this.faceMat3.SetInteger("_Dragonling", 0);
         }
         else{
             this.skinMat = Instantiate(this.dragonSkinMat);
-            this.faceMat1.SetBool("_Dragonling", true);
-            this.faceMat2.SetBool("_Dragonling", true);
-            this.faceMat3.SetBool("_Dragonling", true);
+            this.faceMat1.SetInteger("_Dragonling", 1);
+            this.faceMat2.SetInteger("_Dragonling", 1);
+            this.faceMat3.SetInteger("_Dragonling", 1);
         }
         
         SelectSkinPreset(this.defaultPreset);
@@ -1387,16 +1386,16 @@ public class CharacterCreationMenu : Menu{
             }
         }
         else if(this.selectedDiv == ModelType.FACE){
-            if(materials.Length > 1){
+            if(materials.Length > 0){
                 materials[0] = this.faceMat1;
                 materials[0].SetColor("_Color", this.faceColor1);
                 materials[0].SetColor("_SkinColor", this.skinColor);
             }
-            if(materials.Length > 2){
+            if(materials.Length > 1){
                 materials[1] = this.faceMat2;
                 materials[1].SetColor("_Color", this.faceColor2);
             }
-            if(materials.Length > 3){
+            if(materials.Length > 2){
                 materials[2] = this.faceMat3;
                 materials[2].SetColor("_Color", this.faceColor3);
             }
