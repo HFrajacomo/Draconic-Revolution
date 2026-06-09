@@ -821,15 +821,15 @@ public class CharacterCreationMenu : Menu{
         // Setting Skin Material
         if(this.race != Race.DRAGONLING){
             this.skinMat = Instantiate(this.prefabPlainMat);
-            this.faceMat1.SetInteger("_Dragonling", 0);
-            this.faceMat2.SetInteger("_Dragonling", 0);
-            this.faceMat3.SetInteger("_Dragonling", 0);
+            this.faceMat1.SetFloat("_Dragonling", 0f);
+            this.faceMat2.SetFloat("_Dragonling", 0f);
+            this.faceMat3.SetFloat("_Dragonling", 0f);
         }
         else{
             this.skinMat = Instantiate(this.dragonSkinMat);
-            this.faceMat1.SetInteger("_Dragonling", 1);
-            this.faceMat2.SetInteger("_Dragonling", 1);
-            this.faceMat3.SetInteger("_Dragonling", 1);
+            this.faceMat1.SetFloat("_Dragonling", 1f);
+            this.faceMat2.SetFloat("_Dragonling", 1f);
+            this.faceMat3.SetFloat("_Dragonling", 1f);
         }
         
         SelectSkinPreset(this.defaultPreset);

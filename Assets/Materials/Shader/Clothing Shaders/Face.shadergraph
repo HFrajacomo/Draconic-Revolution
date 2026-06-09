@@ -3094,7 +3094,7 @@
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Dragonling",
     "m_DefaultReferenceName": "_Dragonling",
-    "m_OverrideReferenceName": "Dragonling",
+    "m_OverrideReferenceName": "_Dragonling",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",

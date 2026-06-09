@@ -53,7 +53,7 @@ public class CharacterBuilder{
 	// Materials
 	private static Material plainClothingMaterial;
 	private static Material dragonSkinMaterial;
-	private static Material eyeMaterial;
+	private static Material faceMaterial;
 	private static Material dragonHornMaterial;
 
 	// Settings
@@ -64,7 +64,7 @@ public class CharacterBuilder{
 	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
 
 
-	public CharacterBuilder(GameObject par, RuntimeAnimatorController tpAnimations, RuntimeAnimatorController fpAnimations, CharacterAppearance app, Material clothing, Material dragonhorn, Material dragonskin, Material eye, bool isMale, bool isPlayerCharacter){
+	public CharacterBuilder(GameObject par, RuntimeAnimatorController tpAnimations, RuntimeAnimatorController fpAnimations, CharacterAppearance app, Material clothing, Material dragonhorn, Material dragonskin, Material face, bool isMale, bool isPlayerCharacter){
 		if(EMPTY_OBJECT_PREFAB == null)
 			EMPTY_OBJECT_PREFAB = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
@@ -91,7 +91,7 @@ public class CharacterBuilder{
 
 		plainClothingMaterial = clothing;
 		dragonSkinMaterial = dragonskin;
-		eyeMaterial = eye;
+		faceMaterial = face;
 		dragonHornMaterial = dragonhorn;
 
 		if(this.isPlayer){
@@ -433,44 +433,43 @@ public class CharacterBuilder{
 				newMaterial = Material.Instantiate(dragonHornMaterial);
 				return newMaterial;
 			}
-			else if(r == Race.DRAGONLING)
+			else if(type == ModelType.FACE){
+				newMaterial = Material.Instantiate(faceMaterial);
+		        newMaterial.SetTexture("_FaceTexture", ModelHandler.GetFaceTexture(info.code));
+				newMaterial.SetColor("_SkinColor", skin);
+				newMaterial.SetColor("_Color", info.primary);
+
+		        if(r == Race.DRAGONLING)
+		        	newMaterial.SetFloat("_Dragonling", 1f);
+		        else
+		        	newMaterial.SetFloat("_Dragonling", 0f);
+		        return newMaterial;
+			}
+			else if(r == Race.DRAGONLING){
 				newMaterial = Material.Instantiate(dragonSkinMaterial);
-			else
+			}
+			else{
 				newMaterial = Material.Instantiate(plainClothingMaterial);
+			}
 
 			newMaterial.SetColor("_Color", skin);
 			return newMaterial;
 		}
 		else if(index == 1){
-			if(type == ModelType.FACE){
-				newMaterial = Material.Instantiate(eyeMaterial);
-				newMaterial.SetColor("_Color", info.primary);
-				newMaterial.SetColor("_IrisColor", info.secondary);
-			}
-			else{
-				newMaterial = Material.Instantiate(plainClothingMaterial);
-				newMaterial.SetColor("_Color", info.primary);
-			}
+			newMaterial = Material.Instantiate(plainClothingMaterial);
+			newMaterial.SetColor("_Color", info.primary);
 
 			return newMaterial;
 		}
 		else if(index == 2){
 			newMaterial = Material.Instantiate(plainClothingMaterial);
-
-			if(type != ModelType.FACE)
-				newMaterial.SetColor("_Color", info.secondary);
-			else
-				newMaterial.SetColor("_Color", info.terciary);
+			newMaterial.SetColor("_Color", info.secondary);
 
 			return newMaterial;
 		}
 		else if(index == 3){
 			newMaterial = Material.Instantiate(plainClothingMaterial);
-
-			if(type != ModelType.FACE)
-				newMaterial.SetColor("_Color", info.terciary);
-			else
-				newMaterial.SetColor("_Color", Color.white);
+			newMaterial.SetColor("_Color", info.terciary);
 
 			return newMaterial;
 		}
