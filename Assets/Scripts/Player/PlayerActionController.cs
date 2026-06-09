@@ -196,10 +196,12 @@ public class PlayerActionController : MonoBehaviour {
 
 		SendAnimatorValue("Run", runMomentum);
 
-		//this.animationHandler.Test();
-
-		if(!flags.isGrounded)
+		if(!flags.isGrounded && this.weaponSheathed)
 			pmt = PlayerMovementType.AIR;
+		else if(!flags.isGrounded && !this.weaponSheathed && Mathf.Abs(angle) <= 50)
+			pmt = PlayerMovementType.AIR_AGGRO_FORWARD;
+		else if(!flags.isGrounded && !this.weaponSheathed)
+			pmt = PlayerMovementType.AIR_AGGRO;
 		else if(movementDirection.magnitude == 0 && this.weaponSheathed)
 			pmt = PlayerMovementType.STILL;
 		else if(movementDirection.magnitude == 0 && !this.weaponSheathed)
@@ -294,6 +296,13 @@ public class PlayerActionController : MonoBehaviour {
 				break;
 			case PlayerMovementType.AIR:
 				AddToPlaylist("On Air");
+				break;
+			case PlayerMovementType.AIR_AGGRO:
+				AddToPlaylist("Idle Hand");
+				break;
+			case PlayerMovementType.AIR_AGGRO_FORWARD:
+				AddToPlaylist("Idle Hand", igFP:true);
+				AddToPlaylist("Moving Forward", igFP:true);
 				break;
 			default:
 				break;
