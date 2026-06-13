@@ -106,6 +106,12 @@ public class CharacterBuilderMenu{
 			obj.transform.localPosition = Vector3.zero;
 			obj.transform.localScale = Vector3.one;
 			obj.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+
+			if(type == ModelType.HEADGEAR){
+				this.hairlinePlane.valid = false;
+				RefreshHairlineApply();
+			}
+
 			return;
 		}
 
