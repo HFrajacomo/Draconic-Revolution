@@ -232,7 +232,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Game Save DB Compression|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Unity Burst Optimizations|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Dedicated and Local Multiplayer|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:warning:
-|Voxel Lighting Engine|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Voxel Lighting Engine|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Inventory and Items|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
 |Voxel Textures|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Normal Map Support|Art| Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
@@ -250,7 +250,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Storage Voxels|Core|Alpha|:heavy_check_mark:|:soon:|:x:|:x:
 |Character Models|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Character Rigging|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
-|Basic Animations|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:soon:
+|Basic Animations|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Weapon Animations|3D|Alpha|:x:|:x:|:x:|:x:
 |Basic Enemy Models|3D|Alpha|:x:|:x:|:x:|:x:|
 |Basic AI|AI|Alpha|:heavy_check_mark:|:soon:|:soon:|:x:
