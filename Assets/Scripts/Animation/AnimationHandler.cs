@@ -32,14 +32,12 @@ public class AnimationHandler : MonoBehaviour {
 		this.rigControllerTP.Build();
 
 		if(this.isPlayer){
-			Transform fpParent = this.transform.Find("FP-Rig");
+			Transform fpParent = this.transform.Find("Camera/FP-Rig");
 			Transform fpAnimObj = fpParent.Find("Animator");
 			
 			this.fpAnimator = fpAnimObj.GetComponent<Animator>();
 			this.rigControllerFP = new ProceduralAnimationRigController(fpParent.gameObject, fpAnimObj.gameObject, $"{controllerName}_FP");
 			this.rigControllerFP.Build();
-
-			SetFirstPersonRotation(firstPersonBuilder);
 		}
 
 		this.INIT = true;
@@ -235,8 +233,6 @@ public class AnimationHandler : MonoBehaviour {
 
 		return false;
 	}
-
-	private void SetFirstPersonRotation(CharacterBuilder builder){builder.SetFirstPersonRotation(rigControllerFP);}
 
 	private void LoadMapping(string controllerName){
 		if(AnimationHandler.stateMappings != null)

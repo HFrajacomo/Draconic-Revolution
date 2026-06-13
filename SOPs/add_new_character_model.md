@@ -10,7 +10,7 @@ This document is a tutorial and general reminder to anyone working in Draconic R
 
 - To correctly assign materials in Unity, objects in Blender need to have their VertexID ordered. To do that, Go in face selection in Edit Mode, select all faces and do "Mesh > Sort Elements > By Material > Face"
 
-- To be parented by the respective gender armature. Sometimes, automatic weights are bad and the solution might be simple. So using Empty Groups and weight painting is a big possibility in some models. Also, to completely de-parent an armature, you can delete all Vertex Groups assigned to the object.
+- To be parented by the respective armature. Sometimes, automatic weights are bad and the solution might be simple. So using Empty Groups and weight painting is a big possibility in some models. Also, to completely de-parent an armature, you can delete all Vertex Groups assigned to the object.
 
 - Be exported to fbx with only Armature and Meshes, Forward direction set to "Z Forward", "Apply Unit", "Use Space Transform" and "Apply Transform" checked on.
 
@@ -28,7 +28,7 @@ For face objects, we have 4 submeshes in Blender, but in Unity, since we have th
 Also, note that Faces have ShapeKeys that must be created!
 
 ## Hat Objects
-Hats are crazy different from other models. Their last vertex group is called the "Hairline". The hairline exists in every hat and is a 4-verts plane. In Unity, everything hair vert on the normal side of the plane gets squashed back next to the plane. This exists to make the hair "acommodate" itself in the hat. In Draconic Revolution, all the processing to manipulate hair is already done and the hairline submesh is removed after processing. So technically, you can have up to 5 materials in a Hat in Blender.
+Hats are crazy different from other models. Their last vertex group is called the "Hairline". The hairline exists in every hat and is a 4-verts plane. In Unity, every hair vert on the normal side of the plane gets squashed back next to the plane. This exists to make the hair "acommodate" itself in the hat. In Draconic Revolution, all the processing to manipulate hair is already done and the hairline submesh is removed after processing. So technically, you can have up to 5 materials in a Hat in Blender.
 
 ## Armature and Animation
 Any changes to armature, even in Rest Pose, must have its animations exported and replaced in Unity's AnimationController. Or else, we'll get a misalignment in Bind Poses, which deforms models wrong, creating visible seams.

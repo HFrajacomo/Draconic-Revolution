@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -78,7 +79,7 @@ public class CharacterCreationMenu : Menu{
     [Header("Materials")]
     public Material prefabPlainMat;
     public Material dragonSkinMat;
-    public Material eyeIrisMat;
+    public Material faceMat;
     public Material dragonlingHornMat;
     private Material skinMat;
     private Material clothesMat1;
@@ -254,6 +255,7 @@ public class CharacterCreationMenu : Menu{
         else{
             ResetColors();
             LoadDefaultModel(isMale:this.selectedGenderIsMale);
+            this.characterBuilder.StartIdleAnimation();
         }
 
         ENABLED = true;
@@ -270,7 +272,7 @@ public class CharacterCreationMenu : Menu{
         this.nameInput.GetComponent<Image>().material = matField;
 
         if(!INIT){
-            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, AnimationLoader.GetController("BASE_Character_Man"), Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat), Instantiate(this.dragonSkinMat)}, isMale:true);
+            this.characterBuilder = new CharacterBuilderMenu(this.playerObject, AnimationLoader.GetController("BASE_Character"), Race.HUMAN, new Material[]{Instantiate(this.prefabPlainMat), Instantiate(this.dragonlingHornMat), Instantiate(this.dragonSkinMat), Instantiate(this.faceMat)}, isMale:true);
 
             this.selectedGenderItem = this.defaultGender;
             this.selectedGenderItem.GetComponentInChildren<Text>().color = this.selectedColor;
@@ -327,7 +329,6 @@ public class CharacterCreationMenu : Menu{
 
         LoadDefaultModel(isReload:true);
         this.characterBuilder.ChangeRace(Race.HUMAN, true);
-        this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character_Man"), true);
         UpdateColorInAllModel();
     }
 
@@ -439,7 +440,7 @@ public class CharacterCreationMenu : Menu{
         GameObject loadedModel;
 
         if(isReload){
-            this.characterBuilder.ChangeArmature(this.selectedGenderIsMale);
+            this.characterBuilder.ChangeArmature();
         }
 
         if(isMale){
@@ -794,11 +795,7 @@ public class CharacterCreationMenu : Menu{
 
         LoadDefaultModel(isMale:this.selectedGenderIsMale, isReload:true);
         this.characterBuilder.ChangeGender(this.race, this.selectedGenderIsMale);
-
-        if(this.selectedGenderIsMale)
-            this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character_Man"), true);
-        else
-            this.characterBuilder.ChangeAnimationGender(AnimationLoader.GetController("BASE_Character_Woman"), false);
+        this.characterBuilder.ChangeEssentialColor(this.skinColor, this.race);
 
         this.selectedDiv = ModelType.GENERAL;
         ToggleDiv(this.generalButton);
@@ -822,10 +819,18 @@ public class CharacterCreationMenu : Menu{
         this.characterBuilder.ChangeRace(this.race, this.selectedGenderIsMale);
 
         // Setting Skin Material
-        if(this.race != Race.DRAGONLING)
+        if(this.race != Race.DRAGONLING){
             this.skinMat = Instantiate(this.prefabPlainMat);
-        else
+            this.faceMat1.SetFloat("_Dragonling", 0f);
+            this.faceMat2.SetFloat("_Dragonling", 0f);
+            this.faceMat3.SetFloat("_Dragonling", 0f);
+        }
+        else{
             this.skinMat = Instantiate(this.dragonSkinMat);
+            this.faceMat1.SetFloat("_Dragonling", 1f);
+            this.faceMat2.SetFloat("_Dragonling", 1f);
+            this.faceMat3.SetFloat("_Dragonling", 1f);
+        }
         
         SelectSkinPreset(this.defaultPreset);
 
@@ -1319,6 +1324,11 @@ public class CharacterCreationMenu : Menu{
 
         Material[] materials = smr.materials;
 
+        if(this.selectedDiv != ModelType.FACE){
+            materials[0] = this.skinMat;
+            materials[0].SetColor("_Color", this.skinColor);
+        }
+
         if(this.selectedDiv == ModelType.CLOTHES){
             if(materials.Length > 1){
                 materials[1] = this.clothesMat1;
@@ -1376,18 +1386,18 @@ public class CharacterCreationMenu : Menu{
             }
         }
         else if(this.selectedDiv == ModelType.FACE){
+            if(materials.Length > 0){
+                materials[0] = this.faceMat1;
+                materials[0].SetColor("_Color", this.faceColor1);
+                materials[0].SetColor("_SkinColor", this.skinColor);
+            }
             if(materials.Length > 1){
-                materials[1] = this.faceMat1;
-                materials[1].SetColor("_Color", this.faceColor1);
-                materials[1].SetColor("_IrisColor", this.faceColor2);
+                materials[1] = this.faceMat2;
+                materials[1].SetColor("_Color", this.faceColor2);
             }
             if(materials.Length > 2){
-                materials[2] = this.faceMat2;
+                materials[2] = this.faceMat3;
                 materials[2].SetColor("_Color", this.faceColor3);
-            }
-            if(materials.Length > 3){
-                materials[3] = this.faceMat3;
-                materials[3].SetColor("_Color", Color.white);
             }
         }
         else if(this.selectedDiv == ModelType.HAIR){
@@ -1404,9 +1414,6 @@ public class CharacterCreationMenu : Menu{
                 materials[3].SetColor("_Color", this.hairColor3);
             }
         }
-
-        materials[0] = this.skinMat;
-        materials[0].SetColor("_Color", this.skinColor);
 
         this.characterBuilder.ChangeAddonColor(this.skinColor, this.race);
         this.characterBuilder.ChangeEssentialColor(this.skinColor, this.race);
@@ -1435,9 +1442,9 @@ public class CharacterCreationMenu : Menu{
         this.hairMat1 = Instantiate(this.prefabPlainMat);
         this.hairMat2 = Instantiate(this.prefabPlainMat);
         this.hairMat3 = Instantiate(this.prefabPlainMat);
-        this.faceMat1 = Instantiate(this.eyeIrisMat);
-        this.faceMat2 = Instantiate(this.prefabPlainMat);
-        this.faceMat3 = Instantiate(this.prefabPlainMat);
+        this.faceMat1 = Instantiate(this.faceMat);
+        this.faceMat2 = Instantiate(this.faceMat);
+        this.faceMat3 = Instantiate(this.faceMat);
 
         this.skinColor = this.skinColorGradient.color2;
         this.clothesColor1 = new Color(.57f, .55f, .275f);
@@ -1476,8 +1483,12 @@ public class CharacterCreationMenu : Menu{
         this.hairMat2.SetColor("_Color", this.hairColor2);
         this.hairMat3.SetColor("_Color", this.hairColor3);
         this.faceMat1.SetColor("_Color", this.faceColor1);
-        this.faceMat1.SetColor("_IrisColor", this.faceColor2);
-        this.faceMat2.SetColor("_Color", this.faceColor3);
-        this.faceMat3.SetColor("_Color", Color.white);
+        this.faceMat1.SetColor("_SkinColor", this.skinColor);
+        this.faceMat2.SetColor("_Color", this.faceColor2);
+        this.faceMat3.SetColor("_Color", this.faceColor3);
+        this.faceMat1.SetTexture("_FaceTexture", ModelHandler.GetFaceTexture(this.selectedFace));
+        this.faceMat2.SetTexture("_FaceTexture", ModelHandler.GetFaceTexture(this.selectedFace));
+        this.faceMat3.SetTexture("_FaceTexture", ModelHandler.GetFaceTexture(this.selectedFace));
+        this.faceMat1.SetTexture("_DragonScales", ModelHandler.GetDragonlingScales());
     }
 }

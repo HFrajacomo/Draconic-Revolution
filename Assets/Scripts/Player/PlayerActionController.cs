@@ -196,16 +196,20 @@ public class PlayerActionController : MonoBehaviour {
 
 		SendAnimatorValue("Run", runMomentum);
 
-		//this.animationHandler.Test();
-
-		if(!flags.isGrounded)
+		if(!flags.isGrounded && this.weaponSheathed)
 			pmt = PlayerMovementType.AIR;
+		else if(!flags.isGrounded && !this.weaponSheathed && Mathf.Abs(angle) <= 50)
+			pmt = PlayerMovementType.AIR_AGGRO_FORWARD;
+		else if(!flags.isGrounded && !this.weaponSheathed)
+			pmt = PlayerMovementType.AIR_AGGRO;
 		else if(movementDirection.magnitude == 0 && this.weaponSheathed)
 			pmt = PlayerMovementType.STILL;
 		else if(movementDirection.magnitude == 0 && !this.weaponSheathed)
 			pmt = PlayerMovementType.STILL_AGGRO;
 		else if(Mathf.Abs(angle) >= 180)
 			pmt = PlayerMovementType.BACKWARD;
+		else if(Mathf.Abs(angle) <= 50 && this.weaponSheathed)
+			pmt = PlayerMovementType.FORWARD_SHEATHED;
 		else if(Mathf.Abs(angle) <= 50)
 			pmt = PlayerMovementType.FORWARD;
 		else if(angle > 0)
@@ -222,12 +226,7 @@ public class PlayerActionController : MonoBehaviour {
 	public static void RegisterClientMessage(AnimationData data){PlayerActionController.statesPlayed.Insert(0, data);}
 
 	// Used only in Menu
-	public static void UseStyle(Animator animator, string styleName, bool isMale){
-		if(isMale)
-			styleName = $"{styleName}-Man";
-		else
-			styleName = $"{styleName}-Woman";
-
+	public static void UseStyle(Animator animator, string styleName){
 		AnimatorOverrideController animationOverrideController = new AnimatorOverrideController(animator.runtimeAnimatorController);
 		animationOverrideController = ApplyOverrides(animationOverrideController, AnimationLoader.GetBattleStyle(styleName).GetOverrides());
 		animator.runtimeAnimatorController = animationOverrideController;
@@ -237,7 +236,6 @@ public class PlayerActionController : MonoBehaviour {
 		for(int i = statesPlayed.Count - 1; i >= 0; i--){
 			this.animationLayerMessage.SendAnimationLayer(Configurations.accountID, statesPlayed[i]);
 			this.cl.client.Send(this.animationLayerMessage);
-
 			statesPlayed.RemoveAt(i);
 		} 
 	}
@@ -284,6 +282,9 @@ public class PlayerActionController : MonoBehaviour {
 			case PlayerMovementType.FORWARD:
 				AddToPlaylist("Moving Forward", igFP:!isRunning);
 				break;
+			case PlayerMovementType.FORWARD_SHEATHED:
+				AddToPlaylist("Moving Forward", igFP:true);
+				break;
 			case PlayerMovementType.BACKWARD:
 				AddToPlaylist("Walk Backward", igFP:!isRunning);
 				break;
@@ -295,6 +296,13 @@ public class PlayerActionController : MonoBehaviour {
 				break;
 			case PlayerMovementType.AIR:
 				AddToPlaylist("On Air");
+				break;
+			case PlayerMovementType.AIR_AGGRO:
+				AddToPlaylist("Idle Hand");
+				break;
+			case PlayerMovementType.AIR_AGGRO_FORWARD:
+				AddToPlaylist("Idle Hand", igFP:true);
+				AddToPlaylist("Moving Forward", igFP:true);
 				break;
 			default:
 				break;

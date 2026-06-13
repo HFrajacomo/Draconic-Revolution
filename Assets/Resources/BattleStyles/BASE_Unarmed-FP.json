@@ -1,0 +1,55 @@
+{
+	"combo_hits": 3,
+	"overrides": {
+		"data": [
+			{
+				"state": "Idle Hand",
+				"clip": "CharacterArmature_Idle Hand-FP"
+			},
+			{
+				"state": "Moving Forward",
+				"clip": "CharacterArmature_Run Forward-FP"
+			},
+			{
+				"state": "Attack 1",
+				"clip": "CharacterArmature_Punch 1 - Normal-FP"
+			},
+			{
+				"state": "Attack 2",
+				"clip": "CharacterArmature_Punch 2 - Normal-FP"
+			},
+			{
+				"state": "Attack 3",
+				"clip": "CharacterArmature_Punch 3 - Normal-FP"
+			},
+			{
+				"state": "Attack 4",
+				"clip": ""
+			},
+			{
+				"state": "Attack 5",
+				"clip": ""
+			},
+			{
+				"state": "Attack 6",
+				"clip": ""
+			},
+			{
+				"state": "Attack 7",
+				"clip": ""
+			},
+			{
+				"state": "Attack 8",
+				"clip": ""
+			},
+			{
+				"state": "Attack 9",
+				"clip": ""
+			},
+			{
+				"state": "Attack 10",
+				"clip": ""
+			}
+		]
+	}
+}

@@ -1,0 +1,400 @@
+{
+	"data": [
+		{
+			"layer": "",
+			"sourceState": "Empty",
+			"destinationState": "Moving Forward",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.3,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "if",
+			        "parameter": "Run",
+			        "parameterType": "bool"
+			    },
+			    {
+			        "mode": "if not",
+			        "parameter": "Sheathed",
+			        "parameterType": "bool"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Empty",
+			"destinationState": "Idle Hand",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "if not",
+			        "parameter": "Sheathed",
+			        "parameterType": "bool"
+			    },
+			    {
+			        "mode": "if",
+			        "parameter": "IsGrounded",
+			        "parameterType": "bool"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Moving Forward",
+			"destinationState": "Idle Hand",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "if not",
+			        "parameter": "Run",
+			        "parameterType": "bool"
+			    },
+			    {
+			        "mode": "if not",
+			        "parameter": "Sheathed",
+			        "parameterType": "bool"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Moving Forward",
+			"destinationState": "Empty",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "if not",
+			        "parameter": "Run",
+			        "parameterType": "bool"
+			    },
+			    {
+			        "mode": "if",
+			        "parameter": "Sheathed",
+			        "parameterType": "bool"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Idle Hand",
+			"destinationState": "Moving Forward",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "if",
+			        "parameter": "Run",
+			        "parameterType": "bool"
+			    },
+			    {
+			        "mode": "if not",
+			        "parameter": "Sheathed",
+			        "parameterType": "bool"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 1",
+			"destinationState": "Attack 2",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "equals",
+			        "threshold": 2,
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 2",
+			"destinationState": "Attack 3",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "equals",
+			        "threshold": 3,
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 3",
+			"destinationState": "Attack 4",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "equals",
+			        "threshold": 4,
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 4",
+			"destinationState": "Attack 5",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "equals",
+			        "threshold": 5,
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 5",
+			"destinationState": "Attack 6",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "equals",
+			        "threshold": 6,
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 6",
+			"destinationState": "Attack 7",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "equals",
+			        "threshold": 7,
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 7",
+			"destinationState": "Attack 8",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "equals",
+			        "threshold": 8,
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 8",
+			"destinationState": "Attack 9",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "equals",
+			        "threshold": 9,
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 9",
+			"destinationState": "Attack 10",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "equals",
+			        "threshold": 10,
+			        "parameter": "Attack_Combo",
+			        "parameterType": "int"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 1",
+			"destinationState": "Idle Hand",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 2",
+			"destinationState": "Idle Hand",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 3",
+			"destinationState": "Idle Hand",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 4",
+			"destinationState": "Idle Hand",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 5",
+			"destinationState": "Idle Hand",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 6",
+			"destinationState": "Idle Hand",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 7",
+			"destinationState": "Idle Hand",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 8",
+			"destinationState": "Idle Hand",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 9",
+			"destinationState": "Idle Hand",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Attack 10",
+			"destinationState": "Idle Hand",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		}
+	]
+}

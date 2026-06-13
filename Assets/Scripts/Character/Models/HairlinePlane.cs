@@ -51,6 +51,8 @@ public struct HairlinePlane{
 		return Vector3.Dot(this.planeNormal, input - this.planeMid) > 0;
 	}
 
+	public override string ToString(){return $"PlaneMid: {this.planeMid} -- Normal: {this.planeNormal} -- Valid: {this.valid}";}
+
 	public Vector3 GetClosestPoint(Vector3 input){
 		float offset = 0.04f;
 

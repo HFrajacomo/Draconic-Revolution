@@ -2,7 +2,10 @@ public enum PlayerMovementType : byte {
 	STILL,
 	STILL_AGGRO,
 	AIR,
+	AIR_AGGRO,
+	AIR_AGGRO_FORWARD,
 	FORWARD,
+	FORWARD_SHEATHED,
 	BACKWARD,
 	RIGHT,
 	LEFT

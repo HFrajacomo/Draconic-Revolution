@@ -24,8 +24,7 @@ public class EntityHandler
 	private int currentTogglingCounter;
 
 	private static readonly int MAX_COUNTER_VALUE = 4;
-	private static RuntimeAnimatorController BASE_MALE_CONTROLLER;
-	private static RuntimeAnimatorController BASE_FEMALE_CONTROLLER;
+	private static RuntimeAnimatorController BASE_CONTROLLER;
 
 
 	public EntityHandler(ChunkLoader cl){
@@ -40,8 +39,7 @@ public class EntityHandler
 		this.playerBattleStyle = new Dictionary<ulong, int>();
 		this.cl = cl;
 		this.playerModelHandler = cl.playerModelHandler;
-		BASE_MALE_CONTROLLER = AnimationLoader.GetController("BASE_Character_Man");
-		BASE_FEMALE_CONTROLLER = AnimationLoader.GetController("BASE_Character_Woman");
+		BASE_CONTROLLER = AnimationLoader.GetController("BASE_Character");
 	}
 
 	/*
@@ -126,16 +124,15 @@ public class EntityHandler
 		if(this.playerBattleStyle[code] == style)
 			return;
 
+		Debug.Log("Ran EntityHandler");
+
 		bool isMale = this.playerSheet[code].GetGender();
 		this.playerBattleStyle[code] = style;
 
 		BattleStyleData bsd = AnimationLoader.GetBattleStyle(style);
 		AnimatorOverrideController animationOverrideController;
 
-		if(isMale)
-			animationOverrideController = new AnimatorOverrideController(BASE_MALE_CONTROLLER);
-		else
-			animationOverrideController = new AnimatorOverrideController(BASE_FEMALE_CONTROLLER);
+		animationOverrideController = new AnimatorOverrideController(BASE_CONTROLLER);
 
 		animationOverrideController = ApplyOverrides(animationOverrideController, bsd.GetOverrides());
 

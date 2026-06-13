@@ -1,0 +1,42 @@
+{
+	"data": [
+		{
+			"rig_name": "spine_tracking",
+			"constrained_bone": "Hips/LowerTorso/UpperTorso",
+			"active_states": ["normal", "attack"],
+			"constrainedXAxis": true,
+			"constrainedYAxis": false,
+			"constrainedZAxis": false,
+			"maintain_offset": false,
+			"intensity": 0.5,
+			"limits": {
+				"x": 0,
+				"y": 50
+			},
+			"offset": {
+				"x": 0,
+				"y": 0,
+				"z": 0
+			}
+		},
+		{
+			"rig_name": "head_tracking",
+			"constrained_bone": "Hips/LowerTorso/UpperTorso/Neck",
+			"active_states": ["normal", "attack"],
+			"constrainedXAxis": true,
+			"constrainedYAxis": true,
+			"constrainedZAxis": false,
+			"maintain_offset": false,
+			"intensity": 0,
+			"limits": {
+				"x": -60,
+				"y": 60
+			},
+			"offset": {
+				"x": 0,
+				"y": 0,
+				"z": 0
+			}
+		}
+	]
+}

@@ -20,8 +20,7 @@ public class CharacterBuilderMenu{
 
 	// Settings
 	private static readonly int ROOT_BONE_INDEX = 0;
-	private static readonly string ARMATURE_NAME_MALE = "ManArmt";
-	private static readonly string ARMATURE_NAME_FEMALE = "WomanArmt";
+	private static readonly string ARMATURE_NAME = "CharacterArmature";
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
 	private static readonly Vector3 SCL_1 = new Vector3(100,100,100);
@@ -37,26 +36,18 @@ public class CharacterBuilderMenu{
 		this.animator.runtimeAnimatorController = animations;
 		this.bodyParts = new Dictionary<ModelType, GameObject>();
 		this.bodyPartName = new Dictionary<ModelType, string>();
-		this.armature = ModelHandler.GetArmature(isMale:isMale);
+		this.armature = ModelHandler.GetArmature();
 		this.armature.transform.SetParent(this.parent.transform);
 		this.addonMats = addonMats;
 
-		if(isMale)
-			this.armature.name = ARMATURE_NAME_MALE;
-		else
-			this.armature.name = ARMATURE_NAME_FEMALE;
+		this.armature.name = ARMATURE_NAME;
 
 		this.parent.transform.localScale = this.raceSettings.scaling * CHARACTER_CREATION_CHARACTER_SCALING;
 
-		FixArmature(isMale);
+		FixArmature();
 		PutAddon(race, isMale);
 		AddEssential(race, isMale);
-		RefreshAnimations(isMale);
-	}
-
-	public void ChangeAnimationGender(RuntimeAnimatorController animation, bool isMale){
-		this.animator.runtimeAnimatorController = animation;
-		RefreshAnimations(isMale);
+		SetIdleStyle();
 	}
 
 	public GameObject Get(ModelType type){
@@ -68,7 +59,10 @@ public class CharacterBuilderMenu{
 
 		if(smr == null)
 			return 1;
-			
+		
+		if(type == ModelType.FACE)
+			return smr.materials.Length + 1;
+
 		return smr.materials.Length;
 	}
 
@@ -77,19 +71,16 @@ public class CharacterBuilderMenu{
 
 		GameObject.DestroyImmediate(this.armature);
 
-		this.armature = ModelHandler.GetArmature(isMale:isMale);
+		this.armature = ModelHandler.GetArmature();
 
-		if(isMale)
-			this.armature.name = ARMATURE_NAME_MALE;
-		else
-			this.armature.name = ARMATURE_NAME_FEMALE;
+		this.armature.name = ARMATURE_NAME;
 
 		this.armature.transform.SetParent(this.parent.transform);
 
 		PutAddon(race, isMale, isReload:true);
 		AddEssential(race, isMale);
-		FixArmature(isMale);
-		ReloadModel(isMale);
+		FixArmature();
+		ReloadModel();
 		
 		this.animator.Rebind();
 	}
@@ -97,7 +88,7 @@ public class CharacterBuilderMenu{
 	public void ChangeGender(Race race, bool isMale){
 		PutAddon(race, isMale);
 		AddEssential(race, isMale);
-		RefreshAnimations(isMale);
+		StartIdleAnimation();
 	}
 
 	public void Add(ModelType type, GameObject obj, string name, bool isReload=false){
@@ -115,6 +106,12 @@ public class CharacterBuilderMenu{
 			obj.transform.localPosition = Vector3.zero;
 			obj.transform.localScale = Vector3.one;
 			obj.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+
+			if(type == ModelType.HEADGEAR){
+				this.hairlinePlane.valid = false;
+				RefreshHairlineApply();
+			}
+
 			return;
 		}
 
@@ -186,7 +183,7 @@ public class CharacterBuilderMenu{
 		// Hide hair options
 		if(type == ModelType.HAIR){
 			if(this.bodyParts.ContainsKey(ModelType.HAIR) && this.bodyParts.ContainsKey(ModelType.HEADGEAR)){
-				if(ModelHandler.HasModel(ModelType.HAIR, this.bodyPartName[ModelType.HAIR]) && ModelHandler.HasModel(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR])){
+				if(ModelHandler.HasModel(ModelType.HAIR, this.bodyPartName[ModelType.HAIR])){
 					char hatSKCode = ModelHandler.GetHatCover(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR]);
 
 					if(hatSKCode == 'N'){ // If covers hair
@@ -204,6 +201,8 @@ public class CharacterBuilderMenu{
 		if(type == ModelType.FACE){
 			ShapeKeyAnimator skh = obj.AddComponent<ShapeKeyAnimator>();
 		}
+
+		StartIdleAnimation();
 	}
 
 	private void RefreshHairlineApply(){
@@ -229,25 +228,8 @@ public class CharacterBuilderMenu{
 		return aux;
 	}
 
-	public void ChangeArmature(bool isMale){
-		if(this.armature != null){
-			GameObject.DestroyImmediate(this.armature);
-
-			if(BONE_MAP != null)
-				BONE_MAP.Clear();
-			
-			BONE_MAP = null;
-		}
-
-		this.armature = ModelHandler.GetArmature(isMale:isMale);
-		this.armature.transform.SetParent(this.parent.transform);
-
-		if(isMale)
-			this.armature.name = ARMATURE_NAME_MALE;
-		else
-			this.armature.name = ARMATURE_NAME_FEMALE;
-
-		FixArmature(isMale);
+	public void ChangeArmature(){
+		FixArmature();
 		this.animator.Rebind();
 	}
 
@@ -282,6 +264,12 @@ public class CharacterBuilderMenu{
 			this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials = materials;	
 
 		this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials[0].SetColor("_Color", col);
+	}
+
+	public void StartIdleAnimation(){
+		this.animator.Rebind();
+		this.animator.Update(0f);
+		this.animator.Play("Idle");
 	}
 
 	private void ProcessHairMesh(SkinnedMeshRenderer hair){
@@ -343,12 +331,20 @@ public class CharacterBuilderMenu{
 			GameObject.DestroyImmediate(this.bodyParts[ModelType.ESSENTIAL]);
 		}
 
-		this.bodyPartName[ModelType.ESSENTIAL] = GetEssentialName(isMale);
+		if(isMale)
+			this.bodyPartName[ModelType.ESSENTIAL] = "Base_Head/M";
+		else
+			this.bodyPartName[ModelType.ESSENTIAL] = "Base_Head/F";
 
 		if(isReload)
 			return;
 
-		GameObject obj = ModelHandler.GetModelObject(ModelType.ESSENTIAL, GetEssentialName(isMale));
+		GameObject obj;
+
+		if(isMale)
+			obj = ModelHandler.GetModelObject(ModelType.ESSENTIAL, "Base_Head/M");
+		else
+			obj = ModelHandler.GetModelObject(ModelType.ESSENTIAL, "Base_Head/F");
 
 		obj.transform.SetParent(this.parent.transform);
 		obj.transform.localScale = this.raceSettings.scaling;
@@ -463,14 +459,8 @@ public class CharacterBuilderMenu{
 		}
 	}
 
-	private string GetEssentialName(bool isMale){
-		if(isMale)
-			return "Base_Head/M";
-		return "Base_Head/F";
-	}
-
-	private void ReloadModel(bool isMale){
-		ChangeArmature(isMale);
+	private void ReloadModel(){
+		ChangeArmature();
 
 		foreach(ModelType type in this.bodyPartName.Keys){
 			Add(type, ModelHandler.GetModelObject(type, this.bodyPartName[type]), this.bodyPartName[type], isReload:true);
@@ -485,7 +475,7 @@ public class CharacterBuilderMenu{
 		}
 	}
 
-	private void FixArmature(bool isMale){
+	private void FixArmature(){
 		this.parent.transform.localScale = this.raceSettings.scaling * CHARACTER_CREATION_CHARACTER_SCALING;
 		this.armature.transform.localScale = SCL_1;
 		this.armature.transform.eulerAngles = ROT_1;
@@ -551,7 +541,7 @@ public class CharacterBuilderMenu{
 		return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
 	}
 
-	private void RefreshAnimations(bool isMale){
-		PlayerActionController.UseStyle(this.animator, "BASE_Idle", isMale);
+	private void SetIdleStyle(){
+		PlayerActionController.UseStyle(this.animator, "BASE_Idle");
 	}
 }

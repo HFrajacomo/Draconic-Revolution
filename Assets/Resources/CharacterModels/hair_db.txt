@@ -1,15 +1,23 @@
 # Name	Blender_obj_name	Sex	HasModel
 
-<No Hair>	M_NO_HAIR	M	N
-Short	M_Short	M	Y
-Mullet	M_Mullet	M	Y
-Mohalk	M_Mohalk	M	Y
-Skinhead	M_Skinhead	M	Y
-Long Unbalanced	M_Long_Unbalanced	M	Y
+<No Hair>	U_NO_HAIR	M	N
+Short	U_Trimmed	M	Y
+Short Bangs	U_Trimmed_Bangs	M	Y
+Side Swept	U_Side_Swept	M	Y
+Parted Bangs	U_Parted_Bangs	M	Y
+Spiky	U_Spiky_Hair	M	Y
+Ponytail	U_Ponytail	M	Y
+Medium Straight	U_Medium_Straight	M	Y
+Medium Bangs	U_Medium_Bangs	M	Y
+Messy Bob	U_Messy_Bob	M	Y
 
-<No Hair>	F_NO_HAIR	F	N
-Short	F_Short	F	Y
-Short Bun	F_Short_Bun	F	Y
-Puff Medium	F_Puff_Medium	F	Y
-Puff Long	F_Puff_Long	F	Y
-Long Bun	F_Long_Bun	F	Y
+<No Hair>	U_NO_HAIR	F	N
+Messy Bob	U_Messy_Bob	F	Y
+Medium Bangs	U_Medium_Bangs	F	Y
+Medium Straight	U_Medium_Straight	F	Y
+Ponytail	U_Ponytail	F	Y
+Parted Bangs	U_Parted_Bangs	F	Y
+Short Bangs	U_Trimmed_Bangs	F	Y
+Short	U_Trimmed	F	Y
+Spiky	U_Spiky_Hair	F	Y
+Side Swept	U_Side_Swept	F	Y

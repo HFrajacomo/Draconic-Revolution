@@ -1,0 +1,11 @@
+{
+	"combo_hits": 0,
+	"overrides": {
+		"data": [
+			{
+				"state": "Idle",
+				"clip": "CharacterArmature_Idle"
+			}
+		]
+	}
+}

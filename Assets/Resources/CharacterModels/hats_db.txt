@@ -1,15 +1,21 @@
 # Name	Blender_obj_name	Sex	CoverHair	HasModel
 
-<No Hat>	M_NO_HAT	M	N	N
-Beanie	M_Beanie	M	N	Y
-Feathered Beanie	M_Feathered_Beanie	M	N	Y
-Fedora	M_Fedora	M	N	Y
-Basic Cowl	M_Keys_Hat	M	Y	Y
-Top Hat	M_Top_Hat	M	N	Y
+<No Hat>	U_NO_HAT	M	N	N
+Beanie	U_Beanie	M	N	Y
+Feathered Beanie	U_Feathered_Beanie	M	N	Y
+Fedora	U_Fedora	M	N	Y
+Basic Cowl	U_Keys_Hat	M	Y	Y
+Top Hat	U_Top_Hat	M	N	Y
+Bucket Hat	U_Bucket_Hat	M	N	Y
+Straw Hat	U_Straw_Hat	M	N	Y
+Rough Peasant Cowl	U_Rough_Peasant_Cowl	M	Y	Y
 
-<No Hat>	F_NO_HAT	F	N	N
-Bucket Hat	F_Bucket_Hat	F	N	Y
-Fedora	F_Fedora	F	N	Y
-Straw Hat	F_Straw_Hat	F	N	Y
-Rough Peasant Hat	F_Rough_Peasant_Hat	F	N	Y
-Rough Peasant Cowl	F_Rough_Peasant_Cowl	F	Y	Y
+<No Hat>	U_NO_HAT	F	N	N
+Straw Hat	U_Straw_Hat	F	N	Y
+Bucket Hat	U_Bucket_Hat	F	N	Y
+Fedora	U_Fedora	F	N	Y
+Rough Peasant Cowl	U_Rough_Peasant_Cowl	F	Y	Y
+Basic Cowl	U_Keys_Hat	F	Y	Y
+Feathered Beanie	U_Feathered_Beanie	F	N	Y
+Beanie	U_Beanie	F	N	Y
+Top Hat	U_Top_Hat	F	N	Y

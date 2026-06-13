@@ -1,0 +1,112 @@
+{
+	"data": [
+		{
+			"state": "T-Pose",
+			"layers": [""],
+			"priority": 999
+		},
+		{
+			"state": "Empty",
+			"layers": ["", "Bottom", "Full Torso", "Right Arm", "Left Arm", "Head", "Pre-Cinematic Add", "Cinematic Override", "Post-Cinematic Add"],
+			"priority": 1000
+		},
+		{
+			"state": "Idle",
+			"layers": [""],
+			"priority": 900,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "On Air",
+			"layers": ["", "Full Torso"],
+			"priority": 101,
+			"stoplayer": ["Full Torso"]
+		},
+		{
+			"state": "Moving Forward",
+			"layers": ["", "Bottom"],
+			"priority": 100
+		},
+		{
+			"state": "Walk Backward",
+			"layers": ["", "Bottom"],
+			"priority": 100
+		},
+		{
+			"state": "Walk Left",
+			"layers": ["", "Bottom"],
+			"priority": 100
+		},
+		{
+			"state": "Walk Right",
+			"layers": ["", "Bottom"],
+			"priority": 100
+		},
+		{
+			"state": "Idle Hand",
+			"layers": [""],
+			"priority": 50,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Attack 1",
+			"layers": ["", "Full Torso"],
+			"priority": 1,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Attack 2",
+			"layers": ["", "Full Torso"],
+			"priority": 1,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Attack 3",
+			"layers": ["", "Full Torso"],
+			"priority": 1,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Attack 4",
+			"layers": ["", "Full Torso"],
+			"priority": 1,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Attack 5",
+			"layers": ["", "Full Torso"],
+			"priority": 1,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Attack 6",
+			"layers": ["", "Full Torso"],
+			"priority": 1,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Attack 7",
+			"layers": ["", "Full Torso"],
+			"priority": 1,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Attack 8",
+			"layers": ["", "Full Torso"],
+			"priority": 1,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Attack 9",
+			"layers": ["", "Full Torso"],
+			"priority": 1,
+			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Attack 10",
+			"layers": ["", "Full Torso"],
+			"priority": 1,
+			"stopLayer": ["Bottom"]
+		}
+	]
+}

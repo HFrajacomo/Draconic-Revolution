@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 
 public class CharacterBuilder{
 	private GameObject parent;
+	private GameObject cam;
 	private GameObject thirdPersonRig;
 	private GameObject firstPersonRig;
 	private GameObject tpAnimGO;
@@ -20,8 +21,6 @@ public class CharacterBuilder{
 
 	private GameObject tpModelRoot;
 	private GameObject fpModelRoot;
-
-	private RotationTowardsTarget fpRotation;
 
 	private BoneRenderer boneRenderer;
 	private CharacterAppearance appearance;
@@ -54,7 +53,7 @@ public class CharacterBuilder{
 	// Materials
 	private static Material plainClothingMaterial;
 	private static Material dragonSkinMaterial;
-	private static Material eyeMaterial;
+	private static Material faceMaterial;
 	private static Material dragonHornMaterial;
 
 	// Settings
@@ -65,11 +64,12 @@ public class CharacterBuilder{
 	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
 
 
-	public CharacterBuilder(GameObject par, RuntimeAnimatorController tpAnimations, RuntimeAnimatorController fpAnimations, CharacterAppearance app, Material clothing, Material dragonhorn, Material dragonskin, Material eye, bool isMale, bool isPlayerCharacter){
+	public CharacterBuilder(GameObject par, RuntimeAnimatorController tpAnimations, RuntimeAnimatorController fpAnimations, CharacterAppearance app, Material clothing, Material dragonhorn, Material dragonskin, Material face, bool isMale, bool isPlayerCharacter){
 		if(EMPTY_OBJECT_PREFAB == null)
 			EMPTY_OBJECT_PREFAB = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
 		this.parent = par;
+		this.cam = this.parent.transform.Find("Camera").gameObject;
 		this.isMale = isMale;
 		this.isPlayer = isPlayerCharacter;
 		this.appearance = app;
@@ -77,7 +77,7 @@ public class CharacterBuilder{
 		this.thirdPersonRig = SetupNewGO("TP-Rig", this.parent.transform);
 		this.tpAnimGO = SetupNewGO("Animator", this.thirdPersonRig.transform);
 
-		this.tpArmature = ModelHandler.GetArmature(isMale:isMale, rotated:true);
+		this.tpArmature = ModelHandler.GetArmature(rotated:true);
 		this.tpArmature.transform.SetParent(this.tpAnimGO.transform);
 
 		this.tpModelRoot = GameObject.Instantiate(EMPTY_OBJECT_PREFAB);
@@ -91,19 +91,19 @@ public class CharacterBuilder{
 
 		plainClothingMaterial = clothing;
 		dragonSkinMaterial = dragonskin;
-		eyeMaterial = eye;
+		faceMaterial = face;
 		dragonHornMaterial = dragonhorn;
 
 		if(this.isPlayer){
-			this.firstPersonRig = SetupNewGO("FP-Rig", this.parent.transform);
+			this.firstPersonRig = SetupNewGO("FP-Rig", this.cam.transform);
+			this.firstPersonRig.transform.localPosition = new Vector3(0, -3.8f, 0);
 			this.fpAnimGO = SetupNewGO("Animator", this.firstPersonRig.transform);
 			this.fpModelRoot = SetupNewGO("Model", this.fpAnimGO.transform);
 
 			this.fpRenderer = this.fpModelRoot.AddComponent<SkinnedMeshRenderer>();
 			
-			this.fpArmature = ModelHandler.GetArmature(isMale:isMale, rotated:true);
+			this.fpArmature = ModelHandler.GetArmature(rotated:true);
 			this.fpArmature.transform.SetParent(this.fpAnimGO.transform);
-			this.fpRotation = this.fpAnimGO.AddComponent<RotationTowardsTarget>();
 
 			this.firstPersonRig.layer = 12;
 			this.fpModelRoot.layer = 12;
@@ -179,7 +179,7 @@ public class CharacterBuilder{
         GameObject.Destroy(modelRenderer.gameObject);
 
         // Face
-		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.boots.code).GetComponent<SkinnedMeshRenderer>();
+		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.face.code).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
         GameObject.Destroy(modelRenderer.gameObject);
@@ -199,6 +199,8 @@ public class CharacterBuilder{
         // First Person Model
         if(this.isPlayer){
     		Transform[] newBonesFP = ModelHandler.GetArmatureBones(this.fpArmature.transform, BONE_MAP);
+    		Bounds bounds = this.fpRenderer.localBounds;
+    		bounds.Expand(Vector3.one);
 
         	modelRenderer = ModelHandler.GetModelByCode(ModelType.CLOTHES, this.appearance.torso.code).GetComponent<SkinnedMeshRenderer>();
         	this.fpRenderer.sharedMesh = modelRenderer.sharedMesh;
@@ -212,7 +214,7 @@ public class CharacterBuilder{
 
         	this.fpRenderer.materials = mats.ToArray();
         	this.fpRenderer.shadowCastingMode = ShadowCastingMode.Off;
-
+        	this.fpRenderer.localBounds = bounds;
     	}
 
 		BuildMesh(combinedMesh);
@@ -224,10 +226,6 @@ public class CharacterBuilder{
 		this.tpRenderer.gameObject.AddComponent<ShapeKeyAnimator>();
 
 		this.meshMat.Clear();
-	}
-
-	public void SetFirstPersonRotation(ProceduralAnimationRigController rigControllerFP){
-		this.fpRotation.Setup(rigControllerFP.GetCamera().transform);
 	}
 
 	private GameObject SetupNewGO(string name, Transform parent){
@@ -435,44 +433,43 @@ public class CharacterBuilder{
 				newMaterial = Material.Instantiate(dragonHornMaterial);
 				return newMaterial;
 			}
-			else if(r == Race.DRAGONLING)
+			else if(type == ModelType.FACE){
+				newMaterial = Material.Instantiate(faceMaterial);
+		        newMaterial.SetTexture("_FaceTexture", ModelHandler.GetFaceTexture(info.code));
+				newMaterial.SetColor("_SkinColor", skin);
+				newMaterial.SetColor("_Color", info.primary);
+
+		        if(r == Race.DRAGONLING)
+		        	newMaterial.SetFloat("_Dragonling", 1f);
+		        else
+		        	newMaterial.SetFloat("_Dragonling", 0f);
+		        return newMaterial;
+			}
+			else if(r == Race.DRAGONLING){
 				newMaterial = Material.Instantiate(dragonSkinMaterial);
-			else
+			}
+			else{
 				newMaterial = Material.Instantiate(plainClothingMaterial);
+			}
 
 			newMaterial.SetColor("_Color", skin);
 			return newMaterial;
 		}
 		else if(index == 1){
-			if(type == ModelType.FACE){
-				newMaterial = Material.Instantiate(eyeMaterial);
-				newMaterial.SetColor("_Color", info.primary);
-				newMaterial.SetColor("_IrisColor", info.secondary);
-			}
-			else{
-				newMaterial = Material.Instantiate(plainClothingMaterial);
-				newMaterial.SetColor("_Color", info.primary);
-			}
+			newMaterial = Material.Instantiate(plainClothingMaterial);
+			newMaterial.SetColor("_Color", info.primary);
 
 			return newMaterial;
 		}
 		else if(index == 2){
 			newMaterial = Material.Instantiate(plainClothingMaterial);
-
-			if(type != ModelType.FACE)
-				newMaterial.SetColor("_Color", info.secondary);
-			else
-				newMaterial.SetColor("_Color", info.terciary);
+			newMaterial.SetColor("_Color", info.secondary);
 
 			return newMaterial;
 		}
 		else if(index == 3){
 			newMaterial = Material.Instantiate(plainClothingMaterial);
-
-			if(type != ModelType.FACE)
-				newMaterial.SetColor("_Color", info.terciary);
-			else
-				newMaterial.SetColor("_Color", Color.white);
+			newMaterial.SetColor("_Color", info.terciary);
 
 			return newMaterial;
 		}
