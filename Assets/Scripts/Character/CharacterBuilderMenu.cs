@@ -197,6 +197,10 @@ public class CharacterBuilderMenu{
 			}
 		}
 
+		if(type == ModelType.FACE){
+			obj.AddComponent<FaceExpressionAnimator>();
+		}
+
 		StartIdleAnimation();
 	}
 

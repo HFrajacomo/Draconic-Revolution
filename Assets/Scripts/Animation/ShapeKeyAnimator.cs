@@ -13,7 +13,6 @@ public class ShapeKeyAnimator : MonoBehaviour {
 
     void Start(){
         this.animationTarget = GetComponent<SkinnedMeshRenderer>();
-        Play("Blink", new ShapeKeyAnimationSettings(ShapeKeyAnimationType.PULSE_RETRIGGER_RANDOM, 3f, 0.15f, 3f));
     }
 
     public void OnDestroy(){
@@ -22,7 +21,7 @@ public class ShapeKeyAnimator : MonoBehaviour {
         }
     }
 
-    public void Play(string name, ShapeKeyAnimationSettings settings){
+    public void Play(string name, CustomAnimationSettings settings){
         // If animation is running already
         if(this.runningAnimations.ContainsKey(name)){
             StopCoroutine(this.runningAnimations[name]);
@@ -38,16 +37,16 @@ public class ShapeKeyAnimator : MonoBehaviour {
         Coroutine animation;
 
         switch(settings.type){
-            case ShapeKeyAnimationType.START:
+            case CustomAnimationType.START:
                 animation = StartCoroutine(AnimateStartShapeKey(index, name, settings.duration));
                 break;
-            case ShapeKeyAnimationType.STOP:
+            case CustomAnimationType.STOP:
                 animation = StartCoroutine(AnimateStopShapeKey(index, name, settings.duration));
                 break;
-            case ShapeKeyAnimationType.PULSE_RETRIGGER:
+            case CustomAnimationType.PULSE_RETRIGGER:
                 animation = StartCoroutine(AnimatePulseRetriggerShapeKey(index, name, settings.duration, settings.pulseDuration));
                 break;
-            case ShapeKeyAnimationType.PULSE_RETRIGGER_RANDOM:
+            case CustomAnimationType.PULSE_RETRIGGER_RANDOM:
                 animation = StartCoroutine(AnimatePulseRetriggerRandomShapeKey(index, name, settings.duration, settings.pulseDuration, settings.extraArg));
                 break;
             default:

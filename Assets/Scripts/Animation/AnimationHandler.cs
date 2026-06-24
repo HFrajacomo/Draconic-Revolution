@@ -120,7 +120,7 @@ public class AnimationHandler : MonoBehaviour {
 	}
 
 	// Plays/Stops/Registers ShapeKey Animations based on the settings inputted
-	public void Play(string shapeKey, ShapeKeyAnimationSettings settings){
+	public void Play(string shapeKey, CustomAnimationSettings settings){
 		if(!this.INIT)
 			return;
 

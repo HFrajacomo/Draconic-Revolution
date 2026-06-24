@@ -1,4 +1,4 @@
-public enum ShapeKeyAnimationType : byte {
+public enum CustomAnimationType : byte {
 	START,
 	STOP,
 	PULSE_RETRIGGER,

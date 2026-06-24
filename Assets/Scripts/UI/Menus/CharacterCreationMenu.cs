@@ -1355,6 +1355,7 @@ public class CharacterCreationMenu : Menu{
         }
         else if(this.selectedDiv == ModelType.FACE){
             if(materials.Length > 0){
+                go.GetComponent<FaceExpressionAnimator>().SetMaterial(this.faceMat1);
                 materials[0] = this.faceMat1;
                 materials[0].SetColor("_Color", this.faceColor1);
                 materials[0].SetColor("_SkinColor", this.skinColor);
