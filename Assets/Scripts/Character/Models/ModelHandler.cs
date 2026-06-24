@@ -14,7 +14,7 @@ public static class ModelHandler{
 	private static BiMap<ushort, string> hairMap = new BiMap<ushort, string>();
 	private static BiMap<ushort, string> addonMap = new BiMap<ushort, string>();
 	private static BiMap<ushort, string> essentialsMap = new BiMap<ushort, string>();
-	private static Dictionary<ushort, Texture2D> faceTextureMap = new Dictionary<ushort, Texture2D>();
+	private static Dictionary<ushort, Texture2DArray> faceTextureMap = new Dictionary<ushort, Texture2DArray>();
 
 	private static Texture2D dragonlingScales;
 
@@ -29,6 +29,8 @@ public static class ModelHandler{
 	private static readonly string ESSENTIALS_DB = "CharacterModels/essentials_db";
 	private static readonly string FACE_TEXTURE_DIR = "CharacterModels/FaceTextures";
 	private static readonly string ARMATURE = "CharacterArmature";
+
+	private static readonly int FACE_TEXTURE_RESOLUTION = 256;
 
 	private static readonly Quaternion ROTATION = Quaternion.Euler(0, -90, 0);
 
@@ -66,25 +68,40 @@ public static class ModelHandler{
 		return verts;
 	}
 
-	public static Texture2D GetFaceTexture(ushort code){
-		if(!faceTextureMap.ContainsKey(code)){
-			Texture2D tex = Resources.Load<Texture2D>($"{FACE_TEXTURE_DIR}/{GetModelInfo(ModelType.FACE, faceMap.Get(code)).faceTextureImage}");
+	public static Texture2DArray GetFaceTextureArray(ushort code){
+	    if(faceTextureMap.ContainsKey(code))
+	        return faceTextureMap[code];
 
-			if(tex == null){
-				Debug.LogError($"[ModelHandler] Failed to load face texture: {FACE_TEXTURE_DIR}/{GetModelInfo(ModelType.FACE, faceMap.Get(code)).faceTextureImage}\n Code: {code} -- Name: {faceMap.Get(code)}");
-				return Texture2D.blackTexture;
-			}
+	    Texture2D tex = Resources.Load<Texture2D>($"{FACE_TEXTURE_DIR}/{GetModelInfo(ModelType.FACE, faceMap.Get(code)).faceTextureImage}");
 
-			faceTextureMap.Add(code, tex);
-		}
+	    if (tex == null){
+	        Debug.LogError($"[ModelHandler] Failed to load face texture: {FACE_TEXTURE_DIR}/{GetModelInfo(ModelType.FACE, faceMap.Get(code)).faceTextureImage}\n Code: {code} -- Name: {faceMap.Get(code)}");
+	        return null;
+	    }
 
-		return faceTextureMap[code];
+	    int quantity = Mathf.FloorToInt(tex.width / FACE_TEXTURE_RESOLUTION);
+
+	    Texture2DArray texArray = new Texture2DArray(FACE_TEXTURE_RESOLUTION,FACE_TEXTURE_RESOLUTION,quantity,tex.format,false);
+
+	    for (int i = 0; i < quantity; i++){
+	        Texture2D slice = new Texture2D(FACE_TEXTURE_RESOLUTION, FACE_TEXTURE_RESOLUTION, tex.format, false);
+
+	        Graphics.CopyTexture(tex, 0, 0, i * FACE_TEXTURE_RESOLUTION, 0, FACE_TEXTURE_RESOLUTION, FACE_TEXTURE_RESOLUTION, slice, 0, 0, 0, 0);
+	        Graphics.CopyTexture(slice, 0, 0, texArray, i, 0);
+
+	        Object.Destroy(slice);
+	    }
+
+	    faceTextureMap[code] = texArray;
+
+	    return faceTextureMap[code];
 	}
-	public static Texture2D GetFaceTexture(string name){
-		if(name == null)
-			return Texture2D.blackTexture;
 
-		return GetFaceTexture(faceMap.Get(name));
+	public static Texture2DArray GetFaceTextureArray(string name){
+		if(name == null)
+			return null;
+
+		return GetFaceTextureArray(faceMap.Get(name));
 	}
 
 	public static Texture2D GetDragonlingScales(){

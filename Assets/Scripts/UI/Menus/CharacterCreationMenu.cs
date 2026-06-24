@@ -443,72 +443,40 @@ public class CharacterCreationMenu : Menu{
             this.characterBuilder.ChangeArmature();
         }
 
-        if(isMale){
+        if(isMale)
             suffix = "/M";
-
-            this.selectedDiv = ModelType.HEADGEAR;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_HAT + suffix);
-            SelectItem(DEFAULT_HAT, loadedModel);
-
-            this.selectedDiv = ModelType.LEGS;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_LEGS + suffix);
-            SelectItem(DEFAULT_LEGS, loadedModel);
-
-            this.selectedDiv = ModelType.FOOTGEAR;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_BOOTS + suffix);
-            SelectItem(DEFAULT_BOOTS, loadedModel);
-
-            this.selectedDiv = ModelType.CLOTHES;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
-            SelectItem(DEFAULT_CLOTHES, loadedModel);
-
-            this.selectedDiv = ModelType.HAIR;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_HAIR + suffix);
-            SelectItem(DEFAULT_HAIR, loadedModel);
-
-            this.selectedDiv = ModelType.FACE;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_FACE + suffix);
-            SelectItem(DEFAULT_FACE, loadedModel);
-        }
-        else{
+        else
             suffix = "/F";
 
-            this.selectedDiv = ModelType.HEADGEAR;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_HAT + suffix);
-            SelectItem(DEFAULT_HAT, loadedModel);
+        this.selectedDiv = ModelType.HEADGEAR;
+        ToggleDiv(GetButton(this.selectedDiv));
+        loadedModel = LoadModel(DEFAULT_HAT + suffix);
+        SelectItem(DEFAULT_HAT, loadedModel);
 
-            this.selectedDiv = ModelType.LEGS;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_LEGS + suffix);
-            SelectItem(DEFAULT_LEGS, loadedModel);
+        this.selectedDiv = ModelType.LEGS;
+        ToggleDiv(GetButton(this.selectedDiv));
+        loadedModel = LoadModel(DEFAULT_LEGS + suffix);
+        SelectItem(DEFAULT_LEGS, loadedModel);
 
-            this.selectedDiv = ModelType.FOOTGEAR;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_BOOTS + suffix);
-            SelectItem(DEFAULT_BOOTS, loadedModel);
+        this.selectedDiv = ModelType.FOOTGEAR;
+        ToggleDiv(GetButton(this.selectedDiv));
+        loadedModel = LoadModel(DEFAULT_BOOTS + suffix);
+        SelectItem(DEFAULT_BOOTS, loadedModel);
 
-            this.selectedDiv = ModelType.CLOTHES;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
-            SelectItem(DEFAULT_CLOTHES, loadedModel);
+        this.selectedDiv = ModelType.CLOTHES;
+        ToggleDiv(GetButton(this.selectedDiv));
+        loadedModel = LoadModel(DEFAULT_CLOTHES + suffix);
+        SelectItem(DEFAULT_CLOTHES, loadedModel);
 
-            this.selectedDiv = ModelType.HAIR;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_HAIR + suffix);
-            SelectItem(DEFAULT_HAIR, loadedModel);
+        this.selectedDiv = ModelType.HAIR;
+        ToggleDiv(GetButton(this.selectedDiv));
+        loadedModel = LoadModel(DEFAULT_HAIR + suffix);
+        SelectItem(DEFAULT_HAIR, loadedModel);
 
-            this.selectedDiv = ModelType.FACE;
-            ToggleDiv(GetButton(this.selectedDiv));
-            loadedModel = LoadModel(DEFAULT_FACE + suffix);
-            SelectItem(DEFAULT_FACE, loadedModel);
-        }
+        this.selectedDiv = ModelType.FACE;
+        ToggleDiv(GetButton(this.selectedDiv));
+        loadedModel = LoadModel(DEFAULT_FACE + suffix);
+        SelectItem(DEFAULT_FACE, loadedModel);
 
         this.selectedDiv = ModelType.GENERAL;
         ToggleDiv(GetButton(this.selectedDiv));
@@ -521,7 +489,7 @@ public class CharacterCreationMenu : Menu{
         this.characterBuilder.Add(this.selectedDiv, go, name);
 
         ShowColorPickers(this.characterBuilder.GetMaterialLength(this.selectedDiv));
-        ApplyColorToModel(go);
+        ApplyColorToModel(go, faceTextureName:name);
 
         return go;
     }
@@ -1316,7 +1284,7 @@ public class CharacterCreationMenu : Menu{
 
 
 
-    private void ApplyColorToModel(GameObject go){
+    private void ApplyColorToModel(GameObject go, string faceTextureName=""){
         SkinnedMeshRenderer smr = go.GetComponent<SkinnedMeshRenderer>();
 
         if(smr == null)
@@ -1390,6 +1358,9 @@ public class CharacterCreationMenu : Menu{
                 materials[0] = this.faceMat1;
                 materials[0].SetColor("_Color", this.faceColor1);
                 materials[0].SetColor("_SkinColor", this.skinColor);
+
+                if(faceTextureName != "")
+                    materials[0].SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(faceTextureName));
             }
             if(materials.Length > 1){
                 materials[1] = this.faceMat2;
@@ -1486,9 +1457,9 @@ public class CharacterCreationMenu : Menu{
         this.faceMat1.SetColor("_SkinColor", this.skinColor);
         this.faceMat2.SetColor("_Color", this.faceColor2);
         this.faceMat3.SetColor("_Color", this.faceColor3);
-        this.faceMat1.SetTexture("_FaceTexture", ModelHandler.GetFaceTexture(this.selectedFace));
-        this.faceMat2.SetTexture("_FaceTexture", ModelHandler.GetFaceTexture(this.selectedFace));
-        this.faceMat3.SetTexture("_FaceTexture", ModelHandler.GetFaceTexture(this.selectedFace));
+        this.faceMat1.SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(this.selectedFace));
+        this.faceMat2.SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(this.selectedFace));
+        this.faceMat3.SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(this.selectedFace));
         this.faceMat1.SetTexture("_DragonScales", ModelHandler.GetDragonlingScales());
     }
 }

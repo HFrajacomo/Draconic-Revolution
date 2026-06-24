@@ -1,4 +1,4 @@
 # Name	Blender_obj_name	Sex	Image_name_in_face_textures_folder
 
-Face Basic	M_FACE	M	Eyes
-Face Basic	F_FACE	F	Eyes
+Face Basic	M_FACE	M	TestFace
+Face Basic	F_FACE	F	TestFace

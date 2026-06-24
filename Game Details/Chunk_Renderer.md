@@ -37,7 +37,7 @@ VoxelData holds the following information:
 4. ShadowMap (xyz) -- contains the Shadow Codes used to apply Voxel Lighting
 5. LightMap (xyz) -- contains the Voxel Light information for a given Voxel
 6. CeilingMap (xz) -- contains *true/false* information on whether there are any non-invisible voxel in every y-pillar on this chunk
-7. 
+
 VoxelMetadata holds the following information:
 
 1. State (xyz) -- the current state of given block

@@ -435,7 +435,7 @@ public class CharacterBuilder{
 			}
 			else if(type == ModelType.FACE){
 				newMaterial = Material.Instantiate(faceMaterial);
-		        newMaterial.SetTexture("_FaceTexture", ModelHandler.GetFaceTexture(info.code));
+		        newMaterial.SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(info.code));
 				newMaterial.SetColor("_SkinColor", skin);
 				newMaterial.SetColor("_Color", info.primary);
 

@@ -197,11 +197,6 @@ public class CharacterBuilderMenu{
 			}
 		}
 
-		// Adds ShapeKey animator
-		if(type == ModelType.FACE){
-			ShapeKeyAnimator skh = obj.AddComponent<ShapeKeyAnimator>();
-		}
-
 		StartIdleAnimation();
 	}
 
