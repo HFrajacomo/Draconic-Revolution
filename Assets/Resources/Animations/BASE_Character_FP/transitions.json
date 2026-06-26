@@ -26,7 +26,7 @@
 		{
 			"layer": "",
 			"sourceState": "Empty",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": false,
 			"exitTime": 0.5,
 			"duration": 0.1,
@@ -49,7 +49,7 @@
 		{
 			"layer": "",
 			"sourceState": "Moving Forward",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": false,
 			"exitTime": 0.5,
 			"duration": 0.1,
@@ -94,7 +94,7 @@
 		},
 		{
 			"layer": "",
-			"sourceState": "Idle Hand",
+			"sourceState": "Idle Weapon",
 			"destinationState": "Moving Forward",
 			"hasExitTime": false,
 			"exitTime": 0.5,
@@ -114,6 +114,28 @@
 			        "parameterType": "bool"
 			    }
 			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Weapon Sheathe",
+			"destinationState": "Empty",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Weapon Unsheathe",
+			"destinationState": "Idle Weapon",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
 		},
 		{
 			"layer": "",
@@ -289,7 +311,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 1",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -300,7 +322,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 2",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -311,7 +333,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 3",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -322,7 +344,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 4",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -333,7 +355,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 5",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -344,7 +366,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 6",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -355,7 +377,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 7",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -366,7 +388,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 8",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -377,7 +399,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 9",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -388,7 +410,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 10",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,

@@ -28,4 +28,5 @@ public struct BattleStyleData{
 	public int GetComboHits(){return this.combo_hits;}
 	public StateClipPair[] GetOverrides(){return this.clipPairs;}
 	public StateClipPair GetStateStyleData(string state){return this.map[state];}
+	public override string ToString(){return this.name;}
 }

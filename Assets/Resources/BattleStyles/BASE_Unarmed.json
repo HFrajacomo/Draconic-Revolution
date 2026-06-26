@@ -11,8 +11,8 @@
 				"clip": "CharacterArmature_Idle"
 			},
 			{
-				"state": "Idle Hand",
-				"clip": "CharacterArmature_Idle Hand"
+				"state": "Idle Weapon",
+				"clip": "CharacterArmature_Idle - Unarmed"
 			},
 			{
 				"state": "On Air_A",
@@ -51,20 +51,28 @@
 				"clip": "CharacterArmature_Jump End"
 			},
 			{
+				"state": "Weapon Sheathe",
+				"clip": "CharacterArmature_Sheathe - Unarmed"
+			},
+			{
+				"state": "Weapon Unsheathe",
+				"clip": "CharacterArmature_Unsheathe - Unarmed"
+			},
+			{
 				"state": "Attack 1",
-				"clip": "CharacterArmature_Punch 1 - Normal",
+				"clip": "CharacterArmature_Attack 1 - Unarmed",
 				"direction": "forward",
 				"momentum": 3
 			},
 			{
 				"state": "Attack 2",
-				"clip": "CharacterArmature_Punch 2 - Normal",
+				"clip": "CharacterArmature_Attack 2 - Unarmed",
 				"direction": "forward",
 				"momentum": 3
 			},
 			{
 				"state": "Attack 3",
-				"clip": "CharacterArmature_Punch 3 - Normal",
+				"clip": "CharacterArmature_Attack 3 - Unarmed",
 				"direction": "forward",
 				"momentum": 4
 			},

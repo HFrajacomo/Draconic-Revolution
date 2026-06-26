@@ -1,0 +1,63 @@
+{
+	"combo_hits": 3,
+	"overrides": {
+		"data": [
+			{
+				"state": "Idle Weapon",
+				"clip": "CharacterArmature_Idle - Pickaxe -FP"
+			},
+			{
+				"state": "Moving Forward",
+				"clip": "CharacterArmature_Run Forward -FP"
+			},
+			{
+				"state": "Weapon Sheathe",
+				"clip": "CharacterArmature_Sheathe - Pickaxe -FP"
+			},
+			{
+				"state": "Weapon Unsheathe",
+				"clip": "CharacterArmature_Unsheathe - Pickaxe -FP"
+			},
+			{
+				"state": "Attack 1",
+				"clip": "CharacterArmature_Attack X - Pickaxe -FP"
+			},
+			{
+				"state": "Attack 2",
+				"clip": "CharacterArmature_Attack X - Pickaxe -FP"
+			},
+			{
+				"state": "Attack 3",
+				"clip": "CharacterArmature_Attack X - Pickaxe -FP"
+			},
+			{
+				"state": "Attack 4",
+				"clip": ""
+			},
+			{
+				"state": "Attack 5",
+				"clip": ""
+			},
+			{
+				"state": "Attack 6",
+				"clip": ""
+			},
+			{
+				"state": "Attack 7",
+				"clip": ""
+			},
+			{
+				"state": "Attack 8",
+				"clip": ""
+			},
+			{
+				"state": "Attack 9",
+				"clip": ""
+			},
+			{
+				"state": "Attack 10",
+				"clip": ""
+			}
+		]
+	}
+}

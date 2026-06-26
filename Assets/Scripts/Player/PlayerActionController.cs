@@ -125,6 +125,8 @@ public class PlayerActionController : MonoBehaviour {
 		animationOverrideController = ApplyOverrides(animationOverrideController, this.currentStyle.GetOverrides());
 		animationOverrideControllerFP = ApplyOverrides(animationOverrideControllerFP, AnimationLoader.GetBattleStyle($"{this.currentStyle.GetName()}-FP").GetOverrides());
 
+		Debug.Log(AnimationLoader.GetBattleStyle($"{this.currentStyle.GetName()}-FP"));
+
 		this.animator.runtimeAnimatorController = animationOverrideController;
 		this.animatorFP.runtimeAnimatorController = animationOverrideControllerFP;
 		this.animator.SetBool("ISPLAYER", true);
@@ -149,7 +151,7 @@ public class PlayerActionController : MonoBehaviour {
 			RegisterRestriction(PlayerActionRestriction.PRIMARY, 0);
 		}
 		else{
-			AddToPlaylist("Idle Hand");
+			AddToPlaylist("Idle Weapon");
 			RemoveRestriction(PlayerActionRestriction.PRIMARY);
 		}
 	}
@@ -198,7 +200,7 @@ public class PlayerActionController : MonoBehaviour {
 
 		if(!flags.isGrounded && this.weaponSheathed)
 			pmt = PlayerMovementType.AIR;
-		else if(!flags.isGrounded && !this.weaponSheathed && Mathf.Abs(angle) <= 50)
+		else if(!flags.isGrounded && !this.weaponSheathed && Mathf.Abs(angle) <= 50 && movementDirection != Vector3.zero)
 			pmt = PlayerMovementType.AIR_AGGRO_FORWARD;
 		else if(!flags.isGrounded && !this.weaponSheathed)
 			pmt = PlayerMovementType.AIR_AGGRO;
@@ -230,6 +232,8 @@ public class PlayerActionController : MonoBehaviour {
 		AnimatorOverrideController animationOverrideController = new AnimatorOverrideController(animator.runtimeAnimatorController);
 		animationOverrideController = ApplyOverrides(animationOverrideController, AnimationLoader.GetBattleStyle(styleName).GetOverrides());
 		animator.runtimeAnimatorController = animationOverrideController;
+
+
 	}
 
 	private void RunNetcodeList(){
@@ -272,12 +276,13 @@ public class PlayerActionController : MonoBehaviour {
 	}
 
 	private void ProcessMovement(PlayerMovementType pmt, bool isRunning){
+		Debug.Log(pmt);
 		switch(pmt){
 			case PlayerMovementType.STILL:
 				AddToPlaylist("Idle");
 				break;
 			case PlayerMovementType.STILL_AGGRO:
-				AddToPlaylist("Idle Hand");
+				AddToPlaylist("Idle Weapon");
 				break;
 			case PlayerMovementType.FORWARD:
 				AddToPlaylist("Moving Forward", igFP:!isRunning);
@@ -298,10 +303,10 @@ public class PlayerActionController : MonoBehaviour {
 				AddToPlaylist("On Air");
 				break;
 			case PlayerMovementType.AIR_AGGRO:
-				AddToPlaylist("Idle Hand");
+				AddToPlaylist("Idle Weapon");
 				break;
 			case PlayerMovementType.AIR_AGGRO_FORWARD:
-				AddToPlaylist("Idle Hand", igFP:true);
+				AddToPlaylist("Idle Weapon", igFP:true);
 				AddToPlaylist("Moving Forward", igFP:true);
 				break;
 			default:

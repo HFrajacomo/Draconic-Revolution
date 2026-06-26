@@ -64,12 +64,6 @@ public static class AnimationControlBuilder {
 
 		SaveControllerPath();
 
-		/*
-		foreach(AnimatorController control in controllers.Values){
-			EditorUtility.SetDirty(control);
-		}
-		*/
-
 		AssetDatabase.SaveAssets();
 		AssetDatabase.Refresh();
 

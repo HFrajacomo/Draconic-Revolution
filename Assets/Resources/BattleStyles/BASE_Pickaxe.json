@@ -1,0 +1,109 @@
+{
+	"combo_hits": 3,
+	"overrides": {
+		"data": [
+			{
+				"state": "A-Pose",
+				"clip": "CharacterArmature_0APose"
+			},
+			{
+				"state": "Idle",
+				"clip": "CharacterArmature_Idle"
+			},
+			{
+				"state": "Idle Weapon",
+				"clip": "CharacterArmature_Idle - Pickaxe"
+			},
+			{
+				"state": "On Air_A",
+				"clip": "CharacterArmature_Falling"
+			},
+			{
+				"state": "On Air_B",
+				"clip": "CharacterArmature_Going Up"
+			},
+			{
+				"state": "Moving Forward_A",
+				"clip": "CharacterArmature_Walk Forward"
+			},
+			{
+				"state": "Moving Forward_B",
+				"clip": "CharacterArmature_Run Forward"
+			},
+			{
+				"state": "Walk Backward",
+				"clip": "CharacterArmature_Walk Backward"
+			},
+			{
+				"state": "Walk Right",
+				"clip": "CharacterArmature_Walk Right"
+			},
+			{
+				"state": "Walk Left",
+				"clip": "CharacterArmature_Walk Left"
+			},
+			{
+				"state": "Jump Start",
+				"clip": "CharacterArmature_Jump Start"
+			},
+			{
+				"state": "Jump End",
+				"clip": "CharacterArmature_Jump End"
+			},
+			{
+				"state": "Weapon Sheathe",
+				"clip": "CharacterArmature_Sheathe - Pickaxe"
+			},
+			{
+				"state": "Weapon Unsheathe",
+				"clip": "CharacterArmature_Unsheathe - Pickaxe"
+			},
+			{
+				"state": "Attack 1",
+				"clip": "CharacterArmature_Attack X - Pickaxe",
+				"direction": "forward",
+				"momentum": 2
+			},
+			{
+				"state": "Attack 2",
+				"clip": "CharacterArmature_Attack X - Pickaxe",
+				"direction": "forward",
+				"momentum": 2
+			},
+			{
+				"state": "Attack 3",
+				"clip": "CharacterArmature_Attack X - Pickaxe",
+				"direction": "forward",
+				"momentum": 3
+			},
+			{
+				"state": "Attack 4",
+				"clip": ""
+			},
+			{
+				"state": "Attack 5",
+				"clip": ""
+			},
+			{
+				"state": "Attack 6",
+				"clip": ""
+			},
+			{
+				"state": "Attack 7",
+				"clip": ""
+			},
+			{
+				"state": "Attack 8",
+				"clip": ""
+			},
+			{
+				"state": "Attack 9",
+				"clip": ""
+			},
+			{
+				"state": "Attack 10",
+				"clip": ""
+			}
+		]
+	}
+}

@@ -44,7 +44,15 @@
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Fingers.L/FingerTips.L",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Fingers.R/FingerTips.R",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Item.L",
-				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R"
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R",
+				"CharacterArmature/Hips/BeltStraight.L",
+				"CharacterArmature/Hips/BeltStraight.R",
+				"CharacterArmature/Hips/BeltCurved.L",
+				"CharacterArmature/Hips/BeltCurved.R",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackStraight",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.L",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.R",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackShield"
 			]
 		},
 		{
@@ -122,7 +130,15 @@
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Fingers.L/FingerTips.L",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Fingers.R/FingerTips.R",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Item.L",
-				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R"
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R",
+				"CharacterArmature/Hips/BeltStraight.L",
+				"CharacterArmature/Hips/BeltStraight.R",
+				"CharacterArmature/Hips/BeltCurved.L",
+				"CharacterArmature/Hips/BeltCurved.R",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackStraight",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.L",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.R",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackShield"
 			]
 		},
 		{
@@ -162,7 +178,15 @@
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Fingers.L/FingerTips.L",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Fingers.R/FingerTips.R",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Item.L",
-				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R"
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R",
+				"CharacterArmature/Hips/BeltStraight.L",
+				"CharacterArmature/Hips/BeltStraight.R",
+				"CharacterArmature/Hips/BeltCurved.L",
+				"CharacterArmature/Hips/BeltCurved.R",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackStraight",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.L",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.R",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackShield"
 			]
 		},
 		{
@@ -202,7 +226,15 @@
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L/Fingers.L/FingerTips.L",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R/Fingers.R/FingerTips.R",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Item.L",
-				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R"
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R",
+				"CharacterArmature/Hips/BeltStraight.L",
+				"CharacterArmature/Hips/BeltStraight.R",
+				"CharacterArmature/Hips/BeltCurved.L",
+				"CharacterArmature/Hips/BeltCurved.R",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackStraight",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.L",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.R",
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/BackShield"
 			]
 		}
 	]
