@@ -6,6 +6,7 @@ using UnityEngine;
 public class AnimationLoader : BaseLoader {
 	private static Dictionary<string, RuntimeAnimatorController> controllers = new Dictionary<string, RuntimeAnimatorController>();
 	private static Dictionary<string, AnimationStateMapping[]> stateMappings = new Dictionary<string, AnimationStateMapping[]>();
+	private static Dictionary<string, BoneAnchorPoint[]> anchorMappings = new Dictionary<string, BoneAnchorPoint[]>();
 	private static Dictionary<string, MultiAimData[]> rigs = new Dictionary<string, MultiAimData[]>();
 	private static Dictionary<int, BattleStyleData> battleStyles = new Dictionary<int, BattleStyleData>();
 	private static Dictionary<string, BattleStyleData> nameToBattleStyle = new Dictionary<string, BattleStyleData>();
@@ -23,6 +24,7 @@ public class AnimationLoader : BaseLoader {
 	public override bool Load(){
 		if(isClient){
 			LoadCharacterControllers();
+			LoadAnchorBones();
 			LoadStateMappings();
 			LoadRigs();
 			LoadArmatureName();
@@ -34,6 +36,9 @@ public class AnimationLoader : BaseLoader {
 
 	public static RuntimeAnimatorController GetController(string controller){return controllers[controller];}
 	public static AnimationStateMapping[] GetAnimationMapping(string controller){return stateMappings[controller];}
+	public static bool ContainsMapping(string controller){return stateMappings.ContainsKey(controller);}
+	public static BoneAnchorPoint[] GetAnchorMapping(string controller){return anchorMappings[controller];}
+	public static bool ContainsAnchor(string controller){return anchorMappings.ContainsKey(controller);}
 	public static MultiAimData[] GetRig(string controller){return rigs[controller];}
 	public static bool ContainsRig(string controller){return rigs.ContainsKey(controller);}
 	public static string GetArmatureName(string controller){return armatureName[controller];}
@@ -54,6 +59,29 @@ public class AnimationLoader : BaseLoader {
 
 			armatureName.Add(controllerName, armature.text);
 		}	
+	}
+
+	private void LoadAnchorBones(){
+		string respath;
+		Wrapper<BoneAnchorPoint> wrapper;
+
+		foreach(string controllerName in controllers.Keys){
+			respath = $"{ANIMATION_RESFOLDER}{controllerName}/anchors";
+
+			TextAsset anchorJson = Resources.Load<TextAsset>(respath);
+
+			if(anchorJson == null){
+				throw new AnimationImportException($"Couldn't locate the Anchor Mapping: {respath} while loading Animations");
+			}
+
+			wrapper = JsonUtility.FromJson<Wrapper<BoneAnchorPoint>>(anchorJson.text);
+
+			foreach(BoneAnchorPoint anchor in wrapper.data){
+				anchor.PostDeserializationSetup();
+			}
+
+			anchorMappings.Add(controllerName, wrapper.data);
+		}
 	}
 
 	private void LoadRigs(){

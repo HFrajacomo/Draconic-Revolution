@@ -8,6 +8,8 @@ using UnityEngine.Animations.Rigging;
 public class AnimationHandler : MonoBehaviour {
 	private bool INIT = false;
 	private bool isPlayer = false;
+	private string controllerName;
+	private string controllerNameFP;
 
 	private Animator tpAnimator;
 	private Animator fpAnimator;
@@ -16,19 +18,28 @@ public class AnimationHandler : MonoBehaviour {
 	private ProceduralAnimationRigController rigControllerFP;
 	private float animationCrossfadeTime = 0.06f;
 
-	private static Dictionary<string, AnimationStateMapping> stateMappings;
-	private static Dictionary<int, string> hashToName; 
+	private static Dictionary<string, Dictionary<string, AnimationStateMapping>> stateMappings;
+	private static Dictionary<string, Dictionary<BoneAnchorType, string>> anchorMappings;
+	private static Dictionary<string, Dictionary<int, string>> hashToName;
+
 
 	public void Init(string controllerName, CharacterBuilder firstPersonBuilder, bool isUserCharacter=false){
+		this.controllerName = controllerName;
+		this.controllerNameFP = "";
+
 		Transform tpParent = this.transform.Find("TP-Rig");
 		Transform tpAnimObj = tpParent.Find("Animator");
-
-		LoadMapping(controllerName);
+			
+		if(AnimationHandler.hashToName == null)
+			AnimationHandler.hashToName = new Dictionary<string, Dictionary<int, string>>();
+		
+		LoadMapping();
+		LoadAnchors();
 		this.isPlayer = isUserCharacter;
 
 		this.tpAnimator = tpAnimObj.GetComponent<Animator>();
 		this.shapeKeyAnimator = tpParent.GetComponent<ShapeKeyAnimator>();
-		this.rigControllerTP = new ProceduralAnimationRigController(tpParent.gameObject, tpAnimObj.gameObject, controllerName);
+		this.rigControllerTP = new ProceduralAnimationRigController(tpParent.gameObject, tpAnimObj.gameObject, this.controllerName);
 		this.rigControllerTP.Build();
 
 		if(this.isPlayer){
@@ -36,8 +47,10 @@ public class AnimationHandler : MonoBehaviour {
 			Transform fpAnimObj = fpParent.Find("Animator");
 			
 			this.fpAnimator = fpAnimObj.GetComponent<Animator>();
-			this.rigControllerFP = new ProceduralAnimationRigController(fpParent.gameObject, fpAnimObj.gameObject, $"{controllerName}_FP");
+			this.rigControllerFP = new ProceduralAnimationRigController(fpParent.gameObject, fpAnimObj.gameObject, $"{this.controllerName}_FP");
 			this.rigControllerFP.Build();
+			LoadMappingFP();
+			LoadAnchorsFP();
 		}
 
 		this.INIT = true;
@@ -52,13 +65,14 @@ public class AnimationHandler : MonoBehaviour {
 		bool skipThirdPerson = false;
 		AnimationStateMapping givenMap, currentMap, currentMapFP;
 
-		givenMap = AnimationHandler.stateMappings[stateName];
+		givenMap = AnimationHandler.stateMappings[this.controllerName][stateName];
 
 		if(!overrideState){
-			currentMap = AnimationHandler.stateMappings[AnimationHandler.hashToName[GetState(this.tpAnimator.GetLayerIndex(givenMap.layers[0])).shortNameHash]];
+			currentMap = AnimationHandler.stateMappings[this.controllerName][AnimationHandler.hashToName[this.controllerName][GetState(this.tpAnimator.GetLayerIndex(givenMap.layers[0])).shortNameHash]];
 
-			if(this.isPlayer)
-				currentMapFP = AnimationHandler.stateMappings[AnimationHandler.hashToName[GetStateFP(0).shortNameHash]];
+			if(this.isPlayer){
+				currentMapFP = AnimationHandler.stateMappings[this.controllerNameFP][AnimationHandler.hashToName[this.controllerNameFP][GetStateFP(0).shortNameHash]];
+			}
 
 			if(givenMap.state == currentMap.state){
 				StopLayer(givenMap.stopLayer);
@@ -86,7 +100,7 @@ public class AnimationHandler : MonoBehaviour {
 		}
 		else{
 			for(int i=0; i < givenMap.layers.Length; i++){
-				currentMap = AnimationHandler.stateMappings[AnimationHandler.hashToName[GetState(this.tpAnimator.GetLayerIndex(givenMap.layers[i])).shortNameHash]];
+				currentMap = AnimationHandler.stateMappings[this.controllerName][AnimationHandler.hashToName[this.controllerName][GetState(this.tpAnimator.GetLayerIndex(givenMap.layers[i])).shortNameHash]];
 
 				if(givenMap.priority <= currentMap.priority){
 					StopLayer(givenMap.stopLayer);
@@ -99,10 +113,10 @@ public class AnimationHandler : MonoBehaviour {
 
 		// Handling First Person
 		if(this.isPlayer && !ignoreFP && !overrideState){
-			currentMapFP = AnimationHandler.stateMappings[AnimationHandler.hashToName[GetStateFP(0).shortNameHash]];
+			currentMapFP = AnimationHandler.stateMappings[this.controllerNameFP][AnimationHandler.hashToName[this.controllerNameFP][GetStateFP(0).shortNameHash]];
 
 			if(!this.fpAnimator.HasState(0, Animator.StringToHash(stateName))){
-				givenMap = AnimationHandler.stateMappings["Empty"];
+				givenMap = AnimationHandler.stateMappings[this.controllerNameFP]["Empty"];
 			}
 
 			if(givenMap.state != currentMapFP.state){
@@ -111,7 +125,6 @@ public class AnimationHandler : MonoBehaviour {
 				}
 			}
 		}
-
 	}
 
 	// Force plays a state for non-player characters (Used by Client)
@@ -155,7 +168,7 @@ public class AnimationHandler : MonoBehaviour {
 		this.tpAnimator.SetFloat(parameter, val);
 	}
 
-	public static string GetStateName(AnimatorStateInfo stateInfo){return hashToName[stateInfo.shortNameHash];}
+	public static string GetStateName(string controllerName, AnimatorStateInfo stateInfo){return AnimationHandler.hashToName[controllerName][stateInfo.shortNameHash];}
 
 	public Animator GetThirdPersonAnimator(){return this.tpAnimator;}
 	public Animator GetFirstPersonAnimator(){return this.fpAnimator;}
@@ -220,10 +233,10 @@ public class AnimationHandler : MonoBehaviour {
 			layerName = "Base Layer";
 
 		for(int i=this.tpAnimator.GetLayerIndex(layerName)+1; i < this.tpAnimator.layerCount; i++){
-			state = AnimationHandler.hashToName[GetState(i).shortNameHash];
+			state = AnimationHandler.hashToName[this.controllerName][GetState(i).shortNameHash];
 
-			if(ArrayContains(layerName, AnimationHandler.stateMappings[state].layers)){
-				if(priority > AnimationHandler.stateMappings[state].priority){
+			if(ArrayContains(layerName, AnimationHandler.stateMappings[this.controllerName][state].layers)){
+				if(priority > AnimationHandler.stateMappings[this.controllerName][state].priority){
 					StopLayer(i);
 					this.tpAnimator.CrossFade(state, this.animationCrossfadeTime, layer:this.tpAnimator.GetLayerIndex(layerName));
 					return true;
@@ -234,16 +247,71 @@ public class AnimationHandler : MonoBehaviour {
 		return false;
 	}
 
-	private void LoadMapping(string controllerName){
-		if(AnimationHandler.stateMappings != null)
+	private void LoadMapping(){
+		if(AnimationHandler.stateMappings == null)
+			AnimationHandler.stateMappings = new Dictionary<string, Dictionary<string, AnimationStateMapping>>();
+
+		if(AnimationHandler.stateMappings.ContainsKey(this.controllerName))
 			return;
 
-		AnimationHandler.stateMappings = new Dictionary<string, AnimationStateMapping>();
-		AnimationHandler.hashToName = new Dictionary<int, string>();
+		AnimationHandler.hashToName.Add(this.controllerName, new Dictionary<int, string>());
+		AnimationHandler.stateMappings.Add(this.controllerName, new Dictionary<string, AnimationStateMapping>());
 
-		foreach(AnimationStateMapping map in AnimationLoader.GetAnimationMapping(controllerName)){
-			AnimationHandler.stateMappings.Add(map.state, map);
-			AnimationHandler.hashToName.Add(Animator.StringToHash(map.state), map.state);
+		foreach(AnimationStateMapping map in AnimationLoader.GetAnimationMapping(this.controllerName)){
+			AnimationHandler.stateMappings[this.controllerName].Add(map.state, map);
+			AnimationHandler.hashToName[this.controllerName].Add(Animator.StringToHash(map.state), map.state);
+		}
+	}
+
+	private void LoadMappingFP(){
+		string fpControllerName = $"{this.controllerName}_FP";
+
+		if(AnimationHandler.stateMappings.ContainsKey(fpControllerName))
+			return;
+
+		if(!AnimationLoader.ContainsMapping(fpControllerName))
+			return;
+
+		this.controllerNameFP = fpControllerName;
+
+		AnimationHandler.hashToName.Add(this.controllerNameFP, new Dictionary<int, string>());
+		AnimationHandler.stateMappings.Add(this.controllerNameFP, new Dictionary<string, AnimationStateMapping>());
+
+		foreach(AnimationStateMapping map in AnimationLoader.GetAnimationMapping(this.controllerNameFP)){
+			AnimationHandler.stateMappings[this.controllerNameFP].Add(map.state, map);
+			AnimationHandler.hashToName[this.controllerNameFP].Add(Animator.StringToHash(map.state), map.state);
+		}
+	}
+
+	private void LoadAnchors(){
+		if(AnimationHandler.anchorMappings == null)
+			AnimationHandler.anchorMappings = new Dictionary<string, Dictionary<BoneAnchorType, string>>();
+
+		if(AnimationHandler.anchorMappings.ContainsKey(this.controllerName))
+			return;
+
+		AnimationHandler.anchorMappings.Add(this.controllerName, new Dictionary<BoneAnchorType, string>());
+
+		foreach(BoneAnchorPoint anchor in AnimationLoader.GetAnchorMapping(this.controllerName)){
+			AnimationHandler.anchorMappings[this.controllerName].Add(anchor.GetAnchorType(), anchor.bonePath);
+		}
+	}
+
+	private void LoadAnchorsFP(){
+		string fpControllerName = $"{this.controllerName}_FP";
+
+		if(AnimationHandler.anchorMappings.ContainsKey(fpControllerName))
+			return;
+
+		if(!AnimationLoader.ContainsAnchor(fpControllerName))
+			return;
+
+		this.controllerNameFP = fpControllerName;
+
+		AnimationHandler.anchorMappings.Add(this.controllerNameFP, new Dictionary<BoneAnchorType, string>());
+
+		foreach(BoneAnchorPoint anchor in AnimationLoader.GetAnchorMapping(this.controllerNameFP)){
+			AnimationHandler.anchorMappings[this.controllerNameFP].Add(anchor.GetAnchorType(), anchor.bonePath);
 		}
 	}
 

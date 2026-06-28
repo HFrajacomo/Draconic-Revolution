@@ -8,7 +8,7 @@
 			},
 			{
 				"state": "Moving Forward",
-				"clip": "CharacterArmature_Run Forward -FP"
+				"clip": "CharacterArmature_Run Forward - Sword -FP"
 			},
 			{
 				"state": "Weapon Sheathe",

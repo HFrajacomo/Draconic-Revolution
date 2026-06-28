@@ -125,8 +125,6 @@ public class PlayerActionController : MonoBehaviour {
 		animationOverrideController = ApplyOverrides(animationOverrideController, this.currentStyle.GetOverrides());
 		animationOverrideControllerFP = ApplyOverrides(animationOverrideControllerFP, AnimationLoader.GetBattleStyle($"{this.currentStyle.GetName()}-FP").GetOverrides());
 
-		Debug.Log(AnimationLoader.GetBattleStyle($"{this.currentStyle.GetName()}-FP"));
-
 		this.animator.runtimeAnimatorController = animationOverrideController;
 		this.animatorFP.runtimeAnimatorController = animationOverrideControllerFP;
 		this.animator.SetBool("ISPLAYER", true);
@@ -146,12 +144,12 @@ public class PlayerActionController : MonoBehaviour {
 		this.weaponSheathed = !this.weaponSheathed;
 
 		if(this.weaponSheathed){
-			AddToPlaylist("Idle", over:true);
+			AddToPlaylist("Weapon Sheathe", over:true);
 			this.comboHit = 0;
 			RegisterRestriction(PlayerActionRestriction.PRIMARY, 0);
 		}
 		else{
-			AddToPlaylist("Idle Weapon");
+			AddToPlaylist("Weapon Unsheathe");
 			RemoveRestriction(PlayerActionRestriction.PRIMARY);
 		}
 	}
@@ -276,7 +274,6 @@ public class PlayerActionController : MonoBehaviour {
 	}
 
 	private void ProcessMovement(PlayerMovementType pmt, bool isRunning){
-		Debug.Log(pmt);
 		switch(pmt){
 			case PlayerMovementType.STILL:
 				AddToPlaylist("Idle");

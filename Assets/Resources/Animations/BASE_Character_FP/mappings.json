@@ -3,17 +3,27 @@
 		{
 			"state": "Empty",
 			"layers": [""],
-			"priority": 1
+			"priority": 2
 		},
 		{
 			"state": "Moving Forward",
 			"layers": [""],
-			"priority": 0
+			"priority": 1
 		},
 		{
 			"state": "Idle Weapon",
 			"layers": [""],
-			"priority": 0
+			"priority": 1
+		},
+		{
+			"state": "Weapon Sheathe",
+			"layers": [""],
+			"priority": 1
+		},
+		{
+			"state": "Weapon Unsheathe",
+			"layers": [""],
+			"priority": 1
 		},
 		{
 			"state": "Attack 1",

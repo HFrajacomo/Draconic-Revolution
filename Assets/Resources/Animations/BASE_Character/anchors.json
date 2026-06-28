@@ -1,0 +1,14 @@
+{
+	"data": [
+		{"type": "BASE_CHARACTER_BELT_CURVED_RIGHT", "bonePath": "CharacterArmature/Hips/BeltCurved.R"},
+		{"type": "BASE_CHARACTER_BELT_CURVED_LEFT", "bonePath": "CharacterArmature/Hips/BeltCurved.L"},
+		{"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT", "bonePath": "CharacterArmature/Hips/BeltStraight.R"},
+		{"type": "BASE_CHARACTER_BELT_STRAIGHT_LEFT", "bonePath": "CharacterArmature/Hips/BeltStraight.L"},
+		{"type": "BASE_CHARACTER_BACK_CURVED_RIGHT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.R"},
+		{"type": "BASE_CHARACTER_BACK_CURVED_LEFT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.L"},
+		{"type": "BASE_CHARACTER_BACK_STRAIGHT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackStraight"},
+		{"type": "BASE_CHARACTER_BACK_SHIELD", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackShield"},
+		{"type": "BASE_CHARACTER_HAND_RIGHT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R"},
+		{"type": "BASE_CHARACTER_HAND_LEFT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Item.L"}
+	]
+}
