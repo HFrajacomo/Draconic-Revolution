@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 
 public class PlayerModelHandler : MonoBehaviour {
+	public ChunkLoader cl;
 	public GameObject parent;
 	private CharacterController controller;
 	private AnimationHandler animationHandler;
@@ -42,7 +43,7 @@ public class PlayerModelHandler : MonoBehaviour {
 	}
 
 	// Builds any character other than Player
-	public GameObject BuildModel(GameObject go, CharacterAppearance app, bool isMale){
+	public GameObject BuildModel(GameObject go, CharacterAppearance app, bool isMale, ulong entityID){
 		CharacterBuilder builder;
 		AnimationHandler anim;
 
@@ -58,7 +59,11 @@ public class PlayerModelHandler : MonoBehaviour {
 			anim = go.AddComponent<AnimationHandler>();			
 		}
 
+		AnimationEventDispatcher dispatcher = builder.GetThirdPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
+		dispatcher.Init(this.cl, entityID);
+
 		anim.Init("BASE_Character", this.characterBuilder, isUserCharacter:false);
+		//builder.StartAnimation();
 
 		INIT = true;
 		return go;
@@ -79,7 +84,13 @@ public class PlayerModelHandler : MonoBehaviour {
 			this.characterBuilder.ChangeAppearanceAndBuild(app);
 		}
 
+
+		AnimationEventDispatcher dispatcher = this.characterBuilder.GetThirdPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
+		dispatcher.Init(this.cl, Configurations.accountID);
+
 		Rescale(app.race, this.parent);
+
+		//this.characterBuilder.StartAnimation();
 	}
 
 	public AnimationHandler GetAnimationHandler(){return this.animationHandler;}

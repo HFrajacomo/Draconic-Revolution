@@ -18,7 +18,7 @@ public class FaceExpressionAnimator : MonoBehaviour {
 
 
     void Start(){
-        this.material = GetComponent<SkinnedMeshRenderer>().materials[0];
+        Play(0);
     }
 
     public void OnDestroy(){
@@ -28,11 +28,9 @@ public class FaceExpressionAnimator : MonoBehaviour {
 
     public void SetMaterial(Material mat){
         this.material = mat;
-        Play(this.currentIndex);
     }
 
     public void Play(int expressionIndex){
-        // Invalid ShapeKeys name
         if(expressionIndex < 0)
             return;
 
@@ -54,6 +52,10 @@ public class FaceExpressionAnimator : MonoBehaviour {
         float randomOffset;
 
         while(true){
+            if(this.material == null){
+                yield return null;
+            }
+
             randomOffset = (float)(this.rng.NextDouble() * durationRandomOffset);
 
             while(elapsedTime < duration + randomOffset){

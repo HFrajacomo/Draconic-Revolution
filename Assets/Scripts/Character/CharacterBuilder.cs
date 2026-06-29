@@ -24,6 +24,7 @@ public class CharacterBuilder{
 
 	private BoneRenderer boneRenderer;
 	private CharacterAppearance appearance;
+	private FaceExpressionAnimator faceAnimator;
 	private bool isMale;
 	private bool isPlayer;
 	private HairlinePlane hairline = new HairlinePlane(Vector3.zero, Vector3.zero, false);
@@ -117,12 +118,20 @@ public class CharacterBuilder{
 		this.tpAnimator.runtimeAnimatorController = tpAnimations;
 
 		FixArmature();
+		this.faceAnimator = this.tpModelRoot.AddComponent<FaceExpressionAnimator>();
 	}
 
 	// Whenever clothes are being changed
 	public void ChangeAppearanceAndBuild(CharacterAppearance app){
 		this.appearance = app;
 		Build();
+	}
+
+	public GameObject GetThirdPersonAnimatorObject(){return this.tpAnimGO;}
+	public GameObject GetThirdPersonModelObject(){return this.tpModelRoot;}
+
+	public void StartAnimation(){
+		this.faceAnimator.Play(0);
 	}
 
 	/**
@@ -443,6 +452,8 @@ public class CharacterBuilder{
 		        	newMaterial.SetFloat("_Dragonling", 1f);
 		        else
 		        	newMaterial.SetFloat("_Dragonling", 0f);
+
+		        this.faceAnimator.SetMaterial(newMaterial);
 		        return newMaterial;
 			}
 			else if(r == Race.DRAGONLING){

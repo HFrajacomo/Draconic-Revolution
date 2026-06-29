@@ -721,6 +721,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7225cf35f65b1cd4a9eb8ecfb06a1269, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cl: {fileID: 1192772367}
   parent: {fileID: 59614818}
   plainClothingMaterial: {fileID: 2100000, guid: d53d3c304eec41b49aad438799e8ad47,
     type: 2}

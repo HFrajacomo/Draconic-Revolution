@@ -107,7 +107,7 @@ public class EntityHandler
 		if(this.playerObject.ContainsKey(code)){
 			this.playerModelHandler.DeleteModel(this.playerObject[code]);
 
-			this.playerObject[code] = this.playerModelHandler.BuildModel(this.playerObject[code], app, isMale);
+			this.playerObject[code] = this.playerModelHandler.BuildModel(this.playerObject[code], app, isMale, code);
 			this.playerHead[code] = this.playerObject[code].transform.Find("Camera");
 			this.playerAnimations[code] = this.playerObject[code].GetComponent<AnimationHandler>();
 
@@ -123,8 +123,6 @@ public class EntityHandler
 	public void SetPlayerBattleStyle(ulong code, int style){
 		if(this.playerBattleStyle[code] == style)
 			return;
-
-		Debug.Log("Ran EntityHandler");
 
 		bool isMale = this.playerSheet[code].GetGender();
 		this.playerBattleStyle[code] = style;

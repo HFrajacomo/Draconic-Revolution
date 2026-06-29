@@ -451,7 +451,7 @@ public class Server
 		// Sends Player Info
 		if(this.cl.RECEIVEDWORLDDATA){
 			// Sends player data
-			PlayerData pdat = this.cl.regionHandler.LoadPlayer(accountID, fromServer:true);
+			PlayerData pdat = this.cl.regionHandler.LoadPlayer(accountID);
 			pdat.SetOnline(true);
 			Vector3 playerPos = pdat.GetPosition();
 			Vector3 playerDir = pdat.GetDirection();
