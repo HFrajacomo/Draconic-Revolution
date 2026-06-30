@@ -261,7 +261,7 @@ public class PlayerActionController : MonoBehaviour {
 
 	private static AnimatorOverrideController ApplyOverrides(AnimatorOverrideController controller, StateClipPair[] overrides){
 		foreach(StateClipPair over in overrides){
-			controller[Resources.Load<AnimationClip>($"{AnimationLoader.ANIMATION_CLIP_RESFOLDER}{over.state}")] = Resources.Load<AnimationClip>($"{AnimationLoader.ANIMATION_CLIP_RESFOLDER}{over.clip}");
+			controller[over.FetchStateClip()] = over.FetchFinalClip();
 		}
 
 		return controller;

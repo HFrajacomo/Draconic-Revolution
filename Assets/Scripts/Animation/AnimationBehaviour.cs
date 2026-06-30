@@ -19,9 +19,8 @@ public abstract class AnimationBehaviour {
 
         AnimationEvent animEvent = new AnimationEvent();
         animEvent.time = this.triggerTime;
-        animEvent.stringParameter = clip.name;
+        animEvent.stringParameter = SerializeDispatchParameter(clip.name, index);
         animEvent.functionName = "DispatchAnimationBehaviour";
-        animEvent.intParameter = index;
         clip.AddEvent(animEvent);
 
         behaviours[clip.name].Add(this);
@@ -29,5 +28,9 @@ public abstract class AnimationBehaviour {
 
 	public static List<AnimationBehaviour> Get(string clipName){return behaviours[clipName];}
 
+	public virtual void PostDeserializationSetup(){return;}
+
 	public abstract void Run(ChunkLoader cl, GameObject animatorParent, ulong entityID, bool isPlayer);
+
+	protected string SerializeDispatchParameter(string name, int index){return $"{{\"clip\": \"{name}\", \"index\": {index}}}";}
 }

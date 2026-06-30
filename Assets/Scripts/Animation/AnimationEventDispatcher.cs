@@ -6,11 +6,12 @@ public class AnimationEventDispatcher : MonoBehaviour {
     private bool isPlayer = false;
     private ulong entityID;
 
-    public void DispatchAnimationBehaviour(string clipName, int index){
-        List<AnimationBehaviour> eventList = AnimationBehaviour.Get(clipName);
+    public void DispatchAnimationBehaviour(string data){
+        ClipIndexPair cip = JsonUtility.FromJson<ClipIndexPair>(data);
+        List<AnimationBehaviour> eventList = AnimationBehaviour.Get(cip.clip);
 
-        if(index >= 0 && index < eventList.Count){
-            eventList[index].Run(cl, this.gameObject, this.entityID, this.isPlayer);
+        if(cip.index >= 0 && cip.index < eventList.Count){
+            eventList[cip.index].Run(cl, this.gameObject, this.entityID, this.isPlayer);
         }
     }
 
