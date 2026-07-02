@@ -74,7 +74,7 @@ public class AnimationLoader : BaseLoader {
 				throw new AnimationImportException($"Couldn't locate the Anchor Mapping: {respath} while loading Animations");
 			}
 
-			wrapper = JsonUtility.FromJson<Wrapper<BoneAnchorPoint>>(anchorJson.text);
+			wrapper = JsonUtility.FromJson<Wrapper<BoneAnchorPoint>>(JsonFormatter.RemoveComments(anchorJson.text));
 
 			foreach(BoneAnchorPoint anchor in wrapper.data){
 				anchor.PostDeserializationSetup();
@@ -97,7 +97,7 @@ public class AnimationLoader : BaseLoader {
 				throw new AnimationImportException($"Couldn't locate the Rigs: {respath} while loading Animations");
 			}
 
-			wrapper = JsonUtility.FromJson<Wrapper<MultiAimData>>(rigsJson.text);
+			wrapper = JsonUtility.FromJson<Wrapper<MultiAimData>>(JsonFormatter.RemoveComments(rigsJson.text));
 
 			foreach(MultiAimData rig in wrapper.data){
 				rig.PostDeserializationSetup();
@@ -116,7 +116,7 @@ public class AnimationLoader : BaseLoader {
 			throw new AnimationImportException($"Couldn't locate the AnimatorController Mappings in RESPATH: {CONTROLLERS_PATHS} while loading RuntimeAnimatorController");
 		}
 
-		Wrapper<ValuePair<string, string>> wrapper = JsonUtility.FromJson<Wrapper<ValuePair<string, string>>>(controllerJson.text);
+		Wrapper<ValuePair<string, string>> wrapper = JsonUtility.FromJson<Wrapper<ValuePair<string, string>>>(JsonFormatter.RemoveComments(controllerJson.text));
 
 		foreach(ValuePair<string, string> vp in wrapper.data){
 			currentController = Resources.Load<RuntimeAnimatorController>(vp.value);
@@ -142,7 +142,7 @@ public class AnimationLoader : BaseLoader {
 				throw new AnimationImportException($"Couldn't locate the AnimationMapping: {respath} while loading Animations");
 			}
 
-			wrapper = JsonUtility.FromJson<Wrapper<AnimationStateMapping>>(mappingJson.text);
+			wrapper = JsonUtility.FromJson<Wrapper<AnimationStateMapping>>(JsonFormatter.RemoveComments(mappingJson.text));
 
 			foreach(AnimationStateMapping mapping in wrapper.data){
 				mapping.PostDeserializationSetup();
@@ -158,7 +158,7 @@ public class AnimationLoader : BaseLoader {
         int styleCode = 0;
 
         foreach(TextAsset asset in assets){
-        	bsd = JsonUtility.FromJson<BattleStyleData>(asset.text);
+        	bsd = JsonUtility.FromJson<BattleStyleData>(JsonFormatter.RemoveComments(asset.text));
         	bsd.PostDeserializationSetup(asset.name, styleCode);
 			battleStyles.Add(styleCode, bsd);
 			nameToBattleStyle.Add(bsd.GetName(), bsd);

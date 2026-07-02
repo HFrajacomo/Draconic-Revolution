@@ -8,7 +8,7 @@ public class AnimationEventDispatcher : MonoBehaviour {
     private ulong entityID;
 
     public void DispatchAnimationBehaviour(string data){
-        ClipIndexPair cip = JsonUtility.FromJson<ClipIndexPair>(data);
+        ClipIndexPair cip = JsonUtility.FromJson<ClipIndexPair>(JsonFormatter.RemoveComments(data));
         List<AnimationBehaviour> eventList = AnimationBehaviour.Get(cip.clip);
 
         Debug.Log($"Dispatch: {data}");

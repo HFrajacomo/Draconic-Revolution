@@ -62,7 +62,7 @@ public class AudioLoader : BaseLoader {
 			Application.Quit();
 		}
 
-		Wrapper<Sound> wrapper = JsonUtility.FromJson<Wrapper<Sound>>(soundJson.text);
+		Wrapper<Sound> wrapper = JsonUtility.FromJson<Wrapper<Sound>>(JsonFormatter.RemoveComments(soundJson.text));
 
 		for(int i=0; i < wrapper.data.Length; i++){
 			AudioLoader.sounds.Add(wrapper.data[i].name, wrapper.data[i]);
@@ -78,7 +78,7 @@ public class AudioLoader : BaseLoader {
 			Application.Quit();
 		}
 
-		Wrapper<Voice> wrapper = JsonUtility.FromJson<Wrapper<Voice>>(voicesJson.text);
+		Wrapper<Voice> wrapper = JsonUtility.FromJson<Wrapper<Voice>>(JsonFormatter.RemoveComments(voicesJson.text));
 
 		for(int i=0; i < wrapper.data.Length; i++){
 			AudioLoader.voices.Add(wrapper.data[i].name, wrapper.data[i]);
@@ -94,7 +94,7 @@ public class AudioLoader : BaseLoader {
 			Application.Quit();
 		}
 
-		Wrapper<DynamicMusic> wrapper = JsonUtility.FromJson<Wrapper<DynamicMusic>>(dynGroupJson.text);
+		Wrapper<DynamicMusic> wrapper = JsonUtility.FromJson<Wrapper<DynamicMusic>>(JsonFormatter.RemoveComments(dynGroupJson.text));
 
 		for(int i=0; i < wrapper.data.Length; i++){
 			AudioLoader.dynamicMusic.Add(wrapper.data[i].name, wrapper.data[i]);
@@ -110,7 +110,7 @@ public class AudioLoader : BaseLoader {
 			Application.Quit();
 		}
 
-		Wrapper<ValuePair<string, string>> wrapper = JsonUtility.FromJson<Wrapper<ValuePair<string, string>>>(biomeJson.text);
+		Wrapper<ValuePair<string, string>> wrapper = JsonUtility.FromJson<Wrapper<ValuePair<string, string>>>(JsonFormatter.RemoveComments(biomeJson.text));
 
 		for(int i=0; i < wrapper.data.Length; i++){
 			AudioLoader.biomeMusic.Add(wrapper.data[i].key, wrapper.data[i].value);

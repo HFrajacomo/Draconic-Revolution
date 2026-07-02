@@ -322,7 +322,7 @@ public static class AnimationControlBuilder {
 				EditorApplication.isPlaying = false;
 			}
 
-			acs = JsonUtility.FromJson<AnimationControllerSettings>(controllerJson.text);
+			acs = JsonUtility.FromJson<AnimationControllerSettings>(JsonFormatter.RemoveComments(controllerJson.text));
 			acs.PostDeserializationSetup();
 
 			controllerSettings.Add(controllerName, acs);
@@ -340,7 +340,7 @@ public static class AnimationControlBuilder {
 				EditorApplication.isPlaying = false;
 			}
 
-			als = JsonUtility.FromJson<Wrapper<AnimationLayerSettings>>(layerJson.text);
+			als = JsonUtility.FromJson<Wrapper<AnimationLayerSettings>>(JsonFormatter.RemoveComments(layerJson.text));
 
 			foreach(AnimationLayerSettings layerSettings in als.data){
 				layerSettings.PostDeserializationSetup();
@@ -361,7 +361,7 @@ public static class AnimationControlBuilder {
 				EditorApplication.isPlaying = false;
 			}
 
-			ass = JsonUtility.FromJson<Wrapper<AnimationStateSettings>>(statesJson.text);
+			ass = JsonUtility.FromJson<Wrapper<AnimationStateSettings>>(JsonFormatter.RemoveComments(statesJson.text));
 
 			foreach(AnimationStateSettings stateSettings in ass.data){
 				stateSettings.PostDeserializationSetup();
@@ -382,7 +382,7 @@ public static class AnimationControlBuilder {
 			}
 
 			try{
-				ats = JsonUtility.FromJson<Wrapper<AnimationTransitionSettings>>(transitionsJson.text);
+				ats = JsonUtility.FromJson<Wrapper<AnimationTransitionSettings>>(JsonFormatter.RemoveComments(transitionsJson.text));
 			}
 			catch(ArgumentException ex){
 				Debug.LogError($"Failed to load controller: {acs.controllerName}. {ex}");

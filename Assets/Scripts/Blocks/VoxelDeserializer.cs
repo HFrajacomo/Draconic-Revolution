@@ -38,7 +38,7 @@ public static class VoxelDeserializer {
 		string propertiesJson = GetProperties(json);
 		string behaviourJson;
 
-		Blocks block = JsonUtility.FromJson<Blocks>(propertiesJson);
+		Blocks block = JsonUtility.FromJson<Blocks>(JsonFormatter.RemoveComments(propertiesJson));
 
 		if(HasBehaviours(json)){
 			behaviourJson = GetBehaviours(json);
@@ -57,7 +57,7 @@ public static class VoxelDeserializer {
 		string propertiesJson = GetProperties(json);
 		string behaviourJson;
 
-		BlocklikeObject obj = JsonUtility.FromJson<BlocklikeObject>(propertiesJson);
+		BlocklikeObject obj = JsonUtility.FromJson<BlocklikeObject>(JsonFormatter.RemoveComments(propertiesJson));
 
 		if(HasBehaviours(json)){
 			behaviourJson = GetBehaviours(json);
@@ -269,33 +269,33 @@ public static class VoxelDeserializer {
 
 		switch(val){
 			case "LiquidBehaviour":
-				return JsonUtility.FromJson<LiquidBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<LiquidBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "TreeBehaviour":
-				return JsonUtility.FromJson<TreeBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<TreeBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "BreakDropItemBehaviour":
-				return JsonUtility.FromJson<BreakDropItemBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<BreakDropItemBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "InteractChangeBlockBehaviour":
-				return JsonUtility.FromJson<InteractChangeBlockBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<InteractChangeBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "ModelIdentityBehaviour":
-				return JsonUtility.FromJson<ModelIdentityBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<ModelIdentityBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "PlaceSetStateBehaviour":
-				return JsonUtility.FromJson<PlaceSetStateBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<PlaceSetStateBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "TorchBehaviour":
-				return JsonUtility.FromJson<TorchBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<TorchBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "UpdateDecaySecondaryBlockBehaviour":
-				return JsonUtility.FromJson<UpdateDecaySecondaryBlockBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<UpdateDecaySecondaryBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "AuraCrystalBehaviour":
-				return JsonUtility.FromJson<AuraCrystalBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<AuraCrystalBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "ConfigurablePositionBehaviour":
-				return JsonUtility.FromJson<ConfigurablePositionBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<ConfigurablePositionBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "ConfigurableRotationBehaviour":
-				return JsonUtility.FromJson<ConfigurableRotationBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<ConfigurableRotationBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "PlayerMovementEnterMultiplyBehaviour":
-				return JsonUtility.FromJson<PlayerMovementEnterMultiplyBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<PlayerMovementEnterMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "PlayerMovementExitMultiplyBehaviour":
-				return JsonUtility.FromJson<PlayerMovementExitMultiplyBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<PlayerMovementExitMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "PlayerMovementStepMultiplyBehaviour":
-				return JsonUtility.FromJson<PlayerMovementStepMultiplyBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<PlayerMovementStepMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
 				Debug.Log("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
 				return new LiquidBehaviour();

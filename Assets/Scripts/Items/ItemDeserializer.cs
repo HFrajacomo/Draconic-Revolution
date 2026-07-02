@@ -25,7 +25,7 @@ public static class ItemDeserializer {
 		string propertiesJson = GetProperties(json);
 		string behaviourJson;
 
-		Item item = JsonUtility.FromJson<Item>(propertiesJson);
+		Item item = JsonUtility.FromJson<Item>(JsonFormatter.RemoveComments(propertiesJson));
 		item.SetMemoryStorageType();
 
 		if(HasBehaviours(json)){
@@ -147,9 +147,9 @@ public static class ItemDeserializer {
 
 		switch(val){
 			case "PlaceBlockBehaviour":
-				return JsonUtility.FromJson<PlaceBlockBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<PlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "CreatePointLightBehaviour":
-				return JsonUtility.FromJson<CreatePointLightBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<CreatePointLightBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
 				Debug.Log("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
 				return new PlaceBlockBehaviour();
