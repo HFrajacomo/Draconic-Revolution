@@ -52,11 +52,23 @@
 			},
 			{
 				"state": "Weapon Sheathe",
-				"clip": "CharacterArmature_Sheathe - Unarmed"
+				"clip": "CharacterArmature_Sheathe - Unarmed",
+				"events": [
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
+					}
+				]
 			},
 			{
 				"state": "Weapon Unsheathe",
-				"clip": "CharacterArmature_Unsheathe - Unarmed"
+				"clip": "CharacterArmature_Unsheathe - Unarmed",
+				"events": [
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
+					}
+				]
 			},
 			{
 				"state": "Attack 1",
