@@ -16,16 +16,25 @@ public struct StateClipPair{
 	}
 
 	public AnimationClip FetchFinalClip(){
-		AnimationClip clip = Resources.Load<AnimationClip>($"{AnimationLoader.ANIMATION_CLIP_RESFOLDER}{this.clip}");
+		if(this.clip == "")
+			return null;
+
+		AnimationClip animationClip = Resources.Load<AnimationClip>($"{AnimationLoader.ANIMATION_CLIP_RESFOLDER}{this.clip}");
 		AnimationBehaviour currentBehaviour;
 
-		for(int i=0; i < this.events.Count; i++){
-			currentBehaviour = AnimationBehaviourDeserializer.Deserialize(this.events[i]);
-			currentBehaviour.PostDeserializationSetup();
-			currentBehaviour.ApplyToClip(clip, i);
+		if(animationClip == null){
+			throw new AnimationImportException($"[StateClipPair] Failed to load clip: {this.clip}");
 		}
 
-		return clip;
+		if(animationClip.events.Length == 0 && this.events.Count > 0){
+			for(int i=0; i < this.events.Count; i++){
+				currentBehaviour = AnimationBehaviourDeserializer.Deserialize(this.events[i]);
+				currentBehaviour.PostDeserializationSetup();
+				currentBehaviour.ApplyToClip(animationClip, i);
+			}
+		}
+
+		return animationClip;
 	}
 
 	public override string ToString(){

@@ -43,14 +43,6 @@
 				"clip": "CharacterArmature_Walk Left"
 			},
 			{
-				"state": "Jump Start",
-				"clip": "CharacterArmature_Jump Start"
-			},
-			{
-				"state": "Jump End",
-				"clip": "CharacterArmature_Jump End"
-			},
-			{
 				"state": "Weapon Sheathe",
 				"clip": "CharacterArmature_Sheathe - Pickaxe"
 			},

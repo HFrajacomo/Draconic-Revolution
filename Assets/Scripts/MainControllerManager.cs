@@ -99,14 +99,12 @@ public class MainControllerManager : MonoBehaviour
     public void OnInteract(){
         if(!MainControllerManager.InUI && !LOCK_INTERACT){
             raycast.Interact();
-            this.playerActionController.UseStyle("BASE_Unarmed");
             LOCK_INTERACT = true;
         }
     }
 
     public void OnToggleGravity(){
         gravityHack = !gravityHack;
-        this.playerActionController.UseStyle("BASE_Sword");
     }
 
     public void OnPrefabRead(){
