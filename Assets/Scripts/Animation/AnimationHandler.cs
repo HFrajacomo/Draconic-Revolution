@@ -179,18 +179,20 @@ public class AnimationHandler : MonoBehaviour {
 
 		RemoveAttachments();
 
-		for(int i=0; i < this.battleStyle.attachments.Length; i++){
-			attachmentGO = AttachmentInstantiator.Instantiate(this.battleStyle.attachments[i].fbxName);
+		if(this.battleStyle.attachments != null){
+			for(int i=0; i < this.battleStyle.attachments.Length; i++){
+				attachmentGO = AttachmentInstantiator.Instantiate(this.battleStyle.attachments[i].fbxName);
 
-			bone = this.tpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][this.battleStyle.attachments[i].GetAnchorType()]);
-			attachmentGO.transform.parent = bone;
+				bone = this.tpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][this.battleStyle.attachments[i].GetAnchorType()]);
+				attachmentGO.transform.parent = bone;
 
-			attachmentGO.transform.localPosition = this.battleStyle.attachments[i].offset;
-	        attachmentGO.transform.localRotation = Quaternion.Euler(this.battleStyle.attachments[i].rotation);
-	        AttachmentInstantiator.ApplyScaling(attachmentGO);
+				attachmentGO.transform.localPosition = this.battleStyle.attachments[i].offset;
+		        attachmentGO.transform.localRotation = Quaternion.Euler(this.battleStyle.attachments[i].rotation);
+		        AttachmentInstantiator.ApplyScaling(attachmentGO);
 
-	        this.attachmentDataIndex.Add(this.battleStyle.attachments[i].GetAnchorType(), i);
-	        AddAttachment(this.battleStyle.attachments[i].GetAnchorType(), attachmentGO);
+		        this.attachmentDataIndex.Add(this.battleStyle.attachments[i].GetAnchorType(), i);
+		        AddAttachment(this.battleStyle.attachments[i].GetAnchorType(), attachmentGO);
+			}
 		}
 	}
 

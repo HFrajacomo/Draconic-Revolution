@@ -11,8 +11,6 @@ public class AnimationEventDispatcher : MonoBehaviour {
         ClipIndexPair cip = JsonUtility.FromJson<ClipIndexPair>(JsonFormatter.RemoveComments(data));
         List<AnimationBehaviour> eventList = AnimationBehaviour.Get(cip.clip);
 
-        Debug.Log($"Dispatch: {data}");
-
         if(cip.index >= 0 && cip.index < eventList.Count){
             eventList[cip.index].Run(cl, this.gameObject, this.animationHandler, this.entityID, this.isPlayer);
         }

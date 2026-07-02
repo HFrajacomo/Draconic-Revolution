@@ -114,6 +114,10 @@ public class PlayerActionController : MonoBehaviour {
 		if(!this.INIT)
 			Init();
 
+		// Simple lock to avoid Style Switching without having weaponSheathed first
+		if(!this.weaponSheathed)
+			return;
+
 		if(this.currentStyleCode == style)
 			return;
 
@@ -129,8 +133,8 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.runtimeAnimatorController = animationOverrideController;
 		this.animatorFP.runtimeAnimatorController = animationOverrideControllerFP;
 		this.animator.SetBool("ISPLAYER", true);
-		this.animator.SetBool("Sheated", true);
-		this.animatorFP.SetBool("Sheated", true);
+		this.animator.SetBool("Sheathed", true);
+		this.animatorFP.SetBool("Sheathed", true);
 	}
 	public void UseStyle(string style){UseStyle(AnimationLoader.GetBattleStyle(style).GetCode());}
 
@@ -230,8 +234,6 @@ public class PlayerActionController : MonoBehaviour {
 		AnimatorOverrideController animationOverrideController = new AnimatorOverrideController(animator.runtimeAnimatorController);
 		animationOverrideController = ApplyOverrides(animationOverrideController, AnimationLoader.GetBattleStyle(styleName).GetOverrides());
 		animator.runtimeAnimatorController = animationOverrideController;
-
-
 	}
 
 	private void RunNetcodeList(){
