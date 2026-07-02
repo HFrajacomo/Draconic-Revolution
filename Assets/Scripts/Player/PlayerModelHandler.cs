@@ -60,10 +60,9 @@ public class PlayerModelHandler : MonoBehaviour {
 		}
 
 		AnimationEventDispatcher dispatcher = builder.GetThirdPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
-		dispatcher.Init(this.cl, entityID);
+		dispatcher.Init(this.cl, anim, entityID);
 
 		anim.Init("BASE_Character", this.characterBuilder, isUserCharacter:false);
-		//builder.StartAnimation();
 
 		INIT = true;
 		return go;
@@ -76,7 +75,7 @@ public class PlayerModelHandler : MonoBehaviour {
 		if(this.characterBuilder == null){
 			this.characterBuilder = new CharacterBuilder(this.parent, AnimationLoader.GetController("BASE_Character"), AnimationLoader.GetController("BASE_Character_FP"), app, this.plainClothingMaterial, this.dragonHornMaterial, this.dragonSkinMaterial, this.faceMaterial, isMale, isPlayerCharacter);
 			this.animationHandler.Init("BASE_Character", this.characterBuilder, isUserCharacter:true);
-			this.playerActionController.UseStyle("BASE_Unarmed");
+			this.playerActionController.UseStyle("BASE_Sword");
 
 			this.characterBuilder.Build();
 		}
@@ -86,7 +85,7 @@ public class PlayerModelHandler : MonoBehaviour {
 
 
 		AnimationEventDispatcher dispatcher = this.characterBuilder.GetThirdPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
-		dispatcher.Init(this.cl, Configurations.accountID);
+		dispatcher.Init(this.cl, this.animationHandler, Configurations.accountID);
 
 		Rescale(app.race, this.parent);
 

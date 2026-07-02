@@ -1,4 +1,10 @@
 {
+	"attachments": [
+		{
+			"fbxName": "BastardSword",
+			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT"
+		}	
+	],
 	"combo_hits": 3,
 	"overrides": {
 		"data": [
@@ -52,11 +58,31 @@
 			},
 			{
 				"state": "Weapon Sheathe",
-				"clip": "CharacterArmature_Sheathe - Sword"
+				"clip": "CharacterArmature_Sheathe - Sword",
+				"events": [
+					{
+						"type": "SwitchAttachmentAnchorBehaviour",
+						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\"}"
+					},
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
+					}
+				]
 			},
 			{
 				"state": "Weapon Unsheathe",
-				"clip": "CharacterArmature_Unsheathe - Sword"
+				"clip": "CharacterArmature_Unsheathe - Sword",
+				"events": [
+					{
+						"type": "SwitchAttachmentAnchorBehaviour",
+						"json": "{\"normalizedTime\": 0.2, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_RIGHT\"}"
+					},
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
+					}
+				]
 			},
 			{
 				"state": "Attack 1",

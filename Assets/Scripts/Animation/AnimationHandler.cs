@@ -16,11 +16,17 @@ public class AnimationHandler : MonoBehaviour {
 	private ShapeKeyAnimator shapeKeyAnimator;
 	private ProceduralAnimationRigController rigControllerTP;
 	private ProceduralAnimationRigController rigControllerFP;
+	private BattleStyleData battleStyle;
+	private BattleStyleData battleStyleFP;
 	private float animationCrossfadeTime = 0.06f;
 
 	private static Dictionary<string, Dictionary<string, AnimationStateMapping>> stateMappings;
 	private static Dictionary<string, Dictionary<BoneAnchorType, string>> anchorMappings;
 	private static Dictionary<string, Dictionary<int, string>> hashToName;
+
+	// Third-Person only attachments
+	private Dictionary<BoneAnchorType, GameObject> attachments = new Dictionary<BoneAnchorType, GameObject>();
+	private Dictionary<BoneAnchorType, int> attachmentDataIndex = new Dictionary<BoneAnchorType, int>();
 
 
 	public void Init(string controllerName, CharacterBuilder firstPersonBuilder, bool isUserCharacter=false){
@@ -162,6 +168,69 @@ public class AnimationHandler : MonoBehaviour {
 
 		return -1f;
 	}
+
+	// Used when new style is set
+	public void CreateAttachments(BattleStyleData style){
+		GameObject attachmentGO;
+		Transform bone;
+
+		this.battleStyle = style;
+		this.battleStyleFP = AnimationLoader.GetBattleStyle($"{style.GetName()}-FP");
+
+		RemoveAttachments();
+
+		for(int i=0; i < this.battleStyle.attachments.Length; i++){
+			attachmentGO = AttachmentInstantiator.Instantiate(this.battleStyle.attachments[i].fbxName);
+
+			bone = this.tpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][this.battleStyle.attachments[i].GetAnchorType()]);
+			attachmentGO.transform.parent = bone;
+
+			attachmentGO.transform.localPosition = this.battleStyle.attachments[i].offset;
+	        attachmentGO.transform.localRotation = Quaternion.Euler(this.battleStyle.attachments[i].rotation);
+	        AttachmentInstantiator.ApplyScaling(attachmentGO);
+
+	        this.attachmentDataIndex.Add(this.battleStyle.attachments[i].GetAnchorType(), i);
+	        AddAttachment(this.battleStyle.attachments[i].GetAnchorType(), attachmentGO);
+		}
+	}
+
+	public void AddAttachment(BoneAnchorType anchor, GameObject go){
+		if(ContainsAttachment(anchor))
+			GameObject.Destroy(this.attachments[anchor]);
+
+		this.attachments.Add(anchor, go);
+	}
+
+	public void SwitchAttachments(BoneAnchorType originAnchor, BoneAnchorType targetAnchor){
+		if(!ContainsAttachment(originAnchor)){
+			Debug.LogWarning($"No Attachment was found in {originAnchor}");
+			return;
+		}
+
+		if(ContainsAttachment(targetAnchor))
+			GameObject.Destroy(this.attachments[targetAnchor]);
+
+		this.attachments[originAnchor].transform.parent = this.tpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][targetAnchor]);
+		this.attachments[originAnchor].transform.localPosition = this.battleStyle.attachments[this.attachmentDataIndex[originAnchor]].offset;
+		this.attachments[originAnchor].transform.localRotation = Quaternion.Euler(this.battleStyle.attachments[this.attachmentDataIndex[originAnchor]].rotation);
+		AttachmentInstantiator.ApplyScaling(this.attachments[originAnchor]);
+
+		this.attachments.Add(targetAnchor, this.attachments[originAnchor]);
+		this.attachments.Remove(originAnchor);
+		this.attachmentDataIndex.Add(targetAnchor, this.attachmentDataIndex[originAnchor]);
+		this.attachmentDataIndex.Remove(originAnchor);
+	}
+
+	public void RemoveAttachments(){
+		foreach(BoneAnchorType bat in this.attachments.Keys){
+			GameObject.Destroy(this.attachments[bat]);
+		}
+
+		this.attachments.Clear();
+		this.attachmentDataIndex.Clear();
+	}
+
+	public bool ContainsAttachment(BoneAnchorType anchor){return this.attachments.ContainsKey(anchor);}
 
 	// Sets a Third Person's Animator Parameter to a certain value
 	public void SetParameterValue(string parameter, float val){

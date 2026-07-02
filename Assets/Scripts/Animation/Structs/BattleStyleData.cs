@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 [Serializable]
 public struct BattleStyleData{
+	public AttachmentData[] attachments;
 	public int combo_hits;
 	public Wrapper<StateClipPair> overrides;
 	private StateClipPair[] clipPairs;
@@ -20,6 +21,12 @@ public struct BattleStyleData{
 
 		for(int i=0; i < this.clipPairs.Length; i++){
 			this.map.Add(this.clipPairs[i].state, this.clipPairs[i]);
+		}
+
+		if(this.attachments != null){
+			for(int i=0; i < this.attachments.Length; i++){
+				this.attachments[i].PostDeserializationSetup();
+			}
 		}
 	}
 

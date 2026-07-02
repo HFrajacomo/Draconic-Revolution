@@ -21,6 +21,7 @@ public struct StateClipPair{
 
 		for(int i=0; i < this.events.Count; i++){
 			currentBehaviour = AnimationBehaviourDeserializer.Deserialize(this.events[i]);
+			currentBehaviour.PostDeserializationSetup();
 			currentBehaviour.ApplyToClip(clip, i);
 		}
 

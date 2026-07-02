@@ -118,6 +118,7 @@ public class PlayerActionController : MonoBehaviour {
 			return;
 
 		this.currentStyle = AnimationLoader.GetBattleStyle(style);
+		this.animationHandler.CreateAttachments(this.currentStyle);
 
 		AnimatorOverrideController animationOverrideController = new AnimatorOverrideController(this.originalController);
 		AnimatorOverrideController animationOverrideControllerFP = new AnimatorOverrideController(this.originalControllerFP);
@@ -128,6 +129,8 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.runtimeAnimatorController = animationOverrideController;
 		this.animatorFP.runtimeAnimatorController = animationOverrideControllerFP;
 		this.animator.SetBool("ISPLAYER", true);
+		this.animator.SetBool("Sheated", true);
+		this.animatorFP.SetBool("Sheated", true);
 	}
 	public void UseStyle(string style){UseStyle(AnimationLoader.GetBattleStyle(style).GetCode());}
 
@@ -137,19 +140,20 @@ public class PlayerActionController : MonoBehaviour {
 	}
 
 	public void Sheathe(){
-		// Maybe change the restriction condition in the future to ignore this if certain states are currently playing
 		if(this.restrictions.Contains(PlayerActionRestriction.SHEATHE))
 			return;
 
+		RegisterRestriction(PlayerActionRestriction.SHEATHE, 0.9f);
 		this.weaponSheathed = !this.weaponSheathed;
+		this.animator.SetBool("Sheathed", this.weaponSheathed);
+		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
+		this.animator.SetBool("IsSheathing", true);
 
 		if(this.weaponSheathed){
-			AddToPlaylist("Weapon Sheathe", over:true);
 			this.comboHit = 0;
 			RegisterRestriction(PlayerActionRestriction.PRIMARY, 0);
 		}
 		else{
-			AddToPlaylist("Weapon Unsheathe");
 			RemoveRestriction(PlayerActionRestriction.PRIMARY);
 		}
 	}
@@ -187,11 +191,7 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.SetFloat("Run", runMomentum);
 		this.animatorFP.SetBool("Run", runMomentum > 0);
 		this.animator.SetFloat("Gravity", gravity);
-
 		this.animator.SetBool("IsGrounded", flags.isGrounded);
-		this.animatorFP.SetBool("IsGrounded", flags.isGrounded);
-		this.animator.SetBool("Sheathed", this.weaponSheathed);
-		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
 		this.animator.SetBool("ShouldMove", movementDirection.magnitude != 0);
 
 		SendAnimatorValue("Run", runMomentum);

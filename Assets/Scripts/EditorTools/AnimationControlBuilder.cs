@@ -372,17 +372,22 @@ public static class AnimationControlBuilder {
 	}
 
 	private static void LoadTransitionsSettings(){
-		Wrapper<AnimationTransitionSettings> ats;
+		Wrapper<AnimationTransitionSettings> ats = null;
 
 		foreach(AnimationControllerSettings acs in controllerSettings.Values){
 			TextAsset transitionsJson = Resources.Load<TextAsset>(acs.transitionFile);
 
 			if(transitionsJson == null){
-				Debug.Log($"Couldn't locate the TransitionSettings: {acs.transitionFile} while building AnimationControllers");
-				EditorApplication.isPlaying = false;
+				Debug.LogError($"Couldn't locate the TransitionSettings: {acs.transitionFile} while building AnimationControllers");
 			}
 
-			ats = JsonUtility.FromJson<Wrapper<AnimationTransitionSettings>>(transitionsJson.text);
+			try{
+				ats = JsonUtility.FromJson<Wrapper<AnimationTransitionSettings>>(transitionsJson.text);
+			}
+			catch(ArgumentException ex){
+				Debug.LogError($"Failed to load controller: {acs.controllerName}. {ex}");
+				throw;
+			}
 
 			foreach(AnimationTransitionSettings transitionSettings in ats.data){
 				transitionSettings.PostDeserializationSetup();

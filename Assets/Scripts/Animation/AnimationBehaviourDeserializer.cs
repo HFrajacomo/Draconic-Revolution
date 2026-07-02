@@ -8,6 +8,8 @@ public static class AnimationBehaviourDeserializer {
 				return JsonUtility.FromJson<TestPrintBehaviour>(data.json);
 			case "AnimatorSetBehaviour":
 				return JsonUtility.FromJson<AnimatorSetBehaviour>(data.json);
+			case "SwitchAttachmentAnchorBehaviour":
+				return JsonUtility.FromJson<SwitchAttachmentAnchorBehaviour>(data.json);
 			default:
 				return JsonUtility.FromJson<TestPrintBehaviour>(data.json);
 		}

@@ -19,30 +19,8 @@
 			    {
 			        "mode": "if not",
 			        "parameter": "Sheathed",
-			        "parameterType": "bool"
-			    }
-			]
-		},
-		{
-			"layer": "",
-			"sourceState": "Empty",
-			"destinationState": "Idle Weapon",
-			"hasExitTime": false,
-			"exitTime": 0.5,
-			"duration": 0.1,
-			"offset": 0,
-			"canTransitionToSelf": false,
-			"interruptionSource": "source",
-		    "conditions": [
-			    {
-			        "mode": "if not",
-			        "parameter": "Sheathed",
-			        "parameterType": "bool"
-			    },
-			    {
-			        "mode": "if",
-			        "parameter": "IsGrounded",
-			        "parameterType": "bool"
+			        "parameterType": "bool",
+			        "defaultBool": true
 			    }
 			]
 		},
@@ -117,8 +95,44 @@
 		},
 		{
 			"layer": "",
-			"sourceState": "Weapon Sheathe",
-			"destinationState": "Empty",
+			"sourceState": "Empty",
+			"destinationState": "Weapon Unsheathe",
+			"hasExitTime": false,
+			"exitTime": 0,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "if not",
+			        "parameter": "Sheathed",
+			        "parameterType": "bool"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Idle Weapon",
+			"destinationState": "Weapon Sheathe",
+			"hasExitTime": false,
+			"exitTime": 0,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "if",
+			        "parameter": "Sheathed",
+			        "parameterType": "bool"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Weapon Unsheathe",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -128,8 +142,8 @@
 		},
 		{
 			"layer": "",
-			"sourceState": "Weapon Unsheathe",
-			"destinationState": "Idle Weapon",
+			"sourceState": "Weapon Sheathe",
+			"destinationState": "Empty",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,

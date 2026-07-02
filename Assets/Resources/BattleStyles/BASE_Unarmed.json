@@ -8,17 +8,7 @@
 			},
 			{
 				"state": "Idle",
-				"clip": "CharacterArmature_Idle",
-				"events": [
-					{
-						"type": "TestPrintBehaviour",
-						"json": "{}"
-					},
-					{
-						"type": "AnimatorSetBehaviour",
-						"json": "{\"type\": \"int\", \"intValue\": \"1\", \"fieldName\": \"Attack_Combo\"}"
-					}
-				]
+				"clip": "CharacterArmature_Idle"
 			},
 			{
 				"state": "Idle Weapon",

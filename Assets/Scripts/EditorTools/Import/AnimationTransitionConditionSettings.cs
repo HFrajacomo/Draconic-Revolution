@@ -10,13 +10,15 @@ public class AnimationTransitionConditionSettings {
 	public float threshold;
 	public string parameter;
 	public string parameterType;
+	public bool defaultBool = false;
 	private AnimatorConditionMode conditionMode;
 	private AnimatorControllerParameterType dataType;
 
 	public AnimatorControllerParameter BuildParameter(){
 		return new AnimatorControllerParameter{
 			name = this.parameter,
-			type = this.dataType
+			type = this.dataType,
+			defaultBool = this.defaultBool
 		};
 	}
 

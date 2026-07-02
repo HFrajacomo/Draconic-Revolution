@@ -7,8 +7,8 @@ using Unity.Mathematics;
 
 [Serializable]
 public abstract class AnimationBehaviour {
-	public float triggerTime;
-	private static Dictionary<string, List<AnimationBehaviour>> behaviours;
+	public float normalizedTime;
+	protected static Dictionary<string, List<AnimationBehaviour>> behaviours;
 
 	public void ApplyToClip(AnimationClip clip, int index){
 		if(behaviours == null)
@@ -18,7 +18,7 @@ public abstract class AnimationBehaviour {
 			behaviours.Add(clip.name, new List<AnimationBehaviour>());
 
         AnimationEvent animEvent = new AnimationEvent();
-        animEvent.time = this.triggerTime;
+        animEvent.time = this.normalizedTime * clip.length;
         animEvent.stringParameter = SerializeDispatchParameter(clip.name, index);
         animEvent.functionName = "DispatchAnimationBehaviour";
         clip.AddEvent(animEvent);
@@ -30,7 +30,7 @@ public abstract class AnimationBehaviour {
 
 	public virtual void PostDeserializationSetup(){return;}
 
-	public abstract void Run(ChunkLoader cl, GameObject animatorParent, ulong entityID, bool isPlayer);
+	public virtual void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){Debug.LogWarning("MASSIVE SHIT");}
 
 	protected string SerializeDispatchParameter(string name, int index){return $"{{\"clip\": \"{name}\", \"index\": {index}}}";}
 }
