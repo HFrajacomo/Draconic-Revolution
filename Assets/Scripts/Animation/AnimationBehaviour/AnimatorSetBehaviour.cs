@@ -14,8 +14,6 @@ public class AnimatorSetBehaviour : AnimationBehaviour {
 		if(this.type != "bool" && this.type != "int" && this.type != "float"){
 			Debug.LogError($"AnimatorSetBehaviour has invalid type: {this.type}. Only bool/int/float are supported");
 		}
-
-		Debug.Log("aaaaa");
 	}
 
 	public override void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){

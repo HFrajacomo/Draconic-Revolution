@@ -334,14 +334,14 @@ public class AnimationHandler : MonoBehaviour {
 
 	private void LoadMappingFP(){
 		string fpControllerName = $"{this.controllerName}_FP";
-
-		if(AnimationHandler.stateMappings.ContainsKey(fpControllerName))
-			return;
-
-		if(!AnimationLoader.ContainsMapping(fpControllerName))
-			return;
-
 		this.controllerNameFP = fpControllerName;
+
+		if(AnimationHandler.stateMappings.ContainsKey(this.controllerNameFP))
+			return;
+
+		if(!AnimationLoader.ContainsMapping(this.controllerNameFP))
+			return;
+
 
 		AnimationHandler.hashToName.Add(this.controllerNameFP, new Dictionary<int, string>());
 		AnimationHandler.stateMappings.Add(this.controllerNameFP, new Dictionary<string, AnimationStateMapping>());
