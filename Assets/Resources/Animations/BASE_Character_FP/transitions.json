@@ -2,30 +2,6 @@
 	"data": [
 		{
 			"layer": "",
-			"sourceState": "Empty",
-			"destinationState": "Moving Forward",
-			"hasExitTime": false,
-			"exitTime": 0.5,
-			"duration": 0.3,
-			"offset": 0,
-			"canTransitionToSelf": false,
-			"interruptionSource": "source",
-		    "conditions": [
-			    {
-			        "mode": "if",
-			        "parameter": "Run",
-			        "parameterType": "bool"
-			    },
-			    {
-			        "mode": "if not",
-			        "parameter": "Sheathed",
-			        "parameterType": "bool",
-			        "defaultBool": true
-			    }
-			]
-		},
-		{
-			"layer": "",
 			"sourceState": "Moving Forward",
 			"destinationState": "Idle Weapon",
 			"hasExitTime": false,
@@ -50,7 +26,7 @@
 		{
 			"layer": "",
 			"sourceState": "Moving Forward",
-			"destinationState": "Empty",
+			"destinationState": "Weapon Sheathe",
 			"hasExitTime": false,
 			"exitTime": 0.5,
 			"duration": 0.1,
@@ -59,14 +35,15 @@
 			"interruptionSource": "source",
 		    "conditions": [
 			    {
-			        "mode": "if not",
-			        "parameter": "Run",
-			        "parameterType": "bool"
-			    },
-			    {
 			        "mode": "if",
 			        "parameter": "Sheathed",
-			        "parameterType": "bool"
+			        "parameterType": "bool",
+			    	"defaultBool": true
+			    },
+			    {
+			    	"mode": "if",
+			    	"parameter": "IsSheathing",
+			    	"parameterType": "bool"
 			    }
 			]
 		},
@@ -107,6 +84,11 @@
 			    {
 			        "mode": "if not",
 			        "parameter": "Sheathed",
+			        "parameterType": "bool"
+			    },
+			    {
+			        "mode": "if",
+			        "parameter": "IsSheathing",
 			        "parameterType": "bool"
 			    }
 			]

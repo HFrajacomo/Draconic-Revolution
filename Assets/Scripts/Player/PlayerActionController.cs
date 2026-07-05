@@ -152,6 +152,7 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.SetBool("Sheathed", this.weaponSheathed);
 		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
 		this.animator.SetBool("IsSheathing", true);
+		this.animatorFP.SetBool("IsSheathing", true);
 
 		if(this.weaponSheathed){
 			this.comboHit = 0;

@@ -228,7 +228,7 @@ public class EntityHandler
 	public void SetAnimatorParameter(EntityType type, ulong code, string parameter, float val){
 		if(type == EntityType.PLAYER){
 			if(this.playerAnimations.ContainsKey(code)){
-				this.playerAnimations[code].SetParameterValue(parameter, val);
+				this.playerAnimations[code].SetParameterValue(parameter, val, false);
 			}
 		}
 	}

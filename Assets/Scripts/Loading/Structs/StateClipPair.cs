@@ -10,6 +10,7 @@ public struct StateClipPair{
 	public string direction;
 	public float momentum;
 	public List<AnimationEventData> events;
+	private bool firstPerson;
 
 	public AnimationClip FetchStateClip(){
 		return Resources.Load<AnimationClip>($"{AnimationLoader.ANIMATION_CLIP_RESFOLDER}{this.state}");
@@ -28,7 +29,7 @@ public struct StateClipPair{
 
 		if(animationClip.events.Length == 0 && this.events.Count > 0){
 			for(int i=0; i < this.events.Count; i++){
-				currentBehaviour = AnimationBehaviourDeserializer.Deserialize(this.events[i]);
+				currentBehaviour = AnimationBehaviourDeserializer.Deserialize(this.events[i], this.firstPerson);
 				currentBehaviour.PostDeserializationSetup();
 				currentBehaviour.ApplyToClip(animationClip, i);
 			}
@@ -36,6 +37,9 @@ public struct StateClipPair{
 
 		return animationClip;
 	}
+
+	public void SetFirstPerson(bool firstPerson){this.firstPerson = firstPerson;}
+	public bool GetFirstPerson(){return this.firstPerson;}
 
 	public override string ToString(){
 		return "{" + this.state.ToString() + ": " + this.clip.ToString() + "}";

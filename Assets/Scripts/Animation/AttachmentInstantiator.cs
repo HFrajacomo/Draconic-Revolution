@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /*
 Loads model objects and assigns them to "--- LoadedAttachments ---" organizer object.
@@ -19,9 +20,10 @@ public static class AttachmentInstantiator {
 		organizerObject = GameObject.Find("----- LoadedAttachments -----").transform;
 	}
 
-	public static GameObject Instantiate(string name){
+	public static GameObject Instantiate(string name, bool castShadows){
 		GameObject instance;
 		GameObject prefab;
+		MeshRenderer renderer;
 
 		if(!prefabs.ContainsKey(name)){
 			prefab = Resources.Load<GameObject>($"{ITEM_MODEL_RESPATH}{name}");
@@ -34,6 +36,15 @@ public static class AttachmentInstantiator {
 		instance.transform.localScale = SCALING;
 		instance.name = $"{name}_{instanceCounter[name]}";
 		instanceCounter[name] += 1;
+
+		if(!castShadows){
+			renderer = instance.GetComponent<MeshRenderer>();
+
+			if(renderer != null){
+				renderer.shadowCastingMode = ShadowCastingMode.Off;
+			}
+		}
+
 		return instance;
 	}
 

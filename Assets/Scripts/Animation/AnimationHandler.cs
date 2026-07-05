@@ -20,13 +20,14 @@ public class AnimationHandler : MonoBehaviour {
 	private BattleStyleData battleStyleFP;
 	private float animationCrossfadeTime = 0.06f;
 
+	private Dictionary<BoneAnchorType, GameObject> attachmentsTP = new Dictionary<BoneAnchorType, GameObject>();
+	private Dictionary<BoneAnchorType, int> attachmentDataIndexTP = new Dictionary<BoneAnchorType, int>();
+	private Dictionary<BoneAnchorType, GameObject> attachmentsFP = new Dictionary<BoneAnchorType, GameObject>();
+	private Dictionary<BoneAnchorType, int> attachmentDataIndexFP = new Dictionary<BoneAnchorType, int>();
+
 	private static Dictionary<string, Dictionary<string, AnimationStateMapping>> stateMappings;
 	private static Dictionary<string, Dictionary<BoneAnchorType, string>> anchorMappings;
 	private static Dictionary<string, Dictionary<int, string>> hashToName;
-
-	// Third-Person only attachments
-	private Dictionary<BoneAnchorType, GameObject> attachments = new Dictionary<BoneAnchorType, GameObject>();
-	private Dictionary<BoneAnchorType, int> attachmentDataIndex = new Dictionary<BoneAnchorType, int>();
 
 
 	public void Init(string controllerName, CharacterBuilder firstPersonBuilder, bool isUserCharacter=false){
@@ -175,68 +176,134 @@ public class AnimationHandler : MonoBehaviour {
 		Transform bone;
 
 		this.battleStyle = style;
-		this.battleStyleFP = AnimationLoader.GetBattleStyle($"{style.GetName()}-FP");
+
+		if(this.isPlayer)
+			this.battleStyleFP = AnimationLoader.GetBattleStyle($"{style.GetName()}-FP");
 
 		RemoveAttachments();
 
 		if(this.battleStyle.attachments != null){
 			for(int i=0; i < this.battleStyle.attachments.Length; i++){
-				attachmentGO = AttachmentInstantiator.Instantiate(this.battleStyle.attachments[i].fbxName);
+				attachmentGO = AttachmentInstantiator.Instantiate(this.battleStyle.attachments[i].fbxName, !this.isPlayer);
 
 				bone = this.tpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][this.battleStyle.attachments[i].GetAnchorType()]);
 				attachmentGO.transform.parent = bone;
 
 				attachmentGO.transform.localPosition = this.battleStyle.attachments[i].offset;
 		        attachmentGO.transform.localRotation = Quaternion.Euler(this.battleStyle.attachments[i].rotation);
+		        attachmentGO.layer = 9;
 		        AttachmentInstantiator.ApplyScaling(attachmentGO);
 
-		        this.attachmentDataIndex.Add(this.battleStyle.attachments[i].GetAnchorType(), i);
-		        AddAttachment(this.battleStyle.attachments[i].GetAnchorType(), attachmentGO);
+		        this.attachmentDataIndexTP.Add(this.battleStyle.attachments[i].GetAnchorType(), i);
+		        AddAttachment(this.battleStyle.GetName(), this.battleStyle.attachments[i].GetAnchorType(), attachmentGO);
+			}
+		}
+		if(this.isPlayer){
+			if(this.battleStyleFP.attachments != null){
+				for(int i=0; i < this.battleStyleFP.attachments.Length; i++){
+					attachmentGO = AttachmentInstantiator.Instantiate(this.battleStyleFP.attachments[i].fbxName, false);
+
+					bone = this.fpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][this.battleStyleFP.attachments[i].GetAnchorType()]);
+					attachmentGO.transform.parent = bone;
+
+					attachmentGO.transform.localPosition = this.battleStyleFP.attachments[i].offset;
+			        attachmentGO.transform.localRotation = Quaternion.Euler(this.battleStyleFP.attachments[i].rotation);
+			        attachmentGO.layer = 12;
+			        AttachmentInstantiator.ApplyScaling(attachmentGO);
+
+			        this.attachmentDataIndexFP.Add(this.battleStyleFP.attachments[i].GetAnchorType(), i);
+			        AddAttachment(this.battleStyleFP.GetName(), this.battleStyleFP.attachments[i].GetAnchorType(), attachmentGO);
+				}
 			}
 		}
 	}
 
-	public void AddAttachment(BoneAnchorType anchor, GameObject go){
-		if(ContainsAttachment(anchor))
-			GameObject.Destroy(this.attachments[anchor]);
+	public void AddAttachment(string styleName, BoneAnchorType anchor, GameObject go){
+		bool isFirstPerson = IsFirstPersonString(styleName);
 
-		this.attachments.Add(anchor, go);
+		if(ContainsAttachment(anchor, isFirstPerson)){
+			if(isFirstPerson)
+				GameObject.Destroy(this.attachmentsFP[anchor]);
+			else
+				GameObject.Destroy(this.attachmentsTP[anchor]);
+		}
+
+		if(isFirstPerson)
+			this.attachmentsFP.Add(anchor, go);
+		else
+			this.attachmentsTP.Add(anchor, go);
 	}
 
-	public void SwitchAttachments(BoneAnchorType originAnchor, BoneAnchorType targetAnchor){
-		if(!ContainsAttachment(originAnchor)){
+	public void SwitchAttachments(bool firstPerson, BoneAnchorType originAnchor, BoneAnchorType targetAnchor){
+		if(!ContainsAttachment(originAnchor, firstPerson:firstPerson)){
 			Debug.LogWarning($"No Attachment was found in {originAnchor}");
 			return;
 		}
 
-		if(ContainsAttachment(targetAnchor))
-			GameObject.Destroy(this.attachments[targetAnchor]);
+		if(ContainsAttachment(targetAnchor, firstPerson:firstPerson)){
+			if(firstPerson)
+				GameObject.Destroy(this.attachmentsFP[targetAnchor]);
+			else
+				GameObject.Destroy(this.attachmentsTP[targetAnchor]);
+		}
 
-		this.attachments[originAnchor].transform.parent = this.tpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][targetAnchor]);
-		this.attachments[originAnchor].transform.localPosition = this.battleStyle.attachments[this.attachmentDataIndex[originAnchor]].offset;
-		this.attachments[originAnchor].transform.localRotation = Quaternion.Euler(this.battleStyle.attachments[this.attachmentDataIndex[originAnchor]].rotation);
-		AttachmentInstantiator.ApplyScaling(this.attachments[originAnchor]);
+		if(!firstPerson){
+			this.attachmentsTP[originAnchor].transform.parent = this.tpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][targetAnchor]);
+			this.attachmentsTP[originAnchor].transform.localPosition = this.battleStyle.attachments[this.attachmentDataIndexTP[originAnchor]].offset;
+			this.attachmentsTP[originAnchor].transform.localRotation = Quaternion.Euler(this.battleStyle.attachments[this.attachmentDataIndexTP[originAnchor]].rotation);
+			AttachmentInstantiator.ApplyScaling(this.attachmentsTP[originAnchor]);
 
-		this.attachments.Add(targetAnchor, this.attachments[originAnchor]);
-		this.attachments.Remove(originAnchor);
-		this.attachmentDataIndex.Add(targetAnchor, this.attachmentDataIndex[originAnchor]);
-		this.attachmentDataIndex.Remove(originAnchor);
+			this.attachmentsTP.Add(targetAnchor, this.attachmentsTP[originAnchor]);
+			this.attachmentsTP.Remove(originAnchor);
+			this.attachmentDataIndexTP.Add(targetAnchor, this.attachmentDataIndexTP[originAnchor]);
+			this.attachmentDataIndexTP.Remove(originAnchor);
+		}
+		else{
+			this.attachmentsFP[originAnchor].transform.parent = this.fpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][targetAnchor]);
+			this.attachmentsFP[originAnchor].transform.localPosition = this.battleStyleFP.attachments[this.attachmentDataIndexFP[originAnchor]].offset;
+			this.attachmentsFP[originAnchor].transform.localRotation = Quaternion.Euler(this.battleStyleFP.attachments[this.attachmentDataIndexFP[originAnchor]].rotation);
+			AttachmentInstantiator.ApplyScaling(this.attachmentsFP[originAnchor]);
+
+			this.attachmentsFP.Add(targetAnchor, this.attachmentsFP[originAnchor]);
+			this.attachmentsFP.Remove(originAnchor);
+			this.attachmentDataIndexFP.Add(targetAnchor, this.attachmentDataIndexFP[originAnchor]);
+			this.attachmentDataIndexFP.Remove(originAnchor);
+		}
 	}
 
 	public void RemoveAttachments(){
-		foreach(BoneAnchorType bat in this.attachments.Keys){
-			GameObject.Destroy(this.attachments[bat]);
-		}
+		if(this.attachmentsTP.Count != 0){
+			foreach(BoneAnchorType bat in this.attachmentsTP.Keys){
+				GameObject.Destroy(this.attachmentsTP[bat]);
+			}
 
-		this.attachments.Clear();
-		this.attachmentDataIndex.Clear();
+			if(this.isPlayer){
+				foreach(BoneAnchorType bat in this.attachmentsFP.Keys){
+					GameObject.Destroy(this.attachmentsFP[bat]);
+				}
+			}
+
+			this.attachmentsTP.Clear();
+			this.attachmentsFP.Clear();
+			this.attachmentDataIndexTP.Clear();
+			this.attachmentDataIndexFP.Clear();
+		}
 	}
 
-	public bool ContainsAttachment(BoneAnchorType anchor){return this.attachments.ContainsKey(anchor);}
+	public bool ContainsAttachment(BoneAnchorType anchor, bool firstPerson){
+		if(!firstPerson){
+			return this.attachmentsTP.ContainsKey(anchor);
+		}
+		else{
+			return this.attachmentsFP.ContainsKey(anchor);
+		}
+	}
 
-	// Sets a Third Person's Animator Parameter to a certain value
-	public void SetParameterValue(string parameter, float val){
-		this.tpAnimator.SetFloat(parameter, val);
+	public void SetParameterValue(string parameter, float val, bool firstPersonAnimator){
+		if(firstPersonAnimator)
+			this.fpAnimator.SetFloat(parameter, val);
+		else
+			this.tpAnimator.SetFloat(parameter, val);
 	}
 
 	public static string GetStateName(string controllerName, AnimatorStateInfo stateInfo){return AnimationHandler.hashToName[controllerName][stateInfo.shortNameHash];}
@@ -387,4 +454,9 @@ public class AnimationHandler : MonoBehaviour {
 	}
 
 	private bool ArrayContains(string element, string[] arr){return Array.IndexOf(arr, element) >= 0;}
+	private bool IsFirstPersonString(string text){
+	    if (string.IsNullOrEmpty(text) || text.Length < 3)
+	        return false;
+	    return text.EndsWith("-FP");
+	}
 }

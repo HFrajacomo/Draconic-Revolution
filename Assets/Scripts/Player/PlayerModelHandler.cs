@@ -84,12 +84,13 @@ public class PlayerModelHandler : MonoBehaviour {
 		}
 
 
-		AnimationEventDispatcher dispatcher = this.characterBuilder.GetThirdPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
-		dispatcher.Init(this.cl, this.animationHandler, Configurations.accountID);
+		AnimationEventDispatcher dispatcherTP = this.characterBuilder.GetThirdPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
+		dispatcherTP.Init(this.cl, this.animationHandler, Configurations.accountID);
+
+		AnimationEventDispatcher dispatcherFP = this.characterBuilder.GetFirstPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
+		dispatcherFP.Init(this.cl, this.animationHandler, Configurations.accountID);
 
 		Rescale(app.race, this.parent);
-
-		//this.characterBuilder.StartAnimation();
 	}
 
 	public AnimationHandler GetAnimationHandler(){return this.animationHandler;}

@@ -128,6 +128,7 @@ public class CharacterBuilder{
 	}
 
 	public GameObject GetThirdPersonAnimatorObject(){return this.tpAnimGO;}
+	public GameObject GetFirstPersonAnimatorObject(){return this.fpAnimGO;}
 	public GameObject GetThirdPersonModelObject(){return this.tpModelRoot;}
 
 	public void StartAnimation(){

@@ -8,6 +8,7 @@ using Unity.Mathematics;
 [Serializable]
 public abstract class AnimationBehaviour {
 	public float normalizedTime;
+	protected bool firstPerson;
 	protected static Dictionary<string, List<AnimationBehaviour>> behaviours;
 
 	public void ApplyToClip(AnimationClip clip, int index){
@@ -25,6 +26,8 @@ public abstract class AnimationBehaviour {
 
         behaviours[clip.name].Add(this);
 	}
+
+	public void SetFirstPerson(bool firstPerson){this.firstPerson = firstPerson;}
 
 	public static List<AnimationBehaviour> Get(string clipName){return behaviours[clipName];}
 

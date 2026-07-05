@@ -15,7 +15,7 @@ public class SwitchAttachmentAnchorBehaviour : AnimationBehaviour {
 	}
 
 	public override void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){
-		animationHandler.SwitchAttachments(this.origin, this.target);
+		animationHandler.SwitchAttachments(this.firstPerson, this.origin, this.target);
 	}
 
 	public override string ToString(){return $"[SwitchAttachmentAnchor] {this.origin} -> {this.target}";}
