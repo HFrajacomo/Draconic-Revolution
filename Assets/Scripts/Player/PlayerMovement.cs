@@ -129,7 +129,9 @@ public class PlayerMovement : MonoBehaviour
 
     public Vector3 GetForwardDirection(){return this.movementOrchestrator.CalculateDirection(this.transform, this.controls.movementX, this.controls.movementZ);}
 
-    public void AddModifier(MovePresetProperty prop, MathOperation op){this.movementOrchestrator.AddModifier(prop, op);}
+    public void AddModifier(MovePresetProperty prop, MathOperation op){
+        this.movementOrchestrator.AddModifier(prop, op);
+    }
     public bool CheckModifier(MovePresetProperty prop, MathOperation op){return this.movementOrchestrator.CheckModifierExists(prop, op);}
     public void RemoveModifier(MovePresetProperty prop, MathOperation op){this.movementOrchestrator.RemoveModifier(prop, op);}
 
