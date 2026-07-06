@@ -1,4 +1,10 @@
 {
+	"attachments": [
+		{
+			"fbxName": "Pickaxe",
+			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT"
+		}	
+	],
 	"combo_hits": 3,
 	"overrides": {
 		"data": [
@@ -44,11 +50,31 @@
 			},
 			{
 				"state": "Weapon Sheathe",
-				"clip": "CharacterArmature_Sheathe - Pickaxe"
+				"clip": "CharacterArmature_Sheathe - Pickaxe",
+				"events": [
+					{
+						"type": "SwitchAttachmentAnchorBehaviour",
+						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\"}"
+					},
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
+					}
+				]
 			},
 			{
 				"state": "Weapon Unsheathe",
-				"clip": "CharacterArmature_Unsheathe - Pickaxe"
+				"clip": "CharacterArmature_Unsheathe - Pickaxe",
+				"events": [
+					{
+						"type": "SwitchAttachmentAnchorBehaviour",
+						"json": "{\"normalizedTime\": 0.2, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_RIGHT\"}"
+					},
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
+					}
+				]
 			},
 			{
 				"state": "Attack 1",
@@ -66,7 +92,7 @@
 				"state": "Attack 3",
 				"clip": "CharacterArmature_Attack X - Pickaxe",
 				"direction": "forward",
-				"momentum": 3
+				"momentum": 2
 			},
 			{
 				"state": "Attack 4",

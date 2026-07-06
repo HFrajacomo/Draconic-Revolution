@@ -169,7 +169,6 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     private void ApplyBlockInteraction(PlayerVoxelLocation newLocation){
-        Debug.Log(this.playerVoxelLocation);
         if(this.playerVoxelLocation.feet != newLocation.feet){
             if(VoxelLoader.IsBlock(this.playerVoxelLocation.feet))
                 VoxelLoader.GetBlock(this.playerVoxelLocation.feet).OnPlayerStepExit(newLocation, this.playerSheetController.GetSheet(), this.cl);
