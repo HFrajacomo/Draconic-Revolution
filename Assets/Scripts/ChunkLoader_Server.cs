@@ -379,7 +379,7 @@ public class ChunkLoader_Server : MonoBehaviour
         if(!chunks.ContainsKey(pos)){
             this.toLoad.Insert(0, pos);
             this.LoadChunk();
-            return GetBlockHeight(pos, blockX, blockZ) + (pos.y*Chunk.chunkDepth)+1;
+            return GetBlockHeight(pos, blockX, blockZ);
         }
         for(int i=Chunk.chunkDepth-1; i >= 0 ; i--){
             if(chunks[pos].data.GetCell(Mathf.Abs(blockX), i, Mathf.Abs(blockZ)) != 0){

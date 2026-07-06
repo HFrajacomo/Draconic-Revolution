@@ -196,7 +196,7 @@ public class RegionFileHandler{
 	// Loads data from PDAT file
 	public PlayerData LoadPlayer(ulong ID){
 		if(!this.allPlayerData.ContainsKey(ID)){
-			this.allPlayerData.Add(ID, new PlayerData(ID, new float3(0, this.cl.GetBlockHeight(new ChunkPos(0,0,3),0, 0), 0), new float3(0, 0, 0)));				
+			this.allPlayerData.Add(ID, new PlayerData(ID, new float3(0, this.cl.GetBlockHeight(new ChunkPos(0,0,ChunkDepthID.SURFACE),0, 0) + Chunk.chunkDepth * (int)ChunkDepthID.SURFACE, 0), new float3(0, 0, 0)));				
 		}
 
 		return this.allPlayerData[ID];

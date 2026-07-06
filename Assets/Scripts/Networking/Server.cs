@@ -452,10 +452,10 @@ public class Server
 		if(this.cl.RECEIVEDWORLDDATA){
 			// Sends player data
 			PlayerData pdat = this.cl.regionHandler.LoadPlayer(accountID);
-			pdat.SetOnline(true);
 			Vector3 playerPos = pdat.GetPosition();
 			Vector3 playerDir = pdat.GetDirection();
 			ChunkPos playerChunkPos = new CastCoord(playerPos).GetChunkPos();
+			pdat.SetOnline(true);
 
 			// Add to Chunk graph
 			if(this.playersInChunk.ContainsKey(playerChunkPos)){

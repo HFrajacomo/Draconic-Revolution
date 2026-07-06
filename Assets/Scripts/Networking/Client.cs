@@ -291,13 +291,14 @@ public class Client
 
 		this.cl.time.SetTime(day, hour, minute);
 
-		this.cl.PLAYERSPAWNED = true;
 		this.cl.playerX = x;
 		this.cl.playerY = y;
 		this.cl.playerZ = z;
 		this.cl.playerDirX = xDir;
 		this.cl.playerDirY = yDir;
 		this.cl.playerDirZ = zDir;
+		Debug.Log($"Spawned at: {new CastCoord(new Vector3(x, y, z))}");
+		this.cl.PLAYERSPAWNED = true;
 
 		// Finds current Chunk and sends position data
 		initialCoord = new CastCoord(x, y, z);
