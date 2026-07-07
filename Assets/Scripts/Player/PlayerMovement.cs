@@ -127,6 +127,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public Vector3 GetLookDirection(){return this.transform.forward;}
     public Vector3 GetForwardDirection(){return this.movementOrchestrator.CalculateDirection(this.transform, this.controls.movementX, this.controls.movementZ);}
 
     public void AddModifier(MovePresetProperty prop, MathOperation op){

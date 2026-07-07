@@ -7,8 +7,6 @@ using UnityEngine;
 public struct StateClipPair{
 	public string state;
 	public string clip;
-	public string direction;
-	public float momentum;
 	public List<AnimationEventData> events;
 	private bool firstPerson;
 

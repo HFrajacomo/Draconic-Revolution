@@ -79,20 +79,32 @@
 			{
 				"state": "Attack 1",
 				"clip": "CharacterArmature_Attack X - Pickaxe",
-				"direction": "forward",
-				"momentum": 2
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.2, \"direction\": \"directional\", \"momentum\": 3}"
+					}
+				]
 			},
 			{
 				"state": "Attack 2",
 				"clip": "CharacterArmature_Attack X - Pickaxe",
-				"direction": "forward",
-				"momentum": 2
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.2, \"direction\": \"directional\", \"momentum\": 3}"
+					}
+				]
 			},
 			{
 				"state": "Attack 3",
 				"clip": "CharacterArmature_Attack X - Pickaxe",
-				"direction": "forward",
-				"momentum": 2
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.2, \"direction\": \"directional\", \"momentum\": 3}"
+					}
+				]
 			},
 			{
 				"state": "Attack 4",

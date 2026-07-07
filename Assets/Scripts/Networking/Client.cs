@@ -297,7 +297,6 @@ public class Client
 		this.cl.playerDirX = xDir;
 		this.cl.playerDirY = yDir;
 		this.cl.playerDirZ = zDir;
-		Debug.Log($"Spawned at: {new CastCoord(new Vector3(x, y, z))}");
 		this.cl.PLAYERSPAWNED = true;
 
 		// Finds current Chunk and sends position data

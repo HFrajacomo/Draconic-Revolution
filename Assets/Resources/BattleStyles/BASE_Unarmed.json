@@ -65,20 +65,32 @@
 			{
 				"state": "Attack 1",
 				"clip": "CharacterArmature_Attack 1 - Unarmed",
-				"direction": "forward",
-				"momentum": 3
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.045, \"direction\": \"directional\", \"momentum\": 3}"
+					}
+				]
 			},
 			{
 				"state": "Attack 2",
 				"clip": "CharacterArmature_Attack 2 - Unarmed",
-				"direction": "forward",
-				"momentum": 3
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.09, \"direction\": \"directional\", \"momentum\": 3}"
+					}
+				]
 			},
 			{
 				"state": "Attack 3",
 				"clip": "CharacterArmature_Attack 3 - Unarmed",
-				"direction": "forward",
-				"momentum": 4
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.1, \"direction\": \"directional\", \"momentum\": 4}"
+					}
+				]
 			},
 			{
 				"state": "Attack 4",

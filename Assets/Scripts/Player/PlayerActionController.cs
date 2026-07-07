@@ -61,7 +61,6 @@ public class PlayerActionController : MonoBehaviour {
 						this.animator.SetInteger("Attack_Combo", this.comboHit);
 						this.animatorFP.SetInteger("Attack_Combo", this.comboHit);
 						this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
-						OperateForce($"Attack {this.comboHit}");
 					}
 				}
 			}
@@ -72,7 +71,6 @@ public class PlayerActionController : MonoBehaviour {
 				AddToPlaylist($"Attack {this.comboHit}");
 				this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
 				this.restrictions.Add(PlayerActionRestriction.MOVEMENT);
-				OperateForce($"Attack {this.comboHit}");
 			}
 		}
 
@@ -320,17 +318,6 @@ public class PlayerActionController : MonoBehaviour {
 				break;
 			default:
 				break;
-		}
-	}
-
-	private void OperateForce(string state){
-		StateClipPair data = this.currentStyle.GetStateStyleData(state);
-
-		if(data.direction == null)
-			return;
-
-		if(data.direction == "forward"){
-			this.playerMovement.AddKnockback(this.playerMovement.GetForwardDirection(), data.momentum);
 		}
 	}
 

@@ -10,6 +10,8 @@ public static class AnimationBehaviourDeserializer {
 				return SetAnimatorType(JsonUtility.FromJson<AnimatorSetBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
 			case "SwitchAttachmentAnchorBehaviour":
 				return SetAnimatorType(JsonUtility.FromJson<SwitchAttachmentAnchorBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
+			case "AnimationMomentumBehaviour":
+				return SetAnimatorType(JsonUtility.FromJson<AnimationMomentumBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
 			default:
 				return SetAnimatorType(JsonUtility.FromJson<TestPrintBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
 		}
