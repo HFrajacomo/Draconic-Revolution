@@ -191,8 +191,10 @@ public class AnimationHandler : MonoBehaviour {
 
 				attachmentGO.transform.localPosition = this.battleStyle.attachments[i].offset;
 		        attachmentGO.transform.localRotation = Quaternion.Euler(this.battleStyle.attachments[i].rotation);
-		        attachmentGO.layer = 9;
 		        AttachmentInstantiator.ApplyScaling(attachmentGO);
+
+		        if(this.isPlayer)
+		        	attachmentGO.layer = 9;
 
 		        this.attachmentDataIndexTP.Add(this.battleStyle.attachments[i].GetAnchorType(), i);
 		        AddAttachment(this.battleStyle.GetName(), this.battleStyle.attachments[i].GetAnchorType(), attachmentGO);
@@ -208,8 +210,10 @@ public class AnimationHandler : MonoBehaviour {
 
 					attachmentGO.transform.localPosition = this.battleStyleFP.attachments[i].offset;
 			        attachmentGO.transform.localRotation = Quaternion.Euler(this.battleStyleFP.attachments[i].rotation);
-			        attachmentGO.layer = 12;
 			        AttachmentInstantiator.ApplyScaling(attachmentGO);
+
+			        if(this.isPlayer)
+			        	attachmentGO.layer = 12;
 
 			        this.attachmentDataIndexFP.Add(this.battleStyleFP.attachments[i].GetAnchorType(), i);
 			        AddAttachment(this.battleStyleFP.GetName(), this.battleStyleFP.attachments[i].GetAnchorType(), attachmentGO);

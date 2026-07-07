@@ -136,6 +136,7 @@ public class EntityHandler
 
 		this.playerAnimations[code].GetThirdPersonAnimator().runtimeAnimatorController = animationOverrideController;
 		this.playerSheet[code].SetBattleStyleCode(style);
+		this.playerAnimations[code].CreateAttachments(AnimationLoader.GetBattleStyle(style));
 	}
 
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){

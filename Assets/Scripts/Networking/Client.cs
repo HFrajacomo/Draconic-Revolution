@@ -504,6 +504,7 @@ public class Client
 			this.entityHandler.AddPlayerSheet(code, sheet);
 			this.cl.playerSheetController.SetSheet(sheet);
 			this.cl.playerEvents.ScrollToSlot(sheet.GetHotbarSlot());
+			this.cl.playerActionController.UseStyle(sheet.GetBattleStyleCode());
 		}
 		else{
 			this.entityHandler.AddPlayerSheet(code, sheet);			

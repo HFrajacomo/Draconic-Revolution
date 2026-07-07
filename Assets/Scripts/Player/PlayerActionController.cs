@@ -110,7 +110,7 @@ public class PlayerActionController : MonoBehaviour {
 		statesPlayed = new List<AnimationData>();
 	}
 
-	public void UseStyle(int style){
+	public void UseStyle(int style, bool updatePlayerDataAndServer=false){
 		if(!this.INIT)
 			Init();
 
@@ -135,8 +135,17 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.SetBool("ISPLAYER", true);
 		this.animator.SetBool("Sheathed", true);
 		this.animatorFP.SetBool("Sheathed", true);
+
+		if(updatePlayerDataAndServer){
+			NetMessage message = new NetMessage(NetCode.SENDBATTLESTYLE);
+			message.SendBattleStyle(Configurations.accountID, style);
+			this.cl.client.Send(message);
+
+			this.cl.playerSheetController.GetSheet().SetBattleStyleCode(style);
+			this.cl.playerSheetController.SendToServer();
+		}
 	}
-	public void UseStyle(string style){UseStyle(AnimationLoader.GetBattleStyle(style).GetCode());}
+	public void UseStyle(string style, bool updatePlayerDataAndServer=false){UseStyle(AnimationLoader.GetBattleStyle(style).GetCode(), updatePlayerDataAndServer:updatePlayerDataAndServer);}
 
 	public void RemoveAllStyles(){
 		this.animator.runtimeAnimatorController = this.originalController;

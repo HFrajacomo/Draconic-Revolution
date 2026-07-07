@@ -1404,10 +1404,14 @@ public class Server
 
 	// Receives a BattleStyle change request from client
 	public void SendBattleStyle(byte[] data, ulong id){
+		CharacterSheet sheet;
 		ulong playerCode = NetDecoder.ReadUlong(data, 1);
 		int style = NetDecoder.ReadInt(data, 9);
 
 		this.entityHandler.ChangeBattleStyle(playerCode, style);
+		sheet = this.entityHandler.GetSheet(id);
+		sheet.SetBattleStyleCode(style);
+		this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
 
 		NetMessage message;
 		message = new NetMessage(NetCode.SENDBATTLESTYLE);

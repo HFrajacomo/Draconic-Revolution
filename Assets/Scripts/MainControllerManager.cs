@@ -100,6 +100,8 @@ public class MainControllerManager : MonoBehaviour
         if(!MainControllerManager.InUI && !LOCK_INTERACT){
             raycast.Interact();
             LOCK_INTERACT = true;
+
+            //this.cl.playerActionController.UseStyle("BASE_Sword", updatePlayerDataAndServer:true);
         }
     }
 
