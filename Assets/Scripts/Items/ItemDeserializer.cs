@@ -8,17 +8,19 @@ Deserializes Draconic Revolution Item Notation files
 */
 public static class ItemDeserializer {
 	// Generic Item Placeholders
-	private static ItemBehaviour onHoldPlayerEvent;
-	private static ItemBehaviour onHoldClientEvent;
-	private static ItemBehaviour onHoldServerEvent;
-	private static ItemBehaviour onUnholdPlayerEvent;
-	private static ItemBehaviour onUnholdClientEvent;
-	private static ItemBehaviour onUnholdServerEvent;
-	private static ItemBehaviour onUseClientEvent;
-	private static ItemBehaviour onUseServerEvent;
+	private static List<ItemBehaviour> onHoldPlayerEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onHoldClientEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onHoldServerEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUnholdPlayerEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUnholdClientEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUnholdServerEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUseClientEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUseServerEvent = new List<ItemBehaviour>();
 
-	private static Dictionary<string, string> behaviours = new Dictionary<string, string>();
+	private static Dictionary<string, List<string>> behaviours = new Dictionary<string, List<string>>();
 	private static HashSet<string> assignedEvents = new HashSet<string>();
+	private static Dictionary<string, ItemBehaviour> nameToBehaviour = new Dictionary<string, ItemBehaviour>();
+
 
 
 	public static Item DeserializeItem(string json){
@@ -35,10 +37,23 @@ public static class ItemDeserializer {
 		}
 
 		AssignEventsToItem(item);
-
-		behaviours.Clear();
+		Reset();
 
 		return item;
+	}
+
+	private static void Reset(){
+		onHoldPlayerEvent.Clear();
+		onHoldClientEvent.Clear();
+		onHoldServerEvent.Clear();
+		onUnholdPlayerEvent.Clear();
+		onUnholdClientEvent.Clear();
+		onUnholdServerEvent.Clear();
+		onUseClientEvent.Clear();
+		onUseServerEvent.Clear();
+
+		behaviours.Clear();
+		nameToBehaviour.Clear();
 	}
 
 	private static void AssignEventsToItem(Item item){
@@ -69,7 +84,7 @@ public static class ItemDeserializer {
 					item.SetOnUseServer(onUseServerEvent);
 					break;
 				default:
-					Debug.Log("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + ev);
+					Debug.LogWarning("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + ev);
 					break;
 			}
 		}
@@ -110,7 +125,7 @@ public static class ItemDeserializer {
 		
 			keyVal = line.Split(':');
 
-			behaviours.Add(keyVal[0], keyVal[1].Replace("\n", "").Replace(",", ""));
+			behaviours.Add(keyVal[0], JsonFormatter.StringToList(keyVal[1]));
 		}
 	}
 
@@ -120,23 +135,25 @@ public static class ItemDeserializer {
 	private static void DeserializeAllBehaviours(string json){
 		ItemBehaviour ib;
 
-		foreach(KeyValuePair<string, string> item in behaviours){
-			if(assignedEvents.Contains(item.Key)){
-				continue;
-			}
-
-			ib = HandleBehaviourCreation(item.Value, json);
-
-			foreach(KeyValuePair<string, string> insideItem in behaviours){
-				if(assignedEvents.Contains(item.Key)){
-					continue;
+		foreach(string itemKey in behaviours.Keys){
+			foreach(string itemValue in behaviours[itemKey]){
+				// Skip event triggers that are already added
+				if(assignedEvents.Contains(itemKey)){
+					break;
 				}
 
-				if(insideItem.Value == item.Value){
-					assignedEvents.Add(insideItem.Key);
-					AddToPlaceholder(insideItem.Key, ib);
+				if(nameToBehaviour.ContainsKey(itemValue)){
+					ib = nameToBehaviour[itemValue];
 				}
+				else{
+					ib = HandleBehaviourCreation(itemValue, json);
+					nameToBehaviour.Add(itemValue, ib);
+				}
+
+				AddToPlaceholder(itemKey, ib);
 			}
+
+			assignedEvents.Add(itemKey);
 		}
 
 		assignedEvents.Clear();
@@ -151,7 +168,7 @@ public static class ItemDeserializer {
 			case "CreatePointLightBehaviour":
 				return JsonUtility.FromJson<CreatePointLightBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
-				Debug.Log("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
+				Debug.LogError("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
 				return new PlaceBlockBehaviour();
 		}
 	}
@@ -159,31 +176,31 @@ public static class ItemDeserializer {
 	private static void AddToPlaceholder(string key, ItemBehaviour ib){
 		switch(key){
 			case "onHoldPlayer":
-				onHoldPlayerEvent = ib;
+				onHoldPlayerEvent.Add(ib);
 				break;
 			case "onHoldClient":
-				onHoldClientEvent = ib;
+				onHoldClientEvent.Add(ib);
 				break;
 			case "onHoldServer":
-				onHoldServerEvent = ib;
+				onHoldServerEvent.Add(ib);
 				break;
 			case "onUnholdPlayer":
-				onUnholdPlayerEvent = ib;
+				onUnholdPlayerEvent.Add(ib);
 				break;
 			case "onUnholdClient":
-				onUnholdClientEvent = ib;
+				onUnholdClientEvent.Add(ib);
 				break;
 			case "onUnholdServer":
-				onUnholdServerEvent = ib;
+				onUnholdServerEvent.Add(ib);
 				break;
 			case "onUseClient":
-				onUseClientEvent = ib;
+				onUseClientEvent.Add(ib);
 				break;
 			case "onUseServer":
-				onUseServerEvent = ib;
+				onUseServerEvent.Add(ib);
 				break;
 			default:
-				Debug.Log("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + key);
+				Debug.LogWarning("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + key);
 				break;
 		}
 	}

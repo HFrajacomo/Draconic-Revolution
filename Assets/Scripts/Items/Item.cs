@@ -28,14 +28,14 @@ public class Item
 	public bool hasDurability;
 
 	// Behaviours
-	private ItemBehaviour onHoldPlayerBehaviour;
-	private ItemBehaviour onHoldClientBehaviour;
-	private ItemBehaviour onHoldServerBehaviour;
-	private ItemBehaviour onUnholdPlayerBehaviour;
-	private ItemBehaviour onUnholdClientBehaviour;
-	private ItemBehaviour onUnholdServerBehaviour;
-	private ItemBehaviour onUseClientBehaviour;
-	private ItemBehaviour onUseServerBehaviour;
+	private List<ItemBehaviour> onHoldPlayerBehaviour;
+	private List<ItemBehaviour> onHoldClientBehaviour;
+	private List<ItemBehaviour> onHoldServerBehaviour;
+	private List<ItemBehaviour> onUnholdPlayerBehaviour;
+	private List<ItemBehaviour> onUnholdClientBehaviour;
+	private List<ItemBehaviour> onUnholdServerBehaviour;
+	private List<ItemBehaviour> onUseClientBehaviour;
+	private List<ItemBehaviour> onUseServerBehaviour;
 
 
 	public Item Copy(){
@@ -89,24 +89,24 @@ public class Item
 	}
 
 	// EVENT GET/SET
-	public ItemBehaviour GetOnHoldPlayer() { return onHoldPlayerBehaviour; }
-    public void SetOnHoldPlayer(ItemBehaviour val) { onHoldPlayerBehaviour = val; }
-	public ItemBehaviour GetOnHoldClient() { return onHoldClientBehaviour; }
-    public void SetOnHoldClient(ItemBehaviour val) { onHoldClientBehaviour = val; }
-	public ItemBehaviour GetOnHoldServer() { return onHoldServerBehaviour; }
-    public void SetOnHoldServer(ItemBehaviour val) { onHoldServerBehaviour = val; }
+	public List<ItemBehaviour> GetOnHoldPlayer() { return onHoldPlayerBehaviour; }
+    public void SetOnHoldPlayer(List<ItemBehaviour> val) { onHoldPlayerBehaviour = val; }
+	public List<ItemBehaviour> GetOnHoldClient() { return onHoldClientBehaviour; }
+    public void SetOnHoldClient(List<ItemBehaviour> val) { onHoldClientBehaviour = val; }
+	public List<ItemBehaviour> GetOnHoldServer() { return onHoldServerBehaviour; }
+    public void SetOnHoldServer(List<ItemBehaviour> val) { onHoldServerBehaviour = val; }
 
-	public ItemBehaviour GetOnUnholdPlayer() { return onUnholdPlayerBehaviour; }
-    public void SetOnUnholdPlayer(ItemBehaviour val) { onUnholdPlayerBehaviour = val; }
-	public ItemBehaviour GetOnUnholdClient() { return onUnholdClientBehaviour; }
-    public void SetOnUnholdClient(ItemBehaviour val) { onUnholdClientBehaviour = val; }
-	public ItemBehaviour GetOnUnholdServer() { return onUnholdServerBehaviour; }
-    public void SetOnUnholdServer(ItemBehaviour val) { onUnholdServerBehaviour = val; }
+	public List<ItemBehaviour> GetOnUnholdPlayer() { return onUnholdPlayerBehaviour; }
+    public void SetOnUnholdPlayer(List<ItemBehaviour> val) { onUnholdPlayerBehaviour = val; }
+	public List<ItemBehaviour> GetOnUnholdClient() { return onUnholdClientBehaviour; }
+    public void SetOnUnholdClient(List<ItemBehaviour> val) { onUnholdClientBehaviour = val; }
+	public List<ItemBehaviour> GetOnUnholdServer() { return onUnholdServerBehaviour; }
+    public void SetOnUnholdServer(List<ItemBehaviour> val) { onUnholdServerBehaviour = val; }
 
-	public ItemBehaviour GetOnUseClient() { return onUseClientBehaviour; }
-    public void SetOnUseClient(ItemBehaviour val) { onUseClientBehaviour = val; }
-	public ItemBehaviour GetOnUseServer() { return onUseServerBehaviour; }
-    public void SetOnUseServer(ItemBehaviour val) { onUseServerBehaviour = val; }
+	public List<ItemBehaviour> GetOnUseClient() { return onUseClientBehaviour; }
+    public void SetOnUseClient(List<ItemBehaviour> val) { onUseClientBehaviour = val; }
+	public List<ItemBehaviour> GetOnUseServer() { return onUseServerBehaviour; }
+    public void SetOnUseServer(List<ItemBehaviour> val) { onUseServerBehaviour = val; }
 
     // Properties Set
 	public void SetID(ushort i){this.id = i;}
@@ -118,65 +118,112 @@ public class Item
 
 	// Basic Operations
 	public virtual void OnHoldPlayer(ChunkLoader cl, ItemStack its, ulong code){
-		if(this.onHoldPlayerBehaviour == null)
+		if(this.onHoldPlayerBehaviour == null || this.onHoldPlayerBehaviour.Count == 0)
 			return;
-		this.onHoldPlayerBehaviour.OnHoldPlayer(cl, its, code);
+
+		for(int i=0; i < this.onHoldPlayerBehaviour.Count; i++){
+			this.onHoldPlayerBehaviour[i].OnHoldPlayer(cl, its, code);
+		}
 	}
 	public virtual void OnHoldClient(ChunkLoader cl, ItemStack its, ulong code){
-		if(this.onHoldClientBehaviour == null)
+		if(this.onHoldClientBehaviour == null || this.onHoldClientBehaviour.Count == 0)
 			return;
-		this.onHoldClientBehaviour.OnHoldClient(cl, its, code);
+
+		for(int i=0; i < this.onHoldClientBehaviour.Count; i++){
+			this.onHoldClientBehaviour[i].OnHoldClient(cl, its, code);
+		}
 	}
 	public virtual void OnHoldServer(ChunkLoader_Server cl, ItemStack its, ulong code){
-		if(this.onHoldServerBehaviour == null)
+		if(this.onHoldServerBehaviour == null || this.onHoldServerBehaviour.Count == 0)
 			return;
-		this.onHoldServerBehaviour.OnHoldServer(cl, its, code);
+
+		for(int i=0; i < this.onHoldServerBehaviour.Count; i++){
+			this.onHoldServerBehaviour[i].OnHoldServer(cl, its, code);
+		}
 	}
 	public virtual void OnUnholdPlayer(ChunkLoader cl, ItemStack its, ulong code){
-		if(this.onUnholdPlayerBehaviour == null)
+		if(this.onUnholdPlayerBehaviour == null || this.onUnholdPlayerBehaviour.Count == 0)
 			return;
-		this.onUnholdPlayerBehaviour.OnUnholdPlayer(cl, its, code);
+
+		for(int i=0; i < this.onUnholdPlayerBehaviour.Count; i++){
+			this.onUnholdPlayerBehaviour[i].OnUnholdPlayer(cl, its, code);
+		}
 	}
 	public virtual void OnUnholdClient(ChunkLoader cl, ItemStack its, ulong code){
-		if(this.onUnholdClientBehaviour == null)
+		if(this.onUnholdClientBehaviour == null || this.onUnholdClientBehaviour.Count == 0)
 			return;
-		this.onUnholdClientBehaviour.OnUnholdClient(cl, its, code);
+
+		for(int i=0; i < this.onUnholdClientBehaviour.Count; i++){
+			this.onUnholdClientBehaviour[i].OnUnholdClient(cl, its, code);
+		}
 	}
 	public virtual void OnUnholdServer(ChunkLoader_Server cl, ItemStack its, ulong code){
-		if(this.onUnholdServerBehaviour == null)
+		if(this.onUnholdServerBehaviour == null || this.onUnholdServerBehaviour.Count == 0)
 			return;
-		this.onUnholdServerBehaviour.OnUnholdServer(cl, its, code);
+
+		for(int i=0; i < this.onUnholdServerBehaviour.Count; i++){
+			this.onUnholdServerBehaviour[i].OnUnholdServer(cl, its, code);
+		}
 	}
 	public virtual void OnUseClient(ChunkLoader cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
-		if(this.onUseClientBehaviour == null)
+		if(this.onUseClientBehaviour == null || this.onUseClientBehaviour.Count == 0)
 			return;
-		this.onUseClientBehaviour.OnUseClient(cl, its, usagePos, targetBlock, referencePoint1, referencePoint2, referencePoint3);
+
+		for(int i=0; i < this.onUseClientBehaviour.Count; i++){
+			this.onUseClientBehaviour[i].OnUseClient(cl, its, usagePos, targetBlock, referencePoint1, referencePoint2, referencePoint3);
+		}
 	}
 	public virtual void OnUseServer(ChunkLoader_Server cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){
-		if(this.onUseServerBehaviour == null)
+		if(this.onUseServerBehaviour == null || this.onUseServerBehaviour.Count == 0)
 			return;
-		this.onUseServerBehaviour.OnUseServer(cl, its, usagePos, targetBlock, referencePoint1, referencePoint2, referencePoint3);
+
+		for(int i=0; i < this.onUseServerBehaviour.Count; i++){
+			this.onUseServerBehaviour[i].OnUseServer(cl, its, usagePos, targetBlock, referencePoint1, referencePoint2, referencePoint3);
+		}
 	}
 
 	public void SetupAfterSerialize(bool isClient){
-		if(this.onHoldPlayerBehaviour != null)
-			onHoldPlayerBehaviour.PostDeserializationSetup(isClient);
-		if(this.onHoldClientBehaviour != null)
-			onHoldClientBehaviour.PostDeserializationSetup(isClient);
-		if(this.onHoldServerBehaviour != null)
-			onHoldServerBehaviour.PostDeserializationSetup(isClient);
-		if(this.onUnholdPlayerBehaviour != null)
-			onUnholdPlayerBehaviour.PostDeserializationSetup(isClient);
-		if(this.onUnholdClientBehaviour != null)
-			onUnholdClientBehaviour.PostDeserializationSetup(isClient);
-		if(this.onUnholdServerBehaviour != null)
-			onUnholdServerBehaviour.PostDeserializationSetup(isClient);
+		if(this.onHoldPlayerBehaviour != null){
+			for(int i=0; i < onHoldPlayerBehaviour.Count; i++){
+				onHoldPlayerBehaviour[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onHoldClientBehaviour != null){
+			for(int i=0; i < onHoldClientBehaviour.Count; i++){
+				onHoldClientBehaviour[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onHoldServerBehaviour != null){
+			for(int i=0; i < onHoldServerBehaviour.Count; i++){
+				onHoldServerBehaviour[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onUnholdPlayerBehaviour != null){
+			for(int i=0; i < onUnholdPlayerBehaviour.Count; i++){
+				onUnholdPlayerBehaviour[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onUnholdClientBehaviour != null){
+			for(int i=0; i < onUnholdClientBehaviour.Count; i++){
+				onUnholdClientBehaviour[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onUnholdServerBehaviour != null){
+			for(int i=0; i < onUnholdServerBehaviour.Count; i++){
+				onUnholdServerBehaviour[i].PostDeserializationSetup(isClient);
+			}
+		}
 
-
-		if(this.onUseClientBehaviour != null)
-			onUseClientBehaviour.PostDeserializationSetup(isClient);
-		if(this.onUseServerBehaviour != null)
-			onUseServerBehaviour.PostDeserializationSetup(isClient);
+		if(this.onUseClientBehaviour != null){
+			for(int i=0; i < onUseClientBehaviour.Count; i++){
+				onUseClientBehaviour[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onUseServerBehaviour != null){
+			for(int i=0; i < onUseServerBehaviour.Count; i++){
+				onUseServerBehaviour[i].PostDeserializationSetup(isClient);
+			}
+		}
 	}
 }
 
