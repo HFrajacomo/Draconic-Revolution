@@ -7,35 +7,33 @@ using Unity.Mathematics;
 using Random = System.Random;
 
 [Serializable]
-public class Item
-{
-	private static Random rng = new Random((int)DateTime.Now.Ticks);
+public class Item {
+	protected static Random rng = new Random((int)DateTime.Now.Ticks);
 
 	// Basic Identification
 	public string codename;
 	public string name;
 	public string description;
 
-	private ushort id;
+	protected ushort id;
 
 	// Storage
 	public byte memoryType;
-	private MemoryStorageType memoryStorageType;
+	protected MemoryStorageType memoryStorageType;
 
 	// Inventory
 	public byte stacksize;
-	private HashSet<string> tags;
-	public bool hasDurability;
+	public bool hasDurability = false;
 
 	// Behaviours
-	private List<ItemBehaviour> onHoldPlayerBehaviour;
-	private List<ItemBehaviour> onHoldClientBehaviour;
-	private List<ItemBehaviour> onHoldServerBehaviour;
-	private List<ItemBehaviour> onUnholdPlayerBehaviour;
-	private List<ItemBehaviour> onUnholdClientBehaviour;
-	private List<ItemBehaviour> onUnholdServerBehaviour;
-	private List<ItemBehaviour> onUseClientBehaviour;
-	private List<ItemBehaviour> onUseServerBehaviour;
+	protected List<ItemBehaviour> onHoldPlayerBehaviour;
+	protected List<ItemBehaviour> onHoldClientBehaviour;
+	protected List<ItemBehaviour> onHoldServerBehaviour;
+	protected List<ItemBehaviour> onUnholdPlayerBehaviour;
+	protected List<ItemBehaviour> onUnholdClientBehaviour;
+	protected List<ItemBehaviour> onUnholdServerBehaviour;
+	protected List<ItemBehaviour> onUseClientBehaviour;
+	protected List<ItemBehaviour> onUseServerBehaviour;
 
 
 	public Item Copy(){
@@ -44,16 +42,6 @@ public class Item
 
 	public override string ToString(){
 		return $"{this.codename}:{this.id}";
-	}
-
-	// Checks if this item contains a given tag
-	public bool ContainsTag(string tag){
-		return this.tags.Contains(tag);
-	}
-
-	// Returns this item's tags as a list
-	public List<string> GetTags(){
-		return new List<string>(this.tags);
 	}
 
 	// Returns a string array with name and description to use in Details UI
@@ -80,11 +68,11 @@ public class Item
 		return (byte)Item.rng.Next(min, max+1);
 	}
 
-	private static float RandomDecimal(){
+	protected static float RandomDecimal(){
 		return (float)Item.rng.NextDouble();
 	}
 
-	private static float RandomMirrored(){
+	protected static float RandomMirrored(){
 		return (float)(Item.rng.NextDouble())*2-1;
 	}
 
@@ -110,7 +98,6 @@ public class Item
 
     // Properties Set
 	public void SetID(ushort i){this.id = i;}
-	public void SetTags(List<string> lit){this.tags = new HashSet<string>(lit);}
 	public void SetDurability(bool b){this.hasDurability = b;}
 	public ushort GetID(){return this.id;}
 	public void SetMemoryStorageType(){this.memoryStorageType = (MemoryStorageType)this.memoryType;}

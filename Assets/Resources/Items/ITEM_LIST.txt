@@ -69,3 +69,5 @@ BASE_MagiaCrystal
 BASE_RuinaCrystal
 BASE_SolumCrystal
 BASE_VentusCrystal
+BASE_Bastard_Sword
+BASE_Pickaxe

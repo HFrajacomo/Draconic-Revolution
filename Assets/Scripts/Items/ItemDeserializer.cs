@@ -20,14 +20,18 @@ public static class ItemDeserializer {
 	private static Dictionary<string, List<string>> behaviours = new Dictionary<string, List<string>>();
 	private static HashSet<string> assignedEvents = new HashSet<string>();
 	private static Dictionary<string, ItemBehaviour> nameToBehaviour = new Dictionary<string, ItemBehaviour>();
+	private static readonly HashSet<string> POSSIBLE_ITEM_TYPES = new HashSet<string>(){"Item", "Weapon"};
 
 
 
 	public static Item DeserializeItem(string json){
 		string propertiesJson = GetProperties(json);
 		string behaviourJson;
+		string itemType = GetTypeSection(json);
 
-		Item item = JsonUtility.FromJson<Item>(JsonFormatter.RemoveComments(propertiesJson));
+		ValidateType(itemType);
+
+		Item item = CreateItem(JsonFormatter.RemoveComments(propertiesJson), itemType);
 		item.SetMemoryStorageType();
 
 		if(HasBehaviours(json)){
@@ -91,7 +95,10 @@ public static class ItemDeserializer {
 	}
 
 	private static string GetProperties(string json){
-		return json.Split("--->Behaviours")[0];
+		if(json.Contains("--->Behaviours"))
+			return json.Split("--->Behaviours")[0];
+		else
+			return json.Split("--->Type")[0];
 	}
 
 	private static bool HasBehaviours(string json){
@@ -108,6 +115,16 @@ public static class ItemDeserializer {
 
 	private static string GetSection(string json, string section){
 		return json.Split("--->" + section)[1].Split("--->")[0];
+	}
+
+	private static string GetTypeSection(string json){
+		return json.Split("--->Type")[1].Replace("\r", "").Replace("\n", "");
+	}
+
+	private static void ValidateType(string type){
+		if(!POSSIBLE_ITEM_TYPES.Contains(type)){
+			throw new DeserializationErrorException($"[ItemDeserializer] Defined type '{type}' is not available");
+		}
 	}
 
 	private static void FindBehaviours(string json){
@@ -157,6 +174,18 @@ public static class ItemDeserializer {
 		}
 
 		assignedEvents.Clear();
+	}
+
+	private static Item CreateItem(string json, string type){
+		switch(type){
+			case "Item":
+				return JsonUtility.FromJson<Item>(JsonFormatter.RemoveComments(json));
+			case "Weapon":
+				return JsonUtility.FromJson<Weapon>(JsonFormatter.RemoveComments(json));
+			default:
+				Debug.LogError($"ERROR WHEN TRYING TO DE-SERIALIZE ITEM TYPE: {type}");
+				return JsonUtility.FromJson<Item>(JsonFormatter.RemoveComments(json)); 
+		}
 	}
 
 	private static ItemBehaviour HandleBehaviourCreation(string val, string json){

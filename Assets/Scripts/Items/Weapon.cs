@@ -1,9 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-public abstract class Weapon : Item
-{
+[Serializable]
+public class Weapon : Item {
 	/*
 	Saved Fields:
 
@@ -17,11 +18,10 @@ public abstract class Weapon : Item
 	public uint maxDurability;
 	public uint currentDurability;
 	public ushort impact;
-	public Dictionary<SkillType, byte> requiredLevels;
 	public WeaponType type;
 	public byte refineLevel;
 	public EnchantmentType extraEffect;
-
+	public Dictionary<SkillType, byte> requiredLevels;
 
 	public virtual void SetDamage(ushort damage){this.damage = damage;}
 	public virtual void SetMaxDurability(uint dur){this.maxDurability = dur;}
@@ -68,7 +68,7 @@ public enum WeaponType : byte{
 	FIST,
 	DAGGER,
 	SHORTSWORD,
-	BROADSWORD,
+	BASTARDSWORD,
 	LONGSWORD,
 	RAPIER,
 	AXE,
