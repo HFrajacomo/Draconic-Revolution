@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 
 [Serializable]
 public class Weapon : Item {
@@ -60,6 +61,38 @@ public class Weapon : Item {
 
 		currentDurability -= damage;
 		return true;
+	}
+
+	public override Item Copy() {
+		return new Weapon {
+			// Copy base Item fields
+			codename = this.codename,
+			name = this.name,
+			description = this.description,
+			id = this.id,
+			memoryType = this.memoryType,
+			memoryStorageType = this.memoryStorageType,
+			stacksize = this.stacksize,
+			hasDurability = this.hasDurability,
+
+			onHoldPlayerBehaviour = this.onHoldPlayerBehaviour != null ? new List<ItemBehaviour>(this.onHoldPlayerBehaviour) : null,
+			onHoldClientBehaviour = this.onHoldClientBehaviour != null ? new List<ItemBehaviour>(this.onHoldClientBehaviour) : null,
+			onHoldServerBehaviour = this.onHoldServerBehaviour != null ? new List<ItemBehaviour>(this.onHoldServerBehaviour) : null,
+			onUnholdPlayerBehaviour = this.onUnholdPlayerBehaviour != null ? new List<ItemBehaviour>(this.onUnholdPlayerBehaviour) : null,
+			onUnholdClientBehaviour = this.onUnholdClientBehaviour != null ? new List<ItemBehaviour>(this.onUnholdClientBehaviour) : null,
+			onUnholdServerBehaviour = this.onUnholdServerBehaviour != null ? new List<ItemBehaviour>(this.onUnholdServerBehaviour) : null,
+			onUseClientBehaviour = this.onUseClientBehaviour != null ? new List<ItemBehaviour>(this.onUseClientBehaviour) : null,
+			onUseServerBehaviour = this.onUseServerBehaviour != null ? new List<ItemBehaviour>(this.onUseServerBehaviour) : null,
+
+			damage = this.damage,
+			maxDurability = this.maxDurability,
+			currentDurability = this.currentDurability,
+			impact = this.impact,
+			type = this.type,
+			refineLevel = this.refineLevel,
+			extraEffect = this.extraEffect,
+			requiredLevels = this.requiredLevels != null ? new Dictionary<SkillType, byte>(this.requiredLevels) : null
+		};
 	}
 
 }

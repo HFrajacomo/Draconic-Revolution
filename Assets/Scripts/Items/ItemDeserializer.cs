@@ -47,14 +47,14 @@ public static class ItemDeserializer {
 	}
 
 	private static void Reset(){
-		onHoldPlayerEvent.Clear();
-		onHoldClientEvent.Clear();
-		onHoldServerEvent.Clear();
-		onUnholdPlayerEvent.Clear();
-		onUnholdClientEvent.Clear();
-		onUnholdServerEvent.Clear();
-		onUseClientEvent.Clear();
-		onUseServerEvent.Clear();
+		onHoldPlayerEvent = new List<ItemBehaviour>();
+		onHoldClientEvent = new List<ItemBehaviour>();
+		onHoldServerEvent = new List<ItemBehaviour>();
+		onUnholdPlayerEvent = new List<ItemBehaviour>();
+		onUnholdClientEvent = new List<ItemBehaviour>();
+		onUnholdServerEvent = new List<ItemBehaviour>();
+		onUseClientEvent = new List<ItemBehaviour>();
+		onUseServerEvent = new List<ItemBehaviour>();
 
 		behaviours.Clear();
 		nameToBehaviour.Clear();
@@ -196,6 +196,8 @@ public static class ItemDeserializer {
 				return JsonUtility.FromJson<PlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "CreatePointLightBehaviour":
 				return JsonUtility.FromJson<CreatePointLightBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "ChangeStyleBehaviour":
+				return JsonUtility.FromJson<ChangeStyleBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
 				Debug.LogError("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
 				return new PlaceBlockBehaviour();

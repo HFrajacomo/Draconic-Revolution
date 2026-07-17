@@ -486,13 +486,16 @@ public class ChunkLoader_Server : MonoBehaviour
 
         for(int i=0; i < 45; i++){
             if(i == 1){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50);
+                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE);
             }
             else if(i == 2){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50);
+                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE);
             }
             else if(i == 3){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Water"), 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50);
+            }
+            else if(i == 4){
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50);
             }
             else{
                 slots[i] = new EmptyPlayerInventorySlot();

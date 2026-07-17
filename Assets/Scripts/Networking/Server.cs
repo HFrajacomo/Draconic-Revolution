@@ -1364,6 +1364,8 @@ public class Server
 		ItemStack hotbarStack;
 		NetMessage message;
 
+		Debug.Log($"Hotbar Position: {slot}");
+
 		if(this.entityHandler.ContainsSheet(id)){
 			sheet = this.entityHandler.GetSheet(id);
 			previousSlot = sheet.GetHotbarSlot();
@@ -1377,6 +1379,7 @@ public class Server
 
 				hotbarStack.GetItem().OnUnholdServer(this.cl, hotbarStack, id);
 				hotbarStack.GetItem().OnHoldServer(this.cl, hotbarStack, id);
+				Debug.Log($"{hotbarStack.GetItem().codename} -- {hotbarStack.GetItem().TestLength()}");
 
 				message = new NetMessage(NetCode.SENDITEMINHAND);
 				message.SendItemInHand(id, hotbarStack.GetID(), hotbarStack.GetAmount());
@@ -1418,6 +1421,20 @@ public class Server
 		message.SendBattleStyle(playerCode, style);
 		this.SendToClientsExcept(id, message);
 	}
+	public void SendBattleStyle(ulong playerCode, int style){
+		CharacterSheet sheet;
+		this.entityHandler.ChangeBattleStyle(playerCode, style);
+		sheet = this.entityHandler.GetSheet(playerCode);
+		sheet.SetBattleStyleCode(style);
+		this.cl.characterFileHandler.SaveCharacterSheet(playerCode, sheet);
+
+		Debug.Log("SendBattleStyle ran");
+
+		NetMessage message;
+		message = new NetMessage(NetCode.SENDBATTLESTYLE);
+		message.SendBattleStyle(playerCode, style);
+		this.SendToClients(playerCode, message);
+	}
 
 	// Receives an animator value from client
 	public void SendAnimatorParameter(byte[] data, ulong id){
@@ -1451,6 +1468,24 @@ public class Server
 			return;
 
 		foreach(ulong i in this.cl.loadedChunks[pos]){
+			this.Send(message.GetMessage(), message.size, i);
+		}
+	}
+
+	// Send input message to all Clients connected to player
+	public void SendToClients(ulong playerCode, NetMessage message){
+		if(!this.playerToChunk.ContainsKey(playerCode)){
+			return;
+		}
+
+		ChunkPos pos = this.playerToChunk[playerCode];
+
+		if(!this.cl.loadedChunks.ContainsKey(pos)){
+			return;
+		}
+
+		foreach(ulong i in this.cl.loadedChunks[pos]){
+			Debug.Log($"Sending to {i}");
 			this.Send(message.GetMessage(), message.size, i);
 		}
 	}

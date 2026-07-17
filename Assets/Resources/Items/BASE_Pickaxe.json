@@ -15,5 +15,13 @@
         "COMBAT": 1
     }
 }
+--->Behaviours
+{
+    "onHoldServer": "ChangeStyleBehaviour"
+}
+--->ChangeStyleBehaviour
+{
+    "battleStyle": "BASE_Pickaxe"
+}
 --->Type
 Weapon

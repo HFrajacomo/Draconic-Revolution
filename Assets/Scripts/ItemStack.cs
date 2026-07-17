@@ -200,8 +200,11 @@ public class ItemStack
 
 	// Writes the memory representation of an item to a byte[]
 	public int ConvertToMemory(byte[] data, int pos){
-		if(this.item is Weapon)
+		Debug.Log("CONVERT MEMORY RAN");
+		if(this.item is Weapon){
+			Debug.Log("IS A WEAPON");
 			return ConvertWeapon(data, pos);
+		}
 		//if is storage item //else if(this.item is)
 		else
 			return ConvertItem(data, pos);

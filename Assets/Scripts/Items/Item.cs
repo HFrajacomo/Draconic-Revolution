@@ -35,9 +35,27 @@ public class Item {
 	protected List<ItemBehaviour> onUseClientBehaviour;
 	protected List<ItemBehaviour> onUseServerBehaviour;
 
+	public virtual Item Copy(){
+		return new Item {
+			codename = this.codename,
+			name = this.name,
+			description = this.description,
+			id = this.id,
+			memoryType = this.memoryType,
+			memoryStorageType = this.memoryStorageType,
+			stacksize = this.stacksize,
+			hasDurability = this.hasDurability,
 
-	public Item Copy(){
-		return (Item)this.MemberwiseClone();
+			// Deep copy lists (new lists with same elements)
+			onHoldPlayerBehaviour = this.onHoldPlayerBehaviour != null ? new List<ItemBehaviour>(this.onHoldPlayerBehaviour) : null,
+			onHoldClientBehaviour = this.onHoldClientBehaviour != null ? new List<ItemBehaviour>(this.onHoldClientBehaviour) : null,
+			onHoldServerBehaviour = this.onHoldServerBehaviour != null ? new List<ItemBehaviour>(this.onHoldServerBehaviour) : null,
+			onUnholdPlayerBehaviour = this.onUnholdPlayerBehaviour != null ? new List<ItemBehaviour>(this.onUnholdPlayerBehaviour) : null,
+			onUnholdClientBehaviour = this.onUnholdClientBehaviour != null ? new List<ItemBehaviour>(this.onUnholdClientBehaviour) : null,
+			onUnholdServerBehaviour = this.onUnholdServerBehaviour != null ? new List<ItemBehaviour>(this.onUnholdServerBehaviour) : null,
+			onUseClientBehaviour = this.onUseClientBehaviour != null ? new List<ItemBehaviour>(this.onUseClientBehaviour) : null,
+			onUseServerBehaviour = this.onUseServerBehaviour != null ? new List<ItemBehaviour>(this.onUseServerBehaviour) : null
+		};
 	}
 
 	public override string ToString(){
@@ -78,25 +96,25 @@ public class Item {
 
 	// EVENT GET/SET
 	public List<ItemBehaviour> GetOnHoldPlayer() { return onHoldPlayerBehaviour; }
-    public void SetOnHoldPlayer(List<ItemBehaviour> val) { onHoldPlayerBehaviour = val; }
+	public void SetOnHoldPlayer(List<ItemBehaviour> val) { onHoldPlayerBehaviour = val; }
 	public List<ItemBehaviour> GetOnHoldClient() { return onHoldClientBehaviour; }
-    public void SetOnHoldClient(List<ItemBehaviour> val) { onHoldClientBehaviour = val; }
+	public void SetOnHoldClient(List<ItemBehaviour> val) { onHoldClientBehaviour = val; }
 	public List<ItemBehaviour> GetOnHoldServer() { return onHoldServerBehaviour; }
-    public void SetOnHoldServer(List<ItemBehaviour> val) { onHoldServerBehaviour = val; }
+	public void SetOnHoldServer(List<ItemBehaviour> val) { onHoldServerBehaviour = val; }
 
 	public List<ItemBehaviour> GetOnUnholdPlayer() { return onUnholdPlayerBehaviour; }
-    public void SetOnUnholdPlayer(List<ItemBehaviour> val) { onUnholdPlayerBehaviour = val; }
+	public void SetOnUnholdPlayer(List<ItemBehaviour> val) { onUnholdPlayerBehaviour = val; }
 	public List<ItemBehaviour> GetOnUnholdClient() { return onUnholdClientBehaviour; }
-    public void SetOnUnholdClient(List<ItemBehaviour> val) { onUnholdClientBehaviour = val; }
+	public void SetOnUnholdClient(List<ItemBehaviour> val) { onUnholdClientBehaviour = val; }
 	public List<ItemBehaviour> GetOnUnholdServer() { return onUnholdServerBehaviour; }
-    public void SetOnUnholdServer(List<ItemBehaviour> val) { onUnholdServerBehaviour = val; }
+	public void SetOnUnholdServer(List<ItemBehaviour> val) { onUnholdServerBehaviour = val; }
 
 	public List<ItemBehaviour> GetOnUseClient() { return onUseClientBehaviour; }
-    public void SetOnUseClient(List<ItemBehaviour> val) { onUseClientBehaviour = val; }
+	public void SetOnUseClient(List<ItemBehaviour> val) { onUseClientBehaviour = val; }
 	public List<ItemBehaviour> GetOnUseServer() { return onUseServerBehaviour; }
-    public void SetOnUseServer(List<ItemBehaviour> val) { onUseServerBehaviour = val; }
+	public void SetOnUseServer(List<ItemBehaviour> val) { onUseServerBehaviour = val; }
 
-    // Properties Set
+	// Properties Set
 	public void SetID(ushort i){this.id = i;}
 	public void SetDurability(bool b){this.hasDurability = b;}
 	public ushort GetID(){return this.id;}

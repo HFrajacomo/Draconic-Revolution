@@ -72,22 +72,22 @@ public static class VoxelDeserializer {
 	}
 
 	private static void Reset(){
-		onPlaceEvent.Clear();
-		onBreakEvent.Clear();
-		onInteractEvent.Clear();
-		onBlockUpdateEvent.Clear();
-		onLoadEvent.Clear();
-		onVFXBuildEvent.Clear();
-		onVFXChangeEvent.Clear();
-		onVFXBreakEvent.Clear();
-		onSFXPlayEvent.Clear();
-		placementRuleEvent.Clear();
-		onPlayerStepEnter.Clear();
-		onPlayerStepExit.Clear();
-		onPlayerBodyEnter.Clear();
-		onPlayerBodyExit.Clear();
-		onPlayerHeadEnter.Clear();
-		onPlayerHeadExit.Clear();
+		onPlaceEvent = new List<VoxelBehaviour>();
+		onBreakEvent = new List<VoxelBehaviour>();
+		onInteractEvent = new List<VoxelBehaviour>();
+		onBlockUpdateEvent = new List<VoxelBehaviour>();
+		onLoadEvent = new List<VoxelBehaviour>();
+		onVFXBuildEvent = new List<VoxelBehaviour>();
+		onVFXChangeEvent = new List<VoxelBehaviour>();
+		onVFXBreakEvent = new List<VoxelBehaviour>();
+		onSFXPlayEvent = new List<VoxelBehaviour>();
+		placementRuleEvent = new List<VoxelBehaviour>();
+		onPlayerStepEnter = new List<VoxelBehaviour>();
+		onPlayerStepExit = new List<VoxelBehaviour>();
+		onPlayerBodyEnter = new List<VoxelBehaviour>();
+		onPlayerBodyExit = new List<VoxelBehaviour>();
+		onPlayerHeadEnter = new List<VoxelBehaviour>();
+		onPlayerHeadExit = new List<VoxelBehaviour>();
 
 		behaviours.Clear();
 		nameToBehaviour.Clear();

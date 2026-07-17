@@ -50,7 +50,9 @@ public static class InventorySerializer
                     refineLv = data[init+bytesRead];
                     bytesRead++;
                     enchant = (EnchantmentType)data[init+bytesRead];
-                    weapon = (Weapon)ItemLoader.GetCopy(id);;
+                    bytesRead++;
+
+                    weapon = (Weapon)ItemLoader.GetCopy(id);
                     weapon.SetDurability(currentDur);
                     weapon.SetExtraEffects(enchant);
                     weapon.SetRefineLevel(refineLv);

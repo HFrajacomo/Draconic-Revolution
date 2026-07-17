@@ -730,6 +730,9 @@ public class Client
 		
 		if(playerCode != Configurations.accountID)
 			this.entityHandler.SetPlayerBattleStyle(playerCode, styleCode);
+		else{
+			this.cl.playerActionController.UseStyle(styleCode);
+		}
 	}
 
 	// Receives from server a parameter from an animator

@@ -28,8 +28,9 @@ public class AnimationLoader : BaseLoader {
 			LoadStateMappings();
 			LoadRigs();
 			LoadArmatureName();
-			LoadBattleStyles();
 		}
+
+		LoadBattleStyles();
 
 		return true;
 	}

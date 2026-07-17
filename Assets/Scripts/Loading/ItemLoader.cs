@@ -95,7 +95,6 @@ public class ItemLoader : BaseLoader {
 				serializedItem = ItemDeserializer.DeserializeItem(textAsset.text);
 				serializedItem.SetID(i);
 				itemList.Add(serializedItem);
-
 				codenameToItemID.Add(item, i);
 				textureBank.Add(i, texture);
 
