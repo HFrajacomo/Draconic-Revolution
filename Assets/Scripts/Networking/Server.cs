@@ -432,6 +432,7 @@ public class Server
 
 	// Captures client info
 	private void SendClientInfo(byte[] data, ulong id){
+		CharacterSheet sheet = null;
 		NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
 		int inventoryLength;
 		bool isEmptyInventory;
@@ -473,7 +474,8 @@ public class Server
 				this.playerToChunk[accountID] = playerChunkPos;
 			}
 
-			this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
+			sheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
+			this.entityHandler.AddPlayerSheet(accountID, sheet);
 
 			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes);
 			this.Send(message.GetMessage(), message.size, id, temporary:true);
@@ -522,10 +524,11 @@ public class Server
 
     	this.connections[accountID].BeginReceive(this.receiveBuffer[accountID], 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), accountID);
 
-    	// Run OnHoldServer and OnHoldClient events
+    	if(sheet == null)
+    		sheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
+
     	bool isEmpty;
-    	this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
-		byte hotbarSlot = this.cachedSheet.GetHotbarSlot();
+		byte hotbarSlot = sheet.GetHotbarSlot();
 		this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmpty);
 
 		ItemStack its = this.cl.playerServerInventory.GetSlot(accountID, hotbarSlot).GetItemStack();
@@ -1364,8 +1367,6 @@ public class Server
 		ItemStack hotbarStack;
 		NetMessage message;
 
-		Debug.Log($"Hotbar Position: {slot}");
-
 		if(this.entityHandler.ContainsSheet(id)){
 			sheet = this.entityHandler.GetSheet(id);
 			previousSlot = sheet.GetHotbarSlot();
@@ -1379,7 +1380,6 @@ public class Server
 
 				hotbarStack.GetItem().OnUnholdServer(this.cl, hotbarStack, id);
 				hotbarStack.GetItem().OnHoldServer(this.cl, hotbarStack, id);
-				Debug.Log($"{hotbarStack.GetItem().codename} -- {hotbarStack.GetItem().TestLength()}");
 
 				message = new NetMessage(NetCode.SENDITEMINHAND);
 				message.SendItemInHand(id, hotbarStack.GetID(), hotbarStack.GetAmount());
@@ -1427,8 +1427,6 @@ public class Server
 		sheet = this.entityHandler.GetSheet(playerCode);
 		sheet.SetBattleStyleCode(style);
 		this.cl.characterFileHandler.SaveCharacterSheet(playerCode, sheet);
-
-		Debug.Log("SendBattleStyle ran");
 
 		NetMessage message;
 		message = new NetMessage(NetCode.SENDBATTLESTYLE);

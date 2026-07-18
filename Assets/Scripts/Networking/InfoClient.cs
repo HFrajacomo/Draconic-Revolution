@@ -13,7 +13,7 @@ public class InfoClient
 	private Socket socket;
 	private SocketError err;
 	private int timeoutMiliseconds = 30000;
-	private int attempts = 40;
+	private int attempts = 10;
 	private static readonly int RECEIVE_BUFFER_SIZE = 1200;
 	private static readonly int MAXIMUM_PACKET_SIZE = 1200;
 

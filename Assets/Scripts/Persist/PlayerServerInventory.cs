@@ -52,6 +52,11 @@ public class PlayerServerInventory{
         }
     }
 
+    // Manually saves the current inventory without changing anything
+    public void SaveInventory(ulong playerId){
+        this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
+    }
+
     public int ConvertInventoryToBytes(ulong playerId){
         int bytesRead = 0;
 

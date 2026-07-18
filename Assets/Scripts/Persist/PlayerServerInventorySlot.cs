@@ -48,11 +48,12 @@ public abstract class PlayerServerInventorySlot{
 					cachedId = NetDecoder.ReadUshort(data, currentPosition);
 					currentPosition += 2;
 					cachedDurability = NetDecoder.ReadUint(data, currentPosition);
-					currentPosition += 8;
+					currentPosition += 4;
 					cachedRefine = NetDecoder.ReadByte(data, currentPosition);
 					currentPosition++;
 					cachedEnchant = (EnchantmentType)NetDecoder.ReadByte(data, currentPosition);
 					currentPosition++;
+					slots[currentSlot] = new WeaponPlayerInventorySlot(cachedId, cachedDurability, cachedRefine, cachedEnchant);
 					break;
 				case MemoryStorageType.STORAGE:
 					cachedId = NetDecoder.ReadUshort(data, currentPosition);
@@ -61,6 +62,7 @@ public abstract class PlayerServerInventorySlot{
 					currentPosition++;
 					cachedInventory = BuildInventory(data, currentPosition, 30, ref bytesWritten, initialSlot:currentSlot);
 					currentPosition += bytesWritten;
+					slots[currentSlot] = new StoragePlayerInventorySlot(cachedId, cachedInventorySize, cachedInventory);
 					break;
 			}
 
