@@ -37,8 +37,8 @@ public class InventoryFileHandler{
 
 
     public InventoryFileHandler(){
-        this.worldsPath = EnvironmentVariablesCentral.saveDir + World.worldName + "\\";
-        this.worldDir = (EnvironmentVariablesCentral.saveDir + World.worldName + "\\Inventory\\").Replace("\\\\", "\\");
+        this.worldsPath = $"{EnvironmentVariablesCentral.saveDir}{World.worldName}/";
+        this.worldDir = $"{this.worldsPath}Inventory/";
         this.filePath = this.worldDir + FILENAME;
         this.indexFilePath = this.worldDir + INDEXNAME;
         this.holeFilePath = this.worldDir + HOLENAME;
@@ -53,7 +53,6 @@ public class InventoryFileHandler{
         else{
             this.fragmentationHandler = new FragmentationHandler(false);
         }
-        
     }
 
 

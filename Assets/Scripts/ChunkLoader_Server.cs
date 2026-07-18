@@ -76,10 +76,11 @@ public class ChunkLoader_Server : MonoBehaviour
 
         EnvironmentVariablesCentral.StartServer();
 
-        this.time.SetServer(this.server);
-
-        this.characterFileHandler = new CharacterFileHandler(World.worldName);
-        this.playerServerInventory = new PlayerServerInventory();
+        if(!this.server.applicationClose){
+            this.time.SetServer(this.server);
+            this.characterFileHandler = new CharacterFileHandler(World.worldName);
+            this.playerServerInventory = new PlayerServerInventory();
+        }
     }
 
     void Update(){

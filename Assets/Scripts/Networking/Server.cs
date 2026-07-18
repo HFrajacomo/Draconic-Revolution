@@ -11,10 +11,10 @@ using Unity.Mathematics;
 
 using Random = UnityEngine.Random;
 
-public class Server
-{
+public class Server {
 	public int port = 33000;
 	private bool isLocal = false;
+	public bool applicationClose = false;
 	public Socket masterSocket;
 	private IPEndPoint serverIP;
 
@@ -162,7 +162,7 @@ public class Server
 
 			file.Close();
 		}
-		// If a config file needs tto be created
+		// If a config file needs to be created
 		else{
 			file = File.Open("server.cfg", FileMode.Create);
 			allBytes = System.Text.Encoding.ASCII.GetBytes("world_name=");
@@ -173,6 +173,7 @@ public class Server
 			#if UNITY_EDITOR
 				UnityEditor.EditorApplication.isPlaying = false;
 			#else
+				this.applicationClose = true;
 				Application.Quit();
 			#endif
 		}
@@ -183,9 +184,19 @@ public class Server
 	// Generates a random 8 letter code
 	private string GenerateRandomName(){
 		StringBuilder sb = new StringBuilder();
+		char aux;
 
 		for(int i=0; i<8; i++){
-			sb.Append((char)Random.Range(65, 122));
+			bool uppercase = Random.Range(0,2) == 0;
+
+			if(uppercase){
+				aux = (char)Random.Range(65, 91);
+			}
+			else{
+				aux = (char)Random.Range(97, 123);
+			}
+
+			sb.Append(aux);
 		}
 
 		return sb.ToString();
