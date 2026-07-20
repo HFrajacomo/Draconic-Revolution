@@ -113,8 +113,10 @@ public class PlayerActionController : MonoBehaviour {
 			Init();
 
 		// Simple lock to avoid Style Switching without having weaponSheathed first
-		if(!this.weaponSheathed)
+		if(!this.weaponSheathed){
+			SyncCurrentStyleToServer();
 			return;
+		}
 
 		if(this.currentStyleCode == style)
 			return;
@@ -347,5 +349,12 @@ public class PlayerActionController : MonoBehaviour {
 
 		this.animatorParameterMessage.SendAnimatorParameter(Configurations.accountID, val, parameter);
 		this.cl.client.Send(this.animatorParameterMessage);
+	}
+
+	// Used when UseStyle is denied by Client
+	private void SyncCurrentStyleToServer(){
+		NetMessage message = new NetMessage(NetCode.SENDBATTLESTYLE);
+		message.SendBattleStyle(Configurations.accountID, this.currentStyle.GetCode());
+		this.cl.client.Send(message);
 	}
 }

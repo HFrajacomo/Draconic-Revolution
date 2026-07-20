@@ -731,6 +731,7 @@ public class Client
 		if(playerCode != Configurations.accountID)
 			this.entityHandler.SetPlayerBattleStyle(playerCode, styleCode);
 		else{
+			Debug.Log("RECEIVED STYLE");
 			this.cl.playerActionController.UseStyle(styleCode);
 		}
 	}
