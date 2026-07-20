@@ -5,6 +5,8 @@ using UnityEngine;
 public class SwitchAttachmentAnchorBehaviour : AnimationBehaviour {
 	public string originAnchor;
 	public string targetAnchor;
+	public bool flip = false;
+	public float heightOffset = 0;
 	
 	private BoneAnchorType origin;
 	private BoneAnchorType target;
@@ -15,7 +17,7 @@ public class SwitchAttachmentAnchorBehaviour : AnimationBehaviour {
 	}
 
 	public override void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){
-		animationHandler.SwitchAttachments(this.firstPerson, this.origin, this.target);
+		animationHandler.SwitchAttachments(this.firstPerson, this.origin, this.target, this.heightOffset, this.flip);
 	}
 
 	public override string ToString(){return $"[SwitchAttachmentAnchor] {this.origin} -> {this.target}";}

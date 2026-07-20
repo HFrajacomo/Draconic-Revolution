@@ -8,7 +8,6 @@ public class PlayerModelHandler : MonoBehaviour {
 	private AnimationHandler animationHandler;
 	private PlayerActionController playerActionController;
 	private bool isMale;
-	private bool INIT = false;
 
 	[Header("Materials")]
 	public Material plainClothingMaterial;
@@ -19,7 +18,7 @@ public class PlayerModelHandler : MonoBehaviour {
 	private CharacterBuilder characterBuilder;
 
 
-	public void Awake(){
+	void Awake(){
 		this.animationHandler = this.parent.AddComponent<AnimationHandler>();
 		this.playerActionController = this.parent.GetComponent<PlayerActionController>();
 
@@ -45,26 +44,22 @@ public class PlayerModelHandler : MonoBehaviour {
 	// Builds any character other than Player
 	public GameObject BuildModel(GameObject go, CharacterAppearance app, bool isMale, ulong entityID){
 		CharacterBuilder builder;
-		AnimationHandler anim;
+		AnimationHandler anim = go.GetComponent<AnimationHandler>();
 
 		builder = new CharacterBuilder(go, AnimationLoader.GetController("BASE_Character"), AnimationLoader.GetController("BASE_Character_FP"), app, this.plainClothingMaterial, this.dragonHornMaterial, this.dragonSkinMaterial, this.faceMaterial, isMale, false);
 
 		builder.Build();
 		Rescale(app.race, go);
 
-		if(INIT){
-			anim = go.GetComponent<AnimationHandler>();
-		}
-		else{
-			anim = go.AddComponent<AnimationHandler>();			
+		if(anim == null){
+			anim = go.AddComponent<AnimationHandler>();	
 		}
 
 		AnimationEventDispatcher dispatcher = builder.GetThirdPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
 		dispatcher.Init(this.cl, anim, entityID);
 
-		anim.Init("BASE_Character", this.characterBuilder, isUserCharacter:false);
+		anim.Init("BASE_Character", builder, isUserCharacter:false);
 
-		INIT = true;
 		return go;
 	}
 

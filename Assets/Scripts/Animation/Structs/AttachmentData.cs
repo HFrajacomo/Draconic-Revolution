@@ -5,8 +5,8 @@ using UnityEngine;
 public class AttachmentData {
 	public string fbxName;
 	public string type;
-	public Vector3 offset = Vector3.zero;
-	public Vector3 rotation = Vector3.zero;
+	public bool flipModel = false;
+	public float heightOffset = 0f;
 	private BoneAnchorType baType;
 	private bool firstPerson = false;
 

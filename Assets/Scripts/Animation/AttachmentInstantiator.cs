@@ -48,7 +48,16 @@ public static class AttachmentInstantiator {
 		return instance;
 	}
 
-	public static void ApplyScaling(GameObject go){
+	public static void ApplyTransform(GameObject go, bool flip, float heightOffset=0f){
+		go.transform.localPosition = Vector3.up * heightOffset;
 		go.transform.localScale = SCALING;
+		
+		if(flip){
+			go.transform.localRotation = Quaternion.Euler(Vector3.right * 180f);
+		}
+		else{
+			go.transform.localRotation = Quaternion.Euler(Vector3.zero);
+
+		}
 	}
 }

@@ -2,7 +2,9 @@
 	"attachments": [
 		{
 			"fbxName": "Pickaxe",
-			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT"
+			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT",
+			"flipModel": true,
+			"heightOffset": 0.012
 		}	
 	],
 	"combo_hits": 3,
@@ -54,7 +56,7 @@
 				"events": [
 					{
 						"type": "SwitchAttachmentAnchorBehaviour",
-						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\"}"
+						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"flip\": true, \"heightOffset\": 0.012}"
 					},
 					{
 						"type": "AnimatorSetBehaviour",
@@ -68,7 +70,7 @@
 				"events": [
 					{
 						"type": "SwitchAttachmentAnchorBehaviour",
-						"json": "{\"normalizedTime\": 0.2, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_RIGHT\"}"
+						"json": "{\"normalizedTime\": 0.2, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"flip\": false, \"heightOffset\": 0.0}"
 					},
 					{
 						"type": "AnimatorSetBehaviour",

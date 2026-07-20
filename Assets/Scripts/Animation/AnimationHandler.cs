@@ -189,9 +189,7 @@ public class AnimationHandler : MonoBehaviour {
 				bone = this.tpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][this.battleStyle.attachments[i].GetAnchorType()]);
 				attachmentGO.transform.parent = bone;
 
-				attachmentGO.transform.localPosition = this.battleStyle.attachments[i].offset;
-		        attachmentGO.transform.localRotation = Quaternion.Euler(this.battleStyle.attachments[i].rotation);
-		        AttachmentInstantiator.ApplyScaling(attachmentGO);
+		        AttachmentInstantiator.ApplyTransform(attachmentGO, this.battleStyle.attachments[i].flipModel, heightOffset:this.battleStyle.attachments[i].heightOffset);
 
 		        if(this.isPlayer)
 		        	attachmentGO.layer = 9;
@@ -208,9 +206,7 @@ public class AnimationHandler : MonoBehaviour {
 					bone = this.fpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][this.battleStyleFP.attachments[i].GetAnchorType()]);
 					attachmentGO.transform.parent = bone;
 
-					attachmentGO.transform.localPosition = this.battleStyleFP.attachments[i].offset;
-			        attachmentGO.transform.localRotation = Quaternion.Euler(this.battleStyleFP.attachments[i].rotation);
-			        AttachmentInstantiator.ApplyScaling(attachmentGO);
+		        	AttachmentInstantiator.ApplyTransform(attachmentGO, this.battleStyleFP.attachments[i].flipModel, heightOffset:this.battleStyleFP.attachments[i].heightOffset);
 
 			        if(this.isPlayer)
 			        	attachmentGO.layer = 12;
@@ -238,7 +234,7 @@ public class AnimationHandler : MonoBehaviour {
 			this.attachmentsTP.Add(anchor, go);
 	}
 
-	public void SwitchAttachments(bool firstPerson, BoneAnchorType originAnchor, BoneAnchorType targetAnchor){
+	public void SwitchAttachments(bool firstPerson, BoneAnchorType originAnchor, BoneAnchorType targetAnchor, float heightOffset, bool flip){
 		if(!ContainsAttachment(originAnchor, firstPerson:firstPerson)){
 			Debug.LogWarning($"No Attachment was found in {originAnchor}");
 			return;
@@ -253,9 +249,8 @@ public class AnimationHandler : MonoBehaviour {
 
 		if(!firstPerson){
 			this.attachmentsTP[originAnchor].transform.parent = this.tpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][targetAnchor]);
-			this.attachmentsTP[originAnchor].transform.localPosition = this.battleStyle.attachments[this.attachmentDataIndexTP[originAnchor]].offset;
-			this.attachmentsTP[originAnchor].transform.localRotation = Quaternion.Euler(this.battleStyle.attachments[this.attachmentDataIndexTP[originAnchor]].rotation);
-			AttachmentInstantiator.ApplyScaling(this.attachmentsTP[originAnchor]);
+
+			AttachmentInstantiator.ApplyTransform(this.attachmentsTP[originAnchor], flip, heightOffset:heightOffset);
 
 			this.attachmentsTP.Add(targetAnchor, this.attachmentsTP[originAnchor]);
 			this.attachmentsTP.Remove(originAnchor);
@@ -264,9 +259,8 @@ public class AnimationHandler : MonoBehaviour {
 		}
 		else{
 			this.attachmentsFP[originAnchor].transform.parent = this.fpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][targetAnchor]);
-			this.attachmentsFP[originAnchor].transform.localPosition = this.battleStyleFP.attachments[this.attachmentDataIndexFP[originAnchor]].offset;
-			this.attachmentsFP[originAnchor].transform.localRotation = Quaternion.Euler(this.battleStyleFP.attachments[this.attachmentDataIndexFP[originAnchor]].rotation);
-			AttachmentInstantiator.ApplyScaling(this.attachmentsFP[originAnchor]);
+
+			AttachmentInstantiator.ApplyTransform(this.attachmentsFP[originAnchor], flip, heightOffset:heightOffset);
 
 			this.attachmentsFP.Add(targetAnchor, this.attachmentsFP[originAnchor]);
 			this.attachmentsFP.Remove(originAnchor);
