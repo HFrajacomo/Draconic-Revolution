@@ -783,6 +783,29 @@
 			        "parameterType": "bool"
 			    }
 			]
+		},
+		{
+			"layer": "Bottom",
+			"sourceState": "Moving Forward",
+			"destinationState": "Empty",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source then destination",
+		    "conditions": [
+			    {
+			        "mode": "if not",
+			        "parameter": "ShouldMove",
+			        "parameterType": "bool"
+			    },
+			    {
+			    	"mode": "if",
+			    	"parameter": "ISPLAYER",
+			    	"parameterType": "bool"
+			    }
+			]
 		}
 	]
 }
