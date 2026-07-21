@@ -251,7 +251,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Character Models|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Character Rigging|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Basic Animations|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
-|Weapon Animations|3D|Alpha|:x:|:x:|:x:|:x:
+|Weapon Animations|3D|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Basic Enemy Models|3D|Alpha|:x:|:x:|:x:|:x:|
 |Basic AI|AI|Alpha|:heavy_check_mark:|:soon:|:soon:|:x:
 |Weather and Fog System|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:

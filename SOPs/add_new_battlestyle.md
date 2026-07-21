@@ -14,6 +14,12 @@ The Json structure is as follows:
 
 ```json
 {
+	"attachments": [
+		{
+			"fbxName": "BastardSword",
+			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT"
+		}	
+	],
 	"combo_hits": 3,
 	"overrides": {
 		"data": [
@@ -42,6 +48,9 @@ The Json structure is as follows:
 
 | Field | Type | Description |
 |:--:|:--:|:--:|
+| attachments | list[obj] | List of attachments that this style have
+| fbxName | str | The name of the fbx model in *Resources/ItemModels*
+| type | str | The string representation of a AttachmentAnchorPoint
 | combo_hits | str | How many attacks are in a combo with this style |
 | overrides | obj | Defined the AnimationState overrides |
 | data | list[obj] | Wrapper object to load all the overrides |
