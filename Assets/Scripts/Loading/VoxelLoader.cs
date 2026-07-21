@@ -9,12 +9,12 @@ using Unity.Mathematics;
 using Object = UnityEngine.Object;
 
 public class VoxelLoader : BaseLoader {
-	private static readonly string BLOCK_LIST_RESPATH = "Textures/Voxels/Blocks/BLOCK_LIST";
-	private static readonly string OBJECT_LIST_RESPATH = "Textures/Voxels/Objects/OBJECT_LIST";
-	private static readonly string BLOCK_RESPATH = "Textures/Voxels/Blocks/";
-	private static readonly string OBJECT_RESPATH = "Textures/Voxels/Objects/";
-	private static readonly string BLOCK_NORMAL_INTENSITY = "Textures/Voxels/Blocks/NORMAL_INTENSITY";
-	private static readonly string OBJECT_NORMAL_INTENSITY = "Textures/Voxels/Objects/NORMAL_INTENSITY";
+	private static readonly string BLOCK_LIST_RESPATH = "Voxels/Blocks/BLOCK_LIST";
+	private static readonly string OBJECT_LIST_RESPATH = "Voxels/Objects/OBJECT_LIST";
+	private static readonly string BLOCK_RESPATH = "Voxels/Blocks/";
+	private static readonly string OBJECT_RESPATH = "Voxels/Objects/";
+	private static readonly string BLOCK_NORMAL_INTENSITY = "Voxels/Blocks/NORMAL_INTENSITY";
+	private static readonly string OBJECT_NORMAL_INTENSITY = "Voxels/Objects/NORMAL_INTENSITY";
 	private static readonly string PBR_SUFFIX = "-PBR";
 
 	private static readonly CultureInfo parsingCulture = CultureInfo.InvariantCulture;
@@ -241,7 +241,7 @@ public class VoxelLoader : BaseLoader {
 		TextAsset textAsset = Resources.Load<TextAsset>(BLOCK_LIST_RESPATH);
 
 		if(textAsset == null){
-			Debug.Log("Couldn't Locate the BLOCK_LIST while loading the TextureLoader");
+			Debug.LogError("Couldn't Locate the BLOCK_LIST while loading the TextureLoader");
 			Application.Quit();
 		}
 
@@ -259,7 +259,7 @@ public class VoxelLoader : BaseLoader {
 		}
 
 		if(amountOfBlocks >= ushort.MaxValue/2){
-			Debug.Log($"This amount of blocks are not supported. Max amount is {ushort.MaxValue/2}, but found {amountOfBlocks}");
+			Debug.LogError($"This amount of blocks are not supported. Max amount is {ushort.MaxValue/2}, but found {amountOfBlocks}");
 			Application.Quit();
 		}
 	}
@@ -268,7 +268,7 @@ public class VoxelLoader : BaseLoader {
 		TextAsset textAsset = Resources.Load<TextAsset>(OBJECT_LIST_RESPATH);
 
 		if(textAsset == null){
-			Debug.Log("Couldn't Locate the OBJECT_LIST while loading the TextureLoader");
+			Debug.LogError("Couldn't Locate the OBJECT_LIST while loading the TextureLoader");
 			Application.Quit();
 		}
 
@@ -286,7 +286,7 @@ public class VoxelLoader : BaseLoader {
 		}
 
 		if(amountOfObjects >= ushort.MaxValue/2){
-			Debug.Log($"This amount of objects are not supported. Max amount is {ushort.MaxValue/2}, but found {amountOfObjects}");
+			Debug.LogError($"This amount of objects are not supported. Max amount is {ushort.MaxValue/2}, but found {amountOfObjects}");
 			Application.Quit();
 		}
 	}
@@ -400,7 +400,7 @@ public class VoxelLoader : BaseLoader {
 					texnameToNormalIntensity.Add(splitText[0], normalIntensity);
 				}
 				else{
-					Debug.Log($"PROBLEM READING NORMAL INTENSITY FROM LINE: {line}");
+					Debug.LogWarning($"PROBLEM READING NORMAL INTENSITY FROM LINE: {line}");
 				}
 			}
 		}
@@ -415,7 +415,7 @@ public class VoxelLoader : BaseLoader {
 					texnameToNormalIntensity.Add(splitText[0], normalIntensity);
 				}
 				else{
-					Debug.Log($"PROBLEM READING NORMAL INTENSITY FROM LINE: {line}");
+					Debug.LogWarning($"PROBLEM READING NORMAL INTENSITY FROM LINE: {line}");
 				}
 			}
 		}

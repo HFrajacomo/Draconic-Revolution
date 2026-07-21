@@ -8,29 +8,30 @@ Deserializes DRVN (Draconic Revolution Voxel Notation) files
 */
 public static class VoxelDeserializer {
 	// Generic Voxel Placeholders
-	private static VoxelBehaviour onPlaceEvent;
-	private static VoxelBehaviour onBreakEvent;
-	private static VoxelBehaviour onInteractEvent;
-	private static VoxelBehaviour onBlockUpdateEvent;
-	private static VoxelBehaviour onLoadEvent;
-	private static VoxelBehaviour onVFXBuildEvent;
-	private static VoxelBehaviour onVFXChangeEvent;
-	private static VoxelBehaviour onVFXBreakEvent;
-	private static VoxelBehaviour onSFXPlayEvent;
-	private static VoxelBehaviour placementRuleEvent;
-	private static VoxelBehaviour onPlayerStepEnter;
-	private static VoxelBehaviour onPlayerStepExit;
-	private static VoxelBehaviour onPlayerBodyEnter;
-	private static VoxelBehaviour onPlayerBodyExit;
-	private static VoxelBehaviour onPlayerHeadEnter;
-	private static VoxelBehaviour onPlayerHeadExit;
+	private static List<VoxelBehaviour> onPlaceEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onBreakEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onInteractEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onBlockUpdateEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onLoadEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onVFXBuildEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onVFXChangeEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onVFXBreakEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onSFXPlayEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> placementRuleEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onPlayerStepEnter = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onPlayerStepExit = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onPlayerBodyEnter = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onPlayerBodyExit = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onPlayerHeadEnter = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onPlayerHeadExit = new List<VoxelBehaviour>();
 
 	// Objects Placeholders
 	private static ModelIdentityBehaviour modelIdentityEvent;
 	private static VoxelBehaviour offsetVectorEvent;
 	private static VoxelBehaviour rotationValueEvent;
 
-	private static Dictionary<string, string> behaviours = new Dictionary<string, string>();
+	private static Dictionary<string, List<string>> behaviours = new Dictionary<string, List<string>>();
+	private static Dictionary<string, VoxelBehaviour> nameToBehaviour = new Dictionary<string, VoxelBehaviour>();
 	private static HashSet<string> assignedEvents = new HashSet<string>();
 
 
@@ -38,7 +39,7 @@ public static class VoxelDeserializer {
 		string propertiesJson = GetProperties(json);
 		string behaviourJson;
 
-		Blocks block = JsonUtility.FromJson<Blocks>(propertiesJson);
+		Blocks block = JsonUtility.FromJson<Blocks>(JsonFormatter.RemoveComments(propertiesJson));
 
 		if(HasBehaviours(json)){
 			behaviourJson = GetBehaviours(json);
@@ -47,8 +48,7 @@ public static class VoxelDeserializer {
 		}
 
 		AssignEventsToBlock(block);
-
-		behaviours.Clear();
+		Reset();
 
 		return block;
 	}
@@ -57,7 +57,7 @@ public static class VoxelDeserializer {
 		string propertiesJson = GetProperties(json);
 		string behaviourJson;
 
-		BlocklikeObject obj = JsonUtility.FromJson<BlocklikeObject>(propertiesJson);
+		BlocklikeObject obj = JsonUtility.FromJson<BlocklikeObject>(JsonFormatter.RemoveComments(propertiesJson));
 
 		if(HasBehaviours(json)){
 			behaviourJson = GetBehaviours(json);
@@ -66,10 +66,31 @@ public static class VoxelDeserializer {
 		}
 
 		AssignEventsToObject(obj);
-
-		behaviours.Clear();
+		Reset();
 
 		return obj;
+	}
+
+	private static void Reset(){
+		onPlaceEvent = new List<VoxelBehaviour>();
+		onBreakEvent = new List<VoxelBehaviour>();
+		onInteractEvent = new List<VoxelBehaviour>();
+		onBlockUpdateEvent = new List<VoxelBehaviour>();
+		onLoadEvent = new List<VoxelBehaviour>();
+		onVFXBuildEvent = new List<VoxelBehaviour>();
+		onVFXChangeEvent = new List<VoxelBehaviour>();
+		onVFXBreakEvent = new List<VoxelBehaviour>();
+		onSFXPlayEvent = new List<VoxelBehaviour>();
+		placementRuleEvent = new List<VoxelBehaviour>();
+		onPlayerStepEnter = new List<VoxelBehaviour>();
+		onPlayerStepExit = new List<VoxelBehaviour>();
+		onPlayerBodyEnter = new List<VoxelBehaviour>();
+		onPlayerBodyExit = new List<VoxelBehaviour>();
+		onPlayerHeadEnter = new List<VoxelBehaviour>();
+		onPlayerHeadExit = new List<VoxelBehaviour>();
+
+		behaviours.Clear();
+		nameToBehaviour.Clear();
 	}
 
 	private static void AssignEventsToBlock(Blocks block){
@@ -124,7 +145,7 @@ public static class VoxelDeserializer {
 					block.SetOnPlayerHeadExit(onPlayerHeadExit);
 					break;
 				default:
-					Debug.Log("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + ev);
+					Debug.LogWarning("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + ev);
 					break;
 			}
 		}
@@ -191,7 +212,7 @@ public static class VoxelDeserializer {
 					obj.SetOnPlayerHeadExit(onPlayerHeadExit);
 					break;
 				default:
-					Debug.Log("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + ev);
+					Debug.LogWarning("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + ev);
 					break;
 			}
 		}
@@ -232,7 +253,8 @@ public static class VoxelDeserializer {
 		
 			keyVal = line.Split(':');
 
-			behaviours.Add(keyVal[0], keyVal[1].Replace("\n", "").Replace(",", ""));
+			behaviours.Add(keyVal[0], JsonFormatter.StringToList(keyVal[1]));
+
 		}
 	}
 
@@ -242,23 +264,25 @@ public static class VoxelDeserializer {
 	private static void DeserializeAllBehaviours(string json){
 		VoxelBehaviour vxb;
 
-		foreach(KeyValuePair<string, string> item in behaviours){
-			if(assignedEvents.Contains(item.Key)){
-				continue;
-			}
-
-			vxb = HandleBehaviourCreation(item.Value, json);
-
-			foreach(KeyValuePair<string, string> insideItem in behaviours){
-				if(assignedEvents.Contains(item.Key)){
-					continue;
+		foreach(string itemKey in behaviours.Keys){
+			foreach(string itemValue in behaviours[itemKey]){
+				// Skip event triggers that are already added
+				if(assignedEvents.Contains(itemKey)){
+					break;
 				}
 
-				if(insideItem.Value == item.Value){
-					assignedEvents.Add(insideItem.Key);
-					AddToPlaceholder(insideItem.Key, vxb);
+				if(nameToBehaviour.ContainsKey(itemValue)){
+					vxb = nameToBehaviour[itemValue];
 				}
+				else{
+					vxb = HandleBehaviourCreation(itemValue, json);
+					nameToBehaviour.Add(itemValue, vxb);
+				}
+
+				AddToPlaceholder(itemKey, vxb);
 			}
+
+			assignedEvents.Add(itemKey);
 		}
 
 		assignedEvents.Clear();
@@ -269,35 +293,37 @@ public static class VoxelDeserializer {
 
 		switch(val){
 			case "LiquidBehaviour":
-				return JsonUtility.FromJson<LiquidBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<LiquidBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "TreeBehaviour":
-				return JsonUtility.FromJson<TreeBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<TreeBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "BreakDropItemBehaviour":
-				return JsonUtility.FromJson<BreakDropItemBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<BreakDropItemBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "InteractChangeBlockBehaviour":
-				return JsonUtility.FromJson<InteractChangeBlockBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<InteractChangeBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "ModelIdentityBehaviour":
-				return JsonUtility.FromJson<ModelIdentityBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<ModelIdentityBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "PlaceSetStateBehaviour":
-				return JsonUtility.FromJson<PlaceSetStateBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<PlaceSetStateBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "TorchBehaviour":
-				return JsonUtility.FromJson<TorchBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<TorchBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "UpdateDecaySecondaryBlockBehaviour":
-				return JsonUtility.FromJson<UpdateDecaySecondaryBlockBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<UpdateDecaySecondaryBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "AuraCrystalBehaviour":
-				return JsonUtility.FromJson<AuraCrystalBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<AuraCrystalBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "ConfigurablePositionBehaviour":
-				return JsonUtility.FromJson<ConfigurablePositionBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<ConfigurablePositionBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "ConfigurableRotationBehaviour":
-				return JsonUtility.FromJson<ConfigurableRotationBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<ConfigurableRotationBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "PlayerMovementEnterMultiplyBehaviour":
-				return JsonUtility.FromJson<PlayerMovementEnterMultiplyBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<PlayerMovementEnterMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "PlayerMovementExitMultiplyBehaviour":
-				return JsonUtility.FromJson<PlayerMovementExitMultiplyBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<PlayerMovementExitMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "PlayerMovementStepMultiplyBehaviour":
-				return JsonUtility.FromJson<PlayerMovementStepMultiplyBehaviour>(jsonSerial);
+				return JsonUtility.FromJson<PlayerMovementStepMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "TestVoxelBehaviour":
+				return JsonUtility.FromJson<TestVoxelBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
-				Debug.Log("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
+				Debug.LogError("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
 				return new LiquidBehaviour();
 		}
 	}
@@ -305,34 +331,34 @@ public static class VoxelDeserializer {
 	private static void AddToPlaceholder(string key, VoxelBehaviour vx){
 		switch(key){
 			case "onPlace":
-				onPlaceEvent = vx;
+				onPlaceEvent.Add(vx);
 				break;
 			case "onBreak":
-				onBreakEvent = vx;
+				onBreakEvent.Add(vx);
 				break;
 			case "onInteract":
-				onInteractEvent = vx;
+				onInteractEvent.Add(vx);
 				break;
 			case "onBlockUpdate":
-				onBlockUpdateEvent = vx;
+				onBlockUpdateEvent.Add(vx);
 				break;
 			case "onLoad":
-				onLoadEvent = vx;
+				onLoadEvent.Add(vx);
 				break;
 			case "onVFXBuild":
-				onVFXBuildEvent = vx;
+				onVFXBuildEvent.Add(vx);
 				break;
 			case "onVFXChange":
-				onVFXChangeEvent = vx;
+				onVFXChangeEvent.Add(vx);
 				break;
 			case "onVFXBreak":
-				onVFXBreakEvent = vx;
+				onVFXBreakEvent.Add(vx);
 				break;
 			case "onSFXPlay":
-				onSFXPlayEvent = vx;
+				onSFXPlayEvent.Add(vx);
 				break;
 			case "placementRule":
-				placementRuleEvent = vx;
+				placementRuleEvent.Add(vx);
 				break;
 			case "modelIdentity":
 				modelIdentityEvent = (ModelIdentityBehaviour)vx;
@@ -344,25 +370,25 @@ public static class VoxelDeserializer {
 				rotationValueEvent = vx;
 				break;
 			case "onPlayerStepEnter":
-				onPlayerStepEnter = vx;
+				onPlayerStepEnter.Add(vx);
 				break;
 			case "onPlayerStepExit":
-				onPlayerStepExit = vx;
+				onPlayerStepExit.Add(vx);
 				break;
 			case "onPlayerBodyEnter":
-				onPlayerBodyEnter = vx;
+				onPlayerBodyEnter.Add(vx);
 				break;
 			case "onPlayerBodyExit":
-				onPlayerBodyExit = vx;
+				onPlayerBodyExit.Add(vx);
 				break;
 			case "onPlayerHeadEnter":
-				onPlayerHeadEnter = vx;
+				onPlayerHeadEnter.Add(vx);
 				break;
 			case "onPlayerHeadExit":
-				onPlayerHeadExit = vx;
+				onPlayerHeadExit.Add(vx);
 				break;
 			default:
-				Debug.Log("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + key);
+				Debug.LogWarning("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + key);
 				break;
 		}
 	}

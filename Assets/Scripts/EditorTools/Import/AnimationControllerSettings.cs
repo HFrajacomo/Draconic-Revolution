@@ -40,6 +40,16 @@ public class AnimationControllerSettings {
 		}
 	}
 
+	public override string ToString(){
+		string text = $"{controllerName}: (";
+
+		foreach(string anim in this.animationSet){
+			text += $"{anim}, ";
+		}
+
+		return $"{text})";
+	}
+
 	private string SelectBeforePipe(string input){
 	    int index = input.IndexOf('|');
 

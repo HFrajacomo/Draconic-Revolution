@@ -2,12 +2,12 @@ using System;
 using UnityEngine;
 
 public class PlayerModelHandler : MonoBehaviour {
+	public ChunkLoader cl;
 	public GameObject parent;
 	private CharacterController controller;
 	private AnimationHandler animationHandler;
 	private PlayerActionController playerActionController;
 	private bool isMale;
-	private bool INIT = false;
 
 	[Header("Materials")]
 	public Material plainClothingMaterial;
@@ -18,7 +18,7 @@ public class PlayerModelHandler : MonoBehaviour {
 	private CharacterBuilder characterBuilder;
 
 
-	public void Awake(){
+	void Awake(){
 		this.animationHandler = this.parent.AddComponent<AnimationHandler>();
 		this.playerActionController = this.parent.GetComponent<PlayerActionController>();
 
@@ -42,25 +42,24 @@ public class PlayerModelHandler : MonoBehaviour {
 	}
 
 	// Builds any character other than Player
-	public GameObject BuildModel(GameObject go, CharacterAppearance app, bool isMale){
+	public GameObject BuildModel(GameObject go, CharacterAppearance app, bool isMale, ulong entityID){
 		CharacterBuilder builder;
-		AnimationHandler anim;
+		AnimationHandler anim = go.GetComponent<AnimationHandler>();
 
 		builder = new CharacterBuilder(go, AnimationLoader.GetController("BASE_Character"), AnimationLoader.GetController("BASE_Character_FP"), app, this.plainClothingMaterial, this.dragonHornMaterial, this.dragonSkinMaterial, this.faceMaterial, isMale, false);
 
 		builder.Build();
 		Rescale(app.race, go);
 
-		if(INIT){
-			anim = go.GetComponent<AnimationHandler>();
-		}
-		else{
-			anim = go.AddComponent<AnimationHandler>();			
+		if(anim == null){
+			anim = go.AddComponent<AnimationHandler>();	
 		}
 
-		anim.Init("BASE_Character", this.characterBuilder, isUserCharacter:false);
+		AnimationEventDispatcher dispatcher = builder.GetThirdPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
+		dispatcher.Init(this.cl, anim, entityID);
 
-		INIT = true;
+		anim.Init("BASE_Character", builder, isUserCharacter:false);
+
 		return go;
 	}
 
@@ -71,13 +70,20 @@ public class PlayerModelHandler : MonoBehaviour {
 		if(this.characterBuilder == null){
 			this.characterBuilder = new CharacterBuilder(this.parent, AnimationLoader.GetController("BASE_Character"), AnimationLoader.GetController("BASE_Character_FP"), app, this.plainClothingMaterial, this.dragonHornMaterial, this.dragonSkinMaterial, this.faceMaterial, isMale, isPlayerCharacter);
 			this.animationHandler.Init("BASE_Character", this.characterBuilder, isUserCharacter:true);
-			this.playerActionController.UseStyle("BASE_Unarmed");
+			this.playerActionController.UseStyle("BASE_Sword");
 
 			this.characterBuilder.Build();
 		}
 		else{
 			this.characterBuilder.ChangeAppearanceAndBuild(app);
 		}
+
+
+		AnimationEventDispatcher dispatcherTP = this.characterBuilder.GetThirdPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
+		dispatcherTP.Init(this.cl, this.animationHandler, Configurations.accountID);
+
+		AnimationEventDispatcher dispatcherFP = this.characterBuilder.GetFirstPersonAnimatorObject().AddComponent<AnimationEventDispatcher>();
+		dispatcherFP.Init(this.cl, this.animationHandler, Configurations.accountID);
 
 		Rescale(app.race, this.parent);
 	}

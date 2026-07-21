@@ -43,10 +43,20 @@
 			"priority": 100
 		},
 		{
-			"state": "Idle Hand",
+			"state": "Idle Weapon",
 			"layers": [""],
 			"priority": 50,
 			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Weapon Sheathe",
+			"layers": ["", "Full Torso"],
+			"priority": 5
+		},
+		{
+			"state": "Weapon Unsheathe",
+			"layers": ["", "Full Torso"],
+			"priority": 5
 		},
 		{
 			"state": "Attack 1",

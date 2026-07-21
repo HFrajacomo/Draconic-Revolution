@@ -8,6 +8,6 @@ public class AnimatorStateMessageCallback : StateMachineBehaviour {
         if(!animator.GetBool("ISPLAYER"))
             return;
 
-        PlayerActionController.RegisterClientMessage(new AnimationData(AnimationHandler.GetStateName(stateInfo), layerIndex));
+        PlayerActionController.RegisterClientMessage(new AnimationData(AnimationHandler.GetStateName("BASE_Character", stateInfo), layerIndex));
     }
 }

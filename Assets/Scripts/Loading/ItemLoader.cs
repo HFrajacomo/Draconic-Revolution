@@ -9,9 +9,9 @@ using Unity.Mathematics;
 using Object = UnityEngine.Object;
 
 public class ItemLoader : BaseLoader {
-	private static readonly string ITEM_LIST_RESPATH = "Textures/Items/ITEM_LIST";
-	private static readonly string ITEM_RESPATH = "Textures/Items/";
-	private static readonly string NULL_ITEM_RESPATH = "Textures/Items/BASE_NULL";
+	private static readonly string ITEM_LIST_RESPATH = "Items/ITEM_LIST";
+	private static readonly string ITEM_RESPATH = "Items/";
+	private static readonly string NULL_ITEM_RESPATH = "Items/BASE_NULL";
 
 	private static readonly CultureInfo parsingCulture = CultureInfo.InvariantCulture;
 	private static bool isClient;
@@ -95,7 +95,6 @@ public class ItemLoader : BaseLoader {
 				serializedItem = ItemDeserializer.DeserializeItem(textAsset.text);
 				serializedItem.SetID(i);
 				itemList.Add(serializedItem);
-
 				codenameToItemID.Add(item, i);
 				textureBank.Add(i, texture);
 

@@ -34,22 +34,22 @@ public class Blocks
 	private int textureBottom;
 
 	// Behaviours
-	private VoxelBehaviour onBlockUpdate;
-	private VoxelBehaviour onInteract;
-	private VoxelBehaviour onPlace;
-	private VoxelBehaviour onBreak;
-	private VoxelBehaviour onLoad;
-	private VoxelBehaviour onVFXBuild;
-	private VoxelBehaviour onVFXChange;
-	private VoxelBehaviour onVFXBreak;
-	private VoxelBehaviour onSFXPlay;
-	private VoxelBehaviour placementRule;
-	private VoxelBehaviour onPlayerStepEnter;
-	private VoxelBehaviour onPlayerStepExit;
-	private VoxelBehaviour onPlayerBodyEnter;
-	private VoxelBehaviour onPlayerBodyExit;
-	private VoxelBehaviour onPlayerHeadEnter;
-	private VoxelBehaviour onPlayerHeadExit;
+	private List<VoxelBehaviour> onBlockUpdate;
+	private List<VoxelBehaviour> onInteract;
+	private List<VoxelBehaviour> onPlace;
+	private List<VoxelBehaviour> onBreak;
+	private List<VoxelBehaviour> onLoad;
+	private List<VoxelBehaviour> onVFXBuild;
+	private List<VoxelBehaviour> onVFXChange;
+	private List<VoxelBehaviour> onVFXBreak;
+	private List<VoxelBehaviour> onSFXPlay;
+	private List<VoxelBehaviour> placementRule;
+	private List<VoxelBehaviour> onPlayerStepEnter;
+	private List<VoxelBehaviour> onPlayerStepExit;
+	private List<VoxelBehaviour> onPlayerBodyEnter;
+	private List<VoxelBehaviour> onPlayerBodyExit;
+	private List<VoxelBehaviour> onPlayerHeadEnter;
+	private List<VoxelBehaviour> onPlayerHeadExit;
 
 
     // Handles the emittion of BUD to neighboring blocks
@@ -115,53 +115,53 @@ public class Blocks
     }
 
     // Events GET/SET
-    public VoxelBehaviour GetOnBlockUpdate() { return onBlockUpdate; }
-    public void SetOnBlockUpdate(VoxelBehaviour val) { onBlockUpdate = val; }
+    public List<VoxelBehaviour> GetOnBlockUpdate() { return onBlockUpdate; }
+    public void SetOnBlockUpdate(List<VoxelBehaviour> val) { onBlockUpdate = val; }
 
-    public VoxelBehaviour GetOnInteract() { return onInteract; }
-    public void SetOnInteract(VoxelBehaviour val) { onInteract = val; }
+    public List<VoxelBehaviour> GetOnInteract() { return onInteract; }
+    public void SetOnInteract(List<VoxelBehaviour> val) { onInteract = val; }
 
-    public VoxelBehaviour GetOnPlace() { return onPlace; }
-    public void SetOnPlace(VoxelBehaviour val) { onPlace = val; }
+    public List<VoxelBehaviour> GetOnPlace() { return onPlace; }
+    public void SetOnPlace(List<VoxelBehaviour> val) { onPlace = val; }
 
-    public VoxelBehaviour GetOnBreak() { return onBreak; }
-    public void SetOnBreak(VoxelBehaviour val) { onBreak = val; }
+    public List<VoxelBehaviour> GetOnBreak() { return onBreak; }
+    public void SetOnBreak(List<VoxelBehaviour> val) { onBreak = val; }
 
-    public VoxelBehaviour GetOnLoad() { return onLoad; }
-    public void SetOnLoad(VoxelBehaviour val) { onLoad = val; }
+    public List<VoxelBehaviour> GetOnLoad() { return onLoad; }
+    public void SetOnLoad(List<VoxelBehaviour> val) { onLoad = val; }
 
-    public VoxelBehaviour GetOnVFXBuild() { return onVFXBuild; }
-    public void SetOnVFXBuild(VoxelBehaviour val) { onVFXBuild = val; }
+    public List<VoxelBehaviour> GetOnVFXBuild() { return onVFXBuild; }
+    public void SetOnVFXBuild(List<VoxelBehaviour> val) { onVFXBuild = val; }
 
-    public VoxelBehaviour GetOnVFXChange() { return onVFXChange; }
-    public void SetOnVFXChange(VoxelBehaviour val) { onVFXChange = val; }
+    public List<VoxelBehaviour> GetOnVFXChange() { return onVFXChange; }
+    public void SetOnVFXChange(List<VoxelBehaviour> val) { onVFXChange = val; }
 
-    public VoxelBehaviour GetOnVFXBreak() { return onVFXBreak; }
-    public void SetOnVFXBreak(VoxelBehaviour val) { onVFXBreak = val; }
+    public List<VoxelBehaviour> GetOnVFXBreak() { return onVFXBreak; }
+    public void SetOnVFXBreak(List<VoxelBehaviour> val) { onVFXBreak = val; }
 
-    public VoxelBehaviour GetOnSFXPlay() { return onSFXPlay; }
-    public void SetOnSFXPlay(VoxelBehaviour val) { onSFXPlay = val; }
+    public List<VoxelBehaviour> GetOnSFXPlay() { return onSFXPlay; }
+    public void SetOnSFXPlay(List<VoxelBehaviour> val) { onSFXPlay = val; }
 
-    public VoxelBehaviour GetPlacementRule() { return placementRule; }
-    public void SetPlacementRule(VoxelBehaviour val) { placementRule = val; }
+    public List<VoxelBehaviour> GetPlacementRule() { return placementRule; }
+    public void SetPlacementRule(List<VoxelBehaviour> val) { placementRule = val; }
 
-    public VoxelBehaviour GetOnPlayerStepEnter() { return onPlayerStepEnter; }
-    public void SetOnPlayerStepEnter(VoxelBehaviour val) { onPlayerStepEnter = val; }
+    public List<VoxelBehaviour> GetOnPlayerStepEnter() { return onPlayerStepEnter; }
+    public void SetOnPlayerStepEnter(List<VoxelBehaviour> val) { onPlayerStepEnter = val; }
 
-    public VoxelBehaviour GetOnPlayerStepExit() { return onPlayerStepExit; }
-    public void SetOnPlayerStepExit(VoxelBehaviour val) { onPlayerStepExit = val; }
+    public List<VoxelBehaviour> GetOnPlayerStepExit() { return onPlayerStepExit; }
+    public void SetOnPlayerStepExit(List<VoxelBehaviour> val) { onPlayerStepExit = val; }
 
-    public VoxelBehaviour GetOnPlayerBodyEnter() { return onPlayerBodyEnter; }
-    public void SetOnPlayerBodyEnter(VoxelBehaviour val) { onPlayerBodyEnter = val; }
+    public List<VoxelBehaviour> GetOnPlayerBodyEnter() { return onPlayerBodyEnter; }
+    public void SetOnPlayerBodyEnter(List<VoxelBehaviour> val) { onPlayerBodyEnter = val; }
 
-    public VoxelBehaviour GetOnPlayerBodyExit() { return onPlayerBodyExit; }
-    public void SetOnPlayerBodyExit(VoxelBehaviour val) { onPlayerBodyExit = val; }
+    public List<VoxelBehaviour> GetOnPlayerBodyExit() { return onPlayerBodyExit; }
+    public void SetOnPlayerBodyExit(List<VoxelBehaviour> val) { onPlayerBodyExit = val; }
 
-    public VoxelBehaviour GetOnPlayerHeadEnter() { return onPlayerHeadEnter; }
-    public void SetOnPlayerHeadEnter(VoxelBehaviour val) { onPlayerHeadEnter = val; }
+    public List<VoxelBehaviour> GetOnPlayerHeadEnter() { return onPlayerHeadEnter; }
+    public void SetOnPlayerHeadEnter(List<VoxelBehaviour> val) { onPlayerHeadEnter = val; }
 
-    public VoxelBehaviour GetOnPlayerHeadExit() { return onPlayerHeadExit; }
-    public void SetOnPlayerHeadExit(VoxelBehaviour val) { onPlayerHeadExit = val; }
+    public List<VoxelBehaviour> GetOnPlayerHeadExit() { return onPlayerHeadExit; }
+    public void SetOnPlayerHeadExit(List<VoxelBehaviour> val) { onPlayerHeadExit = val; }
 
 
 
@@ -178,131 +178,239 @@ public class Blocks
 	public virtual void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){
 		if(this.onBlockUpdate == null)
 			return;
-		this.onBlockUpdate.OnBlockUpdate(type, myX, myY, myZ, budX, budY, budZ, facing, cl);
+
+		if(this.onBlockUpdate.Count == 0)
+			return;
+
+		for(int i=0; i < this.onBlockUpdate.Count; i++){
+			this.onBlockUpdate[i].OnBlockUpdate(type, myX, myY, myZ, budX, budY, budZ, facing, cl);
+		}
 	}
 
 	public virtual int OnInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
-		if(this.onInteract == null)
+		if(this.onInteract == null || this.onInteract.Count == 0)
 			return 0;
-		return this.onInteract.OnInteract(pos, blockX, blockY, blockZ, cl);
+
+		int returnCode = 0;
+
+		for(int i=0; i < this.onInteract.Count; i++){
+			returnCode = returnCode | this.onInteract[i].OnInteract(pos, blockX, blockY, blockZ, cl);
+		}
+
+		return returnCode;
 	}
 
-	public virtual int OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
-		if(this.onPlace == null)
-			return 0;
-		return this.onPlace.OnPlace(pos, blockX, blockY, blockZ, facing, cl);
+	public virtual void OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
+		if(this.onPlace == null || this.onPlace.Count == 0)
+			return;
+
+		for(int i=0; i < this.onPlace.Count; i++){
+			this.onPlace[i].OnPlace(pos, blockX, blockY, blockZ, facing, cl);
+		}
 	}
 
-	public virtual int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
-		if(this.onBreak == null)
-			return 0;
-		return this.onBreak.OnBreak(pos, blockX, blockY, blockZ, cl);
+	public virtual void OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
+		if(this.onBreak == null || this.onBreak.Count == 0){
+			return;
+		}
+
+		for(int i=0; i < this.onBreak.Count; i++){
+			this.onBreak[i].OnBreak(pos, blockX, blockY, blockZ, cl);
+		}
 	}
 
-	public virtual int OnLoad(CastCoord coord, ChunkLoader_Server cl){
-		if(this.onLoad == null)
-			return 0;
-		return this.onLoad.OnLoad(coord, cl);
+	public virtual void OnLoad(CastCoord coord, ChunkLoader_Server cl){
+		if(this.onLoad == null || this.onLoad.Count == 0)
+			return;
+
+		for(int i=0; i < this.onLoad.Count; i++){
+			this.onLoad[i].OnLoad(coord, cl);
+		}
 	}
 
-	public virtual int OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
-		if(this.onVFXBuild == null)
-			return 0;
-		return this.onVFXBuild.OnVFXBuild(pos, blockX, blockY, blockZ, facing, state, cl);
+	public virtual void OnVFXBuild(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
+		if(this.onVFXBuild == null || this.onVFXBuild.Count == 0)
+			return;
+
+		for(int i=0; i < this.onVFXBuild.Count; i++){
+			this.onVFXBuild[i].OnVFXBuild(pos, blockX, blockY, blockZ, facing, state, cl);
+		}
 	}
 
-	public virtual int OnVFXChange(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
-		if(this.onVFXChange == null)
-			return 0;
-		return this.onVFXChange.OnVFXChange(pos, blockX, blockY, blockZ, facing, state, cl);
+	public virtual void OnVFXChange(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ushort state, ChunkLoader cl){
+		if(this.onVFXChange == null || this.onVFXChange.Count == 0)
+			return;
+
+		for(int i=0; i < this.onVFXChange.Count; i++){
+			this.onVFXChange[i].OnVFXChange(pos, blockX, blockY, blockZ, facing, state, cl);
+		}
 	}
 
-	public virtual int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
-		if(this.onVFXBreak == null)
-			return 0;
-		return this.onVFXBreak.OnVFXBreak(pos, blockX, blockY, blockZ, state, cl);
+	public virtual void OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
+		if(this.onVFXBreak == null || this.onVFXBreak.Count == 0)
+			return;
+
+		for(int i=0; i < this.onVFXBreak.Count; i++){
+			this.onVFXBreak[i].OnVFXBreak(pos, blockX, blockY, blockZ, state, cl);
+		}
 	}
 
-	public virtual int OnSFXPlay(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
-		if(this.onSFXPlay == null)
-			return 0;
-		return this.onSFXPlay.OnSFXPlay(pos, blockX, blockY, blockZ, state, cl);
+	public virtual void OnSFXPlay(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
+		if(this.onSFXPlay == null || this.onSFXPlay.Count == 0)
+			return;
+
+		for(int i=0; i < this.onSFXPlay.Count; i++){
+			this.onSFXPlay[i].OnSFXPlay(pos, blockX, blockY, blockZ, state, cl);
+		}
 	}
 
 	public virtual bool PlacementRule(ChunkPos pos, int blockX, int blockY, int blockZ, int direction, ChunkLoader_Server cl){
-		if(this.placementRule == null)
+		if(this.placementRule == null || this.placementRule.Count == 0)
 			return true;
-		return this.placementRule.PlacementRule(pos, blockX, blockY, blockZ, direction, cl);
+
+		for(int i=0; i < this.placementRule.Count; i++){
+			if(!this.placementRule[i].PlacementRule(pos, blockX, blockY, blockZ, direction, cl)){
+				return false;
+			}
+		}
+		
+		return true;
 	}
 
 	public virtual void OnPlayerStepEnter(PlayerVoxelLocation location, CharacterSheet sheet, ChunkLoader cl){
-		if(this.onPlayerStepEnter == null)
+		if(this.onPlayerStepEnter == null || this.onPlayerStepEnter.Count == 0)
 			return;
-		this.onPlayerStepEnter.OnPlayerStepEnter(location, sheet, cl);
+
+		for(int i=0; i < this.onPlayerStepEnter.Count; i++){
+			this.onPlayerStepEnter[i].OnPlayerStepEnter(location, sheet, cl);
+		}
 	}
 
 	public virtual void OnPlayerStepExit(PlayerVoxelLocation location, CharacterSheet sheet, ChunkLoader cl){
-		if(this.onPlayerStepExit == null)
+		if(this.onPlayerStepExit == null || this.onPlayerStepExit.Count == 0)
 			return;
-		this.onPlayerStepExit.OnPlayerStepExit(location, sheet, cl);
+
+		for(int i=0; i < this.onPlayerStepExit.Count; i++){
+			this.onPlayerStepExit[i].OnPlayerStepExit(location, sheet, cl);
+		}
 	}
 
 	public virtual void OnPlayerHeadEnter(PlayerVoxelLocation location, CharacterSheet sheet, ChunkLoader cl){
-		if(this.onPlayerHeadEnter == null)
+		if(this.onPlayerHeadEnter == null || this.onPlayerHeadEnter.Count == 0)
 			return;
-		this.onPlayerHeadEnter.OnPlayerHeadEnter(location, sheet, cl);
+
+		for(int i=0; i < this.onPlayerHeadEnter.Count; i++){
+			this.onPlayerHeadEnter[i].OnPlayerHeadEnter(location, sheet, cl);
+		}
 	}
 
 	public virtual void OnPlayerHeadExit(PlayerVoxelLocation location, CharacterSheet sheet, ChunkLoader cl){
-		if(this.onPlayerHeadExit == null)
+		if(this.onPlayerHeadExit == null || this.onPlayerHeadExit.Count == 0)
 			return;
-		this.onPlayerHeadExit.OnPlayerHeadExit(location, sheet, cl);
+
+		for(int i=0; i < this.onPlayerHeadExit.Count; i++){
+			this.onPlayerHeadExit[i].OnPlayerHeadExit(location, sheet, cl);
+		}
 	}
 
 	public virtual void OnPlayerBodyEnter(PlayerVoxelLocation location, CharacterSheet sheet, ChunkLoader cl){
-		if(this.onPlayerBodyEnter == null)
+		if(this.onPlayerBodyEnter == null || this.onPlayerBodyEnter.Count == 0)
 			return;
-		this.onPlayerBodyEnter.OnPlayerBodyEnter(location, sheet, cl);
+
+		for(int i=0; i < this.onPlayerBodyEnter.Count; i++){
+			this.onPlayerBodyEnter[i].OnPlayerBodyEnter(location, sheet, cl);
+		}
 	}
 
 	public virtual void OnPlayerBodyExit(PlayerVoxelLocation location, CharacterSheet sheet, ChunkLoader cl){
-		if(this.onPlayerBodyExit == null)
+		if(this.onPlayerBodyExit == null || this.onPlayerBodyExit.Count == 0)
 			return;
-		this.onPlayerBodyExit.OnPlayerBodyExit(location, sheet, cl);
+
+		for(int i=0; i < this.onPlayerBodyExit.Count; i++){
+			this.onPlayerBodyExit[i].OnPlayerBodyExit(location, sheet, cl);
+		}
 	}
 
 	public void SetupAfterSerialize(bool isClient){
-		if(this.onBlockUpdate != null)
-			onBlockUpdate.PostDeserializationSetup(isClient);
-		if(this.onInteract != null)
-			onInteract.PostDeserializationSetup(isClient);
-		if(this.onPlace != null)
-			onPlace.PostDeserializationSetup(isClient);
-		if(this.onBreak != null)
-			onBreak.PostDeserializationSetup(isClient);
-		if(this.onLoad != null)
-			onLoad.PostDeserializationSetup(isClient);
-		if(this.onVFXBuild != null)
-			onVFXBuild.PostDeserializationSetup(isClient);
-		if(this.onVFXChange != null)
-			onVFXChange.PostDeserializationSetup(isClient);
-		if(this.onVFXBreak != null)
-			onVFXBreak.PostDeserializationSetup(isClient);
-		if(this.onSFXPlay != null)
-			onSFXPlay.PostDeserializationSetup(isClient);
-		if(this.placementRule != null)
-			placementRule.PostDeserializationSetup(isClient);
-		if(this.onPlayerBodyEnter != null)
-			onPlayerBodyEnter.PostDeserializationSetup(isClient);
-		if(this.onPlayerBodyExit != null)
-			onPlayerBodyExit.PostDeserializationSetup(isClient);
-		if(this.onPlayerHeadEnter != null)
-			onPlayerHeadEnter.PostDeserializationSetup(isClient);
-		if(this.onPlayerHeadExit != null)
-			onPlayerHeadExit.PostDeserializationSetup(isClient);
-		if(this.onPlayerStepEnter != null)
-			onPlayerStepEnter.PostDeserializationSetup(isClient);
-		if(this.onPlayerStepExit != null)
-			onPlayerStepExit.PostDeserializationSetup(isClient);
+		if(this.onBlockUpdate != null){
+			for(int i=0; i < onBlockUpdate.Count; i++){
+				onBlockUpdate[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onInteract != null){
+			for(int i=0; i < onInteract.Count; i++){
+				onInteract[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onPlace != null){
+			for(int i=0; i < onPlace.Count; i++){
+				onPlace[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onBreak != null){
+			for(int i=0; i < onBreak.Count; i++){
+				onBreak[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onLoad != null){
+			for(int i=0; i < onLoad.Count; i++){
+				onLoad[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onVFXBuild != null){
+			for(int i=0; i < onVFXBuild.Count; i++){
+				onVFXBuild[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onVFXChange != null){
+			for(int i=0; i < onVFXChange.Count; i++){
+				onVFXChange[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onVFXBreak != null){
+			for(int i=0; i < onVFXBreak.Count; i++){
+				onVFXBreak[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onSFXPlay != null){
+			for(int i=0; i < onSFXPlay.Count; i++){
+				onSFXPlay[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.placementRule != null){
+			for(int i=0; i < placementRule.Count; i++){
+				placementRule[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onPlayerBodyEnter != null){
+			for(int i=0; i < onPlayerBodyEnter.Count; i++){
+				onPlayerBodyEnter[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onPlayerBodyExit != null){
+			for(int i=0; i < onPlayerBodyExit.Count; i++){
+				onPlayerBodyExit[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onPlayerHeadEnter != null){
+			for(int i=0; i < onPlayerHeadEnter.Count; i++){
+				onPlayerHeadEnter[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onPlayerHeadExit != null){
+			for(int i=0; i < onPlayerHeadExit.Count; i++){
+				onPlayerHeadExit[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onPlayerStepEnter != null){
+			for(int i=0; i < onPlayerStepEnter.Count; i++){
+				onPlayerStepEnter[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onPlayerStepExit != null){
+			for(int i=0; i < onPlayerStepExit.Count; i++){
+				onPlayerStepExit[i].PostDeserializationSetup(isClient);
+			}
+		}
 	}
 }

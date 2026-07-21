@@ -1,0 +1,17 @@
+{
+	"codename": "BASE_Metal_Tile",
+	"name":  "Metal Tile",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Metal_Tile"
+}
+--->Type
+Item

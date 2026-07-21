@@ -1,0 +1,17 @@
+{
+	"codename": "BASE_Quartz_Ore",
+	"name":  "Quartz Ore",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Quartz_Ore"
+}
+--->Type
+Item

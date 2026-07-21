@@ -74,7 +74,7 @@ public class StructureLoader : BaseLoader{
 			textAsset = Resources.Load<TextAsset>($"{STRUCTURE_RESPATH}{structure}");
 
 			if(textAsset != null){
-				serializedStruct = JsonUtility.FromJson<Structure>(textAsset.text);
+				serializedStruct = JsonUtility.FromJson<Structure>(JsonFormatter.RemoveComments(textAsset.text));
 				structures.Add(structure, serializedStruct);
 			}
 			else{
@@ -94,7 +94,7 @@ public class StructureLoader : BaseLoader{
 			Application.Quit();
 		}
 
-		Wrapper<StructureGroup> wrapper = JsonUtility.FromJson<Wrapper<StructureGroup>>(textAsset.text);
+		Wrapper<StructureGroup> wrapper = JsonUtility.FromJson<Wrapper<StructureGroup>>(JsonFormatter.RemoveComments(textAsset.text));
 
 		for(int i=0; i < wrapper.data.Length; i++){
 			structureGroups.Add(wrapper.data[i].name, wrapper.data[i]);

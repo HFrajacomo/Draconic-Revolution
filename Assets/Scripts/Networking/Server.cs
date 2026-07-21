@@ -11,10 +11,10 @@ using Unity.Mathematics;
 
 using Random = UnityEngine.Random;
 
-public class Server
-{
+public class Server {
 	public int port = 33000;
 	private bool isLocal = false;
+	public bool applicationClose = false;
 	public Socket masterSocket;
 	private IPEndPoint serverIP;
 
@@ -162,7 +162,7 @@ public class Server
 
 			file.Close();
 		}
-		// If a config file needs tto be created
+		// If a config file needs to be created
 		else{
 			file = File.Open("server.cfg", FileMode.Create);
 			allBytes = System.Text.Encoding.ASCII.GetBytes("world_name=");
@@ -173,6 +173,7 @@ public class Server
 			#if UNITY_EDITOR
 				UnityEditor.EditorApplication.isPlaying = false;
 			#else
+				this.applicationClose = true;
 				Application.Quit();
 			#endif
 		}
@@ -183,9 +184,19 @@ public class Server
 	// Generates a random 8 letter code
 	private string GenerateRandomName(){
 		StringBuilder sb = new StringBuilder();
+		char aux;
 
 		for(int i=0; i<8; i++){
-			sb.Append((char)Random.Range(65, 122));
+			bool uppercase = Random.Range(0,2) == 0;
+
+			if(uppercase){
+				aux = (char)Random.Range(65, 91);
+			}
+			else{
+				aux = (char)Random.Range(97, 123);
+			}
+
+			sb.Append(aux);
 		}
 
 		return sb.ToString();
@@ -432,6 +443,7 @@ public class Server
 
 	// Captures client info
 	private void SendClientInfo(byte[] data, ulong id){
+		CharacterSheet sheet = null;
 		NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
 		int inventoryLength;
 		bool isEmptyInventory;
@@ -451,11 +463,11 @@ public class Server
 		// Sends Player Info
 		if(this.cl.RECEIVEDWORLDDATA){
 			// Sends player data
-			PlayerData pdat = this.cl.regionHandler.LoadPlayer(accountID, fromServer:true);
-			pdat.SetOnline(true);
+			PlayerData pdat = this.cl.regionHandler.LoadPlayer(accountID);
 			Vector3 playerPos = pdat.GetPosition();
 			Vector3 playerDir = pdat.GetDirection();
 			ChunkPos playerChunkPos = new CastCoord(playerPos).GetChunkPos();
+			pdat.SetOnline(true);
 
 			// Add to Chunk graph
 			if(this.playersInChunk.ContainsKey(playerChunkPos)){
@@ -473,10 +485,11 @@ public class Server
 				this.playerToChunk[accountID] = playerChunkPos;
 			}
 
-			this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
+			sheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
+			this.entityHandler.AddPlayerSheet(accountID, sheet);
 
 			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes);
-			this.Send(message.GetMessage(), message.size, id, temporary:true);
+			this.Send(message.GetMessage(), message.size, id);
 
 			// Sends player inventory data
 			NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
@@ -487,12 +500,12 @@ public class Server
 			else
 				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetEmptyBuffer(), inventoryLength);
 
-			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id, temporary:true);
+			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id);
 
 			// Sends global weather noise data
 			NetMessage weatherMessage = new NetMessage(NetCode.SENDNOISE);
 			weatherMessage.SendNoise(GenerationSeed.weatherNoise, World.worldSeed);
-			this.Send(weatherMessage.GetMessage(), weatherMessage.size, id, temporary:true);
+			this.Send(weatherMessage.GetMessage(), weatherMessage.size, id);
 		}
 
 		// If AccountID is already online, erase all memory from that connection
@@ -503,7 +516,6 @@ public class Server
 		// Assigns a fixed ID
 		this.connections.Add(accountID, this.temporaryConnections[id]);
 		this.temporaryConnections.Remove(id);
-
     	this.lengthPacket[accountID] = true;
     	this.packetIndex[accountID] = 0;
     	this.connectionGraph.Add(accountID, new HashSet<ulong>());
@@ -522,14 +534,16 @@ public class Server
 
     	this.connections[accountID].BeginReceive(this.receiveBuffer[accountID], 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), accountID);
 
-    	// Run OnHoldServer and OnHoldClient events
+    	if(sheet == null){
+    		sheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
+    		this.entityHandler.AddPlayerSheet(accountID, sheet);
+    	}
+
     	bool isEmpty;
-    	this.cachedSheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
-		byte hotbarSlot = this.cachedSheet.GetHotbarSlot();
+		byte hotbarSlot = sheet.GetHotbarSlot();
 		this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmpty);
 
 		ItemStack its = this.cl.playerServerInventory.GetSlot(accountID, hotbarSlot).GetItemStack();
-
 		its.GetItem().OnHoldServer(this.cl, its, accountID);
 	}
 
@@ -956,6 +970,7 @@ public class Server
 		this.receiveBuffer.Remove(id);
 
 		this.entityHandler.Remove(EntityType.PLAYER, this.cl.regionHandler.allPlayerData[id].GetChunkPos(), id);
+		this.entityHandler.RemoveSheet(id);
 		
 		foreach(ulong code in this.cl.regionHandler.allPlayerData.Keys){
 			if(code == id)
@@ -1404,15 +1419,31 @@ public class Server
 
 	// Receives a BattleStyle change request from client
 	public void SendBattleStyle(byte[] data, ulong id){
+		CharacterSheet sheet;
 		ulong playerCode = NetDecoder.ReadUlong(data, 1);
 		int style = NetDecoder.ReadInt(data, 9);
 
 		this.entityHandler.ChangeBattleStyle(playerCode, style);
+		sheet = this.entityHandler.GetSheet(id);
+		sheet.SetBattleStyleCode(style);
+		this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
 
 		NetMessage message;
 		message = new NetMessage(NetCode.SENDBATTLESTYLE);
 		message.SendBattleStyle(playerCode, style);
 		this.SendToClientsExcept(id, message);
+	}
+	public void SendBattleStyle(ulong playerCode, int style){
+		CharacterSheet sheet;
+		this.entityHandler.ChangeBattleStyle(playerCode, style);
+		sheet = this.entityHandler.GetSheet(playerCode);
+		sheet.SetBattleStyleCode(style);
+		this.cl.characterFileHandler.SaveCharacterSheet(playerCode, sheet);
+
+		NetMessage message;
+		message = new NetMessage(NetCode.SENDBATTLESTYLE);
+		message.SendBattleStyle(playerCode, style);
+		this.SendToClients(playerCode, message);
 	}
 
 	// Receives an animator value from client
@@ -1430,8 +1461,6 @@ public class Server
 
 	// Receives a Disconnect message from InfoClient
 	public void DisconnectInfo(ulong id){
-		Debug.Log("ID: " + id + " was sent to character creation");
-
 		this.temporaryConnections[id].Close();
 		this.temporaryConnections.Remove(id);
 	}
@@ -1445,6 +1474,23 @@ public class Server
 	public void SendToClients(ChunkPos pos, NetMessage message){
 		if(!this.cl.loadedChunks.ContainsKey(pos))
 			return;
+
+		foreach(ulong i in this.cl.loadedChunks[pos]){
+			this.Send(message.GetMessage(), message.size, i);
+		}
+	}
+
+	// Send input message to all Clients connected to player
+	public void SendToClients(ulong playerCode, NetMessage message){
+		if(!this.playerToChunk.ContainsKey(playerCode)){
+			return;
+		}
+
+		ChunkPos pos = this.playerToChunk[playerCode];
+
+		if(!this.cl.loadedChunks.ContainsKey(pos)){
+			return;
+		}
 
 		foreach(ulong i in this.cl.loadedChunks[pos]){
 			this.Send(message.GetMessage(), message.size, i);

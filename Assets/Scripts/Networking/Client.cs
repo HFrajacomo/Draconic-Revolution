@@ -291,13 +291,13 @@ public class Client
 
 		this.cl.time.SetTime(day, hour, minute);
 
-		this.cl.PLAYERSPAWNED = true;
 		this.cl.playerX = x;
 		this.cl.playerY = y;
 		this.cl.playerZ = z;
 		this.cl.playerDirX = xDir;
 		this.cl.playerDirY = yDir;
 		this.cl.playerDirZ = zDir;
+		this.cl.PLAYERSPAWNED = true;
 
 		// Finds current Chunk and sends position data
 		initialCoord = new CastCoord(x, y, z);
@@ -503,6 +503,7 @@ public class Client
 			this.entityHandler.AddPlayerSheet(code, sheet);
 			this.cl.playerSheetController.SetSheet(sheet);
 			this.cl.playerEvents.ScrollToSlot(sheet.GetHotbarSlot());
+			this.cl.playerActionController.UseStyle(sheet.GetBattleStyleCode());
 		}
 		else{
 			this.entityHandler.AddPlayerSheet(code, sheet);			
@@ -729,6 +730,9 @@ public class Client
 		
 		if(playerCode != Configurations.accountID)
 			this.entityHandler.SetPlayerBattleStyle(playerCode, styleCode);
+		else{
+			this.cl.playerActionController.UseStyle(styleCode);
+		}
 	}
 
 	// Receives from server a parameter from an animator

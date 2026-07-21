@@ -76,10 +76,11 @@ public class ChunkLoader_Server : MonoBehaviour
 
         EnvironmentVariablesCentral.StartServer();
 
-        this.time.SetServer(this.server);
-
-        this.characterFileHandler = new CharacterFileHandler(World.worldName);
-        this.playerServerInventory = new PlayerServerInventory();
+        if(!this.server.applicationClose){
+            this.time.SetServer(this.server);
+            this.characterFileHandler = new CharacterFileHandler(World.worldName);
+            this.playerServerInventory = new PlayerServerInventory();
+        }
     }
 
     void Update(){
@@ -379,7 +380,7 @@ public class ChunkLoader_Server : MonoBehaviour
         if(!chunks.ContainsKey(pos)){
             this.toLoad.Insert(0, pos);
             this.LoadChunk();
-            return GetBlockHeight(pos, blockX, blockZ) + (pos.y*Chunk.chunkDepth)+1;
+            return GetBlockHeight(pos, blockX, blockZ);
         }
         for(int i=Chunk.chunkDepth-1; i >= 0 ; i--){
             if(chunks[pos].data.GetCell(Mathf.Abs(blockX), i, Mathf.Abs(blockZ)) != 0){
@@ -486,13 +487,16 @@ public class ChunkLoader_Server : MonoBehaviour
 
         for(int i=0; i < 45; i++){
             if(i == 1){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50);
+                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE);
             }
             else if(i == 2){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50);
+                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE);
             }
             else if(i == 3){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Water"), 50);
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50);
+            }
+            else if(i == 4){
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50);
             }
             else{
                 slots[i] = new EmptyPlayerInventorySlot();

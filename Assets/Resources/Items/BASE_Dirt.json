@@ -1,0 +1,17 @@
+{
+    "codename": "BASE_Dirt",
+    "name":  "Dirt",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Dirt"
+}
+--->Type
+Item

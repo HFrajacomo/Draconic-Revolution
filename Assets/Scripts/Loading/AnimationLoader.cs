@@ -6,6 +6,7 @@ using UnityEngine;
 public class AnimationLoader : BaseLoader {
 	private static Dictionary<string, RuntimeAnimatorController> controllers = new Dictionary<string, RuntimeAnimatorController>();
 	private static Dictionary<string, AnimationStateMapping[]> stateMappings = new Dictionary<string, AnimationStateMapping[]>();
+	private static Dictionary<string, BoneAnchorPoint[]> anchorMappings = new Dictionary<string, BoneAnchorPoint[]>();
 	private static Dictionary<string, MultiAimData[]> rigs = new Dictionary<string, MultiAimData[]>();
 	private static Dictionary<int, BattleStyleData> battleStyles = new Dictionary<int, BattleStyleData>();
 	private static Dictionary<string, BattleStyleData> nameToBattleStyle = new Dictionary<string, BattleStyleData>();
@@ -23,17 +24,22 @@ public class AnimationLoader : BaseLoader {
 	public override bool Load(){
 		if(isClient){
 			LoadCharacterControllers();
+			LoadAnchorBones();
 			LoadStateMappings();
 			LoadRigs();
 			LoadArmatureName();
-			LoadBattleStyles();
 		}
+
+		LoadBattleStyles();
 
 		return true;
 	}
 
 	public static RuntimeAnimatorController GetController(string controller){return controllers[controller];}
 	public static AnimationStateMapping[] GetAnimationMapping(string controller){return stateMappings[controller];}
+	public static bool ContainsMapping(string controller){return stateMappings.ContainsKey(controller);}
+	public static BoneAnchorPoint[] GetAnchorMapping(string controller){return anchorMappings[controller];}
+	public static bool ContainsAnchor(string controller){return anchorMappings.ContainsKey(controller);}
 	public static MultiAimData[] GetRig(string controller){return rigs[controller];}
 	public static bool ContainsRig(string controller){return rigs.ContainsKey(controller);}
 	public static string GetArmatureName(string controller){return armatureName[controller];}
@@ -56,6 +62,29 @@ public class AnimationLoader : BaseLoader {
 		}	
 	}
 
+	private void LoadAnchorBones(){
+		string respath;
+		Wrapper<BoneAnchorPoint> wrapper;
+
+		foreach(string controllerName in controllers.Keys){
+			respath = $"{ANIMATION_RESFOLDER}{controllerName}/anchors";
+
+			TextAsset anchorJson = Resources.Load<TextAsset>(respath);
+
+			if(anchorJson == null){
+				throw new AnimationImportException($"Couldn't locate the Anchor Mapping: {respath} while loading Animations");
+			}
+
+			wrapper = JsonUtility.FromJson<Wrapper<BoneAnchorPoint>>(JsonFormatter.RemoveComments(anchorJson.text));
+
+			foreach(BoneAnchorPoint anchor in wrapper.data){
+				anchor.PostDeserializationSetup();
+			}
+
+			anchorMappings.Add(controllerName, wrapper.data);
+		}
+	}
+
 	private void LoadRigs(){
 		string respath;
 		Wrapper<MultiAimData> wrapper;
@@ -69,7 +98,7 @@ public class AnimationLoader : BaseLoader {
 				throw new AnimationImportException($"Couldn't locate the Rigs: {respath} while loading Animations");
 			}
 
-			wrapper = JsonUtility.FromJson<Wrapper<MultiAimData>>(rigsJson.text);
+			wrapper = JsonUtility.FromJson<Wrapper<MultiAimData>>(JsonFormatter.RemoveComments(rigsJson.text));
 
 			foreach(MultiAimData rig in wrapper.data){
 				rig.PostDeserializationSetup();
@@ -88,7 +117,7 @@ public class AnimationLoader : BaseLoader {
 			throw new AnimationImportException($"Couldn't locate the AnimatorController Mappings in RESPATH: {CONTROLLERS_PATHS} while loading RuntimeAnimatorController");
 		}
 
-		Wrapper<ValuePair<string, string>> wrapper = JsonUtility.FromJson<Wrapper<ValuePair<string, string>>>(controllerJson.text);
+		Wrapper<ValuePair<string, string>> wrapper = JsonUtility.FromJson<Wrapper<ValuePair<string, string>>>(JsonFormatter.RemoveComments(controllerJson.text));
 
 		foreach(ValuePair<string, string> vp in wrapper.data){
 			currentController = Resources.Load<RuntimeAnimatorController>(vp.value);
@@ -114,7 +143,7 @@ public class AnimationLoader : BaseLoader {
 				throw new AnimationImportException($"Couldn't locate the AnimationMapping: {respath} while loading Animations");
 			}
 
-			wrapper = JsonUtility.FromJson<Wrapper<AnimationStateMapping>>(mappingJson.text);
+			wrapper = JsonUtility.FromJson<Wrapper<AnimationStateMapping>>(JsonFormatter.RemoveComments(mappingJson.text));
 
 			foreach(AnimationStateMapping mapping in wrapper.data){
 				mapping.PostDeserializationSetup();
@@ -130,7 +159,7 @@ public class AnimationLoader : BaseLoader {
         int styleCode = 0;
 
         foreach(TextAsset asset in assets){
-        	bsd = JsonUtility.FromJson<BattleStyleData>(asset.text);
+        	bsd = JsonUtility.FromJson<BattleStyleData>(JsonFormatter.RemoveComments(asset.text));
         	bsd.PostDeserializationSetup(asset.name, styleCode);
 			battleStyles.Add(styleCode, bsd);
 			nameToBattleStyle.Add(bsd.GetName(), bsd);

@@ -1,0 +1,17 @@
+{
+    "codename": "BASE_Wood_Log",
+    "name":  "Wood Log",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Wood_Log"
+}
+--->Type
+Item

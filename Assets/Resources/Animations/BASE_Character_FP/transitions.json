@@ -2,11 +2,58 @@
 	"data": [
 		{
 			"layer": "",
-			"sourceState": "Empty",
+			"sourceState": "Moving Forward",
+			"destinationState": "Idle Weapon",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "if not",
+			        "parameter": "Run",
+			        "parameterType": "bool"
+			    },
+			    {
+			        "mode": "if not",
+			        "parameter": "Sheathed",
+			        "parameterType": "bool"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Moving Forward",
+			"destinationState": "Weapon Sheathe",
+			"hasExitTime": false,
+			"exitTime": 0.5,
+			"duration": 0.1,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+		    "conditions": [
+			    {
+			        "mode": "if",
+			        "parameter": "Sheathed",
+			        "parameterType": "bool",
+			    	"defaultBool": true
+			    },
+			    {
+			    	"mode": "if",
+			    	"parameter": "IsSheathing",
+			    	"parameterType": "bool"
+			    }
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Idle Weapon",
 			"destinationState": "Moving Forward",
 			"hasExitTime": false,
 			"exitTime": 0.5,
-			"duration": 0.3,
+			"duration": 0.1,
 			"offset": 0,
 			"canTransitionToSelf": false,
 			"interruptionSource": "source",
@@ -26,10 +73,10 @@
 		{
 			"layer": "",
 			"sourceState": "Empty",
-			"destinationState": "Idle Hand",
+			"destinationState": "Weapon Unsheathe",
 			"hasExitTime": false,
-			"exitTime": 0.5,
-			"duration": 0.1,
+			"exitTime": 0,
+			"duration": 0,
 			"offset": 0,
 			"canTransitionToSelf": false,
 			"interruptionSource": "source",
@@ -41,29 +88,24 @@
 			    },
 			    {
 			        "mode": "if",
-			        "parameter": "IsGrounded",
+			        "parameter": "IsSheathing",
 			        "parameterType": "bool"
 			    }
 			]
 		},
 		{
 			"layer": "",
-			"sourceState": "Moving Forward",
-			"destinationState": "Idle Hand",
+			"sourceState": "Idle Weapon",
+			"destinationState": "Weapon Sheathe",
 			"hasExitTime": false,
-			"exitTime": 0.5,
-			"duration": 0.1,
+			"exitTime": 0,
+			"duration": 0,
 			"offset": 0,
 			"canTransitionToSelf": false,
 			"interruptionSource": "source",
 		    "conditions": [
 			    {
-			        "mode": "if not",
-			        "parameter": "Run",
-			        "parameterType": "bool"
-			    },
-			    {
-			        "mode": "if not",
+			        "mode": "if",
 			        "parameter": "Sheathed",
 			        "parameterType": "bool"
 			    }
@@ -71,49 +113,25 @@
 		},
 		{
 			"layer": "",
-			"sourceState": "Moving Forward",
+			"sourceState": "Weapon Unsheathe",
+			"destinationState": "Idle Weapon",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "none"
+		},
+		{
+			"layer": "",
+			"sourceState": "Weapon Sheathe",
 			"destinationState": "Empty",
-			"hasExitTime": false,
-			"exitTime": 0.5,
-			"duration": 0.1,
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
 			"offset": 0,
 			"canTransitionToSelf": false,
-			"interruptionSource": "source",
-		    "conditions": [
-			    {
-			        "mode": "if not",
-			        "parameter": "Run",
-			        "parameterType": "bool"
-			    },
-			    {
-			        "mode": "if",
-			        "parameter": "Sheathed",
-			        "parameterType": "bool"
-			    }
-			]
-		},
-		{
-			"layer": "",
-			"sourceState": "Idle Hand",
-			"destinationState": "Moving Forward",
-			"hasExitTime": false,
-			"exitTime": 0.5,
-			"duration": 0.1,
-			"offset": 0,
-			"canTransitionToSelf": false,
-			"interruptionSource": "source",
-		    "conditions": [
-			    {
-			        "mode": "if",
-			        "parameter": "Run",
-			        "parameterType": "bool"
-			    },
-			    {
-			        "mode": "if not",
-			        "parameter": "Sheathed",
-			        "parameterType": "bool"
-			    }
-			]
+			"interruptionSource": "none"
 		},
 		{
 			"layer": "",
@@ -289,7 +307,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 1",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -300,7 +318,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 2",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -311,7 +329,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 3",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -322,7 +340,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 4",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -333,7 +351,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 5",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -344,7 +362,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 6",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -355,7 +373,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 7",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -366,7 +384,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 8",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -377,7 +395,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 9",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,
@@ -388,7 +406,7 @@
 		{
 			"layer": "",
 			"sourceState": "Attack 10",
-			"destinationState": "Idle Hand",
+			"destinationState": "Idle Weapon",
 			"hasExitTime": true,
 			"exitTime": 1,
 			"duration": 0,

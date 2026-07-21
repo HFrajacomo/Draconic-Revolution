@@ -1,0 +1,17 @@
+{
+    "codename": "BASE_Water",
+    "name":  "Water Block",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Water"
+}
+--->Type
+Item

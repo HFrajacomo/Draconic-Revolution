@@ -61,7 +61,6 @@ public class PlayerActionController : MonoBehaviour {
 						this.animator.SetInteger("Attack_Combo", this.comboHit);
 						this.animatorFP.SetInteger("Attack_Combo", this.comboHit);
 						this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
-						OperateForce($"Attack {this.comboHit}");
 					}
 				}
 			}
@@ -72,7 +71,6 @@ public class PlayerActionController : MonoBehaviour {
 				AddToPlaylist($"Attack {this.comboHit}");
 				this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
 				this.restrictions.Add(PlayerActionRestriction.MOVEMENT);
-				OperateForce($"Attack {this.comboHit}");
 			}
 		}
 
@@ -110,14 +108,21 @@ public class PlayerActionController : MonoBehaviour {
 		statesPlayed = new List<AnimationData>();
 	}
 
-	public void UseStyle(int style){
+	public void UseStyle(int style, bool updatePlayerDataAndServer=false){
 		if(!this.INIT)
 			Init();
+
+		// Simple lock to avoid Style Switching without having weaponSheathed first
+		if(!this.weaponSheathed){
+			SyncCurrentStyleToServer();
+			return;
+		}
 
 		if(this.currentStyleCode == style)
 			return;
 
 		this.currentStyle = AnimationLoader.GetBattleStyle(style);
+		this.animationHandler.CreateAttachments(this.currentStyle);
 
 		AnimatorOverrideController animationOverrideController = new AnimatorOverrideController(this.originalController);
 		AnimatorOverrideController animationOverrideControllerFP = new AnimatorOverrideController(this.originalControllerFP);
@@ -128,8 +133,19 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.runtimeAnimatorController = animationOverrideController;
 		this.animatorFP.runtimeAnimatorController = animationOverrideControllerFP;
 		this.animator.SetBool("ISPLAYER", true);
+		this.animator.SetBool("Sheathed", true);
+		this.animatorFP.SetBool("Sheathed", true);
+
+		if(updatePlayerDataAndServer){
+			NetMessage message = new NetMessage(NetCode.SENDBATTLESTYLE);
+			message.SendBattleStyle(Configurations.accountID, style);
+			this.cl.client.Send(message);
+
+			this.cl.playerSheetController.GetSheet().SetBattleStyleCode(style);
+			this.cl.playerSheetController.SendToServer();
+		}
 	}
-	public void UseStyle(string style){UseStyle(AnimationLoader.GetBattleStyle(style).GetCode());}
+	public void UseStyle(string style, bool updatePlayerDataAndServer=false){UseStyle(AnimationLoader.GetBattleStyle(style).GetCode(), updatePlayerDataAndServer:updatePlayerDataAndServer);}
 
 	public void RemoveAllStyles(){
 		this.animator.runtimeAnimatorController = this.originalController;
@@ -137,19 +153,21 @@ public class PlayerActionController : MonoBehaviour {
 	}
 
 	public void Sheathe(){
-		// Maybe change the restriction condition in the future to ignore this if certain states are currently playing
 		if(this.restrictions.Contains(PlayerActionRestriction.SHEATHE))
 			return;
 
+		RegisterRestriction(PlayerActionRestriction.SHEATHE, 0.9f);
 		this.weaponSheathed = !this.weaponSheathed;
+		this.animator.SetBool("Sheathed", this.weaponSheathed);
+		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
+		this.animator.SetBool("IsSheathing", true);
+		this.animatorFP.SetBool("IsSheathing", true);
 
 		if(this.weaponSheathed){
-			AddToPlaylist("Idle", over:true);
 			this.comboHit = 0;
 			RegisterRestriction(PlayerActionRestriction.PRIMARY, 0);
 		}
 		else{
-			AddToPlaylist("Idle Hand");
 			RemoveRestriction(PlayerActionRestriction.PRIMARY);
 		}
 	}
@@ -187,18 +205,14 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.SetFloat("Run", runMomentum);
 		this.animatorFP.SetBool("Run", runMomentum > 0);
 		this.animator.SetFloat("Gravity", gravity);
-
 		this.animator.SetBool("IsGrounded", flags.isGrounded);
-		this.animatorFP.SetBool("IsGrounded", flags.isGrounded);
-		this.animator.SetBool("Sheathed", this.weaponSheathed);
-		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
 		this.animator.SetBool("ShouldMove", movementDirection.magnitude != 0);
 
 		SendAnimatorValue("Run", runMomentum);
 
 		if(!flags.isGrounded && this.weaponSheathed)
 			pmt = PlayerMovementType.AIR;
-		else if(!flags.isGrounded && !this.weaponSheathed && Mathf.Abs(angle) <= 50)
+		else if(!flags.isGrounded && !this.weaponSheathed && Mathf.Abs(angle) <= 50 && movementDirection != Vector3.zero)
 			pmt = PlayerMovementType.AIR_AGGRO_FORWARD;
 		else if(!flags.isGrounded && !this.weaponSheathed)
 			pmt = PlayerMovementType.AIR_AGGRO;
@@ -259,7 +273,7 @@ public class PlayerActionController : MonoBehaviour {
 
 	private static AnimatorOverrideController ApplyOverrides(AnimatorOverrideController controller, StateClipPair[] overrides){
 		foreach(StateClipPair over in overrides){
-			controller[Resources.Load<AnimationClip>($"{AnimationLoader.ANIMATION_CLIP_RESFOLDER}{over.state}")] = Resources.Load<AnimationClip>($"{AnimationLoader.ANIMATION_CLIP_RESFOLDER}{over.clip}");
+			controller[over.FetchStateClip()] = over.FetchFinalClip();
 		}
 
 		return controller;
@@ -277,7 +291,7 @@ public class PlayerActionController : MonoBehaviour {
 				AddToPlaylist("Idle");
 				break;
 			case PlayerMovementType.STILL_AGGRO:
-				AddToPlaylist("Idle Hand");
+				AddToPlaylist("Idle Weapon");
 				break;
 			case PlayerMovementType.FORWARD:
 				AddToPlaylist("Moving Forward", igFP:!isRunning);
@@ -298,25 +312,14 @@ public class PlayerActionController : MonoBehaviour {
 				AddToPlaylist("On Air");
 				break;
 			case PlayerMovementType.AIR_AGGRO:
-				AddToPlaylist("Idle Hand");
+				AddToPlaylist("Idle Weapon");
 				break;
 			case PlayerMovementType.AIR_AGGRO_FORWARD:
-				AddToPlaylist("Idle Hand", igFP:true);
+				AddToPlaylist("Idle Weapon", igFP:true);
 				AddToPlaylist("Moving Forward", igFP:true);
 				break;
 			default:
 				break;
-		}
-	}
-
-	private void OperateForce(string state){
-		StateClipPair data = this.currentStyle.GetStateStyleData(state);
-
-		if(data.direction == null)
-			return;
-
-		if(data.direction == "forward"){
-			this.playerMovement.AddKnockback(this.playerMovement.GetForwardDirection(), data.momentum);
 		}
 	}
 
@@ -346,5 +349,12 @@ public class PlayerActionController : MonoBehaviour {
 
 		this.animatorParameterMessage.SendAnimatorParameter(Configurations.accountID, val, parameter);
 		this.cl.client.Send(this.animatorParameterMessage);
+	}
+
+	// Used when UseStyle is denied by Client
+	private void SyncCurrentStyleToServer(){
+		NetMessage message = new NetMessage(NetCode.SENDBATTLESTYLE);
+		message.SendBattleStyle(Configurations.accountID, this.currentStyle.GetCode());
+		this.cl.client.Send(message);
 	}
 }

@@ -241,6 +241,8 @@ public class CharacterCreationStatusMenu : Menu{
 		this.selectedPrimary = null;
 		this.selectedSecondary = null;
 
+		this.pointsPool.text = "10/10";
+
 		CharacterCreationData.ResetAttributes();
 	}
 

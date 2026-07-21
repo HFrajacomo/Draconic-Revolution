@@ -1,0 +1,17 @@
+{
+	"codename": "BASE_Ruby_Ore",
+	"name":  "Ruby Ore",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Ruby_Ore"
+}
+--->Type
+Item

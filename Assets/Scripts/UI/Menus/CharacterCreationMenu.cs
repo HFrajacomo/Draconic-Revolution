@@ -253,7 +253,7 @@ public class CharacterCreationMenu : Menu{
             ToggleDiv(this.generalButton);
         }
         else{
-            ResetColors();
+            ResetColors(this.selectedGenderIsMale);
             LoadDefaultModel(isMale:this.selectedGenderIsMale);
             this.characterBuilder.StartIdleAnimation();
         }
@@ -1282,8 +1282,6 @@ public class CharacterCreationMenu : Menu{
         }
     }
 
-
-
     private void ApplyColorToModel(GameObject go, string faceTextureName=""){
         SkinnedMeshRenderer smr = go.GetComponent<SkinnedMeshRenderer>();
 
@@ -1393,11 +1391,20 @@ public class CharacterCreationMenu : Menu{
         go.GetComponent<SkinnedMeshRenderer>().materials = materials;
     }
 
-    private void ResetColors(){
+    private void ResetColors(bool isMale){
+        string suffix = "";
+
         if(this.race != Race.DRAGONLING)
             this.skinMat = Instantiate(this.prefabPlainMat);
         else
             this.skinMat = Instantiate(this.dragonSkinMat);
+
+        if(this.selectedFace != null){
+            if(isMale)
+                suffix = "/M";
+            else
+                suffix = "/F";
+        }
 
         this.clothesMat1 = Instantiate(this.prefabPlainMat);
         this.clothesMat2 = Instantiate(this.prefabPlainMat);
@@ -1458,9 +1465,12 @@ public class CharacterCreationMenu : Menu{
         this.faceMat1.SetColor("_SkinColor", this.skinColor);
         this.faceMat2.SetColor("_Color", this.faceColor2);
         this.faceMat3.SetColor("_Color", this.faceColor3);
-        this.faceMat1.SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(this.selectedFace));
-        this.faceMat2.SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(this.selectedFace));
-        this.faceMat3.SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(this.selectedFace));
         this.faceMat1.SetTexture("_DragonScales", ModelHandler.GetDragonlingScales());
+
+        if(this.selectedFace != null){
+            this.faceMat1.SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(this.selectedFace + suffix));
+            this.faceMat2.SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(this.selectedFace + suffix));
+            this.faceMat3.SetTexture("_FaceTexture", ModelHandler.GetFaceTextureArray(this.selectedFace + suffix));
+        }
     }
 }

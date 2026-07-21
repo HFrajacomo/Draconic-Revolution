@@ -721,6 +721,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7225cf35f65b1cd4a9eb8ecfb06a1269, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cl: {fileID: 1192772367}
   parent: {fileID: 59614818}
   plainClothingMaterial: {fileID: 2100000, guid: d53d3c304eec41b49aad438799e8ad47,
     type: 2}
@@ -739,6 +740,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a145b133212d62348a8fb36992215e9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cl: {fileID: 1192772367}
 --- !u!114 &59614828
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15632,7 +15634,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 2500
+      scalar: 0
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -29917,6 +29919,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1700761211}
   m_CullTransparentMesh: 1
+--- !u!1 &1710051911
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1710051912}
+  m_Layer: 0
+  m_Name: ----- LoadedAttachments -----
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1710051912
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710051911}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.9770664, y: 853.24207, z: -1.8060833}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1710870184
 GameObject:
   m_ObjectHideFlags: 0
@@ -32864,3 +32897,4 @@ SceneRoots:
   - {fileID: 1337578100}
   - {fileID: 1427935634}
   - {fileID: 692086678}
+  - {fileID: 1710051912}

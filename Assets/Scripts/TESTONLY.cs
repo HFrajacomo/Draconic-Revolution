@@ -10,7 +10,14 @@ using Unity.Burst;
 using Unity.Collections;
 
 
-public class TESTONLY : MonoBehaviour
-{
-	void Start(){}
+public class TESTONLY : MonoBehaviour {
+	void Start(){
+		string text = "[test, rogerio, alkasdhu]";
+
+		List<string> allElements = JsonFormatter.StringToList(text);
+
+		foreach(string element in allElements){
+			Debug.Log(element);
+		}
+	}
 }

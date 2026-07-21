@@ -1,0 +1,17 @@
+{
+	"codename": "BASE_Magnetite_Ore",
+	"name":  "Magnetite Ore",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Magnetite_Ore"
+}
+--->Type
+Item

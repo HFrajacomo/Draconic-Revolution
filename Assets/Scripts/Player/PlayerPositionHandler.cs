@@ -22,6 +22,7 @@ public class PlayerPositionHandler : MonoBehaviour
     private Vector3 lastPos = Vector3.zero;
     private Vector3 lastRot = Vector3.zero;
     private PlayerVoxelLocation playerVoxelLocation = PlayerVoxelLocation.zero;
+    private Vector3 BODY_OFFSET = new Vector3(0f, 0.2f, 0f);
     private string currentBiome = "";
     private string lastBiome = "";
     private static readonly int TICKS = 4;
@@ -144,12 +145,12 @@ public class PlayerPositionHandler : MonoBehaviour
 
     private PlayerVoxelLocation CalculateVoxelLocation(){
         CastCoord head = new CastCoord(cameraTransform.position);
-        CastCoord body = new CastCoord(playerTransform.position);
+        CastCoord body = new CastCoord(playerTransform.position + BODY_OFFSET);
         CastCoord feet;
         PlayerVoxelLocation newLocation;
 
         if(this.playerMovement.IsGrounded()){
-            feet = new CastCoord(playerTransform.position + Vector3.down);
+            feet = new CastCoord(playerTransform.position);
             newLocation = new PlayerVoxelLocation{
                 feet = this.cl.GetBlock(feet, errorZero:true),
                 body = this.cl.GetBlock(body, errorZero:true),

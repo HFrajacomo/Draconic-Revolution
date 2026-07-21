@@ -1,0 +1,17 @@
+{
+    "codename": "BASE_Basalt_Bricks",
+    "name":  "Basalt Bricks",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Basalt_Bricks"
+}
+--->Type
+Item

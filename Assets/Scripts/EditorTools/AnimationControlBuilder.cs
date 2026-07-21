@@ -64,12 +64,6 @@ public static class AnimationControlBuilder {
 
 		SaveControllerPath();
 
-		/*
-		foreach(AnimatorController control in controllers.Values){
-			EditorUtility.SetDirty(control);
-		}
-		*/
-
 		AssetDatabase.SaveAssets();
 		AssetDatabase.Refresh();
 
@@ -328,7 +322,7 @@ public static class AnimationControlBuilder {
 				EditorApplication.isPlaying = false;
 			}
 
-			acs = JsonUtility.FromJson<AnimationControllerSettings>(controllerJson.text);
+			acs = JsonUtility.FromJson<AnimationControllerSettings>(JsonFormatter.RemoveComments(controllerJson.text));
 			acs.PostDeserializationSetup();
 
 			controllerSettings.Add(controllerName, acs);
@@ -346,7 +340,7 @@ public static class AnimationControlBuilder {
 				EditorApplication.isPlaying = false;
 			}
 
-			als = JsonUtility.FromJson<Wrapper<AnimationLayerSettings>>(layerJson.text);
+			als = JsonUtility.FromJson<Wrapper<AnimationLayerSettings>>(JsonFormatter.RemoveComments(layerJson.text));
 
 			foreach(AnimationLayerSettings layerSettings in als.data){
 				layerSettings.PostDeserializationSetup();
@@ -367,7 +361,7 @@ public static class AnimationControlBuilder {
 				EditorApplication.isPlaying = false;
 			}
 
-			ass = JsonUtility.FromJson<Wrapper<AnimationStateSettings>>(statesJson.text);
+			ass = JsonUtility.FromJson<Wrapper<AnimationStateSettings>>(JsonFormatter.RemoveComments(statesJson.text));
 
 			foreach(AnimationStateSettings stateSettings in ass.data){
 				stateSettings.PostDeserializationSetup();
@@ -378,17 +372,22 @@ public static class AnimationControlBuilder {
 	}
 
 	private static void LoadTransitionsSettings(){
-		Wrapper<AnimationTransitionSettings> ats;
+		Wrapper<AnimationTransitionSettings> ats = null;
 
 		foreach(AnimationControllerSettings acs in controllerSettings.Values){
 			TextAsset transitionsJson = Resources.Load<TextAsset>(acs.transitionFile);
 
 			if(transitionsJson == null){
-				Debug.Log($"Couldn't locate the TransitionSettings: {acs.transitionFile} while building AnimationControllers");
-				EditorApplication.isPlaying = false;
+				Debug.LogError($"Couldn't locate the TransitionSettings: {acs.transitionFile} while building AnimationControllers");
 			}
 
-			ats = JsonUtility.FromJson<Wrapper<AnimationTransitionSettings>>(transitionsJson.text);
+			try{
+				ats = JsonUtility.FromJson<Wrapper<AnimationTransitionSettings>>(JsonFormatter.RemoveComments(transitionsJson.text));
+			}
+			catch(ArgumentException ex){
+				Debug.LogError($"Failed to load controller: {acs.controllerName}. {ex}");
+				throw;
+			}
 
 			foreach(AnimationTransitionSettings transitionSettings in ats.data){
 				transitionSettings.PostDeserializationSetup();

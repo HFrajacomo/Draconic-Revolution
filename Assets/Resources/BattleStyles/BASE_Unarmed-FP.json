@@ -3,24 +3,32 @@
 	"overrides": {
 		"data": [
 			{
-				"state": "Idle Hand",
-				"clip": "CharacterArmature_Idle Hand-FP"
+				"state": "Idle Weapon",
+				"clip": "CharacterArmature_Idle - Unarmed -FP"
 			},
 			{
 				"state": "Moving Forward",
-				"clip": "CharacterArmature_Run Forward-FP"
+				"clip": "CharacterArmature_Run Forward - Unarmed -FP"
+			},
+			{
+				"state": "Weapon Sheathe",
+				"clip": "CharacterArmature_Sheathe - Unarmed -FP"
+			},
+			{
+				"state": "Weapon Unsheathe",
+				"clip": "CharacterArmature_Unsheathe - Unarmed -FP"
 			},
 			{
 				"state": "Attack 1",
-				"clip": "CharacterArmature_Punch 1 - Normal-FP"
+				"clip": "CharacterArmature_Attack 1 - Unarmed -FP"
 			},
 			{
 				"state": "Attack 2",
-				"clip": "CharacterArmature_Punch 2 - Normal-FP"
+				"clip": "CharacterArmature_Attack 2 - Unarmed -FP"
 			},
 			{
 				"state": "Attack 3",
-				"clip": "CharacterArmature_Punch 3 - Normal-FP"
+				"clip": "CharacterArmature_Attack 3 - Unarmed -FP"
 			},
 			{
 				"state": "Attack 4",

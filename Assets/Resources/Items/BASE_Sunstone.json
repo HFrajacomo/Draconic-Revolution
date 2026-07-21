@@ -1,0 +1,17 @@
+{
+	"codename": "BASE_Sunstone",
+	"name":  "Sunstone",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Sunstone"
+}
+--->Type
+Item

@@ -16,6 +16,7 @@ The files needed to be created are as following:
 5. **mappings.json**
 6. **transitions.json**
 7. **rigs.json**
+8. **anchors.json**
 
 
 ### Armature.json
@@ -306,6 +307,32 @@ This file uses the "data" wrapper that contains AnimationTransitionSettings obje
 | intensity | float | The inverted intensity this rig on the constrained bone |
 | limits | {float, float} |  The maximum rotation allowed in the constrained bones |
 | offset | {float, float, float} | Addition rotation apart from the procedural rotation |
+
+### Anchors
+
+This file defines the armature bones that are anchor points for attachment objects.
+This file uses the "data" wrapper that contains BoneAnchorPoint objects.
+
+```json
+{
+	"data": [
+		{"type": "BASE_CHARACTER_BELT_CURVED_RIGHT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.R"},
+		{"type": "BASE_CHARACTER_BELT_CURVED_LEFT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.L"},
+		{"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackStraight.R"},
+		{"type": "BASE_CHARACTER_BELT_STRAIGHT_LEFT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackStraight.L"},
+		{"type": "BASE_CHARACTER_BACK_CURVED_RIGHT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.R"},
+		{"type": "BASE_CHARACTER_BACK_CURVED_LEFT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackCurved.L"},
+		{"type": "BASE_CHARACTER_BACK_STRAIGHT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/BackStraight"},
+		{"type": "BASE_CHARACTER_HAND_RIGHT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R"},
+		{"type": "BASE_CHARACTER_HAND_LEFT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Item.L"}
+	]
+}
+```
+
+| Field | Type | Description |
+| :--: | :--: | :--: |
+| type | BoneAnchorType | An enum that defines an entry point for attachment objects |
+| bonePath | str | The path to the bone |
 
 ### First-Person
 

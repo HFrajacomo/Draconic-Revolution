@@ -11,8 +11,8 @@
 				"clip": "CharacterArmature_Idle"
 			},
 			{
-				"state": "Idle Hand",
-				"clip": "CharacterArmature_Idle Hand"
+				"state": "Idle Weapon",
+				"clip": "CharacterArmature_Idle - Unarmed"
 			},
 			{
 				"state": "On Air_A",
@@ -43,30 +43,54 @@
 				"clip": "CharacterArmature_Walk Left"
 			},
 			{
-				"state": "Jump Start",
-				"clip": "CharacterArmature_Jump Start"
+				"state": "Weapon Sheathe",
+				"clip": "CharacterArmature_Sheathe - Unarmed",
+				"events": [
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
+					}
+				]
 			},
 			{
-				"state": "Jump End",
-				"clip": "CharacterArmature_Jump End"
+				"state": "Weapon Unsheathe",
+				"clip": "CharacterArmature_Unsheathe - Unarmed",
+				"events": [
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
+					}
+				]
 			},
 			{
 				"state": "Attack 1",
-				"clip": "CharacterArmature_Punch 1 - Normal",
-				"direction": "forward",
-				"momentum": 3
+				"clip": "CharacterArmature_Attack 1 - Unarmed",
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.045, \"direction\": \"directional\", \"momentum\": 3}"
+					}
+				]
 			},
 			{
 				"state": "Attack 2",
-				"clip": "CharacterArmature_Punch 2 - Normal",
-				"direction": "forward",
-				"momentum": 3
+				"clip": "CharacterArmature_Attack 2 - Unarmed",
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.09, \"direction\": \"directional\", \"momentum\": 3}"
+					}
+				]
 			},
 			{
 				"state": "Attack 3",
-				"clip": "CharacterArmature_Punch 3 - Normal",
-				"direction": "forward",
-				"momentum": 4
+				"clip": "CharacterArmature_Attack 3 - Unarmed",
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.1, \"direction\": \"directional\", \"momentum\": 4}"
+					}
+				]
 			},
 			{
 				"state": "Attack 4",

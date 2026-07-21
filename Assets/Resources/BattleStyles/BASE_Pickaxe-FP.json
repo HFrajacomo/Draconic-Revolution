@@ -1,0 +1,90 @@
+{
+	"attachments": [
+		{
+			"fbxName": "Pickaxe",
+			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT"
+		}	
+	],
+	"firstPerson": true,
+	"combo_hits": 3,
+	"overrides": {
+		"data": [
+			{
+				"state": "Idle Weapon",
+				"clip": "CharacterArmature_Idle - Pickaxe -FP"
+			},
+			{
+				"state": "Moving Forward",
+				"clip": "CharacterArmature_Run Forward - Pickaxe -FP"
+			},
+			{
+				"state": "Weapon Sheathe",
+				"clip": "CharacterArmature_Sheathe - Pickaxe -FP",
+				"events": [
+					{
+						"type": "SwitchAttachmentAnchorBehaviour",
+						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\"}"
+					},
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
+					}
+				]
+			},
+			{
+				"state": "Weapon Unsheathe",
+				"clip": "CharacterArmature_Unsheathe - Pickaxe -FP",
+				"events": [
+					{
+						"type": "SwitchAttachmentAnchorBehaviour",
+						"json": "{\"normalizedTime\": 0.2, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_RIGHT\"}"
+					},
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
+					}
+				]
+			},
+			{
+				"state": "Attack 1",
+				"clip": "CharacterArmature_Attack X - Pickaxe -FP"
+			},
+			{
+				"state": "Attack 2",
+				"clip": "CharacterArmature_Attack X - Pickaxe -FP"
+			},
+			{
+				"state": "Attack 3",
+				"clip": "CharacterArmature_Attack X - Pickaxe -FP"
+			},
+			{
+				"state": "Attack 4",
+				"clip": ""
+			},
+			{
+				"state": "Attack 5",
+				"clip": ""
+			},
+			{
+				"state": "Attack 6",
+				"clip": ""
+			},
+			{
+				"state": "Attack 7",
+				"clip": ""
+			},
+			{
+				"state": "Attack 8",
+				"clip": ""
+			},
+			{
+				"state": "Attack 9",
+				"clip": ""
+			},
+			{
+				"state": "Attack 10",
+				"clip": ""
+			}
+		]
+	}
+}

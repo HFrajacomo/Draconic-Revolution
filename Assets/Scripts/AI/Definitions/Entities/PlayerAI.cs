@@ -28,9 +28,9 @@ public class PlayerAI : AbstractAI
         this.radar.Search(ref this.inboundEventQueue);
 
         if(((PlayerEntityRadar)this.radar).HAS_RECEIVED_ITEMS){
+            this.psi.SaveInventory(this.ID.code);
             int length = this.psi.ConvertInventoryToBytes(this.ID.code);
             NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
-            
             message.SendInventory(this.psi.GetBuffer(), length);
             this.cl.server.Send(message.GetMessage(), message.size, this.ID.code);
         }

@@ -6,5 +6,5 @@ public struct PlayerVoxelLocation{
 	public ushort body;
 	public ushort head;
 
-	public override string ToString(){return $"Feet: {this.feet} -- Body: {this.body} -- Head: {this.head}";}
+	public override string ToString(){return $"Feet: {VoxelLoader.GetName(this.feet)} -- Body: {VoxelLoader.GetName(this.body)} -- Head: {VoxelLoader.GetName(this.head)}";}
 }

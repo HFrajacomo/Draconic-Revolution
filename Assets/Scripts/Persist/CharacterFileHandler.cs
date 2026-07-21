@@ -43,23 +43,23 @@ public class CharacterFileHandler{
 		CharacterFileHandler.characterDirectory = (EnvironmentVariablesCentral.saveDir + world + "\\Characters\\").Replace("\\\\", "\\");
 		CharacterFileHandler.indexFileDir = (EnvironmentVariablesCentral.saveDir + world + "\\Characters\\index.cind").Replace("\\\\", "\\");
 
-        if(!Directory.Exists(CharacterFileHandler.characterDirectory))
-            Directory.CreateDirectory(CharacterFileHandler.characterDirectory);
+		if(!Directory.Exists(CharacterFileHandler.characterDirectory))
+			Directory.CreateDirectory(CharacterFileHandler.characterDirectory);
 
-        // Opens Char file
-        if(!File.Exists(CharacterFileHandler.characterDirectory + "characters.cdat"))
-        	this.file = File.Open(CharacterFileHandler.characterDirectory + "characters.cdat", FileMode.Create);
-        else
-        	this.file = File.Open(CharacterFileHandler.characterDirectory + "characters.cdat", FileMode.Open);
+		// Opens Char file
+		if(!File.Exists(CharacterFileHandler.characterDirectory + "characters.cdat"))
+			this.file = File.Open(CharacterFileHandler.characterDirectory + "characters.cdat", FileMode.Create);
+		else
+			this.file = File.Open(CharacterFileHandler.characterDirectory + "characters.cdat", FileMode.Open);
 
 
-        // Opens Index file
-        if(File.Exists(CharacterFileHandler.indexFileDir))
-            this.indexFile = File.Open(CharacterFileHandler.indexFileDir, FileMode.Open);
-        else
-            this.indexFile = File.Open(CharacterFileHandler.indexFileDir, FileMode.Create);
+		// Opens Index file
+		if(File.Exists(CharacterFileHandler.indexFileDir))
+			this.indexFile = File.Open(CharacterFileHandler.indexFileDir, FileMode.Open);
+		else
+			this.indexFile = File.Open(CharacterFileHandler.indexFileDir, FileMode.Create);
 
-        LoadIndex();
+		LoadIndex();
 	}
 
 	public void SaveCharacterSheet(ulong code, CharacterSheet sheet){
@@ -96,7 +96,7 @@ public class CharacterFileHandler{
 	#nullable disable
 
 	public bool CharacterExists(ulong code){
-        return this.index.ContainsKey(code);
+		return this.index.ContainsKey(code);
 	}
 
 	public void Close(){
@@ -109,39 +109,39 @@ public class CharacterFileHandler{
 	private void LoadIndex(){
 		ulong a,b;
 
-        this.indexFile.Seek(0, SeekOrigin.Begin);
-        byte[] indexBuffer = new byte[this.indexFile.Length];
-        this.indexFile.Read(indexBuffer, 0, (int)this.indexFile.Length);
+		this.indexFile.Seek(0, SeekOrigin.Begin);
+		byte[] indexBuffer = new byte[this.indexFile.Length];
+		this.indexFile.Read(indexBuffer, 0, (int)this.indexFile.Length);
 
-        for(int i=0; i < this.indexFile.Length/8; i+=2){
-            a = ReadUlong(indexBuffer, i*8);
-            b = ReadUlong(indexBuffer, (i+1)*8);
+		for(int i=0; i < this.indexFile.Length/8; i+=2){
+			a = ReadUlong(indexBuffer, i*8);
+			b = ReadUlong(indexBuffer, (i+1)*8);
 
-            this.index.Add(a, b);
-        }
+			this.index.Add(a, b);
+		}
 	}
 
-    private ulong ReadUlong(byte[] buff, int pos){
-        ulong a;
+	private ulong ReadUlong(byte[] buff, int pos){
+		ulong a;
 
-        a = buff[pos];
-        a = a << 8;
-        a += buff[pos+1];
-        a = a << 8;
-        a += buff[pos+2];
-        a = a << 8;
-        a += buff[pos+3];
-        a = a << 8;
-        a += buff[pos+4];
-        a = a << 8;
-        a += buff[pos+5];
-        a = a << 8;
-        a += buff[pos+6];
-        a = a << 8;
-        a += buff[pos+7];
+		a = buff[pos];
+		a = a << 8;
+		a += buff[pos+1];
+		a = a << 8;
+		a += buff[pos+2];
+		a = a << 8;
+		a += buff[pos+3];
+		a = a << 8;
+		a += buff[pos+4];
+		a = a << 8;
+		a += buff[pos+5];
+		a = a << 8;
+		a += buff[pos+6];
+		a = a << 8;
+		a += buff[pos+7];
 
-        return a;        
-    }
+		return a;		
+	}
 
 	private void AddEntryIndex(long key, long val){
 		indexArray[0] = (byte)(key >> 56);

@@ -1,0 +1,17 @@
+{
+    "codename": "BASE_Snow",
+    "name":  "Snow",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Snow"
+}
+--->Type
+Item

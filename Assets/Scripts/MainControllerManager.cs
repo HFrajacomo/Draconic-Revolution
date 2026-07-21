@@ -100,12 +100,13 @@ public class MainControllerManager : MonoBehaviour
         if(!MainControllerManager.InUI && !LOCK_INTERACT){
             raycast.Interact();
             LOCK_INTERACT = true;
+
+            //this.cl.playerActionController.UseStyle("BASE_Sword", updatePlayerDataAndServer:true);
         }
     }
 
     public void OnToggleGravity(){
         gravityHack = !gravityHack;
-        this.playerMovement.AddKnockback(Vector3.forward, 5f);
     }
 
     public void OnPrefabRead(){

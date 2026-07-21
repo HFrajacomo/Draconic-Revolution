@@ -1,0 +1,17 @@
+{
+	"codename": "BASE_Gabbro_Bricks",
+	"name":  "Gabbro Bricks",
+	"memoryType": 1,
+	"stacksize": 50,
+	"hasDurability": false
+}
+--->Behaviours
+{
+	"onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+	"blockName": "BASE_Gabbro_Bricks"
+}
+--->Type
+Item

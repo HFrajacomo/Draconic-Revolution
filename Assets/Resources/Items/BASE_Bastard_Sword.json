@@ -1,0 +1,27 @@
+{
+    // Item
+    "codename": "BASE_Bastard_Sword",
+    "name":  "Bastard Sword (Test)",
+    "memoryType": 2,
+    "stacksize": 1,
+    "hasDurability": true,
+    // Weapon
+    "type": "BASTARDSWORD",
+    "damage": 100,
+    "impact": 4,
+    "maxDurability": 12000,
+    "refineLevel": 0,
+    "requiredLevels": {
+        "COMBAT": 1
+    }
+}
+--->Behaviours
+{
+    "onHoldServer": "ChangeStyleBehaviour"
+}
+--->ChangeStyleBehaviour
+{
+    "battleStyle": "BASE_Sword"
+}
+--->Type
+Weapon

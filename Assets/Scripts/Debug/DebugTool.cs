@@ -6,9 +6,12 @@ using UnityEngine;
 
 public static class DebugTool{
 	private static string FILENAME = "debugLog.txt";
+    private static bool NEW_REPORT = true;
 
     public static void Log(string content){
 		string fullDir = EnvironmentVariablesCentral.clientExeDir + FILENAME;
+
+        NewLineOnReport();
 
         // Check if the file exists
         if (!File.Exists(fullDir)){
@@ -29,6 +32,8 @@ public static class DebugTool{
 		string fullDir = EnvironmentVariablesCentral.clientExeDir + FILENAME;
 		string result = "[" + string.Join(", ", l) + "]";
 
+        NewLineOnReport();
+
         // Check if the file exists
         if (!File.Exists(fullDir)){
             // If the file doesn't exist, create it
@@ -48,6 +53,8 @@ public static class DebugTool{
 		string fullDir = EnvironmentVariablesCentral.clientExeDir + FILENAME;
 		string result = "[" + string.Join(", ", l) + "]";
 
+        NewLineOnReport();
+
         // Check if the file exists
         if (!File.Exists(fullDir)){
             // If the file doesn't exist, create it
@@ -61,5 +68,12 @@ public static class DebugTool{
                 sw.WriteLine(result);
             }
         }    	
+    }
+
+    private static void NewLineOnReport(){
+        if(NEW_REPORT){
+            NEW_REPORT = false;
+            DebugTool.Log("\n\n=====================================================================\n\n");
+        }
     }
 }

@@ -107,7 +107,7 @@ public class EntityHandler
 		if(this.playerObject.ContainsKey(code)){
 			this.playerModelHandler.DeleteModel(this.playerObject[code]);
 
-			this.playerObject[code] = this.playerModelHandler.BuildModel(this.playerObject[code], app, isMale);
+			this.playerObject[code] = this.playerModelHandler.BuildModel(this.playerObject[code], app, isMale, code);
 			this.playerHead[code] = this.playerObject[code].transform.Find("Camera");
 			this.playerAnimations[code] = this.playerObject[code].GetComponent<AnimationHandler>();
 
@@ -124,8 +124,6 @@ public class EntityHandler
 		if(this.playerBattleStyle[code] == style)
 			return;
 
-		Debug.Log("Ran EntityHandler");
-
 		bool isMale = this.playerSheet[code].GetGender();
 		this.playerBattleStyle[code] = style;
 
@@ -138,6 +136,7 @@ public class EntityHandler
 
 		this.playerAnimations[code].GetThirdPersonAnimator().runtimeAnimatorController = animationOverrideController;
 		this.playerSheet[code].SetBattleStyleCode(style);
+		this.playerAnimations[code].CreateAttachments(AnimationLoader.GetBattleStyle(style));
 	}
 
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){
@@ -230,7 +229,7 @@ public class EntityHandler
 	public void SetAnimatorParameter(EntityType type, ulong code, string parameter, float val){
 		if(type == EntityType.PLAYER){
 			if(this.playerAnimations.ContainsKey(code)){
-				this.playerAnimations[code].SetParameterValue(parameter, val);
+				this.playerAnimations[code].SetParameterValue(parameter, val, false);
 			}
 		}
 	}
@@ -302,7 +301,7 @@ public class EntityHandler
 
 	private AnimatorOverrideController ApplyOverrides(AnimatorOverrideController controller, StateClipPair[] overrides){
 		foreach(StateClipPair over in overrides){
-			controller[Resources.Load<AnimationClip>($"{AnimationLoader.ANIMATION_CLIP_RESFOLDER}{over.state}")] = Resources.Load<AnimationClip>($"{AnimationLoader.ANIMATION_CLIP_RESFOLDER}{over.clip}");
+			controller[over.FetchStateClip()] = over.FetchFinalClip();
 		}
 
 		return controller;

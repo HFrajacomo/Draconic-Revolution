@@ -1,0 +1,27 @@
+{
+    // Item
+    "codename": "BASE_Pickaxe",
+    "name": "Pickaxe (Test)",
+    "memoryType": 2,
+    "stacksize": 1,
+    "hasDurability": true,
+    // Weapon
+    "type": "PICKAXE",
+    "damage": 100,
+    "impact": 4,
+    "maxDurability": 12000,
+    "refineLevel": 0,
+    "requiredLevels": {
+        "COMBAT": 1
+    }
+}
+--->Behaviours
+{
+    "onHoldServer": "ChangeStyleBehaviour"
+}
+--->ChangeStyleBehaviour
+{
+    "battleStyle": "BASE_Pickaxe"
+}
+--->Type
+Weapon

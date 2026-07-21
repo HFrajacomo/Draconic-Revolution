@@ -1,0 +1,141 @@
+{
+	"attachments": [
+		{
+			"fbxName": "Pickaxe",
+			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT",
+			"flipModel": true,
+			"heightOffset": 0.012
+		}	
+	],
+	"combo_hits": 3,
+	"overrides": {
+		"data": [
+			{
+				"state": "A-Pose",
+				"clip": "CharacterArmature_0APose"
+			},
+			{
+				"state": "Idle",
+				"clip": "CharacterArmature_Idle"
+			},
+			{
+				"state": "Idle Weapon",
+				"clip": "CharacterArmature_Idle - Pickaxe"
+			},
+			{
+				"state": "On Air_A",
+				"clip": "CharacterArmature_Falling"
+			},
+			{
+				"state": "On Air_B",
+				"clip": "CharacterArmature_Going Up"
+			},
+			{
+				"state": "Moving Forward_A",
+				"clip": "CharacterArmature_Walk Forward"
+			},
+			{
+				"state": "Moving Forward_B",
+				"clip": "CharacterArmature_Run Forward"
+			},
+			{
+				"state": "Walk Backward",
+				"clip": "CharacterArmature_Walk Backward"
+			},
+			{
+				"state": "Walk Right",
+				"clip": "CharacterArmature_Walk Right"
+			},
+			{
+				"state": "Walk Left",
+				"clip": "CharacterArmature_Walk Left"
+			},
+			{
+				"state": "Weapon Sheathe",
+				"clip": "CharacterArmature_Sheathe - Pickaxe",
+				"events": [
+					{
+						"type": "SwitchAttachmentAnchorBehaviour",
+						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"flip\": true, \"heightOffset\": 0.012}"
+					},
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
+					}
+				]
+			},
+			{
+				"state": "Weapon Unsheathe",
+				"clip": "CharacterArmature_Unsheathe - Pickaxe",
+				"events": [
+					{
+						"type": "SwitchAttachmentAnchorBehaviour",
+						"json": "{\"normalizedTime\": 0.2, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"flip\": false, \"heightOffset\": 0.0}"
+					},
+					{
+						"type": "AnimatorSetBehaviour",
+						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
+					}
+				]
+			},
+			{
+				"state": "Attack 1",
+				"clip": "CharacterArmature_Attack X - Pickaxe",
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.2, \"direction\": \"directional\", \"momentum\": 3}"
+					}
+				]
+			},
+			{
+				"state": "Attack 2",
+				"clip": "CharacterArmature_Attack X - Pickaxe",
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.2, \"direction\": \"directional\", \"momentum\": 3}"
+					}
+				]
+			},
+			{
+				"state": "Attack 3",
+				"clip": "CharacterArmature_Attack X - Pickaxe",
+				"events": [
+					{
+						"type": "AnimationMomentumBehaviour",
+						"json": "{\"normalizedTime\": 0.2, \"direction\": \"directional\", \"momentum\": 3}"
+					}
+				]
+			},
+			{
+				"state": "Attack 4",
+				"clip": ""
+			},
+			{
+				"state": "Attack 5",
+				"clip": ""
+			},
+			{
+				"state": "Attack 6",
+				"clip": ""
+			},
+			{
+				"state": "Attack 7",
+				"clip": ""
+			},
+			{
+				"state": "Attack 8",
+				"clip": ""
+			},
+			{
+				"state": "Attack 9",
+				"clip": ""
+			},
+			{
+				"state": "Attack 10",
+				"clip": ""
+			}
+		]
+	}
+}

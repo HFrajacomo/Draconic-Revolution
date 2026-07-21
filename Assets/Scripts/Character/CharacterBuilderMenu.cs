@@ -266,9 +266,11 @@ public class CharacterBuilderMenu{
 	}
 
 	public void StartIdleAnimation(){
-		this.animator.Rebind();
-		this.animator.Update(0f);
-		this.animator.Play("Idle");
+		if(this.animator.gameObject.activeInHierarchy){
+			this.animator.Rebind();
+			this.animator.Update(0f);
+			this.animator.Play("Idle");
+		}
 	}
 
 	private void ProcessHairMesh(SkinnedMeshRenderer hair){

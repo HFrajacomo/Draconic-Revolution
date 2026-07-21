@@ -1,0 +1,17 @@
+{
+    "codename": "BASE_Sandstone_Bricks",
+    "name":  "Sandstone Bricks",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onUseClient": "PlaceBlockBehaviour"
+}
+--->PlaceBlockBehaviour
+{
+    "blockName": "BASE_Sandstone_Bricks"
+}
+--->Type
+Item

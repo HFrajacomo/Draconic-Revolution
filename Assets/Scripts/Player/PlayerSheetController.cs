@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 public class PlayerSheetController : MonoBehaviour {
+	public ChunkLoader cl;
 	private CharacterSheet sheet;
 	private Light characterLight;
 	private HDAdditionalLightData HDRPLightData;
@@ -24,10 +25,9 @@ public class PlayerSheetController : MonoBehaviour {
 		this.realisticLight.enabled = false;
 	}
 
-
-
 	public void SetSheet(CharacterSheet sheet){
 		this.sheet = sheet;
+		this.cl.playerActionController.UseStyle(this.sheet.GetBattleStyleCode());
 	}
 
 	public float GetVoxelLightIntensity(){return this.voxelLightIntensity;}
@@ -59,4 +59,10 @@ public class PlayerSheetController : MonoBehaviour {
 	public Light GetLight(){return this.characterLight;}
 	public HDAdditionalLightData GetLightData(){return this.HDRPLightData;}
 	public RealisticLight GetRealisticLight(){return this.realisticLight;}
+
+	public void SendToServer(){
+		NetMessage message = new NetMessage(NetCode.SENDCHARSHEET);
+		message.SendCharSheet(Configurations.accountID, this.sheet);
+		this.cl.client.Send(message);
+	}
 }

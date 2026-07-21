@@ -13,7 +13,19 @@
 			"isDefaultState": false
 		},
 		{
-			"name": "Idle Hand",
+			"name": "Idle Weapon",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Weapon Sheathe",
+			"layer": "",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Weapon Unsheathe",
 			"layer": "",
 			"isBlendTree": false,
 			"isDefaultState": false

@@ -2,7 +2,7 @@ using UnityEngine;
 using System.IO;
 
 public static class TextureHandler{
-	private static readonly string TEXTURES_MAIN_PATH = Application.dataPath + "/Resources/Textures/Voxels/";
+	private static readonly string TEXTURES_MAIN_PATH = Application.dataPath + "/Resources/Voxels/";
 
 	public static void Say(){
 		Debug.Log(TEXTURES_MAIN_PATH);

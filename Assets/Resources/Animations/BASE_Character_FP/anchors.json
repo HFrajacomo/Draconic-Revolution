@@ -1,0 +1,6 @@
+{
+	"data": [
+		{"type": "BASE_CHARACTER_HAND_RIGHT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Item.R"},
+		{"type": "BASE_CHARACTER_HAND_LEFT", "bonePath": "CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Item.L"}
+	]
+}
