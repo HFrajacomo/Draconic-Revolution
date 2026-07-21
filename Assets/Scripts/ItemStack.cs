@@ -200,9 +200,7 @@ public class ItemStack
 
 	// Writes the memory representation of an item to a byte[]
 	public int ConvertToMemory(byte[] data, int pos){
-		Debug.Log("CONVERT MEMORY RAN");
 		if(this.item is Weapon){
-			Debug.Log("IS A WEAPON");
 			return ConvertWeapon(data, pos);
 		}
 		//if is storage item //else if(this.item is)
@@ -215,11 +213,11 @@ public class ItemStack
 
 		data[pos] = (byte)MemoryStorageType.WEAPON;
 		NetDecoder.WriteUshort(weap.GetID(), data, pos+1);
-		NetDecoder.WriteLong(weap.currentDurability, data, pos+3);
-		data[pos+11] = weap.refineLevel;
-		data[pos+12] = (byte)weap.extraEffect;
+		NetDecoder.WriteUint(weap.currentDurability, data, pos+3);
+		data[pos+7] = weap.refineLevel;
+		data[pos+8] = (byte)weap.extraEffect;
 
-		return 13;
+		return 9;
 	}
 
 	private int ConvertItem(byte[] data, int pos){

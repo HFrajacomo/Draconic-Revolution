@@ -489,7 +489,7 @@ public class Server {
 			this.entityHandler.AddPlayerSheet(accountID, sheet);
 
 			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes);
-			this.Send(message.GetMessage(), message.size, id, temporary:true);
+			this.Send(message.GetMessage(), message.size, id);
 
 			// Sends player inventory data
 			NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
@@ -500,12 +500,12 @@ public class Server {
 			else
 				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetEmptyBuffer(), inventoryLength);
 
-			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id, temporary:true);
+			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id);
 
 			// Sends global weather noise data
 			NetMessage weatherMessage = new NetMessage(NetCode.SENDNOISE);
 			weatherMessage.SendNoise(GenerationSeed.weatherNoise, World.worldSeed);
-			this.Send(weatherMessage.GetMessage(), weatherMessage.size, id, temporary:true);
+			this.Send(weatherMessage.GetMessage(), weatherMessage.size, id);
 		}
 
 		// If AccountID is already online, erase all memory from that connection
@@ -516,7 +516,6 @@ public class Server {
 		// Assigns a fixed ID
 		this.connections.Add(accountID, this.temporaryConnections[id]);
 		this.temporaryConnections.Remove(id);
-
     	this.lengthPacket[accountID] = true;
     	this.packetIndex[accountID] = 0;
     	this.connectionGraph.Add(accountID, new HashSet<ulong>());
@@ -535,15 +534,16 @@ public class Server {
 
     	this.connections[accountID].BeginReceive(this.receiveBuffer[accountID], 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), accountID);
 
-    	if(sheet == null)
+    	if(sheet == null){
     		sheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
+    		this.entityHandler.AddPlayerSheet(accountID, sheet);
+    	}
 
     	bool isEmpty;
 		byte hotbarSlot = sheet.GetHotbarSlot();
 		this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmpty);
 
 		ItemStack its = this.cl.playerServerInventory.GetSlot(accountID, hotbarSlot).GetItemStack();
-
 		its.GetItem().OnHoldServer(this.cl, its, accountID);
 	}
 
@@ -970,6 +970,7 @@ public class Server {
 		this.receiveBuffer.Remove(id);
 
 		this.entityHandler.Remove(EntityType.PLAYER, this.cl.regionHandler.allPlayerData[id].GetChunkPos(), id);
+		this.entityHandler.RemoveSheet(id);
 		
 		foreach(ulong code in this.cl.regionHandler.allPlayerData.Keys){
 			if(code == id)
@@ -1460,8 +1461,6 @@ public class Server {
 
 	// Receives a Disconnect message from InfoClient
 	public void DisconnectInfo(ulong id){
-		Debug.Log("ID: " + id + " was sent to character creation");
-
 		this.temporaryConnections[id].Close();
 		this.temporaryConnections.Remove(id);
 	}
@@ -1494,7 +1493,6 @@ public class Server {
 		}
 
 		foreach(ulong i in this.cl.loadedChunks[pos]){
-			Debug.Log($"Sending to {i}");
 			this.Send(message.GetMessage(), message.size, i);
 		}
 	}

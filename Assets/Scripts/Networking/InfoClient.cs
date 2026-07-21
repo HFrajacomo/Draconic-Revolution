@@ -219,6 +219,7 @@ public class InfoClient
 
 			NetMessage disconnectMessage = new NetMessage(NetCode.DISCONNECTINFO);
 			this.Send(disconnectMessage.GetMessage(), disconnectMessage.size);
+			this.socket.Shutdown(SocketShutdown.Send);
 			this.Close();
 
 			PlayerAppearanceData.SetAppearance(app);

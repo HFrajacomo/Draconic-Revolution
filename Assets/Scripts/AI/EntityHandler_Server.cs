@@ -234,9 +234,6 @@ public class EntityHandler_Server
                 if(this.playerObject[pos].Count == 0)
                     this.playerObject.Remove(pos);
             }
-            if(this.playerSheet.ContainsKey(code)){
-                this.playerSheet.Remove(code);
-            }
             if(this.playerAnimatorParameters.ContainsKey(code)){
                 this.playerAnimatorParameters.Remove(code);
             }
@@ -249,6 +246,13 @@ public class EntityHandler_Server
 
                 this.availableDropCodes.Add(code);
             }
+        }
+    }
+
+    // Only removes the CharacterSheet of an entity (only supports players for now). Called on user disconnect
+    public void RemoveSheet(ulong code){
+        if(this.playerSheet.ContainsKey(code)){
+            this.playerSheet.Remove(code);
         }
     }
 

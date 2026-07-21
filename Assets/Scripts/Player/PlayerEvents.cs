@@ -313,6 +313,8 @@ public class PlayerEvents : MonoBehaviour
 		if(PlayerEvents.hotbarSlot == PlayerEvents.LAST_HOTBAR_SENT)
 			return;
 
+		Debug.Log(PlayerEvents.hotbarSlot);
+
 		NetMessage message = new NetMessage(NetCode.SENDHOTBARPOSITION);
 		message.SendHotbarPosition(PlayerEvents.hotbarSlot);
 		this.cl.client.Send(message);
