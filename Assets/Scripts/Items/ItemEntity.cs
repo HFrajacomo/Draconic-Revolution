@@ -7,8 +7,7 @@ using UnityEngine.Rendering;
 using Random = System.Random;
 
 
-public class ItemEntity : MonoBehaviour
-{
+public class ItemEntity : MonoBehaviour {
 	private static readonly string NAME = "DroppedItem";
 	private static readonly Random rng = new Random();
 

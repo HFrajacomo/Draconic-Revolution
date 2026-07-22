@@ -3,21 +3,29 @@
 		{
 			"inventoryType": "PLAYER",
 			"isPickupTarget": true,
+			"bulkMovedTo": true,
+			"mainInventory": false,
 			"amountOfSlots": 36
 		},
 		{
 			"inventoryType": "HOTBAR",
 			"isPickupTarget": true,
+			"bulkMovedTo": true,
+			"mainInventory": true,
 			"amountOfSlots": 9
 		},
 		{
 			"inventoryType": "CHEST",
-			"isPickupTarget": true,
+			"isPickupTarget": false,
+			"bulkMovedTo": true,
+			"mainInventory": false,
 			"amountOfSlots": 25
 		},
 		{
 			"inventoryType": "EQUIPMENT",
-			"isPickupTarget": true,
+			"isPickupTarget": false,
+			"bulkMovedTo": false,
+			"mainInventory": false,
 			"amountOfSlots": 1,
 			"slotWhiteList": [
 				{

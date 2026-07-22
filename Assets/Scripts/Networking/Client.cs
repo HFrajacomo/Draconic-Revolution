@@ -44,7 +44,7 @@ public class Client
 	// Unity References
 	public ChunkLoader cl;
 	public PlayerRaycast raycast;
-	public PlayerEvents playerEvents;
+	public PlayerHotbarHandler hotbarHandler;
 	public PlayerModelHandler playerModelHandler;
 
 	// Const values
@@ -77,8 +77,8 @@ public class Client
         this.raycast.SetFOV();
 	}
 
-	public void SetPlayerEvents(PlayerEvents events){
-		this.playerEvents = events;
+	public void SetPlayerHotbarHandler(PlayerHotbarHandler handler){
+		this.hotbarHandler = handler;
 	}
 
 	public void SetPlayerModelHandler(PlayerModelHandler handler){
@@ -502,7 +502,7 @@ public class Client
 		if(code == Configurations.accountID){
 			this.entityHandler.AddPlayerSheet(code, sheet);
 			this.cl.playerSheetController.SetSheet(sheet);
-			this.cl.playerEvents.ScrollToSlot(sheet.GetHotbarSlot());
+			this.cl.hotbarHandler.ScrollToSlot(sheet.GetHotbarSlot());
 			this.cl.playerActionController.UseStyle(sheet.GetBattleStyleCode());
 		}
 		else{
@@ -600,9 +600,9 @@ public class Client
 	// Signals Raycast to giveback the last placed item
 	private void PlacementDenied(){
 		ItemStack its = new ItemStack(cl.playerRaycast.lastBlockPlaced, 1);
-		this.raycast.playerEvents.hotbar.AddStack(its, this.raycast.playerEvents.hotbar.CanFit(its));
-		this.raycast.playerEvents.DrawHotbar();
-		this.raycast.playerEvents.playerInvUI.SendInventoryDataToServer();
+		this.raycast.hotbarHandler.hotbar.AddStack(its, this.raycast.hotbarHandler.hotbar.CanFit(its));
+		this.raycast.hotbarHandler.DrawHotbar();
+		this.raycast.hotbarHandler.playerInventoryManager.SendInventoryDataToServer();
 	}
 
 	// Received information on an Item Entity
@@ -668,12 +668,12 @@ public class Client
 
 		InventorySerializer.BuildPlayerInventory(data, 1, out newHot, out newInv, out newEquip);
 
-		if(this.playerEvents != null){
-			this.playerEvents.SetInventories(newInv, newHot, newEquip);
+		if(this.hotbarHandler != null){
+			this.hotbarHandler.SetInventories(newInv, newHot, newEquip);
 		}
 		else{
-			this.cl.playerEvents.SetInventories(newInv, newHot, newEquip);
-			this.playerEvents = this.cl.playerEvents;
+			this.cl.hotbarHandler.SetInventories(newInv, newHot, newEquip);
+			this.hotbarHandler = this.cl.hotbarHandler;
 		}
 	}
 

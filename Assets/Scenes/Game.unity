@@ -564,11 +564,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 59614818}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ef25af2c5850b7409481205549d75ac, type: 3}
+  m_Script: {fileID: 11500000, guid: 568dddc5217d1c74cab62fab9b373673, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   cl: {fileID: 1192772367}
-  iconRenderer: {fileID: 0}
+  hotbar:
+    inventoryType: 
+    tagList: []
+    slotWhiteList: []
+    isPickupTarget: 0
+    bulkMovedTo: 0
+    mainInventory: 0
+    amountOfSlots: 0
   hotbarIcon:
   - {fileID: 680558544}
   - {fileID: 909137828}
@@ -590,7 +597,7 @@ MonoBehaviour:
   - {fileID: 542978509}
   - {fileID: 129671049}
   hotbar_selected: {fileID: 494716106}
-  playerInvUI: {fileID: 638012052}
+  playerInventoryManager: {fileID: 638012052}
   itemIconMaterial: {fileID: 2100000, guid: 757d7ed9e718e554ead4be13de0d9cc8, type: 2}
 --- !u!143 &59614820
 CharacterController:
@@ -685,7 +692,7 @@ MonoBehaviour:
   step: 0.025
   control: {fileID: 1635249984}
   lastBlockPlaced: 0
-  playerEvents: {fileID: 59614819}
+  hotbarHandler: {fileID: 59614819}
   facing: 0
 --- !u!114 &59614825
 MonoBehaviour:
@@ -10478,7 +10485,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 638012047}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f2182f03b8ce3da41ba47131687e090f, type: 3}
+  m_Script: {fileID: 11500000, guid: 4eb1270c9e8c9f94d9cdd86b3612fa74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   background: {fileID: 1692492273}
@@ -21047,7 +21054,7 @@ MonoBehaviour:
   ambientHandler: {fileID: 1484502059}
   vignetteController: {fileID: 1912773814}
   playerCharacter: {fileID: 59614818}
-  playerEvents: {fileID: 59614819}
+  hotbarHandler: {fileID: 59614819}
   playerModelHandler: {fileID: 59614826}
   rend: {fileID: 471797234}
   WORLD_GENERATED: 0
@@ -29348,9 +29355,9 @@ MonoBehaviour:
   gravityHack: 0
   freecam: 0
   mainHUD: {fileID: 675879286}
-  playerEvents: {fileID: 59614819}
+  hotbarHandler: {fileID: 59614819}
   inventoryGUI: {fileID: 859394500}
-  playerInvUI: {fileID: 638012052}
+  playerInventoryManager: {fileID: 638012052}
   hotbar: {fileID: 740596934}
   raycast: {fileID: 59614824}
   playerCamera: {fileID: 1912773808}

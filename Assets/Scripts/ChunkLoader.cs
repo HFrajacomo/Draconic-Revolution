@@ -61,7 +61,7 @@ public class ChunkLoader : MonoBehaviour
 
     // Initialization
     public GameObject playerCharacter;
-    public PlayerEvents playerEvents;
+    public PlayerHotbarHandler hotbarHandler;
     public PlayerModelHandler playerModelHandler;
 
 	// Chunk Rendering
@@ -137,7 +137,7 @@ public class ChunkLoader : MonoBehaviour
         this.mainControllerManager = null;
         this.volume = null;
         this.rend = null;
-        this.playerEvents = null;
+        this.hotbarHandler = null;
         this.playerModelHandler = null;
         this.time = null;
         this.client = null;
@@ -206,9 +206,8 @@ public class ChunkLoader : MonoBehaviour
                     this.playerCharacter.SetActive(true);
                     this.mainControllerManager.SetActive(true);
                     this.time.SetPlayer(this.playerCharacter);
-                    this.playerEvents.SetPlayerObject(this.playerCharacter);
                     this.client.SetRaycast(this.playerCharacter.GetComponent<PlayerRaycast>());
-                    this.client.SetPlayerEvents(this.playerEvents);
+                    this.client.SetPlayerHotbarHandler(this.hotbarHandler);
                     this.playerPositionHandler.SetChunkLoaderChunkPos();
                     this.playerMovement.Init();
                 }

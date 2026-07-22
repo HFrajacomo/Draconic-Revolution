@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class PlayerInventoryUI : MonoBehaviour {
+public class PlayerInventoryManager : MonoBehaviour {
     // Unity Reference
     public Image background;
     public GameObject detailsPanel;
@@ -17,6 +17,8 @@ public class PlayerInventoryUI : MonoBehaviour {
     public Material backgroundMaterial;
 
 	// Inventory data and draw info
+	private List<Inventory> inventory = new List<Inventory>();
+	
 	private Inventory inv1;
 	private Inventory inv2;
 	private Inventory inv3;

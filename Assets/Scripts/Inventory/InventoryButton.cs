@@ -4,14 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class InventoryButton : MonoBehaviour, IPointerClickHandler
-{
+public class InventoryButton : MonoBehaviour, IPointerClickHandler {
 	[SerializeField]
 	public byte inventoryCode;
 	[SerializeField]
 	public ushort slot;
 	[SerializeField]
-	public PlayerInventoryUI invController;
+	public PlayerInventoryManager invController;
 
     public void OnPointerClick(PointerEventData ped){
     	if(ped.button == PointerEventData.InputButton.Right){

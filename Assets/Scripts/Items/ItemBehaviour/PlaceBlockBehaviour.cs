@@ -16,13 +16,14 @@ public class PlaceBlockBehaviour : ItemBehaviour{
 
 		if(this.PlaceBlock(this.blockID, (byte)(its.GetAmount()-1), targetBlock, referencePoint1, referencePoint2, referencePoint3, cl)){
 			cl.playerRaycast.lastBlockPlaced = it.GetID();
+
 			if(its.Decrement()){
-				cl.playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
-				cl.playerEvents.DestroyItemEntity();
+				cl.hotbarHandler.hotbar.SetNull(PlayerHotbarHandler.hotbarSlot);
 			}
-			cl.playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
-			cl.playerEvents.playerInvUI.DrawSlot(1, PlayerEvents.hotbarSlot);
-			cl.playerEvents.playerInvUI.SendInventoryDataToServer();
+
+			cl.hotbarHandler.DrawHotbarSlot(PlayerHotbarHandler.hotbarSlot);
+			cl.hotbarHandler.playerInventoryManager.DrawSlot(1, PlayerHotbarHandler.hotbarSlot);
+			cl.hotbarHandler.playerInventoryManager.SendInventoryDataToServer();
 		}
 	}
 
@@ -36,7 +37,7 @@ public class PlaceBlockBehaviour : ItemBehaviour{
 			return false;
 
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, loader.playerRaycast.facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerEvents.hotbarSlot, newQuantity:newQuantity);
+		message.DirectBlockUpdate(BUDCode.PLACE, targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, loader.playerRaycast.facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerHotbarHandler.hotbarSlot, newQuantity:newQuantity);
 		loader.client.Send(message);
 		return true;
 	}

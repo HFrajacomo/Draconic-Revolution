@@ -44,7 +44,7 @@ public class PlayerRaycast : MonoBehaviour
 	public MainControllerManager control;
 
 	public ushort lastBlockPlaced = 0;
-	public PlayerEvents playerEvents;
+	public PlayerHotbarHandler hotbarHandler;
 
 	// Cached
 	private BUDSignal cachedBUD;
@@ -231,7 +231,7 @@ public class PlayerRaycast : MonoBehaviour
 		if(!Raycast())
 			return;
 
-		ItemStack its = playerEvents.GetSlotStack();
+		ItemStack its = hotbarHandler.GetSlotStack();
 
 		// If is holding no items
 		if(its == null){

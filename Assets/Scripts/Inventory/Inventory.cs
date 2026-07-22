@@ -11,6 +11,8 @@ public class Inventory {
 	public List<string> tagList;
 	public List<StringArrayIdentifier> slotWhiteList;
 	public bool isPickupTarget;
+	public bool bulkMovedTo;
+	public bool mainInventory;
 	public ushort amountOfSlots;
 
 	private ItemStack[] slots;
