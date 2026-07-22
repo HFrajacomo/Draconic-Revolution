@@ -14,6 +14,7 @@ public class GameLoader : MonoBehaviour {
 	private AudioLoader audioLoader;
 	private StructureLoader structureLoader;
 	private AnimationLoader animationLoader;
+	private InventoryLoader inventoryLoader;
 
 	private static readonly string SERVER_SCENE = "Assets/Scenes/Server.unity";
 
@@ -30,6 +31,7 @@ public class GameLoader : MonoBehaviour {
 		this.audioLoader = new AudioLoader(this.isClient);
 		this.structureLoader = new StructureLoader(this.isClient);
         this.animationLoader = new AnimationLoader(this.isClient);
+        this.inventoryLoader = new InventoryLoader(this.isClient);
 		
 		this.shaderLoader.Load();
 		this.itemLoader.Load();
@@ -37,6 +39,7 @@ public class GameLoader : MonoBehaviour {
 		this.audioLoader.Load();
 		this.structureLoader.Load();
 		this.animationLoader.Load();
+		this.inventoryLoader.Load();
 
 
 		this.itemLoader.RunPostDeserializationRoutine();

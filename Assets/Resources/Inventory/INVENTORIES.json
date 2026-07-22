@@ -1,0 +1,30 @@
+{
+	"data": [
+		{
+			"inventoryType": "PLAYER",
+			"isPickupTarget": true,
+			"amountOfSlots": 36
+		},
+		{
+			"inventoryType": "HOTBAR",
+			"isPickupTarget": true,
+			"amountOfSlots": 9
+		},
+		{
+			"inventoryType": "CHEST",
+			"isPickupTarget": true,
+			"amountOfSlots": 25
+		},
+		{
+			"inventoryType": "EQUIPMENT",
+			"isPickupTarget": true,
+			"amountOfSlots": 1,
+			"slotWhiteList": [
+				{
+					"id": 0,
+					"array": ["Null", "Weapon"]
+				}
+			]
+		}
+	]
+}

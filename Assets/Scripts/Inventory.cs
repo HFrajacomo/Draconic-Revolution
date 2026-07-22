@@ -9,8 +9,9 @@ public class Inventory {
 	// Serialization only public variables
 	public string inventoryType;
 	public List<string> tagList;
-	public Dictionary<int, string[]> perSlotWhitelistTags;
+	public List<StringArrayIdentifier> slotWhiteList;
 	public bool isPickupTarget;
+	public ushort amountOfSlots;
 
 	private ItemStack[] slots;
 	private InventoryType type;
@@ -19,6 +20,7 @@ public class Inventory {
 	private bool isFull;
 	private HashSet<ushort> itemInInventory;
 	private HashSet<string> whitelistTags;
+	private Dictionary<int, string[]> perSlotWhitelistTags;
 
 	// Creates an empty inventory
 	public Inventory(InventoryType type){
@@ -34,7 +36,8 @@ public class Inventory {
 
 	public void PostDeserializationSetup(){
 		this.type = SerializeType();
-		SetLimitOnType(this.type);
+		this.limit = amountOfSlots;
+		//SetLimitOnType(this.type);
 
 		this.InitSlots(this.limit);
 		this.lastEmptySlot = 0;
@@ -45,6 +48,16 @@ public class Inventory {
 			this.whitelistTags = new HashSet<string>(this.tagList);
 			this.tagList.Clear();
 			this.tagList = null;
+		}
+
+		if(this.slotWhiteList != null){
+			this.perSlotWhitelistTags = new Dictionary<int, string[]>();
+			for(int i=0; i < this.slotWhiteList.Count; i++){
+				this.perSlotWhitelistTags.Add(this.slotWhiteList[i].id, this.slotWhiteList[i].array);
+			}
+
+			this.slotWhiteList.Clear();
+			this.slotWhiteList = null;
 		}
 	}
 
@@ -384,6 +397,8 @@ public class Inventory {
 		}
 		return false;
 	}
+
+	public InventoryType GetInventoryType(){return this.type;}
 
 	private void SetLimitOnType(InventoryType type){
 		switch(type){
