@@ -4,8 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class PlayerInventoryUI : MonoBehaviour
-{
+public class PlayerInventoryUI : MonoBehaviour {
     // Unity Reference
     public Image background;
     public GameObject detailsPanel;

@@ -1,42 +1,51 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Inventory
-{
+[Serializable]
+public class Inventory {
+	// Serialization only public variables
+	public string inventoryType;
+	public List<string> tagList;
+	public Dictionary<int, string[]> perSlotWhitelistTags;
+	public bool isPickupTarget;
+
 	private ItemStack[] slots;
 	private InventoryType type;
 	private ushort limit;
 	private short lastEmptySlot;
 	private bool isFull;
 	private HashSet<ushort> itemInInventory;
+	private HashSet<string> whitelistTags;
 
 	// Creates an empty inventory
 	public Inventory(InventoryType type){
-		switch(type){
-			case InventoryType.PLAYER:
-				this.limit = 36;
-				break;
-			case InventoryType.HOTBAR:
-				this.limit = 9;
-				break;
-			case InventoryType.CHEST:
-				this.limit = 25;
-				break;
-			case InventoryType.EQUIPMENT:
-				this.limit = 1;
-				break;
-			default:
-				this.limit = 1;
-				break;
-		}
+		SetLimitOnType(type);
 
 		this.InitSlots(this.limit);
 		this.type = type;
 		this.lastEmptySlot = 0;
 		this.isFull = false;
 		this.itemInInventory = new HashSet<ushort>();
+		this.whitelistTags = new HashSet<string>();
+	}
+
+	public void PostDeserializationSetup(){
+		this.type = SerializeType();
+		SetLimitOnType(this.type);
+
+		this.InitSlots(this.limit);
+		this.lastEmptySlot = 0;
+		this.isFull = false;
+		this.itemInInventory = new HashSet<ushort>();
+
+		if(this.tagList != null){
+			this.whitelistTags = new HashSet<string>(this.tagList);
+			this.tagList.Clear();
+			this.tagList = null;
+		}
 	}
 
 
@@ -233,6 +242,10 @@ public class Inventory
 	public List<InventoryTransaction> CanFit(ItemStack its){
 		List<InventoryTransaction> transactions = new List<InventoryTransaction>();
 
+		// If the item to be added is not in the Inventory's global whitelist
+		if(!this.IsInGlobalWhitelist(its))
+			return transactions;
+
 		// If there's no space and no available stack
 		if(this.IsFull() && !this.itemInInventory.Contains(its.GetID()))
 			return transactions;
@@ -295,14 +308,17 @@ public class Inventory
 			transactions.Add(new InventoryTransaction((ushort)this.GetLastEmptySlot(), remainder));
 			this.FindLastEmptySlot();
 			return transactions;
-
 		}
 
 		// If there's no ItemStack of given ItemID and there's free space
-		transactions.Add(new InventoryTransaction((ushort)this.GetLastEmptySlot(), its.GetAmount()));
-		this.FindLastEmptySlot();
-		return transactions;
+		else{
+			if(!IsInLocalWhitelist(its, (ushort)this.GetLastEmptySlot()))
+				return transactions;
 
+			transactions.Add(new InventoryTransaction((ushort)this.GetLastEmptySlot(), its.GetAmount()));
+			this.FindLastEmptySlot();
+			return transactions;
+		}
 	}
 
 	// Iterates until it finds the first empty slot
@@ -369,6 +385,61 @@ public class Inventory
 		return false;
 	}
 
+	private void SetLimitOnType(InventoryType type){
+		switch(type){
+			case InventoryType.PLAYER:
+				this.limit = 36;
+				break;
+			case InventoryType.HOTBAR:
+				this.limit = 9;
+				break;
+			case InventoryType.CHEST:
+				this.limit = 25;
+				break;
+			case InventoryType.EQUIPMENT:
+				this.limit = 1;
+				break;
+			default:
+				this.limit = 1;
+				break;
+		}
+	}
+
+	private InventoryType SerializeType(){
+		switch(this.inventoryType){
+			case "PLAYER":
+				return InventoryType.PLAYER;
+			case "HOTBAR":
+				return InventoryType.HOTBAR;
+			case "CHEST":
+				return InventoryType.CHEST;
+			case "EQUIPMENT":
+				return InventoryType.EQUIPMENT;
+			default:
+				throw new DeserializationErrorException($"[Inventory] Failed to de-serialize inventory type: {this.inventoryType}");
+		}
+	}
+
+	// Checks if an item is part of the global whitelist for this inventory (like magic items for Bag of Holding)
+	private bool IsInGlobalWhitelist(ItemStack its){
+		if(this.whitelistTags != null){
+			return its.GetItem().ContainsAnyTag(this.whitelistTags);
+		}
+
+		return true;
+	}
+
+	// Checks if an item is part of the whitelist for this slot (like weapons for Weapon Slot in Equipment)
+	private bool IsInLocalWhitelist(ItemStack its, ushort slot){
+		if(this.perSlotWhitelistTags != null){
+			if(!this.perSlotWhitelistTags.ContainsKey(slot))
+				return false;
+
+			return its.GetItem().ContainsAnyTag(this.perSlotWhitelistTags[slot]);
+		}
+
+		return true;
+	}
 }
 
 public struct InventoryTransaction{

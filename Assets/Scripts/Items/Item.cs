@@ -14,12 +14,15 @@ public class Item {
 	public string codename;
 	public string name;
 	public string description;
+	public List<string> tags;
 
 	protected ushort id;
+
 
 	// Storage
 	public byte memoryType;
 	protected MemoryStorageType memoryStorageType;
+	protected HashSet<string> itemTags;
 
 	// Inventory
 	public byte stacksize;
@@ -34,6 +37,12 @@ public class Item {
 	protected List<ItemBehaviour> onUnholdServerBehaviour;
 	protected List<ItemBehaviour> onUseClientBehaviour;
 	protected List<ItemBehaviour> onUseServerBehaviour;
+
+	public virtual void PostDeserializationSetup(){
+		this.itemTags = new HashSet<string>(this.tags);
+		this.tags.Clear();
+		this.tags = null;
+	}
 
 	public virtual Item Copy(){
 		return new Item {
@@ -56,6 +65,17 @@ public class Item {
 			onUseClientBehaviour = this.onUseClientBehaviour != null ? new List<ItemBehaviour>(this.onUseClientBehaviour) : null,
 			onUseServerBehaviour = this.onUseServerBehaviour != null ? new List<ItemBehaviour>(this.onUseServerBehaviour) : null
 		};
+	}
+
+	public bool ContainsTag(string tag){return this.itemTags.Contains(tag);}
+	public bool ContainsAnyTag(HashSet<string> tags){return this.itemTags.Overlaps(tags);}
+	public bool ContainsAnyTag(string[] tags){
+		for(int i=0; i < tags.Length; i++){
+			if(this.itemTags.Contains(tags[i])){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public override string ToString(){

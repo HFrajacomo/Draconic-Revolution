@@ -3,7 +3,8 @@
     "name":  "NULL",
     "memoryType": 0,
     "stacksize": 0,
-    "hasDurability": true
+    "hasDurability": true,
+    "tags": ["Null"]
 }
 --->Type
 Item

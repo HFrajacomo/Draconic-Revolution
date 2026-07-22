@@ -5,6 +5,7 @@
     "memoryType": 2,
     "stacksize": 1,
     "hasDurability": true,
+    "tags": ["Weapon"],
     // Weapon
     "type": "PICKAXE",
     "damage": 100,

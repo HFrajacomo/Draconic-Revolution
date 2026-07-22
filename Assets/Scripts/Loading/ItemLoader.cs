@@ -94,6 +94,7 @@ public class ItemLoader : BaseLoader {
 			if(textAsset != null && texture != null){
 				serializedItem = ItemDeserializer.DeserializeItem(textAsset.text);
 				serializedItem.SetID(i);
+				serializedItem.PostDeserializationSetup();
 				itemList.Add(serializedItem);
 				codenameToItemID.Add(item, i);
 				textureBank.Add(i, texture);
@@ -113,6 +114,8 @@ public class ItemLoader : BaseLoader {
 		TextAsset textAsset = Resources.Load<TextAsset>(NULL_ITEM_RESPATH);
 		Item serializedItem = ItemDeserializer.DeserializeItem(textAsset.text);
 
+		serializedItem.SetID(0);
+		serializedItem.PostDeserializationSetup();
 		itemList.Add(serializedItem);
 		codenameToItemID.Add("BASE_NULL", 0);
 	}
