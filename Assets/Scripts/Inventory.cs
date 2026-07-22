@@ -24,6 +24,9 @@ public class Inventory
 			case InventoryType.CHEST:
 				this.limit = 25;
 				break;
+			case InventoryType.EQUIPMENT:
+				this.limit = 1;
+				break;
 			default:
 				this.limit = 1;
 				break;
@@ -385,5 +388,6 @@ public struct InventoryTransaction{
 public enum InventoryType{
 	PLAYER,
 	HOTBAR,
-	CHEST
+	CHEST,
+	EQUIPMENT
 }

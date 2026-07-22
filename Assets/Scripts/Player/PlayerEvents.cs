@@ -15,10 +15,12 @@ public class PlayerEvents : MonoBehaviour
 	// Inventory
 	public Inventory inventory = new Inventory(InventoryType.PLAYER);
 	public Inventory hotbar = new Inventory(InventoryType.HOTBAR);
+	public Inventory equipment = new Inventory(InventoryType.EQUIPMENT);
+
 	public Image[] hotbarIcon;
 	public TextMeshProUGUI[] hotbarText;
 	public RectTransform hotbar_selected;
-	public InventoryUIPlayer invUIPlayer;
+	public PlayerInventoryUI playerInvUI;
 	public Material itemIconMaterial;
 
 	// Constant colors
@@ -46,8 +48,9 @@ public class PlayerEvents : MonoBehaviour
     	}
 
         InventoryStaticMessage.SetPlayerInventory(inventory);
-        InventoryStaticMessage.SetInventory(hotbar);
-        invUIPlayer.OpenInventory(inventory, hotbar);
+        InventoryStaticMessage.SetHotbarInventory(hotbar);
+        InventoryStaticMessage.SetEquipmentInventory(equipment);
+        playerInvUI.OpenInventory(inventory, hotbar, equipment);
 
         this.DrawHotbar();
     }
@@ -88,12 +91,16 @@ public class PlayerEvents : MonoBehaviour
     	}
     }
 
-    public void SetInventories(Inventory inv, Inventory hotbar){
+    public void SetInventories(Inventory inv, Inventory hotbar, Inventory equipment){
     	this.inventory = inv;
     	this.hotbar = hotbar;
+    	this.equipment = equipment;
+    	
         InventoryStaticMessage.SetPlayerInventory(inventory);
-        InventoryStaticMessage.SetInventory(hotbar);
-        invUIPlayer.OpenInventory(inventory, hotbar);
+        InventoryStaticMessage.SetHotbarInventory(hotbar);
+        InventoryStaticMessage.SetEquipmentInventory(equipment);
+
+        playerInvUI.OpenInventory(inventory, hotbar, equipment);
 
         this.DrawHotbar();
     }
@@ -255,7 +262,7 @@ public class PlayerEvents : MonoBehaviour
 
 	// Updates inventory in UI
 	public void UpdateInventory(){
-		invUIPlayer.OpenInventory(this.inventory, this.hotbar);
+		playerInvUI.OpenInventory(this.inventory, this.hotbar, this.equipment);
 	}
 
 	public void DestroyItemEntity(){

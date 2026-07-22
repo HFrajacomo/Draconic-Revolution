@@ -30,7 +30,7 @@ public class MainControllerManager : MonoBehaviour
     public GameObject mainHUD;
     public PlayerEvents playerEvents;
     public GameObject inventoryGUI;
-    public InventoryUIPlayer invUIPlayer;
+    public PlayerInventoryUI playerInvUI;
     public GameObject hotbar;
     public PlayerRaycast raycast;
     public Transform playerCamera;
@@ -193,12 +193,12 @@ public class MainControllerManager : MonoBehaviour
         MainControllerManager.InUI = newState;
 
         if(newState){
-            invUIPlayer.ReloadInventory();
+            playerInvUI.ReloadInventory();
             this.HUDActive = false;
             this.mainHUD.SetActive(this.HUDActive);
         }
 
-        this.invUIPlayer.ResetSelection();
+        this.playerInvUI.ResetSelection();
 
         MouseLook.ToggleMouseCursor(newState);
 
@@ -213,7 +213,7 @@ public class MainControllerManager : MonoBehaviour
     public void CloseInventory(){
         this.inventoryGUI.SetActive(false);
         MainControllerManager.InUI = false;
-        this.invUIPlayer.ResetSelection();
+        this.playerInvUI.ResetSelection();
         MouseLook.ToggleMouseCursor(false);
 
         this.HUDActive = true;
@@ -269,6 +269,6 @@ public class MainControllerManager : MonoBehaviour
         playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
         playerEvents.DrawItemEntity(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot));
 
-        playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);
+        playerEvents.playerInvUI.DrawSlot(1, PlayerEvents.hotbarSlot);
     }
 }

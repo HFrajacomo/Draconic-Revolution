@@ -481,11 +481,11 @@ public class ChunkLoader_Server : MonoBehaviour
     }
 
     public void TestInventoryReceive(ulong id){
-        PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[45];
+        PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[PlayerServerInventory.playerInventorySize];
         NetMessage message;
         int length;
 
-        for(int i=0; i < 45; i++){
+        for(int i=0; i < PlayerServerInventory.playerInventorySize; i++){
             if(i == 1){
                 slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE);
             }

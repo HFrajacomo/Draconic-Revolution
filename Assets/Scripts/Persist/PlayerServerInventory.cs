@@ -4,7 +4,7 @@ using UnityEngine;
 using Unity.Mathematics;
 
 public class PlayerServerInventory{
-    public static readonly int playerInventorySize = 45;
+    public static readonly int playerInventorySize = 46;
     private Dictionary<ulong, PlayerServerInventorySlot[]> inventories = new Dictionary<ulong, PlayerServerInventorySlot[]>();
     private InventoryFileHandler inventoryHandler;
     private byte[] buffer = new byte[16000];

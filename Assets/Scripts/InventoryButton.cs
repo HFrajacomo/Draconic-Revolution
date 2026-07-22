@@ -11,7 +11,7 @@ public class InventoryButton : MonoBehaviour, IPointerClickHandler
 	[SerializeField]
 	public ushort slot;
 	[SerializeField]
-	public InventoryUIPlayer invController;
+	public PlayerInventoryUI invController;
 
     public void OnPointerClick(PointerEventData ped){
     	if(ped.button == PointerEventData.InputButton.Right){

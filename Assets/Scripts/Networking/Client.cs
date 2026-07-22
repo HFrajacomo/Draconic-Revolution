@@ -602,7 +602,7 @@ public class Client
 		ItemStack its = new ItemStack(cl.playerRaycast.lastBlockPlaced, 1);
 		this.raycast.playerEvents.hotbar.AddStack(its, this.raycast.playerEvents.hotbar.CanFit(its));
 		this.raycast.playerEvents.DrawHotbar();
-		this.raycast.playerEvents.invUIPlayer.SendInventoryDataToServer();
+		this.raycast.playerEvents.playerInvUI.SendInventoryDataToServer();
 	}
 
 	// Received information on an Item Entity
@@ -662,16 +662,17 @@ public class Client
 
 	// Receives player inventory information from server and builds into player inventory
 	private void SendInventory(byte[] data){
-		Inventory newInv = new Inventory(InventoryType.PLAYER);
-		Inventory newHot = new Inventory(InventoryType.HOTBAR);
+		Inventory newInv;
+		Inventory newHot;
+		Inventory newEquip;
 
-		InventorySerializer.BuildPlayerInventory(data, 1, out newHot, out newInv);
+		InventorySerializer.BuildPlayerInventory(data, 1, out newHot, out newInv, out newEquip);
 
 		if(this.playerEvents != null){
-			this.playerEvents.SetInventories(newInv, newHot);
+			this.playerEvents.SetInventories(newInv, newHot, newEquip);
 		}
 		else{
-			this.cl.playerEvents.SetInventories(newInv, newHot);
+			this.cl.playerEvents.SetInventories(newInv, newHot, newEquip);
 			this.playerEvents = this.cl.playerEvents;
 		}
 	}

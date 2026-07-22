@@ -1,9 +1,11 @@
-public static class InventoryStaticMessage
-{
+public static class InventoryStaticMessage {
 	public static Inventory playerInventory;
-	public static Inventory specialInventory;
+	public static Inventory hotbarInventory;
+	public static Inventory equipmentInventory;
 
 	public static void SetPlayerInventory(Inventory inv){InventoryStaticMessage.playerInventory = inv;}
-	public static void SetInventory(Inventory inv){InventoryStaticMessage.specialInventory = inv;}
-	public static Inventory GetInventory(){return InventoryStaticMessage.specialInventory;}
+	public static void SetHotbarInventory(Inventory inv){InventoryStaticMessage.hotbarInventory = inv;}
+	public static void SetEquipmentInventory(Inventory inv){InventoryStaticMessage.equipmentInventory = inv;}
+
+	public static Inventory GetInventory(){return InventoryStaticMessage.hotbarInventory;}
 }

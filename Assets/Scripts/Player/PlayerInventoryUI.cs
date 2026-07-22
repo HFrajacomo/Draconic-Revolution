@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class InventoryUIPlayer : MonoBehaviour
+public class PlayerInventoryUI : MonoBehaviour
 {
     // Unity Reference
     public Image background;
@@ -20,6 +20,8 @@ public class InventoryUIPlayer : MonoBehaviour
 	// Inventory data and draw info
 	private Inventory inv1;
 	private Inventory inv2;
+	private Inventory inv3;
+
 	[SerializeField]
 	public Image[] invButton;
 	[SerializeField]
@@ -28,6 +30,10 @@ public class InventoryUIPlayer : MonoBehaviour
 	public Image[] hbButton;
 	[SerializeField]
 	public TextMeshProUGUI[] hbText;
+	[SerializeField]
+	public Image[] equipButton;
+	[SerializeField]
+	public TextMeshProUGUI[] equipText;
 
 	// Inventory Logic
 	private byte selectedInventory = byte.MaxValue;
@@ -53,15 +59,22 @@ public class InventoryUIPlayer : MonoBehaviour
 			img.material.SetTexture("_Texture", null);
 			i++;
 		}
+		foreach(Image img in equipButton){
+			img.material = Instantiate(this.itemIconMaterial);
+			img.material.name = $"Equipment-{i}";
+			img.material.SetTexture("_Texture", null);
+			i++;
+		}
 
 		this.detailsImage.material = Instantiate(this.itemIconMaterial);
 		this.background.material = Instantiate(this.backgroundMaterial);
 	}
 
 
-    public void OpenInventory(Inventory inventory, Inventory hotbar){
+    public void OpenInventory(Inventory inventory, Inventory hotbar, Inventory equipment){
 		this.inv1 = inventory;
 		this.inv2 = hotbar;
+		this.inv3 = equipment;
 
 		this.DrawStacks();
         this.inv1.FindLastEmptySlot();
@@ -76,7 +89,7 @@ public class InventoryUIPlayer : MonoBehaviour
     }
 
     public void SendInventoryDataToServer(){
-    	int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1);
+    	int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1, this.inv3);
 
 		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
 		message.SendInventory(InventorySerializer.buffer, inventorySize);
@@ -111,6 +124,19 @@ public class InventoryUIPlayer : MonoBehaviour
     		if(its.GetStacksize() > 1)
     			this.hbText[i].text = its.GetAmount().ToString();
     	}
+
+    	// Player Inventory
+    	for(ushort i=0; i < this.inv3.GetLimit(); i++){
+    		its = this.inv3.GetSlot(i);
+
+    		if(its == null)
+    			continue;
+
+    		this.equipButton[i].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
+
+    		if(its.GetStacksize() > 1)
+    			this.equipText[i].text = its.GetAmount().ToString();
+    	}
     }
 
     // Redraws a specific slot
@@ -131,7 +157,7 @@ public class InventoryUIPlayer : MonoBehaviour
 	    			this.invText[slot].text = its.GetAmount().ToString();    			
     		}
     	}
-    	else{
+    	else if(inventoryCode == 1){
     		its = this.inv2.GetSlot(slot);
 
     		if(its == null){
@@ -144,6 +170,20 @@ public class InventoryUIPlayer : MonoBehaviour
 	    		if(its.GetStacksize() > 1)
 	    			this.hbText[slot].text = its.GetAmount().ToString();    			
     		}    		
+    	}
+    	else{
+    		its = this.inv3.GetSlot(slot);
+
+    		if(its == null){
+    			this.equipButton[slot].material.SetTexture("_Texture", null);
+    			this.equipText[slot].text = "";
+    		}
+    		else{
+	    		this.equipButton[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
+
+	    		if(its.GetStacksize() > 1)
+	    			this.equipText[slot].text = its.GetAmount().ToString();    			
+    		}    
     	}
     }
 
@@ -168,8 +208,10 @@ public class InventoryUIPlayer : MonoBehaviour
             // Finds the item selected
             if(inventoryCode == 0)
                 item = inv1.GetSlot(this.selectedSlot).GetItem();
-            else
+            else if(inventoryCode == 1)
                 item = inv2.GetSlot(this.selectedSlot).GetItem();
+            else
+            	item = inv3.GetSlot(this.selectedSlot).GetItem();
 
             details = item.GetDetails();
             this.detailsName.text = details[0];
@@ -238,14 +280,37 @@ public class InventoryUIPlayer : MonoBehaviour
     	}
     	// If has a selected slot
     	else{
+    		if(inventoryCode == 2){
+    			if(!IsWeaponOrNull(this.selectedInventory, this.selectedSlot)){
+    				this.ResetSelection();
+    				return;
+    			}
+    		}
+    		if(this.selectedInventory == 2){
+    			if(!IsWeaponOrNull(inventoryCode, slot)){
+    				this.ResetSelection();
+    				return;
+    			}
+    		}
+
     		if(this.selectedInventory == 0 && inventoryCode == 0)
     			Inventory.SwitchSlots(inv1, this.selectedSlot, inv1, slot);
-    		else if(this.selectedInventory == 0)
+    		else if(this.selectedInventory == 0 && inventoryCode == 1)
     			Inventory.SwitchSlots(inv1, this.selectedSlot, inv2, slot);
-    		else if(inventoryCode == 0)
+    		else if(this.selectedInventory == 0 && inventoryCode == 2)
+    			Inventory.SwitchSlots(inv1, this.selectedSlot, inv3, slot);
+    		else if(this.selectedInventory == 1 && inventoryCode == 0)
     			Inventory.SwitchSlots(inv2, this.selectedSlot, inv1, slot);
-    		else
+    		else if(this.selectedInventory == 1 && inventoryCode == 1)
     			Inventory.SwitchSlots(inv2, this.selectedSlot, inv2, slot);
+    		else if(this.selectedInventory == 1 && inventoryCode == 2)
+    			Inventory.SwitchSlots(inv2, this.selectedSlot, inv3, slot);
+    		else if(this.selectedInventory == 2 && inventoryCode == 0)
+    			Inventory.SwitchSlots(inv3, this.selectedSlot, inv1, slot);
+    		else if(this.selectedInventory == 2 && inventoryCode == 1)
+    			Inventory.SwitchSlots(inv3, this.selectedSlot, inv2, slot);
+    		else if(this.selectedInventory == 2 && inventoryCode == 2)
+    			Inventory.SwitchSlots(inv3, this.selectedSlot, inv3, slot);
 
     		this.DrawSlot(this.selectedInventory, this.selectedSlot);
     		this.DrawSlot(inventoryCode, slot);
@@ -295,8 +360,12 @@ public class InventoryUIPlayer : MonoBehaviour
 			if(inv1.GetSlot(slot) == null)
 				return true;
 		}
-		else{
+		else if(inventoryCode == 1){
 			if(inv2.GetSlot(slot) == null)
+				return true;
+		}
+		else{
+			if(inv3.GetSlot(slot) == null)
 				return true;
 		}
 		return false;
@@ -305,6 +374,25 @@ public class InventoryUIPlayer : MonoBehaviour
     // Nulls a slot in Hotbar
     public void SetNull(ushort slot){
         inv2.SetNull(slot);
+    }
+
+    // Checks if a given inventory slot is a Weapon or null
+    private bool IsWeaponOrNull(byte inventoryCode, ushort slot){
+    	ItemStack its;
+
+    	if(IsNullSlot(inventoryCode, slot))
+    		return true;
+
+    	if(inventoryCode == 0)
+    		its = inv1.GetSlot(slot);
+    	else if(inventoryCode == 1)
+    		its = inv2.GetSlot(slot);
+    	else
+    		its = inv3.GetSlot(slot);
+
+    	if(its.GetItem() is Weapon)
+    		return true;
+    	return false;
     }
 
     // Resets selection
@@ -335,11 +423,17 @@ public class InventoryUIPlayer : MonoBehaviour
 			else
 				invButton[this.selectedSlot].material.SetFloat("_IsClicked", 0);
 		}
-		else{
+		else if(this.selectedInventory == 1){
 			if(b)
 				hbButton[this.selectedSlot].material.SetFloat("_IsClicked", 1);
 			else
 				hbButton[this.selectedSlot].material.SetFloat("_IsClicked", 0);
+		}
+		else{
+			if(b)
+				equipButton[this.selectedSlot].material.SetFloat("_IsClicked", 1);
+			else
+				equipButton[this.selectedSlot].material.SetFloat("_IsClicked", 0);
 		}
 	}
 }
