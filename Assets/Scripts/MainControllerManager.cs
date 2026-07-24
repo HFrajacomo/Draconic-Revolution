@@ -5,8 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public class MainControllerManager : MonoBehaviour
-{
+public class MainControllerManager : MonoBehaviour {
 	// Public passed variables
 	public float movementX = 0f;
 	public float movementZ = 0f;
@@ -257,15 +256,19 @@ public class MainControllerManager : MonoBehaviour
             its = new ItemStack(id, amount);
         }  
 
+        DropItem(its, hotbarSlot:(byte)PlayerHotbarHandler.hotbarSlot);
+    }
 
+    public void DropItem(ItemStack its, byte hotbarSlot = byte.MaxValue){
         Vector3 force = this.playerCamera.forward / 5f;
 
         NetMessage message = new NetMessage(NetCode.DROPITEM);
-        message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, force.x, force.y, force.z, (ushort)id, amount, (byte)PlayerHotbarHandler.hotbarSlot);       
+        message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, force.x, force.y, force.z, its.GetID(), its.GetAmount(), hotbarSlot);       
         this.cl.client.Send(message);
 
-        hotbarHandler.DrawHotbarSlot(PlayerHotbarHandler.hotbarSlot);
-
-        hotbarHandler.playerInventoryManager.DrawSlot(1, PlayerHotbarHandler.hotbarSlot);
+        if(hotbarSlot != byte.MaxValue){
+            hotbarHandler.DrawHotbarSlot(hotbarSlot);
+            hotbarHandler.playerInventoryManager.DrawSlot(1, hotbarSlot);
+        }
     }
 }

@@ -49,6 +49,12 @@ public class ItemLoader : BaseLoader {
 	public static Texture2D GetSprite(ushort id){return textureBank[id];}
 	public static Texture2D GetSprite(ItemStack its){return textureBank[its.GetItem().GetID()];}
 
+	public override void RunPostDeserializationRoutine(){
+		foreach(Item it in itemBook){
+			it.SetupAfterSerialize(isClient);
+		}
+	}
+
 	private void ParseItemList(){
 		TextAsset textAsset = Resources.Load<TextAsset>(ITEM_LIST_RESPATH);
 
@@ -118,11 +124,5 @@ public class ItemLoader : BaseLoader {
 		serializedItem.PostDeserializationSetup();
 		itemList.Add(serializedItem);
 		codenameToItemID.Add("BASE_NULL", 0);
-	}
-
-	public override void RunPostDeserializationRoutine(){
-		foreach(Item it in itemBook){
-			it.SetupAfterSerialize(isClient);
-		}
 	}
 }

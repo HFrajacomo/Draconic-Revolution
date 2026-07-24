@@ -137,12 +137,13 @@ public class ItemStack
 	#nullable disable
 
 	// Adds an item to the stack
-	public void Increment(){
+	public bool Increment(){
 		if(this.IsFull())
-			return;
+			return false;
 
 		this.SetAmount((byte)(this.GetAmount() + 1));
 		this.CheckFull();
+		return true;
 	}
 
 	// Removes an item from the stack

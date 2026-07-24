@@ -1168,16 +1168,18 @@ public class Server {
 		message.ItemEntityData(pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, itemCode, amount, code);
 		this.SendToClients(cp, message);
 
-		this.cl.playerServerInventory.ChangeQuantity(id, slot, (byte)(this.cl.playerServerInventory.GetQuantity(id, slot) - amount));
+		if(slot != byte.MaxValue){
+			this.cl.playerServerInventory.ChangeQuantity(id, slot, (byte)(this.cl.playerServerInventory.GetQuantity(id, slot) - amount));
 
-		// If quantity becomes zero or less, runs OnUnhold
-		if(this.cl.playerServerInventory.GetQuantity(id, slot) - amount <= 0){
-			ItemStack its = new ItemStack(itemCode, amount);
-			ItemLoader.GetItem(itemCode).OnUnholdServer(this.cl, its , id);
+			// If quantity becomes zero or less, runs OnUnhold
+			if(this.cl.playerServerInventory.GetQuantity(id, slot) - amount <= 0){
+				ItemStack its = new ItemStack(itemCode, amount);
+				ItemLoader.GetItem(itemCode).OnUnholdServer(this.cl, its , id);
 
-			unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
-			unholdMessage.SendItemInHand(id, 0, 0);
-			this.SendToClientsExcept(id, unholdMessage);
+				unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
+				unholdMessage.SendItemInHand(id, 0, 0);
+				this.SendToClientsExcept(id, unholdMessage);
+			}
 		}
 	}
 

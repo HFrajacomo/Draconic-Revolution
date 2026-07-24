@@ -127,36 +127,6 @@ public class Inventory {
 		}
 	}
 
-	// Adds an ItemStack from a Split operation. Basically adds a new stack ignoring the originating stack
-	// Returns true if there's an empty inventory slot for the split stack
-	// Outputs newSlot as the slot occupied by the new Split
-	public bool AddFromSplit(ItemStack its, ushort ignoreIndex, out ushort newSlot){
-		if(its == null){
-			newSlot = 0;
-			return false;
-		}
-
-		if(this.IsFull()){
-			newSlot = 0;
-			return false;
-		}
-
-		for(ushort i=0; i < this.limit; i++){
-			if(i == ignoreIndex)
-				continue;
-
-			if(this.slots[i] == null){
-				this.slots[i] = its;
-				newSlot = i;
-				this.FindLastEmptySlot();
-				this.SetFull();
-				return true;
-			}
-		}
-		newSlot = 0;
-		return false;
-	}
-
 	// Switch slots in an one or two inventories
 	public static bool SwitchSlots(Inventory inv1, ushort slot1, Inventory inv2, ushort slot2){
 		// If clicked twice in the same slot
@@ -254,6 +224,29 @@ public class Inventory {
 
 		return returnStack;		
 	}
+
+	// Injects input ItemStack into a given slot that contains the same ItemStack until it's fully transferred or reaches stacksize
+	// Returns the altered its stack
+	#nullable enable
+	public ItemStack? Transfer(ItemStack its, ushort slot){
+		int sum = 0;
+
+		if(this.slots[slot].GetID() == its.GetID()){
+			sum = (this.slots[slot].GetAmount() + its.GetAmount());
+
+			if(sum > its.GetStacksize()){
+				this.slots[slot].SetAmount(its.GetStacksize());
+				its.SetAmount((byte)(sum - its.GetStacksize()));
+				return its;
+			}
+			else{
+				this.slots[slot].SetAmount((byte)sum);
+				return null;
+			}
+		}
+		return its;
+	}
+	#nullable disable
 
 	// Initializes slots
 	private void InitSlots(ushort limit){

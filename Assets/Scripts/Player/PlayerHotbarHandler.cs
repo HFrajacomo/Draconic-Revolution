@@ -231,6 +231,8 @@ public class PlayerHotbarHandler : MonoBehaviour
 
 			if(its.GetStacksize() > 1)		
 				hotbarText[slot].text = its.GetAmount().ToString();
+			else
+				hotbarText[slot].text = "";
 		}
 	}
 

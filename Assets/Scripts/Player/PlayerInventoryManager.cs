@@ -7,6 +7,7 @@ using TMPro;
 
 public class PlayerInventoryManager : MonoBehaviour {
     // Unity Reference
+    public MainControllerManager mainControllerManager;
     public Image background;
     public GameObject detailsPanel;
     public Image detailsImage;
@@ -21,6 +22,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	// Inventory data and draw info
 	private List<Inventory> inventory = new List<Inventory>();
+	private ItemStack draggedStack;
 	private byte[] buffer = new byte[30000];
 
 	// Temporary
@@ -37,9 +39,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 	[SerializeField]
 	public TextMeshProUGUI[] equipText;
 
-	// Inventory Logic
-	private byte selectedInventory = byte.MaxValue;
-	private ushort selectedSlot = byte.MaxValue;
+	// Drag and Drop overlay
+	public Image dragOverlay;
+	public TextMeshProUGUI dragStacksize;
 
 	// Color constants
 	private readonly Color WHITE = new Color(1f,1f,1f,1f);
@@ -68,12 +70,23 @@ public class PlayerInventoryManager : MonoBehaviour {
 			i++;
 		}
 
+		this.dragOverlay.material = Instantiate(this.itemIconMaterial);
+		this.dragOverlay.material.SetTexture("_Texture", null);
+
 		this.detailsImage.material = Instantiate(this.itemIconMaterial);
 		this.background.material = Instantiate(this.backgroundMaterial);
 
 		if(this.inventory.Count == 0)
 			StartInventory();
 	}
+
+	void OnDisable(){
+		if(this.draggedStack != null){
+			this.mainControllerManager.DropItem(this.draggedStack);
+			ResetSelection();
+		}
+	}
+
 
 	public void LoadFromBytes(byte[] data, int init){
 		// Control variables
@@ -257,7 +270,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    		this.invButton[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
 
 	    		if(its.GetStacksize() > 1)
-	    			this.invText[slot].text = its.GetAmount().ToString();    			
+	    			this.invText[slot].text = its.GetAmount().ToString();
+	    		else
+	    			this.hbText[slot].text = "";   			
     		}
     	}
     	else if(inventoryCode == 0){
@@ -269,7 +284,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    		this.hbButton[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
 
 	    		if(its.GetStacksize() > 1)
-	    			this.hbText[slot].text = its.GetAmount().ToString();    			
+	    			this.hbText[slot].text = its.GetAmount().ToString();
+	    		else
+	    			this.hbText[slot].text = "";			
     		}    		
     	}
     	else{
@@ -281,7 +298,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    		this.equipButton[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
 
 	    		if(its.GetStacksize() > 1)
-	    			this.equipText[slot].text = its.GetAmount().ToString();    			
+	    			this.equipText[slot].text = its.GetAmount().ToString();
+	    		else
+	    			this.hbText[slot].text = ""; 			
     		}    
     	}
     }
@@ -289,22 +308,22 @@ public class PlayerInventoryManager : MonoBehaviour {
     // Activates on Left Click of a slot
     public void LeftClick(byte inventoryCode, ushort slot){
     	// If has no slot selected and not shifting
-    	if(this.selectedSlot == byte.MaxValue && !MainControllerManager.shifting){
+    	if(this.draggedStack == null && !MainControllerManager.shifting){
     		// Avoid null slot click
     		if(this.IsNullSlot(inventoryCode, slot))
     			return;
 
             string[] details; 
 
-    		// Selects slot
-    		this.selectedInventory = inventoryCode;
-    		this.selectedSlot = slot;
-    		ToggleHighlight(true);
+    		this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+    		this.inventory[inventoryCode].SetNull(slot);
+    		DrawSlot(inventoryCode, slot);
+    		ToggleHighlight(true, this.draggedStack);
             ResetDetails();
             this.detailsPanel.SetActive(true);
 
             // Finds the item selected
-            Item item = this.inventory[inventoryCode].GetSlot(this.selectedSlot).GetItem();
+            Item item = this.draggedStack.GetItem();
 
             details = item.GetDetails();
             this.detailsName.text = details[0];
@@ -315,9 +334,10 @@ public class PlayerInventoryManager : MonoBehaviour {
                 this.detailsDescription.text = details[1];
 
             this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
+            SendInventoryDataToServer();
     	}
     	// If has no slot selected and shift clicked
-    	else if(this.selectedSlot == byte.MaxValue && MainControllerManager.shifting){
+    	else if(this.draggedStack == null && MainControllerManager.shifting){
     		if(IsNullSlot(inventoryCode, slot))
     			return;
 
@@ -354,48 +374,163 @@ public class PlayerInventoryManager : MonoBehaviour {
 			SendInventoryDataToServer();
     	}
     	// If has a selected slot
-    	else{
-    		if(this.selectedInventory == inventoryCode && this.selectedSlot == slot){
-    			ResetSelection();
+    	else if(this.draggedStack != null){
+    		// If can't move, ignore
+    		if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot))
     			return;
-    		}
 
-    		if(!CanSwitchBetweenInventories(this.selectedInventory, inventoryCode, this.selectedSlot, slot, this.inventory[this.selectedInventory].GetSlot(this.selectedSlot), this.inventory[inventoryCode].GetSlot(slot))){
-				ResetSelection();
-				return;
-    		}
+    		// If items are different
+    		if(!this.draggedStack.IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
+				ItemStack aux = this.draggedStack;
+				this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+				this.inventory[inventoryCode].SetSlot(slot, aux);
 
-    		Inventory.SwitchSlots(this.inventory[this.selectedInventory], this.selectedSlot, this.inventory[inventoryCode], slot);
+				if(this.draggedStack == null)
+					ResetSelection();
+				else
+					ToggleHighlight(true, this.draggedStack);
 
-    		this.DrawSlot(this.selectedInventory, this.selectedSlot);
-    		this.DrawSlot(inventoryCode, slot);
-    		this.ResetSelection();
+				DrawSlot(inventoryCode, slot);
+				SendInventoryDataToServer();
+			}
+			// Stack together same ItemStacks
+			else{
+				this.draggedStack = this.inventory[inventoryCode].Transfer(this.draggedStack, slot);
 
-    		SendInventoryDataToServer();
+				if(this.draggedStack == null)
+					ResetSelection();
+				else
+					ToggleHighlight(true, this.draggedStack);
+
+				DrawSlot(inventoryCode, slot);
+				SendInventoryDataToServer();
+			}
+
     	}
     }
 
     // Activates on Right Click of a slot
     public void RightClick(byte inventoryCode, ushort slot){
     	// If there's no selected slot, then split
-    	if(this.selectedSlot == byte.MaxValue){
-    		if(this.IsNullSlot(inventoryCode, slot))
+    	if(this.draggedStack == null){
+    		if(IsNullSlot(inventoryCode, slot))
     			return;
 
-    		ushort newSlot;
+    		string[] details;
 
-    		if(!this.inventory[inventoryCode].IsFull()){
-    			if(this.inventory[inventoryCode].AddFromSplit(this.inventory[inventoryCode].GetSlot(slot).Split(), slot, out newSlot)){
-    				this.DrawSlot(inventoryCode, slot);
-    				this.DrawSlot(inventoryCode, newSlot);
-    			}
+    		// If clicked stack has only a single item, grab it
+    		if(this.inventory[inventoryCode].GetSlot(slot).GetAmount() == 1){
+	    		// Selects slot
+	    		this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+	    		this.inventory[inventoryCode].SetNull(slot);
+	    		DrawSlot(inventoryCode, slot);
+	    		ToggleHighlight(true, this.draggedStack);
+	            ResetDetails();
+	            this.detailsPanel.SetActive(true);
+
+	            // Finds the item selected
+	            Item item = this.draggedStack.GetItem();
+
+	            details = item.GetDetails();
+	            this.detailsName.text = details[0];
+
+	            if(item is Weapon)
+	                this.detailsStats.text = details[1];
+	            else if(item is Item)
+	                this.detailsDescription.text = details[1];
+
+	            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
     		}
+    		// If stack has more than 1 item
+    		else{
+    			this.draggedStack = this.inventory[inventoryCode].GetSlot(slot).Split();
+
+				DrawSlot(inventoryCode, slot);
+				ToggleHighlight(true, this.draggedStack);
+				ResetDetails();
+				this.detailsPanel.SetActive(true);
+
+				Item item = this.draggedStack.GetItem();
+	            details = item.GetDetails();
+	            this.detailsName.text = details[0];
+
+	            if(item is Weapon)
+	                this.detailsStats.text = details[1];
+	            else if(item is Item)
+	                this.detailsDescription.text = details[1];
+
+	            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
+    		}
+
 
     		SendInventoryDataToServer();
     	}
-    	// If there's a selection, then unselect
+    	// If there is a selection and right clicks another slot
     	else{
-    		this.ResetSelection();
+    		/*
+    		Case 1: Clicks an empty slot
+    		Case 2: Clicks a slot that contains the same item
+    		Case 3: Clicks a slot that contains a different item
+    		*/
+    		// Case 1: Right clicks on empty slot
+    		if(IsNullSlot(inventoryCode, slot)){
+    			if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot))
+    				return;
+
+    			bool shouldBeDestroyed = this.draggedStack.Decrement();
+
+    			// If was only holding 1 item
+    			if(shouldBeDestroyed){
+    				this.inventory[inventoryCode].SetSlot(slot, this.draggedStack);
+    				this.draggedStack = null;
+    				DrawSlot(inventoryCode, slot);
+    				ResetSelection();
+    				SendInventoryDataToServer();
+    				return;
+    			}
+    			else{
+    				this.inventory[inventoryCode].SetSlot(slot, new ItemStack(this.draggedStack.GetItem(), 1));
+    				DrawSlot(inventoryCode, slot);
+    				ToggleHighlight(true, this.draggedStack);
+    				SendInventoryDataToServer();
+    				return;
+    			}
+    		}
+    		// Case 2: Clicks on a slot with the same item
+    		else if(this.draggedStack.IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
+    			if(this.inventory[inventoryCode].GetSlot(slot).IsFull())
+    				return;
+
+     			if(this.draggedStack.Decrement()){
+    				this.draggedStack = null;
+    				ResetSelection();
+    			}
+    			else{
+    				ToggleHighlight(true, this.draggedStack);
+    			}
+
+    			this.inventory[inventoryCode].GetSlot(slot).Increment();
+
+    			DrawSlot(inventoryCode, slot);
+    			SendInventoryDataToServer();
+    		}
+    		// Case 3: Clicks a slot that contains a different item
+    		else if(this.draggedStack.GetID() != this.inventory[inventoryCode].GetSlot(slot).GetID()){
+    			if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot))
+    				return;
+
+				ItemStack aux = this.draggedStack;
+				this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+				this.inventory[inventoryCode].SetSlot(slot, aux);
+
+				if(this.draggedStack == null)
+					ResetSelection();
+				else
+					ToggleHighlight(true, this.draggedStack);
+
+				DrawSlot(inventoryCode, slot);
+				SendInventoryDataToServer();
+    		}
     	}
     }
 
@@ -451,6 +586,13 @@ public class PlayerInventoryManager : MonoBehaviour {
     	return true;
     }
 
+    // To be used with the draggedItem ItemStack
+    private bool CanSwitchToInventory(ItemStack its, int indexInventory, ushort slot){
+    	if(this.inventory[indexInventory].IsInGlobalWhitelist(its) && this.inventory[indexInventory].IsInLocalWhitelist(its, slot))
+    		return true;
+    	return false;
+    }
+
     // Gets the inventory index based on slot number
     private int GetInventoryIndex(byte slot){
     	int sum = 0;
@@ -475,9 +617,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     // Resets selection
     public void ResetSelection(){
-    	this.ToggleHighlight(false);
-		this.selectedSlot = byte.MaxValue;
-		this.selectedInventory = byte.MaxValue;
+    	this.ToggleHighlight(false, null);
+    	this.draggedStack = null;
         this.detailsPanel.SetActive(false);
         this.ResetDetails();
 	}
@@ -491,27 +632,21 @@ public class PlayerInventoryManager : MonoBehaviour {
     }
 
 	// Toggles selection highlighting
-	private void ToggleHighlight(bool b){
-		if(this.selectedInventory == byte.MaxValue)
-			return;
+	private void ToggleHighlight(bool b, ItemStack its){
+		this.dragOverlay.gameObject.SetActive(b);
+		this.dragStacksize.gameObject.SetActive(b);
 
-		if(this.selectedInventory == 1){
-			if(b)
-				invButton[this.selectedSlot].material.SetFloat("_IsClicked", 1);
+		if(b){
+			this.dragOverlay.material.SetTexture("_Texture", ItemLoader.GetSprite(its));
+
+			if(its.GetAmount() > 1)
+				this.dragStacksize.text = its.GetAmount().ToString();
 			else
-				invButton[this.selectedSlot].material.SetFloat("_IsClicked", 0);
-		}
-		else if(this.selectedInventory == 0){
-			if(b)
-				hbButton[this.selectedSlot].material.SetFloat("_IsClicked", 1);
-			else
-				hbButton[this.selectedSlot].material.SetFloat("_IsClicked", 0);
+				this.dragStacksize.text = ""; 
 		}
 		else{
-			if(b)
-				equipButton[this.selectedSlot].material.SetFloat("_IsClicked", 1);
-			else
-				equipButton[this.selectedSlot].material.SetFloat("_IsClicked", 0);
+			this.dragOverlay.material.SetTexture("_Texture", null);
+			this.dragStacksize.text = ""; 
 		}
 	}
 
