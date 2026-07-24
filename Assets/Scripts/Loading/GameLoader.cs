@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class GameLoader : MonoBehaviour {
 	public GameObject prefabObjects;
+	public bool testScene = false;
 
 	private bool isClient = true;
 	private VoxelLoader voxelLoader;
@@ -19,8 +20,10 @@ public class GameLoader : MonoBehaviour {
 	private static readonly string SERVER_SCENE = "Assets/Scenes/Server.unity";
 
 	void Awake(){
-		if(SceneUtility.GetScenePathByBuildIndex(1) == SERVER_SCENE){
-			this.isClient = false;
+		if(!testScene){
+			if(SceneUtility.GetScenePathByBuildIndex(1) == SERVER_SCENE){
+				this.isClient = false;
+			}
 		}
 	}
 
@@ -46,9 +49,11 @@ public class GameLoader : MonoBehaviour {
 		this.voxelLoader.RunPostDeserializationRoutine();
 		this.structureLoader.RunPostDeserializationRoutine();
 
-		if(this.isClient)
-			SceneManager.LoadScene("Menu");
-		else
-			SceneManager.LoadScene("Server");
+		if(!testScene){
+			if(this.isClient)
+				SceneManager.LoadScene("Menu");
+			else
+				SceneManager.LoadScene("Server");
+		}
 	}
 }

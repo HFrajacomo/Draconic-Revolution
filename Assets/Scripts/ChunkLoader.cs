@@ -48,6 +48,7 @@ public class ChunkLoader : MonoBehaviour
     public PlayerMovement playerMovement;
     public PlayerSheetController playerSheetController;
     public PlayerRaycast playerRaycast;
+    public PlayerInventoryManager playerInventoryManager;
     public VolumeProfile volume;
     public GameObject mainControllerManager;
     public AudioManager audioManager;

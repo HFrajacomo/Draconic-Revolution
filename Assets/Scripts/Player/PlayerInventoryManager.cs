@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -16,13 +17,12 @@ public class PlayerInventoryManager : MonoBehaviour {
     public Material itemIconMaterial;
     public Material backgroundMaterial;
 
+    private bool bulkMoveAbove = true; // If inventory shift-move should be done upwards or downwards
+
 	// Inventory data and draw info
 	private List<Inventory> inventory = new List<Inventory>();
-	
-	private Inventory inv1;
-	private Inventory inv2;
-	private Inventory inv3;
 
+	// Temporary
 	[SerializeField]
 	public Image[] invButton;
 	[SerializeField]
@@ -69,41 +69,116 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		this.detailsImage.material = Instantiate(this.itemIconMaterial);
 		this.background.material = Instantiate(this.backgroundMaterial);
+
+		if(this.inventory.Count == 0)
+			StartInventory();
 	}
 
+	public void LoadFromBytes(byte[] data, int init){
+		// Control variables
+		int bytesRead = init;
+		int currentInventory = 0;
+		InventoryType type;
+		MemoryStorageType mst;
 
-    public void OpenInventory(Inventory inventory, Inventory hotbar, Inventory equipment){
-		this.inv1 = inventory;
-		this.inv2 = hotbar;
-		this.inv3 = equipment;
+		// Cached variables
+		ushort id;
+		byte quantity;
+		uint currentDur;
+		byte refineLv;
+		EnchantmentType enchant;
+		ItemStack its;
+		Item item;
+		Weapon weapon;
 
-		this.DrawStacks();
-        this.inv1.FindLastEmptySlot();
-        this.inv2.FindLastEmptySlot();
-    }
+		if(this.inventory.Count == 0)
+			StartInventory();
+
+		while(bytesRead < data.Length){
+			type = (InventoryType)data[bytesRead];
+			bytesRead++;
+
+			if(type != this.inventory[currentInventory].GetInventoryType()){
+				if(this.inventory.Count < currentInventory)
+					this.inventory[currentInventory] = InventoryLoader.GetInventory(type);
+				else
+					this.inventory.Add(InventoryLoader.GetInventory(type));
+			}
+
+			for(ushort i=0; i < this.inventory[currentInventory].GetLimit(); i++){
+				mst = (MemoryStorageType)data[bytesRead];
+				bytesRead++;
+
+				switch(mst){
+					case MemoryStorageType.EMPTY:
+						this.inventory[currentInventory].SetSlot(i, null);
+						break;
+					case MemoryStorageType.ITEM:
+						id = NetDecoder.ReadUshort(data, bytesRead);
+						bytesRead += 2;
+						quantity = data[bytesRead];
+						bytesRead++;
+						item = ItemLoader.GetCopy(id);
+						its = new ItemStack(item, quantity);
+						this.inventory[currentInventory].SetSlot(i, its);
+						break;
+					case MemoryStorageType.WEAPON:
+						id = NetDecoder.ReadUshort(data, bytesRead);
+						bytesRead += 2;
+						currentDur = NetDecoder.ReadUint(data, bytesRead);
+						bytesRead += 4;
+						refineLv = data[bytesRead];
+						bytesRead++;
+						enchant = (EnchantmentType)data[bytesRead];
+						bytesRead++;
+
+						weapon = (Weapon)ItemLoader.GetCopy(id);
+						weapon.SetDurability(currentDur);
+						weapon.SetExtraEffects(enchant);
+						weapon.SetRefineLevel(refineLv);
+						its = new ItemStack(weapon, 1);
+						this.inventory[currentInventory].SetSlot(i, its); 
+						break;
+				}
+			}
+			currentInventory++;
+		}
+
+		ReloadInventory();
+	}
 
     public void ReloadInventory(){
-        this.inv1.FindLastEmptySlot();
-        this.inv2.FindLastEmptySlot();  
+		for(int i=0; i < this.inventory.Count; i++){
+			this.inventory[i].FindLastEmptySlot();
+		}
 
-        this.DrawStacks();
+        DrawStacks();
     }
 
     public void SendInventoryDataToServer(){
-    	int inventorySize = InventorySerializer.SerializePlayerInventory(this.inv2, this.inv1, this.inv3);
+    	int inventorySize = InventorySerializer.SerializePlayerInventory(this.inventory);
 
 		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
 		message.SendInventory(InventorySerializer.buffer, inventorySize);
 		this.cl.client.Send(message);
     }
 
+    public Inventory GetMainInventory(){
+    	for(int i=0; i < this.inventory.Count; i++){
+    		if(this.inventory[i].mainInventory)
+    			return this.inventory[i];
+    	}
+
+    	throw new MainInventoryNotFoundException($"[PlayerInventoryManager] None of the current inventories have the main flag set. Inventory count: {this.inventory.Count}");
+    }
+
     // Draws the ItemStacks into the Inventory Screen
     private void DrawStacks(){
     	ItemStack its;
 
-    	// Player Inventory
-    	for(ushort i=0; i < this.inv1.GetLimit(); i++){
-    		its = this.inv1.GetSlot(i);
+    	// Inventory
+    	for(ushort i=0; i < this.inventory[1].GetLimit(); i++){
+    		its = this.inventory[1].GetSlot(i);
 
     		if(its == null)
     			continue;
@@ -114,8 +189,9 @@ public class PlayerInventoryManager : MonoBehaviour {
     			this.invText[i].text = its.GetAmount().ToString();
     	}
 
-    	for(ushort i=0; i < this.inv2.GetLimit(); i++){
-    		its = this.inv2.GetSlot(i);
+    	// Hotbar
+    	for(ushort i=0; i < this.inventory[0].GetLimit(); i++){
+    		its = this.inventory[0].GetSlot(i);
 
     		if(its == null)
     			continue;
@@ -126,9 +202,9 @@ public class PlayerInventoryManager : MonoBehaviour {
     			this.hbText[i].text = its.GetAmount().ToString();
     	}
 
-    	// Player Inventory
-    	for(ushort i=0; i < this.inv3.GetLimit(); i++){
-    		its = this.inv3.GetSlot(i);
+    	// Equipment
+    	for(ushort i=0; i < this.inventory[2].GetLimit(); i++){
+    		its = this.inventory[2].GetSlot(i);
 
     		if(its == null)
     			continue;
@@ -142,11 +218,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     // Redraws a specific slot
     public void DrawSlot(byte inventoryCode, ushort slot){
-    	ItemStack its;
+    	ItemStack its = this.inventory[inventoryCode].GetSlot(slot);
 
-    	if(inventoryCode == 0){
-    		its = this.inv1.GetSlot(slot);
-
+    	if(inventoryCode == 1){
     		if(its == null){
     			this.invButton[slot].material.SetTexture("_Texture", null);
     			this.invText[slot].text = "";
@@ -158,9 +232,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    			this.invText[slot].text = its.GetAmount().ToString();    			
     		}
     	}
-    	else if(inventoryCode == 1){
-    		its = this.inv2.GetSlot(slot);
-
+    	else if(inventoryCode == 0){
     		if(its == null){
     			this.hbButton[slot].material.SetTexture("_Texture", null);
     			this.hbText[slot].text = "";
@@ -173,8 +245,6 @@ public class PlayerInventoryManager : MonoBehaviour {
     		}    		
     	}
     	else{
-    		its = this.inv3.GetSlot(slot);
-
     		if(its == null){
     			this.equipButton[slot].material.SetTexture("_Texture", null);
     			this.equipText[slot].text = "";
@@ -196,23 +266,17 @@ public class PlayerInventoryManager : MonoBehaviour {
     		if(this.IsNullSlot(inventoryCode, slot))
     			return;
 
-            Item item;
             string[] details; 
 
     		// Selects slot
     		this.selectedInventory = inventoryCode;
     		this.selectedSlot = slot;
-    		this.ToggleHighlight(true);
+    		ToggleHighlight(true);
             ResetDetails();
             this.detailsPanel.SetActive(true);
 
             // Finds the item selected
-            if(inventoryCode == 0)
-                item = inv1.GetSlot(this.selectedSlot).GetItem();
-            else if(inventoryCode == 1)
-                item = inv2.GetSlot(this.selectedSlot).GetItem();
-            else
-            	item = inv3.GetSlot(this.selectedSlot).GetItem();
+            Item item = this.inventory[inventoryCode].GetSlot(this.selectedSlot).GetItem();
 
             details = item.GetDetails();
             this.detailsName.text = details[0];
@@ -226,92 +290,54 @@ public class PlayerInventoryManager : MonoBehaviour {
     	}
     	// If has no slot selected and shift clicked
     	else if(this.selectedSlot == byte.MaxValue && MainControllerManager.shifting){
-    		if(this.IsNullSlot(inventoryCode, slot))
+    		if(IsNullSlot(inventoryCode, slot))
     			return;
 
     		byte receivedItems;
     		byte amount;
     		List<InventoryTransaction> changes;
     		ItemStack its;
+    		int targetInventory;
 
-    		// Sends item from inv1 to inv2
-    		if(inventoryCode == 0){
-    			its = inv1.GetSlot(slot);
-    			amount = its.GetAmount();
-    			changes = inv2.CanFit(its);
-    			receivedItems = inv2.AddStack(its, changes);
-    			
-    			if(receivedItems < amount)
-    				its.SetAmount((byte)(amount - receivedItems));
-    			else{
-    				inv1.SetNull(slot);
-    				if(slot < inv1.GetLastEmptySlot())
-    					inv1.SetLastEmptySlot((short)slot);
-    				inv1.RemoveFromRecords(its.GetID());
-    			}
+    		its = this.inventory[inventoryCode].GetSlot(slot);
+    		amount = its.GetAmount();
+    		targetInventory = GetBulkMoveTarget(inventoryCode, its);
 
-    			foreach(InventoryTransaction it in changes){
-    				this.DrawSlot(1, it.slotNumber);
-    			}
-    		}
-    		// Sends item from inv2 to inv1
-    		else{
-    			its = inv2.GetSlot(slot);
-    			amount = its.GetAmount();
-    			changes = inv1.CanFit(its);
-    			receivedItems = inv1.AddStack(its, changes);
-    			
-    			if(receivedItems < amount)
-    				its.SetAmount((byte)(amount - receivedItems));
-    			else{
-    				inv2.SetNull(slot);
-    				if(slot < inv2.GetLastEmptySlot())
-    					inv2.SetLastEmptySlot((short)slot);
-    				inv2.RemoveFromRecords(its.GetID());
-    			}
+    		if(targetInventory == -1)
+    			return;
 
-    			foreach(InventoryTransaction it in changes){
-    				this.DrawSlot(0, it.slotNumber);
-    			}
-    		}
+    		changes = this.inventory[targetInventory].CanFit(its);
+    		receivedItems = this.inventory[targetInventory].AddStack(its, changes);
 
-    		this.DrawSlot(inventoryCode, slot);
+			if(receivedItems < amount)
+				its.SetAmount((byte)(amount - receivedItems));
+			else{
+				this.inventory[inventoryCode].SetNull(slot);
+				if(slot < this.inventory[inventoryCode].GetLastEmptySlot())
+					this.inventory[inventoryCode].SetLastEmptySlot((short)slot);
+				this.inventory[inventoryCode].RemoveFromRecords(its.GetID());
+			}
 
+			foreach(InventoryTransaction it in changes){
+				DrawSlot((byte)targetInventory, it.slotNumber);
+			}
+
+    		DrawSlot(inventoryCode, slot);
 			SendInventoryDataToServer();
     	}
     	// If has a selected slot
     	else{
-    		if(inventoryCode == 2){
-    			if(!IsWeaponOrNull(this.selectedInventory, this.selectedSlot)){
-    				this.ResetSelection();
-    				return;
-    			}
-    		}
-    		if(this.selectedInventory == 2){
-    			if(!IsWeaponOrNull(inventoryCode, slot)){
-    				this.ResetSelection();
-    				return;
-    			}
+    		if(this.selectedInventory == inventoryCode && this.selectedSlot == slot){
+    			ResetSelection();
+    			return;
     		}
 
-    		if(this.selectedInventory == 0 && inventoryCode == 0)
-    			Inventory.SwitchSlots(inv1, this.selectedSlot, inv1, slot);
-    		else if(this.selectedInventory == 0 && inventoryCode == 1)
-    			Inventory.SwitchSlots(inv1, this.selectedSlot, inv2, slot);
-    		else if(this.selectedInventory == 0 && inventoryCode == 2)
-    			Inventory.SwitchSlots(inv1, this.selectedSlot, inv3, slot);
-    		else if(this.selectedInventory == 1 && inventoryCode == 0)
-    			Inventory.SwitchSlots(inv2, this.selectedSlot, inv1, slot);
-    		else if(this.selectedInventory == 1 && inventoryCode == 1)
-    			Inventory.SwitchSlots(inv2, this.selectedSlot, inv2, slot);
-    		else if(this.selectedInventory == 1 && inventoryCode == 2)
-    			Inventory.SwitchSlots(inv2, this.selectedSlot, inv3, slot);
-    		else if(this.selectedInventory == 2 && inventoryCode == 0)
-    			Inventory.SwitchSlots(inv3, this.selectedSlot, inv1, slot);
-    		else if(this.selectedInventory == 2 && inventoryCode == 1)
-    			Inventory.SwitchSlots(inv3, this.selectedSlot, inv2, slot);
-    		else if(this.selectedInventory == 2 && inventoryCode == 2)
-    			Inventory.SwitchSlots(inv3, this.selectedSlot, inv3, slot);
+    		if(!CanSwitchBetweenInventories(this.selectedInventory, inventoryCode, this.selectedSlot, slot, this.inventory[this.selectedInventory].GetSlot(this.selectedSlot), this.inventory[inventoryCode].GetSlot(slot))){
+				ResetSelection();
+				return;
+    		}
+
+    		Inventory.SwitchSlots(this.inventory[this.selectedInventory], this.selectedSlot, this.inventory[inventoryCode], slot);
 
     		this.DrawSlot(this.selectedInventory, this.selectedSlot);
     		this.DrawSlot(inventoryCode, slot);
@@ -330,21 +356,11 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     		ushort newSlot;
 
-    		if(inventoryCode == 0){
-                if(!inv1.IsFull()){
-        			if(inv1.AddFromSplit(inv1.GetSlot(slot).Split(), slot, out newSlot)){
-        				this.DrawSlot(inventoryCode, slot);
-        				this.DrawSlot(inventoryCode, newSlot);
-        			}
-                }
-    		}
-    		else{
-                if(!inv2.IsFull()){
-        			if(inv2.AddFromSplit(inv2.GetSlot(slot).Split(), slot, out newSlot)){
-        				this.DrawSlot(inventoryCode, slot);
-        				this.DrawSlot(inventoryCode, newSlot);
-        			}    
-                }			
+    		if(!this.inventory[inventoryCode].IsFull()){
+    			if(this.inventory[inventoryCode].AddFromSplit(this.inventory[inventoryCode].GetSlot(slot).Split(), slot, out newSlot)){
+    				this.DrawSlot(inventoryCode, slot);
+    				this.DrawSlot(inventoryCode, newSlot);
+    			}
     		}
 
     		SendInventoryDataToServer();
@@ -355,45 +371,78 @@ public class PlayerInventoryManager : MonoBehaviour {
     	}
     }
 
+    // Checks if there are more than 2 inventories with a shift-clicking capability
+    private bool CanShiftMove(){
+    	int counter = 0;
+
+    	for(int i=0; i < this.inventory.Count; i++){
+    		if(this.inventory[i].bulkMovedTo)
+    			counter++;
+
+    		if(counter >= 2)
+    			return true;
+    	}
+
+    	return false;
+    }
+
+    // Returns the index of the inventory that will be the target of the bulk move
+    private int GetBulkMoveTarget(int index, ItemStack its){
+    	if(!CanShiftMove())
+    		return -1;
+
+    	if(this.bulkMoveAbove){
+    		for(int i = 1; i < this.inventory.Count; i++){
+    			if(!this.inventory[(index + i) % this.inventory.Count].IsInGlobalWhitelist(its))
+    				continue;
+
+    			if(this.inventory[(index + i) % this.inventory.Count].bulkMovedTo)
+    				return (index + i) % this.inventory.Count;
+    		}
+    	}
+    	else{
+    		for(int i = 1; i < this.inventory.Count; i++){
+    			if(!this.inventory[Mathf.Abs(index - i) % this.inventory.Count].IsInGlobalWhitelist(its))
+    				continue;
+
+    			if(this.inventory[Mathf.Abs(index - i) % this.inventory.Count].bulkMovedTo)
+    				return Mathf.Abs(index - i) % this.inventory.Count;
+    		}
+    	}
+
+    	return -1;
+    }
+
+    // Checks if it's possible to switch slots based on tag limitations
+    private bool CanSwitchBetweenInventories(int indexOrigin, int indexTarget, ushort slotOrigin, ushort slotTarget, ItemStack itsOrigin, ItemStack itsTarget){
+		if(!this.inventory[indexOrigin].IsInGlobalWhitelist(itsTarget) || !this.inventory[indexOrigin].IsInLocalWhitelist(itsTarget, slotOrigin))
+			return false;
+		if(!this.inventory[indexTarget].IsInGlobalWhitelist(itsOrigin) || !this.inventory[indexTarget].IsInLocalWhitelist(itsOrigin, slotTarget))
+			return false;
+
+    	return true;
+    }
+
+    // Gets the inventory index based on slot number
+    private int GetInventoryIndex(byte slot){
+    	int sum = 0;
+
+    	for(int index = 0; index < this.inventory.Count; index++){
+    		sum += this.inventory[index].GetLimit();
+    		if(slot < sum){
+    			return index;
+    		}
+    	}
+
+    	throw new SlotOutOfRangeException($"[PlayerInventoryManager] Slot {slot} is out of range. Total limit is {sum}");
+    }
+
     // Returns true if slot is null
     private bool IsNullSlot(byte inventoryCode, ushort slot){
-		if(inventoryCode == 0){
-			if(inv1.GetSlot(slot) == null)
-				return true;
-		}
-		else if(inventoryCode == 1){
-			if(inv2.GetSlot(slot) == null)
-				return true;
-		}
-		else{
-			if(inv3.GetSlot(slot) == null)
-				return true;
-		}
+    	if(this.inventory[inventoryCode].GetSlot(slot) == null)
+    		return true;
+
 		return false;
-    }
-
-    // Nulls a slot in Hotbar
-    public void SetNull(ushort slot){
-        inv2.SetNull(slot);
-    }
-
-    // Checks if a given inventory slot is a Weapon or null
-    private bool IsWeaponOrNull(byte inventoryCode, ushort slot){
-    	ItemStack its;
-
-    	if(IsNullSlot(inventoryCode, slot))
-    		return true;
-
-    	if(inventoryCode == 0)
-    		its = inv1.GetSlot(slot);
-    	else if(inventoryCode == 1)
-    		its = inv2.GetSlot(slot);
-    	else
-    		its = inv3.GetSlot(slot);
-
-    	if(its.GetItem() is Weapon)
-    		return true;
-    	return false;
     }
 
     // Resets selection
@@ -418,13 +467,13 @@ public class PlayerInventoryManager : MonoBehaviour {
 		if(this.selectedInventory == byte.MaxValue)
 			return;
 
-		if(this.selectedInventory == 0){
+		if(this.selectedInventory == 1){
 			if(b)
 				invButton[this.selectedSlot].material.SetFloat("_IsClicked", 1);
 			else
 				invButton[this.selectedSlot].material.SetFloat("_IsClicked", 0);
 		}
-		else if(this.selectedInventory == 1){
+		else if(this.selectedInventory == 0){
 			if(b)
 				hbButton[this.selectedSlot].material.SetFloat("_IsClicked", 1);
 			else
@@ -436,5 +485,11 @@ public class PlayerInventoryManager : MonoBehaviour {
 			else
 				equipButton[this.selectedSlot].material.SetFloat("_IsClicked", 0);
 		}
+	}
+
+	private void StartInventory(){
+		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.HOTBAR));
+		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.PLAYER));
+		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.EQUIPMENT));
 	}
 }

@@ -46,6 +46,7 @@ public class Client
 	public PlayerRaycast raycast;
 	public PlayerHotbarHandler hotbarHandler;
 	public PlayerModelHandler playerModelHandler;
+	public PlayerInventoryManager playerInventoryManager;
 
 	// Const values
 	private static int maxBufferSize = 327680;
@@ -662,19 +663,14 @@ public class Client
 
 	// Receives player inventory information from server and builds into player inventory
 	private void SendInventory(byte[] data){
-		Inventory newInv;
-		Inventory newHot;
-		Inventory newEquip;
+		if(this.playerInventoryManager == null)
+			this.playerInventoryManager = this.cl.playerInventoryManager;
 
-		InventorySerializer.BuildPlayerInventory(data, 1, out newHot, out newInv, out newEquip);
-
-		if(this.hotbarHandler != null){
-			this.hotbarHandler.SetInventories(newInv, newHot, newEquip);
-		}
-		else{
-			this.cl.hotbarHandler.SetInventories(newInv, newHot, newEquip);
+		if(this.hotbarHandler == null)
 			this.hotbarHandler = this.cl.hotbarHandler;
-		}
+
+		this.playerInventoryManager.LoadFromBytes(data, 1);
+		this.hotbarHandler.SetHotbar(this.playerInventoryManager.GetMainInventory());		
 	}
 
 	// Receives a request to register an SFX into SFXLoader

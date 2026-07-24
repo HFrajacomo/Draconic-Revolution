@@ -4,20 +4,14 @@ using UnityEngine;
 using Unity.Mathematics;
 
 public class PlayerServerInventory{
-    public static readonly int playerInventorySize = 46;
-    private Dictionary<ulong, PlayerServerInventorySlot[]> inventories = new Dictionary<ulong, PlayerServerInventorySlot[]>();
+    private Dictionary<ulong, List<PlayerServerInventorySlot>> inventories = new Dictionary<ulong, List<PlayerServerInventorySlot>>();
     private InventoryFileHandler inventoryHandler;
     private byte[] buffer = new byte[16000];
 
-    private PlayerServerInventorySlot[] emptyInventory;
     private byte[] emptyInventoryBuffer;
     
     public PlayerServerInventory(){
         this.inventoryHandler = new InventoryFileHandler();
-
-        this.emptyInventoryBuffer = new byte[playerInventorySize];
-        this.emptyInventory = new PlayerServerInventorySlot[playerInventorySize];
-        CacheEmptyInventory();
     }
 
     /*
@@ -29,17 +23,17 @@ public class PlayerServerInventory{
 
         // If it's a pre-existing inventory in RAM that is being changed
         if(this.inventories.ContainsKey(playerId)){
-            this.inventories[playerId] = PlayerServerInventorySlot.BuildInventory(data, 1, playerInventorySize, ref refVoid);
+            this.inventories[playerId] = PlayerServerInventorySlot.BuildInventory(data, 1, ref refVoid);
             this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
         }
         // If player doesn't exist yet
         else{
-            this.inventories.Add(playerId, PlayerServerInventorySlot.BuildInventory(data, 1, playerInventorySize, ref refVoid));
+            this.inventories.Add(playerId, PlayerServerInventorySlot.BuildInventory(data, 1, ref refVoid));
             this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
         }
     }
 
-    public void AddInventory(ulong playerId, PlayerServerInventorySlot[] inv){
+    public void AddInventory(ulong playerId, List<PlayerServerInventorySlot> inv){
         // If it's a pre-existing inventory in RAM that is being changed
         if(this.inventories.ContainsKey(playerId)){
             this.inventories[playerId] = inv;
@@ -51,6 +45,7 @@ public class PlayerServerInventory{
             this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
         }
     }
+    public void AddInventory(ulong playerId, PlayerServerInventorySlot[] inv){AddInventory(playerId, new List<PlayerServerInventorySlot>(inv));}
 
     // Manually saves the current inventory without changing anything
     public void SaveInventory(ulong playerId){
@@ -58,11 +53,25 @@ public class PlayerServerInventory{
     }
 
     public int ConvertInventoryToBytes(ulong playerId){
+        PlayerServerInventorySlot psis;
         int bytesRead = 0;
 
         if(this.inventories.ContainsKey(playerId)){
-            for(int i=0; i < playerInventorySize; i++){
-                bytesRead += this.inventories[playerId][i].SaveToBuffer(this.buffer, bytesRead);
+            InventoryType lastType = this.inventories[playerId][0].GetInventoryType();
+
+            this.buffer[bytesRead] = (byte)lastType;
+            bytesRead++;
+
+            for(int i=0; i < this.inventories[playerId].Count; i++){
+                psis = this.inventories[playerId][i];
+
+                if(psis.GetInventoryType() != lastType){
+                    lastType = psis.GetInventoryType();
+                    this.buffer[bytesRead] = (byte)lastType;
+                    bytesRead++;
+                }
+
+                bytesRead += psis.SaveToBuffer(this.buffer, bytesRead);
             }
         }
 
@@ -86,8 +95,8 @@ public class PlayerServerInventory{
         // If is a new player
         else{
             isEmpty = true;
-            AddInventory(playerId, this.emptyInventory);
-            return playerInventorySize;
+            AddInventory(playerId, GetEmptySlots());
+            return InventoryLoader.GetInventorySize(InventoryType.HOTBAR) + InventoryLoader.GetInventorySize(InventoryType.PLAYER) + InventoryLoader.GetInventorySize(InventoryType.EQUIPMENT);
         }
     }
 
@@ -112,7 +121,7 @@ public class PlayerServerInventory{
     public void ChangeQuantity(ulong playerId, byte slotId, byte quantity){
         if(this.inventories.ContainsKey(playerId)){
             if(quantity == 0)
-                this.inventories[playerId][slotId] = new EmptyPlayerInventorySlot();
+                this.inventories[playerId][slotId] = new EmptyPlayerInventorySlot(GetInventoryTypeBySlot(slotId));
             else
                 this.inventories[playerId][slotId].SetQuantity(quantity);
         }
@@ -132,24 +141,12 @@ public class PlayerServerInventory{
         return this.buffer;
     }
 
-    public byte[] GetEmptyBuffer(){
-        return this.emptyInventoryBuffer;
+    public byte[] GetEmptyBuffer(int size){
+        return CacheEmptyInventory(size);
     }
 
     public void Destroy(){
         this.inventoryHandler.Close();
-    }
-
-    private int CacheEmptyInventory(){
-        EmptyPlayerInventorySlot empty = new EmptyPlayerInventorySlot();
-        int bytesRead = 0;
-
-        for(int i=0; i < PlayerServerInventory.playerInventorySize; i++){
-            this.emptyInventory[i] = new EmptyPlayerInventorySlot();
-            bytesRead += empty.SaveToBuffer(this.emptyInventoryBuffer, bytesRead);
-        }
-
-        return bytesRead;
     }
 
     // Returns a pair (index, currentIndexAmount) of the player Inventory that fits the given ItemStack
@@ -157,7 +154,7 @@ public class PlayerServerInventory{
     public int2 CheckFits(ulong playerCode, ItemStack its){
         PlayerServerInventorySlot aux;
 
-        for(int i=0; i < playerInventorySize; i++){
+        for(int i=0; i < this.inventories[playerCode].Count; i++){
             aux = this.inventories[playerCode][i];
             if(aux.GetItemID() == (int)its.GetID() || aux.GetItemID() == 0){
                 if(its.GetStacksize() != aux.GetQuantity()){
@@ -174,5 +171,36 @@ public class PlayerServerInventory{
 
     public void CreateSlotAt(byte slotIndex, ulong playerCode, PlayerServerInventorySlot slot){
         this.inventories[playerCode][slotIndex] = slot;
+    }
+
+    // CHANGE THIS ONCE INVENTORY ITEMS ARE IMPLEMENTED
+    private InventoryType GetInventoryTypeBySlot(byte slotId){
+        if(slotId < InventoryLoader.GetInventorySize(InventoryType.HOTBAR))
+            return InventoryType.HOTBAR;
+        else if(slotId < InventoryLoader.GetInventorySize(InventoryType.HOTBAR) + InventoryLoader.GetInventorySize(InventoryType.PLAYER))
+            return InventoryType.PLAYER;
+        return InventoryType.EQUIPMENT;
+    }
+
+    private List<PlayerServerInventorySlot> GetEmptySlots(){
+        List<PlayerServerInventorySlot> slots = new List<PlayerServerInventorySlot>();
+
+        for(int i=0; i < InventoryLoader.GetInventorySize(InventoryType.HOTBAR) + InventoryLoader.GetInventorySize(InventoryType.PLAYER) + InventoryLoader.GetInventorySize(InventoryType.EQUIPMENT); i++){
+            slots.Add(new EmptyPlayerInventorySlot(GetInventoryTypeBySlot((byte)i)));
+        }
+
+        return slots;
+    }
+
+    private byte[] CacheEmptyInventory(int size){
+        byte[] emptyInventoryBuffer = new byte[size];
+
+        int bytesRead = 0;
+
+        for(int i=0; i < size; i++){
+            bytesRead += EmptyPlayerInventorySlot.WriteBlank(emptyInventoryBuffer, bytesRead);
+        }
+
+        return emptyInventoryBuffer;
     }
 }

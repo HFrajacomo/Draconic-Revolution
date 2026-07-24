@@ -22,40 +22,49 @@ public class Inventory {
 	private bool isFull;
 	private HashSet<ushort> itemInInventory;
 	private HashSet<string> whitelistTags;
-	private Dictionary<int, string[]> perSlotWhitelistTags;
+	private Dictionary<int, HashSet<string>> perSlotWhitelistTags;
 
-	// Creates an empty inventory
-	public Inventory(InventoryType type){
-		SetLimitOnType(type);
-
+	private Inventory(InventoryType type, ushort size){
+		this.limit = size;
 		this.InitSlots(this.limit);
 		this.type = type;
 		this.lastEmptySlot = 0;
 		this.isFull = false;
 		this.itemInInventory = new HashSet<ushort>();
-		this.whitelistTags = new HashSet<string>();
+	}
+
+	// Creates a BLANK COPY of the Inventory
+	public Inventory Copy(){
+		Inventory inv = new Inventory(this.type, this.limit);
+		inv.whitelistTags = this.whitelistTags;
+		inv.perSlotWhitelistTags = this.perSlotWhitelistTags;
+		inv.isPickupTarget = this.isPickupTarget;
+		inv.bulkMovedTo = this.bulkMovedTo;
+		inv.mainInventory = this.mainInventory;
+
+		return inv;
 	}
 
 	public void PostDeserializationSetup(){
 		this.type = SerializeType();
 		this.limit = amountOfSlots;
-		//SetLimitOnType(this.type);
 
 		this.InitSlots(this.limit);
 		this.lastEmptySlot = 0;
 		this.isFull = false;
 		this.itemInInventory = new HashSet<ushort>();
 
-		if(this.tagList != null){
+		if(this.tagList.Count > 0){
 			this.whitelistTags = new HashSet<string>(this.tagList);
 			this.tagList.Clear();
 			this.tagList = null;
 		}
 
-		if(this.slotWhiteList != null){
-			this.perSlotWhitelistTags = new Dictionary<int, string[]>();
+		if(this.slotWhiteList.Count > 0){
+			this.bulkMovedTo = false;
+			this.perSlotWhitelistTags = new Dictionary<int, HashSet<string>>();
 			for(int i=0; i < this.slotWhiteList.Count; i++){
-				this.perSlotWhitelistTags.Add(this.slotWhiteList[i].id, this.slotWhiteList[i].array);
+				this.perSlotWhitelistTags.Add(this.slotWhiteList[i].id, new HashSet<string>(this.slotWhiteList[i].array));
 			}
 
 			this.slotWhiteList.Clear();
@@ -156,7 +165,7 @@ public class Inventory {
 
 		// If destination slot is empty
 		if(inv2.slots[slot2] == null){
-			inv2.slots[slot2] = inv1.slots[slot1].Clone();
+			inv2.slots[slot2] = inv1.slots[slot1];
 			inv1.slots[slot1] = null;
 
 			if(inv1.GetLastEmptySlot() > slot1)
@@ -336,6 +345,34 @@ public class Inventory {
 		}
 	}
 
+	// Checks if an item is part of the global whitelist for this inventory (like magic items for Bag of Holding)
+	public bool IsInGlobalWhitelist(ItemStack its){
+		if(this.whitelistTags != null && this.whitelistTags.Count != 0){
+			if(its == null){
+				return this.whitelistTags.Contains("Null");
+			}
+
+			return its.GetItem().ContainsAnyTag(this.whitelistTags);
+		}
+
+		return true;
+	}
+
+	// Checks if an item is part of the whitelist for this slot (like weapons for Weapon Slot in Equipment)
+	public bool IsInLocalWhitelist(ItemStack its, ushort slot){
+		if(this.perSlotWhitelistTags != null && this.perSlotWhitelistTags.Count != 0){
+			if(!this.perSlotWhitelistTags.ContainsKey(slot))
+				return true;
+
+			if(its == null)
+				return this.perSlotWhitelistTags[slot].Contains("Null");
+
+			return ItemLoader.GetItem(its.GetID()).ContainsAnyTag(this.perSlotWhitelistTags[slot]);
+		}
+
+		return true;
+	}
+
 	// Iterates until it finds the first empty slot
 	public void FindLastEmptySlot(){
 		for(ushort i=0; i < this.limit; i++){
@@ -383,6 +420,12 @@ public class Inventory {
 	}
 	#nullable disable
 
+	#nullable enable
+	public void SetSlot(ushort pos, ItemStack? its){
+		this.slots[pos] = its;
+	}
+	#nullable disable
+
 	// Removes an element from itemInInventory
 	public void RemoveFromRecords(ushort id){
 		if(!this.Contains(id))
@@ -402,25 +445,7 @@ public class Inventory {
 
 	public InventoryType GetInventoryType(){return this.type;}
 
-	private void SetLimitOnType(InventoryType type){
-		switch(type){
-			case InventoryType.PLAYER:
-				this.limit = 36;
-				break;
-			case InventoryType.HOTBAR:
-				this.limit = 9;
-				break;
-			case InventoryType.CHEST:
-				this.limit = 25;
-				break;
-			case InventoryType.EQUIPMENT:
-				this.limit = 1;
-				break;
-			default:
-				this.limit = 1;
-				break;
-		}
-	}
+	private void SetLimitOnType(InventoryType type){this.limit = (ushort)InventoryLoader.GetInventorySize(type);}
 
 	private InventoryType SerializeType(){
 		switch(this.inventoryType){
@@ -435,27 +460,6 @@ public class Inventory {
 			default:
 				throw new DeserializationErrorException($"[Inventory] Failed to de-serialize inventory type: {this.inventoryType}");
 		}
-	}
-
-	// Checks if an item is part of the global whitelist for this inventory (like magic items for Bag of Holding)
-	private bool IsInGlobalWhitelist(ItemStack its){
-		if(this.whitelistTags != null){
-			return its.GetItem().ContainsAnyTag(this.whitelistTags);
-		}
-
-		return true;
-	}
-
-	// Checks if an item is part of the whitelist for this slot (like weapons for Weapon Slot in Equipment)
-	private bool IsInLocalWhitelist(ItemStack its, ushort slot){
-		if(this.perSlotWhitelistTags != null){
-			if(!this.perSlotWhitelistTags.ContainsKey(slot))
-				return false;
-
-			return its.GetItem().ContainsAnyTag(this.perSlotWhitelistTags[slot]);
-		}
-
-		return true;
 	}
 }
 

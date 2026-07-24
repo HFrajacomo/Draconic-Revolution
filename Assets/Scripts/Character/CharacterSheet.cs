@@ -74,10 +74,6 @@ public class CharacterSheet{
 	private SkillType mainSkill;
 	private SkillType secondarySkill;
 
-	// Inventory (No need to save in .CDAT)
-	private Inventory inventory = new Inventory(InventoryType.PLAYER);
-	private Inventory hotbar = new Inventory(InventoryType.HOTBAR);
-
 	// Helpers and Handlers
 	private Dictionary<SkillType, SkillExp> skillDict = new Dictionary<SkillType, SkillExp>();
 

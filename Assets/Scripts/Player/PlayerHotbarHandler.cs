@@ -12,7 +12,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 	private GameObject handItem;
 
 	// Inventory
-	public Inventory hotbar = new Inventory(InventoryType.HOTBAR);
+	public Inventory hotbar = InventoryLoader.GetInventory(InventoryType.HOTBAR);
 
 	// UI
 	public Image[] hotbarIcon;
@@ -83,11 +83,8 @@ public class PlayerHotbarHandler : MonoBehaviour
     	}
     }
 
-    public void SetInventories(Inventory inventory, Inventory hotbar, Inventory equipment){
+    public void SetHotbar(Inventory hotbar){
     	this.hotbar = hotbar;
-
-        playerInventoryManager.OpenInventory(inventory, hotbar, equipment);
-
         this.DrawHotbar();
     }
 

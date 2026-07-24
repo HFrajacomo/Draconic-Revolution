@@ -33,7 +33,7 @@ public abstract class AnimationBehaviour {
 
 	public virtual void PostDeserializationSetup(){return;}
 
-	public virtual void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){Debug.LogWarning("MASSIVE SHIT");}
+	public virtual void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){}
 
 	protected string SerializeDispatchParameter(string name, int index){return $"{{\"clip\": \"{name}\", \"index\": {index}}}";}
 }

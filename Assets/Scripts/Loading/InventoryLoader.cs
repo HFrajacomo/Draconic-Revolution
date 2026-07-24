@@ -29,7 +29,7 @@ public class InventoryLoader : BaseLoader {
 		return true;
 	}
 
-	public static Inventory GetInventory(InventoryType type){return inventories[type];}
+	public static Inventory GetInventory(InventoryType type){return inventories[type].Copy();}
 	public static int GetInventorySize(InventoryType type){return inventorySizes[type];}
 
 	private void LoadInventories(bool isClient){
@@ -42,11 +42,8 @@ public class InventoryLoader : BaseLoader {
 			wrapper = JsonUtility.FromJson<Wrapper<Inventory>>(JsonFormatter.RemoveComments(textAsset.text));
 
 			foreach(Inventory inventory in wrapper.data){
-				if(isClient){
-					inventory.PostDeserializationSetup();
-					inventories.Add(inventory.GetInventoryType(), inventory);
-				}
-
+				inventory.PostDeserializationSetup();
+				inventories.Add(inventory.GetInventoryType(), inventory);
 				inventorySizes.Add(inventory.GetInventoryType(), inventory.GetLimit());
 			}
 		}

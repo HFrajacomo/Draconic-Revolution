@@ -67,8 +67,18 @@ public class Item {
 		};
 	}
 
-	public bool ContainsTag(string tag){return this.itemTags.Contains(tag);}
-	public bool ContainsAnyTag(HashSet<string> tags){return this.itemTags.Overlaps(tags);}
+	public bool ContainsTag(string tag){
+		if(this.itemTags == null)
+			return false;
+
+		return this.itemTags.Contains(tag);
+	}
+	public bool ContainsAnyTag(HashSet<string> tags){
+		if(this.itemTags == null)
+			return false;
+
+		return this.itemTags.Overlaps(tags);
+	}
 	public bool ContainsAnyTag(string[] tags){
 		for(int i=0; i < tags.Length; i++){
 			if(this.itemTags.Contains(tags[i])){
@@ -77,6 +87,8 @@ public class Item {
 		}
 		return false;
 	}
+
+	public HashSet<string> GetTags(){return ItemLoader.GetItem(this.id).itemTags;}
 
 	public override string ToString(){
 		return $"{this.codename}:{this.id}";

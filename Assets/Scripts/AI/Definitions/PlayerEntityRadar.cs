@@ -62,7 +62,7 @@ public class PlayerEntityRadar : EntityRadar{
 			// If can completely take the stack
 			if(aiItem.GetStacksize() >= inventorySlot.y + aiItem.GetAmount()){
 				if(inventorySlot.y == 0)
-					psi.CreateSlotAt((byte)inventorySlot.x, this.ID.code, CreateSlot(aiItem));
+					psi.CreateSlotAt((byte)inventorySlot.x, this.ID.code, CreateSlot(aiItem, (byte)inventorySlot.x));
 
 				psi.ChangeQuantity(this.ID.code, (byte)inventorySlot.x, (byte)(inventorySlot.y + aiItem.GetAmount()));
 				this.cachedItemAI.SetPickupMode();
@@ -82,18 +82,20 @@ public class PlayerEntityRadar : EntityRadar{
 		ai.AddToInboundEventQueue(new EntityEvent(EntityEventType.ITEM_PICKUP, false, new EntityRadarEvent(ai.GetID(), ai.GetPosition(), ai.GetPosition(), ai), this.position - ai.position));
 	}
 
-	private PlayerServerInventorySlot CreateSlot(ItemStack its){
+	private PlayerServerInventorySlot CreateSlot(ItemStack its, byte slotNumber){
+		InventoryType type = this.psi.GetSlot(this.ID.code, slotNumber).GetInventoryType();
+
 		this.cachedItem = its.GetItem();
 
 		if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.ITEM){
-			return new ItemPlayerInventorySlot(its.GetID(), its.GetAmount());
+			return new ItemPlayerInventorySlot(its.GetID(), its.GetAmount(), type);
 		} 
 		else if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.WEAPON){
-			return new WeaponPlayerInventorySlot(its.GetID(), ((Weapon)this.cachedItem).currentDurability, ((Weapon)this.cachedItem).refineLevel, ((Weapon)this.cachedItem).extraEffect);
+			return new WeaponPlayerInventorySlot(its.GetID(), ((Weapon)this.cachedItem).currentDurability, ((Weapon)this.cachedItem).refineLevel, ((Weapon)this.cachedItem).extraEffect, type);
 		}
 		else{
 			// STORAGE ITEMS NOT IMPLEMENTED
-			return new EmptyPlayerInventorySlot();
+			return new EmptyPlayerInventorySlot(type);
 		}
 	}
 }

@@ -8,7 +8,7 @@ using UnityEngine;
 /*
 INVENTORY FILE (.invf) encapsulates all of users inventory
 
-SCHEMA: [InventoriesSize (4)][Inventories (variable size)]*
+SCHEMA: [TotalSize (4)]([InvType (1)][ITEMS (Variable size)])+
 
 */
 public class InventoryFileHandler{
@@ -59,12 +59,22 @@ public class InventoryFileHandler{
 	/*
 	Saves the inventory of given playerId having given slots to (.invf) file
 	*/
-	public void SaveInventory(ulong playerId, PlayerServerInventorySlot[] slots){
+	public void SaveInventory(ulong playerId, List<PlayerServerInventorySlot> slots){
 		int bytesWritten = 0;
 		long filePosition;
 		int inventorySize = 0;
+		InventoryType lastType = slots[0].GetInventoryType();
 
-		for(int i=0; i < slots.Length; i++){
+		this.buffer[bytesWritten] = (byte)lastType;
+		bytesWritten++;
+
+		for(int i=0; i < slots.Count; i++){
+			if(lastType != slots[i].GetInventoryType()){
+				lastType = slots[i].GetInventoryType();
+				this.buffer[bytesWritten] = (byte)lastType;
+				bytesWritten++;
+			}
+
 			bytesWritten += slots[i].SaveToBuffer(this.buffer, bytesWritten);
 		}
 
@@ -77,7 +87,7 @@ public class InventoryFileHandler{
 			WriteInt(bytesWritten);
 			this.file.Seek(filePosition, SeekOrigin.Begin);
 			this.file.Write(this.intBuffer, 0, 4);
-			this.file.Write(this.buffer, 0, bytesWritten+headerSize);
+			this.file.Write(this.buffer, 0, bytesWritten);
 			this.file.Flush();
 		}
 		// If inventory was already saved
@@ -100,7 +110,7 @@ public class InventoryFileHandler{
 			WriteInt(bytesWritten);
 			this.file.Seek(filePosition, SeekOrigin.Begin);
 			this.file.Write(this.intBuffer, 0, 4);
-			this.file.Write(this.buffer, 0, bytesWritten+headerSize);
+			this.file.Write(this.buffer, 0, bytesWritten);
 			this.file.Flush();
 		}
 	}
@@ -109,7 +119,7 @@ public class InventoryFileHandler{
 	/*
 	Loads the contents of given player inventory from (.invf) file.
 	*/
-	public PlayerServerInventorySlot[] LoadInventory(ulong playerId){
+	public List<PlayerServerInventorySlot> LoadInventory(ulong playerId){
 		int readSize;
 		int refVoid = 0;
 		int filePosition = (int)this.index[playerId];
@@ -119,7 +129,7 @@ public class InventoryFileHandler{
 		this.file.Seek(filePosition+headerSize, SeekOrigin.Begin);
 		this.file.Read(this.buffer, 0, readSize);
 
-		return PlayerServerInventorySlot.BuildInventory(buffer, 0, PlayerServerInventory.playerInventorySize, ref refVoid);
+		return PlayerServerInventorySlot.BuildInventory(this.buffer, 0, ref refVoid, readSize:readSize);
 	}
 	
 

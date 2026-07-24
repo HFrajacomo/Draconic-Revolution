@@ -21,11 +21,10 @@ public static class InventorySerializer
 		ItemStack its;
 		Item item;
 		Weapon weapon;
-		//ushort inventorySize;
 
-		hotbar = new Inventory(InventoryType.HOTBAR);
-		inv = new Inventory(InventoryType.PLAYER);
-		equip = new Inventory(InventoryType.EQUIPMENT);
+		hotbar = InventoryLoader.GetInventory(InventoryType.HOTBAR);
+		inv = InventoryLoader.GetInventory(InventoryType.PLAYER);
+		equip = InventoryLoader.GetInventory(InventoryType.EQUIPMENT);
 
 		while(currentSlot < hotbar.GetLimit()){
 			mst = (MemoryStorageType)data[init+bytesRead];
@@ -59,17 +58,6 @@ public static class InventorySerializer
 					weapon.SetRefineLevel(refineLv);
 					its = new ItemStack(weapon, 1);
 					AddToInventory(its, hotbar, inv, equip, currentSlot);
-					break;
-				case MemoryStorageType.STORAGE:
-					//id = NetDecoder.ReadUshort(data, init+bytesRead);
-					//bytesRead += 2;
-					//inventorySize = NetDecoder.ReadUshort(data, init+bytesRead);
-					/*
-					Create inventory Items first
-					Add inventory byte size to bytesRead
-					Create ItemStack
-					AddToInventory
-					*/
 					break;
 			}
 
@@ -176,41 +164,27 @@ public static class InventorySerializer
 	Turns player inventory into a serialized version in InventorySerializer.buffer
 	and returns the amount of written bytes
 	*/
-	public static int SerializePlayerInventory(Inventory hotbar, Inventory inv, Inventory equipment){
+	public static int SerializePlayerInventory(List<Inventory> inventories){
 		ItemStack its;
+		InventoryType type;
 		int bytesWritten = 0;
 
-		for(ushort i=0; i < hotbar.GetLimit(); i++){
-			if(hotbar.GetSlot(i) == null){
-				InventorySerializer.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
-				bytesWritten++;
-			}
-			else{
-				its = hotbar.GetSlot(i);
-				bytesWritten += its.ConvertToMemory(InventorySerializer.buffer, bytesWritten);
+		for(int inventoryCode=0; inventoryCode < inventories.Count; inventoryCode++){
+			type = inventories[inventoryCode].GetInventoryType();
+			InventorySerializer.buffer[bytesWritten] = (byte)type;
+			bytesWritten++;
+
+			for(ushort i=0; i < InventoryLoader.GetInventorySize(type); i++){
+				if(inventories[inventoryCode].GetSlot(i) == null){
+					InventorySerializer.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
+					bytesWritten++;
+				}
+				else{
+					its = inventories[inventoryCode].GetSlot(i);
+					bytesWritten += its.ConvertToMemory(InventorySerializer.buffer, bytesWritten);
+				}
 			}
 		}
-
-		for(ushort i=0; i < inv.GetLimit(); i++){
-			if(inv.GetSlot(i) == null){
-				InventorySerializer.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
-				bytesWritten++;
-			}
-			else{
-				its = inv.GetSlot(i);
-				bytesWritten += its.ConvertToMemory(InventorySerializer.buffer, bytesWritten);
-			}
-		}   
-		for(ushort i=0; i < equipment.GetLimit(); i++){
-			if(equipment.GetSlot(i) == null){
-				InventorySerializer.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
-				bytesWritten++;
-			}
-			else{
-				its = equipment.GetSlot(i);
-				bytesWritten += its.ConvertToMemory(InventorySerializer.buffer, bytesWritten);
-			}
-		}  
 
 		return bytesWritten;
 	}

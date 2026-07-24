@@ -229,7 +229,7 @@ public class Server {
 
 	// Sends a byte[] to the a client given it's ID
 	public void Send(byte[] data, int length, ulong id, bool temporary=false){
-		try{
+		//try{
 			if(!temporary){
 				IAsyncResult lenResult = this.connections[id].BeginSend(this.LengthPacket(length), 0, 4, 0, out this.err, null, id);
 				this.connections[id].EndSend(lenResult);
@@ -248,10 +248,12 @@ public class Server {
 
 				NetMessage.Broadcast(NetBroadcast.SENT, data[0], id, length);				
 			}
-		}
+		//}
+		/*
 		catch(Exception e){
 			Debug.Log("SEND ERROR: " + e.ToString());
 		}
+		*/
 	}
 
 	public void SendList(byte[] data, int length, List<ulong> ids, bool temporary=false){
@@ -444,7 +446,6 @@ public class Server {
 	// Captures client info
 	private void SendClientInfo(byte[] data, ulong id){
 		CharacterSheet sheet = null;
-		NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
 		int inventoryLength;
 		bool isEmptyInventory;
 		ulong accountID = NetDecoder.ReadUlong(data, 1);
@@ -488,8 +489,9 @@ public class Server {
 			sheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
 			this.entityHandler.AddPlayerSheet(accountID, sheet);
 
+			NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
 			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes);
-			this.Send(message.GetMessage(), message.size, id);
+			this.Send(message.GetMessage(), message.size, id, temporary:true);
 
 			// Sends player inventory data
 			NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
@@ -498,14 +500,14 @@ public class Server {
 			if(!isEmptyInventory)
 				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetBuffer(), inventoryLength);
 			else
-				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetEmptyBuffer(), inventoryLength);
+				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetEmptyBuffer(inventoryLength), inventoryLength);
 
-			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id);
+			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id, temporary:true);
 
 			// Sends global weather noise data
 			NetMessage weatherMessage = new NetMessage(NetCode.SENDNOISE);
 			weatherMessage.SendNoise(GenerationSeed.weatherNoise, World.worldSeed);
-			this.Send(weatherMessage.GetMessage(), weatherMessage.size, id);
+			this.Send(weatherMessage.GetMessage(), weatherMessage.size, id, temporary:true);
 		}
 
 		// If AccountID is already online, erase all memory from that connection
