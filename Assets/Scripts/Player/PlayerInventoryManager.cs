@@ -21,6 +21,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	// Inventory data and draw info
 	private List<Inventory> inventory = new List<Inventory>();
+	private byte[] buffer = new byte[30000];
 
 	// Temporary
 	[SerializeField]
@@ -147,6 +148,33 @@ public class PlayerInventoryManager : MonoBehaviour {
 		ReloadInventory();
 	}
 
+	/*
+	Turns player inventory into a serialized version in buffer
+	and returns the amount of written bytes
+	*/
+	public int SerializeInventory(){
+		ItemStack its;
+		int bytesWritten = 0;
+
+		for(int inventoryCode=0; inventoryCode < this.inventory.Count; inventoryCode++){
+			this.buffer[bytesWritten] = (byte)this.inventory[inventoryCode].GetInventoryType();
+			bytesWritten++;
+
+			for(ushort i=0; i < this.inventory[inventoryCode].GetLimit(); i++){
+				if(this.inventory[inventoryCode].GetSlot(i) == null){
+					this.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
+					bytesWritten++;
+				}
+				else{
+					its = this.inventory[inventoryCode].GetSlot(i);
+					bytesWritten += its.ConvertToMemory(this.buffer, bytesWritten);
+				}
+			}
+		}
+
+		return bytesWritten;
+	}
+
     public void ReloadInventory(){
 		for(int i=0; i < this.inventory.Count; i++){
 			this.inventory[i].FindLastEmptySlot();
@@ -156,10 +184,10 @@ public class PlayerInventoryManager : MonoBehaviour {
     }
 
     public void SendInventoryDataToServer(){
-    	int inventorySize = InventorySerializer.SerializePlayerInventory(this.inventory);
+    	int inventorySize = SerializeInventory();
 
 		NetMessage message = new NetMessage(NetCode.SENDINVENTORY);
-		message.SendInventory(InventorySerializer.buffer, inventorySize);
+		message.SendInventory(this.buffer, inventorySize);
 		this.cl.client.Send(message);
     }
 
