@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
 
-public class VoxelMetadata
-{
+public class VoxelMetadata {
 	private ushort[] hp;
 	private ushort[] state;
 

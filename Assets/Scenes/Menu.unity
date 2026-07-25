@@ -21524,10 +21524,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 681264156}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7eec45e60f76d84499e07a962b9fbc00, type: 3}
+  m_Script: {fileID: 11500000, guid: d0104a3007949c84d9377c8ddb692476, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetFrameRate: 120
+  targetFrameRate: 60
 --- !u!1 &685361263
 GameObject:
   m_ObjectHideFlags: 0

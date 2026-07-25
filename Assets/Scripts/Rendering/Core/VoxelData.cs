@@ -7,8 +7,7 @@ using Unity.Jobs;
 using Unity.Burst;
 using Unity.Mathematics;
 
-public class VoxelData
-{
+public class VoxelData {
 	/*
 	private static ShaderReferences shaderReferences;
 	private static ComputeShader shadowMapShader;

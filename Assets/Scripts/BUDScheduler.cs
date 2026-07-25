@@ -2,8 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BUDScheduler : MonoBehaviour
-{
+public class BUDScheduler : MonoBehaviour {
 	public TimeOfDay schedulerTime;
 	private Dictionary<string, List<BUDSignal>> data = new Dictionary<string, List<BUDSignal>>();
 	private Dictionary<string, HashSet<ChunkPos>> toSave = new Dictionary<string, HashSet<ChunkPos>>();

@@ -7,9 +7,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = System.Random;
 
-public static class World
-{
-    
+public static class World {
     public static string worldName;
     public static int worldSeed;
     public static int renderDistance;

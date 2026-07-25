@@ -20,6 +20,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     private bool bulkMoveAbove = true; // If inventory shift-move should be done upwards or downwards
 
+	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
+	private static GameObject EMPTY_OBJECT;
+
 	// Inventory data and draw info
 	private List<Inventory> inventory = new List<Inventory>();
 	private ItemStack draggedStack;
@@ -48,6 +51,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 	private readonly Color RED = new Color(1f, 0.5f, 0.5f, 1f);
 
 	void Awake(){
+		EMPTY_OBJECT = GameObject.Find(EMPTY_OBJECT_PATHNAME);
+
 		int i = 0;
 
 		foreach(Image img in invButton){
@@ -87,6 +92,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 			ResetSelection();
 		}
 	}
+
+	// 
 
 	// Creates inventories based on byte array
 	public void LoadFromBytes(byte[] data, int init){
@@ -651,9 +658,21 @@ public class PlayerInventoryManager : MonoBehaviour {
 		}
 	}
 
+	// Creates the default player inventories
 	private void StartInventory(){
 		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.HOTBAR));
 		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.PLAYER));
 		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.EQUIPMENT));
+	}
+
+	private TextMeshProUGUI CreateTextComponent(GameObject parent){
+		GameObject go = GameObject.Instantiate(EMPTY_OBJECT);
+		go.transform.parent = parent.transform;
+
+		TextMeshProUGUI tmp = go.AddComponent<TextMeshProUGUI>();
+
+		tmp.raycastTarget = false;
+
+		return tmp;
 	}
 }

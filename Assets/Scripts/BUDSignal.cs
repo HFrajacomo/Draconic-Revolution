@@ -1,4 +1,4 @@
-public struct BUDSignal{
+public struct BUDSignal {
 	public BUDCode type;
 	public int x;
 	public int y;

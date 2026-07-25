@@ -5,8 +5,7 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
 
-public static class BlockEncyclopediaECS
-{
+public static class BlockEncyclopediaECS {
 	private static bool IS_INITIALIZED = false;
 	public static NativeArray<ushort> blockHP;
 	public static NativeArray<ushort> objectHP;
