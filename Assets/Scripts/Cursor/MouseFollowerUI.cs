@@ -10,6 +10,18 @@ public class MouseFollowerUI : MonoBehaviour{
 		this.canvas = GetComponentInParent<Canvas>();
 	}
 
+	void OnEnable(){
+		Vector2 localPoint;
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(
+			this.canvas.transform as RectTransform,
+			Input.mousePosition,
+			this.canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera,
+			out localPoint
+		);
+
+		this.rectTransform.localPosition = localPoint;
+	}
+
 	void Update(){
 		Vector2 localPoint;
 		RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -19,9 +31,7 @@ public class MouseFollowerUI : MonoBehaviour{
 			out localPoint
 		);
 
-		this.rectTransform.localPosition = Transform(localPoint);
+		this.rectTransform.localPosition = localPoint;
 	}
-
-	private Vector3 Transform(Vector3 input){return new Vector3(input.x, input.y, this.forward);}
 }
 	

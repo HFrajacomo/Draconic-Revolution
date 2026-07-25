@@ -63,6 +63,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 			img.material.SetTexture("_Texture", null);
 			i++;
 		}
+		i = 0;
 		foreach(Image img in equipButton){
 			img.material = Instantiate(this.itemIconMaterial);
 			img.material.name = $"Equipment-{i}";
@@ -87,7 +88,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		}
 	}
 
-
+	// Creates inventories based on byte array
 	public void LoadFromBytes(byte[] data, int init){
 		// Control variables
 		int bytesRead = init;
