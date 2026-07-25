@@ -20,4 +20,6 @@ public class InventoryButton : MonoBehaviour, IPointerClickHandler {
     		invController.LeftClick(inventoryCode, slot);
     	}
     }
+
+    public void SetController(PlayerInventoryManager manager){this.invController = manager;}
 }

@@ -17,73 +17,44 @@ public class PlayerInventoryManager : MonoBehaviour {
     public ChunkLoader cl;
     public Material itemIconMaterial;
     public Material backgroundMaterial;
+    public TMP_FontAsset liberationSans;
 
     private bool bulkMoveAbove = true; // If inventory shift-move should be done upwards or downwards
 
-	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObject";
+	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObjectUI";
 	private static GameObject EMPTY_OBJECT;
 
 	// Inventory data and draw info
 	private List<Inventory> inventory = new List<Inventory>();
+	private Dictionary<int, Image[]> slotImages = new Dictionary<int, Image[]>();
+	private Dictionary<int, TextMeshProUGUI[]> slotText = new Dictionary<int, TextMeshProUGUI[]>();
 	private ItemStack draggedStack;
 	private byte[] buffer = new byte[30000];
 
-	// Temporary
-	[SerializeField]
-	public Image[] invButton;
-	[SerializeField]
-	public TextMeshProUGUI[] invText;
-	[SerializeField]
-	public Image[] hbButton;
-	[SerializeField]
-	public TextMeshProUGUI[] hbText;
-	[SerializeField]
-	public Image[] equipButton;
-	[SerializeField]
-	public TextMeshProUGUI[] equipText;
-
 	// Drag and Drop overlay
-	public Image dragOverlay;
-	public TextMeshProUGUI dragStacksize;
+	private Image dragOverlay;
+	private TextMeshProUGUI dragStacksize;
 
-	// Color constants
-	private readonly Color WHITE = new Color(1f,1f,1f,1f);
-	private readonly Color RED = new Color(1f, 0.5f, 0.5f, 1f);
+	// Constants
+	private readonly Vector2 slotSizes = new Vector2(96f, 96f);
 
 	void Awake(){
 		EMPTY_OBJECT = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
-		int i = 0;
+		if(this.inventory.Count == 0)
+			StartInventory();
 
-		foreach(Image img in invButton){
-			img.material = Instantiate(this.itemIconMaterial);
-			img.material.name = $"Slot-{i}";
-			img.material.SetTexture("_Texture", null);
-			i++;
-		}
-		i = 0;
-		foreach(Image img in hbButton){
-			img.material = Instantiate(this.itemIconMaterial);
-			img.material.name = $"Hotbar-{i}";
-			img.material.SetTexture("_Texture", null);
-			i++;
-		}
-		i = 0;
-		foreach(Image img in equipButton){
-			img.material = Instantiate(this.itemIconMaterial);
-			img.material.name = $"Equipment-{i}";
-			img.material.SetTexture("_Texture", null);
-			i++;
-		}
+		CreateHotbarInventory(this.gameObject);
+		CreatePlayerBagInventory(this.gameObject);
+		CreateEquipmentInventory(this.gameObject);
+		CreateDragSlot(this.gameObject);
 
-		this.dragOverlay.material = Instantiate(this.itemIconMaterial);
-		this.dragOverlay.material.SetTexture("_Texture", null);
+		Debug.Log("CREATED INVS");
 
 		this.detailsImage.material = Instantiate(this.itemIconMaterial);
 		this.background.material = Instantiate(this.backgroundMaterial);
 
-		if(this.inventory.Count == 0)
-			StartInventory();
+		this.transform.parent.gameObject.SetActive(false);
 	}
 
 	void OnDisable(){
@@ -225,43 +196,22 @@ public class PlayerInventoryManager : MonoBehaviour {
     private void DrawStacks(){
     	ItemStack its;
 
-    	// Inventory
-    	for(ushort i=0; i < this.inventory[1].GetLimit(); i++){
-    		its = this.inventory[1].GetSlot(i);
+    	for(int i=0; i < this.inventory.Count; i++){
+    		for(ushort j=0; j < this.inventory[i].GetLimit(); j++){
+    			its = this.inventory[i].GetSlot(j);
 
-    		if(its == null)
-    			continue;
+    			if(its == null){
+    				this.slotText[i][j].text = "";
+    				continue;
+    			}
 
-    		this.invButton[i].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
+    			this.slotImages[i][j].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
 
-    		if(its.GetStacksize() > 1)
-    			this.invText[i].text = its.GetAmount().ToString();
-    	}
-
-    	// Hotbar
-    	for(ushort i=0; i < this.inventory[0].GetLimit(); i++){
-    		its = this.inventory[0].GetSlot(i);
-
-    		if(its == null)
-    			continue;
-
-    		this.hbButton[i].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
-
-    		if(its.GetStacksize() > 1)
-    			this.hbText[i].text = its.GetAmount().ToString();
-    	}
-
-    	// Equipment
-    	for(ushort i=0; i < this.inventory[2].GetLimit(); i++){
-    		its = this.inventory[2].GetSlot(i);
-
-    		if(its == null)
-    			continue;
-
-    		this.equipButton[i].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
-
-    		if(its.GetStacksize() > 1)
-    			this.equipText[i].text = its.GetAmount().ToString();
+	    		if(its.GetStacksize() > 1)
+	    			this.slotText[i][j].text = its.GetAmount().ToString();
+	    		else
+	    			this.slotText[i][j].text = "";
+    		}
     	}
     }
 
@@ -269,48 +219,18 @@ public class PlayerInventoryManager : MonoBehaviour {
     public void DrawSlot(byte inventoryCode, ushort slot){
     	ItemStack its = this.inventory[inventoryCode].GetSlot(slot);
 
-    	if(inventoryCode == 1){
-    		if(its == null){
-    			this.invButton[slot].material.SetTexture("_Texture", null);
-    			this.invText[slot].text = "";
-    		}
-    		else{
-	    		this.invButton[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
+		if(its == null){
+			this.slotImages[inventoryCode][slot].material.SetTexture("_Texture", null);
+			this.slotText[inventoryCode][slot].text = "";
+		}
+		else{
+    		this.slotImages[inventoryCode][slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
 
-	    		if(its.GetStacksize() > 1)
-	    			this.invText[slot].text = its.GetAmount().ToString();
-	    		else
-	    			this.hbText[slot].text = "";   			
-    		}
-    	}
-    	else if(inventoryCode == 0){
-    		if(its == null){
-    			this.hbButton[slot].material.SetTexture("_Texture", null);
-    			this.hbText[slot].text = "";
-    		}
-    		else{
-	    		this.hbButton[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
-
-	    		if(its.GetStacksize() > 1)
-	    			this.hbText[slot].text = its.GetAmount().ToString();
-	    		else
-	    			this.hbText[slot].text = "";			
-    		}    		
-    	}
-    	else{
-    		if(its == null){
-    			this.equipButton[slot].material.SetTexture("_Texture", null);
-    			this.equipText[slot].text = "";
-    		}
-    		else{
-	    		this.equipButton[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
-
-	    		if(its.GetStacksize() > 1)
-	    			this.equipText[slot].text = its.GetAmount().ToString();
-	    		else
-	    			this.hbText[slot].text = ""; 			
-    		}    
-    	}
+    		if(its.GetStacksize() > 1)
+    			this.slotText[inventoryCode][slot].text = its.GetAmount().ToString();
+    		else
+    			this.slotText[inventoryCode][slot].text = "";   			
+		}
     }
 
     // Activates on Left Click of a slot
@@ -658,6 +578,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 		}
 	}
 
+	// ------------------------- Inventory Generation --------------------------------
+
 	// Creates the default player inventories
 	private void StartInventory(){
 		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.HOTBAR));
@@ -665,14 +587,206 @@ public class PlayerInventoryManager : MonoBehaviour {
 		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.EQUIPMENT));
 	}
 
-	private TextMeshProUGUI CreateTextComponent(GameObject parent){
+	private void CreateHotbarInventory(GameObject parent){
+		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
+		GameObject goTexts = GameObject.Instantiate(EMPTY_OBJECT);
+		Vector2 groupSizes = new Vector2(800f, 100f);
+		Vector2 anchorMain = new Vector2(0.5f, 0f);
+		Vector2 anchorSec = new Vector2(0.5f, 0.5f);
+
+		int inventorySize = InventoryLoader.GetInventorySize(InventoryType.HOTBAR);
+
+		goSlots.name = "HotbarSlots";
+		goSlots.transform.SetParent(parent.transform);
+		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
+		FixTransform(slotTransform, groupSizes, anchorMain, addY:50);
+		goTexts.name = "HotbarTexts";
+		goTexts.transform.SetParent(parent.transform);
+		RectTransform textTransform = goTexts.GetComponent<RectTransform>();
+		FixTransform(textTransform, groupSizes, anchorMain, addY:50);
+
+
+		HorizontalLayoutGroup hlpSlot = goSlots.AddComponent<HorizontalLayoutGroup>();
+		hlpSlot.spacing = 4f;
+		hlpSlot.childForceExpandHeight = true;
+		hlpSlot.childForceExpandWidth = true;
+		hlpSlot.childAlignment = TextAnchor.MiddleCenter;
+		hlpSlot.childControlHeight = false;
+		hlpSlot.childControlWidth = false;
+
+		HorizontalLayoutGroup hlpText = goTexts.AddComponent<HorizontalLayoutGroup>();
+		hlpText.spacing = 4f;
+		hlpText.childForceExpandHeight = true;
+		hlpText.childForceExpandWidth = true;
+		hlpText.childAlignment = TextAnchor.MiddleCenter;
+		hlpText.childControlHeight = false;
+		hlpText.childControlWidth = false;
+
+
+		this.slotImages.Add(0, new Image[inventorySize]);
+		this.slotText.Add(0, new TextMeshProUGUI[inventorySize]);
+
+		for(int i=0; i < inventorySize; i++){
+			this.slotImages[0][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 0, i, this.slotSizes, anchorSec);
+			this.slotText[0][i] = CreateTextComponent(goTexts, $"TSlot-{i+1}", this.slotSizes, anchorSec);
+		}
+	}
+
+	private void CreatePlayerBagInventory(GameObject parent){
+		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
+		GameObject goTexts = GameObject.Instantiate(EMPTY_OBJECT);
+		Vector2 groupSizes = new Vector2(600f, 600f);
+		Vector2 anchorSec = new Vector2(0.5f, 0.5f);
+
+		int inventorySize = InventoryLoader.GetInventorySize(InventoryType.PLAYER);
+
+		goSlots.name = "MainInventorySlots";
+		goSlots.transform.SetParent(parent.transform);
+		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
+		FixTransform(slotTransform, groupSizes, null, addY:50);
+		goTexts.name = "MainInventoryTexts";
+		goTexts.transform.SetParent(parent.transform);
+		RectTransform textTransform = goTexts.GetComponent<RectTransform>();
+		FixTransform(textTransform, groupSizes, null, addY:50);
+
+		GridLayoutGroup glpSlot = goSlots.AddComponent<GridLayoutGroup>();
+		glpSlot.spacing = new Vector2(4f, 4f);
+		glpSlot.cellSize = this.slotSizes;
+
+		GridLayoutGroup glpText = goTexts.AddComponent<GridLayoutGroup>();
+		glpText.spacing = new Vector2(4f, 4f);
+		glpText.cellSize = this.slotSizes;
+
+
+		this.slotImages.Add(1, new Image[inventorySize]);
+		this.slotText.Add(1, new TextMeshProUGUI[inventorySize]);
+
+		for(int i=0; i < inventorySize; i++){
+			this.slotImages[1][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 1, i, this.slotSizes, anchorSec);
+			this.slotText[1][i] = CreateTextComponent(goTexts, $"TSlot-{i+1}", this.slotSizes, anchorSec);
+		}
+	}
+
+	private void CreateEquipmentInventory(GameObject parent){
+		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
+		GameObject goTexts = GameObject.Instantiate(EMPTY_OBJECT);
+		Vector2 groupSizes = new Vector2(800f, 100f);
+		Vector2 anchorSec = new Vector2(0.5f, 0.5f);
+
+		int inventorySize = InventoryLoader.GetInventorySize(InventoryType.EQUIPMENT);
+
+		goSlots.name = "EquipmentSlots";
+		goSlots.transform.SetParent(parent.transform);
+		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
+		FixTransform(slotTransform, groupSizes, null, addX:-600, addY:100);
+		goTexts.name = "EquipmentTexts";
+		goTexts.transform.SetParent(parent.transform);
+		RectTransform textTransform = goTexts.GetComponent<RectTransform>();
+		FixTransform(textTransform, groupSizes, null, addX:-600, addY:100);
+
+		this.slotImages.Add(2, new Image[inventorySize]);
+		this.slotText.Add(2, new TextMeshProUGUI[inventorySize]);
+
+		for(int i=0; i < inventorySize; i++){
+			this.slotImages[2][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 2, i, this.slotSizes, anchorSec);
+			this.slotText[2][i] = CreateTextComponent(goTexts, $"TSlot-{i+1}", this.slotSizes, anchorSec);
+
+			this.slotImages[2][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
+			this.slotText[2][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
+		}
+	}
+
+	private void CreateDragSlot(GameObject parent){
 		GameObject go = GameObject.Instantiate(EMPTY_OBJECT);
-		go.transform.parent = parent.transform;
+		Vector2 anchor = new Vector2(0.5f, 0.5f);
+
+		go.name = "DragBase";
+		go.transform.SetParent(parent.transform);
+		RectTransform transf = go.GetComponent<RectTransform>();
+		FixTransform(transf, this.slotSizes, anchor);
+
+
+		this.dragOverlay = CreateImageComponent(go, "DragSlot", this.slotSizes, anchor);
+		this.dragOverlay.material = Instantiate(this.itemIconMaterial);
+		this.dragOverlay.material.SetTexture("_Texture", null);
+		this.dragStacksize = CreateTextComponent(go, "DragStacksize", this.slotSizes, anchor);
+		this.dragStacksize.gameObject.AddComponent<MouseFollowerUI>();
+
+		this.dragOverlay.gameObject.SetActive(false);
+		this.dragStacksize.gameObject.SetActive(false);
+	}
+
+
+	// ------------------------- Component Generation ------------------------------------------
+
+	// Creates an Image component using Inventory's default style
+	private Image CreateImageComponent(GameObject parent, string goName, int inventoryCode, int slot, Vector2 size, Vector2 anchor){
+		GameObject go = GameObject.Instantiate(EMPTY_OBJECT);
+		go.name = goName;
+		go.transform.SetParent(parent.transform);
+		RectTransform transf = go.GetComponent<RectTransform>();
+		FixTransform(transf, size, anchor);
+
+
+		Image img = go.AddComponent<Image>();
+		img.raycastTarget = true;
+		img.material = Instantiate(this.itemIconMaterial);
+		img.material.name = $"Slot-{slot+1}";
+		img.material.SetTexture("_Texture", null);
+
+		InventoryButton button = go.AddComponent<InventoryButton>();
+		button.inventoryCode = (byte)inventoryCode;
+		button.slot = (ushort)slot;
+		button.SetController(this);
+
+		return img;
+	}
+
+	// Creates an Image that follows the cursor using Inventory's default style
+	private Image CreateImageComponent(GameObject parent, string goName, Vector2 size, Vector2 anchor){
+		GameObject go = GameObject.Instantiate(EMPTY_OBJECT);
+		go.name = goName;
+		go.transform.SetParent(parent.transform);
+		RectTransform transf = go.GetComponent<RectTransform>();
+		FixTransform(transf, size, anchor);
+
+		Image img = go.AddComponent<Image>();
+		img.raycastTarget = false;
+		img.material = Instantiate(this.itemIconMaterial);
+		img.material.SetTexture("_Texture", null);
+
+		go.AddComponent<MouseFollowerUI>();
+
+		return img;
+	}
+
+	// Creates a TextMeshProUI component using Inventory's default style
+	private TextMeshProUGUI CreateTextComponent(GameObject parent, string goName, Vector2 size, Vector2? anchor){
+		GameObject go = GameObject.Instantiate(EMPTY_OBJECT);
+		go.name = goName;
+		go.transform.SetParent(parent.transform);
+		RectTransform transf = go.GetComponent<RectTransform>();
+		FixTransform(transf, size, anchor);
 
 		TextMeshProUGUI tmp = go.AddComponent<TextMeshProUGUI>();
 
+		tmp.font = this.liberationSans;
+		tmp.fontSize = 36;
 		tmp.raycastTarget = false;
+		tmp.alignment = TextAlignmentOptions.BottomRight;
 
 		return tmp;
+	}
+
+	private void FixTransform(RectTransform rect, Vector2 size, Vector2? anchor, int addX = 0, int addY = 0){
+		if(anchor != null){
+			rect.anchorMin = (Vector2)anchor;
+			rect.anchorMax = (Vector2)anchor;
+		}
+
+		rect.anchoredPosition = Vector2.zero;
+		rect.localScale = Vector3.one;
+		rect.sizeDelta = size;
+		rect.localPosition = new Vector3(rect.localPosition.x + addX, rect.localPosition.y + addY, 0f);
 	}
 }

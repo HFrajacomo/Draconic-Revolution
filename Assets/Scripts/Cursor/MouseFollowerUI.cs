@@ -3,7 +3,6 @@ using UnityEngine;
 public class MouseFollowerUI : MonoBehaviour{
 	private RectTransform rectTransform;
 	private Canvas canvas;
-	public float forward = 0;
 
 	void Awake(){
 		this.rectTransform = GetComponent<RectTransform>();

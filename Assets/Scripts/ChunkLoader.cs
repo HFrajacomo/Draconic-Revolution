@@ -106,6 +106,7 @@ public class ChunkLoader : MonoBehaviour
         this.playerCharacter.transform.position = new Vector3(0,-999,0);
         this.mainControllerManager.SetActive(false);
         this.gameUI.SetActive(false);
+        this.playerInventoryManager.transform.parent.gameObject.SetActive(true);
         this.client = new Client(this);
         HandleClientCommunication();
         this.player.position = new Vector3(0,-999,0);
