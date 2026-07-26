@@ -42,6 +42,7 @@ public class Inventory {
 		inv.isPickupTarget = this.isPickupTarget;
 		inv.bulkMovedTo = this.bulkMovedTo;
 		inv.mainInventory = this.mainInventory;
+		inv.columnCount = this.columnCount;
 
 		return inv;
 	}
@@ -451,6 +452,20 @@ public class Inventory {
 				return InventoryType.CHEST;
 			case "EQUIPMENT":
 				return InventoryType.EQUIPMENT;
+			case "SMALL_POUCH":
+				return InventoryType.SMALL_POUCH;
+			case "MEDIUM_POUCH":
+				return InventoryType.MEDIUM_POUCH;
+			case "BIG_POUCH":
+				return InventoryType.BIG_POUCH;
+			case "SMALL_BAG":
+				return InventoryType.SMALL_BAG;
+			case "MEDIUM_BAG":
+				return InventoryType.MEDIUM_BAG;
+			case "BIG_BAG":
+				return InventoryType.BIG_BAG;
+			case "BAG_OF_HOLDING":
+				return InventoryType.BAG_OF_HOLDING;
 			default:
 				throw new DeserializationErrorException($"[Inventory] Failed to de-serialize inventory type: {this.inventoryType}");
 		}
@@ -475,5 +490,12 @@ public enum InventoryType{
 	PLAYER,
 	HOTBAR,
 	CHEST,
-	EQUIPMENT
+	EQUIPMENT,
+	SMALL_POUCH,
+	MEDIUM_POUCH,
+	BIG_POUCH,
+	SMALL_BAG,
+	MEDIUM_BAG,
+	BIG_BAG,
+	BAG_OF_HOLDING
 }

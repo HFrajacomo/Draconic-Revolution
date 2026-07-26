@@ -37,6 +37,63 @@
 					"array": ["Null", "Weapon"]
 				}
 			]
+		},
+		{
+			"inventoryType": "SMALL_POUCH",
+			"isPickupTarget": true,
+			"bulkMovedTo": true,
+			"mainInventory": false,
+			"amountOfSlots": 3,
+			"columnCount": 3
+		},
+		{
+			"inventoryType": "MEDIUM_POUCH",
+			"isPickupTarget": true,
+			"bulkMovedTo": true,
+			"mainInventory": false,
+			"amountOfSlots": 5,
+			"columnCount": 5
+		},
+		{
+			"inventoryType": "BIG_POUCH",
+			"isPickupTarget": true,
+			"bulkMovedTo": true,
+			"mainInventory": false,
+			"amountOfSlots": 10,
+			"columnCount": 5
+		},
+		{
+			"inventoryType": "SMALL_BAG",
+			"isPickupTarget": true,
+			"bulkMovedTo": true,
+			"mainInventory": false,
+			"amountOfSlots": 15,
+			"columnCount": 5
+		},
+		{
+			"inventoryType": "MEDIUM_BAG",
+			"isPickupTarget": true,
+			"bulkMovedTo": true,
+			"mainInventory": false,
+			"amountOfSlots": 20,
+			"columnCount": 5
+		},
+		{
+			"inventoryType": "BIG_BAG",
+			"isPickupTarget": true,
+			"bulkMovedTo": true,
+			"mainInventory": false,
+			"amountOfSlots": 30,
+			"columnCount": 6
+		},
+		{
+			"inventoryType": "BAG_OF_HOLDING",
+			"isPickupTarget": true,
+			"bulkMovedTo": true,
+			"mainInventory": false,
+			"amountOfSlots": 40,
+			"columnCount": 5,
+			"tagList": ["Magical"]
 		}
 	]
 }

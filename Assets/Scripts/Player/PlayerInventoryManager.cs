@@ -28,6 +28,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 	private List<Inventory> inventory = new List<Inventory>();
 	private Dictionary<int, Image[]> slotImages = new Dictionary<int, Image[]>();
 	private Dictionary<int, TextMeshProUGUI[]> slotText = new Dictionary<int, TextMeshProUGUI[]>();
+	private GameObject scrollingAreaContent;
+
 	private byte[] buffer = new byte[30000];
 	private Vector2 textPivot = new Vector2(1, 0);
 
@@ -50,7 +52,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 		CreateEquipmentInventory(this.gameObject);
 		CreateDragSlot(this.gameObject);
 
-		Debug.Log("CREATED INVS");
+		AddInventory(InventoryLoader.GetInventory(InventoryType.SMALL_POUCH));
+		AddInventory(InventoryLoader.GetInventory(InventoryType.MEDIUM_POUCH));
 
 		this.detailsImage.material = Instantiate(this.itemIconMaterial);
 		this.background.material = Instantiate(this.backgroundMaterial);
@@ -396,11 +399,6 @@ public class PlayerInventoryManager : MonoBehaviour {
     	}
     	// If there is a selection and right clicks another slot
     	else{
-    		/*
-    		Case 1: Clicks an empty slot
-    		Case 2: Clicks a slot that contains the same item
-    		Case 3: Clicks a slot that contains a different item
-    		*/
     		// Case 1: Right clicks on empty slot
     		if(IsNullSlot(inventoryCode, slot)){
     			if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot))
@@ -461,6 +459,42 @@ public class PlayerInventoryManager : MonoBehaviour {
 				SendInventoryDataToServer();
     		}
     	}
+    }
+
+    // Create a new inventory in the scroll area of the Inventory UI
+    public void AddInventory(Inventory inv){
+    	int inventoryCode = this.inventory.Count;
+
+		int amountOfColumns = inv.columnCount;
+		int inventorySize = inv.GetLimit();
+		int amounfOfRows = Mathf.CeilToInt(inventorySize/amountOfColumns);
+		Vector2 anchor = new Vector2(0.5f, 0.5f);
+		Vector2 groupSizes = new Vector2(amountOfColumns * this.slotSizes.x, Mathf.CeilToInt(inventorySize/amountOfColumns) * this.slotSizes.y);
+
+    	this.inventory.Add(inv);
+
+		// Slots and Text
+		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
+
+		goSlots.name = $"Additional Inventory {inventoryCode-2}";
+		goSlots.transform.SetParent(this.scrollingAreaContent.transform);
+		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
+		FixTransform(slotTransform, groupSizes, this.textPivot);
+
+		GridLayoutGroup glpSlot = goSlots.AddComponent<GridLayoutGroup>();
+		glpSlot.spacing = new Vector2(4f, 4f);
+		glpSlot.cellSize = this.slotSizes;
+		glpSlot.childAlignment = TextAnchor.LowerCenter;
+		glpSlot.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+		glpSlot.constraintCount = amountOfColumns;
+
+		this.slotImages.Add(inventoryCode, new Image[inventorySize]);
+		this.slotText.Add(inventoryCode, new TextMeshProUGUI[inventorySize]);
+
+		for(int i=0; i < inventorySize; i++){
+			this.slotImages[inventoryCode][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", inventoryCode, i, this.slotSizes, anchor);
+			this.slotText[inventoryCode][i] = CreateTextComponent(this.slotImages[inventoryCode][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
+		}
     }
 
     // Checks if there are more than 2 inventories with a shift-clicking capability
@@ -588,6 +622,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.EQUIPMENT));
 	}
 
+	// Creates hotbar UI
 	private void CreateHotbarInventory(GameObject parent){
 		int amountOfColumns = 9;
 
@@ -621,6 +656,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		}
 	}
 
+	// Creates Main Bag UI
 	private void CreatePlayerBagInventory(GameObject parent){
 		int amountOfColumns = InventoryLoader.GetColumnCount(InventoryType.PLAYER);
 		int inventorySize = InventoryLoader.GetInventorySize(InventoryType.PLAYER);
@@ -653,6 +689,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		GameObject contentObject = GameObject.Instantiate(EMPTY_OBJECT);
 		contentObject.name = "Content";
 		contentObject.transform.SetParent(scrollObject.transform);
+		this.scrollingAreaContent = contentObject;
 		RectTransform rectTransform = contentObject.GetComponent<RectTransform>();
 		FixTransform(rectTransform, scrollAreaSizes, anchorMain);
 		scroll.content = contentObject.GetComponent<RectTransform>();
@@ -682,7 +719,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		glpSlot.spacing = new Vector2(4f, 4f);
 		glpSlot.cellSize = this.slotSizes;
 		glpSlot.childAlignment = TextAnchor.LowerCenter;
-		glpSlot.constraint = GridLayoutGroup.Constraint.FixedRowCount;
+		glpSlot.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
 		glpSlot.constraintCount = amountOfColumns;
 
 		this.slotImages.Add(1, new Image[inventorySize]);
@@ -694,6 +731,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		}
 	}
 
+	// Creates Equipment UI
 	private void CreateEquipmentInventory(GameObject parent){
 		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
 		GameObject goTexts = GameObject.Instantiate(EMPTY_OBJECT);
