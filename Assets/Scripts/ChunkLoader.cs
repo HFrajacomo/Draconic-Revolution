@@ -106,7 +106,6 @@ public class ChunkLoader : MonoBehaviour
         this.playerCharacter.transform.position = new Vector3(0,-999,0);
         this.mainControllerManager.SetActive(false);
         this.gameUI.SetActive(false);
-        this.playerInventoryManager.transform.parent.gameObject.SetActive(true);
         this.client = new Client(this);
         HandleClientCommunication();
         this.player.position = new Vector3(0,-999,0);
@@ -164,6 +163,7 @@ public class ChunkLoader : MonoBehaviour
                 this.message.SendClientInfo(this.playerAccountID, World.renderDistance, 0, "a");
 
             this.client.SetPlayerModelHandler(this.playerModelHandler);
+            this.playerInventoryManager.Init();
             this.renderDistance = World.renderDistance + 1;
             this.client.Send(this.message);
             this.SENTINFOTOSERVER = true;

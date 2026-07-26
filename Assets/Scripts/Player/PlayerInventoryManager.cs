@@ -19,10 +19,12 @@ public class PlayerInventoryManager : MonoBehaviour {
     public Material backgroundMaterial;
     public TMP_FontAsset liberationSans;
 
+    private bool INIT = false;
+
     private bool bulkMoveAbove = true; // If inventory shift-move should be done upwards or downwards
 
-	private static readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObjectUI";
-	private static GameObject EMPTY_OBJECT;
+	private readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObjectUI";
+	private GameObject EMPTY_OBJECT;
 
 	// Inventory data and draw info
 	private List<Inventory> inventory = new List<Inventory>();
@@ -41,7 +43,17 @@ public class PlayerInventoryManager : MonoBehaviour {
 	// Constants
 	private readonly Vector2 slotSizes = new Vector2(80f, 80f);
 
-	void Awake(){
+	void OnDisable(){
+		if(this.draggedStack != null){
+			this.mainControllerManager.DropItem(this.draggedStack);
+			ResetSelection();
+		}
+	}
+
+	public void Init(){
+		if(this.INIT)
+			return;
+
 		EMPTY_OBJECT = GameObject.Find(EMPTY_OBJECT_PATHNAME);
 
 		if(this.inventory.Count == 0)
@@ -54,18 +66,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		this.detailsImage.material = Instantiate(this.itemIconMaterial);
 		this.background.material = Instantiate(this.backgroundMaterial);
-
-		this.transform.parent.gameObject.SetActive(false);
+		INIT = true;
 	}
-
-	void OnDisable(){
-		if(this.draggedStack != null){
-			this.mainControllerManager.DropItem(this.draggedStack);
-			ResetSelection();
-		}
-	}
-
-	// 
 
 	// Creates inventories based on byte array
 	public void LoadFromBytes(byte[] data, int init){
@@ -92,11 +94,11 @@ public class PlayerInventoryManager : MonoBehaviour {
 			type = (InventoryType)data[bytesRead];
 			bytesRead++;
 
-			if(type != this.inventory[currentInventory].GetInventoryType()){
-				if(this.inventory.Count < currentInventory)
-					this.inventory[currentInventory] = InventoryLoader.GetInventory(type);
-				else
-					this.inventory.Add(InventoryLoader.GetInventory(type));
+			if(this.inventory.Count <= currentInventory){
+				AddInventory(InventoryLoader.GetInventory(type));
+			}
+			else if(type != this.inventory[currentInventory].GetInventoryType()){
+				this.inventory[currentInventory] = InventoryLoader.GetInventory(type);
 			}
 
 			for(ushort i=0; i < this.inventory[currentInventory].GetLimit(); i++){
@@ -492,6 +494,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 			this.slotImages[inventoryCode][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", inventoryCode, i, this.slotSizes, anchor);
 			this.slotText[inventoryCode][i] = CreateTextComponent(this.slotImages[inventoryCode][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
 		}
+
+		SendInventoryDataToServer();
     }
 
     // Checks if there are more than 2 inventories with a shift-clicking capability
@@ -849,6 +853,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		}
 		rect.anchoredPosition = Vector2.zero;
 		rect.localScale = Vector3.one;
+		rect.localRotation = Quaternion.identity;
 		rect.sizeDelta = size;
 		rect.localPosition = new Vector3(rect.localPosition.x + addX, rect.localPosition.y + addY, 0f);
 	}
