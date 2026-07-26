@@ -5,7 +5,7 @@
 			"isPickupTarget": true,
 			"bulkMovedTo": true,
 			"mainInventory": false,
-			"amountOfSlots": 36,
+			"amountOfSlots": 30,
 			"columnCount": 6
 		},
 		{

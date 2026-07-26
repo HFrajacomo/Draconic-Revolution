@@ -52,9 +52,6 @@ public class PlayerInventoryManager : MonoBehaviour {
 		CreateEquipmentInventory(this.gameObject);
 		CreateDragSlot(this.gameObject);
 
-		AddInventory(InventoryLoader.GetInventory(InventoryType.SMALL_POUCH));
-		AddInventory(InventoryLoader.GetInventory(InventoryType.MEDIUM_POUCH));
-
 		this.detailsImage.material = Instantiate(this.itemIconMaterial);
 		this.background.material = Instantiate(this.backgroundMaterial);
 
