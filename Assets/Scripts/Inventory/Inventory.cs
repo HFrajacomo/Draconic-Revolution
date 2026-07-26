@@ -14,6 +14,7 @@ public class Inventory {
 	public bool bulkMovedTo;
 	public bool mainInventory;
 	public ushort amountOfSlots;
+	public int columnCount = 3;
 
 	private ItemStack[] slots;
 	private InventoryType type;

@@ -31,6 +31,7 @@ public class InventoryLoader : BaseLoader {
 
 	public static Inventory GetInventory(InventoryType type){return inventories[type].Copy();}
 	public static int GetInventorySize(InventoryType type){return inventorySizes[type];}
+	public static int GetColumnCount(InventoryType type){return inventories[type].columnCount;}
 
 	private void LoadInventories(bool isClient){
 		TextAsset textAsset;

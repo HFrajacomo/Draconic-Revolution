@@ -157,33 +157,53 @@ public class MainControllerManager : MonoBehaviour {
     }
 
     public void OnScroll1(){
+        if(MainControllerManager.InUI)
+            return;
         hotbarHandler.Scroll1();
     }
     public void OnScroll2(){
+        if(MainControllerManager.InUI)
+            return;
         hotbarHandler.Scroll2();
     }
     public void OnScroll3(){
+        if(MainControllerManager.InUI)
+            return;
         hotbarHandler.Scroll3();
     }
     public void OnScroll4(){
+        if(MainControllerManager.InUI)
+            return;
         hotbarHandler.Scroll4();
     }
     public void OnScroll5(){
+        if(MainControllerManager.InUI)
+            return;
         hotbarHandler.Scroll5();
     }
     public void OnScroll6(){
+        if(MainControllerManager.InUI)
+            return;
         hotbarHandler.Scroll6();
     }
     public void OnScroll7(){
+        if(MainControllerManager.InUI)
+            return;
         hotbarHandler.Scroll7();
     }
     public void OnScroll8(){
+        if(MainControllerManager.InUI)
+            return;
         hotbarHandler.Scroll8();
     }
     public void OnScroll9(){
+        if(MainControllerManager.InUI)
+            return;
         hotbarHandler.Scroll9();
     }
     public void OnMouseScroll(InputValue val){
+        if(MainControllerManager.InUI)
+            return;
         hotbarHandler.MouseScroll((int)val.Get<Vector2>().y);
     }
     public void OnOpenInventory(){

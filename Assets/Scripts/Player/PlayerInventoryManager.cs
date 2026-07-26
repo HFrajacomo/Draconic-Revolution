@@ -28,15 +28,16 @@ public class PlayerInventoryManager : MonoBehaviour {
 	private List<Inventory> inventory = new List<Inventory>();
 	private Dictionary<int, Image[]> slotImages = new Dictionary<int, Image[]>();
 	private Dictionary<int, TextMeshProUGUI[]> slotText = new Dictionary<int, TextMeshProUGUI[]>();
-	private ItemStack draggedStack;
 	private byte[] buffer = new byte[30000];
+	private Vector2 textPivot = new Vector2(1, 0);
 
 	// Drag and Drop overlay
 	private Image dragOverlay;
+	private ItemStack draggedStack;
 	private TextMeshProUGUI dragStacksize;
 
 	// Constants
-	private readonly Vector2 slotSizes = new Vector2(96f, 96f);
+	private readonly Vector2 slotSizes = new Vector2(80f, 80f);
 
 	void Awake(){
 		EMPTY_OBJECT = GameObject.Find(EMPTY_OBJECT_PATHNAME);
@@ -588,9 +589,10 @@ public class PlayerInventoryManager : MonoBehaviour {
 	}
 
 	private void CreateHotbarInventory(GameObject parent){
+		int amountOfColumns = 9;
+
 		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
-		GameObject goTexts = GameObject.Instantiate(EMPTY_OBJECT);
-		Vector2 groupSizes = new Vector2(800f, 100f);
+		Vector2 groupSizes = new Vector2(amountOfColumns * this.slotSizes.x, this.slotSizes.y);
 		Vector2 anchorMain = new Vector2(0.5f, 0f);
 		Vector2 anchorSec = new Vector2(0.5f, 0.5f);
 
@@ -599,11 +601,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		goSlots.name = "HotbarSlots";
 		goSlots.transform.SetParent(parent.transform);
 		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
-		FixTransform(slotTransform, groupSizes, anchorMain, addY:50);
-		goTexts.name = "HotbarTexts";
-		goTexts.transform.SetParent(parent.transform);
-		RectTransform textTransform = goTexts.GetComponent<RectTransform>();
-		FixTransform(textTransform, groupSizes, anchorMain, addY:50);
+		FixTransform(slotTransform, groupSizes, anchorMain, addX:-48, addY:20);
 
 
 		HorizontalLayoutGroup hlpSlot = goSlots.AddComponent<HorizontalLayoutGroup>();
@@ -614,82 +612,107 @@ public class PlayerInventoryManager : MonoBehaviour {
 		hlpSlot.childControlHeight = false;
 		hlpSlot.childControlWidth = false;
 
-		HorizontalLayoutGroup hlpText = goTexts.AddComponent<HorizontalLayoutGroup>();
-		hlpText.spacing = 4f;
-		hlpText.childForceExpandHeight = true;
-		hlpText.childForceExpandWidth = true;
-		hlpText.childAlignment = TextAnchor.MiddleCenter;
-		hlpText.childControlHeight = false;
-		hlpText.childControlWidth = false;
-
-
 		this.slotImages.Add(0, new Image[inventorySize]);
 		this.slotText.Add(0, new TextMeshProUGUI[inventorySize]);
 
 		for(int i=0; i < inventorySize; i++){
 			this.slotImages[0][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 0, i, this.slotSizes, anchorSec);
-			this.slotText[0][i] = CreateTextComponent(goTexts, $"TSlot-{i+1}", this.slotSizes, anchorSec);
+			this.slotText[0][i] = CreateTextComponent(this.slotImages[0][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
 		}
 	}
 
 	private void CreatePlayerBagInventory(GameObject parent){
-		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
-		GameObject goTexts = GameObject.Instantiate(EMPTY_OBJECT);
-		Vector2 groupSizes = new Vector2(600f, 600f);
+		int amountOfColumns = InventoryLoader.GetColumnCount(InventoryType.PLAYER);
+		int inventorySize = InventoryLoader.GetInventorySize(InventoryType.PLAYER);
+		int amounfOfRows = Mathf.CeilToInt(inventorySize/amountOfColumns);
+
+
+		Vector2 scrollAreaSizes = new Vector2(850f, 820f);
+		Vector2 groupSizes = new Vector2(amountOfColumns * this.slotSizes.x, amounfOfRows * this.slotSizes.y);
+		Vector2 anchorMain = new Vector2(0.5f, 0f);
 		Vector2 anchorSec = new Vector2(0.5f, 0.5f);
 
-		int inventorySize = InventoryLoader.GetInventorySize(InventoryType.PLAYER);
+		// Scroll Object
+		GameObject scrollObject = GameObject.Instantiate(EMPTY_OBJECT);
+		scrollObject.name = "ScrollArea";
+		scrollObject.transform.SetParent(parent.transform);
+		RectTransform rectTransf = scrollObject.GetComponent<RectTransform>();
+		FixTransform(rectTransf, scrollAreaSizes, anchorMain, addY:200);
+		ScrollRectNoDrag scroll = scrollObject.AddComponent<ScrollRectNoDrag>();
+		scroll.movementType = ScrollRect.MovementType.Clamped;
+		scroll.scrollSensitivity = 100f;
+		scroll.viewport = rectTransf;
+		Image transparentImage = scrollObject.AddComponent<Image>();
+		transparentImage.color = new Color(1f,1f,1f,0f);
+		RectMask2D rm = scrollObject.AddComponent<RectMask2D>();
+		rm.padding = new Vector4(0f,36f,0f,0f);
+		rm.softness = new Vector2Int(0,30);
+		scroll.horizontal = false;
+
+		// Content
+		GameObject contentObject = GameObject.Instantiate(EMPTY_OBJECT);
+		contentObject.name = "Content";
+		contentObject.transform.SetParent(scrollObject.transform);
+		RectTransform rectTransform = contentObject.GetComponent<RectTransform>();
+		FixTransform(rectTransform, scrollAreaSizes, anchorMain);
+		scroll.content = contentObject.GetComponent<RectTransform>();
+
+		VerticalLayoutGroup vlg = contentObject.AddComponent<VerticalLayoutGroup>();
+		vlg.spacing = 80;
+		vlg.childForceExpandHeight = false;
+		vlg.childForceExpandWidth = false;
+		vlg.childAlignment = TextAnchor.LowerCenter;
+		vlg.childControlHeight = false;
+		vlg.childControlWidth = false;
+		vlg.reverseArrangement = true;
+		vlg.padding = new RectOffset(0, 0, 54, 54);
+
+		ContentSizeFitter csf = contentObject.AddComponent<ContentSizeFitter>();
+		csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+		// Slots and Text
+		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
 
 		goSlots.name = "MainInventorySlots";
-		goSlots.transform.SetParent(parent.transform);
+		goSlots.transform.SetParent(contentObject.transform);
 		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
-		FixTransform(slotTransform, groupSizes, null, addY:50);
-		goTexts.name = "MainInventoryTexts";
-		goTexts.transform.SetParent(parent.transform);
-		RectTransform textTransform = goTexts.GetComponent<RectTransform>();
-		FixTransform(textTransform, groupSizes, null, addY:50);
+		FixTransform(slotTransform, groupSizes, this.textPivot, addY:50);
 
 		GridLayoutGroup glpSlot = goSlots.AddComponent<GridLayoutGroup>();
 		glpSlot.spacing = new Vector2(4f, 4f);
 		glpSlot.cellSize = this.slotSizes;
-
-		GridLayoutGroup glpText = goTexts.AddComponent<GridLayoutGroup>();
-		glpText.spacing = new Vector2(4f, 4f);
-		glpText.cellSize = this.slotSizes;
-
+		glpSlot.childAlignment = TextAnchor.LowerCenter;
+		glpSlot.constraint = GridLayoutGroup.Constraint.FixedRowCount;
+		glpSlot.constraintCount = amountOfColumns;
 
 		this.slotImages.Add(1, new Image[inventorySize]);
 		this.slotText.Add(1, new TextMeshProUGUI[inventorySize]);
 
 		for(int i=0; i < inventorySize; i++){
 			this.slotImages[1][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 1, i, this.slotSizes, anchorSec);
-			this.slotText[1][i] = CreateTextComponent(goTexts, $"TSlot-{i+1}", this.slotSizes, anchorSec);
+			this.slotText[1][i] = CreateTextComponent(this.slotImages[1][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
 		}
 	}
 
 	private void CreateEquipmentInventory(GameObject parent){
 		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
 		GameObject goTexts = GameObject.Instantiate(EMPTY_OBJECT);
-		Vector2 groupSizes = new Vector2(800f, 100f);
-		Vector2 anchorSec = new Vector2(0.5f, 0.5f);
+		Vector2 groupSizes = new Vector2(96f, 96f);
+		Vector2 anchorSec = new Vector2(0f, 0.5f);
 
 		int inventorySize = InventoryLoader.GetInventorySize(InventoryType.EQUIPMENT);
 
 		goSlots.name = "EquipmentSlots";
 		goSlots.transform.SetParent(parent.transform);
 		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
-		FixTransform(slotTransform, groupSizes, null, addX:-600, addY:100);
-		goTexts.name = "EquipmentTexts";
-		goTexts.transform.SetParent(parent.transform);
-		RectTransform textTransform = goTexts.GetComponent<RectTransform>();
-		FixTransform(textTransform, groupSizes, null, addX:-600, addY:100);
+		FixTransform(slotTransform, groupSizes, anchorSec, addX:400);
 
 		this.slotImages.Add(2, new Image[inventorySize]);
 		this.slotText.Add(2, new TextMeshProUGUI[inventorySize]);
 
 		for(int i=0; i < inventorySize; i++){
 			this.slotImages[2][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 2, i, this.slotSizes, anchorSec);
-			this.slotText[2][i] = CreateTextComponent(goTexts, $"TSlot-{i+1}", this.slotSizes, anchorSec);
+			this.slotText[2][i] = CreateTextComponent(this.slotImages[2][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
 
 			this.slotImages[2][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
 			this.slotText[2][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
@@ -761,7 +784,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	}
 
 	// Creates a TextMeshProUI component using Inventory's default style
-	private TextMeshProUGUI CreateTextComponent(GameObject parent, string goName, Vector2 size, Vector2? anchor){
+	private TextMeshProUGUI CreateTextComponent(GameObject parent, string goName, Vector2 size, Vector2 anchor){
 		GameObject go = GameObject.Instantiate(EMPTY_OBJECT);
 		go.name = goName;
 		go.transform.SetParent(parent.transform);
@@ -771,19 +794,24 @@ public class PlayerInventoryManager : MonoBehaviour {
 		TextMeshProUGUI tmp = go.AddComponent<TextMeshProUGUI>();
 
 		tmp.font = this.liberationSans;
-		tmp.fontSize = 36;
+		tmp.fontSize = 24;
 		tmp.raycastTarget = false;
 		tmp.alignment = TextAlignmentOptions.BottomRight;
 
 		return tmp;
 	}
 
-	private void FixTransform(RectTransform rect, Vector2 size, Vector2? anchor, int addX = 0, int addY = 0){
-		if(anchor != null){
-			rect.anchorMin = (Vector2)anchor;
-			rect.anchorMax = (Vector2)anchor;
+	private void FixTransform(RectTransform rect, Vector2 size, Vector2 anchor, int addX = 0, int addY = 0, bool special = false){
+		if(!special){
+			rect.anchorMin = anchor;
+			rect.anchorMax = anchor;
+			rect.pivot = anchor;
 		}
-
+		else{
+			rect.anchorMin = new Vector2(0.5f, 0f);
+			rect.anchorMax = new Vector2(0.5f, 1f);
+			rect.pivot = new Vector2(0.5f, 0.5f);
+		}
 		rect.anchoredPosition = Vector2.zero;
 		rect.localScale = Vector3.one;
 		rect.sizeDelta = size;
