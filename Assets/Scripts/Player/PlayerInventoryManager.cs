@@ -460,6 +460,11 @@ public class PlayerInventoryManager : MonoBehaviour {
     	}
     }
 
+    public void SetNull(int inventoryCode, byte slot){
+    	this.inventory[inventoryCode].SetNull(slot);
+    	DrawSlot((byte)inventoryCode, slot);
+    }
+
     // Create a new inventory in the scroll area of the Inventory UI
     public void AddInventory(Inventory inv){
     	int inventoryCode = this.inventory.Count;

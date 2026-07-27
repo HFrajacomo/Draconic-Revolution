@@ -84,18 +84,19 @@ public class PlayerEntityRadar : EntityRadar{
 
 	private PlayerServerInventorySlot CreateSlot(ItemStack its, byte slotNumber){
 		InventoryType type = this.psi.GetSlot(this.ID.code, slotNumber).GetInventoryType();
+		byte inInventorySlot = this.psi.GetSlot(this.ID.code, slotNumber).GetSlotID();
 
 		this.cachedItem = its.GetItem();
 
 		if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.ITEM){
-			return new ItemPlayerInventorySlot(its.GetID(), its.GetAmount(), type);
+			return new ItemPlayerInventorySlot(its.GetID(), its.GetAmount(), type, inInventorySlot);
 		} 
 		else if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.WEAPON){
-			return new WeaponPlayerInventorySlot(its.GetID(), ((Weapon)this.cachedItem).currentDurability, ((Weapon)this.cachedItem).refineLevel, ((Weapon)this.cachedItem).extraEffect, type);
+			return new WeaponPlayerInventorySlot(its.GetID(), ((Weapon)this.cachedItem).currentDurability, ((Weapon)this.cachedItem).refineLevel, ((Weapon)this.cachedItem).extraEffect, type, inInventorySlot);
 		}
 		else{
 			// STORAGE ITEMS NOT IMPLEMENTED
-			return new EmptyPlayerInventorySlot(type);
+			return new EmptyPlayerInventorySlot(type, inInventorySlot);
 		}
 	}
 }

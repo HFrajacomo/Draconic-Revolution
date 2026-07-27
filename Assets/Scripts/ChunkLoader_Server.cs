@@ -488,27 +488,27 @@ public class ChunkLoader_Server : MonoBehaviour
         NetMessage message;
         int length;
 
-        for(int i=0; i < size; i++){
+        for(byte i=0; i < size; i++){
             if(i == 1){
-                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE, InventoryType.HOTBAR);
+                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE, InventoryType.HOTBAR, i);
             }
             else if(i == 2){
-                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE, InventoryType.HOTBAR);
+                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE, InventoryType.HOTBAR, i);
             }
             else if(i == 3){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50, InventoryType.HOTBAR);
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50, InventoryType.HOTBAR, i);
             }
             else if(i == 4){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50, InventoryType.HOTBAR);
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50, InventoryType.HOTBAR, i);
             }
             else if(i < InventoryLoader.GetInventorySize(InventoryType.HOTBAR)){
-                slots[i] = new EmptyPlayerInventorySlot(InventoryType.HOTBAR);
+                slots[i] = new EmptyPlayerInventorySlot(InventoryType.HOTBAR, i);
             }
             else if(i < InventoryLoader.GetInventorySize(InventoryType.HOTBAR) + InventoryLoader.GetInventorySize(InventoryType.PLAYER)){
-                slots[i] = new EmptyPlayerInventorySlot(InventoryType.PLAYER);
+                slots[i] = new EmptyPlayerInventorySlot(InventoryType.PLAYER, i);
             }
             else{
-                slots[i] = new EmptyPlayerInventorySlot(InventoryType.EQUIPMENT);                
+                slots[i] = new EmptyPlayerInventorySlot(InventoryType.EQUIPMENT, i);                
             }
         }
 

@@ -1,7 +1,8 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -32,6 +33,7 @@ public class InventoryLoader : BaseLoader {
 	public static Inventory GetInventory(InventoryType type){return inventories[type].Copy();}
 	public static int GetInventorySize(InventoryType type){return inventorySizes[type];}
 	public static int GetColumnCount(InventoryType type){return inventories[type].columnCount;}
+	public static bool GetPickupTarget(InventoryType type){return inventories[type].isPickupTarget;}
 
 	private void LoadInventories(bool isClient){
 		TextAsset textAsset;

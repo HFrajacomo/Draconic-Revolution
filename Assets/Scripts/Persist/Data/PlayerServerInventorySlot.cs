@@ -8,14 +8,18 @@ public abstract class PlayerServerInventorySlot{
 	protected ushort itemID;
 	protected byte quantity;
 	protected InventoryType inventoryType;
+	protected byte slotID;
 
 	public int GetSlotMemorySize(){return this.slotMemorySize;}
+	public byte GetSlotID(){return this.slotID;}
 	public ItemStack GetItemStack(){return new ItemStack(this.itemID, this.quantity);}
 	public abstract int SaveToBuffer(byte[] buffer, int init);
 	public virtual int GetItemID(){return (int)this.itemID;}
 	public virtual int GetQuantity(){return 1;}
 	public virtual void SetQuantity(byte quantity){}
 	public InventoryType GetInventoryType(){return this.inventoryType;}
+	public bool IsInGlobalWhitelist(ItemStack its){return InventoryLoader.GetInventory(GetInventoryType()).IsInGlobalWhitelist(its);}
+	public bool IsInLocalWhitelist(ItemStack its){return InventoryLoader.GetInventory(GetInventoryType()).IsInLocalWhitelist(its, this.slotID);}
 
 	public static List<PlayerServerInventorySlot> BuildInventory(byte[] data, int init, ref int bytesWritten, int readSize = -1){
 		List<PlayerServerInventorySlot> slots = new List<PlayerServerInventorySlot>();
@@ -40,20 +44,20 @@ public abstract class PlayerServerInventorySlot{
 			invType = (InventoryType)NetDecoder.ReadByte(data, currentPosition);
 			currentPosition++;
 
-			for(int i=0; i < InventoryLoader.GetInventorySize(invType); i++){
+			for(byte i=0; i < InventoryLoader.GetInventorySize(invType); i++){
 				cachedType = (MemoryStorageType)NetDecoder.ReadByte(data, currentPosition);
 				currentPosition++;
 
 				switch(cachedType){
 					case MemoryStorageType.EMPTY:
-						slots.Add(new EmptyPlayerInventorySlot(invType));
+						slots.Add(new EmptyPlayerInventorySlot(invType, i));
 						break;
 					case MemoryStorageType.ITEM:
 						cachedId = NetDecoder.ReadUshort(data, currentPosition);
 						currentPosition += 2;
 						cachedQuantity = NetDecoder.ReadByte(data, currentPosition);
 						currentPosition++;
-						slots.Add(new ItemPlayerInventorySlot(cachedId, cachedQuantity, invType));
+						slots.Add(new ItemPlayerInventorySlot(cachedId, cachedQuantity, invType, i));
 						break;
 					case MemoryStorageType.WEAPON:
 						cachedId = NetDecoder.ReadUshort(data, currentPosition);
@@ -64,7 +68,7 @@ public abstract class PlayerServerInventorySlot{
 						currentPosition++;
 						cachedEnchant = (EnchantmentType)NetDecoder.ReadByte(data, currentPosition);
 						currentPosition++;
-						slots.Add(new WeaponPlayerInventorySlot(cachedId, cachedDurability, cachedRefine, cachedEnchant, invType));
+						slots.Add(new WeaponPlayerInventorySlot(cachedId, cachedDurability, cachedRefine, cachedEnchant, invType, i));
 						break;
 				}
 			}
@@ -80,10 +84,11 @@ Empty Inventory Slot
 */
 public class EmptyPlayerInventorySlot : PlayerServerInventorySlot {
 
-	public EmptyPlayerInventorySlot(InventoryType invType){
+	public EmptyPlayerInventorySlot(InventoryType invType, byte slotID){
 		this.type = MemoryStorageType.EMPTY;
 		this.slotMemorySize = 1;
 		this.inventoryType = invType;
+		this.slotID = slotID;
 	}
 
 	public override int SaveToBuffer(byte[] buffer, int init){
@@ -105,12 +110,13 @@ public class EmptyPlayerInventorySlot : PlayerServerInventorySlot {
 Inventory Slot that contains a basic and untagged item
 */
 public class ItemPlayerInventorySlot : PlayerServerInventorySlot {
-	public ItemPlayerInventorySlot(ushort id, byte quantity, InventoryType invType){
+	public ItemPlayerInventorySlot(ushort id, byte quantity, InventoryType invType, byte slotID){
 		this.type = MemoryStorageType.ITEM;
 		this.slotMemorySize = 4;
 		this.itemID = id;
 		this.quantity = quantity;
 		this.inventoryType = invType;
+		this.slotID = slotID;
 	}
 
 	public override int SaveToBuffer(byte[] buffer, int init){
@@ -137,7 +143,7 @@ public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
 	private byte refineLevel;
 	private EnchantmentType enchant;
 
-	public WeaponPlayerInventorySlot(ushort id, uint currentDurability, byte refineLevel, EnchantmentType enchant, InventoryType invType){
+	public WeaponPlayerInventorySlot(ushort id, uint currentDurability, byte refineLevel, EnchantmentType enchant, InventoryType invType, byte slotID){
 		this.type = MemoryStorageType.WEAPON;
 		this.slotMemorySize = 9;
 		this.itemID = id;
@@ -145,6 +151,7 @@ public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
 		this.refineLevel = refineLevel;
 		this.enchant = enchant;
 		this.inventoryType = invType;
+		this.slotID = slotID;
 	}
 
 	public override int SaveToBuffer(byte[] buffer, int init){
@@ -168,13 +175,14 @@ public class StoragePlayerInventorySlot : PlayerServerInventorySlot {
 	private byte inventorySize;
 	private PlayerServerInventorySlot[] inventory;
 
-	public StoragePlayerInventorySlot(ushort id, byte inventorySize, PlayerServerInventorySlot[] inventory, InventoryType invType){
+	public StoragePlayerInventorySlot(ushort id, byte inventorySize, PlayerServerInventorySlot[] inventory, InventoryType invType, byte slotID){
 		int size = 0;
 
 		this.type = MemoryStorageType.STORAGE;
 		this.itemID = id;
 		this.inventorySize = inventorySize;
 		this.inventory = inventory;
+		this.slotID = slotID;
 
 		if(inventory == null)
 			this.slotMemorySize = 4 + this.inventorySize;

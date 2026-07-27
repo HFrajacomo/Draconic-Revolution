@@ -264,6 +264,7 @@ public class MainControllerManager : MonoBehaviour {
         if(!MainControllerManager.ctrl){
             if(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).Decrement()){
                 hotbarHandler.hotbar.SetNull(PlayerHotbarHandler.hotbarSlot);
+                this.playerInventoryManager.SetNull(0, PlayerHotbarHandler.hotbarSlot);
             }
 
             amount = 1;
@@ -272,6 +273,7 @@ public class MainControllerManager : MonoBehaviour {
         else{
             amount = hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetAmount();
             hotbarHandler.hotbar.SetNull(PlayerHotbarHandler.hotbarSlot);
+            this.playerInventoryManager.SetNull(0, PlayerHotbarHandler.hotbarSlot);
 
             its = new ItemStack(id, amount);
         }  
