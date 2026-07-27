@@ -339,6 +339,7 @@ MonoBehaviour:
     bulkMovedTo: 0
     mainInventory: 0
     amountOfSlots: 0
+    columnCount: 9
   hotbarIcon:
   - {fileID: 680558544}
   - {fileID: 909137828}
@@ -7147,80 +7148,6 @@ MonoBehaviour:
   itemIconMaterial: {fileID: 2100000, guid: 757d7ed9e718e554ead4be13de0d9cc8, type: 2}
   backgroundMaterial: {fileID: 2100000, guid: c1b6d00ab13b4f44cb81f834ccb74e94, type: 2}
   liberationSans: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  invButton:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  invText:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
 --- !u!1 &675879286
 GameObject:
   m_ObjectHideFlags: 0
@@ -20352,6 +20279,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1485323992}
+  - component: {fileID: 1485323994}
   - component: {fileID: 1485323991}
   - component: {fileID: 1485323990}
   - component: {fileID: 1485323993}
@@ -20453,6 +20381,19 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1485323994
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1485323988}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01d481e83b0638a448ee6904fc5270e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  droppedItemHierarchy: {fileID: 1427935633}
 --- !u!1 &1588378839
 GameObject:
   m_ObjectHideFlags: 0

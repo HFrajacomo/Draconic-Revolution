@@ -90,9 +90,6 @@ public class MainControllerManager : MonoBehaviour {
     }
 
     public void OnSheathe(){
-        this.playerInventoryManager.AddInventory(InventoryLoader.GetInventory(InventoryType.BAG_OF_HOLDING));
-
-
         if(!MainControllerManager.InUI){
             this.playerActionController.Sheathe();
         }

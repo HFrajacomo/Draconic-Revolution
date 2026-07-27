@@ -164,7 +164,7 @@ public class EntityHandler
 			this.playerCurrentPositions[code] = new DeltaMove(pos, dir);
 		}
 		else if(type == EntityType.DROP){
-			this.dropObject[code].go.transform.position = this.dropCurrentPositions[code].deltaPos;
+			this.dropObject[code].gameObject.transform.position = this.dropCurrentPositions[code].deltaPos;
 
 			this.dropCurrentPositions[code] = new DeltaMove(pos, dir);	
 		}
@@ -178,14 +178,14 @@ public class EntityHandler
 			this.playerHead[code].transform.eulerAngles += new Vector3((dRot * (Time.deltaTime / TimeOfDay.timeRate)).x, 0, 0);
 		}
 		else if(type == EntityType.DROP){
-			this.dropObject[code].go.transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
+			this.dropObject[code].gameObject.transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
 		}
 	}
 
 	// Should only be used to hard set item rotation animation position
 	public void SetItemPosition(ulong code, Vector3 newPos){
 		if(this.dropObject.ContainsKey(code)){
-			this.dropObject[code].go.transform.position = newPos;
+			this.dropObject[code].gameObject.transform.position = newPos;
 		}
 	}
 
@@ -206,7 +206,7 @@ public class EntityHandler
 			this.cl.sfx.RemoveEntitySFX(new EntityID(type, code));
 		}
 		else if(type == EntityType.DROP){
-			this.dropObject[code].go.SetActive(false);
+			this.dropObject[code].gameObject.SetActive(false);
 			GameObject.Destroy(this.dropObject[code]);
 			this.dropObject.Remove(code);
 			this.dropCurrentPositions.Remove(code);

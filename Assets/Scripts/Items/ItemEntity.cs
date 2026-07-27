@@ -11,12 +11,11 @@ public class ItemEntity : MonoBehaviour {
 	private static readonly string NAME = "DroppedItem";
 	private static readonly Random rng = new Random();
 
-	public MeshFilter meshFilter;
-	public MeshRenderer meshRenderer;
+    public GameObject droppedItemHierarchy;
+	private MeshFilter meshFilter;
+	private MeshRenderer meshRenderer;
 	private Mesh mesh;
 	private ItemStack its;
-	public GameObject go;
-    public GameObject droppedItemHierarchy;
 	private Vector3 initialForce = new Vector3(0f, 0f, 0f);
 	private Animator animator;
 	private bool isRotation = false;
@@ -25,11 +24,11 @@ public class ItemEntity : MonoBehaviour {
 	private static readonly string ANIMATION_ROTATION = "DroppedItemRotation";
 
 	void Awake(){
-		this.go = this.gameObject;
-		this.go.transform.parent = this.droppedItemHierarchy.transform;
-		this.meshFilter = this.go.GetComponent<MeshFilter>();
-		this.animator = this.go.GetComponent<Animator>();
-		this.go.name = ItemEntity.NAME;
+		this.gameObject.transform.parent = this.droppedItemHierarchy.transform;
+		this.meshFilter = GetComponent<MeshFilter>();
+		this.meshRenderer = GetComponent<MeshRenderer>();
+		this.animator = this.gameObject.GetComponent<Animator>();
+		this.gameObject.name = ItemEntity.NAME;
 		this.mesh = new Mesh();
 		this.animator.applyRootMotion = false;
 	}
@@ -110,7 +109,7 @@ public class ItemEntity : MonoBehaviour {
 
 	private bool CheckDestroy(byte itemsTaken){
 		if(itemsTaken >= this.its.GetAmount()){
-			GameObject.Destroy(this.go);
+			GameObject.Destroy(this.gameObject);
 			return true;
 		}
 		return false;
