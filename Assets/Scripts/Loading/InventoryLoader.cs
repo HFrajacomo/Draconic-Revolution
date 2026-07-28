@@ -17,8 +17,9 @@ public class InventoryLoader : BaseLoader {
 	private static bool isClient;
 
 	// Item Information
-	private static Dictionary<InventoryType, Inventory> inventories = new Dictionary<InventoryType, Inventory>();
-	private static Dictionary<InventoryType, int> inventorySizes = new Dictionary<InventoryType, int>();
+	private static Dictionary<string, Inventory> inventories = new Dictionary<string, Inventory>();
+	private static Dictionary<byte, Inventory> inventoriesByID = new Dictionary<byte, Inventory>();
+	private static Dictionary<int, int> inventorySizes = new Dictionary<int, int>();
 	private static Dictionary<string, Texture2D> inventoryIcons = new Dictionary<string, Texture2D>();
 
 
@@ -32,10 +33,13 @@ public class InventoryLoader : BaseLoader {
 		return true;
 	}
 
-	public static Inventory GetInventory(InventoryType type){return inventories[type].Copy();}
-	public static int GetInventorySize(InventoryType type){return inventorySizes[type];}
-	public static int GetColumnCount(InventoryType type){return inventories[type].columnCount;}
-	public static bool GetPickupTarget(InventoryType type){return inventories[type].isPickupTarget;}
+	public static Inventory GetInventory(string type){return inventories[type].Copy();}
+	public static Inventory GetInventory(byte id){return inventoriesByID[id].Copy();}
+	public static byte GetInventoryID(string type){return inventories[type].GetID();}
+	public static int GetInventorySize(byte id){return inventorySizes[id];}
+	public static int GetInventorySize(string name){return inventorySizes[inventories[name].GetID()];}
+	public static int GetColumnCount(string type){return inventories[type].columnCount;}
+	public static bool GetPickupTarget(byte id){return inventoriesByID[id].isPickupTarget;}
 	public static Texture2D GetSlotIcon(string iconName){return inventoryIcons[iconName];}
 
 	private void LoadInventories(bool isClient){
@@ -44,14 +48,16 @@ public class InventoryLoader : BaseLoader {
 		Texture2D texture;
 
 		textAsset = Resources.Load<TextAsset>(INVENTORY_LIST_RESPATH);
+		byte inventoryID = 0;
 
 		if(textAsset != null){
 			wrapper = JsonUtility.FromJson<Wrapper<Inventory>>(JsonFormatter.RemoveComments(textAsset.text));
 
 			foreach(Inventory inventory in wrapper.data){
-				inventory.PostDeserializationSetup();
+				inventory.PostDeserializationSetup(inventoryID);
 				inventories.Add(inventory.GetInventoryType(), inventory);
-				inventorySizes.Add(inventory.GetInventoryType(), inventory.GetLimit());
+				inventoriesByID.Add(inventoryID, inventory);
+				inventorySizes.Add(inventoryID, inventory.GetLimit());
 
 				if(isClient){
 					foreach(string filepath in inventory.GetIconFilepaths()){
@@ -63,6 +69,8 @@ public class InventoryLoader : BaseLoader {
 						inventoryIcons.Add(filepath, texture);
 					}
 				}
+
+				inventoryID++;
 			}
 		}
 		else{

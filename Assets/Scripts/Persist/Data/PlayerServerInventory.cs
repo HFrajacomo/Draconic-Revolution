@@ -57,9 +57,9 @@ public class PlayerServerInventory{
         int bytesRead = 0;
 
         if(this.inventories.ContainsKey(playerId)){
-            InventoryType lastType = this.inventories[playerId][0].GetInventoryType();
+            byte lastType = this.inventories[playerId][0].GetInventoryType();
 
-            this.buffer[bytesRead] = (byte)lastType;
+            this.buffer[bytesRead] = lastType;
             bytesRead++;
 
             for(int i=0; i < this.inventories[playerId].Count; i++){
@@ -67,7 +67,7 @@ public class PlayerServerInventory{
 
                 if(psis.GetInventoryType() != lastType){
                     lastType = psis.GetInventoryType();
-                    this.buffer[bytesRead] = (byte)lastType;
+                    this.buffer[bytesRead] = lastType;
                     bytesRead++;
                 }
 
@@ -96,7 +96,7 @@ public class PlayerServerInventory{
         else{
             isEmpty = true;
             AddInventory(playerId, GetEmptySlots());
-            return InventoryLoader.GetInventorySize(InventoryType.HOTBAR) + InventoryLoader.GetInventorySize(InventoryType.PLAYER) + InventoryLoader.GetInventorySize(InventoryType.EQUIPMENT);
+            return InventoryLoader.GetInventorySize("HOTBAR") + InventoryLoader.GetInventorySize("PLAYER") + InventoryLoader.GetInventorySize("EQUIPMENT");
         }
     }
 
@@ -185,14 +185,14 @@ public class PlayerServerInventory{
     private List<PlayerServerInventorySlot> GetEmptySlots(){
         List<PlayerServerInventorySlot> slots = new List<PlayerServerInventorySlot>();
 
-        for(byte i=0; i < InventoryLoader.GetInventorySize(InventoryType.HOTBAR); i++){
-            slots.Add(new EmptyPlayerInventorySlot(InventoryType.HOTBAR, i));
+        for(byte i=0; i < InventoryLoader.GetInventorySize("HOTBAR"); i++){
+            slots.Add(new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("HOTBAR"), i));
         }
-        for(byte i=0; i < InventoryLoader.GetInventorySize(InventoryType.PLAYER); i++){
-            slots.Add(new EmptyPlayerInventorySlot(InventoryType.PLAYER, i));
+        for(byte i=0; i < InventoryLoader.GetInventorySize("PLAYER"); i++){
+            slots.Add(new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("PLAYER"), i));
         }
-        for(byte i=0; i < InventoryLoader.GetInventorySize(InventoryType.EQUIPMENT); i++){
-            slots.Add(new EmptyPlayerInventorySlot(InventoryType.EQUIPMENT, i));
+        for(byte i=0; i < InventoryLoader.GetInventorySize("EQUIPMENT"); i++){
+            slots.Add(new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("EQUIPMENT"), i));
         }
 
         return slots;

@@ -83,7 +83,7 @@ public class PlayerEntityRadar : EntityRadar{
 	}
 
 	private PlayerServerInventorySlot CreateSlot(ItemStack its, byte slotNumber){
-		InventoryType type = this.psi.GetSlot(this.ID.code, slotNumber).GetInventoryType();
+		byte type = this.psi.GetSlot(this.ID.code, slotNumber).GetInventoryType();
 		byte inInventorySlot = this.psi.GetSlot(this.ID.code, slotNumber).GetSlotID();
 
 		this.cachedItem = its.GetItem();

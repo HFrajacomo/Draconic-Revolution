@@ -12,7 +12,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 	private GameObject handItem;
 
 	// Inventory
-	public Inventory hotbar = InventoryLoader.GetInventory(InventoryType.HOTBAR);
+	public Inventory hotbar = InventoryLoader.GetInventory("HOTBAR");
 
 	// UI
 	public Image[] hotbarIcon;

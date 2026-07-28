@@ -17,8 +17,8 @@ public class Inventory {
 	public int columnCount = 3;
 	public List<ValuePair<int, string>> slotDefaultIcon;
 
+	private byte inventoryID;
 	private ItemStack[] slots;
-	private InventoryType type;
 	private ushort limit;
 	private short lastEmptySlot;
 	private bool isFull;
@@ -27,10 +27,10 @@ public class Inventory {
 	private Dictionary<int, HashSet<string>> perSlotWhitelistTags;
 	private Dictionary<int, string> perSlotDefaultIcon;
 
-	private Inventory(InventoryType type, ushort size){
+	private Inventory(string type, ushort size){
 		this.limit = size;
 		this.InitSlots(this.limit);
-		this.type = type;
+		this.inventoryType = type;
 		this.lastEmptySlot = 0;
 		this.isFull = false;
 		this.itemInInventory = new HashSet<ushort>();
@@ -38,7 +38,7 @@ public class Inventory {
 
 	// Creates a BLANK COPY of the Inventory
 	public Inventory Copy(){
-		Inventory inv = new Inventory(this.type, this.limit);
+		Inventory inv = new Inventory(this.inventoryType, this.limit);
 		inv.whitelistTags = this.whitelistTags;
 		inv.perSlotWhitelistTags = this.perSlotWhitelistTags;
 		inv.isPickupTarget = this.isPickupTarget;
@@ -46,12 +46,13 @@ public class Inventory {
 		inv.mainInventory = this.mainInventory;
 		inv.columnCount = this.columnCount;
 		inv.perSlotDefaultIcon = this.perSlotDefaultIcon;
+		inv.inventoryID = this.inventoryID;
 
 		return inv;
 	}
 
-	public void PostDeserializationSetup(){
-		this.type = SerializeType();
+	public void PostDeserializationSetup(byte inventoryID){
+		this.inventoryID = inventoryID;
 		this.limit = amountOfSlots;
 
 		this.InitSlots(this.limit);
@@ -418,6 +419,9 @@ public class Inventory {
 		return this.lastEmptySlot;
 	}
 
+	// Returns inventoryID
+	public byte GetID(){return this.inventoryID;}
+
 	// Returns the limit of Inventory
 	public ushort GetLimit(){return this.limit;}
 
@@ -458,12 +462,6 @@ public class Inventory {
 	}
 	#nullable disable
 
-	#nullable enable
-	public void SetSlot(ushort pos, ItemStack? its){
-		this.slots[pos] = its;
-	}
-	#nullable disable
-
 	// Removes an element from itemInInventory
 	public void RemoveFromRecords(ushort id){
 		if(!this.Contains(id))
@@ -481,38 +479,9 @@ public class Inventory {
 		return false;
 	}
 
-	public InventoryType GetInventoryType(){return this.type;}
+	public string GetInventoryType(){return this.inventoryType;}
 
-	private void SetLimitOnType(InventoryType type){this.limit = (ushort)InventoryLoader.GetInventorySize(type);}
-
-	private InventoryType SerializeType(){
-		switch(this.inventoryType){
-			case "PLAYER":
-				return InventoryType.PLAYER;
-			case "HOTBAR":
-				return InventoryType.HOTBAR;
-			case "CHEST":
-				return InventoryType.CHEST;
-			case "EQUIPMENT":
-				return InventoryType.EQUIPMENT;
-			case "SMALL_POUCH":
-				return InventoryType.SMALL_POUCH;
-			case "MEDIUM_POUCH":
-				return InventoryType.MEDIUM_POUCH;
-			case "BIG_POUCH":
-				return InventoryType.BIG_POUCH;
-			case "SMALL_BAG":
-				return InventoryType.SMALL_BAG;
-			case "MEDIUM_BAG":
-				return InventoryType.MEDIUM_BAG;
-			case "BIG_BAG":
-				return InventoryType.BIG_BAG;
-			case "BAG_OF_HOLDING":
-				return InventoryType.BAG_OF_HOLDING;
-			default:
-				throw new DeserializationErrorException($"[Inventory] Failed to de-serialize inventory type: {this.inventoryType}");
-		}
-	}
+	private void SetLimitOnType(byte id){this.limit = (ushort)InventoryLoader.GetInventorySize(id);}
 }
 
 public struct InventoryTransaction{
@@ -527,18 +496,4 @@ public struct InventoryTransaction{
 	public override string ToString(){
 		return "Slot: " + this.slotNumber.ToString() + " | Amount: " + this.amount.ToString();
 	}
-}
-
-public enum InventoryType{
-	PLAYER,
-	HOTBAR,
-	CHEST,
-	EQUIPMENT,
-	SMALL_POUCH,
-	MEDIUM_POUCH,
-	BIG_POUCH,
-	SMALL_BAG,
-	MEDIUM_BAG,
-	BIG_BAG,
-	BAG_OF_HOLDING
 }

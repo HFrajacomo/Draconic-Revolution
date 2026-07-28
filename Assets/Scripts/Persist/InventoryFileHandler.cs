@@ -63,7 +63,7 @@ public class InventoryFileHandler{
 		int bytesWritten = 0;
 		long filePosition;
 		int inventorySize = 0;
-		InventoryType lastType = slots[0].GetInventoryType();
+		byte lastType = slots[0].GetInventoryType();
 
 		this.buffer[bytesWritten] = (byte)lastType;
 		bytesWritten++;

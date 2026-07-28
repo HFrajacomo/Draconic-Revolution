@@ -482,7 +482,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
     // DEBUG FUNCTION
     public void TestInventoryReceive(ulong id){
-        int size = InventoryLoader.GetInventorySize(InventoryType.HOTBAR) + InventoryLoader.GetInventorySize(InventoryType.PLAYER) + InventoryLoader.GetInventorySize(InventoryType.EQUIPMENT);
+        int size = InventoryLoader.GetInventorySize("HOTBAR") + InventoryLoader.GetInventorySize("PLAYER") + InventoryLoader.GetInventorySize("EQUIPMENT");
 
         PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[size];
         NetMessage message;
@@ -490,25 +490,25 @@ public class ChunkLoader_Server : MonoBehaviour
 
         for(byte i=0; i < size; i++){
             if(i == 1){
-                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE, InventoryType.HOTBAR, i);
+                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE, InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
             else if(i == 2){
-                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE, InventoryType.HOTBAR, i);
+                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE, InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
             else if(i == 3){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50, InventoryType.HOTBAR, i);
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50, InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
             else if(i == 4){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50, InventoryType.HOTBAR, i);
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50, InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
-            else if(i < InventoryLoader.GetInventorySize(InventoryType.HOTBAR)){
-                slots[i] = new EmptyPlayerInventorySlot(InventoryType.HOTBAR, i);
+            else if(i < InventoryLoader.GetInventorySize(InventoryLoader.GetInventoryID("HOTBAR"))){
+                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
-            else if(i < InventoryLoader.GetInventorySize(InventoryType.HOTBAR) + InventoryLoader.GetInventorySize(InventoryType.PLAYER)){
-                slots[i] = new EmptyPlayerInventorySlot(InventoryType.PLAYER, i);
+            else if(i < InventoryLoader.GetInventorySize(InventoryLoader.GetInventoryID("HOTBAR")) + InventoryLoader.GetInventorySize(InventoryLoader.GetInventoryID("PLAYER"))){
+                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("PLAYER"), i);
             }
             else{
-                slots[i] = new EmptyPlayerInventorySlot(InventoryType.EQUIPMENT, i);                
+                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("EQUIPMENT"), i);                
             }
         }
 

@@ -74,7 +74,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		// Control variables
 		int bytesRead = init;
 		int currentInventory = 0;
-		InventoryType type;
+		byte type;
 		MemoryStorageType mst;
 
 		// Cached variables
@@ -91,13 +91,13 @@ public class PlayerInventoryManager : MonoBehaviour {
 			StartInventory();
 
 		while(bytesRead < data.Length){
-			type = (InventoryType)data[bytesRead];
+			type = data[bytesRead];
 			bytesRead++;
 
 			if(this.inventory.Count <= currentInventory){
 				AddInventory(InventoryLoader.GetInventory(type));
 			}
-			else if(type != this.inventory[currentInventory].GetInventoryType()){
+			else if(type != this.inventory[currentInventory].GetID()){
 				this.inventory[currentInventory] = InventoryLoader.GetInventory(type);
 			}
 
@@ -107,7 +107,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 				switch(mst){
 					case MemoryStorageType.EMPTY:
-						this.inventory[currentInventory].SetSlot(i, null);
+						this.inventory[currentInventory].ForceAddStack(null, i);
 						break;
 					case MemoryStorageType.ITEM:
 						id = NetDecoder.ReadUshort(data, bytesRead);
@@ -116,7 +116,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 						bytesRead++;
 						item = ItemLoader.GetCopy(id);
 						its = new ItemStack(item, quantity);
-						this.inventory[currentInventory].SetSlot(i, its);
+						this.inventory[currentInventory].ForceAddStack(its, i);
 						break;
 					case MemoryStorageType.WEAPON:
 						id = NetDecoder.ReadUshort(data, bytesRead);
@@ -133,7 +133,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 						weapon.SetExtraEffects(enchant);
 						weapon.SetRefineLevel(refineLv);
 						its = new ItemStack(weapon, 1);
-						this.inventory[currentInventory].SetSlot(i, its); 
+						this.inventory[currentInventory].ForceAddStack(its, i); 
 						break;
 				}
 			}
@@ -152,7 +152,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		int bytesWritten = 0;
 
 		for(int inventoryCode=0; inventoryCode < this.inventory.Count; inventoryCode++){
-			this.buffer[bytesWritten] = (byte)this.inventory[inventoryCode].GetInventoryType();
+			this.buffer[bytesWritten] = this.inventory[inventoryCode].GetID();
 			bytesWritten++;
 
 			for(ushort i=0; i < this.inventory[inventoryCode].GetLimit(); i++){
@@ -283,6 +283,11 @@ public class PlayerInventoryManager : MonoBehaviour {
     			return;
 
     		changes = this.inventory[targetInventory].CanFit(its);
+
+    		foreach(InventoryTransaction t in changes){
+    			Debug.Log(t);
+    		}
+
     		receivedItems = this.inventory[targetInventory].AddStack(its, changes);
 
 			if(receivedItems < amount)
@@ -311,7 +316,7 @@ public class PlayerInventoryManager : MonoBehaviour {
     		if(!this.draggedStack.IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
 				ItemStack aux = this.draggedStack;
 				this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
-				this.inventory[inventoryCode].SetSlot(slot, aux);
+				this.inventory[inventoryCode].ForceAddStack(aux, slot);
 
 				if(this.draggedStack == null)
 					ResetSelection();
@@ -404,7 +409,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     			// If was only holding 1 item
     			if(shouldBeDestroyed){
-    				this.inventory[inventoryCode].SetSlot(slot, this.draggedStack);
+    				this.inventory[inventoryCode].ForceAddStack(this.draggedStack, slot);
     				this.draggedStack = null;
     				DrawSlot(inventoryCode, slot);
     				ResetSelection();
@@ -412,7 +417,7 @@ public class PlayerInventoryManager : MonoBehaviour {
     				return;
     			}
     			else{
-    				this.inventory[inventoryCode].SetSlot(slot, new ItemStack(this.draggedStack.GetItem(), 1));
+    				this.inventory[inventoryCode].ForceAddStack(new ItemStack(this.draggedStack.GetItem(), 1), slot);
     				DrawSlot(inventoryCode, slot);
     				ToggleHighlight(true, this.draggedStack);
     				SendInventoryDataToServer();
@@ -444,7 +449,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 				ItemStack aux = this.draggedStack;
 				this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
-				this.inventory[inventoryCode].SetSlot(slot, aux);
+				this.inventory[inventoryCode].ForceAddStack(aux, slot);
 
 				if(this.draggedStack == null)
 					ResetSelection();
@@ -620,9 +625,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	// Creates the default player inventories
 	private void StartInventory(){
-		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.HOTBAR));
-		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.PLAYER));
-		this.inventory.Add(InventoryLoader.GetInventory(InventoryType.EQUIPMENT));
+		this.inventory.Add(InventoryLoader.GetInventory("HOTBAR"));
+		this.inventory.Add(InventoryLoader.GetInventory("PLAYER"));
+		this.inventory.Add(InventoryLoader.GetInventory("EQUIPMENT"));
 	}
 
 	// Creates hotbar UI
@@ -634,7 +639,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		Vector2 anchorMain = new Vector2(0.5f, 0f);
 		Vector2 anchorSec = new Vector2(0.5f, 0.5f);
 
-		int inventorySize = InventoryLoader.GetInventorySize(InventoryType.HOTBAR);
+		int inventorySize = InventoryLoader.GetInventorySize("HOTBAR");
 
 		goSlots.name = "HotbarSlots";
 		goSlots.transform.SetParent(parent.transform);
@@ -661,8 +666,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	// Creates Main Bag UI
 	private void CreatePlayerBagInventory(GameObject parent){
-		int amountOfColumns = InventoryLoader.GetColumnCount(InventoryType.PLAYER);
-		int inventorySize = InventoryLoader.GetInventorySize(InventoryType.PLAYER);
+		int amountOfColumns = InventoryLoader.GetColumnCount("PLAYER");
+		int inventorySize = InventoryLoader.GetInventorySize("PLAYER");
 		int amounfOfRows = Mathf.CeilToInt(inventorySize/amountOfColumns);
 
 
@@ -741,7 +746,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		Vector2 groupSizes = new Vector2(96f, 96f);
 		Vector2 anchorSec = new Vector2(0f, 0.5f);
 
-		int inventorySize = InventoryLoader.GetInventorySize(InventoryType.EQUIPMENT);
+		int inventorySize = InventoryLoader.GetInventorySize("EQUIPMENT");
 
 		goSlots.name = "EquipmentSlots";
 		goSlots.transform.SetParent(parent.transform);
