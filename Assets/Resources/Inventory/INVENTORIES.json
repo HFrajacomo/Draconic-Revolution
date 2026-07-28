@@ -36,6 +36,12 @@
 					"id": 0,
 					"array": ["Null", "Weapon"]
 				}
+			],
+			"slotDefaultIcon": [
+				{
+					"key": 0,
+					"value": "left_hand_slot"
+				}
 			]
 		},
 		{

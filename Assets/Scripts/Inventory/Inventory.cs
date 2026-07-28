@@ -15,6 +15,7 @@ public class Inventory {
 	public bool mainInventory;
 	public ushort amountOfSlots;
 	public int columnCount = 3;
+	public List<ValuePair<int, string>> slotDefaultIcon;
 
 	private ItemStack[] slots;
 	private InventoryType type;
@@ -24,6 +25,7 @@ public class Inventory {
 	private HashSet<ushort> itemInInventory;
 	private HashSet<string> whitelistTags;
 	private Dictionary<int, HashSet<string>> perSlotWhitelistTags;
+	private Dictionary<int, string> perSlotDefaultIcon;
 
 	private Inventory(InventoryType type, ushort size){
 		this.limit = size;
@@ -43,6 +45,7 @@ public class Inventory {
 		inv.bulkMovedTo = this.bulkMovedTo;
 		inv.mainInventory = this.mainInventory;
 		inv.columnCount = this.columnCount;
+		inv.perSlotDefaultIcon = this.perSlotDefaultIcon;
 
 		return inv;
 	}
@@ -71,6 +74,16 @@ public class Inventory {
 
 			this.slotWhiteList.Clear();
 			this.slotWhiteList = null;
+		}
+
+		if(this.slotDefaultIcon.Count > 0){
+			this.perSlotDefaultIcon = new Dictionary<int, string>();
+			for(int i=0; i < this.slotDefaultIcon.Count; i++){
+				this.perSlotDefaultIcon.Add(this.slotDefaultIcon[i].key, this.slotDefaultIcon[i].value);
+			}
+
+			this.slotDefaultIcon.Clear();
+			this.slotDefaultIcon = null;
 		}
 	}
 
@@ -407,6 +420,36 @@ public class Inventory {
 
 	// Returns the limit of Inventory
 	public ushort GetLimit(){return this.limit;}
+
+	// Returns true if this inventory has slot default icons
+	public bool HasInventoryIcons(){
+		if(this.perSlotDefaultIcon == null)
+			return false;
+
+		return this.perSlotDefaultIcon.Count > 0;
+	}
+
+	// Returns the name of the default icon from a given slot.
+	// Returns empty string if there is no such an icon
+	public string GetIconName(int id){
+		if(this.perSlotDefaultIcon.ContainsKey(id))
+			return this.perSlotDefaultIcon[id];
+		return "";
+	}
+
+	// Returns the list of icon names for inventory slots
+	public List<string> GetIconFilepaths(){
+		List<string> outList = new List<string>();
+
+		if(this.perSlotDefaultIcon == null)
+			return outList;
+
+		foreach(string filepaths in this.perSlotDefaultIcon.Values){
+			outList.Add(filepaths);
+		}
+
+		return outList;
+	}
 
 	// Return the ItemStack at position pos
 	#nullable enable

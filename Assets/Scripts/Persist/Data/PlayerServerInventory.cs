@@ -121,7 +121,7 @@ public class PlayerServerInventory{
     public void ChangeQuantity(ulong playerId, byte slotId, byte quantity){
         if(this.inventories.ContainsKey(playerId)){
             if(quantity == 0)
-                this.inventories[playerId][slotId] = new EmptyPlayerInventorySlot(GetInventoryTypeBySlot(slotId), this.inventories[playerId][slotId].GetSlotID());
+                this.inventories[playerId][slotId] = new EmptyPlayerInventorySlot(this.inventories[playerId][slotId].GetInventoryType(), this.inventories[playerId][slotId].GetSlotID());
             else
                 this.inventories[playerId][slotId].SetQuantity(quantity);
         }
@@ -181,16 +181,7 @@ public class PlayerServerInventory{
     public void CreateSlotAt(byte slotIndex, ulong playerCode, PlayerServerInventorySlot slot){
         this.inventories[playerCode][slotIndex] = slot;
     }
-
-    // CHANGE THIS ONCE INVENTORY ITEMS ARE IMPLEMENTED
-    private InventoryType GetInventoryTypeBySlot(byte slotId){
-        if(slotId < InventoryLoader.GetInventorySize(InventoryType.HOTBAR))
-            return InventoryType.HOTBAR;
-        else if(slotId < InventoryLoader.GetInventorySize(InventoryType.HOTBAR) + InventoryLoader.GetInventorySize(InventoryType.PLAYER))
-            return InventoryType.PLAYER;
-        return InventoryType.EQUIPMENT;
-    }
-
+    
     private List<PlayerServerInventorySlot> GetEmptySlots(){
         List<PlayerServerInventorySlot> slots = new List<PlayerServerInventorySlot>();
 

@@ -197,23 +197,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     // Draws the ItemStacks into the Inventory Screen
     private void DrawStacks(){
-    	ItemStack its;
-
     	for(int i=0; i < this.inventory.Count; i++){
     		for(ushort j=0; j < this.inventory[i].GetLimit(); j++){
-    			its = this.inventory[i].GetSlot(j);
-
-    			if(its == null){
-    				this.slotText[i][j].text = "";
-    				continue;
-    			}
-
-    			this.slotImages[i][j].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
-
-	    		if(its.GetStacksize() > 1)
-	    			this.slotText[i][j].text = its.GetAmount().ToString();
-	    		else
-	    			this.slotText[i][j].text = "";
+    			DrawSlot((byte)i, j);
     		}
     	}
     }
@@ -221,8 +207,19 @@ public class PlayerInventoryManager : MonoBehaviour {
     // Redraws a specific slot
     public void DrawSlot(byte inventoryCode, ushort slot){
     	ItemStack its = this.inventory[inventoryCode].GetSlot(slot);
+    	string iconName = "";
 
 		if(its == null){
+			if(this.inventory[inventoryCode].HasInventoryIcons()){
+				iconName = this.inventory[inventoryCode].GetIconName(slot);
+
+				if(iconName != ""){
+					this.slotImages[inventoryCode][slot].material.SetTexture("_Texture", InventoryLoader.GetSlotIcon(iconName));
+					this.slotText[inventoryCode][slot].text = "";
+					return;
+				}
+			}
+
 			this.slotImages[inventoryCode][slot].material.SetTexture("_Texture", null);
 			this.slotText[inventoryCode][slot].text = "";
 		}

@@ -54,6 +54,7 @@ public class Item {
 			memoryStorageType = this.memoryStorageType,
 			stacksize = this.stacksize,
 			hasDurability = this.hasDurability,
+			itemTags = this.itemTags,
 
 			// Deep copy lists (new lists with same elements)
 			onHoldPlayerBehaviour = this.onHoldPlayerBehaviour != null ? new List<ItemBehaviour>(this.onHoldPlayerBehaviour) : null,
