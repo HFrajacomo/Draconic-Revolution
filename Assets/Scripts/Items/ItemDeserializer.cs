@@ -17,6 +17,13 @@ public static class ItemDeserializer {
 	private static List<ItemBehaviour> onUseClientEvent = new List<ItemBehaviour>();
 	private static List<ItemBehaviour> onUseServerEvent = new List<ItemBehaviour>();
 
+	private static List<ItemBehaviour> onEquipPlayerEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUnequipPlayerEvent = new List<ItemBehaviour>();	
+	private static List<ItemBehaviour> onEquipClientEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUnequipClientEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onEquipServerEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUnequipServerEvent = new List<ItemBehaviour>();
+
 	private static Dictionary<string, List<string>> behaviours = new Dictionary<string, List<string>>();
 	private static HashSet<string> assignedEvents = new HashSet<string>();
 	private static Dictionary<string, ItemBehaviour> nameToBehaviour = new Dictionary<string, ItemBehaviour>();
@@ -55,6 +62,12 @@ public static class ItemDeserializer {
 		onUnholdServerEvent = new List<ItemBehaviour>();
 		onUseClientEvent = new List<ItemBehaviour>();
 		onUseServerEvent = new List<ItemBehaviour>();
+		onEquipPlayerEvent = new List<ItemBehaviour>();
+		onUnequipPlayerEvent = new List<ItemBehaviour>();		
+		onEquipClientEvent = new List<ItemBehaviour>();
+		onUnequipClientEvent = new List<ItemBehaviour>();
+		onEquipServerEvent = new List<ItemBehaviour>();
+		onUnequipServerEvent = new List<ItemBehaviour>();
 
 		behaviours.Clear();
 		nameToBehaviour.Clear();
@@ -86,6 +99,24 @@ public static class ItemDeserializer {
 					break;
 				case "onUseServer":
 					item.SetOnUseServer(onUseServerEvent);
+					break;
+				case "onEquipPlayer":
+					item.SetOnEquipPlayer(onEquipPlayerEvent);
+					break;
+				case "onUnequipPlayer":
+					item.SetOnUnequipPlayer(onUnequipPlayerEvent);
+					break;
+				case "onEquipClient":
+					item.SetOnEquipClient(onEquipClientEvent);
+					break;
+				case "onUnequipClient":
+					item.SetOnUnequipClient(onUnequipClientEvent);
+					break;
+				case "onEquipServer":
+					item.SetOnEquipServer(onEquipServerEvent);
+					break;
+				case "onUnequipServer":
+					item.SetOnUnequipServer(onUnequipServerEvent);
 					break;
 				default:
 					Debug.LogWarning("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + ev);
@@ -229,6 +260,24 @@ public static class ItemDeserializer {
 				break;
 			case "onUseServer":
 				onUseServerEvent.Add(ib);
+				break;
+			case "onEquipPlayer":
+				onEquipPlayerEvent.Add(ib);
+				break;
+			case "onUnequipPlayer":
+				onUnequipPlayerEvent.Add(ib);
+				break;
+			case "onEquipClient":
+				onEquipClientEvent.Add(ib);
+				break;
+			case "onUnequipClient":
+				onUnequipClientEvent.Add(ib);
+				break;
+			case "onEquipServer":
+				onEquipServerEvent.Add(ib);
+				break;
+			case "onUnequipServer":
+				onUnequipServerEvent.Add(ib);
 				break;
 			default:
 				Debug.LogWarning("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + key);

@@ -42,6 +42,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	// Constants
 	private readonly Vector2 slotSizes = new Vector2(80f, 80f);
+	private readonly Item NULL_ITEM = ItemLoader.GetItem(0);
 
 	void OnDisable(){
 		if(this.draggedStack != null){
@@ -186,6 +187,25 @@ public class PlayerInventoryManager : MonoBehaviour {
 		this.cl.client.Send(message);
     }
 
+    public void SendEquipDataToServer(int inventoryCode, ItemStack oldItem, ItemStack newItem){
+        if(!IsEquipmentInventory(inventoryCode))
+        	return;
+
+    	if(oldItem == null && newItem == null)
+    		return;
+
+    	NetMessage message = new NetMessage(NetCode.EQUIPITEM);
+
+    	if(oldItem == null)
+			message.EquipItem(Configurations.accountID, NULL_ITEM, newItem.GetItem());
+		else if(newItem == null)
+			message.EquipItem(Configurations.accountID, oldItem.GetItem(), NULL_ITEM);
+		else
+			message.EquipItem(Configurations.accountID, oldItem.GetItem(), newItem.GetItem());
+
+		this.cl.client.Send(message);
+    }
+
     public Inventory GetMainInventory(){
     	for(int i=0; i < this.inventory.Count; i++){
     		if(this.inventory[i].mainInventory)
@@ -194,6 +214,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     	throw new MainInventoryNotFoundException($"[PlayerInventoryManager] None of the current inventories have the main flag set. Inventory count: {this.inventory.Count}");
     }
+
+    private bool IsEquipmentInventory(int inventoryCode){return this.inventory[inventoryCode].inventoryType == "EQUIPMENT";}
 
     // Draws the ItemStacks into the Inventory Screen
     private void DrawStacks(){
@@ -262,6 +284,8 @@ public class PlayerInventoryManager : MonoBehaviour {
                 this.detailsDescription.text = details[1];
 
             this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
+
+            SendEquipDataToServer(inventoryCode, this.draggedStack, null);
             SendInventoryDataToServer();
     	}
     	// If has no slot selected and shift clicked
@@ -304,6 +328,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 			}
 
     		DrawSlot(inventoryCode, slot);
+
+            SendEquipDataToServer(inventoryCode, this.draggedStack, null);
 			SendInventoryDataToServer();
     	}
     	// If has a selected slot
@@ -324,6 +350,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 					ToggleHighlight(true, this.draggedStack);
 
 				DrawSlot(inventoryCode, slot);
+
+	            SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
 				SendInventoryDataToServer();
 			}
 			// Stack together same ItemStacks
@@ -338,7 +366,6 @@ public class PlayerInventoryManager : MonoBehaviour {
 				DrawSlot(inventoryCode, slot);
 				SendInventoryDataToServer();
 			}
-
     	}
     }
 
@@ -373,6 +400,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 	                this.detailsDescription.text = details[1];
 
 	            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
+
+	            SendEquipDataToServer(inventoryCode, this.draggedStack, null);
     		}
     		// If stack has more than 1 item
     		else{
@@ -413,6 +442,7 @@ public class PlayerInventoryManager : MonoBehaviour {
     				this.draggedStack = null;
     				DrawSlot(inventoryCode, slot);
     				ResetSelection();
+    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
     				SendInventoryDataToServer();
     				return;
     			}
@@ -420,6 +450,7 @@ public class PlayerInventoryManager : MonoBehaviour {
     				this.inventory[inventoryCode].ForceAddStack(new ItemStack(this.draggedStack.GetItem(), 1), slot);
     				DrawSlot(inventoryCode, slot);
     				ToggleHighlight(true, this.draggedStack);
+    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
     				SendInventoryDataToServer();
     				return;
     			}
@@ -457,6 +488,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 					ToggleHighlight(true, this.draggedStack);
 
 				DrawSlot(inventoryCode, slot);
+				SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
 				SendInventoryDataToServer();
     		}
     	}

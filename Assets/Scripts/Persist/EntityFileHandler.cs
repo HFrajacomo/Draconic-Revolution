@@ -304,6 +304,7 @@ public class EntityFileHandler{
 				mainBuffer[mainIndex] = this.cachedWeapon.refineLevel;
 				mainIndex++;
 				mainBuffer[mainIndex] = (byte)this.cachedWeapon.extraEffect;
+				mainIndex++;
 				NetDecoder.WriteInt(ai.GetLifespan(), mainBuffer, mainIndex);
 				mainIndex += 4;
 				NetDecoder.WriteFloat3(ai.GetPosition(), mainBuffer, mainIndex);

@@ -20,4 +20,10 @@ public abstract class ItemBehaviour{
 	public virtual void OnUnholdServer(ChunkLoader_Server cl, ItemStack its, ulong code){return;}
 	public virtual void OnUseClient(ChunkLoader cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){return;}
 	public virtual void OnUseServer(ChunkLoader_Server cl, ItemStack its, Vector3 usagePos, CastCoord targetBlock, CastCoord referencePoint1, CastCoord referencePoint2, CastCoord referencePoint3){return;}
+	public virtual void OnEquipPlayer(ChunkLoader cl, Item it){return;}
+	public virtual void OnUnequipPlayer(ChunkLoader cl, Item it){return;}
+	public virtual void OnEquipClient(ChunkLoader cl, Item it, ulong code){return;}
+	public virtual void OnUnequipClient(ChunkLoader cl, Item it, ulong code){return;}
+	public virtual void OnEquipServer(ChunkLoader_Server cl, Item it, ulong code){return;}
+	public virtual void OnUnequipServer(ChunkLoader_Server cl, Item it, ulong code){return;}
 }

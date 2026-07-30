@@ -481,6 +481,18 @@ public struct NetMessage
 		NetDecoder.WriteString(parameterName, NetMessage.buffer, 13);
 		this.size = 13 + parameterName.Length;
 	}
+
+	// Client or server sends a message about newly equipped item and old item removed in a given playerCode
+	public void EquipItem(ulong playerCode, Item previousItem, Item newItem){
+		Reset();
+		int itemSize;
+
+		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
+		itemSize = NetDecoder.WriteItemDeep(previousItem, NetMessage.buffer, 9);
+		itemSize += NetDecoder.WriteItemDeep(newItem, NetMessage.buffer, 9+itemSize);
+
+		this.size = 9 + itemSize;
+	}
 }
 
 public enum NetCode{
@@ -523,6 +535,7 @@ public enum NetCode{
 	SENDANIMATIONLAYER,
 	SENDBATTLESTYLE,
 	SENDANIMATORPARAMETER,
+	EQUIPITEM,
 	DISCONNECTINFO, // No call
 	DISCONNECT  // No call
 }

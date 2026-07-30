@@ -260,6 +260,9 @@ public class Client
 			case NetCode.SENDANIMATORPARAMETER:
 				SendAnimatorParameter(data);
 				break;
+			case NetCode.EQUIPITEM:
+				EquipItem(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -741,6 +744,52 @@ public class Client
 
 		if(playerCode != Configurations.accountID)
 			this.entityHandler.SetAnimatorParameter(EntityType.PLAYER, playerCode, parameter, val);
+	}
+
+	// Receives from server a change in equipment from a given client
+	private void EquipItem(byte[] data){
+		ulong playerCode;  
+		MemoryStorageType oldType, newType;
+		int itemBytes = 0;
+		Item newItem, oldItem;
+
+		playerCode = NetDecoder.ReadUlong(data, 1);
+		oldType = (MemoryStorageType)NetDecoder.ReadByte(data, 9);
+
+		switch(oldType){
+			case MemoryStorageType.ITEM:
+				oldItem = NetDecoder.ReadItem(data, 10);
+				itemBytes += 2;
+				break;
+			case MemoryStorageType.WEAPON:
+				oldItem = NetDecoder.ReadWeapon(data, 10);
+				itemBytes += 8;
+				break;
+			default:
+				oldItem = NetDecoder.ReadItem(data, 10);
+				itemBytes += 2;
+				break;
+		}
+
+		newType = (MemoryStorageType)NetDecoder.ReadByte(data, 10 + itemBytes);
+
+		switch(newType){
+			case MemoryStorageType.ITEM:
+				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
+				itemBytes += 2;
+				break;
+			case MemoryStorageType.WEAPON:
+				newItem = NetDecoder.ReadWeapon(data, 11 + itemBytes);
+				itemBytes += 8;
+				break;
+			default:
+				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
+				itemBytes += 2;
+				break;
+		}
+
+		oldItem.OnUnequipClient(this.cl, oldItem, playerCode);
+		newItem.OnEquipClient(this.cl, newItem, playerCode);
 	}
 
 	/* ================================================================================ */

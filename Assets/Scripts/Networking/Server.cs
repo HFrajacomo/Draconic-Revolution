@@ -434,6 +434,9 @@ public class Server {
 			case NetCode.SENDANIMATORPARAMETER:
 				SendAnimatorParameter(data, id);
 				break;
+			case NetCode.EQUIPITEM:
+				EquipItem(data, id);
+				break;
 			case NetCode.DISCONNECTINFO:
 				DisconnectInfo(id);
 				break;
@@ -1462,6 +1465,58 @@ public class Server {
 		message = new NetMessage(NetCode.SENDANIMATORPARAMETER);
 		message.SendAnimatorParameter(id, val, parameterName);
 		this.SendToClientsExcept(id, message);
+	}
+
+	// Receives an user changing equipments notification from client
+	public void EquipItem(byte[] data, ulong id){
+		ulong playerCode;  
+		MemoryStorageType oldType, newType;
+		int itemBytes = 0;
+		Item newItem, oldItem;
+
+		playerCode = NetDecoder.ReadUlong(data, 1);
+		oldType = (MemoryStorageType)NetDecoder.ReadByte(data, 9);
+
+		switch(oldType){
+			case MemoryStorageType.ITEM:
+				oldItem = NetDecoder.ReadItem(data, 10);
+				itemBytes += 2;
+				break;
+			case MemoryStorageType.WEAPON:
+				oldItem = NetDecoder.ReadWeapon(data, 10);
+				itemBytes += 8;
+				break;
+			default:
+				oldItem = NetDecoder.ReadItem(data, 10);
+				itemBytes += 2;
+				break;
+		}
+
+		newType = (MemoryStorageType)NetDecoder.ReadByte(data, 10 + itemBytes);
+
+		switch(newType){
+			case MemoryStorageType.ITEM:
+				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
+				itemBytes += 2;
+				break;
+			case MemoryStorageType.WEAPON:
+				newItem = NetDecoder.ReadWeapon(data, 11 + itemBytes);
+				itemBytes += 8;
+				break;
+			default:
+				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
+				itemBytes += 2;
+				break;
+		}
+
+		// Handle onEquip and onUnequip events
+		oldItem.OnUnequipServer(this.cl, oldItem, id);
+		newItem.OnEquipServer(this.cl, newItem, id);
+
+		// Handle the sending of onEquips and onUnequips to clients
+		NetMessage equipMessage = new NetMessage(NetCode.EQUIPITEM);
+		equipMessage.EquipItem(id, oldItem, newItem);
+		SendToClientsExcept(id, equipMessage);
 	}
 
 	// Receives a Disconnect message from InfoClient

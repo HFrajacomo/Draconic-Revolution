@@ -300,6 +300,23 @@ public static class NetDecoder
 		return ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos));
 	}
 
+	// Reads a deep copy of an item
+	public static Weapon ReadWeapon(byte[] data, int pos){
+		Weapon weap;
+
+		ushort id = NetDecoder.ReadUshort(data, pos);
+		uint durability = NetDecoder.ReadUint(data, pos+2);
+		byte refineLevel = NetDecoder.ReadByte(data, pos+6);
+		byte extraEffect = NetDecoder.ReadByte(data, pos+7);
+
+		weap = (Weapon)ItemLoader.GetCopy(id);
+		weap.SetDurability(durability);
+		weap.SetRefineLevel(refineLevel);
+		weap.SetExtraEffects((EnchantmentType)extraEffect);
+
+		return weap;
+	}
+
 	public static bool ReadBool(byte[] data, int pos){
 		if(data[pos] == 0)
 			return false;
@@ -345,6 +362,36 @@ public static class NetDecoder
 
 	public static void WriteItem(Item it, byte[] data, int pos){
 		NetDecoder.WriteUshort(it.GetID(), data, pos);
+	}
+
+	// Writes a deep copy of an item, not just ID
+	public static int WriteItemDeep(Item it, byte[] data, int pos){
+		if(it == null)
+			it = ItemLoader.GetItem(0);
+
+		NetDecoder.WriteByte((byte)it.GetMemoryStorageType(), data, pos);
+
+		switch(it.GetMemoryStorageType()){
+			case MemoryStorageType.ITEM:
+				return HelperItem(it, data, pos+1);
+			case MemoryStorageType.WEAPON:
+				return HelperWeapon((Weapon)it, data, pos+1);
+			default:
+				return HelperItem(it, data, pos+1);
+		}
+	}
+	private static int HelperItem(Item it, byte[] data, int pos){
+		NetDecoder.WriteUshort(it.GetID(), data, pos);
+
+		return 3;
+	}
+	private static int HelperWeapon(Weapon it, byte[] data, int pos){
+		NetDecoder.WriteUshort(it.GetID(), data, pos);
+		NetDecoder.WriteUint(it.currentDurability, data, pos+2);
+		NetDecoder.WriteByte(it.refineLevel, data, pos+6);
+		NetDecoder.WriteByte((byte)it.extraEffect, data, pos+7);
+
+		return 9;
 	}
 
 	public static void WriteBool(bool a, byte[] data, int pos){

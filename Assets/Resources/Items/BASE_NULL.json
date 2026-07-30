@@ -6,5 +6,13 @@
     "hasDurability": true,
     "tags": ["Null"]
 }
+--->Behaviours
+{
+    "onEquipServer": "ChangeStyleBehaviour",
+}
+--->ChangeStyleBehaviour
+{
+    "battleStyle": "BASE_Unarmed"
+}
 --->Type
 Item

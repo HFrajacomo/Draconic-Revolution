@@ -63,6 +63,9 @@ public class EntityHandler
 	}
 
 	public void RunSingleActivation(EntityType type, ulong code, float3 pos){
+		if(!Contains(type, code))
+			return;
+
 		if(type == EntityType.PLAYER){
 			this.playerObject[code].SetActive(this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos));
 		}
@@ -121,6 +124,9 @@ public class EntityHandler
 	}
 
 	public void SetPlayerBattleStyle(ulong code, int style){
+		if(!this.playerBattleStyle.ContainsKey(code))
+			return;
+
 		if(this.playerBattleStyle[code] == style)
 			return;
 
@@ -156,6 +162,9 @@ public class EntityHandler
 
 	// Triggers whenever a t(x) position is received. Moves entity to t(x-1) position received
 	public void NudgeLastPos(EntityType type, ulong code, float3 pos, float3 dir){
+		if(!Contains(type, code))
+			return;
+
 		if(type == EntityType.PLAYER){	
 			this.playerObject[code].transform.position = this.playerCurrentPositions[code].deltaPos;
 			this.playerObject[code].transform.eulerAngles = new Vector3(0, this.playerCurrentPositions[code].deltaRot.y, 0);
@@ -172,6 +181,9 @@ public class EntityHandler
 
 	// Fine movement of entity in frame deltas
 	public void Nudge(EntityType type, ulong code, Vector3 dPos, Vector3 dRot){
+		if(!Contains(type, code))
+			return;
+
 		if(type == EntityType.PLAYER){
 			this.playerObject[code].transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
 			this.playerObject[code].transform.eulerAngles += new Vector3(0, (dRot * (Time.deltaTime / TimeOfDay.timeRate)).y, 0);
@@ -184,6 +196,9 @@ public class EntityHandler
 
 	// Should only be used to hard set item rotation animation position
 	public void SetItemPosition(ulong code, Vector3 newPos){
+		if(!this.dropObject.ContainsKey(code))
+			return;
+
 		if(this.dropObject.ContainsKey(code)){
 			this.dropObject[code].gameObject.transform.position = newPos;
 		}
@@ -227,6 +242,9 @@ public class EntityHandler
 	}
 
 	public void SetAnimatorParameter(EntityType type, ulong code, string parameter, float val){
+		if(!Contains(type, code))
+			return;
+
 		if(type == EntityType.PLAYER){
 			if(this.playerAnimations.ContainsKey(code)){
 				this.playerAnimations[code].SetParameterValue(parameter, val, false);
@@ -235,6 +253,9 @@ public class EntityHandler
 	}
 
 	public Vector3 GetLastPosition(EntityType type, ulong code){
+		if(!Contains(type, code))
+			return Vector3.zero;
+
 		if(type == EntityType.PLAYER)
 			return this.playerCurrentPositions[code].deltaPos;
 		else
@@ -242,6 +263,9 @@ public class EntityHandler
 	}
 
 	public Vector3 GetLastRotation(EntityType type, ulong code){
+		if(!Contains(type, code))
+			return Vector3.zero;
+
 		if(type == EntityType.PLAYER)
 			return this.playerCurrentPositions[code].deltaRot;
 		else

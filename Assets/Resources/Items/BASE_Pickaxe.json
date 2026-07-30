@@ -18,7 +18,8 @@
 }
 --->Behaviours
 {
-    "onHoldServer": "ChangeStyleBehaviour"
+    "onEquipServer": "ChangeStyleBehaviour",
+    "onUnequipServer": "ChangeStyleBehaviour"
 }
 --->ChangeStyleBehaviour
 {
