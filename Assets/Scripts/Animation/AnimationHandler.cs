@@ -236,7 +236,6 @@ public class AnimationHandler : MonoBehaviour {
 
 	public void SwitchAttachments(bool firstPerson, BoneAnchorType originAnchor, BoneAnchorType targetAnchor, float heightOffset, bool flip){
 		if(!ContainsAttachment(originAnchor, firstPerson:firstPerson)){
-			Debug.LogWarning($"No Attachment was found in {originAnchor}");
 			return;
 		}
 

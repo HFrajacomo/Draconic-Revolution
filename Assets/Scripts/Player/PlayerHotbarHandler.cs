@@ -8,18 +8,25 @@ public class PlayerHotbarHandler : MonoBehaviour
 {
 	// Unity Reference
 	public ChunkLoader cl;
-	private GameObject character;
-	private GameObject handItem;
+
+	// Animation
+	public Animator animator;
+	public static bool IS_SWITCHING = false;
+	public static bool IS_NORMAL_HOTBAR = true;
+	private float animationTime = 0.25f;
 
 	// Inventory
 	public Inventory hotbar = InventoryLoader.GetInventory("HOTBAR");
 
 	// UI
+	public Image hotbarImage;
+	public Image attackHotbarImage;
 	public Image[] hotbarIcon;
 	public TextMeshProUGUI[] hotbarText;
 	public RectTransform hotbar_selected;
 	public PlayerInventoryManager playerInventoryManager;
 	public Material itemIconMaterial;
+	public Material hotbarMaterial;
 
 	// Constant colors
 	private readonly Color TRANSPARENT = new Color(1f, 1f, 1f, 0f);
@@ -40,9 +47,14 @@ public class PlayerHotbarHandler : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+    	IS_SWITCHING = false;
+    	IS_NORMAL_HOTBAR = true;
+
     	foreach(Image img in hotbarIcon){
     		img.material = Instantiate(this.itemIconMaterial);
     	}
+
+    	InitiateHotbar();
 
         this.DrawHotbar();
     }
@@ -65,6 +77,34 @@ public class PlayerHotbarHandler : MonoBehaviour
     	PlayerHotbarHandler.STARTED = false;
 		PlayerHotbarHandler.HOTBAR_SELECTED_VALID = false;
 		PlayerHotbarHandler.HOTBAR_SELECTION_TIME = 0f;
+    }
+
+    public void SwitchHotbars(){
+    	StartCoroutine(SwitchCoroutine());
+    }
+    private IEnumerator SwitchCoroutine(){
+    	IS_NORMAL_HOTBAR = !IS_NORMAL_HOTBAR;
+    	IS_SWITCHING = true;
+
+    	if(IS_NORMAL_HOTBAR)
+    		this.animator.Play("HotbarSwitch-AttackToNormal");
+    	else
+    		this.animator.Play("HotbarSwitch-NormalToAttack");
+
+		yield return new WaitForSeconds(this.animationTime/2);
+
+		if(IS_NORMAL_HOTBAR){
+			this.hotbarImage.material.SetFloat("_Hidden", 0f);
+			this.attackHotbarImage.material.SetFloat("_Hidden", 1f);
+		}
+		else{
+			this.hotbarImage.material.SetFloat("_Hidden", 1f);
+			this.attackHotbarImage.material.SetFloat("_Hidden", 0f);
+		}
+
+		yield return new WaitForSeconds(this.animationTime/2);
+
+		IS_SWITCHING = false;
     }
 
     // Checks if the current ItemStack selected has a different item from the last and run
@@ -90,7 +130,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 
 	// Selects a new item in hotbar
 	public void Scroll1(){
-		if(PlayerHotbarHandler.hotbarSlot == 0)
+		if(PlayerHotbarHandler.hotbarSlot == 0 || PlayerHotbarHandler.IS_SWITCHING)
 			return;
 
 		PlayerHotbarHandler.hotbarSlot = 0;
@@ -98,7 +138,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 		TriggerHotbarDelay();
 	}
 	public void Scroll2(){
-		if(PlayerHotbarHandler.hotbarSlot == 1)
+		if(PlayerHotbarHandler.hotbarSlot == 1 || PlayerHotbarHandler.IS_SWITCHING)
 			return;
 
 		PlayerHotbarHandler.hotbarSlot = 1;
@@ -107,7 +147,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 		TriggerHotbarDelay();
 	}
 	public void Scroll3(){
-		if(PlayerHotbarHandler.hotbarSlot == 2)
+		if(PlayerHotbarHandler.hotbarSlot == 2 || PlayerHotbarHandler.IS_SWITCHING)
 			return;
 
 		PlayerHotbarHandler.hotbarSlot = 2;
@@ -116,7 +156,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 		TriggerHotbarDelay();
 	}
 	public void Scroll4(){
-		if(PlayerHotbarHandler.hotbarSlot == 3)
+		if(PlayerHotbarHandler.hotbarSlot == 3 || PlayerHotbarHandler.IS_SWITCHING)
 			return;
 
 		PlayerHotbarHandler.hotbarSlot = 3;
@@ -125,7 +165,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 		TriggerHotbarDelay();
 	}
 	public void Scroll5(){
-		if(PlayerHotbarHandler.hotbarSlot == 4)
+		if(PlayerHotbarHandler.hotbarSlot == 4 || PlayerHotbarHandler.IS_SWITCHING)
 			return;
 
 		PlayerHotbarHandler.hotbarSlot = 4;
@@ -134,7 +174,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 		TriggerHotbarDelay();
 	}
 	public void Scroll6(){
-		if(PlayerHotbarHandler.hotbarSlot == 5)
+		if(PlayerHotbarHandler.hotbarSlot == 5 || PlayerHotbarHandler.IS_SWITCHING)
 			return;
 
 		PlayerHotbarHandler.hotbarSlot = 5;
@@ -143,7 +183,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 		TriggerHotbarDelay();
 	}
 	public void Scroll7(){
-		if(PlayerHotbarHandler.hotbarSlot == 6)
+		if(PlayerHotbarHandler.hotbarSlot == 6 || PlayerHotbarHandler.IS_SWITCHING)
 			return;
 
 		PlayerHotbarHandler.hotbarSlot = 6;
@@ -152,7 +192,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 		TriggerHotbarDelay();
 	}
 	public void Scroll8(){
-		if(PlayerHotbarHandler.hotbarSlot == 7)
+		if(PlayerHotbarHandler.hotbarSlot == 7 || PlayerHotbarHandler.IS_SWITCHING)
 			return;
 
 		PlayerHotbarHandler.hotbarSlot = 7;
@@ -161,7 +201,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 		TriggerHotbarDelay();
 	}
 	public void Scroll9(){
-		if(PlayerHotbarHandler.hotbarSlot == 8)
+		if(PlayerHotbarHandler.hotbarSlot == 8 || PlayerHotbarHandler.IS_SWITCHING)
 			return;
 
 		PlayerHotbarHandler.hotbarSlot = 8;
@@ -170,6 +210,9 @@ public class PlayerHotbarHandler : MonoBehaviour
 		TriggerHotbarDelay();
 	}
 	public void MouseScroll(int val){
+		if(PlayerHotbarHandler.IS_SWITCHING)
+			return;
+
 		if(val < 0){
 			if(PlayerHotbarHandler.hotbarSlot == 8)
 				PlayerHotbarHandler.hotbarSlot = 0;
@@ -250,5 +293,21 @@ public class PlayerHotbarHandler : MonoBehaviour
 		message.SendHotbarPosition(PlayerHotbarHandler.hotbarSlot);
 		this.cl.client.Send(message);
 		PlayerHotbarHandler.LAST_HOTBAR_SENT = PlayerHotbarHandler.hotbarSlot;
+	}
+
+	private void InitiateHotbar(){
+		Texture2D texNormal = Resources.Load<Texture2D>("UI/hotbar");
+		Texture2D texAttack = Resources.Load<Texture2D>("UI/attack_hotbar");
+
+		if(texNormal == null || texAttack == null)
+			Debug.LogWarning("[PlayerHotbarHandler] Failed to load hotbar texture");
+
+		this.hotbarImage.material = Instantiate(this.hotbarMaterial);
+		this.hotbarImage.material.SetTexture("_Texture", texNormal);
+		this.hotbarImage.material.SetFloat("_Hidden", 0f);
+		
+		this.attackHotbarImage.material = Instantiate(this.hotbarMaterial);
+		this.attackHotbarImage.material.SetTexture("_Texture", texAttack);
+		this.attackHotbarImage.material.SetFloat("_Hidden", 1f);
 	}
 }

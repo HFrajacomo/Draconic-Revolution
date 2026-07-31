@@ -91,7 +91,10 @@ public class MainControllerManager : MonoBehaviour {
 
     public void OnSheathe(){
         if(!MainControllerManager.InUI){
-            this.playerActionController.Sheathe();
+            if(!this.playerActionController.HasRestriction(PlayerActionRestriction.SHEATHE) && !this.playerActionController.HasRestriction(PlayerActionRestriction.STUNNED) && !PlayerHotbarHandler.IS_SWITCHING){
+                this.hotbarHandler.SwitchHotbars();
+                this.playerActionController.Sheathe();
+            }
         }
     }
 
@@ -99,8 +102,6 @@ public class MainControllerManager : MonoBehaviour {
         if(!MainControllerManager.InUI && !LOCK_INTERACT){
             raycast.Interact();
             LOCK_INTERACT = true;
-
-            //this.cl.playerActionController.UseStyle("BASE_Sword", updatePlayerDataAndServer:true);
         }
     }
 
