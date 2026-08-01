@@ -22,13 +22,15 @@ public class PlayerHotbarHandler : MonoBehaviour
 	public Image hotbarImage;
 	public Image attackHotbarImage;
 	public Image[] hotbarIcon;
+	public Image[] attackHotbarIcon;
 	public TextMeshProUGUI[] hotbarText;
+	public TextMeshProUGUI[] attackHotbarText;
 	public RectTransform hotbar_selected;
 	public PlayerInventoryManager playerInventoryManager;
-	public Material itemIconMaterial;
 	public Material hotbarMaterial;
 
 	// Constant colors
+	private readonly Color HIDDEN = new Color(.7f, .7f, .7f, .7f);
 	private readonly Color TRANSPARENT = new Color(1f, 1f, 1f, 0f);
 	private readonly Color WHITE = new Color(1f, 1f, 1f, 1f);
 
@@ -51,7 +53,7 @@ public class PlayerHotbarHandler : MonoBehaviour
     	IS_NORMAL_HOTBAR = true;
 
     	foreach(Image img in hotbarIcon){
-    		img.material = Instantiate(this.itemIconMaterial);
+    		img.material = Instantiate(this.hotbarMaterial);
     	}
 
     	InitiateHotbar();
@@ -94,12 +96,10 @@ public class PlayerHotbarHandler : MonoBehaviour
 		yield return new WaitForSeconds(this.animationTime/2);
 
 		if(IS_NORMAL_HOTBAR){
-			this.hotbarImage.material.SetFloat("_Hidden", 0f);
-			this.attackHotbarImage.material.SetFloat("_Hidden", 1f);
+			SetHotbarParameterToHidden(false);
 		}
 		else{
-			this.hotbarImage.material.SetFloat("_Hidden", 1f);
-			this.attackHotbarImage.material.SetFloat("_Hidden", 0f);
+			SetHotbarParameterToHidden(true);
 		}
 
 		yield return new WaitForSeconds(this.animationTime/2);
@@ -265,24 +265,29 @@ public class PlayerHotbarHandler : MonoBehaviour
 
 		if(its == null){
 			hotbarIcon[slot].material.SetTexture("_Texture", null);
-			hotbarIcon[slot].color = this.TRANSPARENT;		
+			hotbarIcon[slot].color = TRANSPARENT;
 			hotbarText[slot].text = "";
 		}
 		else{
 			hotbarIcon[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
-			hotbarIcon[slot].color = this.WHITE;
 
 			if(its.GetStacksize() > 1)		
 				hotbarText[slot].text = its.GetAmount().ToString();
 			else
 				hotbarText[slot].text = "";
+
+			if(IS_NORMAL_HOTBAR){
+				hotbarIcon[slot].color = WHITE;
+			}
 		}
 	}
 
 	// Redraws the entire hotbar
 	public void DrawHotbar(){
-		for(byte i=0; i < hotbar.GetLimit(); i++)
+		for(byte i=0; i < hotbar.GetLimit(); i++){
 			this.DrawHotbarSlot(i);
+			this.attackHotbarIcon[i].color = TRANSPARENT; // PLACEHOLDER
+		}
 	}
 
 	private void SendHotbarInfoToServer(){
@@ -304,10 +309,35 @@ public class PlayerHotbarHandler : MonoBehaviour
 
 		this.hotbarImage.material = Instantiate(this.hotbarMaterial);
 		this.hotbarImage.material.SetTexture("_Texture", texNormal);
-		this.hotbarImage.material.SetFloat("_Hidden", 0f);
 		
 		this.attackHotbarImage.material = Instantiate(this.hotbarMaterial);
 		this.attackHotbarImage.material.SetTexture("_Texture", texAttack);
-		this.attackHotbarImage.material.SetFloat("_Hidden", 1f);
+
+		SetHotbarParameterToHidden(false);
+	}
+
+	private void SetHotbarParameterToHidden(bool normalHotbar){
+		if(normalHotbar){
+			this.hotbarImage.material.SetFloat("_Hidden", 1f);
+			this.attackHotbarImage.material.SetFloat("_Hidden", 0f);
+
+			for(int i=0; i < this.hotbarIcon.Length; i++){
+				this.hotbarIcon[i].material.SetFloat("_Hidden", 1f);
+				this.hotbarText[i].color = HIDDEN;
+				this.attackHotbarIcon[i].material.SetFloat("_Hidden", 0f);
+				this.attackHotbarText[i].color = TRANSPARENT;
+			}
+		}
+		else{
+			this.hotbarImage.material.SetFloat("_Hidden", 0f);
+			this.attackHotbarImage.material.SetFloat("_Hidden", 1f);
+
+			for(int i=0; i < this.hotbarIcon.Length; i++){
+				this.hotbarIcon[i].material.SetFloat("_Hidden", 0f);
+				this.hotbarText[i].color = WHITE;
+				this.attackHotbarIcon[i].material.SetFloat("_Hidden", 1f);
+				this.attackHotbarText[i].color = HIDDEN;
+			}
+		}
 	}
 }
