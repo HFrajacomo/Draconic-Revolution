@@ -434,7 +434,7 @@ public struct NetMessage
 		NetDecoder.WriteLong(charCode, NetMessage.buffer, 1);
 		NetDecoder.WriteCharacterSheet(sheet, NetMessage.buffer, 9);
 
-		this.size = 1234; 
+		this.size = 1210; 
 	}
 
 	// Client sends character hotbar position to Server

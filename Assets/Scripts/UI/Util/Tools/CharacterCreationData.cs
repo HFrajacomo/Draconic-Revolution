@@ -417,20 +417,6 @@ public static class CharacterCreationData {
 				sheet.SetSkill(type, new SkillExp(1, SkillExp.GetLevelEXP(1)));
 		}
 
-		// Equipment
-		sheet.SetRightHand(NULL_ITEM);
-		sheet.SetLeftHand(NULL_ITEM);
-		sheet.SetHelmet(NULL_ITEM);
-		sheet.SetArmor(NULL_ITEM);
-		sheet.SetLegs(NULL_ITEM);
-		sheet.SetBoots(NULL_ITEM);
-		sheet.SetRing1(NULL_ITEM);
-		sheet.SetRing2(NULL_ITEM);
-		sheet.SetRing3(NULL_ITEM);
-		sheet.SetRing4(NULL_ITEM);
-		sheet.SetAmulet(NULL_ITEM);
-		sheet.SetCape(NULL_ITEM);
-
 		charSheet = sheet;
 	}
 

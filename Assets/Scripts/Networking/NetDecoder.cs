@@ -131,7 +131,7 @@ public static class NetDecoder
 		return new SpecialEffect((EffectType)NetDecoder.ReadUshort(data, pos), (EffectUsecase)NetDecoder.ReadByte(data, pos+2), NetDecoder.ReadByte(data, pos+3), NetDecoder.ReadUshort(data, pos+4), NetDecoder.ReadBool(data, pos+6));
 	}
 
-	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1222
+	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1210
 		CharacterSheet cs = new CharacterSheet();
 		SpecialEffect cachedFX;
 
@@ -245,30 +245,6 @@ public static class NetDecoder
 		pos += 5;
 		cs.SetSkill(SkillType.WITCHCRAFT, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
-		cs.SetRightHand(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetLeftHand(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetHelmet(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetArmor(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetLegs(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetBoots(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetRing1(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetRing2(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetRing3(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetRing4(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetAmulet(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetCape(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
 		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
 		pos += 247;
 		cs.SetHotbarSlot(NetDecoder.ReadByte(data, pos));
@@ -633,31 +609,6 @@ public static class NetDecoder
 		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.WITCHCRAFT), data, pos);
 		pos += 5;
-		// CHANGE SIMPLE ITEM STORING TO WEAPON
-		NetDecoder.WriteUshort(sheet.GetRightHand().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetLeftHand().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetHelmet().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetArmor().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetLegs().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetBoots().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetRing1().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetRing2().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetRing3().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetRing4().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetAmulet().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetCape().GetID(), data, pos);
-		pos += 2;
 		NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
 		pos += 247;
 		NetDecoder.WriteByte(sheet.GetHotbarSlot(), data, pos);

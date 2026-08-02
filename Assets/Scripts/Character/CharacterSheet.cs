@@ -106,19 +106,6 @@ public class CharacterSheet{
 		this.skillDict.Add(SkillType.TRANSMUTING, null);
 		this.skillDict.Add(SkillType.WITCHCRAFT, null);
 
-		this.rightHand = null;
-		this.leftHand = null;
-		this.helmet = null;
-		this.armor = null;
-		this.legs = null;
-		this.boots = null;
-		this.ring1 = null;
-		this.ring2 = null;
-		this.ring3 = null;
-		this.ring4 = null;
-		this.amulet = null;
-		this.cape =  null;
-
 		this.hotbarSlot = 0;
 	}
 
@@ -160,18 +147,6 @@ public class CharacterSheet{
 	public bool HasBlood() {return this.hasBlood;}
 	public bool IsWeaponDrawn() {return this.isWeaponDrawn;}
 	public bool IsImortal() {return this.isImortal;}
-	public Item GetRightHand() {return this.rightHand;}
-	public Item GetLeftHand() {return this.leftHand;}
-	public Item GetHelmet() {return this.helmet;}
-	public Item GetArmor() {return this.armor;}
-	public Item GetLegs() {return this.legs;}
-	public Item GetBoots() {return this.boots;}
-	public Item GetRing1() {return this.ring1;}
-	public Item GetRing2() {return this.ring2;}
-	public Item GetRing3() {return this.ring3;}
-	public Item GetRing4() {return this.ring4;}
-	public Item GetAmulet() {return this.amulet;}
-	public Item GetCape() {return this.cape;}
 	public SkillType GetMainSkill() {return this.mainSkill;}
 	public SkillType GetSecondarySkill() {return this.secondarySkill;}
 	public byte GetHotbarSlot() {return this.hotbarSlot;}
@@ -213,18 +188,6 @@ public class CharacterSheet{
 	public void SetHasBlood(bool h) {this.hasBlood = h;}
 	public void SetIsWeaponDrawn(bool i) {this.isWeaponDrawn = i;}
 	public void SetIsImortal(bool i) {this.isImortal = i;}
-	public void SetRightHand(Item r) {this.rightHand = r;}
-	public void SetLeftHand(Item l) {this.leftHand = l;}
-	public void SetHelmet(Item h) {this.helmet = h;}
-	public void SetArmor(Item a) {this.armor = a;}
-	public void SetLegs(Item l) {this.legs = l;}
-	public void SetBoots(Item b) {this.boots = b;}
-	public void SetRing1(Item r) {this.ring1 = r;}
-	public void SetRing2(Item r) {this.ring2 = r;}
-	public void SetRing3(Item r) {this.ring3 = r;}
-	public void SetRing4(Item r) {this.ring4 = r;}
-	public void SetAmulet(Item a) {this.amulet = a;}
-	public void SetCape(Item c) {this.cape = c;}
 	public void SetSkill(SkillType type, SkillExp exp) {this.skillDict[type] = exp;}
 	public void SetMainSkill(SkillType m) {this.mainSkill = m;}
 	public void SetSecondarySkill(SkillType s) {this.secondarySkill = s;}
@@ -286,18 +249,6 @@ public class CharacterSheet{
 		this.DEBUG_LIST.Add("Technology: " + GetSkill(SkillType.TECHNOLOGY).ToString());
 		this.DEBUG_LIST.Add("Transmuting: " + GetSkill(SkillType.TRANSMUTING).ToString());
 		this.DEBUG_LIST.Add("Witchcraft: " + GetSkill(SkillType.WITCHCRAFT).ToString());
-		this.DEBUG_LIST.Add("RightHand: " + GetRightHand());
-		this.DEBUG_LIST.Add("LeftHand: " + GetLeftHand());
-		this.DEBUG_LIST.Add("Helmet: " + GetHelmet());
-		this.DEBUG_LIST.Add("Armor: " + GetArmor());
-		this.DEBUG_LIST.Add("Legs: " + GetLegs());
-		this.DEBUG_LIST.Add("Boots: " + GetBoots());
-		this.DEBUG_LIST.Add("Ring1: " + GetRing1());
-		this.DEBUG_LIST.Add("Ring2: " + GetRing2());
-		this.DEBUG_LIST.Add("Ring3: " + GetRing3());
-		this.DEBUG_LIST.Add("Ring4: " + GetRing4());
-		this.DEBUG_LIST.Add("Amulet: " + GetAmulet());
-		this.DEBUG_LIST.Add("Cape: " + GetCape());
 		this.DEBUG_LIST.Add("Appearance: " + GetCharacterAppearance());
 		this.DEBUG_LIST.Add("HotbarSlot: " + GetHotbarSlot());
 
