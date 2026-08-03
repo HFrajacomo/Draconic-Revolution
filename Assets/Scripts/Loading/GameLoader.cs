@@ -16,6 +16,7 @@ public class GameLoader : MonoBehaviour {
 	private StructureLoader structureLoader;
 	private AnimationLoader animationLoader;
 	private InventoryLoader inventoryLoader;
+	private ActionLoader actionLoader;
 
 	private static readonly string SERVER_SCENE = "Assets/Scenes/Server.unity";
 
@@ -35,6 +36,7 @@ public class GameLoader : MonoBehaviour {
 		this.structureLoader = new StructureLoader(this.isClient);
         this.animationLoader = new AnimationLoader(this.isClient);
         this.inventoryLoader = new InventoryLoader(this.isClient);
+        this.actionLoader = new ActionLoader(this.isClient);
 		
 		this.shaderLoader.Load();
 		this.itemLoader.Load();
@@ -43,11 +45,13 @@ public class GameLoader : MonoBehaviour {
 		this.structureLoader.Load();
 		this.animationLoader.Load();
 		this.inventoryLoader.Load();
+		this.actionLoader.Load();
 
 
 		this.itemLoader.RunPostDeserializationRoutine();
 		this.voxelLoader.RunPostDeserializationRoutine();
 		this.structureLoader.RunPostDeserializationRoutine();
+		this.actionLoader.RunPostDeserializationRoutine();
 
 		if(!testScene){
 			if(this.isClient)

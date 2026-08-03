@@ -114,15 +114,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "DebugKey",
-                    "type": "Button",
-                    "id": "d5e78c4f-e6e3-41f2-917b-39985b5642d5",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "Press",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "ToggleHUD",
                     "type": "Button",
                     "id": "e65e0f1c-4dc0-4fc2-92f3-ae6f3b5148e2",
@@ -243,6 +234,15 @@
                     "name": "Drop",
                     "type": "Button",
                     "id": "b4f31072-d67b-454a-bc61-482b58c6a476",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "DebugKey",
+                    "type": "Button",
+                    "id": "d5e78c4f-e6e3-41f2-917b-39985b5642d5",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "Press",
@@ -421,17 +421,6 @@
                     "processors": "",
                     "groups": "Keyboard and Mouse",
                     "action": "Shifting",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "572f82ba-0257-4d27-8a3e-1e46495bd67a",
-                    "path": "<Keyboard>/numpad0",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard and Mouse",
-                    "action": "DebugKey",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -619,6 +608,17 @@
                     "processors": "",
                     "groups": "Keyboard and Mouse",
                     "action": "Sheathe",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "572f82ba-0257-4d27-8a3e-1e46495bd67a",
+                    "path": "<Keyboard>/numpad0",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "DebugKey",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -177,9 +177,6 @@ public static class ItemDeserializer {
 		}
 	}
 
-	/*
-	Must be added whenever a new Behaviour is created
-	*/
 	private static void DeserializeAllBehaviours(string json){
 		ItemBehaviour ib;
 

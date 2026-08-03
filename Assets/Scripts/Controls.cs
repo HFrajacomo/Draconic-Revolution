@@ -136,15 +136,6 @@ public partial class @Controls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""DebugKey"",
-                    ""type"": ""Button"",
-                    ""id"": ""d5e78c4f-e6e3-41f2-917b-39985b5642d5"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": ""Press"",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""ToggleHUD"",
                     ""type"": ""Button"",
                     ""id"": ""e65e0f1c-4dc0-4fc2-92f3-ae6f3b5148e2"",
@@ -265,6 +256,15 @@ public partial class @Controls: IInputActionCollection2, IDisposable
                     ""name"": ""Drop"",
                     ""type"": ""Button"",
                     ""id"": ""b4f31072-d67b-454a-bc61-482b58c6a476"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press"",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DebugKey"",
+                    ""type"": ""Button"",
+                    ""id"": ""d5e78c4f-e6e3-41f2-917b-39985b5642d5"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""Press"",
@@ -443,17 +443,6 @@ public partial class @Controls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard and Mouse"",
                     ""action"": ""Shifting"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""572f82ba-0257-4d27-8a3e-1e46495bd67a"",
-                    ""path"": ""<Keyboard>/numpad0"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard and Mouse"",
-                    ""action"": ""DebugKey"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -643,6 +632,17 @@ public partial class @Controls: IInputActionCollection2, IDisposable
                     ""action"": ""Sheathe"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""572f82ba-0257-4d27-8a3e-1e46495bd67a"",
+                    ""path"": ""<Keyboard>/numpad0"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""DebugKey"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -680,7 +680,6 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         m_Player_PrefabReadAir = m_Player.FindAction("PrefabReadAir", throwIfNotFound: true);
         m_Player_ToggleFreeCam = m_Player.FindAction("ToggleFreeCam", throwIfNotFound: true);
         m_Player_Shifting = m_Player.FindAction("Shifting", throwIfNotFound: true);
-        m_Player_DebugKey = m_Player.FindAction("DebugKey", throwIfNotFound: true);
         m_Player_ToggleHUD = m_Player.FindAction("ToggleHUD", throwIfNotFound: true);
         m_Player_Scroll1 = m_Player.FindAction("Scroll1", throwIfNotFound: true);
         m_Player_Scroll2 = m_Player.FindAction("Scroll2", throwIfNotFound: true);
@@ -695,6 +694,7 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         m_Player_OpenInventory = m_Player.FindAction("OpenInventory", throwIfNotFound: true);
         m_Player_Ctrl = m_Player.FindAction("Ctrl", throwIfNotFound: true);
         m_Player_Drop = m_Player.FindAction("Drop", throwIfNotFound: true);
+        m_Player_DebugKey = m_Player.FindAction("DebugKey", throwIfNotFound: true);
         m_Player_DebugKey2 = m_Player.FindAction("DebugKey2", throwIfNotFound: true);
     }
 
@@ -774,7 +774,6 @@ public partial class @Controls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_PrefabReadAir;
     private readonly InputAction m_Player_ToggleFreeCam;
     private readonly InputAction m_Player_Shifting;
-    private readonly InputAction m_Player_DebugKey;
     private readonly InputAction m_Player_ToggleHUD;
     private readonly InputAction m_Player_Scroll1;
     private readonly InputAction m_Player_Scroll2;
@@ -789,6 +788,7 @@ public partial class @Controls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_OpenInventory;
     private readonly InputAction m_Player_Ctrl;
     private readonly InputAction m_Player_Drop;
+    private readonly InputAction m_Player_DebugKey;
     private readonly InputAction m_Player_DebugKey2;
     public struct PlayerActions
     {
@@ -806,7 +806,6 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         public InputAction @PrefabReadAir => m_Wrapper.m_Player_PrefabReadAir;
         public InputAction @ToggleFreeCam => m_Wrapper.m_Player_ToggleFreeCam;
         public InputAction @Shifting => m_Wrapper.m_Player_Shifting;
-        public InputAction @DebugKey => m_Wrapper.m_Player_DebugKey;
         public InputAction @ToggleHUD => m_Wrapper.m_Player_ToggleHUD;
         public InputAction @Scroll1 => m_Wrapper.m_Player_Scroll1;
         public InputAction @Scroll2 => m_Wrapper.m_Player_Scroll2;
@@ -821,6 +820,7 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         public InputAction @OpenInventory => m_Wrapper.m_Player_OpenInventory;
         public InputAction @Ctrl => m_Wrapper.m_Player_Ctrl;
         public InputAction @Drop => m_Wrapper.m_Player_Drop;
+        public InputAction @DebugKey => m_Wrapper.m_Player_DebugKey;
         public InputAction @DebugKey2 => m_Wrapper.m_Player_DebugKey2;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
@@ -867,9 +867,6 @@ public partial class @Controls: IInputActionCollection2, IDisposable
             @Shifting.started += instance.OnShifting;
             @Shifting.performed += instance.OnShifting;
             @Shifting.canceled += instance.OnShifting;
-            @DebugKey.started += instance.OnDebugKey;
-            @DebugKey.performed += instance.OnDebugKey;
-            @DebugKey.canceled += instance.OnDebugKey;
             @ToggleHUD.started += instance.OnToggleHUD;
             @ToggleHUD.performed += instance.OnToggleHUD;
             @ToggleHUD.canceled += instance.OnToggleHUD;
@@ -912,6 +909,9 @@ public partial class @Controls: IInputActionCollection2, IDisposable
             @Drop.started += instance.OnDrop;
             @Drop.performed += instance.OnDrop;
             @Drop.canceled += instance.OnDrop;
+            @DebugKey.started += instance.OnDebugKey;
+            @DebugKey.performed += instance.OnDebugKey;
+            @DebugKey.canceled += instance.OnDebugKey;
             @DebugKey2.started += instance.OnDebugKey2;
             @DebugKey2.performed += instance.OnDebugKey2;
             @DebugKey2.canceled += instance.OnDebugKey2;
@@ -955,9 +955,6 @@ public partial class @Controls: IInputActionCollection2, IDisposable
             @Shifting.started -= instance.OnShifting;
             @Shifting.performed -= instance.OnShifting;
             @Shifting.canceled -= instance.OnShifting;
-            @DebugKey.started -= instance.OnDebugKey;
-            @DebugKey.performed -= instance.OnDebugKey;
-            @DebugKey.canceled -= instance.OnDebugKey;
             @ToggleHUD.started -= instance.OnToggleHUD;
             @ToggleHUD.performed -= instance.OnToggleHUD;
             @ToggleHUD.canceled -= instance.OnToggleHUD;
@@ -1000,6 +997,9 @@ public partial class @Controls: IInputActionCollection2, IDisposable
             @Drop.started -= instance.OnDrop;
             @Drop.performed -= instance.OnDrop;
             @Drop.canceled -= instance.OnDrop;
+            @DebugKey.started -= instance.OnDebugKey;
+            @DebugKey.performed -= instance.OnDebugKey;
+            @DebugKey.canceled -= instance.OnDebugKey;
             @DebugKey2.started -= instance.OnDebugKey2;
             @DebugKey2.performed -= instance.OnDebugKey2;
             @DebugKey2.canceled -= instance.OnDebugKey2;
@@ -1043,7 +1043,6 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         void OnPrefabReadAir(InputAction.CallbackContext context);
         void OnToggleFreeCam(InputAction.CallbackContext context);
         void OnShifting(InputAction.CallbackContext context);
-        void OnDebugKey(InputAction.CallbackContext context);
         void OnToggleHUD(InputAction.CallbackContext context);
         void OnScroll1(InputAction.CallbackContext context);
         void OnScroll2(InputAction.CallbackContext context);
@@ -1058,6 +1057,7 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         void OnOpenInventory(InputAction.CallbackContext context);
         void OnCtrl(InputAction.CallbackContext context);
         void OnDrop(InputAction.CallbackContext context);
+        void OnDebugKey(InputAction.CallbackContext context);
         void OnDebugKey2(InputAction.CallbackContext context);
     }
 }
