@@ -131,6 +131,11 @@ public class PlayerRaycast : MonoBehaviour
 		return true;
 	}
 
+	public CastCoord GetPlayerHeadCoords(){return this.playerHead;}
+	public CastCoord GetPlayerBodyCoords(){return this.playerBody;}
+	public CastCoord GetCurrentHitCoords(){return this.current;}
+	public CastCoord GetLastHitCoords(){return this.lastCoord;}
+
 	// Detects hit of solid block
 	public bool HitSolid(CastCoord coords){
 		ChunkPos ck = new ChunkPos(coords.chunkX, coords.chunkZ, coords.chunkY);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 [Serializable]
 public class EntityAction {
@@ -8,47 +9,90 @@ public class EntityAction {
 	private ushort id;
 
 	// Behaviours ---------------------
+	// UI
+	protected List<EntityActionBehaviour> onIconDrawBehaviour;
+	protected List<EntityActionBehaviour> onStackDrawBehaviour;
+
 	// Hold
-	private List<EntityActionBehaviour> onHoldPlayerBehaviour;
-	private List<EntityActionBehaviour> onHoldClientBehaviour;
-	private List<EntityActionBehaviour> onHoldServerBehaviour;
+	protected List<EntityActionBehaviour> onHoldPlayerBehaviour;
+	protected List<EntityActionBehaviour> onHoldClientBehaviour;
+	protected List<EntityActionBehaviour> onHoldServerBehaviour;
 
 	// Unhold
-	private List<EntityActionBehaviour> onUnholdPlayerBehaviour;
-	private List<EntityActionBehaviour> onUnholdClientBehaviour;
-	private List<EntityActionBehaviour> onUnholdServerBehaviour;
+	protected List<EntityActionBehaviour> onUnholdPlayerBehaviour;
+	protected List<EntityActionBehaviour> onUnholdClientBehaviour;
+	protected List<EntityActionBehaviour> onUnholdServerBehaviour;
 
 	// Primary
-	private List<EntityActionBehaviour> onPrimaryPlayerBehaviour;
-	private List<EntityActionBehaviour> onPrimaryClientBehaviour;
-	private List<EntityActionBehaviour> onPrimaryServerBehaviour;
+	protected List<EntityActionBehaviour> onPrimaryPlayerBehaviour;
+	protected List<EntityActionBehaviour> onPrimaryClientBehaviour;
+	protected List<EntityActionBehaviour> onPrimaryServerBehaviour;
 
 	// Primary Hold
-	private List<EntityActionBehaviour> onPrimaryHoldPlayerBehaviour;
-	private List<EntityActionBehaviour> onPrimaryHoldClientBehaviour;
-	private List<EntityActionBehaviour> onPrimaryHoldServerBehaviour;
+	protected List<EntityActionBehaviour> onPrimaryHoldPlayerBehaviour;
+	protected List<EntityActionBehaviour> onPrimaryHoldClientBehaviour;
+	protected List<EntityActionBehaviour> onPrimaryHoldServerBehaviour;
 
 	// Secondary
-	private List<EntityActionBehaviour> onSecondaryPlayerBehaviour;
-	private List<EntityActionBehaviour> onSecondaryClientBehaviour;
-	private List<EntityActionBehaviour> onSecondaryServerBehaviour;
+	protected List<EntityActionBehaviour> onSecondaryPlayerBehaviour;
+	protected List<EntityActionBehaviour> onSecondaryClientBehaviour;
+	protected List<EntityActionBehaviour> onSecondaryServerBehaviour;
 
 	// Secondary Hold
-	private List<EntityActionBehaviour> onSecondaryHoldPlayerBehaviour;
-	private List<EntityActionBehaviour> onSecondaryHoldClientBehaviour;
-	private List<EntityActionBehaviour> onSecondaryHoldServerBehaviour;
+	protected List<EntityActionBehaviour> onSecondaryHoldPlayerBehaviour;
+	protected List<EntityActionBehaviour> onSecondaryHoldClientBehaviour;
+	protected List<EntityActionBehaviour> onSecondaryHoldServerBehaviour;
 
 	// Terciary
-	private List<EntityActionBehaviour> onTerciaryPlayerBehaviour;
-	private List<EntityActionBehaviour> onTerciaryClientBehaviour;
-	private List<EntityActionBehaviour> onTerciaryServerBehaviour;
+	protected List<EntityActionBehaviour> onTerciaryPlayerBehaviour;
+	protected List<EntityActionBehaviour> onTerciaryClientBehaviour;
+	protected List<EntityActionBehaviour> onTerciaryServerBehaviour;
 
 	// Basic functions ---------------------
 
 	public void SetID(ushort id){this.id = id;}
 	public ushort GetID(){return this.id;}
 
+	public virtual EntityAction Copy(){
+		return new EntityAction {
+			name = this.name,
+			id = this.id,
+
+			// Deep copy lists (new lists with same elements)
+			onIconDrawBehaviour   = this.onIconDrawBehaviour   != null ? new List<EntityActionBehaviour>(this.onIconDrawBehaviour)   : null,
+			onStackDrawBehaviour   = this.onStackDrawBehaviour   != null ? new List<EntityActionBehaviour>(this.onStackDrawBehaviour)   : null,
+			onHoldPlayerBehaviour   = this.onHoldPlayerBehaviour   != null ? new List<EntityActionBehaviour>(this.onHoldPlayerBehaviour)   : null,
+			onHoldClientBehaviour   = this.onHoldClientBehaviour   != null ? new List<EntityActionBehaviour>(this.onHoldClientBehaviour)   : null,
+			onHoldServerBehaviour   = this.onHoldServerBehaviour   != null ? new List<EntityActionBehaviour>(this.onHoldServerBehaviour)   : null,
+			onUnholdPlayerBehaviour = this.onUnholdPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onUnholdPlayerBehaviour) : null,
+			onUnholdClientBehaviour = this.onUnholdClientBehaviour != null ? new List<EntityActionBehaviour>(this.onUnholdClientBehaviour) : null,
+			onUnholdServerBehaviour = this.onUnholdServerBehaviour != null ? new List<EntityActionBehaviour>(this.onUnholdServerBehaviour) : null,
+			onPrimaryPlayerBehaviour = this.onPrimaryPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryPlayerBehaviour) : null,
+			onPrimaryClientBehaviour = this.onPrimaryClientBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryClientBehaviour) : null,
+			onPrimaryServerBehaviour = this.onPrimaryServerBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryServerBehaviour) : null,
+			onPrimaryHoldPlayerBehaviour = this.onPrimaryHoldPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryHoldPlayerBehaviour) : null,
+			onPrimaryHoldClientBehaviour = this.onPrimaryHoldClientBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryHoldClientBehaviour) : null,
+			onPrimaryHoldServerBehaviour = this.onPrimaryHoldServerBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryHoldServerBehaviour) : null,
+			onSecondaryPlayerBehaviour = this.onSecondaryPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryPlayerBehaviour) : null,
+			onSecondaryClientBehaviour = this.onSecondaryClientBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryClientBehaviour) : null,
+			onSecondaryServerBehaviour = this.onSecondaryServerBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryServerBehaviour) : null,
+			onSecondaryHoldPlayerBehaviour = this.onSecondaryHoldPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryHoldPlayerBehaviour) : null,
+			onSecondaryHoldClientBehaviour = this.onSecondaryHoldClientBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryHoldClientBehaviour) : null,
+			onSecondaryHoldServerBehaviour = this.onSecondaryHoldServerBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryHoldServerBehaviour) : null,
+			onTerciaryPlayerBehaviour = this.onTerciaryPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onTerciaryPlayerBehaviour) : null,
+			onTerciaryClientBehaviour = this.onTerciaryClientBehaviour != null ? new List<EntityActionBehaviour>(this.onTerciaryClientBehaviour) : null,
+			onTerciaryServerBehaviour = this.onTerciaryServerBehaviour != null ? new List<EntityActionBehaviour>(this.onTerciaryServerBehaviour) : null
+		};
+	}
+
 	// GET and SET functions ---------------
+	// UI
+	public List<EntityActionBehaviour> GetOnIconDraw() { return onIconDrawBehaviour; }
+	public void SetOnIconDraw(List<EntityActionBehaviour> val) { onIconDrawBehaviour = val; }
+
+	public List<EntityActionBehaviour> GetStackDraw() { return onStackDrawBehaviour; }
+	public void SetStackDraw(List<EntityActionBehaviour> val) { onStackDrawBehaviour = val; }
+
 	// Hold
 	public List<EntityActionBehaviour> GetOnHoldPlayer() { return onHoldPlayerBehaviour; }
 	public void SetOnHoldPlayer(List<EntityActionBehaviour> val) { onHoldPlayerBehaviour = val; }
@@ -120,6 +164,24 @@ public class EntityAction {
 	public void SetOnTerciaryServer(List<EntityActionBehaviour> val) { onTerciaryServerBehaviour = val; }
 
 	// Run Events ------------------------------
+	// UI
+	public virtual void OnIconDraw(ChunkLoader cl, ItemStack its, out Texture2D symbol, out Texture2D itemIcon){
+		symbol = null;
+		itemIcon = null;
+
+		if(this.onIconDrawBehaviour == null || this.onIconDrawBehaviour.Count == 0)
+			return;
+
+		this.onIconDrawBehaviour[0].OnIconDraw(cl, its, out symbol, out itemIcon);
+	}
+
+	public virtual string OnStackDraw(ChunkLoader cl, ItemStack its){
+		if(this.onStackDrawBehaviour == null || this.onStackDrawBehaviour.Count == 0)
+			return "";
+
+		return this.onStackDrawBehaviour[0].OnStackDraw(cl, its);
+	}
+
 	// Hold
 	public virtual void OnHoldPlayer(ChunkLoader cl, ItemStack its, ulong code){
 		if(this.onHoldPlayerBehaviour == null || this.onHoldPlayerBehaviour.Count == 0)

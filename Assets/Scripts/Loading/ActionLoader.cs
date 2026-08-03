@@ -25,6 +25,12 @@ public class ActionLoader : BaseLoader {
 		return true;
 	}
 
+	public static ushort GetID(string codename){return codenameToID[codename];}
+	public static EntityAction GetAction(ushort id){return actionBook[id];}
+	public static EntityAction GetAction(string codename){return actionBook[codenameToID[codename]];}
+	public static EntityAction GetCopy(ushort id){return actionBook[id].Copy();}
+	public static EntityAction GetCopy(string codename){return actionBook[codenameToID[codename]].Copy();}
+
 	public override void RunPostDeserializationRoutine(){
 		foreach(EntityAction action in actionBook){
 			action.PostDeserializationSetup();

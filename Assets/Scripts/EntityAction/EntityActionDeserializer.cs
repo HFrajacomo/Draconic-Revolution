@@ -7,6 +7,8 @@ using UnityEngine;
 Deserializes Draconic Revolution Item Notation files
 */
 public static class EntityActionDeserializer {
+	private static List<EntityActionBehaviour> onIconDrawEvent;
+	private static List<EntityActionBehaviour> onStackDrawEvent;
 	private static List<EntityActionBehaviour> onHoldPlayerEvent;
 	private static List<EntityActionBehaviour> onHoldClientEvent;
 	private static List<EntityActionBehaviour> onHoldServerEvent;
@@ -52,6 +54,8 @@ public static class EntityActionDeserializer {
 	}
 
 	private static void Reset(){
+		onIconDrawEvent = new List<EntityActionBehaviour>();
+		onStackDrawEvent = new List<EntityActionBehaviour>();
 		onHoldPlayerEvent = new List<EntityActionBehaviour>();
 		onHoldClientEvent = new List<EntityActionBehaviour>();
 		onHoldServerEvent = new List<EntityActionBehaviour>();
@@ -81,6 +85,12 @@ public static class EntityActionDeserializer {
 	private static void AssignEventsToAction(EntityAction action){
 		foreach(string ev in behaviours.Keys){
 			switch(ev){
+				case "onIconDraw":
+					action.SetOnIconDraw(onIconDrawEvent);
+					break;
+				case "onStackDraw":
+					action.SetOnIconDraw(onIconDrawEvent);
+					break;
 				case "onHoldPlayer":
 					action.SetOnHoldPlayer(onHoldPlayerEvent);
 					break;
@@ -235,6 +245,12 @@ public static class EntityActionDeserializer {
 
 	private static void AddToPlaceholder(string key, EntityActionBehaviour eab){
 		switch(key){
+			case "onIconDraw":
+				onIconDrawEvent.Add(eab);
+				break;
+			case "onStackDraw":
+				onStackDrawEvent.Add(eab);
+				break;
 			case "onHoldPlayer":
 				onHoldPlayerEvent.Add(eab);
 				break;
