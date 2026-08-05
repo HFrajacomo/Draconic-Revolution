@@ -8,6 +8,7 @@ Deserializes Draconic Revolution Item Notation files
 */
 public static class ItemDeserializer {
 	// Generic Item Placeholders
+	private static List<ItemBehaviour> onCreateActionEvent = new List<ItemBehaviour>();
 	private static List<ItemBehaviour> onHoldPlayerEvent = new List<ItemBehaviour>();
 	private static List<ItemBehaviour> onHoldClientEvent = new List<ItemBehaviour>();
 	private static List<ItemBehaviour> onHoldServerEvent = new List<ItemBehaviour>();
@@ -54,6 +55,7 @@ public static class ItemDeserializer {
 	}
 
 	private static void Reset(){
+		onCreateActionEvent = new List<ItemBehaviour>();
 		onHoldPlayerEvent = new List<ItemBehaviour>();
 		onHoldClientEvent = new List<ItemBehaviour>();
 		onHoldServerEvent = new List<ItemBehaviour>();
@@ -76,6 +78,9 @@ public static class ItemDeserializer {
 	private static void AssignEventsToItem(Item item){
 		foreach(string ev in behaviours.Keys){
 			switch(ev){
+				case "onCreateAction":
+					item.SetOnCreateAction(onCreateActionEvent);
+					break;
 				case "onHoldPlayer":
 					item.SetOnHoldPlayer(onHoldPlayerEvent);
 					break;
@@ -234,6 +239,9 @@ public static class ItemDeserializer {
 
 	private static void AddToPlaceholder(string key, ItemBehaviour ib){
 		switch(key){
+			case "onCreateAction":
+				onCreateActionEvent.Add(ib);
+				break;
 			case "onHoldPlayer":
 				onHoldPlayerEvent.Add(ib);
 				break;

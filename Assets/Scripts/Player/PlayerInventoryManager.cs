@@ -23,11 +23,13 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     private bool bulkMoveAbove = true; // If inventory shift-move should be done upwards or downwards
 
+    // Cache
 	private readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObjectUI";
 	private GameObject EMPTY_OBJECT;
+	private ItemStack NULL_STACK;
 
 	// Inventory data and draw info
-	private List<Inventory> inventory = new List<Inventory>();
+	private List<BaseInventory> inventory = new List<BaseInventory>();
 	private Dictionary<int, Image[]> slotImages = new Dictionary<int, Image[]>();
 	private Dictionary<int, TextMeshProUGUI[]> slotText = new Dictionary<int, TextMeshProUGUI[]>();
 	private GameObject scrollingAreaContent;
@@ -108,7 +110,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 				switch(mst){
 					case MemoryStorageType.EMPTY:
-						this.inventory[currentInventory].ForceAddStack(null, i);
+						this.inventory[currentInventory].ForceAddStack(NULL_STACK, i); // this was null before. Hopefully nothing breaks 
 						break;
 					case MemoryStorageType.ITEM:
 						id = NetDecoder.ReadUshort(data, bytesRead);
@@ -208,8 +210,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     public Inventory GetMainInventory(){
     	for(int i=0; i < this.inventory.Count; i++){
-    		if(this.inventory[i].mainInventory)
-    			return this.inventory[i];
+    		if(this.inventory[i].GetMainInventory())
+    			return (Inventory)this.inventory[i];
     	}
 
     	throw new MainInventoryNotFoundException($"[PlayerInventoryManager] None of the current inventories have the main flag set. Inventory count: {this.inventory.Count}");
@@ -307,11 +309,6 @@ public class PlayerInventoryManager : MonoBehaviour {
     			return;
 
     		changes = this.inventory[targetInventory].CanFit(its);
-
-    		foreach(InventoryTransaction t in changes){
-    			Debug.Log(t);
-    		}
-
     		receivedItems = this.inventory[targetInventory].AddStack(its, changes);
 
 			if(receivedItems < amount)
@@ -320,7 +317,6 @@ public class PlayerInventoryManager : MonoBehaviour {
 				this.inventory[inventoryCode].SetNull(slot);
 				if(slot < this.inventory[inventoryCode].GetLastEmptySlot())
 					this.inventory[inventoryCode].SetLastEmptySlot((short)slot);
-				this.inventory[inventoryCode].RemoveFromRecords(its.GetID());
 			}
 
 			foreach(InventoryTransaction it in changes){
@@ -542,7 +538,7 @@ public class PlayerInventoryManager : MonoBehaviour {
     	int counter = 0;
 
     	for(int i=0; i < this.inventory.Count; i++){
-    		if(this.inventory[i].bulkMovedTo)
+    		if(this.inventory[i].GetBulkMovedTo())
     			counter++;
 
     		if(counter >= 2)
@@ -562,7 +558,7 @@ public class PlayerInventoryManager : MonoBehaviour {
     			if(!this.inventory[(index + i) % this.inventory.Count].IsInGlobalWhitelist(its))
     				continue;
 
-    			if(this.inventory[(index + i) % this.inventory.Count].bulkMovedTo)
+    			if(this.inventory[(index + i) % this.inventory.Count].GetBulkMovedTo())
     				return (index + i) % this.inventory.Count;
     		}
     	}
@@ -571,7 +567,7 @@ public class PlayerInventoryManager : MonoBehaviour {
     			if(!this.inventory[Mathf.Abs(index - i) % this.inventory.Count].IsInGlobalWhitelist(its))
     				continue;
 
-    			if(this.inventory[Mathf.Abs(index - i) % this.inventory.Count].bulkMovedTo)
+    			if(this.inventory[Mathf.Abs(index - i) % this.inventory.Count].GetBulkMovedTo())
     				return Mathf.Abs(index - i) % this.inventory.Count;
     		}
     	}
@@ -660,6 +656,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		this.inventory.Add(InventoryLoader.GetInventory("HOTBAR"));
 		this.inventory.Add(InventoryLoader.GetInventory("PLAYER"));
 		this.inventory.Add(InventoryLoader.GetInventory("EQUIPMENT"));
+		//this.inventory.Add(InventoryLoader.GetActionInventory("ACTION_HOTBAR"));
 	}
 
 	// Creates hotbar UI

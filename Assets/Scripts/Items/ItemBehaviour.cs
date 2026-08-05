@@ -12,6 +12,7 @@ public abstract class ItemBehaviour{
 	public virtual void PostDeserializationSetup(bool isClient){return;}
 
 	// Events
+	public virtual EntityAction OnCreateAction(ChunkLoader cl, ItemStack its){return null;}
 	public virtual void OnHoldPlayer(ChunkLoader cl, ItemStack its, ulong code){return;}
 	public virtual void OnHoldClient(ChunkLoader cl, ItemStack its, ulong code){return;}
 	public virtual void OnHoldServer(ChunkLoader_Server cl, ItemStack its, ulong code){return;}

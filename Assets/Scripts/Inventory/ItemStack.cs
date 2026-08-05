@@ -2,8 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ItemStack
-{
+public class ItemStack {
 	private Item item;
 	private byte amount;
 	private bool isFull;

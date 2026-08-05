@@ -5,16 +5,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [Serializable]
-public class Inventory {
+public class Inventory : BaseInventory {
 	// Serialization only public variables
-	public string inventoryType;
 	public List<string> tagList;
 	public List<StringArrayIdentifier> slotWhiteList;
 	public bool isPickupTarget;
 	public bool bulkMovedTo;
 	public bool mainInventory;
-	public ushort amountOfSlots;
-	public int columnCount = 3;
 	public List<ValuePair<int, string>> slotDefaultIcon;
 
 	private byte inventoryID;
@@ -28,6 +25,7 @@ public class Inventory {
 	private Dictionary<int, string> perSlotDefaultIcon;
 
 	private Inventory(string type, ushort size){
+		this.itemInventory = true;
 		this.limit = size;
 		this.InitSlots(this.limit);
 		this.inventoryType = type;
@@ -90,7 +88,7 @@ public class Inventory {
 
 
 	// Adds an ItemStack to Inventory
-	public byte AddStack(ItemStack its, List<InventoryTransaction> spots){
+	public override byte AddStack(ItemStack its, List<InventoryTransaction> spots){
 		if(spots.Count == 0)
 			return 0;
 
@@ -120,7 +118,7 @@ public class Inventory {
 	}
 
 	// Forcefully adds a Stack to a slot in inventory, overwriting whatever was there before
-	public void ForceAddStack(ItemStack its, ushort slot){
+	public override void ForceAddStack(ItemStack its, ushort slot){
 		ItemStack previousIts;
 		short lastEmptySlot;
 
@@ -241,10 +239,15 @@ public class Inventory {
 		return returnStack;		
 	}
 
+	// Sets an ItemStack as null
+	public override void SetNull(ushort slot){
+		this.slots[slot] = null;
+	}
+
 	// Injects input ItemStack into a given slot that contains the same ItemStack until it's fully transferred or reaches stacksize
 	// Returns the altered its stack
 	#nullable enable
-	public ItemStack? Transfer(ItemStack its, ushort slot){
+	public override ItemStack? Transfer(ItemStack its, ushort slot){
 		int sum = 0;
 
 		if(this.slots[slot].GetID() == its.GetID()){
@@ -272,7 +275,7 @@ public class Inventory {
 	// Checks if an ItemStack can be fitted into the inventory
 	// Returns a Transaction List
 	// fitItems returns the amount of items taken into the transactions
-	public List<InventoryTransaction> CanFit(ItemStack its){
+	public override List<InventoryTransaction> CanFit(ItemStack its){
 		List<InventoryTransaction> transactions = new List<InventoryTransaction>();
 
 		// If the item to be added is not in the Inventory's global whitelist
@@ -355,7 +358,7 @@ public class Inventory {
 	}
 
 	// Checks if an item is part of the global whitelist for this inventory (like magic items for Bag of Holding)
-	public bool IsInGlobalWhitelist(ItemStack its){
+	public override bool IsInGlobalWhitelist(ItemStack its){
 		if(this.whitelistTags != null && this.whitelistTags.Count != 0){
 			if(its == null){
 				return this.whitelistTags.Contains("Null");
@@ -368,7 +371,7 @@ public class Inventory {
 	}
 
 	// Checks if an item is part of the whitelist for this slot (like weapons for Weapon Slot in Equipment)
-	public bool IsInLocalWhitelist(ItemStack its, ushort slot){
+	public override bool IsInLocalWhitelist(ItemStack its, ushort slot){
 		if(this.perSlotWhitelistTags != null && this.perSlotWhitelistTags.Count != 0){
 			if(!this.perSlotWhitelistTags.ContainsKey(slot))
 				return true;
@@ -383,7 +386,7 @@ public class Inventory {
 	}
 
 	// Iterates until it finds the first empty slot
-	public void FindLastEmptySlot(){
+	public override void FindLastEmptySlot(){
 		for(ushort i=0; i < this.limit; i++){
 			if(this.slots[i] == null){
 				this.lastEmptySlot = (short)i;
@@ -394,8 +397,14 @@ public class Inventory {
 		this.SetLastEmptySlot(-1);
 	}
 
+	// Returns this.mainInventory
+	public override bool GetMainInventory(){return this.mainInventory;}
+
+	// Returns this.bulkMovedTo
+	public override bool GetBulkMovedTo(){return this.bulkMovedTo;}
+
 	// Sets the lastEmptySlot
-	public void SetLastEmptySlot(short a){
+	public override void SetLastEmptySlot(short a){
 		this.lastEmptySlot = a;
 	}
 
@@ -404,29 +413,24 @@ public class Inventory {
 		return this.isFull;
 	}
 
-	// Sets an ItemStack as null
-	public void SetNull(ushort slot){
-		this.slots[slot] = null;
-	}
-
 	// Sets this.isFull when lastEmptyIndex = -1
 	public void SetFull(){
 		this.isFull = (this.GetLastEmptySlot() == -1);
 	}
 
 	// Returns this.lastEmptySlot
-	public short GetLastEmptySlot(){
+	public override short GetLastEmptySlot(){
 		return this.lastEmptySlot;
 	}
 
 	// Returns inventoryID
-	public byte GetID(){return this.inventoryID;}
+	public override byte GetID(){return this.inventoryID;}
 
 	// Returns the limit of Inventory
-	public ushort GetLimit(){return this.limit;}
+	public override ushort GetLimit(){return this.limit;}
 
 	// Returns true if this inventory has slot default icons
-	public bool HasInventoryIcons(){
+	public override bool HasInventoryIcons(){
 		if(this.perSlotDefaultIcon == null)
 			return false;
 
@@ -435,7 +439,7 @@ public class Inventory {
 
 	// Returns the name of the default icon from a given slot.
 	// Returns empty string if there is no such an icon
-	public string GetIconName(int id){
+	public override string GetIconName(int id){
 		if(this.perSlotDefaultIcon.ContainsKey(id))
 			return this.perSlotDefaultIcon[id];
 		return "";
@@ -457,7 +461,7 @@ public class Inventory {
 
 	// Return the ItemStack at position pos
 	#nullable enable
-	public ItemStack? GetSlot(ushort pos){
+	public override ItemStack? GetSlot(ushort pos){
 		return this.slots[pos];
 	}
 	#nullable disable
@@ -482,18 +486,4 @@ public class Inventory {
 	public string GetInventoryType(){return this.inventoryType;}
 
 	private void SetLimitOnType(byte id){this.limit = (ushort)InventoryLoader.GetInventorySize(id);}
-}
-
-public struct InventoryTransaction{
-	public ushort slotNumber;
-	public byte amount;
-
-	public InventoryTransaction(ushort slot, byte x){
-		this.slotNumber = slot;
-		this.amount = x;
-	}
-
-	public override string ToString(){
-		return "Slot: " + this.slotNumber.ToString() + " | Amount: " + this.amount.ToString();
-	}
 }

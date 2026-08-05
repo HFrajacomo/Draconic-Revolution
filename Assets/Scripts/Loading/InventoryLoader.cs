@@ -12,14 +12,21 @@ using Object = UnityEngine.Object;
 public class InventoryLoader : BaseLoader {
 	private static readonly string INVENTORY_LIST_RESPATH = "Inventory/INVENTORIES";
 	private static readonly string INVENTORY_RESPATH = "Inventory/";
+	private static readonly string ACTION_INVENTORY_LIST_RESPATH = "Inventory/ACTION_INVENTORIES";
 
 	private static readonly CultureInfo parsingCulture = CultureInfo.InvariantCulture;
 	private static bool isClient;
 
 	// Item Information
 	private static Dictionary<string, Inventory> inventories = new Dictionary<string, Inventory>();
+	private static Dictionary<string, ActionInventory> actionInventories = new Dictionary<string, ActionInventory>();
+
 	private static Dictionary<byte, Inventory> inventoriesByID = new Dictionary<byte, Inventory>();
+	private static Dictionary<byte, ActionInventory> actionInventoriesByID = new Dictionary<byte, ActionInventory>();
+
 	private static Dictionary<int, int> inventorySizes = new Dictionary<int, int>();
+	private static Dictionary<int, int> actionInventorySizes = new Dictionary<int, int>();
+
 	private static Dictionary<string, Texture2D> inventoryIcons = new Dictionary<string, Texture2D>();
 
 
@@ -29,16 +36,25 @@ public class InventoryLoader : BaseLoader {
 
 	public override bool Load(){
 		LoadInventories(isClient);
+		LoadActionInventories(isClient);
 
 		return true;
 	}
 
 	public static Inventory GetInventory(string type){return inventories[type].Copy();}
 	public static Inventory GetInventory(byte id){return inventoriesByID[id].Copy();}
+	public static ActionInventory GetActionInventory(string type){return actionInventories[type].Copy();}
+
 	public static byte GetInventoryID(string type){return inventories[type].GetID();}
+	public static byte GetActionInventoryID(string type){return actionInventories[type].GetID();}
+
 	public static int GetInventorySize(byte id){return inventorySizes[id];}
 	public static int GetInventorySize(string name){return inventorySizes[inventories[name].GetID()];}
+	public static int GetActionInventorySize(byte id){return actionInventorySizes[id];}
+	public static int GetActionInventorySize(string name){return actionInventorySizes[inventories[name].GetID()];}
+
 	public static int GetColumnCount(string type){return inventories[type].columnCount;}
+	public static int GetActionColumnCount(string type){return actionInventories[type].columnCount;}
 	public static bool GetPickupTarget(byte id){return inventoriesByID[id].isPickupTarget;}
 	public static Texture2D GetSlotIcon(string iconName){return inventoryIcons[iconName];}
 
@@ -75,6 +91,30 @@ public class InventoryLoader : BaseLoader {
 		}
 		else{
 			throw new DeserializationErrorException($"[InventoryLoader] Failed to find inventory config json at: {INVENTORY_LIST_RESPATH}");
+		}
+	}
+
+	private void LoadActionInventories(bool isClient){
+		TextAsset textAsset;
+		Wrapper<ActionInventory> wrapper;
+
+		textAsset = Resources.Load<TextAsset>(ACTION_INVENTORY_LIST_RESPATH);
+		byte inventoryID = 0;
+
+		if(textAsset != null){
+			wrapper = JsonUtility.FromJson<Wrapper<ActionInventory>>(JsonFormatter.RemoveComments(textAsset.text));
+
+			foreach(ActionInventory inventory in wrapper.data){
+				inventory.PostDeserializationSetup(inventoryID);
+				actionInventories.Add(inventory.GetInventoryType(), inventory);
+				actionInventoriesByID.Add(inventoryID, inventory);
+				actionInventorySizes.Add(inventoryID, inventory.GetLimit());
+
+				inventoryID++;
+			}
+		}
+		else{
+			throw new DeserializationErrorException($"[InventoryLoader] Failed to find inventory config json at: {ACTION_INVENTORY_LIST_RESPATH}");
 		}
 	}
 }

@@ -29,6 +29,7 @@ public class Item {
 	public bool hasDurability = false;
 
 	// Behaviours
+	protected List<ItemBehaviour> onCreateActionBehaviour;
 	protected List<ItemBehaviour> onHoldPlayerBehaviour;
 	protected List<ItemBehaviour> onHoldClientBehaviour;
 	protected List<ItemBehaviour> onHoldServerBehaviour;
@@ -63,6 +64,7 @@ public class Item {
 			itemTags = this.itemTags,
 
 			// Deep copy lists (new lists with same elements)
+			onCreateActionBehaviour = this.onCreateActionBehaviour != null ? new List<ItemBehaviour>(this.onCreateActionBehaviour) : null,
 			onHoldPlayerBehaviour = this.onHoldPlayerBehaviour != null ? new List<ItemBehaviour>(this.onHoldPlayerBehaviour) : null,
 			onHoldClientBehaviour = this.onHoldClientBehaviour != null ? new List<ItemBehaviour>(this.onHoldClientBehaviour) : null,
 			onHoldServerBehaviour = this.onHoldServerBehaviour != null ? new List<ItemBehaviour>(this.onHoldServerBehaviour) : null,
@@ -140,6 +142,9 @@ public class Item {
 	}
 
 	// EVENT GET/SET
+	public List<ItemBehaviour> GetOnCreateAction() { return onCreateActionBehaviour; }
+	public void SetOnCreateAction(List<ItemBehaviour> val) { onCreateActionBehaviour = val; }
+
 	public List<ItemBehaviour> GetOnHoldPlayer() { return onHoldPlayerBehaviour; }
 	public void SetOnHoldPlayer(List<ItemBehaviour> val) { onHoldPlayerBehaviour = val; }
 	public List<ItemBehaviour> GetOnHoldClient() { return onHoldClientBehaviour; }
@@ -181,6 +186,12 @@ public class Item {
 	public MemoryStorageType GetMemoryStorageType(){return (MemoryStorageType)this.memoryType;}
 
 	// Basic Operations
+	public virtual EntityAction OnCreateAction(ChunkLoader cl, ItemStack its){
+		if(this.onCreateActionBehaviour == null || this.onCreateActionBehaviour.Count == 0)
+			return null;
+
+		return this.onCreateActionBehaviour[0].OnCreateAction(cl, its);
+	}
 	public virtual void OnHoldPlayer(ChunkLoader cl, ItemStack its, ulong code){
 		if(this.onHoldPlayerBehaviour == null || this.onHoldPlayerBehaviour.Count == 0)
 			return;
