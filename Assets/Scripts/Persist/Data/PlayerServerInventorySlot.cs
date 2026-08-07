@@ -32,6 +32,13 @@ public abstract class PlayerServerInventorySlot{
 		byte cachedRefine;
 		EnchantmentType cachedEnchant;
 
+		// Action
+		bool connectedToStack;
+		ushort currentCooldown;
+		ushort totalCooldown;
+		byte connectedStackInventory;
+		byte connectedStackSlot;
+
 		// Iterators
 		int currentPosition = init;
 		byte invType;
@@ -69,6 +76,21 @@ public abstract class PlayerServerInventorySlot{
 						cachedEnchant = (EnchantmentType)NetDecoder.ReadByte(data, currentPosition);
 						currentPosition++;
 						slots.Add(new WeaponPlayerInventorySlot(cachedId, cachedDurability, cachedRefine, cachedEnchant, invType, i));
+						break;
+					case MemoryStorageType.ACTION:
+						cachedId = NetDecoder.ReadUshort(data, currentPosition);
+						currentPosition += 2;
+						connectedToStack = NetDecoder.ReadBool(data, currentPosition);
+						currentPosition++;
+						currentCooldown = NetDecoder.ReadUshort(data, currentPosition);
+						currentPosition += 2;
+						totalCooldown = NetDecoder.ReadUshort(data, currentPosition);
+						currentPosition += 2;
+						connectedStackInventory = NetDecoder.ReadByte(data, currentPosition);
+						currentPosition++;
+						connectedStackSlot = NetDecoder.ReadByte(data, currentPosition);
+						currentPosition++;
+						slots.Add(new ActionInventorySlot(cachedId, connectedToStack, currentCooldown, totalCooldown, connectedStackInventory, connectedStackSlot, invType, i));
 						break;
 				}
 			}
@@ -165,6 +187,41 @@ public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
 
 	public void SetDurability(uint dur){
 		this.currentDurability = dur;
+	}
+}
+
+/*
+Inventory Slot that contains an Action in ActionInventories
+*/
+public class ActionInventorySlot : PlayerServerInventorySlot {
+	private bool connectedToStack;
+	private ushort currentCooldown;
+	private ushort totalCooldown;
+	private byte connectedStackInventory;
+	private byte connectedStackSlot;
+
+	public ActionInventorySlot(ushort id, bool connectedToStack, ushort currentCooldown, ushort totalCooldown, byte connectedStackInventory, byte connectedStackSlot, byte invType, byte slotID){
+		this.type = MemoryStorageType.ACTION;
+		this.slotMemorySize = 10;
+		this.itemID = id;
+		this.connectedToStack = connectedToStack;
+		this.currentCooldown = currentCooldown;
+		this.totalCooldown = totalCooldown;
+		this.connectedStackInventory = connectedStackInventory;
+		this.connectedStackSlot = connectedStackSlot;
+		this.inventoryType = invType;
+		this.slotID = slotID;
+	}
+
+	public override int SaveToBuffer(byte[] buffer, int init){
+		NetDecoder.WriteByte((byte)this.type, buffer, init);
+		NetDecoder.WriteUshort(this.itemID, buffer, init+1);
+		NetDecoder.WriteBool(this.connectedToStack, buffer, init+3);
+		NetDecoder.WriteUshort(this.currentCooldown, buffer, init+4);
+		NetDecoder.WriteUshort(this.totalCooldown, buffer, init+6);
+		NetDecoder.WriteByte((byte)this.connectedStackInventory, buffer, init+8);
+		NetDecoder.WriteByte((byte)this.connectedStackSlot, buffer, init+9);
+		return this.slotMemorySize;
 	}
 }
 

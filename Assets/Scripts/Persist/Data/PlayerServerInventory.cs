@@ -185,6 +185,9 @@ public class PlayerServerInventory{
     private List<PlayerServerInventorySlot> GetEmptySlots(){
         List<PlayerServerInventorySlot> slots = new List<PlayerServerInventorySlot>();
 
+        for(byte i=0; i < InventoryLoader.GetInventorySize("ACTION_HOTBAR"); i++){
+            slots.Add(new EmptyPlayerInventorySlot(InventoryLoader.GetActionInventoryID("ACTION_HOTBAR"), i));
+        }
         for(byte i=0; i < InventoryLoader.GetInventorySize("HOTBAR"); i++){
             slots.Add(new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("HOTBAR"), i));
         }

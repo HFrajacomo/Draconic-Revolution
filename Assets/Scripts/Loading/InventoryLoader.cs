@@ -16,6 +16,7 @@ public class InventoryLoader : BaseLoader {
 
 	private static readonly CultureInfo parsingCulture = CultureInfo.InvariantCulture;
 	private static bool isClient;
+	private static byte inventoryID = 0;
 
 	// Item Information
 	private static Dictionary<string, Inventory> inventories = new Dictionary<string, Inventory>();
@@ -25,7 +26,6 @@ public class InventoryLoader : BaseLoader {
 	private static Dictionary<byte, ActionInventory> actionInventoriesByID = new Dictionary<byte, ActionInventory>();
 
 	private static Dictionary<int, int> inventorySizes = new Dictionary<int, int>();
-	private static Dictionary<int, int> actionInventorySizes = new Dictionary<int, int>();
 
 	private static Dictionary<string, Texture2D> inventoryIcons = new Dictionary<string, Texture2D>();
 
@@ -49,9 +49,12 @@ public class InventoryLoader : BaseLoader {
 	public static byte GetActionInventoryID(string type){return actionInventories[type].GetID();}
 
 	public static int GetInventorySize(byte id){return inventorySizes[id];}
-	public static int GetInventorySize(string name){return inventorySizes[inventories[name].GetID()];}
-	public static int GetActionInventorySize(byte id){return actionInventorySizes[id];}
-	public static int GetActionInventorySize(string name){return actionInventorySizes[inventories[name].GetID()];}
+	public static int GetInventorySize(string name){
+		if(inventories.ContainsKey(name))
+			return inventorySizes[inventories[name].GetID()];
+		else
+			return inventorySizes[actionInventories[name].GetID()];
+	}
 
 	public static int GetColumnCount(string type){return inventories[type].columnCount;}
 	public static int GetActionColumnCount(string type){return actionInventories[type].columnCount;}
@@ -64,12 +67,14 @@ public class InventoryLoader : BaseLoader {
 		Texture2D texture;
 
 		textAsset = Resources.Load<TextAsset>(INVENTORY_LIST_RESPATH);
-		byte inventoryID = 0;
 
 		if(textAsset != null){
 			wrapper = JsonUtility.FromJson<Wrapper<Inventory>>(JsonFormatter.RemoveComments(textAsset.text));
 
 			foreach(Inventory inventory in wrapper.data){
+				if(inventoryID >= byte.MaxValue)
+					throw new ByteLimitException($"[InventoryLoader] Draconic Revolution only supports 256 different inventory types");
+
 				inventory.PostDeserializationSetup(inventoryID);
 				inventories.Add(inventory.GetInventoryType(), inventory);
 				inventoriesByID.Add(inventoryID, inventory);
@@ -99,16 +104,20 @@ public class InventoryLoader : BaseLoader {
 		Wrapper<ActionInventory> wrapper;
 
 		textAsset = Resources.Load<TextAsset>(ACTION_INVENTORY_LIST_RESPATH);
-		byte inventoryID = 0;
 
 		if(textAsset != null){
 			wrapper = JsonUtility.FromJson<Wrapper<ActionInventory>>(JsonFormatter.RemoveComments(textAsset.text));
 
 			foreach(ActionInventory inventory in wrapper.data){
+				Debug.Log($"ActionInventory loaded with ID: {inventoryID}");
+
+				if(inventoryID >= byte.MaxValue)
+					throw new ByteLimitException($"[InventoryLoader] Draconic Revolution only supports 256 different inventory types");
+					
 				inventory.PostDeserializationSetup(inventoryID);
 				actionInventories.Add(inventory.GetInventoryType(), inventory);
 				actionInventoriesByID.Add(inventoryID, inventory);
-				actionInventorySizes.Add(inventoryID, inventory.GetLimit());
+				inventorySizes.Add(inventoryID, inventory.GetLimit());
 
 				inventoryID++;
 			}

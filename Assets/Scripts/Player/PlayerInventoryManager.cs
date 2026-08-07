@@ -62,6 +62,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		if(this.inventory.Count == 0)
 			StartInventory();
 
+		CreateActionHotbar(this.gameObject);
 		CreateHotbarInventory(this.gameObject);
 		CreatePlayerBagInventory(this.gameObject);
 		CreateEquipmentInventory(this.gameObject);
@@ -89,6 +90,14 @@ public class PlayerInventoryManager : MonoBehaviour {
 		ItemStack its;
 		Item item;
 		Weapon weapon;
+
+		// Cached Action
+		EntityAction ea;
+		bool connectedToStack;
+		ushort currentCooldown;
+		ushort totalCooldown;
+		byte connectedStackInventory;
+		byte connectedStackSlot;
 
 		if(this.inventory.Count == 0)
 			StartInventory();
@@ -138,6 +147,20 @@ public class PlayerInventoryManager : MonoBehaviour {
 						its = new ItemStack(weapon, 1);
 						this.inventory[currentInventory].ForceAddStack(its, i); 
 						break;
+					case MemoryStorageType.ACTION:
+						connectedToStack = NetDecoder.ReadBool(data, bytesRead);
+						bytesRead++;
+						currentCooldown = NetDecoder.ReadUshort(data, bytesRead);
+						bytesRead += 2;
+						totalCooldown = NetDecoder.ReadUshort(data, bytesRead);
+						bytesRead += 2;
+						connectedStackInventory = NetDecoder.ReadByte(data, bytesRead);
+						bytesRead++;
+						connectedStackSlot = NetDecoder.ReadByte(data, bytesRead);
+						bytesRead++;
+						ea = new EntityAction();
+						ea.SetMemoryData(connectedToStack, currentCooldown, totalCooldown, connectedStackInventory, connectedStackSlot);
+						break;
 				}
 			}
 			currentInventory++;
@@ -152,6 +175,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	*/
 	public int SerializeInventory(){
 		ItemStack its;
+		EntityAction ea;
 		int bytesWritten = 0;
 
 		for(int inventoryCode=0; inventoryCode < this.inventory.Count; inventoryCode++){
@@ -159,13 +183,31 @@ public class PlayerInventoryManager : MonoBehaviour {
 			bytesWritten++;
 
 			for(ushort i=0; i < this.inventory[inventoryCode].GetLimit(); i++){
-				if(this.inventory[inventoryCode].GetSlot(i) == null){
-					this.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
-					bytesWritten++;
+				// Item Inventory
+				if(this.inventory[inventoryCode].itemInventory){
+					// Empty
+					if(this.inventory[inventoryCode].GetSlot(i) == null){
+						this.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
+						bytesWritten++;
+					}
+					// Item
+					else{
+						its = this.inventory[inventoryCode].GetSlot(i);
+						bytesWritten += its.ConvertToMemory(this.buffer, bytesWritten);
+					}
 				}
+				// Action Inventory
 				else{
-					its = this.inventory[inventoryCode].GetSlot(i);
-					bytesWritten += its.ConvertToMemory(this.buffer, bytesWritten);
+					// Empty
+					if(this.inventory[inventoryCode].GetPos(i) == null){
+						this.buffer[bytesWritten] = (byte)MemoryStorageType.EMPTY;
+						bytesWritten++;
+					}
+					// Action
+					else{
+						ea = this.inventory[inventoryCode].GetPos(i);
+						bytesWritten += ea.ConvertToMemory(this.buffer, bytesWritten);
+					}
 				}
 			}
 		}
@@ -175,7 +217,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     public void ReloadInventory(){
 		for(int i=0; i < this.inventory.Count; i++){
-			this.inventory[i].FindLastEmptySlot();
+			if(this.inventory[i].itemInventory)
+				this.inventory[i].FindLastEmptySlot();
 		}
 
         DrawStacks();
@@ -210,7 +253,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     public Inventory GetMainInventory(){
     	for(int i=0; i < this.inventory.Count; i++){
-    		if(this.inventory[i].GetMainInventory())
+    		if(this.inventory[i].itemInventory && this.inventory[i].GetMainInventory())
     			return (Inventory)this.inventory[i];
     	}
 
@@ -230,6 +273,12 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     // Redraws a specific slot
     public void DrawSlot(byte inventoryCode, ushort slot){
+    	if(this.inventory[inventoryCode].itemInventory)
+    		DrawSlotItem(inventoryCode, slot);
+    	else
+    		DrawSlotAction(inventoryCode, slot);
+    }
+    private void DrawSlotItem(byte inventoryCode, ushort slot){
     	ItemStack its = this.inventory[inventoryCode].GetSlot(slot);
     	string iconName = "";
 
@@ -255,6 +304,9 @@ public class PlayerInventoryManager : MonoBehaviour {
     		else
     			this.slotText[inventoryCode][slot].text = "";   			
 		}
+    }
+    private void DrawSlotAction(byte inventoryCode, ushort slot){
+    	// TODO
     }
 
     // Activates on Left Click of a slot
@@ -653,28 +705,27 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	// Creates the default player inventories
 	private void StartInventory(){
+		this.inventory.Add(InventoryLoader.GetActionInventory("ACTION_HOTBAR"));
 		this.inventory.Add(InventoryLoader.GetInventory("HOTBAR"));
 		this.inventory.Add(InventoryLoader.GetInventory("PLAYER"));
 		this.inventory.Add(InventoryLoader.GetInventory("EQUIPMENT"));
-		//this.inventory.Add(InventoryLoader.GetActionInventory("ACTION_HOTBAR"));
 	}
 
-	// Creates hotbar UI
-	private void CreateHotbarInventory(GameObject parent){
-		int amountOfColumns = 9;
+	// Creates Action hotbar UI
+	private void CreateActionHotbar(GameObject parent){
+		int amountOfColumns = InventoryLoader.GetActionColumnCount("ACTION_HOTBAR");
 
 		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
 		Vector2 groupSizes = new Vector2(amountOfColumns * this.slotSizes.x, this.slotSizes.y);
 		Vector2 anchorMain = new Vector2(0.5f, 0f);
 		Vector2 anchorSec = new Vector2(0.5f, 0.5f);
 
-		int inventorySize = InventoryLoader.GetInventorySize("HOTBAR");
+		int inventorySize = InventoryLoader.GetInventorySize("ACTION_HOTBAR");
 
-		goSlots.name = "HotbarSlots";
+		goSlots.name = "ActionHotbarSlots";
 		goSlots.transform.SetParent(parent.transform);
 		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
 		FixTransform(slotTransform, groupSizes, anchorMain, addX:-48, addY:20);
-
 
 		HorizontalLayoutGroup hlpSlot = goSlots.AddComponent<HorizontalLayoutGroup>();
 		hlpSlot.spacing = 4f;
@@ -690,6 +741,40 @@ public class PlayerInventoryManager : MonoBehaviour {
 		for(int i=0; i < inventorySize; i++){
 			this.slotImages[0][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 0, i, this.slotSizes, anchorSec);
 			this.slotText[0][i] = CreateTextComponent(this.slotImages[0][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
+		}
+	}
+
+	// Creates hotbar UI
+	private void CreateHotbarInventory(GameObject parent){
+		int amountOfColumns = InventoryLoader.GetColumnCount("HOTBAR");
+
+		GameObject goSlots = GameObject.Instantiate(EMPTY_OBJECT);
+		Vector2 groupSizes = new Vector2(amountOfColumns * this.slotSizes.x, this.slotSizes.y);
+		Vector2 anchorMain = new Vector2(0.5f, 0f);
+		Vector2 anchorSec = new Vector2(0.5f, 0.5f);
+
+		int inventorySize = InventoryLoader.GetInventorySize("HOTBAR");
+
+		goSlots.name = "HotbarSlots";
+		goSlots.transform.SetParent(parent.transform);
+		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
+		FixTransform(slotTransform, groupSizes, anchorMain, addX:-48, addY:(int)(20 + this.slotSizes.y + 10));
+
+
+		HorizontalLayoutGroup hlpSlot = goSlots.AddComponent<HorizontalLayoutGroup>();
+		hlpSlot.spacing = 4f;
+		hlpSlot.childForceExpandHeight = true;
+		hlpSlot.childForceExpandWidth = true;
+		hlpSlot.childAlignment = TextAnchor.MiddleCenter;
+		hlpSlot.childControlHeight = false;
+		hlpSlot.childControlWidth = false;
+
+		this.slotImages.Add(1, new Image[inventorySize]);
+		this.slotText.Add(1, new TextMeshProUGUI[inventorySize]);
+
+		for(int i=0; i < inventorySize; i++){
+			this.slotImages[1][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 1, i, this.slotSizes, anchorSec);
+			this.slotText[1][i] = CreateTextComponent(this.slotImages[1][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
 		}
 	}
 
@@ -759,12 +844,12 @@ public class PlayerInventoryManager : MonoBehaviour {
 		glpSlot.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
 		glpSlot.constraintCount = amountOfColumns;
 
-		this.slotImages.Add(1, new Image[inventorySize]);
-		this.slotText.Add(1, new TextMeshProUGUI[inventorySize]);
+		this.slotImages.Add(2, new Image[inventorySize]);
+		this.slotText.Add(2, new TextMeshProUGUI[inventorySize]);
 
 		for(int i=0; i < inventorySize; i++){
-			this.slotImages[1][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 1, i, this.slotSizes, anchorSec);
-			this.slotText[1][i] = CreateTextComponent(this.slotImages[1][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
+			this.slotImages[2][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 2, i, this.slotSizes, anchorSec);
+			this.slotText[2][i] = CreateTextComponent(this.slotImages[2][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
 		}
 	}
 
@@ -782,15 +867,15 @@ public class PlayerInventoryManager : MonoBehaviour {
 		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
 		FixTransform(slotTransform, groupSizes, anchorSec, addX:400);
 
-		this.slotImages.Add(2, new Image[inventorySize]);
-		this.slotText.Add(2, new TextMeshProUGUI[inventorySize]);
+		this.slotImages.Add(3, new Image[inventorySize]);
+		this.slotText.Add(3, new TextMeshProUGUI[inventorySize]);
 
 		for(int i=0; i < inventorySize; i++){
-			this.slotImages[2][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 2, i, this.slotSizes, anchorSec);
-			this.slotText[2][i] = CreateTextComponent(this.slotImages[2][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
+			this.slotImages[3][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 3, i, this.slotSizes, anchorSec);
+			this.slotText[3][i] = CreateTextComponent(this.slotImages[3][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
 
-			this.slotImages[2][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
-			this.slotText[2][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
+			this.slotImages[3][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
+			this.slotText[3][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
 		}
 	}
 

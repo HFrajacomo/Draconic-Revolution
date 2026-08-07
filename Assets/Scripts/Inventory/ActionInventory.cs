@@ -42,6 +42,9 @@ public class ActionInventory : BaseInventory {
 		return aux;
 	}
 
+	public override void ForceAddStack(ItemStack its, ushort slot){
+		AddStack(null, (byte)slot);
+	}
 	public override EntityAction ForceAddStack(EntityAction ea, ushort slot){
 		return AddStack(ea, (byte)slot);
 	}

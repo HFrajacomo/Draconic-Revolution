@@ -8,6 +8,13 @@ public class EntityAction {
 	public string name;
 	private ushort id;
 
+	// Storage
+	private bool connectedToStack;
+	private ushort currentCooldown;
+	private ushort totalCooldown;
+	private byte connectedStackInventory;
+	private byte connectedStackSlot;
+
 	// Behaviours ---------------------
 	// UI
 	protected List<EntityActionBehaviour> onIconDrawBehaviour;
@@ -83,6 +90,28 @@ public class EntityAction {
 			onTerciaryClientBehaviour = this.onTerciaryClientBehaviour != null ? new List<EntityActionBehaviour>(this.onTerciaryClientBehaviour) : null,
 			onTerciaryServerBehaviour = this.onTerciaryServerBehaviour != null ? new List<EntityActionBehaviour>(this.onTerciaryServerBehaviour) : null
 		};
+	}
+
+	// Sets EntityAction data that comes specifically from Server byte array reconstruction
+	public void SetMemoryData(bool connectedToStack, ushort currentCooldown, ushort totalCooldown, byte connectedStackInventory, byte connectedStackSlot){
+		this.connectedToStack = connectedToStack;
+		this.currentCooldown = currentCooldown;
+		this.totalCooldown = totalCooldown;
+		this.connectedStackInventory = connectedStackInventory;
+		this.connectedStackSlot = connectedStackSlot;
+	}
+
+	// Serializes this EntityAction object to send over byte array to Server
+	public int ConvertToMemory(byte[] data, int pos){
+		NetDecoder.WriteByte((byte)MemoryStorageType.ACTION, data, pos);
+		NetDecoder.WriteUshort(GetID(), data, pos+1);
+		NetDecoder.WriteBool(this.connectedToStack, data, pos+3);
+		NetDecoder.WriteUshort(this.currentCooldown, data, pos+4);
+		NetDecoder.WriteUshort(this.totalCooldown, data, pos+6);
+		NetDecoder.WriteByte(this.connectedStackInventory, data, pos+8);
+		NetDecoder.WriteByte(this.connectedStackSlot, data, pos+9);
+
+		return 10;
 	}
 
 	// GET and SET functions ---------------

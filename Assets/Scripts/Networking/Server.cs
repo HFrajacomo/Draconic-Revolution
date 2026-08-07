@@ -229,7 +229,7 @@ public class Server {
 
 	// Sends a byte[] to the a client given it's ID
 	public void Send(byte[] data, int length, ulong id, bool temporary=false){
-		//try{
+		try{
 			if(!temporary){
 				IAsyncResult lenResult = this.connections[id].BeginSend(this.LengthPacket(length), 0, 4, 0, out this.err, null, id);
 				this.connections[id].EndSend(lenResult);
@@ -248,12 +248,10 @@ public class Server {
 
 				NetMessage.Broadcast(NetBroadcast.SENT, data[0], id, length);				
 			}
-		//}
-		/*
+		}
 		catch(Exception e){
 			Debug.Log("SEND ERROR: " + e.ToString());
 		}
-		*/
 	}
 
 	public void SendList(byte[] data, int length, List<ulong> ids, bool temporary=false){
