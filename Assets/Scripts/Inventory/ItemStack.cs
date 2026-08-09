@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ItemStack {
+public class ItemStack : ClickableSlot {
 	private Item item;
 	private byte amount;
 	private bool isFull;
@@ -10,6 +10,7 @@ public class ItemStack {
 	public ItemStack(ushort id, byte amount){
 		this.item = ItemLoader.GetCopy(id);
 		this.amount = amount;
+		this.isItemStack = true;
 
 		this.CheckFull();
 	}
@@ -18,6 +19,7 @@ public class ItemStack {
 	public ItemStack(Item item, byte amount){
 		this.item = item;
 		this.amount = amount;
+		this.isItemStack = true;
 	}
 
 	// Returns the amount of items in the stack
@@ -32,7 +34,7 @@ public class ItemStack {
 	}
 
 	// Returns the item ID
-	public ushort GetID(){
+	public override ushort GetID(){
 		return item.GetID();
 	}
 

@@ -32,10 +32,9 @@ public class ActionInventory : BaseInventory {
 		this.InitSlots(this.limit);
 	}
 
-
 	// Adds an EntityAction to Inventory
 	// If had an EntityAction in the given slot, returns it. Else, returns null
-	public override EntityAction AddStack(EntityAction ea, byte slot){
+	public override EntityAction AddStack(EntityAction ea, ushort slot){
 		EntityAction aux = this.slots[slot];
 		this.slots[slot] = ea;
 
@@ -49,9 +48,16 @@ public class ActionInventory : BaseInventory {
 		return AddStack(ea, (byte)slot);
 	}
 
+	public override bool IsInGlobalWhitelist(ItemStack its){return true;}
+	public override bool IsInLocalWhitelist(ItemStack its, ushort slot){return true;}
 
 	// Removes completely an EntityAction
 	public void Remove(short slot){
+		this.slots[slot] = null;
+	}
+
+	// Sets an ItemStack as null
+	public override void SetNull(ushort slot){
 		this.slots[slot] = null;
 	}
 

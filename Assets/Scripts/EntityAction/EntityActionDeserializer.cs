@@ -7,29 +7,29 @@ using UnityEngine;
 Deserializes Draconic Revolution Item Notation files
 */
 public static class EntityActionDeserializer {
-	private static List<EntityActionBehaviour> onIconDrawEvent;
-	private static List<EntityActionBehaviour> onStackDrawEvent;
-	private static List<EntityActionBehaviour> onHoldPlayerEvent;
-	private static List<EntityActionBehaviour> onHoldClientEvent;
-	private static List<EntityActionBehaviour> onHoldServerEvent;
-	private static List<EntityActionBehaviour> onUnholdPlayerEvent;
-	private static List<EntityActionBehaviour> onUnholdClientEvent;
-	private static List<EntityActionBehaviour> onUnholdServerEvent;
-	private static List<EntityActionBehaviour> onPrimaryPlayerEvent;
-	private static List<EntityActionBehaviour> onPrimaryClientEvent;
-	private static List<EntityActionBehaviour> onPrimaryServerEvent;
-	private static List<EntityActionBehaviour> onPrimaryHoldPlayerEvent;
-	private static List<EntityActionBehaviour> onPrimaryHoldClientEvent;
-	private static List<EntityActionBehaviour> onPrimaryHoldServerEvent;
-	private static List<EntityActionBehaviour> onSecondaryPlayerEvent;
-	private static List<EntityActionBehaviour> onSecondaryClientEvent;
-	private static List<EntityActionBehaviour> onSecondaryServerEvent;
-	private static List<EntityActionBehaviour> onSecondaryHoldPlayerEvent;
-	private static List<EntityActionBehaviour> onSecondaryHoldClientEvent;
-	private static List<EntityActionBehaviour> onSecondaryHoldServerEvent;
-	private static List<EntityActionBehaviour> onTerciaryPlayerEvent;
-	private static List<EntityActionBehaviour> onTerciaryClientEvent;
-	private static List<EntityActionBehaviour> onTerciaryServerEvent;
+	private static List<EntityActionBehaviour> onIconDrawEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onStackDrawEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onHoldPlayerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onHoldClientEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onHoldServerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onUnholdPlayerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onUnholdClientEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onUnholdServerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onPrimaryPlayerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onPrimaryClientEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onPrimaryServerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onPrimaryHoldPlayerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onPrimaryHoldClientEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onPrimaryHoldServerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onSecondaryPlayerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onSecondaryClientEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onSecondaryServerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onSecondaryHoldPlayerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onSecondaryHoldClientEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onSecondaryHoldServerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onTerciaryPlayerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onTerciaryClientEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onTerciaryServerEvent = new List<EntityActionBehaviour>();
 
 	private static Dictionary<string, List<string>> behaviours = new Dictionary<string, List<string>>();
 	private static HashSet<string> assignedEvents = new HashSet<string>();
@@ -39,7 +39,7 @@ public static class EntityActionDeserializer {
 		string propertiesJson = GetProperties(json);
 		string behaviourJson;
 
-		EntityAction action = JsonUtility.FromJson<EntityAction>(JsonFormatter.RemoveComments(json));
+		EntityAction action = JsonUtility.FromJson<EntityAction>(JsonFormatter.RemoveComments(propertiesJson));
 
 		if(HasBehaviours(json)){
 			behaviourJson = GetBehaviours(json);
@@ -164,7 +164,10 @@ public static class EntityActionDeserializer {
 		string jsonSerial = GetSection(json, val);
 
 		switch(val){
-			// Add Behaviours here
+			case "EAItemUIBehaviour":
+				return JsonUtility.FromJson<EAItemUIBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "EAPlaceBlockBehaviour":
+				return JsonUtility.FromJson<EAPlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
 				throw new DeserializationErrorException($"[EntityActionDeserializer] ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: {val}");
 		}
@@ -269,49 +272,49 @@ public static class EntityActionDeserializer {
 			case "onUnholdServer":
 				onUnholdServerEvent.Add(eab);
 				break;
-			case "onPrimaryPlayerBehaviour":
+			case "onPrimaryPlayer":
 				onPrimaryPlayerEvent.Add(eab);
 				break;
-			case "onPrimaryClientBehaviour":
+			case "onPrimaryClient":
 				onPrimaryClientEvent.Add(eab);
 				break;
-			case "onPrimaryServerBehaviour":
+			case "onPrimaryServer":
 				onPrimaryServerEvent.Add(eab);
 				break;
-			case "onPrimaryHoldPlayerBehaviour":
+			case "onPrimaryHoldPlayer":
 				onPrimaryHoldPlayerEvent.Add(eab);
 				break;
-			case "onPrimaryHoldClientBehaviour":
+			case "onPrimaryHoldClient":
 				onPrimaryHoldClientEvent.Add(eab);
 				break;
-			case "onPrimaryHoldServerBehaviour":
+			case "onPrimaryHoldServer":
 				onPrimaryHoldServerEvent.Add(eab);
 				break;
-			case "onSecondaryPlayerBehaviour":
+			case "onSecondaryPlayer":
 				onSecondaryPlayerEvent.Add(eab);
 				break;
-			case "onSecondaryClientBehaviour":
+			case "onSecondaryClient":
 				onSecondaryClientEvent.Add(eab);
 				break;
-			case "onSecondaryServerBehaviour":
+			case "onSecondaryServer":
 				onSecondaryServerEvent.Add(eab);
 				break;
-			case "onSecondaryHoldPlayerBehaviour":
+			case "onSecondaryHoldPlayer":
 				onSecondaryHoldPlayerEvent.Add(eab);
 				break;
-			case "onSecondaryHoldClientBehaviour":
+			case "onSecondaryHoldClient":
 				onSecondaryHoldClientEvent.Add(eab);
 				break;
-			case "onSecondaryHoldServerBehaviour":
+			case "onSecondaryHoldServer":
 				onSecondaryHoldServerEvent.Add(eab);
 				break;
-			case "onTerciaryPlayerBehaviour":
+			case "onTerciaryPlayer":
 				onTerciaryPlayerEvent.Add(eab);
 				break;
-			case "onTerciaryClientBehaviour":
+			case "onTerciaryClient":
 				onTerciaryClientEvent.Add(eab);
 				break;
-			case "onTerciaryServerBehaviour":
+			case "onTerciaryServer":
 				onTerciaryServerEvent.Add(eab);
 				break;
 			default:

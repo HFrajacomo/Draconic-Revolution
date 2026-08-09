@@ -485,13 +485,14 @@ public struct NetMessage
 	// Client or server sends a message about newly equipped item and old item removed in a given playerCode
 	public void EquipItem(ulong playerCode, Item previousItem, Item newItem){
 		Reset();
-		int itemSize;
+		int slotSize;
 
 		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
-		itemSize = NetDecoder.WriteItemDeep(previousItem, NetMessage.buffer, 9);
-		itemSize += NetDecoder.WriteItemDeep(newItem, NetMessage.buffer, 9+itemSize);
 
-		this.size = 9 + itemSize;
+		slotSize = NetDecoder.WriteItemDeep(previousItem, NetMessage.buffer, 9);
+		slotSize += NetDecoder.WriteItemDeep(newItem, NetMessage.buffer, 9+slotSize);
+
+		this.size = 9 + slotSize;
 	}
 }
 

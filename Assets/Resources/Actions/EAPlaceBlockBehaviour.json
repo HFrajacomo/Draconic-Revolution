@@ -1,9 +1,0 @@
-{
-	"name": "EAPlaceBlockBehaviour"
-}
---->Behaviours
-{
-    "onPrimaryPlayer": "EAPlaceBlockBehaviour",
-    "onSecondaryPlayer": "EAPlaceBlockBehaviour"
-}
---->EAPlaceBlockBehaviour

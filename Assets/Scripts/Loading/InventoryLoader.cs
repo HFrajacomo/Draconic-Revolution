@@ -109,8 +109,6 @@ public class InventoryLoader : BaseLoader {
 			wrapper = JsonUtility.FromJson<Wrapper<ActionInventory>>(JsonFormatter.RemoveComments(textAsset.text));
 
 			foreach(ActionInventory inventory in wrapper.data){
-				Debug.Log($"ActionInventory loaded with ID: {inventoryID}");
-
 				if(inventoryID >= byte.MaxValue)
 					throw new ByteLimitException($"[InventoryLoader] Draconic Revolution only supports 256 different inventory types");
 					

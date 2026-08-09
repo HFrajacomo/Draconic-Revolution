@@ -17,10 +17,10 @@ public class PlayerInventoryManager : MonoBehaviour {
     public ChunkLoader cl;
     public Material itemIconMaterial;
     public Material backgroundMaterial;
+    public Material actionSlotMaterial;
     public TMP_FontAsset liberationSans;
 
     private bool INIT = false;
-
     private bool bulkMoveAbove = true; // If inventory shift-move should be done upwards or downwards
 
     // Cache
@@ -39,8 +39,12 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	// Drag and Drop overlay
 	private Image dragOverlay;
-	private ItemStack draggedStack;
+	private ClickableSlot draggedStack;
 	private TextMeshProUGUI dragStacksize;
+	private Material draggedItemStackMaterial;
+	private Material draggedActionMaterial;
+	private byte draggedStackOriginInventory;
+	private ushort draggedStackOriginSlot;
 
 	// Constants
 	private readonly Vector2 slotSizes = new Vector2(80f, 80f);
@@ -48,8 +52,14 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	void OnDisable(){
 		if(this.draggedStack != null){
-			this.mainControllerManager.DropItem(this.draggedStack);
-			ResetSelection();
+			if(this.draggedStack.IsItemStack()){
+				this.mainControllerManager.DropItem((ItemStack)this.draggedStack);
+				ResetSelection();
+			}
+			else{
+				this.draggedStack = null;
+				ResetSelection();
+			}
 		}
 	}
 
@@ -232,21 +242,25 @@ public class PlayerInventoryManager : MonoBehaviour {
 		this.cl.client.Send(message);
     }
 
-    public void SendEquipDataToServer(int inventoryCode, ItemStack oldItem, ItemStack newItem){
+    // Takes ClickableSlots, but they are all assumed to be ItemStacks
+    public void SendEquipDataToServer(int inventoryCode, ClickableSlot oldItem, ClickableSlot newItem){
         if(!IsEquipmentInventory(inventoryCode))
         	return;
 
-    	if(oldItem == null && newItem == null)
+        ItemStack old = oldItem as ItemStack;
+        ItemStack neew = newItem as ItemStack;
+
+    	if(old == null && neew == null)
     		return;
 
     	NetMessage message = new NetMessage(NetCode.EQUIPITEM);
 
-    	if(oldItem == null)
-			message.EquipItem(Configurations.accountID, NULL_ITEM, newItem.GetItem());
+    	if(old == null)
+			message.EquipItem(Configurations.accountID, NULL_ITEM, neew.GetItem());
 		else if(newItem == null)
-			message.EquipItem(Configurations.accountID, oldItem.GetItem(), NULL_ITEM);
+			message.EquipItem(Configurations.accountID, old.GetItem(), NULL_ITEM);
 		else
-			message.EquipItem(Configurations.accountID, oldItem.GetItem(), newItem.GetItem());
+			message.EquipItem(Configurations.accountID, old.GetItem(), neew.GetItem());
 
 		this.cl.client.Send(message);
     }
@@ -306,7 +320,22 @@ public class PlayerInventoryManager : MonoBehaviour {
 		}
     }
     private void DrawSlotAction(byte inventoryCode, ushort slot){
-    	// TODO
+    	EntityAction ea = this.inventory[inventoryCode].GetPos(slot);
+    	Texture2D icon, underlay;
+    	string text;
+
+    	if(ea == null){
+    		this.slotImages[inventoryCode][slot].material.SetTexture("_ItemIcon", null);
+    		this.slotImages[inventoryCode][slot].material.SetTexture("_Underlay", null);
+    		this.slotText[inventoryCode][slot].text = "";
+    	}
+    	else{
+    		ea.OnIconDraw(this.cl, ea.GetItemStack(), out underlay, out icon);
+    		text = ea.OnStackDraw(this.cl, ea.GetItemStack());
+    		this.slotImages[inventoryCode][slot].material.SetTexture("_ItemIcon", icon);
+    		this.slotImages[inventoryCode][slot].material.SetTexture("_Underlay", underlay);
+    		this.slotText[inventoryCode][slot].text = text;
+    	}
     }
 
     // Activates on Left Click of a slot
@@ -317,27 +346,40 @@ public class PlayerInventoryManager : MonoBehaviour {
     		if(this.IsNullSlot(inventoryCode, slot))
     			return;
 
-            string[] details; 
+    		// If has clicked in an ItemStack
+    		if(this.inventory[inventoryCode].itemInventory){
+	            string[] details; 
+	    		this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+	    		this.inventory[inventoryCode].SetNull(slot);
+	    		DrawSlot(inventoryCode, slot);
+	    		ToggleHighlight(true, this.draggedStack);
+	            ResetDetails();
+	            this.detailsPanel.SetActive(true);
 
-    		this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
-    		this.inventory[inventoryCode].SetNull(slot);
-    		DrawSlot(inventoryCode, slot);
-    		ToggleHighlight(true, this.draggedStack);
-            ResetDetails();
-            this.detailsPanel.SetActive(true);
+	            // Finds the item selected
+	            Item item = ((ItemStack)this.draggedStack).GetItem();
 
-            // Finds the item selected
-            Item item = this.draggedStack.GetItem();
+	            details = item.GetDetails();
+	            this.detailsName.text = details[0];
 
-            details = item.GetDetails();
-            this.detailsName.text = details[0];
+	            if(item is Weapon)
+	                this.detailsStats.text = details[1];
+	            else if(item is Item)
+	                this.detailsDescription.text = details[1];
 
-            if(item is Weapon)
-                this.detailsStats.text = details[1];
-            else if(item is Item)
-                this.detailsDescription.text = details[1];
-
-            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
+	            this.draggedStackOriginInventory = inventoryCode;
+	            this.draggedStackOriginSlot = slot;
+	            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
+	        }
+	        // If is an Action
+	        else{
+	        	this.draggedStack = this.inventory[inventoryCode].GetPos(slot);
+	    		this.inventory[inventoryCode].SetNull(slot);
+	    		DrawSlot(inventoryCode, slot);
+	    		ToggleHighlight(true, this.draggedStack);
+	            ResetDetails();
+	            this.detailsPanel.SetActive(false);
+	        }
 
             SendEquipDataToServer(inventoryCode, this.draggedStack, null);
             SendInventoryDataToServer();
@@ -347,32 +389,39 @@ public class PlayerInventoryManager : MonoBehaviour {
     		if(IsNullSlot(inventoryCode, slot))
     			return;
 
-    		byte receivedItems;
-    		byte amount;
-    		List<InventoryTransaction> changes;
-    		ItemStack its;
-    		int targetInventory;
+    		// If is Item
+    		if(this.inventory[inventoryCode].itemInventory){
+	    		byte receivedItems;
+	    		byte amount;
+	    		List<InventoryTransaction> changes;
+	    		ItemStack its;
+	    		int targetInventory;
 
-    		its = this.inventory[inventoryCode].GetSlot(slot);
-    		amount = its.GetAmount();
-    		targetInventory = GetBulkMoveTarget(inventoryCode, its);
+	    		its = this.inventory[inventoryCode].GetSlot(slot);
+	    		amount = its.GetAmount();
+	    		targetInventory = GetBulkMoveTarget(inventoryCode, its);
 
-    		if(targetInventory == -1)
-    			return;
+	    		if(targetInventory == -1)
+	    			return;
 
-    		changes = this.inventory[targetInventory].CanFit(its);
-    		receivedItems = this.inventory[targetInventory].AddStack(its, changes);
+	    		changes = this.inventory[targetInventory].CanFit(its);
+	    		receivedItems = this.inventory[targetInventory].AddStack(its, changes);
 
-			if(receivedItems < amount)
-				its.SetAmount((byte)(amount - receivedItems));
+				if(receivedItems < amount)
+					its.SetAmount((byte)(amount - receivedItems));
+				else{
+					this.inventory[inventoryCode].SetNull(slot);
+					if(slot < this.inventory[inventoryCode].GetLastEmptySlot())
+						this.inventory[inventoryCode].SetLastEmptySlot((short)slot);
+				}
+
+				foreach(InventoryTransaction it in changes){
+					DrawSlot((byte)targetInventory, it.slotNumber);
+				}
+			}
+			// If is Action
 			else{
 				this.inventory[inventoryCode].SetNull(slot);
-				if(slot < this.inventory[inventoryCode].GetLastEmptySlot())
-					this.inventory[inventoryCode].SetLastEmptySlot((short)slot);
-			}
-
-			foreach(InventoryTransaction it in changes){
-				DrawSlot((byte)targetInventory, it.slotNumber);
 			}
 
     		DrawSlot(inventoryCode, slot);
@@ -383,162 +432,277 @@ public class PlayerInventoryManager : MonoBehaviour {
     	// If has a selected slot
     	else if(this.draggedStack != null){
     		// If can't move, ignore
-    		if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot))
+    		// or if is dragging an Action
+    		if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot)){
+    			// Remove Action from DraggedStack
+    			if(!this.draggedStack.IsItemStack()){
+    				this.draggedStack = null;
+    				DrawSlot(inventoryCode, slot);
+    				ResetSelection();
+    			}
+
     			return;
+    		}
 
-    		// If items are different
-    		if(!this.draggedStack.IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
-				ItemStack aux = this.draggedStack;
-				this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
-				this.inventory[inventoryCode].ForceAddStack(aux, slot);
+    		// If is dragging an item
+    		if(this.draggedStack.IsItemStack()){
+    			// And clicked and item inventory
+    			if(this.inventory[inventoryCode].itemInventory){
+		    		// If items are different
+		    		if(!((ItemStack)this.draggedStack).IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
+						ItemStack aux = this.draggedStack as ItemStack;
+						this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+						this.inventory[inventoryCode].ForceAddStack(aux, slot);
 
-				if(this.draggedStack == null)
-					ResetSelection();
-				else
-					ToggleHighlight(true, this.draggedStack);
+						if(this.draggedStack == null)
+							ResetSelection();
+						else{
+							this.draggedStackOriginInventory = inventoryCode;
+							this.draggedStackOriginSlot = slot;
+							ToggleHighlight(true, this.draggedStack);
+						}
 
-				DrawSlot(inventoryCode, slot);
+						DrawSlot(inventoryCode, slot);
 
-	            SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
-				SendInventoryDataToServer();
+			            SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
+						SendInventoryDataToServer();
+					}
+					// Stack together same ItemStacks
+					else{
+						this.draggedStack = this.inventory[inventoryCode].Transfer((ItemStack)this.draggedStack, slot);
+
+						if(this.draggedStack == null)
+							ResetSelection();
+						else{
+							ToggleHighlight(true, this.draggedStack);
+						}
+
+						DrawSlot(inventoryCode, slot);
+						SendInventoryDataToServer();
+					}
+				}
+				// If clicked an action inventory
+				else{
+					EntityAction ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
+
+					Debug.Log($"Object: {ea} -- IsNull: {ea == null} -- Item Used: {((ItemStack)this.draggedStack).GetItem()}");
+
+					if(ea == null){
+						return;
+					}
+
+					Debug.Log("Passed null check");
+
+					ea.SetMemoryData(true, 0, 1, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
+					this.inventory[inventoryCode].AddStack(ea, slot);
+					DrawSlot(inventoryCode, slot);
+
+					Debug.Log("Passed draw slot");
+
+					if(IsNullSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot)){
+						this.inventory[this.draggedStackOriginInventory].ForceAddStack((ItemStack)this.draggedStack, this.draggedStackOriginSlot);
+						DrawSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot);
+						this.draggedStack = null;
+						ResetSelection();
+					}
+				}
 			}
-			// Stack together same ItemStacks
+			// If is dragging an action
 			else{
-				this.draggedStack = this.inventory[inventoryCode].Transfer(this.draggedStack, slot);
+    			// And clicked and item inventory
+    			if(this.inventory[inventoryCode].itemInventory){
+    				this.draggedStack = null;
+    				ResetSelection();
+    			}
+    			// And clicked an action inventory
+    			else{
+    				this.draggedStack = this.inventory[inventoryCode].AddStack((EntityAction)this.draggedStack, slot);
 
-				if(this.draggedStack == null)
-					ResetSelection();
-				else
-					ToggleHighlight(true, this.draggedStack);
+    				if(this.draggedStack == null)
+    					ResetSelection();
 
-				DrawSlot(inventoryCode, slot);
-				SendInventoryDataToServer();
+    				DrawSlot(inventoryCode, slot);
+		            SendEquipDataToServer(inventoryCode, this.draggedStack, this.inventory[inventoryCode].GetPos(slot));
+					SendInventoryDataToServer();
+    			}
 			}
     	}
     }
 
     // Activates on Right Click of a slot
     public void RightClick(byte inventoryCode, ushort slot){
-    	// If there's no selected slot, then split
     	if(this.draggedStack == null){
     		if(IsNullSlot(inventoryCode, slot))
     			return;
 
-    		string[] details;
+    		if(this.inventory[inventoryCode].itemInventory){
+	    		string[] details;
 
-    		// If clicked stack has only a single item, grab it
-    		if(this.inventory[inventoryCode].GetSlot(slot).GetAmount() == 1){
-	    		// Selects slot
-	    		this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+	    		// If clicked stack has only a single item, grab it
+	    		if(this.inventory[inventoryCode].GetSlot(slot).GetAmount() == 1){
+		    		// Selects slot
+		    		this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+		    		this.inventory[inventoryCode].SetNull(slot);
+		    		DrawSlot(inventoryCode, slot);
+		    		ToggleHighlight(true, this.draggedStack);
+		            ResetDetails();
+		            this.detailsPanel.SetActive(true);
+
+		            // Finds the item selected
+		            Item item = ((ItemStack)this.draggedStack).GetItem();
+
+		            details = item.GetDetails();
+		            this.detailsName.text = details[0];
+
+		            if(item is Weapon)
+		                this.detailsStats.text = details[1];
+		            else if(item is Item)
+		                this.detailsDescription.text = details[1];
+
+		            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
+
+		            this.draggedStackOriginInventory = inventoryCode;
+		            this.draggedStackOriginSlot = slot;
+
+		            SendEquipDataToServer(inventoryCode, this.draggedStack, null);
+	    		}
+	    		// If stack has more than 1 item
+	    		else{
+	    			this.draggedStack = this.inventory[inventoryCode].GetSlot(slot).Split();
+
+					DrawSlot(inventoryCode, slot);
+					ToggleHighlight(true, this.draggedStack);
+					ResetDetails();
+					this.detailsPanel.SetActive(true);
+
+					Item item = ((ItemStack)this.draggedStack).GetItem();
+		            details = item.GetDetails();
+		            this.detailsName.text = details[0];
+
+		            if(item is Weapon)
+		                this.detailsStats.text = details[1];
+		            else if(item is Item)
+		                this.detailsDescription.text = details[1];
+
+		            this.draggedStackOriginInventory = inventoryCode;
+		            this.draggedStackOriginSlot = slot;
+
+		            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
+	    		}
+	    	}
+	    	// If right clicked Action Inventory
+	    	else{
 	    		this.inventory[inventoryCode].SetNull(slot);
 	    		DrawSlot(inventoryCode, slot);
-	    		ToggleHighlight(true, this.draggedStack);
-	            ResetDetails();
-	            this.detailsPanel.SetActive(true);
-
-	            // Finds the item selected
-	            Item item = this.draggedStack.GetItem();
-
-	            details = item.GetDetails();
-	            this.detailsName.text = details[0];
-
-	            if(item is Weapon)
-	                this.detailsStats.text = details[1];
-	            else if(item is Item)
-	                this.detailsDescription.text = details[1];
-
-	            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
-
-	            SendEquipDataToServer(inventoryCode, this.draggedStack, null);
-    		}
-    		// If stack has more than 1 item
-    		else{
-    			this.draggedStack = this.inventory[inventoryCode].GetSlot(slot).Split();
-
-				DrawSlot(inventoryCode, slot);
-				ToggleHighlight(true, this.draggedStack);
-				ResetDetails();
-				this.detailsPanel.SetActive(true);
-
-				Item item = this.draggedStack.GetItem();
-	            details = item.GetDetails();
-	            this.detailsName.text = details[0];
-
-	            if(item is Weapon)
-	                this.detailsStats.text = details[1];
-	            else if(item is Item)
-	                this.detailsDescription.text = details[1];
-
-	            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
-    		}
-
+	    	}
 
     		SendInventoryDataToServer();
     	}
     	// If there is a selection and right clicks another slot
     	else{
-    		// Case 1: Right clicks on empty slot
-    		if(IsNullSlot(inventoryCode, slot)){
-    			if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot))
-    				return;
+    		// If clicked an item inventory...
+    		if(this.inventory[inventoryCode].itemInventory){
+    			// ... while dragging an item
+    			if(this.draggedStack.IsItemStack()){
+		    		// Case 1: Right clicks on empty slot
+		    		if(IsNullSlot(inventoryCode, slot)){
+		    			if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot))
+		    				return;
 
-    			bool shouldBeDestroyed = this.draggedStack.Decrement();
+		    			bool shouldBeDestroyed = ((ItemStack)this.draggedStack).Decrement();
 
-    			// If was only holding 1 item
-    			if(shouldBeDestroyed){
-    				this.inventory[inventoryCode].ForceAddStack(this.draggedStack, slot);
+		    			// If was only holding 1 item
+		    			if(shouldBeDestroyed){
+		    				this.inventory[inventoryCode].ForceAddStack(((ItemStack)this.draggedStack), slot);
+		    				this.draggedStack = null;
+		    				DrawSlot(inventoryCode, slot);
+		    				ResetSelection();
+		    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
+		    				SendInventoryDataToServer();
+		    				return;
+		    			}
+		    			else{
+		    				this.inventory[inventoryCode].ForceAddStack(new ItemStack(((ItemStack)this.draggedStack).GetItem(), 1), slot);
+		    				DrawSlot(inventoryCode, slot);
+		    				ToggleHighlight(true, this.draggedStack);
+		    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
+		    				SendInventoryDataToServer();
+		    				return;
+		    			}
+		    		}
+		    		// Case 2: Clicks on a slot with the same item
+		    		else if(((ItemStack)this.draggedStack).IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
+		    			if(this.inventory[inventoryCode].GetSlot(slot).IsFull())
+		    				return;
+
+		     			if(((ItemStack)this.draggedStack).Decrement()){
+		    				this.draggedStack = null;
+		    				ResetSelection();
+		    			}
+		    			else{
+		    				ToggleHighlight(true, this.draggedStack);
+		    			}
+
+		    			this.inventory[inventoryCode].GetSlot(slot).Increment();
+
+		    			DrawSlot(inventoryCode, slot);
+		    			SendInventoryDataToServer();
+		    		}
+		    		// Case 3: Clicks a slot that contains a different item
+		    		else if(this.draggedStack.GetID() != this.inventory[inventoryCode].GetSlot(slot).GetID()){
+		    			if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot))
+		    				return;
+
+						ItemStack aux = this.draggedStack as ItemStack;
+						this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+						this.inventory[inventoryCode].ForceAddStack(aux, slot);
+
+						if(this.draggedStack == null)
+							ResetSelection();
+						else
+							ToggleHighlight(true, this.draggedStack);
+
+						DrawSlot(inventoryCode, slot);
+						SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
+						SendInventoryDataToServer();
+		    		}
+		    	}
+		    	// ... while dragging an action
+		    	else{
     				this.draggedStack = null;
-    				DrawSlot(inventoryCode, slot);
     				ResetSelection();
-    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
-    				SendInventoryDataToServer();
-    				return;
-    			}
-    			else{
-    				this.inventory[inventoryCode].ForceAddStack(new ItemStack(this.draggedStack.GetItem(), 1), slot);
+		    	}
+	    	}
+	    	// If clicked an Action Inventory
+	    	else{
+	    		// while draggin an item
+				if(this.draggedStack.IsItemStack()){
+					EntityAction ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
+
+					ea.SetMemoryData(true, 0, 1, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
+					this.inventory[inventoryCode].AddStack(ea, slot);
+					DrawSlot(inventoryCode, slot);
+
+					if(IsNullSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot)){
+						this.inventory[this.draggedStackOriginInventory].ForceAddStack((ItemStack)this.draggedStack, this.draggedStackOriginSlot);
+						DrawSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot);
+						this.draggedStack = null;
+						ResetSelection();
+					}
+				}
+				// while draggin an action
+				else{
+    				this.draggedStack = this.inventory[inventoryCode].AddStack((EntityAction)this.draggedStack, slot);
+
+    				if(this.draggedStack == null)
+    					ResetSelection();
+
     				DrawSlot(inventoryCode, slot);
-    				ToggleHighlight(true, this.draggedStack);
-    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
-    				SendInventoryDataToServer();
-    				return;
-    			}
-    		}
-    		// Case 2: Clicks on a slot with the same item
-    		else if(this.draggedStack.IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
-    			if(this.inventory[inventoryCode].GetSlot(slot).IsFull())
-    				return;
+		            SendEquipDataToServer(inventoryCode, this.draggedStack, this.inventory[inventoryCode].GetPos(slot));
+				}
 
-     			if(this.draggedStack.Decrement()){
-    				this.draggedStack = null;
-    				ResetSelection();
-    			}
-    			else{
-    				ToggleHighlight(true, this.draggedStack);
-    			}
-
-    			this.inventory[inventoryCode].GetSlot(slot).Increment();
-
-    			DrawSlot(inventoryCode, slot);
-    			SendInventoryDataToServer();
-    		}
-    		// Case 3: Clicks a slot that contains a different item
-    		else if(this.draggedStack.GetID() != this.inventory[inventoryCode].GetSlot(slot).GetID()){
-    			if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot))
-    				return;
-
-				ItemStack aux = this.draggedStack;
-				this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
-				this.inventory[inventoryCode].ForceAddStack(aux, slot);
-
-				if(this.draggedStack == null)
-					ResetSelection();
-				else
-					ToggleHighlight(true, this.draggedStack);
-
-				DrawSlot(inventoryCode, slot);
-				SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
 				SendInventoryDataToServer();
-    		}
+	    	}
     	}
     }
 
@@ -627,21 +791,16 @@ public class PlayerInventoryManager : MonoBehaviour {
     	return -1;
     }
 
-    // Checks if it's possible to switch slots based on tag limitations
-    private bool CanSwitchBetweenInventories(int indexOrigin, int indexTarget, ushort slotOrigin, ushort slotTarget, ItemStack itsOrigin, ItemStack itsTarget){
-		if(!this.inventory[indexOrigin].IsInGlobalWhitelist(itsTarget) || !this.inventory[indexOrigin].IsInLocalWhitelist(itsTarget, slotOrigin))
-			return false;
-		if(!this.inventory[indexTarget].IsInGlobalWhitelist(itsOrigin) || !this.inventory[indexTarget].IsInLocalWhitelist(itsOrigin, slotTarget))
-			return false;
-
-    	return true;
-    }
-
     // To be used with the draggedItem ItemStack
-    private bool CanSwitchToInventory(ItemStack its, int indexInventory, ushort slot){
-    	if(this.inventory[indexInventory].IsInGlobalWhitelist(its) && this.inventory[indexInventory].IsInLocalWhitelist(its, slot))
-    		return true;
-    	return false;
+    private bool CanSwitchToInventory(ClickableSlot cs, int indexInventory, ushort slot){
+    	if(cs.IsItemStack()){
+	    	if(this.inventory[indexInventory].IsInGlobalWhitelist((ItemStack)cs) && this.inventory[indexInventory].IsInLocalWhitelist((ItemStack)cs, slot))
+	    		return true;
+	    	return false;
+	    }
+	    else{
+	    	return !this.inventory[indexInventory].itemInventory;
+	    }
     }
 
     // Gets the inventory index based on slot number
@@ -660,8 +819,16 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     // Returns true if slot is null
     private bool IsNullSlot(byte inventoryCode, ushort slot){
-    	if(this.inventory[inventoryCode].GetSlot(slot) == null)
-    		return true;
+    	if(this.inventory[inventoryCode].itemInventory){
+    		if(this.inventory[inventoryCode].GetSlot(slot) == null){
+    			return true;
+    		}
+    	}
+    	else{
+    		if(this.inventory[inventoryCode].GetPos(slot) == null){
+    			return true;
+    		}
+    	}
 
 		return false;
     }
@@ -683,21 +850,52 @@ public class PlayerInventoryManager : MonoBehaviour {
     }
 
 	// Toggles selection highlighting
-	private void ToggleHighlight(bool b, ItemStack its){
+	private void ToggleHighlight(bool b, ClickableSlot cs){
 		this.dragOverlay.gameObject.SetActive(b);
 		this.dragStacksize.gameObject.SetActive(b);
 
-		if(b){
-			this.dragOverlay.material.SetTexture("_Texture", ItemLoader.GetSprite(its));
+		if(cs == null){
+			this.dragOverlay.material.SetTexture("_Texture", null);
+			this.dragOverlay.material.SetTexture("_ItemIcon", null);
+			this.dragOverlay.material.SetTexture("_Underlay", null);
+			this.dragStacksize.text = ""; 
+			return;
+		}
 
-			if(its.GetAmount() > 1)
-				this.dragStacksize.text = its.GetAmount().ToString();
-			else
-				this.dragStacksize.text = ""; 
+		if(b){
+			if(cs.IsItemStack()){
+				ItemStack its = cs as ItemStack;
+				this.dragOverlay.material = this.draggedItemStackMaterial;
+				this.dragOverlay.material.SetTexture("_Texture", ItemLoader.GetSprite(its.GetID()));
+
+				if(its.GetAmount() > 1)
+					this.dragStacksize.text = its.GetAmount().ToString();
+				else
+					this.dragStacksize.text = ""; 
+			}
+			else{
+				EntityAction ea = cs as EntityAction;
+				Texture2D icon, underlay;
+
+				ea.OnIconDraw(this.cl, ea.GetItemStack(), out underlay, out icon);
+				this.dragOverlay.material = this.draggedActionMaterial;
+				this.dragOverlay.material.SetTexture("_ItemIcon", icon);
+				this.dragOverlay.material.SetTexture("_Underlay", underlay);
+				this.dragStacksize.text = ea.OnStackDraw(this.cl, ea.GetItemStack());
+			}
 		}
 		else{
-			this.dragOverlay.material.SetTexture("_Texture", null);
-			this.dragStacksize.text = ""; 
+			if(cs.IsItemStack()){
+				this.dragOverlay.material = this.draggedItemStackMaterial;
+				this.dragOverlay.material.SetTexture("_Texture", null);
+				this.dragStacksize.text = ""; 
+			}
+			else{
+				this.dragOverlay.material = this.draggedActionMaterial;
+				this.dragOverlay.material.SetTexture("_ItemIcon", null);
+				this.dragOverlay.material.SetTexture("_Underlay", null);
+				this.dragStacksize.text = "";
+			}
 		}
 	}
 
@@ -739,7 +937,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		this.slotText.Add(0, new TextMeshProUGUI[inventorySize]);
 
 		for(int i=0; i < inventorySize; i++){
-			this.slotImages[0][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 0, i, this.slotSizes, anchorSec);
+			this.slotImages[0][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 0, i, this.slotSizes, anchorSec, itemInventory:false);
 			this.slotText[0][i] = CreateTextComponent(this.slotImages[0][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
 		}
 	}
@@ -890,10 +1088,11 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 
 		this.dragOverlay = CreateImageComponent(go, "DragSlot", this.slotSizes, anchor);
-		this.dragOverlay.material = Instantiate(this.itemIconMaterial);
-		this.dragOverlay.material.SetTexture("_Texture", null);
 		this.dragStacksize = CreateTextComponent(go, "DragStacksize", this.slotSizes, anchor);
 		this.dragStacksize.gameObject.AddComponent<MouseFollowerUI>();
+
+		this.draggedItemStackMaterial = Instantiate(this.itemIconMaterial);
+		this.draggedActionMaterial = Instantiate(this.actionSlotMaterial);
 
 		this.dragOverlay.gameObject.SetActive(false);
 		this.dragStacksize.gameObject.SetActive(false);
@@ -903,7 +1102,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	// ------------------------- Component Generation ------------------------------------------
 
 	// Creates an Image component using Inventory's default style
-	private Image CreateImageComponent(GameObject parent, string goName, int inventoryCode, int slot, Vector2 size, Vector2 anchor){
+	private Image CreateImageComponent(GameObject parent, string goName, int inventoryCode, int slot, Vector2 size, Vector2 anchor, bool itemInventory=true){
 		GameObject go = GameObject.Instantiate(EMPTY_OBJECT);
 		go.name = goName;
 		go.transform.SetParent(parent.transform);
@@ -913,9 +1112,17 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		Image img = go.AddComponent<Image>();
 		img.raycastTarget = true;
-		img.material = Instantiate(this.itemIconMaterial);
-		img.material.name = $"Slot-{slot+1}";
-		img.material.SetTexture("_Texture", null);
+
+		if(itemInventory){
+			img.material = Instantiate(this.itemIconMaterial);
+			img.material.name = $"Slot-{slot+1}";
+			img.material.SetTexture("_Texture", null);
+		}
+		else{
+			img.material = Instantiate(this.actionSlotMaterial);
+			img.material.name = $"Slot-{slot+1}";
+			img.material.SetTexture("_Texture", null);
+		}
 
 		InventoryButton button = go.AddComponent<InventoryButton>();
 		button.inventoryCode = (byte)inventoryCode;

@@ -225,6 +225,8 @@ public static class ItemDeserializer {
 		string jsonSerial = GetSection(json, val);
 
 		switch(val){
+			case "GetItemActionBehaviour":
+				return JsonUtility.FromJson<GetItemActionBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "PlaceBlockBehaviour":
 				return JsonUtility.FromJson<PlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "CreatePointLightBehaviour":

@@ -1,0 +1,14 @@
+{
+	"name": "BASE_BlockPlace"
+}
+--->Behaviours
+{
+    "onIconDraw": "EAItemUIBehaviour",
+    "onStackDraw": "EAItemUIBehaviour",
+    "onPrimaryPlayer": "EAPlaceBlockBehaviour",
+    "onSecondaryPlayer": "EAPlaceBlockBehaviour"
+}
+--->EAItemUIBehaviour
+{}
+--->EAPlaceBlockBehaviour
+{}

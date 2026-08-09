@@ -67,7 +67,7 @@ public class ActionLoader : BaseLoader {
 
 		List<EntityAction> actionList = new List<EntityAction>();
 
-		ushort i = 1;
+		ushort i = 0;
 
 		foreach(string action in actionEntries){
 			textAsset = Resources.Load<TextAsset>($"{ACTION_RESPATH}{action}");

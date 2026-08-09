@@ -6,29 +6,13 @@ using UnityEngine;
 
 [Serializable]
 public abstract class EntityActionBehaviour {
-	private static string BASE_ITEM_SYMBOL = "";
-	private static Texture2D SYMBOL;
-
 	public override string ToString(){return GetType().Name;}
 
 	public virtual void PostDeserializationSetup(){ return; }
 
 	// UI
-	public virtual void OnIconDraw(ChunkLoader cl, ItemStack its, out Texture2D symbol, out Texture2D itemIcon){
-		itemIcon = ItemLoader.GetSprite(its);
-
-		if(SYMBOL == null){
-			SYMBOL = Resources.Load<Texture2D>(BASE_ITEM_SYMBOL);
-
-			if(SYMBOL == null)
-				throw new DeserializationErrorException($"[EntityActionBehaviour] Failed to load default Item Symbol");
-		}
-
-		symbol = SYMBOL;
-	}
-	public virtual string OnStackDraw(ChunkLoader cl, ItemStack its){ 
-		return $"{its.GetAmount()}"; 
-	}
+	public virtual void OnIconDraw(ChunkLoader cl, ItemStack its, out Texture2D symbol, out Texture2D itemIcon){symbol = null; itemIcon = null; return; }
+	public virtual string OnStackDraw(ChunkLoader cl, ItemStack its){ return ""; }
 
 	// Hold
 	public virtual void OnHoldPlayer(ChunkLoader cl, ItemStack its, ulong code){ return; }

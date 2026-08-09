@@ -3,7 +3,7 @@ using UnityEngine;
 using Unity.Mathematics;
 
 [Serializable]
-public class EAPlaceBlockBehaviour : EntityAction {
+public class EAPlaceBlockBehaviour : EntityActionBehaviour {
 	public override void OnPrimaryPlayer(ChunkLoader cl, ItemStack its, ulong code){
 		Item it = its.GetItem();
 

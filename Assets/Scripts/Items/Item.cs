@@ -306,6 +306,12 @@ public class Item {
 	}
 
 	public void SetupAfterSerialize(bool isClient){
+		if(this.onCreateActionBehaviour != null){
+			for(int i=0; i < onCreateActionBehaviour.Count; i++){
+				onCreateActionBehaviour[i].PostDeserializationSetup(isClient);
+			}
+		}
+
 		if(this.onHoldPlayerBehaviour != null){
 			for(int i=0; i < onHoldPlayerBehaviour.Count; i++){
 				onHoldPlayerBehaviour[i].PostDeserializationSetup(isClient);

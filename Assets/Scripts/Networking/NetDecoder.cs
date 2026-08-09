@@ -293,6 +293,21 @@ public static class NetDecoder
 		return weap;
 	}
 
+	public static EntityAction ReadAction(byte[] data, int pos){
+		EntityAction ea;
+
+		ushort id = NetDecoder.ReadUshort(data, pos);
+		bool connectedToStack = NetDecoder.ReadBool(data, pos+2);
+		ushort currentCooldown = NetDecoder.ReadUshort(data, pos+3);
+		ushort totalCooldown = NetDecoder.ReadUshort(data, pos+5);
+		byte csi = NetDecoder.ReadByte(data, pos+7);
+		byte css = NetDecoder.ReadByte(data, pos+8);
+
+		ea = ActionLoader.GetAction(id);
+		ea.SetMemoryData(connectedToStack, currentCooldown, totalCooldown, csi, css);
+		return ea;
+	}
+
 	public static bool ReadBool(byte[] data, int pos){
 		if(data[pos] == 0)
 			return false;
@@ -368,6 +383,10 @@ public static class NetDecoder
 		NetDecoder.WriteByte((byte)it.extraEffect, data, pos+7);
 
 		return 9;
+	}
+
+	public static int WriteAction(EntityAction ea, byte[] data, int pos){
+		return ea.ConvertToMemory(data, pos);
 	}
 
 	public static void WriteBool(bool a, byte[] data, int pos){

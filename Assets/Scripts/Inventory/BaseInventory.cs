@@ -9,7 +9,7 @@ public abstract class BaseInventory {
 	public int columnCount = 3;
 
 	public virtual byte AddStack(ItemStack its, List<InventoryTransaction> spots){throw new InventoryActionNotImplementedException($"[BaseInventory] {this.GetType()} does not contain AddStack(ItemStack, List<InventoryTransaction>)");}
-	public virtual EntityAction AddStack(EntityAction ea, byte slot){throw new InventoryActionNotImplementedException($"[BaseInventory] {this.GetType()} does not contain AddStack(EntityAction, byte)");}
+	public virtual EntityAction AddStack(EntityAction ea, ushort slot){throw new InventoryActionNotImplementedException($"[BaseInventory] {this.GetType()} does not contain AddStack(EntityAction, byte)");}
 	public virtual void ForceAddStack(ItemStack its, ushort slot){throw new InventoryActionNotImplementedException($"[BaseInventory] {this.GetType()} does not contain ForceAddStack(ItemStack, ushort)");}
 	public virtual EntityAction ForceAddStack(EntityAction ea, ushort slot){throw new InventoryActionNotImplementedException($"[BaseInventory] {this.GetType()} does not contain ForceAddStack(EntityAction, ushort)");}
 	public virtual void SetNull(ushort slot){throw new InventoryActionNotImplementedException($"[BaseInventory] {this.GetType()} does not contain SetNull(ushort)");}

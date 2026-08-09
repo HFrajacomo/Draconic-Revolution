@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class EntityAction {
+public class EntityAction : ClickableSlot {
 	public string name;
 	private ushort id;
 
@@ -14,6 +14,8 @@ public class EntityAction {
 	private ushort totalCooldown;
 	private byte connectedStackInventory;
 	private byte connectedStackSlot;
+
+	private ItemStack its;
 
 	// Behaviours ---------------------
 	// UI
@@ -58,12 +60,15 @@ public class EntityAction {
 	// Basic functions ---------------------
 
 	public void SetID(ushort id){this.id = id;}
-	public ushort GetID(){return this.id;}
+	public override ushort GetID(){return this.id;}
+	public ItemStack GetItemStack(){return this.its;}
+	public void SetItemStack(ItemStack its){this.its = its;}
 
 	public virtual EntityAction Copy(){
 		return new EntityAction {
 			name = this.name,
 			id = this.id,
+			isItemStack = false,
 
 			// Deep copy lists (new lists with same elements)
 			onIconDrawBehaviour   = this.onIconDrawBehaviour   != null ? new List<EntityActionBehaviour>(this.onIconDrawBehaviour)   : null,
@@ -99,6 +104,7 @@ public class EntityAction {
 		this.totalCooldown = totalCooldown;
 		this.connectedStackInventory = connectedStackInventory;
 		this.connectedStackSlot = connectedStackSlot;
+		this.isItemStack = false;
 	}
 
 	// Serializes this EntityAction object to send over byte array to Server
@@ -110,7 +116,6 @@ public class EntityAction {
 		NetDecoder.WriteUshort(this.totalCooldown, data, pos+6);
 		NetDecoder.WriteByte(this.connectedStackInventory, data, pos+8);
 		NetDecoder.WriteByte(this.connectedStackSlot, data, pos+9);
-
 		return 10;
 	}
 
