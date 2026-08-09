@@ -58,7 +58,12 @@ public class InventoryLoader : BaseLoader {
 
 	public static int GetColumnCount(string type){return inventories[type].columnCount;}
 	public static int GetActionColumnCount(string type){return actionInventories[type].columnCount;}
-	public static bool GetPickupTarget(byte id){return inventoriesByID[id].isPickupTarget;}
+	public static bool GetPickupTarget(byte id){
+		if(inventoriesByID.ContainsKey(id))
+			return inventoriesByID[id].isPickupTarget;
+		else
+			return actionInventoriesByID[id].isPickupTarget;
+	}
 	public static Texture2D GetSlotIcon(string iconName){return inventoryIcons[iconName];}
 
 	private void LoadInventories(bool isClient){

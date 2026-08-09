@@ -9,6 +9,7 @@ public class ActionInventory : BaseInventory {
 	private byte inventoryID;
 	private EntityAction[] slots;
 	private ushort limit;
+	public bool isPickupTarget = false;
 
 	private ActionInventory(string type, ushort size){
 		this.limit = size;
