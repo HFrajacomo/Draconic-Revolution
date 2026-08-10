@@ -236,16 +236,20 @@ public class PlayerRaycast : MonoBehaviour
 		if(!Raycast())
 			return;
 
-		ItemStack its = hotbarHandler.GetSlotStack();
+		ClickableSlot slot = hotbarHandler.GetSlotStack();
 
 		// If is holding no items
-		if(its == null){
+		if(slot == null){
 			return;
 		}
 
-		Item it = its.GetItem();
-
-		it.OnUseClient(this.loader, its, this.position, lastCoord, playerBody, playerHead, current);
+		if(slot.IsItemStack()){
+			Item it = ((ItemStack)slot).GetItem();
+			it.OnUseClient(this.loader, (ItemStack)slot, this.position, lastCoord, playerBody, playerHead, current);
+		}
+		else{
+			((EntityAction)slot).OnSecondaryClient(this.loader, ((EntityAction)slot).GetItemStack(), Configurations.accountID);
+		}
 	}
 
 	// Triggers Blocktype.OnInteract()

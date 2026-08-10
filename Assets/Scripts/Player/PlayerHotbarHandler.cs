@@ -41,7 +41,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 	// Hotbar
 	public static byte hotbarSlot = 0;
 	public static byte attackHotbarSlot = 0;
-	private static ItemStack previousItem = null;
+	private static ClickableSlot previousSlot = null;
 
 	private static bool STARTED = false;
 	private static float HOTBAR_SELECTION_CHANGE_DOWNTIME = 0.08f;
@@ -119,18 +119,24 @@ public class PlayerHotbarHandler : MonoBehaviour
 
     // Checks if the current ItemStack selected has a different item from the last and run
     public void RefreshItemEffects(){
-    	ItemStack current = GetSlotStack();
-    	if(previousItem != current){
-    		// OnUnhold
-			if(previousItem != null)
-    			previousItem.GetItem().OnUnholdPlayer(this.cl, previousItem, Configurations.accountID);
+    	if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
+	    	ClickableSlot current = GetSlotStack();
+	    	if(!ClickableSlot.IsEqual(current, previousSlot)){
+	    		// OnUnhold
+				if(previousSlot != null && previousSlot.IsItemStack())
+	    			((ItemStack)previousSlot).GetItem().OnUnholdPlayer(this.cl, (ItemStack)previousSlot, Configurations.accountID);
+	    		else if(previousSlot != null)
+	    			((EntityAction)previousSlot).OnUnholdPlayer(this.cl, ((EntityAction)previousSlot).GetItemStack(), Configurations.accountID);
 
-    		// OnHold
-    		if(current != null)
-    			current.GetItem().OnHoldPlayer(this.cl, current, Configurations.accountID);
+	    		// OnHold
+	    		if(current != null && current.IsItemStack())
+	    			((ItemStack)current).GetItem().OnHoldPlayer(this.cl, (ItemStack)current, Configurations.accountID);
+	    		else if(current != null)
+	    			((EntityAction)current).OnHoldPlayer(this.cl, ((EntityAction)current).GetItemStack(), Configurations.accountID);
 
-    		previousItem = current;
-    	}
+	    		previousSlot = current;
+	    	}
+	    }
     }
 
     public void SetHotbar(Inventory hotbar){
@@ -360,10 +366,20 @@ public class PlayerHotbarHandler : MonoBehaviour
 	}
 
 	// Scrolls to a given slot. Only works once when receiving Player Character information to set the hotbar position
-	public void ScrollToSlot(byte slot){
+	public void ScrollToNormalSlot(byte slot){
 		if(!PlayerHotbarHandler.STARTED){
 			PlayerHotbarHandler.hotbarSlot = slot;
 			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(slot), 48);
+			
+			SendHotbarInfoToServer();
+			PlayerHotbarHandler.STARTED = true;
+		}
+	}
+
+	public void ScrollToActionSlot(byte slot){
+		if(!PlayerHotbarHandler.STARTED){
+			PlayerHotbarHandler.attackHotbarSlot = slot;
+			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(slot), 48);
 			
 			SendHotbarInfoToServer();
 			PlayerHotbarHandler.STARTED = true;
@@ -376,8 +392,22 @@ public class PlayerHotbarHandler : MonoBehaviour
 	}
 
 	// Returns the ItemStack selected in hotbar
-	public ItemStack GetSlotStack(){
-		return hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot);
+	public ClickableSlot GetSlotStack(){
+		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
+			if(PlayerHotbarHandler.hotbarSlot == 9)
+				return null;
+
+			return (ItemStack)hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot);
+		}
+		else{
+			if(PlayerHotbarHandler.attackHotbarSlot == 9){
+
+				return null;
+			}
+
+			return (EntityAction)actionHotbar.GetPos(PlayerHotbarHandler.attackHotbarSlot);
+		}
+		
 	}
 
 	// Calculates correct X position for the selected hotbar spot

@@ -506,7 +506,8 @@ public class Client
 		if(code == Configurations.accountID){
 			this.entityHandler.AddPlayerSheet(code, sheet);
 			this.cl.playerSheetController.SetSheet(sheet);
-			this.cl.hotbarHandler.ScrollToSlot(sheet.GetHotbarSlot());
+			this.cl.hotbarHandler.ScrollToNormalSlot((byte)(sheet.GetHotbarSlot() - InventoryLoader.GetInventorySize("ACTION_HOTBAR")));
+			this.cl.hotbarHandler.ScrollToActionSlot(sheet.GetAttackHotbarSlot());
 			this.cl.playerActionController.UseStyle(sheet.GetBattleStyleCode());
 		}
 		else{
