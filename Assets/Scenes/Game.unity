@@ -343,6 +343,12 @@ MonoBehaviour:
     bulkMovedTo: 0
     mainInventory: 0
     slotDefaultIcon: []
+  actionHotbar:
+    itemInventory: 0
+    inventoryType: 
+    amountOfSlots: 0
+    columnCount: 0
+    isPickupTarget: 0
   hotbarImage: {fileID: 144045894}
   attackHotbarImage: {fileID: 964070418}
   hotbarIcon:
@@ -388,6 +394,7 @@ MonoBehaviour:
   hotbar_selected: {fileID: 494716106}
   playerInventoryManager: {fileID: 638012052}
   hotbarMaterial: {fileID: 2100000, guid: 1cd2afc3d7be4974bb2c0a05a5bce2b0, type: 2}
+  actionMaterial: {fileID: 2100000, guid: 8851f2470b65136408e63988e2c0ad4d, type: 2}
 --- !u!143 &59614820
 CharacterController:
   m_ObjectHideFlags: 0

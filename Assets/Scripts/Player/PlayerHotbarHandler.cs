@@ -17,6 +17,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 
 	// Inventory
 	public Inventory hotbar = InventoryLoader.GetInventory("HOTBAR");
+	public ActionInventory actionHotbar = InventoryLoader.GetActionInventory("ACTION_HOTBAR");
 
 	// UI
 	public Image hotbarImage;
@@ -27,7 +28,9 @@ public class PlayerHotbarHandler : MonoBehaviour
 	public TextMeshProUGUI[] attackHotbarText;
 	public RectTransform hotbar_selected;
 	public PlayerInventoryManager playerInventoryManager;
+
 	public Material hotbarMaterial;
+	public Material actionMaterial;
 
 	// Constant colors
 	private readonly Color HIDDEN = new Color(.7f, .7f, .7f, .7f);
@@ -54,6 +57,10 @@ public class PlayerHotbarHandler : MonoBehaviour
 
     	foreach(Image img in hotbarIcon){
     		img.material = Instantiate(this.hotbarMaterial);
+    	}
+
+    	foreach(Image img in attackHotbarIcon){
+    		img.material = Instantiate(this.actionMaterial);
     	}
 
     	InitiateHotbar();
@@ -126,6 +133,11 @@ public class PlayerHotbarHandler : MonoBehaviour
     public void SetHotbar(Inventory hotbar){
     	this.hotbar = hotbar;
         this.DrawHotbar();
+    }
+
+    public void SetActionHotbar(ActionInventory hotbar){
+    	this.actionHotbar = hotbar;
+    	this.DrawHotbar();
     }
 
 	// Selects a new item in hotbar
@@ -270,15 +282,34 @@ public class PlayerHotbarHandler : MonoBehaviour
 		}
 		else{
 			hotbarIcon[slot].material.SetTexture("_Texture", ItemLoader.GetSprite(its));
+			hotbarIcon[slot].color = WHITE;
 
 			if(its.GetStacksize() > 1)		
 				hotbarText[slot].text = its.GetAmount().ToString();
 			else
 				hotbarText[slot].text = "";
+		}
+	}
 
-			if(IS_NORMAL_HOTBAR){
-				hotbarIcon[slot].color = WHITE;
-			}
+	// Draws an action hotbar slot
+	public void DrawActionSlot(byte slot){
+		EntityAction ea = actionHotbar.GetPos(slot);
+		Texture2D icon, underlay;
+		string text;
+
+		if(ea == null){
+			attackHotbarIcon[slot].color = TRANSPARENT;
+			attackHotbarIcon[slot].material.SetTexture("_ItemIcon", null);
+			attackHotbarIcon[slot].material.SetTexture("_Underlay", null);
+			attackHotbarText[slot].text = "";
+		}
+		else{
+    		ea.OnIconDraw(this.cl, ea.GetItemStack(), out underlay, out icon);
+    		text = ea.OnStackDraw(this.cl, ea.GetItemStack());
+    		attackHotbarIcon[slot].color = WHITE;
+    		attackHotbarIcon[slot].material.SetTexture("_ItemIcon", icon);
+    		attackHotbarIcon[slot].material.SetTexture("_Underlay", underlay);
+    		attackHotbarText[slot].text = text;
 		}
 	}
 
@@ -286,7 +317,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 	public void DrawHotbar(){
 		for(byte i=0; i < hotbar.GetLimit(); i++){
 			this.DrawHotbarSlot(i);
-			this.attackHotbarIcon[i].color = TRANSPARENT; // PLACEHOLDER
+			this.DrawActionSlot(i);
 		}
 	}
 

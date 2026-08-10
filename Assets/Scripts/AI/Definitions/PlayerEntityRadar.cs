@@ -61,8 +61,9 @@ public class PlayerEntityRadar : EntityRadar{
 
 			// If can completely take the stack
 			if(aiItem.GetStacksize() >= inventorySlot.y + aiItem.GetAmount()){
-				if(inventorySlot.y == 0)
+				if(inventorySlot.y == 0){
 					psi.CreateSlotAt((byte)inventorySlot.x, this.ID.code, CreateSlot(aiItem, (byte)inventorySlot.x));
+				}
 
 				psi.ChangeQuantity(this.ID.code, (byte)inventorySlot.x, (byte)(inventorySlot.y + aiItem.GetAmount()));
 				this.cachedItemAI.SetPickupMode();

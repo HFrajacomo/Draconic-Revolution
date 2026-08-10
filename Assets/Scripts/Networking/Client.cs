@@ -673,7 +673,8 @@ public class Client
 			this.hotbarHandler = this.cl.hotbarHandler;
 
 		this.playerInventoryManager.LoadFromBytes(data, 1);
-		this.hotbarHandler.SetHotbar(this.playerInventoryManager.GetMainInventory());		
+		this.hotbarHandler.SetHotbar(this.playerInventoryManager.GetMainInventory());	
+		this.hotbarHandler.SetActionHotbar(this.playerInventoryManager.GetActionInventory());	
 	}
 
 	// Receives a request to register an SFX into SFXLoader

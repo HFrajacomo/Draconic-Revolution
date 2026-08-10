@@ -253,6 +253,9 @@ public class MainControllerManager : MonoBehaviour {
         if(LOCK_DROP)
             return;
 
+        if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR || PlayerHotbarHandler.IS_SWITCHING)
+            return;
+
         LOCK_DROP = true;
 
         if(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot) == null)
@@ -279,10 +282,10 @@ public class MainControllerManager : MonoBehaviour {
             its = new ItemStack(id, amount);
         }  
 
-        DropItem(its, hotbarSlot:(byte)PlayerHotbarHandler.hotbarSlot);
+        DropItem(its, (byte)(PlayerHotbarHandler.hotbarSlot + InventoryLoader.GetInventorySize("ACTION_HOTBAR")));
     }
 
-    public void DropItem(ItemStack its, byte hotbarSlot = byte.MaxValue){
+    public void DropItem(ItemStack its, byte hotbarSlot){
         Vector3 force = this.playerCamera.forward / 5f;
 
         NetMessage message = new NetMessage(NetCode.DROPITEM);
@@ -290,8 +293,10 @@ public class MainControllerManager : MonoBehaviour {
         this.cl.client.Send(message);
 
         if(hotbarSlot != byte.MaxValue){
+            hotbarSlot = (byte)(hotbarSlot - InventoryLoader.GetInventorySize("ACTION_HOTBAR"));
             hotbarHandler.DrawHotbarSlot(hotbarSlot);
             hotbarHandler.playerInventoryManager.DrawSlot(1, hotbarSlot);
         }
     }
+    public void DropItem(ItemStack its){DropItem(its, byte.MaxValue);}
 }

@@ -158,6 +158,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 						this.inventory[currentInventory].ForceAddStack(its, i); 
 						break;
 					case MemoryStorageType.ACTION:
+						id = NetDecoder.ReadUshort(data, bytesRead);
+						bytesRead += 2;
 						connectedToStack = NetDecoder.ReadBool(data, bytesRead);
 						bytesRead++;
 						currentCooldown = NetDecoder.ReadUshort(data, bytesRead);
@@ -269,6 +271,15 @@ public class PlayerInventoryManager : MonoBehaviour {
     	for(int i=0; i < this.inventory.Count; i++){
     		if(this.inventory[i].itemInventory && this.inventory[i].GetMainInventory())
     			return (Inventory)this.inventory[i];
+    	}
+
+    	throw new MainInventoryNotFoundException($"[PlayerInventoryManager] None of the current inventories have the main flag set. Inventory count: {this.inventory.Count}");
+    }
+
+    public ActionInventory GetActionInventory(){
+    	for(int i=0; i < this.inventory.Count; i++){
+    		if(!this.inventory[i].itemInventory)
+    			return (ActionInventory)this.inventory[i];
     	}
 
     	throw new MainInventoryNotFoundException($"[PlayerInventoryManager] None of the current inventories have the main flag set. Inventory count: {this.inventory.Count}");
@@ -485,19 +496,12 @@ public class PlayerInventoryManager : MonoBehaviour {
 				else{
 					EntityAction ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
 
-					Debug.Log($"Object: {ea} -- IsNull: {ea == null} -- Item Used: {((ItemStack)this.draggedStack).GetItem()}");
-
-					if(ea == null){
+					if(ea == null)
 						return;
-					}
-
-					Debug.Log("Passed null check");
 
 					ea.SetMemoryData(true, 0, 1, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
 					this.inventory[inventoryCode].AddStack(ea, slot);
 					DrawSlot(inventoryCode, slot);
-
-					Debug.Log("Passed draw slot");
 
 					if(IsNullSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot)){
 						this.inventory[this.draggedStackOriginInventory].ForceAddStack((ItemStack)this.draggedStack, this.draggedStackOriginSlot);
