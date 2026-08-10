@@ -6,6 +6,10 @@ using UnityEngine;
 public class CharacterSheet{
 	// Runtime Information
 	private byte hotbarSlot;
+	private byte attackHotbarSlot;
+
+	// Runtime unsaved
+	private bool isInNormalHotbar = true;
 
 	// Header
 	private string name;
@@ -107,6 +111,7 @@ public class CharacterSheet{
 		this.skillDict.Add(SkillType.WITCHCRAFT, null);
 
 		this.hotbarSlot = 0;
+		this.attackHotbarSlot = 0;
 	}
 
 	// Getter
@@ -150,6 +155,8 @@ public class CharacterSheet{
 	public SkillType GetMainSkill() {return this.mainSkill;}
 	public SkillType GetSecondarySkill() {return this.secondarySkill;}
 	public byte GetHotbarSlot() {return this.hotbarSlot;}
+	public byte GetAttackHotbarSlot() {return this.attackHotbarSlot;}
+	public bool IsInNormalHotbar() {return this.isInNormalHotbar;}
 
 
 	// Setter
@@ -192,6 +199,8 @@ public class CharacterSheet{
 	public void SetMainSkill(SkillType m) {this.mainSkill = m;}
 	public void SetSecondarySkill(SkillType s) {this.secondarySkill = s;}
 	public void SetHotbarSlot(byte slot) {this.hotbarSlot = slot;}
+	public void SetAttackHotbarSlot(byte slot) {this.attackHotbarSlot = slot;}
+	public void SetIsInNormalHotbar(bool b) {this.isInNormalHotbar = b;}
 
 	public void DebugPrint(){
 		this.DEBUG_LIST.Add("Name: " + GetName());

@@ -223,6 +223,11 @@ public class ActionInventorySlot : PlayerServerInventorySlot {
 		NetDecoder.WriteByte((byte)this.connectedStackSlot, buffer, init+9);
 		return this.slotMemorySize;
 	}
+
+	public EntityAction GetAction(){return ActionLoader.GetAction(this.itemID);}
+	public bool IsConnectedToItem(){return this.connectedToStack;}
+	public byte GetStackInventory(){return this.connectedStackInventory;}
+	public byte GetStackSlot(){return this.connectedStackSlot;}
 }
 
 /*

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -103,6 +104,31 @@ public class PlayerServerInventory{
     // Fetches the Item in a slot directly from the buffer data
     public PlayerServerInventorySlot GetSlot(ulong playerCode, byte slot){
         return this.inventories[playerCode][slot];
+    }
+
+    // Fetches the Item in a slot directly from the buffer data
+    public PlayerServerInventorySlot GetSlot(ulong playerCode, int inventoryCode, byte slot){
+        int i=0;
+        int typeCounter = 0;
+        byte currentInventoryType = this.inventories[playerCode][0].GetInventoryType();
+
+        if(inventoryCode == 0)
+            return this.inventories[playerCode][slot];
+
+        while(i < this.inventories[playerCode].Count){
+            if(currentInventoryType != this.inventories[playerCode][i].GetInventoryType()){
+                currentInventoryType = this.inventories[playerCode][i].GetInventoryType();
+                typeCounter++;
+
+                if(typeCounter == inventoryCode){
+                    return this.inventories[playerCode][slot + i];
+                }
+            }
+
+            i++;
+        }
+
+        throw new IndexOutOfRangeException($"[PlayerServerInventory] GetSlot(ushort, int, byte) couldn't find the indicated slot for player {playerCode} in inventory {inventoryCode} and slot {slot}");
     }
 
     public bool HasInventory(ulong playerCode){

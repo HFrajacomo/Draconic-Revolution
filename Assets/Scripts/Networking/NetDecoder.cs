@@ -249,6 +249,8 @@ public static class NetDecoder
 		pos += 247;
 		cs.SetHotbarSlot(NetDecoder.ReadByte(data, pos));
 		pos++;
+		cs.SetAttackHotbarSlot(NetDecoder.ReadByte(data, pos));
+		pos++;
 
 		for(int i=0; i < 100; i++){
 			cachedFX = NetDecoder.ReadSpecialEffect(data, pos);
@@ -631,6 +633,8 @@ public static class NetDecoder
 		NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
 		pos += 247;
 		NetDecoder.WriteByte(sheet.GetHotbarSlot(), data, pos);
+		pos++;
+		NetDecoder.WriteByte(sheet.GetAttackHotbarSlot(), data, pos);
 		pos++;
 
 		List<SpecialEffect> sfxList = sheet.GetSpecialEffectHandler().GetAllEffects();

@@ -1378,29 +1378,89 @@ public class Server {
 	// Receives the current hotbar slot in player's hand
 	public void SendHotbarPosition(byte[] data, ulong id){
 		byte slot = NetDecoder.ReadByte(data, 1);
+		byte attackSlot = NetDecoder.ReadByte(data, 2);
+		bool isNormalHotbar = NetDecoder.ReadBool(data, 3);
 		byte previousSlot;
+
 		CharacterSheet sheet;
-		PlayerServerInventorySlot psiSlot;
-		ItemStack hotbarStack;
+		PlayerServerInventorySlot psiSlot, psiPrevious;
+		ItemStack hotbarStack = null;
+		ItemStack previousStack = null;
+		EntityAction hotbarAction = null;
+		EntityAction previousAction = null;
 		NetMessage message;
+
+		byte inventory, invSlot;
 
 		if(this.entityHandler.ContainsSheet(id)){
 			sheet = this.entityHandler.GetSheet(id);
-			previousSlot = sheet.GetHotbarSlot();
+			
+			// Check if the previous selected slot was in Normal Hotbar
+			if(sheet.IsInNormalHotbar()){
+				previousSlot = sheet.GetHotbarSlot();
 
-			sheet.SetHotbarSlot(slot);
-			this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
+				if(previousSlot != slot || !isNormalHotbar){
+					psiPrevious = this.cl.playerServerInventory.GetSlot(id, previousSlot);
+					previousStack = psiPrevious.GetItemStack();
+					previousStack.GetItem().OnUnholdServer(this.cl, previousStack, id);
+				}
+			}
+			// Check if the previous selected slot was in Action Hotbar
+			else{
+				previousSlot = sheet.GetAttackHotbarSlot();
 
-			if(previousSlot != slot){
+				if(previousSlot != attackSlot || isNormalHotbar){
+					psiPrevious = this.cl.playerServerInventory.GetSlot(id, previousSlot);
+
+					if(psiPrevious is ActionInventorySlot){
+						previousAction = ((ActionInventorySlot)psiPrevious).GetAction();
+
+						// If this action can't exist without an ItemStack
+						if(((ActionInventorySlot)psiPrevious).IsConnectedToItem()){
+							inventory = ((ActionInventorySlot)psiPrevious).GetStackInventory();
+							invSlot = ((ActionInventorySlot)psiPrevious).GetStackSlot();
+							previousStack = this.cl.playerServerInventory.GetSlot(id, inventory, invSlot).GetItemStack();
+						}
+
+						previousAction.OnUnholdServer(this.cl, previousStack, id);
+					}
+				}
+			}
+
+			sheet.SetIsInNormalHotbar(isNormalHotbar);
+
+			// Check if the current selected slot is in Normal Hotbar
+			if(isNormalHotbar){
+				sheet.SetHotbarSlot(slot);
+				this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
+
 				psiSlot = this.cl.playerServerInventory.GetSlot(id, slot);
 				hotbarStack = psiSlot.GetItemStack();
 
-				hotbarStack.GetItem().OnUnholdServer(this.cl, hotbarStack, id);
 				hotbarStack.GetItem().OnHoldServer(this.cl, hotbarStack, id);
 
 				message = new NetMessage(NetCode.SENDITEMINHAND);
 				message.SendItemInHand(id, hotbarStack.GetID(), hotbarStack.GetAmount());
 				this.SendToClientsExcept(id, message);
+			}
+			// Check if the current selected slot is in Action Hotbar
+			else{
+				sheet.SetAttackHotbarSlot(attackSlot);
+				this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
+				psiSlot = this.cl.playerServerInventory.GetSlot(id, attackSlot);
+
+				if(psiSlot is ActionInventorySlot){
+					hotbarAction = ((ActionInventorySlot)psiSlot).GetAction();
+
+					// If this action can't exist without an ItemStack
+					if(((ActionInventorySlot)psiSlot).IsConnectedToItem()){
+						inventory = ((ActionInventorySlot)psiSlot).GetStackInventory();
+						invSlot = ((ActionInventorySlot)psiSlot).GetStackSlot();
+						hotbarStack = this.cl.playerServerInventory.GetSlot(id, inventory, invSlot).GetItemStack();
+					}
+					
+					hotbarAction.OnHoldServer(this.cl, hotbarStack, id);
+				}
 			}
 		}
 	}

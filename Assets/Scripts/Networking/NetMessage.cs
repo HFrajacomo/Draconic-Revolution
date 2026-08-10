@@ -434,14 +434,16 @@ public struct NetMessage
 		NetDecoder.WriteLong(charCode, NetMessage.buffer, 1);
 		NetDecoder.WriteCharacterSheet(sheet, NetMessage.buffer, 9);
 
-		this.size = 1210; 
+		this.size = 1211; 
 	}
 
 	// Client sends character hotbar position to Server
-	public void SendHotbarPosition(byte hotbarSlot){
+	public void SendHotbarPosition(bool isNormalHotbar, byte hotbarSlot, byte attackHotbarSlot){
 		Reset();
 		NetDecoder.WriteByte(hotbarSlot, NetMessage.buffer, 1);
-		this.size = 2;
+		NetDecoder.WriteByte(attackHotbarSlot, NetMessage.buffer, 2);
+		NetDecoder.WriteBool(isNormalHotbar, NetMessage.buffer, 3);
+		this.size = 4;
 	}
 
 	// Server sends character item in hand to Clients
