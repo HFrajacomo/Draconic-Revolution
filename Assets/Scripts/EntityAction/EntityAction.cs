@@ -6,6 +6,7 @@ using UnityEngine;
 [Serializable]
 public class EntityAction : ClickableSlot {
 	public string name;
+	public bool notConnectedToSpecificStack = false;
 	private ushort id;
 
 	// Storage
@@ -16,6 +17,7 @@ public class EntityAction : ClickableSlot {
 	private byte connectedStackSlot;
 
 	private ItemStack its;
+	private ushort connectedItemID;
 
 	// Behaviours ---------------------
 	// UI
@@ -61,8 +63,20 @@ public class EntityAction : ClickableSlot {
 
 	public void SetID(ushort id){this.id = id;}
 	public override ushort GetID(){return this.id;}
-	public ItemStack GetItemStack(){return this.its;}
-	public void SetItemStack(ItemStack its){this.its = its;}
+	public ItemStack GetItemStack(PlayerInventoryManager pim){
+		if(pim == null)
+			return this.its;
+
+		if((this.its == null || this.its.GetAmount() == 0) && this.notConnectedToSpecificStack){
+			return pim.GetNextItemStack(this.connectedItemID);
+		}
+
+		return this.its;
+	}
+	public void SetItemStack(ItemStack its){
+		this.connectedItemID = its.GetID();
+		this.its = its;
+	}
 
 	public virtual EntityAction Copy(){
 		return new EntityAction {
@@ -125,7 +139,7 @@ public class EntityAction : ClickableSlot {
 	public void SetOnIconDraw(List<EntityActionBehaviour> val) { onIconDrawBehaviour = val; }
 
 	public List<EntityActionBehaviour> GetStackDraw() { return onStackDrawBehaviour; }
-	public void SetStackDraw(List<EntityActionBehaviour> val) { onStackDrawBehaviour = val; }
+	public void SetOnStackDraw(List<EntityActionBehaviour> val) { onStackDrawBehaviour = val; }
 
 	// Hold
 	public List<EntityActionBehaviour> GetOnHoldPlayer() { return onHoldPlayerBehaviour; }
@@ -210,9 +224,12 @@ public class EntityAction : ClickableSlot {
 	}
 
 	public virtual string OnStackDraw(ChunkLoader cl, ItemStack its){
-		if(this.onStackDrawBehaviour == null || this.onStackDrawBehaviour.Count == 0)
+		if(this.onStackDrawBehaviour == null || this.onStackDrawBehaviour.Count == 0){
+			Debug.Log("A");
 			return "";
+		}
 
+		Debug.Log("B");
 		return this.onStackDrawBehaviour[0].OnStackDraw(cl, its);
 	}
 

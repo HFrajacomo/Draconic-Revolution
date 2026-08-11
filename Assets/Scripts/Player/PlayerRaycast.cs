@@ -248,7 +248,7 @@ public class PlayerRaycast : MonoBehaviour
 			it.OnUseClient(this.loader, (ItemStack)slot, this.position, lastCoord, playerBody, playerHead, current);
 		}
 		else{
-			((EntityAction)slot).OnSecondaryClient(this.loader, ((EntityAction)slot).GetItemStack(), Configurations.accountID);
+			((EntityAction)slot).OnSecondaryClient(this.loader, ((EntityAction)slot).GetItemStack(loader.playerInventoryManager), Configurations.accountID);
 		}
 	}
 

@@ -1,5 +1,6 @@
 {
-	"name": "BASE_BlockPlace"
+	"name": "BASE_BlockPlace",
+    "notConnectedToSpecificStack": true
 }
 --->Behaviours
 {

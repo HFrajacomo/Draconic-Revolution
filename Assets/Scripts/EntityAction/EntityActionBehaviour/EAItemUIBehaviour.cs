@@ -19,9 +19,14 @@ public class EAItemUIBehaviour : EntityActionBehaviour {
 
 		symbol = SYMBOL;
 	}
+	
 	public override string OnStackDraw(ChunkLoader cl, ItemStack its){ 
-		if(its.GetAmount() <= 1)
+		int amount = cl.playerInventoryManager.GetItemCount(its.GetID());
+
+		if(amount <= 1)
 			return "";
-		return $"{its.GetAmount()}"; 
+		if(amount >= 100)
+			return "99+";
+		return $"{amount}"; 
 	}
 }

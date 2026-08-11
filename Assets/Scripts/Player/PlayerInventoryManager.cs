@@ -28,6 +28,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 	private GameObject EMPTY_OBJECT;
 	private ItemStack NULL_STACK;
 
+	// Inventory Item Count
+	private Dictionary<ushort, int> itemCounter = new Dictionary<ushort, int>();
+
 	// Inventory data and draw info
 	private List<BaseInventory> inventory = new List<BaseInventory>();
 	private Dictionary<int, Image[]> slotImages = new Dictionary<int, Image[]>();
@@ -109,6 +112,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 		byte connectedStackInventory;
 		byte connectedStackSlot;
 
+		this.itemCounter.Clear();
+
 		if(this.inventory.Count == 0)
 			StartInventory();
 
@@ -139,6 +144,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 						item = ItemLoader.GetCopy(id);
 						its = new ItemStack(item, quantity);
 						this.inventory[currentInventory].ForceAddStack(its, i);
+						AddToCounter(id, quantity);
 						break;
 					case MemoryStorageType.WEAPON:
 						id = NetDecoder.ReadUshort(data, bytesRead);
@@ -155,7 +161,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 						weapon.SetExtraEffects(enchant);
 						weapon.SetRefineLevel(refineLv);
 						its = new ItemStack(weapon, 1);
-						this.inventory[currentInventory].ForceAddStack(its, i); 
+						this.inventory[currentInventory].ForceAddStack(its, i);
+						AddToCounter(id, 1);
 						break;
 					case MemoryStorageType.ACTION:
 						id = NetDecoder.ReadUshort(data, bytesRead);
@@ -341,8 +348,9 @@ public class PlayerInventoryManager : MonoBehaviour {
     		this.slotText[inventoryCode][slot].text = "";
     	}
     	else{
-    		ea.OnIconDraw(this.cl, ea.GetItemStack(), out underlay, out icon);
-    		text = ea.OnStackDraw(this.cl, ea.GetItemStack());
+    		ea.OnIconDraw(this.cl, ea.GetItemStack(this), out underlay, out icon);
+    		text = ea.OnStackDraw(this.cl, ea.GetItemStack(this));
+    		Debug.Log($"Getting text: {text}");
     		this.slotImages[inventoryCode][slot].material.SetTexture("_ItemIcon", icon);
     		this.slotImages[inventoryCode][slot].material.SetTexture("_Underlay", underlay);
     		this.slotText[inventoryCode][slot].text = text;
@@ -365,6 +373,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    		DrawSlot(inventoryCode, slot);
 	    		ToggleHighlight(true, this.draggedStack);
 	            ResetDetails();
+	            SubToCounter((ItemStack)this.draggedStack);
 	            this.detailsPanel.SetActive(true);
 
 	            // Finds the item selected
@@ -462,7 +471,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 		    		// If items are different
 		    		if(!((ItemStack)this.draggedStack).IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
 						ItemStack aux = this.draggedStack as ItemStack;
+						AddToCounter(aux);
 						this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+						SubToCounter((ItemStack)this.draggedStack);
 						this.inventory[inventoryCode].ForceAddStack(aux, slot);
 
 						if(this.draggedStack == null)
@@ -480,11 +491,15 @@ public class PlayerInventoryManager : MonoBehaviour {
 					}
 					// Stack together same ItemStacks
 					else{
+						int previousAmount = ((ItemStack)this.draggedStack).GetAmount();
 						this.draggedStack = this.inventory[inventoryCode].Transfer((ItemStack)this.draggedStack, slot);
 
-						if(this.draggedStack == null)
+						if(this.draggedStack == null){
+							AddToCounter(((ItemStack)this.draggedStack).GetID(), (byte)previousAmount);
 							ResetSelection();
+						}
 						else{
+							AddToCounter(((ItemStack)this.draggedStack).GetID(), (byte)(previousAmount - ((ItemStack)this.draggedStack).GetAmount()));
 							ToggleHighlight(true, this.draggedStack);
 						}
 
@@ -505,6 +520,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 					if(IsNullSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot)){
 						this.inventory[this.draggedStackOriginInventory].ForceAddStack((ItemStack)this.draggedStack, this.draggedStackOriginSlot);
+						AddToCounter((ItemStack)this.draggedStack);
 						DrawSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot);
 						this.draggedStack = null;
 						ResetSelection();
@@ -548,6 +564,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		    		// Selects slot
 		    		this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
 		    		this.inventory[inventoryCode].SetNull(slot);
+		    		SubToCounter((ItemStack)this.draggedStack);
 		    		DrawSlot(inventoryCode, slot);
 		    		ToggleHighlight(true, this.draggedStack);
 		            ResetDetails();
@@ -575,6 +592,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    		else{
 	    			this.draggedStack = this.inventory[inventoryCode].GetSlot(slot).Split();
 
+	    			SubToCounter((ItemStack)this.draggedStack);
 					DrawSlot(inventoryCode, slot);
 					ToggleHighlight(true, this.draggedStack);
 					ResetDetails();
@@ -614,6 +632,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		    			if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot))
 		    				return;
 
+		    			AddToCounter(((ItemStack)this.draggedStack).GetID(), 1);
 		    			bool shouldBeDestroyed = ((ItemStack)this.draggedStack).Decrement();
 
 		    			// If was only holding 1 item
@@ -640,6 +659,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 		    			if(this.inventory[inventoryCode].GetSlot(slot).IsFull())
 		    				return;
 
+		    			AddToCounter(((ItemStack)this.draggedStack).GetID(), 1);
+
 		     			if(((ItemStack)this.draggedStack).Decrement()){
 		    				this.draggedStack = null;
 		    				ResetSelection();
@@ -659,7 +680,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 		    				return;
 
 						ItemStack aux = this.draggedStack as ItemStack;
+		    			AddToCounter(aux);
 						this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
+						SubToCounter((ItemStack)this.draggedStack);
 						this.inventory[inventoryCode].ForceAddStack(aux, slot);
 
 						if(this.draggedStack == null)
@@ -690,6 +713,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 					if(IsNullSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot)){
 						this.inventory[this.draggedStackOriginInventory].ForceAddStack((ItemStack)this.draggedStack, this.draggedStackOriginSlot);
+						AddToCounter((ItemStack)this.draggedStack);
 						DrawSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot);
 						this.draggedStack = null;
 						ResetSelection();
@@ -847,6 +871,49 @@ public class PlayerInventoryManager : MonoBehaviour {
         this.ResetDetails();
 	}
 
+	// Gets the nearest ItemStack in inventory given an ID
+	public ItemStack GetNextItemStack(ushort id){
+		if(this.itemCounter.ContainsKey(id)){
+			for(int inventory=0; inventory < this.inventory.Count; inventory++){
+				if(this.inventory[inventory].itemInventory){
+					for(ushort j=0; j < this.inventory[inventory].GetLimit(); j++){
+						if(this.inventory[inventory].GetSlot(j).GetID() == id)
+							return (ItemStack)this.inventory[inventory].GetSlot(j);
+					}
+				}
+				else{
+					continue;
+				}
+			}
+
+			return null;
+		}
+		return null;
+	}
+
+	// Gets the number of the given item currently in all inventories
+	public int GetItemCount(ushort id){
+		if(this.itemCounter.ContainsKey(id))
+			return this.itemCounter[id];
+		return 0;
+	}
+
+	// Subtracts items from ItemCounter
+	public void SubToCounter(ushort id, int amount){
+		if(this.itemCounter.ContainsKey(id)){
+			this.itemCounter[id] -= amount;
+
+			if(this.itemCounter[id] <= 0)
+				this.itemCounter.Remove(id);
+		}
+	}
+	public void SubToCounter(ItemStack its){
+		if(its == null)
+			return;
+
+		SubToCounter(its.GetID(), its.GetAmount());
+	}
+
     // Resets text in details panel
     private void ResetDetails(){
         this.detailsName.text = "";
@@ -883,11 +950,11 @@ public class PlayerInventoryManager : MonoBehaviour {
 				EntityAction ea = cs as EntityAction;
 				Texture2D icon, underlay;
 
-				ea.OnIconDraw(this.cl, ea.GetItemStack(), out underlay, out icon);
+				ea.OnIconDraw(this.cl, ea.GetItemStack(this), out underlay, out icon);
 				this.dragOverlay.material = this.draggedActionMaterial;
 				this.dragOverlay.material.SetTexture("_ItemIcon", icon);
 				this.dragOverlay.material.SetTexture("_Underlay", underlay);
-				this.dragStacksize.text = ea.OnStackDraw(this.cl, ea.GetItemStack());
+				this.dragStacksize.text = ea.OnStackDraw(this.cl, ea.GetItemStack(this));
 			}
 		}
 		else{
@@ -903,6 +970,22 @@ public class PlayerInventoryManager : MonoBehaviour {
 				this.dragStacksize.text = "";
 			}
 		}
+	}
+
+	// Adds items to ItemCounter dictionary
+	private void AddToCounter(ushort id, byte count){
+		if(this.itemCounter.ContainsKey(id)){
+			this.itemCounter[id] += count;
+		}
+		else{
+			this.itemCounter.Add(id, (int)count);
+		}
+	}
+	private void AddToCounter(ItemStack its){
+		if(its == null)
+			return;
+
+		AddToCounter(its.GetID(), (byte)its.GetAmount());
 	}
 
 	// ------------------------- Inventory Generation --------------------------------

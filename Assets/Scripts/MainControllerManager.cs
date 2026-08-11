@@ -272,10 +272,12 @@ public class MainControllerManager : MonoBehaviour {
             }
 
             amount = 1;
+            playerInventoryManager.SubToCounter(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetID(), amount);
             its = new ItemStack(id, amount);
         }
         else{
             amount = hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetAmount();
+            playerInventoryManager.SubToCounter(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetID(), amount);
             hotbarHandler.hotbar.SetNull(PlayerHotbarHandler.hotbarSlot);
             this.playerInventoryManager.SetNull(0, PlayerHotbarHandler.hotbarSlot);
 

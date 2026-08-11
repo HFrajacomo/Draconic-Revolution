@@ -126,13 +126,13 @@ public class PlayerHotbarHandler : MonoBehaviour
 				if(previousSlot != null && previousSlot.IsItemStack())
 	    			((ItemStack)previousSlot).GetItem().OnUnholdPlayer(this.cl, (ItemStack)previousSlot, Configurations.accountID);
 	    		else if(previousSlot != null)
-	    			((EntityAction)previousSlot).OnUnholdPlayer(this.cl, ((EntityAction)previousSlot).GetItemStack(), Configurations.accountID);
+	    			((EntityAction)previousSlot).OnUnholdPlayer(this.cl, ((EntityAction)previousSlot).GetItemStack(playerInventoryManager), Configurations.accountID);
 
 	    		// OnHold
 	    		if(current != null && current.IsItemStack())
 	    			((ItemStack)current).GetItem().OnHoldPlayer(this.cl, (ItemStack)current, Configurations.accountID);
 	    		else if(current != null)
-	    			((EntityAction)current).OnHoldPlayer(this.cl, ((EntityAction)current).GetItemStack(), Configurations.accountID);
+	    			((EntityAction)current).OnHoldPlayer(this.cl, ((EntityAction)current).GetItemStack(playerInventoryManager), Configurations.accountID);
 
 	    		previousSlot = current;
 	    	}
@@ -448,8 +448,8 @@ public class PlayerHotbarHandler : MonoBehaviour
 			attackHotbarText[slot].text = "";
 		}
 		else{
-    		ea.OnIconDraw(this.cl, ea.GetItemStack(), out underlay, out icon);
-    		text = ea.OnStackDraw(this.cl, ea.GetItemStack());
+    		ea.OnIconDraw(this.cl, ea.GetItemStack(playerInventoryManager), out underlay, out icon);
+    		text = ea.OnStackDraw(this.cl, ea.GetItemStack(playerInventoryManager));
     		attackHotbarIcon[slot].color = WHITE;
     		attackHotbarIcon[slot].material.SetTexture("_ItemIcon", icon);
     		attackHotbarIcon[slot].material.SetTexture("_Underlay", underlay);
@@ -502,7 +502,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 				this.hotbarIcon[i].material.SetFloat("_Hidden", 1f);
 				this.hotbarText[i].color = HIDDEN;
 				this.attackHotbarIcon[i].material.SetFloat("_Hidden", 0f);
-				this.attackHotbarText[i].color = TRANSPARENT;
+				this.attackHotbarText[i].color = WHITE;
 			}
 		}
 		else{
