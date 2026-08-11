@@ -508,6 +508,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 						DrawSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot);
 						this.draggedStack = null;
 						ResetSelection();
+						SendInventoryDataToServer();
 					}
 				}
 			}
@@ -692,6 +693,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 						DrawSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot);
 						this.draggedStack = null;
 						ResetSelection();
+						SendInventoryDataToServer();
 					}
 				}
 				// while draggin an action
