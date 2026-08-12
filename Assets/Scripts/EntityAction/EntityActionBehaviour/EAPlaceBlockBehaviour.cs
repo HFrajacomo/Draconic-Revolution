@@ -4,23 +4,38 @@ using Unity.Mathematics;
 
 [Serializable]
 public class EAPlaceBlockBehaviour : EntityActionBehaviour {
-	public override void OnPrimaryPlayer(ChunkLoader cl, ItemStack its, ulong code){
-		Item it = its.GetItem();
+	public override void OnPrimaryPlayer(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){
+		ItemStack connectedStack = ea.GetItemStack(cl.playerInventoryManager);
 
-		if(this.PlaceBlock(cl, it.GetID(), (byte)(its.GetAmount()-1), cl)){
+		Debug.Log($"Connected to inv: {ea.GetConnectedStackInventory()} and slot: {ea.GetConnectedStackSlot()}");
+
+		Item it = connectedStack.GetItem();
+
+		if(this.PlaceBlock(cl, VoxelLoader.GetBlockID(it.codename), (byte)(connectedStack.GetAmount()-1), cl)){
 			cl.playerRaycast.lastBlockPlaced = it.GetID();
+			cl.playerInventoryManager.SubToCounter(it.GetID(), 1);
 
-			if(its.Decrement()){
-				cl.hotbarHandler.hotbar.SetNull(PlayerHotbarHandler.hotbarSlot);
+			if(connectedStack.Decrement()){
+				if(ea.GetConnectedStackInventory() == 1)
+					cl.hotbarHandler.hotbar.SetNull(ea.GetConnectedStackSlot());
+
+				cl.playerInventoryManager.SetNull(ea.GetConnectedStackInventory(), ea.GetConnectedStackSlot());
+				
+				if(cl.playerInventoryManager.GetItemCount(it.GetID()) <= 0){
+					cl.hotbarHandler.actionHotbar.SetNull(PlayerHotbarHandler.attackHotbarSlot);
+				}
+				connectedStack = null;
 			}
 
-			cl.hotbarHandler.DrawHotbarSlot(PlayerHotbarHandler.hotbarSlot);
-			cl.hotbarHandler.playerInventoryManager.DrawSlot(1, PlayerHotbarHandler.hotbarSlot);
+			if(ea.GetConnectedStackInventory() == 1)
+				cl.hotbarHandler.DrawHotbarSlot(ea.GetConnectedStackSlot());
+
+			cl.hotbarHandler.DrawActionSlot(PlayerHotbarHandler.attackHotbarSlot);
 			cl.hotbarHandler.playerInventoryManager.SendInventoryDataToServer();
 		}
 	}
 
-	public override void OnSecondaryPlayer(ChunkLoader cl, ItemStack its, ulong code){OnPrimaryPlayer(cl, its, code);}
+	public override void OnSecondaryPlayer(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){OnPrimaryPlayer(cl, ea, its, code);}
 
 	private bool PlaceBlock(ChunkLoader cl, ushort blockCode, byte newQuantity, ChunkLoader loader){
 		PlayerRaycast raycast = cl.playerRaycast;

@@ -67,8 +67,17 @@ public class EntityAction : ClickableSlot {
 		if(pim == null)
 			return this.its;
 
-		if((this.its == null || this.its.GetAmount() == 0) && this.notConnectedToSpecificStack){
-			return pim.GetNextItemStack(this.connectedItemID);
+		if((this.its == null || this.its.GetAmount() == 0)){
+			this.its = null;
+
+			if(this.notConnectedToSpecificStack){
+				ItemStack newStack = pim.GetNextItemStack(this.connectedItemID, ref this.connectedStackInventory, ref this.connectedStackSlot);
+				
+				if(newStack != null)
+					SetItemStack(newStack);
+				
+				return newStack;
+			}
 		}
 
 		return this.its;
@@ -77,6 +86,8 @@ public class EntityAction : ClickableSlot {
 		this.connectedItemID = its.GetID();
 		this.its = its;
 	}
+	public byte GetConnectedStackSlot(){return this.connectedStackSlot;}
+	public byte GetConnectedStackInventory(){return this.connectedStackInventory;}
 
 	public virtual EntityAction Copy(){
 		return new EntityAction {
@@ -220,17 +231,15 @@ public class EntityAction : ClickableSlot {
 		if(this.onIconDrawBehaviour == null || this.onIconDrawBehaviour.Count == 0)
 			return;
 
-		this.onIconDrawBehaviour[0].OnIconDraw(cl, its, out symbol, out itemIcon);
+		this.onIconDrawBehaviour[0].OnIconDraw(cl, this, its, out symbol, out itemIcon);
 	}
 
 	public virtual string OnStackDraw(ChunkLoader cl, ItemStack its){
 		if(this.onStackDrawBehaviour == null || this.onStackDrawBehaviour.Count == 0){
-			Debug.Log("A");
 			return "";
 		}
 
-		Debug.Log("B");
-		return this.onStackDrawBehaviour[0].OnStackDraw(cl, its);
+		return this.onStackDrawBehaviour[0].OnStackDraw(cl, this, its);
 	}
 
 	// Hold
@@ -239,7 +248,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onHoldPlayerBehaviour.Count; i++){
-			this.onHoldPlayerBehaviour[i].OnHoldPlayer(cl, its, code);
+			this.onHoldPlayerBehaviour[i].OnHoldPlayer(cl, this, its, code);
 		}
 	}
 
@@ -248,7 +257,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onHoldClientBehaviour.Count; i++){
-			this.onHoldClientBehaviour[i].OnHoldClient(cl, its, code);
+			this.onHoldClientBehaviour[i].OnHoldClient(cl, this, its, code);
 		}
 	}
 
@@ -257,7 +266,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onHoldServerBehaviour.Count; i++){
-			this.onHoldServerBehaviour[i].OnHoldServer(cl, its, code);
+			this.onHoldServerBehaviour[i].OnHoldServer(cl, this, its, code);
 		}
 	}
 
@@ -267,7 +276,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onUnholdPlayerBehaviour.Count; i++){
-			this.onUnholdPlayerBehaviour[i].OnUnholdPlayer(cl, its, code);
+			this.onUnholdPlayerBehaviour[i].OnUnholdPlayer(cl, this, its, code);
 		}
 	}
 
@@ -276,7 +285,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onUnholdClientBehaviour.Count; i++){
-			this.onUnholdClientBehaviour[i].OnUnholdClient(cl, its, code);
+			this.onUnholdClientBehaviour[i].OnUnholdClient(cl, this, its, code);
 		}
 	}
 
@@ -285,7 +294,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onUnholdServerBehaviour.Count; i++){
-			this.onUnholdServerBehaviour[i].OnUnholdServer(cl, its, code);
+			this.onUnholdServerBehaviour[i].OnUnholdServer(cl, this, its, code);
 		}
 	}
 
@@ -295,7 +304,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onPrimaryPlayerBehaviour.Count; i++){
-			this.onPrimaryPlayerBehaviour[i].OnPrimaryPlayer(cl, its, code);
+			this.onPrimaryPlayerBehaviour[i].OnPrimaryPlayer(cl, this, its, code);
 		}
 	}
 
@@ -304,7 +313,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onPrimaryClientBehaviour.Count; i++){
-			this.onPrimaryClientBehaviour[i].OnPrimaryClient(cl, its, code);
+			this.onPrimaryClientBehaviour[i].OnPrimaryClient(cl, this, its, code);
 		}
 	}
 
@@ -313,7 +322,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onPrimaryServerBehaviour.Count; i++){
-			this.onPrimaryServerBehaviour[i].OnPrimaryServer(cl, its, code);
+			this.onPrimaryServerBehaviour[i].OnPrimaryServer(cl, this, its, code);
 		}
 	}
 
@@ -323,7 +332,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onPrimaryHoldPlayerBehaviour.Count; i++){
-			this.onPrimaryHoldPlayerBehaviour[i].OnPrimaryHoldPlayer(cl, its, code);
+			this.onPrimaryHoldPlayerBehaviour[i].OnPrimaryHoldPlayer(cl, this, its, code);
 		}
 	}
 
@@ -332,7 +341,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onPrimaryHoldClientBehaviour.Count; i++){
-			this.onPrimaryHoldClientBehaviour[i].OnPrimaryHoldClient(cl, its, code);
+			this.onPrimaryHoldClientBehaviour[i].OnPrimaryHoldClient(cl, this, its, code);
 		}
 	}
 
@@ -341,7 +350,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onPrimaryHoldServerBehaviour.Count; i++){
-			this.onPrimaryHoldServerBehaviour[i].OnPrimaryHoldServer(cl, its, code);
+			this.onPrimaryHoldServerBehaviour[i].OnPrimaryHoldServer(cl, this, its, code);
 		}
 	}
 
@@ -351,7 +360,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onSecondaryPlayerBehaviour.Count; i++){
-			this.onSecondaryPlayerBehaviour[i].OnSecondaryPlayer(cl, its, code);
+			this.onSecondaryPlayerBehaviour[i].OnSecondaryPlayer(cl, this, its, code);
 		}
 	}
 
@@ -360,7 +369,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onSecondaryClientBehaviour.Count; i++){
-			this.onSecondaryClientBehaviour[i].OnSecondaryClient(cl, its, code);
+			this.onSecondaryClientBehaviour[i].OnSecondaryClient(cl, this, its, code);
 		}
 	}
 
@@ -369,7 +378,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onSecondaryServerBehaviour.Count; i++){
-			this.onSecondaryServerBehaviour[i].OnSecondaryServer(cl, its, code);
+			this.onSecondaryServerBehaviour[i].OnSecondaryServer(cl, this, its, code);
 		}
 	}
 
@@ -379,7 +388,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onSecondaryHoldPlayerBehaviour.Count; i++){
-			this.onSecondaryHoldPlayerBehaviour[i].OnSecondaryHoldPlayer(cl, its, code);
+			this.onSecondaryHoldPlayerBehaviour[i].OnSecondaryHoldPlayer(cl, this, its, code);
 		}
 	}
 
@@ -388,7 +397,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onSecondaryHoldClientBehaviour.Count; i++){
-			this.onSecondaryHoldClientBehaviour[i].OnSecondaryHoldClient(cl, its, code);
+			this.onSecondaryHoldClientBehaviour[i].OnSecondaryHoldClient(cl, this, its, code);
 		}
 	}
 
@@ -397,7 +406,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onSecondaryHoldServerBehaviour.Count; i++){
-			this.onSecondaryHoldServerBehaviour[i].OnSecondaryHoldServer(cl, its, code);
+			this.onSecondaryHoldServerBehaviour[i].OnSecondaryHoldServer(cl, this, its, code);
 		}
 	}
 
@@ -407,7 +416,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onTerciaryPlayerBehaviour.Count; i++){
-			this.onTerciaryPlayerBehaviour[i].OnTerciaryPlayer(cl, its, code);
+			this.onTerciaryPlayerBehaviour[i].OnTerciaryPlayer(cl, this, its, code);
 		}
 	}
 
@@ -416,7 +425,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onTerciaryClientBehaviour.Count; i++){
-			this.onTerciaryClientBehaviour[i].OnTerciaryClient(cl, its, code);
+			this.onTerciaryClientBehaviour[i].OnTerciaryClient(cl, this, its, code);
 		}
 	}
 
@@ -425,7 +434,7 @@ public class EntityAction : ClickableSlot {
 			return;
 
 		for(int i=0; i < this.onTerciaryServerBehaviour.Count; i++){
-			this.onTerciaryServerBehaviour[i].OnTerciaryServer(cl, its, code);
+			this.onTerciaryServerBehaviour[i].OnTerciaryServer(cl, this, its, code);
 		}
 	}
 

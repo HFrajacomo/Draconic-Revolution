@@ -7,7 +7,13 @@ public class EAItemUIBehaviour : EntityActionBehaviour {
 	private static string BASE_ITEM_SYMBOL = "Inventory/item_action";
 	private static Texture2D SYMBOL;
 	
-	public override void OnIconDraw(ChunkLoader cl, ItemStack its, out Texture2D symbol, out Texture2D itemIcon){
+	public override void OnIconDraw(ChunkLoader cl, EntityAction ea, ItemStack its, out Texture2D symbol, out Texture2D itemIcon){
+		if(its == null){
+			symbol = null;
+			itemIcon = null;
+			return;
+		}
+
 		itemIcon = ItemLoader.GetSprite(its);
 
 		if(SYMBOL == null){
@@ -20,7 +26,10 @@ public class EAItemUIBehaviour : EntityActionBehaviour {
 		symbol = SYMBOL;
 	}
 	
-	public override string OnStackDraw(ChunkLoader cl, ItemStack its){ 
+	public override string OnStackDraw(ChunkLoader cl, EntityAction ea, ItemStack its){ 
+		if(its == null)
+			return "";
+
 		int amount = cl.playerInventoryManager.GetItemCount(its.GetID());
 
 		if(amount <= 1)

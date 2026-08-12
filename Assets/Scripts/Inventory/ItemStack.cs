@@ -151,6 +151,7 @@ public class ItemStack : ClickableSlot {
 	// RETURNS TRUE IF STACK SHOULD BE DESTROYED
 	public bool Decrement(){
 		if(this.GetAmount() <= 1){
+			this.SetAmount(0);
 			return true;
 		}
 

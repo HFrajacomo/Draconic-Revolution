@@ -350,7 +350,6 @@ public class PlayerInventoryManager : MonoBehaviour {
     	else{
     		ea.OnIconDraw(this.cl, ea.GetItemStack(this), out underlay, out icon);
     		text = ea.OnStackDraw(this.cl, ea.GetItemStack(this));
-    		Debug.Log($"Getting text: {text}");
     		this.slotImages[inventoryCode][slot].material.SetTexture("_ItemIcon", icon);
     		this.slotImages[inventoryCode][slot].material.SetTexture("_Underlay", underlay);
     		this.slotText[inventoryCode][slot].text = text;
@@ -495,7 +494,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 						this.draggedStack = this.inventory[inventoryCode].Transfer((ItemStack)this.draggedStack, slot);
 
 						if(this.draggedStack == null){
-							AddToCounter(((ItemStack)this.draggedStack).GetID(), (byte)previousAmount);
+							AddToCounter(((ItemStack)this.inventory[inventoryCode].GetSlot(slot)).GetID(), (byte)previousAmount);
 							ResetSelection();
 						}
 						else{
@@ -872,13 +871,19 @@ public class PlayerInventoryManager : MonoBehaviour {
 	}
 
 	// Gets the nearest ItemStack in inventory given an ID
-	public ItemStack GetNextItemStack(ushort id){
+	public ItemStack GetNextItemStack(ushort id, ref byte inv, ref byte slot){
 		if(this.itemCounter.ContainsKey(id)){
 			for(int inventory=0; inventory < this.inventory.Count; inventory++){
 				if(this.inventory[inventory].itemInventory){
 					for(ushort j=0; j < this.inventory[inventory].GetLimit(); j++){
-						if(this.inventory[inventory].GetSlot(j).GetID() == id)
+						if(this.inventory[inventory].GetSlot(j) == null)
+							continue;
+
+						if(this.inventory[inventory].GetSlot(j).GetID() == id){
+							inv = (byte)inventory;
+							slot = (byte)j;
 							return (ItemStack)this.inventory[inventory].GetSlot(j);
+						}
 					}
 				}
 				else{

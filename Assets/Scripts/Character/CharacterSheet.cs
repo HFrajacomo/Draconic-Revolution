@@ -110,7 +110,7 @@ public class CharacterSheet{
 		this.skillDict.Add(SkillType.TRANSMUTING, null);
 		this.skillDict.Add(SkillType.WITCHCRAFT, null);
 
-		this.hotbarSlot = 0;
+		this.hotbarSlot = 9;
 		this.attackHotbarSlot = 0;
 	}
 
