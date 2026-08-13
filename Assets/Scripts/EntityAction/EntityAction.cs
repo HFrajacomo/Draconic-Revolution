@@ -86,6 +86,12 @@ public class EntityAction : ClickableSlot {
 		this.connectedItemID = its.GetID();
 		this.its = its;
 	}
+	public void SetItemConnection(byte inventory, byte slot, ItemStack its){
+		this.connectedStackInventory = inventory;
+		this.connectedStackSlot = slot;
+		this.its = its;
+	}
+
 	public byte GetConnectedStackSlot(){return this.connectedStackSlot;}
 	public byte GetConnectedStackInventory(){return this.connectedStackInventory;}
 

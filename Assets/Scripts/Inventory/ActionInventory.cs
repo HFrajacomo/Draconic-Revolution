@@ -68,6 +68,8 @@ public class ActionInventory : BaseInventory {
 	// Returns the limit of Inventory
 	public override ushort GetLimit(){return this.limit;}
 
+	public override bool GetBulkMovedTo(){return false;}
+
 	// Return the ItemStack at position pos
 	#nullable enable
 	public override EntityAction? GetPos(ushort pos){

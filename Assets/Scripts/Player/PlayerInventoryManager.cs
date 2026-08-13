@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -30,6 +31,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	// Inventory Item Count
 	private Dictionary<ushort, int> itemCounter = new Dictionary<ushort, int>();
+	private Dictionary<byte, int2> actionConnections = new Dictionary<byte, int2>();
 
 	// Inventory data and draw info
 	private List<BaseInventory> inventory = new List<BaseInventory>();
@@ -55,6 +57,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	void OnDisable(){
 		if(this.draggedStack != null){
+			RemoveConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
+
 			if(this.draggedStack.IsItemStack()){
 				this.mainControllerManager.DropItem((ItemStack)this.draggedStack);
 				ResetSelection();
@@ -113,6 +117,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		byte connectedStackSlot;
 
 		this.itemCounter.Clear();
+		this.actionConnections.Clear();
 
 		if(this.inventory.Count == 0)
 			StartInventory();
@@ -179,6 +184,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 						bytesRead++;
 						ea = new EntityAction();
 						ea.SetMemoryData(connectedToStack, currentCooldown, totalCooldown, connectedStackInventory, connectedStackSlot);
+						this.inventory[currentInventory].AddStack(ea, i);
+						AddConnection((byte)i, connectedStackInventory, connectedStackSlot);
 						break;
 				}
 			}
@@ -358,6 +365,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     // Activates on Left Click of a slot
     public void LeftClick(byte inventoryCode, ushort slot){
+		PrintStructure.PrintDictionary(this.actionConnections);
+
     	// If has no slot selected and not shifting
     	if(this.draggedStack == null && !MainControllerManager.shifting){
     		// Avoid null slot click
@@ -434,12 +443,17 @@ public class PlayerInventoryManager : MonoBehaviour {
 						this.inventory[inventoryCode].SetLastEmptySlot((short)slot);
 				}
 
+				if(ContainsValueConnection((byte)inventoryCode, (byte)slot)){
+					UpdateConnection(inventoryCode, (byte)slot, (byte)targetInventory, (byte)changes[0].slotNumber);
+				}
+
 				foreach(InventoryTransaction it in changes){
 					DrawSlot((byte)targetInventory, it.slotNumber);
 				}
 			}
 			// If is Action
 			else{
+				RemoveConnection((byte)slot);
 				this.inventory[inventoryCode].SetNull(slot);
 			}
 
@@ -467,19 +481,31 @@ public class PlayerInventoryManager : MonoBehaviour {
     		if(this.draggedStack.IsItemStack()){
     			// And clicked and item inventory
     			if(this.inventory[inventoryCode].itemInventory){
+    				// If clicked slot is null
+    				if(this.inventory[inventoryCode].GetSlot(slot) == null){
+    					ItemStack aux = this.draggedStack as ItemStack;
+    					AddToCounter(aux);
+    					this.draggedStack = null;
+    					this.inventory[inventoryCode].ForceAddStack(aux, slot);
+    					UpdateConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot, (byte)inventoryCode, (byte)slot);
+    					ResetSelection();    					
+						DrawSlot(inventoryCode, slot);
+
+			            SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
+						SendInventoryDataToServer();
+    				}
 		    		// If items are different
-		    		if(!((ItemStack)this.draggedStack).IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
+		    		else if(!((ItemStack)this.draggedStack).IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
 						ItemStack aux = this.draggedStack as ItemStack;
 						AddToCounter(aux);
 						this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
 						SubToCounter((ItemStack)this.draggedStack);
 						this.inventory[inventoryCode].ForceAddStack(aux, slot);
+						UpdateConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot, (byte)inventoryCode, (byte)slot);
 
 						if(this.draggedStack == null)
 							ResetSelection();
 						else{
-							this.draggedStackOriginInventory = inventoryCode;
-							this.draggedStackOriginSlot = slot;
 							ToggleHighlight(true, this.draggedStack);
 						}
 
@@ -502,6 +528,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 							ToggleHighlight(true, this.draggedStack);
 						}
 
+						UpdateConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot, (byte)inventoryCode, (byte)slot);
+
 						DrawSlot(inventoryCode, slot);
 						SendInventoryDataToServer();
 					}
@@ -516,6 +544,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 					ea.SetMemoryData(true, 0, 1, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
 					this.inventory[inventoryCode].AddStack(ea, slot);
 					DrawSlot(inventoryCode, slot);
+					AddConnection((byte)slot, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
 
 					if(IsNullSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot)){
 						this.inventory[this.draggedStackOriginInventory].ForceAddStack((ItemStack)this.draggedStack, this.draggedStackOriginSlot);
@@ -532,14 +561,17 @@ public class PlayerInventoryManager : MonoBehaviour {
     			// And clicked and item inventory
     			if(this.inventory[inventoryCode].itemInventory){
     				this.draggedStack = null;
+    				RemoveConnection((byte)this.draggedStackOriginSlot);
     				ResetSelection();
     			}
     			// And clicked an action inventory
     			else{
     				this.draggedStack = this.inventory[inventoryCode].AddStack((EntityAction)this.draggedStack, slot);
 
-    				if(this.draggedStack == null)
+    				if(this.draggedStack == null){
     					ResetSelection();
+    					UpdateKeyConnection((byte)this.draggedStackOriginSlot, (byte)slot);
+    				}
 
     				DrawSlot(inventoryCode, slot);
 		            SendEquipDataToServer(inventoryCode, this.draggedStack, this.inventory[inventoryCode].GetPos(slot));
@@ -615,6 +647,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    	// If right clicked Action Inventory
 	    	else{
 	    		this.inventory[inventoryCode].SetNull(slot);
+	    		RemoveConnection((byte)slot);
 	    		DrawSlot(inventoryCode, slot);
 	    	}
 
@@ -640,6 +673,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		    				this.draggedStack = null;
 		    				DrawSlot(inventoryCode, slot);
 		    				ResetSelection();
+		    				UpdateConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot, (byte)inventoryCode, (byte)slot);
 		    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
 		    				SendInventoryDataToServer();
 		    				return;
@@ -662,6 +696,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		     			if(((ItemStack)this.draggedStack).Decrement()){
 		    				this.draggedStack = null;
+		    				UpdateConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot, (byte)inventoryCode, (byte)slot);
 		    				ResetSelection();
 		    			}
 		    			else{
@@ -682,6 +717,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		    			AddToCounter(aux);
 						this.draggedStack = this.inventory[inventoryCode].GetSlot(slot);
 						SubToCounter((ItemStack)this.draggedStack);
+						UpdateConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot, (byte)inventoryCode, (byte)slot);
 						this.inventory[inventoryCode].ForceAddStack(aux, slot);
 
 						if(this.draggedStack == null)
@@ -697,6 +733,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		    	// ... while dragging an action
 		    	else{
     				this.draggedStack = null;
+    				RemoveConnection((byte)this.draggedStackOriginSlot);
     				ResetSelection();
 		    	}
 	    	}
@@ -992,6 +1029,69 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		AddToCounter(its.GetID(), (byte)its.GetAmount());
 	}
+
+	// Action Connection Functions
+    private void AddConnection(byte actionID, byte inventory, byte slot){
+    	GetActionInventory().GetPos(actionID).SetItemConnection(inventory, slot, (ItemStack)this.inventory[inventory].GetSlot(slot));
+		this.actionConnections.Add(actionID, new int2(inventory, slot));
+    }
+    private void UpdateConnection(byte previousInventory, byte previousSlot, byte newInventory, byte newSlot){
+    	List<byte> toModifyNew = new List<byte>();
+    	List<byte> toModifyOld = new List<byte>();
+    	int2 lastPos = new int2(previousInventory, previousSlot);
+    	int2 newPos = new int2(newInventory, newSlot);
+
+    	foreach(byte actionID in this.actionConnections.Keys){
+    		if(this.actionConnections[actionID].x == lastPos.x && this.actionConnections[actionID].y == lastPos.y){
+    			toModifyNew.Add(actionID);
+    		}
+    		if(this.actionConnections[actionID].x == newPos.x && this.actionConnections[actionID].y == newPos.y){
+    			toModifyOld.Add(actionID);
+    		}
+    	}
+
+    	for(int i=0; i < toModifyNew.Count; i++){
+    		Debug.Log($"({previousInventory} - {previousSlot}) -> ({newInventory} - {newSlot})");
+			this.actionConnections[toModifyNew[i]] = newPos;
+			GetActionInventory().GetPos(toModifyNew[i]).SetItemConnection(newInventory, newSlot, (ItemStack)this.inventory[newInventory].GetSlot(newSlot));
+    	}
+    	for(int i=0; i < toModifyOld.Count; i++){
+			this.actionConnections[toModifyOld[i]] = lastPos;
+			GetActionInventory().GetPos(toModifyOld[i]).SetItemConnection(previousInventory, previousSlot, (ItemStack)this.inventory[previousInventory].GetSlot(previousSlot));
+    	}
+    }
+    private void UpdateKeyConnection(byte previous, byte recent){
+    	int2 connection;
+
+    	if(ContainsKeyConnection(previous)){
+    		connection = this.actionConnections[previous];
+    		this.actionConnections.Remove(previous);
+    		this.actionConnections.Add(recent, connection);
+    	}
+    }
+    private bool ContainsKeyConnection(byte actionID){
+    	return this.actionConnections.ContainsKey(actionID);
+    }
+    private bool ContainsValueConnection(byte inventoryCode, byte slot){
+    	return this.actionConnections.ContainsValue(new int2(inventoryCode, slot));
+    }
+    private void RemoveConnection(byte actionID){
+    	this.actionConnections.Remove(actionID);
+    }
+    private void RemoveConnection(byte inventoryCode, byte slot){
+    	List<byte> toRemove = new List<byte>();
+    	int2 compare = new int2(inventoryCode, slot);
+
+    	foreach(byte action in this.actionConnections.Keys){
+    		if(this.actionConnections[action].x == compare.x && this.actionConnections[action].y == compare.y){
+    			toRemove.Add(action);
+    		}
+    	}
+
+    	foreach(byte action in toRemove){
+    		this.actionConnections.Remove(action);
+    	}
+    }
 
 	// ------------------------- Inventory Generation --------------------------------
 
