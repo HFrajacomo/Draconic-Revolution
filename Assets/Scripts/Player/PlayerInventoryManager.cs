@@ -109,7 +109,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		Weapon weapon;
 
 		// Cached Action
-		EntityAction ea;
+		EntityAction ea, aux;
 		bool connectedToStack;
 		ushort currentCooldown;
 		ushort totalCooldown;
@@ -139,7 +139,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 				switch(mst){
 					case MemoryStorageType.EMPTY:
-						this.inventory[currentInventory].ForceAddStack(NULL_STACK, i); // this was null before. Hopefully nothing breaks 
+						this.inventory[currentInventory].ForceAddStack(NULL_STACK, i);
 						break;
 					case MemoryStorageType.ITEM:
 						id = NetDecoder.ReadUshort(data, bytesRead);
@@ -182,14 +182,23 @@ public class PlayerInventoryManager : MonoBehaviour {
 						bytesRead++;
 						connectedStackSlot = NetDecoder.ReadByte(data, bytesRead);
 						bytesRead++;
-						ea = new EntityAction();
-						ea.SetMemoryData(connectedToStack, currentCooldown, totalCooldown, connectedStackInventory, connectedStackSlot);
+						ea = ActionLoader.GetAction(id);
 						this.inventory[currentInventory].AddStack(ea, i);
-						AddConnection((byte)i, connectedStackInventory, connectedStackSlot);
+						ea.SetMemoryData(connectedToStack, currentCooldown, totalCooldown, connectedStackInventory, connectedStackSlot);
 						break;
 				}
 			}
 			currentInventory++;
+		}
+
+		// Creates connection for all Actions
+		for(ushort i=0; i < this.inventory[0].GetLimit(); i++){
+			aux = (EntityAction)this.inventory[0].GetPos(i);
+
+			if(aux == null)
+				continue;
+
+			AddConnection((byte)i, aux.GetConnectedStackInventory(), aux.GetConnectedStackSlot());
 		}
 
 		ReloadInventory();
@@ -540,6 +549,11 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 					if(ea == null)
 						return;
+
+					if(this.inventory[inventoryCode].GetPos(slot) != null){
+						this.inventory[inventoryCode].SetNull(slot);
+						RemoveConnection((byte)slot);
+					}
 
 					ea.SetMemoryData(true, 0, 1, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
 					this.inventory[inventoryCode].AddStack(ea, slot);

@@ -89,7 +89,7 @@ public static class EntityActionDeserializer {
 					action.SetOnIconDraw(onIconDrawEvent);
 					break;
 				case "onStackDraw":
-					action.SetOnStackDraw(onIconDrawEvent);
+					action.SetOnStackDraw(onStackDrawEvent);
 					break;
 				case "onHoldPlayer":
 					action.SetOnHoldPlayer(onHoldPlayerEvent);

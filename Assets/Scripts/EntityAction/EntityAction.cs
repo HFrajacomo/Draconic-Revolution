@@ -100,6 +100,7 @@ public class EntityAction : ClickableSlot {
 			name = this.name,
 			id = this.id,
 			isItemStack = false,
+			notConnectedToSpecificStack = this.notConnectedToSpecificStack,
 
 			// Deep copy lists (new lists with same elements)
 			onIconDrawBehaviour   = this.onIconDrawBehaviour   != null ? new List<EntityActionBehaviour>(this.onIconDrawBehaviour)   : null,
@@ -149,6 +150,8 @@ public class EntityAction : ClickableSlot {
 		NetDecoder.WriteByte(this.connectedStackSlot, data, pos+9);
 		return 10;
 	}
+
+	public override string ToString(){return $"Action: {GetID()} -- Item Connection: ({this.connectedStackInventory} | {this.connectedStackSlot}) -- Item: {this.its}";}
 
 	// GET and SET functions ---------------
 	// UI
@@ -234,10 +237,11 @@ public class EntityAction : ClickableSlot {
 		symbol = null;
 		itemIcon = null;
 
-		if(this.onIconDrawBehaviour == null || this.onIconDrawBehaviour.Count == 0)
+		if(this.onIconDrawBehaviour == null || this.onIconDrawBehaviour.Count == 0){
 			return;
+		}
 
-		this.onIconDrawBehaviour[0].OnIconDraw(cl, this, its, out symbol, out itemIcon);
+		this.onIconDrawBehaviour[0].OnIconDraw(cl, this, its, ref symbol, ref itemIcon);
 	}
 
 	public virtual string OnStackDraw(ChunkLoader cl, ItemStack its){

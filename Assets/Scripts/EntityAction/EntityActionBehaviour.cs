@@ -11,7 +11,7 @@ public abstract class EntityActionBehaviour {
 	public virtual void PostDeserializationSetup(){ return; }
 
 	// UI
-	public virtual void OnIconDraw(ChunkLoader cl, EntityAction ea, ItemStack its, out Texture2D symbol, out Texture2D itemIcon){symbol = null; itemIcon = null; return; }
+	public virtual void OnIconDraw(ChunkLoader cl, EntityAction ea, ItemStack its, ref Texture2D symbol, ref Texture2D itemIcon){Debug.Log("Running generic"); return; }
 	public virtual string OnStackDraw(ChunkLoader cl, EntityAction ea, ItemStack its){ return ""; }
 
 	// Hold
