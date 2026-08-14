@@ -33,7 +33,16 @@ public partial class @InventoryUIControls: IInputActionCollection2, IDisposable
                     ""id"": ""27fbe102-c660-4a5d-9bc0-9c19b6ee0479"",
                     ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": ""Press"",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Ctrl"",
+                    ""type"": ""Button"",
+                    ""id"": ""1adeefcb-aecf-4821-9692-33d998e80c42"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": ""Press(behavior=2)"",
                     ""initialStateCheck"": false
                 }
             ],
@@ -48,6 +57,17 @@ public partial class @InventoryUIControls: IInputActionCollection2, IDisposable
                     ""action"": ""Drop"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""835fe1ec-c702-4414-8b22-9c0a056bd191"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Ctrl"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -57,6 +77,7 @@ public partial class @InventoryUIControls: IInputActionCollection2, IDisposable
         // InventoryUI
         m_InventoryUI = asset.FindActionMap("InventoryUI", throwIfNotFound: true);
         m_InventoryUI_Drop = m_InventoryUI.FindAction("Drop", throwIfNotFound: true);
+        m_InventoryUI_Ctrl = m_InventoryUI.FindAction("Ctrl", throwIfNotFound: true);
     }
 
     ~@InventoryUIControls()
@@ -124,11 +145,13 @@ public partial class @InventoryUIControls: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_InventoryUI;
     private List<IInventoryUIActions> m_InventoryUIActionsCallbackInterfaces = new List<IInventoryUIActions>();
     private readonly InputAction m_InventoryUI_Drop;
+    private readonly InputAction m_InventoryUI_Ctrl;
     public struct InventoryUIActions
     {
         private @InventoryUIControls m_Wrapper;
         public InventoryUIActions(@InventoryUIControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @Drop => m_Wrapper.m_InventoryUI_Drop;
+        public InputAction @Ctrl => m_Wrapper.m_InventoryUI_Ctrl;
         public InputActionMap Get() { return m_Wrapper.m_InventoryUI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -141,6 +164,9 @@ public partial class @InventoryUIControls: IInputActionCollection2, IDisposable
             @Drop.started += instance.OnDrop;
             @Drop.performed += instance.OnDrop;
             @Drop.canceled += instance.OnDrop;
+            @Ctrl.started += instance.OnCtrl;
+            @Ctrl.performed += instance.OnCtrl;
+            @Ctrl.canceled += instance.OnCtrl;
         }
 
         private void UnregisterCallbacks(IInventoryUIActions instance)
@@ -148,6 +174,9 @@ public partial class @InventoryUIControls: IInputActionCollection2, IDisposable
             @Drop.started -= instance.OnDrop;
             @Drop.performed -= instance.OnDrop;
             @Drop.canceled -= instance.OnDrop;
+            @Ctrl.started -= instance.OnCtrl;
+            @Ctrl.performed -= instance.OnCtrl;
+            @Ctrl.canceled -= instance.OnCtrl;
         }
 
         public void RemoveCallbacks(IInventoryUIActions instance)
@@ -168,5 +197,6 @@ public partial class @InventoryUIControls: IInputActionCollection2, IDisposable
     public interface IInventoryUIActions
     {
         void OnDrop(InputAction.CallbackContext context);
+        void OnCtrl(InputAction.CallbackContext context);
     }
 }

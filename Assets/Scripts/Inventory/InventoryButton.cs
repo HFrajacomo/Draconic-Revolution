@@ -13,6 +13,7 @@ public class InventoryButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
 	[SerializeField]
 	public PlayerInventoryManager invController;
 	private bool isHovered;
+	private static bool ctrl = false;
 
     public void OnPointerClick(PointerEventData ped){
     	if(ped.button == PointerEventData.InputButton.Right){
@@ -26,9 +27,21 @@ public class InventoryButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
     public void OnPointerEnter(PointerEventData eventData){this.isHovered = true;}
     public void OnPointerExit(PointerEventData eventData){this.isHovered = false;}
 
+    public void OnCtrl(){
+        if(!InventoryButton.ctrl){
+            InventoryButton.ctrl = true;
+        }
+        // If it's release
+        else
+            InventoryButton.ctrl = false;    
+    }
+
     public void OnDrop(){
     	if(this.isHovered && MainControllerManager.InUI){
-    		Debug.Log($"Pressed Q on inventory {this.inventoryCode} slot {this.slot}");
+    		if(!InventoryButton.ctrl)
+    			Debug.Log($"Pressed Q on inventory {this.inventoryCode} slot {this.slot}");
+    		else
+    			Debug.Log($"Pressed HOLD Q on inventory {this.inventoryCode} slot {this.slot}");
     	}
     }
 
