@@ -250,7 +250,7 @@ public class MainControllerManager : MonoBehaviour {
             MainControllerManager.ctrl = false;    
     }
     public void OnDrop(){
-        if(LOCK_DROP)
+        if(LOCK_DROP || MainControllerManager.InUI)
             return;
 
         if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR || PlayerHotbarHandler.IS_SWITCHING)

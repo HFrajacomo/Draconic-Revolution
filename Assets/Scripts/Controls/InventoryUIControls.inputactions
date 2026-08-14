@@ -1,0 +1,34 @@
+{
+    "name": "InventoryUIControls",
+    "maps": [
+        {
+            "name": "InventoryUI",
+            "id": "7d7f9582-556a-4890-a459-bc6657de0b3b",
+            "actions": [
+                {
+                    "name": "Drop",
+                    "type": "Button",
+                    "id": "27fbe102-c660-4a5d-9bc0-9c19b6ee0479",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "Press",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "ebfcb914-1222-494e-8b17-c92ae1405b71",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Drop",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

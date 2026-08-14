@@ -7510,6 +7510,7 @@ GameObject:
   - component: {fileID: 638012050}
   - component: {fileID: 638012049}
   - component: {fileID: 638012052}
+  - component: {fileID: 638012053}
   m_Layer: 5
   m_Name: UI-Camera
   m_TagString: Untagged
@@ -7624,6 +7625,37 @@ MonoBehaviour:
   backgroundMaterial: {fileID: 2100000, guid: c1b6d00ab13b4f44cb81f834ccb74e94, type: 2}
   actionSlotMaterial: {fileID: 2100000, guid: 8851f2470b65136408e63988e2c0ad4d, type: 2}
   liberationSans: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+--- !u!114 &638012053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 638012047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: d5e0ba95d8fb38f4a93a424f9d04f758,
+    type: 3}
+  m_NotificationBehavior: 1
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 1
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: InventoryUI
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1 &675879286
 GameObject:
   m_ObjectHideFlags: 0

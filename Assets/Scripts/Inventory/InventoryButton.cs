@@ -1,16 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class InventoryButton : MonoBehaviour, IPointerClickHandler {
+public class InventoryButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler {
 	[SerializeField]
 	public byte inventoryCode;
 	[SerializeField]
 	public ushort slot;
 	[SerializeField]
 	public PlayerInventoryManager invController;
+	private bool isHovered;
 
     public void OnPointerClick(PointerEventData ped){
     	if(ped.button == PointerEventData.InputButton.Right){
@@ -20,6 +22,16 @@ public class InventoryButton : MonoBehaviour, IPointerClickHandler {
     		invController.LeftClick(inventoryCode, slot);
     	}
     }
+
+    public void OnPointerEnter(PointerEventData eventData){this.isHovered = true;}
+    public void OnPointerExit(PointerEventData eventData){this.isHovered = false;}
+
+    public void OnDrop(){
+    	if(this.isHovered && MainControllerManager.InUI){
+    		Debug.Log($"Pressed Q on inventory {this.inventoryCode} slot {this.slot}");
+    	}
+    }
+
 
     public void SetController(PlayerInventoryManager manager){this.invController = manager;}
 }
