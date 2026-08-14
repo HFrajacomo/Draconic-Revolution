@@ -64,17 +64,19 @@ public class EntityAction : ClickableSlot {
 	public void SetID(ushort id){this.id = id;}
 	public override ushort GetID(){return this.id;}
 	public ItemStack GetItemStack(PlayerInventoryManager pim){
-		if(pim == null)
+		if(pim == null){
 			return this.its;
+		}
 
 		if((this.its == null || this.its.GetAmount() == 0)){
 			this.its = null;
 
 			if(this.notConnectedToSpecificStack){
 				ItemStack newStack = pim.GetNextItemStack(this.connectedItemID, ref this.connectedStackInventory, ref this.connectedStackSlot);
-				
-				if(newStack != null)
+
+				if(newStack != null){
 					SetItemStack(newStack);
+				}
 				
 				return newStack;
 			}
@@ -83,7 +85,9 @@ public class EntityAction : ClickableSlot {
 		return this.its;
 	}
 	public void SetItemStack(ItemStack its){
-		this.connectedItemID = its.GetID();
+		if(its != null)
+			this.connectedItemID = its.GetID();
+
 		this.its = its;
 	}
 	public void SetItemConnection(byte inventory, byte slot, ItemStack its){

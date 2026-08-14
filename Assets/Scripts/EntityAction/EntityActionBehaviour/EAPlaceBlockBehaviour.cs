@@ -6,9 +6,6 @@ using Unity.Mathematics;
 public class EAPlaceBlockBehaviour : EntityActionBehaviour {
 	public override void OnPrimaryPlayer(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){
 		ItemStack connectedStack = ea.GetItemStack(cl.playerInventoryManager);
-
-		Debug.Log($"Connected to inv: {ea.GetConnectedStackInventory()} and slot: {ea.GetConnectedStackSlot()}");
-
 		Item it = connectedStack.GetItem();
 
 		if(this.PlaceBlock(cl, VoxelLoader.GetBlockID(it.codename), (byte)(connectedStack.GetAmount()-1), cl)){
@@ -30,7 +27,7 @@ public class EAPlaceBlockBehaviour : EntityActionBehaviour {
 			if(ea.GetConnectedStackInventory() == 1)
 				cl.hotbarHandler.DrawHotbarSlot(ea.GetConnectedStackSlot());
 
-			cl.hotbarHandler.DrawActionSlot(PlayerHotbarHandler.attackHotbarSlot);
+			cl.hotbarHandler.DrawActionHotbar();
 			cl.hotbarHandler.playerInventoryManager.SendInventoryDataToServer();
 		}
 	}

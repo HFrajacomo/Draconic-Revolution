@@ -374,8 +374,6 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     // Activates on Left Click of a slot
     public void LeftClick(byte inventoryCode, ushort slot){
-		PrintStructure.PrintDictionary(this.actionConnections);
-
     	// If has no slot selected and not shifting
     	if(this.draggedStack == null && !MainControllerManager.shifting){
     		// Avoid null slot click
@@ -789,6 +787,34 @@ public class PlayerInventoryManager : MonoBehaviour {
     public void SetNull(int inventoryCode, byte slot){
     	this.inventory[inventoryCode].SetNull(slot);
     	DrawSlot((byte)inventoryCode, slot);
+
+    	if(!this.inventory[inventoryCode].itemInventory){
+    		RemoveConnection((byte)inventoryCode, slot);
+    	}
+    	else{
+    		List<byte> connectedActions = GetActionsConnectedTo((byte)inventoryCode, slot);
+    		EntityAction ea;
+
+    		for(int i=0; i < connectedActions.Count; i++){
+    			ea = GetActionInventory().GetPos(connectedActions[i]);
+	            if(ea != null){
+	            	ea.SetItemStack(null);
+	                if(ea.notConnectedToSpecificStack){	                	
+	                    if(ea.GetItemStack(this) == null){
+	                        this.inventory[0].SetNull(connectedActions[i]);
+	                    }
+	                    else{
+	                    	Debug.Log($"{connectedActions[i]}: {ea} ||| {this.inventory[inventoryCode].GetSlot(slot) == null}");
+	                    }
+	                }
+	                else{
+	                	this.inventory[0].SetNull(connectedActions[i]);
+	                }
+
+	                DrawSlot(0, connectedActions[i]);
+	            }
+	        }
+    	}
     }
 
     // Create a new inventory in the scroll area of the Inventory UI
@@ -1045,6 +1071,20 @@ public class PlayerInventoryManager : MonoBehaviour {
 	}
 
 	// Action Connection Functions
+	public List<byte> GetActionsConnectedTo(byte inventory, byte slot){
+		List<byte> output = new List<byte>();
+		int2 compare = new int2(inventory, slot);
+
+		if(ContainsValueConnection(inventory, slot)){
+	    	foreach(byte action in this.actionConnections.Keys){
+	    		if(this.actionConnections[action].x == compare.x && this.actionConnections[action].y == compare.y){
+	    			output.Add(action);
+	    		}
+	    	}
+		}
+
+		return output;
+	}
     private void AddConnection(byte actionID, byte inventory, byte slot){
     	GetActionInventory().GetPos(actionID).SetItemConnection(inventory, slot, (ItemStack)this.inventory[inventory].GetSlot(slot));
 		this.actionConnections.Add(actionID, new int2(inventory, slot));
@@ -1065,7 +1105,6 @@ public class PlayerInventoryManager : MonoBehaviour {
     	}
 
     	for(int i=0; i < toModifyNew.Count; i++){
-    		Debug.Log($"({previousInventory} - {previousSlot}) -> ({newInventory} - {newSlot})");
 			this.actionConnections[toModifyNew[i]] = newPos;
 			GetActionInventory().GetPos(toModifyNew[i]).SetItemConnection(newInventory, newSlot, (ItemStack)this.inventory[newInventory].GetSlot(newSlot));
     	}

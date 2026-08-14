@@ -266,23 +266,31 @@ public class MainControllerManager : MonoBehaviour {
         byte amount;
 
         if(!MainControllerManager.ctrl){
-            if(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).Decrement()){
-                hotbarHandler.hotbar.SetNull(PlayerHotbarHandler.hotbarSlot);
-                this.playerInventoryManager.SetNull(0, PlayerHotbarHandler.hotbarSlot);
-            }
-
             amount = 1;
             playerInventoryManager.SubToCounter(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetID(), amount);
-            its = new ItemStack(id, amount);
-        }
-        else{
-            amount = hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetAmount();
-            playerInventoryManager.SubToCounter(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetID(), amount);
-            hotbarHandler.hotbar.SetNull(PlayerHotbarHandler.hotbarSlot);
-            this.playerInventoryManager.SetNull(0, PlayerHotbarHandler.hotbarSlot);
+
+            if(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).Decrement()){
+                List<byte> connectedItems = playerInventoryManager.GetActionsConnectedTo(1, PlayerHotbarHandler.hotbarSlot);
+                playerInventoryManager.SetNull(1, PlayerHotbarHandler.hotbarSlot);
+            }
+            else{
+                hotbarHandler.DrawHotbarSlot(PlayerHotbarHandler.hotbarSlot);
+            }
 
             its = new ItemStack(id, amount);
-        }  
+            hotbarHandler.DrawActionHotbar();
+        }
+        else{
+            List<byte> connectedItems = playerInventoryManager.GetActionsConnectedTo(1, PlayerHotbarHandler.hotbarSlot);
+            amount = hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetAmount();
+            playerInventoryManager.SubToCounter(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetID(), amount);
+            playerInventoryManager.SetNull(1, PlayerHotbarHandler.hotbarSlot);
+
+            its = new ItemStack(id, amount);
+            hotbarHandler.DrawActionHotbar();
+        }
+
+        playerInventoryManager.SendInventoryDataToServer();
 
         DropItem(its, (byte)(PlayerHotbarHandler.hotbarSlot + InventoryLoader.GetInventorySize("ACTION_HOTBAR")));
     }

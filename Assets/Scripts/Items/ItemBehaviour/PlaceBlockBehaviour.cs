@@ -18,10 +18,12 @@ public class PlaceBlockBehaviour : ItemBehaviour{
 			cl.playerRaycast.lastBlockPlaced = it.GetID();
 
 			if(its.Decrement()){
-				cl.hotbarHandler.hotbar.SetNull(PlayerHotbarHandler.hotbarSlot);
+				cl.hotbarHandler.playerInventoryManager.SetNull(1, PlayerHotbarHandler.hotbarSlot);
 			}
 
+			cl.hotbarHandler.playerInventoryManager.SubToCounter(it.GetID(), 1);
 			cl.hotbarHandler.DrawHotbarSlot(PlayerHotbarHandler.hotbarSlot);
+			cl.hotbarHandler.DrawActionHotbar();
 			cl.hotbarHandler.playerInventoryManager.DrawSlot(1, PlayerHotbarHandler.hotbarSlot);
 			cl.hotbarHandler.playerInventoryManager.SendInventoryDataToServer();
 		}

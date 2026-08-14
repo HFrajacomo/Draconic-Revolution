@@ -465,6 +465,13 @@ public class PlayerHotbarHandler : MonoBehaviour
 		}
 	}
 
+	// Redraws the Action hotbar
+	public void DrawActionHotbar(){
+		for(byte i=0; i < actionHotbar.GetLimit(); i++){
+			this.DrawActionSlot(i);
+		}
+	}
+
 	private void SendHotbarInfoToServer(){
 		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == PlayerHotbarHandler.LAST_HOTBAR_SENT)
 			return;
