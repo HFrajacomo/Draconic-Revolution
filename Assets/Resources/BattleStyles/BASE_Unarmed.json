@@ -47,7 +47,7 @@
 				"clip": "CharacterArmature_Sheathe - Unarmed",
 				"events": [
 					{
-						"type": "AnimatorSetBehaviour",
+						"type": "AN_AnimatorSetBehaviour",
 						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
 					}
 				]
@@ -57,7 +57,7 @@
 				"clip": "CharacterArmature_Unsheathe - Unarmed",
 				"events": [
 					{
-						"type": "AnimatorSetBehaviour",
+						"type": "AN_AnimatorSetBehaviour",
 						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
 					}
 				]
@@ -67,7 +67,7 @@
 				"clip": "CharacterArmature_Attack 1 - Unarmed",
 				"events": [
 					{
-						"type": "AnimationMomentumBehaviour",
+						"type": "AN_AnimationMomentumBehaviour",
 						"json": "{\"normalizedTime\": 0.045, \"direction\": \"directional\", \"momentum\": 3}"
 					}
 				]
@@ -77,7 +77,7 @@
 				"clip": "CharacterArmature_Attack 2 - Unarmed",
 				"events": [
 					{
-						"type": "AnimationMomentumBehaviour",
+						"type": "AN_AnimationMomentumBehaviour",
 						"json": "{\"normalizedTime\": 0.09, \"direction\": \"directional\", \"momentum\": 3}"
 					}
 				]
@@ -87,7 +87,7 @@
 				"clip": "CharacterArmature_Attack 3 - Unarmed",
 				"events": [
 					{
-						"type": "AnimationMomentumBehaviour",
+						"type": "AN_AnimationMomentumBehaviour",
 						"json": "{\"normalizedTime\": 0.1, \"direction\": \"directional\", \"momentum\": 4}"
 					}
 				]

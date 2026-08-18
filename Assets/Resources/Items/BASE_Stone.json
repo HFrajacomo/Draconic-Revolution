@@ -7,14 +7,14 @@
 }
 --->Behaviours
 {
-    "onCreateAction": "GetItemActionBehaviour",
-    "onUseClient": "PlaceBlockBehaviour"
+    "onCreateAction": "IT_GetItemActionBehaviour",
+    "onUseClient": "IT_PlaceBlockBehaviour"
 }
---->GetItemActionBehaviour
+--->IT_GetItemActionBehaviour
 {
     "name": "BASE_BlockPlace"
 }
---->PlaceBlockBehaviour
+--->IT_PlaceBlockBehaviour
 {
     "blockName": "BASE_Stone"
 }

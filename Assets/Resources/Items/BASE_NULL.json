@@ -8,9 +8,9 @@
 }
 --->Behaviours
 {
-    "onEquipServer": "ChangeStyleBehaviour",
+    "onEquipServer": "IT_ChangeStyleBehaviour",
 }
---->ChangeStyleBehaviour
+--->IT_ChangeStyleBehaviour
 {
     "battleStyle": "BASE_Unarmed"
 }

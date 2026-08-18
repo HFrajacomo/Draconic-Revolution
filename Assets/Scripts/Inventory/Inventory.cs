@@ -483,7 +483,5 @@ public class Inventory : BaseInventory {
 		return false;
 	}
 
-	public string GetInventoryType(){return this.inventoryType;}
-
 	private void SetLimitOnType(byte id){this.limit = (ushort)InventoryLoader.GetInventorySize(id);}
 }

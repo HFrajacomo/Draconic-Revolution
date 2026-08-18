@@ -30,28 +30,28 @@
 }
 --->Behaviours
 {
-    "modelIdentity": "ModelIdentityBehaviour",
-    "onPlace": "AuraCrystalBehaviour",
-    "onBreak": "BreakDropItemBehaviour",
-    "offsetVector" : "ConfigurablePositionBehaviour",
-    "rotationValue" : "ConfigurableRotationBehaviour"
+    "modelIdentity": "VX_ModelIdentityBehaviour",
+    "onPlace": "VX_AuraCrystalBehaviour",
+    "onBreak": "VX_BreakDropItemBehaviour",
+    "offsetVector" : "VX_ConfigurablePositionBehaviour",
+    "rotationValue" : "VX_ConfigurableRotationBehaviour"
 }
---->BreakDropItemBehaviour
+--->VX_BreakDropItemBehaviour
 {
     "droppedItem": "BASE_MagiaCrystal",
     "minDropQuantity": 1,
     "maxDropQuantity": 1
 }
---->AuraCrystalBehaviour
+--->VX_AuraCrystalBehaviour
 {
     "blockName": "BASE_MagiaCrystal"
 }
---->ModelIdentityBehaviour
+--->VX_ModelIdentityBehaviour
 {
     "modelUnityPath": "----- PrefabObjects -----/AuraCrystal_Object",
     "textureName": "BASE_MagiaCrystal"
 }
---->ConfigurablePositionBehaviour
+--->VX_ConfigurablePositionBehaviour
 {
     "states" : [
         {
@@ -104,7 +104,7 @@
         }
     ]
 }
---->ConfigurableRotationBehaviour
+--->VX_ConfigurableRotationBehaviour
 {
     "states" : [
         {

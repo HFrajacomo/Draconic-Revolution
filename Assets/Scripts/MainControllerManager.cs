@@ -270,7 +270,6 @@ public class MainControllerManager : MonoBehaviour {
             playerInventoryManager.SubToCounter(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetID(), amount);
 
             if(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).Decrement()){
-                List<byte> connectedItems = playerInventoryManager.GetActionsConnectedTo(1, PlayerHotbarHandler.hotbarSlot);
                 playerInventoryManager.SetNull(1, PlayerHotbarHandler.hotbarSlot);
             }
             else{
@@ -281,7 +280,6 @@ public class MainControllerManager : MonoBehaviour {
             hotbarHandler.DrawActionHotbar();
         }
         else{
-            List<byte> connectedItems = playerInventoryManager.GetActionsConnectedTo(1, PlayerHotbarHandler.hotbarSlot);
             amount = hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetAmount();
             playerInventoryManager.SubToCounter(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetID(), amount);
             playerInventoryManager.SetNull(1, PlayerHotbarHandler.hotbarSlot);

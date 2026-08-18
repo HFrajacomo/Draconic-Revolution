@@ -7,11 +7,16 @@
 }
 --->Behaviours
 {
-	"onUseClient": "PlaceBlockBehaviour"
+    "onCreateAction": "IT_GetItemActionBehaviour",
+    "onUseClient": "IT_PlaceBlockBehaviour"
 }
---->PlaceBlockBehaviour
+--->IT_GetItemActionBehaviour
 {
-	"blockName": "BASE_Quartz_Plain"
+    "name": "BASE_BlockPlace"
+}
+--->IT_PlaceBlockBehaviour
+{
+    "blockName": "BASE_Quartz_Plain"
 }
 --->Type
 Item

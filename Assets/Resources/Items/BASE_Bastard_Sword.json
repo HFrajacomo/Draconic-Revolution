@@ -18,10 +18,10 @@
 }
 --->Behaviours
 {
-    "onEquipServer": "ChangeStyleBehaviour",
-    "onUnequipServer": "ChangeStyleBehaviour"
+    "onEquipServer": "IT_ChangeStyleBehaviour",
+    "onUnequipServer": "IT_ChangeStyleBehaviour"
 }
---->ChangeStyleBehaviour
+--->IT_ChangeStyleBehaviour
 {
     "battleStyle": "BASE_Sword"
 }

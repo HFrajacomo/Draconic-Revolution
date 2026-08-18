@@ -216,8 +216,7 @@ public static class ItemDeserializer {
 			case "Weapon":
 				return JsonUtility.FromJson<Weapon>(JsonFormatter.RemoveComments(json));
 			default:
-				Debug.LogError($"ERROR WHEN TRYING TO DE-SERIALIZE ITEM TYPE: {type}");
-				return JsonUtility.FromJson<Item>(JsonFormatter.RemoveComments(json)); 
+				throw new DeserializationErrorException($"[ItemDeserializer] Failed to verify type of Ite: {type}"); 
 		}
 	}
 
@@ -225,17 +224,16 @@ public static class ItemDeserializer {
 		string jsonSerial = GetSection(json, val);
 
 		switch(val){
-			case "GetItemActionBehaviour":
-				return JsonUtility.FromJson<GetItemActionBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "PlaceBlockBehaviour":
-				return JsonUtility.FromJson<PlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "CreatePointLightBehaviour":
-				return JsonUtility.FromJson<CreatePointLightBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "ChangeStyleBehaviour":
-				return JsonUtility.FromJson<ChangeStyleBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "IT_GetItemActionBehaviour":
+				return JsonUtility.FromJson<IT_GetItemActionBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "IT_PlaceBlockBehaviour":
+				return JsonUtility.FromJson<IT_PlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "IT_CreatePointLightBehaviour":
+				return JsonUtility.FromJson<IT_CreatePointLightBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "IT_ChangeStyleBehaviour":
+				return JsonUtility.FromJson<IT_ChangeStyleBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
-				Debug.LogError("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
-				return new PlaceBlockBehaviour();
+				throw new DeserializationErrorException($"[ItemDeserializer] Error when trying to de-serialize behaviour {val}");
 		}
 	}
 

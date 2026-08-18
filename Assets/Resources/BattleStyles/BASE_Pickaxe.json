@@ -55,11 +55,11 @@
 				"clip": "CharacterArmature_Sheathe - Pickaxe",
 				"events": [
 					{
-						"type": "SwitchAttachmentAnchorBehaviour",
+						"type": "AN_SwitchAttachmentAnchorBehaviour",
 						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"flip\": true, \"heightOffset\": 0.012}"
 					},
 					{
-						"type": "AnimatorSetBehaviour",
+						"type": "AN_AnimatorSetBehaviour",
 						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
 					}
 				]
@@ -69,11 +69,11 @@
 				"clip": "CharacterArmature_Unsheathe - Pickaxe",
 				"events": [
 					{
-						"type": "SwitchAttachmentAnchorBehaviour",
+						"type": "AN_SwitchAttachmentAnchorBehaviour",
 						"json": "{\"normalizedTime\": 0.2, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"flip\": false, \"heightOffset\": 0.0}"
 					},
 					{
-						"type": "AnimatorSetBehaviour",
+						"type": "AN_AnimatorSetBehaviour",
 						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
 					}
 				]
@@ -83,7 +83,7 @@
 				"clip": "CharacterArmature_Attack X - Pickaxe",
 				"events": [
 					{
-						"type": "AnimationMomentumBehaviour",
+						"type": "AN_AnimationMomentumBehaviour",
 						"json": "{\"normalizedTime\": 0.2, \"direction\": \"directional\", \"momentum\": 3}"
 					}
 				]
@@ -93,7 +93,7 @@
 				"clip": "CharacterArmature_Attack X - Pickaxe",
 				"events": [
 					{
-						"type": "AnimationMomentumBehaviour",
+						"type": "AN_AnimationMomentumBehaviour",
 						"json": "{\"normalizedTime\": 0.2, \"direction\": \"directional\", \"momentum\": 3}"
 					}
 				]
@@ -103,7 +103,7 @@
 				"clip": "CharacterArmature_Attack X - Pickaxe",
 				"events": [
 					{
-						"type": "AnimationMomentumBehaviour",
+						"type": "AN_AnimationMomentumBehaviour",
 						"json": "{\"normalizedTime\": 0.2, \"direction\": \"directional\", \"momentum\": 3}"
 					}
 				]

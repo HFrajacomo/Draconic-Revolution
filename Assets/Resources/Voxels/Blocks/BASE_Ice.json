@@ -20,10 +20,10 @@
 }
 --->Behaviours
 {
-    "onPlayerStepEnter": "PlayerMovementStepMultiplyBehaviour",
-    "onPlayerStepExit": "PlayerMovementStepMultiplyBehaviour"
+    "onPlayerStepEnter": "VX_PlayerMovementStepMultiplyBehaviour",
+    "onPlayerStepExit": "VX_PlayerMovementStepMultiplyBehaviour"
 }
---->PlayerMovementStepMultiplyBehaviour
+--->VX_PlayerMovementStepMultiplyBehaviour
 {
     "maxSpeed": 1.3,
     "drag": 0.07,

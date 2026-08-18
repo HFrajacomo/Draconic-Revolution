@@ -30,26 +30,26 @@
 }
 --->Behaviours
 {
-    "modelIdentity": "ModelIdentityBehaviour",
-    "onPlace": "TorchBehaviour",
-    "onBreak": "TorchBehaviour",
-    "onInteract": "TorchBehaviour",
-    "onBlockUpdate": "TorchBehaviour",
-    "onLoad": "TorchBehaviour",
-    "onVFXBuild" : "TorchBehaviour",
-    "onVFXBreak" : "TorchBehaviour",
-    "onVFXChange" : "TorchBehaviour",
-    "onSFXPlay" : "TorchBehaviour",
-    "placementRule" : "TorchBehaviour",
-    "offsetVector" : "TorchBehaviour",
-    "rotationValue" : "TorchBehaviour"
+    "modelIdentity": "VX_ModelIdentityBehaviour",
+    "onPlace": "VX_TorchBehaviour",
+    "onBreak": "VX_TorchBehaviour",
+    "onInteract": "VX_TorchBehaviour",
+    "onBlockUpdate": "VX_TorchBehaviour",
+    "onLoad": "VX_TorchBehaviour",
+    "onVFXBuild" : "VX_TorchBehaviour",
+    "onVFXBreak" : "VX_TorchBehaviour",
+    "onVFXChange" : "VX_TorchBehaviour",
+    "onSFXPlay" : "VX_TorchBehaviour",
+    "placementRule" : "VX_TorchBehaviour",
+    "offsetVector" : "VX_TorchBehaviour",
+    "rotationValue" : "VX_TorchBehaviour"
 }
---->ModelIdentityBehaviour
+--->VX_ModelIdentityBehaviour
 {
     "modelUnityPath": "----- PrefabObjects -----/Torch_Object",
     "textureName": "BASE_Torch"
 }
---->TorchBehaviour{
+--->VX_TorchBehaviour{
     "minDropQuantity" : 1,
     "maxDropQuantity" : 1,
     "dropItem" : "BASE_Torch",

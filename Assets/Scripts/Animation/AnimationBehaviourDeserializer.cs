@@ -4,16 +4,16 @@ using UnityEngine;
 public static class AnimationBehaviourDeserializer {
 	public static AnimationBehaviour Deserialize(AnimationEventData data, bool firstPerson){
 		switch(data.type){
-			case "TestPrintBehaviour":
-				return SetAnimatorType(JsonUtility.FromJson<TestPrintBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
-			case "AnimatorSetBehaviour":
-				return SetAnimatorType(JsonUtility.FromJson<AnimatorSetBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
-			case "SwitchAttachmentAnchorBehaviour":
-				return SetAnimatorType(JsonUtility.FromJson<SwitchAttachmentAnchorBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
-			case "AnimationMomentumBehaviour":
-				return SetAnimatorType(JsonUtility.FromJson<AnimationMomentumBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
+			case "AN_TestPrintBehaviour":
+				return SetAnimatorType(JsonUtility.FromJson<AN_TestPrintBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
+			case "AN_AnimatorSetBehaviour":
+				return SetAnimatorType(JsonUtility.FromJson<AN_AnimatorSetBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
+			case "AN_SwitchAttachmentAnchorBehaviour":
+				return SetAnimatorType(JsonUtility.FromJson<AN_SwitchAttachmentAnchorBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
+			case "AN_AnimationMomentumBehaviour":
+				return SetAnimatorType(JsonUtility.FromJson<AN_AnimationMomentumBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
 			default:
-				return SetAnimatorType(JsonUtility.FromJson<TestPrintBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
+				return SetAnimatorType(JsonUtility.FromJson<AN_TestPrintBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
 		}
 	}
 

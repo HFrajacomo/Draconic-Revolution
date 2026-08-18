@@ -7,17 +7,17 @@
 }
 --->Behaviours
 {
-    "onUseClient": "PlaceBlockBehaviour",
-    "onHoldPlayer": "CreatePointLightBehaviour",
-    "onUnholdPlayer": "CreatePointLightBehaviour",
-    "onHoldClient": "CreatePointLightBehaviour",
-    "onUnholdClient": "CreatePointLightBehaviour"
+    "onUseClient": "IT_PlaceBlockBehaviour",
+    "onHoldPlayer": "IT_CreatePointLightBehaviour",
+    "onUnholdPlayer": "IT_CreatePointLightBehaviour",
+    "onHoldClient": "IT_CreatePointLightBehaviour",
+    "onUnholdClient": "IT_CreatePointLightBehaviour"
 }
---->PlaceBlockBehaviour
+--->IT_PlaceBlockBehaviour
 {
     "blockName": "BASE_Torch"
 }
---->CreatePointLightBehaviour
+--->IT_CreatePointLightBehaviour
 {
     "audioName": "Torchfire",
     "voxelLightIntensity": 6,

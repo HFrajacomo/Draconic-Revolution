@@ -8,6 +8,7 @@ public abstract class BaseInventory {
 	public ushort amountOfSlots;
 	public int columnCount = 3;
 
+	public string GetInventoryType(){return this.inventoryType;}
 	public virtual byte AddStack(ItemStack its, List<InventoryTransaction> spots){throw new InventoryActionNotImplementedException($"[BaseInventory] {this.GetType()} does not contain AddStack(ItemStack, List<InventoryTransaction>)");}
 	public virtual EntityAction AddStack(EntityAction ea, ushort slot){throw new InventoryActionNotImplementedException($"[BaseInventory] {this.GetType()} does not contain AddStack(EntityAction, byte)");}
 	public virtual void ForceAddStack(ItemStack its, ushort slot){throw new InventoryActionNotImplementedException($"[BaseInventory] {this.GetType()} does not contain ForceAddStack(ItemStack, ushort)");}

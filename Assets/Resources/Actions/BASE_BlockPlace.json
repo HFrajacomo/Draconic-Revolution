@@ -4,12 +4,12 @@
 }
 --->Behaviours
 {
-    "onIconDraw": "EAItemUIBehaviour",
-    "onStackDraw": "EAItemUIBehaviour",
-    "onPrimaryPlayer": "EAPlaceBlockBehaviour",
-    "onSecondaryPlayer": "EAPlaceBlockBehaviour"
+    "onIconDraw": "EA_ItemUIBehaviour",
+    "onStackDraw": "EA_ItemUIBehaviour",
+    "onPrimaryPlayer": "EA_PlaceBlockBehaviour",
+    "onSecondaryPlayer": "EA_PlaceBlockBehaviour"
 }
---->EAItemUIBehaviour
+--->EA_ItemUIBehaviour
 {}
---->EAPlaceBlockBehaviour
+--->EA_PlaceBlockBehaviour
 {}

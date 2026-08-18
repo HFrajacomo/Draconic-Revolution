@@ -251,6 +251,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		return bytesWritten;
 	}
 
+	// Sets the EmptySlot position and Draw all slots
     public void ReloadInventory(){
 		for(int i=0; i < this.inventory.Count; i++){
 			if(this.inventory[i].itemInventory)
@@ -260,6 +261,7 @@ public class PlayerInventoryManager : MonoBehaviour {
         DrawStacks();
     }
 
+    // Sends a SENDINVENTORY message to the server
     public void SendInventoryDataToServer(){
     	int inventorySize = SerializeInventory();
 
@@ -289,6 +291,60 @@ public class PlayerInventoryManager : MonoBehaviour {
 			message.EquipItem(Configurations.accountID, old.GetItem(), neew.GetItem());
 
 		this.cl.client.Send(message);
+    }
+
+    // Drops an item from a given inventory and slot
+    public void Drop(byte inventoryCode, byte slot, bool ctrl){
+    	// Hit drop in an item inventory
+    	if(this.inventory[inventoryCode].itemInventory){
+    		ItemStack its = this.inventory[inventoryCode].GetSlot(slot);
+
+    		if(its == null)
+    			return;
+
+	        ushort id = its.GetID();
+	        byte amount;
+
+	        if(!ctrl){
+	            amount = 1;
+	            SubToCounter(its.GetID(), amount);
+
+	            if(its.Decrement()){
+	                SetNull(inventoryCode, slot);
+	                SendEquipDataToServer(inventoryCode, (ClickableSlot)its, null);
+	            }
+
+	            its = new ItemStack(id, amount);
+	            DrawSlot(inventoryCode, slot);
+	        }
+	        else{
+	            SubToCounter(its);
+	            SetNull(inventoryCode, slot);
+	            DrawSlot(inventoryCode, slot);
+	            SendEquipDataToServer(inventoryCode, (ClickableSlot)its, null);
+	        }
+
+	        DropItem(its, inventoryCode, slot);
+    	}
+    	// Destroy action
+    	else{
+    		this.inventory[inventoryCode].SetNull(slot);
+    		RemoveConnection((byte)slot);
+    		DrawSlot(inventoryCode, slot);
+    	}
+    }
+    private void DropItem(ItemStack its, byte inventoryCode, byte slot){
+        Vector3 force = this.mainControllerManager.playerCamera.forward / 5f;
+
+        if(this.inventory[inventoryCode].GetInventoryType() != "HOTBAR" || PlayerHotbarHandler.hotbarSlot != slot){
+        	slot = byte.MaxValue;
+        }
+
+        NetMessage message = new NetMessage(NetCode.DROPITEM);
+        message.DropItem(this.mainControllerManager.playerCamera.position.x, this.mainControllerManager.playerCamera.position.y, this.mainControllerManager.playerCamera.position.z, force.x, force.y, force.z, its.GetID(), its.GetAmount(), slot);       
+        this.cl.client.Send(message);
+
+        SendInventoryDataToServer();
     }
 
     public Inventory GetMainInventory(){

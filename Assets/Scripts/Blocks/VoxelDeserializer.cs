@@ -26,7 +26,7 @@ public static class VoxelDeserializer {
 	private static List<VoxelBehaviour> onPlayerHeadExit = new List<VoxelBehaviour>();
 
 	// Objects Placeholders
-	private static ModelIdentityBehaviour modelIdentityEvent;
+	private static VX_ModelIdentityBehaviour modelIdentityEvent;
 	private static VoxelBehaviour offsetVectorEvent;
 	private static VoxelBehaviour rotationValueEvent;
 
@@ -292,39 +292,38 @@ public static class VoxelDeserializer {
 		string jsonSerial = GetSection(json, val);
 
 		switch(val){
-			case "LiquidBehaviour":
-				return JsonUtility.FromJson<LiquidBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "TreeBehaviour":
-				return JsonUtility.FromJson<TreeBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "BreakDropItemBehaviour":
-				return JsonUtility.FromJson<BreakDropItemBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "InteractChangeBlockBehaviour":
-				return JsonUtility.FromJson<InteractChangeBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "ModelIdentityBehaviour":
-				return JsonUtility.FromJson<ModelIdentityBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "PlaceSetStateBehaviour":
-				return JsonUtility.FromJson<PlaceSetStateBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "TorchBehaviour":
-				return JsonUtility.FromJson<TorchBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "UpdateDecaySecondaryBlockBehaviour":
-				return JsonUtility.FromJson<UpdateDecaySecondaryBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "AuraCrystalBehaviour":
-				return JsonUtility.FromJson<AuraCrystalBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "ConfigurablePositionBehaviour":
-				return JsonUtility.FromJson<ConfigurablePositionBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "ConfigurableRotationBehaviour":
-				return JsonUtility.FromJson<ConfigurableRotationBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "PlayerMovementEnterMultiplyBehaviour":
-				return JsonUtility.FromJson<PlayerMovementEnterMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "PlayerMovementExitMultiplyBehaviour":
-				return JsonUtility.FromJson<PlayerMovementExitMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "PlayerMovementStepMultiplyBehaviour":
-				return JsonUtility.FromJson<PlayerMovementStepMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "TestVoxelBehaviour":
-				return JsonUtility.FromJson<TestVoxelBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_LiquidBehaviour":
+				return JsonUtility.FromJson<VX_LiquidBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_TreeBehaviour":
+				return JsonUtility.FromJson<VX_TreeBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_BreakDropItemBehaviour":
+				return JsonUtility.FromJson<VX_BreakDropItemBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_InteractChangeBlockBehaviour":
+				return JsonUtility.FromJson<VX_InteractChangeBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_ModelIdentityBehaviour":
+				return JsonUtility.FromJson<VX_ModelIdentityBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_PlaceSetStateBehaviour":
+				return JsonUtility.FromJson<VX_PlaceSetStateBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_TorchBehaviour":
+				return JsonUtility.FromJson<VX_TorchBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_UpdateDecaySecondaryBlockBehaviour":
+				return JsonUtility.FromJson<VX_UpdateDecaySecondaryBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_AuraCrystalBehaviour":
+				return JsonUtility.FromJson<VX_AuraCrystalBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_ConfigurablePositionBehaviour":
+				return JsonUtility.FromJson<VX_ConfigurablePositionBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_ConfigurableRotationBehaviour":
+				return JsonUtility.FromJson<VX_ConfigurableRotationBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_PlayerMovementEnterMultiplyBehaviour":
+				return JsonUtility.FromJson<VX_PlayerMovementEnterMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_PlayerMovementExitMultiplyBehaviour":
+				return JsonUtility.FromJson<VX_PlayerMovementExitMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_PlayerMovementStepMultiplyBehaviour":
+				return JsonUtility.FromJson<VX_PlayerMovementStepMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_TestVoxelBehaviour":
+				return JsonUtility.FromJson<VX_TestVoxelBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
-				Debug.LogError("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
-				return new LiquidBehaviour();
+				throw new DeserializationErrorException($"[VoxelDeserializer] Error while trying to de-serialize behaviour: {val}");
 		}
 	}
 
@@ -361,7 +360,7 @@ public static class VoxelDeserializer {
 				placementRuleEvent.Add(vx);
 				break;
 			case "modelIdentity":
-				modelIdentityEvent = (ModelIdentityBehaviour)vx;
+				modelIdentityEvent = (VX_ModelIdentityBehaviour)vx;
 				break;
 			case "offsetVector":
 				offsetVectorEvent = vx;

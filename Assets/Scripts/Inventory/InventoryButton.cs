@@ -38,10 +38,7 @@ public class InventoryButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     public void OnDrop(){
     	if(this.isHovered && MainControllerManager.InUI){
-    		if(!InventoryButton.ctrl)
-    			Debug.Log($"Pressed Q on inventory {this.inventoryCode} slot {this.slot}");
-    		else
-    			Debug.Log($"Pressed HOLD Q on inventory {this.inventoryCode} slot {this.slot}");
+            this.invController.Drop(this.inventoryCode, (byte)this.slot, InventoryButton.ctrl);
     	}
     }
 

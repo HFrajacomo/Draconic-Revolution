@@ -22,11 +22,11 @@
 				"clip": "CharacterArmature_Sheathe - Pickaxe -FP",
 				"events": [
 					{
-						"type": "SwitchAttachmentAnchorBehaviour",
+						"type": "AN_SwitchAttachmentAnchorBehaviour",
 						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\"}"
 					},
 					{
-						"type": "AnimatorSetBehaviour",
+						"type": "AN_AnimatorSetBehaviour",
 						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
 					}
 				]
@@ -36,11 +36,11 @@
 				"clip": "CharacterArmature_Unsheathe - Pickaxe -FP",
 				"events": [
 					{
-						"type": "SwitchAttachmentAnchorBehaviour",
+						"type": "AN_SwitchAttachmentAnchorBehaviour",
 						"json": "{\"normalizedTime\": 0.2, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_RIGHT\"}"
 					},
 					{
-						"type": "AnimatorSetBehaviour",
+						"type": "AN_AnimatorSetBehaviour",
 						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
 					}
 				]

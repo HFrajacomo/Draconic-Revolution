@@ -164,10 +164,10 @@ public static class EntityActionDeserializer {
 		string jsonSerial = GetSection(json, val);
 
 		switch(val){
-			case "EAItemUIBehaviour":
-				return JsonUtility.FromJson<EAItemUIBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "EAPlaceBlockBehaviour":
-				return JsonUtility.FromJson<EAPlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "EA_ItemUIBehaviour":
+				return JsonUtility.FromJson<EA_ItemUIBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "EA_PlaceBlockBehaviour":
+				return JsonUtility.FromJson<EA_PlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
 				throw new DeserializationErrorException($"[EntityActionDeserializer] ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: {val}");
 		}

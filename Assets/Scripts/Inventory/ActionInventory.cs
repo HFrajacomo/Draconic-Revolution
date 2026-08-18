@@ -77,8 +77,6 @@ public class ActionInventory : BaseInventory {
 	}
 	#nullable disable
 
-	public string GetInventoryType(){return this.inventoryType;}
-
 	// Initializes slots
 	private void InitSlots(ushort limit){
 		this.slots = new EntityAction[limit];

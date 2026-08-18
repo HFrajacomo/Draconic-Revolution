@@ -7,9 +7,14 @@
 }
 --->Behaviours
 {
-    "onUseClient": "PlaceBlockBehaviour"
+    "onCreateAction": "IT_GetItemActionBehaviour",
+    "onUseClient": "IT_PlaceBlockBehaviour"
 }
---->PlaceBlockBehaviour
+--->IT_GetItemActionBehaviour
+{
+    "name": "BASE_BlockPlace"
+}
+--->IT_PlaceBlockBehaviour
 {
     "blockName": "BASE_Iron_Ore"
 }

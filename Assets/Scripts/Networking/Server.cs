@@ -1170,8 +1170,6 @@ public class Server {
 		this.SendToClients(cp, message);
 
 		if(slot != byte.MaxValue){
-			this.cl.playerServerInventory.ChangeQuantity(id, slot, (byte)(this.cl.playerServerInventory.GetQuantity(id, slot) - amount));
-
 			// If quantity becomes zero or less, runs OnUnhold
 			if(this.cl.playerServerInventory.GetQuantity(id, slot) - amount <= 0){
 				ItemStack its = new ItemStack(itemCode, amount);
