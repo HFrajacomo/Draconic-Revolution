@@ -183,7 +183,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 						bytesRead++;
 						connectedStackSlot = NetDecoder.ReadByte(data, bytesRead);
 						bytesRead++;
-						ea = ActionLoader.GetAction(id);
+						ea = ActionLoader.GetCopy(id);
 						this.inventory[currentInventory].AddStack(ea, i);
 						ea.SetMemoryData(connectedToStack, currentCooldown, totalCooldown, connectedStackInventory, connectedStackSlot);
 						break;
@@ -199,6 +199,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 			if(aux == null)
 				continue;
 
+			aux.SetItemStack(this.inventory[aux.GetConnectedStackInventory()].GetSlot(aux.GetConnectedStackSlot()));
 			AddConnection((byte)i, aux.GetConnectedStackInventory(), aux.GetConnectedStackSlot());
 		}
 
@@ -413,19 +414,15 @@ public class PlayerInventoryManager : MonoBehaviour {
     private void DrawSlotAction(byte inventoryCode, ushort slot){
     	EntityAction ea = this.inventory[inventoryCode].GetPos(slot);
     	Texture2D icon, underlay;
-    	string text;
 
     	if(ea == null){
     		this.slotImages[inventoryCode][slot].material.SetTexture("_ItemIcon", null);
     		this.slotImages[inventoryCode][slot].material.SetTexture("_Underlay", null);
-    		this.slotText[inventoryCode][slot].text = "";
     	}
     	else{
     		ea.OnIconDraw(this.cl, ea.GetItemStack(this), out underlay, out icon);
-    		text = ea.OnStackDraw(this.cl, ea.GetItemStack(this));
     		this.slotImages[inventoryCode][slot].material.SetTexture("_ItemIcon", icon);
     		this.slotImages[inventoryCode][slot].material.SetTexture("_Underlay", underlay);
-    		this.slotText[inventoryCode][slot].text = text;
     	}
     }
 
@@ -470,6 +467,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    		DrawSlot(inventoryCode, slot);
 	    		ToggleHighlight(true, this.draggedStack);
 	            ResetDetails();
+	            this.draggedStackOriginInventory = inventoryCode;
+	            this.draggedStackOriginSlot = slot;
 	            this.detailsPanel.SetActive(false);
 	        }
 
@@ -639,9 +638,13 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     				if(this.draggedStack == null){
     					ResetSelection();
-    					UpdateKeyConnection((byte)this.draggedStackOriginSlot, (byte)slot);
+						ToggleHighlight(false, null);
+    				}
+    				else{
+    					ToggleHighlight(true, this.draggedStack);
     				}
 
+   					UpdateKeyConnection((byte)this.draggedStackOriginSlot, (byte)slot);
     				DrawSlot(inventoryCode, slot);
 		            SendEquipDataToServer(inventoryCode, this.draggedStack, this.inventory[inventoryCode].GetPos(slot));
 					SendInventoryDataToServer();
@@ -813,6 +816,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 					EntityAction ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
 
 					ea.SetMemoryData(true, 0, 1, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
+					//ea.SetItemStack((ItemStack)this.draggedStack);
 					this.inventory[inventoryCode].AddStack(ea, slot);
 					DrawSlot(inventoryCode, slot);
 
@@ -859,9 +863,6 @@ public class PlayerInventoryManager : MonoBehaviour {
 	                if(ea.notConnectedToSpecificStack){	                	
 	                    if(ea.GetItemStack(this) == null){
 	                        this.inventory[0].SetNull(connectedActions[i]);
-	                    }
-	                    else{
-	                    	Debug.Log($"{connectedActions[i]}: {ea} ||| {this.inventory[inventoryCode].GetSlot(slot) == null}");
 	                    }
 	                }
 	                else{
@@ -1143,7 +1144,6 @@ public class PlayerInventoryManager : MonoBehaviour {
 		return output;
 	}
     private void AddConnection(byte actionID, byte inventory, byte slot){
-    	GetActionInventory().GetPos(actionID).SetItemConnection(inventory, slot, (ItemStack)this.inventory[inventory].GetSlot(slot));
 		this.actionConnections.Add(actionID, new int2(inventory, slot));
     }
     private void UpdateConnection(byte previousInventory, byte previousSlot, byte newInventory, byte newSlot){
@@ -1163,11 +1163,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     	for(int i=0; i < toModifyNew.Count; i++){
 			this.actionConnections[toModifyNew[i]] = newPos;
-			GetActionInventory().GetPos(toModifyNew[i]).SetItemConnection(newInventory, newSlot, (ItemStack)this.inventory[newInventory].GetSlot(newSlot));
     	}
     	for(int i=0; i < toModifyOld.Count; i++){
 			this.actionConnections[toModifyOld[i]] = lastPos;
-			GetActionInventory().GetPos(toModifyOld[i]).SetItemConnection(previousInventory, previousSlot, (ItemStack)this.inventory[previousInventory].GetSlot(previousSlot));
     	}
     }
     private void UpdateKeyConnection(byte previous, byte recent){
@@ -1242,7 +1240,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		for(int i=0; i < inventorySize; i++){
 			this.slotImages[0][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 0, i, this.slotSizes, anchorSec, itemInventory:false);
-			this.slotText[0][i] = CreateTextComponent(this.slotImages[0][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
+			this.slotText[0][i] = null;
 		}
 	}
 

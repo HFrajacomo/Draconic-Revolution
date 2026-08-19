@@ -8,7 +8,7 @@ public class IT_GetItemActionBehaviour : ItemBehaviour {
 	private EntityAction action;
 
 	public override void PostDeserializationSetup(bool isClient){
-		this.action = ActionLoader.GetAction(this.name);
+		this.action = ActionLoader.GetCopy(this.name);
 	}
 
 	public override EntityAction OnCreateAction(ChunkLoader cl, ItemStack its){

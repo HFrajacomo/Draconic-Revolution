@@ -13,7 +13,7 @@ public class EA_ItemUIBehaviour : EntityActionBehaviour {
 			itemIcon = null;
 			return;
 		}
-
+		
 		itemIcon = ItemLoader.GetSprite(its);
 
 		if(SYMBOL == null){
@@ -34,8 +34,8 @@ public class EA_ItemUIBehaviour : EntityActionBehaviour {
 
 		if(amount <= 1)
 			return "";
-		if(amount >= 100)
-			return "99+";
+		if(amount >= 1000)
+			return "999+";
 		return $"{amount}"; 
 	}
 }

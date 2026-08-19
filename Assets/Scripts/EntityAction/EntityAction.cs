@@ -96,6 +96,13 @@ public class EntityAction : ClickableSlot {
 		this.its = its;
 	}
 
+	// DEBUG
+	public string GetItemName(){
+		if(this.its != null)
+			return ItemLoader.GetItem(this.its.GetID()).name;
+		return "";
+	}
+
 	public byte GetConnectedStackSlot(){return this.connectedStackSlot;}
 	public byte GetConnectedStackInventory(){return this.connectedStackInventory;}
 
