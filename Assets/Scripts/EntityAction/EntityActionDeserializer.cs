@@ -53,6 +53,21 @@ public static class EntityActionDeserializer {
 		return action;
 	}
 
+	// Used whenever an EntityActionBehaviour needs to be injected with arguments
+	public static void DeserializeKwargs(EntityAction ea, Wrapper<ActionArgumentInjector> injected){
+		List<EntityActionBehaviour> allBehaviours = ea.GetAllBehaviours();
+
+		for(int i=0; i < injected.data.Length; i++){
+			for(int j=0; j < allBehaviours.Count; j++){
+				if(allBehaviours[j].GetType().Name == injected.data[i].evt){
+					allBehaviours[j].SetArguments(injected.data[i].arguments);
+				}
+			}
+		}
+
+		allBehaviours.Clear();
+	}
+
 	private static void Reset(){
 		onIconDrawEvent = new List<EntityActionBehaviour>();
 		onStackDrawEvent = new List<EntityActionBehaviour>();
@@ -168,6 +183,8 @@ public static class EntityActionDeserializer {
 				return JsonUtility.FromJson<EA_ItemUIBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "EA_PlaceBlockBehaviour":
 				return JsonUtility.FromJson<EA_PlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "EA_EquipmentBehaviour":
+				return JsonUtility.FromJson<EA_EquipmentBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
 				throw new DeserializationErrorException($"[EntityActionDeserializer] ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: {val}");
 		}

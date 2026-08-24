@@ -187,7 +187,7 @@ public partial class @InventoryUIControls: IInputActionCollection2, IDisposable
 
         public void SetCallbacks(IInventoryUIActions instance)
         {
-            foreach (var item in m_Wrapper.m_InventoryUIActionsCallbackInterfaces)
+            foreach (IInventoryUIActions item in m_Wrapper.m_InventoryUIActionsCallbackInterfaces)
                 UnregisterCallbacks(item);
             m_Wrapper.m_InventoryUIActionsCallbackInterfaces.Clear();
             AddCallbacks(instance);

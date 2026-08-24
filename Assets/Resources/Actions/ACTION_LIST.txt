@@ -1,1 +1,2 @@
+BASE_EquipmentAttack
 BASE_BlockPlace

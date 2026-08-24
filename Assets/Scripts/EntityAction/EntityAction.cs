@@ -1,12 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+using Object = System.Object;
 using UnityEngine;
 
 [Serializable]
 public class EntityAction : ClickableSlot {
 	public string name;
 	public bool notConnectedToSpecificStack = false;
+	public bool keepInHotbar = false;
 	private ushort id;
 
 	// Storage
@@ -96,13 +100,6 @@ public class EntityAction : ClickableSlot {
 		this.its = its;
 	}
 
-	// DEBUG
-	public string GetItemName(){
-		if(this.its != null)
-			return ItemLoader.GetItem(this.its.GetID()).name;
-		return "";
-	}
-
 	public byte GetConnectedStackSlot(){return this.connectedStackSlot;}
 	public byte GetConnectedStackInventory(){return this.connectedStackInventory;}
 
@@ -112,31 +109,32 @@ public class EntityAction : ClickableSlot {
 			id = this.id,
 			isItemStack = false,
 			notConnectedToSpecificStack = this.notConnectedToSpecificStack,
+			keepInHotbar = this.keepInHotbar,
 
 			// Deep copy lists (new lists with same elements)
-			onIconDrawBehaviour   = this.onIconDrawBehaviour   != null ? new List<EntityActionBehaviour>(this.onIconDrawBehaviour)   : null,
-			onStackDrawBehaviour   = this.onStackDrawBehaviour   != null ? new List<EntityActionBehaviour>(this.onStackDrawBehaviour)   : null,
-			onHoldPlayerBehaviour   = this.onHoldPlayerBehaviour   != null ? new List<EntityActionBehaviour>(this.onHoldPlayerBehaviour)   : null,
-			onHoldClientBehaviour   = this.onHoldClientBehaviour   != null ? new List<EntityActionBehaviour>(this.onHoldClientBehaviour)   : null,
-			onHoldServerBehaviour   = this.onHoldServerBehaviour   != null ? new List<EntityActionBehaviour>(this.onHoldServerBehaviour)   : null,
-			onUnholdPlayerBehaviour = this.onUnholdPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onUnholdPlayerBehaviour) : null,
-			onUnholdClientBehaviour = this.onUnholdClientBehaviour != null ? new List<EntityActionBehaviour>(this.onUnholdClientBehaviour) : null,
-			onUnholdServerBehaviour = this.onUnholdServerBehaviour != null ? new List<EntityActionBehaviour>(this.onUnholdServerBehaviour) : null,
-			onPrimaryPlayerBehaviour = this.onPrimaryPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryPlayerBehaviour) : null,
-			onPrimaryClientBehaviour = this.onPrimaryClientBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryClientBehaviour) : null,
-			onPrimaryServerBehaviour = this.onPrimaryServerBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryServerBehaviour) : null,
-			onPrimaryHoldPlayerBehaviour = this.onPrimaryHoldPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryHoldPlayerBehaviour) : null,
-			onPrimaryHoldClientBehaviour = this.onPrimaryHoldClientBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryHoldClientBehaviour) : null,
-			onPrimaryHoldServerBehaviour = this.onPrimaryHoldServerBehaviour != null ? new List<EntityActionBehaviour>(this.onPrimaryHoldServerBehaviour) : null,
-			onSecondaryPlayerBehaviour = this.onSecondaryPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryPlayerBehaviour) : null,
-			onSecondaryClientBehaviour = this.onSecondaryClientBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryClientBehaviour) : null,
-			onSecondaryServerBehaviour = this.onSecondaryServerBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryServerBehaviour) : null,
-			onSecondaryHoldPlayerBehaviour = this.onSecondaryHoldPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryHoldPlayerBehaviour) : null,
-			onSecondaryHoldClientBehaviour = this.onSecondaryHoldClientBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryHoldClientBehaviour) : null,
-			onSecondaryHoldServerBehaviour = this.onSecondaryHoldServerBehaviour != null ? new List<EntityActionBehaviour>(this.onSecondaryHoldServerBehaviour) : null,
-			onTerciaryPlayerBehaviour = this.onTerciaryPlayerBehaviour != null ? new List<EntityActionBehaviour>(this.onTerciaryPlayerBehaviour) : null,
-			onTerciaryClientBehaviour = this.onTerciaryClientBehaviour != null ? new List<EntityActionBehaviour>(this.onTerciaryClientBehaviour) : null,
-			onTerciaryServerBehaviour = this.onTerciaryServerBehaviour != null ? new List<EntityActionBehaviour>(this.onTerciaryServerBehaviour) : null
+			onIconDrawBehaviour = CopyList(this.onIconDrawBehaviour),
+			onStackDrawBehaviour = CopyList(this.onStackDrawBehaviour),
+			onHoldPlayerBehaviour = CopyList(this.onHoldPlayerBehaviour),
+			onHoldClientBehaviour = CopyList(this.onHoldClientBehaviour),
+			onHoldServerBehaviour = CopyList(this.onHoldServerBehaviour),
+			onUnholdPlayerBehaviour = CopyList(this.onUnholdPlayerBehaviour),
+			onUnholdClientBehaviour = CopyList(this.onUnholdClientBehaviour),
+			onUnholdServerBehaviour = CopyList(this.onUnholdServerBehaviour),
+			onPrimaryPlayerBehaviour = CopyList(this.onPrimaryPlayerBehaviour),
+			onPrimaryClientBehaviour = CopyList(this.onPrimaryClientBehaviour),
+			onPrimaryServerBehaviour = CopyList(this.onPrimaryServerBehaviour),
+			onPrimaryHoldPlayerBehaviour = CopyList(this.onPrimaryHoldPlayerBehaviour),
+			onPrimaryHoldClientBehaviour = CopyList(this.onPrimaryHoldClientBehaviour),
+			onPrimaryHoldServerBehaviour = CopyList(this.onPrimaryHoldServerBehaviour),
+			onSecondaryPlayerBehaviour = CopyList(this.onSecondaryPlayerBehaviour),
+			onSecondaryClientBehaviour = CopyList(this.onSecondaryClientBehaviour),
+			onSecondaryServerBehaviour = CopyList(this.onSecondaryServerBehaviour),
+			onSecondaryHoldPlayerBehaviour = CopyList(this.onSecondaryHoldPlayerBehaviour),
+			onSecondaryHoldClientBehaviour = CopyList(this.onSecondaryHoldClientBehaviour),
+			onSecondaryHoldServerBehaviour = CopyList(this.onSecondaryHoldServerBehaviour),
+			onTerciaryPlayerBehaviour = CopyList(this.onTerciaryPlayerBehaviour),
+			onTerciaryClientBehaviour = CopyList(this.onTerciaryClientBehaviour),
+			onTerciaryServerBehaviour = CopyList(this.onTerciaryServerBehaviour)
 		};
 	}
 
@@ -241,6 +239,51 @@ public class EntityAction : ClickableSlot {
 
 	public List<EntityActionBehaviour> GetOnTerciaryServer() { return onTerciaryServerBehaviour; }
 	public void SetOnTerciaryServer(List<EntityActionBehaviour> val) { onTerciaryServerBehaviour = val; }
+
+	public List<EntityActionBehaviour> GetAllBehaviours(){
+		List<EntityActionBehaviour> all = new List<EntityActionBehaviour>();
+
+		// UI
+		if (this.onIconDrawBehaviour != null) all.AddRange(this.onIconDrawBehaviour);
+		if (this.onStackDrawBehaviour != null) all.AddRange(this.onStackDrawBehaviour);
+
+		// Hold
+		if (this.onHoldPlayerBehaviour != null) all.AddRange(this.onHoldPlayerBehaviour);
+		if (this.onHoldClientBehaviour != null) all.AddRange(this.onHoldClientBehaviour);
+		if (this.onHoldServerBehaviour != null) all.AddRange(this.onHoldServerBehaviour);
+
+		// Unhold
+		if (this.onUnholdPlayerBehaviour != null) all.AddRange(this.onUnholdPlayerBehaviour);
+		if (this.onUnholdClientBehaviour != null) all.AddRange(this.onUnholdClientBehaviour);
+		if (this.onUnholdServerBehaviour != null) all.AddRange(this.onUnholdServerBehaviour);
+
+		// Primary
+		if (this.onPrimaryPlayerBehaviour != null) all.AddRange(this.onPrimaryPlayerBehaviour);
+		if (this.onPrimaryClientBehaviour != null) all.AddRange(this.onPrimaryClientBehaviour);
+		if (this.onPrimaryServerBehaviour != null) all.AddRange(this.onPrimaryServerBehaviour);
+
+		// Primary Hold
+		if (this.onPrimaryHoldPlayerBehaviour != null) all.AddRange(this.onPrimaryHoldPlayerBehaviour);
+		if (this.onPrimaryHoldClientBehaviour != null) all.AddRange(this.onPrimaryHoldClientBehaviour);
+		if (this.onPrimaryHoldServerBehaviour != null) all.AddRange(this.onPrimaryHoldServerBehaviour);
+
+		// Secondary
+		if (this.onSecondaryPlayerBehaviour != null) all.AddRange(this.onSecondaryPlayerBehaviour);
+		if (this.onSecondaryClientBehaviour != null) all.AddRange(this.onSecondaryClientBehaviour);
+		if (this.onSecondaryServerBehaviour != null) all.AddRange(this.onSecondaryServerBehaviour);
+
+		// Secondary Hold
+		if (this.onSecondaryHoldPlayerBehaviour != null) all.AddRange(this.onSecondaryHoldPlayerBehaviour);
+		if (this.onSecondaryHoldClientBehaviour != null) all.AddRange(this.onSecondaryHoldClientBehaviour);
+		if (this.onSecondaryHoldServerBehaviour != null) all.AddRange(this.onSecondaryHoldServerBehaviour);
+
+		// Terciary
+		if (this.onTerciaryPlayerBehaviour != null) all.AddRange(this.onTerciaryPlayerBehaviour);
+		if (this.onTerciaryClientBehaviour != null) all.AddRange(this.onTerciaryClientBehaviour);
+		if (this.onTerciaryServerBehaviour != null) all.AddRange(this.onTerciaryServerBehaviour);
+
+		return all;
+	}
 
 	// Run Events ------------------------------
 	// UI
@@ -459,6 +502,18 @@ public class EntityAction : ClickableSlot {
 		}
 	}
 
-	public virtual void PostDeserializationSetup(){ return; }
+	public virtual void PostDeserializationSetup() { return; }
 
+	private List<EntityActionBehaviour> CopyList(List<EntityActionBehaviour> list){
+		if(list == null)
+			return null;
+
+		List<EntityActionBehaviour> outputList = new List<EntityActionBehaviour>();
+
+		foreach(EntityActionBehaviour eab in list){
+			outputList.Add(eab.Copy());
+		}
+
+		return outputList;
+	}
 }

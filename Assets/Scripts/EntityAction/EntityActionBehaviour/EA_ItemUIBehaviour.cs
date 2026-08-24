@@ -6,7 +6,11 @@ using Unity.Mathematics;
 public class EA_ItemUIBehaviour : EntityActionBehaviour {
 	private static string BASE_ITEM_SYMBOL = "Inventory/item_action";
 	private static Texture2D SYMBOL;
-	
+
+	public override EntityActionBehaviour Copy(){
+		return new EA_ItemUIBehaviour();
+	}
+
 	public override void OnIconDraw(ChunkLoader cl, EntityAction ea, ItemStack its, ref Texture2D symbol, ref Texture2D itemIcon){
 		if(its == null){
 			symbol = null;

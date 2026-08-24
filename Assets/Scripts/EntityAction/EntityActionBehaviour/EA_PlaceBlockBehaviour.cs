@@ -1,14 +1,37 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
 
 [Serializable]
 public class EA_PlaceBlockBehaviour : EntityActionBehaviour {
+	public string blockName;
+
+	public override EntityActionBehaviour Copy(){return new EA_PlaceBlockBehaviour();}
+
+	public override void SetArguments(DualString[] arguments){
+		for(int i=0; i < arguments.Length; i++){
+			if(arguments[i].key == "blockName"){
+				this.blockName = arguments[i].value;
+				continue;
+			}
+		}
+	}
+
 	public override void OnPrimaryPlayer(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){
 		ItemStack connectedStack = ea.GetItemStack(cl.playerInventoryManager);
 		Item it = connectedStack.GetItem();
+		ushort blockID;
 
-		if(this.PlaceBlock(cl, VoxelLoader.GetBlockID(it.codename), (byte)(connectedStack.GetAmount()-1), cl)){
+		if(this.blockName == null || this.blockName == ""){
+			blockID = VoxelLoader.GetBlockID(it.codename);
+		}
+		else{
+			blockID = VoxelLoader.GetBlockID(this.blockName);
+		}
+
+		if(this.PlaceBlock(cl, blockID, (byte)(connectedStack.GetAmount()-1), cl)){
 			cl.playerRaycast.lastBlockPlaced = it.GetID();
 			cl.playerInventoryManager.SubToCounter(it.GetID(), 1);
 

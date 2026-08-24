@@ -1,0 +1,13 @@
+{
+	"name": "BASE_EquipmentAttack",
+    "notConnectedToSpecificStack": true,
+    "keepInHotbar": true
+}
+--->Behaviours
+{
+    "onIconDraw": "EA_EquipmentBehaviour",
+    "onPrimaryPlayer": "EA_EquipmentBehaviour",
+    "onHoldServer": "EA_EquipmentBehaviour"
+}
+--->EA_EquipmentBehaviour
+{}

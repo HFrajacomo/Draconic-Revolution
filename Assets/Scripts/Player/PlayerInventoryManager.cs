@@ -65,8 +65,18 @@ public class PlayerInventoryManager : MonoBehaviour {
 				ResetSelection();
 			}
 			else{
-				this.draggedStack = null;
-				ResetSelection();
+				if(((EntityAction)this.draggedStack).keepInHotbar){
+					this.inventory[this.draggedStackOriginInventory].AddStack((EntityAction)this.draggedStack, this.draggedStackOriginSlot);
+    				ToggleHighlight(true, this.draggedStack);
+    				RemoveConnection((byte)this.draggedStackOriginSlot);
+   					AddConnection((byte)this.draggedStackOriginSlot, (byte)this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
+    				DrawSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot);
+					SendInventoryDataToServer();
+				}
+				else{
+					this.draggedStack = null;
+					ResetSelection();
+				}
 			}
 		}
 	}
@@ -199,11 +209,19 @@ public class PlayerInventoryManager : MonoBehaviour {
 			if(aux == null)
 				continue;
 
-			aux.SetItemStack(this.inventory[aux.GetConnectedStackInventory()].GetSlot(aux.GetConnectedStackSlot()));
-			AddConnection((byte)i, aux.GetConnectedStackInventory(), aux.GetConnectedStackSlot());
+			if(!aux.notConnectedToSpecificStack){
+				aux.SetItemStack(this.inventory[aux.GetConnectedStackInventory()].GetSlot(aux.GetConnectedStackSlot()));
+				AddConnection((byte)i, aux.GetConnectedStackInventory(), aux.GetConnectedStackSlot());
+			}
 		}
 
 		ReloadInventory();
+	}
+
+	public void PrintConnections(){
+		foreach(byte id in this.actionConnections.Keys){
+			Debug.Log($"({id}, {this.actionConnections[id]})");
+		}
 	}
 
 	/*
@@ -516,8 +534,20 @@ public class PlayerInventoryManager : MonoBehaviour {
 			}
 			// If is Action
 			else{
-				RemoveConnection((byte)slot);
-				this.inventory[inventoryCode].SetNull(slot);
+				EntityAction ea = this.inventory[inventoryCode].GetPos(slot);
+
+				if(ea == null)
+					return;
+
+				// If is a normal action
+				if(!ea.keepInHotbar){
+					RemoveConnection((byte)slot);
+					this.inventory[inventoryCode].SetNull(slot);
+				}
+				// If is an action that MUST be in the hotbar at all times
+				else{
+					return;
+				}
 			}
 
     		DrawSlot(inventoryCode, slot);
@@ -530,6 +560,9 @@ public class PlayerInventoryManager : MonoBehaviour {
     		// If can't move, ignore
     		// or if is dragging an Action
     		if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot)){
+    			if(((EntityAction)this.draggedStack).keepInHotbar)
+    				return;
+
     			// Remove Action from DraggedStack
     			if(!this.draggedStack.IsItemStack()){
     				this.draggedStack = null;
@@ -600,8 +633,12 @@ public class PlayerInventoryManager : MonoBehaviour {
 				// If clicked an action inventory
 				else{
 					EntityAction ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
+					EntityAction current = this.inventory[inventoryCode].GetPos(slot);
 
 					if(ea == null)
+						return;
+
+					if(current != null && current.keepInHotbar)
 						return;
 
 					if(this.inventory[inventoryCode].GetPos(slot) != null){
@@ -628,6 +665,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 			else{
     			// And clicked and item inventory
     			if(this.inventory[inventoryCode].itemInventory){
+    				if(((EntityAction)this.draggedStack).keepInHotbar)
+    					return;
+
     				this.draggedStack = null;
     				RemoveConnection((byte)this.draggedStackOriginSlot);
     				ResetSelection();
@@ -650,15 +690,18 @@ public class PlayerInventoryManager : MonoBehaviour {
 					SendInventoryDataToServer();
     			}
 			}
+			PrintConnections();
     	}
     }
 
     // Activates on Right Click of a slot
     public void RightClick(byte inventoryCode, ushort slot){
+    	// If has no selection
     	if(this.draggedStack == null){
     		if(IsNullSlot(inventoryCode, slot))
     			return;
 
+    		// If right clicked an ItemStack
     		if(this.inventory[inventoryCode].itemInventory){
 	    		string[] details;
 
@@ -718,6 +761,13 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    	}
 	    	// If right clicked Action Inventory
 	    	else{
+	    		EntityAction ea = this.inventory[inventoryCode].GetPos(slot);
+
+	    		if(ea == null)
+	    			return;
+	    		if(ea.keepInHotbar)
+	    			return;
+
 	    		this.inventory[inventoryCode].SetNull(slot);
 	    		RemoveConnection((byte)slot);
 	    		DrawSlot(inventoryCode, slot);
@@ -804,6 +854,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 		    	}
 		    	// ... while dragging an action
 		    	else{
+		    		if(((EntityAction)this.draggedStack).keepInHotbar)
+		    			return;
+
     				this.draggedStack = null;
     				RemoveConnection((byte)this.draggedStackOriginSlot);
     				ResetSelection();
@@ -813,7 +866,14 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    	else{
 	    		// while draggin an item
 				if(this.draggedStack.IsItemStack()){
-					EntityAction ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
+					EntityAction ea, aux;
+
+					aux = this.inventory[inventoryCode].GetPos(slot);
+
+					if(aux != null && aux.keepInHotbar)
+						return;
+
+					ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
 
 					ea.SetMemoryData(true, 0, 1, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
 					//ea.SetItemStack((ItemStack)this.draggedStack);

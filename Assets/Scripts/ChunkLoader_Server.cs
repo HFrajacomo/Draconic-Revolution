@@ -489,7 +489,10 @@ public class ChunkLoader_Server : MonoBehaviour
         int length;
 
         for(byte i=0; i < size; i++){
-            if(i == 10){
+            if(i == 0){
+                slots[i] = new ActionInventorySlot(ActionLoader.GetID("BASE_EquipmentAttack"), false, 0, 0, 0, 0, InventoryLoader.GetActionInventoryID("ACTION_HOTBAR"), 0);
+            }
+            else if(i == 10){
                 slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE, InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
             else if(i == 11){

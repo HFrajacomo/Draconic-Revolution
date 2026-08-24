@@ -6,8 +6,10 @@ using UnityEngine;
 
 [Serializable]
 public abstract class EntityActionBehaviour {
+	public abstract EntityActionBehaviour Copy();
 	public override string ToString(){return GetType().Name;}
 
+	public virtual void SetArguments(DualString[] kwargs){ return; }
 	public virtual void PostDeserializationSetup(){ return; }
 
 	// UI

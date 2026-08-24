@@ -65,7 +65,7 @@ public static class ItemDeserializer {
 		onUseClientEvent = new List<ItemBehaviour>();
 		onUseServerEvent = new List<ItemBehaviour>();
 		onEquipPlayerEvent = new List<ItemBehaviour>();
-		onUnequipPlayerEvent = new List<ItemBehaviour>();		
+		onUnequipPlayerEvent = new List<ItemBehaviour>();
 		onEquipClientEvent = new List<ItemBehaviour>();
 		onUnequipClientEvent = new List<ItemBehaviour>();
 		onEquipServerEvent = new List<ItemBehaviour>();

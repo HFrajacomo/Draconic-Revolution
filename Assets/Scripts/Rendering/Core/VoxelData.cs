@@ -652,7 +652,7 @@ public class VoxelData {
 
 	public override string ToString(){
 		string str = "";
-		foreach(var item in data){
+		foreach(ushort item in data){
 			str += item.ToString();
 		}
 

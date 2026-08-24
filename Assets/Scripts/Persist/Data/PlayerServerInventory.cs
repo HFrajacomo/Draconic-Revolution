@@ -217,7 +217,8 @@ public class PlayerServerInventory{
     private List<PlayerServerInventorySlot> GetEmptySlots(){
         List<PlayerServerInventorySlot> slots = new List<PlayerServerInventorySlot>();
 
-        for(byte i=0; i < InventoryLoader.GetInventorySize("ACTION_HOTBAR"); i++){
+        slots.Add(new ActionInventorySlot(ActionLoader.GetID("BASE_EquipmentAttack"), false, 0, 0, 0, 0, InventoryLoader.GetActionInventoryID("ACTION_HOTBAR"), 0));
+        for(byte i=1; i < InventoryLoader.GetInventorySize("ACTION_HOTBAR"); i++){
             slots.Add(new EmptyPlayerInventorySlot(InventoryLoader.GetActionInventoryID("ACTION_HOTBAR"), i));
         }
         for(byte i=0; i < InventoryLoader.GetInventorySize("HOTBAR"); i++){
