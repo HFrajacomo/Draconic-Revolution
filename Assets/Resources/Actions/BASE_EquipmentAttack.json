@@ -1,7 +1,8 @@
 {
 	"name": "BASE_EquipmentAttack",
     "notConnectedToSpecificStack": true,
-    "keepInHotbar": true
+    "keepInHotbar": true,
+    "connectedToStack": false
 }
 --->Behaviours
 {

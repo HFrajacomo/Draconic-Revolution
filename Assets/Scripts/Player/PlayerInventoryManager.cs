@@ -115,8 +115,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 		uint currentDur;
 		byte refineLv;
 		EnchantmentType enchant;
-		ItemStack its;
-		Item item;
+		ItemStack its, actionIts;
+		Item item, actionItem;
 		Weapon weapon;
 
 		// Cached Action
@@ -209,10 +209,13 @@ public class PlayerInventoryManager : MonoBehaviour {
 			if(aux == null)
 				continue;
 
-			if(!aux.notConnectedToSpecificStack){
+			if(aux.connectedToStack){
+				actionIts = this.inventory[aux.GetConnectedStackInventory()].GetSlot(aux.GetConnectedStackSlot());
+				actionItem = actionIts.GetItem();
 				aux.SetItemStack(this.inventory[aux.GetConnectedStackInventory()].GetSlot(aux.GetConnectedStackSlot()));
 				AddConnection((byte)i, aux.GetConnectedStackInventory(), aux.GetConnectedStackSlot());
-			}
+				this.inventory[0].AddStack(actionItem.OnCreateAction(this.cl, actionIts), i);
+			} 
 		}
 
 		ReloadInventory();
@@ -690,7 +693,6 @@ public class PlayerInventoryManager : MonoBehaviour {
 					SendInventoryDataToServer();
     			}
 			}
-			PrintConnections();
     	}
     }
 

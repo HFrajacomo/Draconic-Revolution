@@ -14,7 +14,7 @@ public class EntityAction : ClickableSlot {
 	private ushort id;
 
 	// Storage
-	private bool connectedToStack;
+	public bool connectedToStack = true;
 	private ushort currentCooldown;
 	private ushort totalCooldown;
 	private byte connectedStackInventory;

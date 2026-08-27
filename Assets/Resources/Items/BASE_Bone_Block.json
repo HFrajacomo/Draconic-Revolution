@@ -12,7 +12,20 @@
 }
 --->IT_GetItemActionBehaviour
 {
-    "name": "BASE_BlockPlace"
+    "name": "BASE_BlockPlace",
+    "actionArguments": {
+        "data": [
+            {
+                "evt": "EA_PlaceBlockBehaviour",
+                "arguments": [
+                    {
+                        "key": "blockName",
+                        "value": "BASE_Bone"
+                    }
+                ]
+            }
+        ]
+    }
 }
 --->IT_PlaceBlockBehaviour
 {
