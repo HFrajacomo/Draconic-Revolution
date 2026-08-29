@@ -109,6 +109,7 @@ public class EntityAction : ClickableSlot {
 			id = this.id,
 			isItemStack = false,
 			notConnectedToSpecificStack = this.notConnectedToSpecificStack,
+			connectedToStack = this.connectedToStack,
 			keepInHotbar = this.keepInHotbar,
 
 			// Deep copy lists (new lists with same elements)
@@ -143,6 +144,11 @@ public class EntityAction : ClickableSlot {
 		this.connectedToStack = connectedToStack;
 		this.currentCooldown = currentCooldown;
 		this.totalCooldown = totalCooldown;
+		this.connectedStackInventory = connectedStackInventory;
+		this.connectedStackSlot = connectedStackSlot;
+		this.isItemStack = false;
+	}
+	public void SetMemoryData(byte connectedStackInventory, byte connectedStackSlot){
 		this.connectedStackInventory = connectedStackInventory;
 		this.connectedStackSlot = connectedStackSlot;
 		this.isItemStack = false;

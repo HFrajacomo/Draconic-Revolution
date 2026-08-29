@@ -222,6 +222,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 	}
 
 	public void PrintConnections(){
+		Debug.Log("===================================================");
+
 		foreach(byte id in this.actionConnections.Keys){
 			Debug.Log($"({id}, {this.actionConnections[id]})");
 		}
@@ -485,6 +487,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	        else{
 	        	this.draggedStack = this.inventory[inventoryCode].GetPos(slot);
 	    		this.inventory[inventoryCode].SetNull(slot);
+	    		RemoveConnection((byte)slot);
 	    		DrawSlot(inventoryCode, slot);
 	    		ToggleHighlight(true, this.draggedStack);
 	            ResetDetails();
@@ -649,7 +652,6 @@ public class PlayerInventoryManager : MonoBehaviour {
 						RemoveConnection((byte)slot);
 					}
 
-					ea.SetMemoryData(true, 0, 1, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
 					this.inventory[inventoryCode].AddStack(ea, slot);
 					DrawSlot(inventoryCode, slot);
 					AddConnection((byte)slot, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
@@ -677,23 +679,29 @@ public class PlayerInventoryManager : MonoBehaviour {
     			}
     			// And clicked an action inventory
     			else{
-    				this.draggedStack = this.inventory[inventoryCode].AddStack((EntityAction)this.draggedStack, slot);
+    				EntityAction clickedSlot = this.inventory[inventoryCode].AddStack((EntityAction)this.draggedStack, slot);
+
+    				if(clickedSlot != null){
+    					ToggleHighlight(true, clickedSlot);
+    					RemoveConnection((byte)slot);
+    				}
+	   					
+	   				AddConnection((byte)slot, ((EntityAction)this.draggedStack).GetConnectedStackInventory(), ((EntityAction)this.draggedStack).GetConnectedStackSlot());
+    				this.draggedStack = clickedSlot;
 
     				if(this.draggedStack == null){
     					ResetSelection();
-						ToggleHighlight(false, null);
-    				}
-    				else{
-    					ToggleHighlight(true, this.draggedStack);
+    					ToggleHighlight(false, null);
     				}
 
-   					UpdateKeyConnection((byte)this.draggedStackOriginSlot, (byte)slot);
     				DrawSlot(inventoryCode, slot);
 		            SendEquipDataToServer(inventoryCode, this.draggedStack, this.inventory[inventoryCode].GetPos(slot));
 					SendInventoryDataToServer();
     			}
 			}
     	}
+
+    	PrintConnections();
     }
 
     // Activates on Right Click of a slot
@@ -877,9 +885,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 					ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
 
-					ea.SetMemoryData(true, 0, 1, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
-					//ea.SetItemStack((ItemStack)this.draggedStack);
+					ea.SetItemStack((ItemStack)this.draggedStack);
 					this.inventory[inventoryCode].AddStack(ea, slot);
+					UpdateConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot, (byte)inventoryCode, (byte)slot);
 					DrawSlot(inventoryCode, slot);
 
 					if(IsNullSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot)){
@@ -925,10 +933,12 @@ public class PlayerInventoryManager : MonoBehaviour {
 	                if(ea.notConnectedToSpecificStack){	                	
 	                    if(ea.GetItemStack(this) == null){
 	                        this.inventory[0].SetNull(connectedActions[i]);
+	                        RemoveConnection(connectedActions[i]);
 	                    }
 	                }
 	                else{
 	                	this.inventory[0].SetNull(connectedActions[i]);
+	                	RemoveConnection(connectedActions[i]);
 	                }
 
 	                DrawSlot(0, connectedActions[i]);
@@ -1207,19 +1217,26 @@ public class PlayerInventoryManager : MonoBehaviour {
 	}
     private void AddConnection(byte actionID, byte inventory, byte slot){
 		this.actionConnections.Add(actionID, new int2(inventory, slot));
+		EntityAction ea = this.inventory[0].GetPos(actionID);
+		ea.SetMemoryData(inventory, slot);
     }
     private void UpdateConnection(byte previousInventory, byte previousSlot, byte newInventory, byte newSlot){
     	List<byte> toModifyNew = new List<byte>();
     	List<byte> toModifyOld = new List<byte>();
     	int2 lastPos = new int2(previousInventory, previousSlot);
     	int2 newPos = new int2(newInventory, newSlot);
+    	EntityAction ea;
 
     	foreach(byte actionID in this.actionConnections.Keys){
     		if(this.actionConnections[actionID].x == lastPos.x && this.actionConnections[actionID].y == lastPos.y){
     			toModifyNew.Add(actionID);
+    			ea = this.inventory[0].GetPos(actionID);
+    			ea.SetMemoryData((byte)newPos.x, (byte)newPos.y);
     		}
     		if(this.actionConnections[actionID].x == newPos.x && this.actionConnections[actionID].y == newPos.y){
     			toModifyOld.Add(actionID);
+    			ea = this.inventory[0].GetPos(actionID);
+    			ea.SetMemoryData((byte)lastPos.x, (byte)lastPos.y);
     		}
     	}
 
@@ -1236,6 +1253,10 @@ public class PlayerInventoryManager : MonoBehaviour {
     	if(ContainsKeyConnection(previous)){
     		connection = this.actionConnections[previous];
     		this.actionConnections.Remove(previous);
+
+    		if(ContainsKeyConnection(recent))
+    			this.actionConnections.Remove(recent);
+
     		this.actionConnections.Add(recent, connection);
     	}
     }
