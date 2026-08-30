@@ -700,8 +700,6 @@ public class PlayerInventoryManager : MonoBehaviour {
     			}
 			}
     	}
-
-    	PrintConnections();
     }
 
     // Activates on Right Click of a slot
@@ -876,19 +874,23 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    	else{
 	    		// while draggin an item
 				if(this.draggedStack.IsItemStack()){
-					EntityAction ea, aux;
+					EntityAction ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
+					EntityAction current = this.inventory[inventoryCode].GetPos(slot);
 
-					aux = this.inventory[inventoryCode].GetPos(slot);
-
-					if(aux != null && aux.keepInHotbar)
+					if(ea == null)
 						return;
 
-					ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
+					if(current != null && current.keepInHotbar)
+						return;
 
-					ea.SetItemStack((ItemStack)this.draggedStack);
+					if(this.inventory[inventoryCode].GetPos(slot) != null){
+						this.inventory[inventoryCode].SetNull(slot);
+						RemoveConnection((byte)slot);
+					}
+
 					this.inventory[inventoryCode].AddStack(ea, slot);
-					UpdateConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot, (byte)inventoryCode, (byte)slot);
 					DrawSlot(inventoryCode, slot);
+					AddConnection((byte)slot, this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
 
 					if(IsNullSlot(this.draggedStackOriginInventory, this.draggedStackOriginSlot)){
 						this.inventory[this.draggedStackOriginInventory].ForceAddStack((ItemStack)this.draggedStack, this.draggedStackOriginSlot);
