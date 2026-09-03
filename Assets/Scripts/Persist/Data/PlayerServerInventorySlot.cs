@@ -20,6 +20,7 @@ public abstract class PlayerServerInventorySlot{
 	public byte GetInventoryType(){return this.inventoryType;}
 	public bool IsInGlobalWhitelist(ItemStack its){return InventoryLoader.GetInventory(GetInventoryType()).IsInGlobalWhitelist(its);}
 	public bool IsInLocalWhitelist(ItemStack its){return InventoryLoader.GetInventory(GetInventoryType()).IsInLocalWhitelist(its, this.slotID);}
+	public override string ToString(){return $"{this.GetType().Name} - {this.GetItemID()}";}
 
 	public static List<PlayerServerInventorySlot> BuildInventory(byte[] data, int init, ref int bytesWritten, int readSize = -1){
 		List<PlayerServerInventorySlot> slots = new List<PlayerServerInventorySlot>();

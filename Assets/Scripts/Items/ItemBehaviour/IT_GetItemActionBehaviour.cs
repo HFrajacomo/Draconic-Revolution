@@ -6,7 +6,7 @@ using Unity.Mathematics;
 public class IT_GetItemActionBehaviour : ItemBehaviour {
 	public string name;
 	public Wrapper<ActionArgumentInjector> actionArguments;
-	public EntityAction action; // MOVE TO PRIVATE
+	private EntityAction action;
 
 	public override void PostDeserializationSetup(bool isClient){
 		this.action = ActionLoader.GetCopy(this.name);

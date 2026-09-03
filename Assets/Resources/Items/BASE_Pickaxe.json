@@ -7,7 +7,7 @@
     "hasDurability": true,
     "tags": ["Weapon"],
     // Weapon
-    "type": "PICKAXE",
+    "weaponType": "PICKAXE",
     "damage": 100,
     "impact": 4,
     "maxDurability": 12000,
@@ -15,15 +15,6 @@
     "requiredLevels": {
         "COMBAT": 1
     }
-}
---->Behaviours
-{
-    "onEquipServer": "IT_ChangeStyleBehaviour",
-    "onUnequipServer": "IT_ChangeStyleBehaviour"
-}
---->IT_ChangeStyleBehaviour
-{
-    "battleStyle": "BASE_Pickaxe"
 }
 --->Type
 Weapon

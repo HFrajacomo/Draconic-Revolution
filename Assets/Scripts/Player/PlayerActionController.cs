@@ -152,12 +152,53 @@ public class PlayerActionController : MonoBehaviour {
 		this.animatorFP.runtimeAnimatorController = this.originalControllerFP;
 	}
 
+	/*
 	public void Sheathe(){
 		if(this.restrictions.Contains(PlayerActionRestriction.SHEATHE))
 			return;
 
 		RegisterRestriction(PlayerActionRestriction.SHEATHE, 0.9f);
 		this.weaponSheathed = !this.weaponSheathed;
+		this.animator.SetBool("Sheathed", this.weaponSheathed);
+		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
+		this.animator.SetBool("IsSheathing", true);
+		this.animatorFP.SetBool("IsSheathing", true);
+
+		if(this.weaponSheathed){
+			this.comboHit = 0;
+			RegisterRestriction(PlayerActionRestriction.PRIMARY, 0);
+		}
+		else{
+			RemoveRestriction(PlayerActionRestriction.PRIMARY);
+		}
+	}
+	*/
+	public void Sheathe(bool flag){
+		if(this.weaponSheathed == flag)
+			return;
+
+		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
+			if(!flag)
+				this.registeredAction.Remove(PlayerActionType.SHEATHE_ON);
+			return;
+		}
+
+		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
+			if(flag)
+				this.registeredAction.Remove(PlayerActionType.SHEATHE_OFF);
+			return;
+		}
+
+		if(this.restrictions.Contains(PlayerActionRestriction.SHEATHE)){
+			RegisterSheathe(flag);
+			return;
+		}
+
+		ForceSheathe(flag);
+	}
+	private void ForceSheathe(bool flag){
+		RegisterRestriction(PlayerActionRestriction.SHEATHE, 0.9f);
+		this.weaponSheathed = flag;
 		this.animator.SetBool("Sheathed", this.weaponSheathed);
 		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
 		this.animator.SetBool("IsSheathing", true);
@@ -196,6 +237,14 @@ public class PlayerActionController : MonoBehaviour {
 
 		this.registeredAction.Add(PlayerActionType.PRIMARY_ACTION);
 		RegisterRestriction(PlayerActionRestriction.SHEATHE, 1.5f);
+	}
+
+	// Registers sheathing
+	public void RegisterSheathe(bool flag){
+		if(flag)
+			this.registeredAction.Add(PlayerActionType.SHEATHE_ON);
+		else
+			this.registeredAction.Add(PlayerActionType.SHEATHE_OFF);
 	}
 
 	public void VerifyMovement(Vector3 facingDirection, Vector3 movementDirection, float runMomentum, float gravity, MovementFlags flags){
@@ -268,6 +317,15 @@ public class PlayerActionController : MonoBehaviour {
     private IEnumerator RestrictionRoutine(PlayerActionRestriction rest, float timeout){
 		yield return new WaitForSeconds(timeout);
 		RemoveRestriction(rest);
+
+		if(rest == PlayerActionRestriction.SHEATHE){
+			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
+				Sheathe(true);
+			}
+			else if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
+				Sheathe(false);
+			}
+		}
     }
 
 

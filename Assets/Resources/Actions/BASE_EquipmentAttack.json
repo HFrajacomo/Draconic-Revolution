@@ -8,6 +8,8 @@
 {
     "onIconDraw": "EA_EquipmentBehaviour",
     "onPrimaryPlayer": "EA_EquipmentBehaviour",
+    "onHoldPlayer": "EA_EquipmentBehaviour",
+    "onUnholdPlayer": "EA_EquipmentBehaviour",
     "onHoldServer": "EA_EquipmentBehaviour"
 }
 --->EA_EquipmentBehaviour

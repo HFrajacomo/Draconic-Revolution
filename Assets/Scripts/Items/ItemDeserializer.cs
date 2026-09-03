@@ -42,6 +42,10 @@ public static class ItemDeserializer {
 		Item item = CreateItem(JsonFormatter.RemoveComments(propertiesJson), itemType);
 		item.SetMemoryStorageType();
 
+		if(item is Weapon){
+			((Weapon)item).ResolveWeaponType();
+		}
+
 		if(HasBehaviours(json)){
 			behaviourJson = GetBehaviours(json);
 			FindBehaviours(behaviourJson);

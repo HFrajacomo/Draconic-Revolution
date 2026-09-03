@@ -949,6 +949,12 @@ public class PlayerInventoryManager : MonoBehaviour {
     	}
     }
 
+    public ClickableSlot GetSlot(int inventoryCode, byte slot){
+    	if(this.inventory[inventoryCode].itemInventory)
+    		return this.inventory[inventoryCode].GetSlot(slot);
+    	return this.inventory[inventoryCode].GetPos(slot);
+    }
+
     // Create a new inventory in the scroll area of the Inventory UI
     public void AddInventory(Inventory inv){
     	int inventoryCode = this.inventory.Count;

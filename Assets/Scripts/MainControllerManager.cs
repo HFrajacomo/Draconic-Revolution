@@ -93,7 +93,6 @@ public class MainControllerManager : MonoBehaviour {
         if(!MainControllerManager.InUI){
             if(!this.playerActionController.HasRestriction(PlayerActionRestriction.SHEATHE) && !this.playerActionController.HasRestriction(PlayerActionRestriction.STUNNED) && !PlayerHotbarHandler.IS_SWITCHING){
                 this.hotbarHandler.SwitchHotbars();
-                this.playerActionController.Sheathe();
             }
         }
     }

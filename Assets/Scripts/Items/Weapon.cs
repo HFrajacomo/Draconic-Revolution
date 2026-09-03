@@ -19,10 +19,12 @@ public class Weapon : Item {
 	public uint maxDurability;
 	public uint currentDurability;
 	public ushort impact;
-	public WeaponType type;
+	public string weaponType;
 	public byte refineLevel;
 	public EnchantmentType extraEffect;
 	public Dictionary<SkillType, byte> requiredLevels;
+
+	private WeaponType type;
 
 	public virtual void SetDamage(ushort damage){this.damage = damage;}
 	public virtual void SetMaxDurability(uint dur){this.maxDurability = dur;}
@@ -32,6 +34,7 @@ public class Weapon : Item {
 	public virtual void SetWeaponType(WeaponType type){this.type = type;}
 	public virtual void SetRefineLevel(byte level){this.refineLevel = level;}
 	public virtual void SetExtraEffects(EnchantmentType enchant){this.extraEffect = enchant;}
+	public virtual WeaponType GetWeaponType(){return this.type;}
 	public override string[] GetDetails(){return new string[2]{this.name, this.GetStats()};}
 
 	public virtual string GetStats(){
@@ -49,6 +52,13 @@ public class Weapon : Item {
 		sb.Append(this.extraEffect.ToString());
 
 		return sb.ToString();
+	}
+
+	public void ResolveWeaponType(){
+		if(Enum.TryParse<WeaponType>(this.weaponType, false, out WeaponType parsed))
+			this.type = parsed;
+		else
+			throw new DeserializationErrorException($"[Weapon] Failed on PostSerializationSetup because weaponType {this.weaponType} is invalid");
 	}
 
 

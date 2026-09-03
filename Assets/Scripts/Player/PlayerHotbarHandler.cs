@@ -92,11 +92,32 @@ public class PlayerHotbarHandler : MonoBehaviour
     }
 
     public void SwitchHotbars(){
+    	IS_NORMAL_HOTBAR = !IS_NORMAL_HOTBAR;
+    	IS_SWITCHING = true;
+
+    	SendHotbarInfoToServer();
     	StartCoroutine(SwitchCoroutine());
     }
     private IEnumerator SwitchCoroutine(){
-    	IS_NORMAL_HOTBAR = !IS_NORMAL_HOTBAR;
-    	IS_SWITCHING = true;
+    	ClickableSlot previousSlot, newSlot;
+
+		if(IS_NORMAL_HOTBAR){
+			newSlot = this.playerInventoryManager.GetSlot(1, PlayerHotbarHandler.hotbarSlot);
+			previousSlot = this.playerInventoryManager.GetSlot(0, PlayerHotbarHandler.attackHotbarSlot);
+		}
+		else{
+			newSlot = this.playerInventoryManager.GetSlot(0, PlayerHotbarHandler.attackHotbarSlot);
+			previousSlot = this.playerInventoryManager.GetSlot(1, PlayerHotbarHandler.hotbarSlot);
+		}
+
+		if(previousSlot != null){
+			if(previousSlot.IsItemStack()){
+				((ItemStack)previousSlot).GetItem().OnUnholdPlayer(this.cl, (ItemStack)previousSlot, Configurations.accountID);
+			}
+			else{
+				((EntityAction)previousSlot).OnUnholdPlayer(this.cl, ((EntityAction)previousSlot).GetItemStack(null), Configurations.accountID);
+			}
+		}
 
     	if(IS_NORMAL_HOTBAR)
     		this.animator.Play("HotbarSwitch-AttackToNormal");
@@ -115,6 +136,15 @@ public class PlayerHotbarHandler : MonoBehaviour
 		yield return new WaitForSeconds(this.animationTime/2);
 
 		IS_SWITCHING = false;
+
+		if(newSlot != null){
+			if(newSlot.IsItemStack()){
+				((ItemStack)newSlot).GetItem().OnHoldPlayer(this.cl, (ItemStack)newSlot, Configurations.accountID);
+			}
+			else{
+				((EntityAction)newSlot).OnHoldPlayer(this.cl, ((EntityAction)newSlot).GetItemStack(null), Configurations.accountID);
+			}
+		}
     }
 
     // Checks if the current ItemStack selected has a different item from the last and run
