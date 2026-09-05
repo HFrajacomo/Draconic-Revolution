@@ -52,54 +52,54 @@ public class PlayerHotbarHandler : MonoBehaviour
 
 
 
-    // Start is called before the first frame update
-    void Start()
-    {
-    	IS_SWITCHING = false;
-    	IS_NORMAL_HOTBAR = true;
+	// Start is called before the first frame update
+	void Start()
+	{
+		IS_SWITCHING = false;
+		IS_NORMAL_HOTBAR = true;
 
-    	foreach(Image img in hotbarIcon){
-    		img.material = Instantiate(this.hotbarMaterial);
-    	}
+		foreach(Image img in hotbarIcon){
+			img.material = Instantiate(this.hotbarMaterial);
+		}
 
-    	foreach(Image img in attackHotbarIcon){
-    		img.material = Instantiate(this.actionMaterial);
-    	}
+		foreach(Image img in attackHotbarIcon){
+			img.material = Instantiate(this.actionMaterial);
+		}
 
-    	InitiateHotbar();
+		InitiateHotbar();
 
-        this.DrawHotbar();
-    }
+		this.DrawHotbar();
+	}
 
-    void Update(){
-    	RefreshItemEffects();
+	void Update(){
+		RefreshItemEffects();
 
-    	if(PlayerHotbarHandler.HOTBAR_SELECTED_VALID){
-    		PlayerHotbarHandler.HOTBAR_SELECTION_TIME += Time.deltaTime;
+		if(PlayerHotbarHandler.HOTBAR_SELECTED_VALID){
+			PlayerHotbarHandler.HOTBAR_SELECTION_TIME += Time.deltaTime;
 
-    		if(PlayerHotbarHandler.HOTBAR_SELECTION_TIME >= PlayerHotbarHandler.HOTBAR_SELECTION_CHANGE_DOWNTIME){
-    			SendHotbarInfoToServer();
-    			PlayerHotbarHandler.HOTBAR_SELECTED_VALID = false;
-    			PlayerHotbarHandler.HOTBAR_SELECTION_TIME = 0f;
-    		}
-    	}
-    }
+			if(PlayerHotbarHandler.HOTBAR_SELECTION_TIME >= PlayerHotbarHandler.HOTBAR_SELECTION_CHANGE_DOWNTIME){
+				SendHotbarInfoToServer();
+				PlayerHotbarHandler.HOTBAR_SELECTED_VALID = false;
+				PlayerHotbarHandler.HOTBAR_SELECTION_TIME = 0f;
+			}
+		}
+	}
 
-    void OnDisable(){
-    	PlayerHotbarHandler.STARTED = false;
+	void OnDisable(){
+		PlayerHotbarHandler.STARTED = false;
 		PlayerHotbarHandler.HOTBAR_SELECTED_VALID = false;
 		PlayerHotbarHandler.HOTBAR_SELECTION_TIME = 0f;
-    }
+	}
 
-    public void SwitchHotbars(){
-    	IS_NORMAL_HOTBAR = !IS_NORMAL_HOTBAR;
-    	IS_SWITCHING = true;
+	public void SwitchHotbars(){
+		IS_NORMAL_HOTBAR = !IS_NORMAL_HOTBAR;
+		IS_SWITCHING = true;
 
-    	SendHotbarInfoToServer();
-    	StartCoroutine(SwitchCoroutine());
-    }
-    private IEnumerator SwitchCoroutine(){
-    	ClickableSlot previousSlot, newSlot;
+		SendHotbarInfoToServer();
+		StartCoroutine(SwitchCoroutine());
+	}
+	private IEnumerator SwitchCoroutine(){
+		ClickableSlot previousSlot, newSlot;
 
 		if(IS_NORMAL_HOTBAR){
 			newSlot = this.playerInventoryManager.GetSlot(1, PlayerHotbarHandler.hotbarSlot);
@@ -119,10 +119,10 @@ public class PlayerHotbarHandler : MonoBehaviour
 			}
 		}
 
-    	if(IS_NORMAL_HOTBAR)
-    		this.animator.Play("HotbarSwitch-AttackToNormal");
-    	else
-    		this.animator.Play("HotbarSwitch-NormalToAttack");
+		if(IS_NORMAL_HOTBAR)
+			this.animator.Play("HotbarSwitch-AttackToNormal");
+		else
+			this.animator.Play("HotbarSwitch-NormalToAttack");
 
 		yield return new WaitForSeconds(this.animationTime/2);
 
@@ -145,253 +145,114 @@ public class PlayerHotbarHandler : MonoBehaviour
 				((EntityAction)newSlot).OnHoldPlayer(this.cl, ((EntityAction)newSlot).GetItemStack(null), Configurations.accountID);
 			}
 		}
-    }
+	}
 
-    // Checks if the current ItemStack selected has a different item from the last and run
-    public void RefreshItemEffects(){
-    	if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-	    	ClickableSlot current = GetSlotStack();
-	    	if(!ClickableSlot.IsEqual(current, previousSlot)){
-	    		// OnUnhold
+	// Checks if the current ItemStack selected has a different item from the last and run
+	public void RefreshItemEffects(){
+		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
+			ClickableSlot current = GetSlotStack();
+			if(!ClickableSlot.IsEqual(current, previousSlot)){
+				// OnUnhold
 				if(previousSlot != null && previousSlot.IsItemStack())
-	    			((ItemStack)previousSlot).GetItem().OnUnholdPlayer(this.cl, (ItemStack)previousSlot, Configurations.accountID);
-	    		else if(previousSlot != null)
-	    			((EntityAction)previousSlot).OnUnholdPlayer(this.cl, ((EntityAction)previousSlot).GetItemStack(playerInventoryManager), Configurations.accountID);
+					((ItemStack)previousSlot).GetItem().OnUnholdPlayer(this.cl, (ItemStack)previousSlot, Configurations.accountID);
+				else if(previousSlot != null)
+					((EntityAction)previousSlot).OnUnholdPlayer(this.cl, ((EntityAction)previousSlot).GetItemStack(playerInventoryManager), Configurations.accountID);
 
-	    		// OnHold
-	    		if(current != null && current.IsItemStack())
-	    			((ItemStack)current).GetItem().OnHoldPlayer(this.cl, (ItemStack)current, Configurations.accountID);
-	    		else if(current != null)
-	    			((EntityAction)current).OnHoldPlayer(this.cl, ((EntityAction)current).GetItemStack(playerInventoryManager), Configurations.accountID);
+				// OnHold
+				if(current != null && current.IsItemStack())
+					((ItemStack)current).GetItem().OnHoldPlayer(this.cl, (ItemStack)current, Configurations.accountID);
+				else if(current != null)
+					((EntityAction)current).OnHoldPlayer(this.cl, ((EntityAction)current).GetItemStack(playerInventoryManager), Configurations.accountID);
 
-	    		previousSlot = current;
-	    	}
-	    }
-    }
+				previousSlot = current;
+			}
+		}
+	}
 
-    public void SetHotbar(Inventory hotbar){
-    	this.hotbar = hotbar;
-        this.DrawHotbar();
-    }
+	public void SetHotbar(Inventory hotbar){
+		this.hotbar = hotbar;
+		this.DrawHotbar();
+	}
 
-    public void SetActionHotbar(ActionInventory hotbar){
-    	this.actionHotbar = hotbar;
-    	this.DrawHotbar();
-    }
+	public void SetActionHotbar(ActionInventory hotbar){
+		this.actionHotbar = hotbar;
+		this.DrawHotbar();
+	}
 
 	// Selects a new item in hotbar
-	public void Scroll1(){
-		if(PlayerHotbarHandler.IS_SWITCHING)
-			return;
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == 0)
-			return;
-		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == 0)
-			return;
-
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			PlayerHotbarHandler.hotbarSlot = 0;
-			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 48);
-		}
-		else{
-			PlayerHotbarHandler.attackHotbarSlot = 0;
-			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(0), 48);			
-		}
-
-		TriggerHotbarDelay();
-	}
-	public void Scroll2(){
-		if(PlayerHotbarHandler.IS_SWITCHING)
-			return;
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == 1)
-			return;
-		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == 1)
-			return;
-
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			PlayerHotbarHandler.hotbarSlot = 1;
-			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 48);
-		}
-		else{
-			PlayerHotbarHandler.attackHotbarSlot = 1;
-			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(1), 48);			
-		}
-		
-		TriggerHotbarDelay();
-	}
-	public void Scroll3(){
-		if(PlayerHotbarHandler.IS_SWITCHING)
-			return;
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == 2)
-			return;
-		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == 2)
-			return;
-
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			PlayerHotbarHandler.hotbarSlot = 2;
-			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 48);
-		}
-		else{
-			PlayerHotbarHandler.attackHotbarSlot = 2;
-			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(2), 48);			
-		}
-		
-		TriggerHotbarDelay();
-	}
-	public void Scroll4(){
-		if(PlayerHotbarHandler.IS_SWITCHING)
-			return;
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == 3)
-			return;
-		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == 3)
-			return;
-
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			PlayerHotbarHandler.hotbarSlot = 3;
-			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 48);
-		}
-		else{
-			PlayerHotbarHandler.attackHotbarSlot = 3;
-			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(3), 48);			
-		}
-		
-		TriggerHotbarDelay();
-	}
-	public void Scroll5(){
-		if(PlayerHotbarHandler.IS_SWITCHING)
-			return;
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == 4)
-			return;
-		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == 4)
-			return;
-
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			PlayerHotbarHandler.hotbarSlot = 4;
-			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 48);
-		}
-		else{
-			PlayerHotbarHandler.attackHotbarSlot = 4;
-			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(4), 48);			
-		}
-		
-		TriggerHotbarDelay();
-	}
-	public void Scroll6(){
-		if(PlayerHotbarHandler.IS_SWITCHING)
-			return;
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == 5)
-			return;
-		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == 5)
-			return;
-
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			PlayerHotbarHandler.hotbarSlot = 5;
-			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 48);
-		}
-		else{
-			PlayerHotbarHandler.attackHotbarSlot = 5;
-			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(5), 48);			
-		}
-		
-		TriggerHotbarDelay();
-	}
-	public void Scroll7(){
-		if(PlayerHotbarHandler.IS_SWITCHING)
-			return;
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == 6)
-			return;
-		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == 6)
-			return;
-
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			PlayerHotbarHandler.hotbarSlot = 6;
-			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 48);
-		}
-		else{
-			PlayerHotbarHandler.attackHotbarSlot = 6;
-			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(6), 48);			
-		}
-		
-		TriggerHotbarDelay();
-	}
-	public void Scroll8(){
-		if(PlayerHotbarHandler.IS_SWITCHING)
-			return;
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == 7)
-			return;
-		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == 7)
-			return;
-
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			PlayerHotbarHandler.hotbarSlot = 7;
-			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 48);
-		}
-		else{
-			PlayerHotbarHandler.attackHotbarSlot = 7;
-			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(7), 48);			
-		}
-		
-		TriggerHotbarDelay();
-	}
-	public void Scroll9(){
-		if(PlayerHotbarHandler.IS_SWITCHING)
-			return;
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == 8)
-			return;
-		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == 8)
-			return;
-
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			PlayerHotbarHandler.hotbarSlot = 8;
-			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 48);
-		}
-		else{
-			PlayerHotbarHandler.attackHotbarSlot = 8;
-			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(8), 48);		
-		}
-		
-		TriggerHotbarDelay();
-	}
+	public void Scroll1(){ChangeSlot(0);}
+	public void Scroll2(){ChangeSlot(1);}
+	public void Scroll3(){ChangeSlot(2);}
+	public void Scroll4(){ChangeSlot(3);}
+	public void Scroll5(){ChangeSlot(4);}
+	public void Scroll6(){ChangeSlot(5);}
+	public void Scroll7(){ChangeSlot(6);}
+	public void Scroll8(){ChangeSlot(7);}
+	public void Scroll9(){ChangeSlot(8);}
 	public void MouseScroll(int val){
-		if(PlayerHotbarHandler.IS_SWITCHING)
-			return;
-
 		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
 			if(val < 0){
 				if(PlayerHotbarHandler.hotbarSlot == 8)
-					PlayerHotbarHandler.hotbarSlot = 0;
+					ChangeSlot(0);
 				else
-					PlayerHotbarHandler.hotbarSlot++;
+					ChangeSlot((byte)(PlayerHotbarHandler.hotbarSlot + 1));
 			}
 			else if(val > 0){
 				if(PlayerHotbarHandler.hotbarSlot == 0)
-					PlayerHotbarHandler.hotbarSlot = 8;
+					ChangeSlot(8);
 				else
-					PlayerHotbarHandler.hotbarSlot--;
+					ChangeSlot((byte)(PlayerHotbarHandler.hotbarSlot - 1));
 			}
-			else
-				return;
-
-			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(PlayerHotbarHandler.hotbarSlot), 48);
 		}
 		else{
 			if(val < 0){
 				if(PlayerHotbarHandler.attackHotbarSlot == 8)
-					PlayerHotbarHandler.attackHotbarSlot = 0;
+					ChangeSlot(0);
 				else
-					PlayerHotbarHandler.attackHotbarSlot++;
+					ChangeSlot((byte)(PlayerHotbarHandler.attackHotbarSlot + 1));
 			}
 			else if(val > 0){
 				if(PlayerHotbarHandler.attackHotbarSlot == 0)
-					PlayerHotbarHandler.attackHotbarSlot = 8;
+					ChangeSlot(8);
 				else
-					PlayerHotbarHandler.attackHotbarSlot--;
+					ChangeSlot((byte)(PlayerHotbarHandler.attackHotbarSlot - 1));
 			}
-			else
-				return;
-
-			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(PlayerHotbarHandler.attackHotbarSlot), 48);
 		}
 		
+		TriggerHotbarDelay();
+	}
+	private void ChangeSlot(byte newSlot){
+		if(PlayerHotbarHandler.IS_SWITCHING)
+			return;
+		// Check if already on the requested slot
+		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.hotbarSlot == newSlot)
+			return;
+		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == newSlot)
+			return;
+
+		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
+			// Unhold current slot
+			RunHoldUnholdEvent(PlayerHotbarHandler.hotbarSlot, false);
+
+			// Switch slot
+			PlayerHotbarHandler.hotbarSlot = newSlot;
+			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(newSlot), 48);
+
+			// Hold new slot
+			RunHoldUnholdEvent(PlayerHotbarHandler.hotbarSlot, true);
+		}
+		else{
+			// Unhold current attack slot
+			RunHoldUnholdEvent(PlayerHotbarHandler.attackHotbarSlot, false);
+
+			// Switch slot
+			PlayerHotbarHandler.attackHotbarSlot = newSlot;
+			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(newSlot), 48);
+
+			// Hold new slot
+			RunHoldUnholdEvent(PlayerHotbarHandler.attackHotbarSlot, true);
+		}
+
 		TriggerHotbarDelay();
 	}
 
@@ -478,12 +339,12 @@ public class PlayerHotbarHandler : MonoBehaviour
 			attackHotbarText[slot].text = "";
 		}
 		else{
-    		ea.OnIconDraw(this.cl, ea.GetItemStack(playerInventoryManager), out underlay, out icon);
-    		text = ea.OnStackDraw(this.cl, ea.GetItemStack(playerInventoryManager));
-    		attackHotbarIcon[slot].color = WHITE;
-    		attackHotbarIcon[slot].material.SetTexture("_ItemIcon", icon);
-    		attackHotbarIcon[slot].material.SetTexture("_Underlay", underlay);
-    		attackHotbarText[slot].text = text;
+			ea.OnIconDraw(this.cl, ea.GetItemStack(playerInventoryManager), out underlay, out icon);
+			text = ea.OnStackDraw(this.cl, ea.GetItemStack(playerInventoryManager));
+			attackHotbarIcon[slot].color = WHITE;
+			attackHotbarIcon[slot].material.SetTexture("_ItemIcon", icon);
+			attackHotbarIcon[slot].material.SetTexture("_Underlay", underlay);
+			attackHotbarText[slot].text = text;
 		}
 	}
 
@@ -551,6 +412,33 @@ public class PlayerHotbarHandler : MonoBehaviour
 				this.hotbarText[i].color = WHITE;
 				this.attackHotbarIcon[i].material.SetFloat("_Hidden", 1f);
 				this.attackHotbarText[i].color = HIDDEN;
+			}
+		}
+	}
+
+	private void RunHoldUnholdEvent(byte slot, bool isHold){
+		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
+			ItemStack its = (ItemStack)this.playerInventoryManager.GetSlot(1, slot);
+
+			if(its != null){
+				if(isHold){
+					its.GetItem().OnHoldPlayer(this.cl, its, Configurations.accountID);
+				}
+				else{
+					its.GetItem().OnUnholdPlayer(this.cl, its, Configurations.accountID);
+				}
+			}
+		}
+		else{
+			EntityAction ea = (EntityAction)this.playerInventoryManager.GetSlot(0, slot);
+
+			if(ea != null){
+				if(isHold){
+					ea.OnHoldPlayer(this.cl, ea.GetItemStack(null), Configurations.accountID);
+				}
+				else{
+					ea.OnUnholdPlayer(this.cl, ea.GetItemStack(null), Configurations.accountID);
+				}
 			}
 		}
 	}

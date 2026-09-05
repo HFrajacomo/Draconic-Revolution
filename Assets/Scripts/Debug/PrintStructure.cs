@@ -15,6 +15,16 @@ public static class PrintStructure {
 		Debug.LogWarning($"[PrintStructure - Dictionary]\n{sb.ToString()}");
 	}
 
+	public static void PrintSet<T>(HashSet<T> set){
+		StringBuilder sb = new StringBuilder();
+
+		foreach(T key in set){
+			sb.Append($"{key}\n");
+		}
+
+		Debug.LogWarning(sb.ToString());
+	}
+
 	public static void PrintByteArray(byte[] data){
         StringBuilder hex = new StringBuilder();
         foreach (byte b in data){

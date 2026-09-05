@@ -152,40 +152,24 @@ public class PlayerActionController : MonoBehaviour {
 		this.animatorFP.runtimeAnimatorController = this.originalControllerFP;
 	}
 
-	/*
-	public void Sheathe(){
-		if(this.restrictions.Contains(PlayerActionRestriction.SHEATHE))
-			return;
+	public void Sheathe(bool flag, bool skipCheck=false){
+		if(!skipCheck){
+			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
+				if(!flag){
+					this.registeredAction.Remove(PlayerActionType.SHEATHE_ON);
+				}
+				return;
+			}
 
-		RegisterRestriction(PlayerActionRestriction.SHEATHE, 0.9f);
-		this.weaponSheathed = !this.weaponSheathed;
-		this.animator.SetBool("Sheathed", this.weaponSheathed);
-		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
-		this.animator.SetBool("IsSheathing", true);
-		this.animatorFP.SetBool("IsSheathing", true);
-
-		if(this.weaponSheathed){
-			this.comboHit = 0;
-			RegisterRestriction(PlayerActionRestriction.PRIMARY, 0);
-		}
-		else{
-			RemoveRestriction(PlayerActionRestriction.PRIMARY);
-		}
-	}
-	*/
-	public void Sheathe(bool flag){
-		if(this.weaponSheathed == flag)
-			return;
-
-		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
-			if(!flag)
-				this.registeredAction.Remove(PlayerActionType.SHEATHE_ON);
-			return;
+			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
+				if(flag){
+					this.registeredAction.Remove(PlayerActionType.SHEATHE_OFF);
+				}
+				return;
+			}
 		}
 
-		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
-			if(flag)
-				this.registeredAction.Remove(PlayerActionType.SHEATHE_OFF);
+		if(this.weaponSheathed == flag){
 			return;
 		}
 
@@ -197,7 +181,14 @@ public class PlayerActionController : MonoBehaviour {
 		ForceSheathe(flag);
 	}
 	private void ForceSheathe(bool flag){
-		RegisterRestriction(PlayerActionRestriction.SHEATHE, 0.9f);
+		float animationTime;
+
+		if(flag)
+			animationTime = this.animationHandler.GetClipLength("Weapon Sheathe") - 0.05f;
+		else
+			animationTime = this.animationHandler.GetClipLength("Weapon Unsheathe") - 0.05f;
+
+		RegisterRestriction(PlayerActionRestriction.SHEATHE, animationTime);
 		this.weaponSheathed = flag;
 		this.animator.SetBool("Sheathed", this.weaponSheathed);
 		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
@@ -211,10 +202,27 @@ public class PlayerActionController : MonoBehaviour {
 		else{
 			RemoveRestriction(PlayerActionRestriction.PRIMARY);
 		}
+
+		// In case of this action being triggered by action queue
+		if(flag){
+			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
+				this.registeredAction.Remove(PlayerActionType.SHEATHE_ON);
+			}
+		}
+		else{
+			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
+				this.registeredAction.Remove(PlayerActionType.SHEATHE_OFF);
+			}
+		}
 	}
 
 	public void RegisterRestriction(PlayerActionRestriction rest, float timeout){
 		this.restrictions.Add(rest);
+
+		if(timeout < 0){
+			Debug.LogWarning($"[PlayerActionController] Timeout provided was below zero: {timeout} -- Timeout will be changed to {timeout+1}");
+			timeout += 1;
+		}
 
 		if(timeout > 0){
 			if(this.restrictionTimer.ContainsKey(rest)){
@@ -320,10 +328,10 @@ public class PlayerActionController : MonoBehaviour {
 
 		if(rest == PlayerActionRestriction.SHEATHE){
 			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
-				Sheathe(true);
+				Sheathe(true, skipCheck:true);
 			}
 			else if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
-				Sheathe(false);
+				Sheathe(false, skipCheck:true);
 			}
 		}
     }

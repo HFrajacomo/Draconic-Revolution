@@ -170,6 +170,28 @@ public class AnimationHandler : MonoBehaviour {
 		return -1f;
 	}
 
+	// Looks for a given state clip in an ThirdPerson Animator and returns its clip length in seconds
+	// Returns a default value if clip wasn't found
+	public float GetClipLength(string stateName, float defaultValue=0.01f){
+		AnimatorOverrideController overrideController = tpAnimator.runtimeAnimatorController as AnimatorOverrideController;
+		if(overrideController != null){
+			List<KeyValuePair<AnimationClip, AnimationClip>> overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>(overrideController.overridesCount);
+			overrideController.GetOverrides(overrides);
+
+			for(int i = 0; i < overrides.Count; i++){
+				KeyValuePair<AnimationClip, AnimationClip> pair = overrides[i];
+				AnimationClip originalClip = pair.Key;
+				AnimationClip overrideClip = pair.Value;
+
+				if(originalClip != null && originalClip.name == stateName){
+					return overrideClip.length;
+				}
+			}
+		}
+
+		return defaultValue;
+	}
+
 	// Used when new style is set
 	public void CreateAttachments(BattleStyleData style){
 		GameObject attachmentGO;
@@ -189,13 +211,13 @@ public class AnimationHandler : MonoBehaviour {
 				bone = this.tpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][this.battleStyle.attachments[i].GetAnchorType()]);
 				attachmentGO.transform.parent = bone;
 
-		        AttachmentInstantiator.ApplyTransform(attachmentGO, this.battleStyle.attachments[i].flipModel, heightOffset:this.battleStyle.attachments[i].heightOffset);
+				AttachmentInstantiator.ApplyTransform(attachmentGO, this.battleStyle.attachments[i].flipModel, heightOffset:this.battleStyle.attachments[i].heightOffset);
 
-		        if(this.isPlayer)
-		        	attachmentGO.layer = 9;
+				if(this.isPlayer)
+					attachmentGO.layer = 9;
 
-		        this.attachmentDataIndexTP.Add(this.battleStyle.attachments[i].GetAnchorType(), i);
-		        AddAttachment(this.battleStyle.GetName(), this.battleStyle.attachments[i].GetAnchorType(), attachmentGO);
+				this.attachmentDataIndexTP.Add(this.battleStyle.attachments[i].GetAnchorType(), i);
+				AddAttachment(this.battleStyle.GetName(), this.battleStyle.attachments[i].GetAnchorType(), attachmentGO);
 			}
 		}
 		if(this.isPlayer){
@@ -206,13 +228,13 @@ public class AnimationHandler : MonoBehaviour {
 					bone = this.fpAnimator.gameObject.transform.Find(anchorMappings[this.controllerName][this.battleStyleFP.attachments[i].GetAnchorType()]);
 					attachmentGO.transform.parent = bone;
 
-		        	AttachmentInstantiator.ApplyTransform(attachmentGO, this.battleStyleFP.attachments[i].flipModel, heightOffset:this.battleStyleFP.attachments[i].heightOffset);
+					AttachmentInstantiator.ApplyTransform(attachmentGO, this.battleStyleFP.attachments[i].flipModel, heightOffset:this.battleStyleFP.attachments[i].heightOffset);
 
-			        if(this.isPlayer)
-			        	attachmentGO.layer = 12;
+					if(this.isPlayer)
+						attachmentGO.layer = 12;
 
-			        this.attachmentDataIndexFP.Add(this.battleStyleFP.attachments[i].GetAnchorType(), i);
-			        AddAttachment(this.battleStyleFP.GetName(), this.battleStyleFP.attachments[i].GetAnchorType(), attachmentGO);
+					this.attachmentDataIndexFP.Add(this.battleStyleFP.attachments[i].GetAnchorType(), i);
+					AddAttachment(this.battleStyleFP.GetName(), this.battleStyleFP.attachments[i].GetAnchorType(), attachmentGO);
 				}
 			}
 		}
@@ -452,8 +474,8 @@ public class AnimationHandler : MonoBehaviour {
 
 	private bool ArrayContains(string element, string[] arr){return Array.IndexOf(arr, element) >= 0;}
 	private bool IsFirstPersonString(string text){
-	    if (string.IsNullOrEmpty(text) || text.Length < 3)
-	        return false;
-	    return text.EndsWith("-FP");
+		if (string.IsNullOrEmpty(text) || text.Length < 3)
+			return false;
+		return text.EndsWith("-FP");
 	}
 }

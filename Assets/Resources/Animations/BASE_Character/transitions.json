@@ -465,6 +465,52 @@
 		{
 			"layer": "",
 			"sourceState": "Weapon Unsheathe",
+			"destinationState": "Weapon Sheathe",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+			"conditions": [
+				{
+					"mode": "if",
+					"parameter": "Sheathed",
+					"parameterType": "bool"
+				},
+				{
+					"mode": "if",
+					"parameter": "ISPLAYER",
+					"parameterType": "bool"
+				}
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Weapon Sheathe",
+			"destinationState": "Weapon Unsheathe",
+			"hasExitTime": true,
+			"exitTime": 1,
+			"duration": 0,
+			"offset": 0,
+			"canTransitionToSelf": false,
+			"interruptionSource": "source",
+			"conditions": [
+				{
+					"mode": "if not",
+					"parameter": "Sheathed",
+					"parameterType": "bool"
+				},
+				{
+					"mode": "if",
+					"parameter": "ISPLAYER",
+					"parameterType": "bool"
+				}
+			]
+		},
+		{
+			"layer": "",
+			"sourceState": "Weapon Unsheathe",
 			"destinationState": "On Air",
 			"hasExitTime": true,
 			"exitTime": 1,

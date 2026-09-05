@@ -42,7 +42,6 @@ public class EA_EquipmentBehaviour : EntityActionBehaviour {
 		EmptyPlayerInventorySlot slot2 = new EmptyPlayerInventorySlot(3, 0); // PLACEHOLDER SLOT SINCE SLOT2 IN EQUIPMENT INV IS NOT IMPLEMENTED YET
 
 		string style = BattleStyleDeterminator.Resolve(slot1, slot2);
-		Debug.Log(slot1);
 		int styleCode = AnimationLoader.GetBattleStyle(style).GetCode();
 
 		cl.server.SendBattleStyle(code, styleCode);
