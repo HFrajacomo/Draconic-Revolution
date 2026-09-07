@@ -58,6 +58,7 @@ public class ChunkLoader : MonoBehaviour
     public PlayerActionController playerActionController;
     public AmbientHandler ambientHandler;
     public VignetteController vignetteController;
+    public GameObject audioListenerObject;
 
     // Initialization
     public GameObject playerCharacter;
@@ -203,6 +204,7 @@ public class ChunkLoader : MonoBehaviour
 
                     this.gameUI.SetActive(true);
                     this.playerCharacter.SetActive(true);
+                    LoadAudio();
                     this.mainControllerManager.SetActive(true);
                     this.time.SetPlayer(this.playerCharacter);
                     this.client.SetRaycast(this.playerCharacter.GetComponent<PlayerRaycast>());
@@ -1185,6 +1187,14 @@ public class ChunkLoader : MonoBehaviour
 
             taskPool[i].Wait();
         }
+    }
+
+    // Passes the AudioListener from the scene to the Character's Camera
+    private void LoadAudio(){
+        this.audioListenerObject.transform.parent = this.cam.transform;
+        this.audioListenerObject.transform.localPosition = Vector3.zero;
+        this.audioListenerObject.transform.localRotation = Quaternion.identity;
+        this.audioListenerObject.transform.localScale = Vector3.one;
     }
 }
 

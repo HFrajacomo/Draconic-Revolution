@@ -15044,6 +15044,7 @@ MonoBehaviour:
   playerActionController: {fileID: 59614828}
   ambientHandler: {fileID: 1484502059}
   vignetteController: {fileID: 1912773814}
+  audioListenerObject: {fileID: 1507056012}
   playerCharacter: {fileID: 59614818}
   hotbarHandler: {fileID: 59614819}
   playerModelHandler: {fileID: 59614826}
@@ -21682,6 +21683,46 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   droppedItemHierarchy: {fileID: 1427935633}
+--- !u!1 &1507056012
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1507056014}
+  - component: {fileID: 1507056013}
+  m_Layer: 0
+  m_Name: AudioListener
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!81 &1507056013
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1507056012}
+  m_Enabled: 1
+--- !u!4 &1507056014
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1507056012}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1511391925
 GameObject:
   m_ObjectHideFlags: 0
@@ -23416,7 +23457,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1912773808}
   - component: {fileID: 1912773811}
-  - component: {fileID: 1912773810}
   - component: {fileID: 1912773809}
   - component: {fileID: 1912773812}
   - component: {fileID: 1912773813}
@@ -23460,14 +23500,6 @@ MonoBehaviour:
   ySensitivity: 0.14
   playerBody: {fileID: 59614821}
   controls: {fileID: 1635249984}
---- !u!81 &1912773810
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1912773807}
-  m_Enabled: 1
 --- !u!20 &1912773811
 Camera:
   m_ObjectHideFlags: 0
@@ -24231,6 +24263,7 @@ SceneRoots:
   - {fileID: 1635249985}
   - {fileID: 2085928826}
   - {fileID: 1588378841}
+  - {fileID: 1507056014}
   - {fileID: 553950993}
   - {fileID: 913350135}
   - {fileID: 1337578100}

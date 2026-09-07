@@ -283,7 +283,7 @@ public class EntityHandler
 	public GameObject GetEntityObject(EntityID id){
 		if(id.type == EntityType.PLAYER){
 			if(id.code == this.cl.playerAccountID){
-				return this.cl.playerCharacter;
+				return this.cl.audioListenerObject;
 			}
 
 			return this.playerObject[id.code];
