@@ -490,12 +490,8 @@ public class Client
 		ulong code = NetDecoder.ReadUlong(data, 1);
 		CharacterAppearance app = NetDecoder.ReadCharacterAppearance(data, 9);
 		bool isMale = NetDecoder.ReadBool(data, 256);
-		ushort item = NetDecoder.ReadUshort(data, 257);
-		byte quantity = data[259];
 
-		if(this.entityHandler.UpdatePlayerModel(code, app, isMale) && code != Configurations.accountID){
-			this.entityHandler.UpdatePlayerItem(code, item, quantity);
-		}
+		this.entityHandler.UpdatePlayerModel(code, app, isMale);
 	}
 
 	// Receives a character's sheet from Server
@@ -706,11 +702,13 @@ public class Client
 	// Receives the item code for an item a player is holding
 	private void SendItemInHand(byte[] data){
 		ulong playerCode = NetDecoder.ReadUlong(data, 1);
-		ushort item = NetDecoder.ReadUshort(data, 9);
-		byte amount = data[11];
+		bool isItem = NetDecoder.ReadBool(data, 9);
+		ushort id = NetDecoder.ReadUshort(data, 10);
+		ushort connectedItem = NetDecoder.ReadUshort(data, 12);
+		byte amount = data[14];
 
 		if(playerCode != Configurations.accountID)
-			this.entityHandler.UpdatePlayerItem(playerCode, item, amount);
+			this.entityHandler.UpdatePlayerItem(playerCode, id, connectedItem, isItem, amount);
 	}
 
 	// Receives from server a single AnimationState for a player

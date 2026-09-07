@@ -295,14 +295,12 @@ public struct NetMessage
 	}
 
 	// Server sends player appearance information to Client
-	public void SendPlayerAppearance(ulong code, CharacterAppearance app, bool isMale, ushort item, byte quantity){
+	public void SendPlayerAppearance(ulong code, CharacterAppearance app, bool isMale){
 		Reset();
 		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
 		NetDecoder.WriteCharacterAppearance(app, NetMessage.buffer, 9);
 		NetDecoder.WriteBool(isMale, NetMessage.buffer, 256);
-		NetDecoder.WriteUshort(item, NetMessage.buffer, 257);
-		NetDecoder.WriteByte(quantity, NetMessage.buffer, 259);
-		this.size = 260;
+		this.size = 257;
 	}
 
 	// Server sends the item in a player's hand to the Client
@@ -447,12 +445,24 @@ public struct NetMessage
 	}
 
 	// Server sends character item in hand to Clients
-	public void SendItemInHand(ulong playerCode, ushort itemID, byte amount){
+	public void SendItemInHand(ulong playerCode, bool isItem, ushort itemID, byte amount){
 		Reset();
 		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
-		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 9);
-		NetDecoder.WriteByte(amount, NetMessage.buffer, 11);
-		this.size = 12;
+		NetDecoder.WriteBool(isItem, NetMessage.buffer, 9);
+		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 10);
+		NetDecoder.WriteUshort(0, NetMessage.buffer, 12);
+		NetDecoder.WriteByte(amount, NetMessage.buffer, 14);
+		this.size = 15;
+	}
+	// Server sends character item in hand to Clients
+	public void SendItemInHand(ulong playerCode, bool isItem, ushort itemID, ushort connectedItem, byte amount){
+		Reset();
+		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
+		NetDecoder.WriteBool(isItem, NetMessage.buffer, 9);
+		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 10);
+		NetDecoder.WriteUshort(connectedItem, NetMessage.buffer, 12);
+		NetDecoder.WriteByte(amount, NetMessage.buffer, 14);
+		this.size = 15;
 	}
 
 	// Client or Server sends AnimatorState name and layer for a given playerCode (Should expand into all entities later)

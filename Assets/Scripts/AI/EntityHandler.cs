@@ -15,6 +15,7 @@ public class EntityHandler
 
 	private Dictionary<ulong, AnimationHandler> playerAnimations;
 	private Dictionary<ulong, ushort> playerItem;
+	private Dictionary<ulong, bool> playerItemOrActionInHand;
 	private Dictionary<ulong, DeltaMove> playerCurrentPositions;
 	private Dictionary<ulong, ItemEntity> dropObject;
 	private Dictionary<ulong, DeltaMove> dropCurrentPositions;
@@ -37,6 +38,7 @@ public class EntityHandler
 		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.playerAnimations = new Dictionary<ulong, AnimationHandler>();
 		this.playerBattleStyle = new Dictionary<ulong, int>();
+		this.playerItemOrActionInHand = new Dictionary<ulong, bool>();
 		this.cl = cl;
 		this.playerModelHandler = cl.playerModelHandler;
 		BASE_CONTROLLER = AnimationLoader.GetController("BASE_Character");
@@ -91,6 +93,7 @@ public class EntityHandler
 		this.playerObject.Add(code, go);
 		this.playerHead.Add(code, go.transform.Find("Camera"));
 		this.playerItem.Add(code, 0);
+		this.playerItemOrActionInHand.Add(code, true);
 		this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
 		this.playerAnimations.Add(code, null);
 		this.playerBattleStyle.Add(code, -1);
@@ -207,13 +210,14 @@ public class EntityHandler
 	// ...
 	public void Remove(EntityType type, ulong code){
 		if(type == EntityType.PLAYER){
-			UpdatePlayerItem(code, 0, 1);
+			UpdatePlayerItem(code, 0, 0, true, 1);
 			
 			this.playerObject[code].SetActive(false);
 			GameObject.Destroy(this.playerObject[code]);
 			this.playerHead.Remove(code);
 			this.playerObject.Remove(code);
 			this.playerItem.Remove(code);
+			this.playerItemOrActionInHand.Remove(code);
 			this.playerCurrentPositions.Remove(code);
 			this.playerSheet.Remove(code);
 			this.playerAnimations.Remove(code);
@@ -306,20 +310,29 @@ public class EntityHandler
 		return null;
 	}
 
-	public void UpdatePlayerItem(ulong playerCode, ushort item, byte quantity){
+	public void UpdatePlayerItem(ulong playerCode, ushort id, ushort connectedItemId, bool isItem, byte quantity){
 		if(!this.playerItem.ContainsKey(playerCode)){
 			return;
 		}
 
-		if(this.playerItem[playerCode] == item){
+		if(this.playerItem[playerCode] == id && this.playerItemOrActionInHand[playerCode] == isItem){
 			return;
 		}
 
 		ushort oldItem = this.playerItem[playerCode];
+		bool oldIsItem = this.playerItemOrActionInHand[playerCode];
 
-		ItemLoader.GetItem(oldItem).OnUnholdClient(this.cl, new ItemStack(oldItem, 1), playerCode);
-		this.playerItem[playerCode] = item;
-		ItemLoader.GetItem(item).OnHoldClient(this.cl, new ItemStack(item, quantity), playerCode);
+		if(oldIsItem)
+			ItemLoader.GetItem(oldItem).OnUnholdClient(this.cl, new ItemStack(oldItem, 1), playerCode);
+		else
+			ActionLoader.GetAction(oldItem).OnUnholdClient(this.cl, new ItemStack(connectedItemId, 1), playerCode);
+
+		this.playerItem[playerCode] = id;
+
+		if(oldIsItem)
+			ItemLoader.GetItem(id).OnHoldClient(this.cl, new ItemStack(id, quantity), playerCode);
+		else
+			ActionLoader.GetAction(id).OnHoldClient(this.cl, new ItemStack(connectedItemId, 1), playerCode);
 
 	}
 

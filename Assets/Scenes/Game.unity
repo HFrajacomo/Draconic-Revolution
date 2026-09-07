@@ -15039,7 +15039,6 @@ MonoBehaviour:
   mainControllerManager: {fileID: 1635249983}
   audioManager: {fileID: 0}
   sfx: {fileID: 246974018}
-  playerAudioListener: {fileID: 1912773810}
   playerPositionHandler: {fileID: 59614825}
   voxelLightHandler: {fileID: 2085928825}
   playerActionController: {fileID: 59614828}
@@ -23468,7 +23467,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1912773807}
-  m_Enabled: 0
+  m_Enabled: 1
 --- !u!20 &1912773811
 Camera:
   m_ObjectHideFlags: 0

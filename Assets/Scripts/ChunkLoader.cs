@@ -53,7 +53,6 @@ public class ChunkLoader : MonoBehaviour
     public GameObject mainControllerManager;
     public AudioManager audioManager;
     public SFXLoader sfx;
-    public AudioListener playerAudioListener;
     public PlayerPositionHandler playerPositionHandler;
     public VoxelLightHandler voxelLightHandler;
     public PlayerActionController playerActionController;
@@ -132,7 +131,6 @@ public class ChunkLoader : MonoBehaviour
         Cursor.visible = true;
 
         Redirector.SetServerClosure();
-        this.playerAudioListener.enabled = false;
         this.biomeHandler.Clear();
         this.biomeHandler = null;
         this.mainControllerManager = null;
@@ -191,7 +189,6 @@ public class ChunkLoader : MonoBehaviour
             this.playerPositionHandler.Activate();
 
             this.audioManager.SetPlayerPositionInVoice3DTrack(this.player);
-            this.playerAudioListener.enabled = true;
 
             GetChunks(true);  
             this.REQUESTEDCHUNKS = true;

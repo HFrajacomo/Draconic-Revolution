@@ -12,6 +12,7 @@ public abstract class PlayerServerInventorySlot{
 
 	public int GetSlotMemorySize(){return this.slotMemorySize;}
 	public byte GetSlotID(){return this.slotID;}
+	public abstract bool IsItem();
 	public ItemStack GetItemStack(){return new ItemStack(this.itemID, this.quantity);}
 	public abstract int SaveToBuffer(byte[] buffer, int init);
 	public virtual int GetItemID(){return (int)this.itemID;}
@@ -125,6 +126,7 @@ public class EmptyPlayerInventorySlot : PlayerServerInventorySlot {
 	}
 
 	public override int GetItemID(){return 0;}
+	public override bool IsItem(){return true;}
 
 	public override int GetQuantity(){return 0;}
 }
@@ -141,6 +143,8 @@ public class ItemPlayerInventorySlot : PlayerServerInventorySlot {
 		this.inventoryType = invType;
 		this.slotID = slotID;
 	}
+
+	public override bool IsItem(){return true;}
 
 	public override int SaveToBuffer(byte[] buffer, int init){
 		NetDecoder.WriteByte((byte)this.type, buffer, init);
@@ -176,6 +180,8 @@ public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
 		this.inventoryType = invType;
 		this.slotID = slotID;
 	}
+
+	public override bool IsItem(){return true;}
 
 	public override int SaveToBuffer(byte[] buffer, int init){
 		NetDecoder.WriteByte((byte)this.type, buffer, init);
@@ -213,6 +219,8 @@ public class ActionInventorySlot : PlayerServerInventorySlot {
 		this.inventoryType = invType;
 		this.slotID = slotID;
 	}
+
+	public override bool IsItem(){return false;}
 
 	public override int SaveToBuffer(byte[] buffer, int init){
 		NetDecoder.WriteByte((byte)this.type, buffer, init);
@@ -279,4 +287,6 @@ public class StoragePlayerInventorySlot : PlayerServerInventorySlot {
 
 		return this.slotMemorySize;
 	}
+
+	public override bool IsItem(){return true;}
 }

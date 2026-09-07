@@ -263,6 +263,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(slot), 48);
 			
 			SendHotbarInfoToServer();
+			RunHoldUnholdEvent(slot, true);
 			PlayerHotbarHandler.STARTED = true;
 		}
 	}

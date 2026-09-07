@@ -765,7 +765,7 @@ public class Server {
 							its.GetItem().OnUnholdServer(this.cl, its , id);
 
 							NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
-							unholdMessage.SendItemInHand(id, 0, 0);
+							unholdMessage.SendItemInHand(id, true, 0, 0);
 							this.SendToClientsExcept(id, unholdMessage);
 						}
 
@@ -794,7 +794,7 @@ public class Server {
 						its.GetItem().OnUnholdServer(this.cl, its , id);
 
 						NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
-						unholdMessage.SendItemInHand(id, 0, 0);
+						unholdMessage.SendItemInHand(id, true, 0, 0);
 						this.SendToClientsExcept(id, unholdMessage);
 					}
 
@@ -804,7 +804,7 @@ public class Server {
 						its.GetItem().OnUnholdServer(this.cl, its , id);
 
 						NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
-						unholdMessage.SendItemInHand(id, 0, 0);
+						unholdMessage.SendItemInHand(id, true, 0, 0);
 						this.SendToClientsExcept(id, unholdMessage);
 					}
 
@@ -918,15 +918,14 @@ public class Server {
 		CharacterSheet cs = this.cl.characterFileHandler.LoadCharacterSheet(requestedID);
 		CharacterAppearance app;
 		bool isMale;
-		ItemStack its;
+		ItemStack selectionIts;
+		EntityAction selectionEa;
 		bool trash;
 
-		byte slot = cs.GetHotbarSlot();
+		byte slot;
 
 		if(!this.cl.playerServerInventory.HasInventory(requestedID))
 			this.cl.playerServerInventory.LoadInventoryIntoBuffer(requestedID, out trash);
-
-		its = this.cl.playerServerInventory.GetSlot(requestedID, slot).GetItemStack();
 
 		if(cs == null)
 			return;
@@ -936,8 +935,25 @@ public class Server {
 		}
 
 		NetMessage message = new NetMessage(NetCode.SENDPLAYERAPPEARANCE);
-		message.SendPlayerAppearance(requestedID, app, isMale, its.GetID(), its.GetAmount());
+		message.SendPlayerAppearance(requestedID, app, isMale);
 		this.Send(message.GetMessage(), message.size, id);
+
+		NetMessage itemMessage = new NetMessage(NetCode.SENDITEMINHAND);
+
+		if(cs.IsInNormalHotbar()){
+			slot = cs.GetHotbarSlot();
+			selectionIts = this.cl.playerServerInventory.GetSlot(id, 1, slot).GetItemStack();
+			selectionIts.GetItem().OnHoldServer(this.cl, selectionIts, id);
+			itemMessage.SendItemInHand(id, cs.IsInNormalHotbar(), selectionIts.GetID(), selectionIts.GetAmount());
+		}
+		else{
+			slot = cs.GetAttackHotbarSlot();
+			selectionEa = ((ActionInventorySlot)this.cl.playerServerInventory.GetSlot(id, 0, slot)).GetAction();
+			selectionEa.OnHoldServer(this.cl, selectionEa.GetItemStack(null), id);
+			itemMessage.SendItemInHand(id, cs.IsInNormalHotbar(), selectionEa.GetID(), (ushort)this.cl.playerServerInventory.GetSlot(id, selectionEa.GetConnectedStackInventory(), selectionEa.GetConnectedStackSlot()).GetItemID(), 0);
+		}
+
+		this.Send(itemMessage.GetMessage(), message.size, id);
 	}
 
 	// Receives a disconnect call from client
@@ -1176,7 +1192,7 @@ public class Server {
 				ItemLoader.GetItem(itemCode).OnUnholdServer(this.cl, its , id);
 
 				unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
-				unholdMessage.SendItemInHand(id, 0, 0);
+				unholdMessage.SendItemInHand(id, true, 0, 0);
 				this.SendToClientsExcept(id, unholdMessage);
 			}
 		}
@@ -1307,26 +1323,46 @@ public class Server {
 	// Receives the inventory of client and saves it
 	private void SendInventory(byte[] data, ulong id){
 		byte selectedSlot;
-		ItemStack previousItem, currentItem;
+		Item prevItem, currItem;
+		ClickableSlot previousSlot, currentSlot;
 		CharacterSheet sheet;
 		NetMessage message;
+		bool isNormalHotbar;
 
 		if(this.entityHandler.ContainsSheet(id)){
 			sheet = this.entityHandler.GetSheet(id);
+			isNormalHotbar = sheet.IsInNormalHotbar();
 			selectedSlot = sheet.GetHotbarSlot();
-			previousItem = this.cl.playerServerInventory.GetSlot(id, selectedSlot).GetItemStack();
 
+			if(isNormalHotbar)
+				previousSlot = this.cl.playerServerInventory.GetSlot(id, selectedSlot).GetItemStack();
+			else
+				previousSlot = ((ActionInventorySlot)this.cl.playerServerInventory.GetSlot(id, selectedSlot)).GetAction();
 
 			this.cl.playerServerInventory.AddInventory(id, data);
 
-			currentItem = this.cl.playerServerInventory.GetSlot(id, selectedSlot).GetItemStack();
+			if(isNormalHotbar)
+				currentSlot = this.cl.playerServerInventory.GetSlot(id, selectedSlot).GetItemStack();
+			else
+				currentSlot = ((ActionInventorySlot)this.cl.playerServerInventory.GetSlot(id, selectedSlot)).GetAction();
 
-			if(previousItem.GetID() != currentItem.GetID()){
-				previousItem.GetItem().OnUnholdServer(this.cl, previousItem, id);
-				currentItem.GetItem().OnHoldServer(this.cl, currentItem, id);
-
+			if(previousSlot.GetID() != currentSlot.GetID()){
 				message = new NetMessage(NetCode.SENDITEMINHAND);
-				message.SendItemInHand(id, currentItem.GetID(), currentItem.GetAmount());
+
+				if(isNormalHotbar){
+					prevItem = ((ItemStack)previousSlot).GetItem();
+					currItem = ((ItemStack)currentSlot).GetItem();
+					prevItem.OnUnholdServer(this.cl, (ItemStack)previousSlot, id);
+					currItem.OnHoldServer(this.cl, (ItemStack)currentSlot, id);
+					message.SendItemInHand(id, sheet.IsInNormalHotbar(), currentSlot.GetID(), ((ItemStack)currentSlot).GetAmount());
+				}
+				else{
+					((EntityAction)previousSlot).OnUnholdServer(this.cl, ((EntityAction)previousSlot).GetItemStack(null), id);
+					((EntityAction)currentSlot).OnHoldServer(this.cl, ((EntityAction)currentSlot).GetItemStack(null), id);
+					EntityAction ea = (EntityAction)currentSlot;
+					message.SendItemInHand(id, sheet.IsInNormalHotbar(), currentSlot.GetID(), (ushort)this.cl.playerServerInventory.GetSlot(id, ea.GetConnectedStackInventory(), ea.GetConnectedStackSlot()).GetItemID(), 0);
+				}
+
 				this.SendToClientsExcept(id, message);
 			}
 		}
@@ -1438,7 +1474,7 @@ public class Server {
 				hotbarStack.GetItem().OnHoldServer(this.cl, hotbarStack, id);
 
 				message = new NetMessage(NetCode.SENDITEMINHAND);
-				message.SendItemInHand(id, hotbarStack.GetID(), hotbarStack.GetAmount());
+				message.SendItemInHand(id, true, hotbarStack.GetID(), hotbarStack.GetAmount());
 				this.SendToClientsExcept(id, message);
 			}
 			// Check if the current selected slot is in Action Hotbar
@@ -1458,6 +1494,10 @@ public class Server {
 					}
 					
 					hotbarAction.OnHoldServer(this.cl, hotbarStack, id);
+
+					message = new NetMessage(NetCode.SENDITEMINHAND);
+					message.SendItemInHand(id, false, hotbarAction.GetID(), (ushort)this.cl.playerServerInventory.GetSlot(id, hotbarAction.GetConnectedStackInventory(), hotbarAction.GetConnectedStackSlot()).GetItemID(), 0);
+					this.SendToClientsExcept(id, message);
 				}
 			}
 		}
