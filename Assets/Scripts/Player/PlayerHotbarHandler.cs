@@ -149,23 +149,21 @@ public class PlayerHotbarHandler : MonoBehaviour
 
 	// Checks if the current ItemStack selected has a different item from the last and run
 	public void RefreshItemEffects(){
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			ClickableSlot current = GetSlotStack();
-			if(!ClickableSlot.IsEqual(current, previousSlot)){
-				// OnUnhold
-				if(previousSlot != null && previousSlot.IsItemStack())
-					((ItemStack)previousSlot).GetItem().OnUnholdPlayer(this.cl, (ItemStack)previousSlot, Configurations.accountID);
-				else if(previousSlot != null)
-					((EntityAction)previousSlot).OnUnholdPlayer(this.cl, ((EntityAction)previousSlot).GetItemStack(playerInventoryManager), Configurations.accountID);
+		ClickableSlot current = GetSlotStack();
+		if(!ClickableSlot.IsEqual(current, previousSlot)){
+			// OnUnhold
+			if(previousSlot != null && previousSlot.IsItemStack())
+				((ItemStack)previousSlot).GetItem().OnUnholdPlayer(this.cl, (ItemStack)previousSlot, Configurations.accountID);
+			else if(previousSlot != null)
+				((EntityAction)previousSlot).OnUnholdPlayer(this.cl, ((EntityAction)previousSlot).GetItemStack(playerInventoryManager), Configurations.accountID);
 
-				// OnHold
-				if(current != null && current.IsItemStack())
-					((ItemStack)current).GetItem().OnHoldPlayer(this.cl, (ItemStack)current, Configurations.accountID);
-				else if(current != null)
-					((EntityAction)current).OnHoldPlayer(this.cl, ((EntityAction)current).GetItemStack(playerInventoryManager), Configurations.accountID);
+			// OnHold
+			if(current != null && current.IsItemStack())
+				((ItemStack)current).GetItem().OnHoldPlayer(this.cl, (ItemStack)current, Configurations.accountID);
+			else if(current != null)
+				((EntityAction)current).OnHoldPlayer(this.cl, ((EntityAction)current).GetItemStack(playerInventoryManager), Configurations.accountID);
 
-				previousSlot = current;
-			}
+			previousSlot = current;
 		}
 	}
 
