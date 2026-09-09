@@ -66,8 +66,8 @@ public class PlayerHotbarHandler : MonoBehaviour
 			img.material = Instantiate(this.actionMaterial);
 		}
 
+		this.animator.keepAnimatorStateOnDisable = true;
 		InitiateHotbar();
-
 		this.DrawHotbar();
 	}
 

@@ -221,13 +221,8 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.SetBool("IsSheathing", true);
 		this.animatorFP.SetBool("IsSheathing", true);
 
-		if(this.weaponSheathed){
-			this.comboHit = 0;
-			RegisterRestriction(PlayerActionRestriction.PRIMARY, 0);
-		}
-		else{
-			RemoveRestriction(PlayerActionRestriction.PRIMARY);
-		}
+		this.comboHit = 0;
+		RegisterRestriction(PlayerActionRestriction.PRIMARY, animationTime + 0.05f);
 
 		// In case of this action being triggered by action queue
 		if(flag){
