@@ -29,6 +29,7 @@ public class PlayerActionController : MonoBehaviour {
 	private float hitWindowStart = .48f;
 	private float attackExitTime = .8f;
 	private HashSet<PlayerActionType> registeredAction;
+	private Dictionary<PlayerActionType, int> registeredData;
 	private HashSet<PlayerActionRestriction> restrictions;
 	private Dictionary<PlayerActionRestriction, Coroutine> restrictionTimer;
 	private HashSet<string> currentlyQueuedState;
@@ -98,6 +99,7 @@ public class PlayerActionController : MonoBehaviour {
 		this.originalController = this.animator.runtimeAnimatorController;
 		this.originalControllerFP = this.animatorFP.runtimeAnimatorController;
 		this.registeredAction = new HashSet<PlayerActionType>();
+		this.registeredData = new Dictionary<PlayerActionType, int>();
 		this.playlist = new List<string>();
 		this.overrideState = new List<bool>();
 		this.ignoreFP = new List<bool>();
@@ -108,20 +110,49 @@ public class PlayerActionController : MonoBehaviour {
 		statesPlayed = new List<AnimationData>();
 	}
 
-	public void UseStyle(int style, bool updatePlayerDataAndServer=false){
+	public void UseStyle(int style, bool skipCheck=false){
 		if(!this.INIT)
 			Init();
 
-		// Simple lock to avoid Style Switching without having weaponSheathed first
-		if(!this.weaponSheathed){
-			SyncCurrentStyleToServer();
+		if(!skipCheck){
+			if(this.currentStyleCode == style){
+				if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
+					this.registeredAction.Remove(PlayerActionType.USE_STYLE);
+					this.registeredData.Remove(PlayerActionType.USE_STYLE);
+				}
+				return;
+			}
+
+			if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
+				this.registeredData[PlayerActionType.USE_STYLE] = style;
+				return;
+			}
+		}
+
+		if(HasRestriction(PlayerActionRestriction.USE_STYLE)){
+			RegisterUseStyle(style);
 			return;
 		}
 
-		if(this.currentStyleCode == style)
+		if(!this.weaponSheathed){
+			Sheathe(true);
+			RegisterUseStyle(style);
+			Sheathe(false);
 			return;
+		}
+		
+		ForceUseStyle(style);
+	}
+	public void UseStyle(string styleName){UseStyle(AnimationLoader.GetBattleStyle(styleName).GetCode());}
+	public void ForceUseStyle(int style){
+		if(this.currentStyleCode == style){
+			this.registeredAction.Remove(PlayerActionType.USE_STYLE);
+			this.registeredData.Remove(PlayerActionType.USE_STYLE);
+			return;
+		}
 
 		this.currentStyle = AnimationLoader.GetBattleStyle(style);
+		this.currentStyleCode = style;
 		this.animationHandler.CreateAttachments(this.currentStyle);
 
 		AnimatorOverrideController animationOverrideController = new AnimatorOverrideController(this.originalController);
@@ -132,20 +163,10 @@ public class PlayerActionController : MonoBehaviour {
 
 		this.animator.runtimeAnimatorController = animationOverrideController;
 		this.animatorFP.runtimeAnimatorController = animationOverrideControllerFP;
-		this.animator.SetBool("ISPLAYER", true);
-		this.animator.SetBool("Sheathed", true);
-		this.animatorFP.SetBool("Sheathed", true);
 
-		if(updatePlayerDataAndServer){
-			NetMessage message = new NetMessage(NetCode.SENDBATTLESTYLE);
-			message.SendBattleStyle(Configurations.accountID, style);
-			this.cl.client.Send(message);
-
-			this.cl.playerSheetController.GetSheet().SetBattleStyleCode(style);
-			this.cl.playerSheetController.SendToServer();
-		}
+		this.registeredAction.Remove(PlayerActionType.USE_STYLE);
+		this.registeredData.Remove(PlayerActionType.USE_STYLE);
 	}
-	public void UseStyle(string style, bool updatePlayerDataAndServer=false){UseStyle(AnimationLoader.GetBattleStyle(style).GetCode(), updatePlayerDataAndServer:updatePlayerDataAndServer);}
 
 	public void RemoveAllStyles(){
 		this.animator.runtimeAnimatorController = this.originalController;
@@ -170,10 +191,14 @@ public class PlayerActionController : MonoBehaviour {
 		}
 
 		if(this.weaponSheathed == flag){
+			if(flag && this.registeredAction.Contains(PlayerActionType.SHEATHE_ON))
+				this.registeredAction.Remove(PlayerActionType.SHEATHE_ON);
+			else if(!flag && this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF))
+				this.registeredAction.Remove(PlayerActionType.SHEATHE_OFF);
 			return;
 		}
 
-		if(this.restrictions.Contains(PlayerActionRestriction.SHEATHE)){
+		if(HasRestriction(PlayerActionRestriction.SHEATHE)){
 			RegisterSheathe(flag);
 			return;
 		}
@@ -189,6 +214,7 @@ public class PlayerActionController : MonoBehaviour {
 			animationTime = this.animationHandler.GetClipLength("Weapon Unsheathe") - 0.05f;
 
 		RegisterRestriction(PlayerActionRestriction.SHEATHE, animationTime);
+		RegisterRestriction(PlayerActionRestriction.USE_STYLE, animationTime);
 		this.weaponSheathed = flag;
 		this.animator.SetBool("Sheathed", this.weaponSheathed);
 		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
@@ -253,6 +279,12 @@ public class PlayerActionController : MonoBehaviour {
 			this.registeredAction.Add(PlayerActionType.SHEATHE_ON);
 		else
 			this.registeredAction.Add(PlayerActionType.SHEATHE_OFF);
+	}
+
+	// Registers UseStyle
+	public void RegisterUseStyle(int style){
+		this.registeredAction.Add(PlayerActionType.USE_STYLE);
+		this.registeredData.Add(PlayerActionType.USE_STYLE, style);
 	}
 
 	public void VerifyMovement(Vector3 facingDirection, Vector3 movementDirection, float runMomentum, float gravity, MovementFlags flags){
@@ -326,11 +358,19 @@ public class PlayerActionController : MonoBehaviour {
 		yield return new WaitForSeconds(timeout);
 		RemoveRestriction(rest);
 
-		if(rest == PlayerActionRestriction.SHEATHE){
+		if(rest == PlayerActionRestriction.USE_STYLE){
+			if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
+				ForceUseStyle(this.registeredData[PlayerActionType.USE_STYLE]);
+			}
+		}
+		else if(rest == PlayerActionRestriction.SHEATHE){
+			if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
+				ForceUseStyle(this.registeredData[PlayerActionType.USE_STYLE]);
+			}
 			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
 				Sheathe(true, skipCheck:true);
 			}
-			else if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
+			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
 				Sheathe(false, skipCheck:true);
 			}
 		}
@@ -415,12 +455,5 @@ public class PlayerActionController : MonoBehaviour {
 
 		this.animatorParameterMessage.SendAnimatorParameter(Configurations.accountID, val, parameter);
 		this.cl.client.Send(this.animatorParameterMessage);
-	}
-
-	// Used when UseStyle is denied by Client
-	private void SyncCurrentStyleToServer(){
-		NetMessage message = new NetMessage(NetCode.SENDBATTLESTYLE);
-		message.SendBattleStyle(Configurations.accountID, this.currentStyle.GetCode());
-		this.cl.client.Send(message);
 	}
 }

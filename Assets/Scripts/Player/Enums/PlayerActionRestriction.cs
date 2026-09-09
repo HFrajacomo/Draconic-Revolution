@@ -4,5 +4,6 @@ public enum PlayerActionRestriction : byte {
 	JUMP,
 	SHEATHE,
 	STUNNED,
+	USE_STYLE,
 	SYSTEM
 }

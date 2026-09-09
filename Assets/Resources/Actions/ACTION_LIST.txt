@@ -1,2 +1,3 @@
+BASE_NULL_ACTION
 BASE_EquipmentAttack
 BASE_BlockPlace

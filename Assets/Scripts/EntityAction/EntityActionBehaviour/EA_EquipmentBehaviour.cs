@@ -25,9 +25,7 @@ public class EA_EquipmentBehaviour : EntityActionBehaviour {
 		symbol = SYMBOL;
 	}
 	
-	public override void OnPrimaryPlayer(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){
-
-	}
+	public override void OnPrimaryPlayer(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){}
 
 	public override void OnHoldPlayer(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){
 		cl.playerActionController.Sheathe(false);
@@ -38,12 +36,9 @@ public class EA_EquipmentBehaviour : EntityActionBehaviour {
 	}
 
 	public override void OnHoldServer(ChunkLoader_Server cl, EntityAction ea, ItemStack its, ulong code){
-		PlayerServerInventorySlot slot1 = cl.playerServerInventory.GetSlot(code, 3, 0);
-		EmptyPlayerInventorySlot slot2 = new EmptyPlayerInventorySlot(3, 0); // PLACEHOLDER SLOT SINCE SLOT2 IN EQUIPMENT INV IS NOT IMPLEMENTED YET
-
-		string style = BattleStyleDeterminator.Resolve(slot1, slot2);
-		int styleCode = AnimationLoader.GetBattleStyle(style).GetCode();
-
+		int styleCode = BattleStyleDeterminator.Resolve(cl, code);
 		cl.server.SendBattleStyle(code, styleCode);
 	}
+
+	public override void OnEquipChangeServer(ChunkLoader_Server cl, EntityAction ea, ulong code){ OnHoldServer(cl, ea, null, code); }
 }

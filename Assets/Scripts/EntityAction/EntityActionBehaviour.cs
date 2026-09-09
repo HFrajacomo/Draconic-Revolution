@@ -26,6 +26,10 @@ public abstract class EntityActionBehaviour {
 	public virtual void OnUnholdClient(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){ return; }
 	public virtual void OnUnholdServer(ChunkLoader_Server cl, EntityAction ea, ItemStack its, ulong code){ return; }
 
+	// EquipChange
+	public virtual void OnEquipChangePlayer(ChunkLoader cl, EntityAction ea){ return; }
+	public virtual void OnEquipChangeServer(ChunkLoader_Server cl, EntityAction ea, ulong code) { return; }
+
 	// Primary
 	public virtual void OnPrimaryPlayer(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){ return; }
 	public virtual void OnPrimaryClient(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){ return; }

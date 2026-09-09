@@ -40,6 +40,12 @@ public static class BattleStyleDeterminator {
 			{(WeaponType.FIST, WeaponType.PICKAXE), "BASE_Pickaxe"}
 		};
 
+	public static int Resolve(ChunkLoader_Server cl, ulong playerCode){
+		PlayerServerInventorySlot slot1 = cl.playerServerInventory.GetSlot(playerCode, 3, 0);
+		EmptyPlayerInventorySlot slot2 = new EmptyPlayerInventorySlot(3, 0); // PLACEHOLDER SLOT SINCE SLOT2 IN EQUIPMENT INV IS NOT IMPLEMENTED YET
+
+		return AnimationLoader.GetBattleStyle(Resolve(slot1, slot2)).GetCode();
+	}
 	public static string Resolve(ItemStack its1, ItemStack its2){
 		WeaponType w1 = WeaponType.FIST;
 		WeaponType w2 = WeaponType.FIST;

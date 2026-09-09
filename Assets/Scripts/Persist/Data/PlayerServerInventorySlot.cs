@@ -13,8 +13,9 @@ public abstract class PlayerServerInventorySlot{
 	public int GetSlotMemorySize(){return this.slotMemorySize;}
 	public byte GetSlotID(){return this.slotID;}
 	public abstract bool IsItem();
-	public ItemStack GetItemStack(){return new ItemStack(this.itemID, this.quantity);}
+	public virtual ItemStack GetItemStack(){return new ItemStack(this.itemID, this.quantity);}
 	public abstract int SaveToBuffer(byte[] buffer, int init);
+	public virtual EntityAction GetAction(){throw new ServerInventorySlotHasNoAction($"{this.GetType().Name} doesn't have an Action defined");}
 	public virtual int GetItemID(){return (int)this.itemID;}
 	public virtual int GetQuantity(){return 1;}
 	public virtual void SetQuantity(byte quantity){}
@@ -125,6 +126,9 @@ public class EmptyPlayerInventorySlot : PlayerServerInventorySlot {
 		return 1;
 	}
 
+	public override ItemStack GetItemStack(){return new ItemStack(0, 1);}
+	public override EntityAction GetAction(){return ActionLoader.GetCopy(0);}
+
 	public override int GetItemID(){return 0;}
 	public override bool IsItem(){return true;}
 
@@ -233,7 +237,7 @@ public class ActionInventorySlot : PlayerServerInventorySlot {
 		return this.slotMemorySize;
 	}
 
-	public EntityAction GetAction(){return ActionLoader.GetAction(this.itemID);}
+	public override EntityAction GetAction(){return ActionLoader.GetAction(this.itemID);}
 	public bool IsConnectedToItem(){return this.connectedToStack;}
 	public byte GetStackInventory(){return this.connectedStackInventory;}
 	public byte GetStackSlot(){return this.connectedStackSlot;}

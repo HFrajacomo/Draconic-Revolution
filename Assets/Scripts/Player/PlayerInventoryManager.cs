@@ -307,6 +307,14 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     	NetMessage message = new NetMessage(NetCode.EQUIPITEM);
 
+    	// Triggers OnEquipChangePlayer
+    	if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR){
+    		EntityAction ea = this.inventory[0].GetPos(PlayerHotbarHandler.attackHotbarSlot);
+
+    		if(ea != null)
+    			ea.OnEquipChangePlayer(this.cl);
+    	}
+
     	if(old == null)
 			message.EquipItem(Configurations.accountID, NULL_ITEM, neew.GetItem());
 		else if(newItem == null)
@@ -335,7 +343,6 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 	            if(its.Decrement()){
 	                SetNull(inventoryCode, slot);
-	                SendEquipDataToServer(inventoryCode, (ClickableSlot)its, null);
 	            }
 
 	            its = new ItemStack(id, amount);
@@ -345,7 +352,6 @@ public class PlayerInventoryManager : MonoBehaviour {
 	            SubToCounter(its);
 	            SetNull(inventoryCode, slot);
 	            DrawSlot(inventoryCode, slot);
-	            SendEquipDataToServer(inventoryCode, (ClickableSlot)its, null);
 	        }
 
 	        DropItem(its, inventoryCode, slot);
@@ -369,6 +375,7 @@ public class PlayerInventoryManager : MonoBehaviour {
         this.cl.client.Send(message);
 
         SendInventoryDataToServer();
+        SendEquipDataToServer(inventoryCode, (ClickableSlot)its, null);
     }
 
     public Inventory GetMainInventory(){
@@ -496,8 +503,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 	            this.detailsPanel.SetActive(false);
 	        }
 
-            SendEquipDataToServer(inventoryCode, this.draggedStack, null);
             SendInventoryDataToServer();
+            SendEquipDataToServer(inventoryCode, this.draggedStack, null);
     	}
     	// If has no slot selected and shift clicked
     	else if(this.draggedStack == null && MainControllerManager.shifting){
@@ -537,6 +544,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 				foreach(InventoryTransaction it in changes){
 					DrawSlot((byte)targetInventory, it.slotNumber);
 				}
+
+				SendInventoryDataToServer();
+				SendEquipDataToServer(inventoryCode, (ClickableSlot)its, null);
 			}
 			// If is Action
 			else{
@@ -554,12 +564,12 @@ public class PlayerInventoryManager : MonoBehaviour {
 				else{
 					return;
 				}
+
+				SendInventoryDataToServer();
+				SendEquipDataToServer(inventoryCode, (ClickableSlot)ea, null);
 			}
 
     		DrawSlot(inventoryCode, slot);
-
-            SendEquipDataToServer(inventoryCode, this.draggedStack, null);
-			SendInventoryDataToServer();
     	}
     	// If has a selected slot
     	else if(this.draggedStack != null){
@@ -593,8 +603,8 @@ public class PlayerInventoryManager : MonoBehaviour {
     					ResetSelection();    					
 						DrawSlot(inventoryCode, slot);
 
-			            SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
 						SendInventoryDataToServer();
+			            SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
     				}
 		    		// If items are different
 		    		else if(!((ItemStack)this.draggedStack).IsEqual(this.inventory[inventoryCode].GetSlot(slot))){
@@ -613,10 +623,10 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 						DrawSlot(inventoryCode, slot);
 
-			            SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
 						SendInventoryDataToServer();
+			            SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
 					}
-					// Stack together same ItemStacks
+					// Stack together same Stacks
 					else{
 						int previousAmount = ((ItemStack)this.draggedStack).GetAmount();
 						this.draggedStack = this.inventory[inventoryCode].Transfer((ItemStack)this.draggedStack, slot);
@@ -695,8 +705,8 @@ public class PlayerInventoryManager : MonoBehaviour {
     				}
 
     				DrawSlot(inventoryCode, slot);
-		            SendEquipDataToServer(inventoryCode, this.draggedStack, this.inventory[inventoryCode].GetPos(slot));
 					SendInventoryDataToServer();
+		            SendEquipDataToServer(inventoryCode, this.draggedStack, this.inventory[inventoryCode].GetPos(slot));
     			}
 			}
     	}
@@ -740,6 +750,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		            this.draggedStackOriginInventory = inventoryCode;
 		            this.draggedStackOriginSlot = slot;
 
+		            SendInventoryDataToServer();
 		            SendEquipDataToServer(inventoryCode, this.draggedStack, null);
 	    		}
 	    		// If stack has more than 1 item
@@ -765,6 +776,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 		            this.draggedStackOriginSlot = slot;
 
 		            this.detailsImage.material.SetTexture("_Texture", ItemLoader.GetSprite(item.GetID()));
+
+		            SendInventoryDataToServer();
 	    		}
 	    	}
 	    	// If right clicked Action Inventory
@@ -779,9 +792,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    		this.inventory[inventoryCode].SetNull(slot);
 	    		RemoveConnection((byte)slot);
 	    		DrawSlot(inventoryCode, slot);
-	    	}
 
-    		SendInventoryDataToServer();
+	    		SendInventoryDataToServer();
+	    	}
     	}
     	// If there is a selection and right clicks another slot
     	else{
@@ -804,16 +817,16 @@ public class PlayerInventoryManager : MonoBehaviour {
 		    				DrawSlot(inventoryCode, slot);
 		    				ResetSelection();
 		    				UpdateConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot, (byte)inventoryCode, (byte)slot);
-		    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
 		    				SendInventoryDataToServer();
+		    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
 		    				return;
 		    			}
 		    			else{
 		    				this.inventory[inventoryCode].ForceAddStack(new ItemStack(((ItemStack)this.draggedStack).GetItem(), 1), slot);
 		    				DrawSlot(inventoryCode, slot);
 		    				ToggleHighlight(true, this.draggedStack);
-		    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
 		    				SendInventoryDataToServer();
+		    				SendEquipDataToServer(inventoryCode, null, this.inventory[inventoryCode].GetSlot(slot));
 		    				return;
 		    			}
 		    		}
@@ -856,8 +869,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 							ToggleHighlight(true, this.draggedStack);
 
 						DrawSlot(inventoryCode, slot);
-						SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
 						SendInventoryDataToServer();
+						SendEquipDataToServer(inventoryCode, this.draggedStack, aux);
 		    		}
 		    	}
 		    	// ... while dragging an action
@@ -868,6 +881,7 @@ public class PlayerInventoryManager : MonoBehaviour {
     				this.draggedStack = null;
     				RemoveConnection((byte)this.draggedStackOriginSlot);
     				ResetSelection();
+    				SendInventoryDataToServer();
 		    	}
 	    	}
 	    	// If clicked an Action Inventory
@@ -909,10 +923,9 @@ public class PlayerInventoryManager : MonoBehaviour {
     					ResetSelection();
 
     				DrawSlot(inventoryCode, slot);
+    				SendInventoryDataToServer();
 		            SendEquipDataToServer(inventoryCode, this.draggedStack, this.inventory[inventoryCode].GetPos(slot));
 				}
-
-				SendInventoryDataToServer();
 	    	}
     	}
     }

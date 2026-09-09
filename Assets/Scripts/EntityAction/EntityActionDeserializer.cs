@@ -15,6 +15,8 @@ public static class EntityActionDeserializer {
 	private static List<EntityActionBehaviour> onUnholdPlayerEvent = new List<EntityActionBehaviour>();
 	private static List<EntityActionBehaviour> onUnholdClientEvent = new List<EntityActionBehaviour>();
 	private static List<EntityActionBehaviour> onUnholdServerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onEquipChangePlayerEvent = new List<EntityActionBehaviour>();
+	private static List<EntityActionBehaviour> onEquipChangeServerEvent = new List<EntityActionBehaviour>();
 	private static List<EntityActionBehaviour> onPrimaryPlayerEvent = new List<EntityActionBehaviour>();
 	private static List<EntityActionBehaviour> onPrimaryClientEvent = new List<EntityActionBehaviour>();
 	private static List<EntityActionBehaviour> onPrimaryServerEvent = new List<EntityActionBehaviour>();
@@ -77,6 +79,8 @@ public static class EntityActionDeserializer {
 		onUnholdPlayerEvent = new List<EntityActionBehaviour>();
 		onUnholdClientEvent = new List<EntityActionBehaviour>();
 		onUnholdServerEvent = new List<EntityActionBehaviour>();
+		onEquipChangePlayerEvent = new List<EntityActionBehaviour>();
+		onEquipChangeServerEvent = new List<EntityActionBehaviour>();
 		onPrimaryPlayerEvent = new List<EntityActionBehaviour>();
 		onPrimaryClientEvent = new List<EntityActionBehaviour>();
 		onPrimaryServerEvent = new List<EntityActionBehaviour>();
@@ -123,6 +127,12 @@ public static class EntityActionDeserializer {
 					break;
 				case "onUnholdServer":
 					action.SetOnUnholdServer(onUnholdServerEvent);
+					break;
+				case "onEquipChangePlayer":
+					action.SetOnEquipChangePlayer(onEquipChangePlayerEvent);
+					break;
+				case "onEquipChangeServer":
+					action.SetOnEquipChangeServer(onEquipChangeServerEvent);
 					break;
 				case "onPrimaryPlayer":
 					action.SetOnPrimaryPlayer(onPrimaryPlayerEvent);
@@ -288,6 +298,12 @@ public static class EntityActionDeserializer {
 				break;
 			case "onUnholdServer":
 				onUnholdServerEvent.Add(eab);
+				break;
+			case "onEquipChangePlayer":
+				onEquipChangePlayerEvent.Add(eab);
+				break;
+			case "onEquipChangeServer":
+				onEquipChangeServerEvent.Add(eab);
 				break;
 			case "onPrimaryPlayer":
 				onPrimaryPlayerEvent.Add(eab);

@@ -3,5 +3,6 @@ public enum PlayerActionType : byte {
 	SECONDARY_ACTION,
 	SHEATHE_ON,
 	SHEATHE_OFF,
+	USE_STYLE,
 	JUMP
 }

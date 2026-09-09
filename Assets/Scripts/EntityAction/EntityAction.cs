@@ -38,6 +38,10 @@ public class EntityAction : ClickableSlot {
 	protected List<EntityActionBehaviour> onUnholdClientBehaviour;
 	protected List<EntityActionBehaviour> onUnholdServerBehaviour;
 
+	// OnEquipChange
+	protected List<EntityActionBehaviour> onEquipChangePlayerBehaviour;
+	protected List<EntityActionBehaviour> onEquipChangeServerBehaviour;
+
 	// Primary
 	protected List<EntityActionBehaviour> onPrimaryPlayerBehaviour;
 	protected List<EntityActionBehaviour> onPrimaryClientBehaviour;
@@ -135,7 +139,9 @@ public class EntityAction : ClickableSlot {
 			onSecondaryHoldServerBehaviour = CopyList(this.onSecondaryHoldServerBehaviour),
 			onTerciaryPlayerBehaviour = CopyList(this.onTerciaryPlayerBehaviour),
 			onTerciaryClientBehaviour = CopyList(this.onTerciaryClientBehaviour),
-			onTerciaryServerBehaviour = CopyList(this.onTerciaryServerBehaviour)
+			onTerciaryServerBehaviour = CopyList(this.onTerciaryServerBehaviour),
+			onEquipChangePlayerBehaviour = CopyList(this.onEquipChangePlayerBehaviour),
+			onEquipChangeServerBehaviour = CopyList(this.onEquipChangeServerBehaviour)
 		};
 	}
 
@@ -195,6 +201,13 @@ public class EntityAction : ClickableSlot {
 
 	public List<EntityActionBehaviour> GetOnUnholdServer() { return onUnholdServerBehaviour; }
 	public void SetOnUnholdServer(List<EntityActionBehaviour> val) { onUnholdServerBehaviour = val; }
+
+	// Equip Change
+	public List<EntityActionBehaviour> GetOnEquipChangePlayer() { return onEquipChangePlayerBehaviour; }
+	public void SetOnEquipChangePlayer(List<EntityActionBehaviour> val) { onEquipChangePlayerBehaviour = val; }	
+
+	public List<EntityActionBehaviour> GetOnEquipChangeServer() { return onEquipChangeServerBehaviour; }
+	public void SetOnEquipChangeServer(List<EntityActionBehaviour> val) { onEquipChangeServerBehaviour = val; }	
 
 	// Primary
 	public List<EntityActionBehaviour> GetOnPrimaryPlayer() { return onPrimaryPlayerBehaviour; }
@@ -262,6 +275,10 @@ public class EntityAction : ClickableSlot {
 		if (this.onUnholdPlayerBehaviour != null) all.AddRange(this.onUnholdPlayerBehaviour);
 		if (this.onUnholdClientBehaviour != null) all.AddRange(this.onUnholdClientBehaviour);
 		if (this.onUnholdServerBehaviour != null) all.AddRange(this.onUnholdServerBehaviour);
+
+		// EquipChange
+		if (this.onEquipChangePlayerBehaviour != null) all.AddRange(this.onEquipChangePlayerBehaviour);
+		if (this.onEquipChangeServerBehaviour != null) all.AddRange(this.onEquipChangeServerBehaviour);
 
 		// Primary
 		if (this.onPrimaryPlayerBehaviour != null) all.AddRange(this.onPrimaryPlayerBehaviour);
@@ -365,6 +382,25 @@ public class EntityAction : ClickableSlot {
 
 		for(int i=0; i < this.onUnholdServerBehaviour.Count; i++){
 			this.onUnholdServerBehaviour[i].OnUnholdServer(cl, this, its, code);
+		}
+	}
+
+	// EquipChange
+	public virtual void OnEquipChangePlayer(ChunkLoader cl){
+		if(this.onEquipChangePlayerBehaviour == null || this.onEquipChangePlayerBehaviour.Count == 0)
+			return;
+
+		for(int i=0; i < this.onEquipChangePlayerBehaviour.Count; i++){
+			this.onEquipChangePlayerBehaviour[i].OnEquipChangePlayer(cl, this);
+		}
+	}
+
+	public virtual void OnEquipChangeServer(ChunkLoader_Server cl, ulong code){
+		if(this.onEquipChangeServerBehaviour == null || this.onEquipChangeServerBehaviour.Count == 0)
+			return;
+
+		for(int i=0; i < this.onEquipChangeServerBehaviour.Count; i++){
+			this.onEquipChangeServerBehaviour[i].OnEquipChangeServer(cl, this, code);
 		}
 	}
 

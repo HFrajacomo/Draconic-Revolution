@@ -1322,7 +1322,7 @@ public class Server {
 
 	// Receives the inventory of client and saves it
 	private void SendInventory(byte[] data, ulong id){
-		byte selectedSlot;
+		byte selectedHotbarSlot, selectedAttackSlot;
 		Item prevItem, currItem;
 		ClickableSlot previousSlot, currentSlot;
 		CharacterSheet sheet;
@@ -1332,19 +1332,20 @@ public class Server {
 		if(this.entityHandler.ContainsSheet(id)){
 			sheet = this.entityHandler.GetSheet(id);
 			isNormalHotbar = sheet.IsInNormalHotbar();
-			selectedSlot = sheet.GetHotbarSlot();
+			selectedHotbarSlot = sheet.GetHotbarSlot();
+			selectedAttackSlot = sheet.GetAttackHotbarSlot();
 
 			if(isNormalHotbar)
-				previousSlot = this.cl.playerServerInventory.GetSlot(id, selectedSlot).GetItemStack();
+				previousSlot = this.cl.playerServerInventory.GetSlot(id, selectedHotbarSlot).GetItemStack();
 			else
-				previousSlot = ((ActionInventorySlot)this.cl.playerServerInventory.GetSlot(id, selectedSlot)).GetAction();
+				previousSlot = this.cl.playerServerInventory.GetSlot(id, selectedAttackSlot).GetAction();
 
 			this.cl.playerServerInventory.AddInventory(id, data);
 
 			if(isNormalHotbar)
-				currentSlot = this.cl.playerServerInventory.GetSlot(id, selectedSlot).GetItemStack();
+				currentSlot = this.cl.playerServerInventory.GetSlot(id, selectedHotbarSlot).GetItemStack();
 			else
-				currentSlot = ((ActionInventorySlot)this.cl.playerServerInventory.GetSlot(id, selectedSlot)).GetAction();
+				currentSlot = this.cl.playerServerInventory.GetSlot(id, selectedAttackSlot).GetAction();
 
 			if(previousSlot.GetID() != currentSlot.GetID()){
 				message = new NetMessage(NetCode.SENDITEMINHAND);
@@ -1566,11 +1567,13 @@ public class Server {
 	public void EquipItem(byte[] data, ulong id){
 		ulong playerCode;  
 		MemoryStorageType oldType, newType;
+		CharacterSheet cs;
 		int itemBytes = 0;
 		Item newItem, oldItem;
 
 		playerCode = NetDecoder.ReadUlong(data, 1);
 		oldType = (MemoryStorageType)NetDecoder.ReadByte(data, 9);
+		cs = this.cl.characterFileHandler.LoadCharacterSheet(playerCode);
 
 		switch(oldType){
 			case MemoryStorageType.ITEM:
@@ -1604,9 +1607,20 @@ public class Server {
 				break;
 		}
 
-		// Handle onEquip and onUnequip events
-		oldItem.OnUnequipServer(this.cl, oldItem, id);
-		newItem.OnEquipServer(this.cl, newItem, id);
+		// Handle onEquip and onUnequip events on Items
+		oldItem.OnUnequipServer(this.cl, oldItem, playerCode);
+		newItem.OnEquipServer(this.cl, newItem, playerCode);
+
+		// Handles Style change
+		SendBattleStyle(playerCode, BattleStyleDeterminator.Resolve(this.cl, playerCode));
+
+		// Handles OnEquipChange events on Actions
+		if(!cs.IsInNormalHotbar()){
+			EntityAction ea = ((ActionInventorySlot)this.cl.playerServerInventory.GetSlot(playerCode, 0, cs.GetAttackHotbarSlot())).GetAction();
+
+			if(ea != null)
+				ea.OnEquipChangeServer(this.cl, playerCode);
+		}
 
 		// Handle the sending of onEquips and onUnequips to clients
 		NetMessage equipMessage = new NetMessage(NetCode.EQUIPITEM);

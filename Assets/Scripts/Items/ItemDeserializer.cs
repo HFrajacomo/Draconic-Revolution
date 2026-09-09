@@ -234,8 +234,6 @@ public static class ItemDeserializer {
 				return JsonUtility.FromJson<IT_PlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "IT_CreatePointLightBehaviour":
 				return JsonUtility.FromJson<IT_CreatePointLightBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "IT_ChangeStyleBehaviour":
-				return JsonUtility.FromJson<IT_ChangeStyleBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
 				throw new DeserializationErrorException($"[ItemDeserializer] Error when trying to de-serialize behaviour {val}");
 		}
