@@ -32,7 +32,6 @@ Along with the texture, you must create a JSON file with the same name as the te
 
 Open the *Assets\Resources\Textures\Voxels\Blocks\BLOCK_LIST.txt* file and append your block's name to the end of the file. This tells Draconic Revolution that this block is registered and ready to be processed in the game. Blocks that are not registered in this file are considered "work in progress" and will not be imported.
 
-
 ## Registering Normal Map (Optional)
 
 In this version of Draconic Revolution, normal maps are generated from the texture. But you can adjust the normal intensity in the *Assets\Resources\Textures\Voxels\Blocks\NORMAL_INTENSITY.txt*. In this file, you can reference the block id, followed by a tab and the normal intensity. It is recommended to keep values in-between 0 and 2. If a block has no entry in the normal intensity, that means its intensity is 1.

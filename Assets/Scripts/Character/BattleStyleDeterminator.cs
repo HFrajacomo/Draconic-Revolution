@@ -37,7 +37,8 @@ public static class BattleStyleDeterminator {
 		{
 			{(WeaponType.FIST, WeaponType.FIST), "BASE_Unarmed"},
 			{(WeaponType.FIST, WeaponType.BASTARDSWORD), "BASE_Sword"},
-			{(WeaponType.FIST, WeaponType.PICKAXE), "BASE_Pickaxe"}
+			{(WeaponType.FIST, WeaponType.PICKAXE), "BASE_Pickaxe"},
+			{(WeaponType.FIST, WeaponType.TORCH), "BASE_Torch"}
 		};
 
 	public static int Resolve(ChunkLoader_Server cl, ulong playerCode){

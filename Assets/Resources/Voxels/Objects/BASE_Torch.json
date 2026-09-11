@@ -18,14 +18,14 @@
     "indestructible": false,
     "maximumRotationScaleState" : 8,
     "scaling" : {
-        "x" : 10,
-        "y" : 20,
-        "z" : 10
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
     },
     "hitboxScaling" : {
-        "x" : 0.22,
-        "y" : 0.76,
-        "z" : 0.25
+        "x" : 0.3,
+        "y" : 0.8,
+        "z" : 0.74
     }
 }
 --->Behaviours

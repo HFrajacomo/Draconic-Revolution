@@ -85,23 +85,23 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 		}
 
 		if(facing == 0){
-			fireOffset = new Vector3(0.15f,0f,0f);
+			fireOffset = new Vector3(0.2f,0.2f,0f);
 			shadowDirection = Quaternion.Euler(-20, 90, 90);
 		}
 		else if(facing == 1){
-			fireOffset = new Vector3(0f,0f,-0.15f);
+			fireOffset = new Vector3(0f,0.2f,-0.2f);
 			shadowDirection = Quaternion.Euler(0, 90, 110);
 		}
 		else if(facing == 2){
-			fireOffset = new Vector3(-0.15f, 0f, 0f);
+			fireOffset = new Vector3(-0.2f, 0.2f, 0f);
 			shadowDirection = Quaternion.Euler(20, 90, 90);
 		}
 		else if(facing == 3){
-			fireOffset = new Vector3(0f, 0f, 0.15f);
+			fireOffset = new Vector3(0f, 0.2f, 0.2f);
 			shadowDirection = Quaternion.Euler(0, 90, 70);
 		}
 		else{
-			fireOffset = new Vector3(0f,0f,0f);
+			fireOffset = new Vector3(0f,0.2f,0f);
 			shadowDirection = Quaternion.Euler(0, 0, 0);
 		}
 
@@ -342,13 +342,13 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 	// Functions for the new Bursting Core Rendering
 	public override Vector3 GetOffsetVector(ushort state){
 		if(state == 0 || state == 4)
-			return new Vector3(0.4f, -0.2f, 0f);
+			return new Vector3(0.5f, 0f, 0f);
 		else if(state == 3 || state == 7)
-			return new Vector3(0f, -0.2f, 0.4f);
+			return new Vector3(0f, 0f, 0.5f);
 		else if(state == 2 || state == 6)
-			return new Vector3(-0.4f, -0.2f, 0f);
+			return new Vector3(-0.5f, 0f, 0f);
 		else
-			return new Vector3(0f, -0.2f, -0.4f);
+			return new Vector3(0f, 0f, -0.5f);
 	}
 
 	// Get rotation in degrees

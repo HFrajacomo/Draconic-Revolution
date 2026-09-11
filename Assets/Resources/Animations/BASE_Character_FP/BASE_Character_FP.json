@@ -25,6 +25,11 @@
 		{"name": "Idle - Pickaxe -FP", "loop": true},
 		{"name": "Sheathe - Pickaxe -FP", "loop": false},
 		{"name": "Unsheathe - Pickaxe -FP", "loop": false},
-		{"name": "Attack X - Pickaxe -FP", "loop": false}
+		{"name": "Attack X - Pickaxe -FP", "loop": false},
+		{"name": "Run Forward - Torch -FP", "loop": true},
+		{"name": "Idle - Torch -FP", "loop": true},
+		{"name": "Sheathe - Torch -FP", "loop": false},
+		{"name": "Unsheathe - Torch -FP", "loop": false},
+		{"name": "Attack 1 - Torch -FP", "loop": false}
 	]
 }

@@ -30,6 +30,10 @@
 		{"name": "Idle - Pickaxe", "loop": true},
 		{"name": "Sheathe - Pickaxe", "loop": false},
 		{"name": "Unsheathe - Pickaxe", "loop": false},
-		{"name": "Attack X - Pickaxe", "loop": false}
+		{"name": "Attack X - Pickaxe", "loop": false},
+		{"name": "Idle - Torch", "loop": true},
+		{"name": "Sheathe - Torch", "loop": false},
+		{"name": "Unsheathe - Torch", "loop": false},
+		{"name": "Attack 1 - Torch", "loop": false}
 	]
 }

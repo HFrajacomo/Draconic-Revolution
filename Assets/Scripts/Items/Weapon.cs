@@ -117,6 +117,7 @@ public enum WeaponType : byte{
 	AXE,
 	PICKAXE,
 	MACE,
+	TORCH,
 	BOW,
 	GREATSWORD,
 	SCYTHE,

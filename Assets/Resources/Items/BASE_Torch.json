@@ -1,9 +1,19 @@
 {
     "codename": "BASE_Torch",
     "name":  "Torch",
-    "memoryType": 1,
+    "memoryType": 2,
     "stacksize": 50,
-    "hasDurability": false
+    "tags": ["Weapon", "Light"],
+    "hasDurability": false,
+    // Weapon
+    "weaponType": "TORCH",
+    "damage": 0,
+    "impact": 0,
+    "maxDurability": 0,
+    "refineLevel": 0,
+    "requiredLevels": {
+        "COMBAT": 1
+    }
 }
 --->Behaviours
 {
@@ -32,4 +42,4 @@
     "realisticLight": true
 }
 --->Type
-Item
+Weapon
