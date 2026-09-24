@@ -9,6 +9,8 @@ public class VFXLoader : MonoBehaviour
     public Dictionary<ChunkPos, List<HDAdditionalLightData>> lightReference;
     public Dictionary<ChunkPos, Dictionary<string, NetMessage>> serverVFX;
 
+    public Dictionary<ulong, Dictionary<string, GameObject>> entityData;
+
     public static bool EXTRALIGHTSHADOWS = false;
 
     void OnDestroy(){
@@ -16,6 +18,7 @@ public class VFXLoader : MonoBehaviour
         this.data = null;
         this.lightReference = null;
         this.serverVFX = null;
+        this.entityData = null;
     }
 
     // Start is called before the first frame update
@@ -24,6 +27,7 @@ public class VFXLoader : MonoBehaviour
 		data = new Dictionary<ChunkPos, Dictionary<string, GameObject>>(); 
         serverVFX = new Dictionary<ChunkPos, Dictionary<string, NetMessage>>();
         lightReference = new Dictionary<ChunkPos, List<HDAdditionalLightData>>();
+        entityData = new Dictionary<ulong, Dictionary<string, GameObject>>();
     }
 
     public bool Contains(ChunkPos pos, bool isServer=false){
@@ -32,6 +36,7 @@ public class VFXLoader : MonoBehaviour
         else
             return data.ContainsKey(pos);
     }
+    public bool Contains(ulong code){return entityData.ContainsKey(code);}
 
     public bool ContainsLight(ChunkPos pos){ 
         return lightReference.ContainsKey(pos);
@@ -106,6 +111,19 @@ public class VFXLoader : MonoBehaviour
         this.serverVFX[pos][name] = message;
     }
 
+    // Client adds a VFX object for a player entity itself
+    public void Add(ulong code, GameObject go){
+        if(!this.entityData.ContainsKey(code)){
+            this.entityData.Add(code, new Dictionary<string, GameObject>());
+        }
+
+        if(this.entityData[code].ContainsKey(go.name)){
+            Remove(code, go.name);
+        }
+
+        this.entityData[code].Add(go.name, go);
+    }
+
     // Removes an GameObject from Chunk Dict
     public void Remove(ChunkPos pos, string name, bool isServer=false, bool isOnDemandLight=false){
         if(isServer){
@@ -119,6 +137,22 @@ public class VFXLoader : MonoBehaviour
                 
                 Destroy(this.data[pos][name]);
             	data[pos].Remove(name);
+            }
+        }
+    }
+
+    // Client removes a VFX based on an Entity
+    public void Remove(ulong code, string name){
+        if(this.entityData.ContainsKey(code)){
+            if(this.entityData[code].ContainsKey(name)){
+                GameObject.Destroy(this.entityData[code][name]);
+
+                if(this.entityData[code].Count <= 1){
+                    this.entityData.Remove(code);
+                }
+                else{
+                    this.entityData[code].Remove(name);
+                }
             }
         }
     }

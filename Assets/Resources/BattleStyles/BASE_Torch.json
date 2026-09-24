@@ -57,6 +57,14 @@
 						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\"}"
 					},
 					{
+						"type": "AN_DestroyVFXBehaviour",
+						"json": "{\"normalizedTime\": 0.95, \"vfxGameObjectName\": \"Torchfire\", \"ifPlayerBuildOnlyFirstPerson\": true}"
+					},
+					{
+						"type": "AN_PointLightBehaviour",
+						"json": "{\"normalizedTime\": 0.95, \"create\": false, \"ifPlayerBuildOnlyFirstPerson\": true}"
+					},
+					{
 						"type": "AN_AnimatorSetBehaviour",
 						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
 					}
@@ -69,6 +77,14 @@
 					{
 						"type": "AN_SwitchAttachmentAnchorBehaviour",
 						"json": "{\"normalizedTime\": 0.2, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_RIGHT\"}"
+					},
+					{
+						"type": "AN_CreateVFXBehaviour",
+						"json": "{\"normalizedTime\": 0.7, \"vfxGameObjectName\": \"Torchfire\", \"boneAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"offsetY\": 1.0, \"rotationX\": -90.0, \"rotationZ\": 310.0, \"vfxPath\": \"----- PrefabVFX -----/FireVFX\", \"ifPlayerBuildOnlyFirstPerson\": true}"
+					},
+					{
+						"type": "AN_PointLightBehaviour",
+						"json": "{\"normalizedTime\": 0.7, \"create\": true, \"voxelLightIntensity\": 6, \"ifPlayerBuildOnlyFirstPerson\": true}"
 					},
 					{
 						"type": "AN_AnimatorSetBehaviour",

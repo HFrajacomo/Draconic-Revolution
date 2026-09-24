@@ -240,6 +240,14 @@ public class AnimationHandler : MonoBehaviour {
 		}
 	}
 
+	public GameObject GetAttachment(BoneAnchorType anchor, bool firstPerson){
+		if(firstPerson && this.attachmentsFP.ContainsKey(anchor))
+			return this.attachmentsFP[anchor];
+		else if(!firstPerson && this.attachmentsTP.ContainsKey(anchor))
+			return this.attachmentsTP[anchor];
+		return null;
+	}
+
 	public void AddAttachment(string styleName, BoneAnchorType anchor, GameObject go){
 		bool isFirstPerson = IsFirstPersonString(styleName);
 

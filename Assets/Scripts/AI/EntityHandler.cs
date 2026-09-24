@@ -187,10 +187,16 @@ public class EntityHandler
 		if(!Contains(type, code))
 			return;
 
+		EntityID id = new EntityID(type, code);
+
 		if(type == EntityType.PLAYER){
 			this.playerObject[code].transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
 			this.playerObject[code].transform.eulerAngles += new Vector3(0, (dRot * (Time.deltaTime / TimeOfDay.timeRate)).y, 0);
 			this.playerHead[code].transform.eulerAngles += new Vector3((dRot * (Time.deltaTime / TimeOfDay.timeRate)).x, 0, 0);
+
+			if(this.cl.voxelLightHandler.Contains(id)){
+				this.cl.voxelLightHandler.UpdatePosition(id, this.playerObject[code].transform.position);
+			}
 		}
 		else if(type == EntityType.DROP){
 			this.dropObject[code].gameObject.transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));

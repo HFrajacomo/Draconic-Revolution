@@ -138,8 +138,9 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     private void UpdateVoxelLightPosition(){
-        if(this.playerSheetController.IsEnabled()){
-            this.voxelLightHandler.Add(new EntityID(EntityType.PLAYER, Configurations.accountID), this.GetPlayerWorldPosition(), this.playerSheetController.GetVoxelLightIntensity(), priority:true);
+        EntityID id = new EntityID(EntityType.PLAYER, Configurations.accountID);
+        if(this.voxelLightHandler.Contains(id)){
+            this.voxelLightHandler.UpdatePosition(id, GetPlayerWorldPosition());
         }
     }
 
