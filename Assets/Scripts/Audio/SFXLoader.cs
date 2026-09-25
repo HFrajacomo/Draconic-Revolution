@@ -13,7 +13,7 @@ public class SFXLoader : MonoBehaviour
 
     // Sound Dictionaries
     private Dictionary<ChunkPos, Dictionary<EntityID, GameObject>> blockSFX = new Dictionary<ChunkPos, Dictionary<EntityID, GameObject>>();
-    private Dictionary<EntityID, GameObject> entitySFX = new Dictionary<EntityID, GameObject>();
+    private Dictionary<EntityID, Dictionary<string, GameObject>> entitySFX = new Dictionary<EntityID, Dictionary<string, GameObject>>();
 
     // Adds an SFX to an Entity
     public void LoadEntitySFX(string name, EntityID entity){
@@ -26,11 +26,11 @@ public class SFXLoader : MonoBehaviour
         AudioSource source = go.GetComponent<AudioSource>();
 
         if(this.entitySFX.ContainsKey(entity)){
-            GameObject.Destroy(this.entitySFX[entity]);
-            this.entitySFX[entity] = go;
+            this.entitySFX[entity].Add(name, go);
         }
         else{
-            this.entitySFX.Add(entity, go);            
+            this.entitySFX.Add(entity, new Dictionary<string, GameObject>());
+            this.entitySFX[entity].Add(name, go);            
         }
 
         if(AudioLoader.IsLoop(name))
@@ -42,13 +42,32 @@ public class SFXLoader : MonoBehaviour
     }
 
     // Remove an SFX from an Entity
+    public void RemoveEntitySFX(EntityID entity, string name){
+        if(!entitySFX.ContainsKey(entity))
+            return;
+        if(!entitySFX[entity].ContainsKey(name))
+            return;
+
+        GameObject.Destroy(entitySFX[entity][name]);
+        entitySFX[entity].Remove(name);
+        audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, entity);
+    }
+    // Removes all SFX from an Entity
     public void RemoveEntitySFX(EntityID entity){
+        List<string> removeList = new List<string>();
+
         if(!entitySFX.ContainsKey(entity))
             return;
 
-        GameObject.Destroy(entitySFX[entity]);
+        foreach(string name in entitySFX[entity].Keys){
+            removeList.Add(name);
+        }
+
+        foreach(string name in removeList){
+            GameObject.Destroy(entitySFX[entity][name]);
+        }
+
         entitySFX.Remove(entity);
-        audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, entity);
     }
 
     /*

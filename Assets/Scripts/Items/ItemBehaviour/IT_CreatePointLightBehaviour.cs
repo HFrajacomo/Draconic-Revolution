@@ -35,7 +35,7 @@ public class IT_CreatePointLightBehaviour : ItemBehaviour{
 
 		cl.playerSheetController.Disable(this.realisticLight);
 		cl.voxelLightHandler.Remove(id);
-		cl.sfx.RemoveEntitySFX(id);
+		cl.sfx.RemoveEntitySFX(id, this.audioName);
 	}
 
 	public override void OnHoldClient(ChunkLoader cl, ItemStack its, ulong playerCode){

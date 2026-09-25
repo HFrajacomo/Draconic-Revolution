@@ -35,6 +35,10 @@ public class AN_CreateVFXBehaviour : AnimationBehaviour {
 			visualEffect.transform.localEulerAngles = new Vector3(this.rotationX, this.rotationY, this.rotationZ);
 			visualEffect.transform.localScale = Vector3.one;
 
+			if(this.firstPerson){
+				visualEffect.layer = 12;
+			}
+
 			cl.vfx.Add(entityID, visualEffect);
 		}
 	}
