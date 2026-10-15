@@ -14,6 +14,8 @@ public class EntityHandler
 	private Dictionary<ulong, Transform> playerHead;
 
 	private Dictionary<ulong, AnimationHandler> playerAnimations;
+	private Dictionary<ulong, Dictionary<int, AnimationData>> pendingPlayerAnimations;
+	private Dictionary<ulong, Dictionary<string, float>> pendingPlayerAnimatorParameters;
 	private Dictionary<ulong, ushort> playerItem;
 	private Dictionary<ulong, bool> playerItemOrActionInHand;
 	private Dictionary<ulong, DeltaMove> playerCurrentPositions;
@@ -37,6 +39,8 @@ public class EntityHandler
 		this.dropObject = new Dictionary<ulong, ItemEntity>();
 		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.playerAnimations = new Dictionary<ulong, AnimationHandler>();
+		this.pendingPlayerAnimations = new Dictionary<ulong, Dictionary<int, AnimationData>>();
+		this.pendingPlayerAnimatorParameters = new Dictionary<ulong, Dictionary<string, float>>();
 		this.playerBattleStyle = new Dictionary<ulong, int>();
 		this.playerItemOrActionInHand = new Dictionary<ulong, bool>();
 		this.cl = cl;
@@ -53,6 +57,7 @@ public class EntityHandler
 		if(currentTogglingCounter == 0){
 			foreach(ulong u in playerObject.Keys){
 				this.playerObject[u].SetActive(this.cl.playerPositionHandler.IsInPlayerRenderDistance(this.playerObject[u].transform.position));
+				ApplyPendingPlayerAnimations(u);
 			}
 		}
 		else if(currentTogglingCounter == 1){
@@ -70,6 +75,7 @@ public class EntityHandler
 
 		if(type == EntityType.PLAYER){
 			this.playerObject[code].SetActive(this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos));
+			ApplyPendingPlayerAnimations(code);
 		}
 		else if(type == EntityType.DROP){
 			this.dropObject[code].SetVisible(this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos));
@@ -96,6 +102,8 @@ public class EntityHandler
 		this.playerItemOrActionInHand.Add(code, true);
 		this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
 		this.playerAnimations.Add(code, null);
+		this.pendingPlayerAnimations.Add(code, new Dictionary<int, AnimationData>());
+		this.pendingPlayerAnimatorParameters.Add(code, new Dictionary<string, float>());
 		this.playerBattleStyle.Add(code, -1);
 		RunSingleActivation(EntityType.PLAYER, code, pos);
 	}
@@ -120,6 +128,8 @@ public class EntityHandler
 			if(code != Configurations.accountID){
 				SetPlayerBattleStyle(code, this.playerSheet[code].GetBattleStyleCode());
 			}
+
+			ApplyPendingPlayerAnimations(code);
 
 			return true;
 		}
@@ -158,9 +168,15 @@ public class EntityHandler
 	}
 
 	public void AnimateBone(ulong code, string stateName, int layer){
-		if(this.playerAnimations.ContainsKey(code)){
-			this.playerAnimations[code].Play(stateName, layer);
+		if(!this.playerAnimations.ContainsKey(code))
+			return;
+
+		if(!CanProcessPlayerAnimations(code)){
+			this.pendingPlayerAnimations[code][layer] = new AnimationData(stateName, layer);
+			return;
 		}
+
+		this.playerAnimations[code].Play(stateName, layer);
 	}
 
 	// Triggers whenever a t(x) position is received. Moves entity to t(x-1) position received
@@ -227,6 +243,8 @@ public class EntityHandler
 			this.playerCurrentPositions.Remove(code);
 			this.playerSheet.Remove(code);
 			this.playerAnimations.Remove(code);
+			this.pendingPlayerAnimations.Remove(code);
+			this.pendingPlayerAnimatorParameters.Remove(code);
 			this.playerBattleStyle.Remove(code);
 			this.cl.sfx.RemoveEntitySFX(new EntityID(type, code));
 		}
@@ -256,9 +274,12 @@ public class EntityHandler
 			return;
 
 		if(type == EntityType.PLAYER){
-			if(this.playerAnimations.ContainsKey(code)){
-				this.playerAnimations[code].SetParameterValue(parameter, val, false);
+			if(!CanProcessPlayerAnimations(code)){
+				this.pendingPlayerAnimatorParameters[code][parameter] = val;
+				return;
 			}
+
+			this.playerAnimations[code].SetParameterValue(parameter, val, false);
 		}
 	}
 
@@ -314,6 +335,29 @@ public class EntityHandler
 		}
 
 		return null;
+	}
+
+	private bool CanProcessPlayerAnimations(ulong code){
+		return this.playerAnimations.ContainsKey(code) &&
+			this.playerAnimations[code] != null &&
+			this.playerObject[code].activeInHierarchy &&
+			this.playerAnimations[code].GetThirdPersonAnimator().isActiveAndEnabled;
+	}
+
+	private void ApplyPendingPlayerAnimations(ulong code){
+		if(!CanProcessPlayerAnimations(code))
+			return;
+
+		foreach(AnimationData animationData in this.pendingPlayerAnimations[code].Values){
+			this.playerAnimations[code].Play(animationData.name, animationData.layer);
+		}
+
+		foreach(KeyValuePair<string, float> parameter in this.pendingPlayerAnimatorParameters[code]){
+			this.playerAnimations[code].SetParameterValue(parameter.Key, parameter.Value, false);
+		}
+
+		this.pendingPlayerAnimations[code].Clear();
+		this.pendingPlayerAnimatorParameters[code].Clear();
 	}
 
 	public void UpdatePlayerItem(ulong playerCode, ushort id, ushort connectedItemId, bool isItem, byte quantity){

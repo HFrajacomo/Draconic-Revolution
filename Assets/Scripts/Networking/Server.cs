@@ -31,6 +31,7 @@ public class Server {
 	private Dictionary<ulong, byte[]> receiveBuffer;
 
 	private Dictionary<ulong, ChunkPos> playerToChunk;
+	private Dictionary<ulong, Dictionary<int, AnimationData>> playerAnimationStates;
 
 	private HashSet<ChunkPos> chunksToSend = new HashSet<ChunkPos>();
 
@@ -76,6 +77,7 @@ public class Server {
     	receiveBuffer = new Dictionary<ulong, byte[]>();
     	chunksRequested = new Dictionary<ChunkPos, HashSet<ulong>>();
     	playerToChunk = new Dictionary<ulong, ChunkPos>();
+		playerAnimationStates = new Dictionary<ulong, Dictionary<int, AnimationData>>();
 
     	this.cl = cl;
     	this.entityHandler.SetChunkLoader(cl);
@@ -597,6 +599,7 @@ public class Server {
 					this.connectionGraph[code].Add(id);
 					playerMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[code]);
 					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
+					SendAnimationSnapshot(code, id);
 				}
 			}
 		}
@@ -987,6 +990,7 @@ public class Server {
 		this.playerRenderDistances.Remove(id);
 		this.connectionGraph.Remove(id);
 		this.receiveBuffer.Remove(id);
+		this.playerAnimationStates.Remove(id);
 
 		this.entityHandler.Remove(EntityType.PLAYER, this.cl.regionHandler.allPlayerData[id].GetChunkPos(), id);
 		this.entityHandler.RemoveSheet(id);
@@ -1150,6 +1154,7 @@ public class Server {
 					this.connectionGraph[id].Add(code);
 					liveMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id]);
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);
+					SendAnimationSnapshot(id, code);
 
 					foreach(string parameter in animatorParameters.Keys){
 						animatorParameterMessage.SendAnimatorParameter(code, animatorParameters[parameter], parameter);
@@ -1514,9 +1519,16 @@ public class Server {
 		if(id != playerCode)
 			return;
 
+		AnimationData animationData = new AnimationData(stateName, layer);
+
+		if(!this.playerAnimationStates.ContainsKey(playerCode))
+			this.playerAnimationStates.Add(playerCode, new Dictionary<int, AnimationData>());
+
+		this.playerAnimationStates[playerCode][layer] = animationData;
+
 		NetMessage message;
 		message = new NetMessage(NetCode.SENDANIMATIONLAYER);
-		message.SendAnimationLayer(playerCode, new AnimationData(stateName, layer));
+		message.SendAnimationLayer(playerCode, animationData);
 
 		this.SendToClientsExcept(id, message);
 	}
@@ -1638,6 +1650,18 @@ public class Server {
 	/*
 	// Auxiliary Functions
 	*/
+
+	private void SendAnimationSnapshot(ulong playerCode, ulong recipientCode){
+		if(!this.playerAnimationStates.ContainsKey(playerCode))
+			return;
+
+		NetMessage message = new NetMessage(NetCode.SENDANIMATIONLAYER);
+
+		foreach(AnimationData animationData in this.playerAnimationStates[playerCode].Values){
+			message.SendAnimationLayer(playerCode, animationData);
+			this.Send(message.GetMessage(), message.size, recipientCode);
+		}
+	}
 
 	// Send input message to all Clients connected to a given Chunk
 	public void SendToClients(ChunkPos pos, NetMessage message){
