@@ -320,6 +320,20 @@ public static class NetDecoder
 		return data[pos];
 	}
 
+	// Reads the EntitySFXData part of an ENTITYSFX message (starting after playerCode and operation)
+	public static EntitySFXData ReadEntitySFXData(byte[] data, int pos){
+		bool isLoop = NetDecoder.ReadBool(data, pos);
+		bool hasAnchor = NetDecoder.ReadBool(data, pos+1);
+		BoneAnchorType anchor = (BoneAnchorType)NetDecoder.ReadByte(data, pos+2);
+		float offsetX = NetDecoder.ReadFloat(data, pos+3);
+		float offsetY = NetDecoder.ReadFloat(data, pos+7);
+		float offsetZ = NetDecoder.ReadFloat(data, pos+11);
+		ushort nameSize = NetDecoder.ReadUshort(data, pos+15);
+		string name = NetDecoder.ReadString(data, pos+17, nameSize);
+
+		return new EntitySFXData(name, isLoop, hasAnchor, anchor, offsetX, offsetY, offsetZ);
+	}
+
 	public static void WriteRGB(Color c, byte[] data, int pos){
 		NetDecoder.WriteFloat(c.r, data, pos);
 		NetDecoder.WriteFloat(c.g, data, pos+4);

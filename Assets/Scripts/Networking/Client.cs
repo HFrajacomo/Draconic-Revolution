@@ -263,6 +263,9 @@ public class Client
 			case NetCode.EQUIPITEM:
 				EquipItem(data);
 				break;
+			case NetCode.ENTITYSFX:
+				EntitySFX(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -744,6 +747,16 @@ public class Client
 
 		if(playerCode != Configurations.accountID)
 			this.entityHandler.SetAnimatorParameter(EntityType.PLAYER, playerCode, parameter, val);
+	}
+
+	// Receives from server the creation or destruction of an SFX attached to another player
+	private void EntitySFX(byte[] data){
+		ulong playerCode = NetDecoder.ReadUlong(data, 1);
+		EntitySFXOperation operation = (EntitySFXOperation)NetDecoder.ReadByte(data, 9);
+		EntitySFXData sfx = NetDecoder.ReadEntitySFXData(data, 10);
+
+		if(playerCode != Configurations.accountID)
+			this.entityHandler.PlayerSFX(playerCode, operation, sfx);
 	}
 
 	// Receives from server a change in equipment from a given client

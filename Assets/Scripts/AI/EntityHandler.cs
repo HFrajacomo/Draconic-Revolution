@@ -22,6 +22,8 @@ public class EntityHandler
 	private Dictionary<ulong, ItemEntity> dropObject;
 	private Dictionary<ulong, DeltaMove> dropCurrentPositions;
 	private Dictionary<ulong, int> playerBattleStyle;
+	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
+	private HashSet<ulong> playerSFXNeedsReapply;
 	private GameObject droppedItemBase = GameObject.Find("----- PrefabModels -----/DroppedItemBase");
 
 	private int currentTogglingCounter;
@@ -42,6 +44,8 @@ public class EntityHandler
 		this.pendingPlayerAnimations = new Dictionary<ulong, Dictionary<int, AnimationData>>();
 		this.pendingPlayerAnimatorParameters = new Dictionary<ulong, Dictionary<string, float>>();
 		this.playerBattleStyle = new Dictionary<ulong, int>();
+		this.playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
+		this.playerSFXNeedsReapply = new HashSet<ulong>();
 		this.playerItemOrActionInHand = new Dictionary<ulong, bool>();
 		this.cl = cl;
 		this.playerModelHandler = cl.playerModelHandler;
@@ -56,7 +60,7 @@ public class EntityHandler
 
 		if(currentTogglingCounter == 0){
 			foreach(ulong u in playerObject.Keys){
-				this.playerObject[u].SetActive(this.cl.playerPositionHandler.IsInPlayerRenderDistance(this.playerObject[u].transform.position));
+				SetPlayerActive(u, this.cl.playerPositionHandler.IsInPlayerRenderDistance(this.playerObject[u].transform.position));
 				ApplyPendingPlayerAnimations(u);
 			}
 		}
@@ -74,7 +78,7 @@ public class EntityHandler
 			return;
 
 		if(type == EntityType.PLAYER){
-			this.playerObject[code].SetActive(this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos));
+			SetPlayerActive(code, this.cl.playerPositionHandler.IsInPlayerRenderDistance(pos));
 			ApplyPendingPlayerAnimations(code);
 		}
 		else if(type == EntityType.DROP){
@@ -105,6 +109,7 @@ public class EntityHandler
 		this.pendingPlayerAnimations.Add(code, new Dictionary<int, AnimationData>());
 		this.pendingPlayerAnimatorParameters.Add(code, new Dictionary<string, float>());
 		this.playerBattleStyle.Add(code, -1);
+		this.playerActiveLoopSFX.Add(code, new Dictionary<string, EntitySFXData>());
 		RunSingleActivation(EntityType.PLAYER, code, pos);
 	}
 
@@ -129,6 +134,8 @@ public class EntityHandler
 				SetPlayerBattleStyle(code, this.playerSheet[code].GetBattleStyleCode());
 			}
 
+			// Model rebuild destroys SFX attached to bones
+			this.playerSFXNeedsReapply.Add(code);
 			ApplyPendingPlayerAnimations(code);
 
 			return true;
@@ -156,6 +163,10 @@ public class EntityHandler
 		this.playerAnimations[code].GetThirdPersonAnimator().runtimeAnimatorController = animationOverrideController;
 		this.playerSheet[code].SetBattleStyleCode(style);
 		this.playerAnimations[code].CreateAttachments(AnimationLoader.GetBattleStyle(style));
+
+		// Attachments are replaced, destroying SFX attached to them
+		this.playerSFXNeedsReapply.Add(code);
+		ApplyPendingPlayerAnimations(code);
 	}
 
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){
@@ -246,6 +257,8 @@ public class EntityHandler
 			this.pendingPlayerAnimations.Remove(code);
 			this.pendingPlayerAnimatorParameters.Remove(code);
 			this.playerBattleStyle.Remove(code);
+			this.playerActiveLoopSFX.Remove(code);
+			this.playerSFXNeedsReapply.Remove(code);
 			this.cl.sfx.RemoveEntitySFX(new EntityID(type, code));
 		}
 		else if(type == EntityType.DROP){
@@ -358,6 +371,77 @@ public class EntityHandler
 
 		this.pendingPlayerAnimations[code].Clear();
 		this.pendingPlayerAnimatorParameters[code].Clear();
+
+		if(this.playerSFXNeedsReapply.Contains(code)){
+			this.playerSFXNeedsReapply.Remove(code);
+			ReapplyPlayerLoopSFX(code);
+		}
+	}
+
+	// Sets the active state of a player object, flagging its looping SFX to be restarted when it becomes visible again
+	private void SetPlayerActive(ulong code, bool active){
+		if(active && !this.playerObject[code].activeSelf)
+			this.playerSFXNeedsReapply.Add(code);
+
+		this.playerObject[code].SetActive(active);
+	}
+
+	/*
+	Receives an SFX operation for a remote player
+		Looping SFX are tracked so they can be rebuilt if the player model is not ready, rebuilt or out of sight
+		One-shot SFX are dropped if the player can't currently be processed
+	*/
+	public void PlayerSFX(ulong code, EntitySFXOperation operation, EntitySFXData sfx){
+		if(!this.playerObject.ContainsKey(code))
+			return;
+
+		EntityID id = new EntityID(EntityType.PLAYER, code);
+
+		if(operation == EntitySFXOperation.DESTROY){
+			this.playerActiveLoopSFX[code].Remove(sfx.name);
+			this.cl.sfx.RemoveEntitySFX(id, sfx.name);
+			return;
+		}
+
+		if(!AudioLoader.IsSound(sfx.name))
+			return;
+
+		if(sfx.isLoop)
+			this.playerActiveLoopSFX[code][sfx.name] = sfx;
+
+		if(!CanProcessPlayerAnimations(code)){
+			if(sfx.isLoop)
+				this.playerSFXNeedsReapply.Add(code);
+			return;
+		}
+
+		LoadPlayerSFX(code, sfx);
+	}
+
+	// Rebuilds all looping SFX of a remote player
+	private void ReapplyPlayerLoopSFX(ulong code){
+		if(!this.playerActiveLoopSFX.ContainsKey(code))
+			return;
+
+		EntityID id = new EntityID(EntityType.PLAYER, code);
+
+		foreach(EntitySFXData sfx in this.playerActiveLoopSFX[code].Values){
+			this.cl.sfx.RemoveEntitySFX(id, sfx.name);
+			LoadPlayerSFX(code, sfx);
+		}
+	}
+
+	private void LoadPlayerSFX(ulong code, EntitySFXData sfx){
+		Transform parent = null;
+
+		if(sfx.hasAnchor){
+			GameObject attachment = this.playerAnimations[code].GetAttachment(sfx.anchor, false);
+
+			if(attachment != null)
+				parent = attachment.transform;
+		}
+
+		this.cl.sfx.LoadEntitySFX(sfx.name, new EntityID(EntityType.PLAYER, code), parent:parent, localPosition:sfx.GetOffset());
 	}
 
 	public void UpdatePlayerItem(ulong playerCode, ushort id, ushort connectedItemId, bool isItem, byte quantity){

@@ -506,6 +506,22 @@ public struct NetMessage
 
 		this.size = 9 + slotSize;
 	}
+
+	// Client or Server sends the creation or destruction of an SFX attached to a given playerCode
+	public void EntitySFX(ulong playerCode, EntitySFXOperation operation, EntitySFXData sfx){
+		Reset();
+		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
+		NetDecoder.WriteByte((byte)operation, NetMessage.buffer, 9);
+		NetDecoder.WriteBool(sfx.isLoop, NetMessage.buffer, 10);
+		NetDecoder.WriteBool(sfx.hasAnchor, NetMessage.buffer, 11);
+		NetDecoder.WriteByte((byte)sfx.anchor, NetMessage.buffer, 12);
+		NetDecoder.WriteFloat(sfx.offsetX, NetMessage.buffer, 13);
+		NetDecoder.WriteFloat(sfx.offsetY, NetMessage.buffer, 17);
+		NetDecoder.WriteFloat(sfx.offsetZ, NetMessage.buffer, 21);
+		NetDecoder.WriteUshort((ushort)sfx.name.Length, NetMessage.buffer, 25);
+		NetDecoder.WriteString(sfx.name, NetMessage.buffer, 27);
+		this.size = 27 + sfx.name.Length;
+	}
 }
 
 public enum NetCode{
@@ -549,6 +565,7 @@ public enum NetCode{
 	SENDBATTLESTYLE,
 	SENDANIMATORPARAMETER,
 	EQUIPITEM,
+	ENTITYSFX,
 	DISCONNECTINFO, // No call
 	DISCONNECT  // No call
 }

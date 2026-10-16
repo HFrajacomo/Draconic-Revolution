@@ -32,6 +32,7 @@ public class Server {
 
 	private Dictionary<ulong, ChunkPos> playerToChunk;
 	private Dictionary<ulong, Dictionary<int, AnimationData>> playerAnimationStates;
+	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
 
 	private HashSet<ChunkPos> chunksToSend = new HashSet<ChunkPos>();
 
@@ -78,6 +79,7 @@ public class Server {
     	chunksRequested = new Dictionary<ChunkPos, HashSet<ulong>>();
     	playerToChunk = new Dictionary<ulong, ChunkPos>();
 		playerAnimationStates = new Dictionary<ulong, Dictionary<int, AnimationData>>();
+		playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
 
     	this.cl = cl;
     	this.entityHandler.SetChunkLoader(cl);
@@ -437,6 +439,9 @@ public class Server {
 			case NetCode.EQUIPITEM:
 				EquipItem(data, id);
 				break;
+			case NetCode.ENTITYSFX:
+				EntitySFX(data, id);
+				break;
 			case NetCode.DISCONNECTINFO:
 				DisconnectInfo(id);
 				break;
@@ -600,6 +605,7 @@ public class Server {
 					playerMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[code]);
 					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
 					SendAnimationSnapshot(code, id);
+					SendEntitySFXSnapshot(code, id);
 				}
 			}
 		}
@@ -991,6 +997,7 @@ public class Server {
 		this.connectionGraph.Remove(id);
 		this.receiveBuffer.Remove(id);
 		this.playerAnimationStates.Remove(id);
+		this.playerActiveLoopSFX.Remove(id);
 
 		this.entityHandler.Remove(EntityType.PLAYER, this.cl.regionHandler.allPlayerData[id].GetChunkPos(), id);
 		this.entityHandler.RemoveSheet(id);
@@ -1155,6 +1162,7 @@ public class Server {
 					liveMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id]);
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);
 					SendAnimationSnapshot(id, code);
+					SendEntitySFXSnapshot(id, code);
 
 					foreach(string parameter in animatorParameters.Keys){
 						animatorParameterMessage.SendAnimatorParameter(code, animatorParameters[parameter], parameter);
@@ -1640,6 +1648,40 @@ public class Server {
 		SendToClientsExcept(id, equipMessage);
 	}
 
+	// Receives an Entity SFX creation/destruction from the client that owns the entity and relays it to nearby clients
+	public void EntitySFX(byte[] data, ulong id){
+		ulong playerCode = NetDecoder.ReadUlong(data, 1);
+		EntitySFXOperation operation = (EntitySFXOperation)NetDecoder.ReadByte(data, 9);
+		EntitySFXData sfx = NetDecoder.ReadEntitySFXData(data, 10);
+
+		if(id != playerCode)
+			return;
+
+		if(operation == EntitySFXOperation.CREATE){
+			if(sfx.isLoop){
+				if(!this.playerActiveLoopSFX.ContainsKey(playerCode))
+					this.playerActiveLoopSFX.Add(playerCode, new Dictionary<string, EntitySFXData>());
+
+				this.playerActiveLoopSFX[playerCode][sfx.name] = sfx;
+			}
+		}
+		else if(operation == EntitySFXOperation.DESTROY){
+			if(this.playerActiveLoopSFX.ContainsKey(playerCode)){
+				this.playerActiveLoopSFX[playerCode].Remove(sfx.name);
+
+				if(this.playerActiveLoopSFX[playerCode].Count == 0)
+					this.playerActiveLoopSFX.Remove(playerCode);
+			}
+		}
+		else{
+			return;
+		}
+
+		NetMessage message = new NetMessage(NetCode.ENTITYSFX);
+		message.EntitySFX(playerCode, operation, sfx);
+		this.SendToClientsExcept(id, message);
+	}
+
 	// Receives a Disconnect message from InfoClient
 	public void DisconnectInfo(ulong id){
 		this.temporaryConnections[id].Close();
@@ -1659,6 +1701,19 @@ public class Server {
 
 		foreach(AnimationData animationData in this.playerAnimationStates[playerCode].Values){
 			message.SendAnimationLayer(playerCode, animationData);
+			this.Send(message.GetMessage(), message.size, recipientCode);
+		}
+	}
+
+	// Sends all active looping SFX of a player to a recipient that just started seeing them
+	private void SendEntitySFXSnapshot(ulong playerCode, ulong recipientCode){
+		if(!this.playerActiveLoopSFX.ContainsKey(playerCode))
+			return;
+
+		NetMessage message = new NetMessage(NetCode.ENTITYSFX);
+
+		foreach(EntitySFXData sfx in this.playerActiveLoopSFX[playerCode].Values){
+			message.EntitySFX(playerCode, EntitySFXOperation.CREATE, sfx);
 			this.Send(message.GetMessage(), message.size, recipientCode);
 		}
 	}

@@ -7,8 +7,16 @@ using UnityEngine;
 Creates an SFX in a Player entity. Optionally attached to a bone anchor.
 Looping SFX persist until AN_DestroySFXBehaviour is run, while non-looping SFX are destroyed once they finish playing.
 
+SFX are owner-authoritative: only the client that owns the player runs this behaviour, playing the SFX locally and
+sending an ENTITYSFX message so the Server relays it to other clients. Animations replayed on other players' models do nothing.
+
+Since the local player runs both a First Person and a Third Person animator, only one of them triggers the SFX:
+	ifPlayerBuildOnlyFirstPerson = true  -> the First Person event is used
+	ifPlayerBuildOnlyFirstPerson = false -> the Third Person event is used
+(Differs from AN_CreateVFXBehaviour, where false builds in both, since a sound must not exist twice)
+
 This behaviour only supports Players so far. 
-Animation and movement mechanics must be added to AI before this leveraging this class for AI.
+Animation and movement mechanics must be added to AI before leveraging this class for AI.
 */
 
 [Serializable]
@@ -37,19 +45,26 @@ public class AN_CreateSFXBehaviour : AnimationBehaviour {
 	}
 
 	public override void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){
-		if((this.ifPlayerBuildOnlyFirstPerson && this.firstPerson) || !this.ifPlayerBuildOnlyFirstPerson || !isPlayer){
-			EntityID id = new EntityID(EntityType.PLAYER, entityID);
-			Transform parent = null;
+		if(!isPlayer)
+			return;
+		if(this.ifPlayerBuildOnlyFirstPerson != this.firstPerson)
+			return;
 
-			if(this.hasAnchor){
-				GameObject attachmentObject = animationHandler.GetAttachment(this.anchor, this.firstPerson);
+		EntityID id = new EntityID(EntityType.PLAYER, entityID);
+		Transform parent = null;
 
-				if(attachmentObject != null)
-					parent = attachmentObject.transform;
-			}
+		if(this.hasAnchor){
+			GameObject attachmentObject = animationHandler.GetAttachment(this.anchor, this.firstPerson);
 
-			cl.sfx.LoadEntitySFX(this.sfxName, id, parent:parent, localPosition:new Vector3(this.offsetX, this.offsetY, this.offsetZ));
+			if(attachmentObject != null)
+				parent = attachmentObject.transform;
 		}
+
+		cl.sfx.LoadEntitySFX(this.sfxName, id, parent:parent, localPosition:new Vector3(this.offsetX, this.offsetY, this.offsetZ));
+
+		NetMessage message = new NetMessage(NetCode.ENTITYSFX);
+		message.EntitySFX(entityID, EntitySFXOperation.CREATE, new EntitySFXData(this.sfxName, AudioLoader.IsLoop(this.sfxName), this.hasAnchor, this.anchor, this.offsetX, this.offsetY, this.offsetZ));
+		cl.client.Send(message);
 	}
 
 	private BoneAnchorType Resolve(string name){
