@@ -16,6 +16,10 @@ public static class AnimationBehaviourDeserializer {
 				return SetAnimatorType(JsonUtility.FromJson<AN_CreateVFXBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
 			case "AN_DestroyVFXBehaviour":
 				return SetAnimatorType(JsonUtility.FromJson<AN_DestroyVFXBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
+			case "AN_CreateSFXBehaviour":
+				return SetAnimatorType(JsonUtility.FromJson<AN_CreateSFXBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
+			case "AN_DestroySFXBehaviour":
+				return SetAnimatorType(JsonUtility.FromJson<AN_DestroySFXBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
 			case "AN_PointLightBehaviour":
 				return SetAnimatorType(JsonUtility.FromJson<AN_PointLightBehaviour>(JsonFormatter.RemoveComments(data.json)), firstPerson);
 			default:

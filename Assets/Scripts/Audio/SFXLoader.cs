@@ -15,59 +15,136 @@ public class SFXLoader : MonoBehaviour
     private Dictionary<ChunkPos, Dictionary<EntityID, GameObject>> blockSFX = new Dictionary<ChunkPos, Dictionary<EntityID, GameObject>>();
     private Dictionary<EntityID, Dictionary<string, GameObject>> entitySFX = new Dictionary<EntityID, Dictionary<string, GameObject>>();
 
-    // Adds an SFX to an Entity
-    public void LoadEntitySFX(string name, EntityID entity){
-        GameObject entityObj = cl.client.entityHandler.GetEntityObject(entity);
+    // Non-looping Entity SFX that are destroyed once they finish playing
+    private List<OneShotSFX> oneShotSFX = new List<OneShotSFX>();
+
+    // Time a one-shot SFX has to start playing (clips are loaded asynchronously) before being discarded
+    private static readonly float ONE_SHOT_START_TIMEOUT = 4f;
+
+    void Update(){
+        UpdateOneShotSFX();
+    }
+
+    /*
+    Adds an SFX to an Entity
+        parent: Transform the SFX will be attached to. Defaults to the Entity object
+        localPosition: offset of the SFX relative to the parent
+        If the Entity already has this SFX, it is replayed instead
+    */
+    public void LoadEntitySFX(string name, EntityID entity, Transform parent=null, Vector3 localPosition=default(Vector3)){
+        if(ContainsEntitySFX(entity, name)){
+            if(this.entitySFX[entity][name] != null){
+                // Looping SFX that are already playing are not restarted
+                if(AudioLoader.IsLoop(name) && this.entitySFX[entity][name].GetComponent<AudioSource>().isPlaying)
+                    return;
+
+                audioManager.Play(name, entity);
+                return;
+            }
+
+            // GameObject was destroyed along with its parent
+            RemoveEntitySFX(entity, name);
+        }
+
+        if(parent == null)
+            parent = cl.client.entityHandler.GetEntityObject(entity).transform;
 
         GameObject go = GameObject.Instantiate(prefab, Vector3.zero, Quaternion.identity);
-        go.transform.parent = entityObj.transform;
-        go.transform.localPosition = Vector3.zero;
+        go.transform.parent = parent;
+        go.transform.localPosition = localPosition;
         go.name = $"SFX_{name}";
         AudioSource source = go.GetComponent<AudioSource>();
 
-        if(this.entitySFX.ContainsKey(entity)){
-            this.entitySFX[entity].Add(name, go);
+        if(!this.entitySFX.ContainsKey(entity))
+            this.entitySFX.Add(entity, new Dictionary<string, GameObject>());
+
+        this.entitySFX[entity].Add(name, go);
+
+        if(AudioLoader.IsLoop(name)){
+            audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D_LOOP, entity, sfxName:name);
         }
         else{
-            this.entitySFX.Add(entity, new Dictionary<string, GameObject>());
-            this.entitySFX[entity].Add(name, go);            
+            audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D, entity, sfxName:name);
+            this.oneShotSFX.Add(new OneShotSFX(entity, name, source, Time.time));
         }
-
-        if(AudioLoader.IsLoop(name))
-            audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D_LOOP, entity);
-        else
-            audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D, entity);
 
         audioManager.Play(name, entity);
     }
 
+    public bool ContainsEntitySFX(EntityID entity, string name){
+        if(!this.entitySFX.ContainsKey(entity))
+            return false;
+        return this.entitySFX[entity].ContainsKey(name);
+    }
+
     // Remove an SFX from an Entity
     public void RemoveEntitySFX(EntityID entity, string name){
-        if(!entitySFX.ContainsKey(entity))
-            return;
-        if(!entitySFX[entity].ContainsKey(name))
+        if(!ContainsEntitySFX(entity, name))
             return;
 
-        GameObject.Destroy(entitySFX[entity][name]);
-        entitySFX[entity].Remove(name);
-        audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, entity);
+        if(this.entitySFX[entity][name] != null)
+            GameObject.Destroy(this.entitySFX[entity][name]);
+
+        this.entitySFX[entity].Remove(name);
+
+        if(this.entitySFX[entity].Count == 0)
+            this.entitySFX.Remove(entity);
+
+        RemoveOneShotTracking(entity, name);
+        audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, entity, sfxName:name);
     }
+
     // Removes all SFX from an Entity
     public void RemoveEntitySFX(EntityID entity){
-        List<string> removeList = new List<string>();
-
-        if(!entitySFX.ContainsKey(entity))
+        if(!this.entitySFX.ContainsKey(entity))
             return;
 
-        foreach(string name in entitySFX[entity].Keys){
-            removeList.Add(name);
+        foreach(GameObject go in this.entitySFX[entity].Values){
+            if(go != null)
+                GameObject.Destroy(go);
         }
 
-        foreach(string name in removeList){
-            GameObject.Destroy(entitySFX[entity][name]);
-        }
+        this.entitySFX.Remove(entity);
 
-        entitySFX.Remove(entity);
+        RemoveOneShotTracking(entity);
+        audioManager.UnregisterAudioSource(AudioUsecase.SFX_3D, entity);
+    }
+
+    // Destroys one-shot SFX that finished playing, were destroyed externally or never started
+    private void UpdateOneShotSFX(){
+        OneShotSFX shot;
+
+        for(int i = this.oneShotSFX.Count-1; i >= 0; i--){
+            if(i >= this.oneShotSFX.Count)
+                continue;
+
+            shot = this.oneShotSFX[i];
+
+            if(shot.source != null && shot.source.isPlaying){
+                if(!shot.started){
+                    shot.started = true;
+                    this.oneShotSFX[i] = shot;
+                }
+                continue;
+            }
+
+            if(shot.source == null || shot.started || Time.time - shot.creationTime >= ONE_SHOT_START_TIMEOUT)
+                RemoveEntitySFX(shot.entity, shot.name);
+        }
+    }
+
+    private void RemoveOneShotTracking(EntityID entity, string name){
+        for(int i = this.oneShotSFX.Count-1; i >= 0; i--){
+            if(this.oneShotSFX[i].entity.Equals(entity) && this.oneShotSFX[i].name == name)
+                this.oneShotSFX.RemoveAt(i);
+        }
+    }
+
+    private void RemoveOneShotTracking(EntityID entity){
+        for(int i = this.oneShotSFX.Count-1; i >= 0; i--){
+            if(this.oneShotSFX[i].entity.Equals(entity))
+                this.oneShotSFX.RemoveAt(i);
+        }
     }
 
     /*

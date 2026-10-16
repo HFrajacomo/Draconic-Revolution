@@ -30,6 +30,10 @@
 						"json": "{\"normalizedTime\": 0.95, \"vfxGameObjectName\": \"Torchfire\", \"ifPlayerBuildOnlyFirstPerson\": true}"
 					},
 					{
+						"type": "AN_DestroySFXBehaviour",
+						"json": "{\"normalizedTime\": 0.95, \"sfxName\": \"Torchfire\", \"ifPlayerBuildOnlyFirstPerson\": true}"
+					},
+					{
 						"type": "AN_PointLightBehaviour",
 						"json": "{\"normalizedTime\": 0.95, \"create\": false, \"ifPlayerBuildOnlyFirstPerson\": true}"
 					},
@@ -50,6 +54,10 @@
 					{
 						"type": "AN_CreateVFXBehaviour",
 						"json": "{\"normalizedTime\": 0.7, \"vfxGameObjectName\": \"Torchfire\", \"boneAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"offsetY\": 1.0, \"rotationX\": -90.0, \"rotationZ\": -50.0, \"vfxPath\": \"----- PrefabVFX -----/FireVFX_Handheld\", \"ifPlayerBuildOnlyFirstPerson\": true}"
+					},
+					{
+						"type": "AN_CreateSFXBehaviour",
+						"json": "{\"normalizedTime\": 0.7, \"sfxName\": \"Torchfire\", \"boneAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"ifPlayerBuildOnlyFirstPerson\": true}" 
 					},
 					{
 						"type": "AN_PointLightBehaviour",

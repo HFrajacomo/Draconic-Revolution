@@ -200,13 +200,14 @@ public class AudioManager : MonoBehaviour
 
     /*
     Register an AudioSource to a AudioTrack3D that has the given usecase
+        sfxName is required for SFX in Player entities
     */
-    public void RegisterAudioSource(AudioSource source, AudioUsecase type, EntityID entityID){
+    public void RegisterAudioSource(AudioSource source, AudioUsecase type, EntityID entityID, string sfxName=null){
         if(type == AudioUsecase.MUSIC_3D){
             this.audioTrackMusic3D.RegisterAudioSource(entityID, source);
         }
         else if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
-            this.audioTrackSFX3D.RegisterAudioSource(entityID, source);
+            this.audioTrackSFX3D.RegisterAudioSource(entityID, source, sfxName:sfxName);
         }
         else if(type == AudioUsecase.VOICE_3D){
             this.audioTrackVoice3D.RegisterAudioSource(source, entityID);
@@ -215,13 +216,14 @@ public class AudioManager : MonoBehaviour
 
     /*
     Un-register an AudioSource to a AudioTrack3D that has the given usecase
+        For SFX in Player entities, a null sfxName unregisters all SFX of the entity
     */
-    public void UnregisterAudioSource(AudioUsecase type, EntityID entityID, ChunkPos? pos=null){
+    public void UnregisterAudioSource(AudioUsecase type, EntityID entityID, ChunkPos? pos=null, string sfxName=null){
         if(type == AudioUsecase.MUSIC_3D){
             this.audioTrackMusic3D.UnregisterAudioSource(entityID);
         }
         else if(type == AudioUsecase.SFX_3D || type == AudioUsecase.SFX_3D_LOOP){
-            this.audioTrackSFX3D.UnregisterAudioSource(entityID);
+            this.audioTrackSFX3D.UnregisterAudioSource(entityID, sfxName:sfxName);
         }
         else if(type == AudioUsecase.VOICE_3D){
             this.audioTrackVoice3D.UnregisterAudioSource(entityID);
@@ -283,11 +285,11 @@ public class AudioManager : MonoBehaviour
             this.cachedSFXList = new List<string>(cachedSFXClips.Keys);
 
             foreach(string name in this.cachedSFXList){
+                // Every entity that requested the clip while it was loading must play it
                 foreach(LoadedSFX lsfx in cachedSFXClips[name]){
-                    if(loadedClips.ContainsKey(lsfx.name))
-                        continue;
-                        
-                    loadedClips.Add(lsfx.name, lsfx.clip);
+                    if(!loadedClips.ContainsKey(lsfx.name))
+                        loadedClips.Add(lsfx.name, lsfx.clip);
+
                     this.Play(lsfx.name, lsfx.entity, chunk:lsfx.entity.pos);
                 }
 

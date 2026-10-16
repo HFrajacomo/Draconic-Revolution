@@ -71,6 +71,6 @@ public class IT_CreatePointLightBehaviour : ItemBehaviour{
 		realLight.enabled = false;
 
 		cl.voxelLightHandler.Remove(id);
-		cl.sfx.RemoveEntitySFX(id);
+		cl.sfx.RemoveEntitySFX(id, this.audioName);
 	}
 }
