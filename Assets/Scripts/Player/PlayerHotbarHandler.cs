@@ -55,8 +55,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
-		IS_SWITCHING = false;
-		IS_NORMAL_HOTBAR = true;
+		ResetSessionState();
 
 		foreach(Image img in hotbarIcon){
 			img.material = Instantiate(this.hotbarMaterial);
@@ -89,6 +88,15 @@ public class PlayerHotbarHandler : MonoBehaviour
 		PlayerHotbarHandler.STARTED = false;
 		PlayerHotbarHandler.HOTBAR_SELECTED_VALID = false;
 		PlayerHotbarHandler.HOTBAR_SELECTION_TIME = 0f;
+	}
+
+	/*
+	Players always join a world with the Normal Hotbar selected
+	Must run before the CharacterSheet is received, since this object is only activated after the world is drawn
+	*/
+	public static void ResetSessionState(){
+		IS_SWITCHING = false;
+		IS_NORMAL_HOTBAR = true;
 	}
 
 	public void SwitchHotbars(){

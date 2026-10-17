@@ -27,7 +27,20 @@ public class AN_CreateVFXBehaviour : AnimationBehaviour {
 
 	public override void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){
 		if((this.ifPlayerBuildOnlyFirstPerson && this.firstPerson) || !this.ifPlayerBuildOnlyFirstPerson || !isPlayer){
+			// Prefab lives in the Game scene and is destroyed whenever the scene is reloaded
+			if(this.vfxPrefab == null)
+				this.vfxPrefab = GameObject.Find(this.vfxPath);
+
+			if(this.vfxPrefab == null){
+				Debug.LogError($"[AN_CreateVFXBehaviour] Could not find VFX prefab: {this.vfxPath}");
+				return;
+			}
+
 			GameObject attachmentObject = animationHandler.GetAttachment(this.anchor, this.firstPerson);
+
+			if(attachmentObject == null)
+				return;
+
 			GameObject visualEffect = GameObject.Instantiate(this.vfxPrefab);
 			visualEffect.name = this.vfxGameObjectName;
 			visualEffect.transform.parent = attachmentObject.transform;

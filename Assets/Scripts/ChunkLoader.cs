@@ -101,6 +101,7 @@ public class ChunkLoader : MonoBehaviour
     void Awake(){
         BlockEncyclopediaECS.InitializeNativeStructures();
         VoxelLoader.InitBlockEncyclopediaECS();
+        PlayerHotbarHandler.ResetSessionState();
 
         this.playerCharacter.SetActive(false);
         this.playerCharacter.transform.position = new Vector3(0,-999,0);

@@ -17,6 +17,9 @@ public abstract class AnimationBehaviour {
 
 		if(!behaviours.ContainsKey(clip.name))
 			behaviours.Add(clip.name, new List<AnimationBehaviour>());
+		// Clip was reloaded without its runtime events: indexes restart, so stale behaviours must be dropped
+		else if(index == 0)
+			behaviours[clip.name].Clear();
 
         AnimationEvent animEvent = new AnimationEvent();
         animEvent.time = this.normalizedTime * clip.length;

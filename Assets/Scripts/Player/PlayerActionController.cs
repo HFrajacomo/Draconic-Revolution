@@ -203,6 +203,10 @@ public class PlayerActionController : MonoBehaviour {
 			return;
 		}
 
+		// Characters always join sheathed. Coroutines can't run while the Character is inactive, so requests made before the world is drawn are ignored
+		if(!this.gameObject.activeInHierarchy)
+			return;
+
 		ForceSheathe(flag);
 	}
 	private void ForceSheathe(bool flag){

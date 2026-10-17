@@ -554,6 +554,14 @@ public class Server {
     		this.entityHandler.AddPlayerSheet(accountID, sheet);
     	}
 
+		// Players always join with the Normal Hotbar selected and their weapon sheathed
+		sheet = this.entityHandler.GetSheet(accountID);
+
+		if(!sheet.IsInNormalHotbar()){
+			sheet.SetIsInNormalHotbar(true);
+			this.cl.characterFileHandler.SaveCharacterSheet(accountID, sheet);
+		}
+
     	bool isEmpty;
 		byte hotbarSlot = sheet.GetHotbarSlot();
 		this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmpty);
