@@ -522,6 +522,17 @@ public struct NetMessage
 		NetDecoder.WriteString(sfx.name, NetMessage.buffer, 27);
 		this.size = 27 + sfx.name.Length;
 	}
+
+	// Client or Server sends the switch of a BattleStyle attachment from one anchor to another in a given playerCode
+	public void SendAttachmentAnchor(ulong playerCode, BoneAnchorType origin, BoneAnchorType target, bool flip, float heightOffset){
+		Reset();
+		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
+		NetDecoder.WriteByte((byte)origin, NetMessage.buffer, 9);
+		NetDecoder.WriteByte((byte)target, NetMessage.buffer, 10);
+		NetDecoder.WriteBool(flip, NetMessage.buffer, 11);
+		NetDecoder.WriteFloat(heightOffset, NetMessage.buffer, 12);
+		this.size = 16;
+	}
 }
 
 public enum NetCode{
@@ -566,6 +577,7 @@ public enum NetCode{
 	SENDANIMATORPARAMETER,
 	EQUIPITEM,
 	ENTITYSFX,
+	SENDATTACHMENTANCHOR,
 	DISCONNECTINFO, // No call
 	DISCONNECT  // No call
 }

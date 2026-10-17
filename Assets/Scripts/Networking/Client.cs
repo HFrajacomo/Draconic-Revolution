@@ -266,6 +266,9 @@ public class Client
 			case NetCode.ENTITYSFX:
 				EntitySFX(data);
 				break;
+			case NetCode.SENDATTACHMENTANCHOR:
+				SendAttachmentAnchor(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -732,7 +735,7 @@ public class Client
 		int styleCode = NetDecoder.ReadInt(data, 9);
 		
 		if(playerCode != Configurations.accountID)
-			this.entityHandler.SetPlayerBattleStyle(playerCode, styleCode);
+			this.entityHandler.ChangePlayerBattleStyle(playerCode, styleCode);
 		else{
 			this.cl.playerActionController.UseStyle(styleCode);
 		}
@@ -757,6 +760,18 @@ public class Client
 
 		if(playerCode != Configurations.accountID)
 			this.entityHandler.PlayerSFX(playerCode, operation, sfx);
+	}
+
+	// Receives from server the switch of a BattleStyle attachment anchor in another player
+	private void SendAttachmentAnchor(byte[] data){
+		ulong playerCode = NetDecoder.ReadUlong(data, 1);
+		BoneAnchorType origin = (BoneAnchorType)NetDecoder.ReadByte(data, 9);
+		BoneAnchorType target = (BoneAnchorType)NetDecoder.ReadByte(data, 10);
+		bool flip = NetDecoder.ReadBool(data, 11);
+		float heightOffset = NetDecoder.ReadFloat(data, 12);
+
+		if(playerCode != Configurations.accountID)
+			this.entityHandler.PlayerAttachmentAnchor(playerCode, origin, target, flip, heightOffset);
 	}
 
 	// Receives from server a change in equipment from a given client

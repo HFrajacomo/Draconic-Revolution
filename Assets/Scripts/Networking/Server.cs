@@ -33,6 +33,7 @@ public class Server {
 	private Dictionary<ulong, ChunkPos> playerToChunk;
 	private Dictionary<ulong, Dictionary<int, AnimationData>> playerAnimationStates;
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
+	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
 
 	private HashSet<ChunkPos> chunksToSend = new HashSet<ChunkPos>();
 
@@ -80,6 +81,7 @@ public class Server {
     	playerToChunk = new Dictionary<ulong, ChunkPos>();
 		playerAnimationStates = new Dictionary<ulong, Dictionary<int, AnimationData>>();
 		playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
+		playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
 
     	this.cl = cl;
     	this.entityHandler.SetChunkLoader(cl);
@@ -442,6 +444,9 @@ public class Server {
 			case NetCode.ENTITYSFX:
 				EntitySFX(data, id);
 				break;
+			case NetCode.SENDATTACHMENTANCHOR:
+				SendAttachmentAnchor(data, id);
+				break;
 			case NetCode.DISCONNECTINFO:
 				DisconnectInfo(id);
 				break;
@@ -606,6 +611,7 @@ public class Server {
 					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
 					SendAnimationSnapshot(code, id);
 					SendEntitySFXSnapshot(code, id);
+					SendAttachmentAnchorSnapshot(code, id);
 				}
 			}
 		}
@@ -998,6 +1004,7 @@ public class Server {
 		this.receiveBuffer.Remove(id);
 		this.playerAnimationStates.Remove(id);
 		this.playerActiveLoopSFX.Remove(id);
+		this.playerAttachmentAnchors.Remove(id);
 
 		this.entityHandler.Remove(EntityType.PLAYER, this.cl.regionHandler.allPlayerData[id].GetChunkPos(), id);
 		this.entityHandler.RemoveSheet(id);
@@ -1163,6 +1170,7 @@ public class Server {
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);
 					SendAnimationSnapshot(id, code);
 					SendEntitySFXSnapshot(id, code);
+					SendAttachmentAnchorSnapshot(id, code);
 
 					foreach(string parameter in animatorParameters.Keys){
 						animatorParameterMessage.SendAnimatorParameter(code, animatorParameters[parameter], parameter);
@@ -1547,6 +1555,7 @@ public class Server {
 		ulong playerCode = NetDecoder.ReadUlong(data, 1);
 		int style = NetDecoder.ReadInt(data, 9);
 
+		ClearAttachmentAnchorsOnStyleChange(playerCode, style);
 		this.entityHandler.ChangeBattleStyle(playerCode, style);
 		sheet = this.entityHandler.GetSheet(id);
 		sheet.SetBattleStyleCode(style);
@@ -1559,6 +1568,7 @@ public class Server {
 	}
 	public void SendBattleStyle(ulong playerCode, int style){
 		CharacterSheet sheet;
+		ClearAttachmentAnchorsOnStyleChange(playerCode, style);
 		this.entityHandler.ChangeBattleStyle(playerCode, style);
 		sheet = this.entityHandler.GetSheet(playerCode);
 		sheet.SetBattleStyleCode(style);
@@ -1682,6 +1692,33 @@ public class Server {
 		this.SendToClientsExcept(id, message);
 	}
 
+	// Receives a BattleStyle attachment anchor switch from the client that owns the entity and relays it to nearby clients
+	public void SendAttachmentAnchor(byte[] data, ulong id){
+		ulong playerCode = NetDecoder.ReadUlong(data, 1);
+		BoneAnchorType origin = (BoneAnchorType)NetDecoder.ReadByte(data, 9);
+		BoneAnchorType target = (BoneAnchorType)NetDecoder.ReadByte(data, 10);
+		bool flip = NetDecoder.ReadBool(data, 11);
+		float heightOffset = NetDecoder.ReadFloat(data, 12);
+
+		if(id != playerCode)
+			return;
+
+		if(!this.playerAttachmentAnchors.ContainsKey(playerCode))
+			this.playerAttachmentAnchors.Add(playerCode, new Dictionary<BoneAnchorType, AttachmentAnchorState>());
+
+		bool applied = AttachmentAnchorState.Apply(this.playerAttachmentAnchors[playerCode], origin, target, flip, heightOffset);
+
+		if(this.playerAttachmentAnchors[playerCode].Count == 0)
+			this.playerAttachmentAnchors.Remove(playerCode);
+
+		if(!applied)
+			return;
+
+		NetMessage message = new NetMessage(NetCode.SENDATTACHMENTANCHOR);
+		message.SendAttachmentAnchor(playerCode, origin, target, flip, heightOffset);
+		this.SendToClientsExcept(id, message);
+	}
+
 	// Receives a Disconnect message from InfoClient
 	public void DisconnectInfo(ulong id){
 		this.temporaryConnections[id].Close();
@@ -1716,6 +1753,25 @@ public class Server {
 			message.EntitySFX(playerCode, EntitySFXOperation.CREATE, sfx);
 			this.Send(message.GetMessage(), message.size, recipientCode);
 		}
+	}
+
+	// Sends all BattleStyle attachments of a player that are away from their default anchor to a recipient that just started seeing them
+	private void SendAttachmentAnchorSnapshot(ulong playerCode, ulong recipientCode){
+		if(!this.playerAttachmentAnchors.ContainsKey(playerCode))
+			return;
+
+		NetMessage message = new NetMessage(NetCode.SENDATTACHMENTANCHOR);
+
+		foreach(KeyValuePair<BoneAnchorType, AttachmentAnchorState> item in this.playerAttachmentAnchors[playerCode]){
+			message.SendAttachmentAnchor(playerCode, item.Key, item.Value.anchor, item.Value.flip, item.Value.heightOffset);
+			this.Send(message.GetMessage(), message.size, recipientCode);
+		}
+	}
+
+	// Attachments are rebuilt in their default anchors whenever a BattleStyle changes
+	private void ClearAttachmentAnchorsOnStyleChange(ulong playerCode, int style){
+		if(this.entityHandler.GetSheet(playerCode).GetBattleStyleCode() != style)
+			this.playerAttachmentAnchors.Remove(playerCode);
 	}
 
 	// Send input message to all Clients connected to a given Chunk

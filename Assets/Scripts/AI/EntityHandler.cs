@@ -24,6 +24,7 @@ public class EntityHandler
 	private Dictionary<ulong, int> playerBattleStyle;
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
 	private HashSet<ulong> playerSFXNeedsReapply;
+	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
 	private GameObject droppedItemBase = GameObject.Find("----- PrefabModels -----/DroppedItemBase");
 
 	private int currentTogglingCounter;
@@ -46,6 +47,7 @@ public class EntityHandler
 		this.playerBattleStyle = new Dictionary<ulong, int>();
 		this.playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
 		this.playerSFXNeedsReapply = new HashSet<ulong>();
+		this.playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
 		this.playerItemOrActionInHand = new Dictionary<ulong, bool>();
 		this.cl = cl;
 		this.playerModelHandler = cl.playerModelHandler;
@@ -110,6 +112,7 @@ public class EntityHandler
 		this.pendingPlayerAnimatorParameters.Add(code, new Dictionary<string, float>());
 		this.playerBattleStyle.Add(code, -1);
 		this.playerActiveLoopSFX.Add(code, new Dictionary<string, EntitySFXData>());
+		this.playerAttachmentAnchors.Add(code, new Dictionary<BoneAnchorType, AttachmentAnchorState>());
 		RunSingleActivation(EntityType.PLAYER, code, pos);
 	}
 
@@ -163,10 +166,53 @@ public class EntityHandler
 		this.playerAnimations[code].GetThirdPersonAnimator().runtimeAnimatorController = animationOverrideController;
 		this.playerSheet[code].SetBattleStyleCode(style);
 		this.playerAnimations[code].CreateAttachments(AnimationLoader.GetBattleStyle(style));
+		ApplyAttachmentAnchors(code);
 
 		// Attachments are replaced, destroying SFX attached to them
 		this.playerSFXNeedsReapply.Add(code);
 		ApplyPendingPlayerAnimations(code);
+	}
+
+	// Handles a BattleStyle change received from the Server, resetting attachments to their default anchors when the style differs
+	public void ChangePlayerBattleStyle(ulong code, int style){
+		if(!this.playerBattleStyle.ContainsKey(code))
+			return;
+
+		if(GetKnownBattleStyle(code) != style)
+			this.playerAttachmentAnchors[code].Clear();
+
+		SetPlayerBattleStyle(code, style);
+	}
+
+	// Receives an attachment anchor switch for a remote player. Applied right away if the attachment exists, otherwise after attachments are created
+	public void PlayerAttachmentAnchor(ulong code, BoneAnchorType origin, BoneAnchorType target, bool flip, float heightOffset){
+		if(!this.playerAttachmentAnchors.ContainsKey(code))
+			return;
+
+		if(!AttachmentAnchorState.Apply(this.playerAttachmentAnchors[code], origin, target, flip, heightOffset))
+			return;
+
+		if(this.playerAnimations[code] != null && this.playerAnimations[code].ContainsAttachment(origin, false))
+			this.playerAnimations[code].SwitchAttachments(false, origin, target, heightOffset, flip);
+	}
+
+	// Moves freshly created attachments from their default anchors to the ones informed by the Server
+	private void ApplyAttachmentAnchors(ulong code){
+		if(!this.playerAttachmentAnchors.ContainsKey(code))
+			return;
+
+		foreach(KeyValuePair<BoneAnchorType, AttachmentAnchorState> item in this.playerAttachmentAnchors[code]){
+			this.playerAnimations[code].SwitchAttachments(false, item.Key, item.Value.anchor, item.Value.heightOffset, item.Value.flip);
+		}
+	}
+
+	// Gets the last known BattleStyle of a player, even if the attachments were not created yet
+	private int GetKnownBattleStyle(ulong code){
+		if(this.playerBattleStyle[code] != -1)
+			return this.playerBattleStyle[code];
+		if(this.playerSheet.ContainsKey(code))
+			return this.playerSheet[code].GetBattleStyleCode();
+		return -1;
 	}
 
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){
@@ -259,6 +305,7 @@ public class EntityHandler
 			this.playerBattleStyle.Remove(code);
 			this.playerActiveLoopSFX.Remove(code);
 			this.playerSFXNeedsReapply.Remove(code);
+			this.playerAttachmentAnchors.Remove(code);
 			this.cl.sfx.RemoveEntitySFX(new EntityID(type, code));
 		}
 		else if(type == EntityType.DROP){
