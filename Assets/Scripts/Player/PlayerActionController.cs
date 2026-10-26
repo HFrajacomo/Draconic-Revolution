@@ -117,7 +117,6 @@ public class PlayerActionController : MonoBehaviour {
 		this.restrictions = new HashSet<PlayerActionRestriction>();
 		this.restrictionTimer = new Dictionary<PlayerActionRestriction, Coroutine>();
 		this.currentlyQueuedState = new HashSet<string>();
-		this.restrictions.Add(PlayerActionRestriction.PRIMARY);
 		statesPlayed = new List<AnimationData>();
 	}
 
@@ -260,10 +259,14 @@ public class PlayerActionController : MonoBehaviour {
 		this.comboHit = 0;
 		RegisterRestriction(PlayerActionRestriction.PRIMARY, animationTime + 0.05f);
 
-		if(flag)
+		if(flag){
+			// Discards buffered attacks so they can't start once the weapon is sheathed
+			this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
 			StartSheatheTracking();
-		else
+		}
+		else{
 			this.sheatheInProgress = false;
+		}
 
 		// In case of this action being triggered by action queue
 		if(flag){
@@ -345,9 +348,11 @@ public class PlayerActionController : MonoBehaviour {
 	public void RemoveRestriction(PlayerActionRestriction rest){this.restrictions.Remove(rest);}
 	public bool HasRestriction(PlayerActionRestriction rest){return this.restrictions.Contains(rest);}
 
-	// Registers a primary action
+	// Registers a primary action. Attacks are only possible with the weapon unsheathed
 	public void RegisterPrimaryAction(){
-		// Temporary check until Weapon Itemtypes are introduced into the game
+		if(!this.INIT || this.weaponSheathed)
+			return;
+
 		if(this.restrictions.Contains(PlayerActionRestriction.PRIMARY) || this.restrictions.Contains(PlayerActionRestriction.STUNNED) || this.restrictions.Contains(PlayerActionRestriction.SYSTEM))
 			return;
 

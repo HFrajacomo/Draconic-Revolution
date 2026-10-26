@@ -1000,7 +1000,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		for(int i=0; i < inventorySize; i++){
 			this.slotImages[inventoryCode][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", inventoryCode, i, this.slotSizes, anchor);
-			this.slotText[inventoryCode][i] = CreateTextComponent(this.slotImages[inventoryCode][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
+			this.slotText[inventoryCode][i] = CreateTextComponent(this.slotImages[inventoryCode][i].gameObject, $"TSlot-{i+1}", this.slotSizes, anchor);
 		}
 
 		SendInventoryDataToServer();
@@ -1378,7 +1378,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		for(int i=0; i < inventorySize; i++){
 			this.slotImages[1][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 1, i, this.slotSizes, anchorSec);
-			this.slotText[1][i] = CreateTextComponent(this.slotImages[1][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
+			this.slotText[1][i] = CreateTextComponent(this.slotImages[1][i].gameObject, $"TSlot-{i+1}", this.slotSizes, anchorSec);
 		}
 	}
 
@@ -1453,7 +1453,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		for(int i=0; i < inventorySize; i++){
 			this.slotImages[2][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 2, i, this.slotSizes, anchorSec);
-			this.slotText[2][i] = CreateTextComponent(this.slotImages[2][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
+			this.slotText[2][i] = CreateTextComponent(this.slotImages[2][i].gameObject, $"TSlot-{i+1}", this.slotSizes, anchorSec);
 		}
 	}
 
@@ -1476,10 +1476,9 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		for(int i=0; i < inventorySize; i++){
 			this.slotImages[3][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 3, i, this.slotSizes, anchorSec);
-			this.slotText[3][i] = CreateTextComponent(this.slotImages[3][i].gameObject, $"TSlot-{i+1}", this.slotSizes, this.textPivot);
+			this.slotText[3][i] = CreateTextComponent(this.slotImages[3][i].gameObject, $"TSlot-{i+1}", this.slotSizes, anchorSec);
 
 			this.slotImages[3][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
-			this.slotText[3][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
 		}
 	}
 
