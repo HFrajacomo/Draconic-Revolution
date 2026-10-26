@@ -84,7 +84,7 @@ public class Weapon : Item {
 			memoryStorageType = this.memoryStorageType,
 			stacksize = this.stacksize,
 			hasDurability = this.hasDurability,
-
+			attachmentMaterials = this.attachmentMaterials,
 			onHoldPlayerBehaviour = this.onHoldPlayerBehaviour != null ? new List<ItemBehaviour>(this.onHoldPlayerBehaviour) : null,
 			onHoldClientBehaviour = this.onHoldClientBehaviour != null ? new List<ItemBehaviour>(this.onHoldClientBehaviour) : null,
 			onHoldServerBehaviour = this.onHoldServerBehaviour != null ? new List<ItemBehaviour>(this.onHoldServerBehaviour) : null,

@@ -24,6 +24,8 @@ public class PlayerActionController : MonoBehaviour {
 	private BattleStyleData currentStyle;
 	private bool weaponSheathed = true;
 	private int comboHit = 0;
+	private AttachmentItems appliedAttachmentItems = AttachmentItems.NONE;
+	private AttachmentItems pendingAttachmentItems = AttachmentItems.NONE;
 
 	// Default Config
 	private float hitWindowStart = .48f;
@@ -144,6 +146,26 @@ public class PlayerActionController : MonoBehaviour {
 		ForceUseStyle(style);
 	}
 	public void UseStyle(string styleName){UseStyle(AnimationLoader.GetBattleStyle(styleName).GetCode());}
+
+	/*
+	Uses a style informed by the Server together with the items that skin its attachments
+		If the style doesn't change, the current attachments are re-skinned right away
+		Otherwise, the items are applied when the new style's attachments are created
+	*/
+	public void UseStyle(int style, AttachmentItems items){
+		if(!this.INIT)
+			Init();
+
+		this.pendingAttachmentItems = items;
+
+		if(this.currentStyleCode == style && !this.appliedAttachmentItems.Equals(items)){
+			this.appliedAttachmentItems = items;
+			this.animationHandler.RefreshAttachmentMaterials(items);
+		}
+
+		UseStyle(style);
+	}
+
 	public void ForceUseStyle(int style){
 		if(this.currentStyleCode == style){
 			this.registeredAction.Remove(PlayerActionType.USE_STYLE);
@@ -153,7 +175,8 @@ public class PlayerActionController : MonoBehaviour {
 
 		this.currentStyle = AnimationLoader.GetBattleStyle(style);
 		this.currentStyleCode = style;
-		this.animationHandler.CreateAttachments(this.currentStyle);
+		this.appliedAttachmentItems = this.pendingAttachmentItems;
+		this.animationHandler.CreateAttachments(this.currentStyle, this.appliedAttachmentItems);
 
 		AnimatorOverrideController animationOverrideController = new AnimatorOverrideController(this.originalController);
 		AnimatorOverrideController animationOverrideControllerFP = new AnimatorOverrideController(this.originalControllerFP);

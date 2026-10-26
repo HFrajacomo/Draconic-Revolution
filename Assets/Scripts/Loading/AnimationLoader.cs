@@ -45,6 +45,7 @@ public class AnimationLoader : BaseLoader {
 	public static string GetArmatureName(string controller){return armatureName[controller];}
 	public static BattleStyleData GetBattleStyle(int style){return battleStyles[style];}
 	public static BattleStyleData GetBattleStyle(string style){return nameToBattleStyle[style];}
+	public static int GetBattleStyleCount(){return battleStyles.Count;}
 
 	private void LoadArmatureName(){
 		string respath;
@@ -160,7 +161,7 @@ public class AnimationLoader : BaseLoader {
 
         foreach(TextAsset asset in assets){
         	bsd = JsonUtility.FromJson<BattleStyleData>(JsonFormatter.RemoveComments(asset.text));
-        	bsd.PostDeserializationSetup(asset.name, styleCode);
+        	bsd.PostDeserializationSetup(asset.name, styleCode, isClient);
 			battleStyles.Add(styleCode, bsd);
 			nameToBattleStyle.Add(bsd.GetName(), bsd);
 

@@ -25,6 +25,7 @@ public class EntityHandler
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
 	private HashSet<ulong> playerSFXNeedsReapply;
 	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
+	private Dictionary<ulong, AttachmentItems> playerAttachmentItems;
 	private GameObject droppedItemBase = GameObject.Find("----- PrefabModels -----/DroppedItemBase");
 
 	private int currentTogglingCounter;
@@ -48,6 +49,7 @@ public class EntityHandler
 		this.playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
 		this.playerSFXNeedsReapply = new HashSet<ulong>();
 		this.playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
+		this.playerAttachmentItems = new Dictionary<ulong, AttachmentItems>();
 		this.playerItemOrActionInHand = new Dictionary<ulong, bool>();
 		this.cl = cl;
 		this.playerModelHandler = cl.playerModelHandler;
@@ -113,6 +115,7 @@ public class EntityHandler
 		this.playerBattleStyle.Add(code, -1);
 		this.playerActiveLoopSFX.Add(code, new Dictionary<string, EntitySFXData>());
 		this.playerAttachmentAnchors.Add(code, new Dictionary<BoneAnchorType, AttachmentAnchorState>());
+		this.playerAttachmentItems.Add(code, AttachmentItems.NONE);
 		RunSingleActivation(EntityType.PLAYER, code, pos);
 	}
 
@@ -165,7 +168,7 @@ public class EntityHandler
 
 		this.playerAnimations[code].GetThirdPersonAnimator().runtimeAnimatorController = animationOverrideController;
 		this.playerSheet[code].SetBattleStyleCode(style);
-		this.playerAnimations[code].CreateAttachments(AnimationLoader.GetBattleStyle(style));
+		this.playerAnimations[code].CreateAttachments(bsd, this.playerAttachmentItems[code]);
 		ApplyAttachmentAnchors(code);
 
 		// Attachments are replaced, destroying SFX attached to them
@@ -173,13 +176,32 @@ public class EntityHandler
 		ApplyPendingPlayerAnimations(code);
 	}
 
-	// Handles a BattleStyle change received from the Server, resetting attachments to their default anchors when the style differs
-	public void ChangePlayerBattleStyle(ulong code, int style){
+	/*
+	Handles a BattleStyle change received from the Server, resetting attachments to their default anchors when the style differs
+		If the style is the same, only the attachment materials are refreshed with the newly equipped items
+		If the player model wasn't built yet, the data is kept and applied when the model is built
+	*/
+	public void ChangePlayerBattleStyle(ulong code, int style, AttachmentItems items){
 		if(!this.playerBattleStyle.ContainsKey(code))
 			return;
 
+		bool itemsChanged = !this.playerAttachmentItems[code].Equals(items);
+		this.playerAttachmentItems[code] = items;
+
 		if(GetKnownBattleStyle(code) != style)
 			this.playerAttachmentAnchors[code].Clear();
+
+		if(this.playerAnimations[code] == null || !this.playerSheet.ContainsKey(code)){
+			if(this.playerSheet.ContainsKey(code))
+				this.playerSheet[code].SetBattleStyleCode(style);
+			return;
+		}
+
+		if(this.playerBattleStyle[code] == style){
+			if(itemsChanged)
+				this.playerAnimations[code].RefreshAttachmentMaterials(items);
+			return;
+		}
 
 		SetPlayerBattleStyle(code, style);
 	}
@@ -306,6 +328,7 @@ public class EntityHandler
 			this.playerActiveLoopSFX.Remove(code);
 			this.playerSFXNeedsReapply.Remove(code);
 			this.playerAttachmentAnchors.Remove(code);
+			this.playerAttachmentItems.Remove(code);
 			this.cl.sfx.RemoveEntitySFX(new EntityID(type, code));
 		}
 		else if(type == EntityType.DROP){

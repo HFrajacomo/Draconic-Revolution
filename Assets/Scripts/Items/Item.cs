@@ -45,6 +45,8 @@ public class Item {
 	protected List<ItemBehaviour> onEquipServerBehaviour;
 	protected List<ItemBehaviour> onUnequipServerBehaviour;
 
+	// Attachment Rendering (client only)
+	protected AttachmentMaterialData attachmentMaterials;
 	public virtual void PostDeserializationSetup(){
 		this.itemTags = new HashSet<string>(this.tags);
 		this.tags.Clear();
@@ -62,6 +64,7 @@ public class Item {
 			stacksize = this.stacksize,
 			hasDurability = this.hasDurability,
 			itemTags = this.itemTags,
+			attachmentMaterials = this.attachmentMaterials,
 
 			// Deep copy lists (new lists with same elements)
 			onCreateActionBehaviour = this.onCreateActionBehaviour != null ? new List<ItemBehaviour>(this.onCreateActionBehaviour) : null,
@@ -184,6 +187,8 @@ public class Item {
 	public ushort GetID(){return this.id;}
 	public void SetMemoryStorageType(){this.memoryStorageType = (MemoryStorageType)this.memoryType;}
 	public MemoryStorageType GetMemoryStorageType(){return (MemoryStorageType)this.memoryType;}
+	public AttachmentMaterialData GetAttachmentMaterials(){return this.attachmentMaterials;}
+	public void SetAttachmentMaterials(AttachmentMaterialData data){this.attachmentMaterials = data;}
 
 	// Basic Operations
 	public virtual EntityAction OnCreateAction(ChunkLoader cl, ItemStack its){

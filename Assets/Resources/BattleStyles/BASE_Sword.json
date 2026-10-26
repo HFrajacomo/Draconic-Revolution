@@ -2,7 +2,8 @@
 	"attachments": [
 		{
 			"fbxName": "BastardSword",
-			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT"
+			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT",
+			"weaponType": "BASTARDSWORD"
 		}	
 	],
 	"combo_hits": 3,

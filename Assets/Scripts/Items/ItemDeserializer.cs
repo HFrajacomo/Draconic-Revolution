@@ -29,10 +29,11 @@ public static class ItemDeserializer {
 	private static HashSet<string> assignedEvents = new HashSet<string>();
 	private static Dictionary<string, ItemBehaviour> nameToBehaviour = new Dictionary<string, ItemBehaviour>();
 	private static readonly HashSet<string> POSSIBLE_ITEM_TYPES = new HashSet<string>(){"Item", "Weapon"};
+	private static readonly string ATTACHMENT_SECTION = "Attachment";
 
 
 
-	public static Item DeserializeItem(string json){
+	public static Item DeserializeItem(string json, bool parseAttachment=false){
 		string propertiesJson = GetProperties(json);
 		string behaviourJson;
 		string itemType = GetTypeSection(json);
@@ -50,6 +51,10 @@ public static class ItemDeserializer {
 			behaviourJson = GetBehaviours(json);
 			FindBehaviours(behaviourJson);
 			DeserializeAllBehaviours(json);
+		}
+
+		if(parseAttachment && HasSection(json, ATTACHMENT_SECTION)){
+			item.SetAttachmentMaterials(DeserializeAttachment(json, item));
 		}
 
 		AssignEventsToItem(item);
@@ -134,11 +139,30 @@ public static class ItemDeserializer {
 		}
 	}
 
+	// Properties are always the first section of the file
 	private static string GetProperties(string json){
-		if(json.Contains("--->Behaviours"))
-			return json.Split("--->Behaviours")[0];
-		else
-			return json.Split("--->Type")[0];
+		return json.Split("--->")[0];
+	}
+
+	private static bool HasSection(string json, string section){
+		return json.IndexOf("--->" + section) != -1;
+	}
+
+	private static AttachmentMaterialData DeserializeAttachment(string json, Item item){
+		AttachmentMaterialData data;
+
+		try{
+			data = JsonUtility.FromJson<AttachmentMaterialData>(JsonFormatter.RemoveComments(GetSection(json, ATTACHMENT_SECTION)));
+		}
+		catch(Exception e){
+			throw new DeserializationErrorException($"[ItemDeserializer] Failed to parse the Attachment section of item {item.codename}: {e.Message}");
+		}
+
+		if(data == null || data.IsEmpty())
+			return null;
+
+		data.PostDeserializationSetup();
+		return data;
 	}
 
 	private static bool HasBehaviours(string json){
@@ -158,7 +182,7 @@ public static class ItemDeserializer {
 	}
 
 	private static string GetTypeSection(string json){
-		return json.Split("--->Type")[1].Replace("\r", "").Replace("\n", "");
+		return json.Split("--->Type")[1].Split("--->")[0].Replace("\r", "").Replace("\n", "");
 	}
 
 	private static void ValidateType(string type){

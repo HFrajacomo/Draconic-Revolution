@@ -41,5 +41,16 @@
     },
     "realisticLight": true
 }
+--->Attachment
+{
+    "materials": [
+        {
+            "material": "BasicTextureWithColor",
+            "properties": [
+                {"name": "_Texture", "type": "texture", "textureValue": "BASE_Torch"}
+            ]
+        }
+    ]
+}
 --->Type
 Weapon

@@ -47,6 +47,17 @@ public static class BattleStyleDeterminator {
 
 		return AnimationLoader.GetBattleStyle(Resolve(slot1, slot2)).GetCode();
 	}
+
+	// Gets the IDs of the items equipped in each hand, used by clients to skin BattleStyle attachments
+	public static AttachmentItems ResolveAttachmentItems(ChunkLoader_Server cl, ulong playerCode){
+		if(!cl.playerServerInventory.HasInventory(playerCode))
+			return AttachmentItems.NONE;
+
+		PlayerServerInventorySlot slot1 = cl.playerServerInventory.GetSlot(playerCode, 3, 0);
+
+		// Left hand is always empty since SLOT2 IN EQUIPMENT INV IS NOT IMPLEMENTED YET
+		return new AttachmentItems((ushort)slot1.GetItemID(), 0);
+	}
 	public static string Resolve(ItemStack its1, ItemStack its2){
 		WeaponType w1 = WeaponType.FIST;
 		WeaponType w2 = WeaponType.FIST;

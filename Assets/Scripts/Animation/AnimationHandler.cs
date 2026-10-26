@@ -22,8 +22,11 @@ public class AnimationHandler : MonoBehaviour {
 
 	private Dictionary<BoneAnchorType, GameObject> attachmentsTP = new Dictionary<BoneAnchorType, GameObject>();
 	private Dictionary<BoneAnchorType, int> attachmentDataIndexTP = new Dictionary<BoneAnchorType, int>();
+	private Dictionary<BoneAnchorType, AttachmentMaterialData> attachmentSkinTP = new Dictionary<BoneAnchorType, AttachmentMaterialData>();
 	private Dictionary<BoneAnchorType, GameObject> attachmentsFP = new Dictionary<BoneAnchorType, GameObject>();
 	private Dictionary<BoneAnchorType, int> attachmentDataIndexFP = new Dictionary<BoneAnchorType, int>();
+	private Dictionary<BoneAnchorType, AttachmentMaterialData> attachmentSkinFP = new Dictionary<BoneAnchorType, AttachmentMaterialData>();
+	private List<BoneAnchorType> cachedAnchors = new List<BoneAnchorType>();
 
 	private static Dictionary<string, Dictionary<string, AnimationStateMapping>> stateMappings;
 	private static Dictionary<string, Dictionary<BoneAnchorType, string>> anchorMappings;
@@ -193,9 +196,10 @@ public class AnimationHandler : MonoBehaviour {
 	}
 
 	// Used when new style is set
-	public void CreateAttachments(BattleStyleData style){
+	public void CreateAttachments(BattleStyleData style, AttachmentItems items){
 		GameObject attachmentGO;
 		Transform bone;
+		AttachmentMaterialData skin;
 
 		this.battleStyle = style;
 
@@ -213,11 +217,14 @@ public class AnimationHandler : MonoBehaviour {
 
 				AttachmentInstantiator.ApplyTransform(attachmentGO, this.battleStyle.attachments[i].flipModel, heightOffset:this.battleStyle.attachments[i].heightOffset);
 
+				skin = AttachmentLoader.ResolveDescriptor(this.battleStyle.attachments, i, items);
+				AttachmentInstantiator.ApplySkin(attachmentGO, this.battleStyle.attachments[i].fbxName, skin);
+
 				if(this.isPlayer)
 					attachmentGO.layer = 9;
 
-				this.attachmentDataIndexTP.Add(this.battleStyle.attachments[i].GetAnchorType(), i);
-				AddAttachment(this.battleStyle.GetName(), this.battleStyle.attachments[i].GetAnchorType(), attachmentGO);
+				this.attachmentDataIndexTP[this.battleStyle.attachments[i].GetAnchorType()] = i;
+				AddAttachment(this.battleStyle.GetName(), this.battleStyle.attachments[i].GetAnchorType(), attachmentGO, skin:skin);
 			}
 		}
 		if(this.isPlayer){
@@ -230,13 +237,51 @@ public class AnimationHandler : MonoBehaviour {
 
 					AttachmentInstantiator.ApplyTransform(attachmentGO, this.battleStyleFP.attachments[i].flipModel, heightOffset:this.battleStyleFP.attachments[i].heightOffset);
 
+					skin = AttachmentLoader.ResolveDescriptor(this.battleStyleFP.attachments, i, items);
+					AttachmentInstantiator.ApplySkin(attachmentGO, this.battleStyleFP.attachments[i].fbxName, skin);
+
 					if(this.isPlayer)
 						attachmentGO.layer = 12;
 
-					this.attachmentDataIndexFP.Add(this.battleStyleFP.attachments[i].GetAnchorType(), i);
-					AddAttachment(this.battleStyleFP.GetName(), this.battleStyleFP.attachments[i].GetAnchorType(), attachmentGO);
+					this.attachmentDataIndexFP[this.battleStyleFP.attachments[i].GetAnchorType()] = i;
+					AddAttachment(this.battleStyleFP.GetName(), this.battleStyleFP.attachments[i].GetAnchorType(), attachmentGO, skin:skin);
 				}
 			}
+		}
+	}
+
+	// Re-skins the current attachments after the equipped items changed without changing the BattleStyle
+	public void RefreshAttachmentMaterials(AttachmentItems items){
+		RefreshAttachmentMaterials(this.battleStyle.attachments, this.attachmentsTP, this.attachmentDataIndexTP, this.attachmentSkinTP, items);
+
+		if(this.isPlayer)
+			RefreshAttachmentMaterials(this.battleStyleFP.attachments, this.attachmentsFP, this.attachmentDataIndexFP, this.attachmentSkinFP, items);
+	}
+
+	private void RefreshAttachmentMaterials(AttachmentData[] attachments, Dictionary<BoneAnchorType, GameObject> gos, Dictionary<BoneAnchorType, int> dataIndexes, Dictionary<BoneAnchorType, AttachmentMaterialData> skins, AttachmentItems items){
+		AttachmentMaterialData oldSkin, newSkin;
+		int index;
+
+		if(attachments == null)
+			return;
+
+		this.cachedAnchors.Clear();
+		this.cachedAnchors.AddRange(gos.Keys);
+
+		foreach(BoneAnchorType anchor in this.cachedAnchors){
+			if(gos[anchor] == null || !dataIndexes.TryGetValue(anchor, out index))
+				continue;
+
+			skins.TryGetValue(anchor, out oldSkin);
+			newSkin = AttachmentLoader.ResolveDescriptor(attachments, index, items);
+
+			if(oldSkin == newSkin)
+				continue;
+
+			// New textures are acquired before the old ones are released, so shared textures are never unloaded in between
+			AttachmentInstantiator.ApplySkin(gos[anchor], attachments[index].fbxName, newSkin);
+			AttachmentInstantiator.ReleaseSkin(oldSkin);
+			skins[anchor] = newSkin;
 		}
 	}
 
@@ -248,20 +293,20 @@ public class AnimationHandler : MonoBehaviour {
 		return null;
 	}
 
-	public void AddAttachment(string styleName, BoneAnchorType anchor, GameObject go){
+	public void AddAttachment(string styleName, BoneAnchorType anchor, GameObject go, AttachmentMaterialData skin=null){
 		bool isFirstPerson = IsFirstPersonString(styleName);
 
-		if(ContainsAttachment(anchor, isFirstPerson)){
-			if(isFirstPerson)
-				GameObject.Destroy(this.attachmentsFP[anchor]);
-			else
-				GameObject.Destroy(this.attachmentsTP[anchor]);
-		}
+		if(ContainsAttachment(anchor, isFirstPerson))
+			DestroyAttachment(anchor, isFirstPerson);
 
-		if(isFirstPerson)
-			this.attachmentsFP.Add(anchor, go);
-		else
-			this.attachmentsTP.Add(anchor, go);
+		if(isFirstPerson){
+			this.attachmentsFP[anchor] = go;
+			this.attachmentSkinFP[anchor] = skin;
+		}
+		else{
+			this.attachmentsTP[anchor] = go;
+			this.attachmentSkinTP[anchor] = skin;
+		}
 	}
 
 	public void SwitchAttachments(bool firstPerson, BoneAnchorType originAnchor, BoneAnchorType targetAnchor, float heightOffset, bool flip){
@@ -270,10 +315,8 @@ public class AnimationHandler : MonoBehaviour {
 		}
 
 		if(ContainsAttachment(targetAnchor, firstPerson:firstPerson)){
-			if(firstPerson)
-				GameObject.Destroy(this.attachmentsFP[targetAnchor]);
-			else
-				GameObject.Destroy(this.attachmentsTP[targetAnchor]);
+			DestroyAttachment(targetAnchor, firstPerson);
+			GetAttachmentDataIndexes(firstPerson).Remove(targetAnchor);
 		}
 
 		if(!firstPerson){
@@ -296,25 +339,65 @@ public class AnimationHandler : MonoBehaviour {
 			this.attachmentDataIndexFP.Add(targetAnchor, this.attachmentDataIndexFP[originAnchor]);
 			this.attachmentDataIndexFP.Remove(originAnchor);
 		}
+
+		Dictionary<BoneAnchorType, AttachmentMaterialData> skins = GetAttachmentSkins(firstPerson);
+
+		if(skins.TryGetValue(originAnchor, out AttachmentMaterialData movedSkin)){
+			skins[targetAnchor] = movedSkin;
+			skins.Remove(originAnchor);
+		}
 	}
 
 	public void RemoveAttachments(){
-		if(this.attachmentsTP.Count != 0){
-			foreach(BoneAnchorType bat in this.attachmentsTP.Keys){
-				GameObject.Destroy(this.attachmentsTP[bat]);
-			}
-
-			if(this.isPlayer){
-				foreach(BoneAnchorType bat in this.attachmentsFP.Keys){
-					GameObject.Destroy(this.attachmentsFP[bat]);
-				}
-			}
-
-			this.attachmentsTP.Clear();
-			this.attachmentsFP.Clear();
-			this.attachmentDataIndexTP.Clear();
-			this.attachmentDataIndexFP.Clear();
+		foreach(GameObject go in this.attachmentsTP.Values){
+			GameObject.Destroy(go);
 		}
+
+		foreach(GameObject go in this.attachmentsFP.Values){
+			GameObject.Destroy(go);
+		}
+
+		ReleaseSkins();
+
+		this.attachmentsTP.Clear();
+		this.attachmentsFP.Clear();
+		this.attachmentDataIndexTP.Clear();
+		this.attachmentDataIndexFP.Clear();
+	}
+
+	// Destroys a single attachment and releases the textures of its skin
+	private void DestroyAttachment(BoneAnchorType anchor, bool firstPerson){
+		Dictionary<BoneAnchorType, GameObject> gos = firstPerson ? this.attachmentsFP : this.attachmentsTP;
+		Dictionary<BoneAnchorType, AttachmentMaterialData> skins = GetAttachmentSkins(firstPerson);
+
+		GameObject.Destroy(gos[anchor]);
+		gos.Remove(anchor);
+
+		if(skins.TryGetValue(anchor, out AttachmentMaterialData skin)){
+			AttachmentInstantiator.ReleaseSkin(skin);
+			skins.Remove(anchor);
+		}
+	}
+
+	private void ReleaseSkins(){
+		foreach(AttachmentMaterialData skin in this.attachmentSkinTP.Values){
+			AttachmentInstantiator.ReleaseSkin(skin);
+		}
+
+		foreach(AttachmentMaterialData skin in this.attachmentSkinFP.Values){
+			AttachmentInstantiator.ReleaseSkin(skin);
+		}
+
+		this.attachmentSkinTP.Clear();
+		this.attachmentSkinFP.Clear();
+	}
+
+	private Dictionary<BoneAnchorType, int> GetAttachmentDataIndexes(bool firstPerson){return firstPerson ? this.attachmentDataIndexFP : this.attachmentDataIndexTP;}
+	private Dictionary<BoneAnchorType, AttachmentMaterialData> GetAttachmentSkins(bool firstPerson){return firstPerson ? this.attachmentSkinFP : this.attachmentSkinTP;}
+
+	// Attachments may be destroyed together with this character, so their texture references must be released
+	void OnDestroy(){
+		ReleaseSkins();
 	}
 
 	public bool ContainsAttachment(BoneAnchorType anchor, bool firstPerson){

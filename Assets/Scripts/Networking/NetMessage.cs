@@ -476,12 +476,14 @@ public struct NetMessage
 		this.size = 15 + data.name.Length;
 	}
 
-	// Client or Server sends battle style name of a particular player (Should expand into all entities later)
-	public void SendBattleStyle(ulong playerCode, int code){
+	// Server sends the battle style of a particular player and the items that skin its attachments (Should expand into all entities later)
+	public void SendBattleStyle(ulong playerCode, int code, AttachmentItems items){
 		Reset();
 		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
 		NetDecoder.WriteInt(code, NetMessage.buffer, 9);
-		this.size = 13;
+		NetDecoder.WriteUshort(items.rightHand, NetMessage.buffer, 13);
+		NetDecoder.WriteUshort(items.leftHand, NetMessage.buffer, 15);
+		this.size = 17;
 	}
 
 	// Client or Server sends a message about an animator parameter change

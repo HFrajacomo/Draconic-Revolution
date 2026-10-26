@@ -2,7 +2,8 @@
 	"attachments": [
 		{
 			"fbxName": "Pickaxe",
-			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT"
+			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT",
+			"weaponType": "PICKAXE"
 		}	
 	],
 	"firstPerson": true,

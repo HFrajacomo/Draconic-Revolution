@@ -48,6 +48,7 @@ public class ItemLoader : BaseLoader {
 	public static Item GetCopy(string codename){return itemBook[codenameToItemID[codename]].Copy();}
 	public static Texture2D GetSprite(ushort id){return textureBank[id];}
 	public static Texture2D GetSprite(ItemStack its){return textureBank[its.GetItem().GetID()];}
+	public static int GetItemCount(){return itemBook.Length;}
 
 	public override void RunPostDeserializationRoutine(){
 		foreach(Item it in itemBook){
@@ -98,7 +99,7 @@ public class ItemLoader : BaseLoader {
 			texture = Resources.Load<Texture2D>($"{ITEM_RESPATH}{item}");
 
 			if(textAsset != null && texture != null){
-				serializedItem = ItemDeserializer.DeserializeItem(textAsset.text);
+				serializedItem = ItemDeserializer.DeserializeItem(textAsset.text, parseAttachment:isClient);
 				serializedItem.SetID(i);
 				serializedItem.PostDeserializationSetup();
 				itemList.Add(serializedItem);

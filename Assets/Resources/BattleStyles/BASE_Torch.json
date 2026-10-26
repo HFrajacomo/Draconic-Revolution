@@ -3,6 +3,7 @@
 		{
 			"fbxName": "Torch",
 			"type": "BASE_CHARACTER_BELT_STRAIGHT_RIGHT",
+			"weaponType": "TORCH",
 			"flipModel": true,
 			"heightOffset": 0.006
 		}	

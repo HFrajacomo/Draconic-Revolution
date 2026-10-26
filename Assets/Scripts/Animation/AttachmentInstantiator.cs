@@ -5,16 +5,15 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 /*
-Loads model objects and assigns them to "--- LoadedAttachments ---" organizer object.
-Models are loaded in the main thread so far and are not unloaded (might change for better experience)
+Instantiates attachment models and assigns them to "--- LoadedAttachments ---" organizer object.
+Models are preloaded by AttachmentLoader. Item-specific Material values are applied through MaterialPropertyBlocks
 */
 
 public static class AttachmentInstantiator {
 	private static readonly Transform organizerObject;
-	private static readonly string ITEM_MODEL_RESPATH = "ItemModels/";
-	private static Dictionary<string, GameObject> prefabs = new Dictionary<string, GameObject>();
 	private static Dictionary<string, int> instanceCounter = new Dictionary<string, int>();
 	private static Vector3 SCALING = new Vector3(.01f, .01f, .01f);
+	private static MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
 
 	static AttachmentInstantiator(){
 		organizerObject = GameObject.Find("----- LoadedAttachments -----").transform;
@@ -22,16 +21,13 @@ public static class AttachmentInstantiator {
 
 	public static GameObject Instantiate(string name, bool castShadows){
 		GameObject instance;
-		GameObject prefab;
 		MeshRenderer renderer;
 
-		if(!prefabs.ContainsKey(name)){
-			prefab = Resources.Load<GameObject>($"{ITEM_MODEL_RESPATH}{name}");
-			prefabs.Add(name, prefab);
+		if(!instanceCounter.ContainsKey(name)){
 			instanceCounter.Add(name, 1);			
 		}
 
-		instance = GameObject.Instantiate(prefabs[name]);
+		instance = GameObject.Instantiate(AttachmentLoader.GetModel(name));
 		instance.transform.parent = organizerObject;
 		instance.transform.localScale = SCALING;
 		instance.name = $"{name}_{instanceCounter[name]}";
@@ -59,5 +55,70 @@ public static class AttachmentInstantiator {
 			go.transform.localRotation = Quaternion.Euler(Vector3.zero);
 
 		}
+	}
+
+	/*
+	Applies a material descriptor to an attachment instance and adds a reference to its textures
+		Slots not described (or a null descriptor) go back to the model's imported materials with no overrides
+		Must be paired with a ReleaseSkin(skin) call when the skin is replaced or the attachment is destroyed
+	*/
+	public static void ApplySkin(GameObject go, string fbxName, AttachmentMaterialData skin){
+		Renderer renderer = go.GetComponentInChildren<Renderer>();
+		Material[] materials;
+		AttachmentMaterialProperty property;
+		Texture2D texture;
+
+		AttachmentTextureCache.Acquire(skin);
+
+		if(renderer == null)
+			return;
+
+		materials = AttachmentLoader.GetModel(fbxName).GetComponentInChildren<Renderer>().sharedMaterials;
+
+		if(skin != null){
+			if(skin.materials.Length > materials.Length)
+				Debug.LogWarning($"[AttachmentInstantiator] Skin defines {skin.materials.Length} materials, but {fbxName} only has {materials.Length} material slots");
+
+			for(int i=0; i < skin.materials.Length && i < materials.Length; i++){
+				materials[i] = AttachmentLoader.GetBaseMaterial(skin.materials[i].material);
+			}
+		}
+
+		renderer.sharedMaterials = materials;
+
+		for(int i=0; i < materials.Length; i++){
+			if(skin == null || i >= skin.materials.Length || skin.materials[i].properties.Length == 0){
+				renderer.SetPropertyBlock(null, i);
+				continue;
+			}
+
+			propertyBlock.Clear();
+
+			for(int j=0; j < skin.materials[i].properties.Length; j++){
+				property = skin.materials[i].properties[j];
+
+				switch(property.GetPropertyType()){
+					case AttachmentMaterialPropertyType.FLOAT:
+						propertyBlock.SetFloat(property.GetPropertyID(), property.floatValue);
+						break;
+					case AttachmentMaterialPropertyType.COLOR:
+						propertyBlock.SetColor(property.GetPropertyID(), property.colorValue);
+						break;
+					case AttachmentMaterialPropertyType.TEXTURE:
+						texture = AttachmentTextureCache.Get(property.textureValue);
+
+						if(texture != null)
+							propertyBlock.SetTexture(property.GetPropertyID(), texture);
+						break;
+				}
+			}
+
+			renderer.SetPropertyBlock(propertyBlock, i);
+		}
+	}
+
+	// Removes the texture references added by ApplySkin
+	public static void ReleaseSkin(AttachmentMaterialData skin){
+		AttachmentTextureCache.Release(skin);
 	}
 }

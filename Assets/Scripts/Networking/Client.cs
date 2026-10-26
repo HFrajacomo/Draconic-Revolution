@@ -729,15 +729,16 @@ public class Client
 		}
 	}
 
-	// Receives from server a single BattleStyle name for a player
+	// Receives from server a single BattleStyle name for a player and the items that skin its attachments
 	private void SendBattleStyle(byte[] data){
 		ulong playerCode = NetDecoder.ReadUlong(data, 1);
 		int styleCode = NetDecoder.ReadInt(data, 9);
+		AttachmentItems items = new AttachmentItems(NetDecoder.ReadUshort(data, 13), NetDecoder.ReadUshort(data, 15));
 		
 		if(playerCode != Configurations.accountID)
-			this.entityHandler.ChangePlayerBattleStyle(playerCode, styleCode);
+			this.entityHandler.ChangePlayerBattleStyle(playerCode, styleCode, items);
 		else{
-			this.cl.playerActionController.UseStyle(styleCode);
+			this.cl.playerActionController.UseStyle(styleCode, items);
 		}
 	}
 

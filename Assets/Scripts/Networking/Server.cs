@@ -619,6 +619,7 @@ public class Server {
 					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
 					SendAnimationSnapshot(code, id);
 					SendEntitySFXSnapshot(code, id);
+					SendBattleStyleSnapshot(code, id);
 					SendAttachmentAnchorSnapshot(code, id);
 				}
 			}
@@ -1178,6 +1179,7 @@ public class Server {
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);
 					SendAnimationSnapshot(id, code);
 					SendEntitySFXSnapshot(id, code);
+					SendBattleStyleSnapshot(id, code);
 					SendAttachmentAnchorSnapshot(id, code);
 
 					foreach(string parameter in animatorParameters.Keys){
@@ -1429,6 +1431,10 @@ public class Server {
 		NetMessage message = new NetMessage(NetCode.SENDCHARSHEET);
 		message.SendCharSheet(code, this.cachedSheet);
 		this.Send(message.GetMessage(), message.size, id);
+
+		// The owner's sheet only carries the style, so the equipped items that skin its attachments are sent after it
+		if(code == id)
+			SendBattleStyleSnapshot(code, id);
 	}
 
 	// Receives the character sheet from a new character
@@ -1571,7 +1577,7 @@ public class Server {
 
 		NetMessage message;
 		message = new NetMessage(NetCode.SENDBATTLESTYLE);
-		message.SendBattleStyle(playerCode, style);
+		message.SendBattleStyle(playerCode, style, BattleStyleDeterminator.ResolveAttachmentItems(this.cl, playerCode));
 		this.SendToClientsExcept(id, message);
 	}
 	public void SendBattleStyle(ulong playerCode, int style){
@@ -1584,7 +1590,7 @@ public class Server {
 
 		NetMessage message;
 		message = new NetMessage(NetCode.SENDBATTLESTYLE);
-		message.SendBattleStyle(playerCode, style);
+		message.SendBattleStyle(playerCode, style, BattleStyleDeterminator.ResolveAttachmentItems(this.cl, playerCode));
 		this.SendToClients(playerCode, message);
 	}
 
@@ -1761,6 +1767,16 @@ public class Server {
 			message.EntitySFX(playerCode, EntitySFXOperation.CREATE, sfx);
 			this.Send(message.GetMessage(), message.size, recipientCode);
 		}
+	}
+
+	// Sends the current BattleStyle and attachment items of a player to a recipient that just started seeing them
+	private void SendBattleStyleSnapshot(ulong playerCode, ulong recipientCode){
+		if(!this.entityHandler.ContainsSheet(playerCode))
+			return;
+
+		NetMessage message = new NetMessage(NetCode.SENDBATTLESTYLE);
+		message.SendBattleStyle(playerCode, this.entityHandler.GetSheet(playerCode).GetBattleStyleCode(), BattleStyleDeterminator.ResolveAttachmentItems(this.cl, playerCode));
+		this.Send(message.GetMessage(), message.size, recipientCode);
 	}
 
 	// Sends all BattleStyle attachments of a player that are away from their default anchor to a recipient that just started seeing them

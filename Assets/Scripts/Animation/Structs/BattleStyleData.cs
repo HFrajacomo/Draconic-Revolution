@@ -14,7 +14,7 @@ public struct BattleStyleData{
 	private string name;
 	private int code;
 
-	public void PostDeserializationSetup(string styleName, int styleCode){
+	public void PostDeserializationSetup(string styleName, int styleCode, bool isClient){
 		this.name = styleName;
 		this.code = styleCode;
 
@@ -28,7 +28,7 @@ public struct BattleStyleData{
 
 		if(this.attachments != null){
 			for(int i=0; i < this.attachments.Length; i++){
-				this.attachments[i].PostDeserializationSetup(this.firstPerson);
+				this.attachments[i].PostDeserializationSetup(this.firstPerson, isClient);
 			}
 		}
 	}

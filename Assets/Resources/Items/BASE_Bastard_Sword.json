@@ -16,5 +16,17 @@
         "COMBAT": 1
     }
 }
+--->Attachment
+{
+    "materials": [
+        {
+            "material": "BasicTextureWithColor",
+            "properties": [
+                {"name": "_Color", "type": "color", "colorValue": {"r": 1.0, "g": 0.0, "b": 0.0, "a": 1}},
+                {"name": "_Texture", "type": "texture", "textureValue": "BASE_Weapon"}
+            ]
+        }
+    ]
+}
 --->Type
 Weapon
