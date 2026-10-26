@@ -826,6 +826,7 @@ public class Client
 	// Activates SmoothMovement in Entities for the current frame
 	public void MoveEntities(){
 		this.entityHandler.RunEntityActivation();
+		this.entityHandler.RunPendingItemHolds();
 		this.smoothMovement.MoveEntities();
 	}
 }

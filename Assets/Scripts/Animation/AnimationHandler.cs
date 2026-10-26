@@ -153,17 +153,21 @@ public class AnimationHandler : MonoBehaviour {
 
 	// Looks for every Layer to find if the current playing State is StateName and return the normalizedTime
 	// Return -1 if no state like that is found
-	public float GetAnimationTime(string stateName){
+	public float GetAnimationTime(string stateName, bool firstPerson=false){
 		AnimatorStateInfo stateInfo;
+		Animator animator = firstPerson ? this.fpAnimator : this.tpAnimator;
 
-		for(int i=0; i < this.tpAnimator.layerCount; i++){
-			stateInfo = this.tpAnimator.GetCurrentAnimatorStateInfo(i);
+		if(animator == null)
+			return -1f;
+
+		for(int i=0; i < animator.layerCount; i++){
+			stateInfo = animator.GetCurrentAnimatorStateInfo(i);
 
 			if(stateInfo.IsName(stateName)){
 				return stateInfo.normalizedTime;
 			}
 
-			stateInfo = this.tpAnimator.GetNextAnimatorStateInfo(i);
+			stateInfo = animator.GetNextAnimatorStateInfo(i);
 
 			if(stateInfo.IsName(stateName)){
 				return stateInfo.normalizedTime;
@@ -173,10 +177,15 @@ public class AnimationHandler : MonoBehaviour {
 		return -1f;
 	}
 
-	// Looks for a given state clip in an ThirdPerson Animator and returns its clip length in seconds
+	// Looks for a given state clip in the ThirdPerson (or FirstPerson) Animator and returns its clip length in seconds
 	// Returns a default value if clip wasn't found
-	public float GetClipLength(string stateName, float defaultValue=0.01f){
-		AnimatorOverrideController overrideController = tpAnimator.runtimeAnimatorController as AnimatorOverrideController;
+	public float GetClipLength(string stateName, float defaultValue=0.01f, bool firstPerson=false){
+		Animator animator = firstPerson ? this.fpAnimator : this.tpAnimator;
+
+		if(animator == null)
+			return defaultValue;
+
+		AnimatorOverrideController overrideController = animator.runtimeAnimatorController as AnimatorOverrideController;
 		if(overrideController != null){
 			List<KeyValuePair<AnimationClip, AnimationClip>> overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>(overrideController.overridesCount);
 			overrideController.GetOverrides(overrides);

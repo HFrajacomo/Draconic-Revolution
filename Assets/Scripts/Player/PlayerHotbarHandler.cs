@@ -42,6 +42,7 @@ public class PlayerHotbarHandler : MonoBehaviour
 	public static byte hotbarSlot = 0;
 	public static byte attackHotbarSlot = 0;
 	private static ClickableSlot previousSlot = null;
+	private static bool IS_HOLD_PENDING = false;
 
 	private static bool STARTED = false;
 	private static float HOTBAR_SELECTION_CHANGE_DOWNTIME = 0.08f;
@@ -97,6 +98,8 @@ public class PlayerHotbarHandler : MonoBehaviour
 	public static void ResetSessionState(){
 		IS_SWITCHING = false;
 		IS_NORMAL_HOTBAR = true;
+		previousSlot = null;
+		IS_HOLD_PENDING = false;
 	}
 
 	public void SwitchHotbars(){
@@ -106,27 +109,8 @@ public class PlayerHotbarHandler : MonoBehaviour
 		SendHotbarInfoToServer();
 		StartCoroutine(SwitchCoroutine());
 	}
+	// Hold/Unhold events of the switch are handled by RefreshItemEffects
 	private IEnumerator SwitchCoroutine(){
-		ClickableSlot previousSlot, newSlot;
-
-		if(IS_NORMAL_HOTBAR){
-			newSlot = this.playerInventoryManager.GetSlot(1, PlayerHotbarHandler.hotbarSlot);
-			previousSlot = this.playerInventoryManager.GetSlot(0, PlayerHotbarHandler.attackHotbarSlot);
-		}
-		else{
-			newSlot = this.playerInventoryManager.GetSlot(0, PlayerHotbarHandler.attackHotbarSlot);
-			previousSlot = this.playerInventoryManager.GetSlot(1, PlayerHotbarHandler.hotbarSlot);
-		}
-
-		if(previousSlot != null){
-			if(previousSlot.IsItemStack()){
-				((ItemStack)previousSlot).GetItem().OnUnholdPlayer(this.cl, (ItemStack)previousSlot, Configurations.accountID);
-			}
-			else{
-				((EntityAction)previousSlot).OnUnholdPlayer(this.cl, ((EntityAction)previousSlot).GetItemStack(null), Configurations.accountID);
-			}
-		}
-
 		if(IS_NORMAL_HOTBAR)
 			this.animator.Play("HotbarSwitch-AttackToNormal");
 		else
@@ -144,35 +128,50 @@ public class PlayerHotbarHandler : MonoBehaviour
 		yield return new WaitForSeconds(this.animationTime/2);
 
 		IS_SWITCHING = false;
+	}
 
-		if(newSlot != null){
-			if(newSlot.IsItemStack()){
-				((ItemStack)newSlot).GetItem().OnHoldPlayer(this.cl, (ItemStack)newSlot, Configurations.accountID);
-			}
-			else{
-				((EntityAction)newSlot).OnHoldPlayer(this.cl, ((EntityAction)newSlot).GetItemStack(null), Configurations.accountID);
-			}
+	/*
+	Checks if the current slot selected has a different item from the last and runs the Unhold/Hold events
+		This is the single place where hotbar Hold/Unhold events are dispatched
+		Item OnHold is deferred while a Sheathe animation is pending, so that the animation's events (e.g. removing the weapon's light) resolve first
+		If the slot changes before a deferred OnHold runs, its OnUnhold is skipped
+	*/
+	public void RefreshItemEffects(){
+		ClickableSlot current = GetSlotStack();
+
+		if(!ClickableSlot.IsEqual(current, previousSlot)){
+			if(previousSlot != null && !IS_HOLD_PENDING)
+				RunUnholdEvent(previousSlot);
+
+			previousSlot = current;
+			IS_HOLD_PENDING = current != null;
+		}
+
+		if(IS_HOLD_PENDING && CanRunHoldEvent(previousSlot)){
+			IS_HOLD_PENDING = false;
+			RunHoldEvent(previousSlot);
 		}
 	}
 
-	// Checks if the current ItemStack selected has a different item from the last and run
-	public void RefreshItemEffects(){
-		ClickableSlot current = GetSlotStack();
-		if(!ClickableSlot.IsEqual(current, previousSlot)){
-			// OnUnhold
-			if(previousSlot != null && previousSlot.IsItemStack())
-				((ItemStack)previousSlot).GetItem().OnUnholdPlayer(this.cl, (ItemStack)previousSlot, Configurations.accountID);
-			else if(previousSlot != null)
-				((EntityAction)previousSlot).OnUnholdPlayer(this.cl, ((EntityAction)previousSlot).GetItemStack(playerInventoryManager), Configurations.accountID);
+	private bool CanRunHoldEvent(ClickableSlot slot){
+		if(!slot.IsItemStack())
+			return true;
 
-			// OnHold
-			if(current != null && current.IsItemStack())
-				((ItemStack)current).GetItem().OnHoldPlayer(this.cl, (ItemStack)current, Configurations.accountID);
-			else if(current != null)
-				((EntityAction)current).OnHoldPlayer(this.cl, ((EntityAction)current).GetItemStack(playerInventoryManager), Configurations.accountID);
+		return !this.cl.playerActionController.IsSheathePending();
+	}
 
-			previousSlot = current;
-		}
+	private void RunHoldEvent(ClickableSlot slot){
+		if(slot.IsItemStack())
+			((ItemStack)slot).GetItem().OnHoldPlayer(this.cl, (ItemStack)slot, Configurations.accountID);
+		else
+			((EntityAction)slot).OnHoldPlayer(this.cl, ((EntityAction)slot).GetItemStack(playerInventoryManager), Configurations.accountID);
+	}
+
+	private void RunUnholdEvent(ClickableSlot slot){
+		if(slot.IsItemStack())
+			((ItemStack)slot).GetItem().OnUnholdPlayer(this.cl, (ItemStack)slot, Configurations.accountID);
+		else
+			((EntityAction)slot).OnUnholdPlayer(this.cl, ((EntityAction)slot).GetItemStack(playerInventoryManager), Configurations.accountID);
 	}
 
 	public void SetHotbar(Inventory hotbar){
@@ -236,27 +235,14 @@ public class PlayerHotbarHandler : MonoBehaviour
 		if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR && PlayerHotbarHandler.attackHotbarSlot == newSlot)
 			return;
 
+		// Hold/Unhold events are run by RefreshItemEffects
 		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			// Unhold current slot
-			RunHoldUnholdEvent(PlayerHotbarHandler.hotbarSlot, false);
-
-			// Switch slot
 			PlayerHotbarHandler.hotbarSlot = newSlot;
 			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(newSlot), 48);
-
-			// Hold new slot
-			RunHoldUnholdEvent(PlayerHotbarHandler.hotbarSlot, true);
 		}
 		else{
-			// Unhold current attack slot
-			RunHoldUnholdEvent(PlayerHotbarHandler.attackHotbarSlot, false);
-
-			// Switch slot
 			PlayerHotbarHandler.attackHotbarSlot = newSlot;
 			this.attackHotbar_selected.anchoredPosition = new Vector2(GetSelectionX(newSlot), 48);
-
-			// Hold new slot
-			RunHoldUnholdEvent(PlayerHotbarHandler.attackHotbarSlot, true);
 		}
 
 		TriggerHotbarDelay();
@@ -269,7 +255,6 @@ public class PlayerHotbarHandler : MonoBehaviour
 			this.hotbar_selected.anchoredPosition = new Vector2(GetSelectionX(slot), 48);
 			
 			SendHotbarInfoToServer();
-			RunHoldUnholdEvent(slot, true);
 			PlayerHotbarHandler.STARTED = true;
 		}
 	}
@@ -419,33 +404,6 @@ public class PlayerHotbarHandler : MonoBehaviour
 				this.hotbarText[i].color = WHITE;
 				this.attackHotbarIcon[i].material.SetFloat("_Hidden", 1f);
 				this.attackHotbarText[i].color = HIDDEN;
-			}
-		}
-	}
-
-	private void RunHoldUnholdEvent(byte slot, bool isHold){
-		if(PlayerHotbarHandler.IS_NORMAL_HOTBAR){
-			ItemStack its = (ItemStack)this.playerInventoryManager.GetSlot(1, slot);
-
-			if(its != null){
-				if(isHold){
-					its.GetItem().OnHoldPlayer(this.cl, its, Configurations.accountID);
-				}
-				else{
-					its.GetItem().OnUnholdPlayer(this.cl, its, Configurations.accountID);
-				}
-			}
-		}
-		else{
-			EntityAction ea = (EntityAction)this.playerInventoryManager.GetSlot(0, slot);
-
-			if(ea != null){
-				if(isHold){
-					ea.OnHoldPlayer(this.cl, ea.GetItemStack(null), Configurations.accountID);
-				}
-				else{
-					ea.OnUnholdPlayer(this.cl, ea.GetItemStack(null), Configurations.accountID);
-				}
 			}
 		}
 	}

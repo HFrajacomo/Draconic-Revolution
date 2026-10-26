@@ -26,11 +26,16 @@ public class EntityHandler
 	private HashSet<ulong> playerSFXNeedsReapply;
 	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
 	private Dictionary<ulong, AttachmentItems> playerAttachmentItems;
+	private Dictionary<ulong, PendingItemHold> pendingItemHolds;
+	private List<ulong> cachedPendingHoldCodes;
 	private GameObject droppedItemBase = GameObject.Find("----- PrefabModels -----/DroppedItemBase");
 
 	private int currentTogglingCounter;
 
 	private static readonly int MAX_COUNTER_VALUE = 4;
+	private static readonly string SHEATHE_STATE = "Weapon Sheathe";
+	private static readonly float SHEATHE_START_GRACE_TIME = 0.5f;
+	private static readonly float SHEATHE_MAX_WAIT_TIME = 3f;
 	private static RuntimeAnimatorController BASE_CONTROLLER;
 
 
@@ -51,6 +56,8 @@ public class EntityHandler
 		this.playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
 		this.playerAttachmentItems = new Dictionary<ulong, AttachmentItems>();
 		this.playerItemOrActionInHand = new Dictionary<ulong, bool>();
+		this.pendingItemHolds = new Dictionary<ulong, PendingItemHold>();
+		this.cachedPendingHoldCodes = new List<ulong>();
 		this.cl = cl;
 		this.playerModelHandler = cl.playerModelHandler;
 		BASE_CONTROLLER = AnimationLoader.GetController("BASE_Character");
@@ -329,6 +336,7 @@ public class EntityHandler
 			this.playerSFXNeedsReapply.Remove(code);
 			this.playerAttachmentAnchors.Remove(code);
 			this.playerAttachmentItems.Remove(code);
+			this.pendingItemHolds.Remove(code);
 			this.cl.sfx.RemoveEntitySFX(new EntityID(type, code));
 		}
 		else if(type == EntityType.DROP){
@@ -514,6 +522,11 @@ public class EntityHandler
 		this.cl.sfx.LoadEntitySFX(sfx.name, new EntityID(EntityType.PLAYER, code), parent:parent, localPosition:sfx.GetOffset());
 	}
 
+	/*
+	Runs the Unhold event of the previous item/action and the Hold event of the new one for a remote player
+		If the previous action sheathes the weapon, the Item's OnHoldClient is deferred until the Sheathe animation is over
+		If a deferred Hold never ran, its Unhold is skipped
+	*/
 	public void UpdatePlayerItem(ulong playerCode, ushort id, ushort connectedItemId, bool isItem, byte quantity){
 		if(!this.playerItem.ContainsKey(playerCode)){
 			return;
@@ -525,19 +538,74 @@ public class EntityHandler
 
 		ushort oldItem = this.playerItem[playerCode];
 		bool oldIsItem = this.playerItemOrActionInHand[playerCode];
+		bool oldHoldWasPending = this.pendingItemHolds.Remove(playerCode);
+		bool isSheathing = false;
 
-		if(oldIsItem)
-			ItemLoader.GetItem(oldItem).OnUnholdClient(this.cl, new ItemStack(oldItem, 1), playerCode);
-		else
-			ActionLoader.GetAction(oldItem).OnUnholdClient(this.cl, new ItemStack(connectedItemId, 1), playerCode);
+		if(oldIsItem){
+			if(!oldHoldWasPending)
+				ItemLoader.GetItem(oldItem).OnUnholdClient(this.cl, new ItemStack(oldItem, 1), playerCode);
+		}
+		else{
+			EntityAction oldAction = ActionLoader.GetAction(oldItem);
+			oldAction.OnUnholdClient(this.cl, new ItemStack(connectedItemId, 1), playerCode);
+			isSheathing = oldAction.SheathesOnUnhold();
+		}
 
 		this.playerItem[playerCode] = id;
+		this.playerItemOrActionInHand[playerCode] = isItem;
 
-		if(oldIsItem)
-			ItemLoader.GetItem(id).OnHoldClient(this.cl, new ItemStack(id, quantity), playerCode);
-		else
+		if(isItem){
+			if(isSheathing && CanProcessPlayerAnimations(playerCode))
+				this.pendingItemHolds.Add(playerCode, new PendingItemHold(id, quantity));
+			else
+				ItemLoader.GetItem(id).OnHoldClient(this.cl, new ItemStack(id, quantity), playerCode);
+		}
+		else{
 			ActionLoader.GetAction(id).OnHoldClient(this.cl, new ItemStack(connectedItemId, 1), playerCode);
+		}
+	}
 
+	/*
+	Runs every frame, releasing deferred Item Holds once the remote player's Sheathe animation is over
+		The Sheathe animation state may arrive after the item change, so a grace time is given for it to start
+	*/
+	public void RunPendingItemHolds(){
+		if(this.pendingItemHolds.Count == 0)
+			return;
+
+		PendingItemHold hold;
+
+		this.cachedPendingHoldCodes.Clear();
+		this.cachedPendingHoldCodes.AddRange(this.pendingItemHolds.Keys);
+
+		foreach(ulong code in this.cachedPendingHoldCodes){
+			hold = this.pendingItemHolds[code];
+			hold.elapsed += Time.deltaTime;
+
+			if(IsPendingHoldReady(code, ref hold)){
+				this.pendingItemHolds.Remove(code);
+				ItemLoader.GetItem(hold.id).OnHoldClient(this.cl, new ItemStack(hold.id, hold.quantity), code);
+			}
+			else{
+				this.pendingItemHolds[code] = hold;
+			}
+		}
+	}
+
+	private bool IsPendingHoldReady(ulong code, ref PendingItemHold hold){
+		if(hold.elapsed >= SHEATHE_MAX_WAIT_TIME || !CanProcessPlayerAnimations(code))
+			return true;
+
+		float time = this.playerAnimations[code].GetAnimationTime(SHEATHE_STATE);
+
+		if(time >= 0f)
+			hold.sawSheathe = true;
+		if(time >= 1f)
+			return true;
+		if(hold.sawSheathe)
+			return time < 0f;
+
+		return hold.elapsed >= SHEATHE_START_GRACE_TIME;
 	}
 
 	private AnimatorOverrideController ApplyOverrides(AnimatorOverrideController controller, StateClipPair[] overrides){

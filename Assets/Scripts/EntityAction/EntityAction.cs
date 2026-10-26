@@ -385,6 +385,19 @@ public class EntityAction : ClickableSlot {
 		}
 	}
 
+	// Returns true if unholding this action makes the player sheathe their weapon
+	public bool SheathesOnUnhold(){
+		if(this.onUnholdPlayerBehaviour == null)
+			return false;
+
+		for(int i=0; i < this.onUnholdPlayerBehaviour.Count; i++){
+			if(this.onUnholdPlayerBehaviour[i].SheathesOnUnhold())
+				return true;
+		}
+
+		return false;
+	}
+
 	// EquipChange
 	public virtual void OnEquipChangePlayer(ChunkLoader cl){
 		if(this.onEquipChangePlayerBehaviour == null || this.onEquipChangePlayerBehaviour.Count == 0)

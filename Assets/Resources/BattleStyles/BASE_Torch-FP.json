@@ -28,15 +28,15 @@
 					},
 					{
 						"type": "AN_DestroyVFXBehaviour",
-						"json": "{\"normalizedTime\": 0.95, \"vfxGameObjectName\": \"Torchfire\", \"ifPlayerBuildOnlyFirstPerson\": true}"
+						"json": "{\"normalizedTime\": 0.85, \"vfxGameObjectName\": \"Torchfire\", \"ifPlayerBuildOnlyFirstPerson\": true}"
 					},
 					{
 						"type": "AN_DestroySFXBehaviour",
-						"json": "{\"normalizedTime\": 0.95, \"sfxName\": \"Torchfire\", \"ifPlayerBuildOnlyFirstPerson\": true}"
+						"json": "{\"normalizedTime\": 0.85, \"sfxName\": \"Torchfire\", \"ifPlayerBuildOnlyFirstPerson\": true}"
 					},
 					{
 						"type": "AN_PointLightBehaviour",
-						"json": "{\"normalizedTime\": 0.95, \"create\": false, \"ifPlayerBuildOnlyFirstPerson\": true}"
+						"json": "{\"normalizedTime\": 0.85, \"create\": false, \"ifPlayerBuildOnlyFirstPerson\": true}"
 					},
 					{
 						"type": "AN_AnimatorSetBehaviour",

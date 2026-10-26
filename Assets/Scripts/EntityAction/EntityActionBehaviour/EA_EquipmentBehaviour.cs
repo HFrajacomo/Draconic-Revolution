@@ -35,6 +35,8 @@ public class EA_EquipmentBehaviour : EntityActionBehaviour {
 		cl.playerActionController.Sheathe(true);
 	}
 
+	public override bool SheathesOnUnhold(){ return true; }
+
 	public override void OnHoldServer(ChunkLoader_Server cl, EntityAction ea, ItemStack its, ulong code){
 		int styleCode = BattleStyleDeterminator.Resolve(cl, code);
 		cl.server.SendBattleStyle(code, styleCode);

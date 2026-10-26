@@ -45,6 +45,14 @@ public class PlayerActionController : MonoBehaviour {
 	private NetMessage animatorParameterMessage = new NetMessage(NetCode.SENDANIMATORPARAMETER);
 	private Dictionary<string, float> lastParameterValue = new Dictionary<string, float>();
 
+	// Sheathe Tracking
+	private bool sheatheInProgress = false;
+	private bool sheatheSeenTP = false;
+	private bool sheatheSeenFP = false;
+	private float sheatheTimeout = 0f;
+	private static readonly string SHEATHE_STATE = "Weapon Sheathe";
+	private static readonly float SHEATHE_TIMEOUT_MARGIN = 0.25f;
+
 	// Cache
 	private float cachedTime;
 	private PlayerMovementType lastMove;
@@ -87,6 +95,7 @@ public class PlayerActionController : MonoBehaviour {
 
 		RunPlaylist();
 		ResetCombo();
+		TrackSheathe();
 	}
 
 	public void Init(){
@@ -251,6 +260,11 @@ public class PlayerActionController : MonoBehaviour {
 		this.comboHit = 0;
 		RegisterRestriction(PlayerActionRestriction.PRIMARY, animationTime + 0.05f);
 
+		if(flag)
+			StartSheatheTracking();
+		else
+			this.sheatheInProgress = false;
+
 		// In case of this action being triggered by action queue
 		if(flag){
 			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
@@ -262,6 +276,52 @@ public class PlayerActionController : MonoBehaviour {
 				this.registeredAction.Remove(PlayerActionType.SHEATHE_OFF);
 			}
 		}
+	}
+
+	/*
+	Returns true while a Sheathe is queued or its animation hasn't fully finished in every animator
+		The SHEATHE restriction can't be used for this, since it's lifted before the end of the clip and its events
+	*/
+	public bool IsSheathePending(){
+		if(!this.INIT)
+			return false;
+
+		return this.sheatheInProgress || this.registeredAction.Contains(PlayerActionType.SHEATHE_ON);
+	}
+
+	private void StartSheatheTracking(){
+		this.sheatheInProgress = true;
+		this.sheatheSeenTP = false;
+		this.sheatheSeenFP = false;
+		this.sheatheTimeout = Mathf.Max(this.animationHandler.GetClipLength(SHEATHE_STATE), this.animationHandler.GetClipLength(SHEATHE_STATE, firstPerson:true)) + SHEATHE_TIMEOUT_MARGIN;
+	}
+
+	// Runs on LateUpdate, after the Animators have updated and dispatched their Animation Events for the frame
+	private void TrackSheathe(){
+		if(!this.sheatheInProgress)
+			return;
+
+		this.sheatheTimeout -= Time.deltaTime;
+
+		bool tpDone = IsSheatheStateDone(this.animator, false, ref this.sheatheSeenTP);
+		bool fpDone = IsSheatheStateDone(this.animatorFP, true, ref this.sheatheSeenFP);
+
+		if((tpDone && fpDone) || this.sheatheTimeout <= 0f)
+			this.sheatheInProgress = false;
+	}
+
+	private bool IsSheatheStateDone(Animator anim, bool firstPerson, ref bool seen){
+		if(anim == null || !anim.isActiveAndEnabled)
+			return true;
+
+		float time = this.animationHandler.GetAnimationTime(SHEATHE_STATE, firstPerson:firstPerson);
+
+		if(time >= 0f)
+			seen = true;
+		if(time >= 1f)
+			return true;
+
+		return seen && time < 0f;
 	}
 
 	public void RegisterRestriction(PlayerActionRestriction rest, float timeout){
