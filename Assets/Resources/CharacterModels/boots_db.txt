@@ -1,13 +1,13 @@
-# Name	Blender_obj_name	Sex
+# Name	Blender_obj_name	Sex	DoubleSided
 
-<No Boots>	M_BOOT	M
-Normal Boots	M_Normal_Boot	M
-High Boots	M_High_Boot	M
-Fancy Boots	M_Fancy_Boots	M
-Slippers	M_Slippers	M
+<No Boots>	M_BOOT	M	N
+Normal Boots	M_Normal_Boot	M	N
+High Boots	M_High_Boot	M	N
+Fancy Boots	M_Fancy_Boots	M	N
+Slippers	M_Slippers	M	N
 
-<No Boots>	F_BOOT	F
-Normal Boots	F_Normal_Boots	F
-High Boots	F_High_Boots	F
-Fancy Boots	F_Fancy_Boots	F
-Ballerinas	F_Ballerinas	F
+<No Boots>	F_BOOT	F	N
+Normal Boots	F_Normal_Boots	F	N
+High Boots	F_High_Boots	F	N
+Fancy Boots	F_Fancy_Boots	F	N
+Ballerinas	F_Ballerinas	F	N

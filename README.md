@@ -233,7 +233,7 @@ Following I will present a list of the concepts that exist in the current Alpha 
 |Unity Burst Optimizations|Core|Pre-Dev|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Dedicated and Local Multiplayer|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:warning:
 |Voxel Lighting Engine|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
-|Inventory and Items|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:x:
+|Inventory and Items|Core|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:soon:
 |Voxel Textures|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:
 |Normal Map Support|Art| Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
 |Dynamic Lens Flare|Art|Alpha|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:

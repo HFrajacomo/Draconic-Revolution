@@ -8,53 +8,17 @@ public struct ModelInfo{
 	public char coverHair; // N = no, Y = Totally, P = Partially, so hair needs to trigger shape keys
 	public bool hasModel; // If should be drawn at all (like bald hair or not)
 	public string faceTextureImage;
+	public bool doubleSided; // If every material of this model should render back faces
 
-	public ModelInfo(ModelType t, string n, string br, char s){
-		this.type = t;
-		this.name = n;
-		this.blenderReference = br;
-		this.sex = s;
-		this.coverHair = 'N';
-		this.hasModel = true;
-		this.faceTextureImage = "";
-	}
-
-	public ModelInfo(ModelType t, string n, string br, char s, string fti){
-		this.type = t;
-		this.name = n;
-		this.blenderReference = br;
-		this.faceTextureImage = fti;
-		this.sex = s;
-		this.coverHair = 'N';
-		this.hasModel = true;
-	}
-
-	public ModelInfo(ModelType t, string n, string br, char s, char hm){
-		this.type = t;
-		this.name = n;
-		this.blenderReference = br;
-		this.sex = s;
-		this.coverHair = 'N';
-		this.faceTextureImage = "";
-
-		if(hm == 'Y')
-			this.hasModel = true;
-		else
-			this.hasModel = false;
-	}
-
-	public ModelInfo(ModelType t, string n, string br, char s, char ch, char hm){
+	public ModelInfo(ModelType t, string n, string br, char s, char ch, bool hm, string fti, bool ds){
 		this.type = t;
 		this.name = n;
 		this.blenderReference = br;
 		this.sex = s;
 		this.coverHair = ch;
-		this.faceTextureImage = "";
-
-		if(hm == 'Y')
-			this.hasModel = true;
-		else
-			this.hasModel = false;
+		this.hasModel = hm;
+		this.faceTextureImage = fti;
+		this.doubleSided = ds;
 	}
 
 	public string GetHandlerName(){

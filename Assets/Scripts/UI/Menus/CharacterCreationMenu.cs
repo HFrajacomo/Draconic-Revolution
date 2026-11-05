@@ -82,6 +82,7 @@ public class CharacterCreationMenu : Menu{
     public Material faceMat;
     public Material dragonlingHornMat;
     private Material skinMat;
+    private Material skinMatDoubleSided;
     private Material clothesMat1;
     private Material clothesMat2;
     private Material clothesMat3;
@@ -788,13 +789,13 @@ public class CharacterCreationMenu : Menu{
 
         // Setting Skin Material
         if(this.race != Race.DRAGONLING){
-            this.skinMat = Instantiate(this.prefabPlainMat);
+            CreateSkinMaterials(this.prefabPlainMat);
             this.faceMat1.SetFloat("_Dragonling", 0f);
             this.faceMat2.SetFloat("_Dragonling", 0f);
             this.faceMat3.SetFloat("_Dragonling", 0f);
         }
         else{
-            this.skinMat = Instantiate(this.dragonSkinMat);
+            CreateSkinMaterials(this.dragonSkinMat);
             this.faceMat1.SetFloat("_Dragonling", 1f);
             this.faceMat2.SetFloat("_Dragonling", 1f);
             this.faceMat3.SetFloat("_Dragonling", 1f);
@@ -1289,9 +1290,10 @@ public class CharacterCreationMenu : Menu{
             return;
 
         Material[] materials = smr.materials;
+        bool doubleSided = this.characterBuilder.IsPartDoubleSided(this.selectedDiv);
 
         if(this.selectedDiv != ModelType.FACE){
-            materials[0] = this.skinMat;
+            materials[0] = doubleSided ? this.skinMatDoubleSided : this.skinMat;
             materials[0].SetColor("_Color", this.skinColor);
         }
 
@@ -1388,16 +1390,26 @@ public class CharacterCreationMenu : Menu{
         this.characterBuilder.ChangeAddonColor(this.skinColor, this.race);
         this.characterBuilder.ChangeEssentialColor(this.skinColor, this.race);
 
+        CharacterMaterialUtils.SetDoubleSided(materials, doubleSided);
         go.GetComponent<SkinnedMeshRenderer>().materials = materials;
+    }
+
+    // skinMat is shared by every body part, so a double-sided twin is kept for parts flagged as DoubleSided
+    private void CreateSkinMaterials(Material template){
+        this.skinMat = Instantiate(template);
+        this.skinMatDoubleSided = Instantiate(template);
+
+        CharacterMaterialUtils.SetDoubleSided(this.skinMat, false);
+        CharacterMaterialUtils.SetDoubleSided(this.skinMatDoubleSided, true);
     }
 
     private void ResetColors(bool isMale){
         string suffix = "";
 
         if(this.race != Race.DRAGONLING)
-            this.skinMat = Instantiate(this.prefabPlainMat);
+            CreateSkinMaterials(this.prefabPlainMat);
         else
-            this.skinMat = Instantiate(this.dragonSkinMat);
+            CreateSkinMaterials(this.dragonSkinMat);
 
         if(this.selectedFace != null){
             if(isMale)
@@ -1446,6 +1458,7 @@ public class CharacterCreationMenu : Menu{
         this.faceColor3 = new Color(.812f, .47f, .39f);
 
         this.skinMat.SetColor("_Color", this.skinColor);
+        this.skinMatDoubleSided.SetColor("_Color", this.skinColor);
         this.clothesMat1.SetColor("_Color", this.clothesColor1);
         this.clothesMat2.SetColor("_Color", this.clothesColor2);
         this.clothesMat3.SetColor("_Color", this.clothesColor3);

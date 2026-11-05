@@ -1,21 +1,21 @@
-# Name	Blender_obj_name	Sex	CoverHair	HasModel
+# Name	Blender_obj_name	Sex	CoverHair	HasModel	DoubleSided
 
-<No Hat>	U_NO_HAT	M	N	N
-Beanie	U_Beanie	M	N	Y
-Feathered Beanie	U_Feathered_Beanie	M	N	Y
-Fedora	U_Fedora	M	N	Y
-Basic Cowl	U_Keys_Hat	M	Y	Y
-Top Hat	U_Top_Hat	M	N	Y
-Bucket Hat	U_Bucket_Hat	M	N	Y
-Straw Hat	U_Straw_Hat	M	N	Y
-Rough Peasant Cowl	U_Rough_Peasant_Cowl	M	Y	Y
+<No Hat>	U_NO_HAT	M	N	N	N
+Beanie	U_Beanie	M	N	Y	N
+Feathered Beanie	U_Feathered_Beanie	M	N	Y	N
+Fedora	U_Fedora	M	N	Y	N
+Basic Cowl	U_Keys_Hat	M	Y	Y	N
+Top Hat	U_Top_Hat	M	N	Y	N
+Bucket Hat	U_Bucket_Hat	M	N	Y	N
+Straw Hat	U_Straw_Hat	M	N	Y	N
+Rough Peasant Cowl	U_Rough_Peasant_Cowl	M	Y	Y	N
 
-<No Hat>	U_NO_HAT	F	N	N
-Straw Hat	U_Straw_Hat	F	N	Y
-Bucket Hat	U_Bucket_Hat	F	N	Y
-Fedora	U_Fedora	F	N	Y
-Rough Peasant Cowl	U_Rough_Peasant_Cowl	F	Y	Y
-Basic Cowl	U_Keys_Hat	F	Y	Y
-Feathered Beanie	U_Feathered_Beanie	F	N	Y
-Beanie	U_Beanie	F	N	Y
-Top Hat	U_Top_Hat	F	N	Y
+<No Hat>	U_NO_HAT	F	N	N	N
+Straw Hat	U_Straw_Hat	F	N	Y	N
+Bucket Hat	U_Bucket_Hat	F	N	Y	N
+Fedora	U_Fedora	F	N	Y	N
+Rough Peasant Cowl	U_Rough_Peasant_Cowl	F	Y	Y	N
+Basic Cowl	U_Keys_Hat	F	Y	Y	N
+Feathered Beanie	U_Feathered_Beanie	F	N	Y	N
+Beanie	U_Beanie	F	N	Y	N
+Top Hat	U_Top_Hat	F	N	Y	N

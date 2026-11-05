@@ -123,6 +123,14 @@ public static class ModelHandler{
 		return GetModelInfo(type, name).hasModel;
 	}
 
+	public static bool IsDoubleSided(ModelType type, string name){
+		return GetModelInfo(type, name).doubleSided;
+	}
+
+	public static bool IsDoubleSided(ModelType type, ushort code){
+		return IsDoubleSided(type, GetName(type, code));
+	}
+
 	public static char GetHatCover(ModelType type, string name){
 		if(type != ModelType.HEADGEAR)
 			return ' ';
@@ -279,6 +287,8 @@ public static class ModelHandler{
 				return faceMap.Get(code);
 			case ModelType.ADDON:
 				return addonMap.Get(code);
+			case ModelType.ESSENTIAL:
+				return essentialsMap.Get(code);
 			default:
 				return "";
 		}
@@ -286,31 +296,61 @@ public static class ModelHandler{
 
 	private static void LoadModelInfo(){
 		cachedText = Resources.Load<TextAsset>(CLOTHES_DB);
-		ProcessTextAsset(ModelType.CLOTHES, cachedText.ToString());
+		ProcessTextAsset(ModelType.CLOTHES, CLOTHES_DB, cachedText.ToString());
 		cachedText = Resources.Load<TextAsset>(LEGS_DB);
-		ProcessTextAsset(ModelType.LEGS, cachedText.ToString());
+		ProcessTextAsset(ModelType.LEGS, LEGS_DB, cachedText.ToString());
 		cachedText = Resources.Load<TextAsset>(BOOTS_DB);
-		ProcessTextAsset(ModelType.FOOTGEAR, cachedText.ToString());
+		ProcessTextAsset(ModelType.FOOTGEAR, BOOTS_DB, cachedText.ToString());
 		cachedText = Resources.Load<TextAsset>(HATS_DB);
-		ProcessTextAsset(ModelType.HEADGEAR, cachedText.ToString());
+		ProcessTextAsset(ModelType.HEADGEAR, HATS_DB, cachedText.ToString());
 		cachedText = Resources.Load<TextAsset>(HAIR_DB);
-		ProcessTextAsset(ModelType.HAIR, cachedText.ToString());
+		ProcessTextAsset(ModelType.HAIR, HAIR_DB, cachedText.ToString());
 		cachedText = Resources.Load<TextAsset>(FACE_DB);
-		ProcessTextAsset(ModelType.FACE, cachedText.ToString());
+		ProcessTextAsset(ModelType.FACE, FACE_DB, cachedText.ToString());
 		cachedText = Resources.Load<TextAsset>(ADDONS_DB);
-		ProcessTextAsset(ModelType.ADDON, cachedText.ToString());
+		ProcessTextAsset(ModelType.ADDON, ADDONS_DB, cachedText.ToString());
 		cachedText = Resources.Load<TextAsset>(ESSENTIALS_DB);
-		ProcessTextAsset(ModelType.ESSENTIAL, cachedText.ToString());
+		ProcessTextAsset(ModelType.ESSENTIAL, ESSENTIALS_DB, cachedText.ToString());
 	}
 
-	private static void ProcessTextAsset(ModelType t, string text){
+	/*
+	 * Column layout of every *_db file (tab-separated):
+	 *   CLOTHES, LEGS, FOOTGEAR, ADDON, ESSENTIAL: Name	Blender_obj_name	Sex	DoubleSided
+	 *   HAIR:                                      Name	Blender_obj_name	Sex	HasModel	DoubleSided
+	 *   FACE:                                      Name	Blender_obj_name	Sex	Face_texture_image	DoubleSided
+	 *   HEADGEAR:                                  Name	Blender_obj_name	Sex	CoverHair	HasModel	DoubleSided
+	 */
+	private static int GetDBColumnCount(ModelType t){
+		switch(t){
+			case ModelType.HEADGEAR:
+				return 6;
+			case ModelType.HAIR:
+			case ModelType.FACE:
+				return 5;
+			default:
+				return 4;
+		}
+	}
+
+	private static void ProcessTextAsset(ModelType t, string dbPath, string text){
 		string[] lines = text.Split("\r\n");
 		string[] lineElements;
+		string line;
 		string name;
+		int columnCount = GetDBColumnCount(t);
+		char coverHair;
+		bool hasModel;
+		string faceTextureImage;
+		bool doubleSided;
 
 		ushort i = 0;
 
-		foreach(string line in lines){
+		if(!models.ContainsKey(t))
+			models.Add(t, new Dictionary<string, ModelInfo>());
+
+		for(int lineIndex=0; lineIndex < lines.Length; lineIndex++){
+			line = lines[lineIndex];
+
 			if(line.Length == 0)
 				continue;
 			if(line[0] == '#')
@@ -318,24 +358,33 @@ public static class ModelHandler{
 
 			lineElements = line.Split('\t');
 
-			if(!models.ContainsKey(t))
-				models.Add(t, new Dictionary<string, ModelInfo>());
+			if(lineElements.Length != columnCount)
+				throw new System.FormatException($"[ModelHandler] {dbPath} line {lineIndex+1}: expected {columnCount} tab-separated columns but found {lineElements.Length} -> \"{line}\"");
 
+			coverHair = 'N';
+			hasModel = true;
+			faceTextureImage = "";
+
+			switch(t){
+				case ModelType.HEADGEAR:
+					coverHair = ParseDBChar(lineElements[3], "CoverHair", dbPath, lineIndex);
+					hasModel = ParseDBChar(lineElements[4], "HasModel", dbPath, lineIndex) == 'Y';
+					break;
+				case ModelType.HAIR:
+					hasModel = ParseDBChar(lineElements[3], "HasModel", dbPath, lineIndex) == 'Y';
+					break;
+				case ModelType.FACE:
+					faceTextureImage = lineElements[3];
+					break;
+				default:
+					break;
+			}
+
+			doubleSided = ParseDBYesNo(lineElements[columnCount-1], "DoubleSided", dbPath, lineIndex);
 
 			name = BuildName(lineElements);
 
-			if(lineElements.Length < 4)
-				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0]));
-			else if(lineElements.Length == 4){
-				if(lineElements[3].Length == 1)
-					models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0]));
-				else
-					models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3]));
-
-			}
-			else{
-				models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], lineElements[3][0], lineElements[4][0]));	
-			}
+			models[t].Add(name, new ModelInfo(t, lineElements[0], lineElements[1], lineElements[2][0], coverHair, hasModel, faceTextureImage, doubleSided));
 
 			switch(t){
 				case ModelType.CLOTHES:
@@ -372,5 +421,21 @@ public static class ModelHandler{
 
 	private static string BuildName(string[] miSerialized){
 		return miSerialized[0] + "/" + miSerialized[2][0];
+	}
+
+	private static char ParseDBChar(string value, string column, string dbPath, int lineIndex){
+		if(value.Length != 1)
+			throw new System.FormatException($"[ModelHandler] {dbPath} line {lineIndex+1}: column '{column}' must be a single character but was \"{value}\"");
+
+		return value[0];
+	}
+
+	private static bool ParseDBYesNo(string value, string column, string dbPath, int lineIndex){
+		if(value == "Y")
+			return true;
+		if(value == "N")
+			return false;
+
+		throw new System.FormatException($"[ModelHandler] {dbPath} line {lineIndex+1}: column '{column}' must be 'Y' or 'N' but was \"{value}\"");
 	}
 }
