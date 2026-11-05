@@ -1,14 +1,14 @@
-# Name	Blender_obj_name	Sex
+# Name	Blender_obj_name	Sex	DoubleSided
 
-<No Top>	M_TORSO	M
-T-Shirt	M_Plain_T-Shirt	M
-Long Sleeved	M_Long_Sleeved	M
-Long Sleeved & Gloves	M_Long_with_Gloves	M
-Fancy Shirt	M_Fancy_Shirt	M
+<No Top>	M_TORSO	M	N
+T-Shirt	M_Plain_T-Shirt	M	N
+Long Sleeved	M_Long_Sleeved	M	N
+Long Sleeved & Gloves	M_Long_with_Gloves	M	N
+Fancy Shirt	M_Fancy_Shirt	M	N
 
 
-<No Top>	F_TORSO	F
-T-Shirt	F_Basic_T-Shirt	F
-Over Shirt	F_Over_Shirt	F
-Ragged Shirt	F_Rags_T-Shirt	F
-Basic Dress	F_Dress_Top	F
+<No Top>	F_TORSO	F	N
+T-Shirt	F_Basic_T-Shirt	F	N
+Over Shirt	F_Over_Shirt	F	N
+Ragged Shirt	F_Rags_T-Shirt	F	N
+Basic Dress	F_Dress_Top	F	Y

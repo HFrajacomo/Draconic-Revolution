@@ -20,15 +20,15 @@
 }
 --->Behaviours
 {
-	"onPlace": "LiquidBehaviour",
-    "onBreak": "LiquidBehaviour",
-    "onBlockUpdate": "LiquidBehaviour",
-    "onPlayerBodyEnter": "LiquidBehaviour",
-    "onPlayerBodyExit": "LiquidBehaviour",
-    "onPlayerHeadEnter": "LiquidBehaviour",
-    "onPlayerHeadExit": "LiquidBehaviour",
+	"onPlace": "VX_LiquidBehaviour",
+    "onBreak": "VX_LiquidBehaviour",
+    "onBlockUpdate": "VX_LiquidBehaviour",
+    "onPlayerBodyEnter": "VX_LiquidBehaviour",
+    "onPlayerBodyExit": "VX_LiquidBehaviour",
+    "onPlayerHeadEnter": "VX_LiquidBehaviour",
+    "onPlayerHeadExit": "VX_LiquidBehaviour",
 }
---->LiquidBehaviour
+--->VX_LiquidBehaviour
 {
     "liquidName": "BASE_Lava",
     "viscosityDelay": 60,

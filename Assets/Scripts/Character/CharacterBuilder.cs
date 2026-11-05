@@ -152,7 +152,7 @@ public class CharacterBuilder{
         combinedMesh.bindposes = modelRenderer.sharedMesh.bindposes;
 		SetHairline(modelRenderer.sharedMesh);
 		SaveShapeKeys(modelRenderer.sharedMesh);
-        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HEADGEAR);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HEADGEAR, ModelHandler.IsDoubleSided(ModelType.HEADGEAR, this.appearance.hat.code));
 
         GameObject.Destroy(modelRenderer.gameObject);
 
@@ -160,44 +160,44 @@ public class CharacterBuilder{
         if(hatCover == 'N'){
 	        modelRenderer = ModelHandler.GetModelByCode(ModelType.HAIR, this.appearance.hair.code).GetComponent<SkinnedMeshRenderer>();
 	        SaveShapeKeys(modelRenderer.sharedMesh);
-	        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HAIR);
+	        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HAIR, ModelHandler.IsDoubleSided(ModelType.HAIR, this.appearance.hair.code));
 	        GameObject.Destroy(modelRenderer.gameObject);
 	    }
 
 		// Torso
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.CLOTHES, this.appearance.torso.code).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
-        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.CLOTHES);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.CLOTHES, ModelHandler.IsDoubleSided(ModelType.CLOTHES, this.appearance.torso.code));
         GameObject.Destroy(modelRenderer.gameObject);
 
 		// Legs
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.LEGS, this.appearance.legs.code).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
-        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.LEGS);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.LEGS, ModelHandler.IsDoubleSided(ModelType.LEGS, this.appearance.legs.code));
         GameObject.Destroy(modelRenderer.gameObject);
 
 		// Boots
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.FOOTGEAR, this.appearance.boots.code).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
-        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FOOTGEAR);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FOOTGEAR, ModelHandler.IsDoubleSided(ModelType.FOOTGEAR, this.appearance.boots.code));
         GameObject.Destroy(modelRenderer.gameObject);
 
         // Addon
 		modelRenderer = ModelHandler.GetModelObject(ModelType.ADDON, GetAddonName(this.appearance.race)).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
-        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.ADDON);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.ADDON, ModelHandler.IsDoubleSided(ModelType.ADDON, GetAddonName(this.appearance.race)));
         GameObject.Destroy(modelRenderer.gameObject);
 
         // Face
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.FACE, this.appearance.face.code).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
-        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.FACE, ModelHandler.IsDoubleSided(ModelType.FACE, this.appearance.face.code));
         GameObject.Destroy(modelRenderer.gameObject);
 
         // Head
         modelRenderer = ModelHandler.GetModelObject(ModelType.ESSENTIAL, GetEssentialName(this.isMale)).GetComponent<SkinnedMeshRenderer>();
         SaveShapeKeys(modelRenderer.sharedMesh);
-        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.ESSENTIAL);
+        AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.ESSENTIAL, ModelHandler.IsDoubleSided(ModelType.ESSENTIAL, GetEssentialName(this.isMale)));
         GameObject.Destroy(modelRenderer.gameObject);
 
 		Transform[] newBonesTP = ModelHandler.GetArmatureBones(this.tpArmature.transform, BONE_MAP);
@@ -219,7 +219,7 @@ public class CharacterBuilder{
         	this.fpRenderer.bones = newBonesFP;
 
 			for(int i=0; i < this.fpRenderer.sharedMesh.subMeshCount; i++){
-				mats.Add(SetMaterial(ModelType.CLOTHES, this.appearance.GetInfo(ModelType.CLOTHES), this.appearance.skinColor, this.appearance.race, i));
+				mats.Add(SetMaterial(ModelType.CLOTHES, this.appearance.GetInfo(ModelType.CLOTHES), this.appearance.skinColor, this.appearance.race, i, ModelHandler.IsDoubleSided(ModelType.CLOTHES, this.appearance.torso.code)));
 			}
 
         	this.fpRenderer.materials = mats.ToArray();
@@ -264,7 +264,7 @@ public class CharacterBuilder{
 		ShapeKeyDeltaData.CopyBlendShapes(this.meshSKData, mesh);
 	}
 
-	private void AddGeometryToMesh(Mesh newMesh, SkinnedMeshRenderer rend, CharacterAppearance app, ModelType type){
+	private void AddGeometryToMesh(Mesh newMesh, SkinnedMeshRenderer rend, CharacterAppearance app, ModelType type, bool doubleSided){
 		int vertsCount = this.meshVert.Count;
 		int submeshCount = newMesh.subMeshCount;
 
@@ -299,7 +299,7 @@ public class CharacterBuilder{
 			newMesh.GetTriangles(this.meshTris[this.meshTris.Count-1], i);
 			ReassignTriangles(this.meshTris[this.meshTris.Count-1], vertsCount);
 
-			this.meshMat.Add(SetMaterial(type, app.GetInfo(type), app.skinColor, app.race, i));
+			this.meshMat.Add(SetMaterial(type, app.GetInfo(type), app.skinColor, app.race, i, doubleSided));
 		}
 	}
 
@@ -434,7 +434,14 @@ public class CharacterBuilder{
 		}
 	}
 
-	private Material SetMaterial(ModelType type, ClothingInfo info, Color skin, Race r, int index){
+	private Material SetMaterial(ModelType type, ClothingInfo info, Color skin, Race r, int index, bool doubleSided){
+		Material newMaterial = CreateMaterial(type, info, skin, r, index);
+		CharacterMaterialUtils.SetDoubleSided(newMaterial, doubleSided);
+
+		return newMaterial;
+	}
+
+	private Material CreateMaterial(ModelType type, ClothingInfo info, Color skin, Race r, int index){
 		Material newMaterial;
 
 		// Skin

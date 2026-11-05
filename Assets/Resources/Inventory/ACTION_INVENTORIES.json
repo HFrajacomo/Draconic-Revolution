@@ -1,0 +1,9 @@
+{
+	"data": [
+		{
+			"inventoryType": "ACTION_HOTBAR",
+			"amountOfSlots": 9,
+			"columnCount": 9
+		}
+	]
+}

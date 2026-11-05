@@ -6,7 +6,7 @@ using UnityEngine.Audio;
 public class AudioTrackSFX3D : MonoBehaviour
 {
     private Dictionary<ChunkPos, Dictionary<ulong, AudioSource>> audioMap = new Dictionary<ChunkPos, Dictionary<ulong, AudioSource>>();
-    private Dictionary<EntityID, AudioSource> entityMap = new Dictionary<EntityID, AudioSource>();
+    private Dictionary<EntityID, Dictionary<string, AudioSource>> entityMap = new Dictionary<EntityID, Dictionary<string, AudioSource>>();
 
     private AudioSource cachedSource;
 
@@ -31,8 +31,15 @@ public class AudioTrackSFX3D : MonoBehaviour
             if(!entityMap.ContainsKey(entityID))
                 return;
 
-            cachedSource = entityMap[entityID];
+            if(!entityMap[entityID].ContainsKey(sound.name))
+                return;
+
+            cachedSource = entityMap[entityID][sound.name];
         }
+
+        // Source may have been destroyed together with its parent (e.g. model rebuilt)
+        if(cachedSource == null)
+            return;
 
         if(sound.GetUsecaseType() == AudioUsecase.SFX_3D)
             cachedSource.loop = false;
@@ -47,7 +54,11 @@ public class AudioTrackSFX3D : MonoBehaviour
         cachedSource.Play();
     }
 
-    public void RegisterAudioSource(EntityID entityID, AudioSource source){
+    /*
+    Registers an AudioSource
+        sfxName is required for Player entities, since a single entity can hold multiple SFX
+    */
+    public void RegisterAudioSource(EntityID entityID, AudioSource source, string sfxName=null){
         if(entityID.type == EntityType.VOXEL){
             if(!audioMap.ContainsKey(entityID.pos))
                 audioMap.Add(entityID.pos, new Dictionary<ulong, AudioSource>());
@@ -58,17 +69,24 @@ public class AudioTrackSFX3D : MonoBehaviour
             }
         }
         else if(entityID.type == EntityType.PLAYER){
-            if(!entityMap.ContainsKey(entityID)){
-                entityMap.Add(entityID, source);
+            if(sfxName == null){
+                Debug.LogWarning($"[AudioTrackSFX3D] Tried to register a Player AudioSource without an SFX name: {entityID}");
+                return;
             }
-            else{
-                entityMap[entityID] = source;
-            }
+
+            if(!entityMap.ContainsKey(entityID))
+                entityMap.Add(entityID, new Dictionary<string, AudioSource>());
+
+            entityMap[entityID][sfxName] = source;
             SetupAudioSource(source);
         }
     }
 
-    public void UnregisterAudioSource(EntityID entityID){
+    /*
+    Unregisters an AudioSource
+        If sfxName is null, all AudioSources of a Player entity are unregistered
+    */
+    public void UnregisterAudioSource(EntityID entityID, string sfxName=null){
         if(entityID.type == EntityType.VOXEL){
             if(!audioMap.ContainsKey(entityID.pos))
                 return;
@@ -80,7 +98,17 @@ public class AudioTrackSFX3D : MonoBehaviour
                 audioMap.Remove(entityID.pos);
         }
         else if(entityID.type == EntityType.PLAYER){
-            if(entityMap.ContainsKey(entityID))
+            if(!entityMap.ContainsKey(entityID))
+                return;
+
+            if(sfxName == null){
+                entityMap.Remove(entityID);
+                return;
+            }
+
+            entityMap[entityID].Remove(sfxName);
+
+            if(entityMap[entityID].Count == 0)
                 entityMap.Remove(entityID);
         }
     }

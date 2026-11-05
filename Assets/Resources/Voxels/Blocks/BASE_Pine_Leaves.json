@@ -23,25 +23,25 @@
 }
 --->Behaviours
 {
-    "onPlace": "PlaceSetStateBehaviour",
-    "onBlockUpdate": "UpdateDecaySecondaryBlockBehaviour",
-    "onPlayerBodyEnter": "PlayerMovementEnterMultiplyBehaviour",
-    "onPlayerBodyExit": "PlayerMovementExitMultiplyBehaviour",
-    "onPlayerHeadEnter": "PlayerMovementEnterMultiplyBehaviour",
-    "onPlayerHeadExit": "PlayerMovementExitMultiplyBehaviour"
+    "onPlace": "VX_PlaceSetStateBehaviour",
+    "onBlockUpdate": "VX_UpdateDecaySecondaryBlockBehaviour",
+    "onPlayerBodyEnter": "VX_PlayerMovementEnterMultiplyBehaviour",
+    "onPlayerBodyExit": "VX_PlayerMovementExitMultiplyBehaviour",
+    "onPlayerHeadEnter": "VX_PlayerMovementEnterMultiplyBehaviour",
+    "onPlayerHeadExit": "VX_PlayerMovementExitMultiplyBehaviour"
 }
---->PlaceSetStateBehaviour
+--->VX_PlaceSetStateBehaviour
 {
     "changeToState": 1
 }
---->UpdateDecaySecondaryBlockBehaviour
+--->VX_UpdateDecaySecondaryBlockBehaviour
 {
     "decayTime": 7,
     "decayDistance": 7,
     "assignedMainBlock": "BASE_Pine_Log",
     "thisBlock": "BASE_Pine_Leaves"
 }
---->PlayerMovementEnterMultiplyBehaviour
+--->VX_PlayerMovementEnterMultiplyBehaviour
 {
     "onlyApplyOnce": true,
     "maxSpeed": 0.7,
@@ -50,7 +50,7 @@
     "gravityAcceleration": 0.85,
     "maxRunningMomentum": 0.01
 }
---->PlayerMovementExitMultiplyBehaviour
+--->VX_PlayerMovementExitMultiplyBehaviour
 {
     "maxSpeed": 0.7,
     "drag": 1.2,

@@ -31,6 +31,10 @@ public class Server {
 	private Dictionary<ulong, byte[]> receiveBuffer;
 
 	private Dictionary<ulong, ChunkPos> playerToChunk;
+	private Dictionary<ulong, Dictionary<int, AnimationData>> playerAnimationStates;
+	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
+	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
+	private Dictionary<ulong, int> playerCarryStyles;
 
 	private HashSet<ChunkPos> chunksToSend = new HashSet<ChunkPos>();
 
@@ -76,6 +80,10 @@ public class Server {
     	receiveBuffer = new Dictionary<ulong, byte[]>();
     	chunksRequested = new Dictionary<ChunkPos, HashSet<ulong>>();
     	playerToChunk = new Dictionary<ulong, ChunkPos>();
+		playerAnimationStates = new Dictionary<ulong, Dictionary<int, AnimationData>>();
+		playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
+		playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
+		playerCarryStyles = new Dictionary<ulong, int>();
 
     	this.cl = cl;
     	this.entityHandler.SetChunkLoader(cl);
@@ -432,6 +440,15 @@ public class Server {
 			case NetCode.SENDANIMATORPARAMETER:
 				SendAnimatorParameter(data, id);
 				break;
+			case NetCode.EQUIPITEM:
+				EquipItem(data, id);
+				break;
+			case NetCode.ENTITYSFX:
+				EntitySFX(data, id);
+				break;
+			case NetCode.SENDATTACHMENTANCHOR:
+				SendAttachmentAnchor(data, id);
+				break;
 			case NetCode.DISCONNECTINFO:
 				DisconnectInfo(id);
 				break;
@@ -444,7 +461,6 @@ public class Server {
 	// Captures client info
 	private void SendClientInfo(byte[] data, ulong id){
 		CharacterSheet sheet = null;
-		NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
 		int inventoryLength;
 		bool isEmptyInventory;
 		ulong accountID = NetDecoder.ReadUlong(data, 1);
@@ -488,24 +504,21 @@ public class Server {
 			sheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
 			this.entityHandler.AddPlayerSheet(accountID, sheet);
 
+			NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
 			message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.cl.time.days, this.cl.time.hours, this.cl.time.minutes);
-			this.Send(message.GetMessage(), message.size, id);
+			this.Send(message.GetMessage(), message.size, id, temporary:true);
 
 			// Sends player inventory data
 			NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
 			inventoryLength = this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmptyInventory);
+			inventoryMessage.SendInventory(this.cl.playerServerInventory.GetBuffer(), inventoryLength);
 
-			if(!isEmptyInventory)
-				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetBuffer(), inventoryLength);
-			else
-				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetEmptyBuffer(), inventoryLength);
-
-			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id);
+			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id, temporary:true);
 
 			// Sends global weather noise data
 			NetMessage weatherMessage = new NetMessage(NetCode.SENDNOISE);
 			weatherMessage.SendNoise(GenerationSeed.weatherNoise, World.worldSeed);
-			this.Send(weatherMessage.GetMessage(), weatherMessage.size, id);
+			this.Send(weatherMessage.GetMessage(), weatherMessage.size, id, temporary:true);
 		}
 
 		// If AccountID is already online, erase all memory from that connection
@@ -538,6 +551,14 @@ public class Server {
     		sheet = this.cl.characterFileHandler.LoadCharacterSheet(accountID);
     		this.entityHandler.AddPlayerSheet(accountID, sheet);
     	}
+
+		// Players always join with the Normal Hotbar selected and their weapon sheathed
+		sheet = this.entityHandler.GetSheet(accountID);
+
+		if(!sheet.IsInNormalHotbar()){
+			sheet.SetIsInNormalHotbar(true);
+			this.cl.characterFileHandler.SaveCharacterSheet(accountID, sheet);
+		}
 
     	bool isEmpty;
 		byte hotbarSlot = sheet.GetHotbarSlot();
@@ -594,6 +615,10 @@ public class Server {
 					this.connectionGraph[code].Add(id);
 					playerMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[code]);
 					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
+					SendAnimationSnapshot(code, id);
+					SendEntitySFXSnapshot(code, id);
+					SendBattleStyleSnapshot(code, id);
+					SendAttachmentAnchorSnapshot(code, id);
 				}
 			}
 		}
@@ -762,7 +787,7 @@ public class Server {
 							its.GetItem().OnUnholdServer(this.cl, its , id);
 
 							NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
-							unholdMessage.SendItemInHand(id, 0, 0);
+							unholdMessage.SendItemInHand(id, true, 0, 0);
 							this.SendToClientsExcept(id, unholdMessage);
 						}
 
@@ -791,7 +816,7 @@ public class Server {
 						its.GetItem().OnUnholdServer(this.cl, its , id);
 
 						NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
-						unholdMessage.SendItemInHand(id, 0, 0);
+						unholdMessage.SendItemInHand(id, true, 0, 0);
 						this.SendToClientsExcept(id, unholdMessage);
 					}
 
@@ -801,7 +826,7 @@ public class Server {
 						its.GetItem().OnUnholdServer(this.cl, its , id);
 
 						NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
-						unholdMessage.SendItemInHand(id, 0, 0);
+						unholdMessage.SendItemInHand(id, true, 0, 0);
 						this.SendToClientsExcept(id, unholdMessage);
 					}
 
@@ -915,15 +940,14 @@ public class Server {
 		CharacterSheet cs = this.cl.characterFileHandler.LoadCharacterSheet(requestedID);
 		CharacterAppearance app;
 		bool isMale;
-		ItemStack its;
+		ItemStack selectionIts;
+		EntityAction selectionEa;
 		bool trash;
 
-		byte slot = cs.GetHotbarSlot();
+		byte slot;
 
 		if(!this.cl.playerServerInventory.HasInventory(requestedID))
 			this.cl.playerServerInventory.LoadInventoryIntoBuffer(requestedID, out trash);
-
-		its = this.cl.playerServerInventory.GetSlot(requestedID, slot).GetItemStack();
 
 		if(cs == null)
 			return;
@@ -933,8 +957,25 @@ public class Server {
 		}
 
 		NetMessage message = new NetMessage(NetCode.SENDPLAYERAPPEARANCE);
-		message.SendPlayerAppearance(requestedID, app, isMale, its.GetID(), its.GetAmount());
+		message.SendPlayerAppearance(requestedID, app, isMale);
 		this.Send(message.GetMessage(), message.size, id);
+
+		NetMessage itemMessage = new NetMessage(NetCode.SENDITEMINHAND);
+
+		if(cs.IsInNormalHotbar()){
+			slot = cs.GetHotbarSlot();
+			selectionIts = this.cl.playerServerInventory.GetSlot(id, 1, slot).GetItemStack();
+			selectionIts.GetItem().OnHoldServer(this.cl, selectionIts, id);
+			itemMessage.SendItemInHand(id, cs.IsInNormalHotbar(), selectionIts.GetID(), selectionIts.GetAmount());
+		}
+		else{
+			slot = cs.GetAttackHotbarSlot();
+			selectionEa = ((ActionInventorySlot)this.cl.playerServerInventory.GetSlot(id, 0, slot)).GetAction();
+			selectionEa.OnHoldServer(this.cl, selectionEa.GetItemStack(null), id);
+			itemMessage.SendItemInHand(id, cs.IsInNormalHotbar(), selectionEa.GetID(), (ushort)this.cl.playerServerInventory.GetSlot(id, selectionEa.GetConnectedStackInventory(), selectionEa.GetConnectedStackSlot()).GetItemID(), 0);
+		}
+
+		this.Send(itemMessage.GetMessage(), message.size, id);
 	}
 
 	// Receives a disconnect call from client
@@ -968,6 +1009,10 @@ public class Server {
 		this.playerRenderDistances.Remove(id);
 		this.connectionGraph.Remove(id);
 		this.receiveBuffer.Remove(id);
+		this.playerAnimationStates.Remove(id);
+		this.playerActiveLoopSFX.Remove(id);
+		this.playerAttachmentAnchors.Remove(id);
+		this.playerCarryStyles.Remove(id);
 
 		this.entityHandler.Remove(EntityType.PLAYER, this.cl.regionHandler.allPlayerData[id].GetChunkPos(), id);
 		this.entityHandler.RemoveSheet(id);
@@ -1131,6 +1176,10 @@ public class Server {
 					this.connectionGraph[id].Add(code);
 					liveMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id]);
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);
+					SendAnimationSnapshot(id, code);
+					SendEntitySFXSnapshot(id, code);
+					SendBattleStyleSnapshot(id, code);
+					SendAttachmentAnchorSnapshot(id, code);
 
 					foreach(string parameter in animatorParameters.Keys){
 						animatorParameterMessage.SendAnimatorParameter(code, animatorParameters[parameter], parameter);
@@ -1166,16 +1215,16 @@ public class Server {
 		message.ItemEntityData(pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, itemCode, amount, code);
 		this.SendToClients(cp, message);
 
-		this.cl.playerServerInventory.ChangeQuantity(id, slot, (byte)(this.cl.playerServerInventory.GetQuantity(id, slot) - amount));
+		if(slot != byte.MaxValue){
+			// If quantity becomes zero or less, runs OnUnhold
+			if(this.cl.playerServerInventory.GetQuantity(id, slot) - amount <= 0){
+				ItemStack its = new ItemStack(itemCode, amount);
+				ItemLoader.GetItem(itemCode).OnUnholdServer(this.cl, its , id);
 
-		// If quantity becomes zero or less, runs OnUnhold
-		if(this.cl.playerServerInventory.GetQuantity(id, slot) - amount <= 0){
-			ItemStack its = new ItemStack(itemCode, amount);
-			ItemLoader.GetItem(itemCode).OnUnholdServer(this.cl, its , id);
-
-			unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
-			unholdMessage.SendItemInHand(id, 0, 0);
-			this.SendToClientsExcept(id, unholdMessage);
+				unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
+				unholdMessage.SendItemInHand(id, true, 0, 0);
+				this.SendToClientsExcept(id, unholdMessage);
+			}
 		}
 	}
 
@@ -1303,27 +1352,48 @@ public class Server {
 
 	// Receives the inventory of client and saves it
 	private void SendInventory(byte[] data, ulong id){
-		byte selectedSlot;
-		ItemStack previousItem, currentItem;
+		byte selectedHotbarSlot, selectedAttackSlot;
+		Item prevItem, currItem;
+		ClickableSlot previousSlot, currentSlot;
 		CharacterSheet sheet;
 		NetMessage message;
+		bool isNormalHotbar;
 
 		if(this.entityHandler.ContainsSheet(id)){
 			sheet = this.entityHandler.GetSheet(id);
-			selectedSlot = sheet.GetHotbarSlot();
-			previousItem = this.cl.playerServerInventory.GetSlot(id, selectedSlot).GetItemStack();
+			isNormalHotbar = sheet.IsInNormalHotbar();
+			selectedHotbarSlot = sheet.GetHotbarSlot();
+			selectedAttackSlot = sheet.GetAttackHotbarSlot();
 
+			if(isNormalHotbar)
+				previousSlot = this.cl.playerServerInventory.GetSlot(id, selectedHotbarSlot).GetItemStack();
+			else
+				previousSlot = this.cl.playerServerInventory.GetSlot(id, selectedAttackSlot).GetAction();
 
 			this.cl.playerServerInventory.AddInventory(id, data);
 
-			currentItem = this.cl.playerServerInventory.GetSlot(id, selectedSlot).GetItemStack();
+			if(isNormalHotbar)
+				currentSlot = this.cl.playerServerInventory.GetSlot(id, selectedHotbarSlot).GetItemStack();
+			else
+				currentSlot = this.cl.playerServerInventory.GetSlot(id, selectedAttackSlot).GetAction();
 
-			if(previousItem.GetID() != currentItem.GetID()){
-				previousItem.GetItem().OnUnholdServer(this.cl, previousItem, id);
-				currentItem.GetItem().OnHoldServer(this.cl, currentItem, id);
-
+			if(previousSlot.GetID() != currentSlot.GetID()){
 				message = new NetMessage(NetCode.SENDITEMINHAND);
-				message.SendItemInHand(id, currentItem.GetID(), currentItem.GetAmount());
+
+				if(isNormalHotbar){
+					prevItem = ((ItemStack)previousSlot).GetItem();
+					currItem = ((ItemStack)currentSlot).GetItem();
+					prevItem.OnUnholdServer(this.cl, (ItemStack)previousSlot, id);
+					currItem.OnHoldServer(this.cl, (ItemStack)currentSlot, id);
+					message.SendItemInHand(id, sheet.IsInNormalHotbar(), currentSlot.GetID(), ((ItemStack)currentSlot).GetAmount());
+				}
+				else{
+					((EntityAction)previousSlot).OnUnholdServer(this.cl, ((EntityAction)previousSlot).GetItemStack(null), id);
+					((EntityAction)currentSlot).OnHoldServer(this.cl, ((EntityAction)currentSlot).GetItemStack(null), id);
+					EntityAction ea = (EntityAction)currentSlot;
+					message.SendItemInHand(id, sheet.IsInNormalHotbar(), currentSlot.GetID(), (ushort)this.cl.playerServerInventory.GetSlot(id, ea.GetConnectedStackInventory(), ea.GetConnectedStackSlot()).GetItemID(), 0);
+				}
+
 				this.SendToClientsExcept(id, message);
 			}
 		}
@@ -1360,6 +1430,10 @@ public class Server {
 		NetMessage message = new NetMessage(NetCode.SENDCHARSHEET);
 		message.SendCharSheet(code, this.cachedSheet);
 		this.Send(message.GetMessage(), message.size, id);
+
+		// The owner's sheet only carries the style, so the equipped items that skin its attachments are sent after it
+		if(code == id)
+			SendBattleStyleSnapshot(code, id);
 	}
 
 	// Receives the character sheet from a new character
@@ -1373,29 +1447,93 @@ public class Server {
 	// Receives the current hotbar slot in player's hand
 	public void SendHotbarPosition(byte[] data, ulong id){
 		byte slot = NetDecoder.ReadByte(data, 1);
+		byte attackSlot = NetDecoder.ReadByte(data, 2);
+		bool isNormalHotbar = NetDecoder.ReadBool(data, 3);
 		byte previousSlot;
+
 		CharacterSheet sheet;
-		PlayerServerInventorySlot psiSlot;
-		ItemStack hotbarStack;
+		PlayerServerInventorySlot psiSlot, psiPrevious;
+		ItemStack hotbarStack = null;
+		ItemStack previousStack = null;
+		EntityAction hotbarAction = null;
+		EntityAction previousAction = null;
 		NetMessage message;
+
+		byte inventory, invSlot;
 
 		if(this.entityHandler.ContainsSheet(id)){
 			sheet = this.entityHandler.GetSheet(id);
-			previousSlot = sheet.GetHotbarSlot();
+			
+			// Check if the previous selected slot was in Normal Hotbar
+			if(sheet.IsInNormalHotbar()){
+				previousSlot = sheet.GetHotbarSlot();
 
-			sheet.SetHotbarSlot(slot);
-			this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
+				if(previousSlot != slot || !isNormalHotbar){
+					psiPrevious = this.cl.playerServerInventory.GetSlot(id, previousSlot);
+					previousStack = psiPrevious.GetItemStack();
+					previousStack.GetItem().OnUnholdServer(this.cl, previousStack, id);
+				}
+			}
+			// Check if the previous selected slot was in Action Hotbar
+			else{
+				previousSlot = sheet.GetAttackHotbarSlot();
 
-			if(previousSlot != slot){
+				if(previousSlot != attackSlot || isNormalHotbar){
+					psiPrevious = this.cl.playerServerInventory.GetSlot(id, previousSlot);
+
+					if(psiPrevious is ActionInventorySlot){
+						previousAction = ((ActionInventorySlot)psiPrevious).GetAction();
+
+						// If this action can't exist without an ItemStack
+						if(((ActionInventorySlot)psiPrevious).IsConnectedToItem()){
+							inventory = ((ActionInventorySlot)psiPrevious).GetStackInventory();
+							invSlot = ((ActionInventorySlot)psiPrevious).GetStackSlot();
+							previousStack = this.cl.playerServerInventory.GetSlot(id, inventory, invSlot).GetItemStack();
+						}
+
+						previousAction.OnUnholdServer(this.cl, previousStack, id);
+					}
+				}
+			}
+
+			sheet.SetIsInNormalHotbar(isNormalHotbar);
+
+			// Check if the current selected slot is in Normal Hotbar
+			if(isNormalHotbar){
+				sheet.SetHotbarSlot(slot);
+				this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
+
 				psiSlot = this.cl.playerServerInventory.GetSlot(id, slot);
 				hotbarStack = psiSlot.GetItemStack();
 
-				hotbarStack.GetItem().OnUnholdServer(this.cl, hotbarStack, id);
 				hotbarStack.GetItem().OnHoldServer(this.cl, hotbarStack, id);
 
 				message = new NetMessage(NetCode.SENDITEMINHAND);
-				message.SendItemInHand(id, hotbarStack.GetID(), hotbarStack.GetAmount());
+				message.SendItemInHand(id, true, hotbarStack.GetID(), hotbarStack.GetAmount());
 				this.SendToClientsExcept(id, message);
+			}
+			// Check if the current selected slot is in Action Hotbar
+			else{
+				sheet.SetAttackHotbarSlot(attackSlot);
+				this.cl.characterFileHandler.SaveCharacterSheet(id, sheet);
+				psiSlot = this.cl.playerServerInventory.GetSlot(id, attackSlot);
+
+				if(psiSlot is ActionInventorySlot){
+					hotbarAction = ((ActionInventorySlot)psiSlot).GetAction();
+
+					// If this action can't exist without an ItemStack
+					if(((ActionInventorySlot)psiSlot).IsConnectedToItem()){
+						inventory = ((ActionInventorySlot)psiSlot).GetStackInventory();
+						invSlot = ((ActionInventorySlot)psiSlot).GetStackSlot();
+						hotbarStack = this.cl.playerServerInventory.GetSlot(id, inventory, invSlot).GetItemStack();
+					}
+					
+					hotbarAction.OnHoldServer(this.cl, hotbarStack, id);
+
+					message = new NetMessage(NetCode.SENDITEMINHAND);
+					message.SendItemInHand(id, false, hotbarAction.GetID(), (ushort)this.cl.playerServerInventory.GetSlot(id, hotbarAction.GetConnectedStackInventory(), hotbarAction.GetConnectedStackSlot()).GetItemID(), 0);
+					this.SendToClientsExcept(id, message);
+				}
 			}
 		}
 	}
@@ -1410,9 +1548,16 @@ public class Server {
 		if(id != playerCode)
 			return;
 
+		AnimationData animationData = new AnimationData(stateName, layer);
+
+		if(!this.playerAnimationStates.ContainsKey(playerCode))
+			this.playerAnimationStates.Add(playerCode, new Dictionary<int, AnimationData>());
+
+		this.playerAnimationStates[playerCode][layer] = animationData;
+
 		NetMessage message;
 		message = new NetMessage(NetCode.SENDANIMATIONLAYER);
-		message.SendAnimationLayer(playerCode, new AnimationData(stateName, layer));
+		message.SendAnimationLayer(playerCode, animationData);
 
 		this.SendToClientsExcept(id, message);
 	}
@@ -1423,6 +1568,7 @@ public class Server {
 		ulong playerCode = NetDecoder.ReadUlong(data, 1);
 		int style = NetDecoder.ReadInt(data, 9);
 
+		ClearAttachmentAnchorsOnStyleChange(playerCode, style);
 		this.entityHandler.ChangeBattleStyle(playerCode, style);
 		sheet = this.entityHandler.GetSheet(id);
 		sheet.SetBattleStyleCode(style);
@@ -1430,11 +1576,12 @@ public class Server {
 
 		NetMessage message;
 		message = new NetMessage(NetCode.SENDBATTLESTYLE);
-		message.SendBattleStyle(playerCode, style);
+		message.SendBattleStyle(playerCode, style, BattleStyleDeterminator.ResolveAttachmentItems(this.cl, playerCode));
 		this.SendToClientsExcept(id, message);
 	}
 	public void SendBattleStyle(ulong playerCode, int style){
 		CharacterSheet sheet;
+		ClearAttachmentAnchorsOnStyleChange(playerCode, style);
 		this.entityHandler.ChangeBattleStyle(playerCode, style);
 		sheet = this.entityHandler.GetSheet(playerCode);
 		sheet.SetBattleStyleCode(style);
@@ -1442,7 +1589,7 @@ public class Server {
 
 		NetMessage message;
 		message = new NetMessage(NetCode.SENDBATTLESTYLE);
-		message.SendBattleStyle(playerCode, style);
+		message.SendBattleStyle(playerCode, style, BattleStyleDeterminator.ResolveAttachmentItems(this.cl, playerCode));
 		this.SendToClients(playerCode, message);
 	}
 
@@ -1459,6 +1606,132 @@ public class Server {
 		this.SendToClientsExcept(id, message);
 	}
 
+	// Receives an user changing equipments notification from client
+	public void EquipItem(byte[] data, ulong id){
+		ulong playerCode;  
+		MemoryStorageType oldType, newType;
+		CharacterSheet cs;
+		int itemBytes = 0;
+		Item newItem, oldItem;
+
+		playerCode = NetDecoder.ReadUlong(data, 1);
+		oldType = (MemoryStorageType)NetDecoder.ReadByte(data, 9);
+		cs = this.cl.characterFileHandler.LoadCharacterSheet(playerCode);
+
+		switch(oldType){
+			case MemoryStorageType.ITEM:
+				oldItem = NetDecoder.ReadItem(data, 10);
+				itemBytes += 2;
+				break;
+			case MemoryStorageType.WEAPON:
+				oldItem = NetDecoder.ReadWeapon(data, 10);
+				itemBytes += 8;
+				break;
+			default:
+				oldItem = NetDecoder.ReadItem(data, 10);
+				itemBytes += 2;
+				break;
+		}
+
+		newType = (MemoryStorageType)NetDecoder.ReadByte(data, 10 + itemBytes);
+
+		switch(newType){
+			case MemoryStorageType.ITEM:
+				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
+				itemBytes += 2;
+				break;
+			case MemoryStorageType.WEAPON:
+				newItem = NetDecoder.ReadWeapon(data, 11 + itemBytes);
+				itemBytes += 8;
+				break;
+			default:
+				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
+				itemBytes += 2;
+				break;
+		}
+
+		// Handle onEquip and onUnequip events on Items
+		oldItem.OnUnequipServer(this.cl, oldItem, playerCode);
+		newItem.OnEquipServer(this.cl, newItem, playerCode);
+
+		// Handles Style change
+		SendBattleStyle(playerCode, BattleStyleDeterminator.Resolve(this.cl, playerCode));
+
+		// Handles OnEquipChange events on Actions
+		if(!cs.IsInNormalHotbar()){
+			EntityAction ea = ((ActionInventorySlot)this.cl.playerServerInventory.GetSlot(playerCode, 0, cs.GetAttackHotbarSlot())).GetAction();
+
+			if(ea != null)
+				ea.OnEquipChangeServer(this.cl, playerCode);
+		}
+
+		// Handle the sending of onEquips and onUnequips to clients
+		NetMessage equipMessage = new NetMessage(NetCode.EQUIPITEM);
+		equipMessage.EquipItem(id, oldItem, newItem);
+		SendToClientsExcept(id, equipMessage);
+	}
+
+	// Receives an Entity SFX creation/destruction from the client that owns the entity and relays it to nearby clients
+	public void EntitySFX(byte[] data, ulong id){
+		ulong playerCode = NetDecoder.ReadUlong(data, 1);
+		EntitySFXOperation operation = (EntitySFXOperation)NetDecoder.ReadByte(data, 9);
+		EntitySFXData sfx = NetDecoder.ReadEntitySFXData(data, 10);
+
+		if(id != playerCode)
+			return;
+
+		if(operation == EntitySFXOperation.CREATE){
+			if(sfx.isLoop){
+				if(!this.playerActiveLoopSFX.ContainsKey(playerCode))
+					this.playerActiveLoopSFX.Add(playerCode, new Dictionary<string, EntitySFXData>());
+
+				this.playerActiveLoopSFX[playerCode][sfx.name] = sfx;
+			}
+		}
+		else if(operation == EntitySFXOperation.DESTROY){
+			if(this.playerActiveLoopSFX.ContainsKey(playerCode)){
+				this.playerActiveLoopSFX[playerCode].Remove(sfx.name);
+
+				if(this.playerActiveLoopSFX[playerCode].Count == 0)
+					this.playerActiveLoopSFX.Remove(playerCode);
+			}
+		}
+		else{
+			return;
+		}
+
+		NetMessage message = new NetMessage(NetCode.ENTITYSFX);
+		message.EntitySFX(playerCode, operation, sfx);
+		this.SendToClientsExcept(id, message);
+	}
+
+	// Receives a BattleStyle attachment anchor switch from the client that owns the entity and relays it to nearby clients
+	public void SendAttachmentAnchor(byte[] data, ulong id){
+		ulong playerCode = NetDecoder.ReadUlong(data, 1);
+		BoneAnchorType origin = (BoneAnchorType)NetDecoder.ReadByte(data, 9);
+		BoneAnchorType target = (BoneAnchorType)NetDecoder.ReadByte(data, 10);
+		bool flip = NetDecoder.ReadBool(data, 11);
+		float heightOffset = NetDecoder.ReadFloat(data, 12);
+
+		if(id != playerCode)
+			return;
+
+		if(!this.playerAttachmentAnchors.ContainsKey(playerCode))
+			this.playerAttachmentAnchors.Add(playerCode, new Dictionary<BoneAnchorType, AttachmentAnchorState>());
+
+		bool applied = AttachmentAnchorState.Apply(this.playerAttachmentAnchors[playerCode], origin, target, flip, heightOffset);
+
+		if(this.playerAttachmentAnchors[playerCode].Count == 0)
+			this.playerAttachmentAnchors.Remove(playerCode);
+
+		if(!applied)
+			return;
+
+		NetMessage message = new NetMessage(NetCode.SENDATTACHMENTANCHOR);
+		message.SendAttachmentAnchor(playerCode, origin, target, flip, heightOffset);
+		this.SendToClientsExcept(id, message);
+	}
+
 	// Receives a Disconnect message from InfoClient
 	public void DisconnectInfo(ulong id){
 		this.temporaryConnections[id].Close();
@@ -1469,6 +1742,68 @@ public class Server {
 	/*
 	// Auxiliary Functions
 	*/
+
+	private void SendAnimationSnapshot(ulong playerCode, ulong recipientCode){
+		if(!this.playerAnimationStates.ContainsKey(playerCode))
+			return;
+
+		NetMessage message = new NetMessage(NetCode.SENDANIMATIONLAYER);
+
+		foreach(AnimationData animationData in this.playerAnimationStates[playerCode].Values){
+			message.SendAnimationLayer(playerCode, animationData);
+			this.Send(message.GetMessage(), message.size, recipientCode);
+		}
+	}
+
+	// Sends all active looping SFX of a player to a recipient that just started seeing them
+	private void SendEntitySFXSnapshot(ulong playerCode, ulong recipientCode){
+		if(!this.playerActiveLoopSFX.ContainsKey(playerCode))
+			return;
+
+		NetMessage message = new NetMessage(NetCode.ENTITYSFX);
+
+		foreach(EntitySFXData sfx in this.playerActiveLoopSFX[playerCode].Values){
+			message.EntitySFX(playerCode, EntitySFXOperation.CREATE, sfx);
+			this.Send(message.GetMessage(), message.size, recipientCode);
+		}
+	}
+
+	// Sends the current BattleStyle and attachment items of a player to a recipient that just started seeing them
+	private void SendBattleStyleSnapshot(ulong playerCode, ulong recipientCode){
+		if(!this.entityHandler.ContainsSheet(playerCode))
+			return;
+
+		NetMessage message = new NetMessage(NetCode.SENDBATTLESTYLE);
+		message.SendBattleStyle(playerCode, this.entityHandler.GetSheet(playerCode).GetBattleStyleCode(), BattleStyleDeterminator.ResolveAttachmentItems(this.cl, playerCode));
+		this.Send(message.GetMessage(), message.size, recipientCode);
+	}
+
+	// Sends all BattleStyle attachments of a player that are away from their default anchor to a recipient that just started seeing them
+	private void SendAttachmentAnchorSnapshot(ulong playerCode, ulong recipientCode){
+		if(!this.playerAttachmentAnchors.ContainsKey(playerCode))
+			return;
+
+		NetMessage message = new NetMessage(NetCode.SENDATTACHMENTANCHOR);
+
+		foreach(KeyValuePair<BoneAnchorType, AttachmentAnchorState> item in this.playerAttachmentAnchors[playerCode]){
+			message.SendAttachmentAnchor(playerCode, item.Key, item.Value.anchor, item.Value.flip, item.Value.heightOffset);
+			this.Send(message.GetMessage(), message.size, recipientCode);
+		}
+	}
+
+	// Attachments are rebuilt in their default anchors whenever a BattleStyle or the carried off-hand style changes
+	private void ClearAttachmentAnchorsOnStyleChange(ulong playerCode, int style){
+		int carryStyle = BattleStyleDeterminator.GetCarryStyleCode(style, BattleStyleDeterminator.ResolveAttachmentItems(this.cl, playerCode));
+		int previousCarryStyle;
+
+		if(!this.playerCarryStyles.TryGetValue(playerCode, out previousCarryStyle))
+			previousCarryStyle = BattleStyleDeterminator.NO_CARRY;
+
+		if(this.entityHandler.GetSheet(playerCode).GetBattleStyleCode() != style || previousCarryStyle != carryStyle)
+			this.playerAttachmentAnchors.Remove(playerCode);
+
+		this.playerCarryStyles[playerCode] = carryStyle;
+	}
 
 	// Send input message to all Clients connected to a given Chunk
 	public void SendToClients(ChunkPos pos, NetMessage message){

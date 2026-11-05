@@ -1,11 +1,11 @@
-# Name	Blender_obj_name	Sex
+# Name	Blender_obj_name	Sex	DoubleSided
 
-Base_Ears	U_Normal_Ears	M
-Elven_Ears	U_Elven_Ears	M
-Orcish_Ears	U_Orcish_Ears	M
-Dragonling_Horns	U_Dragonling_Horns	M
+Base_Ears	U_Normal_Ears	M	N
+Elven_Ears	U_Elven_Ears	M	N
+Orcish_Ears	U_Orcish_Ears	M	N
+Dragonling_Horns	U_Dragonling_Horns	M	N
 
-Base_Ears	U_Normal_Ears	F
-Elven_Ears	U_Elven_Ears	F
-Orcish_Ears	U_Orcish_Ears	F
-Dragonling_Horns	U_Dragonling_Horns	F
+Base_Ears	U_Normal_Ears	F	N
+Elven_Ears	U_Elven_Ears	F	N
+Orcish_Ears	U_Orcish_Ears	F	N
+Dragonling_Horns	U_Dragonling_Horns	F	N

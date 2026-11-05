@@ -23,14 +23,14 @@
 }
 --->Behaviours
 {
-    "onPlace": "PlaceSetStateBehaviour",
-    "onBreak": "TreeBehaviour"
+    "onPlace": "VX_PlaceSetStateBehaviour",
+    "onBreak": "VX_TreeBehaviour"
 }
---->PlaceSetStateBehaviour
+--->VX_PlaceSetStateBehaviour
 {
     "stateToChange" : 1
 }
---->TreeBehaviour
+--->VX_TreeBehaviour
 {
     "droppedItem": "BASE_Wood_Log",
     "maxAnalysedBlocks": 100,

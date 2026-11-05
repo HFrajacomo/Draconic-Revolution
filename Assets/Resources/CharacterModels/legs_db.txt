@@ -1,13 +1,13 @@
-# Name	Blender_obj_name	Sex
+# Name	Blender_obj_name	Sex	DoubleSided
 
-<No Pants>	M_PANTS	M
-Basic Pants	M_Simple_Pants	M
-Baggy Pants	M_Baggy_Pants	M
-Sleeved Pants	M_Sleeved_Pants	M
-Shorts	M_Shorts	M
+<No Pants>	M_PANTS	M	N
+Basic Pants	M_Simple_Pants	M	N
+Baggy Pants	M_Baggy_Pants	M	N
+Sleeved Pants	M_Sleeved_Pants	M	N
+Shorts	M_Shorts	M	N
 
-<No Pants>	F_PANTS	F
-Pants	F_Simple_Pants	F
-Skirt	F_Skirt	F
-Baggy Pants	F_Baggy_Pants	F
-Dress Pants	F_Dress_Pants	F
+<No Pants>	F_PANTS	F	N
+Pants	F_Simple_Pants	F	N
+Skirt	F_Skirt	F	Y
+Baggy Pants	F_Baggy_Pants	F	N
+Dress Pants	F_Dress_Pants	F	Y

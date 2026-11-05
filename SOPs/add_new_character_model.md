@@ -32,3 +32,20 @@ Hats are crazy different from other models. Their last vertex group is called th
 
 ## Armature and Animation
 Any changes to armature, even in Rest Pose, must have its animations exported and replaced in Unity's AnimationController. Or else, we'll get a misalignment in Bind Poses, which deforms models wrong, creating visible seams.
+
+## Registering models in the db files
+Every model must be registered in its db file in `Assets/Resources/CharacterModels/`. Columns are separated by a **tab**, lines end with **CRLF**, and lines starting with `#` are comments. The **order of the lines defines the model's code** that is saved in character files, so never reorder or remove existing lines. New models must be appended at the end.
+
+| File | Columns |
+|------|---------|
+| `clothes_db.txt`, `legs_db.txt`, `boots_db.txt`, `addons_db.txt`, `essentials_db.txt` | `Name	Blender_obj_name	Sex	DoubleSided` |
+| `hair_db.txt` | `Name	Blender_obj_name	Sex	HasModel	DoubleSided` |
+| `faces_db.txt` | `Name	Blender_obj_name	Sex	Face_texture_image	DoubleSided` |
+| `hats_db.txt` | `Name	Blender_obj_name	Sex	CoverHair	HasModel	DoubleSided` |
+
+- **Sex**: `M` or `F`. Each model has one line per sex.
+- **HasModel**: `Y` if the model should be drawn, `N` for empty entries such as "No Hair" or "No Hat".
+- **CoverHair**: `N` doesn't hide the hair. `Y` hides it completely. `P` hides it partially, so the hair triggers its shape keys.
+- **DoubleSided** (required): `Y` renders the back faces of **every** material of that model, including the skin submesh. `N` makes them single-sided, even if the base material, like the Dragonling skin or horns, is authored as double-sided. Use `Y` on thin, single-plane geometry such as skirts, capes and hat brims.
+
+A line with the wrong number of columns or an invalid `Y`/`N` value throws an error when loading. The error names the file and line.

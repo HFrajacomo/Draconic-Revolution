@@ -131,7 +131,7 @@ public static class NetDecoder
 		return new SpecialEffect((EffectType)NetDecoder.ReadUshort(data, pos), (EffectUsecase)NetDecoder.ReadByte(data, pos+2), NetDecoder.ReadByte(data, pos+3), NetDecoder.ReadUshort(data, pos+4), NetDecoder.ReadBool(data, pos+6));
 	}
 
-	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1222
+	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1210
 		CharacterSheet cs = new CharacterSheet();
 		SpecialEffect cachedFX;
 
@@ -245,33 +245,11 @@ public static class NetDecoder
 		pos += 5;
 		cs.SetSkill(SkillType.WITCHCRAFT, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
-		cs.SetRightHand(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetLeftHand(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetHelmet(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetArmor(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetLegs(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetBoots(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetRing1(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetRing2(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetRing3(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetRing4(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetAmulet(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
-		cs.SetCape(ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos)));
-		pos += 2;
 		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
 		pos += 247;
 		cs.SetHotbarSlot(NetDecoder.ReadByte(data, pos));
+		pos++;
+		cs.SetAttackHotbarSlot(NetDecoder.ReadByte(data, pos));
 		pos++;
 
 		for(int i=0; i < 100; i++){
@@ -300,6 +278,38 @@ public static class NetDecoder
 		return ItemLoader.GetCopy(NetDecoder.ReadUshort(data, pos));
 	}
 
+	// Reads a deep copy of an item
+	public static Weapon ReadWeapon(byte[] data, int pos){
+		Weapon weap;
+
+		ushort id = NetDecoder.ReadUshort(data, pos);
+		uint durability = NetDecoder.ReadUint(data, pos+2);
+		byte refineLevel = NetDecoder.ReadByte(data, pos+6);
+		byte extraEffect = NetDecoder.ReadByte(data, pos+7);
+
+		weap = (Weapon)ItemLoader.GetCopy(id);
+		weap.SetDurability(durability);
+		weap.SetRefineLevel(refineLevel);
+		weap.SetExtraEffects((EnchantmentType)extraEffect);
+
+		return weap;
+	}
+
+	public static EntityAction ReadAction(byte[] data, int pos){
+		EntityAction ea;
+
+		ushort id = NetDecoder.ReadUshort(data, pos);
+		bool connectedToStack = NetDecoder.ReadBool(data, pos+2);
+		ushort currentCooldown = NetDecoder.ReadUshort(data, pos+3);
+		ushort totalCooldown = NetDecoder.ReadUshort(data, pos+5);
+		byte csi = NetDecoder.ReadByte(data, pos+7);
+		byte css = NetDecoder.ReadByte(data, pos+8);
+
+		ea = ActionLoader.GetAction(id);
+		ea.SetMemoryData(connectedToStack, currentCooldown, totalCooldown, csi, css);
+		return ea;
+	}
+
 	public static bool ReadBool(byte[] data, int pos){
 		if(data[pos] == 0)
 			return false;
@@ -308,6 +318,20 @@ public static class NetDecoder
 
 	public static byte ReadByte(byte[] data, int pos){
 		return data[pos];
+	}
+
+	// Reads the EntitySFXData part of an ENTITYSFX message (starting after playerCode and operation)
+	public static EntitySFXData ReadEntitySFXData(byte[] data, int pos){
+		bool isLoop = NetDecoder.ReadBool(data, pos);
+		bool hasAnchor = NetDecoder.ReadBool(data, pos+1);
+		BoneAnchorType anchor = (BoneAnchorType)NetDecoder.ReadByte(data, pos+2);
+		float offsetX = NetDecoder.ReadFloat(data, pos+3);
+		float offsetY = NetDecoder.ReadFloat(data, pos+7);
+		float offsetZ = NetDecoder.ReadFloat(data, pos+11);
+		ushort nameSize = NetDecoder.ReadUshort(data, pos+15);
+		string name = NetDecoder.ReadString(data, pos+17, nameSize);
+
+		return new EntitySFXData(name, isLoop, hasAnchor, anchor, offsetX, offsetY, offsetZ);
 	}
 
 	public static void WriteRGB(Color c, byte[] data, int pos){
@@ -345,6 +369,40 @@ public static class NetDecoder
 
 	public static void WriteItem(Item it, byte[] data, int pos){
 		NetDecoder.WriteUshort(it.GetID(), data, pos);
+	}
+
+	// Writes a deep copy of an item, not just ID
+	public static int WriteItemDeep(Item it, byte[] data, int pos){
+		if(it == null)
+			it = ItemLoader.GetItem(0);
+
+		NetDecoder.WriteByte((byte)it.GetMemoryStorageType(), data, pos);
+
+		switch(it.GetMemoryStorageType()){
+			case MemoryStorageType.ITEM:
+				return HelperItem(it, data, pos+1);
+			case MemoryStorageType.WEAPON:
+				return HelperWeapon((Weapon)it, data, pos+1);
+			default:
+				return HelperItem(it, data, pos+1);
+		}
+	}
+	private static int HelperItem(Item it, byte[] data, int pos){
+		NetDecoder.WriteUshort(it.GetID(), data, pos);
+
+		return 3;
+	}
+	private static int HelperWeapon(Weapon it, byte[] data, int pos){
+		NetDecoder.WriteUshort(it.GetID(), data, pos);
+		NetDecoder.WriteUint(it.currentDurability, data, pos+2);
+		NetDecoder.WriteByte(it.refineLevel, data, pos+6);
+		NetDecoder.WriteByte((byte)it.extraEffect, data, pos+7);
+
+		return 9;
+	}
+
+	public static int WriteAction(EntityAction ea, byte[] data, int pos){
+		return ea.ConvertToMemory(data, pos);
 	}
 
 	public static void WriteBool(bool a, byte[] data, int pos){
@@ -586,34 +644,11 @@ public static class NetDecoder
 		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.WITCHCRAFT), data, pos);
 		pos += 5;
-		// CHANGE SIMPLE ITEM STORING TO WEAPON
-		NetDecoder.WriteUshort(sheet.GetRightHand().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetLeftHand().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetHelmet().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetArmor().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetLegs().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetBoots().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetRing1().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetRing2().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetRing3().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetRing4().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetAmulet().GetID(), data, pos);
-		pos += 2;
-		NetDecoder.WriteUshort(sheet.GetCape().GetID(), data, pos);
-		pos += 2;
 		NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
 		pos += 247;
 		NetDecoder.WriteByte(sheet.GetHotbarSlot(), data, pos);
+		pos++;
+		NetDecoder.WriteByte(sheet.GetAttackHotbarSlot(), data, pos);
 		pos++;
 
 		List<SpecialEffect> sfxList = sheet.GetSpecialEffectHandler().GetAllEffects();

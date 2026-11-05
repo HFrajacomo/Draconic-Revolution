@@ -18,38 +18,38 @@
     "indestructible": false,
     "maximumRotationScaleState" : 8,
     "scaling" : {
-        "x" : 10,
-        "y" : 20,
-        "z" : 10
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
     },
     "hitboxScaling" : {
-        "x" : 0.22,
-        "y" : 0.76,
-        "z" : 0.25
+        "x" : 0.3,
+        "y" : 0.8,
+        "z" : 0.74
     }
 }
 --->Behaviours
 {
-    "modelIdentity": "ModelIdentityBehaviour",
-    "onPlace": "TorchBehaviour",
-    "onBreak": "TorchBehaviour",
-    "onInteract": "TorchBehaviour",
-    "onBlockUpdate": "TorchBehaviour",
-    "onLoad": "TorchBehaviour",
-    "onVFXBuild" : "TorchBehaviour",
-    "onVFXBreak" : "TorchBehaviour",
-    "onVFXChange" : "TorchBehaviour",
-    "onSFXPlay" : "TorchBehaviour",
-    "placementRule" : "TorchBehaviour",
-    "offsetVector" : "TorchBehaviour",
-    "rotationValue" : "TorchBehaviour"
+    "modelIdentity": "VX_ModelIdentityBehaviour",
+    "onPlace": "VX_TorchBehaviour",
+    "onBreak": "VX_TorchBehaviour",
+    "onInteract": "VX_TorchBehaviour",
+    "onBlockUpdate": "VX_TorchBehaviour",
+    "onLoad": "VX_TorchBehaviour",
+    "onVFXBuild" : "VX_TorchBehaviour",
+    "onVFXBreak" : "VX_TorchBehaviour",
+    "onVFXChange" : "VX_TorchBehaviour",
+    "onSFXPlay" : "VX_TorchBehaviour",
+    "placementRule" : "VX_TorchBehaviour",
+    "offsetVector" : "VX_TorchBehaviour",
+    "rotationValue" : "VX_TorchBehaviour"
 }
---->ModelIdentityBehaviour
+--->VX_ModelIdentityBehaviour
 {
     "modelUnityPath": "----- PrefabObjects -----/Torch_Object",
     "textureName": "BASE_Torch"
 }
---->TorchBehaviour{
+--->VX_TorchBehaviour{
     "minDropQuantity" : 1,
     "maxDropQuantity" : 1,
     "dropItem" : "BASE_Torch",

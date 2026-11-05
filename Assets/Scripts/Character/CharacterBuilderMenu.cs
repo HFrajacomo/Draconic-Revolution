@@ -12,6 +12,7 @@ public class CharacterBuilderMenu{
 	private BoneRenderer boneRenderer;
 	private RaceSettings raceSettings;
 	private Material[] addonMats;
+	private Material[] addonMatsDoubleSided;
 
 	// Hairline
 	private HairlinePlane hairlinePlane = new HairlinePlane(Vector3.zero, Vector3.zero, false);
@@ -39,6 +40,13 @@ public class CharacterBuilderMenu{
 		this.armature = ModelHandler.GetArmature();
 		this.armature.transform.SetParent(this.parent.transform);
 		this.addonMats = addonMats;
+		this.addonMatsDoubleSided = new Material[addonMats.Length];
+
+		for(int i=0; i < addonMats.Length; i++){
+			CharacterMaterialUtils.SetDoubleSided(this.addonMats[i], false);
+			this.addonMatsDoubleSided[i] = Material.Instantiate(this.addonMats[i]);
+			CharacterMaterialUtils.SetDoubleSided(this.addonMatsDoubleSided[i], true);
+		}
 
 		this.armature.name = ARMATURE_NAME;
 
@@ -139,15 +147,15 @@ public class CharacterBuilderMenu{
 
 		if(type == ModelType.ADDON){
 			if(this.raceSettings.GetRace() == Race.DRAGONLING)
-				current.SetMaterials(new List<Material>(){this.addonMats[1]});
+				current.SetMaterials(new List<Material>(){GetAddonMaterial(1, type)});
 			else
-				current.SetMaterials(new List<Material>(){this.addonMats[0]});
+				current.SetMaterials(new List<Material>(){GetAddonMaterial(0, type)});
 		}
 		if(type == ModelType.ESSENTIAL){
 			if(this.raceSettings.GetRace() == Race.DRAGONLING)
-				current.SetMaterials(new List<Material>(){this.addonMats[2]});
+				current.SetMaterials(new List<Material>(){GetAddonMaterial(2, type)});
 			else
-				current.SetMaterials(new List<Material>(){this.addonMats[0]});
+				current.SetMaterials(new List<Material>(){GetAddonMaterial(0, type)});
 		}
 
 		mesh.name = current.sharedMesh.name;
@@ -242,7 +250,7 @@ public class CharacterBuilderMenu{
 		Material[] materials = this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials;
 
 		if(race == Race.DRAGONLING){
-			this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials = new Material[]{this.addonMats[1]};
+			this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials = new Material[]{GetAddonMaterial(1, ModelType.ADDON)};
 		}
 		else{
 			this.bodyParts[ModelType.ADDON].GetComponent<SkinnedMeshRenderer>().materials = materials;
@@ -258,7 +266,7 @@ public class CharacterBuilderMenu{
 		Material[] materials = this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials;
 
 		if(race == Race.DRAGONLING)
-			this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials = new Material[]{this.addonMats[2]};
+			this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials = new Material[]{GetAddonMaterial(2, ModelType.ESSENTIAL)};
 		else
 			this.bodyParts[ModelType.ESSENTIAL].GetComponent<SkinnedMeshRenderer>().materials = materials;	
 
@@ -374,7 +382,7 @@ public class CharacterBuilderMenu{
 		current.bones = newBones;
 
 		this.bodyParts[ModelType.ESSENTIAL] = obj;
-		current.SetMaterials(new List<Material>(){this.addonMats[0]});
+		current.SetMaterials(new List<Material>(){GetAddonMaterial(0, ModelType.ESSENTIAL)});
     }
 
 	private void PutAddon(Race race, bool isMale, bool isReload=false){
@@ -436,9 +444,23 @@ public class CharacterBuilderMenu{
 
 		// Set Material
 		if(race == Race.DRAGONLING)
-			current.SetMaterials(new List<Material>(){this.addonMats[1]});
+			current.SetMaterials(new List<Material>(){GetAddonMaterial(1, ModelType.ADDON)});
 		else
-			current.SetMaterials(new List<Material>(){this.addonMats[0]});
+			current.SetMaterials(new List<Material>(){GetAddonMaterial(0, ModelType.ADDON)});
+	}
+
+	public bool IsPartDoubleSided(ModelType type){
+		if(!this.bodyPartName.ContainsKey(type))
+			return false;
+
+		return ModelHandler.IsDoubleSided(type, this.bodyPartName[type]);
+	}
+
+	// addonMats are shared between parts, so a pre-made double-sided twin is picked instead of toggling the shared one
+	private Material GetAddonMaterial(int index, ModelType type){
+		if(IsPartDoubleSided(type))
+			return this.addonMatsDoubleSided[index];
+		return this.addonMats[index];
 	}
 
 	private string GetAddonName(Race r){

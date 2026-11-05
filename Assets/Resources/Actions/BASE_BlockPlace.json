@@ -1,0 +1,15 @@
+{
+	"name": "BASE_BlockPlace",
+    "notConnectedToSpecificStack": true
+}
+--->Behaviours
+{
+    "onIconDraw": "EA_ItemUIBehaviour",
+    "onStackDraw": "EA_ItemUIBehaviour",
+    "onPrimaryPlayer": "EA_PlaceBlockBehaviour",
+    "onSecondaryPlayer": "EA_PlaceBlockBehaviour"
+}
+--->EA_ItemUIBehaviour
+{}
+--->EA_PlaceBlockBehaviour
+{}

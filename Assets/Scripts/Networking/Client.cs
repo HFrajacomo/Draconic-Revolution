@@ -44,8 +44,9 @@ public class Client
 	// Unity References
 	public ChunkLoader cl;
 	public PlayerRaycast raycast;
-	public PlayerEvents playerEvents;
+	public PlayerHotbarHandler hotbarHandler;
 	public PlayerModelHandler playerModelHandler;
+	public PlayerInventoryManager playerInventoryManager;
 
 	// Const values
 	private static int maxBufferSize = 327680;
@@ -77,8 +78,8 @@ public class Client
         this.raycast.SetFOV();
 	}
 
-	public void SetPlayerEvents(PlayerEvents events){
-		this.playerEvents = events;
+	public void SetPlayerHotbarHandler(PlayerHotbarHandler handler){
+		this.hotbarHandler = handler;
 	}
 
 	public void SetPlayerModelHandler(PlayerModelHandler handler){
@@ -258,6 +259,15 @@ public class Client
 				break;
 			case NetCode.SENDANIMATORPARAMETER:
 				SendAnimatorParameter(data);
+				break;
+			case NetCode.EQUIPITEM:
+				EquipItem(data);
+				break;
+			case NetCode.ENTITYSFX:
+				EntitySFX(data);
+				break;
+			case NetCode.SENDATTACHMENTANCHOR:
+				SendAttachmentAnchor(data);
 				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
@@ -486,12 +496,8 @@ public class Client
 		ulong code = NetDecoder.ReadUlong(data, 1);
 		CharacterAppearance app = NetDecoder.ReadCharacterAppearance(data, 9);
 		bool isMale = NetDecoder.ReadBool(data, 256);
-		ushort item = NetDecoder.ReadUshort(data, 257);
-		byte quantity = data[259];
 
-		if(this.entityHandler.UpdatePlayerModel(code, app, isMale) && code != Configurations.accountID){
-			this.entityHandler.UpdatePlayerItem(code, item, quantity);
-		}
+		this.entityHandler.UpdatePlayerModel(code, app, isMale);
 	}
 
 	// Receives a character's sheet from Server
@@ -502,7 +508,8 @@ public class Client
 		if(code == Configurations.accountID){
 			this.entityHandler.AddPlayerSheet(code, sheet);
 			this.cl.playerSheetController.SetSheet(sheet);
-			this.cl.playerEvents.ScrollToSlot(sheet.GetHotbarSlot());
+			this.cl.hotbarHandler.ScrollToNormalSlot((byte)(sheet.GetHotbarSlot() - InventoryLoader.GetInventorySize("ACTION_HOTBAR")));
+			this.cl.hotbarHandler.ScrollToActionSlot(sheet.GetAttackHotbarSlot());
 			this.cl.playerActionController.UseStyle(sheet.GetBattleStyleCode());
 		}
 		else{
@@ -600,9 +607,9 @@ public class Client
 	// Signals Raycast to giveback the last placed item
 	private void PlacementDenied(){
 		ItemStack its = new ItemStack(cl.playerRaycast.lastBlockPlaced, 1);
-		this.raycast.playerEvents.hotbar.AddStack(its, this.raycast.playerEvents.hotbar.CanFit(its));
-		this.raycast.playerEvents.DrawHotbar();
-		this.raycast.playerEvents.invUIPlayer.SendInventoryDataToServer();
+		this.raycast.hotbarHandler.hotbar.AddStack(its, this.raycast.hotbarHandler.hotbar.CanFit(its));
+		this.raycast.hotbarHandler.DrawHotbar();
+		this.raycast.hotbarHandler.playerInventoryManager.SendInventoryDataToServer();
 	}
 
 	// Received information on an Item Entity
@@ -662,18 +669,15 @@ public class Client
 
 	// Receives player inventory information from server and builds into player inventory
 	private void SendInventory(byte[] data){
-		Inventory newInv = new Inventory(InventoryType.PLAYER);
-		Inventory newHot = new Inventory(InventoryType.HOTBAR);
+		if(this.playerInventoryManager == null)
+			this.playerInventoryManager = this.cl.playerInventoryManager;
 
-		InventorySerializer.BuildPlayerInventory(data, 1, out newHot, out newInv);
+		if(this.hotbarHandler == null)
+			this.hotbarHandler = this.cl.hotbarHandler;
 
-		if(this.playerEvents != null){
-			this.playerEvents.SetInventories(newInv, newHot);
-		}
-		else{
-			this.cl.playerEvents.SetInventories(newInv, newHot);
-			this.playerEvents = this.cl.playerEvents;
-		}
+		this.playerInventoryManager.LoadFromBytes(data, 1);
+		this.hotbarHandler.SetHotbar(this.playerInventoryManager.GetMainInventory());	
+		this.hotbarHandler.SetActionHotbar(this.playerInventoryManager.GetActionInventory());	
 	}
 
 	// Receives a request to register an SFX into SFXLoader
@@ -704,11 +708,13 @@ public class Client
 	// Receives the item code for an item a player is holding
 	private void SendItemInHand(byte[] data){
 		ulong playerCode = NetDecoder.ReadUlong(data, 1);
-		ushort item = NetDecoder.ReadUshort(data, 9);
-		byte amount = data[11];
+		bool isItem = NetDecoder.ReadBool(data, 9);
+		ushort id = NetDecoder.ReadUshort(data, 10);
+		ushort connectedItem = NetDecoder.ReadUshort(data, 12);
+		byte amount = data[14];
 
 		if(playerCode != Configurations.accountID)
-			this.entityHandler.UpdatePlayerItem(playerCode, item, amount);
+			this.entityHandler.UpdatePlayerItem(playerCode, id, connectedItem, isItem, amount);
 	}
 
 	// Receives from server a single AnimationState for a player
@@ -723,15 +729,16 @@ public class Client
 		}
 	}
 
-	// Receives from server a single BattleStyle name for a player
+	// Receives from server a single BattleStyle name for a player and the items that skin its attachments
 	private void SendBattleStyle(byte[] data){
 		ulong playerCode = NetDecoder.ReadUlong(data, 1);
 		int styleCode = NetDecoder.ReadInt(data, 9);
+		AttachmentItems items = new AttachmentItems(NetDecoder.ReadUshort(data, 13), NetDecoder.ReadUshort(data, 15));
 		
 		if(playerCode != Configurations.accountID)
-			this.entityHandler.SetPlayerBattleStyle(playerCode, styleCode);
+			this.entityHandler.ChangePlayerBattleStyle(playerCode, styleCode, items);
 		else{
-			this.cl.playerActionController.UseStyle(styleCode);
+			this.cl.playerActionController.UseStyle(styleCode, items);
 		}
 	}
 
@@ -746,11 +753,80 @@ public class Client
 			this.entityHandler.SetAnimatorParameter(EntityType.PLAYER, playerCode, parameter, val);
 	}
 
+	// Receives from server the creation or destruction of an SFX attached to another player
+	private void EntitySFX(byte[] data){
+		ulong playerCode = NetDecoder.ReadUlong(data, 1);
+		EntitySFXOperation operation = (EntitySFXOperation)NetDecoder.ReadByte(data, 9);
+		EntitySFXData sfx = NetDecoder.ReadEntitySFXData(data, 10);
+
+		if(playerCode != Configurations.accountID)
+			this.entityHandler.PlayerSFX(playerCode, operation, sfx);
+	}
+
+	// Receives from server the switch of a BattleStyle attachment anchor in another player
+	private void SendAttachmentAnchor(byte[] data){
+		ulong playerCode = NetDecoder.ReadUlong(data, 1);
+		BoneAnchorType origin = (BoneAnchorType)NetDecoder.ReadByte(data, 9);
+		BoneAnchorType target = (BoneAnchorType)NetDecoder.ReadByte(data, 10);
+		bool flip = NetDecoder.ReadBool(data, 11);
+		float heightOffset = NetDecoder.ReadFloat(data, 12);
+
+		if(playerCode != Configurations.accountID)
+			this.entityHandler.PlayerAttachmentAnchor(playerCode, origin, target, flip, heightOffset);
+	}
+
+	// Receives from server a change in equipment from a given client
+	private void EquipItem(byte[] data){
+		ulong playerCode;  
+		MemoryStorageType oldType, newType;
+		int itemBytes = 0;
+		Item newItem, oldItem;
+
+		playerCode = NetDecoder.ReadUlong(data, 1);
+		oldType = (MemoryStorageType)NetDecoder.ReadByte(data, 9);
+
+		switch(oldType){
+			case MemoryStorageType.ITEM:
+				oldItem = NetDecoder.ReadItem(data, 10);
+				itemBytes += 2;
+				break;
+			case MemoryStorageType.WEAPON:
+				oldItem = NetDecoder.ReadWeapon(data, 10);
+				itemBytes += 8;
+				break;
+			default:
+				oldItem = NetDecoder.ReadItem(data, 10);
+				itemBytes += 2;
+				break;
+		}
+
+		newType = (MemoryStorageType)NetDecoder.ReadByte(data, 10 + itemBytes);
+
+		switch(newType){
+			case MemoryStorageType.ITEM:
+				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
+				itemBytes += 2;
+				break;
+			case MemoryStorageType.WEAPON:
+				newItem = NetDecoder.ReadWeapon(data, 11 + itemBytes);
+				itemBytes += 8;
+				break;
+			default:
+				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
+				itemBytes += 2;
+				break;
+		}
+
+		oldItem.OnUnequipClient(this.cl, oldItem, playerCode);
+		newItem.OnEquipClient(this.cl, newItem, playerCode);
+	}
+
 	/* ================================================================================ */
 
 	// Activates SmoothMovement in Entities for the current frame
 	public void MoveEntities(){
 		this.entityHandler.RunEntityActivation();
+		this.entityHandler.RunPendingItemHolds();
 		this.smoothMovement.MoveEntities();
 	}
 }

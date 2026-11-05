@@ -23,14 +23,14 @@
 }
 --->Behaviours
 {
-    "onPlace": "PlaceSetStateBehaviour",
-    "onBlockUpdate": "UpdateDecaySecondaryBlockBehaviour"
+    "onPlace": "VX_PlaceSetStateBehaviour",
+    "onBlockUpdate": "VX_UpdateDecaySecondaryBlockBehaviour"
 }
---->PlaceSetStateBehaviour
+--->VX_PlaceSetStateBehaviour
 {
     "changeToState": 1
 }
---->UpdateDecaySecondaryBlockBehaviour
+--->VX_UpdateDecaySecondaryBlockBehaviour
 {
     "decayTime": 7,
     "decayDistance": 7,

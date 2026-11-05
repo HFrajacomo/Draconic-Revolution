@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class GameLoader : MonoBehaviour {
 	public GameObject prefabObjects;
+	public bool testScene = false;
 
 	private bool isClient = true;
 	private VoxelLoader voxelLoader;
@@ -14,12 +15,17 @@ public class GameLoader : MonoBehaviour {
 	private AudioLoader audioLoader;
 	private StructureLoader structureLoader;
 	private AnimationLoader animationLoader;
+	private InventoryLoader inventoryLoader;
+	private ActionLoader actionLoader;
+	private AttachmentLoader attachmentLoader;
 
 	private static readonly string SERVER_SCENE = "Assets/Scenes/Server.unity";
 
 	void Awake(){
-		if(SceneUtility.GetScenePathByBuildIndex(1) == SERVER_SCENE){
-			this.isClient = false;
+		if(!testScene){
+			if(SceneUtility.GetScenePathByBuildIndex(1) == SERVER_SCENE){
+				this.isClient = false;
+			}
 		}
 	}
 
@@ -30,6 +36,9 @@ public class GameLoader : MonoBehaviour {
 		this.audioLoader = new AudioLoader(this.isClient);
 		this.structureLoader = new StructureLoader(this.isClient);
         this.animationLoader = new AnimationLoader(this.isClient);
+        this.inventoryLoader = new InventoryLoader(this.isClient);
+        this.actionLoader = new ActionLoader(this.isClient);
+        this.attachmentLoader = new AttachmentLoader(this.isClient);
 		
 		this.shaderLoader.Load();
 		this.itemLoader.Load();
@@ -37,15 +46,21 @@ public class GameLoader : MonoBehaviour {
 		this.audioLoader.Load();
 		this.structureLoader.Load();
 		this.animationLoader.Load();
+		this.inventoryLoader.Load();
+		this.actionLoader.Load();
+		this.attachmentLoader.Load();
 
 
 		this.itemLoader.RunPostDeserializationRoutine();
 		this.voxelLoader.RunPostDeserializationRoutine();
 		this.structureLoader.RunPostDeserializationRoutine();
+		this.actionLoader.RunPostDeserializationRoutine();
 
-		if(this.isClient)
-			SceneManager.LoadScene("Menu");
-		else
-			SceneManager.LoadScene("Server");
+		if(!testScene){
+			if(this.isClient)
+				SceneManager.LoadScene("Menu");
+			else
+				SceneManager.LoadScene("Server");
+		}
 	}
 }

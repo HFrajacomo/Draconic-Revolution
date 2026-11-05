@@ -23,9 +23,9 @@
 }
 --->Behaviours
 {
-    "onBreak": "BreakDropItemBehaviour"
+    "onBreak": "VX_BreakDropItemBehaviour"
 }
---->BreakDropItemBehaviour
+--->VX_BreakDropItemBehaviour
 {
     "droppedItem": "BASE_Bricks",
     "minDropQuantity": 1,

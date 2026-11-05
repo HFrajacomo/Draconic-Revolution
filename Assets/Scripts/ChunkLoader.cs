@@ -48,20 +48,21 @@ public class ChunkLoader : MonoBehaviour
     public PlayerMovement playerMovement;
     public PlayerSheetController playerSheetController;
     public PlayerRaycast playerRaycast;
+    public PlayerInventoryManager playerInventoryManager;
     public VolumeProfile volume;
     public GameObject mainControllerManager;
     public AudioManager audioManager;
     public SFXLoader sfx;
-    public AudioListener playerAudioListener;
     public PlayerPositionHandler playerPositionHandler;
     public VoxelLightHandler voxelLightHandler;
     public PlayerActionController playerActionController;
     public AmbientHandler ambientHandler;
     public VignetteController vignetteController;
+    public GameObject audioListenerObject;
 
     // Initialization
     public GameObject playerCharacter;
-    public PlayerEvents playerEvents;
+    public PlayerHotbarHandler hotbarHandler;
     public PlayerModelHandler playerModelHandler;
 
 	// Chunk Rendering
@@ -100,6 +101,7 @@ public class ChunkLoader : MonoBehaviour
     void Awake(){
         BlockEncyclopediaECS.InitializeNativeStructures();
         VoxelLoader.InitBlockEncyclopediaECS();
+        PlayerHotbarHandler.ResetSessionState();
 
         this.playerCharacter.SetActive(false);
         this.playerCharacter.transform.position = new Vector3(0,-999,0);
@@ -131,13 +133,12 @@ public class ChunkLoader : MonoBehaviour
         Cursor.visible = true;
 
         Redirector.SetServerClosure();
-        this.playerAudioListener.enabled = false;
         this.biomeHandler.Clear();
         this.biomeHandler = null;
         this.mainControllerManager = null;
         this.volume = null;
         this.rend = null;
-        this.playerEvents = null;
+        this.hotbarHandler = null;
         this.playerModelHandler = null;
         this.time = null;
         this.client = null;
@@ -162,6 +163,7 @@ public class ChunkLoader : MonoBehaviour
                 this.message.SendClientInfo(this.playerAccountID, World.renderDistance, 0, "a");
 
             this.client.SetPlayerModelHandler(this.playerModelHandler);
+            this.playerInventoryManager.Init();
             this.renderDistance = World.renderDistance + 1;
             this.client.Send(this.message);
             this.SENTINFOTOSERVER = true;
@@ -189,7 +191,6 @@ public class ChunkLoader : MonoBehaviour
             this.playerPositionHandler.Activate();
 
             this.audioManager.SetPlayerPositionInVoice3DTrack(this.player);
-            this.playerAudioListener.enabled = true;
 
             GetChunks(true);  
             this.REQUESTEDCHUNKS = true;
@@ -204,11 +205,11 @@ public class ChunkLoader : MonoBehaviour
 
                     this.gameUI.SetActive(true);
                     this.playerCharacter.SetActive(true);
+                    LoadAudio();
                     this.mainControllerManager.SetActive(true);
                     this.time.SetPlayer(this.playerCharacter);
-                    this.playerEvents.SetPlayerObject(this.playerCharacter);
                     this.client.SetRaycast(this.playerCharacter.GetComponent<PlayerRaycast>());
-                    this.client.SetPlayerEvents(this.playerEvents);
+                    this.client.SetPlayerHotbarHandler(this.hotbarHandler);
                     this.playerPositionHandler.SetChunkLoaderChunkPos();
                     this.playerMovement.Init();
                 }
@@ -1187,6 +1188,14 @@ public class ChunkLoader : MonoBehaviour
 
             taskPool[i].Wait();
         }
+    }
+
+    // Passes the AudioListener from the scene to the Character's Camera
+    private void LoadAudio(){
+        this.audioListenerObject.transform.parent = this.cam.transform;
+        this.audioListenerObject.transform.localPosition = Vector3.zero;
+        this.audioListenerObject.transform.localRotation = Quaternion.identity;
+        this.audioListenerObject.transform.localScale = Vector3.one;
     }
 }
 

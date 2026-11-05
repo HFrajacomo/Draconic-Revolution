@@ -1,0 +1,132 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using UnityEngine;
+using Unity.Collections;
+using Unity.Mathematics;
+
+using Object = UnityEngine.Object;
+
+public class InventoryLoader : BaseLoader {
+	private static readonly string INVENTORY_LIST_RESPATH = "Inventory/INVENTORIES";
+	private static readonly string INVENTORY_RESPATH = "Inventory/";
+	private static readonly string ACTION_INVENTORY_LIST_RESPATH = "Inventory/ACTION_INVENTORIES";
+
+	private static readonly CultureInfo parsingCulture = CultureInfo.InvariantCulture;
+	private static bool isClient;
+	private static byte inventoryID = 0;
+
+	// Item Information
+	private static Dictionary<string, Inventory> inventories = new Dictionary<string, Inventory>();
+	private static Dictionary<string, ActionInventory> actionInventories = new Dictionary<string, ActionInventory>();
+
+	private static Dictionary<byte, Inventory> inventoriesByID = new Dictionary<byte, Inventory>();
+	private static Dictionary<byte, ActionInventory> actionInventoriesByID = new Dictionary<byte, ActionInventory>();
+
+	private static Dictionary<int, int> inventorySizes = new Dictionary<int, int>();
+
+	private static Dictionary<string, Texture2D> inventoryIcons = new Dictionary<string, Texture2D>();
+
+
+	public InventoryLoader(bool client){
+		isClient = client;
+	}
+
+	public override bool Load(){
+		LoadInventories(isClient);
+		LoadActionInventories(isClient);
+
+		return true;
+	}
+
+	public static Inventory GetInventory(string type){return inventories[type].Copy();}
+	public static Inventory GetInventory(byte id){return inventoriesByID[id].Copy();}
+	public static ActionInventory GetActionInventory(string type){return actionInventories[type].Copy();}
+
+	public static byte GetInventoryID(string type){return inventories[type].GetID();}
+	public static byte GetActionInventoryID(string type){return actionInventories[type].GetID();}
+
+	public static int GetInventorySize(byte id){return inventorySizes[id];}
+	public static int GetInventorySize(string name){
+		if(inventories.ContainsKey(name))
+			return inventorySizes[inventories[name].GetID()];
+		else
+			return inventorySizes[actionInventories[name].GetID()];
+	}
+
+	public static int GetColumnCount(string type){return inventories[type].columnCount;}
+	public static int GetActionColumnCount(string type){return actionInventories[type].columnCount;}
+	public static bool GetPickupTarget(byte id){
+		if(inventoriesByID.ContainsKey(id))
+			return inventoriesByID[id].isPickupTarget;
+		else
+			return actionInventoriesByID[id].isPickupTarget;
+	}
+	public static Texture2D GetSlotIcon(string iconName){return inventoryIcons[iconName];}
+
+	private void LoadInventories(bool isClient){
+		TextAsset textAsset;
+		Wrapper<Inventory> wrapper;
+		Texture2D texture;
+
+		textAsset = Resources.Load<TextAsset>(INVENTORY_LIST_RESPATH);
+
+		if(textAsset != null){
+			wrapper = JsonUtility.FromJson<Wrapper<Inventory>>(JsonFormatter.RemoveComments(textAsset.text));
+
+			foreach(Inventory inventory in wrapper.data){
+				if(inventoryID >= byte.MaxValue)
+					throw new ByteLimitException($"[InventoryLoader] Draconic Revolution only supports 256 different inventory types");
+
+				inventory.PostDeserializationSetup(inventoryID);
+				inventories.Add(inventory.GetInventoryType(), inventory);
+				inventoriesByID.Add(inventoryID, inventory);
+				inventorySizes.Add(inventoryID, inventory.GetLimit());
+
+				if(isClient){
+					foreach(string filepath in inventory.GetIconFilepaths()){
+						texture = Resources.Load<Texture2D>($"{INVENTORY_RESPATH}{filepath}");
+
+						if(texture == null)
+							throw new DeserializationErrorException($"[InventoryLoader] Couldn't find inventory default icon {filepath} for inventory: {inventory.GetInventoryType()}");
+
+						inventoryIcons.Add(filepath, texture);
+					}
+				}
+
+				inventoryID++;
+			}
+		}
+		else{
+			throw new DeserializationErrorException($"[InventoryLoader] Failed to find inventory config json at: {INVENTORY_LIST_RESPATH}");
+		}
+	}
+
+	private void LoadActionInventories(bool isClient){
+		TextAsset textAsset;
+		Wrapper<ActionInventory> wrapper;
+
+		textAsset = Resources.Load<TextAsset>(ACTION_INVENTORY_LIST_RESPATH);
+
+		if(textAsset != null){
+			wrapper = JsonUtility.FromJson<Wrapper<ActionInventory>>(JsonFormatter.RemoveComments(textAsset.text));
+
+			foreach(ActionInventory inventory in wrapper.data){
+				if(inventoryID >= byte.MaxValue)
+					throw new ByteLimitException($"[InventoryLoader] Draconic Revolution only supports 256 different inventory types");
+					
+				inventory.PostDeserializationSetup(inventoryID);
+				actionInventories.Add(inventory.GetInventoryType(), inventory);
+				actionInventoriesByID.Add(inventoryID, inventory);
+				inventorySizes.Add(inventoryID, inventory.GetLimit());
+
+				inventoryID++;
+			}
+		}
+		else{
+			throw new DeserializationErrorException($"[InventoryLoader] Failed to find inventory config json at: {ACTION_INVENTORY_LIST_RESPATH}");
+		}
+	}
+}

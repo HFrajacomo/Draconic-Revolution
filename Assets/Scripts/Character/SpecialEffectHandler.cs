@@ -14,7 +14,6 @@ public class SpecialEffectHandler{
 	#nullable disable
 
 	public void Add(SpecialEffect e){
-		Debug.Log(e);
 		int usecase = (int)e.GetUsecase();
 
 		if(this.effects[usecase] == null){

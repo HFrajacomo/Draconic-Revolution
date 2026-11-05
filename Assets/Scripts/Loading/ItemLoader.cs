@@ -48,6 +48,13 @@ public class ItemLoader : BaseLoader {
 	public static Item GetCopy(string codename){return itemBook[codenameToItemID[codename]].Copy();}
 	public static Texture2D GetSprite(ushort id){return textureBank[id];}
 	public static Texture2D GetSprite(ItemStack its){return textureBank[its.GetItem().GetID()];}
+	public static int GetItemCount(){return itemBook.Length;}
+
+	public override void RunPostDeserializationRoutine(){
+		foreach(Item it in itemBook){
+			it.SetupAfterSerialize(isClient);
+		}
+	}
 
 	private void ParseItemList(){
 		TextAsset textAsset = Resources.Load<TextAsset>(ITEM_LIST_RESPATH);
@@ -92,8 +99,9 @@ public class ItemLoader : BaseLoader {
 			texture = Resources.Load<Texture2D>($"{ITEM_RESPATH}{item}");
 
 			if(textAsset != null && texture != null){
-				serializedItem = ItemDeserializer.DeserializeItem(textAsset.text);
+				serializedItem = ItemDeserializer.DeserializeItem(textAsset.text, parseAttachment:isClient);
 				serializedItem.SetID(i);
+				serializedItem.PostDeserializationSetup();
 				itemList.Add(serializedItem);
 				codenameToItemID.Add(item, i);
 				textureBank.Add(i, texture);
@@ -113,13 +121,9 @@ public class ItemLoader : BaseLoader {
 		TextAsset textAsset = Resources.Load<TextAsset>(NULL_ITEM_RESPATH);
 		Item serializedItem = ItemDeserializer.DeserializeItem(textAsset.text);
 
+		serializedItem.SetID(0);
+		serializedItem.PostDeserializationSetup();
 		itemList.Add(serializedItem);
 		codenameToItemID.Add("BASE_NULL", 0);
-	}
-
-	public override void RunPostDeserializationRoutine(){
-		foreach(Item it in itemBook){
-			it.SetupAfterSerialize(isClient);
-		}
 	}
 }

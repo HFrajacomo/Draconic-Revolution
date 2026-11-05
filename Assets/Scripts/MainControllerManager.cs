@@ -5,8 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public class MainControllerManager : MonoBehaviour
-{
+public class MainControllerManager : MonoBehaviour {
 	// Public passed variables
 	public float movementX = 0f;
 	public float movementZ = 0f;
@@ -28,9 +27,9 @@ public class MainControllerManager : MonoBehaviour
 
     // Unity Reference
     public GameObject mainHUD;
-    public PlayerEvents playerEvents;
+    public PlayerHotbarHandler hotbarHandler;
     public GameObject inventoryGUI;
-    public InventoryUIPlayer invUIPlayer;
+    public PlayerInventoryManager playerInventoryManager;
     public GameObject hotbar;
     public PlayerRaycast raycast;
     public Transform playerCamera;
@@ -92,7 +91,9 @@ public class MainControllerManager : MonoBehaviour
 
     public void OnSheathe(){
         if(!MainControllerManager.InUI){
-            this.playerActionController.Sheathe();
+            if(!this.playerActionController.HasRestriction(PlayerActionRestriction.SHEATHE) && !this.playerActionController.HasRestriction(PlayerActionRestriction.STUNNED) && !PlayerHotbarHandler.IS_SWITCHING){
+                this.hotbarHandler.SwitchHotbars();
+            }
         }
     }
 
@@ -100,8 +101,6 @@ public class MainControllerManager : MonoBehaviour
         if(!MainControllerManager.InUI && !LOCK_INTERACT){
             raycast.Interact();
             LOCK_INTERACT = true;
-
-            //this.cl.playerActionController.UseStyle("BASE_Sword", updatePlayerDataAndServer:true);
         }
     }
 
@@ -158,34 +157,54 @@ public class MainControllerManager : MonoBehaviour
     }
 
     public void OnScroll1(){
-        playerEvents.Scroll1();
+        if(MainControllerManager.InUI)
+            return;
+        hotbarHandler.Scroll1();
     }
     public void OnScroll2(){
-        playerEvents.Scroll2();
+        if(MainControllerManager.InUI)
+            return;
+        hotbarHandler.Scroll2();
     }
     public void OnScroll3(){
-        playerEvents.Scroll3();
+        if(MainControllerManager.InUI)
+            return;
+        hotbarHandler.Scroll3();
     }
     public void OnScroll4(){
-        playerEvents.Scroll4();
+        if(MainControllerManager.InUI)
+            return;
+        hotbarHandler.Scroll4();
     }
     public void OnScroll5(){
-        playerEvents.Scroll5();
+        if(MainControllerManager.InUI)
+            return;
+        hotbarHandler.Scroll5();
     }
     public void OnScroll6(){
-        playerEvents.Scroll6();
+        if(MainControllerManager.InUI)
+            return;
+        hotbarHandler.Scroll6();
     }
     public void OnScroll7(){
-        playerEvents.Scroll7();
+        if(MainControllerManager.InUI)
+            return;
+        hotbarHandler.Scroll7();
     }
     public void OnScroll8(){
-        playerEvents.Scroll8();
+        if(MainControllerManager.InUI)
+            return;
+        hotbarHandler.Scroll8();
     }
     public void OnScroll9(){
-        playerEvents.Scroll9();
+        if(MainControllerManager.InUI)
+            return;
+        hotbarHandler.Scroll9();
     }
     public void OnMouseScroll(InputValue val){
-        playerEvents.MouseScroll((int)val.Get<Vector2>().y);
+        if(MainControllerManager.InUI)
+            return;
+        hotbarHandler.MouseScroll((int)val.Get<Vector2>().y);
     }
     public void OnOpenInventory(){
         bool newState = !MainControllerManager.InUI;
@@ -193,12 +212,12 @@ public class MainControllerManager : MonoBehaviour
         MainControllerManager.InUI = newState;
 
         if(newState){
-            invUIPlayer.ReloadInventory();
+            playerInventoryManager.ReloadInventory();
             this.HUDActive = false;
             this.mainHUD.SetActive(this.HUDActive);
         }
 
-        this.invUIPlayer.ResetSelection();
+        this.playerInventoryManager.ResetSelection();
 
         MouseLook.ToggleMouseCursor(newState);
 
@@ -206,21 +225,19 @@ public class MainControllerManager : MonoBehaviour
         if(newState == false){
             this.HUDActive = true;
             this.mainHUD.SetActive(this.HUDActive);
-            playerEvents.DrawHotbar();
-            playerEvents.DrawItemEntity(playerEvents.GetSlotStack());
+            hotbarHandler.DrawHotbar();
         }
     }
     public void CloseInventory(){
         this.inventoryGUI.SetActive(false);
         MainControllerManager.InUI = false;
-        this.invUIPlayer.ResetSelection();
+        this.playerInventoryManager.ResetSelection();
         MouseLook.ToggleMouseCursor(false);
 
         this.HUDActive = true;
         this.mainHUD.SetActive(this.HUDActive);
         
-        playerEvents.DrawHotbar();
-        playerEvents.DrawItemEntity(playerEvents.GetSlotStack());
+        hotbarHandler.DrawHotbar();
     }
 
     public void OnCtrl(){
@@ -232,43 +249,61 @@ public class MainControllerManager : MonoBehaviour
             MainControllerManager.ctrl = false;    
     }
     public void OnDrop(){
-        if(LOCK_DROP)
+        if(LOCK_DROP || MainControllerManager.InUI)
+            return;
+
+        if(!PlayerHotbarHandler.IS_NORMAL_HOTBAR || PlayerHotbarHandler.IS_SWITCHING)
             return;
 
         LOCK_DROP = true;
 
-        if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot) == null)
+        if(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot) == null)
             return;
 
-        ushort id = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetID();
+        ushort id = hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetID();
         ItemStack its;
         byte amount;
 
         if(!MainControllerManager.ctrl){
-            if(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).Decrement()){
-                playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
+            amount = 1;
+            playerInventoryManager.SubToCounter(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetID(), amount);
+
+            if(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).Decrement()){
+                playerInventoryManager.SetNull(1, PlayerHotbarHandler.hotbarSlot);
+            }
+            else{
+                hotbarHandler.DrawHotbarSlot(PlayerHotbarHandler.hotbarSlot);
             }
 
-            amount = 1;
             its = new ItemStack(id, amount);
+            hotbarHandler.DrawActionHotbar();
         }
         else{
-            amount = playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot).GetAmount();
-            playerEvents.hotbar.SetNull(PlayerEvents.hotbarSlot);
+            amount = hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetAmount();
+            playerInventoryManager.SubToCounter(hotbarHandler.hotbar.GetSlot(PlayerHotbarHandler.hotbarSlot).GetID(), amount);
+            playerInventoryManager.SetNull(1, PlayerHotbarHandler.hotbarSlot);
 
             its = new ItemStack(id, amount);
-        }  
+            hotbarHandler.DrawActionHotbar();
+        }
 
+        playerInventoryManager.SendInventoryDataToServer();
 
+        DropItem(its, (byte)(PlayerHotbarHandler.hotbarSlot + InventoryLoader.GetInventorySize("ACTION_HOTBAR")));
+    }
+
+    public void DropItem(ItemStack its, byte hotbarSlot){
         Vector3 force = this.playerCamera.forward / 5f;
 
         NetMessage message = new NetMessage(NetCode.DROPITEM);
-        message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, force.x, force.y, force.z, (ushort)id, amount, (byte)PlayerEvents.hotbarSlot);       
+        message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, force.x, force.y, force.z, its.GetID(), its.GetAmount(), hotbarSlot);       
         this.cl.client.Send(message);
 
-        playerEvents.DrawHotbarSlot(PlayerEvents.hotbarSlot);
-        playerEvents.DrawItemEntity(playerEvents.hotbar.GetSlot(PlayerEvents.hotbarSlot));
-
-        playerEvents.invUIPlayer.DrawSlot(1, PlayerEvents.hotbarSlot);
+        if(hotbarSlot != byte.MaxValue){
+            hotbarSlot = (byte)(hotbarSlot - InventoryLoader.GetInventorySize("ACTION_HOTBAR"));
+            hotbarHandler.DrawHotbarSlot(hotbarSlot);
+            hotbarHandler.playerInventoryManager.DrawSlot(1, hotbarSlot);
+        }
     }
+    public void DropItem(ItemStack its){DropItem(its, byte.MaxValue);}
 }

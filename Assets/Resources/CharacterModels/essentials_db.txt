@@ -1,4 +1,4 @@
-#Comment	Blender_obj_name	Sex
+#Comment	Blender_obj_name	Sex	DoubleSided
 
-Base_Head	M_HEAD	M
-Base_Head	F_HEAD	F
+Base_Head	M_HEAD	M	N
+Base_Head	F_HEAD	F	N

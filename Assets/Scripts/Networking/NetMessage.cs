@@ -295,14 +295,12 @@ public struct NetMessage
 	}
 
 	// Server sends player appearance information to Client
-	public void SendPlayerAppearance(ulong code, CharacterAppearance app, bool isMale, ushort item, byte quantity){
+	public void SendPlayerAppearance(ulong code, CharacterAppearance app, bool isMale){
 		Reset();
 		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
 		NetDecoder.WriteCharacterAppearance(app, NetMessage.buffer, 9);
 		NetDecoder.WriteBool(isMale, NetMessage.buffer, 256);
-		NetDecoder.WriteUshort(item, NetMessage.buffer, 257);
-		NetDecoder.WriteByte(quantity, NetMessage.buffer, 259);
-		this.size = 260;
+		this.size = 257;
 	}
 
 	// Server sends the item in a player's hand to the Client
@@ -434,23 +432,37 @@ public struct NetMessage
 		NetDecoder.WriteLong(charCode, NetMessage.buffer, 1);
 		NetDecoder.WriteCharacterSheet(sheet, NetMessage.buffer, 9);
 
-		this.size = 1234; 
+		this.size = 1211; 
 	}
 
 	// Client sends character hotbar position to Server
-	public void SendHotbarPosition(byte hotbarSlot){
+	public void SendHotbarPosition(bool isNormalHotbar, byte hotbarSlot, byte attackHotbarSlot){
 		Reset();
 		NetDecoder.WriteByte(hotbarSlot, NetMessage.buffer, 1);
-		this.size = 2;
+		NetDecoder.WriteByte(attackHotbarSlot, NetMessage.buffer, 2);
+		NetDecoder.WriteBool(isNormalHotbar, NetMessage.buffer, 3);
+		this.size = 4;
 	}
 
 	// Server sends character item in hand to Clients
-	public void SendItemInHand(ulong playerCode, ushort itemID, byte amount){
+	public void SendItemInHand(ulong playerCode, bool isItem, ushort itemID, byte amount){
 		Reset();
 		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
-		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 9);
-		NetDecoder.WriteByte(amount, NetMessage.buffer, 11);
-		this.size = 12;
+		NetDecoder.WriteBool(isItem, NetMessage.buffer, 9);
+		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 10);
+		NetDecoder.WriteUshort(0, NetMessage.buffer, 12);
+		NetDecoder.WriteByte(amount, NetMessage.buffer, 14);
+		this.size = 15;
+	}
+	// Server sends character item in hand to Clients
+	public void SendItemInHand(ulong playerCode, bool isItem, ushort itemID, ushort connectedItem, byte amount){
+		Reset();
+		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
+		NetDecoder.WriteBool(isItem, NetMessage.buffer, 9);
+		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 10);
+		NetDecoder.WriteUshort(connectedItem, NetMessage.buffer, 12);
+		NetDecoder.WriteByte(amount, NetMessage.buffer, 14);
+		this.size = 15;
 	}
 
 	// Client or Server sends AnimatorState name and layer for a given playerCode (Should expand into all entities later)
@@ -464,12 +476,14 @@ public struct NetMessage
 		this.size = 15 + data.name.Length;
 	}
 
-	// Client or Server sends battle style name of a particular player (Should expand into all entities later)
-	public void SendBattleStyle(ulong playerCode, int code){
+	// Server sends the battle style of a particular player and the items that skin its attachments (Should expand into all entities later)
+	public void SendBattleStyle(ulong playerCode, int code, AttachmentItems items){
 		Reset();
 		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
 		NetDecoder.WriteInt(code, NetMessage.buffer, 9);
-		this.size = 13;
+		NetDecoder.WriteUshort(items.rightHand, NetMessage.buffer, 13);
+		NetDecoder.WriteUshort(items.leftHand, NetMessage.buffer, 15);
+		this.size = 17;
 	}
 
 	// Client or Server sends a message about an animator parameter change
@@ -480,6 +494,46 @@ public struct NetMessage
 		NetDecoder.WriteFloat(val, NetMessage.buffer, 9);
 		NetDecoder.WriteString(parameterName, NetMessage.buffer, 13);
 		this.size = 13 + parameterName.Length;
+	}
+
+	// Client or server sends a message about newly equipped item and old item removed in a given playerCode
+	public void EquipItem(ulong playerCode, Item previousItem, Item newItem){
+		Reset();
+		int slotSize;
+
+		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
+
+		slotSize = NetDecoder.WriteItemDeep(previousItem, NetMessage.buffer, 9);
+		slotSize += NetDecoder.WriteItemDeep(newItem, NetMessage.buffer, 9+slotSize);
+
+		this.size = 9 + slotSize;
+	}
+
+	// Client or Server sends the creation or destruction of an SFX attached to a given playerCode
+	public void EntitySFX(ulong playerCode, EntitySFXOperation operation, EntitySFXData sfx){
+		Reset();
+		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
+		NetDecoder.WriteByte((byte)operation, NetMessage.buffer, 9);
+		NetDecoder.WriteBool(sfx.isLoop, NetMessage.buffer, 10);
+		NetDecoder.WriteBool(sfx.hasAnchor, NetMessage.buffer, 11);
+		NetDecoder.WriteByte((byte)sfx.anchor, NetMessage.buffer, 12);
+		NetDecoder.WriteFloat(sfx.offsetX, NetMessage.buffer, 13);
+		NetDecoder.WriteFloat(sfx.offsetY, NetMessage.buffer, 17);
+		NetDecoder.WriteFloat(sfx.offsetZ, NetMessage.buffer, 21);
+		NetDecoder.WriteUshort((ushort)sfx.name.Length, NetMessage.buffer, 25);
+		NetDecoder.WriteString(sfx.name, NetMessage.buffer, 27);
+		this.size = 27 + sfx.name.Length;
+	}
+
+	// Client or Server sends the switch of a BattleStyle attachment from one anchor to another in a given playerCode
+	public void SendAttachmentAnchor(ulong playerCode, BoneAnchorType origin, BoneAnchorType target, bool flip, float heightOffset){
+		Reset();
+		NetDecoder.WriteLong(playerCode, NetMessage.buffer, 1);
+		NetDecoder.WriteByte((byte)origin, NetMessage.buffer, 9);
+		NetDecoder.WriteByte((byte)target, NetMessage.buffer, 10);
+		NetDecoder.WriteBool(flip, NetMessage.buffer, 11);
+		NetDecoder.WriteFloat(heightOffset, NetMessage.buffer, 12);
+		this.size = 16;
 	}
 }
 
@@ -523,6 +577,9 @@ public enum NetCode{
 	SENDANIMATIONLAYER,
 	SENDBATTLESTYLE,
 	SENDANIMATORPARAMETER,
+	EQUIPITEM,
+	ENTITYSFX,
+	SENDATTACHMENTANCHOR,
 	DISCONNECTINFO, // No call
 	DISCONNECT  // No call
 }

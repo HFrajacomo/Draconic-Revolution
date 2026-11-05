@@ -117,6 +117,21 @@
 			"layers": ["", "Full Torso"],
 			"priority": 1,
 			"stopLayer": ["Bottom"]
+		},
+		{
+			"state": "Carry Draw",
+			"layers": ["Left Arm"],
+			"priority": 5
+		},
+		{
+			"state": "Carry Hold",
+			"layers": ["Left Arm"],
+			"priority": 50
+		},
+		{
+			"state": "Carry Stow",
+			"layers": ["Left Arm"],
+			"priority": 5
 		}
 	]
 }

@@ -35,7 +35,7 @@ public class BlocklikeObject
 	private int textureID;
 
 	// Behaviours
-	private ModelIdentityBehaviour modelIdentity;
+	private VX_ModelIdentityBehaviour modelIdentity;
 	private VoxelBehaviour offsetVector;
 	private VoxelBehaviour rotationValue;
 	private List<VoxelBehaviour> onBlockUpdate;
@@ -148,8 +148,8 @@ public class BlocklikeObject
     public List<VoxelBehaviour> GetPlacementRule() { return placementRule; }
     public void SetPlacementRule(List<VoxelBehaviour> val) { placementRule = val; }
 
-    public ModelIdentityBehaviour GetModelIdentity() { return modelIdentity; }
-    public void SetModelIdentity(ModelIdentityBehaviour val) { modelIdentity = val; }
+    public VX_ModelIdentityBehaviour GetModelIdentity() { return modelIdentity; }
+    public void SetModelIdentity(VX_ModelIdentityBehaviour val) { modelIdentity = val; }
 
     public VoxelBehaviour GetOffsetVector() { return offsetVector; }
     public void SetOffsetVector(VoxelBehaviour val) { offsetVector = val; }

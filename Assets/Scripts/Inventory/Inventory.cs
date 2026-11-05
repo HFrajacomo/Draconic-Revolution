@@ -1,0 +1,487 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+[Serializable]
+public class Inventory : BaseInventory {
+	// Serialization only public variables
+	public List<string> tagList;
+	public List<StringArrayIdentifier> slotWhiteList;
+	public bool isPickupTarget;
+	public bool bulkMovedTo;
+	public bool mainInventory;
+	public List<ValuePair<int, string>> slotDefaultIcon;
+
+	private byte inventoryID;
+	private ItemStack[] slots;
+	private ushort limit;
+	private short lastEmptySlot;
+	private bool isFull;
+	private HashSet<ushort> itemInInventory;
+	private HashSet<string> whitelistTags;
+	private Dictionary<int, HashSet<string>> perSlotWhitelistTags;
+	private Dictionary<int, string> perSlotDefaultIcon;
+
+	private Inventory(string type, ushort size){
+		this.itemInventory = true;
+		this.limit = size;
+		this.InitSlots(this.limit);
+		this.inventoryType = type;
+		this.lastEmptySlot = 0;
+		this.isFull = false;
+		this.itemInInventory = new HashSet<ushort>();
+	}
+
+	// Creates a BLANK COPY of the Inventory
+	public Inventory Copy(){
+		Inventory inv = new Inventory(this.inventoryType, this.limit);
+		inv.whitelistTags = this.whitelistTags;
+		inv.perSlotWhitelistTags = this.perSlotWhitelistTags;
+		inv.isPickupTarget = this.isPickupTarget;
+		inv.bulkMovedTo = this.bulkMovedTo;
+		inv.mainInventory = this.mainInventory;
+		inv.columnCount = this.columnCount;
+		inv.perSlotDefaultIcon = this.perSlotDefaultIcon;
+		inv.inventoryID = this.inventoryID;
+
+		return inv;
+	}
+
+	public void PostDeserializationSetup(byte inventoryID){
+		this.inventoryID = inventoryID;
+		this.limit = amountOfSlots;
+
+		this.InitSlots(this.limit);
+		this.lastEmptySlot = 0;
+		this.isFull = false;
+		this.itemInInventory = new HashSet<ushort>();
+
+		if(this.tagList.Count > 0){
+			this.whitelistTags = new HashSet<string>(this.tagList);
+			this.tagList.Clear();
+			this.tagList = null;
+		}
+
+		if(this.slotWhiteList.Count > 0){
+			this.bulkMovedTo = false;
+			this.perSlotWhitelistTags = new Dictionary<int, HashSet<string>>();
+			for(int i=0; i < this.slotWhiteList.Count; i++){
+				this.perSlotWhitelistTags.Add(this.slotWhiteList[i].id, new HashSet<string>(this.slotWhiteList[i].array));
+			}
+
+			this.slotWhiteList.Clear();
+			this.slotWhiteList = null;
+		}
+
+		if(this.slotDefaultIcon.Count > 0){
+			this.perSlotDefaultIcon = new Dictionary<int, string>();
+			for(int i=0; i < this.slotDefaultIcon.Count; i++){
+				this.perSlotDefaultIcon.Add(this.slotDefaultIcon[i].key, this.slotDefaultIcon[i].value);
+			}
+
+			this.slotDefaultIcon.Clear();
+			this.slotDefaultIcon = null;
+		}
+	}
+
+
+	// Adds an ItemStack to Inventory
+	public override byte AddStack(ItemStack its, List<InventoryTransaction> spots){
+		if(spots.Count == 0)
+			return 0;
+
+		byte receivedAmount = 0;
+		ushort id = its.GetID();
+
+		foreach(InventoryTransaction t in spots){
+			if(its.MoveTo(ref this.slots[t.slotNumber])){
+				its = null;
+				receivedAmount += t.amount;
+				break;
+			}
+
+			receivedAmount += t.amount;
+		}
+
+		if(this.slots[this.GetLastEmptySlot()] != null){
+			this.FindLastEmptySlot();
+			this.SetFull();
+		}
+
+		if(!this.itemInInventory.Contains(id)){
+			this.itemInInventory.Add(id);
+		}
+
+		return receivedAmount;
+	}
+
+	// Forcefully adds a Stack to a slot in inventory, overwriting whatever was there before
+	public override void ForceAddStack(ItemStack its, ushort slot){
+		ItemStack previousIts;
+		short lastEmptySlot;
+
+		if(slot >= this.GetLimit())
+			return;
+
+
+		previousIts = this.DropStack((short)slot);
+		this.slots[slot] = its;
+
+		this.FindLastEmptySlot();
+
+		lastEmptySlot = this.GetLastEmptySlot();
+
+		if(lastEmptySlot == -1)
+			return;
+
+		if(this.slots[lastEmptySlot] != null){
+			this.SetFull();
+		}
+	}
+
+	// Switch slots in an one or two inventories
+	public static bool SwitchSlots(Inventory inv1, ushort slot1, Inventory inv2, ushort slot2){
+		// If clicked twice in the same slot
+		if(inv1 == inv2 && slot1 == slot2)
+			return false;
+
+		// If destination slot is empty
+		if(inv2.slots[slot2] == null){
+			inv2.slots[slot2] = inv1.slots[slot1];
+			inv1.slots[slot1] = null;
+
+			if(inv1.GetLastEmptySlot() > slot1)
+				inv1.SetLastEmptySlot((short)slot1);
+			if(inv2.GetLastEmptySlot() <= slot2)
+				inv2.FindLastEmptySlot();
+
+			inv1.SetFull();
+			inv2.SetFull();
+
+			if(inv1 != inv2){
+				if(!inv1.Contains(inv2.slots[slot2].GetID()))
+					inv1.itemInInventory.Remove(inv2.slots[slot2].GetID());
+			}
+
+			return true;
+		}
+
+		// If both slots have the same elements
+		if(inv1.slots[slot1].GetID() == inv2.slots[slot2].GetID()){
+			if(inv1.slots[slot1].MoveTo(ref inv2.slots[slot2]))
+				inv1.slots[slot1] = null;
+			return true;
+		}
+		// If slots are different
+		else{
+			ItemStack aux = inv1.slots[slot1].Clone();
+			inv1.slots[slot1] = inv2.slots[slot2];
+			inv2.slots[slot2] = aux;
+
+			if(inv1 != inv2){
+				if(!inv1.Contains(inv2.slots[slot2].GetID()))
+					inv1.itemInInventory.Remove(inv2.slots[slot2].GetID());
+				if(!inv2.Contains(inv1.slots[slot1].GetID()))
+					inv2.itemInInventory.Remove(inv1.slots[slot1].GetID());
+			}
+
+			return true;
+		}
+	}
+
+
+	// Drops a single item from a given stack
+	public ItemStack DropSingle(short slot){
+		// If slot is null
+		if(this.slots[slot] == null)
+			return null;
+
+		ItemStack returnStack;
+
+		// If slot only has one item
+		if(this.slots[slot].GetAmount() == 1){
+			returnStack = this.slots[slot].Clone();
+			this.slots[slot] = null;
+
+			if(this.lastEmptySlot > slot)
+				this.SetLastEmptySlot(slot);
+
+			if(!this.Contains(returnStack.GetID()))
+				this.itemInInventory.Remove(returnStack.GetID());
+
+			return returnStack;
+		}
+
+		// If stack has more than one item
+		returnStack = this.slots[slot].Clone();
+		returnStack.SetAmount(1);
+		this.slots[slot].Decrement();
+		return returnStack;
+	}
+
+	// Drops entire selected stack
+	public ItemStack DropStack(short slot){
+		// If slot is null
+		if(this.slots[slot] == null)
+			return null;
+
+		ItemStack returnStack = this.slots[slot].Clone();
+		this.slots[slot] = null;
+
+		if(this.GetLastEmptySlot() > slot)
+			this.SetLastEmptySlot(slot);
+
+		if(!this.Contains(returnStack.GetID()))
+			this.itemInInventory.Remove(returnStack.GetID());
+
+		return returnStack;		
+	}
+
+	// Sets an ItemStack as null
+	public override void SetNull(ushort slot){
+		this.slots[slot] = null;
+	}
+
+	// Injects input ItemStack into a given slot that contains the same ItemStack until it's fully transferred or reaches stacksize
+	// Returns the altered its stack
+	#nullable enable
+	public override ItemStack? Transfer(ItemStack its, ushort slot){
+		int sum = 0;
+
+		if(this.slots[slot].GetID() == its.GetID()){
+			sum = (this.slots[slot].GetAmount() + its.GetAmount());
+
+			if(sum > its.GetStacksize()){
+				this.slots[slot].SetAmount(its.GetStacksize());
+				its.SetAmount((byte)(sum - its.GetStacksize()));
+				return its;
+			}
+			else{
+				this.slots[slot].SetAmount((byte)sum);
+				return null;
+			}
+		}
+		return its;
+	}
+	#nullable disable
+
+	// Initializes slots
+	private void InitSlots(ushort limit){
+		this.slots = new ItemStack[limit];
+	}
+
+	// Checks if an ItemStack can be fitted into the inventory
+	// Returns a Transaction List
+	// fitItems returns the amount of items taken into the transactions
+	public override List<InventoryTransaction> CanFit(ItemStack its){
+		List<InventoryTransaction> transactions = new List<InventoryTransaction>();
+
+		// If the item to be added is not in the Inventory's global whitelist
+		if(!this.IsInGlobalWhitelist(its))
+			return transactions;
+
+		// If there's no space and no available stack
+		if(this.IsFull() && !this.itemInInventory.Contains(its.GetID()))
+			return transactions;
+
+		// If inventory is full but has space for an ItemID
+		else if(this.IsFull()){
+			byte remainder = its.GetAmount();
+			byte difference;
+			byte stacksize = its.GetStacksize();
+
+			for(ushort i=0; i < this.limit; i++){
+				if(this.slots[i] == its){
+					if(this.slots[i].IsFull())
+						continue;
+
+					difference = (byte)(stacksize - this.slots[i].GetAmount());
+					if(difference >= remainder){
+						transactions.Add(new InventoryTransaction(i, remainder));
+						return transactions;
+					}
+					else{
+						transactions.Add(new InventoryTransaction(i, difference));
+						remainder = (byte)(remainder - difference);
+					}
+				}
+			}
+
+			return transactions;
+		}
+
+		// If there's free space in inventory but there's a stack of that given item
+		else if(this.itemInInventory.Contains(its.GetID())){
+			byte remainder = its.GetAmount();
+			byte difference;
+			byte stacksize = its.GetStacksize();
+			InventoryTransaction trans;
+
+			for(ushort i=0; i < this.limit; i++){
+				if(this.slots[i] == null)
+					continue;
+
+				if(this.slots[i].IsEqual(its)){
+					if(this.slots[i].IsFull())
+						continue;
+
+					difference = (byte)(stacksize - this.slots[i].GetAmount());
+					if(difference >= remainder){
+						trans = new InventoryTransaction(i, remainder);
+						transactions.Add(trans);
+						return transactions;
+					}
+					else{
+						trans = new InventoryTransaction(i, difference);
+						transactions.Add(trans);
+						remainder = (byte)(remainder - difference);
+					}
+				}
+			}
+
+			transactions.Add(new InventoryTransaction((ushort)this.GetLastEmptySlot(), remainder));
+			this.FindLastEmptySlot();
+			return transactions;
+		}
+
+		// If there's no ItemStack of given ItemID and there's free space
+		else{
+			if(!IsInLocalWhitelist(its, (ushort)this.GetLastEmptySlot()))
+				return transactions;
+
+			transactions.Add(new InventoryTransaction((ushort)this.GetLastEmptySlot(), its.GetAmount()));
+			this.FindLastEmptySlot();
+			return transactions;
+		}
+	}
+
+	// Checks if an item is part of the global whitelist for this inventory (like magic items for Bag of Holding)
+	public override bool IsInGlobalWhitelist(ItemStack its){
+		if(this.whitelistTags != null && this.whitelistTags.Count != 0){
+			if(its == null){
+				return this.whitelistTags.Contains("Null");
+			}
+
+			return its.GetItem().ContainsAnyTag(this.whitelistTags);
+		}
+
+		return true;
+	}
+
+	// Checks if an item is part of the whitelist for this slot (like weapons for Weapon Slot in Equipment)
+	public override bool IsInLocalWhitelist(ItemStack its, ushort slot){
+		if(this.perSlotWhitelistTags != null && this.perSlotWhitelistTags.Count != 0){
+			if(!this.perSlotWhitelistTags.ContainsKey(slot))
+				return true;
+
+			if(its == null)
+				return this.perSlotWhitelistTags[slot].Contains("Null");
+
+			return ItemLoader.GetItem(its.GetID()).ContainsAnyTag(this.perSlotWhitelistTags[slot]);
+		}
+
+		return true;
+	}
+
+	// Iterates until it finds the first empty slot
+	public override void FindLastEmptySlot(){
+		for(ushort i=0; i < this.limit; i++){
+			if(this.slots[i] == null){
+				this.lastEmptySlot = (short)i;
+				return;
+			}
+		}
+
+		this.SetLastEmptySlot(-1);
+	}
+
+	// Returns this.mainInventory
+	public override bool GetMainInventory(){return this.mainInventory;}
+
+	// Returns this.bulkMovedTo
+	public override bool GetBulkMovedTo(){return this.bulkMovedTo;}
+
+	// Sets the lastEmptySlot
+	public override void SetLastEmptySlot(short a){
+		this.lastEmptySlot = a;
+	}
+
+	// Returns this.isFull
+	public bool IsFull(){
+		return this.isFull;
+	}
+
+	// Sets this.isFull when lastEmptyIndex = -1
+	public void SetFull(){
+		this.isFull = (this.GetLastEmptySlot() == -1);
+	}
+
+	// Returns this.lastEmptySlot
+	public override short GetLastEmptySlot(){
+		return this.lastEmptySlot;
+	}
+
+	// Returns inventoryID
+	public override byte GetID(){return this.inventoryID;}
+
+	// Returns the limit of Inventory
+	public override ushort GetLimit(){return this.limit;}
+
+	// Returns true if this inventory has slot default icons
+	public override bool HasInventoryIcons(){
+		if(this.perSlotDefaultIcon == null)
+			return false;
+
+		return this.perSlotDefaultIcon.Count > 0;
+	}
+
+	// Returns the name of the default icon from a given slot.
+	// Returns empty string if there is no such an icon
+	public override string GetIconName(int id){
+		if(this.perSlotDefaultIcon.ContainsKey(id))
+			return this.perSlotDefaultIcon[id];
+		return "";
+	}
+
+	// Returns the list of icon names for inventory slots
+	public List<string> GetIconFilepaths(){
+		List<string> outList = new List<string>();
+
+		if(this.perSlotDefaultIcon == null)
+			return outList;
+
+		foreach(string filepaths in this.perSlotDefaultIcon.Values){
+			outList.Add(filepaths);
+		}
+
+		return outList;
+	}
+
+	// Return the ItemStack at position pos
+	#nullable enable
+	public override ItemStack? GetSlot(ushort pos){
+		return this.slots[pos];
+	}
+	#nullable disable
+
+	// Removes an element from itemInInventory
+	public void RemoveFromRecords(ushort id){
+		if(!this.Contains(id))
+			itemInInventory.Remove(id);
+	}
+
+	// Discovers whether an item is contained in the inventory manually
+	public bool Contains(ushort id){
+		for(int i=0; i < this.limit; i++){
+			if(this.slots[i] == null)
+				continue;
+			if(this.slots[i].GetID() == id)
+				return true;
+		}
+		return false;
+	}
+
+	private void SetLimitOnType(byte id){this.limit = (ushort)InventoryLoader.GetInventorySize(id);}
+}

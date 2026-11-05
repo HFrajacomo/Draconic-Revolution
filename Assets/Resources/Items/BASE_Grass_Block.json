@@ -7,9 +7,27 @@
 }
 --->Behaviours
 {
-    "onUseClient": "PlaceBlockBehaviour"
+    "onCreateAction": "IT_GetItemActionBehaviour",
+    "onUseClient": "IT_PlaceBlockBehaviour"
 }
---->PlaceBlockBehaviour
+--->IT_GetItemActionBehaviour
+{
+    "name": "BASE_BlockPlace",
+    "actionArguments": {
+        "data": [
+            {
+                "evt": "EA_PlaceBlockBehaviour",
+                "arguments": [
+                    {
+                        "key": "blockName",
+                        "value": "BASE_Grass"
+                    }
+                ]
+            }
+        ]
+    }
+}
+--->IT_PlaceBlockBehaviour
 {
     "blockName": "BASE_Grass"
 }

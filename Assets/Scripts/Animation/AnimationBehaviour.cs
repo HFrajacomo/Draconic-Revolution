@@ -17,6 +17,9 @@ public abstract class AnimationBehaviour {
 
 		if(!behaviours.ContainsKey(clip.name))
 			behaviours.Add(clip.name, new List<AnimationBehaviour>());
+		// Clip was reloaded without its runtime events: indexes restart, so stale behaviours must be dropped
+		else if(index == 0)
+			behaviours[clip.name].Clear();
 
         AnimationEvent animEvent = new AnimationEvent();
         animEvent.time = this.normalizedTime * clip.length;
@@ -33,7 +36,7 @@ public abstract class AnimationBehaviour {
 
 	public virtual void PostDeserializationSetup(){return;}
 
-	public virtual void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){Debug.LogWarning("MASSIVE SHIT");}
+	public virtual void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){}
 
 	protected string SerializeDispatchParameter(string name, int index){return $"{{\"clip\": \"{name}\", \"index\": {index}}}";}
 }

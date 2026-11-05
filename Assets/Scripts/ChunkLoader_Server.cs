@@ -135,10 +135,7 @@ public class ChunkLoader_Server : MonoBehaviour
         // Send first player inventory info
         NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
         inventoryLength = this.playerServerInventory.LoadInventoryIntoBuffer(this.server.firstConnectedID, out isEmptyInventory);
-        if(!isEmptyInventory)
-            inventoryMessage.SendInventory(this.playerServerInventory.GetBuffer(), inventoryLength);
-        else
-            inventoryMessage.SendInventory(this.playerServerInventory.GetEmptyBuffer(), inventoryLength);
+        inventoryMessage.SendInventory(this.playerServerInventory.GetBuffer(), inventoryLength);
 
         this.server.Send(inventoryMessage.GetMessage(), inventoryMessage.size, this.server.firstConnectedID);
 
@@ -480,26 +477,41 @@ public class ChunkLoader_Server : MonoBehaviour
             return (sub%mod)+mod;
     }
 
+    // DEBUG FUNCTION
     public void TestInventoryReceive(ulong id){
-        PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[45];
+        int size = InventoryLoader.GetInventorySize("ACTION_HOTBAR") + InventoryLoader.GetInventorySize("HOTBAR") + InventoryLoader.GetInventorySize("PLAYER") + InventoryLoader.GetInventorySize("EQUIPMENT");
+
+        PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[size];
         NetMessage message;
         int length;
 
-        for(int i=0; i < 45; i++){
-            if(i == 1){
-                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE);
+        for(byte i=0; i < size; i++){
+            if(i == 0){
+                slots[i] = new ActionInventorySlot(ActionLoader.GetID("BASE_EquipmentAttack"), false, 0, 0, 0, 0, InventoryLoader.GetActionInventoryID("ACTION_HOTBAR"), 0);
             }
-            else if(i == 2){
-                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE);
+            else if(i == 10){
+                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE, InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
-            else if(i == 3){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50);
+            else if(i == 11){
+                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE, InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
-            else if(i == 4){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50);
+            else if(i == 12){
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50, InventoryLoader.GetInventoryID("HOTBAR"), i);
+            }
+            else if(i == 13){
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50, InventoryLoader.GetInventoryID("HOTBAR"), i);
+            }
+            else if(i < InventoryLoader.GetInventorySize("ACTION_HOTBAR")){
+                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetActionInventoryID("ACTION_HOTBAR"), i);
+            }
+            else if(i < InventoryLoader.GetInventorySize("ACTION_HOTBAR") + InventoryLoader.GetInventorySize(InventoryLoader.GetInventoryID("HOTBAR"))){
+                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("HOTBAR"), i);
+            }
+            else if(i < InventoryLoader.GetInventorySize("ACTION_HOTBAR") + InventoryLoader.GetInventorySize(InventoryLoader.GetInventoryID("HOTBAR")) + InventoryLoader.GetInventorySize(InventoryLoader.GetInventoryID("PLAYER"))){
+                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("PLAYER"), i);
             }
             else{
-                slots[i] = new EmptyPlayerInventorySlot();
+                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("EQUIPMENT"), i);                
             }
         }
 

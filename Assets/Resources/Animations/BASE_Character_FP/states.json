@@ -89,6 +89,36 @@
 			"layer": "",
 			"isBlendTree": false,
 			"isDefaultState": false
+		},
+		{
+			"name": "Empty",
+			"layer": "Left Arm",
+			"isBlendTree": false,
+			"isDefaultState": true
+		},
+		{
+			"name": "Carry Draw",
+			"layer": "Left Arm",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Carry Hold",
+			"layer": "Left Arm",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Carry Stow",
+			"layer": "Left Arm",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Carry Run",
+			"layer": "Left Arm",
+			"isBlendTree": false,
+			"isDefaultState": false
 		}
 	]
 }

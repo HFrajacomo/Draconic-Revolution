@@ -8,6 +8,7 @@ Deserializes Draconic Revolution Item Notation files
 */
 public static class ItemDeserializer {
 	// Generic Item Placeholders
+	private static List<ItemBehaviour> onCreateActionEvent = new List<ItemBehaviour>();
 	private static List<ItemBehaviour> onHoldPlayerEvent = new List<ItemBehaviour>();
 	private static List<ItemBehaviour> onHoldClientEvent = new List<ItemBehaviour>();
 	private static List<ItemBehaviour> onHoldServerEvent = new List<ItemBehaviour>();
@@ -17,14 +18,22 @@ public static class ItemDeserializer {
 	private static List<ItemBehaviour> onUseClientEvent = new List<ItemBehaviour>();
 	private static List<ItemBehaviour> onUseServerEvent = new List<ItemBehaviour>();
 
+	private static List<ItemBehaviour> onEquipPlayerEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUnequipPlayerEvent = new List<ItemBehaviour>();	
+	private static List<ItemBehaviour> onEquipClientEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUnequipClientEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onEquipServerEvent = new List<ItemBehaviour>();
+	private static List<ItemBehaviour> onUnequipServerEvent = new List<ItemBehaviour>();
+
 	private static Dictionary<string, List<string>> behaviours = new Dictionary<string, List<string>>();
 	private static HashSet<string> assignedEvents = new HashSet<string>();
 	private static Dictionary<string, ItemBehaviour> nameToBehaviour = new Dictionary<string, ItemBehaviour>();
-	private static readonly HashSet<string> POSSIBLE_ITEM_TYPES = new HashSet<string>(){"Item", "Weapon"};
+	private static readonly HashSet<string> POSSIBLE_ITEM_TYPES = new HashSet<string>(){"Item", "Weapon", "SubWeapon"};
+	private static readonly string ATTACHMENT_SECTION = "Attachment";
 
 
 
-	public static Item DeserializeItem(string json){
+	public static Item DeserializeItem(string json, bool parseAttachment=false){
 		string propertiesJson = GetProperties(json);
 		string behaviourJson;
 		string itemType = GetTypeSection(json);
@@ -34,10 +43,18 @@ public static class ItemDeserializer {
 		Item item = CreateItem(JsonFormatter.RemoveComments(propertiesJson), itemType);
 		item.SetMemoryStorageType();
 
+		if(item is Weapon){
+			((Weapon)item).ResolveWeaponType();
+		}
+
 		if(HasBehaviours(json)){
 			behaviourJson = GetBehaviours(json);
 			FindBehaviours(behaviourJson);
 			DeserializeAllBehaviours(json);
+		}
+
+		if(parseAttachment && HasSection(json, ATTACHMENT_SECTION)){
+			item.SetAttachmentMaterials(DeserializeAttachment(json, item));
 		}
 
 		AssignEventsToItem(item);
@@ -47,6 +64,7 @@ public static class ItemDeserializer {
 	}
 
 	private static void Reset(){
+		onCreateActionEvent = new List<ItemBehaviour>();
 		onHoldPlayerEvent = new List<ItemBehaviour>();
 		onHoldClientEvent = new List<ItemBehaviour>();
 		onHoldServerEvent = new List<ItemBehaviour>();
@@ -55,6 +73,12 @@ public static class ItemDeserializer {
 		onUnholdServerEvent = new List<ItemBehaviour>();
 		onUseClientEvent = new List<ItemBehaviour>();
 		onUseServerEvent = new List<ItemBehaviour>();
+		onEquipPlayerEvent = new List<ItemBehaviour>();
+		onUnequipPlayerEvent = new List<ItemBehaviour>();
+		onEquipClientEvent = new List<ItemBehaviour>();
+		onUnequipClientEvent = new List<ItemBehaviour>();
+		onEquipServerEvent = new List<ItemBehaviour>();
+		onUnequipServerEvent = new List<ItemBehaviour>();
 
 		behaviours.Clear();
 		nameToBehaviour.Clear();
@@ -63,6 +87,9 @@ public static class ItemDeserializer {
 	private static void AssignEventsToItem(Item item){
 		foreach(string ev in behaviours.Keys){
 			switch(ev){
+				case "onCreateAction":
+					item.SetOnCreateAction(onCreateActionEvent);
+					break;
 				case "onHoldPlayer":
 					item.SetOnHoldPlayer(onHoldPlayerEvent);
 					break;
@@ -87,6 +114,24 @@ public static class ItemDeserializer {
 				case "onUseServer":
 					item.SetOnUseServer(onUseServerEvent);
 					break;
+				case "onEquipPlayer":
+					item.SetOnEquipPlayer(onEquipPlayerEvent);
+					break;
+				case "onUnequipPlayer":
+					item.SetOnUnequipPlayer(onUnequipPlayerEvent);
+					break;
+				case "onEquipClient":
+					item.SetOnEquipClient(onEquipClientEvent);
+					break;
+				case "onUnequipClient":
+					item.SetOnUnequipClient(onUnequipClientEvent);
+					break;
+				case "onEquipServer":
+					item.SetOnEquipServer(onEquipServerEvent);
+					break;
+				case "onUnequipServer":
+					item.SetOnUnequipServer(onUnequipServerEvent);
+					break;
 				default:
 					Debug.LogWarning("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + ev);
 					break;
@@ -94,11 +139,30 @@ public static class ItemDeserializer {
 		}
 	}
 
+	// Properties are always the first section of the file
 	private static string GetProperties(string json){
-		if(json.Contains("--->Behaviours"))
-			return json.Split("--->Behaviours")[0];
-		else
-			return json.Split("--->Type")[0];
+		return json.Split("--->")[0];
+	}
+
+	private static bool HasSection(string json, string section){
+		return json.IndexOf("--->" + section) != -1;
+	}
+
+	private static AttachmentMaterialData DeserializeAttachment(string json, Item item){
+		AttachmentMaterialData data;
+
+		try{
+			data = JsonUtility.FromJson<AttachmentMaterialData>(JsonFormatter.RemoveComments(GetSection(json, ATTACHMENT_SECTION)));
+		}
+		catch(Exception e){
+			throw new DeserializationErrorException($"[ItemDeserializer] Failed to parse the Attachment section of item {item.codename}: {e.Message}");
+		}
+
+		if(data == null || data.IsEmpty())
+			return null;
+
+		data.PostDeserializationSetup();
+		return data;
 	}
 
 	private static bool HasBehaviours(string json){
@@ -118,7 +182,7 @@ public static class ItemDeserializer {
 	}
 
 	private static string GetTypeSection(string json){
-		return json.Split("--->Type")[1].Replace("\r", "").Replace("\n", "");
+		return json.Split("--->Type")[1].Split("--->")[0].Replace("\r", "").Replace("\n", "");
 	}
 
 	private static void ValidateType(string type){
@@ -146,9 +210,6 @@ public static class ItemDeserializer {
 		}
 	}
 
-	/*
-	Must be added whenever a new Behaviour is created
-	*/
 	private static void DeserializeAllBehaviours(string json){
 		ItemBehaviour ib;
 
@@ -182,9 +243,10 @@ public static class ItemDeserializer {
 				return JsonUtility.FromJson<Item>(JsonFormatter.RemoveComments(json));
 			case "Weapon":
 				return JsonUtility.FromJson<Weapon>(JsonFormatter.RemoveComments(json));
+			case "SubWeapon":
+				return JsonUtility.FromJson<SubWeapon>(JsonFormatter.RemoveComments(json));
 			default:
-				Debug.LogError($"ERROR WHEN TRYING TO DE-SERIALIZE ITEM TYPE: {type}");
-				return JsonUtility.FromJson<Item>(JsonFormatter.RemoveComments(json)); 
+				throw new DeserializationErrorException($"[ItemDeserializer] Failed to verify type of Ite: {type}"); 
 		}
 	}
 
@@ -192,20 +254,22 @@ public static class ItemDeserializer {
 		string jsonSerial = GetSection(json, val);
 
 		switch(val){
-			case "PlaceBlockBehaviour":
-				return JsonUtility.FromJson<PlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "CreatePointLightBehaviour":
-				return JsonUtility.FromJson<CreatePointLightBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
-			case "ChangeStyleBehaviour":
-				return JsonUtility.FromJson<ChangeStyleBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "IT_GetItemActionBehaviour":
+				return JsonUtility.FromJson<IT_GetItemActionBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "IT_PlaceBlockBehaviour":
+				return JsonUtility.FromJson<IT_PlaceBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "IT_CreatePointLightBehaviour":
+				return JsonUtility.FromJson<IT_CreatePointLightBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
-				Debug.LogError("ERROR WHEN TRYING TO DE-SERIALIZE BEHAVIOUR: " + val);
-				return new PlaceBlockBehaviour();
+				throw new DeserializationErrorException($"[ItemDeserializer] Error when trying to de-serialize behaviour {val}");
 		}
 	}
 
 	private static void AddToPlaceholder(string key, ItemBehaviour ib){
 		switch(key){
+			case "onCreateAction":
+				onCreateActionEvent.Add(ib);
+				break;
 			case "onHoldPlayer":
 				onHoldPlayerEvent.Add(ib);
 				break;
@@ -229,6 +293,24 @@ public static class ItemDeserializer {
 				break;
 			case "onUseServer":
 				onUseServerEvent.Add(ib);
+				break;
+			case "onEquipPlayer":
+				onEquipPlayerEvent.Add(ib);
+				break;
+			case "onUnequipPlayer":
+				onUnequipPlayerEvent.Add(ib);
+				break;
+			case "onEquipClient":
+				onEquipClientEvent.Add(ib);
+				break;
+			case "onUnequipClient":
+				onUnequipClientEvent.Add(ib);
+				break;
+			case "onEquipServer":
+				onEquipServerEvent.Add(ib);
+				break;
+			case "onUnequipServer":
+				onUnequipServerEvent.Add(ib);
 				break;
 			default:
 				Debug.LogWarning("ERROR WHILE TRYING TO DE-SERIALIZE AN EVENT: " + key);

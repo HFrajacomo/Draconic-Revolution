@@ -5,8 +5,9 @@
     "memoryType": 2,
     "stacksize": 1,
     "hasDurability": true,
+    "tags": ["Weapon"],
     // Weapon
-    "type": "PICKAXE",
+    "weaponType": "PICKAXE",
     "damage": 100,
     "impact": 4,
     "maxDurability": 12000,
@@ -15,13 +16,17 @@
         "COMBAT": 1
     }
 }
---->Behaviours
+--->Attachment
 {
-    "onHoldServer": "ChangeStyleBehaviour"
-}
---->ChangeStyleBehaviour
-{
-    "battleStyle": "BASE_Pickaxe"
+    "materials": [
+        {
+            "material": "BasicTextureWithColor",
+            "properties": [
+                {"name": "_Color", "type": "color", "colorValue": {"r": 1.0, "g": 0, "b": 0, "a": 1}},
+                {"name": "_Texture", "type": "texture", "textureValue": "BASE_Weapon"}
+            ]
+        }
+    ]
 }
 --->Type
 Weapon
