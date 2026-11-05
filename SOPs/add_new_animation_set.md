@@ -346,4 +346,4 @@ After that, the entire process is the same.
 
 In order to transform all the data provided into ready-to-use Animation Controllers linked to our Custom Animation and Mappings system, you should hop on the Unity Editor, and go to **Editor Tools > Animations > Build Controllers**.
 
-This Editor script will generate all the Controllers and these will automatically be imported by the *AnimationLoader* in the loading phase of runtime
+This Editor script will generate all the Controllers and these will automatically be imported by the *AnimationLoader* in the loading phase of runtime 
