@@ -214,8 +214,6 @@ public class PlayerActionController : MonoBehaviour {
 		this.currentCarryCode = BattleStyleDeterminator.GetCarryStyleCode(style, this.appliedAttachmentItems);
 		this.animationHandler.CreateAttachments(this.currentStyle, this.appliedAttachmentItems, this.currentCarryCode);
 
-		Debug.Log($"{this.currentStyle} - {this.currentCarryCode}");
-
 		AnimatorOverrideController animationOverrideController = new AnimatorOverrideController(this.originalController);
 		AnimatorOverrideController animationOverrideControllerFP = new AnimatorOverrideController(this.originalControllerFP);
 
