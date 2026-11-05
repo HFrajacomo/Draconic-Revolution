@@ -94,10 +94,11 @@ public class PlayerServerInventory{
             return ConvertInventoryToBytes(playerId);
         }
         // If is a new player
+        // The freshly created slots are serialized like any other inventory, so the client receives the inventory type headers and the default Action
         else{
             isEmpty = true;
             AddInventory(playerId, GetEmptySlots());
-            return InventoryLoader.GetInventorySize("HOTBAR") + InventoryLoader.GetInventorySize("PLAYER") + InventoryLoader.GetInventorySize("EQUIPMENT");
+            return ConvertInventoryToBytes(playerId);
         }
     }
 

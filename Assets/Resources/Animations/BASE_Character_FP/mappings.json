@@ -2,7 +2,7 @@
 	"data": [
 		{
 			"state": "Empty",
-			"layers": [""],
+			"layers": ["", "Left Arm"],
 			"priority": 2
 		},
 		{
@@ -74,6 +74,26 @@
 			"state": "Attack 10",
 			"layers": [""],
 			"priority": 0
+		},
+		{
+			"state": "Carry Draw",
+			"layers": ["Left Arm"],
+			"priority": 1
+		},
+		{
+			"state": "Carry Hold",
+			"layers": ["Left Arm"],
+			"priority": 1
+		},
+		{
+			"state": "Carry Stow",
+			"layers": ["Left Arm"],
+			"priority": 1
+		},
+		{
+			"state": "Carry Run",
+			"layers": ["Left Arm"],
+			"priority": 1
 		}
 	]
 }

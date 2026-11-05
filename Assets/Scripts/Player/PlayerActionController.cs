@@ -21,6 +21,8 @@ public class PlayerActionController : MonoBehaviour {
 
 	// Battle Style
 	private int currentStyleCode;
+	private int currentCarryCode = BattleStyleDeterminator.NO_CARRY;
+	private bool currentCarryHasFP = false;
 	private BattleStyleData currentStyle;
 	private bool weaponSheathed = true;
 	private int comboHit = 0;
@@ -49,9 +51,20 @@ public class PlayerActionController : MonoBehaviour {
 	private bool sheatheInProgress = false;
 	private bool sheatheSeenTP = false;
 	private bool sheatheSeenFP = false;
+	private bool carryStowSeenTP = false;
+	private bool carryStowSeenFP = false;
 	private float sheatheTimeout = 0f;
 	private static readonly string SHEATHE_STATE = "Weapon Sheathe";
+	private static readonly string UNSHEATHE_STATE = "Weapon Unsheathe";
+	private static readonly string CARRY_STOW_STATE = "Carry Stow";
+	private static readonly string CARRY_DRAW_STATE = "Carry Draw";
+	private static readonly string HAS_CARRY_PARAMETER = "HasCarry";
 	private static readonly float SHEATHE_TIMEOUT_MARGIN = 0.25f;
+
+	// Animator Parameters
+	private static readonly int IS_PLAYER_HASH = Animator.StringToHash("ISPLAYER");
+	private static readonly int HAS_CARRY_HASH = Animator.StringToHash(HAS_CARRY_PARAMETER);
+	private static readonly int SHEATHED_HASH = Animator.StringToHash("Sheathed");
 
 	// Cache
 	private float cachedTime;
@@ -85,8 +98,21 @@ public class PlayerActionController : MonoBehaviour {
 			}
 		}
 
-		this.animator.SetBool("ISPLAYER", true);
+		SyncAnimatorParameters();
 		RunNetcodeList();
+	}
+
+	/*
+	Re-asserts the parameters that are only changed by state transitions of this controller
+		Animators reset their parameters when (re)initialized, like when the Character is activated after joining,
+		so values set while it was inactive would otherwise be lost
+	*/
+	private void SyncAnimatorParameters(){
+		this.animator.SetBool(IS_PLAYER_HASH, true);
+		this.animator.SetBool(HAS_CARRY_HASH, HasCarry());
+		this.animator.SetBool(SHEATHED_HASH, this.weaponSheathed);
+		this.animatorFP.SetBool(HAS_CARRY_HASH, this.currentCarryHasFP);
+		this.animatorFP.SetBool(SHEATHED_HASH, this.weaponSheathed);
 	}
 
 	void LateUpdate(){
@@ -125,7 +151,7 @@ public class PlayerActionController : MonoBehaviour {
 			Init();
 
 		if(!skipCheck){
-			if(this.currentStyleCode == style){
+			if(IsCurrentStyle(style)){
 				if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
 					this.registeredAction.Remove(PlayerActionType.USE_STYLE);
 					this.registeredData.Remove(PlayerActionType.USE_STYLE);
@@ -157,7 +183,7 @@ public class PlayerActionController : MonoBehaviour {
 
 	/*
 	Uses a style informed by the Server together with the items that skin its attachments
-		If the style doesn't change, the current attachments are re-skinned right away
+		If neither the style nor the carried off-hand style change, the current attachments are re-skinned right away
 		Otherwise, the items are applied when the new style's attachments are created
 	*/
 	public void UseStyle(int style, AttachmentItems items){
@@ -166,7 +192,7 @@ public class PlayerActionController : MonoBehaviour {
 
 		this.pendingAttachmentItems = items;
 
-		if(this.currentStyleCode == style && !this.appliedAttachmentItems.Equals(items)){
+		if(IsCurrentStyle(style) && !this.appliedAttachmentItems.Equals(items)){
 			this.appliedAttachmentItems = items;
 			this.animationHandler.RefreshAttachmentMaterials(items);
 		}
@@ -175,16 +201,20 @@ public class PlayerActionController : MonoBehaviour {
 	}
 
 	public void ForceUseStyle(int style){
-		if(this.currentStyleCode == style){
+		if(IsCurrentStyle(style)){
 			this.registeredAction.Remove(PlayerActionType.USE_STYLE);
 			this.registeredData.Remove(PlayerActionType.USE_STYLE);
 			return;
 		}
 
+
 		this.currentStyle = AnimationLoader.GetBattleStyle(style);
 		this.currentStyleCode = style;
 		this.appliedAttachmentItems = this.pendingAttachmentItems;
-		this.animationHandler.CreateAttachments(this.currentStyle, this.appliedAttachmentItems);
+		this.currentCarryCode = BattleStyleDeterminator.GetCarryStyleCode(style, this.appliedAttachmentItems);
+		this.animationHandler.CreateAttachments(this.currentStyle, this.appliedAttachmentItems, this.currentCarryCode);
+
+		Debug.Log($"{this.currentStyle} - {this.currentCarryCode}");
 
 		AnimatorOverrideController animationOverrideController = new AnimatorOverrideController(this.originalController);
 		AnimatorOverrideController animationOverrideControllerFP = new AnimatorOverrideController(this.originalControllerFP);
@@ -192,11 +222,48 @@ public class PlayerActionController : MonoBehaviour {
 		animationOverrideController = ApplyOverrides(animationOverrideController, this.currentStyle.GetOverrides());
 		animationOverrideControllerFP = ApplyOverrides(animationOverrideControllerFP, AnimationLoader.GetBattleStyle($"{this.currentStyle.GetName()}-FP").GetOverrides());
 
+		this.currentCarryHasFP = false;
+
+		if(HasCarry()){
+			CarryStyleData carryStyle = AnimationLoader.GetCarryStyle(this.currentCarryCode);
+			string carryStyleFP = $"{carryStyle.GetName()}-FP";
+
+			animationOverrideController = ApplyOverrides(animationOverrideController, carryStyle.GetOverrides());
+
+			if(AnimationLoader.ContainsCarryStyle(carryStyleFP) && AnimationLoader.GetCarryStyle(carryStyleFP).IsAvailable()){
+				animationOverrideControllerFP = ApplyOverrides(animationOverrideControllerFP, AnimationLoader.GetCarryStyle(carryStyleFP).GetOverrides());
+				this.currentCarryHasFP = true;
+			}
+		}
+
 		this.animator.runtimeAnimatorController = animationOverrideController;
 		this.animatorFP.runtimeAnimatorController = animationOverrideControllerFP;
 
+		// Changing controllers resets the Animator parameters, so the carry flag is set right away. It's also re-asserted every frame by SyncAnimatorParameters
+		if(HasCarry())
+			this.animator.SetBool(HAS_CARRY_HASH, true);
+		if(this.currentCarryHasFP)
+			this.animatorFP.SetBool(HAS_CARRY_HASH, true);
+
 		this.registeredAction.Remove(PlayerActionType.USE_STYLE);
 		this.registeredData.Remove(PlayerActionType.USE_STYLE);
+	}
+
+	// A style is only the current one if the carried off-hand style that the pending items would produce is also the same
+	private bool IsCurrentStyle(int style){
+		return this.currentStyleCode == style && this.currentCarryCode == BattleStyleDeterminator.GetCarryStyleCode(style, this.pendingAttachmentItems);
+	}
+
+	private bool HasCarry(){return this.currentCarryCode != BattleStyleDeterminator.NO_CARRY;}
+
+	// The carried off-hand item is stowed and drawn together with the kit, so the longest of both clips is used
+	private float GetSheatheClipLength(bool sheathe, bool firstPerson=false){
+		float length = this.animationHandler.GetClipLength(sheathe ? SHEATHE_STATE : UNSHEATHE_STATE, firstPerson:firstPerson);
+
+		if(HasCarry())
+			length = Mathf.Max(length, this.animationHandler.GetClipLength(sheathe ? CARRY_STOW_STATE : CARRY_DRAW_STATE, firstPerson:firstPerson));
+
+		return length;
 	}
 
 	public void RemoveAllStyles(){
@@ -241,12 +308,7 @@ public class PlayerActionController : MonoBehaviour {
 		ForceSheathe(flag);
 	}
 	private void ForceSheathe(bool flag){
-		float animationTime;
-
-		if(flag)
-			animationTime = this.animationHandler.GetClipLength("Weapon Sheathe") - 0.05f;
-		else
-			animationTime = this.animationHandler.GetClipLength("Weapon Unsheathe") - 0.05f;
+		float animationTime = GetSheatheClipLength(flag) - 0.05f;
 
 		RegisterRestriction(PlayerActionRestriction.SHEATHE, animationTime);
 		RegisterRestriction(PlayerActionRestriction.USE_STYLE, animationTime);
@@ -296,7 +358,9 @@ public class PlayerActionController : MonoBehaviour {
 		this.sheatheInProgress = true;
 		this.sheatheSeenTP = false;
 		this.sheatheSeenFP = false;
-		this.sheatheTimeout = Mathf.Max(this.animationHandler.GetClipLength(SHEATHE_STATE), this.animationHandler.GetClipLength(SHEATHE_STATE, firstPerson:true)) + SHEATHE_TIMEOUT_MARGIN;
+		this.carryStowSeenTP = false;
+		this.carryStowSeenFP = false;
+		this.sheatheTimeout = Mathf.Max(GetSheatheClipLength(true), GetSheatheClipLength(true, firstPerson:true)) + SHEATHE_TIMEOUT_MARGIN;
 	}
 
 	// Runs on LateUpdate, after the Animators have updated and dispatched their Animation Events for the frame
@@ -306,18 +370,25 @@ public class PlayerActionController : MonoBehaviour {
 
 		this.sheatheTimeout -= Time.deltaTime;
 
-		bool tpDone = IsSheatheStateDone(this.animator, false, ref this.sheatheSeenTP);
-		bool fpDone = IsSheatheStateDone(this.animatorFP, true, ref this.sheatheSeenFP);
+		bool tpDone = IsSheatheStateDone(this.animator, SHEATHE_STATE, false, ref this.sheatheSeenTP);
+		bool fpDone = IsSheatheStateDone(this.animatorFP, SHEATHE_STATE, true, ref this.sheatheSeenFP);
+
+		if(HasCarry()){
+			tpDone &= IsSheatheStateDone(this.animator, CARRY_STOW_STATE, false, ref this.carryStowSeenTP);
+
+			if(this.currentCarryHasFP)
+				fpDone &= IsSheatheStateDone(this.animatorFP, CARRY_STOW_STATE, true, ref this.carryStowSeenFP);
+		}
 
 		if((tpDone && fpDone) || this.sheatheTimeout <= 0f)
 			this.sheatheInProgress = false;
 	}
 
-	private bool IsSheatheStateDone(Animator anim, bool firstPerson, ref bool seen){
+	private bool IsSheatheStateDone(Animator anim, string state, bool firstPerson, ref bool seen){
 		if(anim == null || !anim.isActiveAndEnabled)
 			return true;
 
-		float time = this.animationHandler.GetAnimationTime(SHEATHE_STATE, firstPerson:firstPerson);
+		float time = this.animationHandler.GetAnimationTime(state, firstPerson:firstPerson);
 
 		if(time >= 0f)
 			seen = true;

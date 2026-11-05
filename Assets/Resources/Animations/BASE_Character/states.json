@@ -307,6 +307,24 @@
 			"layer": "Full Torso",
 			"isBlendTree": false,
 			"isDefaultState": false
+		},
+		{
+			"name": "Carry Draw",
+			"layer": "Left Arm",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Carry Hold",
+			"layer": "Left Arm",
+			"isBlendTree": false,
+			"isDefaultState": false
+		},
+		{
+			"name": "Carry Stow",
+			"layer": "Left Arm",
+			"isBlendTree": false,
+			"isDefaultState": false
 		}
 	]
 }

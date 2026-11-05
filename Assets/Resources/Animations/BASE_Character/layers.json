@@ -60,6 +60,7 @@
 			"defaultWeight": 1,
 			"blendingMode": 0,
 			"avatarMask": [
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.R/UpperArm.R/LowerArm.R/Hand.R",
@@ -75,6 +76,7 @@
 			"defaultWeight": 1,
 			"blendingMode": 0,
 			"avatarMask": [
+				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L",
 				"CharacterArmature/Hips/LowerTorso/UpperTorso/Shoulder.L/UpperArm.L/LowerArm.L/Hand.L",

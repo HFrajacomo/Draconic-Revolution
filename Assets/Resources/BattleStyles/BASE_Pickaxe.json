@@ -9,6 +9,7 @@
 		}	
 	],
 	"combo_hits": 3,
+	"allowsCarry": true,
 	"overrides": {
 		"data": [
 			{

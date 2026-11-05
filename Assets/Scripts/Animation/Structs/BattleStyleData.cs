@@ -8,6 +8,7 @@ public struct BattleStyleData{
 	public bool firstPerson;
 	public AttachmentData[] attachments;
 	public int combo_hits;
+	public bool allowsCarry;
 	public Wrapper<StateClipPair> overrides;
 	private StateClipPair[] clipPairs;
 	private Dictionary<string, StateClipPair> map;
@@ -36,6 +37,8 @@ public struct BattleStyleData{
 	public string GetName(){return this.name;}
 	public int GetCode(){return this.code;}
 	public int GetComboHits(){return this.combo_hits;}
+	// Whether a Carry Style can be layered on top of this style. First Person styles follow their Third Person counterpart
+	public bool AllowsCarry(){return this.allowsCarry;}
 	public StateClipPair[] GetOverrides(){return this.clipPairs;}
 	public StateClipPair GetStateStyleData(string state){return this.map[state];}
 	public override string ToString(){return this.name;}

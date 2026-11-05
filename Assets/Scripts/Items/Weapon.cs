@@ -54,7 +54,7 @@ public class Weapon : Item {
 		return sb.ToString();
 	}
 
-	public void ResolveWeaponType(){
+	public virtual void ResolveWeaponType(){
 		if(Enum.TryParse<WeaponType>(this.weaponType, false, out WeaponType parsed))
 			this.type = parsed;
 		else
@@ -74,35 +74,40 @@ public class Weapon : Item {
 	}
 
 	public override Item Copy() {
-		return new Weapon {
-			// Copy base Item fields
-			codename = this.codename,
-			name = this.name,
-			description = this.description,
-			id = this.id,
-			memoryType = this.memoryType,
-			memoryStorageType = this.memoryStorageType,
-			stacksize = this.stacksize,
-			hasDurability = this.hasDurability,
-			attachmentMaterials = this.attachmentMaterials,
-			onHoldPlayerBehaviour = this.onHoldPlayerBehaviour != null ? new List<ItemBehaviour>(this.onHoldPlayerBehaviour) : null,
-			onHoldClientBehaviour = this.onHoldClientBehaviour != null ? new List<ItemBehaviour>(this.onHoldClientBehaviour) : null,
-			onHoldServerBehaviour = this.onHoldServerBehaviour != null ? new List<ItemBehaviour>(this.onHoldServerBehaviour) : null,
-			onUnholdPlayerBehaviour = this.onUnholdPlayerBehaviour != null ? new List<ItemBehaviour>(this.onUnholdPlayerBehaviour) : null,
-			onUnholdClientBehaviour = this.onUnholdClientBehaviour != null ? new List<ItemBehaviour>(this.onUnholdClientBehaviour) : null,
-			onUnholdServerBehaviour = this.onUnholdServerBehaviour != null ? new List<ItemBehaviour>(this.onUnholdServerBehaviour) : null,
-			onUseClientBehaviour = this.onUseClientBehaviour != null ? new List<ItemBehaviour>(this.onUseClientBehaviour) : null,
-			onUseServerBehaviour = this.onUseServerBehaviour != null ? new List<ItemBehaviour>(this.onUseServerBehaviour) : null,
+		return CopyFieldsTo(new Weapon());
+	}
 
-			damage = this.damage,
-			maxDurability = this.maxDurability,
-			currentDurability = this.currentDurability,
-			impact = this.impact,
-			type = this.type,
-			refineLevel = this.refineLevel,
-			extraEffect = this.extraEffect,
-			requiredLevels = this.requiredLevels != null ? new Dictionary<SkillType, byte>(this.requiredLevels) : null
-		};
+	// Subclasses pass their own empty instance so copies keep their concrete type
+	protected Weapon CopyFieldsTo(Weapon copy){
+		// Copy base Item fields
+		copy.codename = this.codename;
+		copy.name = this.name;
+		copy.description = this.description;
+		copy.id = this.id;
+		copy.memoryType = this.memoryType;
+		copy.memoryStorageType = this.memoryStorageType;
+		copy.stacksize = this.stacksize;
+		copy.hasDurability = this.hasDurability;
+		copy.attachmentMaterials = this.attachmentMaterials;
+		copy.onHoldPlayerBehaviour = this.onHoldPlayerBehaviour != null ? new List<ItemBehaviour>(this.onHoldPlayerBehaviour) : null;
+		copy.onHoldClientBehaviour = this.onHoldClientBehaviour != null ? new List<ItemBehaviour>(this.onHoldClientBehaviour) : null;
+		copy.onHoldServerBehaviour = this.onHoldServerBehaviour != null ? new List<ItemBehaviour>(this.onHoldServerBehaviour) : null;
+		copy.onUnholdPlayerBehaviour = this.onUnholdPlayerBehaviour != null ? new List<ItemBehaviour>(this.onUnholdPlayerBehaviour) : null;
+		copy.onUnholdClientBehaviour = this.onUnholdClientBehaviour != null ? new List<ItemBehaviour>(this.onUnholdClientBehaviour) : null;
+		copy.onUnholdServerBehaviour = this.onUnholdServerBehaviour != null ? new List<ItemBehaviour>(this.onUnholdServerBehaviour) : null;
+		copy.onUseClientBehaviour = this.onUseClientBehaviour != null ? new List<ItemBehaviour>(this.onUseClientBehaviour) : null;
+		copy.onUseServerBehaviour = this.onUseServerBehaviour != null ? new List<ItemBehaviour>(this.onUseServerBehaviour) : null;
+
+		copy.damage = this.damage;
+		copy.maxDurability = this.maxDurability;
+		copy.currentDurability = this.currentDurability;
+		copy.impact = this.impact;
+		copy.type = this.type;
+		copy.refineLevel = this.refineLevel;
+		copy.extraEffect = this.extraEffect;
+		copy.requiredLevels = this.requiredLevels != null ? new Dictionary<SkillType, byte>(this.requiredLevels) : null;
+
+		return copy;
 	}
 
 }

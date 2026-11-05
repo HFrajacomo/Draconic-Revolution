@@ -1,0 +1,62 @@
+{
+	"attachments": [
+		{
+			"fbxName": "Torch",
+			"type": "BASE_CHARACTER_BELT_STRAIGHT_LEFT",
+			"flipModel": true,
+			"heightOffset": 0.006
+		}
+	],
+	"overrides": {
+		"data": [
+			{
+				"state": "Carry Draw",
+				"clip": "CharacterArmature_Carry Draw - Torch",
+				"events": [
+					{
+						"type": "AN_SwitchAttachmentAnchorBehaviour",
+						"json": "{\"normalizedTime\": 0.25, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_LEFT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_LEFT\", \"flip\": false, \"heightOffset\": 0.0}"
+					},
+					{
+						"type": "AN_CreateVFXBehaviour",
+						"json": "{\"normalizedTime\": 0.7, \"vfxGameObjectName\": \"Torchfire\", \"boneAnchor\": \"BASE_CHARACTER_HAND_LEFT\", \"offsetY\": 1.0, \"rotationX\": -90.0, \"rotationZ\": 310.0, \"vfxPath\": \"----- PrefabVFX -----/FireVFX\", \"ifPlayerBuildOnlyFirstPerson\": true}"
+					},
+					{
+						"type": "AN_CreateSFXBehaviour",
+						"json": "{\"normalizedTime\": 0.7, \"sfxName\": \"Torchfire\", \"boneAnchor\": \"BASE_CHARACTER_HAND_LEFT\", \"ifPlayerBuildOnlyFirstPerson\": true}"
+					},
+					{
+						"type": "AN_PointLightBehaviour",
+						"json": "{\"normalizedTime\": 0.7, \"create\": true, \"voxelLightIntensity\": 6, \"ifPlayerBuildOnlyFirstPerson\": true}"
+					}
+				]
+			},
+			{
+				"state": "Carry Hold",
+				"clip": "CharacterArmature_Carry Hold - Torch"
+			},
+			{
+				"state": "Carry Stow",
+				"clip": "CharacterArmature_Carry Stow - Torch",
+				"events": [
+					{
+						"type": "AN_DestroyVFXBehaviour",
+						"json": "{\"normalizedTime\": 0.75, \"vfxGameObjectName\": \"Torchfire\", \"ifPlayerBuildOnlyFirstPerson\": true}"
+					},
+					{
+						"type": "AN_DestroySFXBehaviour",
+						"json": "{\"normalizedTime\": 0.75, \"sfxName\": \"Torchfire\", \"ifPlayerBuildOnlyFirstPerson\": true}"
+					},
+					{
+						"type": "AN_PointLightBehaviour",
+						"json": "{\"normalizedTime\": 0.75, \"create\": false, \"ifPlayerBuildOnlyFirstPerson\": true}"
+					},
+					{
+						"type": "AN_SwitchAttachmentAnchorBehaviour",
+						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_LEFT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_LEFT\", \"flip\": true, \"heightOffset\": 0.006}"
+					}
+				]
+			}
+		]
+	}
+}

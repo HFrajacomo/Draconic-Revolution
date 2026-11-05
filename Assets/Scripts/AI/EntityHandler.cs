@@ -22,6 +22,7 @@ public class EntityHandler
 	private Dictionary<ulong, ItemEntity> dropObject;
 	private Dictionary<ulong, DeltaMove> dropCurrentPositions;
 	private Dictionary<ulong, int> playerBattleStyle;
+	private Dictionary<ulong, int> playerCarryStyle;
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
 	private HashSet<ulong> playerSFXNeedsReapply;
 	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
@@ -34,6 +35,7 @@ public class EntityHandler
 
 	private static readonly int MAX_COUNTER_VALUE = 4;
 	private static readonly string SHEATHE_STATE = "Weapon Sheathe";
+	private static readonly string CARRY_STOW_STATE = "Carry Stow";
 	private static readonly float SHEATHE_START_GRACE_TIME = 0.5f;
 	private static readonly float SHEATHE_MAX_WAIT_TIME = 3f;
 	private static RuntimeAnimatorController BASE_CONTROLLER;
@@ -51,6 +53,7 @@ public class EntityHandler
 		this.pendingPlayerAnimations = new Dictionary<ulong, Dictionary<int, AnimationData>>();
 		this.pendingPlayerAnimatorParameters = new Dictionary<ulong, Dictionary<string, float>>();
 		this.playerBattleStyle = new Dictionary<ulong, int>();
+		this.playerCarryStyle = new Dictionary<ulong, int>();
 		this.playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
 		this.playerSFXNeedsReapply = new HashSet<ulong>();
 		this.playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
@@ -120,6 +123,7 @@ public class EntityHandler
 		this.pendingPlayerAnimations.Add(code, new Dictionary<int, AnimationData>());
 		this.pendingPlayerAnimatorParameters.Add(code, new Dictionary<string, float>());
 		this.playerBattleStyle.Add(code, -1);
+		this.playerCarryStyle.Add(code, BattleStyleDeterminator.NO_CARRY);
 		this.playerActiveLoopSFX.Add(code, new Dictionary<string, EntitySFXData>());
 		this.playerAttachmentAnchors.Add(code, new Dictionary<BoneAnchorType, AttachmentAnchorState>());
 		this.playerAttachmentItems.Add(code, AttachmentItems.NONE);
@@ -160,11 +164,14 @@ public class EntityHandler
 		if(!this.playerBattleStyle.ContainsKey(code))
 			return;
 
-		if(this.playerBattleStyle[code] == style)
+		int carryStyle = BattleStyleDeterminator.GetCarryStyleCode(style, this.playerAttachmentItems[code]);
+
+		if(this.playerBattleStyle[code] == style && this.playerCarryStyle[code] == carryStyle)
 			return;
 
 		bool isMale = this.playerSheet[code].GetGender();
 		this.playerBattleStyle[code] = style;
+		this.playerCarryStyle[code] = carryStyle;
 
 		BattleStyleData bsd = AnimationLoader.GetBattleStyle(style);
 		AnimatorOverrideController animationOverrideController;
@@ -173,9 +180,12 @@ public class EntityHandler
 
 		animationOverrideController = ApplyOverrides(animationOverrideController, bsd.GetOverrides());
 
+		if(carryStyle != BattleStyleDeterminator.NO_CARRY)
+			animationOverrideController = ApplyOverrides(animationOverrideController, AnimationLoader.GetCarryStyle(carryStyle).GetOverrides());
+
 		this.playerAnimations[code].GetThirdPersonAnimator().runtimeAnimatorController = animationOverrideController;
 		this.playerSheet[code].SetBattleStyleCode(style);
-		this.playerAnimations[code].CreateAttachments(bsd, this.playerAttachmentItems[code]);
+		this.playerAnimations[code].CreateAttachments(bsd, this.playerAttachmentItems[code], carryStyle);
 		ApplyAttachmentAnchors(code);
 
 		// Attachments are replaced, destroying SFX attached to them
@@ -184,18 +194,23 @@ public class EntityHandler
 	}
 
 	/*
-	Handles a BattleStyle change received from the Server, resetting attachments to their default anchors when the style differs
-		If the style is the same, only the attachment materials are refreshed with the newly equipped items
+	Handles a BattleStyle change received from the Server, resetting attachments to their default anchors when the style or the carried off-hand style differs
+		If both are the same, only the attachment materials are refreshed with the newly equipped items
 		If the player model wasn't built yet, the data is kept and applied when the model is built
 	*/
 	public void ChangePlayerBattleStyle(ulong code, int style, AttachmentItems items){
 		if(!this.playerBattleStyle.ContainsKey(code))
 			return;
 
-		bool itemsChanged = !this.playerAttachmentItems[code].Equals(items);
+		AttachmentItems previousItems = this.playerAttachmentItems[code];
+		bool itemsChanged = !previousItems.Equals(items);
+		int knownStyle = GetKnownBattleStyle(code);
+		int knownCarryStyle = knownStyle == -1 ? BattleStyleDeterminator.NO_CARRY : BattleStyleDeterminator.GetCarryStyleCode(knownStyle, previousItems);
+		int carryStyle = BattleStyleDeterminator.GetCarryStyleCode(style, items);
+
 		this.playerAttachmentItems[code] = items;
 
-		if(GetKnownBattleStyle(code) != style)
+		if(knownStyle != style || knownCarryStyle != carryStyle)
 			this.playerAttachmentAnchors[code].Clear();
 
 		if(this.playerAnimations[code] == null || !this.playerSheet.ContainsKey(code)){
@@ -204,7 +219,7 @@ public class EntityHandler
 			return;
 		}
 
-		if(this.playerBattleStyle[code] == style){
+		if(this.playerBattleStyle[code] == style && this.playerCarryStyle[code] == carryStyle){
 			if(itemsChanged)
 				this.playerAnimations[code].RefreshAttachmentMaterials(items);
 			return;
@@ -332,6 +347,7 @@ public class EntityHandler
 			this.pendingPlayerAnimations.Remove(code);
 			this.pendingPlayerAnimatorParameters.Remove(code);
 			this.playerBattleStyle.Remove(code);
+			this.playerCarryStyle.Remove(code);
 			this.playerActiveLoopSFX.Remove(code);
 			this.playerSFXNeedsReapply.Remove(code);
 			this.playerAttachmentAnchors.Remove(code);
@@ -595,6 +611,12 @@ public class EntityHandler
 	private bool IsPendingHoldReady(ulong code, ref PendingItemHold hold){
 		if(hold.elapsed >= SHEATHE_MAX_WAIT_TIME || !CanProcessPlayerAnimations(code))
 			return true;
+
+		// The carried off-hand item is stowed together with the kit and may finish after the main Sheathe
+		float carryTime = this.playerAnimations[code].GetAnimationTime(CARRY_STOW_STATE);
+
+		if(carryTime >= 0f && carryTime < 1f)
+			return false;
 
 		float time = this.playerAnimations[code].GetAnimationTime(SHEATHE_STATE);
 

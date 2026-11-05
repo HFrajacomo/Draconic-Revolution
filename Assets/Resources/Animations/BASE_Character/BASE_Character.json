@@ -34,6 +34,9 @@
 		{"name": "Idle - Torch", "loop": true},
 		{"name": "Sheathe - Torch", "loop": false},
 		{"name": "Unsheathe - Torch", "loop": false},
-		{"name": "Attack 1 - Torch", "loop": false}
+		{"name": "Attack 1 - Torch", "loop": false},
+		{"name": "Carry Draw - Torch", "loop": false},
+		{"name": "Carry Hold - Torch", "loop": true},
+		{"name": "Carry Stow - Torch", "loop": false}
 	]
 }

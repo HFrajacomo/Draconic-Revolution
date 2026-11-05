@@ -576,15 +576,17 @@ public class PlayerInventoryManager : MonoBehaviour {
     		// If can't move, ignore
     		// or if is dragging an Action
     		if(!CanSwitchToInventory(this.draggedStack, inventoryCode, slot)){
+    			// Items stay selected, which blocks invalid equipment combinations like two SubWeapons
+    			if(this.draggedStack.IsItemStack())
+    				return;
+
     			if(((EntityAction)this.draggedStack).keepInHotbar)
     				return;
 
     			// Remove Action from DraggedStack
-    			if(!this.draggedStack.IsItemStack()){
-    				this.draggedStack = null;
-    				DrawSlot(inventoryCode, slot);
-    				ResetSelection();
-    			}
+    			this.draggedStack = null;
+    			DrawSlot(inventoryCode, slot);
+    			ResetSelection();
 
     			return;
     		}
@@ -1051,13 +1053,35 @@ public class PlayerInventoryManager : MonoBehaviour {
     // To be used with the draggedItem ItemStack
     private bool CanSwitchToInventory(ClickableSlot cs, int indexInventory, ushort slot){
     	if(cs.IsItemStack()){
-	    	if(this.inventory[indexInventory].IsInGlobalWhitelist((ItemStack)cs) && this.inventory[indexInventory].IsInLocalWhitelist((ItemStack)cs, slot))
-	    		return true;
-	    	return false;
+	    	if(!this.inventory[indexInventory].IsInGlobalWhitelist((ItemStack)cs) || !this.inventory[indexInventory].IsInLocalWhitelist((ItemStack)cs, slot))
+	    		return false;
+
+	    	if(IsEquipmentInventory(indexInventory))
+	    		return IsValidEquipment(indexInventory, slot, (ItemStack)cs);
+
+	    	return true;
 	    }
 	    else{
 	    	return !this.inventory[indexInventory].itemInventory;
 	    }
+    }
+
+    // Checks if placing an item in an Equipment slot results in a combination of equipments that has a BattleStyle
+    private bool IsValidEquipment(int indexInventory, ushort slot, ItemStack its){
+    	Item other = null;
+    	ItemStack otherStack;
+
+    	for(ushort i=0; i < this.inventory[indexInventory].GetLimit(); i++){
+    		if(i == slot)
+    			continue;
+
+    		otherStack = this.inventory[indexInventory].GetSlot(i);
+
+    		if(otherStack != null)
+    			other = otherStack.GetItem();
+    	}
+
+    	return BattleStyleDeterminator.IsValidCombination(its.GetItem(), other);
     }
 
     // Gets the inventory index based on slot number
@@ -1478,7 +1502,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 			this.slotImages[3][i] = CreateImageComponent(goSlots, $"Slot-{i+1}", 3, i, this.slotSizes, anchorSec);
 			this.slotText[3][i] = CreateTextComponent(this.slotImages[3][i].gameObject, $"TSlot-{i+1}", this.slotSizes, anchorSec);
 
-			this.slotImages[3][i].gameObject.transform.localPosition = new Vector3(0, (-100 * (i-1)), 0f);
+			this.slotImages[3][i].gameObject.transform.localPosition = new Vector3(i*(-80), 0f, 0f);
 		}
 	}
 

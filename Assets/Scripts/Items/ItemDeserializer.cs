@@ -28,7 +28,7 @@ public static class ItemDeserializer {
 	private static Dictionary<string, List<string>> behaviours = new Dictionary<string, List<string>>();
 	private static HashSet<string> assignedEvents = new HashSet<string>();
 	private static Dictionary<string, ItemBehaviour> nameToBehaviour = new Dictionary<string, ItemBehaviour>();
-	private static readonly HashSet<string> POSSIBLE_ITEM_TYPES = new HashSet<string>(){"Item", "Weapon"};
+	private static readonly HashSet<string> POSSIBLE_ITEM_TYPES = new HashSet<string>(){"Item", "Weapon", "SubWeapon"};
 	private static readonly string ATTACHMENT_SECTION = "Attachment";
 
 
@@ -243,6 +243,8 @@ public static class ItemDeserializer {
 				return JsonUtility.FromJson<Item>(JsonFormatter.RemoveComments(json));
 			case "Weapon":
 				return JsonUtility.FromJson<Weapon>(JsonFormatter.RemoveComments(json));
+			case "SubWeapon":
+				return JsonUtility.FromJson<SubWeapon>(JsonFormatter.RemoveComments(json));
 			default:
 				throw new DeserializationErrorException($"[ItemDeserializer] Failed to verify type of Ite: {type}"); 
 		}

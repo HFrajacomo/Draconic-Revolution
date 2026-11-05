@@ -4,7 +4,7 @@ using UnityEngine;
 
 /*
 Loads everything that BattleStyle attachments need in order to be rendered (client only)
-	Preloads every FBX model referenced by BattleStyles and every base Material referenced by Items and BattleStyle defaults
+	Preloads every FBX model referenced by BattleStyles and Carry Styles, and every base Material referenced by Items and BattleStyle/Carry Style defaults
 	Item-specific values are applied at runtime through MaterialPropertyBlocks, so no Material is ever created per item
 	Item textures are not loaded here; they are lazily loaded by AttachmentTextureCache
 */
@@ -51,33 +51,61 @@ public class AttachmentLoader : BaseLoader {
 		return attachments[attachmentIndex].GetDefaultMaterial();
 	}
 
+	/*
+	Finds which material descriptor should be applied to a carry attachment
+		Priority: off-hand item's Attachment section -> BattleStyle defaultMaterial -> null (FBX imported materials)
+	*/
+	public static AttachmentMaterialData ResolveCarryDescriptor(AttachmentData[] attachments, int attachmentIndex, AttachmentItems items){
+		AttachmentMaterialData data;
+
+		if(items.leftHand != 0){
+			data = ItemLoader.GetItem(items.leftHand).GetAttachmentMaterials();
+
+			if(data != null)
+				return data;
+		}
+
+		return attachments[attachmentIndex].GetDefaultMaterial();
+	}
+
 	private void LoadModels(){
 		BattleStyleData style;
-		GameObject prefab;
+		CarryStyleData carryStyle;
 
 		for(int code=0; code < AnimationLoader.GetBattleStyleCount(); code++){
 			style = AnimationLoader.GetBattleStyle(code);
+			LoadModels(style.GetName(), style.attachments);
+		}
 
-			if(style.attachments == null)
+		for(int code=0; code < AnimationLoader.GetCarryStyleCount(); code++){
+			carryStyle = AnimationLoader.GetCarryStyle(code);
+			LoadModels($"Carry Style {carryStyle.GetName()}", carryStyle.GetAttachments());
+		}
+	}
+
+	private void LoadModels(string owner, AttachmentData[] attachments){
+		GameObject prefab;
+
+		if(attachments == null)
+			return;
+
+		for(int i=0; i < attachments.Length; i++){
+			if(models.ContainsKey(attachments[i].fbxName))
 				continue;
 
-			for(int i=0; i < style.attachments.Length; i++){
-				if(models.ContainsKey(style.attachments[i].fbxName))
-					continue;
+			prefab = Resources.Load<GameObject>($"{ITEM_MODEL_RESPATH}{attachments[i].fbxName}");
 
-				prefab = Resources.Load<GameObject>($"{ITEM_MODEL_RESPATH}{style.attachments[i].fbxName}");
+			if(prefab == null)
+				throw new DeserializationErrorException($"[AttachmentLoader] {owner} references model {attachments[i].fbxName}, which wasn't found in Resources/{ITEM_MODEL_RESPATH}");
 
-				if(prefab == null)
-					throw new DeserializationErrorException($"[AttachmentLoader] BattleStyle {style.GetName()} references model {style.attachments[i].fbxName}, which wasn't found in Resources/{ITEM_MODEL_RESPATH}");
-
-				models.Add(style.attachments[i].fbxName, prefab);
-			}
+			models.Add(attachments[i].fbxName, prefab);
 		}
 	}
 
 	private void LoadBaseMaterials(){
 		HashSet<string> warnedProperties = new HashSet<string>();
 		BattleStyleData style;
+		CarryStyleData carryStyle;
 		Item item;
 
 		for(int id=0; id < ItemLoader.GetItemCount(); id++){
@@ -87,13 +115,21 @@ public class AttachmentLoader : BaseLoader {
 
 		for(int code=0; code < AnimationLoader.GetBattleStyleCount(); code++){
 			style = AnimationLoader.GetBattleStyle(code);
+			RegisterDescriptors(style.attachments, $"BattleStyle {style.GetName()}", warnedProperties);
+		}
 
-			if(style.attachments == null)
-				continue;
+		for(int code=0; code < AnimationLoader.GetCarryStyleCount(); code++){
+			carryStyle = AnimationLoader.GetCarryStyle(code);
+			RegisterDescriptors(carryStyle.GetAttachments(), $"Carry Style {carryStyle.GetName()}", warnedProperties);
+		}
+	}
 
-			for(int i=0; i < style.attachments.Length; i++){
-				RegisterDescriptor(style.attachments[i].GetDefaultMaterial(), $"BattleStyle {style.GetName()}", warnedProperties);
-			}
+	private void RegisterDescriptors(AttachmentData[] attachments, string owner, HashSet<string> warnedProperties){
+		if(attachments == null)
+			return;
+
+		for(int i=0; i < attachments.Length; i++){
+			RegisterDescriptor(attachments[i].GetDefaultMaterial(), owner, warnedProperties);
 		}
 	}
 

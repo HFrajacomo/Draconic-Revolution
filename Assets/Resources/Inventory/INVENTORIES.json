@@ -29,17 +29,25 @@
 			"isPickupTarget": false,
 			"bulkMovedTo": false,
 			"mainInventory": false,
-			"amountOfSlots": 1,
+			"amountOfSlots": 2,
 			"columnCount": 1,
 			"slotWhiteList": [
 				{
 					"id": 0,
+					"array": ["Null", "Weapon"]
+				},
+				{
+					"id": 1,
 					"array": ["Null", "Weapon"]
 				}
 			],
 			"slotDefaultIcon": [
 				{
 					"key": 0,
+					"value": "right_hand_slot"
+				},
+				{
+					"key": 1,
 					"value": "left_hand_slot"
 				}
 			]

@@ -7,6 +7,8 @@
     "hasDurability": false,
     // Weapon
     "weaponType": "TORCH",
+    // SubWeapon
+    "carryStyle": "BASE_Torch",
     "damage": 0,
     "impact": 0,
     "maxDurability": 0,
@@ -17,29 +19,11 @@
 }
 --->Behaviours
 {
-    "onUseClient": "IT_PlaceBlockBehaviour",
-    "onHoldPlayer": "IT_CreatePointLightBehaviour",
-    "onUnholdPlayer": "IT_CreatePointLightBehaviour",
-    "onHoldClient": "IT_CreatePointLightBehaviour",
-    "onUnholdClient": "IT_CreatePointLightBehaviour"
+    "onUseClient": "IT_PlaceBlockBehaviour"
 }
 --->IT_PlaceBlockBehaviour
 {
     "blockName": "BASE_Torch"
-}
---->IT_CreatePointLightBehaviour
-{
-    "audioName": "Torchfire",
-    "voxelLightIntensity": 6,
-    "lightComponentIntensity": 600,
-    "lightRange": 15,
-    "lightColor": {
-        "r": 0.84,
-        "g": 0.51,
-        "b": 0.34,
-        "a": 1
-    },
-    "realisticLight": true
 }
 --->Attachment
 {
@@ -53,4 +37,4 @@
     ]
 }
 --->Type
-Weapon
+SubWeapon

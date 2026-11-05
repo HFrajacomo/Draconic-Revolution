@@ -34,6 +34,7 @@ public class Server {
 	private Dictionary<ulong, Dictionary<int, AnimationData>> playerAnimationStates;
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
 	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
+	private Dictionary<ulong, int> playerCarryStyles;
 
 	private HashSet<ChunkPos> chunksToSend = new HashSet<ChunkPos>();
 
@@ -82,6 +83,7 @@ public class Server {
 		playerAnimationStates = new Dictionary<ulong, Dictionary<int, AnimationData>>();
 		playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
 		playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
+		playerCarryStyles = new Dictionary<ulong, int>();
 
     	this.cl = cl;
     	this.entityHandler.SetChunkLoader(cl);
@@ -509,11 +511,7 @@ public class Server {
 			// Sends player inventory data
 			NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
 			inventoryLength = this.cl.playerServerInventory.LoadInventoryIntoBuffer(accountID, out isEmptyInventory);
-
-			if(!isEmptyInventory)
-				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetBuffer(), inventoryLength);
-			else
-				inventoryMessage.SendInventory(this.cl.playerServerInventory.GetEmptyBuffer(inventoryLength), inventoryLength);
+			inventoryMessage.SendInventory(this.cl.playerServerInventory.GetBuffer(), inventoryLength);
 
 			this.Send(inventoryMessage.GetMessage(), inventoryMessage.size, id, temporary:true);
 
@@ -1014,6 +1012,7 @@ public class Server {
 		this.playerAnimationStates.Remove(id);
 		this.playerActiveLoopSFX.Remove(id);
 		this.playerAttachmentAnchors.Remove(id);
+		this.playerCarryStyles.Remove(id);
 
 		this.entityHandler.Remove(EntityType.PLAYER, this.cl.regionHandler.allPlayerData[id].GetChunkPos(), id);
 		this.entityHandler.RemoveSheet(id);
@@ -1792,10 +1791,18 @@ public class Server {
 		}
 	}
 
-	// Attachments are rebuilt in their default anchors whenever a BattleStyle changes
+	// Attachments are rebuilt in their default anchors whenever a BattleStyle or the carried off-hand style changes
 	private void ClearAttachmentAnchorsOnStyleChange(ulong playerCode, int style){
-		if(this.entityHandler.GetSheet(playerCode).GetBattleStyleCode() != style)
+		int carryStyle = BattleStyleDeterminator.GetCarryStyleCode(style, BattleStyleDeterminator.ResolveAttachmentItems(this.cl, playerCode));
+		int previousCarryStyle;
+
+		if(!this.playerCarryStyles.TryGetValue(playerCode, out previousCarryStyle))
+			previousCarryStyle = BattleStyleDeterminator.NO_CARRY;
+
+		if(this.entityHandler.GetSheet(playerCode).GetBattleStyleCode() != style || previousCarryStyle != carryStyle)
 			this.playerAttachmentAnchors.Remove(playerCode);
+
+		this.playerCarryStyles[playerCode] = carryStyle;
 	}
 
 	// Send input message to all Clients connected to a given Chunk

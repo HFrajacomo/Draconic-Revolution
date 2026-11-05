@@ -135,10 +135,7 @@ public class ChunkLoader_Server : MonoBehaviour
         // Send first player inventory info
         NetMessage inventoryMessage = new NetMessage(NetCode.SENDINVENTORY);
         inventoryLength = this.playerServerInventory.LoadInventoryIntoBuffer(this.server.firstConnectedID, out isEmptyInventory);
-        if(!isEmptyInventory)
-            inventoryMessage.SendInventory(this.playerServerInventory.GetBuffer(), inventoryLength);
-        else
-            inventoryMessage.SendInventory(this.playerServerInventory.GetEmptyBuffer(inventoryLength), inventoryLength);
+        inventoryMessage.SendInventory(this.playerServerInventory.GetBuffer(), inventoryLength);
 
         this.server.Send(inventoryMessage.GetMessage(), inventoryMessage.size, this.server.firstConnectedID);
 
