@@ -231,7 +231,7 @@ public class Client
 				EntityDelete(data);
 				break;
 			case NetCode.PLACEMENTDENIED:
-				PlacementDenied();
+				PlacementDenied(data);
 				break;
 			case NetCode.ITEMENTITYDATA:
 				ItemEntityData(data);
@@ -604,12 +604,15 @@ public class Client
 		}
 	}
 
-	// Signals Raycast to giveback the last placed item
-	private void PlacementDenied(){
-		ItemStack its = new ItemStack(cl.playerRaycast.lastBlockPlaced, 1);
-		this.raycast.hotbarHandler.hotbar.AddStack(its, this.raycast.hotbarHandler.hotbar.CanFit(its));
-		this.raycast.hotbarHandler.DrawHotbar();
-		this.raycast.hotbarHandler.playerInventoryManager.SendInventoryDataToServer();
+	// Gives back the denied placed item to the slot it came from
+	private void PlacementDenied(byte[] data){
+		ushort itemID = NetDecoder.ReadUshort(data, 1);
+		byte inventoryCode = data[3];
+		byte slot = data[4];
+		byte actionSlot = data[5];
+		ushort actionID = NetDecoder.ReadUshort(data, 6);
+
+		this.cl.playerInventoryManager.RestorePlacedItem(itemID, inventoryCode, slot, actionSlot, actionID);
 	}
 
 	// Received information on an Item Entity

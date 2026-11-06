@@ -1171,6 +1171,144 @@ public class PlayerInventoryManager : MonoBehaviour {
 		SubToCounter(its.GetID(), its.GetAmount());
 	}
 
+	// Gives back a single item whose placement was denied by the server
+	// Tries its origin slot first, then the main inventory and the other non-equipment item inventories. Drops it if there's no room
+	// If it was placed through an action that got removed from the action hotbar, the action is recreated
+	public void RestorePlacedItem(ushort itemID, byte inventoryCode, byte slot, byte actionSlot, ushort actionID){
+		byte landedInventory;
+		ushort landedSlot;
+
+		if(TryRestoreToSlot(itemID, inventoryCode, slot)){
+			landedInventory = inventoryCode;
+			landedSlot = slot;
+		}
+		else if(!TryRestoreAnywhere(itemID, out landedInventory, out landedSlot)){
+			this.mainControllerManager.DropItem(new ItemStack(itemID, 1));
+			return;
+		}
+
+		AddToCounter(itemID, 1);
+		DrawSlot(landedInventory, landedSlot);
+
+		if(this.inventory[landedInventory] == this.cl.hotbarHandler.hotbar)
+			this.cl.hotbarHandler.DrawHotbarSlot((byte)landedSlot);
+
+		RestorePlacingAction(actionSlot, actionID, landedInventory, (byte)landedSlot);
+
+		this.cl.hotbarHandler.DrawActionHotbar();
+		SendInventoryDataToServer();
+	}
+
+	// Puts a single item back into an exact slot if it's empty or has a non-full stack of the same item
+	private bool TryRestoreToSlot(ushort itemID, byte inventoryCode, ushort slot){
+		if(inventoryCode >= this.inventory.Count || !CanRestoreInto(inventoryCode))
+			return false;
+
+		if(slot >= this.inventory[inventoryCode].GetLimit())
+			return false;
+
+		ItemStack current = this.inventory[inventoryCode].GetSlot(slot);
+
+		if(current == null){
+			ItemStack its = new ItemStack(itemID, 1);
+
+			if(!this.inventory[inventoryCode].IsInGlobalWhitelist(its) || !this.inventory[inventoryCode].IsInLocalWhitelist(its, slot))
+				return false;
+
+			this.inventory[inventoryCode].ForceAddStack(its, slot);
+			return true;
+		}
+
+		if(current.GetID() == itemID)
+			return current.Increment();
+
+		return false;
+	}
+
+	// Puts a single item in the first available spot, starting by the main inventory
+	private bool TryRestoreAnywhere(ushort itemID, out byte landedInventory, out ushort landedSlot){
+		int mainInventoryCode = this.inventory.IndexOf(GetMainInventory());
+
+		landedInventory = (byte)mainInventoryCode;
+		landedSlot = 0;
+
+		if(CanRestoreInto(mainInventoryCode) && TryAddSingleItem((byte)mainInventoryCode, itemID, out landedSlot))
+			return true;
+
+		for(int i=0; i < this.inventory.Count; i++){
+			if(i == mainInventoryCode || !CanRestoreInto(i))
+				continue;
+
+			if(TryAddSingleItem((byte)i, itemID, out landedSlot)){
+				landedInventory = (byte)i;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	// Adds a single item to an inventory, prioritizing non-full stacks of the same item over empty slots
+	private bool TryAddSingleItem(byte inventoryCode, ushort itemID, out ushort landedSlot){
+		BaseInventory inv = this.inventory[inventoryCode];
+		ItemStack its = new ItemStack(itemID, 1);
+		ItemStack current;
+		int emptySlot = -1;
+
+		landedSlot = 0;
+
+		if(!inv.IsInGlobalWhitelist(its))
+			return false;
+
+		for(ushort i=0; i < inv.GetLimit(); i++){
+			current = inv.GetSlot(i);
+
+			if(current == null){
+				if(emptySlot == -1 && inv.IsInLocalWhitelist(its, i))
+					emptySlot = i;
+				continue;
+			}
+
+			if(current.GetID() == itemID && current.Increment()){
+				landedSlot = i;
+				return true;
+			}
+		}
+
+		if(emptySlot == -1)
+			return false;
+
+		landedSlot = (ushort)emptySlot;
+		inv.ForceAddStack(its, landedSlot);
+		return true;
+	}
+
+	private bool CanRestoreInto(int inventoryCode){
+		return this.inventory[inventoryCode].itemInventory && !IsEquipmentInventory(inventoryCode);
+	}
+
+	// Recreates the action that placed an item if it was removed when its stack got depleted
+	private void RestorePlacingAction(byte actionSlot, ushort actionID, byte landedInventory, byte landedSlot){
+		if(actionSlot == byte.MaxValue || actionSlot >= this.inventory[0].GetLimit())
+			return;
+
+		// Action is still there or the slot got occupied in the meantime
+		if(this.inventory[0].GetPos(actionSlot) != null)
+			return;
+
+		ItemStack landedStack = this.inventory[landedInventory].GetSlot(landedSlot);
+		EntityAction ea = landedStack.GetItem().OnCreateAction(this.cl, landedStack);
+
+		if(ea == null)
+			ea = ActionLoader.GetCopy(actionID);
+
+		this.inventory[0].AddStack(ea, actionSlot);
+		RemoveConnection(actionSlot);
+		AddConnection(actionSlot, landedInventory, landedSlot);
+		ea.SetItemStack(landedStack);
+		DrawSlot(0, actionSlot);
+	}
+
     // Resets text in details panel
     private void ResetDetails(){
         this.detailsName.text = "";

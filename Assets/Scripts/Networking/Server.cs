@@ -725,6 +725,11 @@ public class Server {
 
 		switch(type){
 			case BUDCode.PLACE:
+				byte inventoryCode = data[38];
+				ushort itemID = NetDecoder.ReadUshort(data, 39);
+				byte actionSlot = data[41];
+				ushort actionID = NetDecoder.ReadUshort(data, 42);
+
 				// if chunk is still loaded
 				if(this.cl.Contains(lastCoord.GetChunkPos())){
 
@@ -732,16 +737,14 @@ public class Server {
 					if(blockCode <= ushort.MaxValue/2){
 						// if placement rules fail
 						if(!VoxelLoader.GetBlock(blockCode).PlacementRule(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl)){
-							NetMessage denied = new NetMessage(NetCode.PLACEMENTDENIED);
-							this.Send(denied.GetMessage(), denied.size, id);
+							SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID);
 							return;
 						}
 					}
 					// if it's an object
 					else{
 						if(!VoxelLoader.GetObject(blockCode).PlacementRule(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl)){
-							NetMessage denied = new NetMessage(NetCode.PLACEMENTDENIED);
-							this.Send(denied.GetMessage(), denied.size, id);
+							SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID);
 							return;
 						}
 					}
@@ -753,8 +756,7 @@ public class Server {
 								continue;
 
 							if(!this.cl.regionHandler.allPlayerData[code].CheckValidPlacement(lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ())){
-								NetMessage denied = new NetMessage(NetCode.PLACEMENTDENIED);
-								this.Send(denied.GetMessage(), denied.size, id);
+								SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID);
 								return;
 							}
 						}
@@ -774,7 +776,7 @@ public class Server {
 							VoxelLoader.GetObject(blockCode).OnPlace(lastCoord.GetChunkPos(), lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 						}
 
-						this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
+						this.cl.playerServerInventory.ChangeQuantity(id, inventoryCode, slot, newQuantity);
 
 						// Sends the updated voxel to loaded clients
 						message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
@@ -783,7 +785,7 @@ public class Server {
 
 						// If quantity becomes zero or less, runs OnUnhold
 						if(newQuantity <= 0){
-							ItemStack its = this.cl.playerServerInventory.GetSlot(id, slot).GetItemStack();
+							ItemStack its = this.cl.playerServerInventory.GetSlot(id, inventoryCode, slot).GetItemStack();
 							its.GetItem().OnUnholdServer(this.cl, its , id);
 
 							NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
@@ -808,11 +810,11 @@ public class Server {
 						}
 					}
 
-					this.cl.playerServerInventory.ChangeQuantity(id, slot, newQuantity);
+					this.cl.playerServerInventory.ChangeQuantity(id, inventoryCode, slot, newQuantity);
 					
 					// If quantity becomes zero or less, runs OnUnhold
 					if(newQuantity <= 0){
-						ItemStack its = this.cl.playerServerInventory.GetSlot(id, slot).GetItemStack();
+						ItemStack its = this.cl.playerServerInventory.GetSlot(id, inventoryCode, slot).GetItemStack();
 						its.GetItem().OnUnholdServer(this.cl, its , id);
 
 						NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
@@ -822,7 +824,7 @@ public class Server {
 
 					// If quantity becomes zero or less, runs OnUnhold
 					if(newQuantity <= 0){
-						ItemStack its = this.cl.playerServerInventory.GetSlot(id, slot).GetItemStack();
+						ItemStack its = this.cl.playerServerInventory.GetSlot(id, inventoryCode, slot).GetItemStack();
 						its.GetItem().OnUnholdServer(this.cl, its , id);
 
 						NetMessage unholdMessage = new NetMessage(NetCode.SENDITEMINHAND);
@@ -833,6 +835,10 @@ public class Server {
 					// Make entities in this chunk update their TerrainVision
 					this.entityHandler.SetRefreshVision(EntityType.DROP, lastCoord.GetChunkPos());
 
+				}
+				// Chunk is not loaded in the server, so the item must be given back
+				else{
+					SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID);
 				}
 				break;
 			case BUDCode.SETSTATE:
@@ -900,6 +906,13 @@ public class Server {
 			default:
 				break;
 		}
+	}
+
+	// Tells a client its placement was denied, echoing the origin of the placed item so it can be given back to the same slot
+	private void SendPlacementDenied(ulong id, ushort itemID, byte inventoryCode, byte slot, byte actionSlot, ushort actionID){
+		NetMessage denied = new NetMessage(NetCode.PLACEMENTDENIED);
+		denied.PlacementDenied(itemID, inventoryCode, slot, actionSlot, actionID);
+		this.Send(denied.GetMessage(), denied.size, id);
 	}
 
 	// Receives player position and adds it to PlayerPositions Dict

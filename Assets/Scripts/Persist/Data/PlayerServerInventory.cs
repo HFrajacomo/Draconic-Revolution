@@ -109,12 +109,23 @@ public class PlayerServerInventory{
 
     // Fetches the Item in a slot directly from the buffer data
     public PlayerServerInventorySlot GetSlot(ulong playerCode, int inventoryCode, byte slot){
+        int index = GetFlatIndex(playerCode, inventoryCode, slot);
+
+        if(index < 0)
+            throw new IndexOutOfRangeException($"[PlayerServerInventory] GetSlot(ushort, int, byte) couldn't find the indicated slot for player {playerCode} in inventory {inventoryCode} and slot {slot}");
+
+        return this.inventories[playerCode][index];
+    }
+
+    // Converts an (inventoryCode, slot) pair into the index of the flattened inventory list
+    // Returns -1 if it couldn't be found
+    private int GetFlatIndex(ulong playerCode, int inventoryCode, byte slot){
         int i=0;
         int typeCounter = 0;
         byte currentInventoryType = this.inventories[playerCode][0].GetInventoryType();
 
         if(inventoryCode == 0)
-            return this.inventories[playerCode][slot];
+            return slot < this.inventories[playerCode].Count ? slot : -1;
 
         while(i < this.inventories[playerCode].Count){
             if(currentInventoryType != this.inventories[playerCode][i].GetInventoryType()){
@@ -122,14 +133,16 @@ public class PlayerServerInventory{
                 typeCounter++;
 
                 if(typeCounter == inventoryCode){
-                    return this.inventories[playerCode][slot + i];
+                    if(slot + i >= this.inventories[playerCode].Count || this.inventories[playerCode][slot + i].GetInventoryType() != currentInventoryType)
+                        return -1;
+                    return slot + i;
                 }
             }
 
             i++;
         }
 
-        throw new IndexOutOfRangeException($"[PlayerServerInventory] GetSlot(ushort, int, byte) couldn't find the indicated slot for player {playerCode} in inventory {inventoryCode} and slot {slot}");
+        return -1;
     }
 
     public bool HasInventory(ulong playerCode){
@@ -156,6 +169,26 @@ public class PlayerServerInventory{
 
             SaveInventory(playerId);
         }
+    }
+
+    // Changes quantity of a slot given by the client's (inventoryCode, slot) pair
+    public void ChangeQuantity(ulong playerId, int inventoryCode, byte slot, byte quantity){
+        if(!this.inventories.ContainsKey(playerId))
+            return;
+
+        int index = GetFlatIndex(playerId, inventoryCode, slot);
+
+        if(index < 0)
+            return;
+
+        if(quantity == 0){
+            this.inventories[playerId][index] = new EmptyPlayerInventorySlot(this.inventories[playerId][index].GetInventoryType(), this.inventories[playerId][index].GetSlotID());
+        }
+        else{
+            this.inventories[playerId][index].SetQuantity(quantity);
+        }
+
+        SaveInventory(playerId);
     }
 
     public byte GetQuantity(ulong playerId, byte slotId){

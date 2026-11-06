@@ -31,8 +31,7 @@ public class EA_PlaceBlockBehaviour : EntityActionBehaviour {
 			blockID = VoxelLoader.GetBlockID(this.blockName);
 		}
 
-		if(this.PlaceBlock(cl, blockID, (byte)(connectedStack.GetAmount()-1), cl)){
-			cl.playerRaycast.lastBlockPlaced = it.GetID();
+		if(this.PlaceBlock(cl, blockID, it.GetID(), (byte)(connectedStack.GetAmount()-1), ea)){
 			cl.playerInventoryManager.SubToCounter(it.GetID(), 1);
 
 			if(connectedStack.Decrement()){
@@ -57,7 +56,8 @@ public class EA_PlaceBlockBehaviour : EntityActionBehaviour {
 
 	public override void OnSecondaryPlayer(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){OnPrimaryPlayer(cl, ea, its, code);}
 
-	private bool PlaceBlock(ChunkLoader cl, ushort blockCode, byte newQuantity, ChunkLoader loader){
+	// Origin of the placed item is sent so the server can echo it back in case of a PlacementDenied
+	private bool PlaceBlock(ChunkLoader cl, ushort blockCode, ushort itemID, byte newQuantity, EntityAction ea){
 		PlayerRaycast raycast = cl.playerRaycast;
 		CastCoord targetBlock = raycast.GetLastHitCoords();
 
@@ -70,7 +70,7 @@ public class EA_PlaceBlockBehaviour : EntityActionBehaviour {
 			return false;
 
 		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, cl.playerRaycast.facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerHotbarHandler.hotbarSlot, newQuantity:newQuantity);
+		message.DirectBlockUpdate(BUDCode.PLACE, targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, cl.playerRaycast.facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:ea.GetConnectedStackSlot(), newQuantity:newQuantity, inventoryCode:ea.GetConnectedStackInventory(), itemID:itemID, actionSlot:PlayerHotbarHandler.attackHotbarSlot, actionID:ea.GetID());
 		cl.client.Send(message);
 		return true;
 	}

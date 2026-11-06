@@ -43,7 +43,6 @@ public class PlayerRaycast : MonoBehaviour
 	private CastCoord playerBody;
 	public MainControllerManager control;
 
-	public ushort lastBlockPlaced = 0;
 	public PlayerHotbarHandler hotbarHandler;
 
 	// Cached

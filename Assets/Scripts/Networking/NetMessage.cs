@@ -188,8 +188,10 @@ public struct NetMessage
 	}
 
 	// Client or Server send a single voxel data to each other
-	// Keywords "Slot" and "NewQuantity" are used only in Place operations for Client->Server messages
-	public void DirectBlockUpdate(BUDCode type, ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state, ushort hp, byte slot=0, byte newQuantity=0){
+	// Keywords "Slot", "NewQuantity", "InventoryCode", "ItemID", "ActionSlot" and "ActionID" are used only in Place operations for Client->Server messages
+	// They describe where the placed item came from, so the server can echo them back in a PlacementDenied
+	// ActionSlot is byte.MaxValue when the placement did not come from an EntityAction
+	public void DirectBlockUpdate(BUDCode type, ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, ushort state, ushort hp, byte slot=0, byte newQuantity=0, byte inventoryCode=0, ushort itemID=0, byte actionSlot=byte.MaxValue, ushort actionID=0){
 		Reset();
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
 		NetDecoder.WriteInt(x, NetMessage.buffer, 10);
@@ -202,7 +204,23 @@ public struct NetMessage
 		NetDecoder.WriteInt((int)type, NetMessage.buffer, 32);
 		NetDecoder.WriteByte(slot, NetMessage.buffer, 36);
 		NetDecoder.WriteByte(newQuantity, NetMessage.buffer, 37);
-		this.size = 38;
+		NetDecoder.WriteByte(inventoryCode, NetMessage.buffer, 38);
+		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 39);
+		NetDecoder.WriteByte(actionSlot, NetMessage.buffer, 41);
+		NetDecoder.WriteUshort(actionID, NetMessage.buffer, 42);
+		this.size = 44;
+	}
+
+	// Server tells a client that its placement was denied, echoing where the placed item came from
+	// {CODE}[itemID (2)][inventoryCode][slot][actionSlot][actionID (2)]
+	public void PlacementDenied(ushort itemID, byte inventoryCode, byte slot, byte actionSlot, ushort actionID){
+		Reset();
+		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 1);
+		NetDecoder.WriteByte(inventoryCode, NetMessage.buffer, 3);
+		NetDecoder.WriteByte(slot, NetMessage.buffer, 4);
+		NetDecoder.WriteByte(actionSlot, NetMessage.buffer, 5);
+		NetDecoder.WriteUshort(actionID, NetMessage.buffer, 6);
+		this.size = 8;
 	}
 
 	// Clients sends their position to Server
@@ -562,7 +580,7 @@ public enum NetCode{
 	PLAYERITEMHAND,
 	ENTITYDELETE,
 	CLIENTCHUNK,
-	PLACEMENTDENIED, // No call
+	PLACEMENTDENIED,
 	DROPITEM,
 	ITEMENTITYDATA,
 	BLOCKDAMAGE,
