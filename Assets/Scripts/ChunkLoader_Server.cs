@@ -496,7 +496,7 @@ public class ChunkLoader_Server : MonoBehaviour
                 slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE, InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
             else if(i == 12){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 50, InventoryLoader.GetInventoryID("HOTBAR"), i);
+                slots[i] = new SubWeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 0, 50, InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
             else if(i == 13){
                 slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50, InventoryLoader.GetInventoryID("HOTBAR"), i);

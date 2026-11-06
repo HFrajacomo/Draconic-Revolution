@@ -20,7 +20,17 @@ The `--->Type` section at the end of the item JSON defines which class the item 
 |:--:|:--:|
 | Item | A regular item |
 | Weapon | An item that can be equipped. Requires `weaponType`, which decides its BattleStyle |
-| SubWeapon | A Weapon that can also be carried in the off-hand (Torch, Book, Lantern...) |
+| SubWeapon | A weapon that can also be carried in the off-hand (Torch, Book, Lantern...). Unlike Weapons, SubWeapons can stack but can't be refined or enchanted, so they don't have `refineLevel` or `extraEffect` |
+
+### Memory Type and Stacking
+
+The `memoryType` field defines how the item is saved and sent over the network, so it must match the item type. The game refuses to load an item whose `memoryType` doesn't match:
+
+| Type | memoryType | Stacking |
+|:--:|:--:|:--:|
+| Item | 1 | `stacksize` can be any value |
+| Weapon | 2 | `stacksize` must be 1, since Weapons don't save a quantity |
+| SubWeapon | 5 | `stacksize` can be any value (e.g. Torches stack up to 50) |
 
 ### SubWeapons (Carry Items)
 

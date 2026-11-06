@@ -80,6 +80,15 @@ public abstract class PlayerServerInventorySlot{
 						currentPosition++;
 						slots.Add(new WeaponPlayerInventorySlot(cachedId, cachedDurability, cachedRefine, cachedEnchant, invType, i));
 						break;
+					case MemoryStorageType.SUBWEAPON:
+						cachedId = NetDecoder.ReadUshort(data, currentPosition);
+						currentPosition += 2;
+						cachedDurability = NetDecoder.ReadUint(data, currentPosition);
+						currentPosition += 4;
+						cachedQuantity = NetDecoder.ReadByte(data, currentPosition);
+						currentPosition++;
+						slots.Add(new SubWeaponPlayerInventorySlot(cachedId, cachedDurability, cachedQuantity, invType, i));
+						break;
 					case MemoryStorageType.ACTION:
 						cachedId = NetDecoder.ReadUshort(data, currentPosition);
 						currentPosition += 2;
@@ -167,10 +176,22 @@ public class ItemPlayerInventorySlot : PlayerServerInventorySlot {
 }
 
 /*
+Inventory Slot that contains anything that can be equipped as a Weapon
+*/
+public abstract class BaseWeaponPlayerInventorySlot : PlayerServerInventorySlot {
+	protected uint currentDurability;
+
+	public override bool IsItem(){return true;}
+
+	public void SetDurability(uint dur){
+		this.currentDurability = dur;
+	}
+}
+
+/*
 Inventory Slot that contains a Weapon
 */
-public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
-	private uint currentDurability;
+public class WeaponPlayerInventorySlot : BaseWeaponPlayerInventorySlot {
 	private byte refineLevel;
 	private EnchantmentType enchant;
 
@@ -185,8 +206,6 @@ public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
 		this.slotID = slotID;
 	}
 
-	public override bool IsItem(){return true;}
-
 	public override int SaveToBuffer(byte[] buffer, int init){
 		NetDecoder.WriteByte((byte)this.type, buffer, init);
 		NetDecoder.WriteUshort(this.itemID, buffer, init+1);
@@ -195,9 +214,37 @@ public class WeaponPlayerInventorySlot : PlayerServerInventorySlot {
 		NetDecoder.WriteByte((byte)this.enchant, buffer, init+8);
 		return this.slotMemorySize;
 	}
+}
 
-	public void SetDurability(uint dur){
-		this.currentDurability = dur;
+/*
+Inventory Slot that contains a SubWeapon
+SubWeapons are stackable, so they store the quantity after the durability
+*/
+public class SubWeaponPlayerInventorySlot : BaseWeaponPlayerInventorySlot {
+	public SubWeaponPlayerInventorySlot(ushort id, uint currentDurability, byte quantity, byte invType, byte slotID){
+		this.type = MemoryStorageType.SUBWEAPON;
+		this.slotMemorySize = 8;
+		this.itemID = id;
+		this.currentDurability = currentDurability;
+		this.quantity = quantity;
+		this.inventoryType = invType;
+		this.slotID = slotID;
+	}
+
+	public override int SaveToBuffer(byte[] buffer, int init){
+		NetDecoder.WriteByte((byte)this.type, buffer, init);
+		NetDecoder.WriteUshort(this.itemID, buffer, init+1);
+		NetDecoder.WriteUint(this.currentDurability, buffer, init+3);
+		NetDecoder.WriteByte(this.quantity, buffer, init+7);
+		return this.slotMemorySize;
+	}
+
+	public override void SetQuantity(byte quantity){
+		this.quantity = quantity;
+	}
+
+	public override int GetQuantity(){
+		return this.quantity;
 	}
 }
 

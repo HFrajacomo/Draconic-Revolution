@@ -20,6 +20,8 @@ public class ItemStack : ClickableSlot {
 		this.item = item;
 		this.amount = amount;
 		this.isItemStack = true;
+
+		this.CheckFull();
 	}
 
 	// Returns the amount of items in the stack
@@ -203,12 +205,15 @@ public class ItemStack : ClickableSlot {
 
 	// Writes the memory representation of an item to a byte[]
 	public int ConvertToMemory(byte[] data, int pos){
-		if(this.item is Weapon){
-			return ConvertWeapon(data, pos);
+		switch(this.item.GetMemoryStorageType()){
+			case MemoryStorageType.WEAPON:
+				return ConvertWeapon(data, pos);
+			case MemoryStorageType.SUBWEAPON:
+				return ConvertSubWeapon(data, pos);
+			//if is storage item
+			default:
+				return ConvertItem(data, pos);
 		}
-		//if is storage item //else if(this.item is)
-		else
-			return ConvertItem(data, pos);
 	}
 
 	private int ConvertWeapon(byte[] data, int pos){
@@ -221,6 +226,18 @@ public class ItemStack : ClickableSlot {
 		data[pos+8] = (byte)weap.extraEffect;
 
 		return 9;
+	}
+
+	// SubWeapons are stackable, so they carry the amount after the durability
+	private int ConvertSubWeapon(byte[] data, int pos){
+		SubWeapon sub = this.GetItem() as SubWeapon;
+
+		data[pos] = (byte)MemoryStorageType.SUBWEAPON;
+		NetDecoder.WriteUshort(sub.GetID(), data, pos+1);
+		NetDecoder.WriteUint(sub.currentDurability, data, pos+3);
+		data[pos+7] = this.GetAmount();
+
+		return 8;
 	}
 
 	private int ConvertItem(byte[] data, int pos){

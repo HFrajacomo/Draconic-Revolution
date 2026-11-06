@@ -295,6 +295,19 @@ public static class NetDecoder
 		return weap;
 	}
 
+	// Reads a deep copy of a SubWeapon
+	public static SubWeapon ReadSubWeapon(byte[] data, int pos){
+		SubWeapon sub;
+
+		ushort id = NetDecoder.ReadUshort(data, pos);
+		uint durability = NetDecoder.ReadUint(data, pos+2);
+
+		sub = (SubWeapon)ItemLoader.GetCopy(id);
+		sub.SetDurability(durability);
+
+		return sub;
+	}
+
 	public static EntityAction ReadAction(byte[] data, int pos){
 		EntityAction ea;
 
@@ -383,6 +396,8 @@ public static class NetDecoder
 				return HelperItem(it, data, pos+1);
 			case MemoryStorageType.WEAPON:
 				return HelperWeapon((Weapon)it, data, pos+1);
+			case MemoryStorageType.SUBWEAPON:
+				return HelperSubWeapon((SubWeapon)it, data, pos+1);
 			default:
 				return HelperItem(it, data, pos+1);
 		}
@@ -399,6 +414,13 @@ public static class NetDecoder
 		NetDecoder.WriteByte((byte)it.extraEffect, data, pos+7);
 
 		return 9;
+	}
+	// A single SubWeapon is sent, so no quantity is needed
+	private static int HelperSubWeapon(SubWeapon it, byte[] data, int pos){
+		NetDecoder.WriteUshort(it.GetID(), data, pos);
+		NetDecoder.WriteUint(it.currentDurability, data, pos+2);
+
+		return 7;
 	}
 
 	public static int WriteAction(EntityAction ea, byte[] data, int pos){

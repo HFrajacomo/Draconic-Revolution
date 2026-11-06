@@ -73,7 +73,7 @@ public static class BattleStyleDeterminator {
 		if(!IsEquippable(first) || !IsEquippable(second))
 			return false;
 
-		return TryResolve(first as Weapon, second as Weapon, out string style, out Weapon main, out Weapon offhand);
+		return TryResolve(first as BaseWeapon, second as BaseWeapon, out string style, out BaseWeapon main, out BaseWeapon offhand);
 	}
 
 	/*
@@ -97,9 +97,9 @@ public static class BattleStyleDeterminator {
 	}
 
 	private static void ResolveEquipment(ChunkLoader_Server cl, ulong playerCode, out string style, out AttachmentItems items){
-		Weapon first = null;
-		Weapon second = null;
-		Weapon main, offhand;
+		BaseWeapon first = null;
+		BaseWeapon second = null;
+		BaseWeapon main, offhand;
 
 		if(cl.playerServerInventory.HasInventory(playerCode)){
 			first = GetWeapon(cl.playerServerInventory.GetSlot(playerCode, EQUIPMENT_INVENTORY_CODE, FIRST_SLOT));
@@ -121,7 +121,7 @@ public static class BattleStyleDeterminator {
 		items = new AttachmentItems(GetID(main), GetID(offhand));
 	}
 
-	private static bool TryResolve(Weapon first, Weapon second, out string style, out Weapon main, out Weapon offhand){
+	private static bool TryResolve(BaseWeapon first, BaseWeapon second, out string style, out BaseWeapon main, out BaseWeapon offhand){
 		style = null;
 		main = null;
 		offhand = null;
@@ -157,7 +157,7 @@ public static class BattleStyleDeterminator {
 		return TryGetStyle(first.GetWeaponType(), second.GetWeaponType(), out style);
 	}
 
-	private static bool TryResolveSingle(Weapon weapon, out string style, out Weapon main, out Weapon offhand){
+	private static bool TryResolveSingle(BaseWeapon weapon, out string style, out BaseWeapon main, out BaseWeapon offhand){
 		SubWeapon sub = weapon as SubWeapon;
 
 		main = weapon;
@@ -197,15 +197,15 @@ public static class BattleStyleDeterminator {
 		return _map.TryGetValue(Normalize(first, second), out style);
 	}
 
-	private static Weapon GetWeapon(PlayerServerInventorySlot slot){
+	private static BaseWeapon GetWeapon(PlayerServerInventorySlot slot){
 		if(slot is EmptyPlayerInventorySlot)
 			return null;
 
-		return ItemLoader.GetItem((ushort)slot.GetItemID()) as Weapon;
+		return ItemLoader.GetItem((ushort)slot.GetItemID()) as BaseWeapon;
 	}
 
-	private static bool IsEquippable(Item item){return item == null || item is Weapon;}
-	private static ushort GetID(Weapon weapon){return weapon == null ? (ushort)0 : weapon.GetID();}
-	private static string Describe(Weapon weapon){return weapon == null ? "Empty" : weapon.codename;}
+	private static bool IsEquippable(Item item){return item == null || item is BaseWeapon;}
+	private static ushort GetID(BaseWeapon weapon){return weapon == null ? (ushort)0 : weapon.GetID();}
+	private static string Describe(BaseWeapon weapon){return weapon == null ? "Empty" : weapon.codename;}
 	private static (WeaponType, WeaponType) Normalize(WeaponType first, WeaponType second){return first <= second ? (first, second) : (second, first);}
 }

@@ -95,6 +95,9 @@ public class PlayerEntityRadar : EntityRadar{
 		else if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.WEAPON){
 			return new WeaponPlayerInventorySlot(its.GetID(), ((Weapon)this.cachedItem).currentDurability, ((Weapon)this.cachedItem).refineLevel, ((Weapon)this.cachedItem).extraEffect, type, inInventorySlot);
 		}
+		else if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.SUBWEAPON){
+			return new SubWeaponPlayerInventorySlot(its.GetID(), ((SubWeapon)this.cachedItem).currentDurability, its.GetAmount(), type, inInventorySlot);
+		}
 		else{
 			// STORAGE ITEMS NOT IMPLEMENTED
 			return new EmptyPlayerInventorySlot(type, inInventorySlot);

@@ -118,6 +118,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		ItemStack its, actionIts;
 		Item item, actionItem;
 		Weapon weapon;
+		SubWeapon subWeapon;
 
 		// Cached Action
 		EntityAction ea, aux;
@@ -179,6 +180,20 @@ public class PlayerInventoryManager : MonoBehaviour {
 						its = new ItemStack(weapon, 1);
 						this.inventory[currentInventory].ForceAddStack(its, i);
 						AddToCounter(id, 1);
+						break;
+					case MemoryStorageType.SUBWEAPON:
+						id = NetDecoder.ReadUshort(data, bytesRead);
+						bytesRead += 2;
+						currentDur = NetDecoder.ReadUint(data, bytesRead);
+						bytesRead += 4;
+						quantity = data[bytesRead];
+						bytesRead++;
+
+						subWeapon = (SubWeapon)ItemLoader.GetCopy(id);
+						subWeapon.SetDurability(currentDur);
+						its = new ItemStack(subWeapon, quantity);
+						this.inventory[currentInventory].ForceAddStack(its, i);
+						AddToCounter(id, quantity);
 						break;
 					case MemoryStorageType.ACTION:
 						id = NetDecoder.ReadUshort(data, bytesRead);
@@ -481,7 +496,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	            details = item.GetDetails();
 	            this.detailsName.text = details[0];
 
-	            if(item is Weapon)
+	            if(item is BaseWeapon)
 	                this.detailsStats.text = details[1];
 	            else if(item is Item)
 	                this.detailsDescription.text = details[1];
@@ -742,7 +757,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		            details = item.GetDetails();
 		            this.detailsName.text = details[0];
 
-		            if(item is Weapon)
+		            if(item is BaseWeapon)
 		                this.detailsStats.text = details[1];
 		            else if(item is Item)
 		                this.detailsDescription.text = details[1];
@@ -769,7 +784,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		            details = item.GetDetails();
 		            this.detailsName.text = details[0];
 
-		            if(item is Weapon)
+		            if(item is BaseWeapon)
 		                this.detailsStats.text = details[1];
 		            else if(item is Item)
 		                this.detailsDescription.text = details[1];

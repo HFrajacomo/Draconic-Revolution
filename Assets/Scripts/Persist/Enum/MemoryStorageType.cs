@@ -4,5 +4,6 @@ public enum MemoryStorageType : byte
 	ITEM,
 	WEAPON,
 	STORAGE,
-	ACTION
+	ACTION,
+	SUBWEAPON
 }

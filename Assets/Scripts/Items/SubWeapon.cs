@@ -7,9 +7,10 @@ A Weapon that can be carried in the off-hand (Torch, Book, Lantern...)
 		- If it maps to a BattleStyle of its own (like TORCH), that style is used when it is the only equipped weapon
 		- If it's empty (like a Book), the SubWeapon is carry-only and is carried by the Unarmed style when equipped alone
 	Two SubWeapons can never be equipped at the same time
+	SubWeapons can stack, and can't be refined or enchanted
 */
 [Serializable]
-public class SubWeapon : Weapon {
+public class SubWeapon : BaseWeapon {
 	public string carryStyle;
 	private bool hasOwnStyle = false;
 

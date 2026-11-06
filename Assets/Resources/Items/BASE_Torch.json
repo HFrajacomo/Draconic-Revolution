@@ -1,7 +1,7 @@
 {
     "codename": "BASE_Torch",
     "name":  "Torch",
-    "memoryType": 2,
+    "memoryType": 5,
     "stacksize": 50,
     "tags": ["Weapon", "Light"],
     "hasDurability": false,
@@ -12,7 +12,6 @@
     "damage": 0,
     "impact": 0,
     "maxDurability": 0,
-    "refineLevel": 0,
     "requiredLevels": {
         "COMBAT": 1
     }

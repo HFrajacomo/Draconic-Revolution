@@ -197,7 +197,7 @@ public class PlayerServerInventory{
 
     public void ChangeDurability(ulong playerId, byte slotId, uint durability){
         if(this.inventories.ContainsKey(playerId)){
-            ((WeaponPlayerInventorySlot)this.inventories[playerId][slotId]).SetDurability(durability);
+            ((BaseWeaponPlayerInventorySlot)this.inventories[playerId][slotId]).SetDurability(durability);
             SaveInventory(playerId);
         }        
     }

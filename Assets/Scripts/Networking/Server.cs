@@ -1640,6 +1640,10 @@ public class Server {
 				oldItem = NetDecoder.ReadWeapon(data, 10);
 				itemBytes += 8;
 				break;
+			case MemoryStorageType.SUBWEAPON:
+				oldItem = NetDecoder.ReadSubWeapon(data, 10);
+				itemBytes += 6;
+				break;
 			default:
 				oldItem = NetDecoder.ReadItem(data, 10);
 				itemBytes += 2;
@@ -1656,6 +1660,10 @@ public class Server {
 			case MemoryStorageType.WEAPON:
 				newItem = NetDecoder.ReadWeapon(data, 11 + itemBytes);
 				itemBytes += 8;
+				break;
+			case MemoryStorageType.SUBWEAPON:
+				newItem = NetDecoder.ReadSubWeapon(data, 11 + itemBytes);
+				itemBytes += 6;
 				break;
 			default:
 				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
