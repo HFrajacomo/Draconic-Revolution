@@ -17,6 +17,7 @@ The whole idea of this document is to explain how Draconic Revolution not only h
  - New Vertex Shaders
  - Ground Emission Problem and Solution
  - Moving Light Problem and Solution
+ - Realtime Light Budget (HDRP)
 
 ## What is Voxel Lighting?
 In the real world, light floods into a room, and will bounce around and to other unlit rooms. This behaviour can be done in Unity HDRP, but not for non-static procedually generated objects. And well, if you don't know Draconic Revolution, then let me tell you a secret: we have the **worst** of all rendering worlds here. We have non-staticism (object properties can and will change), procedually generated (objects aren't created prior to runtime), can't be lightmapped by Polygonal Lighting (can't have lightmaps baked to them for quick and precise lighting) and can't have light bounces in real-time (light won't scatter off of hit surfaces).
@@ -139,6 +140,34 @@ The cause was rather unexpected: the sun is moving too fast and too slow at the 
 Let me explain. It seems like Polygonal Lighting has a very hard time dealing with moving directional lights. The real-time ShadowMapper seem to "switch frames" in a weird way whenever Shadows need to be recalculated too quickly. To make matters worse, the rotation of the directional light also can make the sizzling more evident.
 
 To fix that, I had to drop the main Directional Light's update rate to a few times a second, instead of every 2 frames. Also, the trajectory of the main light was changed. It slightly curves away from the center at 12PM and goes back to center until sunset. Additionally, I also increased the Shadow Resolution and Distance.
+
+## Realtime Light Budget (HDRP)
+
+On top of the Voxel Lighting, torches and other light sources also have realtime HDRP point lights. These lights add specular highlights, volumetrics and smooth falloff. HDRP builds a light list for every 16x16 pixel tile of the screen, and every light past `FPTLMaxLightCount` in that list is **silently dropped**. The order of the list changes every frame, so going over the limit makes lights vanish and torch-lit areas sparkle. The same problem happens with Area Lights (Tube/Rectangle), which are capped by `maxAreaLightsOnScreen` (64) in the HDRP Asset, so light sources should always be shadowless Point Lights.
+
+To support hundreds of light sources, the budget is handled in two places:
+
+ - **HDRP config**: `com.unity.render-pipelines.high-definition-config` is embedded in `LocalPackages/`, with `FPTLMaxLightCount` raised to 127. If you change it, change both `ShaderConfig.cs` and `ShaderConfig.cs.hlsl`.
+ - **RealtimeLightHandler** (`Assets/Scripts/Rendering/RealtimeLight/`, client only): keeps the whole scene at `FPTLMaxLightCount - 1` realtime lights or fewer, so no tile can overflow.
+   - **Dynamic slots (30)**: strictly reserved for lights created by players. These are animation/attachment VFX (registered by `VFXLoader` when an entity VFX contains a `Light`) and item lights (`IT_CreatePointLightBehaviour`). The handler owns their `Light.enabled` while they are registered, and only enables the closest ones that can reach the camera frustum. Their color, range and intensity stay on their own `Light`.
+   - **Static slots (the rest)**: a pool of point lights shared by every light source placed in the world (torches, lamps, crystals...). Each pool light takes the settings of the profile it is currently showing.
+   - Selection only runs when a light source changes, the camera moves more than 1 block or turns more than 10 degrees, and 4 times per second while dynamic lights exist. The closest candidates win. Lights fade in and out when the selection changes, and the flicker of all pool lights is done in a single `Update`.
+
+### Light Profiles
+
+A Light Profile describes one kind of static light. It is a template GameObject under `----- PrefabLights -----` in the Game scene with:
+
+ - a **Light** (Point, shadows off): color or color temperature, intensity and range. Keep the component disabled, since it is only read.
+ - an **HDAdditionalLightData**: fade distance, volumetric dimmer, shape radius, diffuse/specular.
+ - optionally a **RealisticLight** (also disabled): makes the light flicker between `minLightPercentage` and full intensity, with a half cycle of `steps` frames at 60 FPS.
+
+A block behaviour uses a profile by calling `cl.realtimeLightHandler.AddStaticLight(pos, x, y, z, worldPosition, profilePath)` when its light turns on, and `RemoveStaticLight(pos, x, y, z)` when it turns off or breaks. Unloaded chunks are cleared automatically. The profile path should come from the block's JSON, like `"lightProfilePath" : "----- PrefabLights -----/Torch"` in `BASE_Torch.json`. The VFX of the block should not have a Light of its own (see `FireVFX_Static`).
+
+Light sources with the same profile are merged into cells of 2x2x2 blocks. Each cell is a single light at the centroid of its sources, with their summed intensity and a range that still reaches what the outermost source reached. Different profiles are never merged, so a torch next to a blue crystal stays as two separate lights.
+
+To create a new kind of light, duplicate `----- PrefabLights -----/Torch`, rename it and tune it in the Inspector.
+
+Any new realtime light source should go through the RealtimeLightHandler. Lights outside of it share the same per-tile list and only have 1 slot of headroom.
 
 # Results
 

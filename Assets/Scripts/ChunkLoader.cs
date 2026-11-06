@@ -55,6 +55,7 @@ public class ChunkLoader : MonoBehaviour
     public SFXLoader sfx;
     public PlayerPositionHandler playerPositionHandler;
     public VoxelLightHandler voxelLightHandler;
+    public RealtimeLightHandler realtimeLightHandler;
     public PlayerActionController playerActionController;
     public AmbientHandler ambientHandler;
     public VignetteController vignetteController;
@@ -112,6 +113,9 @@ public class ChunkLoader : MonoBehaviour
         this.player.position = new Vector3(0,-999,0);
         this.playerAccountID = Configurations.accountID;
         this.time.SetClient(this.client);
+        this.realtimeLightHandler = this.gameObject.AddComponent<RealtimeLightHandler>();
+        this.realtimeLightHandler.SetChunkLoader(this);
+        this.vfx.SetRealtimeLightHandler(this.realtimeLightHandler);
         SetAudioManager();
         this.sfx.SetAudioManager(this.audioManager);
         this.playerPositionHandler.SetAudioManager(this.audioManager);
@@ -412,6 +416,9 @@ public class ChunkLoader : MonoBehaviour
                 this.vfx.RemoveChunk(cp);
                 
             this.vfx.NewChunk(cp);
+
+            // VFX, SFX and realtime lights of this chunk are only (re)created by its load events
+            this.chunks[cp].RequestLoadEvents();
 
             // If is an overwrite of an existing chunk, calculate Heightmap and rendermap again
             if(chunkOverwrite){

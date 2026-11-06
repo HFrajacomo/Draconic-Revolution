@@ -11,6 +11,8 @@ public class VFXLoader : MonoBehaviour
 
     public Dictionary<ulong, Dictionary<string, GameObject>> entityData;
 
+    private RealtimeLightHandler realtimeLightHandler;
+
     public static bool EXTRALIGHTSHADOWS = false;
 
     void OnDestroy(){
@@ -29,6 +31,8 @@ public class VFXLoader : MonoBehaviour
         lightReference = new Dictionary<ChunkPos, List<HDAdditionalLightData>>();
         entityData = new Dictionary<ulong, Dictionary<string, GameObject>>();
     }
+
+    public void SetRealtimeLightHandler(RealtimeLightHandler handler){this.realtimeLightHandler = handler;}
 
     public bool Contains(ChunkPos pos, bool isServer=false){
         if(isServer)
@@ -64,6 +68,9 @@ public class VFXLoader : MonoBehaviour
         else{
             foreach(string key in this.data[pos].Keys)
                 Destroy(this.data[pos][key]);
+
+            if(this.realtimeLightHandler != null)
+                this.realtimeLightHandler.RemoveChunk(pos);
 
         	data.Remove(pos);
             lightReference[pos] = null;
@@ -122,6 +129,11 @@ public class VFXLoader : MonoBehaviour
         }
 
         this.entityData[code].Add(go.name, go);
+
+        Light light = go.GetComponentInChildren<Light>();
+
+        if(light != null && this.realtimeLightHandler != null)
+            this.realtimeLightHandler.RegisterDynamic(light);
     }
 
     // Removes an GameObject from Chunk Dict
@@ -145,6 +157,13 @@ public class VFXLoader : MonoBehaviour
     public void Remove(ulong code, string name){
         if(this.entityData.ContainsKey(code)){
             if(this.entityData[code].ContainsKey(name)){
+                if(this.realtimeLightHandler != null){
+                    Light light = this.entityData[code][name].GetComponentInChildren<Light>();
+
+                    if(light != null)
+                        this.realtimeLightHandler.UnregisterDynamic(light);
+                }
+
                 GameObject.Destroy(this.entityData[code][name]);
 
                 if(this.entityData[code].Count <= 1){

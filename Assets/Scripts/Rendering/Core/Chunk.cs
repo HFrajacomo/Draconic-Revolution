@@ -37,6 +37,13 @@ public class Chunk
 	public bool drawMain = false;
     private int drawCounter = 0;
 
+	// Load Event Flags
+	// Every request to run load events increments requestedLoadVersion. Builds keep collecting the load list
+	// until a Draw sends a BATCHLOADBUD built on top of the latest request
+	private volatile int requestedLoadVersion = 0;
+	private volatile int sentLoadVersion = 0;
+	private int meshLoadVersion = 0;
+
 
 	/*
 		Unity Settings
@@ -158,6 +165,11 @@ public class Chunk
 		this.metadata = new VoxelMetadata();
 	}
 
+	// Makes the next drawn build send a BATCHLOADBUD, recreating VFX, SFX and lights of load event blocks
+	public void RequestLoadEvents(){
+		System.Threading.Interlocked.Increment(ref this.requestedLoadVersion);
+	}
+
 	// Adds Mesh information to MeshFilters
 	public void Draw(){
 		this.isDrawing = true;
@@ -191,6 +203,9 @@ public class Chunk
 				this.message.AddBatchLoad(coordArray[i].x, coordArray[i].y, coordArray[i].z, 0, 0, 0, 0);
 			}	
 			this.loader.client.Send(this.message);
+
+			if(this.meshLoadVersion > this.sentLoadVersion)
+				this.sentLoadVersion = this.meshLoadVersion;
 		}
 
 		// Last integrity check
@@ -289,6 +304,13 @@ public class Chunk
 
 		this.drawCounter = 0;
 		this.meshData = new MeshDataBuild();
+
+		// Update builds must also carry the load list while load events are pending, or they would be lost
+		int requestedLoad = this.requestedLoadVersion;
+		this.meshLoadVersion = requestedLoad;
+
+		if(requestedLoad != this.sentLoadVersion)
+			load = true;
 
 		ChunkPos auxPos;
 		int verticalCode = 0;

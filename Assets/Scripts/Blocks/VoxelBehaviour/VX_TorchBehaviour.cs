@@ -20,6 +20,7 @@ STATES:
 [Serializable]
 public class VX_TorchBehaviour : VoxelBehaviour{
 	public string fireVFXPath;
+	public string lightProfilePath;
 	public string audioName;
 
 	public string dropItem;
@@ -108,7 +109,7 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f + pos.y*Chunk.chunkDepth, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, shadowDirection);
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
 
-		cl.vfx.Add(pos, fire, active:true, isOnDemandLight:true);
+		cl.vfx.Add(pos, fire, active:true);
 		ControlFire(pos, blockX, blockY, blockZ, state, cl);
 
 		return 0;		
@@ -120,7 +121,8 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 	}
 
 	public override int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
-		cl.vfx.Remove(pos, BuildVFXName(pos, blockX, blockY, blockZ), isOnDemandLight:true);
+		cl.realtimeLightHandler.RemoveStaticLight(pos, blockX, blockY, blockZ);
+		cl.vfx.Remove(pos, BuildVFXName(pos, blockX, blockY, blockZ));
 		return 0;
 	}
 
@@ -179,14 +181,20 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 		return 1;
 	}
 
-	// Handles Fire VFX turning on and off
+	// Handles Fire VFX and its realtime light turning on and off
 	private void ControlFire(ChunkPos pos, int x, int y, int z, ushort? state, ChunkLoader cl){
+		GameObject fire = cl.vfx.data[pos][BuildVFXName(pos, x, y, z)];
+
 		// Turns off fire when it's on
-		if(state >= 4)
-			cl.vfx.data[pos][BuildVFXName(pos, x, y, z)].SetActive(false);
+		if(state >= 4){
+			fire.SetActive(false);
+			cl.realtimeLightHandler.RemoveStaticLight(pos, x, y, z);
+		}
 		// Turns on fire when it's off
-		else if(state < 4)
-			cl.vfx.data[pos][BuildVFXName(pos, x, y, z)].SetActive(true);
+		else if(state < 4){
+			fire.SetActive(true);
+			cl.realtimeLightHandler.AddStaticLight(pos, x, y, z, fire.transform.position, this.lightProfilePath);
+		}
 	}	
 
 	// Builds name for current Torch VFX

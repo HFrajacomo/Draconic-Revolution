@@ -53,6 +53,7 @@
     "minDropQuantity" : 1,
     "maxDropQuantity" : 1,
     "dropItem" : "BASE_Torch",
-    "fireVFXPath" : "----- PrefabVFX -----/FireVFX",
+    "fireVFXPath" : "----- PrefabVFX -----/FireVFX_Static",
+    "lightProfilePath" : "----- PrefabLights -----/Torch",
     "audioName" : "Torchfire"
 }
