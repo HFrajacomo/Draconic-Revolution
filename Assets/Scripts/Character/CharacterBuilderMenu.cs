@@ -118,6 +118,7 @@ public class CharacterBuilderMenu{
 			if(type == ModelType.HEADGEAR){
 				this.hairlinePlane.valid = false;
 				RefreshHairlineApply();
+				RefreshHairVisibility();
 			}
 
 			return;
@@ -169,6 +170,9 @@ public class CharacterBuilderMenu{
 			Vector3 normal = GetFirstNormalInSubmesh(current.sharedMesh, current.sharedMesh.subMeshCount-1);
 
 			if(planeVerts.Count < 4){
+				this.hairlinePlane.valid = false;
+				RefreshHairlineApply();
+				RefreshHairVisibility();
 				return;
 			}
 
@@ -178,14 +182,7 @@ public class CharacterBuilderMenu{
 			current.materials = RemoveLastElementFromArray(current.materials);
 
 			RefreshHairlineApply();
-
-			// Check if covers hair
-			if(ModelHandler.GetHatCover(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR]) == 'Y' && this.bodyParts.ContainsKey(ModelType.HAIR)){
-				this.bodyParts[ModelType.HAIR].SetActive(false);
-			}
-			else if(ModelHandler.GetHatCover(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR]) == 'N' && this.bodyParts.ContainsKey(ModelType.HAIR)){
-				this.bodyParts[ModelType.HAIR].SetActive(true);
-			}
+			RefreshHairVisibility();
 		}
 
 		// Hide hair options
@@ -223,6 +220,14 @@ public class CharacterBuilderMenu{
 				}
 			}
 		}
+	}
+
+	private void RefreshHairVisibility(){
+		if(!this.bodyParts.ContainsKey(ModelType.HAIR) || !this.bodyParts.ContainsKey(ModelType.HEADGEAR))
+			return;
+
+		bool showHair = ModelHandler.GetHatCover(ModelType.HEADGEAR, this.bodyPartName[ModelType.HEADGEAR]) == 'N';
+		this.bodyParts[ModelType.HAIR].SetActive(showHair);
 	}
 
 	private T[] RemoveLastElementFromArray<T>(T[] input){
