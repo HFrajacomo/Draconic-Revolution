@@ -294,7 +294,8 @@ public class PlayerActionController : MonoBehaviour {
 			return;
 		}
 
-		if(HasRestriction(PlayerActionRestriction.SHEATHE)){
+		// Sheathing during an attack is queued until the current attack ends
+		if(HasRestriction(PlayerActionRestriction.SHEATHE) || IsAttacking()){
 			RegisterSheathe(flag);
 			return;
 		}
@@ -316,7 +317,9 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.SetBool("IsSheathing", true);
 		this.animatorFP.SetBool("IsSheathing", true);
 
-		this.comboHit = 0;
+		if(IsAttacking())
+			CancelCombo();
+
 		RegisterRestriction(PlayerActionRestriction.PRIMARY, animationTime + 0.05f);
 
 		if(flag){
@@ -417,22 +420,24 @@ public class PlayerActionController : MonoBehaviour {
 	public void RemoveRestriction(PlayerActionRestriction rest){this.restrictions.Remove(rest);}
 	public bool HasRestriction(PlayerActionRestriction rest){return this.restrictions.Contains(rest);}
 
-	// Registers a primary action. Attacks are only possible with the weapon unsheathed
+	// Registers a primary action. Attacks are only possible with the weapon unsheathed and no Sheathe queued or in progress
 	public void RegisterPrimaryAction(){
-		if(!this.INIT || this.weaponSheathed)
+		if(!this.INIT || this.weaponSheathed || IsSheathePending())
 			return;
 
 		if(this.restrictions.Contains(PlayerActionRestriction.PRIMARY) || this.restrictions.Contains(PlayerActionRestriction.STUNNED) || this.restrictions.Contains(PlayerActionRestriction.SYSTEM))
 			return;
 
 		this.registeredAction.Add(PlayerActionType.PRIMARY_ACTION);
-		RegisterRestriction(PlayerActionRestriction.SHEATHE, 1.5f);
 	}
 
 	// Registers sheathing
 	public void RegisterSheathe(bool flag){
-		if(flag)
+		if(flag){
 			this.registeredAction.Add(PlayerActionType.SHEATHE_ON);
+			// Buffered attacks can't extend the combo once a Sheathe is queued
+			this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
+		}
 		else
 			this.registeredAction.Add(PlayerActionType.SHEATHE_OFF);
 	}
@@ -520,17 +525,22 @@ public class PlayerActionController : MonoBehaviour {
 			}
 		}
 		else if(rest == PlayerActionRestriction.SHEATHE){
-			if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
-				ForceUseStyle(this.registeredData[PlayerActionType.USE_STYLE]);
-			}
-			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
-				Sheathe(true, skipCheck:true);
-			}
-			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
-				Sheathe(false, skipCheck:true);
-			}
+			RunQueuedSheatheActions();
 		}
     }
+
+	// Runs the Style change and Sheathe requests that were queued while sheathing was blocked
+	private void RunQueuedSheatheActions(){
+		if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
+			ForceUseStyle(this.registeredData[PlayerActionType.USE_STYLE]);
+		}
+		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
+			Sheathe(true, skipCheck:true);
+		}
+		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
+			Sheathe(false, skipCheck:true);
+		}
+	}
 
 
 	private static AnimatorOverrideController ApplyOverrides(AnimatorOverrideController controller, StateClipPair[] overrides){
@@ -590,14 +600,24 @@ public class PlayerActionController : MonoBehaviour {
 			this.cachedTime = this.animationHandler.GetAnimationTime($"Attack {this.comboHit}");
 
 			if(this.cachedTime == -1 && !this.currentlyQueuedState.Contains($"Attack {this.comboHit}")){
-				this.comboHit = 0;
-				this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
-				RemoveRestriction(PlayerActionRestriction.MOVEMENT);
-				this.animator.SetInteger("Attack_Combo", this.comboHit);
+				CancelCombo();
+
+				if(!HasRestriction(PlayerActionRestriction.SHEATHE))
+					RunQueuedSheatheActions();
 			}
 		}
 
 		this.currentlyQueuedState.Clear();
+	}
+
+	private bool IsAttacking(){return this.comboHit > 0;}
+
+	// Single place where a combo is ended, so the MOVEMENT restriction it applies is always lifted
+	private void CancelCombo(){
+		this.comboHit = 0;
+		this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
+		RemoveRestriction(PlayerActionRestriction.MOVEMENT);
+		this.animator.SetInteger("Attack_Combo", this.comboHit);
 	}
 
 	private void SendAnimatorValue(string parameter, float val){
