@@ -214,38 +214,85 @@ public class PlayerServerInventory{
         this.inventoryHandler.Close();
     }
 
-    // Returns a pair (index, currentIndexAmount) of the player Inventory that fits the given ItemStack
-    // Returns (-1,0) if there's no room in player inventory
-    public int2 CheckFits(ulong playerCode, ItemStack its){
+    /*
+    Adds a picked up ItemStack to the player's pickup target inventories, without changing the given stack
+        First fills every non-full stack of the same item in inventory order, then puts the remainder into the first empty slot
+        Returns the amount of items taken. createdSlot is the index of the empty slot that was filled, or -1 if none was
+    */
+    public byte AddPickup(ulong playerCode, ItemStack its, out int createdSlot){
+        List<PlayerServerInventorySlot> inv = this.inventories[playerCode];
         PlayerServerInventorySlot aux;
+        byte stacksize = its.GetStacksize();
+        byte remaining = its.GetAmount();
+        byte room, toAdd;
 
-        for(int i=0; i < this.inventories[playerCode].Count; i++){
-            aux = this.inventories[playerCode][i];
-            if(!InventoryLoader.GetPickupTarget(aux.GetInventoryType()))
+        createdSlot = -1;
+
+        // Fills existing stacks
+        for(int i=0; i < inv.Count && remaining > 0; i++){
+            aux = inv[i];
+
+            if(aux is EmptyPlayerInventorySlot || aux.GetItemID() != (int)its.GetID())
+                continue;
+            if(!CanPickupInto(aux, its))
+                continue;
+            if(aux.GetQuantity() >= stacksize)
                 continue;
 
-            if(!aux.IsInGlobalWhitelist(its))
-                continue;
+            room = (byte)(stacksize - aux.GetQuantity());
+            toAdd = room < remaining ? room : remaining;
+            aux.SetQuantity((byte)(aux.GetQuantity() + toAdd));
+            remaining -= toAdd;
+        }
 
-            if(!aux.IsInLocalWhitelist(its))
-                continue;        
+        // Puts the remainder in the first empty slot
+        if(remaining > 0){
+            for(int i=0; i < inv.Count; i++){
+                aux = inv[i];
 
-            if(aux.GetItemID() == (int)its.GetID() || aux.GetItemID() == 0){
-                if(its.GetStacksize() != aux.GetQuantity()){
-                    return new int2(i, aux.GetQuantity());
-                }
-            }
-            if(aux.GetItemID() == -1){
-                return new int2(i, 0);
+                if(!(aux is EmptyPlayerInventorySlot))
+                    continue;
+                if(!CanPickupInto(aux, its))
+                    continue;
+
+                inv[i] = CreatePickupSlot(its, remaining, aux.GetInventoryType(), aux.GetSlotID());
+                createdSlot = i;
+                remaining = 0;
+                break;
             }
         }
 
-        return new int2(-1, 0);
+        byte taken = (byte)(its.GetAmount() - remaining);
+
+        if(taken > 0)
+            SaveInventory(playerCode);
+
+        return taken;
     }
 
-    public void CreateSlotAt(byte slotIndex, ulong playerCode, PlayerServerInventorySlot slot){
-        this.inventories[playerCode][slotIndex] = slot;
-        SaveInventory(playerCode);
+    private bool CanPickupInto(PlayerServerInventorySlot slot, ItemStack its){
+        if(!InventoryLoader.GetPickupTarget(slot.GetInventoryType()))
+            return false;
+
+        return slot.IsInGlobalWhitelist(its) && slot.IsInLocalWhitelist(its);
+    }
+
+    // Creates the slot that holds a picked up item in a previously empty slot
+    private PlayerServerInventorySlot CreatePickupSlot(ItemStack its, byte amount, byte invType, byte slotID){
+        Item item = its.GetItem();
+
+        switch(item.GetMemoryStorageType()){
+            case MemoryStorageType.ITEM:
+                return new ItemPlayerInventorySlot(its.GetID(), amount, invType, slotID);
+            case MemoryStorageType.WEAPON:
+                Weapon weapon = (Weapon)item;
+                return new WeaponPlayerInventorySlot(its.GetID(), weapon.currentDurability, weapon.refineLevel, weapon.extraEffect, invType, slotID);
+            case MemoryStorageType.SUBWEAPON:
+                return new SubWeaponPlayerInventorySlot(its.GetID(), ((SubWeapon)item).currentDurability, amount, invType, slotID);
+            default:
+                // STORAGE ITEMS NOT IMPLEMENTED
+                return new EmptyPlayerInventorySlot(invType, slotID);
+        }
     }
     
     private List<PlayerServerInventorySlot> GetEmptySlots(){

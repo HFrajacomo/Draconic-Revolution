@@ -5,7 +5,6 @@ using Unity.Mathematics;
 public class PlayerEntityRadar : EntityRadar{
 	private ChunkLoader_Server cl;
 	private PlayerServerInventory psi;
-	private Item cachedItem;
 	private DroppedItemAI cachedItemAI;
 	public bool HAS_RECEIVED_ITEMS;
 
@@ -40,67 +39,35 @@ public class PlayerEntityRadar : EntityRadar{
 		this.cachedItemAI = (DroppedItemAI)ai;
 
 		ItemStack aiItem = this.cachedItemAI.GetItemStack();
-		byte playerSelectedSlot;
-		int2 inventorySlot = this.psi.CheckFits(this.ID.code, aiItem);
+		byte taken = this.psi.AddPickup(this.ID.code, aiItem, out int createdSlot);
 
-		if(inventorySlot.x == -1)
+		if(taken == 0)
 			return false;
-		else{
-			playerSelectedSlot = this.entityHandler.GetSheet(this.ID.code).GetHotbarSlot();
-			
-			// Checks if ItemStack was previously empty (to trigger OnHold event)
-			if(playerSelectedSlot == inventorySlot.x){ // If it's the same slot as the selected one
-				if(psi.GetSlot(this.ID.code, playerSelectedSlot).GetItemStack().GetID() != aiItem.GetID()){
-					aiItem.GetItem().OnHoldServer(this.cl, aiItem, this.ID.code);
 
-					NetMessage message = new NetMessage(NetCode.SENDITEMINHAND);
-					message.SendItemInHand(this.ID.code, true, aiItem.GetID(), aiItem.GetAmount());
-					this.cl.server.SendToClientsExcept(this.ID.code, message);
-				}
-			}
+		this.HAS_RECEIVED_ITEMS = true;
 
-			// If can completely take the stack
-			if(aiItem.GetStacksize() >= inventorySlot.y + aiItem.GetAmount()){
-				if(inventorySlot.y == 0){
-					psi.CreateSlotAt((byte)inventorySlot.x, this.ID.code, CreateSlot(aiItem, (byte)inventorySlot.x));
-				}
+		// Only a previously empty slot can change the item in hand, which triggers the OnHold event
+		if(createdSlot == this.entityHandler.GetSheet(this.ID.code).GetHotbarSlot()){
+			ItemStack heldStack = this.psi.GetSlot(this.ID.code, (byte)createdSlot).GetItemStack();
+			heldStack.GetItem().OnHoldServer(this.cl, heldStack, this.ID.code);
 
-				psi.ChangeQuantity(this.ID.code, (byte)inventorySlot.x, (byte)(inventorySlot.y + aiItem.GetAmount()));
-				this.cachedItemAI.SetPickupMode();
-				this.HAS_RECEIVED_ITEMS = true;
-				return true;
-			}
-			// If player can't take the entire stack
-			else{
-				psi.ChangeQuantity(this.ID.code, (byte)inventorySlot.x, aiItem.GetStacksize());
-				this.HAS_RECEIVED_ITEMS = true;
-				return false;
-			}
+			NetMessage message = new NetMessage(NetCode.SENDITEMINHAND);
+			message.SendItemInHand(this.ID.code, true, heldStack.GetID(), heldStack.GetAmount());
+			this.cl.server.SendToClientsExcept(this.ID.code, message);
 		}
+
+		// If could take the entire stack
+		if(taken == aiItem.GetAmount()){
+			this.cachedItemAI.SetPickupMode();
+			return true;
+		}
+
+		// The remainder stays on the ground
+		this.cachedItemAI.SetItemStackAmount((byte)(aiItem.GetAmount() - taken));
+		return false;
 	}
 
 	protected override void CreateEntityRadarEvent(AbstractAI ai, ref List<EntityEvent> ieq){
 		ai.AddToInboundEventQueue(new EntityEvent(EntityEventType.ITEM_PICKUP, false, new EntityRadarEvent(ai.GetID(), ai.GetPosition(), ai.GetPosition(), ai), this.position - ai.position));
-	}
-
-	private PlayerServerInventorySlot CreateSlot(ItemStack its, byte slotNumber){
-		byte type = this.psi.GetSlot(this.ID.code, slotNumber).GetInventoryType();
-		byte inInventorySlot = this.psi.GetSlot(this.ID.code, slotNumber).GetSlotID();
-
-		this.cachedItem = its.GetItem();
-
-		if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.ITEM){
-			return new ItemPlayerInventorySlot(its.GetID(), its.GetAmount(), type, inInventorySlot);
-		} 
-		else if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.WEAPON){
-			return new WeaponPlayerInventorySlot(its.GetID(), ((Weapon)this.cachedItem).currentDurability, ((Weapon)this.cachedItem).refineLevel, ((Weapon)this.cachedItem).extraEffect, type, inInventorySlot);
-		}
-		else if(this.cachedItem.GetMemoryStorageType() == MemoryStorageType.SUBWEAPON){
-			return new SubWeaponPlayerInventorySlot(its.GetID(), ((SubWeapon)this.cachedItem).currentDurability, its.GetAmount(), type, inInventorySlot);
-		}
-		else{
-			// STORAGE ITEMS NOT IMPLEMENTED
-			return new EmptyPlayerInventorySlot(type, inInventorySlot);
-		}
 	}
 }

@@ -1187,7 +1187,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	}
 
 	// Gives back a single item whose placement was denied by the server
-	// Tries its origin slot first, then the main inventory and the other non-equipment item inventories. Drops it if there's no room
+	// Tries its origin slot first, then the first empty slot of the non-equipment item inventories. Drops it if there's no room
 	// If it was placed through an action that got removed from the action hotbar, the action is recreated
 	public void RestorePlacedItem(ushort itemID, byte inventoryCode, byte slot, byte actionSlot, ushort actionID){
 		byte landedInventory;
@@ -1197,7 +1197,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 			landedInventory = inventoryCode;
 			landedSlot = slot;
 		}
-		else if(!TryRestoreAnywhere(itemID, out landedInventory, out landedSlot)){
+		else if(!TryRestoreToFirstEmptySlot(itemID, out landedInventory, out landedSlot)){
 			this.mainControllerManager.DropItem(new ItemStack(itemID, 1));
 			return;
 		}
@@ -1240,62 +1240,35 @@ public class PlayerInventoryManager : MonoBehaviour {
 		return false;
 	}
 
-	// Puts a single item in the first available spot, starting by the main inventory
-	private bool TryRestoreAnywhere(ushort itemID, out byte landedInventory, out ushort landedSlot){
-		int mainInventoryCode = this.inventory.IndexOf(GetMainInventory());
+	// Puts a single item in the first empty slot of the non-equipment item inventories
+	private bool TryRestoreToFirstEmptySlot(ushort itemID, out byte landedInventory, out ushort landedSlot){
+		ItemStack its = new ItemStack(itemID, 1);
+		BaseInventory inv;
 
-		landedInventory = (byte)mainInventoryCode;
+		landedInventory = 0;
 		landedSlot = 0;
 
-		if(CanRestoreInto(mainInventoryCode) && TryAddSingleItem((byte)mainInventoryCode, itemID, out landedSlot))
-			return true;
-
 		for(int i=0; i < this.inventory.Count; i++){
-			if(i == mainInventoryCode || !CanRestoreInto(i))
+			if(!CanRestoreInto(i))
 				continue;
 
-			if(TryAddSingleItem((byte)i, itemID, out landedSlot)){
+			inv = this.inventory[i];
+
+			if(!inv.IsInGlobalWhitelist(its))
+				continue;
+
+			for(ushort j=0; j < inv.GetLimit(); j++){
+				if(inv.GetSlot(j) != null || !inv.IsInLocalWhitelist(its, j))
+					continue;
+
+				inv.ForceAddStack(its, j);
 				landedInventory = (byte)i;
+				landedSlot = j;
 				return true;
 			}
 		}
 
 		return false;
-	}
-
-	// Adds a single item to an inventory, prioritizing non-full stacks of the same item over empty slots
-	private bool TryAddSingleItem(byte inventoryCode, ushort itemID, out ushort landedSlot){
-		BaseInventory inv = this.inventory[inventoryCode];
-		ItemStack its = new ItemStack(itemID, 1);
-		ItemStack current;
-		int emptySlot = -1;
-
-		landedSlot = 0;
-
-		if(!inv.IsInGlobalWhitelist(its))
-			return false;
-
-		for(ushort i=0; i < inv.GetLimit(); i++){
-			current = inv.GetSlot(i);
-
-			if(current == null){
-				if(emptySlot == -1 && inv.IsInLocalWhitelist(its, i))
-					emptySlot = i;
-				continue;
-			}
-
-			if(current.GetID() == itemID && current.Increment()){
-				landedSlot = i;
-				return true;
-			}
-		}
-
-		if(emptySlot == -1)
-			return false;
-
-		landedSlot = (ushort)emptySlot;
-		inv.ForceAddStack(its, landedSlot);
-		return true;
 	}
 
 	private bool CanRestoreInto(int inventoryCode){
