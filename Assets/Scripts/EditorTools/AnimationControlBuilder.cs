@@ -158,6 +158,10 @@ public static class AnimationControlBuilder {
 				AnimatorState state = ass.Build(controllers[controllerName], animations["BASE_Default"], ANIMATION_CLIPS_PATH);
 				layerNumber = layers[controllerName][ass.layer];
 
+				// Empty plays a blank clip. With Write Defaults on, transitions from/to it blend masked bones through the bind pose instead of the layers below
+				if(ass.name == "Empty" && ass.layer != "Base Layer")
+					state.writeDefaultValues = false;
+
 				graphPosition = AssignGraphPosition(layerIndexes[layerNumber], lastPositionInLayer[layerNumber]);
 				layerIndexes[layerNumber]++;
 				lastPositionInLayer[layerNumber] = (int)graphPosition.x;
