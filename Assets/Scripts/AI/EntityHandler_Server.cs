@@ -70,8 +70,31 @@ public class EntityHandler_Server
         if(this.playerObject.ContainsKey(pos))
             this.playerObject.Remove(pos);
 
-        if(this.dropObject.ContainsKey(pos))
+        if(this.dropObject.ContainsKey(pos)){
+            foreach(ulong code in this.dropObject[pos].Keys){
+                this.availableDropCodes.Add(code);
+            }
+
             this.dropObject.Remove(pos);
+        }
+
+        // Pending operations on drops of this chunk would hit recycled codes or resurrect drops that were already saved to disk
+        this.toRemove.RemoveAll(id => id.type == EntityType.DROP && id.pos == pos);
+
+        EntityChunkTransaction ect;
+        NetMessage killMessage = new NetMessage(NetCode.ENTITYDELETE);
+
+        for(int i=this.toChangePosition.Count-1; i >= 0; i--){
+            ect = this.toChangePosition[i];
+
+            if(ect.old.type != EntityType.DROP || ect.old.pos != pos)
+                continue;
+
+            // Clients of the destination chunk were already informed of this drop
+            killMessage.EntityDelete(EntityType.DROP, ect.old.code);
+            this.cl.server.SendToClients(ect.novel.pos, killMessage);
+            this.toChangePosition.RemoveAt(i);
+        }
     }
 
     // Gets all entities in given chunk

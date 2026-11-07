@@ -332,6 +332,10 @@ public class EntityHandler
 
 	// ...
 	public void Remove(EntityType type, ulong code){
+		// Deletion commands may arrive for entities this client never received or already removed
+		if(!Contains(type, code))
+			return;
+
 		if(type == EntityType.PLAYER){
 			UpdatePlayerItem(code, 0, 0, true, 1);
 			
@@ -357,7 +361,7 @@ public class EntityHandler
 		}
 		else if(type == EntityType.DROP){
 			this.dropObject[code].gameObject.SetActive(false);
-			GameObject.Destroy(this.dropObject[code]);
+			GameObject.Destroy(this.dropObject[code].gameObject);
 			this.dropObject.Remove(code);
 			this.dropCurrentPositions.Remove(code);
 		}

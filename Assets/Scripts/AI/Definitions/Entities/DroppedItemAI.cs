@@ -109,6 +109,8 @@ public class DroppedItemAI : AbstractAI
 
         // Sends movement notification
         if(moveCode != 3){
+            ChunkPos previousChunk = this.coords.GetChunkPos();
+
             SetPosition(this.behaviour.position, this.behaviour.rotation);
             this.radar.SetTransform(ref this.behaviour.position, ref this.behaviour.rotation, ref this.coords);
 
@@ -117,6 +119,13 @@ public class DroppedItemAI : AbstractAI
 
             this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((DroppedItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
             this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
+
+            // Clients that can't see the new chunk would otherwise keep a ghost of this item
+            if(previousChunk != this.coords.GetChunkPos()){
+                this.message = new NetMessage(NetCode.ENTITYDELETE);
+                this.message.EntityDelete(this.type, this.entityCode);
+                this.cl.server.SendToClientsExcept(previousChunk, this.coords.GetChunkPos(), this.message);
+            }
         }
     }
 

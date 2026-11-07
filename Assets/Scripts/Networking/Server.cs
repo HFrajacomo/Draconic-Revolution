@@ -631,7 +631,14 @@ public class Server {
 
 			foreach(ulong itemCode in this.entityHandler.dropObject[pos].Keys){
 				droppedItem = (DroppedItemAI)this.entityHandler.dropObject[pos][itemCode];
-				itemMessage.ItemEntityData(droppedItem.position.x, droppedItem.position.y, droppedItem.position.z, droppedItem.rotation.x, droppedItem.rotation.y, droppedItem.rotation.z, (ushort)droppedItem.its.GetID(), droppedItem.its.GetAmount(), itemCode);
+
+				// Its ENTITYDELETE was already broadcasted
+				if(droppedItem.markedForDelete)
+					continue;
+
+				// rotX carries the standing flag
+				itemMessage.ItemEntityData(droppedItem.position.x, droppedItem.position.y, droppedItem.position.z, droppedItem.GetState(), droppedItem.rotation.y, droppedItem.rotation.z, (ushort)droppedItem.its.GetID(), droppedItem.its.GetAmount(), itemCode);
+				this.Send(itemMessage.GetMessage(), itemMessage.size, id);
 			}
 		}
 	}
@@ -658,6 +665,10 @@ public class Server {
 	    // CHANGE THIS TO A SINGLE NETCODE MESSAGE TO DELETE THE ENTIRE CHUNK FOR ENTITIES
         if(this.entityHandler.Contains(EntityType.DROP, pos)){
 	        foreach(ulong itemCode in this.entityHandler.dropObject[pos].Keys){
+	        	// Its ENTITYDELETE was already broadcasted
+	        	if(this.entityHandler.dropObject[pos][itemCode].markedForDelete)
+	        		continue;
+
 	        	killMessage.EntityDelete(EntityType.DROP, itemCode);
 	        	this.Send(killMessage.GetMessage(), killMessage.size, id);
 	        }
@@ -955,9 +966,10 @@ public class Server {
 		bool isMale;
 		ItemStack selectionIts;
 		EntityAction selectionEa;
+		PlayerServerInventorySlot psiSlot;
+		ActionInventorySlot actionSlot;
+		ushort connectedItem;
 		bool trash;
-
-		byte slot;
 
 		if(!this.cl.playerServerInventory.HasInventory(requestedID))
 			this.cl.playerServerInventory.LoadInventoryIntoBuffer(requestedID, out trash);
@@ -973,22 +985,31 @@ public class Server {
 		message.SendPlayerAppearance(requestedID, app, isMale);
 		this.Send(message.GetMessage(), message.size, id);
 
+		// Only informs the requester of what the requested player is holding. Hold events were already fired for the requested player
 		NetMessage itemMessage = new NetMessage(NetCode.SENDITEMINHAND);
 
+		// Sheet hotbar slots are flat indexes into the player's inventory list
 		if(cs.IsInNormalHotbar()){
-			slot = cs.GetHotbarSlot();
-			selectionIts = this.cl.playerServerInventory.GetSlot(id, 1, slot).GetItemStack();
-			selectionIts.GetItem().OnHoldServer(this.cl, selectionIts, id);
-			itemMessage.SendItemInHand(id, cs.IsInNormalHotbar(), selectionIts.GetID(), selectionIts.GetAmount());
+			selectionIts = this.cl.playerServerInventory.GetSlot(requestedID, cs.GetHotbarSlot()).GetItemStack();
+			itemMessage.SendItemInHand(requestedID, true, selectionIts.GetID(), selectionIts.GetAmount());
 		}
 		else{
-			slot = cs.GetAttackHotbarSlot();
-			selectionEa = ((ActionInventorySlot)this.cl.playerServerInventory.GetSlot(id, 0, slot)).GetAction();
-			selectionEa.OnHoldServer(this.cl, selectionEa.GetItemStack(null), id);
-			itemMessage.SendItemInHand(id, cs.IsInNormalHotbar(), selectionEa.GetID(), (ushort)this.cl.playerServerInventory.GetSlot(id, selectionEa.GetConnectedStackInventory(), selectionEa.GetConnectedStackSlot()).GetItemID(), 0);
+			psiSlot = this.cl.playerServerInventory.GetSlot(requestedID, cs.GetAttackHotbarSlot());
+
+			if(!(psiSlot is ActionInventorySlot))
+				return;
+
+			actionSlot = (ActionInventorySlot)psiSlot;
+			selectionEa = actionSlot.GetAction();
+			connectedItem = 0;
+
+			if(actionSlot.IsConnectedToItem())
+				connectedItem = (ushort)this.cl.playerServerInventory.GetSlot(requestedID, actionSlot.GetStackInventory(), actionSlot.GetStackSlot()).GetItemID();
+
+			itemMessage.SendItemInHand(requestedID, false, selectionEa.GetID(), connectedItem, 0);
 		}
 
-		this.Send(itemMessage.GetMessage(), message.size, id);
+		this.Send(itemMessage.GetMessage(), itemMessage.size, id);
 	}
 
 	// Receives a disconnect call from client
@@ -1832,6 +1853,21 @@ public class Server {
 			return;
 
 		foreach(ulong i in this.cl.loadedChunks[pos]){
+			this.Send(message.GetMessage(), message.size, i);
+		}
+	}
+
+	// Send input message to all Clients connected to a given Chunk that are not connected to the excluded Chunk
+	public void SendToClientsExcept(ChunkPos pos, ChunkPos excluded, NetMessage message){
+		if(!this.cl.loadedChunks.ContainsKey(pos))
+			return;
+
+		bool hasExcluded = this.cl.loadedChunks.ContainsKey(excluded);
+
+		foreach(ulong i in this.cl.loadedChunks[pos]){
+			if(hasExcluded && this.cl.loadedChunks[excluded].Contains(i))
+				continue;
+
 			this.Send(message.GetMessage(), message.size, i);
 		}
 	}
