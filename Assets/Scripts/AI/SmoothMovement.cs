@@ -3,126 +3,71 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
 
+/*
+Smooths the movement of remote entities using Snapshot Interpolation
+	Every received position is buffered with its sender timestamp and entities are rendered slightly in the past (SnapshotBuffer.INTERPOLATION_DELAY)
+*/
 public class SmoothMovement {
-    private EntityHandler handler;
-    private Dictionary<ulong, DeltaMove> players = new Dictionary<ulong, DeltaMove>();
-    private Dictionary<ulong, DeltaMove> items = new Dictionary<ulong, DeltaMove>();
-    private static readonly DeltaMove zeroDelta = new DeltaMove(Vector3.zero, Vector3.zero);
+	private EntityHandler handler;
+	private Dictionary<ulong, SnapshotBuffer> players = new Dictionary<ulong, SnapshotBuffer>();
+	private Dictionary<ulong, SnapshotBuffer> items = new Dictionary<ulong, SnapshotBuffer>();
+	private EntitySnapshot cachedSnapshot;
 
-    public SmoothMovement(EntityHandler hand){
-        this.handler = hand;
-    }
+	public SmoothMovement(EntityHandler hand){
+		this.handler = hand;
+	}
 
-    public bool AddPlayer(ulong id){
-        DeltaMove dm = new DeltaMove(Vector3.zero, Vector3.zero);
+	// Rot is (pitch, yaw, roll) as sent by the Server
+	public bool AddPlayer(ulong id, uint timestamp, float3 pos, float3 rot){
+		if(this.players.ContainsKey(id))
+			return false;
 
-        if(!this.players.ContainsKey(id)){
-            this.players.Add(id, dm);
-            return true;
-        }
+		this.players.Add(id, new SnapshotBuffer(timestamp, new Vector3(pos.x, pos.y, pos.z), rot.y, rot.x, Time.unscaledTimeAsDouble));
+		return true;
+	}
 
-        return false;
-    }
+	public bool AddItem(ulong id, uint timestamp, float3 pos){
+		if(this.items.ContainsKey(id))
+			return false;
 
-    public bool AddItem(ulong id){
-        DeltaMove dm = new DeltaMove(Vector3.zero, Vector3.zero);
+		this.items.Add(id, new SnapshotBuffer(timestamp, new Vector3(pos.x, pos.y, pos.z), 0f, 0f, Time.unscaledTimeAsDouble));
+		return true;
+	}
 
-        if(!this.items.ContainsKey(id)){
-            this.items.Add(id, dm);
-            return true;
-        }
+	public bool Remove(EntityType type, ulong id){
+		if(type == EntityType.PLAYER)
+			return this.players.Remove(id);
+		else if(type == EntityType.DROP)
+			return this.items.Remove(id);
+		return false;
+	}
 
-        return false;
-    }
+	// Buffers a new position received from the Server. Rot is (pitch, yaw, roll) for players and ignored for drops
+	public void AddSnapshot(EntityType type, ulong id, uint timestamp, float3 pos, float3 rot){
+		Vector3 posV = new Vector3(pos.x, pos.y, pos.z);
 
-    public bool Remove(EntityType type, ulong id){
-        if(type == EntityType.PLAYER){
-            if(this.players.ContainsKey(id)){
-                this.players.Remove(id);
-                return true;
-            }
-        }
-        else if(type == EntityType.DROP){
-            if(this.items.ContainsKey(id)){
-                this.items.Remove(id);
-                return true;
-            }            
-        }
-        return false;
-    }
+		if(type == EntityType.PLAYER){
+			if(this.players.ContainsKey(id))
+				this.players[id].Add(timestamp, posV, rot.y, rot.x, Time.unscaledTimeAsDouble);
+		}
+		else if(type == EntityType.DROP){
+			if(this.items.ContainsKey(id))
+				this.items[id].Add(timestamp, posV, 0f, 0f, Time.unscaledTimeAsDouble);
+		}
+	}
 
-    // Changes the DeltaMove for the current tick
-    // Pos and Rot are the new coordinates received by server before changing them in EntityHandler
-    public void DefineMovement(EntityType type, ulong id, float3 pos, float3 rot){
-        Vector3 posV, rotV;
-        posV = new Vector3(pos.x, pos.y, pos.z);
-        rotV = new Vector3(rot.x, rot.y, rot.z);
+	// Moves all entities to their interpolated pose for the current frame
+	public void MoveEntities(){
+		double now = Time.unscaledTimeAsDouble;
 
-        DeltaMove dm = new DeltaMove(posV - this.handler.GetLastPosition(type, id), rotV - this.handler.GetLastRotation(type, id));
+		foreach(KeyValuePair<ulong, SnapshotBuffer> item in this.players){
+			if(item.Value.Sample(now, out this.cachedSnapshot))
+				this.handler.SetPlayerTransform(item.Key, this.cachedSnapshot.position, this.cachedSnapshot.yaw, this.cachedSnapshot.pitch);
+		}
 
-        if(type == EntityType.PLAYER){
-            if(this.players.ContainsKey(id)){
-                this.players[id] = dm;
-            }
-        }
-        else if(type == EntityType.DROP){
-            if(this.items.ContainsKey(id)){
-                this.items[id] = dm;
-            }
-        }
-    }
-
-    // Moves all entities according to their DeltaMoves
-    public void MoveEntities(){
-        foreach(ulong id in this.players.Keys){
-            if(this.players[id].deltaPos == Vector3.zero && this.players[id].deltaRot == Vector3.zero){
-                continue;
-            }
-
-            this.handler.Nudge(EntityType.PLAYER, id, this.players[id].deltaPos, this.players[id].deltaRot);
-        }
-
-        foreach(ulong id in this.items.Keys){
-            if(this.items[id].deltaPos == Vector3.zero && this.items[id].deltaRot == Vector3.zero){
-                continue;
-            }
-
-            this.handler.Nudge(EntityType.DROP, id, this.items[id].deltaPos, this.items[id].deltaRot);
-        }
-    }
-
-    public void StopEntity(EntityType type, ulong code){
-        if(type == EntityType.PLAYER){
-            return; // Not Implemented
-        }
-        else if(type == EntityType.DROP){
-            if(this.items.ContainsKey(code)){
-                this.items[code] = zeroDelta; 
-            }
-        }
-    }
-}
-
-public struct DeltaMove
-{
-    public Vector3 deltaPos;
-    public Vector3 deltaRot;
-
-    public DeltaMove(Vector3 p, Vector3 r){
-        this.deltaPos = p;
-        this.deltaRot = r;
-    }
-
-    public DeltaMove(float3 p, float3 r){
-        this.deltaPos = new Vector3(p.x, p.y, p.z);
-        this.deltaRot = new Vector3(r.x, r.y, r.z);
-    }
-
-    public bool Equals(DeltaMove dm){
-        return this.deltaPos == dm.deltaPos && this.deltaRot == dm.deltaRot;
-    }
-
-    public override string ToString(){
-        return "DeltaPos: " + this.deltaPos + "   DeltaRot: " + this.deltaRot;
-    }
+		foreach(KeyValuePair<ulong, SnapshotBuffer> item in this.items){
+			if(item.Value.Sample(now, out this.cachedSnapshot))
+				this.handler.SetItemPosition(item.Key, this.cachedSnapshot.position);
+		}
+	}
 }

@@ -55,6 +55,8 @@ public class Client
 	
 	public Client(ChunkLoader cl){
 		this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+		// Disables Nagle's algorithm so small realtime packets (like positions) are not delayed and bunched
+		this.socket.NoDelay = true;
 		this.cl = cl;
 
 		this.entityHandler = new EntityHandler(cl);
@@ -472,14 +474,14 @@ public class Client
 		ulong code = NetDecoder.ReadUlong(data, 1);
 		float3 pos = NetDecoder.ReadFloat3(data, 9);
 		float3 dir = NetDecoder.ReadFloat3(data, 21);
+		uint timestamp = NetDecoder.ReadUint(data, 33);
 
 		if(this.entityHandler.Contains(EntityType.PLAYER, code)){
-			this.entityHandler.NudgeLastPos(EntityType.PLAYER, code, pos, dir);
-			this.smoothMovement.DefineMovement(EntityType.PLAYER, code, pos, dir);
+			this.smoothMovement.AddSnapshot(EntityType.PLAYER, code, timestamp, pos, dir);
 		}
 		else{
 			this.entityHandler.AddPlayer(code, pos, dir);
-			this.smoothMovement.AddPlayer(code);
+			this.smoothMovement.AddPlayer(code, timestamp, pos, dir);
 
 			NetMessage charSheetMessage = new NetMessage(NetCode.REQUESTCHARACTERSHEET);
 			charSheetMessage.RequestCharacterSheet(code);
@@ -620,27 +622,23 @@ public class Client
 		ItemStack its;
 		float3 pos, rot;
 		ulong code;
+		uint timestamp;
 
 		pos = NetDecoder.ReadFloat3(data, 1);
 		rot = NetDecoder.ReadFloat3(data, 13);
 		its = new ItemStack(NetDecoder.ReadUshort(data, 25), data[27]);
 		code = NetDecoder.ReadUlong(data, 28);
+		timestamp = NetDecoder.ReadUint(data, 36);
 
+		// rot.x carries the standing flag
 		if(this.entityHandler.Contains(EntityType.DROP, code)){
-			this.smoothMovement.DefineMovement(EntityType.DROP, code, pos, rot);
-			this.entityHandler.NudgeLastPos(EntityType.DROP, code, pos, rot);
+			this.smoothMovement.AddSnapshot(EntityType.DROP, code, timestamp, pos, rot);
 			this.entityHandler.ToggleItemAnimation(EntityType.DROP, code, rot.x);
-
-			// Stop Signal
-			if(rot.x == 1f){
-				this.smoothMovement.StopEntity(EntityType.DROP, code);
-				this.entityHandler.SetItemPosition(code, pos);
-			}
 		}
 		else{
 			this.entityHandler.AddItem(code, pos, rot, its);
 			this.entityHandler.ToggleItemAnimation(EntityType.DROP, code, rot.x);
-			this.smoothMovement.AddItem(code);
+			this.smoothMovement.AddItem(code, timestamp, pos);
 		}
 	}
 

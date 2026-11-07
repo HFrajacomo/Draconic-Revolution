@@ -117,7 +117,7 @@ public class DroppedItemAI : AbstractAI
             this.message = new NetMessage(NetCode.ITEMENTITYDATA);
 
 
-            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((DroppedItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
+            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((DroppedItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode, NetMessage.GetTimestamp());
             this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
 
             // Clients that can't see the new chunk would otherwise keep a ghost of this item
@@ -187,7 +187,7 @@ public class DroppedItemAI : AbstractAI
         if(state == 1){
             this.SetStanding(true);
             this.message = new NetMessage(NetCode.ITEMENTITYDATA);
-            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((DroppedItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode);
+            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((DroppedItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode, NetMessage.GetTimestamp());
             this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
         }
     }

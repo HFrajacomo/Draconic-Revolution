@@ -35,6 +35,7 @@ public class Server {
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
 	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
 	private Dictionary<ulong, int> playerCarryStyles;
+	private Dictionary<ulong, uint> playerPositionTimestamps;
 
 	private HashSet<ChunkPos> chunksToSend = new HashSet<ChunkPos>();
 
@@ -84,6 +85,7 @@ public class Server {
 		playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
 		playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
 		playerCarryStyles = new Dictionary<ulong, int>();
+		playerPositionTimestamps = new Dictionary<ulong, uint>();
 
     	this.cl = cl;
     	this.entityHandler.SetChunkLoader(cl);
@@ -214,6 +216,9 @@ public class Server {
     private void ConnectCallback(IAsyncResult result){
     	Socket client = this.masterSocket.EndAccept(result);
     	ulong temporaryCode = GetCurrentCode();
+
+    	// Disables Nagle's algorithm so small realtime packets (like positions) are not delayed and bunched
+    	client.NoDelay = true;
 
     	this.temporaryConnections[temporaryCode] = client;
     	this.lengthPacket[temporaryCode] = true;
@@ -613,7 +618,7 @@ public class Server {
 					continue;
 				if(this.cl.regionHandler.allPlayerData[code].IsOnline()){
 					this.connectionGraph[code].Add(id);
-					playerMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[code]);
+					playerMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[code], GetPlayerPositionTimestamp(code));
 					this.Send(playerMessage.GetMessage(), playerMessage.size, id);
 					SendAnimationSnapshot(code, id);
 					SendEntitySFXSnapshot(code, id);
@@ -637,7 +642,7 @@ public class Server {
 					continue;
 
 				// rotX carries the standing flag
-				itemMessage.ItemEntityData(droppedItem.position.x, droppedItem.position.y, droppedItem.position.z, droppedItem.GetState(), droppedItem.rotation.y, droppedItem.rotation.z, (ushort)droppedItem.its.GetID(), droppedItem.its.GetAmount(), itemCode);
+				itemMessage.ItemEntityData(droppedItem.position.x, droppedItem.position.y, droppedItem.position.z, droppedItem.GetState(), droppedItem.rotation.y, droppedItem.rotation.z, (ushort)droppedItem.its.GetID(), droppedItem.its.GetAmount(), itemCode, NetMessage.GetTimestamp());
 				this.Send(itemMessage.GetMessage(), itemMessage.size, id);
 			}
 		}
@@ -929,11 +934,15 @@ public class Server {
 	// Receives player position and adds it to PlayerPositions Dict
 	private void ClientPlayerPosition(byte[] data, ulong id){
 		float3 pos, dir;
+		uint timestamp;
 		ChunkPos cp;
 		NetMessage graphMessage = new NetMessage(NetCode.PLAYERLOCATION);
 	
 		pos = NetDecoder.ReadFloat3(data, 1);
 		dir = NetDecoder.ReadFloat3(data, 13);
+		timestamp = NetDecoder.ReadUint(data, 25);
+
+		this.playerPositionTimestamps[id] = timestamp;
 
 		// Sets PlayerData
 		this.cl.regionHandler.allPlayerData[id].SetPosition(pos.x, pos.y, pos.z);
@@ -951,10 +960,17 @@ public class Server {
 		// Propagates data to all network
 		if(this.connectionGraph.ContainsKey(id)){
 			foreach(ulong code in this.connectionGraph[id]){
-				graphMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id]);
+				graphMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id], timestamp);
 				this.Send(graphMessage.GetMessage(), graphMessage.size, code);
 			}
 		}
+	}
+
+	// Gets the sender timestamp of the last position received from a player. Used for Snapshot Interpolation in Clients
+	private uint GetPlayerPositionTimestamp(ulong id){
+		if(this.playerPositionTimestamps.ContainsKey(id))
+			return this.playerPositionTimestamps[id];
+		return 0;
 	}
 
 	// Receives a request from a player to fetch another player's appearance (or himself)
@@ -1047,6 +1063,7 @@ public class Server {
 		this.playerActiveLoopSFX.Remove(id);
 		this.playerAttachmentAnchors.Remove(id);
 		this.playerCarryStyles.Remove(id);
+		this.playerPositionTimestamps.Remove(id);
 
 		this.entityHandler.Remove(EntityType.PLAYER, this.cl.regionHandler.allPlayerData[id].GetChunkPos(), id);
 		this.entityHandler.RemoveSheet(id);
@@ -1208,7 +1225,7 @@ public class Server {
 					Dictionary<string, float> animatorParameters = this.entityHandler.GetParameterValues(code);
 
 					this.connectionGraph[id].Add(code);
-					liveMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id]);
+					liveMessage.PlayerLocation(this.cl.regionHandler.allPlayerData[id], GetPlayerPositionTimestamp(id));
 					this.Send(liveMessage.GetMessage(), liveMessage.size, code);
 					SendAnimationSnapshot(id, code);
 					SendEntitySFXSnapshot(id, code);
@@ -1246,7 +1263,7 @@ public class Server {
 
 		ulong code = this.entityHandler.AddItem(pos, rot, move, itemCode, amount, id, this.cl);
 
-		message.ItemEntityData(pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, itemCode, amount, code);
+		message.ItemEntityData(pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, itemCode, amount, code, NetMessage.GetTimestamp());
 		this.SendToClients(cp, message);
 
 		if(slot != byte.MaxValue){

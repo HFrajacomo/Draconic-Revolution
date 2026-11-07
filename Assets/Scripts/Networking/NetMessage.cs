@@ -40,6 +40,11 @@ public struct NetMessage
 		this.id = id;
 	}
 
+	// Local clock in milliseconds used to timestamp entity snapshots. Wraps around safely, receivers only use deltas
+	public static uint GetTimestamp(){
+		return (uint)((ulong)(Time.unscaledTimeAsDouble * 1000.0) & 0xFFFFFFFF);
+	}
+
 	// Gets the buffer
 	public byte[] GetMessage(){
 		return NetMessage.buffer;
@@ -223,8 +228,8 @@ public struct NetMessage
 		this.size = 8;
 	}
 
-	// Clients sends their position to Server
-	public void ClientPlayerPosition(float x, float y, float z, float rotX, float rotY, float rotZ){
+	// Clients sends their position to Server. Timestamp is the sender's local clock in ms, used for Snapshot Interpolation
+	public void ClientPlayerPosition(float x, float y, float z, float rotX, float rotY, float rotZ, uint timestamp){
 		Reset();
 		NetDecoder.WriteFloat(x, NetMessage.buffer, 1);
 		NetDecoder.WriteFloat(y, NetMessage.buffer, 5);
@@ -232,7 +237,8 @@ public struct NetMessage
 		NetDecoder.WriteFloat(rotX, NetMessage.buffer, 13);
 		NetDecoder.WriteFloat(rotY, NetMessage.buffer, 17);
 		NetDecoder.WriteFloat(rotZ, NetMessage.buffer, 21);
-		this.size = 25; 
+		NetDecoder.WriteUint(timestamp, NetMessage.buffer, 25);
+		this.size = 29; 
 	}
 
 	// Client sends a voxel coordinate to trigger OnInteraction in server
@@ -294,15 +300,16 @@ public struct NetMessage
 	}
 
 	// Server sends entity data to Client
-	public void PlayerLocation(ulong code, float posX, float posY, float posZ, float dirX, float dirY, float dirZ){
+	public void PlayerLocation(ulong code, float posX, float posY, float posZ, float dirX, float dirY, float dirZ, uint timestamp){
 		Reset();
 		NetDecoder.WriteLong(code, NetMessage.buffer, 1);
 		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 9);
 		NetDecoder.WriteFloat3(dirX, dirY, dirZ, NetMessage.buffer, 21);
-		this.size = 33;
+		NetDecoder.WriteUint(timestamp, NetMessage.buffer, 33);
+		this.size = 37;
 	}
-	public void PlayerLocation(PlayerData pdat){
-		PlayerLocation(pdat.GetID(), pdat.posX, pdat.posY, pdat.posZ, pdat.dirX, pdat.dirY, pdat.dirZ);
+	public void PlayerLocation(PlayerData pdat, uint timestamp){
+		PlayerLocation(pdat.GetID(), pdat.posX, pdat.posY, pdat.posZ, pdat.dirX, pdat.dirY, pdat.dirZ, timestamp);
 	}
 
 	// Client requests a player's appearance information
@@ -357,14 +364,15 @@ public struct NetMessage
 	}
 
 	// Item Entity Data
-	public void ItemEntityData(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, ushort itemCode, byte amount, ulong entityCode){
+	public void ItemEntityData(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, ushort itemCode, byte amount, ulong entityCode, uint timestamp){
 		Reset();
 		NetDecoder.WriteFloat3(posX, posY, posZ, NetMessage.buffer, 1);
 		NetDecoder.WriteFloat3(rotX, rotY, rotZ, NetMessage.buffer, 13);
 		NetDecoder.WriteUshort(itemCode, NetMessage.buffer, 25);
 		NetDecoder.WriteByte(amount, NetMessage.buffer, 27);
 		NetDecoder.WriteLong(entityCode, NetMessage.buffer, 28);
-		this.size = 36;
+		NetDecoder.WriteUint(timestamp, NetMessage.buffer, 36);
+		this.size = 40;
 	}
 
 	// Clients sends list of blocks that require a LOAD BUD operation

@@ -18,9 +18,7 @@ public class EntityHandler
 	private Dictionary<ulong, Dictionary<string, float>> pendingPlayerAnimatorParameters;
 	private Dictionary<ulong, ushort> playerItem;
 	private Dictionary<ulong, bool> playerItemOrActionInHand;
-	private Dictionary<ulong, DeltaMove> playerCurrentPositions;
 	private Dictionary<ulong, ItemEntity> dropObject;
-	private Dictionary<ulong, DeltaMove> dropCurrentPositions;
 	private Dictionary<ulong, int> playerBattleStyle;
 	private Dictionary<ulong, int> playerCarryStyle;
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
@@ -46,9 +44,7 @@ public class EntityHandler
 		this.playerObject = new Dictionary<ulong, GameObject>();
 		this.playerHead = new Dictionary<ulong, Transform>();
 		this.playerItem = new Dictionary<ulong, ushort>();
-		this.playerCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.dropObject = new Dictionary<ulong, ItemEntity>();
-		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.playerAnimations = new Dictionary<ulong, AnimationHandler>();
 		this.pendingPlayerAnimations = new Dictionary<ulong, Dictionary<int, AnimationData>>();
 		this.pendingPlayerAnimatorParameters = new Dictionary<ulong, Dictionary<string, float>>();
@@ -118,7 +114,6 @@ public class EntityHandler
 		this.playerHead.Add(code, go.transform.Find("Camera"));
 		this.playerItem.Add(code, 0);
 		this.playerItemOrActionInHand.Add(code, true);
-		this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
 		this.playerAnimations.Add(code, null);
 		this.pendingPlayerAnimations.Add(code, new Dictionary<int, AnimationData>());
 		this.pendingPlayerAnimatorParameters.Add(code, new Dictionary<string, float>());
@@ -264,7 +259,6 @@ public class EntityHandler
 		newItemEntity.SetItemStack(its);
 
 		this.dropObject.Add(code, newItemEntity);
-		this.dropCurrentPositions.Add(code, new DeltaMove(pos, dir));
 		RunSingleActivation(EntityType.DROP, code, pos);
 	}
 
@@ -280,54 +274,28 @@ public class EntityHandler
 		this.playerAnimations[code].Play(stateName, layer);
 	}
 
-	// Triggers whenever a t(x) position is received. Moves entity to t(x-1) position received
-	public void NudgeLastPos(EntityType type, ulong code, float3 pos, float3 dir){
-		if(!Contains(type, code))
+	// Places a remote player in its interpolated pose. Yaw rotates the body and pitch rotates the head
+	public void SetPlayerTransform(ulong code, Vector3 pos, float yaw, float pitch){
+		if(!this.playerObject.ContainsKey(code))
 			return;
 
-		if(type == EntityType.PLAYER){	
-			this.playerObject[code].transform.position = this.playerCurrentPositions[code].deltaPos;
-			this.playerObject[code].transform.eulerAngles = new Vector3(0, this.playerCurrentPositions[code].deltaRot.y, 0);
-			this.playerHead[code].transform.localRotation = Quaternion.Euler(this.playerCurrentPositions[code].deltaRot.x, 0, 0);
-		
-			this.playerCurrentPositions[code] = new DeltaMove(pos, dir);
-		}
-		else if(type == EntityType.DROP){
-			this.dropObject[code].gameObject.transform.position = this.dropCurrentPositions[code].deltaPos;
+		this.playerObject[code].transform.SetPositionAndRotation(pos, Quaternion.Euler(0, yaw, 0));
 
-			this.dropCurrentPositions[code] = new DeltaMove(pos, dir);	
+		if(this.playerHead[code] != null)
+			this.playerHead[code].localRotation = Quaternion.Euler(pitch, 0, 0);
+
+		EntityID id = new EntityID(EntityType.PLAYER, code);
+
+		if(this.cl.voxelLightHandler.Contains(id)){
+			this.cl.voxelLightHandler.UpdatePosition(id, pos);
 		}
 	}
 
-	// Fine movement of entity in frame deltas
-	public void Nudge(EntityType type, ulong code, Vector3 dPos, Vector3 dRot){
-		if(!Contains(type, code))
-			return;
-
-		EntityID id = new EntityID(type, code);
-
-		if(type == EntityType.PLAYER){
-			this.playerObject[code].transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
-			this.playerObject[code].transform.eulerAngles += new Vector3(0, (dRot * (Time.deltaTime / TimeOfDay.timeRate)).y, 0);
-			this.playerHead[code].transform.eulerAngles += new Vector3((dRot * (Time.deltaTime / TimeOfDay.timeRate)).x, 0, 0);
-
-			if(this.cl.voxelLightHandler.Contains(id)){
-				this.cl.voxelLightHandler.UpdatePosition(id, this.playerObject[code].transform.position);
-			}
-		}
-		else if(type == EntityType.DROP){
-			this.dropObject[code].gameObject.transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
-		}
-	}
-
-	// Should only be used to hard set item rotation animation position
 	public void SetItemPosition(ulong code, Vector3 newPos){
 		if(!this.dropObject.ContainsKey(code))
 			return;
 
-		if(this.dropObject.ContainsKey(code)){
-			this.dropObject[code].gameObject.transform.position = newPos;
-		}
+		this.dropObject[code].gameObject.transform.position = newPos;
 	}
 
 	// ...
@@ -345,7 +313,6 @@ public class EntityHandler
 			this.playerObject.Remove(code);
 			this.playerItem.Remove(code);
 			this.playerItemOrActionInHand.Remove(code);
-			this.playerCurrentPositions.Remove(code);
 			this.playerSheet.Remove(code);
 			this.playerAnimations.Remove(code);
 			this.pendingPlayerAnimations.Remove(code);
@@ -363,7 +330,6 @@ public class EntityHandler
 			this.dropObject[code].gameObject.SetActive(false);
 			GameObject.Destroy(this.dropObject[code].gameObject);
 			this.dropObject.Remove(code);
-			this.dropCurrentPositions.Remove(code);
 		}
 	}
 
@@ -392,26 +358,6 @@ public class EntityHandler
 
 			this.playerAnimations[code].SetParameterValue(parameter, val, false);
 		}
-	}
-
-	public Vector3 GetLastPosition(EntityType type, ulong code){
-		if(!Contains(type, code))
-			return Vector3.zero;
-
-		if(type == EntityType.PLAYER)
-			return this.playerCurrentPositions[code].deltaPos;
-		else
-			return this.dropCurrentPositions[code].deltaPos;
-	}
-
-	public Vector3 GetLastRotation(EntityType type, ulong code){
-		if(!Contains(type, code))
-			return Vector3.zero;
-
-		if(type == EntityType.PLAYER)
-			return this.playerCurrentPositions[code].deltaRot;
-		else
-			return this.dropCurrentPositions[code].deltaRot;
 	}
 
 	public CharacterSheet GetPlayerSheet(ulong code){

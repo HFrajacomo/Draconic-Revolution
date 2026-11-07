@@ -19,14 +19,20 @@ public class PlayerPositionHandler : MonoBehaviour
     // Position Stuff
     private CastCoord coord = new CastCoord(false);
     private CastCoord lastCoord = new CastCoord(false);
-    private Vector3 lastPos = Vector3.zero;
-    private Vector3 lastRot = Vector3.zero;
     private PlayerVoxelLocation playerVoxelLocation = PlayerVoxelLocation.zero;
     private Vector3 BODY_OFFSET = new Vector3(0f, 0.2f, 0f);
     private string currentBiome = "";
     private string lastBiome = "";
-    private static readonly int TICKS = 4;
-    private int tickCounter = 4;
+
+    // Position Sending
+    private bool hasSentPosition = false;
+    private float sendTimer = 0f;
+    private Vector3 lastSentPos = Vector3.zero;
+    private float lastSentYaw = 0f;
+    private float lastSentPitch = 0f;
+    private static readonly float SEND_INTERVAL = TimeOfDay.timeRate;
+    private static readonly float SEND_POSITION_EPSILON = 0.001f;
+    private static readonly float SEND_ANGLE_EPSILON = 0.1f;
 
     // Chunk loading variables
     private int verticalChunkLoaded = 0;
@@ -92,9 +98,11 @@ public class PlayerPositionHandler : MonoBehaviour
         SetReverbSpecs();
         SetChunkLoaderChunkPos();
         UpdateVoxelLightPosition();
+    }
 
-        this.lastPos = this.playerTransform.position;
-        this.lastRot = this.playerTransform.eulerAngles;
+    // Runs after PlayerMovement has moved the player in the frame
+    void LateUpdate(){
+        SendPositionIfNeeded();
     }
 
     public void Activate(){
@@ -216,8 +224,6 @@ public class PlayerPositionHandler : MonoBehaviour
         if(this.cl.client == null)
             return;
 
-        this.tickCounter--;
-
         coord = new CastCoord(playerTransform.position);
 
         ApplyBlockInteraction(CalculateVoxelLocation());
@@ -253,22 +259,44 @@ public class PlayerPositionHandler : MonoBehaviour
             this.cl.client.Send(message);
         }
 
-        if(this.cl.client == null)
-            return;
-
-        if(this.tickCounter == 0){
-            this.tickCounter = TICKS;
-
-            // If has moved
-            if(this.playerTransform.position != this.lastPos || this.playerTransform.eulerAngles != this.lastRot){
-                NetMessage posMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
-                posMessage.ClientPlayerPosition(this.playerTransform.position.x, this.playerTransform.position.y, this.playerTransform.position.z, this.cameraTransform.eulerAngles.x, this.playerTransform.eulerAngles.y, this.playerTransform.eulerAngles.z);
-                this.cl.client.Send(posMessage);
-            }
-        }
-
         if(coord.active)
             this.lastCoord = coord;
+    }
+
+    /*
+    Sends the player position to the Server in a fixed rate, independent of framerate
+        Only sends if the state changed since the last sent one, guaranteeing that the resting pose always reaches the other players
+    */
+    private void SendPositionIfNeeded(){
+        if(this.cl == null || this.cl.client == null)
+            return;
+
+        this.sendTimer += Time.unscaledDeltaTime;
+
+        if(this.sendTimer < SEND_INTERVAL)
+            return;
+
+        // Keeps cadence without bursting after hitches
+        this.sendTimer = Mathf.Min(this.sendTimer - SEND_INTERVAL, SEND_INTERVAL);
+
+        Vector3 pos = this.playerTransform.position;
+        float yaw = this.playerTransform.eulerAngles.y;
+        float pitch = this.cameraTransform.eulerAngles.x;
+
+        if(this.hasSentPosition &&
+           (pos - this.lastSentPos).sqrMagnitude <= SEND_POSITION_EPSILON*SEND_POSITION_EPSILON &&
+           Mathf.Abs(Mathf.DeltaAngle(yaw, this.lastSentYaw)) <= SEND_ANGLE_EPSILON &&
+           Mathf.Abs(Mathf.DeltaAngle(pitch, this.lastSentPitch)) <= SEND_ANGLE_EPSILON)
+            return;
+
+        NetMessage posMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
+        posMessage.ClientPlayerPosition(pos.x, pos.y, pos.z, pitch, yaw, this.playerTransform.eulerAngles.z, NetMessage.GetTimestamp());
+        this.cl.client.Send(posMessage);
+
+        this.hasSentPosition = true;
+        this.lastSentPos = pos;
+        this.lastSentYaw = yaw;
+        this.lastSentPitch = pitch;
     }
 
     private bool CheckBiomeChange(){return this.currentBiome != this.lastBiome && !CheckEqualMusic(this.currentBiome, this.lastBiome);}
