@@ -32,6 +32,21 @@ public static class Constants
     // Chunk Loading
     public static readonly int CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE = 50;
 
+    // Chunk Streaming (none of these depend on Render Distance)
+    public static readonly int CHUNK_STREAM_WINDOW_MIN = 16; // Minimum amount of chunks sent but not yet consumed by a client
+    public static readonly int CHUNK_STREAM_WINDOW_MAX = 512;
+    public static readonly int CHUNK_STREAM_WINDOW_STEP = 8; // Window growth whenever a client keeps up with the server
+    public static readonly int CHUNK_STREAM_GENERATION_LOOKAHEAD = 32; // Maximum amount of chunks a client can have waiting for generation
+    public static readonly float SERVER_CHUNK_LOAD_BUDGET_MS = 10f;
+    public static readonly float SERVER_CHUNK_STREAM_BUDGET_MS = 4f;
+    public static readonly float CLIENT_CHUNK_LOAD_BUDGET_MS = 4f;
+    public static readonly float CLIENT_CHUNK_UNLOAD_BUDGET_MS = 2f;
+    public static readonly float CLIENT_DRAW_FINISH_BUDGET_MS = 4f;
+    public static readonly float CHUNK_RESYNC_IDLE_SECONDS = 2f; // Time without receiving streamed chunks before looking for missing ones
+    public static readonly float CHUNK_RESYNC_INTERVAL_SECONDS = 5f; // Pause after a full clean scan of the window
+    public static readonly int CHUNK_RESYNC_CHECKS_PER_FRAME = 256;
+    public static readonly int CHUNK_RESYNC_MAX_REQUESTS = 32;
+
     // Persistance
     public static readonly int MAXIMUM_REGION_FILE_POOL = 10;
     public static readonly float CHUNKS_IN_REGION_FILE = 32f;

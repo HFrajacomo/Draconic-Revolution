@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-public struct ChunkPos{
+public struct ChunkPos : IEquatable<ChunkPos>{
 	public int x;
 	public int z;
 	public byte y;
@@ -23,15 +24,27 @@ public struct ChunkPos{
 		this.y = (byte)y;
 	}
 
-	public int DistanceFrom(ChunkPos pos, DistanceMetric metric){
+	// edgeLimit is only used by EDGE_LIMITING: chunks farther than it (in Chebyshev distance) are sent to the lowest priority
+	public int DistanceFrom(ChunkPos pos, DistanceMetric metric, int edgeLimit=0){
 		switch(metric){
 			case DistanceMetric.MANHATTAN:
 				return DistanceManhattan(pos);
 			case DistanceMetric.EDGE_LIMITING:
-				return DistanceEdgeLimiting(pos);
+				return DistanceEdgeLimiting(pos, edgeLimit);
+			case DistanceMetric.STREAMING:
+				return DistanceStreaming(pos);
 			default:
 				return DistanceManhattan(pos);
 		}
+	}
+
+	// Chebyshev rings, where the vertical layer of a ring comes right after the main layer of the same ring
+	public int DistanceStreaming(ChunkPos otherPos){
+		int xDiff = Mathf.Abs(otherPos.x - this.x);
+		int zDiff = Mathf.Abs(otherPos.z - this.z);
+		int yDiff = Mathf.Abs(otherPos.y - this.y);
+
+		return Mathf.Max(xDiff, zDiff)*2 + yDiff;
 	}
 
 	public int DistanceManhattan(ChunkPos otherPos){
@@ -44,7 +57,7 @@ public struct ChunkPos{
 		return xDiff + yDiff + zDiff;
 	}
 
-	public int DistanceEdgeLimiting(ChunkPos otherPos){
+	public int DistanceEdgeLimiting(ChunkPos otherPos, int edgeLimit){
 		int xDiff, zDiff, yDiff;
 		int maximizedDistance;
 
@@ -54,8 +67,8 @@ public struct ChunkPos{
 
 		maximizedDistance = Mathf.Max(xDiff, zDiff);
 
-		if(maximizedDistance > World.renderDistance){
-			return (World.renderDistance*5)-1;
+		if(maximizedDistance > edgeLimit){
+			return (edgeLimit*5)-1;
 		}
 		else{
 			return xDiff + yDiff + zDiff;
@@ -79,15 +92,23 @@ public struct ChunkPos{
 	}
 
 	public override int GetHashCode(){
-		return this.x ^ this.z;
+		unchecked{
+			int hash = this.x * 73856093;
+			hash ^= this.z * 19349663;
+			hash ^= this.y * 83492791;
+			return hash;
+		}
+	}
+
+	public bool Equals(ChunkPos other){
+		return this.x == other.x && this.z == other.z && this.y == other.y;
 	}
 
 	public override bool Equals(System.Object a){
-		if(a == null)
+		if(!(a is ChunkPos))
 			return false;
 
-		ChunkPos item = (ChunkPos)a;
-		return this == item;
+		return Equals((ChunkPos)a);
 	}
 
 	/*
@@ -139,5 +160,6 @@ public struct ChunkPos{
 
 public enum DistanceMetric : byte{
 	MANHATTAN,
-	EDGE_LIMITING
+	EDGE_LIMITING,
+	STREAMING
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 using Debug = UnityEngine.Debug;
@@ -29,7 +30,8 @@ public class Client
 	private const int sendBufferSize = 4096; // 4KB
 	private const int receiveBufferSize = 4096*4096; // 2MB
 	private byte[] receiveBuffer;
-	public List<NetMessage> queue = new List<NetMessage>();
+	// Filled by the socket thread and consumed by the main thread
+	public ConcurrentQueue<NetMessage> queue = new ConcurrentQueue<NetMessage>();
 
 	// Packet Management
 	private bool lengthPacket = true;
@@ -140,7 +142,7 @@ public class Client
 			NetMessage.Broadcast(NetBroadcast.RECEIVED, dataBuffer[0], Configurations.accountID, this.packetSize);
 
 			NetMessage receivedMessage = new NetMessage(this.dataBuffer, 0);
-			this.queue.Add(receivedMessage);
+			this.queue.Enqueue(receivedMessage);
 
 			this.lengthPacket = true;
 			this.packetSize = 0;
@@ -200,6 +202,9 @@ public class Client
 				SendServerInfo(data);
 				break;
 			case NetCode.SENDCHUNK:
+				SendChunk(data);
+				break;
+			case NetCode.STREAMCHUNK:
 				SendChunk(data);
 				break;
 			case NetCode.DISCONNECT:
@@ -320,19 +325,11 @@ public class Client
 	}
 
 	// Receives a Chunk
+	// Streamed chunks also count towards the streaming window and must be acknowledged once consumed
 	private void SendChunk(byte[] data){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 
-		// Returns index if exists and -1 otherwise
-		int index = this.cl.toLoadChunk.IndexOf(pos);
-
-		if(index == -1){
-			this.cl.toLoad.Add(data);
-			this.cl.toLoadChunk.Add(pos);
-		}
-		else{
-			this.cl.toLoad[index] = data;
-		}
+		this.cl.EnqueueChunkData(pos, data, (NetCode)data[0] == NetCode.STREAMCHUNK);
 	}
 
 	// Receives a disconnect call from server

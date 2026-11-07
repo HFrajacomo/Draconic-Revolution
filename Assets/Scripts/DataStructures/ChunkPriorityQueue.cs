@@ -3,257 +3,241 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+Priority Queue of ChunkPos ordered by their distance to a reference position (usually the player's chunk)
+	Every distance has its own FIFO bucket, so Add, Pop and Remove are amortized O(1)
+	Removal is lazy: the entry stays in its bucket and is discarded once it reaches the front
+	SetPlayerPosition re-buckets every live entry in O(n), keeping their relative order
+	There is no fixed maximum distance, buckets are created on demand
+*/
 public class ChunkPriorityQueue
 {
-    private List<ChunkDistance> queue; // Second queue that handles normal execution
-    private List<ChunkDistance> backupQueue; // Cache queue to recalculate distances
+    private List<Queue<ChunkDistance>> buckets = new List<Queue<ChunkDistance>>();
+    private Dictionary<ChunkPos, int> members = new Dictionary<ChunkPos, int>(); // ChunkPos -> stamp of its live entry
+    private List<ChunkDistance> rebuildCache = new List<ChunkDistance>();
 
-    private HashSet<ChunkPos> chunks; // HashSet that contains all ChunkPos currently in the Queue
+    private int lowestBucket = 0;
+    private int totalEntries = 0; // Live and stale entries
+    private int stampCounter = 0;
 
-    private int?[] partition; // Array connecting index=distance marking where every distance partition starts
-    private int[] elementsInPartition; // Array connection index=distance to the amount of elements in a partition
-    private int lastPartitionDistance = -1;
-
-    private ChunkPos playerPosition; // Player current Distance
+    private ChunkPos playerPosition;
     private DistanceMetric metric;
+    private int edgeLimit;
 
-    private bool DEBUG;
+    private static readonly int MAXIMUM_BUCKETS = 8192;
+    private static readonly int COMPACTION_SLACK = 1024;
 
-    public ChunkPriorityQueue(int renderDistance, bool debug=false, DistanceMetric metric=DistanceMetric.MANHATTAN){
-        this.queue = new List<ChunkDistance>();
-        this.chunks = new HashSet<ChunkPos>();
-        this.partition = new int?[renderDistance*5];
-        this.elementsInPartition = new int[renderDistance*5];
+
+    // edgeLimit is only used by DistanceMetric.EDGE_LIMITING
+    public ChunkPriorityQueue(DistanceMetric metric=DistanceMetric.MANHATTAN, int edgeLimit=0){
         this.metric = metric;
-        this.DEBUG = debug;
+        this.edgeLimit = edgeLimit;
     }
 
     public void Add(ChunkPos x){
-        if(this.Contains(x)){
-            return;
-        }
-
-        int distance = playerPosition.DistanceFrom(x, this.metric);
-
-        // Blocks chunks from too far away from loading
-        if(distance >= this.partition.Length)
+        if(this.members.ContainsKey(x))
             return;
 
-        // Empty Queue
-        if(this.queue.Count == 0){
-            CreateNewPartition(distance);
-
-            this.queue.Add(new ChunkDistance(x, distance));
-            this.chunks.Add(x);
-            return;
-        }
-
-        // If partition is new
-        if(this.partition[distance] == null){
-            if(!CreateNewPartition(distance)){
-                ShiftAllAbove(distance);
-
-                this.queue.Insert((int)this.partition[distance], new ChunkDistance(x, distance));
-                this.chunks.Add(x);
-            }
-            else{
-                this.queue.Insert((int)this.partition[distance], new ChunkDistance(x, distance));
-                this.chunks.Add(x);
-            }
-        }
-        // If partition already exists
-        else{
-            if(distance != this.lastPartitionDistance){
-                ShiftAllAbove(distance);
-                
-                this.queue.Insert((int)this.partition[distance] + this.elementsInPartition[distance], new ChunkDistance(x, distance));
-            }
-            else{
-                this.queue.Add(new ChunkDistance(x, distance));
-            }
-
-            this.chunks.Add(x);
-            this.elementsInPartition[distance]++;
-        }
+        this.stampCounter++;
+        this.members.Add(x, this.stampCounter);
+        Push(new ChunkDistance(x, GetDistance(x), this.stampCounter));
     }
 
     public bool Contains(ChunkPos x){
-        return this.chunks.Contains(x);
+        return this.members.ContainsKey(x);
     }
 
     public int GetSize(){
-        return this.queue.Count;
+        return this.members.Count;
     }
 
     public ChunkPos Peek(){
-        if(GetSize() > 0)
-            return this.queue[0].pos;
+        ChunkDistance entry;
 
-        return playerPosition;
+        if(PeekLive(out entry))
+            return entry.pos;
+
+        return this.playerPosition;
     }
 
     public float PeekDistance(){
-        if(GetSize() > 0)
-            return this.queue[0].distance;
+        ChunkDistance entry;
+
+        if(PeekLive(out entry))
+            return entry.distance;
 
         return -1;
-    } 
+    }
 
+    // Returns the player position if the queue is empty
     public ChunkPos Pop(){
-        ChunkPos aux = this.queue[0].pos;
-        int distance = this.queue[0].distance;
+        ChunkDistance entry;
 
-        if(this.elementsInPartition[distance] == 1){
-            if(!DeletePartition(distance)){
-                ShiftAllBelow(distance);
-            }
-        }
-        else{
-            this.elementsInPartition[distance]--;
-            ShiftAllBelow(distance);
+        if(!PeekLive(out entry))
+            return this.playerPosition;
+
+        this.buckets[this.lowestBucket].Dequeue();
+        this.totalEntries--;
+        this.members.Remove(entry.pos);
+
+        return entry.pos;
+    }
+
+    public bool TryPop(out ChunkPos pos){
+        if(GetSize() == 0){
+            pos = this.playerPosition;
+            return false;
         }
 
-        this.queue.RemoveAt(0);
-        this.chunks.Remove(aux);
-        return aux;            
+        pos = Pop();
+        return true;
     }
 
     public void Remove(ChunkPos x){
-        if(!Contains(x))
+        if(!this.members.Remove(x))
             return;
 
-        int dist = playerPosition.DistanceFrom(x, this.metric);
+        if(this.members.Count == 0){
+            ClearBuckets();
+            return;
+        }
 
-        for(int i=(int)this.partition[dist]; i < (int)this.partition[dist]+this.elementsInPartition[dist]; i++){
-            if(this.queue[i].pos == x){
-                this.queue.RemoveAt(i);
-                this.chunks.Remove(x);
-
-                if(this.elementsInPartition[dist] == 1){
-                    if(!DeletePartition(dist)){
-                        ShiftAllBelow(dist);
-                    }
-                }
-                else{
-                    this.elementsInPartition[dist]--;
-                    ShiftAllBelow(dist);
-                }
-                return;
-            }
-        }        
+        // Prevents stale entries from piling up when many elements are removed without being popped
+        if(this.totalEntries - this.members.Count > this.members.Count + COMPACTION_SLACK)
+            Rebuild();
     }
 
     public void Clear(){
-        this.queue.Clear();
-        this.chunks.Clear();
-        this.lastPartitionDistance = -1;
-        Array.Fill(this.partition, null);
-        Array.Fill(this.elementsInPartition, 0);
+        this.members.Clear();
+        ClearBuckets();
     }
 
     public void SetPlayerPosition(ChunkPos pos){
         this.playerPosition = pos;
 
-        RenewDistances();
+        Rebuild();
     }
 
-    private void RenewDistances(){
-        ChangeReference(ref this.queue, ref this.backupQueue);
-
-        this.chunks.Clear();
-        Array.Fill(this.partition, null);
-        Array.Fill(this.elementsInPartition, 0);
-        this.lastPartitionDistance = -1;
-
-        for(int i=0; i < this.backupQueue.Count; i++){
-            Add(this.backupQueue[i].pos);
-        }
-
-        this.backupQueue.Clear();
+    public ChunkPos GetPlayerPosition(){
+        return this.playerPosition;
     }
 
-    // Shifts forward the partition position of all valid partition
-    private void ShiftAllAbove(int distance){
-        for(int i=distance+1; i <= this.lastPartitionDistance; i++){
-            if(this.partition[i] == null)
-                continue;
+    private int GetDistance(ChunkPos x){
+        int distance = this.playerPosition.DistanceFrom(x, this.metric, edgeLimit:this.edgeLimit);
 
-            this.partition[i]++;
-        }
+        if(distance < 0)
+            return 0;
+        if(distance >= MAXIMUM_BUCKETS)
+            return MAXIMUM_BUCKETS-1;
+
+        return distance;
     }
 
-    // Shifts backwards the partition position of all valid partition
-    private void ShiftAllBelow(int distance){
-        for(int i=distance+1; i <= this.lastPartitionDistance; i++){
-            if(this.partition[i] == null)
-                continue;
+    private bool IsLive(ChunkDistance entry){
+        int stamp;
 
-            this.partition[i]--;
-        }
-    }
-
-    // Finds the latest partition index and increments one
-    // Returns true if is creating a new last partition
-    private bool CreateNewPartition(int distance){
-        if(distance > this.lastPartitionDistance){
-            this.partition[distance] = this.queue.Count;
-            this.elementsInPartition[distance] = 1;
-            this.lastPartitionDistance = distance;
-            return true;
-        }
-        else{
-            for(int i=distance+1; i <= this.lastPartitionDistance; i++){
-                if(this.partition[i] == null)
-                    continue;
-
-                this.partition[distance] = this.partition[i];
-                this.elementsInPartition[distance] = 1;
-                return false;
-            }
-
-            this.partition[distance] = this.queue.Count;
-            this.elementsInPartition[distance] = 1;
-            this.lastPartitionDistance = distance;
-            return true;
-        }
-    }
-
-    // Deletes an entire partition
-    // Returns true if was deleting the last partition
-    private bool DeletePartition(int distance){
-        if(distance == this.lastPartitionDistance){
-            this.partition[distance] = null;
-            this.elementsInPartition[distance] = 0;
-
-            for(int i=distance-1; i >= 0; i--){
-                if(this.partition[i] == null)
-                    continue;
-
-                this.partition[distance] = this.partition[i];
-                this.lastPartitionDistance = i;
-                return true;
-            }
-
-            this.lastPartitionDistance = -1;
-            return true;
-        }
-        else{
-            this.partition[distance] = null;
-            this.elementsInPartition[distance] = 0;
+        if(!this.members.TryGetValue(entry.pos, out stamp))
             return false;
-        }
+
+        return stamp == entry.stamp;
     }
 
-    private void ChangeReference(ref List<ChunkDistance> queue, ref List<ChunkDistance> backupQueue){
-        backupQueue = queue;
-        queue = new List<ChunkDistance>();
+    private void Push(ChunkDistance entry){
+        while(this.buckets.Count <= entry.distance)
+            this.buckets.Add(null);
+
+        if(this.buckets[entry.distance] == null)
+            this.buckets[entry.distance] = new Queue<ChunkDistance>();
+
+        this.buckets[entry.distance].Enqueue(entry);
+        this.totalEntries++;
+
+        if(entry.distance < this.lowestBucket)
+            this.lowestBucket = entry.distance;
+    }
+
+    // Finds the first live entry, discarding stale entries on the way
+    private bool PeekLive(out ChunkDistance entry){
+        Queue<ChunkDistance> bucket;
+
+        while(this.members.Count > 0 && this.lowestBucket < this.buckets.Count){
+            bucket = this.buckets[this.lowestBucket];
+
+            if(bucket == null || bucket.Count == 0){
+                this.lowestBucket++;
+                continue;
+            }
+
+            entry = bucket.Peek();
+
+            if(IsLive(entry))
+                return true;
+
+            bucket.Dequeue();
+            this.totalEntries--;
+        }
+
+        if(this.members.Count == 0 && this.totalEntries > 0)
+            ClearBuckets();
+
+        entry = default(ChunkDistance);
+        return false;
+    }
+
+    // Re-buckets all live entries in priority order using the current player position
+    private void Rebuild(){
+        Queue<ChunkDistance> bucket;
+        ChunkDistance entry;
+
+        this.rebuildCache.Clear();
+
+        for(int i=this.lowestBucket; i < this.buckets.Count; i++){
+            bucket = this.buckets[i];
+
+            if(bucket == null)
+                continue;
+
+            while(bucket.Count > 0){
+                entry = bucket.Dequeue();
+
+                if(IsLive(entry))
+                    this.rebuildCache.Add(entry);
+            }
+        }
+
+        this.totalEntries = 0;
+        this.lowestBucket = 0;
+
+        for(int i=0; i < this.rebuildCache.Count; i++){
+            entry = this.rebuildCache[i];
+            Push(new ChunkDistance(entry.pos, GetDistance(entry.pos), entry.stamp));
+        }
+
+        this.rebuildCache.Clear();
+    }
+
+    private void ClearBuckets(){
+        for(int i=0; i < this.buckets.Count; i++){
+            if(this.buckets[i] != null)
+                this.buckets[i].Clear();
+        }
+
+        this.totalEntries = 0;
+        this.lowestBucket = 0;
     }
 
     public void Print(){
         string a = "[";
 
-        for(int i=0; i < this.queue.Count; i++)
-            a += this.queue[i] + ", ";
+        for(int i=0; i < this.buckets.Count; i++){
+            if(this.buckets[i] == null)
+                continue;
+
+            foreach(ChunkDistance entry in this.buckets[i]){
+                if(IsLive(entry))
+                    a += entry + ", ";
+            }
+        }
 
         a += "]";
 
@@ -264,10 +248,12 @@ public class ChunkPriorityQueue
 public struct ChunkDistance{
     public ChunkPos pos;
     public int distance;
+    public int stamp;
 
-    public ChunkDistance(ChunkPos pos, int distance){
+    public ChunkDistance(ChunkPos pos, int distance, int stamp){
         this.pos = pos;
         this.distance = distance;
+        this.stamp = stamp;
     }
 
     public override string ToString(){

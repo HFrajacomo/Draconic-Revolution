@@ -144,6 +144,7 @@ public struct NetMessage
 
 	
 	// Client asking for a chunk information to Server
+	// With Chunk Streaming, only used to recover chunks the client is missing
 	public void RequestChunkLoad(ChunkPos pos){
 		Reset();
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
@@ -155,6 +156,24 @@ public struct NetMessage
 		Reset();
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
 		this.size = 10;
+	}
+
+	// Client informing the Server of the center of its StreamWindow
+	public void StreamCenter(ChunkPos center, int verticalLayer){
+		// {CODE} [ChunkPos] [VerticalLayer (sbyte)]
+		Reset();
+		NetDecoder.WriteChunkPos(center, NetMessage.buffer, 1);
+		NetMessage.buffer[10] = (byte)(sbyte)verticalLayer;
+		this.size = 11;
+	}
+
+	// Client acknowledging the streamed chunks it consumed and informing how many are still waiting to be loaded
+	public void ChunkAck(int consumed, int backlog){
+		// {CODE} [Consumed] [Backlog]
+		Reset();
+		NetDecoder.WriteInt(consumed, NetMessage.buffer, 1);
+		NetDecoder.WriteInt(backlog, NetMessage.buffer, 5);
+		this.size = 9;
 	}
 
 	// Server sending chunk information to Client
@@ -607,7 +626,10 @@ public enum NetCode{
 	ENTITYSFX,
 	SENDATTACHMENTANCHOR,
 	DISCONNECTINFO, // No call
-	DISCONNECT  // No call
+	DISCONNECT,  // No call
+	STREAMCENTER,
+	CHUNKACK,
+	STREAMCHUNK // Same layout as SENDCHUNK, but counts towards the client's streaming window
 }
 
 public enum NetBroadcast{

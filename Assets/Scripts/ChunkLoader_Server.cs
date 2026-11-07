@@ -22,9 +22,10 @@ public class ChunkLoader_Server : MonoBehaviour
     public WorldGenerator worldGen;
     public Server server;
 
-    // Queues
-    public List<ChunkPos> toLoad = new List<ChunkPos>();
-    public List<ChunkPos> toUnload = new List<ChunkPos>();
+    // Generation Queue, fed by the ChunkStreamer
+    private Queue<ChunkPos> loadQueue = new Queue<ChunkPos>();
+    private HashSet<ChunkPos> loadQueueSet = new HashSet<ChunkPos>();
+    private System.Diagnostics.Stopwatch loadStopwatch = new System.Diagnostics.Stopwatch();
     public Dictionary<ChunkPos, HashSet<ulong>> loadedChunks = new Dictionary<ChunkPos, HashSet<ulong>>();
 
 	// World Generation
@@ -88,10 +89,12 @@ public class ChunkLoader_Server : MonoBehaviour
             // Decides what to do for current tick
             HandleServerCommunication();
 
-            if(toLoad.Count > 0)
+            if(this.loadQueue.Count > 0)
                 LoadChunk();
             else if(Structure.reloadChunks.Count > 0)
                 SavePregenChunk();
+
+            this.server.chunkStreamer.Tick();
         }
         else if(!this.INITIALIZEDWORLD && this.RECEIVEDWORLDDATA){
             InitWorld();
@@ -150,14 +153,15 @@ public class ChunkLoader_Server : MonoBehaviour
 
     // Deals with the handling of Server received information
     private void HandleServerCommunication(){
-        // If NetMessage queue is not empty
+        // Messages that arrive while handling these are left for the next frame
         int queueCount = this.server.queue.Count;
+        NetMessage message;
 
-        if(queueCount > 0){
-            for(ulong i=0; i<(ulong)queueCount; i++){
-                this.server.HandleReceivedMessage(this.server.queue[0].GetData(), this.server.queue[0].GetID());
-                this.server.queue.RemoveAt(0);
-            }
+        for(int i=0; i < queueCount; i++){
+            if(!this.server.queue.TryDequeue(out message))
+                break;
+
+            this.server.HandleReceivedMessage(message.GetData(), message.GetID());
         }
     }
 
@@ -199,76 +203,90 @@ public class ChunkLoader_Server : MonoBehaviour
         Structure.reloadChunks.RemoveAt(0);
     }
 
-    // Loads Chunk data, but doesn't draw them
+    // Asks for a chunk to be loaded or generated. Duplicates are ignored
+    public void RequestLoad(ChunkPos pos){
+        if(this.loadQueueSet.Add(pos))
+            this.loadQueue.Enqueue(pos);
+    }
+
+    // Loads or generates queued chunks until the frame budget is spent (at least one per frame)
     private void LoadChunk(){
-        for(int i = 0; i < 3; i++){
-        	if(toLoad.Count > 0){
-        		// Prevention
-        		if(toUnload.Contains(toLoad[0])){
-        			toUnload.Remove(toLoad[0]);
-        			toLoad.RemoveAt(0);
-        			return;
-        		}
+        long budget = (long)(Constants.SERVER_CHUNK_LOAD_BUDGET_MS * System.Diagnostics.Stopwatch.Frequency / 1000f);
+        ChunkPos pos;
 
-                if(chunks.ContainsKey(toLoad[0])){
-                    toLoad.RemoveAt(0);
-                    return;
-                }
+        this.loadStopwatch.Restart();
 
-                bool isPregen;
+        do{
+            pos = this.loadQueue.Dequeue();
+            this.loadQueueSet.Remove(pos);
 
-                // Gets correct region file
-                regionHandler.GetCorrectRegion(toLoad[0]);
+            if(this.chunks.ContainsKey(pos)){
+                this.server.chunkStreamer.OnChunkLoaded(pos, true);
+                continue;
+            }
 
-                // If current chunk toLoad was already generated
-                if(regionHandler.IsIndexed(toLoad[0])){
+            // Every client that asked for it has moved away
+            if(!this.server.chunkStreamer.IsAwaited(pos)){
+                this.server.chunkStreamer.OnChunkLoaded(pos, false);
+                continue;
+            }
 
-                    isPregen = regionHandler.GetsNeedGeneration(toLoad[0]);
+            LoadSingleChunk(pos);
+            this.server.chunkStreamer.OnChunkLoaded(pos, true);
+        } while(this.loadQueue.Count > 0 && this.loadStopwatch.ElapsedTicks < budget);
+    }
 
-                    // If chunk is Pre-Generated
-                    if(isPregen){
-                        AddChunk(toLoad[0], new Chunk(toLoad[0], server:true));
-                        vfx.NewChunk(toLoad[0], isServer:true);
-                        regionHandler.LoadChunk(chunks[toLoad[0]]);
-                        this.worldGen.ClearCaches();
-                        this.worldGen.SetVoxdata(chunks[toLoad[0]].data.GetData());
-                        this.worldGen.SetCacheHP(chunks[toLoad[0]].metadata.GetHPData());
-                        this.worldGen.SetCacheState(chunks[toLoad[0]].metadata.GetStateData());
-                        this.worldGen.GenerateChunk(toLoad[0], isPregen:true);
-                        chunks[toLoad[0]].biomeName = this.worldGen.GetCacheBiome();
-                        chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata(), toLoad[0]));
-                        chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
-                        chunks[toLoad[0]].needsGeneration = 0;
-                        regionHandler.SaveChunk(chunks[toLoad[0]]);
-                    }
-                    // If it's just a normally generated chunk
-                    else{
-                        AddChunk(toLoad[0], new Chunk(toLoad[0], server:true));
-                        vfx.NewChunk(toLoad[0], isServer:true);
-                        regionHandler.LoadChunk(chunks[toLoad[0]]);
-                        chunks[toLoad[0]].needsGeneration = 0;
-                    }
-                }
-                // If it's a new chunk to be generated
-                else{
-                    AddChunk(toLoad[0], new Chunk(toLoad[0], server:true));
-                    vfx.NewChunk(toLoad[0], isServer:true);
+    // Loads a chunk from disk or generates it, along with its entities
+    private void LoadSingleChunk(ChunkPos pos){
+        bool isPregen;
 
-                    this.worldGen.ClearCaches();
-                    this.worldGen.GenerateChunk(toLoad[0]);
-                    chunks[toLoad[0]].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata(), toLoad[0]));
-                    chunks[toLoad[0]].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
-                    chunks[toLoad[0]].needsGeneration = 0;
-                    chunks[toLoad[0]].biomeName = this.worldGen.GetCacheBiome();
-                    regionHandler.SaveChunk(chunks[toLoad[0]]);
-                }
+        // Gets correct region file
+        regionHandler.GetCorrectRegion(pos);
 
+        // If current chunk was already generated
+        if(regionHandler.IsIndexed(pos)){
 
-                this.entityFileHandler.LoadChunkEntities(toLoad[0]);
-                SendChunkToRequestingClients(toLoad[0]);
-        		toLoad.RemoveAt(0);
-        	}
+            isPregen = regionHandler.GetsNeedGeneration(pos);
+
+            // If chunk is Pre-Generated
+            if(isPregen){
+                AddChunk(pos, new Chunk(pos, server:true));
+                vfx.NewChunk(pos, isServer:true);
+                regionHandler.LoadChunk(chunks[pos]);
+                this.worldGen.ClearCaches();
+                this.worldGen.SetVoxdata(chunks[pos].data.GetData());
+                this.worldGen.SetCacheHP(chunks[pos].metadata.GetHPData());
+                this.worldGen.SetCacheState(chunks[pos].metadata.GetStateData());
+                this.worldGen.GenerateChunk(pos, isPregen:true);
+                chunks[pos].biomeName = this.worldGen.GetCacheBiome();
+                chunks[pos].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata(), pos));
+                chunks[pos].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
+                chunks[pos].needsGeneration = 0;
+                regionHandler.SaveChunk(chunks[pos]);
+            }
+            // If it's just a normally generated chunk
+            else{
+                AddChunk(pos, new Chunk(pos, server:true));
+                vfx.NewChunk(pos, isServer:true);
+                regionHandler.LoadChunk(chunks[pos]);
+                chunks[pos].needsGeneration = 0;
+            }
         }
+        // If it's a new chunk to be generated
+        else{
+            AddChunk(pos, new Chunk(pos, server:true));
+            vfx.NewChunk(pos, isServer:true);
+
+            this.worldGen.ClearCaches();
+            this.worldGen.GenerateChunk(pos);
+            chunks[pos].BuildOnVoxelData(new VoxelData(this.worldGen.GetVoxdata(), pos));
+            chunks[pos].metadata = new VoxelMetadata(this.worldGen.GetCacheHP(), this.worldGen.GetCacheState());
+            chunks[pos].needsGeneration = 0;
+            chunks[pos].biomeName = this.worldGen.GetCacheBiome();
+            regionHandler.SaveChunk(chunks[pos]);
+        }
+
+        this.entityFileHandler.LoadChunkEntities(pos);
     }
 
     // Post-processing of all deleted chunks from cl.chunks
@@ -313,6 +331,20 @@ public class ChunkLoader_Server : MonoBehaviour
     }
     private void RemoveChunk(ChunkPos pos){this.chunks.Remove(pos);}
 
+    // Frees a loaded chunk that no client has, saving its entities
+    public void ReleaseChunk(ChunkPos pos){
+        if(!this.chunks.ContainsKey(pos) || this.loadedChunks.ContainsKey(pos))
+            return;
+
+        this.entityFileHandler.SaveChunkEntities(pos, this.server.entityHandler.GetEntitiesInChunk(pos));
+        this.chunks.Remove(pos);
+
+        if(this.vfx.Contains(pos, isServer:true))
+            this.vfx.RemoveChunk(pos, isServer:true);
+
+        this.server.entityHandler.UnloadChunk(pos);
+    }
+
 
     // Saves all entities
     // Used whenever Server is shutdown
@@ -327,18 +359,6 @@ public class ChunkLoader_Server : MonoBehaviour
         NetMessage message = new NetMessage(NetCode.SENDCHUNK);
         message.SendChunk(this.chunks[pos]);
         this.server.SendToClients(pos, message);
-    }
-
-    // Sends chunk information to all requesting clients
-    private void SendChunkToRequestingClients(ChunkPos pos){
-        // If there was no request for this chunk yet
-        if(!this.server.chunksRequested.ContainsKey(pos))
-            return;
-
-        HashSet<ulong> iterator = new HashSet<ulong>(this.server.chunksRequested[pos]);
-
-        foreach(ulong id in iterator)
-            this.server.RequestChunkLoad(pos, id);
     }
 
     // Returns block code of a castcoord
@@ -375,8 +395,7 @@ public class ChunkLoader_Server : MonoBehaviour
     public int GetBlockHeight(ChunkPos pos, int blockX, int blockZ){
         // Checks if chunk doesn't exist
         if(!chunks.ContainsKey(pos)){
-            this.toLoad.Insert(0, pos);
-            this.LoadChunk();
+            LoadSingleChunk(pos);
             return GetBlockHeight(pos, blockX, blockZ);
         }
         for(int i=Chunk.chunkDepth-1; i >= 0 ; i--){

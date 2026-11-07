@@ -4,7 +4,14 @@ Making a game is easy. Making a good game is harder. Making a good and fast game
 
 ## Chunk Loading Optimization (CPU)
 
-In a Procedurally Generated game, loading and unloading chunks is key. In order to conserve CPU, the ChunkLoader either generates one chunk or draws two into the screen. Normally, it's enough to render chunks given the speed the player will move in the future. Limiting the task of the ChunkLoader every frame makes the game run smoother.
+In a Procedurally Generated game, loading and unloading chunks is key. Chunks are **streamed** by the Server:
+
+- Every client keeps a **StreamWindow**, a square of chunks around the player with a radius of Render Distance + 1, plus one vertical layer when the player is close to the top or bottom of a chunk. The client sends its center to the Server (`STREAMCENTER`) whenever it changes, and the Server pushes every chunk inside it, nearest first. Client and Server compute the window with the same code (`ChunkStreaming`), so both always agree on which chunks should be loaded.
+- When the window moves, only the strips of chunks that entered or left it are computed (rectangle difference). Moving one chunk costs O(Render Distance) instead of O(Render Distance²), so large Render Distances stay cheap. Both sides unload the chunks that left the window on their own, without extra messages.
+- The client acknowledges consumed chunks (`CHUNKACK`). The Server never has more unacknowledged chunks than an adaptive send window allows, so fast clients fill their window quickly and slow clients aren't flooded.
+- The Server's generation queue, the client's load, unload and draw steps all run under a per-frame **time budget** (see `Constants`) instead of a fixed amount of chunks. Larger windows take more frames to fill, but frames never get longer.
+- Chunks are only queued to be drawn once all their neighbors are loaded, instead of being retried every frame.
+- If the stream goes idle while chunks of the window are still missing (lost packets), the client scans its window a few chunks per frame and asks the Server for the missing ones (`REQUESTCHUNKLOAD`).
 
 ## Interpolative Generation (CPU)
 

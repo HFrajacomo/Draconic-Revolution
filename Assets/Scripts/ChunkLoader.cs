@@ -22,22 +22,35 @@ public class ChunkLoader : MonoBehaviour
 	public Transform player;
     public Transform cam;
 	public ChunkPos currentChunk;
-	public ChunkPos newChunk;
-	public ChunkPriorityQueue requestPriorityQueue = new ChunkPriorityQueue(World.renderDistance+1);
-    public List<byte[]> toLoad = new List<byte[]>();
-    public List<ChunkPos> toLoadChunk = new List<ChunkPos>();
-    public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue(World.renderDistance, metric:DistanceMetric.EDGE_LIMITING);
-	public List<ChunkPos> toUnload = new List<ChunkPos>();
-    public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue(World.renderDistance, metric:DistanceMetric.EDGE_LIMITING);
-    public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue(World.renderDistance, debug:true, metric:DistanceMetric.EDGE_LIMITING);
+    public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue(DistanceMetric.EDGE_LIMITING, edgeLimit:World.renderDistance);
+    public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue(DistanceMetric.EDGE_LIMITING, edgeLimit:World.renderDistance);
+    public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue(DistanceMetric.EDGE_LIMITING, edgeLimit:World.renderDistance);
     public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
+
+    // Chunk Streaming
+    private StreamWindow streamWindow;
+    private bool hasStreamWindow = false;
+    private Dictionary<ChunkPos, PendingChunkData> toLoad = new Dictionary<ChunkPos, PendingChunkData>();
+    private Queue<ChunkPos> toLoadOrder = new Queue<ChunkPos>();
+    private HashSet<ChunkPos> toUnload = new HashSet<ChunkPos>();
+    private Queue<ChunkPos> toUnloadOrder = new Queue<ChunkPos>();
+    private int pendingChunkAcks = 0;
+    private float lastStreamReceiveTime = 0f;
+    private float nextResyncTime = 0f;
+    private int resyncCursor = 0;
+    private int resyncScanned = 0;
+
+    // Chunks that need to be built but are missing neighbors, and which kind of build they need
+    private Dictionary<ChunkPos, byte> awaitingNeighbors = new Dictionary<ChunkPos, byte>();
+    private static readonly byte BUILD_DRAW = 1;
+    private static readonly byte BUILD_UPDATE = 2;
+    private static readonly byte BUILD_UPDATE_NOLIGHT = 4;
 
     // Received from Server
     public float playerX;
     public float playerZ;
     public float playerY;
     public float playerDirX, playerDirY, playerDirZ;
-    public ChunkPos playerCurrentChunk;
     
     // Unity Reference
     public VFXLoader vfx;
@@ -93,10 +106,12 @@ public class ChunkLoader : MonoBehaviour
     private ChunkPos cachePos = new ChunkPos(0,0,0);
     private Chunk cacheChunk;
     private NetMessage message;
+    private List<ChunkPos> cacheAddedChunks = new List<ChunkPos>();
+    private List<ChunkPos> cacheRemovedChunks = new List<ChunkPos>();
+    private System.Diagnostics.Stopwatch budgetStopwatch = new System.Diagnostics.Stopwatch();
 
     // Player information
     public ulong playerAccountID = 1;
-    private int lastChunkYLayer = 0;
 
 
     void Awake(){
@@ -168,7 +183,7 @@ public class ChunkLoader : MonoBehaviour
 
             this.client.SetPlayerModelHandler(this.playerModelHandler);
             this.playerInventoryManager.Init();
-            this.renderDistance = World.renderDistance + 1;
+            this.renderDistance = ChunkStreaming.GetRadius(World.renderDistance);
             this.client.Send(this.message);
             this.SENTINFOTOSERVER = true;
         }
@@ -221,15 +236,21 @@ public class ChunkLoader : MonoBehaviour
 
             MoveEntities();
             HandleClientCommunication();
+
+            // Disconnected while handling messages
+            if(this.client == null)
+                return;
+
             RunTimerFunctions();
             GetChunks(false);
 
         	UnloadChunk();
             LoadChunk();
-            RequestChunk();
             DrawChunk();
             UpdateChunk();
             DrawChunkFinish();
+            ResyncStream();
+            SendChunkAck();
         }
     }
 
@@ -238,7 +259,6 @@ public class ChunkLoader : MonoBehaviour
 
     Heartbeart:         30 ticks
     UnloadUnityObjects: 600 ticks
-    FixUnloadedChunks:  1200 ticks
     ForceUnload:        1500 ticks
     */
     private void RunTimerFunctions(){
@@ -257,11 +277,6 @@ public class ChunkLoader : MonoBehaviour
         // Garbage Collect Unity Assets
         if(this.timer % 600 == 0){
             Resources.UnloadUnusedAssets();
-        }
-
-        // Fix Unloaded Chunks
-        if(this.timer % 1200 == 0){
-            FixUnloaded();
         }
 
         // Remove Loaded Chunks outside render distance
@@ -283,13 +298,21 @@ public class ChunkLoader : MonoBehaviour
     
     // Handles communication received from Server
     private void HandleClientCommunication(){
-        int queueCount = this.client.queue.Count;
+        if(this.client == null)
+            return;
 
-        if(queueCount > 0){
-            for(int i=0; i<queueCount; i++){
-                this.client.HandleReceivedMessage(this.client.queue[0].GetData());
-                this.client.queue.RemoveAt(0);
-            }
+        // Messages that arrive while handling these are left for the next frame
+        int queueCount = this.client.queue.Count;
+        NetMessage received;
+
+        for(int i=0; i < queueCount; i++){
+            // A DISCONNECT message cleans up the client
+            if(this.client == null)
+                return;
+            if(!this.client.queue.TryDequeue(out received))
+                return;
+
+            this.client.HandleReceivedMessage(received.GetData());
         }
     }
 
@@ -368,138 +391,262 @@ public class ChunkLoader : MonoBehaviour
         this.toDrawFinish.Enqueue(pos);
     }
 
-    // Asks the Server to send chunk information
-    private void RequestChunk(){
-    	if(requestPriorityQueue.GetSize() > 0){
-            while(requestPriorityQueue.GetSize() > 0 && !SkipNotImplemented(requestPriorityQueue.Peek()))
-                requestPriorityQueue.Pop();
-            if(requestPriorityQueue.GetSize() == 0)
-                return;
+    // Receives chunk data from the Server. Data of a chunk that wasn't loaded yet is replaced by the newest
+    public void EnqueueChunkData(ChunkPos pos, byte[] data, bool streamed){
+        PendingChunkData pending;
 
-            if(chunks.ContainsKey(requestPriorityQueue.Peek())){
-                requestPriorityQueue.Pop();
-                return;
-            }
+        if(streamed)
+            this.lastStreamReceiveTime = Time.unscaledTime;
 
-            // Asks server to hand over chunk info
-            this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
-            this.message.RequestChunkLoad(requestPriorityQueue.Pop());
-            this.client.Send(this.message);
+        if(this.toLoad.TryGetValue(pos, out pending)){
+            pending.data = data;
+
+            if(streamed)
+                pending.streamCount++;
+
+            this.toLoad[pos] = pending;
+            return;
         }
+
+        this.toLoad.Add(pos, new PendingChunkData(data, streamed ? 1 : 0));
+        this.toLoadOrder.Enqueue(pos);
     }
 
-    // Loads the chunk into the Chunkloader
+    // Loads received chunks into the ChunkLoader until the frame budget is spent (at least one per frame)
     private void LoadChunk(){
-        if(toLoad.Count > 0){
-            byte[] data = toLoad[0];
-            bool chunkOverwrite = true;
+        if(!this.hasStreamWindow)
+            return;
 
-            int headerSize = RegionFileHandler.chunkHeaderSize;
+        long budget = GetBudgetTicks(Constants.CLIENT_CHUNK_LOAD_BUDGET_MS);
+        bool loadedAny = false;
+        ChunkPos pos;
+        PendingChunkData pending;
 
-            ChunkPos cp = NetDecoder.ReadChunkPos(data, 1);
+        this.budgetStopwatch.Restart();
 
-            int blockDataSize = NetDecoder.ReadInt(data, 10);
-            int hpDataSize = NetDecoder.ReadInt(data, 14);
-            int stateDataSize = NetDecoder.ReadInt(data, 18);
+        while(this.toLoadOrder.Count > 0){
+            if(loadedAny && this.budgetStopwatch.ElapsedTicks >= budget)
+                break;
 
-            if(!this.chunks.ContainsKey(cp)){
-                this.chunks.Add(cp, new Chunk(cp, this.rend, this));
-                this.chunks[cp].biomeName = BiomeHandler.ByteToBiome(data[22]);
-                chunkOverwrite = false;
-            }
+            pos = this.toLoadOrder.Dequeue();
 
-            Compression.DecompressBlocksClient(this.chunks[cp], data, initialPos:22+headerSize);
-            Compression.DecompressMetadataHPClient(this.chunks[cp], data, initialPos:22+headerSize+blockDataSize);
-            Compression.DecompressMetadataStateClient(this.chunks[cp], data, initialPos:22+headerSize+blockDataSize+hpDataSize);
+            // Already discarded
+            if(!this.toLoad.TryGetValue(pos, out pending))
+                continue;
 
-            if(this.vfx.data.ContainsKey(cp))
-                this.vfx.RemoveChunk(cp);
-                
-            this.vfx.NewChunk(cp);
+            this.toLoad.Remove(pos);
+            this.pendingChunkAcks += pending.streamCount;
 
-            // VFX, SFX and realtime lights of this chunk are only (re)created by its load events
-            this.chunks[cp].RequestLoadEvents();
+            // Left the StreamWindow while waiting to be loaded
+            if(!this.streamWindow.Contains(pos))
+                continue;
 
-            // If is an overwrite of an existing chunk, calculate Heightmap and rendermap again
-            if(chunkOverwrite){
-                this.chunks[cp].data.CalculateHeightMap();
-            }
-
-            this.chunks[cp].data.CalculateLightMap(chunks[cp].metadata);
-
-            if(toUnload.Contains(cp))
-                toUnload.Remove(cp);
-
-            this.drawPriorityQueue.Add(cp);
-
-            // Vertical chunk update
-            this.cachePos = new ChunkPos(cp.x, cp.z, cp.y-1);
-            if(this.chunks.ContainsKey(this.cachePos))
-                AddToUpdate(this.cachePos);
-
-            toLoad.RemoveAt(0);
-            toLoadChunk.RemoveAt(0);
+            LoadChunkData(pos, pending.data);
+            loadedAny = true;
         }
     }
 
-    // Unload operation
+    // Decompresses a chunk received from the Server and schedules its drawing
+    private void LoadChunkData(ChunkPos cp, byte[] data){
+        bool chunkOverwrite = true;
+        int headerSize = RegionFileHandler.chunkHeaderSize;
+        int blockDataSize = NetDecoder.ReadInt(data, 10);
+        int hpDataSize = NetDecoder.ReadInt(data, 14);
+        Chunk chunk;
+
+        if(!this.chunks.TryGetValue(cp, out chunk)){
+            chunk = new Chunk(cp, this.rend, this);
+            chunk.biomeName = BiomeHandler.ByteToBiome(data[22]);
+            this.chunks.Add(cp, chunk);
+            chunkOverwrite = false;
+        }
+
+        Compression.DecompressBlocksClient(chunk, data, initialPos:22+headerSize);
+        Compression.DecompressMetadataHPClient(chunk, data, initialPos:22+headerSize+blockDataSize);
+        Compression.DecompressMetadataStateClient(chunk, data, initialPos:22+headerSize+blockDataSize+hpDataSize);
+
+        if(this.vfx.data.ContainsKey(cp))
+            this.vfx.RemoveChunk(cp);
+            
+        this.vfx.NewChunk(cp);
+
+        // VFX, SFX and realtime lights of this chunk are only (re)created by its load events
+        chunk.RequestLoadEvents();
+
+        // If is an overwrite of an existing chunk, calculate Heightmap and rendermap again
+        if(chunkOverwrite){
+            chunk.data.CalculateHeightMap();
+        }
+
+        chunk.data.CalculateLightMap(chunk.metadata);
+
+        CancelUnload(cp);
+
+        RequestDraw(cp);
+
+        // Neighbors that were missing this chunk may be drawn now
+        if(!chunkOverwrite)
+            WakeNeighbors(cp);
+
+        // Vertical chunk update
+        this.cachePos = new ChunkPos(cp.x, cp.z, cp.y-1);
+        if(this.chunks.ContainsKey(this.cachePos))
+            AddToUpdate(this.cachePos);
+    }
+
+    // Unloads chunks that left the StreamWindow until the frame budget is spent (at least one per frame)
+    // The Server unloads them on its side when it receives the new StreamWindow
     private void UnloadChunk(){
-        if(this.toUnload.Count > 0){
-            ChunkPos pos;
+        long budget = GetBudgetTicks(Constants.CLIENT_CHUNK_UNLOAD_BUDGET_MS);
+        bool unloadedAny = false;
+        ChunkPos pos;
 
-            for(int i=0; i < this.toUnload.Count; i++){
-                pos = this.toUnload[0];
+        this.budgetStopwatch.Restart();
 
-                if(!this.chunks.ContainsKey(pos)){
-                    this.toUnload.RemoveAt(0);
+        while(this.toUnloadOrder.Count > 0){
+            if(unloadedAny && this.budgetStopwatch.ElapsedTicks >= budget)
+                break;
+
+            pos = this.toUnloadOrder.Dequeue();
+
+            // Cancelled
+            if(!this.toUnload.Remove(pos))
+                continue;
+            if(!this.chunks.ContainsKey(pos))
+                continue;
+            if(this.hasStreamWindow && this.streamWindow.Contains(pos))
+                continue;
+
+            this.chunks[pos].Destroy();
+            this.vfx.RemoveChunk(pos);
+            this.sfx.RemoveChunkSFX(pos);
+
+            this.chunks.Remove(pos);
+            this.awaitingNeighbors.Remove(pos);
+            this.drawPriorityQueue.Remove(pos);
+            this.updatePriorityQueue.Remove(pos);
+            this.updateNoLightPriorityQueue.Remove(pos);
+
+            unloadedAny = true;
+        }
+    }
+
+    private void ScheduleUnload(ChunkPos pos){
+        if(this.toUnload.Add(pos))
+            this.toUnloadOrder.Enqueue(pos);
+    }
+
+    private void CancelUnload(ChunkPos pos){
+        this.toUnload.Remove(pos);
+    }
+
+    // Queues a chunk to be drawn if all its neighbors are loaded, otherwise waits for them
+    private void RequestDraw(ChunkPos pos){
+        if(!this.chunks.ContainsKey(pos))
+            return;
+
+        if(CanBeDrawn(pos))
+            this.drawPriorityQueue.Add(pos);
+        else
+            MarkAwaiting(pos, BUILD_DRAW);
+    }
+
+    private void MarkAwaiting(ChunkPos pos, byte flag){
+        byte flags;
+
+        this.awaitingNeighbors.TryGetValue(pos, out flags);
+        this.awaitingNeighbors[pos] = (byte)(flags | flag);
+    }
+
+    // Re-queues the builds of the neighbors of a freshly loaded chunk that were waiting for it
+    private void WakeNeighbors(ChunkPos pos){
+        for(int x=-1; x <= 1; x++){
+            for(int z=-1; z <= 1; z++){
+                if(x == 0 && z == 0)
                     continue;
-                }
 
-                this.chunks[pos].Destroy();
-                this.vfx.RemoveChunk(pos);
-                this.sfx.RemoveChunkSFX(pos);
-
-                NetMessage message = new NetMessage(NetCode.REQUESTCHUNKUNLOAD);
-                message.RequestChunkUnload(pos);
-                this.client.Send(message);
-
-                this.chunks.Remove(pos);
-                this.toUnload.RemoveAt(0);
+                WakeAwaiting(new ChunkPos(pos.x+x, pos.z+z, pos.y));
             }
         }
+    }
+
+    private void WakeAwaiting(ChunkPos pos){
+        byte flags;
+
+        if(!this.awaitingNeighbors.TryGetValue(pos, out flags))
+            return;
+
+        if(!this.chunks.ContainsKey(pos)){
+            this.awaitingNeighbors.Remove(pos);
+            return;
+        }
+
+        if(!CanBeDrawn(pos))
+            return;
+
+        this.awaitingNeighbors.Remove(pos);
+
+        if((flags & BUILD_DRAW) != 0)
+            this.drawPriorityQueue.Add(pos);
+        if((flags & BUILD_UPDATE) != 0)
+            this.updatePriorityQueue.Add(pos);
+        if((flags & BUILD_UPDATE_NOLIGHT) != 0)
+            this.updateNoLightPriorityQueue.Add(pos);
+    }
+
+    // Pops chunks until one that can be built is found. Chunks missing neighbors wait for them instead of going back to the queue
+    private bool PopBuildable(ChunkPriorityQueue queue, byte flag, out ChunkPos pos){
+        while(queue.GetSize() > 0){
+            pos = queue.Pop();
+
+            if(!this.chunks.ContainsKey(pos))
+                continue;
+
+            if(!CanBeDrawn(pos)){
+                MarkAwaiting(pos, flag);
+                continue;
+            }
+
+            return true;
+        }
+
+        pos = default(ChunkPos);
+        return false;
+    }
+
+    // Returns true if the task slot can receive a new task
+    private bool IsTaskSlotFree(Task[] pool, int index){
+        if(pool[index] == null)
+            return true;
+        if(!pool[index].IsCompleted)
+            return false;
+
+        #if UNITY_EDITOR
+            if(pool[index].Status == TaskStatus.Faulted)
+                Debug.LogException(pool[index].Exception);
+        #endif
+
+        pool[index] = null;
+        return true;
     }
 
     // Multithreaded call for Draw operation
     private void DrawChunk(){
+        ChunkPos pos;
+
         for(int i=0; i < this.drawTaskPool.Length; i++){
             if(this.drawPriorityQueue.GetSize() == 0)
                 break;
+            if(!IsTaskSlotFree(this.drawTaskPool, i))
+                continue;
+            if(!PopBuildable(this.drawPriorityQueue, BUILD_DRAW, out pos))
+                break;
 
-            if(this.drawTaskPool[i] == null || this.drawTaskPool[i].IsCompleted){
-                #if UNITY_EDITOR
-                    if(this.drawTaskPool[i] != null){
-                        if(this.drawTaskPool[i].Status == TaskStatus.Faulted){
-                            Debug.LogException(this.drawTaskPool[i].Exception);
-                        }
-                    }
-                #endif
+            this.chunks[pos].data.VerifyPropagation(this);
+            CheckLightPropagation(pos);
 
-                if(this.drawPriorityQueue.GetSize() > 0){
-                    ChunkPos pos = this.drawPriorityQueue.Pop();
-
-                    if(this.chunks.ContainsKey(pos)){
-                        if(!CanBeDrawn(pos)){
-                            this.drawPriorityQueue.Add(pos);
-                            continue;
-                        }
-
-                        this.chunks[pos].data.VerifyPropagation(this);
-                        CheckLightPropagation(pos);
-                    }
-
-                    this.drawTaskPool[i] = Task.Run(() => DrawChunkTask(pos));
-                }
-            }
+            ChunkPos target = pos;
+            this.drawTaskPool[i] = Task.Run(() => DrawChunkTask(target));
         }
     }
 
@@ -517,107 +664,74 @@ public class ChunkLoader : MonoBehaviour
             }
     }
 
-    // Main Thread's Draw Chunk finisher
+    // Main Thread's Draw Chunk finisher. Runs until the frame budget is spent (at least one per frame)
     private void DrawChunkFinish(){
-        if(this.toDrawFinish.Count > 0){
-            ChunkPos pos;
-            bool successfulDequeueing = false;
+        // Chunks re-added while finishing are left for the next frame
+        int count = this.toDrawFinish.Count;
+        long budget = GetBudgetTicks(Constants.CLIENT_DRAW_FINISH_BUDGET_MS);
+        ChunkPos pos;
 
-            for(int i=0; i < this.toDrawFinish.Count; i++){
-                successfulDequeueing = this.toDrawFinish.TryDequeue(out pos);
+        this.budgetStopwatch.Restart();
 
-                if(!successfulDequeueing){
-                    Debug.Log("Problem when Dequeuing from DrawChunkFinish");
-                    break;
-                }
+        for(int i=0; i < count; i++){
+            if(i > 0 && this.budgetStopwatch.ElapsedTicks >= budget)
+                break;
 
-                if(!this.chunks.ContainsKey(pos)){
-                    break;
-                }
+            if(!this.toDrawFinish.TryDequeue(out pos))
+                break;
 
-                this.chunks[pos].Draw();
-            }
+            if(!this.chunks.ContainsKey(pos))
+                continue;
+
+            this.chunks[pos].Draw();
         }
     }
 
     // Multithreaded call for Update operation
     private void UpdateChunk(){
         bool lightUpdate = false;
+        bool withLight;
+        ChunkPos pos;
 
         for(int i=0; i < this.updateTaskPool.Length; i++){
             if(this.updatePriorityQueue.GetSize() + this.updateNoLightPriorityQueue.GetSize() == 0)
                 break;
+            if(!IsTaskSlotFree(this.updateTaskPool, i))
+                continue;
 
-            if(this.updateTaskPool[i] == null || this.updateTaskPool[i].IsCompleted){
-                #if UNITY_EDITOR
-                    if(this.updateTaskPool[i] != null){
-                        if(this.updateTaskPool[i].Status == TaskStatus.Faulted){
-                            Debug.LogException(this.updateTaskPool[i].Exception);
-                        }
-                    }
-                #endif
+            // Only one update with light is preferred per frame, the others go to updates without light
+            if(!PopUpdate(!lightUpdate, out pos, out withLight))
+                break;
 
-                // If update has Chunk and not light updated -> Update With Light
-                if(this.updatePriorityQueue.GetSize() > 0 && !lightUpdate){
-                    ChunkPos pos = this.updatePriorityQueue.Pop();
-
-                    if(this.chunks.ContainsKey(pos)){
-                        if(!CanBeDrawn(pos)){
-                            this.updatePriorityQueue.Add(pos);
-                            continue;
-                        }
-
-                        this.chunks[pos].data.CalculateLightMap(this.chunks[pos].metadata);
-                        CheckLightPropagation(pos);
-                    }
-
-                    lightUpdate = true;
-                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
-                }
-                // If no Light has Chunk and light updated -> Update with no Light
-                else if(this.updateNoLightPriorityQueue.GetSize() > 0 && lightUpdate){
-                    ChunkPos pos = this.updateNoLightPriorityQueue.Pop();
-
-                    if(this.chunks.ContainsKey(pos)){
-                        if(!CanBeDrawn(pos)){
-                            this.updateNoLightPriorityQueue.Add(pos);
-                            continue;
-                        }
-                    }
-
-                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
-                }
-                // If no Light was not run and there is still something in With Lights -> Update with Lights
-                else if(this.updatePriorityQueue.GetSize() > 0){
-                    ChunkPos pos = this.updatePriorityQueue.Pop();
-
-                    if(this.chunks.ContainsKey(pos)){
-                        if(!CanBeDrawn(pos)){
-                            this.updatePriorityQueue.Add(pos);
-                            continue;
-                        }
-
-                        this.chunks[pos].data.CalculateLightMap(this.chunks[pos].metadata);
-                        CheckLightPropagation(pos);
-                    }
-
-                    lightUpdate = true;
-                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
-                }
-                else if(this.updateNoLightPriorityQueue.GetSize() > 0){
-                    ChunkPos pos = this.updateNoLightPriorityQueue.Pop();
-
-                    if(this.chunks.ContainsKey(pos)){
-                        if(!CanBeDrawn(pos)){
-                            this.updateNoLightPriorityQueue.Add(pos);
-                            continue;
-                        }
-                    }
-
-                    this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(pos));
-                }
+            if(withLight){
+                this.chunks[pos].data.CalculateLightMap(this.chunks[pos].metadata);
+                CheckLightPropagation(pos);
+                lightUpdate = true;
             }
+
+            ChunkPos target = pos;
+            this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(target));
         }
+    }
+
+    private bool PopUpdate(bool preferLight, out ChunkPos pos, out bool withLight){
+        if(preferLight){
+            withLight = true;
+
+            if(PopBuildable(this.updatePriorityQueue, BUILD_UPDATE, out pos))
+                return true;
+
+            withLight = false;
+            return PopBuildable(this.updateNoLightPriorityQueue, BUILD_UPDATE_NOLIGHT, out pos);
+        }
+
+        withLight = false;
+
+        if(PopBuildable(this.updateNoLightPriorityQueue, BUILD_UPDATE_NOLIGHT, out pos))
+            return true;
+
+        withLight = true;
+        return PopBuildable(this.updatePriorityQueue, BUILD_UPDATE, out pos);
     }
 
     // Reload a chunk in toUpdate
@@ -631,6 +745,10 @@ public class ChunkLoader : MonoBehaviour
 
             this.toDrawFinish.Enqueue(pos);
         }
+    }
+
+    private long GetBudgetTicks(float milliseconds){
+        return (long)(milliseconds * System.Diagnostics.Stopwatch.Frequency / 1000f);
     }
 
     // Checks if neighbor chunks should have light propagated
@@ -773,282 +891,98 @@ public class ChunkLoader : MonoBehaviour
     }
 
 
-    // Gets all chunks around player's render distance
-    // GetChunks automatically rebuilds chunks if reload=True
+    // Keeps the StreamWindow around the player. Chunks that leave it are unloaded locally and the Server is informed of every change
+    // reload=true discards every chunk and starts streaming from scratch
     public void GetChunks(bool reload){
-        int verticalChunkValue = this.playerPositionHandler.GetPlayerVerticalChunk();
+        StreamWindow newWindow = new StreamWindow(this.playerPositionHandler.GetCurrentChunk(), this.playerPositionHandler.GetPlayerVerticalChunk(), this.renderDistance);
 
-        ChunkPos popChunk;
-        ChunkPos addChunk;
-		newChunk = this.playerPositionHandler.GetCurrentChunk();
-
-    	// Reload all Chunks nearby
     	if(reload){
-            this.lastChunkYLayer = 0;
     		ClearAllChunks();
-    		requestPriorityQueue.Clear();
-    		toUnload.Clear();
+            DiscardAllPendingChunks();
+    		this.toUnload.Clear();
+            this.toUnloadOrder.Clear();
+            this.awaitingNeighbors.Clear();
+            this.drawPriorityQueue.Clear();
+            this.updatePriorityQueue.Clear();
+            this.updateNoLightPriorityQueue.Clear();
 
-            requestPriorityQueue.SetPlayerPosition(newChunk);
-            drawPriorityQueue.SetPlayerPosition(newChunk);
-            updatePriorityQueue.SetPlayerPosition(newChunk);
-            updateNoLightPriorityQueue.SetPlayerPosition(newChunk);
-    		
-	        for(int x=-renderDistance; x<=renderDistance;x++){
-	        	for(int z=-renderDistance; z<=renderDistance;z++){
-	        		requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y));
-	        	}
-	        }
-
-            if(verticalChunkValue != 0){
-                for(int x=-renderDistance; x<=renderDistance;x++){
-                    for(int z=-renderDistance; z<=renderDistance;z++){
-                        requestPriorityQueue.Add(new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y+verticalChunkValue));
-                    }
-                }                
-            }
-	        
-            this.lastChunkYLayer = verticalChunkValue;
-	        this.playerCurrentChunk = newChunk;
+            SetQueuesPosition(newWindow.center);
+            SetStreamWindow(newWindow);
 	        return;
 	    }
 
-        // Delete chunk layer
-        if(lastChunkYLayer != 0 && verticalChunkValue == 0){
-            for(int x=-renderDistance; x <= renderDistance; x++){
-                for(int z=-renderDistance; z <= renderDistance; z++){
-                    popChunk = new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y+lastChunkYLayer);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                }           
-            }
+        if(newWindow == this.streamWindow)
+            return;
+
+        ChunkStreaming.Diff(this.streamWindow, newWindow, this.cacheAddedChunks, this.cacheRemovedChunks);
+
+        for(int i=0; i < this.cacheRemovedChunks.Count; i++){
+            if(this.chunks.ContainsKey(this.cacheRemovedChunks[i]))
+                ScheduleUnload(this.cacheRemovedChunks[i]);
+
+            DiscardPendingChunk(this.cacheRemovedChunks[i]);
         }
 
-        // Adds chunk layer
-        if(lastChunkYLayer == 0 && verticalChunkValue != 0){
-            for(int x=-renderDistance; x <= renderDistance; x++){
-                for(int z=-renderDistance; z <= renderDistance; z++){
-                    addChunk = new ChunkPos(newChunk.x+x, newChunk.z+z, newChunk.y+verticalChunkValue);
-                    toUnload.Remove(addChunk);
-                    requestPriorityQueue.Add(addChunk);
-                }
-            }            
-        }
+        for(int i=0; i < this.cacheAddedChunks.Count; i++)
+            CancelUnload(this.cacheAddedChunks[i]);
 
-    	// If didn't move to another chunk
-    	if(this.playerCurrentChunk == newChunk){
-            this.lastChunkYLayer = verticalChunkValue;
-    		return;
-    	}
+        if(newWindow.center != this.streamWindow.center)
+            SetQueuesPosition(newWindow.center);
 
-    	int diff = (newChunk - this.playerCurrentChunk).dir();
+        SetStreamWindow(newWindow);
+    }
 
-        requestPriorityQueue.SetPlayerPosition(newChunk);
-        drawPriorityQueue.SetPlayerPosition(newChunk);
-        updatePriorityQueue.SetPlayerPosition(newChunk);
-        updateNoLightPriorityQueue.SetPlayerPosition(newChunk);
+    private void SetStreamWindow(StreamWindow window){
+        this.streamWindow = window;
+        this.hasStreamWindow = true;
+        this.currentChunk = window.center;
 
-        this.playerCurrentChunk = newChunk;
+        // Window changed, so the Server is about to stream again
+        this.lastStreamReceiveTime = Time.unscaledTime;
+        this.nextResyncTime = 0f;
+        this.resyncCursor = 0;
+        this.resyncScanned = 0;
 
-    	if(diff == 0){ // East
-    		for(int i=-renderDistance; i <=renderDistance;i++){
-    			popChunk = new ChunkPos(newChunk.x-renderDistance-1, newChunk.z+i, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-    			addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
+        NetMessage message = new NetMessage(NetCode.STREAMCENTER);
+        message.StreamCenter(window.center, window.verticalLayer);
+        this.client.Send(message);
+    }
 
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(newChunk.x-renderDistance-1, newChunk.z+i, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);                    
-                }
-    		}
-    	}
-    	else if(diff == 2){ // West
-    		for(int i=-renderDistance; i <=renderDistance;i++){
-    			popChunk = new ChunkPos(newChunk.x+renderDistance+1, newChunk.z+i, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-    			addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
+    private void SetQueuesPosition(ChunkPos pos){
+        this.drawPriorityQueue.SetPlayerPosition(pos);
+        this.updatePriorityQueue.SetPlayerPosition(pos);
+        this.updateNoLightPriorityQueue.SetPlayerPosition(pos);
+    }
 
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(newChunk.x+renderDistance+1, newChunk.z+i, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);                 
-                }
-    		}
-    	}
-    	else if(diff == 1){ // South
-    		for(int i=-renderDistance; i <=renderDistance;i++){
-    			popChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance+1, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-     			addChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
+    // Drops received data of a chunk that is no longer wanted. Streamed data still has to be acknowledged
+    private void DiscardPendingChunk(ChunkPos pos){
+        PendingChunkData pending;
 
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance+1, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);                  
-                }
-      		}
-    	}
-    	else if(diff == 3){ // North
-    		for(int i=-renderDistance; i <=renderDistance;i++){
-    			popChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance-1, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-      			addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
+        if(!this.toLoad.TryGetValue(pos, out pending))
+            return;
 
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(newChunk.x+i, newChunk.z-renderDistance-1, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);               
-                }
-       		}	
-    	}
-    	else if(diff == 5){ // Southeast
-    		for(int i=-renderDistance; i <= renderDistance; i++){
-    			popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-    			addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i, newChunk.y);
-       			requestPriorityQueue.Add(addChunk);
+        this.pendingChunkAcks += pending.streamCount;
+        this.toLoad.Remove(pos);
+    }
 
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);             
-                }
-    		}
-    		for(int i=-renderDistance+1; i < renderDistance; i++){
-    			popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-     			addChunk = new ChunkPos(newChunk.x+i-1, newChunk.z-renderDistance, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
+    private void DiscardAllPendingChunks(){
+        foreach(PendingChunkData pending in this.toLoad.Values)
+            this.pendingChunkAcks += pending.streamCount;
 
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x+i-1, newChunk.z-renderDistance, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);           
-                }
-    		}
-    	}
-    	else if(diff == 6){ // Southwest
-    		for(int i=-renderDistance; i <= renderDistance; i++){
-    			popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-    			addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
+        this.toLoad.Clear();
+        this.toLoadOrder.Clear();
+    }
 
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);          
-                }
-    		}
-    		for(int i=-renderDistance; i < renderDistance; i++){
-    			popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-     			addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z-renderDistance, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
+    // Informs the Server how many streamed chunks were consumed this frame, so it can send more
+    private void SendChunkAck(){
+        if(this.pendingChunkAcks == 0)
+            return;
 
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z+renderDistance, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z-renderDistance, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);        
-                }
-    		}
-    	}
-    	else if(diff == 7){ // Northwest
-    		for(int i=-renderDistance; i <= renderDistance; i++){
-    			popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-    			addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
+        NetMessage message = new NetMessage(NetCode.CHUNKACK);
+        message.ChunkAck(this.pendingChunkAcks, this.toLoad.Count);
+        this.client.Send(message);
 
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(currentChunk.x+renderDistance, currentChunk.z+i, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x-renderDistance, newChunk.z+i, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);       
-                }
-    		}
-    		for(int i=-renderDistance; i < renderDistance; i++){
-    			popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z-renderDistance, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-     			addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z+renderDistance, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
-
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(currentChunk.x+i, currentChunk.z-renderDistance, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x+i+1, newChunk.z+renderDistance, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);     
-                }
-    		}
-    	}
-    	else if(diff == 4){ // Northeast
-    		for(int i=-renderDistance; i <= renderDistance; i++){
-    			popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-    			addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
-
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(currentChunk.x-renderDistance, currentChunk.z+i, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x+renderDistance, newChunk.z+i, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk);    
-                }
-    		}
-    		for(int i=-renderDistance; i < renderDistance; i++){
-    			popChunk = new ChunkPos(currentChunk.x+i+1, currentChunk.z-renderDistance, newChunk.y);
-    			toUnload.Add(popChunk);
-                requestPriorityQueue.Remove(popChunk);
-     			addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance, newChunk.y);
-    			requestPriorityQueue.Add(addChunk);
-
-                if(verticalChunkValue != 0){
-                    popChunk = new ChunkPos(currentChunk.x+i+1, currentChunk.z-renderDistance, newChunk.y+verticalChunkValue);
-                    toUnload.Add(popChunk);
-                    requestPriorityQueue.Remove(popChunk);
-                    addChunk = new ChunkPos(newChunk.x+i, newChunk.z+renderDistance, newChunk.y+verticalChunkValue);
-                    requestPriorityQueue.Add(addChunk); 
-                }
-    		}
-    	}
-
-        this.lastChunkYLayer = verticalChunkValue;
-	    currentChunk = newChunk;
+        this.pendingChunkAcks = 0;
     }
 
     // Returns block code of a castcoord
@@ -1074,116 +1008,75 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    // Returns the heightmap value of a generated chunk in block position
-    private int GetBlockHeight(ChunkPos pos, int blockX, int blockZ){
-        for(int i=Chunk.chunkDepth-1; i >= 0 ; i--){
-            if(chunks[pos].data.GetCell(Mathf.Abs(blockX), i, Mathf.Abs(blockZ)) != 0){
-                return i+2;
-            }
-        }
-
-
-        if(blockX < 15)
-            return GetBlockHeight(pos, blockX+1, blockZ);
-        if(blockZ < 15)
-            return GetBlockHeight(pos, blockX, blockZ+1);
-
-        return GetBlockHeight(pos, 0, 0);
-    }
-
     // Attaches the AudioManager that has the "DontDestroyOnLoad" flag on
     private void SetAudioManager(){
         this.audioManager = GameObject.Find("AudioManager").GetComponent<AudioManager>();
     }
 
-    // Re-acquires every chunk that is possibly not loaded and adds all chunks that need redraw (except borders) to redraw list
-    private void FixUnloaded(){
-        ChunkPos newChunk;
-        int chunkLayer = this.playerPositionHandler.GetPlayerVerticalChunk();
-        int actualRenderDistance = this.renderDistance - 1;
-        this.message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
+    /*
+    Looks for chunks of the StreamWindow that never arrived (lost or dropped packets) and asks the Server for them
+        Only runs once the Server stopped streaming for a while
+        Scans a slice of the window per frame, so large Render Distances never cause a single-frame spike
+    */
+    private void ResyncStream(){
+        if(!this.hasStreamWindow)
+            return;
 
-        for(int x=-actualRenderDistance; x < actualRenderDistance; x++){
-            for(int z=actualRenderDistance; z < actualRenderDistance; z++){
-                newChunk = new ChunkPos(this.currentChunk.x+x, this.currentChunk.z+z, this.currentChunk.y);
+        float now = Time.unscaledTime;
 
-                if(!SkipNotImplemented(newChunk))
-                    continue;
+        if(now < this.nextResyncTime)
+            return;
+        if(now - this.lastStreamReceiveTime < Constants.CHUNK_RESYNC_IDLE_SECONDS)
+            return;
+        if(this.toLoadOrder.Count > 0)
+            return;
 
-                if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk) && !this.requestPriorityQueue.Contains(newChunk) && !this.drawPriorityQueue.Contains(newChunk)){
-                    this.message.RequestChunkLoad(newChunk);
-                    client.Send(this.message);
-                    continue;
-                }
+        int total = this.streamWindow.Count();
+        int requests = 0;
+        ChunkPos pos;
+        NetMessage message;
 
-                if(this.chunks.ContainsKey(newChunk)){
-                    if(!this.chunks[newChunk].drawMain)
-                        this.drawPriorityQueue.Add(newChunk);
-                }
-
-                // If there's vertical chunks as well
-                if(chunkLayer != 0){
-                    newChunk = new ChunkPos(this.currentChunk.x+x, this.currentChunk.z+z, this.currentChunk.y+chunkLayer);
-
-                    if(!SkipNotImplemented(newChunk))
-                        continue;
-
-                    if(!this.chunks.ContainsKey(newChunk) && !this.toLoadChunk.Contains(newChunk) && !this.requestPriorityQueue.Contains(newChunk) && !this.drawPriorityQueue.Contains(newChunk)){
-                        this.message.RequestChunkLoad(newChunk);
-                        client.Send(this.message);
-                        continue;
-                    }
-
-                    if(this.chunks.ContainsKey(newChunk)){
-                        if(!this.chunks[newChunk].drawMain)
-                            this.drawPriorityQueue.Add(newChunk);
-                    }                    
-                }
+        for(int i=0; i < Constants.CHUNK_RESYNC_CHECKS_PER_FRAME; i++){
+            // Full scan of the window finished
+            if(this.resyncScanned >= total){
+                this.resyncScanned = 0;
+                this.nextResyncTime = now + Constants.CHUNK_RESYNC_INTERVAL_SECONDS;
+                break;
             }
+
+            if(this.resyncCursor >= total)
+                this.resyncCursor = 0;
+
+            pos = this.streamWindow.GetByIndex(this.resyncCursor);
+            this.resyncCursor++;
+            this.resyncScanned++;
+
+            if(this.chunks.ContainsKey(pos) || this.toLoad.ContainsKey(pos))
+                continue;
+
+            message = new NetMessage(NetCode.REQUESTCHUNKLOAD);
+            message.RequestChunkLoad(pos);
+            this.client.Send(message);
+
+            requests++;
+
+            if(requests >= Constants.CHUNK_RESYNC_MAX_REQUESTS)
+                break;
         }
+
+        // Gives the Server time to answer before asking again
+        if(requests > 0)
+            this.lastStreamReceiveTime = now;
     }
 
-    // Unloads all chunks that are loaded but shouldn't
-    private void UnloadUnwanted(){
-        foreach(ChunkPos pos in this.chunks.Keys){
-            if(!ShouldBeDrawn(pos)){
-                this.toUnload.Add(pos);
-            }
-        }
-    }
-
-    // Returns whether a ChunkPos is within Render Distance
-    private bool ShouldBeDrawn(ChunkPos pos){
-        ChunkPos playerChunk = this.playerPositionHandler.GetCurrentChunk();
-
-        if(pos.x >= playerChunk.x - (this.renderDistance-1) && pos.x <= playerChunk.x + (this.renderDistance-1)){
-            if(pos.z >= playerChunk.z - (this.renderDistance-1) && pos.z <= playerChunk.z + (this.renderDistance-1)){
-                if(pos.y == playerChunk.y)
-                    return true;
-                else if(pos.y == playerChunk.y + this.playerPositionHandler.GetPlayerVerticalChunk())
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    // Returns false if chunk.y is not implemented yet
-    private bool SkipNotImplemented(ChunkPos pos){
-        return pos.y >= 0 && pos.y <= Chunk.chunkMaxY;
-    }
-
-    // Goes through all Chunks and checks if they should've been deleted already
+    // Safety net: schedules the unload of every loaded chunk outside the StreamWindow
     private void ForceUnload(){
-        ChunkPos currentChunk = this.playerPositionHandler.GetCurrentChunk();
+        if(!this.hasStreamWindow)
+            return;
 
         foreach(ChunkPos pos in this.chunks.Keys){
-            if(Mathf.Abs(pos.x - currentChunk.x) > renderDistance){
-                toUnload.Add(pos);
-            }
-
-            if(Mathf.Abs(pos.z - currentChunk.z) > renderDistance){
-                toUnload.Add(pos);
-            }
+            if(!this.streamWindow.Contains(pos))
+                ScheduleUnload(pos);
         }
     }
 
@@ -1244,5 +1137,17 @@ public struct ChunkLightPropagInfo{
         this.pos = a;
         this.propagationFlag = flag;
         this.recursionDepth = recursionDepth;
+    }
+}
+
+
+// Chunk data received from the Server that wasn't loaded yet
+public struct PendingChunkData{
+    public byte[] data;
+    public int streamCount; // Amount of streamed copies received, that need to be acknowledged
+
+    public PendingChunkData(byte[] data, int streamCount){
+        this.data = data;
+        this.streamCount = streamCount;
     }
 }

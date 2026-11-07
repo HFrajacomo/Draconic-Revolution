@@ -3,6 +3,7 @@ using System.Text;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using static System.Environment;
 using System.Net;
 using System.Net.Sockets;
@@ -27,7 +28,6 @@ public class Server {
 	public Dictionary<ulong, int> packetSize;
 	public Dictionary<ulong, byte[]> dataBuffer;
 	public Dictionary<ulong, DateTime> timeoutTimers;
-	public Dictionary<ChunkPos, HashSet<ulong>> chunksRequested;
 	private Dictionary<ulong, byte[]> receiveBuffer;
 
 	private Dictionary<ulong, ChunkPos> playerToChunk;
@@ -40,6 +40,7 @@ public class Server {
 	private HashSet<ChunkPos> chunksToSend = new HashSet<ChunkPos>();
 
 	public EntityHandler_Server entityHandler = new EntityHandler_Server();
+	public ChunkStreamer chunkStreamer;
 
 
 	public Dictionary<ulong, HashSet<ulong>> connectionGraph;
@@ -48,7 +49,8 @@ public class Server {
 	public Dictionary<ulong, int> playerRenderDistances = new Dictionary<ulong, int>();
 	private SocketError err = new SocketError();
 
-	public List<NetMessage> queue = new List<NetMessage>();
+	// Filled by socket threads and consumed by the main thread
+	public ConcurrentQueue<NetMessage> queue = new ConcurrentQueue<NetMessage>();
 
 	public ulong firstConnectedID = ulong.MaxValue;
 	private const int timeoutSeconds = 15;
@@ -79,7 +81,6 @@ public class Server {
     	connectionGraph = new Dictionary<ulong, HashSet<ulong>>();
     	playersInChunk = new Dictionary<ChunkPos, HashSet<ulong>>();
     	receiveBuffer = new Dictionary<ulong, byte[]>();
-    	chunksRequested = new Dictionary<ChunkPos, HashSet<ulong>>();
     	playerToChunk = new Dictionary<ulong, ChunkPos>();
 		playerAnimationStates = new Dictionary<ulong, Dictionary<int, AnimationData>>();
 		playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
@@ -89,6 +90,7 @@ public class Server {
 
     	this.cl = cl;
     	this.entityHandler.SetChunkLoader(cl);
+    	this.chunkStreamer = new ChunkStreamer(this, cl);
     	
     	if(!this.isLocal){
         	this.masterSocket = new Socket(IPAddress.Any.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -341,7 +343,7 @@ public class Server {
 			NetMessage.Broadcast(NetBroadcast.RECEIVED, this.dataBuffer[currentID][0], currentID, this.packetSize[currentID]);
 
 			NetMessage receivedMessage = new NetMessage(this.dataBuffer[currentID], currentID);
-			this.queue.Add(receivedMessage);
+			this.queue.Enqueue(receivedMessage);
 
 			this.lengthPacket[currentID] = true;
 			this.packetIndex[currentID] = 0;
@@ -456,6 +458,12 @@ public class Server {
 				break;
 			case NetCode.DISCONNECTINFO:
 				DisconnectInfo(id);
+				break;
+			case NetCode.STREAMCENTER:
+				StreamCenter(data, id);
+				break;
+			case NetCode.CHUNKACK:
+				ChunkAck(data, id);
 				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED");
@@ -573,41 +581,22 @@ public class Server {
 		its.GetItem().OnHoldServer(this.cl, its, accountID);
 	}
 
-	// Gets chunk information to player
-	private void RequestChunkLoad(byte[] data, ulong id){RequestChunkLoad(NetDecoder.ReadChunkPos(data, 1), id);}
+	// Client reports a chunk of its StreamWindow that it's missing
+	private void RequestChunkLoad(byte[] data, ulong id){
+		this.chunkStreamer.Resync(id, NetDecoder.ReadChunkPos(data, 1));
+	}
 
-	public void RequestChunkLoad(ChunkPos pos, ulong id){
-		// If is loaded
-		if(this.cl.Contains(pos) && this.cl.GetChunk(pos).needsGeneration == 0){
-			if(!this.cl.loadedChunks.ContainsKey(pos))
-				this.cl.loadedChunks.Add(pos, new HashSet<ulong>());
+	// Sends a loaded chunk to a client and connects the client to the entities in it
+	// Streamed chunks count towards the client's streaming window
+	public void SendChunkToClient(ChunkPos pos, ulong id, bool stream){
+		if(!this.cl.loadedChunks.ContainsKey(pos))
+			this.cl.loadedChunks.Add(pos, new HashSet<ulong>());
 
-			if(!this.cl.loadedChunks[pos].Contains(id))
-				this.cl.loadedChunks[pos].Add(id);
+		this.cl.loadedChunks[pos].Add(id);
 
-			if(this.chunksRequested.ContainsKey(pos)){
-				this.chunksRequested[pos].Remove(id);
-
-				if(this.chunksRequested[pos].Count == 0)
-					this.chunksRequested.Remove(pos);
-			}
-
-			NetMessage message = new NetMessage(NetCode.SENDCHUNK);
-			message.SendChunk(this.cl.GetChunk(pos));
-			this.Send(message.GetMessage(), message.size, id);
-		}
-		else{
-			// If it's not loaded yet
-			if(!this.cl.toLoad.Contains(pos))
-				this.cl.toLoad.Add(pos);
-
-			if(chunksRequested.ContainsKey(pos))
-				chunksRequested[pos].Add(id);
-			else
-				chunksRequested.Add(pos, new HashSet<ulong>(){id});
-
-			return;
-		}
+		NetMessage message = new NetMessage(stream ? NetCode.STREAMCHUNK : NetCode.SENDCHUNK);
+		message.SendChunk(this.cl.GetChunk(pos));
+		this.Send(message.GetMessage(), message.size, id);
 
 		NetMessage playerMessage = new NetMessage(NetCode.PLAYERLOCATION);
 
@@ -648,9 +637,32 @@ public class Server {
 		}
 	}
 
-	// Deletes the connection between a client and a chunk
+	// Client unloaded a chunk by itself (legacy, Chunk Streaming unloads chunks on the Server side)
 	private void RequestChunkUnload(byte[] data, ulong id){
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+
+		this.chunkStreamer.ForgetChunk(id, pos);
+		UnloadChunkForClient(pos, id);
+	}
+
+	// Receives the center of a client's StreamWindow
+	private void StreamCenter(byte[] data, ulong id){
+		ChunkPos center = NetDecoder.ReadChunkPos(data, 1);
+		int verticalLayer = (sbyte)data[10];
+
+		this.chunkStreamer.SetStreamCenter(id, center, verticalLayer);
+	}
+
+	// Receives the amount of streamed chunks a client consumed
+	private void ChunkAck(byte[] data, ulong id){
+		int consumed = NetDecoder.ReadInt(data, 1);
+		int backlog = NetDecoder.ReadInt(data, 5);
+
+		this.chunkStreamer.ChunkAck(id, consumed, backlog);
+	}
+
+	// Deletes the connection between a client and a chunk
+	public void UnloadChunkForClient(ChunkPos pos, ulong id){
         NetMessage killMessage = new NetMessage(NetCode.ENTITYDELETE);
 
         if(this.playersInChunk.ContainsKey(pos)){
@@ -1091,18 +1103,8 @@ public class Server {
 				this.playersInChunk.Remove(this.cl.regionHandler.allPlayerData[id].GetChunkPos());
 		}
 
-		toRemove = new List<ChunkPos>();
-
-		// Removes ChunksRequested
-		foreach(ChunkPos pos in chunksRequested.Keys){
-			toRemove.Add(pos);
-		}
-
-		foreach(ChunkPos pos in toRemove){
-			chunksRequested[pos].Remove(id);
-			if(chunksRequested[pos].Count == 0)
-				chunksRequested.Remove(pos);
-		}
+		// Stops streaming chunks to this client
+		this.chunkStreamer.RemoveClient(id);
 
 		// Remove player last known chunk
 		if(this.playerToChunk.ContainsKey(id)){
