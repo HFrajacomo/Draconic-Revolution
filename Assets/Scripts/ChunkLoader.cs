@@ -1,9 +1,6 @@
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Jobs;
@@ -82,15 +79,12 @@ public class ChunkLoader : MonoBehaviour
 	// Chunk Rendering
 	public ChunkRenderer rend;
 
-    // Multithreading Tasks
-    private Task[] drawTaskPool = new Task[3];
-    private Task[] updateTaskPool = new Task[2];
+    // Chunk Building
+    private ChunkBuildSlot[] drawSlots;
+    private ChunkBuildSlot[] updateSlots;
 
-    // Multithreading Control Lists
-    private ConcurrentQueue<ChunkPos> toDrawFinish = new ConcurrentQueue<ChunkPos>();
-
-    // Multithreading Locks
-    private object unloadLock;
+    // Chunks that were requested to build while already building, and which kind of build they need
+    private Dictionary<ChunkPos, byte> deferredBuilds = new Dictionary<ChunkPos, byte>();
 
 	// Flags
 	public bool WORLD_GENERATED = false; 
@@ -117,6 +111,9 @@ public class ChunkLoader : MonoBehaviour
     void Awake(){
         BlockEncyclopediaECS.InitializeNativeStructures();
         VoxelLoader.InitBlockEncyclopediaECS();
+        ObjectMeshTables.Build();
+        ChunkMeshLayout.Init();
+        CreateBuildSlots();
         PlayerHotbarHandler.ResetSessionState();
 
         this.playerCharacter.SetActive(false);
@@ -164,12 +161,13 @@ public class ChunkLoader : MonoBehaviour
         this.audioManager.Stop(AudioUsecase.MUSIC_CLIP);
         this.audioManager.Destroy();
         ClearAllChunks();
-
-        // Multithreading
-        WaitTaskPool(this.drawTaskPool);
-        WaitTaskPool(this.updateTaskPool);
+        DisposeBuildSlots();
 
         Destroy(this);
+    }
+
+    void OnDestroy(){
+        DisposeBuildSlots();
     }
 
     void Update(){
@@ -246,9 +244,10 @@ public class ChunkLoader : MonoBehaviour
 
         	UnloadChunk();
             LoadChunk();
+            FinishBuilds();
             DrawChunk();
             UpdateChunk();
-            DrawChunkFinish();
+            JobHandle.ScheduleBatchedJobs();
             ResyncStream();
             SendChunkAck();
         }
@@ -325,6 +324,7 @@ public class ChunkLoader : MonoBehaviour
     	}
 
         chunks.Clear();
+        this.deferredBuilds.Clear();
     }
 
     // Check if the chunkpos in a given (x,z) position is loaded and drawn
@@ -384,11 +384,6 @@ public class ChunkLoader : MonoBehaviour
         }
         else
             updateNoLightPriorityQueue.Add(pos);
-    }
-
-    // Adds chunk to Draw queue
-    public void AddToDraw(ChunkPos pos){
-        this.toDrawFinish.Enqueue(pos);
     }
 
     // Receives chunk data from the Server. Data of a chunk that wasn't loaded yet is replaced by the newest
@@ -523,6 +518,7 @@ public class ChunkLoader : MonoBehaviour
 
             this.chunks.Remove(pos);
             this.awaitingNeighbors.Remove(pos);
+            this.deferredBuilds.Remove(pos);
             this.drawPriorityQueue.Remove(pos);
             this.updatePriorityQueue.Remove(pos);
             this.updateNoLightPriorityQueue.Remove(pos);
@@ -607,6 +603,11 @@ public class ChunkLoader : MonoBehaviour
                 continue;
             }
 
+            if(this.chunks[pos].IsBuilding()){
+                MarkDeferred(pos, flag);
+                continue;
+            }
+
             return true;
         }
 
@@ -614,30 +615,68 @@ public class ChunkLoader : MonoBehaviour
         return false;
     }
 
-    // Returns true if the task slot can receive a new task
-    private bool IsTaskSlotFree(Task[] pool, int index){
-        if(pool[index] == null)
-            return true;
-        if(!pool[index].IsCompleted)
-            return false;
+    private void MarkDeferred(ChunkPos pos, byte flag){
+        byte flags;
 
-        #if UNITY_EDITOR
-            if(pool[index].Status == TaskStatus.Faulted)
-                Debug.LogException(pool[index].Exception);
-        #endif
-
-        pool[index] = null;
-        return true;
+        this.deferredBuilds.TryGetValue(pos, out flags);
+        this.deferredBuilds[pos] = (byte)(flags | flag);
     }
 
-    // Multithreaded call for Draw operation
+    // Re-queues the builds requested for a chunk while it was building
+    private void WakeDeferred(ChunkPos pos){
+        byte flags;
+
+        if(!this.deferredBuilds.TryGetValue(pos, out flags))
+            return;
+
+        this.deferredBuilds.Remove(pos);
+
+        if(!this.chunks.ContainsKey(pos))
+            return;
+
+        if((flags & BUILD_DRAW) != 0)
+            this.drawPriorityQueue.Add(pos);
+        if((flags & BUILD_UPDATE) != 0)
+            this.updatePriorityQueue.Add(pos);
+        if((flags & BUILD_UPDATE_NOLIGHT) != 0)
+            this.updateNoLightPriorityQueue.Add(pos);
+    }
+
+    private void CreateBuildSlots(){
+        this.drawSlots = new ChunkBuildSlot[Constants.CLIENT_DRAW_BUILD_SLOTS];
+        this.updateSlots = new ChunkBuildSlot[Constants.CLIENT_UPDATE_BUILD_SLOTS];
+
+        for(int i=0; i < this.drawSlots.Length; i++)
+            this.drawSlots[i] = new ChunkBuildSlot();
+        for(int i=0; i < this.updateSlots.Length; i++)
+            this.updateSlots[i] = new ChunkBuildSlot();
+    }
+
+    // Waits for running builds and frees the native memory of the build slots
+    private void DisposeBuildSlots(){
+        DisposeBuildSlots(this.drawSlots);
+        DisposeBuildSlots(this.updateSlots);
+
+        this.drawSlots = null;
+        this.updateSlots = null;
+    }
+
+    private void DisposeBuildSlots(ChunkBuildSlot[] slots){
+        if(slots == null)
+            return;
+
+        for(int i=0; i < slots.Length; i++)
+            slots[i].Dispose();
+    }
+
+    // Schedules the mesh building of new chunks
     private void DrawChunk(){
         ChunkPos pos;
 
-        for(int i=0; i < this.drawTaskPool.Length; i++){
+        for(int i=0; i < this.drawSlots.Length; i++){
             if(this.drawPriorityQueue.GetSize() == 0)
                 break;
-            if(!IsTaskSlotFree(this.drawTaskPool, i))
+            if(!this.drawSlots[i].IsFree())
                 continue;
             if(!PopBuildable(this.drawPriorityQueue, BUILD_DRAW, out pos))
                 break;
@@ -645,58 +684,20 @@ public class ChunkLoader : MonoBehaviour
             this.chunks[pos].data.VerifyPropagation(this);
             CheckLightPropagation(pos);
 
-            ChunkPos target = pos;
-            this.drawTaskPool[i] = Task.Run(() => DrawChunkTask(target));
+            ScheduleBuild(this.drawSlots[i], this.chunks[pos], isDraw:true);
         }
     }
 
-    // Actually builds the mesh for loaded chunks
-    private void DrawChunkTask(ChunkPos pos){
-            // If chunk is still loaded
-            if(this.chunks.ContainsKey(pos)){
-
-                this.chunks[pos].BuildChunk(load:true);
-
-                if(WORLD_GENERATED)
-                    this.vfx.UpdateLights(pos);
-
-                this.toDrawFinish.Enqueue(pos);
-            }
-    }
-
-    // Main Thread's Draw Chunk finisher. Runs until the frame budget is spent (at least one per frame)
-    private void DrawChunkFinish(){
-        // Chunks re-added while finishing are left for the next frame
-        int count = this.toDrawFinish.Count;
-        long budget = GetBudgetTicks(Constants.CLIENT_DRAW_FINISH_BUDGET_MS);
-        ChunkPos pos;
-
-        this.budgetStopwatch.Restart();
-
-        for(int i=0; i < count; i++){
-            if(i > 0 && this.budgetStopwatch.ElapsedTicks >= budget)
-                break;
-
-            if(!this.toDrawFinish.TryDequeue(out pos))
-                break;
-
-            if(!this.chunks.ContainsKey(pos))
-                continue;
-
-            this.chunks[pos].Draw();
-        }
-    }
-
-    // Multithreaded call for Update operation
+    // Schedules the mesh rebuilding of changed chunks
     private void UpdateChunk(){
         bool lightUpdate = false;
         bool withLight;
         ChunkPos pos;
 
-        for(int i=0; i < this.updateTaskPool.Length; i++){
+        for(int i=0; i < this.updateSlots.Length; i++){
             if(this.updatePriorityQueue.GetSize() + this.updateNoLightPriorityQueue.GetSize() == 0)
                 break;
-            if(!IsTaskSlotFree(this.updateTaskPool, i))
+            if(!this.updateSlots[i].IsFree())
                 continue;
 
             // Only one update with light is preferred per frame, the others go to updates without light
@@ -709,8 +710,7 @@ public class ChunkLoader : MonoBehaviour
                 lightUpdate = true;
             }
 
-            ChunkPos target = pos;
-            this.updateTaskPool[i] = Task.Run(() => UpdateChunkTask(target));
+            ScheduleBuild(this.updateSlots[i], this.chunks[pos], isDraw:false);
         }
     }
 
@@ -734,16 +734,56 @@ public class ChunkLoader : MonoBehaviour
         return PopBuildable(this.updatePriorityQueue, BUILD_UPDATE, out pos);
     }
 
-    // Reload a chunk in toUpdate
-    private void UpdateChunkTask(ChunkPos pos){
-        if(this.chunks.ContainsKey(pos)){
+    // Draw builds always send load events. Update builds also send them while a load request is pending
+    private void ScheduleBuild(ChunkBuildSlot slot, Chunk chunk, bool isDraw){
+        int requestedLoad = chunk.GetRequestedLoadVersion();
+        bool load = isDraw || requestedLoad != chunk.GetSentLoadVersion();
 
-            this.chunks[pos].BuildChunk();
+        slot.Schedule(chunk, this, load, requestedLoad);
+    }
+
+    // Applies finished builds until the frame budget is spent (at least one per frame) and swaps cooked colliders
+    private void FinishBuilds(){
+        long budget = GetBudgetTicks(Constants.CLIENT_DRAW_FINISH_BUDGET_MS);
+        bool appliedAny = false;
+
+        this.budgetStopwatch.Restart();
+
+        // Updates first, since they come from changes the player can see
+        FinishBuilds(this.updateSlots, budget, ref appliedAny);
+        FinishBuilds(this.drawSlots, budget, ref appliedAny);
+    }
+
+    private void FinishBuilds(ChunkBuildSlot[] slots, long budget, ref bool appliedAny){
+        ChunkBuildSlot slot;
+        Chunk chunk;
+
+        for(int i=0; i < slots.Length; i++){
+            slot = slots[i];
+
+            if(slot.IsBakeDone()){
+                chunk = slot.GetChunk();
+                slot.FinishBake();
+                chunk.drawMain = true;
+                WakeDeferred(chunk.pos);
+                continue;
+            }
+
+            if(!slot.IsBuildDone())
+                continue;
+            if(appliedAny && this.budgetStopwatch.ElapsedTicks >= budget)
+                continue;
+
+            chunk = slot.GetChunk();
+            slot.ApplyMeshes();
+
+            if(slot.IsLoadBuild())
+                chunk.SendLoadEvents(slot.GetLoadCoords(), slot.GetLoadVersion());
 
             if(this.WORLD_GENERATED)
-                this.vfx.UpdateLights(pos);
+                this.vfx.UpdateLights(chunk.pos);
 
-            this.toDrawFinish.Enqueue(pos);
+            appliedAny = true;
         }
     }
 
@@ -1077,16 +1117,6 @@ public class ChunkLoader : MonoBehaviour
         foreach(ChunkPos pos in this.chunks.Keys){
             if(!this.streamWindow.Contains(pos))
                 ScheduleUnload(pos);
-        }
-    }
-
-    // Waits the end of execution of multiple Task Pools
-    private void WaitTaskPool(Task[] taskPool){
-        for(int i=0; i < taskPool.Length; i++){
-            if(taskPool[i] == null)
-                continue;
-
-            taskPool[i].Wait();
         }
     }
 

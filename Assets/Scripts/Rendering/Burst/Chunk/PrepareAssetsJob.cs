@@ -3,12 +3,17 @@ using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.NotBurstCompatible;
 
+/*
+Appends the meshes of every Object in the chunk to the chunk mesh and to the raycast hitbox mesh.
+Object meshes are read from ObjectMeshTables
+*/
 [BurstCompile]
 public struct PrepareAssetsJob : IJob{
 	[ReadOnly]
 	public ChunkPos pos;
+	[ReadOnly]
+	public bool canRain;
 
 	// Output
 	public NativeList<Vector3> meshVerts;
@@ -24,52 +29,43 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<Vector3> hitboxNormals;
 	public NativeList<int> hitboxTriangles;
 
-	[ReadOnly]
-	public int vCount;
-	[ReadOnly]
-	public bool canRain;
-
 	// Input
-	[ReadOnly]
-	public NativeArray<ushort> blockdata;
-	[ReadOnly]
-	public NativeArray<ushort> metadata;
-	[ReadOnly]
-	public NativeArray<byte> lightdata;
-	[ReadOnly]
-	public NativeArray<byte> heightMap;
 	[ReadOnly]
 	public NativeList<int3> coords;
 	[ReadOnly]
-	public NativeList<ushort> blockCodes;
+	public NativeArray<ushort> blocks; // Padded snapshot
 	[ReadOnly]
-	public NativeList<int> vertsOffset;
+	public NativeArray<byte> light; // Padded snapshot
 	[ReadOnly]
-	public NativeList<int> trisOffset;
+	public NativeArray<byte> heights; // Padded snapshot
 	[ReadOnly]
-	public NativeList<int> UVOffset;
+	public NativeArray<ushort> state;
+
+	// Object Encyclopedia
 	[ReadOnly]
 	public NativeArray<Vector3> scaling;
 	[ReadOnly]
+	public NativeArray<Vector3> hitboxScaling;
+	[ReadOnly]
 	public NativeArray<bool> needRotation;
 	[ReadOnly]
-	public NativeParallelHashMap<int, Vector3> inplaceOffset;
-	[ReadOnly]
-	public NativeParallelHashMap<int, int2> inplaceRotation;
+	public NativeArray<ShaderIndex> material;
 
-	// Loaded Mesh Data
+	// Object Mesh Tables
 	[ReadOnly]
 	public NativeArray<Vector3> loadedVerts;
 	[ReadOnly]
 	public NativeArray<Vector3> loadedUV;
 	[ReadOnly]
-	public NativeArray<int> loadedTris;
-	[ReadOnly]
 	public NativeArray<Vector3> loadedNormals;
 	[ReadOnly]
 	public NativeArray<Vector4> loadedTangents;
-
-	// Loaded Hitbox Data
+	[ReadOnly]
+	public NativeArray<int> loadedTris;
+	[ReadOnly]
+	public NativeArray<int> vertsOffset;
+	[ReadOnly]
+	public NativeArray<int> trisOffset;
 	[ReadOnly]
 	public NativeArray<Vector3> loadedHitboxVerts;
 	[ReadOnly]
@@ -81,110 +77,117 @@ public struct PrepareAssetsJob : IJob{
 	[ReadOnly]
 	public NativeArray<int> hitboxTrisOffset;
 	[ReadOnly]
-	public NativeArray<Vector3> hitboxScaling;
+	public NativeArray<int> stateOffset;
 	[ReadOnly]
-	public NativeArray<ShaderIndex> material;
+	public NativeArray<Vector3> stateTranslation;
+	[ReadOnly]
+	public NativeArray<int2> stateRotation;
 
 	public void Execute(){
-		int i;
-		int currentVertAmount = vCount;
-		int hitboxVertAmount = 0;
-		int blockdataIndex;
+		int currentVertAmount = meshVerts.Length;
+		int hitboxVertAmount = hitboxVerts.Length;
+		int3 coord;
+		ushort code;
+		int obj;
+		Vector3 vertPos;
+		Vector3 lightValue;
+		Vector3 localOffset;
+		int2 rotation;
 
 		for(int j=0; j < coords.Length; j++){
-			blockdataIndex = blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
-			i = GetIndex(blockdataIndex);
+			coord = coords[j];
+			code = blocks[PaddedChunk.Index(coord.x, coord.y, coord.z)];
 
-			if(i == -1)
+			if(code <= ushort.MaxValue/2)
 				continue;
 
+			obj = ushort.MaxValue - code;
+			vertPos = new Vector3(coord.x, coord.y+(this.pos.y*Chunk.chunkDepth), coord.z);
+			lightValue = new Vector3(GetLight(coord.x, coord.y, coord.z), GetLight(coord.x, coord.y, coord.z, isNatural:false), IsDamp(coord));
+
 			// If has special offset or rotation
-			if(needRotation[ushort.MaxValue - blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z]]){
-				int code = blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
-				int state = metadata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
+			if(needRotation[obj]){
+				GetStateTransform(obj, state[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z], out localOffset, out rotation);
 
 				// Normal Vertices
-				Vector3 vertPos = new Vector3(coords[j].x, coords[j].y+(this.pos.y*Chunk.chunkDepth), coords[j].z);
-				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
-					Vector3 resultVert = Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
-					meshVerts.Add(resultVert);
-					meshNormals.Add(GetNormalRotation(loadedNormals[vertIndex], inplaceRotation[code*256+state]));
-					meshTangents.Add(GetNormalRotation(loadedTangents[vertIndex], inplaceRotation[code*256+state]));
-					meshLightUV.Add(new Vector3(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false), IsDamp(this.heightMap, coords[j])));
+				for(int vertIndex=vertsOffset[obj]; vertIndex < vertsOffset[obj+1]; vertIndex++){
+					meshVerts.Add(Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[obj], vertPos, localOffset, rotation));
+					meshNormals.Add(GetNormalRotation(loadedNormals[vertIndex], rotation));
+					meshTangents.Add(GetNormalRotation(loadedTangents[vertIndex], rotation));
+					meshLightUV.Add(lightValue);
 				}
 
 				// Hitbox Vertices
-				for(int vertIndex=hitboxVertsOffset[i]; vertIndex < hitboxVertsOffset[i+1]; vertIndex++){
-					Vector3 resultVert = Vector3MultOffsetRotate(loadedHitboxVerts[vertIndex], hitboxScaling[i], vertPos, inplaceOffset[code*256+state], inplaceRotation[code*256+state]);
-					hitboxVerts.Add(resultVert);
-					hitboxNormals.Add(GetNormalRotation(loadedHitboxNormals[vertIndex], inplaceRotation[code*256+state]));
+				for(int vertIndex=hitboxVertsOffset[obj]; vertIndex < hitboxVertsOffset[obj+1]; vertIndex++){
+					hitboxVerts.Add(Vector3MultOffsetRotate(loadedHitboxVerts[vertIndex], hitboxScaling[obj], vertPos, localOffset, rotation));
+					hitboxNormals.Add(GetNormalRotation(loadedHitboxNormals[vertIndex], rotation));
 				}
-
 			}
 			// If doesn't have special rotation
 			else{
 				// Normal Vertices
-				Vector3 vertPos = new Vector3(coords[j].x, coords[j].y+(this.pos.y*Chunk.chunkDepth), coords[j].z);
-				for(int vertIndex=vertsOffset[i]; vertIndex < vertsOffset[i+1]; vertIndex++){
-					Vector3 resultVert = Vector3Mult(loadedVerts[vertIndex], scaling[i], vertPos);
-					meshVerts.Add(resultVert);
+				for(int vertIndex=vertsOffset[obj]; vertIndex < vertsOffset[obj+1]; vertIndex++){
+					meshVerts.Add(Vector3Mult(loadedVerts[vertIndex], scaling[obj], vertPos));
 					meshNormals.Add(loadedNormals[vertIndex]);
 					meshTangents.Add(loadedTangents[vertIndex]);
-					meshLightUV.Add(new Vector3(GetLight(coords[j].x, coords[j].y, coords[j].z), GetLight(coords[j].x, coords[j].y, coords[j].z, isNatural:false), IsDamp(this.heightMap, coords[j])));
+					meshLightUV.Add(lightValue);
 				}
 
 				// Hitbox Vertices
-				for(int vertIndex=hitboxVertsOffset[i]; vertIndex < hitboxVertsOffset[i+1]; vertIndex++){
-					Vector3 resultVert = Vector3Mult(loadedHitboxVerts[vertIndex], hitboxScaling[i], vertPos);
-					hitboxVerts.Add(resultVert);
+				for(int vertIndex=hitboxVertsOffset[obj]; vertIndex < hitboxVertsOffset[obj+1]; vertIndex++){
+					hitboxVerts.Add(Vector3Mult(loadedHitboxVerts[vertIndex], hitboxScaling[obj], vertPos));
 					hitboxNormals.Add(loadedHitboxNormals[vertIndex]);
 				}
 			}
 
 			// UVs
-			for(int UVIndex=UVOffset[i]; UVIndex < UVOffset[i+1]; UVIndex++){
-				int code = blockdata[coords[j].x*Chunk.chunkWidth*Chunk.chunkDepth+coords[j].y*Chunk.chunkWidth+coords[j].z];
-				meshUVs.Add(new Vector3(loadedUV[UVIndex].x, loadedUV[UVIndex].y, loadedUV[UVIndex].z));
+			for(int UVIndex=vertsOffset[obj]; UVIndex < vertsOffset[obj+1]; UVIndex++){
+				meshUVs.Add(loadedUV[UVIndex]);
 			}
 
 			// Triangles
-			if(material[ushort.MaxValue - blockdataIndex] == ShaderIndex.ASSETS){
-				for(int triIndex=trisOffset[i]; triIndex < trisOffset[i+1]; triIndex++){
+			if(material[obj] == ShaderIndex.ASSETS){
+				for(int triIndex=trisOffset[obj]; triIndex < trisOffset[obj+1]; triIndex++){
 					meshTris.Add(loadedTris[triIndex] + currentVertAmount);
 				}	
 			}
 			else{
-				for(int triIndex=trisOffset[i]; triIndex < trisOffset[i+1]; triIndex++){
+				for(int triIndex=trisOffset[obj]; triIndex < trisOffset[obj+1]; triIndex++){
 					meshSolidTris.Add(loadedTris[triIndex] + currentVertAmount);
 				}			
 			}
-			currentVertAmount += (vertsOffset[i+1] - vertsOffset[i]);
+			currentVertAmount += (vertsOffset[obj+1] - vertsOffset[obj]);
 
 			// Hitbox Triangles
-			for(int triIndex=hitboxTrisOffset[i]; triIndex < hitboxTrisOffset[i+1]; triIndex++){
+			for(int triIndex=hitboxTrisOffset[obj]; triIndex < hitboxTrisOffset[obj+1]; triIndex++){
 				hitboxTriangles.Add(loadedHitboxTriangles[triIndex] + hitboxVertAmount);
 			}	
-			hitboxVertAmount += (hitboxVertsOffset[i+1] - hitboxVertsOffset[i]);	
+			hitboxVertAmount += (hitboxVertsOffset[obj+1] - hitboxVertsOffset[obj]);	
 		}
 	}
 
-	private byte IsDamp(NativeArray<byte> heightMap, int3 coord){
+	// Gets the offset and rotation of an object in a given state. Unknown states have no offset nor rotation
+	private void GetStateTransform(int obj, int objState, out Vector3 localOffset, out int2 rotation){
+		int start = stateOffset[obj];
+		int count = stateOffset[obj+1] - start;
+
+		if(objState < count){
+			localOffset = stateTranslation[start+objState];
+			rotation = stateRotation[start+objState];
+		}
+		else{
+			localOffset = Vector3.zero;
+			rotation = new int2(0, 0);
+		}
+	}
+
+	private byte IsDamp(int3 coord){
 		if(!this.canRain)
 			return 0;
 
-		if(coord.y > heightMap[coord.x*Chunk.chunkWidth+coord.z])
+		if(coord.y > heights[PaddedChunk.MapIndex(coord.x, coord.z)])
 			return 1;
 		return 0;
-	}
-
-	// Check if a blockCode is contained in blockCodes List
-	private int GetIndex(int code){
-		for(int i=0; i < blockCodes.Length; i++){
-			if(blockCodes[i] == code){
-				return i;
-			}
-		}
-		return -1;
 	}
 
 	private Vector3 Vector3Mult(Vector3 a, Vector3 b, Vector3 plus){
@@ -233,13 +236,11 @@ public struct PrepareAssetsJob : IJob{
 	}
 
 
-	// Gets neighbor light level
+	// Gets the light level of a voxel of the chunk
 	private int GetLight(int x, int y, int z, bool isNatural=true){
-		int3 coord = new int3(x, y, z);
-
 		if(isNatural)
-			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0x0F;
+			return light[PaddedChunk.Index(x, y, z)] & 0x0F;
 		else
-			return lightdata[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z] & 0xF0;
+			return light[PaddedChunk.Index(x, y, z)] & 0xF0;
 	}
 }

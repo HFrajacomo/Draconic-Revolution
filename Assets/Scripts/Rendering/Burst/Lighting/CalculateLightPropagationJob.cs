@@ -13,12 +13,12 @@ public struct CalculateLightPropagationJob : IJob{
 
 	public NativeList<int3> bfsq1; // Breadth-first search queue
 	public NativeList<int3> bfsq2;
-	public NativeParallelHashSet<int3> visited1;
-	public NativeParallelHashSet<int3> visited2;
+	public NativeBitArray visited1; // Indexed by voxel index
+	public NativeBitArray visited2; // Indexed by voxel index
 	public NativeList<int3> bfsqe1;
 	public NativeList<int3> bfsqe2;
-	public NativeParallelHashSet<int3> visitede1;
-	public NativeParallelHashSet<int3> visitede2;
+	public NativeBitArray visitede1; // Indexed by voxel index
+	public NativeBitArray visitede2; // Indexed by voxel index
 	public NativeList<int4> aux;
 	public NativeParallelHashSet<int4> hashAux;
 
@@ -114,86 +114,90 @@ public struct CalculateLightPropagationJob : IJob{
 		int3 current;
 
 		// CURRENT CHUNK LIGHT PROPAG =====================================
-		int bfsq1Size = bfsq1.Length;
+		int bfsq1Head = 0;
 
-		while(bfsq1Size > 0){
-			current = bfsq1[0];
+		while(bfsq1Head < bfsq1.Length){
+			current = bfsq1[bfsq1Head];
+			bfsq1Head++;
+			if(bfsq1Head == bfsq1.Length){
+				bfsq1.Clear();
+				bfsq1Head = 0;
+			}
 
-			if(visited1.Contains(current)){
-				bfsq1.RemoveAt(0);
-				bfsq1Size = bfsq1.Length;
+			if(visited1.IsSet(GetIndex(current))){
 				continue;
 			}
 
 			ScanSurroundings(current, (byte)(lightMap1[GetIndex(current)] & 0x0F), true, 1, lightMap1, lightMap2, shadowMap1, shadowMap2, bfsq1, bfsq2, visited1, visited2, borderCode, true);
 			//WriteLightUpdateFlag(current, borderCode);
 
-			visited1.Add(current);
-			bfsq1.RemoveAt(0);
-			bfsq1Size = bfsq1.Length;
+			visited1.Set(GetIndex(current), true);
 		}
 
 		// NEIGHBOR CHUNK LIGHT PROPAG ====================================
-		int bfsq2Size = bfsq2.Length;
+		int bfsq2Head = 0;
 
-		while(bfsq2Size > 0){
+		while(bfsq2Head < bfsq2.Length){
 			changed[1] = 1;
 
-			current = bfsq2[0];
+			current = bfsq2[bfsq2Head];
+			bfsq2Head++;
+			if(bfsq2Head == bfsq2.Length){
+				bfsq2.Clear();
+				bfsq2Head = 0;
+			}
 
-			if(visited2.Contains(current)){
-				bfsq2.RemoveAt(0);
-				bfsq2Size = bfsq2.Length;
+			if(visited2.IsSet(GetIndex(current))){
 				continue;
 			}
 
 			ScanSurroundings(current, (byte)(lightMap2[GetIndex(current)] & 0x0F), false, 2, lightMap2, lightMap1, shadowMap2, shadowMap1, bfsq2, bfsq1, visited2, visited1, borderCode, false);
 			//WriteLightUpdateFlag(current, borderCode);
 
-			visited2.Add(current);
-			bfsq2.RemoveAt(0);
-			bfsq2Size = bfsq2.Length;
+			visited2.Set(GetIndex(current), true);
 		}
 
 		// CURRENT CHUNK EXTRA LIGHT PROPAG =====================================
-		int bfsqe1Size = bfsqe1.Length;
+		int bfsqe1Head = 0;
 
-		while(bfsqe1Size > 0){
-			current = bfsqe1[0];
+		while(bfsqe1Head < bfsqe1.Length){
+			current = bfsqe1[bfsqe1Head];
+			bfsqe1Head++;
+			if(bfsqe1Head == bfsqe1.Length){
+				bfsqe1.Clear();
+				bfsqe1Head = 0;
+			}
 
-			if(visitede1.Contains(current)){
-				bfsqe1.RemoveAt(0);
-				bfsqe1Size = bfsqe1.Length;
+			if(visitede1.IsSet(GetIndex(current))){
 				continue;
 			}
 
 			ScanSurroundings(current, (byte)(lightMap1[GetIndex(current)] >> 4), true, 1, lightMap1, lightMap2, shadowMap1, shadowMap2, bfsqe1, bfsqe2, visitede1, visitede2, borderCode, true, extraLight:true);
 			//WriteLightUpdateFlag(current, borderCode);
 
-			visitede1.Add(current);
-			bfsqe1.RemoveAt(0);
-			bfsqe1Size = bfsqe1.Length;
+			visitede1.Set(GetIndex(current), true);
 		}
 
 		// NEIGHBOR CHUNK EXTRA LIGHT PROPAG ====================================
-		int bfsqe2Size = bfsqe2.Length;
+		int bfsqe2Head = 0;
 
-		while(bfsqe2Size > 0){
+		while(bfsqe2Head < bfsqe2.Length){
 
-			current = bfsqe2[0];
+			current = bfsqe2[bfsqe2Head];
+			bfsqe2Head++;
+			if(bfsqe2Head == bfsqe2.Length){
+				bfsqe2.Clear();
+				bfsqe2Head = 0;
+			}
 
-			if(visitede2.Contains(current)){
-				bfsqe2.RemoveAt(0);
-				bfsqe2Size = bfsqe2.Length;
+			if(visitede2.IsSet(GetIndex(current))){
 				continue;
 			}
 
 			ScanSurroundings(current, (byte)(lightMap2[GetIndex(current)] >> 4), false, 2, lightMap2, lightMap1, shadowMap2, shadowMap1, bfsqe2, bfsqe1, visitede2, visitede1, borderCode, false, extraLight:true);
 			//WriteLightUpdateFlag(current, borderCode);
 
-			visitede2.Add(current);
-			bfsqe2.RemoveAt(0);
-			bfsqe2Size = bfsqe2.Length;
+			visitede2.Set(GetIndex(current), true);
 		}
 	}
 
@@ -215,15 +219,14 @@ public struct CalculateLightPropagationJob : IJob{
 		else
 			aux.Add(new int4(pos, (selectedLightMap[index] >> 4)+1));
 
-		int auxSize = aux.Length;
+		int auxHead = 0;
 
-		while(auxSize > 0){
-			current = aux[0];
+		while(auxHead < aux.Length){
+			current = aux[auxHead];
+			auxHead++;
 			index = GetIndex(current.xyz);
 
 			if(hashAux.Contains(current)){
-				aux.RemoveAt(0);
-				auxSize = aux.Length;
 				continue;
 			}
 
@@ -296,8 +299,6 @@ public struct CalculateLightPropagationJob : IJob{
 				}
 			}
 
-			aux.RemoveAt(0);
-			auxSize = aux.Length;
 			firstIteration = false;
 		}
 
@@ -356,10 +357,10 @@ public struct CalculateLightPropagationJob : IJob{
 		coord2 = GetCoord(index2);
 
 		if(extraLight)
-			if(visitede1.Contains(coord1) && this.visitede2.Contains(coord2))
+			if(visitede1.IsSet(GetIndex(coord1)) && this.visitede2.IsSet(GetIndex(coord2)))
 				return;
 		else
-			if(visited1.Contains(coord1) && visited2.Contains(coord2))
+			if(visited1.IsSet(GetIndex(coord1)) && visited2.IsSet(GetIndex(coord2)))
 				return;
 
 		// Finding the order
@@ -431,13 +432,13 @@ public struct CalculateLightPropagationJob : IJob{
 					lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) -1));
 					shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
 					bfsq1.Add(GetCoord(index1));
-					visited2.Add(GetCoord(index2));
+					visited2.Set(index2, true);
 				}
 				else{
 					lightMap1[index1] = (byte)((lightMap1[index1] & 0x0F) | ((lightMap2[index2] - 16) & 0xF0));
 					shadowMap1[index1] = (byte)((shadowMap1[index1] & 0x0F) | (GetShadowDirection(borderCode, normalOrder) << 4));
 					bfsqe1.Add(GetCoord(index1));
-					visitede2.Add(GetCoord(index2));					
+					visitede2.Set(index2, true);					
 				}
 			}
 			else{
@@ -445,13 +446,13 @@ public struct CalculateLightPropagationJob : IJob{
 					lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) -1));
 					shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
 					bfsq2.Add(GetCoord(index2));
-					visited1.Add(GetCoord(index1));
+					visited1.Set(index1, true);
 				}
 				else{
 					lightMap2[index2] = (byte)((lightMap2[index2] & 0x0F) | ((lightMap1[index1] - 16) & 0xF0));
 					shadowMap2[index2] = (byte)((shadowMap2[index2] & 0x0F) | (GetShadowDirection(borderCode, normalOrder) << 4));
 					bfsqe2.Add(GetCoord(index2));
-					visitede1.Add(GetCoord(index1));
+					visitede1.Set(index1, true);
 				}
 			}
 		}
@@ -463,13 +464,13 @@ public struct CalculateLightPropagationJob : IJob{
 					lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) -1));
 					shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
 					bfsq2.Add(GetCoord(index2));
-					visited1.Add(GetCoord(index1));
+					visited1.Set(index1, true);
 				}
 				else if((lightMap1[index1] & 0x0F) < ((lightMap2[index2] & 0x0F) -1)){
 					lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) -1));
 					shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
 					bfsq1.Add(GetCoord(index1));
-					visited2.Add(GetCoord(index2));
+					visited2.Set(index2, true);
 				}
 			}
 			else{
@@ -477,13 +478,13 @@ public struct CalculateLightPropagationJob : IJob{
 					lightMap2[index2] = (byte)((lightMap2[index2] & 0x0F) | ((lightMap1[index1] - 16) & 0xF0));
 					shadowMap2[index2] = (byte)((shadowMap2[index2] & 0x0F) | (GetShadowDirection(borderCode, normalOrder) << 4));
 					bfsqe2.Add(GetCoord(index2));
-					visitede1.Add(GetCoord(index1));
+					visitede1.Set(index1, true);
 				}
 				else if((lightMap1[index1] & 0xF0) < ((lightMap2[index2] & 0xF0) - 16)){
 					lightMap1[index1] = (byte)((lightMap1[index1] & 0x0F) | ((lightMap2[index2] - 16) & 0xF0));
 					shadowMap1[index1] = (byte)((shadowMap1[index1] & 0x0F) | (GetShadowDirection(borderCode, normalOrder) << 4));
 					bfsqe1.Add(GetCoord(index1));
-					visitede2.Add(GetCoord(index2));
+					visitede2.Set(index2, true);
 				}
 			}
 		}
@@ -503,7 +504,7 @@ public struct CalculateLightPropagationJob : IJob{
 							lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) - 1));
 							shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
 							bfsq1.Add(GetCoord(index1));
-							visited2.Add(GetCoord(index2));
+							visited2.Set(index2, true);
 						}
 					}
 				}
@@ -519,7 +520,7 @@ public struct CalculateLightPropagationJob : IJob{
 							lightMap1[index1] = (byte)((lightMap1[index1] & 0x0F) | ((lightMap2[index2] - 16) & 0xF0));
 							shadowMap1[index1] = (byte)((shadowMap1[index1] & 0x0F) | (GetShadowDirection(borderCode, normalOrder) << 4));
 							bfsqe1.Add(GetCoord(index1));
-							visitede2.Add(GetCoord(index2));
+							visitede2.Set(index2, true);
 						}
 					}
 				}
@@ -537,7 +538,7 @@ public struct CalculateLightPropagationJob : IJob{
 							lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) - 1));
 							shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | GetShadowDirection(borderCode, normalOrder));
 							bfsq2.Add(GetCoord(index2));
-							visited1.Add(GetCoord(index1));
+							visited1.Set(index1, true);
 						}
 					}
 				}
@@ -553,7 +554,7 @@ public struct CalculateLightPropagationJob : IJob{
 							lightMap2[index2] = (byte)((lightMap2[index2] & 0x0F) | ((lightMap1[index1] - 16) & 0xF0));
 							shadowMap2[index2] = (byte)((shadowMap2[index2] & 0x0F) | (GetShadowDirection(borderCode, normalOrder) << 4));
 							bfsqe2.Add(GetCoord(index2));
-							visitede1.Add(GetCoord(index1));
+							visitede1.Set(index1, true);
 						}
 					}
 				}
@@ -577,13 +578,13 @@ public struct CalculateLightPropagationJob : IJob{
 							RemoveDirectionFromChunk(lightMap2, shadowMap2, (byte)(shadowMap2[index2] & 0x0F), GetCoord(index2), borderCode, false, extraLight:extraLight);
 							lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) - 1));
 							bfsq2.Add(GetCoord(index2));
-							visited1.Add(GetCoord(index1));
+							visited1.Set(index1, true);
 						}
 						else if((lightMap1[index1] & 0x0F) >= (lightMap2[index2] & 0x0F) + 2){
 							lightMap2[index2] = (byte)((lightMap2[index2] & 0xF0) | ((lightMap1[index1] & 0x0F) - 1));
 							shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | GetShadowDirection(borderCode, !normalOrder));
 							bfsq2.Add(GetCoord(index2));
-							visited1.Add(GetCoord(index1));							
+							visited1.Set(index1, true);							
 						}
 					}
 				}
@@ -601,18 +602,18 @@ public struct CalculateLightPropagationJob : IJob{
 							RemoveDirectionFromChunk(lightMap2, shadowMap2, (byte)(shadowMap2[index2] >> 4), GetCoord(index2), borderCode, false, extraLight:extraLight);
 							lightMap2[index2] = (byte)((lightMap2[index2] & 0x0F) | ((lightMap1[index1] - 16) & 0xF0));
 							bfsq2.Add(GetCoord(index2));
-							visited1.Add(GetCoord(index1));
+							visited1.Set(index1, true);
 						}
 						else if((lightMap1[index1] >> 4) >= (lightMap2[index2] >> 4) + 2){
 							lightMap2[index2] = (byte)((lightMap2[index2] & 0x0F) | ((lightMap1[index1] & 0xF0) - 16));
 							shadowMap2[index2] = (byte)((shadowMap2[index2] & 0xF0) | GetShadowDirection(borderCode, !normalOrder));
 							bfsq2.Add(GetCoord(index2));
-							visited1.Add(GetCoord(index1));							
+							visited1.Set(index1, true);							
 						}
 						// If transmitter hits directional in border of extra light, try expand directionals
 						else{
 							bfsq2.Add(GetCoord(index2));
-							visited1.Add(GetCoord(index1));
+							visited1.Set(index1, true);
 						} 
 					}
 				}
@@ -632,13 +633,13 @@ public struct CalculateLightPropagationJob : IJob{
 							RemoveDirectionFromChunk(lightMap1, shadowMap1, (byte)(shadowMap1[index1] & 0x0F), GetCoord(index1), borderCode, true, extraLight:extraLight);
 							lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) - 1));
 							bfsq1.Add(GetCoord(index1));
-							visited2.Add(GetCoord(index2));
+							visited2.Set(index2, true);
 						}
 						else if((lightMap2[index2] & 0x0F) >= (lightMap1[index1] & 0x0F) + 2){
 							lightMap1[index1] = (byte)((lightMap1[index1] & 0xF0) | ((lightMap2[index2] & 0x0F) - 1));
 							shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, !normalOrder));
 							bfsq1.Add(GetCoord(index1));
-							visited2.Add(GetCoord(index2));							
+							visited2.Set(index2, true);							
 						}
 					}
 				}
@@ -656,18 +657,18 @@ public struct CalculateLightPropagationJob : IJob{
 							RemoveDirectionFromChunk(lightMap1, shadowMap1, (byte)(shadowMap1[index1] >> 4), GetCoord(index1), borderCode, true, extraLight:extraLight);
 							lightMap1[index1] = (byte)((lightMap1[index1] & 0x0F) | ((lightMap2[index2] - 16) & 0xF0));
 							bfsq1.Add(GetCoord(index1));
-							visited2.Add(GetCoord(index2));
+							visited2.Set(index2, true);
 						}
 						else if((lightMap2[index2] >> 4) >= (lightMap1[index1] >> 4) + 2){
 							lightMap1[index1] = (byte)((lightMap1[index1] & 0x0F) | ((lightMap2[index2] & 0xF0) - 16));
 							shadowMap1[index1] = (byte)((shadowMap1[index1] & 0xF0) | GetShadowDirection(borderCode, !normalOrder) << 4);
 							bfsq1.Add(GetCoord(index1));
-							visited2.Add(GetCoord(index2));							
+							visited2.Set(index2, true);							
 						}
 						// If transmitter hits directional in border of extra light, try expand directionals
 						else{
 							bfsq1.Add(GetCoord(index1));
-							visited2.Add(GetCoord(index2));
+							visited2.Set(index2, true);
 						} 
 					}			
 				}
@@ -889,7 +890,7 @@ public struct CalculateLightPropagationJob : IJob{
 
 
 	// Checks the surroundings and adds light fallout
-	public void ScanSurroundings(int3 c, byte currentLight, bool normalOrder, int side, NativeArray<byte> selectedMap, NativeArray<byte> otherMap, NativeArray<byte> selectedShadow, NativeArray<byte> otherShadow, NativeList<int3> bfsq, NativeList<int3> otherBfsq, NativeParallelHashSet<int3> visited, NativeParallelHashSet<int3> otherVisited, byte borderCode, bool shouldUpdateFlags, bool extraLight=false){
+	public void ScanSurroundings(int3 c, byte currentLight, bool normalOrder, int side, NativeArray<byte> selectedMap, NativeArray<byte> otherMap, NativeArray<byte> selectedShadow, NativeArray<byte> otherShadow, NativeList<int3> bfsq, NativeList<int3> otherBfsq, NativeBitArray visited, NativeBitArray otherVisited, byte borderCode, bool shouldUpdateFlags, bool extraLight=false){
 		if(currentLight == 1)
 			return;
 
@@ -920,7 +921,7 @@ public struct CalculateLightPropagationJob : IJob{
 		}
 		else{
 			if((borderCode == 1 && side == 1) || (borderCode == 0 && side == 2)){
-				if(!otherVisited.Contains(GetNeighborCoord(c, borderCode, side))){
+				if(!otherVisited.IsSet(GetIndex(GetNeighborCoord(c, borderCode, side)))){
 					if(!extraLight){
 						int n = GetIndex(GetNeighborCoord(c, borderCode, side));
 						sideShadow = (byte)(otherShadow[n] & 0x0F);
@@ -970,7 +971,7 @@ public struct CalculateLightPropagationJob : IJob{
 		}
 		else{
 			if((borderCode == 0 && side == 1) || (borderCode == 1 && side == 2)){
-				if(!otherVisited.Contains(GetNeighborCoord(c, borderCode, side))){
+				if(!otherVisited.IsSet(GetIndex(GetNeighborCoord(c, borderCode, side)))){
 					if(!extraLight){
 						int n = GetIndex(GetNeighborCoord(c, borderCode, side));
 						sideShadow = (byte)(otherShadow[n] & 0x0F);
@@ -1020,7 +1021,7 @@ public struct CalculateLightPropagationJob : IJob{
 		}
 		else{
 			if((borderCode == 3 && side == 1) || (borderCode == 4 && side == 2)){
-				if(!otherVisited.Contains(GetNeighborCoord(c, borderCode, side))){
+				if(!otherVisited.IsSet(GetIndex(GetNeighborCoord(c, borderCode, side)))){
 					if(!extraLight){
 						int n = GetIndex(GetNeighborCoord(c, borderCode, side));
 						sideShadow = (byte)(otherShadow[n] & 0x0F);
@@ -1070,7 +1071,7 @@ public struct CalculateLightPropagationJob : IJob{
 		}
 		else{
 			if((borderCode == 4 && side == 1) || (borderCode == 3 && side == 2)){
-				if(!otherVisited.Contains(GetNeighborCoord(c, borderCode, side))){
+				if(!otherVisited.IsSet(GetIndex(GetNeighborCoord(c, borderCode, side)))){
 					if(!extraLight){
 						int n = GetIndex(GetNeighborCoord(c, borderCode, side));
 						sideShadow = (byte)(otherShadow[n] & 0x0F);

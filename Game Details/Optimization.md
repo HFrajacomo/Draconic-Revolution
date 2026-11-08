@@ -36,6 +36,16 @@ Interestingly enough, the Garbage Collection optimization is meant to decrease t
 
 When working with Native Data Structures, disposing of them correctly and accessing their data as non-Native structures without burdening the GC is a good thing.
 
+## Persistent Native Buffers and Zero-Copy Meshes (CPU and RAM)
+
+The hot paths of the Chunk Renderer and Voxel Lighting don't allocate per call:
+
+- Every chunk build reuses the persistent buffers of a `ChunkBuildSlot`, and only copies a padded snapshot of the chunk plus a 1-voxel border of its neighbors, instead of the full data of every neighbor.
+- Meshes are written by Burst jobs directly into `Mesh.MeshDataArray` and applied with `Mesh.ApplyAndDisposeWritableMeshData`. No managed vertex arrays are created and every chunk reuses the same Mesh objects.
+- MeshColliders are cooked in worker threads with `Physics.BakeMesh` before they are assigned, so the main thread doesn't cook them.
+- Object meshes are concatenated once into `ObjectMeshTables` and shared, read-only, by every build.
+- Lighting runs synchronously, so its jobs read and write the managed light arrays in-place through `PinnedArray` views and use the persistent buffers of `LightingScratch`. Its BFS queues are index-based FIFOs and visited voxels are tracked in bit arrays, keeping the BFS linear.
+
 ## Incremental Garbage Collector (Incremental GC) (CPU)
 
 It's very hard to avoid lag spikes using the standard GC. These lag spikes were constant when playing in high render distances. The Incremental GC makes everything simpler. It distributes the memory flagging stage to multiple frames, making the GC load less noticeable, and lag spikes rare.+

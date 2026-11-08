@@ -17,7 +17,7 @@ public struct CalculateLightMapJob : IJob{
 	public NativeList<int3> bfsq; // Breadth-first search queue
 	public NativeList<int4> bfsqExtra;
 	public NativeList<byte5> bfsqDir;
-	public NativeParallelHashSet<int3> visited;
+	public NativeBitArray visited; // Indexed by voxel index
 	public NativeList<byte5> directionalList;
 
 	[ReadOnly]
@@ -34,29 +34,30 @@ public struct CalculateLightMapJob : IJob{
 		int4 currentExtra;
 		byte5 currentDirectional;
 		int bfsqSize;
+		int bfsqHead = 0;
+		int bfsqDirHead = 0;
+		int bfsqExtraHead = 0;
 
 		/***************************************
 		Natural Light
 		***************************************/
 		DetectSunlight();
-		bfsqSize = bfsq.Length;	
-		
-		// Iterates through queue
-		while(bfsqSize > 0){
-			current = bfsq[0];
 
-			if(visited.Contains(current)){
-				bfsq.RemoveAt(0);
-				bfsqSize = bfsq.Length;	
+		// Iterates through queue
+		while(bfsqHead < bfsq.Length){
+			current = bfsq[bfsqHead];
+			bfsqHead++;
+
+			if(visited.IsSet(GetIndex(current)))
 				continue;
-			}
 
 			ScanSurroundings(current, (byte)(lightMap[GetIndex(current)] & 0x0F), true);
 
-			visited.Add(current);
-			bfsq.RemoveAt(0);
-			bfsqSize = bfsq.Length;	
+			visited.Set(GetIndex(current), true);
 		}
+
+		bfsq.Clear();
+		bfsqHead = 0;
 
 		DetectDirectionals();
 		CountSort(isLightSource:false);
@@ -75,15 +76,15 @@ public struct CalculateLightMapJob : IJob{
 			while(bfsqSize > 0 || !initiateSearch || lastIndex >= 0){
 				initiateSearch = true;
  
-				if(bfsqDir.Length > 0 && currentLevel == -1){
+				if((bfsqDir.Length - bfsqDirHead) > 0 && currentLevel == -1){
 					searchedCurrentLevel = true;
-					currentLevel = bfsqDir[0].w;
+					currentLevel = bfsqDir[bfsqDirHead].w;
 				}
-				else if(bfsqDir.Length == 0 && lastIndex >= 0){
+				else if((bfsqDir.Length - bfsqDirHead) == 0 && lastIndex >= 0){
 					searchedCurrentLevel = false;
 					currentLevel = directionalList[lastIndex].w;
 				}
-				else if(bfsqDir.Length == 0 && lastIndex == -1){
+				else if((bfsqDir.Length - bfsqDirHead) == 0 && lastIndex == -1){
 					break;
 				}
 
@@ -114,25 +115,30 @@ public struct CalculateLightMapJob : IJob{
 					}
 				}
 
-				if(bfsqDir.Length == 0){
+				if((bfsqDir.Length - bfsqDirHead) == 0){
 					continue;
 				}
 
-				currentDirectional = bfsqDir[0];
-				bfsqDir.RemoveAt(0);
+				currentDirectional = bfsqDir[bfsqDirHead];
+				bfsqDirHead++;
+				if(bfsqDirHead == bfsqDir.Length){
+					bfsqDir.Clear();
+					bfsqDirHead = 0;
+				}
 
 				if(currentDirectional.w == currentLevel && lastIndex >= 0)
 					searchedCurrentLevel = false;
 
 				ScanDirectionals(currentDirectional.GetCoords(), currentDirectional.w, true, currentDirectional.k);
 
-				bfsqSize = bfsqDir.Length;
+				bfsqSize = bfsqDir.Length - bfsqDirHead;
 			}
 		}
 
 		visited.Clear();
 		directionalList.Clear();
 		bfsqDir.Clear();
+		bfsqDirHead = 0;
 
 		/***************************************
 		Extra Lights
@@ -152,15 +158,15 @@ public struct CalculateLightMapJob : IJob{
 			while(bfsqSize > 0 || !initiateExtraLightSearch || lastIndex >= 0){
 				initiateExtraLightSearch = true;
  
-				if(bfsqExtra.Length > 0 && currentLevel == -1){
+				if((bfsqExtra.Length - bfsqExtraHead) > 0 && currentLevel == -1){
 					searchedCurrentLevel = true;
-					currentLevel = bfsqExtra[0].w;
+					currentLevel = bfsqExtra[bfsqExtraHead].w;
 				}
-				else if(bfsqExtra.Length == 0 && lastIndex >= 0){
+				else if((bfsqExtra.Length - bfsqExtraHead) == 0 && lastIndex >= 0){
 					searchedCurrentLevel = false;
 					currentLevel = lightSources[lastIndex].w;
 				}
-				else if(bfsqExtra.Length == 0 && lastIndex == -1){
+				else if((bfsqExtra.Length - bfsqExtraHead) == 0 && lastIndex == -1){
 					break;
 				}
 
@@ -201,19 +207,23 @@ public struct CalculateLightMapJob : IJob{
 					}
 				}
 
-				if(bfsqExtra.Length == 0){
+				if((bfsqExtra.Length - bfsqExtraHead) == 0){
 					continue;
 				}
 
-				currentExtra = bfsqExtra[0];
-				bfsqExtra.RemoveAt(0);
+				currentExtra = bfsqExtra[bfsqExtraHead];
+				bfsqExtraHead++;
+				if(bfsqExtraHead == bfsqExtra.Length){
+					bfsqExtra.Clear();
+					bfsqExtraHead = 0;
+				}
 
 				if(currentExtra.w == currentLevel && lastIndex >= 0)
 					searchedCurrentLevel = false;
 
 				ScanSurroundings(currentExtra.xyz, (byte)currentExtra.w, false);
 
-				bfsqSize = bfsqExtra.Length;
+				bfsqSize = bfsqExtra.Length - bfsqExtraHead;
 			}
 		}
 
@@ -235,15 +245,15 @@ public struct CalculateLightMapJob : IJob{
 			while(bfsqSize > 0 || !initiateExtraLightSearch || lastIndex >= 0){
 				initiateExtraLightSearch = true;
  
-				if(bfsqDir.Length > 0 && currentLevel == -1){
+				if((bfsqDir.Length - bfsqDirHead) > 0 && currentLevel == -1){
 					searchedCurrentLevel = true;
-					currentLevel = bfsqDir[0].w;
+					currentLevel = bfsqDir[bfsqDirHead].w;
 				}
-				else if(bfsqDir.Length == 0 && lastIndex >= 0){
+				else if((bfsqDir.Length - bfsqDirHead) == 0 && lastIndex >= 0){
 					searchedCurrentLevel = false;
 					currentLevel = directionalList[lastIndex].w;
 				}
-				else if(bfsqDir.Length == 0 && lastIndex == -1){
+				else if((bfsqDir.Length - bfsqDirHead) == 0 && lastIndex == -1){
 					break;
 				}
 
@@ -274,19 +284,23 @@ public struct CalculateLightMapJob : IJob{
 					}
 				}
 
-				if(bfsqDir.Length == 0){
+				if((bfsqDir.Length - bfsqDirHead) == 0){
 					continue;
 				}
 
-				currentDirectional = bfsqDir[0];
-				bfsqDir.RemoveAt(0);
+				currentDirectional = bfsqDir[bfsqDirHead];
+				bfsqDirHead++;
+				if(bfsqDirHead == bfsqDir.Length){
+					bfsqDir.Clear();
+					bfsqDirHead = 0;
+				}
 
 				if(currentDirectional.w == currentLevel && lastIndex >= 0)
 					searchedCurrentLevel = false;
 
 				ScanDirectionals(currentDirectional.GetCoords(), currentDirectional.w, false, currentDirectional.k);
 
-				bfsqSize = bfsqDir.Length;
+				bfsqSize = bfsqDir.Length - bfsqDirHead;
 			}
 		}
 	}
@@ -452,7 +466,7 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x+1, c.y, c.z);
 
 		if(aux.x < chunkWidth){
-			if(!visited.Contains(aux)){
+			if(!visited.IsSet(GetIndex(aux))){
 				index = GetIndex(aux);
 
 				if(isNatural){
@@ -476,7 +490,7 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x-1, c.y, c.z);
 
 		if(aux.x >= 0){
-			if(!visited.Contains(aux)){
+			if(!visited.IsSet(GetIndex(aux))){
 				index = GetIndex(aux);
 
 				if(isNatural){
@@ -500,7 +514,7 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x, c.y, c.z+1);
 
 		if(aux.z < chunkWidth){
-			if(!visited.Contains(aux)){
+			if(!visited.IsSet(GetIndex(aux))){
 				index = GetIndex(aux);
 
 				if(isNatural){
@@ -524,7 +538,7 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x, c.y, c.z-1);
 
 		if(aux.z >= 0){
-			if(!visited.Contains(aux)){
+			if(!visited.IsSet(GetIndex(aux))){
 				index = GetIndex(aux);
 
 				if(isNatural){
@@ -548,7 +562,7 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x, c.y+1, c.z);
 
 		if(aux.y < chunkDepth){
-			if(!visited.Contains(aux)){
+			if(!visited.IsSet(GetIndex(aux))){
 				index = GetIndex(aux);
 
 				if(isNatural){
@@ -572,7 +586,7 @@ public struct CalculateLightMapJob : IJob{
 		aux = new int3(c.x, c.y-1, c.z);
 
 		if(aux.y >= 0){
-			if(!visited.Contains(aux)){
+			if(!visited.IsSet(GetIndex(aux))){
 				index = GetIndex(aux);
 
 				if(isNatural){
@@ -734,56 +748,36 @@ public struct CalculateLightMapJob : IJob{
 		}
 	}
 
+	// Stable sort by descending light level. Entries with level 0 are dropped, as in the original implementation
 	private void CountSort(bool isLightSource=true){
-		int capacity;
-
 		if(isLightSource){
 			auxLightSources.Clear();
 
-			capacity = lightSources.Length;
-
-			if(capacity <= 1)
+			if(lightSources.Length <= 1)
 				return;
 
 			for(int light=15; light > 0; light--){
-				for(int i=0; i < capacity; i++){
-					if(lightSources[i].w == light){
-						capacity--;
-
+				for(int i=0; i < lightSources.Length; i++){
+					if(lightSources[i].w == light)
 						auxLightSources.Add(lightSources[i]);
-						lightSources.RemoveAt(i);
-
-						i--;
-					}
 				}
 			}
+
+			lightSources = auxLightSources;
 		}
 		else{
 			auxDirectionals.Clear();
 
-			capacity = directionalList.Length;
-
-			if(capacity <= 1)
+			if(directionalList.Length <= 1)
 				return;
 
 			for(int light=15; light > 0; light--){
-				for(int i=0; i < capacity; i++){
-					if(directionalList[i].w == light){
-						capacity--;
-
+				for(int i=0; i < directionalList.Length; i++){
+					if(directionalList[i].w == light)
 						auxDirectionals.Add(directionalList[i]);
-						directionalList.RemoveAt(i);
-
-						i--;
-					}
 				}
-			}			
-		}
+			}
 
-		if(isLightSource){
-			lightSources = auxLightSources;
-		}
-		else{
 			directionalList = auxDirectionals;
 		}
 	}

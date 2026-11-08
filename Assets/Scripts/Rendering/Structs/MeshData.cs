@@ -10,6 +10,7 @@ public struct MeshData{
 	private readonly List<Vector3> normals;
 
 	private readonly List<Vector3> hitboxVertices;
+	private readonly List<Vector3> hitboxNormals;
 	private readonly int[] hitboxTriangles;
 
 	// For VoxelLoader
@@ -22,6 +23,7 @@ public struct MeshData{
 		this.tangents = new List<Vector4>();
 		this.normals = new List<Vector3>();
 		this.hitboxVertices = new List<Vector3>();
+		this.hitboxNormals = new List<Vector3>();
 
 		mesh.GetVertices(this.vertices);
 		this.triangles = mesh.GetTriangles(0);
@@ -34,9 +36,16 @@ public struct MeshData{
 		}
 
 		hitboxMesh.GetVertices(this.hitboxVertices);
+		hitboxMesh.GetNormals(this.hitboxNormals);
 		this.hitboxTriangles = hitboxMesh.GetTriangles(0);
 		loadedUV.Clear();
+
+		// Hitbox meshes without normals still need one normal per vertex
+		while(this.hitboxNormals.Count < this.hitboxVertices.Count)
+			this.hitboxNormals.Add(Vector3.up);
 	}
+
+	public bool IsLoaded(){return this.vertices != null;}
 
 	public int GetUVs(List<Vector3> outputList){
 		outputList.AddRange(this.UVs);
@@ -63,6 +72,11 @@ public struct MeshData{
 	public int GetHitboxVertices(List<Vector3> outputList){
 		outputList.AddRange(this.hitboxVertices);
 		return this.hitboxVertices.Count;
+	}
+
+	public int GetHitboxNormals(List<Vector3> outputList){
+		outputList.AddRange(this.hitboxNormals);
+		return this.hitboxNormals.Count;
 	}
 
 	public int[] GetHitboxTriangles(){return this.hitboxTriangles;}

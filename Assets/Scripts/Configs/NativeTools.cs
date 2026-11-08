@@ -49,10 +49,13 @@ public static class NativeTools
 
         NativeArray<T> outputArray = new NativeArray<T>(size, Allocator.TempJob);
 
-        void* inputBuffer = array.GetUnsafePtr();
+        if(size <= 0)
+            return outputArray;
+
+        void* inputBuffer = array.GetUnsafeReadOnlyPtr();
         void* outBuffer = outputArray.GetUnsafePtr();
 
-        UnsafeUtility.MemCpy(inputBuffer, outBuffer, byteSize);
+        UnsafeUtility.MemCpy(outBuffer, inputBuffer, byteSize);
         return outputArray;
     }
 }

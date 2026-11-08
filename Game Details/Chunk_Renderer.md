@@ -77,3 +77,19 @@ The steps the Chunk Renderer takes to render a chunk is as described.
 
 ![](../RepoImages/ChunkRenderer.png)
 
+## The Build Pipeline
+Every chunk mesh is built by Burst jobs that are scheduled and finished by the main thread. No managed threads, locks or per-build allocations are involved.
+
+`ChunkLoader` owns a small pool of `ChunkBuildSlot` objects: `CLIENT_DRAW_BUILD_SLOTS` for new chunks and `CLIENT_UPDATE_BUILD_SLOTS` for changed chunks (see `Constants`). Every slot holds persistent native buffers, so a build only clears and refills them. A chunk is in at most one slot at a time. If a chunk is requested again while it is building, the request is deferred and re-queued once the build ends.
+
+A build goes through these steps:
+
+1. **Snapshot (main thread):** the chunk and a 1-voxel border taken from its neighbors are copied into a padded 18x258x18 grid (`PaddedChunk`) of blocks and light, plus an 18x18 grid of heights. The 8 horizontal neighbors are always used. The upper and lower layers are used when that vertical chunk and its 8 neighbors are loaded, otherwise they are filled with air and no light. State, HP and render map are copied for the chunk only. Since jobs only read this snapshot, chunk data can keep changing in the main thread while the build runs.
+2. **BuildChunkJob:** generates the block faces, their lighting UVs, the decals and the list of Objects to place.
+3. **PrepareAssetsJob:** appends the Object meshes and their hitboxes, reading them from `ObjectMeshTables`, which concatenates every Object mesh once, when the game scene loads.
+4. **WriteChunkMeshJob:** writes the render (8 submeshes, positions in their own vertex stream), collider, decal and raycast meshes straight into a `Mesh.MeshDataArray`, along with their bounds. `CheckLoadEventJob` runs alongside these jobs when the build needs to send load events.
+5. **Apply (main thread):** `ChunkLoader.FinishBuilds` applies finished builds to the chunk's persistent meshes within the frame budget, sends the load events (`BATCHLOADBUD`) and updates the chunk lights.
+6. **Collider cooking:** `BakeColliderJob` cooks the collider and raycast meshes in worker threads with `Physics.BakeMesh`. Collider meshes are double-buffered, so the MeshColliders keep the previous collision until the new one is cooked and swapped in. Only then is the chunk flagged as drawn (`drawMain`).
+
+When a chunk is unloaded while building, its build is aborted, waiting for its jobs to finish before its meshes are destroyed.
+

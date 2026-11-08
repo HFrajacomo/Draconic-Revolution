@@ -102,41 +102,34 @@ public class VoxelData {
 	}
 	*/
 	public static ushort PropagateLight(VoxelData a, VoxelMetadata aMetadata, VoxelData b, VoxelMetadata bMetadata, byte borderCode){
-		NativeArray<byte> lightMap1 = NativeTools.CopyToNative(a.GetLightMap(aMetadata));
-		NativeArray<byte> lightMap2 = NativeTools.CopyToNative(b.GetLightMap(bMetadata));
-		NativeArray<byte> shadowMap1 = NativeTools.CopyToNative(a.GetShadowMap());
-		NativeArray<byte> shadowMap2 = NativeTools.CopyToNative(b.GetShadowMap());
+		// Light Maps must exist before the scratch buffers are prepared, since calculating them also uses scratch buffers
+		byte[] managedLight1 = a.GetLightMap(aMetadata);
+		byte[] managedLight2 = b.GetLightMap(bMetadata);
 
-		NativeList<int3> bfsq1 = new NativeList<int3>(0, Allocator.TempJob);
-		NativeList<int3> bfsq2 = new NativeList<int3>(0, Allocator.TempJob);
-		NativeList<int3> bfsqe1 = new NativeList<int3>(0, Allocator.TempJob);
-		NativeList<int3> bfsqe2 = new NativeList<int3>(0, Allocator.TempJob);
-		NativeParallelHashSet<int3> visited1 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
-		NativeParallelHashSet<int3> visited2 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
-		NativeParallelHashSet<int3> visitede1 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
-		NativeParallelHashSet<int3> visitede2 = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
-		NativeList<int4> aux = new NativeList<int4>(0, Allocator.TempJob);
-		NativeParallelHashSet<int4> hashAux = new NativeParallelHashSet<int4>(0, Allocator.TempJob);
-		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0, 0, 0, 0}, Allocator.TempJob);
+		LightingScratch.PreparePropagation();
+
+		PinnedArray<byte> lightMap1 = PinnedArray<byte>.Pin(managedLight1);
+		PinnedArray<byte> lightMap2 = PinnedArray<byte>.Pin(managedLight2);
+		PinnedArray<byte> shadowMap1 = PinnedArray<byte>.Pin(a.GetShadowMap());
+		PinnedArray<byte> shadowMap2 = PinnedArray<byte>.Pin(b.GetShadowMap());
+		NativeArray<byte> changed = LightingScratch.changed;
 		ushort updateFlag = 0;
 
-		JobHandle job;
-
 		CalculateLightPropagationJob clpJob = new CalculateLightPropagationJob{
-			lightMap1 = lightMap1,
-			lightMap2 = lightMap2,
-			shadowMap1 = shadowMap1,
-			shadowMap2 = shadowMap2,
-			bfsq1 = bfsq1,
-			bfsq2 = bfsq2,
-			visited1 = visited1,
-			visited2 = visited2,
-			visitede1 = visitede1,
-			visitede2 = visitede2,
-			bfsqe1 = bfsqe1,
-			bfsqe2 = bfsqe2,
-			aux = aux,
-			hashAux = hashAux,
+			lightMap1 = lightMap1.array,
+			lightMap2 = lightMap2.array,
+			shadowMap1 = shadowMap1.array,
+			shadowMap2 = shadowMap2.array,
+			bfsq1 = LightingScratch.bfsq1,
+			bfsq2 = LightingScratch.bfsq2,
+			visited1 = LightingScratch.visited1,
+			visited2 = LightingScratch.visited2,
+			visitede1 = LightingScratch.visitede1,
+			visitede2 = LightingScratch.visitede2,
+			bfsqe1 = LightingScratch.bfsqe1,
+			bfsqe2 = LightingScratch.bfsqe2,
+			aux = LightingScratch.aux,
+			hashAux = LightingScratch.hashAux,
 			chunkWidth = Chunk.chunkWidth,
 			chunkDepth = Chunk.chunkDepth,
 			borderCode = borderCode,
@@ -144,104 +137,72 @@ public class VoxelData {
 			changed = changed
 		};
 
-        job = clpJob.Schedule();
-        job.Complete();
+		clpJob.Run();
 
-        a.SetLightMap(NativeTools.CopyToManaged(lightMap1));
-        b.SetLightMap(NativeTools.CopyToManaged(lightMap2));
-        a.SetShadowMap(NativeTools.CopyToManaged(shadowMap1));
-        b.SetShadowMap(NativeTools.CopyToManaged(shadowMap2));
-        
-        updateFlag += changed[0];
-        updateFlag += (ushort)(changed[1] << 1);
-        updateFlag += (ushort)(changed[2] << 2);
-        updateFlag += (ushort)(changed[3] << 3);
+		updateFlag += changed[0];
+		updateFlag += (ushort)(changed[1] << 1);
+		updateFlag += (ushort)(changed[2] << 2);
+		updateFlag += (ushort)(changed[3] << 3);
 
-        lightMap1.Dispose();
-        lightMap2.Dispose();
-        shadowMap1.Dispose();
-        shadowMap2.Dispose();
-        bfsq1.Dispose();
-        bfsq2.Dispose();
-        bfsqe1.Dispose();
-        bfsqe2.Dispose();
-        visited1.Dispose();
-        visited2.Dispose();
-        visitede1.Dispose();
-        visitede2.Dispose();
-        aux.Dispose();
-        hashAux.Dispose();
-        changed.Dispose();
+		lightMap1.Release();
+		lightMap2.Release();
+		shadowMap1.Release();
+		shadowMap2.Release();
 
-        return updateFlag;
-    }
+		return updateFlag;
+	}
 
 	/*
 	Burst Compiled
 	*/
 	public void CalculateLightMap(VoxelMetadata metadata){
-		if(this.heightMap == null)
+		if(this.heightMap == null || this.ceilingMap == null)
 			CalculateHeightMap();
 
 		bool isStandalone = true;
+		bool[] neighborCeiling = null;
 		ChunkPos cachedPos;
 
-		NativeArray<byte> lightMap;
-		NativeArray<byte> shadowMap;
-		NativeList<int4> lightSources = new NativeList<int4>(0, Allocator.TempJob);
-		NativeArray<byte> heightMap = NativeTools.CopyToNative(this.heightMap);
-		NativeArray<ushort> states = NativeTools.CopyToNative(metadata.GetStateData());
-		NativeArray<bool> ceilingMap = NativeTools.CopyToNative(this.ceilingMap);
-		NativeArray<bool> neighborCeilingMap;
-
-		if(this.shadowMap == null){
-			shadowMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		}
-		else{
-			shadowMap = NativeTools.CopyToNative(this.shadowMap);
-		}
-		if(this.lightMap == null){
-			lightMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		}
-		else{
-			lightMap = NativeTools.CopyToNative(this.lightMap);
-		}
-
 		// Check if should be calculated as standalone chunk
-		
 		if(this.pos.y < Chunk.chunkMaxY){
 			cachedPos = new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1);
 
 			if(cl.Contains(cachedPos)){
 				if(cl.Get(cachedPos).data.ShadowMapIsSet()){
 					isStandalone = false;
-					neighborCeilingMap = NativeTools.CopyToNative(cl.Get(cachedPos).data.GetCeilingMap());
-				}
-				else{
-					neighborCeilingMap = new NativeArray<bool>(0, Allocator.TempJob);
+					neighborCeiling = cl.Get(cachedPos).data.GetCeilingMap();
 				}
 			}
-			else{
-				neighborCeilingMap = new NativeArray<bool>(0, Allocator.TempJob);
-			}
-		}
-		else{
-			neighborCeilingMap = new NativeArray<bool>(0, Allocator.TempJob);
 		}
 
-		JobHandle job;
+		// Light and Shadow maps are calculated in-place
+		if(this.lightMap == null)
+			this.lightMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth];
+		if(this.shadowMap == null)
+			this.shadowMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth];
 
-		NativeArray<ushort> blockData = NativeTools.CopyToNative(this.data);
+		LightingScratch.PrepareLightMap();
+
+		PinnedArray<byte> lightMap = PinnedArray<byte>.Pin(this.lightMap);
+		PinnedArray<byte> shadowMap = PinnedArray<byte>.Pin(this.shadowMap);
+		PinnedArray<byte> heightMap = PinnedArray<byte>.Pin(this.heightMap);
+		PinnedArray<ushort> states = PinnedArray<ushort>.Pin(metadata.GetStateData());
+		PinnedArray<bool> ceilingMap = PinnedArray<bool>.Pin(this.ceilingMap);
+		PinnedArray<ushort> blockData = PinnedArray<ushort>.Pin(this.data);
+		PinnedArray<bool> neighborCeilingMap = new PinnedArray<bool>();
+
+		if(!isStandalone)
+			neighborCeilingMap = PinnedArray<bool>.Pin(neighborCeiling);
 
 		// SHADOWMAPPING =========================================================
 
 		CalculateShadowMapJob csmJob = new CalculateShadowMapJob{
-			shadowMap = shadowMap,
-			lightMap = lightMap,
-			lightSources = lightSources,
-			heightMap = heightMap,
-			data = blockData,
-			states = states,
+			shadowMap = shadowMap.array,
+			lightMap = lightMap.array,
+			lightSources = LightingScratch.lightSources,
+			heightMap = heightMap.array,
+			data = blockData.array,
+			states = states.array,
 			chunkWidth = Chunk.chunkWidth,
 			chunkDepth = Chunk.chunkDepth,
 			isTransparentObj = BlockEncyclopediaECS.objectTransparent,
@@ -250,140 +211,124 @@ public class VoxelData {
 			objectLuminosity = BlockEncyclopediaECS.objectLuminosity,
 			isStandalone = isStandalone,
 			cpos = this.pos,
-			ceilingMap = ceilingMap,
-			neighborCeilingMap = neighborCeilingMap
+			ceilingMap = ceilingMap.array,
+			neighborCeilingMap = isStandalone ? LightingScratch.emptyBool : neighborCeilingMap.array
 		};
 
-        job = csmJob.Schedule();
-        job.Complete();
-
-		NativeList<int3> bfsq = new NativeList<int3>(0, Allocator.TempJob);
-		NativeList<int4> bfsqExtra = new NativeList<int4>(0, Allocator.TempJob);
-		NativeList<byte5> directionalList = new NativeList<byte5>(0, Allocator.TempJob);
-		NativeList<byte5> bfsqDir = new NativeList<byte5>(0, Allocator.TempJob);
-		NativeParallelHashSet<int3> visited = new NativeParallelHashSet<int3>(0, Allocator.TempJob);
-		NativeList<int4> auxLightSources = new NativeList<int4>(0, Allocator.TempJob);
-		NativeList<byte5> auxDirectionals = new NativeList<byte5>(0, Allocator.TempJob);
+		csmJob.Run();
 
 		// LIGHTMAPPING =========================================================
 		CalculateLightMapJob clmJob = new CalculateLightMapJob{
-			lightMap = lightMap,
-			shadowMap = shadowMap,
-			lightSources = lightSources,
-			heightMap = heightMap,
+			lightMap = lightMap.array,
+			shadowMap = shadowMap.array,
+			lightSources = LightingScratch.lightSources,
+			heightMap = heightMap.array,
 			chunkWidth = Chunk.chunkWidth,
 			chunkDepth = Chunk.chunkDepth,
-			bfsq = bfsq,
-			bfsqExtra = bfsqExtra,
-			bfsqDir = bfsqDir,
-			visited = visited,
-			directionalList = directionalList,
-			auxLightSources = auxLightSources,
-			auxDirectionals = auxDirectionals,
+			bfsq = LightingScratch.bfsq,
+			bfsqExtra = LightingScratch.bfsqExtra,
+			bfsqDir = LightingScratch.bfsqDir,
+			visited = LightingScratch.visited,
+			directionalList = LightingScratch.directionalList,
+			auxLightSources = LightingScratch.auxLightSources,
+			auxDirectionals = LightingScratch.auxDirectionals,
 			cpos = this.pos
 		};
 
-        job = clmJob.Schedule();
-        job.Complete();
+		clmJob.Run();
 
-
-        this.lightMap = NativeTools.CopyToManaged(lightMap);
-        this.shadowMap = NativeTools.CopyToManaged(shadowMap);
-
-        blockData.Dispose();
-        states.Dispose();
-
-        bfsq.Dispose();
-        bfsqExtra.Dispose();
-        bfsqDir.Dispose();
-        visited.Dispose();
-        lightSources.Dispose();
-        lightMap.Dispose();
-        heightMap.Dispose();
-        shadowMap.Dispose();
-        ceilingMap.Dispose();
-        neighborCeilingMap.Dispose();
-        directionalList.Dispose();
-        auxDirectionals.Dispose();
-        auxLightSources.Dispose();
+		lightMap.Release();
+		shadowMap.Release();
+		heightMap.Release();
+		states.Release();
+		ceilingMap.Release();
+		blockData.Release();
+		neighborCeilingMap.Release();
 	}
 
 	public void VerifyPropagation(ChunkLoader cl){
-		NativeArray<byte> lightdata = new NativeArray<byte>(this.lightMap, Allocator.TempJob); 
-		NativeArray<byte> shadowdata = new NativeArray<byte>(this.shadowMap, Allocator.TempJob); 
-		NativeArray<byte> xmlight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x-1, this.pos.z, this.pos.y)).data.GetLightMap(), Allocator.TempJob); 
-		NativeArray<byte> xmshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x-1, this.pos.z, this.pos.y)).data.GetShadowMap(), Allocator.TempJob); 
-		NativeArray<byte> xplight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x+1, this.pos.z, this.pos.y)).data.GetLightMap(), Allocator.TempJob); 
-		NativeArray<byte> xpshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x+1, this.pos.z, this.pos.y)).data.GetShadowMap(), Allocator.TempJob); 
-		NativeArray<byte> zmlight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z-1, this.pos.y)).data.GetLightMap(), Allocator.TempJob); 
-		NativeArray<byte> zmshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z-1, this.pos.y)).data.GetShadowMap(), Allocator.TempJob); 
-		NativeArray<byte> zplight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z+1, this.pos.y)).data.GetLightMap(), Allocator.TempJob); 
-		NativeArray<byte> zpshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z+1, this.pos.y)).data.GetShadowMap(), Allocator.TempJob);
+		VoxelData xm = cl.Get(new ChunkPos(this.pos.x-1, this.pos.z, this.pos.y)).data;
+		VoxelData xp = cl.Get(new ChunkPos(this.pos.x+1, this.pos.z, this.pos.y)).data;
+		VoxelData zm = cl.Get(new ChunkPos(this.pos.x, this.pos.z-1, this.pos.y)).data;
+		VoxelData zp = cl.Get(new ChunkPos(this.pos.x, this.pos.z+1, this.pos.y)).data;
+		VoxelData vp = null;
+		VoxelData vm = null;
+		ChunkPos verticalPos;
 
-		NativeArray<byte> vplight;
-		NativeArray<byte> vpshadow;
-		NativeArray<byte> vmlight;
-		NativeArray<byte> vmshadow;
+		verticalPos = new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1);
 
-		NativeArray<byte> changed = new NativeArray<byte>(new byte[]{0}, Allocator.TempJob);
-
-		if(cl.Contains(new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1))){
-			vplight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1)).data.GetLightMap(), Allocator.TempJob);
-			vpshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1)).data.GetShadowMap(), Allocator.TempJob);
-			vmlight = new NativeArray<byte>(0, Allocator.TempJob);
-			vmshadow = new NativeArray<byte>(0, Allocator.TempJob);	
-		}
-		else if(cl.Contains(new ChunkPos(this.pos.x, this.pos.z, this.pos.y-1))){
-			vmlight = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z, this.pos.y-1)).data.GetLightMap(), Allocator.TempJob);
-			vmshadow = new NativeArray<byte>(cl.Get(new ChunkPos(this.pos.x, this.pos.z, this.pos.y-1)).data.GetShadowMap(), Allocator.TempJob);
-			vplight = new NativeArray<byte>(0, Allocator.TempJob);
-			vpshadow = new NativeArray<byte>(0, Allocator.TempJob);
+		if(cl.Contains(verticalPos)){
+			vp = cl.Get(verticalPos).data;
 		}
 		else{
-			vplight = new NativeArray<byte>(0, Allocator.TempJob);
-			vpshadow = new NativeArray<byte>(0, Allocator.TempJob);
-			vmlight = new NativeArray<byte>(0, Allocator.TempJob);
-			vmshadow = new NativeArray<byte>(0, Allocator.TempJob);	
+			verticalPos = new ChunkPos(this.pos.x, this.pos.z, this.pos.y-1);
+
+			if(cl.Contains(verticalPos))
+				vm = cl.Get(verticalPos).data;
+		}
+
+		LightingScratch.PrepareVerification();
+
+		PinnedArray<byte> lightdata = PinnedArray<byte>.Pin(this.lightMap);
+		PinnedArray<byte> shadowdata = PinnedArray<byte>.Pin(this.shadowMap);
+		PinnedArray<byte> xmlight = PinnedArray<byte>.Pin(xm.GetLightMap());
+		PinnedArray<byte> xmshadow = PinnedArray<byte>.Pin(xm.GetShadowMap());
+		PinnedArray<byte> xplight = PinnedArray<byte>.Pin(xp.GetLightMap());
+		PinnedArray<byte> xpshadow = PinnedArray<byte>.Pin(xp.GetShadowMap());
+		PinnedArray<byte> zmlight = PinnedArray<byte>.Pin(zm.GetLightMap());
+		PinnedArray<byte> zmshadow = PinnedArray<byte>.Pin(zm.GetShadowMap());
+		PinnedArray<byte> zplight = PinnedArray<byte>.Pin(zp.GetLightMap());
+		PinnedArray<byte> zpshadow = PinnedArray<byte>.Pin(zp.GetShadowMap());
+		PinnedArray<byte> vplight = new PinnedArray<byte>();
+		PinnedArray<byte> vpshadow = new PinnedArray<byte>();
+		PinnedArray<byte> vmlight = new PinnedArray<byte>();
+		PinnedArray<byte> vmshadow = new PinnedArray<byte>();
+
+		if(vp != null){
+			vplight = PinnedArray<byte>.Pin(vp.GetLightMap());
+			vpshadow = PinnedArray<byte>.Pin(vp.GetShadowMap());
+		}
+		else if(vm != null){
+			vmlight = PinnedArray<byte>.Pin(vm.GetLightMap());
+			vmshadow = PinnedArray<byte>.Pin(vm.GetShadowMap());
 		}
 
 		VerifyPropagationJob vpJob = new VerifyPropagationJob{
-			lightdata = lightdata,
-			shadowdata = shadowdata,
-			xmlight = xmlight,
-			xplight = xplight,
-			xmshadow = xmshadow,
-			xpshadow = xpshadow,
-			zmlight = zmlight,
-			zplight = zplight,
-			zmshadow = zmshadow,
-			zpshadow = zpshadow,
-			vmlight = vmlight,
-			vplight = vplight,
-			vmshadow = vmshadow,
-			vpshadow = vpshadow,
-			changed = changed
+			lightdata = lightdata.array,
+			shadowdata = shadowdata.array,
+			xmlight = xmlight.array,
+			xplight = xplight.array,
+			xmshadow = xmshadow.array,
+			xpshadow = xpshadow.array,
+			zmlight = zmlight.array,
+			zplight = zplight.array,
+			zmshadow = zmshadow.array,
+			zpshadow = zpshadow.array,
+			vmlight = vm != null ? vmlight.array : LightingScratch.emptyByte,
+			vplight = vp != null ? vplight.array : LightingScratch.emptyByte,
+			vmshadow = vm != null ? vmshadow.array : LightingScratch.emptyByte,
+			vpshadow = vp != null ? vpshadow.array : LightingScratch.emptyByte,
+			changed = LightingScratch.changed
 		};
 
-		JobHandle job = vpJob.Schedule();
-		job.Complete();
+		vpJob.Run();
 
-		this.PROPAGATE_LIGHT_FLAG = changed[0];
+		this.PROPAGATE_LIGHT_FLAG = LightingScratch.changed[0];
 
-		lightdata.Dispose();
-		shadowdata.Dispose();
-		xmlight.Dispose(); 
-		xmshadow.Dispose();
-		xplight.Dispose(); 
-		xpshadow.Dispose();
-		zmlight.Dispose(); 
-		zmshadow.Dispose();
-		zplight.Dispose(); 
-		zpshadow.Dispose();
-		vplight.Dispose();
-		vpshadow.Dispose();
-		vmlight.Dispose();
-		vmshadow.Dispose();
-		changed.Dispose();
+		lightdata.Release();
+		shadowdata.Release();
+		xmlight.Release();
+		xmshadow.Release();
+		xplight.Release();
+		xpshadow.Release();
+		zmlight.Release();
+		zmshadow.Release();
+		zplight.Release();
+		zpshadow.Release();
+		vplight.Release();
+		vpshadow.Release();
+		vmlight.Release();
+		vmshadow.Release();
  	}
 
 	public void CalculateHeightMap(){
@@ -396,34 +341,29 @@ public class VoxelData {
 		if(this.ceilingMap == null)
 			this.ceilingMap = new bool[Chunk.chunkWidth*Chunk.chunkWidth];
 
-		NativeArray<ushort> data = NativeTools.CopyToNative(this.data);
-		NativeArray<byte> hMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
-		NativeArray<byte> rMap = new NativeArray<byte>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
-		NativeArray<bool> cMap = new NativeArray<bool>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.TempJob);
-		JobHandle job;
+		// Every entry of the maps is written by the job, so they are calculated in-place
+		PinnedArray<ushort> data = PinnedArray<ushort>.Pin(this.data);
+		PinnedArray<byte> hMap = PinnedArray<byte>.Pin(this.heightMap);
+		PinnedArray<byte> rMap = PinnedArray<byte>.Pin(this.renderMap);
+		PinnedArray<bool> cMap = PinnedArray<bool>.Pin(this.ceilingMap);
 
 		GenerateHeightMapJob ghmj = new GenerateHeightMapJob{
-			data = data,
-			heightMap = hMap,
-			renderMap = rMap,
-			ceilingMap = cMap,
+			data = data.array,
+			heightMap = hMap.array,
+			renderMap = rMap.array,
+			ceilingMap = cMap.array,
 			blockInvisible = BlockEncyclopediaECS.blockInvisible,
 			objectInvisible = BlockEncyclopediaECS.objectInvisible,
 			blockAffectLight = BlockEncyclopediaECS.blockAffectLight,
 			objectAffectLight = BlockEncyclopediaECS.objectAffectLight
 		};
 
-		job = ghmj.Schedule();
-		job.Complete();
+		ghmj.Run();
 
-		this.heightMap = NativeTools.CopyToManaged(hMap);
-		this.renderMap = NativeTools.CopyToManaged(rMap);
-		this.ceilingMap = NativeTools.CopyToManaged(cMap);
-
-		hMap.Dispose();
-		rMap.Dispose();
-		cMap.Dispose();
-		data.Dispose();
+		hMap.Release();
+		rMap.Release();
+		cMap.Release();
+		data.Release();
 	}
 
 

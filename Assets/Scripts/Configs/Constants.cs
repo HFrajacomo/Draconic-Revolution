@@ -42,6 +42,8 @@ public static class Constants
     public static readonly float CLIENT_CHUNK_LOAD_BUDGET_MS = 4f;
     public static readonly float CLIENT_CHUNK_UNLOAD_BUDGET_MS = 2f;
     public static readonly float CLIENT_DRAW_FINISH_BUDGET_MS = 4f;
+    public static readonly int CLIENT_DRAW_BUILD_SLOTS = 3; // Chunk mesh builds of new chunks running at the same time
+    public static readonly int CLIENT_UPDATE_BUILD_SLOTS = 2; // Chunk mesh builds of changed chunks running at the same time
     public static readonly float CHUNK_RESYNC_IDLE_SECONDS = 2f; // Time without receiving streamed chunks before looking for missing ones
     public static readonly float CHUNK_RESYNC_INTERVAL_SECONDS = 5f; // Pause after a full clean scan of the window
     public static readonly int CHUNK_RESYNC_CHECKS_PER_FRAME = 256;

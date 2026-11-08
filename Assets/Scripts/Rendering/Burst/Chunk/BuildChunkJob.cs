@@ -3,121 +3,41 @@ using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.NotBurstCompatible;
 
+/*
+Builds the block geometry of a chunk.
+Reads a padded snapshot (see PaddedChunk) that contains the chunk and a 1-voxel border of its neighbors
+*/
 [BurstCompile]
 public struct BuildChunkJob : IJob{
 	[ReadOnly]
-	public bool load;
-	[ReadOnly]
 	public ChunkPos pos;
 	[ReadOnly]
-	public int verticalCode;
+	public bool hasTop; // If the snapshot border above the chunk was filled by the upper chunk
+	[ReadOnly]
+	public bool hasBottom; // If the snapshot border below the chunk was filled by the lower chunk
 	[ReadOnly]
 	public bool canRain;
 
+	// Padded Snapshot
 	[ReadOnly]
-	public NativeArray<ushort> data; // Voxeldata
+	public NativeArray<ushort> blocks;
+	[ReadOnly]
+	public NativeArray<byte> light;
+	[ReadOnly]
+	public NativeArray<byte> heights;
+
+	// Chunk-only Data
 	[ReadOnly]
 	public NativeArray<ushort> state; // VoxelMetadata.state
 	[ReadOnly]
 	public NativeArray<ushort> hp;
 	[ReadOnly]
-	public NativeArray<byte> lightdata;
-	[ReadOnly]
 	public NativeArray<byte> renderMap;
-	[ReadOnly]
-	public NativeArray<byte> heightMap;
-
-	// Neighbor Data
-	[ReadOnly]
-	public NativeArray<ushort> xmdata;
-	[ReadOnly]
-	public NativeArray<ushort> xpdata;
-	[ReadOnly]
-	public NativeArray<ushort> zmdata;
-	[ReadOnly]
-	public NativeArray<ushort> zpdata;
-	[ReadOnly]
-	public NativeArray<ushort> xmzmdata;
-	[ReadOnly]
-	public NativeArray<ushort> xpzmdata;
-	[ReadOnly]
-	public NativeArray<ushort> xmzpdata;
-	[ReadOnly]
-	public NativeArray<ushort> xpzpdata;
-
-	// Neighbor Lights
-	[ReadOnly]
-	public NativeArray<byte> xmlight;
-	[ReadOnly]
-	public NativeArray<byte> xplight;
-	[ReadOnly]
-	public NativeArray<byte> zmlight;
-	[ReadOnly]
-	public NativeArray<byte> zplight;
-	[ReadOnly]
-	public NativeArray<byte> xmzmlight;
-	[ReadOnly]
-	public NativeArray<byte> xpzmlight;
-	[ReadOnly]
-	public NativeArray<byte> xmzplight;
-	[ReadOnly]
-	public NativeArray<byte> xpzplight;
-
-	// Neighbor Height
-	[ReadOnly]
-	public NativeArray<byte> xmheight;
-	[ReadOnly]
-	public NativeArray<byte> xpheight;
-	[ReadOnly]
-	public NativeArray<byte> zmheight;
-	[ReadOnly]
-	public NativeArray<byte> zpheight;
-
-	// Vertical Data
-	[ReadOnly]
-	public NativeArray<ushort> vdata;
-	[ReadOnly]
-	public NativeArray<ushort> vxmdata;
-	[ReadOnly]
-	public NativeArray<ushort> vxpdata;
-	[ReadOnly]
-	public NativeArray<ushort> vzmdata;
-	[ReadOnly]
-	public NativeArray<ushort> vzpdata;
-	[ReadOnly]
-	public NativeArray<ushort> vxmzmdata;
-	[ReadOnly]
-	public NativeArray<ushort> vxpzmdata;
-	[ReadOnly]
-	public NativeArray<ushort> vxmzpdata;
-	[ReadOnly]
-	public NativeArray<ushort> vxpzpdata;
-
-	// Vertical Lights
-	[ReadOnly]
-	public NativeArray<byte> vlight;
-	[ReadOnly]
-	public NativeArray<byte> vxmlight;
-	[ReadOnly]
-	public NativeArray<byte> vxplight;
-	[ReadOnly]
-	public NativeArray<byte> vzmlight;
-	[ReadOnly]
-	public NativeArray<byte> vzplight;
-	[ReadOnly]
-	public NativeArray<byte> vxmzmlight;
-	[ReadOnly]
-	public NativeArray<byte> vxpzmlight;
-	[ReadOnly]
-	public NativeArray<byte> vxmzplight;
-	[ReadOnly]
-	public NativeArray<byte> vxpzplight;
 
 	// Asset Loading
 	public NativeList<int3> loadAssetList;
-	public NativeHashSet<int3> assetCoordinates;
+	public NativeBitArray assetCoordinates; // Indexed by voxel index
 
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
@@ -128,6 +48,7 @@ public struct BuildChunkJob : IJob{
 
 	// Decals
 	public NativeList<Vector3> decalVerts;
+	public NativeList<Vector3> decalNormals;
 	public NativeList<Vector2> decalUVs;
 	public NativeList<int> decalTris;
 
@@ -218,10 +139,10 @@ public struct BuildChunkJob : IJob{
 
 					if(y == Chunk.chunkDepth-1 && isSurfaceChunk)
 						y++;
-					if(verticalCode == 1 && y == Chunk.chunkDepth-1){
+					if(hasTop && y == Chunk.chunkDepth-1){
 						y = Chunk.chunkDepth;
 					}
-					if(verticalCode == -1){
+					if(hasBottom){
 						yMin = -1;
 					}
 				}
@@ -229,13 +150,13 @@ public struct BuildChunkJob : IJob{
 				for(; y >= yMin; y--){
 					isInBorder = CheckBorder(x, y, z);
 
-					if(y == Chunk.chunkDepth && isSurfaceChunk && verticalCode == 0){
+					if(y == Chunk.chunkDepth && isSurfaceChunk && !hasTop){
 						thisBlock = 0;
 						thisState = 0;
 						isBlock = true;
 					}
 					else{
-						thisBlock = GetBlockData(x, y, z, isInBorder);
+						thisBlock = GetBlockData(x, y, z);
 						thisState = GetBlockState(x, y, z, isInBorder);
 						isBlock = thisBlock <= ushort.MaxValue/2;
 					}
@@ -256,21 +177,21 @@ public struct BuildChunkJob : IJob{
 
 		    				auxC = GetCoords(x, y, z, i);
 		    				isAtTheBorder = CheckBorder(auxC.x, auxC.y, auxC.z);
-				    		neighborBlock = GetBlockData(auxC.x, auxC.y, auxC.z, isAtTheBorder);
+				    		neighborBlock = GetBlockData(auxC.x, auxC.y, auxC.z);
 				    		neighborState = GetBlockState(auxC.x, auxC.y, auxC.z, isAtTheBorder);
 				    		isABlock = neighborBlock <= ushort.MaxValue/2;
 
 				    		if(isABlock){
 					    		if(blockSeamless[thisBlock]){
 					    			if(!CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
-					    				LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
+					    				LoadMesh(x, y, z, i, thisBlock, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
 					    			}
 					    		}
 					    	}
 					    	else{
 					    		if(objectSeamless[thisBlock]){
 					    			if(!CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
-					    				LoadMesh(x, y, z, i, thisBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
+					    				LoadMesh(x, y, z, i, thisBlock, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
 					    			}
 					    		}
 					    	}
@@ -311,16 +232,16 @@ public struct BuildChunkJob : IJob{
 				    		if(CheckBorder(c.x, c.y, c.z))
 				    			continue;
 
-				    		if(verticalCode != -1)
+				    		if(!hasBottom)
 					    		if(c.y == 0 && ii == 5)
 					    			continue;
 
-					    	if(verticalCode != 1)
+					    	if(!hasTop)
 					    		if(c.y == Chunk.chunkDepth-1 && ii == 4 && !isSurfaceChunk){
 					    			continue;
 				    		}
 
-				    		neighborBlock = GetBlockData(c.x, c.y, c.z, false);
+				    		neighborBlock = GetBlockData(c.x, c.y, c.z);
 				    		neighborState = GetBlockState(c.x, c.y, c.z, false);
 				    		neighborHP = GetBlockHP(c.x, c.y, c.z);
 				    		isBlock = neighborBlock <= ushort.MaxValue/2;
@@ -330,9 +251,11 @@ public struct BuildChunkJob : IJob{
 
 				    		// Handles Objects
 				    		if(!isBlock){
-				    			if(!assetCoordinates.Contains(c)){
-				    				assetCoordinates.Add(c);
-				    				LoadMesh(c.x, c.y, c.z, ii, neighborBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
+				    			int assetIndex = c.x*Chunk.chunkWidth*Chunk.chunkDepth+c.y*Chunk.chunkWidth+c.z;
+
+				    			if(!assetCoordinates.IsSet(assetIndex)){
+				    				assetCoordinates.Set(assetIndex, true);
+				    				LoadMesh(c.x, c.y, c.z, ii, neighborBlock, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
 				    			}
 
 				    			continue;
@@ -349,7 +272,7 @@ public struct BuildChunkJob : IJob{
 				    			}
 			    			}
 
-						    LoadMesh(c.x, c.y, c.z, ii, neighborBlock, load, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
+						    LoadMesh(c.x, c.y, c.z, ii, neighborBlock, cacheCubeVert, cacheCubeUV, cacheCubeNormal, y == Chunk.chunkDepth & isSurfaceChunk);
 
 				    		if(neighborBlock <= ushort.MaxValue/2){
 				    			if(neighborHP == 0 || neighborHP == ushort.MaxValue || neighborHP == blockHP[neighborBlock])
@@ -406,29 +329,9 @@ public struct BuildChunkJob : IJob{
 		return new int3(x, y, z) + VoxelData.offsets[dir];
 	}
 
-	// Gets the block in relation to the 9-way chunk approach
-	// Corners are not considered since they don't need to be fetched for blockdata
-	private ushort GetBlockData(int x, int y, int z, bool isInBorder){
-		if(!isInBorder){
-			return data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-		}
-		else{
-			if(x == -1)
-				return xmdata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-			else if(x == Chunk.chunkWidth)
-				return xpdata[y*Chunk.chunkWidth+z];
-			else if(z == -1)
-				return zmdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
-			else if(z == Chunk.chunkWidth)
-				return zpdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth];
-			else if(y == Chunk.chunkDepth && verticalCode == 1)
-				return vdata[x*Chunk.chunkWidth*Chunk.chunkDepth+z];
-			else if(y == -1 && verticalCode == -1)
-				return vdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z];
-			else{
-				return 0;
-			}
-		}
+	// Gets the block from the padded snapshot. Borders of missing vertical neighbors are filled with air
+	private ushort GetBlockData(int x, int y, int z){
+		return blocks[PaddedChunk.Index(x, y, z)];
 	}
 
 	private ushort GetBlockState(int x, int y, int z, bool isInBorder){
@@ -465,341 +368,23 @@ public struct BuildChunkJob : IJob{
 	private byte GetNeighborHeight(int x, int z, int dir){
 		// Y value doesn't matter here
 		int3 coord = new int3(x, 0, z) + VoxelData.offsets[dir];
-		int sideCode = CheckCardinalSide(coord.x, coord.y, coord.z);
 
-		switch(sideCode){
-			case 0:
-				return heightMap[coord.x*Chunk.chunkWidth+coord.z];
-			case 1:
-				return xpheight[coord.z];
-			case 2:
-				return zmheight[coord.x*Chunk.chunkWidth+(Chunk.chunkWidth-1)];
-			case 3:
-				return xmheight[(Chunk.chunkWidth-1)*Chunk.chunkWidth+coord.z];
-			case 4:
-				return zpheight[coord.x*Chunk.chunkWidth];
-			default:
-				return 0;
-		}
+		return heights[PaddedChunk.MapIndex(coord.x, coord.z)];
 	}
 
 	// Gets neighbor light level
 	private int GetNeighborLight(int x, int y, int z, int dir, bool isNatural=true){
-		int3 coord = new int3(x, y, z) + VoxelData.offsets[dir];
-
-		if(verticalCode == 0){
-			if(coord.y >= Chunk.chunkDepth || coord.y < 0){
-				return 0;
-			}
-		}
-
-		int sideCode = CheckSide(coord.x, coord.y, coord.z);
-
-		if(coord.y == -1)
-			y = Chunk.chunkDepth-1;
-		else if(coord.y == Chunk.chunkDepth)
-			y = 0;
-		else
-			y = coord.y;
-
-		x = coord.x;
-		z = coord.z;
-
-		if(isNatural){
-			switch(sideCode){
-				case 0:
-					return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
-				case 1:
-					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
-				case 2:
-					return vxmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
-				case 3:
-					return xplight[y*Chunk.chunkWidth+z] & 0x0F;
-				case 4:
-					return vxplight[y*Chunk.chunkWidth+z] & 0x0F;
-				case 5:
-					return zmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 6:
-					return vzmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 7:
-					return zplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
-				case 8:
-					return vzplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
-				case 9:
-					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 10:
-					return vxmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 11:
-					return xpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 12:
-					return vxpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 13:
-					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
-				case 14:
-					return vxmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
-				case 15:
-					return xpzplight[y*Chunk.chunkWidth] & 0x0F;
-				case 16:
-					return vxpzplight[y*Chunk.chunkWidth] & 0x0F;
-				case 17:
-					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+z] & 0x0F;
-				case 18:
-					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] & 0x0F;
-				default:
-					return 0;
-			}
-		}
-		else{
-			switch(sideCode){
-				case 0:
-					return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
-				case 1:
-					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
-				case 2:
-					return vxmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
-				case 3:
-					return xplight[y*Chunk.chunkWidth+z] >> 4;
-				case 4:
-					return vxplight[y*Chunk.chunkWidth+z] >> 4;
-				case 5:
-					return zmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 6:
-					return vzmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 7:
-					return zplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
-				case 8:
-					return vzplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
-				case 9:
-					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 10:
-					return vxmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 11:
-					return xpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 12:
-					return vxpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 13:
-					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
-				case 14:
-					return vxmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
-				case 15:
-					return xpzplight[y*Chunk.chunkWidth] >> 4;
-				case 16:
-					return vxpzplight[y*Chunk.chunkWidth] >> 4;
-				case 17:
-					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+z] >> 4;
-				case 18:
-					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] >> 4;
-				default:
-					return 0;
-			}
-		}
+		return GetNeighborLight(x, y, z, VoxelData.offsets[dir], isNatural:isNatural);
 	}
 
-	// Gets neighbor light level
+	// Gets neighbor light level. Light outside of the snapshot border of missing vertical neighbors is 0
 	private int GetNeighborLight(int x, int y, int z, int3 dir, bool isNatural=true){
 		int3 coord = new int3(x, y, z) + dir;
+		byte value = light[PaddedChunk.Index(coord.x, coord.y, coord.z)];
 
-		if(verticalCode == 0){
-			if(coord.y >= Chunk.chunkDepth || coord.y < 0){
-				return 0;
-			}
-		}
-
-		int sideCode = CheckSide(coord.x, coord.y, coord.z);
-
-		if(coord.y == -1)
-			y = Chunk.chunkDepth-1;
-		else if(coord.y == Chunk.chunkDepth)
-			y = 0;
-		else
-			y = coord.y;
-
-		x = coord.x;
-		z = coord.z;
-
-		if(isNatural){
-			switch(sideCode){
-				case 0:
-					return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
-				case 1:
-					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
-				case 2:
-					return vxmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] & 0x0F;
-				case 3:
-					return xplight[y*Chunk.chunkWidth+z] & 0x0F;
-				case 4:
-					return vxplight[y*Chunk.chunkWidth+z] & 0x0F;
-				case 5:
-					return zmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 6:
-					return vzmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 7:
-					return zplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
-				case 8:
-					return vzplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
-				case 9:
-					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 10:
-					return vxmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 11:
-					return xpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 12:
-					return vxpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] & 0x0F;
-				case 13:
-					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
-				case 14:
-					return vxmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] & 0x0F;
-				case 15:
-					return xpzplight[y*Chunk.chunkWidth] & 0x0F;
-				case 16:
-					return vxpzplight[y*Chunk.chunkWidth] & 0x0F;
-				case 17:
-					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+z] & 0x0F;
-				case 18:
-					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] & 0x0F;
-				default:
-					return 0;
-			}
-		}
-		else{
-			switch(sideCode){
-				case 0:
-					return lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
-				case 1:
-					return xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
-				case 2:
-					return vxmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] >> 4;
-				case 3:
-					return xplight[y*Chunk.chunkWidth+z] >> 4;
-				case 4:
-					return vxplight[y*Chunk.chunkWidth+z] >> 4;
-				case 5:
-					return zmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 6:
-					return vzmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 7:
-					return zplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
-				case 8:
-					return vzplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
-				case 9:
-					return xmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 10:
-					return vxmzmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 11:
-					return xpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 12:
-					return vxpzmlight[y*Chunk.chunkWidth+(Chunk.chunkWidth-1)] >> 4;
-				case 13:
-					return xmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
-				case 14:
-					return vxmzplight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth] >> 4;
-				case 15:
-					return xpzplight[y*Chunk.chunkWidth] >> 4;
-				case 16:
-					return vxpzplight[y*Chunk.chunkWidth] >> 4;
-				case 17:
-					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+z] >> 4;
-				case 18:
-					return vlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z] >> 4;
-				default:
-					return 0;
-			}
-		}
-	}
-
-	/*
-	Return List
-
-	0: normal
-	1: xm
-	2: vxm
-	3: xp
-	4: vxp
-	5: zm
-	6: vzm
-	7: zp
-	8: vzp
-	9: xmzm
-	10: vxmzm
-	11: xpzm
-	12: vxpzm
-	13: xmzp
-	14: vxmzp
-	15: xpzp
-	16: vxpzp
-	17: topY
-	18: bottomY
-	*/
-	private int CheckSide(int x, int y, int z){
-		if(x == -1 && z == -1){
-			if(y == -1 || y == Chunk.chunkDepth)
-				return 10;
-			else
-				return 9;			
-		}
-		else if(x == Chunk.chunkWidth && z == -1){
-			if(y == -1 || y == Chunk.chunkDepth)
-				return 12;
-			else
-				return 11;			
-		}
-		else if(x == -1 && z == Chunk.chunkWidth){
-			if(y == -1 || y == Chunk.chunkDepth)
-				return 14;
-			else
-				return 13;		
-		}
-		else if(x == Chunk.chunkWidth && z == Chunk.chunkWidth){
-			if(y == -1 || y == Chunk.chunkDepth)
-				return 16;
-			else
-				return 15;		
-		}
-		else if(x == -1){
-			if(y == -1 || y == Chunk.chunkDepth)
-				return 2;
-			else
-				return 1;
-		}
-		else if(x == Chunk.chunkWidth){
-			if(y == -1 || y == Chunk.chunkDepth)
-				return 4;
-			else
-				return 3;
-		}
-		else if(z == -1){
-			if(y == -1 || y == Chunk.chunkDepth)
-				return 6;
-			else
-				return 5;			
-		}
-		else if(z == Chunk.chunkWidth){
-			if(y == -1 || y == Chunk.chunkDepth)
-				return 8;
-			else
-				return 7;			
-		}
-		else if(y == -1){
-			return 18;
-		}
-		else if(y == Chunk.chunkDepth){
-			return 17;
-		}
-
-		return 0; // own chunk
-	}
-
-	// Checks which cardinal side a neighbor is in
-	private int CheckCardinalSide(int x, int y, int z){
-		if(x == Chunk.chunkWidth)
-			return 1;
-		else if(z == -1)
-			return 2;
-		else if(x == -1)
-			return 3;
-		else if(z == Chunk.chunkWidth)
-			return 4;
-		return 0;
+		if(isNatural)
+			return value & 0x0F;
+		return value >> 4;
 	}
 
     // Checks if neighbor is transparent or invisible
@@ -859,6 +444,9 @@ public struct BuildChunkJob : IJob{
 		decalVerts.AddRange(cacheCubeVert);
 		int vCount = decalVerts.Length;
 
+		CalculateNormal(cacheCubeNormal, dir);
+		decalNormals.AddRange(cacheCubeNormal);
+
 		FillUV(decal);
 		
     	decalTris.Add(vCount -4);
@@ -881,9 +469,8 @@ public struct BuildChunkJob : IJob{
 
 
     // Imports Mesh data and applies it to the chunk depending on the Renderer Thread
-    // Load is true when Chunk is being loaded and not reloaded
     // Returns true if loaded a blocktype mesh and false if it's an asset to be loaded later
-    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, bool load, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector3> cacheCubeUV, NativeArray<Vector3> cacheCubeNormal, bool isSurfaceBlock, int lookahead=0){
+    private bool LoadMesh(int x, int y, int z, int dir, ushort blockCode, NativeArray<Vector3> cacheCubeVert, NativeArray<Vector3> cacheCubeUV, NativeArray<Vector3> cacheCubeNormal, bool isSurfaceBlock, int lookahead=0){
     	ShaderIndex renderThread;
 
     	if(blockCode <= ushort.MaxValue/2)
@@ -1241,7 +828,7 @@ public struct BuildChunkJob : IJob{
 	// Gets UV Map for Liquid blocks
 	private void LiquidTexture(NativeArray<Vector3> array, int x, int z){
 		int size = Chunk.chunkWidth;
-		int tileSize = 1/size;
+		float tileSize = 1f/size;
 
 		array[0] = new Vector3(x*tileSize,z*tileSize, 0);
 		array[1] = new Vector3(x*tileSize,(z+1)*tileSize, 0);

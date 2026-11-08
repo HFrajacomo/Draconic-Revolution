@@ -97,6 +97,11 @@ public static class BlockEncyclopediaECS {
 		BlockEncyclopediaECS.blockDrawLiquid.Dispose();
 		BlockEncyclopediaECS.blockAffectLight.Dispose();
 		BlockEncyclopediaECS.objectAffectLight.Dispose();
+
+		LightingScratch.Destroy();
+		ObjectMeshTables.Destroy();
+		ChunkMeshLayout.Destroy();
+
 		IS_INITIALIZED = false;
 	}
 }

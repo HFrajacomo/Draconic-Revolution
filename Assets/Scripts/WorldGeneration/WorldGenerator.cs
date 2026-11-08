@@ -28,6 +28,7 @@ public class WorldGenerator
     private ushort[] cacheMetadataState = new ushort[Chunk.chunkWidth*Chunk.chunkDepth*Chunk.chunkWidth];
     private float[] cacheHeightMap = new float[(Chunk.chunkWidth+1)*(Chunk.chunkWidth+1)];
     private byte cacheBiome;
+    private float[] cacheBiomeVector = new float[5];
 
     // Native Noise Maps
     private NativeArray<byte> baseMap;
@@ -102,6 +103,9 @@ public class WorldGenerator
     }
 
     public void SetBiomeBlending(ushort[] blendingArray){
+        if(this.biomeBlendingBlock.IsCreated)
+            this.biomeBlendingBlock.Dispose();
+
         this.biomeBlendingBlock = new NativeArray<ushort>(blendingArray, Allocator.Persistent);
     }
 
@@ -148,7 +152,10 @@ public class WorldGenerator
         this.patchMap.Dispose();
         this.caveMap.Dispose();
         this.maskMap.Dispose();
-        this.biomeBlendingBlock.Dispose();
+
+        if(this.biomeBlendingBlock.IsCreated)
+            this.biomeBlendingBlock.Dispose();
+
         this.decorationHellBlock.Dispose();
         this.decorationSurfaceBlock.Dispose();
         this.decorationUndergroundBlock.Dispose();
@@ -596,6 +603,7 @@ public class WorldGenerator
     Biome Generation
     */
 
+    // The returned array is reused by every call, so it must be consumed before calling this again
     public float[] BiomeNoise(float x, float y, ChunkDepthID cid)
     {
         x += 8;
@@ -606,7 +614,8 @@ public class WorldGenerator
         int A,B,A2,B2,X,Y,X2,Y2;
 
 
-        float[] biomeVector = new float[5];
+        float[] biomeVector = this.cacheBiomeVector;
+        Array.Clear(biomeVector, 0, biomeVector.Length);
 
 
         // Temperature Noise

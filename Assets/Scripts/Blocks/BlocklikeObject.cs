@@ -58,6 +58,7 @@ public class BlocklikeObject
 
 
 	public MeshData GetMeshData(){return this.modelIdentity.GetMeshData();}
+	public bool HasMeshData(){return this.modelIdentity != null && this.modelIdentity.GetMeshData().IsLoaded();}
 	public void SetMeshData(MeshData meshData){this.modelIdentity.SetMeshData(meshData);}
 	public string GetTextureName(){return this.modelIdentity.GetTextureName();}
 	public int GetTexture(){return this.textureID;}
