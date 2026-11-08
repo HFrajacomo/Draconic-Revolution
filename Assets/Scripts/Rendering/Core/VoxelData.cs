@@ -50,6 +50,18 @@ public class VoxelData {
 		CalculateHeightMap();
 	}
 
+	private VoxelData(ChunkPos pos, ushort[] ownedData){
+		this.data = ownedData;
+		this.heightMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth];
+		this.pos = pos;
+		CalculateHeightMap();
+	}
+
+	// Creates a VoxelData that uses the given array instead of a copy of it
+	public static VoxelData FromOwnedArray(ushort[] data, ChunkPos pos){
+		return new VoxelData(pos, data);
+	}
+
 	public void Destroy(){
 		this.data = null;
 		this.heightMap = null;
@@ -182,11 +194,11 @@ public class VoxelData {
 			this.shadowMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth];
 
 		LightingScratch.PrepareLightMap();
+		metadata.CopyStateTo(LightingScratch.states);
 
 		PinnedArray<byte> lightMap = PinnedArray<byte>.Pin(this.lightMap);
 		PinnedArray<byte> shadowMap = PinnedArray<byte>.Pin(this.shadowMap);
 		PinnedArray<byte> heightMap = PinnedArray<byte>.Pin(this.heightMap);
-		PinnedArray<ushort> states = PinnedArray<ushort>.Pin(metadata.GetStateData());
 		PinnedArray<bool> ceilingMap = PinnedArray<bool>.Pin(this.ceilingMap);
 		PinnedArray<ushort> blockData = PinnedArray<ushort>.Pin(this.data);
 		PinnedArray<bool> neighborCeilingMap = new PinnedArray<bool>();
@@ -202,7 +214,7 @@ public class VoxelData {
 			lightSources = LightingScratch.lightSources,
 			heightMap = heightMap.array,
 			data = blockData.array,
-			states = states.array,
+			states = LightingScratch.states,
 			chunkWidth = Chunk.chunkWidth,
 			chunkDepth = Chunk.chunkDepth,
 			isTransparentObj = BlockEncyclopediaECS.objectTransparent,
@@ -240,7 +252,6 @@ public class VoxelData {
 		lightMap.Release();
 		shadowMap.Release();
 		heightMap.Release();
-		states.Release();
 		ceilingMap.Release();
 		blockData.Release();
 		neighborCeilingMap.Release();

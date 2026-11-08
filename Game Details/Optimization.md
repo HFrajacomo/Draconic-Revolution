@@ -45,6 +45,17 @@ The hot paths of the Chunk Renderer and Voxel Lighting don't allocate per call:
 - MeshColliders are cooked in worker threads with `Physics.BakeMesh` before they are assigned, so the main thread doesn't cook them.
 - Object meshes are concatenated once into `ObjectMeshTables` and shared, read-only, by every build.
 - Lighting runs synchronously, so its jobs read and write the managed light arrays in-place through `PinnedArray` views and use the persistent buffers of `LightingScratch`. Its BFS queues are index-based FIFOs and visited voxels are tracked in bit arrays, keeping the BFS linear.
+- The render mesh stores normals and tangents as signed bytes and UVs as half floats, using 36 bytes per vertex instead of 64. Colliders are greedy meshed, merging flat surfaces into few large triangles.
+
+## Uniform Metadata (RAM)
+
+Most chunks have the same HP in every voxel, and many have the same State in every voxel too. `VoxelMetadata` keeps each of them as a single value while that's true, and only allocates the full array (128 KB) when a voxel gets a different value. Full arrays come from the `MetadataPool` and go back to it when the chunk is unloaded. Decompression detects uniform data, and the Chunk Builder, Voxel Lighting and Compression read uniform metadata without allocating its array.
+
+## Parallel World Generation (CPU)
+
+The Server generates chunks in batches of `SERVER_GENERATION_BATCH`, each in its own `GenerationSlot` of persistent native buffers. Biomes are assigned (and cached) before the jobs are scheduled, so each chunk runs its Generate, Populate and Cave jobs as a single chain, and the chains of a batch run in parallel. Structures can reach neighboring chunks, so chunks are finished one at a time, in the order they were requested, which gives the same result as generating them one by one.
+
+Chunk compression and decompression run their blocks, HP and State in parallel, straight from and into the chunk arrays, and chunk saves are written to disk in the background (see *World_Save.md*).
 
 ## Incremental Garbage Collector (Incremental GC) (CPU)
 

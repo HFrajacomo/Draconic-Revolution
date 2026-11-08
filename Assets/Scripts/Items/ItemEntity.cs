@@ -15,6 +15,7 @@ public class ItemEntity : MonoBehaviour {
 	private MeshFilter meshFilter;
 	private MeshRenderer meshRenderer;
 	private Mesh mesh;
+	private Material[] materialInstances; // Instanced by this renderer, so they must be destroyed with it
 	private ItemStack its;
 	private Vector3 initialForce = new Vector3(0f, 0f, 0f);
 	private Animator animator;
@@ -38,8 +39,16 @@ public class ItemEntity : MonoBehaviour {
 	}
 
 	void OnDestroy(){
-		this.mesh.Clear();
+		if(this.mesh != null)
+			Destroy(this.mesh);
+
+		if(this.materialInstances != null){
+			for(int i=0; i < this.materialInstances.Length; i++)
+				Destroy(this.materialInstances[i]);
+		}
+
 		this.mesh = null;
+		this.materialInstances = null;
 	}
 
 	public void SetVisible(bool flag){
@@ -90,7 +99,10 @@ public class ItemEntity : MonoBehaviour {
 		UpdateMeshUV();
 		this.mesh.RecalculateNormals();
 
-		this.meshRenderer.materials[0].SetTexture("_Texture", ItemLoader.GetSprite(this.its));
+		if(this.materialInstances == null)
+			this.materialInstances = this.meshRenderer.materials;
+
+		this.materialInstances[0].SetTexture("_Texture", ItemLoader.GetSprite(this.its));
 
 		this.meshFilter.sharedMesh = this.mesh;
 	}

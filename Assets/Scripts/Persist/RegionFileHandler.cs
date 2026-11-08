@@ -42,6 +42,17 @@ public class RegionFileHandler{
 	// Region Pool
 	private Dictionary<ChunkPos, RegionFile> pool = new Dictionary<ChunkPos, RegionFile>();
 
+	// Write-behind Saves
+	// Saved chunks are written to disk over the next ticks. Reading a chunk that wasn't written yet writes it first
+	private Dictionary<ChunkPos, Chunk> pendingSaves = new Dictionary<ChunkPos, Chunk>();
+	private Queue<ChunkPos> pendingSaveOrder = new Queue<ChunkPos>();
+	private HashSet<ChunkPos> dirtyHoles = new HashSet<ChunkPos>(); // Regions whose hole file must be rewritten
+	private HashSet<ChunkPos> dirtyIndex = new HashSet<ChunkPos>(); // Regions whose index file must be rewritten
+	private System.Diagnostics.Stopwatch saveStopwatch = new System.Diagnostics.Stopwatch();
+
+	// Handlers that weren't closed yet, so their queued saves can be written before static native data is freed on quit
+	private static List<RegionFileHandler> openHandlers = new List<RegionFileHandler>();
+
 	// Sizes
 	public static int chunkHeaderSize = 21; // Size (in bytes) of header
 	public static int chunkSize = Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 8; // Size in bytes of Chunk payload
@@ -54,13 +65,18 @@ public class RegionFileHandler{
 	private byte[] indexArray = new byte[16];
 	private byte[] headerBuffer = new byte[21];
 	private byte[] nameBuffer = new byte[256];
-	private byte[] blockBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer (roughly 0,1 MB)
-	private byte[] hpBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer 
-	private byte[] stateBuffer = new byte[Chunk.chunkWidth * Chunk.chunkWidth * Chunk.chunkDepth * 4]; // Exagerated buffer
+	private byte[] chunkBuffer = new byte[Compression.MAX_COMPRESSED_SIZE * 3]; // Compressed blocks, HP and states of a chunk
 	private byte[] playerBuffer = new byte[RegionFileHandler.pdatEntrySize];
 
 	public RegionFileHandler(ChunkLoader_Server cl){
 		InitWorldFiles(cl);
+		openHandlers.Add(this);
+	}
+
+	// Writes the queued saves of every open handler
+	public static void FlushAllHandlers(){
+		for(int i=0; i < openHandlers.Count; i++)
+			openHandlers[i].FlushAllSaves();
 	}
 
 	// Initializes all files after received first player
@@ -300,6 +316,9 @@ public class RegionFileHandler{
 
 	// Closes all streams in pool
 	public void CloseAll(){
+		FlushAllSaves();
+		openHandlers.Remove(this);
+
 		foreach(ChunkPos pos in this.pool.Keys){
 			this.pool[pos].Close();
 		}
@@ -317,6 +336,7 @@ public class RegionFileHandler{
 		int hpdata=0;
 		int statedata=0;
 
+		FlushPendingSave(c.pos);
 		GetCorrectRegion(c.pos);
 
 		ReadHeader(c.pos);
@@ -326,17 +346,101 @@ public class RegionFileHandler{
 		c.lastVisitedTime = globalTime.DateBytes(timeArray);
 		c.needsGeneration = gen;
 
-		this.pool[ConvertToRegion(c.pos)].file.Read(blockBuffer, 0, blockdata);
-		this.pool[ConvertToRegion(c.pos)].file.Read(hpBuffer, 0, hpdata);
-		this.pool[ConvertToRegion(c.pos)].file.Read(stateBuffer, 0, statedata);
+		// Blocks, HP and states are stored one after the other
+		this.pool[ConvertToRegion(c.pos)].file.Read(chunkBuffer, 0, blockdata+hpdata+statedata);
 
-		Compression.DecompressBlocks(c, blockBuffer);
-		Compression.DecompressMetadataHP(c, hpBuffer);
-		Compression.DecompressMetadataState(c, stateBuffer);
+		Compression.DecompressChunk(c, chunkBuffer, 0, blockdata, blockdata+hpdata, true);
+	}
+
+	// Queues a chunk to be saved. The chunk is compressed when it's written, so it always saves its latest data
+	public void SaveChunk(Chunk c){
+		if(!this.pendingSaves.ContainsKey(c.pos))
+			this.pendingSaveOrder.Enqueue(c.pos);
+
+		this.pendingSaves[c.pos] = c;
+	}
+
+	// Writes queued chunks to disk until the time budget is spent (at least one per call)
+	public void ProcessSaves(float budgetMs){
+		if(this.pendingSaves.Count == 0)
+			return;
+
+		long budget = (long)(budgetMs * System.Diagnostics.Stopwatch.Frequency / 1000f);
+		ChunkPos pos;
+		Chunk c;
+
+		this.saveStopwatch.Restart();
+
+		while(this.pendingSaveOrder.Count > 0){
+			pos = this.pendingSaveOrder.Dequeue();
+
+			// Already written when it was read
+			if(!this.pendingSaves.TryGetValue(pos, out c))
+				continue;
+
+			this.pendingSaves.Remove(pos);
+			WriteChunk(c);
+
+			if(this.saveStopwatch.ElapsedTicks >= budget)
+				break;
+		}
+
+		FlushRegionMetadata();
+	}
+
+	// Writes every queued chunk to disk
+	public void FlushAllSaves(){
+		ChunkPos pos;
+		Chunk c;
+
+		while(this.pendingSaveOrder.Count > 0){
+			pos = this.pendingSaveOrder.Dequeue();
+
+			if(!this.pendingSaves.TryGetValue(pos, out c))
+				continue;
+
+			this.pendingSaves.Remove(pos);
+			WriteChunk(c);
+		}
+
+		this.pendingSaves.Clear();
+		FlushRegionMetadata();
+	}
+
+	// Writes a queued chunk before its data on disk is accessed
+	private void FlushPendingSave(ChunkPos pos){
+		Chunk c;
+
+		if(this.pendingSaves.Count == 0)
+			return;
+		if(!this.pendingSaves.TryGetValue(pos, out c))
+			return;
+
+		this.pendingSaves.Remove(pos);
+		WriteChunk(c);
+		FlushRegionMetadata();
+	}
+
+	// Rewrites the hole and index files of regions changed by written chunks
+	private void FlushRegionMetadata(){
+		RegionFile region;
+
+		// Regions that left the pool already saved them when closed
+		foreach(ChunkPos regionPos in this.dirtyHoles){
+			if(this.pool.TryGetValue(regionPos, out region))
+				region.SaveHoles();
+		}
+		foreach(ChunkPos regionPos in this.dirtyIndex){
+			if(this.pool.TryGetValue(regionPos, out region))
+				region.UnloadIndex();
+		}
+
+		this.dirtyHoles.Clear();
+		this.dirtyIndex.Clear();
 	}
 
 	// Saves a chunk to RDF file using Pallete-based Compression
-	public void SaveChunk(Chunk c){
+	private void WriteChunk(Chunk c){
 		int totalSize = 0;
 		long seekPosition = 0;
 		int blockSize;
@@ -344,11 +448,15 @@ public class RegionFileHandler{
 		int stateSize;
 		long chunkCode = GetLinearRegionCoords(c.pos);
 		int lastKnownSize=0;
+		bool isIndexed;
 
 		GetCorrectRegion(c.pos);
 
+		ChunkPos regionPos = ConvertToRegion(c.pos);
+		isIndexed = this.pool[regionPos].index.ContainsKey(chunkCode);
+
 		// Reads pre-save size if is already indexed
-		if(IsIndexed(c.pos)){
+		if(isIndexed){
 			byte biome=0;
 			byte gen=0;
 			int blockdata=0;
@@ -360,55 +468,40 @@ public class RegionFileHandler{
 			lastKnownSize = chunkHeaderSize + blockdata + hpdata + statedata;
 		}
 
-
-		// Saves data to buffers and gets total size
-		blockSize = Compression.CompressBlocks(c, blockBuffer);
-		hpSize = Compression.CompressMetadataHP(c, hpBuffer);
-		stateSize = Compression.CompressMetadataState(c, stateBuffer);
+		// Saves data to buffer and gets total size
+		Compression.CompressChunk(c, chunkBuffer, 0, out blockSize, out hpSize, out stateSize);
 
 		InitializeHeader(c, blockSize, hpSize, stateSize);
 
 		totalSize = chunkHeaderSize + blockSize + hpSize + stateSize;
 
 		// If Chunk was already saved
-		if(IsIndexed(c.pos)){
-			ChunkPos regionPos = ConvertToRegion(c.pos);
-
+		if(isIndexed){
 			this.pool[regionPos].AddHole(this.pool[regionPos].index[chunkCode], lastKnownSize);
 			seekPosition = this.pool[regionPos].FindPosition(totalSize);
-			this.pool[regionPos].SaveHoles();
+			this.dirtyHoles.Add(regionPos);
 
 			// If position in RegionFile has changed
 			if(seekPosition != this.pool[regionPos].index[chunkCode]){
 				this.pool[regionPos].index[chunkCode] = seekPosition;
-				this.pool[regionPos].UnloadIndex();
+				this.dirtyIndex.Add(regionPos);
 			}
-
-			// Saves Chunk
-			this.pool[regionPos].Write(seekPosition, headerBuffer, chunkHeaderSize);
-			this.pool[regionPos].Write(seekPosition+chunkHeaderSize, blockBuffer, blockSize);
-			this.pool[regionPos].Write(seekPosition+chunkHeaderSize+blockSize, hpBuffer, hpSize);
-			this.pool[regionPos].Write(seekPosition+chunkHeaderSize+blockSize+hpSize, stateBuffer, stateSize);
 		}
 		// If it's a new Chunk
 		else{
-			ChunkPos regionPos = ConvertToRegion(c.pos);
-
 			seekPosition = this.pool[regionPos].FindPosition(totalSize);
-			this.pool[regionPos].SaveHoles();
+			this.dirtyHoles.Add(regionPos);
 
 			// Adds new chunk to Index
 			this.pool[regionPos].index.Add(chunkCode, seekPosition);
 			AddEntryIndex(chunkCode, seekPosition);
 			this.pool[regionPos].indexFile.Write(indexArray, 0, 16);
 			this.pool[regionPos].indexFile.Flush();
-
-			// Saves Chunk
-			this.pool[regionPos].Write(seekPosition, headerBuffer, chunkHeaderSize);
-			this.pool[regionPos].Write(seekPosition+chunkHeaderSize, blockBuffer, blockSize);
-			this.pool[regionPos].Write(seekPosition+chunkHeaderSize+blockSize, hpBuffer, hpSize);
-			this.pool[regionPos].Write(seekPosition+chunkHeaderSize+blockSize+hpSize, stateBuffer, stateSize);
 		}
+
+		// Saves Chunk
+		this.pool[regionPos].Write(seekPosition, headerBuffer, chunkHeaderSize);
+		this.pool[regionPos].Write(seekPosition+chunkHeaderSize, chunkBuffer, blockSize+hpSize+stateSize);
 	}
 
 	// Reads header from a chunk
@@ -510,6 +603,8 @@ public class RegionFileHandler{
 	// Checks if current chunk is in index already
 	// Assumes that correct region has been loaded into pool
 	public bool IsIndexed(ChunkPos pos){
+		FlushPendingSave(pos);
+
 		if(this.pool[ConvertToRegion(pos)].index.ContainsKey(GetLinearRegionCoords(pos)))
 			return true;
 		return false;
@@ -528,6 +623,7 @@ public class RegionFileHandler{
 
 	// Gets NeedGeneration byte from Chunk
 	public bool GetsNeedGeneration(ChunkPos pos){
+		FlushPendingSave(pos);
 		ReadHeader(pos);
 
 		if(headerBuffer[8] == 0)

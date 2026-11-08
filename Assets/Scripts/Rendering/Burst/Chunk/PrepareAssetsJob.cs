@@ -24,6 +24,9 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<Vector4> meshTangents;
 	public NativeList<Vector3> meshLightUV;
 
+	// Amount of block vertices, which come before the Object vertices in meshVerts
+	public NativeArray<int> blockVertexCount;
+
 	// Hitbox
 	public NativeList<Vector3> hitboxVerts;
 	public NativeList<Vector3> hitboxNormals;
@@ -85,6 +88,8 @@ public struct PrepareAssetsJob : IJob{
 
 	public void Execute(){
 		int currentVertAmount = meshVerts.Length;
+
+		blockVertexCount[0] = currentVertAmount;
 		int hitboxVertAmount = hitboxVerts.Length;
 		int3 coord;
 		ushort code;
@@ -241,6 +246,6 @@ public struct PrepareAssetsJob : IJob{
 		if(isNatural)
 			return light[PaddedChunk.Index(x, y, z)] & 0x0F;
 		else
-			return light[PaddedChunk.Index(x, y, z)] & 0xF0;
+			return light[PaddedChunk.Index(x, y, z)] >> 4;
 	}
 }

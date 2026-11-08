@@ -257,7 +257,7 @@ public class ChunkLoader : MonoBehaviour
     Registered Events:
 
     Heartbeart:         30 ticks
-    UnloadUnityObjects: 600 ticks
+    UnloadUnityObjects: 1200 ticks
     ForceUnload:        1500 ticks
     */
     private void RunTimerFunctions(){
@@ -274,7 +274,7 @@ public class ChunkLoader : MonoBehaviour
         }
 
         // Garbage Collect Unity Assets
-        if(this.timer % 600 == 0){
+        if(this.timer % 1200 == 0){
             Resources.UnloadUnusedAssets();
         }
 
@@ -456,9 +456,7 @@ public class ChunkLoader : MonoBehaviour
             chunkOverwrite = false;
         }
 
-        Compression.DecompressBlocksClient(chunk, data, initialPos:22+headerSize);
-        Compression.DecompressMetadataHPClient(chunk, data, initialPos:22+headerSize+blockDataSize);
-        Compression.DecompressMetadataStateClient(chunk, data, initialPos:22+headerSize+blockDataSize+hpDataSize);
+        Compression.DecompressChunk(chunk, data, 22+headerSize, 22+headerSize+blockDataSize, 22+headerSize+blockDataSize+hpDataSize, false);
 
         if(this.vfx.data.ContainsKey(cp))
             this.vfx.RemoveChunk(cp);

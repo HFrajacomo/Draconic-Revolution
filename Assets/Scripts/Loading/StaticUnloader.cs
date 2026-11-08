@@ -8,6 +8,9 @@ public class StaticUnloader : MonoBehaviour{
 	}
 
 	void OnApplicationQuit(){
+		// Queued chunk saves need Compression, which is freed below
+		RegionFileHandler.FlushAllHandlers();
+
 		Compression.Destroy();
 		VoxelLoader.Destroy();
 	}

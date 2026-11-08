@@ -58,6 +58,12 @@ public struct WriteChunkMeshJob : IJob{
 	[ReadOnly]
 	public NativeList<int> lavaTris;
 
+	// Collider Mesh (built by GreedyColliderJob)
+	[ReadOnly]
+	public NativeList<Vector3> colliderVerts;
+	[ReadOnly]
+	public NativeList<int> colliderTris;
+
 	// Decal Mesh
 	[ReadOnly]
 	public NativeList<Vector3> decalVerts;
@@ -81,10 +87,8 @@ public struct WriteChunkMeshJob : IJob{
 	public NativeArray<int> indexCounts;
 
 	public void Execute(){
-		Bounds blockBounds = CalculateBounds(verts);
-
-		WriteRenderMesh(meshes[RENDER_MESH], blockBounds);
-		WriteColliderMesh(meshes[COLLIDER_MESH], blockBounds);
+		WriteRenderMesh(meshes[RENDER_MESH], CalculateBounds(verts));
+		WriteColliderMesh(meshes[COLLIDER_MESH]);
 		WriteDecalMesh(meshes[DECAL_MESH]);
 		WriteRaycastMesh(meshes[RAYCAST_MESH]);
 	}
@@ -121,25 +125,21 @@ public struct WriteChunkMeshJob : IJob{
 		indexCounts[RENDER_MESH] = indexCount;
 	}
 
-	// Collides with solid blocks, solid objects and ice
-	private void WriteColliderMesh(Mesh.MeshData mesh, Bounds meshBounds){
-		int vertexCount = verts.Length;
-		int indexCount = normalTris.Length + assetSolidTris.Length + iceTris.Length;
+	// Merged faces of solid blocks and ice, plus solid objects
+	private void WriteColliderMesh(Mesh.MeshData mesh){
+		int vertexCount = colliderVerts.Length;
 		IndexFormat format = GetIndexFormat(vertexCount);
-		int start = 0;
+		Bounds meshBounds = CalculateBounds(colliderVerts);
 
 		mesh.SetVertexBufferParams(vertexCount, colliderLayout);
-		mesh.GetVertexData<Vector3>(0).CopyFrom(verts.AsArray());
+		mesh.GetVertexData<Vector3>(0).CopyFrom(colliderVerts.AsArray());
 
-		mesh.SetIndexBufferParams(indexCount, format);
-		mesh.subMeshCount = 3;
-
-		start = WriteSubMesh(mesh, 0, normalTris, start, format, vertexCount, meshBounds);
-		start = WriteSubMesh(mesh, 1, assetSolidTris, start, format, vertexCount, meshBounds);
-		WriteSubMesh(mesh, 2, iceTris, start, format, vertexCount, meshBounds);
+		mesh.SetIndexBufferParams(colliderTris.Length, format);
+		mesh.subMeshCount = 1;
+		WriteSubMesh(mesh, 0, colliderTris, 0, format, vertexCount, meshBounds);
 
 		bounds[COLLIDER_MESH] = meshBounds;
-		indexCounts[COLLIDER_MESH] = indexCount;
+		indexCounts[COLLIDER_MESH] = colliderTris.Length;
 	}
 
 	private void WriteDecalMesh(Mesh.MeshData mesh){

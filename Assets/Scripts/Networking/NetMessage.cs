@@ -8,7 +8,7 @@ public struct NetMessage
 	public NetCode code;
 	public int size;
 	public ulong id;
-	private static byte[] buffer = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 5]; // 2MB
+	private static byte[] buffer = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 5]; // 320KB
 	private byte[] data;
 
 	private static bool broadcastReceived = false;
@@ -181,9 +181,9 @@ public struct NetMessage
 		// {CODE} [ChunkPos] [blockSize] [hpSize] [stateSize] | Respective data
 		Reset();
 		int headerSize = RegionFileHandler.chunkHeaderSize;
-		int blockDataSize = Compression.CompressBlocks(c, NetMessage.buffer, 22+headerSize);
-		int hpDataSize = Compression.CompressMetadataHP(c, NetMessage.buffer, 22+headerSize+blockDataSize);
-		int stateDataSize = Compression.CompressMetadataState(c, NetMessage.buffer, 22+headerSize+blockDataSize+hpDataSize);
+		int blockDataSize, hpDataSize, stateDataSize;
+
+		Compression.CompressChunk(c, NetMessage.buffer, 22+headerSize, out blockDataSize, out hpDataSize, out stateDataSize);
 		
 		NetDecoder.WriteChunkPos(c.pos, NetMessage.buffer, 1);
 		NetDecoder.WriteInt(blockDataSize, NetMessage.buffer, 10);

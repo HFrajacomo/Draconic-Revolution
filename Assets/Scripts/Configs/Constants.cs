@@ -38,6 +38,8 @@ public static class Constants
     public static readonly int CHUNK_STREAM_WINDOW_STEP = 8; // Window growth whenever a client keeps up with the server
     public static readonly int CHUNK_STREAM_GENERATION_LOOKAHEAD = 32; // Maximum amount of chunks a client can have waiting for generation
     public static readonly float SERVER_CHUNK_LOAD_BUDGET_MS = 10f;
+    public static readonly int SERVER_GENERATION_BATCH = 4; // Chunks generated in parallel by the Server
+    public static readonly float SERVER_CHUNK_SAVE_BUDGET_MS = 4f; // Time spent writing queued chunk saves to disk per tick
     public static readonly float SERVER_CHUNK_STREAM_BUDGET_MS = 4f;
     public static readonly float CLIENT_CHUNK_LOAD_BUDGET_MS = 4f;
     public static readonly float CLIENT_CHUNK_UNLOAD_BUDGET_MS = 2f;

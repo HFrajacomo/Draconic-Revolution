@@ -15,6 +15,21 @@ Class for the compression algorithm of the RDF files to be applied
 public static class Compression{
 	private static byte[] cachedData = new byte[Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth * 5];
 
+	// Scratch buffers of chunk compression and decompression. They are only used in the main thread
+	private static readonly int VOXEL_COUNT = Chunk.chunkWidth * Chunk.chunkDepth * Chunk.chunkWidth;
+	public static readonly int MAX_COMPRESSED_SIZE = VOXEL_COUNT * 4 + 8; // Worst case of a single compressed array
+	private static bool scratchCreated = false;
+	private static NativeArray<byte> blockOutput;
+	private static NativeArray<byte> hpOutput;
+	private static NativeArray<byte> stateOutput;
+	private static NativeArray<ushort> hpScratch;
+	private static NativeArray<ushort> stateScratch;
+	private static NativeArray<int> blockWritten;
+	private static NativeArray<int> hpWritten;
+	private static NativeArray<int> stateWritten;
+	private static NativeArray<int> hpUniform; // [isUniform, value]
+	private static NativeArray<int> stateUniform; // [isUniform, value]
+
 
 	// Pallete Initializers
 	private static ushort[] basicArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Air"), VoxelLoader.GetBlockID("BASE_Stone"), VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Gravel"), ushort.MaxValue/2};
@@ -100,6 +115,8 @@ public static class Compression{
 	}
 
 	public static void Destroy(){
+		DestroyScratch();
+
 		if(!basicPallete.IsCreated)
 			return;
 
@@ -116,236 +133,152 @@ public static class Compression{
 	}
 
 
-	// Writes Chunk c's data using a Pallete's compression into given buffer
-	// and returns the amount of bytes written
-	public static int CompressBlocks(Chunk c, byte[] buffer, int targetPos=0){
-		int bytes;
-		Pallete p = Compression.BiomeToPallete(c.biomeName);
-		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.data.GetData());
-		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);
+	private static void InitScratch(){
+		if(scratchCreated)
+			return;
 
-		CompressionJob cbJob = new CompressionJob{
-			chunkData = chunkData,
-			buffer = buff,
-			pallete = Compression.GetPallete(p),
-			writtenBytes = writtenBytes
-		};
+		blockOutput = new NativeArray<byte>(MAX_COMPRESSED_SIZE, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+		hpOutput = new NativeArray<byte>(MAX_COMPRESSED_SIZE, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+		stateOutput = new NativeArray<byte>(MAX_COMPRESSED_SIZE, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+		hpScratch = new NativeArray<ushort>(VOXEL_COUNT, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+		stateScratch = new NativeArray<ushort>(VOXEL_COUNT, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+		blockWritten = new NativeArray<int>(1, Allocator.Persistent);
+		hpWritten = new NativeArray<int>(1, Allocator.Persistent);
+		stateWritten = new NativeArray<int>(1, Allocator.Persistent);
+		hpUniform = new NativeArray<int>(2, Allocator.Persistent);
+		stateUniform = new NativeArray<int>(2, Allocator.Persistent);
 
-		JobHandle handle = cbJob.Schedule();
-		handle.Complete();
-
-		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, writtenBytes[0]);
-
-		bytes = writtenBytes[0];
-
-		chunkData.Dispose();
-		buff.Dispose();
-		writtenBytes.Dispose();
-
-		return bytes;		
+		scratchCreated = true;
 	}
 
-	// Writes Chunk c's HP metadata into given buffer
-	// and returns the amount of bytes written
-	public static int CompressMetadataHP(Chunk c, byte[] buffer, int targetPos=0){
-		Pallete p = Pallete.METADATA;
-		int bytes;
+	private static void DestroyScratch(){
+		if(!scratchCreated)
+			return;
 
-		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.metadata.GetHPData());
-		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);
+		blockOutput.Dispose();
+		hpOutput.Dispose();
+		stateOutput.Dispose();
+		hpScratch.Dispose();
+		stateScratch.Dispose();
+		blockWritten.Dispose();
+		hpWritten.Dispose();
+		stateWritten.Dispose();
+		hpUniform.Dispose();
+		stateUniform.Dispose();
 
-		CompressionJob cmdJob = new CompressionJob{
-			chunkData = chunkData,
-			buffer = buff,
-			pallete = Compression.GetPallete(p),
-			writtenBytes = writtenBytes		
-		};
-
-		JobHandle handle = cmdJob.Schedule();
-		handle.Complete();
-
-		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, writtenBytes[0]);
-
-		bytes = writtenBytes[0];
-
-		chunkData.Dispose();
-		buff.Dispose();
-		writtenBytes.Dispose();
-
-		return bytes;
+		scratchCreated = false;
 	}
 
-	// Writes Chunk c's state metadata into given buffer
-	// and returns the amount of bytes written
-	public static int CompressMetadataState(Chunk c, byte[] buffer, int targetPos=0){
-		Pallete p = Pallete.METADATA;
-		int bytes;
+	/*
+	Writes the compressed blocks, HP and States of a chunk one after the other into a buffer, starting at targetPos.
+	The three compressions run in parallel and returns the amount of bytes written by each one
+	*/
+	public static void CompressChunk(Chunk c, byte[] buffer, int targetPos, out int blockSize, out int hpSize, out int stateSize){
+		InitScratch();
 
-		NativeArray<int> writtenBytes = new NativeArray<int>(new int[1]{0}, Allocator.TempJob);
-		NativeArray<ushort> chunkData = NativeTools.CopyToNative(c.metadata.GetStateData());
-		NativeArray<byte> buff = NativeTools.CopyToNative(buffer);
+		PinnedArray<ushort> blocks = PinnedArray<ushort>.Pin(c.data.GetData());
 
-		CompressionJob cmdJob = new CompressionJob{
-			chunkData = chunkData,
-			buffer = buff,
-			pallete = Compression.GetPallete(p),
-			writtenBytes = writtenBytes		
+		// Uniform metadata is expanded into the scratch buffers instead of the chunk
+		c.metadata.CopyHPTo(hpScratch);
+		c.metadata.CopyStateTo(stateScratch);
+
+		blockWritten[0] = 0;
+		hpWritten[0] = 0;
+		stateWritten[0] = 0;
+
+		CompressionJob blockJob = new CompressionJob{
+			chunkData = blocks.array,
+			buffer = blockOutput,
+			pallete = Compression.GetPallete(Compression.BiomeToPallete(c.biomeName)),
+			writtenBytes = blockWritten
+		};
+		CompressionJob hpJob = new CompressionJob{
+			chunkData = hpScratch,
+			buffer = hpOutput,
+			pallete = Compression.GetPallete(Pallete.METADATA),
+			writtenBytes = hpWritten
+		};
+		CompressionJob stateJob = new CompressionJob{
+			chunkData = stateScratch,
+			buffer = stateOutput,
+			pallete = Compression.GetPallete(Pallete.METADATA),
+			writtenBytes = stateWritten
 		};
 
-		JobHandle handle = cmdJob.Schedule();
-		handle.Complete();
+		JobHandle.CombineDependencies(blockJob.Schedule(), hpJob.Schedule(), stateJob.Schedule()).Complete();
 
-		NativeArray<byte>.Copy(buff, 0, buffer, targetPos, writtenBytes[0]);
+		blocks.Release();
 
-		bytes = writtenBytes[0];
+		blockSize = blockWritten[0];
+		hpSize = hpWritten[0];
+		stateSize = stateWritten[0];
 
-		chunkData.Dispose();
-		buff.Dispose();
-		writtenBytes.Dispose();
-
-		return bytes;
+		NativeArray<byte>.Copy(blockOutput, 0, buffer, targetPos, blockSize);
+		NativeArray<byte>.Copy(hpOutput, 0, buffer, targetPos+blockSize, hpSize);
+		NativeArray<byte>.Copy(stateOutput, 0, buffer, targetPos+blockSize+hpSize, stateSize);
 	}
 
+	/*
+	Decompresses data written by CompressChunk into a chunk. The three decompressions run in parallel.
+	Blocks are decompressed into the chunk's own array, and HP and State are kept uniform when all voxels share a value
+	*/
+	public static void DecompressChunk(Chunk c, byte[] buffer, int blockPos, int hpPos, int statePos, bool isServer){
+		InitScratch();
 
-	// Builds Chunk's VoxelData using Decompression algorithm
-	public static void DecompressBlocks(Chunk c, byte[] buffer){
-		// Preparation Variables
-		Pallete p = Compression.BiomeToPallete(c.biomeName);
+		ushort[] blocks = c.data.GetData();
 
-		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
+		if(blocks == null || blocks.Length != VOXEL_COUNT)
+			blocks = new ushort[VOXEL_COUNT];
 
-		DecompressJob dbJob = new DecompressJob{
-			data = data,
-			readData = readData,
-			pallete = Compression.GetPallete(p),
-			initialPos = 0
+		PinnedArray<byte> input = PinnedArray<byte>.Pin(buffer);
+		PinnedArray<ushort> blockData = PinnedArray<ushort>.Pin(blocks);
+
+		DecompressJob blockJob = new DecompressJob{
+			data = blockData.array,
+			readData = input.array,
+			pallete = Compression.GetPallete(Compression.BiomeToPallete(c.biomeName)),
+			initialPos = blockPos
 		};
-		JobHandle job = dbJob.Schedule();
-		job.Complete();
-
-		c.data.SetData(data.ToArray(), true);
-
-
-		data.Dispose();
-		readData.Dispose();
-	}
-
-	// Builds byte message from Server using Decompression algorithm
-	public static void DecompressBlocksClient(Chunk c, byte[] buffer, int initialPos){
-		// Preparation Variables
-		Pallete p = Compression.BiomeToPallete(c.biomeName);
-
-		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
-
-		DecompressJob dbJob = new DecompressJob{
-			data = data,
-			readData = readData,
-			pallete = Compression.GetPallete(p),
-			initialPos = initialPos
+		DecompressJob hpJob = new DecompressJob{
+			data = hpScratch,
+			readData = input.array,
+			pallete = Compression.GetPallete(Pallete.METADATA),
+			initialPos = hpPos
 		};
-		JobHandle job = dbJob.Schedule();
-		job.Complete();
-
-		c.data.SetData(data.ToArray(), false);
-
-		data.Dispose();
-		readData.Dispose();
-	}
-
-	// Builds Chunk's HP Metadata using Decompression algorithm
-	public static void DecompressMetadataHP(Chunk c, byte[] buffer){
-		Pallete p = Pallete.METADATA;
-
-		// Preparation Variables
-		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
-
-		DecompressJob dbJob = new DecompressJob{
-			data = data,
-			readData = readData,
-			pallete = Compression.GetPallete(p),
-			initialPos = 0
+		DecompressJob stateJob = new DecompressJob{
+			data = stateScratch,
+			readData = input.array,
+			pallete = Compression.GetPallete(Pallete.METADATA),
+			initialPos = statePos
 		};
-		JobHandle job = dbJob.Schedule();
-		job.Complete();
-
-		c.metadata.SetHPData(data.ToArray());
-
-		data.Dispose();
-		readData.Dispose();
-	} 
-
-	// Builds Chunk's HP Metadata using Decompression algorithm
-	public static void DecompressMetadataHPClient(Chunk c, byte[] buffer, int initialPos){
-		// Preparation Variables
-		Pallete p = Pallete.METADATA;
-
-		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
-
-		DecompressJob dbJob = new DecompressJob{
-			data = data,
-			readData = readData,
-			pallete = Compression.GetPallete(p),
-			initialPos = initialPos
+		CheckUniformJob hpCheck = new CheckUniformJob{
+			data = hpScratch,
+			result = hpUniform
 		};
-		JobHandle job = dbJob.Schedule();
-		job.Complete();
-
-		c.metadata.SetHPData(data.ToArray());
-
-		data.Dispose();
-		readData.Dispose();
-	} 
-
-	// Builds Chunk's State Metadata using Decompression algorithm
-	public static void DecompressMetadataState(Chunk c, byte[] buffer){
-		// Preparation Variables
-		Pallete p = Pallete.METADATA;
-
-		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
-
-		DecompressJob dbJob = new DecompressJob{
-			data = data,
-			readData = readData,
-			pallete = Compression.GetPallete(p),
-			initialPos = 0
+		CheckUniformJob stateCheck = new CheckUniformJob{
+			data = stateScratch,
+			result = stateUniform
 		};
-		JobHandle job = dbJob.Schedule();
-		job.Complete();
 
-		c.metadata.SetStateData(data.ToArray());
-		
-		data.Dispose();
-		readData.Dispose();
-	}
+		JobHandle hpHandle = hpCheck.Schedule(hpJob.Schedule());
+		JobHandle stateHandle = stateCheck.Schedule(stateJob.Schedule());
 
-	// Builds Chunk's State Metadata using Decompression algorithm
-	public static void DecompressMetadataStateClient(Chunk c, byte[] buffer, int initialPos){
-		// Preparation Variables
-		Pallete p = Pallete.METADATA;
+		JobHandle.CombineDependencies(blockJob.Schedule(), hpHandle, stateHandle).Complete();
 
-		NativeArray<ushort> data = new NativeArray<ushort>(Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth, Allocator.TempJob);
-		NativeArray<byte> readData = NativeTools.CopyToNative(buffer);
+		blockData.Release();
+		input.Release();
 
-		DecompressJob dbJob = new DecompressJob{
-			data = data,
-			readData = readData,
-			pallete = Compression.GetPallete(p),
-			initialPos = initialPos
-		};
-		JobHandle job = dbJob.Schedule();
-		job.Complete();
+		c.data.SetData(blocks, isServer);
 
-		c.metadata.SetStateData(data.ToArray());
-		
-		data.Dispose();
-		readData.Dispose();
+		if(hpUniform[0] == 1)
+			c.metadata.SetHPUniform((ushort)hpUniform[1]);
+		else
+			c.metadata.SetHPDense(hpScratch);
+
+		if(stateUniform[0] == 1)
+			c.metadata.SetStateUniform((ushort)stateUniform[1]);
+		else
+			c.metadata.SetStateDense(stateScratch);
 	}
 
 	// Compresses blocks in Structures array
@@ -643,8 +576,10 @@ MULTITHREADING
 */
 [BurstCompile]
 public struct CompressionJob : IJob{
+	[ReadOnly]
 	public NativeArray<ushort> chunkData;
 	public NativeArray<byte> buffer;
+	[ReadOnly]
 	public NativeParallelHashSet<ushort> pallete;
 	public NativeArray<int> writtenBytes;
 
@@ -711,6 +646,31 @@ public struct CompressionJob : IJob{
 	private void WriteShort(ushort data, int pos){
 		buffer[pos] = (byte)(data >> 8);
 		buffer[pos+1] = (byte)data;
+	}
+}
+
+
+// Finds out if every value of an array is the same. result = [isUniform, value]
+[BurstCompile]
+public struct CheckUniformJob : IJob{
+	[ReadOnly]
+	public NativeArray<ushort> data;
+
+	public NativeArray<int> result;
+
+	public void Execute(){
+		ushort first = data[0];
+
+		for(int i=1; i < data.Length; i++){
+			if(data[i] != first){
+				result[0] = 0;
+				result[1] = 0;
+				return;
+			}
+		}
+
+		result[0] = 1;
+		result[1] = first;
 	}
 }
 

@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 /*
 Persistent buffers and state of one chunk build. A build goes through:
-	Snapshot (main thread) -> BuildChunkJob -> PrepareAssetsJob -> WriteChunkMeshJob -> Apply (main thread) -> BakeColliderJob -> Collider swap (main thread)
+	Snapshot (main thread) -> BuildChunkJob -> PrepareAssetsJob -> GreedyColliderJob -> WriteChunkMeshJob -> Apply (main thread) -> BakeColliderJob -> Collider swap (main thread)
 Jobs only read the snapshot, so chunk data can be freely changed in the main thread while a build runs
 */
 public class ChunkBuildSlot{
@@ -53,6 +53,12 @@ public class ChunkBuildSlot{
 	private NativeList<Vector3> decalNormals;
 	private NativeList<Vector2> decalUVs;
 	private NativeList<int> decalTris;
+
+	// Collider Mesh
+	private NativeBitArray colliderFaces;
+	private NativeArray<int> blockVertexCount;
+	private NativeList<Vector3> colliderVerts;
+	private NativeList<int> colliderTris;
 
 	// Raycast Mesh
 	private NativeList<Vector3> hitboxVerts;
@@ -117,6 +123,11 @@ public class ChunkBuildSlot{
 		this.decalUVs = new NativeList<Vector2>(Allocator.Persistent);
 		this.decalTris = new NativeList<int>(Allocator.Persistent);
 
+		this.colliderFaces = new NativeBitArray(VOXEL_COUNT*6, Allocator.Persistent);
+		this.blockVertexCount = new NativeArray<int>(1, Allocator.Persistent);
+		this.colliderVerts = new NativeList<Vector3>(INITIAL_CAPACITY, Allocator.Persistent);
+		this.colliderTris = new NativeList<int>(INITIAL_CAPACITY, Allocator.Persistent);
+
 		this.hitboxVerts = new NativeList<Vector3>(Allocator.Persistent);
 		this.hitboxNormals = new NativeList<Vector3>(Allocator.Persistent);
 		this.hitboxTris = new NativeList<int>(Allocator.Persistent);
@@ -178,6 +189,7 @@ public class ChunkBuildSlot{
 
 			loadAssetList = this.loadAssetList,
 			assetCoordinates = this.assetCoordinates,
+			colliderFaces = this.colliderFaces,
 			verts = this.verts,
 			UVs = this.UVs,
 			lightUV = this.lightUV,
@@ -227,6 +239,7 @@ public class ChunkBuildSlot{
 			meshNormals = this.normals,
 			meshTangents = this.tangents,
 			meshLightUV = this.lightUV,
+			blockVertexCount = this.blockVertexCount,
 			hitboxVerts = this.hitboxVerts,
 			hitboxNormals = this.hitboxNormals,
 			hitboxTriangles = this.hitboxTris,
@@ -260,6 +273,17 @@ public class ChunkBuildSlot{
 		};
 		handle = paJob.Schedule(handle);
 
+		GreedyColliderJob gcJob = new GreedyColliderJob{
+			pos = pos,
+			colliderFaces = this.colliderFaces,
+			verts = this.verts,
+			assetSolidTris = this.assetSolidTris,
+			blockVertexCount = this.blockVertexCount,
+			colliderVerts = this.colliderVerts,
+			colliderTris = this.colliderTris
+		};
+		handle = gcJob.Schedule(handle);
+
 		this.meshDataArray = Mesh.AllocateWritableMeshData(WriteChunkMeshJob.MESH_COUNT);
 		this.hasMeshData = true;
 
@@ -284,6 +308,9 @@ public class ChunkBuildSlot{
 			leavesTris = this.leavesTris,
 			iceTris = this.iceTris,
 			lavaTris = this.lavaTris,
+
+			colliderVerts = this.colliderVerts,
+			colliderTris = this.colliderTris,
 
 			decalVerts = this.decalVerts,
 			decalNormals = this.decalNormals,
@@ -399,6 +426,11 @@ public class ChunkBuildSlot{
 		this.decalUVs.Dispose();
 		this.decalTris.Dispose();
 
+		this.colliderFaces.Dispose();
+		this.blockVertexCount.Dispose();
+		this.colliderVerts.Dispose();
+		this.colliderTris.Dispose();
+
 		this.hitboxVerts.Dispose();
 		this.hitboxNormals.Dispose();
 		this.hitboxTris.Dispose();
@@ -436,8 +468,8 @@ public class ChunkBuildSlot{
 
 	// Copies the chunk data and the borders of its neighbors into the snapshot buffers
 	private void GatherSnapshot(ChunkLoader loader, ChunkPos pos, bool hasTop, bool hasBottom){
-		this.state.CopyFrom(this.chunk.metadata.GetStateData());
-		this.hp.CopyFrom(this.chunk.metadata.GetHPData());
+		this.chunk.metadata.CopyStateTo(this.state);
+		this.chunk.metadata.CopyHPTo(this.hp);
 		this.renderMap.CopyFrom(this.chunk.data.GetRenderMap());
 
 		if(!hasTop)
@@ -513,6 +545,10 @@ public class ChunkBuildSlot{
 		this.decalNormals.Clear();
 		this.decalUVs.Clear();
 		this.decalTris.Clear();
+
+		this.colliderFaces.Clear();
+		this.colliderVerts.Clear();
+		this.colliderTris.Clear();
 
 		this.hitboxVerts.Clear();
 		this.hitboxNormals.Clear();

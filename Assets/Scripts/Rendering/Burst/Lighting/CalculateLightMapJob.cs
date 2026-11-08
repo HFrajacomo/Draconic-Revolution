@@ -748,7 +748,8 @@ public struct CalculateLightMapJob : IJob{
 		}
 	}
 
-	// Stable sort by descending light level. Entries with level 0 are dropped, as in the original implementation
+	// Stable sort by descending light level. Entries with level 0 are dropped
+	// The sorted result is copied back, since the input lists must keep being the job's own lists
 	private void CountSort(bool isLightSource=true){
 		if(isLightSource){
 			auxLightSources.Clear();
@@ -763,7 +764,7 @@ public struct CalculateLightMapJob : IJob{
 				}
 			}
 
-			lightSources = auxLightSources;
+			lightSources.CopyFrom(auxLightSources);
 		}
 		else{
 			auxDirectionals.Clear();
@@ -778,7 +779,7 @@ public struct CalculateLightMapJob : IJob{
 				}
 			}
 
-			directionalList = auxDirectionals;
+			directionalList.CopyFrom(auxDirectionals);
 		}
 	}
 
@@ -851,7 +852,7 @@ public struct CalculateLightMapJob : IJob{
 		if(y > 0){
 			ym = true;
 		}
-		if(y < Chunk.chunkWidth-1){
+		if(y < Chunk.chunkDepth-1){
 			yp = true;
 		}
 

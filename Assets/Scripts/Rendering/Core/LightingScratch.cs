@@ -33,6 +33,7 @@ public static class LightingScratch{
 	public static NativeParallelHashSet<int4> hashAux;
 
 	// Shared
+	public static NativeArray<ushort> states; // States of the chunk being lit, so uniform states don't need an array
 	public static NativeArray<byte> changed;
 	public static NativeArray<bool> emptyBool;
 	public static NativeArray<byte> emptyByte;
@@ -62,6 +63,7 @@ public static class LightingScratch{
 		aux = new NativeList<int4>(INITIAL_CAPACITY, Allocator.Persistent);
 		hashAux = new NativeParallelHashSet<int4>(INITIAL_CAPACITY, Allocator.Persistent);
 
+		states = new NativeArray<ushort>(VOXEL_COUNT, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 		changed = new NativeArray<byte>(4, Allocator.Persistent);
 		emptyBool = new NativeArray<bool>(0, Allocator.Persistent);
 		emptyByte = new NativeArray<byte>(0, Allocator.Persistent);
@@ -130,6 +132,7 @@ public static class LightingScratch{
 		aux.Dispose();
 		hashAux.Dispose();
 
+		states.Dispose();
 		changed.Dispose();
 		emptyBool.Dispose();
 		emptyByte.Dispose();

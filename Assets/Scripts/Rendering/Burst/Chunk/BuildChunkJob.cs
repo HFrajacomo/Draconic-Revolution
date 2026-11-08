@@ -39,6 +39,9 @@ public struct BuildChunkJob : IJob{
 	public NativeList<int3> loadAssetList;
 	public NativeBitArray assetCoordinates; // Indexed by voxel index
 
+	// Collidable faces, indexed by direction*VOXEL_COUNT + voxel index. Merged into the collider by GreedyColliderJob
+	public NativeBitArray colliderFaces;
+
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
 	public NativeList<Vector3> UVs;
@@ -480,6 +483,7 @@ public struct BuildChunkJob : IJob{
     	
     	// If object is Normal Block
     	if(renderThread == ShaderIndex.OPAQUE){
+    		MarkColliderFace(x, y, z, dir);
     		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
@@ -596,6 +600,7 @@ public struct BuildChunkJob : IJob{
 
     	// If object is Ice
     	else if(renderThread == ShaderIndex.ICE){
+    		MarkColliderFace(x, y, z, dir);
     		faceVertices(cacheCubeVert, dir, 0.5f, new Vector3(x,y+(pos.y*Chunk.chunkDepth),z));
 			verts.AddRange(cacheCubeVert);
 			int vCount = verts.Length + lookahead;
@@ -657,6 +662,10 @@ public struct BuildChunkJob : IJob{
 			loadAssetList.Add(new int3(x,y,z));
     		return false;
     	}
+    }
+
+    private void MarkColliderFace(int x, int y, int z, int dir){
+    	colliderFaces.Set(dir*Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth + x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z, true);
     }
 
     // Sets the secondary UV of Lightmaps and Dampness
