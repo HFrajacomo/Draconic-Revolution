@@ -305,7 +305,7 @@ public class WorldGenerator
 
         slot.CompleteInto(blocks, states, hps, this.cacheHeightMap);
 
-        chunk.biomeName = BiomeHandler.ByteToBiome(slot.biome);
+        chunk.biome = slot.biome;
 
         this.iteration = 0;
         GenerateBiomeStructures(chunk.pos, (BiomeCode)slot.biome, blocks, states, hps);

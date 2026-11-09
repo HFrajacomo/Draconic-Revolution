@@ -190,8 +190,7 @@ public struct NetMessage
 		NetDecoder.WriteInt(hpDataSize, NetMessage.buffer, 14);
 		NetDecoder.WriteInt(stateDataSize, NetMessage.buffer, 18);
 
-		byte[] header = c.GetHeader();
-		Array.Copy(header, 0, NetMessage.buffer, 22, headerSize);
+		c.WriteHeader(NetMessage.buffer, 22);
 
 		this.size = 22+headerSize+blockDataSize+hpDataSize+stateDataSize;
 	}

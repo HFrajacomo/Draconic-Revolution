@@ -157,6 +157,31 @@ public class EntityFileHandler{
 		mainIndex = 0;
 	}
 
+	// Finds where the entities of a chunk are stored, so they can be read by another stream
+	public bool TryGetEntityLocation(ChunkPos pos, out string path, out long offset){
+		GetCorrectRegion(pos);
+
+		if(!IsIndexed(pos)){
+			path = null;
+			offset = 0;
+			return false;
+		}
+
+		RegionFile region = this.pool[ConvertToRegion(pos)];
+
+		path = region.GetFilePath();
+		offset = region.index[GetLinearRegionCoords(pos)];
+		return true;
+	}
+
+	// Recreates the entities of a chunk from data read by another stream
+	public void LoadChunkEntities(ChunkPos pos, byte[] data, int size){
+		int ticksPassed = this.cl.time.TicksPassedFrom(this.cl.GetChunk(pos).lastVisitedTime);
+
+		Buffer.BlockCopy(data, 0, mainBuffer, 0, size);
+		RecreateEntities(size, ticksPassed);
+	}
+
 	// Loads a chunk-worth of entities
 	public void LoadChunkEntities(ChunkPos pos){
 		GetCorrectRegion(pos);

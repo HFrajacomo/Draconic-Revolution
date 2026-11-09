@@ -22,6 +22,7 @@ public class PlayerPositionHandler : MonoBehaviour
     private PlayerVoxelLocation playerVoxelLocation = PlayerVoxelLocation.zero;
     private Vector3 BODY_OFFSET = new Vector3(0f, 0.2f, 0f);
     private string currentBiome = "";
+    private byte currentBiomeCode = (byte)BiomeCode.PLAINS;
     private string lastBiome = "";
 
     // Position Sending
@@ -141,6 +142,10 @@ public class PlayerPositionHandler : MonoBehaviour
         return this.currentBiome;
     }
 
+    public byte GetCurrentBiomeCode(){
+        return this.currentBiomeCode;
+    }
+
     public Vector3 GetPlayerWorldPosition(){
         return this.playerTransform.position;
     }
@@ -231,8 +236,10 @@ public class PlayerPositionHandler : MonoBehaviour
         if(this.currentBiome != "")
             this.lastBiome = this.currentBiome;
 
-        if(cl.Contains(coord.GetChunkPos()))
-            this.currentBiome = cl.Get(coord.GetChunkPos()).biomeName;
+        if(cl.Contains(coord.GetChunkPos())){
+            this.currentBiomeCode = cl.Get(coord.GetChunkPos()).biome;
+            this.currentBiome = BiomeHandler.ByteToBiome(this.currentBiomeCode);
+        }
 
         if(coord.blockY <= Constants.CHUNK_LOADING_VERTICAL_CHUNK_DISTANCE)
             this.verticalChunkLoaded = -1;

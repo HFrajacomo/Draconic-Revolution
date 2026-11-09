@@ -84,6 +84,20 @@ A complex two-chunk propagation was nicknamed "Chunk Bounce". It happens when a 
 
 Multi-chunk propagation is when a single block in a chunk propagates directional light to multiple ones (like the corner border of 4 chunks).
 
+## Asynchronous Light Calculation
+
+On the client, the ShadowMap and LightMap of every loaded chunk are calculated in worker threads by the `LightingSystem`:
+
+- Calculations run nearest to the player first, in up to `CLIENT_LIGHT_SLOTS` at the same time, and are started twice per frame.
+- A chunk has at most one calculation queued or running. Calculations work on copies of the chunk data and write them back once done.
+- Once a chunk is calculated, the chunk below it is updated, since its sunlight depends on this one.
+
+Everything else runs in the main thread, as before:
+
+- A chunk is drawn once the light of its 8 neighbors and the chunks above and below it is calculated. Right before it's built, its borders are verified and LightPropagation runs with its neighbors.
+- Chunk updates (block changes) calculate their light right away and then propagate it, so changes show without delay.
+- Anything that needs the light of a chunk that is still queued or being calculated (like LightPropagation reaching it) finishes its calculation in the main thread first (`EnsureLit`), so light is always calculated before it's propagated.
+
 
 ## Sending data to the GPU
 

@@ -26,6 +26,11 @@ public class ChunkLoader_Server : MonoBehaviour
     private Queue<ChunkPos> loadQueue = new Queue<ChunkPos>();
     private HashSet<ChunkPos> loadQueueSet = new HashSet<ChunkPos>();
 
+    // Chunks being read from disk by the ChunkReader thread
+    private ChunkReader chunkReader;
+    private HashSet<ChunkPos> readsInFlight = new HashSet<ChunkPos>();
+    private System.Diagnostics.Stopwatch drainStopwatch = new System.Diagnostics.Stopwatch();
+
     // Chunks being generated in the current batch, in request order
     private List<GenerationSlot> pendingGeneration = new List<GenerationSlot>();
     private HashSet<ChunkPos> pendingGenerationSet = new HashSet<ChunkPos>();
@@ -53,8 +58,15 @@ public class ChunkLoader_Server : MonoBehaviour
 
 
     void OnApplicationQuit(){
-        if(regionHandler != null)
+        if(this.chunkReader != null){
+            this.chunkReader.Stop();
+            this.chunkReader = null;
+        }
+
+        if(regionHandler != null){
+            FlushPendingStructures();
             regionHandler.CloseAll();
+        }
 
         ForceUnloadAll();
 
@@ -93,11 +105,10 @@ public class ChunkLoader_Server : MonoBehaviour
             // Decides what to do for current tick
             HandleServerCommunication();
 
-            if(this.loadQueue.Count > 0)
+            if(this.loadQueue.Count > 0 || this.readsInFlight.Count > 0)
                 LoadChunk();
-            else if(Structure.reloadChunks.Count > 0)
-                SavePregenChunk();
 
+            DrainPendingStructures();
             this.regionHandler.ProcessSaves(Constants.SERVER_CHUNK_SAVE_BUDGET_MS);
             this.server.chunkStreamer.Tick();
         }
@@ -115,6 +126,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
         this.regionHandler = new RegionFileHandler(this);
         this.entityFileHandler = new EntityFileHandler(this);
+        this.chunkReader = new ChunkReader();
 
         worldSeed = regionHandler.GetRealSeed();
         biomeHandler = new BiomeHandler(false);
@@ -171,41 +183,59 @@ public class ChunkLoader_Server : MonoBehaviour
     }
 
 
-    // Builds Structure data in non-indexed Chunks
-    private void SavePregenChunk(){
-        cacheChunk = Structure.reloadChunks[0];
-        regionHandler.GetCorrectRegion(cacheChunk.pos);
+    // Saves and sends chunks changed by structures until the time budget is spent (at least one per call)
+    // Pending chunks that are being read or generated are consumed by those instead
+    private void DrainPendingStructures(){
+        if(Structure.PendingCount() == 0)
+            return;
 
-        // If it's loaded
-        if(chunks.ContainsKey(cacheChunk.pos)){
-            cacheChunk.needsGeneration = 0;
+        long budget = (long)(Constants.SERVER_STRUCTURE_DRAIN_BUDGET_MS * System.Diagnostics.Stopwatch.Frequency / 1000f);
+        int attempts = Structure.PendingCount();
+        Chunk pending;
 
-            // Rough Application of Structures
-            Structure.RoughApply(chunks[cacheChunk.pos], cacheChunk);
+        this.drainStopwatch.Restart();
 
-            this.regionHandler.SaveChunk(chunks[cacheChunk.pos]);
+        while(attempts > 0 && Structure.TryDequeuePending(out pending)){
+            attempts--;
 
-            SendToClients(cacheChunk.pos);
+            if(this.readsInFlight.Contains(pending.pos) || this.pendingGenerationSet.Contains(pending.pos)){
+                Structure.AddPending(pending);
+                continue;
+            }
+
+            SavePendingStructure(pending, sendToClients:true);
+
+            if(this.drainStopwatch.ElapsedTicks >= budget)
+                break;
         }
+    }
 
-        // If is in an unloaded indexed chunk
-        else if(this.regionHandler.IsIndexed(cacheChunk.pos)){
-            Chunk c = new Chunk(cacheChunk.pos, server:true);
-            this.regionHandler.LoadChunk(c);
+    // Saves every chunk changed by structures
+    private void FlushPendingStructures(){
+        Chunk pending;
 
-            // Rough Application of Structures
-            Structure.RoughApply(c, cacheChunk);
+        while(Structure.TryDequeuePending(out pending))
+            SavePendingStructure(pending, sendToClients:false);
+    }
 
-            this.regionHandler.SaveChunk(c);
+    private void SavePendingStructure(Chunk pending, bool sendToClients){
+        Chunk loaded;
+
+        // Loaded chunks were changed directly
+        if(this.chunks.TryGetValue(pending.pos, out loaded)){
+            if(loaded != pending)
+                Structure.Overlay(loaded, pending);
+
+            loaded.needsGeneration = 0;
+            this.regionHandler.SaveChunk(loaded);
+
+            if(sendToClients)
+                SendToClients(loaded.pos);
         }
-
-        // If is in an unloaded unknown chunk
+        // Unloaded chunks are saved as they are. Ungenerated ones are kept as pre-generated
         else{
-            this.regionHandler.SaveChunk(cacheChunk);
+            this.regionHandler.SaveChunk(pending);
         }
-
-
-        Structure.reloadChunks.RemoveAt(0);
     }
 
     // Asks for a chunk to be loaded or generated. Duplicates are ignored
@@ -214,112 +244,283 @@ public class ChunkLoader_Server : MonoBehaviour
             this.loadQueue.Enqueue(pos);
     }
 
-    // Loads or generates queued chunks until the frame budget is spent (at least one per frame)
-    // Chunks that need generation are generated in parallel batches, but are finished in the order they were requested
+    /*
+    Loads or generates queued chunks until the frame budget is spent (at least one per frame)
+        Chunks stored on disk are read by the ChunkReader thread and loaded when the read finishes
+        Chunks that need generation are generated in parallel batches, finished in the order they were scheduled
+    */
     private void LoadChunk(){
         long budget = (long)(Constants.SERVER_CHUNK_LOAD_BUDGET_MS * System.Diagnostics.Stopwatch.Frequency / 1000f);
+        bool processedAny = false;
         ChunkPos pos;
-        bool isPregen;
+        Chunk pending;
 
         this.loadStopwatch.Restart();
 
-        do{
-            pos = this.loadQueue.Dequeue();
-            this.loadQueueSet.Remove(pos);
+        ProcessReadCompletions(budget);
+
+        while(this.loadQueue.Count > 0){
+            if(processedAny && this.loadStopwatch.ElapsedTicks >= budget)
+                break;
+
+            pos = this.loadQueue.Peek();
+
+            // Already being read. Clients waiting for it are informed when the read finishes
+            if(this.readsInFlight.Contains(pos)){
+                DequeueLoad();
+                continue;
+            }
 
             // Requested again while still being generated
             if(this.pendingGenerationSet.Contains(pos))
                 FinishGenerationBatch();
 
             if(this.chunks.ContainsKey(pos)){
+                DequeueLoad();
                 this.server.chunkStreamer.OnChunkLoaded(pos, true);
                 continue;
             }
 
             // Every client that asked for it has moved away
             if(!this.server.chunkStreamer.IsAwaited(pos)){
+                DequeueLoad();
                 this.server.chunkStreamer.OnChunkLoaded(pos, false);
                 continue;
             }
 
-            if(!NeedsGeneration(pos, out isPregen)){
-                // Chunks generated before this one must exist first, since their structures may reach it
-                FinishGenerationBatch();
-                LoadFromDisk(pos);
-                this.server.chunkStreamer.OnChunkLoaded(pos, true);
+            processedAny = true;
+
+            // Chunks changed by structures are newer than their disk data
+            pending = Structure.TakePending(pos);
+
+            if(pending != null){
+                DequeueLoad();
+
+                if(pending.needsGeneration == 0)
+                    InstallChunk(pending, null, save:true);
+                else
+                    QueueGeneration(pending, isPregen:true);
+
                 continue;
             }
 
-            StartGeneration(pos, isPregen);
+            regionHandler.GetCorrectRegion(pos);
 
-            if(this.pendingGeneration.Count == this.worldGen.GetSlotCount())
-                FinishGenerationBatch();
-        } while(this.loadQueue.Count > 0 && this.loadStopwatch.ElapsedTicks < budget);
+            if(regionHandler.IsIndexed(pos)){
+                // Waits for running reads to finish
+                if(this.readsInFlight.Count >= Constants.SERVER_MAX_PENDING_READS)
+                    break;
 
+                DequeueLoad();
+                RequestRead(pos);
+                continue;
+            }
+
+            DequeueLoad();
+            QueueGeneration(new Chunk(pos, server:true), isPregen:false);
+        }
+
+        FinishGenerationBatch();
+
+        // Reads requested this tick usually finish within it, so their chunks are loaded right away
+        WaitForReads(budget);
+
+        // Reads of pre-generated chunks schedule their generation
         FinishGenerationBatch();
     }
 
-    // Loads a chunk from disk or generates it right away, along with its entities
+    // Loads chunks whose read finishes until the time budget is spent or no reads are left
+    private void WaitForReads(long budget){
+        long remaining;
+
+        ProcessReadCompletions(budget);
+
+        while(this.readsInFlight.Count > 0){
+            remaining = budget - this.loadStopwatch.ElapsedTicks;
+
+            if(remaining <= 0)
+                break;
+
+            if(!this.chunkReader.WaitForCompleted(Math.Max(1, (int)(remaining * 1000 / System.Diagnostics.Stopwatch.Frequency))))
+                break;
+
+            ProcessReadCompletions(budget);
+        }
+    }
+
+    private void DequeueLoad(){
+        this.loadQueueSet.Remove(this.loadQueue.Dequeue());
+    }
+
+    // Loads a chunk right away, waiting for its read if it's being read, along with its entities
     private void LoadSingleChunk(ChunkPos pos){
-        bool isPregen;
+        Chunk pending;
+        Chunk chunk;
 
         FinishGenerationBatch();
 
-        if(!NeedsGeneration(pos, out isPregen)){
-            LoadFromDisk(pos);
+        // Waits for a running read of this chunk
+        while(this.readsInFlight.Contains(pos)){
+            ProcessReadCompletions(long.MaxValue);
+            System.Threading.Thread.Sleep(0);
+        }
+
+        FinishGenerationBatch();
+
+        if(this.chunks.ContainsKey(pos))
+            return;
+
+        pending = Structure.TakePending(pos);
+
+        if(pending != null){
+            if(pending.needsGeneration == 0)
+                InstallChunk(pending, null, save:true);
+            else{
+                QueueGeneration(pending, isPregen:true);
+                FinishGenerationBatch();
+            }
+
             return;
         }
 
-        StartGeneration(pos, isPregen);
-        FinishGenerationBatch();
-    }
-
-    // Returns true if the chunk has never been generated or was only pre-generated by structures
-    private bool NeedsGeneration(ChunkPos pos, out bool isPregen){
         regionHandler.GetCorrectRegion(pos);
 
         if(regionHandler.IsIndexed(pos)){
-            isPregen = regionHandler.GetsNeedGeneration(pos);
-            return isPregen;
+            chunk = new Chunk(pos, server:true);
+            regionHandler.LoadChunk(chunk);
+
+            if(chunk.needsGeneration == 0){
+                InstallChunk(chunk, null, save:false);
+                return;
+            }
+
+            QueueGeneration(chunk, isPregen:true);
+        }
+        else{
+            QueueGeneration(new Chunk(pos, server:true), isPregen:false);
         }
 
-        isPregen = false;
-        return true;
+        FinishGenerationBatch();
     }
 
-    private void LoadFromDisk(ChunkPos pos){
-        Chunk chunk = new Chunk(pos, server:true);
+    // Starts reading a chunk and its entities in the ChunkReader thread
+    private void RequestRead(ChunkPos pos){
+        ChunkReader.Request request = this.chunkReader.GetRequest();
+
+        if(!this.regionHandler.TryLockForRead(pos, out request.chunkPath, out request.chunkOffset)){
+            QueueGeneration(new Chunk(pos, server:true), isPregen:false);
+            return;
+        }
+
+        request.pos = pos;
+        request.hasEntities = this.entityFileHandler.TryGetEntityLocation(pos, out request.entityPath, out request.entityOffset);
+
+        this.readsInFlight.Add(pos);
+        this.chunkReader.Enqueue(request);
+    }
+
+    // Loads chunks whose read finished, until the time budget is spent
+    private void ProcessReadCompletions(long budget){
+        ChunkReader.Result result;
+
+        while(this.chunkReader.TryGetCompleted(out result)){
+            this.readsInFlight.Remove(result.pos);
+            this.regionHandler.UnlockRead(result.pos);
+
+            OnReadCompleted(result);
+            this.chunkReader.Recycle(result);
+
+            if(this.loadStopwatch.ElapsedTicks >= budget)
+                break;
+        }
+    }
+
+    private void OnReadCompleted(ChunkReader.Result result){
+        ChunkPos pos = result.pos;
+        Chunk chunk;
+        int blockSize, hpSize, stateSize;
+
+        if(this.chunks.ContainsKey(pos)){
+            this.server.chunkStreamer.OnChunkLoaded(pos, true);
+            return;
+        }
+
+        if(!this.server.chunkStreamer.IsAwaited(pos)){
+            this.server.chunkStreamer.OnChunkLoaded(pos, false);
+            return;
+        }
+
+        // A structure changed the chunk while it was being read
+        chunk = Structure.TakePending(pos);
+
+        if(chunk != null){
+            if(chunk.needsGeneration == 0)
+                InstallChunk(chunk, result, save:true);
+            else
+                QueueGeneration(chunk, isPregen:true);
+
+            return;
+        }
+
+        // Falls back to reading it in the main thread
+        if(result.failed){
+            chunk = new Chunk(pos, server:true);
+            regionHandler.LoadChunk(chunk);
+            result = null;
+        }
+        else{
+            chunk = new Chunk(pos, server:true);
+            this.regionHandler.ApplyHeader(chunk, result.header, out blockSize, out hpSize, out stateSize);
+            Compression.DecompressChunk(chunk, result.chunkData, 0, blockSize, blockSize+hpSize, true);
+        }
+
+        if(chunk.needsGeneration != 0){
+            QueueGeneration(chunk, isPregen:true);
+            return;
+        }
+
+        InstallChunk(chunk, result, save:false);
+    }
+
+    // Adds a ready chunk to the loaded chunks, recreating its entities from a read result or from disk
+    private void InstallChunk(Chunk chunk, ChunkReader.Result result, bool save){
+        ChunkPos pos = chunk.pos;
 
         AddChunk(pos, chunk);
         vfx.NewChunk(pos, isServer:true);
-        regionHandler.LoadChunk(chunk);
         chunk.needsGeneration = 0;
 
-        this.entityFileHandler.LoadChunkEntities(pos);
+        if(save)
+            this.regionHandler.SaveChunk(chunk);
+
+        if(result == null)
+            this.entityFileHandler.LoadChunkEntities(pos);
+        else if(result.hasEntities)
+            this.entityFileHandler.LoadChunkEntities(pos, result.entityData, result.entitySize);
+
+        this.server.chunkStreamer.OnChunkLoaded(pos, true);
     }
 
-    // Schedules the generation of a chunk into the next free generation slot
-    private void StartGeneration(ChunkPos pos, bool isPregen){
-        Chunk chunk = new Chunk(pos, server:true);
-
-        // Pre-generated chunks only have their empty voxels generated
-        if(isPregen)
-            regionHandler.LoadChunk(chunk);
+    // Schedules the generation of a chunk into the next free generation slot. Pre-generated chunks must have their data loaded
+    private void QueueGeneration(Chunk chunk, bool isPregen){
+        if(this.pendingGeneration.Count == this.worldGen.GetSlotCount())
+            FinishGenerationBatch();
 
         GenerationSlot slot = this.worldGen.GetSlot(this.pendingGeneration.Count);
         this.worldGen.ScheduleGeneration(slot, chunk, isPregen);
 
         this.pendingGeneration.Add(slot);
-        this.pendingGenerationSet.Add(pos);
+        this.pendingGenerationSet.Add(chunk.pos);
     }
 
-    // Finishes every scheduled generation in request order. Chunks only become loaded at their turn, as if generated one by one
+    // Finishes every scheduled generation in the order it was scheduled
     private void FinishGenerationBatch(){
         if(this.pendingGeneration.Count == 0)
             return;
 
         GenerationSlot slot;
         Chunk chunk;
+        Chunk late;
         ChunkPos pos;
 
         JobHandle.ScheduleBatchedJobs();
@@ -333,6 +534,13 @@ public class ChunkLoader_Server : MonoBehaviour
             vfx.NewChunk(pos, isServer:true);
 
             this.worldGen.FinishGeneration(slot);
+
+            // Structures applied to this chunk while it was being generated
+            late = Structure.TakePending(pos);
+
+            if(late != null && late != chunk)
+                Structure.Overlay(chunk, late);
+
             chunk.needsGeneration = 0;
             regionHandler.SaveChunk(chunk);
 

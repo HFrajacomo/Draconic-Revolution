@@ -44,11 +44,11 @@ public struct RegionFile{
 			this.worldDir = EnvironmentVariablesCentral.saveDir + worldName + "\\";
 
 		try{
-			this.file = File.Open(this.worldDir + name + this.fileFormat, FileMode.Open);
+			this.file = File.Open(this.worldDir + name + this.fileFormat, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
 		} 
 		catch (FileNotFoundException){
 			isLoaded = false;
-			this.file = File.Open(this.worldDir + name + this.fileFormat, FileMode.Create);
+			this.file = File.Open(this.worldDir + name + this.fileFormat, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
 		}
 
 		try{
@@ -83,6 +83,9 @@ public struct RegionFile{
 	}
 
 	public long GetFileSize(){return this.fileSize;}
+
+	// Path of the data file. Other streams can read it while it's open (see ChunkReader)
+	public string GetFilePath(){return this.worldDir + this.name + this.fileFormat;}
 
 
 	// Convert to linear Region Chunk Coordinates

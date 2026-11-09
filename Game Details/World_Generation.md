@@ -134,6 +134,15 @@ In wide structures, it's common to see it taking more than one chunk. There we h
 Unfortunately, the solution to this problem only came after implementing the World Saves. In short, to save pregenerated information to an unexisting chunk, you gotta make it partially exist. Generate a whole chunk that only has the half-structure block information, mark this chunk as pre-generated and save it. Once the ChunkLoader tries to load it, it will realize this chunk exists, but is pregenerated. So the ChunkLoader should generate this chunk as it would any other, right? **Wrong!**
 The ChunkLoader cannot generate it normally, because it would *erase the structure data pre-generated into it*. So this post-generation must ignore already placed blocks.
 
+### Pending Structure Chunks
+
+Chunks changed by a structure that aren't loaded are kept as *pending* (`Structure.pending`) until the Server saves them, a few each tick. While a chunk is pending, the pending copy is the newest version of it:
+
+- Loading that chunk uses the pending copy instead of its disk data, and generating it uses the pending copy as its pre-generated data.
+- If the chunk was already being generated, the structure blocks of the pending copy are written over the generated chunk once it's done.
+
+This way, structures are never lost and player changes are never overwritten by an older copy of a chunk.
+
 # Congratulations
 
 Now you know a little bit more about Procedural Generation and what was used in order to generate the beautiful worlds that you see! 

@@ -50,6 +50,9 @@ public class RegionFileHandler{
 	private HashSet<ChunkPos> dirtyIndex = new HashSet<ChunkPos>(); // Regions whose index file must be rewritten
 	private System.Diagnostics.Stopwatch saveStopwatch = new System.Diagnostics.Stopwatch();
 
+	// Chunks being read by the ChunkReader. They can't be rewritten until the read finishes, since saving may move them
+	private HashSet<ChunkPos> readLocks = new HashSet<ChunkPos>();
+
 	// Handlers that weren't closed yet, so their queued saves can be written before static native data is freed on quit
 	private static List<RegionFileHandler> openHandlers = new List<RegionFileHandler>();
 
@@ -342,7 +345,7 @@ public class RegionFileHandler{
 		ReadHeader(c.pos);
 		InterpretHeader(ref biome, ref gen, ref blockdata, ref hpdata, ref statedata);
 
-		c.biomeName = BiomeHandler.ByteToBiome(biome);
+		c.biome = biome;
 		c.lastVisitedTime = globalTime.DateBytes(timeArray);
 		c.needsGeneration = gen;
 
@@ -366,17 +369,25 @@ public class RegionFileHandler{
 			return;
 
 		long budget = (long)(budgetMs * System.Diagnostics.Stopwatch.Frequency / 1000f);
+		int attempts = this.pendingSaveOrder.Count;
 		ChunkPos pos;
 		Chunk c;
 
 		this.saveStopwatch.Restart();
 
-		while(this.pendingSaveOrder.Count > 0){
+		while(this.pendingSaveOrder.Count > 0 && attempts > 0){
+			attempts--;
 			pos = this.pendingSaveOrder.Dequeue();
 
 			// Already written when it was read
 			if(!this.pendingSaves.TryGetValue(pos, out c))
 				continue;
+
+			// Being read, so it's written later
+			if(this.readLocks.Contains(pos)){
+				this.pendingSaveOrder.Enqueue(pos);
+				continue;
+			}
 
 			this.pendingSaves.Remove(pos);
 			WriteChunk(c);
@@ -405,6 +416,50 @@ public class RegionFileHandler{
 
 		this.pendingSaves.Clear();
 		FlushRegionMetadata();
+	}
+
+	// Finds where a chunk is stored, so it can be read by another stream. Queued saves of the chunk are written first
+	// The chunk must be unlocked with UnlockRead() once the read finishes
+	public bool TryLockForRead(ChunkPos pos, out string path, out long offset){
+		GetCorrectRegion(pos);
+
+		if(!IsIndexed(pos)){
+			path = null;
+			offset = 0;
+			return false;
+		}
+
+		RegionFile region = this.pool[ConvertToRegion(pos)];
+
+		path = region.GetFilePath();
+		offset = region.index[GetLinearRegionCoords(pos)];
+		this.readLocks.Add(pos);
+
+		return true;
+	}
+
+	public void UnlockRead(ChunkPos pos){
+		this.readLocks.Remove(pos);
+	}
+
+	// Sets the header information of a chunk read by another stream and returns the sizes of its compressed data
+	public void ApplyHeader(Chunk c, byte[] header, out int blockSize, out int hpSize, out int stateSize){
+		byte biome=0;
+		byte gen=0;
+		int blockdata=0;
+		int hpdata=0;
+		int statedata=0;
+
+		Array.Copy(header, 0, headerBuffer, 0, chunkHeaderSize);
+		InterpretHeader(ref biome, ref gen, ref blockdata, ref hpdata, ref statedata);
+
+		c.biome = biome;
+		c.lastVisitedTime = globalTime.DateBytes(timeArray);
+		c.needsGeneration = gen;
+
+		blockSize = blockdata;
+		hpSize = hpdata;
+		stateSize = statedata;
 	}
 
 	// Writes a queued chunk before its data on disk is accessed
@@ -556,7 +611,7 @@ public class RegionFileHandler{
 	private void InitializeHeader(Chunk c, int blockSize, int hpSize, int stateSize){
 		timeArray = globalTime.TimeHeader();
 
-		headerBuffer[0] = BiomeHandler.BiomeToByte(c.biomeName);		
+		headerBuffer[0] = c.biome;
 
 		for(int i=0; i<7; i++){
 			headerBuffer[i+1] = timeArray[i];

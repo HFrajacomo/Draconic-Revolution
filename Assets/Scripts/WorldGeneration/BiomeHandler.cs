@@ -11,6 +11,7 @@ public class BiomeHandler
 	// Biome Information
 	public static Dictionary<byte, Biome> dataset = new Dictionary<byte, Biome>();
 	public static Dictionary<byte, string> codeToBiome = new Dictionary<byte, string>();
+	private static bool[] biomeDampness = new bool[256]; // Indexed by BiomeCode
 	public ushort[] biomeBlendingValue;
 	private BiomeTable surfaceBiomeTable;
 	private BiomeTable undergroundBiomeTable;
@@ -145,22 +146,9 @@ public class BiomeHandler
 		this.generator.SetBiomeBlending(this.biomeBlendingValue);
 	}
 
-	// Gets biome byte code from name
-	public static byte BiomeToByte(string biomeName){
-		foreach(Biome b in dataset.Values){
-			if(b.name == biomeName)
-				return b.biomeCode;
-		}
-		return 0;
-	}
-
-	// Gets the dampness flag from name
-	public static bool BiomeToDampness(string biomeName){
-		foreach(Biome b in dataset.Values){
-			if(b.name == biomeName)
-				return b.naturalDampness;
-		}
-		return false;
+	// Gets the dampness flag of a biome
+	public static bool BiomeToDampness(byte code){
+		return biomeDampness[code];
 	}
 
 	// Gets biome name from byte code
@@ -173,6 +161,7 @@ public class BiomeHandler
 	private void AddBiome(Biome b){
 		dataset.Add(b.biomeCode, b);
 		codeToBiome.Add(b.biomeCode, b.name);
+		biomeDampness[b.biomeCode] = b.naturalDampness;
 
 		currentBiome++;
 	}
@@ -181,6 +170,7 @@ public class BiomeHandler
 	public void Clear(){
 		BiomeHandler.dataset.Clear();
 		BiomeHandler.codeToBiome.Clear();
+		System.Array.Clear(BiomeHandler.biomeDampness, 0, BiomeHandler.biomeDampness.Length);
 	}
 
 	// Returns the list of possible Structures in a biome

@@ -91,7 +91,7 @@ public class AmbientHandler : MonoBehaviour
         this.psEmission = this.rainParticleSystem.emission;
         SetParticleSystem();
 
-        currentAmbient = BiomeHandler.GetAmbientGroup(BiomeHandler.BiomeToByte(playerPositionHandler.GetCurrentBiome()));
+        currentAmbient = BiomeHandler.GetAmbientGroup(playerPositionHandler.GetCurrentBiomeCode());
         lastAmbient = currentAmbient;
         currentPreset = BaseAmbientPreset.GetPreset(currentAmbient);
         lastPreset = currentPreset;
@@ -116,7 +116,7 @@ public class AmbientHandler : MonoBehaviour
         delta += Time.deltaTime/2;
 
         if(!isTransitioning){
-            currentAmbient = BiomeHandler.GetAmbientGroup(BiomeHandler.BiomeToByte(playerPositionHandler.GetCurrentBiome()));
+            currentAmbient = BiomeHandler.GetAmbientGroup(playerPositionHandler.GetCurrentBiomeCode());
             
             if(currentAmbient != lastAmbient){
                 isTransitioning = true;

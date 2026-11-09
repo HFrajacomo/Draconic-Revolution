@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 /*
 Persistent buffers and state of one chunk build. A build goes through:
-	Snapshot (main thread) -> BuildChunkJob -> PrepareAssetsJob -> GreedyColliderJob -> WriteChunkMeshJob -> Apply (main thread) -> BakeColliderJob -> Collider swap (main thread)
+	Snapshot (main thread) -> BuildChunkJob (parallel slices) -> MergeChunkMeshJob -> PrepareAssetsJob -> GreedyColliderJob -> WriteChunkMeshJob -> Apply (main thread) -> BakeColliderJob -> Collider swap (main thread)
 Jobs only read the snapshot, so chunk data can be freely changed in the main thread while a build runs
 */
 public class ChunkBuildSlot{
@@ -165,7 +165,7 @@ public class ChunkBuildSlot{
 		ChunkPos pos = target.pos;
 		bool hasTop = HasVerticalLayer(loader, pos, 1);
 		bool hasBottom = HasVerticalLayer(loader, pos, -1);
-		bool canRain = BiomeHandler.BiomeToDampness(target.biomeName);
+		bool canRain = BiomeHandler.BiomeToDampness(target.biome);
 
 		this.chunk = target;
 		this.isLoadBuild = load;
@@ -173,6 +173,8 @@ public class ChunkBuildSlot{
 
 		GatherSnapshot(loader, pos, hasTop, hasBottom);
 		ClearOutputs();
+
+		NativeStream records = new NativeStream(PaddedChunk.WIDTH, Allocator.Persistent);
 
 		BuildChunkJob bcJob = new BuildChunkJob{
 			pos = pos,
@@ -186,6 +188,30 @@ public class ChunkBuildSlot{
 			state = this.state,
 			hp = this.hp,
 			renderMap = this.renderMap,
+
+			records = records.AsWriter(),
+
+			blockTransparent = BlockEncyclopediaECS.blockTransparent,
+			objectTransparent = BlockEncyclopediaECS.objectTransparent,
+			blockSeamless = BlockEncyclopediaECS.blockSeamless,
+			objectSeamless = BlockEncyclopediaECS.objectSeamless,
+			blockInvisible = BlockEncyclopediaECS.blockInvisible,
+			objectInvisible = BlockEncyclopediaECS.objectInvisible,
+			blockMaterial = BlockEncyclopediaECS.blockMaterial,
+			objectMaterial = BlockEncyclopediaECS.objectMaterial,
+			blockWashable = BlockEncyclopediaECS.blockWashable,
+			objectWashable = BlockEncyclopediaECS.objectWashable,
+			blockDrawLiquid = BlockEncyclopediaECS.blockDrawLiquid,
+			blockHP = BlockEncyclopediaECS.blockHP,
+			objectHP = BlockEncyclopediaECS.objectHP
+		};
+		JobHandle handle = bcJob.Schedule(PaddedChunk.WIDTH, 1);
+
+		MergeChunkMeshJob mcmJob = new MergeChunkMeshJob{
+			pos = pos,
+			records = records.AsReader(),
+			state = this.state,
+			blockTiles = BlockEncyclopediaECS.blockTiles,
 
 			loadAssetList = this.loadAssetList,
 			assetCoordinates = this.assetCoordinates,
@@ -209,24 +235,12 @@ public class ChunkBuildSlot{
 			cacheCubeUV = this.cacheCubeUV,
 			cacheCubeNormal = this.cacheCubeNormal,
 			cacheCubeTangent = this.cacheCubeTangent,
-			extraUV = this.extraUV,
-
-			blockTransparent = BlockEncyclopediaECS.blockTransparent,
-			objectTransparent = BlockEncyclopediaECS.objectTransparent,
-			blockSeamless = BlockEncyclopediaECS.blockSeamless,
-			objectSeamless = BlockEncyclopediaECS.objectSeamless,
-			blockInvisible = BlockEncyclopediaECS.blockInvisible,
-			objectInvisible = BlockEncyclopediaECS.objectInvisible,
-			blockMaterial = BlockEncyclopediaECS.blockMaterial,
-			objectMaterial = BlockEncyclopediaECS.objectMaterial,
-			blockWashable = BlockEncyclopediaECS.blockWashable,
-			objectWashable = BlockEncyclopediaECS.objectWashable,
-			blockTiles = BlockEncyclopediaECS.blockTiles,
-			blockDrawLiquid = BlockEncyclopediaECS.blockDrawLiquid,
-			blockHP = BlockEncyclopediaECS.blockHP,
-			objectHP = BlockEncyclopediaECS.objectHP
+			extraUV = this.extraUV
 		};
-		JobHandle handle = bcJob.Schedule();
+		handle = mcmJob.Schedule(handle);
+
+		// Records only live until they are merged
+		JobHandle recordsDisposal = records.Dispose(handle);
 
 		PrepareAssetsJob paJob = new PrepareAssetsJob{
 			pos = pos,
@@ -337,7 +351,7 @@ public class ChunkBuildSlot{
 			handle = JobHandle.CombineDependencies(handle, clej.Schedule());
 		}
 
-		this.buildHandle = handle;
+		this.buildHandle = JobHandle.CombineDependencies(handle, recordsDisposal);
 		this.slotState = SlotState.BUILDING;
 		target.SetBuildSlot(this);
 	}

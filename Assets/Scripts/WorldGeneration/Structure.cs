@@ -41,7 +41,8 @@ public class Structure
     private static int cacheX;
     private static int cacheY;
     private static int cacheZ;
-    public static List<Chunk> reloadChunks = new List<Chunk>();
+    private static Dictionary<ChunkPos, Chunk> pending = new Dictionary<ChunkPos, Chunk>();
+    private static Queue<ChunkPos> pendingOrder = new Queue<ChunkPos>();
 
     private static Random rng;
 
@@ -335,7 +336,7 @@ public class Structure
                         }
                         else{
                             c = new Chunk(newPos, server:true);
-                            c.biomeName = "Plains";
+                            c.biome = (byte)BiomeCode.PLAINS;
                             c.needsGeneration = 1;
                             ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation, isPivoted:true);              
                             AddChunk(c);
@@ -539,7 +540,7 @@ public class Structure
                         }
                         else{
                             c = new Chunk(newPos, server:true);
-                            c.biomeName = "Plains";
+                            c.biome = (byte)BiomeCode.PLAINS;
                             c.needsGeneration = 1;
                             ApplyToChunk(newPos, false, false, false, cl, c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), posX, posY, posZ, xRemainder, zRemainder, yRemainder, sPosX, sPosZ, sPosY, actualSizeX, actualSizeZ, actualOffsetX, actualOffsetZ, rotation);              
                             AddChunk(c);
@@ -933,77 +934,80 @@ public class Structure
 
     }
 
-    // Checks if a chunk pos exists in reloadChunks
+    /*
+    Pending Structure Chunks
+    Chunks changed by structures that weren't saved (or sent to clients) yet. While a chunk is pending,
+    its pending object is the latest version of it, so loading or generating that chunk must take it (TakePending)
+    instead of reading the disk
+    */
+    public static int PendingCount(){return Structure.pending.Count;}
+
     public static bool Exists(ChunkPos pos){
-        foreach(Chunk c in Structure.reloadChunks){
-            if(c.pos == pos){
-                return true;
-            }
-        }
-        return false;
+        return Structure.pending.ContainsKey(pos);
     }
 
-    // Gets the chunk given it's pos
+    // Returns the pending chunk of a position or null
     public static Chunk GetChunk(ChunkPos pos){
-        foreach(Chunk c in Structure.reloadChunks){
-            if(c.pos == pos){
-                return c;
-            }
-        }
-        return new Chunk(pos);
+        Chunk c;
+
+        Structure.pending.TryGetValue(pos, out c);
+        return c;
     }
 
-    // Removes a chunk from reload static list
-    public static bool RemoveChunk(ChunkPos pos){
-        foreach(Chunk c in Structure.reloadChunks){
-            if(c.pos == pos){
-                Structure.reloadChunks.Remove(c);
+    // Removes and returns the pending chunk of a position, or null if there's none
+    public static Chunk TakePending(ChunkPos pos){
+        Chunk c;
+
+        if(!Structure.pending.TryGetValue(pos, out c))
+            return null;
+
+        Structure.pending.Remove(pos);
+        return c;
+    }
+
+    // Removes and returns the oldest pending chunk
+    public static bool TryDequeuePending(out Chunk c){
+        ChunkPos pos;
+
+        while(Structure.pendingOrder.Count > 0){
+            pos = Structure.pendingOrder.Dequeue();
+
+            // Positions taken in the meantime leave stale entries behind
+            if(Structure.pending.TryGetValue(pos, out c)){
+                Structure.pending.Remove(pos);
                 return true;
             }
         }
+
+        c = null;
         return false;
     }
-    
 
-    // Does a Rough apply on synchonization problems when loading a Chunk before applying
-    //  Structure to it
-    public static void RoughApply(Chunk c, Chunk st){
-        RoughApply(c.data.GetData(), c.metadata.GetHPData(), c.metadata.GetStateData(), st);
+    // Puts a chunk back into the pending list
+    public static void AddPending(Chunk c){
+        if(!Structure.pending.ContainsKey(c.pos))
+            Structure.pendingOrder.Enqueue(c.pos);
+
+        Structure.pending[c.pos] = c;
     }
 
-    // Does a Rough apply on synchonization problems when loading a Chunk before applying
-    //  Structure to it
-    public static void RoughApply(ushort[] cacheVoxdata, ushort[] cacheHP, ushort[] cacheState, Chunk st){
-        NativeArray<ushort> blockIn = new NativeArray<ushort>(st.data.GetData(), Allocator.TempJob);
-        NativeArray<ushort> hpIn = new NativeArray<ushort>(st.metadata.GetHPData(), Allocator.TempJob);
-        NativeArray<ushort> stateIn = new NativeArray<ushort>(st.metadata.GetStateData(), Allocator.TempJob);
-        NativeArray<ushort> blockOut = new NativeArray<ushort>(cacheVoxdata, Allocator.TempJob);
-        NativeArray<ushort> hpOut = new NativeArray<ushort>(cacheHP, Allocator.TempJob);
-        NativeArray<ushort> stateOut = new NativeArray<ushort>(cacheState, Allocator.TempJob);
+    // Copies every non-air voxel of a pending chunk onto a chunk that was generated while the structure was applied
+    public static void Overlay(Chunk target, Chunk source){
+        ushort[] blockIn = source.data.GetData();
+        ushort[] hpIn = source.metadata.GetHPData();
+        ushort[] stateIn = source.metadata.GetStateData();
+        ushort[] blockOut = target.data.GetData();
+        ushort[] hpOut = target.metadata.GetHPData();
+        ushort[] stateOut = target.metadata.GetStateData();
 
-        RoughApplyJob raJob = new RoughApplyJob{
-            blockIn = blockIn,
-            hpIn = hpIn,
-            stateIn = stateIn,
-            blockOut = blockOut,
-            hpOut = hpOut,
-            stateOut = stateOut
-        };
+        for(int i=0; i < blockIn.Length; i++){
+            if(blockIn[i] == 0)
+                continue;
 
-        JobHandle job = raJob.Schedule(Chunk.chunkWidth, 2);
-        job.Complete();
-
-        blockOut.CopyTo(cacheVoxdata);
-        hpOut.CopyTo(cacheHP);
-        stateOut.CopyTo(cacheState);
-
-        // Dispose Bin
-        blockIn.Dispose(); 
-        hpIn.Dispose();
-        stateIn.Dispose();
-        blockOut.Dispose();
-        hpOut.Dispose();
-        stateOut.Dispose();
+            blockOut[i] = blockIn[i];
+            hpOut[i] = hpIn[i];
+            stateOut[i] = stateIn[i];
+        }
     }
 
     // Changes the index of rotation to rotate Structures at Apply-Time
@@ -1040,11 +1044,9 @@ public class Structure
         }
     }
 
-    // Adds chunk to reload static list
+    // Adds chunk to the pending list
     private void AddChunk(Chunk c){
-        if(!Structure.reloadChunks.Contains(c)){
-            Structure.reloadChunks.Add(c);
-        }
+        Structure.AddPending(c);
     }
 
     // Does circular assignment of negative into in-chunk coord space
@@ -1077,40 +1079,3 @@ public enum FillType{
     SpecificOverwrite, // Will generate structure blocks only on specific blocks
 }
 
-
-[BurstCompile]
-public struct RoughApplyJob : IJobParallelFor{
-    [NativeDisableParallelForRestriction]
-    public NativeArray<ushort> blockIn;
-    [NativeDisableParallelForRestriction]
-    public NativeArray<ushort> stateIn;
-    [NativeDisableParallelForRestriction]
-    public NativeArray<ushort> hpIn;
-    [NativeDisableParallelForRestriction]
-    public NativeArray<ushort> blockOut;
-    [NativeDisableParallelForRestriction]
-    public NativeArray<ushort> stateOut;
-    [NativeDisableParallelForRestriction]
-    public NativeArray<ushort> hpOut;
-
-    public void Execute(int index){
-        ushort block;
-
-        int x = index;
-
-        for(int y=0; y < Chunk.chunkDepth; y++){
-            for(int z=0; z < Chunk.chunkWidth; z++){
-                block = blockIn[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                // Ignores all air
-                if(block == 0)
-                    continue;
-
-                blockOut[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = block;
-
-                hpOut[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = hpIn[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-                stateOut[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = stateIn[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-            }
-        }
-    }
-}

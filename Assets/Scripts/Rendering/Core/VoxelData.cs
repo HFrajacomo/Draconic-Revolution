@@ -342,6 +342,20 @@ public class VoxelData {
 		vmshadow.Release();
  	}
 
+	// Calculates the height, render and ceiling maps if they weren't calculated yet
+	public void EnsureHeightMaps(){
+		if(this.heightMap == null || this.renderMap == null || this.ceilingMap == null)
+			CalculateHeightMap();
+	}
+
+	// Allocates the light and shadow maps if they don't exist yet
+	public void EnsureLightMaps(){
+		if(this.lightMap == null)
+			this.lightMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth];
+		if(this.shadowMap == null)
+			this.shadowMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth];
+	}
+
 	public void CalculateHeightMap(){
 		if(this.data == null)
 			return;

@@ -44,7 +44,8 @@ The hot paths of the Chunk Renderer and Voxel Lighting don't allocate per call:
 - Meshes are written by Burst jobs directly into `Mesh.MeshDataArray` and applied with `Mesh.ApplyAndDisposeWritableMeshData`. No managed vertex arrays are created and every chunk reuses the same Mesh objects.
 - MeshColliders are cooked in worker threads with `Physics.BakeMesh` before they are assigned, so the main thread doesn't cook them.
 - Object meshes are concatenated once into `ObjectMeshTables` and shared, read-only, by every build.
-- Lighting runs synchronously, so its jobs read and write the managed light arrays in-place through `PinnedArray` views and use the persistent buffers of `LightingScratch`. Its BFS queues are index-based FIFOs and visited voxels are tracked in bit arrays, keeping the BFS linear.
+- The light of loaded chunks is calculated in worker threads, nearest to the player first, and each lighting slot keeps its own persistent buffers (see *Voxel_Lighting.md*). Light propagation and chunk updates run in the main thread, using the persistent buffers of `LightingScratch`. BFS queues are index-based FIFOs and visited voxels are tracked in bit arrays, keeping the BFS linear.
+- Visible faces of a chunk are found in parallel slices, so building a single chunk (like after a block change) takes a fraction of the time.
 - The render mesh stores normals and tangents as signed bytes and UVs as half floats, using 36 bytes per vertex instead of 64. Colliders are greedy meshed, merging flat surfaces into few large triangles.
 
 ## Uniform Metadata (RAM)
@@ -55,7 +56,9 @@ Most chunks have the same HP in every voxel, and many have the same State in eve
 
 The Server generates chunks in batches of `SERVER_GENERATION_BATCH`, each in its own `GenerationSlot` of persistent native buffers. Biomes are assigned (and cached) before the jobs are scheduled, so each chunk runs its Generate, Populate and Cave jobs as a single chain, and the chains of a batch run in parallel. Structures can reach neighboring chunks, so chunks are finished one at a time, in the order they were requested, which gives the same result as generating them one by one.
 
-Chunk compression and decompression run their blocks, HP and State in parallel, straight from and into the chunk arrays, and chunk saves are written to disk in the background (see *World_Save.md*).
+Chunk compression and decompression run their blocks, HP and State in parallel, straight from and into the chunk arrays. Chunk saves are written to disk in the background and chunk reads happen in a background thread (see *World_Save.md*).
+
+Biomes are stored as byte codes, so saving, sending and building chunks never compares biome names.
 
 ## Incremental Garbage Collector (Incremental GC) (CPU)
 

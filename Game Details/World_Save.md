@@ -62,6 +62,16 @@ The game always sees saved data, as if it was written immediately:
 
 The trade-off is that, if the Server crashes, chunks saved in the last moments may not be on disk.
 
+## Asynchronous Reads
+
+Chunks are read from disk by the `ChunkReader`, a background thread, so loading them doesn't stall the Server:
+
+1. The main thread finds where the chunk and its entities are stored (the Index Files are in memory) and queues a read request. Queued saves of that chunk are written first, so the read gets its latest data.
+2. The `ChunkReader` reads the chunk header, its compressed data and its entity data with its own read-only file streams. Region files are opened with `FileShare.Read` so both can be open at the same time.
+3. The main thread decompresses the chunk, recreates its entities and sends it to the clients waiting for it. Pre-generated chunks go to generation instead.
+
+While a chunk is being read, its queued saves are held back, since saving it may move it to another position of the file. At most `SERVER_MAX_PENDING_READS` chunks are read at the same time. Reads requested in a tick are usually finished and loaded in that same tick, within the load time budget.
+
 # Congratulations
 
 Now you know a little bit more about Disk Space management and what was used in order to save everything you see and do!

@@ -189,7 +189,7 @@ public static class Compression{
 		CompressionJob blockJob = new CompressionJob{
 			chunkData = blocks.array,
 			buffer = blockOutput,
-			pallete = Compression.GetPallete(Compression.BiomeToPallete(c.biomeName)),
+			pallete = Compression.GetPallete(Compression.BiomeToPallete(c.biome)),
 			writtenBytes = blockWritten
 		};
 		CompressionJob hpJob = new CompressionJob{
@@ -236,7 +236,7 @@ public static class Compression{
 		DecompressJob blockJob = new DecompressJob{
 			data = blockData.array,
 			readData = input.array,
-			pallete = Compression.GetPallete(Compression.BiomeToPallete(c.biomeName)),
+			pallete = Compression.GetPallete(Compression.BiomeToPallete(c.biome)),
 			initialPos = blockPos
 		};
 		DecompressJob hpJob = new DecompressJob{
@@ -461,29 +461,29 @@ public static class Compression{
 
 
 	// Converts Chunk Biome to Pallete
-	private static Pallete BiomeToPallete(string biome){
-		switch(biome){
-			case "Plains":
+	private static Pallete BiomeToPallete(byte biome){
+		switch((BiomeCode)biome){
+			case BiomeCode.PLAINS:
 				return Pallete.GRASSLANDS;
-			case "Grassy Highlands":
+			case BiomeCode.GRASSY_HIGHLANDS:
 				return Pallete.GRASSLANDS;
-			case "Ocean":
+			case BiomeCode.OCEAN:
 				return Pallete.OCEAN;
-			case "Forest":
+			case BiomeCode.FOREST:
 				return Pallete.FOREST;
-			case "Snowy Plains":
+			case BiomeCode.SNOWY_PLAINS:
 				return Pallete.ICELANDS;
-			case "Snowy Highlands":
+			case BiomeCode.SNOWY_HIGHLANDS:
 				return Pallete.ICELANDS;
-			case "Ice Ocean":
+			case BiomeCode.ICE_OCEAN:
 				return Pallete.ICELANDS;
-			case "Snow Forest":
+			case BiomeCode.SNOWY_FOREST:
 				return Pallete.ICELANDS;
-			case "Desert":
+			case BiomeCode.DESERT:
 				return Pallete.SANDLANDS;
-			case "Hell Plains":
+			case BiomeCode.HELL_PLAINS:
 				return Pallete.HELL;
-			case "Core":
+			case BiomeCode.CORE:
 				return Pallete.CORE;
 			default:
 				return Pallete.BASIC;

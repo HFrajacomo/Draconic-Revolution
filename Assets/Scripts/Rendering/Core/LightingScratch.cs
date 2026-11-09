@@ -2,8 +2,9 @@ using Unity.Collections;
 using Unity.Mathematics;
 
 /*
-Reusable native buffers of the Voxel Lighting jobs.
-Lighting runs synchronously in the main thread, so a single set of buffers is enough and no allocations are needed per calculation
+Reusable native buffers of the Voxel Lighting jobs that run synchronously in the main thread
+(light calculation of updated chunks, verification and light propagation).
+Asynchronous light calculations use the buffers of each LightSlot instead
 */
 public static class LightingScratch{
 	private static bool isCreated = false;

@@ -187,13 +187,20 @@ public class VFXLoader : MonoBehaviour
         }
 
         if(adjascent){
-            ChunkPos[] neighbors = {new ChunkPos(pos.x-1, pos.z-1, pos.y), new ChunkPos(pos.x-1, pos.z, pos.y), new ChunkPos(pos.x-1, pos.z+1, pos.y), new ChunkPos(pos.x, pos.z-1, pos.y), new ChunkPos(pos.x, pos.z+1, pos.y), new ChunkPos(pos.x+1, pos.z-1, pos.y), new ChunkPos(pos.x+1, pos.z, pos.y), new ChunkPos(pos.x+1, pos.z+1, pos.y)};
-        
+            ChunkPos iterPos;
+
             // Updates all lights in neighbor chunks
-            foreach(ChunkPos iterPos in neighbors){
-                if(ContainsLight(iterPos)){
-                    foreach(HDAdditionalLightData light in this.lightReference[iterPos]){
-                        light.RequestShadowMapRendering();
+            for(int x=-1; x <= 1; x++){
+                for(int z=-1; z <= 1; z++){
+                    if(x == 0 && z == 0)
+                        continue;
+
+                    iterPos = new ChunkPos(pos.x+x, pos.z+z, pos.y);
+
+                    if(ContainsLight(iterPos)){
+                        foreach(HDAdditionalLightData light in this.lightReference[iterPos]){
+                            light.RequestShadowMapRendering();
+                        }
                     }
                 }
             }

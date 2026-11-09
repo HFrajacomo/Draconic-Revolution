@@ -15,7 +15,7 @@ public class Chunk
 	public static readonly int chunkMaxY = 3;
 	public static float chunkWidthMult = 15.99f; 
 	public ChunkPos pos;
-	public string biomeName;
+	public byte biome; // BiomeCode
 	public byte needsGeneration;
 	public float4 features;
 	public string lastVisitedTime;
@@ -123,7 +123,7 @@ public class Chunk
 	// Dummy Chunk Generation
 	// CANNOT BE USED TO DRAW, ONLY TO ADD ELEMENTS AND SAVE
 	public Chunk(ChunkPos pos, bool server=false){
-		this.biomeName = "Plains";
+		this.biome = (byte)BiomeCode.PLAINS;
 		this.pos = pos;
 		this.needsGeneration = 1;
 
@@ -202,7 +202,7 @@ public class Chunk
 	public Chunk Clone(){
 		Chunk c = new Chunk(this.pos, this.renderer, this.loader);
 
-		c.biomeName = this.biomeName;
+		c.biome = this.biome;
 		c.data = new VoxelData(this.data.GetData(), this.pos);
 		c.metadata = new VoxelMetadata(this.metadata);
 
@@ -252,24 +252,19 @@ public class Chunk
 		this.buildTargets = null;
 	}
 	
-	// Returns the chunk's header in byte array format
-	public byte[] GetHeader(){
-		byte[] output = new byte[RegionFileHandler.chunkHeaderSize];
+	// Writes the chunk's header into a buffer, starting at offset
+	public void WriteHeader(byte[] output, int offset){
+		output[offset] = this.biome;
 
-		output[0] = BiomeHandler.BiomeToByte(this.biomeName);
 		// CURRENTLY ONLY OUTPUTTING LAST VISITED TIME AS 0
-		output[1] = 0;
-		output[2] = 0;
-		output[3] = 0;
-		output[4] = 0;
-		output[5] = 0;
-		output[6] = 0;
-		output[7] = 0;
+		for(int i=1; i < 8; i++)
+			output[offset+i] = 0;
 
-		output[8] = this.needsGeneration;
+		output[offset+8] = this.needsGeneration;
 
 		// The next 12 bytes are size information and don't need to be presented
-		return output;
+		for(int i=9; i < RegionFileHandler.chunkHeaderSize; i++)
+			output[offset+i] = 0;
 	}
 
 

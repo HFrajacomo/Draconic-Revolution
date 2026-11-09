@@ -22,7 +22,6 @@ public class ChunkLoader : MonoBehaviour
     public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue(DistanceMetric.EDGE_LIMITING, edgeLimit:World.renderDistance);
     public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue(DistanceMetric.EDGE_LIMITING, edgeLimit:World.renderDistance);
     public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue(DistanceMetric.EDGE_LIMITING, edgeLimit:World.renderDistance);
-    public List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 
     // Chunk Streaming
     private StreamWindow streamWindow;
@@ -86,6 +85,11 @@ public class ChunkLoader : MonoBehaviour
     // Chunks that were requested to build while already building, and which kind of build they need
     private Dictionary<ChunkPos, byte> deferredBuilds = new Dictionary<ChunkPos, byte>();
 
+    // Voxel Lighting
+    private LightingSystem lightingSystem;
+    private Dictionary<ChunkPos, byte> awaitingLight = new Dictionary<ChunkPos, byte>(); // Chunks waiting for the light of their neighborhood before building
+    private List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
+
 	// Flags
 	public bool WORLD_GENERATED = false; 
     public bool PLAYERSPAWNED = false;
@@ -114,6 +118,7 @@ public class ChunkLoader : MonoBehaviour
         ObjectMeshTables.Build();
         ChunkMeshLayout.Init();
         CreateBuildSlots();
+        this.lightingSystem = new LightingSystem(this);
         PlayerHotbarHandler.ResetSessionState();
 
         this.playerCharacter.SetActive(false);
@@ -162,12 +167,28 @@ public class ChunkLoader : MonoBehaviour
         this.audioManager.Destroy();
         ClearAllChunks();
         DisposeBuildSlots();
+        DisposeLighting();
 
         Destroy(this);
     }
 
     void OnDestroy(){
         DisposeBuildSlots();
+        DisposeLighting();
+    }
+
+    // Light calculations are also finished and started at the end of the frame, so more of them run per frame
+    void LateUpdate(){
+        if(this.lightingSystem != null && this.REQUESTEDCHUNKS)
+            this.lightingSystem.Update();
+    }
+
+    private void DisposeLighting(){
+        if(this.lightingSystem == null)
+            return;
+
+        this.lightingSystem.Dispose();
+        this.lightingSystem = null;
     }
 
     void Update(){
@@ -244,6 +265,7 @@ public class ChunkLoader : MonoBehaviour
 
         	UnloadChunk();
             LoadChunk();
+            this.lightingSystem.Update();
             FinishBuilds();
             DrawChunk();
             UpdateChunk();
@@ -317,6 +339,12 @@ public class ChunkLoader : MonoBehaviour
 
     // Erases loaded chunks dictionary
     private void ClearAllChunks(){
+        // Running lighting reads chunk data, so it must stop first
+        if(this.lightingSystem != null)
+            this.lightingSystem.Clear();
+
+        this.awaitingLight.Clear();
+
     	foreach(ChunkPos item in chunks.Keys){
     		chunks[item].Destroy();
             vfx.RemoveChunk(item);
@@ -451,7 +479,7 @@ public class ChunkLoader : MonoBehaviour
 
         if(!this.chunks.TryGetValue(cp, out chunk)){
             chunk = new Chunk(cp, this.rend, this);
-            chunk.biomeName = BiomeHandler.ByteToBiome(data[22]);
+            chunk.biome = data[22];
             this.chunks.Add(cp, chunk);
             chunkOverwrite = false;
         }
@@ -471,7 +499,8 @@ public class ChunkLoader : MonoBehaviour
             chunk.data.CalculateHeightMap();
         }
 
-        chunk.data.CalculateLightMap(chunk.metadata);
+        // Light is calculated in worker threads. The chunk below is updated once it's done, since its sunlight depends on this chunk
+        this.lightingSystem.Enqueue(cp, updateBelow:true);
 
         CancelUnload(cp);
 
@@ -480,11 +509,6 @@ public class ChunkLoader : MonoBehaviour
         // Neighbors that were missing this chunk may be drawn now
         if(!chunkOverwrite)
             WakeNeighbors(cp);
-
-        // Vertical chunk update
-        this.cachePos = new ChunkPos(cp.x, cp.z, cp.y-1);
-        if(this.chunks.ContainsKey(this.cachePos))
-            AddToUpdate(this.cachePos);
     }
 
     // Unloads chunks that left the StreamWindow until the frame budget is spent (at least one per frame)
@@ -517,6 +541,8 @@ public class ChunkLoader : MonoBehaviour
             this.chunks.Remove(pos);
             this.awaitingNeighbors.Remove(pos);
             this.deferredBuilds.Remove(pos);
+            this.awaitingLight.Remove(pos);
+            this.lightingSystem.Cancel(pos);
             this.drawPriorityQueue.Remove(pos);
             this.updatePriorityQueue.Remove(pos);
             this.updateNoLightPriorityQueue.Remove(pos);
@@ -667,7 +693,11 @@ public class ChunkLoader : MonoBehaviour
             slots[i].Dispose();
     }
 
-    // Schedules the mesh building of new chunks
+    /*
+    Schedules the mesh building of new chunks
+        Chunks wait until the light of their neighborhood is calculated (in worker threads)
+        Then their light propagation with their neighbors is verified and applied before building
+    */
     private void DrawChunk(){
         ChunkPos pos;
 
@@ -676,14 +706,88 @@ public class ChunkLoader : MonoBehaviour
                 break;
             if(!this.drawSlots[i].IsFree())
                 continue;
-            if(!PopBuildable(this.drawPriorityQueue, BUILD_DRAW, out pos))
+
+            while(PopBuildable(this.drawPriorityQueue, BUILD_DRAW, out pos)){
+                if(!IsNeighborhoodLit(pos)){
+                    MarkAwaitingLight(pos, BUILD_DRAW);
+                    continue;
+                }
+
+                this.chunks[pos].data.VerifyPropagation(this);
+                CheckLightPropagation(pos);
+
+                ScheduleBuild(this.drawSlots[i], this.chunks[pos], isDraw:true);
                 break;
-
-            this.chunks[pos].data.VerifyPropagation(this);
-            CheckLightPropagation(pos);
-
-            ScheduleBuild(this.drawSlots[i], this.chunks[pos], isDraw:true);
+            }
         }
+    }
+
+    // True if the light of a chunk, its horizontal neighbors and its loaded vertical neighbors is calculated
+    private bool IsNeighborhoodLit(ChunkPos pos){
+        ChunkPos vertical;
+
+        for(int x=-1; x <= 1; x++){
+            for(int z=-1; z <= 1; z++){
+                if(!this.lightingSystem.IsLit(new ChunkPos(pos.x+x, pos.z+z, pos.y)))
+                    return false;
+            }
+        }
+
+        vertical = new ChunkPos(pos.x, pos.z, pos.y+1);
+        if(this.chunks.ContainsKey(vertical) && !this.lightingSystem.IsLit(vertical))
+            return false;
+
+        vertical = new ChunkPos(pos.x, pos.z, pos.y-1);
+        if(this.chunks.ContainsKey(vertical) && !this.lightingSystem.IsLit(vertical))
+            return false;
+
+        return true;
+    }
+
+    private void MarkAwaitingLight(ChunkPos pos, byte flag){
+        byte flags;
+
+        this.awaitingLight.TryGetValue(pos, out flags);
+        this.awaitingLight[pos] = (byte)(flags | flag);
+    }
+
+    // Called by the LightingSystem when the light of a chunk is calculated. Chunks waiting for it to build may build now
+    public void OnLightReady(ChunkPos pos){
+        if(this.awaitingLight.Count == 0)
+            return;
+
+        for(int x=-1; x <= 1; x++){
+            for(int z=-1; z <= 1; z++){
+                WakeAwaitingLight(new ChunkPos(pos.x+x, pos.z+z, pos.y));
+            }
+        }
+
+        WakeAwaitingLight(new ChunkPos(pos.x, pos.z, pos.y+1));
+        WakeAwaitingLight(new ChunkPos(pos.x, pos.z, pos.y-1));
+    }
+
+    private void WakeAwaitingLight(ChunkPos pos){
+        byte flags;
+
+        if(!this.awaitingLight.TryGetValue(pos, out flags))
+            return;
+
+        if(!this.chunks.ContainsKey(pos)){
+            this.awaitingLight.Remove(pos);
+            return;
+        }
+
+        if(!IsNeighborhoodLit(pos))
+            return;
+
+        this.awaitingLight.Remove(pos);
+
+        if((flags & BUILD_DRAW) != 0)
+            this.drawPriorityQueue.Add(pos);
+        if((flags & BUILD_UPDATE) != 0)
+            this.updatePriorityQueue.Add(pos);
+        if((flags & BUILD_UPDATE_NOLIGHT) != 0)
+            this.updateNoLightPriorityQueue.Add(pos);
     }
 
     // Schedules the mesh rebuilding of changed chunks
@@ -702,8 +806,9 @@ public class ChunkLoader : MonoBehaviour
             if(!PopUpdate(!lightUpdate, out pos, out withLight))
                 break;
 
+            // Updates come from changes the player sees, so their light is calculated right away
             if(withLight){
-                this.chunks[pos].data.CalculateLightMap(this.chunks[pos].metadata);
+                this.lightingSystem.RecalcNow(pos);
                 CheckLightPropagation(pos);
                 lightUpdate = true;
             }
@@ -736,6 +841,16 @@ public class ChunkLoader : MonoBehaviour
     private void ScheduleBuild(ChunkBuildSlot slot, Chunk chunk, bool isDraw){
         int requestedLoad = chunk.GetRequestedLoadVersion();
         bool load = isDraw || requestedLoad != chunk.GetSentLoadVersion();
+        ChunkPos pos = chunk.pos;
+
+        // The build snapshot reads the light of the chunk and its neighbors
+        for(int y=-1; y <= 1; y++){
+            for(int x=-1; x <= 1; x++){
+                for(int z=-1; z <= 1; z++){
+                    this.lightingSystem.EnsureLit(new ChunkPos(pos.x+x, pos.z+z, pos.y+y));
+                }
+            }
+        }
 
         slot.Schedule(chunk, this, load, requestedLoad);
     }
@@ -811,11 +926,15 @@ public class ChunkLoader : MonoBehaviour
         if(propagationFlag == 0)
             return false;
 
+        // Light of chunks still being calculated in worker threads is finished first
+        this.lightingSystem.EnsureLit(pos);
+
         // xm
         if((propagationFlag & 1) != 0){
             neighbor = new ChunkPos(pos.x-1, pos.z, pos.y);
 
             if(this.chunks.ContainsKey(neighbor)){
+                this.lightingSystem.EnsureLit(neighbor);
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 0);
 
                 if((updateCode & 4) == 4)
@@ -833,6 +952,7 @@ public class ChunkLoader : MonoBehaviour
             neighbor = new ChunkPos(pos.x+1, pos.z, pos.y);
 
             if(this.chunks.ContainsKey(neighbor)){
+                this.lightingSystem.EnsureLit(neighbor);
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 1);
 
                 if((updateCode & 4) == 4)
@@ -850,6 +970,7 @@ public class ChunkLoader : MonoBehaviour
             neighbor = new ChunkPos(pos.x, pos.z-1, pos.y);
 
             if(this.chunks.ContainsKey(neighbor)){
+                this.lightingSystem.EnsureLit(neighbor);
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 2);
 
                 if((updateCode & 4) == 4)
@@ -868,6 +989,7 @@ public class ChunkLoader : MonoBehaviour
             neighbor = new ChunkPos(pos.x, pos.z+1, pos.y);
 
             if(this.chunks.ContainsKey(neighbor)){
+                this.lightingSystem.EnsureLit(neighbor);
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 3);
 
                 if((updateCode & 4) == 4)
@@ -885,6 +1007,7 @@ public class ChunkLoader : MonoBehaviour
             neighbor = new ChunkPos(pos.x, pos.z, pos.y-1);
 
             if(this.chunks.ContainsKey(neighbor)){
+                this.lightingSystem.EnsureLit(neighbor);
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 4);
 
                 if((updateCode & 4) == 4)
@@ -902,6 +1025,7 @@ public class ChunkLoader : MonoBehaviour
             neighbor = new ChunkPos(pos.x, pos.z, pos.y+1);
 
             if(this.chunks.ContainsKey(neighbor)){
+                this.lightingSystem.EnsureLit(neighbor);
                 updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 5);
 
                 if((updateCode & 4) == 4)
@@ -915,11 +1039,13 @@ public class ChunkLoader : MonoBehaviour
             }
         }
 
-        while(toCallLightCascade.Count > 0){
-            ChunkLightPropagInfo info = toCallLightCascade[0];
-            toCallLightCascade.RemoveAt(0);
+        // Only the outermost call runs the cascade. Nested calls only add to it
+        if(recursionDepth == 0){
+            for(int i=0; i < this.toCallLightCascade.Count; i++){
+                CheckLightPropagation(this.toCallLightCascade[i]);
+            }
 
-            CheckLightPropagation(info);
+            this.toCallLightCascade.Clear();
         }
 
         return updateCurrent;
@@ -987,6 +1113,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     private void SetQueuesPosition(ChunkPos pos){
+        this.lightingSystem.SetPlayerPosition(pos);
         this.drawPriorityQueue.SetPlayerPosition(pos);
         this.updatePriorityQueue.SetPlayerPosition(pos);
         this.updateNoLightPriorityQueue.SetPlayerPosition(pos);
