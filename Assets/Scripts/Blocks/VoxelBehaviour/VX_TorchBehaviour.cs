@@ -309,9 +309,7 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 			cl.GetChunk(thisPos).data.SetCell(X, Y, Z, 0);
 			this.OnBreak(thisPos, X, Y, Z, cl);
 
-			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-			message.DirectBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, facing, ushort.MaxValue, state, 0);
-			cl.server.SendToClients(thisPos, message);
+			cl.server.SendBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, ushort.MaxValue, state, 0);
 
 			EraseMetadata(thisPos, X, Y, Z, cl);		
 		}
@@ -325,9 +323,7 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 					cl.GetChunk(thisPos).data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
 
-					NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-					message.DirectBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, facing, ushort.MaxValue, state, 0);
-					cl.server.SendToClients(thisPos, message);
+					cl.server.SendBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, ushort.MaxValue, state, 0);
 
 					EraseMetadata(thisPos, X, Y, Z, cl);					
 				}
@@ -337,9 +333,7 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 					cl.GetChunk(thisPos).data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
 
-					NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-					message.DirectBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, facing, ushort.MaxValue, state, 0);
-					cl.server.SendToClients(thisPos, message);
+					cl.server.SendBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, ushort.MaxValue, state, 0);
 
 					EraseMetadata(thisPos, X, Y, Z, cl);					
 				}

@@ -1,46 +1,39 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 
 using Debug = UnityEngine.Debug;
 
 using UnityEngine;
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine.SceneManagement;
-using UnityEngine.InputSystem;
 using Unity.Mathematics;
 
 public class Client
 {
 	// Internet Objects
 	private Socket socket;
-	private SocketError err;
-	private DateTime lastMessageTime;
-	private int timeoutSeconds = 5;
+	private volatile NetConnection connection;
+	private volatile bool connectFailed = false;
+	private bool panicked = false;
+	private bool closed = false;
 
 	// Entity Handler
 	public EntityHandler entityHandler;
 	public SmoothMovement smoothMovement;
 
-	// Data Management
-	private const int sendBufferSize = 4096; // 4KB
-	private const int receiveBufferSize = 4096*4096; // 2MB
-	private byte[] receiveBuffer;
-	// Filled by the socket thread and consumed by the main thread
+	// Filled by the socket threads and consumed by the main thread
 	public ConcurrentQueue<NetMessage> queue = new ConcurrentQueue<NetMessage>();
 
-	// Packet Management
-	private bool lengthPacket = true;
-	private int packetIndex = 0;
-	private int packetSize = 0;
-	private byte[] dataBuffer;
+	// Remote players are identified by session NetIDs given by the Server. Dropped items use their entity code
+	private Dictionary<uint, ulong> playerNetIDs = new Dictionary<uint, ulong>();
+	private uint ownNetID = 0;
+	private bool hasOwnNetID = false;
 
 	// Address Information
-	public IPAddress ip = new IPAddress(0x0F00A8C0);
+	public IPAddress ip;
 	public int port = 33000;
 
 	// Unity References
@@ -50,21 +43,15 @@ public class Client
 	public PlayerModelHandler playerModelHandler;
 	public PlayerInventoryManager playerInventoryManager;
 
-	// Const values
-	private static int maxBufferSize = 327680;
+	// Cache
+	private bool[] cachedColumns = new bool[Chunk.chunkWidth*Chunk.chunkWidth];
 
 
-	
 	public Client(ChunkLoader cl){
-		this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-		// Disables Nagle's algorithm so small realtime packets (like positions) are not delayed and bunched
-		this.socket.NoDelay = true;
 		this.cl = cl;
 
 		this.entityHandler = new EntityHandler(cl);
 		this.smoothMovement = new SmoothMovement(this.entityHandler);
-		
-		receiveBuffer = new byte[receiveBufferSize];
 
 		this.ip = World.connectionIP;
 
@@ -73,13 +60,17 @@ public class Client
 
 	// Triggers hazard protection and sends user back to menu screen
 	public void Panic(){
+		if(this.panicked)
+			return;
+
+		this.panicked = true;
 		Debug.Log("Panic");
-        SceneManager.LoadScene("Blank");
+		SceneManager.LoadScene("Blank");
 	}
 
 	public void SetRaycast(PlayerRaycast raycast){
 		this.raycast = raycast;
-        this.raycast.SetFOV();
+		this.raycast.SetFOV();
 	}
 
 	public void SetPlayerHotbarHandler(PlayerHotbarHandler handler){
@@ -89,94 +80,100 @@ public class Client
 	public void SetPlayerModelHandler(PlayerModelHandler handler){
 		this.playerModelHandler = handler;
 	}
-	
-	
+
+	// Connects without blocking the main thread. The Server sends ACCEPTEDCONNECT once it's done
 	public void Connect(){
 		try{
-			this.socket.Connect(this.ip, this.port);
+			this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+			this.socket.BeginConnect(this.ip, this.port, new AsyncCallback(ConnectCallback), null);
 			Debug.Log("Connecting");
-		} catch {
-			Panic();
-		}
-
-		this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
-	}
-
-	// Receive call handling
-	private void ReceiveCallback(IAsyncResult result){
-		try{
-			// Resets timeout timer
-			this.lastMessageTime = DateTime.Now;
-
-			int bytesReceived = this.socket.EndReceive(result);
-
-			// If has received a length Packet
-			if(this.lengthPacket){
-				int size = NetDecoder.ReadInt(receiveBuffer, 0);
-
-				// Ignores packets that are way too big
-				if(size > Client.maxBufferSize){
-					this.socket.BeginReceive(receiveBuffer, 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
-					return;
-				}
-
-				this.dataBuffer = new byte[size];
-				this.packetSize = size;
-				this.packetIndex = 0;
-				this.lengthPacket = false;
-
-				this.socket.BeginReceive(receiveBuffer, 0, size, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
-				return;
-			}
-
-			// If has received a segmented packet
-			if(bytesReceived + this.packetIndex < this.packetSize){
-				Array.Copy(receiveBuffer, 0, this.dataBuffer, this.packetIndex, bytesReceived);
-				this.packetIndex = this.packetIndex + bytesReceived;
-				this.socket.BeginReceive(receiveBuffer, 0, this.packetSize-this.packetIndex, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
-				return;
-			}
-
-			Array.Copy(receiveBuffer, 0, this.dataBuffer, this.packetIndex, bytesReceived);
-
-			NetMessage.Broadcast(NetBroadcast.RECEIVED, dataBuffer[0], Configurations.accountID, this.packetSize);
-
-			NetMessage receivedMessage = new NetMessage(this.dataBuffer, 0);
-			this.queue.Enqueue(receivedMessage);
-
-			this.lengthPacket = true;
-			this.packetSize = 0;
-			this.packetIndex = 0;
-
-			this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(ReceiveCallback), null);
 		}
 		catch(Exception e){
-			Debug.Log(e.ToString());
+			Debug.Log("Failed to connect: " + e.Message);
+			this.connectFailed = true;
 		}
 	}
 
-	// Sends a byte[] to the server
+	private void ConnectCallback(IAsyncResult result){
+		try{
+			this.socket.EndConnect(result);
+
+			NetConnection newConnection = new NetConnection(this.socket, 0, false, this.queue);
+			this.connection = newConnection;
+			newConnection.Start();
+		}
+		catch(Exception e){
+			Debug.Log("Failed to connect: " + e.Message);
+			this.connectFailed = true;
+		}
+	}
+
+	public bool HasConnectionFailed(){return this.connectFailed;}
+
+	// Queues a message to be sent in the next Flush()
 	public bool Send(NetMessage message){
-		try{
-			NetMessage.Broadcast(NetBroadcast.SENT, dataBuffer[0], Configurations.accountID, message.size);
+		NetConnection conn = this.connection;
 
-			this.socket.Send(this.LengthPacket(message.size), 4, SocketFlags.None);
-			this.socket.Send(message.GetMessage(), message.size, SocketFlags.None);
+		if(conn == null)
+			return false;
+
+		NetMessage.Broadcast(NetBroadcast.SENT, message.GetMessage()[0], Configurations.accountID, message.size);
+
+		return conn.Send(message.GetMessage(), message.size);
+	}
+
+	// Writes every message queued this frame to the socket
+	public void Flush(){
+		NetConnection conn = this.connection;
+
+		if(conn != null)
+			conn.Flush();
+	}
+
+	// Disconnects on timeout and keeps the connection alive when nothing else was sent. Returns false if the Client was disconnected
+	public bool CheckConnection(){
+		NetConnection conn = this.connection;
+
+		if(conn == null)
 			return true;
-		}
-		catch(Exception e){
-			Debug.Log("SEND ERROR: " + e.ToString());
+
+		if(conn.SecondsSinceReceive() > Constants.NET_CLIENT_TIMEOUT_SECONDS){
+			Debug.Log("Timeout");
+			Disconnect();
 			return false;
 		}
+
+		if(conn.SecondsSinceSend() >= Constants.NET_HEARTBEAT_INTERVAL_SECONDS){
+			NetMessage message = new NetMessage(NetCode.HEARTBEAT);
+			Send(message);
+		}
+
+		return true;
 	}
 
-	// Checks if timeout has occured on server
-	public void CheckTimeout(){
-		if((DateTime.Now - this.lastMessageTime).Seconds > this.timeoutSeconds){
-	        Debug.Log("Timeout");
+	// Closes the connection, optionally telling the Server first
+	public void Shutdown(bool notifyServer){
+		if(this.closed)
+			return;
 
-	        Disconnect();
+		this.closed = true;
+		NetConnection conn = this.connection;
+
+		if(conn == null){
+			try{
+				this.socket.Close();
+			}
+			catch(Exception){}
+
+			return;
 		}
+
+		if(notifyServer){
+			NetMessage message = new NetMessage(NetCode.DISCONNECT);
+			Send(message);
+		}
+
+		conn.Close(flush:notifyServer);
 	}
 
 	/* 
@@ -185,33 +182,42 @@ public class Client
 	*/
 
 	// Discovers what to do with a Message received from Server
-	public void HandleReceivedMessage(byte[] data){
-		if(data == null)
+	public void HandleReceivedMessage(NetMessage message){
+		if(message.IsCloseEvent()){
+			Debug.Log("Lost connection to Server: " + message.GetConnection().GetCloseReason());
+			Disconnect();
 			return;
+		}
 
-		if(data.Length == 0)
-			return;
+		byte[] data = message.GetData();
+		int length = message.GetSize();
+		bool retained = false;
 
-		NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], Configurations.accountID, data.Length);
+		NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], Configurations.accountID, length);
 
 		switch((NetCode)data[0]){
 			case NetCode.ACCEPTEDCONNECT:
 				AcceptConnect();
 				break;
+			case NetCode.HEARTBEAT:
+				break;
 			case NetCode.SENDSERVERINFO:
 				SendServerInfo(data);
 				break;
 			case NetCode.SENDCHUNK:
-				SendChunk(data);
-				break;
 			case NetCode.STREAMCHUNK:
+				// The ChunkLoader gives the data back to the pool once it's loaded
 				SendChunk(data);
+				retained = true;
 				break;
 			case NetCode.DISCONNECT:
 				Disconnect();
 				break;
-			case NetCode.DIRECTBLOCKUPDATE:
-				DirectBlockUpdate(data);
+			case NetCode.BLOCKUPDATE:
+				BlockUpdate(data);
+				break;
+			case NetCode.BLOCKBATCH:
+				BlockBatch(data);
 				break;
 			case NetCode.VFXDATA:
 				VFXData(data);
@@ -225,35 +231,38 @@ public class Client
 			case NetCode.SENDGAMETIME:
 				SendGameTime(data);
 				break;
-			case NetCode.PLAYERLOCATION:
-				PlayerLocation(data);
+			case NetCode.PLAYERSPAWN:
+				PlayerSpawn(data);
 				break;
-			case NetCode.SENDPLAYERAPPEARANCE:
-				SendPlayerAppearance(data);
+			case NetCode.DROPSPAWN:
+				DropSpawn(data);
 				break;
-			case NetCode.SENDCHARSHEET:
-				SendCharSheet(data);
+			case NetCode.ENTITYUPDATES:
+				EntityUpdates(data);
 				break;
 			case NetCode.ENTITYDELETE:
 				EntityDelete(data);
 				break;
+			case NetCode.ENTITYDELETEBATCH:
+				EntityDeleteBatch(data);
+				break;
+			case NetCode.SENDCHARSHEET:
+				SendCharSheet(data);
+				break;
 			case NetCode.PLACEMENTDENIED:
 				PlacementDenied(data);
-				break;
-			case NetCode.ITEMENTITYDATA:
-				ItemEntityData(data);
 				break;
 			case NetCode.BLOCKDAMAGE:
 				BlockDamage(data);
 				break;
 			case NetCode.SENDINVENTORY:
-				SendInventory(data);
+				SendInventory(data, length);
 				break;
 			case NetCode.SFXPLAY:
 				SFXPlay(data);
 				break;
 			case NetCode.SENDNOISE:
-				SendNoise(data);
+				SendNoise(data, length);
 				break;
 			case NetCode.SENDITEMINHAND:
 				SendItemInHand(data);
@@ -280,47 +289,40 @@ public class Client
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
 		}
+
+		if(!retained)
+			NetBufferPool.Return(data);
 	}
 
 	// Permits the loading of Game Scene
 	private void AcceptConnect(){
 		this.cl.CONNECTEDTOSERVER = true;
-		Debug.Log("Connected to Server at " + this.socket.RemoteEndPoint.ToString());
+		Debug.Log("Connected to Server at " + this.connection.GetRemoteAddress());
 	}
 
 	// Receives Player Information saved on server on startup
 	private void SendServerInfo(byte[] data){
-		float x, y, z, xDir, yDir, zDir;
-		uint day;
-		byte hour, minute;
-		CastCoord initialCoord;
+		float3 pos = NetDecoder.ReadFloat3(data, 1);
+		float3 dir = NetDecoder.ReadFloat3(data, 13);
+		uint day = NetDecoder.ReadUint(data, 25);
+		byte hour = data[29];
+		byte minute = data[30];
 
-		x = NetDecoder.ReadFloat(data, 1);
-		y = NetDecoder.ReadFloat(data, 5);
-		z = NetDecoder.ReadFloat(data, 9);
-		xDir = NetDecoder.ReadFloat(data, 13);
-		yDir = NetDecoder.ReadFloat(data, 17);
-		zDir = NetDecoder.ReadFloat(data, 21);
-
-		day = NetDecoder.ReadUint(data, 25);
-		hour = data[29];
-		minute = data[30];
+		this.ownNetID = NetDecoder.ReadUint(data, 31);
+		this.hasOwnNetID = true;
 
 		this.cl.time.SetTime(day, hour, minute);
 
-		this.cl.playerX = x;
-		this.cl.playerY = y;
-		this.cl.playerZ = z;
-		this.cl.playerDirX = xDir;
-		this.cl.playerDirY = yDir;
-		this.cl.playerDirZ = zDir;
+		this.cl.playerX = pos.x;
+		this.cl.playerY = pos.y;
+		this.cl.playerZ = pos.z;
+		this.cl.playerDirX = dir.x;
+		this.cl.playerDirY = dir.y;
+		this.cl.playerDirZ = dir.z;
 		this.cl.PLAYERSPAWNED = true;
 
-		// Finds current Chunk and sends position data
-		initialCoord = new CastCoord(x, y, z);
-
 		NetMessage message = new NetMessage(NetCode.REQUESTCHARACTERSHEET);
-		message.RequestCharacterExistence(Configurations.accountID);
+		message.RequestCharacterSheet(Configurations.accountID);
 		this.Send(message);
 	}
 
@@ -332,79 +334,109 @@ public class Client
 		this.cl.EnqueueChunkData(pos, data, (NetCode)data[0] == NetCode.STREAMCHUNK);
 	}
 
-	// Receives a disconnect call from server
+	// Receives a disconnect call from server or loses the connection
 	private void Disconnect(){
-		this.socket.Close();
+		if(this.cl == null || this.cl.client == null)
+			return;
+
+		Shutdown(notifyServer:false);
 		Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        this.cl.Cleanup(comesFromClient:true);
-        SceneManager.LoadScene("Blank");
+		Cursor.visible = true;
+		this.cl.Cleanup(comesFromClient:true);
+		SceneManager.LoadScene("Blank");
 	}
 
-	// Receives a Direct Block Update from server
-	private void DirectBlockUpdate(byte[] data){
-		ChunkPos pos;
+	// Receives the new data of a single voxel
+	private void BlockUpdate(byte[] data){
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 		int x, y, z;
-		ushort blockCode, state, hp;
-		BUDCode type;
+		BUDCode type = (BUDCode)data[12];
+		ushort blockCode = NetDecoder.ReadUshort(data, 13);
+		ushort state = NetDecoder.ReadUshort(data, 15);
+		ushort hp = NetDecoder.ReadUshort(data, 17);
+		Chunk c;
 
-		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 10);
-		y = NetDecoder.ReadInt(data, 14);
-		z = NetDecoder.ReadInt(data, 18);
-		int facing = NetDecoder.ReadInt(data, 22);
+		NetDecoder.ReadLocalPos(data, 10, out x, out y, out z);
 
-		blockCode = NetDecoder.ReadUshort(data, 26);
-		state = NetDecoder.ReadUshort(data, 28);
-		hp = NetDecoder.ReadUshort(data, 30);
-		type = (BUDCode)NetDecoder.ReadInt(data, 32);
+		if(!this.cl.Contains(pos))
+			return;
+
+		c = this.cl.Get(pos);
 
 		switch(type){
 			case BUDCode.PLACE:
-				if(this.cl.Contains(pos)){
-					this.cl.Get(pos).data.SetCell(x, y, z, blockCode);
-					this.cl.Get(pos).metadata.SetState(x, y, z, state);
-					this.cl.Get(pos).metadata.SetHP(x, y, z, hp);
-					this.cl.Get(pos).data.CalculateHeightMap(x, z);
-					this.cl.AddToUpdate(pos);
-					CheckReload(pos, x, y, z);
-				}
+				c.data.SetCell(x, y, z, blockCode);
+				c.metadata.SetState(x, y, z, state);
+				c.metadata.SetHP(x, y, z, hp);
+				c.data.CalculateHeightMap(x, z);
+				this.cl.AddToUpdate(pos);
+				ReloadNeighbors(pos, GetReloadMask(pos, x, y, z));
 				break;
 			case BUDCode.BREAK:
-				if(this.cl.Contains(pos)){
-					this.cl.Get(pos).data.SetCell(x, y, z, 0);
-					this.cl.Get(pos).metadata.Reset(x,y,z);
-					this.cl.Get(pos).data.CalculateHeightMap(x, z);
-					this.cl.AddToUpdate(pos);
-					CheckReload(pos, x, y, z);
-				}	
+				c.data.SetCell(x, y, z, 0);
+				c.metadata.Reset(x,y,z);
+				c.data.CalculateHeightMap(x, z);
+				this.cl.AddToUpdate(pos);
+				ReloadNeighbors(pos, GetReloadMask(pos, x, y, z));
 				break;
 			case BUDCode.CHANGE:
-				if(this.cl.Contains(pos)){
-					this.cl.Get(pos).data.SetCell(x, y, z, blockCode);
-					this.cl.Get(pos).metadata.SetState(x, y, z, state);
-					this.cl.Get(pos).metadata.SetHP(x, y, z, hp);
-					this.cl.AddToUpdate(pos);
-				}
+				c.data.SetCell(x, y, z, blockCode);
+				c.metadata.SetState(x, y, z, state);
+				c.metadata.SetHP(x, y, z, hp);
+				this.cl.AddToUpdate(pos);
 				break;
 			default:
 				break;
 		}
 	}
 
+	// Receives the new data of many voxels of a chunk. The chunk and its affected neighbors are only redrawn once
+	private void BlockBatch(byte[] data){
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+		int count = NetDecoder.ReadUshort(data, 10);
+		int offset = 12;
+		int reloadMask = 0;
+		int x, y, z;
+		Chunk c;
+
+		if(!this.cl.Contains(pos))
+			return;
+
+		c = this.cl.Get(pos);
+		Array.Clear(this.cachedColumns, 0, this.cachedColumns.Length);
+
+		for(int i=0; i < count; i++){
+			NetDecoder.ReadLocalPos(data, offset, out x, out y, out z);
+
+			c.data.SetCell(x, y, z, NetDecoder.ReadUshort(data, offset+2));
+			c.metadata.SetState(x, y, z, NetDecoder.ReadUshort(data, offset+4));
+			c.metadata.SetHP(x, y, z, NetDecoder.ReadUshort(data, offset+6));
+
+			this.cachedColumns[x*Chunk.chunkWidth+z] = true;
+			reloadMask |= GetReloadMask(pos, x, y, z);
+			offset += 8;
+		}
+
+		for(x=0; x < Chunk.chunkWidth; x++){
+			for(z=0; z < Chunk.chunkWidth; z++){
+				if(this.cachedColumns[x*Chunk.chunkWidth+z])
+					c.data.CalculateHeightMap(x, z);
+			}
+		}
+
+		this.cl.AddToUpdate(pos);
+		ReloadNeighbors(pos, reloadMask);
+	}
+
 	// Receives data on a VFX operation
 	private void VFXData(byte[] data){
-		ChunkPos pos;
-		int x,y,z,facing;
-		ushort blockCode, state;
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+		int x, y, z;
+		int facing = (sbyte)data[12];
+		ushort blockCode = NetDecoder.ReadUshort(data, 13);
+		ushort state = NetDecoder.ReadUshort(data, 15);
 
-		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 10);
-		y = NetDecoder.ReadInt(data, 14);
-		z = NetDecoder.ReadInt(data, 18);
-		facing = NetDecoder.ReadInt(data, 22);
-		blockCode = NetDecoder.ReadUshort(data, 26);
-		state = NetDecoder.ReadUshort(data, 28);
+		NetDecoder.ReadLocalPos(data, 10, out x, out y, out z);
 
 		if(blockCode <= ushort.MaxValue/2){
 			VoxelLoader.GetBlock(blockCode).OnVFXBuild(pos, x, y, z, facing, state, cl);
@@ -416,17 +448,13 @@ public class Client
 
 	// Receives change in state of a VFX
 	private void VFXChange(byte[] data){
-		ChunkPos pos;
-		int x,y,z,facing;
-		ushort blockCode, state;
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+		int x, y, z;
+		int facing = (sbyte)data[12];
+		ushort blockCode = NetDecoder.ReadUshort(data, 13);
+		ushort state = NetDecoder.ReadUshort(data, 15);
 
-		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 10);
-		y = NetDecoder.ReadInt(data, 14);
-		z = NetDecoder.ReadInt(data, 18);
-		facing = NetDecoder.ReadInt(data, 22);
-		blockCode = NetDecoder.ReadUshort(data, 26);
-		state = NetDecoder.ReadUshort(data, 28);
+		NetDecoder.ReadLocalPos(data, 10, out x, out y, out z);
 
 		if(blockCode <= ushort.MaxValue/2){
 			VoxelLoader.GetBlock(blockCode).OnVFXChange(pos, x, y, z, facing, state, cl);
@@ -438,16 +466,12 @@ public class Client
 
 	// Receives a deletion of a VFX
 	private void VFXBreak(byte[] data){
-		ChunkPos pos;
-		int x,y,z;
-		ushort blockCode, state;
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+		int x, y, z;
+		ushort blockCode = NetDecoder.ReadUshort(data, 12);
+		ushort state = NetDecoder.ReadUshort(data, 14);
 
-		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 10);
-		y = NetDecoder.ReadInt(data, 14);
-		z = NetDecoder.ReadInt(data, 18);
-		blockCode = NetDecoder.ReadUshort(data, 22);
-		state = NetDecoder.ReadUshort(data, 24);
+		NetDecoder.ReadLocalPos(data, 10, out x, out y, out z);
 
 		if(blockCode <= ushort.MaxValue/2){
 			VoxelLoader.GetBlock(blockCode).OnVFXBreak(pos, x, y, z, state, cl);
@@ -466,141 +490,228 @@ public class Client
 		this.cl.time.SetTime(days, hours, minutes);
 	}
 
-	// Receives data regarding an entity
-	private void PlayerLocation(byte[] data){
-		ulong code = NetDecoder.ReadUlong(data, 1);
-		float3 pos = NetDecoder.ReadFloat3(data, 9);
-		float3 dir = NetDecoder.ReadFloat3(data, 21);
-		uint timestamp = NetDecoder.ReadUint(data, 33);
+	// Receives a player that became visible, already with its CharacterSheet
+	private void PlayerSpawn(byte[] data){
+		uint netID = NetDecoder.ReadUint(data, 1);
+		ulong code = NetDecoder.ReadUlong(data, 5);
+		float3 pos = NetDecoder.ReadFloat3(data, 13);
+		float3 dir = new float3(NetDecoder.ReadAngle(data, 25), NetDecoder.ReadAngle(data, 27), 0f);
+		uint timestamp = NetDecoder.ReadUint(data, 29);
+		CharacterSheet sheet = NetDecoder.ReadCharacterSheetNet(data, 33, compactAppearance:true);
 
+		this.playerNetIDs[netID] = code;
+
+		// Spawned again without being deleted
 		if(this.entityHandler.Contains(EntityType.PLAYER, code)){
 			this.smoothMovement.AddSnapshot(EntityType.PLAYER, code, timestamp, pos, dir);
+			return;
+		}
+
+		this.entityHandler.AddPlayer(code, pos, dir);
+		this.entityHandler.AddPlayerSheet(code, sheet);
+		this.smoothMovement.AddPlayer(code, timestamp, pos, dir);
+		this.entityHandler.UpdatePlayerModel(code, sheet.GetCharacterAppearance(), sheet.GetGender());
+	}
+
+	// Receives a dropped item that became visible
+	private void DropSpawn(byte[] data){
+		ulong code = NetDecoder.ReadUint(data, 1);
+		float3 pos = NetDecoder.ReadFloat3(data, 5);
+		float standing = NetDecoder.ReadBool(data, 17) ? 1f : 0f;
+		float3 rot = new float3(standing, NetDecoder.ReadAngle(data, 18), NetDecoder.ReadAngle(data, 20));
+		ItemStack its = new ItemStack(NetDecoder.ReadUshort(data, 22), data[24]);
+		uint timestamp = NetDecoder.ReadUint(data, 25);
+
+		// rot.x carries the standing flag
+		if(this.entityHandler.Contains(EntityType.DROP, code)){
+			this.smoothMovement.AddSnapshot(EntityType.DROP, code, timestamp, pos, rot);
+			this.entityHandler.ToggleItemAnimation(EntityType.DROP, code, standing);
 		}
 		else{
-			this.entityHandler.AddPlayer(code, pos, dir);
-			this.smoothMovement.AddPlayer(code, timestamp, pos, dir);
-
-			NetMessage charSheetMessage = new NetMessage(NetCode.REQUESTCHARACTERSHEET);
-			charSheetMessage.RequestCharacterSheet(code);
-			this.Send(charSheetMessage);
-
-			NetMessage message = new NetMessage(NetCode.REQUESTPLAYERAPPEARANCE);
-			message.RequestPlayerAppearance(code);
-			this.Send(message);
+			this.entityHandler.AddItem(code, pos, rot, its);
+			this.entityHandler.ToggleItemAnimation(EntityType.DROP, code, standing);
+			this.smoothMovement.AddItem(code, timestamp, pos);
 		}
 	}
 
-	// Receives a player information
-	private void SendPlayerAppearance(byte[] data){
-		ulong code = NetDecoder.ReadUlong(data, 1);
-		CharacterAppearance app = NetDecoder.ReadCharacterAppearance(data, 9);
-		bool isMale = NetDecoder.ReadBool(data, 256);
+	// Receives the movement of every visible entity that moved in a Server frame
+	private void EntityUpdates(byte[] data){
+		int offset = 1;
+		int count;
+		ulong code;
+		float3 pos;
+		float standing;
+		uint timestamp;
 
-		this.entityHandler.UpdatePlayerModel(code, app, isMale);
-	}
+		count = NetDecoder.ReadUshort(data, offset);
+		offset += 2;
 
-	// Receives a character's sheet from Server
-	private void SendCharSheet(byte[] data){
-		ulong code = NetDecoder.ReadUlong(data, 1);
-		CharacterSheet sheet = NetDecoder.ReadCharacterSheet(data, 9);
+		for(int i=0; i < count; i++){
+			if(this.playerNetIDs.TryGetValue(NetDecoder.ReadUint(data, offset), out code)){
+				pos = NetDecoder.ReadFloat3(data, offset+4);
+				timestamp = NetDecoder.ReadUint(data, offset+20);
+				this.smoothMovement.AddSnapshot(EntityType.PLAYER, code, timestamp, pos, new float3(NetDecoder.ReadAngle(data, offset+16), NetDecoder.ReadAngle(data, offset+18), 0f));
+			}
 
-		if(code == Configurations.accountID){
-			this.entityHandler.AddPlayerSheet(code, sheet);
-			this.cl.playerSheetController.SetSheet(sheet);
-			this.cl.hotbarHandler.ScrollToNormalSlot((byte)(sheet.GetHotbarSlot() - InventoryLoader.GetInventorySize("ACTION_HOTBAR")));
-			this.cl.hotbarHandler.ScrollToActionSlot(sheet.GetAttackHotbarSlot());
-			this.cl.playerActionController.UseStyle(sheet.GetBattleStyleCode());
+			offset += EntityUpdateBatcher.PLAYER_ENTRY_SIZE;
 		}
-		else{
-			this.entityHandler.AddPlayerSheet(code, sheet);			
+
+		count = NetDecoder.ReadUshort(data, offset);
+		offset += 2;
+
+		for(int i=0; i < count; i++){
+			code = NetDecoder.ReadUint(data, offset);
+
+			if(this.entityHandler.Contains(EntityType.DROP, code)){
+				pos = NetDecoder.ReadFloat3(data, offset+4);
+				standing = NetDecoder.ReadBool(data, offset+16) ? 1f : 0f;
+				timestamp = NetDecoder.ReadUint(data, offset+17);
+
+				this.smoothMovement.AddSnapshot(EntityType.DROP, code, timestamp, pos, new float3(standing, 0f, 0f));
+				this.entityHandler.ToggleItemAnimation(EntityType.DROP, code, standing);
+			}
+
+			offset += EntityUpdateBatcher.DROP_ENTRY_SIZE;
 		}
 	}
 
 	// Receives entity deletion command
 	private void EntityDelete(byte[] data){
-		EntityType type = (EntityType)data[1];
-		ulong code = NetDecoder.ReadUlong(data, 2);
+		RemoveEntity((EntityType)data[1], NetDecoder.ReadUint(data, 2));
+	}
+
+	// Receives the deletion of many entities, usually because their chunk was unloaded
+	private void EntityDeleteBatch(byte[] data){
+		int offset = 1;
+		int count;
+
+		count = NetDecoder.ReadUshort(data, offset);
+		offset += 2;
+
+		for(int i=0; i < count; i++){
+			RemoveEntity(EntityType.PLAYER, NetDecoder.ReadUint(data, offset));
+			offset += 4;
+		}
+
+		count = NetDecoder.ReadUshort(data, offset);
+		offset += 2;
+
+		for(int i=0; i < count; i++){
+			RemoveEntity(EntityType.DROP, NetDecoder.ReadUint(data, offset));
+			offset += 4;
+		}
+	}
+
+	private void RemoveEntity(EntityType type, uint id){
+		ulong code;
+
+		if(type == EntityType.PLAYER){
+			if(!this.playerNetIDs.TryGetValue(id, out code))
+				return;
+
+			this.playerNetIDs.Remove(id);
+		}
+		else{
+			code = id;
+		}
 
 		this.entityHandler.Remove(type, code);
 		this.smoothMovement.Remove(type, code);
 	}
 
-
-	// Returns a byte array representation of a int
-	private byte[] LengthPacket(int a){
-		byte[] output = new byte[4];
-
-		output[0] = (byte)(a >> 24);
-		output[1] = (byte)(a >> 16);
-		output[2] = (byte)(a >> 8);
-		output[3] = (byte)a;
-
-		return output;
+	// Finds the AccountID of a remote player
+	private bool TryGetPlayer(uint netID, out ulong code){
+		return this.playerNetIDs.TryGetValue(netID, out code);
 	}
 
-	// Signals to a neighbor chunk to be reloaded after a BUD
-	private void CheckReload(ChunkPos pos, int x, int y, int z){
-		ChunkPos temp;
+	// Receives the own character's sheet from Server
+	private void SendCharSheet(byte[] data){
+		ulong code = NetDecoder.ReadUlong(data, 1);
+		CharacterSheet sheet = NetDecoder.ReadCharacterSheetNet(data, 9, compactAppearance:false);
 
-		if(x == 0){
-			temp = new ChunkPos(pos.x-1, pos.z, pos.y);
-			if(this.cl.Contains(temp))
-				this.cl.AddToUpdate(temp);
-		}
+		this.entityHandler.AddPlayerSheet(code, sheet);
 
-		if(x == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x+1, pos.z, pos.y);
-			if(this.cl.Contains(temp))
-				this.cl.AddToUpdate(temp);
+		if(code == Configurations.accountID){
+			this.cl.playerSheetController.SetSheet(sheet);
+			this.cl.hotbarHandler.ScrollToNormalSlot((byte)(sheet.GetHotbarSlot() - InventoryLoader.GetInventorySize("ACTION_HOTBAR")));
+			this.cl.hotbarHandler.ScrollToActionSlot(sheet.GetAttackHotbarSlot());
+			this.cl.playerActionController.UseStyle(sheet.GetBattleStyleCode());
 		}
+	}
 
-		if(z == 0){
-			temp = new ChunkPos(pos.x, pos.z-1, pos.y);
-			if(this.cl.Contains(temp))
-				this.cl.AddToUpdate(temp);			
-		}
+	// Gets the flags of every neighbor chunk that touches a voxel
+	private int GetReloadMask(ChunkPos pos, int x, int y, int z){
+		int mask = 0;
+		bool xMin = x == 0;
+		bool xMax = x == Chunk.chunkWidth-1;
+		bool zMin = z == 0;
+		bool zMax = z == Chunk.chunkWidth-1;
 
-		if(z == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x, pos.z+1, pos.y);
-			if(this.cl.Contains(temp))
-				this.cl.AddToUpdate(temp);
-		}
+		if(xMin)
+			mask |= RELOAD_XM;
+		if(xMax)
+			mask |= RELOAD_XP;
+		if(zMin)
+			mask |= RELOAD_ZM;
+		if(zMax)
+			mask |= RELOAD_ZP;
+		if(y == 0 && pos.y > 0)
+			mask |= RELOAD_YM;
+		if(y == Chunk.chunkDepth-1 && pos.y < Chunk.chunkMaxY)
+			mask |= RELOAD_YP;
+		if(xMin && zMin)
+			mask |= RELOAD_XMZM;
+		if(xMax && zMin)
+			mask |= RELOAD_XPZM;
+		if(xMax && zMax)
+			mask |= RELOAD_XPZP;
+		if(xMin && zMax)
+			mask |= RELOAD_XMZP;
 
-		if(y == 0 && pos.y > 0){
-			temp = new ChunkPos(pos.x, pos.z, pos.y-1);
-			if(this.cl.Contains(temp))
-				this.cl.AddToUpdate(temp);
-		}
+		return mask;
+	}
 
-		if(y == Chunk.chunkDepth-1 && pos.y < Chunk.chunkMaxY){
-			temp = new ChunkPos(pos.x, pos.z, pos.y+1);
-			if(this.cl.Contains(temp))
-				this.cl.AddToUpdate(temp);
-		}
+	private static readonly int RELOAD_XM = 1;
+	private static readonly int RELOAD_XP = 2;
+	private static readonly int RELOAD_ZM = 4;
+	private static readonly int RELOAD_ZP = 8;
+	private static readonly int RELOAD_YM = 16;
+	private static readonly int RELOAD_YP = 32;
+	private static readonly int RELOAD_XMZM = 64;
+	private static readonly int RELOAD_XPZM = 128;
+	private static readonly int RELOAD_XPZP = 256;
+	private static readonly int RELOAD_XMZP = 512;
 
-		if(x == 0 && z == 0){
-			temp = new ChunkPos(pos.x-1, pos.z-1, pos.y);
-			if(this.cl.Contains(temp))
-				this.cl.AddToUpdate(temp);
-		}
+	// Signals neighbor chunks to be reloaded after voxels on their border changed
+	private void ReloadNeighbors(ChunkPos pos, int mask){
+		if(mask == 0)
+			return;
 
-		if(x == Chunk.chunkWidth-1 && z == 0){
-			temp = new ChunkPos(pos.x+1, pos.z-1, pos.y);
-			if(this.cl.Contains(temp))
-				this.cl.AddToUpdate(temp);
-		}
+		if((mask & RELOAD_XM) != 0)
+			ReloadIfLoaded(new ChunkPos(pos.x-1, pos.z, pos.y));
+		if((mask & RELOAD_XP) != 0)
+			ReloadIfLoaded(new ChunkPos(pos.x+1, pos.z, pos.y));
+		if((mask & RELOAD_ZM) != 0)
+			ReloadIfLoaded(new ChunkPos(pos.x, pos.z-1, pos.y));
+		if((mask & RELOAD_ZP) != 0)
+			ReloadIfLoaded(new ChunkPos(pos.x, pos.z+1, pos.y));
+		if((mask & RELOAD_YM) != 0)
+			ReloadIfLoaded(new ChunkPos(pos.x, pos.z, pos.y-1));
+		if((mask & RELOAD_YP) != 0)
+			ReloadIfLoaded(new ChunkPos(pos.x, pos.z, pos.y+1));
+		if((mask & RELOAD_XMZM) != 0)
+			ReloadIfLoaded(new ChunkPos(pos.x-1, pos.z-1, pos.y));
+		if((mask & RELOAD_XPZM) != 0)
+			ReloadIfLoaded(new ChunkPos(pos.x+1, pos.z-1, pos.y));
+		if((mask & RELOAD_XPZP) != 0)
+			ReloadIfLoaded(new ChunkPos(pos.x+1, pos.z+1, pos.y));
+		if((mask & RELOAD_XMZP) != 0)
+			ReloadIfLoaded(new ChunkPos(pos.x-1, pos.z+1, pos.y));
+	}
 
-		if(x == Chunk.chunkWidth-1 && z == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x+1, pos.z+1, pos.y);
-			if(this.cl.Contains(temp))
-				this.cl.AddToUpdate(temp);
-		}
-
-		if(x == 0 && z == Chunk.chunkWidth-1){
-			temp = new ChunkPos(pos.x-1, pos.z+1, pos.y);
-			if(this.cl.Contains(temp))
-				this.cl.AddToUpdate(temp);
-		}
+	private void ReloadIfLoaded(ChunkPos pos){
+		if(this.cl.Contains(pos))
+			this.cl.AddToUpdate(pos);
 	}
 
 	// Gives back the denied placed item to the slot it came from
@@ -614,79 +725,47 @@ public class Client
 		this.cl.playerInventoryManager.RestorePlacedItem(itemID, inventoryCode, slot, actionSlot, actionID);
 	}
 
-	// Received information on an Item Entity
-	private void ItemEntityData(byte[] data){
-		ItemStack its;
-		float3 pos, rot;
-		ulong code;
-		uint timestamp;
-
-		pos = NetDecoder.ReadFloat3(data, 1);
-		rot = NetDecoder.ReadFloat3(data, 13);
-		its = new ItemStack(NetDecoder.ReadUshort(data, 25), data[27]);
-		code = NetDecoder.ReadUlong(data, 28);
-		timestamp = NetDecoder.ReadUint(data, 36);
-
-		// rot.x carries the standing flag
-		if(this.entityHandler.Contains(EntityType.DROP, code)){
-			this.smoothMovement.AddSnapshot(EntityType.DROP, code, timestamp, pos, rot);
-			this.entityHandler.ToggleItemAnimation(EntityType.DROP, code, rot.x);
-		}
-		else{
-			this.entityHandler.AddItem(code, pos, rot, its);
-			this.entityHandler.ToggleItemAnimation(EntityType.DROP, code, rot.x);
-			this.smoothMovement.AddItem(code, timestamp, pos);
-		}
-	}
-
 	// Receives block damage information from server
 	private void BlockDamage(byte[] data){
-		ChunkPos pos;
-		int x,y,z;
-		ushort newHP;
-		bool shouldRedraw;
-		Chunk c;
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+		int x, y, z;
+		ushort newHP = NetDecoder.ReadUshort(data, 12);
+		bool shouldRedraw = NetDecoder.ReadBool(data, 14);
 
-		pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 10);
-		y = NetDecoder.ReadInt(data, 14);
-		z = NetDecoder.ReadInt(data, 18);
-		newHP = NetDecoder.ReadUshort(data, 22);
-		shouldRedraw = NetDecoder.ReadBool(data, 24);
+		NetDecoder.ReadLocalPos(data, 10, out x, out y, out z);
 
-		if(this.cl.Contains(pos)){
-			c = this.cl.Get(pos);
-			c.metadata.SetHP(x, y, z, newHP);
+		if(!this.cl.Contains(pos))
+			return;
 
-			if(shouldRedraw){
-				this.cl.AddToUpdate(pos);
-				CheckReload(pos, x, y, z);
-			}
+		this.cl.Get(pos).metadata.SetHP(x, y, z, newHP);
+
+		if(shouldRedraw){
+			this.cl.AddToUpdate(pos);
+			ReloadNeighbors(pos, GetReloadMask(pos, x, y, z));
 		}
 	}
 
 	// Receives player inventory information from server and builds into player inventory
-	private void SendInventory(byte[] data){
+	private void SendInventory(byte[] data, int length){
 		if(this.playerInventoryManager == null)
 			this.playerInventoryManager = this.cl.playerInventoryManager;
 
 		if(this.hotbarHandler == null)
 			this.hotbarHandler = this.cl.hotbarHandler;
 
-		this.playerInventoryManager.LoadFromBytes(data, 1);
+		this.playerInventoryManager.LoadFromBytes(data, 1, length);
 		this.hotbarHandler.SetHotbar(this.playerInventoryManager.GetMainInventory());	
 		this.hotbarHandler.SetActionHotbar(this.playerInventoryManager.GetActionInventory());	
 	}
 
 	// Receives a request to register an SFX into SFXLoader
 	private void SFXPlay(byte[] data){
-		int x,y,z;
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
-		x = NetDecoder.ReadInt(data, 10);
-		y = NetDecoder.ReadInt(data, 14);
-		z = NetDecoder.ReadInt(data, 18);
-		ushort blockCode = NetDecoder.ReadUshort(data, 22);
-		ushort state = NetDecoder.ReadUshort(data, 24);
+		int x, y, z;
+		ushort blockCode = NetDecoder.ReadUshort(data, 12);
+		ushort state = NetDecoder.ReadUshort(data, 14);
+
+		NetDecoder.ReadLocalPos(data, 10, out x, out y, out z);
 
 		if(blockCode <= ushort.MaxValue/2){
 			VoxelLoader.GetBlock(blockCode).OnSFXPlay(pos, x, y, z, state, cl);
@@ -696,132 +775,98 @@ public class Client
 		}
 	}
 
-	// Receives weather Noise information from client
-	private void SendNoise(byte[] data){
-		Array.Copy(GenerationSeed.weatherNoise, 0, data, 1, data.Length-5);
-		int seed = NetDecoder.ReadInt(data, data.Length-4);
-		World.worldSeed = seed;
+	// Receives weather Noise information from server
+	private void SendNoise(byte[] data, int length){
+		World.worldSeed = NetDecoder.ReadInt(data, 1);
+		Array.Copy(data, 5, GenerationSeed.weatherNoise, 0, Math.Min(length - 5, GenerationSeed.weatherNoise.Length));
 	}
 
 	// Receives the item code for an item a player is holding
 	private void SendItemInHand(byte[] data){
-		ulong playerCode = NetDecoder.ReadUlong(data, 1);
-		bool isItem = NetDecoder.ReadBool(data, 9);
-		ushort id = NetDecoder.ReadUshort(data, 10);
-		ushort connectedItem = NetDecoder.ReadUshort(data, 12);
-		byte amount = data[14];
+		ulong playerCode;
 
-		if(playerCode != Configurations.accountID)
-			this.entityHandler.UpdatePlayerItem(playerCode, id, connectedItem, isItem, amount);
+		if(!TryGetPlayer(NetDecoder.ReadUint(data, 1), out playerCode))
+			return;
+
+		bool isItem = NetDecoder.ReadBool(data, 5);
+		ushort id = NetDecoder.ReadUshort(data, 6);
+		ushort connectedItem = NetDecoder.ReadUshort(data, 8);
+		byte amount = data[10];
+
+		this.entityHandler.UpdatePlayerItem(playerCode, id, connectedItem, isItem, amount);
 	}
 
 	// Receives from server a single AnimationState for a player
 	private void SendAnimationLayer(byte[] data){
-		ulong playerCode = NetDecoder.ReadUlong(data, 1);
-		int layer = NetDecoder.ReadInt(data, 9);
-		ushort nameSize = NetDecoder.ReadUshort(data, 13);
-		string stateName = NetDecoder.ReadString(data, 15, nameSize);
+		ulong playerCode;
 
-		if(playerCode != Configurations.accountID){
-			this.entityHandler.AnimateBone(playerCode, stateName, layer);
-		}
+		if(!TryGetPlayer(NetDecoder.ReadUint(data, 1), out playerCode))
+			return;
+
+		this.entityHandler.AnimateBone(playerCode, NetDecoder.ReadInt(data, 6), data[5]);
 	}
 
-	// Receives from server a single BattleStyle name for a player and the items that skin its attachments
+	// Receives from server a single BattleStyle for a player and the items that skin its attachments
 	private void SendBattleStyle(byte[] data){
-		ulong playerCode = NetDecoder.ReadUlong(data, 1);
-		int styleCode = NetDecoder.ReadInt(data, 9);
-		AttachmentItems items = new AttachmentItems(NetDecoder.ReadUshort(data, 13), NetDecoder.ReadUshort(data, 15));
-		
-		if(playerCode != Configurations.accountID)
-			this.entityHandler.ChangePlayerBattleStyle(playerCode, styleCode, items);
-		else{
+		uint netID = NetDecoder.ReadUint(data, 1);
+		int styleCode = NetDecoder.ReadInt(data, 5);
+		AttachmentItems items = new AttachmentItems(NetDecoder.ReadUshort(data, 9), NetDecoder.ReadUshort(data, 11));
+		ulong playerCode;
+
+		if(this.hasOwnNetID && netID == this.ownNetID)
 			this.cl.playerActionController.UseStyle(styleCode, items);
-		}
+		else if(TryGetPlayer(netID, out playerCode))
+			this.entityHandler.ChangePlayerBattleStyle(playerCode, styleCode, items);
 	}
 
 	// Receives from server a parameter from an animator
-	// Needs to be expanded later to accomodate all entities
 	private void SendAnimatorParameter(byte[] data){
-		ulong playerCode = NetDecoder.ReadUlong(data, 1);
-		float val = NetDecoder.ReadFloat(data, 9);
-		string parameter = NetDecoder.ReadString(data, 13, data.Length - 13);
+		ulong playerCode;
 
-		if(playerCode != Configurations.accountID)
-			this.entityHandler.SetAnimatorParameter(EntityType.PLAYER, playerCode, parameter, val);
+		if(!TryGetPlayer(NetDecoder.ReadUint(data, 1), out playerCode))
+			return;
+
+		this.entityHandler.SetAnimatorParameter(EntityType.PLAYER, playerCode, NetDecoder.ReadInt(data, 5), NetDecoder.ReadFloat(data, 9));
 	}
 
 	// Receives from server the creation or destruction of an SFX attached to another player
 	private void EntitySFX(byte[] data){
-		ulong playerCode = NetDecoder.ReadUlong(data, 1);
-		EntitySFXOperation operation = (EntitySFXOperation)NetDecoder.ReadByte(data, 9);
-		EntitySFXData sfx = NetDecoder.ReadEntitySFXData(data, 10);
+		ulong playerCode;
 
-		if(playerCode != Configurations.accountID)
-			this.entityHandler.PlayerSFX(playerCode, operation, sfx);
+		if(!TryGetPlayer(NetDecoder.ReadUint(data, 1), out playerCode))
+			return;
+
+		EntitySFXOperation operation = (EntitySFXOperation)data[5];
+		EntitySFXData sfx = NetDecoder.ReadEntitySFXData(data, 6);
+
+		this.entityHandler.PlayerSFX(playerCode, operation, sfx);
 	}
 
 	// Receives from server the switch of a BattleStyle attachment anchor in another player
 	private void SendAttachmentAnchor(byte[] data){
-		ulong playerCode = NetDecoder.ReadUlong(data, 1);
-		BoneAnchorType origin = (BoneAnchorType)NetDecoder.ReadByte(data, 9);
-		BoneAnchorType target = (BoneAnchorType)NetDecoder.ReadByte(data, 10);
-		bool flip = NetDecoder.ReadBool(data, 11);
-		float heightOffset = NetDecoder.ReadFloat(data, 12);
+		ulong playerCode;
 
-		if(playerCode != Configurations.accountID)
-			this.entityHandler.PlayerAttachmentAnchor(playerCode, origin, target, flip, heightOffset);
+		if(!TryGetPlayer(NetDecoder.ReadUint(data, 1), out playerCode))
+			return;
+
+		BoneAnchorType origin = (BoneAnchorType)data[5];
+		BoneAnchorType target = (BoneAnchorType)data[6];
+		bool flip = NetDecoder.ReadBool(data, 7);
+		float heightOffset = NetDecoder.ReadFloat(data, 8);
+
+		this.entityHandler.PlayerAttachmentAnchor(playerCode, origin, target, flip, heightOffset);
 	}
 
-	// Receives from server a change in equipment from a given client
+	// Receives from server a change in equipment from another player
 	private void EquipItem(byte[] data){
-		ulong playerCode;  
-		MemoryStorageType oldType, newType;
-		int itemBytes = 0;
-		Item newItem, oldItem;
+		ulong playerCode;
+		int oldSize, newSize;
 
-		playerCode = NetDecoder.ReadUlong(data, 1);
-		oldType = (MemoryStorageType)NetDecoder.ReadByte(data, 9);
+		if(!TryGetPlayer(NetDecoder.ReadUint(data, 1), out playerCode))
+			return;
 
-		switch(oldType){
-			case MemoryStorageType.ITEM:
-				oldItem = NetDecoder.ReadItem(data, 10);
-				itemBytes += 2;
-				break;
-			case MemoryStorageType.WEAPON:
-				oldItem = NetDecoder.ReadWeapon(data, 10);
-				itemBytes += 8;
-				break;
-			case MemoryStorageType.SUBWEAPON:
-				oldItem = NetDecoder.ReadSubWeapon(data, 10);
-				itemBytes += 6;
-				break;
-			default:
-				oldItem = NetDecoder.ReadItem(data, 10);
-				itemBytes += 2;
-				break;
-		}
-
-		newType = (MemoryStorageType)NetDecoder.ReadByte(data, 10 + itemBytes);
-
-		switch(newType){
-			case MemoryStorageType.ITEM:
-				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
-				itemBytes += 2;
-				break;
-			case MemoryStorageType.WEAPON:
-				newItem = NetDecoder.ReadWeapon(data, 11 + itemBytes);
-				itemBytes += 8;
-				break;
-			case MemoryStorageType.SUBWEAPON:
-				newItem = NetDecoder.ReadSubWeapon(data, 11 + itemBytes);
-				itemBytes += 6;
-				break;
-			default:
-				newItem = NetDecoder.ReadItem(data, 11 + itemBytes);
-				itemBytes += 2;
-				break;
-		}
+		Item oldItem = NetDecoder.ReadItemDeep(data, 5, out oldSize);
+		Item newItem = NetDecoder.ReadItemDeep(data, 5+oldSize, out newSize);
 
 		oldItem.OnUnequipClient(this.cl, oldItem, playerCode);
 		newItem.OnEquipClient(this.cl, newItem, playerCode);

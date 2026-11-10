@@ -52,7 +52,7 @@ public class PlayerEntityRadar : EntityRadar{
 			heldStack.GetItem().OnHoldServer(this.cl, heldStack, this.ID.code);
 
 			NetMessage message = new NetMessage(NetCode.SENDITEMINHAND);
-			message.SendItemInHand(this.ID.code, true, heldStack.GetID(), heldStack.GetAmount());
+			message.SendItemInHand(this.cl.server.GetPlayerNetID(this.ID.code), true, heldStack.GetID(), heldStack.GetAmount());
 			this.cl.server.SendToClientsExcept(this.ID.code, message);
 		}
 

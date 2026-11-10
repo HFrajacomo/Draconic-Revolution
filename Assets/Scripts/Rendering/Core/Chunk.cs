@@ -20,6 +20,9 @@ public class Chunk
 	public float4 features;
 	public string lastVisitedTime;
 
+	// Server-side record of changed voxels, used to send only them to clients. Null in Clients
+	public ChunkChangeSet changeSet;
+
 	// Collider meshes are cooked in worker threads (BakeColliderJob) with the same options used by the MeshColliders
 	public static readonly MeshColliderCookingOptions COLLIDER_COOKING_OPTIONS = MeshColliderCookingOptions.CookForFasterSimulation | MeshColliderCookingOptions.EnableMeshCleaning | MeshColliderCookingOptions.WeldColocatedVertices | MeshColliderCookingOptions.UseFastMidphase;
 
@@ -149,7 +152,7 @@ public class Chunk
 		message.BatchLoadBUD(this.pos);
 
 		for(int i=0; i < coords.Length; i++){
-			message.AddBatchLoad(coords[i].x, coords[i].y, coords[i].z, 0, 0, 0, 0);
+			message.AddBatchLoad(coords[i].x, coords[i].y, coords[i].z);
 		}
 
 		this.loader.client.Send(message);
@@ -268,6 +271,36 @@ public class Chunk
 	}
 
 
-	public void BuildOnVoxelData(VoxelData vd){this.data = vd;}
-	public void BuildVoxelMetadata(VoxelMetadata vm){this.metadata = vm;}
+	public void BuildOnVoxelData(VoxelData vd){
+		this.data = vd;
+
+		if(this.changeSet != null){
+			vd.SetChangeSet(this.changeSet);
+			this.changeSet.MarkAll();
+		}
+	}
+
+	public void BuildVoxelMetadata(VoxelMetadata vm){
+		this.metadata = vm;
+
+		if(this.changeSet != null){
+			vm.SetChangeSet(this.changeSet);
+			this.changeSet.MarkAll();
+		}
+	}
+
+	// Server-side: starts recording the voxels changed in this chunk, so only them are sent to clients
+	public void EnableChangeTracking(){
+		if(this.changeSet == null)
+			this.changeSet = new ChunkChangeSet(this.pos);
+
+		this.data.SetChangeSet(this.changeSet);
+		this.metadata.SetChangeSet(this.changeSet);
+	}
+
+	// Server-side: the chunk may have changed without going through VoxelData or VoxelMetadata setters
+	public void MarkChanged(){
+		if(this.changeSet != null)
+			this.changeSet.MarkVersion();
+	}
 }

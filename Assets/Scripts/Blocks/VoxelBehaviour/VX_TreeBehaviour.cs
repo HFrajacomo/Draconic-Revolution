@@ -32,8 +32,6 @@ public class VX_TreeBehaviour : VoxelBehaviour{
 	private List<CastCoord> toDestroy = new List<CastCoord>();
 	private HashSet<ChunkPos> toUpdate = new HashSet<ChunkPos>();
 
-	private NetMessage reloadMessage;
-
 
 	private ushort assignedLeafCode;
 	private ushort thisCode;
@@ -450,12 +448,8 @@ public class VX_TreeBehaviour : VoxelBehaviour{
 		}
 	}
 
-    // Sends a DirectBlockUpdate call to users
+    // Sends the voxels changed in the chunk to users
 	public void Update(ChunkPos pos, ChunkLoader_Server cl){
-		if(cl.Contains(pos)){
-			this.reloadMessage = new NetMessage(NetCode.SENDCHUNK);
-			this.reloadMessage.SendChunk(cl.GetChunk(pos));
-			cl.server.SendToClients(pos, this.reloadMessage);
-		}
+		cl.server.SendChunkChanges(pos);
 	}
 }

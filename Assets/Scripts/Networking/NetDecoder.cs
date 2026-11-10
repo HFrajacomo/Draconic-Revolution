@@ -1,13 +1,28 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text;
 using UnityEngine;
 using Unity.Mathematics;
 
+/*
+Binary encoding used by network messages and by save files
+	Methods used by save files (CharacterFileHandler, EntityFileHandler, PlayerData, inventories, region files) must keep their exact byte layout
+	Compact encodings that only travel through the network have their own methods (LocalPos, Angle, String8/16, *Net, *Compact)
+*/
 public static class NetDecoder
 {
-	private static byte[] floatBuffer = new byte[4];
 	private static readonly SpecialEffect NULL_EFFECT = new SpecialEffect(EffectType.NONE);
+	private static readonly int CHARACTER_NAME_SIZE = 20;
+	private static readonly int MAX_SAVED_EFFECTS = 100;
+
+	// Reinterprets floats as ints without allocating
+	[StructLayout(LayoutKind.Explicit)]
+	private struct FloatBits{
+		[FieldOffset(0)] public float f;
+		[FieldOffset(0)] public int i;
+	}
 
 
 	public static ushort ReadUshort(byte[] data, int pos){
@@ -94,12 +109,49 @@ public static class NetDecoder
 		if(size == 0)
 			return "";
 
-		string result = System.Text.Encoding.UTF8.GetString(data, pos, size);
-		return result;
+		return Encoding.UTF8.GetString(data, pos, size);
+	}
+
+	// Reads a UTF-8 string prefixed by its size in bytes (1 byte)
+	public static string ReadString8(byte[] data, int pos, out int bytesRead){
+		int size = data[pos];
+
+		bytesRead = 1 + size;
+		return ReadString(data, pos+1, size);
+	}
+
+	// Reads a UTF-8 string prefixed by its size in bytes (2 bytes)
+	public static string ReadString16(byte[] data, int pos, out int bytesRead){
+		int size = ReadUshort(data, pos);
+
+		bytesRead = 2 + size;
+		return ReadString(data, pos+2, size);
+	}
+
+	// Reads a zero-padded UTF-8 string of a fixed size
+	public static string ReadFixedString(byte[] data, int pos, int length){
+		int size = 0;
+
+		while(size < length && data[pos+size] != 0)
+			size++;
+
+		return ReadString(data, pos, size);
 	}
 
 	public static ChunkPos ReadChunkPos(byte[] data, int pos){
 		return new ChunkPos(NetDecoder.ReadInt(data, pos), NetDecoder.ReadInt(data, pos+4), NetDecoder.ReadByte(data, pos+8));
+	}
+
+	// Reads a voxel coordinate inside a chunk written by WriteLocalPos
+	public static void ReadLocalPos(byte[] data, int pos, out int x, out int y, out int z){
+		x = data[pos] >> 4;
+		z = data[pos] & 0x0F;
+		y = data[pos+1];
+	}
+
+	// Reads an angle in degrees written by WriteAngle
+	public static float ReadAngle(byte[] data, int pos){
+		return NetDecoder.ReadUshort(data, pos) * (360f / 65536f);
 	}
 
 	public static Attribute ReadAttribute(byte[] data, int pos){
@@ -127,16 +179,88 @@ public static class NetDecoder
 		return new CharacterAppearance((Race)data[pos], NetDecoder.ReadRGB(data, pos+1), NetDecoder.ReadClothingInfo(data, pos+13), NetDecoder.ReadClothingInfo(data, pos+52), NetDecoder.ReadClothingInfo(data, pos+91), NetDecoder.ReadClothingInfo(data, pos+130), NetDecoder.ReadClothingInfo(data, pos+169), NetDecoder.ReadClothingInfo(data, pos+208));
 	}
 
+	// Network only: colors with 8 bits per channel
+	public static Color ReadRGB8(byte[] data, int pos){
+		return new Color(data[pos] / 255f, data[pos+1] / 255f, data[pos+2] / 255f);
+	}
+
+	public static ClothingInfo ReadClothingInfoCompact(byte[] data, int pos){ // Size = 12
+		return new ClothingInfo(NetDecoder.ReadUshort(data, pos), NetDecoder.ReadRGB8(data, pos+2), NetDecoder.ReadRGB8(data, pos+5), NetDecoder.ReadRGB8(data, pos+8), NetDecoder.ReadBool(data, pos+11));
+	}
+
+	public static CharacterAppearance ReadCharacterAppearanceCompact(byte[] data, int pos){ // Size = 76
+		return new CharacterAppearance((Race)data[pos], NetDecoder.ReadRGB8(data, pos+1), NetDecoder.ReadClothingInfoCompact(data, pos+4), NetDecoder.ReadClothingInfoCompact(data, pos+16), NetDecoder.ReadClothingInfoCompact(data, pos+28), NetDecoder.ReadClothingInfoCompact(data, pos+40), NetDecoder.ReadClothingInfoCompact(data, pos+52), NetDecoder.ReadClothingInfoCompact(data, pos+64));
+	}
+
 	public static SpecialEffect ReadSpecialEffect(byte[] data, int pos){
 		return new SpecialEffect((EffectType)NetDecoder.ReadUshort(data, pos), (EffectUsecase)NetDecoder.ReadByte(data, pos+2), NetDecoder.ReadByte(data, pos+3), NetDecoder.ReadUshort(data, pos+4), NetDecoder.ReadBool(data, pos+6));
 	}
 
-	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){ // Size = 1210
+	// Save file layout. Size = 1203
+	public static CharacterSheet ReadCharacterSheet(byte[] data, int pos){
 		CharacterSheet cs = new CharacterSheet();
 		SpecialEffect cachedFX;
 
-		cs.SetName(NetDecoder.ReadString(data, pos, 20));
-		pos += 20;
+		cs.SetName(NetDecoder.ReadFixedString(data, pos, CHARACTER_NAME_SIZE));
+		pos += CHARACTER_NAME_SIZE;
+		pos = ReadSheetBody(cs, data, pos);
+		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
+		pos += 247;
+		cs.SetHotbarSlot(NetDecoder.ReadByte(data, pos));
+		pos++;
+		cs.SetAttackHotbarSlot(NetDecoder.ReadByte(data, pos));
+		pos++;
+
+		for(int i=0; i < MAX_SAVED_EFFECTS; i++){
+			cachedFX = NetDecoder.ReadSpecialEffect(data, pos);
+			pos += 7;
+
+			if(cachedFX.GetEffectType() == EffectType.NONE)
+				break;
+
+			cs.GetSpecialEffectHandler().Add(cachedFX);
+		}
+
+		return cs;
+	}
+
+	// Network layout written by WriteCharacterSheetNet
+	public static CharacterSheet ReadCharacterSheetNet(byte[] data, int pos, bool compactAppearance){
+		CharacterSheet cs = new CharacterSheet();
+		int bytesRead;
+		int effectCount;
+
+		cs.SetName(NetDecoder.ReadString8(data, pos, out bytesRead));
+		pos += bytesRead;
+		pos = ReadSheetBody(cs, data, pos);
+
+		if(compactAppearance){
+			cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearanceCompact(data, pos));
+			pos += 76;
+		}
+		else{
+			cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
+			pos += 247;
+		}
+
+		cs.SetHotbarSlot(NetDecoder.ReadByte(data, pos));
+		pos++;
+		cs.SetAttackHotbarSlot(NetDecoder.ReadByte(data, pos));
+		pos++;
+
+		effectCount = data[pos];
+		pos++;
+
+		for(int i=0; i < effectCount; i++){
+			cs.GetSpecialEffectHandler().Add(NetDecoder.ReadSpecialEffect(data, pos));
+			pos += 7;
+		}
+
+		return cs;
+	}
+
+	// Every CharacterSheet field between the name and the appearance. Returns the position after it. Size = 234
+	private static int ReadSheetBody(CharacterSheet cs, byte[] data, int pos){
 		cs.SetAlignment((Alignment)NetDecoder.ReadByte(data, pos));
 		pos++;
 		cs.SetReligion((Religion)NetDecoder.ReadByte(data, pos));
@@ -245,29 +369,12 @@ public static class NetDecoder
 		pos += 5;
 		cs.SetSkill(SkillType.WITCHCRAFT, NetDecoder.ReadSkillEXP(data, pos));
 		pos += 5;
-		cs.SetCharacterAppearance(NetDecoder.ReadCharacterAppearance(data, pos));
-		pos += 247;
-		cs.SetHotbarSlot(NetDecoder.ReadByte(data, pos));
-		pos++;
-		cs.SetAttackHotbarSlot(NetDecoder.ReadByte(data, pos));
-		pos++;
 
-		for(int i=0; i < 100; i++){
-			cachedFX = NetDecoder.ReadSpecialEffect(data, pos);
-			pos += 7;
-
-			if(cachedFX.GetEffectType() == EffectType.NONE)
-				break;
-
-			cs.GetSpecialEffectHandler().Add(cachedFX);
-		}
-
-		return cs;
+		return pos;
 	}
 
 	public static float ReadFloat(byte[] data, int pos){
-		float result = System.BitConverter.ToSingle(data, pos);
-		return result;
+		return System.BitConverter.ToSingle(data, pos);
 	}
 
 	public static float3 ReadFloat3(byte[] data, int pos){
@@ -308,6 +415,21 @@ public static class NetDecoder
 		return sub;
 	}
 
+	// Reads an item written by WriteItemDeep
+	public static Item ReadItemDeep(byte[] data, int pos, out int bytesRead){
+		switch((MemoryStorageType)data[pos]){
+			case MemoryStorageType.WEAPON:
+				bytesRead = 9;
+				return NetDecoder.ReadWeapon(data, pos+1);
+			case MemoryStorageType.SUBWEAPON:
+				bytesRead = 7;
+				return NetDecoder.ReadSubWeapon(data, pos+1);
+			default:
+				bytesRead = 3;
+				return NetDecoder.ReadItem(data, pos+1);
+		}
+	}
+
 	public static EntityAction ReadAction(byte[] data, int pos){
 		EntityAction ea;
 
@@ -333,18 +455,30 @@ public static class NetDecoder
 		return data[pos];
 	}
 
-	// Reads the EntitySFXData part of an ENTITYSFX message (starting after playerCode and operation)
+	// Reads an EntitySFXData written by WriteEntitySFXData
 	public static EntitySFXData ReadEntitySFXData(byte[] data, int pos){
+		int bytesRead;
 		bool isLoop = NetDecoder.ReadBool(data, pos);
 		bool hasAnchor = NetDecoder.ReadBool(data, pos+1);
 		BoneAnchorType anchor = (BoneAnchorType)NetDecoder.ReadByte(data, pos+2);
 		float offsetX = NetDecoder.ReadFloat(data, pos+3);
 		float offsetY = NetDecoder.ReadFloat(data, pos+7);
 		float offsetZ = NetDecoder.ReadFloat(data, pos+11);
-		ushort nameSize = NetDecoder.ReadUshort(data, pos+15);
-		string name = NetDecoder.ReadString(data, pos+17, nameSize);
+		string name = NetDecoder.ReadString8(data, pos+15, out bytesRead);
 
 		return new EntitySFXData(name, isLoop, hasAnchor, anchor, offsetX, offsetY, offsetZ);
+	}
+
+	// Returns the amount of bytes written
+	public static int WriteEntitySFXData(EntitySFXData sfx, byte[] data, int pos){
+		NetDecoder.WriteBool(sfx.isLoop, data, pos);
+		NetDecoder.WriteBool(sfx.hasAnchor, data, pos+1);
+		NetDecoder.WriteByte((byte)sfx.anchor, data, pos+2);
+		NetDecoder.WriteFloat(sfx.offsetX, data, pos+3);
+		NetDecoder.WriteFloat(sfx.offsetY, data, pos+7);
+		NetDecoder.WriteFloat(sfx.offsetZ, data, pos+11);
+
+		return 15 + NetDecoder.WriteString8(sfx.name, data, pos+15);
 	}
 
 	public static void WriteRGB(Color c, byte[] data, int pos){
@@ -353,13 +487,22 @@ public static class NetDecoder
 		NetDecoder.WriteFloat(c.b, data, pos+8);
 	}
 
-	public static void WriteFloat(float a, byte[] data, int pos){
-		NetDecoder.floatBuffer = BitConverter.GetBytes(a);
+	// Network only: colors with 8 bits per channel
+	public static void WriteRGB8(Color c, byte[] data, int pos){
+		data[pos] = (byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f);
+		data[pos+1] = (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f);
+		data[pos+2] = (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f);
+	}
 
-		data[pos] = floatBuffer[0];
-		data[pos+1] = floatBuffer[1];
-		data[pos+2] = floatBuffer[2];
-		data[pos+3] = floatBuffer[3];
+	// Same bytes as BitConverter.GetBytes (little-endian), without allocating
+	public static void WriteFloat(float a, byte[] data, int pos){
+		FloatBits bits = new FloatBits();
+		bits.f = a;
+
+		data[pos] = (byte)bits.i;
+		data[pos+1] = (byte)(bits.i >> 8);
+		data[pos+2] = (byte)(bits.i >> 16);
+		data[pos+3] = (byte)(bits.i >> 24);
 	}
 
 	public static void WriteFloat3(float3 f, byte[] data, int pos){
@@ -378,6 +521,17 @@ public static class NetDecoder
 		NetDecoder.WriteFloat(v.x, data, pos);
 		NetDecoder.WriteFloat(v.y, data, pos+4);
 		NetDecoder.WriteFloat(v.z, data, pos+8);		
+	}
+
+	// Network only: an angle in degrees with a precision of 360/65536 degrees. Size = 2
+	public static void WriteAngle(float degrees, byte[] data, int pos){
+		NetDecoder.WriteUshort((ushort)(Mathf.RoundToInt(Mathf.Repeat(degrees, 360f) * (65536f / 360f)) & 0xFFFF), data, pos);
+	}
+
+	// Network only: a voxel coordinate inside a chunk. Size = 2
+	public static void WriteLocalPos(int x, int y, int z, byte[] data, int pos){
+		data[pos] = (byte)(((x & 0x0F) << 4) | (z & 0x0F));
+		data[pos+1] = (byte)y;
 	}
 
 	public static void WriteItem(Item it, byte[] data, int pos){
@@ -488,12 +642,48 @@ public static class NetDecoder
 		Array.Copy(array, 0, data, pos, array.Length);
 	}
 
-	public static int WriteString(string a, byte[] data, int pos){
-		for(int i=0; i < a.Length; i++){
-			data[pos+i] = (byte)a[i];
+	// Writes a UTF-8 string prefixed by its size in bytes (1 byte). Strings longer than 255 bytes are truncated. Returns the amount of bytes written
+	public static int WriteString8(string a, byte[] data, int pos){
+		int size = WriteTruncatedUTF8(a, data, pos+1, byte.MaxValue);
+
+		data[pos] = (byte)size;
+		return 1 + size;
+	}
+
+	// Writes a UTF-8 string prefixed by its size in bytes (2 bytes). Strings longer than 65535 bytes are truncated. Returns the amount of bytes written
+	public static int WriteString16(string a, byte[] data, int pos){
+		int size = WriteTruncatedUTF8(a, data, pos+2, ushort.MaxValue);
+
+		NetDecoder.WriteUshort((ushort)size, data, pos);
+		return 2 + size;
+	}
+
+	// Writes a UTF-8 string in a fixed size, padded with zeros
+	public static void WriteFixedString(string a, byte[] data, int pos, int length){
+		int size = WriteTruncatedUTF8(a, data, pos, length);
+
+		for(int i=size; i < length; i++)
+			data[pos+i] = 0;
+	}
+
+	// Writes a string as UTF-8, cutting it before maxBytes without splitting characters. Returns the amount of bytes written
+	private static int WriteTruncatedUTF8(string a, byte[] data, int pos, int maxBytes){
+		if(string.IsNullOrEmpty(a))
+			return 0;
+
+		byte[] encoded = Encoding.UTF8.GetBytes(a);
+		int size = encoded.Length;
+
+		if(size > maxBytes){
+			size = maxBytes;
+
+			// Continuation bytes of a multi-byte character start with 10xxxxxx
+			while(size > 0 && (encoded[size] & 0xC0) == 0x80)
+				size--;
 		}
 
-		return a.Length;
+		Array.Copy(encoded, 0, data, pos, size);
+		return size;
 	}
 
 	public static void WriteChunkPos(ChunkPos cp, byte[] data, int pos){
@@ -535,7 +725,28 @@ public static class NetDecoder
 		NetDecoder.WriteClothingInfo(ca.legs, data, pos+91);
 		NetDecoder.WriteClothingInfo(ca.boots, data, pos+130);
 		NetDecoder.WriteClothingInfo(ca.face, data, pos+169);
-		NetDecoder.WriteClothingInfo(ca.face, data, pos+208);
+		NetDecoder.WriteClothingInfo(ca.hair, data, pos+208);
+	}
+
+	// Network only. Size = 12
+	public static void WriteClothingInfoCompact(ClothingInfo i, byte[] data, int pos){
+		NetDecoder.WriteUshort(i.code, data, pos);
+		NetDecoder.WriteRGB8(i.primary, data, pos+2);
+		NetDecoder.WriteRGB8(i.secondary, data, pos+5);
+		NetDecoder.WriteRGB8(i.terciary, data, pos+8);
+		NetDecoder.WriteBool(i.isMale, data, pos+11);
+	}
+
+	// Network only. Size = 76
+	public static void WriteCharacterAppearanceCompact(CharacterAppearance ca, byte[] data, int pos){
+		NetDecoder.WriteByte((byte)ca.race, data, pos);
+		NetDecoder.WriteRGB8(ca.skinColor, data, pos+1);
+		NetDecoder.WriteClothingInfoCompact(ca.hat, data, pos+4);
+		NetDecoder.WriteClothingInfoCompact(ca.torso, data, pos+16);
+		NetDecoder.WriteClothingInfoCompact(ca.legs, data, pos+28);
+		NetDecoder.WriteClothingInfoCompact(ca.boots, data, pos+40);
+		NetDecoder.WriteClothingInfoCompact(ca.face, data, pos+52);
+		NetDecoder.WriteClothingInfoCompact(ca.hair, data, pos+64);
 	}
 
 	public static void WriteSpecialEffect(SpecialEffect sfx, byte[] data, int pos){
@@ -555,9 +766,71 @@ public static class NetDecoder
 		}
 	}
 
+	// Save file layout. Size = 1203
 	public static void WriteCharacterSheet(CharacterSheet sheet, byte[] data, int pos){
-		NetDecoder.WriteString(sheet.GetName(), data, pos);
-		pos += 20;
+		NetDecoder.WriteFixedString(sheet.GetName(), data, pos, CHARACTER_NAME_SIZE);
+		pos += CHARACTER_NAME_SIZE;
+		pos = WriteSheetBody(sheet, data, pos);
+		NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
+		pos += 247;
+		NetDecoder.WriteByte(sheet.GetHotbarSlot(), data, pos);
+		pos++;
+		NetDecoder.WriteByte(sheet.GetAttackHotbarSlot(), data, pos);
+		pos++;
+
+		List<SpecialEffect> sfxList = sheet.GetSpecialEffectHandler().GetAllEffects();
+
+		for(int i=0; i < MAX_SAVED_EFFECTS; i++){
+			if(i < sfxList.Count)
+				NetDecoder.WriteSpecialEffect(sfxList[i], data, pos);
+			else
+				NetDecoder.WriteSpecialEffect(NULL_EFFECT, data, pos);
+
+			pos += 7;
+		}
+	}
+
+	/*
+	Network layout of a CharacterSheet. Returns the amount of bytes written
+		[Name (string8)] | Body (234) | Appearance (247, or 76 if compact) | [Hotbar][AttackHotbar][EffectCount] | EffectCount x SpecialEffect (7)
+	*/
+	public static int WriteCharacterSheetNet(CharacterSheet sheet, byte[] data, int pos, bool compactAppearance){
+		int initialPos = pos;
+		int effectCount;
+
+		pos += NetDecoder.WriteString8(sheet.GetName(), data, pos);
+		pos = WriteSheetBody(sheet, data, pos);
+
+		if(compactAppearance){
+			NetDecoder.WriteCharacterAppearanceCompact(sheet.GetCharacterAppearance(), data, pos);
+			pos += 76;
+		}
+		else{
+			NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
+			pos += 247;
+		}
+
+		NetDecoder.WriteByte(sheet.GetHotbarSlot(), data, pos);
+		pos++;
+		NetDecoder.WriteByte(sheet.GetAttackHotbarSlot(), data, pos);
+		pos++;
+
+		List<SpecialEffect> sfxList = sheet.GetSpecialEffectHandler().GetAllEffects();
+		effectCount = Math.Min(sfxList.Count, byte.MaxValue);
+
+		NetDecoder.WriteByte((byte)effectCount, data, pos);
+		pos++;
+
+		for(int i=0; i < effectCount; i++){
+			NetDecoder.WriteSpecialEffect(sfxList[i], data, pos);
+			pos += 7;
+		}
+
+		return pos - initialPos;
+	}
+
+	// Every CharacterSheet field between the name and the appearance. Returns the position after it. Size = 234
+	private static int WriteSheetBody(CharacterSheet sheet, byte[] data, int pos){
 		NetDecoder.WriteByte((byte)sheet.GetAlignment(), data, pos);
 		pos++;
 		NetDecoder.WriteByte((byte)sheet.GetReligion(), data, pos);
@@ -666,25 +939,7 @@ public static class NetDecoder
 		pos += 5;
 		NetDecoder.WriteSkillEXP(sheet.GetSkill(SkillType.WITCHCRAFT), data, pos);
 		pos += 5;
-		NetDecoder.WriteCharacterAppearance(sheet.GetCharacterAppearance(), data, pos);
-		pos += 247;
-		NetDecoder.WriteByte(sheet.GetHotbarSlot(), data, pos);
-		pos++;
-		NetDecoder.WriteByte(sheet.GetAttackHotbarSlot(), data, pos);
-		pos++;
 
-		List<SpecialEffect> sfxList = sheet.GetSpecialEffectHandler().GetAllEffects();
-
-		for(int i=0; i < 100; i++){
-			if(sfxList.Count == 0){
-				NetDecoder.WriteSpecialEffect(NULL_EFFECT, data, pos);
-			}
-			else{
-				NetDecoder.WriteSpecialEffect(sfxList[0], data, pos);
-				sfxList.RemoveAt(0);
-			}
-
-			pos += 7;
-		}
+		return pos;
 	}
 }

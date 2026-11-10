@@ -13,7 +13,6 @@ public class BUDScheduler : MonoBehaviour {
 	private string newTime;
 	public ChunkLoader_Server loader;
     private byte currentDealocTime;
-    private NetMessage message = new NetMessage(NetCode.SENDCHUNK);
 
 
     private ChunkPos cachePos;
@@ -79,11 +78,9 @@ public class BUDScheduler : MonoBehaviour {
             this.toSave.Remove(frame);
         }
 
-        // Propagates saved chunks to users
+        // Propagates the voxels changed in saved chunks to users
         foreach(ChunkPos pos in this.toPropagate){
-            this.message = new NetMessage(NetCode.SENDCHUNK);
-            this.message.SendChunk(loader.GetChunk(pos));
-            loader.server.SendToClients(pos, this.message);
+            loader.server.SendChunkChanges(pos);
         }
 
         this.toPropagate.Clear();

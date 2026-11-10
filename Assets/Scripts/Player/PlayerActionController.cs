@@ -498,7 +498,7 @@ public class PlayerActionController : MonoBehaviour {
 
 	private void RunNetcodeList(){
 		for(int i = statesPlayed.Count - 1; i >= 0; i--){
-			this.animationLayerMessage.SendAnimationLayer(Configurations.accountID, statesPlayed[i]);
+			this.animationLayerMessage.SendAnimationLayer(statesPlayed[i]);
 			this.cl.client.Send(this.animationLayerMessage);
 			statesPlayed.RemoveAt(i);
 		} 
@@ -629,7 +629,7 @@ public class PlayerActionController : MonoBehaviour {
 
 		this.lastParameterValue[parameter] = val;
 
-		this.animatorParameterMessage.SendAnimatorParameter(Configurations.accountID, val, parameter);
+		this.animatorParameterMessage.SendAnimatorParameter(Animator.StringToHash(parameter), val);
 		this.cl.client.Send(this.animatorParameterMessage);
 	}
 }

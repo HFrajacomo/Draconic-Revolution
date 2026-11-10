@@ -69,8 +69,8 @@ public class EA_PlaceBlockBehaviour : EntityActionBehaviour {
 		if(cl.GetBlock(targetBlock) != 0)
 			return false;
 
-		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, cl.playerRaycast.facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:ea.GetConnectedStackSlot(), newQuantity:newQuantity, inventoryCode:ea.GetConnectedStackInventory(), itemID:itemID, actionSlot:PlayerHotbarHandler.attackHotbarSlot, actionID:ea.GetID());
+		NetMessage message = new NetMessage(NetCode.PLACEBLOCK);
+		message.PlaceBlock(targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, cl.playerRaycast.facing, blockCode, ea.GetConnectedStackSlot(), newQuantity, ea.GetConnectedStackInventory(), itemID, actionSlot:PlayerHotbarHandler.attackHotbarSlot, actionID:ea.GetID());
 		cl.client.Send(message);
 		return true;
 	}

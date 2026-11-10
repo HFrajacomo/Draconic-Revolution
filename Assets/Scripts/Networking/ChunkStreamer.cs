@@ -224,6 +224,10 @@ public class ChunkStreamer
 		ChunkPos pos;
 		bool fromFront;
 
+		// The connection can't keep up, so chunks wait instead of piling up in memory
+		if(this.server.GetPendingBytes(state.id) > Constants.NET_STREAM_MAX_PENDING_BYTES)
+			return false;
+
 		while(true){
 			if(state.inFlight >= state.sendWindow){
 				state.windowLimited = true;

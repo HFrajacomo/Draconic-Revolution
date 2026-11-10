@@ -62,7 +62,6 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 	private ChunkLoader_Server cl;
 
 	private BUDSignal cachedBUD;
-	private NetMessage reloadMessage;
 
 	private static Dictionary<ushort?, List<int>> spawnDirections = new Dictionary<ushort?, List<int>>();
 	private static Dictionary<ushort, List<ushort>> spawnStateAdjascents = new Dictionary<ushort, List<ushort>>();
@@ -242,10 +241,9 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 	}
 
 	// Custom Place operation with Raycasting class overwrite
+	// The new voxel is sent to clients at the end of the frame, merged with the rest of the flow
 	public override int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader_Server cl){
 		CastCoord thisPos = new CastCoord(pos, x, y, z);
-		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, pos, thisPos.blockX, thisPos.blockY, thisPos.blockZ, facing, this.liquidCode, cl.GetChunk(thisPos.GetChunkPos()).metadata.GetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ), cl.GetChunk(thisPos.GetChunkPos()).metadata.GetHP(thisPos.blockX, thisPos.blockY, thisPos.blockZ));
 		cl.GetChunk(pos).data.SetCell(x, y, z, this.liquidCode);
 
 		cl.budscheduler.ScheduleBUD(new BUDSignal(BUDCode.CHANGE, thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), facing), this.viscosityDelay);
@@ -253,13 +251,12 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 		// If has been placed by player
 		if(facing >= 0){
 			cl.GetChunk(thisPos.GetChunkPos()).metadata.Reset(x,y,z);
-			cl.server.SendToClients(thisPos.GetChunkPos(), message);
+			cl.server.QueueChunkChanges(thisPos.GetChunkPos());
 			return 0;
 		}
 
-		//this.Update(thisPos, BUDCode.CHANGE, -1, cl);
 		cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
-		cl.server.SendToClients(pos, message);
+		cl.server.QueueChunkChanges(pos);
 		EmitWaterBUD(thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), cl);
 		return 0;
 	}
@@ -1630,11 +1627,9 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 		return VoxelLoader.CheckWashable(blockCode);
 	}	
 
-    // Sends a DirectBlockUpdate call to users
+    // Sends the changed voxels of the chunk to users at the end of the frame
 	public void Update(CastCoord c, BUDCode type, int facing, ChunkLoader_Server cl){
-		this.reloadMessage = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		this.reloadMessage.DirectBlockUpdate(type, c.GetChunkPos(), c.blockX, c.blockY, c.blockZ, facing, this.liquidCode, cl.GetState(c), ushort.MaxValue);
-		cl.server.SendToClients(c.GetChunkPos(), this.reloadMessage);
+		cl.server.QueueChunkChanges(c.GetChunkPos());
 	}
 
 	// Checks if current state overpowers the priority of target state

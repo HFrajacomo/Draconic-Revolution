@@ -98,9 +98,7 @@ public class VX_AuraCrystalBehaviour : VoxelBehaviour{
 
 	public void SaveAndSendChunk(CastCoord coord, ChunkLoader_Server cl){
 		ChunkPos pos = coord.GetChunkPos();
-		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, pos, coord.blockX, coord.blockY, coord.blockZ, -1, blockID, cl.GetChunk(pos).metadata.GetState(coord.blockX, coord.blockY, coord.blockZ), cl.GetChunk(pos).metadata.GetHP(coord.blockX, coord.blockY, coord.blockZ));
-		cl.server.SendToClients(pos, message);				
+		cl.server.SendBlockUpdate(BUDCode.PLACE, pos, coord.blockX, coord.blockY, coord.blockZ, blockID, cl.GetChunk(pos).metadata.GetState(coord.blockX, coord.blockY, coord.blockZ), cl.GetChunk(pos).metadata.GetHP(coord.blockX, coord.blockY, coord.blockZ));
 		cl.budscheduler.ScheduleSave(pos);
 	}
 

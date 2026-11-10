@@ -142,6 +142,11 @@ public class AnimationHandler : MonoBehaviour {
 		this.tpAnimator.CrossFade(state, this.animationCrossfadeTime, layer:layer);
 	}
 
+	// Force plays a state identified by its short name hash for non-player characters (Used by Client)
+	public void Play(int stateHash, int layer){
+		this.tpAnimator.CrossFade(stateHash, this.animationCrossfadeTime, layer);
+	}
+
 	// Plays/Stops/Registers ShapeKey Animations based on the settings inputted
 	public void Play(string shapeKey, CustomAnimationSettings settings){
 		if(!this.INIT)
@@ -435,6 +440,14 @@ public class AnimationHandler : MonoBehaviour {
 			this.fpAnimator.SetFloat(parameter, val);
 		else
 			this.tpAnimator.SetFloat(parameter, val);
+	}
+
+	// Parameter identified by Animator.StringToHash
+	public void SetParameterValue(int parameterHash, float val, bool firstPersonAnimator){
+		if(firstPersonAnimator)
+			this.fpAnimator.SetFloat(parameterHash, val);
+		else
+			this.tpAnimator.SetFloat(parameterHash, val);
 	}
 
 	public static string GetStateName(string controllerName, AnimatorStateInfo stateInfo){return AnimationHandler.hashToName[controllerName][stateInfo.shortNameHash];}

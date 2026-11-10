@@ -8,7 +8,6 @@ public class DroppedItemAI : AbstractAI
     public ulong playerCode;
     public ItemStack its;
 
-    private NetMessage message;
     private EntityTerrainCollision cachedTerrainCollision;
     private int collisionFlag;
 
@@ -107,25 +106,18 @@ public class DroppedItemAI : AbstractAI
             return;
         }
 
-        // Sends movement notification
+        // Movement is sent to clients at the end of the frame, together with every other entity that moved
         if(moveCode != 3){
             ChunkPos previousChunk = this.coords.GetChunkPos();
 
             SetPosition(this.behaviour.position, this.behaviour.rotation);
             this.radar.SetTransform(ref this.behaviour.position, ref this.behaviour.rotation, ref this.coords);
 
-            this.message = new NetMessage(NetCode.ITEMENTITYDATA);
+            // Clients that can only see one of the chunks spawn or delete it
+            if(previousChunk != this.coords.GetChunkPos())
+                this.cl.server.MoveDropBetweenChunks(this, previousChunk);
 
-
-            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((DroppedItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode, NetMessage.GetTimestamp());
-            this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
-
-            // Clients that can't see the new chunk would otherwise keep a ghost of this item
-            if(previousChunk != this.coords.GetChunkPos()){
-                this.message = new NetMessage(NetCode.ENTITYDELETE);
-                this.message.EntityDelete(this.type, this.entityCode);
-                this.cl.server.SendToClientsExcept(previousChunk, this.coords.GetChunkPos(), this.message);
-            }
+            this.cl.server.MarkDropMoved(this);
         }
     }
 
@@ -186,9 +178,7 @@ public class DroppedItemAI : AbstractAI
         // Is standing
         if(state == 1){
             this.SetStanding(true);
-            this.message = new NetMessage(NetCode.ITEMENTITYDATA);
-            this.message.ItemEntityData(this.position.x, this.position.y, this.position.z, SetRotationAsStopFlag((DroppedItemBehaviour)this.behaviour), this.rotation.y, this.rotation.z, (ushort)this.its.GetID(), this.its.GetAmount(), this.entityCode, NetMessage.GetTimestamp());
-            this.cl.server.SendToClients(this.coords.GetChunkPos(), message);
+            this.cl.server.MarkDropMoved(this);
         }
     }
 }

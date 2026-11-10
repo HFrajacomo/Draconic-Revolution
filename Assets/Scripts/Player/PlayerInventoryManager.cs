@@ -102,12 +102,16 @@ public class PlayerInventoryManager : MonoBehaviour {
 	}
 
 	// Creates inventories based on byte array
-	public void LoadFromBytes(byte[] data, int init){
+	// Length is the amount of valid bytes in data. Received network buffers can be bigger than the message
+	public void LoadFromBytes(byte[] data, int init, int length=-1){
 		// Control variables
 		int bytesRead = init;
 		int currentInventory = 0;
 		byte type;
 		MemoryStorageType mst;
+
+		if(length < 0)
+			length = data.Length;
 
 		// Cached variables
 		ushort id;
@@ -134,7 +138,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		if(this.inventory.Count == 0)
 			StartInventory();
 
-		while(bytesRead < data.Length){
+		while(bytesRead < length){
 			type = data[bytesRead];
 			bytesRead++;
 
@@ -331,11 +335,11 @@ public class PlayerInventoryManager : MonoBehaviour {
     	}
 
     	if(old == null)
-			message.EquipItem(Configurations.accountID, NULL_ITEM, neew.GetItem());
+			message.EquipItem(NULL_ITEM, neew.GetItem());
 		else if(newItem == null)
-			message.EquipItem(Configurations.accountID, old.GetItem(), NULL_ITEM);
+			message.EquipItem(old.GetItem(), NULL_ITEM);
 		else
-			message.EquipItem(Configurations.accountID, old.GetItem(), neew.GetItem());
+			message.EquipItem(old.GetItem(), neew.GetItem());
 
 		this.cl.client.Send(message);
     }

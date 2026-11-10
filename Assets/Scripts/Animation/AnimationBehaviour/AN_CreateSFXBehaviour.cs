@@ -63,7 +63,7 @@ public class AN_CreateSFXBehaviour : AnimationBehaviour {
 		cl.sfx.LoadEntitySFX(this.sfxName, id, parent:parent, localPosition:new Vector3(this.offsetX, this.offsetY, this.offsetZ));
 
 		NetMessage message = new NetMessage(NetCode.ENTITYSFX);
-		message.EntitySFX(entityID, EntitySFXOperation.CREATE, new EntitySFXData(this.sfxName, AudioLoader.IsLoop(this.sfxName), this.hasAnchor, this.anchor, this.offsetX, this.offsetY, this.offsetZ));
+		message.EntitySFX(EntitySFXOperation.CREATE, new EntitySFXData(this.sfxName, AudioLoader.IsLoop(this.sfxName), this.hasAnchor, this.anchor, this.offsetX, this.offsetY, this.offsetZ));
 		cl.client.Send(message);
 	}
 

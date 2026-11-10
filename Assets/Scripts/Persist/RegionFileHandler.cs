@@ -357,6 +357,9 @@ public class RegionFileHandler{
 
 	// Queues a chunk to be saved. The chunk is compressed when it's written, so it always saves its latest data
 	public void SaveChunk(Chunk c){
+		// Every change worth saving invalidates compressed network copies of the chunk, even the ones made directly in its arrays
+		c.MarkChanged();
+
 		if(!this.pendingSaves.ContainsKey(c.pos))
 			this.pendingSaveOrder.Enqueue(c.pos);
 

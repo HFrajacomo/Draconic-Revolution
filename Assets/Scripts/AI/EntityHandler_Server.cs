@@ -12,7 +12,11 @@ public class EntityHandler_Server
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> playerObject;
     public Dictionary<ChunkPos, Dictionary<ulong, AbstractAI>> dropObject;
 
-    public Dictionary<ulong, Dictionary<string, float>> playerAnimatorParameters;
+    public Dictionary<ulong, Dictionary<int, float>> playerAnimatorParameters;
+
+    // Sheets changed in memory that still have to be written to disk
+    private HashSet<ulong> dirtySheets;
+    private List<ulong> cachedSheetCodes;
 
     private List<EntityID> toRemove;
     private AvailabilityQueue availableDropCodes;
@@ -26,7 +30,9 @@ public class EntityHandler_Server
         this.availableDropCodes = new AvailabilityQueue();
         this.toRemove = new List<EntityID>();
         this.toChangePosition = new List<EntityChunkTransaction>();
-        this.playerAnimatorParameters = new Dictionary<ulong, Dictionary<string, float>>();
+        this.playerAnimatorParameters = new Dictionary<ulong, Dictionary<int, float>>();
+        this.dirtySheets = new HashSet<ulong>();
+        this.cachedSheetCodes = new List<ulong>();
     }
 
     public void SetChunkLoader(ChunkLoader_Server cl){this.cl = cl;}
@@ -91,7 +97,7 @@ public class EntityHandler_Server
                 continue;
 
             // Clients of the destination chunk were already informed of this drop
-            killMessage.EntityDelete(EntityType.DROP, ect.old.code);
+            killMessage.EntityDelete(EntityType.DROP, (uint)ect.old.code);
             this.cl.server.SendToClients(ect.novel.pos, killMessage);
             this.toChangePosition.RemoveAt(i);
         }
@@ -109,6 +115,29 @@ public class EntityHandler_Server
         }
 
         return outputList;
+    }
+
+    // Gets the living dropped items that are currently in a chunk, including the ones whose move into it wasn't applied yet
+    // Drops that are leaving the chunk are not included
+    public void GetDropsInChunk(ChunkPos pos, List<DroppedItemAI> output){
+        Dictionary<ulong, AbstractAI> drops;
+        EntityChunkTransaction ect;
+
+        output.Clear();
+
+        if(this.dropObject.TryGetValue(pos, out drops)){
+            foreach(AbstractAI ai in drops.Values){
+                if(!ai.markedForDelete && ai.GetChunkPos() == pos)
+                    output.Add((DroppedItemAI)ai);
+            }
+        }
+
+        for(int i=0; i < this.toChangePosition.Count; i++){
+            ect = this.toChangePosition[i];
+
+            if(ect.novel.type == EntityType.DROP && ect.novel.pos == pos && !ect.ai.markedForDelete && ect.ai.GetChunkPos() == pos && !output.Contains((DroppedItemAI)ect.ai))
+                output.Add((DroppedItemAI)ect.ai);
+        }
     }
 
     // Returns true if current chunk is loaded and has entities on it
@@ -135,7 +164,7 @@ public class EntityHandler_Server
         return false;
     }
 
-    // Retrieves the CharacterSheet
+    // Retrieves the CharacterSheet, keeping it in memory
     public CharacterSheet GetSheet(ulong code){
         if(!ContainsSheet(code)){
             AddPlayerSheet(code, this.cl.characterFileHandler.LoadCharacterSheet(code));
@@ -144,9 +173,54 @@ public class EntityHandler_Server
         return this.playerSheet[code];
     }
 
+    // Retrieves a CharacterSheet without keeping it in memory if it isn't already. Returns null if the character doesn't exist
+    public CharacterSheet FindSheet(ulong code){
+        CharacterSheet sheet;
+
+        if(this.playerSheet.TryGetValue(code, out sheet))
+            return sheet;
+
+        return this.cl.characterFileHandler.LoadCharacterSheet(code);
+    }
+
     // Checks if EntityHandler has the player sheet loaded
     public bool ContainsSheet(ulong code){
         return this.playerSheet.ContainsKey(code);
+    }
+
+    // Replaces a sheet kept in memory
+    public void ReplaceSheet(ulong code, CharacterSheet sheet){
+        this.playerSheet[code] = sheet;
+        MarkSheetDirty(code);
+    }
+
+    // Sheets are written to disk periodically (FlushSheets) and when they leave memory, instead of on every change
+    public void MarkSheetDirty(ulong code){
+        if(this.playerSheet.ContainsKey(code))
+            this.dirtySheets.Add(code);
+    }
+
+    // Writes a changed sheet to disk
+    public void FlushSheet(ulong code){
+        CharacterSheet sheet;
+
+        if(!this.dirtySheets.Remove(code))
+            return;
+
+        if(this.playerSheet.TryGetValue(code, out sheet) && sheet != null)
+            this.cl.characterFileHandler.SaveCharacterSheet(code, sheet);
+    }
+
+    // Writes every changed sheet to disk
+    public void FlushSheets(){
+        if(this.dirtySheets.Count == 0 || this.cl == null || this.cl.characterFileHandler == null)
+            return;
+
+        this.cachedSheetCodes.Clear();
+        this.cachedSheetCodes.AddRange(this.dirtySheets);
+
+        for(int i=0; i < this.cachedSheetCodes.Count; i++)
+            FlushSheet(this.cachedSheetCodes[i]);
     }
 
     // Only works while there is no other EntityType
@@ -169,35 +243,39 @@ public class EntityHandler_Server
         this.playerSheet[code].SetBattleStyleCode(style);
     }
 
-    // Add an animator parameter information
-    public void AddParameterValue(ulong code, string parameterName, float val){
-        if(!this.playerAnimatorParameters.ContainsKey(code))
-            this.playerAnimatorParameters.Add(code, new Dictionary<string, float>());
+    // Add an animator parameter information. Parameters are identified by Animator.StringToHash
+    public void AddParameterValue(ulong code, int parameterHash, float val){
+        Dictionary<int, float> parameters;
 
-        if(!this.playerAnimatorParameters[code].ContainsKey(parameterName))
-            this.playerAnimatorParameters[code].Add(parameterName, val);
-        else
-            this.playerAnimatorParameters[code][parameterName] = val;
+        if(!this.playerAnimatorParameters.TryGetValue(code, out parameters)){
+            parameters = new Dictionary<int, float>();
+            this.playerAnimatorParameters.Add(code, parameters);
+        }
 
+        parameters[parameterHash] = val;
     }
 
-    // Get method for Dict of Parameters
-    public Dictionary<string, float> GetParameterValues(ulong code){
-        if(!this.playerAnimatorParameters.ContainsKey(code))
-            return new Dictionary<string, float>();
-        return this.playerAnimatorParameters[code];
+    // Get method for Dict of Parameters. Returns null if the player has none
+    public Dictionary<int, float> GetParameterValues(ulong code){
+        Dictionary<int, float> parameters;
+
+        if(this.playerAnimatorParameters.TryGetValue(code, out parameters))
+            return parameters;
+        return null;
     }
 
-    // Issued command from Server class
+    // Issued command from Server class. The new item is spawned for the clients that have its chunk
     public ulong AddItem(float3 pos, float3 rot, float3 move, ushort itemCode, byte amount, ulong playerCode, ChunkLoader_Server cl){
         CastCoord coord = new CastCoord(pos);
         ChunkPos chunk = coord.GetChunkPos();
         ulong assignedCode = this.availableDropCodes.Pop();
+        DroppedItemAI ai = new DroppedItemAI(pos, rot, move, assignedCode, itemCode, amount, playerCode, this, cl);
 
         if(!this.dropObject.ContainsKey(chunk))
             this.dropObject.Add(chunk, new Dictionary<ulong, AbstractAI>());
         
-        this.dropObject[chunk].Add(assignedCode, new DroppedItemAI(pos, rot, move, assignedCode, itemCode, amount, playerCode, this, cl));
+        this.dropObject[chunk].Add(assignedCode, ai);
+        cl.server.BroadcastDropSpawn(ai);
 
         return assignedCode;
     }
@@ -216,16 +294,18 @@ public class EntityHandler_Server
         return assignedCode;
     }
 
-    // issued from Blocks being broken
+    // issued from Blocks being broken. The new item is spawned for the clients that have its chunk
     public ulong AddItem(float3 pos, float3 move, Item item, byte amount, ChunkLoader_Server cl){
         CastCoord coord = new CastCoord(pos);
         ChunkPos chunk = coord.GetChunkPos();
         ulong assignedCode = this.availableDropCodes.Pop();
+        DroppedItemAI ai = new DroppedItemAI(pos, move, assignedCode, item, amount, this, cl);
 
         if(!this.dropObject.ContainsKey(chunk))
             this.dropObject.Add(chunk, new Dictionary<ulong, AbstractAI>());
         
-        this.dropObject[chunk].Add(assignedCode, new DroppedItemAI(pos, move, assignedCode, item, amount, this, cl));
+        this.dropObject[chunk].Add(assignedCode, ai);
+        cl.server.BroadcastDropSpawn(ai);
 
         return assignedCode;
     }
@@ -274,9 +354,8 @@ public class EntityHandler_Server
 
     // Only removes the CharacterSheet of an entity (only supports players for now). Called on user disconnect
     public void RemoveSheet(ulong code){
-        if(this.playerSheet.ContainsKey(code)){
-            this.playerSheet.Remove(code);
-        }
+        FlushSheet(code);
+        this.playerSheet.Remove(code);
     }
 
     // Called as remove but doesn't pop values in AvailabilityList
@@ -288,6 +367,7 @@ public class EntityHandler_Server
                     this.playerObject.Remove(pos);
             }
             if(this.playerSheet.ContainsKey(code)){
+                FlushSheet(code);
                 this.playerSheet.Remove(code);
             }
             if(this.playerAnimatorParameters.ContainsKey(code)){

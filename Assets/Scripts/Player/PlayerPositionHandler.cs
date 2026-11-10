@@ -297,7 +297,7 @@ public class PlayerPositionHandler : MonoBehaviour
             return;
 
         NetMessage posMessage = new NetMessage(NetCode.CLIENTPLAYERPOSITION);
-        posMessage.ClientPlayerPosition(pos.x, pos.y, pos.z, pitch, yaw, this.playerTransform.eulerAngles.z, NetMessage.GetTimestamp());
+        posMessage.ClientPlayerPosition(pos.x, pos.y, pos.z, pitch, yaw, NetMessage.GetTimestamp());
         this.cl.client.Send(posMessage);
 
         this.hasSentPosition = true;

@@ -79,6 +79,10 @@ public class ChunkLoader_Server : MonoBehaviour
         if(this.playerServerInventory != null)
             this.playerServerInventory.Destroy();
 
+        // Sheets changed in memory are written before the file is closed
+        if(this.server != null && this.characterFileHandler != null)
+            this.server.entityHandler.FlushSheets();
+
         if(this.characterFileHandler != null)
             this.characterFileHandler.Close();
     }
@@ -149,7 +153,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
         // Send first player info
         NetMessage message = new NetMessage(NetCode.SENDSERVERINFO);
-        message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.time.days, this.time.hours, this.time.minutes);
+        message.SendServerInfo(playerPos.x, playerPos.y, playerPos.z, playerDir.x, playerDir.y, playerDir.z, this.time.days, this.time.hours, this.time.minutes, this.server.GetPlayerNetID(this.server.firstConnectedID));
         this.server.Send(message.GetMessage(), message.size, this.server.firstConnectedID); 
 
         // Send first player inventory info
@@ -170,16 +174,13 @@ public class ChunkLoader_Server : MonoBehaviour
 
     // Deals with the handling of Server received information
     private void HandleServerCommunication(){
-        // Messages that arrive while handling these are left for the next frame
-        int queueCount = this.server.queue.Count;
-        NetMessage message;
+        this.server.ProcessIncoming();
+    }
 
-        for(int i=0; i < queueCount; i++){
-            if(!this.server.queue.TryDequeue(out message))
-                break;
-
-            this.server.HandleReceivedMessage(message.GetData(), message.GetID());
-        }
+    // Sends everything gathered during the frame and writes the messages to the sockets
+    void LateUpdate(){
+        if(this.server != null && !this.server.applicationClose)
+            this.server.LateTick();
     }
 
 
@@ -472,6 +473,14 @@ public class ChunkLoader_Server : MonoBehaviour
             chunk = new Chunk(pos, server:true);
             this.regionHandler.ApplyHeader(chunk, result.header, out blockSize, out hpSize, out stateSize);
             Compression.DecompressChunk(chunk, result.chunkData, 0, blockSize, blockSize+hpSize, true);
+
+            if(chunk.needsGeneration == 0){
+                InstallChunk(chunk, result, save:false);
+
+                // The data read from disk is already compressed the way clients receive it
+                this.server.SeedChunkPayload(chunk, result.chunkData, blockSize, hpSize, stateSize);
+                return;
+            }
         }
 
         if(chunk.needsGeneration != 0){
@@ -571,7 +580,7 @@ public class ChunkLoader_Server : MonoBehaviour
             // If connected clients to this chunk are none
             if(this.loadedChunks[pos].Count == 0){
                 this.loadedChunks.Remove(pos);
-                this.chunks.Remove(pos);
+                RemoveChunk(pos);
                 this.vfx.RemoveChunk(pos, isServer:true);
                 this.entityFileHandler.SaveChunkEntities(pos, this.server.entityHandler.GetEntitiesInChunk(pos));
                 return true;
@@ -587,12 +596,18 @@ public class ChunkLoader_Server : MonoBehaviour
     public Chunk GetChunk(ChunkPos pos){return this.chunks[pos];}
     public bool Contains(ChunkPos pos){return this.chunks.ContainsKey(pos);}
     private void AddChunk(ChunkPos pos, Chunk c){
+        // Changes are tracked so only changed voxels are sent to clients
+        c.EnableChangeTracking();
+
         if(this.chunks.ContainsKey(pos))
             this.chunks[pos] = c;
         else
             this.chunks.Add(pos, c);
     }
-    private void RemoveChunk(ChunkPos pos){this.chunks.Remove(pos);}
+    private void RemoveChunk(ChunkPos pos){
+        this.chunks.Remove(pos);
+        this.server.chunkPayloadCache.Remove(pos);
+    }
 
     // Frees a loaded chunk that no client has, saving its entities
     public void ReleaseChunk(ChunkPos pos){
@@ -600,7 +615,7 @@ public class ChunkLoader_Server : MonoBehaviour
             return;
 
         this.entityFileHandler.SaveChunkEntities(pos, this.server.entityHandler.GetEntitiesInChunk(pos));
-        this.chunks.Remove(pos);
+        RemoveChunk(pos);
 
         if(this.vfx.Contains(pos, isServer:true))
             this.vfx.RemoveChunk(pos, isServer:true);
@@ -617,11 +632,9 @@ public class ChunkLoader_Server : MonoBehaviour
         }
     }
 
-    // Sends chunk information to clients that need it
+    // Sends the whole chunk to clients that have it, since it was changed in ways that can't be tracked per voxel
     private void SendToClients(ChunkPos pos){
-        NetMessage message = new NetMessage(NetCode.SENDCHUNK);
-        message.SendChunk(this.chunks[pos]);
-        this.server.SendToClients(pos, message);
+        this.server.SendWholeChunk(pos);
     }
 
     // Returns block code of a castcoord

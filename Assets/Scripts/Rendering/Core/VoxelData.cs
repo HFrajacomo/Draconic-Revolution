@@ -20,6 +20,7 @@ public class VoxelData {
 	private byte[] lightMap;
 	private bool[] ceilingMap;
 	private ChunkPos pos;
+	private ChunkChangeSet changeSet;
 
 	private static ChunkLoader cl; 
 
@@ -548,7 +549,17 @@ public class VoxelData {
 	}
 
 	public void SetCell(int x, int y, int z, ushort blockCode){
-		data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blockCode;
+		int index = x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z;
+
+		data[index] = blockCode;
+
+		if(this.changeSet != null)
+			this.changeSet.Record(index);
+	}
+
+	// Server-side tracking of changed voxels. Null in Clients
+	public void SetChangeSet(ChunkChangeSet changeSet){
+		this.changeSet = changeSet;
 	}
 
 	public byte[] GetLightMap(VoxelMetadata metadata){
@@ -603,6 +614,9 @@ public class VoxelData {
 
 	public void SetData(ushort[] data, bool isServer){
 		this.data = data;
+
+		if(this.changeSet != null)
+			this.changeSet.MarkAll();
 
 		/*
 		if(VoxelData.shaderReferences == null){

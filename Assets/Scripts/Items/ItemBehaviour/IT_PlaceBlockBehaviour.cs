@@ -36,8 +36,8 @@ public class IT_PlaceBlockBehaviour : ItemBehaviour{
 		if(loader.GetBlock(targetBlock) != 0)
 			return false;
 
-		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, loader.playerRaycast.facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerHotbarHandler.hotbarSlot, newQuantity:newQuantity, inventoryCode:1, itemID:itemID);
+		NetMessage message = new NetMessage(NetCode.PLACEBLOCK);
+		message.PlaceBlock(targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, loader.playerRaycast.facing, blockCode, PlayerHotbarHandler.hotbarSlot, newQuantity, 1, itemID);
 		loader.client.Send(message);
 		return true;
 	}

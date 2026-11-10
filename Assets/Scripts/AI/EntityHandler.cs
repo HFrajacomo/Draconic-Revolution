@@ -15,7 +15,7 @@ public class EntityHandler
 
 	private Dictionary<ulong, AnimationHandler> playerAnimations;
 	private Dictionary<ulong, Dictionary<int, AnimationData>> pendingPlayerAnimations;
-	private Dictionary<ulong, Dictionary<string, float>> pendingPlayerAnimatorParameters;
+	private Dictionary<ulong, Dictionary<int, float>> pendingPlayerAnimatorParameters;
 	private Dictionary<ulong, ushort> playerItem;
 	private Dictionary<ulong, bool> playerItemOrActionInHand;
 	private Dictionary<ulong, ItemEntity> dropObject;
@@ -47,7 +47,7 @@ public class EntityHandler
 		this.dropObject = new Dictionary<ulong, ItemEntity>();
 		this.playerAnimations = new Dictionary<ulong, AnimationHandler>();
 		this.pendingPlayerAnimations = new Dictionary<ulong, Dictionary<int, AnimationData>>();
-		this.pendingPlayerAnimatorParameters = new Dictionary<ulong, Dictionary<string, float>>();
+		this.pendingPlayerAnimatorParameters = new Dictionary<ulong, Dictionary<int, float>>();
 		this.playerBattleStyle = new Dictionary<ulong, int>();
 		this.playerCarryStyle = new Dictionary<ulong, int>();
 		this.playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
@@ -116,7 +116,7 @@ public class EntityHandler
 		this.playerItemOrActionInHand.Add(code, true);
 		this.playerAnimations.Add(code, null);
 		this.pendingPlayerAnimations.Add(code, new Dictionary<int, AnimationData>());
-		this.pendingPlayerAnimatorParameters.Add(code, new Dictionary<string, float>());
+		this.pendingPlayerAnimatorParameters.Add(code, new Dictionary<int, float>());
 		this.playerBattleStyle.Add(code, -1);
 		this.playerCarryStyle.Add(code, BattleStyleDeterminator.NO_CARRY);
 		this.playerActiveLoopSFX.Add(code, new Dictionary<string, EntitySFXData>());
@@ -262,16 +262,17 @@ public class EntityHandler
 		RunSingleActivation(EntityType.DROP, code, pos);
 	}
 
-	public void AnimateBone(ulong code, string stateName, int layer){
+	// States are identified by their short name hash (Animator.StringToHash)
+	public void AnimateBone(ulong code, int stateHash, int layer){
 		if(!this.playerAnimations.ContainsKey(code))
 			return;
 
 		if(!CanProcessPlayerAnimations(code)){
-			this.pendingPlayerAnimations[code][layer] = new AnimationData(stateName, layer);
+			this.pendingPlayerAnimations[code][layer] = new AnimationData(stateHash, layer);
 			return;
 		}
 
-		this.playerAnimations[code].Play(stateName, layer);
+		this.playerAnimations[code].Play(stateHash, layer);
 	}
 
 	// Places a remote player in its interpolated pose. Yaw rotates the body and pitch rotates the head
@@ -346,17 +347,18 @@ public class EntityHandler
 		}
 	}
 
-	public void SetAnimatorParameter(EntityType type, ulong code, string parameter, float val){
+	// Parameters are identified by Animator.StringToHash
+	public void SetAnimatorParameter(EntityType type, ulong code, int parameterHash, float val){
 		if(!Contains(type, code))
 			return;
 
 		if(type == EntityType.PLAYER){
 			if(!CanProcessPlayerAnimations(code)){
-				this.pendingPlayerAnimatorParameters[code][parameter] = val;
+				this.pendingPlayerAnimatorParameters[code][parameterHash] = val;
 				return;
 			}
 
-			this.playerAnimations[code].SetParameterValue(parameter, val, false);
+			this.playerAnimations[code].SetParameterValue(parameterHash, val, false);
 		}
 	}
 
@@ -406,10 +408,10 @@ public class EntityHandler
 			return;
 
 		foreach(AnimationData animationData in this.pendingPlayerAnimations[code].Values){
-			this.playerAnimations[code].Play(animationData.name, animationData.layer);
+			this.playerAnimations[code].Play(animationData.stateHash, animationData.layer);
 		}
 
-		foreach(KeyValuePair<string, float> parameter in this.pendingPlayerAnimatorParameters[code]){
+		foreach(KeyValuePair<int, float> parameter in this.pendingPlayerAnimatorParameters[code]){
 			this.playerAnimations[code].SetParameterValue(parameter.Key, parameter.Value, false);
 		}
 

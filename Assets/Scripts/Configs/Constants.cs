@@ -54,6 +54,20 @@ public static class Constants
     public static readonly int CHUNK_RESYNC_CHECKS_PER_FRAME = 256;
     public static readonly int CHUNK_RESYNC_MAX_REQUESTS = 32;
 
+    // Networking
+    public static readonly int NET_MAX_FRAME_SIZE = 1024*1024; // Frames bigger than this close the connection
+    public static readonly int NET_MAX_PENDING_BYTES = 64*1024*1024; // Connections that can't keep up with this much unsent data are closed
+    public static readonly int NET_SOCKET_BUFFER_SIZE = 512*1024;
+    public static readonly int NET_STREAM_MAX_PENDING_BYTES = 2*1024*1024; // Chunks aren't streamed to a client while it has this much unsent data
+    public static readonly float NET_HEARTBEAT_INTERVAL_SECONDS = 1f; // A heartbeat is sent if nothing else was sent for this long
+    public static readonly float NET_CLIENT_TIMEOUT_SECONDS = 15f;
+    public static readonly float NET_SERVER_TIMEOUT_SECONDS = 15f;
+    public static readonly float NET_TEMPORARY_TIMEOUT_SECONDS = 60f; // Connections that never identified themselves
+    public static readonly int NET_CLOSE_FLUSH_TIMEOUT_MS = 500; // Time waiting for pending data to be sent before closing a connection
+    public static readonly int BLOCKBATCH_MAX_CHANGES = 512; // Changed voxels of a chunk that are sent individually before a full chunk is sent instead
+    public static readonly int SERVER_CHUNK_PAYLOAD_CACHE_MB = 64; // Compressed chunks kept ready to be sent
+    public static readonly float SERVER_SHEET_FLUSH_SECONDS = 10f; // Interval for saving changed CharacterSheets to disk
+
     // Persistance
     public static readonly int MAXIMUM_REGION_FILE_POOL = 10;
     public static readonly float CHUNKS_IN_REGION_FILE = 32f;

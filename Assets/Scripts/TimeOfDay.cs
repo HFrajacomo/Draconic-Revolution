@@ -26,7 +26,6 @@ public class TimeOfDay : MonoBehaviour
     private GameObject player;
 
     private bool SENDTIMEFLAG = false;
-    private bool CHECKTIMEOUT = false;
 
     // Position properties
     private NetMessage movementMessage;
@@ -51,7 +50,6 @@ public class TimeOfDay : MonoBehaviour
             	ticks = 0f;
             	minutes++;
                 this.SENDTIMEFLAG = true;
-                this.CHECKTIMEOUT = true;
             }
 
             if(minutes >= 60){
@@ -71,12 +69,6 @@ public class TimeOfDay : MonoBehaviour
                 this.server.SendAll(message.GetMessage(), message.size);
 
                 this.SENDTIMEFLAG = false;
-            }
-
-            // If server, checks for timeouts
-            if(this.CHECKTIMEOUT && !this.isClient){
-                this.server.CheckTimeout();
-                this.CHECKTIMEOUT = false;
             }
 
             if(faketicks >= TimeOfDay.timeRate){

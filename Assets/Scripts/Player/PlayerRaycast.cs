@@ -225,7 +225,7 @@ public class PlayerRaycast : MonoBehaviour
 		ushort hp = loader.Get(toUpdate).metadata.GetHP(current.blockX, current.blockY, current.blockZ);
 
 		NetMessage message = new NetMessage(NetCode.BLOCKDAMAGE);
-		message.BlockDamage(current.GetChunkPos(), current.blockX, current.blockY, current.blockZ, this.blockDamage, false);
+		message.BlockDamage(current.GetChunkPos(), current.blockX, current.blockY, current.blockZ, this.blockDamage);
 		this.loader.client.Send(message);
 	}
 

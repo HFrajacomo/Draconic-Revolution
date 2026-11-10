@@ -1,164 +1,142 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
 
+/*
+Short-lived connection used in the Menu to check the character of the player before loading the world
+	Connecting never blocks the main thread. Update() must be called every frame (Redirector)
+*/
 public class InfoClient
 {
-	// Internet Objects
+	// Results
 	public bool ended = false;
 	public bool backToMenu = false;
+
+	// Connection
 	private Socket socket;
-	private SocketError err;
-	private int timeoutMiliseconds = 30000;
-	private int attempts = 10;
-	private static readonly int RECEIVE_BUFFER_SIZE = 1200;
-	private static readonly int MAXIMUM_PACKET_SIZE = 1200;
+	private IAsyncResult connectResult;
+	private NetConnection connection;
+	private int attempt = 0;
+	private float attemptStartTime;
+	private float nextAttemptTime = 0f;
+	private static readonly int ATTEMPTS = 5;
+	private static readonly float ATTEMPT_SECONDS = 3f;
 
 	// Address Information
 	public IPAddress ip;
 	public int port = 33000;
 
-	// Packet Management
-	private bool lengthPacket = true;
-	private int packetIndex = 0;
-	private int packetSize = 0;
-
-	// Data Management
-	private byte[] receiveBuffer;
-	private byte[] dataBuffer;
-	private byte[] lengthBuffer = new byte[4];
-	private List<NetMessage> queue = new List<NetMessage>();
+	// Filled by the socket threads and consumed by the main thread
+	private ConcurrentQueue<NetMessage> queue = new ConcurrentQueue<NetMessage>();
 
 
 	public InfoClient(){
-		this.receiveBuffer = new byte[RECEIVE_BUFFER_SIZE];
-		CreateSocket();
-
-		if(World.isClient){
+		if(World.isClient)
 			this.ip = new IPAddress(new byte[4]{127,0,0,1});
-			TryConnectWithRetry();
-		}
-		else{
+		else
 			this.ip = IPAddress.Parse(World.IP);
-			TryConnectWithRetry();
-		}
+
+		StartAttempt();
 	}
 
 	public void Close(){
 		this.ended = true;
-		this.socket.Close();
+
+		if(this.connection != null)
+			this.connection.Close(flush:true);
+		else if(this.socket != null)
+			this.socket.Close();
 	}
 
-	private void CreateSocket(){this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);}
+	// Advances the connection attempts and handles received messages
+	public void Update(){
+		if(this.ended || this.backToMenu)
+			return;
 
-	private void TryConnectWithRetry(){
-		IAsyncResult result;
-
-		for (int i = 0; i < this.attempts; i++){
-			CreateSocket();
-
-			result = this.socket.BeginConnect(this.ip, this.port, null, null);
-
-			if(Connect(result)){
-				Debug.Log($"[Attempt #{i+1}] InfoClient connected to {this.ip}");
-				return;
-			}
+		if(this.connection == null){
+			UpdateConnection();
+			return;
 		}
 
-		this.socket.Close();
-		this.backToMenu = true;
-		Debug.Log("Failed to establish and info connection to server at: " + this.ip);
+		HandleReceivedMessages();
+
+		if(this.connection != null && !this.ended)
+			this.connection.Flush();
 	}
 
-	private bool Connect(IAsyncResult result){
-        bool success = result.AsyncWaitHandle.WaitOne(this.timeoutMiliseconds/this.attempts, true);
+	private void StartAttempt(){
+		this.attempt++;
+		this.attemptStartTime = Time.realtimeSinceStartup;
 
-        if (success && socket.Connected){
-			this.socket.EndConnect(result);
-			this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(Receive), null);
-            return true;
-        }
-        else{
-            return false;
-        }
-	}
-
-	private void Receive(IAsyncResult result){
 		try{
-			if(this.ended || this.backToMenu){
-				return;
-			}
-
-			int bytesReceived = this.socket.EndReceive(result);
-
-			// If is a length packet
-			if(this.lengthPacket){
-				int size = NetDecoder.ReadInt(receiveBuffer, 0);
-
-				// Ignores packets way too big
-				if(size > MAXIMUM_PACKET_SIZE){
-					this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(Receive), null);
-					return;
-				}
-
-				this.dataBuffer = new byte[size];
-				this.packetSize = size;
-				this.packetIndex = 0;
-				this.lengthPacket = false;
-
-				this.socket.BeginReceive(receiveBuffer, 0, size, 0, out this.err, new AsyncCallback(Receive), null);
-				return;
-			}
-
-			// If is segmented package
-
-			if(bytesReceived + this.packetIndex < this.packetSize){
-				Array.Copy(receiveBuffer, 0, this.dataBuffer, this.packetIndex, bytesReceived);
-				this.packetIndex = this.packetIndex + bytesReceived;
-				this.socket.BeginReceive(receiveBuffer, 0, this.packetSize-this.packetIndex, 0, out this.err, new AsyncCallback(Receive), null);
-				return;
-			}
-
-			Array.Copy(receiveBuffer, 0, this.dataBuffer, this.packetIndex, bytesReceived);
-			NetMessage.Broadcast(NetBroadcast.RECEIVED, dataBuffer[0], 0, this.packetSize);
-
-			NetMessage receivedMessage = new NetMessage(this.dataBuffer, 0);
-			this.queue.Add(receivedMessage);
-			this.lengthPacket = true;
-			this.packetSize = 0;
-			this.packetIndex = 0;
-
-			this.socket.BeginReceive(receiveBuffer, 0, 4, 0, out this.err, new AsyncCallback(Receive), null);
+			this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+			this.connectResult = this.socket.BeginConnect(this.ip, this.port, null, null);
 		}
 		catch(Exception e){
-			Debug.Log(e.ToString());
+			Debug.Log("InfoClient failed to start connecting: " + e.Message);
+			this.connectResult = null;
 		}
 	}
 
-	private bool Send(byte[] data, int length){
+	private void UpdateConnection(){
+		// Waiting to retry
+		if(this.connectResult == null){
+			if(Time.realtimeSinceStartup < this.nextAttemptTime)
+				return;
+
+			StartAttempt();
+
+			if(this.connectResult == null)
+				FailAttempt();
+
+			return;
+		}
+
+		if(this.connectResult.IsCompleted){
+			try{
+				this.socket.EndConnect(this.connectResult);
+			}
+			catch(Exception){
+				FailAttempt();
+				return;
+			}
+
+			this.connection = new NetConnection(this.socket, 0, false, this.queue);
+			this.connection.Start();
+			Debug.Log($"[Attempt #{this.attempt}] InfoClient connected to {this.ip}");
+			return;
+		}
+
+		if(Time.realtimeSinceStartup - this.attemptStartTime >= ATTEMPT_SECONDS)
+			FailAttempt();
+	}
+
+	// Retries until all attempts are used. Attempts last at least ATTEMPT_SECONDS, so a server that is still starting has time to open
+	private void FailAttempt(){
 		try{
-			NetMessage.Broadcast(NetBroadcast.SENT, dataBuffer[0], 0, length);
-			LengthPacket(length);
+			this.socket.Close();
+		}
+		catch(Exception){}
 
-			this.socket.Send(this.lengthBuffer, 4, SocketFlags.None);
-			this.socket.Send(data, length, SocketFlags.None);
-			return true;
+		this.connectResult = null;
+
+		if(this.attempt >= ATTEMPTS){
+			this.backToMenu = true;
+			Debug.Log("Failed to establish an info connection to server at: " + this.ip);
+			return;
 		}
-		catch(Exception e){
-			Debug.Log("SEND ERROR: " + e.ToString());
-			return false;
-		}
+
+		this.nextAttemptTime = this.attemptStartTime + ATTEMPT_SECONDS;
 	}
 
-	// Sets a byte array representation of a int
-	private void LengthPacket(int a){
-		this.lengthBuffer[0] = (byte)(a >> 24);
-		this.lengthBuffer[1] = (byte)(a >> 16);
-		this.lengthBuffer[2] = (byte)(a >> 8);
-		this.lengthBuffer[3] = (byte)a;
+	private bool Send(NetMessage message){
+		NetMessage.Broadcast(NetBroadcast.SENT, message.GetMessage()[0], 0, message.size);
+
+		return this.connection.Send(message.GetMessage(), message.size);
 	}
 
 
@@ -166,28 +144,42 @@ public class InfoClient
 	Handling NetMessages
 	*/
 
-	public void HandleReceivedMessages(){
-		if(this.queue.Count == 0 || this.ended)
-			return;
+	private void HandleReceivedMessages(){
+		NetMessage message;
+		byte[] data;
+		int queueCount = this.queue.Count;
 
-		byte[] data = this.queue[0].GetData();
-		this.queue.RemoveAt(0);
+		for(int i=0; i < queueCount; i++){
+			if(this.ended || this.backToMenu)
+				return;
+			if(!this.queue.TryDequeue(out message))
+				return;
 
-		if(data.Length == 0)
-			return;
+			if(message.IsCloseEvent()){
+				Debug.Log("InfoClient lost connection: " + message.GetConnection().GetCloseReason());
+				this.backToMenu = true;
+				return;
+			}
 
-		NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], 0, 0);
+			data = message.GetData();
 
-		switch((NetCode)data[0]){
-			case NetCode.ACCEPTEDCONNECT:
-				AcceptedConnect();
-				break;
-			case NetCode.SENDCHARACTERPRELOAD:
-				SendCharacterPreload(data);
-				break;
-			default:
-				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
-				break;
+			NetMessage.Broadcast(NetBroadcast.PROCESSED, data[0], 0, message.size);
+
+			switch((NetCode)data[0]){
+				case NetCode.ACCEPTEDCONNECT:
+					AcceptedConnect();
+					break;
+				case NetCode.HEARTBEAT:
+					break;
+				case NetCode.SENDCHARACTERPRELOAD:
+					SendCharacterPreload(data);
+					break;
+				default:
+					Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
+					break;
+			}
+
+			NetBufferPool.Return(data);
 		}
 	}
 
@@ -196,7 +188,7 @@ public class InfoClient
 		if(!PlayerAppearanceData.GetPreloadFlag()){
 			NetMessage message = new NetMessage(NetCode.REQUESTCHARACTEREXISTENCE);
 			message.RequestCharacterExistence(Configurations.accountID);
-			this.Send(message.GetMessage(), message.size);
+			this.Send(message);
 		}
 		else{
 			SendCharAndDisconnectInfo();
@@ -211,6 +203,10 @@ public class InfoClient
 		if(!flag){
 			PlayerAppearanceData.SetPreloadFlag(true);
 			MenuManager.SetInitCharacterCreationFlag(true);
+
+			NetMessage disconnectMessage = new NetMessage(NetCode.DISCONNECTINFO);
+			this.Send(disconnectMessage);
+			this.connection.Close(flush:true);
 			this.backToMenu = true;
 		}
 		else{
@@ -218,8 +214,7 @@ public class InfoClient
 			bool isMale = NetDecoder.ReadBool(data, 249);
 
 			NetMessage disconnectMessage = new NetMessage(NetCode.DISCONNECTINFO);
-			this.Send(disconnectMessage.GetMessage(), disconnectMessage.size);
-			this.socket.Shutdown(SocketShutdown.Send);
+			this.Send(disconnectMessage);
 			this.Close();
 
 			PlayerAppearanceData.SetAppearance(app);
@@ -235,10 +230,10 @@ public class InfoClient
 	private void SendCharAndDisconnectInfo(){
 		NetMessage message = new NetMessage(NetCode.SENDCHARSHEET);
 		message.SendCharSheet(Configurations.accountID, CharacterCreationData.GetCharacterSheet());
-		this.Send(message.GetMessage(), message.size);
+		this.Send(message);
 
 		NetMessage disconnectMessage = new NetMessage(NetCode.DISCONNECTINFO);
-		this.Send(disconnectMessage.GetMessage(), disconnectMessage.size);
+		this.Send(disconnectMessage);
 		this.Close();
 	
 		PlayerAppearanceData.SetAppearance(CharacterCreationData.GetCharacterSheet().GetCharacterAppearance());

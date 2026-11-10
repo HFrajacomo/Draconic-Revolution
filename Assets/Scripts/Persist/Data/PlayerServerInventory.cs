@@ -19,17 +19,18 @@ public class PlayerServerInventory{
     Adds and updates inventories of players
     Used whenever a slot changes type (goes empty or picks something)
     */
-    public void AddInventory(ulong playerId, byte[] data){
+    // Length is the amount of valid bytes in data. Received network buffers can be bigger than the message
+    public void AddInventory(ulong playerId, byte[] data, int length=-1){
         int refVoid = 0;
 
         // If it's a pre-existing inventory in RAM that is being changed
         if(this.inventories.ContainsKey(playerId)){
-            this.inventories[playerId] = PlayerServerInventorySlot.BuildInventory(data, 1, ref refVoid);
+            this.inventories[playerId] = PlayerServerInventorySlot.BuildInventory(data, 1, ref refVoid, readSize:length);
             this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
         }
         // If player doesn't exist yet
         else{
-            this.inventories.Add(playerId, PlayerServerInventorySlot.BuildInventory(data, 1, ref refVoid));
+            this.inventories.Add(playerId, PlayerServerInventorySlot.BuildInventory(data, 1, ref refVoid, readSize:length));
             this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
         }
     }

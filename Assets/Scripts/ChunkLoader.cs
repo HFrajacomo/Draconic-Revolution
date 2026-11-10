@@ -145,10 +145,9 @@ public class ChunkLoader : MonoBehaviour
     public bool Contains(ChunkPos pos){return this.chunks.ContainsKey(pos);}
 
     public void Cleanup(bool comesFromClient=false){
-        if(!comesFromClient){
-            this.message = new NetMessage(NetCode.DISCONNECT);
-            this.client.Send(this.message);
-        }
+        // The Server is told before the connection is closed
+        if(!comesFromClient)
+            this.client.Shutdown(notifyServer:true);
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -178,9 +177,13 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Light calculations are also finished and started at the end of the frame, so more of them run per frame
+    // Every message sent during the frame is written to the socket at once
     void LateUpdate(){
         if(this.lightingSystem != null && this.REQUESTEDCHUNKS)
             this.lightingSystem.Update();
+
+        if(this.client != null)
+            this.client.Flush();
     }
 
     private void DisposeLighting(){
@@ -260,7 +263,10 @@ public class ChunkLoader : MonoBehaviour
             if(this.client == null)
                 return;
 
-            RunTimerFunctions();
+            // Disconnected by timeout
+            if(!RunTimerFunctions())
+                return;
+
             GetChunks(false);
 
         	UnloadChunk();
@@ -278,22 +284,20 @@ public class ChunkLoader : MonoBehaviour
     /*
     Registered Events:
 
-    Heartbeart:         30 ticks
+    Connection checks:  every frame (time-based heartbeat and timeout)
     UnloadUnityObjects: 1200 ticks
     ForceUnload:        1500 ticks
+
+    Returns false if the Client was disconnected
     */
-    private void RunTimerFunctions(){
+    private bool RunTimerFunctions(){
+        if(!this.client.CheckConnection())
+            return false;
+
         if(this.timer < 6000)
             this.timer++;
         else
             this.timer = 1;
-
-        // Heartbeat
-        if(this.timer % 30 == 0){
-            this.client.CheckTimeout();
-            this.message = new NetMessage(NetCode.HEARTBEAT);
-            this.client.Send(this.message);
-        }
 
         // Garbage Collect Unity Assets
         if(this.timer % 1200 == 0){
@@ -304,6 +308,8 @@ public class ChunkLoader : MonoBehaviour
         if(this.timer % 1500 == 0){
             ForceUnload();
         }
+
+        return true;
     }
 
     public void InitConfigurationFunctions(){
@@ -322,6 +328,11 @@ public class ChunkLoader : MonoBehaviour
         if(this.client == null)
             return;
 
+        if(this.client.HasConnectionFailed()){
+            this.client.Panic();
+            return;
+        }
+
         // Messages that arrive while handling these are left for the next frame
         int queueCount = this.client.queue.Count;
         NetMessage received;
@@ -333,7 +344,7 @@ public class ChunkLoader : MonoBehaviour
             if(!this.client.queue.TryDequeue(out received))
                 return;
 
-            this.client.HandleReceivedMessage(received.GetData());
+            this.client.HandleReceivedMessage(received);
         }
     }
 
@@ -415,6 +426,7 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Receives chunk data from the Server. Data of a chunk that wasn't loaded yet is replaced by the newest
+    // The data is a pooled network buffer, given back once it's loaded or discarded
     public void EnqueueChunkData(ChunkPos pos, byte[] data, bool streamed){
         PendingChunkData pending;
 
@@ -422,6 +434,7 @@ public class ChunkLoader : MonoBehaviour
             this.lastStreamReceiveTime = Time.unscaledTime;
 
         if(this.toLoad.TryGetValue(pos, out pending)){
+            NetBufferPool.Return(pending.data);
             pending.data = data;
 
             if(streamed)
@@ -461,10 +474,13 @@ public class ChunkLoader : MonoBehaviour
             this.pendingChunkAcks += pending.streamCount;
 
             // Left the StreamWindow while waiting to be loaded
-            if(!this.streamWindow.Contains(pos))
+            if(!this.streamWindow.Contains(pos)){
+                NetBufferPool.Return(pending.data);
                 continue;
+            }
 
             LoadChunkData(pos, pending.data);
+            NetBufferPool.Return(pending.data);
             loadedAny = true;
         }
     }
@@ -472,19 +488,19 @@ public class ChunkLoader : MonoBehaviour
     // Decompresses a chunk received from the Server and schedules its drawing
     private void LoadChunkData(ChunkPos cp, byte[] data){
         bool chunkOverwrite = true;
-        int headerSize = RegionFileHandler.chunkHeaderSize;
-        int blockDataSize = NetDecoder.ReadInt(data, 10);
-        int hpDataSize = NetDecoder.ReadInt(data, 14);
+        int headerSize = NetMessage.CHUNK_HEADER_SIZE;
+        int blockDataSize = NetDecoder.ReadInt(data, 11);
+        int hpDataSize = NetDecoder.ReadInt(data, 15);
         Chunk chunk;
 
         if(!this.chunks.TryGetValue(cp, out chunk)){
             chunk = new Chunk(cp, this.rend, this);
-            chunk.biome = data[22];
+            chunk.biome = data[10];
             this.chunks.Add(cp, chunk);
             chunkOverwrite = false;
         }
 
-        Compression.DecompressChunk(chunk, data, 22+headerSize, 22+headerSize+blockDataSize, 22+headerSize+blockDataSize+hpDataSize, false);
+        Compression.DecompressChunk(chunk, data, headerSize, headerSize+blockDataSize, headerSize+blockDataSize+hpDataSize, false);
 
         if(this.vfx.data.ContainsKey(cp))
             this.vfx.RemoveChunk(cp);
@@ -1128,11 +1144,14 @@ public class ChunkLoader : MonoBehaviour
 
         this.pendingChunkAcks += pending.streamCount;
         this.toLoad.Remove(pos);
+        NetBufferPool.Return(pending.data);
     }
 
     private void DiscardAllPendingChunks(){
-        foreach(PendingChunkData pending in this.toLoad.Values)
+        foreach(PendingChunkData pending in this.toLoad.Values){
             this.pendingChunkAcks += pending.streamCount;
+            NetBufferPool.Return(pending.data);
+        }
 
         this.toLoad.Clear();
         this.toLoadOrder.Clear();

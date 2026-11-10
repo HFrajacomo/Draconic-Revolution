@@ -18,6 +18,7 @@ public class VoxelMetadata {
 	private ushort stateUniform = 0;
 	private bool hpPooled = false;
 	private bool statePooled = false;
+	private ChunkChangeSet changeSet;
 
 	private int xSize = Chunk.chunkWidth;
 	private int ySize = Chunk.chunkDepth;
@@ -94,19 +95,30 @@ public class VoxelMetadata {
 			DensifyHP();
 		}
 
-		this.hp[x*zSize*ySize+y*zSize+z] = val;
+		int index = x*zSize*ySize+y*zSize+z;
+		this.hp[index] = val;
+
+		if(this.changeSet != null)
+			this.changeSet.Record(index);
+	}
+
+	// Server-side tracking of changed voxels. Null in Clients
+	public void SetChangeSet(ChunkChangeSet changeSet){
+		this.changeSet = changeSet;
 	}
 
 	// Uses the given array as HP data. The array is not returned to the MetadataPool
 	public void SetHPData(ushort[] data){
 		ReleaseHP();
 		this.hp = data;
+		MarkAllChanged();
 	}
 
 	// Makes every voxel have the same HP
 	public void SetHPUniform(ushort value){
 		ReleaseHP();
 		this.hpUniform = value;
+		MarkAllChanged();
 	}
 
 	// Copies HP data of a full chunk
@@ -115,6 +127,7 @@ public class VoxelMetadata {
 			DensifyHP();
 
 		data.CopyTo(this.hp);
+		MarkAllChanged();
 	}
 
 	public bool IsHPUniform(){return this.hp == null;}
@@ -151,12 +164,14 @@ public class VoxelMetadata {
 	public void SetStateData(ushort[] data){
 		ReleaseState();
 		this.state = data;
+		MarkAllChanged();
 	}
 
 	// Makes every voxel have the same State
 	public void SetStateUniform(ushort value){
 		ReleaseState();
 		this.stateUniform = value;
+		MarkAllChanged();
 	}
 
 	// Copies State data of a full chunk
@@ -165,6 +180,7 @@ public class VoxelMetadata {
 			DensifyState();
 
 		data.CopyTo(this.state);
+		MarkAllChanged();
 	}
 
 	public bool IsStateUniform(){return this.state == null;}
@@ -186,7 +202,11 @@ public class VoxelMetadata {
 			DensifyState();
 		}
 
-		this.state[x*zSize*ySize+y*zSize+z] = val;
+		int index = x*zSize*ySize+y*zSize+z;
+		this.state[index] = val;
+
+		if(this.changeSet != null)
+			this.changeSet.Record(index);
 	}
 
 	// Applies a sum to current state
@@ -231,6 +251,7 @@ public class VoxelMetadata {
 		ReleaseState();
 		this.hpUniform = 0;
 		this.stateUniform = 0;
+		MarkAllChanged();
 	}
 
 	// Resets a single cell in Metadata
@@ -258,6 +279,11 @@ public class VoxelMetadata {
 		if(this.GetState(x,y,z) == ushort.MaxValue)
 			return true;
 		return false;
+	}
+
+	private void MarkAllChanged(){
+		if(this.changeSet != null)
+			this.changeSet.MarkAll();
 	}
 
 	private void DensifyHP(){
