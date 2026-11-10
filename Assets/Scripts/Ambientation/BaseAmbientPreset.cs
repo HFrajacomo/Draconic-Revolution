@@ -24,10 +24,11 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float VOXEL_LIGHT_FLOOR_UNDERGROUND = .012f;
 	protected static readonly float BASE_FOG_HEIGHT_SURFACE = 700f;
 	protected static readonly float BASE_FOG_HEIGHT_UNDERGROUND = 0;
-	protected static readonly float FOG_ATTENUATION_SUNRISE = 6f;
-	protected static readonly float FOG_ATTENUATION_DAY = 10f;
-	protected static readonly float FOG_ATTENUATION_SUNSET = 8f;
-	protected static readonly float FOG_ATTENUATION_NIGHT = 7f;
+	// Fog Mean Free Path along the day: lower is denser
+	protected static readonly float FOG_ATTENUATION_SUNRISE = 3.5f;
+	protected static readonly float FOG_ATTENUATION_DAY = 6.5f;
+	protected static readonly float FOG_ATTENUATION_SUNSET = 5f;
+	protected static readonly float FOG_ATTENUATION_NIGHT = 4.75f;
 	protected static readonly float FOG_MAX_HEIGHT_SURFACE = 920f;
 	protected static readonly float FOG_BASE_ANISOTROPY = 0.2f;
 	protected static readonly float FOG_AMBIENT_LIGHT_NIGHT = .04f;

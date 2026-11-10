@@ -193,6 +193,10 @@ Fog is global, so the fog outside also gets darker while the camera is in a cave
 
 The underground presets (Caverns, Ice Caverns and Core) have no sun or moon, so caves are only lit by Voxel Light and light sources. Hell keeps its light, because it is lit by its fiery sky. Ground Emission goes through the same falloff curve as the rest of the Voxel Light (`VoxelLightGround`), so dim cave floors barely glow.
 
+### Color
+
+Vibrance comes from the Game volume profile, never from brightness: **Color Adjustments** (saturation +22, contrast +12) and two **Color Curves**. *Sat vs Sat* gives dull colors more saturation than already saturated ones, so nothing turns neon, and *Lum vs Sat* gives bright colors a small boost against ACES washing out highlights. HDRP's saturation keeps the luminance of every pixel, and its contrast pivots around mid-gray, so shadows only get deeper and the darkness of nights and caves is kept. `AmbientHandler` doesn't write these, so tune them directly in the profile. Never use Lift or the `w` of the Gain for vibrance, since they brighten the darkness too.
+
 Rules of thumb when tuning:
  - Every value written by `AmbientHandler` (exposure, Lift Gamma Gain, fog, sky, sun and moon) is overwritten at runtime. The `BaseAmbientPreset` subclasses are the source of truth.
  - Make a biome brighter or darker with `expOffset` or the light intensity, never with the `w` of the Gain, which brightens everything including the darkness.
