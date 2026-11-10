@@ -427,10 +427,10 @@ MonoBehaviour:
   active: 1
   shadows:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 1, z: 1, w: -0.68822914}
+    m_Value: {x: 1, y: 1, z: 1, w: -0.1}
   midtones:
     m_OverrideState: 1
-    m_Value: {x: 0.79, y: 0.8565, z: 1, w: 0.2366864}
+    m_Value: {x: 0.79, y: 0.8565, z: 1, w: 0}
   highlights:
     m_OverrideState: 1
     m_Value: {x: 1, y: 1, z: 1, w: 0}
@@ -531,7 +531,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f034cba68ab55e046ae1445a42f18c0e, type: 3}
   m_Name: IndirectLightingController
   m_EditorClassIdentifier: 
-  active: 0
+  active: 1
   indirectDiffuseLightingMultiplier:
     m_OverrideState: 1
     m_Value: 1
@@ -1342,10 +1342,10 @@ MonoBehaviour:
     m_Value: 2
   threshold:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   intensity:
     m_OverrideState: 1
-    m_Value: 0.2
+    m_Value: 0.12
   scatter:
     m_OverrideState: 1
     m_Value: 0.5
@@ -1404,7 +1404,7 @@ MonoBehaviour:
   active: 1
   mode:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 4
   meteringMode:
     m_OverrideState: 1
     m_Value: 2
@@ -1416,7 +1416,7 @@ MonoBehaviour:
     m_Value: 1
   compensation:
     m_OverrideState: 1
-    m_Value: -0.3
+    m_Value: 1
   limitMin:
     m_OverrideState: 1
     m_Value: 0
@@ -1518,13 +1518,13 @@ MonoBehaviour:
     m_Value: 3
   adaptationSpeedLightToDark:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.6
   weightTextureMask:
     m_OverrideState: 1
     m_Value: {fileID: 0}
   histogramPercentages:
     m_OverrideState: 1
-    m_Value: {x: 40, y: 90}
+    m_Value: {x: 50, y: 92}
   histogramUseCurveRemapping:
     m_OverrideState: 1
     m_Value: 0

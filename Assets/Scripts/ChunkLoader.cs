@@ -139,6 +139,8 @@ public class ChunkLoader : MonoBehaviour
         World.SetGameSceneFlag(true);
         VoxelData.SetChunkLoader(this);
         this.playerModelHandler.BuildModel(PlayerAppearanceData.GetAppearance(), PlayerAppearanceData.GetGender(), true);
+        this.playerModelHandler.parent.AddComponent<EntityVoxelLight>().SetChunkLoader(this);
+        this.ambientHandler.SetChunkLoader(this);
     }
 
     public Chunk Get(ChunkPos pos){return this.chunks[pos];}
@@ -1190,6 +1192,22 @@ public class ChunkLoader : MonoBehaviour
         else{
             return (ushort)(ushort.MaxValue/2); // Error Code
         }
+    }
+
+    // Returns the voxel light level of a castcoord, or -1 if its chunk is not loaded or its light is still being calculated.
+    // Never forces a light calculation, so it is safe to call every frame
+    public int GetLight(CastCoord c, bool isNatural=true){
+        ChunkPos pos = c.GetChunkPos();
+
+        if(this.lightingSystem == null || !this.chunks.ContainsKey(pos) || !this.lightingSystem.IsLit(pos))
+            return -1;
+
+        VoxelData data = this.chunks[pos].data;
+
+        if(data.GetLightMap() == null)
+            return -1;
+
+        return data.GetLight(c.blockX, c.blockY, c.blockZ, isNatural);
     }
 
     // Attaches the AudioManager that has the "DontDestroyOnLoad" flag on

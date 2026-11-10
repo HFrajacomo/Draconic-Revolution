@@ -17,6 +17,7 @@ The whole idea of this document is to explain how Draconic Revolution not only h
  - New Vertex Shaders
  - Ground Emission Problem and Solution
  - Moving Light Problem and Solution
+ - Brightness and Exposure
  - Realtime Light Budget (HDRP)
 
 ## What is Voxel Lighting?
@@ -127,7 +128,7 @@ Implementing these Gradients in Shader Graph requires tweaking the Vertex Shader
 
 ![](../RepoImages/CustomInterpolators.png)
 
-By the way, the Light Information is used as a Color multiplier. Light Level 0 means that whatever Color should have been drawn in a pixel becomes black, and so on. That's how we cast "Voxel Shadows".
+By the way, the Light Information is used as a Color multiplier. Light Level 0 means that whatever Color should have been drawn in a pixel becomes (almost) black, and so on. That's how we cast "Voxel Shadows". How the light level becomes brightness is explained in Brightness and Exposure.
 
 ## New Vertex Shaders
 
@@ -154,6 +155,52 @@ The cause was rather unexpected: the sun is moving too fast and too slow at the 
 Let me explain. It seems like Polygonal Lighting has a very hard time dealing with moving directional lights. The real-time ShadowMapper seem to "switch frames" in a weird way whenever Shadows need to be recalculated too quickly. To make matters worse, the rotation of the directional light also can make the sizzling more evident.
 
 To fix that, I had to drop the main Directional Light's update rate to a few times a second, instead of every 2 frames. Also, the trajectory of the main light was changed. It slightly curves away from the center at 12PM and goes back to center until sunset. Additionally, I also increased the Shadow Resolution and Distance.
+
+## Brightness and Exposure
+
+Nights and caves should be almost pitch black, and lights should be bright without turning white. Every part of the rendering pipeline is tuned towards that.
+
+### Voxel Light in the Shaders
+
+All voxel shaders (Ground, Objects, SolidObjects, Leaves, Ice, Water, the clothing shaders and DropItem) call the same function, `VoxelLightShade` in `Assets/Scripts/Rendering/ShaderFunctions/VoxelLightIntensity.hlsl`. Change the lighting there, not in the graphs. It receives the natural and extra light levels (normalized as level/15), the world position and the albedo, and returns:
+
+ - **albedoMask**: multiplies the Base Color. Light levels go through a curve where every level below 15 multiplies the brightness by `_VoxelLightFalloff` (0.8). A linear curve looks flat near the light and then drops to black too quickly.
+ - **extraEmission**: the brightness given by Extra Lights (light blocks and moving lights), added to the Emission. It only scales the surface's own color, so it never tints anything. Its intensity (`_ExtraLightIntensity`, in nits) does not depend on the sky, so lights look the same in every biome and time of day.
+
+Extra Lights have no color in the Voxel Lighting. The color of a light comes from the realtime Point Light of its source: the Light Profile of a block (see Realtime Light Budget) or the Light of an item or animation. So a light of a new color is a block with `luminosity` for its brightness plus a Light Profile with the color. A light source without a Point Light only makes things brighter.
+ - **skyOcclusion**: goes into Occlusion. Natural light is how much of the sky a voxel sees, so sky ambient and sky reflections fade without it. Without this, smooth blocks reflected the sky in pitch-black caves.
+
+An unlit voxel keeps `_VoxelLightFloor` of the sky ambient (split between albedoMask and skyOcclusion), so it is near-black instead of black. `ShaderLoader` sets the globals and `AmbientHandler` sets the floor of each biome. Moving lights use the brightest light reaching the pixel. Water reads the Light UV (TexCoord3) directly in the fragment stage, and its emission is masked too, since water is self-lit.
+
+### Entities
+
+Players and dropped items don't have voxel vertices. `EntityVoxelLight` (client only, added by `ChunkLoader` and `EntityHandler`) samples the light of the block an entity is in a few times per second, smooths it, and sends it to the `_EntityLightNatural` and `_EntityLightExtra` properties of its renderers through MaterialPropertyBlocks. It reads light through `ChunkLoader.GetLight`, which never forces a light calculation and returns -1 while a chunk's light isn't ready. Renderers without the component (like the character creation menu) use the property defaults, which are fully lit.
+
+### Exposure
+
+The camera uses HDRP's Automatic Histogram exposure, but `AmbientHandler` only lets it move in a small window around the biome's base exposure (`GetExposureBase`, in EV100): `EXPOSURE_ADAPT_BRIGHTEN` below and `EXPOSURE_ADAPT_DARKEN` above. Normal auto-exposure brings every scene back to mid-gray, which lit up caves and nights and made torches blow out to white. Now darkness comes from the light itself, and the camera only adds a small "eyes adjusting" effect.
+
+### Caves
+
+Caves can be in any layer and biome. A cave in the surface layer uses the preset of its surface biome, so `AmbientHandler` also measures how enclosed the camera is: the **Cave Factor**. A few times per second it reads the Natural Voxel Light at the camera and at the player's middle point (`ChunkLoader.GetLight`). Level `CAVE_LIGHT_DARK` (4) or lower is a full cave, level `CAVE_LIGHT_OPEN` (12) or higher is the open sky, and the factor fades slowly between them. Inside caves:
+
+ - Fog is not lit by the sky (`globalLightProbeDimmer` keeps `CAVE_FOG_AMBIENT_KEPT`, 0%), so it stays dark instead of glowing. Light sources light it normally.
+ - The sun and moon don't light the fog.
+ - Auto-exposure can't brighten the image at all.
+ - **Dark Adaptation**: unlit surfaces near the camera glow very faintly (`DARK_ADAPTATION_INTENSITY`, in nits), like eyes getting used to the dark. The glow fades to black at `DARK_ADAPTATION_RADIUS` blocks, and faces pointing at the camera get more of it than faces seen edge-on, so the floor and walls show as a very dark outline while the rest of the cave stays pitch black. It's computed in `VoxelLightShade` (so entities get it too), lights nothing through walls and uses no realtime light. It fades in with the Cave Factor.
+
+Fog is global, so the fog outside also gets darker while the camera is in a cave.
+
+The underground presets (Caverns, Ice Caverns and Core) have no sun or moon, so caves are only lit by Voxel Light and light sources. Hell keeps its light, because it is lit by its fiery sky. Ground Emission goes through the same falloff curve as the rest of the Voxel Light (`VoxelLightGround`), so dim cave floors barely glow.
+
+Rules of thumb when tuning:
+ - Every value written by `AmbientHandler` (exposure, Lift Gamma Gain, fog, sky, sun and moon) is overwritten at runtime. The `BaseAmbientPreset` subclasses are the source of truth.
+ - Make a biome brighter or darker with `expOffset` or the light intensity, never with the `w` of the Gain, which brightens everything including the darkness.
+ - The sun is 4 lux and the moon is 0.15 lux. Torch profiles are about 90 lumens. With ACES, anything much brighter than the sun around it turns white.
+ - Underground, the sun and moon are off in caves, don't light the fog (`GetLightVolumetricDimmer`) and the sky ambient is reduced through the Indirect Lighting Controller (`GetIndirectDiffuse`). Hell keeps all of them because it is lit by its fiery sky.
+ - Tune how dark caves get with `CAVE_LIGHT_DARK`, `CAVE_LIGHT_OPEN`, `CAVE_FADE_SPEED`, `CAVE_FOG_AMBIENT_KEPT`, `DARK_ADAPTATION_INTENSITY` and `DARK_ADAPTATION_RADIUS` in `AmbientHandler`, and `FLOOR_LIGHTING_UNDERGROUND` in `BaseAmbientPreset`.
+ - The range of a light's Point Light should be about 1.6 times how far its Extra Light reaches (its light level in blocks), since HDRP fades lights out well before their range. The placed torch (level 7) uses 12 and the held torch (radius 6) uses 11.
+ - `AmbientationTestingTool` can tune presets live, including `expOffset`.
 
 ## Realtime Light Budget (HDRP)
 

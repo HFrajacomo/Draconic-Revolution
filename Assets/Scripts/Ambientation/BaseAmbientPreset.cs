@@ -9,16 +9,19 @@ public abstract class BaseAmbientPreset{
 
 	// Constants
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_DAY = 4f;
-	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = .8f;
+	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = .15f;
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_ZERO = 0f;
 	protected static readonly Color SURFACE_LIGHT_COLOR_DAY = Color.white;
-	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(.75f, .75f, .75f, 1f);
+	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(.62f, .7f, .9f, 1f);
 	protected static readonly float SUN_DIAMETER_DAY = 1f;
 	protected static readonly float SUN_DIAMETER_NIGHT = 0.6f;
 	protected static readonly float SUN_DIAMETER_UNDERGROUND = 0f;
 	protected static readonly float FLOOR_LIGHTING_DAY = 1f;
 	protected static readonly float FLOOR_LIGHTING_NIGHT = 0.05f;
-	protected static readonly float FLOOR_LIGHTING_UNDERGROUND = 4f;
+	protected static readonly float FLOOR_LIGHTING_UNDERGROUND = 1f;
+	// Fraction of the sky ambient kept by a voxel with light level 0 (near-black)
+	protected static readonly float VOXEL_LIGHT_FLOOR_SURFACE = .008f;
+	protected static readonly float VOXEL_LIGHT_FLOOR_UNDERGROUND = .012f;
 	protected static readonly float BASE_FOG_HEIGHT_SURFACE = 700f;
 	protected static readonly float BASE_FOG_HEIGHT_UNDERGROUND = 0;
 	protected static readonly float FOG_ATTENUATION_SUNRISE = 6f;
@@ -27,7 +30,18 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float FOG_ATTENUATION_NIGHT = 7f;
 	protected static readonly float FOG_MAX_HEIGHT_SURFACE = 920f;
 	protected static readonly float FOG_BASE_ANISOTROPY = 0.2f;
-	protected static readonly float EXPOSURE_COMPENSATION_NEUTRAL = -0.5f;
+	protected static readonly float FOG_AMBIENT_LIGHT_NIGHT = .04f;
+	protected static readonly float FOG_AMBIENT_LIGHT_UNDERGROUND = .03f;
+	protected static readonly float INDIRECT_DIFFUSE_DAY = 1f;
+	protected static readonly float INDIRECT_DIFFUSE_NIGHT = .35f;
+	protected static readonly float INDIRECT_DIFFUSE_UNDERGROUND = .25f;
+	// Exposure is in EV100. Auto-exposure may only move EXPOSURE_ADAPT_BRIGHTEN below and EXPOSURE_ADAPT_DARKEN above a preset's base,
+	// so dark places stay dark instead of being normalized to mid-gray
+	protected static readonly float EXPOSURE_BASE_SURFACE = 1f;
+	protected static readonly float EXPOSURE_BASE_UNDERGROUND = 1f;
+	public static readonly float EXPOSURE_ADAPT_BRIGHTEN = 1f;
+	public static readonly float EXPOSURE_ADAPT_DARKEN = .75f;
+	public static readonly float EXPOSURE_METERING_COMPENSATION = 1f;
 	protected static readonly float STAR_MAP_MULTIPLIER_DAY = 0f;
 	protected static readonly float STAR_MAP_MULTIPLIER_NIGHT = 1f;
 	protected static readonly float STAR_MAP_X_ROTATION_BEGIN = 0f;
@@ -79,8 +93,8 @@ public abstract class BaseAmbientPreset{
 	protected float4 gainSunrise;
 	protected float4 gainNight;
 
-	// Exposure
-	protected float expCompensation;
+	// Exposure (EV offset from the surface/underground base. Positive is darker)
+	protected float expOffset;
 
 	// Directional Light
 	protected float lightIntensity;
@@ -140,14 +154,25 @@ public abstract class BaseAmbientPreset{
 	public virtual Color GetZenithTint(float t){return this.zenithTintDay;}
 	public virtual float GetFogAttenuation(float t){return BehaviourLerp4(FOG_ATTENUATION_SUNRISE, FOG_ATTENUATION_DAY, FOG_ATTENUATION_SUNSET, FOG_ATTENUATION_NIGHT, t);}
 	public virtual Color GetFogAlbedo(float t){return this.fogAlbedo;}
-	public virtual float GetFogAmbientLight(float t){return this.fogAmbientLight;}
+	public virtual float GetFogAmbientLight(float t){
+		if(this.isSurface)
+			return BehaviourSunsetIntensity(this.fogAmbientLight, FOG_AMBIENT_LIGHT_NIGHT, t);
+		return this.fogAmbientLight;
+	}
+	public virtual float GetIndirectDiffuse(float t){
+		if(this.isSurface)
+			return BehaviourSunsetIntensity(INDIRECT_DIFFUSE_DAY, INDIRECT_DIFFUSE_NIGHT, t);
+		return INDIRECT_DIFFUSE_UNDERGROUND;
+	}
+	public virtual float GetLightVolumetricDimmer(){return this.isSurface ? 1f : 0f;}
+	public virtual float GetVoxelLightFloor(){return this.isSurface ? VOXEL_LIGHT_FLOOR_SURFACE : VOXEL_LIGHT_FLOOR_UNDERGROUND;}
 	public virtual float GetFogBaseHeight(float t){return BASE_FOG_HEIGHT_SURFACE;}
 	public virtual float GetFogMaxHeight(float t){return this.fogMaximumHeight;}
 	public virtual float GetFogAnisotropy(float t){return this.fogAnisotropy;}
 	public virtual Color GetCloudTint(float t){return this.cloudTintDay;}
 	public virtual float GetWhiteBalanceTemperature(){return this.wbTemperature;}
 	public virtual float GetWhiteBalanceTint(){return this.wbTint;}
-	public virtual float GetExposureCompensation(){return EXPOSURE_COMPENSATION_NEUTRAL;}
+	public virtual float GetExposureBase(){return (this.isSurface ? EXPOSURE_BASE_SURFACE : EXPOSURE_BASE_UNDERGROUND) + this.expOffset;}
 	public virtual float GetSunIntensity(float t){return BehaviourSunsetIntensity(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_ZERO, t);}
 	public virtual float2 GetSunRotation(float t){return this.sunRotation;}
 	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
@@ -425,6 +450,8 @@ public abstract class BaseAmbientPreset{
     	sunRotation = att.sunRotation;
     	sunColor = att.sunColor;
 
+    	expOffset = att.expOffset;
+
     	rainSpawnRate = att.rainSpawnRate;
     }
 
@@ -463,5 +490,6 @@ public abstract class BaseAmbientPreset{
 	public Color _g_ss(){return Float4ToColor(gainSunset);}
 	public Color _g_n(){return Float4ToColor(gainNight);}
 	public int _rsp(){return rainSpawnRate;}
+	public float _eo(){return expOffset;}
 
 }

@@ -6,20 +6,20 @@ public class CavernsAmbientPreset: BaseAmbientPreset{
 		this.horizonTintDay = new Color(0.1724368f, 0.2021929f, 0.2358491f);
 		this.zenithTintDay = new Color(0.3301887f, 0.3301887f, 0.3301887f);
 		this.cloudTintDay = new Color(1f, 1f, 1f);
-		this.gainDay = new float4(0.5f, 0.5f, 0.5f, 0.3333333f);
+		this.gainDay = new float4(0.5f, 0.5f, 0.5f, 0f);
 
 		this.fogAttenuation = 8f;
 		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 		this.fogAlbedo = BASE_UNDERGROUND_FOG_COLOR;
-		this.fogAmbientLight = 0.2f;
+		this.fogAmbientLight = FOG_AMBIENT_LIGHT_UNDERGROUND;
 		this.fogAnisotropy = 0f;
 
 		this.wbTemperature = 10f;
 		this.wbTint = 0f;
 
 		this.sunRotation = new float2(90f, 0f);
-		this.lightIntensity = 2.5f;
+		this.lightIntensity = 0f; // No fake sun underground: caves are only lit by Voxel Light and light sources
 		this.sunDiameter = 0f;
 		this.moonDiameter = 0f;
 

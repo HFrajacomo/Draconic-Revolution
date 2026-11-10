@@ -35,6 +35,26 @@ public class AmbientHandler : MonoBehaviour
     private Fog fog;
     private LiftGammaGain lgg;
     private Exposure exposure;
+    private IndirectLightingController indirectLighting;
+    private float sunVolumetricDimmer;
+    private float moonVolumetricDimmer;
+
+    // Cave Factor: 0 under the open sky, 1 when the camera is enclosed (see UpdateCaveFactor)
+    private ChunkLoader cl;
+    private float caveFactor = 0f;
+    private float caveTarget = 0f;
+    private float caveSampleTimer = 0f;
+    private static readonly float CAVE_SAMPLE_INTERVAL = 0.25f;
+    private static readonly float CAVE_FADE_SPEED = 0.5f;
+    private static readonly int CAVE_LIGHT_DARK = 4;
+    private static readonly int CAVE_LIGHT_OPEN = 12;
+    // Fraction of the fog's sky light kept inside caves
+    private static readonly float CAVE_FOG_AMBIENT_KEPT = 0f;
+    // Dark Adaptation (see VoxelLightIntensity.hlsl): faint glow of unlit surfaces near the camera inside caves, in nits at the camera
+    private static readonly float DARK_ADAPTATION_INTENSITY = 0.045f;
+    private static readonly float DARK_ADAPTATION_RADIUS = 30f;
+    private static readonly int DARK_ADAPTATION_ID = Shader.PropertyToID("_DarkAdaptation");
+    private static readonly int DARK_ADAPTATION_CENTER_ID = Shader.PropertyToID("_DarkAdaptationCenter");
 
     // Update variables
     private const int FRAMES_TO_CHANGE = 180;
@@ -75,6 +95,12 @@ public class AmbientHandler : MonoBehaviour
         this.fog = null;
         this.lgg = null;
         this.exposure = null;
+        this.indirectLighting = null;
+        this.cl = null;
+    }
+
+    public void SetChunkLoader(ChunkLoader cl){
+        this.cl = cl;
     }
 
     void Start(){
@@ -84,6 +110,11 @@ public class AmbientHandler : MonoBehaviour
         this.volume.TryGet<Fog>(out this.fog);
         this.volume.TryGet<LiftGammaGain>(out this.lgg);
         this.volume.TryGet<Exposure>(out this.exposure);
+        this.volume.TryGet<IndirectLightingController>(out this.indirectLighting);
+
+        this.exposure.compensation.value = BaseAmbientPreset.EXPOSURE_METERING_COMPENSATION;
+        this.sunVolumetricDimmer = this.hdLight.volumetricDimmer;
+        this.moonVolumetricDimmer = this.hdLightMoon.volumetricDimmer;
 
         this.windHandler = new GlobalWindHandler(this.clouds);
 
@@ -114,6 +145,8 @@ public class AmbientHandler : MonoBehaviour
         int time = timer.ToSeconds();
         currentTick = (int)timer.GetFakeTicks();
         delta += Time.deltaTime/2;
+
+        UpdateCaveFactor();
 
         if(!isTransitioning){
             currentAmbient = BiomeHandler.GetAmbientGroup(playerPositionHandler.GetCurrentBiomeCode());
@@ -263,9 +296,10 @@ public class AmbientHandler : MonoBehaviour
             EnableShadow(time);
         }
         else if(currentTick % 6 == 1){
-            this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep);
+            this.fog.globalLightProbeDimmer.value = Mathf.Lerp(lastPreset.GetFogAmbientLight(time), currentPreset.GetFogAmbientLight(time), currentStep) * GetCaveFogMultiplier();
             this.clouds.layerA.tint.value = Color.Lerp(lastPreset.GetCloudTint(time), currentPreset.GetCloudTint(time), currentStep);
-            this.exposure.compensation.value = Mathf.Lerp(lastPreset.GetExposureCompensation(), currentPreset.GetExposureCompensation(), currentStep);
+            SetExposureLimits(Mathf.Lerp(lastPreset.GetExposureBase(), currentPreset.GetExposureBase(), currentStep));
+            SetIndirectDiffuse(Mathf.Lerp(lastPreset.GetIndirectDiffuse(time), currentPreset.GetIndirectDiffuse(time), currentStep));
         }
         else if(currentTick % 6 == 2){
             this.whiteBalance.temperature.value = Mathf.Lerp(lastPreset.GetWhiteBalanceTemperature(), currentPreset.GetWhiteBalanceTemperature(), currentStep);
@@ -281,7 +315,9 @@ public class AmbientHandler : MonoBehaviour
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
             this.moonDirectionalLight.intensity = Mathf.Lerp(lastPreset.GetMoonIntensity(time), currentPreset.GetMoonIntensity(time), currentStep);
             this.hdLightMoon.angularDiameter = currentPreset.GetMoonDiameter(time);
+            SetLightVolumetrics(Mathf.Lerp(lastPreset.GetLightVolumetricDimmer(), currentPreset.GetLightVolumetricDimmer(), currentStep));
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
+            Shader.SetGlobalFloat("_VoxelLightFloor", Mathf.Lerp(lastPreset.GetVoxelLightFloor(), currentPreset.GetVoxelLightFloor(), currentStep));
 
             if(ROTATE_SUN_FLAG == 0){
                 this.cachedRotation = currentPreset.GetSunRotation(time);
@@ -318,9 +354,10 @@ public class AmbientHandler : MonoBehaviour
             EnableShadow(time);
         }
         else if(currentTick % 6 == 1){
-            this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime);
+            this.fog.globalLightProbeDimmer.value = currentPreset.GetFogAmbientLight(finalTime) * GetCaveFogMultiplier();
             this.clouds.layerA.tint.value = currentPreset.GetCloudTint(finalTime);
-            this.exposure.compensation.value = currentPreset.GetExposureCompensation();
+            SetExposureLimits(currentPreset.GetExposureBase());
+            SetIndirectDiffuse(currentPreset.GetIndirectDiffuse(finalTime));
         }
         else if(currentTick % 6 == 2){
             this.whiteBalance.temperature.value = currentPreset.GetWhiteBalanceTemperature();
@@ -336,7 +373,9 @@ public class AmbientHandler : MonoBehaviour
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
             this.moonDirectionalLight.intensity = currentPreset.GetMoonIntensity(time);
             this.hdLightMoon.angularDiameter = currentPreset.GetMoonDiameter(time);
+            SetLightVolumetrics(currentPreset.GetLightVolumetricDimmer());
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
+            Shader.SetGlobalFloat("_VoxelLightFloor", currentPreset.GetVoxelLightFloor());
 
             if(ROTATE_SUN_FLAG == 0){
                 this.cachedRotation = currentPreset.GetSunRotation(finalTime);
@@ -352,6 +391,61 @@ public class AmbientHandler : MonoBehaviour
                 ROTATE_SUN_FLAG++;
             }
         }
+    }
+
+    // Limits auto-exposure to a small window around the preset's base EV, so dark scenes are not normalized to mid-gray
+    // Inside caves the camera can't brighten at all, so they stay dark until lit
+    private void SetExposureLimits(float baseEV){
+        this.exposure.limitMin.value = baseEV - BaseAmbientPreset.EXPOSURE_ADAPT_BRIGHTEN * (1f - this.caveFactor);
+        this.exposure.limitMax.value = baseEV + BaseAmbientPreset.EXPOSURE_ADAPT_DARKEN;
+    }
+
+    private void SetIndirectDiffuse(float multiplier){
+        if(this.indirectLighting == null)
+            return;
+
+        this.indirectLighting.indirectDiffuseLightingMultiplier.value = multiplier;
+    }
+
+    // Sun and Moon don't light the fog of caves
+    private void SetLightVolumetrics(float dimmer){
+        dimmer *= 1f - this.caveFactor;
+        this.hdLight.volumetricDimmer = this.sunVolumetricDimmer * dimmer;
+        this.hdLightMoon.volumetricDimmer = this.moonVolumetricDimmer * dimmer;
+    }
+
+    private float GetCaveFogMultiplier(){
+        return Mathf.Lerp(1f, CAVE_FOG_AMBIENT_KEPT, this.caveFactor);
+    }
+
+    /*
+    Measures how enclosed the camera is through the Natural Voxel Light around it. Caves of every layer and biome
+    have low natural light, so their fog loses the sky's light and auto-exposure can't brighten them.
+    Keeps the last value while the light of the chunk isn't calculated
+    */
+    private void UpdateCaveFactor(){
+        if(this.cl == null)
+            return;
+
+        this.caveSampleTimer -= Time.deltaTime;
+
+        if(this.caveSampleTimer <= 0f){
+            this.caveSampleTimer = CAVE_SAMPLE_INTERVAL;
+
+            int level = Mathf.Max(
+                this.cl.GetLight(new CastCoord(this.playerPositionHandler.cameraTransform.position)),
+                this.cl.GetLight(new CastCoord(this.playerPositionHandler.GetPlayerMiddlePoint().position))
+            );
+
+            if(level >= 0)
+                this.caveTarget = 1f - Mathf.Clamp01((float)(level - CAVE_LIGHT_DARK) / (CAVE_LIGHT_OPEN - CAVE_LIGHT_DARK));
+        }
+
+        this.caveFactor = Mathf.MoveTowards(this.caveFactor, this.caveTarget, Time.deltaTime * CAVE_FADE_SPEED);
+
+        Vector3 camera = this.playerPositionHandler.cameraTransform.position;
+        Shader.SetGlobalFloat(DARK_ADAPTATION_ID, DARK_ADAPTATION_INTENSITY * this.caveFactor);
+        Shader.SetGlobalVector(DARK_ADAPTATION_CENTER_ID, new Vector4(camera.x, camera.y, camera.z, DARK_ADAPTATION_RADIUS));
     }
 
     private float GetAngle(Vector2 a){

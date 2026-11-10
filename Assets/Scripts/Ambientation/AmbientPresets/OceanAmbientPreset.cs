@@ -25,12 +25,12 @@ public class OceanAmbientPreset: BaseAmbientPreset{
 
 		this.wbTemperature = 0f;
 		this.wbTint = 0f;
-		this.expCompensation = -0.7f;
+		this.expOffset = -0.3f;
 
-		this.gainSunrise = new float4(0.745283f, 0.57064f, 0.3339711f, 0.4f);
-		this.gainDay = new float4(1f, 1f, 1f, 0.4f);
-		this.gainSunset = new float4(0.8113208f, 0.4581941f, 0.1415984f, 0.4f);
-		this.gainNight = new float4(0f, 0f, 0f, 0f);
+		this.gainSunrise = new float4(0.745283f, 0.57064f, 0.3339711f, 0f);
+		this.gainDay = new float4(1f, 1f, 1f, 0f);
+		this.gainSunset = new float4(0.8113208f, 0.4581941f, 0.1415984f, 0f);
+		this.gainNight = new float4(.42f, .46f, .55f, 0f);
 
 		this.sunDiameter = SUN_DIAMETER_DAY;
 		this.moonDiameter = SUN_DIAMETER_NIGHT;
@@ -60,5 +60,4 @@ public class OceanAmbientPreset: BaseAmbientPreset{
 	public override float GetFloorLighting(float t){
 		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
-	public override float GetExposureCompensation(){return this.expCompensation;}
 }

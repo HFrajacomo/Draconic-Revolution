@@ -6,7 +6,7 @@ public class HellAmbientPreset: BaseAmbientPreset{
 		this.horizonTintDay = new Color(1f, 0f, 0f);
 		this.zenithTintDay = new Color(0f, 0f, 0f);
 		this.cloudTintDay = new Color(1f, 1f, 1f);
-		this.gainDay = new float4(0.6981132f, 0.3062477f, 0.3062477f, 0.6392157f);
+		this.gainDay = new float4(0.6981132f, 0.3062477f, 0.3062477f, 0f);
 
 		this.fogAttenuation = 2.8f;
 		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
@@ -18,7 +18,7 @@ public class HellAmbientPreset: BaseAmbientPreset{
 		this.wbTemperature = 40f;
 		this.wbTint = 0f;
 
-		this.expCompensation = 0.2f;
+		this.expOffset = -1f;
 
 		this.sunRotation = new float2(90f, 0f);
 		this.lightIntensity = 5f;
@@ -47,5 +47,7 @@ public class HellAmbientPreset: BaseAmbientPreset{
 		return this.fogAttenuation;
 	}
 	public override int GetRainSpawnRate(WeatherCast ws){return 0;}
-	public override float GetExposureCompensation(){return this.expCompensation;}
+	// Hell is lit by its fiery sky and lava, so it keeps volumetric light and a stronger ambient
+	public override float GetLightVolumetricDimmer(){return 1f;}
+	public override float GetIndirectDiffuse(float t){return .6f;}
 }

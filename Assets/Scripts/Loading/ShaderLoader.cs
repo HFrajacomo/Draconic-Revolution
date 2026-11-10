@@ -15,6 +15,12 @@ public class ShaderLoader : BaseLoader {
 	private static Vector4[] VOXEL_LIGHT_INITIAL_BUFFER;
 	private static readonly int VOXEL_LIGHT_BUFFER_SIZE = 32; 
 
+	// Voxel Light Curve (see VoxelLightIntensity.hlsl). Falloff is the brightness multiplier per light level lost
+	private static readonly float VOXEL_LIGHT_FALLOFF = 0.8f;
+	private static readonly float VOXEL_LIGHT_FLOOR = 0.01f;
+	// Brightness of Extra Lights (light blocks and moving lights), in nits. Their color comes from their realtime Point Lights
+	private static readonly float EXTRA_LIGHT_INTENSITY = 0.6f;
+
 
 	public ShaderLoader(bool client){
 		isClient = client;
@@ -24,8 +30,10 @@ public class ShaderLoader : BaseLoader {
 	}
 
 	public override bool Load(){
-		if(isClient)
+		if(isClient){
 			InitVoxelLightBuffer();
+			InitVoxelLightCurve();
+		}
 		return true;
 	}
 
@@ -43,5 +51,14 @@ public class ShaderLoader : BaseLoader {
 		}
 
 		Shader.SetGlobalVectorArray("_VOXEL_LIGHT_BUFFER", VOXEL_LIGHT_INITIAL_BUFFER);
+	}
+
+	private void InitVoxelLightCurve(){
+		Shader.SetGlobalFloat("_VoxelLightFalloff", VOXEL_LIGHT_FALLOFF);
+		Shader.SetGlobalFloat("_VoxelLightFloor", VOXEL_LIGHT_FLOOR);
+		// Driven by AmbientHandler inside caves
+		Shader.SetGlobalFloat("_DarkAdaptation", 0f);
+		Shader.SetGlobalVector("_DarkAdaptationCenter", Vector4.zero);
+		Shader.SetGlobalFloat("_ExtraLightIntensity", EXTRA_LIGHT_INTENSITY);
 	}
 }

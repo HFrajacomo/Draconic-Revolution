@@ -23,6 +23,8 @@ public class AmbientationTestingTool: MonoBehaviour{
     private WhiteBalance whiteBalance;
     private Fog fog;
     private LiftGammaGain lgg;
+    private Exposure exposure;
+    private IndirectLightingController indirectLighting;
 
 	// Physically based sky
 	public Color horizonTint_sunrise;
@@ -63,6 +65,9 @@ public class AmbientationTestingTool: MonoBehaviour{
 	public float2 sunRotation;
 	public Color sunColor;
 
+	// Exposure (EV offset from the surface/underground base. Positive is darker)
+	public float expOffset;
+
 	// Rain
 	public int rainSpawnRate;
 
@@ -72,6 +77,10 @@ public class AmbientationTestingTool: MonoBehaviour{
         this.volume.TryGet<WhiteBalance>(out this.whiteBalance);
         this.volume.TryGet<Fog>(out this.fog);
         this.volume.TryGet<LiftGammaGain>(out this.lgg);
+        this.volume.TryGet<Exposure>(out this.exposure);
+        this.volume.TryGet<IndirectLightingController>(out this.indirectLighting);
+
+        this.exposure.compensation.value = BaseAmbientPreset.EXPOSURE_METERING_COMPENSATION;
 
         SetValues(preset);
 	}
@@ -108,6 +117,13 @@ public class AmbientationTestingTool: MonoBehaviour{
 		this.skyDirectionalLight.color = preset.GetSunColor(time);
 		this.skyDirectionalLight.transform.rotation = Quaternion.Euler(preset.GetSunRotation(time).x, 0, preset.GetSunRotation(time).y);
 		this.hdLight.angularDiameter = preset.GetSunDiameter(time);
+
+		float exposureBase = preset.GetExposureBase();
+		this.exposure.limitMin.value = exposureBase - BaseAmbientPreset.EXPOSURE_ADAPT_BRIGHTEN;
+		this.exposure.limitMax.value = exposureBase + BaseAmbientPreset.EXPOSURE_ADAPT_DARKEN;
+
+		if(this.indirectLighting != null)
+			this.indirectLighting.indirectDiffuseLightingMultiplier.value = preset.GetIndirectDiffuse(time);
 	}
 
 	private void Print(){
@@ -140,7 +156,9 @@ public class AmbientationTestingTool: MonoBehaviour{
 		o += "this.gainSunrise = " + PrintFloat4(this.gain_sunrise) + ";\n";
 		o += "this.gainDay = " + PrintFloat4(this.gain_day) + ";\n";
 		o += "this.gainSunset = " + PrintFloat4(this.gain_sunset) + ";\n";
-		o += "this.gainNight = " + PrintFloat4(this.gain_night) + ";\n";
+		o += "this.gainNight = " + PrintFloat4(this.gain_night) + ";\n\n";
+
+		o += "this.expOffset = " + Q(this.expOffset) + "f;\n";
 
 		Debug.Log(o);
 	}
@@ -190,6 +208,8 @@ public class AmbientationTestingTool: MonoBehaviour{
     	lightIntensity = p._li();
     	sunRotation = p._sr();
     	sunColor = p._sc();
+
+    	expOffset = p._eo();
 
     	rainSpawnRate = p._rsp();
 	}

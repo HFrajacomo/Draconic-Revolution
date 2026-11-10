@@ -110,6 +110,7 @@ public class EntityHandler
 		GameObject go = GameObject.Instantiate(GameObject.Find("----- PrefabModels -----/PlayerModel"), new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(0, dir.y, 0));
 
 		go.name = "Player_" + code;
+		go.AddComponent<EntityVoxelLight>().SetChunkLoader(this.cl);
 		this.playerObject.Add(code, go);
 		this.playerHead.Add(code, go.transform.Find("Camera"));
 		this.playerItem.Add(code, 0);
@@ -257,6 +258,7 @@ public class EntityHandler
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){
 		ItemEntity newItemEntity = GameObject.Instantiate(this.droppedItemBase, pos, Quaternion.Euler(dir.x, dir.y, dir.z)).GetComponent<ItemEntity>();
 		newItemEntity.SetItemStack(its);
+		newItemEntity.gameObject.AddComponent<EntityVoxelLight>().SetChunkLoader(this.cl);
 
 		this.dropObject.Add(code, newItemEntity);
 		RunSingleActivation(EntityType.DROP, code, pos);

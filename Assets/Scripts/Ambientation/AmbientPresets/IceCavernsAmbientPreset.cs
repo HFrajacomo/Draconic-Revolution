@@ -11,7 +11,7 @@ public class IceCavernsAmbientPreset: BaseAmbientPreset{
 		this.fogAttenuation = 8f;
 		this.fogBaseHeight = BASE_FOG_HEIGHT_UNDERGROUND;
 		this.fogAlbedo = BASE_UNDERGROUND_FOG_COLOR;
-		this.fogAmbientLight = .2f;
+		this.fogAmbientLight = FOG_AMBIENT_LIGHT_UNDERGROUND;
 		this.fogMaximumHeight = FOG_MAX_HEIGHT_SURFACE;
 		this.fogAnisotropy = 0f;
 
@@ -19,7 +19,7 @@ public class IceCavernsAmbientPreset: BaseAmbientPreset{
 		this.wbTint = 0f;
 
 		this.sunRotation = new float2(90f, 0f);
-		this.lightIntensity = 2.5f;
+		this.lightIntensity = 0f; // No fake sun underground: caves are only lit by Voxel Light and light sources
 		this.sunDiameter = 0f;
 		this.moonDiameter = 0f;
 
