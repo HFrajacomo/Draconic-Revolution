@@ -1,166 +1,210 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+Runs Block Updates (BUD) and chunk saves at a given tick of the in-game time
+	Ticks are absolute and counted by TimeOfDay.GetBUDTick()
+	Every tick that is due runs in order, so ticks skipped by long frames are caught up instead of lost
+	Offsets scheduled while a tick runs count from that tick, so chained updates keep deterministic timings
+*/
 public class BUDScheduler : MonoBehaviour {
 	public TimeOfDay schedulerTime;
-	private Dictionary<string, List<BUDSignal>> data = new Dictionary<string, List<BUDSignal>>();
-	private Dictionary<string, HashSet<ChunkPos>> toSave = new Dictionary<string, HashSet<ChunkPos>>();
-    private HashSet<ChunkPos> toSaveThisFrame = new HashSet<ChunkPos>();
-    private HashSet<ChunkPos> toPropagate = new HashSet<ChunkPos>();
-    private List<ChunkPos> cachedList = new List<ChunkPos>();
-    private string currentTime;
-	private string newTime;
 	public ChunkLoader_Server loader;
-    private byte currentDealocTime;
 
+	private Dictionary<long, TickBucket> buckets = new Dictionary<long, TickBucket>();
+	private SortedSet<long> pendingTicks = new SortedSet<long>();
+	private Stack<TickBucket> bucketPool = new Stack<TickBucket>();
+	private HashSet<ChunkPos> toPropagate = new HashSet<ChunkPos>();
+	private long lastTick;
+	private long runningTick;
+	private bool isRunning = false;
 
-    private ChunkPos cachePos;
 	private CastCoord cachedCoord;
-    private ushort cachedCode;
-    private string cachedString;
+	private ushort cachedCode;
+
 
 	void Start(){
-		this.currentTime = schedulerTime.GetBUDTime();
-		this.data.Add(currentTime, new List<BUDSignal>());
-		this.toSave.Add(currentTime, new HashSet<ChunkPos>());
+		this.lastTick = this.schedulerTime.GetBUDTick();
 	}
 
-    void Update(){
-        this.newTime = schedulerTime.GetBUDTime();
+	void Update(){
+		long now = this.schedulerTime.GetBUDTick();
 
-        // If frame changes, process all remaining operations from last frame
-        if(this.newTime != this.currentTime){
-            // Saves the World Data every tick
-            if(loader.regionHandler != null)
-                loader.regionHandler.SaveWorld();
+		// Saves the World Data every tick
+		if(now != this.lastTick){
+			if(this.loader.regionHandler != null)
+				this.loader.regionHandler.SaveWorld();
 
-            RunOnFrame(this.currentTime);
-        }
+			this.lastTick = now;
+		}
 
-        // Run on current Frame
-        this.currentTime = this.newTime;
+		RunDueTicks(now);
+		PropagateChanges();
+	}
 
-        RunOnFrame(this.currentTime);
-    }
+	// Runs every tick up to the current one, in order
+	private void RunDueTicks(long now){
+		TickBucket bucket;
+		long tick;
 
-    private void RunOnFrame(string frame){
-        // Runs BUD
-        if(DataCount() > 0){
-            while(DataCount() > 0){
-                cachedCoord = new CastCoord(new Vector3(this.data[frame][0].x, this.data[frame][0].y, this.data[frame][0].z));
+		while(this.pendingTicks.Count > 0){
+			tick = this.pendingTicks.Min;
 
-                // If BUDSignal is still in the loaded area
-                if(loader.Contains(cachedCoord.GetChunkPos())){
-                    cachedCode = loader.GetChunk(cachedCoord.GetChunkPos()).data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ);
+			if(tick > now)
+				break;
 
-                    if(cachedCode <= ushort.MaxValue/2)
-                        VoxelLoader.GetBlock(cachedCode).OnBlockUpdate(this.data[frame][0].type, this.data[frame][0].x, this.data[frame][0].y, this.data[frame][0].z, this.data[frame][0].budX, this.data[frame][0].budY, this.data[frame][0].budZ, this.data[frame][0].facing, loader);
-                    else{
-                        VoxelLoader.GetObject(cachedCode).OnBlockUpdate(this.data[frame][0].type, this.data[frame][0].x, this.data[frame][0].y, this.data[frame][0].z, this.data[frame][0].budX, this.data[frame][0].budY, this.data[frame][0].budZ, this.data[frame][0].facing, loader);                    
-                    }
-                }
+			bucket = this.buckets[tick];
+			this.runningTick = tick;
+			this.isRunning = true;
 
-                this.data[frame].RemoveAt(0);
-            }
+			RunSignals(bucket);
+			RunSaves(bucket);
 
-            this.data.Remove(frame);
-        }
+			this.isRunning = false;
+			this.pendingTicks.Remove(tick);
+			this.buckets.Remove(tick);
+			ReleaseBucket(bucket);
+		}
+	}
 
-        // Saves chunks
-        if(SaveCount() > 0){
-            foreach(ChunkPos pos in this.toSave[frame]){
-                if(loader.Contains(pos)){
-                    loader.regionHandler.SaveChunk(loader.GetChunk(pos));
-                }
-            }
+	// BUDs scheduled to the same tick while it runs are appended to it and run as well
+	private void RunSignals(TickBucket bucket){
+		BUDSignal signal;
 
-            this.toSave.Remove(frame);
-        }
+		for(int i=0; i < bucket.signals.Count; i++){
+			signal = bucket.signals[i];
+			Dispatch(signal);
+			bucket.signalSet.Remove(signal);
+		}
+	}
 
-        // Propagates the voxels changed in saved chunks to users
-        foreach(ChunkPos pos in this.toPropagate){
-            loader.server.SendChunkChanges(pos);
-        }
+	// Runs a BUD in the voxel it targets if it's still in the loaded area
+	// Exceptions are logged so one failing BUD can't stop the Scheduler
+	private void Dispatch(BUDSignal signal){
+		ChunkPos pos;
 
-        this.toPropagate.Clear();
-        this.toSaveThisFrame.Clear();
-    }
+		this.cachedCoord = new CastCoord(new Vector3(signal.x, signal.y, signal.z));
+		pos = this.cachedCoord.GetChunkPos();
 
-    // Schedules a BUD request in the system
-    public void ScheduleBUD(BUDSignal b, int tickOffset){
-    	if(tickOffset == 0){
-            if(this.data.ContainsKey(this.currentTime)){
-                if(!this.data[this.currentTime].Contains(b)){
-        		  this.data[this.currentTime].Add(b);
-                }
-            }
-            else{
-                this.data.Add(this.currentTime, new List<BUDSignal>());
-                this.data[this.currentTime].Add(b);
-            }
-    	}
-    	else{
-    		string fakeTime = schedulerTime.FakeSum(tickOffset);
+		if(!this.loader.Contains(pos))
+			return;
 
-    		if(this.data.ContainsKey(fakeTime)){
-                if(!this.data[fakeTime].Contains(b))
-                    this.data[fakeTime].Add(b);
-    		}
-    		else{
-    			this.data.Add(fakeTime, new List<BUDSignal>());
-    			this.data[fakeTime].Add(b);
-    		}
-    	}
-    }
+		this.cachedCode = this.loader.GetChunk(pos).data.GetCell(this.cachedCoord.blockX, this.cachedCoord.blockY, this.cachedCoord.blockZ);
 
-    // Schedules a BUD request in the system in the current tick
-    public void ScheduleBUDNow(BUDSignal b){
-        if(this.data.ContainsKey(this.currentTime)){ 
-            this.data[this.currentTime].Add(b);
-        }
-        else{
-            this.data.Add(this.currentTime, new List<BUDSignal>());
-            this.data[this.currentTime].Add(b);
-        }
-    }
+		try{
+			if(this.cachedCode <= ushort.MaxValue/2)
+				VoxelLoader.GetBlock(this.cachedCode).OnBlockUpdate(signal.type, signal.x, signal.y, signal.z, signal.budX, signal.budY, signal.budZ, signal.facing, this.loader);
+			else
+				VoxelLoader.GetObject(this.cachedCode).OnBlockUpdate(signal.type, signal.x, signal.y, signal.z, signal.budX, signal.budY, signal.budZ, signal.facing, this.loader);
+		}
+		catch(Exception e){
+			Debug.LogException(e);
+		}
+	}
 
-    // Schedules a SaveChunk() operation 
-    public void ScheduleSave(ChunkPos pos){
-        if(toSaveThisFrame.Contains(pos))
-            return;
+	private void RunSaves(TickBucket bucket){
+		foreach(ChunkPos pos in bucket.saves){
+			if(this.loader.Contains(pos))
+				this.loader.regionHandler.SaveChunk(this.loader.GetChunk(pos));
+		}
+	}
 
-        string fakeTime = schedulerTime.FakeSum(1);
+	// Propagates the voxels changed in saved chunks to users
+	private void PropagateChanges(){
+		if(this.toPropagate.Count == 0)
+			return;
 
-        if(!this.toSave.ContainsKey(fakeTime))
-            this.toSave.Add(fakeTime, new HashSet<ChunkPos>());
+		foreach(ChunkPos pos in this.toPropagate)
+			this.loader.server.SendChunkChanges(pos);
 
-        if(this.toSave[fakeTime].Contains(pos))
-            return;
+		this.toPropagate.Clear();
+	}
 
-        this.toSave[fakeTime].Add(pos);
-        toSaveThisFrame.Add(pos);
-    }
+	// Schedules a BUD request in the system. Identical requests to the same tick are only run once
+	public void ScheduleBUD(BUDSignal b, int tickOffset){
+		TickBucket bucket = GetBucket(GetBaseTick() + tickOffset);
 
-    // Schedules a Server.SendToClients() operation
-    public void SchedulePropagation(ChunkPos pos){
-        this.toPropagate.Add(pos);
-    }
+		if(bucket.signalSet.Add(b))
+			bucket.signals.Add(b);
+	}
 
-    // Returns the Amount of elements in this.data[currentTime]. Returns 0 if list is not initialized
-    private int DataCount(){
-        if(this.data.ContainsKey(this.currentTime)){
-            return this.data[this.currentTime].Count;
-        }
-        return 0;
-    }
+	// Schedules a BUD request in the system in the current tick, even if an identical one was already scheduled
+	public void ScheduleBUDNow(BUDSignal b){
+		TickBucket bucket = GetBucket(GetBaseTick());
+
+		bucket.signalSet.Add(b);
+		bucket.signals.Add(b);
+	}
+
+	// Schedules a SaveChunk() operation to the next tick
+	public void ScheduleSave(ChunkPos pos){
+		GetBucket(GetBaseTick() + 1).saves.Add(pos);
+	}
+
+	// Schedules a Server.SendChunkChanges() operation to the end of the frame
+	public void SchedulePropagation(ChunkPos pos){
+		this.toPropagate.Add(pos);
+	}
+
+	// Offsets count from the tick that is running, or from the current tick otherwise
+	private long GetBaseTick(){
+		if(this.isRunning)
+			return this.runningTick;
+		return this.schedulerTime.GetBUDTick();
+	}
+
+	private TickBucket GetBucket(long tick){
+		TickBucket bucket;
+
+		if(this.buckets.TryGetValue(tick, out bucket))
+			return bucket;
+
+		if(this.bucketPool.Count > 0)
+			bucket = this.bucketPool.Pop();
+		else
+			bucket = new TickBucket();
+
+		this.buckets.Add(tick, bucket);
+		this.pendingTicks.Add(tick);
+		return bucket;
+	}
+
+	private void ReleaseBucket(TickBucket bucket){
+		bucket.signals.Clear();
+		bucket.signalSet.Clear();
+		bucket.saves.Clear();
+		this.bucketPool.Push(bucket);
+	}
 
 
-    // Returns the Amount of elements in this.save[currentTime]. Returns 0 if list is not initialized
-    private int SaveCount(){
-        if(this.toSave.ContainsKey(this.currentTime)){
-            return this.toSave[this.currentTime].Count;
-        }
-        return 0;
-    }
+	// Everything scheduled to a single tick
+	private class TickBucket{
+		public List<BUDSignal> signals = new List<BUDSignal>();
+		public HashSet<BUDSignal> signalSet = new HashSet<BUDSignal>(BUDSignalComparer.INSTANCE);
+		public HashSet<ChunkPos> saves = new HashSet<ChunkPos>();
+	}
+
+	// Compares every field of BUDSignals without boxing them
+	private class BUDSignalComparer : IEqualityComparer<BUDSignal>{
+		public static readonly BUDSignalComparer INSTANCE = new BUDSignalComparer();
+
+		public bool Equals(BUDSignal a, BUDSignal b){
+			return a.type == b.type && a.x == b.x && a.y == b.y && a.z == b.z && a.budX == b.budX && a.budY == b.budY && a.budZ == b.budZ && a.facing == b.facing;
+		}
+
+		public int GetHashCode(BUDSignal b){
+			unchecked{
+				int hash = (int)b.type;
+				hash = hash*31 + b.x;
+				hash = hash*31 + b.y;
+				hash = hash*31 + b.z;
+				hash = hash*31 + b.budX;
+				hash = hash*31 + b.budY;
+				hash = hash*31 + b.budZ;
+				hash = hash*31 + b.facing;
+				return hash;
+			}
+		}
+	}
 }

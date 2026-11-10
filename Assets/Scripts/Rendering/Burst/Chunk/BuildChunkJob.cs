@@ -153,19 +153,22 @@ public struct BuildChunkJob : IJobParallelFor{
 				    		neighborState = GetBlockState(auxC.x, auxC.y, auxC.z, isAtTheBorder);
 				    		isABlock = neighborBlock <= ushort.MaxValue/2;
 
-				    		if(isABlock){
-					    		if(blockSeamless[thisBlock]){
-					    			if(!CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
-					    				WriteFace(x, y, z, i, thisBlock, y == Chunk.chunkDepth & isSurfaceChunk, false);
-					    			}
-					    		}
-					    	}
-					    	else{
-					    		if(objectSeamless[thisBlock]){
-					    			if(!CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
-					    				WriteFace(x, y, z, i, thisBlock, y == Chunk.chunkDepth & isSurfaceChunk, false);
-					    			}
-					    		}
+				    		// A full liquid under the same liquid has no visible top
+				    		if(neighborBlock != thisBlock || !IsFullLiquidState(thisState)){
+					    		if(isABlock){
+						    		if(blockSeamless[thisBlock]){
+						    			if(!CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
+						    				WriteFace(x, y, z, i, thisBlock, y == Chunk.chunkDepth & isSurfaceChunk, false);
+						    			}
+						    		}
+						    	}
+						    	else{
+						    		if(objectSeamless[thisBlock]){
+						    			if(!CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
+						    				WriteFace(x, y, z, i, thisBlock, y == Chunk.chunkDepth & isSurfaceChunk, false);
+						    			}
+						    		}
+						    	}
 					    	}
 			    		}
 		    		}
@@ -229,6 +232,10 @@ public struct BuildChunkJob : IJobParallelFor{
 
 			    			// Cuts down handling of DrawLiquid blocks here
 			    			if(blockDrawLiquid[neighborBlock] && i == 4)
+			    				continue;
+
+			    			// A full liquid under the same liquid has no visible top
+			    			if(i == 5 && neighborBlock == thisBlock && blockDrawLiquid[neighborBlock] && IsFullLiquidState(neighborState))
 			    				continue;
 
 							// Handles Liquid chunks
@@ -533,7 +540,8 @@ public struct BuildChunkJob : IJobParallelFor{
         if(s == ushort.MaxValue)
             s = 0;
 
-		if(s == 19 || s == 20 || s == 21){
+		// Falling and Landed liquids are full blocks
+		if(s >= 19 && s <= 23){
 		    for (int i = 0; i < fv.Length; i++)
 		    {
 		    	fv[i] = (LiquidMeshData.verticesOnState[LiquidMeshData.faceTriangles[dir*4+i]] * scale) + pos;
@@ -547,6 +555,11 @@ public struct BuildChunkJob : IJobParallelFor{
 		}
 	}
 
+
+	// Checks if a liquid state fills the whole voxel
+	public static bool IsFullLiquidState(ushort s){
+		return s == 0 || s == ushort.MaxValue || (s >= 19 && s <= 23);
+	}
 
 	public byte ToByte(bool b){
 		if(b)

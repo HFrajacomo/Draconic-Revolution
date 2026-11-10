@@ -29,6 +29,12 @@ LIQUID STATES:
 19: Falling3
 20: Falling2
 21: Falling1
+22: Landed2
+23: Landed1
+
+Falling states are the column of a liquid that falls from a ledge. Falling3 keeps being the bottom of its column.
+Falling2 and Falling1 become Landed2 and Landed1 once they reach solid ground. Landed states are full blocks that keep the spread of the level they had before falling.
+Landed states only exist while the column above them feeds them. Landed2 spreads Level 1 water and Landed1 doesn't spread.
 */
 
 [Serializable]
@@ -113,6 +119,8 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 			statePriority.Add(19, 8);
 			statePriority.Add(20, 7);
 			statePriority.Add(21, 6);
+			statePriority.Add(22, 7);
+			statePriority.Add(23, 6);
 		}
 
 		// Adds to CameFrom dictionary
@@ -145,14 +153,14 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 			cameFromState.Add(8, new HashSet<ushort>(){0,19,7,9});
 			cameFromState.Add(9, new HashSet<ushort>(){0,19});
 			cameFromState.Add(10, new HashSet<ushort>(){0,19,9,3});
-			cameFromState.Add(11, new HashSet<ushort>(){10,3,4,20,1});
-			cameFromState.Add(12, new HashSet<ushort>(){20,1,11,13});
-			cameFromState.Add(13, new HashSet<ushort>(){4,5,6,20,1});
-			cameFromState.Add(14, new HashSet<ushort>(){20,1,13,15});
-			cameFromState.Add(15, new HashSet<ushort>(){6,7,8,20,1});
-			cameFromState.Add(16, new HashSet<ushort>(){20,1,15,17});
-			cameFromState.Add(17, new HashSet<ushort>(){8,9,10,20,1});
-			cameFromState.Add(18, new HashSet<ushort>(){20,1,11,17});
+			cameFromState.Add(11, new HashSet<ushort>(){10,3,4,22,1});
+			cameFromState.Add(12, new HashSet<ushort>(){22,1,11,13});
+			cameFromState.Add(13, new HashSet<ushort>(){4,5,6,22,1});
+			cameFromState.Add(14, new HashSet<ushort>(){22,1,13,15});
+			cameFromState.Add(15, new HashSet<ushort>(){6,7,8,22,1});
+			cameFromState.Add(16, new HashSet<ushort>(){22,1,15,17});
+			cameFromState.Add(17, new HashSet<ushort>(){8,9,10,22,1});
+			cameFromState.Add(18, new HashSet<ushort>(){22,1,11,17});
 		}
 
 		this.penaltyDrag = new MathOperation{code = (ushort)MovementModifierCode.LIQUID, operation = '*', number = onBodyMovementMultiplierDrag};
@@ -281,11 +289,12 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 	}
 
 	// Emits BUD Signal to Water Blocks around this one
+	// Diagonals are included, since Level 1 states may depend on diagonal neighbors
 	private void EmitWaterBUD(int myX, int myY, int myZ, ChunkLoader_Server cl){
 		GetCodeAround(myX, myY, myZ, cl);
 
-		// Adjascents
-		for(int i=0; i<8; i+=2){
+		// Horizontal neighbors
+		for(int i=0; i<8; i++){
 			if(aroundCodes[i] == this.liquidCode){
 				cachedCoord = new CastCoord(this.GetNeighborBlock(i, myX, myY, myZ));
 				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
@@ -294,21 +303,15 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 		}
 
 		// Below
-		cachedCoord = new CastCoord(this.GetNeighborBlock(8, myX, myY, myZ));
-		if(cachedCoord.blockY >= 0 && cl.Contains(cachedCoord.GetChunkPos())){
-			if(cl.GetChunk(cachedCoord.GetChunkPos()).data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode){
-				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
-				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
-			}
+		if(GetCodeBelow(myX, myY, myZ, cl) == this.liquidCode){
+			cachedBUD = new BUDSignal(BUDCode.CHANGE, myX, myY-1, myZ, myX, myY-1, myZ, -1);
+			cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);
 		}
 
 		// Above
-		cachedCoord = new CastCoord(this.GetNeighborBlock(9, myX, myY, myZ));
-		if(cachedCoord.blockY < Chunk.chunkDepth){
-			if(cl.GetChunk(cachedCoord.GetChunkPos()).data.GetCell(cachedCoord.blockX, cachedCoord.blockY, cachedCoord.blockZ) == this.liquidCode){
-				cachedBUD = new BUDSignal(BUDCode.CHANGE, cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), cachedCoord.GetWorldX(), cachedCoord.GetWorldY(), cachedCoord.GetWorldZ(), -1);
-				cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);			
-			}
+		if(GetCodeAbove(myX, myY, myZ, cl) == this.liquidCode){
+			cachedBUD = new BUDSignal(BUDCode.CHANGE, myX, myY+1, myZ, myX, myY+1, myZ, -1);
+			cl.budscheduler.ScheduleBUD(cachedBUD, this.viscosityDelay);
 		}
 	}
 
@@ -480,9 +483,7 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 								VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 						}
 
-						cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
-						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
+						PlaceFalling(newPos, 2, cl);
 						return;
 					}
 					// If this block is a lone water one -> Fall by itself
@@ -641,14 +642,12 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
-					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					return;					
+					PlaceFalling(newPos, 2, cl);
+					return;
 				}
 
 				// If is falling block pivot
-				else if(below == this.liquidCode && belowState == 20){return;}
+				else if(below == this.liquidCode && (belowState == 20 || belowState == 22)){return;}
 
 				// Normal Behaviour
 				else{
@@ -728,14 +727,12 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
-					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					return;					
+					PlaceFalling(newPos, 2, cl);
+					return;
 				}
 
 				// If is falling block pivot
-				else if(below == this.liquidCode && belowState == 20){return;}
+				else if(below == this.liquidCode && (belowState == 20 || belowState == 22)){return;}
 
 				// Normal Behaviour
 				else{
@@ -824,14 +821,12 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
-					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					return;					
+					PlaceFalling(newPos, 1, cl);
+					return;
 				}
 
 				// If is falling block pivot
-				else if(below == this.liquidCode && belowState == 21){return;}
+				else if(below == this.liquidCode && (belowState == 21 || belowState == 23)){return;}
 
 				// Normal Behaviour
 				else{
@@ -911,14 +906,12 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
 					}
 
-					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
-					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					return;					
+					PlaceFalling(newPos, 1, cl);
+					return;
 				}
 
 				// If is falling block pivot
-				else if(below == this.liquidCode && belowState == 21){return;}
+				else if(below == this.liquidCode && (belowState == 21 || belowState == 23)){return;}
 			}
 
 			/*
@@ -935,6 +928,10 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
 					return;					
 				}
+
+				// If is out of Y bounds
+				if(below == (ushort)(ushort.MaxValue/2))
+					return;
 
 				// If should create new falling 3s
 				if(below == 0 || below == this.liquidCode && ShouldStateOverpower(19, belowState) || IsWashable(below, cl)){
@@ -1022,91 +1019,38 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 				ushort aboveState = GetStateAbove(thisPos, cl);
 
 				// If should die
-				if(above != this.liquidCode || (above == this.liquidCode && (aboveState != 1 && aboveState != 20 && !(aboveState >= 3 && aboveState <= 10)))){
+				if(!IsLevelTwoFeeder(above, aboveState)){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					return;					
+					return;
 				}
+
+				// If is out of Y bounds
+				if(below == (ushort)(ushort.MaxValue/2))
+					return;
 
 				// If should create new falling 2s
-				if(below == 0 || below == this.liquidCode && ShouldStateOverpower(20, belowState) || IsWashable(below, cl)){
+				if(IsFallable(below, belowState, 20, cl)){
 					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
-					// Should break washable block below
-					if(IsWashable(below, cl)){
-						if(below <= ushort.MaxValue/2)
-							VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
-						else
-							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
-					}
-
-					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 20);
-					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					return;							
-				}
-
-				// If should upgrade
-				if(GetHighestDoubleLevelAround(myX, myY, myZ, cl) >= 2){
-					int highestLevel = GetHighestDoubleLevelAround(myX, myY, myZ, cl);
-					CastCoord newPos = new CastCoord(new Vector3(myX, myY, myZ));
-
-					if(highestLevel == 2){
-						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
-						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					}
-					else{
-						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
-						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					}
-
+					BreakWashable(below, newPos, cl);
+					PlaceFalling(newPos, 2, cl);
 					return;
 				}
 
-				// If is pivot to falling block
-				if(below == this.liquidCode && above == this.liquidCode) {return;}
+				// If should merge into Still Level 3
+				if(GetHighestDoubleLevelAround(myX, myY, myZ, cl) == 3){
+					cl.GetChunk(thisPos.GetChunkPos()).metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
+					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
+					return;
+				}
 
-				// Normal Behaviour	
-				bool found;
-				ushort targetState = 0;
-
-				GetCodeAround(myX, myY, myZ, cl, main:true);
-				GetStateAround(myX, myY, myZ, cl, main:true);
-
-				if(IsOutOfBounds())
+				// If is pivot to falling block or fell into liquid
+				if(below == this.liquidCode)
 					return;
 
-				for(int i=0; i < 8; i+=2){
-					found = false;
-					GetDirectionPos(myX, myY, myZ, i);
-					targetState = GetNewState(state, i);
-
-					// If is air
-					if(mainAroundCodes[i] == 0){
-						found = true;
-					}
-					// If is washable
-					else if(IsWashable(mainAroundCodes[i], cl)){
-						found = true;
-
-						if(mainAroundCodes[i] <= ushort.MaxValue/2)
-							VoxelLoader.GetBlock(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-						else
-							VoxelLoader.GetObject(mainAroundCodes[i]).OnBreak(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, cl);
-					}
-					// If is water
-					else if(mainAroundCodes[i] == liquidCode && ShouldStateOverpower(targetState, mainAroundStates[i])){
-						if(targetState != ushort.MaxValue)
-							found = true;
-					}
-
-
-					// Found cases
-					if(found){
-						cl.GetChunk(cachedPos.GetChunkPos()).data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
-						cl.GetChunk(cachedPos.GetChunkPos()).metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
-						this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
-					}
-				}
+				// If reached solid ground -> Keeps its level as Landed 2
+				cl.GetChunk(thisPos.GetChunkPos()).metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 22);
+				this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
 			}
 
 			/*
@@ -1119,47 +1063,102 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 				ushort aboveState = GetStateAbove(thisPos, cl);
 
 				// If should die
-				if(above != this.liquidCode || (above == this.liquidCode && (aboveState != 2 && aboveState != 21 && !(aboveState >= 11 && aboveState <= 18)))){
+				if(!IsLevelOneFeeder(above, aboveState)){
 					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
-					return;					
+					return;
 				}
+
+				// If is out of Y bounds
+				if(below == (ushort)(ushort.MaxValue/2))
+					return;
 
 				// If should create new falling 1s
-				if(below == 0 || below == this.liquidCode && ShouldStateOverpower(21, belowState) || IsWashable(below, cl)){
+				if(IsFallable(below, belowState, 21, cl)){
 					CastCoord newPos = new CastCoord(new Vector3(myX, myY-1, myZ));
 
-					// Should break washable block below
-					if(IsWashable(below, cl)){
-						if(below <= ushort.MaxValue/2)
-							VoxelLoader.GetBlock(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
-						else
-							VoxelLoader.GetObject(below).OnBreak(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, cl);
-					}
-
-					cl.GetChunk(newPos.GetChunkPos()).data.SetCell(newPos.blockX, newPos.blockY, newPos.blockZ, this.liquidCode);
-					cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 21);
-					this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					return;							
+					BreakWashable(below, newPos, cl);
+					PlaceFalling(newPos, 1, cl);
+					return;
 				}
 
-				// If should upgrade
-				if(GetHighestDoubleLevelAround(myX, myY, myZ, cl) > 0){
-					int highestLevel = GetHighestDoubleLevelAround(myX, myY, myZ, cl);
-					CastCoord newPos = new CastCoord(new Vector3(myX, myY, myZ));
+				// If should merge into Still Level 3
+				if(GetHighestDoubleLevelAround(myX, myY, myZ, cl) == 3){
+					cl.GetChunk(thisPos.GetChunkPos()).metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
+					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
+					return;
+				}
 
-					if(highestLevel == 1){
-						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 2);
-						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					}
-					else if(highestLevel == 2){
-						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 1);
-						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					}
-					else{
-						cl.GetChunk(newPos.GetChunkPos()).metadata.SetState(newPos.blockX, newPos.blockY, newPos.blockZ, 0);
-						this.OnPlace(newPos.GetChunkPos(), newPos.blockX, newPos.blockY, newPos.blockZ, -1, cl);
-					}
+				// If is pivot to falling block or fell into liquid
+				if(below == this.liquidCode)
+					return;
 
+				// If reached solid ground -> Keeps its level as Landed 1
+				cl.GetChunk(thisPos.GetChunkPos()).metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 23);
+				this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
+			}
+
+			/*
+			Landed 2
+			*/
+			else if(state == 22){
+				ushort below = GetCodeBelow(thisPos, cl);
+				ushort belowState = GetStateBelow(thisPos, cl);
+				ushort above = GetCodeAbove(thisPos, cl);
+				ushort aboveState = GetStateAbove(thisPos, cl);
+
+				// If should die
+				if(!IsLevelTwoFeeder(above, aboveState)){
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					return;
+				}
+
+				// If is out of Y bounds
+				if(below == (ushort)(ushort.MaxValue/2))
+					return;
+
+				// If the ground below is gone -> Falls again
+				if(IsFallable(below, belowState, 20, cl)){
+					cl.GetChunk(thisPos.GetChunkPos()).metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 20);
+					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
+					return;
+				}
+
+				// Normal Behaviour
+				GetCodeAround(myX, myY, myZ, cl, main:true);
+
+				if(IsOutOfBounds())
+					return;
+
+				GetStateAround(myX, myY, myZ, cl, main:true);
+
+				for(int i=0; i < 8; i+=2){
+					SpreadTo(i, GetNewState(state, i), myX, myY, myZ, cl);
+				}
+			}
+
+			/*
+			Landed 1
+			*/
+			else if(state == 23){
+				ushort below = GetCodeBelow(thisPos, cl);
+				ushort belowState = GetStateBelow(thisPos, cl);
+				ushort above = GetCodeAbove(thisPos, cl);
+				ushort aboveState = GetStateAbove(thisPos, cl);
+
+				// If should die
+				if(!IsLevelOneFeeder(above, aboveState)){
+					this.OnBreak(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, cl);
+					return;
+				}
+
+				// If is out of Y bounds
+				if(below == (ushort)(ushort.MaxValue/2))
+					return;
+
+				// If the ground below is gone -> Falls again
+				if(IsFallable(below, belowState, 21, cl)){
+					cl.GetChunk(thisPos.GetChunkPos()).metadata.SetState(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 21);
+					this.OnPlace(thisPos.GetChunkPos(), thisPos.blockX, thisPos.blockY, thisPos.blockZ, -1, cl);
 					return;
 				}
 			}
@@ -1172,7 +1171,7 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 		if(state == 0 || state == 19){
 			return (ushort)(3 + dir);
 		}
-		if(state == 1 || state == 20){
+		if(state == 1 || state == 22){
 			return (ushort)(11 + dir);
 		}
 		else if(state == 3){
@@ -1318,6 +1317,9 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 
 	// Gets Code of block below
 	private ushort GetCodeBelow(int myX, int myY, int myZ, ChunkLoader_Server cl){
+		if(IsOutOfWorldY(myY-1))
+			return (ushort)(ushort.MaxValue/2);
+
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
 		if(!cl.Contains(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
@@ -1330,6 +1332,9 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 
 	// Gets State of block below
 	private ushort GetStateBelow(int myX, int myY, int myZ, ChunkLoader_Server cl){
+		if(IsOutOfWorldY(myY-1))
+			return (ushort)(ushort.MaxValue/2);
+
 		CastCoord cord = new CastCoord(new Vector3(myX, myY-1, myZ));
 		if(!cl.Contains(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
@@ -1342,6 +1347,9 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 
 	// Gets State of block above
 	private ushort GetStateAbove(int myX, int myY, int myZ, ChunkLoader_Server cl){
+		if(IsOutOfWorldY(myY+1))
+			return (ushort)(ushort.MaxValue/2);
+
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
 		if(!cl.Contains(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
@@ -1354,6 +1362,9 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 
 	// Gets Code of block above
 	private ushort GetCodeAbove(int myX, int myY, int myZ, ChunkLoader_Server cl){
+		if(IsOutOfWorldY(myY+1))
+			return (ushort)(ushort.MaxValue/2);
+
 		CastCoord cord = new CastCoord(new Vector3(myX, myY+1, myZ));
 		if(!cl.Contains(cord.GetChunkPos()))
 			return (ushort)(ushort.MaxValue/2);
@@ -1435,71 +1446,39 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 	}
 
 	// Gets a list of states of around blocks if they are water
+	// Run this after GetCodeAround() on the same position, since it only reads neighbors that are loaded liquids
 	private void GetStateAround(int myX, int myY, int myZ, ChunkLoader_Server cl, bool main=false){
+		ushort[] codes;
 		ushort[] selectedArray;
 		CastCoord cast;
 
-		if(main)
+		if(main){
+			codes = mainAroundCodes;
 			selectedArray = mainAroundStates;
-		else
+		}
+		else{
+			codes = aroundCodes;
 			selectedArray = aroundStates;
+		}
 
-		cast = new CastCoord(new Vector3(myX, myY, myZ+1)); // North
-		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[0] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
-		else
-			selectedArray[0] = ushort.MaxValue;
+		for(int i=0; i < 8; i++){
+			if(codes[i] != this.liquidCode){
+				selectedArray[i] = ushort.MaxValue;
+				continue;
+			}
 
-		cast = new CastCoord(new Vector3(myX+1, myY, myZ+1)); // NE
-		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[1] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
-		else
-			selectedArray[1] = ushort.MaxValue;
-
-		cast = new CastCoord(new Vector3(myX+1, myY, myZ)); // East
-		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[2] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
-		else
-			selectedArray[2] = ushort.MaxValue;
-
-		cast = new CastCoord(new Vector3(myX+1, myY, myZ-1)); // SE
-		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[3] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
-		else
-			selectedArray[3] = ushort.MaxValue;
-
-		cast = new CastCoord(new Vector3(myX, myY, myZ-1)); // South
-		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[4] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
-		else
-			selectedArray[4] = ushort.MaxValue;
-
-		cast = new CastCoord(new Vector3(myX-1, myY, myZ-1)); // SW
-		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[5] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
-		else
-			selectedArray[5] = ushort.MaxValue;
-
-		cast = new CastCoord(new Vector3(myX-1, myY, myZ)); // West
-		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[6] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
-		else
-			selectedArray[6] = ushort.MaxValue;
-
-		cast = new CastCoord(new Vector3(myX-1, myY, myZ+1)); // NW
-		if(cl.GetChunk(cast.GetChunkPos()).data.GetCell(cast.blockX, cast.blockY, cast.blockZ) == this.liquidCode)
-			selectedArray[7] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
-		else
-			selectedArray[7] = ushort.MaxValue;	
+			cast = new CastCoord(GetNeighborBlock(i, myX, myY, myZ));
+			selectedArray[i] = cl.GetChunk(cast.GetChunkPos()).metadata.GetState(cast.blockX, cast.blockY, cast.blockZ);
+		}
 	}
 
 	// Gets Water Level based on state table
 	private int TranslateWaterLevel(ushort state){
 		if(state == ushort.MaxValue)
 			return 0;
-		else if(state == 2 || (state >= 11 && state <= 18))
+		else if(state == 2 || (state >= 11 && state <= 18) || state == 23)
 			return 1;
-		else if(state == 1 || (state >= 3 && state <= 10))
+		else if(state == 1 || (state >= 3 && state <= 10) || state == 22)
 			return 2;
 		else if(state == 0 || state == 19 || state == 20 || state == 21)
 			return 3;
@@ -1511,9 +1490,9 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 	private int TranslateWaterLevelSpec(ushort state){
 		if(state == ushort.MaxValue)
 			return 0;
-		else if(state == 2 || (state >= 11 && state <= 18))
+		else if(state == 2 || (state >= 11 && state <= 18) || state == 23)
 			return 1;
-		else if(state == 1 || (state >= 3 && state <= 10))
+		else if(state == 1 || (state >= 3 && state <= 10) || state == 22)
 			return 2;
 		else if(state == 0)
 			return 3;
@@ -1641,13 +1620,103 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 	}
 
 	// Checks if Water Update is out of bounds
-	// Run this after running GetCodeAround()
+	// Run this after running GetCodeAround() with main:true
 	private bool IsOutOfBounds(){
 		for(int i=0; i < 8; i++){
-			if(aroundCodes[i] == ushort.MaxValue/2)
+			if(mainAroundCodes[i] == ushort.MaxValue/2)
 				return true;
 		}
 
 		return false;
+	}
+
+	// Checks if a world Y coordinate is outside of the world
+	private bool IsOutOfWorldY(int y){
+		return y < 0 || y >= (Chunk.chunkMaxY+1)*Chunk.chunkDepth;
+	}
+
+	// Checks if a falling liquid with the given state can move into a voxel
+	private bool IsFallable(ushort code, ushort state, ushort fallingState, ChunkLoader_Server cl){
+		if(code == 0)
+			return true;
+		if(code == this.liquidCode)
+			return ShouldStateOverpower(fallingState, state);
+		if(code == (ushort)(ushort.MaxValue/2))
+			return false;
+
+		return IsWashable(code, cl);
+	}
+
+	// Checks if the voxel above a Falling 2 or Landed 2 keeps feeding it
+	private bool IsLevelTwoFeeder(ushort code, ushort state){
+		return code == this.liquidCode && (state == 1 || state == 20 || (state >= 3 && state <= 10));
+	}
+
+	// Checks if the voxel above a Falling 1 or Landed 1 keeps feeding it
+	private bool IsLevelOneFeeder(ushort code, ushort state){
+		return code == this.liquidCode && (state == 2 || state == 21 || (state >= 11 && state <= 18));
+	}
+
+	// Breaks the washable block or object a liquid is about to replace
+	private void BreakWashable(ushort code, CastCoord pos, ChunkLoader_Server cl){
+		if(code == 0 || code == this.liquidCode || code == (ushort)(ushort.MaxValue/2) || !IsWashable(code, cl))
+			return;
+
+		if(code <= ushort.MaxValue/2)
+			VoxelLoader.GetBlock(code).OnBreak(pos.GetChunkPos(), pos.blockX, pos.blockY, pos.blockZ, cl);
+		else
+			VoxelLoader.GetObject(code).OnBreak(pos.GetChunkPos(), pos.blockX, pos.blockY, pos.blockZ, cl);
+	}
+
+	// Creates a Falling 2 or Falling 1 (level) in a voxel that this liquid can fall into
+	// It becomes a Landed state if the voxel below it is solid ground, so it keeps the level it had before falling
+	private void PlaceFalling(CastCoord pos, int level, ChunkLoader_Server cl){
+		ushort fallingState = (ushort)(level == 2 ? 20 : 21);
+		ushort landedState = (ushort)(level == 2 ? 22 : 23);
+		ushort below = GetCodeBelow(pos, cl);
+		ushort newState;
+
+		// Keeps falling, meets a liquid or reaches unloaded chunks
+		if(below == this.liquidCode || below == (ushort)(ushort.MaxValue/2) || IsFallable(below, GetStateBelow(pos, cl), fallingState, cl))
+			newState = fallingState;
+		else
+			newState = landedState;
+
+		cl.GetChunk(pos.GetChunkPos()).data.SetCell(pos.blockX, pos.blockY, pos.blockZ, this.liquidCode);
+		cl.GetChunk(pos.GetChunkPos()).metadata.SetState(pos.blockX, pos.blockY, pos.blockZ, newState);
+		this.OnPlace(pos.GetChunkPos(), pos.blockX, pos.blockY, pos.blockZ, -1, cl);
+	}
+
+	// Spreads this liquid with the given state to the horizontal neighbor in a direction
+	// Run this after GetCodeAround() and GetStateAround() with main:true
+	private void SpreadTo(int dir, ushort targetState, int myX, int myY, int myZ, ChunkLoader_Server cl){
+		ushort code = mainAroundCodes[dir];
+		bool found = false;
+
+		if(targetState == ushort.MaxValue)
+			return;
+
+		GetDirectionPos(myX, myY, myZ, dir);
+
+		// If is air
+		if(code == 0){
+			found = true;
+		}
+		// If is water
+		else if(code == this.liquidCode){
+			found = ShouldStateOverpower(targetState, mainAroundStates[dir]);
+		}
+		// If is washable
+		else if(code != (ushort)(ushort.MaxValue/2) && IsWashable(code, cl)){
+			found = true;
+			BreakWashable(code, cachedPos, cl);
+		}
+
+		if(!found)
+			return;
+
+		cl.GetChunk(cachedPos.GetChunkPos()).data.SetCell(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, this.liquidCode);
+		cl.GetChunk(cachedPos.GetChunkPos()).metadata.SetState(cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, targetState);
+		this.OnPlace(cachedPos.GetChunkPos(), cachedPos.blockX, cachedPos.blockY, cachedPos.blockZ, -1, cl);
 	}
 }

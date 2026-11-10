@@ -126,9 +126,9 @@ public class TimeOfDay : MonoBehaviour
     	return hours*60 + minutes;
     }
 
-    // Gets full day description with Ticks
-    public string GetBUDTime(){
-        return days.ToString() + ":" + hours.ToString("00") + ":" + minutes.ToString("00") + ":" + ((int)this.ticks).ToString();
+    // Gets the absolute amount of ticks passed in the world. Used by the BUDScheduler
+    public long GetBUDTick(){
+        return (long)this.days*ticksForDays + (long)this.hours*ticksForHours + (long)this.minutes*ticksForMinute + (long)this.ticks;
     }
 
     // Returns byte array representing current time for Chunk Header in RegionFile
@@ -254,25 +254,6 @@ public class TimeOfDay : MonoBehaviour
             return true;
 
         return false;
-    }
-
-    // Fake Sum to calculate schedule time
-    public string FakeSum(int tick){
-        float t = this.ticks + tick;
-        byte m = this.minutes;
-        byte h = this.hours;
-        uint d = this.days;
-
-        m = (byte)(m + (t/TimeOfDay.ticksForMinute));
-        t = t%TimeOfDay.ticksForMinute;
-        h = (byte)(h + (m/60));
-        m = (byte)(m%60);
-        d = (uint)(d + (h/24)); 
-        h = (byte)(h%24);
-
-        string returnString = d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ":" +  (Mathf.FloorToInt(t)).ToString();
-
-        return returnString;
     }
 
     // Gets currentTime as string

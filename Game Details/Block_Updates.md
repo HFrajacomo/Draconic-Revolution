@@ -25,11 +25,17 @@ For example: if multiple water blocks are updated at once, only a few water chun
 
 ## The BUD-Scheduler
 
-This class is made out of a dictionary that links In-Game time to a list of BUD requests. In that way, a block can literally *schedule* a BUD to happen in a later date, depending on Game Time. A few examples of pros of the Scheduler system are:
+This class is made out of a dictionary that links In-Game ticks to a list of BUD requests. In that way, a block can literally *schedule* a BUD to happen in a later date, depending on Game Time. A few examples of pros of the Scheduler system are:
 
- 1. BUs can be scheduled to happen at a later time. For example, Water can flow one block of distance every *X* frames.
+ 1. BUs can be scheduled to happen at a later time. For example, Water can flow one block of distance every *X* ticks.
  2. Runs all game logic in a deterministic way with exact timings
- 3. 
+ 3. Saves of chunks changed by BUs are also scheduled, so a chunk is only saved once per tick
+
+Ticks are absolute numbers given by `TimeOfDay.GetBUDTick()` (days, hours, minutes and ticks of the world converted to ticks). Every frame, the Scheduler runs **every tick that is due, in order**. If a long frame makes the game time skip ticks, they are caught up in the next frame instead of being lost.
+
+Offsets of BUs scheduled while a tick is running count from that tick, not from the current time. So a chain of updates keeps the same timings even when it's being caught up. BUs scheduled to the tick that is running are appended to it and run in the same frame. Identical BUs scheduled to the same tick only run once.
+
+Each BU runs isolated: if a block throws an exception while handling it, the exception is logged and the Scheduler moves on to the next BU.
 
 It's important to note that our system is FPS-safe instead of BUD-safe. What does that mean though?
 
@@ -58,6 +64,19 @@ Imagine that a million BUDs are scheduled to Frame #1. In a BUD-Safe system, the
  - Will disrupt the prediction of in-game time in regards to game logic during heavy BUD activity
 
 **In short, the approach we've taken in this game, is the BUD-Safe System! (But we will add the option of toggling FPS-Safe Scheduling for Server owners in the future)**
+
+## Liquids
+
+Liquids (`VX_LiquidBehaviour`) flow through BUs scheduled with the liquid's `viscosityDelay`. Their shape is stored in the voxel State, as described at the top of `VX_LiquidBehaviour.cs`:
+
+ - **Still 3, 2 and 1**: levels of resting liquid. A Still 3 (a placed or generated liquid) spreads into a 5x5 square: a ring of Level 2 around it and a ring of Level 1 around that.
+ - **Directional states**: Level 2 and Level 1 liquids that flow away from the voxel they came from. They die once the voxel that feeds them is gone.
+ - **Falling 3, 2 and 1**: the column of a liquid that falls from a ledge. They're drawn as full blocks and die once the voxel above stops feeding them.
+ - **Landed 2 and 1**: the bottom of a Falling 2 or Falling 1 column that reached solid ground. They're drawn as full blocks, but keep the spread of the level the liquid had before falling: a Landed 2 spreads a ring of Level 1, and a Landed 1 doesn't spread. A Falling 3 already spreads like a Still 3, so it's the bottom of its own column.
+
+A full-height liquid with the same liquid directly above it doesn't draw its top face, so waterfalls have no seams inside them.
+
+Whenever a liquid voxel changes, it sends BUs to the liquids in its 8 horizontal neighbors (Level 1 states may depend on diagonal ones) and to the liquids above and below it.
 
 # Congratulations
 
