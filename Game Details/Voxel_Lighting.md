@@ -191,7 +191,17 @@ Caves can be in any layer and biome. A cave in the surface layer uses the preset
 
 Fog is global, so the fog outside also gets darker while the camera is in a cave.
 
-The underground presets (Caverns, Ice Caverns and Core) have no sun or moon, so caves are only lit by Voxel Light and light sources. Hell keeps its light, because it is lit by its fiery sky. Ground Emission goes through the same falloff curve as the rest of the Voxel Light (`VoxelLightGround`), so dim cave floors barely glow.
+Each ambience preset decides how much the Cave Factor can darken it (`GetCaveDarkness`, 1 by default). Hell is a giant cave under the Underground, so its Natural Voxel Light is always low, but it's lit by its fiery sky and lava, so it returns 0: inside Hell the fog keeps its light, the camera can brighten and there is no Dark Adaptation. Hell's brightness is set by its preset instead (fog ambient light, the intensity of its sun and moon, indirect diffuse and `expOffset`).
+
+The cave presets (Caverns and Ice Caverns) have no sun or moon, so caves are only lit by Voxel Light and light sources. Hell and Core keep their light: Hell is lit by its fiery sky, and Core by a shadowless sun. Both opt out of cave darkness. Ground Emission goes through the same falloff curve as the rest of the Voxel Light (`VoxelLightGround`), so dim cave floors barely glow.
+
+Blocks in the deep layers have no Natural Light, and a black sky gives no ambient light, so a face that no light reaches would be pitch black. `GetVoxelAmbient` (0 by default) gives every voxel and entity surface of an ambience a uniform glow (`_VoxelLightAmbient`, in nits). Core uses it so that every side is about 65% as bright as the tops, and its sun comes from the south-east at 55° (`GetSunOrientation`, the full rotation of the sun light, defaulting to `GetSunRotation`) to shade the sides differently. A sun diameter of 0 (`GetSunDiameter`) hides the sun's disc, so the underground layers don't show a sun in their sky.
+
+### Moons
+
+Presets control the moon through `GetMoonOrientation` (the full rotation of the moon light, defaulting to `GetMoonRotation`), `GetMoonLook` (how it's drawn in the sky, as a `CelestialBodyLook`; `null` keeps the moon set in the Game scene) and `HasCelestialShadows`. `AmbientHandler` swaps the moon's look when the preset changes.
+
+Core has a **New Moon**: a big eclipse hanging still in the north (North is +Z). Its lower edge sits where Core's block Y 128 would be seen 1024 blocks away (`GetMoonOrientation` receives the camera position for this parallax), so it rises in the sky the deeper the player is, and it never dips below the horizon. It uses HDRP's *Manual* celestial shading at moon phase 0, so the disc shows its dark side, faintly lit by earthshine, with a thin corona drawn by its flare. It can give a shadowless light (`CORE_MOON_LIGHT`). Core's sky is black like deep space (black horizon and zenith tints, and a black ground below the horizon through `GetGroundTint`), with the stars always out, and kept very clear so the moon is visible: its fog is very thin and it has no clouds (`HasClouds`). In *Manual* shading the moon's brightness comes from the `sunIntensity` of the Moon's `HDAdditionalLightData` (set to 1 in the Game scene, so earthshine and flare values are in scene units), not from the light's intensity. Tune it with the constants at the top of `CoreAmbientPreset`.
 
 ### Color
 
@@ -205,7 +215,7 @@ Rules of thumb when tuning:
  - Every value written by `AmbientHandler` (exposure, Lift Gamma Gain, fog, sky, sun and moon) is overwritten at runtime. The `BaseAmbientPreset` subclasses are the source of truth.
  - Make a biome brighter or darker with `expOffset` or the light intensity, never with the `w` of the Gain, which brightens everything including the darkness.
  - The sun is 4 lux and the moon is 0.15 lux. Torch profiles are about 90 lumens. With ACES, anything much brighter than the sun around it turns white.
- - Underground, the sun and moon are off in caves, don't light the fog (`GetLightVolumetricDimmer`) and the sky ambient is reduced through the Indirect Lighting Controller (`GetIndirectDiffuse`). Hell keeps all of them because it is lit by its fiery sky.
+ - Underground, the sun and moon are off in caves, don't light the fog (`GetLightVolumetricDimmer`) and the sky ambient is reduced through the Indirect Lighting Controller (`GetIndirectDiffuse`). Hell keeps all of them because it is lit by its fiery sky, and opts out of cave darkness (`GetCaveDarkness`).
  - Tune how dark caves get with `CAVE_LIGHT_DARK`, `CAVE_LIGHT_OPEN`, `CAVE_FADE_SPEED`, `CAVE_FOG_AMBIENT_KEPT`, `DARK_ADAPTATION_INTENSITY` and `DARK_ADAPTATION_RADIUS` in `AmbientHandler`, and `FLOOR_LIGHTING_UNDERGROUND` in `BaseAmbientPreset`.
  - The range of a light's Point Light should be about 1.6 times how far its Extra Light reaches (its light level in blocks), since HDRP fades lights out well before their range. The placed torch (level 7) uses 12 and the held torch (radius 6) uses 11.
  - `AmbientationTestingTool` can tune presets live, including `expOffset`.

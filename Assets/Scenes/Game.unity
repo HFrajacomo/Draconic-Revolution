@@ -1433,7 +1433,7 @@ MonoBehaviour:
   celestialBodyShadingSource: 1
   sunLightOverride: {fileID: 0}
   sunColor: {r: 1, g: 1, b: 1, a: 1}
-  sunIntensity: 130000
+  sunIntensity: 1
   moonPhase: 0.2
   moonPhaseRotation: 0
   earthshine: 1

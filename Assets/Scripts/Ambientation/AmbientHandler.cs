@@ -60,7 +60,6 @@ public class AmbientHandler : MonoBehaviour
     private const int FRAMES_TO_CHANGE = 180;
     private int updateTimer = 0;
     private bool isTransitioning = false;
-    private float2 cachedRotation;
     private int currentTick;
     private int lastTick;
     private int lastTime;
@@ -73,6 +72,12 @@ public class AmbientHandler : MonoBehaviour
     private AmbientGroup lastAmbient;
     private BaseAmbientPreset currentPreset;
     private BaseAmbientPreset lastPreset;
+
+    // Moon look (see CelestialBodyLook). The scene's look is used by presets that don't define one
+    private CelestialBodyLook defaultMoonLook;
+    // The sun's disc is drawn with diameterOverride, so presets with a sun diameter of 0 hide it through it
+    private float defaultSunDiscDiameter;
+    private BaseAmbientPreset moonLookPreset;
 
     // Wind
     private GlobalWindHandler windHandler;
@@ -128,6 +133,8 @@ public class AmbientHandler : MonoBehaviour
         this.exposure.compensation.value = BaseAmbientPreset.EXPOSURE_METERING_COMPENSATION;
         this.sunVolumetricDimmer = this.hdLight.volumetricDimmer;
         this.moonVolumetricDimmer = this.hdLightMoon.volumetricDimmer;
+        this.defaultMoonLook = CelestialBodyLook.FromLight(this.hdLightMoon);
+        this.defaultSunDiscDiameter = this.hdLight.diameterOverride;
 
         this.windHandler = new GlobalWindHandler(this.clouds);
 
@@ -163,6 +170,7 @@ public class AmbientHandler : MonoBehaviour
         UpdateCaveFactor();
         UpdatePrecipitationAnchor();
         UpdateLightVolumetricMultiplier();
+        UpdateMoonLook();
 
         if(!isTransitioning){
             currentAmbient = BiomeHandler.GetAmbientGroup(playerPositionHandler.GetCurrentBiomeCode());
@@ -281,7 +289,7 @@ public class AmbientHandler : MonoBehaviour
             // Runs everytime
             this.clouds.layerA.opacityA.value = this.weatherCast.GetCloudLocalOpacity();
             this.clouds.layerB.opacityA.value = this.weatherCast.GetCloudLocalOpacity();
-            this.clouds.opacity.value = this.weatherCast.GetCloudGlobalOpacity();
+            this.clouds.opacity.value = this.currentPreset.HasClouds() ? this.weatherCast.GetCloudGlobalOpacity() : 0f;
 
             if(!isSurface){
                 this.fog.albedo.value = currentPreset.GetFogAlbedo(time);
@@ -308,6 +316,7 @@ public class AmbientHandler : MonoBehaviour
         if(currentTick % 6 == 0){
             this.pbsky.horizonTint.value = Color.Lerp(lastPreset.GetHorizonTint(time), currentPreset.GetHorizonTint(time), currentStep);
             this.pbsky.zenithTint.value = Color.Lerp(lastPreset.GetZenithTint(time), currentPreset.GetZenithTint(time), currentStep);
+            this.pbsky.groundTint.value = Color.Lerp(lastPreset.GetGroundTint(), currentPreset.GetGroundTint(), currentStep);
 
             EnableShadow(time);
         }
@@ -329,17 +338,17 @@ public class AmbientHandler : MonoBehaviour
         else if(currentTick % 4 == 3){
             this.skyDirectionalLight.intensity = Mathf.Lerp(lastPreset.GetSunIntensity(time), currentPreset.GetSunIntensity(time), currentStep);
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
+            SetSunDisc(currentPreset.GetSunDiameter(time));
             this.moonDirectionalLight.intensity = Mathf.Lerp(lastPreset.GetMoonIntensity(time), currentPreset.GetMoonIntensity(time), currentStep);
             this.hdLightMoon.angularDiameter = currentPreset.GetMoonDiameter(time);
             SetLightVolumetrics(Mathf.Lerp(lastPreset.GetLightVolumetricDimmer(), currentPreset.GetLightVolumetricDimmer(), currentStep));
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
             Shader.SetGlobalFloat("_VoxelLightFloor", Mathf.Lerp(lastPreset.GetVoxelLightFloor(), currentPreset.GetVoxelLightFloor(), currentStep));
+            Shader.SetGlobalFloat("_VoxelLightAmbient", Mathf.Lerp(lastPreset.GetVoxelAmbient(), currentPreset.GetVoxelAmbient(), currentStep));
 
             if(ROTATE_SUN_FLAG == 0){
-                this.cachedRotation = currentPreset.GetSunRotation(time);
-                this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
-                this.cachedRotation = currentPreset.GetMoonRotation(time);
-                this.moonDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+                this.skyDirectionalLight.transform.rotation = currentPreset.GetSunOrientation(time);
+                this.moonDirectionalLight.transform.rotation = currentPreset.GetMoonOrientation(time, this.playerPositionHandler.cameraTransform.position);
                 ROTATE_SUN_FLAG++;
             }
             else if(ROTATE_SUN_FLAG == ROTATE_FLAG_MAX){
@@ -358,6 +367,7 @@ public class AmbientHandler : MonoBehaviour
         if(currentTick % 6 == 0){
             this.pbsky.horizonTint.value = currentPreset.GetHorizonTint(finalTime);
             this.pbsky.zenithTint.value = currentPreset.GetZenithTint(finalTime);
+            this.pbsky.groundTint.value = currentPreset.GetGroundTint();
 
             if(currentPreset.HasFlare()){
                 SetFlare(time);
@@ -387,17 +397,17 @@ public class AmbientHandler : MonoBehaviour
         else if(currentTick % 4 == 3){
             this.skyDirectionalLight.intensity = currentPreset.GetSunIntensity(finalTime);
             this.hdLight.angularDiameter = currentPreset.GetSunDiameter(time);
+            SetSunDisc(currentPreset.GetSunDiameter(time));
             this.moonDirectionalLight.intensity = currentPreset.GetMoonIntensity(time);
             this.hdLightMoon.angularDiameter = currentPreset.GetMoonDiameter(time);
             SetLightVolumetrics(currentPreset.GetLightVolumetricDimmer());
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
             Shader.SetGlobalFloat("_VoxelLightFloor", currentPreset.GetVoxelLightFloor());
+            Shader.SetGlobalFloat("_VoxelLightAmbient", currentPreset.GetVoxelAmbient());
 
             if(ROTATE_SUN_FLAG == 0){
-                this.cachedRotation = currentPreset.GetSunRotation(finalTime);
-                this.skyDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
-                this.cachedRotation = currentPreset.GetMoonRotation(finalTime);
-                this.moonDirectionalLight.transform.rotation = Quaternion.Euler(cachedRotation.x, 0, cachedRotation.y);
+                this.skyDirectionalLight.transform.rotation = currentPreset.GetSunOrientation(finalTime);
+                this.moonDirectionalLight.transform.rotation = currentPreset.GetMoonOrientation(finalTime, this.playerPositionHandler.cameraTransform.position);
                 ROTATE_SUN_FLAG++;
             }
             else if(ROTATE_SUN_FLAG == ROTATE_FLAG_MAX){
@@ -421,6 +431,10 @@ public class AmbientHandler : MonoBehaviour
             return;
 
         this.indirectLighting.indirectDiffuseLightingMultiplier.value = multiplier;
+    }
+
+    private void SetSunDisc(float diameter){
+        this.hdLight.diameterOverride = diameter > 0f ? this.defaultSunDiscDiameter : 0f;
     }
 
     // Sun and Moon don't light the fog of caves
@@ -457,7 +471,9 @@ public class AmbientHandler : MonoBehaviour
                 this.caveTarget = 1f - Mathf.Clamp01((float)(level - CAVE_LIGHT_DARK) / (CAVE_LIGHT_OPEN - CAVE_LIGHT_DARK));
         }
 
-        this.caveFactor = Mathf.MoveTowards(this.caveFactor, this.caveTarget, Time.deltaTime * CAVE_FADE_SPEED);
+        // Ambiences like Hell are enclosed but lit, so they limit how much the Cave Factor can darken them
+        float darkness = this.currentPreset != null ? this.currentPreset.GetCaveDarkness() : 1f;
+        this.caveFactor = Mathf.MoveTowards(this.caveFactor, this.caveTarget * darkness, Time.deltaTime * CAVE_FADE_SPEED);
 
         Vector3 camera = this.playerPositionHandler.cameraTransform.position;
         Shader.SetGlobalFloat(DARK_ADAPTATION_ID, DARK_ADAPTATION_INTENSITY * this.caveFactor);
@@ -554,7 +570,11 @@ public class AmbientHandler : MonoBehaviour
 
     // Enable Sun/Moon Shadow
     private void EnableShadow(int x){
-        if(x >= 240 && x <= 1200){
+        if(!this.currentPreset.HasCelestialShadows()){
+            this.hdLight.EnableShadows(false);
+            this.hdLightMoon.EnableShadows(false);
+        }
+        else if(x >= 240 && x <= 1200){
             this.hdLight.EnableShadows(true);
             this.hdLightMoon.EnableShadows(false);
         }
@@ -562,6 +582,20 @@ public class AmbientHandler : MonoBehaviour
             this.hdLight.EnableShadows(false);
             this.hdLightMoon.EnableShadows(true);
         }
+    }
+
+    // Switches how the moon is drawn whenever the active preset changes
+    private void UpdateMoonLook(){
+        if(this.currentPreset == this.moonLookPreset)
+            return;
+
+        this.moonLookPreset = this.currentPreset;
+        CelestialBodyLook look = this.currentPreset.GetMoonLook();
+
+        if(look == null)
+            look = this.defaultMoonLook;
+
+        look.ApplyTo(this.hdLightMoon);
     }
 
     // Sets the current Lens Flare

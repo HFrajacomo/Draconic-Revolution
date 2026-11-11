@@ -59,6 +59,8 @@ public class ShaderLoader : BaseLoader {
 		// Driven by AmbientHandler inside caves
 		Shader.SetGlobalFloat("_DarkAdaptation", 0f);
 		Shader.SetGlobalVector("_DarkAdaptationCenter", Vector4.zero);
+		// Driven by AmbientHandler from the Ambience Preset
+		Shader.SetGlobalFloat("_VoxelLightAmbient", 0f);
 		Shader.SetGlobalFloat("_ExtraLightIntensity", EXTRA_LIGHT_INTENSITY);
 	}
 }

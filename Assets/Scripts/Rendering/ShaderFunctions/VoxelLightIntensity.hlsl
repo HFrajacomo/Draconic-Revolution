@@ -8,6 +8,8 @@ float4 _VOXEL_LIGHT_BUFFER[32];
 float _VoxelLightFalloff;
 float _VoxelLightFloor;
 float _ExtraLightIntensity;
+// Set by AmbientHandler from the Ambience Preset. Uniform glow (nits) of every surface, lighting faces no light reaches
+float _VoxelLightAmbient;
 // Set by AmbientHandler. Brightness (nits) of Dark Adaptation at the camera, and xyz = camera position, w = radius
 float _DarkAdaptation;
 float4 _DarkAdaptationCenter;
@@ -73,6 +75,7 @@ float GetDarkAdaptation(float3 fragPos){
 // skyOcclusion goes into Occlusion: natural light is how much of the sky a voxel sees, so sky ambient and reflections fade without it
 // An unlit voxel keeps _VoxelLightFloor of the sky ambient (albedoMask * skyOcclusion), so it is near-black instead of black
 // Inside caves, unlit surfaces near the camera also get Dark Adaptation, so a very dark outline of the cave is visible
+// Every surface also glows by the ambience's _VoxelLightAmbient, so faces no light reaches are not pitch black
 void VoxelLightShade_float(float natural, float extra, float3 fragPos, float3 albedo, out float albedoMask, out float3 extraEmission, out float skyOcclusion){
     float extraLight = VoxelLightCurve(max(extra, GetMovingVoxelLight(fragPos)));
     float naturalLight = VoxelLightCurve(natural);
@@ -81,7 +84,7 @@ void VoxelLightShade_float(float natural, float extra, float3 fragPos, float3 al
 
     albedoMask = lerp(floorRoot, 1, max(naturalLight, extraLight));
     skyOcclusion = lerp(floorRoot, 1, naturalLight);
-    extraEmission = albedo * (extraLight * _ExtraLightIntensity + darkness * GetDarkAdaptation(fragPos));
+    extraEmission = albedo * (extraLight * _ExtraLightIntensity + darkness * GetDarkAdaptation(fragPos) + _VoxelLightAmbient);
 }
 
 // Ground Emission: up-facing blocks glow by their natural light (multiplied by _SkyLightMultiplier in the graph).

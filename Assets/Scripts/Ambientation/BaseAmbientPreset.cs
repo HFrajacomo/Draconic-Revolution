@@ -44,6 +44,8 @@ public abstract class BaseAmbientPreset{
 	public static readonly float EXPOSURE_ADAPT_DARKEN = .75f;
 	public static readonly float EXPOSURE_METERING_COMPENSATION = 1f;
 	protected static readonly float STAR_MAP_MULTIPLIER_DAY = 0f;
+	// Same as the Ground Tint set in the Game volume profile
+	protected static readonly Color GROUND_TINT_DEFAULT = Color.white;
 	protected static readonly float STAR_MAP_MULTIPLIER_NIGHT = 1f;
 	protected static readonly float STAR_MAP_X_ROTATION_BEGIN = 0f;
 	protected static readonly float STAR_MAP_X_ROTATION_END = 180f;
@@ -166,7 +168,11 @@ public abstract class BaseAmbientPreset{
 		return INDIRECT_DIFFUSE_UNDERGROUND;
 	}
 	public virtual float GetLightVolumetricDimmer(){return this.isSurface ? 1f : 0f;}
+	// How much the Cave Factor may darken this ambience (fog light, exposure brightening and Dark Adaptation). 0 keeps it lit inside enclosed spaces
+	public virtual float GetCaveDarkness(){return 1f;}
 	public virtual float GetVoxelLightFloor(){return this.isSurface ? VOXEL_LIGHT_FLOOR_SURFACE : VOXEL_LIGHT_FLOOR_UNDERGROUND;}
+	// Uniform glow of every surface, in nits. Lights the faces no light reaches, for ambiences without a sky to light them
+	public virtual float GetVoxelAmbient(){return 0f;}
 	public virtual float GetFogBaseHeight(float t){return BASE_FOG_HEIGHT_SURFACE;}
 	public virtual float GetFogMaxHeight(float t){return this.fogMaximumHeight;}
 	public virtual float GetFogAnisotropy(float t){return this.fogAnisotropy;}
@@ -176,9 +182,27 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetExposureBase(){return (this.isSurface ? EXPOSURE_BASE_SURFACE : EXPOSURE_BASE_UNDERGROUND) + this.expOffset;}
 	public virtual float GetSunIntensity(float t){return BehaviourSunsetIntensity(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_ZERO, t);}
 	public virtual float2 GetSunRotation(float t){return this.sunRotation;}
+	// Full rotation of the sun light. Defaults to GetSunRotation, which can only move it in the north-south plane
+	public virtual Quaternion GetSunOrientation(float t){
+		float2 rotation = GetSunRotation(t);
+		return Quaternion.Euler(rotation.x, 0, rotation.y);
+	}
 	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
 	public virtual float GetMoonIntensity(float t){return BehaviourMoonsetIntensity(SURFACE_LIGHT_LUMINOSITY_ZERO, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);}
 	public virtual float2 GetMoonRotation(float t){return this.sunRotation;}
+	// Full rotation of the moon light. Defaults to GetMoonRotation, which can only move it in the north-south plane
+	public virtual Quaternion GetMoonOrientation(float t, Vector3 cameraPosition){
+		float2 rotation = GetMoonRotation(t);
+		return Quaternion.Euler(rotation.x, 0, rotation.y);
+	}
+	// How the moon is drawn in the sky. null keeps the moon set in the scene
+	public virtual CelestialBodyLook GetMoonLook(){return null;}
+	// If false, neither the sun nor the moon casts shadows in this ambience
+	public virtual bool HasCelestialShadows(){return true;}
+	// If false, weather clouds are hidden in this ambience
+	public virtual bool HasClouds(){return true;}
+	// Albedo of the planet's ground, drawn below the horizon and lit by the sun and moon
+	public virtual Color GetGroundTint(){return GROUND_TINT_DEFAULT;}
 	public virtual float GetMoonDiameter(float t){return BehaviourMoonsetDiameter(SUN_DIAMETER_UNDERGROUND, SUN_DIAMETER_NIGHT, t);}
 	public virtual Color GetSunColor(float t){return SURFACE_LIGHT_COLOR_DAY;}
 	public virtual Color GetMoonColor(float t){return SURFACE_LIGHT_COLOR_NIGHT;}
