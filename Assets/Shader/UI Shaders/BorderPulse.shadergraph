@@ -785,7 +785,7 @@
     "m_TransparentWritesMotionVec": false,
     "m_DepthOffset": false,
     "m_ConservativeDepthOffset": false,
-    "m_TransparencyFog": true,
+    "m_TransparencyFog": false,
     "m_AlphaTestShadow": false,
     "m_BackThenFrontRendering": false,
     "m_TransparentDepthPrepass": false,
