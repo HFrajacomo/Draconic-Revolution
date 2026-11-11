@@ -85,6 +85,7 @@ public class ChunkBuildSlot{
 	private bool hasMeshData = false;
 	private bool hasCollider = false;
 	private bool hasRaycast = false;
+	private bool hasRain = false;
 
 	// State
 	private SlotState slotState = SlotState.FREE;
@@ -144,7 +145,7 @@ public class ChunkBuildSlot{
 
 		this.bounds = new NativeArray<Bounds>(WriteChunkMeshJob.MESH_COUNT, Allocator.Persistent);
 		this.indexCounts = new NativeArray<int>(WriteChunkMeshJob.MESH_COUNT, Allocator.Persistent);
-		this.bakeIDs = new NativeArray<int>(2, Allocator.Persistent);
+		this.bakeIDs = new NativeArray<int>(3, Allocator.Persistent);
 	}
 
 	public bool IsFree(){return this.slotState == SlotState.FREE;}
@@ -308,6 +309,7 @@ public class ChunkBuildSlot{
 			colliderLayout = ChunkMeshLayout.collider,
 			decalLayout = ChunkMeshLayout.decal,
 			raycastLayout = ChunkMeshLayout.raycast,
+			rainLayout = ChunkMeshLayout.collider,
 
 			verts = this.verts,
 			UVs = this.UVs,
@@ -373,9 +375,11 @@ public class ChunkBuildSlot{
 
 		this.hasCollider = this.indexCounts[WriteChunkMeshJob.COLLIDER_MESH] > 0;
 		this.hasRaycast = this.indexCounts[WriteChunkMeshJob.RAYCAST_MESH] > 0;
+		this.hasRain = this.indexCounts[WriteChunkMeshJob.RAIN_MESH] > 0;
 
 		this.bakeIDs[0] = this.hasCollider ? targets[WriteChunkMeshJob.COLLIDER_MESH].GetInstanceID() : 0;
 		this.bakeIDs[1] = this.hasRaycast ? targets[WriteChunkMeshJob.RAYCAST_MESH].GetInstanceID() : 0;
+		this.bakeIDs[2] = this.hasRain ? targets[WriteChunkMeshJob.RAIN_MESH].GetInstanceID() : 0;
 
 		BakeColliderJob bcJob = new BakeColliderJob{
 			meshIDs = this.bakeIDs,
@@ -389,7 +393,7 @@ public class ChunkBuildSlot{
 	// Swaps the chunk colliders to the cooked meshes and frees the slot. Must only be called when IsBakeDone()
 	public void FinishBake(){
 		this.bakeHandle.Complete();
-		this.chunk.SwapColliders(this.hasCollider, this.hasRaycast);
+		this.chunk.SwapColliders(this.hasCollider, this.hasRaycast, this.hasRain);
 		Release();
 	}
 

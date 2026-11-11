@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_PixelRect:
     serializedVersion: 2
-    x: 1920
+    x: 0
     y: 43
     width: 1920
     height: 989
@@ -451,7 +451,7 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: fec7f0ff3ecbf0ff3ccef0ffa4cef0ff24cff0ff2ccff0ff2eecffff6cefffff72f2ffff7af2ffff
+      m_ExpandedIDs: 26ebffff96d00000
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -1345,7 +1345,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 300}
     m_SelectedIDs: 50c30100
     m_LastClickedID: 115536
-    m_ExpandedIDs: 00000000f6ac0000f8ac0000faac0000fcac0000feac000000ad0000
+    m_ExpandedIDs: 00000000faac0000fcac0000feac000000ad000002ad000004ad0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1374,7 +1374,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000f6ac0000f8ac0000faac0000fcac0000feac000000ad0000
+    m_ExpandedIDs: 00000000faac0000fcac0000feac000000ad000002ad000004ad0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 

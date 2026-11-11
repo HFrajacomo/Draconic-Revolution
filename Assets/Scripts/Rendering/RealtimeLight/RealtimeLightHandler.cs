@@ -17,6 +17,9 @@ An optional RealisticLight on the template (may be disabled) makes the light fli
 Static lights with the same profile are merged into cells of CELL_SIZE^3 blocks. Each cell is a single light
 candidate placed at the centroid of its sources, with the summed intensity of all of them.
 Only the closest candidates that can reach the camera frustum receive a real light.
+
+The volumetric dimmer of every light (static profiles and the original dimmer of dynamic lights) is scaled by
+AmbientHandler.GetLightVolumetricMultiplier, so lights don't flood the dense fog of rain.
 */
 public class RealtimeLightHandler : MonoBehaviour {
 	private ChunkLoader cl;
@@ -55,8 +58,11 @@ public class RealtimeLightHandler : MonoBehaviour {
 	private GameObject poolRoot;
 
 	// Dynamic light data
-	private List<Light> dynamicLights = new List<Light>();
+	private List<DynamicLight> dynamicLights = new List<DynamicLight>();
 	private List<DynamicCandidate> dynamicCandidates = new List<DynamicCandidate>();
+
+	// Weather scaling of light volumetrics
+	private float volumetricMultiplier = 1f;
 
 	// Selection state
 	private Plane[] frustumPlanes = new Plane[6];
@@ -91,6 +97,11 @@ public class RealtimeLightHandler : MonoBehaviour {
 
 		Transform camTransform = cam.transform;
 		this.dynamicTimer += Time.deltaTime;
+
+		if(this.cl.ambientHandler != null)
+			this.volumetricMultiplier = this.cl.ambientHandler.GetLightVolumetricMultiplier();
+
+		UpdateDynamicVolumetrics();
 
 		if(this.dirty ||
 			(camTransform.position - this.lastCameraPosition).sqrMagnitude > RESELECT_DISTANCE_SQR ||
@@ -175,17 +186,36 @@ public class RealtimeLightHandler : MonoBehaviour {
 
 	// Hands control over a player-created light's enabled state to the handler
 	public void RegisterDynamic(Light light){
-		if(light == null || this.dynamicLights.Contains(light))
+		if(light == null || IndexOfDynamic(light) >= 0)
 			return;
 
-		this.dynamicLights.Add(light);
+		this.dynamicLights.Add(new DynamicLight(light, light.GetComponent<HDAdditionalLightData>()));
 		this.dirty = true;
 	}
 
 	// Returns control over a light's enabled state to its owner
 	public void UnregisterDynamic(Light light){
-		if(this.dynamicLights.Remove(light))
-			this.dirty = true;
+		int index = IndexOfDynamic(light);
+
+		if(index < 0)
+			return;
+
+		this.dynamicLights[index].RestoreVolumetrics();
+		this.dynamicLights.RemoveAt(index);
+		this.dirty = true;
+	}
+
+	private int IndexOfDynamic(Light light){
+		for(int i=0; i < this.dynamicLights.Count; i++){
+			if(this.dynamicLights[i].light == light)
+				return i;
+		}
+		return -1;
+	}
+
+	private void UpdateDynamicVolumetrics(){
+		for(int i=0; i < this.dynamicLights.Count; i++)
+			this.dynamicLights[i].ApplyVolumetrics(this.volumetricMultiplier);
 	}
 
 	private Camera GetCamera(){
@@ -243,7 +273,7 @@ public class RealtimeLightHandler : MonoBehaviour {
 		this.dynamicCandidates.Clear();
 
 		for(int i=this.dynamicLights.Count-1; i >= 0; i--){
-			Light light = this.dynamicLights[i];
+			Light light = this.dynamicLights[i].light;
 
 			// Lights destroyed together with their entity
 			if(light == null){
@@ -338,6 +368,7 @@ public class RealtimeLightHandler : MonoBehaviour {
 			if(slot.appliedProfile != cell.profile){
 				slot.appliedProfile = cell.profile;
 				this.profiles[cell.profile].ApplyTo(slot.light, slot.data);
+				slot.appliedVolumetric = -1f;
 			}
 
 			slot.light.enabled = true;
@@ -361,6 +392,13 @@ public class RealtimeLightHandler : MonoBehaviour {
 
 			profile = this.profiles[slot.owner.profile];
 			slot.light.intensity = profile.intensity * slot.owner.blocks.Count * profile.GetFlicker(time, slot.flickerPhase) * slot.fade;
+
+			float volumetric = profile.volumetricDimmer * this.volumetricMultiplier;
+
+			if(slot.appliedVolumetric != volumetric){
+				slot.appliedVolumetric = volumetric;
+				slot.data.volumetricDimmer = volumetric;
+			}
 		}
 	}
 
@@ -552,12 +590,40 @@ public class RealtimeLightHandler : MonoBehaviour {
 		public float flickerPhase;
 		public int appliedVersion = -1;
 		public int appliedProfile = -1;
+		public float appliedVolumetric = -1f;
 
 		public LightSlot(Light light, HDAdditionalLightData data, float flickerPhase){
 			this.light = light;
 			this.data = data;
 			this.transform = light.transform;
 			this.flickerPhase = flickerPhase;
+		}
+	}
+
+	// A player-created light and the volumetric dimmer it had before weather scaling
+	private class DynamicLight {
+		public Light light;
+		public HDAdditionalLightData data;
+		public float baseVolumetricDimmer;
+		public float appliedMultiplier = 1f;
+
+		public DynamicLight(Light light, HDAdditionalLightData data){
+			this.light = light;
+			this.data = data;
+			this.baseVolumetricDimmer = data != null ? data.volumetricDimmer : 1f;
+		}
+
+		public void ApplyVolumetrics(float multiplier){
+			if(this.data == null || this.appliedMultiplier == multiplier)
+				return;
+
+			this.appliedMultiplier = multiplier;
+			this.data.volumetricDimmer = this.baseVolumetricDimmer * multiplier;
+		}
+
+		public void RestoreVolumetrics(){
+			if(this.data != null)
+				this.data.volumetricDimmer = this.baseVolumetricDimmer;
 		}
 	}
 

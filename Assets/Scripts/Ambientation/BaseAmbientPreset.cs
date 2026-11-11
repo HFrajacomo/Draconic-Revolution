@@ -407,15 +407,7 @@ public abstract class BaseAmbientPreset{
     }
 
     protected int GetValueDuringRain(WeatherCast wc, int val){
-    	if(wc.GetWeatherState() == WeatherState.RAINY)
-    		return val;
-    	else if(wc.GetWeatherState() == WeatherState.TRANSITION){
-    		if(wc.GetInitState() == WeatherState.RAINY && wc.GetEndState() == WeatherState.TRANSITION)
-    			return (int)Mathf.Lerp(val, 0, wc.GetLerpValue());
-    		else if(wc.GetEndState() == WeatherState.RAINY && wc.GetInitState() == WeatherState.TRANSITION)
-    			return (int)Mathf.Lerp(0, val, wc.GetLerpValue());
-    	}
-    	return 0;
+    	return (int)(val * wc.GetRainStrength());
     }
 
     public void SetValues(AmbientationTestingTool att){

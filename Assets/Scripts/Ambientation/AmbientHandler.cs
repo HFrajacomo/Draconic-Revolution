@@ -80,9 +80,22 @@ public class AmbientHandler : MonoBehaviour
     // Particle System Cache
     private ParticleSystem.EmissionModule psEmission;
 
+    // Precipitation Anchor: Custom simulation space of Rain/Snow. Follows the player horizontally only, so falling particles
+    // move sideways with the player but aren't dragged through the terrain by emitter rotation or vertical movement
+    private Transform precipitationAnchor;
+
+    // Volumetric fog contribution of realtime lights (torches, player VFX). Rain fog is so dense near the ground
+    // that point lights would flood it, so their volumetrics are dimmed down to about cave fog levels while raining
+    private float lightVolumetricMultiplier = 1f;
+    private static readonly float RAIN_LIGHT_VOLUMETRIC_DIMMER = 0.125f;
+    private static readonly float LIGHT_VOLUMETRIC_FADE_SPEED = 0.5f;
+
     void OnDestroy(){
         GameObject.Destroy(this.lightObject);
         this.lightObject = null;
+        if(this.precipitationAnchor != null)
+            GameObject.Destroy(this.precipitationAnchor.gameObject);
+        this.precipitationAnchor = null;
         this.skyDirectionalLight = null;
         this.hdLight = null;
         this.timer = null;
@@ -120,6 +133,7 @@ public class AmbientHandler : MonoBehaviour
 
         this.currentParticleSystem = this.rainParticleSystem;
         this.psEmission = this.rainParticleSystem.emission;
+        CreatePrecipitationAnchor();
         SetParticleSystem();
 
         currentAmbient = BiomeHandler.GetAmbientGroup(playerPositionHandler.GetCurrentBiomeCode());
@@ -133,9 +147,9 @@ public class AmbientHandler : MonoBehaviour
         this.moonDirectionalLight.color = currentPreset.GetMoonColor(0);
 
         this.weatherCast.SetFogNoise(this.timer.ToSeconds()*TimeOfDay.ticksForMinute, this.timer.days);
-        this.weatherCast.SetWeatherNoise(this.timer.ToSeconds(), this.timer.days);
+        this.weatherCast.SetWeatherNoise((int)((this.timer.days*1440) + this.timer.ToSeconds()), this.timer.days);
 
-        this.windHandler.InitRain(this.weatherCast.GetWeatherState() == WeatherState.RAINY);
+        this.windHandler.InitRain(this.weatherCast.IsRaining());
 
         SetStats(this.timer.ToSeconds());
         ApplyWeatherChanges(0, this.timer.ToSeconds(), (int)this.timer.GetFakeTicks(), this.timer.days, currentPreset.IsSurface(), false);
@@ -147,6 +161,8 @@ public class AmbientHandler : MonoBehaviour
         delta += Time.deltaTime/2;
 
         UpdateCaveFactor();
+        UpdatePrecipitationAnchor();
+        UpdateLightVolumetricMultiplier();
 
         if(!isTransitioning){
             currentAmbient = BiomeHandler.GetAmbientGroup(playerPositionHandler.GetCurrentBiomeCode());
@@ -162,7 +178,7 @@ public class AmbientHandler : MonoBehaviour
             }
 
             if(currentTick != lastTick){
-                this.windHandler.Tick(currentTick, time, (int)timer.days, this.weatherCast.GetWeatherState() == WeatherState.RAINY);
+                this.windHandler.Tick(currentTick, time, (int)timer.days, this.weatherCast.IsRaining());
 
                 SetStats(time);
                 ApplyWeatherChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
@@ -177,7 +193,7 @@ public class AmbientHandler : MonoBehaviour
             this.updateTimer++;
 
             if(currentTick != lastTick){
-                this.windHandler.Tick(currentTick, time, (int)timer.days, this.weatherCast.GetWeatherState() == WeatherState.RAINY);
+                this.windHandler.Tick(currentTick, time, (int)timer.days, this.weatherCast.IsRaining());
                 LerpStatus(time);
                 ApplyWeatherChanges((float)this.updateTimer/FRAMES_TO_CHANGE, time, currentTick, this.timer.days, currentPreset.IsSurface(), isTransitioning);
             }
@@ -459,6 +475,37 @@ public class AmbientHandler : MonoBehaviour
         float b = Mathf.Abs(v.y);
 
         return Mathf.Max(a, b) / this.windHandler.GetMaxWindPower();
+    }
+
+    // Creates the Custom simulation space shared by the Rain and Snow particle systems
+    private void CreatePrecipitationAnchor(){
+        this.precipitationAnchor = new GameObject("PrecipitationAnchor").transform;
+        UpdatePrecipitationAnchor();
+
+        ParticleSystem.MainModule rainMain = this.rainParticleSystem.main;
+        rainMain.simulationSpace = ParticleSystemSimulationSpace.Custom;
+        rainMain.customSimulationSpace = this.precipitationAnchor;
+
+        ParticleSystem.MainModule snowMain = this.snowParticleSystem.main;
+        snowMain.simulationSpace = ParticleSystemSimulationSpace.Custom;
+        snowMain.customSimulationSpace = this.precipitationAnchor;
+    }
+
+    private void UpdatePrecipitationAnchor(){
+        Vector3 pos = this.playerPositionHandler.GetPlayerWorldPosition();
+        this.precipitationAnchor.SetPositionAndRotation(new Vector3(pos.x, 0f, pos.z), Quaternion.identity);
+    }
+
+    public float GetLightVolumetricMultiplier(){return this.lightVolumetricMultiplier;}
+
+    // Weather fog only exists on surface presets (see AddFog), so caves keep the full volumetrics while it rains outside
+    private void UpdateLightVolumetricMultiplier(){
+        float target = 1f;
+
+        if(this.currentPreset != null && this.currentPreset.IsSurface())
+            target = Mathf.Lerp(1f, RAIN_LIGHT_VOLUMETRIC_DIMMER, this.weatherCast.GetRainStrength());
+
+        this.lightVolumetricMultiplier = Mathf.MoveTowards(this.lightVolumetricMultiplier, target, Time.deltaTime * LIGHT_VOLUMETRIC_FADE_SPEED);
     }
 
     private void TransformDelta(){

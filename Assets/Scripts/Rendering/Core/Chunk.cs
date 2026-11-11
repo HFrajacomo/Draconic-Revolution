@@ -58,6 +58,11 @@ public class Chunk
 	public MeshCollider meshColliderRaycast;
 	public GameObject objRaycast;
 
+	// Rain Collider Chunk: leaves and water surfaces, only collided by rain particles (RAIN_LAYER collides with no other layer)
+	public MeshCollider meshColliderRain;
+	public GameObject objRain;
+	public static readonly int RAIN_LAYER = 13;
+
 	// Meshes
 	// Collider meshes are double-buffered: builds write into the mesh that isn't used by the MeshCollider,
 	// so the current collision stays valid while the new one is cooked
@@ -65,6 +70,7 @@ public class Chunk
 	private Mesh meshDecal;
 	private Mesh[] meshCollision;
 	private Mesh[] meshRaycast;
+	private Mesh[] meshRain;
 	private int activeCollider = 0;
 	private Mesh[] buildTargets;
 
@@ -92,6 +98,11 @@ public class Chunk
 		this.objRaycast.transform.SetParent(this.renderer.transform);
 		this.objRaycast.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objRaycast.layer = 11;
+		this.objRain = new GameObject();
+		this.objRain.name = "RainCollider " + pos.x + ", " + pos.z + ", " + ((ChunkDepthID)pos.y).ToString()[0];
+		this.objRain.transform.SetParent(this.renderer.transform);
+		this.objRain.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
+		this.objRain.layer = RAIN_LAYER;
 
 		this.data = new VoxelData(pos);
 		this.metadata = new VoxelMetadata();
@@ -105,6 +116,8 @@ public class Chunk
 		msrDecal.shadowCastingMode = ShadowCastingMode.Off;
 		this.meshColliderRaycast = this.objRaycast.AddComponent<MeshCollider>() as MeshCollider;
 		this.meshColliderRaycast.cookingOptions = COLLIDER_COOKING_OPTIONS;
+		this.meshColliderRain = this.objRain.AddComponent<MeshCollider>();
+		this.meshColliderRain.cookingOptions = COLLIDER_COOKING_OPTIONS;
 
 		msr.sharedMaterials = this.renderer.GetComponent<MeshRenderer>().sharedMaterials;
 		msrDecal.material = this.renderer.decalMaterial;
@@ -115,6 +128,7 @@ public class Chunk
 		this.meshDecal = new Mesh();
 		this.meshCollision = new Mesh[]{new Mesh(), new Mesh()};
 		this.meshRaycast = new Mesh[]{new Mesh(), new Mesh()};
+		this.meshRain = new Mesh[]{new Mesh(), new Mesh()};
 		this.buildTargets = new Mesh[WriteChunkMeshJob.MESH_COUNT];
 
 		if(showHitbox){
@@ -172,6 +186,7 @@ public class Chunk
 		this.buildTargets[WriteChunkMeshJob.COLLIDER_MESH] = this.meshCollision[next];
 		this.buildTargets[WriteChunkMeshJob.DECAL_MESH] = this.meshDecal;
 		this.buildTargets[WriteChunkMeshJob.RAYCAST_MESH] = this.meshRaycast[next];
+		this.buildTargets[WriteChunkMeshJob.RAIN_MESH] = this.meshRain[next];
 
 		return this.buildTargets;
 	}
@@ -185,11 +200,12 @@ public class Chunk
 	}
 
 	// Makes the MeshColliders use the meshes written by the last build, which must already be cooked
-	public void SwapColliders(bool hasCollider, bool hasRaycast){
+	public void SwapColliders(bool hasCollider, bool hasRaycast, bool hasRain){
 		int next = 1 - this.activeCollider;
 
 		this.meshCollider.sharedMesh = hasCollider ? this.meshCollision[next] : null;
 		this.meshColliderRaycast.sharedMesh = hasRaycast ? this.meshRaycast[next] : null;
+		this.meshColliderRain.sharedMesh = hasRain ? this.meshRain[next] : null;
 
 		if(showHitbox){
 			this.hitboxFilter.sharedMesh = this.meshRaycast[next];
@@ -198,6 +214,7 @@ public class Chunk
 		// Previous collider meshes are no longer referenced
 		this.meshCollision[this.activeCollider].Clear();
 		this.meshRaycast[this.activeCollider].Clear();
+		this.meshRain[this.activeCollider].Clear();
 		this.activeCollider = next;
 	}
 
@@ -220,9 +237,11 @@ public class Chunk
 		GameObject.Destroy(this.obj);
 		GameObject.Destroy(this.objDecal);
 		GameObject.Destroy(this.objRaycast);
+		GameObject.Destroy(this.objRain);
 		this.obj = null;
 		this.objDecal = null;
 		this.objRaycast = null;
+		this.objRain = null;
 
 		Object.Destroy(this.mesh);
 		Object.Destroy(this.meshDecal);
@@ -231,12 +250,14 @@ public class Chunk
 			for(int i=0; i < this.meshCollision.Length; i++){
 				Object.Destroy(this.meshCollision[i]);
 				Object.Destroy(this.meshRaycast[i]);
+				Object.Destroy(this.meshRain[i]);
 			}
 		}
 
 		this.meshFilter = null;
 		this.meshCollider = null; 
 		this.meshColliderRaycast = null;
+		this.meshColliderRain = null;
 		this.meshFilterDecal = null;
 		this.hitboxFilter = null;
 		this.loader = null;
