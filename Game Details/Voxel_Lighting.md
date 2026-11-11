@@ -197,6 +197,10 @@ The underground presets (Caverns, Ice Caverns and Core) have no sun or moon, so 
 
 Vibrance comes from the Game volume profile, never from brightness: **Color Adjustments** (saturation +22, contrast +12) and two **Color Curves**. *Sat vs Sat* gives dull colors more saturation than already saturated ones, so nothing turns neon, and *Lum vs Sat* gives bright colors a small boost against ACES washing out highlights. HDRP's saturation keeps the luminance of every pixel, and its contrast pivots around mid-gray, so shadows only get deeper and the darkness of nights and caves is kept. `AmbientHandler` doesn't write these, so tune them directly in the profile. Never use Lift or the `w` of the Gain for vibrance, since they brighten the darkness too.
 
+### Menu
+
+The Game profile (`Sky and Fog Settings Profile 1`) is also HDRP's default volume profile, so any scene inherits every component its own volumes don't override. The Menu scene has its own complete profile, `MenuVolume`: a full copy of the Game profile from before the lighting changes above, with the Menu's own settings (fixed exposure, no tonemapping, no fog). Every component that is active in the Game profile is active in `MenuVolume` too, so nothing leaks from the Game profile into the Menu, including the values `AmbientHandler` writes while playing. Change the Menu's look in `MenuVolume.asset`. If a component is turned on in the Game profile in the future, turn it on in `MenuVolume` as well, or the Menu will inherit it.
+
 Rules of thumb when tuning:
  - Every value written by `AmbientHandler` (exposure, Lift Gamma Gain, fog, sky, sun and moon) is overwritten at runtime. The `BaseAmbientPreset` subclasses are the source of truth.
  - Make a biome brighter or darker with `expOffset` or the light intensity, never with the `w` of the Gain, which brightens everything including the darkness.
