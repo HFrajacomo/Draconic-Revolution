@@ -12,6 +12,7 @@ The whole idea of this document is to explain how Draconic Revolution not only h
 
  - What is Voxel Lighting?
  - Step-by-Step implementation
+ - Light Through Chunk Layers
  - Extra Lights
  - Custom Interpolation Shaders
  - New Vertex Shaders
@@ -42,9 +43,9 @@ For every Voxel in a chunk, we need to find out the ShadowCode for them. The Sha
  - Defined as 1 if current Voxel is a transparent block
  - Defined as 2 if current Voxel has contact with direct sunlight or maximum luminosity Extra Light
  - Defined as 3 if current Voxel receives light from the sun but is not in contact with it (like light being shined into the underground)
- - Defined as 7, 8, 9, 10 if current Voxel receives light from a neighbor chunk, each code representing the direction the light received travels
+ - Defined as 7, 8, 9, 10, 11, 12 if current Voxel receives light from a neighbor chunk, each code representing the direction the light received travels (7-10 are the horizontal neighbors, 11 is the chunk above and 12 the chunk below)
 
-During the ShadowMapping process, only ShadowCode 0, 1 and 2 is set. The only exception are the 7-10 ShadowCodes that are not tampered with if the current ShadowMap has them at some point for Natural Light. Extra Lights handling delete all occurrences of 7-10 ShadowCodes. See more at the Extra Lights section!
+During the ShadowMapping process, only ShadowCode 0, 1 and 2 is set. The only exception are the directional ShadowCodes in the borders of the chunk, which are not tampered with if the current ShadowMap has them at some point for Natural Light. The horizontal borders keep every direction, while the top and bottom of the chunk only keep the light received from the chunk above (11) and below (12). Extra Lights handling delete all occurrences of 7-10 ShadowCodes. See more at the Extra Lights section!
 
 ## LightMapping
 
@@ -85,18 +86,27 @@ A complex two-chunk propagation was nicknamed "Chunk Bounce". It happens when a 
 
 Multi-chunk propagation is when a single block in a chunk propagates directional light to multiple ones (like the corner border of 4 chunks).
 
+## Light Through Chunk Layers
+
+The world is a stack of chunk layers (Surface, Underground, Hells and Core), so a shaft dug from the Surface must bring sunlight down to every layer it crosses.
+
+- **Direct sunlight**: a voxel is in direct sunlight (ShadowCode 2) if it's above the light-blocking blocks of its column and direct sunlight enters the top of its column. Sunlight enters the top of a chunk through the columns where it leaves the bottom of the chunk above: the columns whose bottom voxel is in direct sunlight. These columns are the chunk's **SunExitMask**. The top layer always receives the open sky, so a shaft lights every layer it goes through.
+- **Unloaded layers**: the `LightingSystem` keeps the last SunExitMask of every chunk position it lit, even after the chunk is unloaded, since the layer above is usually not streamed. Positions that were never lit count as the open sky. Chunks always use the kept mask of the chunk above, and when a kept mask changes the chunk below is calculated again, so opening or closing a shaft anywhere in a column updates every layer under it. A chunk waits for the light of the chunk above before it's calculated, so it's rarely calculated twice.
+- **Indirect light**: light that goes around corners into the next layer travels through the vertical borders with LightPropagation, like the horizontal ones. Vertical borders are always propagated from the upper chunk (border ym of the upper chunk), so the same rules apply no matter which chunk asked for it. If the top of the lower chunk is in direct sunlight while the bottom of the upper chunk isn't, the lower chunk was lit with an outdated sky and is calculated again.
+- **Verification**: before a chunk is built, its borders are verified to find where light should be propagated. Light is pushed out of the chunk, since every horizontal neighbor is verified when it's drawn too. Vertical neighbors are not drawn together, so the vertical borders are verified both ways. Chunks that change after their neighbors were drawn (block changes, or a new sky from above) verify every border both ways. Chunks updated by the LightPropagation itself don't verify again, or neighbors could update each other forever. Since light received from the chunk above or below is kept through calculations, a vertical border is also verified when a voxel holds light received from a neighbor voxel that became solid, so light without a source is removed.
+
 ## Asynchronous Light Calculation
 
 On the client, the ShadowMap and LightMap of every loaded chunk are calculated in worker threads by the `LightingSystem`:
 
 - Calculations run nearest to the player first, in up to `CLIENT_LIGHT_SLOTS` at the same time, and are started twice per frame.
 - A chunk has at most one calculation queued or running. Calculations work on copies of the chunk data and write them back once done.
-- Once a chunk is calculated, the chunk below it is updated, since its sunlight depends on this one.
+- A chunk waits for the light of the chunk above it. Once a chunk is calculated, the chunk below it is calculated again if the sunlight leaving this one changed (see Light Through Chunk Layers).
 
 Everything else runs in the main thread, as before:
 
 - A chunk is drawn once the light of its 8 neighbors and the chunks above and below it is calculated. Right before it's built, its borders are verified and LightPropagation runs with its neighbors.
-- Chunk updates (block changes) calculate their light right away and then propagate it, so changes show without delay.
+- Chunk updates (block changes) calculate their light right away, verify their borders both ways and then propagate it, so changes show without delay, also in the neighbor chunks.
 - Anything that needs the light of a chunk that is still queued or being calculated (like LightPropagation reaching it) finishes its calculation in the main thread first (`EnsureLit`), so light is always calculated before it's propagated.
 
 
@@ -165,7 +175,7 @@ Nights and caves should be almost pitch black, and lights should be bright witho
 All voxel shaders (Ground, Objects, SolidObjects, Leaves, Ice, Water, the clothing shaders and DropItem) call the same function, `VoxelLightShade` in `Assets/Scripts/Rendering/ShaderFunctions/VoxelLightIntensity.hlsl`. Change the lighting there, not in the graphs. It receives the natural and extra light levels (normalized as level/15), the world position and the albedo, and returns:
 
  - **albedoMask**: multiplies the Base Color. Light levels go through a curve where every level below 15 multiplies the brightness by `_VoxelLightFalloff` (0.8). A linear curve looks flat near the light and then drops to black too quickly.
- - **extraEmission**: the brightness given by Extra Lights (light blocks and moving lights), added to the Emission. It only scales the surface's own color, so it never tints anything. Its intensity (`_ExtraLightIntensity`, in nits) does not depend on the sky, so lights look the same in every biome and time of day.
+ - **extraEmission**: the brightness given by Extra Lights (light blocks and moving lights), added to the Emission. It only scales the surface's own color, so it never tints anything. Its intensity (`_ExtraLightIntensity`, in nits) does not depend on the sky, so lights look the same in every biome and time of day. The Shaft Light and Shaft Ambient of underground ambiences are added here too (see Caves).
 
 Extra Lights have no color in the Voxel Lighting. The color of a light comes from the realtime Point Light of its source: the Light Profile of a block (see Realtime Light Budget) or the Light of an item or animation. So a light of a new color is a block with `luminosity` for its brightness plus a Light Profile with the color. A light source without a Point Light only makes things brighter.
  - **skyOcclusion**: goes into Occlusion. Natural light is how much of the sky a voxel sees, so sky ambient and sky reflections fade without it. Without this, smooth blocks reflected the sky in pitch-black caves.
@@ -194,6 +204,10 @@ Fog is global, so the fog outside also gets darker while the camera is in a cave
 Each ambience preset decides how much the Cave Factor can darken it (`GetCaveDarkness`, 1 by default). Hell is a giant cave under the Underground, so its Natural Voxel Light is always low, but it's lit by its fiery sky and lava, so it returns 0: inside Hell the fog keeps its light, the camera can brighten and there is no Dark Adaptation. Hell's brightness is set by its preset instead (fog ambient light, the intensity of its sun and moon, indirect diffuse and `expOffset`).
 
 The cave presets (Caverns and Ice Caverns) have no sun or moon, so caves are only lit by Voxel Light and light sources. Hell and Core keep their light: Hell is lit by its fiery sky, and Core by a shadowless sun. Both opt out of cave darkness. Ground Emission goes through the same falloff curve as the rest of the Voxel Light (`VoxelLightGround`), so dim cave floors barely glow.
+
+Shafts dug from the Surface bring sunlight down as Natural Light (see Light Through Chunk Layers), but the cave presets have no realtime sun to light them. Instead, `VoxelLightShade` adds the **Shaft Light**: the directional light of the surface sky (the default sun by day and the default moon by night), shading each face by how much it faces the light. It has no shadows and it only follows the Natural Light (curved and raised to `SHAFT_LIGHT_SHARPNESS`), so it is strong in direct sunlight, fades fast in indirect light and never reaches surfaces lit only by light sources. The face normal comes from the screen derivatives, flipped towards the camera. Presets give it through `GetShaftLight` (color times illuminance in lux, black by default) and `GetShaftLightDirection`, and `AmbientHandler` sends it to `_VoxelShaftLight` (in nits, lux / PI) and `_VoxelShaftDirection`. Only Caverns and Ice Caverns use it, and their Ground Emission (`GetFloorLighting`) also follows the day and night, since their Natural Light only comes from the sky. Surface ambiences use their realtime sun with shadows, while Hell and Core keep their own suns.
+
+The Shaft Light alone only shows the voxels in direct sunlight. On the surface, the Natural Light scales the sky's ambient light, but a sky without a sun gives almost no ambient light, so the light flooding around a shaft (levels 14, 13...) would be invisible underground. The **Shaft Ambient** brings that ambient light back: every face is lit by `GetShaftAmbient` (in nits, black by default) times its curved Natural Light, with no direction. Faces of every side fade smoothly with the distance from the shaft, and surfaces lit only by light sources never receive it. The cave presets use `SurfaceShaftAmbient`, which goes from `SHAFT_AMBIENT_DAY` to `SHAFT_AMBIENT_NIGHT` along the day, and `AmbientHandler` sends it to `_VoxelShaftAmbient`.
 
 Blocks in the deep layers have no Natural Light, and a black sky gives no ambient light, so a face that no light reaches would be pitch black. `GetVoxelAmbient` (0 by default) gives every voxel and entity surface of an ambience a uniform glow (`_VoxelLightAmbient`, in nits). Core uses it so that every side is about 65% as bright as the tops, and its sun comes from the south-east at 55° (`GetSunOrientation`, the full rotation of the sun light, defaulting to `GetSunRotation`) to shade the sides differently. A sun diameter of 0 (`GetSunDiameter`) hides the sun's disc, so the underground layers don't show a sun in their sky.
 

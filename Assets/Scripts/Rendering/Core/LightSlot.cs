@@ -13,7 +13,6 @@ public class LightSlot{
 	private static readonly int INITIAL_CAPACITY = 1024;
 
 	public ChunkPos pos;
-	public bool updateBelow; // Rebuilds the chunk below once done, since its sunlight depends on this one
 
 	private Chunk chunk;
 	private bool busy = false;
@@ -27,7 +26,7 @@ public class LightSlot{
 	private NativeArray<ushort> states;
 	private NativeArray<byte> heightMap;
 	private NativeArray<bool> ceilingMap;
-	private NativeArray<bool> upCeilingMap;
+	private NativeArray<bool> skyFromAbove;
 
 	// Scratch
 	private NativeList<int4> lightSources;
@@ -47,7 +46,7 @@ public class LightSlot{
 		this.states = new NativeArray<ushort>(VOXEL_COUNT, Allocator.Persistent);
 		this.heightMap = new NativeArray<byte>(MAP_SIZE, Allocator.Persistent);
 		this.ceilingMap = new NativeArray<bool>(MAP_SIZE, Allocator.Persistent);
-		this.upCeilingMap = new NativeArray<bool>(MAP_SIZE, Allocator.Persistent);
+		this.skyFromAbove = new NativeArray<bool>(MAP_SIZE, Allocator.Persistent);
 
 		this.lightSources = new NativeList<int4>(INITIAL_CAPACITY, Allocator.Persistent);
 		this.auxLightSources = new NativeList<int4>(INITIAL_CAPACITY, Allocator.Persistent);
@@ -67,10 +66,8 @@ public class LightSlot{
 	}
 
 	// Starts calculating the light of a chunk, reading its data now. Returns false if the chunk isn't loaded
-	public bool Start(ChunkPos pos, bool updateBelow, ChunkLoader loader){
-		ChunkPos up = new ChunkPos(pos.x, pos.z, pos.y+1);
-		bool isStandalone = true;
-
+	// skyFromAbove holds the columns where direct sunlight enters the top of the chunk
+	public bool Start(ChunkPos pos, SunExitMask skyFromAbove, ChunkLoader loader){
 		if(!loader.Contains(pos))
 			return false;
 
@@ -78,15 +75,9 @@ public class LightSlot{
 		VoxelData data = c.data;
 
 		data.EnsureHeightMaps();
-
-		// Uses the chunk above to know how sunlight enters this one
-		if(pos.y < Chunk.chunkMaxY && loader.Contains(up) && loader.Get(up).data.ShadowMapIsSet()){
-			isStandalone = false;
-			this.upCeilingMap.CopyFrom(loader.Get(up).data.GetCeilingMap());
-		}
+		skyFromAbove.CopyTo(this.skyFromAbove);
 
 		this.pos = pos;
-		this.updateBelow = updateBelow;
 		this.chunk = c;
 		this.busy = true;
 
@@ -127,10 +118,9 @@ public class LightSlot{
 			isTransparentBlock = BlockEncyclopediaECS.blockTransparent,
 			blockLuminosity = BlockEncyclopediaECS.blockLuminosity,
 			objectLuminosity = BlockEncyclopediaECS.objectLuminosity,
-			isStandalone = isStandalone,
 			cpos = pos,
 			ceilingMap = this.ceilingMap,
-			neighborCeilingMap = this.upCeilingMap
+			skyFromAbove = this.skyFromAbove
 		};
 
 		CalculateLightMapJob clmJob = new CalculateLightMapJob{
@@ -138,6 +128,7 @@ public class LightSlot{
 			shadowMap = this.shadow,
 			lightSources = this.lightSources,
 			heightMap = this.heightMap,
+			ceilingMap = this.ceilingMap,
 			chunkWidth = Chunk.chunkWidth,
 			chunkDepth = Chunk.chunkDepth,
 			bfsq = this.bfsq,
@@ -191,7 +182,7 @@ public class LightSlot{
 		this.states.Dispose();
 		this.heightMap.Dispose();
 		this.ceilingMap.Dispose();
-		this.upCeilingMap.Dispose();
+		this.skyFromAbove.Dispose();
 
 		this.lightSources.Dispose();
 		this.auxLightSources.Dispose();

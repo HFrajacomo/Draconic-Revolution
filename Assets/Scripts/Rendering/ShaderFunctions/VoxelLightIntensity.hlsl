@@ -13,9 +13,16 @@ float _VoxelLightAmbient;
 // Set by AmbientHandler. Brightness (nits) of Dark Adaptation at the camera, and xyz = camera position, w = radius
 float _DarkAdaptation;
 float4 _DarkAdaptationCenter;
+// Set by AmbientHandler from the Ambience Preset. Shaft Light: rgb = brightness (nits) of a white surface facing it, xyz of the direction points towards it
+float4 _VoxelShaftLight;
+float4 _VoxelShaftDirection;
+// Set by AmbientHandler from the Ambience Preset. Shaft Ambient: rgb = brightness (nits) of the sky's ambient light that comes down shafts. It lights every face by its Natural Light
+float4 _VoxelShaftAmbient;
 
 static const float VOXEL_LIGHT_DEFAULT_FALLOFF = 0.8;
 static const float DARK_ADAPTATION_EDGE_ON = 0.35;
+// The Shaft Light follows the Natural Light curve raised to this power, so it is strong in direct sunlight (level 15) and fades fast in indirect light
+static const float SHAFT_LIGHT_SHARPNESS = 4;
 
 // Returns the strongest moving light (held torches, spells...) reaching fragPos, normalized to [0,1]
 float GetMovingVoxelLight(float3 fragPos){
@@ -68,6 +75,22 @@ float GetDarkAdaptation(float3 fragPos){
     return _DarkAdaptation * fade * fade * lerp(DARK_ADAPTATION_EDGE_ON, 1, facing);
 }
 
+/*
+Shaft Light: underground ambiences have no realtime sun, so surfaces that see the sky through a shaft are lit here by the sky's
+directional light (the sun by day, the moon by night). It has no shadows and is only gated by Natural Light, so light sources never receive it.
+naturalLight is the curved Natural Light. Fragment stage only (uses derivatives)
+*/
+float3 GetShaftLight(float3 fragPos, float naturalLight){
+    if(max(_VoxelShaftLight.r, max(_VoxelShaftLight.g, _VoxelShaftLight.b)) <= 0)
+        return float3(0, 0, 0);
+
+    // Visible faces always point at the camera, so the face normal is flipped towards it
+    float3 faceNormal = normalize(cross(ddy(fragPos), ddx(fragPos)));
+    faceNormal *= sign(dot(faceNormal, _DarkAdaptationCenter.xyz - fragPos));
+
+    return _VoxelShaftLight.rgb * saturate(dot(faceNormal, _VoxelShaftDirection.xyz)) * pow(naturalLight, SHAFT_LIGHT_SHARPNESS);
+}
+
 // natural and extra are normalized light levels (level/15)
 // albedoMask multiplies the Base Color, so realtime lights still shade the surface where there is voxel light
 // extraEmission is the brightness given by Extra Lights (light blocks and moving lights), independent of the sky's ambient light.
@@ -76,15 +99,17 @@ float GetDarkAdaptation(float3 fragPos){
 // An unlit voxel keeps _VoxelLightFloor of the sky ambient (albedoMask * skyOcclusion), so it is near-black instead of black
 // Inside caves, unlit surfaces near the camera also get Dark Adaptation, so a very dark outline of the cave is visible
 // Every surface also glows by the ambience's _VoxelLightAmbient, so faces no light reaches are not pitch black
+// Underground, surfaces that see the sky through a shaft are also lit by the Shaft Light, and every face reached by Natural Light by the Shaft Ambient
 void VoxelLightShade_float(float natural, float extra, float3 fragPos, float3 albedo, out float albedoMask, out float3 extraEmission, out float skyOcclusion){
     float extraLight = VoxelLightCurve(max(extra, GetMovingVoxelLight(fragPos)));
     float naturalLight = VoxelLightCurve(natural);
     float floorRoot = sqrt(saturate(_VoxelLightFloor));
     float darkness = 1 - max(naturalLight, extraLight);
+    float3 shaftLight = GetShaftLight(fragPos, naturalLight) + _VoxelShaftAmbient.rgb * naturalLight;
 
     albedoMask = lerp(floorRoot, 1, max(naturalLight, extraLight));
     skyOcclusion = lerp(floorRoot, 1, naturalLight);
-    extraEmission = albedo * (extraLight * _ExtraLightIntensity + darkness * GetDarkAdaptation(fragPos) + _VoxelLightAmbient);
+    extraEmission = albedo * (extraLight * _ExtraLightIntensity + darkness * GetDarkAdaptation(fragPos) + _VoxelLightAmbient + shaftLight);
 }
 
 // Ground Emission: up-facing blocks glow by their natural light (multiplied by _SkyLightMultiplier in the graph).

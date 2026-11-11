@@ -55,6 +55,9 @@ public class AmbientHandler : MonoBehaviour
     private static readonly float DARK_ADAPTATION_RADIUS = 30f;
     private static readonly int DARK_ADAPTATION_ID = Shader.PropertyToID("_DarkAdaptation");
     private static readonly int DARK_ADAPTATION_CENTER_ID = Shader.PropertyToID("_DarkAdaptationCenter");
+    private static readonly int SHAFT_LIGHT_ID = Shader.PropertyToID("_VoxelShaftLight");
+    private static readonly int SHAFT_LIGHT_DIRECTION_ID = Shader.PropertyToID("_VoxelShaftDirection");
+    private static readonly int SHAFT_AMBIENT_ID = Shader.PropertyToID("_VoxelShaftAmbient");
 
     // Update variables
     private const int FRAMES_TO_CHANGE = 180;
@@ -345,6 +348,7 @@ public class AmbientHandler : MonoBehaviour
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
             Shader.SetGlobalFloat("_VoxelLightFloor", Mathf.Lerp(lastPreset.GetVoxelLightFloor(), currentPreset.GetVoxelLightFloor(), currentStep));
             Shader.SetGlobalFloat("_VoxelLightAmbient", Mathf.Lerp(lastPreset.GetVoxelAmbient(), currentPreset.GetVoxelAmbient(), currentStep));
+            SetShaftLight(lastPreset, currentPreset, currentStep, time);
 
             if(ROTATE_SUN_FLAG == 0){
                 this.skyDirectionalLight.transform.rotation = currentPreset.GetSunOrientation(time);
@@ -404,6 +408,7 @@ public class AmbientHandler : MonoBehaviour
             Shader.SetGlobalFloat("_SkyLightMultiplier", currentPreset.GetFloorLighting(time));
             Shader.SetGlobalFloat("_VoxelLightFloor", currentPreset.GetVoxelLightFloor());
             Shader.SetGlobalFloat("_VoxelLightAmbient", currentPreset.GetVoxelAmbient());
+            SetShaftLight(currentPreset, currentPreset, 1f, finalTime);
 
             if(ROTATE_SUN_FLAG == 0){
                 this.skyDirectionalLight.transform.rotation = currentPreset.GetSunOrientation(finalTime);
@@ -435,6 +440,20 @@ public class AmbientHandler : MonoBehaviour
 
     private void SetSunDisc(float diameter){
         this.hdLight.diameterOverride = diameter > 0f ? this.defaultSunDiscDiameter : 0f;
+    }
+
+    /*
+    Shaft Light of the voxel shaders (see VoxelLightShade). The illuminance (lux) becomes the brightness of a white diffuse surface
+    facing the light (lux / PI = nits). The direction comes from the preset that has the light, so it doesn't jump in transitions
+    */
+    private void SetShaftLight(BaseAmbientPreset from, BaseAmbientPreset to, float step, float time){
+        Color target = to.GetShaftLight(time);
+        Color light = Color.Lerp(from.GetShaftLight(time), target, step);
+        Vector3 direction = target.maxColorComponent > 0f ? to.GetShaftLightDirection(time) : from.GetShaftLightDirection(time);
+
+        Shader.SetGlobalVector(SHAFT_LIGHT_ID, (Vector4)(light / Mathf.PI));
+        Shader.SetGlobalVector(SHAFT_LIGHT_DIRECTION_ID, direction);
+        Shader.SetGlobalVector(SHAFT_AMBIENT_ID, (Vector4)Color.Lerp(from.GetShaftAmbient(time), to.GetShaftAmbient(time), step));
     }
 
     // Sun and Moon don't light the fog of caves

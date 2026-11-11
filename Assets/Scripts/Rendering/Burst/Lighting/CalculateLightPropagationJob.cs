@@ -378,8 +378,9 @@ public struct CalculateLightPropagationJob : IJob{
 			a = aux;
 		}
 
-		// (2-1 | 1-2) when coming from above or 0-2 when coming from above
-		if((a == 1 && b == 2 && borderCode == 4) || (a == 0 && b == 2 && borderCode == 4 && order)){
+		// Coming from above (chunk 1 is the upper chunk): the top of the lower chunk is in direct sunlight while the bottom of the upper chunk
+		// isn't, so the lower chunk was lit with an outdated sky and must be calculated again
+		if(!extraLight && borderCode == 4 && order && b == 2 && (a == 0 || a == 1)){
 			changed[2] = 1;
 			return;
 		}

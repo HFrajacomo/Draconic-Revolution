@@ -35,8 +35,8 @@ public static class LightingScratch{
 
 	// Shared
 	public static NativeArray<ushort> states; // States of the chunk being lit, so uniform states don't need an array
+	public static NativeArray<bool> skyFromAbove; // Columns where direct sunlight enters the chunk being lit
 	public static NativeArray<byte> changed;
-	public static NativeArray<bool> emptyBool;
 	public static NativeArray<byte> emptyByte;
 
 
@@ -65,8 +65,8 @@ public static class LightingScratch{
 		hashAux = new NativeParallelHashSet<int4>(INITIAL_CAPACITY, Allocator.Persistent);
 
 		states = new NativeArray<ushort>(VOXEL_COUNT, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+		skyFromAbove = new NativeArray<bool>(Chunk.chunkWidth*Chunk.chunkWidth, Allocator.Persistent);
 		changed = new NativeArray<byte>(4, Allocator.Persistent);
-		emptyBool = new NativeArray<bool>(0, Allocator.Persistent);
 		emptyByte = new NativeArray<byte>(0, Allocator.Persistent);
 
 		isCreated = true;
@@ -134,8 +134,8 @@ public static class LightingScratch{
 		hashAux.Dispose();
 
 		states.Dispose();
+		skyFromAbove.Dispose();
 		changed.Dispose();
-		emptyBool.Dispose();
 		emptyByte.Dispose();
 
 		isCreated = false;

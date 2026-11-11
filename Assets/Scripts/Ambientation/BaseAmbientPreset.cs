@@ -13,6 +13,9 @@ public abstract class BaseAmbientPreset{
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_ZERO = 0f;
 	protected static readonly Color SURFACE_LIGHT_COLOR_DAY = Color.white;
 	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(.62f, .7f, .9f, 1f);
+	// Shaft Ambient: brightness (nits) of the sky's ambient light that comes down shafts into underground ambiences, lighting every face by its Natural Light
+	protected static readonly Color SHAFT_AMBIENT_DAY = new Color(.32f, .36f, .42f, 1f);
+	protected static readonly Color SHAFT_AMBIENT_NIGHT = new Color(.012f, .015f, .024f, 1f);
 	protected static readonly float SUN_DIAMETER_DAY = 1f;
 	protected static readonly float SUN_DIAMETER_NIGHT = 0.6f;
 	protected static readonly float SUN_DIAMETER_UNDERGROUND = 0f;
@@ -173,6 +176,13 @@ public abstract class BaseAmbientPreset{
 	public virtual float GetVoxelLightFloor(){return this.isSurface ? VOXEL_LIGHT_FLOOR_SURFACE : VOXEL_LIGHT_FLOOR_UNDERGROUND;}
 	// Uniform glow of every surface, in nits. Lights the faces no light reaches, for ambiences without a sky to light them
 	public virtual float GetVoxelAmbient(){return 0f;}
+	// Shaft Light: directional sky light that comes down shafts into this ambience, drawn by the voxel shaders without shadows (see VoxelLightShade).
+	// Color times illuminance (lux). Black for ambiences lit by their own realtime sun
+	public virtual Color GetShaftLight(float t){return Color.black;}
+	// Direction pointing towards the Shaft Light
+	public virtual Vector3 GetShaftLightDirection(float t){return Vector3.up;}
+	// Shaft Ambient: the sky's ambient light that comes down shafts, in nits. Lights every face by its Natural Light. Black for ambiences lit by their own sky
+	public virtual Color GetShaftAmbient(float t){return Color.black;}
 	public virtual float GetFogBaseHeight(float t){return BASE_FOG_HEIGHT_SURFACE;}
 	public virtual float GetFogMaxHeight(float t){return this.fogMaximumHeight;}
 	public virtual float GetFogAnisotropy(float t){return this.fogAnisotropy;}
@@ -213,6 +223,33 @@ public abstract class BaseAmbientPreset{
 	public virtual bool IsSnowInstead(){return false;}
 	public bool IsSurface(){return this.isSurface;}
 	public bool HasFlare(){return this.hasFlare;}
+
+	// Shaft Ambient of the surface sky along the day
+	protected Color SurfaceShaftAmbient(float t){
+		return Color.Lerp(SHAFT_AMBIENT_NIGHT, SHAFT_AMBIENT_DAY, BehaviourSunsetIntensity(1f, 0f, t));
+	}
+
+	// Shaft Light of the surface sky: the default sun by day and the default moon by night
+	protected Color SurfaceShaftLight(float t){
+		float sun = BehaviourSunsetIntensity(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_ZERO, t);
+		float moon = BehaviourMoonsetIntensity(SURFACE_LIGHT_LUMINOSITY_ZERO, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);
+
+		return SURFACE_LIGHT_COLOR_DAY * sun + SURFACE_LIGHT_COLOR_NIGHT * moon;
+	}
+
+	// Points towards the brightest of the default sun and moon. Lights shine along their forward axis
+	protected Vector3 SurfaceShaftLightDirection(float t){
+		float sun = BehaviourSunsetIntensity(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_ZERO, t);
+		float moon = BehaviourMoonsetIntensity(SURFACE_LIGHT_LUMINOSITY_ZERO, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);
+		Quaternion rotation;
+
+		if(sun >= moon)
+			rotation = Quaternion.Euler(SunRotationX(t), 0, SunRotationZ(t));
+		else
+			rotation = Quaternion.Euler(MoonRotationX(t), 0, MoonRotationZ(t));
+
+		return -(rotation * Vector3.forward);
+	}
 
 
 	protected float BehaviourLerp4(float sunrise, float day, float sunset, float night, float x){

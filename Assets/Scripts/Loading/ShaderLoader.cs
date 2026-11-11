@@ -61,6 +61,9 @@ public class ShaderLoader : BaseLoader {
 		Shader.SetGlobalVector("_DarkAdaptationCenter", Vector4.zero);
 		// Driven by AmbientHandler from the Ambience Preset
 		Shader.SetGlobalFloat("_VoxelLightAmbient", 0f);
+		Shader.SetGlobalVector("_VoxelShaftLight", Vector4.zero);
+		Shader.SetGlobalVector("_VoxelShaftDirection", Vector3.up);
+		Shader.SetGlobalVector("_VoxelShaftAmbient", Vector4.zero);
 		Shader.SetGlobalFloat("_ExtraLightIntensity", EXTRA_LIGHT_INTENSITY);
 	}
 }

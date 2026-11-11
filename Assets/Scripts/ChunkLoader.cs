@@ -88,6 +88,7 @@ public class ChunkLoader : MonoBehaviour
     // Voxel Lighting
     private LightingSystem lightingSystem;
     private Dictionary<ChunkPos, byte> awaitingLight = new Dictionary<ChunkPos, byte>(); // Chunks waiting for the light of their neighborhood before building
+    private HashSet<ChunkPos> verifyOnUpdate = new HashSet<ChunkPos>(); // Chunks whose next light update also sends light both ways through their borders
     private List<ChunkLightPropagInfo> toCallLightCascade = new List<ChunkLightPropagInfo>();
 
 	// Flags
@@ -145,6 +146,14 @@ public class ChunkLoader : MonoBehaviour
 
     public Chunk Get(ChunkPos pos){return this.chunks[pos];}
     public bool Contains(ChunkPos pos){return this.chunks.ContainsKey(pos);}
+
+    // Columns where direct sunlight enters the top of a chunk (see LightingSystem)
+    public SunExitMask GetSkyFromAbove(ChunkPos pos){
+        if(this.lightingSystem == null)
+            return SunExitMask.ALL;
+
+        return this.lightingSystem.GetSkyFromAbove(pos);
+    }
 
     public void Cleanup(bool comesFromClient=false){
         // The Server is told before the connection is closed
@@ -357,6 +366,7 @@ public class ChunkLoader : MonoBehaviour
             this.lightingSystem.Clear();
 
         this.awaitingLight.Clear();
+        this.verifyOnUpdate.Clear();
 
     	foreach(ChunkPos item in chunks.Keys){
     		chunks[item].Destroy();
@@ -419,9 +429,14 @@ public class ChunkLoader : MonoBehaviour
     }
 
     // Adds chunk to Update queue
-    public void AddToUpdate(ChunkPos pos, bool noLight=false){
+    // verify makes its light update also send light both ways through its borders. It's used for changes made after the neighbors were drawn,
+    // and not by the light propagation itself, which would make chunks update each other endlessly
+    public void AddToUpdate(ChunkPos pos, bool noLight=false, bool verify=true){
         if(!noLight){
             updatePriorityQueue.Add(pos);
+
+            if(verify)
+                this.verifyOnUpdate.Add(pos);
         }
         else
             updateNoLightPriorityQueue.Add(pos);
@@ -517,8 +532,8 @@ public class ChunkLoader : MonoBehaviour
             chunk.data.CalculateHeightMap();
         }
 
-        // Light is calculated in worker threads. The chunk below is updated once it's done, since its sunlight depends on this chunk
-        this.lightingSystem.Enqueue(cp, updateBelow:true);
+        // Light is calculated in worker threads. The chunk below is calculated again if the sunlight leaving this one changed
+        this.lightingSystem.Enqueue(cp);
 
         CancelUnload(cp);
 
@@ -560,6 +575,7 @@ public class ChunkLoader : MonoBehaviour
             this.awaitingNeighbors.Remove(pos);
             this.deferredBuilds.Remove(pos);
             this.awaitingLight.Remove(pos);
+            this.verifyOnUpdate.Remove(pos);
             this.lightingSystem.Cancel(pos);
             this.drawPriorityQueue.Remove(pos);
             this.updatePriorityQueue.Remove(pos);
@@ -827,6 +843,10 @@ public class ChunkLoader : MonoBehaviour
             // Updates come from changes the player sees, so their light is calculated right away
             if(withLight){
                 this.lightingSystem.RecalcNow(pos);
+
+                if(this.verifyOnUpdate.Remove(pos))
+                    VerifyLightBothWays(pos);
+
                 CheckLightPropagation(pos);
                 lightUpdate = true;
             }
@@ -927,9 +947,6 @@ public class ChunkLoader : MonoBehaviour
     // Returns true if should update current chunk and false if not
     public bool CheckLightPropagation(ChunkPos pos, byte flag=255, int recursionDepth=0){
         byte propagationFlag;
-        ChunkPos neighbor;
-        bool updateCurrent = false;
-        ushort updateCode = 0;
 
         if(recursionDepth >= 5)
             return false;
@@ -948,114 +965,23 @@ public class ChunkLoader : MonoBehaviour
         this.lightingSystem.EnsureLit(pos);
 
         // xm
-        if((propagationFlag & 1) != 0){
-            neighbor = new ChunkPos(pos.x-1, pos.z, pos.y);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                this.lightingSystem.EnsureLit(neighbor);
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 0);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-        }
+        if((propagationFlag & 1) != 0)
+            PropagateBorder(pos, new ChunkPos(pos.x-1, pos.z, pos.y), 0, recursionDepth);
         // xp
-        if((propagationFlag & 2) != 0){
-            neighbor = new ChunkPos(pos.x+1, pos.z, pos.y);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                this.lightingSystem.EnsureLit(neighbor);
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 1);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-        }
+        if((propagationFlag & 2) != 0)
+            PropagateBorder(pos, new ChunkPos(pos.x+1, pos.z, pos.y), 1, recursionDepth);
         // zm
-        if((propagationFlag & 4) != 0){
-            neighbor = new ChunkPos(pos.x, pos.z-1, pos.y);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                this.lightingSystem.EnsureLit(neighbor);
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 2);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-
-        }
+        if((propagationFlag & 4) != 0)
+            PropagateBorder(pos, new ChunkPos(pos.x, pos.z-1, pos.y), 2, recursionDepth);
         // zp
-        if((propagationFlag & 8) != 0){
-            neighbor = new ChunkPos(pos.x, pos.z+1, pos.y);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                this.lightingSystem.EnsureLit(neighbor);
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 3);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-        }
+        if((propagationFlag & 8) != 0)
+            PropagateBorder(pos, new ChunkPos(pos.x, pos.z+1, pos.y), 3, recursionDepth);
         // ym
-        if((propagationFlag & 16) != 0){
-            neighbor = new ChunkPos(pos.x, pos.z, pos.y-1);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                this.lightingSystem.EnsureLit(neighbor);
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 4);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-        }
+        if((propagationFlag & 16) != 0)
+            PropagateBorder(pos, new ChunkPos(pos.x, pos.z, pos.y-1), 4, recursionDepth);
         // yp
-        if((propagationFlag & 32) != 0){
-            neighbor = new ChunkPos(pos.x, pos.z, pos.y+1);
-
-            if(this.chunks.ContainsKey(neighbor)){
-                this.lightingSystem.EnsureLit(neighbor);
-                updateCode = VoxelData.PropagateLight(this.chunks[pos].data, this.chunks[pos].metadata, this.chunks[neighbor].data, this.chunks[neighbor].metadata, 5);
-
-                if((updateCode & 4) == 4)
-                    AddToUpdate(neighbor, noLight:false);
-                if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
-                    AddToUpdate(neighbor, noLight:true);
-                if((updateCode & 7) == 1 || (updateCode & 7) == 3)
-                    AddToUpdate(pos, noLight:true);
-                if(updateCode >= 8)
-                    toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
-            }
-        }
+        if((propagationFlag & 32) != 0)
+            PropagateBorder(pos, new ChunkPos(pos.x, pos.z, pos.y+1), 5, recursionDepth);
 
         // Only the outermost call runs the cascade. Nested calls only add to it
         if(recursionDepth == 0){
@@ -1066,7 +992,51 @@ public class ChunkLoader : MonoBehaviour
             this.toCallLightCascade.Clear();
         }
 
-        return updateCurrent;
+        return false;
+    }
+
+    /*
+    Propagates light through the border between a chunk and its neighbor, and updates the chunks whose light changed.
+    Vertical borders are always propagated from the upper chunk (border ym of the upper chunk), so the sunlight rules of
+    the upper chunk apply no matter which of the two chunks asked for it
+    */
+    private void PropagateBorder(ChunkPos pos, ChunkPos neighbor, byte borderCode, int recursionDepth){
+        ChunkPos first = pos;
+        ChunkPos second = neighbor;
+        ushort updateCode;
+
+        if(!this.chunks.ContainsKey(neighbor))
+            return;
+
+        if(borderCode == 5){
+            first = neighbor;
+            second = pos;
+            borderCode = 4;
+        }
+
+        this.lightingSystem.EnsureLit(neighbor);
+        updateCode = VoxelData.PropagateLight(this.chunks[first].data, this.chunks[first].metadata, this.chunks[second].data, this.chunks[second].metadata, borderCode);
+
+        if((updateCode & 4) == 4)
+            AddToUpdate(second, noLight:false, verify:false);
+        if(((updateCode & 7) == 2 || (updateCode & 7) == 3) && (updateCode & 4) != 4)
+            AddToUpdate(second, noLight:true);
+        if((updateCode & 7) == 1 || (updateCode & 7) == 3)
+            AddToUpdate(first, noLight:true);
+        if(updateCode >= 8)
+            toCallLightCascade.Add(new ChunkLightPropagInfo(neighbor, (byte)(updateCode >> 3), recursionDepth+1));
+    }
+
+    // Sends light both ways through every border of a chunk that changed after its neighbors were drawn
+    private void VerifyLightBothWays(ChunkPos pos){
+        this.lightingSystem.EnsureLit(new ChunkPos(pos.x-1, pos.z, pos.y));
+        this.lightingSystem.EnsureLit(new ChunkPos(pos.x+1, pos.z, pos.y));
+        this.lightingSystem.EnsureLit(new ChunkPos(pos.x, pos.z-1, pos.y));
+        this.lightingSystem.EnsureLit(new ChunkPos(pos.x, pos.z+1, pos.y));
+        this.lightingSystem.EnsureLit(new ChunkPos(pos.x, pos.z, pos.y+1));
+        this.lightingSystem.EnsureLit(new ChunkPos(pos.x, pos.z, pos.y-1));
+
+        this.chunks[pos].data.VerifyPropagation(this, bidirectional:true);
     }
     private bool CheckLightPropagation(ChunkLightPropagInfo info){
         return CheckLightPropagation(info.pos, info.propagationFlag, info.recursionDepth);

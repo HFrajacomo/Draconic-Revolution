@@ -172,22 +172,6 @@ public class VoxelData {
 		if(this.heightMap == null || this.ceilingMap == null)
 			CalculateHeightMap();
 
-		bool isStandalone = true;
-		bool[] neighborCeiling = null;
-		ChunkPos cachedPos;
-
-		// Check if should be calculated as standalone chunk
-		if(this.pos.y < Chunk.chunkMaxY){
-			cachedPos = new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1);
-
-			if(cl.Contains(cachedPos)){
-				if(cl.Get(cachedPos).data.ShadowMapIsSet()){
-					isStandalone = false;
-					neighborCeiling = cl.Get(cachedPos).data.GetCeilingMap();
-				}
-			}
-		}
-
 		// Light and Shadow maps are calculated in-place
 		if(this.lightMap == null)
 			this.lightMap = new byte[Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth];
@@ -196,16 +180,13 @@ public class VoxelData {
 
 		LightingScratch.PrepareLightMap();
 		metadata.CopyStateTo(LightingScratch.states);
+		cl.GetSkyFromAbove(this.pos).CopyTo(LightingScratch.skyFromAbove);
 
 		PinnedArray<byte> lightMap = PinnedArray<byte>.Pin(this.lightMap);
 		PinnedArray<byte> shadowMap = PinnedArray<byte>.Pin(this.shadowMap);
 		PinnedArray<byte> heightMap = PinnedArray<byte>.Pin(this.heightMap);
 		PinnedArray<bool> ceilingMap = PinnedArray<bool>.Pin(this.ceilingMap);
 		PinnedArray<ushort> blockData = PinnedArray<ushort>.Pin(this.data);
-		PinnedArray<bool> neighborCeilingMap = new PinnedArray<bool>();
-
-		if(!isStandalone)
-			neighborCeilingMap = PinnedArray<bool>.Pin(neighborCeiling);
 
 		// SHADOWMAPPING =========================================================
 
@@ -222,10 +203,9 @@ public class VoxelData {
 			isTransparentBlock = BlockEncyclopediaECS.blockTransparent,
 			blockLuminosity = BlockEncyclopediaECS.blockLuminosity,
 			objectLuminosity = BlockEncyclopediaECS.objectLuminosity,
-			isStandalone = isStandalone,
 			cpos = this.pos,
 			ceilingMap = ceilingMap.array,
-			neighborCeilingMap = isStandalone ? LightingScratch.emptyBool : neighborCeilingMap.array
+			skyFromAbove = LightingScratch.skyFromAbove
 		};
 
 		csmJob.Run();
@@ -236,6 +216,7 @@ public class VoxelData {
 			shadowMap = shadowMap.array,
 			lightSources = LightingScratch.lightSources,
 			heightMap = heightMap.array,
+			ceilingMap = ceilingMap.array,
 			chunkWidth = Chunk.chunkWidth,
 			chunkDepth = Chunk.chunkDepth,
 			bfsq = LightingScratch.bfsq,
@@ -255,29 +236,20 @@ public class VoxelData {
 		heightMap.Release();
 		ceilingMap.Release();
 		blockData.Release();
-		neighborCeilingMap.Release();
 	}
 
-	public void VerifyPropagation(ChunkLoader cl){
+	/*
+	Finds the borders through which light should be propagated, and stores them in PROPAGATE_LIGHT_FLAG (see CheckLightPropagation).
+	Light is pushed out of this chunk. Vertical neighbors aren't drawn together, so their borders are also flagged when the neighbor is
+	the brighter one. bidirectional flags every border both ways, for chunks that changed after their neighbors were drawn
+	*/
+	public void VerifyPropagation(ChunkLoader cl, bool bidirectional=false){
 		VoxelData xm = cl.Get(new ChunkPos(this.pos.x-1, this.pos.z, this.pos.y)).data;
 		VoxelData xp = cl.Get(new ChunkPos(this.pos.x+1, this.pos.z, this.pos.y)).data;
 		VoxelData zm = cl.Get(new ChunkPos(this.pos.x, this.pos.z-1, this.pos.y)).data;
 		VoxelData zp = cl.Get(new ChunkPos(this.pos.x, this.pos.z+1, this.pos.y)).data;
-		VoxelData vp = null;
-		VoxelData vm = null;
-		ChunkPos verticalPos;
-
-		verticalPos = new ChunkPos(this.pos.x, this.pos.z, this.pos.y+1);
-
-		if(cl.Contains(verticalPos)){
-			vp = cl.Get(verticalPos).data;
-		}
-		else{
-			verticalPos = new ChunkPos(this.pos.x, this.pos.z, this.pos.y-1);
-
-			if(cl.Contains(verticalPos))
-				vm = cl.Get(verticalPos).data;
-		}
+		VoxelData vp = GetLitVertical(cl, this.pos.y+1);
+		VoxelData vm = GetLitVertical(cl, this.pos.y-1);
 
 		LightingScratch.PrepareVerification();
 
@@ -300,7 +272,7 @@ public class VoxelData {
 			vplight = PinnedArray<byte>.Pin(vp.GetLightMap());
 			vpshadow = PinnedArray<byte>.Pin(vp.GetShadowMap());
 		}
-		else if(vm != null){
+		if(vm != null){
 			vmlight = PinnedArray<byte>.Pin(vm.GetLightMap());
 			vmshadow = PinnedArray<byte>.Pin(vm.GetShadowMap());
 		}
@@ -320,6 +292,7 @@ public class VoxelData {
 			vplight = vp != null ? vplight.array : LightingScratch.emptyByte,
 			vmshadow = vm != null ? vmshadow.array : LightingScratch.emptyByte,
 			vpshadow = vp != null ? vpshadow.array : LightingScratch.emptyByte,
+			bidirectional = bidirectional,
 			changed = LightingScratch.changed
 		};
 
@@ -342,6 +315,22 @@ public class VoxelData {
 		vmlight.Release();
 		vmshadow.Release();
  	}
+
+	// The loaded chunk above or below this one, if its light is calculated
+	private VoxelData GetLitVertical(ChunkLoader cl, int y){
+		ChunkPos verticalPos = new ChunkPos(this.pos.x, this.pos.z, y);
+		VoxelData vertical;
+
+		if(!cl.Contains(verticalPos))
+			return null;
+
+		vertical = cl.Get(verticalPos).data;
+
+		if(vertical.GetLightMap() == null || vertical.GetShadowMap() == null)
+			return null;
+
+		return vertical;
+	}
 
 	// Calculates the height, render and ceiling maps if they weren't calculated yet
 	public void EnsureHeightMaps(){

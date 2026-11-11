@@ -38,6 +38,13 @@ public class CavernsAmbientPreset: BaseAmbientPreset{
 	public override float GetMoonIntensity(float t){
 		return this.lightIntensity;
 	}
+	// Shafts to the surface bring the surface sky's light, and natural light underground only comes from them
+	public override Color GetShaftLight(float t){return SurfaceShaftLight(t);}
+	public override Vector3 GetShaftLightDirection(float t){return SurfaceShaftLightDirection(t);}
+	public override Color GetShaftAmbient(float t){return SurfaceShaftAmbient(t);}
+	public override float GetFloorLighting(float t){
+		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
+	}
 	public override float GetFogBaseHeight(float t){
 		return this.fogBaseHeight;
 	}

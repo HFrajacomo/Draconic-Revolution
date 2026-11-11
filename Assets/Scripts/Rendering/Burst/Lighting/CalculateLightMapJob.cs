@@ -23,6 +23,8 @@ public struct CalculateLightMapJob : IJob{
 	[ReadOnly]
 	public NativeArray<byte> heightMap;
 	[ReadOnly]
+	public NativeArray<bool> ceilingMap;
+	[ReadOnly]
 	public int chunkWidth;
 	[ReadOnly]
 	public int chunkDepth;
@@ -798,15 +800,15 @@ public struct CalculateLightMapJob : IJob{
 
 		for(int z=0; z < chunkWidth; z++){
 			for(int x=0; x < chunkWidth; x++){
+				// Sunlight starts right above the highest light-blocking block, or at the bottom of columns without one
+				if(ceilingMap[x*chunkWidth+z]){
+					if(heightMap[x*chunkWidth+z] >= chunkDepth-1)
+						continue;
 
-				if(heightMap[x*chunkWidth+z] >= chunkDepth-1){
-					continue;
+					height = (byte)(heightMap[x*chunkWidth+z]+1);
 				}
-
-				height = (byte)(heightMap[x*chunkWidth+z]);
-
-				if(height > 0)
-					height = (byte)(height+1);
+				else
+					height = 0;
 
 				index = x*chunkWidth*chunkDepth+height*chunkWidth+z;
 
