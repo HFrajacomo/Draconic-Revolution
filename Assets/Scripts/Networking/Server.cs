@@ -35,6 +35,8 @@ public class Server {
 	private Dictionary<ulong, ChunkPos> playerToChunk;
 	private Dictionary<ulong, Dictionary<int, AnimationData>> playerAnimationStates;
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
+	private Dictionary<ulong, Dictionary<string, EntityVFXData>> playerActiveVFX;
+	private Dictionary<ulong, float> playerVoxelLights;
 	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
 	private Dictionary<ulong, int> playerCarryStyles;
 	private Dictionary<ulong, uint> playerPositionTimestamps;
@@ -96,6 +98,8 @@ public class Server {
     	playerToChunk = new Dictionary<ulong, ChunkPos>();
 		playerAnimationStates = new Dictionary<ulong, Dictionary<int, AnimationData>>();
 		playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
+		playerActiveVFX = new Dictionary<ulong, Dictionary<string, EntityVFXData>>();
+		playerVoxelLights = new Dictionary<ulong, float>();
 		playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
 		playerCarryStyles = new Dictionary<ulong, int>();
 		playerPositionTimestamps = new Dictionary<ulong, uint>();
@@ -556,6 +560,12 @@ public class Server {
 			case NetCode.SENDATTACHMENTANCHOR:
 				SendAttachmentAnchor(data, id);
 				break;
+			case NetCode.ENTITYVFX:
+				EntityVFX(data, id);
+				break;
+			case NetCode.ENTITYVOXELLIGHT:
+				EntityVoxelLight(data, id);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -721,6 +731,8 @@ public class Server {
 		SendAnimationSnapshot(player, recipient);
 		SendAnimatorParameterSnapshot(player, recipient);
 		SendEntitySFXSnapshot(player, recipient);
+		SendEntityVFXSnapshot(player, recipient);
+		SendVoxelLightSnapshot(player, recipient);
 	}
 
 	// Spawns a dropped item for a client
@@ -1470,6 +1482,8 @@ public class Server {
 		this.playerRenderDistances.Remove(id);
 		this.playerAnimationStates.Remove(id);
 		this.playerActiveLoopSFX.Remove(id);
+		this.playerActiveVFX.Remove(id);
+		this.playerVoxelLights.Remove(id);
 		this.playerAttachmentAnchors.Remove(id);
 		this.playerCarryStyles.Remove(id);
 		this.playerPositionTimestamps.Remove(id);
@@ -1824,7 +1838,7 @@ public class Server {
 	public void SendBattleStyle(ulong playerCode, int style){
 		CharacterSheet sheet;
 
-		ClearAttachmentAnchorsOnStyleChange(playerCode, style);
+		ClearAttachmentStateOnStyleChange(playerCode, style);
 		this.entityHandler.ChangeBattleStyle(playerCode, style);
 		sheet = this.entityHandler.GetSheet(playerCode);
 		sheet.SetBattleStyleCode(style);
@@ -1881,11 +1895,11 @@ public class Server {
 
 	// Receives an Entity SFX creation/destruction from the client that owns the entity and relays it to nearby clients
 	private void EntitySFX(byte[] data, ulong id){
-		EntitySFXOperation operation = (EntitySFXOperation)data[1];
+		EntityEffectOperation operation = (EntityEffectOperation)data[1];
 		EntitySFXData sfx = NetDecoder.ReadEntitySFXData(data, 2);
 		Dictionary<string, EntitySFXData> loops;
 
-		if(operation == EntitySFXOperation.CREATE){
+		if(operation == EntityEffectOperation.CREATE){
 			if(sfx.isLoop){
 				if(!this.playerActiveLoopSFX.TryGetValue(id, out loops)){
 					loops = new Dictionary<string, EntitySFXData>();
@@ -1895,7 +1909,7 @@ public class Server {
 				loops[sfx.name] = sfx;
 			}
 		}
-		else if(operation == EntitySFXOperation.DESTROY){
+		else if(operation == EntityEffectOperation.DESTROY){
 			if(this.playerActiveLoopSFX.TryGetValue(id, out loops)){
 				loops.Remove(sfx.name);
 
@@ -1909,6 +1923,54 @@ public class Server {
 
 		NetMessage message = new NetMessage(NetCode.ENTITYSFX);
 		message.EntitySFX(GetPlayerNetID(id), operation, sfx);
+		this.SendToClientsExcept(id, message);
+	}
+
+	// Receives an Entity VFX creation/destruction from the client that owns the entity and relays it to nearby clients
+	private void EntityVFX(byte[] data, ulong id){
+		EntityEffectOperation operation = (EntityEffectOperation)data[1];
+		EntityVFXData vfx = NetDecoder.ReadEntityVFXData(data, 2);
+		Dictionary<string, EntityVFXData> active;
+
+		if(operation == EntityEffectOperation.CREATE){
+			if(!this.playerActiveVFX.TryGetValue(id, out active)){
+				active = new Dictionary<string, EntityVFXData>();
+				this.playerActiveVFX.Add(id, active);
+			}
+
+			active[vfx.name] = vfx;
+		}
+		else if(operation == EntityEffectOperation.DESTROY){
+			if(this.playerActiveVFX.TryGetValue(id, out active)){
+				active.Remove(vfx.name);
+
+				if(active.Count == 0)
+					this.playerActiveVFX.Remove(id);
+			}
+		}
+		else{
+			return;
+		}
+
+		NetMessage message = new NetMessage(NetCode.ENTITYVFX);
+		message.EntityVFX(GetPlayerNetID(id), operation, vfx);
+		this.SendToClientsExcept(id, message);
+	}
+
+	// Receives the creation/destruction of the moving voxel light of the client's player and relays it to nearby clients
+	private void EntityVoxelLight(byte[] data, ulong id){
+		EntityEffectOperation operation = (EntityEffectOperation)data[1];
+		float radius = NetDecoder.ReadFloat(data, 2);
+
+		if(operation == EntityEffectOperation.CREATE)
+			this.playerVoxelLights[id] = radius;
+		else if(operation == EntityEffectOperation.DESTROY)
+			this.playerVoxelLights.Remove(id);
+		else
+			return;
+
+		NetMessage message = new NetMessage(NetCode.ENTITYVOXELLIGHT);
+		message.EntityVoxelLight(GetPlayerNetID(id), operation, radius);
 		this.SendToClientsExcept(id, message);
 	}
 
@@ -2023,9 +2085,36 @@ public class Server {
 		NetMessage message = new NetMessage(NetCode.ENTITYSFX);
 
 		foreach(EntitySFXData sfx in loops.Values){
-			message.EntitySFX(GetPlayerNetID(playerCode), EntitySFXOperation.CREATE, sfx);
+			message.EntitySFX(GetPlayerNetID(playerCode), EntityEffectOperation.CREATE, sfx);
 			this.Send(message.GetMessage(), message.size, recipientCode);
 		}
+	}
+
+	// Sends all active VFX of a player to a recipient that just started seeing them
+	private void SendEntityVFXSnapshot(ulong playerCode, ulong recipientCode){
+		Dictionary<string, EntityVFXData> active;
+
+		if(!this.playerActiveVFX.TryGetValue(playerCode, out active))
+			return;
+
+		NetMessage message = new NetMessage(NetCode.ENTITYVFX);
+
+		foreach(EntityVFXData vfx in active.Values){
+			message.EntityVFX(GetPlayerNetID(playerCode), EntityEffectOperation.CREATE, vfx);
+			this.Send(message.GetMessage(), message.size, recipientCode);
+		}
+	}
+
+	// Sends the moving voxel light of a player to a recipient that just started seeing them
+	private void SendVoxelLightSnapshot(ulong playerCode, ulong recipientCode){
+		float radius;
+
+		if(!this.playerVoxelLights.TryGetValue(playerCode, out radius))
+			return;
+
+		NetMessage message = new NetMessage(NetCode.ENTITYVOXELLIGHT);
+		message.EntityVoxelLight(GetPlayerNetID(playerCode), EntityEffectOperation.CREATE, radius);
+		this.Send(message.GetMessage(), message.size, recipientCode);
 	}
 
 	// Sends the current BattleStyle and attachment items of a player to a recipient that just started seeing them
@@ -2054,15 +2143,18 @@ public class Server {
 	}
 
 	// Attachments are rebuilt in their default anchors whenever a BattleStyle or the carried off-hand style changes
-	private void ClearAttachmentAnchorsOnStyleChange(ulong playerCode, int style){
+	// VFX are children of attachments, so they are destroyed together with them
+	private void ClearAttachmentStateOnStyleChange(ulong playerCode, int style){
 		int carryStyle = BattleStyleDeterminator.GetCarryStyleCode(style, BattleStyleDeterminator.ResolveAttachmentItems(this.cl, playerCode));
 		int previousCarryStyle;
 
 		if(!this.playerCarryStyles.TryGetValue(playerCode, out previousCarryStyle))
 			previousCarryStyle = BattleStyleDeterminator.NO_CARRY;
 
-		if(this.entityHandler.GetSheet(playerCode).GetBattleStyleCode() != style || previousCarryStyle != carryStyle)
+		if(this.entityHandler.GetSheet(playerCode).GetBattleStyleCode() != style || previousCarryStyle != carryStyle){
 			this.playerAttachmentAnchors.Remove(playerCode);
+			this.playerActiveVFX.Remove(playerCode);
+		}
 
 		this.playerCarryStyles[playerCode] = carryStyle;
 	}

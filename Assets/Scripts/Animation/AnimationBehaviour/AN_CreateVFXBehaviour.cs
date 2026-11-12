@@ -4,8 +4,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /*
-This behaviour only supports Players so far. 
-Animation and movement mechanics must be added to AI before this leveraging this class for AI.
+Creates a VFX in a BattleStyle attachment of a Player entity
+
+VFX are owner-authoritative: only the client that owns the player runs this behaviour.
+	ifPlayerBuildOnlyFirstPerson = true  -> only the First Person event builds the VFX locally
+	ifPlayerBuildOnlyFirstPerson = false -> both events build the VFX locally
+The Third Person event also sends an ENTITYVFX message, so the Server can track and relay it to other clients,
+which build it in their Third Person model. Animations replayed on other players' models do nothing.
 */
 
 [Serializable]
@@ -17,42 +22,27 @@ public class AN_CreateVFXBehaviour : AnimationBehaviour {
 	public string vfxPath;
 	public bool ifPlayerBuildOnlyFirstPerson;
 
-	private GameObject vfxPrefab;
-	private BoneAnchorType anchor;
+	private EntityVFXData vfxData;
 
 	public override void PostDeserializationSetup(){
-		this.anchor = Resolve(this.boneAnchor);
-		this.vfxPrefab = GameObject.Find(this.vfxPath);
+		this.vfxData = new EntityVFXData(this.vfxGameObjectName, Resolve(this.boneAnchor), this.offsetX, this.offsetY, this.offsetZ, this.rotationX, this.rotationY, this.rotationZ, this.vfxPath);
 	}
 
 	public override void Run(ChunkLoader cl, GameObject animatorParent, AnimationHandler animationHandler, ulong entityID, bool isPlayer){
-		if((this.ifPlayerBuildOnlyFirstPerson && this.firstPerson) || !this.ifPlayerBuildOnlyFirstPerson || !isPlayer){
-			// Prefab lives in the Game scene and is destroyed whenever the scene is reloaded
-			if(this.vfxPrefab == null)
-				this.vfxPrefab = GameObject.Find(this.vfxPath);
+		if(!isPlayer)
+			return;
 
-			if(this.vfxPrefab == null){
-				Debug.LogError($"[AN_CreateVFXBehaviour] Could not find VFX prefab: {this.vfxPath}");
-				return;
-			}
+		if(this.firstPerson || !this.ifPlayerBuildOnlyFirstPerson){
+			GameObject visualEffect = this.vfxData.Build(animationHandler.GetAttachment(this.vfxData.anchor, this.firstPerson), this.firstPerson);
 
-			GameObject attachmentObject = animationHandler.GetAttachment(this.anchor, this.firstPerson);
+			if(visualEffect != null)
+				cl.vfx.Add(entityID, visualEffect);
+		}
 
-			if(attachmentObject == null)
-				return;
-
-			GameObject visualEffect = GameObject.Instantiate(this.vfxPrefab);
-			visualEffect.name = this.vfxGameObjectName;
-			visualEffect.transform.parent = attachmentObject.transform;
-			visualEffect.transform.localPosition = new Vector3(this.offsetX, this.offsetY, this.offsetZ);
-			visualEffect.transform.localEulerAngles = new Vector3(this.rotationX, this.rotationY, this.rotationZ);
-			visualEffect.transform.localScale = Vector3.one;
-
-			if(this.firstPerson){
-				visualEffect.layer = 12;
-			}
-
-			cl.vfx.Add(entityID, visualEffect);
+		if(!this.firstPerson){
+			NetMessage message = new NetMessage(NetCode.ENTITYVFX);
+			message.EntityVFX(EntityEffectOperation.CREATE, this.vfxData);
+			cl.client.Send(message);
 		}
 	}
 

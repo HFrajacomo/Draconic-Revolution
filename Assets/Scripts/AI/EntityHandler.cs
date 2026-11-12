@@ -22,7 +22,8 @@ public class EntityHandler
 	private Dictionary<ulong, int> playerBattleStyle;
 	private Dictionary<ulong, int> playerCarryStyle;
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
-	private HashSet<ulong> playerSFXNeedsReapply;
+	private Dictionary<ulong, Dictionary<string, EntityVFXData>> playerActiveVFX;
+	private HashSet<ulong> playerEffectsNeedReapply;
 	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
 	private Dictionary<ulong, AttachmentItems> playerAttachmentItems;
 	private Dictionary<ulong, PendingItemHold> pendingItemHolds;
@@ -51,7 +52,8 @@ public class EntityHandler
 		this.playerBattleStyle = new Dictionary<ulong, int>();
 		this.playerCarryStyle = new Dictionary<ulong, int>();
 		this.playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
-		this.playerSFXNeedsReapply = new HashSet<ulong>();
+		this.playerActiveVFX = new Dictionary<ulong, Dictionary<string, EntityVFXData>>();
+		this.playerEffectsNeedReapply = new HashSet<ulong>();
 		this.playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
 		this.playerAttachmentItems = new Dictionary<ulong, AttachmentItems>();
 		this.playerItemOrActionInHand = new Dictionary<ulong, bool>();
@@ -121,6 +123,7 @@ public class EntityHandler
 		this.playerBattleStyle.Add(code, -1);
 		this.playerCarryStyle.Add(code, BattleStyleDeterminator.NO_CARRY);
 		this.playerActiveLoopSFX.Add(code, new Dictionary<string, EntitySFXData>());
+		this.playerActiveVFX.Add(code, new Dictionary<string, EntityVFXData>());
 		this.playerAttachmentAnchors.Add(code, new Dictionary<BoneAnchorType, AttachmentAnchorState>());
 		this.playerAttachmentItems.Add(code, AttachmentItems.NONE);
 		RunSingleActivation(EntityType.PLAYER, code, pos);
@@ -147,8 +150,8 @@ public class EntityHandler
 				SetPlayerBattleStyle(code, this.playerSheet[code].GetBattleStyleCode());
 			}
 
-			// Model rebuild destroys SFX attached to bones
-			this.playerSFXNeedsReapply.Add(code);
+			// Model rebuild destroys SFX and VFX attached to bones
+			this.playerEffectsNeedReapply.Add(code);
 			ApplyPendingPlayerAnimations(code);
 
 			return true;
@@ -184,8 +187,8 @@ public class EntityHandler
 		this.playerAnimations[code].CreateAttachments(bsd, this.playerAttachmentItems[code], carryStyle);
 		ApplyAttachmentAnchors(code);
 
-		// Attachments are replaced, destroying SFX attached to them
-		this.playerSFXNeedsReapply.Add(code);
+		// Attachments are replaced, destroying SFX and VFX attached to them
+		this.playerEffectsNeedReapply.Add(code);
 		ApplyPendingPlayerAnimations(code);
 	}
 
@@ -206,8 +209,11 @@ public class EntityHandler
 
 		this.playerAttachmentItems[code] = items;
 
-		if(knownStyle != style || knownCarryStyle != carryStyle)
+		// Attachments go back to their default anchors, destroying the VFX in them, as it happens in the owner
+		if(knownStyle != style || knownCarryStyle != carryStyle){
 			this.playerAttachmentAnchors[code].Clear();
+			ClearPlayerVFX(code);
+		}
 
 		if(this.playerAnimations[code] == null || !this.playerSheet.ContainsKey(code)){
 			if(this.playerSheet.ContainsKey(code))
@@ -309,6 +315,8 @@ public class EntityHandler
 
 		if(type == EntityType.PLAYER){
 			UpdatePlayerItem(code, 0, 0, true, 1);
+			ClearPlayerVFX(code);
+			this.cl.voxelLightHandler.Remove(new EntityID(type, code));
 			
 			this.playerObject[code].SetActive(false);
 			GameObject.Destroy(this.playerObject[code]);
@@ -323,7 +331,8 @@ public class EntityHandler
 			this.playerBattleStyle.Remove(code);
 			this.playerCarryStyle.Remove(code);
 			this.playerActiveLoopSFX.Remove(code);
-			this.playerSFXNeedsReapply.Remove(code);
+			this.playerActiveVFX.Remove(code);
+			this.playerEffectsNeedReapply.Remove(code);
 			this.playerAttachmentAnchors.Remove(code);
 			this.playerAttachmentItems.Remove(code);
 			this.pendingItemHolds.Remove(code);
@@ -420,16 +429,17 @@ public class EntityHandler
 		this.pendingPlayerAnimations[code].Clear();
 		this.pendingPlayerAnimatorParameters[code].Clear();
 
-		if(this.playerSFXNeedsReapply.Contains(code)){
-			this.playerSFXNeedsReapply.Remove(code);
+		if(this.playerEffectsNeedReapply.Contains(code)){
+			this.playerEffectsNeedReapply.Remove(code);
 			ReapplyPlayerLoopSFX(code);
+			ReapplyPlayerVFX(code);
 		}
 	}
 
-	// Sets the active state of a player object, flagging its looping SFX to be restarted when it becomes visible again
+	// Sets the active state of a player object, flagging its looping SFX and VFX to be rebuilt when it becomes visible again
 	private void SetPlayerActive(ulong code, bool active){
 		if(active && !this.playerObject[code].activeSelf)
-			this.playerSFXNeedsReapply.Add(code);
+			this.playerEffectsNeedReapply.Add(code);
 
 		this.playerObject[code].SetActive(active);
 	}
@@ -439,13 +449,13 @@ public class EntityHandler
 		Looping SFX are tracked so they can be rebuilt if the player model is not ready, rebuilt or out of sight
 		One-shot SFX are dropped if the player can't currently be processed
 	*/
-	public void PlayerSFX(ulong code, EntitySFXOperation operation, EntitySFXData sfx){
+	public void PlayerSFX(ulong code, EntityEffectOperation operation, EntitySFXData sfx){
 		if(!this.playerObject.ContainsKey(code))
 			return;
 
 		EntityID id = new EntityID(EntityType.PLAYER, code);
 
-		if(operation == EntitySFXOperation.DESTROY){
+		if(operation == EntityEffectOperation.DESTROY){
 			this.playerActiveLoopSFX[code].Remove(sfx.name);
 			this.cl.sfx.RemoveEntitySFX(id, sfx.name);
 			return;
@@ -459,7 +469,7 @@ public class EntityHandler
 
 		if(!CanProcessPlayerAnimations(code)){
 			if(sfx.isLoop)
-				this.playerSFXNeedsReapply.Add(code);
+				this.playerEffectsNeedReapply.Add(code);
 			return;
 		}
 
@@ -490,6 +500,76 @@ public class EntityHandler
 		}
 
 		this.cl.sfx.LoadEntitySFX(sfx.name, new EntityID(EntityType.PLAYER, code), parent:parent, localPosition:sfx.GetOffset());
+	}
+
+	/*
+	Receives a VFX operation for a remote player
+		Active VFX are tracked so they can be rebuilt if the player model is not ready, rebuilt or out of sight
+		They are built in the Third Person attachment of their anchor
+	*/
+	public void PlayerVFX(ulong code, EntityEffectOperation operation, EntityVFXData vfx){
+		if(!this.playerObject.ContainsKey(code))
+			return;
+
+		if(operation == EntityEffectOperation.DESTROY){
+			this.playerActiveVFX[code].Remove(vfx.name);
+			this.cl.vfx.Remove(code, vfx.name);
+			return;
+		}
+
+		if(operation != EntityEffectOperation.CREATE)
+			return;
+
+		this.playerActiveVFX[code][vfx.name] = vfx;
+
+		if(!CanProcessPlayerAnimations(code)){
+			this.playerEffectsNeedReapply.Add(code);
+			return;
+		}
+
+		LoadPlayerVFX(code, vfx);
+	}
+
+	// Rebuilds all VFX of a remote player. VFXLoader replaces any previous VFX with the same name
+	private void ReapplyPlayerVFX(ulong code){
+		if(!this.playerActiveVFX.ContainsKey(code))
+			return;
+
+		foreach(EntityVFXData vfx in this.playerActiveVFX[code].Values){
+			LoadPlayerVFX(code, vfx);
+		}
+	}
+
+	private void LoadPlayerVFX(ulong code, EntityVFXData vfx){
+		GameObject visualEffect = vfx.Build(this.playerAnimations[code].GetAttachment(vfx.anchor, false), false);
+
+		if(visualEffect != null)
+			this.cl.vfx.Add(code, visualEffect);
+	}
+
+	// Stops tracking and removes every VFX of a remote player
+	private void ClearPlayerVFX(ulong code){
+		if(!this.playerActiveVFX.ContainsKey(code))
+			return;
+
+		foreach(string name in this.playerActiveVFX[code].Keys){
+			this.cl.vfx.Remove(code, name);
+		}
+
+		this.playerActiveVFX[code].Clear();
+	}
+
+	// Receives the creation or destruction of the moving voxel light of a remote player. Its position follows the player in SetPlayerTransform
+	public void PlayerVoxelLight(ulong code, EntityEffectOperation operation, float radius){
+		if(!this.playerObject.ContainsKey(code))
+			return;
+
+		EntityID id = new EntityID(EntityType.PLAYER, code);
+
+		if(operation == EntityEffectOperation.CREATE)
+			this.cl.voxelLightHandler.Add(id, this.playerObject[code].transform.position, radius);
+		else if(operation == EntityEffectOperation.DESTROY)
+			this.cl.voxelLightHandler.Remove(id);
 	}
 
 	/*

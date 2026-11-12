@@ -58,7 +58,9 @@ Clients map NetIDs to AccountIDs when they receive `PLAYERSPAWN`, and forget the
 Dropped items use their entity code (`uint`).
 
 Messages about an entity a client doesn't know are ignored, so an entity must be spawned before its other messages are sent:
-- `PLAYERSPAWN` is sent whenever a client starts seeing a player (`Server.ShowPlayerTo`), followed by snapshots of its item in hand, BattleStyle, attachment anchors, animations, animator parameters and looping SFX.
+- `PLAYERSPAWN` is sent whenever a client starts seeing a player (`Server.ShowPlayerTo`), followed by snapshots of its item in hand, BattleStyle, attachment anchors, animations, animator parameters, looping SFX, VFX and moving voxel light.
+
+Only the latest animation state of each layer is kept, so effects created by Animation Events (SFX, VFX and moving voxel lights, like a lit torch) can't be rebuilt by replaying animations. They are **owner-authoritative**: only the owner runs those events and sends `ENTITYSFX`/`ENTITYVFX`/`ENTITYVOXELLIGHT`. The Server tracks the active ones and other clients rebuild them in the player model (`EntityHandler.PlayerSFX`/`PlayerVFX`/`PlayerVoxelLight`). VFX are children of attachments, so both the Server and clients forget them whenever attachments are reset by a BattleStyle or carry style change.
 - `DROPSPAWN` is sent when a drop is created (`EntityHandler_Server.AddItem`), when a chunk is sent to a client, and to the clients that only see the new chunk of a drop that moved between chunks (`Server.MoveDropBetweenChunks`).
 
 **Movement** is not sent right away. Moved players (`CLIENTPLAYERPOSITION`) and drops (`Server.MarkDropMoved`) are collected during the frame and sent in `LateTick` as a single `ENTITYUPDATES` message per client. Every entry keeps the timestamp of its movement, used by `SmoothMovement` for snapshot interpolation.
@@ -132,8 +134,10 @@ Animation states and animator parameters are identified by `Animator.StringToHas
 | EQUIPITEM | C→S / S→C | (NetID 4), previous Item (deep), new Item (deep) |
 | ENTITYSFX | C→S / S→C | (NetID 4), Operation 1, IsLoop 1, HasAnchor 1, Anchor 1, Offset 12, Name String8 |
 | SENDATTACHMENTANCHOR | C→S / S→C | (NetID 4), Origin 1, Target 1, Flip 1, HeightOffset 4 |
+| ENTITYVFX | C→S / S→C | (NetID 4), Operation 1, Anchor 1, Offset 12, Rotation 12, Name String8, PrefabPath String8 |
+| ENTITYVOXELLIGHT | C→S / S→C | (NetID 4), Operation 1, Radius 4 |
 
-Clients only send animation, equipment and SFX messages about their own player. The Server uses the AccountID of the connection and relays them with the player's NetID.
+Clients only send animation, equipment, SFX, VFX and voxel light messages about their own player. The Server uses the AccountID of the connection and relays them with the player's NetID.
 
 The **network CharacterSheet** (`NetDecoder.WriteCharacterSheetNet`) has a String8 name, the effect count and only the active effects. The compact appearance (76 bytes instead of 247) stores colors with 8 bits per channel and is only used for other players.
 

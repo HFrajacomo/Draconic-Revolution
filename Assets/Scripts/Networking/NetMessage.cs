@@ -571,17 +571,49 @@ public struct NetMessage
 
 	// Creation or destruction of an SFX attached to a player
 	// {CODE}[Operation] | EntitySFXData
-	public void EntitySFX(EntitySFXOperation operation, EntitySFXData sfx){
+	public void EntitySFX(EntityEffectOperation operation, EntitySFXData sfx){
 		Reset();
 		NetDecoder.WriteByte((byte)operation, NetMessage.buffer, 1);
 		this.size = 2 + NetDecoder.WriteEntitySFXData(sfx, NetMessage.buffer, 2);
 	}
 	// {CODE}[NetID 4][Operation] | EntitySFXData
-	public void EntitySFX(uint netID, EntitySFXOperation operation, EntitySFXData sfx){
+	public void EntitySFX(uint netID, EntityEffectOperation operation, EntitySFXData sfx){
 		Reset();
 		NetDecoder.WriteUint(netID, NetMessage.buffer, 1);
 		NetDecoder.WriteByte((byte)operation, NetMessage.buffer, 5);
 		this.size = 6 + NetDecoder.WriteEntitySFXData(sfx, NetMessage.buffer, 6);
+	}
+
+	// Creation or destruction of a VFX attached to a player
+	// {CODE}[Operation] | EntityVFXData
+	public void EntityVFX(EntityEffectOperation operation, EntityVFXData vfx){
+		Reset();
+		NetDecoder.WriteByte((byte)operation, NetMessage.buffer, 1);
+		this.size = 2 + NetDecoder.WriteEntityVFXData(vfx, NetMessage.buffer, 2);
+	}
+	// {CODE}[NetID 4][Operation] | EntityVFXData
+	public void EntityVFX(uint netID, EntityEffectOperation operation, EntityVFXData vfx){
+		Reset();
+		NetDecoder.WriteUint(netID, NetMessage.buffer, 1);
+		NetDecoder.WriteByte((byte)operation, NetMessage.buffer, 5);
+		this.size = 6 + NetDecoder.WriteEntityVFXData(vfx, NetMessage.buffer, 6);
+	}
+
+	// Creation or destruction of the moving voxel light of a player. Radius is ignored on destruction
+	// {CODE}[Operation][Radius 4]
+	public void EntityVoxelLight(EntityEffectOperation operation, float radius){
+		Reset();
+		NetDecoder.WriteByte((byte)operation, NetMessage.buffer, 1);
+		NetDecoder.WriteFloat(radius, NetMessage.buffer, 2);
+		this.size = 6;
+	}
+	// {CODE}[NetID 4][Operation][Radius 4]
+	public void EntityVoxelLight(uint netID, EntityEffectOperation operation, float radius){
+		Reset();
+		NetDecoder.WriteUint(netID, NetMessage.buffer, 1);
+		NetDecoder.WriteByte((byte)operation, NetMessage.buffer, 5);
+		NetDecoder.WriteFloat(radius, NetMessage.buffer, 6);
+		this.size = 10;
 	}
 
 	// Switch of a BattleStyle attachment from one anchor to another
@@ -654,7 +686,9 @@ public enum NetCode : byte{
 	SENDANIMATORPARAMETER,
 	EQUIPITEM,
 	ENTITYSFX,
-	SENDATTACHMENTANCHOR
+	SENDATTACHMENTANCHOR,
+	ENTITYVFX,
+	ENTITYVOXELLIGHT
 }
 
 public enum NetBroadcast{

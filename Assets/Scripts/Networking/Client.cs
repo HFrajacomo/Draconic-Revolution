@@ -285,6 +285,12 @@ public class Client
 			case NetCode.SENDATTACHMENTANCHOR:
 				SendAttachmentAnchor(data);
 				break;
+			case NetCode.ENTITYVFX:
+				EntityVFX(data);
+				break;
+			case NetCode.ENTITYVOXELLIGHT:
+				EntityVoxelLight(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -836,10 +842,36 @@ public class Client
 		if(!TryGetPlayer(NetDecoder.ReadUint(data, 1), out playerCode))
 			return;
 
-		EntitySFXOperation operation = (EntitySFXOperation)data[5];
+		EntityEffectOperation operation = (EntityEffectOperation)data[5];
 		EntitySFXData sfx = NetDecoder.ReadEntitySFXData(data, 6);
 
 		this.entityHandler.PlayerSFX(playerCode, operation, sfx);
+	}
+
+	// Receives from server the creation or destruction of a VFX attached to another player
+	private void EntityVFX(byte[] data){
+		ulong playerCode;
+
+		if(!TryGetPlayer(NetDecoder.ReadUint(data, 1), out playerCode))
+			return;
+
+		EntityEffectOperation operation = (EntityEffectOperation)data[5];
+		EntityVFXData vfx = NetDecoder.ReadEntityVFXData(data, 6);
+
+		this.entityHandler.PlayerVFX(playerCode, operation, vfx);
+	}
+
+	// Receives from server the creation or destruction of the moving voxel light of another player
+	private void EntityVoxelLight(byte[] data){
+		ulong playerCode;
+
+		if(!TryGetPlayer(NetDecoder.ReadUint(data, 1), out playerCode))
+			return;
+
+		EntityEffectOperation operation = (EntityEffectOperation)data[5];
+		float radius = NetDecoder.ReadFloat(data, 6);
+
+		this.entityHandler.PlayerVoxelLight(playerCode, operation, radius);
 	}
 
 	// Receives from server the switch of a BattleStyle attachment anchor in another player

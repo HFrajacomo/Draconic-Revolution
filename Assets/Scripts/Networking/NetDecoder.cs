@@ -481,6 +481,38 @@ public static class NetDecoder
 		return 15 + NetDecoder.WriteString8(sfx.name, data, pos+15);
 	}
 
+	// Reads an EntityVFXData written by WriteEntityVFXData
+	public static EntityVFXData ReadEntityVFXData(byte[] data, int pos){
+		int nameSize, pathSize;
+		BoneAnchorType anchor = (BoneAnchorType)NetDecoder.ReadByte(data, pos);
+		float offsetX = NetDecoder.ReadFloat(data, pos+1);
+		float offsetY = NetDecoder.ReadFloat(data, pos+5);
+		float offsetZ = NetDecoder.ReadFloat(data, pos+9);
+		float rotationX = NetDecoder.ReadFloat(data, pos+13);
+		float rotationY = NetDecoder.ReadFloat(data, pos+17);
+		float rotationZ = NetDecoder.ReadFloat(data, pos+21);
+		string name = NetDecoder.ReadString8(data, pos+25, out nameSize);
+		string prefabPath = NetDecoder.ReadString8(data, pos+25+nameSize, out pathSize);
+
+		return new EntityVFXData(name, anchor, offsetX, offsetY, offsetZ, rotationX, rotationY, rotationZ, prefabPath);
+	}
+
+	// Returns the amount of bytes written
+	public static int WriteEntityVFXData(EntityVFXData vfx, byte[] data, int pos){
+		int nameSize;
+
+		NetDecoder.WriteByte((byte)vfx.anchor, data, pos);
+		NetDecoder.WriteFloat(vfx.offsetX, data, pos+1);
+		NetDecoder.WriteFloat(vfx.offsetY, data, pos+5);
+		NetDecoder.WriteFloat(vfx.offsetZ, data, pos+9);
+		NetDecoder.WriteFloat(vfx.rotationX, data, pos+13);
+		NetDecoder.WriteFloat(vfx.rotationY, data, pos+17);
+		NetDecoder.WriteFloat(vfx.rotationZ, data, pos+21);
+		nameSize = NetDecoder.WriteString8(vfx.name, data, pos+25);
+
+		return 25 + nameSize + NetDecoder.WriteString8(vfx.prefabPath, data, pos+25+nameSize);
+	}
+
 	public static void WriteRGB(Color c, byte[] data, int pos){
 		NetDecoder.WriteFloat(c.r, data, pos);
 		NetDecoder.WriteFloat(c.g, data, pos+4);
