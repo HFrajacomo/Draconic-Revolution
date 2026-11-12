@@ -45,23 +45,11 @@
 			},
 			{
 				"state": "Weapon Sheathe",
-				"clip": "CharacterArmature_Sheathe - Unarmed",
-				"events": [
-					{
-						"type": "AN_AnimatorSetBehaviour",
-						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
-					}
-				]
+				"clip": "CharacterArmature_Sheathe - Unarmed"
 			},
 			{
 				"state": "Weapon Unsheathe",
-				"clip": "CharacterArmature_Unsheathe - Unarmed",
-				"events": [
-					{
-						"type": "AN_AnimatorSetBehaviour",
-						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false}"
-					}
-				]
+				"clip": "CharacterArmature_Unsheathe - Unarmed"
 			},
 			{
 				"state": "Attack 1",

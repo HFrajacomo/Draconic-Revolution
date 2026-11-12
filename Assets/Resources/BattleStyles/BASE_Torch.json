@@ -70,10 +70,6 @@
 					{
 						"type": "AN_SwitchAttachmentAnchorBehaviour",
 						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"flip\": true, \"heightOffset\": 0.006}"
-					},
-					{
-						"type": "AN_AnimatorSetBehaviour",
-						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
 					}
 				]
 			},
@@ -96,10 +92,6 @@
 					{
 						"type": "AN_PointLightBehaviour",
 						"json": "{\"normalizedTime\": 0.7, \"create\": true, \"voxelLightIntensity\": 13, \"ifPlayerBuildOnlyFirstPerson\": true}"
-					},
-					{
-						"type": "AN_AnimatorSetBehaviour",
-						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
 					}
 				]
 			},

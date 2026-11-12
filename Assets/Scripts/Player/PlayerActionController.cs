@@ -243,11 +243,13 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.runtimeAnimatorController = animationOverrideController;
 		this.animatorFP.runtimeAnimatorController = animationOverrideControllerFP;
 
-		// Changing controllers resets the Animator parameters, so the carry flag is set right away. It's also re-asserted every frame by SyncAnimatorParameters
-		if(HasCarry())
-			this.animator.SetBool(HAS_CARRY_HASH, true);
-		if(this.currentCarryHasFP)
-			this.animatorFP.SetBool(HAS_CARRY_HASH, true);
+		// Changing controllers restarts every layer and resets the Animator parameters, so they are set right away. They're also re-asserted every frame
+		this.animationHandler.ClearPending();
+		SyncAnimatorParameters();
+
+		// The new attachments start in their default anchors, so a drawn weapon is drawn again by the new style
+		if(!this.weaponSheathed)
+			AddToPlaylist(UNSHEATHE_STATE, igFP:true);
 
 		this.registeredAction.Remove(PlayerActionType.USE_STYLE);
 		this.registeredData.Remove(PlayerActionType.USE_STYLE);
@@ -320,13 +322,19 @@ public class PlayerActionController : MonoBehaviour {
 		this.weaponSheathed = flag;
 		this.animator.SetBool("Sheathed", this.weaponSheathed);
 		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
-		this.animator.SetBool("IsSheathing", true);
+		// Only the First Person controller enters (Un)Sheathe through transitions. The Third Person one is played explicitly, below
 		this.animatorFP.SetBool("IsSheathing", true);
 
 		if(IsAttacking())
 			CancelCombo();
 
 		RegisterRestriction(PlayerActionRestriction.PRIMARY, animationTime + 0.05f);
+
+		/*
+		The Third Person (Un)Sheathe is played regardless of what the Base layer is doing (idle, walking, airborne...), since its animation events
+		move the attachments and create their effects for other clients too. Locomotion is moved to the Bottom layer by the movement re-sync
+		*/
+		AddToPlaylist(flag ? SHEATHE_STATE : UNSHEATHE_STATE, igFP:true);
 
 		if(flag){
 			// Discards buffered attacks so they can't start once the weapon is sheathed
