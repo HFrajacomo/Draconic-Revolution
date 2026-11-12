@@ -32,6 +32,8 @@ public class AnimationHandler : MonoBehaviour {
 	private static Dictionary<string, Dictionary<BoneAnchorType, string>> anchorMappings;
 	private static Dictionary<string, Dictionary<int, string>> hashToName;
 
+	private static readonly int EMPTY_STATE_HASH = Animator.StringToHash("Empty");
+
 
 	public void Init(string controllerName, CharacterBuilder firstPersonBuilder, bool isUserCharacter=false){
 		this.controllerName = controllerName;
@@ -68,16 +70,20 @@ public class AnimationHandler : MonoBehaviour {
 
 
 	// Plays bone animation
-	public void Play(string stateName, bool overrideState=false, bool ignoreFP=false){
+	public void Play(string stateName, bool overrideState=false, bool ignoreFP=false, bool ignoreTP=false){
 		if(!this.INIT)
 			return;
 
-		bool skipThirdPerson = false;
+		bool skipThirdPerson = ignoreTP;
 		AnimationStateMapping givenMap, currentMap, currentMapFP;
+		int layerIndex;
 
 		givenMap = AnimationHandler.stateMappings[this.controllerName][stateName];
 
-		if(!overrideState){
+		if(ignoreTP){
+			currentMap = givenMap;
+		}
+		else if(!overrideState){
 			currentMap = AnimationHandler.stateMappings[this.controllerName][AnimationHandler.hashToName[this.controllerName][GetState(this.tpAnimator.GetLayerIndex(givenMap.layers[0])).shortNameHash]];
 
 			if(this.isPlayer){
@@ -86,6 +92,7 @@ public class AnimationHandler : MonoBehaviour {
 
 			if(givenMap.state == currentMap.state){
 				StopLayer(givenMap.stopLayer);
+				StopStateInOtherLayers(givenMap, 0);
 				skipThirdPerson = true;
 			}
 		}
@@ -110,11 +117,17 @@ public class AnimationHandler : MonoBehaviour {
 		}
 		else{
 			for(int i=0; i < givenMap.layers.Length; i++){
-				currentMap = AnimationHandler.stateMappings[this.controllerName][AnimationHandler.hashToName[this.controllerName][GetState(this.tpAnimator.GetLayerIndex(givenMap.layers[i])).shortNameHash]];
+				layerIndex = this.tpAnimator.GetLayerIndex(givenMap.layers[i]);
+				currentMap = AnimationHandler.stateMappings[this.controllerName][AnimationHandler.hashToName[this.controllerName][GetState(layerIndex).shortNameHash]];
+
+				// Re-playing a state that is already in one of its layers must not restart it nor stop other layers
+				if(givenMap.state == currentMap.state)
+					break;
 
 				if(givenMap.priority <= currentMap.priority){
 					StopLayer(givenMap.stopLayer);
-					this.tpAnimator.CrossFade(stateName, this.animationCrossfadeTime, layer:this.tpAnimator.GetLayerIndex(givenMap.layers[i]));
+					this.tpAnimator.CrossFade(stateName, this.animationCrossfadeTime, layer:layerIndex);
+					StopStateInOtherLayers(givenMap, i);
 
 					break;
 				}
@@ -499,6 +512,10 @@ public class AnimationHandler : MonoBehaviour {
 			layerIndex = this.tpAnimator.GetLayerIndex(layers[i]);
 
 			if(layerIndex != 0){
+				// Avoids restarting Empty, which would also re-send it to other clients
+				if(GetState(layerIndex).shortNameHash == EMPTY_STATE_HASH)
+					continue;
+
 				this.tpAnimator.CrossFade("Empty", this.animationCrossfadeTime, layer:layerIndex);
 			}
 			else{
@@ -506,6 +523,33 @@ public class AnimationHandler : MonoBehaviour {
 				this.fpAnimator.CrossFade("Empty", this.animationCrossfadeTime, 0);
 			}
 		}
+	}
+
+	// A state must only play in one layer at a time, so it's stopped in the other layers of its mapping after being placed in layers[placedIndex]
+	private void StopStateInOtherLayers(AnimationStateMapping map, int placedIndex){
+		int layerIndex;
+		int stateHash = Animator.StringToHash(map.state);
+
+		for(int i=0; i < map.layers.Length; i++){
+			if(i == placedIndex)
+				continue;
+
+			layerIndex = this.tpAnimator.GetLayerIndex(map.layers[i]);
+
+			if(layerIndex <= 0)
+				continue;
+
+			if(GetState(layerIndex).shortNameHash == stateHash)
+				this.tpAnimator.CrossFade("Empty", this.animationCrossfadeTime, layer:layerIndex);
+		}
+	}
+
+	// Returns the short name hash of the state a Third Person layer is playing or transitioning into
+	public int GetTargetStateHash(int layer){
+		if(!this.INIT || layer < 0)
+			return 0;
+
+		return GetState(layer).shortNameHash;
 	}
 
 	private bool VerifyLayerStates(string layerName, int priority){

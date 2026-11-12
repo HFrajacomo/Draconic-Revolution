@@ -40,6 +40,7 @@ public class PlayerActionController : MonoBehaviour {
 	private List<string> playlist;
 	private List<bool> overrideState;
 	private List<bool> ignoreFP;
+	private List<bool> ignoreTP;
 
 	// NetCode
 	private static List<AnimationData> statesPlayed;
@@ -69,6 +70,10 @@ public class PlayerActionController : MonoBehaviour {
 	// Cache
 	private float cachedTime;
 	private PlayerMovementType lastMove;
+	private int bottomLayerIndex = -1;
+	private int lastBaseStateHash;
+	private int lastBottomStateHash;
+	private static readonly string BOTTOM_LAYER = "Bottom";
 
 	void Update(){
 		if(!this.INIT)
@@ -140,6 +145,7 @@ public class PlayerActionController : MonoBehaviour {
 		this.playlist = new List<string>();
 		this.overrideState = new List<bool>();
 		this.ignoreFP = new List<bool>();
+		this.ignoreTP = new List<bool>();
 		this.restrictions = new HashSet<PlayerActionRestriction>();
 		this.restrictionTimer = new Dictionary<PlayerActionRestriction, Coroutine>();
 		this.currentlyQueuedState = new HashSet<string>();
@@ -452,6 +458,9 @@ public class PlayerActionController : MonoBehaviour {
 		float angle = Vector3.SignedAngle(facingDirection, movementDirection, Vector3.up);
 		PlayerMovementType pmt;
 
+		if(this.bottomLayerIndex < 0)
+			this.bottomLayerIndex = this.animator.GetLayerIndex(BOTTOM_LAYER);
+
 		this.animator.SetFloat("Run", runMomentum);
 		this.animatorFP.SetBool("Run", runMomentum > 0);
 		this.animator.SetFloat("Gravity", gravity);
@@ -483,8 +492,22 @@ public class PlayerActionController : MonoBehaviour {
 
 		if(pmt != this.lastMove)
 			ProcessMovement(pmt, runMomentum > 0f);
+		else if(ThirdPersonLocomotionLayersChanged())
+			ProcessMovement(pmt, runMomentum > 0f, thirdPersonOnly:true);
 
 		this.lastMove = pmt;
+		this.lastBaseStateHash = this.animationHandler.GetTargetStateHash(0);
+		this.lastBottomStateHash = this.animationHandler.GetTargetStateHash(this.bottomLayerIndex);
+	}
+
+	/*
+	Locomotion is only requested when the movement type changes, so a request that couldn't be placed (e.g. the Base layer was busy sheathing)
+	would be lost. Whenever the Base or Bottom layers change state, the current locomotion is requested again in the Third Person animator.
+	Requests for states that are already playing do nothing
+	*/
+	private bool ThirdPersonLocomotionLayersChanged(){
+		return this.animationHandler.GetTargetStateHash(0) != this.lastBaseStateHash ||
+			this.animationHandler.GetTargetStateHash(this.bottomLayerIndex) != this.lastBottomStateHash;
 	}
 
 	public static void RegisterClientMessage(AnimationData data){PlayerActionController.statesPlayed.Insert(0, data);}
@@ -506,13 +529,14 @@ public class PlayerActionController : MonoBehaviour {
 
 	private void RunPlaylist(){
 		for(int i=0; i < this.playlist.Count; i++){
-			this.animationHandler.Play(this.playlist[i], overrideState:this.overrideState[i], ignoreFP:this.ignoreFP[i]);
+			this.animationHandler.Play(this.playlist[i], overrideState:this.overrideState[i], ignoreFP:this.ignoreFP[i], ignoreTP:this.ignoreTP[i]);
 			this.currentlyQueuedState.Add(this.playlist[i]);
 		}
 
 		this.playlist.Clear();
 		this.overrideState.Clear();
 		this.ignoreFP.Clear();
+		this.ignoreTP.Clear();
 	}
 
     private IEnumerator RestrictionRoutine(PlayerActionRestriction rest, float timeout){
@@ -551,44 +575,48 @@ public class PlayerActionController : MonoBehaviour {
 		return controller;
 	}
 
-	private void AddToPlaylist(string state, bool over=false, bool igFP=false){		
+	private void AddToPlaylist(string state, bool over=false, bool igFP=false, bool igTP=false){		
 		this.playlist.Add(state);
 		this.overrideState.Add(over);
 		this.ignoreFP.Add(igFP);
+		this.ignoreTP.Add(igTP);
 	}
 
-	private void ProcessMovement(PlayerMovementType pmt, bool isRunning){
+	// thirdPersonOnly re-requests the locomotion of the Third Person animator without touching the First Person one
+	private void ProcessMovement(PlayerMovementType pmt, bool isRunning, bool thirdPersonOnly=false){
 		switch(pmt){
 			case PlayerMovementType.STILL:
-				AddToPlaylist("Idle");
+				AddToPlaylist("Idle", igFP:thirdPersonOnly);
 				break;
 			case PlayerMovementType.STILL_AGGRO:
-				AddToPlaylist("Idle Weapon");
+				AddToPlaylist("Idle Weapon", igFP:thirdPersonOnly);
 				break;
 			case PlayerMovementType.FORWARD:
-				AddToPlaylist("Moving Forward", igFP:!isRunning);
+				AddToPlaylist("Moving Forward", igFP:thirdPersonOnly || !isRunning);
 				break;
 			case PlayerMovementType.FORWARD_SHEATHED:
 				AddToPlaylist("Moving Forward", igFP:true);
 				break;
 			case PlayerMovementType.BACKWARD:
-				AddToPlaylist("Walk Backward", igFP:!isRunning);
+				AddToPlaylist("Walk Backward", igFP:thirdPersonOnly || !isRunning);
 				break;
 			case PlayerMovementType.LEFT:
-				AddToPlaylist("Walk Left", igFP:!isRunning);
+				AddToPlaylist("Walk Left", igFP:thirdPersonOnly || !isRunning);
 				break;
 			case PlayerMovementType.RIGHT:
-				AddToPlaylist("Walk Right", igFP:!isRunning);
+				AddToPlaylist("Walk Right", igFP:thirdPersonOnly || !isRunning);
 				break;
 			case PlayerMovementType.AIR:
-				AddToPlaylist("On Air");
+				AddToPlaylist("On Air", igFP:thirdPersonOnly);
 				break;
+			// The weapon stays in the Base layer while the legs play On Air in the Bottom layer
 			case PlayerMovementType.AIR_AGGRO:
-				AddToPlaylist("Idle Weapon");
+				if(!thirdPersonOnly)
+					AddToPlaylist("Idle Weapon", igTP:true);
+				AddToPlaylist("On Air", igFP:true);
 				break;
 			case PlayerMovementType.AIR_AGGRO_FORWARD:
-				AddToPlaylist("Idle Weapon", igFP:true);
-				AddToPlaylist("Moving Forward", igFP:true);
+				AddToPlaylist("On Air", igFP:true);
 				break;
 			default:
 				break;

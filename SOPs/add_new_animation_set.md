@@ -185,6 +185,8 @@ This file uses the "data" wrapper that contains AnimationStateMapping objects.
 | priority | int | The priority in which this state will play over others in the same layer. A lower priority score means this state is more important. States with lower priority will be forced into a layer, while the state previously being played in that layer will resume in another registered layer, given its importance order | 
 | stopLayer | list[str] | (Optional) Defines all the layers that will stop their animation and back to their default state as this state is played |
 
+Field names are case-sensitive (e.g. `stopLayer`, not `stoplayer`); misspelled fields are silently ignored. States with the same priority replace each other in a layer, so the latest one requested wins. Requesting a state that is already playing in one of its layers does nothing, and a state is never kept playing in more than one of its layers at the same time.
+
 ### transitions.json
 
 Animation Transitions are transitions that happen automatically between states, without the user manually triggering another state. These transitions happen based on parameter conditions inside the Controller.

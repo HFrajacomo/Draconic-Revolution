@@ -82,12 +82,12 @@
 		},
 		{
 			"name": "On Air",
-			"layer": "Full Torso",
+			"layer": "Bottom",
 			"isDefaultState": false,
 			"isBlendTree": true,
 			"blendTree": {
-				"minThreshold": -5,
-				"maxThreshold": 5,
+				"minThreshold": -1,
+				"maxThreshold": 1,
 				"blendParameter": {
 					"parameterName": "Gravity",
 					"parameterType": "float"

@@ -158,8 +158,11 @@ public static class AnimationControlBuilder {
 				AnimatorState state = ass.Build(controllers[controllerName], animations["BASE_Default"], ANIMATION_CLIPS_PATH);
 				layerNumber = layers[controllerName][ass.layer];
 
-				// Empty plays a blank clip. With Write Defaults on, transitions from/to it blend masked bones through the bind pose instead of the layers below
-				if(ass.name == "Empty" && ass.layer != "Base Layer")
+				/*
+				Empty plays a blank clip. In Override layers, Write Defaults on makes transitions from/to it blend masked bones through the bind pose instead of the layers below
+				Additive layers must keep it on: with it off, a blank state adds the whole incoming pose again instead of nothing, multiplying bone offsets and rotations
+				*/
+				if(ass.name == "Empty" && ass.layer != "Base Layer" && !IsAdditiveLayer(controllerName, ass.layer))
 					state.writeDefaultValues = false;
 
 				graphPosition = AssignGraphPosition(layerIndexes[layerNumber], lastPositionInLayer[layerNumber]);
@@ -195,6 +198,15 @@ public static class AnimationControlBuilder {
 
 			EditorUtility.SetDirty(control);
 		}
+	}
+
+	private static bool IsAdditiveLayer(string controllerName, string layerName){
+		foreach(AnimationLayerSettings als in layerSettings[controllerName]){
+			if(als.name == layerName)
+				return als.blendingMode != 0;
+		}
+
+		return false;
 	}
 
 	private static Vector3 AssignGraphPosition(int index, int lastX){
