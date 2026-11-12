@@ -911,7 +911,7 @@ public class Server {
 
 		// Chunk is not loaded in the server, so the item must be given back
 		if(!this.cl.Contains(chunkPos)){
-			SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID);
+			SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID, lastCoord);
 			return;
 		}
 
@@ -921,7 +921,7 @@ public class Server {
 			allowed = VoxelLoader.GetObject(blockCode).PlacementRule(chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 
 		if(!allowed){
-			SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID);
+			SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID, lastCoord);
 			return;
 		}
 
@@ -932,7 +932,7 @@ public class Server {
 					continue;
 
 				if(!this.cl.regionHandler.allPlayerData[code].CheckValidPlacement(lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ())){
-					SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID);
+					SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID, lastCoord);
 					return;
 				}
 			}
@@ -1023,10 +1023,11 @@ public class Server {
 		this.cl.regionHandler.SaveChunk(chunk);
 	}
 
-	// Tells a client its placement was denied, echoing the origin of the placed item so it can be given back to the same slot
-	private void SendPlacementDenied(ulong id, ushort itemID, byte inventoryCode, byte slot, byte actionSlot, ushort actionID){
+	// Tells a client its placement was denied, echoing the origin of the placed item so it can be given back to the same slot,
+	// and the voxel it was placed in, so its predicted collision can be removed
+	private void SendPlacementDenied(ulong id, ushort itemID, byte inventoryCode, byte slot, byte actionSlot, ushort actionID, CastCoord coord){
 		NetMessage denied = new NetMessage(NetCode.PLACEMENTDENIED);
-		denied.PlacementDenied(itemID, inventoryCode, slot, actionSlot, actionID);
+		denied.PlacementDenied(itemID, inventoryCode, slot, actionSlot, actionID, coord.GetChunkPos(), coord.blockX, coord.blockY, coord.blockZ);
 		this.Send(denied.GetMessage(), denied.size, id);
 	}
 

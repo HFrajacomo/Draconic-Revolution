@@ -69,6 +69,7 @@ public class ChunkLoader : MonoBehaviour
     public AmbientHandler ambientHandler;
     public VignetteController vignetteController;
     public GameObject audioListenerObject;
+    public PlacementPredictor placementPredictor;
 
     // Initialization
     public GameObject playerCharacter;
@@ -120,6 +121,7 @@ public class ChunkLoader : MonoBehaviour
         ChunkMeshLayout.Init();
         CreateBuildSlots();
         this.lightingSystem = new LightingSystem(this);
+        this.placementPredictor = new PlacementPredictor(this);
         PlayerHotbarHandler.ResetSessionState();
 
         this.playerCharacter.SetActive(false);
@@ -175,6 +177,7 @@ public class ChunkLoader : MonoBehaviour
         this.client = null;
         this.audioManager.Stop(AudioUsecase.MUSIC_CLIP);
         this.audioManager.Destroy();
+        this.placementPredictor.Clear();
         ClearAllChunks();
         DisposeBuildSlots();
         DisposeLighting();
@@ -284,6 +287,7 @@ public class ChunkLoader : MonoBehaviour
             LoadChunk();
             this.lightingSystem.Update();
             FinishBuilds();
+            this.placementPredictor.Update();
             DrawChunk();
             UpdateChunk();
             JobHandle.ScheduleBatchedJobs();

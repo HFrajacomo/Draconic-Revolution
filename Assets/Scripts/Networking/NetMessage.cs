@@ -251,16 +251,18 @@ public struct NetMessage
 		this.size = 23;
 	}
 
-	// Server tells a client that its placement was denied, echoing where the placed item came from
-	// {CODE}[itemID (2)][inventoryCode][slot][actionSlot][actionID (2)]
-	public void PlacementDenied(ushort itemID, byte inventoryCode, byte slot, byte actionSlot, ushort actionID){
+	// Server tells a client that its placement was denied, echoing where the placed item came from and the voxel it was placed in
+	// {CODE}[itemID (2)][inventoryCode][slot][actionSlot][actionID (2)][ChunkPos][Local 2]
+	public void PlacementDenied(ushort itemID, byte inventoryCode, byte slot, byte actionSlot, ushort actionID, ChunkPos pos, int x, int y, int z){
 		Reset();
 		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 1);
 		NetDecoder.WriteByte(inventoryCode, NetMessage.buffer, 3);
 		NetDecoder.WriteByte(slot, NetMessage.buffer, 4);
 		NetDecoder.WriteByte(actionSlot, NetMessage.buffer, 5);
 		NetDecoder.WriteUshort(actionID, NetMessage.buffer, 6);
-		this.size = 8;
+		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 8);
+		NetDecoder.WriteLocalPos(x, y, z, NetMessage.buffer, 17);
+		this.size = 19;
 	}
 
 	// Clients sends the voxels of a chunk that require a LOAD BUD operation. Voxels are added with AddBatchLoad()

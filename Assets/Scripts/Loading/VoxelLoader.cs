@@ -191,6 +191,16 @@ public class VoxelLoader : BaseLoader {
             return objectBook[ushort.MaxValue - (ushort)code].solid;
     }
 
+    // Whether a block takes part in the chunk collider, matching the collider faces written by MergeChunkMeshJob. Objects never do
+    public static bool CheckCollidable(ushort code){
+        if(code > ushort.MaxValue/2)
+            return false;
+
+        ShaderIndex shader = blockBook[code].shaderIndex;
+
+        return shader == ShaderIndex.OPAQUE || shader == ShaderIndex.ICE;
+    }
+
     // Gets transparency value from block
     public static bool CheckTransparent(ushort? code){
         if(code == null)

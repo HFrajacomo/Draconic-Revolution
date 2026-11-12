@@ -74,6 +74,9 @@ public class Chunk
 	private int activeCollider = 0;
 	private Mesh[] buildTargets;
 
+	// Snapshot id (see ChunkBuildSlot) of the build whose colliders are currently in use
+	private int colliderSnapshot = 0;
+
 	// Build currently running for this chunk
 	private ChunkBuildSlot buildSlot;
 
@@ -176,6 +179,8 @@ public class Chunk
 	}
 
 	public bool IsBuilding(){return this.buildSlot != null;}
+	public void SetColliderSnapshot(int id){this.colliderSnapshot = id;}
+	public int GetColliderSnapshot(){return this.colliderSnapshot;}
 	public void SetBuildSlot(ChunkBuildSlot slot){this.buildSlot = slot;}
 
 	// Meshes a build writes into, in the order of WriteChunkMeshJob

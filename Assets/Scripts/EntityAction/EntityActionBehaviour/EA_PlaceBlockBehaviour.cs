@@ -66,12 +66,13 @@ public class EA_PlaceBlockBehaviour : EntityActionBehaviour {
 			return false;
 		}
 
-		if(cl.GetBlock(targetBlock) != 0)
+		if(cl.GetBlock(targetBlock) != 0 || cl.placementPredictor.Has(targetBlock))
 			return false;
 
 		NetMessage message = new NetMessage(NetCode.PLACEBLOCK);
 		message.PlaceBlock(targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, cl.playerRaycast.facing, blockCode, ea.GetConnectedStackSlot(), newQuantity, ea.GetConnectedStackInventory(), itemID, actionSlot:PlayerHotbarHandler.attackHotbarSlot, actionID:ea.GetID());
 		cl.client.Send(message);
+		cl.placementPredictor.Predict(targetBlock, blockCode);
 		return true;
 	}
 }

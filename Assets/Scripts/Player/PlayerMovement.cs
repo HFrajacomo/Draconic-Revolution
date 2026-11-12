@@ -108,6 +108,32 @@ public class PlayerMovement : MonoBehaviour
 
     public bool IsGrounded(){return this.controller.isGrounded;}
 
+    /*
+    Lifts the player so the bottom of their hitbox rests on a height. Used when a block the player placed got its collider while
+    their feet were inside it, since a CharacterController inside a mesh collider has no faces to stand on and falls through the terrain.
+    The space above isn't checked: clipping the head into terrain is preferred over falling through it
+    */
+    public void PlaceFeetOn(float top){
+        if(this.movementOrchestrator == null || this.movementOrchestrator is FreecamMovePreset)
+            return;
+        if(!this.controller.enabled || !this.controller.gameObject.activeInHierarchy)
+            return;
+
+        float lift = top + this.controller.skinWidth - this.controller.bounds.min.y;
+
+        if(lift <= 0f)
+            return;
+
+        Transform t = this.controller.transform;
+
+        this.controller.enabled = false;
+        t.position = t.position + Vector3.up * lift;
+        this.controller.enabled = true;
+
+        // Keeps the upward speed of a jump, but not the fall speed that would push the player back into the block
+        this.gravityMomentum = Mathf.Max(this.gravityMomentum, 0f);
+    }
+
     public void ChangeMoveset(Moveset moveSet){
         CharacterSheet sheet = this.playerSheetController.GetSheet();
 

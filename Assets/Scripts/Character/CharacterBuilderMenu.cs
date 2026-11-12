@@ -393,6 +393,7 @@ public class CharacterBuilderMenu{
 	private void PutAddon(Race race, bool isMale, bool isReload=false){
 		if(this.bodyParts.ContainsKey(ModelType.ADDON)){
 			GameObject.DestroyImmediate(this.bodyParts[ModelType.ADDON]);
+			this.bodyParts.Remove(ModelType.ADDON);
 		}
 
 		if(race == Race.UNDEAD){

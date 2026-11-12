@@ -33,12 +33,13 @@ public class IT_PlaceBlockBehaviour : ItemBehaviour{
 			return false;
 		}
 
-		if(loader.GetBlock(targetBlock) != 0)
+		if(loader.GetBlock(targetBlock) != 0 || loader.placementPredictor.Has(targetBlock))
 			return false;
 
 		NetMessage message = new NetMessage(NetCode.PLACEBLOCK);
 		message.PlaceBlock(targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, loader.playerRaycast.facing, blockCode, PlayerHotbarHandler.hotbarSlot, newQuantity, 1, itemID);
 		loader.client.Send(message);
+		loader.placementPredictor.Predict(targetBlock, blockCode);
 		return true;
 	}
 }

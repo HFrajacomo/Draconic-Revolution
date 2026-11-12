@@ -96,6 +96,10 @@ public class ChunkBuildSlot{
 	private JobHandle bakeHandle;
 	private bool isDisposed = false;
 
+	// Increases with every snapshot taken, so a collider built from a snapshot can be compared to changes made to the chunk data
+	private static int snapshotCounter = 0;
+	private int snapshotID;
+
 
 	public ChunkBuildSlot(){
 		this.blocks = new NativeArray<ushort>(PaddedChunk.SIZE, Allocator.Persistent);
@@ -171,6 +175,7 @@ public class ChunkBuildSlot{
 		this.chunk = target;
 		this.isLoadBuild = load;
 		this.loadVersion = requestedLoadVersion;
+		this.snapshotID = ++snapshotCounter;
 
 		GatherSnapshot(loader, pos, hasTop, hasBottom);
 		ClearOutputs();
@@ -394,8 +399,12 @@ public class ChunkBuildSlot{
 	public void FinishBake(){
 		this.bakeHandle.Complete();
 		this.chunk.SwapColliders(this.hasCollider, this.hasRaycast, this.hasRain);
+		this.chunk.SetColliderSnapshot(this.snapshotID);
 		Release();
 	}
+
+	// Snapshot id that the next build will get. Chunk data changed now is only seen by builds with an id at least this big
+	public static int GetNextSnapshotID(){return snapshotCounter + 1;}
 
 	// Cancels the current build, waiting for its jobs to finish
 	public void Abort(){

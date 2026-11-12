@@ -87,6 +87,9 @@ Every change increases the chunk version. Changes that replace whole arrays mark
 
 `BUDScheduler` propagation, trees and `RegisterChunkToSend` use `SendChunkChanges`.
 
+**Placement prediction:** a placed block only gets collision after the Server's `BLOCKUPDATE` arrives and its chunk is rebuilt and its collider cooked. Until then, `PlacementPredictor` (client) puts a box collider in the voxel when `PLACEBLOCK` is sent, so a player that places a block beneath themselves while jumping lands on it. The box is removed when a chunk collider built after the voxel was received is swapped in, when `PLACEMENTDENIED` echoes the voxel back, when the chunk unloads, or after a timeout.
+The box only becomes active once the player's hitbox has left the voxel. If the player's feet are still inside the placed voxel when its chunk collider is swapped in, `PlayerMovement.PlaceFeetOn` nudges them on top of that block (even if their head clips into terrain above), since a `CharacterController` inside a mesh collider falls through the terrain. No other voxel ever moves the player.
+
 ## Message layouts
 
 Positions inside a chunk use 2 bytes (`NetDecoder.WriteLocalPos`: `x<<4 | z`, then `y`), so they must be local coordinates.
@@ -107,7 +110,7 @@ Animation states and animator parameters are identified by `Animator.StringToHas
 | BLOCKUPDATE | S→C | ChunkPos 9, Local 2, BUDCode 1, Block 2, State 2, HP 2 |
 | BLOCKBATCH | S→C | ChunkPos 9, Count 2, Count × (Local 2, Block 2, State 2, HP 2) |
 | PLACEBLOCK | C→S | ChunkPos 9, Local 2, Facing 1, Block 2, Slot 1, NewQuantity 1, InventoryCode 1, ItemID 2, ActionSlot 1, ActionID 2 |
-| PLACEMENTDENIED | S→C | ItemID 2, InventoryCode 1, Slot 1, ActionSlot 1, ActionID 2 |
+| PLACEMENTDENIED | S→C | ItemID 2, InventoryCode 1, Slot 1, ActionSlot 1, ActionID 2, ChunkPos 9, Local 2 |
 | BATCHLOADBUD | C→S | ChunkPos 9, Count 2, Count × Local 2 |
 | INTERACT | C→S | ChunkPos 9, Local 2, Facing 1 |
 | BLOCKDAMAGE | C→S | ChunkPos 9, Local 2, Damage 2 |

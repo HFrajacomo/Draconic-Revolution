@@ -720,15 +720,20 @@ public class Client
 			this.cl.AddToUpdate(pos);
 	}
 
-	// Gives back the denied placed item to the slot it came from
+	// Gives back the denied placed item to the slot it came from and removes the predicted collision of the voxel
 	private void PlacementDenied(byte[] data){
 		ushort itemID = NetDecoder.ReadUshort(data, 1);
 		byte inventoryCode = data[3];
 		byte slot = data[4];
 		byte actionSlot = data[5];
 		ushort actionID = NetDecoder.ReadUshort(data, 6);
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 8);
+		int x, y, z;
+
+		NetDecoder.ReadLocalPos(data, 17, out x, out y, out z);
 
 		this.cl.playerInventoryManager.RestorePlacedItem(itemID, inventoryCode, slot, actionSlot, actionID);
+		this.cl.placementPredictor.Deny(pos, x, y, z);
 	}
 
 	// Receives block damage information from server
