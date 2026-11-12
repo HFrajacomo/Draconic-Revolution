@@ -1863,10 +1863,14 @@ public class Server {
 
 		// Handles OnEquipChange events on Actions
 		if(!cs.IsInNormalHotbar()){
-			EntityAction ea = ((ActionInventorySlot)this.cl.playerServerInventory.GetSlot(id, 0, cs.GetAttackHotbarSlot())).GetAction();
+			PlayerServerInventorySlot psiSlot = this.cl.playerServerInventory.GetSlot(id, 0, cs.GetAttackHotbarSlot());
 
-			if(ea != null)
-				ea.OnEquipChangeServer(this.cl, id);
+			if(psiSlot is ActionInventorySlot){
+				EntityAction ea = ((ActionInventorySlot)psiSlot).GetAction();
+
+				if(ea != null)
+					ea.OnEquipChangeServer(this.cl, id);
+			}
 		}
 
 		// Handle the sending of onEquips and onUnequips to clients
