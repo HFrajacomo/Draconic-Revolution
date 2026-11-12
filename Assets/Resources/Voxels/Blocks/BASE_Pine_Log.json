@@ -33,7 +33,7 @@
 --->VX_TreeBehaviour
 {
     "droppedItem": "BASE_Pine_Log",
-    "maxAnalysedBlocks": 100,
+    "maxAnalysedBlocks": 512,
     "decayDistance": 7,
     "minDecayTime": 8,
     "maxDecayTime": 30,

@@ -1,8 +1,14 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
 
+/*
+Secondary blocks (like leaves) that decay when no main block (like a log) is close enough
+	On a DECAY BUD, searches through the connected secondary blocks up to decayDistance steps away
+	The block survives if any of them touches a main block, or a chunk that isn't loaded
+	Otherwise it's removed and sends a DECAY to its neighbors after decayTime ticks
+*/
 [Serializable]
 public class VX_UpdateDecaySecondaryBlockBehaviour : VoxelBehaviour{
 	
@@ -14,10 +20,18 @@ public class VX_UpdateDecaySecondaryBlockBehaviour : VoxelBehaviour{
 	private ushort mainBlockCode;
 	private ushort thisBlockCode; 
 
-	private List<CastCoord> openList = new List<CastCoord>();
-	private Dictionary<CastCoord, int> distances = new Dictionary<CastCoord, int>();
-	private List<CastCoord> cache = new List<CastCoord>();
-	private NetMessage reloadMessage;
+	private VoxelReader_Server reader = new VoxelReader_Server();
+	private List<int4> queue = new List<int4>();
+	private HashSet<int3> visited = new HashSet<int3>();
+
+	private static readonly int3[] FACE_OFFSETS = {
+		new int3(0,0,1),
+		new int3(0,0,-1),
+		new int3(1,0,0),
+		new int3(-1,0,0),
+		new int3(0,1,0),
+		new int3(0,-1,0)
+	};
 
 	public override void PostDeserializationSetup(bool isClient){
 		this.mainBlockCode = VoxelLoader.GetBlockID(assignedMainBlock);
@@ -26,90 +40,73 @@ public class VX_UpdateDecaySecondaryBlockBehaviour : VoxelBehaviour{
 
 	// Triggers DECAY BUD on this block
 	public override void OnBlockUpdate(BUDCode type, int myX, int myY, int myZ, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){
-		if(type == BUDCode.DECAY){
-			CastCoord thisPos = new CastCoord(new Vector3(myX, myY, myZ));
-			
-			GetSurroundings(thisPos, this.decayDistance, cl);
+		if(type != BUDCode.DECAY)
+			return;
 
-			if(!RunMainRecursion(cl)){
-				if(cl.Contains(thisPos.GetChunkPos())){
-					cl.GetChunk(thisPos.GetChunkPos()).data.SetCell(thisPos.blockX, thisPos.blockY, thisPos.blockZ, 0);
-					cl.GetChunk(thisPos.GetChunkPos()).metadata.Reset(thisPos.blockX, thisPos.blockY, thisPos.blockZ);
-					cl.budscheduler.ScheduleSave(thisPos.GetChunkPos());
-					cl.budscheduler.SchedulePropagation(thisPos.GetChunkPos());
-				}
+		int3 thisPos = new int3(myX, myY, myZ);
+		int3 neighbor;
+		ChunkPos pos;
 
-				// Applies Decay BUD to surrounding leaves if this one is invalid
-				GetLastSurrounding(thisPos);
+		this.reader.Begin(cl);
 
-				foreach(CastCoord c in cache){
-					EmitBUDTo(BUDCode.DECAY, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), decayTime, cl);
-				}
-			}
+		if(IsSupported(thisPos))
+			return;
 
-			distances.Clear();
-			openList.Clear();
-			cache.Clear();
+		if(this.reader.Clear(thisPos, out pos)){
+			cl.budscheduler.ScheduleSave(pos);
+			cl.budscheduler.SchedulePropagation(pos);
+		}
+
+		// Surrounding blocks may have lost their support through this one
+		for(int i=0; i < FACE_OFFSETS.Length; i++){
+			neighbor = thisPos + FACE_OFFSETS[i];
+			EmitBUDTo(BUDCode.DECAY, neighbor.x, neighbor.y, neighbor.z, this.decayTime, cl);
 		}
 	}
 
+	// Breadth-first search through the secondary blocks around start. xyz of the queue is the position and w the steps left
+	private bool IsSupported(int3 start){
+		int4 current;
+		int3 neighbor;
+		ushort block, state;
+		int head = 0;
+		bool supported = false;
 
-	// Does Search for invalid leaves
-	private bool RunMainRecursion(ChunkLoader_Server cl){
-		bool foundMain = false;
+		this.queue.Clear();
+		this.visited.Clear();
+		this.queue.Add(new int4(start, this.decayDistance));
+		this.visited.Add(start);
 
-		while(openList.Count > 0 && !foundMain){
-			foundMain = GetSurroundings(openList[0], distances[openList[0]]-1, cl);
-			openList.RemoveAt(0);
-		}
+		while(head < this.queue.Count && !supported){
+			current = this.queue[head];
+			head++;
 
-		distances.Clear();
+			if(current.w <= 0)
+				continue;
 
-		if(foundMain)
-			return true;
-		else
-			return false;
-	}
+			for(int i=0; i < FACE_OFFSETS.Length; i++){
+				neighbor = current.xyz + FACE_OFFSETS[i];
 
-	// Returns a filled cache list full of surrounding coords
-	private bool GetSurroundings(CastCoord init, int currentDistance, ChunkLoader_Server cl){
-		// End
-		if(currentDistance == 0)
-			return false;
-
-		GetLastSurrounding(init);
-
-		// Filters only secondary Blocks
-		foreach(CastCoord c in cache){
-			if(cl.GetBlock(c) == this.thisBlockCode && cl.GetState(c) == 0){
-				// If is already in dict
-				if(distances.ContainsKey(c)){
-					if(distances[c] > currentDistance){
-						distances[c] = currentDistance;
-						openList.Add(c);
-					}
+				if(!this.reader.TryRead(neighbor, out block, out state)){
+					supported = true;
+					break;
 				}
-				else{
-					distances.Add(c, currentDistance);
-					openList.Add(c);
+
+				if(state != 0)
+					continue;
+
+				if(block == this.mainBlockCode){
+					supported = true;
+					break;
 				}
-			}
-			if(cl.GetBlock(c) == this.mainBlockCode && cl.GetState(c) == 0){
-				return true;
+
+				if(block == this.thisBlockCode && this.visited.Add(neighbor))
+					this.queue.Add(new int4(neighbor, current.w - 1));
 			}
 		}
 
-		return false;
-	}
-
-	// Gets surrounding on cache
-	private void GetLastSurrounding(CastCoord init){
-		cache.Clear();
-		cache.Add(init.Add(0,0,1)); // North
-		cache.Add(init.Add(0,0,-1)); // South
-		cache.Add(init.Add(1,0,0)); // East
-		cache.Add(init.Add(-1,0,0)); // West
-		cache.Add(init.Add(0,1,0)); // Up
-		cache.Add(init.Add(0,-1,0)); // Down
+		this.queue.Clear();
+		this.visited.Clear();
+		return supported;
 	}
 }

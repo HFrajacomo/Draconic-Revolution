@@ -78,6 +78,17 @@ A full-height liquid with the same liquid directly above it doesn't draw its top
 
 Whenever a liquid voxel changes, it sends BUs to the liquids in its 8 horizontal neighbors (Level 1 states may depend on diagonal ones) and to the liquids above and below it.
 
+## Trees
+
+Breaking a log (`VX_TreeBehaviour`) makes every log that lost its support fall:
+
+ - Logs of a tree are the tree's wood with State 0 (placed logs have State 1 and act as any other solid block). They connect through their 8 horizontal neighbors (diagonals included) and the voxels above and below them.
+ - Each group of logs that touched the broken one is searched breadth-first, looking down first. A group is supported if it touches any other solid block or a chunk that isn't loaded, so trees never fall because of what the server can't see. Unsupported groups break at once and drop their wood.
+ - Searches use `VoxelReader_Server`, which reads voxels by world coordinates without allocating and caches the last chunk used, so they cost one step per log. If more than `maxAnalysedBlocks` (in the log's JSON) logs need to be scanned, nothing breaks.
+ - Blocks around the fallen wood get a BREAK, but every leaf touching it gets a single DECAY spread between `minDecayTime` and `maxDecayTime` ticks, so the leaves of a big tree don't all run their searches in the same frame. Changed chunks are saved and sent to players through the BUDScheduler.
+
+Leaves (`VX_UpdateDecaySecondaryBlockBehaviour`) decay on a DECAY if no log of their tree is reachable through `decayDistance` connected leaves (chunks that aren't loaded count as reachable). A decayed leaf sends a DECAY to its neighbors after `decayTime` ticks, so a whole crown decays gradually.
+
 # Congratulations
 
 Now you know a little bit more about Block Event Management and what was used in order to make your world interact with itself!

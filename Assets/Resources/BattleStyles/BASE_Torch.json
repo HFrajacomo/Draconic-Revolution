@@ -95,7 +95,7 @@
 					},
 					{
 						"type": "AN_PointLightBehaviour",
-						"json": "{\"normalizedTime\": 0.7, \"create\": true, \"voxelLightIntensity\": 6, \"ifPlayerBuildOnlyFirstPerson\": true}"
+						"json": "{\"normalizedTime\": 0.7, \"create\": true, \"voxelLightIntensity\": 18, \"ifPlayerBuildOnlyFirstPerson\": true}"
 					},
 					{
 						"type": "AN_AnimatorSetBehaviour",

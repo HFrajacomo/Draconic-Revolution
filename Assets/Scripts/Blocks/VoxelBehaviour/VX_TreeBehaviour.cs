@@ -1,12 +1,18 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
 
 using Random = UnityEngine.Random;
 
-
+/*
+Breaks the wood of a tree that lost its support when one of its logs is broken
+	Logs are connected through their 8 horizontal neighbors (diagonals included) and the voxels above and below them
+	A group of connected logs is supported if it touches any other solid block (ground, placed logs, other woods...)
+	or a chunk that isn't loaded, so trees never fall because of what the server can't see
+	Unsupported groups are broken. If more than maxAnalysedBlocks logs need to be scanned, nothing breaks
+	Every leaf touching the broken wood receives a single DECAY, spread between minDecayTime and maxDecayTime ticks
+*/
 [Serializable]
 public class VX_TreeBehaviour : VoxelBehaviour{
 	public int maxAnalysedBlocks;
@@ -20,21 +26,50 @@ public class VX_TreeBehaviour : VoxelBehaviour{
 	public string droppedItem;
 	private Item item;
 
-	// Leaves Checker
-	private List<CastCoord> openList = new List<CastCoord>();
-	private Dictionary<CastCoord, int> distances = new Dictionary<CastCoord, int>();
-	private List<CastCoord> cache = new List<CastCoord>();
-
-	// Wood Checker
-	private List<CastCoord> currentList = new List<CastCoord>();
-	private List<CastCoord> safeList = new List<CastCoord>();
-	private List<CastCoord> validDirections = new List<CastCoord>();
-	private List<CastCoord> toDestroy = new List<CastCoord>();
-	private HashSet<ChunkPos> toUpdate = new HashSet<ChunkPos>();
-
-
 	private ushort assignedLeafCode;
 	private ushort thisCode;
+
+	// Wood search
+	private VoxelReader_Server reader = new VoxelReader_Server();
+	private HashSet<int3> safe = new HashSet<int3>();
+	private HashSet<int3> doomed = new HashSet<int3>();
+	private HashSet<int3> component = new HashSet<int3>();
+	private List<int3> queue = new List<int3>();
+	private int scanned;
+
+	// Destruction
+	private HashSet<int3> leaves = new HashSet<int3>();
+	private HashSet<ChunkPos> touchedChunks = new HashSet<ChunkPos>();
+
+	private static readonly int SEARCH_ROOTED = 0;
+	private static readonly int SEARCH_DOOMED = 1;
+	private static readonly int SEARCH_OVERFLOW = 2;
+
+	// Down comes first, so the search reaches the ground as soon as possible
+	private static readonly int3[] SUPPORT_OFFSETS = {
+		new int3(0,-1,0),
+		new int3(0,0,1),
+		new int3(1,0,1),
+		new int3(1,0,0),
+		new int3(1,0,-1),
+		new int3(0,0,-1),
+		new int3(-1,0,-1),
+		new int3(-1,0,0),
+		new int3(-1,0,1),
+		new int3(0,1,0)
+	};
+
+	// Same neighbors and facings as VoxelBehaviour.EmitBlockUpdate
+	private static readonly int3[] FACE_OFFSETS = {
+		new int3(1,0,0),
+		new int3(-1,0,0),
+		new int3(0,0,1),
+		new int3(0,0,-1),
+		new int3(0,1,0),
+		new int3(0,-1,0)
+	};
+	private static readonly int[] FACE_FACINGS = {2,0,1,3,4,5};
+
 
 	public override void PostDeserializationSetup(bool isClient){
 		this.assignedLeafCode = VoxelLoader.GetBlockID(assignedLeaf);
@@ -42,414 +77,199 @@ public class VX_TreeBehaviour : VoxelBehaviour{
 		this.item = ItemLoader.GetCopy(this.droppedItem);
 	}
 
-	// Activates OnBreak event -> Emits normal BUD, emits special BUD to breadt-first search leaves
 	public override int OnBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ChunkLoader_Server cl){
-		CastCoord coord = new CastCoord(pos, blockX, blockY, blockZ);
-		int amountOfWoodDestroyed;
-		int i;
+		int3 origin = VoxelReader_Server.ToWorld(pos, blockX, blockY, blockZ);
+		int destroyed = 0;
 
-		EmitBlockUpdate(BUDCode.BREAK, coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ(), 0, cl);
+		this.reader.Begin(cl);
+		this.leaves.Clear();
+		this.touchedChunks.Clear();
 
-		amountOfWoodDestroyed = TreeCheck(coord, cl) + maxDropQuantity;
-		GetSurroundingLeaves(coord, decayDistance, cl);
-		RunLeavesRecursion(cl, coord);
+		EmitBlockUpdate(BUDCode.BREAK, origin.x, origin.y, origin.z, 0, cl);
 
-		// Drops excess wood
-		for(i=0; i < amountOfWoodDestroyed/this.item.stacksize; i += this.item.stacksize){
-	        cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
-	            Item.GenerateForceVector(), this.item, this.item.stacksize, cl);
-    }
+		if(SearchWood(origin))
+			destroyed = DestroyDoomed(origin, cl);
 
-		cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
-            Item.GenerateForceVector(), this.item, (byte)(amountOfWoodDestroyed - i), cl);
+		CollectLeavesAround(origin);
+		EmitLeafDecay(cl);
+		SyncTouchedChunks(cl);
+		DropWood(origin, destroyed + 1 + this.maxDropQuantity, cl);
+
+		this.safe.Clear();
+		this.doomed.Clear();
+		this.component.Clear();
+		this.queue.Clear();
 
 		return 0;
 	}
 
+	// Fills the doomed set with every log that lost its support. Returns false if the scan cap was reached
+	private bool SearchWood(int3 origin){
+		int3 start;
+		ushort block, state;
+		int result;
 
-	// Does Search for invalid leaves
-	private void RunLeavesRecursion(ChunkLoader_Server cl, CastCoord init){
-		while(openList.Count > 0){
-			GetSurroundingLeaves(openList[0], distances[openList[0]]-1, cl);
-			openList.RemoveAt(0);
-		}
+		this.safe.Clear();
+		this.doomed.Clear();
+		this.scanned = 0;
 
-		// Applies DECAY BUD to distant leaves
-		foreach(CastCoord c in distances.Keys){
-			if(distances[c] == 0){
-				EmitBUDTo(BUDCode.DECAY, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), 1, cl);
-				Debug.Log("Found Distant? Leaves");
+		for(int i=0; i < SUPPORT_OFFSETS.Length; i++){
+			start = origin + SUPPORT_OFFSETS[i];
+
+			if(this.safe.Contains(start) || this.doomed.Contains(start))
+				continue;
+			if(!this.reader.TryRead(start, out block, out state) || !IsTreeWood(block, state))
+				continue;
+
+			result = SearchComponent(start, origin);
+
+			if(result == SEARCH_OVERFLOW){
+				this.doomed.Clear();
+				return false;
 			}
+
+			if(result == SEARCH_ROOTED)
+				this.safe.UnionWith(this.component);
+			else
+				this.doomed.UnionWith(this.component);
 		}
 
-		// Applies DECAY BUD to around blocks if there's no wood around
-		EmitDelayedBUD(BUDCode.DECAY, init.GetWorldX(), init.GetWorldY(), init.GetWorldZ(), minDecayTime, maxDecayTime, cl);
-
-		distances.Clear();
+		return true;
 	}
 
-	// Returns a filled cache list full of surrounding coords
-	private void GetSurroundingLeaves(CastCoord init, int currentDistance, ChunkLoader_Server cl){
-		// End
-		if(currentDistance == 0)
-			return;
+	// Breadth-first search through the logs connected to start, stopping as soon as a support is found
+	// Doomed logs never need checking: a doomed group was fully explored, so it would already contain any log touching it
+	private int SearchComponent(int3 start, int3 origin){
+		int3 current, neighbor;
+		ushort block, state;
+		int head = 0;
 
-		cache.Clear();
-		cache.Add(init.Add(0,0,1)); // North
-		cache.Add(init.Add(0,0,-1)); // South
-		cache.Add(init.Add(1,0,0)); // East
-		cache.Add(init.Add(-1,0,0)); // West
-		cache.Add(init.Add(0,1,0)); // Up
-		cache.Add(init.Add(0,-1,0)); // Down
+		this.component.Clear();
+		this.queue.Clear();
+		this.component.Add(start);
+		this.queue.Add(start);
 
-		// Filters only Leaf blocks
-		foreach(CastCoord c in cache){
-			if(cl.GetBlock(c) == this.assignedLeafCode && cl.GetState(c) == 0){
-				// If is already in dict
-				if(distances.ContainsKey(c)){
-					if(distances[c] > currentDistance){
-						distances[c] = currentDistance;
-						openList.Add(c);
-					}
+		if(++this.scanned > this.maxAnalysedBlocks)
+			return SEARCH_OVERFLOW;
+
+		while(head < this.queue.Count){
+			current = this.queue[head];
+			head++;
+
+			for(int i=0; i < SUPPORT_OFFSETS.Length; i++){
+				neighbor = current + SUPPORT_OFFSETS[i];
+
+				// The broken block is air, even if a caller didn't clear it yet
+				if(neighbor.Equals(origin) || this.component.Contains(neighbor))
+					continue;
+
+				if(!this.reader.TryRead(neighbor, out block, out state))
+					return SEARCH_ROOTED;
+
+				if(IsTreeWood(block, state)){
+					if(this.safe.Contains(neighbor))
+						return SEARCH_ROOTED;
+
+					this.component.Add(neighbor);
+					this.queue.Add(neighbor);
+
+					if(++this.scanned > this.maxAnalysedBlocks)
+						return SEARCH_OVERFLOW;
 				}
-				else{
-					distances.Add(c, currentDistance);
-					openList.Add(c);
+				else if(VoxelLoader.CheckSolid(block)){
+					return SEARCH_ROOTED;
 				}
 			}
 		}
+
+		return SEARCH_DOOMED;
 	}
 
-	// Check if there's any wood block around this block
-	private bool CheckWoodAround(CastCoord init, ChunkLoader_Server cl){
-		cache.Clear();
-		cache.Add(init.Add(0,0,1)); // North
-		cache.Add(init.Add(0,0,-1)); // South
-		cache.Add(init.Add(1,0,0)); // East
-		cache.Add(init.Add(-1,0,0)); // West
-		cache.Add(init.Add(0,1,0)); // Up
-		cache.Add(init.Add(0,-1,0)); // Down
+	// Breaks the doomed logs and notifies the blocks around the fallen wood. Returns the amount of logs broken
+	private int DestroyDoomed(int3 origin, ChunkLoader_Server cl){
+		ChunkPos chunk;
+		int amount = 0;
 
-		foreach(CastCoord c in cache){
-			if(cl.GetBlock(c) == this.thisCode && cl.GetState(c) == 0){
-				return true;
+		foreach(int3 log in this.doomed){
+			if(this.reader.Clear(log, out chunk)){
+				this.touchedChunks.Add(chunk);
+				amount++;
 			}
 		}
-		return false;
+
+		foreach(int3 log in this.doomed)
+			NotifyAround(log, origin, cl);
+
+		return amount;
 	}
 
+	// Leaves get a DECAY later, other blocks get a BREAK. Air and the fallen wood itself get nothing
+	private void NotifyAround(int3 log, int3 origin, ChunkLoader_Server cl){
+		int3 neighbor;
+		ushort block, state;
 
-	// Does the Wood check to break unconnected wood blocks from tree
-	private int TreeCheck(CastCoord pos, ChunkLoader_Server cl){
-		CastCoord aux;
-		validDirections.Clear();
+		for(int i=0; i < FACE_OFFSETS.Length; i++){
+			neighbor = log + FACE_OFFSETS[i];
 
-		aux = pos.Add(0,0,1); // N
-		if(cl.Contains(aux.GetChunkPos())){
-			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
-				validDirections.Add(aux);
-			}
-		}
+			if(neighbor.Equals(origin) || this.doomed.Contains(neighbor))
+				continue;
+			if(!this.reader.TryRead(neighbor, out block, out state) || block == 0)
+				continue;
 
-		aux = pos.Add(1,0,1); // NE
-		if(cl.Contains(aux.GetChunkPos())){
-			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
-				validDirections.Add(aux);
-			}
-		}
-
-		aux = pos.Add(1,0,0); // E
-		if(cl.Contains(aux.GetChunkPos())){
-			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
-				validDirections.Add(aux);
-			}
-		}
-
-		aux = pos.Add(1,0,-1); // SE
-		if(cl.Contains(aux.GetChunkPos())){
-			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
-				validDirections.Add(aux);
-			}
-		}
-
-		aux = pos.Add(0,0,-1); // S
-		if(cl.Contains(aux.GetChunkPos())){
-			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
-				validDirections.Add(aux);
-			}
-		}
-
-		aux = pos.Add(-1,0,-1); // SW
-		if(cl.Contains(aux.GetChunkPos())){
-			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
-				validDirections.Add(aux);
-			}
-		}
-
-		aux = pos.Add(-1,0,0); // W
-		if(cl.Contains(aux.GetChunkPos())){
-			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
-				validDirections.Add(aux);
-			}
-		}
-
-		aux = pos.Add(-1,0,1); // NW
-		if(cl.Contains(aux.GetChunkPos())){
-			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
-				validDirections.Add(aux);
-			}
-		}
-
-		aux = pos.Add(0,1,0); // UP
-		if(cl.Contains(aux.GetChunkPos())){
-			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
-				validDirections.Add(aux);
-			}
-		}
-
-		aux = pos.Add(0,-1,0); // DOWN
-		if(cl.Contains(aux.GetChunkPos())){
-			if(cl.GetBlock(aux) == this.thisCode && cl.GetState(aux) == 0){
-				validDirections.Add(aux);
-			}
-		}
-
-		return RunWoodRecursion(cl) + 1;
-	}
-
-	// Handles search of Wood Blocks
-	// Returns the amount of wood blocks disposed of
-	private int RunWoodRecursion(ChunkLoader_Server cl){
-		CastCoord current;
-		int exitCode;
-		int amountOfBlocks;
-
-		currentList.Clear();
-		safeList.Clear();
-		toDestroy.Clear();
-		toUpdate.Clear();
-
-		while(validDirections.Count > 0){
-			current = validDirections[0];
-			validDirections.RemoveAt(0);
-
-			// If found to-destroy blocks
-			exitCode = SearchWood(current, cl);
-
-			// Safe
-			if(exitCode == 0){
-				safeList.AddRange(currentList);
-				currentList.Clear();
-			}
-			// Invalid
-			else if(exitCode == 1){
-				toDestroy.AddRange(currentList);
-				currentList.Clear();
-			}
-			// PANIC
-			else{
-				return 0;
-			}
-		}
-
-		amountOfBlocks = toDestroy.Count;
-
-		foreach(CastCoord aux in toDestroy){
-			cl.GetChunk(aux.GetChunkPos()).data.SetCell(aux.blockX, aux.blockY, aux.blockZ, 0);
-			cl.GetChunk(aux.GetChunkPos()).metadata.Reset(aux.blockX, aux.blockY, aux.blockZ);
-			EmitBlockUpdate(BUDCode.BREAK, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
-			EmitBlockUpdate(BUDCode.DECAY, aux.GetWorldX(), aux.GetWorldY(), aux.GetWorldZ(), 0, cl);
-			toUpdate.Add(aux.GetChunkPos());
-		}
-
-		foreach(ChunkPos pos in toUpdate){
-			this.Update(pos, cl);
-		}
-
-		return amountOfBlocks;
-	}
-
-
-	// Fills toDestroy and Safe list
-	// Returns true if all blocks in currentList are connected to a stem
-	// Returns false if all blocks in currentList doesn't connect to a stem or connects to a to-be-destroyed block
-	private int SearchWood(CastCoord init, ChunkLoader_Server cl){
-		ushort blockCode;
-		ushort state;
-
-		GetAroundCoords(init, cl);
-
-		// Filters only Leaf blocks
-		for(int i=0; i < currentList.Count; i++){
-			// If it's connected to a marked-to-destroy block
-			if(toDestroy.Contains(currentList[i])){
-				return 1;
+			if(block == this.assignedLeafCode){
+				if(state == 0)
+					this.leaves.Add(neighbor);
+				continue;
 			}
 
-			// If it's connected to a safe block
-			if(safeList.Contains(currentList[i])){
-				return 0;
-			}
-
-			// If current block is found in initial direction
-			if(validDirections.Contains(currentList[i])){
-				validDirections.Remove(currentList[i]);
-			}
-
-			// PANIC if there's too many blocks
-			if(currentList.Count > this.maxAnalysedBlocks){
-				currentList.Clear();
-				return 2;
-			}
-
-			blockCode = cl.GetBlock(currentList[i]);
-			state = cl.GetState(currentList[i]);
-
-			// If it's a spreadable block
-			if(blockCode == this.thisCode && state == 0){
-				GetAroundCoords(currentList[i], cl);
-			}
-			
-			// Check if it's a root
-			else if(VoxelLoader.CheckSolid(blockCode)){
-				return 0;
-			}
-			else{
-				currentList.RemoveAt(i);
-				i--;
-			}
-		}
-		return 1;
-	}
-
-	// Adds around coords to currentList
-	private void GetAroundCoords(CastCoord pos, ChunkLoader_Server cl){
-		CastCoord aux;
-		ushort blockCode;
-
-		aux = pos.Add(0,0,1); // N
-		if(cl.Contains(aux.GetChunkPos())){
-			if(!currentList.Contains(aux)){
-				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
-					currentList.Add(aux);
-				}
-			}
-		}
-
-		aux = pos.Add(1,0,1); // NE
-		if(cl.Contains(aux.GetChunkPos())){
-			if(!currentList.Contains(aux)){
-				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
-					currentList.Add(aux);
-				}
-			}
-		}
-
-		aux = pos.Add(1,0,0); // E
-		if(cl.Contains(aux.GetChunkPos())){
-			if(!currentList.Contains(aux)){
-				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
-					currentList.Add(aux);
-				}
-			}
-		}
-
-		aux = pos.Add(1,0,-1); // SE
-		if(cl.Contains(aux.GetChunkPos())){
-			if(!currentList.Contains(aux)){
-				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
-					currentList.Add(aux);
-				}
-			}
-		}
-
-		aux = pos.Add(0,0,-1); // S
-		if(cl.Contains(aux.GetChunkPos())){
-			if(!currentList.Contains(aux)){
-				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
-					currentList.Add(aux);
-				}
-			}
-		}
-
-		aux = pos.Add(-1,0,-1); // SW
-		if(cl.Contains(aux.GetChunkPos())){
-			if(!currentList.Contains(aux)){
-				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
-					currentList.Add(aux);
-				}
-			}
-		}
-
-		aux = pos.Add(-1,0,0); // W
-		if(cl.Contains(aux.GetChunkPos())){
-			if(!currentList.Contains(aux)){
-				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
-					currentList.Add(aux);
-				}
-			}
-		}
-
-		aux = pos.Add(-1,0,1); // NW
-		if(cl.Contains(aux.GetChunkPos())){
-			if(!currentList.Contains(aux)){
-				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
-					currentList.Add(aux);
-				}
-			}
-		}
-
-		aux = pos.Add(0,1,0); // UP
-		if(cl.Contains(aux.GetChunkPos())){
-			if(!currentList.Contains(aux)){
-				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
-					currentList.Add(aux);
-				}
-			}
-		}
-
-		aux = pos.Add(0,-1,0); // DOWN
-		if(cl.Contains(aux.GetChunkPos())){
-			if(!currentList.Contains(aux)){
-				blockCode = cl.GetBlock(aux);
-				if((blockCode == this.thisCode && cl.GetState(aux) == 0) || VoxelLoader.CheckSolid(blockCode)){
-					currentList.Add(aux);
-				}
-			}
-		}	
-	}
-
-
-	// Handles the emittion of BUD to neighboring blocks
-	public void EmitDelayedBUD(BUDCode type, int x, int y, int z, int minOffset, int maxOffset, ChunkLoader_Server cl){
-		CastCoord thisPos = new CastCoord(new Vector3(x, y, z));
-
-		cache.Clear();
-
-		cache.Add(thisPos.Add(1,0,0));
-		cache.Add(thisPos.Add(-1,0,0));
-		cache.Add(thisPos.Add(0,1,0));
-		cache.Add(thisPos.Add(0,-1,0));
-		cache.Add(thisPos.Add(0,0,1));
-		cache.Add(thisPos.Add(0,0,-1));
-
-
-		foreach(CastCoord c in cache){
-			cl.budscheduler.ScheduleBUD(new BUDSignal(type, c.GetWorldX(), c.GetWorldY(), c.GetWorldZ(), thisPos.GetWorldX(), thisPos.GetWorldY(), thisPos.GetWorldZ(), 0), Random.Range(minOffset, maxOffset));     
+			cl.budscheduler.ScheduleBUD(new BUDSignal(BUDCode.BREAK, neighbor.x, neighbor.y, neighbor.z, log.x, log.y, log.z, FACE_FACINGS[i]), 0);
 		}
 	}
 
-    // Sends the voxels changed in the chunk to users
-	public void Update(ChunkPos pos, ChunkLoader_Server cl){
-		cl.server.SendChunkChanges(pos);
+	private void CollectLeavesAround(int3 origin){
+		int3 neighbor;
+		ushort block, state;
+
+		for(int i=0; i < FACE_OFFSETS.Length; i++){
+			neighbor = origin + FACE_OFFSETS[i];
+
+			if(this.reader.TryRead(neighbor, out block, out state) && block == this.assignedLeafCode && state == 0)
+				this.leaves.Add(neighbor);
+		}
+	}
+
+	// Spreads the leaf searches over many ticks instead of running all of them in the same frame
+	private void EmitLeafDecay(ChunkLoader_Server cl){
+		foreach(int3 leaf in this.leaves)
+			EmitBUDTo(BUDCode.DECAY, leaf.x, leaf.y, leaf.z, Random.Range(this.minDecayTime, this.maxDecayTime), cl);
+
+		this.leaves.Clear();
+	}
+
+	// Saves every chunk the fallen wood was in and sends its changes to the players
+	private void SyncTouchedChunks(ChunkLoader_Server cl){
+		foreach(ChunkPos pos in this.touchedChunks){
+			cl.budscheduler.ScheduleSave(pos);
+			cl.budscheduler.SchedulePropagation(pos);
+			cl.server.entityHandler.SetRefreshVision(EntityType.DROP, pos);
+		}
+
+		this.touchedChunks.Clear();
+	}
+
+	private void DropWood(int3 origin, int amount, ChunkLoader_Server cl){
+		float3 position = new float3(origin.x, origin.y + Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, origin.z);
+		int stackSize = Mathf.Max(1, (int)this.item.stacksize);
+		int quantity;
+
+		while(amount > 0){
+			quantity = Mathf.Min(amount, stackSize);
+			cl.server.entityHandler.AddItem(position, Item.GenerateForceVector(), this.item, (byte)quantity, cl);
+			amount -= quantity;
+		}
+	}
+
+	private bool IsTreeWood(ushort block, ushort state){
+		return block == this.thisCode && state == 0;
 	}
 }

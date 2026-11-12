@@ -594,6 +594,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
     // Getter for Chunks
     public Chunk GetChunk(ChunkPos pos){return this.chunks[pos];}
+    public bool TryGetChunk(ChunkPos pos, out Chunk chunk){return this.chunks.TryGetValue(pos, out chunk);}
     public bool Contains(ChunkPos pos){return this.chunks.ContainsKey(pos);}
     private void AddChunk(ChunkPos pos, Chunk c){
         // Changes are tracked so only changed voxels are sent to clients
