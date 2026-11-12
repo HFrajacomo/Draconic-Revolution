@@ -155,24 +155,32 @@ public class VFXLoader : MonoBehaviour
 
     // Client removes a VFX based on an Entity
     public void Remove(ulong code, string name){
-        if(this.entityData.ContainsKey(code)){
-            if(this.entityData[code].ContainsKey(name)){
-                if(this.realtimeLightHandler != null){
-                    Light light = this.entityData[code][name].GetComponentInChildren<Light>();
+        Dictionary<string, GameObject> entityVFX;
+        GameObject go;
 
-                    if(light != null)
-                        this.realtimeLightHandler.UnregisterDynamic(light);
-                }
+        if(!this.entityData.TryGetValue(code, out entityVFX))
+            return;
+        if(!entityVFX.TryGetValue(name, out go))
+            return;
 
-                GameObject.Destroy(this.entityData[code][name]);
+        // Entity VFX are children of attachments, so they may have been destroyed with them already
+        // RealtimeLightHandler drops destroyed dynamic lights by itself
+        if(go != null){
+            if(this.realtimeLightHandler != null){
+                Light light = go.GetComponentInChildren<Light>();
 
-                if(this.entityData[code].Count <= 1){
-                    this.entityData.Remove(code);
-                }
-                else{
-                    this.entityData[code].Remove(name);
-                }
+                if(light != null)
+                    this.realtimeLightHandler.UnregisterDynamic(light);
             }
+
+            GameObject.Destroy(go);
+        }
+
+        if(entityVFX.Count <= 1){
+            this.entityData.Remove(code);
+        }
+        else{
+            entityVFX.Remove(name);
         }
     }
 
