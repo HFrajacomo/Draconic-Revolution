@@ -89,6 +89,14 @@ Breaking a log (`VX_TreeBehaviour`) makes every log that lost its support fall:
 
 Leaves (`VX_UpdateDecaySecondaryBlockBehaviour`) decay on a DECAY if no log of their tree is reachable through `decayDistance` connected leaves (chunks that aren't loaded count as reachable). A decayed leaf sends a DECAY to its neighbors after `decayTime` ticks, so a whole crown decays gradually.
 
+## Aura Crystals
+
+Aura Crystals (`VX_AuraCrystalBehaviour`) always have their base attached to a full block (solid and not transparent). Their State is the side where that block is: **0** X-, **1** X+, **2** Z-, **3** Z+, **4** below and **5** above.
+
+ - A crystal can only be placed on the face of a full block. Otherwise, the placement is denied and the item is given back.
+ - Generated crystals pick their support during generation (see the *Generation Events* section of `World_Generation.md`).
+ - When their support gets a BREAK or CHANGE and isn't a full block anymore, the crystal breaks, drops itself and sends a BREAK to its neighbors. Supports in chunks that aren't loaded never break a crystal.
+
 # Congratulations
 
 Now you know a little bit more about Block Event Management and what was used in order to make your world interact with itself!

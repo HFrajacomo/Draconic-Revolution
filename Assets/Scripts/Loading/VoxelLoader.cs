@@ -44,6 +44,10 @@ public class VoxelLoader : BaseLoader {
 	private static Blocks[] blockBook;
 	private static BlocklikeObject[] objectBook;
 
+	// Voxels that have an onGenerate event, indexed like the books
+	private static bool[] blockGenerateEvent;
+	private static bool[] objectGenerateEvent;
+
 	private static bool isClient;
 
 	// Counters
@@ -89,6 +93,17 @@ public class VoxelLoader : BaseLoader {
 	}
 	public static ushort GetBlockID(string name){return codenameToBlockID[name];}
 	public static int GetTextureID(string name){return codenameToTexID[name];}
+
+	// Codes outside of the books (like the ushort.MaxValue/2 error code) have no events
+	public static bool HasGenerateEvent(ushort code){
+		int index;
+
+		if(code <= ushort.MaxValue/2)
+			return code < blockGenerateEvent.Length && blockGenerateEvent[code];
+
+		index = ushort.MaxValue - code;
+		return index < objectGenerateEvent.Length && objectGenerateEvent[index];
+	}
 
 	public static void SetAtlasTextures(ChunkRenderer rend){
 		Material[] materials = rend.GetComponent<MeshRenderer>().sharedMaterials;
@@ -356,6 +371,14 @@ public class VoxelLoader : BaseLoader {
 
 		blockBook = blockList.ToArray();
 		objectBook = objectList.ToArray();
+
+		blockGenerateEvent = new bool[blockBook.Length];
+		objectGenerateEvent = new bool[objectBook.Length];
+
+		for(int i=0; i < blockBook.Length; i++)
+			blockGenerateEvent[i] = blockBook[i].HasGenerateEvent();
+		for(int i=0; i < objectBook.Length; i++)
+			objectGenerateEvent[i] = objectBook[i].HasGenerateEvent();
 	}
 
 	private void AssignBlockID(string codename, bool isBlock){

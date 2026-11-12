@@ -143,6 +143,14 @@ Chunks changed by a structure that aren't loaded are kept as *pending* (`Structu
 
 This way, structures are never lost and player changes are never overwritten by an older copy of a chunk.
 
+### Generation Events
+
+Some voxels need to look at their surroundings before their generation is finished. Once all the structures of a chunk are applied, every voxel that has an `onGenerate` behaviour in its JSON runs it once, over the chunk's raw data. Since it runs after the structures, no later structure can change the neighbors it looked at.
+
+Generation events only read voxels inside their own chunk, and any randomness comes from a hash of the world position and the world seed, so the same seed always generates the same world, no matter the order in which chunks are generated.
+
+Aura Crystals are an example: their structures only place the crystal, and its `onGenerate` turns it so its base is attached to one of the full blocks around it. If there's none, the crystal is turned back into stone.
+
 # Congratulations
 
 Now you know a little bit more about Procedural Generation and what was used in order to generate the beautiful worlds that you see! 

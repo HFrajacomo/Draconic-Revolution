@@ -13,6 +13,7 @@ public static class VoxelDeserializer {
 	private static List<VoxelBehaviour> onInteractEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onBlockUpdateEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onLoadEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onGenerateEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onVFXBuildEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onVFXChangeEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onVFXBreakEvent = new List<VoxelBehaviour>();
@@ -77,6 +78,7 @@ public static class VoxelDeserializer {
 		onInteractEvent = new List<VoxelBehaviour>();
 		onBlockUpdateEvent = new List<VoxelBehaviour>();
 		onLoadEvent = new List<VoxelBehaviour>();
+		onGenerateEvent = new List<VoxelBehaviour>();
 		onVFXBuildEvent = new List<VoxelBehaviour>();
 		onVFXChangeEvent = new List<VoxelBehaviour>();
 		onVFXBreakEvent = new List<VoxelBehaviour>();
@@ -110,6 +112,9 @@ public static class VoxelDeserializer {
 					break;
 				case "onLoad":
 					block.SetOnLoad(onLoadEvent);
+					break;
+				case "onGenerate":
+					block.SetOnGenerate(onGenerateEvent);
 					break;
 				case "onVFXBuild":
 					block.SetOnVFXBuild(onVFXBuildEvent);
@@ -168,6 +173,9 @@ public static class VoxelDeserializer {
 					break;
 				case "onLoad":
 					obj.SetOnLoad(onLoadEvent);
+					break;
+				case "onGenerate":
+					obj.SetOnGenerate(onGenerateEvent);
 					break;
 				case "onVFXBuild":
 					obj.SetOnVFXBuild(onVFXBuildEvent);
@@ -343,6 +351,9 @@ public static class VoxelDeserializer {
 				break;
 			case "onLoad":
 				onLoadEvent.Add(vx);
+				break;
+			case "onGenerate":
+				onGenerateEvent.Add(vx);
 				break;
 			case "onVFXBuild":
 				onVFXBuildEvent.Add(vx);

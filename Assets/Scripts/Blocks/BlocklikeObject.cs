@@ -43,6 +43,7 @@ public class BlocklikeObject
 	private List<VoxelBehaviour> onPlace;
 	private List<VoxelBehaviour> onBreak;
 	private List<VoxelBehaviour> onLoad;
+	private List<VoxelBehaviour> onGenerate;
 	private List<VoxelBehaviour> onVFXBuild;
 	private List<VoxelBehaviour> onVFXChange;
 	private List<VoxelBehaviour> onVFXBreak;
@@ -133,6 +134,10 @@ public class BlocklikeObject
 
     public List<VoxelBehaviour> GetOnLoad() { return onLoad; }
     public void SetOnLoad(List<VoxelBehaviour> val) { onLoad = val; }
+
+    public List<VoxelBehaviour> GetOnGenerate() { return onGenerate; }
+    public void SetOnGenerate(List<VoxelBehaviour> val) { onGenerate = val; }
+    public bool HasGenerateEvent() { return onGenerate != null && onGenerate.Count > 0; }
 
     public List<VoxelBehaviour> GetOnVFXBuild() { return onVFXBuild; }
     public void SetOnVFXBuild(List<VoxelBehaviour> val) { onVFXBuild = val; }
@@ -235,6 +240,16 @@ public class BlocklikeObject
 
 		for(int i=0; i < this.onLoad.Count; i++){
 			this.onLoad[i].OnLoad(coord, cl);
+		}
+	}
+
+	// Runs once on every voxel of a newly generated chunk, after all of its structures were applied
+	public virtual void OnGenerate(ChunkPos pos, int blockX, int blockY, int blockZ, ushort[] blocks, ushort[] states, ushort[] hps, int worldSeed){
+		if(this.onGenerate == null || this.onGenerate.Count == 0)
+			return;
+
+		for(int i=0; i < this.onGenerate.Count; i++){
+			this.onGenerate[i].OnGenerate(pos, blockX, blockY, blockZ, blocks, states, hps, worldSeed);
 		}
 	}
 
@@ -380,6 +395,11 @@ public class BlocklikeObject
 		if(this.onLoad != null){
 			for(int i=0; i < onLoad.Count; i++){
 				onLoad[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onGenerate != null){
+			for(int i=0; i < onGenerate.Count; i++){
+				onGenerate[i].PostDeserializationSetup(isClient);
 			}
 		}
 		if(this.onVFXBuild != null){

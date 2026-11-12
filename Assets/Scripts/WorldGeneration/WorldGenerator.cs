@@ -309,11 +309,34 @@ public class WorldGenerator
 
         this.iteration = 0;
         GenerateBiomeStructures(chunk.pos, (BiomeCode)slot.biome, blocks, states, hps);
+        RunGenerationEvents(chunk.pos, blocks, states, hps);
 
         // The chunk keeps its arrays, only its height maps are calculated
         chunk.BuildOnVoxelData(VoxelData.FromOwnedArray(blocks, chunk.pos));
 
         slot.Release();
+    }
+
+    // Runs the onGenerate event of every voxel that has one. Must run after all structures, since they may change a voxel's neighbors
+    private void RunGenerationEvents(ChunkPos pos, ushort[] blocks, ushort[] states, ushort[] hps){
+        ushort code;
+        int x, y, z;
+
+        for(int i=0; i < blocks.Length; i++){
+            code = blocks[i];
+
+            if(!VoxelLoader.HasGenerateEvent(code))
+                continue;
+
+            x = i / (Chunk.chunkWidth*Chunk.chunkDepth);
+            y = (i / Chunk.chunkWidth) % Chunk.chunkDepth;
+            z = i % Chunk.chunkWidth;
+
+            if(code <= ushort.MaxValue/2)
+                VoxelLoader.GetBlock(code).OnGenerate(pos, x, y, z, blocks, states, hps, this.worldSeed);
+            else
+                VoxelLoader.GetObject(code).OnGenerate(pos, x, y, z, blocks, states, hps, this.worldSeed);
+        }
     }
 
     private void GenerateBiomeStructures(ChunkPos pos, BiomeCode biomeCode, ushort[] blockdata, ushort[] state, ushort[] hps){

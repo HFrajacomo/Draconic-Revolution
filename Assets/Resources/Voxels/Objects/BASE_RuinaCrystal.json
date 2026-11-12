@@ -32,6 +32,9 @@
 {
     "modelIdentity": "VX_ModelIdentityBehaviour",
     "onPlace": "VX_AuraCrystalBehaviour",
+    "onBlockUpdate": "VX_AuraCrystalBehaviour",
+    "onGenerate": "VX_AuraCrystalBehaviour",
+    "placementRule": "VX_AuraCrystalBehaviour",
     "onBreak": "VX_BreakDropItemBehaviour",
     "offsetVector" : "VX_ConfigurablePositionBehaviour",
     "rotationValue" : "VX_ConfigurableRotationBehaviour"
@@ -44,7 +47,8 @@
 }
 --->VX_AuraCrystalBehaviour
 {
-    "blockName": "BASE_RuinaCrystal"
+    "blockName": "BASE_RuinaCrystal",
+    "fallbackBlock": "BASE_Stone"
 }
 --->VX_ModelIdentityBehaviour
 {
