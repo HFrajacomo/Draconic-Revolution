@@ -19,6 +19,8 @@ public class FreecamMovePreset : BaseMovePreset {
         this.maximumAllowedMomentumAfterImpact = 1f;
 	}
 
+	public override bool IsAirborne(MovementFlags flags){return false;}
+
 	public override float CalculateRunMomentumBoost(Transform transf, Vector3 playerDirection, float currentRunMomentum, float momentum, float movementAlignment){
         if(MainControllerManager.shifting){
             return Mathf.Clamp(currentRunMomentum + (movementAlignment * this.runMomentumGrowth * Time.deltaTime), 0, this.maxRunningMomentum);

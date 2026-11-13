@@ -171,12 +171,17 @@ public class PlayerPositionHandler : MonoBehaviour
                 head = this.cl.GetBlock(head, errorZero:true)
             };
         }
+        // While airborne, the surface last stood on stays as the feet block, so its movement effects (like the inertia of ice) last until landing.
+        // Entering a liquid leaves that surface behind
         else{
             newLocation = new PlayerVoxelLocation{
-                feet = 0,
+                feet = this.playerVoxelLocation.feet,
                 body = this.cl.GetBlock(body, errorZero:true),
                 head = this.cl.GetBlock(head, errorZero:true)
             };
+
+            if(VoxelLoader.CheckLiquid(newLocation.body))
+                newLocation.feet = 0;
         }
 
         return newLocation;

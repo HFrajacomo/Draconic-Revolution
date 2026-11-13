@@ -61,8 +61,8 @@ public class VX_PlayerMovementStepMultiplyBehaviour : VoxelBehaviour{
 		cl.playerMovement.AddModifier(MovePresetProperty.JUMP_HEIGHT, this.jumpHeightOperation);
 		cl.playerMovement.AddModifier(MovePresetProperty.MOMENTUM_GROWTH, this.momentumGrowthOperation);
 		cl.playerMovement.AddModifier(MovePresetProperty.MINIMUM_MOMENTUM_TO_STOP, this.minimumMomentumToStopOperation);
-		cl.playerMovement.AddModifier(MovePresetProperty.GRAVITY_ACCELERATION, this.gravityMaxAccelerationTimeOperation);
-		cl.playerMovement.AddModifier(MovePresetProperty.GRAVITY_MAX_ACCELERATION_TIME, this.gravityAccelerationOperation);
+		cl.playerMovement.AddModifier(MovePresetProperty.GRAVITY_ACCELERATION, this.gravityAccelerationOperation);
+		cl.playerMovement.AddModifier(MovePresetProperty.GRAVITY_MAX_ACCELERATION_TIME, this.gravityMaxAccelerationTimeOperation);
 		cl.playerMovement.AddModifier(MovePresetProperty.MAX_RUNNING_MOMENTUM, this.maxRunningMomentumOperation);
 		cl.playerMovement.AddModifier(MovePresetProperty.RUN_MOMENTUM_GROWTH, this.runMomentumGrowthOperation);
 		cl.playerMovement.AddModifier(MovePresetProperty.RUN_MOMENTUM_DECREASE, this.runMomentumDecreaseOperation);

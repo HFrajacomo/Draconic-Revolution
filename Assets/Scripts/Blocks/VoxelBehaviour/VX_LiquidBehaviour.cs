@@ -213,7 +213,7 @@ public class VX_LiquidBehaviour : VoxelBehaviour{
 			cl.playerMovement.ChangeMoveset(Moveset.SWIM);
 		}
 
-		if(!((MovementFlags)cl.playerMovement.flags).isJumping)
+		if(!cl.playerMovement.IsJumping())
 			cl.vignetteController.Add(this.vignetteData);
 	}
 

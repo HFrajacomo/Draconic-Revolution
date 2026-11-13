@@ -69,9 +69,9 @@ public class PlayerMovement : MonoBehaviour
            this.playerActionController.HasRestriction(PlayerActionRestriction.STUNNED) ||
            this.playerActionController.HasRestriction(PlayerActionRestriction.SYSTEM))){
 
-            this.momentum = this.movementOrchestrator.CalculateMomentum(this.direction, this.momentum, this.knockbackMomentum, this.movementAlignment);
+            this.momentum = this.movementOrchestrator.CalculateMomentum(this.direction, this.momentum, this.knockbackMomentum, this.movementAlignment, (MovementFlags)this.flags);
             this.runMomentumBoost = this.movementOrchestrator.CalculateRunMomentumBoost(this.transform, this.direction, this.runMomentumBoost, this.momentum, this.movementAlignment);
-            this.velocity = this.movementOrchestrator.CalculateFinalVelocity(this.direction, this.velocity, this.momentum, this.runMomentumBoost, this.movementAlignment);
+            this.velocity = this.movementOrchestrator.CalculateFinalVelocity(this.direction, this.velocity, this.momentum, this.runMomentumBoost, this.movementAlignment, (MovementFlags)this.flags);
             this.finalMovement = this.movementOrchestrator.CalculateFinalMovement(this.velocity, this.knockbackForce, this.knockbackMomentum, this.gravityMomentum);
 
             this.controller.Move(this.finalMovement * Time.deltaTime);
@@ -85,9 +85,9 @@ public class PlayerMovement : MonoBehaviour
         else{
             this.direction = Vector3.zero;
             this.runMomentumBoost = 0f;
-            this.momentum = this.movementOrchestrator.CalculateMomentum(this.direction, this.momentum, this.knockbackMomentum, this.movementAlignment);
+            this.momentum = this.movementOrchestrator.CalculateMomentum(this.direction, this.momentum, this.knockbackMomentum, this.movementAlignment, (MovementFlags)this.flags);
             this.movementOrchestrator.UpdateFOV(this.cl.playerRaycast.playerCamera, this.runMomentumBoost);
-            this.velocity = this.movementOrchestrator.CalculateFinalVelocity(this.direction, this.velocity, this.momentum, this.runMomentumBoost, this.movementAlignment);
+            this.velocity = this.movementOrchestrator.CalculateFinalVelocity(this.direction, this.velocity, this.momentum, this.runMomentumBoost, this.movementAlignment, (MovementFlags)this.flags);
             this.finalMovement = this.movementOrchestrator.CalculateFinalMovement(this.velocity, this.knockbackForce, this.knockbackMomentum, this.gravityMomentum);
 
             this.controller.Move(this.finalMovement * Time.deltaTime);
@@ -107,6 +107,9 @@ public class PlayerMovement : MonoBehaviour
     }
 
     public bool IsGrounded(){return this.controller.isGrounded;}
+
+    // Flags only exist after the first Update, so block events that run before it (like spawning underwater) see no jump
+    public bool IsJumping(){return this.flags != null && ((MovementFlags)this.flags).isJumping;}
 
     /*
     Lifts the player so the bottom of their hitbox rests on a height. Used when a block the player placed got its collider while
