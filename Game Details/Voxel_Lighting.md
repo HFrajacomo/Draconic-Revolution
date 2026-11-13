@@ -142,7 +142,7 @@ By the way, the Light Information is used as a Color multiplier. Light Level 0 m
 
 ## New Vertex Shaders
 
-The Chunk Building pipeline was revamped, supporting unlimited Custom Shaders. That made me change the Water Shader and adding the new Leaves Shader. Now, both Leaves and Water move.
+The Chunk Building pipeline was revamped, supporting unlimited Custom Shaders. That made me change the Water Shader and adding the new Leaves Shader. Now, both Leaves and Water move. How the Leaves wind stays stable far from the world origin is explained in [Chunk_Renderer.md](Chunk_Renderer.md) (Far from the World Origin).
 
 ![](../RepoImages/LeavesShader.png)
 
