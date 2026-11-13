@@ -99,7 +99,7 @@ The world is a stack of chunk layers (Surface, Underground, Hells and Core), so 
 
 On the client, the ShadowMap and LightMap of every loaded chunk are calculated in worker threads by the `LightingSystem`:
 
-- Calculations run nearest to the player first, in up to `CLIENT_LIGHT_SLOTS` at the same time, and are started twice per frame.
+- Calculations run nearest to the player first, and are started twice per frame. The amount running at the same time is the job workers of the process left after the build slots (see `ChunkLoader.CalculateJobSlots`), up to `CLIENT_LIGHT_SLOTS`.
 - A chunk has at most one calculation queued or running. Calculations work on copies of the chunk data and write them back once done.
 - A chunk waits for the light of the chunk above it. Once a chunk is calculated, the chunk below it is calculated again if the sunlight leaving this one changed (see Light Through Chunk Layers).
 

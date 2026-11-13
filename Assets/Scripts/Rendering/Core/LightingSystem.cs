@@ -21,9 +21,10 @@ public class LightingSystem{
 	private HashSet<ChunkPos> waitingAbove = new HashSet<ChunkPos>(); // Chunks popped in this Update that wait for the light of the chunk above
 
 
-	public LightingSystem(ChunkLoader loader){
+	// slotCount is the amount of light calculations running at the same time
+	public LightingSystem(ChunkLoader loader, int slotCount){
 		this.loader = loader;
-		this.slots = new LightSlot[Constants.CLIENT_LIGHT_SLOTS];
+		this.slots = new LightSlot[slotCount];
 
 		for(int i=0; i < this.slots.Length; i++)
 			this.slots[i] = new LightSlot();

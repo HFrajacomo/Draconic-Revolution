@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
@@ -83,6 +84,11 @@ public class ChunkLoader : MonoBehaviour
     private ChunkBuildSlot[] drawSlots;
     private ChunkBuildSlot[] updateSlots;
 
+    // Amount of jobs of each kind running at the same time (see CalculateJobSlots)
+    private int drawSlotCount;
+    private int updateSlotCount;
+    private int lightSlotCount;
+
     // Chunks that were requested to build while already building, and which kind of build they need
     private Dictionary<ChunkPos, byte> deferredBuilds = new Dictionary<ChunkPos, byte>();
 
@@ -100,7 +106,8 @@ public class ChunkLoader : MonoBehaviour
     public bool SENTINFOTOSERVER = false;
 
     // Timer
-    private ushort timer = 0;
+    private float unloadAssetsTimer = 0f;
+    private float forceUnloadTimer = 0f;
 
     // Cache Data
     private ChunkPos cachePos = new ChunkPos(0,0,0);
@@ -119,8 +126,9 @@ public class ChunkLoader : MonoBehaviour
         VoxelLoader.InitBlockEncyclopediaECS();
         ObjectMeshTables.Build();
         ChunkMeshLayout.Init();
+        CalculateJobSlots();
         CreateBuildSlots();
-        this.lightingSystem = new LightingSystem(this);
+        this.lightingSystem = new LightingSystem(this, this.lightSlotCount);
         this.placementPredictor = new PlacementPredictor(this);
         PlayerHotbarHandler.ResetSessionState();
 
@@ -297,11 +305,11 @@ public class ChunkLoader : MonoBehaviour
     }
 
     /*
-    Registered Events:
+    Registered Events (in real time, so they don't depend on the framerate):
 
     Connection checks:  every frame (time-based heartbeat and timeout)
-    UnloadUnityObjects: 1200 ticks
-    ForceUnload:        1500 ticks
+    UnloadUnityObjects: CLIENT_UNLOAD_ASSETS_INTERVAL_SECONDS
+    ForceUnload:        CLIENT_FORCE_UNLOAD_INTERVAL_SECONDS
 
     Returns false if the Client was disconnected
     */
@@ -309,18 +317,20 @@ public class ChunkLoader : MonoBehaviour
         if(!this.client.CheckConnection())
             return false;
 
-        if(this.timer < 6000)
-            this.timer++;
-        else
-            this.timer = 1;
+        this.unloadAssetsTimer += Time.unscaledDeltaTime;
+        this.forceUnloadTimer += Time.unscaledDeltaTime;
+
+        // Timers are reset instead of decreased, so a long frame never runs an event twice in a row
 
         // Garbage Collect Unity Assets
-        if(this.timer % 1200 == 0){
+        if(this.unloadAssetsTimer >= Constants.CLIENT_UNLOAD_ASSETS_INTERVAL_SECONDS){
+            this.unloadAssetsTimer = 0f;
             Resources.UnloadUnusedAssets();
         }
 
         // Remove Loaded Chunks outside render distance
-        if(this.timer % 1500 == 0){
+        if(this.forceUnloadTimer >= Constants.CLIENT_FORCE_UNLOAD_INTERVAL_SECONDS){
+            this.forceUnloadTimer = 0f;
             ForceUnload();
         }
 
@@ -704,9 +714,22 @@ public class ChunkLoader : MonoBehaviour
             this.updateNoLightPriorityQueue.Add(pos);
     }
 
+    /*
+    Limits the jobs running at the same time to the job workers Unity created for this process, which follow the cores it can use.
+    More jobs than workers only compete for them, making the main thread wait longer whenever it needs a job finished.
+    Every kind keeps at least one slot, and the Constants are the maximum of each kind
+    */
+    private void CalculateJobSlots(){
+        int workers = Mathf.Max(1, JobsUtility.JobWorkerCount);
+
+        this.updateSlotCount = Mathf.Clamp(workers/4, 1, Constants.CLIENT_UPDATE_BUILD_SLOTS);
+        this.drawSlotCount = Mathf.Clamp(workers/4, 1, Constants.CLIENT_DRAW_BUILD_SLOTS);
+        this.lightSlotCount = Mathf.Clamp(workers - this.updateSlotCount - this.drawSlotCount, 1, Constants.CLIENT_LIGHT_SLOTS);
+    }
+
     private void CreateBuildSlots(){
-        this.drawSlots = new ChunkBuildSlot[Constants.CLIENT_DRAW_BUILD_SLOTS];
-        this.updateSlots = new ChunkBuildSlot[Constants.CLIENT_UPDATE_BUILD_SLOTS];
+        this.drawSlots = new ChunkBuildSlot[this.drawSlotCount];
+        this.updateSlots = new ChunkBuildSlot[this.updateSlotCount];
 
         for(int i=0; i < this.drawSlots.Length; i++)
             this.drawSlots[i] = new ChunkBuildSlot();

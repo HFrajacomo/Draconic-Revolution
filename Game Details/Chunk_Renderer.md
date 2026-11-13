@@ -80,7 +80,7 @@ The steps the Chunk Renderer takes to render a chunk is as described.
 ## The Build Pipeline
 Every chunk mesh is built by Burst jobs that are scheduled and finished by the main thread. No managed threads, locks or per-build allocations are involved.
 
-`ChunkLoader` owns a small pool of `ChunkBuildSlot` objects: `CLIENT_DRAW_BUILD_SLOTS` for new chunks and `CLIENT_UPDATE_BUILD_SLOTS` for changed chunks (see `Constants`). Every slot holds persistent native buffers, so a build only clears and refills them. A chunk is in at most one slot at a time. If a chunk is requested again while it is building, the request is deferred and re-queued once the build ends.
+`ChunkLoader` owns a small pool of `ChunkBuildSlot` objects for new chunks and for changed chunks. Their amounts are limited by the job workers Unity created for the process (`JobsUtility.JobWorkerCount`, see `ChunkLoader.CalculateJobSlots`), up to `CLIENT_DRAW_BUILD_SLOTS` and `CLIENT_UPDATE_BUILD_SLOTS` (see `Constants`), so CPUs with few cores don't run more jobs than they have workers. Every slot holds persistent native buffers, so a build only clears and refills them. A chunk is in at most one slot at a time. If a chunk is requested again while it is building, the request is deferred and re-queued once the build ends.
 
 A build goes through these steps:
 

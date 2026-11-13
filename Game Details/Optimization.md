@@ -45,6 +45,8 @@ The hot paths of the Chunk Renderer and Voxel Lighting don't allocate per call:
 - MeshColliders are cooked in worker threads with `Physics.BakeMesh` before they are assigned, so the main thread doesn't cook them.
 - Object meshes are concatenated once into `ObjectMeshTables` and shared, read-only, by every build.
 - The light of loaded chunks is calculated in worker threads, nearest to the player first, and each lighting slot keeps its own persistent buffers (see *Voxel_Lighting.md*). Light propagation and chunk updates run in the main thread, using the persistent buffers of `LightingScratch`. BFS queues are index-based FIFOs and visited voxels are tracked in bit arrays, keeping the BFS linear.
+- The amount of build and lighting slots is limited by the job workers of the process (`ChunkLoader.CalculateJobSlots`). Running more jobs than workers only makes them compete, and the main thread waits longer whenever it needs one of them finished.
+- Periodic client events (`Resources.UnloadUnusedAssets` and the forced unload of far chunks) run on real-time intervals, so faster machines don't run them more often.
 - Visible faces of a chunk are found in parallel slices, so building a single chunk (like after a block change) takes a fraction of the time.
 - The render mesh stores normals and tangents as signed bytes and UVs as half floats, using 36 bytes per vertex instead of 64. Colliders are greedy meshed, merging flat surfaces into few large triangles.
 
