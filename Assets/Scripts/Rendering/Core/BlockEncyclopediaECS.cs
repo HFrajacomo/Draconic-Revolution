@@ -32,6 +32,7 @@ public static class BlockEncyclopediaECS {
 	public static NativeArray<byte> blockLuminosity;
 	public static NativeArray<byte> objectLuminosity;
 	public static NativeArray<bool> blockDrawLiquid;
+	public static NativeArray<bool> blockLiquid;
 
 	static BlockEncyclopediaECS(){ 
 		InitializeNativeStructures();
@@ -65,6 +66,7 @@ public static class BlockEncyclopediaECS {
 		BlockEncyclopediaECS.blockLuminosity = new NativeArray<byte>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
 		BlockEncyclopediaECS.objectLuminosity = new NativeArray<byte>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
 		BlockEncyclopediaECS.blockDrawLiquid = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
+		BlockEncyclopediaECS.blockLiquid = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
 		BlockEncyclopediaECS.blockAffectLight = new NativeArray<bool>(VoxelLoader.GetAmountOfBlocks(), Allocator.Persistent);
 		BlockEncyclopediaECS.objectAffectLight = new NativeArray<bool>(VoxelLoader.GetAmountOfObjects(), Allocator.Persistent);
 		IS_INITIALIZED = true;
@@ -95,6 +97,7 @@ public static class BlockEncyclopediaECS {
 		BlockEncyclopediaECS.blockLuminosity.Dispose();
 		BlockEncyclopediaECS.objectLuminosity.Dispose();
 		BlockEncyclopediaECS.blockDrawLiquid.Dispose();
+		BlockEncyclopediaECS.blockLiquid.Dispose();
 		BlockEncyclopediaECS.blockAffectLight.Dispose();
 		BlockEncyclopediaECS.objectAffectLight.Dispose();
 

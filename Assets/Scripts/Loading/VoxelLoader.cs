@@ -139,6 +139,7 @@ public class VoxelLoader : BaseLoader {
             BlockEncyclopediaECS.blockAffectLight[i] = blockBook[i].affectLight;
             BlockEncyclopediaECS.blockLuminosity[i] = blockBook[i].luminosity;
             BlockEncyclopediaECS.blockDrawLiquid[i] = blockBook[i].drawLiquid;
+            BlockEncyclopediaECS.blockLiquid[i] = blockBook[i].liquid;
         }
 
         // Loads all object meshes

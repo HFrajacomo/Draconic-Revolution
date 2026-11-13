@@ -10,6 +10,9 @@ Slices are read in order, so the mesh is the same as building the chunk in a sin
 */
 [BurstCompile]
 public struct MergeChunkMeshJob : IJob{
+	// How far liquid faces touching a non-liquid transparent block are pulled into the liquid
+	private const float LIQUID_INSET = 0.004f;
+
 	[ReadOnly]
 	public ChunkPos pos;
 	[ReadOnly]
@@ -122,6 +125,14 @@ public struct MergeChunkMeshJob : IJob{
 		if(renderThread == ShaderIndex.OPAQUE || renderThread == ShaderIndex.ICE)
 			colliderFaces.Set(dir*Chunk.chunkWidth*Chunk.chunkWidth*Chunk.chunkDepth + x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z, true);
 
+		CalculateNormal(cacheCubeNormal, dir);
+
+		// Pulled against its normal, into the liquid, so it doesn't z-fight with the face of the transparent block it touches
+		if(record.inset){
+			for(int i=0; i < 4; i++)
+				cacheCubeVert[i] = cacheCubeVert[i] - cacheCubeNormal[i]*LIQUID_INSET;
+		}
+
 		verts.AddRange(cacheCubeVert);
 		int vCount = verts.Length;
 
@@ -131,7 +142,6 @@ public struct MergeChunkMeshJob : IJob{
 			extraUV[i] = new Vector3(MeshRecord.Unpack(record.natural, i), MeshRecord.Unpack(record.extra, i), record.dampness);
 		lightUV.AddRange(extraUV);
 
-		CalculateNormal(cacheCubeNormal, dir);
 		normals.AddRange(cacheCubeNormal);
 
 		CalculateTangent(cacheCubeTangent, dir);

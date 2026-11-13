@@ -208,6 +208,7 @@ public class ChunkBuildSlot{
 			blockWashable = BlockEncyclopediaECS.blockWashable,
 			objectWashable = BlockEncyclopediaECS.objectWashable,
 			blockDrawLiquid = BlockEncyclopediaECS.blockDrawLiquid,
+			blockLiquid = BlockEncyclopediaECS.blockLiquid,
 			blockHP = BlockEncyclopediaECS.blockHP,
 			objectHP = BlockEncyclopediaECS.objectHP
 		};

@@ -63,6 +63,8 @@ public struct BuildChunkJob : IJobParallelFor{
 	[ReadOnly]
 	public NativeArray<bool> blockDrawLiquid;
 	[ReadOnly]
+	public NativeArray<bool> blockLiquid;
+	[ReadOnly]
 	public NativeArray<ushort> blockHP;
 	[ReadOnly]
 	public NativeArray<ushort> objectHP;
@@ -158,7 +160,7 @@ public struct BuildChunkJob : IJobParallelFor{
 					    		if(isABlock){
 						    		if(blockSeamless[thisBlock]){
 						    			if(!CheckSeams(thisBlock, neighborBlock, thisState, neighborState)){
-						    				WriteFace(x, y, z, i, thisBlock, y == Chunk.chunkDepth & isSurfaceChunk, false);
+						    				WriteFace(x, y, z, i, thisBlock, y == Chunk.chunkDepth & isSurfaceChunk, false, inset:blockLiquid[thisBlock] && neighborBlock != 0 && blockTransparent[neighborBlock] && !blockLiquid[neighborBlock]);
 						    			}
 						    		}
 						    	}
@@ -245,7 +247,8 @@ public struct BuildChunkJob : IJobParallelFor{
 				    			}
 			    			}
 
-						    WriteFace(c.x, c.y, c.z, ii, neighborBlock, y == Chunk.chunkDepth & isSurfaceChunk, false);
+						    // Liquid faces touching another transparent block are inset, or both faces would share the plane and z-fight
+						    WriteFace(c.x, c.y, c.z, ii, neighborBlock, y == Chunk.chunkDepth & isSurfaceChunk, false, inset:blockLiquid[neighborBlock] && thisBlock != 0 && thisBlock <= ushort.MaxValue/2 && !blockLiquid[thisBlock]);
 
 				    		if(neighborBlock <= ushort.MaxValue/2){
 				    			if(neighborHP == 0 || neighborHP == ushort.MaxValue || neighborHP == blockHP[neighborBlock])
@@ -395,7 +398,7 @@ public struct BuildChunkJob : IJobParallelFor{
     }
 
     // Writes the record of a face. Faces of Objects become Object records, since Objects are added by PrepareAssetsJob
-    private void WriteFace(int x, int y, int z, int dir, ushort blockCode, bool isSurfaceBlock, bool isObject){
+    private void WriteFace(int x, int y, int z, int dir, ushort blockCode, bool isSurfaceBlock, bool isObject, bool inset=false){
     	MeshRecord record = new MeshRecord();
     	ShaderIndex renderThread;
     	int4 natural, extra;
@@ -413,6 +416,7 @@ public struct BuildChunkJob : IJobParallelFor{
     	record.block = blockCode;
     	record.material = (byte)renderThread;
     	record.isObject = isObject;
+    	record.inset = inset;
 
     	if(renderThread == ShaderIndex.ASSETS || renderThread == ShaderIndex.ASSETS_SOLID){
     		record.kind = MeshRecord.OBJECT;

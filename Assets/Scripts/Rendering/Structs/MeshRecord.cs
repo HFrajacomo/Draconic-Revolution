@@ -14,6 +14,7 @@ public struct MeshRecord{
 	public byte dampness;
 	public byte decal; // Decal stage of decals
 	public bool isObject; // Records of the same Object are only used once
+	public bool inset; // Liquid face touching a non-liquid transparent block, pulled into the liquid so both faces don't share a plane
 	public ushort block;
 	public ushort natural; // Natural light of the 4 face corners, 4 bits each
 	public ushort extra; // Extra light of the 4 face corners, 4 bits each
