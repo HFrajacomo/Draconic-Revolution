@@ -49,6 +49,11 @@ public class WorldGenerator
     private NativeArray<byte> patchMap;
     private NativeArray<byte> caveMap;
     private NativeArray<byte> maskMap;
+    private NativeArray<byte> blendMap;
+
+    // Biome borders of the chunk whose structures are being generated
+    private BiomeNeighborhood structureNeighborhood;
+    private bool blendStructures = false;
 
     // Decoration Blocks
     private NativeArray<ushort> decorationSurfaceBlock;
@@ -59,24 +64,13 @@ public class WorldGenerator
     private NativeParallelHashSet<ushort> caveFreeBlocks;
     private ushort[] caveFreeBlocksArray = new ushort[]{VoxelLoader.GetBlockID("BASE_Water"), VoxelLoader.GetBlockID("BASE_Lava")};
 
-    // Biome Blending Map
-    private NativeArray<ushort> biomeBlendingBlock;
-
 
     public WorldGenerator(int worldSeed, BiomeHandler biomeReference, ChunkLoader_Server reference){
     	this.worldSeed = worldSeed;
     	this.biomeHandler = biomeReference;
     	this.cl = reference;
 
-        baseMap = new NativeArray<byte>(GenerationSeed.baseNoise, Allocator.Persistent);
-        erosionMap = new NativeArray<byte>(GenerationSeed.erosionNoise, Allocator.Persistent);
-        peakMap = new NativeArray<byte>(GenerationSeed.peakNoise, Allocator.Persistent);
-        temperatureMap = new NativeArray<byte>(GenerationSeed.temperatureNoise, Allocator.Persistent);
-        humidityMap = new NativeArray<byte>(GenerationSeed.humidityNoise, Allocator.Persistent);
-        patchMap = new NativeArray<byte>(GenerationSeed.patchNoise, Allocator.Persistent);
-        caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
-        maskMap = new NativeArray<byte>(GenerationSeed.cavemaskNoise, Allocator.Persistent);
-
+        CreateNoiseMaps();
         SetupDecorationBlocks();
 
         caveFreeBlocks = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
@@ -87,6 +81,15 @@ public class WorldGenerator
     public WorldGenerator(int seed){
         this.worldSeed = seed;
 
+        CreateNoiseMaps();
+        SetupDecorationBlocks();
+
+        caveFreeBlocks = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
+        FillCaveFreeBlocks();
+        SetupGeneration();
+    }
+
+    private void CreateNoiseMaps(){
         baseMap = new NativeArray<byte>(GenerationSeed.baseNoise, Allocator.Persistent);
         erosionMap = new NativeArray<byte>(GenerationSeed.erosionNoise, Allocator.Persistent);
         peakMap = new NativeArray<byte>(GenerationSeed.peakNoise, Allocator.Persistent);
@@ -95,12 +98,7 @@ public class WorldGenerator
         patchMap = new NativeArray<byte>(GenerationSeed.patchNoise, Allocator.Persistent);
         caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
         maskMap = new NativeArray<byte>(GenerationSeed.cavemaskNoise, Allocator.Persistent);
-
-        SetupDecorationBlocks();
-
-        caveFreeBlocks = new NativeParallelHashSet<ushort>(0, Allocator.Persistent);
-        FillCaveFreeBlocks();
-        SetupGeneration();
+        blendMap = new NativeArray<byte>(GenerationSeed.blendNoise, Allocator.Persistent);
     }
 
     private void SetupGeneration(){
@@ -130,13 +128,6 @@ public class WorldGenerator
             VoxelLoader.GetBlockID("BASE_Ice"), VoxelLoader.GetBlockID("BASE_Snow")}, Allocator.Persistent);
     }
 
-    public void SetBiomeBlending(ushort[] blendingArray){
-        if(this.biomeBlendingBlock.IsCreated)
-            this.biomeBlendingBlock.Dispose();
-
-        this.biomeBlendingBlock = new NativeArray<ushort>(blendingArray, Allocator.Persistent);
-    }
-
     public void FillCaveFreeBlocks(){
         foreach(ushort block in this.caveFreeBlocksArray){
             this.caveFreeBlocks.Add(block);
@@ -159,9 +150,7 @@ public class WorldGenerator
         this.patchMap.Dispose();
         this.caveMap.Dispose();
         this.maskMap.Dispose();
-
-        if(this.biomeBlendingBlock.IsCreated)
-            this.biomeBlendingBlock.Dispose();
+        this.blendMap.Dispose();
 
         this.decorationHellBlock.Dispose();
         this.decorationSurfaceBlock.Dispose();
@@ -206,6 +195,10 @@ public class WorldGenerator
 
                 x = this.rng.Next(0, Chunk.chunkWidth);
                 z = this.rng.Next(0, Chunk.chunkWidth);
+
+                // Surface structures only spawn in columns of the chunk's biome, since blended borders may give columns a neighbor's blocks
+                if(hardSetDepth < 0 && !IsColumnOfBiome(pos, x, z, biome))
+                    continue;
 
                 if(hardSetDepth < 0)
                     y = (int)cacheHeightMap[x*(Chunk.chunkWidth+1)+z] - depth;
@@ -267,6 +260,14 @@ public class WorldGenerator
         }
     }
 
+    // Whether a column of the chunk being finished has the given biome. Only Surface and Hell blend their biome borders
+    private bool IsColumnOfBiome(ChunkPos pos, int x, int z, BiomeCode biome){
+        if(!this.blendStructures)
+            return true;
+
+        return BiomeBlend.GetColumnBiome(pos.x*Chunk.chunkWidth+x, pos.z*Chunk.chunkWidth+z, pos, in this.structureNeighborhood, this.blendMap) == (byte)biome;
+    }
+
     /*
     Schedules the generation jobs of a chunk into a slot. Pre-generated chunks must have their data loaded.
     Biomes are assigned before scheduling, since they don't depend on the generated voxels
@@ -308,6 +309,8 @@ public class WorldGenerator
         chunk.biome = slot.biome;
 
         this.iteration = 0;
+        this.structureNeighborhood = slot.neighborhood;
+        this.blendStructures = chunk.pos.y == (int)ChunkDepthID.SURFACE || chunk.pos.y == (int)ChunkDepthID.HELL;
         GenerateBiomeStructures(chunk.pos, (BiomeCode)slot.biome, blocks, states, hps);
         RunGenerationEvents(chunk.pos, blocks, states, hps);
 
@@ -364,9 +367,27 @@ public class WorldGenerator
         return biome;
     }
 
+    // Biomes of the 3x3 chunks around a chunk position
+    private BiomeNeighborhood GetNeighborhood(ChunkPos pos, ChunkDepthID layer){
+        BiomeNeighborhood n = new BiomeNeighborhood();
+
+        n.xmzm = GetBiome(pos.x-1, pos.z-1, layer);
+        n.xmz = GetBiome(pos.x-1, pos.z, layer);
+        n.xmzp = GetBiome(pos.x-1, pos.z+1, layer);
+        n.xzm = GetBiome(pos.x, pos.z-1, layer);
+        n.xz = GetBiome(pos.x, pos.z, layer);
+        n.xzp = GetBiome(pos.x, pos.z+1, layer);
+        n.xpzm = GetBiome(pos.x+1, pos.z-1, layer);
+        n.xpz = GetBiome(pos.x+1, pos.z, layer);
+        n.xpzp = GetBiome(pos.x+1, pos.z+1, layer);
+
+        return n;
+    }
+
     // Generates a Surface Chunk
     private void ScheduleSurfaceChunk(GenerationSlot slot, ChunkPos pos, bool isPregen){
         slot.biome = GetBiome(pos.x, pos.z, ChunkDepthID.SURFACE);
+        slot.neighborhood = GetNeighborhood(pos, ChunkDepthID.SURFACE);
 
         GenerateSurfaceChunkJob gcj = new GenerateSurfaceChunkJob{
             chunkX = pos.x,
@@ -386,16 +407,10 @@ public class WorldGenerator
             heightMap = slot.heightMap,
             blockData = slot.voxels,
             patchNoise = patchMap,
+            blendNoise = blendMap,
             pos = pos,
-            blendingBlock = biomeBlendingBlock,
-            biome = slot.biome,
-            decorationBlock = this.decorationSurfaceBlock,
-            xpBiome = GetBiome(pos.x+1, pos.z, ChunkDepthID.SURFACE),
-            zpBiome = GetBiome(pos.x, pos.z+1, ChunkDepthID.SURFACE),
-            zmBiome = GetBiome(pos.x, pos.z-1, ChunkDepthID.SURFACE),
-            xzpBiome = GetBiome(pos.x+1, pos.z+1, ChunkDepthID.SURFACE),
-            xpzmBiome = GetBiome(pos.x+1, pos.z-1, ChunkDepthID.SURFACE),
-            xmzpBiome = GetBiome(pos.x-1, pos.z+1, ChunkDepthID.SURFACE)
+            biomes = slot.neighborhood,
+            decorationBlock = this.decorationSurfaceBlock
         };
         job = pcj.Schedule(job);
 
@@ -446,6 +461,7 @@ public class WorldGenerator
     // Generates chunks for the Hell Layer
     private void ScheduleHellChunk(GenerationSlot slot, ChunkPos pos, bool isPregen){
         slot.biome = GetBiome(pos.x, pos.z, ChunkDepthID.HELL);
+        slot.neighborhood = GetNeighborhood(pos, ChunkDepthID.HELL);
 
         GenerateHellChunkJob ghcj = new GenerateHellChunkJob{
             pos = pos,
@@ -472,16 +488,8 @@ public class WorldGenerator
             heightMap = slot.heightMap,
             ceilingMap = slot.auxMap,
             patchNoise = patchMap,
-            biome = slot.biome,
-            blendingBlock = biomeBlendingBlock,
-            xmBiome = GetBiome(pos.x-1, pos.z, ChunkDepthID.HELL),
-            xpBiome = GetBiome(pos.x+1, pos.z, ChunkDepthID.HELL),
-            zmBiome = GetBiome(pos.x, pos.z-1, ChunkDepthID.HELL),
-            zpBiome = GetBiome(pos.x, pos.z+1, ChunkDepthID.HELL),
-            xmzmBiome = GetBiome(pos.x-1, pos.z-1, ChunkDepthID.HELL),
-            xmzpBiome = GetBiome(pos.x-1, pos.z+1, ChunkDepthID.HELL),
-            xpzmBiome = GetBiome(pos.x+1, pos.z-1, ChunkDepthID.HELL),
-            xpzpBiome = GetBiome(pos.x+1, pos.z+1, ChunkDepthID.HELL),
+            blendNoise = blendMap,
+            biomes = slot.neighborhood,
             decorationBlock = this.decorationHellBlock
         };
         job = phcj.Schedule(Chunk.chunkWidth, 4, job);

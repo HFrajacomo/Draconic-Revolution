@@ -29,7 +29,7 @@ Okay, we have procedurally generated numbers now. What is next?
 **Noise Maps**, of course!
 
 We can consistently generate noise fields to generate and mix different terrain traits!
-We have a total of 8 Noise Maps:
+We have a total of 9 Noise Maps:
 
  1. Base Map (a.k.a. base height map)
  2. Erosion Map
@@ -39,6 +39,7 @@ We have a total of 8 Noise Maps:
  6. Patch Map
  7. Cave Map
  8. Cave Mask Map
+ 9. Blend Map
 
 ### The Surface
 To generate the surface terrain, **Base, Erosion** and **Peaks** maps are used. High base values make the terrain higher or lower. Higher erosion makes the terrain more flat and lower, while low erosion makes it higher and more prone to microchanges. High peak values make sudden high lands and low peak values dig out water ways like rivers.
@@ -69,6 +70,14 @@ Noise Maps are 2D, but the caves are dug in a 3D fashion. It works nicely becaus
 
 ### The Structures
 For that, the **Patch** Map is used. Its idea is to be the noise that defines where structures and mini-structures should be placed around the chunks.
+
+### Biome Borders
+Biomes are assigned per chunk, so their borders would be straight lines following the chunk grid. The **Blend** Map hides that grid (see `BiomeBlend`):
+
+ 1. **Warp:** before deciding which biome a block column belongs to, its position is moved by a smooth, low frequency offset of up to half a chunk (8 blocks). Borders become wide curves that wander into both biomes. The offset changes slower than the position, so the warp never folds into thin slivers or small islands.
+ 2. **Membership:** the warped point weights the biomes of the 4 nearest chunk centers by how close it is to each, and takes the strongest one. Where only 2 biomes meet, the border is the (warped) chunk edge, but where 3 or 4 biomes meet, the corners become rounded instead of square.
+
+Only the 3x3 chunks around a column are ever looked at, and the result only depends on world coordinates, the seed and the chunk biomes, so neighbor chunks always agree no matter which one is generated first.
 
 ## Spline Interpolation
 In order to make the terrain more interesting and have more variation and more *controlled* variation, spline interpolation was chosen to modify the Noise Maps. So now, every Noise Field has a Spline Interpolated function that defines how the values are spread in the Field, basically shaping the Noise Map to have whatever distribution we want.
@@ -104,9 +113,9 @@ When we are generating a chunk, every biome has a set of layers that it needs. A
 
 So the first step is to generate the terrain using only stone and air blocks.
 
-After it has been done, we add Surface Decoration to it. Surface decoration is any base surface block that populates a biome. 
+After it has been done, we add Surface Decoration to it. Surface decoration is any base surface block that populates a biome. Every column is decorated by its own blended biome (see *Biome Borders*), so the whole layer stack changes together: when a desert reaches into a plains chunk, both its sand and the sandstone below it come along. That's what smooths out the biome transitions on the Surface and in Hell. In Hell, only the rock decoration blends: lava is still decided per chunk, so lava lakes don't get walls where a column without lava meets them.
 
-After that, we apply biome blending to biome borders. For example, whenever we have a transition between plains and desert, some sand blocks will get into the plains biome side and some grass will get into the desert biome. That's a way of smoothing out the biome transition.
+Structures that sit on the surface (like trees) only spawn in columns that have their chunk's biome, so a forest's trees don't grow on sand that a desert pushed into it.
 
 After that, water is applied at sea level and caves are dug out.
 

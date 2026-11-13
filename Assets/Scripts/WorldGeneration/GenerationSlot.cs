@@ -19,6 +19,7 @@ public class GenerationSlot{
 	public JobHandle handle;
 	public Chunk chunk;
 	public byte biome;
+	public BiomeNeighborhood neighborhood; // Biomes around the chunk, used to blend biome borders (Surface and Hell)
 	public bool isActive = false;
 
 

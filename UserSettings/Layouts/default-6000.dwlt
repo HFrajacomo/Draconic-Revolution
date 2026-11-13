@@ -247,8 +247,8 @@ MonoBehaviour:
     y: 0
     width: 365
     height: 699
-  m_MinSize: {x: 275, y: 50}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 276, y: 76}
+  m_MaxSize: {x: 4001, y: 4026}
   m_ActualView: {fileID: 18}
   m_Panes:
   - {fileID: 18}
@@ -3625,7 +3625,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 79
+    y: 24
     width: 340
     height: 673
   m_SerializedDataModeController:
@@ -3642,7 +3642,7 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: 62020000
+      m_SelectedIDs: 
       m_LastClickedID: 0
       m_ExpandedIDs: 04edffff3ef0ffff46f3ffff4ef3ffff
       m_RenameOverlay:
@@ -4285,7 +4285,7 @@ MonoBehaviour:
   m_Rotation:
     m_Target: {x: 0.27260205, y: 0.09597547, z: -0.02728093, w: 0.9569833}
     speed: 2
-    m_Value: {x: 0.27259055, y: 0.09597142, z: -0.02727978, w: 0.9569429}
+    m_Value: {x: -0.27260208, y: -0.09597548, z: 0.027280932, w: -0.9569833}
   m_Size:
     m_Target: 0.71527207
     speed: 2
@@ -4342,8 +4342,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Game\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 341
-    y: 79
+    x: 342
+    y: 24
     width: 1212
     height: 673
   m_SerializedDataModeController:
@@ -4443,8 +4443,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Inspector\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1555
-    y: 79
+    x: 1556
+    y: 24
     width: 364
     height: 673
   m_SerializedDataModeController:
@@ -4494,7 +4494,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 778
+    y: 723
     width: 1920
     height: 208
   m_SerializedDataModeController:
@@ -4538,7 +4538,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 236}
     m_SelectedIDs: d05d0100
     m_LastClickedID: 89552
-    m_ExpandedIDs: 000000004aac00004cac00004eac000054ac0000ba5d010000ca9a3b
+    m_ExpandedIDs: 0000000052ac000054ac000056ac000058ac00005aac0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -4567,7 +4567,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 000000004aac00004cac00004eac000050ac000052ac000054ac0000
+    m_ExpandedIDs: 0000000052ac000054ac000056ac000058ac00005aac0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
