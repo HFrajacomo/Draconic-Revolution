@@ -17,10 +17,7 @@ public class CharacterBuilderMenu{
 	// Hairline
 	private HairlinePlane hairlinePlane = new HairlinePlane(Vector3.zero, Vector3.zero, false);
 
-	private static Dictionary<string, int> BONE_MAP;
-
 	// Settings
-	private static readonly int ROOT_BONE_INDEX = 0;
 	private static readonly string ARMATURE_NAME = "CharacterArmature";
 	private static readonly Vector3 POS_1 = Vector3.zero;
 	private static readonly Vector3 ROT_1 = new Vector3(270, 180, 20);
@@ -133,11 +130,8 @@ public class CharacterBuilderMenu{
 
 		SkinnedMeshRenderer current = obj.GetComponent<SkinnedMeshRenderer>();
 
-		if(BONE_MAP == null){
-			SetBoneMap(current.bones);
-		}
-
-		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
+		// Each part keeps its own mesh and bind poses, so its bones are matched by its own bone names
+		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, CharacterSkeleton.BuildMap(current.bones));
 
 		#if UNITY_EDITOR
 			if(boneRenderer.transforms == null)
@@ -161,7 +155,7 @@ public class CharacterBuilderMenu{
 
 		mesh.name = current.sharedMesh.name;
 		current.sharedMesh = mesh;
-		current.rootBone = newBones[ROOT_BONE_INDEX];
+		current.rootBone = this.rootBone;
 		current.bones = newBones;
 
 		// Handling hat mesh and saving of the hairline plane
@@ -367,11 +361,8 @@ public class CharacterBuilderMenu{
 
 		SkinnedMeshRenderer current = obj.GetComponent<SkinnedMeshRenderer>();
 
-		if(BONE_MAP == null){
-			SetBoneMap(current.bones);
-		}
-
-		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
+		// Each part keeps its own mesh and bind poses, so its bones are matched by its own bone names
+		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, CharacterSkeleton.BuildMap(current.bones));
 
 		#if UNITY_EDITOR
 			if(boneRenderer.transforms == null)
@@ -383,7 +374,7 @@ public class CharacterBuilderMenu{
 		obj.name = "HEAD";
 		mesh.name = current.sharedMesh.name;
 		current.sharedMesh = mesh;
-		current.rootBone = newBones[ROOT_BONE_INDEX];
+		current.rootBone = this.rootBone;
 		current.bones = newBones;
 
 		this.bodyParts[ModelType.ESSENTIAL] = obj;
@@ -427,11 +418,8 @@ public class CharacterBuilderMenu{
 
 		SkinnedMeshRenderer current = obj.GetComponent<SkinnedMeshRenderer>();
 
-		if(BONE_MAP == null){
-			SetBoneMap(current.bones);
-		}
-
-		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, BONE_MAP);
+		// Each part keeps its own mesh and bind poses, so its bones are matched by its own bone names
+		Transform[] newBones = ModelHandler.GetArmatureBones(this.armature.transform, CharacterSkeleton.BuildMap(current.bones));
 
 		#if UNITY_EDITOR
 			if(boneRenderer.transforms == null)
@@ -443,7 +431,7 @@ public class CharacterBuilderMenu{
 		obj.name = "ADDON";
 		mesh.name = current.sharedMesh.name;
 		current.sharedMesh = mesh;
-		current.rootBone = newBones[ROOT_BONE_INDEX];
+		current.rootBone = this.rootBone;
 		current.bones = newBones;
 
 		this.bodyParts[ModelType.ADDON] = obj;
@@ -493,14 +481,6 @@ public class CharacterBuilderMenu{
 
 		foreach(ModelType type in this.bodyPartName.Keys){
 			Add(type, ModelHandler.GetModelObject(type, this.bodyPartName[type]), this.bodyPartName[type], isReload:true);
-		}
-	}
-
-	private void SetBoneMap(Transform[] prefabBones){
-		BONE_MAP = new Dictionary<string, int>();
-
-		for(int i=0; i < prefabBones.Length; i++){
-			BONE_MAP.Add(prefabBones[i].name, i);
 		}
 	}
 

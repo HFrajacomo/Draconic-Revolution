@@ -48,8 +48,12 @@ public class CharacterBuilder{
 	private List<BoneWeight> cachedBW = new List<BoneWeight>();
 
 	// Statics
-	private static Dictionary<string, int> BONE_MAP;
 	private static GameObject EMPTY_OBJECT_PREFAB;
+
+	// Bind poses of the combined mesh in CharacterSkeleton order, filled by the parts that use each bone
+	private Matrix4x4[] combinedBindposes;
+	private bool[] hasBindpose;
+	private List<Matrix4x4> cachedBindposes = new List<Matrix4x4>();
 
 	// Materials
 	private static Material plainClothingMaterial;
@@ -58,7 +62,6 @@ public class CharacterBuilder{
 	private static Material dragonHornMaterial;
 
 	// Settings
-	private static readonly int ROOT_BONE_INDEX = 0;
 	private static readonly Vector3 POS_1 = new Vector3(0f, 0f, 0f);
 	private static readonly Quaternion ROT_1 = Quaternion.Euler(new Vector3(270, 0, 0));
 	private static readonly Vector3 SCL_1 = new Vector3(100f, 100f, 100f);
@@ -146,10 +149,10 @@ public class CharacterBuilder{
 		combinedMesh.name = "PlayerMesh";
 		char hatCover = ModelHandler.GetHatCover(ModelType.HEADGEAR, this.appearance.hat.GetFullName(ModelType.HEADGEAR));
 
+		ResetBindposes();
+
 		// Hat
 		modelRenderer = ModelHandler.GetModelByCode(ModelType.HEADGEAR, this.appearance.hat.code).GetComponent<SkinnedMeshRenderer>();
-		SetBoneMap(modelRenderer.bones);
-        combinedMesh.bindposes = modelRenderer.sharedMesh.bindposes;
 		SetHairline(modelRenderer.sharedMesh);
 		SaveShapeKeys(modelRenderer.sharedMesh);
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.HEADGEAR, ModelHandler.IsDoubleSided(ModelType.HEADGEAR, this.appearance.hat.code));
@@ -200,22 +203,27 @@ public class CharacterBuilder{
         AddGeometryToMesh(modelRenderer.sharedMesh, modelRenderer, this.appearance, ModelType.ESSENTIAL, ModelHandler.IsDoubleSided(ModelType.ESSENTIAL, GetEssentialName(this.isMale)));
         GameObject.Destroy(modelRenderer.gameObject);
 
-		Transform[] newBonesTP = ModelHandler.GetArmatureBones(this.tpArmature.transform, BONE_MAP);
+		combinedMesh.bindposes = this.combinedBindposes;
+
+		Transform[] newBonesTP = ModelHandler.GetArmatureBones(this.tpArmature.transform, CharacterSkeleton.GetBoneMap());
 		#if UNITY_EDITOR
 			if(boneRenderer.transforms == null)
 				boneRenderer.transforms = newBonesTP;
 		#endif
 
         // First Person Model
+        // The torso mesh is used as is, so its bones are matched by its own bone names and keep its own bind poses
         if(this.isPlayer){
-    		Transform[] newBonesFP = ModelHandler.GetArmatureBones(this.fpArmature.transform, BONE_MAP);
     		Bounds bounds = this.fpRenderer.localBounds;
     		bounds.Expand(Vector3.one);
 
         	modelRenderer = ModelHandler.GetModelByCode(ModelType.CLOTHES, this.appearance.torso.code).GetComponent<SkinnedMeshRenderer>();
+        	Transform[] newBonesFP = ModelHandler.GetArmatureBones(this.fpArmature.transform, CharacterSkeleton.BuildMap(modelRenderer.bones));
+        	Transform rootFP = ModelHandler.GetArmatureBones(this.fpArmature.transform, CharacterSkeleton.GetBoneMap())[CharacterSkeleton.GetRootIndex()];
+
         	this.fpRenderer.sharedMesh = modelRenderer.sharedMesh;
         	GameObject.Destroy(modelRenderer.gameObject);
-        	this.fpRenderer.rootBone = newBonesFP[ROOT_BONE_INDEX];
+        	this.fpRenderer.rootBone = rootFP;
         	this.fpRenderer.bones = newBonesFP;
 
 			for(int i=0; i < this.fpRenderer.sharedMesh.subMeshCount; i++){
@@ -230,7 +238,7 @@ public class CharacterBuilder{
 		BuildMesh(combinedMesh);
 
 		this.tpRenderer.sharedMesh = combinedMesh;
-		this.tpRenderer.rootBone = newBonesTP[ROOT_BONE_INDEX];
+		this.tpRenderer.rootBone = newBonesTP[CharacterSkeleton.GetRootIndex()];
 		this.tpRenderer.bones = newBonesTP;
 		this.tpRenderer.materials = this.meshMat.ToArray();
 		this.tpRenderer.gameObject.AddComponent<ShapeKeyAnimator>();
@@ -282,6 +290,7 @@ public class CharacterBuilder{
 		newMesh.GetTangents(this.cachedTangent);
 		this.meshTangent.AddRange(this.cachedTangent);
 		newMesh.GetBoneWeights(this.cachedBW);
+		RemapBoneWeights(newMesh, rend);
 		this.meshBoneWeights.AddRange(this.cachedBW);
 
 		// Removes hairline submesh
@@ -411,13 +420,45 @@ public class CharacterBuilder{
 		}
 	}
 
-	private void SetBoneMap(Transform[] prefabBones){
-		if(BONE_MAP == null){
-			BONE_MAP = new Dictionary<string, int>();
+	private void ResetBindposes(){
+		int count = CharacterSkeleton.GetBoneCount();
 
-			for(int i=0; i < prefabBones.Length; i++){
-				BONE_MAP.Add(prefabBones[i].name, i);
-			}
+		if(this.combinedBindposes == null || this.combinedBindposes.Length != count){
+			this.combinedBindposes = new Matrix4x4[count];
+			this.hasBindpose = new bool[count];
+		}
+
+		for(int i=0; i < count; i++){
+			this.combinedBindposes[i] = Matrix4x4.identity;
+			this.hasBindpose[i] = false;
+		}
+	}
+
+	/*
+	Moves the bone weights in cachedBW from the part's own bone order to CharacterSkeleton's order, and takes the bind poses of its bones
+		Every part must have been exported in the same rest pose (Editor Tools > Characters > Validate Models), so the first part with a bone provides its bind pose
+	*/
+	private void RemapBoneWeights(Mesh partMesh, SkinnedMeshRenderer rend){
+		int[] remap = CharacterSkeleton.GetRemap(rend.bones, partMesh.name);
+		BoneWeight bw;
+
+		partMesh.GetBindposes(this.cachedBindposes);
+
+		for(int i=0; i < remap.Length && i < this.cachedBindposes.Count; i++){
+			if(this.hasBindpose[remap[i]])
+				continue;
+
+			this.combinedBindposes[remap[i]] = this.cachedBindposes[i];
+			this.hasBindpose[remap[i]] = true;
+		}
+
+		for(int i=0; i < this.cachedBW.Count; i++){
+			bw = this.cachedBW[i];
+			bw.boneIndex0 = remap[bw.boneIndex0];
+			bw.boneIndex1 = remap[bw.boneIndex1];
+			bw.boneIndex2 = remap[bw.boneIndex2];
+			bw.boneIndex3 = remap[bw.boneIndex3];
+			this.cachedBW[i] = bw;
 		}
 	}
 
