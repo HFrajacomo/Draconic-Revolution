@@ -152,7 +152,7 @@ public class SFXLoader : MonoBehaviour
     */
     public void LoadBlockSFX(string name, ChunkPos pos, int x, int y, int z){
         CastCoord coord = new CastCoord(pos, x, y, z);
-        GameObject go = GameObject.Instantiate(prefab, new Vector3(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ()), Quaternion.identity);
+        GameObject go = GameObject.Instantiate(prefab, WorldOrigin.ToUnity(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ()), Quaternion.identity);
         go.transform.parent = prefabCategory.transform;
         AudioSource source = go.GetComponent<AudioSource>();
         EntityID id = new EntityID(EntityType.VOXEL, pos, (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z));

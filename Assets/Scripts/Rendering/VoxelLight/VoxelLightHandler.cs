@@ -82,6 +82,22 @@ public class VoxelLightHandler: MonoBehaviour {
 
 	public bool Contains(EntityID id){return this.lights.ContainsKey(id);}
 
+	// Lights are stored in Unity space, so they follow the world when the origin is shifted (see FloatingOrigin)
+	public void ShiftOrigin(Vector3 delta){
+		ShiftLights(this.priorityOrder, delta);
+		ShiftLights(this.normalOrder, delta);
+		this.dirty = true;
+	}
+
+	private void ShiftLights(List<EntityID> ids, Vector3 delta){
+		Vector4 light;
+
+		for(int i=0; i < ids.Count; i++){
+			light = this.lights[ids[i]];
+			this.lights[ids[i]] = new Vector4(light.x - delta.x, light.y - delta.y, light.z - delta.z, light.w);
+		}
+	}
+
 	public void Remove(EntityID id){
 		if(!this.lights.Remove(id))
 			return;

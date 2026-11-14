@@ -482,8 +482,8 @@ public class AmbientHandler : MonoBehaviour
             this.caveSampleTimer = CAVE_SAMPLE_INTERVAL;
 
             int level = Mathf.Max(
-                this.cl.GetLight(new CastCoord(this.playerPositionHandler.cameraTransform.position)),
-                this.cl.GetLight(new CastCoord(this.playerPositionHandler.GetPlayerMiddlePoint().position))
+                this.cl.GetLight(WorldOrigin.ToCastCoord(this.playerPositionHandler.cameraTransform.position)),
+                this.cl.GetLight(WorldOrigin.ToCastCoord(this.playerPositionHandler.GetPlayerMiddlePoint().position))
             );
 
             if(level >= 0)

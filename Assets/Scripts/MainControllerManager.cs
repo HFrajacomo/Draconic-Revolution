@@ -294,9 +294,10 @@ public class MainControllerManager : MonoBehaviour {
 
     public void DropItem(ItemStack its, byte hotbarSlot){
         Vector3 force = this.playerCamera.forward / 5f;
+        Vector3 origin = WorldOrigin.ToAbsolute(this.playerCamera.position);
 
         NetMessage message = new NetMessage(NetCode.DROPITEM);
-        message.DropItem(this.playerCamera.position.x, this.playerCamera.position.y, this.playerCamera.position.z, force.x, force.y, force.z, its.GetID(), its.GetAmount(), hotbarSlot);       
+        message.DropItem(origin.x, origin.y, origin.z, force.x, force.y, force.z, its.GetID(), its.GetAmount(), hotbarSlot);       
         this.cl.client.Send(message);
 
         if(hotbarSlot != byte.MaxValue){

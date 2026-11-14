@@ -170,6 +170,21 @@ public class RealtimeLightHandler : MonoBehaviour {
 			RemoveBlock(pos, chunk, GetBlockKey(x, y, z));
 	}
 
+	// Light positions are stored in Unity space, so they follow the world when the origin is shifted (see FloatingOrigin)
+	public void ShiftOrigin(Vector3 delta){
+		foreach(ChunkLights chunk in this.chunks.Values){
+			foreach(LightCell cell in chunk.cells.Values){
+				for(int i=0; i < cell.positions.Count; i++)
+					cell.positions[i] -= delta;
+
+				cell.Recalculate();
+			}
+		}
+
+		this.lastCameraPosition -= delta;
+		this.dirty = true;
+	}
+
 	// Unregisters every static light source in an unloaded chunk
 	public void RemoveChunk(ChunkPos pos){
 		ChunkLights chunk;

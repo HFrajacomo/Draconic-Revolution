@@ -72,8 +72,8 @@ public class EntityVoxelLight : MonoBehaviour{
 	// Takes the brightest of the block the entity is in and the one above it, since its pivot may touch the ground block
 	private bool Sample(){
 		Vector3 pos = this.transform.position + Vector3.up * SAMPLE_HEIGHT;
-		CastCoord lower = new CastCoord(pos);
-		CastCoord upper = new CastCoord(pos + Vector3.up);
+		CastCoord lower = WorldOrigin.ToCastCoord(pos);
+		CastCoord upper = WorldOrigin.ToCastCoord(pos + Vector3.up);
 
 		int naturalLevel = Mathf.Max(this.cl.GetLight(lower), this.cl.GetLight(upper));
 		int extraLevel = Mathf.Max(this.cl.GetLight(lower, isNatural:false), this.cl.GetLight(upper, isNatural:false));

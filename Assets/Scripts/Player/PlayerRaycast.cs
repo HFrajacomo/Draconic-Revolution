@@ -23,6 +23,7 @@ public class PlayerRaycast : MonoBehaviour
 
 	// Raycast Settings
 	public Transform cam;
+	// Unity space (see WorldOrigin). Block coordinates come from WorldOrigin.ToCastCoord
 	private Vector3 position;
 	private Vector3 direction;
 	public float reach = 4.0f;
@@ -65,8 +66,8 @@ public class PlayerRaycast : MonoBehaviour
 			return false;
 
 		// Updates player block position
-		this.playerHead = new CastCoord(cam.position);
-		this.playerBody = new CastCoord(cam.position);
+		this.playerHead = WorldOrigin.ToCastCoord(cam.position);
+		this.playerBody = WorldOrigin.ToCastCoord(cam.position);
 		this.playerBody.blockY -= 1;
 
 		float traveledDistance = 0f;
@@ -84,7 +85,7 @@ public class PlayerRaycast : MonoBehaviour
 		while(traveledDistance <= reach){
 			cachePos = cachePos + (direction*step);
 			traveledDistance += step;
-			current = new CastCoord(cachePos);
+			current = WorldOrigin.ToCastCoord(cachePos);
 			blockCode = loader.GetBlock(current);
 
 			if(alreadyVisited.Contains(current) && blockCode <= ushort.MaxValue/2){
@@ -171,7 +172,7 @@ public class PlayerRaycast : MonoBehaviour
 			else if(blockID > ushort.MaxValue/2){
 				CastCoord castedCoord;
 				if(Physics.Raycast(position, direction, out cachedHit, maxDistance:traveledDistance, layerMask:objectLayerMask)){
-					castedCoord = new CastCoord(cachedHit.point);
+					castedCoord = WorldOrigin.ToCastCoord(cachedHit.point);
 					if(CastCoord.Eq(coords, castedCoord)){
 						return true;
 					}
@@ -203,7 +204,7 @@ public class PlayerRaycast : MonoBehaviour
 		else if((ushort)blockID > ushort.MaxValue/2){
 			CastCoord castedCoord;
 			if(Physics.Raycast(position, direction, out cachedHit, maxDistance:traveledDistance, layerMask:objectLayerMask)){
-				castedCoord = new CastCoord(cachedHit.point);
+				castedCoord = WorldOrigin.ToCastCoord(cachedHit.point);
 				if(CastCoord.Eq(coords, castedCoord)){
 					return true;
 				}

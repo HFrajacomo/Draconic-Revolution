@@ -67,6 +67,8 @@ Since attachment switches and weapon effects come from the events of the owner's
 
 **Movement** is not sent right away. Moved players (`CLIENTPLAYERPOSITION`) and drops (`Server.MarkDropMoved`) are collected during the frame and sent in `LateTick` as a single `ENTITYUPDATES` message per client. Every entry keeps the timestamp of its movement, used by `SmoothMovement` for snapshot interpolation.
 
+**Positions** in every message and save file are absolute world coordinates. The client uses a Floating Origin (see Chunk_Renderer.md, Far from the World Origin), so it converts at the boundary: received positions go through `WorldOrigin.ToUnity` in `Client.cs` before reaching `EntityHandler` and `SmoothMovement`, and sent positions (`CLIENTPLAYERPOSITION`, `DROPITEM`) go through `WorldOrigin.ToAbsolute`. Chunk and block coordinates are always absolute.
+
 ## Chunk synchronization
 
 **Streaming:** see `ChunkStreamer`. Chunks are sent as `STREAMCHUNK` and acknowledged with `CHUNKACK`.

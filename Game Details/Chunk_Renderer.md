@@ -111,9 +111,33 @@ Positions have their own stream, so depth and shadow passes only read 12 bytes p
 
 ## Far from the World Origin
 
-Floats lose precision as numbers grow: a world position at 1000 only has steps of about 0.00006 units, and every doubling of the distance doubles the step. HDRP's Camera Relative Rendering (on in `LocalPackages/com.unity.render-pipelines.high-definition-config`) keeps the world itself stable, but anything that does math with **absolute** positions doesn't get that protection:
+Floats lose precision as numbers grow: a world position at 1000 only has steps of about 0.00006 units, and every doubling of the distance doubles the step. HDRP's Camera Relative Rendering (on in `LocalPackages/com.unity.render-pipelines.high-definition-config`) only helps the GPU. Transforms, bones, physics and every CPU position are still rounded at their absolute value, so models near the camera (like the first person arms, 0.5 units from the lens) shook by a few pixels at 10000 blocks and about 15 pixels at 100000.
 
- - **Vertex animation**: never multiply an absolute world position by time, because the result grows with both the distance and the session length. The Leaves wind calls `LeavesWindPhase` in `Assets/Scripts/Rendering/ShaderFunctions/LeavesWind.hlsl`: a wave that travels diagonally over XZ at `_Wind_Speed` units per second with `_Wind_Wavelength` units between gusts. Each vertex still has its own phase, but every term is wrapped with `frac` before being combined, so the sway looks the same at any distance and time. Its direction is fixed on purpose: following the global wind direction would multiply that direction by the absolute position again.
+### Floating Origin
+
+The client keeps the player near the Unity origin. Every GameObject is placed at `absolute position - WorldOrigin offset`, where the offset (`Assets/Scripts/Structs/WorldOrigin.cs`) only exists on X and Z and is always a multiple of `REBASE_DISTANCE` (1024), so block and chunk coordinates convert exactly. When the player gets 1024 blocks away from the current origin, `FloatingOrigin` moves the origin to the nearest multiple of 1024 and shifts the client world:
+
+ - Every root GameObject of the scene (except UI roots) is moved, so chunks, players, drops, effects, sounds, lights and the precipitation anchor keep their relative positions.
+ - World space particles are moved by hand. Local and Custom space particles follow their transforms.
+ - Unity positions cached outside of transforms are shifted through `ShiftOrigin` hooks: moving voxel lights (`VoxelLightHandler`), static realtime light cells (`RealtimeLightHandler`), remote entity snapshots (`SmoothMovement`) and placement predictions (`PlacementPredictor`).
+ - `Physics.SyncTransforms` runs so the CharacterController and the chunk colliders see the new positions, and the `_WorldOrigin` shader global is updated.
+
+The first origin is set as soon as the spawn position arrives (`Client.SendServerInfo`), before any chunk or entity exists. Each shift moves every chunk collider, so expect a short hitch every 512 to 1024 blocks of travel. HDRP history is not reset: everything moves together, so only a single frame of TAA loses its history.
+
+**The Server, every network message and every save file keep absolute coordinates.** The offset is always zero on the Server, so shared code is unaffected there. Client code must convert at the boundary:
+
+ - Absolute to Unity: `WorldOrigin.ToUnity` (chunk objects, spawn, received entity positions, block SFX and VFX, prediction cells).
+ - Unity to block coordinates: `WorldOrigin.ToCastCoord`, never `new CastCoord(transform.position)`. It rounds in double precision with the same rule as `CastCoord`, so it returns the same block the absolute position would.
+ - Unity to absolute (positions sent to the Server, the location HUD): `WorldOrigin.ToAbsolute`.
+ - Relative math (distances, directions, raycasts, light and camera positions passed to shaders) stays in Unity space and needs no conversion.
+
+A forgotten conversion shows up as something placed exactly 1024·n blocks off, or a wrong block target, after the first shift.
+
+Shaders get the Unity position from Shader Graph's "Absolute World" position. Lighting (`VoxelLightShade`) must keep using it, since every light and shader global is in Unity space. Patterns anchored to the world (Water, Lava and Ice noise, Leaves noise) go through `WorldPatternPosition` in `Assets/Scripts/Rendering/ShaderFunctions/WorldOrigin.hlsl`, which adds `_WorldOrigin` back so they don't jump when the origin is shifted. Use it for any new world-anchored pattern.
+
+### Other rules
+
+ - **Vertex animation**: never multiply an absolute world position by time, because the result grows with both the distance and the session length. The Leaves wind calls `LeavesWindPhase` in `Assets/Scripts/Rendering/ShaderFunctions/LeavesWind.hlsl`: a wave that travels diagonally over XZ at `_Wind_Speed` units per second with `_Wind_Wavelength` units between gusts. Each vertex still has its own phase, but every term is wrapped with `frac` before being combined (the floating origin as a term of its own), so the sway looks the same at any distance and time. Its direction is fixed on purpose: following the global wind direction would multiply that direction by the absolute position again.
  - **UI**: a Screen Space - Camera canvas is placed in the world in front of the camera every frame, so far from the origin its rounding jitters by a fraction of a pixel and TAA turns it into visible shaking. The in-game canvases (HUD and inventory) are **Screen Space - Overlay**, which is drawn in pixel space after post-processing. HDRP Unlit graphs don't render in Overlay, so every UI Shader Graph (`Assets/Shader/UI Shaders/`) uses the HDRP **Canvas** material with Disable Color Tint on, like Unlit, which ignored the Image color. The Canvas material declares `_MainTex`, `_Stencil*` and `_ColorMask` by itself, so don't add them to the graphs. UI materials must keep the Canvas defaults for them (`_ColorMask` 15, `_StencilComp` 8, `_StencilReadMask` 255): Unlit ignored these values, but the Canvas pass uses them, and a 0 makes the element invisible. UI Images must use these graphs or the default UI material, never HDRP Lit or Unlit materials. The Menu canvases stay Screen Space - Camera because the character creation canvas holds the 3D avatar and its lights, and the Menu camera sits next to the origin.
  - **Camera unprojection**: `Camera.ScreenPointToRay` and similar calls invert the absolute camera matrix, which fails far from the origin (Unity logs "Screen position out of view frustum"). Unity's legacy `OnMouse*` events do this for every camera every frame, so `MouseLook` sets the player camera's `eventMask` to 0 and `OnMouse*` callbacks don't work in the game. Aim with physics raycasts from the camera position and forward vector instead.
 

@@ -146,6 +146,7 @@ public class PlayerPositionHandler : MonoBehaviour
         return this.currentBiomeCode;
     }
 
+    // Unity position (see WorldOrigin). Use WorldOrigin.ToCastCoord to get its block
     public Vector3 GetPlayerWorldPosition(){
         return this.playerTransform.position;
     }
@@ -158,13 +159,13 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     private PlayerVoxelLocation CalculateVoxelLocation(){
-        CastCoord head = new CastCoord(cameraTransform.position);
-        CastCoord body = new CastCoord(playerTransform.position + BODY_OFFSET);
+        CastCoord head = WorldOrigin.ToCastCoord(cameraTransform.position);
+        CastCoord body = WorldOrigin.ToCastCoord(playerTransform.position + BODY_OFFSET);
         CastCoord feet;
         PlayerVoxelLocation newLocation;
 
         if(this.playerMovement.IsGrounded()){
-            feet = new CastCoord(playerTransform.position);
+            feet = WorldOrigin.ToCastCoord(playerTransform.position);
             newLocation = new PlayerVoxelLocation{
                 feet = this.cl.GetBlock(feet, errorZero:true),
                 body = this.cl.GetBlock(body, errorZero:true),
@@ -234,7 +235,7 @@ public class PlayerPositionHandler : MonoBehaviour
         if(this.cl.client == null)
             return;
 
-        coord = new CastCoord(playerTransform.position);
+        coord = WorldOrigin.ToCastCoord(playerTransform.position);
 
         ApplyBlockInteraction(CalculateVoxelLocation());
 
@@ -291,7 +292,8 @@ public class PlayerPositionHandler : MonoBehaviour
         // Keeps cadence without bursting after hitches
         this.sendTimer = Mathf.Min(this.sendTimer - SEND_INTERVAL, SEND_INTERVAL);
 
-        Vector3 pos = this.playerTransform.position;
+        // The Server only knows absolute coordinates. Comparing them keeps an origin shift from triggering a send
+        Vector3 pos = WorldOrigin.ToAbsolute(this.playerTransform.position);
         float yaw = this.playerTransform.eulerAngles.y;
         float pitch = this.cameraTransform.eulerAngles.x;
 
@@ -493,9 +495,9 @@ public class PlayerPositionHandler : MonoBehaviour
         }
     }
 
-    // Checks if something in the given position is within a chunk in render distance
+    // Checks if something in the given Unity position is within a chunk in render distance
     public bool IsInPlayerRenderDistance(Vector3 position){
-        ChunkPos pos = new CastCoord(position).GetChunkPos();
+        ChunkPos pos = WorldOrigin.ToCastCoord(position).GetChunkPos();
         ChunkPos playerPos = this.coord.GetChunkPos();
         int correctedRenderDistance = World.renderDistance;
 

@@ -52,7 +52,7 @@ public class PlacementPredictor{
 		prediction.obj = GetObject();
 		prediction.chunk = coord.GetChunkPos();
 		prediction.coord = coord;
-		prediction.cell = new Bounds(new Vector3(key.x, key.y, key.z), Vector3.one);
+		prediction.cell = new Bounds(WorldOrigin.ToUnity(key.x, key.y, key.z), Vector3.one);
 		prediction.creationTime = Time.unscaledTime;
 		prediction.confirmedSnapshot = UNCONFIRMED;
 
@@ -67,6 +67,12 @@ public class PlacementPredictor{
 	}
 
 	public bool Has(CastCoord coord){return this.predictions.ContainsKey(GetKey(coord));}
+
+	// Cells are in Unity space and their objects are moved with the world (see FloatingOrigin)
+	public void ShiftOrigin(Vector3 delta){
+		for(int i=0; i < this.order.Count; i++)
+			this.predictions[this.order[i]].cell.center -= delta;
+	}
 
 	// The Server denied the placement
 	public void Deny(ChunkPos pos, int x, int y, int z){

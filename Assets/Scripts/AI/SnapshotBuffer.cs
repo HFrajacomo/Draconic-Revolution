@@ -123,6 +123,18 @@ public class SnapshotBuffer {
 			this.clockOffset += (sample - this.clockOffset) * OFFSET_RISE_RATE;
 	}
 
+	// Snapshots are in Unity space, so they follow the world when the origin is shifted (see FloatingOrigin)
+	public void ShiftOrigin(Vector3 delta){
+		int index;
+
+		for(int i=0; i < this.count; i++){
+			index = (this.head + i) % CAPACITY;
+			this.snapshots[index].position -= delta;
+		}
+
+		this.lastApplied.position -= delta;
+	}
+
 	private EntitySnapshot Get(int index){
 		return this.snapshots[(this.head + index) % CAPACITY];
 	}

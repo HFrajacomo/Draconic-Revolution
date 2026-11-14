@@ -390,7 +390,8 @@ public class PlayerInventoryManager : MonoBehaviour {
         }
 
         NetMessage message = new NetMessage(NetCode.DROPITEM);
-        message.DropItem(this.mainControllerManager.playerCamera.position.x, this.mainControllerManager.playerCamera.position.y, this.mainControllerManager.playerCamera.position.z, force.x, force.y, force.z, its.GetID(), its.GetAmount(), slot);       
+        Vector3 origin = WorldOrigin.ToAbsolute(this.mainControllerManager.playerCamera.position);
+        message.DropItem(origin.x, origin.y, origin.z, force.x, force.y, force.z, its.GetID(), its.GetAmount(), slot);       
         this.cl.client.Send(message);
 
         SendInventoryDataToServer();

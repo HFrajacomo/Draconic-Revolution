@@ -6,6 +6,7 @@ using Unity.Mathematics;
 /*
 Smooths the movement of remote entities using Snapshot Interpolation
 	Every received position is buffered with its sender timestamp and entities are rendered slightly in the past (SnapshotBuffer.INTERPOLATION_DELAY)
+	Positions are received already converted to Unity space (see WorldOrigin), so interpolation keeps float precision far from the world origin
 */
 public class SmoothMovement {
 	private EntityHandler handler;
@@ -40,6 +41,14 @@ public class SmoothMovement {
 		else if(type == EntityType.DROP)
 			return this.items.Remove(id);
 		return false;
+	}
+
+	public void ShiftOrigin(Vector3 delta){
+		foreach(SnapshotBuffer buffer in this.players.Values)
+			buffer.ShiftOrigin(delta);
+
+		foreach(SnapshotBuffer buffer in this.items.Values)
+			buffer.ShiftOrigin(delta);
 	}
 
 	// Buffers a new position received from the Server. Rot is (pitch, yaw, roll) for players and ignored for drops

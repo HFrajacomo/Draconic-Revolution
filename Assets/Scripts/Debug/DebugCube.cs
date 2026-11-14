@@ -6,7 +6,7 @@ public static class DebugCube{
 
 	public static void Create(ChunkPos p, Color col, int offset=150, int scale=3){
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.transform.position = new Vector3(p.x*Chunk.chunkWidth+8, p.y*Chunk.chunkDepth+offset, p.z*Chunk.chunkWidth+8);
+        cube.transform.position = WorldOrigin.ToUnity(p.x*Chunk.chunkWidth+8, p.y*Chunk.chunkDepth+offset, p.z*Chunk.chunkWidth+8);
         cube.transform.localScale = new Vector3(scale, scale, scale);
         cube.GetComponent<Renderer>().material.color = col;
 

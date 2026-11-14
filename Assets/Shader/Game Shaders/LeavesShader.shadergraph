@@ -356,6 +356,9 @@
         },
         {
             "m_Id": "9239e06248e94d9f897a3cab5e431663"
+        },
+        {
+            "m_Id": "01e33d66d0db406b98d91d5c8e1d3f8a"
         }
     ],
     "m_GroupDatas": [
@@ -1228,9 +1231,9 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "992b8709efb2415d820c82fa2f20742d"
+                    "m_Id": "01e33d66d0db406b98d91d5c8e1d3f8a"
                 },
-                "m_SlotId": 0
+                "m_SlotId": 1
             },
             "m_InputSlot": {
                 "m_Node": {
@@ -1963,6 +1966,20 @@
             "m_InputSlot": {
                 "m_Node": {
                     "m_Id": "4f2797967c574c8ab6ee96576f11421f"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "992b8709efb2415d820c82fa2f20742d"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "01e33d66d0db406b98d91d5c8e1d3f8a"
                 },
                 "m_SlotId": 0
             }
@@ -13286,6 +13303,95 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.CustomFunctionNode",
+    "m_ObjectId": "01e33d66d0db406b98d91d5c8e1d3f8a",
+    "m_Group": {
+        "m_Id": "7975fca4aaca4824aaa3d158fc9025a6"
+    },
+    "m_Name": "WorldPatternPosition (Custom Function)",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -3640.0,
+            "y": -1909.0001220703125,
+            "width": 260.0,
+            "height": 94.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "7a4de08575cf4a41803e0d92780b98d0"
+        },
+        {
+            "m_Id": "0bfd4bfcf8364b20a7fe4fd4241a8f5a"
+        }
+    ],
+    "synonyms": [
+        "code",
+        "HLSL"
+    ],
+    "m_Precision": 0,
+    "m_PreviewExpanded": false,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SourceType": 0,
+    "m_FunctionName": "WorldPatternPosition",
+    "m_FunctionSource": "b2a374cbb57c4705a78c077bcf81c5cb",
+    "m_FunctionBody": "Enter function body here..."
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "7a4de08575cf4a41803e0d92780b98d0",
+    "m_Id": 0,
+    "m_DisplayName": "unityWS",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "unityWS",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "0bfd4bfcf8364b20a7fe4fd4241a8f5a",
+    "m_Id": 1,
+    "m_DisplayName": "worldPos",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "worldPos",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
     "m_Labels": []
 }
 

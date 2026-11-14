@@ -92,6 +92,9 @@ public class ChunkLoader : MonoBehaviour
     // Chunks that were requested to build while already building, and which kind of build they need
     private Dictionary<ChunkPos, byte> deferredBuilds = new Dictionary<ChunkPos, byte>();
 
+    // Keeps the player near the Unity origin (see WorldOrigin)
+    private FloatingOrigin floatingOrigin;
+
     // Voxel Lighting
     private LightingSystem lightingSystem;
     private Dictionary<ChunkPos, byte> awaitingLight = new Dictionary<ChunkPos, byte>(); // Chunks waiting for the light of their neighborhood before building
@@ -122,6 +125,8 @@ public class ChunkLoader : MonoBehaviour
 
 
     void Awake(){
+        WorldOrigin.Reset();
+        this.floatingOrigin = new FloatingOrigin(this);
         BlockEncyclopediaECS.InitializeNativeStructures();
         VoxelLoader.InitBlockEncyclopediaECS();
         ObjectMeshTables.Build();
@@ -189,6 +194,7 @@ public class ChunkLoader : MonoBehaviour
         ClearAllChunks();
         DisposeBuildSlots();
         DisposeLighting();
+        WorldOrigin.Reset();
 
         Destroy(this);
     }
@@ -244,8 +250,9 @@ public class ChunkLoader : MonoBehaviour
         else if(this.PLAYERSPAWNED && !this.REQUESTEDCHUNKS){
             InitConfigurationFunctions();
 
-            this.player.position = new Vector3(playerX, playerY+0.8f, playerZ);
-            this.playerCharacter.transform.position = new Vector3(playerX, playerY+0.8f, playerZ);
+            // The origin was set around the spawn position when it was received (see Client.SendServerInfo)
+            this.player.position = WorldOrigin.ToUnity(playerX, playerY+0.8f, playerZ);
+            this.playerCharacter.transform.position = WorldOrigin.ToUnity(playerX, playerY+0.8f, playerZ);
 
             this.player.eulerAngles = new Vector3(0, playerDirY, 0);
             MouseLook.SetLookDirection(playerDirX);
@@ -277,6 +284,9 @@ public class ChunkLoader : MonoBehaviour
                     this.playerMovement.Init();
                 }
         	}
+
+            // Before anything else reads positions this frame
+            this.floatingOrigin.Update();
 
             MoveEntities();
             HandleClientCommunication();

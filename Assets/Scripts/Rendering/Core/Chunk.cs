@@ -91,20 +91,20 @@ public class Chunk
 		this.obj = new GameObject();
 		this.obj.name = "Chunk " + pos.x + ", " + pos.z + ", " + ((ChunkDepthID)pos.y).ToString()[0];
 		this.obj.transform.SetParent(this.renderer.transform);
-		this.obj.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
+		this.obj.transform.position = WorldOrigin.ToUnity(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objDecal = new GameObject();
 		this.objDecal.name = "Decals " + pos.x + ", " + pos.z + ", " + ((ChunkDepthID)pos.y).ToString()[0];
 		this.objDecal.transform.SetParent(this.renderer.transform);
-		this.objDecal.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
+		this.objDecal.transform.position = WorldOrigin.ToUnity(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objRaycast = new GameObject();
 		this.objRaycast.name = "RaycastCollider " + pos.x + ", " + pos.z + ", " + ((ChunkDepthID)pos.y).ToString()[0];
 		this.objRaycast.transform.SetParent(this.renderer.transform);
-		this.objRaycast.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
+		this.objRaycast.transform.position = WorldOrigin.ToUnity(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objRaycast.layer = 11;
 		this.objRain = new GameObject();
 		this.objRain.name = "RainCollider " + pos.x + ", " + pos.z + ", " + ((ChunkDepthID)pos.y).ToString()[0];
 		this.objRain.transform.SetParent(this.renderer.transform);
-		this.objRain.transform.position = new Vector3(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
+		this.objRain.transform.position = WorldOrigin.ToUnity(pos.x * chunkWidth, 0f, pos.z * chunkWidth);
 		this.objRain.layer = RAIN_LAYER;
 
 		this.data = new VoxelData(pos);

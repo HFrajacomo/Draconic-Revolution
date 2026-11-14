@@ -319,6 +319,8 @@ public class Client
 
 		this.cl.time.SetTime(day, hour, minute);
 
+		FloatingOrigin.SetInitialOrigin(pos.x, pos.z);
+
 		this.cl.playerX = pos.x;
 		this.cl.playerY = pos.y;
 		this.cl.playerZ = pos.z;
@@ -500,7 +502,7 @@ public class Client
 	private void PlayerSpawn(byte[] data){
 		uint netID = NetDecoder.ReadUint(data, 1);
 		ulong code = NetDecoder.ReadUlong(data, 5);
-		float3 pos = NetDecoder.ReadFloat3(data, 13);
+		float3 pos = WorldOrigin.ToUnity(NetDecoder.ReadFloat3(data, 13));
 		float3 dir = new float3(NetDecoder.ReadAngle(data, 25), NetDecoder.ReadAngle(data, 27), 0f);
 		uint timestamp = NetDecoder.ReadUint(data, 29);
 		CharacterSheet sheet = NetDecoder.ReadCharacterSheetNet(data, 33, compactAppearance:true);
@@ -522,7 +524,7 @@ public class Client
 	// Receives a dropped item that became visible
 	private void DropSpawn(byte[] data){
 		ulong code = NetDecoder.ReadUint(data, 1);
-		float3 pos = NetDecoder.ReadFloat3(data, 5);
+		float3 pos = WorldOrigin.ToUnity(NetDecoder.ReadFloat3(data, 5));
 		float standing = NetDecoder.ReadBool(data, 17) ? 1f : 0f;
 		float3 rot = new float3(standing, NetDecoder.ReadAngle(data, 18), NetDecoder.ReadAngle(data, 20));
 		ItemStack its = new ItemStack(NetDecoder.ReadUshort(data, 22), data[24]);
@@ -554,7 +556,7 @@ public class Client
 
 		for(int i=0; i < count; i++){
 			if(this.playerNetIDs.TryGetValue(NetDecoder.ReadUint(data, offset), out code)){
-				pos = NetDecoder.ReadFloat3(data, offset+4);
+				pos = WorldOrigin.ToUnity(NetDecoder.ReadFloat3(data, offset+4));
 				timestamp = NetDecoder.ReadUint(data, offset+20);
 				this.smoothMovement.AddSnapshot(EntityType.PLAYER, code, timestamp, pos, new float3(NetDecoder.ReadAngle(data, offset+16), NetDecoder.ReadAngle(data, offset+18), 0f));
 			}
@@ -569,7 +571,7 @@ public class Client
 			code = NetDecoder.ReadUint(data, offset);
 
 			if(this.entityHandler.Contains(EntityType.DROP, code)){
-				pos = NetDecoder.ReadFloat3(data, offset+4);
+				pos = WorldOrigin.ToUnity(NetDecoder.ReadFloat3(data, offset+4));
 				standing = NetDecoder.ReadBool(data, offset+16) ? 1f : 0f;
 				timestamp = NetDecoder.ReadUint(data, offset+17);
 
@@ -916,5 +918,10 @@ public class Client
 		this.entityHandler.RunEntityActivation();
 		this.entityHandler.RunPendingItemHolds();
 		this.smoothMovement.MoveEntities();
+	}
+
+	// Received positions are buffered in Unity space (see FloatingOrigin)
+	public void ShiftOrigin(Vector3 delta){
+		this.smoothMovement.ShiftOrigin(delta);
 	}
 }
