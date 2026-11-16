@@ -234,9 +234,9 @@ public struct NetMessage
 	}
 
 	// Client places a block or object. Origin of the placed item is sent so the server can echo it back in a PlacementDenied
-	// ActionSlot is byte.MaxValue when the placement did not come from an EntityAction
-	// {CODE}[ChunkPos][Local 2][Facing (sbyte)][Block 2][Slot][NewQuantity][InventoryCode][ItemID 2][ActionSlot][ActionID 2]
-	public void PlaceBlock(ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, byte slot, byte newQuantity, byte inventoryCode, ushort itemID, byte actionSlot=byte.MaxValue, ushort actionID=0){
+	// ActionSlot is byte.MaxValue when the placement did not come from an EntityAction. InJump lets a jumping player place inside the voxel at their feet
+	// {CODE}[ChunkPos][Local 2][Facing (sbyte)][Block 2][Slot][NewQuantity][InventoryCode][ItemID 2][ActionSlot][ActionID 2][InJump]
+	public void PlaceBlock(ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, byte slot, byte newQuantity, byte inventoryCode, ushort itemID, bool inJump, byte actionSlot=byte.MaxValue, ushort actionID=0){
 		Reset();
 		NetDecoder.WriteChunkPos(pos, NetMessage.buffer, 1);
 		NetDecoder.WriteLocalPos(x, y, z, NetMessage.buffer, 10);
@@ -248,7 +248,8 @@ public struct NetMessage
 		NetDecoder.WriteUshort(itemID, NetMessage.buffer, 18);
 		NetDecoder.WriteByte(actionSlot, NetMessage.buffer, 20);
 		NetDecoder.WriteUshort(actionID, NetMessage.buffer, 21);
-		this.size = 23;
+		NetDecoder.WriteBool(inJump, NetMessage.buffer, 23);
+		this.size = 24;
 	}
 
 	// Server tells a client that its placement was denied, echoing where the placed item came from and the voxel it was placed in

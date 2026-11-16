@@ -108,6 +108,26 @@ public class EntityHandler
 		return false;
 	}
 
+	// Whether a voxel (absolute world coordinates) is inside a remote player. Their positions are interpolated, so the Server has the final say
+	public bool IsVoxelOccupiedByPlayer(int x, int y, int z){
+		CharacterSheet sheet;
+		Transform t;
+		Race race;
+
+		foreach(KeyValuePair<ulong, GameObject> pair in this.playerObject){
+			if(pair.Value == null)
+				continue;
+
+			t = pair.Value.transform;
+			race = this.playerSheet.TryGetValue(pair.Key, out sheet) && sheet != null ? sheet.GetRace() : Race.HUMAN;
+
+			if(PlayerHitbox.OverlapsVoxel(WorldOrigin.ToAbsolute(t.position), t.eulerAngles.y, PlayerHitbox.GetScale(race), x, y, z))
+				return true;
+		}
+
+		return false;
+	}
+
 	public void AddPlayer(ulong code, float3 pos, float3 dir){
 		GameObject go = GameObject.Instantiate(GameObject.Find("----- PrefabModels -----/PlayerModel"), new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(0, dir.y, 0));
 

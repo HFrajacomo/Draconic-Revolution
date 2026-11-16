@@ -894,17 +894,17 @@ public class Server {
 		ushort itemID = NetDecoder.ReadUshort(data, 18);
 		byte actionSlot = data[20];
 		ushort actionID = NetDecoder.ReadUshort(data, 21);
+		bool inJump = NetDecoder.ReadBool(data, 23);
 
 		NetDecoder.ReadLocalPos(data, 10, out x, out y, out z);
 
-		ApplyPlace(id, pos, x, y, z, facing, blockCode, slot, newQuantity, inventoryCode, itemID, actionSlot, actionID);
+		ApplyPlace(id, pos, x, y, z, facing, blockCode, slot, newQuantity, inventoryCode, itemID, actionSlot, actionID, inJump);
 	}
 
 	// Places a block or object for a player, giving the item back if the placement is not allowed
-	private void ApplyPlace(ulong id, ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, byte slot, byte newQuantity, byte inventoryCode, ushort itemID, byte actionSlot, ushort actionID){
+	private void ApplyPlace(ulong id, ChunkPos pos, int x, int y, int z, int facing, ushort blockCode, byte slot, byte newQuantity, byte inventoryCode, ushort itemID, byte actionSlot, ushort actionID, bool inJump){
 		CastCoord lastCoord = new CastCoord(pos, x, y, z);
 		ChunkPos chunkPos = lastCoord.GetChunkPos();
-		HashSet<ulong> players;
 		ItemStack heldStack;
 		Chunk chunk;
 		bool allowed;
@@ -925,17 +925,10 @@ public class Server {
 			return;
 		}
 
-		// Check if is trying to put block on players
-		if(this.playersInChunk.TryGetValue(pos, out players)){
-			foreach(ulong code in players){
-				if(code == id)
-					continue;
-
-				if(!this.cl.regionHandler.allPlayerData[code].CheckValidPlacement(lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ())){
-					SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID, lastCoord);
-					return;
-				}
-			}
+		// Voxels that add to the terrain collider can't be placed inside players
+		if(VoxelLoader.CheckAddsToCollider(blockCode) && IsInsidePlayer(id, inJump, chunkPos, lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ())){
+			SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID, lastCoord);
+			return;
 		}
 
 		chunk = this.cl.GetChunk(chunkPos);
@@ -980,6 +973,37 @@ public class Server {
 
 		// Make entities in this chunk update their TerrainVision
 		this.entityHandler.SetRefreshVision(EntityType.DROP, chunkPos);
+	}
+
+	/*
+	Whether a voxel is inside any player, the placer included. A player's hitbox can cross into neighbor chunks, so the players of the
+	8 horizontal neighbors are checked too. A jumping placer can place inside the voxel at their feet, which the flag only allows for themselves
+	*/
+	private bool IsInsidePlayer(ulong placerID, bool placerInJump, ChunkPos pos, int x, int y, int z){
+		HashSet<ulong> players;
+		PlayerData pdat;
+		CharacterSheet sheet;
+		Race race;
+
+		for(int dx=-1; dx <= 1; dx++){
+			for(int dz=-1; dz <= 1; dz++){
+				if(!this.playersInChunk.TryGetValue(new ChunkPos(pos.x+dx, pos.z+dz, pos.y), out players))
+					continue;
+
+				foreach(ulong code in players){
+					if(!this.cl.regionHandler.allPlayerData.TryGetValue(code, out pdat))
+						continue;
+
+					sheet = this.entityHandler.FindSheet(code);
+					race = sheet != null ? sheet.GetRace() : Race.HUMAN;
+
+					if(!pdat.CheckValidPlacement(x, y, z, PlayerHitbox.GetScale(race), code == placerID && placerInJump))
+						return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	// Breaks the voxel in a position, running its break events

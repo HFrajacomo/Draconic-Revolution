@@ -28,16 +28,23 @@ public class IT_PlaceBlockBehaviour : ItemBehaviour{
 	}
 
 	private bool PlaceBlock(ushort blockCode, ushort itemID, byte newQuantity, CastCoord targetBlock, CastCoord playerHead, CastCoord playerBody, CastCoord currentHitBlock, ChunkLoader loader){
-		// Won't happen if not raycasting something or if block is in player's body or head
-		if(!currentHitBlock.active || (CastCoord.Eq(targetBlock, playerHead) && VoxelLoader.CheckSolid(blockCode)) || (CastCoord.Eq(targetBlock, playerBody) && VoxelLoader.CheckSolid(blockCode))){
+		int x = targetBlock.GetWorldX();
+		int y = targetBlock.GetWorldY();
+		int z = targetBlock.GetWorldZ();
+
+		// Won't happen if not raycasting something
+		if(!currentHitBlock.active)
 			return false;
-		}
 
 		if(loader.GetBlock(targetBlock) != 0 || loader.placementPredictor.Has(targetBlock))
 			return false;
 
+		// Voxels that add to the terrain collider can't be placed inside players
+		if(VoxelLoader.CheckAddsToCollider(blockCode) && (loader.playerMovement.OccupiesVoxel(x, y, z) || loader.client.entityHandler.IsVoxelOccupiedByPlayer(x, y, z)))
+			return false;
+
 		NetMessage message = new NetMessage(NetCode.PLACEBLOCK);
-		message.PlaceBlock(targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, loader.playerRaycast.facing, blockCode, PlayerHotbarHandler.hotbarSlot, newQuantity, 1, itemID);
+		message.PlaceBlock(targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, loader.playerRaycast.facing, blockCode, PlayerHotbarHandler.hotbarSlot, newQuantity, 1, itemID, loader.playerMovement.IsInJump());
 		loader.client.Send(message);
 		loader.placementPredictor.Predict(targetBlock, blockCode);
 		return true;

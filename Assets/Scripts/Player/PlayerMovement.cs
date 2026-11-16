@@ -33,6 +33,8 @@ public class PlayerMovement : MonoBehaviour
 
     // Flags
     public MovementFlags? flags;
+    // From the moment a jump fires until the player lands. Walking or sliding off a ledge never sets it
+    private bool inJump;
 
 
     void OnDestroy(){
@@ -44,8 +46,14 @@ public class PlayerMovement : MonoBehaviour
         if(this.movementOrchestrator == null || this.flags == null)
             return;
 
+        float gravityBeforeJump;
+
         this.gravityMomentum = this.movementOrchestrator.CalculateGravityAcceleration((MovementFlags)this.flags, this.gravityMomentum);
+        gravityBeforeJump = this.gravityMomentum;
         this.gravityMomentum = this.movementOrchestrator.CalculateJump((MovementFlags)this.flags, this.gravityMomentum);
+
+        if(this.gravityMomentum > gravityBeforeJump)
+            this.inJump = true;
     }
 
     // Update is called once per frame
@@ -60,6 +68,9 @@ public class PlayerMovement : MonoBehaviour
             isControlling = MainControllerManager.ctrl,
             collision = this.controller.collisionFlags
         };
+
+        if(this.controller.isGrounded && this.gravityMomentum <= 0f)
+            this.inJump = false;
 
         this.direction = this.movementOrchestrator.CalculateDirection(this.transform, this.controls.movementX, this.controls.movementZ);
         this.movementAlignment = this.movementOrchestrator.CalculateMovementAlignment(this.velocity, this.direction, this.velocity);
@@ -107,6 +118,18 @@ public class PlayerMovement : MonoBehaviour
     }
 
     public bool IsGrounded(){return this.controller.isGrounded;}
+    public bool IsInJump(){return this.inJump;}
+
+    // Whether the player's hitbox is inside a voxel (absolute world coordinates). While jumping, the voxel at their feet is free to be placed in
+    public bool OccupiesVoxel(int x, int y, int z){
+        Race race = Race.HUMAN;
+        Transform t = this.controller.transform;
+
+        if(this.playerSheetController != null && this.playerSheetController.GetSheet() != null)
+            race = this.playerSheetController.GetSheet().GetRace();
+
+        return PlayerHitbox.OverlapsVoxel(WorldOrigin.ToAbsolute(t.position), t.eulerAngles.y, PlayerHitbox.GetScale(race), x, y, z, ignoreFeetVoxel:this.inJump);
+    }
 
     // Flags only exist after the first Update, so block events that run before it (like spawning underwater) see no jump
     public bool IsJumping(){return this.flags != null && ((MovementFlags)this.flags).isJumping;}

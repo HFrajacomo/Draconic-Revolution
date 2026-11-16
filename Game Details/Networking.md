@@ -90,6 +90,8 @@ Every change increases the chunk version. Changes that replace whole arrays mark
 `BUDScheduler` propagation, trees and `RegisterChunkToSend` use `SendChunkChanges`.
 
 **Placement prediction:** a placed block only gets collision after the Server's `BLOCKUPDATE` arrives and its chunk is rebuilt and its collider cooked. Until then, `PlacementPredictor` (client) puts a box collider in the voxel when `PLACEBLOCK` is sent, so a player that places a block beneath themselves while jumping lands on it. The box is removed when a chunk collider built after the voxel was received is swapped in, when `PLACEMENTDENIED` echoes the voxel back, when the chunk unloads, or after a timeout.
+
+**Placing inside players:** voxels that add geometry to the terrain collider (`VoxelLoader.CheckAddsToCollider`: OPAQUE/ICE blocks and ASSETS_SOLID objects) can't be placed inside any player, the placer included. `PlayerHitbox` tests the bounding box of the player's CharacterController in Game.unity (keep them in sync), scaled by race like `PlayerModelHandler.Rescale`, so a capsule sliding off a ledge still occupies the voxel its bottom dips into. The only exception is a placer in a jump (`PlayerMovement.IsInJump`, sent as `InJump` in `PLACEBLOCK`), who may place in the voxel at their feet once the feet are at least `PlayerHitbox.MIN_FEET_CLEARANCE` (0.8) above its bottom, so a placement right at take-off doesn't lift them; `PlacementPredictor` then lifts them on top of it. The Server checks every player in the target chunk and its 8 horizontal neighbors and answers `PLACEMENTDENIED`. The placing client runs the same test against itself (`PlayerMovement.OccupiesVoxel`) and the remote players it sees (`EntityHandler.IsVoxelOccupiedByPlayer`) before sending, so it doesn't predict a block that will be denied.
 The box only becomes active once the player's hitbox has left the voxel. If the player's feet are still inside the placed voxel when its chunk collider is swapped in, `PlayerMovement.PlaceFeetOn` nudges them on top of that block (even if their head clips into terrain above), since a `CharacterController` inside a mesh collider falls through the terrain. No other voxel ever moves the player.
 
 ## Message layouts
@@ -111,7 +113,7 @@ Animation states and animator parameters are identified by `Animator.StringToHas
 | CHUNKACK | C→S | Consumed 2, Backlog 2 |
 | BLOCKUPDATE | S→C | ChunkPos 9, Local 2, BUDCode 1, Block 2, State 2, HP 2 |
 | BLOCKBATCH | S→C | ChunkPos 9, Count 2, Count × (Local 2, Block 2, State 2, HP 2) |
-| PLACEBLOCK | C→S | ChunkPos 9, Local 2, Facing 1, Block 2, Slot 1, NewQuantity 1, InventoryCode 1, ItemID 2, ActionSlot 1, ActionID 2 |
+| PLACEBLOCK | C→S | ChunkPos 9, Local 2, Facing 1, Block 2, Slot 1, NewQuantity 1, InventoryCode 1, ItemID 2, ActionSlot 1, ActionID 2, InJump 1 |
 | PLACEMENTDENIED | S→C | ItemID 2, InventoryCode 1, Slot 1, ActionSlot 1, ActionID 2, ChunkPos 9, Local 2 |
 | BATCHLOADBUD | C→S | ChunkPos 9, Count 2, Count × Local 2 |
 | INTERACT | C→S | ChunkPos 9, Local 2, Facing 1 |

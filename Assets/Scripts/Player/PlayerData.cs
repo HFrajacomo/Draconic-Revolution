@@ -10,7 +10,6 @@ public class PlayerData
 	public float posX, posY, posZ, dirX, dirY, dirZ;
 	private ChunkPos pos;
 	private bool isOnline;
-	private const float playerSkin = 0.4f;
 	
 
 	// Loads PlayerData from positional information.
@@ -43,17 +42,9 @@ public class PlayerData
 		this.pos = this.GetChunkPos();
 	}
 
-	// Considering players are two block tall
-	public bool CheckValidPlacement(int x, int y, int z){
-		if(this.posX - playerSkin <= x + Constants.BLOCK_SKIN && this.posX + playerSkin >= x - Constants.BLOCK_SKIN){
-			if(this.posZ - playerSkin <= z + Constants.BLOCK_SKIN && this.posZ + playerSkin >= z - Constants.BLOCK_SKIN){
-				if(Mathf.Abs(y - this.posY) <= 1){
-					return false;
-				}
-			}
-		}
-		return true;
-
+	// Whether a voxel is outside the space taken by this player. dirY holds the yaw
+	public bool CheckValidPlacement(int x, int y, int z, Vector3 scale, bool ignoreFeetVoxel){
+		return !PlayerHitbox.OverlapsVoxel(new float3(this.posX, this.posY, this.posZ), this.dirY, scale, x, y, z, ignoreFeetVoxel);
 	}
 
 

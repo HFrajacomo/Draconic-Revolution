@@ -192,7 +192,8 @@ public class VoxelLoader : BaseLoader {
             return objectBook[ushort.MaxValue - (ushort)code].solid;
     }
 
-    // Whether a block takes part in the chunk collider, matching the collider faces written by MergeChunkMeshJob. Objects never do
+    // Whether a block takes part in the chunk collider as a full cell, matching the collider faces written by MergeChunkMeshJob.
+    // Always false for objects, even Solid Objects (see CheckAddsToCollider)
     public static bool CheckCollidable(ushort code){
         if(code > ushort.MaxValue/2)
             return false;
@@ -200,6 +201,14 @@ public class VoxelLoader : BaseLoader {
         ShaderIndex shader = blockBook[code].shaderIndex;
 
         return shader == ShaderIndex.OPAQUE || shader == ShaderIndex.ICE;
+    }
+
+    // Whether a voxel adds geometry to the chunk collider: collidable blocks and Solid Objects (GreedyColliderJob.AppendSolidObjects)
+    public static bool CheckAddsToCollider(ushort code){
+        if(code <= ushort.MaxValue/2)
+            return CheckCollidable(code);
+
+        return objectBook[ushort.MaxValue - code].shaderIndex == ShaderIndex.ASSETS_SOLID;
     }
 
     // Gets transparency value from block

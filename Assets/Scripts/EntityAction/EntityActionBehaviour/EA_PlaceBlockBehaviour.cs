@@ -60,17 +60,23 @@ public class EA_PlaceBlockBehaviour : EntityActionBehaviour {
 	private bool PlaceBlock(ChunkLoader cl, ushort blockCode, ushort itemID, byte newQuantity, EntityAction ea){
 		PlayerRaycast raycast = cl.playerRaycast;
 		CastCoord targetBlock = raycast.GetLastHitCoords();
+		int x = targetBlock.GetWorldX();
+		int y = targetBlock.GetWorldY();
+		int z = targetBlock.GetWorldZ();
 
-		// Won't happen if not raycasting something or if block is in player's body or head
-		if(!raycast.GetCurrentHitCoords().active || (CastCoord.Eq(targetBlock, raycast.GetPlayerHeadCoords()) && VoxelLoader.CheckSolid(blockCode)) || (CastCoord.Eq(targetBlock, raycast.GetPlayerBodyCoords()) && VoxelLoader.CheckSolid(blockCode))){
+		// Won't happen if not raycasting something
+		if(!raycast.GetCurrentHitCoords().active)
 			return false;
-		}
 
 		if(cl.GetBlock(targetBlock) != 0 || cl.placementPredictor.Has(targetBlock))
 			return false;
 
+		// Voxels that add to the terrain collider can't be placed inside players
+		if(VoxelLoader.CheckAddsToCollider(blockCode) && (cl.playerMovement.OccupiesVoxel(x, y, z) || cl.client.entityHandler.IsVoxelOccupiedByPlayer(x, y, z)))
+			return false;
+
 		NetMessage message = new NetMessage(NetCode.PLACEBLOCK);
-		message.PlaceBlock(targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, cl.playerRaycast.facing, blockCode, ea.GetConnectedStackSlot(), newQuantity, ea.GetConnectedStackInventory(), itemID, actionSlot:PlayerHotbarHandler.attackHotbarSlot, actionID:ea.GetID());
+		message.PlaceBlock(targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, cl.playerRaycast.facing, blockCode, ea.GetConnectedStackSlot(), newQuantity, ea.GetConnectedStackInventory(), itemID, cl.playerMovement.IsInJump(), actionSlot:PlayerHotbarHandler.attackHotbarSlot, actionID:ea.GetID());
 		cl.client.Send(message);
 		cl.placementPredictor.Predict(targetBlock, blockCode);
 		return true;
