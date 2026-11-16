@@ -32,11 +32,16 @@ public class AN_CreateVFXBehaviour : AnimationBehaviour {
 		if(!isPlayer)
 			return;
 
-		if(this.firstPerson || !this.ifPlayerBuildOnlyFirstPerson){
+		bool changedLocally = this.firstPerson || !this.ifPlayerBuildOnlyFirstPerson;
+		bool built = false;
+
+		if(changedLocally){
 			GameObject visualEffect = this.vfxData.Build(animationHandler.GetAttachment(this.vfxData.anchor, this.firstPerson), this.firstPerson);
 
-			if(visualEffect != null)
+			if(visualEffect != null){
 				cl.vfx.Add(entityID, visualEffect);
+				built = true;
+			}
 		}
 
 		if(!this.firstPerson){
@@ -44,6 +49,9 @@ public class AN_CreateVFXBehaviour : AnimationBehaviour {
 			message.EntityVFX(EntityEffectOperation.CREATE, this.vfxData);
 			cl.client.Send(message);
 		}
+
+		if(cl.playerActionController != null && (built || !this.firstPerson))
+			cl.playerActionController.RegisterOwnedVFX(this.vfxGameObjectName, true, built, !this.firstPerson);
 	}
 
 	private BoneAnchorType Resolve(string name){

@@ -30,6 +30,9 @@ public class AN_DestroySFXBehaviour : AnimationBehaviour {
 
 		cl.sfx.RemoveEntitySFX(new EntityID(EntityType.PLAYER, entityID), this.sfxName);
 
+		if(cl.playerActionController != null)
+			cl.playerActionController.RegisterOwnedSFX(this.sfxName, false, true, true);
+
 		NetMessage message = new NetMessage(NetCode.ENTITYSFX);
 		message.EntitySFX(EntityEffectOperation.DESTROY, new EntitySFXData(this.sfxName));
 		cl.client.Send(message);

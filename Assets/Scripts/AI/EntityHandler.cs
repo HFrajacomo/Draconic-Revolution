@@ -28,6 +28,7 @@ public class EntityHandler
 	private Dictionary<ulong, AttachmentItems> playerAttachmentItems;
 	private Dictionary<ulong, PendingItemHold> pendingItemHolds;
 	private List<ulong> cachedPendingHoldCodes;
+	private List<string> cachedSFXNames = new List<string>();
 	private GameObject droppedItemBase = GameObject.Find("----- PrefabModels -----/DroppedItemBase");
 
 	private int currentTogglingCounter;
@@ -229,10 +230,13 @@ public class EntityHandler
 
 		this.playerAttachmentItems[code] = items;
 
-		// Attachments go back to their default anchors, destroying the VFX in them, as it happens in the owner
+		// Attachments go back to their default anchors, destroying the VFX and anchored SFX in them, as it happens in the owner
+		// Style changes always sheathe the weapon, so its moving voxel light goes away too
 		if(knownStyle != style || knownCarryStyle != carryStyle){
 			this.playerAttachmentAnchors[code].Clear();
 			ClearPlayerVFX(code);
+			ClearPlayerAnchoredSFX(code);
+			this.cl.voxelLightHandler.Remove(new EntityID(EntityType.PLAYER, code));
 		}
 
 		if(this.playerAnimations[code] == null || !this.playerSheet.ContainsKey(code)){
@@ -577,6 +581,26 @@ public class EntityHandler
 		}
 
 		this.playerActiveVFX[code].Clear();
+	}
+
+	// Stops tracking and removes every looping SFX of a remote player that is attached to a bone anchor, so they aren't rebuilt in new attachments
+	private void ClearPlayerAnchoredSFX(ulong code){
+		if(!this.playerActiveLoopSFX.ContainsKey(code))
+			return;
+
+		EntityID id = new EntityID(EntityType.PLAYER, code);
+
+		this.cachedSFXNames.Clear();
+
+		foreach(EntitySFXData sfx in this.playerActiveLoopSFX[code].Values){
+			if(sfx.hasAnchor)
+				this.cachedSFXNames.Add(sfx.name);
+		}
+
+		foreach(string name in this.cachedSFXNames){
+			this.playerActiveLoopSFX[code].Remove(name);
+			this.cl.sfx.RemoveEntitySFX(id, name);
+		}
 	}
 
 	// Receives the creation or destruction of the moving voxel light of a remote player. Its position follows the player in SetPlayerTransform

@@ -62,6 +62,9 @@ public class PlayerActionController : MonoBehaviour {
 	private static readonly string HAS_CARRY_PARAMETER = "HasCarry";
 	private static readonly float SHEATHE_TIMEOUT_MARGIN = 0.25f;
 
+	// Effects created by Animation Events of this player, removed if the events that would remove them are skipped
+	private OwnedAnimationEffects ownedEffects = new OwnedAnimationEffects();
+
 	// Animator Parameters
 	private static readonly int IS_PLAYER_HASH = Animator.StringToHash("ISPLAYER");
 	private static readonly int HAS_CARRY_HASH = Animator.StringToHash(HAS_CARRY_PARAMETER);
@@ -171,7 +174,8 @@ public class PlayerActionController : MonoBehaviour {
 			}
 		}
 
-		if(HasRestriction(PlayerActionRestriction.USE_STYLE)){
+		// The style change waits for a pending Sheathe, so its Animation Events aren't cut by the controller swap
+		if(HasRestriction(PlayerActionRestriction.USE_STYLE) || IsSheathePending()){
 			RegisterUseStyle(style);
 			return;
 		}
@@ -213,6 +217,9 @@ public class PlayerActionController : MonoBehaviour {
 			return;
 		}
 
+
+		// Attachments are rebuilt and the controllers restarted, so pending Animation Events that would remove the current effects never run
+		ClearOwnedEffects();
 
 		this.currentStyle = AnimationLoader.GetBattleStyle(style);
 		this.currentStyleCode = style;
@@ -273,6 +280,7 @@ public class PlayerActionController : MonoBehaviour {
 	}
 
 	public void RemoveAllStyles(){
+		ClearOwnedEffects();
 		this.animator.runtimeAnimatorController = this.originalController;
 		this.animatorFP.runtimeAnimatorController = this.originalControllerFP;
 	}
@@ -302,8 +310,11 @@ public class PlayerActionController : MonoBehaviour {
 			return;
 		}
 
-		// Sheathing during an attack is queued until the current attack ends
-		if(HasRestriction(PlayerActionRestriction.SHEATHE) || IsAttacking()){
+		/*
+		Sheathing during an attack is queued until the current attack ends
+		Unsheathing during a Sheathe is queued until it fully ends, so the Sheathe's Animation Events (that remove the weapon's effects) aren't cut
+		*/
+		if(HasRestriction(PlayerActionRestriction.SHEATHE) || IsAttacking() || this.sheatheInProgress){
 			RegisterSheathe(flag);
 			return;
 		}
@@ -395,8 +406,27 @@ public class PlayerActionController : MonoBehaviour {
 				fpDone &= IsSheatheStateDone(this.animatorFP, CARRY_STOW_STATE, true, ref this.carryStowSeenFP);
 		}
 
-		if((tpDone && fpDone) || this.sheatheTimeout <= 0f)
+		if((tpDone && fpDone) || this.sheatheTimeout <= 0f){
 			this.sheatheInProgress = false;
+
+			// Nothing created by Animation Events may stay on a sheathed weapon, even if an event was skipped
+			if(this.weaponSheathed)
+				ClearOwnedEffects();
+
+			if(!HasRestriction(PlayerActionRestriction.SHEATHE))
+				RunQueuedSheatheActions();
+		}
+	}
+
+	public void RegisterOwnedSFX(string name, bool created, bool changedLocally, bool sent){this.ownedEffects.SetSFX(name, created, changedLocally, sent);}
+	public void RegisterOwnedVFX(string name, bool created, bool changedLocally, bool sent){this.ownedEffects.SetVFX(name, created, changedLocally, sent);}
+	public void RegisterOwnedVoxelLight(bool created, bool changedLocally, bool sent){this.ownedEffects.SetVoxelLight(created, changedLocally, sent);}
+
+	private void ClearOwnedEffects(){
+		if(this.cl == null)
+			return;
+
+		this.ownedEffects.ClearAll(this.cl, Configurations.accountID);
 	}
 
 	private bool IsSheatheStateDone(Animator anim, string state, bool firstPerson, ref bool seen){
@@ -552,7 +582,8 @@ public class PlayerActionController : MonoBehaviour {
 		RemoveRestriction(rest);
 
 		if(rest == PlayerActionRestriction.USE_STYLE){
-			if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
+			// A pending Sheathe runs the style change once it's over (see RunQueuedSheatheActions)
+			if(this.registeredAction.Contains(PlayerActionType.USE_STYLE) && !IsSheathePending()){
 				ForceUseStyle(this.registeredData[PlayerActionType.USE_STYLE]);
 			}
 		}
@@ -561,15 +592,23 @@ public class PlayerActionController : MonoBehaviour {
 		}
     }
 
-	// Runs the Style change and Sheathe requests that were queued while sheathing was blocked
+	/*
+	Runs the Style change and Sheathe requests that were queued while sheathing was blocked
+		Nothing runs while a Sheathe is in progress: swapping controllers or unsheathing would cut the Sheathe's Animation Events,
+		leaving the weapon's effects (light, SFX, VFX) behind. TrackSheathe calls this again once the Sheathe is over
+		A queued Sheathe runs before the Style change, which then waits for it
+	*/
 	private void RunQueuedSheatheActions(){
-		if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
-			ForceUseStyle(this.registeredData[PlayerActionType.USE_STYLE]);
-		}
+		if(this.sheatheInProgress)
+			return;
+
 		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
 			Sheathe(true, skipCheck:true);
 		}
-		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
+		if(this.registeredAction.Contains(PlayerActionType.USE_STYLE) && !IsSheathePending()){
+			ForceUseStyle(this.registeredData[PlayerActionType.USE_STYLE]);
+		}
+		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF) && !IsSheathePending()){
 			Sheathe(false, skipCheck:true);
 		}
 	}

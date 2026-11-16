@@ -35,6 +35,7 @@ public class Server {
 	private Dictionary<ulong, ChunkPos> playerToChunk;
 	private Dictionary<ulong, Dictionary<int, AnimationData>> playerAnimationStates;
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
+	private List<string> cachedSFXNames = new List<string>();
 	private Dictionary<ulong, Dictionary<string, EntityVFXData>> playerActiveVFX;
 	private Dictionary<ulong, float> playerVoxelLights;
 	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
@@ -2209,8 +2210,11 @@ public class Server {
 		}
 	}
 
-	// Attachments are rebuilt in their default anchors whenever a BattleStyle or the carried off-hand style changes
-	// VFX are children of attachments, so they are destroyed together with them
+	/*
+	Attachments are rebuilt in their default anchors whenever a BattleStyle or the carried off-hand style changes
+		VFX and anchored SFX are children of attachments, so they are destroyed together with them
+		Style changes always sheathe the weapon, so the moving voxel light created by its Animation Events is dropped too
+	*/
 	private void ClearAttachmentStateOnStyleChange(ulong playerCode, int style){
 		int carryStyle = BattleStyleDeterminator.GetCarryStyleCode(style, BattleStyleDeterminator.ResolveAttachmentItems(this.cl, playerCode));
 		int previousCarryStyle;
@@ -2221,9 +2225,31 @@ public class Server {
 		if(this.entityHandler.GetSheet(playerCode).GetBattleStyleCode() != style || previousCarryStyle != carryStyle){
 			this.playerAttachmentAnchors.Remove(playerCode);
 			this.playerActiveVFX.Remove(playerCode);
+			this.playerVoxelLights.Remove(playerCode);
+			ClearAnchoredLoopSFX(playerCode);
 		}
 
 		this.playerCarryStyles[playerCode] = carryStyle;
+	}
+
+	private void ClearAnchoredLoopSFX(ulong playerCode){
+		Dictionary<string, EntitySFXData> loops;
+
+		if(!this.playerActiveLoopSFX.TryGetValue(playerCode, out loops))
+			return;
+
+		this.cachedSFXNames.Clear();
+
+		foreach(EntitySFXData sfx in loops.Values){
+			if(sfx.hasAnchor)
+				this.cachedSFXNames.Add(sfx.name);
+		}
+
+		foreach(string name in this.cachedSFXNames)
+			loops.Remove(name);
+
+		if(loops.Count == 0)
+			this.playerActiveLoopSFX.Remove(playerCode);
 	}
 
 	// Send input message to all Clients connected to a given Chunk

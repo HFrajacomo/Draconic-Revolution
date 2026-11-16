@@ -24,8 +24,9 @@ public class AN_PointLightBehaviour : AnimationBehaviour {
 			return;
 
 		EntityEffectOperation operation = this.create ? EntityEffectOperation.CREATE : EntityEffectOperation.DESTROY;
+		bool changedLocally = this.firstPerson || !this.ifPlayerBuildOnlyFirstPerson;
 
-		if(this.firstPerson || !this.ifPlayerBuildOnlyFirstPerson){
+		if(changedLocally){
 			EntityID id = new EntityID(EntityType.PLAYER, entityID);
 
 			if(this.create)
@@ -39,5 +40,8 @@ public class AN_PointLightBehaviour : AnimationBehaviour {
 			message.EntityVoxelLight(operation, this.voxelLightIntensity);
 			cl.client.Send(message);
 		}
+
+		if(cl.playerActionController != null)
+			cl.playerActionController.RegisterOwnedVoxelLight(this.create, changedLocally, !this.firstPerson);
 	}
 }

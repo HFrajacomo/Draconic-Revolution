@@ -62,6 +62,10 @@ public class AN_CreateSFXBehaviour : AnimationBehaviour {
 
 		cl.sfx.LoadEntitySFX(this.sfxName, id, parent:parent, localPosition:new Vector3(this.offsetX, this.offsetY, this.offsetZ));
 
+		// Only looping SFX persist, so only they need to be removed if their AN_DestroySFXBehaviour is skipped
+		if(AudioLoader.IsLoop(this.sfxName) && cl.playerActionController != null)
+			cl.playerActionController.RegisterOwnedSFX(this.sfxName, true, true, true);
+
 		NetMessage message = new NetMessage(NetCode.ENTITYSFX);
 		message.EntitySFX(EntityEffectOperation.CREATE, new EntitySFXData(this.sfxName, AudioLoader.IsLoop(this.sfxName), this.hasAnchor, this.anchor, this.offsetX, this.offsetY, this.offsetZ));
 		cl.client.Send(message);

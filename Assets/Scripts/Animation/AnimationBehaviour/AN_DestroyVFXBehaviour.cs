@@ -22,7 +22,9 @@ public class AN_DestroyVFXBehaviour : AnimationBehaviour {
 		if(!isPlayer)
 			return;
 
-		if(this.firstPerson || !this.ifPlayerBuildOnlyFirstPerson)
+		bool changedLocally = this.firstPerson || !this.ifPlayerBuildOnlyFirstPerson;
+
+		if(changedLocally)
 			cl.vfx.Remove(entityID, this.vfxGameObjectName);
 
 		if(!this.firstPerson){
@@ -30,5 +32,8 @@ public class AN_DestroyVFXBehaviour : AnimationBehaviour {
 			message.EntityVFX(EntityEffectOperation.DESTROY, new EntityVFXData(this.vfxGameObjectName));
 			cl.client.Send(message);
 		}
+
+		if(cl.playerActionController != null)
+			cl.playerActionController.RegisterOwnedVFX(this.vfxGameObjectName, false, changedLocally, !this.firstPerson);
 	}
 }
