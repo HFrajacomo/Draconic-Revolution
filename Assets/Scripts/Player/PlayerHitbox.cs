@@ -32,6 +32,11 @@ public static class PlayerHitbox{
 		}
 	}
 
+	// Distance from the root to the bottom of the hitbox
+	public static float GetBottomOffset(Vector3 scale){
+		return (CENTER_Y - HEIGHT/2f) * scale.y;
+	}
+
 	/*
 	Whether a player with its root in rootPos (absolute coordinates), yaw in degrees and transform scale is inside the voxel x,y,z (world coordinates).
 	ignoreFeetVoxel skips the voxel at the feet once they're MIN_FEET_CLEARANCE above its bottom, so a jumping player can place a block beneath themselves

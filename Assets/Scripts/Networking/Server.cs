@@ -607,6 +607,7 @@ public class Server {
 		if(this.cl.RECEIVEDWORLDDATA){
 			// Sends player data
 			PlayerData pdat = this.cl.regionHandler.LoadPlayer(accountID);
+			ResolveSpawn(accountID, pdat);
 			Vector3 playerPos = pdat.GetPosition();
 			Vector3 playerDir = pdat.GetDirection();
 			ChunkPos playerChunkPos = new CastCoord(playerPos).GetChunkPos();
@@ -1004,6 +1005,47 @@ public class Server {
 		}
 
 		return false;
+	}
+
+	/*
+	Moves a player whose hitbox would spawn inside collidable voxels up its voxel column, to the lowest spot with 2 free voxels,
+	centered on the column. Must run before the position is sent in SENDSERVERINFO
+	*/
+	public void ResolveSpawn(ulong id, PlayerData pdat){
+		CharacterSheet sheet = this.entityHandler.FindSheet(id);
+		Vector3 scale = PlayerHitbox.GetScale(sheet != null ? sheet.GetRace() : Race.HUMAN);
+		Vector3 pos = pdat.GetPosition();
+		float3 root = new float3(pos.x, pos.y, pos.z);
+		float bottom = pos.y + PlayerHitbox.GetBottomOffset(scale);
+		int worldTop = Chunk.chunkDepth * ((int)ChunkDepthID.SURFACE + 1);
+		int minX = Mathf.FloorToInt(pos.x - 1f), maxX = Mathf.CeilToInt(pos.x + 1f);
+		int minZ = Mathf.FloorToInt(pos.z - 1f), maxZ = Mathf.CeilToInt(pos.z + 1f);
+		int minY = Mathf.FloorToInt(bottom), maxY = Mathf.CeilToInt(bottom + 3f);
+		bool blocked = false;
+		int cx, cz, v;
+
+		for(int x=minX; x <= maxX && !blocked; x++){
+			for(int z=minZ; z <= maxZ && !blocked; z++){
+				for(int y=minY; y <= maxY && !blocked; y++){
+					if(PlayerHitbox.OverlapsVoxel(root, pdat.dirY, scale, x, y, z) && this.cl.IsCollidableAt(x, y, z))
+						blocked = true;
+				}
+			}
+		}
+
+		if(!blocked)
+			return;
+
+		cx = new CastCoord(pos.x, pos.y, pos.z).GetWorldX();
+		cz = new CastCoord(pos.x, pos.y, pos.z).GetWorldZ();
+		v = Mathf.Clamp(Mathf.RoundToInt(bottom), 0, worldTop-2);
+
+		while(v < worldTop-2 && (this.cl.IsCollidableAt(cx, v, cz) || this.cl.IsCollidableAt(cx, v+1, cz)))
+			v++;
+
+		pdat.SetPosition(cx, v - 0.5f - PlayerHitbox.GetBottomOffset(scale), cz);
+
+		Debug.Log("Player " + id + " would spawn inside terrain at " + pos + " and was moved to " + pdat.GetPosition());
 	}
 
 	// Breaks the voxel in a position, running its break events

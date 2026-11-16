@@ -142,6 +142,7 @@ public class ChunkLoader_Server : MonoBehaviour
     
         // Sends the first player it's information
         PlayerData pdat = this.regionHandler.LoadPlayer(this.server.firstConnectedID);
+        this.server.ResolveSpawn(this.server.firstConnectedID, pdat);
         Vector3 playerPos = pdat.GetPosition();
         Vector3 playerDir = pdat.GetDirection();
         pdat.SetOnline(true);
@@ -596,6 +597,27 @@ public class ChunkLoader_Server : MonoBehaviour
     public Chunk GetChunk(ChunkPos pos){return this.chunks[pos];}
     public bool TryGetChunk(ChunkPos pos, out Chunk chunk){return this.chunks.TryGetValue(pos, out chunk);}
     public bool Contains(ChunkPos pos){return this.chunks.ContainsKey(pos);}
+
+    // Loads or generates a chunk right away if it isn't loaded
+    public void EnsureLoaded(ChunkPos pos){
+        if(!this.chunks.ContainsKey(pos))
+            LoadSingleChunk(pos);
+    }
+
+    // Whether the voxel in absolute world coordinates adds to the terrain collider, loading its chunk if needed. Outside the world is free
+    public bool IsCollidableAt(int x, int y, int z){
+        if(y < 0 || y >= Chunk.chunkDepth * ((int)ChunkDepthID.SURFACE + 1))
+            return false;
+
+        ChunkPos pos = new ChunkPos(Mathf.FloorToInt(x/(float)Chunk.chunkWidth), Mathf.FloorToInt(z/(float)Chunk.chunkWidth), y/Chunk.chunkDepth);
+
+        EnsureLoaded(pos);
+
+        if(!this.chunks.ContainsKey(pos))
+            return false;
+
+        return VoxelLoader.CheckAddsToCollider(this.chunks[pos].data.GetCell(x - pos.x*Chunk.chunkWidth, y - pos.y*Chunk.chunkDepth, z - pos.z*Chunk.chunkWidth));
+    }
     private void AddChunk(ChunkPos pos, Chunk c){
         // Changes are tracked so only changed voxels are sent to clients
         c.EnableChangeTracking();

@@ -193,9 +193,11 @@ public class VoxelLoader : BaseLoader {
     }
 
     // Whether a block takes part in the chunk collider as a full cell, matching the collider faces written by MergeChunkMeshJob.
-    // Always false for objects, even Solid Objects (see CheckAddsToCollider)
+    // Always false for objects, even Solid Objects (see CheckAddsToCollider), and for invisible blocks like Air, which are never meshed
     public static bool CheckCollidable(ushort code){
         if(code > ushort.MaxValue/2)
+            return false;
+        if(blockBook[code].invisible)
             return false;
 
         ShaderIndex shader = blockBook[code].shaderIndex;

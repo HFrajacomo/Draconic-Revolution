@@ -54,6 +54,8 @@ Clients disconnect after `NET_CLIENT_TIMEOUT_SECONDS` without receiving anything
 ## Entity IDs
 
 Players are identified in the network by a **NetID**, a `uint` given by the Server for the session (`Server.GetPlayerNetID`). It's informed to its owner in `SENDSERVERINFO`.
+
+**Spawn position:** before sending `SENDSERVERINFO`, the Server runs `Server.ResolveSpawn`. If the player's `PlayerHitbox` at their saved position overlaps a voxel that adds to the terrain collider (`VoxelLoader.CheckAddsToCollider`), they're moved up their voxel column to the lowest spot with 2 free voxels, centered on it. Chunks needed for the check are loaded on the spot (`ChunkLoader_Server.IsCollidableAt`).
 Clients map NetIDs to AccountIDs when they receive `PLAYERSPAWN`, and forget them on `ENTITYDELETE`/`ENTITYDELETEBATCH`.
 Dropped items use their entity code (`uint`).
 
