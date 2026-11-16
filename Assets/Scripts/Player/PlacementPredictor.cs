@@ -8,6 +8,7 @@ A placed block only gets its chunk collision after the Server confirms it and th
 Until then, a box collider takes its place, so a player that places a block beneath themselves while jumping lands on it.
 If the player's feet are still inside the placed block when its chunk collider is swapped in, they're nudged on top of it,
 since a CharacterController inside a mesh collider has no faces to stand on and falls through the terrain.
+Non-collidable blocks get a prediction without a collider, only to stop repeated PLACEBLOCKs of the same voxel until the Server answers.
 */
 public class PlacementPredictor{
 	private ChunkLoader cl;
@@ -26,6 +27,7 @@ public class PlacementPredictor{
 	private static readonly float RESTING_TOLERANCE = 0.02f;
 
 	private class Prediction{
+		// Null for non-collidable blocks
 		public GameObject obj;
 		public ChunkPos chunk;
 		public CastCoord coord;
@@ -43,24 +45,24 @@ public class PlacementPredictor{
 	public void Predict(CastCoord coord, ushort blockCode){
 		int3 key = GetKey(coord);
 
-		if(!VoxelLoader.CheckCollidable(blockCode))
-			return;
 		if(this.predictions.ContainsKey(key))
 			return;
 
 		Prediction prediction = new Prediction();
-		prediction.obj = GetObject();
 		prediction.chunk = coord.GetChunkPos();
 		prediction.coord = coord;
 		prediction.cell = new Bounds(WorldOrigin.ToUnity(key.x, key.y, key.z), Vector3.one);
 		prediction.creationTime = Time.unscaledTime;
 		prediction.confirmedSnapshot = UNCONFIRMED;
 
-		prediction.obj.transform.position = prediction.cell.center;
+		if(VoxelLoader.CheckCollidable(blockCode)){
+			prediction.obj = GetObject();
+			prediction.obj.transform.position = prediction.cell.center;
 
-		// A collider spawned around the player would trap them, so it waits for the player to leave the voxel
-		if(!prediction.cell.Intersects(GetPlayerBounds()))
-			prediction.obj.SetActive(true);
+			// A collider spawned around the player would trap them, so it waits for the player to leave the voxel
+			if(!prediction.cell.Intersects(GetPlayerBounds()))
+				prediction.obj.SetActive(true);
+		}
 
 		this.predictions.Add(key, prediction);
 		this.order.Add(key);
@@ -98,11 +100,14 @@ public class PlacementPredictor{
 			chunk = this.cl.Get(prediction.chunk);
 			block = chunk.data.GetCell(prediction.coord.blockX, prediction.coord.blockY, prediction.coord.blockZ);
 
-			if(!prediction.obj.activeSelf && !prediction.cell.Intersects(GetPlayerBounds()))
+			if(prediction.obj != null && !prediction.obj.activeSelf && !prediction.cell.Intersects(GetPlayerBounds()))
 				prediction.obj.SetActive(true);
 
 			if(prediction.confirmedSnapshot == UNCONFIRMED){
-				if(block != 0)
+				// Predictions without a collider are done once the Server placed the voxel
+				if(block != 0 && prediction.obj == null)
+					Remove(key);
+				else if(block != 0)
 					prediction.confirmedSnapshot = ChunkBuildSlot.GetNextSnapshotID();
 				else if(Time.unscaledTime - prediction.creationTime >= TIMEOUT)
 					Remove(key);
@@ -159,8 +164,11 @@ public class PlacementPredictor{
 		if(!this.predictions.TryGetValue(key, out prediction))
 			return;
 
-		prediction.obj.SetActive(false);
-		this.pool.Push(prediction.obj);
+		if(prediction.obj != null){
+			prediction.obj.SetActive(false);
+			this.pool.Push(prediction.obj);
+		}
+
 		this.predictions.Remove(key);
 		this.order.Remove(key);
 	}

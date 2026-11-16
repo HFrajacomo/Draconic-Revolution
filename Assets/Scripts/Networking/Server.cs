@@ -917,6 +917,14 @@ public class Server {
 			return;
 		}
 
+		chunk = this.cl.GetChunk(chunkPos);
+
+		// Repeated placements of the same voxel can arrive before the client learns it was placed
+		if(chunk.data.GetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ) != 0){
+			SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID, lastCoord);
+			return;
+		}
+
 		if(blockCode <= ushort.MaxValue/2)
 			allowed = VoxelLoader.GetBlock(blockCode).PlacementRule(chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
 		else
@@ -932,8 +940,6 @@ public class Server {
 			SendPlacementDenied(id, itemID, inventoryCode, slot, actionSlot, actionID, lastCoord);
 			return;
 		}
-
-		chunk = this.cl.GetChunk(chunkPos);
 
 		// Actually places block/asset into terrain
 		chunk.data.SetCell(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode);

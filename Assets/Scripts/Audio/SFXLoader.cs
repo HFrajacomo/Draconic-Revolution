@@ -151,6 +151,9 @@ public class SFXLoader : MonoBehaviour
     Adds a block into the SFXLoader
     */
     public void LoadBlockSFX(string name, ChunkPos pos, int x, int y, int z){
+        // A voxel holds a single SFX, so a previous one is replaced instead of being left playing untracked
+        RemoveBlockSFX(pos, x, y, z);
+
         CastCoord coord = new CastCoord(pos, x, y, z);
         GameObject go = GameObject.Instantiate(prefab, WorldOrigin.ToUnity(coord.GetWorldX(), coord.GetWorldY(), coord.GetWorldZ()), Quaternion.identity);
         go.transform.parent = prefabCategory.transform;
@@ -160,12 +163,7 @@ public class SFXLoader : MonoBehaviour
         if(!blockSFX.ContainsKey(pos))
             blockSFX.Add(pos, new Dictionary<EntityID, GameObject>());
 
-        if(blockSFX[pos].ContainsKey(id)){
-            blockSFX[pos][id] = go;
-            RemoveBlockSFX(pos, x, y, z);
-        }
-        else
-            blockSFX[pos].Add(id, go);
+        blockSFX[pos].Add(id, go);
 
         audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D, id);
         audioManager.Play(name, id);

@@ -983,6 +983,13 @@ public class CharacterCreationMenu : Menu{
         this.statusMenu.Reset();
         this.religionMenu.Reset();
 
+        // Cancelling a creation forced by a multiplayer server must not make the next join send a sheet that was never created
+        if(PlayerAppearanceData.GetPreloadFlag()){
+            PlayerAppearanceData.SetPreloadFlag(false);
+            this.RequestMenuChange(World.isClient ? MenuID.SELECT_WORLD : MenuID.MULTIPLAYER);
+            return;
+        }
+
         this.RequestMenuChange(MenuID.SELECT_WORLD);
     }
 

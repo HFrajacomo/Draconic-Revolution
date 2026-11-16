@@ -184,6 +184,10 @@ public class InfoClient
 	}
 
 	public void AcceptedConnect(){
+		// Without a created sheet, the server is asked again whether the character exists
+		if(PlayerAppearanceData.GetPreloadFlag() && CharacterCreationData.GetCharacterSheet() == null)
+			PlayerAppearanceData.SetPreloadFlag(false);
+
 		// If character creation was not forced upon server entering
 		if(!PlayerAppearanceData.GetPreloadFlag()){
 			NetMessage message = new NetMessage(NetCode.REQUESTCHARACTEREXISTENCE);

@@ -28,6 +28,16 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 	public byte maxDropQuantity;
 
 	private GameObject fireVFX;
+	private ushort dropItemID;
+
+
+	// Items are loaded before voxels run this, so a wrong codename fails on load instead of on every break
+	public override void PostDeserializationSetup(bool isClient){
+		if(!ItemLoader.Contains(this.dropItem))
+			throw new DeserializationErrorException($"[VX_TorchBehaviour] Dropped item '{this.dropItem}' is not a registered item");
+
+		this.dropItemID = ItemLoader.GetID(this.dropItem);
+	}
 
 
 	// Turns on and off Torch
@@ -142,10 +152,11 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 		CastCoord coord = new CastCoord(pos, x, y, z);
 
         cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
-            Item.GenerateForceVector(), ItemLoader.GetCopy(this.dropItem), Item.RandomizeDropQuantity(this.minDropQuantity, this.maxDropQuantity), cl);
+            Item.GenerateForceVector(), ItemLoader.GetCopy(this.dropItemID), Item.RandomizeDropQuantity(this.minDropQuantity, this.maxDropQuantity), cl);
 
 		NetMessage message = new NetMessage(NetCode.VFXBREAK);
 		message.VFXBreak(pos, x, y, z, ushort.MaxValue, 0);
+		cl.vfx.Remove(pos, BuildVFXName(pos, x, y, z), isServer:true);
 		cl.server.SendToClients(pos, message);
 
 		// Init SFX

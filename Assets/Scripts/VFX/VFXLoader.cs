@@ -139,7 +139,10 @@ public class VFXLoader : MonoBehaviour
     // Removes an GameObject from Chunk Dict
     public void Remove(ChunkPos pos, string name, bool isServer=false, bool isOnDemandLight=false){
         if(isServer){
-            this.serverVFX[pos].Remove(name);
+            Dictionary<string, NetMessage> chunkVFX;
+
+            if(this.serverVFX.TryGetValue(pos, out chunkVFX))
+                chunkVFX.Remove(name);
         }
         else{
             if(this.data[pos].ContainsKey(name)){
