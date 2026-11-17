@@ -77,3 +77,67 @@ The steps the Chunk Renderer takes to render a chunk is as described.
 
 ![](../RepoImages/ChunkRenderer.png)
 
+## The Build Pipeline
+Every chunk mesh is built by Burst jobs that are scheduled and finished by the main thread. No managed threads, locks or per-build allocations are involved.
+
+`ChunkLoader` owns a small pool of `ChunkBuildSlot` objects for new chunks and for changed chunks. Their amounts are limited by the job workers Unity created for the process (`JobsUtility.JobWorkerCount`, see `ChunkLoader.CalculateJobSlots`), up to `CLIENT_DRAW_BUILD_SLOTS` and `CLIENT_UPDATE_BUILD_SLOTS` (see `Constants`), so CPUs with few cores don't run more jobs than they have workers. Every slot holds persistent native buffers, so a build only clears and refills them. A chunk is in at most one slot at a time. If a chunk is requested again while it is building, the request is deferred and re-queued once the build ends.
+
+A build goes through these steps:
+
+1. **Snapshot (main thread):** the chunk and a 1-voxel border taken from its neighbors are copied into a padded 18x258x18 grid (`PaddedChunk`) of blocks and light, plus an 18x18 grid of heights. The 8 horizontal neighbors are always used. The upper and lower layers are used when that vertical chunk and its 8 neighbors are loaded, otherwise they are filled with air and no light. State, HP and render map are copied for the chunk only. Since jobs only read this snapshot, chunk data can keep changing in the main thread while the build runs.
+2. **BuildChunkJob:** finds the visible block faces, decals and Objects of the chunk, calculating the light of every face. It runs in parallel, one slice per x coordinate, each writing `MeshRecord`s to its own buffer of a `NativeStream`.
+3. **MergeChunkMeshJob:** turns the records into the vertex and triangle lists, reading the slices in order, so the mesh is the same as building it in a single pass. It also keeps only the first record of each Object and marks every collidable face (Opaque and Ice blocks).
+   Two different transparent blocks that touch both draw their face on the shared plane, and their double-sided materials would z-fight. So, as a standard, every face of a **liquid** voxel that touches a non-liquid transparent block (like Ice or Leaves) is pulled `LIQUID_INSET` into the liquid. `BuildChunkJob` flags those faces in their `MeshRecord` (`inset`), using the `liquid` flag of the block, so any new liquid follows it. Only vertex positions change, nothing else sent to the GPU.
+4. **PrepareAssetsJob:** appends the Object meshes and their hitboxes, reading them from `ObjectMeshTables`, which concatenates every Object mesh once, when the game scene loads.
+5. **GreedyColliderJob:** builds the collider by merging the marked faces of each layer into the largest possible rectangles (greedy meshing), then appends the geometry of Solid Objects. A flat 16x16 floor becomes 2 triangles instead of 512, so colliders are much cheaper to cook and to query.
+6. **WriteChunkMeshJob:** writes the render (8 submeshes), collider, decal, raycast and rain meshes straight into a `Mesh.MeshDataArray`, along with their bounds. The rain mesh holds only the Leaves and Water faces. Its collider is on the `RainCollidable` layer (13), which collides with no other layer, so rain particles can splash on leaves and water while players and entities go through them. `CheckLoadEventJob` runs alongside these jobs when the build needs to send load events.
+7. **Apply (main thread):** `ChunkLoader.FinishBuilds` applies finished builds to the chunk's persistent meshes within the frame budget, sends the load events (`BATCHLOADBUD`) and updates the chunk lights.
+8. **Collider cooking:** `BakeColliderJob` cooks the collider, raycast and rain meshes in worker threads with `Physics.BakeMesh`. Collider meshes are double-buffered, so the MeshColliders keep the previous collision until the new one is cooked and swapped in. Only then is the chunk flagged as drawn (`drawMain`). Every build gets an increasing snapshot id when its snapshot is taken, and the chunk keeps the id of its swapped-in collider (`Chunk.GetColliderSnapshot`), so `PlacementPredictor` knows when the collider contains a voxel received earlier, and nudges the player on top of a block they placed if their feet are inside it.
+
+When a chunk is unloaded while building, its build is aborted, waiting for its jobs to finish before its meshes are destroyed.
+
+### Vertex Format
+The render mesh uses two vertex streams and 36 bytes per vertex (see `ChunkMeshLayout`):
+
+| Stream | Attribute | Format | Content |
+|---|---|---|---|
+| 0 | Position | Float32 x3 | Vertex position |
+| 1 | Normal | SNorm8 x4 | Face or Object normal |
+| 1 | Tangent | SNorm8 x4 | Face or Object tangent |
+| 1 | UV0 | Float16 x4 | UV and texture layer |
+| 1 | UV3 | Float16 x4 | Natural light, extra light and dampness |
+
+Positions have their own stream, so depth and shadow passes only read 12 bytes per vertex. Light levels and texture layers are integers, which half floats store exactly. The GPU converts every attribute to floats, so shaders read them as usual.
+
+## Far from the World Origin
+
+Floats lose precision as numbers grow: a world position at 1000 only has steps of about 0.00006 units, and every doubling of the distance doubles the step. HDRP's Camera Relative Rendering (on in `LocalPackages/com.unity.render-pipelines.high-definition-config`) only helps the GPU. Transforms, bones, physics and every CPU position are still rounded at their absolute value, so models near the camera (like the first person arms, 0.5 units from the lens) shook by a few pixels at 10000 blocks and about 15 pixels at 100000.
+
+### Floating Origin
+
+The client keeps the player near the Unity origin. Every GameObject is placed at `absolute position - WorldOrigin offset`, where the offset (`Assets/Scripts/Structs/WorldOrigin.cs`) only exists on X and Z and is always a multiple of `REBASE_DISTANCE` (1024), so block and chunk coordinates convert exactly. When the player gets 1024 blocks away from the current origin, `FloatingOrigin` moves the origin to the nearest multiple of 1024 and shifts the client world:
+
+ - Every root GameObject of the scene (except UI roots) is moved, so chunks, players, drops, effects, sounds, lights and the precipitation anchor keep their relative positions.
+ - World space particles are moved by hand. Local and Custom space particles follow their transforms.
+ - Unity positions cached outside of transforms are shifted through `ShiftOrigin` hooks: moving voxel lights (`VoxelLightHandler`), static realtime light cells (`RealtimeLightHandler`), remote entity snapshots (`SmoothMovement`) and placement predictions (`PlacementPredictor`).
+ - `Physics.SyncTransforms` runs so the CharacterController and the chunk colliders see the new positions, and the `_WorldOrigin` shader global is updated.
+
+The first origin is set as soon as the spawn position arrives (`Client.SendServerInfo`), before any chunk or entity exists. Each shift moves every chunk collider, so expect a short hitch every 512 to 1024 blocks of travel. HDRP history is not reset: everything moves together, so only a single frame of TAA loses its history.
+
+**The Server, every network message and every save file keep absolute coordinates.** The offset is always zero on the Server, so shared code is unaffected there. Client code must convert at the boundary:
+
+ - Absolute to Unity: `WorldOrigin.ToUnity` (chunk objects, spawn, received entity positions, block SFX and VFX, prediction cells).
+ - Unity to block coordinates: `WorldOrigin.ToCastCoord`, never `new CastCoord(transform.position)`. It rounds in double precision with the same rule as `CastCoord`, so it returns the same block the absolute position would.
+ - Unity to absolute (positions sent to the Server, the location HUD): `WorldOrigin.ToAbsolute`.
+ - Relative math (distances, directions, raycasts, light and camera positions passed to shaders) stays in Unity space and needs no conversion.
+
+A forgotten conversion shows up as something placed exactly 1024·n blocks off, or a wrong block target, after the first shift.
+
+Shaders get the Unity position from Shader Graph's "Absolute World" position. Lighting (`VoxelLightShade`) must keep using it, since every light and shader global is in Unity space. Patterns anchored to the world (Water, Lava and Ice noise, Leaves noise) go through `WorldPatternPosition` in `Assets/Scripts/Rendering/ShaderFunctions/WorldOrigin.hlsl`, which adds `_WorldOrigin` back so they don't jump when the origin is shifted. Use it for any new world-anchored pattern.
+
+### Other rules
+
+ - **Vertex animation**: never multiply an absolute world position by time, because the result grows with both the distance and the session length. The Leaves wind calls `LeavesWindPhase` in `Assets/Scripts/Rendering/ShaderFunctions/LeavesWind.hlsl`: a wave that travels diagonally over XZ at `_Wind_Speed` units per second with `_Wind_Wavelength` units between gusts. Each vertex still has its own phase, but every term is wrapped with `frac` before being combined (the floating origin as a term of its own), so the sway looks the same at any distance and time. Its direction is fixed on purpose: following the global wind direction would multiply that direction by the absolute position again.
+ - **UI**: a Screen Space - Camera canvas is placed in the world in front of the camera every frame, so far from the origin its rounding jitters by a fraction of a pixel and TAA turns it into visible shaking. The in-game canvases (HUD and inventory) are **Screen Space - Overlay**, which is drawn in pixel space after post-processing. HDRP Unlit graphs don't render in Overlay, so every UI Shader Graph (`Assets/Shader/UI Shaders/`) uses the HDRP **Canvas** material with Disable Color Tint on, like Unlit, which ignored the Image color. The Canvas material declares `_MainTex`, `_Stencil*` and `_ColorMask` by itself, so don't add them to the graphs. UI materials must keep the Canvas defaults for them (`_ColorMask` 15, `_StencilComp` 8, `_StencilReadMask` 255): Unlit ignored these values, but the Canvas pass uses them, and a 0 makes the element invisible. UI Images must use these graphs or the default UI material, never HDRP Lit or Unlit materials. The Menu canvases stay Screen Space - Camera because the character creation canvas holds the 3D avatar and its lights, and the Menu camera sits next to the origin.
+ - **Camera unprojection**: `Camera.ScreenPointToRay` and similar calls invert the absolute camera matrix, which fails far from the origin (Unity logs "Screen position out of view frustum"). Unity's legacy `OnMouse*` events do this for every camera every frame, so `MouseLook` sets the player camera's `eventMask` to 0 and `OnMouse*` callbacks don't work in the game. Aim with physics raycasts from the camera position and forward vector instead.
+

@@ -31,8 +31,7 @@ public class EA_PlaceBlockBehaviour : EntityActionBehaviour {
 			blockID = VoxelLoader.GetBlockID(this.blockName);
 		}
 
-		if(this.PlaceBlock(cl, blockID, (byte)(connectedStack.GetAmount()-1), cl)){
-			cl.playerRaycast.lastBlockPlaced = it.GetID();
+		if(this.PlaceBlock(cl, blockID, it.GetID(), (byte)(connectedStack.GetAmount()-1), ea)){
 			cl.playerInventoryManager.SubToCounter(it.GetID(), 1);
 
 			if(connectedStack.Decrement()){
@@ -57,21 +56,29 @@ public class EA_PlaceBlockBehaviour : EntityActionBehaviour {
 
 	public override void OnSecondaryPlayer(ChunkLoader cl, EntityAction ea, ItemStack its, ulong code){OnPrimaryPlayer(cl, ea, its, code);}
 
-	private bool PlaceBlock(ChunkLoader cl, ushort blockCode, byte newQuantity, ChunkLoader loader){
+	// Origin of the placed item is sent so the server can echo it back in case of a PlacementDenied
+	private bool PlaceBlock(ChunkLoader cl, ushort blockCode, ushort itemID, byte newQuantity, EntityAction ea){
 		PlayerRaycast raycast = cl.playerRaycast;
 		CastCoord targetBlock = raycast.GetLastHitCoords();
+		int x = targetBlock.GetWorldX();
+		int y = targetBlock.GetWorldY();
+		int z = targetBlock.GetWorldZ();
 
-		// Won't happen if not raycasting something or if block is in player's body or head
-		if(!raycast.GetCurrentHitCoords().active || (CastCoord.Eq(targetBlock, raycast.GetPlayerHeadCoords()) && VoxelLoader.CheckSolid(blockCode)) || (CastCoord.Eq(targetBlock, raycast.GetPlayerBodyCoords()) && VoxelLoader.CheckSolid(blockCode))){
+		// Won't happen if not raycasting something
+		if(!raycast.GetCurrentHitCoords().active)
 			return false;
-		}
 
-		if(cl.GetBlock(targetBlock) != 0)
+		if(cl.GetBlock(targetBlock) != 0 || cl.placementPredictor.Has(targetBlock))
 			return false;
 
-		NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-		message.DirectBlockUpdate(BUDCode.PLACE, targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, cl.playerRaycast.facing, blockCode, ushort.MaxValue, ushort.MaxValue, slot:PlayerHotbarHandler.hotbarSlot, newQuantity:newQuantity);
+		// Voxels that add to the terrain collider can't be placed inside players
+		if(VoxelLoader.CheckAddsToCollider(blockCode) && (cl.playerMovement.OccupiesVoxel(x, y, z) || cl.client.entityHandler.IsVoxelOccupiedByPlayer(x, y, z)))
+			return false;
+
+		NetMessage message = new NetMessage(NetCode.PLACEBLOCK);
+		message.PlaceBlock(targetBlock.GetChunkPos(), targetBlock.blockX, targetBlock.blockY, targetBlock.blockZ, cl.playerRaycast.facing, blockCode, ea.GetConnectedStackSlot(), newQuantity, ea.GetConnectedStackInventory(), itemID, cl.playerMovement.IsInJump(), actionSlot:PlayerHotbarHandler.attackHotbarSlot, actionID:ea.GetID());
 		cl.client.Send(message);
+		cl.placementPredictor.Predict(targetBlock, blockCode);
 		return true;
 	}
 }

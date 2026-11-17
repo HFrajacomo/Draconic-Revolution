@@ -34,6 +34,9 @@ public abstract class BaseMovePreset {
     protected float maximumFovDeacceleration = 0.4f;
     protected float maximumFovAcceleration = 0.8f;
 
+    // Airborne: share of the acceleration and steering kept in the air. Drag stays the one of the surface jumped from
+    protected float airControl = 0.7f;
+
     protected static List<MathOperation>[] modifier;
 
     public BaseMovePreset(CharacterSheet sheet){
@@ -51,6 +54,7 @@ public abstract class BaseMovePreset {
 		this.povAdjustment = 15f;
         this.maximumImpactAngleTolerance = -0.7f;
         this.maximumAllowedMomentumAfterImpact = 0.3f;
+        this.airControl = 0.7f;
 
         if(BaseMovePreset.modifier == null){
             BaseMovePreset.modifier = new List<MathOperation>[Enum.GetNames(typeof(MovePresetProperty)).Length];
@@ -99,6 +103,9 @@ public abstract class BaseMovePreset {
 	
 	public virtual Vector3 CalculateDirection(Transform player, float controllerX, float controllerZ){return (player.right * controllerX + player.forward * controllerZ).normalized;}
 
+    // Presets that are never grounded (like swimming) don't count as airborne
+    public virtual bool IsAirborne(MovementFlags flags){return !flags.isGrounded;}
+
 	public virtual float CalculateMovementAlignment(Vector3 a, Vector3 b, Vector3 playerVelocity){
         float align = 0f;
         float absolute = 0f;
@@ -120,10 +127,10 @@ public abstract class BaseMovePreset {
         return align;
 	}
 
-	public virtual float CalculateMomentum(Vector3 playerDirection, float currentMomentum, float currentKnockbackMomentum, float movementAlignment){
+	public virtual float CalculateMomentum(Vector3 playerDirection, float currentMomentum, float currentKnockbackMomentum, float movementAlignment, MovementFlags flags){
         if(playerDirection != Vector3.zero){
             if(movementAlignment > 0)
-                return Mathf.Clamp(currentMomentum + (movementAlignment * GetMomentumGrowth() * Time.deltaTime), 0f, 1f);
+                return Mathf.Clamp(currentMomentum + (movementAlignment * GetMomentumGrowth() * GetControl(flags) * Time.deltaTime), 0f, 1f);
             else{
                 return Mathf.Clamp(currentMomentum - (GetDrag() * Time.deltaTime), 0f, 1f);
             }
@@ -145,15 +152,16 @@ public abstract class BaseMovePreset {
         return Mathf.Clamp(currentRunMomentum - (Mathf.Abs(movementAlignment) * GetRunMomentumDecrease() * Time.deltaTime), 0, GetMaxRunningMomentum());
 	}
 
-	public virtual Vector3 CalculateFinalVelocity(Vector3 playerDirection, Vector3 playerVelocity, float currentMomentum, float currentRunMomentum, float alignment){
+	public virtual Vector3 CalculateFinalVelocity(Vector3 playerDirection, Vector3 playerVelocity, float currentMomentum, float currentRunMomentum, float alignment, MovementFlags flags){
         Vector3 sum;
 
         if(playerDirection == Vector3.zero){
             return playerVelocity.normalized * currentMomentum * GetMaxNaturalSpeed();
         }
         else{
+            // Steering is weaker in the air, so the direction of a jump is mostly kept
             if(alignment >= 0){
-                sum = playerVelocity + (playerDirection * (currentMomentum + currentRunMomentum) * GetMaxNaturalSpeed());
+                sum = playerVelocity + (playerDirection * (currentMomentum + currentRunMomentum) * GetMaxNaturalSpeed() * GetControl(flags));
             }
             else
                 sum = playerVelocity.normalized * (currentMomentum + currentRunMomentum) * GetMaxNaturalSpeed();
@@ -248,6 +256,10 @@ public abstract class BaseMovePreset {
     protected float GetPovAdjustment(){return ProcessModifiers(MovePresetProperty.POV_ADJUSTMENT, this.povAdjustment);}
     protected float GetMaximumImpactAngleTolerance(){return ProcessModifiers(MovePresetProperty.MAXIMUM_IMPACT_ANGLE_TOLERANCE, this.maximumImpactAngleTolerance);}
     protected float GetMaximumAllowedMomentumAfterImpact(){return ProcessModifiers(MovePresetProperty.MAXIMUM_ALLOWED_MOMENTUM_AFTER_IMPACT, this.maximumAllowedMomentumAfterImpact);}
+    protected float GetAirControl(){return ProcessModifiers(MovePresetProperty.AIR_CONTROL, this.airControl);}
+
+    // Share of acceleration and steering available: full on the ground, airControl in the air
+    protected float GetControl(MovementFlags flags){return IsAirborne(flags) ? GetAirControl() : 1f;}
 
     protected float ProcessModifiers(MovePresetProperty prop, float number){
         if(this.ignoreModifiers)

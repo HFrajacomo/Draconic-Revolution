@@ -4,7 +4,14 @@ Making a game is easy. Making a good game is harder. Making a good and fast game
 
 ## Chunk Loading Optimization (CPU)
 
-In a Procedurally Generated game, loading and unloading chunks is key. In order to conserve CPU, the ChunkLoader either generates one chunk or draws two into the screen. Normally, it's enough to render chunks given the speed the player will move in the future. Limiting the task of the ChunkLoader every frame makes the game run smoother.
+In a Procedurally Generated game, loading and unloading chunks is key. Chunks are **streamed** by the Server:
+
+- Every client keeps a **StreamWindow**, a square of chunks around the player with a radius of Render Distance + 1, plus one vertical layer when the player is close to the top or bottom of a chunk. The client sends its center to the Server (`STREAMCENTER`) whenever it changes, and the Server pushes every chunk inside it, nearest first. Client and Server compute the window with the same code (`ChunkStreaming`), so both always agree on which chunks should be loaded.
+- When the window moves, only the strips of chunks that entered or left it are computed (rectangle difference). Moving one chunk costs O(Render Distance) instead of O(Render Distance²), so large Render Distances stay cheap. Both sides unload the chunks that left the window on their own, without extra messages.
+- The client acknowledges consumed chunks (`CHUNKACK`). The Server never has more unacknowledged chunks than an adaptive send window allows, so fast clients fill their window quickly and slow clients aren't flooded.
+- The Server's generation queue, the client's load, unload and draw steps all run under a per-frame **time budget** (see `Constants`) instead of a fixed amount of chunks. Larger windows take more frames to fill, but frames never get longer.
+- Chunks are only queued to be drawn once all their neighbors are loaded, instead of being retried every frame.
+- If the stream goes idle while chunks of the window are still missing (lost packets), the client scans its window a few chunks per frame and asks the Server for the missing ones (`REQUESTCHUNKLOAD`).
 
 ## Interpolative Generation (CPU)
 
@@ -28,6 +35,32 @@ As mentioned in the *World_Save.md*, our compression algorithm is a Pallete-base
 Interestingly enough, the Garbage Collection optimization is meant to decrease the number of *GC.Collect()* calls. In order to do that, we have to keep garbage generation to a minimum. Thus, we use cached information. If we commonly use a certain list or array, save them as part of the class!
 
 When working with Native Data Structures, disposing of them correctly and accessing their data as non-Native structures without burdening the GC is a good thing.
+
+## Persistent Native Buffers and Zero-Copy Meshes (CPU and RAM)
+
+The hot paths of the Chunk Renderer and Voxel Lighting don't allocate per call:
+
+- Every chunk build reuses the persistent buffers of a `ChunkBuildSlot`, and only copies a padded snapshot of the chunk plus a 1-voxel border of its neighbors, instead of the full data of every neighbor.
+- Meshes are written by Burst jobs directly into `Mesh.MeshDataArray` and applied with `Mesh.ApplyAndDisposeWritableMeshData`. No managed vertex arrays are created and every chunk reuses the same Mesh objects.
+- MeshColliders are cooked in worker threads with `Physics.BakeMesh` before they are assigned, so the main thread doesn't cook them.
+- Object meshes are concatenated once into `ObjectMeshTables` and shared, read-only, by every build.
+- The light of loaded chunks is calculated in worker threads, nearest to the player first, and each lighting slot keeps its own persistent buffers (see *Voxel_Lighting.md*). Light propagation and chunk updates run in the main thread, using the persistent buffers of `LightingScratch`. BFS queues are index-based FIFOs and visited voxels are tracked in bit arrays, keeping the BFS linear.
+- The amount of build and lighting slots is limited by the job workers of the process (`ChunkLoader.CalculateJobSlots`). Running more jobs than workers only makes them compete, and the main thread waits longer whenever it needs one of them finished.
+- Periodic client events (`Resources.UnloadUnusedAssets` and the forced unload of far chunks) run on real-time intervals, so faster machines don't run them more often.
+- Visible faces of a chunk are found in parallel slices, so building a single chunk (like after a block change) takes a fraction of the time.
+- The render mesh stores normals and tangents as signed bytes and UVs as half floats, using 36 bytes per vertex instead of 64. Colliders are greedy meshed, merging flat surfaces into few large triangles.
+
+## Uniform Metadata (RAM)
+
+Most chunks have the same HP in every voxel, and many have the same State in every voxel too. `VoxelMetadata` keeps each of them as a single value while that's true, and only allocates the full array (128 KB) when a voxel gets a different value. Full arrays come from the `MetadataPool` and go back to it when the chunk is unloaded. Decompression detects uniform data, and the Chunk Builder, Voxel Lighting and Compression read uniform metadata without allocating its array.
+
+## Parallel World Generation (CPU)
+
+The Server generates chunks in batches of `SERVER_GENERATION_BATCH`, each in its own `GenerationSlot` of persistent native buffers. Biomes are assigned (and cached) before the jobs are scheduled, so each chunk runs its Generate, Populate and Cave jobs as a single chain, and the chains of a batch run in parallel. Structures can reach neighboring chunks, so chunks are finished one at a time, in the order they were requested, which gives the same result as generating them one by one.
+
+Chunk compression and decompression run their blocks, HP and State in parallel, straight from and into the chunk arrays. Chunk saves are written to disk in the background and chunk reads happen in a background thread (see *World_Save.md*).
+
+Biomes are stored as byte codes, so saving, sending and building chunks never compares biome names.
 
 ## Incremental Garbage Collector (Incremental GC) (CPU)
 

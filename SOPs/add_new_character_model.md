@@ -33,6 +33,16 @@ Hats are crazy different from other models. Their last vertex group is called th
 ## Armature and Animation
 Any changes to armature, even in Rest Pose, must have its animations exported and replaced in Unity's AnimationController. Or else, we'll get a misalignment in Bind Poses, which deforms models wrong, creating visible seams.
 
+Every model must be exported with the armature in the **same Rest Pose**. Parts are stitched into a single mesh at runtime, and their bones are matched to the `CharacterArmature` by **name** (see `CharacterSkeleton`), so the bone order of each model doesn't matter, but a different bind pose for the same bone makes the parts drift apart, and clip into each other, when that joint bends.
+
+After exporting `characters.fbx`, run **Editor Tools > Characters > Validate Models**. It reports:
+- Bones that don't exist in the `CharacterArmature`
+- Bones whose bind pose differs between models (re-export the reported model with the shared Rest Pose)
+- Bind poses that don't match the armature's Rest Pose in the file
+- Vertices without weights (they won't follow animations) or with weights that don't add up to 1 (use "Normalize All" in Blender)
+
+Keep every vertex at 4 bone influences or fewer ("Limit Total" in Blender). Unity keeps only the strongest 4, and fewer on the Very Low quality level.
+
 ## Registering models in the db files
 Every model must be registered in its db file in `Assets/Resources/CharacterModels/`. Columns are separated by a **tab**, lines end with **CRLF**, and lines starting with `#` are comments. The **order of the lines defines the model's code** that is saved in character files, so never reorder or remove existing lines. New models must be appended at the end.
 

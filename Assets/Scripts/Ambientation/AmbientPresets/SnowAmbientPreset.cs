@@ -24,12 +24,12 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		this.cloudTintNight = Color.black;
 
 		this.wbTemperature = -7f;
-		this.expCompensation = -0.3f;
+		this.expOffset = -0.2f;
 
-		this.gainSunrise = new float4(.82f, .6f, .32f, .007f);
+		this.gainSunrise = new float4(.82f, .6f, .32f, 0f);
 		this.gainDay = new float4(.6f, .65f, .68f, 0f);
 		this.gainSunset = new float4(.68f, .3f, .53f, 0f);
-		this.gainNight = new float4(.20f, .23f, .29f, .31f);
+		this.gainNight = new float4(.20f, .23f, .29f, 0f);
 
 		this.sunDiameter = SUN_DIAMETER_DAY;
 		this.moonDiameter = SUN_DIAMETER_NIGHT;
@@ -61,5 +61,4 @@ public class SnowAmbientPreset: BaseAmbientPreset{
 		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
 	public override bool IsSnowInstead(){return this.isSnowInstead;}
-	public override float GetExposureCompensation(){return this.expCompensation;}
 }

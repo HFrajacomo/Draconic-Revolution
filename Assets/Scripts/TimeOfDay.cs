@@ -26,7 +26,6 @@ public class TimeOfDay : MonoBehaviour
     private GameObject player;
 
     private bool SENDTIMEFLAG = false;
-    private bool CHECKTIMEOUT = false;
 
     // Position properties
     private NetMessage movementMessage;
@@ -51,7 +50,6 @@ public class TimeOfDay : MonoBehaviour
             	ticks = 0f;
             	minutes++;
                 this.SENDTIMEFLAG = true;
-                this.CHECKTIMEOUT = true;
             }
 
             if(minutes >= 60){
@@ -71,12 +69,6 @@ public class TimeOfDay : MonoBehaviour
                 this.server.SendAll(message.GetMessage(), message.size);
 
                 this.SENDTIMEFLAG = false;
-            }
-
-            // If server, checks for timeouts
-            if(this.CHECKTIMEOUT && !this.isClient){
-                this.server.CheckTimeout();
-                this.CHECKTIMEOUT = false;
             }
 
             if(faketicks >= TimeOfDay.timeRate){
@@ -134,9 +126,9 @@ public class TimeOfDay : MonoBehaviour
     	return hours*60 + minutes;
     }
 
-    // Gets full day description with Ticks
-    public string GetBUDTime(){
-        return days.ToString() + ":" + hours.ToString("00") + ":" + minutes.ToString("00") + ":" + ((int)this.ticks).ToString();
+    // Gets the absolute amount of ticks passed in the world. Used by the BUDScheduler
+    public long GetBUDTick(){
+        return (long)this.days*ticksForDays + (long)this.hours*ticksForHours + (long)this.minutes*ticksForMinute + (long)this.ticks;
     }
 
     // Returns byte array representing current time for Chunk Header in RegionFile
@@ -262,25 +254,6 @@ public class TimeOfDay : MonoBehaviour
             return true;
 
         return false;
-    }
-
-    // Fake Sum to calculate schedule time
-    public string FakeSum(int tick){
-        float t = this.ticks + tick;
-        byte m = this.minutes;
-        byte h = this.hours;
-        uint d = this.days;
-
-        m = (byte)(m + (t/TimeOfDay.ticksForMinute));
-        t = t%TimeOfDay.ticksForMinute;
-        h = (byte)(h + (m/60));
-        m = (byte)(m%60);
-        d = (uint)(d + (h/24)); 
-        h = (byte)(h%24);
-
-        string returnString = d.ToString() + ":" + h.ToString("00") + ":" + m.ToString("00") + ":" +  (Mathf.FloorToInt(t)).ToString();
-
-        return returnString;
     }
 
     // Gets currentTime as string

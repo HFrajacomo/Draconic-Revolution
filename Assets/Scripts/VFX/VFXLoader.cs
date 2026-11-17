@@ -11,6 +11,8 @@ public class VFXLoader : MonoBehaviour
 
     public Dictionary<ulong, Dictionary<string, GameObject>> entityData;
 
+    private RealtimeLightHandler realtimeLightHandler;
+
     public static bool EXTRALIGHTSHADOWS = false;
 
     void OnDestroy(){
@@ -29,6 +31,8 @@ public class VFXLoader : MonoBehaviour
         lightReference = new Dictionary<ChunkPos, List<HDAdditionalLightData>>();
         entityData = new Dictionary<ulong, Dictionary<string, GameObject>>();
     }
+
+    public void SetRealtimeLightHandler(RealtimeLightHandler handler){this.realtimeLightHandler = handler;}
 
     public bool Contains(ChunkPos pos, bool isServer=false){
         if(isServer)
@@ -64,6 +68,9 @@ public class VFXLoader : MonoBehaviour
         else{
             foreach(string key in this.data[pos].Keys)
                 Destroy(this.data[pos][key]);
+
+            if(this.realtimeLightHandler != null)
+                this.realtimeLightHandler.RemoveChunk(pos);
 
         	data.Remove(pos);
             lightReference[pos] = null;
@@ -122,12 +129,20 @@ public class VFXLoader : MonoBehaviour
         }
 
         this.entityData[code].Add(go.name, go);
+
+        Light light = go.GetComponentInChildren<Light>();
+
+        if(light != null && this.realtimeLightHandler != null)
+            this.realtimeLightHandler.RegisterDynamic(light);
     }
 
     // Removes an GameObject from Chunk Dict
     public void Remove(ChunkPos pos, string name, bool isServer=false, bool isOnDemandLight=false){
         if(isServer){
-            this.serverVFX[pos].Remove(name);
+            Dictionary<string, NetMessage> chunkVFX;
+
+            if(this.serverVFX.TryGetValue(pos, out chunkVFX))
+                chunkVFX.Remove(name);
         }
         else{
             if(this.data[pos].ContainsKey(name)){
@@ -143,17 +158,32 @@ public class VFXLoader : MonoBehaviour
 
     // Client removes a VFX based on an Entity
     public void Remove(ulong code, string name){
-        if(this.entityData.ContainsKey(code)){
-            if(this.entityData[code].ContainsKey(name)){
-                GameObject.Destroy(this.entityData[code][name]);
+        Dictionary<string, GameObject> entityVFX;
+        GameObject go;
 
-                if(this.entityData[code].Count <= 1){
-                    this.entityData.Remove(code);
-                }
-                else{
-                    this.entityData[code].Remove(name);
-                }
+        if(!this.entityData.TryGetValue(code, out entityVFX))
+            return;
+        if(!entityVFX.TryGetValue(name, out go))
+            return;
+
+        // Entity VFX are children of attachments, so they may have been destroyed with them already
+        // RealtimeLightHandler drops destroyed dynamic lights by itself
+        if(go != null){
+            if(this.realtimeLightHandler != null){
+                Light light = go.GetComponentInChildren<Light>();
+
+                if(light != null)
+                    this.realtimeLightHandler.UnregisterDynamic(light);
             }
+
+            GameObject.Destroy(go);
+        }
+
+        if(entityVFX.Count <= 1){
+            this.entityData.Remove(code);
+        }
+        else{
+            entityVFX.Remove(name);
         }
     }
 
@@ -168,13 +198,20 @@ public class VFXLoader : MonoBehaviour
         }
 
         if(adjascent){
-            ChunkPos[] neighbors = {new ChunkPos(pos.x-1, pos.z-1, pos.y), new ChunkPos(pos.x-1, pos.z, pos.y), new ChunkPos(pos.x-1, pos.z+1, pos.y), new ChunkPos(pos.x, pos.z-1, pos.y), new ChunkPos(pos.x, pos.z+1, pos.y), new ChunkPos(pos.x+1, pos.z-1, pos.y), new ChunkPos(pos.x+1, pos.z, pos.y), new ChunkPos(pos.x+1, pos.z+1, pos.y)};
-        
+            ChunkPos iterPos;
+
             // Updates all lights in neighbor chunks
-            foreach(ChunkPos iterPos in neighbors){
-                if(ContainsLight(iterPos)){
-                    foreach(HDAdditionalLightData light in this.lightReference[iterPos]){
-                        light.RequestShadowMapRendering();
+            for(int x=-1; x <= 1; x++){
+                for(int z=-1; z <= 1; z++){
+                    if(x == 0 && z == 0)
+                        continue;
+
+                    iterPos = new ChunkPos(pos.x+x, pos.z+z, pos.y);
+
+                    if(ContainsLight(iterPos)){
+                        foreach(HDAdditionalLightData light in this.lightReference[iterPos]){
+                            light.RequestShadowMapRendering();
+                        }
                     }
                 }
             }

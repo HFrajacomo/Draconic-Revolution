@@ -20,6 +20,7 @@ STATES:
 [Serializable]
 public class VX_TorchBehaviour : VoxelBehaviour{
 	public string fireVFXPath;
+	public string lightProfilePath;
 	public string audioName;
 
 	public string dropItem;
@@ -27,6 +28,16 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 	public byte maxDropQuantity;
 
 	private GameObject fireVFX;
+	private ushort dropItemID;
+
+
+	// Items are loaded before voxels run this, so a wrong codename fails on load instead of on every break
+	public override void PostDeserializationSetup(bool isClient){
+		if(!ItemLoader.Contains(this.dropItem))
+			throw new DeserializationErrorException($"[VX_TorchBehaviour] Dropped item '{this.dropItem}' is not a registered item");
+
+		this.dropItemID = ItemLoader.GetID(this.dropItem);
+	}
 
 
 	// Turns on and off Torch
@@ -105,10 +116,10 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 			shadowDirection = Quaternion.Euler(0, 0, 0);
 		}
 
-		GameObject fire = GameObject.Instantiate(this.fireVFX, new Vector3(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f + pos.y*Chunk.chunkDepth, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, shadowDirection);
+		GameObject fire = GameObject.Instantiate(this.fireVFX, WorldOrigin.ToUnity(pos.x*Chunk.chunkWidth + blockX, blockY + 0.35f + pos.y*Chunk.chunkDepth, pos.z*Chunk.chunkWidth + blockZ) + fireOffset, shadowDirection);
 		fire.name = BuildVFXName(pos, blockX, blockY, blockZ);
 
-		cl.vfx.Add(pos, fire, active:true, isOnDemandLight:true);
+		cl.vfx.Add(pos, fire, active:true);
 		ControlFire(pos, blockX, blockY, blockZ, state, cl);
 
 		return 0;		
@@ -120,7 +131,8 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 	}
 
 	public override int OnVFXBreak(ChunkPos pos, int blockX, int blockY, int blockZ, ushort state, ChunkLoader cl){
-		cl.vfx.Remove(pos, BuildVFXName(pos, blockX, blockY, blockZ), isOnDemandLight:true);
+		cl.realtimeLightHandler.RemoveStaticLight(pos, blockX, blockY, blockZ);
+		cl.vfx.Remove(pos, BuildVFXName(pos, blockX, blockY, blockZ));
 		return 0;
 	}
 
@@ -140,10 +152,11 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 		CastCoord coord = new CastCoord(pos, x, y, z);
 
         cl.server.entityHandler.AddItem(new float3(coord.GetWorldX(), coord.GetWorldY()+Constants.ITEM_ENTITY_SPAWN_HEIGHT_BONUS, coord.GetWorldZ()),
-            Item.GenerateForceVector(), ItemLoader.GetCopy(this.dropItem), Item.RandomizeDropQuantity(this.minDropQuantity, this.maxDropQuantity), cl);
+            Item.GenerateForceVector(), ItemLoader.GetCopy(this.dropItemID), Item.RandomizeDropQuantity(this.minDropQuantity, this.maxDropQuantity), cl);
 
 		NetMessage message = new NetMessage(NetCode.VFXBREAK);
 		message.VFXBreak(pos, x, y, z, ushort.MaxValue, 0);
+		cl.vfx.Remove(pos, BuildVFXName(pos, x, y, z), isServer:true);
 		cl.server.SendToClients(pos, message);
 
 		// Init SFX
@@ -179,14 +192,20 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 		return 1;
 	}
 
-	// Handles Fire VFX turning on and off
+	// Handles Fire VFX and its realtime light turning on and off
 	private void ControlFire(ChunkPos pos, int x, int y, int z, ushort? state, ChunkLoader cl){
+		GameObject fire = cl.vfx.data[pos][BuildVFXName(pos, x, y, z)];
+
 		// Turns off fire when it's on
-		if(state >= 4)
-			cl.vfx.data[pos][BuildVFXName(pos, x, y, z)].SetActive(false);
+		if(state >= 4){
+			fire.SetActive(false);
+			cl.realtimeLightHandler.RemoveStaticLight(pos, x, y, z);
+		}
 		// Turns on fire when it's off
-		else if(state < 4)
-			cl.vfx.data[pos][BuildVFXName(pos, x, y, z)].SetActive(true);
+		else if(state < 4){
+			fire.SetActive(true);
+			cl.realtimeLightHandler.AddStaticLight(pos, x, y, z, fire.transform.position, this.lightProfilePath);
+		}
 	}	
 
 	// Builds name for current Torch VFX
@@ -301,9 +320,7 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 			cl.GetChunk(thisPos).data.SetCell(X, Y, Z, 0);
 			this.OnBreak(thisPos, X, Y, Z, cl);
 
-			NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-			message.DirectBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, facing, ushort.MaxValue, state, 0);
-			cl.server.SendToClients(thisPos, message);
+			cl.server.SendBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, ushort.MaxValue, state, 0);
 
 			EraseMetadata(thisPos, X, Y, Z, cl);		
 		}
@@ -317,9 +334,7 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 					cl.GetChunk(thisPos).data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
 
-					NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-					message.DirectBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, facing, ushort.MaxValue, state, 0);
-					cl.server.SendToClients(thisPos, message);
+					cl.server.SendBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, ushort.MaxValue, state, 0);
 
 					EraseMetadata(thisPos, X, Y, Z, cl);					
 				}
@@ -329,9 +344,7 @@ public class VX_TorchBehaviour : VoxelBehaviour{
 					cl.GetChunk(thisPos).data.SetCell(X, Y, Z, 0);
 					this.OnBreak(thisPos, X, Y, Z, cl);
 
-					NetMessage message = new NetMessage(NetCode.DIRECTBLOCKUPDATE);
-					message.DirectBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, facing, ushort.MaxValue, state, 0);
-					cl.server.SendToClients(thisPos, message);
+					cl.server.SendBlockUpdate(BUDCode.BREAK, thisPos, X, Y, Z, ushort.MaxValue, state, 0);
 
 					EraseMetadata(thisPos, X, Y, Z, cl);					
 				}

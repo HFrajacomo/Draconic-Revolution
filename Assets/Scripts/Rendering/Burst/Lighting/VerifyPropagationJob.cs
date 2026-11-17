@@ -34,8 +34,14 @@ public struct VerifyPropagationJob : IJob {
 	public NativeArray<byte> vmlight;
 	[ReadOnly]
 	public NativeArray<byte> vmshadow;
+	[ReadOnly]
+	public bool bidirectional; // Also flags horizontal borders where the neighbor is the brighter one
 
 	public NativeArray<byte> changed;
+
+	// Directional ShadowCodes of light received from the chunk above and below (see CalculateLightPropagationJob.GetShadowDirection)
+	private const byte SHADOW_FROM_ABOVE = 11;
+	private const byte SHADOW_FROM_BELOW = 12;
 
 	public void Execute(){
 		byte highestLightCurrent = 0;
@@ -49,7 +55,7 @@ public struct VerifyPropagationJob : IJob {
 					highestLightCurrent = ExtractHighestLightFactor(lightdata[y*Chunk.chunkWidth+z]);
 					highestLightNeighbor = ExtractHighestLightFactor(xmlight[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z]);
 
-					if(highestLightCurrent > highestLightNeighbor+1){
+					if(ShouldPropagate(highestLightCurrent, highestLightNeighbor, bidirectional)){
 						changed[0] = (byte)(changed[0] | 1);
 						FOUND = true;
 						break;
@@ -68,7 +74,7 @@ public struct VerifyPropagationJob : IJob {
 					highestLightCurrent = ExtractHighestLightFactor(lightdata[(Chunk.chunkWidth-1)*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z]);
 					highestLightNeighbor = ExtractHighestLightFactor(xplight[y*Chunk.chunkWidth+z]);
 
-					if(highestLightCurrent > highestLightNeighbor+1){
+					if(ShouldPropagate(highestLightCurrent, highestLightNeighbor, bidirectional)){
 						changed[0] = (byte)(changed[0] | 2);
 						FOUND = true;
 						break;
@@ -87,7 +93,7 @@ public struct VerifyPropagationJob : IJob {
 					highestLightCurrent = ExtractHighestLightFactor(lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth]);
 					highestLightNeighbor = ExtractHighestLightFactor(zmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)]);
 
-					if(highestLightCurrent > highestLightNeighbor+1){
+					if(ShouldPropagate(highestLightCurrent, highestLightNeighbor, bidirectional)){
 						changed[0] = (byte)(changed[0] | 4);
 						FOUND = true;
 						break;
@@ -106,7 +112,7 @@ public struct VerifyPropagationJob : IJob {
 					highestLightCurrent = ExtractHighestLightFactor(lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+(Chunk.chunkWidth-1)]);
 					highestLightNeighbor = ExtractHighestLightFactor(zplight[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth]);
 
-					if(highestLightCurrent > highestLightNeighbor+1){
+					if(ShouldPropagate(highestLightCurrent, highestLightNeighbor, bidirectional)){
 						changed[0] = (byte)(changed[0] | 8);
 						FOUND = true;
 						break;
@@ -126,11 +132,16 @@ public struct VerifyPropagationJob : IJob {
 						highestLightCurrent = ExtractHighestLightFactor(lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+z]);
 						highestLightNeighbor = ExtractHighestLightFactor(vmlight[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z]);
 
-						if(highestLightCurrent > highestLightNeighbor+1){
+						if(ShouldPropagate(highestLightCurrent, highestLightNeighbor, true)){
 							changed[0] = (byte)(changed[0] | 16);
 							FOUND = true;
 							break;
 						}
+					}
+					else if(HoldsLightFromWall(shadowdata[x*Chunk.chunkWidth*Chunk.chunkDepth+z], vmshadow[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z], SHADOW_FROM_BELOW)){
+						changed[0] = (byte)(changed[0] | 16);
+						FOUND = true;
+						break;
 					}
 				}
 				if(FOUND)
@@ -147,17 +158,41 @@ public struct VerifyPropagationJob : IJob {
 						highestLightCurrent = ExtractHighestLightFactor(lightdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z]);
 						highestLightNeighbor = ExtractHighestLightFactor(vplight[x*Chunk.chunkWidth*Chunk.chunkDepth+z]);
 
-						if(highestLightCurrent > highestLightNeighbor+1){
+						if(ShouldPropagate(highestLightCurrent, highestLightNeighbor, true)){
 							changed[0] = (byte)(changed[0] | 32);
 							FOUND = true;
 							break;
 						}
+					}
+					else if(HoldsLightFromWall(shadowdata[x*Chunk.chunkWidth*Chunk.chunkDepth+(Chunk.chunkDepth-1)*Chunk.chunkWidth+z], vpshadow[x*Chunk.chunkWidth*Chunk.chunkDepth+z], SHADOW_FROM_ABOVE)){
+						changed[0] = (byte)(changed[0] | 32);
+						FOUND = true;
+						break;
 					}
 				}
 				if(FOUND)
 					break;
 			}
 		}
+	}
+
+	/*
+	Light received from the vertical neighbor is kept through calculations (see CalculateShadowMapJob). If the neighbor's voxel became solid,
+	that light may have lost its source, so the border is propagated to remove it
+	*/
+	private bool HoldsLightFromWall(byte shadow, byte neighborShadow, byte direction){
+		if(neighborShadow != 0)
+			return false;
+
+		return (shadow & 0x0F) == direction || (shadow >> 4) == direction;
+	}
+
+	// Light is propagated when one side is brighter than what the other could give it. Pushing only checks if the current chunk is the brighter one
+	private bool ShouldPropagate(byte current, byte neighbor, bool bothWays){
+		if(current > neighbor+1)
+			return true;
+
+		return bothWays && neighbor > current+1;
 	}
 
 	private byte ExtractHighestLightFactor(byte encodedLight){

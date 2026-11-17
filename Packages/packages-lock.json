@@ -156,9 +156,9 @@
       }
     },
     "com.unity.render-pipelines.high-definition-config": {
-      "version": "17.0.3",
+      "version": "file:../LocalPackages/com.unity.render-pipelines.high-definition-config",
       "depth": 0,
-      "source": "builtin",
+      "source": "local",
       "dependencies": {
         "com.unity.render-pipelines.core": "17.0.3"
       }

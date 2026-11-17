@@ -259,8 +259,12 @@ public class CharacterCreationReligionMenu : Menu{
         this.CREATE = true;
         this.SHOWN_ONCE = false;
 
-        if(PlayerAppearanceData.GetPreloadFlag())
+        if(PlayerAppearanceData.GetPreloadFlag()){
+        	// Disable() won't run before the scene change, so its deferred reset is done here
+        	CharacterCreationData.Reset();
+        	this.CREATE = false;
         	SceneManager.LoadScene("Blank");
+        }
        	else
 			this.RequestMenuChange(MenuID.SELECT_WORLD);
 	}
@@ -433,6 +437,11 @@ public class CharacterCreationReligionMenu : Menu{
 					t.interactable = false;
 					t.GetComponent<Image>().material.SetColor("_BorderColor", DARKER_GREY);
 					t.transform.parent.gameObject.GetComponentInChildren<Text>().color = DARKER_GREY;
+				}
+				else{
+					t.interactable = true;
+					t.GetComponent<Image>().material.SetColor("_BorderColor", BORDER_ENABLED);
+					t.transform.parent.gameObject.GetComponentInChildren<Text>().color = Color.white;
 				}
 			}
 		}

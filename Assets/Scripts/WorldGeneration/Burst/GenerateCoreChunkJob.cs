@@ -6,7 +6,7 @@ using Unity.Burst;
 using Unity.Jobs;
 using Unity.Collections;
 
-[BurstCompile(FloatPrecision.High, FloatMode.Strict)]
+[BurstCompile(FloatPrecision.Standard, FloatMode.Fast)]
 public struct GenerateCoreChunkJob: IJob{
     public ChunkPos pos;
 

@@ -42,9 +42,10 @@ public static class ItemDeserializer {
 
 		Item item = CreateItem(JsonFormatter.RemoveComments(propertiesJson), itemType);
 		item.SetMemoryStorageType();
+		ValidateMemoryStorageType(item);
 
-		if(item is Weapon){
-			((Weapon)item).ResolveWeaponType();
+		if(item is BaseWeapon){
+			((BaseWeapon)item).ResolveWeaponType();
 		}
 
 		if(HasBehaviours(json)){
@@ -61,6 +62,26 @@ public static class ItemDeserializer {
 		Reset();
 
 		return item;
+	}
+
+	// Memory storage type must match the item class, since it defines how the item is serialized
+	// Only SubWeapons may stack among Weapons, as the WEAPON memory record has no quantity
+	private static void ValidateMemoryStorageType(Item item){
+		MemoryStorageType type = item.GetMemoryStorageType();
+
+		if(item is SubWeapon){
+			if(type != MemoryStorageType.SUBWEAPON)
+				throw new DeserializationErrorException($"[ItemDeserializer] SubWeapon {item.codename} must have memoryType {(byte)MemoryStorageType.SUBWEAPON} (SUBWEAPON), but has {item.memoryType}");
+		}
+		else if(item is Weapon){
+			if(type != MemoryStorageType.WEAPON)
+				throw new DeserializationErrorException($"[ItemDeserializer] Weapon {item.codename} must have memoryType {(byte)MemoryStorageType.WEAPON} (WEAPON), but has {item.memoryType}");
+			if(item.stacksize != 1)
+				throw new DeserializationErrorException($"[ItemDeserializer] Weapon {item.codename} must have stacksize 1, but has {item.stacksize}. Only SubWeapons can stack");
+		}
+		else if(type == MemoryStorageType.WEAPON || type == MemoryStorageType.SUBWEAPON){
+			throw new DeserializationErrorException($"[ItemDeserializer] Item {item.codename} is not a Weapon, so it can't have memoryType {item.memoryType} ({type})");
+		}
 	}
 
 	private static void Reset(){

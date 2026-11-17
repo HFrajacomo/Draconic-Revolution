@@ -32,6 +32,16 @@ public class AnimationHandler : MonoBehaviour {
 	private static Dictionary<string, Dictionary<BoneAnchorType, string>> anchorMappings;
 	private static Dictionary<string, Dictionary<int, string>> hashToName;
 
+	private static readonly int EMPTY_STATE_HASH = Animator.StringToHash("Empty");
+
+	/*
+	Last state requested per Third Person layer and the frame it was requested in
+		CrossFades are only processed in the next Animator update, so until then the Animator still reports the previous state.
+		Placement decisions must see the requested state instead, or a later request could override it
+	*/
+	private int[] pendingHash = new int[0];
+	private int[] pendingFrame = new int[0];
+
 
 	public void Init(string controllerName, CharacterBuilder firstPersonBuilder, bool isUserCharacter=false){
 		this.controllerName = controllerName;
@@ -68,17 +78,21 @@ public class AnimationHandler : MonoBehaviour {
 
 
 	// Plays bone animation
-	public void Play(string stateName, bool overrideState=false, bool ignoreFP=false){
+	public void Play(string stateName, bool overrideState=false, bool ignoreFP=false, bool ignoreTP=false){
 		if(!this.INIT)
 			return;
 
-		bool skipThirdPerson = false;
+		bool skipThirdPerson = ignoreTP;
 		AnimationStateMapping givenMap, currentMap, currentMapFP;
+		int layerIndex;
 
 		givenMap = AnimationHandler.stateMappings[this.controllerName][stateName];
 
-		if(!overrideState){
-			currentMap = AnimationHandler.stateMappings[this.controllerName][AnimationHandler.hashToName[this.controllerName][GetState(this.tpAnimator.GetLayerIndex(givenMap.layers[0])).shortNameHash]];
+		if(ignoreTP){
+			currentMap = givenMap;
+		}
+		else if(!overrideState){
+			currentMap = AnimationHandler.stateMappings[this.controllerName][AnimationHandler.hashToName[this.controllerName][GetTargetHash(this.tpAnimator.GetLayerIndex(givenMap.layers[0]))]];
 
 			if(this.isPlayer){
 				currentMapFP = AnimationHandler.stateMappings[this.controllerNameFP][AnimationHandler.hashToName[this.controllerNameFP][GetStateFP(0).shortNameHash]];
@@ -86,6 +100,7 @@ public class AnimationHandler : MonoBehaviour {
 
 			if(givenMap.state == currentMap.state){
 				StopLayer(givenMap.stopLayer);
+				StopStateInOtherLayers(givenMap, 0);
 				skipThirdPerson = true;
 			}
 		}
@@ -97,7 +112,7 @@ public class AnimationHandler : MonoBehaviour {
 		else if(VerifyLayerStates(givenMap.layers[0], currentMap.priority)){}
 		else if(overrideState){
 			StopLayer(givenMap.stopLayer);
-			this.tpAnimator.CrossFade(stateName, this.animationCrossfadeTime, layer:this.tpAnimator.GetLayerIndex(givenMap.layers[0]));
+			RequestCrossFade(this.tpAnimator.GetLayerIndex(givenMap.layers[0]), stateName);
 
 			if(this.isPlayer && !ignoreFP){
 				if(this.fpAnimator.HasState(0, Animator.StringToHash(stateName))){
@@ -110,11 +125,17 @@ public class AnimationHandler : MonoBehaviour {
 		}
 		else{
 			for(int i=0; i < givenMap.layers.Length; i++){
-				currentMap = AnimationHandler.stateMappings[this.controllerName][AnimationHandler.hashToName[this.controllerName][GetState(this.tpAnimator.GetLayerIndex(givenMap.layers[i])).shortNameHash]];
+				layerIndex = this.tpAnimator.GetLayerIndex(givenMap.layers[i]);
+				currentMap = AnimationHandler.stateMappings[this.controllerName][AnimationHandler.hashToName[this.controllerName][GetTargetHash(layerIndex)]];
+
+				// Re-playing a state that is already in one of its layers must not restart it nor stop other layers
+				if(givenMap.state == currentMap.state)
+					break;
 
 				if(givenMap.priority <= currentMap.priority){
 					StopLayer(givenMap.stopLayer);
-					this.tpAnimator.CrossFade(stateName, this.animationCrossfadeTime, layer:this.tpAnimator.GetLayerIndex(givenMap.layers[i]));
+					RequestCrossFade(layerIndex, stateName);
+					StopStateInOtherLayers(givenMap, i);
 
 					break;
 				}
@@ -140,6 +161,11 @@ public class AnimationHandler : MonoBehaviour {
 	// Force plays a state for non-player characters (Used by Client)
 	public void Play(string state, int layer){
 		this.tpAnimator.CrossFade(state, this.animationCrossfadeTime, layer:layer);
+	}
+
+	// Force plays a state identified by its short name hash for non-player characters (Used by Client)
+	public void Play(int stateHash, int layer){
+		this.tpAnimator.CrossFade(stateHash, this.animationCrossfadeTime, layer);
 	}
 
 	// Plays/Stops/Registers ShapeKey Animations based on the settings inputted
@@ -437,6 +463,14 @@ public class AnimationHandler : MonoBehaviour {
 			this.tpAnimator.SetFloat(parameter, val);
 	}
 
+	// Parameter identified by Animator.StringToHash
+	public void SetParameterValue(int parameterHash, float val, bool firstPersonAnimator){
+		if(firstPersonAnimator)
+			this.fpAnimator.SetFloat(parameterHash, val);
+		else
+			this.tpAnimator.SetFloat(parameterHash, val);
+	}
+
 	public static string GetStateName(string controllerName, AnimatorStateInfo stateInfo){return AnimationHandler.hashToName[controllerName][stateInfo.shortNameHash];}
 
 	public Animator GetThirdPersonAnimator(){return this.tpAnimator;}
@@ -468,10 +502,10 @@ public class AnimationHandler : MonoBehaviour {
 
 	private void StopLayer(int layer){
 		if(layer != 0){
-			this.tpAnimator.CrossFade("Empty", this.animationCrossfadeTime, layer:layer);
+			RequestCrossFade(layer, "Empty");
 		}
 		else{
-			this.tpAnimator.CrossFade("Idle", this.animationCrossfadeTime, 0);
+			RequestCrossFade(0, "Idle");
 			this.fpAnimator.CrossFade("Empty", this.animationCrossfadeTime, 0);
 		}
 	}
@@ -486,13 +520,86 @@ public class AnimationHandler : MonoBehaviour {
 			layerIndex = this.tpAnimator.GetLayerIndex(layers[i]);
 
 			if(layerIndex != 0){
-				this.tpAnimator.CrossFade("Empty", this.animationCrossfadeTime, layer:layerIndex);
+				// Avoids restarting Empty, which would also re-send it to other clients
+				if(GetTargetHash(layerIndex) == EMPTY_STATE_HASH)
+					continue;
+
+				RequestCrossFade(layerIndex, "Empty");
 			}
 			else{
-				this.tpAnimator.CrossFade("Idle", this.animationCrossfadeTime, 0);
+				RequestCrossFade(0, "Idle");
 				this.fpAnimator.CrossFade("Empty", this.animationCrossfadeTime, 0);
 			}
 		}
+	}
+
+	// A state must only play in one layer at a time, so it's stopped in the other layers of its mapping after being placed in layers[placedIndex]
+	private void StopStateInOtherLayers(AnimationStateMapping map, int placedIndex){
+		int layerIndex;
+		int stateHash = Animator.StringToHash(map.state);
+
+		for(int i=0; i < map.layers.Length; i++){
+			if(i == placedIndex)
+				continue;
+
+			layerIndex = this.tpAnimator.GetLayerIndex(map.layers[i]);
+
+			if(layerIndex <= 0)
+				continue;
+
+			if(GetTargetHash(layerIndex) == stateHash)
+				RequestCrossFade(layerIndex, "Empty");
+		}
+	}
+
+	// Returns the short name hash of the state a Third Person layer is playing, transitioning into or was just requested to play
+	public int GetTargetStateHash(int layer){
+		if(!this.INIT || layer < 0)
+			return 0;
+
+		return GetTargetHash(layer);
+	}
+
+	// Forgets the pending requests. Must be called whenever the Third Person controller is replaced, since it restarts every layer
+	public void ClearPending(){
+		Array.Clear(this.pendingHash, 0, this.pendingHash.Length);
+	}
+
+	// Every Third Person CrossFade requested by this handler must go through here, so the requested state is known before the Animator processes it
+	private void RequestCrossFade(int layer, string state){
+		EnsurePendingCapacity();
+
+		this.tpAnimator.CrossFade(state, this.animationCrossfadeTime, layer:layer);
+		this.pendingHash[layer] = Animator.StringToHash(state);
+		this.pendingFrame[layer] = Time.frameCount;
+	}
+
+	/*
+	State a Third Person layer will be in after its next Animator update
+		Requests are made in Update/LateUpdate and processed by the Animator in the next frame, so they are kept until the end of that frame
+	*/
+	private int GetTargetHash(int layer){
+		int actual = GetState(layer).shortNameHash;
+
+		if(layer >= this.pendingHash.Length || this.pendingHash[layer] == 0)
+			return actual;
+
+		if(this.pendingHash[layer] == actual || Time.frameCount > this.pendingFrame[layer] + 1){
+			this.pendingHash[layer] = 0;
+			return actual;
+		}
+
+		return this.pendingHash[layer];
+	}
+
+	private void EnsurePendingCapacity(){
+		int count = this.tpAnimator.layerCount;
+
+		if(this.pendingHash.Length >= count)
+			return;
+
+		Array.Resize(ref this.pendingHash, count);
+		Array.Resize(ref this.pendingFrame, count);
 	}
 
 	private bool VerifyLayerStates(string layerName, int priority){
@@ -502,12 +609,12 @@ public class AnimationHandler : MonoBehaviour {
 			layerName = "Base Layer";
 
 		for(int i=this.tpAnimator.GetLayerIndex(layerName)+1; i < this.tpAnimator.layerCount; i++){
-			state = AnimationHandler.hashToName[this.controllerName][GetState(i).shortNameHash];
+			state = AnimationHandler.hashToName[this.controllerName][GetTargetHash(i)];
 
 			if(ArrayContains(layerName, AnimationHandler.stateMappings[this.controllerName][state].layers)){
 				if(priority > AnimationHandler.stateMappings[this.controllerName][state].priority){
 					StopLayer(i);
-					this.tpAnimator.CrossFade(state, this.animationCrossfadeTime, layer:this.tpAnimator.GetLayerIndex(layerName));
+					RequestCrossFade(this.tpAnimator.GetLayerIndex(layerName), state);
 					return true;
 				} 
 			}

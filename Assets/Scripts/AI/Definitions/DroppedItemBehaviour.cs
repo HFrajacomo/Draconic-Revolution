@@ -15,7 +15,6 @@ public class DroppedItemBehaviour : Behaviour
     private int currentLifeTick = 0;
     private ItemStack its;
 
-    private NetMessage message = new NetMessage(NetCode.ITEMENTITYDATA);
     private Vector3 gravityVector = Vector3.zero;
 
     private static readonly float blockOffset = Constants.WORLD_COORDINATES_BLOCK_FLOATOFFSET;

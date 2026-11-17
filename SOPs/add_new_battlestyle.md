@@ -67,6 +67,8 @@ The Json structure is as follows:
 | events.type | str | The name of an AnimationBehaviour |
 | json | str | A json-string defining the parameters of the AnimationBehaviour |
 
+The First Person controller enters `Weapon Sheathe`/`Weapon Unsheathe` through transitions that need the `IsSheathing` parameter, so **First Person** styles must clear it with an `AN_AnimatorSetBehaviour` at the end of those clips (as in the example above). **Third Person** styles must not: their (Un)Sheathe is played directly by `PlayerActionController` and their controller has no `IsSheathing` parameter.
+
 # Add Carry Styles
 
 Carry Styles define how a SubWeapon (Torch, Book, Lantern...) is held in the off-hand on top of another BattleStyle, without having to create a BattleStyle for every combination.

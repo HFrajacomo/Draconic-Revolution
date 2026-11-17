@@ -48,6 +48,30 @@ Imagine that every in-game biome has a pallete. But not for colors... for blocks
 
 Instead of storing every single individual block in memory, **we check if a block is in its Biome pallete first.** If the block/metadata is in the biome's pallete, then write it's data once, and then write the total amount of exactly identical information we will find if loading the chunk straight. Whenever we find another block or another state, we stop, reset the block-to-be-written and start all over again. Blocks/States outside of the pallete are stored normally.
 
+The blocks, HP and States of a chunk are compressed (and decompressed) in parallel, straight from the chunk data, and are stored one after the other right after the chunk header.
+
+## Write-Behind Saving
+
+Saving a chunk (`RegionFileHandler.SaveChunk`) doesn't write it to disk right away. The chunk is queued and the Server writes queued chunks every tick, under the `SERVER_CHUNK_SAVE_BUDGET_MS` time budget. A chunk saved many times before being written is only written once, with its latest data, since it's only compressed when written.
+
+The game always sees saved data, as if it was written immediately:
+
+- Reading a chunk from disk (`LoadChunk`, `IsIndexed`, `GetsNeedGeneration`) writes the queued save of that chunk first.
+- Hole and Index files of the regions touched by written chunks are rewritten once at the end of every batch of writes, instead of once per chunk.
+- Every queued chunk is written when the RegionFileHandler is closed and when the application quits.
+
+The trade-off is that, if the Server crashes, chunks saved in the last moments may not be on disk.
+
+## Asynchronous Reads
+
+Chunks are read from disk by the `ChunkReader`, a background thread, so loading them doesn't stall the Server:
+
+1. The main thread finds where the chunk and its entities are stored (the Index Files are in memory) and queues a read request. Queued saves of that chunk are written first, so the read gets its latest data.
+2. The `ChunkReader` reads the chunk header, its compressed data and its entity data with its own read-only file streams. Region files are opened with `FileShare.Read` so both can be open at the same time.
+3. The main thread decompresses the chunk, recreates its entities and sends it to the clients waiting for it. Pre-generated chunks go to generation instead.
+
+While a chunk is being read, its queued saves are held back, since saving it may move it to another position of the file. At most `SERVER_MAX_PENDING_READS` chunks are read at the same time. Reads requested in a tick are usually finished and loaded in that same tick, within the load time budget.
+
 # Congratulations
 
 Now you know a little bit more about Disk Space management and what was used in order to save everything you see and do!

@@ -7,6 +7,10 @@ using UnityEngine;
 // .1 Cloudy 2
 // .6 Cloudy 1
 // 1 Sunny
+//
+// Rain: time is split into windows of RAIN_WINDOW_MINUTES. Each window rolls once (NoiseMaker.WeatherRoll)
+// and rains in a state if the roll is below that state's rain chance, with the state's rain strength.
+// Everything derives from the synced World Seed, Weather Noise and time, so all players see the same weather.
 */
 public class WeatherCast{
 	// Splines
@@ -86,6 +90,24 @@ public class WeatherCast{
 		{WeatherState.SUNNY, FLARE_INTENSITY_MULTIPLIER_MAX}
 	};
 
+	// Rain Chance per Window Dictionary
+	private Dictionary<WeatherState, float> stateRainChanceMap = new Dictionary<WeatherState, float>(){
+		{WeatherState.RAINY, RAIN_CHANCE_RAINY},
+		{WeatherState.OVERCAST, RAIN_CHANCE_OVERCAST},
+		{WeatherState.CLOUDY2, RAIN_CHANCE_CLOUDY2},
+		{WeatherState.CLOUDY1, RAIN_CHANCE_NONE},
+		{WeatherState.SUNNY, RAIN_CHANCE_NONE}
+	};
+
+	// Rain Strength Dictionary
+	private Dictionary<WeatherState, float> stateRainStrengthMap = new Dictionary<WeatherState, float>(){
+		{WeatherState.RAINY, RAIN_STRENGTH_RAINY},
+		{WeatherState.OVERCAST, RAIN_STRENGTH_OVERCAST},
+		{WeatherState.CLOUDY2, RAIN_STRENGTH_CLOUDY2},
+		{WeatherState.CLOUDY1, RAIN_STRENGTH_NONE},
+		{WeatherState.SUNNY, RAIN_STRENGTH_NONE}
+	};
+
 	// Noise Values
 	private WeatherState weatherState;
 	private float weatherNoise = -10;
@@ -97,6 +119,16 @@ public class WeatherCast{
 	private WeatherState initTransitionState;
 	private WeatherState endTransitionState;
 	private float minTransitionValue;
+	private float transitionProgress;
+
+	// Rain
+	private float rainStrength;
+	private float rainCurrentState;
+	private float rainInitState;
+	private float rainEndState;
+	private float rollFrom;
+	private float rollTo;
+	private float rollBlend;
 
 	// Constants
 	// --- Fog Attenuation
@@ -130,6 +162,17 @@ public class WeatherCast{
 	private static readonly float FLARE_INTENSITY_MULTIPLIER_MAX = 1f;
 	private static readonly float FLARE_INTENSITY_MULTIPLIER_MID = .5f;
 	private static readonly float FLARE_INTENSITY_MULTIPLIER_MIN = .1f;
+	// ---- Rain
+	private static readonly int RAIN_WINDOW_MINUTES = 120;
+	private static readonly int RAIN_FADE_HALF_MINUTES = 15;
+	private static readonly float RAIN_CHANCE_RAINY = 1f;
+	private static readonly float RAIN_CHANCE_OVERCAST = .2f;
+	private static readonly float RAIN_CHANCE_CLOUDY2 = .08f;
+	private static readonly float RAIN_CHANCE_NONE = 0f;
+	private static readonly float RAIN_STRENGTH_RAINY = 1f;
+	private static readonly float RAIN_STRENGTH_OVERCAST = .6f;
+	private static readonly float RAIN_STRENGTH_CLOUDY2 = .35f;
+	private static readonly float RAIN_STRENGTH_NONE = 0f;
 	
 
 	// Parameters
@@ -169,6 +212,8 @@ public class WeatherCast{
 	public WeatherState GetInitState(){return this.initTransitionState;}
 	public WeatherState GetEndState(){return this.endTransitionState;}
 	public float GetLerpValue(){return this.lerpValue;}
+	public float GetRainStrength(){return this.rainStrength;}
+	public bool IsRaining(){return this.rainStrength > 0f;}
 
 
 	// Sets calculation for Fog Noise
@@ -188,26 +233,81 @@ public class WeatherCast{
 		WeatherState state = GetCurrentWeather(this.weatherNoise);
 		this.weatherState = state;
 
+		SetRainWindow(totalSeconds);
+
 		if(state == WeatherState.TRANSITION){
-			this.fogFromWeather = Mathf.Lerp(stateFogMap[this.initTransitionState], stateFogMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
-			this.maximumHeight = Mathf.Lerp(stateFogMaxMap[this.initTransitionState], stateFogMaxMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
-			this.baseHeight = Mathf.Lerp(stateFogBaseMap[this.initTransitionState], stateFogBaseMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
-			this.fogColor = Color.Lerp(stateFogColorMap[this.initTransitionState], stateFogColorMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
-			this.layerBMultiplier = Mathf.Lerp(stateCloudBMap[this.initTransitionState], stateCloudBMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
-			this.cloudsLocalOpacity = Mathf.Lerp(stateCloudLocalOpacityMap[this.initTransitionState], stateCloudLocalOpacityMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
-			this.cloudsGlobalOpacity = Mathf.Lerp(stateCloudGlobalOpacityMap[this.initTransitionState], stateCloudGlobalOpacityMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
-			this.flareIntensityMultiplier = Mathf.Lerp(stateFlareIntensityMap[this.initTransitionState], stateFlareIntensityMap[this.endTransitionState], NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue));
+			this.transitionProgress = NormalizeRange(this.weatherNoise, 0.1f, this.minTransitionValue);
+			this.rainInitState = GetStateRain(this.initTransitionState);
+			this.rainEndState = GetStateRain(this.endTransitionState);
+			this.rainStrength = Mathf.Lerp(this.rainInitState, this.rainEndState, this.transitionProgress);
 		}
 		else{
-			this.fogFromWeather = this.stateFogMap[state];
-			this.maximumHeight = this.stateFogMaxMap[state];
-			this.baseHeight = this.stateFogBaseMap[state];
-			this.fogColor = this.stateFogColorMap[state];
-			this.layerBMultiplier = this.stateCloudBMap[state];
-			this.cloudsLocalOpacity = this.stateCloudLocalOpacityMap[state];
-			this.cloudsGlobalOpacity = this.stateCloudGlobalOpacityMap[state];
-			this.flareIntensityMultiplier = this.stateFlareIntensityMap[state];
+			this.rainCurrentState = GetStateRain(state);
+			this.rainStrength = this.rainCurrentState;
 		}
+
+		this.fogFromWeather = GetWeatherValue(this.stateFogMap);
+		this.maximumHeight = GetWeatherValue(this.stateFogMaxMap);
+		this.baseHeight = GetWeatherValue(this.stateFogBaseMap);
+		this.fogColor = GetWeatherValue(this.stateFogColorMap);
+		this.layerBMultiplier = GetWeatherValue(this.stateCloudBMap);
+		this.cloudsLocalOpacity = GetWeatherValue(this.stateCloudLocalOpacityMap);
+		this.cloudsGlobalOpacity = GetWeatherValue(this.stateCloudGlobalOpacityMap);
+		this.flareIntensityMultiplier = GetWeatherValue(this.stateFlareIntensityMap);
+	}
+
+	// Picks the rain windows to sample and crossfades them around each window boundary
+	private void SetRainWindow(int totalMinutes){
+		int window = totalMinutes / RAIN_WINDOW_MINUTES;
+		int minuteInWindow = totalMinutes % RAIN_WINDOW_MINUTES;
+		float fadeLength = RAIN_FADE_HALF_MINUTES*2;
+
+		if(minuteInWindow < RAIN_FADE_HALF_MINUTES){
+			this.rollFrom = NoiseMaker.WeatherRoll(window-1);
+			this.rollTo = NoiseMaker.WeatherRoll(window);
+			this.rollBlend = (minuteInWindow + RAIN_FADE_HALF_MINUTES)/fadeLength;
+		}
+		else if(minuteInWindow >= RAIN_WINDOW_MINUTES - RAIN_FADE_HALF_MINUTES){
+			this.rollFrom = NoiseMaker.WeatherRoll(window);
+			this.rollTo = NoiseMaker.WeatherRoll(window+1);
+			this.rollBlend = (minuteInWindow - (RAIN_WINDOW_MINUTES - RAIN_FADE_HALF_MINUTES))/fadeLength;
+		}
+		else{
+			this.rollFrom = NoiseMaker.WeatherRoll(window);
+			this.rollTo = this.rollFrom;
+			this.rollBlend = 0f;
+		}
+	}
+
+	// Rain strength a non-transition state would have in the current rain window
+	private float GetStateRain(WeatherState state){
+		float chance = this.stateRainChanceMap[state];
+		float strength = this.stateRainStrengthMap[state];
+		float from = this.rollFrom < chance ? strength : 0f;
+		float to = this.rollTo < chance ? strength : 0f;
+
+		return Mathf.Lerp(from, to, this.rollBlend);
+	}
+
+	// Weather parameter of the current state, pulled towards the RAINY look by how much each state is raining
+	private float GetWeatherValue(Dictionary<WeatherState, float> map){
+		if(this.weatherState == WeatherState.TRANSITION)
+			return Mathf.Lerp(BlendWithRain(map, this.initTransitionState, this.rainInitState), BlendWithRain(map, this.endTransitionState, this.rainEndState), this.transitionProgress);
+		return BlendWithRain(map, this.weatherState, this.rainCurrentState);
+	}
+
+	private Color GetWeatherValue(Dictionary<WeatherState, Color> map){
+		if(this.weatherState == WeatherState.TRANSITION)
+			return Color.Lerp(BlendWithRain(map, this.initTransitionState, this.rainInitState), BlendWithRain(map, this.endTransitionState, this.rainEndState), this.transitionProgress);
+		return BlendWithRain(map, this.weatherState, this.rainCurrentState);
+	}
+
+	private float BlendWithRain(Dictionary<WeatherState, float> map, WeatherState state, float rain){
+		return Mathf.Lerp(map[state], map[WeatherState.RAINY], rain);
+	}
+
+	private Color BlendWithRain(Dictionary<WeatherState, Color> map, WeatherState state, float rain){
+		return Color.Lerp(map[state], map[WeatherState.RAINY], rain);
 	}
 
 	private float NormalizeRange(float noise, float range, float min){

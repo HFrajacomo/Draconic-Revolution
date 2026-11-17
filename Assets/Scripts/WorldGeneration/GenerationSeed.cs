@@ -114,6 +114,11 @@ public static class GenerationSeed
     public static readonly float cavemaskYStep1 = 0.01721f;
     public static readonly float cavemaskYStep2 = 0.0177f;
 
+    // Blend Noise: warps biome borders (see BiomeBlend)
+    public static byte[] blendNoise = new byte[257];
+    public static readonly float blendWarpStep1 = 0.03f;
+    public static readonly float blendWarpStep2 = 0.061f;
+
     // Weather Noise
     public static byte[] weatherNoise = new byte[257];
     public static readonly float weatherNoiseStep = 0.0021f;
@@ -198,6 +203,13 @@ public static class GenerationSeed
             weatherNoise[i] = (byte)World.NextRandom(0, 256);
         }
         weatherNoise[256] = weatherNoise[0];        
+
+        // Blend Noise
+        World.SetRNG(seed ^ 0x2545F491);
+        for(int i=0; i < 256; i++){
+            blendNoise[i] = (byte)World.NextRandom(0, 256);
+        }
+        blendNoise[256] = blendNoise[0];
     }
 
 

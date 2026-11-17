@@ -18,7 +18,7 @@ public struct CharacterAppearance {
 		this.legs = l;
 		this.boots = b;
 		this.face = f;
-		this.hair = h;
+		this.hair = ha;
 	}
 
 	public ClothingInfo GetInfo(ModelType type){

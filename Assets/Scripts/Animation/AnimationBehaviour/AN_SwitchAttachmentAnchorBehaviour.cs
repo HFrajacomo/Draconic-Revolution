@@ -33,7 +33,7 @@ public class AN_SwitchAttachmentAnchorBehaviour : AnimationBehaviour {
 
 		if(!this.firstPerson && this.origin != this.target){
 			NetMessage message = new NetMessage(NetCode.SENDATTACHMENTANCHOR);
-			message.SendAttachmentAnchor(entityID, this.origin, this.target, this.flip, this.heightOffset);
+			message.SendAttachmentAnchor(this.origin, this.target, this.flip, this.heightOffset);
 			cl.client.Send(message);
 		}
 	}

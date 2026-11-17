@@ -18,9 +18,8 @@
 		},
 		{
 			"state": "On Air",
-			"layers": ["", "Full Torso"],
-			"priority": 101,
-			"stoplayer": ["Full Torso"]
+			"layers": ["", "Bottom"],
+			"priority": 100
 		},
 		{
 			"state": "Moving Forward",

@@ -33,6 +33,8 @@ public class PlayerMovement : MonoBehaviour
 
     // Flags
     public MovementFlags? flags;
+    // From the moment a jump fires until the player lands. Walking or sliding off a ledge never sets it
+    private bool inJump;
 
 
     void OnDestroy(){
@@ -44,8 +46,14 @@ public class PlayerMovement : MonoBehaviour
         if(this.movementOrchestrator == null || this.flags == null)
             return;
 
+        float gravityBeforeJump;
+
         this.gravityMomentum = this.movementOrchestrator.CalculateGravityAcceleration((MovementFlags)this.flags, this.gravityMomentum);
+        gravityBeforeJump = this.gravityMomentum;
         this.gravityMomentum = this.movementOrchestrator.CalculateJump((MovementFlags)this.flags, this.gravityMomentum);
+
+        if(this.gravityMomentum > gravityBeforeJump)
+            this.inJump = true;
     }
 
     // Update is called once per frame
@@ -61,6 +69,9 @@ public class PlayerMovement : MonoBehaviour
             collision = this.controller.collisionFlags
         };
 
+        if(this.controller.isGrounded && this.gravityMomentum <= 0f)
+            this.inJump = false;
+
         this.direction = this.movementOrchestrator.CalculateDirection(this.transform, this.controls.movementX, this.controls.movementZ);
         this.movementAlignment = this.movementOrchestrator.CalculateMovementAlignment(this.velocity, this.direction, this.velocity);
 
@@ -69,9 +80,9 @@ public class PlayerMovement : MonoBehaviour
            this.playerActionController.HasRestriction(PlayerActionRestriction.STUNNED) ||
            this.playerActionController.HasRestriction(PlayerActionRestriction.SYSTEM))){
 
-            this.momentum = this.movementOrchestrator.CalculateMomentum(this.direction, this.momentum, this.knockbackMomentum, this.movementAlignment);
+            this.momentum = this.movementOrchestrator.CalculateMomentum(this.direction, this.momentum, this.knockbackMomentum, this.movementAlignment, (MovementFlags)this.flags);
             this.runMomentumBoost = this.movementOrchestrator.CalculateRunMomentumBoost(this.transform, this.direction, this.runMomentumBoost, this.momentum, this.movementAlignment);
-            this.velocity = this.movementOrchestrator.CalculateFinalVelocity(this.direction, this.velocity, this.momentum, this.runMomentumBoost, this.movementAlignment);
+            this.velocity = this.movementOrchestrator.CalculateFinalVelocity(this.direction, this.velocity, this.momentum, this.runMomentumBoost, this.movementAlignment, (MovementFlags)this.flags);
             this.finalMovement = this.movementOrchestrator.CalculateFinalMovement(this.velocity, this.knockbackForce, this.knockbackMomentum, this.gravityMomentum);
 
             this.controller.Move(this.finalMovement * Time.deltaTime);
@@ -85,9 +96,9 @@ public class PlayerMovement : MonoBehaviour
         else{
             this.direction = Vector3.zero;
             this.runMomentumBoost = 0f;
-            this.momentum = this.movementOrchestrator.CalculateMomentum(this.direction, this.momentum, this.knockbackMomentum, this.movementAlignment);
+            this.momentum = this.movementOrchestrator.CalculateMomentum(this.direction, this.momentum, this.knockbackMomentum, this.movementAlignment, (MovementFlags)this.flags);
             this.movementOrchestrator.UpdateFOV(this.cl.playerRaycast.playerCamera, this.runMomentumBoost);
-            this.velocity = this.movementOrchestrator.CalculateFinalVelocity(this.direction, this.velocity, this.momentum, this.runMomentumBoost, this.movementAlignment);
+            this.velocity = this.movementOrchestrator.CalculateFinalVelocity(this.direction, this.velocity, this.momentum, this.runMomentumBoost, this.movementAlignment, (MovementFlags)this.flags);
             this.finalMovement = this.movementOrchestrator.CalculateFinalMovement(this.velocity, this.knockbackForce, this.knockbackMomentum, this.gravityMomentum);
 
             this.controller.Move(this.finalMovement * Time.deltaTime);
@@ -107,6 +118,47 @@ public class PlayerMovement : MonoBehaviour
     }
 
     public bool IsGrounded(){return this.controller.isGrounded;}
+    public bool IsInJump(){return this.inJump;}
+
+    // Whether the player's hitbox is inside a voxel (absolute world coordinates). While jumping, the voxel at their feet is free to be placed in
+    public bool OccupiesVoxel(int x, int y, int z){
+        Race race = Race.HUMAN;
+        Transform t = this.controller.transform;
+
+        if(this.playerSheetController != null && this.playerSheetController.GetSheet() != null)
+            race = this.playerSheetController.GetSheet().GetRace();
+
+        return PlayerHitbox.OverlapsVoxel(WorldOrigin.ToAbsolute(t.position), t.eulerAngles.y, PlayerHitbox.GetScale(race), x, y, z, ignoreFeetVoxel:this.inJump);
+    }
+
+    // Flags only exist after the first Update, so block events that run before it (like spawning underwater) see no jump
+    public bool IsJumping(){return this.flags != null && ((MovementFlags)this.flags).isJumping;}
+
+    /*
+    Lifts the player so the bottom of their hitbox rests on a height. Used when a block the player placed got its collider while
+    their feet were inside it, since a CharacterController inside a mesh collider has no faces to stand on and falls through the terrain.
+    The space above isn't checked: clipping the head into terrain is preferred over falling through it
+    */
+    public void PlaceFeetOn(float top){
+        if(this.movementOrchestrator == null || this.movementOrchestrator is FreecamMovePreset)
+            return;
+        if(!this.controller.enabled || !this.controller.gameObject.activeInHierarchy)
+            return;
+
+        float lift = top + this.controller.skinWidth - this.controller.bounds.min.y;
+
+        if(lift <= 0f)
+            return;
+
+        Transform t = this.controller.transform;
+
+        this.controller.enabled = false;
+        t.position = t.position + Vector3.up * lift;
+        this.controller.enabled = true;
+
+        // Keeps the upward speed of a jump, but not the fall speed that would push the player back into the block
+        this.gravityMomentum = Mathf.Max(this.gravityMomentum, 0f);
+    }
 
     public void ChangeMoveset(Moveset moveSet){
         CharacterSheet sheet = this.playerSheetController.GetSheet();

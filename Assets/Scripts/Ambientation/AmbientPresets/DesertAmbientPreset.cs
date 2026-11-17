@@ -24,12 +24,12 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		this.cloudTintNight = new Color(.09f, .08f, .04f);
 
 		this.wbTemperature = 20f;
-		this.expCompensation = -0.8f;
+		this.expOffset = 0.1f;
 
 		this.gainSunrise = new float4(.88f, .64f, .21f, 0f);
-		this.gainDay = new float4(.6f, .56f, .45f, .16f);
-		this.gainSunset = new float4(.76f, .37f, .32f, .14f);
-		this.gainNight = new float4(0f, 0f, 0f, 0f);
+		this.gainDay = new float4(.6f, .56f, .45f, 0f);
+		this.gainSunset = new float4(.76f, .37f, .32f, 0f);
+		this.gainNight = new float4(.42f, .46f, .55f, 0f);
 
 		this.rainSpawnRate = 0;
 
@@ -61,5 +61,4 @@ public class DesertAmbientPreset: BaseAmbientPreset{
 		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
 	public override int GetRainSpawnRate(WeatherCast ws){return 0;}
-	public override float GetExposureCompensation(){return this.expCompensation;}
 }

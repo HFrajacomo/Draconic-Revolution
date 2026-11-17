@@ -19,17 +19,18 @@ public class PlayerServerInventory{
     Adds and updates inventories of players
     Used whenever a slot changes type (goes empty or picks something)
     */
-    public void AddInventory(ulong playerId, byte[] data){
+    // Length is the amount of valid bytes in data. Received network buffers can be bigger than the message
+    public void AddInventory(ulong playerId, byte[] data, int length=-1){
         int refVoid = 0;
 
         // If it's a pre-existing inventory in RAM that is being changed
         if(this.inventories.ContainsKey(playerId)){
-            this.inventories[playerId] = PlayerServerInventorySlot.BuildInventory(data, 1, ref refVoid);
+            this.inventories[playerId] = PlayerServerInventorySlot.BuildInventory(data, 1, ref refVoid, readSize:length);
             this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
         }
         // If player doesn't exist yet
         else{
-            this.inventories.Add(playerId, PlayerServerInventorySlot.BuildInventory(data, 1, ref refVoid));
+            this.inventories.Add(playerId, PlayerServerInventorySlot.BuildInventory(data, 1, ref refVoid, readSize:length));
             this.inventoryHandler.SaveInventory(playerId, this.inventories[playerId]);
         }
     }
@@ -109,12 +110,23 @@ public class PlayerServerInventory{
 
     // Fetches the Item in a slot directly from the buffer data
     public PlayerServerInventorySlot GetSlot(ulong playerCode, int inventoryCode, byte slot){
+        int index = GetFlatIndex(playerCode, inventoryCode, slot);
+
+        if(index < 0)
+            throw new IndexOutOfRangeException($"[PlayerServerInventory] GetSlot(ushort, int, byte) couldn't find the indicated slot for player {playerCode} in inventory {inventoryCode} and slot {slot}");
+
+        return this.inventories[playerCode][index];
+    }
+
+    // Converts an (inventoryCode, slot) pair into the index of the flattened inventory list
+    // Returns -1 if it couldn't be found
+    private int GetFlatIndex(ulong playerCode, int inventoryCode, byte slot){
         int i=0;
         int typeCounter = 0;
         byte currentInventoryType = this.inventories[playerCode][0].GetInventoryType();
 
         if(inventoryCode == 0)
-            return this.inventories[playerCode][slot];
+            return slot < this.inventories[playerCode].Count ? slot : -1;
 
         while(i < this.inventories[playerCode].Count){
             if(currentInventoryType != this.inventories[playerCode][i].GetInventoryType()){
@@ -122,14 +134,16 @@ public class PlayerServerInventory{
                 typeCounter++;
 
                 if(typeCounter == inventoryCode){
-                    return this.inventories[playerCode][slot + i];
+                    if(slot + i >= this.inventories[playerCode].Count || this.inventories[playerCode][slot + i].GetInventoryType() != currentInventoryType)
+                        return -1;
+                    return slot + i;
                 }
             }
 
             i++;
         }
 
-        throw new IndexOutOfRangeException($"[PlayerServerInventory] GetSlot(ushort, int, byte) couldn't find the indicated slot for player {playerCode} in inventory {inventoryCode} and slot {slot}");
+        return -1;
     }
 
     public bool HasInventory(ulong playerCode){
@@ -158,13 +172,33 @@ public class PlayerServerInventory{
         }
     }
 
+    // Changes quantity of a slot given by the client's (inventoryCode, slot) pair
+    public void ChangeQuantity(ulong playerId, int inventoryCode, byte slot, byte quantity){
+        if(!this.inventories.ContainsKey(playerId))
+            return;
+
+        int index = GetFlatIndex(playerId, inventoryCode, slot);
+
+        if(index < 0)
+            return;
+
+        if(quantity == 0){
+            this.inventories[playerId][index] = new EmptyPlayerInventorySlot(this.inventories[playerId][index].GetInventoryType(), this.inventories[playerId][index].GetSlotID());
+        }
+        else{
+            this.inventories[playerId][index].SetQuantity(quantity);
+        }
+
+        SaveInventory(playerId);
+    }
+
     public byte GetQuantity(ulong playerId, byte slotId){
         return (byte)(this.inventories[playerId][slotId].GetQuantity());
     }
 
     public void ChangeDurability(ulong playerId, byte slotId, uint durability){
         if(this.inventories.ContainsKey(playerId)){
-            ((WeaponPlayerInventorySlot)this.inventories[playerId][slotId]).SetDurability(durability);
+            ((BaseWeaponPlayerInventorySlot)this.inventories[playerId][slotId]).SetDurability(durability);
             SaveInventory(playerId);
         }        
     }
@@ -181,38 +215,85 @@ public class PlayerServerInventory{
         this.inventoryHandler.Close();
     }
 
-    // Returns a pair (index, currentIndexAmount) of the player Inventory that fits the given ItemStack
-    // Returns (-1,0) if there's no room in player inventory
-    public int2 CheckFits(ulong playerCode, ItemStack its){
+    /*
+    Adds a picked up ItemStack to the player's pickup target inventories, without changing the given stack
+        First fills every non-full stack of the same item in inventory order, then puts the remainder into the first empty slot
+        Returns the amount of items taken. createdSlot is the index of the empty slot that was filled, or -1 if none was
+    */
+    public byte AddPickup(ulong playerCode, ItemStack its, out int createdSlot){
+        List<PlayerServerInventorySlot> inv = this.inventories[playerCode];
         PlayerServerInventorySlot aux;
+        byte stacksize = its.GetStacksize();
+        byte remaining = its.GetAmount();
+        byte room, toAdd;
 
-        for(int i=0; i < this.inventories[playerCode].Count; i++){
-            aux = this.inventories[playerCode][i];
-            if(!InventoryLoader.GetPickupTarget(aux.GetInventoryType()))
+        createdSlot = -1;
+
+        // Fills existing stacks
+        for(int i=0; i < inv.Count && remaining > 0; i++){
+            aux = inv[i];
+
+            if(aux is EmptyPlayerInventorySlot || aux.GetItemID() != (int)its.GetID())
+                continue;
+            if(!CanPickupInto(aux, its))
+                continue;
+            if(aux.GetQuantity() >= stacksize)
                 continue;
 
-            if(!aux.IsInGlobalWhitelist(its))
-                continue;
+            room = (byte)(stacksize - aux.GetQuantity());
+            toAdd = room < remaining ? room : remaining;
+            aux.SetQuantity((byte)(aux.GetQuantity() + toAdd));
+            remaining -= toAdd;
+        }
 
-            if(!aux.IsInLocalWhitelist(its))
-                continue;        
+        // Puts the remainder in the first empty slot
+        if(remaining > 0){
+            for(int i=0; i < inv.Count; i++){
+                aux = inv[i];
 
-            if(aux.GetItemID() == (int)its.GetID() || aux.GetItemID() == 0){
-                if(its.GetStacksize() != aux.GetQuantity()){
-                    return new int2(i, aux.GetQuantity());
-                }
-            }
-            if(aux.GetItemID() == -1){
-                return new int2(i, 0);
+                if(!(aux is EmptyPlayerInventorySlot))
+                    continue;
+                if(!CanPickupInto(aux, its))
+                    continue;
+
+                inv[i] = CreatePickupSlot(its, remaining, aux.GetInventoryType(), aux.GetSlotID());
+                createdSlot = i;
+                remaining = 0;
+                break;
             }
         }
 
-        return new int2(-1, 0);
+        byte taken = (byte)(its.GetAmount() - remaining);
+
+        if(taken > 0)
+            SaveInventory(playerCode);
+
+        return taken;
     }
 
-    public void CreateSlotAt(byte slotIndex, ulong playerCode, PlayerServerInventorySlot slot){
-        this.inventories[playerCode][slotIndex] = slot;
-        SaveInventory(playerCode);
+    private bool CanPickupInto(PlayerServerInventorySlot slot, ItemStack its){
+        if(!InventoryLoader.GetPickupTarget(slot.GetInventoryType()))
+            return false;
+
+        return slot.IsInGlobalWhitelist(its) && slot.IsInLocalWhitelist(its);
+    }
+
+    // Creates the slot that holds a picked up item in a previously empty slot
+    private PlayerServerInventorySlot CreatePickupSlot(ItemStack its, byte amount, byte invType, byte slotID){
+        Item item = its.GetItem();
+
+        switch(item.GetMemoryStorageType()){
+            case MemoryStorageType.ITEM:
+                return new ItemPlayerInventorySlot(its.GetID(), amount, invType, slotID);
+            case MemoryStorageType.WEAPON:
+                Weapon weapon = (Weapon)item;
+                return new WeaponPlayerInventorySlot(its.GetID(), weapon.currentDurability, weapon.refineLevel, weapon.extraEffect, invType, slotID);
+            case MemoryStorageType.SUBWEAPON:
+                return new SubWeaponPlayerInventorySlot(its.GetID(), ((SubWeapon)item).currentDurability, amount, invType, slotID);
+            default:
+                // STORAGE ITEMS NOT IMPLEMENTED
+                return new EmptyPlayerInventorySlot(invType, slotID);
+        }
     }
     
     private List<PlayerServerInventorySlot> GetEmptySlots(){

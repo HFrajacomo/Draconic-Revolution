@@ -42,10 +42,7 @@ public abstract class AbstractAI
     }
 
     protected virtual void KillEntity(){
-        NetMessage deathMessage = new NetMessage(NetCode.ENTITYDELETE);
-
-        deathMessage.EntityDelete(this.type, this.entityCode);
-        this.cl.server.SendToClients(this.coords.GetChunkPos(), deathMessage);
+        this.cl.server.SendEntityDelete(this.type, this.entityCode, this.coords.GetChunkPos());
         this.entityHandler.ScheduleRemove(this.ID);
         this.markedForDelete = true;
     }
@@ -102,6 +99,10 @@ public abstract class AbstractAI
 
     public Vector3 GetPosition(){
         return this.position;
+    }
+
+    public ChunkPos GetChunkPos(){
+        return this.coords.GetChunkPos();
     }
 
     public Vector3 GetRotation(){

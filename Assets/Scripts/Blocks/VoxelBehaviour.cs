@@ -48,6 +48,7 @@ public abstract class VoxelBehaviour {
 	public virtual int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader_Server cl){return 0;}
 	public virtual int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){return 0;}
 	public virtual int OnLoad(CastCoord coord, ChunkLoader_Server cl){return 0;}
+	public virtual void OnGenerate(ChunkPos pos, int x, int y, int z, ushort[] blocks, ushort[] states, ushort[] hps, int worldSeed){return;}
 	public virtual int OnVFXBuild(ChunkPos pos, int x, int y, int z, int facing, ushort state, ChunkLoader cl){return 0;}
 	public virtual int OnVFXChange(ChunkPos pos, int x, int y, int z, int facing, ushort state, ChunkLoader cl){return 0;}
 	public virtual int OnVFXBreak(ChunkPos pos, int x, int y, int z, ushort state, ChunkLoader cl){return 0;}

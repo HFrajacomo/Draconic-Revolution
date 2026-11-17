@@ -41,6 +41,7 @@ public class ItemLoader : BaseLoader {
 		return true;
 	}
 
+	public static bool Contains(string codename){return codename != null && codenameToItemID.ContainsKey(codename);}
 	public static ushort GetID(string codename){return codenameToItemID[codename];}
 	public static Item GetItem(ushort id){return itemBook[id];}
 	public static Item GetItem(string codename){return itemBook[codenameToItemID[codename]];}

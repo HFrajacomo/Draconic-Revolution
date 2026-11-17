@@ -9,26 +9,46 @@ public abstract class BaseAmbientPreset{
 
 	// Constants
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_DAY = 4f;
-	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = .8f;
+	protected static readonly float SURFACE_LIGHT_LUMINOSITY_NIGHT = .15f;
 	protected static readonly float SURFACE_LIGHT_LUMINOSITY_ZERO = 0f;
 	protected static readonly Color SURFACE_LIGHT_COLOR_DAY = Color.white;
-	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(.75f, .75f, .75f, 1f);
+	protected static readonly Color SURFACE_LIGHT_COLOR_NIGHT = new Color(.62f, .7f, .9f, 1f);
+	// Shaft Ambient: brightness (nits) of the sky's ambient light that comes down shafts into underground ambiences, lighting every face by its Natural Light
+	protected static readonly Color SHAFT_AMBIENT_DAY = new Color(.32f, .36f, .42f, 1f);
+	protected static readonly Color SHAFT_AMBIENT_NIGHT = new Color(.012f, .015f, .024f, 1f);
 	protected static readonly float SUN_DIAMETER_DAY = 1f;
 	protected static readonly float SUN_DIAMETER_NIGHT = 0.6f;
 	protected static readonly float SUN_DIAMETER_UNDERGROUND = 0f;
 	protected static readonly float FLOOR_LIGHTING_DAY = 1f;
 	protected static readonly float FLOOR_LIGHTING_NIGHT = 0.05f;
-	protected static readonly float FLOOR_LIGHTING_UNDERGROUND = 4f;
+	protected static readonly float FLOOR_LIGHTING_UNDERGROUND = 1f;
+	// Fraction of the sky ambient kept by a voxel with light level 0 (near-black)
+	protected static readonly float VOXEL_LIGHT_FLOOR_SURFACE = .008f;
+	protected static readonly float VOXEL_LIGHT_FLOOR_UNDERGROUND = .012f;
 	protected static readonly float BASE_FOG_HEIGHT_SURFACE = 700f;
 	protected static readonly float BASE_FOG_HEIGHT_UNDERGROUND = 0;
-	protected static readonly float FOG_ATTENUATION_SUNRISE = 6f;
-	protected static readonly float FOG_ATTENUATION_DAY = 10f;
-	protected static readonly float FOG_ATTENUATION_SUNSET = 8f;
-	protected static readonly float FOG_ATTENUATION_NIGHT = 7f;
+	// Fog Mean Free Path along the day: lower is denser
+	protected static readonly float FOG_ATTENUATION_SUNRISE = 3.5f;
+	protected static readonly float FOG_ATTENUATION_DAY = 6.5f;
+	protected static readonly float FOG_ATTENUATION_SUNSET = 5f;
+	protected static readonly float FOG_ATTENUATION_NIGHT = 4.75f;
 	protected static readonly float FOG_MAX_HEIGHT_SURFACE = 920f;
 	protected static readonly float FOG_BASE_ANISOTROPY = 0.2f;
-	protected static readonly float EXPOSURE_COMPENSATION_NEUTRAL = -0.5f;
+	protected static readonly float FOG_AMBIENT_LIGHT_NIGHT = .04f;
+	protected static readonly float FOG_AMBIENT_LIGHT_UNDERGROUND = .03f;
+	protected static readonly float INDIRECT_DIFFUSE_DAY = 1f;
+	protected static readonly float INDIRECT_DIFFUSE_NIGHT = .35f;
+	protected static readonly float INDIRECT_DIFFUSE_UNDERGROUND = .25f;
+	// Exposure is in EV100. Auto-exposure may only move EXPOSURE_ADAPT_BRIGHTEN below and EXPOSURE_ADAPT_DARKEN above a preset's base,
+	// so dark places stay dark instead of being normalized to mid-gray
+	protected static readonly float EXPOSURE_BASE_SURFACE = 1f;
+	protected static readonly float EXPOSURE_BASE_UNDERGROUND = 1f;
+	public static readonly float EXPOSURE_ADAPT_BRIGHTEN = 1f;
+	public static readonly float EXPOSURE_ADAPT_DARKEN = .75f;
+	public static readonly float EXPOSURE_METERING_COMPENSATION = 1f;
 	protected static readonly float STAR_MAP_MULTIPLIER_DAY = 0f;
+	// Same as the Ground Tint set in the Game volume profile
+	protected static readonly Color GROUND_TINT_DEFAULT = Color.white;
 	protected static readonly float STAR_MAP_MULTIPLIER_NIGHT = 1f;
 	protected static readonly float STAR_MAP_X_ROTATION_BEGIN = 0f;
 	protected static readonly float STAR_MAP_X_ROTATION_END = 180f;
@@ -79,8 +99,8 @@ public abstract class BaseAmbientPreset{
 	protected float4 gainSunrise;
 	protected float4 gainNight;
 
-	// Exposure
-	protected float expCompensation;
+	// Exposure (EV offset from the surface/underground base. Positive is darker)
+	protected float expOffset;
 
 	// Directional Light
 	protected float lightIntensity;
@@ -140,19 +160,59 @@ public abstract class BaseAmbientPreset{
 	public virtual Color GetZenithTint(float t){return this.zenithTintDay;}
 	public virtual float GetFogAttenuation(float t){return BehaviourLerp4(FOG_ATTENUATION_SUNRISE, FOG_ATTENUATION_DAY, FOG_ATTENUATION_SUNSET, FOG_ATTENUATION_NIGHT, t);}
 	public virtual Color GetFogAlbedo(float t){return this.fogAlbedo;}
-	public virtual float GetFogAmbientLight(float t){return this.fogAmbientLight;}
+	public virtual float GetFogAmbientLight(float t){
+		if(this.isSurface)
+			return BehaviourSunsetIntensity(this.fogAmbientLight, FOG_AMBIENT_LIGHT_NIGHT, t);
+		return this.fogAmbientLight;
+	}
+	public virtual float GetIndirectDiffuse(float t){
+		if(this.isSurface)
+			return BehaviourSunsetIntensity(INDIRECT_DIFFUSE_DAY, INDIRECT_DIFFUSE_NIGHT, t);
+		return INDIRECT_DIFFUSE_UNDERGROUND;
+	}
+	public virtual float GetLightVolumetricDimmer(){return this.isSurface ? 1f : 0f;}
+	// How much the Cave Factor may darken this ambience (fog light, exposure brightening and Dark Adaptation). 0 keeps it lit inside enclosed spaces
+	public virtual float GetCaveDarkness(){return 1f;}
+	public virtual float GetVoxelLightFloor(){return this.isSurface ? VOXEL_LIGHT_FLOOR_SURFACE : VOXEL_LIGHT_FLOOR_UNDERGROUND;}
+	// Uniform glow of every surface, in nits. Lights the faces no light reaches, for ambiences without a sky to light them
+	public virtual float GetVoxelAmbient(){return 0f;}
+	// Shaft Light: directional sky light that comes down shafts into this ambience, drawn by the voxel shaders without shadows (see VoxelLightShade).
+	// Color times illuminance (lux). Black for ambiences lit by their own realtime sun
+	public virtual Color GetShaftLight(float t){return Color.black;}
+	// Direction pointing towards the Shaft Light
+	public virtual Vector3 GetShaftLightDirection(float t){return Vector3.up;}
+	// Shaft Ambient: the sky's ambient light that comes down shafts, in nits. Lights every face by its Natural Light. Black for ambiences lit by their own sky
+	public virtual Color GetShaftAmbient(float t){return Color.black;}
 	public virtual float GetFogBaseHeight(float t){return BASE_FOG_HEIGHT_SURFACE;}
 	public virtual float GetFogMaxHeight(float t){return this.fogMaximumHeight;}
 	public virtual float GetFogAnisotropy(float t){return this.fogAnisotropy;}
 	public virtual Color GetCloudTint(float t){return this.cloudTintDay;}
 	public virtual float GetWhiteBalanceTemperature(){return this.wbTemperature;}
 	public virtual float GetWhiteBalanceTint(){return this.wbTint;}
-	public virtual float GetExposureCompensation(){return EXPOSURE_COMPENSATION_NEUTRAL;}
+	public virtual float GetExposureBase(){return (this.isSurface ? EXPOSURE_BASE_SURFACE : EXPOSURE_BASE_UNDERGROUND) + this.expOffset;}
 	public virtual float GetSunIntensity(float t){return BehaviourSunsetIntensity(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_ZERO, t);}
 	public virtual float2 GetSunRotation(float t){return this.sunRotation;}
+	// Full rotation of the sun light. Defaults to GetSunRotation, which can only move it in the north-south plane
+	public virtual Quaternion GetSunOrientation(float t){
+		float2 rotation = GetSunRotation(t);
+		return Quaternion.Euler(rotation.x, 0, rotation.y);
+	}
 	public virtual float GetSunDiameter(float t){return this.sunDiameter;}
 	public virtual float GetMoonIntensity(float t){return BehaviourMoonsetIntensity(SURFACE_LIGHT_LUMINOSITY_ZERO, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);}
 	public virtual float2 GetMoonRotation(float t){return this.sunRotation;}
+	// Full rotation of the moon light. Defaults to GetMoonRotation, which can only move it in the north-south plane
+	public virtual Quaternion GetMoonOrientation(float t, Vector3 cameraPosition){
+		float2 rotation = GetMoonRotation(t);
+		return Quaternion.Euler(rotation.x, 0, rotation.y);
+	}
+	// How the moon is drawn in the sky. null keeps the moon set in the scene
+	public virtual CelestialBodyLook GetMoonLook(){return null;}
+	// If false, neither the sun nor the moon casts shadows in this ambience
+	public virtual bool HasCelestialShadows(){return true;}
+	// If false, weather clouds are hidden in this ambience
+	public virtual bool HasClouds(){return true;}
+	// Albedo of the planet's ground, drawn below the horizon and lit by the sun and moon
+	public virtual Color GetGroundTint(){return GROUND_TINT_DEFAULT;}
 	public virtual float GetMoonDiameter(float t){return BehaviourMoonsetDiameter(SUN_DIAMETER_UNDERGROUND, SUN_DIAMETER_NIGHT, t);}
 	public virtual Color GetSunColor(float t){return SURFACE_LIGHT_COLOR_DAY;}
 	public virtual Color GetMoonColor(float t){return SURFACE_LIGHT_COLOR_NIGHT;}
@@ -163,6 +223,33 @@ public abstract class BaseAmbientPreset{
 	public virtual bool IsSnowInstead(){return false;}
 	public bool IsSurface(){return this.isSurface;}
 	public bool HasFlare(){return this.hasFlare;}
+
+	// Shaft Ambient of the surface sky along the day
+	protected Color SurfaceShaftAmbient(float t){
+		return Color.Lerp(SHAFT_AMBIENT_NIGHT, SHAFT_AMBIENT_DAY, BehaviourSunsetIntensity(1f, 0f, t));
+	}
+
+	// Shaft Light of the surface sky: the default sun by day and the default moon by night
+	protected Color SurfaceShaftLight(float t){
+		float sun = BehaviourSunsetIntensity(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_ZERO, t);
+		float moon = BehaviourMoonsetIntensity(SURFACE_LIGHT_LUMINOSITY_ZERO, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);
+
+		return SURFACE_LIGHT_COLOR_DAY * sun + SURFACE_LIGHT_COLOR_NIGHT * moon;
+	}
+
+	// Points towards the brightest of the default sun and moon. Lights shine along their forward axis
+	protected Vector3 SurfaceShaftLightDirection(float t){
+		float sun = BehaviourSunsetIntensity(SURFACE_LIGHT_LUMINOSITY_DAY, SURFACE_LIGHT_LUMINOSITY_ZERO, t);
+		float moon = BehaviourMoonsetIntensity(SURFACE_LIGHT_LUMINOSITY_ZERO, SURFACE_LIGHT_LUMINOSITY_NIGHT, t);
+		Quaternion rotation;
+
+		if(sun >= moon)
+			rotation = Quaternion.Euler(SunRotationX(t), 0, SunRotationZ(t));
+		else
+			rotation = Quaternion.Euler(MoonRotationX(t), 0, MoonRotationZ(t));
+
+		return -(rotation * Vector3.forward);
+	}
 
 
 	protected float BehaviourLerp4(float sunrise, float day, float sunset, float night, float x){
@@ -381,15 +468,7 @@ public abstract class BaseAmbientPreset{
     }
 
     protected int GetValueDuringRain(WeatherCast wc, int val){
-    	if(wc.GetWeatherState() == WeatherState.RAINY)
-    		return val;
-    	else if(wc.GetWeatherState() == WeatherState.TRANSITION){
-    		if(wc.GetInitState() == WeatherState.RAINY && wc.GetEndState() == WeatherState.TRANSITION)
-    			return (int)Mathf.Lerp(val, 0, wc.GetLerpValue());
-    		else if(wc.GetEndState() == WeatherState.RAINY && wc.GetInitState() == WeatherState.TRANSITION)
-    			return (int)Mathf.Lerp(0, val, wc.GetLerpValue());
-    	}
-    	return 0;
+    	return (int)(val * wc.GetRainStrength());
     }
 
     public void SetValues(AmbientationTestingTool att){
@@ -424,6 +503,8 @@ public abstract class BaseAmbientPreset{
     	lightIntensity = att.lightIntensity;
     	sunRotation = att.sunRotation;
     	sunColor = att.sunColor;
+
+    	expOffset = att.expOffset;
 
     	rainSpawnRate = att.rainSpawnRate;
     }
@@ -463,5 +544,6 @@ public abstract class BaseAmbientPreset{
 	public Color _g_ss(){return Float4ToColor(gainSunset);}
 	public Color _g_n(){return Float4ToColor(gainNight);}
 	public int _rsp(){return rainSpawnRate;}
+	public float _eo(){return expOffset;}
 
 }

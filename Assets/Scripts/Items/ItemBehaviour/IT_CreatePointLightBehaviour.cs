@@ -24,6 +24,7 @@ public class IT_CreatePointLightBehaviour : ItemBehaviour{
 		lightComponent.intensity = this.lightComponentIntensity;
 
 		cl.playerSheetController.Enable(this.realisticLight);
+		cl.realtimeLightHandler.RegisterDynamic(lightComponent);
 
 		cl.playerSheetController.SetVoxelLightIntensity(this.voxelLightIntensity);
 		cl.voxelLightHandler.Add(id, cl.playerPositionHandler.GetPlayerMiddlePoint().position, this.voxelLightIntensity, priority:true);
@@ -33,6 +34,7 @@ public class IT_CreatePointLightBehaviour : ItemBehaviour{
 	public override void OnUnholdPlayer(ChunkLoader cl, ItemStack its, ulong playerCode){
 		EntityID id = new EntityID(EntityType.PLAYER, playerCode);
 
+		cl.realtimeLightHandler.UnregisterDynamic(cl.playerSheetController.GetLight());
 		cl.playerSheetController.Disable(this.realisticLight);
 		cl.voxelLightHandler.Remove(id);
 		cl.sfx.RemoveEntitySFX(id, this.audioName);
@@ -54,6 +56,7 @@ public class IT_CreatePointLightBehaviour : ItemBehaviour{
 		lightComponent.enabled = true;
 		light.enabled = true;
 		realLight.enabled = this.realisticLight;
+		cl.realtimeLightHandler.RegisterDynamic(lightComponent);
 
 		cl.voxelLightHandler.Add(id, go.transform.position, this.voxelLightIntensity);
 		cl.sfx.LoadEntitySFX(this.audioName, id);
@@ -66,6 +69,7 @@ public class IT_CreatePointLightBehaviour : ItemBehaviour{
 		RealisticLight realLight = go.GetComponent<RealisticLight>();
 		EntityID id = new EntityID(EntityType.PLAYER, playerCode);
 
+		cl.realtimeLightHandler.UnregisterDynamic(lightComponent);
 		lightComponent.enabled = false;
 		light.enabled = false;
 		realLight.enabled = false;

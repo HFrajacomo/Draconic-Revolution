@@ -30,7 +30,7 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 		this.gainSunset = new float4(0.8679245f, 0.2894512f, 0.1596654f, 0f);
 		this.gainNight = new float4(0.1665321f, 0.2358491f, 0.08343717f, 0f);
 
-		this.expCompensation = -0.2f;
+		this.expOffset = -0.3f;
 
 		this.sunDiameter = SUN_DIAMETER_DAY;
 		this.moonDiameter = SUN_DIAMETER_NIGHT;
@@ -60,5 +60,4 @@ public class ForestAmbientPreset: BaseAmbientPreset{
 	public override float GetFloorLighting(float t){
 		return this.BehaviourLerpDayNight(FLOOR_LIGHTING_DAY, FLOOR_LIGHTING_NIGHT, t);
 	}
-	public override float GetExposureCompensation(){return this.expCompensation;}
 }

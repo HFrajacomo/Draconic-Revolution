@@ -80,6 +80,7 @@ public static class CharacterCreationData {
 		hats = ushort.MaxValue;
 		boots = ushort.MaxValue;
 		remainingPoints = "10/10";
+		ResetAttributes();
 	}
 
 	public static void ResetAttributes(){

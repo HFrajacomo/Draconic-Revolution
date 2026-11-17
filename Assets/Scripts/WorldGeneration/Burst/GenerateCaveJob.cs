@@ -7,7 +7,7 @@ using Unity.Jobs;
 using Unity.Collections;
 
 
-[BurstCompile]
+[BurstCompile(FloatPrecision.Standard, FloatMode.Fast)]
 public struct GenerateCaveJob : IJobParallelFor{
     [ReadOnly]
     public ChunkPos pos;

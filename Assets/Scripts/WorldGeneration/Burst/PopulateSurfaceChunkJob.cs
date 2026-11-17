@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
@@ -14,313 +14,170 @@ public struct PopulateSurfaceChunkJob : IJob{
     [ReadOnly]
     public NativeArray<byte> patchNoise;
     [ReadOnly]
-    public NativeArray<ushort> blendingBlock;
+    public NativeArray<byte> blendNoise;
 
     [ReadOnly]
     public ChunkPos pos;
     [ReadOnly]
-    public byte biome;
-    [ReadOnly]
-    public byte xpBiome, zpBiome, zmBiome;
-    [ReadOnly]
-    public byte xzpBiome, xpzmBiome, xmzpBiome;
+    public BiomeNeighborhood biomes;
 
     [ReadOnly]
     public NativeArray<ushort> decorationBlock; // 0: Water, 1: Grass, 2: Dirt, 3: Stone, 4: Sand, 5: Sandstone, 6: Ice, 7: Snow, 8: Clay 
 
     public void Execute(){
-        ApplySurfaceDecoration(biome);
-        ApplyBiomeBlending();
+        ApplySurfaceDecoration();
         ApplyWaterBodyFloor();
     }
 
-    public void ApplySurfaceDecoration(byte biome){
-        BiomeCode code = (BiomeCode)biome;
+    // Every column is decorated by its own biome, which blends the biome borders (see BiomeBlend)
+    public void ApplySurfaceDecoration(){
+        byte columnBiome;
+
+        for(int x=0; x < Chunk.chunkWidth; x++){
+            for(int z=0; z < Chunk.chunkWidth; z++){
+                columnBiome = BiomeBlend.GetColumnBiome(pos.x*Chunk.chunkWidth+x, pos.z*Chunk.chunkWidth+z, pos, in biomes, blendNoise);
+                DecorateColumn(x, z, (BiomeCode)columnBiome);
+            }
+        }
+    }
+
+    private void DecorateColumn(int x, int z, BiomeCode code){
+        switch(code){
+            case BiomeCode.PLAINS:
+            case BiomeCode.FOREST:
+                DecorateGrass(x, z, false);
+                return;
+            case BiomeCode.GRASSY_HIGHLANDS:
+                DecorateGrass(x, z, GetPatchNoise(x, z) >= 0.1f);
+                return;
+            case BiomeCode.OCEAN:
+                DecorateOcean(x, z);
+                return;
+            case BiomeCode.DESERT:
+                DecorateDesert(x, z);
+                return;
+            case BiomeCode.SNOWY_PLAINS:
+            case BiomeCode.SNOWY_FOREST:
+                DecorateSnow(x, z, GetPatchNoise(x, z) >= -0.2f, false);
+                return;
+            case BiomeCode.ICE_OCEAN:
+                DecorateSnow(x, z, GetPatchNoise(x, z) >= 0f, false);
+                return;
+            case BiomeCode.SNOWY_HIGHLANDS:
+                float pNoise = GetPatchNoise(x, z);
+                DecorateSnow(x, z, pNoise >= -0.2f, pNoise >= 0.1f);
+                return;
+            default:
+                return;
+        }
+    }
+
+    private float GetPatchNoise(int x, int z){
+        return NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise);
+    }
+
+    // Grass on top of Dirt. Stone floors replace both
+    private void DecorateGrass(int x, int z, bool isStoneFloor){
         ushort blockCode;
         int depth = 0;
 
-        if(code == BiomeCode.PLAINS){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+        for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+            blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                        if(blockCode == this.decorationBlock[0])
-                            depth++;
-                        else if(depth == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[1];
-                            depth++;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[2];
-                            depth++;
-                        }
+            if(blockCode == this.decorationBlock[0])
+                depth++;
+            else if(isStoneFloor && depth < 5){
+                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[3];
+                depth++;
+            }
+            else if(depth == 0){
+                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[1];
+                depth++;
+            }
+            else{
+                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[2];
+                depth++;
+            }
 
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
+            if(depth == 5){
+                break;
             }
         }
-        else if(code == BiomeCode.GRASSY_HIGHLANDS){
-            float stoneThreshold = 0.1f;
-            bool isStoneFloor = false;
+    }
 
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    isStoneFloor = false;
-                    depth = 0;
+    private void DecorateOcean(int x, int z){
+        ushort blockCode;
+        int depth = 0;
 
-                    if(NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) >= stoneThreshold)
-                        isStoneFloor = true;
+        for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+            blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+            if(blockCode == this.decorationBlock[0])
+                depth++;
+            else{
+                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[4];
+                depth++; 
+            }
 
-                        if(blockCode == this.decorationBlock[0])
-                            depth++;
-                        else if(isStoneFloor && depth < 5){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[3];
-                            depth++;
-                        } 
-                        else if(depth == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[1];
-                            depth++;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[2];
-                            depth++;
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }       
-        }
-        else if(code == BiomeCode.OCEAN){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == this.decorationBlock[0])
-                            depth++;
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[4];
-                            depth++; 
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }             
-        }
-        else if(code == BiomeCode.FOREST){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == this.decorationBlock[0])
-                            depth++;
-                        else if(depth == 0){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[1];
-                            depth++;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[2];
-                            depth++;
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }         
-        }
-        else if(code == BiomeCode.DESERT){
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == this.decorationBlock[0])
-                            depth++;
-                        else{
-                            if(depth != 5)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[4];
-                            else
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[5];
-
-                            depth++; 
-                        }
-
-                        if(depth == 6){
-                            break;
-                        }
-                    }
-                }
-            }          
-        }
-        else if(code == BiomeCode.SNOWY_PLAINS){
-            float iceThreshold = -0.2f;
-            bool isIceFloor = false;
-
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    isIceFloor = false;
-
-                    if(NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) >= iceThreshold){
-                        isIceFloor = true;
-                    }
-
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == this.decorationBlock[0]){
-                            depth++;
-                        }
-                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
-                            if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = this.decorationBlock[6];
-                            break;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[7];
-                            depth++; 
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }              
-        }
-        else if(code == BiomeCode.SNOWY_HIGHLANDS){
-            float stoneThreshold = 0.1f;
-            bool isStoneFloor = false;
-            float iceThreshold = -0.2f;
-            bool isIceFloor = false;
-            float pNoise;
-
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    isStoneFloor = false;
-                    isIceFloor = false;
-                    depth = 0;
-
-                    pNoise = NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise);
-                    isStoneFloor = pNoise >= stoneThreshold;
-                    isIceFloor = pNoise >= iceThreshold;
-
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
-
-                        if(blockCode == this.decorationBlock[0]){
-                            depth++;
-                        }
-                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
-                            if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = this.decorationBlock[6];
-                            break;
-                        }
-                        else if(isStoneFloor && depth < 5){
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[3];
-                            depth++;
-                        } 
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[7];
-                            depth++;
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
+            if(depth == 5){
+                break;
             }
         }
-        else if(code == BiomeCode.ICE_OCEAN){
-            float iceThreshold = 0f;
-            bool isIceFloor = false;
+    }
 
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    isIceFloor = false;
+    // Sand on top of Sandstone
+    private void DecorateDesert(int x, int z){
+        ushort blockCode;
+        int depth = 0;
 
-                    if(NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) >= iceThreshold)
-                        isIceFloor = true;
+        for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+            blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+            if(blockCode == this.decorationBlock[0])
+                depth++;
+            else{
+                if(depth != 5)
+                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[4];
+                else
+                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[5];
 
-                        if(blockCode == this.decorationBlock[0]){
-                            depth++;
-                        }
-                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
-                            if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = this.decorationBlock[6];
-                            break;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[7];
-                            depth++; 
-                        }
+                depth++; 
+            }
 
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }        
+            if(depth == 6){
+                break;
+            }
         }
-        else if(code == BiomeCode.SNOWY_FOREST){
-            float iceThreshold = -0.2f;
-            bool isIceFloor = false;
+    }
 
-            for(int x=0; x < Chunk.chunkWidth; x++){
-                for(int z=0; z < Chunk.chunkWidth; z++){
-                    depth = 0;
-                    isIceFloor = false;
+    // Snow, with Ice over underwater floors and optional Stone floors
+    private void DecorateSnow(int x, int z, bool isIceFloor, bool isStoneFloor){
+        ushort blockCode;
+        int depth = 0;
 
-                    if(NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) >= iceThreshold)
-                        isIceFloor = true;
+        for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
+            blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
 
-                    for(int y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1; y > 0; y--){
-                        blockCode = blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+            if(blockCode == this.decorationBlock[0]){
+                depth++;
+            }
+            else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
+                if(isIceFloor)
+                    blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = this.decorationBlock[6];
+                break;
+            }
+            else if(isStoneFloor && depth < 5){
+                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[3];
+                depth++;
+            }
+            else{
+                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[7];
+                depth++;
+            }
 
-                        if(blockCode == this.decorationBlock[0]){
-                            depth++;
-                        }
-                        else if(depth == 0 && y < Constants.WORLD_WATER_LEVEL){
-                            if(isIceFloor)
-                                blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+Constants.WORLD_WATER_LEVEL*Chunk.chunkWidth+z] = this.decorationBlock[6];
-                            break;
-                        }
-                        else{
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = this.decorationBlock[7];
-                            depth++;
-                        }
-
-                        if(depth == 5){
-                            break;
-                        }
-                    }
-                }
-            }  
+            if(depth == 5){
+                break;
+            }
         }
     }
 
@@ -370,122 +227,5 @@ public struct PopulateSurfaceChunkJob : IJob{
                 }
             }
         }          
-    }
-
-    public void ApplyBiomeBlending(){
-        int blendingAmount = Chunk.chunkWidth - 3;
-        int exageratedBlendingAmount = blendingAmount - (Chunk.chunkWidth - blendingAmount);
-        float blendingSafety = 0f;
-
-        if(biome == xpBiome && biome == zpBiome)
-            return;
-        
-        int y;
-
-        // X+ Side
-        if(blendingBlock[biome] != blendingBlock[xpBiome]){
-            // If needs rounded borders at the top
-            if(biome != xpBiome && xpBiome != xzpBiome){
-                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
-                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
-                        if(x-z > 0 && NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
-                        }
-                    }
-                }                
-            }
-            // If needs rounded borders at the bottom
-            else if(biome != xpBiome && xpBiome != xpzmBiome){
-                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
-                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
-                        if(x+z >= Chunk.chunkWidth && NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
-                        }
-                    }
-                }
-            }
-            // Both edges are rounded
-            else if(biome != xpBiome && xpBiome != xzpBiome && xpBiome != xpzmBiome){
-                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
-                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
-                        if(x+z <= blendingAmount*2 && x-z <= blendingAmount && NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
-                        }
-                    }
-                }
-            }
-
-            // "Straight" line through border
-            else{
-                for(int z=Chunk.chunkWidth-1; z >= 0; z--){
-                    for(int x=blendingAmount; x < Chunk.chunkWidth; x++){
-                        if(NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[xpBiome];
-                        }
-                    }
-                }                
-            }
-        }
-
-        // Z+ Side
-        if(blendingBlock[biome] != blendingBlock[zpBiome]){
-            // If needs rounded borders at the right
-            if(biome != zpBiome && zpBiome != xzpBiome){
-                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
-                    for(int x=0; x < Chunk.chunkWidth; x++){
-                        if(x-z <= blendingAmount - Chunk.chunkWidth && NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
-                        }
-                    }
-                }                
-            }
-            // If needs rounded borders at the left
-            else if(biome != zpBiome && zpBiome != xmzpBiome){
-                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
-                    for(int x=0; x < Chunk.chunkWidth; x++){
-                        if(x+z >= Chunk.chunkWidth-1 && NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
-                        }
-                    }
-                }
-            }
-            // Both ends are rounded
-            else if(biome != zpBiome && zpBiome != xzpBiome && zpBiome != xmzpBiome){
-                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
-                    for(int x=0; x < Chunk.chunkWidth; x++){
-                        if(x-z <= blendingAmount - Chunk.chunkWidth && x+z >= Chunk.chunkWidth-1 && NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
-                        }
-                    }
-                }                
-            }
-            // "Straight" line through border
-            else{
-                for(int z=blendingAmount; z < Chunk.chunkWidth; z++){
-                    for(int x=Chunk.chunkWidth-1; x >= 0; x--){
-                        if(NoiseMaker.PatchNoise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.patchNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.patchNoiseStep2, patchNoise) < blendingSafety){
-                            y = (int)heightMap[x*(Chunk.chunkWidth+1)+z]-1;
-
-                            blockData[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z] = blendingBlock[zpBiome];
-                        }
-                    }
-                }               
-            }
-        }
-
     }
 }

@@ -50,7 +50,7 @@ public struct AttachmentItems : IEquatable<AttachmentItems> {
 		if(itemID == 0)
 			return false;
 
-		Weapon weapon = ItemLoader.GetItem(itemID) as Weapon;
+		BaseWeapon weapon = ItemLoader.GetItem(itemID) as BaseWeapon;
 
 		return weapon != null && weapon.GetWeaponType() == type;
 	}

@@ -15,20 +15,20 @@ public class EntityHandler
 
 	private Dictionary<ulong, AnimationHandler> playerAnimations;
 	private Dictionary<ulong, Dictionary<int, AnimationData>> pendingPlayerAnimations;
-	private Dictionary<ulong, Dictionary<string, float>> pendingPlayerAnimatorParameters;
+	private Dictionary<ulong, Dictionary<int, float>> pendingPlayerAnimatorParameters;
 	private Dictionary<ulong, ushort> playerItem;
 	private Dictionary<ulong, bool> playerItemOrActionInHand;
-	private Dictionary<ulong, DeltaMove> playerCurrentPositions;
 	private Dictionary<ulong, ItemEntity> dropObject;
-	private Dictionary<ulong, DeltaMove> dropCurrentPositions;
 	private Dictionary<ulong, int> playerBattleStyle;
 	private Dictionary<ulong, int> playerCarryStyle;
 	private Dictionary<ulong, Dictionary<string, EntitySFXData>> playerActiveLoopSFX;
-	private HashSet<ulong> playerSFXNeedsReapply;
+	private Dictionary<ulong, Dictionary<string, EntityVFXData>> playerActiveVFX;
+	private HashSet<ulong> playerEffectsNeedReapply;
 	private Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>> playerAttachmentAnchors;
 	private Dictionary<ulong, AttachmentItems> playerAttachmentItems;
 	private Dictionary<ulong, PendingItemHold> pendingItemHolds;
 	private List<ulong> cachedPendingHoldCodes;
+	private List<string> cachedSFXNames = new List<string>();
 	private GameObject droppedItemBase = GameObject.Find("----- PrefabModels -----/DroppedItemBase");
 
 	private int currentTogglingCounter;
@@ -46,16 +46,15 @@ public class EntityHandler
 		this.playerObject = new Dictionary<ulong, GameObject>();
 		this.playerHead = new Dictionary<ulong, Transform>();
 		this.playerItem = new Dictionary<ulong, ushort>();
-		this.playerCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.dropObject = new Dictionary<ulong, ItemEntity>();
-		this.dropCurrentPositions = new Dictionary<ulong, DeltaMove>();
 		this.playerAnimations = new Dictionary<ulong, AnimationHandler>();
 		this.pendingPlayerAnimations = new Dictionary<ulong, Dictionary<int, AnimationData>>();
-		this.pendingPlayerAnimatorParameters = new Dictionary<ulong, Dictionary<string, float>>();
+		this.pendingPlayerAnimatorParameters = new Dictionary<ulong, Dictionary<int, float>>();
 		this.playerBattleStyle = new Dictionary<ulong, int>();
 		this.playerCarryStyle = new Dictionary<ulong, int>();
 		this.playerActiveLoopSFX = new Dictionary<ulong, Dictionary<string, EntitySFXData>>();
-		this.playerSFXNeedsReapply = new HashSet<ulong>();
+		this.playerActiveVFX = new Dictionary<ulong, Dictionary<string, EntityVFXData>>();
+		this.playerEffectsNeedReapply = new HashSet<ulong>();
 		this.playerAttachmentAnchors = new Dictionary<ulong, Dictionary<BoneAnchorType, AttachmentAnchorState>>();
 		this.playerAttachmentItems = new Dictionary<ulong, AttachmentItems>();
 		this.playerItemOrActionInHand = new Dictionary<ulong, bool>();
@@ -110,21 +109,42 @@ public class EntityHandler
 		return false;
 	}
 
+	// Whether a voxel (absolute world coordinates) is inside a remote player. Their positions are interpolated, so the Server has the final say
+	public bool IsVoxelOccupiedByPlayer(int x, int y, int z){
+		CharacterSheet sheet;
+		Transform t;
+		Race race;
+
+		foreach(KeyValuePair<ulong, GameObject> pair in this.playerObject){
+			if(pair.Value == null)
+				continue;
+
+			t = pair.Value.transform;
+			race = this.playerSheet.TryGetValue(pair.Key, out sheet) && sheet != null ? sheet.GetRace() : Race.HUMAN;
+
+			if(PlayerHitbox.OverlapsVoxel(WorldOrigin.ToAbsolute(t.position), t.eulerAngles.y, PlayerHitbox.GetScale(race), x, y, z))
+				return true;
+		}
+
+		return false;
+	}
+
 	public void AddPlayer(ulong code, float3 pos, float3 dir){
 		GameObject go = GameObject.Instantiate(GameObject.Find("----- PrefabModels -----/PlayerModel"), new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(0, dir.y, 0));
 
 		go.name = "Player_" + code;
+		go.AddComponent<EntityVoxelLight>().SetChunkLoader(this.cl);
 		this.playerObject.Add(code, go);
 		this.playerHead.Add(code, go.transform.Find("Camera"));
 		this.playerItem.Add(code, 0);
 		this.playerItemOrActionInHand.Add(code, true);
-		this.playerCurrentPositions.Add(code, new DeltaMove(pos, dir));
 		this.playerAnimations.Add(code, null);
 		this.pendingPlayerAnimations.Add(code, new Dictionary<int, AnimationData>());
-		this.pendingPlayerAnimatorParameters.Add(code, new Dictionary<string, float>());
+		this.pendingPlayerAnimatorParameters.Add(code, new Dictionary<int, float>());
 		this.playerBattleStyle.Add(code, -1);
 		this.playerCarryStyle.Add(code, BattleStyleDeterminator.NO_CARRY);
 		this.playerActiveLoopSFX.Add(code, new Dictionary<string, EntitySFXData>());
+		this.playerActiveVFX.Add(code, new Dictionary<string, EntityVFXData>());
 		this.playerAttachmentAnchors.Add(code, new Dictionary<BoneAnchorType, AttachmentAnchorState>());
 		this.playerAttachmentItems.Add(code, AttachmentItems.NONE);
 		RunSingleActivation(EntityType.PLAYER, code, pos);
@@ -151,8 +171,8 @@ public class EntityHandler
 				SetPlayerBattleStyle(code, this.playerSheet[code].GetBattleStyleCode());
 			}
 
-			// Model rebuild destroys SFX attached to bones
-			this.playerSFXNeedsReapply.Add(code);
+			// Model rebuild destroys SFX and VFX attached to bones
+			this.playerEffectsNeedReapply.Add(code);
 			ApplyPendingPlayerAnimations(code);
 
 			return true;
@@ -188,8 +208,8 @@ public class EntityHandler
 		this.playerAnimations[code].CreateAttachments(bsd, this.playerAttachmentItems[code], carryStyle);
 		ApplyAttachmentAnchors(code);
 
-		// Attachments are replaced, destroying SFX attached to them
-		this.playerSFXNeedsReapply.Add(code);
+		// Attachments are replaced, destroying SFX and VFX attached to them
+		this.playerEffectsNeedReapply.Add(code);
 		ApplyPendingPlayerAnimations(code);
 	}
 
@@ -210,8 +230,14 @@ public class EntityHandler
 
 		this.playerAttachmentItems[code] = items;
 
-		if(knownStyle != style || knownCarryStyle != carryStyle)
+		// Attachments go back to their default anchors, destroying the VFX and anchored SFX in them, as it happens in the owner
+		// Style changes always sheathe the weapon, so its moving voxel light goes away too
+		if(knownStyle != style || knownCarryStyle != carryStyle){
 			this.playerAttachmentAnchors[code].Clear();
+			ClearPlayerVFX(code);
+			ClearPlayerAnchoredSFX(code);
+			this.cl.voxelLightHandler.Remove(new EntityID(EntityType.PLAYER, code));
+		}
 
 		if(this.playerAnimations[code] == null || !this.playerSheet.ContainsKey(code)){
 			if(this.playerSheet.ContainsKey(code))
@@ -262,78 +288,59 @@ public class EntityHandler
 	public void AddItem(ulong code, float3 pos, float3 dir, ItemStack its){
 		ItemEntity newItemEntity = GameObject.Instantiate(this.droppedItemBase, pos, Quaternion.Euler(dir.x, dir.y, dir.z)).GetComponent<ItemEntity>();
 		newItemEntity.SetItemStack(its);
+		newItemEntity.gameObject.AddComponent<EntityVoxelLight>().SetChunkLoader(this.cl);
 
 		this.dropObject.Add(code, newItemEntity);
-		this.dropCurrentPositions.Add(code, new DeltaMove(pos, dir));
 		RunSingleActivation(EntityType.DROP, code, pos);
 	}
 
-	public void AnimateBone(ulong code, string stateName, int layer){
+	// States are identified by their short name hash (Animator.StringToHash)
+	public void AnimateBone(ulong code, int stateHash, int layer){
 		if(!this.playerAnimations.ContainsKey(code))
 			return;
 
 		if(!CanProcessPlayerAnimations(code)){
-			this.pendingPlayerAnimations[code][layer] = new AnimationData(stateName, layer);
+			this.pendingPlayerAnimations[code][layer] = new AnimationData(stateHash, layer);
 			return;
 		}
 
-		this.playerAnimations[code].Play(stateName, layer);
+		this.playerAnimations[code].Play(stateHash, layer);
 	}
 
-	// Triggers whenever a t(x) position is received. Moves entity to t(x-1) position received
-	public void NudgeLastPos(EntityType type, ulong code, float3 pos, float3 dir){
-		if(!Contains(type, code))
+	// Places a remote player in its interpolated pose. Yaw rotates the body and pitch rotates the head
+	public void SetPlayerTransform(ulong code, Vector3 pos, float yaw, float pitch){
+		if(!this.playerObject.ContainsKey(code))
 			return;
 
-		if(type == EntityType.PLAYER){	
-			this.playerObject[code].transform.position = this.playerCurrentPositions[code].deltaPos;
-			this.playerObject[code].transform.eulerAngles = new Vector3(0, this.playerCurrentPositions[code].deltaRot.y, 0);
-			this.playerHead[code].transform.localRotation = Quaternion.Euler(this.playerCurrentPositions[code].deltaRot.x, 0, 0);
-		
-			this.playerCurrentPositions[code] = new DeltaMove(pos, dir);
-		}
-		else if(type == EntityType.DROP){
-			this.dropObject[code].gameObject.transform.position = this.dropCurrentPositions[code].deltaPos;
+		this.playerObject[code].transform.SetPositionAndRotation(pos, Quaternion.Euler(0, yaw, 0));
 
-			this.dropCurrentPositions[code] = new DeltaMove(pos, dir);	
+		if(this.playerHead[code] != null)
+			this.playerHead[code].localRotation = Quaternion.Euler(pitch, 0, 0);
+
+		EntityID id = new EntityID(EntityType.PLAYER, code);
+
+		if(this.cl.voxelLightHandler.Contains(id)){
+			this.cl.voxelLightHandler.UpdatePosition(id, pos);
 		}
 	}
 
-	// Fine movement of entity in frame deltas
-	public void Nudge(EntityType type, ulong code, Vector3 dPos, Vector3 dRot){
-		if(!Contains(type, code))
-			return;
-
-		EntityID id = new EntityID(type, code);
-
-		if(type == EntityType.PLAYER){
-			this.playerObject[code].transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
-			this.playerObject[code].transform.eulerAngles += new Vector3(0, (dRot * (Time.deltaTime / TimeOfDay.timeRate)).y, 0);
-			this.playerHead[code].transform.eulerAngles += new Vector3((dRot * (Time.deltaTime / TimeOfDay.timeRate)).x, 0, 0);
-
-			if(this.cl.voxelLightHandler.Contains(id)){
-				this.cl.voxelLightHandler.UpdatePosition(id, this.playerObject[code].transform.position);
-			}
-		}
-		else if(type == EntityType.DROP){
-			this.dropObject[code].gameObject.transform.position += (dPos * (Time.deltaTime / TimeOfDay.timeRate));
-		}
-	}
-
-	// Should only be used to hard set item rotation animation position
 	public void SetItemPosition(ulong code, Vector3 newPos){
 		if(!this.dropObject.ContainsKey(code))
 			return;
 
-		if(this.dropObject.ContainsKey(code)){
-			this.dropObject[code].gameObject.transform.position = newPos;
-		}
+		this.dropObject[code].gameObject.transform.position = newPos;
 	}
 
 	// ...
 	public void Remove(EntityType type, ulong code){
+		// Deletion commands may arrive for entities this client never received or already removed
+		if(!Contains(type, code))
+			return;
+
 		if(type == EntityType.PLAYER){
 			UpdatePlayerItem(code, 0, 0, true, 1);
+			ClearPlayerVFX(code);
+			this.cl.voxelLightHandler.Remove(new EntityID(type, code));
 			
 			this.playerObject[code].SetActive(false);
 			GameObject.Destroy(this.playerObject[code]);
@@ -341,7 +348,6 @@ public class EntityHandler
 			this.playerObject.Remove(code);
 			this.playerItem.Remove(code);
 			this.playerItemOrActionInHand.Remove(code);
-			this.playerCurrentPositions.Remove(code);
 			this.playerSheet.Remove(code);
 			this.playerAnimations.Remove(code);
 			this.pendingPlayerAnimations.Remove(code);
@@ -349,7 +355,8 @@ public class EntityHandler
 			this.playerBattleStyle.Remove(code);
 			this.playerCarryStyle.Remove(code);
 			this.playerActiveLoopSFX.Remove(code);
-			this.playerSFXNeedsReapply.Remove(code);
+			this.playerActiveVFX.Remove(code);
+			this.playerEffectsNeedReapply.Remove(code);
 			this.playerAttachmentAnchors.Remove(code);
 			this.playerAttachmentItems.Remove(code);
 			this.pendingItemHolds.Remove(code);
@@ -357,9 +364,8 @@ public class EntityHandler
 		}
 		else if(type == EntityType.DROP){
 			this.dropObject[code].gameObject.SetActive(false);
-			GameObject.Destroy(this.dropObject[code]);
+			GameObject.Destroy(this.dropObject[code].gameObject);
 			this.dropObject.Remove(code);
-			this.dropCurrentPositions.Remove(code);
 		}
 	}
 
@@ -376,38 +382,19 @@ public class EntityHandler
 		}
 	}
 
-	public void SetAnimatorParameter(EntityType type, ulong code, string parameter, float val){
+	// Parameters are identified by Animator.StringToHash
+	public void SetAnimatorParameter(EntityType type, ulong code, int parameterHash, float val){
 		if(!Contains(type, code))
 			return;
 
 		if(type == EntityType.PLAYER){
 			if(!CanProcessPlayerAnimations(code)){
-				this.pendingPlayerAnimatorParameters[code][parameter] = val;
+				this.pendingPlayerAnimatorParameters[code][parameterHash] = val;
 				return;
 			}
 
-			this.playerAnimations[code].SetParameterValue(parameter, val, false);
+			this.playerAnimations[code].SetParameterValue(parameterHash, val, false);
 		}
-	}
-
-	public Vector3 GetLastPosition(EntityType type, ulong code){
-		if(!Contains(type, code))
-			return Vector3.zero;
-
-		if(type == EntityType.PLAYER)
-			return this.playerCurrentPositions[code].deltaPos;
-		else
-			return this.dropCurrentPositions[code].deltaPos;
-	}
-
-	public Vector3 GetLastRotation(EntityType type, ulong code){
-		if(!Contains(type, code))
-			return Vector3.zero;
-
-		if(type == EntityType.PLAYER)
-			return this.playerCurrentPositions[code].deltaRot;
-		else
-			return this.dropCurrentPositions[code].deltaRot;
 	}
 
 	public CharacterSheet GetPlayerSheet(ulong code){
@@ -456,26 +443,27 @@ public class EntityHandler
 			return;
 
 		foreach(AnimationData animationData in this.pendingPlayerAnimations[code].Values){
-			this.playerAnimations[code].Play(animationData.name, animationData.layer);
+			this.playerAnimations[code].Play(animationData.stateHash, animationData.layer);
 		}
 
-		foreach(KeyValuePair<string, float> parameter in this.pendingPlayerAnimatorParameters[code]){
+		foreach(KeyValuePair<int, float> parameter in this.pendingPlayerAnimatorParameters[code]){
 			this.playerAnimations[code].SetParameterValue(parameter.Key, parameter.Value, false);
 		}
 
 		this.pendingPlayerAnimations[code].Clear();
 		this.pendingPlayerAnimatorParameters[code].Clear();
 
-		if(this.playerSFXNeedsReapply.Contains(code)){
-			this.playerSFXNeedsReapply.Remove(code);
+		if(this.playerEffectsNeedReapply.Contains(code)){
+			this.playerEffectsNeedReapply.Remove(code);
 			ReapplyPlayerLoopSFX(code);
+			ReapplyPlayerVFX(code);
 		}
 	}
 
-	// Sets the active state of a player object, flagging its looping SFX to be restarted when it becomes visible again
+	// Sets the active state of a player object, flagging its looping SFX and VFX to be rebuilt when it becomes visible again
 	private void SetPlayerActive(ulong code, bool active){
 		if(active && !this.playerObject[code].activeSelf)
-			this.playerSFXNeedsReapply.Add(code);
+			this.playerEffectsNeedReapply.Add(code);
 
 		this.playerObject[code].SetActive(active);
 	}
@@ -485,13 +473,13 @@ public class EntityHandler
 		Looping SFX are tracked so they can be rebuilt if the player model is not ready, rebuilt or out of sight
 		One-shot SFX are dropped if the player can't currently be processed
 	*/
-	public void PlayerSFX(ulong code, EntitySFXOperation operation, EntitySFXData sfx){
+	public void PlayerSFX(ulong code, EntityEffectOperation operation, EntitySFXData sfx){
 		if(!this.playerObject.ContainsKey(code))
 			return;
 
 		EntityID id = new EntityID(EntityType.PLAYER, code);
 
-		if(operation == EntitySFXOperation.DESTROY){
+		if(operation == EntityEffectOperation.DESTROY){
 			this.playerActiveLoopSFX[code].Remove(sfx.name);
 			this.cl.sfx.RemoveEntitySFX(id, sfx.name);
 			return;
@@ -505,7 +493,7 @@ public class EntityHandler
 
 		if(!CanProcessPlayerAnimations(code)){
 			if(sfx.isLoop)
-				this.playerSFXNeedsReapply.Add(code);
+				this.playerEffectsNeedReapply.Add(code);
 			return;
 		}
 
@@ -536,6 +524,96 @@ public class EntityHandler
 		}
 
 		this.cl.sfx.LoadEntitySFX(sfx.name, new EntityID(EntityType.PLAYER, code), parent:parent, localPosition:sfx.GetOffset());
+	}
+
+	/*
+	Receives a VFX operation for a remote player
+		Active VFX are tracked so they can be rebuilt if the player model is not ready, rebuilt or out of sight
+		They are built in the Third Person attachment of their anchor
+	*/
+	public void PlayerVFX(ulong code, EntityEffectOperation operation, EntityVFXData vfx){
+		if(!this.playerObject.ContainsKey(code))
+			return;
+
+		if(operation == EntityEffectOperation.DESTROY){
+			this.playerActiveVFX[code].Remove(vfx.name);
+			this.cl.vfx.Remove(code, vfx.name);
+			return;
+		}
+
+		if(operation != EntityEffectOperation.CREATE)
+			return;
+
+		this.playerActiveVFX[code][vfx.name] = vfx;
+
+		if(!CanProcessPlayerAnimations(code)){
+			this.playerEffectsNeedReapply.Add(code);
+			return;
+		}
+
+		LoadPlayerVFX(code, vfx);
+	}
+
+	// Rebuilds all VFX of a remote player. VFXLoader replaces any previous VFX with the same name
+	private void ReapplyPlayerVFX(ulong code){
+		if(!this.playerActiveVFX.ContainsKey(code))
+			return;
+
+		foreach(EntityVFXData vfx in this.playerActiveVFX[code].Values){
+			LoadPlayerVFX(code, vfx);
+		}
+	}
+
+	private void LoadPlayerVFX(ulong code, EntityVFXData vfx){
+		GameObject visualEffect = vfx.Build(this.playerAnimations[code].GetAttachment(vfx.anchor, false), false);
+
+		if(visualEffect != null)
+			this.cl.vfx.Add(code, visualEffect);
+	}
+
+	// Stops tracking and removes every VFX of a remote player
+	private void ClearPlayerVFX(ulong code){
+		if(!this.playerActiveVFX.ContainsKey(code))
+			return;
+
+		foreach(string name in this.playerActiveVFX[code].Keys){
+			this.cl.vfx.Remove(code, name);
+		}
+
+		this.playerActiveVFX[code].Clear();
+	}
+
+	// Stops tracking and removes every looping SFX of a remote player that is attached to a bone anchor, so they aren't rebuilt in new attachments
+	private void ClearPlayerAnchoredSFX(ulong code){
+		if(!this.playerActiveLoopSFX.ContainsKey(code))
+			return;
+
+		EntityID id = new EntityID(EntityType.PLAYER, code);
+
+		this.cachedSFXNames.Clear();
+
+		foreach(EntitySFXData sfx in this.playerActiveLoopSFX[code].Values){
+			if(sfx.hasAnchor)
+				this.cachedSFXNames.Add(sfx.name);
+		}
+
+		foreach(string name in this.cachedSFXNames){
+			this.playerActiveLoopSFX[code].Remove(name);
+			this.cl.sfx.RemoveEntitySFX(id, name);
+		}
+	}
+
+	// Receives the creation or destruction of the moving voxel light of a remote player. Its position follows the player in SetPlayerTransform
+	public void PlayerVoxelLight(ulong code, EntityEffectOperation operation, float radius){
+		if(!this.playerObject.ContainsKey(code))
+			return;
+
+		EntityID id = new EntityID(EntityType.PLAYER, code);
+
+		if(operation == EntityEffectOperation.CREATE)
+			this.cl.voxelLightHandler.Add(id, this.playerObject[code].transform.position, radius);
+		else if(operation == EntityEffectOperation.DESTROY)
+			this.cl.voxelLightHandler.Remove(id);
 	}
 
 	/*

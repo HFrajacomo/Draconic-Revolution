@@ -33,26 +33,39 @@ public class EntityFileHandler{
 	// Cache
 	private Item cachedItem;
 	private Weapon cachedWeapon;
+	private SubWeapon cachedSubWeapon;
 	private ItemStack cachedIts;
 	private ChunkPos cachedRegionPos;
 	private AbstractAI cachedAI;
 	private DroppedItemAI cachedDropItem;
 
-	////  Drop Item type Item -> 21
+	////  Drop Item type Item -> 22
 	// EntityType [1]
 	// MemoryStorageType [1]
+	// State [1]
 	// ItemId [2]
 	// Amount [1] 
 	// CurrentTick [4]
 	// Position [12]
 
-	//// Drop Item type Weapon -> 26
+	//// Drop Item type Weapon -> 27
 	// EntityType [1]
 	// MemoryStorageType [1]
+	// State [1]
 	// ItemID [2]
 	// Current Durability [4]
 	// Refine Level [1]
 	// Enchantment [1]
+	// CurrentTick [4]
+	// Position [12]
+
+	//// Drop Item type SubWeapon -> 26
+	// EntityType [1]
+	// MemoryStorageType [1]
+	// State [1]
+	// ItemID [2]
+	// Current Durability [4]
+	// Amount [1]
 	// CurrentTick [4]
 	// Position [12]
 
@@ -144,6 +157,31 @@ public class EntityFileHandler{
 		mainIndex = 0;
 	}
 
+	// Finds where the entities of a chunk are stored, so they can be read by another stream
+	public bool TryGetEntityLocation(ChunkPos pos, out string path, out long offset){
+		GetCorrectRegion(pos);
+
+		if(!IsIndexed(pos)){
+			path = null;
+			offset = 0;
+			return false;
+		}
+
+		RegionFile region = this.pool[ConvertToRegion(pos)];
+
+		path = region.GetFilePath();
+		offset = region.index[GetLinearRegionCoords(pos)];
+		return true;
+	}
+
+	// Recreates the entities of a chunk from data read by another stream
+	public void LoadChunkEntities(ChunkPos pos, byte[] data, int size){
+		int ticksPassed = this.cl.time.TicksPassedFrom(this.cl.GetChunk(pos).lastVisitedTime);
+
+		Buffer.BlockCopy(data, 0, mainBuffer, 0, size);
+		RecreateEntities(size, ticksPassed);
+	}
+
 	// Loads a chunk-worth of entities
 	public void LoadChunkEntities(ChunkPos pos){
 		GetCorrectRegion(pos);
@@ -172,6 +210,7 @@ public class EntityFileHandler{
 		uint currentDurability;
 		Item item = ItemLoader.GetCopy("BASE_Stone");
 		Weapon weapon = item as Weapon;
+		SubWeapon subWeapon = null;
 
 		while(i < chunkSize){
 			type = (EntityType)mainBuffer[i];
@@ -216,6 +255,22 @@ public class EntityFileHandler{
 						weapon.extraEffect = (EnchantmentType)enchantment;
 						amount = 1;
 						break;
+					case MemoryStorageType.SUBWEAPON:
+						state = mainBuffer[i];
+						i++;
+						itemID = NetDecoder.ReadUshort(mainBuffer, i);
+						i += 2;
+						currentDurability = NetDecoder.ReadUint(mainBuffer, i);
+						i += 4;
+						amount = mainBuffer[i];
+						i++;
+						currentTick = NetDecoder.ReadInt(mainBuffer, i);
+						i += 4;
+						position = NetDecoder.ReadFloat3(mainBuffer, i);
+						i += 12;
+						subWeapon = (SubWeapon)ItemLoader.GetCopy(itemID);
+						subWeapon.currentDurability = currentDurability;
+						break;
 					default:
 						currentTick = 0;
 						position = new float3(0,0,0);
@@ -234,6 +289,9 @@ public class EntityFileHandler{
 				}
 				else if(storageType == MemoryStorageType.WEAPON){
 					this.entityHandler.AddItem(position, weapon, amount, state, this.cl);
+				}
+				else if(storageType == MemoryStorageType.SUBWEAPON){
+					this.entityHandler.AddItem(position, subWeapon, amount, state, this.cl);
 				}
 
 			}
@@ -304,6 +362,24 @@ public class EntityFileHandler{
 				mainBuffer[mainIndex] = this.cachedWeapon.refineLevel;
 				mainIndex++;
 				mainBuffer[mainIndex] = (byte)this.cachedWeapon.extraEffect;
+				mainIndex++;
+				NetDecoder.WriteInt(ai.GetLifespan(), mainBuffer, mainIndex);
+				mainIndex += 4;
+				NetDecoder.WriteFloat3(ai.GetPosition(), mainBuffer, mainIndex);
+				mainIndex += 12;
+				break;
+			case MemoryStorageType.SUBWEAPON:
+				this.cachedSubWeapon = (SubWeapon)this.cachedItem;
+
+				mainBuffer[mainIndex] = (byte)MemoryStorageType.SUBWEAPON;
+				mainIndex++;
+				mainBuffer[mainIndex] = (byte)ai.GetState();
+				mainIndex++;
+				NetDecoder.WriteUshort((ushort)this.cachedSubWeapon.GetID(), mainBuffer, mainIndex);
+				mainIndex += 2;
+				NetDecoder.WriteUint(this.cachedSubWeapon.currentDurability, mainBuffer, mainIndex);
+				mainIndex += 4;
+				mainBuffer[mainIndex] = this.cachedIts.GetAmount();
 				mainIndex++;
 				NetDecoder.WriteInt(ai.GetLifespan(), mainBuffer, mainIndex);
 				mainIndex += 4;

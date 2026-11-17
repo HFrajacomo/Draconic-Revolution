@@ -42,7 +42,6 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _ENABLE_FOG_ON_TRANSPARENT
   - _SURFACE_TYPE_TRANSPARENT
   - _TRANSPARENT_WRITES_MOTION_VEC
   m_InvalidKeywords:
@@ -104,7 +103,7 @@ Material:
     - _DstBlend: 10
     - _DstBlend2: 10
     - _EnableBlendModePreserveSpecularLighting: 0
-    - _EnableFogOnTransparent: 1
+    - _EnableFogOnTransparent: 0
     - _ExcludeFromTUAndAA: 0
     - _FresnelStrength: 1.14
     - _HorizontalAdjustment: 0.96

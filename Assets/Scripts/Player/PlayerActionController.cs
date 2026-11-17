@@ -40,6 +40,7 @@ public class PlayerActionController : MonoBehaviour {
 	private List<string> playlist;
 	private List<bool> overrideState;
 	private List<bool> ignoreFP;
+	private List<bool> ignoreTP;
 
 	// NetCode
 	private static List<AnimationData> statesPlayed;
@@ -61,6 +62,9 @@ public class PlayerActionController : MonoBehaviour {
 	private static readonly string HAS_CARRY_PARAMETER = "HasCarry";
 	private static readonly float SHEATHE_TIMEOUT_MARGIN = 0.25f;
 
+	// Effects created by Animation Events of this player, removed if the events that would remove them are skipped
+	private OwnedAnimationEffects ownedEffects = new OwnedAnimationEffects();
+
 	// Animator Parameters
 	private static readonly int IS_PLAYER_HASH = Animator.StringToHash("ISPLAYER");
 	private static readonly int HAS_CARRY_HASH = Animator.StringToHash(HAS_CARRY_PARAMETER);
@@ -69,6 +73,10 @@ public class PlayerActionController : MonoBehaviour {
 	// Cache
 	private float cachedTime;
 	private PlayerMovementType lastMove;
+	private int bottomLayerIndex = -1;
+	private int lastBaseStateHash;
+	private int lastBottomStateHash;
+	private static readonly string BOTTOM_LAYER = "Bottom";
 
 	void Update(){
 		if(!this.INIT)
@@ -140,6 +148,7 @@ public class PlayerActionController : MonoBehaviour {
 		this.playlist = new List<string>();
 		this.overrideState = new List<bool>();
 		this.ignoreFP = new List<bool>();
+		this.ignoreTP = new List<bool>();
 		this.restrictions = new HashSet<PlayerActionRestriction>();
 		this.restrictionTimer = new Dictionary<PlayerActionRestriction, Coroutine>();
 		this.currentlyQueuedState = new HashSet<string>();
@@ -165,7 +174,8 @@ public class PlayerActionController : MonoBehaviour {
 			}
 		}
 
-		if(HasRestriction(PlayerActionRestriction.USE_STYLE)){
+		// The style change waits for a pending Sheathe, so its Animation Events aren't cut by the controller swap
+		if(HasRestriction(PlayerActionRestriction.USE_STYLE) || IsSheathePending()){
 			RegisterUseStyle(style);
 			return;
 		}
@@ -208,6 +218,9 @@ public class PlayerActionController : MonoBehaviour {
 		}
 
 
+		// Attachments are rebuilt and the controllers restarted, so pending Animation Events that would remove the current effects never run
+		ClearOwnedEffects();
+
 		this.currentStyle = AnimationLoader.GetBattleStyle(style);
 		this.currentStyleCode = style;
 		this.appliedAttachmentItems = this.pendingAttachmentItems;
@@ -237,11 +250,13 @@ public class PlayerActionController : MonoBehaviour {
 		this.animator.runtimeAnimatorController = animationOverrideController;
 		this.animatorFP.runtimeAnimatorController = animationOverrideControllerFP;
 
-		// Changing controllers resets the Animator parameters, so the carry flag is set right away. It's also re-asserted every frame by SyncAnimatorParameters
-		if(HasCarry())
-			this.animator.SetBool(HAS_CARRY_HASH, true);
-		if(this.currentCarryHasFP)
-			this.animatorFP.SetBool(HAS_CARRY_HASH, true);
+		// Changing controllers restarts every layer and resets the Animator parameters, so they are set right away. They're also re-asserted every frame
+		this.animationHandler.ClearPending();
+		SyncAnimatorParameters();
+
+		// The new attachments start in their default anchors, so a drawn weapon is drawn again by the new style
+		if(!this.weaponSheathed)
+			AddToPlaylist(UNSHEATHE_STATE, igFP:true);
 
 		this.registeredAction.Remove(PlayerActionType.USE_STYLE);
 		this.registeredData.Remove(PlayerActionType.USE_STYLE);
@@ -265,6 +280,7 @@ public class PlayerActionController : MonoBehaviour {
 	}
 
 	public void RemoveAllStyles(){
+		ClearOwnedEffects();
 		this.animator.runtimeAnimatorController = this.originalController;
 		this.animatorFP.runtimeAnimatorController = this.originalControllerFP;
 	}
@@ -294,7 +310,11 @@ public class PlayerActionController : MonoBehaviour {
 			return;
 		}
 
-		if(HasRestriction(PlayerActionRestriction.SHEATHE)){
+		/*
+		Sheathing during an attack is queued until the current attack ends
+		Unsheathing during a Sheathe is queued until it fully ends, so the Sheathe's Animation Events (that remove the weapon's effects) aren't cut
+		*/
+		if(HasRestriction(PlayerActionRestriction.SHEATHE) || IsAttacking() || this.sheatheInProgress){
 			RegisterSheathe(flag);
 			return;
 		}
@@ -313,11 +333,19 @@ public class PlayerActionController : MonoBehaviour {
 		this.weaponSheathed = flag;
 		this.animator.SetBool("Sheathed", this.weaponSheathed);
 		this.animatorFP.SetBool("Sheathed", this.weaponSheathed);
-		this.animator.SetBool("IsSheathing", true);
+		// Only the First Person controller enters (Un)Sheathe through transitions. The Third Person one is played explicitly, below
 		this.animatorFP.SetBool("IsSheathing", true);
 
-		this.comboHit = 0;
+		if(IsAttacking())
+			CancelCombo();
+
 		RegisterRestriction(PlayerActionRestriction.PRIMARY, animationTime + 0.05f);
+
+		/*
+		The Third Person (Un)Sheathe is played regardless of what the Base layer is doing (idle, walking, airborne...), since its animation events
+		move the attachments and create their effects for other clients too. Locomotion is moved to the Bottom layer by the movement re-sync
+		*/
+		AddToPlaylist(flag ? SHEATHE_STATE : UNSHEATHE_STATE, igFP:true);
 
 		if(flag){
 			// Discards buffered attacks so they can't start once the weapon is sheathed
@@ -378,8 +406,27 @@ public class PlayerActionController : MonoBehaviour {
 				fpDone &= IsSheatheStateDone(this.animatorFP, CARRY_STOW_STATE, true, ref this.carryStowSeenFP);
 		}
 
-		if((tpDone && fpDone) || this.sheatheTimeout <= 0f)
+		if((tpDone && fpDone) || this.sheatheTimeout <= 0f){
 			this.sheatheInProgress = false;
+
+			// Nothing created by Animation Events may stay on a sheathed weapon, even if an event was skipped
+			if(this.weaponSheathed)
+				ClearOwnedEffects();
+
+			if(!HasRestriction(PlayerActionRestriction.SHEATHE))
+				RunQueuedSheatheActions();
+		}
+	}
+
+	public void RegisterOwnedSFX(string name, bool created, bool changedLocally, bool sent){this.ownedEffects.SetSFX(name, created, changedLocally, sent);}
+	public void RegisterOwnedVFX(string name, bool created, bool changedLocally, bool sent){this.ownedEffects.SetVFX(name, created, changedLocally, sent);}
+	public void RegisterOwnedVoxelLight(bool created, bool changedLocally, bool sent){this.ownedEffects.SetVoxelLight(created, changedLocally, sent);}
+
+	private void ClearOwnedEffects(){
+		if(this.cl == null)
+			return;
+
+		this.ownedEffects.ClearAll(this.cl, Configurations.accountID);
 	}
 
 	private bool IsSheatheStateDone(Animator anim, string state, bool firstPerson, ref bool seen){
@@ -417,22 +464,24 @@ public class PlayerActionController : MonoBehaviour {
 	public void RemoveRestriction(PlayerActionRestriction rest){this.restrictions.Remove(rest);}
 	public bool HasRestriction(PlayerActionRestriction rest){return this.restrictions.Contains(rest);}
 
-	// Registers a primary action. Attacks are only possible with the weapon unsheathed
+	// Registers a primary action. Attacks are only possible with the weapon unsheathed and no Sheathe queued or in progress
 	public void RegisterPrimaryAction(){
-		if(!this.INIT || this.weaponSheathed)
+		if(!this.INIT || this.weaponSheathed || IsSheathePending())
 			return;
 
 		if(this.restrictions.Contains(PlayerActionRestriction.PRIMARY) || this.restrictions.Contains(PlayerActionRestriction.STUNNED) || this.restrictions.Contains(PlayerActionRestriction.SYSTEM))
 			return;
 
 		this.registeredAction.Add(PlayerActionType.PRIMARY_ACTION);
-		RegisterRestriction(PlayerActionRestriction.SHEATHE, 1.5f);
 	}
 
 	// Registers sheathing
 	public void RegisterSheathe(bool flag){
-		if(flag)
+		if(flag){
 			this.registeredAction.Add(PlayerActionType.SHEATHE_ON);
+			// Buffered attacks can't extend the combo once a Sheathe is queued
+			this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
+		}
 		else
 			this.registeredAction.Add(PlayerActionType.SHEATHE_OFF);
 	}
@@ -446,6 +495,9 @@ public class PlayerActionController : MonoBehaviour {
 	public void VerifyMovement(Vector3 facingDirection, Vector3 movementDirection, float runMomentum, float gravity, MovementFlags flags){
 		float angle = Vector3.SignedAngle(facingDirection, movementDirection, Vector3.up);
 		PlayerMovementType pmt;
+
+		if(this.bottomLayerIndex < 0)
+			this.bottomLayerIndex = this.animator.GetLayerIndex(BOTTOM_LAYER);
 
 		this.animator.SetFloat("Run", runMomentum);
 		this.animatorFP.SetBool("Run", runMomentum > 0);
@@ -478,8 +530,22 @@ public class PlayerActionController : MonoBehaviour {
 
 		if(pmt != this.lastMove)
 			ProcessMovement(pmt, runMomentum > 0f);
+		else if(ThirdPersonLocomotionLayersChanged())
+			ProcessMovement(pmt, runMomentum > 0f, thirdPersonOnly:true);
 
 		this.lastMove = pmt;
+		this.lastBaseStateHash = this.animationHandler.GetTargetStateHash(0);
+		this.lastBottomStateHash = this.animationHandler.GetTargetStateHash(this.bottomLayerIndex);
+	}
+
+	/*
+	Locomotion is only requested when the movement type changes, so a request that couldn't be placed (e.g. the Base layer was busy sheathing)
+	would be lost. Whenever the Base or Bottom layers change state, the current locomotion is requested again in the Third Person animator.
+	Requests for states that are already playing do nothing
+	*/
+	private bool ThirdPersonLocomotionLayersChanged(){
+		return this.animationHandler.GetTargetStateHash(0) != this.lastBaseStateHash ||
+			this.animationHandler.GetTargetStateHash(this.bottomLayerIndex) != this.lastBottomStateHash;
 	}
 
 	public static void RegisterClientMessage(AnimationData data){PlayerActionController.statesPlayed.Insert(0, data);}
@@ -493,7 +559,7 @@ public class PlayerActionController : MonoBehaviour {
 
 	private void RunNetcodeList(){
 		for(int i = statesPlayed.Count - 1; i >= 0; i--){
-			this.animationLayerMessage.SendAnimationLayer(Configurations.accountID, statesPlayed[i]);
+			this.animationLayerMessage.SendAnimationLayer(statesPlayed[i]);
 			this.cl.client.Send(this.animationLayerMessage);
 			statesPlayed.RemoveAt(i);
 		} 
@@ -501,13 +567,14 @@ public class PlayerActionController : MonoBehaviour {
 
 	private void RunPlaylist(){
 		for(int i=0; i < this.playlist.Count; i++){
-			this.animationHandler.Play(this.playlist[i], overrideState:this.overrideState[i], ignoreFP:this.ignoreFP[i]);
+			this.animationHandler.Play(this.playlist[i], overrideState:this.overrideState[i], ignoreFP:this.ignoreFP[i], ignoreTP:this.ignoreTP[i]);
 			this.currentlyQueuedState.Add(this.playlist[i]);
 		}
 
 		this.playlist.Clear();
 		this.overrideState.Clear();
 		this.ignoreFP.Clear();
+		this.ignoreTP.Clear();
 	}
 
     private IEnumerator RestrictionRoutine(PlayerActionRestriction rest, float timeout){
@@ -515,22 +582,36 @@ public class PlayerActionController : MonoBehaviour {
 		RemoveRestriction(rest);
 
 		if(rest == PlayerActionRestriction.USE_STYLE){
-			if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
+			// A pending Sheathe runs the style change once it's over (see RunQueuedSheatheActions)
+			if(this.registeredAction.Contains(PlayerActionType.USE_STYLE) && !IsSheathePending()){
 				ForceUseStyle(this.registeredData[PlayerActionType.USE_STYLE]);
 			}
 		}
 		else if(rest == PlayerActionRestriction.SHEATHE){
-			if(this.registeredAction.Contains(PlayerActionType.USE_STYLE)){
-				ForceUseStyle(this.registeredData[PlayerActionType.USE_STYLE]);
-			}
-			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
-				Sheathe(true, skipCheck:true);
-			}
-			if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF)){
-				Sheathe(false, skipCheck:true);
-			}
+			RunQueuedSheatheActions();
 		}
     }
+
+	/*
+	Runs the Style change and Sheathe requests that were queued while sheathing was blocked
+		Nothing runs while a Sheathe is in progress: swapping controllers or unsheathing would cut the Sheathe's Animation Events,
+		leaving the weapon's effects (light, SFX, VFX) behind. TrackSheathe calls this again once the Sheathe is over
+		A queued Sheathe runs before the Style change, which then waits for it
+	*/
+	private void RunQueuedSheatheActions(){
+		if(this.sheatheInProgress)
+			return;
+
+		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_ON)){
+			Sheathe(true, skipCheck:true);
+		}
+		if(this.registeredAction.Contains(PlayerActionType.USE_STYLE) && !IsSheathePending()){
+			ForceUseStyle(this.registeredData[PlayerActionType.USE_STYLE]);
+		}
+		if(this.registeredAction.Contains(PlayerActionType.SHEATHE_OFF) && !IsSheathePending()){
+			Sheathe(false, skipCheck:true);
+		}
+	}
 
 
 	private static AnimatorOverrideController ApplyOverrides(AnimatorOverrideController controller, StateClipPair[] overrides){
@@ -541,44 +622,48 @@ public class PlayerActionController : MonoBehaviour {
 		return controller;
 	}
 
-	private void AddToPlaylist(string state, bool over=false, bool igFP=false){		
+	private void AddToPlaylist(string state, bool over=false, bool igFP=false, bool igTP=false){		
 		this.playlist.Add(state);
 		this.overrideState.Add(over);
 		this.ignoreFP.Add(igFP);
+		this.ignoreTP.Add(igTP);
 	}
 
-	private void ProcessMovement(PlayerMovementType pmt, bool isRunning){
+	// thirdPersonOnly re-requests the locomotion of the Third Person animator without touching the First Person one
+	private void ProcessMovement(PlayerMovementType pmt, bool isRunning, bool thirdPersonOnly=false){
 		switch(pmt){
 			case PlayerMovementType.STILL:
-				AddToPlaylist("Idle");
+				AddToPlaylist("Idle", igFP:thirdPersonOnly);
 				break;
 			case PlayerMovementType.STILL_AGGRO:
-				AddToPlaylist("Idle Weapon");
+				AddToPlaylist("Idle Weapon", igFP:thirdPersonOnly);
 				break;
 			case PlayerMovementType.FORWARD:
-				AddToPlaylist("Moving Forward", igFP:!isRunning);
+				AddToPlaylist("Moving Forward", igFP:thirdPersonOnly || !isRunning);
 				break;
 			case PlayerMovementType.FORWARD_SHEATHED:
 				AddToPlaylist("Moving Forward", igFP:true);
 				break;
 			case PlayerMovementType.BACKWARD:
-				AddToPlaylist("Walk Backward", igFP:!isRunning);
+				AddToPlaylist("Walk Backward", igFP:thirdPersonOnly || !isRunning);
 				break;
 			case PlayerMovementType.LEFT:
-				AddToPlaylist("Walk Left", igFP:!isRunning);
+				AddToPlaylist("Walk Left", igFP:thirdPersonOnly || !isRunning);
 				break;
 			case PlayerMovementType.RIGHT:
-				AddToPlaylist("Walk Right", igFP:!isRunning);
+				AddToPlaylist("Walk Right", igFP:thirdPersonOnly || !isRunning);
 				break;
 			case PlayerMovementType.AIR:
-				AddToPlaylist("On Air");
+				AddToPlaylist("On Air", igFP:thirdPersonOnly);
 				break;
+			// The weapon stays in the Base layer while the legs play On Air in the Bottom layer
 			case PlayerMovementType.AIR_AGGRO:
-				AddToPlaylist("Idle Weapon");
+				if(!thirdPersonOnly)
+					AddToPlaylist("Idle Weapon", igTP:true);
+				AddToPlaylist("On Air", igFP:true);
 				break;
 			case PlayerMovementType.AIR_AGGRO_FORWARD:
-				AddToPlaylist("Idle Weapon", igFP:true);
-				AddToPlaylist("Moving Forward", igFP:true);
+				AddToPlaylist("On Air", igFP:true);
 				break;
 			default:
 				break;
@@ -590,14 +675,24 @@ public class PlayerActionController : MonoBehaviour {
 			this.cachedTime = this.animationHandler.GetAnimationTime($"Attack {this.comboHit}");
 
 			if(this.cachedTime == -1 && !this.currentlyQueuedState.Contains($"Attack {this.comboHit}")){
-				this.comboHit = 0;
-				this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
-				RemoveRestriction(PlayerActionRestriction.MOVEMENT);
-				this.animator.SetInteger("Attack_Combo", this.comboHit);
+				CancelCombo();
+
+				if(!HasRestriction(PlayerActionRestriction.SHEATHE))
+					RunQueuedSheatheActions();
 			}
 		}
 
 		this.currentlyQueuedState.Clear();
+	}
+
+	private bool IsAttacking(){return this.comboHit > 0;}
+
+	// Single place where a combo is ended, so the MOVEMENT restriction it applies is always lifted
+	private void CancelCombo(){
+		this.comboHit = 0;
+		this.registeredAction.Remove(PlayerActionType.PRIMARY_ACTION);
+		RemoveRestriction(PlayerActionRestriction.MOVEMENT);
+		this.animator.SetInteger("Attack_Combo", this.comboHit);
 	}
 
 	private void SendAnimatorValue(string parameter, float val){
@@ -609,7 +704,7 @@ public class PlayerActionController : MonoBehaviour {
 
 		this.lastParameterValue[parameter] = val;
 
-		this.animatorParameterMessage.SendAnimatorParameter(Configurations.accountID, val, parameter);
+		this.animatorParameterMessage.SendAnimatorParameter(Animator.StringToHash(parameter), val);
 		this.cl.client.Send(this.animatorParameterMessage);
 	}
 }

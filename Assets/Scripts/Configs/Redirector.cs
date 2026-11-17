@@ -50,7 +50,7 @@ public class Redirector : MonoBehaviour
             SceneManager.LoadScene("Menu");
         }
 
-        this.socket.HandleReceivedMessages();
+        this.socket.Update();
     }
 
     public static void SetServerClosure(){SERVER_STARTED = false;}

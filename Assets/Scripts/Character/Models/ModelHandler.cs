@@ -179,6 +179,11 @@ public static class ModelHandler{
 		}
 	}
 
+	// The loaded CharacterArmature that every model was exported with. Never modify it
+	public static Transform GetArmatureTemplate(){
+		return GameObject.Find("ModelAssets/" + ARMATURE).transform;
+	}
+
 	public static GameObject GetArmature(bool rotated=false){
 		GameObject go;
 

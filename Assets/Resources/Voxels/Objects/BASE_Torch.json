@@ -8,7 +8,7 @@
     "affectLight":  false,
     "liquid":  false,
     "seamless": false,
-    "luminosity": 55,
+    "luminosity": 59,
     "hasLoadEvent": true,
     "washable": true,
     "needsRotation": true,
@@ -53,6 +53,7 @@
     "minDropQuantity" : 1,
     "maxDropQuantity" : 1,
     "dropItem" : "BASE_Torch",
-    "fireVFXPath" : "----- PrefabVFX -----/FireVFX",
+    "fireVFXPath" : "----- PrefabVFX -----/FireVFX_Static",
+    "lightProfilePath" : "----- PrefabLights -----/Torch",
     "audioName" : "Torchfire"
 }

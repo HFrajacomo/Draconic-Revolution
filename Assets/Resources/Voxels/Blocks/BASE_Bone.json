@@ -27,7 +27,7 @@
 }
 --->VX_BreakDropItemBehaviour
 {
-    "droppedItem": "BASE_Bone",
+    "droppedItem": "BASE_Bone_Block",
     "minDropQuantity": 1,
     "maxDropQuantity": 1
 }

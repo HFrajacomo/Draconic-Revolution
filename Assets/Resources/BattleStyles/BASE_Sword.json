@@ -57,10 +57,6 @@
 					{
 						"type": "AN_SwitchAttachmentAnchorBehaviour",
 						"json": "{\"normalizedTime\": 0.8, \"originAnchor\": \"BASE_CHARACTER_HAND_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\"}"
-					},
-					{
-						"type": "AN_AnimatorSetBehaviour",
-						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
 					}
 				]
 			},
@@ -71,10 +67,6 @@
 					{
 						"type": "AN_SwitchAttachmentAnchorBehaviour",
 						"json": "{\"normalizedTime\": 0.2, \"originAnchor\": \"BASE_CHARACTER_BELT_STRAIGHT_RIGHT\", \"targetAnchor\": \"BASE_CHARACTER_HAND_RIGHT\"}"
-					},
-					{
-						"type": "AN_AnimatorSetBehaviour",
-						"json": "{\"normalizedTime\": 1.0, \"fieldName\": \"IsSheathing\", \"type\": \"bool\", \"boolValue\": false, \"firstPersonAnimator\": true}"
 					}
 				]
 			},

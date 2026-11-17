@@ -26,10 +26,12 @@ public class PlainsAmbientPreset: BaseAmbientPreset{
 		this.wbTemperature = 17f;
 		this.wbTint = -4f;
 
-		this.gainSunrise = new float4(1f, .60f, .17f, .54f);
-		this.gainDay = new float4(.1f, .28f, .39f, .14f);
-		this.gainSunset = new float4(1f, .61f, .62f, .02f);
-		this.gainNight = new float4(0f, 0f, 0f, 0f);
+		this.gainSunrise = new float4(1f, .60f, .17f, 0f);
+		this.gainDay = new float4(.1f, .28f, .39f, 0f);
+		this.gainSunset = new float4(1f, .61f, .62f, 0f);
+		this.gainNight = new float4(.42f, .46f, .55f, 0f);
+
+		this.expOffset = -0.2f;
 
 		this.sunDiameter = SUN_DIAMETER_DAY;
 		this.moonDiameter = SUN_DIAMETER_NIGHT;

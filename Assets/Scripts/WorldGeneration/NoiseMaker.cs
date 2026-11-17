@@ -54,6 +54,19 @@ public static class NoiseMaker
                        Lerp(u, Grad(GenerationSeed.weatherNoise[A+1], x, y-1), Grad(GenerationSeed.weatherNoise[B+1], x-1, y-1)));
     }
 
+    // Deterministic uniform roll in [0, 1) for a weather time window, derived from the synced World Seed
+    public static float WeatherRoll(int window){
+        unchecked{
+            uint h = ((uint)World.worldSeed * 0x9E3779B1u) ^ (uint)window;
+            h ^= h >> 16;
+            h *= 0x7FEB352Du;
+            h ^= h >> 15;
+            h *= 0x846CA68Bu;
+            h ^= h >> 16;
+            return (h >> 8) * (1f/16777216f);
+        }
+    }
+
     public static float PatchNoise2D(float x, float y, NativeArray<byte> noiseMap){
         int X = Mathf.FloorToInt(x) & 0xff;
         int Y = Mathf.FloorToInt(y) & 0xff;

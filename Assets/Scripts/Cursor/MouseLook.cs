@@ -21,6 +21,12 @@ public class MouseLook : MonoBehaviour
 	private static float xRotation = 0f;
 
 
+    void Awake(){
+        // No script uses OnMouse* events, so the legacy mouse raycast (SendMouseEvents) is skipped for this camera.
+        // It unprojects the mouse with the absolute camera matrix every frame, which logs "Screen position out of view frustum" far from the world origin
+        GetComponent<Camera>().eventMask = 0;
+    }
+
     void Start(){
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;

@@ -3,12 +3,11 @@ using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.NotBurstCompatible;
 
 [BurstCompile]
 public struct CheckLoadEventJob : IJob{
 	[ReadOnly]
-	public NativeArray<ushort> data; // Voxeldata
+	public NativeArray<ushort> blocks; // Padded snapshot
 	[ReadOnly]
 	public NativeArray<bool> blockLoad;
 	[ReadOnly]
@@ -22,7 +21,7 @@ public struct CheckLoadEventJob : IJob{
 		for(int x=0; x < Chunk.chunkWidth; x++){
 			for(int z=0; z < Chunk.chunkWidth; z++){
 				for(int y=0; y < Chunk.chunkDepth; y++){
-					blockCode = data[x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z];
+					blockCode = blocks[PaddedChunk.Index(x, y, z)];
 
 					if(blockCode <= ushort.MaxValue/2){
 						if(blockLoad[blockCode]){
