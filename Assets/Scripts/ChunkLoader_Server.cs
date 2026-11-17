@@ -819,6 +819,9 @@ public class ChunkLoader_Server : MonoBehaviour
             else if(i == 13){
                 slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50, InventoryLoader.GetInventoryID("HOTBAR"), i);
             }
+            else if(i == 14){
+                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Chest"), 50, InventoryLoader.GetInventoryID("HOTBAR"), i);
+            }
             else if(i < InventoryLoader.GetInventorySize("ACTION_HOTBAR")){
                 slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetActionInventoryID("ACTION_HOTBAR"), i);
             }

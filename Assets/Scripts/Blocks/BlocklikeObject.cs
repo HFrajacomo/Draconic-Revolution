@@ -38,9 +38,11 @@ public class BlocklikeObject
 	private VX_ModelIdentityBehaviour modelIdentity;
 	private VoxelBehaviour offsetVector;
 	private VoxelBehaviour rotationValue;
+	private VoxelBehaviour animationPose;
 	private List<VoxelBehaviour> onBlockUpdate;
 	private List<VoxelBehaviour> onInteract;
 	private List<VoxelBehaviour> onPlace;
+	private List<VoxelBehaviour> onPlayerPlace;
 	private List<VoxelBehaviour> onBreak;
 	private List<VoxelBehaviour> onLoad;
 	private List<VoxelBehaviour> onGenerate;
@@ -129,6 +131,9 @@ public class BlocklikeObject
     public List<VoxelBehaviour> GetOnPlace() { return onPlace; }
     public void SetOnPlace(List<VoxelBehaviour> val) { onPlace = val; }
 
+    public List<VoxelBehaviour> GetOnPlayerPlace() { return onPlayerPlace; }
+    public void SetOnPlayerPlace(List<VoxelBehaviour> val) { onPlayerPlace = val; }
+
     public List<VoxelBehaviour> GetOnBreak() { return onBreak; }
     public void SetOnBreak(List<VoxelBehaviour> val) { onBreak = val; }
 
@@ -162,6 +167,9 @@ public class BlocklikeObject
 
     public VoxelBehaviour GetRotationValue() { return rotationValue; }
     public void SetRotationValue(VoxelBehaviour val) { rotationValue = val; }
+
+    public VoxelBehaviour GetAnimationPose() { return animationPose; }
+    public void SetAnimationPose(VoxelBehaviour val) { animationPose = val; }
 
     public List<VoxelBehaviour> GetOnPlayerStepEnter() { return onPlayerStepEnter; }
     public void SetOnPlayerStepEnter(List<VoxelBehaviour> val) { onPlayerStepEnter = val; }
@@ -222,6 +230,16 @@ public class BlocklikeObject
 
 		for(int i=0; i < this.onPlace.Count; i++){
 			this.onPlace[i].OnPlace(pos, blockX, blockY, blockZ, facing, cl);
+		}
+	}
+
+	// Runs after OnPlace when a player placed the object
+	public virtual void OnPlayerPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ulong playerID, ChunkLoader_Server cl){
+		if(this.onPlayerPlace == null || this.onPlayerPlace.Count == 0)
+			return;
+
+		for(int i=0; i < this.onPlayerPlace.Count; i++){
+			this.onPlayerPlace[i].OnPlayerPlace(pos, blockX, blockY, blockZ, facing, playerID, cl);
 		}
 	}
 
@@ -317,6 +335,14 @@ public class BlocklikeObject
 		return this.rotationValue.GetRotationValue(state);
 	}
 
+	// Animated Objects: index of the animation whose last frame is shown in a state, or -1 for the model's rest pose
+	public virtual int GetAnimationPose(ushort state){
+		if(this.animationPose == null)
+			return -1;
+
+		return this.animationPose.GetAnimationPose(state);
+	}
+
 	public virtual void OnPlayerStepEnter(PlayerVoxelLocation location, CharacterSheet sheet, ChunkLoader cl){
 		if(this.onPlayerStepEnter == null || this.onPlayerStepEnter.Count == 0)
 			return;
@@ -387,6 +413,11 @@ public class BlocklikeObject
 				onPlace[i].PostDeserializationSetup(isClient);
 			}
 		}
+		if(this.onPlayerPlace != null){
+			for(int i=0; i < onPlayerPlace.Count; i++){
+				onPlayerPlace[i].PostDeserializationSetup(isClient);
+			}
+		}
 		if(this.onBreak != null){
 			for(int i=0; i < onBreak.Count; i++){
 				onBreak[i].PostDeserializationSetup(isClient);
@@ -436,6 +467,9 @@ public class BlocklikeObject
 		if(this.rotationValue != null){
 			rotationValue.PostDeserializationSetup(isClient);
 		}
+		if(this.animationPose != null){
+			animationPose.PostDeserializationSetup(isClient);
+		}
 		if(this.onPlayerBodyEnter != null){
 			for(int i=0; i < onPlayerBodyEnter.Count; i++){
 				onPlayerBodyEnter[i].PostDeserializationSetup(isClient);
@@ -466,5 +500,47 @@ public class BlocklikeObject
 				onPlayerStepExit[i].PostDeserializationSetup(isClient);
 			}
 		}
+
+		RunPostObjectSetup();
+	}
+
+	// Runs PostObjectSetup on every behaviour once all of them were set up. Behaviours used by many events run it once per event
+	private void RunPostObjectSetup(){
+		PostObjectSetup(this.onBlockUpdate);
+		PostObjectSetup(this.onInteract);
+		PostObjectSetup(this.onPlace);
+		PostObjectSetup(this.onPlayerPlace);
+		PostObjectSetup(this.onBreak);
+		PostObjectSetup(this.onLoad);
+		PostObjectSetup(this.onGenerate);
+		PostObjectSetup(this.onVFXBuild);
+		PostObjectSetup(this.onVFXChange);
+		PostObjectSetup(this.onVFXBreak);
+		PostObjectSetup(this.onSFXPlay);
+		PostObjectSetup(this.placementRule);
+		PostObjectSetup(this.onPlayerBodyEnter);
+		PostObjectSetup(this.onPlayerBodyExit);
+		PostObjectSetup(this.onPlayerHeadEnter);
+		PostObjectSetup(this.onPlayerHeadExit);
+		PostObjectSetup(this.onPlayerStepEnter);
+		PostObjectSetup(this.onPlayerStepExit);
+		PostObjectSetup(this.modelIdentity);
+		PostObjectSetup(this.offsetVector);
+		PostObjectSetup(this.rotationValue);
+		PostObjectSetup(this.animationPose);
+	}
+
+	private void PostObjectSetup(List<VoxelBehaviour> behaviours){
+		if(behaviours == null)
+			return;
+
+		for(int i=0; i < behaviours.Count; i++){
+			behaviours[i].PostObjectSetup(this);
+		}
+	}
+
+	private void PostObjectSetup(VoxelBehaviour behaviour){
+		if(behaviour != null)
+			behaviour.PostObjectSetup(this);
 	}
 }

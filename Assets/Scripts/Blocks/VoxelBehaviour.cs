@@ -41,11 +41,15 @@ public abstract class VoxelBehaviour {
 
     // Constructor and Deserialization
 	public virtual void PostDeserializationSetup(bool isClient){return;}
+	// Objects only. Runs after every behaviour of the Object ran PostDeserializationSetup, so it can read the rest of the Object (like its model identity)
+	public virtual void PostObjectSetup(BlocklikeObject owner){return;}
 
 	// Block Events
 	public virtual void OnBlockUpdate(BUDCode type, int x, int y, int z, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){return;}
 	public virtual int OnInteract(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){return 0;}
 	public virtual int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader_Server cl){return 0;}
+	// Runs after OnPlace when a player placed the voxel. The player's data is in cl.regionHandler.allPlayerData[playerID]
+	public virtual int OnPlayerPlace(ChunkPos pos, int x, int y, int z, int facing, ulong playerID, ChunkLoader_Server cl){return 0;}
 	public virtual int OnBreak(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){return 0;}
 	public virtual int OnLoad(CastCoord coord, ChunkLoader_Server cl){return 0;}
 	public virtual void OnGenerate(ChunkPos pos, int x, int y, int z, ushort[] blocks, ushort[] states, ushort[] hps, int worldSeed){return;}
@@ -56,6 +60,7 @@ public abstract class VoxelBehaviour {
 	public virtual bool PlacementRule(ChunkPos pos, int x, int y, int z, int direction, ChunkLoader_Server cl){return true;}
 	public virtual Vector3 GetOffsetVector(ushort state){return Vector3.zero;}
 	public virtual int2 GetRotationValue(ushort state){return new int2(0,0);}
+	public virtual int GetAnimationPose(ushort state){return -1;}
 
 	// Player Interaction Events 
 	public virtual void OnPlayerStepEnter(PlayerVoxelLocation location, CharacterSheet sheet, ChunkLoader cl){return;}

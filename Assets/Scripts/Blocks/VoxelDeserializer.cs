@@ -9,6 +9,7 @@ Deserializes DRVN (Draconic Revolution Voxel Notation) files
 public static class VoxelDeserializer {
 	// Generic Voxel Placeholders
 	private static List<VoxelBehaviour> onPlaceEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onPlayerPlaceEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onBreakEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onInteractEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onBlockUpdateEvent = new List<VoxelBehaviour>();
@@ -30,6 +31,7 @@ public static class VoxelDeserializer {
 	private static VX_ModelIdentityBehaviour modelIdentityEvent;
 	private static VoxelBehaviour offsetVectorEvent;
 	private static VoxelBehaviour rotationValueEvent;
+	private static VoxelBehaviour animationPoseEvent;
 
 	private static Dictionary<string, List<string>> behaviours = new Dictionary<string, List<string>>();
 	private static Dictionary<string, VoxelBehaviour> nameToBehaviour = new Dictionary<string, VoxelBehaviour>();
@@ -74,6 +76,7 @@ public static class VoxelDeserializer {
 
 	private static void Reset(){
 		onPlaceEvent = new List<VoxelBehaviour>();
+		onPlayerPlaceEvent = new List<VoxelBehaviour>();
 		onBreakEvent = new List<VoxelBehaviour>();
 		onInteractEvent = new List<VoxelBehaviour>();
 		onBlockUpdateEvent = new List<VoxelBehaviour>();
@@ -100,6 +103,9 @@ public static class VoxelDeserializer {
 			switch(ev){
 				case "onPlace":
 					block.SetOnPlace(onPlaceEvent);
+					break;
+				case "onPlayerPlace":
+					block.SetOnPlayerPlace(onPlayerPlaceEvent);
 					break;
 				case "onBreak":
 					block.SetOnBreak(onBreakEvent);
@@ -162,6 +168,9 @@ public static class VoxelDeserializer {
 				case "onPlace":
 					obj.SetOnPlace(onPlaceEvent);
 					break;
+				case "onPlayerPlace":
+					obj.SetOnPlayerPlace(onPlayerPlaceEvent);
+					break;
 				case "onBreak":
 					obj.SetOnBreak(onBreakEvent);
 					break;
@@ -197,6 +206,9 @@ public static class VoxelDeserializer {
 					break;
 				case "rotationValue":
 					obj.SetRotationValue(rotationValueEvent);
+					break;
+				case "animationPose":
+					obj.SetAnimationPose(animationPoseEvent);
 					break;
 				case "modelIdentity":
 					obj.SetModelIdentity(modelIdentityEvent);
@@ -310,6 +322,12 @@ public static class VoxelDeserializer {
 				return JsonUtility.FromJson<VX_InteractChangeBlockBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "VX_ModelIdentityBehaviour":
 				return JsonUtility.FromJson<VX_ModelIdentityBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_AnimatedModelIdentityBehaviour":
+				return JsonUtility.FromJson<VX_AnimatedModelIdentityBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_AnimationQueueBehaviour":
+				return JsonUtility.FromJson<VX_AnimationQueueBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_FacePlayerBehaviour":
+				return JsonUtility.FromJson<VX_FacePlayerBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "VX_PlaceSetStateBehaviour":
 				return JsonUtility.FromJson<VX_PlaceSetStateBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "VX_TorchBehaviour":
@@ -339,6 +357,9 @@ public static class VoxelDeserializer {
 		switch(key){
 			case "onPlace":
 				onPlaceEvent.Add(vx);
+				break;
+			case "onPlayerPlace":
+				onPlayerPlaceEvent.Add(vx);
 				break;
 			case "onBreak":
 				onBreakEvent.Add(vx);
@@ -378,6 +399,9 @@ public static class VoxelDeserializer {
 				break;
 			case "rotationValue":
 				rotationValueEvent = vx;
+				break;
+			case "animationPose":
+				animationPoseEvent = vx;
 				break;
 			case "onPlayerStepEnter":
 				onPlayerStepEnter.Add(vx);

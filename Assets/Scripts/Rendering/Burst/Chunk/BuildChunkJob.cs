@@ -418,7 +418,7 @@ public struct BuildChunkJob : IJobParallelFor{
     	record.isObject = isObject;
     	record.inset = inset;
 
-    	if(renderThread == ShaderIndex.ASSETS || renderThread == ShaderIndex.ASSETS_SOLID){
+    	if(renderThread == ShaderIndex.ASSETS || renderThread == ShaderIndex.ASSETS_SOLID || renderThread == ShaderIndex.ANIMATED_OBJECTS){
     		record.kind = MeshRecord.OBJECT;
     	}
     	else{

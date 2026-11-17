@@ -1,0 +1,63 @@
+{
+    "codename": "BASE_Chest",
+    "name":  "Chest",
+    "shaderIndex": 8,
+    "solid":  true,
+    "transparent": true,
+    "invisible":  false,
+    "affectLight":  false,
+    "liquid":  false,
+    "seamless": false,
+    "luminosity": 0,
+    "hasLoadEvent": false,
+    "washable": false,
+    "needsRotation": true,
+    "customBreak": false,
+    "customPlace": false,
+    "maxHP":  300,
+    "indestructible": false,
+    "maximumRotationScaleState" : 8,
+    "scaling" : {
+        "x" : 1.0,
+        "y" : 1.0,
+        "z" : 1.0
+    },
+    "hitboxScaling" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+    }
+}
+--->Behaviours
+{
+    "modelIdentity": "VX_AnimatedModelIdentityBehaviour",
+    "onPlayerPlace": "VX_FacePlayerBehaviour",
+    "onInteract": "VX_AnimationQueueBehaviour",
+    "animationPose": "VX_AnimationQueueBehaviour",
+    "rotationValue": "VX_FacePlayerBehaviour",
+    "onBreak": "VX_BreakDropItemBehaviour"
+}
+--->VX_AnimatedModelIdentityBehaviour
+{
+    "modelResourcePath": "ItemModels/Chest",
+    "textureName": "BASE_Chest",
+    "animations": ["Lid|BASE_Lid Open", "Lid|BASE_Lid Close"],
+    "fitSize": 0.9,
+    "fitAnimation": "Lid|BASE_Lid Open"
+}
+--->VX_AnimationQueueBehaviour
+{
+    "animations": ["Lid|BASE_Lid Open", "Lid|BASE_Lid Close"],
+    "defaultAnimation": "Lid|BASE_Lid Close"
+}
+--->VX_FacePlayerBehaviour
+{
+    "statesPerDirection": 2,
+    "frontYaw": 0
+}
+--->VX_BreakDropItemBehaviour
+{
+    "droppedItem": "BASE_Chest",
+    "minDropQuantity": 1,
+    "maxDropQuantity": 1
+}

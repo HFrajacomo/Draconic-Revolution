@@ -16,6 +16,8 @@ public struct WriteChunkMeshJob : IJob{
 	public const int RAYCAST_MESH = 3;
 	public const int RAIN_MESH = 4;
 	public const int MESH_COUNT = 5;
+	// Submeshes of the render mesh, one per ShaderIndex drawn by the chunk mesh (OPAQUE to LAVA)
+	public const int SUBMESH_COUNT = 8;
 
 	public Mesh.MeshDataArray meshes;
 	[ReadOnly]
@@ -114,7 +116,7 @@ public struct WriteChunkMeshJob : IJob{
 		}
 
 		mesh.SetIndexBufferParams(indexCount, format);
-		mesh.subMeshCount = 8;
+		mesh.subMeshCount = SUBMESH_COUNT;
 
 		start = WriteSubMesh(mesh, 0, normalTris, start, format, vertexCount, meshBounds);
 		start = WriteSubMesh(mesh, 1, specularTris, start, format, vertexCount, meshBounds);

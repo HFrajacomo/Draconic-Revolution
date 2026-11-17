@@ -291,6 +291,9 @@ public class Client
 			case NetCode.ENTITYVOXELLIGHT:
 				EntityVoxelLight(data);
 				break;
+			case NetCode.VOXELANIMATION:
+				VoxelAnimation(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -377,6 +380,7 @@ public class Client
 				c.metadata.SetState(x, y, z, state);
 				c.metadata.SetHP(x, y, z, hp);
 				c.data.CalculateHeightMap(x, z);
+				this.cl.animatedObjects.OnVoxelChanged(c, x, y, z, blockCode, state);
 				this.cl.AddToUpdate(pos);
 				ReloadNeighbors(pos, GetReloadMask(pos, x, y, z));
 				break;
@@ -384,6 +388,7 @@ public class Client
 				c.data.SetCell(x, y, z, 0);
 				c.metadata.Reset(x,y,z);
 				c.data.CalculateHeightMap(x, z);
+				this.cl.animatedObjects.OnVoxelChanged(c, x, y, z, 0, ushort.MaxValue);
 				this.cl.AddToUpdate(pos);
 				ReloadNeighbors(pos, GetReloadMask(pos, x, y, z));
 				break;
@@ -391,6 +396,7 @@ public class Client
 				c.data.SetCell(x, y, z, blockCode);
 				c.metadata.SetState(x, y, z, state);
 				c.metadata.SetHP(x, y, z, hp);
+				this.cl.animatedObjects.OnVoxelChanged(c, x, y, z, blockCode, state);
 				this.cl.AddToUpdate(pos);
 				break;
 			default:
@@ -419,6 +425,7 @@ public class Client
 			c.data.SetCell(x, y, z, NetDecoder.ReadUshort(data, offset+2));
 			c.metadata.SetState(x, y, z, NetDecoder.ReadUshort(data, offset+4));
 			c.metadata.SetHP(x, y, z, NetDecoder.ReadUshort(data, offset+6));
+			this.cl.animatedObjects.OnVoxelChanged(c, x, y, z, NetDecoder.ReadUshort(data, offset+2), NetDecoder.ReadUshort(data, offset+4));
 
 			this.cachedColumns[x*Chunk.chunkWidth+z] = true;
 			reloadMask |= GetReloadMask(pos, x, y, z);
@@ -786,6 +793,30 @@ public class Client
 		else{
 			VoxelLoader.GetObject(blockCode).OnSFXPlay(pos, x, y, z, state, cl);
 		}
+	}
+
+	// Receives an animation played by an Animated Object, together with the voxel's new state. Only its slot changes, the chunk isn't rebuilt
+	private void VoxelAnimation(byte[] data){
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+		int x, y, z;
+		ushort blockCode = NetDecoder.ReadUshort(data, 12);
+		ushort state = NetDecoder.ReadUshort(data, 14);
+		int animation = data[16];
+		bool continueNormalized = NetDecoder.ReadBool(data, 17);
+		Chunk c;
+
+		NetDecoder.ReadLocalPos(data, 10, out x, out y, out z);
+
+		if(!this.cl.Contains(pos))
+			return;
+
+		c = this.cl.Get(pos);
+
+		if(c.data.GetCell(x, y, z) != blockCode)
+			return;
+
+		c.metadata.SetState(x, y, z, state);
+		this.cl.animatedObjects.Play(c, x, y, z, blockCode, state, animation, continueNormalized);
 	}
 
 	// Receives weather Noise information from server

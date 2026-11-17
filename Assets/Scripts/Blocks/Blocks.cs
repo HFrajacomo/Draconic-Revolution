@@ -37,6 +37,7 @@ public class Blocks
 	private List<VoxelBehaviour> onBlockUpdate;
 	private List<VoxelBehaviour> onInteract;
 	private List<VoxelBehaviour> onPlace;
+	private List<VoxelBehaviour> onPlayerPlace;
 	private List<VoxelBehaviour> onBreak;
 	private List<VoxelBehaviour> onLoad;
 	private List<VoxelBehaviour> onGenerate;
@@ -125,6 +126,9 @@ public class Blocks
     public List<VoxelBehaviour> GetOnPlace() { return onPlace; }
     public void SetOnPlace(List<VoxelBehaviour> val) { onPlace = val; }
 
+    public List<VoxelBehaviour> GetOnPlayerPlace() { return onPlayerPlace; }
+    public void SetOnPlayerPlace(List<VoxelBehaviour> val) { onPlayerPlace = val; }
+
     public List<VoxelBehaviour> GetOnBreak() { return onBreak; }
     public void SetOnBreak(List<VoxelBehaviour> val) { onBreak = val; }
 
@@ -211,6 +215,16 @@ public class Blocks
 
 		for(int i=0; i < this.onPlace.Count; i++){
 			this.onPlace[i].OnPlace(pos, blockX, blockY, blockZ, facing, cl);
+		}
+	}
+
+	// Runs after OnPlace when a player placed the block
+	public virtual void OnPlayerPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ulong playerID, ChunkLoader_Server cl){
+		if(this.onPlayerPlace == null || this.onPlayerPlace.Count == 0)
+			return;
+
+		for(int i=0; i < this.onPlayerPlace.Count; i++){
+			this.onPlayerPlace[i].OnPlayerPlace(pos, blockX, blockY, blockZ, facing, playerID, cl);
 		}
 	}
 
@@ -360,6 +374,11 @@ public class Blocks
 		if(this.onPlace != null){
 			for(int i=0; i < onPlace.Count; i++){
 				onPlace[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onPlayerPlace != null){
+			for(int i=0; i < onPlayerPlace.Count; i++){
+				onPlayerPlace[i].PostDeserializationSetup(isClient);
 			}
 		}
 		if(this.onBreak != null){

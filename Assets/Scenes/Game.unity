@@ -1852,6 +1852,7 @@ MonoBehaviour:
   rend: {fileID: 471797236}
   filter: {fileID: 471797235}
   decalMaterial: {fileID: 2100000, guid: f16adf3f8d1fb254f828efe83af44ca3, type: 2}
+  animatedObjectsMaterial: {fileID: 0}
 --- !u!33 &471797235
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -1891,6 +1892,7 @@ MeshRenderer:
   - {fileID: 2100000, guid: 946c1fa5602172a4ca6173a532729076, type: 2}
   - {fileID: 2100000, guid: c9848c3993e7291419934a8fafed6213, type: 2}
   - {fileID: 2100000, guid: 94c115328a40eb24c9b57c417f631d1d, type: 2}
+  - {fileID: 2100000, guid: 580f602b043cd6e47ab5ff9772bbc980, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

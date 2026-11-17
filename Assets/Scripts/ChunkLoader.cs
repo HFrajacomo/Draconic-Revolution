@@ -80,6 +80,9 @@ public class ChunkLoader : MonoBehaviour
 	// Chunk Rendering
 	public ChunkRenderer rend;
 
+    // Animated Objects of every chunk (see ChunkAnimatedObjects)
+    public AnimatedObjectHandler animatedObjects;
+
     // Chunk Building
     private ChunkBuildSlot[] drawSlots;
     private ChunkBuildSlot[] updateSlots;
@@ -130,9 +133,11 @@ public class ChunkLoader : MonoBehaviour
         BlockEncyclopediaECS.InitializeNativeStructures();
         VoxelLoader.InitBlockEncyclopediaECS();
         ObjectMeshTables.Build();
+        AnimatedObjectTables.Build();
         ChunkMeshLayout.Init();
         CalculateJobSlots();
         CreateBuildSlots();
+        this.animatedObjects = new AnimatedObjectHandler(this);
         this.lightingSystem = new LightingSystem(this, this.lightSlotCount);
         this.placementPredictor = new PlacementPredictor(this);
         PlayerHotbarHandler.ResetSessionState();
@@ -193,6 +198,7 @@ public class ChunkLoader : MonoBehaviour
         this.placementPredictor.Clear();
         ClearAllChunks();
         DisposeBuildSlots();
+        DisposeAnimatedObjects();
         DisposeLighting();
         WorldOrigin.Reset();
 
@@ -201,6 +207,7 @@ public class ChunkLoader : MonoBehaviour
 
     void OnDestroy(){
         DisposeBuildSlots();
+        DisposeAnimatedObjects();
         DisposeLighting();
     }
 
@@ -220,6 +227,15 @@ public class ChunkLoader : MonoBehaviour
 
         this.lightingSystem.Dispose();
         this.lightingSystem = null;
+    }
+
+    // Chunks must be destroyed first, so their Animated Objects release their GPU buffers
+    private void DisposeAnimatedObjects(){
+        if(this.animatedObjects == null)
+            return;
+
+        this.animatedObjects.Dispose();
+        this.animatedObjects = null;
     }
 
     void Update(){
@@ -308,6 +324,7 @@ public class ChunkLoader : MonoBehaviour
             this.placementPredictor.Update();
             DrawChunk();
             UpdateChunk();
+            this.animatedObjects.Update();
             JobHandle.ScheduleBatchedJobs();
             ResyncStream();
             SendChunkAck();
@@ -542,6 +559,9 @@ public class ChunkLoader : MonoBehaviour
         }
 
         Compression.DecompressChunk(chunk, data, headerSize, headerSize+blockDataSize, headerSize+blockDataSize+hpDataSize, false);
+
+        // Animated Objects are referenced by their in-chunk position, so they're registered as soon as the voxels exist
+        this.animatedObjects.OnChunkLoaded(chunk);
 
         if(this.vfx.data.ContainsKey(cp))
             this.vfx.RemoveChunk(cp);

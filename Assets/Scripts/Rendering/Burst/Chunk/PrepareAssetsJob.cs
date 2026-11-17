@@ -6,7 +6,9 @@ using Unity.Collections;
 
 /*
 Appends the meshes of every Object in the chunk to the chunk mesh and to the raycast hitbox mesh.
-Object meshes are read from ObjectMeshTables
+Object meshes are read from ObjectMeshTables.
+Animated Objects are drawn by the Animated Objects mesh of the chunk (see ChunkAnimatedObjects), so only their hitbox,
+their collision (solid ones) and their light are written here
 */
 [BurstCompile]
 public struct PrepareAssetsJob : IJob{
@@ -32,6 +34,11 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<Vector3> hitboxNormals;
 	public NativeList<int> hitboxTriangles;
 
+	// Animated Objects
+	public NativeList<Vector3> solidHitboxVerts; // Hitboxes of solid Animated Objects, added to the collider by GreedyColliderJob
+	public NativeList<int> solidHitboxTris;
+	public NativeList<int2> animatedLight; // x = voxel index, y = light packed by AnimatedSlot.PackLight
+
 	// Input
 	[ReadOnly]
 	public NativeList<int3> coords;
@@ -53,6 +60,8 @@ public struct PrepareAssetsJob : IJob{
 	public NativeArray<bool> needRotation;
 	[ReadOnly]
 	public NativeArray<ShaderIndex> material;
+	[ReadOnly]
+	public NativeArray<bool> solid;
 
 	// Object Mesh Tables
 	[ReadOnly]
@@ -109,6 +118,11 @@ public struct PrepareAssetsJob : IJob{
 			obj = ushort.MaxValue - code;
 			vertPos = new Vector3(coord.x, coord.y+(this.pos.y*Chunk.chunkDepth), coord.z);
 			lightValue = new Vector3(GetLight(coord.x, coord.y, coord.z), GetLight(coord.x, coord.y, coord.z, isNatural:false), IsDamp(coord));
+
+			if(material[obj] == ShaderIndex.ANIMATED_OBJECTS){
+				hitboxVertAmount = AddAnimatedObject(coord, obj, vertPos, lightValue, hitboxVertAmount);
+				continue;
+			}
 
 			// If has special offset or rotation
 			if(needRotation[obj]){
@@ -171,6 +185,40 @@ public struct PrepareAssetsJob : IJob{
 		}
 	}
 
+	// Writes the hitbox and light of an Animated Object. Returns the amount of hitbox vertices after it
+	private int AddAnimatedObject(int3 coord, int obj, Vector3 vertPos, Vector3 lightValue, int hitboxVertAmount){
+		int voxel = coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z;
+		int solidVertAmount = solidHitboxVerts.Length;
+		bool isSolid = solid[obj];
+		Vector3 localOffset = Vector3.zero;
+		int2 rotation = new int2(0, 0);
+		Vector3 vert;
+
+		if(needRotation[obj])
+			GetStateTransform(obj, state[voxel], out localOffset, out rotation);
+
+		for(int vertIndex=hitboxVertsOffset[obj]; vertIndex < hitboxVertsOffset[obj+1]; vertIndex++){
+			vert = Vector3MultOffsetRotate(loadedHitboxVerts[vertIndex], hitboxScaling[obj], vertPos, localOffset, rotation);
+
+			hitboxVerts.Add(vert);
+			hitboxNormals.Add(ObjectTransformMath.Rotate(loadedHitboxNormals[vertIndex], rotation));
+
+			if(isSolid)
+				solidHitboxVerts.Add(vert);
+		}
+
+		for(int triIndex=hitboxTrisOffset[obj]; triIndex < hitboxTrisOffset[obj+1]; triIndex++){
+			hitboxTriangles.Add(loadedHitboxTriangles[triIndex] + hitboxVertAmount);
+
+			if(isSolid)
+				solidHitboxTris.Add(loadedHitboxTriangles[triIndex] + solidVertAmount);
+		}
+
+		animatedLight.Add(new int2(voxel, AnimatedSlot.PackLight((int)lightValue.x, (int)lightValue.y, (int)lightValue.z)));
+
+		return hitboxVertAmount + (hitboxVertsOffset[obj+1] - hitboxVertsOffset[obj]);
+	}
+
 	// Gets the offset and rotation of an object in a given state. Unknown states have no offset nor rotation
 	private void GetStateTransform(int obj, int objState, out Vector3 localOffset, out int2 rotation){
 		int start = stateOffset[obj];
@@ -207,9 +255,9 @@ public struct PrepareAssetsJob : IJob{
 		a = Vector3Mult(a, worldScaling);
 
 		if(rotationDegree.x != 0)
-			a = RotateX(a, rotationDegree.x);
+			a = ObjectTransformMath.RotateX(a, rotationDegree.x);
 		if(rotationDegree.y != 0)
-			a = RotateY(a, rotationDegree.y);
+			a = ObjectTransformMath.RotateY(a, rotationDegree.y);
 
 		a = a + worldOffset;
 
@@ -217,27 +265,11 @@ public struct PrepareAssetsJob : IJob{
 	}
 
 	private Vector3 GetNormalRotation(Vector3 normal, int2 rotation){
-		return RotateY(RotateX(normal, rotation.x), rotation.y);
+		return ObjectTransformMath.Rotate(normal, rotation);
 	}
 
 	private Vector4 GetNormalRotation(Vector4 normal, int2 rotation){
-		return RotateY(RotateX(normal, rotation.x), rotation.y);
-	}
-
-	private Vector3 RotateX(Vector3 a, int degrees){
-		return new Vector3(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad));
-	}
-
-	private Vector4 RotateX(Vector4 a, int degrees){
-		return new Vector4(a.x*Mathf.Cos(degrees *Mathf.Deg2Rad) - a.z*Mathf.Sin(degrees *Mathf.Deg2Rad), a.y, a.x*Mathf.Sin(degrees *Mathf.Deg2Rad) + a.z*Mathf.Cos(degrees *Mathf.Deg2Rad), a.w);
-	}
-
-	private Vector3 RotateY(Vector3 a, int degrees){
-		return new Vector3(a.x, a.y * Mathf.Cos(degrees * Mathf.Deg2Rad) - a.z * Mathf.Sin(degrees * Mathf.Deg2Rad), a.y * Mathf.Sin(degrees * Mathf.Deg2Rad) + a.z * Mathf.Cos(degrees * Mathf.Deg2Rad));
-	}
-
-	private Vector4 RotateY(Vector4 a, int degrees){
-		return new Vector4(a.x, a.y * Mathf.Cos(degrees * Mathf.Deg2Rad) - a.z * Mathf.Sin(degrees * Mathf.Deg2Rad), a.y * Mathf.Sin(degrees * Mathf.Deg2Rad) + a.z * Mathf.Cos(degrees * Mathf.Deg2Rad), a.w);
+		return ObjectTransformMath.Rotate(normal, rotation);
 	}
 
 

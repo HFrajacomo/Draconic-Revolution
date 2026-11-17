@@ -1,0 +1,22 @@
+{
+    "codename": "BASE_Chest",
+    "name":  "Chest",
+    "memoryType": 1,
+    "stacksize": 50,
+    "hasDurability": false
+}
+--->Behaviours
+{
+    "onCreateAction": "IT_GetItemActionBehaviour",
+    "onUseClient": "IT_PlaceBlockBehaviour"
+}
+--->IT_GetItemActionBehaviour
+{
+    "name": "BASE_BlockPlace"
+}
+--->IT_PlaceBlockBehaviour
+{
+    "blockName": "BASE_Chest"
+}
+--->Type
+Item

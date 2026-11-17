@@ -948,10 +948,14 @@ public class Server {
 		if(!VoxelLoader.CheckCustomPlace(blockCode)){
 			EmitBlockUpdate(BUDCode.CHANGE, lastCoord.GetWorldX(), lastCoord.GetWorldY(), lastCoord.GetWorldZ(), 0, cl);
 
-			if(blockCode <= ushort.MaxValue/2)
+			if(blockCode <= ushort.MaxValue/2){
 				VoxelLoader.GetBlock(blockCode).OnPlace(chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
-			else
+				VoxelLoader.GetBlock(blockCode).OnPlayerPlace(chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, id, cl);
+			}
+			else{
 				VoxelLoader.GetObject(blockCode).OnPlace(chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
+				VoxelLoader.GetObject(blockCode).OnPlayerPlace(chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, id, cl);
+			}
 
 			// Sends the updated voxel to loaded clients
 			SendBlockUpdate(BUDCode.PLACE, chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, blockCode, chunk.metadata.GetState(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ), chunk.metadata.GetHP(lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ));
@@ -959,10 +963,14 @@ public class Server {
 		}
 		// If has special handling
 		else{
-			if(blockCode <= ushort.MaxValue/2)
+			if(blockCode <= ushort.MaxValue/2){
 				VoxelLoader.GetBlock(blockCode).OnPlace(chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
-			else
+				VoxelLoader.GetBlock(blockCode).OnPlayerPlace(chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, id, cl);
+			}
+			else{
 				VoxelLoader.GetObject(blockCode).OnPlace(chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, cl);
+				VoxelLoader.GetObject(blockCode).OnPlayerPlace(chunkPos, lastCoord.blockX, lastCoord.blockY, lastCoord.blockZ, facing, id, cl);
+			}
 		}
 
 		// The stack is captured before its quantity changes, so its Unhold event can run if it's used up

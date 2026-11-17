@@ -50,6 +50,8 @@ public static class Constants
     public static readonly int CLIENT_DRAW_BUILD_SLOTS = 3; // Chunk mesh builds of new chunks
     public static readonly int CLIENT_UPDATE_BUILD_SLOTS = 2; // Chunk mesh builds of changed chunks
     public static readonly int CLIENT_LIGHT_SLOTS = 12; // Chunk light calculations
+    public static readonly int CLIENT_ANIMATED_BUILD_SLOTS = 2; // Animated Objects mesh builds (AnimatedObjectHandler)
+    public static readonly float CLIENT_ANIMATED_FINISH_BUDGET_MS = 2f;
     public static readonly float CLIENT_UNLOAD_ASSETS_INTERVAL_SECONDS = 20f; // Resources.UnloadUnusedAssets
     public static readonly float CLIENT_FORCE_UNLOAD_INTERVAL_SECONDS = 30f; // Unloads chunks left outside the render distance
     public static readonly float CHUNK_RESYNC_IDLE_SECONDS = 2f; // Time without receiving streamed chunks before looking for missing ones

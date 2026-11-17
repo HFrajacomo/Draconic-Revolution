@@ -11,5 +11,6 @@ public enum ShaderIndex : byte
     ASSETS_SOLID,
     LEAVES,
     ICE,
-    LAVA
+    LAVA,
+    ANIMATED_OBJECTS // Not a submesh of the chunk mesh. Its material is the last of the ChunkRenderer's, used by the Animated Objects mesh of each chunk (see ChunkAnimatedObjects)
 }

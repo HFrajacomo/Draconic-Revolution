@@ -65,6 +65,11 @@ public class ChunkBuildSlot{
 	private NativeList<Vector3> hitboxNormals;
 	private NativeList<int> hitboxTris;
 
+	// Animated Objects (their geometry is built by AnimatedMeshBuildSlot)
+	private NativeList<Vector3> solidHitboxVerts;
+	private NativeList<int> solidHitboxTris;
+	private NativeList<int2> animatedLight;
+
 	// Objects and Load Events
 	private NativeList<int3> loadAssetList;
 	private NativeBitArray assetCoordinates;
@@ -136,6 +141,10 @@ public class ChunkBuildSlot{
 		this.hitboxVerts = new NativeList<Vector3>(Allocator.Persistent);
 		this.hitboxNormals = new NativeList<Vector3>(Allocator.Persistent);
 		this.hitboxTris = new NativeList<int>(Allocator.Persistent);
+
+		this.solidHitboxVerts = new NativeList<Vector3>(Allocator.Persistent);
+		this.solidHitboxTris = new NativeList<int>(Allocator.Persistent);
+		this.animatedLight = new NativeList<int2>(Allocator.Persistent);
 
 		this.loadAssetList = new NativeList<int3>(Allocator.Persistent);
 		this.assetCoordinates = new NativeBitArray(VOXEL_COUNT, Allocator.Persistent);
@@ -264,6 +273,9 @@ public class ChunkBuildSlot{
 			hitboxVerts = this.hitboxVerts,
 			hitboxNormals = this.hitboxNormals,
 			hitboxTriangles = this.hitboxTris,
+			solidHitboxVerts = this.solidHitboxVerts,
+			solidHitboxTris = this.solidHitboxTris,
+			animatedLight = this.animatedLight,
 
 			coords = this.loadAssetList,
 			blocks = this.blocks,
@@ -275,6 +287,7 @@ public class ChunkBuildSlot{
 			hitboxScaling = BlockEncyclopediaECS.hitboxScaling,
 			needRotation = BlockEncyclopediaECS.objectNeedRotation,
 			material = BlockEncyclopediaECS.objectMaterial,
+			solid = BlockEncyclopediaECS.objectSolid,
 
 			loadedVerts = ObjectMeshTables.verts,
 			loadedUV = ObjectMeshTables.uvs,
@@ -300,6 +313,8 @@ public class ChunkBuildSlot{
 			verts = this.verts,
 			assetSolidTris = this.assetSolidTris,
 			blockVertexCount = this.blockVertexCount,
+			solidHitboxVerts = this.solidHitboxVerts,
+			solidHitboxTris = this.solidHitboxTris,
 			colliderVerts = this.colliderVerts,
 			colliderTris = this.colliderTris
 		};
@@ -378,6 +393,10 @@ public class ChunkBuildSlot{
 		}
 
 		this.chunk.AttachRenderMeshes();
+
+		// Animated Objects only get their light from static builds, their mesh is never rebuilt by them
+		if(this.chunk.animated != null)
+			this.chunk.animated.ApplyLight(this.animatedLight);
 
 		this.hasCollider = this.indexCounts[WriteChunkMeshJob.COLLIDER_MESH] > 0;
 		this.hasRaycast = this.indexCounts[WriteChunkMeshJob.RAYCAST_MESH] > 0;
@@ -462,6 +481,10 @@ public class ChunkBuildSlot{
 		this.hitboxVerts.Dispose();
 		this.hitboxNormals.Dispose();
 		this.hitboxTris.Dispose();
+
+		this.solidHitboxVerts.Dispose();
+		this.solidHitboxTris.Dispose();
+		this.animatedLight.Dispose();
 
 		this.loadAssetList.Dispose();
 		this.assetCoordinates.Dispose();
@@ -581,6 +604,10 @@ public class ChunkBuildSlot{
 		this.hitboxVerts.Clear();
 		this.hitboxNormals.Clear();
 		this.hitboxTris.Clear();
+
+		this.solidHitboxVerts.Clear();
+		this.solidHitboxTris.Clear();
+		this.animatedLight.Clear();
 
 		this.loadAssetList.Clear();
 		this.assetCoordinates.Clear();

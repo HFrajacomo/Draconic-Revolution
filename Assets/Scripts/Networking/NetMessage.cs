@@ -358,6 +358,16 @@ public struct NetMessage
 		this.size = 16;
 	}
 
+	// Server tells Clients that an Animated Object changed to state and plays an animation (index in its model identity)
+	// {CODE}[ChunkPos][Local 2][Block 2][State 2][Animation 1][ContinueNormalized 1]
+	public void VoxelAnimation(ChunkPos pos, int x, int y, int z, ushort blockCode, ushort state, byte animation, bool continueNormalized){
+		Reset();
+		WriteVoxelEvent(pos, x, y, z, blockCode, state);
+		NetMessage.buffer[16] = animation;
+		NetDecoder.WriteBool(continueNormalized, NetMessage.buffer, 17);
+		this.size = 18;
+	}
+
 	/*
 	Entities
 	*/
@@ -691,7 +701,8 @@ public enum NetCode : byte{
 	ENTITYSFX,
 	SENDATTACHMENTANCHOR,
 	ENTITYVFX,
-	ENTITYVOXELLIGHT
+	ENTITYVOXELLIGHT,
+	VOXELANIMATION
 }
 
 public enum NetBroadcast{
