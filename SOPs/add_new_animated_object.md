@@ -89,7 +89,31 @@ It uses the states below the amount of queued animations (`count`): the state is
 
 The voxel state is `direction × statesPerDirection + rest`, `direction` being 0 = Z+, 1 = X+, 2 = Z-, 3 = X-. It works with any Object (not only Animated ones) whose other behaviours only use the states below `statesPerDirection`.
 
-5. Register the Object at the **end** of `Assets/Resources/Voxels/Objects/OBJECT_LIST.txt`, so the codes of existing Objects don't change.
+5. To play sounds on interaction (any voxel, not only Animated Objects), register the sounds in `Assets/Resources/Audio/SOUNDS_LIST.json` (as `SFX_3D`) and use one of these behaviours in both `onInteract` and `onSFXPlay`:
+   - `VX_InteractSoundBehaviour` (`"sound": "Name"`): plays the same sound on every interaction.
+   - `VX_InteractSoundSequenceBehaviour` (`"sounds": [...]`, `"countInteractions": bool`): plays the sounds in order, one per interaction, cycling back to the first. It reads the interaction count from the same part of the state as `VX_AnimationQueueBehaviour`, so with the same amount of sounds as queued animations, each sound matches its animation. List the queue **before** it in `onInteract` and keep `countInteractions` false (loading fails otherwise). Without a queue, set `countInteractions` true so it counts interactions itself.
+
+   The Chest plays `ChestOpen` and `ChestClose` with its animations:
+
+```json
+--->Behaviours
+{
+    "onInteract": ["VX_AnimationQueueBehaviour", "VX_InteractSoundSequenceBehaviour"],
+    "onSFXPlay": "VX_InteractSoundSequenceBehaviour"
+}
+--->VX_InteractSoundSequenceBehaviour
+{
+    "sounds": ["ChestOpen", "ChestClose"],
+    "countInteractions": false,
+    "randomPitch": true
+}
+```
+
+   Both also take `"randomPitch"` (default `true`): each play gets a random pitch between 0.9 and 1.1 (`SFXLoader.MIN_RANDOM_PITCH`/`MAX_RANDOM_PITCH`), so repeated sounds don't sound identical. Set it to `false` to play them at their normal pitch. Each Client picks its own pitch.
+
+   The Server sends `SFXPLAY` with the voxel's new state to every Client that has the chunk, and every `onSFXPlay` behaviour of the voxel receives it, so a voxel should only have one sound behaviour. A voxel plays a single sound at a time: a new interaction replaces the sound still playing. Non-looping block sounds are removed once they finish (`SFXLoader`).
+
+6. Register the Object at the **end** of `Assets/Resources/Voxels/Objects/OBJECT_LIST.txt`, so the codes of existing Objects don't change.
 
 ## Writing other animation behaviours
 

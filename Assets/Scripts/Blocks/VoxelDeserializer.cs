@@ -328,6 +328,10 @@ public static class VoxelDeserializer {
 				return JsonUtility.FromJson<VX_AnimationQueueBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "VX_FacePlayerBehaviour":
 				return JsonUtility.FromJson<VX_FacePlayerBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_InteractSoundBehaviour":
+				return JsonUtility.FromJson<VX_InteractSoundBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_InteractSoundSequenceBehaviour":
+				return JsonUtility.FromJson<VX_InteractSoundSequenceBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "VX_PlaceSetStateBehaviour":
 				return JsonUtility.FromJson<VX_PlaceSetStateBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "VX_TorchBehaviour":

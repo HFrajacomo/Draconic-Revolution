@@ -39,6 +39,22 @@
             "serializedVolume": "VERYLOW"
         },
         {
+            "name": "ChestOpen",
+            "description": "Opening a chest",
+            "filename": "chest_open.ogg",
+            "author": "Miraboa",
+            "serializedType": "SFX_3D",
+            "serializedVolume": "MID"
+        },
+        {
+            "name": "ChestClose",
+            "description": "Closing a chest",
+            "filename": "chest_close.ogg",
+            "author": "Miraboa",
+            "serializedType": "SFX_3D",
+            "serializedVolume": "MID"
+        },
+        {
             "name": "Ancients",
             "description": "Test 3D piano song",
             "filename": "ancients.ogg",

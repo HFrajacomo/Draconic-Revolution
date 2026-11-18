@@ -32,7 +32,8 @@
 {
     "modelIdentity": "VX_AnimatedModelIdentityBehaviour",
     "onPlayerPlace": "VX_FacePlayerBehaviour",
-    "onInteract": "VX_AnimationQueueBehaviour",
+    "onInteract": ["VX_AnimationQueueBehaviour", "VX_InteractSoundSequenceBehaviour"],
+    "onSFXPlay": "VX_InteractSoundSequenceBehaviour",
     "animationPose": "VX_AnimationQueueBehaviour",
     "rotationValue": "VX_FacePlayerBehaviour",
     "onBreak": "VX_BreakDropItemBehaviour"
@@ -54,6 +55,12 @@
 {
     "statesPerDirection": 2,
     "frontYaw": 0
+}
+--->VX_InteractSoundSequenceBehaviour
+{
+    "sounds": ["ChestOpen", "ChestClose"],
+    "countInteractions": false,
+    "randomPitch": true
 }
 --->VX_BreakDropItemBehaviour
 {

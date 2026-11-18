@@ -17,12 +17,21 @@ public class SFXLoader : MonoBehaviour
 
     // Non-looping Entity SFX that are destroyed once they finish playing
     private List<OneShotSFX> oneShotSFX = new List<OneShotSFX>();
+    // Non-looping block SFX (like a chest opening), destroyed once they finish playing
+    private List<OneShotSFX> oneShotBlockSFX = new List<OneShotSFX>();
 
     // Time a one-shot SFX has to start playing (clips are loaded asynchronously) before being discarded
     private static readonly float ONE_SHOT_START_TIMEOUT = 4f;
 
+    // Range of GetRandomPitch, used to vary repeated sounds
+    public static readonly float MIN_RANDOM_PITCH = 0.9f;
+    public static readonly float MAX_RANDOM_PITCH = 1.1f;
+
+    public static float GetRandomPitch(){return Random.Range(MIN_RANDOM_PITCH, MAX_RANDOM_PITCH);}
+
     void Update(){
         UpdateOneShotSFX();
+        UpdateOneShotBlockSFX();
     }
 
     /*
@@ -149,8 +158,9 @@ public class SFXLoader : MonoBehaviour
 
     /*
     Adds a block into the SFXLoader
+        pitch: pitch of the AudioSource. Each block SFX has its own AudioSource, so it lasts until the SFX is removed
     */
-    public void LoadBlockSFX(string name, ChunkPos pos, int x, int y, int z){
+    public void LoadBlockSFX(string name, ChunkPos pos, int x, int y, int z, float pitch=1f){
         // A voxel holds a single SFX, so a previous one is replaced instead of being left playing untracked
         RemoveBlockSFX(pos, x, y, z);
 
@@ -160,20 +170,64 @@ public class SFXLoader : MonoBehaviour
         AudioSource source = go.GetComponent<AudioSource>();
         EntityID id = new EntityID(EntityType.VOXEL, pos, (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z));
 
+        source.pitch = pitch;
+
         if(!blockSFX.ContainsKey(pos))
             blockSFX.Add(pos, new Dictionary<EntityID, GameObject>());
 
         blockSFX[pos].Add(id, go);
 
         audioManager.RegisterAudioSource(source, AudioUsecase.SFX_3D, id);
+
+        if(!AudioLoader.IsLoop(name))
+            this.oneShotBlockSFX.Add(new OneShotSFX(id, name, source, Time.time));
+
         audioManager.Play(name, id);
+    }
+
+    // Removes block SFX that finished playing or never started. Replaced SFX are only forgotten, since the voxel holds a new one
+    private void UpdateOneShotBlockSFX(){
+        OneShotSFX shot;
+
+        for(int i = this.oneShotBlockSFX.Count-1; i >= 0; i--){
+            shot = this.oneShotBlockSFX[i];
+
+            if(shot.source != null && shot.source.isPlaying){
+                if(!shot.started){
+                    shot.started = true;
+                    this.oneShotBlockSFX[i] = shot;
+                }
+                continue;
+            }
+
+            if(shot.source != null && !shot.started && Time.time - shot.creationTime < ONE_SHOT_START_TIMEOUT)
+                continue;
+
+            this.oneShotBlockSFX.RemoveAt(i);
+
+            if(shot.source != null && IsCurrentBlockSFX(shot.entity, shot.source))
+                RemoveBlockSFX(shot.entity);
+        }
+    }
+
+    private bool IsCurrentBlockSFX(EntityID id, AudioSource source){
+        GameObject go;
+
+        if(!blockSFX.ContainsKey(id.pos) || !blockSFX[id.pos].TryGetValue(id, out go) || go == null)
+            return false;
+
+        return go.GetComponent<AudioSource>() == source;
     }
 
     /*
     Removes a single block from SFXLoader
     */
     public void RemoveBlockSFX(ChunkPos pos, int x, int y, int z){
-        EntityID id = new EntityID(EntityType.VOXEL, pos, (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z));
+        RemoveBlockSFX(new EntityID(EntityType.VOXEL, pos, (ulong)(x*Chunk.chunkWidth*Chunk.chunkDepth+y*Chunk.chunkWidth+z)));
+    }
+
+    private void RemoveBlockSFX(EntityID id){
+        ChunkPos pos = id.pos;
 
         if(!blockSFX.ContainsKey(pos))
             return;

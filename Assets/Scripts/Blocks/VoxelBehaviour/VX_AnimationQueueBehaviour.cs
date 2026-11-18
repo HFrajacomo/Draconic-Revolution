@@ -78,6 +78,8 @@ public class VX_AnimationQueueBehaviour : VoxelBehaviour{
 		return GetQueuedAnimation(GetStep(state));
 	}
 
+	public int GetQueueLength(){return this.animations.Count;}
+
 	private byte GetQueuedAnimation(int step){
 		return this.animationIndices[(this.defaultStep + step) % this.animationIndices.Length];
 	}
