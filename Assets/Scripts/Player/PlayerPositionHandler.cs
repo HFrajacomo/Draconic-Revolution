@@ -59,7 +59,7 @@ public class PlayerPositionHandler : MonoBehaviour
     private float maxDistanceCardinal;
     private float maxDistanceDiagonal;
     private const float maxDistanceVertical = 800f;
-    private const float bigEnoughAverageDistance = 15f;
+    private const float bigEnoughAverageDistance = 20f;
     // Minimum distance to trigger reverb
     private const float minAvgReverbDistance = 2;
 
@@ -426,7 +426,7 @@ public class PlayerPositionHandler : MonoBehaviour
     }
 
     private int CalculateReverb(float averageReverbDistance){
-        return (int)Mathf.Clamp(Mathf.Lerp(-300f, 1500f, (float)(averageReverbDistance/bigEnoughAverageDistance)), -300, 1500);
+        return (int)Mathf.Clamp(Mathf.Lerp(-100f, 1200f, (float)(averageReverbDistance/bigEnoughAverageDistance)), -100, 1200);
     }
 
     private int CalculateRoomFormula(float averageReverbDistance){
@@ -472,7 +472,7 @@ public class PlayerPositionHandler : MonoBehaviour
         deltaMin = averageReverbDistance - min;
         deltaMax = max - averageReverbDistance;
 
-        return Mathf.CeilToInt((Mathf.Abs(deltaMax - deltaMin)/(max - min))*115 - 100);
+        return Mathf.FloorToInt(Mathf.Lerp(-4000, 1000, Mathf.Abs(deltaMax - deltaMin)/(max - min)));
     }
 
     private float CalculateEarlyReflectionDelay(float averageReverbDistance){
