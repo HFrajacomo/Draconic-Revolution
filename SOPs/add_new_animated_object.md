@@ -66,7 +66,7 @@ Create `Assets/Resources/Voxels/Objects/<CODENAME>.json` like any Object, with `
 - `animations`: the queue, played in order.
 - `defaultAnimation`: the Object rests on the last frame of this animation when placed or generated, so the first interaction plays the next one in the queue. Empty uses the last of the queue. The Chest rests closed, so it goes closed → Open → Close → ...
 
-It uses the states below the amount of queued animations (`count`): the state is the amount of interactions since the default pose, so state 0 is always the default pose. Higher parts of the state belong to other behaviours and are kept. Interacting while an animation plays starts the next one from the normalized time the current one reached.
+It uses the states below the amount of queued animations (`count`): the state is the amount of interactions since the default pose, so state 0 is always the default pose. Higher parts of the state belong to other behaviours and are kept. Every animation starts from its first frame (normalized time 0), even when interacting while the previous one still plays.
 
 4. To make the Object face the player that places it, use `VX_FacePlayerBehaviour` in `onPlayerPlace` and `rotationValue`, and set `"needsRotation": true` and `"maximumRotationScaleState"` to 4 × `statesPerDirection` (8 for the Chest):
 

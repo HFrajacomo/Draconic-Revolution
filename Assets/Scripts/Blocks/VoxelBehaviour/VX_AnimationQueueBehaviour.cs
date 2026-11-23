@@ -4,7 +4,7 @@ using UnityEngine;
 
 /*
 Animated Objects only. Plays the listed animations of the Object in order, one per interaction, going back to the first after the last.
-Interacting while an animation plays starts the next one from the normalized time the current one reached.
+Every animation starts from its first frame (normalized time 0), even when interacting while the previous one still plays.
 
 The voxel state below count (amount of queued animations) is the step: interactions since the default pose.
 The Object rests on the last frame of animations[(default + step) % count] (GetAnimationPose), so state 0 (placed or generated Objects)
@@ -64,7 +64,7 @@ public class VX_AnimationQueueBehaviour : VoxelBehaviour{
 		chunk.metadata.SetState(x, y, z, next);
 
 		NetMessage message = new NetMessage(NetCode.VOXELANIMATION);
-		message.VoxelAnimation(pos, x, y, z, this.blockCode, next, GetQueuedAnimation(step), true);
+		message.VoxelAnimation(pos, x, y, z, this.blockCode, next, GetQueuedAnimation(step), false);
 		cl.server.SendToClients(pos, message);
 
 		// Clients already have the new state, so it isn't sent again with other changes of the chunk

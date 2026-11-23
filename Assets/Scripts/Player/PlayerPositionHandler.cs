@@ -472,7 +472,7 @@ public class PlayerPositionHandler : MonoBehaviour
         deltaMin = averageReverbDistance - min;
         deltaMax = max - averageReverbDistance;
 
-        return Mathf.FloorToInt(Mathf.Lerp(-4000, 1000, Mathf.Abs(deltaMax - deltaMin)/(max - min)));
+        return Mathf.FloorToInt(Mathf.Lerp(-10000, -2000, Mathf.Abs(deltaMax - deltaMin)/(max - min)));
     }
 
     private float CalculateEarlyReflectionDelay(float averageReverbDistance){

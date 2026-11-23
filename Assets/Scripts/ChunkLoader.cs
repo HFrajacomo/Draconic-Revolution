@@ -83,6 +83,9 @@ public class ChunkLoader : MonoBehaviour
     // Animated Objects of every chunk (see ChunkAnimatedObjects)
     public AnimatedObjectHandler animatedObjects;
 
+    // Contact shadows of dropped items
+    private ItemShadowRenderer itemShadows;
+
     // Chunk Building
     private ChunkBuildSlot[] drawSlots;
     private ChunkBuildSlot[] updateSlots;
@@ -138,6 +141,7 @@ public class ChunkLoader : MonoBehaviour
         CalculateJobSlots();
         CreateBuildSlots();
         this.animatedObjects = new AnimatedObjectHandler(this);
+        this.itemShadows = new ItemShadowRenderer();
         this.lightingSystem = new LightingSystem(this, this.lightSlotCount);
         this.placementPredictor = new PlacementPredictor(this);
         PlayerHotbarHandler.ResetSessionState();
@@ -200,6 +204,7 @@ public class ChunkLoader : MonoBehaviour
         DisposeBuildSlots();
         DisposeAnimatedObjects();
         DisposeLighting();
+        DisposeItemShadows();
         WorldOrigin.Reset();
 
         Destroy(this);
@@ -209,6 +214,7 @@ public class ChunkLoader : MonoBehaviour
         DisposeBuildSlots();
         DisposeAnimatedObjects();
         DisposeLighting();
+        DisposeItemShadows();
     }
 
     // Light calculations are also finished and started at the end of the frame, so more of them run per frame
@@ -236,6 +242,14 @@ public class ChunkLoader : MonoBehaviour
 
         this.animatedObjects.Dispose();
         this.animatedObjects = null;
+    }
+
+    private void DisposeItemShadows(){
+        if(this.itemShadows == null)
+            return;
+
+        this.itemShadows.Dispose();
+        this.itemShadows = null;
     }
 
     void Update(){
@@ -325,6 +339,8 @@ public class ChunkLoader : MonoBehaviour
             DrawChunk();
             UpdateChunk();
             this.animatedObjects.Update();
+            // After MoveEntities and the floating origin, so shadows use this frame's item positions
+            this.itemShadows.Render(this.client.entityHandler.GetDroppedItems());
             JobHandle.ScheduleBatchedJobs();
             ResyncStream();
             SendChunkAck();
