@@ -1302,27 +1302,30 @@ public class PlayerInventoryManager : MonoBehaviour {
 	}
 
 	/*
-	Puts as much of a stack as possible in the inventories items are shift-moved to (hotbar, bag and other storages)
-	First tops up stacks of the same item, then uses the first empty slot. The given stack isn't changed
-	Returns the amount of items stored
+	Puts as much of a stack as possible in the player inventories, like when it's taken from a container
+	First tops up stacks of the same item, then uses the first empty slot. Both go through the bag, then other storages, and the hotbar last
+	The given stack isn't changed. Returns the amount of items stored
 	*/
 	public byte StoreInPlayer(ItemStack its){
+		List<int> targets;
 		ItemStack current;
 		byte remaining = its.GetAmount();
 		byte stacksize = its.GetStacksize();
 		byte toAdd;
+		int inv;
 
 		if(remaining == 0)
 			return 0;
 
+		targets = GetStoreTargets(its);
+
 		// Tops up stacks of the same item
 		if(stacksize > 1){
-			for(int i=0; i < this.inventory.Count && remaining > 0; i++){
-				if(!CanStoreInPlayer(i, its))
-					continue;
+			for(int i=0; i < targets.Count && remaining > 0; i++){
+				inv = targets[i];
 
-				for(ushort j=0; j < this.inventory[i].GetLimit() && remaining > 0; j++){
-					current = this.inventory[i].GetSlot(j);
+				for(ushort j=0; j < this.inventory[inv].GetLimit() && remaining > 0; j++){
+					current = this.inventory[inv].GetSlot(j);
 
 					if(current == null || current.GetID() != its.GetID() || current.IsFull())
 						continue;
@@ -1330,23 +1333,22 @@ public class PlayerInventoryManager : MonoBehaviour {
 					toAdd = (byte)Mathf.Min(stacksize - current.GetAmount(), remaining);
 					current.Add(toAdd);
 					remaining -= toAdd;
-					DrawSlot((byte)i, j);
+					DrawSlot((byte)inv, j);
 				}
 			}
 		}
 
 		// Puts the remainder in the first empty slot
-		for(int i=0; i < this.inventory.Count && remaining > 0; i++){
-			if(!CanStoreInPlayer(i, its))
-				continue;
+		for(int i=0; i < targets.Count && remaining > 0; i++){
+			inv = targets[i];
 
-			for(ushort j=0; j < this.inventory[i].GetLimit(); j++){
-				if(this.inventory[i].GetSlot(j) != null || !this.inventory[i].IsInLocalWhitelist(its, j))
+			for(ushort j=0; j < this.inventory[inv].GetLimit(); j++){
+				if(this.inventory[inv].GetSlot(j) != null || !this.inventory[inv].IsInLocalWhitelist(its, j))
 					continue;
 
-				this.inventory[i].ForceAddStack(new ItemStack(its.GetItem(), remaining), j);
+				this.inventory[inv].ForceAddStack(new ItemStack(its.GetItem(), remaining), j);
 				remaining = 0;
-				DrawSlot((byte)i, j);
+				DrawSlot((byte)inv, j);
 				break;
 			}
 		}
@@ -1355,6 +1357,29 @@ public class PlayerInventoryManager : MonoBehaviour {
 		AddToCounter(its.GetID(), toAdd);
 
 		return toAdd;
+	}
+
+	// Inventories a stack can be stored in by StoreInPlayer, in order: the bag and other storages, then the hotbar
+	private List<int> GetStoreTargets(ItemStack its){
+		List<int> targets = new List<int>();
+		int hotbar = -1;
+
+		for(int i=0; i < this.inventory.Count; i++){
+			if(!CanStoreInPlayer(i, its))
+				continue;
+
+			if(this.inventory[i] == this.cl.hotbarHandler.hotbar || this.inventory[i].GetMainInventory()){
+				hotbar = i;
+				continue;
+			}
+
+			targets.Add(i);
+		}
+
+		if(hotbar >= 0)
+			targets.Add(hotbar);
+
+		return targets;
 	}
 
 	// Gives items back to the player when a change in a container was rejected. Items that don't fit are dropped
