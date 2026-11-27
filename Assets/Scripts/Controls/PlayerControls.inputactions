@@ -117,7 +117,7 @@
                     "name": "ToggleHUD",
                     "type": "Button",
                     "id": "e65e0f1c-4dc0-4fc2-92f3-ae6f3b5148e2",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "Press",
                     "initialStateCheck": false
@@ -255,6 +255,15 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "CloseUI",
+                    "type": "Button",
+                    "id": "4b0f3a8e-6c21-4d5e-9f3a-2e7c1d9b5a64",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "Press",
                     "initialStateCheck": false
                 }
             ],
@@ -619,6 +628,17 @@
                     "processors": "",
                     "groups": "Keyboard and Mouse",
                     "action": "DebugKey",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9e2d7c41-3b8a-4f6e-a1d5-7c0b2e8f4a39",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "CloseUI",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

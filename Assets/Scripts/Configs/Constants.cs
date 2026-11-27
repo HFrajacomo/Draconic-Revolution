@@ -77,6 +77,11 @@ public static class Constants
     public static readonly int MAXIMUM_REGION_FILE_POOL = 10;
     public static readonly float CHUNKS_IN_REGION_FILE = 32f;
 
+    // Containers
+    public static readonly float CONTAINER_MAX_DISTANCE = 6f; // Distance from a container (in blocks) after which its UI closes
+    public static readonly float CONTAINER_SERVER_DISTANCE_TOLERANCE = 2f; // Extra distance accepted by the Server, since player positions arrive late
+    public static readonly byte CONTAINER_INVENTORY_CODE = 254; // InventoryButton code of container slots
+
     // Item Entity
     public static readonly int ITEM_ENTITY_LIFE_SPAN_TICKS = 19200; // 4 in-game hours
     public static readonly float ITEM_ENTITY_SPAWN_HEIGHT_BONUS = .5f;

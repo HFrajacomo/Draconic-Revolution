@@ -12,6 +12,8 @@ public static class VoxelDeserializer {
 	private static List<VoxelBehaviour> onPlayerPlaceEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onBreakEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onInteractEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onPlayerInteractEvent = new List<VoxelBehaviour>();
+	private static List<VoxelBehaviour> onContainerToggleEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onBlockUpdateEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onLoadEvent = new List<VoxelBehaviour>();
 	private static List<VoxelBehaviour> onGenerateEvent = new List<VoxelBehaviour>();
@@ -79,6 +81,8 @@ public static class VoxelDeserializer {
 		onPlayerPlaceEvent = new List<VoxelBehaviour>();
 		onBreakEvent = new List<VoxelBehaviour>();
 		onInteractEvent = new List<VoxelBehaviour>();
+		onPlayerInteractEvent = new List<VoxelBehaviour>();
+		onContainerToggleEvent = new List<VoxelBehaviour>();
 		onBlockUpdateEvent = new List<VoxelBehaviour>();
 		onLoadEvent = new List<VoxelBehaviour>();
 		onGenerateEvent = new List<VoxelBehaviour>();
@@ -112,6 +116,12 @@ public static class VoxelDeserializer {
 					break;
 				case "onInteract":
 					block.SetOnInteract(onInteractEvent);
+					break;
+				case "onPlayerInteract":
+					block.SetOnPlayerInteract(onPlayerInteractEvent);
+					break;
+				case "onContainerToggle":
+					block.SetOnContainerToggle(onContainerToggleEvent);
 					break;
 				case "onBlockUpdate":
 					block.SetOnBlockUpdate(onBlockUpdateEvent);
@@ -176,6 +186,12 @@ public static class VoxelDeserializer {
 					break;
 				case "onInteract":
 					obj.SetOnInteract(onInteractEvent);
+					break;
+				case "onPlayerInteract":
+					obj.SetOnPlayerInteract(onPlayerInteractEvent);
+					break;
+				case "onContainerToggle":
+					obj.SetOnContainerToggle(onContainerToggleEvent);
 					break;
 				case "onBlockUpdate":
 					obj.SetOnBlockUpdate(onBlockUpdateEvent);
@@ -352,6 +368,8 @@ public static class VoxelDeserializer {
 				return JsonUtility.FromJson<VX_PlayerMovementStepMultiplyBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			case "VX_TestVoxelBehaviour":
 				return JsonUtility.FromJson<VX_TestVoxelBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
+			case "VX_ContainerBehaviour":
+				return JsonUtility.FromJson<VX_ContainerBehaviour>(JsonFormatter.RemoveComments(jsonSerial));
 			default:
 				throw new DeserializationErrorException($"[VoxelDeserializer] Error while trying to de-serialize behaviour: {val}");
 		}
@@ -370,6 +388,12 @@ public static class VoxelDeserializer {
 				break;
 			case "onInteract":
 				onInteractEvent.Add(vx);
+				break;
+			case "onPlayerInteract":
+				onPlayerInteractEvent.Add(vx);
+				break;
+			case "onContainerToggle":
+				onContainerToggleEvent.Add(vx);
 				break;
 			case "onBlockUpdate":
 				onBlockUpdateEvent.Add(vx);

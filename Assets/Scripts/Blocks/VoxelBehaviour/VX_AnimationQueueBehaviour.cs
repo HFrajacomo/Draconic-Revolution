@@ -10,7 +10,7 @@ The voxel state below count (amount of queued animations) is the step: interacti
 The Object rests on the last frame of animations[(default + step) % count] (GetAnimationPose), so state 0 (placed or generated Objects)
 always rests on defaultAnimation. The part of the state above count belongs to other behaviours (like VX_FacePlayerBehaviour) and is kept.
 
-Must be used in onInteract and animationPose
+Must be used in onInteract (or onContainerToggle) and animationPose
 */
 [Serializable]
 public class VX_AnimationQueueBehaviour : VoxelBehaviour{
@@ -79,6 +79,9 @@ public class VX_AnimationQueueBehaviour : VoxelBehaviour{
 	}
 
 	public int GetQueueLength(){return this.animations.Count;}
+
+	// Whether a state rests on defaultAnimation (no interactions since the default pose)
+	public bool IsAtDefaultPose(ushort state){return GetStep(state) == 0;}
 
 	private byte GetQueuedAnimation(int step){
 		return this.animationIndices[(this.defaultStep + step) % this.animationIndices.Length];

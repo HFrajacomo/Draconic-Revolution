@@ -154,14 +154,31 @@ Animation states and animator parameters are identified by `Animator.StringToHas
 | SENDATTACHMENTANCHOR | C→S / S→C | (NetID 4), Origin 1, Target 1, Flip 1, HeightOffset 4 |
 | ENTITYVFX | C→S / S→C | (NetID 4), Operation 1, Anchor 1, Offset 12, Rotation 12, Name String8, PrefabPath String8 |
 | ENTITYVOXELLIGHT | C→S / S→C | (NetID 4), Operation 1, Radius 4 |
+| CONTAINEROPEN | S→C | ContainerKey 11, Block 2, InvType 1, Count 2, Count × Slot |
+| CONTAINERSLOTS | S→C | ContainerKey 11, Count 2, Count × (SlotIndex 2, Slot) |
+| CONTAINEROP | C→S | ContainerKey 11, OpID 2, Count 2, Count × (SlotIndex 2, Before Slot, After Slot) |
+| CONTAINERRESULT | S→C | ContainerKey 11, OpID 2, Count 2, Count × (SlotIndex 2, Slot) |
+| CONTAINERCLOSE | C→S / S→C | ContainerKey 11 |
 
 Clients only send animation, equipment, SFX, VFX and voxel light messages about their own player. The Server uses the AccountID of the connection and relays them with the player's NetID.
 
 The **network CharacterSheet** (`NetDecoder.WriteCharacterSheetNet`) has a String8 name, the effect count and only the active effects. The compact appearance (76 bytes instead of 247) stores colors with 8 bits per channel and is only used for other players.
 
+## Containers
+
+Containers are voxels with `VX_ContainerBehaviour` (like chests). A `ContainerKey` is the ChunkPos and the local position of the voxel (ChunkPos 9, Local 2). A **Slot** is written by `InventorySlotCodec` with the inventory save layout (`MemoryStorageType` followed by its data, 1 to 9 bytes).
+
+1. Interacting with a container sends the usual `INTERACT`. Its `onPlayerInteract` (`VX_ContainerBehaviour`) opens it in `ContainerHandler_Server`, which loads it from disk and answers `CONTAINEROPEN` to that player. The first viewer runs the voxel's `onContainerToggle` (the lid of a chest opens), and the last one to leave runs it again (the lid closes).
+2. Many players can look at the same container. Each player looks at one container at most.
+3. Clients change containers **optimistically**: `ContainerInventoryManager` applies the change right away and sends `CONTAINEROP` with every changed slot before and after the change. The Server applies an entry only if the slot is still `Before` (and `After` is a valid item allowed by the inventory's whitelists), writes the container to disk, and sends the applied slots to the other viewers in `CONTAINERSLOTS`.
+4. Every `CONTAINEROP` is answered with `CONTAINERRESULT`, listing the real contents of the slots whose change was rejected. The client undoes the player side of those changes (items it took are taken back, items it gave are given back or dropped if they don't fit) and sets the slots to their real contents. Results arrive in the order of the changes, so clients keep the unanswered changes in a queue and ignore `CONTAINERSLOTS` for slots that still have one: the answer will carry their right contents.
+5. `CONTAINERCLOSE` is sent by clients that close the container, and by the Server when the container is broken (its items are dropped) or the player is too far from it (`Constants.CONTAINER_MAX_DISTANCE`).
+
+The player inventory is still client-authoritative (`SENDINVENTORY`), so the Server only guarantees that containers are consistent between viewers.
+
 ## Save files
 
-`NetDecoder` is also the encoder of save files (characters, entities, players, inventories and region headers). Methods used by `Persist/` must keep producing the same bytes.
+`NetDecoder` is also the encoder of save files (characters, entities, players, inventories, containers and region headers). Methods used by `Persist/` must keep producing the same bytes.
 Compact encodings that only travel through the network have their own methods (`*Net`, `*Compact`, `LocalPos`, `Angle`, `String8/16`).
 
 CharacterSheets of online players are kept in memory by `EntityHandler_Server`. Changes mark them dirty (`MarkSheetDirty`), and they're written to disk every `SERVER_SHEET_FLUSH_SECONDS`, when the player disconnects and when the Server closes.
@@ -169,6 +186,6 @@ CharacterSheets of online players are kept in memory by `EntityHandler_Server`. 
 ## Adding a message
 
 1. Add the `NetCode` and its builder method in `NetMessage`, writing its layout in this document.
-2. Handle it in `Client.HandleReceivedMessage` and/or `Server.HandleReceivedMessage`. Use `GetSize()` instead of `data.Length`.
+2. Handle it in `Client.HandleReceivedMessage` and/or `Server.HandleReceivedMessage`. Every case calls a private method of that class named after the NetCode (`CONTAINEROPEN` → `ContainerOpen`), which parses the message and passes typed values to the system that uses them. Use `GetSize()` instead of `data.Length`.
 3. Messages about an entity must use its network ID and must only be sent to clients that already received its spawn.
 4. Messages that change voxels should go through the change tracking methods above instead of building chunk messages by hand.

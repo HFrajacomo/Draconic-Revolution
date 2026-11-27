@@ -294,6 +294,18 @@ public class Client
 			case NetCode.VOXELANIMATION:
 				VoxelAnimation(data);
 				break;
+			case NetCode.CONTAINEROPEN:
+				ContainerOpen(data, length);
+				break;
+			case NetCode.CONTAINERSLOTS:
+				ContainerSlots(data, length);
+				break;
+			case NetCode.CONTAINERRESULT:
+				ContainerResult(data, length);
+				break;
+			case NetCode.CONTAINERCLOSE:
+				ContainerClose(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -940,6 +952,92 @@ public class Client
 
 		oldItem.OnUnequipClient(this.cl, oldItem, playerCode);
 		newItem.OnEquipClient(this.cl, newItem, playerCode);
+	}
+
+	// Receives the contents of the container the player opened
+	private void ContainerOpen(byte[] data, int length){
+		ContainerKey key;
+		ushort blockCode, count;
+		byte inventoryType;
+		ItemStack[] slots;
+		int pos = 17;
+		int bytesRead;
+
+		if(length < 17)
+			return;
+
+		key = ContainerKey.Read(data, 1);
+		blockCode = NetDecoder.ReadUshort(data, 12);
+		inventoryType = data[14];
+		count = NetDecoder.ReadUshort(data, 15);
+
+		if(!InventoryLoader.IsInventory(inventoryType))
+			return;
+
+		slots = new ItemStack[count];
+
+		for(int i=0; i < count && pos < length; i++){
+			slots[i] = InventorySlotCodec.Read(data, pos, out bytesRead);
+			pos += bytesRead;
+		}
+
+		this.cl.playerInventoryManager.containerManager.Open(key, blockCode, inventoryType, slots);
+	}
+
+	// Receives container slots changed by other players
+	private void ContainerSlots(byte[] data, int length){
+		ContainerKey key;
+		ushort count;
+		List<ushort> slots = new List<ushort>();
+		List<ItemStack> contents = new List<ItemStack>();
+		int pos = 14;
+		int bytesRead;
+
+		if(length < 14)
+			return;
+
+		key = ContainerKey.Read(data, 1);
+		count = NetDecoder.ReadUshort(data, 12);
+
+		for(int i=0; i < count && pos + 2 < length; i++){
+			slots.Add(NetDecoder.ReadUshort(data, pos));
+			pos += 2;
+			contents.Add(InventorySlotCodec.Read(data, pos, out bytesRead));
+			pos += bytesRead;
+		}
+
+		this.cl.playerInventoryManager.containerManager.UpdateSlots(key, slots, contents);
+	}
+
+	// Receives the answer to a container change, with the real contents of the slots whose change was rejected
+	private void ContainerResult(byte[] data, int length){
+		ContainerKey key;
+		ushort opID, count;
+		List<ushort> slots = new List<ushort>();
+		List<ItemStack> truth = new List<ItemStack>();
+		int pos = 16;
+		int bytesRead;
+
+		if(length < 16)
+			return;
+
+		key = ContainerKey.Read(data, 1);
+		opID = NetDecoder.ReadUshort(data, 12);
+		count = NetDecoder.ReadUshort(data, 14);
+
+		for(int i=0; i < count && pos + 2 < length; i++){
+			slots.Add(NetDecoder.ReadUshort(data, pos));
+			pos += 2;
+			truth.Add(InventorySlotCodec.Read(data, pos, out bytesRead));
+			pos += bytesRead;
+		}
+
+		this.cl.playerInventoryManager.containerManager.ApplyResult(key, opID, slots, truth);
+	}
+
+	// Server closed the container, because it was broken or the player is too far from it
+	private void ContainerClose(byte[] data){
+		this.cl.playerInventoryManager.containerManager.ForceClose(ContainerKey.Read(data, 1));
 	}
 
 	/* ================================================================================ */

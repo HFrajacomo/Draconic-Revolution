@@ -650,6 +650,95 @@ public struct NetMessage
 		NetDecoder.WriteBool(flip, NetMessage.buffer, pos+2);
 		NetDecoder.WriteFloat(heightOffset, NetMessage.buffer, pos+3);
 	}
+
+	/*
+	Containers
+	*/
+
+	// Server sends the contents of a container the client opened
+	// {CODE}[ContainerKey 11][Block 2][InvType 1][Count 2] | Count x Slot
+	public void ContainerOpen(ContainerKey key, ushort blockCode, byte inventoryType, ItemStack[] slots){
+		int pos = 17;
+
+		Reset();
+		key.Write(NetMessage.buffer, 1);
+		NetDecoder.WriteUshort(blockCode, NetMessage.buffer, 12);
+		NetDecoder.WriteByte(inventoryType, NetMessage.buffer, 14);
+		NetDecoder.WriteUshort((ushort)slots.Length, NetMessage.buffer, 15);
+
+		for(int i=0; i < slots.Length; i++)
+			pos += InventorySlotCodec.Write(slots[i], NetMessage.buffer, pos);
+
+		this.size = pos;
+	}
+
+	// Server sends container slots changed by another player
+	// {CODE}[ContainerKey 11][Count 2] | Count x ([Slot 2] Slot)
+	public void ContainerSlots(ContainerKey key, List<ushort> changed, ItemStack[] slots){
+		int pos = 14;
+
+		Reset();
+		key.Write(NetMessage.buffer, 1);
+		NetDecoder.WriteUshort((ushort)changed.Count, NetMessage.buffer, 12);
+
+		for(int i=0; i < changed.Count; i++){
+			NetDecoder.WriteUshort(changed[i], NetMessage.buffer, pos);
+			pos += 2;
+			pos += InventorySlotCodec.Write(slots[changed[i]], NetMessage.buffer, pos);
+		}
+
+		this.size = pos;
+	}
+
+	// Client sends the container slots it changed, with their contents before and after the change
+	// {CODE}[ContainerKey 11][OpID 2][Count 2] | Count x ([Slot 2] Before After)
+	public void ContainerOp(ContainerKey key, ushort opID, List<ContainerOpEntry> entries){
+		int pos = 16;
+
+		Reset();
+		key.Write(NetMessage.buffer, 1);
+		NetDecoder.WriteUshort(opID, NetMessage.buffer, 12);
+		NetDecoder.WriteUshort((ushort)entries.Count, NetMessage.buffer, 14);
+
+		for(int i=0; i < entries.Count; i++){
+			NetDecoder.WriteUshort(entries[i].slot, NetMessage.buffer, pos);
+			pos += 2;
+			Array.Copy(entries[i].before, 0, NetMessage.buffer, pos, entries[i].before.Length);
+			pos += entries[i].before.Length;
+			Array.Copy(entries[i].after, 0, NetMessage.buffer, pos, entries[i].after.Length);
+			pos += entries[i].after.Length;
+		}
+
+		this.size = pos;
+	}
+
+	// Server answers every ContainerOp, with the current contents of the slots whose change was rejected
+	// {CODE}[ContainerKey 11][OpID 2][Count 2] | Count x ([Slot 2] Slot)
+	public void ContainerResult(ContainerKey key, ushort opID, List<ushort> rejected, List<byte[]> truth){
+		int pos = 16;
+
+		Reset();
+		key.Write(NetMessage.buffer, 1);
+		NetDecoder.WriteUshort(opID, NetMessage.buffer, 12);
+		NetDecoder.WriteUshort((ushort)rejected.Count, NetMessage.buffer, 14);
+
+		for(int i=0; i < rejected.Count; i++){
+			NetDecoder.WriteUshort(rejected[i], NetMessage.buffer, pos);
+			pos += 2;
+			Array.Copy(truth[i], 0, NetMessage.buffer, pos, truth[i].Length);
+			pos += truth[i].Length;
+		}
+
+		this.size = pos;
+	}
+
+	// Client closed a container, or Server forces a client to close it
+	// {CODE}[ContainerKey 11]
+	public void ContainerClose(ContainerKey key){
+		Reset();
+		key.Write(NetMessage.buffer, 1);
+		this.size = 12;
+	}
 }
 
 // Client and Server are always built together, so codes and layouts can change freely
@@ -702,7 +791,12 @@ public enum NetCode : byte{
 	SENDATTACHMENTANCHOR,
 	ENTITYVFX,
 	ENTITYVOXELLIGHT,
-	VOXELANIMATION
+	VOXELANIMATION,
+	CONTAINEROPEN,
+	CONTAINERSLOTS,
+	CONTAINEROP,
+	CONTAINERRESULT,
+	CONTAINERCLOSE
 }
 
 public enum NetBroadcast{

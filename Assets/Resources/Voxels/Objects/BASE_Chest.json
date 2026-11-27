@@ -31,12 +31,18 @@
 --->Behaviours
 {
     "modelIdentity": "VX_AnimatedModelIdentityBehaviour",
+    "onPlace": "VX_ContainerBehaviour",
     "onPlayerPlace": "VX_FacePlayerBehaviour",
-    "onInteract": ["VX_AnimationQueueBehaviour", "VX_InteractSoundSequenceBehaviour"],
+    "onPlayerInteract": "VX_ContainerBehaviour",
+    "onContainerToggle": ["VX_AnimationQueueBehaviour", "VX_InteractSoundSequenceBehaviour"],
     "onSFXPlay": "VX_InteractSoundSequenceBehaviour",
     "animationPose": "VX_AnimationQueueBehaviour",
     "rotationValue": "VX_FacePlayerBehaviour",
-    "onBreak": "VX_BreakDropItemBehaviour"
+    "onBreak": ["VX_BreakDropItemBehaviour", "VX_ContainerBehaviour"]
+}
+--->VX_ContainerBehaviour
+{
+    "inventoryType": "CHEST"
 }
 --->VX_AnimatedModelIdentityBehaviour
 {

@@ -24,7 +24,8 @@ public struct RegionFile{
 	private byte[] emptyHole;
 
 	// Opens the file and adds ".rdf" at the end (Region Data File)
-	public RegionFile(string name, string fileFormat, ChunkPos pos, float chunkLen, string worldName="", bool isDefrag=false){
+	// Index and hole files use .ind and .hle unless other formats are given, so other region-based files can share a folder
+	public RegionFile(string name, string fileFormat, ChunkPos pos, float chunkLen, string worldName="", bool isDefrag=false, string indexFormat=".ind", string holeFormat=".hle"){
 		bool isLoaded = true;
 
 		this.name = name;
@@ -52,19 +53,19 @@ public struct RegionFile{
 		}
 
 		try{
-			this.indexFile = File.Open(this.worldDir + name + ".ind", FileMode.Open);
+			this.indexFile = File.Open(this.worldDir + name + indexFormat, FileMode.Open);
 		} 
 		catch (FileNotFoundException){
 			isLoaded = false;
-			this.indexFile = File.Open(this.worldDir + name + ".ind", FileMode.Create);
+			this.indexFile = File.Open(this.worldDir + name + indexFormat, FileMode.Create);
 		}
 
 		try{
-			this.holeFile = File.Open(this.worldDir + name + ".hle", FileMode.Open);
+			this.holeFile = File.Open(this.worldDir + name + holeFormat, FileMode.Open);
 		} 
 		catch (FileNotFoundException){
 			isLoaded = false;
-			this.holeFile = File.Open(this.worldDir + name + ".hle", FileMode.Create);
+			this.holeFile = File.Open(this.worldDir + name + holeFormat, FileMode.Create);
 		}
 
 		this.fragHandler = new FragmentationHandler(isLoaded);
@@ -123,21 +124,34 @@ public struct RegionFile{
 	}
 
 	// Reads index data with IND file
+	// Read in batches of cachedIndex, so regions can hold more entries than fit in it
 	public void LoadIndex(){
-		this.indexFile.Seek(0, SeekOrigin.Begin);
-
-		ReadIndexEntry();
+		long remaining = this.indexFile.Length - (this.indexFile.Length % 16);
+		int toRead, read;
 		long a;
 		long b;
 
+		this.indexFile.Seek(0, SeekOrigin.Begin);
 		this.index.Clear();
 
-		for(int i=0; i<this.indexFile.Length; i+=16){
-			a = ReadLong(i);
-			b = ReadLong(i+8);
+		while(remaining > 0){
+			toRead = (int)System.Math.Min(remaining, (long)this.cachedIndex.Length);
+			read = ReadIndexBatch(toRead);
 
-			this.index[a] = b;
+			for(int i=0; i + 16 <= read; i+=16){
+				a = ReadLong(i);
+				b = ReadLong(i+8);
+
+				this.index[a] = b;
+			}
+
+			if(read < toRead)
+				break;
+
+			remaining -= toRead;
 		}
+
+		this.indexFile.Seek(0, SeekOrigin.End);
 	}
 
 	// Save hole data to the HLE file
@@ -218,24 +232,46 @@ public struct RegionFile{
 	}
 
 	// Writes all index data to index file
+	// Written in batches of cachedIndex, so regions can hold more entries than fit in it
 	public void UnloadIndex(){
 		int position = 0;
+
+		this.indexFile.SetLength(0);
+		this.indexFile.Seek(0, SeekOrigin.Begin);
 
 		foreach(long l in this.index.Keys){
 			ReadIndexLong(l, position);
 			position += 8;
 			ReadIndexLong(this.index[l], position);
 			position += 8;
+
+			if(position == this.cachedIndex.Length){
+				this.indexFile.Write(this.cachedIndex, 0, position);
+				position = 0;
+			}
 		}
 
-		this.indexFile.SetLength(0);
-		this.indexFile.Write(this.cachedIndex, 0, position);
+		if(position > 0)
+			this.indexFile.Write(this.cachedIndex, 0, position);
+
 		this.indexFile.Flush();
 	}
 
-	// Reads all index file and sends it to cachedIndex
-	private void ReadIndexEntry(){
-		this.indexFile.Read(this.cachedIndex, 0, (int)this.indexFile.Length);
+	// Reads the next bytes of the index file to cachedIndex. Returns the amount of bytes read
+	private int ReadIndexBatch(int size){
+		int read = 0;
+		int current;
+
+		while(read < size){
+			current = this.indexFile.Read(this.cachedIndex, read, size - read);
+
+			if(current <= 0)
+				break;
+
+			read += current;
+		}
+
+		return read;
 	}
 
 	// Reads a long in byte[] cachedIndex at position n

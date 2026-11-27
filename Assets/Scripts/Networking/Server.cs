@@ -567,6 +567,12 @@ public class Server {
 			case NetCode.ENTITYVOXELLIGHT:
 				EntityVoxelLight(data, id);
 				break;
+			case NetCode.CONTAINEROP:
+				ContainerOp(data, length, id);
+				break;
+			case NetCode.CONTAINERCLOSE:
+				ContainerClose(data, id);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -1114,9 +1120,6 @@ public class Server {
 
 	// Receives an Interaction command from client
 	private void Interact(byte[] data, ulong id){
-		// DEBUG
-		this.cl.TestInventoryReceive(id);
-
 		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
 		int x, y, z;
 		int facing = (sbyte)data[12];
@@ -1128,10 +1131,14 @@ public class Server {
 
 		ushort blockCode = this.cl.GetBlock(current);
 
-		if(blockCode <= ushort.MaxValue/2)
+		if(blockCode <= ushort.MaxValue/2){
 			callback = VoxelLoader.GetBlock(blockCode).OnInteract(pos, current.blockX, current.blockY, current.blockZ, this.cl);
-		else
+			callback |= VoxelLoader.GetBlock(blockCode).OnPlayerInteract(pos, current.blockX, current.blockY, current.blockZ, id, this.cl);
+		}
+		else{
 			callback = VoxelLoader.GetObject(blockCode).OnInteract(pos, current.blockX, current.blockY, current.blockZ, this.cl);
+			callback |= VoxelLoader.GetObject(blockCode).OnPlayerInteract(pos, current.blockX, current.blockY, current.blockZ, id, this.cl);
+		}
 
 		// Actual handling of message
 		CallbackHandler(callback, pos, current, facing);		
@@ -1360,7 +1367,7 @@ public class Server {
 	(REFER TO THESE CODES WHENEVER ADDING NEW BLOCK INTERACTIONS)
 	(MAY BE NEEDED IN ORDER TO IMPLEMENT NEW POST HANDLERS FOR NEW BLOCKS)
 	*/
-	private void CallbackHandler(int code, ChunkPos targetChunk, CastCoord thisPos, int facing){
+	public void CallbackHandler(int code, ChunkPos targetChunk, CastCoord thisPos, int facing){
 		// 0: No further actions necessary
 		if(code == 0)
 			return;
@@ -1529,6 +1536,10 @@ public class Server {
 
 		if(!this.connections.TryGetValue(id, out connection))
 			return;
+
+		// Closes its container while the chunk of the container is still loaded
+		if(this.cl.containerHandler != null)
+			this.cl.containerHandler.RemovePlayer(id);
 
 		// Captures and removes all chunks
 		this.cachedChunks.Clear();
@@ -2080,6 +2091,50 @@ public class Server {
 		NetMessage message = new NetMessage(NetCode.SENDATTACHMENTANCHOR);
 		message.SendAttachmentAnchor(GetPlayerNetID(id), origin, target, flip, heightOffset);
 		this.SendToClientsExcept(id, message);
+	}
+
+	// Receives the container slots a client changed, with their contents before and after the change
+	// Entries that were cut short end the list
+	private void ContainerOp(byte[] data, int length, ulong id){
+		ContainerKey key;
+		ushort opID, count, slot;
+		List<ContainerOpEntry> entries;
+		int pos = 16;
+		int beforePos, afterPos;
+		byte[] before, after;
+
+		if(length < 16)
+			return;
+
+		key = ContainerKey.Read(data, 1);
+		opID = NetDecoder.ReadUshort(data, 12);
+		count = NetDecoder.ReadUshort(data, 14);
+		entries = new List<ContainerOpEntry>(count);
+
+		for(int i=0; i < count; i++){
+			if(pos + 3 > length)
+				break;
+
+			slot = NetDecoder.ReadUshort(data, pos);
+			beforePos = pos + 2;
+			afterPos = beforePos + InventorySlotCodec.GetSize(data, beforePos);
+
+			if(afterPos >= length || afterPos + InventorySlotCodec.GetSize(data, afterPos) > length)
+				break;
+
+			before = InventorySlotCodec.Copy(data, beforePos);
+			after = InventorySlotCodec.Copy(data, afterPos);
+			pos = afterPos + after.Length;
+
+			entries.Add(new ContainerOpEntry(slot, before, after));
+		}
+
+		this.cl.containerHandler.ApplyOps(id, key, opID, entries);
+	}
+
+	// Receives the notice that a client closed a container
+	private void ContainerClose(byte[] data, ulong id){
+		this.cl.containerHandler.Close(id, ContainerKey.Read(data, 1));
 	}
 
 	/*

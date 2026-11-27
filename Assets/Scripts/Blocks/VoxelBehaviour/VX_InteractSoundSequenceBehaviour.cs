@@ -12,7 +12,7 @@ the same way VX_AnimationQueueBehaviour keeps its queue. So the sounds follow it
 The part of the state above count belongs to other behaviours (like VX_FacePlayerBehaviour) and is kept.
 
 The Server sends SFXPLAY with the new state, and the Clients pick the same sound from it in OnSFXPlay.
-Must be used in onInteract and onSFXPlay. Other behaviours of the voxel in onSFXPlay also receive the message
+Must be used in onInteract (or onContainerToggle) and onSFXPlay. Other behaviours of the voxel in onSFXPlay also receive the message
 */
 [Serializable]
 public class VX_InteractSoundSequenceBehaviour : VoxelBehaviour{
@@ -36,14 +36,22 @@ public class VX_InteractSoundSequenceBehaviour : VoxelBehaviour{
 	}
 
 	// Objects only: checks that the sounds follow the animation queue of the Object
+	// Containers run both from onContainerToggle instead of onInteract, so that list is checked too
 	public override void PostObjectSetup(BlocklikeObject owner){
-		List<VoxelBehaviour> interact = owner.GetOnInteract();
+		CheckQueueSync(owner, owner.GetOnInteract());
+		CheckQueueSync(owner, owner.GetOnContainerToggle());
+	}
+
+	private void CheckQueueSync(BlocklikeObject owner, List<VoxelBehaviour> interact){
 		VX_AnimationQueueBehaviour queue;
 
 		if(interact == null)
 			return;
 
 		int position = interact.IndexOf(this);
+
+		if(position < 0)
+			return;
 
 		for(int i=0; i < interact.Count; i++){
 			queue = interact[i] as VX_AnimationQueueBehaviour;
@@ -54,7 +62,7 @@ public class VX_InteractSoundSequenceBehaviour : VoxelBehaviour{
 			if(this.countInteractions)
 				throw new DeserializationErrorException($"[VX_InteractSoundSequenceBehaviour] Object '{owner.codename}' already counts interactions with VX_AnimationQueueBehaviour, so countInteractions must be false");
 			if(i > position)
-				throw new DeserializationErrorException($"[VX_InteractSoundSequenceBehaviour] Object '{owner.codename}' must list VX_AnimationQueueBehaviour before it in onInteract");
+				throw new DeserializationErrorException($"[VX_InteractSoundSequenceBehaviour] Object '{owner.codename}' must list VX_AnimationQueueBehaviour before it in onInteract/onContainerToggle");
 			if(queue.GetQueueLength() != this.sounds.Count)
 				throw new DeserializationErrorException($"[VX_InteractSoundSequenceBehaviour] Object '{owner.codename}' has {this.sounds.Count} sounds and {queue.GetQueueLength()} queued animations");
 		}

@@ -47,6 +47,8 @@ public abstract class VoxelBehaviour {
 	// Block Events
 	public virtual void OnBlockUpdate(BUDCode type, int x, int y, int z, int budX, int budY, int budZ, int facing, ChunkLoader_Server cl){return;}
 	public virtual int OnInteract(ChunkPos pos, int x, int y, int z, ChunkLoader_Server cl){return 0;}
+	// Runs after OnInteract with the player that interacted. The player's data is in cl.regionHandler.allPlayerData[playerID]
+	public virtual int OnPlayerInteract(ChunkPos pos, int x, int y, int z, ulong playerID, ChunkLoader_Server cl){return 0;}
 	public virtual int OnPlace(ChunkPos pos, int x, int y, int z, int facing, ChunkLoader_Server cl){return 0;}
 	// Runs after OnPlace when a player placed the voxel. The player's data is in cl.regionHandler.allPlayerData[playerID]
 	public virtual int OnPlayerPlace(ChunkPos pos, int x, int y, int z, int facing, ulong playerID, ChunkLoader_Server cl){return 0;}

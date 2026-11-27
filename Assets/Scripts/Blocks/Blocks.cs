@@ -36,6 +36,8 @@ public class Blocks
 	// Behaviours
 	private List<VoxelBehaviour> onBlockUpdate;
 	private List<VoxelBehaviour> onInteract;
+	private List<VoxelBehaviour> onPlayerInteract;
+	private List<VoxelBehaviour> onContainerToggle;
 	private List<VoxelBehaviour> onPlace;
 	private List<VoxelBehaviour> onPlayerPlace;
 	private List<VoxelBehaviour> onBreak;
@@ -123,6 +125,12 @@ public class Blocks
     public List<VoxelBehaviour> GetOnInteract() { return onInteract; }
     public void SetOnInteract(List<VoxelBehaviour> val) { onInteract = val; }
 
+    public List<VoxelBehaviour> GetOnPlayerInteract() { return onPlayerInteract; }
+    public void SetOnPlayerInteract(List<VoxelBehaviour> val) { onPlayerInteract = val; }
+
+    public List<VoxelBehaviour> GetOnContainerToggle() { return onContainerToggle; }
+    public void SetOnContainerToggle(List<VoxelBehaviour> val) { onContainerToggle = val; }
+
     public List<VoxelBehaviour> GetOnPlace() { return onPlace; }
     public void SetOnPlace(List<VoxelBehaviour> val) { onPlace = val; }
 
@@ -204,6 +212,34 @@ public class Blocks
 
 		for(int i=0; i < this.onInteract.Count; i++){
 			returnCode = returnCode | this.onInteract[i].OnInteract(pos, blockX, blockY, blockZ, cl);
+		}
+
+		return returnCode;
+	}
+
+	// Runs after OnInteract with the player that interacted
+	public virtual int OnPlayerInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ulong playerID, ChunkLoader_Server cl){
+		if(this.onPlayerInteract == null || this.onPlayerInteract.Count == 0)
+			return 0;
+
+		int returnCode = 0;
+
+		for(int i=0; i < this.onPlayerInteract.Count; i++){
+			returnCode = returnCode | this.onPlayerInteract[i].OnPlayerInteract(pos, blockX, blockY, blockZ, playerID, cl);
+		}
+
+		return returnCode;
+	}
+
+	// Containers only: runs OnInteract of the onContainerToggle behaviours when the first viewer opens the container and when the last one closes it
+	public virtual int OnContainerToggle(ChunkPos pos, int blockX, int blockY, int blockZ, bool open, ChunkLoader_Server cl){
+		if(this.onContainerToggle == null || this.onContainerToggle.Count == 0)
+			return 0;
+
+		int returnCode = 0;
+
+		for(int i=0; i < this.onContainerToggle.Count; i++){
+			returnCode = returnCode | this.onContainerToggle[i].OnInteract(pos, blockX, blockY, blockZ, cl);
 		}
 
 		return returnCode;
@@ -369,6 +405,16 @@ public class Blocks
 		if(this.onInteract != null){
 			for(int i=0; i < onInteract.Count; i++){
 				onInteract[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onPlayerInteract != null){
+			for(int i=0; i < onPlayerInteract.Count; i++){
+				onPlayerInteract[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onContainerToggle != null){
+			for(int i=0; i < onContainerToggle.Count; i++){
+				onContainerToggle[i].PostDeserializationSetup(isClient);
 			}
 		}
 		if(this.onPlace != null){

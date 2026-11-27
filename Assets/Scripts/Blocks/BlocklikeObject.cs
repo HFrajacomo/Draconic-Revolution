@@ -41,6 +41,8 @@ public class BlocklikeObject
 	private VoxelBehaviour animationPose;
 	private List<VoxelBehaviour> onBlockUpdate;
 	private List<VoxelBehaviour> onInteract;
+	private List<VoxelBehaviour> onPlayerInteract;
+	private List<VoxelBehaviour> onContainerToggle;
 	private List<VoxelBehaviour> onPlace;
 	private List<VoxelBehaviour> onPlayerPlace;
 	private List<VoxelBehaviour> onBreak;
@@ -127,6 +129,12 @@ public class BlocklikeObject
 
     public List<VoxelBehaviour> GetOnInteract() { return onInteract; }
     public void SetOnInteract(List<VoxelBehaviour> val) { onInteract = val; }
+
+    public List<VoxelBehaviour> GetOnPlayerInteract() { return onPlayerInteract; }
+    public void SetOnPlayerInteract(List<VoxelBehaviour> val) { onPlayerInteract = val; }
+
+    public List<VoxelBehaviour> GetOnContainerToggle() { return onContainerToggle; }
+    public void SetOnContainerToggle(List<VoxelBehaviour> val) { onContainerToggle = val; }
 
     public List<VoxelBehaviour> GetOnPlace() { return onPlace; }
     public void SetOnPlace(List<VoxelBehaviour> val) { onPlace = val; }
@@ -219,6 +227,48 @@ public class BlocklikeObject
 
 		for(int i=0; i < this.onInteract.Count; i++){
 			returnCode = returnCode | this.onInteract[i].OnInteract(pos, blockX, blockY, blockZ, cl);
+		}
+
+		return returnCode;
+	}
+
+	// Runs after OnInteract with the player that interacted
+	public virtual int OnPlayerInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ulong playerID, ChunkLoader_Server cl){
+		if(this.onPlayerInteract == null || this.onPlayerInteract.Count == 0)
+			return 0;
+
+		int returnCode = 0;
+
+		for(int i=0; i < this.onPlayerInteract.Count; i++){
+			returnCode = returnCode | this.onPlayerInteract[i].OnPlayerInteract(pos, blockX, blockY, blockZ, playerID, cl);
+		}
+
+		return returnCode;
+	}
+
+	/*
+	Containers only: runs OnInteract of the onContainerToggle behaviours when the first viewer opens the container (open)
+	and when the last one closes it (!open), like opening and closing the lid of a chest
+	If a VX_AnimationQueueBehaviour is listed, nothing runs when the Object is already in the requested pose:
+	its default pose is the closed one, so saved states never leave a container open with nobody looking at it
+	*/
+	public virtual int OnContainerToggle(ChunkPos pos, int blockX, int blockY, int blockZ, bool open, ChunkLoader_Server cl){
+		if(this.onContainerToggle == null || this.onContainerToggle.Count == 0)
+			return 0;
+
+		VX_AnimationQueueBehaviour queue;
+		ushort state = cl.GetChunk(pos).metadata.GetState(blockX, blockY, blockZ);
+		int returnCode = 0;
+
+		for(int i=0; i < this.onContainerToggle.Count; i++){
+			queue = this.onContainerToggle[i] as VX_AnimationQueueBehaviour;
+
+			if(queue != null && queue.IsAtDefaultPose(state) != open)
+				return 0;
+		}
+
+		for(int i=0; i < this.onContainerToggle.Count; i++){
+			returnCode = returnCode | this.onContainerToggle[i].OnInteract(pos, blockX, blockY, blockZ, cl);
 		}
 
 		return returnCode;
@@ -408,6 +458,16 @@ public class BlocklikeObject
 				onInteract[i].PostDeserializationSetup(isClient);
 			}
 		}
+		if(this.onPlayerInteract != null){
+			for(int i=0; i < onPlayerInteract.Count; i++){
+				onPlayerInteract[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onContainerToggle != null){
+			for(int i=0; i < onContainerToggle.Count; i++){
+				onContainerToggle[i].PostDeserializationSetup(isClient);
+			}
+		}
 		if(this.onPlace != null){
 			for(int i=0; i < onPlace.Count; i++){
 				onPlace[i].PostDeserializationSetup(isClient);
@@ -508,6 +568,8 @@ public class BlocklikeObject
 	private void RunPostObjectSetup(){
 		PostObjectSetup(this.onBlockUpdate);
 		PostObjectSetup(this.onInteract);
+		PostObjectSetup(this.onPlayerInteract);
+		PostObjectSetup(this.onContainerToggle);
 		PostObjectSetup(this.onPlace);
 		PostObjectSetup(this.onPlayerPlace);
 		PostObjectSetup(this.onBreak);

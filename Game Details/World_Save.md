@@ -72,6 +72,19 @@ Chunks are read from disk by the `ChunkReader`, a background thread, so loading 
 
 While a chunk is being read, its queued saves are held back, since saving it may move it to another position of the file. At most `SERVER_MAX_PENDING_READS` chunks are read at the same time. Reads requested in a tick are usually finished and loaded in that same tick, within the load time budget.
 
+## Container Files
+
+The items inside containers (chests and other voxels with `VX_ContainerBehaviour`) are saved by the `ContainerFileHandler`, using the same Region logic: every Region has its own **Container Data File (.cdf)**, **Container Index File (.cind)** and **Container Hole File (.chle)**, named `c{RegionX}x{RegionZ}_{Layer}`.
+
+Each container has its own entry, so it can be found with the ChunkPos and the position of its voxel inside the chunk:
+
+- The key of a container is `((localChunkZ * 32 + localChunkX) << 16) | voxelIndex`, where the local chunk coordinates are relative to the Region and `voxelIndex = x + z*16 + y*256`.
+- An entry is `[Size 4][InventoryType 1]` followed by every slot of the container, written by `InventorySlotCodec` (the `MemoryStorageType` layout of player inventories).
+- Entries are rewritten in place when they still fit, and otherwise moved to a hole big enough for them. Containers that become empty have their entry removed, and placing a container deletes any entry left in its position.
+- Containers are written as soon as a change is applied, so they don't need to be flushed when the Server closes.
+
+Index files of Regions are read and written in batches, so a Region can have any amount of entries.
+
 # Congratulations
 
 Now you know a little bit more about Disk Space management and what was used in order to save everything you see and do!
