@@ -44,4 +44,7 @@ public class InventoryButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
 
     public void SetController(PlayerInventoryManager manager){this.invController = manager;}
+
+    // Ctrl is a toggle flipped on press and release, so it's reset between sessions (MainControllerManager.ResetSessionState)
+    public static void ResetCtrl(){InventoryButton.ctrl = false;}
 }

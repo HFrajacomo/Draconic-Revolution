@@ -24,6 +24,8 @@ public class ShaderLoader : BaseLoader {
 	// Damage decals of Objects (see DamageDecal.hlsl). Same texture and opacity as the block decals (DecalMaterial)
 	private static readonly string DAMAGE_DECAL_TEXTURE_RESPATH = "decalTest";
 	private static readonly float DAMAGE_DECAL_OPACITY = 0.4f;
+	// Global shader textures aren't references, so scene loads would unload a texture only bound as one. This field keeps it loaded
+	private static Texture2D damageDecalTexture;
 
 
 	public ShaderLoader(bool client){
@@ -73,12 +75,21 @@ public class ShaderLoader : BaseLoader {
 	}
 
 	private void InitDamageDecals(){
-		Texture2D texture = Resources.Load<Texture2D>(DAMAGE_DECAL_TEXTURE_RESPATH);
+		damageDecalTexture = Resources.Load<Texture2D>(DAMAGE_DECAL_TEXTURE_RESPATH);
 
-		if(texture == null)
+		if(damageDecalTexture == null)
 			throw new DeserializationErrorException($"[ShaderLoader] Couldn't find the damage decal texture at Resources/{DAMAGE_DECAL_TEXTURE_RESPATH}");
 
-		Shader.SetGlobalTexture("_DamageDecalTexture", texture);
+		damageDecalTexture.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+		BindDamageDecals();
+	}
+
+	// Sets the damage decal globals. Also called when the Game scene starts, so they're always bound to the loaded texture
+	public static void BindDamageDecals(){
+		if(damageDecalTexture == null)
+			return;
+
+		Shader.SetGlobalTexture("_DamageDecalTexture", damageDecalTexture);
 		Shader.SetGlobalFloat("_DamageDecalOpacity", DAMAGE_DECAL_OPACITY);
 		Shader.SetGlobalFloat("_DamageDecalStages", Constants.DECAL_STAGE_SIZE);
 	}

@@ -46,11 +46,25 @@ public class MainControllerManager : MonoBehaviour {
     public static bool DEBUG = false;
     private static readonly byte EQUIPMENT_INVENTORY_CODE = 3; // Position of the equipment in PlayerInventoryManager's inventories
 
+    // Every Game session starts with no UI open, even if the last one was left with an open UI or a held key
+    void Awake(){
+        ResetSessionState();
+    }
+
     public void Update(){
         LOCK_DROP = false;
         LOCK_INTERACT = false;
         LOCK_MOUSE2 = false;
         LOCK_MOUSE1 = false;
+    }
+
+    // Static input and UI state outlives scenes, so it's reset when a session ends (ChunkLoader.Cleanup) and when one starts
+    public static void ResetSessionState(){
+        MainControllerManager.InUI = false;
+        MainControllerManager.shifting = false;
+        MainControllerManager.ctrl = false;
+        MainControllerManager.inventory = false;
+        InventoryButton.ResetCtrl();
     }
 
 	// Jumping

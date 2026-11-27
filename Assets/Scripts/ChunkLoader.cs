@@ -137,6 +137,7 @@ public class ChunkLoader : MonoBehaviour
         VoxelLoader.InitBlockEncyclopediaECS();
         ObjectMeshTables.Build();
         AnimatedObjectTables.Build();
+        ShaderLoader.BindDamageDecals();
         ChunkMeshLayout.Init();
         CalculateJobSlots();
         CreateBuildSlots();
@@ -180,6 +181,13 @@ public class ChunkLoader : MonoBehaviour
     }
 
     public void Cleanup(bool comesFromClient=false){
+        // The container UI is closed before the connection, so it doesn't try to tell the Server. The Server forgets its viewers on disconnect
+        if(this.playerInventoryManager != null && this.playerInventoryManager.containerManager != null)
+            this.playerInventoryManager.containerManager.Close(notifyServer:false);
+
+        // Leaving with a UI open would otherwise keep the next session in UI mode (camera and clicks locked)
+        MainControllerManager.ResetSessionState();
+
         // The Server is told before the connection is closed
         if(!comesFromClient)
             this.client.Shutdown(notifyServer:true);

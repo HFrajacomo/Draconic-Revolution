@@ -141,6 +141,10 @@ public class ContainerInventoryManager : MonoBehaviour{
 		if(!this.isOpen)
 			return;
 
+		// The game session is being torn down (disconnect), and the chunks are already gone
+		if(this.cl == null || this.cl.client == null)
+			return;
+
 		if(!this.cl.Contains(this.key.pos) || this.cl.Get(this.key.pos).data.GetCell(this.key.x, this.key.y, this.key.z) != this.blockCode){
 			this.mainControllerManager.OnCloseUI();
 			return;
@@ -161,7 +165,8 @@ public class ContainerInventoryManager : MonoBehaviour{
 
 		this.isOpen = false;
 
-		if(notifyServer){
+		// No connection is left after a disconnect. The Server already forgot the viewers of a disconnected player
+		if(notifyServer && this.cl != null && this.cl.client != null){
 			NetMessage message = new NetMessage(NetCode.CONTAINERCLOSE);
 			message.ContainerClose(this.key);
 			this.cl.client.Send(message);
