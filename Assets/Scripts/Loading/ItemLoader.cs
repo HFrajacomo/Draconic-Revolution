@@ -105,6 +105,10 @@ public class ItemLoader : BaseLoader {
 				serializedItem.PostDeserializationSetup();
 				itemList.Add(serializedItem);
 				codenameToItemID.Add(item, i);
+
+				if(isClient)
+					texture.filterMode = FilterMode.Point;
+
 				textureBank.Add(i, texture);
 
 				i++;

@@ -324,6 +324,10 @@ public class EntityHandler
 		}
 	}
 
+	public Dictionary<ulong, ItemEntity>.ValueCollection GetDroppedItems(){
+		return this.dropObject.Values;
+	}
+
 	public void SetItemPosition(ulong code, Vector3 newPos){
 		if(!this.dropObject.ContainsKey(code))
 			return;

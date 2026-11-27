@@ -43,6 +43,8 @@ public class InventoryLoader : BaseLoader {
 
 	public static Inventory GetInventory(string type){return inventories[type].Copy();}
 	public static Inventory GetInventory(byte id){return inventoriesByID[id].Copy();}
+	public static bool IsInventory(byte id){return inventoriesByID.ContainsKey(id);}
+	public static bool Contains(string type){return type != null && inventories.ContainsKey(type);}
 	public static ActionInventory GetActionInventory(string type){return actionInventories[type].Copy();}
 
 	public static byte GetInventoryID(string type){return inventories[type].GetID();}

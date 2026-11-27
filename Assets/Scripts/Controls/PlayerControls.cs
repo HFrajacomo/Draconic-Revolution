@@ -139,7 +139,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""name"": ""ToggleHUD"",
                     ""type"": ""Button"",
                     ""id"": ""e65e0f1c-4dc0-4fc2-92f3-ae6f3b5148e2"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": ""Press"",
                     ""initialStateCheck"": false
@@ -277,6 +277,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""CloseUI"",
+                    ""type"": ""Button"",
+                    ""id"": ""4b0f3a8e-6c21-4d5e-9f3a-2e7c1d9b5a64"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": ""Press"",
                     ""initialStateCheck"": false
                 }
             ],
@@ -643,6 +652,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""DebugKey"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9e2d7c41-3b8a-4f6e-a1d5-7c0b2e8f4a39"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""CloseUI"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -696,6 +716,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_Drop = m_Player.FindAction("Drop", throwIfNotFound: true);
         m_Player_DebugKey = m_Player.FindAction("DebugKey", throwIfNotFound: true);
         m_Player_DebugKey2 = m_Player.FindAction("DebugKey2", throwIfNotFound: true);
+        m_Player_CloseUI = m_Player.FindAction("CloseUI", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -790,6 +811,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Drop;
     private readonly InputAction m_Player_DebugKey;
     private readonly InputAction m_Player_DebugKey2;
+    private readonly InputAction m_Player_CloseUI;
     public struct PlayerActions
     {
         private @PlayerControls m_Wrapper;
@@ -822,6 +844,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @Drop => m_Wrapper.m_Player_Drop;
         public InputAction @DebugKey => m_Wrapper.m_Player_DebugKey;
         public InputAction @DebugKey2 => m_Wrapper.m_Player_DebugKey2;
+        public InputAction @CloseUI => m_Wrapper.m_Player_CloseUI;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -915,6 +938,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @DebugKey2.started += instance.OnDebugKey2;
             @DebugKey2.performed += instance.OnDebugKey2;
             @DebugKey2.canceled += instance.OnDebugKey2;
+            @CloseUI.started += instance.OnCloseUI;
+            @CloseUI.performed += instance.OnCloseUI;
+            @CloseUI.canceled += instance.OnCloseUI;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1003,6 +1029,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @DebugKey2.started -= instance.OnDebugKey2;
             @DebugKey2.performed -= instance.OnDebugKey2;
             @DebugKey2.canceled -= instance.OnDebugKey2;
+            @CloseUI.started -= instance.OnCloseUI;
+            @CloseUI.performed -= instance.OnCloseUI;
+            @CloseUI.canceled -= instance.OnCloseUI;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1059,5 +1088,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnDrop(InputAction.CallbackContext context);
         void OnDebugKey(InputAction.CallbackContext context);
         void OnDebugKey2(InputAction.CallbackContext context);
+        void OnCloseUI(InputAction.CallbackContext context);
     }
 }

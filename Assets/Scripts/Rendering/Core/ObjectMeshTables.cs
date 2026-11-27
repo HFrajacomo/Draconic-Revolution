@@ -15,6 +15,7 @@ public static class ObjectMeshTables{
 	public static NativeArray<Vector3> uvs;
 	public static NativeArray<Vector3> normals;
 	public static NativeArray<Vector4> tangents;
+	public static NativeArray<float> partIndex; // Part of the model of each vertex. Only used by Animated Objects (see VX_AnimatedModelIdentityBehaviour)
 	public static NativeArray<int> tris;
 	public static NativeArray<int> vertOffset;
 	public static NativeArray<int> trisOffset;
@@ -44,6 +45,7 @@ public static class ObjectMeshTables{
 		List<Vector3> uv = new List<Vector3>();
 		List<Vector3> n = new List<Vector3>();
 		List<Vector4> t = new List<Vector4>();
+		List<float> part = new List<float>();
 		List<int> tri = new List<int>();
 		List<Vector3> hv = new List<Vector3>();
 		List<Vector3> hn = new List<Vector3>();
@@ -59,6 +61,7 @@ public static class ObjectMeshTables{
 
 		BlocklikeObject obj;
 		MeshData meshData;
+		VX_AnimatedModelIdentityBehaviour animatedIdentity;
 
 		for(int i=0; i < amount; i++){
 			obj = VoxelLoader.GetObject((ushort)(ushort.MaxValue - i));
@@ -78,10 +81,16 @@ public static class ObjectMeshTables{
 				meshData.GetTangents(t);
 				tri.AddRange(meshData.GetTriangles());
 
+				animatedIdentity = obj.GetModelIdentity() as VX_AnimatedModelIdentityBehaviour;
+
+				if(animatedIdentity != null && animatedIdentity.GetVertexParts() != null)
+					part.AddRange(animatedIdentity.GetVertexParts());
+
 				// Every attribute must have one entry per vertex
 				Fit(uv, v.Count, Vector3.zero);
 				Fit(n, v.Count, Vector3.up);
 				Fit(t, v.Count, new Vector4(1, 0, 0, 1));
+				Fit(part, v.Count, 0f);
 
 				meshData.GetHitboxVertices(hv);
 				meshData.GetHitboxNormals(hn);
@@ -108,6 +117,7 @@ public static class ObjectMeshTables{
 		uvs = new NativeArray<Vector3>(uv.ToArray(), Allocator.Persistent);
 		normals = new NativeArray<Vector3>(n.ToArray(), Allocator.Persistent);
 		tangents = new NativeArray<Vector4>(t.ToArray(), Allocator.Persistent);
+		partIndex = new NativeArray<float>(part.ToArray(), Allocator.Persistent);
 		tris = new NativeArray<int>(tri.ToArray(), Allocator.Persistent);
 		vertOffset = new NativeArray<int>(vOff, Allocator.Persistent);
 		trisOffset = new NativeArray<int>(tOff, Allocator.Persistent);
@@ -133,6 +143,7 @@ public static class ObjectMeshTables{
 		uvs.Dispose();
 		normals.Dispose();
 		tangents.Dispose();
+		partIndex.Dispose();
 		tris.Dispose();
 		vertOffset.Dispose();
 		trisOffset.Dispose();

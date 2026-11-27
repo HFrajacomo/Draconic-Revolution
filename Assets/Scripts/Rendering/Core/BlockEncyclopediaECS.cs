@@ -103,6 +103,7 @@ public static class BlockEncyclopediaECS {
 
 		LightingScratch.Destroy();
 		ObjectMeshTables.Destroy();
+		AnimatedObjectTables.Destroy();
 		ChunkMeshLayout.Destroy();
 
 		IS_INITIALIZED = false;

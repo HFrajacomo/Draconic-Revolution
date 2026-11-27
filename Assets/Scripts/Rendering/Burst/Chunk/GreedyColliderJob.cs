@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 /*
 Builds the chunk collider by merging the collidable block faces of each layer into the largest possible rectangles (greedy meshing).
-Solid Object geometry is appended afterwards with its indices remapped.
+Solid Object geometry and the hitboxes of solid Animated Objects are appended afterwards with their indices remapped.
 Rectangles keep the corner order and winding of CubeMeshData faces
 */
 [BurstCompile]
@@ -25,6 +25,12 @@ public struct GreedyColliderJob : IJob{
 	[ReadOnly]
 	public NativeArray<int> blockVertexCount;
 
+	// Hitboxes of solid Animated Objects, which are their collision (PrepareAssetsJob)
+	[ReadOnly]
+	public NativeList<Vector3> solidHitboxVerts;
+	[ReadOnly]
+	public NativeList<int> solidHitboxTris;
+
 	// Output
 	public NativeList<Vector3> colliderVerts;
 	public NativeList<int> colliderTris;
@@ -40,6 +46,7 @@ public struct GreedyColliderJob : IJob{
 		Greedy(5, 1, 0, 2); // Down (y-)
 
 		AppendSolidObjects();
+		AppendSolidHitboxes();
 	}
 
 	private void Greedy(int dir, int layerAxis, int uAxis, int vAxis){
@@ -129,6 +136,16 @@ public struct GreedyColliderJob : IJob{
 
 		for(int i=0; i < assetSolidTris.Length; i++)
 			colliderTris.Add(assetSolidTris[i] + offset);
+	}
+
+	private void AppendSolidHitboxes(){
+		int offset = colliderVerts.Length;
+
+		for(int i=0; i < solidHitboxVerts.Length; i++)
+			colliderVerts.Add(solidHitboxVerts[i]);
+
+		for(int i=0; i < solidHitboxTris.Length; i++)
+			colliderTris.Add(solidHitboxTris[i] + offset);
 	}
 
 	private bool IsFace(int dir, int layerAxis, int uAxis, int vAxis, int layer, int u, int v){

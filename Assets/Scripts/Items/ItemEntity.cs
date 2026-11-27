@@ -26,12 +26,15 @@ public class ItemEntity : MonoBehaviour {
 
 	void Awake(){
 		this.gameObject.transform.parent = this.droppedItemHierarchy.transform;
-		this.meshFilter = GetComponent<MeshFilter>();
-		this.meshRenderer = GetComponent<MeshRenderer>();
+		// The mesh is in a child, so the animation clips move it relative to the networked root
+		this.meshFilter = GetComponentInChildren<MeshFilter>(true);
+		this.meshRenderer = GetComponentInChildren<MeshRenderer>(true);
 		this.animator = this.gameObject.GetComponent<Animator>();
 		this.gameObject.name = ItemEntity.NAME;
 		this.mesh = new Mesh();
 		this.animator.applyRootMotion = false;
+		// Rotation is only animated on the child, so the spawn direction would otherwise tilt it for good
+		this.transform.rotation = Quaternion.identity;
 	}
 
 	void Start(){
@@ -53,6 +56,15 @@ public class ItemEntity : MonoBehaviour {
 
 	public void SetVisible(bool flag){
 		this.meshRenderer.enabled = flag;
+	}
+
+	public bool IsVisible(){
+		return this.meshRenderer.enabled;
+	}
+
+	// Includes the animated offset (bobbing), unlike transform.position
+	public Vector3 GetModelPosition(){
+		return this.meshRenderer.transform.position;
 	}
 
 	public void PlaySpinAnimation(){

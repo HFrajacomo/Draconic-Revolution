@@ -36,7 +36,7 @@ public class ChunkBuildSlot{
 	// Render Mesh
 	private NativeList<Vector3> verts;
 	private NativeList<Vector3> UVs;
-	private NativeList<Vector3> lightUV;
+	private NativeList<Vector4> lightUV;
 	private NativeList<Vector3> normals;
 	private NativeList<Vector4> tangents;
 	private NativeList<int> normalTris;
@@ -65,6 +65,11 @@ public class ChunkBuildSlot{
 	private NativeList<Vector3> hitboxNormals;
 	private NativeList<int> hitboxTris;
 
+	// Animated Objects (their geometry is built by AnimatedMeshBuildSlot)
+	private NativeList<Vector3> solidHitboxVerts;
+	private NativeList<int> solidHitboxTris;
+	private NativeList<int2> animatedLight;
+
 	// Objects and Load Events
 	private NativeList<int3> loadAssetList;
 	private NativeBitArray assetCoordinates;
@@ -75,7 +80,7 @@ public class ChunkBuildSlot{
 	private NativeArray<Vector3> cacheCubeUV;
 	private NativeArray<Vector3> cacheCubeNormal;
 	private NativeArray<Vector4> cacheCubeTangent;
-	private NativeArray<Vector3> extraUV;
+	private NativeArray<Vector4> extraUV;
 
 	// Results
 	private NativeArray<Bounds> bounds;
@@ -111,7 +116,7 @@ public class ChunkBuildSlot{
 
 		this.verts = new NativeList<Vector3>(INITIAL_CAPACITY, Allocator.Persistent);
 		this.UVs = new NativeList<Vector3>(INITIAL_CAPACITY, Allocator.Persistent);
-		this.lightUV = new NativeList<Vector3>(INITIAL_CAPACITY, Allocator.Persistent);
+		this.lightUV = new NativeList<Vector4>(INITIAL_CAPACITY, Allocator.Persistent);
 		this.normals = new NativeList<Vector3>(INITIAL_CAPACITY, Allocator.Persistent);
 		this.tangents = new NativeList<Vector4>(INITIAL_CAPACITY, Allocator.Persistent);
 		this.normalTris = new NativeList<int>(INITIAL_CAPACITY, Allocator.Persistent);
@@ -137,6 +142,10 @@ public class ChunkBuildSlot{
 		this.hitboxNormals = new NativeList<Vector3>(Allocator.Persistent);
 		this.hitboxTris = new NativeList<int>(Allocator.Persistent);
 
+		this.solidHitboxVerts = new NativeList<Vector3>(Allocator.Persistent);
+		this.solidHitboxTris = new NativeList<int>(Allocator.Persistent);
+		this.animatedLight = new NativeList<int2>(Allocator.Persistent);
+
 		this.loadAssetList = new NativeList<int3>(Allocator.Persistent);
 		this.assetCoordinates = new NativeBitArray(VOXEL_COUNT, Allocator.Persistent);
 		this.loadCoords = new NativeList<int3>(Allocator.Persistent);
@@ -145,7 +154,7 @@ public class ChunkBuildSlot{
 		this.cacheCubeUV = new NativeArray<Vector3>(4, Allocator.Persistent);
 		this.cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.Persistent);
 		this.cacheCubeTangent = new NativeArray<Vector4>(4, Allocator.Persistent);
-		this.extraUV = new NativeArray<Vector3>(4, Allocator.Persistent);
+		this.extraUV = new NativeArray<Vector4>(4, Allocator.Persistent);
 
 		this.bounds = new NativeArray<Bounds>(WriteChunkMeshJob.MESH_COUNT, Allocator.Persistent);
 		this.indexCounts = new NativeArray<int>(WriteChunkMeshJob.MESH_COUNT, Allocator.Persistent);
@@ -264,17 +273,23 @@ public class ChunkBuildSlot{
 			hitboxVerts = this.hitboxVerts,
 			hitboxNormals = this.hitboxNormals,
 			hitboxTriangles = this.hitboxTris,
+			solidHitboxVerts = this.solidHitboxVerts,
+			solidHitboxTris = this.solidHitboxTris,
+			animatedLight = this.animatedLight,
 
 			coords = this.loadAssetList,
 			blocks = this.blocks,
 			light = this.light,
 			heights = this.heights,
 			state = this.state,
+			hp = this.hp,
 
+			objectHP = BlockEncyclopediaECS.objectHP,
 			scaling = BlockEncyclopediaECS.objectScaling,
 			hitboxScaling = BlockEncyclopediaECS.hitboxScaling,
 			needRotation = BlockEncyclopediaECS.objectNeedRotation,
 			material = BlockEncyclopediaECS.objectMaterial,
+			solid = BlockEncyclopediaECS.objectSolid,
 
 			loadedVerts = ObjectMeshTables.verts,
 			loadedUV = ObjectMeshTables.uvs,
@@ -300,6 +315,8 @@ public class ChunkBuildSlot{
 			verts = this.verts,
 			assetSolidTris = this.assetSolidTris,
 			blockVertexCount = this.blockVertexCount,
+			solidHitboxVerts = this.solidHitboxVerts,
+			solidHitboxTris = this.solidHitboxTris,
 			colliderVerts = this.colliderVerts,
 			colliderTris = this.colliderTris
 		};
@@ -378,6 +395,10 @@ public class ChunkBuildSlot{
 		}
 
 		this.chunk.AttachRenderMeshes();
+
+		// Animated Objects only get their light from static builds, their mesh is never rebuilt by them
+		if(this.chunk.animated != null)
+			this.chunk.animated.ApplyLight(this.animatedLight);
 
 		this.hasCollider = this.indexCounts[WriteChunkMeshJob.COLLIDER_MESH] > 0;
 		this.hasRaycast = this.indexCounts[WriteChunkMeshJob.RAYCAST_MESH] > 0;
@@ -462,6 +483,10 @@ public class ChunkBuildSlot{
 		this.hitboxVerts.Dispose();
 		this.hitboxNormals.Dispose();
 		this.hitboxTris.Dispose();
+
+		this.solidHitboxVerts.Dispose();
+		this.solidHitboxTris.Dispose();
+		this.animatedLight.Dispose();
 
 		this.loadAssetList.Dispose();
 		this.assetCoordinates.Dispose();
@@ -581,6 +606,10 @@ public class ChunkBuildSlot{
 		this.hitboxVerts.Clear();
 		this.hitboxNormals.Clear();
 		this.hitboxTris.Clear();
+
+		this.solidHitboxVerts.Clear();
+		this.solidHitboxTris.Clear();
+		this.animatedLight.Clear();
 
 		this.loadAssetList.Clear();
 		this.assetCoordinates.Clear();

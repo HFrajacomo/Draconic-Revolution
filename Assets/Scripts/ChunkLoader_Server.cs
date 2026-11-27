@@ -44,6 +44,7 @@ public class ChunkLoader_Server : MonoBehaviour
 	// Persistence
     public RegionFileHandler regionHandler;
     public EntityFileHandler entityFileHandler;
+    public ContainerHandler_Server containerHandler;
     public PlayerServerInventory playerServerInventory;
     public CharacterFileHandler characterFileHandler;
 
@@ -72,6 +73,9 @@ public class ChunkLoader_Server : MonoBehaviour
 
         if(this.entityFileHandler != null)
             this.entityFileHandler.CloseAll();
+
+        if(this.containerHandler != null)
+            this.containerHandler.CloseFiles();
         
         if(this.worldGen != null)
             this.worldGen.DestroyNativeMemory();
@@ -130,6 +134,7 @@ public class ChunkLoader_Server : MonoBehaviour
 
         this.regionHandler = new RegionFileHandler(this);
         this.entityFileHandler = new EntityFileHandler(this);
+        this.containerHandler = new ContainerHandler_Server(this);
         this.chunkReader = new ChunkReader();
 
         worldSeed = regionHandler.GetRealSeed();
@@ -793,50 +798,5 @@ public class ChunkLoader_Server : MonoBehaviour
             return sub%mod;
         else
             return (sub%mod)+mod;
-    }
-
-    // DEBUG FUNCTION
-    public void TestInventoryReceive(ulong id){
-        int size = InventoryLoader.GetInventorySize("ACTION_HOTBAR") + InventoryLoader.GetInventorySize("HOTBAR") + InventoryLoader.GetInventorySize("PLAYER") + InventoryLoader.GetInventorySize("EQUIPMENT");
-
-        PlayerServerInventorySlot[] slots = new PlayerServerInventorySlot[size];
-        NetMessage message;
-        int length;
-
-        for(byte i=0; i < size; i++){
-            if(i == 0){
-                slots[i] = new ActionInventorySlot(ActionLoader.GetID("BASE_EquipmentAttack"), false, 0, 0, 0, 0, InventoryLoader.GetActionInventoryID("ACTION_HOTBAR"), 0);
-            }
-            else if(i == 10){
-                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE, InventoryLoader.GetInventoryID("HOTBAR"), i);
-            }
-            else if(i == 11){
-                slots[i] = new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE, InventoryLoader.GetInventoryID("HOTBAR"), i);
-            }
-            else if(i == 12){
-                slots[i] = new SubWeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 0, 50, InventoryLoader.GetInventoryID("HOTBAR"), i);
-            }
-            else if(i == 13){
-                slots[i] = new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50, InventoryLoader.GetInventoryID("HOTBAR"), i);
-            }
-            else if(i < InventoryLoader.GetInventorySize("ACTION_HOTBAR")){
-                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetActionInventoryID("ACTION_HOTBAR"), i);
-            }
-            else if(i < InventoryLoader.GetInventorySize("ACTION_HOTBAR") + InventoryLoader.GetInventorySize(InventoryLoader.GetInventoryID("HOTBAR"))){
-                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("HOTBAR"), i);
-            }
-            else if(i < InventoryLoader.GetInventorySize("ACTION_HOTBAR") + InventoryLoader.GetInventorySize(InventoryLoader.GetInventoryID("HOTBAR")) + InventoryLoader.GetInventorySize(InventoryLoader.GetInventoryID("PLAYER"))){
-                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("PLAYER"), i);
-            }
-            else{
-                slots[i] = new EmptyPlayerInventorySlot(InventoryLoader.GetInventoryID("EQUIPMENT"), i);                
-            }
-        }
-
-        this.playerServerInventory.AddInventory(id, slots);
-        length = this.playerServerInventory.ConvertInventoryToBytes(id);
-        message = new NetMessage(NetCode.SENDINVENTORY);
-        message.SendInventory(this.playerServerInventory.GetBuffer(), length);
-        this.server.Send(message.GetMessage(), message.size, id);
     }
 }

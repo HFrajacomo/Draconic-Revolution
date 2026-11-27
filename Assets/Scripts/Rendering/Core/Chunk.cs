@@ -63,6 +63,9 @@ public class Chunk
 	public GameObject objRain;
 	public static readonly int RAIN_LAYER = 13;
 
+	// Animated Objects of this chunk, referenced by their in-chunk position. Null until the chunk has one (Client only)
+	public ChunkAnimatedObjects animated;
+
 	// Meshes
 	// Collider meshes are double-buffered: builds write into the mesh that isn't used by the MeshCollider,
 	// so the current collision stays valid while the new one is cooked
@@ -122,7 +125,7 @@ public class Chunk
 		this.meshColliderRain = this.objRain.AddComponent<MeshCollider>();
 		this.meshColliderRain.cookingOptions = COLLIDER_COOKING_OPTIONS;
 
-		msr.sharedMaterials = this.renderer.GetComponent<MeshRenderer>().sharedMaterials;
+		msr.sharedMaterials = this.renderer.GetChunkMaterials();
 		msrDecal.material = this.renderer.decalMaterial;
 		this.obj.layer = 8;
 
@@ -204,6 +207,11 @@ public class Chunk
 			this.meshFilterDecal.sharedMesh = this.meshDecal;
 	}
 
+	// True once a build applied the render mesh of this chunk
+	public bool HasRenderMesh(){
+		return this.meshFilter != null && this.meshFilter.sharedMesh == this.mesh;
+	}
+
 	// Makes the MeshColliders use the meshes written by the last build, which must already be cooked
 	public void SwapColliders(bool hasCollider, bool hasRaycast, bool hasRain){
 		int next = 1 - this.activeCollider;
@@ -238,6 +246,11 @@ public class Chunk
 		// Jobs of a running build must finish before its meshes are destroyed
 		if(this.buildSlot != null)
 			this.buildSlot.Abort();
+
+		if(this.animated != null){
+			this.animated.Destroy();
+			this.animated = null;
+		}
 
 		GameObject.Destroy(this.obj);
 		GameObject.Destroy(this.objDecal);

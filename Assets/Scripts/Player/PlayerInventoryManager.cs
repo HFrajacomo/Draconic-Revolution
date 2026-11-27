@@ -25,6 +25,16 @@ public class PlayerInventoryManager : MonoBehaviour {
     private bool INIT = false;
     private bool bulkMoveAbove = true; // If inventory shift-move should be done upwards or downwards
 
+    // Container UI
+    [HideInInspector]
+    public ContainerInventoryManager containerManager;
+    private bool containerMode = false;
+    private GameObject actionHotbarObject;
+    private GameObject equipmentObject;
+    private RectTransform scrollAreaTransform;
+    private Vector2 scrollAreaPosition; // anchoredPosition, which doesn't depend on the size the canvas had when the UI was built
+    private static readonly float CONTAINER_BAG_OFFSET = -380f; // Horizontal shift of the bag while a container is open (to the left)
+
     // Cache
 	private readonly string EMPTY_OBJECT_PATHNAME = "----- PrefabModels -----/EmptyObjectUI";
 	private GameObject EMPTY_OBJECT;
@@ -94,6 +104,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		CreateHotbarInventory(this.gameObject);
 		CreatePlayerBagInventory(this.gameObject);
 		CreateEquipmentInventory(this.gameObject);
+		CreateContainerPanel(this.gameObject);
 		CreateDragSlot(this.gameObject);
 
 		this.detailsImage.material = Instantiate(this.itemIconMaterial);
@@ -346,6 +357,10 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     // Drops an item from a given inventory and slot
     public void Drop(byte inventoryCode, byte slot, bool ctrl){
+    	// Container slots can't be dropped from. Items must be taken out first
+    	if(inventoryCode == Constants.CONTAINER_INVENTORY_CODE)
+    		return;
+
     	// Hit drop in an item inventory
     	if(this.inventory[inventoryCode].itemInventory){
     		ItemStack its = this.inventory[inventoryCode].GetSlot(slot);
@@ -478,6 +493,38 @@ public class PlayerInventoryManager : MonoBehaviour {
 
     // Activates on Left Click of a slot
     public void LeftClick(byte inventoryCode, ushort slot){
+    	if(inventoryCode == Constants.CONTAINER_INVENTORY_CODE){
+    		this.containerManager.LeftClick(slot);
+    		return;
+    	}
+
+    	// While a container is open, shift-clicking an item sends it to the container
+    	if(this.containerMode && MainControllerManager.shifting && this.draggedStack == null && this.inventory[inventoryCode].itemInventory){
+    		this.containerManager.DepositFromPlayer(inventoryCode, slot);
+    		return;
+    	}
+
+    	PlayerLeftClick(inventoryCode, slot);
+
+    	if(this.containerMode)
+    		this.detailsPanel.SetActive(false);
+    }
+
+    // Activates on Right Click of a slot
+    public void RightClick(byte inventoryCode, ushort slot){
+    	if(inventoryCode == Constants.CONTAINER_INVENTORY_CODE){
+    		this.containerManager.RightClick(slot);
+    		return;
+    	}
+
+    	PlayerRightClick(inventoryCode, slot);
+
+    	if(this.containerMode)
+    		this.detailsPanel.SetActive(false);
+    }
+
+    // Left Click of a slot of the player inventories
+    private void PlayerLeftClick(byte inventoryCode, ushort slot){
     	// If has no slot selected and not shifting
     	if(this.draggedStack == null && !MainControllerManager.shifting){
     		// Avoid null slot click
@@ -670,6 +717,10 @@ public class PlayerInventoryManager : MonoBehaviour {
 				}
 				// If clicked an action inventory
 				else{
+					// Actions can't be connected to items that came from a container and weren't put in the player's inventories
+					if(this.draggedStackOriginInventory == Constants.CONTAINER_INVENTORY_CODE)
+						return;
+
 					EntityAction ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
 					EntityAction current = this.inventory[inventoryCode].GetPos(slot);
 
@@ -734,8 +785,8 @@ public class PlayerInventoryManager : MonoBehaviour {
     	}
     }
 
-    // Activates on Right Click of a slot
-    public void RightClick(byte inventoryCode, ushort slot){
+    // Right Click of a slot of the player inventories
+    private void PlayerRightClick(byte inventoryCode, ushort slot){
     	// If has no selection
     	if(this.draggedStack == null){
     		if(IsNullSlot(inventoryCode, slot))
@@ -910,6 +961,10 @@ public class PlayerInventoryManager : MonoBehaviour {
 	    	else{
 	    		// while draggin an item
 				if(this.draggedStack.IsItemStack()){
+					// Actions can't be connected to items that came from a container and weren't put in the player's inventories
+					if(this.draggedStackOriginInventory == Constants.CONTAINER_INVENTORY_CODE)
+						return;
+
 					EntityAction ea = ((ItemStack)this.draggedStack).GetItem().OnCreateAction(this.cl, (ItemStack)this.draggedStack);
 					EntityAction current = this.inventory[inventoryCode].GetPos(slot);
 
@@ -1140,6 +1195,283 @@ public class PlayerInventoryManager : MonoBehaviour {
     	this.draggedStack = null;
         this.detailsPanel.SetActive(false);
         this.ResetDetails();
+	}
+
+	// ------------------------- Container Support --------------------------------
+
+	public bool IsInContainerMode(){return this.containerMode;}
+	public ClickableSlot GetDraggedStack(){return this.draggedStack;}
+
+	// Shows or hides the container layout: the bag on the left and the container panel on the right, without equipment, details and action hotbar
+	public void SetContainerMode(bool active){
+		this.containerMode = active;
+		this.containerManager.gameObject.SetActive(active);
+		this.equipmentObject.SetActive(!active);
+		this.actionHotbarObject.SetActive(!active);
+		this.detailsPanel.SetActive(false);
+
+		if(active)
+			this.scrollAreaTransform.anchoredPosition = this.scrollAreaPosition + new Vector2(CONTAINER_BAG_OFFSET, 0f);
+		else
+			this.scrollAreaTransform.anchoredPosition = this.scrollAreaPosition;
+	}
+
+	// Holds a stack taken from a container slot
+	public void HoldFromContainer(ItemStack its, ushort slot){
+		this.draggedStack = its;
+		this.draggedStackOriginInventory = Constants.CONTAINER_INVENTORY_CODE;
+		this.draggedStackOriginSlot = slot;
+		ToggleHighlight(true, its);
+	}
+
+	// The whole held stack was put in a container
+	public void ReleaseHeldToContainer(){
+		if(this.draggedStack != null && this.draggedStack.IsItemStack())
+			DetachHeldStack((ItemStack)this.draggedStack);
+
+		ResetSelection();
+	}
+
+	// The held stack was put in a container slot and the stack of that slot is now held
+	public void SwapHeldWithContainer(ItemStack its, ushort slot){
+		if(this.draggedStack != null && this.draggedStack.IsItemStack())
+			DetachHeldStack((ItemStack)this.draggedStack);
+
+		HoldFromContainer(its, slot);
+	}
+
+	// Redraws the held stack after its amount changed
+	public void RefreshHeld(){
+		if(this.draggedStack == null)
+			ResetSelection();
+		else
+			ToggleHighlight(true, this.draggedStack);
+	}
+
+	// Gets the stack in a slot of an item inventory
+	public ItemStack GetItemStack(byte inventoryCode, ushort slot){
+		if(inventoryCode >= this.inventory.Count || !this.inventory[inventoryCode].itemInventory)
+			return null;
+		if(slot >= this.inventory[inventoryCode].GetLimit())
+			return null;
+
+		return this.inventory[inventoryCode].GetSlot(slot);
+	}
+
+	public int GetInventoryLimit(byte inventoryCode){
+		if(inventoryCode >= this.inventory.Count)
+			return 0;
+
+		return this.inventory[inventoryCode].GetLimit();
+	}
+
+	// Inventories that "Store All" and "Quick Stack" take items from: the bag and other storages, but not the hotbar or equipment
+	public List<byte> GetStoreAllSources(){
+		List<byte> output = new List<byte>();
+
+		for(int i=0; i < this.inventory.Count; i++){
+			if(!this.inventory[i].itemInventory || IsEquipmentInventory(i))
+				continue;
+			if(this.inventory[i] == this.cl.hotbarHandler.hotbar || this.inventory[i].GetMainInventory())
+				continue;
+
+			output.Add((byte)i);
+		}
+
+		return output;
+	}
+
+	// Removes an amount of items from a slot of the player inventories, like when they're moved to a container
+	public void RemoveFromSlot(byte inventoryCode, ushort slot, byte amount){
+		ItemStack its = GetItemStack(inventoryCode, slot);
+
+		if(its == null || amount == 0)
+			return;
+
+		if(amount >= its.GetAmount()){
+			SubToCounter(its);
+			DetachActionsFrom(its);
+			SetNull(inventoryCode, (byte)slot);
+			SendEquipDataToServer(inventoryCode, its, null);
+		}
+		else{
+			SubToCounter(its.GetID(), amount);
+			its.SetAmount((byte)(its.GetAmount() - amount));
+			DrawSlot(inventoryCode, slot);
+		}
+	}
+
+	/*
+	Puts as much of a stack as possible in the player inventories, like when it's taken from a container
+	First tops up stacks of the same item, then uses the first empty slot. Both go through the bag, then other storages, and the hotbar last
+	The given stack isn't changed. Returns the amount of items stored
+	*/
+	public byte StoreInPlayer(ItemStack its){
+		List<int> targets;
+		ItemStack current;
+		byte remaining = its.GetAmount();
+		byte stacksize = its.GetStacksize();
+		byte toAdd;
+		int inv;
+
+		if(remaining == 0)
+			return 0;
+
+		targets = GetStoreTargets(its);
+
+		// Tops up stacks of the same item
+		if(stacksize > 1){
+			for(int i=0; i < targets.Count && remaining > 0; i++){
+				inv = targets[i];
+
+				for(ushort j=0; j < this.inventory[inv].GetLimit() && remaining > 0; j++){
+					current = this.inventory[inv].GetSlot(j);
+
+					if(current == null || current.GetID() != its.GetID() || current.IsFull())
+						continue;
+
+					toAdd = (byte)Mathf.Min(stacksize - current.GetAmount(), remaining);
+					current.Add(toAdd);
+					remaining -= toAdd;
+					DrawSlot((byte)inv, j);
+				}
+			}
+		}
+
+		// Puts the remainder in the first empty slot
+		for(int i=0; i < targets.Count && remaining > 0; i++){
+			inv = targets[i];
+
+			for(ushort j=0; j < this.inventory[inv].GetLimit(); j++){
+				if(this.inventory[inv].GetSlot(j) != null || !this.inventory[inv].IsInLocalWhitelist(its, j))
+					continue;
+
+				this.inventory[inv].ForceAddStack(new ItemStack(its.GetItem(), remaining), j);
+				remaining = 0;
+				DrawSlot((byte)inv, j);
+				break;
+			}
+		}
+
+		toAdd = (byte)(its.GetAmount() - remaining);
+		AddToCounter(its.GetID(), toAdd);
+
+		return toAdd;
+	}
+
+	// Inventories a stack can be stored in by StoreInPlayer, in order: the bag and other storages, then the hotbar
+	private List<int> GetStoreTargets(ItemStack its){
+		List<int> targets = new List<int>();
+		int hotbar = -1;
+
+		for(int i=0; i < this.inventory.Count; i++){
+			if(!CanStoreInPlayer(i, its))
+				continue;
+
+			if(this.inventory[i] == this.cl.hotbarHandler.hotbar || this.inventory[i].GetMainInventory()){
+				hotbar = i;
+				continue;
+			}
+
+			targets.Add(i);
+		}
+
+		if(hotbar >= 0)
+			targets.Add(hotbar);
+
+		return targets;
+	}
+
+	// Gives items back to the player when a change in a container was rejected. Items that don't fit are dropped
+	public void GiveBackItems(ItemStack its){
+		byte stored = StoreInPlayer(its);
+
+		if(stored < its.GetAmount())
+			this.mainControllerManager.DropItem(new ItemStack(its.GetItem(), (byte)(its.GetAmount() - stored)));
+	}
+
+	// Takes items back from the player when a change in a container was rejected. The held stack goes first
+	public void TakeBackItems(ushort id, byte amount){
+		ItemStack its;
+		byte toTake;
+
+		if(this.draggedStack != null && this.draggedStack.IsItemStack() && this.draggedStack.GetID() == id){
+			its = (ItemStack)this.draggedStack;
+			toTake = (byte)Mathf.Min(its.GetAmount(), amount);
+			amount -= toTake;
+
+			if(its.Subtract(toTake)){
+				DetachActionsFrom(its);
+				ResetSelection();
+			}
+			else{
+				ToggleHighlight(true, its);
+			}
+		}
+
+		for(int i=1; i < this.inventory.Count && amount > 0; i++){
+			if(!this.inventory[i].itemInventory)
+				continue;
+
+			for(ushort j=0; j < this.inventory[i].GetLimit() && amount > 0; j++){
+				its = this.inventory[i].GetSlot(j);
+
+				if(its == null || its.GetID() != id)
+					continue;
+
+				toTake = (byte)Mathf.Min(its.GetAmount(), amount);
+				amount -= toTake;
+				RemoveFromSlot((byte)i, j, toTake);
+			}
+		}
+	}
+
+	private bool CanStoreInPlayer(int inventoryCode, ItemStack its){
+		if(!this.inventory[inventoryCode].itemInventory || IsEquipmentInventory(inventoryCode))
+			return false;
+		if(!this.inventory[inventoryCode].GetBulkMovedTo())
+			return false;
+
+		return this.inventory[inventoryCode].IsInGlobalWhitelist(its);
+	}
+
+	// A held stack left the player's inventories: actions using it and connections to where it came from are removed
+	private void DetachHeldStack(ItemStack its){
+		DetachActionsFrom(its);
+
+		if(this.draggedStackOriginInventory == Constants.CONTAINER_INVENTORY_CODE){
+			RemoveConnection(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
+			return;
+		}
+
+		if(this.draggedStackOriginInventory >= this.inventory.Count || !this.inventory[this.draggedStackOriginInventory].itemInventory)
+			return;
+
+		// If the origin slot got items again, its connections belong to them
+		if(this.inventory[this.draggedStackOriginInventory].GetSlot(this.draggedStackOriginSlot) == null)
+			SetNull(this.draggedStackOriginInventory, (byte)this.draggedStackOriginSlot);
+	}
+
+	// Removes the item reference of actions that use a stack that left the player's inventories
+	// Actions bound to that specific stack are removed from the action hotbar
+	private void DetachActionsFrom(ItemStack its){
+		EntityAction ea;
+
+		for(ushort i=0; i < this.inventory[0].GetLimit(); i++){
+			ea = this.inventory[0].GetPos(i);
+
+			if(ea == null || ea.GetItemStack(null) != its)
+				continue;
+
+			ea.SetItemStack(null);
+
+			if(!ea.notConnectedToSpecificStack){
+				this.inventory[0].SetNull(i);
+				RemoveConnection((byte)i);
+			}
+
+			DrawSlot(0, i);
+		}
 	}
 
 	// Gets the nearest ItemStack in inventory given an ID
@@ -1483,6 +1815,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		goSlots.name = "ActionHotbarSlots";
 		goSlots.transform.SetParent(parent.transform);
+		this.actionHotbarObject = goSlots;
 		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
 		FixTransform(slotTransform, groupSizes, anchorMain, addX:-48, addY:20);
 
@@ -1555,6 +1888,8 @@ public class PlayerInventoryManager : MonoBehaviour {
 		scrollObject.transform.SetParent(parent.transform);
 		RectTransform rectTransf = scrollObject.GetComponent<RectTransform>();
 		FixTransform(rectTransf, scrollAreaSizes, anchorMain, addY:200);
+		this.scrollAreaTransform = rectTransf;
+		this.scrollAreaPosition = rectTransf.anchoredPosition;
 		ScrollRectNoDrag scroll = scrollObject.AddComponent<ScrollRectNoDrag>();
 		scroll.movementType = ScrollRect.MovementType.Clamped;
 		scroll.scrollSensitivity = 100f;
@@ -1623,6 +1958,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 		goSlots.name = "EquipmentSlots";
 		goSlots.transform.SetParent(parent.transform);
+		this.equipmentObject = goSlots;
 		RectTransform slotTransform = goSlots.GetComponent<RectTransform>();
 		FixTransform(slotTransform, groupSizes, anchorSec, addX:400);
 
@@ -1635,6 +1971,19 @@ public class PlayerInventoryManager : MonoBehaviour {
 
 			this.slotImages[3][i].gameObject.transform.localPosition = new Vector3(i*(-80), 0f, 0f);
 		}
+	}
+
+	// Creates the panel of external inventories (chests and other containers). Hidden until a container is opened
+	private void CreateContainerPanel(GameObject parent){
+		GameObject go = GameObject.Instantiate(EMPTY_OBJECT);
+
+		go.name = "ContainerPanel";
+		go.transform.SetParent(parent.transform);
+
+		this.containerManager = go.AddComponent<ContainerInventoryManager>();
+		this.containerManager.Setup(this, this.cl, this.mainControllerManager, EMPTY_OBJECT);
+
+		go.SetActive(false);
 	}
 
 	private void CreateDragSlot(GameObject parent){
@@ -1662,7 +2011,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	// ------------------------- Component Generation ------------------------------------------
 
 	// Creates an Image component using Inventory's default style
-	private Image CreateImageComponent(GameObject parent, string goName, int inventoryCode, int slot, Vector2 size, Vector2 anchor, bool itemInventory=true){
+	public Image CreateImageComponent(GameObject parent, string goName, int inventoryCode, int slot, Vector2 size, Vector2 anchor, bool itemInventory=true){
 		GameObject go = GameObject.Instantiate(EMPTY_OBJECT);
 		go.name = goName;
 		go.transform.SetParent(parent.transform);
@@ -1711,7 +2060,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 	}
 
 	// Creates a TextMeshProUI component using Inventory's default style
-	private TextMeshProUGUI CreateTextComponent(GameObject parent, string goName, Vector2 size, Vector2 anchor){
+	public TextMeshProUGUI CreateTextComponent(GameObject parent, string goName, Vector2 size, Vector2 anchor){
 		GameObject go = GameObject.Instantiate(EMPTY_OBJECT);
 		go.name = goName;
 		go.transform.SetParent(parent.transform);
@@ -1728,7 +2077,7 @@ public class PlayerInventoryManager : MonoBehaviour {
 		return tmp;
 	}
 
-	private void FixTransform(RectTransform rect, Vector2 size, Vector2 anchor, int addX = 0, int addY = 0, bool special = false){
+	public void FixTransform(RectTransform rect, Vector2 size, Vector2 anchor, int addX = 0, int addY = 0, bool special = false){
 		if(!special){
 			rect.anchorMin = anchor;
 			rect.anchorMax = anchor;

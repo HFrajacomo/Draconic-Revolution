@@ -6,3 +6,4 @@ BASE_VentusCrystal
 BASE_CastusCrystal
 BASE_RuinaCrystal
 BASE_MagiaCrystal
+BASE_Chest

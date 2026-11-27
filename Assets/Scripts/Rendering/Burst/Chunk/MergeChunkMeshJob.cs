@@ -32,7 +32,7 @@ public struct MergeChunkMeshJob : IJob{
 	// Rendering Primitives
 	public NativeList<Vector3> verts;
 	public NativeList<Vector3> UVs;
-	public NativeList<Vector3> lightUV;
+	public NativeList<Vector4> lightUV; // w = 1 + damage decal code of Objects (see DamageDecal)
 	public NativeList<Vector3> normals;
 	public NativeList<Vector4> tangents;
 
@@ -53,7 +53,7 @@ public struct MergeChunkMeshJob : IJob{
 	// Cache
 	public NativeArray<Vector3> cacheCubeVert;
 	public NativeArray<Vector3> cacheCubeUV;
-	public NativeArray<Vector3> extraUV;
+	public NativeArray<Vector4> extraUV;
 	public NativeArray<Vector3> cacheCubeNormal;
 	public NativeArray<Vector4> cacheCubeTangent;
 
@@ -139,7 +139,7 @@ public struct MergeChunkMeshJob : IJob{
 		UVs.AddRange(cacheCubeUV);
 
 		for(int i=0; i < 4; i++)
-			extraUV[i] = new Vector3(MeshRecord.Unpack(record.natural, i), MeshRecord.Unpack(record.extra, i), record.dampness);
+			extraUV[i] = new Vector4(MeshRecord.Unpack(record.natural, i), MeshRecord.Unpack(record.extra, i), record.dampness, 1f);
 		lightUV.AddRange(extraUV);
 
 		normals.AddRange(cacheCubeNormal);

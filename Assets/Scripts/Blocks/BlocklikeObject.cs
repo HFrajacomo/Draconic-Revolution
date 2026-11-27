@@ -38,9 +38,13 @@ public class BlocklikeObject
 	private VX_ModelIdentityBehaviour modelIdentity;
 	private VoxelBehaviour offsetVector;
 	private VoxelBehaviour rotationValue;
+	private VoxelBehaviour animationPose;
 	private List<VoxelBehaviour> onBlockUpdate;
 	private List<VoxelBehaviour> onInteract;
+	private List<VoxelBehaviour> onPlayerInteract;
+	private List<VoxelBehaviour> onContainerToggle;
 	private List<VoxelBehaviour> onPlace;
+	private List<VoxelBehaviour> onPlayerPlace;
 	private List<VoxelBehaviour> onBreak;
 	private List<VoxelBehaviour> onLoad;
 	private List<VoxelBehaviour> onGenerate;
@@ -126,8 +130,17 @@ public class BlocklikeObject
     public List<VoxelBehaviour> GetOnInteract() { return onInteract; }
     public void SetOnInteract(List<VoxelBehaviour> val) { onInteract = val; }
 
+    public List<VoxelBehaviour> GetOnPlayerInteract() { return onPlayerInteract; }
+    public void SetOnPlayerInteract(List<VoxelBehaviour> val) { onPlayerInteract = val; }
+
+    public List<VoxelBehaviour> GetOnContainerToggle() { return onContainerToggle; }
+    public void SetOnContainerToggle(List<VoxelBehaviour> val) { onContainerToggle = val; }
+
     public List<VoxelBehaviour> GetOnPlace() { return onPlace; }
     public void SetOnPlace(List<VoxelBehaviour> val) { onPlace = val; }
+
+    public List<VoxelBehaviour> GetOnPlayerPlace() { return onPlayerPlace; }
+    public void SetOnPlayerPlace(List<VoxelBehaviour> val) { onPlayerPlace = val; }
 
     public List<VoxelBehaviour> GetOnBreak() { return onBreak; }
     public void SetOnBreak(List<VoxelBehaviour> val) { onBreak = val; }
@@ -162,6 +175,9 @@ public class BlocklikeObject
 
     public VoxelBehaviour GetRotationValue() { return rotationValue; }
     public void SetRotationValue(VoxelBehaviour val) { rotationValue = val; }
+
+    public VoxelBehaviour GetAnimationPose() { return animationPose; }
+    public void SetAnimationPose(VoxelBehaviour val) { animationPose = val; }
 
     public List<VoxelBehaviour> GetOnPlayerStepEnter() { return onPlayerStepEnter; }
     public void SetOnPlayerStepEnter(List<VoxelBehaviour> val) { onPlayerStepEnter = val; }
@@ -216,12 +232,64 @@ public class BlocklikeObject
 		return returnCode;
 	}
 
+	// Runs after OnInteract with the player that interacted
+	public virtual int OnPlayerInteract(ChunkPos pos, int blockX, int blockY, int blockZ, ulong playerID, ChunkLoader_Server cl){
+		if(this.onPlayerInteract == null || this.onPlayerInteract.Count == 0)
+			return 0;
+
+		int returnCode = 0;
+
+		for(int i=0; i < this.onPlayerInteract.Count; i++){
+			returnCode = returnCode | this.onPlayerInteract[i].OnPlayerInteract(pos, blockX, blockY, blockZ, playerID, cl);
+		}
+
+		return returnCode;
+	}
+
+	/*
+	Containers only: runs OnInteract of the onContainerToggle behaviours when the first viewer opens the container (open)
+	and when the last one closes it (!open), like opening and closing the lid of a chest
+	If a VX_AnimationQueueBehaviour is listed, nothing runs when the Object is already in the requested pose:
+	its default pose is the closed one, so saved states never leave a container open with nobody looking at it
+	*/
+	public virtual int OnContainerToggle(ChunkPos pos, int blockX, int blockY, int blockZ, bool open, ChunkLoader_Server cl){
+		if(this.onContainerToggle == null || this.onContainerToggle.Count == 0)
+			return 0;
+
+		VX_AnimationQueueBehaviour queue;
+		ushort state = cl.GetChunk(pos).metadata.GetState(blockX, blockY, blockZ);
+		int returnCode = 0;
+
+		for(int i=0; i < this.onContainerToggle.Count; i++){
+			queue = this.onContainerToggle[i] as VX_AnimationQueueBehaviour;
+
+			if(queue != null && queue.IsAtDefaultPose(state) != open)
+				return 0;
+		}
+
+		for(int i=0; i < this.onContainerToggle.Count; i++){
+			returnCode = returnCode | this.onContainerToggle[i].OnInteract(pos, blockX, blockY, blockZ, cl);
+		}
+
+		return returnCode;
+	}
+
 	public virtual void OnPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ChunkLoader_Server cl){
 		if(this.onPlace == null || this.onPlace.Count == 0)
 			return;
 
 		for(int i=0; i < this.onPlace.Count; i++){
 			this.onPlace[i].OnPlace(pos, blockX, blockY, blockZ, facing, cl);
+		}
+	}
+
+	// Runs after OnPlace when a player placed the object
+	public virtual void OnPlayerPlace(ChunkPos pos, int blockX, int blockY, int blockZ, int facing, ulong playerID, ChunkLoader_Server cl){
+		if(this.onPlayerPlace == null || this.onPlayerPlace.Count == 0)
+			return;
+
+		for(int i=0; i < this.onPlayerPlace.Count; i++){
+			this.onPlayerPlace[i].OnPlayerPlace(pos, blockX, blockY, blockZ, facing, playerID, cl);
 		}
 	}
 
@@ -317,6 +385,14 @@ public class BlocklikeObject
 		return this.rotationValue.GetRotationValue(state);
 	}
 
+	// Animated Objects: index of the animation whose last frame is shown in a state, or -1 for the model's rest pose
+	public virtual int GetAnimationPose(ushort state){
+		if(this.animationPose == null)
+			return -1;
+
+		return this.animationPose.GetAnimationPose(state);
+	}
+
 	public virtual void OnPlayerStepEnter(PlayerVoxelLocation location, CharacterSheet sheet, ChunkLoader cl){
 		if(this.onPlayerStepEnter == null || this.onPlayerStepEnter.Count == 0)
 			return;
@@ -382,9 +458,24 @@ public class BlocklikeObject
 				onInteract[i].PostDeserializationSetup(isClient);
 			}
 		}
+		if(this.onPlayerInteract != null){
+			for(int i=0; i < onPlayerInteract.Count; i++){
+				onPlayerInteract[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onContainerToggle != null){
+			for(int i=0; i < onContainerToggle.Count; i++){
+				onContainerToggle[i].PostDeserializationSetup(isClient);
+			}
+		}
 		if(this.onPlace != null){
 			for(int i=0; i < onPlace.Count; i++){
 				onPlace[i].PostDeserializationSetup(isClient);
+			}
+		}
+		if(this.onPlayerPlace != null){
+			for(int i=0; i < onPlayerPlace.Count; i++){
+				onPlayerPlace[i].PostDeserializationSetup(isClient);
 			}
 		}
 		if(this.onBreak != null){
@@ -436,6 +527,9 @@ public class BlocklikeObject
 		if(this.rotationValue != null){
 			rotationValue.PostDeserializationSetup(isClient);
 		}
+		if(this.animationPose != null){
+			animationPose.PostDeserializationSetup(isClient);
+		}
 		if(this.onPlayerBodyEnter != null){
 			for(int i=0; i < onPlayerBodyEnter.Count; i++){
 				onPlayerBodyEnter[i].PostDeserializationSetup(isClient);
@@ -466,5 +560,49 @@ public class BlocklikeObject
 				onPlayerStepExit[i].PostDeserializationSetup(isClient);
 			}
 		}
+
+		RunPostObjectSetup();
+	}
+
+	// Runs PostObjectSetup on every behaviour once all of them were set up. Behaviours used by many events run it once per event
+	private void RunPostObjectSetup(){
+		PostObjectSetup(this.onBlockUpdate);
+		PostObjectSetup(this.onInteract);
+		PostObjectSetup(this.onPlayerInteract);
+		PostObjectSetup(this.onContainerToggle);
+		PostObjectSetup(this.onPlace);
+		PostObjectSetup(this.onPlayerPlace);
+		PostObjectSetup(this.onBreak);
+		PostObjectSetup(this.onLoad);
+		PostObjectSetup(this.onGenerate);
+		PostObjectSetup(this.onVFXBuild);
+		PostObjectSetup(this.onVFXChange);
+		PostObjectSetup(this.onVFXBreak);
+		PostObjectSetup(this.onSFXPlay);
+		PostObjectSetup(this.placementRule);
+		PostObjectSetup(this.onPlayerBodyEnter);
+		PostObjectSetup(this.onPlayerBodyExit);
+		PostObjectSetup(this.onPlayerHeadEnter);
+		PostObjectSetup(this.onPlayerHeadExit);
+		PostObjectSetup(this.onPlayerStepEnter);
+		PostObjectSetup(this.onPlayerStepExit);
+		PostObjectSetup(this.modelIdentity);
+		PostObjectSetup(this.offsetVector);
+		PostObjectSetup(this.rotationValue);
+		PostObjectSetup(this.animationPose);
+	}
+
+	private void PostObjectSetup(List<VoxelBehaviour> behaviours){
+		if(behaviours == null)
+			return;
+
+		for(int i=0; i < behaviours.Count; i++){
+			behaviours[i].PostObjectSetup(this);
+		}
+	}
+
+	private void PostObjectSetup(VoxelBehaviour behaviour){
+		if(behaviour != null)
+			behaviour.PostObjectSetup(this);
 	}
 }

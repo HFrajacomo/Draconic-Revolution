@@ -88,3 +88,26 @@ In case your inventory has whitelist rules for specific slots, you should not de
 ```
 
 In this example, slot 0 has a whitelist that allows only weapons and empty space. Not just that, but slot 0 also contains a default icon that points towards *Resources/Inventory/left_hand_slot.png*. Any default slot icons should be placed in this directory.
+
+## Container Voxels
+
+Any block or object can become a container (an external inventory players open by interacting with it, like a chest) with `VX_ContainerBehaviour`. Its `inventoryType` is one of the inventories above, which defines the amount of slots, columns and whitelists of the container UI.
+
+```json
+--->Behaviours
+{
+    "onPlace": "VX_ContainerBehaviour",
+    "onPlayerInteract": "VX_ContainerBehaviour",
+    "onContainerToggle": ["VX_AnimationQueueBehaviour", "VX_InteractSoundSequenceBehaviour"],
+    "onBreak": ["VX_BreakDropItemBehaviour", "VX_ContainerBehaviour"]
+}
+--->VX_ContainerBehaviour
+{
+    "inventoryType": "CHEST"
+}
+```
+
+- `onPlayerInteract` opens the container for the player that interacted with it.
+- `onPlace` deletes anything left saved in the position of a newly placed container.
+- `onBreak` drops everything inside the container and closes it for every player looking at it.
+- `onContainerToggle` is optional. Its behaviours run their `OnInteract` when the first player opens the container and when the last one closes it, like the lid animation and sounds of *BASE_Chest*. Behaviours listed here shouldn't also be in `onInteract`.

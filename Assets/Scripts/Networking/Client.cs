@@ -291,6 +291,21 @@ public class Client
 			case NetCode.ENTITYVOXELLIGHT:
 				EntityVoxelLight(data);
 				break;
+			case NetCode.VOXELANIMATION:
+				VoxelAnimation(data);
+				break;
+			case NetCode.CONTAINEROPEN:
+				ContainerOpen(data, length);
+				break;
+			case NetCode.CONTAINERSLOTS:
+				ContainerSlots(data, length);
+				break;
+			case NetCode.CONTAINERRESULT:
+				ContainerResult(data, length);
+				break;
+			case NetCode.CONTAINERCLOSE:
+				ContainerClose(data);
+				break;
 			default:
 				Debug.Log("UNKNOWN NETMESSAGE RECEIVED: " + (NetCode)data[0]);
 				break;
@@ -377,6 +392,7 @@ public class Client
 				c.metadata.SetState(x, y, z, state);
 				c.metadata.SetHP(x, y, z, hp);
 				c.data.CalculateHeightMap(x, z);
+				this.cl.animatedObjects.OnVoxelChanged(c, x, y, z, blockCode, state);
 				this.cl.AddToUpdate(pos);
 				ReloadNeighbors(pos, GetReloadMask(pos, x, y, z));
 				break;
@@ -384,6 +400,7 @@ public class Client
 				c.data.SetCell(x, y, z, 0);
 				c.metadata.Reset(x,y,z);
 				c.data.CalculateHeightMap(x, z);
+				this.cl.animatedObjects.OnVoxelChanged(c, x, y, z, 0, ushort.MaxValue);
 				this.cl.AddToUpdate(pos);
 				ReloadNeighbors(pos, GetReloadMask(pos, x, y, z));
 				break;
@@ -391,6 +408,7 @@ public class Client
 				c.data.SetCell(x, y, z, blockCode);
 				c.metadata.SetState(x, y, z, state);
 				c.metadata.SetHP(x, y, z, hp);
+				this.cl.animatedObjects.OnVoxelChanged(c, x, y, z, blockCode, state);
 				this.cl.AddToUpdate(pos);
 				break;
 			default:
@@ -419,6 +437,7 @@ public class Client
 			c.data.SetCell(x, y, z, NetDecoder.ReadUshort(data, offset+2));
 			c.metadata.SetState(x, y, z, NetDecoder.ReadUshort(data, offset+4));
 			c.metadata.SetHP(x, y, z, NetDecoder.ReadUshort(data, offset+6));
+			this.cl.animatedObjects.OnVoxelChanged(c, x, y, z, NetDecoder.ReadUshort(data, offset+2), NetDecoder.ReadUshort(data, offset+4));
 
 			this.cachedColumns[x*Chunk.chunkWidth+z] = true;
 			reloadMask |= GetReloadMask(pos, x, y, z);
@@ -788,6 +807,30 @@ public class Client
 		}
 	}
 
+	// Receives an animation played by an Animated Object, together with the voxel's new state. Only its slot changes, the chunk isn't rebuilt
+	private void VoxelAnimation(byte[] data){
+		ChunkPos pos = NetDecoder.ReadChunkPos(data, 1);
+		int x, y, z;
+		ushort blockCode = NetDecoder.ReadUshort(data, 12);
+		ushort state = NetDecoder.ReadUshort(data, 14);
+		int animation = data[16];
+		bool continueNormalized = NetDecoder.ReadBool(data, 17);
+		Chunk c;
+
+		NetDecoder.ReadLocalPos(data, 10, out x, out y, out z);
+
+		if(!this.cl.Contains(pos))
+			return;
+
+		c = this.cl.Get(pos);
+
+		if(c.data.GetCell(x, y, z) != blockCode)
+			return;
+
+		c.metadata.SetState(x, y, z, state);
+		this.cl.animatedObjects.Play(c, x, y, z, blockCode, state, animation, continueNormalized);
+	}
+
 	// Receives weather Noise information from server
 	private void SendNoise(byte[] data, int length){
 		World.worldSeed = NetDecoder.ReadInt(data, 1);
@@ -909,6 +952,92 @@ public class Client
 
 		oldItem.OnUnequipClient(this.cl, oldItem, playerCode);
 		newItem.OnEquipClient(this.cl, newItem, playerCode);
+	}
+
+	// Receives the contents of the container the player opened
+	private void ContainerOpen(byte[] data, int length){
+		ContainerKey key;
+		ushort blockCode, count;
+		byte inventoryType;
+		ItemStack[] slots;
+		int pos = 17;
+		int bytesRead;
+
+		if(length < 17)
+			return;
+
+		key = ContainerKey.Read(data, 1);
+		blockCode = NetDecoder.ReadUshort(data, 12);
+		inventoryType = data[14];
+		count = NetDecoder.ReadUshort(data, 15);
+
+		if(!InventoryLoader.IsInventory(inventoryType))
+			return;
+
+		slots = new ItemStack[count];
+
+		for(int i=0; i < count && pos < length; i++){
+			slots[i] = InventorySlotCodec.Read(data, pos, out bytesRead);
+			pos += bytesRead;
+		}
+
+		this.cl.playerInventoryManager.containerManager.Open(key, blockCode, inventoryType, slots);
+	}
+
+	// Receives container slots changed by other players
+	private void ContainerSlots(byte[] data, int length){
+		ContainerKey key;
+		ushort count;
+		List<ushort> slots = new List<ushort>();
+		List<ItemStack> contents = new List<ItemStack>();
+		int pos = 14;
+		int bytesRead;
+
+		if(length < 14)
+			return;
+
+		key = ContainerKey.Read(data, 1);
+		count = NetDecoder.ReadUshort(data, 12);
+
+		for(int i=0; i < count && pos + 2 < length; i++){
+			slots.Add(NetDecoder.ReadUshort(data, pos));
+			pos += 2;
+			contents.Add(InventorySlotCodec.Read(data, pos, out bytesRead));
+			pos += bytesRead;
+		}
+
+		this.cl.playerInventoryManager.containerManager.UpdateSlots(key, slots, contents);
+	}
+
+	// Receives the answer to a container change, with the real contents of the slots whose change was rejected
+	private void ContainerResult(byte[] data, int length){
+		ContainerKey key;
+		ushort opID, count;
+		List<ushort> slots = new List<ushort>();
+		List<ItemStack> truth = new List<ItemStack>();
+		int pos = 16;
+		int bytesRead;
+
+		if(length < 16)
+			return;
+
+		key = ContainerKey.Read(data, 1);
+		opID = NetDecoder.ReadUshort(data, 12);
+		count = NetDecoder.ReadUshort(data, 14);
+
+		for(int i=0; i < count && pos + 2 < length; i++){
+			slots.Add(NetDecoder.ReadUshort(data, pos));
+			pos += 2;
+			truth.Add(InventorySlotCodec.Read(data, pos, out bytesRead));
+			pos += bytesRead;
+		}
+
+		this.cl.playerInventoryManager.containerManager.ApplyResult(key, opID, slots, truth);
+	}
+
+	// Server closed the container, because it was broken or the player is too far from it
+	private void ContainerClose(byte[] data){
+		this.cl.playerInventoryManager.containerManager.ForceClose(ContainerKey.Read(data, 1));
 	}
 
 	/* ================================================================================ */

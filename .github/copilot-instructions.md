@@ -47,7 +47,7 @@ Deep-dive technical docs (read them before changing these systems):
 
 ## Adding Content
 
-Follow the SOPs in [SOPs/](../SOPs/): blocks, items, audio, animation sets, battle styles, character models and inventories. Content is **only imported if registered** in its list file:
+Follow the SOPs in [SOPs/](../SOPs/): blocks, items, audio, animation sets, battle styles, character models, inventories and animated objects. Content is **only imported if registered** in its list file:
 - `Assets/Resources/Voxels/Blocks/BLOCK_LIST.txt`, plus `NORMAL_INTENSITY.txt`
 - `Assets/Resources/Voxels/Objects/OBJECT_LIST.txt`
 - `Assets/Resources/Items/ITEM_LIST.txt`

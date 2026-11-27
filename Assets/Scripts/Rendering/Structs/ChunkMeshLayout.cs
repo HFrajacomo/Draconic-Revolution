@@ -16,6 +16,7 @@ public static class ChunkMeshLayout{
 	public static NativeArray<VertexAttributeDescriptor> collider;
 	public static NativeArray<VertexAttributeDescriptor> decal;
 	public static NativeArray<VertexAttributeDescriptor> raycast;
+	public static NativeArray<VertexAttributeDescriptor> animated;
 
 	public static void Init(){
 		if(isCreated)
@@ -44,6 +45,15 @@ public static class ChunkMeshLayout{
 			new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3, 0)
 		}, Allocator.Persistent);
 
+		// Animated Objects mesh (BuildAnimatedMeshJob): positions are in model space, placed and animated by AnimatedObjects.hlsl
+		animated = new NativeArray<VertexAttributeDescriptor>(new VertexAttributeDescriptor[]{
+			new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3, 0),
+			new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.SNorm8, 4, 1),
+			new VertexAttributeDescriptor(VertexAttribute.Tangent, VertexAttributeFormat.SNorm8, 4, 1),
+			new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float16, 4, 1),
+			new VertexAttributeDescriptor(VertexAttribute.TexCoord2, VertexAttributeFormat.Float32, 2, 1)
+		}, Allocator.Persistent);
+
 		isCreated = true;
 	}
 
@@ -55,6 +65,7 @@ public static class ChunkMeshLayout{
 		collider.Dispose();
 		decal.Dispose();
 		raycast.Dispose();
+		animated.Dispose();
 
 		isCreated = false;
 	}
@@ -62,8 +73,9 @@ public static class ChunkMeshLayout{
 
 /*
 Stream 1 of the render mesh. Field order must follow the VertexAttribute order of ChunkMeshLayout.render
-Normal and Tangent are SNorm8x4. UV (u, v, texture layer) and Light UV (natural light, extra light, dampness) are Float16x4,
-which keep their integer values exact. The unused 4th components are 1, the value shaders get for missing components
+Normal and Tangent are SNorm8x4. UV (u, v, texture layer) and Light UV (natural light, extra light, dampness, 1 + damage decal code) are Float16x4,
+which keep their integer values exact. The unused 4th component of UV is 1, the value shaders get for missing components.
+The decal code is only set on Objects (see DamageDecal), so blocks keep 1
 */
 [StructLayout(LayoutKind.Sequential)]
 public struct ChunkRenderVertex{
@@ -72,15 +84,15 @@ public struct ChunkRenderVertex{
 	public half4 uv;
 	public half4 lightUV;
 
-	public ChunkRenderVertex(Vector3 normal, Vector4 tangent, Vector3 uv, Vector3 lightUV){
+	public ChunkRenderVertex(Vector3 normal, Vector4 tangent, Vector3 uv, Vector4 lightUV){
 		this.normal = PackSNorm8(normal.x, normal.y, normal.z, 0f);
 		this.tangent = PackSNorm8(tangent.x, tangent.y, tangent.z, tangent.w);
 		this.uv = new half4(new float4(uv.x, uv.y, uv.z, 1f));
-		this.lightUV = new half4(new float4(lightUV.x, lightUV.y, lightUV.z, 1f));
+		this.lightUV = new half4(new float4(lightUV.x, lightUV.y, lightUV.z, lightUV.w));
 	}
 
 	// Packs 4 values in [-1, 1] as signed normalized bytes, x being the lowest byte
-	private static uint PackSNorm8(float x, float y, float z, float w){
+	public static uint PackSNorm8(float x, float y, float z, float w){
 		return ToSNorm8(x) | (ToSNorm8(y) << 8) | (ToSNorm8(z) << 16) | (ToSNorm8(w) << 24);
 	}
 
@@ -112,5 +124,24 @@ public struct ChunkRaycastVertex{
 	public ChunkRaycastVertex(Vector3 position, Vector3 normal){
 		this.position = position;
 		this.normal = normal;
+	}
+}
+
+/*
+Stream 1 of the Animated Objects mesh. Field order must follow the VertexAttribute order of ChunkMeshLayout.animated
+UV is (u, v, texture layer). PartSlot is (part of the model, slot of the Object in ChunkAnimatedObjects), kept as Float32 so big slots stay exact
+*/
+[StructLayout(LayoutKind.Sequential)]
+public struct AnimatedObjectVertex{
+	public uint normal;
+	public uint tangent;
+	public half4 uv;
+	public float2 partSlot;
+
+	public AnimatedObjectVertex(Vector3 normal, Vector4 tangent, Vector3 uv, float part, int slot){
+		this.normal = ChunkRenderVertex.PackSNorm8(normal.x, normal.y, normal.z, 0f);
+		this.tangent = ChunkRenderVertex.PackSNorm8(tangent.x, tangent.y, tangent.z, tangent.w);
+		this.uv = new half4(new float4(uv.x, uv.y, uv.z, 1f));
+		this.partSlot = new float2(part, slot);
 	}
 }

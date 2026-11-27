@@ -118,6 +118,12 @@ public class VoxelLoader : BaseLoader {
 		materials[(int)ShaderIndex.ASSETS_SOLID].SetTexture("_TextureArray", textureArray[ShaderIndex.ASSETS_SOLID]);
 		materials[(int)ShaderIndex.ASSETS_SOLID].SetTexture("_PBRArray", pbrArray[ShaderIndex.ASSETS_SOLID]);
 
+		// Animated Objects are drawn by their own mesh (see ChunkAnimatedObjects), so chunks don't use this material
+		if(materials.Length > (int)ShaderIndex.ANIMATED_OBJECTS && materials[(int)ShaderIndex.ANIMATED_OBJECTS] != null){
+			materials[(int)ShaderIndex.ANIMATED_OBJECTS].SetTexture("_TextureArray", textureArray[ShaderIndex.ANIMATED_OBJECTS]);
+			materials[(int)ShaderIndex.ANIMATED_OBJECTS].SetTexture("_PBRArray", pbrArray[ShaderIndex.ANIMATED_OBJECTS]);
+		}
+
 		rend.GetComponent<MeshRenderer>().sharedMaterials = materials;
 	}
 
@@ -205,12 +211,28 @@ public class VoxelLoader : BaseLoader {
         return shader == ShaderIndex.OPAQUE || shader == ShaderIndex.ICE;
     }
 
-    // Whether a voxel adds geometry to the chunk collider: collidable blocks and Solid Objects (GreedyColliderJob.AppendSolidObjects)
+    // Whether a voxel adds geometry to the chunk collider: collidable blocks, Solid Objects (GreedyColliderJob.AppendSolidObjects)
+    // and solid Animated Objects, whose hitbox is their collision (GreedyColliderJob.AppendSolidHitboxes)
     public static bool CheckAddsToCollider(ushort code){
         if(code <= ushort.MaxValue/2)
             return CheckCollidable(code);
 
-        return objectBook[ushort.MaxValue - code].shaderIndex == ShaderIndex.ASSETS_SOLID;
+        BlocklikeObject obj = objectBook[ushort.MaxValue - code];
+
+        if(obj.shaderIndex == ShaderIndex.ANIMATED_OBJECTS)
+            return obj.solid;
+
+        return obj.shaderIndex == ShaderIndex.ASSETS_SOLID;
+    }
+
+    // Whether a voxel is an Object drawn by the Animated Objects mesh of its chunk
+    public static bool IsAnimatedObject(ushort code){
+        if(code <= ushort.MaxValue/2)
+            return false;
+
+        int index = ushort.MaxValue - code;
+
+        return index < objectBook.Length && objectBook[index].shaderIndex == ShaderIndex.ANIMATED_OBJECTS;
     }
 
     // Gets transparency value from block
@@ -476,7 +498,7 @@ public class VoxelLoader : BaseLoader {
 
 		foreach(ShaderIndex shader in (ShaderIndex[])Enum.GetValues(typeof(ShaderIndex))){
 			foreach(string textureName in atlasTextureNames[shader]){
-				if(shader == ShaderIndex.ASSETS || shader == ShaderIndex.ASSETS_SOLID){
+				if(shader == ShaderIndex.ASSETS || shader == ShaderIndex.ASSETS_SOLID || shader == ShaderIndex.ANIMATED_OBJECTS){
 					tex = Resources.Load<Texture2D>($"{OBJECT_RESPATH}{textureName}");
 					pbr = Resources.Load<Texture2D>($"{OBJECT_RESPATH}{textureName}{PBR_SUFFIX}");
 				}

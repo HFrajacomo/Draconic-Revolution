@@ -44,12 +44,27 @@ public class MainControllerManager : MonoBehaviour {
     private bool LOCK_INTERACT = false;
     private bool LOCK_DROP = false;
     public static bool DEBUG = false;
+    private static readonly byte EQUIPMENT_INVENTORY_CODE = 3; // Position of the equipment in PlayerInventoryManager's inventories
+
+    // Every Game session starts with no UI open, even if the last one was left with an open UI or a held key
+    void Awake(){
+        ResetSessionState();
+    }
 
     public void Update(){
         LOCK_DROP = false;
         LOCK_INTERACT = false;
         LOCK_MOUSE2 = false;
         LOCK_MOUSE1 = false;
+    }
+
+    // Static input and UI state outlives scenes, so it's reset when a session ends (ChunkLoader.Cleanup) and when one starts
+    public static void ResetSessionState(){
+        MainControllerManager.InUI = false;
+        MainControllerManager.shifting = false;
+        MainControllerManager.ctrl = false;
+        MainControllerManager.inventory = false;
+        InventoryButton.ResetCtrl();
     }
 
 	// Jumping
@@ -144,8 +159,73 @@ public class MainControllerManager : MonoBehaviour {
         SceneManager.LoadScene("Blank");
     }
 
+    // Numpad 1: replaces the player inventory with a test kit
     public void OnDebugKey2(){
-        MainControllerManager.DEBUG = !MainControllerManager.DEBUG;
+        GiveTestInventory();
+    }
+
+    /*
+    DEBUG: replaces the player inventory with a test kit (weapons, tools, torches, stone and chests in the hotbar)
+    The new inventory is sent to the Server like any other inventory change
+    */
+    public void GiveTestInventory(){
+        if(MainControllerManager.InUI)
+            return;
+
+        byte actionHotbarID = InventoryLoader.GetActionInventoryID("ACTION_HOTBAR");
+        byte hotbarID = InventoryLoader.GetInventoryID("HOTBAR");
+        byte playerID = InventoryLoader.GetInventoryID("PLAYER");
+        byte equipmentID = InventoryLoader.GetInventoryID("EQUIPMENT");
+        byte[] buffer = new byte[4096];
+        List<ItemStack> previousEquipment = new List<ItemStack>();
+        int length = 0;
+
+        for(ushort i=0; i < InventoryLoader.GetInventorySize(equipmentID); i++)
+            previousEquipment.Add(this.playerInventoryManager.GetItemStack(EQUIPMENT_INVENTORY_CODE, i));
+
+        // Action Hotbar
+        buffer[length++] = actionHotbarID;
+        length += new ActionInventorySlot(ActionLoader.GetID("BASE_EquipmentAttack"), false, 0, 0, 0, 0, actionHotbarID, 0).SaveToBuffer(buffer, length);
+
+        for(int i=1; i < InventoryLoader.GetInventorySize(actionHotbarID); i++)
+            length += EmptyPlayerInventorySlot.WriteBlank(buffer, length);
+
+        // Hotbar
+        buffer[length++] = hotbarID;
+        length += EmptyPlayerInventorySlot.WriteBlank(buffer, length);
+        length += new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Bastard_Sword"), 1000, 0, EnchantmentType.NONE, hotbarID, 1).SaveToBuffer(buffer, length);
+        length += new WeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Pickaxe"), 1000, 0, EnchantmentType.NONE, hotbarID, 2).SaveToBuffer(buffer, length);
+        length += new SubWeaponPlayerInventorySlot(ItemLoader.GetID("BASE_Torch"), 0, 50, hotbarID, 3).SaveToBuffer(buffer, length);
+        length += new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Stone"), 50, hotbarID, 4).SaveToBuffer(buffer, length);
+        length += new ItemPlayerInventorySlot(ItemLoader.GetID("BASE_Chest"), 50, hotbarID, 5).SaveToBuffer(buffer, length);
+
+        for(int i=6; i < InventoryLoader.GetInventorySize(hotbarID); i++)
+            length += EmptyPlayerInventorySlot.WriteBlank(buffer, length);
+
+        // Bag
+        buffer[length++] = playerID;
+
+        for(int i=0; i < InventoryLoader.GetInventorySize(playerID); i++)
+            length += EmptyPlayerInventorySlot.WriteBlank(buffer, length);
+
+        // Equipment
+        buffer[length++] = equipmentID;
+
+        for(int i=0; i < InventoryLoader.GetInventorySize(equipmentID); i++)
+            length += EmptyPlayerInventorySlot.WriteBlank(buffer, length);
+
+        // Applied like an inventory received from the Server
+        this.playerInventoryManager.LoadFromBytes(buffer, 0, length);
+        this.hotbarHandler.SetHotbar(this.playerInventoryManager.GetMainInventory());
+        this.hotbarHandler.SetActionHotbar(this.playerInventoryManager.GetActionInventory());
+        this.hotbarHandler.DrawActionHotbar();
+
+        this.playerInventoryManager.SendInventoryDataToServer();
+
+        for(int i=0; i < previousEquipment.Count; i++){
+            if(previousEquipment[i] != null)
+                this.playerInventoryManager.SendEquipDataToServer(EQUIPMENT_INVENTORY_CODE, previousEquipment[i], null);
+        }
     }
 
     public void OnToggleHUD(){
@@ -208,6 +288,11 @@ public class MainControllerManager : MonoBehaviour {
     }
     public void OnOpenInventory(){
         bool newState = !MainControllerManager.InUI;
+
+        // Closing the inventory also closes the container being looked at
+        if(!newState && this.playerInventoryManager.containerManager != null)
+            this.playerInventoryManager.containerManager.Close(notifyServer:true);
+
         this.inventoryGUI.SetActive(newState);
         MainControllerManager.InUI = newState;
 
@@ -228,16 +313,42 @@ public class MainControllerManager : MonoBehaviour {
             hotbarHandler.DrawHotbar();
         }
     }
-    public void CloseInventory(){
+    // ESC closes the inventory and the container being looked at, if they're open
+    public void OnCloseUI(){
+        if(!MainControllerManager.InUI)
+            return;
+
+        // Closing the inventory also closes the container being looked at
+        if(this.playerInventoryManager.containerManager != null)
+            this.playerInventoryManager.containerManager.Close(notifyServer:true);
+
         this.inventoryGUI.SetActive(false);
         MainControllerManager.InUI = false;
+
         this.playerInventoryManager.ResetSelection();
+
         MouseLook.ToggleMouseCursor(false);
 
         this.HUDActive = true;
         this.mainHUD.SetActive(this.HUDActive);
-        
         hotbarHandler.DrawHotbar();
+    }
+
+    // Opens the inventory with the container panel, after the Server sent the contents of a container the player interacted with
+    // If the inventory was already open, the held stack is kept
+    public void OpenContainer(){
+        if(!MainControllerManager.InUI){
+            this.inventoryGUI.SetActive(true);
+            MainControllerManager.InUI = true;
+            this.playerInventoryManager.ReloadInventory();
+            this.playerInventoryManager.ResetSelection();
+            MouseLook.ToggleMouseCursor(true);
+
+            this.HUDActive = false;
+            this.mainHUD.SetActive(this.HUDActive);
+        }
+
+        this.playerInventoryManager.SetContainerMode(true);
     }
 
     public void OnCtrl(){
